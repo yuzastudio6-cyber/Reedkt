@@ -1,0 +1,56 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1.scopePolicy.v1",
+  "generatedAt": "2026-06-15T00:00:00.000Z",
+  "decision": "blocked_pending_package_lock_sync_review",
+  "policy": "Batch 1 is approval/reporting only while dependency baseline is blocked. Future proof work must be separately approved after package-lock sync repair.",
+  "executionScope": {
+    "dependencyInstallAllowed": false,
+    "packageLockMutationAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  },
+  "allowedNow": [
+    "docs/report generation",
+    "diagnostics validation",
+    "non-mutating package-lock status inspection"
+  ],
+  "blockedNow": [
+    "dependency install",
+    "package-lock mutation",
+    "tool execution",
+    "media processing",
+    "worker or route execution",
+    "provider calls",
+    "Supabase or SQL writes",
+    "GCS upload",
+    "public artifact creation",
+    "signed URL source-of-truth use",
+    "raw prompt execution",
+    "beta or production unlock"
+  ],
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

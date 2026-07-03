@@ -1,0 +1,21 @@
+{
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape",
+  "generatedAt": "2026-06-20T15:53:48.495Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "schema": "reeditpro.openSourceToolStack.trackbMilestone3OcrMlCpuBlockerResolution.libglRootCause.v1",
+  "priorFailure": "ImportError: libGL.so.1 through cv2 while importing PaddleOCR",
+  "missingLibrary": "libGL.so.1",
+  "selectedPackage": "libgl1",
+  "baseImage": "python:3.12-slim",
+  "packageManager": "apt-get",
+  "packageStrategyClear": true,
+  "expectedProvider": "Debian/Ubuntu libgl1 runtime package",
+  "newBlockerAfterPatch": "libgthread-2.0.so.0",
+  "noModelOcrGpuScope": true
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.secondControlledCandidateApproval.soundMusicAudioRouteReview.v1",
+  "createdAt": "2026-06-13T21:23:32.929Z",
+  "passed": true,
+  "selectedRoute": "metadata-route:sound_music_audio",
+  "selectedFixture": "valid_sound_music_audio_metadata_route_candidate",
+  "ownerLane": "SOUND_MUSIC_AUDIO",
+  "checks": {
+    "candidatePresent": true,
+    "toolStudySourceOfTruthExists": true,
+    "soundDiagnosticsRepresentedAsPassed": true,
+    "routeMetadataOnly": true,
+    "routeFixturePassed": true,
+    "routeResolutionPassed": true,
+    "demucsRemainsBlocked": true,
+    "deepFilterNetSignalsmithRealProcessingBlocked": true,
+    "noAudioPayloadsProcessed": true,
+    "noMediaProcessed": true
+  },
+  "soundEvidence": {
+    "status": "sound_music_audio_tool_study_passed_docs_only",
+    "diagnosticsPassed": true,
+    "routingPolicyPresent": true,
+    "handoffPresent": true,
+    "diagnosticsScriptPresent": true,
+    "demucsRuntimeBlocked": true,
+    "realRuntimeReady": true
+  }
+}

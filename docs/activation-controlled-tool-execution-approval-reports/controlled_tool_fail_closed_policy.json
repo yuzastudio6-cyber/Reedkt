@@ -1,0 +1,35 @@
+{
+  "schema": "reeditpro.controlledToolExecutionApproval.failClosedPolicy.v1",
+  "createdAt": "2026-06-13T19:05:04.120Z",
+  "passed": true,
+  "failClosedOn": [
+    "missing approved plan snapshot",
+    "raw prompt input",
+    "provider response input",
+    "plan snapshot candidate input",
+    "direct route execution request",
+    "direct tool execution request",
+    "worker execution request",
+    "provider/model call request",
+    "media/audio/render/export/image/browser/map request",
+    "invalid artifact scope",
+    "public artifact request",
+    "signed URL source-of-truth request",
+    "Supabase mutation",
+    "SQL request",
+    "GCS upload request",
+    "dependency mutation request",
+    "production or beta unlock request",
+    "secret printing request"
+  ],
+  "invalidFixtureClassesRequiredForNextPhase": [
+    "raw_prompt",
+    "provider_response",
+    "candidate_snapshot",
+    "public_artifact",
+    "signed_url_source_of_truth",
+    "real_tool_execution",
+    "worker_execution",
+    "production_mutation"
+  ]
+}

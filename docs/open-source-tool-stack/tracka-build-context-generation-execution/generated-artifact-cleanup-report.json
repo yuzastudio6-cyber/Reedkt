@@ -1,0 +1,33 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationExecution.cleanup.v1",
+  "generatedAt": "2026-06-18T15:19:01.102Z",
+  "cleanupCommand": "rm -rf dist-server dist-remotion-worker dist-staging-fixture-worker dist-staging-real-video-export-worker",
+  "exitCode": 0,
+  "directories": [
+    {
+      "directory": "dist-server",
+      "removed": true,
+      "staged": false
+    },
+    {
+      "directory": "dist-remotion-worker",
+      "removed": true,
+      "staged": false
+    },
+    {
+      "directory": "dist-staging-fixture-worker",
+      "removed": true,
+      "staged": false
+    },
+    {
+      "directory": "dist-staging-real-video-export-worker",
+      "removed": true,
+      "staged": false
+    }
+  ],
+  "gitStatusAfterCleanup": "M docs/cross-chat/BLOCKED_SCOPES.md\n M docs/cross-chat/CURRENT_HANDOFF.md\n M docs/cross-chat/NEXT_UNLOCK_LANES.md\n M docs/open-source-tool-stack/open-source-tool-stack-decision.md\n M docs/open-source-tool-stack/open-source-tool-stack-next-install-batches.md\n M package.json\n?? docs/open-source-tool-stack/tracka-build-context-generation-execution/\n?? scripts/validation/open-source-tool-stack-tracka-build-context-generation-diagnostics.mjs\n?? server/activation/open-source-tool-stack-tracka-build-context-generation-execution/\n?? server/cli/open-source-tool-stack-tracka-build-context-generation-plan.ts\n?? server/cli/open-source-tool-stack-tracka-build-context-generation-report.ts\n?? server/cli/open-source-tool-stack-tracka-build-context-generation-summary.ts\n?? server/cli/open-source-tool-stack-tracka-build-context-generation.ts\n?? server/smoke/open-source-tool-stack-tracka-build-context-generation-smoke.ts",
+  "generatedOutputsStaged": false,
+  "passed": true,
+  "stdoutPreview": "",
+  "stderrPreview": ""
+}

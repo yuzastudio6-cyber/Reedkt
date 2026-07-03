@@ -1,0 +1,20 @@
+{
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape",
+  "generatedAt": "2026-06-20T15:53:48.495Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-cpu-libgl-a80edbdc5bcf434b0cd70f9f8bae9523a2e1c1fa",
+  "exitCode": 0,
+  "elapsedSeconds": 0.208,
+  "libGLPresent": true,
+  "proof": [
+    "libGL.so.1 (libc6,AArch64) => /lib/aarch64-linux-gnu/libGL.so.1",
+    "libGL.so.1 load ok"
+  ],
+  "networkNone": true
+}

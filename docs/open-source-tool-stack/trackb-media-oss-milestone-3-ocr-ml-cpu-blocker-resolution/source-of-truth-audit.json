@@ -1,0 +1,95 @@
+{
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape",
+  "generatedAt": "2026-06-20T15:53:48.495Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "schema": "reeditpro.openSourceToolStack.trackbMilestone3OcrMlCpuBlockerResolution.sourceAudit.v1",
+  "sourceSha": "a80edbdc5bcf434b0cd70f9f8bae9523a2e1c1fa",
+  "branchName": "codex/rp-trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution",
+  "sourceEvidence": [
+    {
+      "pr": 587,
+      "state": "MERGED"
+    },
+    {
+      "pr": 583,
+      "state": "MERGED"
+    },
+    {
+      "pr": 578,
+      "state": "MERGED"
+    },
+    {
+      "pr": 574,
+      "state": "MERGED"
+    },
+    {
+      "pr": 571,
+      "state": "MERGED"
+    },
+    {
+      "pr": 567,
+      "state": "MERGED"
+    },
+    {
+      "pr": 563,
+      "state": "MERGED"
+    },
+    {
+      "pr": 559,
+      "state": "MERGED"
+    },
+    {
+      "pr": 557,
+      "state": "MERGED"
+    },
+    {
+      "pr": 551,
+      "state": "MERGED"
+    },
+    {
+      "pr": 549,
+      "state": "MERGED"
+    },
+    {
+      "pr": 546,
+      "state": "MERGED"
+    },
+    {
+      "pr": 545,
+      "state": "MERGED"
+    },
+    {
+      "pr": 542,
+      "state": "MERGED"
+    }
+  ],
+  "sourcePr587Decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_followup_blocked_by_paddleocr_import_or_api_shape",
+  "priorPr587Evidence": {
+    "libgompPatchLanded": true,
+    "dockerBuildPassed": true,
+    "libgompPresent": true,
+    "paddlePaddlePassed": true,
+    "paddleOcrBlockedBy": "libGL.so.1"
+  },
+  "hashes": {
+    "packageJson": "f990e0a307b35ae64dbb3022b925c0baf5df3f77ed9b66e5c190859fed2a95c3",
+    "packageLock": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+    "ocrRuntimeDockerfile": "cb345152b0006939db776fa2a76bd4128247a11c17bf4149fbcb21d62be8703f",
+    "ocrRuntimeRequirements": "b51d22ad3d74ed41b11b27fd4db545e283c4b88147abd149dd20e0ae7b79d365"
+  },
+  "noScopeConfirmation": {
+    "ocrInference": false,
+    "modelDownloads": false,
+    "modelCopies": false,
+    "modelUploads": false,
+    "gpu": false,
+    "media": false,
+    "supabase": false
+  }
+}

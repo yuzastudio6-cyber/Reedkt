@@ -1,0 +1,38 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review",
+  "previousDecision": "trackb_media_oss_product_beta_runtime_approval_passed_ready_for_product_beta_runtime_controlled_activation_execution",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-controlled-activation-execution",
+  "sourceSha": "1dee0a124f6797cb56bffe1a88bd8410c40ef0fc",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW",
+  "blockedScopes": [
+    "live_product_calls",
+    "direct_route_dispatch_to_real_tools",
+    "worker_dispatch_to_real_tools",
+    "real_tool_execution",
+    "docker",
+    "installs",
+    "media_processing",
+    "user_media_by_default",
+    "public_artifacts",
+    "signed_urls",
+    "supabase_gcs_writes",
+    "external_beta",
+    "production",
+    "product_ready_local_oss_status"
+  ],
+  "liveProductCallsApproved": false,
+  "routeDispatchApproved": false,
+  "workerDispatchToRealToolsApproved": false,
+  "realToolExecutionApproved": false,
+  "productReadyApproved": false
+}

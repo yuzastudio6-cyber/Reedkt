@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationExecution.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-18T15:19:01.102Z",
+  "reportDirectory": "docs/open-source-tool-stack/tracka-build-context-generation-execution",
+  "generatedDistOutputsCreated": true,
+  "generatedDistOutputsCommitted": false,
+  "generatedDistOutputsRemovedBeforeCommit": true,
+  "rawGeneratedFileContentsCommitted": false,
+  "scanStoredOnlySafeSummaries": true,
+  "dockerImagesBuilt": false,
+  "dockerImagesPushed": false,
+  "mediaArtifactsCreated": false,
+  "privatePayloadsAccessed": false,
+  "secretsAccessed": false,
+  "secretsPrinted": false,
+  "secretsCommitted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false
+}

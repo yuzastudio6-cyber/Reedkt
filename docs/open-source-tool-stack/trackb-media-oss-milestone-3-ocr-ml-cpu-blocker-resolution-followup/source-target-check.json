@@ -1,0 +1,32 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuBlockerResolutionFollowup.sourceTargetCheck.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_followup_blocked_by_model_asset_required",
+  "generatedAt": "2026-06-20T18:00:21.252Z",
+  "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+  "targetRequirements": "docker/prod/ocr-runtime/requirements.ocr.txt",
+  "dockerfileExists": true,
+  "requirementsExists": true,
+  "baseImage": "python:3.12-slim",
+  "packageManager": "apt",
+  "requiredPackages": [
+    "libgomp1",
+    "libgl1",
+    "libglib2.0-0"
+  ],
+  "aptLayerContainsAllRequiredPackages": true,
+  "packagePresence": {
+    "paddlepaddle==3.0.0": true,
+    "paddleocr==3.0.0": true
+  },
+  "envGuards": {
+    "modelDownloadsDisabled": true,
+    "realMediaInputDisabled": true,
+    "providerExecutionDisabled": true
+  },
+  "buildContextGenerationRequired": false,
+  "packageLockMutationAllowed": false,
+  "requirementsMutationAllowed": false,
+  "dockerfileMutationAllowed": true,
+  "unrelatedDockerfileMutationAllowed": false,
+  "sourceTargetValid": true
+}

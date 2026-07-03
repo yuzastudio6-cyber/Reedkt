@@ -1,0 +1,17 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssCallableWorkerContracts.runtimeBoundary.v1",
+  "decision": "trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun",
+  "dockerRun": false,
+  "toolExecutionRun": false,
+  "mediaProcessingRun": false,
+  "imageProcessingRun": false,
+  "workerDispatchRun": false,
+  "routeRuntimeRun": false,
+  "supabaseWriteRun": false,
+  "gcsWriteRun": false,
+  "publicArtifactCreated": false,
+  "signedUrlCreated": false,
+  "betaUnlocked": false,
+  "productionUnlocked": false,
+  "productReadyTools": 0
+}

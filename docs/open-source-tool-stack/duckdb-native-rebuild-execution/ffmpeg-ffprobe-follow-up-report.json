@@ -1,0 +1,14 @@
+{
+  "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildExecution.ffmpegFfprobeFollowUp.v1",
+  "generatedAt": "2026-06-17T19:44:55.097Z",
+  "ffmpegStatus": "missing_system_binary",
+  "ffprobeStatus": "missing_system_binary",
+  "ffmpegExistingReportPath": "docs/open-source-tool-stack/missing-optional-package-binary-execution/ffmpeg-version-check-report.json",
+  "ffprobeExistingReportPath": "docs/open-source-tool-stack/missing-optional-package-binary-execution/ffprobe-version-check-report.json",
+  "ffmpegVersionProbeRunInThisPhase": false,
+  "ffprobeVersionProbeRunInThisPhase": false,
+  "ffmpegInstallAttempted": false,
+  "ffprobeInstallAttempted": false,
+  "mediaProcessingAttempted": false,
+  "systemBinaryReviewRemainsSeparate": true
+}

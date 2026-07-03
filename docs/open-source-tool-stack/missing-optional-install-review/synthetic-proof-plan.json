@@ -1,0 +1,43 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalInstallReview.syntheticProofPlan.v1",
+  "generatedAt": "2026-06-16T15:43:59.367Z",
+  "proofExecutionAllowedInThisReview": false,
+  "futureProofs": [
+    {
+      "targetId": "duckdb_metadata_query_proof",
+      "futureProof": "Node import/version plus in-memory SELECT 1 metadata query",
+      "inputClass": "synthetic_in_memory_metadata_only",
+      "filesRead": false,
+      "mediaTouched": false
+    },
+    {
+      "targetId": "polars_metadata_dataframe_proof",
+      "futureProof": "Node import/version plus in-memory dataframe construction and row-count metadata",
+      "inputClass": "synthetic_in_memory_metadata_only",
+      "filesRead": false,
+      "mediaTouched": false
+    },
+    {
+      "targetId": "ffmpeg_version_probe",
+      "futureProof": "ffmpeg -version only in an approved runtime",
+      "inputClass": "no_input_version_metadata_only",
+      "filesRead": false,
+      "mediaTouched": false
+    },
+    {
+      "targetId": "ffprobe_version_probe",
+      "futureProof": "ffprobe -version only in an approved runtime",
+      "inputClass": "no_input_version_metadata_only",
+      "filesRead": false,
+      "mediaTouched": false
+    }
+  ],
+  "failClosedRequirements": [
+    "stop if any proof asks to install dependencies",
+    "stop if any proof reads user files or media",
+    "stop if any proof creates public artifacts or signed URLs",
+    "stop if package-lock changes outside the approved phase"
+  ],
+  "executionFlagsRemainFalse": true,
+  "passed": true
+}

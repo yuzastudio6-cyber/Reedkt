@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuBlockerResolutionFollowup.dockerfilePatch.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_followup_blocked_by_model_asset_required",
+  "generatedAt": "2026-06-20T18:00:21.252Z",
+  "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+  "approvedPackage": "libglib2.0-0",
+  "preservedPackages": [
+    "libgomp1",
+    "libgl1"
+  ],
+  "patchApplied": true,
+  "changedFiles": [
+    "docker/prod/ocr-runtime/Dockerfile"
+  ],
+  "requirementsMutated": false,
+  "packageLockMutated": false,
+  "dockerignoreMutated": false,
+  "unrelatedDockerfilesMutated": false
+}

@@ -1,0 +1,33 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review",
+  "controlExecutionMode": "metadata_only_no_runtime",
+  "controlResults": {
+    "routeRuntimeDefault": "disabled",
+    "routeRuntimeActivationFlagRequired": true,
+    "routeRuntimeActivated": false,
+    "workerDispatchDefault": "disabled",
+    "workerDispatchAllowlistsRecorded": true,
+    "workerDispatchActivated": false,
+    "approvedSnapshotRequired": true,
+    "editPlanRequired": true,
+    "creditReservationRequired": true,
+    "serviceRoleWritesRemainBackendOnly": true,
+    "supabaseGcsWritePathsRemainDisabled": true,
+    "monitoringSchemaSanitized": true,
+    "rollbackRecordShapeProven": true,
+    "rollbackExecutedAgainstLiveRuntime": false,
+    "limitedInternalExposureActivated": false
+  },
+  "negativeCasesRemainBlocked": {
+    "missingApprovedSnapshot": true,
+    "missingCreditReservation": true,
+    "executionEnabledTrue": true,
+    "workerDispatchWithoutAllowlist": true,
+    "publicOrSignedArtifactPath": true,
+    "rawPromptMetadata": true,
+    "userMediaByDefault": true,
+    "supabaseGcsWriteAttempt": true
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW"
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "reeditpro.externalBetaProductionReadinessRemediationPlan.v1",
+  "ownerId": "REEDITPRO_PRODUCT_READINESS_STEWARD",
+  "decision": "reeditpro_external_beta_production_readiness_remediation_plan_passed_ready_for_deployment_rollback_readiness_plan",
+  "previousDecision": "trackb_media_oss_external_beta_production_readiness_gap_review_blocked_pending_reeditpro_global_readiness_remediation_plan",
+  "nextPrompt": "REEDITPRO_DEPLOYMENT_ROLLBACK_READINESS_PLAN",
+  "sourceSha": "d470ed12a184a2838029c76d22c788758ecb7863",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-external-beta-production-readiness-remediation-plan",
+  "report": "owner-gate-evidence-matrix",
+  "requiredGates": [
+    {
+      "id": "deploymentRollback",
+      "ownerLane": "platform_release_ops",
+      "evidenceRequired": ["deployment_plan", "rollback_plan", "environment_matrix", "release_freeze_policy"]
+    },
+    {
+      "id": "modelLicenseApprovals",
+      "ownerLane": "model_policy_security",
+      "evidenceRequired": ["model_inventory", "license_decisions", "weight_provenance", "provider_policy"]
+    },
+    {
+      "id": "securityReview",
+      "ownerLane": "security",
+      "evidenceRequired": ["secret_scan", "dependency_review", "route_auth_review", "data_access_review"]
+    },
+    {
+      "id": "costBudgetsConcurrencyKillSwitches",
+      "ownerLane": "cost_ops",
+      "evidenceRequired": ["budget_limits", "concurrency_limits", "queue_limits", "kill_switch_controls"]
+    },
+    {
+      "id": "privateStorageDeletionWorkflows",
+      "ownerLane": "privacy_storage",
+      "evidenceRequired": ["private_bucket_policy", "retention_policy", "deletion_workflow", "audit_log_policy"]
+    },
+    {
+      "id": "observabilityAlertRouting",
+      "ownerLane": "ops_observability",
+      "evidenceRequired": ["metrics_plan", "alert_routes", "error_categories", "dashboard_list"]
+    },
+    {
+      "id": "incidentResponse",
+      "ownerLane": "ops_support",
+      "evidenceRequired": ["incident_owner", "runbook", "severity_matrix", "customer_response_policy"]
+    },
+    {
+      "id": "backendDatabaseBillingCreditLedger",
+      "ownerLane": "backend_billing",
+      "evidenceRequired": ["database_readiness", "rls_review", "stripe_readiness", "production_credit_ledger"]
+    },
+    {
+      "id": "realGenerationExportWorkers",
+      "ownerLane": "worker_runtime_qa",
+      "evidenceRequired": ["worker_dispatch_proof", "approved_snapshot_enforcement", "render_export_e2e", "qa_artifact_manifest"]
+    },
+    {
+      "id": "publicArtifactSignedUrlDeliveryPolicy",
+      "ownerLane": "delivery_security",
+      "evidenceRequired": ["public_artifact_policy", "signed_url_policy", "delivery_expiration_policy", "share_revocation_policy"]
+    }
+  ],
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

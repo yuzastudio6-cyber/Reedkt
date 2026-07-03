@@ -19,6 +19,7 @@ export type ProductionHardeningOverallStatus =
   | 'warning'
   | 'ready_for_internal_testing'
   | 'ready_for_limited_beta'
+  | 'ready_for_paid_production'
   | 'not_ready'
 
 export interface ProductionHardeningCheck {
@@ -35,7 +36,7 @@ export interface ProductionReadinessScorecard {
   warningCount: number
   manualReviewCount: number
   categoryScores: Record<ProductionHardeningCategory, number>
-  productionReadyAllowed: false
+  productionReadyAllowed: boolean
   limitedBetaAllowed: boolean
 }
 
@@ -66,6 +67,6 @@ export interface ProductionHardeningReport {
   manualReviewItems: string[]
   riskRegister: ProductionRiskRegisterItem[]
   nextActions: string[]
-  productionReadyAllowed: false
+  productionReadyAllowed: boolean
   limitedBetaAllowed: boolean
 }

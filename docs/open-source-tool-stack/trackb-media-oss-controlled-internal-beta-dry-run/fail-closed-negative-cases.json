@@ -1,0 +1,25 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssControlledInternalBetaDryRun.failClosedNegativeCases.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_controlled_internal_beta_dry_run_passed_ready_for_internal_beta_fixture_gate_review",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "negativeCases": [
+    {
+      "id": "missing_approved_snapshot",
+      "blocked": true
+    },
+    {
+      "id": "execution_enabled_true",
+      "blocked": true
+    },
+    {
+      "id": "signed_url_artifact_path",
+      "blocked": true
+    },
+    {
+      "id": "raw_prompt_metadata",
+      "blocked": true
+    }
+  ],
+  "allNegativeCasesBlocked": true
+}

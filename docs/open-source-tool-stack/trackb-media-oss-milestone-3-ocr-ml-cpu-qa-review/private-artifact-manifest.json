@@ -1,0 +1,18 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuQaReview.privateManifest.v1",
+  "generatedAt": "2026-06-21T02:28:00.283Z",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "99595b05b65dd2e6789aceecc144560db1e442cb",
+  "reportsDirectory": "docs/open-source-tool-stack/trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review",
+  "privateArtifactPayloadsCommitted": false,
+  "generatedBuildContextOutputsCommitted": false,
+  "fixtureOutputsCommitted": false,
+  "fontArtifactsCommitted": false,
+  "modelArtifactsCommitted": false,
+  "mediaArtifactsCommitted": false,
+  "dockerOutputsCommitted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "secretsPrinted": false
+}

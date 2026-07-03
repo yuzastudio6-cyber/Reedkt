@@ -1,0 +1,101 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2QaReview.sourceAudit.v1",
+  "generatedAt": "2026-06-20T04:03:52.230Z",
+  "decision": "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review",
+  "branchName": "codex/rp-trackb-media-oss-milestone-2-qa-review",
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "expectedSourceSha": "18f4ca37c45aa2b0b69d0e2192f297b25d2514e6",
+  "sourceSha": "18f4ca37c45aa2b0b69d0e2192f297b25d2514e6",
+  "sourceCompatible": true,
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceEvidence": [
+    {
+      "pr": 571,
+      "state": "MERGED",
+      "mergeCommit": "18f4ca37c45aa2b0b69d0e2192f297b25d2514e6",
+      "headSha": "be085a60e27d884fdb5137fc2c0783bfc946195d",
+      "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded",
+      "evidenceAcceptedForQa": true
+    },
+    {
+      "pr": 567,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution"
+    },
+    {
+      "pr": 563,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval"
+    },
+    {
+      "pr": 559,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa"
+    },
+    {
+      "pr": 557,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof"
+    },
+    {
+      "pr": 551,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context"
+    },
+    {
+      "pr": 549,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution"
+    },
+    {
+      "pr": 546,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_blocked_pending_container_packaging_approval"
+    },
+    {
+      "pr": 545,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution"
+    },
+    {
+      "pr": 542,
+      "state": "MERGED",
+      "ownerId": "TRACK_B_MEDIA_OSS_STEWARD"
+    },
+    {
+      "pr": 125,
+      "state": "historical_context_only",
+      "canonicalAuthority": false
+    }
+  ],
+  "acceptedMilestone2Tools": [
+    "opencv",
+    "pyav",
+    "pyscenedetect"
+  ],
+  "protectedFileHashes": {
+    "package.json": "74bfd2d7361f76b8687f64bd8fa05fef949688a0aa673acbd106da292e3f8e0b",
+    "package-lock.json": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+    ".dockerignore": "0dd21619da96b9fc72b4429efd6d8b48c435854ffd99daadd97ccea0bda22c91",
+    "docker/prod/render-worker/Dockerfile": "5c74565f21853301c2ad159d7dccdb0dfb48e1d33d39ab55fe330f6a409310e9",
+    "docker/prod/cpu-worker/Dockerfile": "e4470a77095330b990a33d019d76b1bf87cb94d06f12f1b4a478d3171b578c7f",
+    "docker/prod/cpu-worker/requirements.cpu.txt": "de5a91fd7331fc802a52508b470f9facef858051782e5ce3a2a97e4775b65461"
+  },
+  "broadProductionDocsAbsentAuditFacts": {
+    "docs/beta-readiness-scorecard.md": true,
+    "docs/production-beta-blocker-inventory.md": true,
+    "PRODUCTION_FOUNDATION_STATUS": true
+  },
+  "noScopeConfirmation": {
+    "toolExecutionRunInQaPhase": false,
+    "dockerRunInQaPhase": false,
+    "buildContextGenerationRunInQaPhase": false,
+    "installRunInQaPhase": false,
+    "supabaseClassification": {
+      "updateRequired": "no write",
+      "environmentTouched": "none",
+      "sqlExecuted": "none",
+      "migrationDeployed": "no"
+    }
+  }
+}

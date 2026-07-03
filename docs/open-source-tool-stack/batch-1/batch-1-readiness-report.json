@@ -1,0 +1,40 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1.readinessReport.v1",
+  "generatedAt": "2026-06-15T00:00:00.000Z",
+  "decision": "blocked_pending_package_lock_sync_review",
+  "readyForInstallProofExecution": false,
+  "docsDiagnosticsComplete": true,
+  "dependencyBaselineReady": false,
+  "packageLockUnchanged": true,
+  "noDependencyCandidatesConditionallyEligible": true,
+  "dependencySystemCandidatesConditionallyEligible": true,
+  "blockers": [
+    "package_lock_sync_review",
+    "install_proof_execution_not_authorized"
+  ],
+  "executionScope": {
+    "dependencyInstallAllowed": false,
+    "packageLockMutationAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

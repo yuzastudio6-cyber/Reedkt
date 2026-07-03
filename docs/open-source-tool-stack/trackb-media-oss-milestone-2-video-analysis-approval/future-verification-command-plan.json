@@ -1,0 +1,31 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisApproval.futureVerificationCommands.v1",
+  "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution",
+  "commandsAreFutureOnly": true,
+  "commandsRunInThisPhase": false,
+  "commands": [
+    {
+      "tool": "opencv",
+      "version": "python -c \"import cv2; print(cv2.__version__)\"",
+      "fixture": "tiny synthetic image/array operation in private temp storage"
+    },
+    {
+      "tool": "pyav",
+      "version": "python -c \"import av; print(av.__version__)\"",
+      "fixture": "safe synthetic container/frame fixture or documented fixture-deferred result"
+    },
+    {
+      "tool": "pyscenedetect",
+      "version": "python -c \"import scenedetect; print(getattr(scenedetect, '__version__', 'unknown'))\"",
+      "fixture": "safe synthetic scene fixture or documented fixture-deferred result"
+    }
+  ],
+  "networkPolicy": "container_or_worker_bounded_no_public_artifacts",
+  "forbiddenFutureExpansionWithoutSeparateApproval": [
+    "FFmpeg/FFprobe execution",
+    "real user media",
+    "render/export",
+    "workers/routes/providers product runtime",
+    "Supabase/GCS/public/signed URL delivery"
+  ]
+}

@@ -1,0 +1,45 @@
+# Reconciled Tool Count Summary
+
+- Schema: `reeditpro.openSourceToolStack.ownerLaneReconciliationAfterBatch1Rollup.reconciledToolCountSummary.v1`
+- Status: `accepted`
+- Accepted: `true`
+- Warnings: `metadata_only_runtime_scopes_remain_blocked`
+- Blockers: none
+
+```json
+{
+  "inventoryCandidateCount": 71,
+  "batch1ActualOssToolsLibrariesAcceptedProven": [
+    "Sharp/libvips",
+    "DuckDB",
+    "Polars / nodejs-polars",
+    "FFmpeg version-proven only for Track A container path at 5.1.9-0+deb12u1",
+    "FFprobe version-proven only for Track A container path at 5.1.9-0+deb12u1"
+  ],
+  "batch1ValidationTargetsAcceptedProven": [
+    "route/capability manifest validation",
+    "fixture/report validation",
+    "inventory/proof matrix validation"
+  ],
+  "aiGraphicsAcceptedWithWarningsCount": 13,
+  "aiGraphicsAcceptedWithWarningsTools": [
+    "d3",
+    "echarts",
+    "vega-lite",
+    "vega",
+    "satori",
+    "@svgdotjs/svg.js",
+    "@viz-js/viz",
+    "lottie-web",
+    "animejs",
+    "three",
+    "pixi.js",
+    "konva",
+    "babylonjs"
+  ],
+  "endToEndProductReadyTools": 0,
+  "fortyPlusToolsInstalledProvenEndToEndClaimAllowed": false,
+  "warning": "Do not claim 40+ tools are installed/proven end-to-end. Current evidence supports bounded Batch 1 proof plus owner-lane accepted-with-warnings and metadata/dry-run scoped evidence.",
+  "requiredForEndToEndProven": "central source-of-truth install evidence, bounded runtime proof, E2E validation, owner approval, artifact/privacy review, and runtime/product gate approval"
+}
+```

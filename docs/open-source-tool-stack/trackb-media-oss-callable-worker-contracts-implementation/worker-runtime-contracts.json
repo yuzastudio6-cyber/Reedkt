@@ -1,0 +1,38 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssCallableWorkerContracts.workerRuntime.v1",
+  "decision": "trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun",
+  "contractModule": "src/backend/contracts/trackb-media-oss-tool-call-contracts.ts",
+  "toolCount": 16,
+  "tools": [
+    "ffmpeg",
+    "ffprobe",
+    "sharp_libvips",
+    "duckdb",
+    "polars_nodejs_polars",
+    "exiftool",
+    "mediainfo",
+    "tesseract",
+    "imagemagick",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "paddlepaddle",
+    "paddleocr",
+    "opencolorio",
+    "openimageio"
+  ],
+  "workerType": "cpu_analysis_worker",
+  "executionEnabled": false,
+  "requiredGates": [
+    "approvedSnapshotId",
+    "editPlanId",
+    "idempotencyKey",
+    "creditReservationId",
+    "privateInputArtifacts",
+    "requiredQualityGateIds",
+    "fallbackPolicyId",
+    "resultSchemaVersion"
+  ],
+  "sanitizedLoggingOnly": true,
+  "workerRuntimeApprovedNow": false
+}

@@ -1,0 +1,7 @@
+{
+  "schema": "reeditpro.openSourceToolStack.packageInstallScriptReview.blockerReport.v1",
+  "generatedAt": "2026-06-17T18:04:39.901Z",
+  "decision": "package_install_script_review_passed_ready_for_duckdb_native_rebuild_execution",
+  "blockers": [],
+  "blockerCount": 0
+}

@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.secondControlledCandidateApproval.workerHandoffReview.v1",
+  "createdAt": "2026-06-13T21:23:32.929Z",
+  "passed": true,
+  "candidateId": "controlled-tool:second_fixture_report_validation",
+  "workerHandoffRequiredForThisCandidate": false,
+  "workerExecutionApprovedThisPhase": false,
+  "queueEnqueueAllowed": false,
+  "subprocessDockerCloudRunAllowed": false,
+  "futureWorkerHandoffRequiredBeforeRealAudioMediaToolExecution": true,
+  "futureWorkerHandoffRequires": [
+    "approved_plan_snapshot_v1 ref",
+    "idempotency key",
+    "correlation id",
+    "private artifact manifest refs",
+    "checksum refs",
+    "cost/audit metadata",
+    "separate WORKER_RUNTIME_JOBS approval"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssFinalRollup.toolCoverage.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_final_rollup_passed_ready_for_tool_call_beta_readiness_review",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "counts": {
+    "ownedTools": 16,
+    "acceptedProvenBounded": 16,
+    "blockedNotInstalledProven": 0,
+    "endToEndProductReady": 0
+  },
+  "allOwnedToolsBoundedAcceptedProven": true,
+  "acceptedTools": [
+    "ffmpeg",
+    "ffprobe",
+    "sharp_libvips",
+    "duckdb",
+    "polars_nodejs_polars",
+    "exiftool",
+    "mediainfo",
+    "tesseract",
+    "imagemagick",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "paddlepaddle",
+    "paddleocr",
+    "opencolorio",
+    "openimageio"
+  ],
+  "finalTwoAcceptedByPr741": [
+    {
+      "id": "opencolorio",
+      "name": "OpenColorIO",
+      "version": "2.5.2",
+      "proofBoundary": "cpu_worker_container_import_version_raw_config_api_shape_no_media_processing"
+    },
+    {
+      "id": "openimageio",
+      "name": "OpenImageIO",
+      "version": "3.1.14.1",
+      "proofBoundary": "cpu_worker_container_import_version_imagespec_imagebuf_api_shape_no_file_io_no_media_processing"
+    }
+  ],
+  "notAcceptedAsProductReady": true,
+  "fortyPlusEndToEndClaimAllowed": false
+}

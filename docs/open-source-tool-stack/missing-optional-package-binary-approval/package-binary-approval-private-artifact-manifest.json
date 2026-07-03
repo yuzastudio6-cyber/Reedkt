@@ -1,0 +1,43 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryApproval.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-17T03:39:30.998Z",
+  "artifactScope": "repo_committed_json_markdown_docs_only",
+  "reportDirectory": "docs/open-source-tool-stack/missing-optional-package-binary-approval",
+  "reports": [
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/source-of-truth-audit.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/evidence-revalidation-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/evidence-revalidation-report.md",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/duckdb-package-approval.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/duckdb-package-approval.md",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/polars-package-approval.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/polars-package-approval.md",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/ffmpeg-ffprobe-binary-approval.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/ffmpeg-ffprobe-binary-approval.md",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/package-lock-policy.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/package-lock-policy.md",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/system-binary-worker-container-policy.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/system-binary-worker-container-policy.md",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/future-execution-scope.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/future-execution-scope.md",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/package-binary-approval-decision.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/package-binary-approval-decision.md",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/package-binary-approval-readiness-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/package-binary-approval-blocker-report.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/package-binary-approval-private-artifact-manifest.json",
+    "docs/open-source-tool-stack/missing-optional-package-binary-approval/package-binary-approval-validation-results.md"
+  ],
+  "docs": [
+    "docs/implementation-prompts/prompt-open-source-tool-stack-missing-optional-package-and-binary-execution.md",
+    "docs/open-source-tool-stack/open-source-tool-stack-decision.md",
+    "docs/open-source-tool-stack/open-source-tool-stack-next-install-batches.md",
+    "docs/cross-chat/CURRENT_HANDOFF.md",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md",
+    "docs/cross-chat/BLOCKED_SCOPES.md",
+    "docs/cross-chat/READ_FIRST_FOR_ALL_OWNERS.md"
+  ],
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "gcsUploads": false,
+  "mediaArtifactsCommitted": false,
+  "privatePayloadsCommitted": false
+}

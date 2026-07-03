@@ -1,0 +1,17 @@
+{
+  "schema": "reeditpro.openSourceToolStack.packageInstallScriptReview.lifecycleScriptSafetyPolicy.v1",
+  "generatedAt": "2026-06-17T18:04:39.901Z",
+  "packageLifecycleScriptExecutionApprovedNow": false,
+  "futureLifecycleScriptExecutionApproved": true,
+  "futureScopePackage": "duckdb",
+  "futureCommand": "npm rebuild duckdb --ignore-scripts=false --no-audit --no-fund",
+  "broadScriptExecutionAllowed": false,
+  "packageLockMutationExpected": false,
+  "packageJsonMutationExpected": false,
+  "networkAllowedOnlyForDuckdbNativeArtifactRequirement": true,
+  "stopOnUnexpectedTrackedDiff": true,
+  "nodeModulesNativeArtifactCommitAllowed": false,
+  "secretsPrivateDataAllowed": false,
+  "mediaProcessingAllowed": false,
+  "supabaseGcsAllowed": false
+}

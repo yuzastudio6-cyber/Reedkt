@@ -1,0 +1,23 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssInstallProofMilestonePlan.computePolicy.v1",
+  "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution",
+  "principle": "Use CPU for metadata-only, lightweight, or fast-enough work; use GPU when CPU would make edit workflows slow, laggy, timeout-prone, memory-heavy, or below beta-quality latency.",
+  "tools": [
+    { "id": "ffmpeg", "compute_default": "cpu_default_gpu_optional", "proof_compute": "cpu", "future_runtime_compute": "gpu_on_demand", "cost_tier": "medium", "latency_risk": "high", "beta_impact": "critical_for_heavy_edits", "fallback": "queue_async" },
+    { "id": "ffprobe", "compute_default": "cpu_only", "proof_compute": "cpu", "future_runtime_compute": "cpu", "cost_tier": "low", "latency_risk": "low", "beta_impact": "foundational", "fallback": "cpu_fallback" },
+    { "id": "sharp_libvips", "compute_default": "cpu_only", "proof_compute": "cpu", "future_runtime_compute": "cpu", "cost_tier": "low", "latency_risk": "low", "beta_impact": "useful", "fallback": "cpu_fallback" },
+    { "id": "duckdb", "compute_default": "cpu_only", "proof_compute": "cpu", "future_runtime_compute": "cpu", "cost_tier": "low", "latency_risk": "low", "beta_impact": "foundational", "fallback": "cpu_fallback" },
+    { "id": "polars_nodejs_polars", "compute_default": "cpu_only", "proof_compute": "cpu", "future_runtime_compute": "cpu", "cost_tier": "low", "latency_risk": "low", "beta_impact": "foundational", "fallback": "cpu_fallback" },
+    { "id": "opencv", "compute_default": "cpu_default_gpu_optional", "proof_compute": "cpu_then_gpu", "future_runtime_compute": "gpu_on_demand", "cost_tier": "medium", "latency_risk": "high", "beta_impact": "critical_for_heavy_edits", "fallback": "degrade_gracefully" },
+    { "id": "pyav", "compute_default": "cpu_default_gpu_optional", "proof_compute": "cpu", "future_runtime_compute": "gpu_on_demand", "cost_tier": "medium", "latency_risk": "medium", "beta_impact": "useful", "fallback": "queue_async" },
+    { "id": "pyscenedetect", "compute_default": "cpu_default_gpu_optional", "proof_compute": "cpu", "future_runtime_compute": "cpu", "cost_tier": "low", "latency_risk": "medium", "beta_impact": "useful", "fallback": "queue_async" },
+    { "id": "paddleocr", "compute_default": "gpu_recommended_for_heavy_jobs", "proof_compute": "cpu_then_gpu", "future_runtime_compute": "batch_gpu", "cost_tier": "high", "latency_risk": "high", "beta_impact": "critical_for_heavy_edits", "fallback": "block_until_gpu_available" },
+    { "id": "paddlepaddle", "compute_default": "gpu_required_for_beta_quality_latency", "proof_compute": "cpu_then_gpu", "future_runtime_compute": "batch_gpu", "cost_tier": "burst_only", "latency_risk": "high", "beta_impact": "critical_for_heavy_edits", "fallback": "block_until_gpu_available" },
+    { "id": "mediainfo", "compute_default": "cpu_only", "proof_compute": "cpu", "future_runtime_compute": "cpu", "cost_tier": "low", "latency_risk": "low", "beta_impact": "foundational", "fallback": "cpu_fallback" },
+    { "id": "exiftool", "compute_default": "cpu_only", "proof_compute": "cpu", "future_runtime_compute": "cpu", "cost_tier": "low", "latency_risk": "low", "beta_impact": "foundational", "fallback": "cpu_fallback" },
+    { "id": "imagemagick_graphicsmagick", "compute_default": "cpu_default_gpu_optional", "proof_compute": "cpu", "future_runtime_compute": "cpu", "cost_tier": "low", "latency_risk": "medium", "beta_impact": "useful", "fallback": "degrade_gracefully" },
+    { "id": "tesseract", "compute_default": "cpu_only", "proof_compute": "cpu", "future_runtime_compute": "cpu", "cost_tier": "low", "latency_risk": "medium", "beta_impact": "useful", "fallback": "degrade_gracefully" },
+    { "id": "opencolorio", "compute_default": "cpu_default_gpu_optional", "proof_compute": "cpu", "future_runtime_compute": "gpu_on_demand", "cost_tier": "medium", "latency_risk": "medium", "beta_impact": "useful", "fallback": "degrade_gracefully" },
+    { "id": "openimageio", "compute_default": "cpu_default_gpu_optional", "proof_compute": "cpu", "future_runtime_compute": "gpu_on_demand", "cost_tier": "medium", "latency_risk": "medium", "beta_impact": "useful", "fallback": "degrade_gracefully" }
+  ]
+}

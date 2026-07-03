@@ -1,0 +1,30 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisApproval.packageStrategy.v1",
+  "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution",
+  "selectedStrategy": "existing_cpu_worker_python_requirements",
+  "targetFileForFutureExecution": "docker/prod/cpu-worker/requirements.cpu.txt",
+  "targetDockerfileForFutureExecution": "docker/prod/cpu-worker/Dockerfile",
+  "futurePackages": [
+    {
+      "tool": "opencv",
+      "packageName": "opencv-python-headless",
+      "alreadyDeclaredInTargetRequirements": true
+    },
+    {
+      "tool": "pyav",
+      "packageName": "av",
+      "alreadyDeclaredInTargetRequirements": true
+    },
+    {
+      "tool": "pyscenedetect",
+      "packageName": "scenedetect",
+      "alreadyDeclaredInTargetRequirements": true
+    }
+  ],
+  "systemPackageFallbackSelected": false,
+  "pythonPackageInstallApprovedForFutureExecution": true,
+  "requirementsMutationInThisPhase": false,
+  "packageLockMutationInThisPhase": false,
+  "dockerfileMutationInThisPhase": false,
+  "ffmpegExpansionApproved": false
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1SystemPackagingExecution.versionProof.v1",
+  "generatedAt": "2026-06-19T21:35:33.624Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context",
+  "imageTag": "reeditpro-cpu-worker:trackb-milestone1-7dcdebdcd979de9072c2fb89223dc9f4f6647585",
+  "localHostProbeRun": false,
+  "reports": [
+    {
+      "id": "exiftool",
+      "name": "ExifTool",
+      "versionCommand": "docker run --rm --network none --entrypoint exiftool reeditpro-cpu-worker:trackb-milestone1-7dcdebdcd979de9072c2fb89223dc9f4f6647585 -ver",
+      "exitCode": null,
+      "versionProven": false,
+      "notRunReason": "docker_build_not_passed"
+    },
+    {
+      "id": "mediainfo",
+      "name": "MediaInfo",
+      "versionCommand": "docker run --rm --network none --entrypoint mediainfo reeditpro-cpu-worker:trackb-milestone1-7dcdebdcd979de9072c2fb89223dc9f4f6647585 --Version",
+      "exitCode": null,
+      "versionProven": false,
+      "notRunReason": "docker_build_not_passed"
+    },
+    {
+      "id": "tesseract",
+      "name": "Tesseract",
+      "versionCommand": "docker run --rm --network none --entrypoint tesseract reeditpro-cpu-worker:trackb-milestone1-7dcdebdcd979de9072c2fb89223dc9f4f6647585 --version",
+      "exitCode": null,
+      "versionProven": false,
+      "notRunReason": "docker_build_not_passed"
+    },
+    {
+      "id": "imagemagick",
+      "name": "ImageMagick",
+      "versionCommand": "docker run --rm --network none --entrypoint magick reeditpro-cpu-worker:trackb-milestone1-7dcdebdcd979de9072c2fb89223dc9f4f6647585 -version",
+      "exitCode": null,
+      "versionProven": false,
+      "notRunReason": "docker_build_not_passed"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisApproval.containerWorkerTarget.v1",
+  "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution",
+  "selectedTarget": "existing_cpu_worker_image",
+  "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+  "targetRequirements": "docker/prod/cpu-worker/requirements.cpu.txt",
+  "targetRuntimeRole": "cpu_analysis_worker",
+  "whySelected": [
+    "existing Debian Bookworm CPU analysis worker",
+    "already contains Python and pip setup",
+    "already consumes requirements.cpu.txt",
+    "requirements.cpu.txt already declares opencv-python-headless, av, and scenedetect"
+  ],
+  "ownerConflictAvoidance": {
+    "trackA": "not render/export ownership",
+    "aiGraphics": "not AI graphics ownership",
+    "soundMusicAudio": "not audio ownership"
+  },
+  "dockerfileMutationInThisPhase": false,
+  "dockerBuildInThisPhase": false
+}

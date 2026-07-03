@@ -1,0 +1,69 @@
+{
+  "schema": "reeditpro.openSourceToolStack.dependencyBaselineRepair.repairDiffReview.v1",
+  "generatedAt": "2026-06-15T15:00:43.451Z",
+  "decision": "dependency_baseline_repair_passed_ready_for_batch_1_approval_rerun",
+  "repairCommandAttempted": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund",
+  "repairCommandAcceptedAfterManualNarrowing": true,
+  "changedPackageLockPackageKeys": [
+    "node_modules/@emnapi/core",
+    "node_modules/@emnapi/runtime",
+    "node_modules/@emnapi/wasi-threads",
+    "node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/core",
+    "node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/runtime",
+    "node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/wasi-threads"
+  ],
+  "packageJsonDependencySectionsChanged": false,
+  "packageJsonScriptAdded": "dependency-baseline:repair-before-tool-batch-1:diagnostics",
+  "newToolDependenciesAdded": false,
+  "allowedPackageLockMetadataOnly": true,
+  "packageLockMetadataEntries": [
+    {
+      "path": "node_modules/@emnapi/core",
+      "version": "1.11.1"
+    },
+    {
+      "path": "node_modules/@emnapi/runtime",
+      "version": "1.11.1"
+    },
+    {
+      "path": "node_modules/@emnapi/wasi-threads",
+      "version": "1.2.2"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/core",
+      "version": "1.10.0"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/runtime",
+      "version": "1.10.0"
+    },
+    {
+      "path": "node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/wasi-threads",
+      "version": "1.2.1"
+    }
+  ],
+  "executionScope": {
+    "newToolDependenciesAdded": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

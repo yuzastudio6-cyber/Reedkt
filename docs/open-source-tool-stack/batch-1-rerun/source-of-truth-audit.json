@@ -1,0 +1,203 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Rerun.sourceOfTruthAudit.v1",
+  "generatedAt": "2026-06-15T16:30:00.000Z",
+  "decision": "approved_for_future_open_source_tool_stack_batch_1_install_proof_execution",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceHeadSha": "aae8567b5f28bc4349d60461c0748fe6b91ddff4",
+  "scope": "Approval metadata only for a later Batch 1 install/proof execution packet",
+  "prEvidence": [
+    {
+      "number": 427,
+      "title": "[tools] Dependency baseline repair before tool Batch 1",
+      "state": "MERGED",
+      "mergedAt": "2026-06-15T15:22:48Z",
+      "headRefName": "codex/rp-dependency-baseline-repair-before-tool-batch-1",
+      "headRefOid": "8c25dc4143d06ef7014519ac97004abe6dc5bf6b",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/427"
+    },
+    {
+      "number": 421,
+      "title": "[tools] Open-source tool stack install/proof approval Batch 1",
+      "state": "MERGED",
+      "mergedAt": "2026-06-15T14:34:32Z",
+      "headRefName": "codex/rp-open-source-tool-stack-install-proof-approval-batch-1",
+      "headRefOid": "cca7d93554e93fbfa886a5beb3b44557055dad1b",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/421"
+    },
+    {
+      "number": 416,
+      "title": "[tools] Open-source tool stack installed/proven/missing audit",
+      "state": "MERGED",
+      "mergedAt": "2026-06-15T13:49:55Z",
+      "headRefName": "codex/rp-open-source-tool-stack-audit",
+      "headRefOid": "85a02dce4a64a99927c8e30c68bd75d3d9736390",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/416"
+    },
+    {
+      "number": 412,
+      "title": "[tool-route] Second controlled candidate dry-run",
+      "state": "MERGED",
+      "mergedAt": "2026-06-14T00:18:07Z",
+      "headRefName": "codex/rp-second-controlled-candidate-dry-run",
+      "headRefOid": "115e4e65b4a1bbe1850430f6380c1245885320c7",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/412"
+    },
+    {
+      "number": 407,
+      "title": "[tool-route] Second controlled candidate approval packet",
+      "state": "MERGED",
+      "mergedAt": "2026-06-13T21:41:31Z",
+      "headRefName": "codex/rp-second-controlled-candidate-approval",
+      "headRefOid": "c1a32fda796517ebcc6d2348d18f97531b4b4da0",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/407"
+    },
+    {
+      "number": 402,
+      "title": "[tool-route] Next controlled candidate or worker handoff review",
+      "state": "MERGED",
+      "mergedAt": "2026-06-13T20:57:16Z",
+      "headRefName": "codex/rp-next-controlled-candidate-or-worker-handoff-review",
+      "headRefOid": "eb0af4fd9ce1759d452f46ada63662c64f18b3e3",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/402"
+    },
+    {
+      "number": 399,
+      "title": "[tool-route] First controlled tool execution dry-run",
+      "state": "MERGED",
+      "mergedAt": "2026-06-13T19:54:08Z",
+      "headRefName": "codex/rp-first-controlled-tool-execution-dry-run",
+      "headRefOid": "e411671193f0b28a4b34eae781f3866582750f80",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/399"
+    },
+    {
+      "number": 394,
+      "title": "[tool-route] Controlled tool execution approval packet",
+      "state": "MERGED",
+      "mergedAt": "2026-06-13T19:15:34Z",
+      "headRefName": "codex/rp-controlled-tool-execution-approval-after-route-dry-run",
+      "headRefOid": "d10d020059a3a19846b0c4982d7a8e6223c68cb2",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/394"
+    },
+    {
+      "number": 388,
+      "title": "[tool-route] Tool-route metadata dry-run execution",
+      "state": "MERGED",
+      "mergedAt": "2026-06-13T18:09:22Z",
+      "headRefName": "codex/rp-tool-route-metadata-dry-run-execution",
+      "headRefOid": "76f1cb629cddf433ab75684a57064fba86e0b041",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/388"
+    },
+    {
+      "number": 387,
+      "title": "[tool-route] Tool-route dry-run approval packet",
+      "state": "MERGED",
+      "mergedAt": "2026-06-13T18:09:41Z",
+      "headRefName": "codex/rp-tool-route-dry-run-approval-after-tool-study",
+      "headRefOid": "351845e0b7a79c339d428df2d9f44fccaaa4566a",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/387"
+    }
+  ],
+  "referenceOnlyPrEvidence": [
+    {
+      "number": 423,
+      "title": "[tools] AI_TOOLS_CREATIVE_GRAPHICS package-lock base fix",
+      "state": "OPEN",
+      "isDraft": true,
+      "referenceOnly": true,
+      "canonical": false,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/423"
+    },
+    {
+      "number": 420,
+      "title": "[tools] AI_TOOLS_CREATIVE_GRAPHICS install proof approval batch 1",
+      "state": "OPEN",
+      "isDraft": true,
+      "referenceOnly": true,
+      "canonical": false,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/420"
+    },
+    {
+      "number": 417,
+      "title": "[tools] AI_TOOLS_CREATIVE_GRAPHICS open-source tool install/proof audit",
+      "state": "OPEN",
+      "isDraft": true,
+      "referenceOnly": true,
+      "canonical": false,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/417"
+    },
+    {
+      "number": 401,
+      "title": "[worker] WORKER-5 offline dry-run QA review",
+      "state": "OPEN",
+      "isDraft": true,
+      "referenceOnly": true,
+      "canonical": false,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/401"
+    },
+    {
+      "number": 384,
+      "title": "[tool-route] TOOL-ROUTE-3 offline dry-run approval packet",
+      "state": "OPEN",
+      "isDraft": true,
+      "referenceOnly": true,
+      "canonical": false,
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/384"
+    }
+  ],
+  "dependencyBaselineEvidence": {
+    "decisionPath": "docs/open-source-tool-stack/dependency-baseline-repair/dependency-baseline-repair-decision.json",
+    "decision": "dependency_baseline_repair_passed_ready_for_batch_1_approval_rerun",
+    "packageLockRepairEntries": [
+      "node_modules/@emnapi/core",
+      "node_modules/@emnapi/runtime",
+      "node_modules/@emnapi/wasi-threads",
+      "node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/core",
+      "node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/runtime",
+      "node_modules/@rolldown/binding-wasm32-wasi/node_modules/@emnapi/wasi-threads"
+    ],
+    "packageJsonDependencySectionsChanged": false,
+    "newToolDependenciesAdded": false
+  },
+  "missingBroadProductionDocsRecordedAsAuditFacts": [
+    "docs/beta-readiness-scorecard.md",
+    "docs/production-beta-blocker-inventory.md",
+    "PRODUCTION_FOUNDATION_STATUS.md"
+  ],
+  "secretPolicy": {
+    "referencesOnly": true,
+    "payloadAccessed": false,
+    "payloadPrinted": false,
+    "payloadCommitted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "executionScope": {
+    "dependencyInstallAllowed": false,
+    "packageLockMutationAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

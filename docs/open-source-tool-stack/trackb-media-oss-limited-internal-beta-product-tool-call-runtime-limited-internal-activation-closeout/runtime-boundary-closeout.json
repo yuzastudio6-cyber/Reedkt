@@ -1,0 +1,33 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_closeout_passed_ready_for_product_beta_readiness_reconciliation",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-closeout",
+  "sourceSha": "f27d82da78d3099ada65dfcba99c81775c6b448c",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_RECONCILIATION",
+  "runtimeBoundary": {
+    "liveProductCallsEnabled": false,
+    "routeDispatchEnabled": false,
+    "workerDispatchEnabled": false,
+    "realToolExecutionEnabled": false,
+    "dockerRan": false,
+    "installsRan": false,
+    "mediaProcessingRan": false,
+    "userMediaByDefaultEnabled": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false,
+    "supabaseWritesRan": false,
+    "gcsWritesRan": false,
+    "externalBetaEnabled": false,
+    "productionEnabled": false
+  },
+  "productReadyLocalOssCount": 0
+}

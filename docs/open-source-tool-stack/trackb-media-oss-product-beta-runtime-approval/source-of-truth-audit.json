@@ -1,0 +1,46 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_runtime_approval_passed_ready_for_product_beta_runtime_controlled_activation_execution",
+  "previousDecision": "trackb_media_oss_product_beta_readiness_closeout_passed_ready_for_product_beta_runtime_approval",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-approval",
+  "sourceSha": "48135cb415071593e062fb1d94142516ac0a8de7",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION",
+  "duplicateSearch": "no_open_duplicate_product_beta_runtime_approval_pr_before_implementation",
+  "sourceEvidence": [
+    {
+      "pr": 902,
+      "state": "MERGED",
+      "mergeCommit": "48135cb415071593e062fb1d94142516ac0a8de7",
+      "decision": "trackb_media_oss_product_beta_readiness_closeout_passed_ready_for_product_beta_runtime_approval",
+      "role": "product_beta_readiness_closeout_input"
+    },
+    {
+      "pr": 901,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_product_beta_go_no_go_passed_ready_for_product_beta_readiness_closeout",
+      "role": "product_beta_go_no_go_review"
+    },
+    {
+      "pr": 896,
+      "state": "MERGED",
+      "role": "product_beta_readiness_reconciliation"
+    },
+    {
+      "pr": 883,
+      "state": "MERGED",
+      "role": "bounded_limited_internal_activation_execution_controls"
+    }
+  ],
+  "prompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_APPROVAL",
+  "protectedFilesChecked": true,
+  "noDuplicateRuntimeApprovalPr": true
+}

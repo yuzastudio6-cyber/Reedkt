@@ -1,0 +1,51 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1.approvalDecision.v1",
+  "generatedAt": "2026-06-15T00:00:00.000Z",
+  "decision": "blocked_pending_package_lock_sync_review",
+  "readyForInstallProofExecution": false,
+  "docsDiagnosticsComplete": true,
+  "dependencyBaselineReady": false,
+  "selectedCandidates": [
+    "duckdb_metadata_query_proof",
+    "polars_metadata_dataframe_proof",
+    "sharp_libvips_import_version_probe",
+    "ffmpeg_version_probe",
+    "ffprobe_version_probe",
+    "route_capability_manifest_validation",
+    "fixture_report_validation_harness",
+    "open_source_tool_inventory_validator"
+  ],
+  "nextPrompt": "DEPENDENCY_BASELINE_REPAIR_BEFORE_TOOL_BATCH_1",
+  "rationale": "The dependency baseline dry-run reproduces the current @emnapi package-lock mismatch, so Batch 1 can only approve a repair handoff.",
+  "executionScope": {
+    "dependencyInstallAllowed": false,
+    "packageLockMutationAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION",
+  "futureTarget": "docker/prod/ocr-runtime/Dockerfile",
+  "requirementsFile": "docker/prod/ocr-runtime/requirements.ocr.txt",
+  "existingRuntimeLibraryPatches": [
+    "libgomp1",
+    "libgl1",
+    "libglib2.0-0"
+  ],
+  "futurePatchScope": [
+    "add fonts-noto-cjk to the OCR runtime apt install list"
+  ],
+  "disallowedFutureScopeForThisGate": [
+    "requirements.ocr.txt mutation",
+    "package-lock mutation",
+    ".dockerignore mutation",
+    "general cpu-worker mutation",
+    "render-worker mutation"
+  ],
+  "dockerfileMutationApprovedNow": false,
+  "requirementsMutationApprovedNow": false,
+  "packageLockMutationApprovedNow": false
+}

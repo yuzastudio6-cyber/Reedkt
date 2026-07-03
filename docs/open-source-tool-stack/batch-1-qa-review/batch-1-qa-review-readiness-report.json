@@ -1,0 +1,11 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1QaReview.readinessReport.v1",
+  "generatedAt": "2026-06-16T14:47:52.893Z",
+  "readiness": true,
+  "decision": "open_source_tool_stack_batch_1_qa_passed_with_missing_optional_tools_ready_for_missing_optional_install_review",
+  "batch1UsefulForInternalBetaReadiness": true,
+  "missingOptionalInstallReviewRequired": true,
+  "packageLockIntegrityPassed": true,
+  "blockedScopesPreserved": true,
+  "blockers": []
+}

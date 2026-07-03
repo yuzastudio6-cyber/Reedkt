@@ -1,0 +1,58 @@
+{
+  "schema": "reeditpro.toolRouteMetadataDryRun.metadataResolution.v1",
+  "passed": true,
+  "routeMetadataOnly": true,
+  "routeExecutionAllowed": false,
+  "toolExecutionAllowed": false,
+  "workerExecutionAllowed": false,
+  "rows": [
+    {
+      "fixtureId": "valid_track_b_metadata_route_candidate",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "routeCandidateId": "metadata-route:track_b_media_processing",
+      "routeCompatibility": "compatible_metadata_only",
+      "routeExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "providerExecutionAllowed": false,
+      "costCapacityClass": "metadata_estimate_only",
+      "passed": true
+    },
+    {
+      "fixtureId": "valid_sound_music_audio_metadata_route_candidate",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "routeCandidateId": "metadata-route:sound_music_audio",
+      "routeCompatibility": "compatible_metadata_only",
+      "routeExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "providerExecutionAllowed": false,
+      "costCapacityClass": "metadata_estimate_only",
+      "passed": true
+    },
+    {
+      "fixtureId": "valid_ai_creative_graphics_metadata_route_candidate",
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "routeCandidateId": "metadata-route:ai_tools_creative_graphics",
+      "routeCompatibility": "compatible_metadata_only",
+      "routeExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "providerExecutionAllowed": false,
+      "costCapacityClass": "metadata_estimate_only",
+      "passed": true
+    },
+    {
+      "fixtureId": "valid_track_a_render_export_metadata_route_candidate",
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "routeCandidateId": "metadata-route:track_a_render_export",
+      "routeCompatibility": "compatible_metadata_only",
+      "routeExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "providerExecutionAllowed": false,
+      "costCapacityClass": "metadata_estimate_only",
+      "passed": true
+    }
+  ]
+}

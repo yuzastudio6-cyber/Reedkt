@@ -1,0 +1,21 @@
+{
+  "schema": "trackb-media-oss-limited-internal-beta-testing-handoff-source-audit.v1",
+  "generatedAt": "2026-06-25T16:10:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "8093fe5589ed96c8a253b829aab527084f22c609",
+  "decision": "trackb_media_oss_limited_internal_beta_testing_handoff_passed_ready_for_constrained_internal_beta_dry_run_testing",
+  "sourceEvidence": [
+    {
+      "pr": 798,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_readiness_review_passed_ready_for_limited_internal_beta_testing_handoff"
+    }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING"
+}

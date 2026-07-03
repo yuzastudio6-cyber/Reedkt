@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1SystemPackagingExecution.dockerBuild.v1",
+  "generatedAt": "2026-06-19T21:35:33.624Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context",
+  "command": "docker build -f docker/prod/cpu-worker/Dockerfile -t reeditpro-cpu-worker:trackb-milestone1-7dcdebdcd979de9072c2fb89223dc9f4f6647585 .",
+  "exactApprovedCommandUsed": true,
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 1677,
+  "stdoutSummary": null,
+  "stderrSummary": "#0 building with \"desktop-linux\" instance using docker driver\n#1 [internal] load build definition from Dockerfile\n#1 transferring dockerfile: 1.45kB done\n#1 DONE 0.0s\n#2 resolve image config for docker-image://docker.io/docker/dockerfile:1\n#2 DONE 0.6s\n#3 docker-image://docker.io/docker/dockerfile:1@sha256:87999aa3d42bdc6bea60565083ee17e86d1f3339802f543c0d03998580f9cb89\n#3 resolve docker.io/docker/dockerfile:1@sha256:87999aa3d42bdc6bea60565083ee17e86d1f3339802f543c0d03998580f9cb89 done\n#3 CACHED\n#4 [internal] load metadata for docker.io/library/node:24-bookworm\n#4 DONE 0.4s\n#5 [internal] load .dockerignore",
+  "error": null,
+  "notRunReason": null,
+  "missingBuildContext": [
+    "dist-server",
+    "dist-staging-fixture-worker"
+  ],
+  "imageTag": "reeditpro-cpu-worker:trackb-milestone1-7dcdebdcd979de9072c2fb89223dc9f4f6647585",
+  "dockerImagePushRun": false
+}

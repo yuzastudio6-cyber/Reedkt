@@ -1,0 +1,33 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2QaReview.cpuGpuQa.v1",
+  "generatedAt": "2026-06-20T04:03:52.230Z",
+  "decision": "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review",
+  "tools": [
+    {
+      "id": "opencv",
+      "name": "OpenCV",
+      "cpuOnlyProofAccepted": true,
+      "gpuUsed": false,
+      "gpuExecutionApproved": false,
+      "futureGpuRequiresSeparateApproval": true
+    },
+    {
+      "id": "pyav",
+      "name": "PyAV",
+      "cpuOnlyProofAccepted": true,
+      "gpuUsed": false,
+      "gpuExecutionApproved": false,
+      "futureGpuRequiresSeparateApproval": true
+    },
+    {
+      "id": "pyscenedetect",
+      "name": "PySceneDetect",
+      "cpuOnlyProofAccepted": true,
+      "gpuUsed": false,
+      "gpuExecutionApproved": false,
+      "futureGpuRequiresSeparateApproval": true
+    }
+  ],
+  "gpuEscalationFutureOnly": true,
+  "cpuLatencyMemoryNotesDoNotApproveGpu": true
+}

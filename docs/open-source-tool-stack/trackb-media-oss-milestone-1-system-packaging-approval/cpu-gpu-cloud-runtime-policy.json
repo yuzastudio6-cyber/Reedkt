@@ -1,0 +1,42 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone1SystemPackagingApproval.cpuGpuCloudRuntimePolicy.v1",
+  "generatedAt": "2026-06-19T20:52:00.000Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "computeDefault": "cpu_only",
+  "gpuRequired": false,
+  "gpuApproved": false,
+  "googleCloudRuntimeIntent": "cpu_cloud_run_job_or_cpu_worker",
+  "costTier": "low",
+  "latencyRisk": "low_for_metadata_tools",
+  "tools": [
+    {
+      "id": "exiftool",
+      "compute": "cpu_only",
+      "gpuRequired": false
+    },
+    {
+      "id": "mediainfo",
+      "compute": "cpu_only",
+      "gpuRequired": false
+    },
+    {
+      "id": "tesseract",
+      "compute": "cpu_only",
+      "gpuRequired": false
+    },
+    {
+      "id": "imagemagick",
+      "compute": "cpu_only",
+      "gpuRequired": false
+    }
+  ]
+}

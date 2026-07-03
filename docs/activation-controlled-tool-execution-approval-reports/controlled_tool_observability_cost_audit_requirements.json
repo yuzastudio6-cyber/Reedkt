@@ -1,0 +1,24 @@
+{
+  "schema": "reeditpro.controlledToolExecutionApproval.observabilityCostAuditRequirements.v1",
+  "createdAt": "2026-06-13T19:05:04.120Z",
+  "passed": true,
+  "selectedCandidateId": "controlled-tool:first_fixture_report_validation",
+  "requiredFutureFields": [
+    "correlationId",
+    "approvedPlanSnapshotRef",
+    "idempotencyKey",
+    "routeCandidateId",
+    "owner",
+    "artifactManifestRefs",
+    "costEstimateClass",
+    "timeoutClass",
+    "retryPolicy",
+    "failClosedOutcome"
+  ],
+  "costEstimateClass": "metadata_shape_only_no_charge",
+  "providerCostAllowed": false,
+  "workerRuntimeCostAllowed": false,
+  "retriesEnabledInApprovalPhase": false,
+  "secretLogsAllowed": false,
+  "rawPrivatePayloadLogsAllowed": false
+}

@@ -1,0 +1,21 @@
+{
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape",
+  "generatedAt": "2026-06-20T15:53:48.495Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "dockerBuildElapsedSeconds": 99.067,
+  "libglPresenceElapsedSeconds": 0.208,
+  "paddlePaddleVersionElapsedSeconds": 0.936,
+  "paddlePaddleTensorElapsedSeconds": 0.828,
+  "paddleOcrImportElapsedSeconds": 0.673,
+  "cpuOnly": true,
+  "gpuUsed": false,
+  "memoryNotes": "No high-volume workload or OCR inference was run; memory was not benchmarked.",
+  "costTier": "local_docker_probe_only_no_cloud_runtime",
+  "futureGpuReviewNeeded": false
+}

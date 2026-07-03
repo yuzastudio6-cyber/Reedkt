@@ -1,0 +1,39 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1SystemPackagingExecution.statusMatrix.v1",
+  "generatedAt": "2026-06-19T21:35:33.624Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context",
+  "tools": [
+    {
+      "id": "exiftool",
+      "name": "ExifTool",
+      "container_version_proven": false,
+      "synthetic_fixture_proven": false,
+      "accepted_proven": false,
+      "blocker": "container_version_not_proven"
+    },
+    {
+      "id": "mediainfo",
+      "name": "MediaInfo",
+      "container_version_proven": false,
+      "synthetic_fixture_proven": false,
+      "accepted_proven": false,
+      "blocker": "container_version_not_proven"
+    },
+    {
+      "id": "tesseract",
+      "name": "Tesseract",
+      "container_version_proven": false,
+      "synthetic_fixture_proven": false,
+      "accepted_proven": false,
+      "blocker": "container_version_not_proven"
+    },
+    {
+      "id": "imagemagick",
+      "name": "ImageMagick",
+      "container_version_proven": false,
+      "synthetic_fixture_proven": false,
+      "accepted_proven": false,
+      "blocker": "container_version_not_proven"
+    }
+  ]
+}

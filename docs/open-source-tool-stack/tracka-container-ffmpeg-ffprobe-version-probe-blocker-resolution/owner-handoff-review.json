@@ -1,0 +1,13 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeBlockerResolution.ownerHandoffReview.v1",
+  "generatedAt": "2026-06-18T01:15:52.818Z",
+  "trackAOwnerApprovalSufficientForFutureVersionProbe": true,
+  "workerRuntimeHandoffRequiredBeforeFutureProbe": false,
+  "soundMusicAudioHandoffRequiredBeforeFutureProbe": false,
+  "centralOpenSourceLaneMayOwnFutureVersionProbeExecution": true,
+  "futureMediaProcessingOwner": "TRACK_A_RENDER_EXPORT",
+  "futureWorkerExecutionOwner": "WORKER_RUNTIME_JOBS",
+  "futureRouteExecutionOwner": "TOOL_ROUTE_EXECUTION",
+  "nextOwnerPrompt": "OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_THEN_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION",
+  "currentPhaseExecutionAttempted": false
+}

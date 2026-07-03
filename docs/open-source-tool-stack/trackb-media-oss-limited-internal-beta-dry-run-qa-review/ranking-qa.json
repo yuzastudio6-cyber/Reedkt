@@ -1,0 +1,27 @@
+{
+  "schema": "trackb-media-oss-limited-internal-beta-dry-run-ranking-qa.v1",
+  "generatedAt": "2026-06-25T15:25:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_dry_run_qa_passed_ready_for_limited_internal_beta_dry_run_testing",
+  "rankingOrder": [
+    "ffprobe",
+    "mediainfo",
+    "exiftool",
+    "duckdb",
+    "polars_nodejs_polars",
+    "sharp_libvips",
+    "opencolorio",
+    "openimageio",
+    "imagemagick",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "tesseract",
+    "paddlepaddle",
+    "paddleocr",
+    "ffmpeg"
+  ],
+  "rankingAccepted": true,
+  "allEntriesDryRunOnly": true,
+  "allEntriesExecutionDisabled": true
+}

@@ -1,0 +1,192 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Rerun.candidateApproval.v1",
+  "generatedAt": "2026-06-15T16:30:00.000Z",
+  "decision": "approved_for_future_open_source_tool_stack_batch_1_install_proof_execution",
+  "actualExecutionAuthorizedByThisPacket": false,
+  "futureExecutionRequiresSeparatePrompt": true,
+  "approvedCandidateCount": 8,
+  "candidates": [
+    {
+      "id": "duckdb_metadata_query_proof",
+      "toolName": "DuckDB",
+      "normalizedToolId": "duckdb",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "candidateType": "predeclared_environment_dependency_candidate",
+      "approvedForFutureInstallProofExecution": true,
+      "approvedForCurrentExecution": false,
+      "packageLockMutationAllowed": false,
+      "dependencyInstallAllowed": false,
+      "evidencePointers": [
+        "docker/prod/cpu-worker/requirements.cpu.txt",
+        "docker/prod/qa-worker/requirements.qa.txt",
+        "server/tool-registry/production-tool-types.ts"
+      ],
+      "futureProofScope": "import/version and empty in-memory metadata query only, if DuckDB is already present in the approved execution environment",
+      "failClosedIfUnavailable": true
+    },
+    {
+      "id": "polars_metadata_dataframe_proof",
+      "toolName": "Polars",
+      "normalizedToolId": "polars",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "candidateType": "predeclared_environment_dependency_candidate",
+      "approvedForFutureInstallProofExecution": true,
+      "approvedForCurrentExecution": false,
+      "packageLockMutationAllowed": false,
+      "dependencyInstallAllowed": false,
+      "evidencePointers": [
+        "docker/prod/cpu-worker/requirements.cpu.txt",
+        "docker/prod/qa-worker/requirements.qa.txt",
+        "server/tool-registry/production-tool-types.ts"
+      ],
+      "futureProofScope": "import/version and synthetic metadata dataframe only, if Polars is already present in the approved execution environment",
+      "failClosedIfUnavailable": true
+    },
+    {
+      "id": "sharp_libvips_import_version_probe",
+      "toolName": "Sharp/libvips",
+      "normalizedToolId": "sharp_libvips",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "candidateType": "existing_declared_node_dependency_candidate",
+      "approvedForFutureInstallProofExecution": true,
+      "approvedForCurrentExecution": false,
+      "packageLockMutationAllowed": false,
+      "dependencyInstallAllowed": false,
+      "evidencePointers": [
+        "package.json",
+        "package-lock.json",
+        "server/activation/container-readiness/container-readiness-expected-tools.ts",
+        "server/tool-registry/production-tool-types.ts"
+      ],
+      "futureProofScope": "module import and version metadata only; no image buffer, file, upload, or real media processing",
+      "failClosedIfUnavailable": true
+    },
+    {
+      "id": "ffmpeg_version_probe",
+      "toolName": "FFmpeg",
+      "normalizedToolId": "ffmpeg",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "candidateType": "predeclared_system_binary_candidate",
+      "approvedForFutureInstallProofExecution": true,
+      "approvedForCurrentExecution": false,
+      "packageLockMutationAllowed": false,
+      "dependencyInstallAllowed": false,
+      "systemInstallAllowed": false,
+      "evidencePointers": [
+        "server/activation/container-readiness/container-readiness-expected-tools.ts",
+        "docker/prod/cpu-worker/Dockerfile",
+        "docker/prod/render-worker/Dockerfile",
+        "docker/prod/ffmpeg-lgpl-build-policy.md"
+      ],
+      "futureProofScope": "version probe only; no media input, decode, transcode, mux, render, or file output",
+      "failClosedIfUnavailable": true
+    },
+    {
+      "id": "ffprobe_version_probe",
+      "toolName": "FFprobe",
+      "normalizedToolId": "ffprobe",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "candidateType": "predeclared_system_binary_candidate",
+      "approvedForFutureInstallProofExecution": true,
+      "approvedForCurrentExecution": false,
+      "packageLockMutationAllowed": false,
+      "dependencyInstallAllowed": false,
+      "systemInstallAllowed": false,
+      "evidencePointers": [
+        "server/activation/container-readiness/container-readiness-expected-tools.ts",
+        "docker/prod/cpu-worker/Dockerfile",
+        "docker/prod/render-worker/Dockerfile"
+      ],
+      "futureProofScope": "version probe only; no media input, metadata extraction from real files, or file output",
+      "failClosedIfUnavailable": true
+    },
+    {
+      "id": "route_capability_manifest_validation",
+      "toolName": "Route/capability manifest validation",
+      "normalizedToolId": "route_capability_manifest_validation",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "candidateType": "no_dependency_metadata_candidate",
+      "approvedForFutureInstallProofExecution": true,
+      "approvedForCurrentExecution": false,
+      "packageLockMutationAllowed": false,
+      "dependencyInstallAllowed": false,
+      "evidencePointers": [
+        "docs/tool-studies/*-routing-policy.md",
+        "docs/open-source-tool-stack/open-source-tool-stack-owner-map.md"
+      ],
+      "futureProofScope": "committed route/capability metadata validation only",
+      "failClosedIfUnavailable": true
+    },
+    {
+      "id": "fixture_report_validation_harness",
+      "toolName": "Fixture/report validation harness",
+      "normalizedToolId": "fixture_report_validation_harness",
+      "owner": "TOOL_ROUTE_EXECUTION",
+      "candidateType": "no_dependency_metadata_candidate",
+      "approvedForFutureInstallProofExecution": true,
+      "approvedForCurrentExecution": false,
+      "packageLockMutationAllowed": false,
+      "dependencyInstallAllowed": false,
+      "evidencePointers": [
+        "docs/activation-second-controlled-candidate-dry-run-reports/",
+        "docs/activation-tool-route-metadata-dry-run-reports/"
+      ],
+      "futureProofScope": "committed activation report validation only",
+      "failClosedIfUnavailable": true
+    },
+    {
+      "id": "open_source_tool_inventory_validator",
+      "toolName": "Open-source inventory/proof matrix validator",
+      "normalizedToolId": "open_source_tool_inventory_validator",
+      "owner": "CROSS_CHAT_COORDINATION",
+      "candidateType": "no_dependency_metadata_candidate",
+      "approvedForFutureInstallProofExecution": true,
+      "approvedForCurrentExecution": false,
+      "packageLockMutationAllowed": false,
+      "dependencyInstallAllowed": false,
+      "evidencePointers": [
+        "docs/open-source-tool-stack/open-source-tool-stack-inventory.json",
+        "scripts/validation/open-source-tool-stack-audit-diagnostics.mjs"
+      ],
+      "futureProofScope": "inventory and proof matrix consistency validation only",
+      "failClosedIfUnavailable": true
+    }
+  ],
+  "noDependencyCandidateIds": [
+    "route_capability_manifest_validation",
+    "fixture_report_validation_harness",
+    "open_source_tool_inventory_validator"
+  ],
+  "predeclaredEnvironmentCandidateIds": [
+    "duckdb_metadata_query_proof",
+    "polars_metadata_dataframe_proof",
+    "sharp_libvips_import_version_probe",
+    "ffmpeg_version_probe",
+    "ffprobe_version_probe"
+  ],
+  "executionScope": {
+    "dependencyInstallAllowed": false,
+    "packageLockMutationAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

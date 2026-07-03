@@ -1,0 +1,15 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssInternalBetaFixtureGateReview.dryRunEvidenceAcceptance.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_internal_beta_fixture_gate_review_passed_ready_for_controlled_internal_beta_fixture_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "acceptedDryRunDecision": "trackb_media_oss_controlled_internal_beta_dry_run_passed_ready_for_internal_beta_fixture_gate_review",
+  "acceptedPayloadFixtureCount": 16,
+  "acceptedNegativeCasesBlocked": true,
+  "acceptedRankingCoverage": true,
+  "acceptedDisabledRoutes": true,
+  "acceptedWorkerDispatchDisabled": true,
+  "acceptedForControlledFixtureExecutionPlanning": true,
+  "acceptedForLiveBetaRuntime": false,
+  "acceptedForProductReady": false
+}

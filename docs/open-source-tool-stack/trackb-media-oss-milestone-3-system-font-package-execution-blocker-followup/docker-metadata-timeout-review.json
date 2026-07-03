@@ -1,0 +1,9 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "pr625Blocker": "DeadlineExceeded: context deadline exceeded while loading docker.io/library/python:3.12-slim metadata",
+  "classification": "docker_registry_or_build_environment_timeout",
+  "priorImageCreated": false,
+  "notFontPackageFailure": true,
+  "notPaddleFailure": true,
+  "rerunOutcome": "metadata_timeout_resolved"
+}

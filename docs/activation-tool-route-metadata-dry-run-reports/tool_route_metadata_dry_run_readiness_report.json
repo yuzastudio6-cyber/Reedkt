@@ -1,0 +1,14 @@
+{
+  "schema": "reeditpro.toolRouteMetadataDryRun.readinessReport.v1",
+  "createdAt": "2026-06-13T17:41:05.198Z",
+  "readiness": true,
+  "decision": "tool_route_metadata_dry_run_passed_ready_for_controlled_tool_execution_approval",
+  "approvalPassed": true,
+  "fixtureValidationPassed": true,
+  "ownerCoveragePassed": true,
+  "metadataResolutionPassed": true,
+  "artifactScopePassed": true,
+  "failClosedPassed": true,
+  "observabilityCostAuditPassed": true,
+  "runtimeScopesBlocked": true
+}

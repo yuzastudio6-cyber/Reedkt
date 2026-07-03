@@ -1,0 +1,427 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ownerLaneReconciliationAfterBatch1Rollup.ownerLaneStatusMatrix.v1",
+  "generatedAt": "2026-06-19T00:35:47.375Z",
+  "status": "accepted",
+  "accepted": true,
+  "warnings": [
+    "metadata_only_runtime_scopes_remain_blocked"
+  ],
+  "blockers": [],
+  "details": {
+    "rows": [
+      {
+        "lane": "Central Batch 1",
+        "currentSourceRefs": [
+          "PR #522",
+          "PR #527"
+        ],
+        "mergedRefs": [
+          522,
+          527
+        ],
+        "openRefs": [],
+        "draftRefs": [],
+        "acceptedProvenTools": [
+          "Sharp/libvips",
+          "DuckDB",
+          "Polars / nodejs-polars",
+          "FFmpeg version-proven only for Track A container path at 5.1.9-0+deb12u1",
+          "FFprobe version-proven only for Track A container path at 5.1.9-0+deb12u1"
+        ],
+        "acceptedWithWarningsTools": [],
+        "metadataOnlyTools": [],
+        "syntheticFixtureOnlyTools": [
+          "route/capability manifest validation",
+          "fixture/report validation",
+          "inventory/proof matrix validation"
+        ],
+        "dryRunOnlyTools": [],
+        "runtimeReady": false,
+        "betaReady": false,
+        "blockers": [
+          "media_processing_still_blocked",
+          "render_export_still_blocked",
+          "workers_routes_providers_still_blocked"
+        ],
+        "centralActionRecommendation": "use_as_bounded_central_evidence_only"
+      },
+      {
+        "lane": "AI graphics / Worker Runtime",
+        "currentSourceRefs": [
+          "PR #524",
+          "PR #521",
+          "PR #517",
+          "PR #515",
+          "PR #511",
+          "PR #509",
+          "PR #506",
+          "PR #503",
+          "PR #500",
+          "PR #496",
+          "PR #493",
+          "PR #491"
+        ],
+        "mergedRefs": [],
+        "openRefs": [
+          524,
+          521,
+          517,
+          515,
+          511,
+          509,
+          506,
+          503,
+          500,
+          496,
+          493,
+          491
+        ],
+        "draftRefs": [
+          524,
+          521,
+          517,
+          515,
+          511,
+          509,
+          506,
+          503,
+          500,
+          496,
+          493,
+          491
+        ],
+        "acceptedProvenTools": [],
+        "acceptedWithWarningsTools": [
+          "d3",
+          "echarts",
+          "vega-lite",
+          "vega",
+          "satori",
+          "@svgdotjs/svg.js",
+          "@viz-js/viz",
+          "lottie-web",
+          "animejs",
+          "three",
+          "pixi.js",
+          "konva",
+          "babylonjs"
+        ],
+        "metadataOnlyTools": [
+          "d3",
+          "echarts",
+          "vega-lite",
+          "vega",
+          "satori",
+          "@svgdotjs/svg.js",
+          "@viz-js/viz",
+          "lottie-web",
+          "animejs",
+          "three",
+          "pixi.js",
+          "konva",
+          "babylonjs"
+        ],
+        "syntheticFixtureOnlyTools": [],
+        "dryRunOnlyTools": [
+          "d3",
+          "echarts",
+          "vega-lite",
+          "vega",
+          "satori",
+          "@svgdotjs/svg.js",
+          "@viz-js/viz",
+          "lottie-web",
+          "animejs",
+          "three",
+          "pixi.js",
+          "konva",
+          "babylonjs"
+        ],
+        "runtimeReady": false,
+        "betaReady": false,
+        "blockers": [
+          "draft_open_chain",
+          "worker_runtime_blocked",
+          "job_claim_lease_queue_blocked",
+          "browser_webgl_canvas_blocked"
+        ],
+        "centralActionRecommendation": "stage_owner_merge_plan_before_batch2_install_proof"
+      },
+      {
+        "lane": "Sound/Music/Audio",
+        "currentSourceRefs": [
+          "PR #495",
+          "PR #507"
+        ],
+        "mergedRefs": [
+          495,
+          507
+        ],
+        "openRefs": [],
+        "draftRefs": [],
+        "acceptedProvenTools": [],
+        "acceptedWithWarningsTools": [
+          "sound_oss_scoped_metadata_bundle"
+        ],
+        "metadataOnlyTools": [
+          "sound_oss_scoped_metadata_bundle"
+        ],
+        "syntheticFixtureOnlyTools": [
+          "sound_oss_synthetic_fixture_evidence"
+        ],
+        "dryRunOnlyTools": [
+          "sound_oss_scoped_dry_run"
+        ],
+        "runtimeReady": false,
+        "betaReady": false,
+        "blockers": [
+          "real_audio_processing_blocked",
+          "media_runtime_blocked",
+          "supabase_gcs_artifact_delivery_blocked"
+        ],
+        "centralActionRecommendation": "reconcile_sound_oss_before_audio_batch2_expansion"
+      },
+      {
+        "lane": "Track A Render/Export",
+        "currentSourceRefs": [
+          "PR #497",
+          "PR #502",
+          "PR #505",
+          "PR #510",
+          "PR #513",
+          "PR #516",
+          "PR #520"
+        ],
+        "mergedRefs": [
+          497,
+          502,
+          505,
+          510,
+          513,
+          516,
+          520
+        ],
+        "openRefs": [],
+        "draftRefs": [],
+        "acceptedProvenTools": [
+          "FFmpeg version proof in Track A container path only",
+          "FFprobe version proof in Track A container path only"
+        ],
+        "acceptedWithWarningsTools": [
+          "private_e2e_planning_context",
+          "worker_route_gate_context"
+        ],
+        "metadataOnlyTools": [
+          "tracka_private_e2e_planning",
+          "worker_runtime_contracts",
+          "tool_route_gates"
+        ],
+        "syntheticFixtureOnlyTools": [],
+        "dryRunOnlyTools": [
+          "worker_route_contract_dry_run_gate"
+        ],
+        "runtimeReady": false,
+        "betaReady": false,
+        "blockers": [
+          "private_e2e_runtime_blocked",
+          "transactional_rpc_source_gates_pending",
+          "render_export_blocked"
+        ],
+        "centralActionRecommendation": "reconcile_tracka_private_e2e_before_beta_readiness_claim"
+      },
+      {
+        "lane": "E2E validation queue",
+        "currentSourceRefs": [
+          "PR #519",
+          "PR #523"
+        ],
+        "mergedRefs": [
+          519
+        ],
+        "openRefs": [
+          523
+        ],
+        "draftRefs": [
+          523
+        ],
+        "acceptedProvenTools": [],
+        "acceptedWithWarningsTools": [],
+        "metadataOnlyTools": [
+          "merge_ready_queue_metadata"
+        ],
+        "syntheticFixtureOnlyTools": [],
+        "dryRunOnlyTools": [
+          "validation_queue_attempts"
+        ],
+        "runtimeReady": false,
+        "betaReady": false,
+        "blockers": [
+          "pr_305_validation_blocked_npm_ci_failed",
+          "merge_ready_validations_0"
+        ],
+        "centralActionRecommendation": "resolve_e2e_validation_blocker_before_broad_beta_readiness"
+      },
+      {
+        "lane": "Worker Runtime Track A private E2E contracts",
+        "currentSourceRefs": [
+          "PR #505",
+          "PR #516",
+          "PR #520"
+        ],
+        "mergedRefs": [
+          505,
+          516,
+          520
+        ],
+        "openRefs": [],
+        "draftRefs": [],
+        "acceptedProvenTools": [],
+        "acceptedWithWarningsTools": [
+          "transactional_worker_contract_metadata"
+        ],
+        "metadataOnlyTools": [
+          "worker_runtime_gate_context"
+        ],
+        "syntheticFixtureOnlyTools": [],
+        "dryRunOnlyTools": [
+          "transactional_contract_dry_run_gate"
+        ],
+        "runtimeReady": false,
+        "betaReady": false,
+        "blockers": [
+          "worker_execution_blocked",
+          "supabase_runtime_mutation_blocked"
+        ],
+        "centralActionRecommendation": "keep_owner_lane_until_runtime_gate_reconciled"
+      },
+      {
+        "lane": "Tool Route Track A private E2E gates",
+        "currentSourceRefs": [
+          "PR #510",
+          "PR #513"
+        ],
+        "mergedRefs": [
+          510,
+          513
+        ],
+        "openRefs": [],
+        "draftRefs": [],
+        "acceptedProvenTools": [],
+        "acceptedWithWarningsTools": [
+          "tool_route_contract_metadata"
+        ],
+        "metadataOnlyTools": [
+          "tool_route_gate_context"
+        ],
+        "syntheticFixtureOnlyTools": [],
+        "dryRunOnlyTools": [
+          "tool_route_contract_dry_run_gate"
+        ],
+        "runtimeReady": false,
+        "betaReady": false,
+        "blockers": [
+          "route_execution_blocked",
+          "provider_runtime_blocked"
+        ],
+        "centralActionRecommendation": "keep_route_gate_context_owner_scoped"
+      },
+      {
+        "lane": "Model/provider context",
+        "currentSourceRefs": [
+          "provider_lanes_context_only"
+        ],
+        "mergedRefs": [],
+        "openRefs": [],
+        "draftRefs": [],
+        "acceptedProvenTools": [],
+        "acceptedWithWarningsTools": [],
+        "metadataOnlyTools": [
+          "provider_api_context"
+        ],
+        "syntheticFixtureOnlyTools": [],
+        "dryRunOnlyTools": [],
+        "runtimeReady": false,
+        "betaReady": false,
+        "blockers": [
+          "provider_calls_blocked",
+          "raw_prompt_execution_blocked"
+        ],
+        "centralActionRecommendation": "do_not_mix_provider_integrations_with_local_oss_tools"
+      },
+      {
+        "lane": "Supabase/storage context",
+        "currentSourceRefs": [
+          "supabase_storage_context_only"
+        ],
+        "mergedRefs": [],
+        "openRefs": [],
+        "draftRefs": [],
+        "acceptedProvenTools": [],
+        "acceptedWithWarningsTools": [],
+        "metadataOnlyTools": [
+          "supabase_storage_policy_context"
+        ],
+        "syntheticFixtureOnlyTools": [],
+        "dryRunOnlyTools": [],
+        "runtimeReady": false,
+        "betaReady": false,
+        "blockers": [
+          "supabase_writes_blocked",
+          "sql_blocked",
+          "gcs_public_delivery_blocked"
+        ],
+        "centralActionRecommendation": "separate_database_storage_owner_review_required"
+      },
+      {
+        "lane": "Web/Search",
+        "currentSourceRefs": [
+          "batch_2_inventory_context"
+        ],
+        "mergedRefs": [
+          416
+        ],
+        "openRefs": [],
+        "draftRefs": [],
+        "acceptedProvenTools": [],
+        "acceptedWithWarningsTools": [],
+        "metadataOnlyTools": [
+          "web_search_capture_candidates"
+        ],
+        "syntheticFixtureOnlyTools": [],
+        "dryRunOnlyTools": [],
+        "runtimeReady": false,
+        "betaReady": false,
+        "blockers": [
+          "browser_capture_blocked",
+          "public_artifact_blocked"
+        ],
+        "centralActionRecommendation": "defer_until_owner_reconciliation_and_privacy_review"
+      },
+      {
+        "lane": "Map/Geospatial",
+        "currentSourceRefs": [
+          "batch_2_inventory_context"
+        ],
+        "mergedRefs": [
+          416
+        ],
+        "openRefs": [],
+        "draftRefs": [],
+        "acceptedProvenTools": [],
+        "acceptedWithWarningsTools": [],
+        "metadataOnlyTools": [
+          "map_geospatial_candidates"
+        ],
+        "syntheticFixtureOnlyTools": [],
+        "dryRunOnlyTools": [],
+        "runtimeReady": false,
+        "betaReady": false,
+        "blockers": [
+          "map_rendering_blocked",
+          "public_artifact_blocked"
+        ],
+        "centralActionRecommendation": "defer_until_owner_reconciliation_and_map_privacy_review"
+      }
+    ]
+  }
+}

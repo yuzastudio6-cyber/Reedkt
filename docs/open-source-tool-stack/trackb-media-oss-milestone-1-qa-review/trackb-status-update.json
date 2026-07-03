@@ -1,0 +1,113 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1QaReview.statusUpdate.v1",
+  "generatedAt": "2026-06-20T01:38:05.933Z",
+  "decision": "trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "ownedTools": 16,
+  "previouslyAcceptedProvenBounded": 5,
+  "milestone1AcceptedProvenBounded": 4,
+  "acceptedProvenBoundedTotalAfterQa": 9,
+  "stillBlockedNotInstalledProvenCount": 7,
+  "acceptedProvenBoundedAfterQa": [
+    {
+      "id": "ffmpeg",
+      "name": "FFmpeg",
+      "version": "5.1.9-0+deb12u1",
+      "proofBoundary": "tracka_container_version_only_no_media_processing"
+    },
+    {
+      "id": "ffprobe",
+      "name": "FFprobe",
+      "version": "5.1.9-0+deb12u1",
+      "proofBoundary": "tracka_container_version_only_no_media_file_probe"
+    },
+    {
+      "id": "sharp_libvips",
+      "name": "Sharp/libvips",
+      "version": "0.34.5",
+      "proofBoundary": "import_version_only_no_image_processing"
+    },
+    {
+      "id": "duckdb",
+      "name": "DuckDB",
+      "version": "1.4.4",
+      "proofBoundary": "native_rebuild_import_api_shape_in_memory_query"
+    },
+    {
+      "id": "polars_nodejs_polars",
+      "name": "Polars / nodejs-polars",
+      "version": "0.25.1",
+      "proofBoundary": "import_version_in_memory_dataframe_metadata"
+    },
+    {
+      "id": "exiftool",
+      "name": "ExifTool",
+      "sourcePr": 557,
+      "version": "12.57",
+      "versionProven": true,
+      "fixtureProven": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "proofBoundary": "container_version_and_synthetic_text_metadata_fixture_no_real_media_processing"
+    },
+    {
+      "id": "mediainfo",
+      "name": "MediaInfo",
+      "sourcePr": 557,
+      "version": "23.04",
+      "versionEvidence": "MediaInfo Command line,\nMediaInfoLib - v23.04",
+      "versionProven": true,
+      "fixtureProven": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "proofBoundary": "container_version_and_tiny_synthetic_wav_header_fixture_no_real_user_media"
+    },
+    {
+      "id": "tesseract",
+      "name": "Tesseract",
+      "sourcePr": 559,
+      "version": "5.3.0",
+      "versionEvidenceSourcePr": 557,
+      "versionProven": true,
+      "fixtureProven": true,
+      "acceptedVariant": "dejavu_sans_bold_large_psm7",
+      "expectedNormalizedOutput": "REEDITPRO",
+      "observedNormalizedOutput": "REEDITPRO",
+      "priorRejectedOutput": "REEDLTPRU",
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "proofBoundary": "container_version_from_pr557_and_exact_synthetic_ocr_fixture_from_pr559"
+    },
+    {
+      "id": "imagemagick",
+      "name": "ImageMagick",
+      "sourcePr": 557,
+      "followupFixtureSourcePr": 559,
+      "version": "6.9.11-60",
+      "versionEvidence": "Version: ImageMagick 6.9.11-60 Q16 aarch64 2021-01-25 https://imagemagick.org\nCopyright: (C) 1999-2021 ImageMagick Studio LLC\nLicense: https://imagemagick.org/script/license.php\nFeatures: Cipher DPC Modules OpenMP(4.5)\nDelegates (built-in): bzlib djvu fftw fontconfig freetype heic jbig jng jp2 jpeg lcms lqr ltdl lzma openexr pangocairo png tiff webp wmf x xml zlib",
+      "versionProven": true,
+      "fixtureProven": true,
+      "acceptedProvenBounded": true,
+      "rerunInQaPhase": false,
+      "graphicsMagickCounted": false,
+      "proofBoundary": "imagemagick_only_container_version_and_synthetic_fixture_no_graphicsmagick_default"
+    }
+  ],
+  "stillBlockedNotInstalledProven": [
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "paddleocr",
+    "paddlepaddle",
+    "opencolorio",
+    "openimageio"
+  ],
+  "graphicsMagick": {
+    "role": "optional_fallback_only",
+    "countedAsAcceptedProven": false,
+    "installedOrProven": false
+  },
+  "endToEndProductReadyTools": 0,
+  "fortyPlusEndToEndClaimAllowed": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL"
+}

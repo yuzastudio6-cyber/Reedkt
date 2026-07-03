@@ -1,0 +1,968 @@
+# Track B Media OSS Tool Status
+
+Decision: `trackb_media_oss_steward_registry_passed_ready_for_install_proof_milestone_plan`
+
+Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+
+| Status group | Count | Tools |
+| --- | ---: | --- |
+| Accepted/proven bounded Batch 1 | 5 | FFmpeg, FFprobe, Sharp/libvips, DuckDB, Polars / nodejs-polars |
+| Blocked/not installed-proven | 11 | OpenCV, PyAV, PySceneDetect, PaddleOCR, PaddlePaddle, MediaInfo, ExifTool, ImageMagick / GraphicsMagick, Tesseract, OpenColorIO, OpenImageIO |
+| End-to-end product-ready | 0 | None |
+
+FFmpeg and FFprobe are accepted only as Track A container-path version proof at `5.1.9-0+deb12u1`. That does not authorize media input, file probing, decode/encode, caption burn-in, render/export, worker/runtime execution, public artifacts, signed URLs, beta, or production.
+
+Sharp/libvips, DuckDB, and Polars/nodejs-polars are accepted only within their committed bounded proof lanes. They are not evidence that Track B media processing is product-ready.
+
+## Install/Proof Milestone Plan
+
+Decision: `trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution`
+
+Milestone 1 future execution is approved for ExifTool, MediaInfo, Tesseract, and ImageMagick / GraphicsMagick. It is CPU-only/default and future-only; no install, package-lock mutation, proof execution, media processing, render/export, worker runtime, Supabase/GCS, public artifact, signed URL, beta, or production scope ran in this planning phase.
+
+Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION`.
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION:
+
+- Decision: `trackb_media_oss_milestone1_blocked_pending_container_packaging_approval`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Scope: ExifTool, MediaInfo, Tesseract, and ImageMagick/GraphicsMagick only.
+- CPU/GPU policy: CPU-only/default; no GPU.
+- Current result: system binary packaging approval is required before Milestone 1 can pass.
+- End-to-end product-ready Track B tools remain `0`; no 40+ installed/proven end-to-end claim is allowed.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution`.
+- Future packaging target: `docker/prod/cpu-worker/Dockerfile`.
+- Approved future packages: `libimage-exiftool-perl`, `mediainfo`, `tesseract-ocr`, `tesseract-ocr-eng`, `imagemagick`.
+- GraphicsMagick role: optional fallback only; ImageMagick is the Milestone 1 default.
+- Current phase execution: no package install, Dockerfile mutation, Docker build/run, tool execution, media processing, render/export, worker/route/provider execution, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production.
+- End-to-end product-ready Track B tools remain `0`; no 40+ installed/proven end-to-end claim is allowed.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION:
+
+- Decision: `trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Target: `docker/prod/cpu-worker/Dockerfile`
+- Approved package set: `libimage-exiftool-perl`, `mediainfo`, `tesseract-ocr`, `tesseract-ocr-eng`, `imagemagick`
+- Target tools: ExifTool, MediaInfo, Tesseract, and ImageMagick only.
+- GraphicsMagick remains optional fallback and is not installed by default.
+- End-to-end product-ready Track B tools remain `0`; no 40+ installed/proven end-to-end claim is allowed.
+- Media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_BUILD_CONTEXT_BLOCKER_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_BLOCKER_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_BLOCKER_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Build-context outputs: `dist-server`, `dist-staging-fixture-worker` generated locally and cleaned before commit.
+- Target Dockerfile: `docker/prod/cpu-worker/Dockerfile`
+- Local image tag: `reeditpro-cpu-worker:trackb-milestone1-cd4e5f0e234c4ff4bf3cefacba84a2f31530c3e8`
+- Target tools: ExifTool, MediaInfo, Tesseract, and ImageMagick only.
+- GraphicsMagick remains optional fallback and is not installed or proven by default.
+- End-to-end product-ready Track B tools remain `0`; no 40+ installed/proven end-to-end claim is allowed.
+- Media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_FOLLOWUP_BLOCKER_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_BUILD_CONTEXT_BLOCKER_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MILESTONE_1_TESSERACT_FIXTURE_FOLLOWUP_STATUS:start -->
+Decision: `trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa`.
+Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_1_QA_REVIEW`.
+PR #557 evidence remains accepted for ExifTool, MediaInfo, ImageMagick, Docker build, build-context generation, and Tesseract version proof.
+Tesseract fixture proof accepted variant: `dejavu_sans_bold_large_psm7`.
+Track B end-to-end product-ready tools remain `0`; do not claim 40+ tools are installed/proven end-to-end.
+Supabase classification: no write / none / none / no.
+<!-- TRACKB_MILESTONE_1_TESSERACT_FIXTURE_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_1_QA_REVIEW:
+
+- Decision: `trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval`
+- Accepted Milestone 1 tools: ExifTool, MediaInfo, Tesseract, and ImageMagick.
+- PR #557 evidence remains accepted for ExifTool, MediaInfo, ImageMagick, Docker build/build-context, and Tesseract version proof.
+- PR #559 evidence is accepted for Tesseract fixture proof variant `dejavu_sans_bold_large_psm7` with normalized OCR `REEDITPRO`.
+- Track B counts after QA: 16 owned tools, 9 bounded accepted/proven tools, 7 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- GraphicsMagick remains optional fallback only and is not counted as accepted/proven.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- Media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_1_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution`
+- Future target: `docker/prod/cpu-worker/Dockerfile` with `docker/prod/cpu-worker/requirements.cpu.txt`.
+- Future tools: OpenCV (`opencv-python-headless`), PyAV (`av`), and PySceneDetect (`scenedetect`).
+- Compute policy: CPU-first; GPU requires separate approval after measured CPU latency/memory evidence.
+- Fixture policy: tiny synthetic fixtures only; PyAV/PySceneDetect fixtures may be deferred if a safe non-FFmpeg fixture is not feasible.
+- Track B counts remain: 16 owned tools, 9 bounded accepted/proven tools, 7 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No package install, requirements mutation, package-lock mutation, Dockerfile mutation, Docker build/run, OpenCV/PyAV/PySceneDetect execution, FFmpeg/FFprobe expansion, media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, or production scope ran.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION:
+
+- Decision: `trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Target: `docker/prod/cpu-worker/Dockerfile` with `docker/prod/cpu-worker/requirements.cpu.txt`.
+- Target tools: OpenCV, PyAV, and PySceneDetect only.
+- Build-context outputs: `dist-server` and `dist-staging-fixture-worker` generated locally and cleaned before commit.
+- Local image tag: `reeditpro-cpu-worker:trackb-milestone2-4f22c637e49e77d237158b1b1139ed047ef242f3`
+- Canonical Track B counts remain pending QA: 16 owned tools, 9 bounded accepted/proven tools, 7 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Execution proof evidence is ready for Milestone 2 QA review when the decision is pass or approved fixture-deferred.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No host pip install, host npm install, npm rebuild, package-lock mutation, requirements mutation, Dockerfile mutation, FFmpeg/FFprobe command, real user media, render/export, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_2_VIDEO_ANALYSIS_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW:
+
+- Decision: `trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review`
+- Accepted Milestone 2 tools: OpenCV, PyAV, and PySceneDetect.
+- PR #571 evidence is accepted for CPU-only container import/version and synthetic fixture proofs.
+- Track B counts after QA: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Still blocked/not installed-proven: PaddleOCR, PaddlePaddle, OpenColorIO, and OpenImageIO.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- GPU execution, FFmpeg/FFprobe expansion, real media processing/probing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_2_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW:
+
+- Decision: `trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution`
+- Review tools: PaddleOCR and PaddlePaddle.
+- Future CPU target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Package strategy: existing pinned `paddlepaddle==3.0.0` and `paddleocr==3.0.0` remain future execution inputs; no requirements mutation occurred in this review.
+- CPU proof policy: future import/version/API-shape and model-free tensor/device checks only.
+- Model asset policy: OCR inference remains blocked until model asset provenance, checksum, and private storage approval lands.
+- GPU policy: future-only and requires separate approval for heavy OCR, frame-heavy batches, high-resolution OCR, or CPU latency/timeouts.
+- Track B counts remain: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Still blocked/not installed-proven: PaddleOCR, PaddlePaddle, OpenColorIO, and OpenImageIO.
+- Forty-plus end-to-end proof claims remain disallowed.
+- No package install, npm ci/install/rebuild, pip install, requirements mutation, Dockerfile mutation, Docker build/run, PaddleOCR/PaddlePaddle execution, OCR inference, model download/copy/upload, GPU job, media processing, render/export, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, or production scope ran.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_GPU_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION:
+
+- Decision: `trackb_media_oss_milestone3_ocr_ml_cpu_execution_blocked_by_paddlepaddle_import_or_api_shape`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Target tools: PaddlePaddle and PaddleOCR only.
+- Build-context generation: not required for the OCR runtime target.
+- Local image tag: `reeditpro-ocr-runtime:trackb-milestone3-cpu-3cc82ddad41854860a4b06421dc9e22e74a1435f`
+- Canonical Track B counts remain pending QA: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Newly proofed CPU evidence pending QA: `0`.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No OCR inference, model download/copy/upload, GPU execution, real media/documents, FFmpeg/FFprobe, other Track B tool execution, render/export, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_BLOCKER_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_BLOCKER_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_BLOCKER_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone3_ocr_ml_cpu_blocker_followup_blocked_by_paddleocr_import_or_api_shape`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Target tools: PaddlePaddle and PaddleOCR only.
+- Build-context generation: not required for the OCR runtime target.
+- Local image tag: `reeditpro-ocr-runtime:trackb-milestone3-cpu-libgomp-b17a20898d5c046447905e5a411a733133afa535`
+- Canonical Track B counts remain pending QA: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Newly proofed CPU evidence pending QA: `0`.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No OCR inference, model download/copy/upload, GPU execution, real media/documents, FFmpeg/FFprobe, other Track B tool execution, render/export, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_FOLLOWUP_RESOLUTION`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_EXECUTION_BLOCKER_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN_STATUS:start -->
+TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN:
+
+- Decision: `trackb_media_oss_tool_call_beta_readiness_rerun_passed_ready_for_controlled_internal_beta_dry_run`.
+- Current Track B counts: 16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready.
+- Tool-call ranking metadata now covers FFprobe, MediaInfo, ExifTool, DuckDB, Polars, Sharp/libvips, OpenColorIO, OpenImageIO, ImageMagick, OpenCV, PyAV, PySceneDetect, Tesseract, PaddlePaddle, PaddleOCR, and FFmpeg.
+- Ranking is a dry-run routing aid only. It does not authorize tool execution, media/image/OCR processing, worker dispatch, public artifacts, signed URLs, live beta, production, or product-ready claims.
+- Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN`.
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN_STATUS:start -->
+TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN:
+
+- Decision: `trackb_media_oss_controlled_internal_beta_dry_run_passed_ready_for_internal_beta_fixture_gate_review`.
+- Current Track B counts: 16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready.
+- Dry-run payload fixtures validated for FFmpeg, FFprobe, Sharp/libvips, DuckDB, Polars, ExifTool, MediaInfo, Tesseract, ImageMagick, OpenCV, PyAV, PySceneDetect, PaddlePaddle, PaddleOCR, OpenColorIO, and OpenImageIO.
+- Negative dry-run cases remain blocked: missing approved snapshot, `executionEnabled: true`, signed/public URL-like artifact path, and raw prompt metadata.
+- No tool execution, worker dispatch, live beta runtime, production, public artifact, signed URL, Supabase/GCS, or product-ready claim is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_INTERNAL_BETA_FIXTURE_GATE_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_INTERNAL_BETA_FIXTURE_GATE_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_INTERNAL_BETA_FIXTURE_GATE_REVIEW:
+
+- Decision: `trackb_media_oss_internal_beta_fixture_gate_review_passed_ready_for_controlled_internal_beta_fixture_execution`.
+- Current Track B counts: 16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready.
+- Controlled internal fixture execution may be planned next using synthetic or separately approved private fixtures and the existing ranking/gate metadata.
+- No live beta runtime, external beta, production, user-media-by-default, public artifact, signed URL, Supabase/GCS, or product-ready claim is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION`.
+<!-- TRACKB_MEDIA_OSS_INTERNAL_BETA_FIXTURE_GATE_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION:
+
+- Decision: `trackb_media_oss_controlled_internal_beta_fixture_execution_passed_ready_for_internal_beta_fixture_qa_review`.
+- Steward state: all 16 Track B tools have controlled internal fixture receipts with approved snapshot, credit, private artifact, QA, fallback, result schema, sanitized logging, and deterministic ranking gates.
+- OpenColorIO and OpenImageIO remain bounded accepted/proven; this phase does not reinstall or rerun CPU container package proofs.
+- Direct product tool calls, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready local OSS claims remain blocked.
+- Product-ready local OSS tools remain `0`.
+- Next prompt: `TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_QA_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_QA_REVIEW:
+
+- Decision: `trackb_media_oss_controlled_internal_beta_fixture_qa_passed_ready_for_limited_internal_beta_go_no_go_review`.
+- Steward state: fixture receipt QA is accepted for all 16 tools, with approved snapshot, credit, private artifact, QA, fallback, result schema, sanitized logging, deterministic ranking, and fail-closed negative-case evidence.
+- OpenColorIO and OpenImageIO remain bounded accepted/proven; product-ready local OSS tools remain `0`.
+- Direct product tool calls, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, and production remain blocked pending go/no-go review.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_GO_NO_GO_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_GO_NO_GO_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_GO_NO_GO_REVIEW:
+
+- Decision: `trackb_media_oss_limited_internal_beta_go_no_go_review_passed_ready_for_limited_internal_beta_dry_run_activation`.
+- Go/no-go result: approved only for limited internal beta dry-run activation.
+- OpenColorIO and OpenImageIO remain included in the 16 bounded accepted/proven Track B tools; no reinstall is required.
+- Direct product tool calls, live route runtime, worker dispatch, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready local OSS claims remain blocked.
+- Product-ready local OSS tools remain `0`.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_ACTIVATION`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_GO_NO_GO_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_ACTIVATION_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_ACTIVATION:
+
+- Decision: `trackb_media_oss_limited_internal_beta_dry_run_activation_passed_ready_for_limited_internal_beta_dry_run_qa_review`.
+- Limited internal beta dry-run activation is ready for QA review only.
+- All 16 tools remain bounded accepted/proven; OpenColorIO and OpenImageIO remain included and do not require reinstall.
+- Product-ready local OSS tools remain `0`.
+- Direct product tool calls, live route runtime, worker dispatch, real tool execution, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_QA_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_ACTIVATION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_QA_REVIEW:
+
+- Decision: `trackb_media_oss_limited_internal_beta_dry_run_qa_passed_ready_for_limited_internal_beta_dry_run_testing`.
+- QA accepts the activation for limited internal beta dry-run testing only.
+- All 16 tools remain bounded accepted/proven; OpenColorIO and OpenImageIO remain included and do not require reinstall.
+- Product-ready local OSS tools remain `0`.
+- Direct product tool calls, live route runtime, worker dispatch, real tool execution, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_TESTING`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_TESTING_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_TESTING:
+
+- Decision: `trackb_media_oss_limited_internal_beta_dry_run_testing_passed_ready_for_limited_internal_beta_readiness_review`.
+- Dry-run testing passed for the full 16-tool Track B set.
+- OpenColorIO and OpenImageIO remain bounded accepted/proven and are not pending reinstall.
+- Product-ready local OSS tools remain `0`; external beta and production remain blocked.
+- Direct product tool calls, live route runtime, worker dispatch, public artifacts, signed URLs, Supabase/GCS, and user-media-by-default remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_READINESS_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_TESTING_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_READINESS_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_READINESS_REVIEW:
+
+- Decision: `trackb_media_oss_limited_internal_beta_readiness_review_passed_ready_for_limited_internal_beta_testing_handoff`.
+- Limited internal beta dry-run testing handoff is ready.
+- OpenColorIO and OpenImageIO remain bounded accepted/proven and are not pending reinstall.
+- Product-ready local OSS tools remain `0`; external beta and production remain blocked.
+- Direct product tool calls, live route runtime, worker dispatch, public artifacts, signed URLs, Supabase/GCS, and user-media-by-default remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_TESTING_HANDOFF`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_READINESS_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_TESTING_HANDOFF_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_TESTING_HANDOFF:
+
+- Decision: `trackb_media_oss_limited_internal_beta_testing_handoff_passed_ready_for_constrained_internal_beta_dry_run_testing`.
+- Track B is ready for constrained internal beta dry-run testing.
+- OpenColorIO and OpenImageIO remain bounded accepted/proven and are not pending reinstall.
+- Product-ready local OSS tools remain `0`; external beta and production remain blocked.
+- Direct product tool calls, live route runtime, worker dispatch, public artifacts, signed URLs, Supabase/GCS, and user-media-by-default remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_TESTING_HANDOFF_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING:
+
+- Decision: `trackb_media_oss_limited_internal_beta_dry_run_monitoring_passed_ready_for_monitoring_qa_review`.
+- Monitoring register is ready for QA review.
+- OpenColorIO and OpenImageIO remain bounded accepted/proven and are not pending reinstall.
+- Product-ready local OSS tools remain `0`; external beta and production remain blocked.
+- Direct product tool calls, live route runtime, worker dispatch, public artifacts, signed URLs, Supabase/GCS, and user-media-by-default remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_QA_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION:
+
+- Decision: `trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape`
+- Target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Patch: existing `libgomp1` runtime package preserved and minimal `libgl1` package added.
+- Docker build: passed for local image `reeditpro-ocr-runtime:trackb-milestone3-cpu-libgl-a80edbdc5bcf434b0cd70f9f8bae9523a2e1c1fa`.
+- `libGL.so.1`: present and loadable in the rebuilt image.
+- PaddlePaddle: import/version and model-free CPU tensor/device proof passed.
+- PaddleOCR: import/API-shape remains blocked by `libgthread-2.0.so.0`; no OCR inference or model assets ran.
+- Track B counts remain pending QA: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_followup_blocked_by_model_asset_required`
+- Target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Patch: existing `libgomp1` and `libgl1` runtime packages preserved; minimal `libglib2.0-0` package added for `libgthread-2.0.so.0`.
+- Docker build: passed for local image `reeditpro-ocr-runtime:trackb-milestone3-cpu-libgthread-8c22f38755195f4028acfba1069e4cb0d6825c91`.
+- `libgthread-2.0.so.0`: present in the rebuilt image.
+- PaddlePaddle: import/version and model-free CPU tensor/device proof passed.
+- PaddleOCR: import/API-shape blocked by `model_asset_required_for_import_api_shape`.
+- Track B counts remain pending QA: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- OCR inference, model asset operations, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_BLOCKER_RESOLUTION_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone3_model_asset_approval_passed_ready_for_exact_asset_source_review`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Requested asset: `PingFang-SC-Regular.ttf`.
+- Source component: PaddleX font assets, observed in PR #600 evidence as an attempted fetch from `https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/PingFang-SC-Regular.ttf` under `--network none`.
+- Classification: font/package-data runtime fetch governance blocker; exact source, license, checksum, and private staging policy are not yet proven.
+- Selected strategy: exact font asset source review before any asset acquisition or staging.
+- System font substitute, private staging, and asset-free import configuration remain future alternatives only.
+- Track B counts remain: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Still blocked/not installed-proven: PaddleOCR, PaddlePaddle, OpenColorIO, and OpenImageIO.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No font/model asset download, copy, upload, OCR inference, PaddleOCR/PaddlePaddle execution, Docker build/run, install, requirements/Dockerfile mutation, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW:
+
+- Decision: `trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review`
+- Requested asset: `PingFang-SC-Regular.ttf`.
+- Source component: PaddleX font assets, observed in prior evidence as an attempted fetch from `https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/PingFang-SC-Regular.ttf` under `--network none`.
+- Source review: PaddleX source metadata identifies the font name, runtime URL pattern, and local font/cache controls, but the exact standalone font license, redistribution rights, private-staging rights, checksum, and stable version identity are not proven.
+- System font substitute and asset-free import/config remain future alternatives only; private staging remains blocked.
+- Track B counts remain: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Still blocked/not installed-proven: PaddleOCR, PaddlePaddle, OpenColorIO, and OpenImageIO.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No font/model asset download, copy, upload, private staging, OCR inference, PaddleOCR/PaddlePaddle execution, Docker build/run, install, requirements/Dockerfile mutation, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone3_font_source_license_followup_passed_ready_for_system_font_package_approval`
+- Requested asset: `PingFang-SC-Regular.ttf`.
+- Exact PingFang remains blocked because standalone license, redistribution/private-staging rights, checksum, and runtime image embedding rights remain unproven.
+- Selected next gate: system-font package approval with `fonts-noto-cjk` as primary candidate and `fonts-noto-cjk-extra` as secondary candidate.
+- PaddleX/PaddleOCR local-font configuration remains a future approval/execution concern; no runtime proof is claimed here.
+- Track B counts remain: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Still blocked/not installed-proven: PaddleOCR, PaddlePaddle, OpenColorIO, and OpenImageIO.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No font/model asset download, copy, upload, private staging, OCR inference, PaddleOCR/PaddlePaddle execution, Docker build/run, install, requirements/Dockerfile mutation, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution`
+- Exact `PingFang-SC-Regular.ttf` remains blocked for download, copy, upload, private staging, repository commit, runtime image embedding, public delivery, and signed URL delivery.
+- Selected future package path: `fonts-noto-cjk` primary, `fonts-noto-cjk-extra` secondary/fallback only.
+- Future execution must patch only `docker/prod/ocr-runtime/Dockerfile`, verify local Noto CJK font discovery/config, and rerun network-disabled PaddlePaddle/PaddleOCR import/API-shape checks.
+- Track B counts remain: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Still blocked/not installed-proven: PaddleOCR, PaddlePaddle, OpenColorIO, and OpenImageIO.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No system package install, font/model asset operation, OCR inference, PaddleOCR/PaddlePaddle execution, Docker build/run, requirements/Dockerfile mutation, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted now.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION:
+
+- Decision: `trackb_media_oss_milestone3_system_font_package_execution_blocked_by_docker_build`
+- Target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Patch: existing `libgomp1 libgl1 libglib2.0-0` runtime packages preserved; `fonts-noto-cjk` added.
+- Docker build: blocked while loading `python:3.12-slim` metadata with `DeadlineExceeded: context deadline exceeded`; no image was created.
+- Font discovery: not run because Docker build failed.
+- PaddlePaddle/PaddleOCR proofs: not run because Docker build failed.
+- Exact PingFang remains blocked and was not used; `fonts-noto-cjk-extra` remains fallback-only and was not installed.
+- Track B counts remain: 16 owned tools, 12 bounded accepted-proven tools, 4 blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No OCR inference, model/font asset operation, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required`
+- Target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Docker build rerun: passed for local image `reeditpro-ocr-runtime:trackb-milestone3-fonts-noto-cjk-rerun-f739488b207f8959c36579e57280df635e6e87c6`; the prior `python:3.12-slim` metadata timeout is resolved.
+- Font discovery: `fonts-noto-cjk` present; `fonts-noto-cjk-extra` absent; exact PingFang absent and unused.
+- PaddlePaddle: import/version and model-free CPU tensor/device proof passed.
+- PaddleOCR: import/API-shape blocked by PaddleX `PingFang-SC-Regular.ttf` asset fetch under `--network none`; no OCR inference or asset operation ran.
+- Track B counts remain pending QA: 16 owned tools, 12 bounded accepted/proven tools before this follow-up, 1 new CPU evidence candidate pending QA, 4 blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No font/model asset download, copy, upload, OCR inference, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP:
+
+- Decision: `trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review`
+- Target: `docker/prod/ocr-runtime/Dockerfile` with `docker/prod/ocr-runtime/requirements.ocr.txt`.
+- Config: source-supported `PADDLE_PDX_LOCAL_FONT_FILE_PATH=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc`.
+- Docker build: passed for local image `reeditpro-ocr-runtime:trackb-milestone3-font-config-edb183eda9dce464f8aae0ce4d32ac8e63118433`; image removed before commit.
+- Font discovery: `fonts-noto-cjk` present, `fonts-noto-cjk-extra` absent, exact PingFang absent and unused.
+- PaddlePaddle: import/version and model-free CPU tensor/device proof passed.
+- PaddleOCR: import/version and API-shape proof passed under `--network none` without OCR object instantiation, OCR inference, model download, or font download.
+- Track B counts remain pending QA: 16 owned tools, 12 bounded accepted/proven tools, 4 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- New CPU evidence pending QA: PaddlePaddle and PaddleOCR.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No OCR inference, model/font asset operation, GPU, FFmpeg/FFprobe, media/render, workers/routes/providers, Supabase/GCS, public artifact, signed URL, raw prompt, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW:
+
+- Decision: `trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval`
+- Accepted Milestone 3 OCR/ML CPU tools: PaddlePaddle and PaddleOCR.
+- PR #635 evidence is accepted for bounded CPU PaddlePaddle import/version plus model-free tensor/device proof and PaddleOCR import/API-shape proof.
+- Accepted local font config: `PADDLE_PDX_LOCAL_FONT_FILE_PATH=/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc`.
+- Track B counts after QA: 16 owned tools, 14 bounded accepted/proven tools, 2 still blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Still blocked/not installed-proven: OpenColorIO and OpenImageIO.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- OCR inference, model/font assets, exact PingFang, GPU, media/render, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL:
+
+- Decision: `trackb_media_oss_milestone4_color_image_pipeline_approval_passed_ready_for_cpu_execution`
+- Owner: `TRACK_B_MEDIA_OSS_STEWARD`
+- Tools approved for future CPU execution: OpenColorIO and OpenImageIO.
+- Future target: `docker/prod/cpu-worker/Dockerfile` with `docker/prod/cpu-worker/requirements.cpu.txt`.
+- Current Track B counts remain: 16 owned tools, 14 bounded accepted/proven tools, 2 blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- OpenColorIO and OpenImageIO remain blocked/not installed-proven until execution and QA accept bounded evidence.
+- Track A/pro color-image and AI graphics/Kornia evidence is context-only, not Track B proof authority.
+- No install, requirements mutation, Dockerfile mutation, Docker build/run, OpenColorIO/OpenImageIO execution, image/media processing, render/export, GPU, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, or production scope ran.
+- The 40-plus end-to-end proof claim remains disallowed.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_CPU_EXECUTION`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_CPU_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_CPU_EXECUTION_STATUS:
+
+- Decision: `trackb_media_oss_milestone4_color_image_pipeline_cpu_execution_passed_ready_for_qa`
+- Target: `docker/prod/cpu-worker/Dockerfile` with `docker/prod/cpu-worker/requirements.cpu.txt`.
+- Requirements patch: added `OpenColorIO` and `OpenImageIO`; `PyOpenColorIO` was not declared.
+- Docker build: passed for local image `reeditpro-cpu-worker:trackb-milestone4-color-image-957e8f96900e9a374a8cd7990f00e761222ebb64`; image removed before commit.
+- OpenColorIO: `PyOpenColorIO` import/version 2.5.2 and raw `Config` API-shape proof passed under `--network none`.
+- OpenImageIO: import/version 3.1.14.1 and `ImageSpec`/`ImageBuf` API-shape proof passed under `--network none` without file I/O.
+- Track B counts remain pending QA: 16 owned tools, 14 bounded accepted/proven tools, 2 blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- New CPU proof candidates pending QA: OpenColorIO and OpenImageIO.
+- Do not claim 40+ tools are installed/proven end-to-end.
+- No real media/image processing, render/export, GPU, FFmpeg/FFprobe, other Track B tools, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, or production scope is accepted.
+- Next prompt: `TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_CPU_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:
+
+- Decision: `trackb_media_oss_milestone4_color_image_pipeline_qa_passed_ready_for_trackb_final_rollup`
+- PR #648 bounded CPU/container evidence is accepted for OpenColorIO and OpenImageIO.
+- OpenColorIO: `PyOpenColorIO` import/version 2.5.2 and raw `Config` API-shape proof accepted under `--network none`.
+- OpenImageIO: import/version 3.1.14.1 and `ImageSpec`/`ImageBuf` API-shape proof accepted under `--network none` without file I/O.
+- Track B counts after QA: 16 owned tools, 16 bounded accepted/proven tools, 0 blocked/not installed-proven tools, 0 end-to-end product-ready tools.
+- Product runtime, image/media processing, render/export, GPU, FFmpeg/FFprobe reruns, workers/routes/providers, Supabase/GCS, public artifacts, signed URLs, raw prompts, beta, and production remain blocked.
+- No 40+ tools installed/proven end-to-end claim is allowed.
+- Next prompt: `TRACKB_MEDIA_OSS_FINAL_ROLLUP`
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_FINAL_ROLLUP_STATUS:start -->
+TRACKB_MEDIA_OSS_FINAL_ROLLUP:
+
+- Decision: `trackb_media_oss_final_rollup_passed_ready_for_tool_call_beta_readiness_review`
+- Final Track B status: all 16 owned tools are bounded accepted/proven.
+- Blocked/not installed-proven tools: none.
+- Product-ready tools: 0.
+- Direct callable/beta runtime: not approved. Requires `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_FINAL_ROLLUP_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW:
+
+- Decision: `trackb_media_oss_tool_call_beta_readiness_review_blocked_pending_callable_worker_contracts`.
+- Counts: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Tool packages/proofs are complete for Track B, but product tool calls are still blocked until Track B-specific callable worker/API contracts, approved snapshot and credit gates, private artifact policy, result schemas, QA/fallbacks, and logging/hardening are implemented.
+- No direct tool-call, beta, worker, route runtime, Supabase/GCS, public artifact, signed URL, or production approval is granted here.
+- Next prompt: `TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION`.
+<!-- TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION_STATUS:start -->
+TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION:
+
+- Decision: `trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun`.
+- Counts: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- All 16 owned tools have fail-closed callable worker contract metadata.
+- All Track B tool-call route metadata remains disabled/backend-required; no route runtime or worker dispatch is approved.
+- Private artifact, approved snapshot, credit reservation, result schema, QA gate, fallback, and sanitized logging requirements are recorded for the beta-readiness rerun.
+- Next prompt: `TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN`.
+<!-- TRACKB_MEDIA_OSS_CALLABLE_WORKER_CONTRACTS_IMPLEMENTATION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_QA_REVIEW:
+
+- Decision: `trackb_media_oss_limited_internal_beta_dry_run_monitoring_qa_passed_ready_for_monitoring_closeout`.
+- QA accepts PR #808 as dry-run monitoring evidence only.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- OpenColorIO and OpenImageIO remain bounded accepted/proven with no pending install blocker.
+- Direct product tool calls, live route runtime, worker dispatch, real tool execution, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready local OSS claims remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_CLOSEOUT`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_CLOSEOUT_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_CLOSEOUT:
+
+- Decision: `trackb_media_oss_limited_internal_beta_dry_run_monitoring_closeout_passed_ready_for_limited_internal_beta_product_tool_call_runtime_approval`.
+- Track B dry-run monitoring is closed out for all 16 owned tools.
+- Current Track B counts: 16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready.
+- Deterministic ranking remains accepted for use-case-scoped tool-call routing metadata only.
+- Direct product tool calls, live route runtime, worker dispatch, real tool execution, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready local OSS claims remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_APPROVAL`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_CLOSEOUT_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_APPROVAL:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_approval_passed_ready_for_controlled_runtime_dry_run_execution`.
+- Current Track B counts: 16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready.
+- Approval result: ready for controlled product tool-call runtime dry-run execution with safe fixture payloads only.
+- Deterministic use-case routing remains accepted; direct product tool calls without the dry-run gate remain blocked.
+- Routes, workers, real tools, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready local OSS claims remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_EXECUTION`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_EXECUTION:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_execution_passed_ready_for_runtime_dry_run_qa_review`.
+- Current Track B counts: 16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready.
+- Dry-run result: safe fixture payloads prove product-path metadata gates without enabling live routes or worker dispatch.
+- Deterministic use-case routing, fail-closed worker contracts, result schema, QA gates, fallback policy, sanitized logging, monitoring event shape, and rollback record shape are preserved for QA review.
+- Routes, workers, real tools, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready local OSS claims remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_QA_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_QA_REVIEW:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_qa_passed_ready_for_runtime_closeout`.
+- Current Track B counts: 16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready.
+- QA result: safe fixture product-path dry-run evidence is accepted for closeout, not live runtime.
+- Direct product tool calls, live route runtime, worker dispatch, real tool execution, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready local OSS claims remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CLOSEOUT`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CLOSEOUT_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CLOSEOUT:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_closeout_passed_ready_for_activation_approval`.
+- Current Track B counts: 16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready.
+- Closeout result: product tool-call runtime dry-run sequence is closed and ready for an activation approval gate.
+- Direct product tool calls, live route runtime, worker dispatch, real tool execution, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready local OSS claims remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_ACTIVATION_APPROVAL`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CLOSEOUT_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_ACTIVATION_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_ACTIVATION_APPROVAL:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_activation_approval_blocked_pending_runtime_controls`.
+- Tool status: all 16 Track B tools remain bounded accepted/proven for dry-run metadata only; product-ready local OSS tools remain blocked at `0`.
+- Activation approval is blocked pending live runtime controls for routes, worker dispatch, service-role boundaries, Supabase/GCS writes, monitoring, rollback, and beta exposure.
+- No direct product tool calls, real tool execution, media processing, user-media-by-default, public artifacts, signed URLs, external beta, or production are approved.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_ACTIVATION_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_control_plan_passed_ready_for_control_approval`.
+- Tool status: all 16 tools remain bounded accepted/proven for dry-run metadata only; product-ready local OSS tools remain blocked at `0`.
+- Runtime controls are planned for approval, but live activation, worker dispatch, direct product calls, media processing, writes, beta, and production remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_APPROVAL`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_PLAN_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_APPROVAL:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_control_approval_passed_ready_for_controlled_activation_execution`.
+- Tool status: all 16 tools remain bounded accepted/proven for dry-run metadata only; product-ready local OSS tools remain blocked at `0`.
+- Runtime controls are approved for future controlled activation execution, but no tool execution, route runtime, worker dispatch, writes, beta, or production is enabled by this gate.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROL_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review`.
+- Tool status: all 16 Track B tools remain bounded accepted/proven for dry-run/control metadata only; product-ready local OSS tools remain blocked at `0`.
+- Controlled activation execution created a bounded internal activation artifact and preserved fail-closed route, worker, write, monitoring, rollback, and exposure controls.
+- Live route runtime, worker dispatch, direct product tool calls, real tool execution, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready claims remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout`.
+- Tool status: all 16 Track B tools remain bounded accepted/proven for dry-run/control metadata only; product-ready local OSS tools remain blocked at `0`.
+- Controlled activation QA accepts the bounded internal activation artifact and confirms fail-closed route, worker, write, monitoring, rollback, and exposure controls remain metadata-only.
+- Live route runtime, worker dispatch, direct product tool calls, real tool execution, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready claims remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_closeout_passed_ready_for_limited_internal_activation_approval`.
+- Tool status: all 16 Track B tools remain bounded accepted/proven for dry-run/control metadata only; product-ready local OSS tools remain blocked at `0`.
+- Controlled activation execution and QA are closed out, and the next gate is limited internal activation approval.
+- Live route runtime, worker dispatch, direct product tool calls, real tool execution, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready claims remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_APPROVAL`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_APPROVAL:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_approval_passed_ready_for_limited_internal_activation_execution`.
+- Approval result: controlled activation closeout evidence is accepted for a future bounded limited internal activation execution gate.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Approved-for-execution controls: fail-closed route runtime, per-tool worker dispatch allowlists, service-role boundary checks, sanitized monitoring, rollback execution, and limited internal exposure rules.
+- Supabase/GCS writes, direct product tool calls, real tool execution, user-media-by-default, public artifacts, signed URLs, external beta, production, and product-ready claims remain blocked by this approval.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_EXECUTION`.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_EXECUTION:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_execution_passed_ready_for_limited_internal_activation_qa_review`.
+- Bounded execution proof: fail-closed route runtime, per-tool worker dispatch controls, service-role/no-write boundary, sanitized monitoring, rollback disable controls, and limited internal exposure controls are recorded as source-of-truth metadata.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Live product calls, route dispatch, worker dispatch, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_QA_REVIEW`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_QA_REVIEW:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_qa_passed_ready_for_limited_internal_activation_closeout`.
+- QA accepts PR #883 only as bounded activation execution evidence for fail-closed route runtime, per-tool worker dispatch controls, service-role/no-write boundary, sanitized monitoring, rollback disable controls, and limited internal exposure controls.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Live product calls, route dispatch, worker dispatch, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_CLOSEOUT`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_QA_REVIEW_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_CLOSEOUT_STATUS:start -->
+TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_CLOSEOUT:
+
+- Decision: `trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_closeout_passed_ready_for_product_beta_readiness_reconciliation`.
+- Closeout result: PR #889 QA evidence and PR #883 bounded activation execution evidence are closed as source-of-truth metadata for all 16 Track B tools.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Live product calls, route dispatch, worker dispatch, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_RECONCILIATION`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_CLOSEOUT_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_RECONCILIATION_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_RECONCILIATION:
+
+- Decision: `trackb_media_oss_product_beta_readiness_reconciliation_passed_ready_for_product_beta_go_no_go_review`.
+- Reconciliation result: PR #893 limited internal activation closeout is accepted as source-of-truth input for product beta go/no-go review.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Deterministic dry-run tool ranking is preserved by use case; all ranking entries remain dry-run metadata only with execution disabled.
+- Live product calls, route dispatch, worker dispatch, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_GO_NO_GO_REVIEW`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_RECONCILIATION_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_GO_NO_GO_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_GO_NO_GO_REVIEW:
+
+- Decision: `trackb_media_oss_product_beta_go_no_go_passed_ready_for_product_beta_readiness_closeout`.
+- Go/no-go result: go for product beta readiness closeout only; no live runtime, direct product calls, worker dispatch, real tools, external beta, production, or product-ready status is approved.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Deterministic dry-run tool ranking is accepted by use case for source-truth routing review only.
+- Blocked scopes remain: live product calls, route dispatch, worker dispatch, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_CLOSEOUT`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_GO_NO_GO_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_CLOSEOUT_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_CLOSEOUT:
+
+- Decision: `trackb_media_oss_product_beta_readiness_closeout_passed_ready_for_product_beta_runtime_approval`.
+- Closeout result: Track B product beta readiness is closed as source-of-truth and ready for a separate product beta runtime approval gate only.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Deterministic dry-run tool ranking is closed by use case as source-truth routing metadata only; all entries remain execution-disabled.
+- Live product calls, route dispatch, worker dispatch, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_APPROVAL`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_READINESS_CLOSEOUT_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_APPROVAL_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_APPROVAL:
+
+- Decision: `trackb_media_oss_product_beta_runtime_approval_passed_ready_for_product_beta_runtime_controlled_activation_execution`.
+- Runtime approval result: approved for a future controlled product beta runtime activation execution gate only.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Accepted controls remain fail-closed metadata: route/runtime guards, per-tool worker allowlists, approved snapshot/edit-plan/credit gates, service-role/no-write checks, sanitized monitoring, rollback controls, and limited internal exposure rules.
+- Live product calls, direct route dispatch, worker dispatch to real tools, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_APPROVAL_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION:
+
+- Decision: `trackb_media_oss_product_beta_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review`.
+- Controlled activation execution result: fail-closed route/runtime controls, per-tool worker dispatch guards, approved snapshot/edit-plan/credit gates, service-role/no-write checks, sanitized monitoring, rollback controls, limited internal exposure controls, and deterministic tool-use ranking are recorded as source-of-truth metadata.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Live product calls, direct route dispatch, worker dispatch to real tools, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW:
+
+- Decision: `trackb_media_oss_product_beta_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout`.
+- QA accepts PR #908 controlled activation execution only as source-of-truth metadata for fail-closed route/runtime controls, per-tool worker dispatch guards, approved snapshot/edit-plan/credit gates, service-role/no-write checks, sanitized monitoring, rollback controls, limited exposure controls, and deterministic tool-use ranking.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Live product calls, direct route dispatch, worker dispatch to real tools, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT:
+
+- Decision: `trackb_media_oss_product_beta_runtime_controlled_activation_closeout_passed_ready_for_product_ready_review`.
+- Closeout accepts PR #912 QA evidence and PR #908 controlled activation execution evidence only as source-of-truth metadata for fail-closed runtime controls, per-tool worker dispatch guards, approved snapshot/edit-plan/credit gates, service-role/no-write checks, sanitized monitoring, rollback controls, limited exposure controls, and deterministic tool-use ranking.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Live product calls, direct route dispatch, worker dispatch to real tools, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_REVIEW`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_REVIEW:
+
+- Decision: `trackb_media_oss_product_beta_runtime_product_ready_review_blocked_pending_live_product_runtime_proof`.
+- Product-ready review result: controlled activation closeout evidence is accepted as source-of-truth metadata, but it does not prove real product behavior or live route/worker/tool execution safety end to end.
+- Deterministic dry-run ranking remains preserved by use case: metadata probe, video analysis, image/color pipeline, OCR/text extraction, and high-risk media transform.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Live product calls, direct route dispatch, worker dispatch to real tools, real tools, Docker, installs, media processing, user-media-by-default, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked pending a product-ready proof plan.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_PLAN`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_PLAN_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_PLAN:
+
+- Decision: `trackb_media_oss_product_beta_runtime_product_ready_proof_plan_passed_ready_for_bounded_live_product_runtime_proof_execution`.
+- Proof-plan result: exact evidence requirements are defined for the future bounded live product runtime proof execution lane.
+- Required future proof covers real product route behavior, deterministic use-case ranking, worker dispatch guards, approved snapshot/edit-plan/credit enforcement, rollback, monitoring, privacy, and Supabase/GCS no-write boundaries.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- This phase does not run Docker, installs, real tools, media processing, route dispatch, worker dispatch, Supabase/GCS writes, external beta, production, or product-ready unlocks.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_EXECUTION`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_PLAN_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_EXECUTION:
+
+- Decision: `trackb_media_oss_product_beta_runtime_product_ready_proof_execution_blocked_by_product_route_disabled_backend_required`.
+- Proof execution result: fail-closed route/contract/ranking evidence passed, but product-ready proof is blocked because Track B product routes remain disabled/backend-required and worker dispatch remains execution-disabled.
+- Deterministic use-case ranking remains preserved for metadata probe, video analysis, image/color pipeline, OCR/text extraction, and high-risk media transform.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- No Docker, installs, real tools, media processing, route dispatch, worker dispatch, Supabase/GCS writes, external beta, production, or product-ready unlocks ran in this phase.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_PLAN`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_EXECUTION_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_PLAN_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_PLAN:
+
+- Decision: `trackb_media_oss_product_beta_runtime_product_route_enablement_plan_passed_ready_for_product_route_enablement_execution`.
+- Route enablement plan result: the next lane is scoped to a bounded local/staging Track B product route harness with fail-closed gates and sanitized receipts only.
+- Required future gate coverage: approved snapshot, edit plan, credit reservation, idempotency, private artifact metadata, QA gates, fallback policy, rollback state, deterministic ranking, and sanitized monitoring.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- This phase does not enable product routes, dispatch workers, run tools, process media, write Supabase/GCS, expose beta/production, or unlock product-ready status.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_EXECUTION`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_PLAN_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_EXECUTION:
+
+- Decision: `trackb_media_oss_product_beta_runtime_product_route_enablement_execution_passed_ready_for_product_route_enablement_qa_review`.
+- Route enablement execution result: a bounded local/staging dry-run harness now records sanitized validate, queue, and status receipts while preserving fail-closed negative paths.
+- Required gate coverage proven in metadata/source: approved snapshot, edit plan, credit reservation, idempotency, private artifact metadata, QA gates, fallback policy, rollback state, deterministic ranking, and sanitized monitoring.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Live product calls, real route dispatch, worker dispatch to real tools, real tools, Docker, installs, media processing, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked pending QA.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_QA_REVIEW`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_EXECUTION_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_QA_REVIEW:
+
+- Decision: `trackb_media_oss_product_beta_runtime_product_route_enablement_qa_passed_ready_for_product_route_enablement_closeout`.
+- QA result: PR #939 bounded local/staging dry-run route harness evidence is accepted for source-of-truth closeout only.
+- Accepted evidence: sanitized validate, queue, and status receipts; fail-closed paths for missing approved snapshot, signed URL/private artifact misuse, and worker dispatch attempts; deterministic use-case ranking preserved.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Live product calls, real route dispatch, worker dispatch to real tools, real tools, Docker, installs, media processing, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked pending later approved gates.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_CLOSEOUT`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_QA_REVIEW_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_CLOSEOUT_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_CLOSEOUT:
+
+- Decision: `trackb_media_oss_product_beta_runtime_product_route_enablement_closeout_passed_ready_for_product_ready_proof_rerun_plan`.
+- Closeout result: PR #945 QA acceptance closes the bounded local/staging route enablement sequence as source-of-truth metadata only.
+- Accepted evidence remains limited to sanitized validate, queue, and status receipts; fail-closed paths; and deterministic use-case ranking preservation.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- Live product calls, real route dispatch, worker dispatch to real tools, real tools, Docker, installs, media processing, public artifacts, signed URLs, Supabase/GCS writes, external beta, production, and product-ready status remain blocked pending a later product-ready proof rerun and QA.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_PLAN`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_CLOSEOUT_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_PLAN_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_PLAN:
+
+- Decision: `trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_plan_passed_ready_for_product_ready_proof_rerun_execution`.
+- Rerun-plan result: exact product-ready proof rerun requirements are defined after the route enablement closeout.
+- Required future proof covers product-facing route behavior, deterministic use-case ranking, approved snapshot/edit-plan/credit/idempotency enforcement, worker dispatch guards, rollback, monitoring, privacy, and Supabase/GCS no-write boundaries.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- This phase does not run Docker, installs, real tools, media processing, route dispatch, worker dispatch, Supabase/GCS writes, external beta, production, or product-ready unlocks.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_EXECUTION`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_PLAN_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_EXECUTION_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_EXECUTION:
+
+- Decision: `trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_execution_passed_ready_for_product_ready_proof_rerun_qa_review`.
+- Rerun execution result: bounded local/staging product route harness evidence proves sanitized validate, queue, and status receipts; deterministic use-case ranking; approved snapshot/edit-plan/credit/idempotency gates; worker dispatch guards; rollback/monitoring; privacy; and Supabase/GCS no-write boundaries.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- This phase does not run Docker, installs, real tools, media processing, live product calls, route runtime, worker dispatch, Supabase/GCS writes, external beta, production, or product-ready unlocks.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_QA_REVIEW`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_EXECUTION_STATUS:end -->
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_QA_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_QA_REVIEW:
+
+- Decision: `trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_qa_passed_ready_for_product_ready_closeout`.
+- QA result: PR #965 bounded rerun execution evidence is accepted for closeout consideration.
+- Accepted evidence covers product route harness receipts, deterministic use-case ranking, approved snapshot/edit-plan/credit/idempotency gates, worker dispatch guards, monitoring/rollback, privacy, and Supabase/GCS no-write boundaries.
+- Product-ready candidates accepted for closeout: 16 Track B tools. Registry product-ready count remains `0` until closeout.
+- Track B totals remain `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+- This phase does not run Docker, installs, real tools, media processing, live product calls, route runtime, worker dispatch, Supabase/GCS writes, external beta, production, or product-ready unlocks.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_CLOSEOUT`.
+- Supabase classification: no write / environment none / SQL none / migration no.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_RERUN_QA_REVIEW_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_CLOSEOUT_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_CLOSEOUT
+
+- Decision: `trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane`.
+- Previous decision: `trackb_media_oss_product_beta_runtime_product_ready_proof_rerun_qa_passed_ready_for_product_ready_closeout`.
+- Closeout result: all 16 Track B owned tools are product-ready for the ranked, bounded tools-call lane.
+- Current Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 16 product-ready`.
+- Deterministic use-case ranking remains: metadata probe, video analysis, image/color pipeline, OCR/text extraction, and high-risk media transform.
+- Product-ready scope is bounded by approved snapshot, edit-plan, credit, idempotency, private artifact, QA, fallback, monitoring, and rollback gates.
+- No Docker, installs, real tool execution, media processing, live product calls, route runtime, worker dispatch, Supabase/GCS writes, public artifacts, signed URLs, external beta, or production ran in this closeout phase.
+- Supabase classification: no write / environment none / SQL none / migration no.
+- Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_TOOLS_CALL_LANE_READY_HANDOFF`.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_CLOSEOUT_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_TOOLS_CALL_LANE_READY_HANDOFF_STATUS:start -->
+TRACKB_MEDIA_OSS_PRODUCT_BETA_TOOLS_CALL_LANE_READY_HANDOFF
+
+- Decision: `trackb_media_oss_product_beta_tools_call_lane_handoff_passed_ready_for_external_beta_production_readiness_gap_review`.
+- Previous decision: `trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane`.
+- Tool status: 16 Track B tools remain product-ready for the ranked tools-call lane.
+- Current Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 16 product-ready`.
+- External beta and production are not unlocked by this status update. Remaining gaps include deployment/rollback, model/license, security, cost, private storage/deletion, observability/alerting, incident response, E2E dry-run, delivery/share, backend/database, production credit ledger, real generation/export workers, public artifacts, signed URLs, and Supabase/GCS write policy.
+- Supabase classification: no write / environment none / SQL none / migration no.
+- Next prompt: `TRACKB_MEDIA_OSS_EXTERNAL_BETA_PRODUCTION_READINESS_GAP_REVIEW`.
+<!-- TRACKB_MEDIA_OSS_PRODUCT_BETA_TOOLS_CALL_LANE_READY_HANDOFF_STATUS:end -->
+
+<!-- TRACKB_MEDIA_OSS_EXTERNAL_BETA_PRODUCTION_READINESS_GAP_REVIEW_STATUS:start -->
+TRACKB_MEDIA_OSS_EXTERNAL_BETA_PRODUCTION_READINESS_GAP_REVIEW
+
+- Decision: `trackb_media_oss_external_beta_production_readiness_gap_review_blocked_pending_reeditpro_global_readiness_remediation_plan`.
+- Previous decision: `trackb_media_oss_product_beta_tools_call_lane_handoff_passed_ready_for_external_beta_production_readiness_gap_review`.
+- Tool status result: 16 Track B tools remain product-ready for the ranked tools-call lane only.
+- Current Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 16 product-ready`.
+- External beta and production remain blocked by deployment, model/license, security, cost, storage/deletion, observability, incident, E2E dry-run, delivery/share, backend/database, production credit ledger, real generation/export worker, public artifact, signed URL, legal/support, operations, and Supabase/GCS write gates.
+- Supabase classification: no write / environment none / SQL none / migration no.
+- Next prompt: `REEDITPRO_EXTERNAL_BETA_PRODUCTION_READINESS_REMEDIATION_PLAN`.
+<!-- TRACKB_MEDIA_OSS_EXTERNAL_BETA_PRODUCTION_READINESS_GAP_REVIEW_STATUS:end -->

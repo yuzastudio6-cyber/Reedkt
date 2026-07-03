@@ -1,0 +1,503 @@
+#!/usr/bin/env node
+
+import { execFileSync } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const repoRoot = path.resolve(path.dirname(__filename), '..', '..')
+const reportDir = 'docs/open-source-tool-stack/trackb-media-oss-final-rollup'
+const decision = 'trackb_media_oss_final_rollup_passed_ready_for_tool_call_beta_readiness_review'
+const nextPrompt = 'TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_REVIEW'
+const baseRef = 'origin/codex/rp-github-merge-hygiene-open-pr-stack-audit'
+
+const requiredReports = [
+  'source-of-truth-audit.json',
+  'source-of-truth-audit.md',
+  'tool-coverage-rollup.json',
+  'tool-coverage-rollup.md',
+  'tool-call-readiness-review.json',
+  'tool-call-readiness-review.md',
+  'beta-readiness-review.json',
+  'beta-readiness-review.md',
+  'runtime-boundary-review.json',
+  'runtime-boundary-review.md',
+  'final-rollup-decision.json',
+  'final-rollup-decision.md',
+  'readiness-report.json',
+  'private-artifact-manifest.json',
+  'validation-results.md',
+]
+
+const statusDocs = [
+  'docs/open-source-tool-stack/open-source-tool-stack-decision.md',
+  'docs/open-source-tool-stack/open-source-tool-stack-next-install-batches.md',
+  'docs/open-source-tool-stack/owner-registry/open-source-tool-owner-registry.md',
+  'docs/open-source-tool-stack/owner-registry/open-source-tool-owner-registry.json',
+  'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.md',
+  'docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json',
+  'docs/open-source-tool-stack/owner-registry/trackb-media-oss-steward.md',
+  'docs/open-source-tool-stack/owner-registry/trackb-media-oss-steward.json',
+  'docs/cross-chat/CURRENT_HANDOFF.md',
+  'docs/cross-chat/NEXT_UNLOCK_LANES.md',
+  'docs/cross-chat/BLOCKED_SCOPES.md',
+]
+
+const allowedChangedPrefixes = [
+  'docs/reeditpro-limited-external-beta-named-owner-approvals-response-intake/',
+  'docs/reeditpro-limited-external-beta-named-owner-approvals-request/',
+  'docs/reeditpro-limited-external-beta-runtime-owner-approval-execution/',
+  'docs/reeditpro-limited-external-beta-runtime-owner-approval-plan/',
+  'docs/reeditpro-external-beta-production-go-no-go-review/',
+  'docs/reeditpro-delivery-share-policy-readiness-plan/',
+  'docs/reeditpro-worker-generation-export-e2e-readiness-plan/',
+  'docs/reeditpro-backend-database-billing-credit-ledger-readiness-plan/',
+  'docs/reeditpro-observability-incident-support-readiness-plan/',
+  'docs/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan/',
+  'docs/reeditpro-model-license-security-cost-readiness-plan/',
+  'docs/reeditpro-deployment-rollback-readiness-plan/',
+  'docs/reeditpro-external-beta-production-readiness-remediation-plan/',
+  'docs/open-source-tool-stack/trackb-media-oss-external-beta-production-readiness-gap-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-tools-call-lane-ready-handoff/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-closeout/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-qa-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-plan/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-execution/',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-route-enablement-execution.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-route-enablement-qa-review.md',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-plan-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-execution-diagnostics.mjs',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-execution/',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-route-enablement-plan.md',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-proof-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-proof-plan-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-proof-execution.md',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-plan/',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-controlled-activation-closeout-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-review-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-proof-plan.md',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-controlled-activation-closeout/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-controlled-activation-qa-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-controlled-activation-execution/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-approval/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-go-no-go-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-readiness-closeout/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-readiness-reconciliation/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-qa-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-closeout/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-execution/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval/',
+  `docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval/`,
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-execution/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-qa-review/',
+  `docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-plan/`,
+  `docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-activation-approval/`,
+  `${reportDir}/`,
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring-closeout/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-approval/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-execution/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-qa-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-closeout/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-callable-worker-contracts-implementation/',
+  'docs/open-source-tool-stack/trackb-media-oss-tool-call-beta-readiness-rerun/',
+  'docs/open-source-tool-stack/trackb-media-oss-controlled-internal-beta-dry-run/',
+  'docs/open-source-tool-stack/trackb-media-oss-internal-beta-fixture-gate-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-controlled-internal-beta-fixture-execution/',
+  'docs/open-source-tool-stack/trackb-media-oss-controlled-internal-beta-fixture-qa-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-go-no-go-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-activation/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-qa-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-dry-run-testing/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-readiness-review/',
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-testing-handoff/',
+
+  'docs/open-source-tool-stack/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-closeout/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-plan/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-execution/',
+  'docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-qa-review/',
+]
+const allowedChangedFiles = new Set([
+  'docs/implementation-prompts/prompt-reeditpro-external-beta-production-readiness-remediation-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-deployment-rollback-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-model-license-security-cost-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-private-storage-deletion-supabase-gcs-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-observability-incident-support-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-backend-database-billing-credit-ledger-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-worker-generation-export-e2e-readiness-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-delivery-share-policy-readiness-plan.md',
+  'docs/production-go-no-go-checklist.md',
+  'docs/production-beta-readiness-scorecard.md',
+  'docs/production-hardening-overview.md',
+  'scripts/validation/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan-diagnostics.mjs',
+  'scripts/validation/reeditpro-observability-incident-support-readiness-plan-diagnostics.mjs',
+  'scripts/validation/reeditpro-backend-database-billing-credit-ledger-readiness-plan-diagnostics.mjs',
+  'scripts/validation/reeditpro-worker-generation-export-e2e-readiness-plan-diagnostics.mjs',
+  'scripts/validation/reeditpro-model-license-security-cost-readiness-plan-diagnostics.mjs',
+  'scripts/validation/reeditpro-deployment-rollback-readiness-plan-diagnostics.mjs',
+  'scripts/validation/reeditpro-external-beta-production-readiness-remediation-plan-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-tools-call-lane-ready-handoff.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-external-beta-production-readiness-gap-review.md',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-closeout-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-plan.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-execution.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-qa-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-ready-closeout.md',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-route-enablement-qa-review-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-product-route-enablement-closeout.md',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-controlled-activation-qa-review-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-controlled-activation-closeout.md',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-controlled-activation-execution-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-controlled-activation-qa-review.md',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-approval-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-controlled-activation-execution.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-readiness-closeout.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-runtime-approval.md',
+  'scripts/validation/trackb-media-oss-product-beta-go-no-go-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-readiness-closeout-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-go-no-go-review.md',
+  'scripts/validation/trackb-media-oss-product-beta-readiness-reconciliation-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-closeout-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-closeout.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-product-beta-readiness-reconciliation.md',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-execution-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-qa-review.md',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-execution.md',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-closeout-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-execution.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-qa-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-controlled-activation-closeout.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-limited-internal-activation-approval.md',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-plan-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-approval.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-control-plan.md',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-activation-approval-diagnostics.mjs',
+  'package.json',
+  'src/backend/api/trackb-media-oss-product-route-enablement-harness.ts',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-monitoring-closeout-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-approval-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-product-tool-call-runtime-closeout-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-testing-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-readiness-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-testing-handoff-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-dry-run-activation-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-limited-internal-beta-go-no-go-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-controlled-internal-beta-fixture-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-controlled-internal-beta-fixture-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-internal-beta-fixture-gate-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-controlled-internal-beta-dry-run-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-tool-call-beta-readiness-rerun-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-callable-worker-contracts-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-4-color-image-pipeline-cpu-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-font-config-followup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-exact-font-asset-source-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-font-source-license-followup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-system-font-package-approval-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-system-font-package-execution-blocker-followup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-followup-diagnostics.mjs',
+  'scripts/validation/open-source-tool-owner-registry-trackb-media-oss-steward-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-callable-worker-contracts-implementation.md',
+  'scripts/validation/trackb-media-oss-tool-call-beta-readiness-review-diagnostics.mjs',
+  'server/smoke/trackb-media-oss-callable-worker-contracts-smoke.ts',
+  'src/backend/contracts/trackb-media-oss-tool-call-contracts.ts',
+  'src/backend/api/routes/trackb-media-oss-tool-call-api-routes.ts',
+  'src/backend/api/api-route-registry.ts',
+  'src/backend/api/index.ts',
+  'src/backend/contracts/index.ts',
+  'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-rerun.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-controlled-internal-beta-dry-run.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-internal-beta-fixture-gate-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-controlled-internal-beta-fixture-execution.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-controlled-internal-beta-fixture-qa-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-go-no-go-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-activation.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-qa-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-testing.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-readiness-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-testing-handoff.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-qa-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-dry-run-monitoring-closeout.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-approval.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-execution.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-dry-run-qa-review.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-closeout.md',
+  'docs/implementation-prompts/prompt-trackb-media-oss-limited-internal-beta-product-tool-call-runtime-activation-approval.md',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-plan-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-execution-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-product-beta-runtime-product-ready-proof-rerun-qa-review-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-1-tesseract-fixture-proof-followup-diagnostics.mjs',
+  'scripts/validation/trackb-media-oss-milestone-1-build-context-blocker-followup-diagnostics.mjs',
+  'scripts/validation/reeditpro-delivery-share-policy-readiness-plan-diagnostics.mjs',
+  'scripts/validation/reeditpro-external-beta-production-go-no-go-review-diagnostics.mjs',
+  'scripts/validation/reeditpro-limited-external-beta-runtime-owner-approval-plan-diagnostics.mjs',
+  'scripts/validation/reeditpro-limited-external-beta-runtime-owner-approval-execution-diagnostics.mjs',
+  'scripts/validation/reeditpro-limited-external-beta-named-owner-approvals-request-diagnostics.mjs',
+  'scripts/validation/reeditpro-limited-external-beta-named-owner-approvals-response-intake-diagnostics.mjs',
+  'docs/implementation-prompts/prompt-reeditpro-external-beta-production-go-no-go-review.md',
+  'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-runtime-owner-approval-plan.md',
+  'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-runtime-owner-approval-execution.md',
+  'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-named-owner-approvals-request.md',
+  'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-named-owner-approvals-response-intake.md',
+  'docs/implementation-prompts/prompt-reeditpro-limited-external-beta-submit-named-owner-approval-responses.md',
+  ...statusDocs,
+])
+
+const protectedNoDiffFiles = [
+  'package-lock.json',
+  '.dockerignore',
+  'docker/prod/render-worker/Dockerfile',
+  'docker/prod/cpu-worker/Dockerfile',
+  'docker/prod/cpu-worker/requirements.cpu.txt',
+  'docker/prod/ocr-runtime/Dockerfile',
+  'docker/prod/ocr-runtime/requirements.ocr.txt',
+]
+
+const forbiddenOutputs = [
+  'node_modules',
+  'dist',
+  'dist-server',
+  'dist-remotion-worker',
+  'dist-staging-fixture-worker',
+  'dist-staging-real-video-export-worker',
+]
+
+const failures = []
+
+function fail(message) {
+  failures.push(message)
+}
+
+function fullPath(relativePath) {
+  return path.join(repoRoot, relativePath)
+}
+
+function readText(relativePath) {
+  const resolved = fullPath(relativePath)
+  if (!fs.existsSync(resolved)) {
+    fail(`missing_file:${relativePath}`)
+    return ''
+  }
+  return fs.readFileSync(resolved, 'utf8')
+}
+
+function readJson(relativePath) {
+  const text = readText(relativePath)
+  if (!text) return {}
+  try {
+    return JSON.parse(text)
+  } catch (error) {
+    fail(`invalid_json:${relativePath}:${error.message}`)
+    return {}
+  }
+}
+
+function git(args, allowFailure = false) {
+  try {
+    return execFileSync('git', args, {
+      cwd: repoRoot,
+      env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+      encoding: 'utf8',
+    }).trim()
+  } catch (error) {
+    if (allowFailure) return ''
+    throw error
+  }
+}
+
+function changedFiles() {
+  return [
+    ...git(['diff', '--name-only'], true).split('\n'),
+    ...git(['diff', '--cached', '--name-only'], true).split('\n'),
+    ...git(['diff', '--name-only', `${baseRef}...HEAD`], true).split('\n'),
+  ].filter(Boolean)
+}
+
+function isAllowedChangedFile(file) {
+  return allowedChangedFiles.has(file) || allowedChangedPrefixes.some((prefix) => file.startsWith(prefix))
+}
+
+function requireDecision(label, report) {
+  if (report.decision !== decision) fail(`decision_drift:${label}:${report.decision}`)
+  if (report.ownerId !== 'TRACK_B_MEDIA_OSS_STEWARD') fail(`owner_drift:${label}:${report.ownerId}`)
+}
+
+for (const file of requiredReports) readText(`${reportDir}/${file}`)
+for (const file of [
+  ...statusDocs,
+  'docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-review.md',
+]) {
+  readText(file)
+}
+
+const packageJson = readJson('package.json')
+if (
+  packageJson.scripts?.['trackb-media-oss:final-rollup:diagnostics'] !==
+  'node scripts/validation/trackb-media-oss-final-rollup-diagnostics.mjs'
+) {
+  fail('missing_package_script')
+}
+
+const reports = {
+  source: readJson(`${reportDir}/source-of-truth-audit.json`),
+  coverage: readJson(`${reportDir}/tool-coverage-rollup.json`),
+  toolCall: readJson(`${reportDir}/tool-call-readiness-review.json`),
+  beta: readJson(`${reportDir}/beta-readiness-review.json`),
+  runtime: readJson(`${reportDir}/runtime-boundary-review.json`),
+  decisionReport: readJson(`${reportDir}/final-rollup-decision.json`),
+  readiness: readJson(`${reportDir}/readiness-report.json`),
+  manifest: readJson(`${reportDir}/private-artifact-manifest.json`),
+}
+
+for (const [label, report] of Object.entries(reports)) requireDecision(label, report)
+
+if (reports.source.sourceSha !== '38be65698cac87ecebeb852687eb59175ce8f900') {
+  fail(`source_sha_drift:${reports.source.sourceSha}`)
+}
+if (reports.source.sourceEvidence?.find((entry) => entry.pr === 741)?.state !== 'MERGED') {
+  fail('missing_pr741_source_evidence')
+}
+
+const counts = reports.coverage.counts || {}
+if (counts.ownedTools !== 16) fail(`owned_count_drift:${counts.ownedTools}`)
+if (counts.acceptedProvenBounded !== 16) fail(`accepted_count_drift:${counts.acceptedProvenBounded}`)
+if (counts.blockedNotInstalledProven !== 0) fail(`blocked_count_drift:${counts.blockedNotInstalledProven}`)
+if (counts.endToEndProductReady !== 0) fail(`product_ready_count_drift:${counts.endToEndProductReady}`)
+if (reports.coverage.fortyPlusEndToEndClaimAllowed !== false) fail('forty_plus_claim_allowed')
+if (reports.coverage.allOwnedToolsBoundedAcceptedProven !== true) fail('all_owned_tools_not_accepted')
+
+if (reports.toolCall.toolCallRuntimeReadyNow !== false) fail('tool_call_runtime_unblocked')
+if (reports.toolCall.toolCallBetaReadyNow !== false) fail('tool_call_beta_unblocked')
+if (reports.toolCall.safeNextGate !== nextPrompt) fail(`tool_call_next_prompt_drift:${reports.toolCall.safeNextGate}`)
+if (!reports.toolCall.missingForCallableBeta?.includes('route/worker invocation contract tests')) {
+  fail('missing_route_worker_contract_blocker')
+}
+
+if (reports.beta.internalBetaReadyNow !== false) fail('internal_beta_unblocked')
+if (reports.beta.externalBetaReadyNow !== false) fail('external_beta_unblocked')
+if (reports.beta.paidProductionReadyNow !== false) fail('paid_production_unblocked')
+if (reports.beta.nextPrompt !== nextPrompt) fail(`beta_next_prompt_drift:${reports.beta.nextPrompt}`)
+
+for (const [key, value] of Object.entries(reports.runtime)) {
+  if (
+    key.endsWith('Accepted') ||
+    key === 'gpuExecutionAccepted' ||
+    key === 'workerRuntimeAccepted' ||
+    key === 'routeRuntimeAccepted' ||
+    key === 'providerRuntimeAccepted' ||
+    key === 'betaProductionAccepted' ||
+    key === 'productReadyAccepted'
+  ) {
+    if (value !== false) fail(`runtime_scope_unblocked:${key}`)
+  }
+}
+
+if (reports.decisionReport.nextPrompt !== nextPrompt) fail(`decision_next_prompt_drift:${reports.decisionReport.nextPrompt}`)
+if (reports.readiness.readyForToolCallBetaReadinessReview !== true) fail('not_ready_for_next_review')
+if (reports.readiness.readyForDirectToolCalls !== false) fail('direct_tool_calls_unblocked')
+if (reports.readiness.readyForInternalBeta !== false) fail('internal_beta_readiness_unblocked')
+
+for (const [key, value] of Object.entries(reports.manifest)) {
+  if (key !== 'schema' && key !== 'generatedAt' && key !== 'decision' && key !== 'ownerId' && value !== false) {
+    fail(`manifest_artifact_unblocked:${key}`)
+  }
+}
+
+const status = readJson('docs/open-source-tool-stack/owner-registry/trackb-media-oss-tool-status.json')
+if (status.counts?.acceptedProvenBounded !== 16 || status.counts?.blockedNotInstalledProven !== 0) {
+  fail('status_counts_not_final_rollup_ready')
+}
+const productReadyCloseoutDecision =
+  'trackb_media_oss_product_beta_runtime_product_ready_closeout_passed_all_16_tools_ready_for_ranked_tools_call_lane'
+const currentStatusHasProductReadyCloseout =
+  status.productReadyCloseout?.decision === productReadyCloseoutDecision &&
+  status.productReadyCloseout?.productReadyCount === 16
+if (status.counts?.endToEndProductReady !== 0 && !currentStatusHasProductReadyCloseout) {
+  fail('status_product_ready_unblocked')
+}
+for (const [key, value] of Object.entries(status.blockedScopes || {})) {
+  if (value !== false) fail(`status_blocked_scope_unblocked:${key}`)
+}
+
+const promptText = readText('docs/implementation-prompts/prompt-trackb-media-oss-tool-call-beta-readiness-review.md')
+if (!promptText.includes(nextPrompt)) fail('missing_next_prompt_token')
+
+const scannedText = [
+  ...requiredReports.map((file) => readText(`${reportDir}/${file}`)),
+  ...statusDocs.map((file) => readText(file)),
+  promptText,
+].join('\n')
+
+const forbiddenClaims = [
+  /40\+.*(end-to-end|end to end).*(proven|ready|installed)/i,
+  /\bproduct-ready tools?:\s*[1-9]/i,
+  /\b(all 16|16 owned).*\\b(product-ready|ready for production|runtime ready)\\b/i,
+  /\b(beta|production)\s+(unlocked|enabled|ready)\b/i,
+]
+for (const pattern of forbiddenClaims) {
+  if (pattern.test(scannedText)) fail(`forbidden_claim:${pattern}`)
+}
+
+for (const file of protectedNoDiffFiles) {
+  if (git(['diff', '--name-only', '--', file], true)) fail(`protected_worktree_diff:${file}`)
+  if (git(['diff', '--cached', '--name-only', '--', file], true)) fail(`protected_staged_diff:${file}`)
+}
+
+for (const output of forbiddenOutputs) {
+  if (fs.existsSync(fullPath(output))) fail(`forbidden_output_present:${output}`)
+}
+
+for (const file of changedFiles()) {
+  if (!isAllowedChangedFile(file) && !file.startsWith('scripts/validation/trackb-media-oss-')) fail(`unexpected_changed_file:${file}`)
+  if (/\.(mp4|mov|mkv|srt|ttf|otf|ttc|png|jpe?g|webp|gif|deb|gpg|asc)$/i.test(file)) {
+    fail(`artifact_changed:${file}`)
+  }
+}
+
+if (/gho_|github_pat_|sk-|AKIA|BEGIN PRIVATE KEY|X-Amz-Signature|sig=|signature=/i.test(scannedText)) {
+  fail('secret_or_signed_url_material_detected')
+}
+
+if (failures.length) {
+  console.error(JSON.stringify({ ok: false, failures }, null, 2))
+  process.exit(1)
+}
+
+console.log(
+  JSON.stringify(
+    {
+      ok: true,
+      decision,
+      ownerId: 'TRACK_B_MEDIA_OSS_STEWARD',
+      counts,
+      readyForToolCallBetaReadinessReview: true,
+      readyForDirectToolCalls: false,
+      readyForInternalBeta: false,
+      nextPrompt,
+      supabaseClassification: reports.runtime.supabaseClassification,
+    },
+    null,
+    2,
+  ),
+)

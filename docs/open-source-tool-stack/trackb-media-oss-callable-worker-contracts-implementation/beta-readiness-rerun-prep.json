@@ -1,0 +1,15 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssCallableWorkerContracts.betaReadinessRerunPrep.v1",
+  "decision": "trackb_media_oss_callable_worker_contracts_passed_ready_for_tool_call_beta_readiness_rerun",
+  "installProofComplete": true,
+  "boundedQaAccepted": true,
+  "callableContractsImplemented": true,
+  "routesFailClosed": true,
+  "workerContractsFailClosed": true,
+  "readyForBetaReadinessRerun": true,
+  "directToolCallsReadyNow": false,
+  "internalBetaReadyNow": false,
+  "externalBetaReadyNow": false,
+  "productReadyNow": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_TOOL_CALL_BETA_READINESS_RERUN"
+}

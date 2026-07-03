@@ -1,0 +1,24 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1SystemPackagingExecution.dockerfilePatch.v1",
+  "generatedAt": "2026-06-19T21:35:33.624Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context",
+  "targetDockerfile": "docker/prod/cpu-worker/Dockerfile",
+  "approvedPackages": [
+    "libimage-exiftool-perl",
+    "mediainfo",
+    "tesseract-ocr",
+    "tesseract-ocr-eng",
+    "imagemagick"
+  ],
+  "packagePresence": {
+    "libimage-exiftool-perl": true,
+    "mediainfo": true,
+    "tesseract-ocr": true,
+    "tesseract-ocr-eng": true,
+    "imagemagick": true
+  },
+  "allApprovedPackagesPresent": true,
+  "graphicsMagickAdded": false,
+  "ffmpegLineTouchedByThisPhase": false,
+  "packageLockMutationAllowed": false
+}

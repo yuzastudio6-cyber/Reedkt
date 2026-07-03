@@ -1,0 +1,118 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisApproval.sourceAudit.v1",
+  "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceSha": "6d9b65871c342682bfcd2caa8eab5c3d142fc205",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceEvidence": [
+    {
+      "pr": 563,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval",
+      "head": "f7cf11be7ab6e6acc0773e90ef6dca63c7639045",
+      "mergedAt": "2026-06-20T01:54:06Z"
+    },
+    {
+      "pr": 559,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa",
+      "head": "7b3f07de5c3157750dc5f45ed41a7e99dc7c6322",
+      "mergedAt": "2026-06-20T00:24:13Z"
+    },
+    {
+      "pr": 557,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof",
+      "head": "f1df69dab36ccf1b605a61d83e0f90fff4efb9f8",
+      "mergedAt": "2026-06-19T23:08:20Z"
+    },
+    {
+      "pr": 551,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context",
+      "head": "19dd46212ff86fb21e70e676eb783d334e37ebcd",
+      "mergedAt": "2026-06-19T22:13:00Z"
+    },
+    {
+      "pr": 549,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution",
+      "head": "9daace1de0da0f137ba1660abbe562d0668e68f7",
+      "mergedAt": "2026-06-19T21:09:19Z"
+    },
+    {
+      "pr": 546,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_blocked_pending_container_packaging_approval",
+      "head": "52d901c62069e5d44747ea40942a23728558c73e",
+      "mergedAt": "2026-06-19T20:36:29Z"
+    },
+    {
+      "pr": 545,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution",
+      "head": "4864d969ec509f34788f4fa0f9b3cfaeaa9917b7",
+      "mergedAt": "2026-06-19T20:04:45Z"
+    },
+    {
+      "pr": 542,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_steward_registry_passed_ready_for_install_proof_milestone_plan",
+      "head": "c2007f6bb20bc5cfae35d9e4eaef03feeca3218f",
+      "mergedAt": "2026-06-19T19:07:30Z"
+    }
+  ],
+  "historicalContextPrs": [
+    {
+      "pr": 123,
+      "state": "OPEN",
+      "title": "Phase 46A media/data tool readiness audit",
+      "selectedAsCurrentSourceEvidence": false
+    },
+    {
+      "pr": 125,
+      "state": "OPEN",
+      "title": "Phase 46B generated media/data analysis suite",
+      "selectedAsCurrentSourceEvidence": false
+    },
+    {
+      "pr": 128,
+      "state": "OPEN",
+      "title": "Phase 46C controlled real-video media/data suite",
+      "selectedAsCurrentSourceEvidence": false
+    },
+    {
+      "pr": 161,
+      "state": "OPEN",
+      "title": "Track B capability manifest baseline",
+      "selectedAsCurrentSourceEvidence": false
+    },
+    {
+      "pr": 164,
+      "state": "OPEN",
+      "title": "Phase 44I Track B tool route manifest integration",
+      "selectedAsCurrentSourceEvidence": false
+    }
+  ],
+  "packageHashes": {
+    "package.json": "ddde5017838414a8b87a7eeb62cfd92b9f10f749c8239463a61a9c4b941776c1",
+    "package-lock.json": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+    "docker/prod/cpu-worker/Dockerfile": "e4470a77095330b990a33d019d76b1bf87cb94d06f12f1b4a478d3171b578c7f",
+    "docker/prod/cpu-worker/requirements.cpu.txt": "de5a91fd7331fc802a52508b470f9facef858051782e5ce3a2a97e4775b65461"
+  },
+  "scope": {
+    "approvalOnly": true,
+    "packagesInstalledNow": false,
+    "toolsExecutedNow": false,
+    "dockerRunNow": false,
+    "mediaProcessingApprovedNow": false,
+    "supabaseWrite": false,
+    "betaProductionUnlock": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

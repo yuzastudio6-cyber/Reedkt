@@ -1,0 +1,8 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuBlockerResolutionFollowup.buildContextReview.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_followup_blocked_by_model_asset_required",
+  "generatedAt": "2026-06-20T18:00:21.252Z",
+  "buildContextGenerationRequired": false,
+  "reason": "OCR runtime target copies committed OCR runtime files and requirements only; no dist-server or fixture-worker output is required.",
+  "approvedBuildContextCommands": []
+}

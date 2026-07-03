@@ -1,0 +1,33 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Execution.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-16T14:10:44.854Z",
+  "artifactScope": "repo_committed_json_markdown_reports_only",
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "gcsUploads": false,
+  "mediaArtifactsCommitted": false,
+  "privatePayloadsCommitted": false,
+  "reportDirectory": "docs/open-source-tool-stack/batch-1-execution",
+  "reports": [
+    "docs/open-source-tool-stack/batch-1-execution/source-of-truth-audit.json",
+    "docs/open-source-tool-stack/batch-1-execution/dependency-baseline-validation.json",
+    "docs/open-source-tool-stack/batch-1-execution/dependency-baseline-validation.md",
+    "docs/open-source-tool-stack/batch-1-execution/selected-target-guard.json",
+    "docs/open-source-tool-stack/batch-1-execution/selected-target-guard.md",
+    "docs/open-source-tool-stack/batch-1-execution/duckdb-proof-report.json",
+    "docs/open-source-tool-stack/batch-1-execution/polars-proof-report.json",
+    "docs/open-source-tool-stack/batch-1-execution/sharp-libvips-proof-report.json",
+    "docs/open-source-tool-stack/batch-1-execution/ffmpeg-version-probe-report.json",
+    "docs/open-source-tool-stack/batch-1-execution/ffprobe-version-probe-report.json",
+    "docs/open-source-tool-stack/batch-1-execution/route-capability-manifest-validation-report.json",
+    "docs/open-source-tool-stack/batch-1-execution/fixture-report-validation-report.json",
+    "docs/open-source-tool-stack/batch-1-execution/inventory-proof-matrix-validation-report.json",
+    "docs/open-source-tool-stack/batch-1-execution/side-effect-and-lock-integrity-report.json",
+    "docs/open-source-tool-stack/batch-1-execution/batch-1-execution-decision.json",
+    "docs/open-source-tool-stack/batch-1-execution/batch-1-execution-decision.md",
+    "docs/open-source-tool-stack/batch-1-execution/batch-1-execution-blocker-report.json",
+    "docs/open-source-tool-stack/batch-1-execution/batch-1-execution-readiness-report.json",
+    "docs/open-source-tool-stack/batch-1-execution/batch-1-execution-private-artifact-manifest.json",
+    "docs/open-source-tool-stack/batch-1-execution/batch-1-execution-validation-results.md"
+  ]
+}

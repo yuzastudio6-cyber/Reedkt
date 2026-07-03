@@ -1,0 +1,38 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeRerun.generatedOutputCleanup.v1",
+  "generatedAt": "2026-06-18T16:26:34.067Z",
+  "id": "generated_output_cleanup",
+  "command": "rm -rf dist-server dist-remotion-worker dist-staging-fixture-worker dist-staging-real-video-export-worker",
+  "run": true,
+  "exactApprovedCommand": true,
+  "exitCode": 0,
+  "status": "passed",
+  "stdoutPreview": "",
+  "stderrPreview": "",
+  "errorMessage": null,
+  "timedOut": false,
+  "directories": [
+    {
+      "directory": "dist-server",
+      "removed": true,
+      "staged": false
+    },
+    {
+      "directory": "dist-remotion-worker",
+      "removed": true,
+      "staged": false
+    },
+    {
+      "directory": "dist-staging-fixture-worker",
+      "removed": true,
+      "staged": false
+    },
+    {
+      "directory": "dist-staging-real-video-export-worker",
+      "removed": true,
+      "staged": false
+    }
+  ],
+  "generatedOutputsStaged": false,
+  "passed": true
+}

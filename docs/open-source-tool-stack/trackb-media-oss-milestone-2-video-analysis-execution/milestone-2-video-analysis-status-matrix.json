@@ -1,0 +1,37 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisExecution.statusMatrix.v1",
+  "generatedAt": "2026-06-20T03:16:15.024Z",
+  "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded",
+  "tools": [
+    {
+      "id": "opencv",
+      "name": "OpenCV",
+      "packageName": "opencv-python-headless",
+      "containerImportVersionProven": true,
+      "syntheticFixtureProven": true,
+      "fixtureDeferred": false,
+      "boundedProofAcceptedForQaReview": true,
+      "blocker": null
+    },
+    {
+      "id": "pyav",
+      "name": "PyAV",
+      "packageName": "av",
+      "containerImportVersionProven": true,
+      "syntheticFixtureProven": true,
+      "fixtureDeferred": false,
+      "boundedProofAcceptedForQaReview": true,
+      "blocker": null
+    },
+    {
+      "id": "pyscenedetect",
+      "name": "PySceneDetect",
+      "packageName": "scenedetect",
+      "containerImportVersionProven": true,
+      "syntheticFixtureProven": true,
+      "fixtureDeferred": false,
+      "boundedProofAcceptedForQaReview": true,
+      "blocker": null
+    }
+  ]
+}

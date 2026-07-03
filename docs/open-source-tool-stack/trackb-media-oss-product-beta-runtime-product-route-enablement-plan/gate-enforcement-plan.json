@@ -1,0 +1,50 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_runtime_product_route_enablement_plan_passed_ready_for_product_route_enablement_execution",
+  "previousDecision": "trackb_media_oss_product_beta_runtime_product_ready_proof_execution_blocked_by_product_route_disabled_backend_required",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-route-enablement-plan",
+  "sourceSha": "d9b0600c7b7d9a69de04d39a9b7370699b321bf2",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourcePr": 930,
+  "sourceHead": "7b6eb755f81fa85ee7a6093e0cc149c2efa7399c",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_ROUTE_ENABLEMENT_EXECUTION",
+  "requiredGateChecks": [
+    "approved_snapshot_id",
+    "edit_plan_id",
+    "credit_reservation_id",
+    "idempotency_key",
+    "private_artifact_metadata",
+    "quality_gate_ids",
+    "fallback_policy_id",
+    "rollback_state",
+    "sanitized_monitoring_receipt"
+  ],
+  "positivePathRequirements": [
+    "synthetic private temp fixture metadata only",
+    "approved snapshot id and version required",
+    "edit plan operation/use-case mapping required",
+    "credit reservation id required before route harness accepts request",
+    "idempotency key required before any queued receipt can be created",
+    "quality gate and fallback policy ids required",
+    "route returns sanitized accepted-for-dry-run receipt without worker dispatch"
+  ],
+  "negativePathRequirements": [
+    "missing approved snapshot rejected",
+    "missing edit plan rejected",
+    "missing credit reservation rejected",
+    "unsupported use case rejected",
+    "disabled tool rejected",
+    "public or signed URL artifact rejected",
+    "raw prompt/private payload rejected",
+    "external beta/production flag rejected"
+  ],
+  "gatePlanComplete": true
+}

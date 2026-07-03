@@ -1,0 +1,38 @@
+{
+  "schema": "reeditpro.secondControlledCandidateApproval.privateArtifactManifest.v1",
+  "createdAt": "2026-06-13T21:23:32.929Z",
+  "reportPaths": [
+    "docs/activation-second-controlled-candidate-approval-reports/source_of_truth_audit.json",
+    "docs/activation-second-controlled-candidate-approval-reports/pre_approval_revalidation_report.json",
+    "docs/activation-second-controlled-candidate-approval-reports/evidence_inventory.json",
+    "docs/activation-second-controlled-candidate-approval-reports/second_candidate_scope_review.json",
+    "docs/activation-second-controlled-candidate-approval-reports/sound_music_audio_route_review.json",
+    "docs/activation-second-controlled-candidate-approval-reports/approved_plan_snapshot_requirements.json",
+    "docs/activation-second-controlled-candidate-approval-reports/worker_handoff_review.json",
+    "docs/activation-second-controlled-candidate-approval-reports/artifact_source_of_truth_guardrails.json",
+    "docs/activation-second-controlled-candidate-approval-reports/fail_closed_policy.json",
+    "docs/activation-second-controlled-candidate-approval-reports/observability_cost_audit_requirements.json",
+    "docs/activation-second-controlled-candidate-approval-reports/second_controlled_candidate_approval_decision.json",
+    "docs/activation-second-controlled-candidate-approval-reports/second_controlled_candidate_approval_blocker_report.json",
+    "docs/activation-second-controlled-candidate-approval-reports/second_controlled_candidate_approval_readiness_report.json",
+    "docs/activation-second-controlled-candidate-approval-reports/second_controlled_candidate_approval_private_artifact_manifest.json"
+  ],
+  "docPaths": [
+    "docs/second-controlled-candidate-approval.md",
+    "docs/second-controlled-candidate-scope-review.md",
+    "docs/second-controlled-candidate-sound-music-audio-route-review.md",
+    "docs/second-controlled-candidate-approved-plan-snapshot-requirements.md",
+    "docs/second-controlled-candidate-worker-handoff-review.md",
+    "docs/second-controlled-candidate-artifact-guardrails.md",
+    "docs/second-controlled-candidate-fail-closed-policy.md",
+    "docs/second-controlled-candidate-observability-cost-audit.md",
+    "docs/second-controlled-candidate-approval-decision.md",
+    "docs/implementation-prompts/prompt-second-controlled-candidate-dry-run.md"
+  ],
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "gcsUploads": false,
+  "privatePayloadsCommitted": false,
+  "buildOutputCommitted": false,
+  "packageLockChanged": false
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ffmpegFfprobeSystemBinaryReview.ownerHandoff.v1",
+  "generatedAt": "2026-06-17T21:23:02.115Z",
+  "trackaHandoffNeeded": true,
+  "soundMusicAudioHandoffNeeded": false,
+  "workerRuntimeHandoffNeeded": true,
+  "centralLaneCanProceedAlone": false,
+  "trackaSourceOfTruthMergeRequired": true,
+  "pr463ReferenceOnly": true,
+  "pr463State": "MERGED",
+  "nextOwner": "TRACK_A_RENDER_EXPORT",
+  "nextPrompt": "TRACKA_FFMPEG_FFPROBE_SOURCE_OF_TRUTH_MERGE",
+  "nextPromptFile": "docs/implementation-prompts/prompt-tracka-ffmpeg-ffprobe-source-of-truth-merge.md"
+}

@@ -1,0 +1,7 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "npmCiRun": false,
+  "reason": "OCR runtime build context did not require repository dependency hydration",
+  "packageLockMutated": false,
+  "nodeModulesCreated": false
+}

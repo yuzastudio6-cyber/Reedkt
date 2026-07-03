@@ -1,0 +1,17 @@
+{
+  "schema": "reeditpro.controlledToolExecutionApproval.approvedPlanSnapshotRequirements.v1",
+  "createdAt": "2026-06-13T19:05:04.120Z",
+  "passed": true,
+  "requiredInputKind": "approved_plan_snapshot_v1",
+  "rejectedInputKinds": [
+    "raw_prompt",
+    "provider_response",
+    "edit_intents_v1_only",
+    "plan_snapshot_candidate_v1",
+    "unapproved_manifest_ref"
+  ],
+  "immutableSnapshotRequired": true,
+  "creditApprovalRefRequiredForFutureRealExecution": true,
+  "currentCandidateSnapshotRef": "private://approved-plan-snapshot/first-controlled-tool-fixture-report-validation",
+  "futureWorkerMayNotUseRawChat": true
+}

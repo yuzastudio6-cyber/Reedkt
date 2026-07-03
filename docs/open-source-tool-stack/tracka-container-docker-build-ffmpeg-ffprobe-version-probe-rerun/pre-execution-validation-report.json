@@ -1,0 +1,44 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeRerun.preExecutionValidation.v1",
+  "generatedAt": "2026-06-18T16:26:34.067Z",
+  "checks": [
+    {
+      "id": "source_sha_contains_pr_508",
+      "passed": true
+    },
+    {
+      "id": "pr_508_decision_passed",
+      "passed": true
+    },
+    {
+      "id": "pr_504_approval_passed",
+      "passed": true
+    },
+    {
+      "id": "pr_499_resolution_passed",
+      "passed": true
+    },
+    {
+      "id": "pr_494_previous_docker_build_blocked",
+      "passed": true
+    },
+    {
+      "id": "pr_490_exact_command_source_passed",
+      "passed": true
+    },
+    {
+      "id": "build_scripts_exist",
+      "passed": true
+    },
+    {
+      "id": "protected_hashes_captured",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "approvedCommands": {
+    "dockerBuildCommand": "docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 .",
+    "dockerFfmpegCommand": "docker run --rm --network none --entrypoint ffmpeg reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 -version",
+    "dockerFfprobeCommand": "docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 -version"
+  }
+}

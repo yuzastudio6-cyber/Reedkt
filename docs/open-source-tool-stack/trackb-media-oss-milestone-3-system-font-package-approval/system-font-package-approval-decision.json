@@ -1,0 +1,28 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION",
+  "nextPromptPath": "docs/implementation-prompts/prompt-trackb-media-oss-milestone-3-system-font-package-execution.md",
+  "selectedPrimaryPackage": "fonts-noto-cjk",
+  "secondaryFallbackPackage": "fonts-noto-cjk-extra",
+  "exactPingFangStatus": "blocked",
+  "decisionReason": "fonts-noto-cjk provides regular and bold CJK Noto families at lower package cost/size, while fonts-noto-cjk-extra is only needed if future execution proves all weights are required.",
+  "counts": {
+    "ownedTools": 16,
+    "acceptedProvenBounded": 12,
+    "blockedNotInstalledProven": 4,
+    "endToEndProductReady": 0
+  },
+  "blockedTools": [
+    "PaddleOCR",
+    "PaddlePaddle",
+    "OpenColorIO",
+    "OpenImageIO"
+  ],
+  "noFortyPlusEndToEndClaim": true,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

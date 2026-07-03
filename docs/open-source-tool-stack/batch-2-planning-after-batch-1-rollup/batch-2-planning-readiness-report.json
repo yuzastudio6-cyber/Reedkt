@@ -1,0 +1,13 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch2PlanningAfterBatch1Rollup.readiness.v1",
+  "generatedAt": "2026-06-18T20:46:34.133Z",
+  "readiness": true,
+  "decision": "open_source_tool_stack_batch2_planning_passed_ready_for_owner_lane_reconciliation",
+  "blockers": [],
+  "primaryNextPrompt": "OPEN_SOURCE_TOOL_STACK_OWNER_LANE_RECONCILIATION_AFTER_BATCH_1_ROLLUP",
+  "secondaryNextPrompts": [
+    "OPEN_SOURCE_TOOL_STACK_BATCH_2_INSTALL_PROOF_APPROVAL",
+    "PRODUCT_INTERNAL_BETA_READINESS_AGGREGATION_AFTER_OPEN_SOURCE_BATCH_1",
+    "E2E_VALIDATION_QUEUE_BLOCKER_RESOLUTION_AFTER_OPEN_SOURCE_BATCH_1"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssInstallProofMilestonePlan.cloudRuntimeCostPerformancePolicy.v1",
+  "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution",
+  "costPrinciple": "Use CPU workers when proof/runtime is metadata-only, lightweight, or fast enough; use on-demand GPU only when latency, memory, throughput, or beta-quality edit experience requires it.",
+  "futureWorkerPlan": {
+    "trackbMediaCpuWorker": ["exiftool", "mediainfo", "tesseract", "imagemagick_graphicsmagick", "opencv_cpu", "pyav", "pyscenedetect", "opencolorio", "openimageio", "sharp_libvips", "duckdb", "polars_nodejs_polars", "ffmpeg", "ffprobe"],
+    "trackbMediaGpuWorker": ["paddlepaddle_gpu", "paddleocr_gpu", "opencv_gpu_optional", "ffmpeg_hardware_acceleration_optional"]
+  },
+  "currentPhaseRuntimeApproval": {
+    "cpuWorkerApproved": false,
+    "gpuWorkerApproved": false,
+    "workerExecutionApproved": false,
+    "mediaProcessingApproved": false,
+    "renderExportApproved": false
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "tools": [
+    {
+      "id": "paddlepaddle",
+      "packageDeclared": true,
+      "fontsNotoCjkInstalled": true,
+      "fontsNotoCjkExtraInstalled": false,
+      "exactPingFangUsed": false,
+      "dockerBuild": true,
+      "importVersionProof": true,
+      "apiTensorProof": true,
+      "ocrInferenceRun": false,
+      "modelAssetsRequired": false,
+      "modelAssetsDownloaded": false,
+      "fontAssetsDownloaded": false,
+      "gpuUsed": false,
+      "acceptedProvenBounded": true,
+      "blocker": null
+    },
+    {
+      "id": "paddleocr",
+      "packageDeclared": true,
+      "fontsNotoCjkInstalled": true,
+      "fontsNotoCjkExtraInstalled": false,
+      "exactPingFangUsed": false,
+      "dockerBuild": true,
+      "importVersionProof": false,
+      "apiTensorProof": false,
+      "ocrInferenceRun": false,
+      "modelAssetsRequired": true,
+      "modelAssetsDownloaded": false,
+      "fontAssetsDownloaded": false,
+      "gpuUsed": false,
+      "acceptedProvenBounded": false,
+      "blocker": "PaddleX PingFang-SC-Regular.ttf asset fetch attempted under --network none"
+    }
+  ],
+  "trackBTotalsPendingQa": {
+    "ownedTools": 16,
+    "acceptedProvenBoundedBeforeFollowup": 12,
+    "newCpuEvidencePendingQa": 1,
+    "blockedNotInstalledProven": 4,
+    "endToEndProductReady": 0
+  }
+}

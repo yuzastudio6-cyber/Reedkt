@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildExecution.syntheticQuery.v1",
+  "generatedAt": "2026-06-17T19:44:55.097Z",
+  "commandClass": "duckdb_tiny_in_memory_metadata_query",
+  "queryRun": true,
+  "queryExitCode": 0,
+  "status": "passed",
+  "queryPassed": true,
+  "stdoutPreview": "{\"query\":\"select 1 as ok\",\"expected\":[{\"ok\":1}],\"actual\":[{\"ok\":1}],\"rowCount\":1,\"storage\":\"in_memory\",\"mediaInputsUsed\":false}\n",
+  "stderrPreview": "",
+  "syntheticInputSummary": "No file input. Query uses DuckDB :memory: database and constant select 1 as ok.",
+  "expectedOutput": [
+    {
+      "ok": 1
+    }
+  ],
+  "actualOutput": [
+    {
+      "ok": 1
+    }
+  ],
+  "noFileDatabase": true,
+  "noExternalFileReads": true,
+  "noPrivateData": true,
+  "noNetwork": true,
+  "noSupabase": true,
+  "noGcs": true,
+  "noMedia": true
+}

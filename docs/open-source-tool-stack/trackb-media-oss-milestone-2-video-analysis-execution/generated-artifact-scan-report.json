@@ -1,0 +1,64 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisExecution.generatedArtifactScan.v1",
+  "generatedAt": "2026-06-20T03:16:15.024Z",
+  "skipped": false,
+  "outputSummaries": [
+    {
+      "outputDir": "dist-server",
+      "fileCount": 4,
+      "bytes": 2899882,
+      "extensionCounts": {
+        ".png": 3,
+        ".js": 1
+      }
+    },
+    {
+      "outputDir": "dist-staging-fixture-worker",
+      "fileCount": 4,
+      "bytes": 2916660,
+      "extensionCounts": {
+        ".png": 3,
+        ".js": 1
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "type": "expected_committed_static_asset",
+      "file": "dist-server/brand/reeditpro-logo-source.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_committed_static_asset",
+      "file": "dist-server/brand/reeditpro-mark.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_committed_static_asset",
+      "file": "dist-server/favicon.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_committed_static_asset",
+      "file": "dist-staging-fixture-worker/brand/reeditpro-logo-source.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_committed_static_asset",
+      "file": "dist-staging-fixture-worker/brand/reeditpro-mark.png",
+      "extension": ".png"
+    },
+    {
+      "type": "expected_committed_static_asset",
+      "file": "dist-staging-fixture-worker/favicon.png",
+      "extension": ".png"
+    }
+  ],
+  "forbiddenFindings": [],
+  "passed": true,
+  "syntheticOnly": true,
+  "realUserMediaUsed": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded"
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "trackb-media-oss-limited-internal-beta-dry-run-monitoring-source-audit.v1",
+  "generatedAt": "2026-06-25T16:25:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "231abd26a31a60cde751cee3779d4f42800ca840",
+  "decision": "trackb_media_oss_limited_internal_beta_dry_run_monitoring_passed_ready_for_monitoring_qa_review",
+  "sourceEvidence": [
+    {
+      "pr": 803,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_testing_handoff_passed_ready_for_constrained_internal_beta_dry_run_testing"
+    }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING_QA_REVIEW"
+}

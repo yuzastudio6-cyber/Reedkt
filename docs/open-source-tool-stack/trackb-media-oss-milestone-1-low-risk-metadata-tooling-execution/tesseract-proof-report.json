@@ -1,0 +1,15 @@
+{
+  "id": "tesseract",
+  "name": "Tesseract",
+  "available": false,
+  "selectedCommand": null,
+  "versionProven": false,
+  "fixtureProven": false,
+  "fixtureRun": false,
+  "fixtureHash": null,
+  "fixtureOutputSummary": null,
+  "acceptedProven": false,
+  "packagingRequired": true,
+  "blocker": "missing_system_binary",
+  "proofBoundary": "version plus tiny synthetic PBM OCR fixture"
+}

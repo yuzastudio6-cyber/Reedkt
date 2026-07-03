@@ -1,0 +1,33 @@
+{
+  "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildExecution.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-17T19:58:40.927Z",
+  "artifactScope": "repo_committed_code_json_markdown_reports_only",
+  "reportDirectory": "docs/open-source-tool-stack/duckdb-native-rebuild-execution",
+  "reports": [
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/source-of-truth-audit.json",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/pre-rebuild-baseline-report.json",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/pre-rebuild-baseline-report.md",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-report.json",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-report.md",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-import-proof-report.json",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-synthetic-query-report.json",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/package-lock-native-artifact-integrity-report.json",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/package-lock-native-artifact-integrity-report.md",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/ffmpeg-ffprobe-follow-up-report.json",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/side-effect-safety-report.json",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-decision.json",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-decision.md",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-readiness-report.json",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-private-artifact-manifest.json",
+    "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-validation-results.md"
+  ],
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "gcsUploads": false,
+  "mediaArtifactsCommitted": false,
+  "privatePayloadsCommitted": false,
+  "nodeModulesCommitted": false,
+  "nativeBinariesCommitted": false,
+  "buildOutputsCommitted": false,
+  "npmCacheCommitted": false
+}

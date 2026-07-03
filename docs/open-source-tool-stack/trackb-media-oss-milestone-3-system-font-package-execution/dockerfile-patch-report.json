@@ -1,0 +1,30 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOss.milestone3SystemFontPackageExecution.report.v1",
+  "generatedAt": "2026-06-20T23:00:03.583Z",
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_blocked_by_docker_build",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP",
+  "sourceSha": "a4574560fa04fde80f1473f837f98cdc757d177e",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "changedFiles": [
+    "docker/prod/ocr-runtime/Dockerfile"
+  ],
+  "addedPackage": "fonts-noto-cjk",
+  "preservedPackages": [
+    "libgomp1",
+    "libgl1",
+    "libglib2.0-0"
+  ],
+  "forbiddenPackagesAdded": [],
+  "fontsNotoCjkExtraAdded": false,
+  "exactPingFangAdded": false,
+  "requirementsChanged": false,
+  "packageLockChanged": false,
+  "dockerfileHashBeforePatch": "f21f1f401a097c18cff3acdecf1603952b3c0fa53bcd2ac09030e68096191638",
+  "dockerfileHashAfterPatch": "d295aad090e7d080a90a8071c1daf26c88d491abb4a7b097afca0486c1a605fe"
+}

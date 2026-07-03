@@ -1,0 +1,25 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalInstallReview.packageLockDependencyPolicy.v1",
+  "generatedAt": "2026-06-16T15:43:59.367Z",
+  "packageLockGitStatus": "",
+  "packageLockUnchangedInThisReview": true,
+  "dependencySectionsContainSelectedFuturePackagesNow": {
+    "duckdb": [],
+    "nodejs-polars": [],
+    "ffmpeg": [],
+    "ffprobe": [],
+    "fluent-ffmpeg": [],
+    "@ffmpeg/ffmpeg": []
+  },
+  "dependencySectionsMutatedInThisReview": false,
+  "newDependencyAdditionsAllowedInThisReview": false,
+  "futureDuckdbPackageLockMutationRequiresSeparateApproval": true,
+  "futurePolarsPackageLockMutationRequiresSeparateApproval": true,
+  "futureFfmpegFfprobePackageLockMutationExpected": false,
+  "packageLockReviewRules": [
+    "future package approval must show a lockfile diff limited to selected package metadata and transitive dependencies",
+    "package.json dependency sections may change only in the separate package approval phase",
+    "system binary approval must not add npm wrappers by default"
+  ],
+  "passed": true
+}

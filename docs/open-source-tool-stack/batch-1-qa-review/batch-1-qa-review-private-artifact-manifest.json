@@ -1,0 +1,41 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1QaReview.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-16T14:47:52.893Z",
+  "artifactScope": "repo_committed_json_markdown_docs_only",
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "gcsUploads": false,
+  "mediaArtifactsCommitted": false,
+  "privatePayloadsCommitted": false,
+  "reportDirectory": "docs/open-source-tool-stack/batch-1-qa-review",
+  "reports": [
+    "docs/open-source-tool-stack/batch-1-qa-review/source-of-truth-audit.json",
+    "docs/open-source-tool-stack/batch-1-qa-review/pr-435-execution-evidence-review.json",
+    "docs/open-source-tool-stack/batch-1-qa-review/pr-435-execution-evidence-review.md",
+    "docs/open-source-tool-stack/batch-1-qa-review/passed-target-quality-review.json",
+    "docs/open-source-tool-stack/batch-1-qa-review/passed-target-quality-review.md",
+    "docs/open-source-tool-stack/batch-1-qa-review/missing-optional-tool-impact-review.json",
+    "docs/open-source-tool-stack/batch-1-qa-review/missing-optional-tool-impact-review.md",
+    "docs/open-source-tool-stack/batch-1-qa-review/package-lock-integrity-review.json",
+    "docs/open-source-tool-stack/batch-1-qa-review/package-lock-integrity-review.md",
+    "docs/open-source-tool-stack/batch-1-qa-review/internal-beta-relevance-review.json",
+    "docs/open-source-tool-stack/batch-1-qa-review/internal-beta-relevance-review.md",
+    "docs/open-source-tool-stack/batch-1-qa-review/blocked-scope-verification.json",
+    "docs/open-source-tool-stack/batch-1-qa-review/blocked-scope-verification.md",
+    "docs/open-source-tool-stack/batch-1-qa-review/batch-1-qa-review-decision.json",
+    "docs/open-source-tool-stack/batch-1-qa-review/batch-1-qa-review-decision.md",
+    "docs/open-source-tool-stack/batch-1-qa-review/batch-1-qa-review-readiness-report.json",
+    "docs/open-source-tool-stack/batch-1-qa-review/batch-1-qa-review-blocker-report.json",
+    "docs/open-source-tool-stack/batch-1-qa-review/batch-1-qa-review-private-artifact-manifest.json",
+    "docs/open-source-tool-stack/batch-1-qa-review/batch-1-qa-review-validation-results.md"
+  ],
+  "docs": [
+    "docs/implementation-prompts/prompt-open-source-tool-stack-missing-optional-tool-install-review.md",
+    "docs/open-source-tool-stack/open-source-tool-stack-decision.md",
+    "docs/open-source-tool-stack/open-source-tool-stack-next-install-batches.md",
+    "docs/cross-chat/CURRENT_HANDOFF.md",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md",
+    "docs/cross-chat/BLOCKED_SCOPES.md",
+    "docs/cross-chat/READ_FIRST_FOR_ALL_OWNERS.md"
+  ]
+}

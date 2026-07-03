@@ -1,0 +1,52 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuQaReview.decision.v1",
+  "generatedAt": "2026-06-21T02:28:00.283Z",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "99595b05b65dd2e6789aceecc144560db1e442cb",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_4_COLOR_IMAGE_PIPELINE_APPROVAL",
+  "acceptedMilestone3Tools": [
+    "paddlepaddle",
+    "paddleocr"
+  ],
+  "acceptedProvenBoundedBeforeQa": 12,
+  "newlyAcceptedProvenBoundedInQa": 2,
+  "acceptedProvenBoundedTotalAfterQa": 14,
+  "stillBlockedNotInstalledProven": [
+    "opencolorio",
+    "openimageio"
+  ],
+  "endToEndProductReadyTools": 0,
+  "fortyPlusEndToEndClaimAllowed": false,
+  "qaReviewMetadataOnly": true,
+  "toolExecutionRunInQaPhase": false,
+  "dockerBuildRunInQaPhase": false,
+  "dockerRunInQaPhase": false,
+  "buildContextGenerationRunInQaPhase": false,
+  "npmCiRunInQaPhase": false,
+  "npmInstallRunInQaPhase": false,
+  "pipInstallRunInQaPhase": false,
+  "packageLockMutationAllowed": false,
+  "requirementsMutationAllowed": false,
+  "dockerfileMutationAllowed": false,
+  "ocrInferenceAccepted": false,
+  "modelAssetOperationAccepted": false,
+  "fontAssetOperationAccepted": false,
+  "gpuExecutionApproved": false,
+  "mediaProcessingAccepted": false,
+  "mediaFileProbingAccepted": false,
+  "renderExportAccepted": false,
+  "workerRuntimeAccepted": false,
+  "routeProviderRuntimeAccepted": false,
+  "supabaseGcsPublicDeliveryAccepted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "rawPromptExecutionAccepted": false,
+  "betaProductionAccepted": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssInstallProofMilestonePlan.milestone1Approval.v1",
+  "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution",
+  "approvedFutureExecutionPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION",
+  "futureExecutionOnly": true,
+  "executionRunInThisPhase": false,
+  "tools": [
+    { "id": "exiftool", "name": "ExifTool", "compute": "cpu_only", "futureProof": "version proof plus tiny synthetic metadata fixture" },
+    { "id": "mediainfo", "name": "MediaInfo", "compute": "cpu_only", "futureProof": "version proof plus tiny synthetic media-header fixture if safely available" },
+    { "id": "tesseract", "name": "Tesseract", "compute": "cpu_only", "futureProof": "version proof plus tiny synthetic image OCR fixture" },
+    { "id": "imagemagick_graphicsmagick", "name": "ImageMagick / GraphicsMagick", "compute": "cpu_default", "primaryStrategy": "ImageMagick preferred unless repo policy later indicates GraphicsMagick", "futureProof": "version proof plus tiny synthetic image transform fixture" }
+  ],
+  "blockedScopes": {
+    "dependencyInstallNow": false,
+    "packageLockMutationNow": false,
+    "mediaProcessingNow": false,
+    "renderExportNow": false,
+    "workerRuntimeNow": false,
+    "supabaseGcsPublicDeliveryNow": false,
+    "betaProductionNow": false
+  }
+}

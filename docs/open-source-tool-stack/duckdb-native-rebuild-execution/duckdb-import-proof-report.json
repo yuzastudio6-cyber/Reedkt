@@ -1,0 +1,21 @@
+{
+  "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildExecution.duckdbImportProof.v1",
+  "generatedAt": "2026-06-17T19:44:55.097Z",
+  "commandClass": "node_import_version_api_shape_only",
+  "importRun": true,
+  "importExitCode": 0,
+  "status": "passed",
+  "importPassed": true,
+  "stdoutPreview": "{\"version\":null,\"apiShape\":{\"hasDatabase\":true},\"mediaInputsUsed\":false,\"storage\":\"none\"}\n",
+  "stderrPreview": "",
+  "version": null,
+  "apiShape": {
+    "hasDatabase": true
+  },
+  "nativeBindingAvailable": true,
+  "noFileInput": true,
+  "noNetwork": true,
+  "noSupabase": true,
+  "noGcs": true,
+  "noMedia": true
+}

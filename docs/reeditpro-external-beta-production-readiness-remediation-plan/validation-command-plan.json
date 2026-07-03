@@ -1,0 +1,25 @@
+{
+  "schema": "reeditpro.externalBetaProductionReadinessRemediationPlan.v1",
+  "ownerId": "REEDITPRO_PRODUCT_READINESS_STEWARD",
+  "decision": "reeditpro_external_beta_production_readiness_remediation_plan_passed_ready_for_deployment_rollback_readiness_plan",
+  "previousDecision": "trackb_media_oss_external_beta_production_readiness_gap_review_blocked_pending_reeditpro_global_readiness_remediation_plan",
+  "nextPrompt": "REEDITPRO_DEPLOYMENT_ROLLBACK_READINESS_PLAN",
+  "sourceSha": "d470ed12a184a2838029c76d22c788758ecb7863",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-external-beta-production-readiness-remediation-plan",
+  "report": "validation-command-plan",
+  "commands": [
+    "npm run reeditpro:external-beta-production-readiness-remediation-plan:diagnostics",
+    "npm run trackb-media-oss:external-beta-production-readiness-gap-review:diagnostics",
+    "npm run trackb-media-oss:product-beta-tools-call-lane-ready-handoff:diagnostics",
+    "npm run trackb-media-oss:product-beta-runtime-product-ready-closeout:diagnostics",
+    "npm run trackb-media-oss:final-rollup:diagnostics",
+    "npm run open-source-tool-owner-registry:trackb-media-oss-steward:diagnostics",
+    "git diff --check",
+    "git diff --cached --check"
+  ],
+  "noInstallBoundary": true,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

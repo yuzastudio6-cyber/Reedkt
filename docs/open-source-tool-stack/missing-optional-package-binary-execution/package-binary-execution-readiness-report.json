@@ -1,0 +1,17 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryExecution.readinessReport.v1",
+  "generatedAt": "2026-06-17T15:12:20.527Z",
+  "readiness": true,
+  "decision": "missing_optional_package_install_passed_import_proof_blocked_by_ignored_scripts",
+  "packageInstallPassed": true,
+  "postInstallNpmCiPassed": true,
+  "duckdbProofPassed": false,
+  "polarsProofPassed": true,
+  "ffmpegStatus": "missing_system_binary",
+  "ffprobeStatus": "missing_system_binary",
+  "packageLockIntegrityPassed": true,
+  "sideEffectSafetyPassed": true,
+  "blockers": [
+    "duckdb_blocked_by_ignored_scripts"
+  ]
+}

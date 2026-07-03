@@ -1,0 +1,31 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryApproval.duckdbPackageApproval.v1",
+  "generatedAt": "2026-06-17T03:39:30.998Z",
+  "toolName": "DuckDB",
+  "normalizedId": "duckdb",
+  "owner": "TRACK_B_MEDIA_PROCESSING",
+  "selectedFuturePackageCandidate": "duckdb",
+  "futurePackageCommand": "npm install duckdb nodejs-polars --save-exact --ignore-scripts --no-audit --no-fund",
+  "currentPhasePackageInstallAttempted": false,
+  "currentPhasePackageLockMutationAttempted": false,
+  "currentPhaseImportOrProofAttempted": false,
+  "futureProofLimit": "import/version plus one tiny in-memory synthetic metadata query; no file, network, media, route, worker, or provider access",
+  "futureInstallRequiresSeparateExecutionApproval": true,
+  "allowedFutureDependencyMutation": [
+    "package.json dependencies.duckdb",
+    "package-lock transitive metadata for duckdb only"
+  ],
+  "blockedFutureDiffs": [
+    "unrelated package.json dependency changes",
+    "unrelated package-lock churn",
+    "media or worker artifacts"
+  ],
+  "failClosedRules": [
+    "stop if the package name changes",
+    "stop if install wants lifecycle scripts",
+    "stop if lockfile changes include unrelated packages",
+    "stop if the proof reads files, media, network, secrets, or user payloads"
+  ],
+  "approvedForFutureExecutionPacket": true,
+  "passed": true
+}

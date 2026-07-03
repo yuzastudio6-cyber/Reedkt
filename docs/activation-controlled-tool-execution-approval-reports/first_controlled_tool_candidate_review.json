@@ -1,0 +1,118 @@
+{
+  "schema": "reeditpro.controlledToolExecutionApproval.firstCandidateReview.v1",
+  "passed": true,
+  "selectedCandidate": {
+    "candidateId": "controlled-tool:first_fixture_report_validation",
+    "candidateClass": "fixture_report_validation_route",
+    "owner": "CONTROLLED_TOOL_EXECUTION",
+    "sourceFixtureId": "valid_track_b_metadata_route_candidate",
+    "sourceRouteCandidateId": "metadata-route:track_b_media_processing",
+    "approvedPlanSnapshotRef": "private://approved-plan-snapshot/first-controlled-tool-fixture-report-validation",
+    "privatePlaceholderRefs": [
+      "private://manifest/first-controlled-tool-fixture-report-validation",
+      "private://checksum/first-controlled-tool-fixture-report-validation"
+    ],
+    "selectedForFirstControlledDryRun": true,
+    "reason": "This candidate validates already-committed route fixture/report metadata using an approved_plan_snapshot_v1 placeholder. It does not require media payloads, provider calls, worker dispatch, route execution, Supabase writes, GCS uploads, public artifacts, or signed URLs.",
+    "executionFlags": {
+      "routeExecutionAllowed": false,
+      "runtimeExecutionAllowed": false,
+      "toolExecutionAllowed": false,
+      "workerExecutionAllowed": false,
+      "providerExecutionAllowed": false,
+      "mediaProcessingAllowed": false,
+      "audioProcessingAllowed": false,
+      "renderExecutionAllowed": false,
+      "exportExecutionAllowed": false,
+      "imageGenerationAllowed": false,
+      "imageEditingAllowed": false,
+      "browserCaptureAllowed": false,
+      "mapRenderingAllowed": false,
+      "supabaseWritesAllowed": false,
+      "sqlAllowed": false,
+      "gcsUploadAllowed": false,
+      "publicArtifactsAllowed": false,
+      "signedUrlsAsSourceOfTruthAllowed": false,
+      "dependencyMutationAllowed": false,
+      "rawPromptExecutionAllowed": false,
+      "externalBetaUnlockAllowed": false,
+      "paidProductionUnlockAllowed": false,
+      "productionUnlockAllowed": false,
+      "githubPrMergeAllowed": false,
+      "secretPayloadAccessed": false,
+      "secretPayloadPrinted": false,
+      "secretPayloadCommitted": false
+    }
+  },
+  "candidateSelectionRule": "Pick the lowest-risk metadata/report validation route first; defer media/audio/render/image/browser/map and broad owner-lane execution to later approvals.",
+  "alternatives": [
+    {
+      "sourceFixtureId": "valid_track_b_metadata_route_candidate",
+      "sourceRouteCandidateId": "metadata-route:track_b_media_processing",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "disposition": "selected_as_fixture_report_validation_source",
+      "realExecutionApproved": false
+    },
+    {
+      "sourceFixtureId": "valid_sound_music_audio_metadata_route_candidate",
+      "sourceRouteCandidateId": "metadata-route:sound_music_audio",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "disposition": "deferred_because_owner_lane_needs_separate_controlled_execution_review",
+      "realExecutionApproved": false
+    },
+    {
+      "sourceFixtureId": "valid_ai_creative_graphics_metadata_route_candidate",
+      "sourceRouteCandidateId": "metadata-route:ai_tools_creative_graphics",
+      "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+      "disposition": "deferred_because_owner_lane_needs_separate_controlled_execution_review",
+      "realExecutionApproved": false
+    },
+    {
+      "sourceFixtureId": "valid_track_a_render_export_metadata_route_candidate",
+      "sourceRouteCandidateId": "metadata-route:track_a_render_export",
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "disposition": "deferred_because_owner_lane_needs_separate_controlled_execution_review",
+      "realExecutionApproved": false
+    }
+  ],
+  "explicitDeferrals": [
+    "OpenCV/PyAV/PySceneDetect real processing",
+    "DeepFilterNet/Signalsmith/Demucs audio execution",
+    "image generation and image editing",
+    "Track A render/export",
+    "browser capture",
+    "map rendering",
+    "provider/model calls",
+    "worker dispatch",
+    "Supabase/GCS writers"
+  ],
+  "flags": {
+    "routeExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "githubPrMergeAllowed": false,
+    "secretPayloadAccessed": false,
+    "secretPayloadPrinted": false,
+    "secretPayloadCommitted": false
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "schema": "reeditpro.openSourceToolStack.sourceOfTruthAudit.v1",
+  "generatedAt": "2026-06-15T12:38:17.189Z",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceHead": "ec7e27a1ce4cfedb6bdc1688407218a8d80a94a0",
+  "decision": "open_source_tool_stack_audit_completed_install_proof_backlog_ready",
+  "inventoryCandidateCount": 71,
+  "openSourceOrLocalCandidateCount": 68,
+  "providerApiSeparatedCount": 3,
+  "packageDeclaredCount": 22,
+  "systemBinaryDeclaredCount": 4,
+  "missingCount": 11,
+  "blockedCount": 9,
+  "executionScope": {
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "githubPrMergeAllowed": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "secretPolicy": {
+    "referenceNamesOnly": true,
+    "payloadAccessed": false,
+    "payloadPrinted": false,
+    "payloadCommitted": false
+  },
+  "sourceEvidence": {
+    "packageFiles": [
+      "package.json",
+      "package-lock.json"
+    ],
+    "dockerFiles": [
+      "docker/prod/**/Dockerfile",
+      "docker/prod/**/requirements*.txt"
+    ],
+    "registryFiles": [
+      "server/tool-registry/production-tool-types.ts",
+      "server/tool-registry/production-tool-profiles.ts"
+    ],
+    "readinessFiles": [
+      "server/activation/container-readiness/container-readiness-expected-tools.ts"
+    ],
+    "toolStudyFiles": [
+      "docs/tool-studies/*.md",
+      "docs/tool-studies/*.json"
+    ],
+    "activationReports": [
+      "docs/activation-second-controlled-candidate-dry-run-reports/*.json"
+    ],
+    "prEvidence": [
+      {
+        "number": 412,
+        "title": "[tool-route] Second controlled candidate dry-run",
+        "state": "MERGED",
+        "mergedAt": "2026-06-14T00:18:07Z",
+        "headRefOid": "115e4e65b4a1bbe1850430f6380c1245885320c7",
+        "canonical": true
+      },
+      {
+        "number": 407,
+        "title": "[tool-route] Second controlled candidate approval packet",
+        "state": "MERGED",
+        "canonical": true
+      },
+      {
+        "number": 402,
+        "title": "[tool-route] Next controlled candidate or worker handoff review",
+        "state": "MERGED",
+        "canonical": true
+      },
+      {
+        "number": 399,
+        "title": "[tool-route] First controlled tool execution dry-run",
+        "state": "MERGED",
+        "canonical": true
+      },
+      {
+        "number": 394,
+        "title": "[tool-route] Controlled tool execution approval packet",
+        "state": "MERGED",
+        "canonical": true
+      },
+      {
+        "number": 388,
+        "title": "[tool-route] Tool-route metadata dry-run execution",
+        "state": "MERGED",
+        "canonical": true
+      },
+      {
+        "number": 387,
+        "title": "[tool-route] Tool-route dry-run approval packet",
+        "state": "MERGED",
+        "canonical": true
+      },
+      {
+        "number": 384,
+        "title": "[tool-route] TOOL-ROUTE-3 offline dry-run approval packet",
+        "state": "OPEN",
+        "isDraft": true,
+        "canonical": false,
+        "note": "Reference-only duplicate-risk evidence."
+      },
+      {
+        "number": 401,
+        "title": "[worker] WORKER-5 offline dry-run QA review",
+        "state": "OPEN",
+        "isDraft": true,
+        "canonical": false,
+        "note": "Draft worker PR is reference-only and not source-of-truth for this audit."
+      }
+    ]
+  },
+  "auditFacts": [
+    "This audit records declarations, plans, diagnostics, and smoke evidence only.",
+    "package_declared and system_binary_declared are not treated as installed proof.",
+    "Provider/API-only items are separated from local OSS tool candidates.",
+    "PR #384 and PR #401 are draft/reference-only evidence and are not canonical source-of-truth.",
+    "No dependency installation, package-lock mutation, runtime execution, media processing, Supabase mutation, public artifact, signed URL, raw prompt, beta, or production unlock occurred."
+  ],
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1"
+}

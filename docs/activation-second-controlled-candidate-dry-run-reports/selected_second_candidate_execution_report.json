@@ -1,0 +1,59 @@
+{
+  "schema": "reeditpro.secondControlledCandidateDryRun.selectedSecondCandidateExecution.v1",
+  "passed": true,
+  "candidateId": "controlled-tool:second_fixture_report_validation",
+  "executionKind": "local_server_only_sound_music_audio_fixture_report_validation",
+  "selectedFixture": {
+    "fixtureId": "valid_sound_music_audio_metadata_route_candidate",
+    "fixtureClass": "valid",
+    "owner": "SOUND_MUSIC_AUDIO",
+    "inputKind": "approved_plan_snapshot_v1",
+    "allFlagsBlocked": true,
+    "approvedSnapshotOk": true,
+    "expectedOutcomeOk": true,
+    "acceptedMetadataOnly": true,
+    "failedClosed": false
+  },
+  "selectedRoute": {
+    "fixtureId": "valid_sound_music_audio_metadata_route_candidate",
+    "owner": "SOUND_MUSIC_AUDIO",
+    "routeCandidateId": "metadata-route:sound_music_audio",
+    "routeCompatibility": "compatible_metadata_only",
+    "routeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "costCapacityClass": "metadata_estimate_only",
+    "passed": true
+  },
+  "requiredReportsPresent": true,
+  "requiredReportFields": [
+    "docs/activation-second-controlled-candidate-approval-reports/second_controlled_candidate_approval_decision.json",
+    "docs/activation-second-controlled-candidate-approval-reports/second_candidate_scope_review.json",
+    "docs/activation-second-controlled-candidate-approval-reports/sound_music_audio_route_review.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_fixture_validation_report.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_metadata_resolution_report.json",
+    "docs/activation-tool-route-dry-run-approval-reports/tool_route_synthetic_approved_plan_snapshot_fixtures.json"
+  ],
+  "validatedOperations": [
+    "committed_second_approval_report_presence",
+    "selected_sound_music_audio_fixture_metadata_shape",
+    "selected_sound_music_audio_route_metadata_shape",
+    "approved_snapshot_placeholder_consistency",
+    "blocker_field_presence",
+    "blocked_execution_flags"
+  ],
+  "deterministic": true,
+  "sideEffectFree": true,
+  "externalNetworkCalls": false,
+  "secretPayloadAccessed": false,
+  "supabaseWrites": false,
+  "sqlExecuted": false,
+  "gcsUploads": false,
+  "mediaProcessed": false,
+  "audioProcessed": false,
+  "workerQueueEnqueued": false,
+  "routeExecuted": false,
+  "providerCalled": false,
+  "dependencyMutation": false
+}

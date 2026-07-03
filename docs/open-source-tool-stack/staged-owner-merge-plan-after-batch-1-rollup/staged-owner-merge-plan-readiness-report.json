@@ -1,0 +1,11 @@
+{
+  "schema": "reeditpro.openSourceToolStack.stagedOwnerMergePlanAfterBatch1Rollup.readiness.v1",
+  "generatedAt": "2026-06-19T14:48:26.589Z",
+  "readiness": true,
+  "decision": "staged_owner_merge_plan_passed_ready_for_e2e_validation_pr305_hydration_blocker_resolution",
+  "blockers": [
+    "pr_305_validation_blocked_npm_ci_failed",
+    "merge_ready_validations_0"
+  ],
+  "nextPrompt": "E2E_VALIDATION_PR_305_HYDRATION_BLOCKER_RESOLUTION"
+}

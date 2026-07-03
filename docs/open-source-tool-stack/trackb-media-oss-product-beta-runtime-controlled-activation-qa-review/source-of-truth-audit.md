@@ -1,0 +1,60 @@
+# Source Of Truth Audit
+
+Decision: `trackb_media_oss_product_beta_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout`.
+Previous decision: `trackb_media_oss_product_beta_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review`.
+Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT`.
+
+Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+Supabase classification: no write / environment none / SQL none / migration no.
+
+QA scope: source-of-truth metadata only. No real tools, Docker, installs, media processing, route dispatch, worker dispatch, Supabase/GCS writes, public artifacts, signed URLs, external beta, production, or product-ready unlocks are approved by this gate.
+
+```json
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout",
+  "previousDecision": "trackb_media_oss_product_beta_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-controlled-activation-qa-review",
+  "sourceSha": "bbb59e54fbf2c9a74e1c02a425bd421e47b3f531",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourcePr": 908,
+  "sourceHead": "1ee7c77d88662193efdbada4c3fd2b0529b7b70b",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_CLOSEOUT",
+  "sourceEvidence": [
+    {
+      "pr": 908,
+      "state": "MERGED",
+      "mergeCommit": "bbb59e54fbf2c9a74e1c02a425bd421e47b3f531",
+      "head": "1ee7c77d88662193efdbada4c3fd2b0529b7b70b",
+      "acceptedAs": "controlled_activation_execution_metadata"
+    },
+    {
+      "pr": 906,
+      "state": "MERGED",
+      "mergeCommit": "1dee0a124f6797cb56bffe1a88bd8410c40ef0fc",
+      "acceptedAs": "product_beta_runtime_approval_source"
+    },
+    {
+      "pr": 901,
+      "state": "MERGED",
+      "acceptedAs": "product_beta_readiness_closeout_source"
+    },
+    {
+      "pr": 893,
+      "state": "MERGED",
+      "acceptedAs": "limited_internal_activation_closeout_source"
+    }
+  ],
+  "duplicateQaPrSearch": "no_open_duplicate_for_TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW_before_branch_creation",
+  "qaScope": "source_truth_metadata_only",
+  "broadProductionDocsCreated": false
+}
+```

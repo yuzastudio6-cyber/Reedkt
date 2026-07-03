@@ -1,0 +1,158 @@
+{
+  "schema": "reeditpro.toolRouteMetadataDryRun.observabilityCostAudit.v1",
+  "passed": true,
+  "rows": [
+    {
+      "fixtureId": "valid_track_b_metadata_route_candidate",
+      "correlationId": "noop-route-dry-run-01",
+      "approvedPlanSnapshotRef": "private://approved-plan-snapshot/valid_track_b_metadata_route_candidate",
+      "routeCandidateId": "metadata-route:track_b_media_processing",
+      "ownerStudyRef": "docs/tool-studies/track-b-media-processing-routing-policy.md",
+      "artifactManifestRefs": [
+        "private://manifest/valid_track_b_metadata_route_candidate",
+        "private://checksum/valid_track_b_metadata_route_candidate"
+      ],
+      "routeCompatibility": "compatible_metadata_only",
+      "costEstimateClass": "metadata_shape_only_no_charge",
+      "timeoutClass": "not_applicable_no_runtime",
+      "retriesEnabled": false,
+      "secretLogs": false,
+      "rawPrivatePayloadLogs": false
+    },
+    {
+      "fixtureId": "valid_sound_music_audio_metadata_route_candidate",
+      "correlationId": "noop-route-dry-run-02",
+      "approvedPlanSnapshotRef": "private://approved-plan-snapshot/valid_sound_music_audio_metadata_route_candidate",
+      "routeCandidateId": "metadata-route:sound_music_audio",
+      "ownerStudyRef": "docs/tool-studies/sound-music-audio-routing-policy.md",
+      "artifactManifestRefs": [
+        "private://manifest/valid_sound_music_audio_metadata_route_candidate",
+        "private://checksum/valid_sound_music_audio_metadata_route_candidate"
+      ],
+      "routeCompatibility": "compatible_metadata_only",
+      "costEstimateClass": "metadata_shape_only_no_charge",
+      "timeoutClass": "not_applicable_no_runtime",
+      "retriesEnabled": false,
+      "secretLogs": false,
+      "rawPrivatePayloadLogs": false
+    },
+    {
+      "fixtureId": "valid_ai_creative_graphics_metadata_route_candidate",
+      "correlationId": "noop-route-dry-run-03",
+      "approvedPlanSnapshotRef": "private://approved-plan-snapshot/valid_ai_creative_graphics_metadata_route_candidate",
+      "routeCandidateId": "metadata-route:ai_tools_creative_graphics",
+      "ownerStudyRef": "docs/tool-studies/ai-tools-creative-graphics-routing-policy.md",
+      "artifactManifestRefs": [
+        "private://manifest/valid_ai_creative_graphics_metadata_route_candidate",
+        "private://checksum/valid_ai_creative_graphics_metadata_route_candidate"
+      ],
+      "routeCompatibility": "compatible_metadata_only",
+      "costEstimateClass": "metadata_shape_only_no_charge",
+      "timeoutClass": "not_applicable_no_runtime",
+      "retriesEnabled": false,
+      "secretLogs": false,
+      "rawPrivatePayloadLogs": false
+    },
+    {
+      "fixtureId": "valid_track_a_render_export_metadata_route_candidate",
+      "correlationId": "noop-route-dry-run-04",
+      "approvedPlanSnapshotRef": "private://approved-plan-snapshot/valid_track_a_render_export_metadata_route_candidate",
+      "routeCandidateId": "metadata-route:track_a_render_export",
+      "ownerStudyRef": "docs/tool-studies/track-a-render-export-routing-policy.md",
+      "artifactManifestRefs": [
+        "private://manifest/valid_track_a_render_export_metadata_route_candidate",
+        "private://checksum/valid_track_a_render_export_metadata_route_candidate"
+      ],
+      "routeCompatibility": "compatible_metadata_only",
+      "costEstimateClass": "metadata_shape_only_no_charge",
+      "timeoutClass": "not_applicable_no_runtime",
+      "retriesEnabled": false,
+      "secretLogs": false,
+      "rawPrivatePayloadLogs": false
+    },
+    {
+      "fixtureId": "invalid_raw_prompt_route_request",
+      "correlationId": "noop-route-dry-run-05",
+      "approvedPlanSnapshotRef": null,
+      "routeCandidateId": null,
+      "ownerStudyRef": null,
+      "artifactManifestRefs": [],
+      "routeCompatibility": "failed_closed",
+      "costEstimateClass": "metadata_shape_only_no_charge",
+      "timeoutClass": "not_applicable_no_runtime",
+      "retriesEnabled": false,
+      "secretLogs": false,
+      "rawPrivatePayloadLogs": false
+    },
+    {
+      "fixtureId": "invalid_direct_tool_execution_request",
+      "correlationId": "noop-route-dry-run-06",
+      "approvedPlanSnapshotRef": null,
+      "routeCandidateId": null,
+      "ownerStudyRef": null,
+      "artifactManifestRefs": [],
+      "routeCompatibility": "failed_closed",
+      "costEstimateClass": "metadata_shape_only_no_charge",
+      "timeoutClass": "not_applicable_no_runtime",
+      "retriesEnabled": false,
+      "secretLogs": false,
+      "rawPrivatePayloadLogs": false
+    },
+    {
+      "fixtureId": "invalid_worker_execution_request",
+      "correlationId": "noop-route-dry-run-07",
+      "approvedPlanSnapshotRef": null,
+      "routeCandidateId": null,
+      "ownerStudyRef": null,
+      "artifactManifestRefs": [],
+      "routeCompatibility": "failed_closed",
+      "costEstimateClass": "metadata_shape_only_no_charge",
+      "timeoutClass": "not_applicable_no_runtime",
+      "retriesEnabled": false,
+      "secretLogs": false,
+      "rawPrivatePayloadLogs": false
+    },
+    {
+      "fixtureId": "invalid_provider_model_call_request",
+      "correlationId": "noop-route-dry-run-08",
+      "approvedPlanSnapshotRef": null,
+      "routeCandidateId": null,
+      "ownerStudyRef": null,
+      "artifactManifestRefs": [],
+      "routeCompatibility": "failed_closed",
+      "costEstimateClass": "metadata_shape_only_no_charge",
+      "timeoutClass": "not_applicable_no_runtime",
+      "retriesEnabled": false,
+      "secretLogs": false,
+      "rawPrivatePayloadLogs": false
+    },
+    {
+      "fixtureId": "invalid_public_artifact_signed_url_request",
+      "correlationId": "noop-route-dry-run-09",
+      "approvedPlanSnapshotRef": null,
+      "routeCandidateId": null,
+      "ownerStudyRef": null,
+      "artifactManifestRefs": [],
+      "routeCompatibility": "failed_closed",
+      "costEstimateClass": "metadata_shape_only_no_charge",
+      "timeoutClass": "not_applicable_no_runtime",
+      "retriesEnabled": false,
+      "secretLogs": false,
+      "rawPrivatePayloadLogs": false
+    },
+    {
+      "fixtureId": "invalid_broad_media_render_export_request",
+      "correlationId": "noop-route-dry-run-10",
+      "approvedPlanSnapshotRef": null,
+      "routeCandidateId": null,
+      "ownerStudyRef": null,
+      "artifactManifestRefs": [],
+      "routeCompatibility": "failed_closed",
+      "costEstimateClass": "metadata_shape_only_no_charge",
+      "timeoutClass": "not_applicable_no_runtime",
+      "retriesEnabled": false,
+      "secretLogs": false,
+      "rawPrivatePayloadLogs": false
+    }
+  ]
+}

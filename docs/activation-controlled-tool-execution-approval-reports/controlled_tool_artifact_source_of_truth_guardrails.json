@@ -1,0 +1,22 @@
+{
+  "schema": "reeditpro.controlledToolExecutionApproval.artifactGuardrails.v1",
+  "createdAt": "2026-06-13T19:05:04.120Z",
+  "passed": true,
+  "requiredSourceOfTruthRefs": [
+    "approved_plan_snapshot_v1",
+    "supabase_row_ref_future_only",
+    "private_gcs_path_ref",
+    "manifest_id",
+    "checksum"
+  ],
+  "candidateRefs": [
+    "private://manifest/first-controlled-tool-fixture-report-validation",
+    "private://checksum/first-controlled-tool-fixture-report-validation"
+  ],
+  "refsPrivate": true,
+  "signedUrlsAsSourceOfTruthAllowed": false,
+  "publicArtifactsAllowed": false,
+  "gcsUploadsInThisPhase": false,
+  "arbitraryPathsAllowed": false,
+  "privatePayloadsCommitted": false
+}

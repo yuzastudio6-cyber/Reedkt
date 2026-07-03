@@ -1,0 +1,33 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1QaReview.passedTargetQualityReview.v1",
+  "generatedAt": "2026-06-16T14:47:52.893Z",
+  "targets": [
+    {
+      "targetId": "sharp_libvips_import_version_probe",
+      "acceptedAsCentralEvidence": true,
+      "sourceReportPassed": true,
+      "evidenceQuality": "import_version_only_no_file_processing"
+    },
+    {
+      "targetId": "route_capability_manifest_validation",
+      "acceptedAsCentralEvidence": true,
+      "sourceReportPassed": true,
+      "evidenceQuality": "committed_metadata_validator"
+    },
+    {
+      "targetId": "fixture_report_validation_harness",
+      "acceptedAsCentralEvidence": true,
+      "sourceReportPassed": true,
+      "evidenceQuality": "committed_metadata_validator"
+    },
+    {
+      "targetId": "open_source_tool_inventory_validator",
+      "acceptedAsCentralEvidence": true,
+      "sourceReportPassed": true,
+      "evidenceQuality": "committed_metadata_validator"
+    }
+  ],
+  "passedTargetCount": 4,
+  "fullToolImplementationReadinessClaimed": false,
+  "passed": true
+}

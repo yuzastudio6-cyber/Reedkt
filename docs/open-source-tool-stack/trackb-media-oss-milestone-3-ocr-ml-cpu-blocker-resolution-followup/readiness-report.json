@@ -1,0 +1,14 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuBlockerResolutionFollowup.readiness.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_followup_blocked_by_model_asset_required",
+  "generatedAt": "2026-06-20T18:00:21.252Z",
+  "readyForQaReview": false,
+  "readyForModelAssetApproval": true,
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_MODEL_ASSET_APPROVAL",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

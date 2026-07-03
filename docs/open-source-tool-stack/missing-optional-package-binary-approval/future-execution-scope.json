@@ -1,0 +1,78 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryApproval.futureExecutionScope.v1",
+  "generatedAt": "2026-06-17T03:39:30.998Z",
+  "approvedOnlyForFutureExecutionPacket": true,
+  "currentPhaseExecutionAllowed": false,
+  "packageTargets": [
+    {
+      "targetId": "duckdb_metadata_query_proof",
+      "packageName": "duckdb",
+      "futureCommand": "npm install duckdb nodejs-polars --save-exact --ignore-scripts --no-audit --no-fund",
+      "futureProof": "import/version and in-memory metadata query only"
+    },
+    {
+      "targetId": "polars_metadata_dataframe_proof",
+      "packageName": "nodejs-polars",
+      "futureCommand": "npm install duckdb nodejs-polars --save-exact --ignore-scripts --no-audit --no-fund",
+      "futureProof": "import/version and in-memory dataframe metadata check only"
+    }
+  ],
+  "systemBinaryTargets": [
+    {
+      "targetId": "ffmpeg_version_probe",
+      "futureCommand": "command -v ffmpeg && ffmpeg -version",
+      "absenceOutcome": "blocked_missing_system_binary"
+    },
+    {
+      "targetId": "ffprobe_version_probe",
+      "futureCommand": "command -v ffprobe && ffprobe -version",
+      "absenceOutcome": "blocked_missing_system_binary"
+    }
+  ],
+  "sideEffectGuards": {
+    "dependencyInstallAllowed": false,
+    "packageInstallAllowed": false,
+    "packageLockMutationAllowed": false,
+    "packageJsonDependencyMutationAllowed": false,
+    "newToolDependencyAdditionAllowed": false,
+    "systemBinaryInstallAllowed": false,
+    "containerImageMutationAllowed": false,
+    "dockerMutationAllowed": false,
+    "cloudBuildMutationAllowed": false,
+    "cloudRunMutationAllowed": false,
+    "importSmokeAllowed": false,
+    "versionProbeAllowed": false,
+    "fixtureProofAllowed": false,
+    "broadToolExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  },
+  "failClosedCases": [
+    "package command adds anything except duckdb/nodejs-polars and their transitive lock metadata",
+    "package install requires scripts",
+    "ffmpeg or ffprobe absent without worker/container owner approval",
+    "proof reads media, private files, network resources, secrets, or user payloads",
+    "any route, worker, provider, Supabase, GCS, public artifact, signed URL, raw prompt, beta, or production path appears"
+  ],
+  "passed": true
+}

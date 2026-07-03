@@ -1,0 +1,27 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1QaReview.runtimeBoundary.v1",
+  "generatedAt": "2026-06-20T01:38:05.933Z",
+  "decision": "trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval",
+  "toolExecutionRunInQaPhase": false,
+  "dockerBuildRunInQaPhase": false,
+  "dockerRunInQaPhase": false,
+  "buildContextGenerationRunInQaPhase": false,
+  "ffmpegFfprobeRunInQaPhase": false,
+  "opencvPyavPyscenedetectRunInQaPhase": false,
+  "paddleOrColorPipelineRunInQaPhase": false,
+  "mediaProcessingAccepted": false,
+  "mediaFileProbingAccepted": false,
+  "renderExportAccepted": false,
+  "workerRuntimeAccepted": false,
+  "routeRuntimeAccepted": false,
+  "providerRuntimeAccepted": false,
+  "supabaseGcsPublicDeliveryAccepted": false,
+  "rawPromptExecutionAccepted": false,
+  "betaProductionAccepted": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1QaReview.blockerReport.v1",
+  "generatedAt": "2026-06-16T14:47:52.893Z",
+  "decision": "open_source_tool_stack_batch_1_qa_passed_with_missing_optional_tools_ready_for_missing_optional_install_review",
+  "blockers": [],
+  "missingOptionalTargets": [
+    {
+      "targetId": "duckdb_metadata_query_proof",
+      "status": "blocked_missing_dependency_or_module",
+      "installReviewRequired": true
+    },
+    {
+      "targetId": "polars_metadata_dataframe_proof",
+      "status": "blocked_missing_dependency_or_module",
+      "installReviewRequired": true
+    },
+    {
+      "targetId": "ffmpeg_version_probe",
+      "status": "blocked_missing_system_binary",
+      "installReviewRequired": true
+    },
+    {
+      "targetId": "ffprobe_version_probe",
+      "status": "blocked_missing_system_binary",
+      "installReviewRequired": true
+    }
+  ]
+}

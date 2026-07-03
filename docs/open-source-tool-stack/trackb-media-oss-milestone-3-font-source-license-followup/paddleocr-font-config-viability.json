@@ -1,0 +1,24 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOss.milestone3FontSourceLicenseFollowup.paddleocrFontConfig.v1",
+  "decision": "trackb_media_oss_milestone3_font_source_license_followup_passed_ready_for_system_font_package_approval",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL",
+  "reviewedEvidence": [
+    "PaddleX issue #4405 references PADDLE_PDX_LOCAL_FONT_FILE_PATH and notes that it points all fonts to one exact local file.",
+    "PR #613 source review recorded PaddleX font name and runtime URL pattern.",
+    "PR #600 recorded the blocked PingFang fetch under --network none."
+  ],
+  "localFontPathConfigurationAppearsPossible": true,
+  "assetFreeImportConfigProven": false,
+  "assetFreeImportConfigSelected": false,
+  "systemFontConfigSelectedForNextGate": true,
+  "futureRequirements": [
+    "Approve exact package, likely fonts-noto-cjk, before installation.",
+    "Approve exact installed font path before setting PaddleX local font path.",
+    "Verify that PaddleX/PaddleOCR does not fetch PingFang when the local font path is configured.",
+    "Keep OCR inference and model assets out of scope until separately approved."
+  ],
+  "paddleOcrImportedNow": false,
+  "paddlePaddleImportedNow": false,
+  "ocrObjectInstantiatedNow": false,
+  "ocrInferenceRunNow": false
+}

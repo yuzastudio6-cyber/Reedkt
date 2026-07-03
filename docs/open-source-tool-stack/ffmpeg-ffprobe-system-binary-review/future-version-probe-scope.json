@@ -1,0 +1,26 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ffmpegFfprobeSystemBinaryReview.futureVersionProbeScope.v1",
+  "generatedAt": "2026-06-17T21:23:02.115Z",
+  "futureVersionProbeApprovedNow": false,
+  "blockedUntil": "Track A FFmpeg/FFprobe source-of-truth evidence is reconciled into central branch",
+  "futureCommandsAfterApproval": [
+    "ffmpeg -version",
+    "ffprobe -version"
+  ],
+  "allowedEnvironmentAfterApproval": [
+    "repo-owned Docker image or worker container selected by Track A/Worker Runtime source-of-truth"
+  ],
+  "localSystemEnvironmentApprovedNow": false,
+  "repoOwnedDockerImageApprovedNow": false,
+  "workerContainerApprovedNow": false,
+  "noMediaInput": true,
+  "noMediaOutput": true,
+  "noFileProbing": true,
+  "noDecodeEncode": true,
+  "noRenderExport": true,
+  "noOutputFiles": true,
+  "noPublicArtifact": true,
+  "timeoutSecondsAfterApproval": 15,
+  "reportPathAfterApproval": "docs/open-source-tool-stack/ffmpeg-ffprobe-version-probe-approval-or-execution/",
+  "stopOnFirstFailure": true
+}

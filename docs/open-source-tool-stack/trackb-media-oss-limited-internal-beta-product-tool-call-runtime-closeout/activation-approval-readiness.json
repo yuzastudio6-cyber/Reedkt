@@ -1,0 +1,26 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaProductToolCallRuntimeCloseout.activationApprovalReadiness.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_closeout_passed_ready_for_activation_approval",
+  "readyForActivationApproval": true,
+  "activationApprovalMustReview": [
+    "whether any live route runtime may be enabled",
+    "whether any worker dispatch path may be enabled",
+    "whether only dry-run product calls remain allowed",
+    "service-role and Supabase/GCS write boundaries",
+    "private artifact policy and signed URL prohibitions",
+    "rollback plan before any runtime flag changes",
+    "monitoring and alerting requirements"
+  ],
+  "notApprovedByCloseout": {
+    "directProductToolCalls": true,
+    "liveRouteRuntime": true,
+    "workerDispatch": true,
+    "realToolExecution": true,
+    "userMediaByDefault": true,
+    "externalBeta": true,
+    "production": true,
+    "productReadyLocalOss": true
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_ACTIVATION_APPROVAL"
+}

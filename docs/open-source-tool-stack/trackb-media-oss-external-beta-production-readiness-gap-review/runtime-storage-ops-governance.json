@@ -1,0 +1,30 @@
+{
+  "schema": "reeditpro.trackbMediaOss.externalBetaProductionReadinessGapReview.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_external_beta_production_readiness_gap_review_blocked_pending_reeditpro_global_readiness_remediation_plan",
+  "previousDecision": "trackb_media_oss_product_beta_tools_call_lane_handoff_passed_ready_for_external_beta_production_readiness_gap_review",
+  "nextPrompt": "REEDITPRO_EXTERNAL_BETA_PRODUCTION_READINESS_REMEDIATION_PLAN",
+  "sourceSha": "8c783753d086d802716a85f89a58620232dbac7c",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-external-beta-production-readiness-gap-review",
+  "report": "runtime-storage-ops-governance",
+  "runtimeGovernance": {
+    "liveProductCallsRan": false,
+    "routeRuntimeRan": false,
+    "workerDispatchRan": false,
+    "realToolsRan": false,
+    "mediaProcessingRan": false,
+    "dockerRan": false,
+    "installsRan": false
+  },
+  "storageGovernance": {
+    "supabaseGcsWritesRan": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false,
+    "readyForSupabaseGcsWrites": false,
+    "readyForPublicArtifacts": false,
+    "readyForSignedUrls": false
+  },
+  "opsGovernanceReady": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

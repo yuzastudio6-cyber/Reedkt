@@ -1,0 +1,53 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone1Execution.sourceAudit.v1",
+  "generatedAt": "2026-06-19T20:24:14.983Z",
+  "branchName": "codex/rp-trackb-media-oss-milestone-1-low-risk-metadata-tooling-execution",
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "expectedSourceSha": "89784140047ca722c77b8d3f899284023623681f",
+  "sourceSha": "89784140047ca722c77b8d3f899284023623681f",
+  "sourceCompatible": true,
+  "packageJsonHash": "41299725fd468640dae0ddffdba399f4296d109cd4503e73b9dc9522b8bdaa23",
+  "packageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "mergedEvidence": [
+    {
+      "pr": 545,
+      "state": "MERGED",
+      "head": "4864d969ec509f34788f4fa0f9b3cfaeaa9917b7",
+      "mergedAt": "2026-06-19T20:04:45Z"
+    },
+    {
+      "pr": 542,
+      "state": "MERGED",
+      "head": "c2007f6bb20bc5cfae35d9e4eaef03feeca3218f",
+      "mergedAt": "2026-06-19T19:07:30Z"
+    }
+  ],
+  "aiGraphicsOwnerPr543": {
+    "state": "OPEN",
+    "isDraft": true,
+    "base": "codex/rp-open-source-tool-stack-refresh-after-ai-graphics-worker-qa-review",
+    "ownsTrackBTools": false,
+    "note": "PR #543 is an AI graphics owner assignment lane and is not a central Track B Milestone 1 execution duplicate."
+  },
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "milestoneTools": [
+    "exiftool",
+    "mediainfo",
+    "tesseract",
+    "imagemagick_graphicsmagick"
+  ],
+  "cpuOnly": true,
+  "syntheticFixturesOnly": true,
+  "noRealUserMedia": true,
+  "duplicateSearchNotes": [
+    "No open central duplicate matched TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION during preflight.",
+    "Broad ExifTool/MediaInfo/Tesseract/ImageMagick search may surface AI/Track A owner registry PRs; those are non-Track-B duplicates."
+  ],
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

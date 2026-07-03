@@ -1,0 +1,30 @@
+{
+  "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildExecution.nativeRebuild.v1",
+  "generatedAt": "2026-06-17T19:44:55.097Z",
+  "command": "npm rebuild duckdb --ignore-scripts=false --no-audit --no-fund",
+  "commandMatchesApproved": true,
+  "rebuildRun": true,
+  "rebuildExitCode": 0,
+  "rebuildStatus": "passed",
+  "stdoutPreview": "rebuilt dependencies successfully\n",
+  "stderrPreview": "npm warn rebuild 6 packages have install scripts not yet covered by allowScripts. Run `npm approve-scripts --allow-scripts-pending` to review.\n",
+  "beforePackageJsonHash": "a49b8c2cbbbd553f2bf154e90a1810bf10462e2bdb033a950af6548865c69533",
+  "beforePackageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "afterPackageJsonHash": "a49b8c2cbbbd553f2bf154e90a1810bf10462e2bdb033a950af6548865c69533",
+  "afterPackageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "packageJsonChanged": false,
+  "packageLockChanged": false,
+  "nativeBindingPaths": [
+    "node_modules/duckdb/build/Release/duckdb.node",
+    "node_modules/duckdb/lib/binding/duckdb.node"
+  ],
+  "nativeBindingAvailable": true,
+  "nodeModulesNativeArtifactCommitted": false,
+  "noUnexpectedFilesStaged": true,
+  "npmInstallAttempted": false,
+  "bareNpmRebuildAttempted": false,
+  "broadLifecycleScriptsAttempted": false,
+  "polarsProofRerun": false,
+  "ffmpegProbeRun": false,
+  "ffprobeProbeRun": false
+}

@@ -1,0 +1,3144 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1FinalRollup.sourceAudit.v1",
+  "generatedAt": "2026-06-18T18:13:56.633Z",
+  "phase": "OPEN_SOURCE_TOOL_STACK_BATCH1_FINAL_ROLLUP_AFTER_FFMPEG_FFPROBE_PROOF",
+  "branch": "codex/rp-open-source-tool-stack-batch1-final-rollup-after-ffmpeg-ffprobe-proof",
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "expectedSourceSha": "aed2a8ecc06b7a68a4139d38d3bb5f568a949ffc",
+  "liveSourceSha": "aed2a8ecc06b7a68a4139d38d3bb5f568a949ffc",
+  "predecessorPrs": [
+    518,
+    514,
+    508,
+    504,
+    499,
+    494,
+    490,
+    486,
+    481,
+    477,
+    472,
+    463,
+    469,
+    466,
+    455,
+    448,
+    444,
+    439,
+    435,
+    430,
+    427,
+    421,
+    416
+  ],
+  "controlledToolPredecessors": [
+    412,
+    407,
+    402,
+    399,
+    394,
+    388,
+    387
+  ],
+  "referenceOnlyPrs": [
+    384,
+    401,
+    417,
+    420,
+    423,
+    425,
+    428,
+    432
+  ],
+  "sourceEvidence": {
+    "pr518Decision": {
+      "path": "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa-decision.json",
+      "exists": true,
+      "sha256": "73e6a8d6d5f83b6224c8f9065a3a07d8531170e0c39c5e09c6480e8e1b16b18d",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeQa.decision.v1",
+        "generatedAt": "2026-06-18T17:20:38.139Z",
+        "decision": "tracka_container_docker_build_ffmpeg_ffprobe_version_probe_qa_passed_media_processing_still_blocked_ready_for_batch1_rollup",
+        "readiness": true,
+        "acceptedWithMediaProcessingStillBlocked": true,
+        "readyForBatch1Rollup": true,
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_BATCH1_FINAL_ROLLUP_AFTER_FFMPEG_FFPROBE_PROOF",
+        "nextPromptFile": "docs/implementation-prompts/prompt-open-source-tool-stack-batch-1-final-rollup-after-ffmpeg-ffprobe-proof.md",
+        "blockers": [],
+        "ffmpegAcceptedAsVersionProvenForTrackaContainerPath": true,
+        "ffprobeAcceptedAsVersionProvenForTrackaContainerPath": true,
+        "mediaProcessingAccepted": false,
+        "captionBurnInAccepted": false,
+        "renderExportAccepted": false,
+        "dockerBuildRunInThisPhase": false,
+        "dockerRunRunInThisPhase": false,
+        "ffmpegProbeRunInThisPhase": false,
+        "ffprobeProbeRunInThisPhase": false,
+        "buildContextGenerationRunInThisPhase": false,
+        "npmInstallRunInThisPhase": false,
+        "npmRebuildRunInThisPhase": false,
+        "workerExecutionRunInThisPhase": false,
+        "routeExecutionRunInThisPhase": false,
+        "providerCallsRunInThisPhase": false,
+        "supabaseWritesRunInThisPhase": false,
+        "gcsUploadRunInThisPhase": false,
+        "publicArtifactsCreatedInThisPhase": false,
+        "signedUrlsCreatedInThisPhase": false,
+        "betaProductionUnlockedInThisPhase": false,
+        "rawPromptsRunInThisPhase": false,
+        "secretsPrintedInThisPhase": false,
+        "supabaseClassification": {
+          "updateRequired": "no write",
+          "updateStatus": "not_applicable",
+          "environmentTouched": "none",
+          "sqlExecuted": "none",
+          "migrationDeployed": "no"
+        }
+      }
+    },
+    "pr518Status": {
+      "path": "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa/central-open-source-status-update.json",
+      "exists": true,
+      "sha256": "1eb6a18f3e6acc306e14fdef24488e8fd00a3c7d6b8498f2e72ee2352b6a8e70",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeQa.centralStatusUpdate.v1",
+        "generatedAt": "2026-06-18T17:20:38.139Z",
+        "status": "accepted",
+        "accepted": true,
+        "details": {
+          "duckdb": "accepted_installed_and_proven_from_pr466_and_pr469",
+          "polars": "accepted_installed_and_proven_from_pr455_and_pr469",
+          "sharpLibvips": "accepted_proven_from_batch_1",
+          "ffmpeg": "version_proven_for_tracka_container_path_only",
+          "ffprobe": "version_proven_for_tracka_container_path_only",
+          "ffmpegVersion": "5.1.9-0+deb12u1",
+          "ffprobeVersion": "5.1.9-0+deb12u1",
+          "mediaProcessingAccepted": false,
+          "captionBurnInAccepted": false,
+          "renderExportAccepted": false,
+          "internalBetaStatus": "evidence_improved_internal_testing_only_external_beta_blocked",
+          "nextPrompt": "OPEN_SOURCE_TOOL_STACK_BATCH1_FINAL_ROLLUP_AFTER_FFMPEG_FFPROBE_PROOF"
+        },
+        "warnings": [
+          "media_processing_render_export_and_production_scope_remain_blocked"
+        ],
+        "blockers": [],
+        "followUp": "OPEN_SOURCE_TOOL_STACK_BATCH1_FINAL_ROLLUP_AFTER_FFMPEG_FFPROBE_PROOF",
+        "supabaseClassification": {
+          "updateRequired": "no write",
+          "updateStatus": "not_applicable",
+          "environmentTouched": "none",
+          "sqlExecuted": "none",
+          "migrationDeployed": "no"
+        }
+      }
+    },
+    "pr514Decision": {
+      "path": "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-rerun/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-rerun-decision.json",
+      "exists": true,
+      "sha256": "08179ee1f33e63c714e94cb791f9ea574f8cbb0f416ada62f9b5d94f7cb0748f",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeRerun.decision.v1",
+        "generatedAt": "2026-06-18T16:26:34.067Z",
+        "decision": "tracka_container_docker_build_ffmpeg_ffprobe_version_probe_rerun_passed_media_processing_still_blocked",
+        "readiness": true,
+        "readyForQaReview": true,
+        "mediaProcessingStillBlocked": true,
+        "selectedRuntimePath": "tracka_repo_owned_render_worker_container",
+        "imageTag": "reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8",
+        "approvedCommands": {
+          "dockerBuildCommand": "docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 .",
+          "dockerFfmpegCommand": "docker run --rm --network none --entrypoint ffmpeg reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 -version",
+          "dockerFfprobeCommand": "docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 -version"
+        },
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_FFMPEG_FFPROBE_VERSION_PROBE_QA_REVIEW",
+        "nextPromptFile": "docs/implementation-prompts/prompt-open-source-tool-stack-tracka-container-docker-build-ffmpeg-ffprobe-version-probe-qa-review.md",
+        "blockers": [],
+        "buildContextGenerationRun": true,
+        "dockerBuildRun": true,
+        "dockerRunRun": true,
+        "ffmpegProbeRun": true,
+        "ffprobeProbeRun": true,
+        "localHostProbingRun": false,
+        "mediaInputUsed": false,
+        "mediaProcessingRun": false,
+        "renderExportRun": false,
+        "dockerImagePushRun": false,
+        "generatedDistOutputsCommitted": false,
+        "generatedDistOutputsCleaned": true,
+        "generatedArtifactScanPassed": true,
+        "sideEffectArtifactSafetyPassed": true,
+        "supabaseClassification": {
+          "updateRequired": "no write",
+          "updateStatus": "not_applicable",
+          "environmentTouched": "none",
+          "sqlExecuted": "none",
+          "migrationDeployed": "no"
+        }
+      }
+    },
+    "pr514Ffmpeg": {
+      "path": "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-rerun/ffmpeg-container-version-probe-report.json",
+      "exists": true,
+      "sha256": "3249a476bc1fffc8883449516af8104f8002e7b21006d2a23cf45b4c7f0ef87e",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeRerun.containerVersionProbe.v1",
+        "generatedAt": "2026-06-18T16:26:34.067Z",
+        "id": "ffmpeg_container_version_probe",
+        "command": "docker run --rm --network none --entrypoint ffmpeg reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 -version",
+        "run": true,
+        "exactApprovedCommand": true,
+        "exitCode": 0,
+        "status": "passed",
+        "stdoutPreview": "ffmpeg version 5.1.9-0+deb12u1 Copyright (c) 2000-2026 the FFmpeg developers\nbuilt with gcc 12 (Debian 12.2.0-14+deb12u1)\nconfiguration: --prefix=/usr --extra-version=0+deb12u1 --toolchain=hardened --libdir=/usr/lib/aarch64-linux-gnu --incdir=/usr/include/aarch64-linux-gnu --arch=arm64 --enable-gpl --disable-stripping --enable-gnutls --enable-ladspa --enable-libaom --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libjack --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-libpulse --enable-librabbitmq --enable-librist --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-libzmq --enable-libzvbi --enable-lv2 --enable-omx --enable-openal --enable-opencl --enable-opengl --enable-sdl2 --disable-sndio --enable-libjxl --enable-pocketsphinx --enable-librsvg --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-libx264 --enable-libplacebo --enable-librav1e --enable-shared\nlibavutil      57. 28.100 / 57. 28.100\nlibavcodec     59. 37.100 / 59. 37.100\nlibavformat    59. 27.100 / 59. 27.100\nlibavdevice    59.  7.100 / 59.  7.100\nlibavfilter     8. 44.100 /  8. 44.100\nlibswscale      6.  7.100 /  6.  7.100\nlibswresample   4.  7.100 /  4.  7.100\nlibpostproc    56.  6.100 / 56.  6.100\n",
+        "stderrPreview": "",
+        "errorMessage": null,
+        "timedOut": false,
+        "probeRun": true,
+        "approvedContainerCommand": "docker run --rm --network none --entrypoint ffmpeg reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 -version",
+        "noLocalHostProbe": true,
+        "noMediaInput": true,
+        "noMediaOutput": true,
+        "networkNone": true,
+        "versionDetected": true,
+        "versionSummary": [
+          "ffmpeg version 5.1.9-0+deb12u1 Copyright (c) 2000-2026 the FFmpeg developers",
+          "configuration: --prefix=/usr --extra-version=0+deb12u1 --toolchain=hardened --libdir=/usr/lib/aarch64-linux-gnu --incdir=/usr/include/aarch64-linux-gnu --arch=arm64 --enable-gpl --disable-stripping --enable-gnutls --enable-ladspa --enable-libaom --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libjack --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-libpulse --enable-librabbitmq --enable-librist --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-libzmq --enable-libzvbi --enable-lv2 --enable-omx --enable-openal --enable-opencl --enable-opengl --enable-sdl2 --disable-sndio --enable-libjxl --enable-pocketsphinx --enable-librsvg --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-libx264 --enable-libplacebo --enable-librav1e --enable-shared",
+          "libavutil      57. 28.100 / 57. 28.100",
+          "libavcodec     59. 37.100 / 59. 37.100",
+          "libavformat    59. 27.100 / 59. 27.100",
+          "libavdevice    59.  7.100 / 59.  7.100",
+          "libavfilter     8. 44.100 /  8. 44.100"
+        ]
+      }
+    },
+    "pr514Ffprobe": {
+      "path": "docs/open-source-tool-stack/tracka-container-docker-build-ffmpeg-ffprobe-version-probe-rerun/ffprobe-container-version-probe-report.json",
+      "exists": true,
+      "sha256": "d6b8a7c0834d9ee740e6a48e806d31689a0f15eed3a3d685d355e88d31dcf905",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeRerun.containerVersionProbe.v1",
+        "generatedAt": "2026-06-18T16:26:34.067Z",
+        "id": "ffprobe_container_version_probe",
+        "command": "docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 -version",
+        "run": true,
+        "exactApprovedCommand": true,
+        "exitCode": 0,
+        "status": "passed",
+        "stdoutPreview": "ffprobe version 5.1.9-0+deb12u1 Copyright (c) 2007-2026 the FFmpeg developers\nbuilt with gcc 12 (Debian 12.2.0-14+deb12u1)\nconfiguration: --prefix=/usr --extra-version=0+deb12u1 --toolchain=hardened --libdir=/usr/lib/aarch64-linux-gnu --incdir=/usr/include/aarch64-linux-gnu --arch=arm64 --enable-gpl --disable-stripping --enable-gnutls --enable-ladspa --enable-libaom --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libjack --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-libpulse --enable-librabbitmq --enable-librist --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-libzmq --enable-libzvbi --enable-lv2 --enable-omx --enable-openal --enable-opencl --enable-opengl --enable-sdl2 --disable-sndio --enable-libjxl --enable-pocketsphinx --enable-librsvg --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-libx264 --enable-libplacebo --enable-librav1e --enable-shared\nlibavutil      57. 28.100 / 57. 28.100\nlibavcodec     59. 37.100 / 59. 37.100\nlibavformat    59. 27.100 / 59. 27.100\nlibavdevice    59.  7.100 / 59.  7.100\nlibavfilter     8. 44.100 /  8. 44.100\nlibswscale      6.  7.100 /  6.  7.100\nlibswresample   4.  7.100 /  4.  7.100\nlibpostproc    56.  6.100 / 56.  6.100\n",
+        "stderrPreview": "",
+        "errorMessage": null,
+        "timedOut": false,
+        "probeRun": true,
+        "approvedContainerCommand": "docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 -version",
+        "noLocalHostProbe": true,
+        "noMediaInput": true,
+        "noMediaOutput": true,
+        "networkNone": true,
+        "versionDetected": true,
+        "versionSummary": [
+          "ffprobe version 5.1.9-0+deb12u1 Copyright (c) 2007-2026 the FFmpeg developers",
+          "configuration: --prefix=/usr --extra-version=0+deb12u1 --toolchain=hardened --libdir=/usr/lib/aarch64-linux-gnu --incdir=/usr/include/aarch64-linux-gnu --arch=arm64 --enable-gpl --disable-stripping --enable-gnutls --enable-ladspa --enable-libaom --enable-libass --enable-libbluray --enable-libbs2b --enable-libcaca --enable-libcdio --enable-libcodec2 --enable-libdav1d --enable-libflite --enable-libfontconfig --enable-libfreetype --enable-libfribidi --enable-libglslang --enable-libgme --enable-libgsm --enable-libjack --enable-libmp3lame --enable-libmysofa --enable-libopenjpeg --enable-libopenmpt --enable-libopus --enable-libpulse --enable-librabbitmq --enable-librist --enable-librubberband --enable-libshine --enable-libsnappy --enable-libsoxr --enable-libspeex --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libtheora --enable-libtwolame --enable-libvidstab --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx265 --enable-libxml2 --enable-libxvid --enable-libzimg --enable-libzmq --enable-libzvbi --enable-lv2 --enable-omx --enable-openal --enable-opencl --enable-opengl --enable-sdl2 --disable-sndio --enable-libjxl --enable-pocketsphinx --enable-librsvg --enable-libdc1394 --enable-libdrm --enable-libiec61883 --enable-chromaprint --enable-frei0r --enable-libx264 --enable-libplacebo --enable-librav1e --enable-shared",
+          "libavutil      57. 28.100 / 57. 28.100",
+          "libavcodec     59. 37.100 / 59. 37.100",
+          "libavformat    59. 27.100 / 59. 27.100",
+          "libavdevice    59.  7.100 / 59.  7.100",
+          "libavfilter     8. 44.100 /  8. 44.100"
+        ]
+      }
+    },
+    "pr508Decision": {
+      "path": "docs/open-source-tool-stack/tracka-build-context-generation-execution/build-context-generation-execution-decision.json",
+      "exists": true,
+      "sha256": "3d60d42c147d1a9ef4bc70340d8f60981549299a2c405c4d9f6c6202b7a4fdf6",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationExecution.decision.v1",
+        "generatedAt": "2026-06-18T15:19:01.102Z",
+        "decision": "build_context_generation_execution_passed_ready_for_docker_build_probe_execution",
+        "readiness": true,
+        "readyForDockerBuildProbeExecution": true,
+        "readyForQa": false,
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_FFMPEG_FFPROBE_VERSION_PROBE_EXECUTION_RERUN",
+        "nextPromptFile": "docs/implementation-prompts/prompt-open-source-tool-stack-tracka-docker-build-ffmpeg-ffprobe-version-probe-execution-rerun.md",
+        "buildContextGenerationRun": true,
+        "generatedDistOutputsCommitted": false,
+        "cleanupRequired": true,
+        "cleanupPassed": true,
+        "scanPassed": true,
+        "packageDockerfileIntegrityPassed": true,
+        "dockerBuildRun": false,
+        "dockerRunRun": false,
+        "ffmpegProbeRun": false,
+        "ffprobeProbeRun": false,
+        "localHostProbingRun": false,
+        "mediaProcessingRun": false,
+        "renderExportRun": false,
+        "npmInstallRun": false,
+        "npmRebuildRun": false,
+        "duckdbProofRerun": false,
+        "polarsProofRerun": false,
+        "workerExecutionRun": false,
+        "routeExecutionRun": false,
+        "providerModelCallsRun": false,
+        "supabaseWritesRun": false,
+        "sqlRun": false,
+        "gcsUploadRun": false,
+        "publicArtifactsCreated": false,
+        "signedUrlsCreated": false,
+        "betaProductionUnlocked": false,
+        "rawPromptsRun": false,
+        "supabaseClassification": {
+          "updateRequired": "no write",
+          "updateStatus": "not_applicable",
+          "environmentTouched": "none",
+          "sqlExecuted": "none",
+          "migrationDeployed": "no"
+        }
+      }
+    },
+    "pr469Decision": {
+      "path": "docs/open-source-tool-stack/duckdb-native-rebuild-qa/duckdb-native-rebuild-qa-decision.json",
+      "exists": true,
+      "sha256": "65caf1ee05120d81bd6d56aecc2c7a54cd14313072841b770cfccba6fa5fb9e9",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildQaReview.decision.v1",
+        "generatedAt": "2026-06-17T20:39:26.105Z",
+        "decision": "duckdb_native_rebuild_qa_passed_ready_for_ffmpeg_ffprobe_system_binary_review",
+        "readiness": true,
+        "duckdbAcceptedAsInstalledAndProven": true,
+        "polarsAcceptedAsInstalledAndProven": true,
+        "ffmpegAcceptedAsInstalledAndProven": false,
+        "ffprobeAcceptedAsInstalledAndProven": false,
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_FFMPEG_FFPROBE_SYSTEM_BINARY_REVIEW",
+        "blockers": [],
+        "npmInstallAttempted": false,
+        "npmRebuildAttempted": false,
+        "packageLifecycleScriptsAttempted": false,
+        "duckdbImportProofRerun": false,
+        "duckdbQueryProofRerun": false,
+        "polarsProofRerun": false,
+        "ffmpegProbeRun": false,
+        "ffprobeProbeRun": false,
+        "packageJsonChanged": false,
+        "packageLockChanged": false,
+        "nativeArtifactsCommitted": false,
+        "nodeModulesCommitted": false,
+        "systemBinaryInstallAttempted": false,
+        "containerMutationAttempted": false,
+        "mediaProcessingAttempted": false,
+        "routeExecutionAttempted": false,
+        "workerExecutionAttempted": false,
+        "providerCallsAttempted": false,
+        "supabaseWritesAttempted": false,
+        "sqlExecuted": false,
+        "gcsUploadAttempted": false,
+        "publicArtifactsCreated": false,
+        "signedUrlsCreated": false,
+        "rawPromptsExecuted": false,
+        "betaProductionUnlocked": false,
+        "secretPolicy": {
+          "refsOnly": true,
+          "payloadAccessed": false,
+          "payloadPrinted": false,
+          "payloadCommitted": false
+        },
+        "supabaseClassification": {
+          "updateRequired": "no write",
+          "environmentTouched": "none",
+          "sqlExecuted": "none",
+          "migrationDeployed": "no"
+        },
+        "executionScope": {
+          "npmInstallAllowed": false,
+          "npmRebuildAllowed": false,
+          "packageLifecycleScriptsAllowed": false,
+          "duckdbImportProofRerunAllowed": false,
+          "duckdbQueryProofRerunAllowed": false,
+          "polarsProofRerunAllowed": false,
+          "ffmpegVersionProbeAllowed": false,
+          "ffprobeVersionProbeAllowed": false,
+          "systemBinaryInstallAllowed": false,
+          "containerImageMutationAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "workerExecutionAllowed": false,
+          "providerExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "audioProcessingAllowed": false,
+          "renderExportAllowed": false,
+          "imageGenerationAllowed": false,
+          "imageEditingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "supabaseWritesAllowed": false,
+          "sqlAllowed": false,
+          "gcsUploadAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "paidProductionUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "githubPrMergeAllowed": false
+        }
+      }
+    },
+    "pr466Decision": {
+      "path": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-native-rebuild-decision.json",
+      "exists": true,
+      "sha256": "f09ff56e5f5f1572fe99ffbbfa1019c686571a7a0e6d886c9a70fdf42403a056",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildExecution.decision.v1",
+        "generatedAt": "2026-06-17T19:58:40.927Z",
+        "decision": "duckdb_native_rebuild_execution_passed_ffmpeg_ffprobe_still_missing",
+        "readiness": true,
+        "command": "npm rebuild duckdb --ignore-scripts=false --no-audit --no-fund",
+        "baselineCommand": "npm ci --ignore-scripts --no-audit --no-fund",
+        "duckdbPackage": "duckdb@1.4.4",
+        "polarsPackage": "nodejs-polars@0.25.1",
+        "blockers": [],
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_DUCKDB_NATIVE_REBUILD_QA_REVIEW",
+        "npmInstallAttempted": false,
+        "npmRebuildDuckdbAttempted": true,
+        "broadLifecycleScriptsAttempted": false,
+        "duckdbImportProofAttempted": true,
+        "duckdbSyntheticQueryAttempted": true,
+        "polarsProofRerun": false,
+        "ffmpegProbeRun": false,
+        "ffprobeProbeRun": false,
+        "packageLockChanged": false,
+        "packageJsonChanged": false,
+        "nativeArtifactsCommitted": false,
+        "nodeModulesCommitted": false,
+        "systemBinaryInstallAttempted": false,
+        "containerMutationAttempted": false,
+        "mediaProcessingAttempted": false,
+        "routeExecutionAttempted": false,
+        "workerExecutionAttempted": false,
+        "providerCallsAttempted": false,
+        "supabaseWritesAttempted": false,
+        "sqlExecuted": false,
+        "gcsUploadAttempted": false,
+        "publicArtifactsCreated": false,
+        "signedUrlsCreated": false,
+        "rawPromptsExecuted": false,
+        "betaProductionUnlocked": false,
+        "secretPolicy": {
+          "refsOnly": true,
+          "payloadAccessed": false,
+          "payloadPrinted": false,
+          "payloadCommitted": false
+        },
+        "supabaseClassification": {
+          "updateRequired": "no write",
+          "environmentTouched": "none",
+          "sqlExecuted": "none",
+          "migrationDeployed": "no"
+        },
+        "executionScope": {
+          "npmInstallAllowed": false,
+          "broadLifecycleScriptExecutionAllowed": false,
+          "polarsProofRerunAllowed": false,
+          "ffmpegVersionProbeAllowed": false,
+          "ffprobeVersionProbeAllowed": false,
+          "systemBinaryInstallAllowed": false,
+          "containerImageMutationAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "workerExecutionAllowed": false,
+          "providerExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "audioProcessingAllowed": false,
+          "renderExportAllowed": false,
+          "imageGenerationAllowed": false,
+          "imageEditingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "supabaseWritesAllowed": false,
+          "sqlAllowed": false,
+          "gcsUploadAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "paidProductionUnlockAllowed": false,
+          "productionUnlockAllowed": false,
+          "githubPrMergeAllowed": false
+        }
+      }
+    },
+    "pr466DuckdbImport": {
+      "path": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-import-proof-report.json",
+      "exists": true,
+      "sha256": "b3580cc700d2d1372986c0fc632ff5d74c04f35b4ff843ad188e010405b7b089",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildExecution.duckdbImportProof.v1",
+        "generatedAt": "2026-06-17T19:44:55.097Z",
+        "commandClass": "node_import_version_api_shape_only",
+        "importRun": true,
+        "importExitCode": 0,
+        "status": "passed",
+        "importPassed": true,
+        "stdoutPreview": "{\"version\":null,\"apiShape\":{\"hasDatabase\":true},\"mediaInputsUsed\":false,\"storage\":\"none\"}\n",
+        "stderrPreview": "",
+        "version": null,
+        "apiShape": {
+          "hasDatabase": true
+        },
+        "nativeBindingAvailable": true,
+        "noFileInput": true,
+        "noNetwork": true,
+        "noSupabase": true,
+        "noGcs": true,
+        "noMedia": true
+      }
+    },
+    "pr466DuckdbQuery": {
+      "path": "docs/open-source-tool-stack/duckdb-native-rebuild-execution/duckdb-synthetic-query-report.json",
+      "exists": true,
+      "sha256": "358df18409ca3eff5379b06fc4c91d5b79e42daafab779e706dd8121f4b9377c",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildExecution.syntheticQuery.v1",
+        "generatedAt": "2026-06-17T19:44:55.097Z",
+        "commandClass": "duckdb_tiny_in_memory_metadata_query",
+        "queryRun": true,
+        "queryExitCode": 0,
+        "status": "passed",
+        "queryPassed": true,
+        "stdoutPreview": "{\"query\":\"select 1 as ok\",\"expected\":[{\"ok\":1}],\"actual\":[{\"ok\":1}],\"rowCount\":1,\"storage\":\"in_memory\",\"mediaInputsUsed\":false}\n",
+        "stderrPreview": "",
+        "syntheticInputSummary": "No file input. Query uses DuckDB :memory: database and constant select 1 as ok.",
+        "expectedOutput": [
+          {
+            "ok": 1
+          }
+        ],
+        "actualOutput": [
+          {
+            "ok": 1
+          }
+        ],
+        "noFileDatabase": true,
+        "noExternalFileReads": true,
+        "noPrivateData": true,
+        "noNetwork": true,
+        "noSupabase": true,
+        "noGcs": true,
+        "noMedia": true
+      }
+    },
+    "pr455Decision": {
+      "path": "docs/open-source-tool-stack/missing-optional-package-binary-execution/package-binary-execution-decision.json",
+      "exists": true,
+      "sha256": "d10e119372a53ad66475c462fbcb2c5ae1429a331a55e830839a755974fea2bf",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryExecution.decision.v1",
+        "generatedAt": "2026-06-17T15:12:20.527Z",
+        "decision": "missing_optional_package_install_passed_import_proof_blocked_by_ignored_scripts",
+        "readiness": true,
+        "approvedPackageCommand": "npm install duckdb nodejs-polars --save-exact --ignore-scripts --no-audit --no-fund",
+        "approvedPackages": [
+          "duckdb",
+          "nodejs-polars"
+        ],
+        "packageInstallExitCode": 0,
+        "packageInstallStatus": "passed",
+        "packageInstallAttempted": true,
+        "packageLockMutationScoped": true,
+        "packageJsonDependencyMutationScoped": true,
+        "installedPackageTargets": [
+          "polars_metadata_dataframe_proof"
+        ],
+        "missingBinaryTargets": [
+          "ffmpeg_version_probe",
+          "ffprobe_version_probe"
+        ],
+        "passedBinaryTargets": [],
+        "blockers": [
+          "duckdb_blocked_by_ignored_scripts"
+        ],
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_PACKAGE_INSTALL_SCRIPT_REVIEW",
+        "packageInstallAllowedOnlyForApprovedPackages": true,
+        "unapprovedPackageInstallAttempted": false,
+        "systemBinaryInstallAttempted": false,
+        "containerMutationAttempted": false,
+        "mediaProcessingAttempted": false,
+        "routeExecutionAttempted": false,
+        "workerExecutionAttempted": false,
+        "providerCallsAttempted": false,
+        "supabaseWritesAttempted": false,
+        "sqlExecuted": false,
+        "gcsUploadAttempted": false,
+        "publicArtifactsCreated": false,
+        "signedUrlsCreated": false,
+        "rawPromptsExecuted": false,
+        "betaProductionUnlocked": false,
+        "secretPolicy": {
+          "refsOnly": true,
+          "payloadAccessed": false,
+          "payloadPrinted": false,
+          "payloadCommitted": false
+        },
+        "supabaseClassification": {
+          "updateRequired": "no write",
+          "environmentTouched": "none",
+          "sqlExecuted": "none",
+          "migrationDeployed": "no"
+        },
+        "executionScope": {
+          "broadToolExecutionAllowed": false,
+          "realToolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "workerExecutionAllowed": false,
+          "providerExecutionAllowed": false,
+          "runtimeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "audioProcessingAllowed": false,
+          "renderExecutionAllowed": false,
+          "imageGenerationAllowed": false,
+          "imageEditingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "systemBinaryInstallAllowed": false,
+          "containerMutationAllowed": false,
+          "dockerMutationAllowed": false,
+          "supabaseWritesAllowed": false,
+          "sqlAllowed": false,
+          "gcsUploadAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "githubPrMergeAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "paidProductionUnlockAllowed": false,
+          "productionUnlockAllowed": false
+        }
+      }
+    },
+    "pr455Polars": {
+      "path": "docs/open-source-tool-stack/missing-optional-package-binary-execution/polars-proof-report.json",
+      "exists": true,
+      "sha256": "9dc5c1b52393f761977066e3ba97b7004ebad7a4205986fd8ebd142b8e8397d9",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryExecution.polars_metadata_dataframe_proof.v1",
+        "generatedAt": "2026-06-17T15:12:20.527Z",
+        "targetId": "polars_metadata_dataframe_proof",
+        "targetName": "Polars",
+        "status": "passed",
+        "passed": true,
+        "commandClass": "node_import_version_and_synthetic_metadata_dataframe",
+        "stdoutPreview": "{\"version\":\"0.25.1\",\"shape\":[1,2],\"columns\":[\"candidate\",\"mode\"],\"rowCount\":1,\"mediaInputsUsed\":false}",
+        "stderrPreview": "",
+        "blocker": null,
+        "installAttempted": true,
+        "systemBinaryInstallAttempted": false,
+        "mediaProcessingAttempted": false,
+        "details": {
+          "privateDataUsed": false,
+          "mediaInputUsed": false,
+          "mediaOutputCreated": false,
+          "networkUsedByProof": false,
+          "supabaseUsed": false,
+          "gcsUsed": false,
+          "publicArtifactsCreated": false,
+          "signedUrlsCreated": false,
+          "rawPromptsExecuted": false,
+          "version": "0.25.1",
+          "shape": [
+            1,
+            2
+          ],
+          "columns": [
+            "candidate",
+            "mode"
+          ],
+          "rowCount": 1,
+          "mediaInputsUsed": false
+        },
+        "version": "0.25.1"
+      }
+    },
+    "pr439Decision": {
+      "path": "docs/open-source-tool-stack/batch-1-qa-review/batch-1-qa-review-decision.json",
+      "exists": true,
+      "sha256": "eebadb8d50f6a334f421924e50402704132c500da2a8be0c0de351a0a2ab492f",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.batch1QaReview.decision.v1",
+        "generatedAt": "2026-06-16T14:47:52.893Z",
+        "decision": "open_source_tool_stack_batch_1_qa_passed_with_missing_optional_tools_ready_for_missing_optional_install_review",
+        "readiness": true,
+        "qaReviewComplete": true,
+        "acceptedWithWarnings": true,
+        "passedTargetsAcceptedAsCentralEvidence": [
+          "sharp_libvips_import_version_probe",
+          "route_capability_manifest_validation",
+          "fixture_report_validation_harness",
+          "open_source_tool_inventory_validator"
+        ],
+        "missingOptionalTargetsRequiringInstallReview": [
+          {
+            "targetId": "duckdb_metadata_query_proof",
+            "status": "blocked_missing_dependency_or_module",
+            "installReviewRequired": true
+          },
+          {
+            "targetId": "polars_metadata_dataframe_proof",
+            "status": "blocked_missing_dependency_or_module",
+            "installReviewRequired": true
+          },
+          {
+            "targetId": "ffmpeg_version_probe",
+            "status": "blocked_missing_system_binary",
+            "installReviewRequired": true
+          },
+          {
+            "targetId": "ffprobe_version_probe",
+            "status": "blocked_missing_system_binary",
+            "installReviewRequired": true
+          }
+        ],
+        "missingOptionalToolsCountedAsInstalledOrProven": false,
+        "fullToolImplementationReadinessClaimed": false,
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_MISSING_OPTIONAL_TOOL_INSTALL_REVIEW",
+        "blockers": [],
+        "packageLockUnchanged": true,
+        "dependencyInstallAttempted": false,
+        "packageLockMutationAttempted": false,
+        "newToolImportSmokeRun": false,
+        "newToolVersionProbeRun": false,
+        "newFixtureProofRun": false,
+        "realToolExecutionAttempted": false,
+        "routeExecutionAttempted": false,
+        "workerExecutionAttempted": false,
+        "providerCallsAttempted": false,
+        "mediaProcessingAttempted": false,
+        "supabaseWritesAttempted": false,
+        "gcsUploadAttempted": false,
+        "publicArtifactsCreated": false,
+        "signedUrlsCreated": false,
+        "rawPromptsExecuted": false,
+        "betaProductionUnlocked": false,
+        "supabaseClassification": {
+          "updateRequired": "no write",
+          "environmentTouched": "none",
+          "sqlExecuted": "none",
+          "migrationDeployed": "no"
+        },
+        "executionScope": {
+          "dependencyInstallAllowed": false,
+          "packageLockMutationAllowed": false,
+          "newToolImportSmokeAllowed": false,
+          "newToolVersionProbeAllowed": false,
+          "newFixtureProofAllowed": false,
+          "broadToolExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "workerExecutionAllowed": false,
+          "providerExecutionAllowed": false,
+          "runtimeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "audioProcessingAllowed": false,
+          "renderExecutionAllowed": false,
+          "imageGenerationAllowed": false,
+          "imageEditingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "supabaseWritesAllowed": false,
+          "sqlAllowed": false,
+          "gcsUploadAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "githubPrMergeAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "paidProductionUnlockAllowed": false,
+          "productionUnlockAllowed": false
+        }
+      }
+    },
+    "pr435Decision": {
+      "path": "docs/open-source-tool-stack/batch-1-execution/batch-1-execution-decision.json",
+      "exists": true,
+      "sha256": "4503172ed8080885d6232295fbf8a145ff8d2ef7d74dc4e1c5c0470b6a71aae0",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.batch1Execution.decision.v1",
+        "generatedAt": "2026-06-16T14:10:44.854Z",
+        "decision": "open_source_tool_stack_batch_1_execution_passed_with_missing_optional_tools",
+        "readiness": true,
+        "readyWithMissingOptional": true,
+        "approvedTargets": [
+          "duckdb_metadata_query_proof",
+          "polars_metadata_dataframe_proof",
+          "sharp_libvips_import_version_probe",
+          "ffmpeg_version_probe",
+          "ffprobe_version_probe",
+          "route_capability_manifest_validation",
+          "fixture_report_validation_harness",
+          "open_source_tool_inventory_validator"
+        ],
+        "passedTargets": [
+          "sharp_libvips_import_version_probe",
+          "route_capability_manifest_validation",
+          "fixture_report_validation_harness",
+          "open_source_tool_inventory_validator"
+        ],
+        "missingOptionalTargets": [
+          {
+            "targetId": "duckdb_metadata_query_proof",
+            "status": "blocked_missing_dependency_or_module",
+            "blocker": "blocked_missing_dependency_or_module"
+          },
+          {
+            "targetId": "polars_metadata_dataframe_proof",
+            "status": "blocked_missing_dependency_or_module",
+            "blocker": "blocked_missing_dependency_or_module"
+          },
+          {
+            "targetId": "ffmpeg_version_probe",
+            "status": "blocked_missing_system_binary",
+            "blocker": "blocked_missing_system_binary"
+          },
+          {
+            "targetId": "ffprobe_version_probe",
+            "status": "blocked_missing_system_binary",
+            "blocker": "blocked_missing_system_binary"
+          }
+        ],
+        "blockers": [],
+        "nextPrompt": "OPEN_SOURCE_TOOL_STACK_BATCH_1_QA_REVIEW",
+        "noInstallNoLockMutation": true,
+        "dependencyInstallAttempted": false,
+        "packageLockMutationAttempted": false,
+        "realMediaProcessingAttempted": false,
+        "routeExecutionAttempted": false,
+        "workerExecutionAttempted": false,
+        "providerCallsAttempted": false,
+        "supabaseWritesAttempted": false,
+        "gcsUploadAttempted": false,
+        "publicArtifactsCreated": false,
+        "signedUrlsCreated": false,
+        "rawPromptsExecuted": false,
+        "betaProductionUnlocked": false,
+        "supabaseClassification": {
+          "updateRequired": "no write",
+          "environmentTouched": "none",
+          "sqlExecuted": "none",
+          "migrationDeployed": "no"
+        },
+        "executionScope": {
+          "dependencyInstallAllowed": false,
+          "packageLockMutationAllowed": false,
+          "newToolDependencyAdditionAllowed": false,
+          "broadToolExecutionAllowed": false,
+          "toolExecutionAllowed": false,
+          "routeExecutionAllowed": false,
+          "workerExecutionAllowed": false,
+          "providerExecutionAllowed": false,
+          "runtimeExecutionAllowed": false,
+          "mediaProcessingAllowed": false,
+          "audioProcessingAllowed": false,
+          "renderExecutionAllowed": false,
+          "imageGenerationAllowed": false,
+          "imageEditingAllowed": false,
+          "browserCaptureAllowed": false,
+          "mapRenderingAllowed": false,
+          "supabaseWritesAllowed": false,
+          "sqlAllowed": false,
+          "gcsUploadAllowed": false,
+          "publicArtifactsAllowed": false,
+          "signedUrlsAsSourceOfTruthAllowed": false,
+          "rawPromptExecutionAllowed": false,
+          "githubPrMergeAllowed": false,
+          "externalBetaUnlockAllowed": false,
+          "paidProductionUnlockAllowed": false,
+          "productionUnlockAllowed": false
+        }
+      }
+    },
+    "pr435Sharp": {
+      "path": "docs/open-source-tool-stack/batch-1-execution/sharp-libvips-proof-report.json",
+      "exists": true,
+      "sha256": "5cad9c2eace54cb69c60ac0b434fabb731c5cf523271a7a4bda56baa3b7efe3a",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.batch1Execution.sharp_libvips_import_version_probe.v1",
+        "generatedAt": "2026-06-16T14:10:44.854Z",
+        "targetId": "sharp_libvips_import_version_probe",
+        "targetName": "Sharp/libvips",
+        "status": "passed",
+        "passed": true,
+        "optional": true,
+        "commandClass": "node_import_version_only",
+        "installAttempted": false,
+        "packageLockMutationAttempted": false,
+        "mediaProcessingAttempted": false,
+        "stdoutPreview": "{\"sharp\":\"0.34.5\",\"versions\":{\"aom\":\"3.13.1\",\"archive\":\"3.8.2\",\"cairo\":\"1.18.4\",\"cgif\":\"0.5.0\",\"exif\":\"0.6.25\",\"expat\":\"2.7.3\",\"ffi\":\"3.5.2\",\"fontconfig\":\"2.17.1\",\"freetype\":\"2.14.1\",\"fribidi\":\"1.0.16\",\"glib\":\"2.86.1\",\"harfbuzz\":\"12.1.0\",\"heif\":\"1.20.2\",\"highway\":\"1.3.0\",\"imagequant\":\"2.4.1\",\"lcms\":\"2.17\",\"mozjpeg\":\"0826579\",\"pango\":\"1.57.0\",\"pixman\":\"0.46.4\",\"png\":\"1.6.50\",\"proxy-libintl\":\"0.5\",\"rsvg\":\"2.61.2\",\"spng\":\"0.7.4\",\"tiff\":\"4.7.1\",\"vips\":\"8.17.3\",\"webp\":\"1.6.0\",\"xml2\":\"2.15.1\",\"zlib-ng\":\"2.2.5\",\"sharp\":\"0.34.5\"},\"imageProcessing\":false}",
+        "stderrPreview": "",
+        "blocker": null,
+        "details": {
+          "sharp": "0.34.5",
+          "versions": {
+            "aom": "3.13.1",
+            "archive": "3.8.2",
+            "cairo": "1.18.4",
+            "cgif": "0.5.0",
+            "exif": "0.6.25",
+            "expat": "2.7.3",
+            "ffi": "3.5.2",
+            "fontconfig": "2.17.1",
+            "freetype": "2.14.1",
+            "fribidi": "1.0.16",
+            "glib": "2.86.1",
+            "harfbuzz": "12.1.0",
+            "heif": "1.20.2",
+            "highway": "1.3.0",
+            "imagequant": "2.4.1",
+            "lcms": "2.17",
+            "mozjpeg": "0826579",
+            "pango": "1.57.0",
+            "pixman": "0.46.4",
+            "png": "1.6.50",
+            "proxy-libintl": "0.5",
+            "rsvg": "2.61.2",
+            "spng": "0.7.4",
+            "tiff": "4.7.1",
+            "vips": "8.17.3",
+            "webp": "1.6.0",
+            "xml2": "2.15.1",
+            "zlib-ng": "2.2.5",
+            "sharp": "0.34.5"
+          },
+          "imageProcessing": false
+        },
+        "version": "0.34.5"
+      }
+    },
+    "pr435Route": {
+      "path": "docs/open-source-tool-stack/batch-1-execution/route-capability-manifest-validation-report.json",
+      "exists": true,
+      "sha256": "69a6abcfd78ac59a2cb0b81124e32ab3d3136be36f789f29e27560657d3a2583",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.batch1Execution.route_capability_manifest_validation.v1",
+        "generatedAt": "2026-06-16T14:10:44.854Z",
+        "targetId": "route_capability_manifest_validation",
+        "passed": true,
+        "status": "passed",
+        "commandClass": "committed_route_capability_metadata_only",
+        "evidencePaths": [
+          "docs/tool-studies/track-b-media-processing-routing-policy.md",
+          "docs/tool-studies/sound-music-audio-routing-policy.md",
+          "docs/tool-studies/ai-tools-creative-graphics-routing-policy.md",
+          "docs/tool-studies/track-a-render-export-routing-policy.md",
+          "docs/activation-tool-route-dry-run-approval-reports/tool_route_metadata_resolution_policy.json"
+        ],
+        "missingPaths": [],
+        "installAttempted": false,
+        "packageLockMutationAttempted": false,
+        "routeExecutionAttempted": false,
+        "workerExecutionAttempted": false,
+        "toolExecutionAttempted": false,
+        "blocker": null
+      }
+    },
+    "pr435Fixture": {
+      "path": "docs/open-source-tool-stack/batch-1-execution/fixture-report-validation-report.json",
+      "exists": true,
+      "sha256": "c2ca6e46baf91680f8bd9e818f229930fe7a79e194c259931905eee7252c8234",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.batch1Execution.fixture_report_validation_harness.v1",
+        "generatedAt": "2026-06-16T14:10:44.854Z",
+        "targetId": "fixture_report_validation_harness",
+        "passed": true,
+        "status": "passed",
+        "commandClass": "committed_fixture_report_metadata_only",
+        "evidencePaths": [
+          "docs/activation-tool-route-dry-run-approval-reports/tool_route_synthetic_approved_plan_snapshot_fixtures.json",
+          "docs/activation-tool-route-metadata-dry-run-reports/tool_route_fixture_validation_report.json",
+          "docs/activation-second-controlled-candidate-dry-run-reports/sound_music_audio_metadata_route_fixture_report.json"
+        ],
+        "missingPaths": [],
+        "installAttempted": false,
+        "packageLockMutationAttempted": false,
+        "routeExecutionAttempted": false,
+        "workerExecutionAttempted": false,
+        "toolExecutionAttempted": false,
+        "blocker": null
+      }
+    },
+    "pr435Inventory": {
+      "path": "docs/open-source-tool-stack/batch-1-execution/inventory-proof-matrix-validation-report.json",
+      "exists": true,
+      "sha256": "8bcd85f21f62605ebc4d9f52d74588a4f50ef97cdb6acc38900e0158b3e95376",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.batch1Execution.inventoryProofMatrixValidation.v1",
+        "generatedAt": "2026-06-16T14:10:44.854Z",
+        "targetId": "open_source_tool_inventory_validator",
+        "passed": true,
+        "status": "passed",
+        "inventoryCount": 71,
+        "minimumRequiredCandidates": 30,
+        "inventoryDecision": "open_source_tool_stack_audit_completed_install_proof_backlog_ready",
+        "proofMatrixExists": true,
+        "installAttempted": false,
+        "packageLockMutationAttempted": false,
+        "toolExecutionAttempted": false,
+        "blocker": null
+      }
+    },
+    "pr416Decision": {
+      "path": "docs/open-source-tool-stack/open-source-tool-stack-decision.md",
+      "exists": true,
+      "sha256": "045a82e52972bb63a7bde335b9cac6a6467c90a385c2a41cb7516a7a91243148"
+    },
+    "pr416Inventory": {
+      "path": "docs/open-source-tool-stack/open-source-tool-stack-inventory.json",
+      "exists": true,
+      "sha256": "adf5520e711e0a635980565bef844668cdfef64f2676655d3f371324c4f6535d",
+      "json": {
+        "schema": "reeditpro.openSourceToolStack.inventory.v1",
+        "generatedAt": "2026-06-15T12:38:17.189Z",
+        "decision": "open_source_tool_stack_audit_completed_install_proof_backlog_ready",
+        "statusDefinitions": {
+          "installedStatus": [
+            "docs_only",
+            "package_declared",
+            "system_binary_declared",
+            "installed",
+            "missing",
+            "blocked",
+            "unknown"
+          ],
+          "proofStatus": [
+            "e2e_proven",
+            "smoke_only",
+            "diagnostics_only",
+            "docs_only",
+            "not_proven",
+            "blocked"
+          ]
+        },
+        "tools": [
+          {
+            "toolName": "FFmpeg",
+            "normalizedId": "ffmpeg",
+            "category": "core_media",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/activation/container-readiness/container-readiness-expected-tools.ts",
+              "docker/prod/cpu-worker/Dockerfile",
+              "docker/prod/render-worker/Dockerfile",
+              "docker/prod/ffmpeg-lgpl-build-policy.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "not an npm dependency; expected as container/system binary",
+            "systemBinaryEvidence": "container readiness expects ffmpeg in cpu, qa, and render workers",
+            "containerEvidence": "Dockerfiles and readiness docs declare FFmpeg expectations",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "container/tool readiness smoke scripts reference FFmpeg expectations",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "system_binary_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "license/configuration review before broad execution"
+            ],
+            "requiredNextAction": "Batch 1 should prove ffmpeg -version and a metadata-only probe in an approved container, without media processing.",
+            "safeBatch": "batch_1_core_media_binary_proof",
+            "notes": []
+          },
+          {
+            "toolName": "FFprobe",
+            "normalizedId": "ffprobe",
+            "category": "core_media",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/activation/container-readiness/container-readiness-expected-tools.ts",
+              "docker/prod/cpu-worker/Dockerfile",
+              "docker/prod/render-worker/Dockerfile"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "container readiness expects ffprobe in cpu, qa, and render workers",
+            "containerEvidence": "Dockerfiles/readiness docs declare FFprobe expectations",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "container/tool readiness smoke scripts reference FFprobe expectations",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "system_binary_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "same container proof gate as FFmpeg"
+            ],
+            "requiredNextAction": "Batch 1 should prove ffprobe -version only, then later controlled metadata probes.",
+            "safeBatch": "batch_1_core_media_binary_proof",
+            "notes": []
+          },
+          {
+            "toolName": "OpenCV",
+            "normalizedId": "opencv",
+            "category": "visual_analysis",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docker/prod/cpu-worker/requirements.cpu.txt",
+              "docker/prod/qa-worker/requirements.qa.txt",
+              "docker/prod/gpu-worker/requirements.gpu.txt"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "Python requirements declare opencv-python-headless in multiple worker images",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "cpu, qa, gpu, OCR, Real-ESRGAN, BiRefNet, and SAM2 requirements mention OpenCV packages",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "production tool registry and container-readiness smoke cover metadata expectations, not broad image processing",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "no uncontrolled media processing; worker approval required"
+            ],
+            "requiredNextAction": "Batch 1 should verify import cv2 in approved tool-readiness container, then add metadata-only fixture proof.",
+            "safeBatch": "batch_1_track_b_core_python_imports",
+            "notes": []
+          },
+          {
+            "toolName": "PyAV",
+            "normalizedId": "pyav",
+            "category": "core_media",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docker/prod/cpu-worker/requirements.cpu.txt",
+              "server/tool-registry/production-tool-types.ts",
+              "docs/tool-studies/track-b-media-processing-tool-study.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "cpu-worker requirements declare av",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "no approved media decode execution in this phase"
+            ],
+            "requiredNextAction": "Batch 1 should verify import av and defer frame decode until controlled media approval.",
+            "safeBatch": "batch_1_track_b_core_python_imports",
+            "notes": []
+          },
+          {
+            "toolName": "PySceneDetect",
+            "normalizedId": "pyscenedetect",
+            "category": "scene_detection",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docker/prod/cpu-worker/requirements.cpu.txt",
+              "server/tool-registry/production-tool-types.ts",
+              "docs/tool-studies/track-b-media-processing-tool-study.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "cpu-worker requirements declare scenedetect",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "scene detection on real media remains blocked"
+            ],
+            "requiredNextAction": "Batch 1 should verify import scenedetect, then plan a synthetic no-media fixture.",
+            "safeBatch": "batch_1_track_b_core_python_imports",
+            "notes": []
+          },
+          {
+            "toolName": "Sharp/libvips",
+            "normalizedId": "sharp_libvips",
+            "category": "image_processing",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "package.json",
+              "package-lock.json",
+              "server/activation/container-readiness/container-readiness-expected-tools.ts",
+              "server/tool-registry/production-tool-types.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "package.json declares sharp; libvips support is expected by container readiness",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "cpu, qa, and render readiness include sharp-libvips support expectations",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "existing smoke suites reference sharp readiness but do not approve broad image processing",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "dependency/security/LGPL review before broader execution"
+            ],
+            "requiredNextAction": "Batch 1 should verify package resolution only, then separate controlled image metadata proof.",
+            "safeBatch": "batch_1_track_b_core_node_imports",
+            "notes": []
+          },
+          {
+            "toolName": "DuckDB",
+            "normalizedId": "duckdb",
+            "category": "data_processing",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docker/prod/cpu-worker/requirements.cpu.txt",
+              "docker/prod/qa-worker/requirements.qa.txt",
+              "server/tool-registry/production-tool-types.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "cpu and qa requirements declare duckdb",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "no data processing execution approved"
+            ],
+            "requiredNextAction": "Batch 2 should verify import duckdb and a local empty in-memory metadata query only after approval.",
+            "safeBatch": "batch_2_data_tool_imports",
+            "notes": []
+          },
+          {
+            "toolName": "Polars",
+            "normalizedId": "polars",
+            "category": "data_processing",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docker/prod/cpu-worker/requirements.cpu.txt",
+              "docker/prod/qa-worker/requirements.qa.txt",
+              "server/tool-registry/production-tool-types.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "cpu and qa requirements declare polars",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "no data transformation execution approved"
+            ],
+            "requiredNextAction": "Batch 2 should verify import polars with a local metadata-only fixture.",
+            "safeBatch": "batch_2_data_tool_imports",
+            "notes": []
+          },
+          {
+            "toolName": "PaddleOCR",
+            "normalizedId": "paddleocr",
+            "category": "ocr",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docker/prod/ocr-runtime/requirements.ocr.txt",
+              "server/tool-registry/production-tool-types.ts",
+              "docs/tool-studies/track-b-media-processing-tool-study.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "ocr-runtime requirements declare paddleocr==3.0.0",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "ocr-runtime Docker assets exist; OCR execution remains separately gated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "controlled real video OCR activation scripts exist but this audit does not execute OCR",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "OCR runtime/model proof and privacy review required"
+            ],
+            "requiredNextAction": "Batch 3 should validate package import and model-directory policy without OCR on media.",
+            "safeBatch": "batch_3_ocr_model_gate",
+            "notes": []
+          },
+          {
+            "toolName": "PaddlePaddle",
+            "normalizedId": "paddlepaddle",
+            "category": "ocr_runtime",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docker/prod/ocr-runtime/requirements.ocr.txt",
+              "docker/prod/gpu-worker/requirements.gpu.txt"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "ocr-runtime requirements declare paddlepaddle==3.0.0; gpu worker notes planned paddlepaddle-gpu",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "runtime/model availability and GPU policy review required"
+            ],
+            "requiredNextAction": "Batch 3 should verify CPU import only, then defer GPU/runtime proof.",
+            "safeBatch": "batch_3_ocr_model_gate",
+            "notes": []
+          },
+          {
+            "toolName": "MediaInfo",
+            "normalizedId": "mediainfo",
+            "category": "core_media_metadata",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docs/tool-studies/track-b-media-processing-tool-study.md",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no package/container evidence found on this branch"
+            ],
+            "requiredNextAction": "Backlog should decide whether ffprobe covers the need or add MediaInfo to a future install proposal.",
+            "safeBatch": "backlog_not_in_batch_1",
+            "notes": []
+          },
+          {
+            "toolName": "ExifTool",
+            "normalizedId": "exiftool",
+            "category": "metadata_extraction",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docs/tool-studies/track-b-media-processing-tool-study.md",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no package/container evidence found on this branch"
+            ],
+            "requiredNextAction": "Backlog should decide whether ExifTool is needed for provenance metadata before install approval.",
+            "safeBatch": "backlog_not_in_batch_1",
+            "notes": []
+          },
+          {
+            "toolName": "ImageMagick/GraphicsMagick",
+            "normalizedId": "imagemagick_graphicsmagick",
+            "category": "image_processing",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md",
+              "tool-settings-catalog.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no package/container evidence found on this branch"
+            ],
+            "requiredNextAction": "Backlog should compare against Sharp/libvips before any install proposal.",
+            "safeBatch": "backlog_image_tool_review",
+            "notes": []
+          },
+          {
+            "toolName": "Tesseract",
+            "normalizedId": "tesseract",
+            "category": "ocr",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md",
+              "docs/tool-studies/track-b-media-processing-tool-study.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "PaddleOCR is the committed OCR package path; no Tesseract install evidence found"
+            ],
+            "requiredNextAction": "Keep as alternate OCR backlog only after PaddleOCR proof review.",
+            "safeBatch": "backlog_ocr_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "DeepFilterNet",
+            "normalizedId": "deepfilternet",
+            "category": "audio_cleanup",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docker/prod/gpu-worker/requirements.gpu.txt",
+              "docker/prod/deepfilternet-runtime/Dockerfile",
+              "docs/tool-studies/sound-music-audio-tool-study.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "gpu-worker requirements declare deepfilternet; dedicated runtime Dockerfile exists",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "no real audio cleanup execution approved"
+            ],
+            "requiredNextAction": "Batch 4 should verify package/import in controlled runtime without processing audio.",
+            "safeBatch": "batch_4_sound_audio_imports",
+            "notes": []
+          },
+          {
+            "toolName": "Signalsmith Stretch",
+            "normalizedId": "signalsmith_stretch",
+            "category": "audio_time_stretch",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docs/tool-studies/sound-music-audio-tool-study.md",
+              "launch-tool-stack-update.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "no package/container proof found; worker-only candidate"
+            ],
+            "requiredNextAction": "Add install proposal and license review before any timing/stretch proof.",
+            "safeBatch": "backlog_audio_install_review",
+            "notes": []
+          },
+          {
+            "toolName": "Demucs",
+            "normalizedId": "demucs",
+            "category": "music_separation",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docker/prod/gpu-worker/requirements.gpu.txt",
+              "docs/tool-studies/sound-music-audio-blocked-use-register.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "gpu-worker requirements declare demucs",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "blocked",
+            "proofStatus": "blocked",
+            "blockers": [
+              "blocked pending provenance/legal/human approval; no stem separation execution"
+            ],
+            "requiredNextAction": "Keep blocked until explicit Demucs provenance/legal/human approval packet.",
+            "safeBatch": "blocked_demucs_review",
+            "notes": []
+          },
+          {
+            "toolName": "AudioFlux",
+            "normalizedId": "audioflux",
+            "category": "audio_analysis",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docs/tool-studies/sound-music-audio-tool-study.md",
+              "launch-tool-stack-update.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "no package/container evidence found on this branch"
+            ],
+            "requiredNextAction": "Backlog install/proof proposal for analysis-only SoundSync candidate.",
+            "safeBatch": "backlog_audio_install_review",
+            "notes": []
+          },
+          {
+            "toolName": "RNNoise",
+            "normalizedId": "rnnoise",
+            "category": "audio_cleanup",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docs/tool-studies/sound-music-audio-tool-study.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "blocked",
+            "blockers": [
+              "Sound study records RNNoise as removed/not active when cited"
+            ],
+            "requiredNextAction": "Keep inactive unless future owner explicitly reopens RNNoise review.",
+            "safeBatch": "blocked_removed_candidate",
+            "notes": []
+          },
+          {
+            "toolName": "librosa",
+            "normalizedId": "librosa",
+            "category": "audio_analysis",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docs/tool-studies/sound-music-audio-tool-study.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no package/container evidence found on this branch"
+            ],
+            "requiredNextAction": "Backlog only; AudioFlux is the selected launch analysis candidate.",
+            "safeBatch": "backlog_audio_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "soundfile/libsndfile",
+            "normalizedId": "soundfile_libsndfile",
+            "category": "audio_io",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docs/tool-studies/sound-music-audio-tool-study.md",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "missing",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no committed package/container evidence found"
+            ],
+            "requiredNextAction": "Backlog only if future audio IO proof needs it.",
+            "safeBatch": "backlog_audio_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "Sox",
+            "normalizedId": "sox",
+            "category": "audio_processing",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md",
+              "docs/tool-studies/sound-music-audio-tool-study.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "missing",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no committed package/container evidence found"
+            ],
+            "requiredNextAction": "Backlog only; prefer FFmpeg/AudioFlux lanes unless owner approves.",
+            "safeBatch": "backlog_audio_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "Rubber Band",
+            "normalizedId": "rubber_band",
+            "category": "audio_time_stretch",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "launch-tool-stack-update.md",
+              "docs/tool-studies/sound-music-audio-blocked-use-register.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "blocked",
+            "proofStatus": "blocked",
+            "blockers": [
+              "not selected for launch; Signalsmith Stretch is selected candidate"
+            ],
+            "requiredNextAction": "Keep blocked unless legal/product review re-enables it.",
+            "safeBatch": "blocked_audio_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "aubio",
+            "normalizedId": "aubio",
+            "category": "audio_analysis",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md",
+              "docs/tool-studies/sound-music-audio-tool-study.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "missing",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no package/container evidence found"
+            ],
+            "requiredNextAction": "Backlog only after AudioFlux proof review.",
+            "safeBatch": "backlog_audio_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "Essentia",
+            "normalizedId": "essentia",
+            "category": "audio_analysis",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "launch-tool-stack-update.md",
+              "docs/tool-studies/sound-music-audio-blocked-use-register.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "blocked",
+            "proofStatus": "blocked",
+            "blockers": [
+              "not selected for launch; legal/product review required to reopen"
+            ],
+            "requiredNextAction": "Keep blocked unless future review re-enables.",
+            "safeBatch": "blocked_audio_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "MMAudio",
+            "normalizedId": "mmaudio",
+            "category": "audio_sfx_candidate",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docs/tool-studies/sound-music-audio-tool-study.md",
+              "docs/tool-studies/sound-music-audio-routing-policy.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "planning/provider-style SFX candidate only; no local runtime evidence found"
+            ],
+            "requiredNextAction": "Separate provider/local classification review before install/proof.",
+            "safeBatch": "backlog_audio_sfx_review",
+            "notes": []
+          },
+          {
+            "toolName": "Faster Whisper",
+            "normalizedId": "faster_whisper",
+            "category": "speech_transcription",
+            "owner": "WORKER_RUNTIME_JOBS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docker/prod/speech-worker/requirements.speech.txt",
+              "docker/prod/gpu-worker/requirements.gpu.txt"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "speech and gpu requirements declare faster-whisper",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "real transcription execution requires separate worker/media approval"
+            ],
+            "requiredNextAction": "Verify import and model-weight directory policy in speech runtime approval.",
+            "safeBatch": "batch_5_speech_runtime_imports",
+            "notes": []
+          },
+          {
+            "toolName": "whisper.cpp",
+            "normalizedId": "whisper_cpp",
+            "category": "speech_transcription",
+            "owner": "WORKER_RUNTIME_JOBS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "registry/planning evidence only; no install evidence found"
+            ],
+            "requiredNextAction": "Backlog as alternate local speech path after faster-whisper proof.",
+            "safeBatch": "backlog_speech_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "vLLM",
+            "normalizedId": "vllm",
+            "category": "model_serving",
+            "owner": "PROVIDER_GATEWAY",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md",
+              "model-routing-policy.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "missing",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no repo-local/container evidence found; provider calls are separate"
+            ],
+            "requiredNextAction": "Backlog only if local model serving becomes an approved path.",
+            "safeBatch": "backlog_model_serving_review",
+            "notes": []
+          },
+          {
+            "toolName": "Qwen3-VL",
+            "normalizedId": "qwen3_vl",
+            "category": "vlm_model_candidate",
+            "owner": "PROVIDER_GATEWAY",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md",
+              "model-routing-policy.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "missing",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no local model/container evidence found; Qwen provider API evidence is separate"
+            ],
+            "requiredNextAction": "Do not classify provider Qwen evidence as local OSS proof; require model-weight/legal approval for local VLM.",
+            "safeBatch": "backlog_model_weight_review",
+            "notes": []
+          },
+          {
+            "toolName": "ONNX Runtime",
+            "normalizedId": "onnxruntime",
+            "category": "model_runtime",
+            "owner": "PROVIDER_GATEWAY",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md",
+              "server/tool-registry/production-tool-profiles.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no package/container evidence found on this branch"
+            ],
+            "requiredNextAction": "Backlog model runtime proof only after a local model owner selects it.",
+            "safeBatch": "backlog_model_runtime_review",
+            "notes": []
+          },
+          {
+            "toolName": "Torch/TorchVision",
+            "normalizedId": "torch_torchvision",
+            "category": "model_runtime",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docker/prod/gpu-worker/requirements.gpu.txt",
+              "docker/prod/sam2-runtime/requirements.sam2.txt",
+              "docker/prod/birefnet-runtime/requirements.birefnet.txt",
+              "server/activation/container-readiness/container-readiness-expected-tools.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "multiple gpu/model runtime requirements declare torch and torchvision",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "GPU/model execution and model weights remain blocked"
+            ],
+            "requiredNextAction": "Batch 6 should verify import torch without model execution in approved runtime.",
+            "safeBatch": "batch_6_gpu_model_imports",
+            "notes": []
+          },
+          {
+            "toolName": "Transformers",
+            "normalizedId": "transformers",
+            "category": "model_runtime",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docker/prod/birefnet-runtime/requirements.birefnet.txt",
+              "docker/prod/vlm-runtime/Dockerfile"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "BiRefNet runtime requirements declare transformers",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "model download/execution remains blocked"
+            ],
+            "requiredNextAction": "Batch 6 should verify package resolution only after model-weight approval path is defined.",
+            "safeBatch": "batch_6_gpu_model_imports",
+            "notes": []
+          },
+          {
+            "toolName": "SAM2",
+            "normalizedId": "sam2",
+            "category": "segmentation_tracking",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docker/prod/sam2-runtime/requirements.sam2.txt",
+              "docker/prod/sam2-runtime/sam2_runtime_local.py"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "sam2 runtime requirements include pinned facebookresearch/sam2 source dependency",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "model weights and media execution remain blocked"
+            ],
+            "requiredNextAction": "Batch 7 should prove package import/model path policy only; no video segmentation.",
+            "safeBatch": "batch_7_ai_vision_model_imports",
+            "notes": []
+          },
+          {
+            "toolName": "BiRefNet",
+            "normalizedId": "birefnet",
+            "category": "background_removal",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docker/prod/birefnet-runtime/requirements.birefnet.txt",
+              "docker/prod/birefnet-runtime/birefnet_local.py"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "BiRefNet runtime requirements declare supporting packages; model itself is source/model-weight gated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "model/source review required before execution"
+            ],
+            "requiredNextAction": "Batch 7 should prove dependency import and blocked model-weight policy.",
+            "safeBatch": "batch_7_ai_vision_model_imports",
+            "notes": []
+          },
+          {
+            "toolName": "rembg",
+            "normalizedId": "rembg",
+            "category": "background_removal",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "registry evidence only; BiRefNet is the committed runtime lane"
+            ],
+            "requiredNextAction": "Backlog alternate background removal review only.",
+            "safeBatch": "backlog_ai_vision_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "transparent-background",
+            "normalizedId": "transparent_background",
+            "category": "background_removal",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "registry evidence only"
+            ],
+            "requiredNextAction": "Backlog alternate background removal review only.",
+            "safeBatch": "backlog_ai_vision_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "Real-ESRGAN",
+            "normalizedId": "real_esrgan",
+            "category": "enhancement",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docker/prod/real-esrgan-runtime/requirements.real-esrgan.txt",
+              "docker/prod/real-esrgan-runtime/real_esrgan_local.py"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "real-esrgan runtime requirements declare realesrgan and supporting packages",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "enhancement execution requires separate controlled media/model approval"
+            ],
+            "requiredNextAction": "Batch 7 should verify import and model path policy only.",
+            "safeBatch": "batch_7_ai_vision_model_imports",
+            "notes": []
+          },
+          {
+            "toolName": "FILM",
+            "normalizedId": "film",
+            "category": "frame_interpolation",
+            "owner": "TRACK_A_RENDER_EXPORT",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docker/prod/film-runtime/Dockerfile",
+              "docker/prod/film-runtime/film_runtime_local.py"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "dedicated FILM runtime Dockerfile and local scripts exist",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "system_binary_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "slow-motion/frame interpolation execution remains separate"
+            ],
+            "requiredNextAction": "Batch 8 should verify runtime container metadata only; no frame interpolation.",
+            "safeBatch": "batch_8_render_ai_runtime_imports",
+            "notes": []
+          },
+          {
+            "toolName": "Kornia",
+            "normalizedId": "kornia",
+            "category": "image_processing",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "docker/prod/gpu-worker/requirements.gpu.txt",
+              "docker/prod/birefnet-runtime/requirements.birefnet.txt"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "gpu and BiRefNet runtime requirements declare kornia",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "GPU image processing remains blocked"
+            ],
+            "requiredNextAction": "Batch 6 should verify import only after GPU runtime review.",
+            "safeBatch": "batch_6_gpu_model_imports",
+            "notes": []
+          },
+          {
+            "toolName": "CTranslate2",
+            "normalizedId": "ctranslate2",
+            "category": "speech_transcription_runtime",
+            "owner": "WORKER_RUNTIME_JOBS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docker/prod/speech-worker/requirements.speech.txt",
+              "docker/prod/gpu-worker/requirements.gpu.txt",
+              "server/activation/container-readiness/container-readiness-expected-tools.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "speech and gpu requirements declare ctranslate2",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "speech runtime execution remains blocked"
+            ],
+            "requiredNextAction": "Batch 5 should verify import/version only.",
+            "safeBatch": "batch_5_speech_runtime_imports",
+            "notes": []
+          },
+          {
+            "toolName": "D3",
+            "normalizedId": "d3",
+            "category": "charts_dataviz",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "package.json",
+              "docs/tool-studies/ai-tools-creative-graphics-tool-study.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "tool registry references D3; package dependency may be transitive or absent, requiring proof",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "no chart rendering execution approved"
+            ],
+            "requiredNextAction": "Backlog route-only chart metadata proof or package declaration review.",
+            "safeBatch": "backlog_dataviz_review",
+            "notes": []
+          },
+          {
+            "toolName": "ECharts",
+            "normalizedId": "echarts",
+            "category": "charts_dataviz",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "no package/runtime proof found"
+            ],
+            "requiredNextAction": "Backlog chart package selection review.",
+            "safeBatch": "backlog_dataviz_review",
+            "notes": []
+          },
+          {
+            "toolName": "PixiJS",
+            "normalizedId": "pixijs",
+            "category": "motion_graphics",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "registry/planning only"
+            ],
+            "requiredNextAction": "Backlog only if Remotion/CSS cannot cover planned graphics.",
+            "safeBatch": "backlog_creative_graphics_review",
+            "notes": []
+          },
+          {
+            "toolName": "Three.js",
+            "normalizedId": "three_js",
+            "category": "motion_graphics",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "registry/planning only"
+            ],
+            "requiredNextAction": "Backlog 3D graphics review before dependency proposal.",
+            "safeBatch": "backlog_creative_graphics_review",
+            "notes": []
+          },
+          {
+            "toolName": "Babylon.js",
+            "normalizedId": "babylon_js",
+            "category": "motion_graphics",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "registry/planning only"
+            ],
+            "requiredNextAction": "Backlog alternate 3D graphics review.",
+            "safeBatch": "backlog_creative_graphics_review",
+            "notes": []
+          },
+          {
+            "toolName": "Lottie",
+            "normalizedId": "lottie",
+            "category": "motion_graphics",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "tool-settings-catalog.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "registry/planning only"
+            ],
+            "requiredNextAction": "Backlog motion asset review before execution.",
+            "safeBatch": "backlog_creative_graphics_review",
+            "notes": []
+          },
+          {
+            "toolName": "Konva",
+            "normalizedId": "konva",
+            "category": "motion_graphics",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "registry/planning only"
+            ],
+            "requiredNextAction": "Backlog canvas graphics review.",
+            "safeBatch": "backlog_creative_graphics_review",
+            "notes": []
+          },
+          {
+            "toolName": "Vega-Lite",
+            "normalizedId": "vega_lite",
+            "category": "charts_dataviz",
+            "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "registry/planning only"
+            ],
+            "requiredNextAction": "Backlog chart candidate review.",
+            "safeBatch": "backlog_dataviz_review",
+            "notes": []
+          },
+          {
+            "toolName": "OpenColorIO",
+            "normalizedId": "opencolorio",
+            "category": "color_management",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "server/activation/container-readiness/container-readiness-expected-tools.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "optional review tool in container readiness; no package proof found",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "manual dependency/license review required"
+            ],
+            "requiredNextAction": "Backlog optional color management review.",
+            "safeBatch": "backlog_color_tool_review",
+            "notes": []
+          },
+          {
+            "toolName": "OpenImageIO",
+            "normalizedId": "openimageio",
+            "category": "image_processing",
+            "owner": "TRACK_B_MEDIA_PROCESSING",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "server/activation/container-readiness/container-readiness-expected-tools.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "optional review tool in container readiness; no package proof found",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "manual dependency/license review required"
+            ],
+            "requiredNextAction": "Backlog optional image IO review.",
+            "safeBatch": "backlog_color_tool_review",
+            "notes": []
+          },
+          {
+            "toolName": "Remotion",
+            "normalizedId": "remotion",
+            "category": "render_composition",
+            "owner": "TRACK_A_RENDER_EXPORT",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "server/activation/container-readiness/container-readiness-expected-tools.ts",
+              "docker/prod/render-worker/Dockerfile",
+              "package.json"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "repo uses Remotion-related build scripts/configs; container readiness expects Remotion package/build metadata",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "final render/export execution remains blocked"
+            ],
+            "requiredNextAction": "Batch 8 should prove version/build metadata only, not rendering.",
+            "safeBatch": "batch_8_render_metadata_proof",
+            "notes": []
+          },
+          {
+            "toolName": "OpenTimelineIO",
+            "normalizedId": "opentimelineio",
+            "category": "timeline",
+            "owner": "TRACK_A_RENDER_EXPORT",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "docker/prod/cpu-worker/requirements.cpu.txt",
+              "docker/prod/render-worker/requirements.render.txt",
+              "docker/prod/qa-worker/requirements.qa.txt",
+              "server/tool-registry/production-tool-types.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "cpu, render, and qa requirements declare opentimelineio",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "timeline transformation execution remains blocked"
+            ],
+            "requiredNextAction": "Batch 8 should verify import otio with synthetic empty metadata only after approval.",
+            "safeBatch": "batch_8_render_metadata_proof",
+            "notes": []
+          },
+          {
+            "toolName": "Hyperframe",
+            "normalizedId": "hyperframe",
+            "category": "timeline",
+            "owner": "TRACK_A_RENDER_EXPORT",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "registry evidence only"
+            ],
+            "requiredNextAction": "Backlog timeline helper review.",
+            "safeBatch": "backlog_render_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "libass",
+            "normalizedId": "libass",
+            "category": "captions",
+            "owner": "TRACK_A_RENDER_EXPORT",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "server/activation/container-readiness/container-readiness-expected-tools.ts",
+              "docker/prod/libass-burnin-validation/Dockerfile"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "render readiness expects libass/subtitle support; dedicated burn-in validation Dockerfile exists",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "system_binary_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "subtitle burn-in/render execution remains blocked"
+            ],
+            "requiredNextAction": "Batch 8 should verify libass support metadata only.",
+            "safeBatch": "batch_8_render_metadata_proof",
+            "notes": []
+          },
+          {
+            "toolName": "GStreamer",
+            "normalizedId": "gstreamer",
+            "category": "core_media",
+            "owner": "TRACK_A_RENDER_EXPORT",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md",
+              "tool-settings-catalog.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "missing",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no repo-local package/container evidence found"
+            ],
+            "requiredNextAction": "Backlog only if FFmpeg/Remotion cannot cover planned media IO.",
+            "safeBatch": "backlog_render_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "Bento4/MP4Box",
+            "normalizedId": "bento4_mp4box",
+            "category": "packaging_muxing",
+            "owner": "TRACK_A_RENDER_EXPORT",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md",
+              "docs/tool-studies/track-a-render-export-tool-study.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "missing",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no repo-local package/container evidence found"
+            ],
+            "requiredNextAction": "Backlog packaging review after FFmpeg/private export proof.",
+            "safeBatch": "backlog_render_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "mkvtoolnix",
+            "normalizedId": "mkvtoolnix",
+            "category": "packaging_muxing",
+            "owner": "TRACK_A_RENDER_EXPORT",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "missing",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no repo-local package/container evidence found"
+            ],
+            "requiredNextAction": "Backlog only if container format requirements emerge.",
+            "safeBatch": "backlog_render_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "VapourSynth",
+            "normalizedId": "vapoursynth",
+            "category": "video_processing",
+            "owner": "TRACK_A_RENDER_EXPORT",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "launch-tool-stack-update.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "blocked",
+            "blockers": [
+              "worker-only and plugin review required"
+            ],
+            "requiredNextAction": "Keep blocked until separate worker/plugin review.",
+            "safeBatch": "blocked_render_plugin_review",
+            "notes": []
+          },
+          {
+            "toolName": "Revideo",
+            "normalizedId": "revideo",
+            "category": "render_composition",
+            "owner": "TRACK_A_RENDER_EXPORT",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "server/activation/container-readiness/container-readiness-expected-tools.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "blocked",
+            "blockers": [
+              "explicitly forbidden in non-GPU container readiness; not selected launch path"
+            ],
+            "requiredNextAction": "Keep blocked unless future render owner reopens review.",
+            "safeBatch": "blocked_render_alternate_review",
+            "notes": []
+          },
+          {
+            "toolName": "Playwright/Chromium",
+            "normalizedId": "playwright_chromium",
+            "category": "browser_capture",
+            "owner": "WEB_SEARCH_CAPTURE",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "package.json",
+              "package-lock.json",
+              "server/tool-registry/production-tool-types.ts",
+              "server/activation/controlled-live-search-capture-e2e"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "package.json declares playwright",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "smoke_only",
+            "blockers": [
+              "browser capture remains controlled and allowlisted only"
+            ],
+            "requiredNextAction": "Batch 9 should verify package/browser metadata only; no live capture unless separately approved.",
+            "safeBatch": "batch_9_browser_map_metadata_proof",
+            "notes": []
+          },
+          {
+            "toolName": "MapLibre",
+            "normalizedId": "maplibre",
+            "category": "maps_geospatial",
+            "owner": "MAP_GEOSPATIAL",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "package.json",
+              "package-lock.json",
+              "server/tool-registry/production-tool-types.ts",
+              "docs/tool-studies/tool-study-0-owner-study-matrix.json"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "package.json declares maplibre-gl",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "map rendering remains blocked"
+            ],
+            "requiredNextAction": "Batch 9 should verify package resolution only.",
+            "safeBatch": "batch_9_browser_map_metadata_proof",
+            "notes": []
+          },
+          {
+            "toolName": "Turf",
+            "normalizedId": "turf",
+            "category": "maps_geospatial",
+            "owner": "MAP_GEOSPATIAL",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "package.json",
+              "package-lock.json",
+              "server/tool-registry/production-tool-types.ts"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "package.json declares @turf/turf",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "package_declared",
+            "proofStatus": "docs_only",
+            "blockers": [
+              "geospatial computation remains metadata-only until approved"
+            ],
+            "requiredNextAction": "Batch 9 should verify import only with synthetic metadata.",
+            "safeBatch": "batch_9_browser_map_metadata_proof",
+            "notes": []
+          },
+          {
+            "toolName": "GDAL/OGR",
+            "normalizedId": "gdal_ogr",
+            "category": "maps_geospatial",
+            "owner": "MAP_GEOSPATIAL",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md",
+              "map-animation-settings-catalog.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "missing",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no repo-local package/container evidence found"
+            ],
+            "requiredNextAction": "Backlog geospatial install review only after MapLibre/Turf proof.",
+            "safeBatch": "backlog_geospatial_review",
+            "notes": []
+          },
+          {
+            "toolName": "Tippecanoe",
+            "normalizedId": "tippecanoe",
+            "category": "maps_geospatial",
+            "owner": "MAP_GEOSPATIAL",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md",
+              "map-animation-settings-catalog.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "missing",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no repo-local package/container evidence found"
+            ],
+            "requiredNextAction": "Backlog vector tile review only if needed.",
+            "safeBatch": "backlog_geospatial_review",
+            "notes": []
+          },
+          {
+            "toolName": "PMTiles",
+            "normalizedId": "pmtiles",
+            "category": "maps_geospatial",
+            "owner": "MAP_GEOSPATIAL",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "open-source-tool-registry.md",
+              "map-animation-settings-catalog.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "missing",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "no repo-local package/container evidence found"
+            ],
+            "requiredNextAction": "Backlog private tile packaging review only.",
+            "safeBatch": "backlog_geospatial_review",
+            "notes": []
+          },
+          {
+            "toolName": "deck.gl",
+            "normalizedId": "deck_gl",
+            "category": "maps_geospatial",
+            "owner": "MAP_GEOSPATIAL",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "registry/planning only"
+            ],
+            "requiredNextAction": "Backlog map visualization review after MapLibre proof.",
+            "safeBatch": "backlog_geospatial_review",
+            "notes": []
+          },
+          {
+            "toolName": "CesiumJS",
+            "normalizedId": "cesium_js",
+            "category": "maps_geospatial",
+            "owner": "MAP_GEOSPATIAL",
+            "ossProviderClassification": "open_source_or_local_tool_candidate",
+            "openSourceLikely": true,
+            "providerOrApiInstead": false,
+            "evidencePointers": [
+              "server/tool-registry/production-tool-types.ts",
+              "open-source-tool-registry.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "docs_only",
+            "proofStatus": "not_proven",
+            "blockers": [
+              "registry/planning only"
+            ],
+            "requiredNextAction": "Backlog 3D map review only if required.",
+            "safeBatch": "backlog_geospatial_review",
+            "notes": []
+          },
+          {
+            "toolName": "Qwen/DeepSeek provider APIs",
+            "normalizedId": "qwen_deepseek_provider_api",
+            "category": "provider_api",
+            "owner": "PROVIDER_GATEWAY",
+            "ossProviderClassification": "provider_api_separated_from_oss_tool_stack",
+            "openSourceLikely": false,
+            "providerOrApiInstead": true,
+            "evidencePointers": [
+              "docs/activation-second-controlled-candidate-dry-run-reports/evidence_inventory.json",
+              "model-routing-policy.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "blocked",
+            "proofStatus": "blocked",
+            "blockers": [
+              "provider/API-only item; not an OSS/local tool unless separate local/container evidence is added"
+            ],
+            "requiredNextAction": "Keep separated from OSS inventory; use provider governance packets only.",
+            "safeBatch": "provider_api_not_oss_batch",
+            "notes": []
+          },
+          {
+            "toolName": "Lyria provider API",
+            "normalizedId": "lyria_provider_api",
+            "category": "provider_api",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "provider_api_separated_from_oss_tool_stack",
+            "openSourceLikely": false,
+            "providerOrApiInstead": true,
+            "evidencePointers": [
+              "docs/lyria-worker-plan.md",
+              "docs/lyria-integration-adapter.md",
+              "docs/tool-studies/sound-music-audio-tool-study.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "blocked",
+            "proofStatus": "blocked",
+            "blockers": [
+              "provider/API-only; no local OSS tool proof"
+            ],
+            "requiredNextAction": "Keep separated from OSS audit and behind provider/worker approvals.",
+            "safeBatch": "provider_api_not_oss_batch",
+            "notes": []
+          },
+          {
+            "toolName": "Mirelo provider API",
+            "normalizedId": "mirelo_provider_api",
+            "category": "provider_api",
+            "owner": "SOUND_MUSIC_AUDIO",
+            "ossProviderClassification": "provider_api_separated_from_oss_tool_stack",
+            "openSourceLikely": false,
+            "providerOrApiInstead": true,
+            "evidencePointers": [
+              "docs/tool-studies/sound-music-audio-tool-study.md",
+              "sfx-provider-strategy.md"
+            ],
+            "repoEvidence": "repo evidence listed in evidencePointers; no runtime proof inferred",
+            "packageEvidence": "none found in package.json/package-lock unless stated",
+            "systemBinaryEvidence": "none found unless stated",
+            "containerEvidence": "none found unless stated",
+            "diagnosticScriptEvidence": "diagnostics only where owner-study or activation scripts reference the lane",
+            "smokeTestEvidence": "none found for direct tool execution proof",
+            "e2eSyntheticEvidence": "",
+            "installedStatus": "blocked",
+            "proofStatus": "blocked",
+            "blockers": [
+              "provider/API-only SFX candidate; no local OSS proof"
+            ],
+            "requiredNextAction": "Keep separated from OSS audit and future provider approval.",
+            "safeBatch": "provider_api_not_oss_batch",
+            "notes": []
+          }
+        ]
+      }
+    },
+    "pr416ProofMatrix": {
+      "path": "docs/open-source-tool-stack/open-source-tool-stack-proof-matrix.md",
+      "exists": true,
+      "sha256": "59154648917f256ac07b0535b8836cbf5df349a0d60110cf722459e18fce0072"
+    }
+  },
+  "protectedFileIntegrity": {
+    "schema": "reeditpro.openSourceToolStack.batch1FinalRollup.protectedFileIntegrity.v1",
+    "files": [
+      {
+        "path": "package.json",
+        "exists": true,
+        "sha256": "68e42d8f38bc98ecc924e8333bb4ce39ae88cb77dc0357ecc32ebed5873df95e",
+        "gitStatus": "M package.json",
+        "dependencySectionsUnchanged": true,
+        "allowedLocalScriptChange": true
+      },
+      {
+        "path": "package-lock.json",
+        "exists": true,
+        "sha256": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+        "gitStatus": "",
+        "dependencySectionsUnchanged": true,
+        "allowedLocalScriptChange": false
+      },
+      {
+        "path": ".dockerignore",
+        "exists": true,
+        "sha256": "0dd21619da96b9fc72b4429efd6d8b48c435854ffd99daadd97ccea0bda22c91",
+        "gitStatus": "",
+        "dependencySectionsUnchanged": true,
+        "allowedLocalScriptChange": false
+      },
+      {
+        "path": "docker/prod/render-worker/Dockerfile",
+        "exists": true,
+        "sha256": "5c74565f21853301c2ad159d7dccdb0dfb48e1d33d39ab55fe330f6a409310e9",
+        "gitStatus": "",
+        "dependencySectionsUnchanged": true,
+        "allowedLocalScriptChange": false
+      }
+    ],
+    "passed": true
+  },
+  "outputIntegrity": {
+    "schema": "reeditpro.openSourceToolStack.batch1FinalRollup.outputIntegrity.v1",
+    "outputs": [
+      {
+        "path": "dist",
+        "exists": false,
+        "gitStatus": "",
+        "validationOnlyDependencyDirectory": false
+      },
+      {
+        "path": "dist-server",
+        "exists": false,
+        "gitStatus": "",
+        "validationOnlyDependencyDirectory": false
+      },
+      {
+        "path": "dist-remotion-worker",
+        "exists": false,
+        "gitStatus": "",
+        "validationOnlyDependencyDirectory": false
+      },
+      {
+        "path": "dist-staging-fixture-worker",
+        "exists": false,
+        "gitStatus": "",
+        "validationOnlyDependencyDirectory": false
+      },
+      {
+        "path": "dist-staging-real-video-export-worker",
+        "exists": false,
+        "gitStatus": "",
+        "validationOnlyDependencyDirectory": false
+      },
+      {
+        "path": "node_modules",
+        "exists": true,
+        "gitStatus": "",
+        "validationOnlyDependencyDirectory": true
+      }
+    ],
+    "passed": true
+  },
+  "broadProductionDocs": {
+    "betaReadinessScorecard": "absent_audit_fact",
+    "productionBetaBlockerInventory": "absent_audit_fact",
+    "productionFoundationStatus": "absent_audit_fact"
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "not_applicable",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

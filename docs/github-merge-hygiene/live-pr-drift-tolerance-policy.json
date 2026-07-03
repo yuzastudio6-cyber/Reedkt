@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-06-12T21:52:38.671Z",
+  "decision": "live_drift_tolerance_policy_active_for_frozen_merge_batch",
+  "policy": {
+    "totalOpenPrCountDrift": "warning",
+    "newUnrelatedDraftPr": "warning",
+    "unrelatedDirtyPr": "warning",
+    "dirtyPrInsideFrozenBatch": "blocker",
+    "unstablePrInsideFrozenBatch": "blocker",
+    "missingPrInsideFrozenBatch": "blocker_unless_intentionally_merged_closed_or_superseded",
+    "draftPrInsideFrozenBatch": "blocker_unless_explicitly_marked_draft_only_no_merge",
+    "headShaChangedInsideFrozenBatch": "blocker",
+    "duplicateOrParallelPrInsideFrozenBatch": "blocker_unless_marked_canonical"
+  },
+  "frozenBatchSourceOfTruth": {
+    "file": "docs/github-merge-hygiene/frozen-merge-batch.json",
+    "futureMergeExecutionMayOnlyUseFrozenBatch": true,
+    "wholeRepoOpenPrSnapshotIsAdvisoryOnly": true
+  },
+  "executionStatus": {
+    "pullRequestsMerged": false,
+    "pullRequestsClosed": false,
+    "pullRequestsRebased": false,
+    "pullRequestsRetargeted": false,
+    "runtimePathsExecuted": false,
+    "supabaseMutation": false,
+    "providerCalls": false,
+    "productionUnlocked": false,
+    "externalBetaUnlocked": false,
+    "paidProductionUnlocked": false
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "reeditpro.controlledToolExecutionApproval.privateArtifactManifest.v1",
+  "createdAt": "2026-06-13T19:05:04.120Z",
+  "reportPaths": [
+    "docs/activation-controlled-tool-execution-approval-reports/controlled_tool_execution_source_of_truth_audit.json",
+    "docs/activation-controlled-tool-execution-approval-reports/pre_approval_revalidation_report.json",
+    "docs/activation-controlled-tool-execution-approval-reports/controlled_tool_execution_evidence_inventory.json",
+    "docs/activation-controlled-tool-execution-approval-reports/first_controlled_tool_candidate_review.json",
+    "docs/activation-controlled-tool-execution-approval-reports/controlled_execution_scope_policy.json",
+    "docs/activation-controlled-tool-execution-approval-reports/approved_plan_snapshot_requirements.json",
+    "docs/activation-controlled-tool-execution-approval-reports/worker_handoff_requirements.json",
+    "docs/activation-controlled-tool-execution-approval-reports/controlled_tool_artifact_source_of_truth_guardrails.json",
+    "docs/activation-controlled-tool-execution-approval-reports/controlled_tool_fail_closed_policy.json",
+    "docs/activation-controlled-tool-execution-approval-reports/controlled_tool_observability_cost_audit_requirements.json",
+    "docs/activation-controlled-tool-execution-approval-reports/controlled_tool_execution_approval_decision.json",
+    "docs/activation-controlled-tool-execution-approval-reports/controlled_tool_execution_approval_blocker_report.json",
+    "docs/activation-controlled-tool-execution-approval-reports/controlled_tool_execution_approval_readiness_report.json",
+    "docs/activation-controlled-tool-execution-approval-reports/controlled_tool_execution_approval_private_artifact_manifest.json"
+  ],
+  "docPaths": [
+    "docs/controlled-tool-execution-approval.md",
+    "docs/controlled-tool-execution-first-candidate-review.md",
+    "docs/controlled-tool-execution-scope-policy.md",
+    "docs/controlled-tool-execution-approved-plan-snapshot-requirements.md",
+    "docs/controlled-tool-execution-worker-handoff-requirements.md",
+    "docs/controlled-tool-execution-artifact-guardrails.md",
+    "docs/controlled-tool-execution-fail-closed-policy.md",
+    "docs/controlled-tool-execution-observability-cost-audit.md",
+    "docs/controlled-tool-execution-approval-decision.md",
+    "docs/implementation-prompts/prompt-first-controlled-tool-execution-dry-run.md"
+  ],
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "gcsUploads": false,
+  "privatePayloadsCommitted": false,
+  "buildOutputCommitted": false
+}

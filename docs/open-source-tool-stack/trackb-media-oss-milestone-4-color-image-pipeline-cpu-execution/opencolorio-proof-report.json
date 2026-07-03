@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2026-06-22T03:06:27.749Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_cpu_execution_passed_ready_for_qa",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "957e8f96900e9a374a8cd7990f00e761222ebb64",
+  "tool": "OpenColorIO",
+  "importName": "PyOpenColorIO",
+  "version": "2.5.2",
+  "command": "docker run --rm --network none --entrypoint python3 <image> -c <PyOpenColorIO import/version/raw Config check>",
+  "initialPythonAliasAttempt": {
+    "commandUsed": "python",
+    "exitCode": 127,
+    "resolution": "image exposes python3; proof rerun with python3"
+  },
+  "exitCode": 0,
+  "importPassed": true,
+  "apiShapePassed": true,
+  "rawConfigCreated": true,
+  "observedJson": {
+    "tool": "OpenColorIO",
+    "version": "2.5.2",
+    "config_type": "Config",
+    "has_Config": true,
+    "has_CreateRaw": true
+  },
+  "realMediaUsed": false,
+  "gpuUsed": false,
+  "network": "none"
+}

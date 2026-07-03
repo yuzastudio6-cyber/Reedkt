@@ -1,0 +1,44 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1QaReview.missingOptionalToolImpactReview.v1",
+  "generatedAt": "2026-06-16T14:47:52.893Z",
+  "targets": [
+    {
+      "targetId": "duckdb_metadata_query_proof",
+      "status": "blocked_missing_dependency_or_module",
+      "installReviewRequired": true,
+      "sourceStatus": "blocked_missing_dependency_or_module",
+      "sourcePassed": false,
+      "countedAsInstalledOrProven": false
+    },
+    {
+      "targetId": "polars_metadata_dataframe_proof",
+      "status": "blocked_missing_dependency_or_module",
+      "installReviewRequired": true,
+      "sourceStatus": "blocked_missing_dependency_or_module",
+      "sourcePassed": false,
+      "countedAsInstalledOrProven": false
+    },
+    {
+      "targetId": "ffmpeg_version_probe",
+      "status": "blocked_missing_system_binary",
+      "installReviewRequired": true,
+      "sourceStatus": "blocked_missing_system_binary",
+      "sourcePassed": false,
+      "countedAsInstalledOrProven": false
+    },
+    {
+      "targetId": "ffprobe_version_probe",
+      "status": "blocked_missing_system_binary",
+      "installReviewRequired": true,
+      "sourceStatus": "blocked_missing_system_binary",
+      "sourcePassed": false,
+      "countedAsInstalledOrProven": false
+    }
+  ],
+  "missingOptionalTargetsClearlyRecorded": true,
+  "installReviewRequiredBeforeCountingMissingTools": true,
+  "blocksBatch1QaAcceptance": false,
+  "blocksBatch2ExecutionRecommendation": true,
+  "nextRequiredReview": "OPEN_SOURCE_TOOL_STACK_MISSING_OPTIONAL_TOOL_INSTALL_REVIEW",
+  "passed": true
+}

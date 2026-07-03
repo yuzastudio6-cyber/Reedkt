@@ -1,0 +1,16 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3ExactFontAssetSourceReview.readiness.v1",
+  "decision": "trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review",
+  "generatedAt": "2026-06-20T20:05:00.000Z",
+  "sourceSha": "d4dce081f32c236b1442263d1d3889b1f9ab9db9",
+  "requestedAsset": "PingFang-SC-Regular.ttf",
+  "readyForPrivateAssetStagingApproval": false,
+  "readyForSystemFontPackageApproval": false,
+  "readyForAssetFreeImportConfigFollowup": false,
+  "readyForFontSourceLicenseFollowup": true,
+  "readyForOcrInference": false,
+  "readyForModelAssetOperation": false,
+  "readyForGpu": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP",
+  "nextPromptPath": "docs/implementation-prompts/prompt-trackb-media-oss-milestone-3-font-source-license-followup.md"
+}

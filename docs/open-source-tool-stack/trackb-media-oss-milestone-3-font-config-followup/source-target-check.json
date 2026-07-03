@@ -1,0 +1,22 @@
+{
+  "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+  "phase": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "sourceSha": "edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+  "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+  "targetRequirements": "docker/prod/ocr-runtime/requirements.ocr.txt",
+  "baseImage": "python:3.12-slim",
+  "requiredPackagesPresent": [
+    "libgomp1",
+    "libgl1",
+    "libglib2.0-0",
+    "fonts-noto-cjk"
+  ],
+  "fontsNotoCjkExtraPresent": false,
+  "fontConfigEnvPresent": true,
+  "selectedLocalFont": "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+  "buildContextGenerationRequired": false,
+  "packageLockMutated": false,
+  "requirementsMutated": false,
+  "dockerignoreMutated": false
+}

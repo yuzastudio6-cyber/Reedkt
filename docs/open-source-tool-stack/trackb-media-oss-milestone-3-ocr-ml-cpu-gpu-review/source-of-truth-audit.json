@@ -1,0 +1,187 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone3OcrMlCpuGpuReview.sourceAudit.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution",
+  "generatedAt": "2026-06-20T12:59:59.583Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "0a05d4a39ab11675465efc2622299e28c132da02",
+  "reviewPhaseOnly": true,
+  "noScope": {
+    "packageInstallRun": false,
+    "npmCiRun": false,
+    "npmInstallRun": false,
+    "npmRebuildRun": false,
+    "packageLockMutated": false,
+    "requirementsMutated": false,
+    "dockerfileMutated": false,
+    "dockerBuildRun": false,
+    "dockerContainerRun": false,
+    "paddleOcrRun": false,
+    "paddlePaddleRun": false,
+    "ocrInferenceRun": false,
+    "modelDownloadRun": false,
+    "modelAssetCopied": false,
+    "modelAssetUploaded": false,
+    "gpuExecutionRun": false,
+    "mediaProcessingRun": false,
+    "renderExportRun": false,
+    "workerRouteProviderRun": false,
+    "supabaseMutationRun": false,
+    "gcsUploadRun": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "betaProductionUnlocked": false,
+    "rawPromptExecuted": false,
+    "secretPayloadPrinted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "branchName": "codex/rp-trackb-media-oss-milestone-3-ocr-ml-cpu-gpu-review",
+  "expectedSourceSha": "0a05d4a39ab11675465efc2622299e28c132da02",
+  "sourceCompatible": true,
+  "sourceEvidence": [
+    {
+      "pr": 574,
+      "title": "[tools] Track B media OSS Milestone 2 QA review",
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T12:28:24Z",
+      "headRefOid": "9c46718f8d2275abfd16b9f011edef7fa25bfd64",
+      "decision": "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review"
+    },
+    {
+      "pr": 571,
+      "title": "[tools] Track B media OSS Milestone 2 video analysis execution",
+      "state": "MERGED"
+    },
+    {
+      "pr": 567,
+      "title": "[tools] Track B media OSS Milestone 2 video analysis approval",
+      "state": "MERGED"
+    },
+    {
+      "pr": 563,
+      "title": "[tools] Track B media OSS Milestone 1 QA review",
+      "state": "MERGED"
+    },
+    {
+      "pr": 559,
+      "title": "[tools] Track B media OSS Milestone 1 Tesseract fixture proof follow-up",
+      "state": "MERGED"
+    },
+    {
+      "pr": 557,
+      "title": "[tools] Track B media OSS Milestone 1 build-context blocker follow-up",
+      "state": "MERGED"
+    },
+    {
+      "pr": 551,
+      "title": "[tools] Track B media OSS Milestone 1 system packaging execution",
+      "state": "MERGED"
+    },
+    {
+      "pr": 549,
+      "title": "[tools] Track B media OSS Milestone 1 system packaging approval",
+      "state": "MERGED"
+    },
+    {
+      "pr": 546,
+      "title": "[tools] Track B media OSS Milestone 1 low-risk metadata tooling execution",
+      "state": "MERGED"
+    },
+    {
+      "pr": 545,
+      "title": "[tools] Track B media OSS install/proof milestone plan",
+      "state": "MERGED"
+    },
+    {
+      "pr": 542,
+      "title": "[tools] Track B media OSS steward owner registry",
+      "state": "MERGED"
+    }
+  ],
+  "aiGraphicsPr543": {
+    "pr": 543,
+    "title": "[tools] Register AI graphics owner assignment",
+    "state": "OPEN",
+    "isDraft": true,
+    "ownsPaddleTools": false,
+    "canonicalTrackBSource": false
+  },
+  "historicalContextPrs": [
+    {
+      "pr": 51,
+      "title": "[activation] Phase 37A PaddleOCR model/runtime approval workflow",
+      "status": "historical_context_only",
+      "selectedAsCurrentProof": false,
+      "note": "Planning context for PaddleOCR/PaddlePaddle model/runtime approval."
+    },
+    {
+      "pr": 56,
+      "title": "[activation] Verify Phase 37C generated OCR runtime",
+      "status": "historical_context_only",
+      "selectedAsCurrentProof": false,
+      "note": "Generated OCR runtime verification context; not current Track B install/proof authority."
+    },
+    {
+      "pr": 59,
+      "title": "[activation] Phase 37D OCR safe-zone execution",
+      "status": "historical_context_only",
+      "selectedAsCurrentProof": false,
+      "note": "Controlled OCR safe-zone context; no current media/OCR execution is approved."
+    },
+    {
+      "pr": 99,
+      "title": "[foundation] Prompt 13 tool readiness worker runtime checks",
+      "status": "historical_context_only",
+      "selectedAsCurrentProof": false,
+      "note": "Readiness registry context where tools were not product-ready runtime evidence."
+    },
+    {
+      "pr": 161,
+      "title": "[activation] Track B capability manifest baseline",
+      "status": "historical_context_only",
+      "selectedAsCurrentProof": false,
+      "note": "Capability manifest context only."
+    },
+    {
+      "pr": 164,
+      "title": "[activation] Phase 44I Track B tool route manifest integration",
+      "status": "historical_context_only",
+      "selectedAsCurrentProof": false,
+      "note": "Route manifest context only, not current proof authority."
+    }
+  ],
+  "countsFromPr574": {
+    "ownedTools": 16,
+    "acceptedProvenBounded": 12,
+    "blockedNotInstalledProven": 4,
+    "endToEndProductReady": 0
+  },
+  "fileHashes": {
+    "packageJson": "e007d58017abc4d72b5edf3d6dc36866db66a663d3f2959211c32fbd39766ad4",
+    "packageLock": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+    "ocrRuntimeDockerfile": "04f0634f0ba596daf5e1dfbf22d08a419f66f8bff2fff54ae02e82fb8e5ec27d",
+    "ocrRuntimeRequirements": "b51d22ad3d74ed41b11b27fd4db545e283c4b88147abd149dd20e0ae7b79d365",
+    "cpuWorkerDockerfile": "e4470a77095330b990a33d019d76b1bf87cb94d06f12f1b4a478d3171b578c7f",
+    "cpuWorkerRequirements": "de5a91fd7331fc802a52508b470f9facef858051782e5ce3a2a97e4775b65461",
+    "dockerignore": "0dd21619da96b9fc72b4429efd6d8b48c435854ffd99daadd97ccea0bda22c91"
+  },
+  "broadProductionDocs": [
+    {
+      "path": "docs/beta-readiness-scorecard.md",
+      "exists": false
+    },
+    {
+      "path": "docs/production-beta-blocker-inventory.md",
+      "exists": false
+    },
+    {
+      "path": "PRODUCTION_FOUNDATION_STATUS.md",
+      "exists": false
+    }
+  ]
+}

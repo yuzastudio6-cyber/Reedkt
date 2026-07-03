@@ -1,0 +1,18 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssToolCallBetaReadiness.approvedSnapshotCreditGateReview.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_tool_call_beta_readiness_review_blocked_pending_callable_worker_contracts",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "approvedSnapshotGateProvenForTrackBToolCalls": false,
+  "creditReservationGateProvenForTrackBToolCalls": false,
+  "rawChatExecutionBlocked": true,
+  "frontendDirectToolExecutionBlocked": true,
+  "requiredMissingEvidence": [
+    "approved snapshot id requirement in Track B tool-call payloads",
+    "edit plan id and immutable plan version requirement",
+    "credit estimate and reservation linkage for costly tool runs",
+    "fail-closed behavior when approval or credit reservation is absent"
+  ],
+  "productPlanBoundaryPreserved": true,
+  "creditsAndApprovalBoundaryPreserved": true
+}

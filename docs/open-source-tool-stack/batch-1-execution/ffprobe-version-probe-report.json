@@ -1,0 +1,24 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Execution.ffprobe_version_probe.v1",
+  "generatedAt": "2026-06-16T14:10:44.854Z",
+  "targetId": "ffprobe_version_probe",
+  "targetName": "FFprobe",
+  "status": "blocked_missing_system_binary",
+  "passed": false,
+  "optional": true,
+  "commandClass": "system_binary_version_only",
+  "installAttempted": false,
+  "packageLockMutationAttempted": false,
+  "mediaProcessingAttempted": false,
+  "stdoutPreview": "",
+  "stderrPreview": "spawnSync ffprobe ENOENT",
+  "blocker": "blocked_missing_system_binary",
+  "details": {
+    "noInstall": true,
+    "noPackageLockMutation": true,
+    "noPrivateData": true,
+    "noNetwork": true,
+    "noSupabase": true,
+    "noGcs": true
+  }
+}

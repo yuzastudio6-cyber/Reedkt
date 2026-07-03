@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuBlockerResolutionFollowup.safetyScan.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_followup_blocked_by_model_asset_required",
+  "generatedAt": "2026-06-20T18:00:21.252Z",
+  "forbiddenOutputsPresent": [],
+  "changedProtectedFiles": [],
+  "forbiddenFindings": [],
+  "packageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "requirementsHash": "b51d22ad3d74ed41b11b27fd4db545e283c4b88147abd149dd20e0ae7b79d365",
+  "dockerfileHash": "f21f1f401a097c18cff3acdecf1603952b3c0fa53bcd2ac09030e68096191638",
+  "generatedOutputsCommitted": false,
+  "modelFilesCommitted": false,
+  "mediaArtifactsCommitted": false,
+  "dockerImagePushed": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "cleanupPassed": true,
+  "passed": true
+}

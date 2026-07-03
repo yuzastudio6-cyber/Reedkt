@@ -1,0 +1,36 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisApproval.ownershipDuplicate.v1",
+  "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "tools": [
+    {
+      "id": "opencv",
+      "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+      "duplicateOwnerFound": false
+    },
+    {
+      "id": "pyav",
+      "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+      "duplicateOwnerFound": false
+    },
+    {
+      "id": "pyscenedetect",
+      "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+      "duplicateOwnerFound": false
+    }
+  ],
+  "nonOwners": [
+    "AI graphics",
+    "Track A render/export",
+    "Sound/Music/Audio",
+    "provider/API lanes"
+  ],
+  "pr543": {
+    "state": "OPEN",
+    "isDraft": true,
+    "base": "codex/rp-open-source-tool-stack-refresh-after-ai-graphics-worker-qa-review",
+    "trackBDuplicate": false
+  },
+  "duplicateMilestone2ApprovalPrFound": false
+}

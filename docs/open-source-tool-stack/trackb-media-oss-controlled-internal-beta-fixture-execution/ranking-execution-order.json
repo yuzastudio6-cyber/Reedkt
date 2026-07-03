@@ -1,0 +1,28 @@
+{
+  "schema": "trackb-media-oss-controlled-internal-beta-fixture-ranking-order.v1",
+  "generatedAt": "2026-06-25T14:45:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_controlled_internal_beta_fixture_execution_passed_ready_for_internal_beta_fixture_qa_review",
+  "rankingEntryCount": 16,
+  "deterministicRankingPreserved": true,
+  "ffmpegLast": true,
+  "colorImagePairOrder": "opencolorio_before_openimageio",
+  "rankingOrder": [
+    "ffprobe",
+    "mediainfo",
+    "exiftool",
+    "duckdb",
+    "polars_nodejs_polars",
+    "sharp_libvips",
+    "opencolorio",
+    "openimageio",
+    "imagemagick",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "tesseract",
+    "paddlepaddle",
+    "paddleocr",
+    "ffmpeg"
+  ]
+}

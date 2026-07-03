@@ -1,0 +1,24 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1FinalRollup.internalBetaImpact.v1",
+  "generatedAt": "2026-06-18T18:13:56.633Z",
+  "status": "accepted",
+  "accepted": true,
+  "warnings": [
+    "media_processing_render_export_external_beta_and_production_remain_blocked"
+  ],
+  "blockers": [],
+  "details": {
+    "impact": "improves_internal_testing_evidence_but_does_not_unlock_external_beta_or_production",
+    "internalTestingOnly": true,
+    "externalBetaReady": false,
+    "paidProductionReady": false,
+    "productionReady": false,
+    "requiredBeforeExternalBeta": [
+      "media_processing_scope_review",
+      "render_export_scope_review",
+      "worker_route_provider_runtime_review",
+      "supabase_gcs_public_delivery_review",
+      "product_beta_readiness_aggregation"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+  "phase": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "sourceSha": "edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+  "generatedOutputsCleaned": true,
+  "nodeModulesRemovedOrAbsent": true,
+  "exactImageTagRemovedOrAbsent": true,
+  "imageCleanupExitCode": 0,
+  "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-font-config-edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "cleanupOutput": "Untagged: reeditpro-ocr-runtime:trackb-milestone3-font-config-edb183eda9dce464f8aae0ce4d32ac8e63118433\nDeleted: sha256:4dfa7badcfe97dfd7e67878dca3023564b83fba0c5e31e1fc0c4e38d32ca8696",
+  "fontModelArtifactsCommitted": false,
+  "dockerOutputsCommitted": false
+}

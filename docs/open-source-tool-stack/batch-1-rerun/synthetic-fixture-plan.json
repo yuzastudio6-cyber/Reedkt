@@ -1,0 +1,96 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Rerun.syntheticFixturePlan.v1",
+  "generatedAt": "2026-06-15T16:30:00.000Z",
+  "decision": "approved_for_future_open_source_tool_stack_batch_1_install_proof_execution",
+  "actualFixtureExecutionAuthorized": false,
+  "fixtures": [
+    {
+      "id": "synthetic_duckdb_empty_metadata_table",
+      "candidateId": "duckdb_metadata_query_proof",
+      "inputClass": "synthetic_metadata_rows_only",
+      "expectedOutputClass": "version_and_row_count_metadata",
+      "futureOnly": true
+    },
+    {
+      "id": "synthetic_polars_metadata_frame",
+      "candidateId": "polars_metadata_dataframe_proof",
+      "inputClass": "synthetic_metadata_rows_only",
+      "expectedOutputClass": "version_and_shape_metadata",
+      "futureOnly": true
+    },
+    {
+      "id": "sharp_version_only_import_fixture",
+      "candidateId": "sharp_libvips_import_version_probe",
+      "inputClass": "no_image_input",
+      "expectedOutputClass": "sharp_and_libvips_version_metadata",
+      "futureOnly": true
+    },
+    {
+      "id": "ffmpeg_version_only_fixture",
+      "candidateId": "ffmpeg_version_probe",
+      "inputClass": "no_media_input",
+      "expectedOutputClass": "binary_version_metadata",
+      "futureOnly": true
+    },
+    {
+      "id": "ffprobe_version_only_fixture",
+      "candidateId": "ffprobe_version_probe",
+      "inputClass": "no_media_input",
+      "expectedOutputClass": "binary_version_metadata",
+      "futureOnly": true
+    },
+    {
+      "id": "route_capability_manifest_fixture",
+      "candidateId": "route_capability_manifest_validation",
+      "inputClass": "committed_docs_only",
+      "expectedOutputClass": "route_owner_consistency_metadata",
+      "futureOnly": true
+    },
+    {
+      "id": "fixture_report_validation_fixture",
+      "candidateId": "fixture_report_validation_harness",
+      "inputClass": "committed_report_docs_only",
+      "expectedOutputClass": "schema_consistency_metadata",
+      "futureOnly": true
+    },
+    {
+      "id": "inventory_proof_matrix_fixture",
+      "candidateId": "open_source_tool_inventory_validator",
+      "inputClass": "committed_inventory_docs_only",
+      "expectedOutputClass": "inventory_status_consistency_metadata",
+      "futureOnly": true
+    }
+  ],
+  "fixtureSafety": {
+    "usesPrivatePayload": false,
+    "usesSecrets": false,
+    "usesSignedUrls": false,
+    "usesPublicArtifacts": false,
+    "usesRealMedia": false
+  },
+  "executionScope": {
+    "dependencyInstallAllowed": false,
+    "packageLockMutationAllowed": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

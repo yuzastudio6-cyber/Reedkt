@@ -1,0 +1,22 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Execution.route_capability_manifest_validation.v1",
+  "generatedAt": "2026-06-16T14:10:44.854Z",
+  "targetId": "route_capability_manifest_validation",
+  "passed": true,
+  "status": "passed",
+  "commandClass": "committed_route_capability_metadata_only",
+  "evidencePaths": [
+    "docs/tool-studies/track-b-media-processing-routing-policy.md",
+    "docs/tool-studies/sound-music-audio-routing-policy.md",
+    "docs/tool-studies/ai-tools-creative-graphics-routing-policy.md",
+    "docs/tool-studies/track-a-render-export-routing-policy.md",
+    "docs/activation-tool-route-dry-run-approval-reports/tool_route_metadata_resolution_policy.json"
+  ],
+  "missingPaths": [],
+  "installAttempted": false,
+  "packageLockMutationAttempted": false,
+  "routeExecutionAttempted": false,
+  "workerExecutionAttempted": false,
+  "toolExecutionAttempted": false,
+  "blocker": null
+}

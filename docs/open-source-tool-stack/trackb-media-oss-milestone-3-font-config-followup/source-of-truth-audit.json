@@ -1,0 +1,176 @@
+{
+  "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+  "phase": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "sourceSha": "edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "branch": "codex/rp-trackb-media-oss-milestone-3-font-config-followup",
+  "predecessorEvidence": [
+    {
+      "pr": 629,
+      "state": "MERGED",
+      "mergedAt": "2026-06-21T00:34:34Z",
+      "head": "d550e6f005006003e62e0a177c862a6ae873d805",
+      "title": "[tools] Track B media OSS Milestone 3 system font package execution blocker follow-up"
+    },
+    {
+      "pr": 625,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T23:21:33Z",
+      "head": "7ff0b86a7da8befdcd6728ad0a3103b247b9277c"
+    },
+    {
+      "pr": 620,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T22:22:33Z",
+      "head": "67e524f02f8fa93a249e27df4e1d35bd8f5d6fc9"
+    },
+    {
+      "pr": 615,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T21:12:13Z",
+      "head": "bb773cc66d5ee43e9ecded6e2c56b6b835fb8d72"
+    },
+    {
+      "pr": 613,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T20:16:20Z",
+      "head": "f2b3a79b2e321ba46c58f10d38316b8b77ac0082"
+    },
+    {
+      "pr": 606,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T19:11:30Z",
+      "head": "309e5fab3b696b9e849f071a7bb9cffcd675d727"
+    },
+    {
+      "pr": 600,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T18:29:54Z",
+      "head": "32d11b945fb691893d0af0d0ebc1ae6f593ed5b7"
+    },
+    {
+      "pr": 592,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T16:51:16Z",
+      "head": "5514434c4791b356242f2e2835155f0bcebde28a"
+    },
+    {
+      "pr": 587,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T15:28:38Z",
+      "head": "f24744b41855045f715bdef26bd8a1212b50520f"
+    },
+    {
+      "pr": 583,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T14:38:57Z",
+      "head": "aeba43477257256937e8842fa247a2a2a733204b"
+    },
+    {
+      "pr": 578,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T13:50:14Z",
+      "head": "7fa4cde4f70e335d1baad04e1f6e8b20e72910fa"
+    },
+    {
+      "pr": 574,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T12:28:24Z",
+      "head": "9c46718f8d2275abfd16b9f011edef7fa25bfd64"
+    },
+    {
+      "pr": 571,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T03:35:59Z",
+      "head": "be085a60e27d884fdb5137fc2c0783bfc946195d"
+    },
+    {
+      "pr": 567,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T02:43:56Z",
+      "head": "92c69d1ffc54e793ed9cb4567977bb8d783b2a9d"
+    },
+    {
+      "pr": 563,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T01:54:06Z",
+      "head": "f7cf11be7ab6e6acc0773e90ef6dca63c7639045"
+    },
+    {
+      "pr": 559,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T00:24:13Z",
+      "head": "7b3f07de5c3157750dc5f45ed41a7e99dc7c6322"
+    },
+    {
+      "pr": 557,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T23:08:20Z",
+      "head": "f1df69dab36ccf1b605a61d83e0f90fff4efb9f8"
+    },
+    {
+      "pr": 551,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T22:13:00Z",
+      "head": "19dd46212ff86fb21e70e676eb783d334e37ebcd"
+    },
+    {
+      "pr": 549,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T21:09:19Z",
+      "head": "9daace1de0da0f137ba1660abbe562d0668e68f7"
+    },
+    {
+      "pr": 546,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T20:36:29Z",
+      "head": "52d901c62069e5d44747ea40942a23728558c73e"
+    },
+    {
+      "pr": 545,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T20:04:45Z",
+      "head": "4864d969ec509f34788f4fa0f9b3cfaeaa9917b7"
+    },
+    {
+      "pr": 542,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T19:07:30Z",
+      "head": "c2007f6bb20bc5cfae35d9e4eaef03feeca3218f"
+    }
+  ],
+  "duplicateSearches": {
+    "fontConfigFollowup": [],
+    "pingFang": [],
+    "fontConfigDecision": []
+  },
+  "protectedHashes": {
+    "packageJson": "33a4b1a63590f745f0125384e2111f04e678bb9eb13e42148a569b0484dc99d9",
+    "packageLock": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+    "dockerignore": "0dd21619da96b9fc72b4429efd6d8b48c435854ffd99daadd97ccea0bda22c91",
+    "ocrRuntimeDockerfile": "cf4f5ba3e0c679382799d8930071f9c3be0b8a01c1a8ca436ab114e85de18198",
+    "ocrRequirements": "b51d22ad3d74ed41b11b27fd4db545e283c4b88147abd149dd20e0ae7b79d365"
+  },
+  "pr629Evidence": {
+    "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+    "dockerMetadataTimeoutResolved": true,
+    "fontsNotoCjkPresent": true,
+    "fontsNotoCjkExtraAbsent": true,
+    "exactPingFangUnused": true,
+    "paddlePaddlePassed": true,
+    "paddleOcrBlockedByPingFangFetch": true
+  },
+  "noOperationConfirmations": {
+    "fontAssetDownload": false,
+    "modelDownload": false,
+    "assetCopy": false,
+    "assetUpload": false,
+    "ocrInference": false,
+    "gpu": false,
+    "mediaProcessing": false,
+    "renderExport": false,
+    "supabaseMutation": false,
+    "dockerImagePush": false
+  }
+}

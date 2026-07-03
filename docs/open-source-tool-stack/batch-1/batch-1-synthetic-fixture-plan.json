@@ -1,0 +1,79 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1.syntheticFixturePlan.v1",
+  "generatedAt": "2026-06-15T00:00:00.000Z",
+  "approvedForExecution": false,
+  "decision": "blocked_pending_package_lock_sync_review",
+  "fixtures": [
+    {
+      "id": "synthetic_duckdb_empty_metadata_table",
+      "futureOnly": true,
+      "inputs": [
+        "synthetic rows only"
+      ],
+      "expectedOutput": "row count and schema metadata only"
+    },
+    {
+      "id": "synthetic_polars_empty_metadata_frame",
+      "futureOnly": true,
+      "inputs": [
+        "synthetic rows only"
+      ],
+      "expectedOutput": "shape and schema metadata only"
+    },
+    {
+      "id": "sharp_version_only_import_fixture",
+      "futureOnly": true,
+      "inputs": [
+        "no image input"
+      ],
+      "expectedOutput": "version metadata only"
+    },
+    {
+      "id": "ffmpeg_version_only_fixture",
+      "futureOnly": true,
+      "inputs": [
+        "no media input"
+      ],
+      "expectedOutput": "version metadata only"
+    },
+    {
+      "id": "ffprobe_version_only_fixture",
+      "futureOnly": true,
+      "inputs": [
+        "no media input"
+      ],
+      "expectedOutput": "version metadata only"
+    },
+    {
+      "id": "route_capability_manifest_fixture",
+      "futureOnly": true,
+      "inputs": [
+        "committed routing policy docs"
+      ],
+      "expectedOutput": "metadata consistency only"
+    },
+    {
+      "id": "fixture_report_validation_fixture",
+      "futureOnly": true,
+      "inputs": [
+        "committed activation reports"
+      ],
+      "expectedOutput": "schema consistency only"
+    },
+    {
+      "id": "inventory_proof_matrix_fixture",
+      "futureOnly": true,
+      "inputs": [
+        "committed open-source inventory docs"
+      ],
+      "expectedOutput": "classification consistency only"
+    }
+  ],
+  "prohibitedInputs": [
+    "real media",
+    "private payloads",
+    "secrets",
+    "provider responses",
+    "signed URL material"
+  ]
+}

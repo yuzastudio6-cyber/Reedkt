@@ -1,0 +1,50 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaFfmpegFfprobeSourceOfTruth.centralPresenceCheck.v1",
+  "generatedAt": "2026-06-17T22:18:31.197Z",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceSha": "a12d11fd4638c40b345d837b200784f8853a0faa",
+  "checkedFiles": [
+    {
+      "file": "docker/prod/render-worker/Dockerfile",
+      "exists": true,
+      "hash": "5c74565f21853301c2ad159d7dccdb0dfb48e1d33d39ab55fe330f6a409310e9"
+    },
+    {
+      "file": ".dockerignore",
+      "exists": true,
+      "hash": "0dd21619da96b9fc72b4429efd6d8b48c435854ffd99daadd97ccea0bda22c91"
+    },
+    {
+      "file": "docs/activation-phase-tracka-caption-runtime-path-1-results.md",
+      "exists": false,
+      "hash": null
+    },
+    {
+      "file": "docs/track-a/track-a-caption-runtime-path-metadata-check-results.md",
+      "exists": false,
+      "hash": null
+    },
+    {
+      "file": "docs/track-a/track-a-caption-runtime-path-approval-contract.md",
+      "exists": false,
+      "hash": null
+    },
+    {
+      "file": "scripts/validation/track-a-caption-runtime-path-1-diagnostics.mjs",
+      "exists": false,
+      "hash": null
+    },
+    {
+      "file": "scripts/validation/track-a-caption-runtime-path-1.mjs",
+      "exists": false,
+      "hash": null
+    }
+  ],
+  "dockerfilePresent": true,
+  "dockerignorePresent": true,
+  "dockerignoreDiffersFromPr463Branch": true,
+  "trackaRuntimePathReportsPresent": false,
+  "trackaRuntimePathScriptsPresent": false,
+  "centralAlreadyContainsFullPr463Evidence": false,
+  "centralHasRepoOwnedDockerfilePath": true
+}

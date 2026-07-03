@@ -1,0 +1,26 @@
+{
+  "schema": "trackb-media-oss-limited-internal-beta-dry-run-qa-source-audit.v1",
+  "generatedAt": "2026-06-25T15:25:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "4ca5005c8861ff0d8f473b6673b73fd211fa4cf6",
+  "decision": "trackb_media_oss_limited_internal_beta_dry_run_qa_passed_ready_for_limited_internal_beta_dry_run_testing",
+  "sourceEvidence": [
+    {
+      "pr": 792,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_dry_run_activation_passed_ready_for_limited_internal_beta_dry_run_qa_review"
+    },
+    {
+      "pr": 790,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_go_no_go_review_passed_ready_for_limited_internal_beta_dry_run_activation"
+    }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_TESTING"
+}

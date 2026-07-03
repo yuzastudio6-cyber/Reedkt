@@ -1,0 +1,23 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review",
+  "runtimeBoundary": {
+    "runtimeApisChanged": false,
+    "workerContractsChanged": false,
+    "routeRuntimeEnabled": false,
+    "workerDispatchEnabled": false,
+    "providerRuntimeTouched": false,
+    "dockerRun": false,
+    "installsRun": false,
+    "realToolsRun": false,
+    "mediaProcessingRun": false,
+    "imageProcessingRun": false,
+    "ocrInferenceRun": false,
+    "supabaseTouched": false,
+    "gcsTouched": false,
+    "externalBetaTouched": false,
+    "productionTouched": false
+  },
+  "productReadyLocalOssCount": 0,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CONTROLLED_ACTIVATION_QA_REVIEW"
+}

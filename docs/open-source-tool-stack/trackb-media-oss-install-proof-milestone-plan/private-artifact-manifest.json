@@ -1,0 +1,32 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssInstallProofMilestonePlan.privateArtifactManifest.v1",
+  "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution",
+  "dependencyInstallRunInThisPhase": false,
+  "npmInstallRunInThisPhase": false,
+  "npmRebuildRunInThisPhase": false,
+  "packageLockMutationAllowed": false,
+  "dockerBuildRunInThisPhase": false,
+  "dockerRunInThisPhase": false,
+  "ffmpegRunInThisPhase": false,
+  "ffprobeRunInThisPhase": false,
+  "mediaProcessingRunInThisPhase": false,
+  "mediaFileProbeRunInThisPhase": false,
+  "renderExportRunInThisPhase": false,
+  "workerRouteProviderRunInThisPhase": false,
+  "supabaseWriteRunInThisPhase": false,
+  "gcsUploadRunInThisPhase": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "rawPromptExecutionRunInThisPhase": false,
+  "betaProductionUnlockRunInThisPhase": false,
+  "privatePayloadsAccessed": false,
+  "secretsAccessed": false,
+  "secretsPrinted": false,
+  "secretsCommitted": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

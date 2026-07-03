@@ -1,0 +1,102 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone1SystemPackagingApproval.packageList.v1",
+  "generatedAt": "2026-06-19T20:52:00.000Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "packageManager": "apt",
+  "platformFamily": "debian_ubuntu_container",
+  "requiredPackages": [
+    "libimage-exiftool-perl",
+    "mediainfo",
+    "tesseract-ocr",
+    "tesseract-ocr-eng",
+    "imagemagick"
+  ],
+  "optionalFallbackPackages": [
+    "graphicsmagick"
+  ],
+  "graphicsMagickDefaultIncluded": false,
+  "imageMagickPreferred": true,
+  "tools": [
+    {
+      "id": "exiftool",
+      "name": "ExifTool",
+      "required": true,
+      "packages": [
+        "libimage-exiftool-perl"
+      ],
+      "verification": [
+        "exiftool",
+        "-ver"
+      ],
+      "proof": "tiny synthetic metadata-safe fixture read/write/read proof, or read-only metadata proof if write is unnecessary"
+    },
+    {
+      "id": "mediainfo",
+      "name": "MediaInfo",
+      "required": true,
+      "packages": [
+        "mediainfo"
+      ],
+      "verification": [
+        "mediainfo",
+        "--Version"
+      ],
+      "proof": "tiny synthetic safe media/container header fixture only"
+    },
+    {
+      "id": "tesseract",
+      "name": "Tesseract",
+      "required": true,
+      "packages": [
+        "tesseract-ocr",
+        "tesseract-ocr-eng"
+      ],
+      "verification": [
+        "tesseract",
+        "--version"
+      ],
+      "proof": "tiny synthetic image containing REEDITPRO text"
+    },
+    {
+      "id": "imagemagick",
+      "name": "ImageMagick",
+      "required": true,
+      "packages": [
+        "imagemagick"
+      ],
+      "verification": [
+        [
+          "magick",
+          "-version"
+        ],
+        [
+          "convert",
+          "-version"
+        ]
+      ],
+      "proof": "tiny synthetic identify/convert transform proof"
+    },
+    {
+      "id": "graphicsmagick",
+      "name": "GraphicsMagick",
+      "required": false,
+      "packages": [
+        "graphicsmagick"
+      ],
+      "verification": [
+        "gm",
+        "version"
+      ],
+      "proof": "optional fallback proof only if ImageMagick is unsuitable or repo policy later selects GraphicsMagick"
+    }
+  ]
+}

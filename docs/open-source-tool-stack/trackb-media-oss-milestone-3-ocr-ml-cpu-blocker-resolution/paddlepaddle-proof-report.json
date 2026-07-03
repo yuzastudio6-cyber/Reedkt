@@ -1,0 +1,30 @@
+{
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape",
+  "generatedAt": "2026-06-20T15:53:48.495Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-cpu-libgl-a80edbdc5bcf434b0cd70f9f8bae9523a2e1c1fa",
+  "importVersionPassed": true,
+  "tensorDevicePassed": true,
+  "versionExitCode": 0,
+  "tensorExitCode": 0,
+  "versionElapsedSeconds": 0.936,
+  "tensorElapsedSeconds": 0.828,
+  "versionEvidence": [
+    "  warnings.warn(warning_message)",
+    "paddle_version 3.0.0"
+  ],
+  "tensorEvidence": [
+    "  warnings.warn(warning_message)",
+    "tensor [1, 2, 3]",
+    "device cpu"
+  ],
+  "modelAssetsUsed": false,
+  "gpuExecutionRun": false,
+  "networkNone": true
+}

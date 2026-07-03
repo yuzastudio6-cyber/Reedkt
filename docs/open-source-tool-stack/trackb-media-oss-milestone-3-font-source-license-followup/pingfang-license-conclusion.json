@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOss.milestone3FontSourceLicenseFollowup.pingfangLicense.v1",
+  "decision": "trackb_media_oss_milestone3_font_source_license_followup_passed_ready_for_system_font_package_approval",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_APPROVAL",
+  "requestedAsset": "PingFang-SC-Regular.ttf",
+  "sourceComponent": "PaddleX font assets",
+  "observedSourceUrl": "https://paddle-model-ecology.bj.bcebos.com/paddlex/PaddleX3.0/fonts/PingFang-SC-Regular.ttf",
+  "exactAssetSourceObserved": true,
+  "exactStandaloneFontLicenseProven": false,
+  "redistributionRightsProven": false,
+  "privateStagingRightsProven": false,
+  "repositoryCommitAllowed": false,
+  "cloudRuntimeImageEmbeddingAllowed": false,
+  "trustedChecksumSourceProven": false,
+  "assetDownloadedForReview": false,
+  "assetCopiedForReview": false,
+  "assetUploadedForReview": false,
+  "conclusion": "Exact PingFang private staging remains blocked. The observed PaddleX asset request is enough to identify the blocker but not enough to approve license, checksum, redistribution, repository commit, or private runtime image embedding."
+}

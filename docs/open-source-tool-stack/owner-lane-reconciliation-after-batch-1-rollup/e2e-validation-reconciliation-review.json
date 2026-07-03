@@ -1,0 +1,31 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ownerLaneReconciliationAfterBatch1Rollup.e2eValidationReview.v1",
+  "generatedAt": "2026-06-19T00:35:47.375Z",
+  "status": "accepted",
+  "accepted": true,
+  "warnings": [
+    "metadata_only_runtime_scopes_remain_blocked"
+  ],
+  "blockers": [],
+  "details": {
+    "reviewedPrs": [
+      "#519",
+      "#523"
+    ],
+    "selectedPrs": [
+      305,
+      300,
+      264,
+      263,
+      245
+    ],
+    "blocker": "pr_305_validation_blocked_npm_ci_failed",
+    "validatedCount": 0,
+    "passCount": 0,
+    "blockedCount": 1,
+    "mergeReadyCount": 0,
+    "pr523Decision": "reeditpro_e2e_validation_queue_1_blocked_validation_failures",
+    "recommendation": "e2e_validation_blocker_resolution_before_broad_beta_readiness_claim",
+    "nextPromptRecommendation": "E2E_VALIDATION_PR_305_HYDRATION_BLOCKER_RESOLUTION"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "dockerBuildElapsedSeconds": 161,
+  "fontDiscoveryElapsedSeconds": 1,
+  "paddlePaddleElapsedSeconds": 2,
+  "paddleOcrElapsedSeconds": 1,
+  "cpuOnly": true,
+  "gpuUsed": false,
+  "fontsNotoCjkImageSizeWarning": "fonts-noto-cjk added roughly 300 MB of installed package footprint with transitive libraries in the Docker build output",
+  "fontsNotoCjkExtraNecessary": false
+}

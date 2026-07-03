@@ -1,0 +1,121 @@
+{
+  "schema": "reeditpro.controlledToolExecutionApproval.sourceOfTruthAudit.v1",
+  "createdAt": "2026-06-13T19:05:04.120Z",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "expectedSourceSha": "d60f629836acc30085e4f83cdb3cff2c9f0bc454",
+  "currentBranch": "codex/rp-controlled-tool-execution-approval-after-route-dry-run",
+  "currentSha": "d60f629836acc30085e4f83cdb3cff2c9f0bc454",
+  "pr387": {
+    "baseRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+    "headRefName": "codex/rp-tool-route-dry-run-approval-after-tool-study",
+    "headRefOid": "351845e0b7a79c339d428df2d9f44fccaaa4566a",
+    "isDraft": false,
+    "mergeStateStatus": "UNKNOWN",
+    "mergedAt": "2026-06-13T18:09:41Z",
+    "number": 387,
+    "state": "MERGED",
+    "title": "[tool-route] Tool-route dry-run approval packet",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/387"
+  },
+  "pr388": {
+    "baseRefName": "codex/rp-tool-route-dry-run-approval-after-tool-study",
+    "headRefName": "codex/rp-tool-route-metadata-dry-run-execution",
+    "headRefOid": "76f1cb629cddf433ab75684a57064fba86e0b041",
+    "isDraft": false,
+    "mergeStateStatus": "UNKNOWN",
+    "mergedAt": "2026-06-13T18:09:22Z",
+    "number": 388,
+    "state": "MERGED",
+    "title": "[tool-route] Tool-route metadata dry-run execution",
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/388"
+  },
+  "pr384DuplicateRisk": {
+    "status": "stale_reference_only_duplicate_risk",
+    "treatedAsSourceOfTruth": false,
+    "reuseBlocked": true,
+    "evidence": {
+      "baseRefName": "codex/rp-tool-route-2a-refresh-conflict-resolution-after-tool-route-1a",
+      "headRefName": "codex/rp-tool-route-3-offline-dry-run-approval-packet",
+      "headRefOid": "0e91380d2201e651c0c7df67624be015befa2db7",
+      "isDraft": true,
+      "mergeStateStatus": "CLEAN",
+      "mergedAt": null,
+      "number": 384,
+      "state": "OPEN",
+      "title": "[tool-route] TOOL-ROUTE-3 offline dry-run approval packet",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/384"
+    }
+  },
+  "mergedToolRouteSourceEvidencePresent": true,
+  "localToolRouteMetadataDryRunReportsPresent": true,
+  "docsPresence": {
+    "presentSourceDocs": [
+      "docs/tool-route-metadata-dry-run.md",
+      "docs/tool-route-metadata-dry-run-decision.md",
+      "docs/tool-route-metadata-dry-run-fail-closed.md",
+      "docs/tool-route-metadata-dry-run-artifact-scope.md",
+      "docs/tool-route-dry-run-approval.md",
+      "docs/tool-route-dry-run-scope-policy.md",
+      "docs/tool-route-artifact-source-of-truth-guardrails.md",
+      "docs/tool-studies/tool-study-0-owner-study-matrix.json",
+      "docs/tool-studies/tool-study-0-route-unlock-readiness.json",
+      "docs/cross-chat/CURRENT_HANDOFF.md",
+      "docs/cross-chat/NEXT_UNLOCK_LANES.md",
+      "docs/cross-chat/BLOCKED_SCOPES.md"
+    ],
+    "missingSourceDocs": [],
+    "missingEvidenceDirectories": [
+      "docs/activation-worker-runtime-noop-dry-run-reports",
+      "docs/activation-model-orchestration-plan-snapshot-dry-run-reports",
+      "docs/activation-supabase-trackb-clean-staging-backfill-reports"
+    ],
+    "dependentReportScripts": {
+      "activation:worker-runtime-noop-dry-run:report": "missing_script_recorded_as_audit_fact",
+      "activation:model-orchestration-plan-snapshot-dry-run:report": "missing_script_recorded_as_audit_fact",
+      "activation:supabase-trackb-clean-staging-backfill:report": "missing_script_recorded_as_audit_fact"
+    },
+    "missingOptionalReadinessDocs": [
+      "docs/beta-readiness-scorecard.md",
+      "docs/production-beta-blocker-inventory.md",
+      "PRODUCTION_FOUNDATION_STATUS.md"
+    ]
+  },
+  "flags": {
+    "routeExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "githubPrMergeAllowed": false,
+    "secretPayloadAccessed": false,
+    "secretPayloadPrinted": false,
+    "secretPayloadCommitted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "Track B clean staging milestone sync completed before this phase; this packet is metadata/reporting only.",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextSupabaseAction": "none"
+  },
+  "decision": "approved_for_future_first_controlled_tool_execution_dry_run"
+}

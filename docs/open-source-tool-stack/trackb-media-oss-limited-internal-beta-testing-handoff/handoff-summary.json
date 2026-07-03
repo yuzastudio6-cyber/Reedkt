@@ -1,0 +1,20 @@
+{
+  "schema": "trackb-media-oss-limited-internal-beta-testing-handoff-summary.v1",
+  "generatedAt": "2026-06-25T16:10:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_testing_handoff_passed_ready_for_constrained_internal_beta_dry_run_testing",
+  "readyForConstrainedInternalBetaDryRunTesting": true,
+  "dryRunOnly": true,
+  "coveredToolCount": 16,
+  "boundedAcceptedProvenCount": 16,
+  "blockedNotInstalledProvenCount": 0,
+  "directProductToolCallsEnabled": false,
+  "liveRouteRuntimeEnabled": false,
+  "workerDispatchEnabled": false,
+  "realToolExecutionEnabled": false,
+  "userMediaByDefaultEnabled": false,
+  "externalBetaReady": false,
+  "productionReady": false,
+  "productReady": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_DRY_RUN_MONITORING"
+}

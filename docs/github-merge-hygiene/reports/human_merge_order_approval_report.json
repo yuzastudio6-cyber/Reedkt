@@ -1,0 +1,62 @@
+{
+  "runId": "github-merge-hygiene-2026-06-12T232754181Z",
+  "generatedAt": "2026-06-12T23:27:54.183Z",
+  "decision": "approved_for_future_frozen_batch_merge_execution_after_pr_337_sha_update",
+  "draftDriftDecision": "accepted_draft_drift_to_352",
+  "frozenBatchDecision": "approved_for_future_frozen_batch_merge_execution",
+  "frozenBatchSize": 27,
+  "approvedFutureMergePrNumbers": [
+    205,
+    222,
+    247,
+    248,
+    252,
+    259,
+    262,
+    265,
+    269,
+    271,
+    274,
+    276,
+    280,
+    283,
+    292,
+    298,
+    299,
+    302,
+    306,
+    309,
+    311,
+    314,
+    318,
+    320,
+    322,
+    327,
+    337
+  ],
+  "blockers": [],
+  "executionStatus": {
+    "pullRequestsMerged": false,
+    "pullRequestsClosed": false,
+    "pullRequestsRebased": false,
+    "runtimePathsExecuted": false,
+    "supabaseMutation": false,
+    "providerCalls": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsIssued": false,
+    "productionUnlocked": false,
+    "externalBetaUnlocked": false,
+    "paidProductionUnlocked": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no",
+    "environmentTouched": "none",
+    "sql": "none",
+    "migrationDeployed": "no"
+  },
+  "pr337HeadShaDriftReview": {
+    "decision": "accepted_pr_337_new_head_sha",
+    "frozenHeadSha": "e762d297dc9ea236b8c2c85585ff2fd781ea3e77",
+    "liveHeadSha": "381afa79e1074f18fd28a2c555c22f4cd595cb38"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_closeout_passed_ready_for_limited_internal_activation_approval",
+  "sourceSha": "a1860c2e316e13ed61dfa237109c58533b21182b",
+  "sourceBranch": "origin/codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourceEvidence": [
+    {
+      "pr": 866,
+      "state": "MERGED",
+      "head": "e838f1e186878ea6f37b17de33c7afeaf67f74ae",
+      "mergeCommit": "a1860c2e316e13ed61dfa237109c58533b21182b",
+      "acceptedAs": "controlled_activation_qa_acceptance"
+    },
+    {
+      "pr": 860,
+      "state": "MERGED",
+      "acceptedAs": "bounded_internal_activation_artifact"
+    }
+  ],
+  "preflight": {
+    "cleanWorktree": true,
+    "duplicateControlledActivationCloseoutPr": false,
+    "protectedFileHashesCaptured": true,
+    "nodeModulesPresent": false,
+    "distOutputsPresent": false,
+    "mediaArtifactsPresent": false
+  },
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_APPROVAL"
+}

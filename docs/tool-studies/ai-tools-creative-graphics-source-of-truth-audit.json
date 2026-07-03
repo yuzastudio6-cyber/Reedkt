@@ -1,0 +1,220 @@
+{
+  "schema": "reeditpro.toolStudy.aiToolsCreativeGraphics.sourceOfTruthAudit.v1",
+  "generatedAt": "2026-06-13T00:00:00Z",
+  "decision": "ai_tools_creative_graphics_tool_study_passed_docs_only",
+  "status": "complete_for_AI_TOOLS_CREATIVE_GRAPHICS_owner_study",
+  "owner": "AI_TOOLS_CREATIVE_GRAPHICS",
+  "branch": {
+    "name": "codex/rp-tool-study-0-ai-tools-creative-graphics-clean",
+    "baseBranch": "codex/rp-tool-study-0-sound-music-audio-clean",
+    "basePr": 373,
+    "baseHeadSha": "7e165d76cc02cde04aad35ef93094fad7678e492",
+    "baseDecision": "sound_music_audio_tool_study_passed_docs_only",
+    "staleRemoteBranchAvoided": "codex/rp-tool-study-0-ai-tools-creative-graphics"
+  },
+  "scope": {
+    "phase": "TOOL-STUDY-0",
+    "mode": "docs_diagnostics_only",
+    "runtimeExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "modelExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "mediaProcessingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "internalBetaUnlockAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  },
+  "localSourceEvidence": [
+    {
+      "path": "docs/github-merge-hygiene/reports/post_merge_source_of_truth_verification_report.json",
+      "status": "present",
+      "facts": [
+        "post_merge_source_of_truth_verification_passed",
+        "TOOL_STUDY_0_recommended_before_tool_route_execution_unlock",
+        "blocked_scopes_remain_blocked"
+      ]
+    },
+    {
+      "path": "docs/tool-studies/track-b-media-processing-source-of-truth-audit.json",
+      "status": "present",
+      "facts": [
+        "TRACK_B_MEDIA_PROCESSING_complete",
+        "creative_image_generation_tools_handed_to_AI_TOOLS_CREATIVE_GRAPHICS",
+        "final_render_export_handed_to_TRACK_A_RENDER_EXPORT"
+      ]
+    },
+    {
+      "path": "docs/tool-studies/sound-music-audio-source-of-truth-audit.json",
+      "status": "present",
+      "facts": [
+        "SOUND_MUSIC_AUDIO_complete",
+        "audio_runtime_and_provider_paths_remain_blocked",
+        "AI_TOOLS_CREATIVE_GRAPHICS_related_but_not_owned"
+      ]
+    },
+    {
+      "path": "design.md",
+      "status": "present",
+      "facts": [
+        "Graphic_Design_VisualExplain_is_a_signature_visual_system",
+        "GPT_Image_2_launch_still_keyframe_graphic_frame_model",
+        "generation_requires_user_approved_plan_and_credit_estimate"
+      ]
+    },
+    {
+      "path": "provider-prompt-architecture.md",
+      "status": "present",
+      "facts": [
+        "provider_prompts_are_structured_plans_not_random_prompts",
+        "providers_generate_assets_only_not_final_canvas",
+        "Remotion_owns_final_layout_composition_timing"
+      ]
+    },
+    {
+      "path": "remotion-capability-matrix.md",
+      "status": "present",
+      "facts": [
+        "Remotion_best_for_controlled_cards_lower_thirds_layouts_and_timeline_layers",
+        "GPT_Image_2_then_Remotion_for_stills_cards_keyframes_and_designed_assets",
+        "open_source_tool_then_Remotion_for_exact_maps_charts_screenshots_and_data_visuals"
+      ]
+    },
+    {
+      "path": "tool-strategy-planner.md",
+      "status": "present",
+      "facts": [
+        "controlled_tools_preferred_for_exact_text_labels_charts_maps_screenshots_and_QA",
+        "AI_generation_creates_assets_or_clips_only",
+        "tool_strategy_does_not_install_execute_tools_call_providers_process_media_or_render"
+      ]
+    },
+    {
+      "path": "character-consistency-system.md",
+      "status": "present",
+      "facts": [
+        "character_reference_packs_required_when_recurring_identity_matters",
+        "real_named_people_need_neutral_cautious_visual_treatment",
+        "planning_only_no_provider_calls_or_rendering"
+      ]
+    },
+    {
+      "path": "documentary-fact-safety-system.md",
+      "status": "present",
+      "facts": [
+        "claims_and_allegations_need_neutral_visual_treatment",
+        "documentary_case_study_visuals_should_not_imply_unverified_guilt",
+        "fact_safety_is_planning_only"
+      ]
+    }
+  ],
+  "localDocsRecordedAsAuditFacts": [
+    {
+      "path": "docs/activation-track-b-readiness-rollup-reports/",
+      "status": "missing_on_PR373_checkout",
+      "blocker": false,
+      "reason": "PR350 post-merge source-of-truth verification records remote milestone evidence."
+    },
+    {
+      "path": "docs/activation-worker-runtime-noop-dry-run-reports/",
+      "status": "missing_on_PR373_checkout",
+      "blocker": false,
+      "reason": "Worker no-op evidence is remote milestone evidence and does not approve real worker execution."
+    },
+    {
+      "path": "docs/model-orchestration-approved-plan-snapshot-schema.md",
+      "status": "missing_on_PR373_checkout",
+      "blocker": false,
+      "reason": "Plan snapshot evidence remains post-merge verified; this study defines owner handoff fields only."
+    }
+  ],
+  "ownedTools": [
+    "ai_image_generation_planning",
+    "ai_image_editing_planning",
+    "style_transfer_planning",
+    "thumbnail_cover_poster_planning",
+    "title_card_lower_third_overlay_planning",
+    "typography_layout_composition_metadata",
+    "brand_visual_style_metadata",
+    "graphic_asset_qa_metadata",
+    "design_prompt_to_intent_routing",
+    "creative_graphics_route_capability_metadata",
+    "creative_graphics_cost_capacity_metadata"
+  ],
+  "relatedButNotOwned": [
+    {
+      "id": "opencv_pyav_pyscenedetect_sharp_duckdb_polars_paddleocr_paddlepaddle",
+      "owner": "TRACK_B_MEDIA_PROCESSING",
+      "creativeGraphicsUse": "consume media metadata only"
+    },
+    {
+      "id": "deepfilternet_ffmpeg_audioflux_signalsmith_demucs_lyria_mirelo_mmaudio",
+      "owner": "SOUND_MUSIC_AUDIO",
+      "creativeGraphicsUse": "handoff timing/audio/SFX layer needs only"
+    },
+    {
+      "id": "map_geospatial_and_web_search_capture",
+      "owner": "MAP_GEOSPATIAL_WEB_SEARCH_CAPTURE",
+      "creativeGraphicsUse": "consume approved map/capture metadata only"
+    },
+    {
+      "id": "provider_gateway",
+      "owner": "PROVIDER_GATEWAY",
+      "creativeGraphicsUse": "future provider calls only after separate approval"
+    },
+    {
+      "id": "worker_runtime_jobs",
+      "owner": "WORKER_RUNTIME_JOBS",
+      "creativeGraphicsUse": "future approved worker intake only"
+    },
+    {
+      "id": "final_render_export_pipeline",
+      "owner": "TRACK_A_RENDER_EXPORT",
+      "creativeGraphicsUse": "handoff approved graphic asset refs and composition metadata only"
+    },
+    {
+      "id": "supabase_source_of_truth",
+      "owner": "SUPABASE_RLS_STORAGE_DATABASE",
+      "creativeGraphicsUse": "future row refs only after separate Supabase approval"
+    }
+  ],
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sql": "none",
+    "migrationDeployed": "no"
+  },
+  "secretPolicy": {
+    "secretRefsMayBeNamedIfAlreadyDocumented": true,
+    "payloadAccessed": false,
+    "payloadPrinted": false,
+    "payloadCommitted": false
+  },
+  "runtimeReadiness": {
+    "metadataReviewReady": true,
+    "realRuntimeReady": false,
+    "providerRuntimeReady": false,
+    "imageGenerationRuntimeBlocked": true,
+    "imageEditingRuntimeBlocked": true,
+    "publicArtifactDeliveryBlocked": true,
+    "signedUrlSourceOfTruthBlocked": true
+  },
+  "nextPhase": {
+    "recommended": "TOOL-STUDY-0 - TRACK_A_RENDER_EXPORT",
+    "aiToolsCreativeGraphicsStatus": "complete_after_diagnostics_pass"
+  },
+  "blockers": []
+}

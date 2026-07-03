@@ -1,0 +1,37 @@
+{
+  "schema": "reeditpro.nextControlledCandidateOrWorkerHandoff.observabilityCostAuditReview.v1",
+  "createdAt": "2026-06-13T20:26:14.929Z",
+  "passed": true,
+  "recommendedCandidateId": "controlled-tool:second_fixture_report_validation",
+  "candidateAuditRequirements": [
+    "correlation id",
+    "approved plan snapshot id",
+    "route candidate id",
+    "selected candidate id",
+    "owner-study refs",
+    "artifact manifest refs",
+    "blocker/fail-closed outcome"
+  ],
+  "workerHandoffAuditRequirements": [
+    "idempotency key",
+    "worker dry-run mode",
+    "queue/job/sidecar approval ref before worker execution"
+  ],
+  "noSecretLogs": true,
+  "timeoutClass": "metadata_validation_short_timeout",
+  "costEstimateClass": "metadata_only_no_provider_or_worker_cost",
+  "retryPolicy": "single retry only for future metadata read failure; no retry of runtime execution",
+  "failureStateMapping": {
+    "missingEvidence": "blocked_pending_route_manifest_evidence",
+    "unsafeCandidate": "rejected_due_runtime_safety_risk",
+    "artifactPolicyGap": "blocked_pending_artifact_scope_policy",
+    "auditGap": "blocked_pending_observability_cost_audit"
+  },
+  "abuseRateLimitControls": [
+    "no provider calls",
+    "no worker enqueue",
+    "no uploaded media",
+    "no public artifacts",
+    "no signed URL delivery"
+  ]
+}

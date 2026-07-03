@@ -1,0 +1,11 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerDockerBuildBlockerResolution.readiness.v1",
+  "generatedAt": "2026-06-18T13:43:06.375Z",
+  "readiness": true,
+  "decision": "docker_build_blocker_resolution_passed_ready_for_build_context_generation_approval",
+  "readyForBuildContextGenerationApproval": true,
+  "readyForBuildContextGenerationExecution": false,
+  "readyForDockerBuildOrProbeExecution": false,
+  "blockers": [],
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_TRACKA_BUILD_CONTEXT_GENERATION_APPROVAL"
+}

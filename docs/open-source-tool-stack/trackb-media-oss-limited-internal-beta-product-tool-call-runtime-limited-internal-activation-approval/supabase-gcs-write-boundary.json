@@ -1,0 +1,57 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_approval_passed_ready_for_limited_internal_activation_execution",
+  "sourceSha": "8e913a3da2b8d547eabdb2af821f55cb1e2e3db3",
+  "sourceEvidence": [
+    {
+      "pr": 872,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_closeout_passed_ready_for_limited_internal_activation_approval",
+      "mergeCommit": "8e913a3da2b8d547eabdb2af821f55cb1e2e3db3"
+    },
+    {
+      "pr": 866,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout"
+    },
+    {
+      "pr": 860,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_execution_passed_ready_for_controlled_activation_qa_review"
+    }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_EXECUTION",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "supabaseWrites": "blocked in this approval phase and must be proven or remain disabled in the next execution lane",
+  "gcsWrites": "blocked in this approval phase and must be proven or remain disabled in the next execution lane",
+  "publicArtifacts": false,
+  "signedUrls": false,
+  "privatePayloadsCommitted": false,
+  "readyForLimitedInternalActivationExecution": true,
+  "boundary": {
+    "liveRouteRuntimeApproval": "approved_for_limited_internal_execution_gate_only",
+    "workerDispatchApproval": "approved_for_limited_internal_execution_gate_only",
+    "serviceRoleRuntimeApproval": "approved_for_limited_internal_execution_gate_only",
+    "supabaseGcsWriteApproval": "blocked_no_write_until_execution_lane_proves_policy",
+    "monitoringEmissionApproval": "approved_for_sanitized_internal_execution_gate_only",
+    "rollbackExecutionApproval": "approved_for_bounded_execution_gate_only",
+    "limitedInternalExposureApproval": "approved_for_controlled_internal_execution_gate_only",
+    "externalBetaApproved": false,
+    "productionApproved": false,
+    "userMediaByDefaultApproved": false,
+    "publicArtifactsApproved": false,
+    "signedUrlsApproved": false,
+    "productReady": false
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisExecution.buildContextGeneration.v1",
+  "generatedAt": "2026-06-20T03:16:15.024Z",
+  "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded",
+  "skipped": false,
+  "results": [
+    {
+      "command": "npm run build:server",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 8011,
+      "stdoutSummary": "> reeditpro@0.0.0 build:server\n> npm run typecheck:server && vite build --config vite.server.config.ts\n> reeditpro@0.0.0 typecheck:server\n> tsc -p tsconfig.server.json --noEmit\nvite v8.0.12 building ssr environment for production...\n\u001b[2K\rtransforming...✓ 305 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist-server/server.js  1,760.60 kB │ gzip: 347.34 kB\n✓ built in 76ms",
+      "stderrSummary": "",
+      "error": null,
+      "outputDir": "dist-server",
+      "outputExists": true
+    },
+    {
+      "command": "npm run build:staging-fixture-worker",
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 7738,
+      "stdoutSummary": "> reeditpro@0.0.0 build:staging-fixture-worker\n> npm run typecheck:server && vite build --config vite.staging-fixture-worker.config.ts\n> reeditpro@0.0.0 typecheck:server\n> tsc -p tsconfig.server.json --noEmit\nvite v8.0.12 building ssr environment for production...\n\u001b[2K\rtransforming...✓ 266 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist-staging-fixture-worker/staging-fixture-worker-cli.js  1,777.38 kB │ gzip: 500.64 kB\n✓ built in 149ms",
+      "stderrSummary": "",
+      "error": null,
+      "outputDir": "dist-staging-fixture-worker",
+      "outputExists": true
+    }
+  ],
+  "allCommandsPassed": true,
+  "allOutputsPresent": true
+}

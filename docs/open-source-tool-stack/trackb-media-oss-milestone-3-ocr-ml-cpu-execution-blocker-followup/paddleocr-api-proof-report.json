@@ -1,0 +1,26 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecutionBlockerFollowup.paddleOcrApiProof.v1",
+  "generatedAt": "2026-06-20T15:05:37.884Z",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_followup_blocked_by_paddleocr_import_or_api_shape",
+  "skipped": false,
+  "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-cpu-libgomp-b17a20898d5c046447905e5a411a733133afa535",
+  "importApi": {
+    "command": "docker run --rm --network none --entrypoint python reeditpro-ocr-runtime:trackb-milestone3-cpu-libgomp-b17a20898d5c046447905e5a411a733133afa535 -c \nimport importlib.metadata, json\nimport paddleocr\nversion = importlib.metadata.version('paddleocr')\nattrs = {\n  'PaddleOCR': hasattr(paddleocr, 'PaddleOCR'),\n  'PPStructure': hasattr(paddleocr, 'PPStructure'),\n  'draw_ocr': hasattr(paddleocr, 'draw_ocr'),\n}\nprint(json.dumps({'tool':'paddleocr','version':version,'attrs':attrs,'module_file':bool(getattr(paddleocr, '__file__', None))}))\n",
+    "exitCode": 1,
+    "signal": null,
+    "durationMs": 683,
+    "stdoutSummary": "",
+    "stderrSummary": "Traceback (most recent call last):\nFile \"<string>\", line 3, in <module>\nFile \"/usr/local/lib/python3.12/site-packages/paddleocr/__init__.py\", line 15, in <module>\nfrom ._models import (\nFile \"/usr/local/lib/python3.12/site-packages/paddleocr/_models/__init__.py\", line 15, in <module>\nfrom .doc_img_orientation_classification import DocImgOrientationClassification\nFile \"/usr/local/lib/python3.12/site-packages/paddleocr/_models/doc_img_orientation_classification.py\", line 15, in <module>\nfrom ._image_classification import (\nFile \"/usr/local/lib/python3.12/site-packages/paddleocr/_models/_image_classification.py\", line 22, in <module>\nfrom .base import PaddleXPredictorWrapper, PredictorCLISubcommandExecutor\nFile \"/usr/local/lib/python3.12/site-packages/paddleocr/_models/base.py\", line 17, in <module>\nfrom paddlex import create_predictor\nFile \"/usr/local/lib/python3.12/site-packages/paddlex/__init__.py\", line 25, in <module>\nfrom .inference import create_pipeline, create_predictor\nFile \"/usr/local/lib/python3.12/site-packages/paddlex/inference/__init__.py\", line 16, in <module>\nfrom .models import create_predictor\nFile \"/usr/local/lib/python3.12/site-packages/paddlex/inference/models/__init__.py\", line 26, in <module>\nfrom .anomaly_detection import UadPredictor\nFile \"/usr/local/lib/python3.12/site-packages/paddlex/inference/models/anomaly_detection/__init__.py\", line 15, in <module>\nfrom .predictor import UadPredictor\nFile \"/usr/local/lib/python3.12/site-packages/paddlex/inference/models/anomaly_detection/predictor.py\", line 19, in <module>\nfrom ....modules.anomaly_detection.model_list import MODELS\nFile \"/usr/local/lib/python3.12/site-packages/paddlex/modules/__init__.py\", line 16, in <module>\nfrom .anomaly_detection import UadDatasetChecker, UadEvaluator, UadExportor, UadTrainer\nFile \"/usr/local/lib/python3.12/site-packages/paddlex/modules/anomaly_detection/__init__.py\", line 15, in <module>\nfrom .dataset_checker import UadDatasetChecker\nFile \"/usr/local/lib/python3.12/site-packages/paddlex/modules/anomaly_detection/dataset_checker/__init__.py\", line 21, in <module>\nfrom .dataset_src import anaylse_dataset, check_dataset, convert_dataset, split_dataset\nFile \"/usr/local/lib/python3.12/site-packages/paddlex/modules/anomaly_detection/dataset_checker/dataset_src/__init__.py\", line 17, in <module>\nfrom .check_dataset import check_dataset\nFile \"/usr/local/lib/python3.12/site-packages/paddlex/modules/anomaly_detection/dataset_checker/dataset_src/check_dataset.py\", line 26, in <module>\nfrom .utils.visualizer import visualize\nFile \"/usr/local/lib/python3.12/site-packages/paddlex/modules/anomaly_detection/dataset_checker/dataset_src/utils/visualizer.py\", line 21, in <module>\nimport cv2\nFile \"/usr/local/lib/python3.12/site-packages/cv2/__init__.py\", line 181, in <module>\nbootstrap()\nFile \"/usr/local/lib/python3.12/site-packages/cv2/__init__.py\", line 153, in bootstrap\nnative_module = importlib.import_module(\"cv2\")\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nFile \"/usr/local/lib/python3.12/importlib/__init__.py\", line 90, in import_module\nreturn _bootstrap._gcd_import(name[level:], package, level)\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nImportError: libGL.so.1: cannot open shared object file: No such file or directory",
+    "error": null
+  },
+  "importApiProven": false,
+  "modelAssetRequired": false,
+  "blocker": "paddleocr_import_blocked_missing_libGL_so_1",
+  "ocrInferenceRun": false,
+  "modelDownloadRun": false,
+  "modelAssetCopyRun": false,
+  "modelAssetUploadRun": false,
+  "localHostProbeRun": false,
+  "cpuOnly": true,
+  "gpuExecutionRun": false
+}

@@ -1,0 +1,54 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION",
+  "selectedPrimaryPackage": "fonts-noto-cjk",
+  "secondaryFallbackPackage": "fonts-noto-cjk-extra",
+  "packages": [
+    {
+      "name": "fonts-noto-cjk",
+      "source": "https://packages.debian.org/sid/fonts/fonts-noto-cjk",
+      "coverage": [
+        "Traditional Chinese",
+        "Simplified Chinese",
+        "Japanese",
+        "Korean"
+      ],
+      "families": [
+        "Noto Sans CJK",
+        "Noto Sans Mono CJK",
+        "Noto Serif CJK"
+      ],
+      "weights": "regular and bold",
+      "packageSizeKb": 55345.7,
+      "installedSizeKb": 91217.0,
+      "selectedForFutureExecution": true,
+      "selectionReason": "Covers the needed CJK font families with regular and bold weights at lower install size than the extra package."
+    },
+    {
+      "name": "fonts-noto-cjk-extra",
+      "source": "https://packages.debian.org/sid/fonts/fonts-noto-cjk-extra",
+      "coverage": [
+        "Traditional Chinese",
+        "Simplified Chinese",
+        "Japanese",
+        "Korean"
+      ],
+      "families": [
+        "Noto Sans CJK",
+        "Noto Sans Mono CJK",
+        "Noto Serif CJK"
+      ],
+      "weights": "all weights",
+      "dependsOn": "fonts-noto-cjk",
+      "packageSizeKb": 130982.1,
+      "installedSizeKb": 214826.0,
+      "selectedForFutureExecution": false,
+      "fallbackOnly": true,
+      "fallbackReason": "Use only if future proof shows regular/bold coverage is insufficient or an all-weight PaddleX path is required."
+    }
+  ],
+  "packageInstallApprovedNow": false,
+  "dockerfileMutationApprovedNow": false,
+  "dockerBuildApprovedNow": false,
+  "runtimeProofApprovedNow": false
+}

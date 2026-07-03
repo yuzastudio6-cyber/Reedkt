@@ -1,0 +1,35 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone4ColorImagePipelineApproval.ownershipConflict.v1",
+  "generatedAt": "2026-06-22T01:10:51.296Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_approval_passed_ready_for_cpu_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "1ad2899b7124232ca107e1a5a9ee1f5dc8edbc4c",
+  "trackBOwner": {
+    "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+    "lane": "TRACK_B_MEDIA_PROCESSING"
+  },
+  "tools": [
+    {
+      "id": "opencolorio",
+      "name": "OpenColorIO",
+      "trackBOwnsBoundedOssInstallProofTracking": true
+    },
+    {
+      "id": "openimageio",
+      "name": "OpenImageIO",
+      "trackBOwnsBoundedOssInstallProofTracking": true
+    }
+  ],
+  "trackAProColorImageRuntimeAuthority": "context_only_not_track_b_proof",
+  "aiGraphicsKorniaAuthority": "context_only_not_track_b_owner",
+  "historicalPrsContextOnly": [
+    543,
+    99,
+    63,
+    65,
+    67,
+    68
+  ],
+  "duplicateTrackBMilestone4ApprovalPrExists": false,
+  "conflictBlocksApproval": false
+}

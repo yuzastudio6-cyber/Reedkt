@@ -1,0 +1,57 @@
+# Batch 1 Closure Snapshot
+
+```json
+{
+  "schema": "reeditpro.openSourceToolStack.batch2PlanningAfterBatch1Rollup.batch1ClosureSnapshot.v1",
+  "generatedAt": "2026-06-18T20:46:34.133Z",
+  "status": "accepted",
+  "accepted": true,
+  "warnings": [
+    "planning_only_runtime_scopes_remain_blocked"
+  ],
+  "blockers": [],
+  "details": {
+    "acceptedProvenTargets": [
+      "Sharp/libvips import/version proof",
+      "DuckDB native rebuild import/API and in-memory query proof",
+      "Polars / nodejs-polars import/version and in-memory dataframe metadata proof",
+      "Route/capability manifest validation",
+      "Fixture/report validation",
+      "Open-source inventory/proof matrix validation",
+      "FFmpeg version proof only for Track A container path at 5.1.9-0+deb12u1",
+      "FFprobe version proof only for Track A container path at 5.1.9-0+deb12u1"
+    ],
+    "acceptedProvenToolIds": [
+      "sharp_libvips",
+      "duckdb",
+      "polars",
+      "ffmpeg",
+      "ffprobe",
+      "route_capability_manifest_validation",
+      "fixture_report_validation",
+      "open_source_inventory_proof_matrix_validation"
+    ],
+    "acceptedProvenCount": 8,
+    "doesNotProve": [
+      "40_plus_tools_end_to_end",
+      "media_processing",
+      "media_file_probing",
+      "caption_burn_in",
+      "render_export",
+      "worker_runtime",
+      "route_provider_runtime",
+      "supabase_gcs_public_signed_url_delivery",
+      "external_beta_or_production"
+    ],
+    "ffmpegFfprobeBoundary": {
+      "version": "5.1.9-0+deb12u1",
+      "trackAContainerPathOnly": true,
+      "mediaProcessingStillBlocked": true
+    },
+    "sourceEvidence": {
+      "pr522Decision": "docs/open-source-tool-stack/batch-1-final-rollup-after-ffmpeg-ffprobe-proof/batch-1-final-rollup-decision.json",
+      "pr522AcceptedMatrix": "docs/open-source-tool-stack/batch-1-final-rollup-after-ffmpeg-ffprobe-proof/batch-1-accepted-tools-matrix.json"
+    }
+  }
+}
+```

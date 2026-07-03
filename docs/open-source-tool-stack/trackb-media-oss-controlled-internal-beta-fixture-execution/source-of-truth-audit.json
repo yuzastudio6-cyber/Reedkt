@@ -1,0 +1,27 @@
+{
+  "schema": "trackb-media-oss-controlled-internal-beta-fixture-execution-source-audit.v1",
+  "generatedAt": "2026-06-25T14:45:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_controlled_internal_beta_fixture_execution_passed_ready_for_internal_beta_fixture_qa_review",
+  "sourceSha": "adae2badd12dbcbdef20f420b0684e0299482714",
+  "sourceEvidence": [
+    { "pr": 781, "state": "MERGED", "role": "internal_beta_fixture_gate_review" },
+    { "pr": 779, "state": "MERGED", "role": "controlled_internal_beta_dry_run" },
+    { "pr": 776, "state": "MERGED", "role": "tool_call_beta_readiness_rerun" },
+    { "pr": 771, "state": "MERGED", "role": "callable_worker_contracts" }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "scope": "synthetic_private_fixture_receipt_validation_only",
+  "nextPrompt": "TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_FIXTURE_QA_REVIEW",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

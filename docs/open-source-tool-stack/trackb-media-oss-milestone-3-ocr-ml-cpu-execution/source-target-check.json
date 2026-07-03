@@ -1,0 +1,28 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecution.sourceTargetCheck.v1",
+  "generatedAt": "2026-06-20T14:18:29.043Z",
+  "targetDockerfile": "docker/prod/ocr-runtime/Dockerfile",
+  "targetRequirements": "docker/prod/ocr-runtime/requirements.ocr.txt",
+  "dockerfileExists": true,
+  "requirementsExists": true,
+  "dockerfileCopiesRequirements": true,
+  "dockerfileCopiesOcrRuntime": true,
+  "dockerfileInstallsRequirements": true,
+  "packagePresence": {
+    "paddlepaddle==3.0.0": true,
+    "paddleocr==3.0.0": true
+  },
+  "allRequiredPackagesDeclared": true,
+  "envGuards": {
+    "modelDownloadsDisabled": true,
+    "realMediaInputDisabled": true,
+    "providerExecutionDisabled": true
+  },
+  "allRuntimeGuardsDeclared": true,
+  "buildContextGenerationRequired": false,
+  "packageLockMutationAllowed": false,
+  "requirementsMutationAllowed": false,
+  "dockerfileMutationAllowed": false,
+  "sourceTargetValid": true,
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_execution_blocked_by_paddlepaddle_import_or_api_shape"
+}

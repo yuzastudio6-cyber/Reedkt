@@ -1,0 +1,37 @@
+# Docker Build QA
+
+```json
+{
+  "schema": "reeditpro.openSourceToolStack.trackaDockerBuildProbeQa.dockerBuild.v1",
+  "generatedAt": "2026-06-18T17:20:38.139Z",
+  "status": "accepted",
+  "accepted": true,
+  "details": {
+    "expectedDockerBuildCommand": "docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 .",
+    "actualDockerBuildCommand": "docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8 .",
+    "imageTag": "reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-9225347e636a50aa0ef241badbf51f9a3947b1f8",
+    "dockerBuildExitCode": 0,
+    "dockerBuildStatus": "passed",
+    "dockerfilePath": "docker/prod/render-worker/Dockerfile",
+    "dockerfileHash": "5c74565f21853301c2ad159d7dccdb0dfb48e1d33d39ab55fe330f6a409310e9",
+    "packageLockMutation": false,
+    "dockerfileMutation": false,
+    "dockerignoreMutation": false,
+    "dockerImagePush": false,
+    "localImageCleanupPassed": true,
+    "protectedFileIntegrityPassed": true
+  },
+  "warnings": [
+    "media_processing_render_export_and_production_scope_remain_blocked"
+  ],
+  "blockers": [],
+  "followUp": "OPEN_SOURCE_TOOL_STACK_BATCH1_FINAL_ROLLUP_AFTER_FFMPEG_FFPROBE_PROOF",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "not_applicable",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}
+```

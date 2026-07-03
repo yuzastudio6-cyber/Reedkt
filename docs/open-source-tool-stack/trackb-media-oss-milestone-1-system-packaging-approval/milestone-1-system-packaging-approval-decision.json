@@ -1,0 +1,55 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone1SystemPackagingApproval.decision.v1",
+  "generatedAt": "2026-06-19T20:52:00.000Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "selectedTarget": "docker/prod/cpu-worker/Dockerfile",
+  "requiredPackages": [
+    "libimage-exiftool-perl",
+    "mediainfo",
+    "tesseract-ocr",
+    "tesseract-ocr-eng",
+    "imagemagick"
+  ],
+  "futureInstallCommands": [
+    "apt-get update",
+    "DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libimage-exiftool-perl mediainfo tesseract-ocr tesseract-ocr-eng imagemagick",
+    "rm -rf /var/lib/apt/lists/*"
+  ],
+  "futureVerificationCommands": [
+    "exiftool -ver",
+    "mediainfo --Version",
+    "tesseract --version",
+    "magick -version or convert -version, depending installed ImageMagick binary availability"
+  ],
+  "targetTools": [
+    "exiftool",
+    "mediainfo",
+    "tesseract",
+    "imagemagick"
+  ],
+  "graphicsMagickRole": "optional_fallback_not_default",
+  "packagingExecutionApprovedNow": false,
+  "packagingExecutionApprovedForFuturePr": true,
+  "endToEndProductReadyTools": 0,
+  "fortyPlusEndToEndClaimAllowed": false,
+  "blockedScopes": {
+    "packageInstallNow": false,
+    "dockerBuildRunNow": false,
+    "dockerRunNow": false,
+    "toolExecutionNow": false,
+    "mediaProcessingNow": false,
+    "renderExportNow": false,
+    "workerRouteProviderNow": false,
+    "supabaseGcsNow": false,
+    "betaProductionNow": false
+  }
+}

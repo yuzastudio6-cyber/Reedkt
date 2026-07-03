@@ -1,0 +1,21 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalInstallReview.systemBinaryContainerPolicy.v1",
+  "generatedAt": "2026-06-16T15:43:59.367Z",
+  "systemBinaryTargets": [
+    "ffmpeg",
+    "ffprobe"
+  ],
+  "installAllowedInThisReview": false,
+  "dockerfileMutationAllowedInThisReview": false,
+  "cloudBuildOrCloudRunMutationAllowedInThisReview": false,
+  "futureOwnerApprovalRequired": true,
+  "futureApprovalMustDefine": [
+    "runtime image or local binary source",
+    "LGPL/GPL/nonfree build flag review",
+    "version probe command",
+    "no-media proof boundary",
+    "worker handoff and rollback owner"
+  ],
+  "packageLockMutationExpected": false,
+  "passed": true
+}

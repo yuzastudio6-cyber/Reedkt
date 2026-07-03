@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecution.safetyScan.v1",
+  "generatedAt": "2026-06-20T14:18:29.043Z",
+  "forbiddenOutputsPresent": [],
+  "changedProtectedFiles": [],
+  "forbiddenFindings": [],
+  "packageLockHash": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+  "requirementsHash": "b51d22ad3d74ed41b11b27fd4db545e283c4b88147abd149dd20e0ae7b79d365",
+  "dockerfileHash": "04f0634f0ba596daf5e1dfbf22d08a419f66f8bff2fff54ae02e82fb8e5ec27d",
+  "generatedOutputsCommitted": false,
+  "modelFilesCommitted": false,
+  "mediaArtifactsCommitted": false,
+  "dockerImagePushed": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "cleanupPassed": true,
+  "passed": true,
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_execution_blocked_by_paddlepaddle_import_or_api_shape"
+}

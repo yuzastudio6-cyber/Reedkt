@@ -1,0 +1,24 @@
+{
+  "schema": "reeditpro.backendDatabaseBillingCreditLedgerReadinessPlan.v1",
+  "ownerId": "REEDITPRO_BACKEND_BILLING_STEWARD",
+  "decision": "reeditpro_backend_database_billing_credit_ledger_readiness_plan_passed_ready_for_worker_generation_export_e2e_readiness_plan",
+  "previousDecision": "reeditpro_observability_incident_support_readiness_plan_passed_ready_for_backend_database_billing_credit_ledger_readiness_plan",
+  "nextPrompt": "REEDITPRO_WORKER_GENERATION_EXPORT_E2E_READINESS_PLAN",
+  "sourceSha": "fdf364c3bbc5e5e91b464876063038dede5c61e1",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-backend-database-billing-credit-ledger-readiness-plan",
+  "report": "source-of-truth-audit",
+  "acceptedInputs": [
+    "docs/reeditpro-observability-incident-support-readiness-plan/",
+    "docs/reeditpro-private-storage-deletion-supabase-gcs-readiness-plan/",
+    "docs/reeditpro-model-license-security-cost-readiness-plan/",
+    "docs/reeditpro-deployment-rollback-readiness-plan/",
+    "docs/reeditpro-external-beta-production-readiness-remediation-plan/",
+    "product-plan.md"
+  ],
+  "supabaseChangelogChecked": "2026-06-26",
+  "readyForWorkerGenerationExportE2EReadinessPlan": true,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

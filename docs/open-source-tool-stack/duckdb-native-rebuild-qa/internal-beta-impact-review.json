@@ -1,0 +1,21 @@
+{
+  "schema": "reeditpro.openSourceToolStack.duckdbNativeRebuildQaReview.internalBetaImpactReview.v1",
+  "generatedAt": "2026-06-17T20:39:26.105Z",
+  "canUseDuckdbForLocalMetadataQueryValidation": true,
+  "canUsePolarsForLocalDataframeMetadataValidation": true,
+  "canUseFfmpegForMediaOrRenderLanes": false,
+  "canUseFfprobeForMediaOrRenderLanes": false,
+  "duckdbPolarsUsefulForInternalBetaMetadata": true,
+  "strengthenedClaims": [
+    "DuckDB local metadata/query validation is now installed/proven from PR #466 evidence.",
+    "Polars local dataframe metadata validation remains installed/proven from PR #455 evidence."
+  ],
+  "remainingBlockers": [
+    "FFmpeg system binary remains missing/unproven.",
+    "FFprobe system binary remains missing/unproven.",
+    "Media/render/audio lanes that require FFmpeg/FFprobe stay blocked pending system-binary review."
+  ],
+  "externalBetaAllowed": false,
+  "paidProductionAllowed": false,
+  "passed": true
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssControlledInternalBetaDryRun.sourceOfTruthAudit.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_controlled_internal_beta_dry_run_passed_ready_for_internal_beta_fixture_gate_review",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "87043e212109597e11e7dbd8599a146e4856cab6",
+  "sourceEvidence": [
+    {
+      "pr": 776,
+      "state": "MERGED",
+      "mergeCommit": "87043e212109597e11e7dbd8599a146e4856cab6",
+      "summary": "Track B tool-call beta readiness rerun passed ready for controlled internal dry-run planning."
+    },
+    {
+      "pr": 771,
+      "state": "MERGED",
+      "summary": "Callable worker contracts and disabled route metadata landed fail-closed."
+    },
+    {
+      "pr": 741,
+      "state": "MERGED",
+      "summary": "OpenColorIO and OpenImageIO bounded CPU import/API-shape evidence accepted."
+    }
+  ],
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "duplicateSearches": {
+    "TRACKB_MEDIA_OSS_CONTROLLED_INTERNAL_BETA_DRY_RUN": "none",
+    "TRACKB_MEDIA_OSS_INTERNAL_BETA_FIXTURE_GATE_REVIEW": "none"
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_INTERNAL_BETA_FIXTURE_GATE_REVIEW",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

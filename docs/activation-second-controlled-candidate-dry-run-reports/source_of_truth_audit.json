@@ -1,0 +1,185 @@
+{
+  "schema": "reeditpro.secondControlledCandidateDryRun.sourceOfTruthAudit.v1",
+  "createdAt": "2026-06-13T22:07:13.001Z",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "expectedSourceSha": "73c487e92de4f9b6d105c4d283debf50ea119c4a",
+  "currentBranch": "codex/rp-second-controlled-candidate-dry-run",
+  "currentSha": "73c487e92de4f9b6d105c4d283debf50ea119c4a",
+  "requiredPrEvidence": {
+    "387": {
+      "baseRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+      "headRefName": "codex/rp-tool-route-dry-run-approval-after-tool-study",
+      "headRefOid": "351845e0b7a79c339d428df2d9f44fccaaa4566a",
+      "isDraft": false,
+      "mergeStateStatus": "UNKNOWN",
+      "mergedAt": "2026-06-13T18:09:41Z",
+      "number": 387,
+      "state": "MERGED",
+      "title": "[tool-route] Tool-route dry-run approval packet",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/387"
+    },
+    "388": {
+      "baseRefName": "codex/rp-tool-route-dry-run-approval-after-tool-study",
+      "headRefName": "codex/rp-tool-route-metadata-dry-run-execution",
+      "headRefOid": "76f1cb629cddf433ab75684a57064fba86e0b041",
+      "isDraft": false,
+      "mergeStateStatus": "UNKNOWN",
+      "mergedAt": "2026-06-13T18:09:22Z",
+      "number": 388,
+      "state": "MERGED",
+      "title": "[tool-route] Tool-route metadata dry-run execution",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/388"
+    },
+    "394": {
+      "baseRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+      "headRefName": "codex/rp-controlled-tool-execution-approval-after-route-dry-run",
+      "headRefOid": "d10d020059a3a19846b0c4982d7a8e6223c68cb2",
+      "isDraft": false,
+      "mergeStateStatus": "UNKNOWN",
+      "mergedAt": "2026-06-13T19:15:34Z",
+      "number": 394,
+      "state": "MERGED",
+      "title": "[tool-route] Controlled tool execution approval packet",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/394"
+    },
+    "399": {
+      "baseRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+      "headRefName": "codex/rp-first-controlled-tool-execution-dry-run",
+      "headRefOid": "e411671193f0b28a4b34eae781f3866582750f80",
+      "isDraft": false,
+      "mergeStateStatus": "UNKNOWN",
+      "mergedAt": "2026-06-13T19:54:08Z",
+      "number": 399,
+      "state": "MERGED",
+      "title": "[tool-route] First controlled tool execution dry-run",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/399"
+    },
+    "402": {
+      "baseRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+      "headRefName": "codex/rp-next-controlled-candidate-or-worker-handoff-review",
+      "headRefOid": "eb0af4fd9ce1759d452f46ada63662c64f18b3e3",
+      "isDraft": false,
+      "mergeStateStatus": "UNKNOWN",
+      "mergedAt": "2026-06-13T20:57:16Z",
+      "number": 402,
+      "state": "MERGED",
+      "title": "[tool-route] Next controlled candidate or worker handoff review",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/402"
+    },
+    "407": {
+      "baseRefName": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+      "headRefName": "codex/rp-second-controlled-candidate-approval",
+      "headRefOid": "c1a32fda796517ebcc6d2348d18f97531b4b4da0",
+      "isDraft": false,
+      "mergeStateStatus": "UNKNOWN",
+      "mergedAt": "2026-06-13T21:41:31Z",
+      "number": 407,
+      "state": "MERGED",
+      "title": "[tool-route] Second controlled candidate approval packet",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/407"
+    }
+  },
+  "pr384DuplicateRisk": {
+    "status": "stale_reference_only_duplicate_risk",
+    "treatedAsSourceOfTruth": false,
+    "reuseBlocked": true,
+    "evidence": {
+      "baseRefName": "codex/rp-tool-route-2a-refresh-conflict-resolution-after-tool-route-1a",
+      "headRefName": "codex/rp-tool-route-3-offline-dry-run-approval-packet",
+      "headRefOid": "0e91380d2201e651c0c7df67624be015befa2db7",
+      "isDraft": true,
+      "mergeStateStatus": "CLEAN",
+      "mergedAt": null,
+      "number": 384,
+      "state": "OPEN",
+      "title": "[tool-route] TOOL-ROUTE-3 offline dry-run approval packet",
+      "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/384"
+    }
+  },
+  "duplicatePhasePrSearch": {
+    "searches": [
+      "SECOND_CONTROLLED_CANDIDATE_EXECUTION",
+      "second controlled candidate dry-run"
+    ],
+    "matches": [],
+    "selfBranchIgnored": "codex/rp-second-controlled-candidate-dry-run"
+  },
+  "docsPresence": {
+    "presentSourceDocs": [
+      "docs/second-controlled-candidate-approval.md",
+      "docs/second-controlled-candidate-approval-decision.md",
+      "docs/second-controlled-candidate-scope-review.md",
+      "docs/second-controlled-candidate-sound-music-audio-route-review.md",
+      "docs/tool-route-metadata-dry-run.md",
+      "docs/tool-route-metadata-dry-run-decision.md",
+      "docs/tool-route-dry-run-approval.md",
+      "docs/tool-studies/sound-music-audio-tool-study.md",
+      "docs/tool-studies/sound-music-audio-routing-policy.md",
+      "docs/tool-studies/sound-music-audio-handoff-contract.md",
+      "docs/cross-chat/CURRENT_HANDOFF.md",
+      "docs/cross-chat/NEXT_UNLOCK_LANES.md",
+      "docs/cross-chat/BLOCKED_SCOPES.md"
+    ],
+    "missingSourceDocs": [],
+    "missingOptionalStatusDocs": [
+      "docs/beta-readiness-scorecard.md",
+      "docs/production-beta-blocker-inventory.md",
+      "PRODUCTION_FOUNDATION_STATUS.md"
+    ],
+    "missingEvidenceDirectories": [
+      "docs/activation-worker-runtime-noop-dry-run-reports",
+      "docs/activation-model-orchestration-plan-snapshot-dry-run-reports",
+      "docs/activation-supabase-trackb-clean-staging-backfill-reports",
+      "docs/activation-track-b-tool-route-manifest-reports",
+      "docs/activation-track-b-capability-manifests-reports"
+    ],
+    "dependentReportScripts": {
+      "activation:worker-runtime-noop-dry-run:report": "missing_script_recorded_as_audit_fact",
+      "activation:model-orchestration-plan-snapshot-dry-run:report": "missing_script_recorded_as_audit_fact",
+      "activation:supabase-trackb-clean-staging-backfill:report": "missing_script_recorded_as_audit_fact",
+      "activation:track-b-tool-route-manifest:report": "missing_script_recorded_as_audit_fact",
+      "activation:track-b-capability-manifests:report": "missing_script_recorded_as_audit_fact"
+    },
+    "toolStudySourceOfTruthStatus": "source_of_truth_docs_present",
+    "routeCapabilityManifestStatus": "missing_local_report_directory_recorded_as_audit_fact"
+  },
+  "packageLockChanged": false,
+  "flags": {
+    "routeExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "githubPrMergeAllowed": false,
+    "secretPayloadAccessed": false,
+    "secretPayloadPrinted": false,
+    "secretPayloadCommitted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "Track B clean staging milestone sync completed and merged before this phase; this dry-run is metadata/report validation only.",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no",
+    "nextSupabaseAction": "none"
+  },
+  "decision": "second_controlled_candidate_dry_run_passed_ready_for_next_controlled_candidate_or_worker_handoff_review"
+}

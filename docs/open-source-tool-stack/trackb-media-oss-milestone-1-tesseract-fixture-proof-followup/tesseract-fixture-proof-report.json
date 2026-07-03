@@ -1,0 +1,49 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1TesseractFixtureFollowup.tesseractFixtureProof.v1",
+  "generatedAt": "2026-06-19T23:33:31.867Z",
+  "decision": "trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa",
+  "imageTag": "reeditpro-cpu-worker:trackb-milestone1-tesseract-followup-89f920212dfd35f3dece781473df36665073f4b2",
+  "skipped": false,
+  "proofDir": "/private/tmp/reeditpro-trackb-milestone1-tesseract-followup-proof-89f920212dfd35f3dece781473df36665073f4b2",
+  "cleaned": true,
+  "syntheticFixturesOnly": true,
+  "realUserMediaUsed": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "priorRejectedOutput": "REEDLTPRU",
+  "acceptedVariant": "dejavu_sans_bold_large_psm7",
+  "imageMagickFixtureGenerationPassed": true,
+  "tesseractFixtureProven": true,
+  "variants": [
+    {
+      "id": "dejavu_sans_bold_large_psm7",
+      "imageCommand": "convert",
+      "setupCommand": "docker run --rm --network none -v /private/tmp/reeditpro-trackb-milestone1-tesseract-followup-proof-89f920212dfd35f3dece781473df36665073f4b2:/proof --entrypoint convert reeditpro-cpu-worker:trackb-milestone1-tesseract-followup-89f920212dfd35f3dece781473df36665073f4b2 -size 1400x360 xc:white -gravity center -font DejaVu-Sans-Bold -pointsize 180 -fill black -annotate +0+0 REEDITPRO -colorspace Gray -threshold 55% /proof/reeditpro-dejavu-bold.png",
+      "setup": {
+        "command": "docker run --rm --network none -v /private/tmp/reeditpro-trackb-milestone1-tesseract-followup-proof-89f920212dfd35f3dece781473df36665073f4b2:/proof --entrypoint convert reeditpro-cpu-worker:trackb-milestone1-tesseract-followup-89f920212dfd35f3dece781473df36665073f4b2 -size 1400x360 xc:white -gravity center -font DejaVu-Sans-Bold -pointsize 180 -fill black -annotate +0+0 REEDITPRO -colorspace Gray -threshold 55% /proof/reeditpro-dejavu-bold.png",
+        "exitCode": 0,
+        "signal": null,
+        "durationMs": 245,
+        "stdoutSummary": "",
+        "stderrSummary": "",
+        "error": null
+      },
+      "tesseractCommand": "docker run --rm --network none -v /private/tmp/reeditpro-trackb-milestone1-tesseract-followup-proof-89f920212dfd35f3dece781473df36665073f4b2:/proof:ro --entrypoint tesseract reeditpro-cpu-worker:trackb-milestone1-tesseract-followup-89f920212dfd35f3dece781473df36665073f4b2 /proof/reeditpro-dejavu-bold.png stdout -l eng --psm 7",
+      "tesseract": {
+        "command": "docker run --rm --network none -v /private/tmp/reeditpro-trackb-milestone1-tesseract-followup-proof-89f920212dfd35f3dece781473df36665073f4b2:/proof:ro --entrypoint tesseract reeditpro-cpu-worker:trackb-milestone1-tesseract-followup-89f920212dfd35f3dece781473df36665073f4b2 /proof/reeditpro-dejavu-bold.png stdout -l eng --psm 7",
+        "exitCode": 0,
+        "signal": null,
+        "durationMs": 269,
+        "stdoutSummary": "REEDITPRO",
+        "stderrSummary": "",
+        "error": null
+      },
+      "expectedNormalizedOutput": "REEDITPRO",
+      "normalizedOutput": "REEDITPRO",
+      "exactMatch": true,
+      "fixtureHashes": {
+        "reeditpro-dejavu-bold.png": "1fcfb39728d732a8b6c6972595aab1e09ceb7e02cc0fa3bdd058c311fada935a"
+      }
+    }
+  ]
+}

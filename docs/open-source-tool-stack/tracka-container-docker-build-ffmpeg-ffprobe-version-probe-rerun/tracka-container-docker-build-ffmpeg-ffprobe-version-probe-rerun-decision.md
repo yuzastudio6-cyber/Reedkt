@@ -1,0 +1,7 @@
+# Track A Container Docker Build FFmpeg/FFprobe Version-Probe Rerun Decision
+
+Decision: `tracka_container_docker_build_ffmpeg_ffprobe_version_probe_rerun_passed_media_processing_still_blocked`
+
+Next prompt: `OPEN_SOURCE_TOOL_STACK_TRACKA_CONTAINER_DOCKER_BUILD_FFMPEG_FFPROBE_VERSION_PROBE_QA_REVIEW`
+
+Media processing and render/export remain blocked.

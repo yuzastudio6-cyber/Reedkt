@@ -1,0 +1,43 @@
+{
+  "schema": "reeditpro.secondControlledCandidateDryRun.observabilityCostAudit.v1",
+  "passed": true,
+  "runId": "second-controlled-candidate-dry-run-0001",
+  "correlationId": "corr-second-controlled-sound-fixture-report-validation",
+  "approvedPlanSnapshotId": "approved_plan_snapshot:second-controlled-sound-fixture-report-validation",
+  "selectedCandidateId": "controlled-tool:second_fixture_report_validation",
+  "selectedRouteId": "metadata-route:sound_music_audio",
+  "ownerStudyRefs": [
+    "docs/tool-studies/sound-music-audio-source-of-truth-audit.json",
+    "docs/tool-studies/sound-music-audio-routing-policy.md",
+    "docs/tool-studies/sound-music-audio-handoff-contract.md"
+  ],
+  "artifactManifestRefs": [
+    "manifest:synthetic-second-controlled-sound-fixture",
+    "checksum:synthetic-second-controlled-sound-fixture",
+    "private-gcs-ref:placeholder-only/no-upload"
+  ],
+  "noSecretLogs": true,
+  "noRawPrivatePayloadLogs": true,
+  "timeoutClass": "local_metadata_validation_short",
+  "costEstimateClass": "metadata_shape_only_no_charge",
+  "retryPolicy": "disabled_for_second_dry_run",
+  "failureStateMapping": {
+    "validation_failure": "blocked_pending_candidate_execution",
+    "guard_failure": "blocked_pending_selected_second_candidate_guard",
+    "sound_route_failure": "blocked_pending_sound_music_audio_fixture_validation",
+    "safety_failure": "rejected_due_runtime_safety_risk"
+  },
+  "auditEventShape": {
+    "eventName": "second_controlled_candidate_dry_run.completed",
+    "candidateId": "controlled-tool:second_fixture_report_validation",
+    "routeId": "metadata-route:sound_music_audio",
+    "correlationId": "corr-second-controlled-sound-fixture-report-validation",
+    "sideEffects": "none"
+  },
+  "abuseRateLimitControls": [
+    "single_selected_candidate_only",
+    "no_external_calls",
+    "no_retries",
+    "no_payload_logging"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "schema": "reeditpro.nextControlledCandidateOrWorkerHandoff.readinessReport.v1",
+  "createdAt": "2026-06-13T20:26:14.929Z",
+  "readiness": true,
+  "decision": "recommended_next_controlled_candidate_approval",
+  "firstControlledDryRunPassed": true,
+  "controlledApprovalPassed": true,
+  "routeMetadataDryRunPassed": true,
+  "routeApprovalPassed": true,
+  "recommendedCandidateSafe": true,
+  "workerHandoffReviewPassed": true,
+  "artifactSourceOfTruthReviewPassed": true,
+  "observabilityCostAuditReviewPassed": true,
+  "runtimeScopesBlocked": true
+}

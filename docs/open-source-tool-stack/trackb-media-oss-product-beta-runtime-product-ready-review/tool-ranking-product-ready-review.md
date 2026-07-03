@@ -1,0 +1,95 @@
+# Tool Ranking Product Ready Review
+
+Decision: `trackb_media_oss_product_beta_runtime_product_ready_review_blocked_pending_live_product_runtime_proof`.
+Previous decision: `trackb_media_oss_product_beta_runtime_controlled_activation_closeout_passed_ready_for_product_ready_review`.
+Next prompt: `TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_PLAN`.
+
+Track B totals: `16 owned / 16 bounded accepted-proven / 0 blocked-not-installed-proven / 0 product-ready`.
+Supabase classification: no write / environment none / SQL none / migration no.
+
+Product-ready review result: controlled activation evidence is accepted as source-of-truth metadata, but it does not prove real product behavior or live route/worker/tool execution safety end to end. Product-ready local OSS count remains `0`.
+
+Preserved use-case ranking:
+- metadata_probe: ffprobe > mediainfo > exiftool > duckdb > polars_nodejs_polars (blocked_pending_live_route_worker_dispatch_proof)
+- video_analysis: ffprobe > mediainfo > pyav > opencv > pyscenedetect (blocked_pending_live_route_worker_dispatch_and_media_safety_proof)
+- image_color_pipeline: sharp_libvips > opencolorio > openimageio > imagemagick > opencv (blocked_pending_live_route_worker_dispatch_and_image_safety_proof)
+- ocr_text_extraction: tesseract > paddlepaddle > paddleocr (blocked_pending_live_route_worker_dispatch_ocr_asset_and_privacy_proof)
+- high_risk_media_transform: ffmpeg (blocked_pending_explicit_transform_policy_and_live_dispatch_proof)
+
+```json
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_runtime_product_ready_review_blocked_pending_live_product_runtime_proof",
+  "previousDecision": "trackb_media_oss_product_beta_runtime_controlled_activation_closeout_passed_ready_for_product_ready_review",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-runtime-product-ready-review",
+  "sourceSha": "0c16ffe006d5a3ddcb91de922ee3f856cbbb3616",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "sourcePr": 915,
+  "sourceHead": "d053aa12d9fe38605db048386a4e0251fd5a3b31",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_RUNTIME_PRODUCT_READY_PROOF_PLAN",
+  "coveredToolCount": 16,
+  "deterministicRankingPreserved": true,
+  "useCaseMatrix": [
+    {
+      "useCase": "metadata_probe",
+      "order": [
+        "ffprobe",
+        "mediainfo",
+        "exiftool",
+        "duckdb",
+        "polars_nodejs_polars"
+      ],
+      "productReadyStatus": "blocked_pending_live_route_worker_dispatch_proof"
+    },
+    {
+      "useCase": "video_analysis",
+      "order": [
+        "ffprobe",
+        "mediainfo",
+        "pyav",
+        "opencv",
+        "pyscenedetect"
+      ],
+      "productReadyStatus": "blocked_pending_live_route_worker_dispatch_and_media_safety_proof"
+    },
+    {
+      "useCase": "image_color_pipeline",
+      "order": [
+        "sharp_libvips",
+        "opencolorio",
+        "openimageio",
+        "imagemagick",
+        "opencv"
+      ],
+      "productReadyStatus": "blocked_pending_live_route_worker_dispatch_and_image_safety_proof"
+    },
+    {
+      "useCase": "ocr_text_extraction",
+      "order": [
+        "tesseract",
+        "paddlepaddle",
+        "paddleocr"
+      ],
+      "productReadyStatus": "blocked_pending_live_route_worker_dispatch_ocr_asset_and_privacy_proof"
+    },
+    {
+      "useCase": "high_risk_media_transform",
+      "order": [
+        "ffmpeg"
+      ],
+      "productReadyStatus": "blocked_pending_explicit_transform_policy_and_live_dispatch_proof"
+    }
+  ],
+  "allRankingEntriesReadyForToolCallPolicyReview": true,
+  "allRankingEntriesProductReady": false,
+  "allRankingEntriesExecutionDisabled": true
+}
+```

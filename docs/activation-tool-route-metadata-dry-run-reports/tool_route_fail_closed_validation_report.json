@@ -1,0 +1,81 @@
+{
+  "schema": "reeditpro.toolRouteMetadataDryRun.failClosedValidation.v1",
+  "passed": true,
+  "failClosedOn": [
+    "missing approved plan snapshot",
+    "raw prompt input",
+    "edit-intents-only input",
+    "plan snapshot candidate input",
+    "provider response input",
+    "owner-study missing",
+    "route manifest missing",
+    "ambiguous route selection",
+    "invalid artifact scope",
+    "public artifact request",
+    "signed URL source-of-truth request",
+    "real tool execution request",
+    "worker execution request",
+    "provider/model call request",
+    "media/audio/render/image request",
+    "browser capture/map request",
+    "Supabase mutation",
+    "GCS upload",
+    "production mutation"
+  ],
+  "invalidRows": [
+    {
+      "fixtureId": "invalid_raw_prompt_route_request",
+      "inputKind": "raw_prompt",
+      "blockedReasons": [
+        "raw_prompt"
+      ],
+      "outcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "fixtureId": "invalid_direct_tool_execution_request",
+      "inputKind": "direct_tool_execution",
+      "blockedReasons": [
+        "direct_tool_execution"
+      ],
+      "outcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "fixtureId": "invalid_worker_execution_request",
+      "inputKind": "worker_execution",
+      "blockedReasons": [
+        "worker_execution"
+      ],
+      "outcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "fixtureId": "invalid_provider_model_call_request",
+      "inputKind": "provider_model_call",
+      "blockedReasons": [
+        "provider_model_call"
+      ],
+      "outcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "fixtureId": "invalid_public_artifact_signed_url_request",
+      "inputKind": "public_artifact_signed_url",
+      "blockedReasons": [
+        "public_artifact_signed_url"
+      ],
+      "outcome": "failed_closed",
+      "passed": true
+    },
+    {
+      "fixtureId": "invalid_broad_media_render_export_request",
+      "inputKind": "broad_media_render_export",
+      "blockedReasons": [
+        "broad_media_render_export"
+      ],
+      "outcome": "failed_closed",
+      "passed": true
+    }
+  ]
+}

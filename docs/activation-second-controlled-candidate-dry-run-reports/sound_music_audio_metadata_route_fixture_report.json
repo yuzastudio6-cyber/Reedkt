@@ -1,0 +1,50 @@
+{
+  "schema": "reeditpro.secondControlledCandidateDryRun.soundMusicAudioMetadataRouteFixture.v1",
+  "passed": true,
+  "fixtureId": "valid_sound_music_audio_metadata_route_candidate",
+  "routeCandidateId": "metadata-route:sound_music_audio",
+  "ownerLane": "SOUND_MUSIC_AUDIO",
+  "fixtureRow": {
+    "fixtureId": "valid_sound_music_audio_metadata_route_candidate",
+    "fixtureClass": "valid",
+    "owner": "SOUND_MUSIC_AUDIO",
+    "inputKind": "approved_plan_snapshot_v1",
+    "allFlagsBlocked": true,
+    "approvedSnapshotOk": true,
+    "expectedOutcomeOk": true,
+    "acceptedMetadataOnly": true,
+    "failedClosed": false
+  },
+  "routeRow": {
+    "fixtureId": "valid_sound_music_audio_metadata_route_candidate",
+    "owner": "SOUND_MUSIC_AUDIO",
+    "routeCandidateId": "metadata-route:sound_music_audio",
+    "routeCompatibility": "compatible_metadata_only",
+    "routeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "costCapacityClass": "metadata_estimate_only",
+    "passed": true
+  },
+  "routeMetadataOnly": true,
+  "audioProcessingAllowed": false,
+  "mediaProcessingAllowed": false,
+  "demucsRuntimeAllowed": false,
+  "deepFilterNetRealProcessingAllowed": false,
+  "signalsmithRealProcessingAllowed": false,
+  "noAudioPayloads": true,
+  "noPrivateMediaPayloads": true,
+  "noOutputArtifactsCreated": true,
+  "soundEvidence": {
+    "passed": true,
+    "status": "sound_music_audio_tool_study_passed_docs_only",
+    "routingPolicyPresent": true,
+    "handoffPresent": true,
+    "demucsRuntimeBlocked": true,
+    "deepFilterNetSignalsmithRealProcessingBlocked": true,
+    "runtimeFlagsFalse": true,
+    "soundMusicAudioRoutePresent": true,
+    "sourceAuditPresent": true
+  }
+}

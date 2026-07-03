@@ -1,0 +1,37 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssMilestone1SystemPackagingApproval.syntheticFixturePolicy.v1",
+  "generatedAt": "2026-06-19T20:52:00.000Z",
+  "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_SYSTEM_PACKAGING_EXECUTION",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "proofRunInThisPhase": false,
+  "realUserMediaAllowed": false,
+  "publicArtifactsAllowed": false,
+  "signedUrlsAllowed": false,
+  "fixtureArtifactsCommittedByDefault": false,
+  "tools": [
+    {
+      "id": "exiftool",
+      "proof": "tiny synthetic metadata-safe fixture read/write/read proof, or read-only metadata proof if write is unnecessary"
+    },
+    {
+      "id": "mediainfo",
+      "proof": "tiny synthetic safe media/container header fixture only"
+    },
+    {
+      "id": "tesseract",
+      "proof": "tiny synthetic image containing REEDITPRO text"
+    },
+    {
+      "id": "imagemagick",
+      "proof": "tiny synthetic identify/convert transform proof"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "reeditpro.openSourceToolStack.packageInstallScriptReview.readinessReport.v1",
+  "generatedAt": "2026-06-17T18:04:39.901Z",
+  "readiness": true,
+  "decision": "package_install_script_review_passed_ready_for_duckdb_native_rebuild_execution",
+  "readyForFutureDuckdbNativeRebuildExecution": true,
+  "lifecycleScriptsApprovedHere": false,
+  "blockers": []
+}

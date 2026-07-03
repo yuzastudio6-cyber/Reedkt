@@ -1,0 +1,22 @@
+{
+  "schema": "trackb-media-oss-limited-internal-beta-dry-run-monitoring-runtime-boundary.v1",
+  "generatedAt": "2026-06-25T16:25:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_dry_run_monitoring_passed_ready_for_monitoring_qa_review",
+  "runtimeApisChanged": false,
+  "routeRuntimeEnabled": false,
+  "workerDispatchEnabled": false,
+  "toolExecutionEnabled": false,
+  "dockerRun": false,
+  "installRun": false,
+  "mediaProcessingRun": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "supabaseGcsTouched": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

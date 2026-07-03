@@ -1,0 +1,33 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssInstallProofMilestonePlan.decision.v1",
+  "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "ownedTools": 16,
+  "acceptedProvenBounded": 5,
+  "blockedNotInstalledProven": 11,
+  "endToEndProductReady": 0,
+  "fortyPlusEndToEndClaimAllowed": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION",
+  "milestone1FutureExecutionApproved": true,
+  "executionRunInThisPhase": false,
+  "dependencyInstallRunInThisPhase": false,
+  "packageLockMutationAllowed": false,
+  "dockerRunInThisPhase": false,
+  "ffmpegFfprobeRunInThisPhase": false,
+  "mediaProcessingAccepted": false,
+  "renderExportAccepted": false,
+  "workerRuntimeAccepted": false,
+  "routeProviderRuntimeAccepted": false,
+  "supabaseGcsPublicDeliveryAccepted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "rawPromptExecutionAccepted": false,
+  "externalBetaUnlocked": false,
+  "productionUnlocked": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

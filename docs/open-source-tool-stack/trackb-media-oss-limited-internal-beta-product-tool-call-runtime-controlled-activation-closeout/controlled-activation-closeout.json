@@ -1,0 +1,25 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_controlled_activation_closeout_passed_ready_for_limited_internal_activation_approval",
+  "closeoutAccepted": true,
+  "controlledActivationExecutionAccepted": true,
+  "controlledActivationQaAccepted": true,
+  "coveredToolCount": 16,
+  "boundedAcceptedProvenCount": 16,
+  "blockedNotInstalledProvenCount": 0,
+  "productReadyCount": 0,
+  "closedSequence": [
+    "runtime_control_plan",
+    "runtime_control_approval",
+    "controlled_activation_execution",
+    "controlled_activation_qa_review"
+  ],
+  "readyForLimitedInternalActivationApproval": true,
+  "liveActivationApproved": false,
+  "readyForDirectProductToolCalls": false,
+  "readyForLiveBetaRuntime": false,
+  "externalBetaReady": false,
+  "productionReady": false,
+  "productReady": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_LIMITED_INTERNAL_ACTIVATION_APPROVAL"
+}

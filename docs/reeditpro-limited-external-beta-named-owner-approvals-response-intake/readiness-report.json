@@ -1,0 +1,16 @@
+{
+  "schema": "reeditpro.limitedExternalBetaNamedOwnerApprovalsResponseIntake.v1",
+  "ownerId": "REEDITPRO_LIMITED_EXTERNAL_BETA_OWNER_APPROVAL_STEWARD",
+  "decision": "reeditpro_limited_external_beta_named_owner_approvals_response_intake_blocked_pending_submitted_owner_responses",
+  "previousDecision": "reeditpro_limited_external_beta_named_owner_approvals_request_passed_ready_for_owner_response_intake",
+  "nextPrompt": "REEDITPRO_LIMITED_EXTERNAL_BETA_SUBMIT_NAMED_OWNER_APPROVAL_RESPONSES",
+  "sourceSha": "6587fa5e4edf0389326eef6f47e0b97c093032da",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-limited-external-beta-named-owner-approvals-response-intake",
+  "report": "readiness-report",
+  "readyForSubmittedOwnerResponses": true,
+  "readyForLimitedExternalBetaActivationPlan": false,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

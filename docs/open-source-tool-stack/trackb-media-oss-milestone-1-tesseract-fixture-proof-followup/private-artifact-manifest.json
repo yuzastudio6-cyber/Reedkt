@@ -1,0 +1,11 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone1TesseractFixtureFollowup.privateManifest.v1",
+  "generatedAt": "2026-06-19T23:33:31.867Z",
+  "decision": "trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa",
+  "reportsDirectory": "docs/open-source-tool-stack/trackb-media-oss-milestone-1-tesseract-fixture-proof-followup",
+  "generatedBuildContextOutputsCommitted": false,
+  "fixtureOutputsCommitted": false,
+  "localDockerImagePushed": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false
+}

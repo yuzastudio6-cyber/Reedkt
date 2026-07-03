@@ -1,0 +1,52 @@
+{
+  "schema": "reeditpro.observabilityIncidentSupportReadinessPlan.v1",
+  "ownerId": "REEDITPRO_OPERATIONS_SUPPORT_STEWARD",
+  "decision": "reeditpro_observability_incident_support_readiness_plan_passed_ready_for_backend_database_billing_credit_ledger_readiness_plan",
+  "previousDecision": "reeditpro_private_storage_deletion_supabase_gcs_readiness_plan_passed_ready_for_observability_incident_support_readiness_plan",
+  "nextPrompt": "REEDITPRO_BACKEND_DATABASE_BILLING_CREDIT_LEDGER_READINESS_PLAN",
+  "sourceSha": "3e59b46d3e261388b029cd8bbb15eca99fbb909d",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "reportDirectory": "docs/reeditpro-observability-incident-support-readiness-plan",
+  "report": "log-metric-error-coverage",
+  "requiredLogCoverage": [
+    "request id and approved plan version id",
+    "auth/session boundary without secrets",
+    "upload/import lifecycle event",
+    "credit estimate approval event",
+    "credit reservation/spend/refund event",
+    "worker dispatch state transition",
+    "provider request boundary without prompt secrets",
+    "render/export state transition",
+    "storage object lifecycle event",
+    "signed URL issuance audit event",
+    "deletion request and completion event",
+    "support escalation audit event"
+  ],
+  "requiredMetrics": [
+    "api error rate by route class",
+    "queue age and worker success rate",
+    "provider latency and failure rate",
+    "credit ledger mismatch count",
+    "storage upload and delete failure count",
+    "render/export failure count",
+    "signed URL issuance count and failure count",
+    "external beta allowlist user error rate",
+    "cost budget burn and kill-switch state"
+  ],
+  "requiredErrorCoverage": [
+    "frontend plan approval failure",
+    "backend API validation failure",
+    "billing/credit ledger failure",
+    "worker dispatch failure",
+    "provider failure",
+    "storage/GCS failure",
+    "render/export failure",
+    "deletion/retention failure",
+    "incident escalation failure"
+  ],
+  "telemetryProvidersConnected": false,
+  "liveTelemetryEmitted": false,
+  "readyForExternalBeta": false,
+  "readyForProduction": false,
+  "supabaseClassification": "no write / environment none / SQL none / migration no"
+}

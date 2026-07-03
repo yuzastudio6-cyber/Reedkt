@@ -1,0 +1,41 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaContainerFfmpegFfprobeVersionProbe.preExecutionValidation.v1",
+  "generatedAt": "2026-06-18T02:19:28.389Z",
+  "checks": {
+    "pr490BlockerResolutionDecision": true,
+    "pr490FutureBuildCommandTemplate": true,
+    "pr490FutureFfmpegCommandTemplate": true,
+    "pr490FutureFfprobeCommandTemplate": true,
+    "pr481ApprovalDecision": true,
+    "pr477SourceDecision": true,
+    "pr472ReviewDecision": true,
+    "duckdbQaAccepted": true,
+    "duckdbExecutionPassed": true,
+    "polarsProofPresent": true,
+    "dockerfilePresent": true,
+    "exactContainerInvocationPresent": true,
+    "localHostProbeBlocked": true,
+    "mediaInputBlocked": true
+  },
+  "passedForProbeExecution": true,
+  "exactCommandsRequired": [
+    "docker build -f docker/prod/render-worker/Dockerfile -t reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f .",
+    "docker run --rm --network none --entrypoint ffmpeg reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f -version",
+    "docker run --rm --network none --entrypoint ffprobe reeditpro-render-worker:tracka-ffmpeg-ffprobe-probe-2f6ab6463870dc12d6837dc71f816ad5eefcd88f -version"
+  ],
+  "validationCommandsRequiredExternally": [
+    "npm ci --ignore-scripts --no-audit --no-fund",
+    "npm run open-source-tool-stack:tracka-container-ffmpeg-ffprobe-blocker-resolution:diagnostics",
+    "npm run open-source-tool-stack:tracka-container-ffmpeg-ffprobe-version-probe:diagnostics",
+    "npm run open-source-tool-stack:ffmpeg-ffprobe-version-probe-approval:diagnostics",
+    "npm run tracka:ffmpeg-ffprobe-source-of-truth:diagnostics",
+    "npm run open-source-tool-stack:ffmpeg-ffprobe-system-binary-review:diagnostics",
+    "npm run open-source-tool-stack:duckdb-native-rebuild:qa:diagnostics",
+    "npm run open-source-tool-stack:duckdb-native-rebuild:diagnostics",
+    "npm run open-source-tool-stack:missing-optional-package-binary-execution:diagnostics",
+    "npm run open-source-tool-stack:batch-1:qa-review:diagnostics",
+    "npm run open-source-tool-stack:batch-1:execution:diagnostics",
+    "npm run dependency-baseline:repair-before-tool-batch-1:diagnostics",
+    "npm run open-source-tool-stack:audit:diagnostics"
+  ]
+}

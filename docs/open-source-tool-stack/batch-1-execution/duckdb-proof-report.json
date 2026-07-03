@@ -1,0 +1,24 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch1Execution.duckdb_metadata_query_proof.v1",
+  "generatedAt": "2026-06-16T14:10:44.854Z",
+  "targetId": "duckdb_metadata_query_proof",
+  "targetName": "DuckDB",
+  "status": "blocked_missing_dependency_or_module",
+  "passed": false,
+  "optional": true,
+  "commandClass": "python_import_version_and_in_memory_metadata_query",
+  "installAttempted": false,
+  "packageLockMutationAttempted": false,
+  "mediaProcessingAttempted": false,
+  "stdoutPreview": "",
+  "stderrPreview": "Traceback (most recent call last): File \"<string>\", line 1, in <module> import json, duckdb; con = duckdb.connect(':memory:'); con.execute('create table metadata_fixture(id varchar, owner varchar)'); con.execute(\"insert into metadata_fixture values ('batch_1', 'OPEN_SOURCE_TOOL_STACK')\"); row_count = con.execute('select count(*) from metadata_fixture').fetchone()[0]; print(json.dumps({'version': getattr(duckdb, '__version__', None), 'rowCount': row_count, 'storage': 'in_memory'})) ^^^^^^^^^^^^^^^^^^^ ModuleNotFoundError: No module named 'duckdb'",
+  "blocker": "blocked_missing_dependency_or_module",
+  "details": {
+    "noInstall": true,
+    "noPackageLockMutation": true,
+    "noPrivateData": true,
+    "noNetwork": true,
+    "noSupabase": true,
+    "noGcs": true
+  }
+}

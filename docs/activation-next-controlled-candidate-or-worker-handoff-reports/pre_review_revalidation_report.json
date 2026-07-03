@@ -1,0 +1,101 @@
+{
+  "schema": "reeditpro.nextControlledCandidateOrWorkerHandoff.preReviewRevalidation.v1",
+  "createdAt": "2026-06-13T20:26:14.929Z",
+  "pr399Merged": true,
+  "pr394Merged": true,
+  "pr388Merged": true,
+  "pr387Merged": true,
+  "pr384ReferenceOnly": true,
+  "firstControlledEvidence": {
+    "passed": true,
+    "decision": "first_controlled_tool_execution_dry_run_passed_ready_for_next_controlled_candidate_or_worker_handoff_review",
+    "readiness": true,
+    "selectedCandidate": {
+      "candidateId": "controlled-tool:first_fixture_report_validation",
+      "candidateClass": "fixture_report_validation_route",
+      "owner": "CONTROLLED_TOOL_EXECUTION",
+      "sourceFixtureId": "valid_track_b_metadata_route_candidate",
+      "sourceRouteCandidateId": "metadata-route:track_b_media_processing",
+      "approvedPlanSnapshotRef": "private://approved-plan-snapshot/first-controlled-tool-fixture-report-validation",
+      "privatePlaceholderRefs": [
+        "private://manifest/first-controlled-tool-fixture-report-validation",
+        "private://checksum/first-controlled-tool-fixture-report-validation"
+      ],
+      "selectedForFirstControlledDryRun": true,
+      "executionFlags": {
+        "routeExecutionAllowed": false,
+        "runtimeExecutionAllowed": false,
+        "toolExecutionAllowed": false,
+        "workerExecutionAllowed": false,
+        "providerExecutionAllowed": false,
+        "mediaProcessingAllowed": false,
+        "audioProcessingAllowed": false,
+        "renderExecutionAllowed": false,
+        "exportExecutionAllowed": false,
+        "imageGenerationAllowed": false,
+        "imageEditingAllowed": false,
+        "browserCaptureAllowed": false,
+        "mapRenderingAllowed": false,
+        "supabaseWritesAllowed": false,
+        "sqlAllowed": false,
+        "gcsUploadAllowed": false,
+        "publicArtifactsAllowed": false,
+        "signedUrlsAsSourceOfTruthAllowed": false,
+        "dependencyMutationAllowed": false,
+        "rawPromptExecutionAllowed": false,
+        "externalBetaUnlockAllowed": false,
+        "paidProductionUnlockAllowed": false,
+        "productionUnlockAllowed": false,
+        "githubPrMergeAllowed": false,
+        "secretPayloadAccessed": false,
+        "secretPayloadPrinted": false,
+        "secretPayloadCommitted": false
+      }
+    },
+    "blockers": [],
+    "sourceReportsPresent": true
+  },
+  "controlledApprovalEvidence": {
+    "passed": true,
+    "decision": "approved_for_future_first_controlled_tool_execution_dry_run",
+    "readiness": true,
+    "selectedFirstCandidate": {
+      "candidateId": "controlled-tool:first_fixture_report_validation",
+      "candidateClass": "fixture_report_validation_route",
+      "sourceFixtureId": "valid_track_b_metadata_route_candidate",
+      "sourceRouteCandidateId": "metadata-route:track_b_media_processing",
+      "selectedForFirstControlledDryRun": true
+    },
+    "blockers": [],
+    "sourceReportsPresent": true
+  },
+  "routeMetadataEvidence": {
+    "passed": true,
+    "decision": "tool_route_metadata_dry_run_passed_ready_for_controlled_tool_execution_approval",
+    "readiness": true,
+    "blockers": [],
+    "sourceReportsPresent": true,
+    "recommendedResolutionPresent": true,
+    "recommendedFixturePresent": true
+  },
+  "routeApprovalEvidence": {
+    "passed": true,
+    "decision": "approved_for_future_tool_route_metadata_dry_run_execution",
+    "blockers": [],
+    "sourceReportsPresent": true
+  },
+  "optionalDependentScripts": {
+    "activation:worker-runtime-noop-dry-run:report": "missing_local_script_audit_fact",
+    "activation:model-orchestration-plan-snapshot-dry-run:report": "missing_local_script_audit_fact",
+    "activation:supabase-trackb-clean-staging-backfill:report": "missing_local_script_audit_fact"
+  },
+  "missingOptionalEvidenceRecordedAsAuditFacts": [
+    "docs/activation-worker-runtime-noop-dry-run-reports",
+    "docs/activation-model-orchestration-plan-snapshot-dry-run-reports",
+    "docs/activation-supabase-trackb-clean-staging-backfill-reports",
+    "docs/activation-track-b-tool-route-manifest-reports",
+    "docs/activation-track-b-capability-manifests-reports"
+  ],
+  "packageLockChanged": false,
+  "blockedScopesPreserved": true
+}

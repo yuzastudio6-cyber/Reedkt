@@ -1,0 +1,31 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuExecution.paddlePaddleProof.v1",
+  "generatedAt": "2026-06-20T14:18:29.043Z",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_execution_blocked_by_paddlepaddle_import_or_api_shape",
+  "skipped": false,
+  "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-cpu-3cc82ddad41854860a4b06421dc9e22e74a1435f",
+  "importVersion": {
+    "command": "docker run --rm --network none --entrypoint python reeditpro-ocr-runtime:trackb-milestone3-cpu-3cc82ddad41854860a4b06421dc9e22e74a1435f -c import json, paddle; print(json.dumps({'tool':'paddlepaddle','version':paddle.__version__,'compiled_with_cuda':bool(paddle.device.is_compiled_with_cuda())}))",
+    "exitCode": 1,
+    "signal": null,
+    "durationMs": 578,
+    "stdoutSummary": "",
+    "stderrSummary": "Error: Can not import paddle core while this file exists: /usr/local/lib/python3.12/site-packages/paddle/base/libpaddle.so\nTraceback (most recent call last):\nFile \"/usr/local/lib/python3.12/site-packages/paddle/base/core.py\", line 267, in <module>\nfrom . import libpaddle\nImportError: libgomp.so.1: cannot open shared object file: No such file or directory\nDuring handling of the above exception, another exception occurred:\nTraceback (most recent call last):\nFile \"<string>\", line 1, in <module>\nFile \"/usr/local/lib/python3.12/site-packages/paddle/__init__.py\", line 38, in <module>\nfrom .base import core  # noqa: F401\n^^^^^^^^^^^^^^^^^^^^^^\nFile \"/usr/local/lib/python3.12/site-packages/paddle/base/__init__.py\", line 38, in <module>\nfrom . import (  # noqa: F401\nFile \"/usr/local/lib/python3.12/site-packages/paddle/base/backward.py\", line 28, in <module>\nfrom . import core, framework, log_helper, unique_name\nFile \"/usr/local/lib/python3.12/site-packages/paddle/base/core.py\", line 382, in <module>\nif not avx_supported() and libpaddle.is_compiled_with_avx():\n^^^^^^^^^\nNameError: name 'libpaddle' is not defined",
+    "error": null
+  },
+  "tensorDevice": {
+    "command": "docker run --rm --network none --entrypoint python reeditpro-ocr-runtime:trackb-milestone3-cpu-3cc82ddad41854860a4b06421dc9e22e74a1435f -c import json, paddle; x=paddle.to_tensor([1,2,3], dtype='int64'); print(json.dumps({'tool':'paddlepaddle','tensor':x.numpy().tolist(),'device':paddle.device.get_device(),'place':str(x.place)}))",
+    "exitCode": 1,
+    "signal": null,
+    "durationMs": 234,
+    "stdoutSummary": "",
+    "stderrSummary": "Error: Can not import paddle core while this file exists: /usr/local/lib/python3.12/site-packages/paddle/base/libpaddle.so\nTraceback (most recent call last):\nFile \"/usr/local/lib/python3.12/site-packages/paddle/base/core.py\", line 267, in <module>\nfrom . import libpaddle\nImportError: libgomp.so.1: cannot open shared object file: No such file or directory\nDuring handling of the above exception, another exception occurred:\nTraceback (most recent call last):\nFile \"<string>\", line 1, in <module>\nFile \"/usr/local/lib/python3.12/site-packages/paddle/__init__.py\", line 38, in <module>\nfrom .base import core  # noqa: F401\n^^^^^^^^^^^^^^^^^^^^^^\nFile \"/usr/local/lib/python3.12/site-packages/paddle/base/__init__.py\", line 38, in <module>\nfrom . import (  # noqa: F401\nFile \"/usr/local/lib/python3.12/site-packages/paddle/base/backward.py\", line 28, in <module>\nfrom . import core, framework, log_helper, unique_name\nFile \"/usr/local/lib/python3.12/site-packages/paddle/base/core.py\", line 382, in <module>\nif not avx_supported() and libpaddle.is_compiled_with_avx():\n^^^^^^^^^\nNameError: name 'libpaddle' is not defined",
+    "error": null
+  },
+  "importVersionProven": false,
+  "tensorDeviceProven": false,
+  "localHostProbeRun": false,
+  "cpuOnly": true,
+  "gpuExecutionRun": false,
+  "modelAssetsUsed": false
+}

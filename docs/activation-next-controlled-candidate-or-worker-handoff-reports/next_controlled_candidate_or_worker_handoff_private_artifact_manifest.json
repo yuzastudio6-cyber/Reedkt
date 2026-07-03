@@ -1,0 +1,32 @@
+{
+  "schema": "reeditpro.nextControlledCandidateOrWorkerHandoff.privateArtifactManifest.v1",
+  "createdAt": "2026-06-13T20:26:14.929Z",
+  "reportPaths": [
+    "docs/activation-next-controlled-candidate-or-worker-handoff-reports/source_of_truth_audit.json",
+    "docs/activation-next-controlled-candidate-or-worker-handoff-reports/pre_review_revalidation_report.json",
+    "docs/activation-next-controlled-candidate-or-worker-handoff-reports/evidence_inventory.json",
+    "docs/activation-next-controlled-candidate-or-worker-handoff-reports/controlled_candidate_inventory.json",
+    "docs/activation-next-controlled-candidate-or-worker-handoff-reports/next_candidate_risk_ranking.json",
+    "docs/activation-next-controlled-candidate-or-worker-handoff-reports/worker_handoff_readiness_review.json",
+    "docs/activation-next-controlled-candidate-or-worker-handoff-reports/artifact_source_of_truth_review.json",
+    "docs/activation-next-controlled-candidate-or-worker-handoff-reports/observability_cost_audit_review.json",
+    "docs/activation-next-controlled-candidate-or-worker-handoff-reports/next_controlled_candidate_or_worker_handoff_decision.json",
+    "docs/activation-next-controlled-candidate-or-worker-handoff-reports/next_controlled_candidate_or_worker_handoff_blocker_report.json",
+    "docs/activation-next-controlled-candidate-or-worker-handoff-reports/next_controlled_candidate_or_worker_handoff_readiness_report.json",
+    "docs/activation-next-controlled-candidate-or-worker-handoff-reports/next_controlled_candidate_or_worker_handoff_private_artifact_manifest.json"
+  ],
+  "docPaths": [
+    "docs/next-controlled-candidate-or-worker-handoff-review.md",
+    "docs/next-controlled-candidate-inventory.md",
+    "docs/next-controlled-candidate-risk-ranking.md",
+    "docs/worker-handoff-readiness-after-first-controlled-tool.md",
+    "docs/next-controlled-candidate-or-worker-handoff-decision.md",
+    "docs/implementation-prompts/prompt-second-controlled-tool-candidate-approval.md"
+  ],
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "gcsUploads": false,
+  "privatePayloadsCommitted": false,
+  "buildOutputCommitted": false,
+  "packageLockChanged": false
+}

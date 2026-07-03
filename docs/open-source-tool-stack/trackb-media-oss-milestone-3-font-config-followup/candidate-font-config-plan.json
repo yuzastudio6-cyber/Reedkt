@@ -1,0 +1,33 @@
+{
+  "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+  "phase": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "sourceSha": "edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+  "candidates": [
+    {
+      "id": "candidate_a_runtime_env",
+      "status": "selected",
+      "mechanism": "PADDLE_PDX_LOCAL_FONT_FILE_PATH",
+      "value": "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+      "sourceSupported": true,
+      "noAssetOperation": true
+    },
+    {
+      "id": "candidate_b_cache_path_preconfiguration",
+      "status": "not_used",
+      "reason": "Not needed because source-supported local font env var passed"
+    },
+    {
+      "id": "candidate_c_lower_level_import_path",
+      "status": "not_used",
+      "reason": "Not needed because normal PaddleOCR import/API-shape passed with local font env var"
+    },
+    {
+      "id": "candidate_d_blocked_hardcoded_fetch",
+      "status": "not_selected",
+      "reason": "PaddleX exposes a safe local-font override before the fetch path"
+    }
+  ],
+  "symlinkOrCopyUsed": false,
+  "exactPingFangUsed": false
+}

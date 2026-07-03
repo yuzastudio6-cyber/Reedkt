@@ -1,0 +1,73 @@
+{
+  "schema": "reeditpro.secondControlledCandidateDryRun.approvedPlanSnapshotFixture.v1",
+  "passed": true,
+  "approvedPlanSnapshotId": "approved_plan_snapshot:second-controlled-sound-fixture-report-validation",
+  "approvedPlanSnapshotRef": "approved_plan_snapshot_v1:synthetic-second-controlled-sound-fixture",
+  "snapshotSchema": "approved_plan_snapshot_v1",
+  "immutableSnapshot": true,
+  "approvedScope": [
+    "controlled-tool:second_fixture_report_validation"
+  ],
+  "selectedRoute": "metadata-route:sound_music_audio",
+  "rejectedInputKinds": [
+    "raw_prompt",
+    "edit_intents_v1_only",
+    "plan_snapshot_candidate_v1",
+    "provider_response",
+    "private_payload",
+    "media_payload",
+    "audio_payload"
+  ],
+  "rawPromptExecutionAllowed": false,
+  "signedUrlsAsSourceOfTruth": false,
+  "publicArtifactsAllowed": false,
+  "artifactScope": "private_metadata_only",
+  "sourceOfTruthRefs": {
+    "approvedPlanSnapshotRef": "approved_plan_snapshot_v1:synthetic-second-controlled-sound-fixture",
+    "manifestRefs": [
+      "manifest:synthetic-second-controlled-sound-fixture"
+    ],
+    "checksumRefs": [
+      "checksum:synthetic-second-controlled-sound-fixture"
+    ],
+    "futureSupabaseRowRefs": [
+      "metadata-only-placeholder:no-write"
+    ],
+    "privateGcsPathRefs": [
+      "private-gcs-ref:placeholder-only/no-upload"
+    ]
+  },
+  "noRealUserPrivateMediaAudioPayloads": true,
+  "noProviderData": true,
+  "noSupabaseOrGcsWriteRefsExecuted": true,
+  "placeholderRefsOnly": true,
+  "flags": {
+    "routeExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "githubPrMergeAllowed": false,
+    "secretPayloadAccessed": false,
+    "secretPayloadPrinted": false,
+    "secretPayloadCommitted": false
+  }
+}

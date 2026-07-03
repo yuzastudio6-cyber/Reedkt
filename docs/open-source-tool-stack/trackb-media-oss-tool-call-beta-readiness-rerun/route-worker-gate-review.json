@@ -1,0 +1,22 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOssToolCallBetaReadinessRerun.routeWorkerGateReview.v1",
+  "generatedAt": "2026-06-25T00:00:00.000Z",
+  "decision": "trackb_media_oss_tool_call_beta_readiness_rerun_passed_ready_for_controlled_internal_beta_dry_run",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "routeIds": [
+    "trackbMediaOss.toolCall.validate",
+    "trackbMediaOss.toolCall.queue",
+    "trackbMediaOss.toolCall.status"
+  ],
+  "routeStatus": "disabled",
+  "workerRuntimeMode": "backend_required",
+  "approvedSnapshotGateRequired": true,
+  "creditGateRequired": true,
+  "privateArtifactGateRequired": true,
+  "qaGateRequired": true,
+  "fallbackPolicyRequired": true,
+  "sanitizedResultSchemaRequired": true,
+  "frontendDirectCallAllowed": false,
+  "workerDispatchAllowedNow": false,
+  "toolExecutionAllowedNow": false
+}

@@ -1,0 +1,146 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3ExactFontAssetSourceReview.sourceAudit.v1",
+  "decision": "trackb_media_oss_milestone3_exact_font_asset_source_review_blocked_pending_font_license_review",
+  "generatedAt": "2026-06-20T20:05:00.000Z",
+  "sourceSha": "d4dce081f32c236b1442263d1d3889b1f9ab9db9",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "implementationBranch": "codex/rp-trackb-media-oss-milestone-3-exact-font-asset-source-review",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "ownerName": "Track B Media OSS Steward",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "requestedAsset": "PingFang-SC-Regular.ttf",
+  "sourceComponent": "PaddleX font assets",
+  "currentBlocker": "font_license_not_proven_for_exact_asset",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_SOURCE_LICENSE_FOLLOWUP",
+  "predecessorEvidence": [
+    {
+      "pr": 606,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T19:11:30Z",
+      "head": "309e5fab3b696b9e849f071a7bb9cffcd675d727",
+      "decision": "trackb_media_oss_milestone3_model_asset_approval_passed_ready_for_exact_asset_source_review",
+      "evidence": "PR #606 selected exact font asset source review because PingFang-SC-Regular.ttf source, license, checksum, and staging policy were not proven."
+    },
+    {
+      "pr": 600,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T18:29:54Z",
+      "head": "32d11b945fb691893d0af0d0ebc1ae6f593ed5b7",
+      "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_followup_blocked_by_model_asset_required",
+      "evidence": "PaddleOCR advanced past shared-library blockers and attempted to fetch PingFang-SC-Regular.ttf from PaddleX font assets under --network none; no asset operation or OCR inference occurred."
+    },
+    {
+      "pr": 592,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T16:51:16Z",
+      "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape"
+    },
+    {
+      "pr": 587,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T15:28:38Z",
+      "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_followup_blocked_by_paddleocr_import_or_api_shape"
+    },
+    {
+      "pr": 583,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T14:38:57Z",
+      "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_execution_blocked_by_paddlepaddle_import_or_api_shape"
+    },
+    {
+      "pr": 578,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T13:50:14Z",
+      "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution"
+    },
+    {
+      "pr": 574,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T12:28:24Z",
+      "decision": "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review"
+    },
+    {
+      "pr": 571,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T03:35:59Z",
+      "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded"
+    },
+    {
+      "pr": 567,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T02:43:56Z",
+      "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution"
+    },
+    {
+      "pr": 563,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T01:54:06Z",
+      "decision": "trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval"
+    },
+    {
+      "pr": 559,
+      "state": "MERGED",
+      "mergedAt": "2026-06-20T00:24:13Z",
+      "decision": "trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa"
+    },
+    {
+      "pr": 557,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T23:08:20Z",
+      "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof"
+    },
+    {
+      "pr": 551,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T22:13:00Z",
+      "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context"
+    },
+    {
+      "pr": 549,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T21:09:19Z",
+      "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution"
+    },
+    {
+      "pr": 546,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T20:36:29Z",
+      "decision": "trackb_media_oss_milestone1_blocked_pending_container_packaging_approval"
+    },
+    {
+      "pr": 545,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T20:04:45Z",
+      "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution"
+    },
+    {
+      "pr": 542,
+      "state": "MERGED",
+      "mergedAt": "2026-06-19T19:07:30Z",
+      "decision": "trackb_media_oss_steward_registry_passed_ready_for_install_proof_milestone_plan"
+    }
+  ],
+  "duplicateReview": {
+    "exactFontAssetSourceReviewOpenPrs": [],
+    "pingFangOpenPrs": [],
+    "paddleXFontAssetsOpenPrs": []
+  },
+  "protectedFileHashes": {
+    "packageJson": "28585e2ab550ccae0377789aaa835765b213087e45c576724a40d50fe950f71c",
+    "packageLock": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+    "dockerignore": "0dd21619da96b9fc72b4429efd6d8b48c435854ffd99daadd97ccea0bda22c91",
+    "ocrRuntimeDockerfile": "f21f1f401a097c18cff3acdecf1603952b3c0fa53bcd2ac09030e68096191638",
+    "ocrRuntimeRequirements": "b51d22ad3d74ed41b11b27fd4db545e283c4b88147abd149dd20e0ae7b79d365"
+  },
+  "broadProductionDocs": {
+    "docs/beta-readiness-scorecard.md": "absent",
+    "docs/production-beta-blocker-inventory.md": "absent",
+    "PRODUCTION_FOUNDATION_STATUS.md": "absent"
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

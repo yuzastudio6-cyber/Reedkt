@@ -1,0 +1,15 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "ocrInferenceRun": false,
+  "modelDownloadRun": false,
+  "fontDownloadRun": false,
+  "assetCopyRun": false,
+  "assetUploadRun": false,
+  "gpuExecutionRun": false,
+  "networkEnabledForProofs": false,
+  "exactPingFangUsed": false,
+  "realUserMediaUsed": false,
+  "realUserDocumentsUsed": false,
+  "supabaseMutationRun": false,
+  "gcsOperationRun": false
+}

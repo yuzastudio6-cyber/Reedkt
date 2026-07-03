@@ -1,0 +1,52 @@
+{
+  "schema": "reeditpro.controlledToolExecutionApproval.workerHandoffRequirements.v1",
+  "createdAt": "2026-06-13T19:05:04.120Z",
+  "passed": true,
+  "workerExecutionApprovedThisPhase": false,
+  "futureHandoffRequires": [
+    "approved_plan_snapshot_v1 ref",
+    "idempotency key",
+    "correlation id",
+    "private artifact manifest refs",
+    "checksum refs",
+    "cost/audit metadata",
+    "explicit no-op dry-run mode for the next phase"
+  ],
+  "workerMustReject": [
+    "raw prompts",
+    "provider responses",
+    "candidate snapshots",
+    "public artifacts",
+    "signed URLs as source of truth"
+  ],
+  "selectedCandidateId": "controlled-tool:first_fixture_report_validation",
+  "flags": {
+    "routeExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "toolExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "exportExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "imageEditingAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "dependencyMutationAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false,
+    "githubPrMergeAllowed": false,
+    "secretPayloadAccessed": false,
+    "secretPayloadPrinted": false,
+    "secretPayloadCommitted": false
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuQaReview.sourceAudit.v1",
+  "generatedAt": "2026-06-21T02:28:00.283Z",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_qa_passed_ready_for_milestone4_color_image_pipeline_approval",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "99595b05b65dd2e6789aceecc144560db1e442cb",
+  "branchName": "codex/rp-trackb-media-oss-milestone-3-ocr-ml-cpu-qa-review",
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "expectedSourceSha": "99595b05b65dd2e6789aceecc144560db1e442cb",
+  "sourceCompatible": true,
+  "sourceEvidence": [
+    {
+      "pr": 635,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+      "evidenceAcceptedForQa": true
+    },
+    {
+      "pr": 629,
+      "state": "MERGED"
+    },
+    {
+      "pr": 625,
+      "state": "MERGED"
+    },
+    {
+      "pr": 620,
+      "state": "MERGED"
+    },
+    {
+      "pr": 615,
+      "state": "MERGED"
+    },
+    {
+      "pr": 613,
+      "state": "MERGED"
+    },
+    {
+      "pr": 606,
+      "state": "MERGED"
+    },
+    {
+      "pr": 600,
+      "state": "MERGED"
+    },
+    {
+      "pr": 592,
+      "state": "MERGED"
+    },
+    {
+      "pr": 587,
+      "state": "MERGED"
+    },
+    {
+      "pr": 583,
+      "state": "MERGED"
+    },
+    {
+      "pr": 578,
+      "state": "MERGED"
+    },
+    {
+      "pr": 574,
+      "state": "MERGED"
+    },
+    {
+      "pr": 571,
+      "state": "MERGED"
+    },
+    {
+      "pr": 567,
+      "state": "MERGED"
+    },
+    {
+      "pr": 563,
+      "state": "MERGED"
+    },
+    {
+      "pr": 559,
+      "state": "MERGED"
+    },
+    {
+      "pr": 557,
+      "state": "MERGED"
+    },
+    {
+      "pr": 551,
+      "state": "MERGED"
+    },
+    {
+      "pr": 549,
+      "state": "MERGED"
+    },
+    {
+      "pr": 546,
+      "state": "MERGED"
+    },
+    {
+      "pr": 545,
+      "state": "MERGED"
+    },
+    {
+      "pr": 542,
+      "state": "MERGED",
+      "ownerId": "TRACK_B_MEDIA_OSS_STEWARD"
+    },
+    {
+      "pr": 543,
+      "state": "context_only_non_track_b_ai_graphics",
+      "canonicalAuthority": false
+    }
+  ],
+  "protectedFileHashes": {
+    "package.json": "ceb274d579ff1ae58c2074aa3a139fd98846946d599676eda47e2f4ee6ba7d9f",
+    "package-lock.json": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+    ".dockerignore": "0dd21619da96b9fc72b4429efd6d8b48c435854ffd99daadd97ccea0bda22c91",
+    "docker/prod/render-worker/Dockerfile": "5c74565f21853301c2ad159d7dccdb0dfb48e1d33d39ab55fe330f6a409310e9",
+    "docker/prod/cpu-worker/Dockerfile": "e4470a77095330b990a33d019d76b1bf87cb94d06f12f1b4a478d3171b578c7f",
+    "docker/prod/cpu-worker/requirements.cpu.txt": "de5a91fd7331fc802a52508b470f9facef858051782e5ce3a2a97e4775b65461",
+    "docker/prod/ocr-runtime/Dockerfile": "cf4f5ba3e0c679382799d8930071f9c3be0b8a01c1a8ca436ab114e85de18198",
+    "docker/prod/ocr-runtime/requirements.ocr.txt": "b51d22ad3d74ed41b11b27fd4db545e283c4b88147abd149dd20e0ae7b79d365"
+  },
+  "broadProductionDocsAbsentAuditFacts": {
+    "docs/beta-readiness-scorecard.md": true,
+    "docs/production-beta-blocker-inventory.md": true,
+    "PRODUCTION_FOUNDATION_STATUS": true
+  },
+  "noScopeConfirmation": {
+    "toolExecutionRunInQaPhase": false,
+    "dockerRunInQaPhase": false,
+    "buildContextGenerationRunInQaPhase": false,
+    "installRunInQaPhase": false,
+    "supabaseClassification": {
+      "updateRequired": "no write",
+      "environmentTouched": "none",
+      "sqlExecuted": "none",
+      "migrationDeployed": "no"
+    }
+  }
+}

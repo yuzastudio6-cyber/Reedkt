@@ -1,0 +1,41 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaProductToolCallRuntimeDryRunExecution.routing.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_execution_passed_ready_for_runtime_dry_run_qa_review",
+  "toolCount": 16,
+  "rankingOrder": [
+    "ffprobe",
+    "mediainfo",
+    "exiftool",
+    "duckdb",
+    "polars_nodejs_polars",
+    "sharp_libvips",
+    "opencolorio",
+    "openimageio",
+    "imagemagick",
+    "opencv",
+    "pyav",
+    "pyscenedetect",
+    "tesseract",
+    "paddlepaddle",
+    "paddleocr",
+    "ffmpeg"
+  ],
+  "routingClasses": {
+    "source_introspection": ["ffprobe", "mediainfo", "exiftool"],
+    "structured_metadata_analysis": ["duckdb", "polars_nodejs_polars"],
+    "image_color_analysis": ["sharp_libvips", "opencolorio", "openimageio"],
+    "image_processing_fallback": ["imagemagick"],
+    "video_frame_analysis": ["opencv", "pyav", "pyscenedetect"],
+    "ocr_text_analysis": ["tesseract", "paddlepaddle", "paddleocr"],
+    "media_transform_high_risk": ["ffmpeg"]
+  },
+  "useCasePolicy": {
+    "rankingIsDefaultSelectionOrder": true,
+    "rankingIsNotProductReadyClaim": true,
+    "highRiskTransformsDeferUntilExplicitRecipe": true,
+    "ocrMlDefersUntilRecipeAndAssetGates": true,
+    "executionEnabledInThisPhase": false
+  },
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_QA_REVIEW"
+}

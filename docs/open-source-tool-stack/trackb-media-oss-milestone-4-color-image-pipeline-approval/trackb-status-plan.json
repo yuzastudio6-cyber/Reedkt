@@ -1,0 +1,35 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone4ColorImagePipelineApproval.statusPlan.v1",
+  "generatedAt": "2026-06-22T01:10:51.296Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_approval_passed_ready_for_cpu_execution",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "1ad2899b7124232ca107e1a5a9ee1f5dc8edbc4c",
+  "currentCounts": {
+    "ownedTools": 16,
+    "acceptedProvenBounded": 14,
+    "blockedNotInstalledProven": 2,
+    "endToEndProductReady": 0
+  },
+  "currentBlockedTools": [
+    "opencolorio",
+    "openimageio"
+  ],
+  "milestone4Tools": [
+    {
+      "id": "opencolorio",
+      "name": "OpenColorIO",
+      "status": "blocked_not_installed_proven_until_execution_and_qa"
+    },
+    {
+      "id": "openimageio",
+      "name": "OpenImageIO",
+      "status": "blocked_not_installed_proven_until_execution_and_qa"
+    }
+  ],
+  "futureIfExecutionAndQaPass": {
+    "acceptedProvenBounded": 16,
+    "blockedNotInstalledProven": 0,
+    "endToEndProductReady": 0
+  },
+  "productReadyRequiresSeparateRuntimeE2EApproval": true
+}

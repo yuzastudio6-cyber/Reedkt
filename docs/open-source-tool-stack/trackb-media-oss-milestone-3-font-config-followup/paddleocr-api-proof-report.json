@@ -1,0 +1,38 @@
+{
+  "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+  "phase": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "sourceSha": "edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+  "proofRun": true,
+  "exitCode": 0,
+  "elapsedSeconds": 2,
+  "networkMode": "none",
+  "envLocalFontPath": "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+  "importApiShapePassed": true,
+  "distributionVersionKnownBeforeImport": true,
+  "distributionVersion": "3.0.0",
+  "moduleVersion": "3.0.0",
+  "hasPaddleOCR": true,
+  "paddleOcrInitParamCount": 27,
+  "safeParamsSeen": [
+    "use_doc_orientation_classify",
+    "use_doc_unwarping",
+    "use_textline_orientation",
+    "text_detection_model_dir",
+    "text_recognition_model_dir"
+  ],
+  "modelAssetRequired": false,
+  "exactPingFangFetchAttempted": false,
+  "ocrInferenceRun": false,
+  "paddleOcrInstantiated": false,
+  "modelDownloadRun": false,
+  "fontDownloadCompleted": false,
+  "assetCopiedOrUploaded": false,
+  "stdoutSummary": [
+    "dist_version 3.0.0",
+    "module_version 3.0.0",
+    "has_PaddleOCR True",
+    "param_count 27",
+    "safe_params use_doc_orientation_classify,use_doc_unwarping,use_textline_orientation,text_detection_model_dir,text_recognition_model_dir"
+  ]
+}

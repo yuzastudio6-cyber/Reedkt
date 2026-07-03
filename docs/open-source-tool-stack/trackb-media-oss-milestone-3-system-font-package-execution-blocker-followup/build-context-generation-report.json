@@ -1,0 +1,7 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "buildContextGenerationRun": false,
+  "distServerCreated": false,
+  "distStagingFixtureWorkerCreated": false,
+  "reason": "OCR runtime target does not require generated build context"
+}

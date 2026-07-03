@@ -1,0 +1,37 @@
+{
+  "schema": "reeditpro.openSourceToolStack.batch2PlanningAfterBatch1Rollup.decision.v1",
+  "generatedAt": "2026-06-18T20:46:34.133Z",
+  "decision": "open_source_tool_stack_batch2_planning_passed_ready_for_owner_lane_reconciliation",
+  "accepted": true,
+  "blockers": [],
+  "primaryNextPrompt": "OPEN_SOURCE_TOOL_STACK_OWNER_LANE_RECONCILIATION_AFTER_BATCH_1_ROLLUP",
+  "secondaryNextPrompts": [
+    "OPEN_SOURCE_TOOL_STACK_BATCH_2_INSTALL_PROOF_APPROVAL",
+    "PRODUCT_INTERNAL_BETA_READINESS_AGGREGATION_AFTER_OPEN_SOURCE_BATCH_1",
+    "E2E_VALIDATION_QUEUE_BLOCKER_RESOLUTION_AFTER_OPEN_SOURCE_BATCH_1"
+  ],
+  "ownerLaneReconciliationFirst": true,
+  "batch2InstallProofApprovalNow": false,
+  "internalBetaReadinessAggregationNow": false,
+  "e2eValidationBlockerResolutionNow": false,
+  "fortyPlusToolsEndToEndProven": false,
+  "mediaProcessingAccepted": false,
+  "renderExportAccepted": false,
+  "workerRuntimeAccepted": false,
+  "routeProviderRuntimeAccepted": false,
+  "supabaseGcsPublicDeliveryAccepted": false,
+  "externalBetaUnlocked": false,
+  "productionUnlocked": false,
+  "runtimeCommandsRunInThisPhase": false,
+  "dockerRunInThisPhase": false,
+  "ffmpegFfprobeRunInThisPhase": false,
+  "npmInstallRunInThisPhase": false,
+  "npmRebuildRunInThisPhase": false,
+  "packageLockMutationAllowed": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

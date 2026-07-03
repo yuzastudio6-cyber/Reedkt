@@ -1,0 +1,32 @@
+{
+  "schema": "reeditpro.toolRouteMetadataDryRun.privateArtifactManifest.v1",
+  "createdAt": "2026-06-13T17:41:05.198Z",
+  "reportPaths": [
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_metadata_dry_run_source_of_truth_audit.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/pre_execution_revalidation_report.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_metadata_dry_run_evidence_inventory.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_fixture_validation_report.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_owner_coverage_validation_report.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_metadata_resolution_report.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_artifact_scope_validation_report.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_noop_lifecycle_simulation_report.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_fail_closed_validation_report.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_observability_cost_audit_report.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_metadata_dry_run_decision.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_metadata_dry_run_blocker_report.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_metadata_dry_run_readiness_report.json",
+    "docs/activation-tool-route-metadata-dry-run-reports/tool_route_metadata_dry_run_private_artifact_manifest.json"
+  ],
+  "docPaths": [
+    "docs/tool-route-metadata-dry-run.md",
+    "docs/tool-route-metadata-dry-run-decision.md",
+    "docs/tool-route-metadata-dry-run-fail-closed.md",
+    "docs/tool-route-metadata-dry-run-artifact-scope.md",
+    "docs/implementation-prompts/prompt-controlled-tool-execution-approval-after-route-metadata-dry-run.md"
+  ],
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "gcsUploads": false,
+  "privatePayloadsCommitted": false,
+  "buildOutputCommitted": false
+}

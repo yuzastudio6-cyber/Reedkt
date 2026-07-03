@@ -1,0 +1,29 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuBlockerResolutionFollowup.paddlepaddleProof.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_followup_blocked_by_model_asset_required",
+  "imageTag": "reeditpro-ocr-runtime:trackb-milestone3-cpu-libgthread-8c22f38755195f4028acfba1069e4cb0d6825c91",
+  "importVersion": {
+    "command": "docker run --rm --network none --entrypoint python reeditpro-ocr-runtime:trackb-milestone3-cpu-libgthread-8c22f38755195f4028acfba1069e4cb0d6825c91 -c import json, paddle; print(json.dumps({'tool':'paddlepaddle','version':paddle.__version__,'compiled_with_cuda':bool(paddle.device.is_compiled_with_cuda())}))",
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 1091,
+    "stdoutSummary": "{\"tool\": \"paddlepaddle\", \"version\": \"3.0.0\", \"compiled_with_cuda\": false}",
+    "stderrSummary": "/usr/local/lib/python3.12/site-packages/paddle/utils/cpp_extension/extension_utils.py:711: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md\nwarnings.warn(warning_message)",
+    "error": null
+  },
+  "tensorDevice": {
+    "command": "docker run --rm --network none --entrypoint python reeditpro-ocr-runtime:trackb-milestone3-cpu-libgthread-8c22f38755195f4028acfba1069e4cb0d6825c91 -c import json, paddle; x=paddle.to_tensor([1,2,3], dtype='int64'); print(json.dumps({'tool':'paddlepaddle','tensor':x.numpy().tolist(),'device':paddle.device.get_device(),'place':str(x.place)}))",
+    "exitCode": 0,
+    "signal": null,
+    "durationMs": 926,
+    "stdoutSummary": "{\"tool\": \"paddlepaddle\", \"tensor\": [1, 2, 3], \"device\": \"cpu\", \"place\": \"Place(cpu)\"}",
+    "stderrSummary": "/usr/local/lib/python3.12/site-packages/paddle/utils/cpp_extension/extension_utils.py:711: UserWarning: No ccache found. Please be aware that recompiling all source files may be required. You can download and install ccache from: https://github.com/ccache/ccache/blob/master/doc/INSTALL.md\nwarnings.warn(warning_message)",
+    "error": null
+  },
+  "importVersionPassed": true,
+  "tensorDevicePassed": true,
+  "cpuOnly": true,
+  "gpuExecutionRun": false,
+  "modelAssetsUsed": false,
+  "ocrInferenceRun": false
+}

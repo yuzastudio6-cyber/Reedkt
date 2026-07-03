@@ -1,0 +1,24 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_activation_approval_blocked_pending_runtime_controls",
+  "requiredBeforeActivation": {
+    "liveRouteRuntimeControlPlan": true,
+    "workerDispatchControlPlan": true,
+    "serviceRoleBoundaryReview": true,
+    "supabaseGcsWritePolicy": true,
+    "privateArtifactPolicy": true,
+    "signedUrlProhibition": true,
+    "monitoringEmissionPolicy": true,
+    "rollbackExecutionPolicy": true,
+    "limitedInternalBetaExposurePolicy": true
+  },
+  "provenNow": {
+    "dryRunPayloadMetadata": true,
+    "deterministicRanking": true,
+    "failClosedContracts": true,
+    "resultSchemaShape": true,
+    "monitoringShape": true,
+    "rollbackShape": true,
+    "liveRuntimeControls": false
+  }
+}

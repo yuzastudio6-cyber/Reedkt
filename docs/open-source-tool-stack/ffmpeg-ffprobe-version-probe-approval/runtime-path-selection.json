@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ffmpegFfprobeVersionProbeApproval.runtimePathSelection.v1",
+  "generatedAt": "2026-06-17T23:30:04.065Z",
+  "selectedRuntimePath": "tracka_repo_owned_render_worker_container",
+  "selectionReason": "Central source evidence points to docker/prod/render-worker/Dockerfile for FFmpeg/FFprobe. A local host binary probe is not the source-of-truth path.",
+  "ffmpegSourcePath": "docker://docker/prod/render-worker/Dockerfile#ffmpeg",
+  "ffprobeSourcePath": "docker://docker/prod/render-worker/Dockerfile#ffprobe",
+  "dockerfilePath": "docker/prod/render-worker/Dockerfile",
+  "dockerfilePresentInCentral": true,
+  "localHostSystemBinaryApproved": false,
+  "localHostSystemBinaryProbeBlocked": true,
+  "trackaContainerVersionProbeApprovedForFutureSeparateExecution": true,
+  "workerContainerEquivalentAllowedForFutureSeparateExecution": true,
+  "dockerBuildApprovedNow": false,
+  "dockerRunApprovedNow": false,
+  "dockerContainerMutationApprovedNow": false,
+  "versionProbeExecutionRunNow": false,
+  "mediaProcessingApproved": false
+}

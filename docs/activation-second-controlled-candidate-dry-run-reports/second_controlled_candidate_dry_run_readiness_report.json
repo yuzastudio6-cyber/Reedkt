@@ -1,0 +1,19 @@
+{
+  "schema": "reeditpro.secondControlledCandidateDryRun.readinessReport.v1",
+  "createdAt": "2026-06-13T22:07:13.001Z",
+  "readiness": true,
+  "decision": "second_controlled_candidate_dry_run_passed_ready_for_next_controlled_candidate_or_worker_handoff_review",
+  "approvalPassed": true,
+  "nextRecommendationPassed": true,
+  "firstControlledPassed": true,
+  "routeMetadataPassed": true,
+  "selectedSecondCandidateGuardPassed": true,
+  "approvedPlanSnapshotFixturePassed": true,
+  "soundMusicAudioFixturePassed": true,
+  "selectedSecondCandidateExecutionPassed": true,
+  "artifactSourceOfTruthValidationPassed": true,
+  "executionBlockerValidationPassed": true,
+  "failClosedValidationPassed": true,
+  "observabilityCostAuditPassed": true,
+  "runtimeScopesBlocked": true
+}

@@ -1,0 +1,22 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone2VideoAnalysisApproval.cloudRuntimeCostPerformance.v1",
+  "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution",
+  "runtimeIntent": "future_cpu_cloud_run_job_or_cpu_worker",
+  "costTier": "low_to_medium",
+  "smallProofResources": {
+    "vcpu": "2-4",
+    "memoryGiB": "4-8"
+  },
+  "heavierInternalValidationResources": {
+    "vcpu": "4-8",
+    "memoryGiB": "8-16"
+  },
+  "gpuApproved": false,
+  "gpuEscalationCriteria": [
+    "CPU latency exceeds future threshold",
+    "high-resolution or long-form workflows require acceleration",
+    "heavy OpenCV algorithm selected",
+    "beta-quality latency cannot be met on CPU"
+  ],
+  "productRuntimeApproved": false
+}

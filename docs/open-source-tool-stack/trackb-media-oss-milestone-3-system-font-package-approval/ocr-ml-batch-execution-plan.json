@@ -1,0 +1,17 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION",
+  "batchExecutionPolicy": [
+    "patch OCR runtime font package once",
+    "build OCR runtime once",
+    "prove font files once",
+    "run PaddlePaddle proof once",
+    "run PaddleOCR import/API proof once",
+    "record blockers once",
+    "move directly to QA review on pass"
+  ],
+  "avoidTinyPrLoop": true,
+  "splitOnlyForGovernanceBoundary": true,
+  "qaNextIfPassed": "TRACKB_MEDIA_OSS_MILESTONE_3_OCR_ML_CPU_QA_REVIEW",
+  "productReadyToolsAfterApproval": 0
+}

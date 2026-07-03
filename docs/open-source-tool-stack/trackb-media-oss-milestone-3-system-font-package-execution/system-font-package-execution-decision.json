@@ -1,0 +1,26 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMediaOss.milestone3SystemFontPackageExecution.report.v1",
+  "generatedAt": "2026-06-20T23:00:03.583Z",
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_blocked_by_docker_build",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION_BLOCKER_FOLLOWUP",
+  "sourceSha": "a4574560fa04fde80f1473f837f98cdc757d177e",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "decisionReason": "Docker build failed at base-image metadata load before image creation.",
+  "blocker": "DeadlineExceeded: context deadline exceeded while loading metadata for docker.io/library/python:3.12-slim",
+  "counts": {
+    "ownedTools": 16,
+    "acceptedProvenBoundedBeforeExecution": 12,
+    "newlyPassedCpuEvidence": 0,
+    "acceptedProvenBoundedTotal": 12,
+    "blockedNotInstalledProven": 4,
+    "endToEndProductReady": 0
+  },
+  "noFortyPlusEndToEndClaim": true,
+  "exactPingFangStatus": "blocked_not_used"
+}

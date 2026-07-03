@@ -1,0 +1,36 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryApproval.ffmpegFfprobeBinaryApproval.v1",
+  "generatedAt": "2026-06-17T03:39:30.998Z",
+  "tools": [
+    {
+      "toolName": "FFmpeg",
+      "normalizedId": "ffmpeg",
+      "ownerHandoff": [
+        "TRACK_A_RENDER_EXPORT",
+        "SOUND_MUSIC_AUDIO",
+        "WORKER_RUNTIME_JOBS"
+      ],
+      "futureCheckOnlyCommand": "command -v ffmpeg && ffmpeg -version"
+    },
+    {
+      "toolName": "FFprobe",
+      "normalizedId": "ffprobe",
+      "ownerHandoff": [
+        "TRACK_A_RENDER_EXPORT",
+        "SOUND_MUSIC_AUDIO",
+        "WORKER_RUNTIME_JOBS"
+      ],
+      "futureCheckOnlyCommand": "command -v ffprobe && ffprobe -version"
+    }
+  ],
+  "npmWrapperSelected": false,
+  "repoPackageMutationPlanned": false,
+  "dockerOrContainerMutationPlannedInThisLane": false,
+  "currentPhaseSystemBinaryInstallAttempted": false,
+  "currentPhaseVersionProbeAttempted": false,
+  "futureProofLimit": "command existence and version text only; no media input, decode, encode, probe, render, or export",
+  "absenceHandling": "future execution must fail closed if binaries are absent unless a separate worker/container owner approval supplies binaries",
+  "licensePolicy": "LGPL/GPL/nonfree build metadata must be reviewed before any production FFmpeg/FFprobe use",
+  "approvedForFutureExecutionPacket": true,
+  "passed": true
+}

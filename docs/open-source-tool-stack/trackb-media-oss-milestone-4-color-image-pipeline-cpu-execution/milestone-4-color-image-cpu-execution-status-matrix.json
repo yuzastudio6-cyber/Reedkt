@@ -1,0 +1,34 @@
+{
+  "generatedAt": "2026-06-22T03:06:27.749Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_cpu_execution_passed_ready_for_qa",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "957e8f96900e9a374a8cd7990f00e761222ebb64",
+  "countsRemainPendingQa": {
+    "ownedTools": 16,
+    "acceptedProvenBounded": 14,
+    "blockedNotInstalledProven": 2,
+    "endToEndProductReady": 0
+  },
+  "rows": [
+    {
+      "id": "opencolorio",
+      "tool": "OpenColorIO",
+      "version": "2.5.2",
+      "acceptedProvenBoundedPendingQa": true,
+      "productReady": false,
+      "realMediaUsed": false,
+      "gpuUsed": false,
+      "proof": "PyOpenColorIO import/version/raw Config API shape"
+    },
+    {
+      "id": "openimageio",
+      "tool": "OpenImageIO",
+      "version": "3.1.14.1",
+      "acceptedProvenBoundedPendingQa": true,
+      "productReady": false,
+      "realMediaUsed": false,
+      "gpuUsed": false,
+      "proof": "OpenImageIO import/version/ImageSpec/ImageBuf API shape without file I/O"
+    }
+  ]
+}

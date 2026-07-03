@@ -1,0 +1,40 @@
+{
+  "schema": "reeditpro.openSourceToolStack.dependencyBaselineRepair.decision.v1",
+  "generatedAt": "2026-06-15T15:00:43.451Z",
+  "decision": "dependency_baseline_repair_passed_ready_for_batch_1_approval_rerun",
+  "readyForBatch1ApprovalRerun": true,
+  "readyForInstallProofExecution": false,
+  "blockers": [],
+  "resolvedBlocker": "@emnapi/* package-lock metadata mismatch",
+  "nextPrompt": "OPEN_SOURCE_TOOL_STACK_INSTALL_PROOF_APPROVAL_BATCH_1_RERUN_AFTER_DEPENDENCY_REPAIR",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "executionScope": {
+    "newToolDependenciesAdded": false,
+    "toolExecutionAllowed": false,
+    "routeExecutionAllowed": false,
+    "workerExecutionAllowed": false,
+    "providerExecutionAllowed": false,
+    "runtimeExecutionAllowed": false,
+    "mediaProcessingAllowed": false,
+    "audioProcessingAllowed": false,
+    "renderExecutionAllowed": false,
+    "imageGenerationAllowed": false,
+    "browserCaptureAllowed": false,
+    "mapRenderingAllowed": false,
+    "supabaseWritesAllowed": false,
+    "sqlAllowed": false,
+    "gcsUploadAllowed": false,
+    "publicArtifactsAllowed": false,
+    "signedUrlsAsSourceOfTruthAllowed": false,
+    "rawPromptExecutionAllowed": false,
+    "githubPrMergeAllowed": false,
+    "externalBetaUnlockAllowed": false,
+    "paidProductionUnlockAllowed": false,
+    "productionUnlockAllowed": false
+  }
+}

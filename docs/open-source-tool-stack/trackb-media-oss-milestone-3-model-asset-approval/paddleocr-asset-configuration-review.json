@@ -1,0 +1,31 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3ModelAssetApproval.paddleocrAssetConfigurationReview.v1",
+  "decision": "trackb_media_oss_milestone3_model_asset_approval_passed_ready_for_exact_asset_source_review",
+  "generatedAt": "2026-06-20T18:51:13.975Z",
+  "sourceSha": "06f501d4095c1c6dc3b42f000ad9f3926e9934d9",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "ownerName": "Track B Media OSS Steward",
+  "lane": "TRACK_B_MEDIA_PROCESSING",
+  "requestedAsset": "PingFang-SC-Regular.ttf",
+  "sourceComponent": "PaddleX font assets",
+  "currentBlocker": "model_asset_required_for_import_api_shape",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_EXACT_FONT_ASSET_SOURCE_REVIEW",
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  },
+  "reviewedFutureOptions": [
+    "environment_variable_to_disable_or_redirect_paddlex_asset_fetch",
+    "explicit_local_font_path_or_cache_path",
+    "lower_level_module_import_path_without_paddlex_font_initialization",
+    "system_font_package_substitution"
+  ],
+  "provenSafeConfigAvailableNow": false,
+  "paddleOcrImportedNow": false,
+  "paddlePaddleImportedNow": false,
+  "ocrObjectInstantiatedNow": false,
+  "ocrInferenceRunNow": false,
+  "conclusion": "No asset-free import/API configuration is proven by committed evidence; future config review may proceed after exact asset source review if appropriate."
+}

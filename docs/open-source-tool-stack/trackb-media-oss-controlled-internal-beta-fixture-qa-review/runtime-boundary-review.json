@@ -1,0 +1,17 @@
+{
+  "schema": "trackb-media-oss-controlled-internal-beta-fixture-qa-runtime-boundary.v1",
+  "generatedAt": "2026-06-25T14:55:00.000Z",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_controlled_internal_beta_fixture_qa_passed_ready_for_limited_internal_beta_go_no_go_review",
+  "realToolExecutionAccepted": false,
+  "userMediaAccepted": false,
+  "publicArtifactAccepted": false,
+  "signedUrlAccepted": false,
+  "supabaseWriteAccepted": false,
+  "gcsUploadAccepted": false,
+  "workerDispatchAccepted": false,
+  "routeRuntimeAccepted": false,
+  "externalBetaAccepted": false,
+  "productionAccepted": false,
+  "productReadyAccepted": false
+}

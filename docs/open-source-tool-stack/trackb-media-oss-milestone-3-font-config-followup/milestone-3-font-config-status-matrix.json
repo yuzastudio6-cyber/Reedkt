@@ -1,0 +1,54 @@
+{
+  "decision": "trackb_media_oss_milestone3_font_config_followup_passed_ready_for_ocr_ml_cpu_qa_review",
+  "phase": "TRACKB_MEDIA_OSS_MILESTONE_3_FONT_CONFIG_FOLLOWUP",
+  "sourceSha": "edb183eda9dce464f8aae0ce4d32ac8e63118433",
+  "owner": "TRACK_B_MEDIA_OSS_STEWARD",
+  "tools": [
+    {
+      "id": "paddlepaddle",
+      "packageDeclared": true,
+      "fontsNotoCjkInstalled": true,
+      "fontsNotoCjkExtraInstalled": false,
+      "exactPingFangUsed": false,
+      "safeFontConfigFound": true,
+      "dockerBuild": true,
+      "importVersionProof": true,
+      "apiTensorProof": true,
+      "ocrInferenceRun": false,
+      "modelAssetsRequired": false,
+      "modelAssetsDownloaded": false,
+      "fontAssetsDownloaded": false,
+      "gpuUsed": false,
+      "acceptedProvenBounded": false,
+      "evidencePendingQa": true,
+      "blocker": null
+    },
+    {
+      "id": "paddleocr",
+      "packageDeclared": true,
+      "fontsNotoCjkInstalled": true,
+      "fontsNotoCjkExtraInstalled": false,
+      "exactPingFangUsed": false,
+      "safeFontConfigFound": true,
+      "dockerBuild": true,
+      "importVersionProof": true,
+      "apiShapeProof": true,
+      "ocrInferenceRun": false,
+      "modelAssetsRequired": false,
+      "modelAssetsDownloaded": false,
+      "fontAssetsDownloaded": false,
+      "gpuUsed": false,
+      "acceptedProvenBounded": false,
+      "evidencePendingQa": true,
+      "blocker": null
+    }
+  ],
+  "trackBTotalsPendingQa": {
+    "ownedTools": 16,
+    "acceptedProvenBoundedBeforeFollowup": 12,
+    "newCpuEvidencePendingQa": 2,
+    "acceptedProvenBoundedTotal": 12,
+    "blockedNotInstalledProven": 4,
+    "endToEndProductReady": 0
+  }
+}

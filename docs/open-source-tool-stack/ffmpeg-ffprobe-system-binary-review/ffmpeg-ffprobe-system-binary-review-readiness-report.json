@@ -1,0 +1,10 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ffmpegFfprobeSystemBinaryReview.readiness.v1",
+  "generatedAt": "2026-06-17T21:23:02.115Z",
+  "readiness": true,
+  "decision": "ffmpeg_ffprobe_system_binary_review_passed_ready_for_tracka_source_of_truth_merge",
+  "readyForVersionProbeApproval": false,
+  "readyForTrackaSourceOfTruthMerge": true,
+  "readyForWorkerContainerHandoff": false,
+  "blockers": []
+}

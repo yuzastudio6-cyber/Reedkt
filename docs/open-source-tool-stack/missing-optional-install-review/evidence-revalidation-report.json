@@ -1,0 +1,50 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalInstallReview.evidenceRevalidationReport.v1",
+  "generatedAt": "2026-06-16T15:43:59.367Z",
+  "qaDecision": "open_source_tool_stack_batch_1_qa_passed_with_missing_optional_tools_ready_for_missing_optional_install_review",
+  "expectedQaDecision": "open_source_tool_stack_batch_1_qa_passed_with_missing_optional_tools_ready_for_missing_optional_install_review",
+  "executionDecision": "open_source_tool_stack_batch_1_execution_passed_with_missing_optional_tools",
+  "expectedExecutionDecision": "open_source_tool_stack_batch_1_execution_passed_with_missing_optional_tools",
+  "qaDecisionAccepted": true,
+  "executionDecisionAccepted": true,
+  "batch1QaInstallReviewPrompted": true,
+  "passedBatch1TargetsStillAccepted": true,
+  "missingTargetReview": [
+    {
+      "targetId": "duckdb_metadata_query_proof",
+      "expectedStatus": "blocked_missing_dependency_or_module",
+      "sourceStatus": "blocked_missing_dependency_or_module",
+      "installReviewRequired": true,
+      "countedAsInstalledOrProven": false,
+      "passed": true
+    },
+    {
+      "targetId": "polars_metadata_dataframe_proof",
+      "expectedStatus": "blocked_missing_dependency_or_module",
+      "sourceStatus": "blocked_missing_dependency_or_module",
+      "installReviewRequired": true,
+      "countedAsInstalledOrProven": false,
+      "passed": true
+    },
+    {
+      "targetId": "ffmpeg_version_probe",
+      "expectedStatus": "blocked_missing_system_binary",
+      "sourceStatus": "blocked_missing_system_binary",
+      "installReviewRequired": true,
+      "countedAsInstalledOrProven": false,
+      "passed": true
+    },
+    {
+      "targetId": "ffprobe_version_probe",
+      "expectedStatus": "blocked_missing_system_binary",
+      "sourceStatus": "blocked_missing_system_binary",
+      "installReviewRequired": true,
+      "countedAsInstalledOrProven": false,
+      "passed": true
+    }
+  ],
+  "packageLockQaPassed": true,
+  "packageLockMutationAttemptedInSourceEvidence": false,
+  "dependencyInstallAttemptedInSourceEvidence": false,
+  "passed": true
+}

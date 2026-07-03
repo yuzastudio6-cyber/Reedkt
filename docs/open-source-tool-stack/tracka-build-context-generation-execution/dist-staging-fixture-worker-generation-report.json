@@ -1,0 +1,20 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationExecution.generationReport.v1",
+  "generatedAt": "2026-06-18T15:19:01.102Z",
+  "targetId": "staging_fixture_worker_bundle",
+  "command": "npm run build:staging-fixture-worker",
+  "expectedDirectory": "dist-staging-fixture-worker",
+  "expectedEntry": "staging-fixture-worker-cli.js",
+  "run": true,
+  "exactApprovedCommand": true,
+  "exitCode": 0,
+  "status": "passed",
+  "directoryExists": true,
+  "expectedEntryExists": true,
+  "fileCount": 4,
+  "totalSizeBytes": 2916660,
+  "sha256": "c6cf5be7e11ed568d159399e132832e3a06a4814279af1ad3217dcae51f35866",
+  "stdoutPreview": "\n> reeditpro@0.0.0 build:staging-fixture-worker\n> npm run typecheck:server && vite build --config vite.staging-fixture-worker.config.ts\n\n\n> reeditpro@0.0.0 typecheck:server\n> tsc -p tsconfig.server.json --noEmit\n\nvite v8.0.12 building ssr environment for production...\n\u001b[2K\rtransforming...✓ 266 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist-staging-fixture-worker/staging-fixture-worker-cli.js  1,777.38 kB │ gzip: 500.64 kB\n\n✓ built in 76ms",
+  "stderrPreview": "",
+  "errorMessage": null
+}

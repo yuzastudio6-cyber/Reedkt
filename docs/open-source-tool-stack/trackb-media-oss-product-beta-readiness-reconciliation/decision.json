@@ -1,0 +1,29 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_readiness_reconciliation_passed_ready_for_product_beta_go_no_go_review",
+  "previousDecision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_limited_internal_activation_closeout_passed_ready_for_product_beta_readiness_reconciliation",
+  "reportDirectory": "docs/open-source-tool-stack/trackb-media-oss-product-beta-readiness-reconciliation",
+  "sourceSha": "a68027ebf1d473d6016ff02b33c34f55bc2a0895",
+  "sourceBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "trackBTotals": {
+    "owned": 16,
+    "boundedAcceptedProven": 16,
+    "blockedNotInstalledProven": 0,
+    "productReady": 0
+  },
+  "productReadyCount": 0,
+  "supabaseClassification": "no write / environment none / SQL none / migration no",
+  "nextPrompt": "TRACKB_MEDIA_OSS_PRODUCT_BETA_GO_NO_GO_REVIEW",
+  "productBetaReadinessReconciled": true,
+  "dryRunMonitoringAccepted": true,
+  "limitedInternalActivationCloseoutAccepted": true,
+  "toolCallRankingPreserved": true,
+  "readyForProductBetaGoNoGoReview": true,
+  "liveProductCallsApproved": false,
+  "routeRuntimeEnabled": false,
+  "workerDispatchEnabled": false,
+  "realToolExecutionApproved": false,
+  "externalBetaReady": false,
+  "productionReady": false,
+  "productReady": false
+}

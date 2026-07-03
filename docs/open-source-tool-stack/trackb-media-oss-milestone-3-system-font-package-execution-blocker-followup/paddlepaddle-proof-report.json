@@ -1,0 +1,14 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_execution_followup_blocked_by_model_asset_required",
+  "proofRun": true,
+  "exitCode": 0,
+  "elapsedSeconds": 2,
+  "networkMode": "none",
+  "importVersionPassed": true,
+  "tensorDevicePassed": true,
+  "version": "3.0.0",
+  "tensor": [1, 2, 3],
+  "device": "cpu",
+  "ocrInferenceRun": false,
+  "modelAssetsUsed": false
+}

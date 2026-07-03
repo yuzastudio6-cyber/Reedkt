@@ -1,0 +1,127 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackBMilestone3OcrMlCpuBlockerResolutionFollowup.sourceAudit.v1",
+  "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_followup_blocked_by_model_asset_required",
+  "generatedAt": "2026-06-20T18:00:21.252Z",
+  "branchName": "codex/rp-trackb-media-oss-milestone-3-ocr-ml-cpu-blocker-resolution-followup",
+  "baseBranch": "codex/rp-github-merge-hygiene-open-pr-stack-audit",
+  "expectedSourceSha": "8c22f38755195f4028acfba1069e4cb0d6825c91",
+  "sourceSha": "8c22f38755195f4028acfba1069e4cb0d6825c91",
+  "sourceCompatible": true,
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceEvidence": [
+    {
+      "pr": 592,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_resolution_blocked_by_paddleocr_import_or_api_shape",
+      "blocker": "missing_libgthread_2_0_so_0",
+      "priorLibGLBlockerResolved": true,
+      "paddlePaddleImportTensorProofPassed": true,
+      "paddleOcrImportApiShapePassed": false
+    },
+    {
+      "pr": 587,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_blocker_followup_blocked_by_paddleocr_import_or_api_shape",
+      "blocker": "missing_libGL_so_1"
+    },
+    {
+      "pr": 583,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_execution_blocked_by_paddlepaddle_import_or_api_shape",
+      "blocker": "missing_libgomp_so_1"
+    },
+    {
+      "pr": 578,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone3_ocr_ml_cpu_gpu_review_passed_ready_for_cpu_execution"
+    },
+    {
+      "pr": 574,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone2_qa_passed_ready_for_milestone3_ocr_ml_cpu_gpu_review"
+    },
+    {
+      "pr": 571,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone2_video_analysis_execution_passed_all_three_tools_cpu_bounded"
+    },
+    {
+      "pr": 567,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone2_video_analysis_approval_passed_ready_for_execution"
+    },
+    {
+      "pr": 563,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_qa_passed_ready_for_milestone2_video_analysis_approval"
+    },
+    {
+      "pr": 559,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_tesseract_fixture_followup_passed_ready_for_qa"
+    },
+    {
+      "pr": 557,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_build_context_followup_blocked_by_tesseract_proof"
+    },
+    {
+      "pr": 551,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_system_packaging_execution_blocked_pending_docker_build_context"
+    },
+    {
+      "pr": 549,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_system_packaging_approval_passed_ready_for_packaging_execution"
+    },
+    {
+      "pr": 546,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_milestone1_blocked_pending_container_packaging_approval"
+    },
+    {
+      "pr": 545,
+      "state": "MERGED",
+      "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution"
+    },
+    {
+      "pr": 542,
+      "state": "MERGED",
+      "ownerId": "TRACK_B_MEDIA_OSS_STEWARD"
+    }
+  ],
+  "fileHashes": {
+    "packageJson": "143273f4a92c607ebcd3cc0fcabb374ef9fdb0e60b0de67b303fbfa89080c417",
+    "packageLock": "170bc1dff66fa3899bb82db793ecbc637d1310e727aefac9c802165bbc17f462",
+    "dockerfile": "f21f1f401a097c18cff3acdecf1603952b3c0fa53bcd2ac09030e68096191638",
+    "requirements": "b51d22ad3d74ed41b11b27fd4db545e283c4b88147abd149dd20e0ae7b79d365",
+    "dockerignore": "0dd21619da96b9fc72b4429efd6d8b48c435854ffd99daadd97ccea0bda22c91"
+  },
+  "noScope": {
+    "ocrInferenceRun": false,
+    "modelDownloadRun": false,
+    "modelAssetCopyRun": false,
+    "modelAssetUploadRun": false,
+    "gpuExecutionRun": false,
+    "ffmpegFfprobeRun": false,
+    "realUserMediaUsed": false,
+    "realUserDocumentsUsed": false,
+    "mediaProcessingRun": false,
+    "renderExportRun": false,
+    "workerRouteProviderRun": false,
+    "supabaseMutationRun": false,
+    "gcsUploadRun": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "betaProductionUnlocked": false,
+    "rawPromptExecuted": false,
+    "secretPayloadPrinted": false
+  },
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

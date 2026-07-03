@@ -1,0 +1,26 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalPackageBinaryExecution.duckdb_metadata_query_proof.v1",
+  "generatedAt": "2026-06-17T15:12:20.527Z",
+  "targetId": "duckdb_metadata_query_proof",
+  "targetName": "DuckDB",
+  "status": "blocked_by_ignored_scripts",
+  "passed": false,
+  "commandClass": "node_import_version_and_in_memory_metadata_query",
+  "stdoutPreview": "",
+  "stderrPreview": "node:internal/modules/cjs/loader:1519 const err = new Error(message); ^ Error: Cannot find module '/private/tmp/reeditpro-open-source-tool-stack-missing-optional-package-binary-execution/node_modules/duckdb/lib/binding/duckdb.node' Require stack: - /private/tmp/reeditpro-open-source-tool-stack-missing-optional-package-binary-execution/node_modules/duckdb/lib/duckdb-binding.js - /private/tmp/reeditpro-open-source-tool-stack-missing-optional-package-binary-execution/node_modules/duckdb/lib/duckdb.js at Module._resolveFilename (node:internal/modules/cjs/loader:1519:15) at wrapResolveFilename (node:internal/modules/cjs/loader:1073:27) at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1097:10) at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1124:12) at Module._load (node:internal/modules/cjs/loader:1296:5) at wrapModuleLoad (node:internal/modules/cjs/loader:255:19) at Module.require (node:internal/modules/cjs/loader:1619:12) at require (node:internal/modules/h",
+  "blocker": "blocked_by_ignored_scripts",
+  "installAttempted": true,
+  "systemBinaryInstallAttempted": false,
+  "mediaProcessingAttempted": false,
+  "details": {
+    "privateDataUsed": false,
+    "mediaInputUsed": false,
+    "mediaOutputCreated": false,
+    "networkUsedByProof": false,
+    "supabaseUsed": false,
+    "gcsUsed": false,
+    "publicArtifactsCreated": false,
+    "signedUrlsCreated": false,
+    "rawPromptsExecuted": false
+  }
+}

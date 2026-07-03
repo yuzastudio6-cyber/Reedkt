@@ -1,0 +1,21 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationApproval.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-18T14:31:44.675Z",
+  "reportDirectory": "docs/open-source-tool-stack/tracka-build-context-generation-approval",
+  "generatedDistOutputsCreated": false,
+  "dockerImagesBuilt": false,
+  "dockerImagesPushed": false,
+  "mediaArtifactsCreated": false,
+  "privatePayloadsAccessed": false,
+  "privatePayloadsPrinted": false,
+  "privatePayloadsCommitted": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "supabaseClassification": {
+    "updateRequired": "no write",
+    "updateStatus": "not_applicable",
+    "environmentTouched": "none",
+    "sqlExecuted": "none",
+    "migrationDeployed": "no"
+  }
+}

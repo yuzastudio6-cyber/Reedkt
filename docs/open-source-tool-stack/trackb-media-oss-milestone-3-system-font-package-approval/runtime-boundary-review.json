@@ -1,0 +1,18 @@
+{
+  "decision": "trackb_media_oss_milestone3_system_font_package_approval_passed_ready_for_fonts_noto_cjk_execution",
+  "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_3_SYSTEM_FONT_PACKAGE_EXECUTION",
+  "packageInstallRun": false,
+  "fontAssetDownloadedCopiedUploaded": false,
+  "modelAssetDownloadedCopiedUploaded": false,
+  "ocrInferenceRun": false,
+  "paddleOcrExecutionRun": false,
+  "paddlePaddleExecutionRun": false,
+  "dockerBuildRun": false,
+  "gpuRun": false,
+  "mediaRenderRun": false,
+  "workerProviderRun": false,
+  "supabaseGcsTouched": false,
+  "publicArtifactOrSignedUrlCreated": false,
+  "betaProductionUnlocked": false,
+  "rawPromptExecuted": false
+}

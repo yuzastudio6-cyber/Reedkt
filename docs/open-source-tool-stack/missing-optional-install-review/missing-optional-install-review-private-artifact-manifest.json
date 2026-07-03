@@ -1,0 +1,43 @@
+{
+  "schema": "reeditpro.openSourceToolStack.missingOptionalInstallReview.privateArtifactManifest.v1",
+  "generatedAt": "2026-06-16T15:43:59.367Z",
+  "artifactScope": "repo_committed_json_markdown_docs_only",
+  "reportDirectory": "docs/open-source-tool-stack/missing-optional-install-review",
+  "reports": [
+    "docs/open-source-tool-stack/missing-optional-install-review/source-of-truth-audit.json",
+    "docs/open-source-tool-stack/missing-optional-install-review/evidence-revalidation-report.json",
+    "docs/open-source-tool-stack/missing-optional-install-review/evidence-revalidation-report.md",
+    "docs/open-source-tool-stack/missing-optional-install-review/duckdb-install-strategy.json",
+    "docs/open-source-tool-stack/missing-optional-install-review/duckdb-install-strategy.md",
+    "docs/open-source-tool-stack/missing-optional-install-review/polars-install-strategy.json",
+    "docs/open-source-tool-stack/missing-optional-install-review/polars-install-strategy.md",
+    "docs/open-source-tool-stack/missing-optional-install-review/ffmpeg-ffprobe-install-strategy.json",
+    "docs/open-source-tool-stack/missing-optional-install-review/ffmpeg-ffprobe-install-strategy.md",
+    "docs/open-source-tool-stack/missing-optional-install-review/package-lock-dependency-policy.json",
+    "docs/open-source-tool-stack/missing-optional-install-review/package-lock-dependency-policy.md",
+    "docs/open-source-tool-stack/missing-optional-install-review/system-binary-container-policy.json",
+    "docs/open-source-tool-stack/missing-optional-install-review/system-binary-container-policy.md",
+    "docs/open-source-tool-stack/missing-optional-install-review/synthetic-proof-plan.json",
+    "docs/open-source-tool-stack/missing-optional-install-review/synthetic-proof-plan.md",
+    "docs/open-source-tool-stack/missing-optional-install-review/missing-optional-install-review-decision.json",
+    "docs/open-source-tool-stack/missing-optional-install-review/missing-optional-install-review-decision.md",
+    "docs/open-source-tool-stack/missing-optional-install-review/missing-optional-install-review-readiness-report.json",
+    "docs/open-source-tool-stack/missing-optional-install-review/missing-optional-install-review-blocker-report.json",
+    "docs/open-source-tool-stack/missing-optional-install-review/missing-optional-install-review-private-artifact-manifest.json",
+    "docs/open-source-tool-stack/missing-optional-install-review/missing-optional-install-review-validation-results.md"
+  ],
+  "docs": [
+    "docs/implementation-prompts/prompt-open-source-tool-stack-missing-optional-package-and-binary-approval.md",
+    "docs/open-source-tool-stack/open-source-tool-stack-decision.md",
+    "docs/open-source-tool-stack/open-source-tool-stack-next-install-batches.md",
+    "docs/cross-chat/CURRENT_HANDOFF.md",
+    "docs/cross-chat/NEXT_UNLOCK_LANES.md",
+    "docs/cross-chat/BLOCKED_SCOPES.md",
+    "docs/cross-chat/READ_FIRST_FOR_ALL_OWNERS.md"
+  ],
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "gcsUploads": false,
+  "mediaArtifactsCommitted": false,
+  "privatePayloadsCommitted": false
+}

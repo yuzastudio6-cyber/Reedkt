@@ -1,0 +1,13 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaProductToolCallRuntimeApproval.failClosedContract.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_approval_passed_ready_for_controlled_runtime_dry_run_execution",
+  "contractEvidence": "src/backend/contracts/trackb-media-oss-tool-call-contracts.ts",
+  "apiRouteEvidence": "src/backend/api/routes/trackb-media-oss-tool-call-api-routes.ts",
+  "toolContracts": 16,
+  "apiRoutes": 3,
+  "currentApiRouteStatus": "disabled",
+  "currentExecutionEnabled": false,
+  "requiredFailClosedCode": "trackb_media_oss_tool_calls_disabled_until_beta_gate",
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_EXECUTION"
+}

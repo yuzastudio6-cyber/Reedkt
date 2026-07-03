@@ -1,0 +1,11 @@
+{
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_product_beta_runtime_controlled_activation_qa_passed_ready_for_controlled_activation_closeout",
+  "privateArtifactsCreated": false,
+  "publicArtifactsCreated": false,
+  "signedUrlsCreated": false,
+  "mediaArtifactsCreated": false,
+  "runtimePayloadsCreated": false,
+  "secretsCommitted": false,
+  "generatedOutputsCreated": false
+}

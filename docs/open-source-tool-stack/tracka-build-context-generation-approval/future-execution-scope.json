@@ -1,0 +1,27 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackaBuildContextGenerationApproval.futureScope.v1",
+  "generatedAt": "2026-06-18T14:31:44.675Z",
+  "selectedPath": "build_context_generation_only",
+  "selectedDecision": "build_context_generation_approval_passed_ready_for_generation_execution",
+  "futurePhase": "OPEN_SOURCE_TOOL_STACK_TRACKA_BUILD_CONTEXT_GENERATION_EXECUTION",
+  "exactFutureCommands": [
+    "npm run build:server",
+    "npm run build:remotion-worker:mock",
+    "npm run build:staging-fixture-worker",
+    "npm run build:staging-real-video-export-worker"
+  ],
+  "exactFutureCleanupCommand": "rm -rf dist-server dist-remotion-worker dist-staging-fixture-worker dist-staging-real-video-export-worker",
+  "buildContextGenerationIncludedInNextPhase": true,
+  "dockerBuildIncludedInNextPhase": false,
+  "dockerRunIncludedInNextPhase": false,
+  "ffmpegFfprobeProbesIncludedInNextPhase": false,
+  "noMediaInput": true,
+  "noMediaProbeDecodeEncode": true,
+  "noCaptionBurnIn": true,
+  "noRenderExport": true,
+  "noSupabaseSqlGcs": true,
+  "noPublicArtifactsSignedUrls": true,
+  "noBetaProductionUnlock": true,
+  "noDistOutputCommit": true,
+  "stopOnFirstFailure": true
+}

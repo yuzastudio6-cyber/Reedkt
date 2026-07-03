@@ -1,0 +1,271 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaProductToolCallRuntimeDryRunExecution.safeFixturePayloads.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_execution_passed_ready_for_runtime_dry_run_qa_review",
+  "payloadCount": 16,
+  "commonFields": {
+    "workspaceId": "workspace-trackb-dry-run-fixture",
+    "projectId": "project-trackb-dry-run-fixture",
+    "mediaAssetId": "media-asset-trackb-dry-run-fixture",
+    "approvedSnapshotId": "approved-snapshot-trackb-dry-run-fixture-v1",
+    "editPlanId": "edit-plan-trackb-dry-run-fixture-v1",
+    "creditReservationId": "credit-reservation-trackb-dry-run-fixture-v1",
+    "requestedRecipeId": "recipe-trackb-dry-run-fixture-v1",
+    "fallbackPolicyId": "fallback-policy-trackb-dry-run-block-preview-final-export-user-review",
+    "resultSchemaVersion": "trackb-media-oss-tool-call-result.v1",
+    "dryRunOnly": true,
+    "executionEnabled": false
+  },
+  "requiredQualityGateIds": [
+    "qa-gate-render-asset-integrity",
+    "qa-gate-render-timeline-integrity",
+    "qa-gate-final-delivery"
+  ],
+  "payloads": [
+    {
+      "toolId": "ffprobe",
+      "idempotencyKey": "trackb-dry-run-ffprobe-fcb6624b",
+      "routingClass": "source_introspection",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-ffprobe",
+          "artifactType": "source_media",
+          "storageBucketPurpose": "source_media",
+          "storageObjectPath": "private/trackb/dry-run/ffprobe/source-artifact-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "mediainfo",
+      "idempotencyKey": "trackb-dry-run-mediainfo-fcb6624b",
+      "routingClass": "source_introspection",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-mediainfo",
+          "artifactType": "source_media",
+          "storageBucketPurpose": "source_media",
+          "storageObjectPath": "private/trackb/dry-run/mediainfo/source-artifact-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "exiftool",
+      "idempotencyKey": "trackb-dry-run-exiftool-fcb6624b",
+      "routingClass": "source_introspection",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-exiftool",
+          "artifactType": "source_media",
+          "storageBucketPurpose": "source_media",
+          "storageObjectPath": "private/trackb/dry-run/exiftool/source-artifact-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "duckdb",
+      "idempotencyKey": "trackb-dry-run-duckdb-fcb6624b",
+      "routingClass": "structured_metadata_analysis",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-duckdb",
+          "artifactType": "timeline_manifest",
+          "storageBucketPurpose": "analysis_artifacts",
+          "storageObjectPath": "private/trackb/dry-run/duckdb/manifest-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "polars_nodejs_polars",
+      "idempotencyKey": "trackb-dry-run-polars-nodejs-polars-fcb6624b",
+      "routingClass": "structured_metadata_analysis",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-polars-nodejs-polars",
+          "artifactType": "timeline_manifest",
+          "storageBucketPurpose": "analysis_artifacts",
+          "storageObjectPath": "private/trackb/dry-run/polars-nodejs-polars/manifest-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "sharp_libvips",
+      "idempotencyKey": "trackb-dry-run-sharp-libvips-fcb6624b",
+      "routingClass": "image_color_analysis",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-sharp-libvips",
+          "artifactType": "representative_frame",
+          "storageBucketPurpose": "analysis_artifacts",
+          "storageObjectPath": "private/trackb/dry-run/sharp-libvips/frame-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "opencolorio",
+      "idempotencyKey": "trackb-dry-run-opencolorio-fcb6624b",
+      "routingClass": "image_color_analysis",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-opencolorio",
+          "artifactType": "color_analysis_json",
+          "storageBucketPurpose": "analysis_artifacts",
+          "storageObjectPath": "private/trackb/dry-run/opencolorio/color-config-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "openimageio",
+      "idempotencyKey": "trackb-dry-run-openimageio-fcb6624b",
+      "routingClass": "image_color_analysis",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-openimageio",
+          "artifactType": "representative_frame",
+          "storageBucketPurpose": "analysis_artifacts",
+          "storageObjectPath": "private/trackb/dry-run/openimageio/image-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "imagemagick",
+      "idempotencyKey": "trackb-dry-run-imagemagick-fcb6624b",
+      "routingClass": "image_processing_fallback",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-imagemagick",
+          "artifactType": "representative_frame",
+          "storageBucketPurpose": "analysis_artifacts",
+          "storageObjectPath": "private/trackb/dry-run/imagemagick/image-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "opencv",
+      "idempotencyKey": "trackb-dry-run-opencv-fcb6624b",
+      "routingClass": "video_frame_analysis",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-opencv",
+          "artifactType": "representative_frame",
+          "storageBucketPurpose": "analysis_artifacts",
+          "storageObjectPath": "private/trackb/dry-run/opencv/frame-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "pyav",
+      "idempotencyKey": "trackb-dry-run-pyav-fcb6624b",
+      "routingClass": "video_frame_analysis",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-pyav",
+          "artifactType": "source_media",
+          "storageBucketPurpose": "source_media",
+          "storageObjectPath": "private/trackb/dry-run/pyav/source-artifact-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "pyscenedetect",
+      "idempotencyKey": "trackb-dry-run-pyscenedetect-fcb6624b",
+      "routingClass": "video_frame_analysis",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-pyscenedetect",
+          "artifactType": "source_media",
+          "storageBucketPurpose": "source_media",
+          "storageObjectPath": "private/trackb/dry-run/pyscenedetect/source-artifact-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "tesseract",
+      "idempotencyKey": "trackb-dry-run-tesseract-fcb6624b",
+      "routingClass": "ocr_text_analysis",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-tesseract",
+          "artifactType": "representative_frame",
+          "storageBucketPurpose": "analysis_artifacts",
+          "storageObjectPath": "private/trackb/dry-run/tesseract/frame-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "paddlepaddle",
+      "idempotencyKey": "trackb-dry-run-paddlepaddle-fcb6624b",
+      "routingClass": "ocr_text_analysis",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-paddlepaddle",
+          "artifactType": "ocr_report_json",
+          "storageBucketPurpose": "analysis_artifacts",
+          "storageObjectPath": "private/trackb/dry-run/paddlepaddle/model-free-proof-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "paddleocr",
+      "idempotencyKey": "trackb-dry-run-paddleocr-fcb6624b",
+      "routingClass": "ocr_text_analysis",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-paddleocr",
+          "artifactType": "ocr_report_json",
+          "storageBucketPurpose": "analysis_artifacts",
+          "storageObjectPath": "private/trackb/dry-run/paddleocr/api-shape-proof-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    },
+    {
+      "toolId": "ffmpeg",
+      "idempotencyKey": "trackb-dry-run-ffmpeg-fcb6624b",
+      "routingClass": "media_transform_high_risk",
+      "privateInputArtifacts": [
+        {
+          "artifactId": "private-artifact-trackb-dry-run-ffmpeg",
+          "artifactType": "source_media",
+          "storageBucketPurpose": "source_media",
+          "storageObjectPath": "private/trackb/dry-run/ffmpeg/source-artifact-ref.json",
+          "isPrivate": true,
+          "sourceOfTruth": true
+        }
+      ]
+    }
+  ],
+  "publicUrlsCreated": false,
+  "signedUrlsCreated": false,
+  "userMediaByDefault": false,
+  "realToolExecution": false,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_DRY_RUN_QA_REVIEW"
+}

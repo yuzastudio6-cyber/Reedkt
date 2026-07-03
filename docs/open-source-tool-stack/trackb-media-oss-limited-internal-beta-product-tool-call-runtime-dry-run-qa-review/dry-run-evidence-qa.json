@@ -1,0 +1,38 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackB.limitedInternalBetaProductToolCallRuntimeDryRunQaReview.evidenceQa.v1",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "decision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_qa_passed_ready_for_runtime_closeout",
+  "acceptedDryRunDecision": "trackb_media_oss_limited_internal_beta_product_tool_call_runtime_dry_run_execution_passed_ready_for_runtime_dry_run_qa_review",
+  "acceptedEvidence": {
+    "safeFixturePayloadsForAllTools": true,
+    "approvedSnapshotLinked": true,
+    "editPlanLinked": true,
+    "idempotencyLinked": true,
+    "creditReservationLinked": true,
+    "privateArtifactReferencesLinked": true,
+    "deterministicRoutingLinked": true,
+    "failClosedContractLookupLinked": true,
+    "resultSchemaLinked": true,
+    "qaGateLinkageLinked": true,
+    "fallbackPolicyLinked": true,
+    "sanitizedLoggingShapeLinked": true,
+    "monitoringEventShapeLinked": true,
+    "rollbackRecordShapeLinked": true
+  },
+  "notAcceptedAsEvidence": {
+    "liveRouteRuntime": true,
+    "workerDispatch": true,
+    "realToolExecution": true,
+    "mediaProcessing": true,
+    "userMediaByDefault": true,
+    "publicArtifacts": true,
+    "signedUrls": true,
+    "supabaseWrites": true,
+    "gcsWrites": true,
+    "externalBeta": true,
+    "production": true,
+    "productReadyLocalOss": true
+  },
+  "readyForRuntimeCloseout": true,
+  "nextPrompt": "TRACKB_MEDIA_OSS_LIMITED_INTERNAL_BETA_PRODUCT_TOOL_CALL_RUNTIME_CLOSEOUT"
+}

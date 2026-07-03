@@ -1,0 +1,47 @@
+{
+  "schema": "reeditpro.openSourceToolStack.ffmpegFfprobeSystemBinaryReview.trackaPr463ReferenceReview.v1",
+  "generatedAt": "2026-06-17T21:23:02.115Z",
+  "prNumber": 463,
+  "state": "MERGED",
+  "mergedAt": "2026-06-17T21:08:46Z",
+  "baseRefName": "codex/rp-model-orchestration-qwen-schema-timeout-target-calibration",
+  "headRefName": "codex/rp-tracka-caption-quality-3r2-runtime-path-1",
+  "headRefOid": "81145ae352830c274f73b9bd905f6b8e0ebe1e4d",
+  "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/463",
+  "centralSourceOfTruth": false,
+  "centralSourceOfTruthReason": "PR #463 merged into a Track A/model-orchestration branch and its Track A runtime path reports are absent from the central source branch.",
+  "centralEvidencePresent": false,
+  "centralEvidenceFiles": [
+    {
+      "file": "docs/track-a/track-a-caption-runtime-path-metadata-check-results.md",
+      "exists": false
+    },
+    {
+      "file": "docs/track-a/track-a-caption-runtime-path-approval-contract.md",
+      "exists": false
+    },
+    {
+      "file": "docs/activation-phase-tracka-caption-runtime-path-1-results.md",
+      "exists": false
+    },
+    {
+      "file": "scripts/validation/track-a-caption-runtime-path-1-diagnostics.mjs",
+      "exists": false
+    }
+  ],
+  "ffmpegPath": "docker://docker/prod/render-worker/Dockerfile#ffmpeg",
+  "ffprobePath": "docker://docker/prod/render-worker/Dockerfile#ffprobe",
+  "libassEvidence": "repo-owned render-worker Dockerfile metadata referenced by PR #463",
+  "dockerImageBuildStatus": "reference_only_reported_passed_not_central_source_of_truth",
+  "safetyClaims": {
+    "mediaInputOutput": false,
+    "renderExportExecution": false,
+    "supabaseWrites": false,
+    "gcsUpload": false,
+    "publicArtifacts": false,
+    "signedUrls": false,
+    "betaProductionUnlock": false
+  },
+  "useAsReferenceOnly": true,
+  "shouldWaitForCentralMergeOrReconciliation": true
+}

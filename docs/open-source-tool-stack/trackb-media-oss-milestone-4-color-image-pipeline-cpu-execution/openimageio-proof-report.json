@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-06-22T03:06:27.749Z",
+  "decision": "trackb_media_oss_milestone4_color_image_pipeline_cpu_execution_passed_ready_for_qa",
+  "ownerId": "TRACK_B_MEDIA_OSS_STEWARD",
+  "sourceSha": "957e8f96900e9a374a8cd7990f00e761222ebb64",
+  "tool": "OpenImageIO",
+  "importName": "OpenImageIO",
+  "version": "3.1.14.1",
+  "command": "docker run --rm --network none --entrypoint python3 <image> -c <OpenImageIO import/version/ImageSpec/ImageBuf check>",
+  "exitCode": 0,
+  "importPassed": true,
+  "apiShapePassed": true,
+  "fileIoUsed": false,
+  "observedJson": {
+    "tool": "OpenImageIO",
+    "version": "3.1.14.1",
+    "has_ImageSpec": true,
+    "has_ImageBuf": true,
+    "spec_width": 2,
+    "spec_height": 2,
+    "spec_nchannels": 3
+  },
+  "realMediaUsed": false,
+  "gpuUsed": false,
+  "network": "none"
+}

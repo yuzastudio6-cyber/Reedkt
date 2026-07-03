@@ -1,0 +1,14 @@
+{
+  "schema": "reeditpro.openSourceToolStack.trackbMediaOssInstallProofMilestonePlan.roadmap.v1",
+  "decision": "trackb_media_oss_install_proof_milestone_plan_passed_ready_for_milestone_1_execution",
+  "milestones": [
+    { "id": "M0", "name": "Owner registry", "status": "complete", "tools": [], "approvedNow": false },
+    { "id": "M1", "name": "Low-risk metadata/tooling install-proof", "status": "future_execution_approved", "tools": ["exiftool", "mediainfo", "tesseract", "imagemagick_graphicsmagick"], "approvedNow": true, "nextPrompt": "TRACKB_MEDIA_OSS_MILESTONE_1_LOW_RISK_METADATA_TOOLING_EXECUTION" },
+    { "id": "M2", "name": "CPU-first video/media analysis install-proof", "status": "future_approval_required", "tools": ["opencv", "pyav", "pyscenedetect"], "approvedNow": false },
+    { "id": "M3", "name": "OCR/ML install-proof", "status": "future_approval_required", "tools": ["paddleocr", "paddlepaddle"], "approvedNow": false },
+    { "id": "M4", "name": "Color/image pipeline install-proof", "status": "future_approval_required", "tools": ["opencolorio", "openimageio"], "approvedNow": false },
+    { "id": "M5", "name": "FFmpeg/FFprobe proper runtime planning", "status": "future_approval_required", "tools": ["ffmpeg", "ffprobe"], "approvedNow": false },
+    { "id": "M6", "name": "Track B CPU/GPU worker packaging plan", "status": "future_approval_required", "tools": [], "approvedNow": false },
+    { "id": "M7", "name": "Track B final rollup", "status": "future_approval_required", "tools": ["ffmpeg", "ffprobe", "sharp_libvips", "duckdb", "polars_nodejs_polars", "opencv", "pyav", "pyscenedetect", "paddleocr", "paddlepaddle", "mediainfo", "exiftool", "imagemagick_graphicsmagick", "tesseract", "opencolorio", "openimageio"], "approvedNow": false }
+  ]
+}

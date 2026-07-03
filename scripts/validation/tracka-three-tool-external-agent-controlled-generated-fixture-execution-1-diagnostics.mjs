@@ -11,6 +11,7 @@ const activationPath =
   'docs/activation-phase-tracka-three-tool-external-agent-controlled-generated-fixture-execution-1-results.md'
 const promptPath =
   'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-controlled-generated-fixture-qa-rollup-1.md'
+const qaDir = 'docs/external-beta/tracka-three-tool-external-agent-controlled-generated-fixture-qa-rollup-1'
 const handoffRecordPath =
   'docs/external-beta/tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1/tracka-three-tool-external-agent-controlled-generated-fixture-handoff-1-record.json'
 const rollupRecordPath =
@@ -35,13 +36,25 @@ const packetFiles = [
   promptPath,
 ]
 
+const downstreamQaFiles = [
+  `${qaDir}/source-audit.md`,
+  `${qaDir}/evidence-review.md`,
+  `${qaDir}/tool-readiness.md`,
+  `${qaDir}/safety-boundary.md`,
+  `${qaDir}/validation-results.md`,
+  `${qaDir}/tracka-three-tool-external-agent-controlled-generated-fixture-qa-rollup-1-record.json`,
+  'docs/activation-phase-tracka-three-tool-external-agent-controlled-generated-fixture-qa-rollup-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-execution-bridge-1.md',
+]
+
 const implementationFiles = [
   'package.json',
   'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-execution-1.mjs',
   'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-execution-1-diagnostics.mjs',
+  'scripts/validation/tracka-three-tool-external-agent-controlled-generated-fixture-qa-rollup-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const allowedChangedFiles = new Set([...packetFiles, ...downstreamQaFiles, ...implementationFiles])
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
   /^src\//,

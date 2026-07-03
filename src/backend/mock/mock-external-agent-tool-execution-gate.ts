@@ -1,5 +1,5 @@
 import {
-  AI_VIDEO_BROLL_GEN_10R_FIX_IAP_SSH_CANARY_BOUNDED_RUNNER_PROMPT,
+  AI_VIDEO_BROLL_GEN_10S_NO_GPU_IAP_SSH_CANARY_BOUNDED_RUNNER_EXECUTE_PROMPT,
   EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
@@ -116,12 +116,12 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '10P northamerica-northeast2-a payload/install readiness proof result must remain recorded as blocked by IAP/OS Login publickey failure after VM create success and cleanup verified',
         '10Q IAP/OS Login access fix result must remain recorded as inconclusive read-only evidence requiring a non-GPU canary',
         '10R non-GPU no-public-IP IAP SSH canary result must remain recorded as interrupted with cleanup repaired and no durable SSH pass/fail evidence',
-        '10R bounded runner fix prompt must run before any further canary or GPU VM attempt',
+        '10R-FIX bounded runner packet must remain recorded with hard timeouts, durable summaries, and cleanup verification',
+        '10S fixed no-GPU IAP SSH canary execution must run before any further GPU VM attempt',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
-      currentBlocker:
-        'broll_10r_iap_ssh_canary_runner_timeout_summary_capture_fix_required',
-      safeNextCommand: 'npm run smoke:ai-video-broll-gen-10r-no-gpu-iap-ssh-canary-result',
+      currentBlocker: 'broll_10s_fixed_no_gpu_iap_ssh_canary_execution_required',
+      safeNextCommand: 'npm run smoke:ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner',
       noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {
@@ -168,7 +168,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   ],
   runtimeSideEffects: ROLLUP.runtimeSideEffects,
   recommendedNextPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
-  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_10R_FIX_IAP_SSH_CANARY_BOUNDED_RUNNER_PROMPT,
+  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_10S_NO_GPU_IAP_SSH_CANARY_BOUNDED_RUNNER_EXECUTE_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionGate = typeof EXTERNAL_AGENT_TOOL_EXECUTION_GATE

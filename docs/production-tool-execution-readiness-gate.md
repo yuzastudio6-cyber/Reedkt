@@ -31,8 +31,10 @@ npm run smoke:production-tool-execution-readiness-gate
 npm run smoke:production-tool-execution-readiness-api
 npm run smoke:production-tool-execution-readiness-evidence-preflight
 npm run smoke:production-tool-execution-readiness-evidence-collector
+npm run smoke:production-ops-observability-evidence-collector
 npm run prod:readiness:tool-execution-gate-preflight
 npm run prod:readiness:tool-execution-evidence-collector
+npm run prod:readiness:ops-observability-evidence-collector
 npm run prod:readiness:tool-execution-gate
 ```
 
@@ -43,6 +45,8 @@ Use `prod:readiness:tool-execution-gate-preflight` before the final gate report.
 For CLI preflight input, `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY` and `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT` apply to the reviewed packet, while each evidence section has its own artifact ID, for example `REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID`, `REEDITPRO_PRODUCTION_WALLET_EVIDENCE_ARTIFACT_ID`, `REEDITPRO_PRODUCTION_STRIPE_EVIDENCE_ARTIFACT_ID`, and `REEDITPRO_PRODUCTION_OWNER_EVIDENCE_ARTIFACT_ID`. Supabase persistence evidence must separately prove `tool_cost_events`, `beta_readiness_evidence_packets`, and `production_tool_execution_readiness_evidence_packets` deployment/readback with `REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED`, `REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED`, and `REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_MIGRATION_DEPLOYED`. Backend-only packet access must be proven separately for beta evidence and production readiness evidence with `REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED` and `REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_BACKEND_ONLY_VERIFIED`.
 
 Use `prod:readiness:tool-execution-evidence-collector` only after the preflight is complete. The collector defaults to dry-run mode and performs no HTTP calls unless `REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_EVIDENCE=true` is supplied with `REEDITPRO_PRODUCTION_READINESS_API_BASE_URL`, `REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN`, and `REEDITPRO_PRODUCTION_READINESS_IDEMPOTENCY_KEY`. When confirmed, it posts the passing evidence packet through the authenticated backend route, uses the idempotency key for replay safety, reads the workspace packet back through the backend route, and redacts the bearer token from the summary. The collector never writes Supabase directly and does not run tools, dispatch workers, mutate wallets, call Stripe, process media, deploy, or activate production.
+
+Use `prod:readiness:ops-observability-evidence-collector` to isolate the observability and operations-control slice before final all-up recording. The collector checks that dashboards, alerts, alert routing, billing QA monitoring, rollback approval, kill-switch verification, rate limits, concurrency limits, incident runbook approval, catalog coverage, and static cost-control policies are all backed by non-secret provenance. It defaults to dry-run mode and does not call the backend unless `REEDITPRO_PRODUCTION_OPS_OBSERVABILITY_CONFIRM_RECORD_EVIDENCE=true` is supplied. Confirmed mode reuses the same authenticated production-readiness evidence route and still requires the complete paid-production evidence packet; ops/observability evidence alone cannot unlock production. The collector never deploys dashboards or alerts, mutates Supabase directly, runs tools, dispatches workers, mutates wallets, calls Stripe, processes media, or activates beta/production.
 
 Backend callers can also evaluate the same evidence packet with:
 

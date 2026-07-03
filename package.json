@@ -674,6 +674,7 @@
     "worker-runtime-jobs:sound-cpu-phase201-controlled-disabled-route-preflight-execution:proof": "tsx scripts/validation/worker-runtime-jobs-sound-cpu-phase201-controlled-disabled-route-preflight-execution-runner.ts",
     "worker-runtime-jobs:sound-cpu-phase201-controlled-disabled-route-preflight-execution:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase201-controlled-disabled-route-preflight-execution-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-phase202-controlled-disabled-route-preflight-execution-result-owner-review:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase202-controlled-disabled-route-preflight-execution-result-owner-review-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-phase203-current-execution-readiness-blocker-selection:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-phase203-current-execution-readiness-blocker-selection-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",
     "tool-route-execution-unlock-0:diagnostics": "node scripts/validation/tool-route-execution-unlock-0-repo-audit-diagnostics.mjs",

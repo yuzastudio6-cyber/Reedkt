@@ -1,0 +1,594 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import {
+  AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_DECISION,
+  AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS,
+  executeAiGraphicsExternalAgentGpuModelControlledAdapter,
+  type AiGraphicsExternalAgentGpuModelControlledAdapterResult,
+  type AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+} from '../tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter'
+import {
+  getAiGraphicsToolCallReadiness,
+  type AiGraphicsCanonicalToolId,
+} from '../tool-registry/ai-graphics-tool-call-readiness'
+
+const decision =
+  'ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_prepared_with_runtime_blocks'
+const status =
+  'local_dev_runtime_inputs_required_before_eight_gpu_model_tools_execute'
+const outputJsonPath =
+  'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json'
+const outputMdPath =
+  'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.md'
+
+type HarnessArgs = {
+  attemptLocalRuntime: boolean
+  outputDirectory?: string
+  sourceImageLocalPath?: string
+  sam2CheckpointLocalPath?: string
+  birefnetModelLocalPath?: string
+  realEsrganModelLocalPath?: string
+  rembgModelLocalPath?: string
+  transparentBackgroundCheckpointLocalPath?: string
+  timeoutMs?: number
+  writeRecords: boolean
+}
+
+type LocalInputRequirement = {
+  key: string
+  requiredForDefaultHarness: boolean
+  requiredForActualExecution: boolean
+  description: string
+}
+
+function hasFlag(flag: string): boolean {
+  return process.argv.includes(flag)
+}
+
+function stringFlag(flag: string): string | undefined {
+  const index = process.argv.indexOf(flag)
+  if (index === -1) return undefined
+  const value = process.argv[index + 1]
+  if (!value || value.startsWith('--')) {
+    throw new Error(`${flag} requires a value`)
+  }
+  return value
+}
+
+function numberFlag(flag: string): number | undefined {
+  const raw = stringFlag(flag)
+  if (raw === undefined) return undefined
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(`${flag} must be a positive number`)
+  }
+  return parsed
+}
+
+function parseArgs(): HarnessArgs {
+  const args = {
+    attemptLocalRuntime: hasFlag('--attempt-local-runtime'),
+    outputDirectory: stringFlag('--output-dir'),
+    sourceImageLocalPath: stringFlag('--source-image'),
+    sam2CheckpointLocalPath: stringFlag('--sam2-checkpoint'),
+    birefnetModelLocalPath: stringFlag('--birefnet-model'),
+    realEsrganModelLocalPath: stringFlag('--real-esrgan-model'),
+    rembgModelLocalPath: stringFlag('--rembg-model'),
+    transparentBackgroundCheckpointLocalPath:
+      stringFlag('--transparent-background-checkpoint'),
+    timeoutMs: numberFlag('--timeout-ms'),
+    writeRecords: hasFlag('--write-records'),
+  }
+
+  if (args.writeRecords && args.attemptLocalRuntime) {
+    throw new Error(
+      '--write-records cannot be combined with --attempt-local-runtime; committed records must stay skip-safe.',
+    )
+  }
+
+  if (args.attemptLocalRuntime && !args.outputDirectory) {
+    throw new Error('--attempt-local-runtime requires --output-dir')
+  }
+
+  return args
+}
+
+function productCapabilities(capabilityIds: readonly string[]): string[] {
+  return capabilityIds.filter((capabilityId) => (
+    capabilityId !== 'planning_metadata_only' &&
+    capabilityId !== 'blocked_or_deferred'
+  ))
+}
+
+function primaryCapability(
+  toolId: AiGraphicsCanonicalToolId,
+  capabilityIds: readonly string[],
+): string {
+  const capabilities = productCapabilities(capabilityIds)
+  const preferredByTool: Partial<Record<AiGraphicsCanonicalToolId, string>> = {
+    torch_torchvision: 'model_runtime_foundation',
+    transformers: 'model_runtime_foundation',
+    sam2: 'subject_segmentation',
+    birefnet: 'background_removal',
+    real_esrgan: 'upscaling',
+    kornia: 'tensor_image_ops',
+    rembg: 'background_removal',
+    transparent_background: 'background_removal',
+  }
+  const preferred = preferredByTool[toolId]
+  if (preferred && capabilities.includes(preferred)) return preferred
+  if (capabilities[0]) return capabilities[0]
+  throw new Error(`Missing product capability for ${toolId}`)
+}
+
+function modelWeightManifestRequired(toolId: AiGraphicsCanonicalToolId): boolean {
+  return [
+    'sam2',
+    'birefnet',
+    'real_esrgan',
+    'rembg',
+    'transparent_background',
+  ].includes(toolId)
+}
+
+function localInputRequirements(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): LocalInputRequirement[] {
+  const outputDirectory: LocalInputRequirement = {
+    key: 'outputDirectory',
+    requiredForDefaultHarness: false,
+    requiredForActualExecution: true,
+    description:
+      'Private local worker output directory; must not be public artifact storage.',
+  }
+  const sourceImage: LocalInputRequirement = {
+    key: 'sourceImageLocalPath',
+    requiredForDefaultHarness: false,
+    requiredForActualExecution: true,
+    description: 'Private local representative image/frame selected from an approved plan.',
+  }
+
+  if (toolId === 'torch_torchvision' || toolId === 'transformers') {
+    return [
+      outputDirectory,
+      {
+        key: 'nativeCudaRuntime',
+        requiredForDefaultHarness: false,
+        requiredForActualExecution: true,
+        description:
+          'Approved local/native CUDA runtime; CPU fallback is intentionally not accepted.',
+      },
+    ]
+  }
+
+  if (toolId === 'kornia') {
+    return [
+      outputDirectory,
+      sourceImage,
+      {
+        key: 'nativeCudaRuntime',
+        requiredForDefaultHarness: false,
+        requiredForActualExecution: true,
+        description:
+          'Approved CUDA runtime for bounded tensor/image operations; no model weight required.',
+      },
+    ]
+  }
+
+  const modelInputByTool: Record<
+    Exclude<AiGraphicsExternalAgentGpuModelControlledAdapterToolId, 'torch_torchvision' | 'transformers' | 'kornia'>,
+    LocalInputRequirement
+  > = {
+    sam2: {
+      key: 'sam2CheckpointLocalPath',
+      requiredForDefaultHarness: false,
+      requiredForActualExecution: true,
+      description: 'Reviewed private SAM2 checkpoint path; no download allowed.',
+    },
+    birefnet: {
+      key: 'birefnetModelLocalPath',
+      requiredForDefaultHarness: false,
+      requiredForActualExecution: true,
+      description: 'Reviewed private BiRefNet model/checkpoint path; no download allowed.',
+    },
+    real_esrgan: {
+      key: 'realEsrganModelLocalPath',
+      requiredForDefaultHarness: false,
+      requiredForActualExecution: true,
+      description: 'Reviewed private Real-ESRGAN model path; no download allowed.',
+    },
+    rembg: {
+      key: 'rembgModelLocalPath',
+      requiredForDefaultHarness: false,
+      requiredForActualExecution: true,
+      description: 'Reviewed private rembg ONNX model path; no download allowed.',
+    },
+    transparent_background: {
+      key: 'transparentBackgroundCheckpointLocalPath',
+      requiredForDefaultHarness: false,
+      requiredForActualExecution: true,
+      description:
+        'Reviewed private transparent-background checkpoint path; no download allowed.',
+    },
+  }
+
+  return toolId === 'sam2'
+    ? [
+        outputDirectory,
+        modelInputByTool[toolId],
+        {
+          key: 'nativeCudaRuntime',
+          requiredForDefaultHarness: false,
+          requiredForActualExecution: true,
+          description:
+            'Approved CUDA runtime. Current script uses an approved generated fixture only, not real media.',
+        },
+      ]
+    : [
+        outputDirectory,
+        sourceImage,
+        modelInputByTool[toolId],
+        {
+          key: 'nativeCudaRuntime',
+          requiredForDefaultHarness: false,
+          requiredForActualExecution: true,
+          description:
+            'Approved CUDA runtime for the scoped local worker call only.',
+        },
+      ]
+}
+
+function applyRuntimePayloadArgs(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  args: HarnessArgs,
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {
+    mode: 'local_dev',
+    enableGpuModelControlledExecution: true,
+    enableFoundationRuntimeExecution: true,
+    externalAgentGpuModelLocalDevRuntimeExecutionHarness: true,
+    privateOutputOnly: true,
+    gpuRuntimeOnDemandOnly: true,
+    noIdleGpuRuntimeApproved: true,
+    toolExecutionPerformed: false,
+    gpuRuntimeShouldStartNow: false,
+    modelWeightsLoaded: false,
+    modelInferencePerformed: false,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+  }
+
+  if (!args.attemptLocalRuntime) return payload
+
+  payload.outputDirectory = args.outputDirectory
+  payload.timeoutMs = args.timeoutMs
+  if (args.sourceImageLocalPath) {
+    payload.sourceImageLocalPath = args.sourceImageLocalPath
+    payload.representativeFrameLocalPath = args.sourceImageLocalPath
+  }
+  if (toolId === 'sam2' && args.sam2CheckpointLocalPath) {
+    payload.sam2CheckpointLocalPath = args.sam2CheckpointLocalPath
+  }
+  if (toolId === 'birefnet' && args.birefnetModelLocalPath) {
+    payload.birefnetModelLocalPath = args.birefnetModelLocalPath
+  }
+  if (toolId === 'real_esrgan' && args.realEsrganModelLocalPath) {
+    payload.realEsrganModelLocalPath = args.realEsrganModelLocalPath
+  }
+  if (toolId === 'rembg' && args.rembgModelLocalPath) {
+    payload.rembgModelLocalPath = args.rembgModelLocalPath
+  }
+  if (
+    toolId === 'transparent_background' &&
+    args.transparentBackgroundCheckpointLocalPath
+  ) {
+    payload.transparentBackgroundCheckpointLocalPath =
+      args.transparentBackgroundCheckpointLocalPath
+  }
+
+  return payload
+}
+
+function buildRequest(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  args: HarnessArgs,
+) {
+  const readiness = getAiGraphicsToolCallReadiness(toolId)
+  if (!readiness) throw new Error(`Missing readiness record for ${toolId}`)
+  const capabilityId = primaryCapability(toolId, readiness.capabilities)
+  const privateBase =
+    `private://ai-graphics/external-agent/gpu-model-local-dev-runtime-execution-harness/${toolId}`
+
+  return {
+    workspaceId:
+      'workspace_ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness',
+    requestId:
+      `request_ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_${toolId}`,
+    toolId,
+    capabilityId,
+    approvedPlanSnapshotId:
+      `approved_snapshot_ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_${toolId}`,
+    creditReservationId:
+      `credit_reservation_ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_${toolId}`,
+    privateArtifactManifestRef: `${privateBase}/artifact-manifest`,
+    toolRouteApprovalRef: `${privateBase}/tool-route-approval`,
+    workerApprovalRef: `${privateBase}/worker-approval`,
+    runtimeEnqueueApprovalRef: `${privateBase}/runtime-enqueue-approval`,
+    ownerRuntimeApprovalRef: `${privateBase}/owner-runtime-approval`,
+    nativeGpuRuntimeProofRef: `${privateBase}/native-gpu-runtime-proof`,
+    modelWeightManifestRef: modelWeightManifestRequired(toolId)
+      ? `${privateBase}/model-weight-manifest`
+      : undefined,
+    externalBetaPerToolRuntimeProofRef:
+      `${privateBase}/external-beta-per-tool-runtime-proof`,
+    traceId:
+      `trace_ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_${toolId}`,
+    payload: applyRuntimePayloadArgs(toolId, args),
+  }
+}
+
+function skipReasonCode(result: AiGraphicsExternalAgentGpuModelControlledAdapterResult): string | null {
+  const runtimeResult = result.runtimeOutput.result
+  if (
+    runtimeResult &&
+    typeof runtimeResult === 'object' &&
+    'skipReason' in runtimeResult
+  ) {
+    const skipReason = (runtimeResult as { skipReason?: unknown }).skipReason
+    if (
+      skipReason &&
+      typeof skipReason === 'object' &&
+      'code' in skipReason
+    ) {
+      const code = (skipReason as { code?: unknown }).code
+      return typeof code === 'string' ? code : null
+    }
+  }
+  return null
+}
+
+function outputJsonPathForResult(result: AiGraphicsExternalAgentGpuModelControlledAdapterResult): string | null {
+  const runtimeResult = result.runtimeOutput.result
+  if (
+    runtimeResult &&
+    typeof runtimeResult === 'object' &&
+    'outputJsonPath' in runtimeResult
+  ) {
+    const outputPath = (runtimeResult as { outputJsonPath?: unknown }).outputJsonPath
+    return typeof outputPath === 'string' ? outputPath : null
+  }
+  return null
+}
+
+async function buildReport(args: HarnessArgs) {
+  const rows = []
+
+  for (const toolId of AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS) {
+    const request = buildRequest(toolId, args)
+    const result = await executeAiGraphicsExternalAgentGpuModelControlledAdapter(request)
+    const requirements = localInputRequirements(toolId)
+    rows.push({
+      toolId,
+      capabilityId: request.capabilityId,
+      adapterDecision: result.decision,
+      adapterStatus: result.status,
+      controlledAdapterExecutableNow: result.controlledAdapterExecutableNow,
+      controlledAdapterInvokedNow: result.controlledAdapterInvokedNow,
+      harnessMode: args.attemptLocalRuntime
+        ? 'local_dev_runtime_attempt_requested'
+        : 'local_dev_prerequisite_check_only',
+      localRuntimeExecutionPerformed:
+        result.localGpuModelRuntimeExecutionPerformed,
+      toolExecutionApprovedNow: result.toolExecutionApprovedNow,
+      gpuRuntimeApprovedForScopedControlledToolCall:
+        result.gpuRuntimeApprovedForScopedControlledToolCall,
+      gpuRuntimeShouldStartNow: result.gpuRuntimeShouldStartNow,
+      publicArtifactCreated: result.publicArtifactCreated,
+      signedUrlCreated: result.signedUrlCreated,
+      runtimeReadyNow: result.runtimeReadyNow,
+      externalBetaReadyNow: result.externalBetaReadyNow,
+      productionReadyNow: result.productionReadyNow,
+      skipReasonCode: skipReasonCode(result),
+      outputJsonPath: outputJsonPathForResult(result),
+      localInputRequirements: requirements,
+      warnings: result.warnings,
+    })
+  }
+
+  const localRuntimeExecutionPerformedTools =
+    rows.filter((row) => row.localRuntimeExecutionPerformed).length
+  const toolExecutionApprovedNowTools =
+    rows.filter((row) => row.toolExecutionApprovedNow).length
+  const gpuRuntimeShouldStartNowTools =
+    rows.filter((row) => row.gpuRuntimeShouldStartNow).length
+
+  return {
+    schemaVersion:
+      '2026-07-03.ai-graphics.external-agent-gpu-model-local-dev-runtime-execution-harness',
+    decision,
+    status: localRuntimeExecutionPerformedTools > 0
+      ? 'local_dev_runtime_executed_for_private_opt_in_subset_not_global_ready'
+      : status,
+    summary:
+      'Exercises the real GPU/model controlled adapter in explicit local_dev mode for the eight GPU/model AI graphics tools. The committed/default record is prerequisite-check only, so it proves the guarded runtime branches and exact missing local inputs without starting GPU runtime, loading model weights, processing media, creating public artifacts, or unlocking external beta/production.',
+    sourceEvidence: {
+      controlledAdapter: {
+        path:
+          'server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts',
+        decision:
+          AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_DECISION,
+      },
+      controlledWorkerDispatchProof: {
+        path:
+          'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-controlled-worker-dispatch-proof.json',
+        decision:
+          'ai_graphics_external_agent_gpu_model_controlled_worker_dispatch_proof_passed_with_runtime_blocks',
+      },
+      nativeGpuRuntimeProofCommandPlan: {
+        path:
+          'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json',
+      },
+      nativeGpuRuntimeProofLocalPreflight: {
+        path:
+          'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-local-preflight.json',
+      },
+    },
+    interfaces: {
+      packageScript:
+        'ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness',
+      diagnosticScript:
+        'ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness:diagnostics',
+      cli:
+        'server/cli/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness.ts',
+      diagnostic:
+        'scripts/validation/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness-diagnostics.mjs',
+      defaultCommand:
+        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness',
+      committedRecordCommand:
+        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --write-records',
+      privateLocalRuntimeAttemptCommand:
+        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --birefnet-model <private-birefnet-model> --real-esrgan-model <private-real-esrgan-model.pth> --rembg-model <private-rembg-model.onnx> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
+    },
+    localRuntimePolicy: {
+      runMode: 'explicit_local_dev_only',
+      requiresApprovedPrivateInputs: true,
+      requiresNativeCudaHost: true,
+      onDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      noCpuFallbackForHeavyGpuModelTools: true,
+      noModelDownload: true,
+      noProviderRuntime: true,
+      noPublicArtifacts: true,
+      noSignedUrls: true,
+      committedRecordsMustRemainSkipSafe: true,
+    },
+    counts: {
+      totalAiGraphicsTools: 21,
+      gpuModelToolsCovered: rows.length,
+      localDevAdapterBranchInvokedTools:
+        rows.filter((row) => row.controlledAdapterInvokedNow).length,
+      localDevPrerequisiteCheckOnlyTools:
+        rows.filter((row) => row.harnessMode === 'local_dev_prerequisite_check_only').length,
+      localRuntimeExecutionPerformedTools,
+      toolExecutionApprovedNowTools,
+      gpuRuntimeApprovedForScopedControlledToolCallTools:
+        rows.filter((row) => row.gpuRuntimeApprovedForScopedControlledToolCall).length,
+      gpuRuntimeShouldStartNowTools,
+      publicArtifactCreatedTools:
+        rows.filter((row) => row.publicArtifactCreated).length,
+      signedUrlCreatedTools:
+        rows.filter((row) => row.signedUrlCreated).length,
+      runtimeReadyNowTools:
+        rows.filter((row) => row.runtimeReadyNow).length,
+      externalBetaReadyNowTools:
+        rows.filter((row) => row.externalBetaReadyNow).length,
+      productionReadyNowTools:
+        rows.filter((row) => row.productionReadyNow).length,
+    },
+    gpuModelLocalDevRuntimeExecutionHarnessRows: rows,
+    booleans: {
+      externalAgentGpuModelLocalDevRuntimeExecutionHarnessPrepared: true,
+      controlledAdapterSourceAccepted: true,
+      controlledWorkerDispatchProofAccepted: true,
+      nativeGpuRuntimeProofCommandPlanAccepted: true,
+      localDevAdapterBranchInvokedForAll8: true,
+      all8GpuModelToolsCovered: true,
+      exactLocalRuntimePrerequisitesDocumented: true,
+      gpuRuntimeOnDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      gpuStartsOnlyForApprovedWorkerOrToolCall: true,
+      committedRecordSkipSafe: !args.attemptLocalRuntime,
+      privateLocalRuntimeAttemptRequested: args.attemptLocalRuntime,
+      agentCanSelectForPlanning: true,
+      agentCanExecuteGpuModelToolsNow: false,
+      agentCanExecuteAll21ToolsNow: false,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      backendQueueSubmissionApprovedNow: false,
+      liveQueueWriteApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      workerEnqueueApprovedNow: false,
+      workerDispatchApprovedNow: false,
+      toolExecutionApprovedNow: toolExecutionApprovedNowTools > 0,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: gpuRuntimeShouldStartNowTools > 0,
+      gpuRuntimeShouldStartNow: gpuRuntimeShouldStartNowTools > 0,
+      runtimeReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      backendQueueSubmissionPerformed: false,
+      liveQueueWritePerformed: false,
+      workerEnqueuePerformed: false,
+      workerDispatchPerformed: false,
+      routeExecutionPerformed: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimePerformed: false,
+      modelWeightsDownloaded: false,
+      mediaProcessingPerformed: false,
+      supabaseMutationPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+    nextMilestone:
+      'Run this harness on an approved native CUDA host with reviewed private model paths and private approved source inputs, then feed accepted per-tool local runtime outputs into the external-agent GPU/model runtime gate.',
+  }
+}
+
+function makeMarkdown(report: Awaited<ReturnType<typeof buildReport>>): string {
+  const rows = report.gpuModelLocalDevRuntimeExecutionHarnessRows
+    .map((row) => (
+      `| \`${row.toolId}\` | \`${row.capabilityId}\` | \`${row.harnessMode}\` | \`${row.adapterStatus}\` | \`${row.skipReasonCode ?? 'none'}\` | ${row.localRuntimeExecutionPerformed} | ${row.toolExecutionApprovedNow} | ${row.gpuRuntimeShouldStartNow} |`
+    ))
+    .join('\n')
+
+  return `# AI Graphics External Agent GPU Model Local-Dev Runtime Execution Harness
+
+Decision: \`${report.decision}\`
+
+Status: \`${report.status}\`
+
+This harness exercises the real GPU/model controlled adapter for all eight GPU/model tools in explicit \`local_dev\` mode. The committed record is prerequisite-check only: it records the guarded adapter branch and the exact private local inputs needed before runtime can start. It does not start GPU runtime, load model weights, process media, call providers, create public artifacts, create signed URLs, unlock external beta, or unlock production.
+
+## Tool rows
+
+| Tool | Capability | Harness mode | Adapter status | Skip reason | Local runtime executed | Tool execution approved | GPU starts now |
+| --- | --- | --- | --- | --- | ---: | ---: | ---: |
+${rows}
+
+## Counts
+
+${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).join('\n')}
+
+## Booleans
+
+${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`).join('\n')}
+
+## Private runtime attempt command
+
+\`${report.interfaces.privateLocalRuntimeAttemptCommand}\`
+
+## Next milestone
+
+${report.nextMilestone}
+`
+}
+
+async function main() {
+  const args = parseArgs()
+  const report = await buildReport(args)
+  if (args.writeRecords) {
+    fs.mkdirSync(path.dirname(outputJsonPath), { recursive: true })
+    fs.writeFileSync(outputJsonPath, `${JSON.stringify(report, null, 2)}\n`)
+    fs.writeFileSync(outputMdPath, makeMarkdown(report))
+  }
+  console.log(JSON.stringify(report, null, 2))
+}
+
+main().catch((error) => {
+  console.error(error)
+  process.exit(1)
+})

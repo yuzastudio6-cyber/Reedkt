@@ -50,6 +50,8 @@
     "ai-graphics:gpu-model-worker-execution-hooks:diagnostics": "node scripts/validation/ai-graphics-gpu-model-worker-execution-hooks-diagnostics.mjs",
     "ai-graphics:external-agent-gpu-model-controlled-worker-dispatch-proof": "tsx server/cli/ai-graphics-external-agent-gpu-model-controlled-worker-dispatch-proof.ts",
     "ai-graphics:external-agent-gpu-model-controlled-worker-dispatch-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-controlled-worker-dispatch-proof-diagnostics.mjs",
+    "ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness": "tsx server/cli/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness.ts",
+    "ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness-diagnostics.mjs",
     "ai-graphics:tool-call-readiness:diagnostics": "node scripts/validation/ai-graphics-tool-call-readiness-diagnostics.mjs",
     "ai-graphics:21-tool-proper-install-audit:diagnostics": "node scripts/validation/ai-graphics-21-tool-proper-install-audit-diagnostics.mjs",
     "ai-graphics:tool-call-handoff:diagnostics": "node scripts/validation/ai-graphics-tool-call-handoff-diagnostics.mjs",

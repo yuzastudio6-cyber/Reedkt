@@ -7,11 +7,20 @@ const repoRoot = process.cwd()
 
 const requiredFiles = [
   'server/workers/ai-graphics-runtime-script-runner.ts',
+  'server/workers/model-runtime-foundation/ai-graphics-foundation-execution-runner.ts',
+  'server/workers/model-runtime-foundation/index.ts',
   'server/workers/masks/sam2-execution-runner.ts',
   'server/workers/masks/birefnet-execution-runner.ts',
+  'server/workers/masks/kornia-mask-refinement-adapter.ts',
+  'server/workers/masks/rembg-adapter.ts',
+  'server/workers/masks/transparent-background-adapter.ts',
   'server/workers/enhancement/real-esrgan-execution-runner.ts',
+  'docker/prod/model-runtime-foundation/foundation_local.py',
   'docker/prod/sam2-runtime/sam2_runtime_local.py',
   'docker/prod/birefnet-runtime/birefnet_local.py',
+  'docker/prod/kornia-runtime/kornia_local.py',
+  'docker/prod/rembg-runtime/rembg_local.py',
+  'docker/prod/transparent-background-runtime/transparent_background_local.py',
   'docker/prod/real-esrgan-runtime/real_esrgan_local.py',
 ]
 
@@ -46,6 +55,20 @@ for (const token of [
 
 const runnerExpectations = [
   {
+    file: 'server/workers/model-runtime-foundation/ai-graphics-foundation-execution-runner.ts',
+    tokens: [
+      'runAiGraphicsPythonRuntimeScript',
+      'docker/prod/model-runtime-foundation/foundation_local.py',
+      "tool: input.toolId",
+      "status: 'completed'",
+      'executes: true',
+      "status: 'failed'",
+      'foundation_runtime_disabled_or_not_local_dev',
+      'foundation_runtime_output_directory_missing',
+      'enableFoundationRuntimeExecution',
+    ],
+  },
+  {
     file: 'server/workers/masks/sam2-execution-runner.ts',
     tokens: [
       'runAiGraphicsPythonRuntimeScript',
@@ -66,6 +89,44 @@ const runnerExpectations = [
       'executes: true',
       "status: 'failed'",
       'birefnet_output_directory_missing',
+      "sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]",
+    ],
+  },
+  {
+    file: 'server/workers/masks/kornia-mask-refinement-adapter.ts',
+    tokens: [
+      'runAiGraphicsPythonRuntimeScript',
+      'docker/prod/kornia-runtime/kornia_local.py',
+      "status: 'completed'",
+      'executes: true',
+      "status: 'failed'",
+      'kornia_output_directory_missing',
+      "sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]",
+    ],
+  },
+  {
+    file: 'server/workers/masks/rembg-adapter.ts',
+    tokens: [
+      'runAiGraphicsPythonRuntimeScript',
+      'docker/prod/rembg-runtime/rembg_local.py',
+      "status: 'completed'",
+      'executes: true',
+      "status: 'failed'",
+      'rembg_output_directory_missing',
+      'rembgModelLocalPath',
+      "sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]",
+    ],
+  },
+  {
+    file: 'server/workers/masks/transparent-background-adapter.ts',
+    tokens: [
+      'runAiGraphicsPythonRuntimeScript',
+      'docker/prod/transparent-background-runtime/transparent_background_local.py',
+      "status: 'completed'",
+      'executes: true',
+      "status: 'failed'",
+      'transparent_background_output_directory_missing',
+      'transparentBackgroundCheckpointLocalPath',
       "sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]",
     ],
   },
@@ -96,6 +157,85 @@ for (const expectation of runnerExpectations) {
   ]) {
     if (source.includes(blockedPhrase)) {
       failures.push(`${expectation.file} still contains planned-only blocker phrase: ${blockedPhrase}`)
+    }
+  }
+}
+
+const runtimeScriptExpectations = [
+  {
+    file: 'docker/prod/model-runtime-foundation/foundation_local.py',
+    tokens: [
+      'block_network()',
+      'HF_HUB_OFFLINE',
+      'MODEL_DOWNLOADS_ENABLED',
+      'PROVIDER_EXECUTION_ENABLED',
+      'TRANSFORMERS_OFFLINE',
+      'torch.cuda.is_available()',
+      'no CPU fallback is allowed',
+      'import torchvision',
+      'import transformers',
+      'modelWeightsLoaded',
+      'modelInferencePerformed',
+      'modelDownloadedExternally',
+    ],
+  },
+  {
+    file: 'docker/prod/kornia-runtime/kornia_local.py',
+    tokens: [
+      'block_network()',
+      'MODEL_DOWNLOADS_ENABLED',
+      'PROVIDER_EXECUTION_ENABLED',
+      'torch.cuda.is_available()',
+      'no CPU fallback is allowed',
+      'import kornia',
+      'kornia.filters.sobel',
+      'modelDownloadedExternally',
+    ],
+  },
+  {
+    file: 'docker/prod/rembg-runtime/rembg_local.py',
+    tokens: [
+      'block_network()',
+      'MODEL_DOWNLOADS_ENABLED',
+      'PROVIDER_EXECUTION_ENABLED',
+      'CUDAExecutionProvider',
+      'no CPU fallback is allowed',
+      'U2NET_HOME',
+      'new_session',
+      'remove',
+      'modelDownloadedExternally',
+    ],
+  },
+  {
+    file: 'docker/prod/transparent-background-runtime/transparent_background_local.py',
+    tokens: [
+      'block_network()',
+      'MODEL_DOWNLOADS_ENABLED',
+      'PROVIDER_EXECUTION_ENABLED',
+      'torch.cuda.is_available()',
+      'no CPU fallback is allowed',
+      'Remover',
+      'ckpt=str(checkpoint_path)',
+      'modelDownloadedExternally',
+    ],
+  },
+]
+
+for (const expectation of runtimeScriptExpectations) {
+  const source = requireFile(expectation.file)
+  for (const token of expectation.tokens) {
+    if (!source.includes(token)) {
+      failures.push(`${expectation.file} is missing expected runtime guard token: ${token}`)
+    }
+  }
+  for (const blockedPhrase of [
+    'requests.get(',
+    'urllib.request',
+    'from_pretrained(',
+    'snapshot_download(',
+  ]) {
+    if (source.includes(blockedPhrase)) {
+      failures.push(`${expectation.file} contains disallowed download/network token: ${blockedPhrase}`)
     }
   }
 }
@@ -141,8 +281,13 @@ console.log(JSON.stringify({
   ok: true,
   diagnostic: 'ai_graphics_gpu_model_worker_execution_hooks_diagnostics',
   executionHooks: {
+    torch_torchvision: 'guarded_local_cuda_foundation_runtime_script_invocation',
+    transformers: 'guarded_local_cuda_foundation_runtime_script_invocation',
     sam2: 'guarded_local_runtime_script_invocation',
     birefnet: 'guarded_local_runtime_script_invocation',
+    kornia: 'guarded_local_cuda_tensor_runtime_script_invocation',
+    rembg: 'guarded_local_cuda_onnx_runtime_script_invocation',
+    transparent_background: 'guarded_local_cuda_checkpoint_runtime_script_invocation',
     real_esrgan: 'guarded_local_runtime_script_invocation',
   },
   packageLockUnchanged: true,

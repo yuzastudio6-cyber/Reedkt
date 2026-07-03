@@ -75,6 +75,10 @@ export interface MaskExecutionInput {
   modelLocalPaths?: string[]
   birefnetModelLocalPath?: string
   sam2CheckpointLocalPath?: string
+  rembgModelLocalPath?: string
+  rembgModelName?: string
+  transparentBackgroundCheckpointLocalPath?: string
+  transparentBackgroundMode?: 'base' | 'fast' | 'base-nightly'
   maskConfidenceHint?: number
   motionRequiresTracking?: boolean
   frameSamplingMaxFrames?: number

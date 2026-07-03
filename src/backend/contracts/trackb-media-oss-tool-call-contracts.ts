@@ -54,8 +54,8 @@ export interface TrackBMediaOssToolCallRankingEntry {
   costTier: TrackBToolCallCostTier
   preferredWhen: string
   deferWhen: string
-  betaDryRunOnly: true
-  executionEnabled: false
+  betaDryRunOnly: boolean
+  executionEnabled: boolean
 }
 
 export interface TrackBPrivateArtifactReference {
@@ -92,7 +92,7 @@ export interface TrackBMediaOssCallableWorkerContract {
   }
   resultSchema: TrackBToolCallResultSchema
   sanitizedLoggingOnly: true
-  executionEnabled: false
+  executionEnabled: boolean
   notes: string[]
 }
 
@@ -110,8 +110,8 @@ export interface TrackBMediaOssToolCallPayload {
   requiredQualityGateIds: ID[]
   fallbackPolicyId: ID
   resultSchemaVersion: TrackBToolCallResultSchema['schemaVersion']
-  dryRunOnly: true
-  executionEnabled: false
+  dryRunOnly: boolean
+  executionEnabled: boolean
   requestedAt: ISODateString
   metadata?: JSONObject
 }

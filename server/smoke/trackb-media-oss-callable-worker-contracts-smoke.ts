@@ -3,6 +3,7 @@ import {
   TRACKB_MEDIA_OSS_TOOL_IDS,
   assertTrackBMediaOssToolCallPayloadIsGated,
   buildTrackBMediaOssFailClosedResponse,
+  type TrackBMediaOssToolCallPayload,
 } from '../../src/backend/contracts/trackb-media-oss-tool-call-contracts'
 import { TRACKB_MEDIA_OSS_TOOL_CALL_API_ROUTES } from '../../src/backend/api/routes/trackb-media-oss-tool-call-api-routes'
 
@@ -11,7 +12,7 @@ function assert(condition: boolean, message: string): void {
 }
 
 const now = new Date().toISOString()
-const goodPayload = {
+const goodPayload: TrackBMediaOssToolCallPayload = {
   toolId: 'opencolorio' as const,
   workspaceId: 'workspace-smoke',
   projectId: 'project-smoke',
@@ -59,7 +60,7 @@ try {
   assertTrackBMediaOssToolCallPayloadIsGated({
     ...goodPayload,
     executionEnabled: true,
-  } as typeof goodPayload)
+  })
 } catch {
   blockedUnsafePayload = true
 }

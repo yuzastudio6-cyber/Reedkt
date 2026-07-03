@@ -75,6 +75,7 @@ export async function settleToolCostWallet(
 
   const replay = mockSettlementsByIdempotencyKey.get(idempotencyKey)
   if (replay) {
+    assertSettlementMatchesInput(replay, input)
     return {
       settlement: replay,
       replayed: true,
@@ -146,8 +147,10 @@ async function settlePersistentToolCostWallet(
 
   throwPersistentSettlementError(existing.error)
   if (existing.data) {
+    const settlement = rowToSettlement(existing.data as ToolCostWalletSettlementRow)
+    assertSettlementMatchesInput(settlement, input)
     return {
-      settlement: rowToSettlement(existing.data as ToolCostWalletSettlementRow),
+      settlement,
       replayed: true,
       warnings: ['Persistent wallet settlement replayed idempotently through the backend service-role path.'],
     }
@@ -164,13 +167,34 @@ async function settlePersistentToolCostWallet(
     throw new ApiError('TOOL_COST_BACKEND_REQUIRED', 'Tool cost wallet settlement RPC did not return a settlement row.', 409)
   }
 
+  const settlement = rowToSettlement(result.data as ToolCostWalletSettlementRow)
+  assertSettlementMatchesInput(settlement, input)
   return {
-    settlement: rowToSettlement(result.data as ToolCostWalletSettlementRow),
+    settlement,
     replayed: false,
     warnings: [
       'Persistent wallet settlement recorded through the backend service-role path.',
       'Stripe was not called and ReEditPro service/edit fees remain outside tool owner cost events.',
     ],
+  }
+}
+
+function assertSettlementMatchesInput(settlement: ToolCostWalletSettlement, input: ToolCostWalletSettlementInput): void {
+  const mismatches: string[] = []
+  if (settlement.workspaceId !== input.workspaceId) mismatches.push('workspaceId')
+  if (settlement.projectId !== input.projectId) mismatches.push('projectId')
+  if (settlement.toolCostEventId !== input.toolCostEventId) mismatches.push('toolCostEventId')
+  if (input.creditReservationId && settlement.creditReservationId !== input.creditReservationId) {
+    mismatches.push('creditReservationId')
+  }
+
+  if (mismatches.length > 0) {
+    throw new ApiError(
+      'TOOL_COST_SETTLEMENT_CONTEXT_MISMATCH',
+      'Tool cost wallet settlement context does not match the requested workspace, project, tool event, or reservation.',
+      409,
+      { mismatches },
+    )
   }
 }
 

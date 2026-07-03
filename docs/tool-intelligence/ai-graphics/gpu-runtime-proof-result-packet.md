@@ -17,6 +17,8 @@ create artifacts, or unlock beta/production.
 - Required native proof profiles: 6
 - Runtime proof results currently committed: 0
 - Runtime proof results accepted for owner review: 0
+- Accepted native GPU profile IDs: none
+- Missing native GPU profile IDs: `gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, `transparent_background`
 
 ## GPU Runtime Targeted Tools
 
@@ -76,6 +78,20 @@ If all six profile results pass, the aggregate status becomes
 execution, Tool Route execution, Worker execution, GPU runtime, beta, or
 production.
 
+Strict partial validation is available for moving the eight GPU/model tools
+forward one proof profile at a time:
+
+```bash
+npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --allow-partial --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results
+```
+
+With `--allow-partial`, every supplied profile result must pass the same native
+GPU, import, model-manifest, checksum, redaction, and false-gate checks. Missing
+profiles stay missing, the aggregate status becomes
+`partial_native_gpu_runtime_proof_results_accepted_not_beta_ready`, and the
+all-profile, agent execution, GPU runtime, beta, and production gates remain
+blocked until all six required profiles are accepted.
+
 ## Current State
 
 Current public packet state is `missing_native_gpu_runtime_proof_results`.
@@ -88,6 +104,7 @@ redacted result JSON files to the validator.
 - Server module: `server/tool-registry/ai-graphics-gpu-runtime-proof-result.ts`
 - CLI: `server/cli/ai-graphics-gpu-runtime-proof-result.ts`
 - Validate script: `ai-graphics:gpu-runtime-proof-result:validate`
+- Strict partial validate mode: `ai-graphics:gpu-runtime-proof-result:validate -- --allow-partial`
 - Diagnostic: `ai-graphics:gpu-runtime-proof-result:diagnostics`
 
 ## Runtime State

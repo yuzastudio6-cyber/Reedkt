@@ -19,6 +19,10 @@ function valuesAfterFlag(flag: string): string[] {
   return values
 }
 
+function hasFlag(flag: string): boolean {
+  return process.argv.includes(flag)
+}
+
 function jsonFilesInDirectory(directory: string): string[] {
   const resolvedDirectory = resolve(directory)
   if (!existsSync(resolvedDirectory)) {
@@ -72,11 +76,13 @@ function proofResultFilesFromArgs(): string[] {
 
 const proofResultFiles = proofResultFilesFromArgs()
 const proofResults = proofResultFiles.flatMap(proofResultsFromJsonFile)
-const packet = buildAiGraphicsGpuRuntimeProofResultPacket(proofResults)
+const allowPartial = hasFlag('--allow-partial')
+const packet = buildAiGraphicsGpuRuntimeProofResultPacket(proofResults, { allowPartial })
 const output = {
   ...packet,
   input: {
     localProofResultFilesRead: proofResultFiles.length,
+    allowPartialNativeGpuRuntimeProofResults: allowPartial,
     privateArtifactRefsLogged: 0,
     validatorOnly: true,
     dockerExecuted: false,
@@ -90,6 +96,10 @@ const output = {
 
 console.log(JSON.stringify(output, null, 2))
 
-if (proofResults.length > 0 && !packet.nativeGpuRuntimeProofResultsAccepted) {
+if (
+  proofResults.length > 0 &&
+  !packet.nativeGpuRuntimeProofResultsAccepted &&
+  !packet.booleans.partialNativeGpuRuntimeProofResultsAcceptedForOwnerReview
+) {
   process.exitCode = 2
 }

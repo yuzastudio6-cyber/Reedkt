@@ -438,6 +438,8 @@ for (const token of [
   '--result-dir',
   '--result-file',
   '--result',
+  '--allow-partial',
+  'allowPartialNativeGpuRuntimeProofResults',
   'privateArtifactRefsLogged: 0',
   'validatorOnly: true',
   'dockerExecuted: false',
@@ -468,6 +470,7 @@ for (const key of [
 }
 
 for (const key of [
+  'partialNativeGpuRuntimeProofResultsAcceptedForOwnerReview',
   'nativeGpuRuntimeProofResultsAcceptedForOwnerReview',
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
@@ -510,6 +513,11 @@ if (noInputPacket.status !== 'missing_native_gpu_runtime_proof_results') {
   fail(`no_input_status_mismatch:${noInputPacket.status}`)
 }
 if (noInputPacket.runtimeProofResultsProvided !== 0) fail('no_input_results_provided_not_zero')
+if (noInputPacket.allowPartialNativeGpuRuntimeProofResults !== false) {
+  fail('no_input_allow_partial_not_false')
+}
+if (noInputPacket.acceptedProfileIds?.length !== 0) fail('no_input_accepted_profiles_not_empty')
+if (noInputPacket.missingProfileIds?.length !== 6) fail('no_input_missing_profiles_not_6')
 if (noInputPacket.input?.privateArtifactRefsLogged !== 0) fail('no_input_private_refs_logged_not_zero')
 assertExpectedGpuRuntimeTargets(noInputPacket, 'no_input_packet')
 if (noInputPacket.booleans?.gpuRuntimeTargetsExact !== true) fail('no_input_gpu_targets_exact_not_true')
@@ -539,6 +547,58 @@ if (validPacket.booleans?.internalBetaReadyNow !== false) fail('valid_results_in
 if (/private:\/\//i.test(validOutput)) fail('valid_results_output_leaked_private_ref')
 if (/https?:\/\//i.test(validOutput)) fail('valid_results_output_leaked_http_ref')
 
+const partialDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-results-partial-'))
+fs.writeFileSync(
+  path.join(partialDir, 'sam2.json'),
+  `${JSON.stringify(proofResult('sam2'), null, 2)}\n`,
+  'utf8',
+)
+let strictPartialExited = false
+let strictPartialOutput = ''
+try {
+  strictPartialOutput = runValidate(['--result-dir', partialDir])
+} catch (error) {
+  strictPartialExited = true
+  strictPartialOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+if (!strictPartialExited) fail('single_profile_strict_mode_did_not_exit_nonzero')
+const strictPartialPacket = parseOutput(strictPartialOutput, 'single_profile_strict_mode')
+if (strictPartialPacket.status !== 'invalid_native_gpu_runtime_proof_results') {
+  fail(`single_profile_strict_status_mismatch:${strictPartialPacket.status}`)
+}
+if (strictPartialPacket.runtimeProofResultsAcceptedForOwnerReview !== 1) {
+  fail('single_profile_strict_accepted_not_1')
+}
+if (strictPartialPacket.booleans?.partialNativeGpuRuntimeProofResultsAcceptedForOwnerReview !== false) {
+  fail('single_profile_strict_partial_boolean_not_false')
+}
+
+const partialOutput = runValidate(['--allow-partial', '--result-dir', partialDir])
+const partialPacket = parseOutput(partialOutput, 'single_profile_partial_mode')
+if (partialPacket.status !== 'partial_native_gpu_runtime_proof_results_accepted_not_beta_ready') {
+  fail(`single_profile_partial_status_mismatch:${partialPacket.status}`)
+}
+if (partialPacket.allowPartialNativeGpuRuntimeProofResults !== true) {
+  fail('single_profile_partial_allow_partial_not_true')
+}
+if (partialPacket.runtimeProofResultsProvided !== 1) fail('single_profile_partial_provided_not_1')
+if (partialPacket.runtimeProofResultsAcceptedForOwnerReview !== 1) {
+  fail('single_profile_partial_accepted_not_1')
+}
+if (partialPacket.nativeGpuRuntimeProofResultsAccepted !== false) {
+  fail('single_profile_partial_full_acceptance_not_false')
+}
+if (partialPacket.booleans?.partialNativeGpuRuntimeProofResultsAcceptedForOwnerReview !== true) {
+  fail('single_profile_partial_boolean_not_true')
+}
+if (!partialPacket.acceptedProfileIds?.includes('sam2')) fail('single_profile_partial_missing_accepted_sam2')
+if (partialPacket.missingProfileIds?.includes('sam2')) fail('single_profile_partial_sam2_still_missing')
+if (partialPacket.missingProfileIds?.length !== 5) fail('single_profile_partial_missing_profiles_not_5')
+if (partialPacket.booleans?.gpuRuntimeApprovedNow !== false) fail('single_profile_partial_gpu_runtime_approved_now_not_false')
+if (partialPacket.booleans?.runtimeReadyNow !== false) fail('single_profile_partial_runtime_ready_now_not_false')
+if (/private:\/\//i.test(partialOutput)) fail('single_profile_partial_output_leaked_private_ref')
+if (/https?:\/\//i.test(partialOutput)) fail('single_profile_partial_output_leaked_http_ref')
+
 const badChecksumDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-results-bad-checksum-'))
 writeProofFixtures(badChecksumDir, {
   sam2: {
@@ -565,6 +625,23 @@ if (badChecksumPacket.status !== 'invalid_native_gpu_runtime_proof_results') {
 }
 if (!JSON.stringify(badChecksumPacket).includes('checksumSha256 must match reviewed source-catalog checksum')) {
   fail('bad_checksum_missing_source_catalog_error')
+}
+
+let badChecksumPartialExited = false
+let badChecksumPartialOutput = ''
+try {
+  badChecksumPartialOutput = runValidate(['--allow-partial', '--result-dir', badChecksumDir])
+} catch (error) {
+  badChecksumPartialExited = true
+  badChecksumPartialOutput = `${error.stdout || ''}${error.stderr || ''}`
+}
+if (!badChecksumPartialExited) fail('bad_checksum_partial_results_did_not_exit_nonzero')
+const badChecksumPartialPacket = parseOutput(badChecksumPartialOutput, 'bad_checksum_partial_results')
+if (badChecksumPartialPacket.status !== 'invalid_native_gpu_runtime_proof_results') {
+  fail(`bad_checksum_partial_status_mismatch:${badChecksumPartialPacket.status}`)
+}
+if (badChecksumPartialPacket.booleans?.partialNativeGpuRuntimeProofResultsAcceptedForOwnerReview !== false) {
+  fail('bad_checksum_partial_boolean_not_false')
 }
 
 const invalidDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-gpu-proof-results-invalid-'))
@@ -751,6 +828,9 @@ console.log(JSON.stringify({
   modelWeightManifestTools: modelWeightTools.length,
   runtimeProfiles: requiredProfiles.length,
   noInputStatus: noInputPacket.status,
+  partialProofStatus: partialPacket.status,
+  partialProofAcceptedProfiles: partialPacket.acceptedProfileIds?.length ?? 0,
+  partialProofMissingProfiles: partialPacket.missingProfileIds?.length ?? 0,
   validProofStatus: validPacket.status,
   invalidProofStatus: invalidPacket.status,
   agentCanExecuteToolsNow: packet.booleans?.agentCanExecuteToolsNow,

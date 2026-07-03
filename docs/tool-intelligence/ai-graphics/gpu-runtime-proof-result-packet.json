@@ -25,7 +25,8 @@
     "cli": "server/cli/ai-graphics-gpu-runtime-proof-result.ts",
     "validateScript": "ai-graphics:gpu-runtime-proof-result:validate",
     "diagnostic": "scripts/validation/ai-graphics-gpu-runtime-proof-result-diagnostics.mjs",
-    "diagnosticScript": "ai-graphics:gpu-runtime-proof-result:diagnostics"
+    "diagnosticScript": "ai-graphics:gpu-runtime-proof-result:diagnostics",
+    "partialValidationMode": "ai-graphics:gpu-runtime-proof-result:validate -- --allow-partial"
   },
   "counts": {
     "totalAiGraphicsTools": 21,
@@ -80,7 +81,20 @@
     "rembg",
     "transparent_background"
   ],
+  "allowPartialNativeGpuRuntimeProofResults": false,
+  "partialValidationModeAvailable": true,
+  "partialValidationModeDescription": "Operators may validate a strict subset of native GPU proof result profiles with --allow-partial. Every supplied profile must pass all proof checks; missing profiles remain blocked and do not unlock the all-profile, runtime, beta, or production gates.",
+  "acceptedProfileIds": [],
+  "missingProfileIds": [
+    "gpu_worker_ai_graphics",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
   "acceptedStatusAfterExternalProof": "ready_for_owner_review_not_beta_ready",
+  "partialAcceptedStatusAfterExternalProof": "partial_native_gpu_runtime_proof_results_accepted_not_beta_ready",
   "requiredRuntimeBucket": "native_linux_amd64_nvidia_l4_gpu_worker",
   "requiredProofChecks": [
     "status_passed",
@@ -130,6 +144,7 @@
     "privateArtifactRefsNotLogged": true,
     "sourceCatalogChecksumGuidanceEnforced": true,
     "suggestedChecksumMismatchRejected": true,
+    "partialNativeGpuRuntimeProofResultsAcceptedForOwnerReview": false,
     "nativeGpuRuntimeProofResultsAcceptedForOwnerReview": false,
     "ownerReviewStillRequired": true,
     "agentCanSelectForPlanning": true,

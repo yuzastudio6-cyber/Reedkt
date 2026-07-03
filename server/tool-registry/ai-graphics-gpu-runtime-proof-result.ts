@@ -14,6 +14,7 @@ export type AiGraphicsGpuRuntimeProofProfileId =
 
 export type AiGraphicsGpuRuntimeProofAggregateStatus =
   | 'missing_native_gpu_runtime_proof_results'
+  | 'partial_native_gpu_runtime_proof_results_accepted_not_beta_ready'
   | 'invalid_native_gpu_runtime_proof_results'
   | 'ready_for_owner_review_not_beta_ready'
 
@@ -79,6 +80,9 @@ export interface AiGraphicsGpuRuntimeProofResultPacket {
   }
   modelWeightManifestRequiredTools: AiGraphicsModelWeightManifestToolId[]
   runtimeProfilesRequired: AiGraphicsGpuRuntimeProofProfileId[]
+  allowPartialNativeGpuRuntimeProofResults: boolean
+  acceptedProfileIds: AiGraphicsGpuRuntimeProofProfileId[]
+  missingProfileIds: AiGraphicsGpuRuntimeProofProfileId[]
   runtimeProofResultsProvided: number
   runtimeProofResultsAcceptedForOwnerReview: number
   nativeGpuRuntimeProofResultsAccepted: boolean
@@ -99,6 +103,7 @@ export interface AiGraphicsGpuRuntimeProofResultPacket {
     privateArtifactRefsNotLogged: true
     sourceCatalogChecksumGuidanceEnforced: true
     suggestedChecksumMismatchRejected: true
+    partialNativeGpuRuntimeProofResultsAcceptedForOwnerReview: boolean
     nativeGpuRuntimeProofResultsAcceptedForOwnerReview: boolean
     ownerReviewStillRequired: true
     agentCanSelectForPlanning: true
@@ -124,6 +129,10 @@ export interface AiGraphicsGpuRuntimeProofResultPacket {
     publicArtifactCreated: false
     signedUrlCreated: false
   }
+}
+
+export interface AiGraphicsGpuRuntimeProofResultOptions {
+  allowPartial?: boolean
 }
 
 const modelWeightManifestRequiredTools = [
@@ -600,13 +609,26 @@ function validateProfileProofResults(
 
 export function buildAiGraphicsGpuRuntimeProofResultPacket(
   proofResults: readonly unknown[] = [],
+  options: AiGraphicsGpuRuntimeProofResultOptions = {},
 ): AiGraphicsGpuRuntimeProofResultPacket {
+  const allowPartial = options.allowPartial === true
   const byProfile = proofResultsByProfile(proofResults)
   const validationResults = runtimeProfilesRequired.map((profileId) => (
     validateProfileProofResults(profileId, byProfile[profileId])
   ))
+  const acceptedProfileIds = validationResults
+    .filter((result) => result.acceptedForOwnerReview)
+    .map((result) => result.profileId)
+  const missingProfileIds = validationResults
+    .filter((result) => !result.resultProvided)
+    .map((result) => result.profileId)
   const runtimeProofResultsProvided = validationResults.filter((result) => result.resultProvided).length
   const runtimeProofResultsAcceptedForOwnerReview = validationResults.filter((result) => result.acceptedForOwnerReview).length
+  const partialNativeGpuRuntimeProofResultsAccepted =
+    allowPartial &&
+    runtimeProofResultsProvided > 0 &&
+    runtimeProofResultsProvided < runtimeProfilesRequired.length &&
+    runtimeProofResultsAcceptedForOwnerReview === runtimeProofResultsProvided
   const nativeGpuRuntimeProofResultsAccepted =
     runtimeProofResultsProvided === runtimeProfilesRequired.length &&
     runtimeProofResultsAcceptedForOwnerReview === runtimeProfilesRequired.length
@@ -615,11 +637,16 @@ export function buildAiGraphicsGpuRuntimeProofResultPacket(
     ? 'missing_native_gpu_runtime_proof_results'
     : nativeGpuRuntimeProofResultsAccepted
       ? 'ready_for_owner_review_not_beta_ready'
-      : 'invalid_native_gpu_runtime_proof_results'
+      : partialNativeGpuRuntimeProofResultsAccepted
+        ? 'partial_native_gpu_runtime_proof_results_accepted_not_beta_ready'
+        : 'invalid_native_gpu_runtime_proof_results'
 
   const blockers = [
     status === 'missing_native_gpu_runtime_proof_results'
       ? 'Native linux/amd64 NVIDIA L4 proof results have not been provided for the six required GPU runtime profiles.'
+      : undefined,
+    status === 'partial_native_gpu_runtime_proof_results_accepted_not_beta_ready'
+      ? `Accepted ${runtimeProofResultsAcceptedForOwnerReview} native GPU proof profile result(s); still missing ${missingProfileIds.join(', ')} before the all-profile gate can advance.`
       : undefined,
     status === 'invalid_native_gpu_runtime_proof_results'
       ? 'One or more native GPU runtime proof results failed profile, CUDA, import, model-manifest, redaction, or false-gate validation.'
@@ -642,6 +669,9 @@ export function buildAiGraphicsGpuRuntimeProofResultPacket(
     },
     modelWeightManifestRequiredTools: [...modelWeightManifestRequiredTools],
     runtimeProfilesRequired: [...runtimeProfilesRequired],
+    allowPartialNativeGpuRuntimeProofResults: allowPartial,
+    acceptedProfileIds,
+    missingProfileIds,
     runtimeProofResultsProvided,
     runtimeProofResultsAcceptedForOwnerReview,
     nativeGpuRuntimeProofResultsAccepted,
@@ -662,6 +692,8 @@ export function buildAiGraphicsGpuRuntimeProofResultPacket(
       privateArtifactRefsNotLogged: true,
       sourceCatalogChecksumGuidanceEnforced: true,
       suggestedChecksumMismatchRejected: true,
+      partialNativeGpuRuntimeProofResultsAcceptedForOwnerReview:
+        partialNativeGpuRuntimeProofResultsAccepted,
       nativeGpuRuntimeProofResultsAcceptedForOwnerReview: nativeGpuRuntimeProofResultsAccepted,
       ownerReviewStillRequired: true,
       agentCanSelectForPlanning: true,

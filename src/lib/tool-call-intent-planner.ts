@@ -39,6 +39,7 @@ export interface CreateToolCallIntentPlanParams {
   toolStrategyPlan?: ToolStrategyPlan
   creditEstimate?: CreditEstimate
   includeBaselineIntents?: boolean
+  requestedCapabilities?: ToolCallIntentCapabilityId[]
 }
 
 const zeroReadinessCounts: Record<ToolCallIntentReadinessState, number> = {
@@ -61,9 +62,12 @@ const capabilityLabels: Record<ToolCallIntentCapabilityId, string> = {
   qwen_visual_understanding: 'Qwen visual understanding',
   render: 'Render composition',
   sound_music_audio: 'SOUND music/audio',
+  streamer_render_pipeline_support: 'Native render pipeline support',
   storage_runtime: 'Storage runtime',
   timeline: 'Timeline interchange',
   track_a_container_tools: 'Track A native containers',
+  mkvtoolnix_container_validation: 'Container package validation',
+  gpac_mp4box_packaging_validation: 'MP4 packaging validation',
   transcript: 'Transcript',
 }
 
@@ -78,9 +82,12 @@ const capabilityDefaultTool: Partial<Record<ToolCallIntentCapabilityId, string>>
   qwen_visual_understanding: 'qwen_provider_gateway',
   render: 'remotion',
   sound_music_audio: 'sound_cpu_lane',
+  streamer_render_pipeline_support: 'gstreamer',
   storage_runtime: 'supabase_storage',
   timeline: 'opentimelineio',
   track_a_container_tools: 'gstreamer',
+  mkvtoolnix_container_validation: 'mkvtoolnix',
+  gpac_mp4box_packaging_validation: 'gpac_mp4box',
   transcript: 'faster_whisper',
 }
 
@@ -109,7 +116,10 @@ const toolLabels: Record<string, string> = {
   faster_whisper: 'faster-whisper',
   ffmpeg: 'FFmpeg',
   ffprobe: 'FFprobe',
+  gpac_mp4box: 'GPAC/MP4Box',
+  gstreamer: 'GStreamer',
   libass: 'libass',
+  mkvtoolnix: 'MKVToolNix',
   opencolorio: 'OpenColorIO',
   openimageio: 'OpenImageIO',
   opencv: 'OpenCV',
@@ -170,6 +180,7 @@ const baselineSeeds: ToolCallIntentSeed[] = [
 export function createToolCallIntentPlan(params: CreateToolCallIntentPlanParams = {}): ToolCallIntentPlan {
   const seeds = [
     ...(params.includeBaselineIntents === false ? [] : baselineSeeds),
+    ...seedsFromRequestedCapabilities(params.requestedCapabilities),
     ...seedsFromToolStrategy(params.toolStrategyPlan),
   ]
   const intents = dedupeSeeds(seeds).map((seed, index) => buildIntent(seed, index + 1))
@@ -195,6 +206,61 @@ export function createToolCallIntentPlan(params: CreateToolCallIntentPlanParams 
       'Every future tool call still needs approved plan snapshot, credit estimate, credit reservation, idempotency, and private artifact gates.',
     ],
   }
+}
+
+function seedsFromRequestedCapabilities(capabilities?: ToolCallIntentCapabilityId[]): ToolCallIntentSeed[] {
+  if (!capabilities || capabilities.length === 0) {
+    return []
+  }
+
+  return capabilities.flatMap((capabilityId) => {
+    const toolId = defaultToolForCapability(capabilityId)
+    if (toolId === 'custom') return []
+
+    return [{
+      capabilityId,
+      toolId,
+      reason: requestedCapabilityReason(capabilityId),
+      creditImpact: requestedCapabilityCreditImpact(capabilityId),
+      fallbackToolIds: requestedCapabilityFallbacks(capabilityId),
+    }]
+  })
+}
+
+function requestedCapabilityReason(capabilityId: ToolCallIntentCapabilityId): string {
+  const byCapability: Partial<Record<ToolCallIntentCapabilityId, string>> = {
+    streamer_render_pipeline_support: 'Validate native render-pipeline support for the approved edit through the backend worker boundary.',
+    mkvtoolnix_container_validation: 'Validate approved private container/package metadata and cleanup before packaging-related handoff.',
+    gpac_mp4box_packaging_validation: 'Validate approved MP4 packaging source, provenance, and binary presence before any packaging path is allowed.',
+    track_a_container_tools: 'Route approved Track A native-container validation support through the backend worker boundary.',
+  }
+
+  return byCapability[capabilityId] ?? `${capabilityLabels[capabilityId]} was requested for this approved edit plan.`
+}
+
+function requestedCapabilityCreditImpact(capabilityId: ToolCallIntentCapabilityId): CreditImpact {
+  if (
+    capabilityId === 'streamer_render_pipeline_support' ||
+    capabilityId === 'mkvtoolnix_container_validation' ||
+    capabilityId === 'gpac_mp4box_packaging_validation'
+  ) {
+    return 'low'
+  }
+
+  return 'medium'
+}
+
+function requestedCapabilityFallbacks(capabilityId: ToolCallIntentCapabilityId): string[] {
+  if (
+    capabilityId === 'streamer_render_pipeline_support' ||
+    capabilityId === 'mkvtoolnix_container_validation' ||
+    capabilityId === 'gpac_mp4box_packaging_validation' ||
+    capabilityId === 'track_a_container_tools'
+  ) {
+    return []
+  }
+
+  return []
 }
 
 function seedsFromToolStrategy(toolStrategyPlan?: ToolStrategyPlan): ToolCallIntentSeed[] {
@@ -389,6 +455,12 @@ function inputDependencyForCapability(
       readiness: 'requires_future_artifact',
       required: true,
     },
+    streamer_render_pipeline_support: {
+      artifactType: 'render_manifest',
+      description: 'Approved render support manifest plus private fixture or artifact boundary evidence.',
+      readiness: 'requires_approval',
+      required: true,
+    },
     storage_runtime: {
       artifactType: 'approved_plan_snapshot',
       description: 'Approved plan snapshot and immutable private artifact manifest.',
@@ -405,6 +477,18 @@ function inputDependencyForCapability(
       artifactType: 'source_media',
       description: 'Explicitly approved Track A fixture/source artifact only.',
       readiness: 'blocked',
+      required: true,
+    },
+    mkvtoolnix_container_validation: {
+      artifactType: 'asset_manifest',
+      description: 'Approved generated/private subtitle or container artifact manifest with cleanup evidence.',
+      readiness: 'requires_approval',
+      required: true,
+    },
+    gpac_mp4box_packaging_validation: {
+      artifactType: 'asset_manifest',
+      description: 'Approved private packaging manifest plus owner-approved package source/provenance evidence.',
+      readiness: 'requires_approval',
       required: true,
     },
     transcript: {
@@ -498,6 +582,12 @@ function expectedOutputForCapability(
       consumedBy: ['audio_pipeline_plan', 'sound_music_audio_plan'],
       requiredForApproval: false,
     },
+    streamer_render_pipeline_support: {
+      artifactType: 'analysis_report',
+      description: 'Native render-pipeline support validation report.',
+      consumedBy: ['render_strategy_plan', 'worker_runtime_plan', 'edit_qa_plan'],
+      requiredForApproval: false,
+    },
     storage_runtime: {
       artifactType: 'none',
       description: 'Private canonical artifact references; signed URLs remain temporary only.',
@@ -514,6 +604,18 @@ function expectedOutputForCapability(
       artifactType: 'analysis_report',
       description: 'Track A native container proof or package-source report.',
       consumedBy: ['track_a_handoff', 'edit_qa_plan'],
+      requiredForApproval: false,
+    },
+    mkvtoolnix_container_validation: {
+      artifactType: 'analysis_report',
+      description: 'Container package validation report for approved private artifacts.',
+      consumedBy: ['render_strategy_plan', 'final_export_gate', 'edit_qa_plan'],
+      requiredForApproval: false,
+    },
+    gpac_mp4box_packaging_validation: {
+      artifactType: 'analysis_report',
+      description: 'MP4 packaging validation and package provenance report.',
+      consumedBy: ['final_export_gate', 'delivery_qa_plan', 'edit_qa_plan'],
       requiredForApproval: false,
     },
     transcript: {
@@ -574,12 +676,12 @@ function fallbackForSeed(
 function buildSummary(intents: ToolCallIntent[], creditEstimate?: CreditEstimate): string {
   const readyCount = intents.filter((intent) => intent.readinessState === 'ready_for_backend_execution').length
   const blockedCount = intents.length - readyCount
-  const toolNames = intents.slice(0, 5).map((intent) => intent.toolLabel).join(', ')
+  const activityNames = intents.slice(0, 5).map((intent) => intent.capabilityLabel).join(', ')
   const creditText = creditEstimate
     ? ` The edit estimate remains ${creditEstimate.total} credits before approval.`
     : ''
 
-  return `${intents.length} planned tool-call intent${intents.length === 1 ? '' : 's'}: ${toolNames}${intents.length > 5 ? ', and more' : ''}. ${readyCount} backend-gated candidate${readyCount === 1 ? '' : 's'}, ${blockedCount} gated/dry-run item${blockedCount === 1 ? '' : 's'}.${creditText}`
+  return `${intents.length} planned edit activit${intents.length === 1 ? 'y' : 'ies'}: ${activityNames}${intents.length > 5 ? ', and more' : ''}. ${readyCount} backend-gated candidate${readyCount === 1 ? '' : 's'}, ${blockedCount} gated/dry-run item${blockedCount === 1 ? '' : 's'}.${creditText}`
 }
 
 function label(value: string): string {

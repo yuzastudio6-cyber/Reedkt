@@ -93,6 +93,42 @@ assert.ok(storage.blockedToolIds.includes('supabase_storage'), 'Storage query sh
 assert.ok(storage.blockedToolIds.includes('gcs_storage'), 'Storage query should include GCS storage gate')
 assert.equal(storage.externalBetaOrProductionAllowed, false, 'Storage query must not unlock beta/production')
 
+const nativeAggregate = getUnifiedSkillToolAvailability('track a')
+for (const toolId of ['gstreamer', 'mkvtoolnix', 'gpac_mp4box'] as UnifiedToolId[]) {
+  assert.ok(nativeAggregate.readyToolIds.includes(toolId), `Track A aggregate query should expose ${toolId} as backend-gated ready`)
+}
+assert.equal(nativeAggregate.externalBetaOrProductionAllowed, false, 'Track A aggregate query must not unlock beta/production')
+
+const streamer = getUnifiedSkillToolAvailability('streamer_render_pipeline_support')
+assert.deepEqual(
+  streamer.matchedCapabilityIds,
+  ['streamer_render_pipeline_support'],
+  'streamer render pipeline support query should resolve the exact capability',
+)
+assert.ok(streamer.readyToolIds.includes('gstreamer'), 'streamer render pipeline support should route to GStreamer')
+assert.equal(streamer.backendExecutionCandidate, true, 'streamer render pipeline support should be backend-gated ready')
+assert.equal(streamer.externalBetaOrProductionAllowed, false, 'streamer render pipeline support must not unlock beta/production')
+
+const mkv = getUnifiedSkillToolAvailability('mkvtoolnix_container_validation')
+assert.deepEqual(
+  mkv.matchedCapabilityIds,
+  ['mkvtoolnix_container_validation'],
+  'container validation query should resolve the exact capability',
+)
+assert.ok(mkv.readyToolIds.includes('mkvtoolnix'), 'container validation should route to MKVToolNix')
+assert.equal(mkv.backendExecutionCandidate, true, 'container validation should be backend-gated ready')
+assert.equal(mkv.externalBetaOrProductionAllowed, false, 'container validation must not unlock beta/production')
+
+const gpac = getUnifiedSkillToolAvailability('gpac_mp4box_packaging_validation')
+assert.deepEqual(
+  gpac.matchedCapabilityIds,
+  ['gpac_mp4box_packaging_validation'],
+  'MP4 packaging validation query should resolve the exact capability',
+)
+assert.ok(gpac.readyToolIds.includes('gpac_mp4box'), 'MP4 packaging validation should route to GPAC/MP4Box')
+assert.equal(gpac.backendExecutionCandidate, true, 'MP4 packaging validation should be backend-gated ready')
+assert.equal(gpac.externalBetaOrProductionAllowed, false, 'MP4 packaging validation must not unlock beta/production')
+
 assert.ok(
   getUnifiedSkillCapabilityRecordsByLegacyCapability('audio_soundsync').some((record) => record.skillId === 'media.audio_soundsync'),
   'legacy audio_soundsync capability should map to unified audio skill',
@@ -107,8 +143,16 @@ assert.ok(
 )
 
 assert.ok(
-  records.some((record) => record.lanes.some((lane) => lane.lane === 'track_a_native_container' && lane.status !== 'ready_for_backend_execution')),
-  'Track A lane should remain visible but gated',
+  records.some((record) => record.capabilityId === 'streamer_render_pipeline_support' && record.laneStatus === 'ready_for_backend_execution'),
+  'Track A streamer render pipeline support should be visible as backend-gated ready',
+)
+assert.ok(
+  records.some((record) => record.capabilityId === 'mkvtoolnix_container_validation' && record.laneStatus === 'ready_for_backend_execution'),
+  'Track A container validation should be visible as backend-gated ready',
+)
+assert.ok(
+  records.some((record) => record.capabilityId === 'gpac_mp4box_packaging_validation' && record.laneStatus === 'ready_for_backend_execution'),
+  'Track A MP4 packaging validation should be visible as backend-gated ready',
 )
 assert.ok(
   records.some((record) => record.lanes.some((lane) => lane.lane === 'sound_cpu' && lane.status === 'dry_run_only')),
@@ -133,5 +177,6 @@ console.log(JSON.stringify({
   audioReadyTools: audio.readyToolIds,
   colorReadyTools: color.readyToolIds,
   renderReadyTools: render.readyToolIds,
+  trackAReadyTools: nativeAggregate.readyToolIds,
   transcriptBlockedTools: transcript.blockedToolIds,
 }, null, 2))

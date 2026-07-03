@@ -211,6 +211,18 @@ function usageProfileForCapability(capabilityId: ToolCallIntentCapabilityId): {
         vcpuCount: 1,
         memoryGiB: 1,
       }
+    case 'streamer_render_pipeline_support':
+      return {
+        usageCategory: 'media_analysis',
+        computeLevel: 'economy',
+        providerType: 'cloud_run_job',
+        qualityLevel: 'preview',
+        inputVideoSeconds: 30,
+        estimatedRuntimeSeconds: 45,
+        vcpuCount: 1,
+        memoryGiB: 1,
+        temporaryStorageGiBHours: 0.1,
+      }
     case 'browser_capture':
       return {
         usageCategory: 'graphic_design',
@@ -342,6 +354,29 @@ function usageProfileForCapability(capabilityId: ToolCallIntentCapabilityId): {
         estimatedRuntimeSeconds: 90,
         vcpuCount: 2,
         memoryGiB: 2,
+      }
+    case 'mkvtoolnix_container_validation':
+      return {
+        usageCategory: 'media_analysis',
+        computeLevel: 'economy',
+        providerType: 'cloud_run_job',
+        qualityLevel: 'preview',
+        estimatedRuntimeSeconds: 45,
+        vcpuCount: 1,
+        memoryGiB: 1,
+        temporaryStorageGiBHours: 0.1,
+      }
+    case 'gpac_mp4box_packaging_validation':
+      return {
+        usageCategory: 'rendering',
+        computeLevel: 'economy',
+        providerType: 'cloud_run_job',
+        qualityLevel: 'preview',
+        outputVideoSeconds: 30,
+        estimatedRuntimeSeconds: 60,
+        vcpuCount: 1,
+        memoryGiB: 1,
+        temporaryStorageGiBHours: 0.1,
       }
     case 'transcript':
       return {

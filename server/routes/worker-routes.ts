@@ -38,6 +38,10 @@ import {
   TRACKA_THREE_TOOL_EXTERNAL_AGENT_PERSISTED_JOB_RUNTIME_HANDOFF_ROUTE_PATH,
   runThreeToolExternalAgentPersistedJobRuntimeHandoff,
 } from '../services/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1'
+import {
+  TRACKA_THREE_TOOL_EXTERNAL_AGENT_PERSISTED_JOB_ROUTE_INVOCATION_ROUTE_PATH,
+  runThreeToolExternalAgentPersistedJobRouteInvocation,
+} from '../services/tracka-three-tool-external-agent-persisted-job-route-invocation-1'
 import { runToolReadinessChecks } from '../workers/tool-readiness-runner'
 import { runWorkerClaimRunner } from '../workers/worker-claim-runner'
 import {
@@ -54,6 +58,7 @@ import {
   recordToolRuntimeCheckSchema,
   releaseWorkerJobSchema,
   runWorkerJobSchema,
+  threeToolExternalAgentPersistedJobRouteInvocationSchema,
   threeToolExternalAgentPersistedJobRuntimeHandoffSchema,
   toolReadinessCheckSchema,
 } from '../validation/worker-schemas'
@@ -260,6 +265,20 @@ export function createWorkerRoutes(): Router {
         routeIdempotencyKey: getIdempotencyKey(request),
       }, getServiceContext(request))
       sendOk(response, { result }, result.warnings, result.ok ? 201 : 409)
+    }),
+  )
+
+  router.post(
+    TRACKA_THREE_TOOL_EXTERNAL_AGENT_PERSISTED_JOB_ROUTE_INVOCATION_ROUTE_PATH,
+    requireAuth,
+    requireIdempotency,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(threeToolExternalAgentPersistedJobRouteInvocationSchema, request.body)
+      const result = await runThreeToolExternalAgentPersistedJobRouteInvocation({
+        ...body,
+        routeIdempotencyKey: getIdempotencyKey(request),
+      })
+      sendOk(response, { result }, [], result.ok ? 201 : 409)
     }),
   )
 

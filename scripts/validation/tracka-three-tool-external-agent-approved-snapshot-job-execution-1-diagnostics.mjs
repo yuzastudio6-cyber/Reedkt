@@ -58,6 +58,19 @@ const implementationFiles = [
   'docs/external-beta/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1/tracka-three-tool-external-agent-persisted-job-runtime-handoff-1-record.json',
   'docs/activation-phase-tracka-three-tool-external-agent-persisted-job-runtime-handoff-1-results.md',
   'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-persisted-job-route-invocation-1.md',
+  'server/services/tracka-three-tool-external-agent-persisted-job-route-invocation-1.ts',
+  'server/cli/tracka-three-tool-external-agent-persisted-job-route-invocation-1.ts',
+  'server/smoke/tracka-three-tool-external-agent-persisted-job-route-invocation-1-smoke.ts',
+  'scripts/validation/tracka-three-tool-external-agent-persisted-job-route-invocation-1-diagnostics.mjs',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/source-audit.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/persisted-job-route-invocation.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/command-matrix.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/artifact-manifest-summary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/safety-boundary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/validation-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/tracka-three-tool-external-agent-persisted-job-route-invocation-1-record.json',
+  'docs/activation-phase-tracka-three-tool-external-agent-persisted-job-route-invocation-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-worker-dispatch-claim-lease-1.md',
 ]
 
 const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])

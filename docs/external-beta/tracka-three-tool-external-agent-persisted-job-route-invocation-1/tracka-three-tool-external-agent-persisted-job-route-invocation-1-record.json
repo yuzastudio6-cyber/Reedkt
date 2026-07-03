@@ -1,0 +1,113 @@
+{
+  "packet": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-PERSISTED-JOB-ROUTE-INVOCATION-1",
+  "decision": "completed_three_tool_external_agent_persisted_job_payload_to_runtime_route_invocation",
+  "execution": "completed_persisted_job_payload_to_three_tool_approved_snapshot_runtime_delegate_generated_fixture_only",
+  "validation": "passed",
+  "runId": "2026-07-03T13-25-30-856Z-7ed163da",
+  "outputDir": "/tmp/reeditpro-tracka-three-tool-external-agent-persisted-job-route-invocation-1/2026-07-03T13-25-30-856Z-7ed163da",
+  "report": "/tmp/reeditpro-tracka-three-tool-external-agent-persisted-job-route-invocation-1/2026-07-03T13-25-30-856Z-7ed163da/three-tool-external-agent-persisted-job-route-invocation-1-report.json",
+  "manifest": "/tmp/reeditpro-tracka-three-tool-external-agent-persisted-job-route-invocation-1/2026-07-03T13-25-30-856Z-7ed163da/three-tool-external-agent-persisted-job-route-invocation-1-manifest.json",
+  "routePath": "/v1/external-beta/tracka/three-tool/generated-fixture-runtime/approved-snapshot/jobs/persisted-invoke",
+  "confirmationGates": [
+    "REEDITPRO_CONFIRM_TRACKA_THREE_TOOL_EXTERNAL_AGENT_PERSISTED_JOB_ROUTE_INVOCATION=true",
+    "REEDITPRO_CONFIRM_TRACKA_THREE_TOOL_EXTERNAL_AGENT_APPROVED_SNAPSHOT_JOB_EXECUTION=true"
+  ],
+  "sourceChain": {
+    "approvedSnapshotJobExecutionMergeSha": "47a3a5f358f7a00f451b9fef277ed0b66251c9e0",
+    "approvedSnapshotJobExecutionRunId": "2026-07-03T03-41-30-494Z-41a3b873",
+    "approvedSnapshotJobExecutionChildRunId": "2026-07-03T03-41-30-650Z-41ce5185",
+    "persistedJobRuntimeHandoffMergeSha": "d2e52278ed840efeff6e87aee0de2ed876b9f580",
+    "blockedExcludedPr": "#577 open/draft/blocked/excluded"
+  },
+  "persistedInvocation": {
+    "persistedInvocationId": "persisted-invocation-three-tool-external-agent-generated-fixture-1",
+    "persistedJobId": "job-persisted-three-tool-external-agent-generated-fixture-runtime-1",
+    "persistedJobType": "quality_check",
+    "payloadKind": "tracka_three_tool_external_agent_generated_fixture_runtime",
+    "payloadMode": "persisted_job_payload_to_three_tool_approved_snapshot_runtime_delegate",
+    "payloadRead": "completed_local_payload_read_only",
+    "runtimeRouteInvocation": "completed_three_tool_approved_snapshot_runtime_delegate"
+  },
+  "runtimeDelegate": {
+    "runId": "2026-07-03T13-25-30-924Z-648666a4",
+    "outputDir": "/tmp/reeditpro-tracka-three-tool-external-agent-approved-snapshot-job-execution-1/2026-07-03T13-25-30-924Z-648666a4",
+    "artifacts": [
+      {
+        "fileName": "three-tool-external-agent-approved-snapshot-job-execution-1-report.json",
+        "bytes": 6942,
+        "sha256": "ecd31f89080a9ea3e776965ee60f94a5ed3940087ea5dcf55f11c907833eb6ec"
+      },
+      {
+        "fileName": "approved-snapshot-runtime-envelope.json",
+        "bytes": 2098,
+        "sha256": "4ab4f07a252501c1e1e7d69855715d70ff4287c1db3a4a5c67566023e1e47c3b"
+      },
+      {
+        "fileName": "output-manifest.json",
+        "bytes": 671,
+        "sha256": "87f1fc041a60671ec67c79bb36c622b17b2b99fa60c1a9d5804fa336399d3681"
+      },
+      {
+        "fileName": "qa-report.json",
+        "bytes": 752,
+        "sha256": "de448f0a52f41237e4e86672041e24f5c3edfc633f9937674b58c359ccd82a3a"
+      },
+      {
+        "fileName": "three-tool-external-agent-approved-snapshot-job-execution-1-manifest.json",
+        "bytes": 1432,
+        "sha256": "71a24f323c0ce4b643f8f9dedf534a64051e1b7d6ef840994417ede3feee943c"
+      }
+    ]
+  },
+  "tools": [
+    "gstreamer_render_pipeline_support",
+    "mkvtoolnix_container_validation",
+    "gpac_mp4box_packaging_validation"
+  ],
+  "readiness": {
+    "gstreamer_render_pipeline_support": "external_agent_persisted_job_route_invocation_passed",
+    "mkvtoolnix_container_validation": "external_agent_persisted_job_route_invocation_passed",
+    "gpac_mp4box_packaging_validation": "external_agent_persisted_job_route_invocation_passed"
+  },
+  "artifacts": [
+    {
+      "fileName": "three-tool-external-agent-persisted-job-route-invocation-1-report.json",
+      "bytes": 11504,
+      "sha256": "5f662aa5eaabaa7ac79d2f0621b6200f2f4a3559fc4ddb8b88cf07a9de5737f9"
+    },
+    {
+      "fileName": "three-tool-external-agent-persisted-job-route-invocation-1-manifest.json",
+      "bytes": 737,
+      "sha256": "abbbc93e8bce136aa9512eaaf4ee64f8f27a989f6429688a61f944b25edb3653"
+    }
+  ],
+  "safety": {
+    "routeHandlerInvocation": "completed_guarded_three_tool_persisted_job_route_invocation_handler",
+    "persistedJobPayloadRead": "completed_local_payload_read_only",
+    "runtimeRouteInvocation": "completed_three_tool_approved_snapshot_runtime_delegate",
+    "workerDispatch": false,
+    "workerExecution": false,
+    "workerProcessStart": false,
+    "workerLeaseClaim": false,
+    "persistentJobQueueWrite": false,
+    "privateMediaProcessing": false,
+    "userMediaProcessing": false,
+    "ffmpegFfprobeExecution": false,
+    "dockerPushDeploy": false,
+    "remotionExecution": false,
+    "supabaseMutation": false,
+    "sqlExecution": false,
+    "secretPayloadAccess": false,
+    "serviceRoleSecretPayloadAccess": false,
+    "signedUrlCreation": false,
+    "publicArtifactCreation": false,
+    "finalRenderExport": false,
+    "externalBetaUnlock": false,
+    "paidProductionUnlock": false,
+    "productionUnlock": false
+  },
+  "packageLock": "unchanged",
+  "generatedArtifactsCommitted": "none",
+  "productReadyEndToEndLocalOssTools": 0,
+  "nextMilestone": "TRACKA-THREE-TOOL-EXTERNAL-AGENT-WORKER-DISPATCH-CLAIM-LEASE-1"
+}

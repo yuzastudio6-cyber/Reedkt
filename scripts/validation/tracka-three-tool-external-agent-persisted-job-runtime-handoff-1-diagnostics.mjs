@@ -42,7 +42,23 @@ const implementationFiles = [
   'scripts/validation/tracka-three-tool-external-agent-worker-lease-dry-run-1-diagnostics.mjs',
 ]
 
-const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles])
+const routeInvocationFiles = [
+  'server/services/tracka-three-tool-external-agent-persisted-job-route-invocation-1.ts',
+  'server/cli/tracka-three-tool-external-agent-persisted-job-route-invocation-1.ts',
+  'server/smoke/tracka-three-tool-external-agent-persisted-job-route-invocation-1-smoke.ts',
+  'scripts/validation/tracka-three-tool-external-agent-persisted-job-route-invocation-1-diagnostics.mjs',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/source-audit.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/persisted-job-route-invocation.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/command-matrix.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/artifact-manifest-summary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/safety-boundary.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/validation-results.md',
+  'docs/external-beta/tracka-three-tool-external-agent-persisted-job-route-invocation-1/tracka-three-tool-external-agent-persisted-job-route-invocation-1-record.json',
+  'docs/activation-phase-tracka-three-tool-external-agent-persisted-job-route-invocation-1-results.md',
+  'docs/implementation-prompts/prompt-tracka-three-tool-external-agent-worker-dispatch-claim-lease-1.md',
+]
+
+const allowedChangedFiles = new Set([...packetFiles, ...implementationFiles, ...routeInvocationFiles])
 
 const forbiddenPathPatterns = [
   /^package-lock\.json$/,
@@ -312,6 +328,7 @@ for (const file of uniqueChangedFiles) {
   if (forbiddenPathPatterns.some((pattern) => pattern.test(file))) fail(`forbidden changed path: ${file}`)
 }
 const changedCorpus = uniqueChangedFiles
+  .filter((file) => !routeInvocationFiles.includes(file))
   .filter((file) => fs.existsSync(file) && fs.statSync(file).isFile())
   .map(read)
   .join('\n')

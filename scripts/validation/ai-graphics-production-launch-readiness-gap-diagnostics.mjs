@@ -35,12 +35,10 @@ const trueKeys = [
   'all21ToolsCovered',
   'all12CapabilitiesCovered',
   'all8GpuToolsTargetGpuRuntime',
-  'all21ExternalBetaReadyForControlledOnDemandToolCalls',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
   'agentCanSelectForPlanning',
-  'externalBetaReadyNow',
 ]
 
 const productionControlKeys = [
@@ -170,10 +168,10 @@ function assertCounts(record, label, externalBetaReadyTools) {
 
 function assertBooleanMap(record, label, expectedReady, controlsAccepted = false) {
   const booleans = record.booleans ?? {}
-  if (booleans.externalBetaReadyNow !== expectedReady) {
+  if (booleans.externalBetaReadyNow !== false) {
     fail(`${label}_external_beta_ready_now_${booleans.externalBetaReadyNow}`)
   }
-  if (booleans.all21ExternalBetaReadyForControlledOnDemandToolCalls !== expectedReady) {
+  if (booleans.all21ExternalBetaReadyForControlledOnDemandToolCalls !== false) {
     fail(`${label}_all21_external_beta_ready_${booleans.all21ExternalBetaReadyForControlledOnDemandToolCalls}`)
   }
   if (expectedReady) {
@@ -223,7 +221,10 @@ if (!indexTs.includes("export * from './ai-graphics-production-launch-controls'"
 const docs = json('docs/tool-intelligence/ai-graphics/production-launch-readiness-gap.json')
 if (docs.decision !== decision) fail('docs_decision_mismatch')
 if (docs.status !== controlsAcceptedStatus) fail(`docs_status:${docs.status}`)
-if (docs.counts?.externalBetaReadyNowTools !== 21) fail('docs_external_beta_ready_tools_not_21')
+if (docs.counts?.externalBetaReadyNowTools !== 0) fail('docs_external_beta_ready_tools_not_0')
+if (docs.counts?.runtimeReadyForOnDemandExternalBetaToolCallTools !== 0) {
+  fail('docs_runtime_ready_for_on_demand_tools_not_0')
+}
 if (docs.counts?.productionReadyNowTools !== 0) fail('docs_production_ready_tools_not_0')
 for (const blocker of [
   'final production go/no-go packet',
@@ -244,7 +245,8 @@ for (const key of falseKeys) {
 
 const markdown = read('docs/tool-intelligence/ai-graphics/production-launch-readiness-gap.md')
 for (const phrase of [
-  'External-beta ready now: 21 tools',
+  'External-beta ready now: 0 tools',
+  'Controlled on-demand evidence-covered tools: 21',
   'Production ready now: 0 tools',
   'Production launch controls accepted: true',
   'GPU runtime should start now: false',
@@ -278,7 +280,7 @@ const acceptedReport = runNpm(runScriptName, [
   'docs/tool-intelligence/ai-graphics/beta-production-readiness-rollup.json',
 ])
 if (acceptedReport.status !== blockedStatus) fail(`accepted_status:${acceptedReport.status}`)
-assertCounts(acceptedReport, 'accepted', 21)
+assertCounts(acceptedReport, 'accepted', 0)
 assertBooleanMap(acceptedReport, 'accepted', true)
 
 const controlsPacket = runNpm(controlsScriptName, privateControlArgs)
@@ -297,7 +299,7 @@ fs.rmSync(controlsTempDir, { recursive: true, force: true })
 if (controlsAcceptedReport.status !== controlsAcceptedStatus) {
   fail(`controls_accepted_status:${controlsAcceptedReport.status}`)
 }
-assertCounts(controlsAcceptedReport, 'controls_accepted', 21)
+assertCounts(controlsAcceptedReport, 'controls_accepted', 0)
 assertBooleanMap(controlsAcceptedReport, 'controls_accepted', true, true)
 for (const blocker of [
   'final production go/no-go packet',

@@ -265,9 +265,9 @@ function externalBetaActivatedLaunchReadinessAccepted(
     totalProductFacingCapabilities === 12 &&
     gpuRuntimeTargetedTools === 8 &&
     externalBetaActivatedLaunchReadyToolsWithProvidedEvidence === 21 &&
-    externalBetaToolCallReadyNowTools === 21 &&
-    externalBetaReadyNowTools === 21 &&
-    runtimeReadyForOnDemandExternalBetaToolCallTools === 21 &&
+    externalBetaToolCallReadyNowTools === 0 &&
+    externalBetaReadyNowTools === 0 &&
+    runtimeReadyForOnDemandExternalBetaToolCallTools === 0 &&
     sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence === 21 &&
     productionReadyNowTools === 0 &&
     gpuRuntimeShouldStartNow === false &&
@@ -275,7 +275,7 @@ function externalBetaActivatedLaunchReadinessAccepted(
     packet.booleans.sourceExternalBetaAll21ActivationRollupAccepted === true &&
     packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
     packet.booleans.all21ExternalBetaActivatedLaunchReadyWithProvidedEvidence === true &&
-    packet.booleans.externalBetaReadyNow === true &&
+    packet.booleans.externalBetaReadyNow === false &&
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.routeExecutionApprovedNow === false &&
     packet.booleans.workerExecutionApprovedNow === false &&
@@ -384,8 +384,7 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
     sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
       sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence ? 21 : 0,
     internalBetaReadyNowTools: 0,
-    externalBetaReadyNowTools:
-      sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence ? 21 : 0,
+    externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     activationGapReport,
     crossOwnerCoordination,
@@ -441,8 +440,7 @@ export function buildAiGraphicsBetaProductionReadinessRollup(
       gpuRuntimeApprovedNow: false,
       runtimeReadyNow: false,
       internalBetaReadyNow: false,
-      externalBetaReadyNow:
-        sourceExternalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence,
+      externalBetaReadyNow: false,
       productionReadyNow: false,
       dependencyInstallPerformed: false,
       packageLockMutationPerformed: false,

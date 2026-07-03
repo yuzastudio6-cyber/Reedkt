@@ -1667,9 +1667,9 @@ function sourceControlledOnDemandStatusBridgeAccepted(
     packetNumber(packet, 'totalProductFacingCapabilities') === 12 &&
     packetNumber(packet, 'gpuRuntimeTargetedTools') === 8 &&
     packetNumber(packet, 'externalBetaControlledOnDemandReadyTools') === 21 &&
-    packetNumber(packet, 'externalBetaCallableNowTools') === 21 &&
-    packetNumber(packet, 'externalBetaReadyNowTools') === 21 &&
-    packetNumber(packet, 'runtimeReadyForOnDemandExternalBetaToolCallTools') === 21 &&
+    packetNumber(packet, 'externalBetaCallableNowTools') === 0 &&
+    packetNumber(packet, 'externalBetaReadyNowTools') === 0 &&
+    packetNumber(packet, 'runtimeReadyForOnDemandExternalBetaToolCallTools') === 0 &&
     packetNumber(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') === 21 &&
     packetNumber(packet, 'productionReadyNowTools') === 0 &&
     packet.readinessInterpretation ===
@@ -1680,8 +1680,8 @@ function sourceControlledOnDemandStatusBridgeAccepted(
     packet.gpuPolicy?.gpuRuntimeShouldStartNow === false &&
     packetBoolean(packet, 'all21ToolsReadyForControlledOnDemandExternalBetaToolCalls') === true &&
     packetBoolean(packet, 'controlledExternalBetaToolCallReadinessClarified') === true &&
-    packetBoolean(packet, 'externalBetaReadyNow') === true &&
-    packetBoolean(packet, 'externalBetaCallableNow') === true &&
+    packetBoolean(packet, 'externalBetaReadyNow') === false &&
+    packetBoolean(packet, 'externalBetaCallableNow') === false &&
     packetBoolean(packet, 'agentCanExecuteToolsNow') === false &&
     packetBoolean(packet, 'directAgentToolExecutionApprovedNow') === false &&
     packetBoolean(packet, 'routeExecutionApprovedNow') === false &&

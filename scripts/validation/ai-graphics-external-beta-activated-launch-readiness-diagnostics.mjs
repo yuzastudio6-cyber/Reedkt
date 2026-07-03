@@ -84,6 +84,10 @@ const capabilityByTool = {
 const falseGateKeys = [
   'agentCanExecuteToolsNow',
   'directAgentToolExecutionApprovedNow',
+  'controlledExternalBetaToolCallGatewayReadyNow',
+  'controlledWorkerToolCallReadyNow',
+  'externalBetaCallableNow',
+  'externalBetaReadyNow',
   'productionReadyNow',
   'routeExecutionApprovedNow',
   'workerExecutionApprovedNow',
@@ -136,10 +140,6 @@ const trueReadinessKeys = [
   'noIdleGpuRuntimeApproved',
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
   'agentCanSelectForPlanning',
-  'controlledExternalBetaToolCallGatewayReadyNow',
-  'controlledWorkerToolCallReadyNow',
-  'externalBetaCallableNow',
-  'externalBetaReadyNow',
 ]
 
 const requiredFiles = [
@@ -608,9 +608,9 @@ function verifyDocs() {
     'doc_json_operator_preflight_count',
   )
   requireEqual(docJson.scope?.externalBetaActivatedLaunchReadyToolsWithProvidedEvidence, 21, 'doc_json_ready_count')
-  requireEqual(docJson.scope?.externalBetaToolCallReadyNowTools, 21, 'doc_json_tool_call_ready_count')
-  requireEqual(docJson.scope?.externalBetaReadyNowTools, 21, 'doc_json_external_beta_count')
-  requireEqual(docJson.scope?.runtimeReadyForOnDemandExternalBetaToolCallTools, 21, 'doc_json_runtime_ready_count')
+  requireEqual(docJson.scope?.externalBetaToolCallReadyNowTools, 0, 'doc_json_tool_call_ready_count')
+  requireEqual(docJson.scope?.externalBetaReadyNowTools, 0, 'doc_json_external_beta_count')
+  requireEqual(docJson.scope?.runtimeReadyForOnDemandExternalBetaToolCallTools, 0, 'doc_json_runtime_ready_count')
   requireEqual(docJson.scope?.productionReadyNowTools, 0, 'doc_json_production_count')
   for (const key of trueReadinessKeys) {
     requireTruthy(docJson.booleans?.[key], `doc_json_boolean_${key}`)
@@ -624,9 +624,9 @@ function verifyDocs() {
     decision,
     'controlled on-demand external-beta tool calls',
     '`sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence`: 21',
-    '`externalBetaToolCallReadyNowTools`: 21',
-    '`externalBetaReadyNowTools`: 21',
-    '`runtimeReadyForOnDemandExternalBetaToolCallTools`: 21',
+    '`externalBetaToolCallReadyNowTools`: 0',
+    '`externalBetaReadyNowTools`: 0',
+    '`runtimeReadyForOnDemandExternalBetaToolCallTools`: 0',
     'route-bound service-role queue smoke operator-preflight evidence',
     '`agentCanExecuteToolsNow=false`',
     '`gpuRuntimeShouldStartNow=false`',
@@ -639,7 +639,7 @@ function verifyDocs() {
   for (const required of [
     'AI Graphics External-Beta Activated Launch Readiness',
     decision,
-    'externalBetaReadyNowTools=21',
+    'externalBetaReadyNowTools=0',
     '`gpuRuntimeShouldStartNow` remains false',
   ]) {
     if (!scorecard.includes(required)) fail(`scorecard_missing:${required}`)
@@ -672,7 +672,7 @@ function verifySourceWiring() {
     'runtimeStartsOnlyForAcceptedWorkerJob: true',
     'noProductionUnlockByReadinessGate: true',
     'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
-    'externalBetaReadyNow: accepted',
+    'externalBetaReadyNow: false',
     'gpuRuntimeShouldStartNow: false',
     'productionReadyNow: false',
   ]) {
@@ -717,9 +717,9 @@ function verifyCliBehavior() {
     21,
     'accepted_ready_count',
   )
-  requireEqual(accepted.externalBetaToolCallReadyNowTools, 21, 'accepted_tool_call_ready')
-  requireEqual(accepted.externalBetaReadyNowTools, 21, 'accepted_external_beta_ready')
-  requireEqual(accepted.runtimeReadyForOnDemandExternalBetaToolCallTools, 21, 'accepted_runtime_on_demand')
+  requireEqual(accepted.externalBetaToolCallReadyNowTools, 0, 'accepted_tool_call_ready')
+  requireEqual(accepted.externalBetaReadyNowTools, 0, 'accepted_external_beta_ready')
+  requireEqual(accepted.runtimeReadyForOnDemandExternalBetaToolCallTools, 0, 'accepted_runtime_on_demand')
   requireEqual(
     accepted.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
     21,
@@ -778,9 +778,9 @@ console.log(JSON.stringify({
   gpuRuntimeTargetedTools: 8,
   sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
   externalBetaActivatedLaunchReadyToolsWithProvidedEvidence: 21,
-  externalBetaToolCallReadyNowTools: 21,
-  externalBetaReadyNowTools: 21,
-  runtimeReadyForOnDemandExternalBetaToolCallTools: 21,
+  externalBetaToolCallReadyNowTools: 0,
+  externalBetaReadyNowTools: 0,
+  runtimeReadyForOnDemandExternalBetaToolCallTools: 0,
   agentCanExecuteToolsNow: false,
   gpuRuntimeShouldStartNow: false,
   productionReadyNowTools: 0,

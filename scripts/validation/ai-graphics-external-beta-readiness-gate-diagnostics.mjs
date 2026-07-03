@@ -295,11 +295,11 @@ if (installAudit.counts?.heavyToolsTargetingGpu !== 8) fail('install_audit_gpu_t
 if (installAudit.counts?.heavyToolsIncorrectlyTargetingCpu !== 0) fail('install_audit_cpu_fallback_count_not_0')
 if (gpuGate.gpuRuntimePolicy?.onDemandOnly !== true) fail('gpu_gate_not_on_demand')
 if (gpuGate.gpuRuntimePolicy?.cpuFallbackAllowedForHeavyTools !== false) fail('gpu_gate_cpu_fallback_allowed')
-if (rollup.counts?.externalBetaReadyNowTools !== 21) {
-  fail(`rollup_external_beta_ready_now_not_21:${rollup.counts?.externalBetaReadyNowTools}`)
+if (rollup.counts?.externalBetaReadyNowTools !== 0) {
+  fail(`rollup_external_beta_ready_now_not_0:${rollup.counts?.externalBetaReadyNowTools}`)
 }
-if (rollup.externalBetaActivatedLaunchReadiness?.externalBetaReadyNowTools !== 21) {
-  fail('rollup_activated_launch_external_beta_ready_tools_not_21')
+if (rollup.externalBetaActivatedLaunchReadiness?.externalBetaReadyNowTools !== 0) {
+  fail('rollup_activated_launch_external_beta_ready_tools_not_0')
 }
 for (const key of [
   'agentCanExecuteToolsNow',

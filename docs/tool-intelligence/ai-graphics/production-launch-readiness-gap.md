@@ -5,17 +5,18 @@ Decision: `ai_graphics_production_launch_readiness_gap_prepared_external_beta_re
 This packet is the production-facing gap report after the accepted external-beta
 activated-launch readiness packet and the beta/production readiness rollup. It
 also consumes the production launch controls contract. It does not approve
-production launch. It records what is already true for external beta, accepts
-private production controls evidence, and keeps final production go/no-go plus
-explicit traffic cutover approval as blockers.
+production launch. It records controlled on-demand tool-call evidence coverage,
+accepts private production controls evidence, and keeps external beta, runtime,
+final production go/no-go, and explicit traffic cutover approval as blockers.
 
 ## Current Result
 
 - AI graphics tools covered: 21.
 - Product-facing capabilities covered: 12.
 - GPU/model runtime targeted tools: 8.
-- External-beta ready now: 21 tools, controlled on-demand tool-call readiness only.
-- Runtime ready for on-demand external-beta tool calls: 21 tools.
+- Controlled on-demand evidence-covered tools: 21.
+- External-beta ready now: 0 tools.
+- Runtime ready for on-demand external-beta tool calls: 0 tools.
 - Production ready now: 0 tools.
 - Production launch controls accepted: true, from private/backend evidence refs only.
 - Agent can select for planning: true.

@@ -350,9 +350,9 @@ function externalBetaActivatedLaunchReadinessAccepted(
       totalProductFacingCapabilities === 12 &&
       gpuRuntimeTargetedTools === 8 &&
       externalBetaActivatedLaunchReadyToolsWithProvidedEvidence === 21 &&
-      externalBetaToolCallReadyNowTools === 21 &&
-      externalBetaReadyNowTools === 21 &&
-      runtimeReadyForOnDemandExternalBetaToolCallTools === 21 &&
+      externalBetaToolCallReadyNowTools === 0 &&
+      externalBetaReadyNowTools === 0 &&
+      runtimeReadyForOnDemandExternalBetaToolCallTools === 0 &&
       sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence === 21 &&
       productionReadyNowTools === 0 &&
       gpuRuntimeShouldStartNow === false &&
@@ -360,7 +360,7 @@ function externalBetaActivatedLaunchReadinessAccepted(
       packet.booleans.sourceExternalBetaAll21ActivationRollupAccepted === true &&
       packet.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence === true &&
       packet.booleans.all21ExternalBetaActivatedLaunchReadyWithProvidedEvidence === true &&
-      packet.booleans.externalBetaReadyNow === true &&
+      packet.booleans.externalBetaReadyNow === false &&
       packet.booleans.agentCanExecuteToolsNow === false &&
       packet.booleans.directAgentToolExecutionApprovedNow === false &&
       packet.booleans.routeExecutionApprovedNow === false &&
@@ -416,7 +416,7 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
       betaTechnicalEvidenceReadyWithProvidedEvidence:
         sourceGateTool?.betaTestingReadyWithProvidedEvidence === true,
       externalBetaCandidateReadyWithProvidedEvidence,
-      externalBetaReadyNow: sourceExternalBetaActivatedLaunchReadinessAccepted,
+      externalBetaReadyNow: false,
       productionReadyNow: false,
       missingEndToEndGates: buildToolMissingGates({
         sourceGateTool,
@@ -543,7 +543,7 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
         sourceExternalBetaReadinessGate.evidence.externalBetaLaunchControlsAccepted ? 1 : 0,
       sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
         sourceExternalBetaActivatedLaunchReadinessAccepted ? 21 : 0,
-      externalBetaReadyNowTools: sourceExternalBetaActivatedLaunchReadinessAccepted ? 21 : 0,
+      externalBetaReadyNowTools: 0,
       productionReadyNowTools: 0,
     },
     runtimePolicy: {
@@ -613,7 +613,7 @@ export function buildAiGraphicsExternalBetaEndToEndReadiness(
       sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence:
         sourceExternalBetaActivatedLaunchReadinessAccepted,
       externalBetaCandidateReadyWithProvidedEvidence,
-      externalBetaReadyNow: sourceExternalBetaActivatedLaunchReadinessAccepted,
+      externalBetaReadyNow: false,
       productionReadyNow: false,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,

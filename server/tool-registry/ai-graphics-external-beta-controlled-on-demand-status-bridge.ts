@@ -138,12 +138,12 @@ function externalBetaEndToEndAccepted(
     countFrom(packet, 'totalAiGraphicsTools') === 21 &&
     countFrom(packet, 'totalProductFacingCapabilities') === 12 &&
     countFrom(packet, 'gpuRuntimeTargetedTools') === 8 &&
-    countFrom(packet, 'externalBetaReadyNowTools') === 21 &&
+    countFrom(packet, 'externalBetaReadyNowTools') === 0 &&
     countFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'productionReadyNowTools') === 0 &&
     booleanFrom(packet, 'externalBetaActivatedLaunchReadinessAcceptedWithProvidedEvidence') === true &&
     booleanFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence') === true &&
-    booleanFrom(packet, 'externalBetaReadyNow') === true &&
+    booleanFrom(packet, 'externalBetaReadyNow') === false &&
     booleanFrom(packet, 'agentCanExecuteToolsNow') === false &&
     booleanFrom(packet, 'routeExecutionApprovedNow') === false &&
     booleanFrom(packet, 'workerExecutionApprovedNow') === false &&
@@ -165,11 +165,11 @@ function betaProductionRollupAccepted(
     countFrom(packet, 'gpuRuntimeTargetedTools') === 8 &&
     countFrom(packet, 'properlyInstalledForPlannedSurface') === 21 &&
     countFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') === 21 &&
-    countFrom(packet, 'externalBetaReadyNowTools') === 21 &&
+    countFrom(packet, 'externalBetaReadyNowTools') === 0 &&
     countFrom(packet, 'productionReadyNowTools') === 0 &&
     booleanFrom(packet, 'externalBetaActivatedLaunchReadyWithProvidedEvidence') === true &&
     booleanFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence') === true &&
-    booleanFrom(packet, 'externalBetaReadyNow') === true &&
+    booleanFrom(packet, 'externalBetaReadyNow') === false &&
     booleanFrom(packet, 'agentCanExecuteToolsNow') === false &&
     booleanFrom(packet, 'routeExecutionApprovedNow') === false &&
     booleanFrom(packet, 'workerExecutionApprovedNow') === false &&
@@ -190,15 +190,15 @@ function activatedLaunchAccepted(
     (countFrom(packet, 'totalProductFacingCapabilities') === 12 ||
       countFrom(packet, 'productFacingCapabilities') === 12) &&
     countFrom(packet, 'gpuRuntimeTargetedTools') === 8 &&
-    countFrom(packet, 'externalBetaReadyNowTools') === 21 &&
-    countFrom(packet, 'externalBetaToolCallReadyNowTools') === 21 &&
-    countFrom(packet, 'runtimeReadyForOnDemandExternalBetaToolCallTools') === 21 &&
+    countFrom(packet, 'externalBetaReadyNowTools') === 0 &&
+    countFrom(packet, 'externalBetaToolCallReadyNowTools') === 0 &&
+    countFrom(packet, 'runtimeReadyForOnDemandExternalBetaToolCallTools') === 0 &&
     countFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence') === 21 &&
     countFrom(packet, 'productionReadyNowTools') === 0 &&
     booleanFrom(packet, 'sourceExternalBetaLaunchGoNoGoAccepted') === true &&
     booleanFrom(packet, 'sourceExternalBetaAll21ActivationRollupAccepted') === true &&
     booleanFrom(packet, 'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence') === true &&
-    booleanFrom(packet, 'externalBetaReadyNow') === true &&
+    booleanFrom(packet, 'externalBetaReadyNow') === false &&
     booleanFrom(packet, 'agentCanExecuteToolsNow') === false &&
     booleanFrom(packet, 'directAgentToolExecutionApprovedNow') === false &&
     booleanFrom(packet, 'routeExecutionApprovedNow') === false &&
@@ -280,9 +280,9 @@ export function evaluateAiGraphicsExternalBetaControlledOnDemandStatusBridge(
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
     externalBetaControlledOnDemandReadyTools: accepted ? 21 : 0,
-    externalBetaCallableNowTools: accepted ? 21 : 0,
-    externalBetaReadyNowTools: accepted ? 21 : 0,
-    runtimeReadyForOnDemandExternalBetaToolCallTools: accepted ? 21 : 0,
+    externalBetaCallableNowTools: 0,
+    externalBetaReadyNowTools: 0,
+    runtimeReadyForOnDemandExternalBetaToolCallTools: 0,
     sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence:
       accepted ? 21 : 0,
     productionReadyNowTools: 0,
@@ -314,8 +314,8 @@ export function evaluateAiGraphicsExternalBetaControlledOnDemandStatusBridge(
       all8GpuToolsTargetGpuRuntime: true,
       all21ToolsReadyForControlledOnDemandExternalBetaToolCalls: accepted,
       controlledExternalBetaToolCallReadinessClarified: accepted,
-      externalBetaReadyNow: accepted,
-      externalBetaCallableNow: accepted,
+      externalBetaReadyNow: false,
+      externalBetaCallableNow: false,
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: false,
       directAgentToolExecutionApprovedNow: false,

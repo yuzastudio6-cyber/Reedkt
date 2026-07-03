@@ -10,7 +10,7 @@ This bridge reconciles the accepted source packets that already exist in the AI 
 - `external-beta-end-to-end-readiness`
 - `beta-production-readiness-rollup`
 
-It records the current external-beta interpretation in one place: all 21 AI graphics tools are ready for controlled on-demand external-beta tool calls through the approved metadata path, but direct agent execution remains false.
+It records the current external-beta interpretation in one place: all 21 AI graphics tools have controlled on-demand external-beta tool-call evidence for controlled on-demand external-beta tool calls through the approved metadata path, but actual external-beta readiness and direct agent execution remain false.
 
 ## Covered Tools
 
@@ -19,13 +19,13 @@ All 21 AI graphics tools are covered: `torch_torchvision`, `transformers`, `sam2
 ## External-Beta Status
 
 - `externalBetaControlledOnDemandReadyTools`: 21
-- `externalBetaCallableNowTools`: 21
-- `externalBetaReadyNowTools`: 21
-- `runtimeReadyForOnDemandExternalBetaToolCallTools`: 21
+- `externalBetaCallableNowTools`: 0
+- `externalBetaReadyNowTools`: 0
+- `runtimeReadyForOnDemandExternalBetaToolCallTools`: 0
 - `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence`: 21
 - `productionReadyNowTools`: 0
 
-External-beta ready means controlled on-demand worker-path tool-call readiness. It does not mean Codex/direct-agent execution, diagnostic-time route execution, worker dispatch by this bridge, or production traffic.
+External-beta ready remains false. Controlled on-demand worker-path evidence does not mean Codex/direct-agent execution, diagnostic-time route execution, worker dispatch by this bridge, or production traffic.
 The bridge rejects stale source packets unless the route-bound service-role queue-smoke operator-preflight evidence is preserved across all 21 tools.
 
 ## GPU Policy

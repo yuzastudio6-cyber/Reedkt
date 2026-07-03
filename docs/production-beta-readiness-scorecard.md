@@ -1205,10 +1205,10 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_beta_production_readiness_rollup_prepared_with_runtime_blocks`.
 - Scope: final server-only rollup across the 21-tool install/mapping audit, cross-owner duplicate checks, GPU targeting, beta evidence bundle, owner evidence, worker payloads, and production worker gate checks.
-- Result: all 21 tools are installed or represented for the planned ReeditPro surface, all 21 map to production registry IDs, duplicate production mappings are 0, all 8 heavy/model tools target exact native NVIDIA L4 GPU runtimes, GPU runtime is on-demand only with no idle resident GPU service, and a complete provided-evidence path can accept 21 of 21 production worker gate checks with 0 hard failures. With accepted activated-launch readiness evidence, the rollup now reports 21 tools external-beta-ready for controlled on-demand tool calls, while still reporting 0 tools production-ready now.
+- Result: all 21 tools are installed or represented for the planned ReeditPro surface, all 21 map to production registry IDs, duplicate production mappings are 0, all 8 heavy/model tools target exact native NVIDIA L4 GPU runtimes, GPU runtime is on-demand only with no idle resident GPU service, and a complete provided-evidence path can accept 21 of 21 production worker gate checks with 0 hard failures. With accepted activated-launch readiness evidence, the rollup now reports 21 tools covered by controlled on-demand external-beta tool-call evidence, while still reporting 0 tools external-beta-ready now and 0 tools production-ready now.
 - Source packet ingestion: the final rollup can now consume `--internal-beta-production-worker-gate-readiness-packet` when the source packet already reports all 21 production worker gate checks, all 12 capability scenarios, 0 hard failures, exactly eight GPU/model gate checks and nested source job payloads on exact native NVIDIA L4 targets, on-demand-only GPU runtime policy, no idle GPU runtime approval, CPU fallback blocked for heavy/model tools, and enqueue/dispatch/GPU/runtime/beta/production gates still false.
 - Native GPU source packet ingestion: the final rollup can also consume `--external-beta-native-gpu-proof-collection-packet` when the source packet reports `external_beta_native_gpu_proof_collection_ready_for_owner_review_not_beta_ready`, `nativeGpuRuntimeProofAcceptedTools=8`, `nativeGpuRuntimeProofProfilesAccepted=6`, `modelWeightManifestReviewAccepted=5`, and `readyForPerToolRuntimeProofRecheck=true`. This moves the GPU evidence bridge closer to external beta without approving GPU runtime, model load, inference, tool execution, beta, or production.
-- Activated launch source packet ingestion: the final rollup can consume `--external-beta-activated-launch-readiness-packet` when the source packet reports all 21 tools ready for controlled on-demand external-beta tool calls, no direct agent execution, no idle GPU runtime, `gpuRuntimeShouldStartNow=false`, and production still false.
+- Activated launch source packet ingestion: the final rollup can consume `--external-beta-activated-launch-readiness-packet` when the source packet reports all 21 tools covered by controlled on-demand external-beta tool-call evidence, no direct agent execution, no external-beta execution readiness, no idle GPU runtime, `gpuRuntimeShouldStartNow=false`, and production still false.
 - External beta queue proof dependency: the rollup now names the service-role queue smoke preflight and accepted saved service-role queue smoke proof as required final go/no-go gates. Those gates stay separate from this rollup, and the rollup still does not approve live queue writes, worker dispatch, tool execution, external beta, or production.
 - GPU activation policy: worker payload readiness now preserves approved snapshot, credit reservation, and private artifact manifest refs, production worker jobs embed `aiGraphicsRuntimeActivationPolicy`, and the canonical production worker gate rejects GPU payloads unless they are on-demand only, non-idle, started only by an approved worker/tool call, and not allowed to CPU-fallback for heavy model paths.
 - Private artifact boundary: worker handoff now requires `privateArtifactManifestRef` to use `private://` or `reeditpro-private://` before later queue admission can consume it. Public, signed URL, raw HTTP, and GCS refs remain invalid for AI graphics runtime handoff.
@@ -1413,7 +1413,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_external_beta_end_to_end_readiness_prepared_with_remaining_blocks`.
 - Scope: top-level all-21 AI graphics external-beta checkpoint across install surface, production mapping, ranking selection, GPU targeting, cross-owner coordination, readiness evidence, service-role queue smoke preflight, saved service-role queue smoke proof, and saved worker-dispatch smoke proof.
-- Result: legacy default evidence remains blocked with 0 external-beta candidates, and full provided evidence can report 21 candidate tools only when `--external-beta-service-role-queue-smoke-preflight-packet`, `--external-beta-service-role-queue-smoke-proof-packet`, and `--external-beta-worker-dispatch-smoke-proof` are supplied. The newer accepted `external-beta-activated-launch-readiness` packet now supersedes that legacy summary path and reports `externalBetaReadyNowTools=21` for controlled on-demand external-beta tool calls, while `productionReadyNowTools=0` remains enforced.
+- Result: legacy default evidence remains blocked with 0 external-beta candidates, and full provided evidence can report 21 candidate tools only when `--external-beta-service-role-queue-smoke-preflight-packet`, `--external-beta-service-role-queue-smoke-proof-packet`, and `--external-beta-worker-dispatch-smoke-proof` are supplied. The newer accepted `external-beta-activated-launch-readiness` packet records 21 controlled on-demand external-beta tool-call evidence-covered tools while `externalBetaReadyNowTools=0` and `productionReadyNowTools=0` remain enforced.
 - Runtime/beta/production: external-beta readiness is metadata-only for controlled on-demand tool calls. This packet does not execute tools, enqueue workers, start GPU runtime, mutate Supabase/GCS, create signed URLs, create public artifacts, or unlock production.
 
 ## AI Graphics External-Beta Candidate Evidence Assembly
@@ -1553,21 +1553,21 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_external_beta_all_21_activation_rollup_approved_with_runtime_blocks`.
 - Scope: all-21 activation rollup after one accepted per-tool external-beta activation go/no-go packet exists for every AI graphics tool.
-- Result: with 21 accepted activation packets, it marks all 21 tools as external-beta tool-call ready through the controlled on-demand worker path and reports `externalBetaReadyNowTools=21`.
+- Result: with 21 accepted activation packets, it records all 21 tools as covered by controlled on-demand external-beta tool-call evidence. It does not make those tools externally executable now.
 - Runtime/beta/production: external-beta readiness is limited to controlled on-demand tool-call readiness. This rollup does not execute traffic, execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or unlock production. Direct agent execution remains false and `gpuRuntimeShouldStartNow` remains false.
 
 ## AI Graphics External-Beta Activated Launch Readiness
 
 - Decision: `ai_graphics_external_beta_activated_launch_readiness_approved_with_runtime_blocks`.
 - Scope: readiness consumer after both the approved external-beta launch go/no-go and the accepted all-21 activation rollup.
-- Result: it records all 21 AI graphics tools as ready for controlled on-demand external-beta tool calls and reports `externalBetaReadyNowTools=21`.
+- Result: it records all 21 AI graphics tools as covered by controlled on-demand external-beta tool-call evidence and reports `externalBetaReadyNowTools=0`.
 - Runtime/beta/production: external-beta readiness remains limited to controlled on-demand tool-call readiness. This consumer does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or unlock production. Direct agent execution remains false and `gpuRuntimeShouldStartNow` remains false.
 
 ## AI Graphics External-Beta Controlled On-Demand Status Bridge
 
 - Decision: `ai_graphics_external_beta_controlled_on_demand_status_bridge_prepared_with_runtime_blocks`.
 - Scope: status bridge over accepted `external-beta-activated-launch-readiness`, `external-beta-end-to-end-readiness`, and `beta-production-readiness-rollup` evidence.
-- Result: it records all 21 AI graphics tools as externally beta ready for controlled on-demand tool calls, reports `externalBetaCallableNowTools=21`, `externalBetaReadyNowTools=21`, and keeps `productionReadyNowTools=0`.
+- Result: it records all 21 AI graphics tools as covered by controlled on-demand tool-call evidence, reports `externalBetaCallableNowTools=0`, `externalBetaReadyNowTools=0`, and keeps `productionReadyNowTools=0`.
 - Runtime/beta/production: this is a reconciliation/status packet only. It does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or unlock production. Direct agent execution remains false, `gpuRuntimeShouldStartNow=false`, and GPU remains cold until an accepted worker/tool-call job needs it.
 
 ## AI Graphics External-Beta API Route Handler Contract
@@ -1749,7 +1749,7 @@ Decision: `ai_graphics_canonical_agent_selection_runtime_boundary_handoff_owner_
 
 - Decision: `ai_graphics_production_launch_readiness_gap_prepared_external_beta_ready_production_blocked`.
 - Scope: production-facing gap report after accepted external-beta activated launch readiness, the beta/production readiness rollup, and production launch controls.
-- Result: it records 21 tools external-beta ready for controlled on-demand tool calls, accepts private production controls evidence, and keeps 0 tools production-ready now.
+- Result: it records 21 tools covered by controlled on-demand tool-call evidence, accepts private production controls evidence, and keeps 0 tools external-beta-ready now and 0 tools production-ready now.
 - Runtime/beta/production: no production unlock; this packet does not execute API routes, dispatch workers, execute tools, write artifacts, call providers/models, start browser/WebGL/canvas or GPU runtime, create signed URLs, create public artifacts, or mark production ready. Remaining blockers are final production go/no-go, explicit traffic cutover approval, and future backend/worker runtime execution after approval.
 
 ## AI Graphics External-Beta Service-Role Queue Smoke Authorization

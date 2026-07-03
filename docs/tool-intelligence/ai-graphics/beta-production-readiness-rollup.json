@@ -25,7 +25,7 @@
     "sourceNativeGpuProofCollectionPacketMustBeReadyForPerToolRuntimeProofRecheck": true,
     "sourceNativeGpuProofCollectionPacketMustAcceptAll8GpuRuntimeToolsWithProvidedEvidence": true,
     "sourceNativeGpuProofCollectionPacketMustKeepGpuRuntimeExecutionFalse": true,
-    "sourceExternalBetaActivatedLaunchReadinessPacketMustReportAll21ExternalBetaReady": true,
+    "sourceExternalBetaActivatedLaunchReadinessPacketMustReportAll21ControlledOnDemandEvidence": true,
     "sourceExternalBetaActivatedLaunchReadinessPacketMustPreserveRouteBoundServiceRoleQueueSmokeOperatorPreflight": true,
     "sourceExternalBetaActivatedLaunchReadinessPacketMustKeepDirectExecutionGpuAndProductionFalse": true,
     "rollupStillDoesNotApproveExecutionOrRuntime": true
@@ -83,14 +83,14 @@
     "modelWeightManifestReviewAcceptedWithProvidedEvidence": 5,
     "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "internalBetaReadyNowTools": 0,
-    "externalBetaReadyNowTools": 21,
+    "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
   "externalBetaActivatedLaunchReadiness": {
     "acceptedWithProvidedEvidence": true,
     "sourcePacketFlag": "--external-beta-activated-launch-readiness-packet",
-    "externalBetaReadyNowTools": 21,
-    "runtimeReadyForOnDemandExternalBetaToolCallTools": 21,
+    "externalBetaReadyNowTools": 0,
+    "runtimeReadyForOnDemandExternalBetaToolCallTools": 0,
     "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
     "agentCanExecuteToolsNow": false,
     "gpuRuntimeShouldStartNow": false,
@@ -160,7 +160,7 @@
     "Run the all-technical-gates-plus-owner-approval rollup and confirm 21 production worker gate checks are accepted with zero hard failures and native GPU proof collection is ready for per-tool recheck.",
     "Preserve the external-beta service-role queue smoke preflight and accepted saved smoke proof before any external beta launch decision.",
     "Complete a separate internal beta go/no-go owner packet that explicitly authorizes runtime enqueue/dispatch scope.",
-    "External-beta activated launch readiness is now accepted for controlled on-demand tool calls across all 21 tools.",
+    "External-beta activated launch readiness evidence is accepted for controlled on-demand tool-call coverage across all 21 tools, while actual external-beta execution readiness remains false.",
     "Run separate production launch review before any production-ready claim; this rollup never unlocks production by itself."
   ],
   "booleans": {
@@ -199,7 +199,7 @@
     "gpuRuntimeApprovedNow": false,
     "runtimeReadyNow": false,
     "internalBetaReadyNow": false,
-    "externalBetaReadyNow": true,
+    "externalBetaReadyNow": false,
     "productionReadyNow": false,
     "dependencyInstallPerformed": false,
     "packageLockMutationPerformed": false,

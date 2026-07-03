@@ -574,7 +574,7 @@ for (const [key, expected] of Object.entries({
   modelWeightManifestReviewAcceptedWithProvidedEvidence: 5,
   sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
   internalBetaReadyNowTools: 0,
-  externalBetaReadyNowTools: 21,
+  externalBetaReadyNowTools: 0,
   productionReadyNowTools: 0,
 })) {
   if (docs.counts?.[key] !== expected) fail(`docs_count_mismatch:${key}:${docs.counts?.[key]}`)
@@ -596,8 +596,8 @@ if (docs.nativeGpuProofCollection?.sourcePacketFlag !== '--external-beta-native-
 if (docs.externalBetaActivatedLaunchReadiness?.acceptedWithProvidedEvidence !== true) {
   fail('docs_external_beta_activated_launch_not_accepted')
 }
-if (docs.externalBetaActivatedLaunchReadiness?.externalBetaReadyNowTools !== 21) {
-  fail('docs_external_beta_activated_launch_ready_tools_not_21')
+if (docs.externalBetaActivatedLaunchReadiness?.externalBetaReadyNowTools !== 0) {
+  fail('docs_external_beta_activated_launch_ready_tools_not_0')
 }
 if (
   docs.externalBetaActivatedLaunchReadiness
@@ -655,7 +655,6 @@ for (const key of [
   'externalBetaGoNoGoReadyWithProvidedEvidence',
   'externalBetaActivatedLaunchReadyWithProvidedEvidence',
   'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
-  'externalBetaReadyNow',
   'agentCanSelectForPlanning',
 ]) {
   if (docs.booleans?.[key] !== true) fail(`docs_true_boolean_not_true:${key}`)
@@ -762,7 +761,6 @@ const activatedPacketFedOutput = parseJsonOutput(runNpm(runScriptName, [
   '--external-beta-activated-launch-readiness-packet',
   'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
   '--require-internal-beta-go-no-go-ready',
-  '--require-external-beta-ready',
 ]), 'activated_packet_fed_rollup')
 
 if (approvedOutput.status !== 'owner_approved_worker_gates_ready_runtime_still_blocked') {
@@ -875,8 +873,8 @@ if (packetFedOutput.booleans?.productionGoNoGoReadyWithProvidedEvidence !== fals
 if (activatedPacketFedOutput.input?.sourceExternalBetaActivatedLaunchReadinessPacketRead !== true) {
   fail('activated_packet_fed_activated_launch_packet_not_read')
 }
-if (activatedPacketFedOutput.externalBetaReadyNowTools !== 21) {
-  fail('activated_packet_fed_external_beta_ready_tools_not_21')
+if (activatedPacketFedOutput.externalBetaReadyNowTools !== 0) {
+  fail('activated_packet_fed_external_beta_ready_tools_not_0')
 }
 if (
   activatedPacketFedOutput
@@ -899,8 +897,8 @@ if (
 ) {
   fail('activated_packet_fed_operator_preflight_not_true')
 }
-if (activatedPacketFedOutput.booleans?.externalBetaReadyNow !== true) {
-  fail('activated_packet_fed_external_beta_ready_not_true')
+if (activatedPacketFedOutput.booleans?.externalBetaReadyNow !== false) {
+  fail('activated_packet_fed_external_beta_ready_not_false')
 }
 if (activatedPacketFedOutput.booleans?.productionReadyNow !== false) {
   fail('activated_packet_fed_production_ready_not_false')

@@ -9,7 +9,7 @@ This consumer requires two source packets:
 - accepted external-beta launch go/no-go evidence
 - accepted all-21 activation rollup evidence
 
-When both are accepted, all 21 AI graphics tools are marked ready for controlled on-demand external-beta tool calls.
+When both are accepted, all 21 AI graphics tools are covered by controlled on-demand external-beta tool-call evidence for controlled on-demand external-beta tool calls. Actual external-beta execution readiness remains false until live runtime gates pass.
 
 ## Counts
 
@@ -17,14 +17,14 @@ When both are accepted, all 21 AI graphics tools are marked ready for controlled
 - `gpuRuntimeTargetedTools`: 8
 - `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence`: 21
 - `externalBetaActivatedLaunchReadyToolsWithProvidedEvidence`: 21
-- `externalBetaToolCallReadyNowTools`: 21
-- `externalBetaReadyNowTools`: 21
-- `runtimeReadyForOnDemandExternalBetaToolCallTools`: 21
+- `externalBetaToolCallReadyNowTools`: 0
+- `externalBetaReadyNowTools`: 0
+- `runtimeReadyForOnDemandExternalBetaToolCallTools`: 0
 - `productionReadyNowTools`: 0
 
 ## Boundary
 
-- External beta readiness means controlled on-demand tool-call readiness.
+- External beta readiness remains false; this packet only records controlled on-demand tool-call evidence.
 - All 21 tools must preserve route-bound service-role queue smoke operator-preflight evidence through the activation rollup.
 - Direct agent execution remains blocked: `agentCanExecuteToolsNow=false`.
 - Route, worker, tool, provider, browser/WebGL/canvas, and GPU execution are not performed by this readiness gate.

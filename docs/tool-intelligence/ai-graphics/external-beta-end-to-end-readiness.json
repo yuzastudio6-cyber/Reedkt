@@ -50,9 +50,9 @@
     "fullEvidenceWorkerDispatchSmokeProofSmokeJobsAcceptedWithProvidedEvidence": 21,
     "fullEvidenceWorkerDispatchSmokeProofInMemoryLeasesAcceptedWithProvidedEvidence": 21,
     "fullEvidenceLaunchControlsAcceptedWithProvidedEvidence": 1,
-    "activatedLaunchReadinessExternalBetaReadyNowTools": 21,
+    "activatedLaunchReadinessExternalBetaReadyNowTools": 0,
     "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence": 21,
-    "externalBetaReadyNowTools": 21,
+    "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
   },
   "tools": [
@@ -119,7 +119,7 @@
     "sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence": true,
     "defaultExternalBetaCandidateReadyWithProvidedEvidence": false,
     "fullEvidenceExternalBetaCandidateReadyWithProvidedEvidence": true,
-    "externalBetaReadyNow": true,
+    "externalBetaReadyNow": false,
     "productionReadyNow": false,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,

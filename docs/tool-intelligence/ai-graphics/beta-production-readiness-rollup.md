@@ -31,12 +31,12 @@ all execution/runtime/beta/production gates still false.
 
 The rollup can also ingest
 `--external-beta-activated-launch-readiness-packet` when that packet already
-reports all 21 tools ready for controlled on-demand external-beta tool calls,
+reports controlled on-demand external-beta tool-call evidence for all 21 tools,
 preserves route-bound service-role queue-smoke operator-preflight evidence,
 preserves on-demand-only GPU runtime, keeps direct agent execution false, and
-keeps production false. This source updates the rollup's external-beta-ready
-answer without executing queue writes, worker dispatch, tools, GPU runtime, or
-production traffic.
+keeps external-beta execution and production false. This source updates the
+rollup's external-beta evidence answer without executing queue writes, worker
+dispatch, tools, GPU runtime, or production traffic.
 
 The older external-beta candidate path still names the service-role queue smoke
 preflight and accepted saved service-role queue smoke proof as prerequisites,
@@ -63,7 +63,7 @@ and the rollup does not approve live queue writes from those records.
 - Model-weight manifest review accepted with provided evidence: 5
 - Route-bound service-role queue-smoke operator-preflight evidence preserved: 21
 - Internal beta ready now: 0
-- External beta ready now: 21, controlled on-demand tool-call readiness only
+- External beta ready now: 0
 - Production ready now: 0
 
 ## Covered Tools
@@ -136,12 +136,12 @@ the GPU runtime may start now. The accepted source packet must preserve
 ## External-Beta Activated Launch Gate
 
 Accepted activated-launch readiness means the external-beta go/no-go and all-21
-activation rollup have already been accepted. It marks all 21 tools ready for
-controlled on-demand external-beta tool calls while preserving
+activation rollup have already been accepted as evidence. It marks all 21 tools
+covered for controlled on-demand external-beta tool-call metadata while preserving
 `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence=21`,
 `agentCanExecuteToolsNow=false`, `routeExecutionApprovedNow=false`,
 `workerExecutionApprovedNow=false`, `toolExecutionApprovedNow=false`,
-`gpuRuntimeShouldStartNow=false`, and `productionReadyNow=false`.
+`gpuRuntimeShouldStartNow=false`, `externalBetaReadyNow=false`, and `productionReadyNow=false`.
 
 ## Final Go/No-Go Gates
 
@@ -199,5 +199,5 @@ controlled on-demand external-beta tool calls while preserving
 - `gpuRuntimeOnDemandOnly=true`
 - `runtimeReadyNow=false`
 - `internalBetaReadyNow=false`
-- `externalBetaReadyNow=true`
+- `externalBetaReadyNow=false`
 - `productionReadyNow=false`

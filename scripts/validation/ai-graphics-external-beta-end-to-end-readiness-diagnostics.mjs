@@ -522,14 +522,14 @@ assertCount(docsJson, 'productionMappedTools', 21, 'docs')
 assertCount(docsJson, 'gpuRuntimeTargetedTools', 8, 'docs')
 assertCount(docsJson, 'heavyToolsIncorrectlyTargetingCpu', 0, 'docs')
 assertCount(docsJson, 'duplicateAiGraphicsProductionToolIds', 0, 'docs')
-assertCount(docsJson, 'activatedLaunchReadinessExternalBetaReadyNowTools', 21, 'docs')
+assertCount(docsJson, 'activatedLaunchReadinessExternalBetaReadyNowTools', 0, 'docs')
 assertCount(
   docsJson,
   'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence',
   21,
   'docs',
 )
-assertCount(docsJson, 'externalBetaReadyNowTools', 21, 'docs')
+assertCount(docsJson, 'externalBetaReadyNowTools', 0, 'docs')
 assertCount(docsJson, 'productionReadyNowTools', 0, 'docs')
 if (docsJson.counts?.defaultServiceRoleQueueSmokePreflightPayloadsPrepared !== 21) {
   fail('docs_default_service_role_payloads_not_21')
@@ -627,7 +627,7 @@ if (
 ) {
   fail('docs_operator_preflight_not_true')
 }
-assertBooleanMap(docsJson, 'docs', undefined, undefined, undefined, true)
+assertBooleanMap(docsJson, 'docs', undefined, undefined, undefined, false)
 
 const defaultReport = runCli()
 if (defaultReport.status !== 'installed_and_mapped_runtime_blocked') {
@@ -674,7 +674,7 @@ assertCount(
 assertCount(
   activatedLaunchReadinessReport,
   'externalBetaReadyNowTools',
-  21,
+  0,
   'activated_launch',
 )
 assertCount(
@@ -684,8 +684,8 @@ assertCount(
   'activated_launch',
 )
 assertCount(activatedLaunchReadinessReport, 'productionReadyNowTools', 0, 'activated_launch')
-assertBooleanMap(activatedLaunchReadinessReport, 'activated_launch', false, false, false, true)
-assertTools(activatedLaunchReadinessReport, 'activated_launch', true)
+assertBooleanMap(activatedLaunchReadinessReport, 'activated_launch', false, false, false, false)
+assertTools(activatedLaunchReadinessReport, 'activated_launch', false)
 if (activatedLaunchReadinessReport.globalBlockers?.length !== 0) {
   fail('activated_launch_global_blockers_not_empty')
 }

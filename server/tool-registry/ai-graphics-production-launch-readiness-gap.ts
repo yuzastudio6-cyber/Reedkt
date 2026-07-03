@@ -40,8 +40,8 @@ export interface AiGraphicsProductionLaunchReadinessGap {
   totalAiGraphicsTools: 21
   totalProductFacingCapabilities: 12
   gpuRuntimeTargetedTools: 8
-  externalBetaReadyNowTools: 0 | 21
-  runtimeReadyForOnDemandExternalBetaToolCallTools: 0 | 21
+  externalBetaReadyNowTools: 0
+  runtimeReadyForOnDemandExternalBetaToolCallTools: 0
   productionReadyNowTools: 0
   gpuRuntimeShouldStartNow: false
   productionLaunchBlockers: string[]
@@ -78,7 +78,7 @@ export interface AiGraphicsProductionLaunchReadinessGap {
     gpuRuntimeShouldStartNow: false
     runtimeReadyNow: false
     internalBetaReadyNow: false
-    externalBetaReadyNow: boolean
+    externalBetaReadyNow: false
     productionReadyNow: false
     dependencyInstallPerformed: false
     packageLockMutationPerformed: false
@@ -124,10 +124,11 @@ function externalBetaActivatedLaunchReadinessAccepted(
     scopedNumber(packet, 'totalAiGraphicsTools') === 21 &&
     scopedNumber(packet, 'totalProductFacingCapabilities', 'productFacingCapabilities') === 12 &&
     scopedNumber(packet, 'gpuRuntimeTargetedTools') === 8 &&
-    scopedNumber(packet, 'externalBetaReadyNowTools') === 21 &&
-    scopedNumber(packet, 'runtimeReadyForOnDemandExternalBetaToolCallTools') === 21 &&
+    scopedNumber(packet, 'externalBetaActivatedLaunchReadyToolsWithProvidedEvidence') === 21 &&
+    scopedNumber(packet, 'externalBetaReadyNowTools') === 0 &&
+    scopedNumber(packet, 'runtimeReadyForOnDemandExternalBetaToolCallTools') === 0 &&
     scopedNumber(packet, 'productionReadyNowTools') === 0 &&
-    packet.booleans.externalBetaReadyNow === true &&
+    packet.booleans.externalBetaReadyNow === false &&
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.gpuRuntimeShouldStartNow === false &&
     packet.booleans.productionReadyNow === false
@@ -161,9 +162,10 @@ function betaProductionReadinessRollupAccepted(
     totalAiGraphicsTools === 21 &&
     totalProductFacingCapabilities === 12 &&
     gpuRuntimeTargetedTools === 8 &&
-    externalBetaReadyNowTools === 21 &&
+    externalBetaReadyNowTools === 0 &&
     productionReadyNowTools === 0 &&
-    packet.booleans.externalBetaReadyNow === true &&
+    packet.booleans.externalBetaActivatedLaunchReadyWithProvidedEvidence === true &&
+    packet.booleans.externalBetaReadyNow === false &&
     packet.booleans.agentCanExecuteToolsNow === false &&
     packet.booleans.routeExecutionApprovedNow === false &&
     packet.booleans.workerExecutionApprovedNow === false &&
@@ -210,10 +212,6 @@ export function buildAiGraphicsProductionLaunchReadinessGap(
     betaProductionRollupAccepted: sourceBetaProductionReadinessRollupAccepted,
     productionLaunchControlsAccepted: sourceProductionLaunchControlsAccepted,
   })
-  const externalBetaReady =
-    status === 'production_launch_blocked_pending_production_controls' ||
-    status === 'production_launch_controls_accepted_pending_final_go_no_go'
-
   return {
     decision: AI_GRAPHICS_PRODUCTION_LAUNCH_READINESS_GAP_DECISION,
     status,
@@ -226,8 +224,8 @@ export function buildAiGraphicsProductionLaunchReadinessGap(
     totalAiGraphicsTools: 21,
     totalProductFacingCapabilities: 12,
     gpuRuntimeTargetedTools: 8,
-    externalBetaReadyNowTools: externalBetaReady ? 21 : 0,
-    runtimeReadyForOnDemandExternalBetaToolCallTools: externalBetaReady ? 21 : 0,
+    externalBetaReadyNowTools: 0,
+    runtimeReadyForOnDemandExternalBetaToolCallTools: 0,
     productionReadyNowTools: 0,
     gpuRuntimeShouldStartNow: false,
     productionLaunchBlockers: sourceProductionLaunchControlsAccepted
@@ -259,7 +257,7 @@ export function buildAiGraphicsProductionLaunchReadinessGap(
       all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: true,
-      all21ExternalBetaReadyForControlledOnDemandToolCalls: externalBetaReady,
+      all21ExternalBetaReadyForControlledOnDemandToolCalls: false,
       productionLaunchControlsAccepted: sourceProductionLaunchControlsAccepted,
       productionSupportRunbookAccepted: sourceProductionLaunchControlsAccepted,
       productionIncidentRollbackAccepted: sourceProductionLaunchControlsAccepted,
@@ -283,7 +281,7 @@ export function buildAiGraphicsProductionLaunchReadinessGap(
       gpuRuntimeShouldStartNow: false,
       runtimeReadyNow: false,
       internalBetaReadyNow: false,
-      externalBetaReadyNow: externalBetaReady,
+      externalBetaReadyNow: false,
       productionReadyNow: false,
       dependencyInstallPerformed: false,
       packageLockMutationPerformed: false,

@@ -2,7 +2,7 @@
   "schemaVersion": "2026-06-29.ai-graphics.production-launch-readiness-gap",
   "decision": "ai_graphics_production_launch_readiness_gap_prepared_external_beta_ready_production_blocked",
   "status": "production_launch_controls_accepted_pending_final_go_no_go",
-  "summary": "Production launch readiness gap packet for AI graphics. It consumes accepted external-beta activated launch readiness, the beta/production readiness rollup, and the production launch controls contract. It records all 21 tools as external-beta ready for controlled on-demand tool calls, accepts private production controls evidence, and keeps production blocked pending final go/no-go plus explicit traffic cutover approval.",
+  "summary": "Production launch readiness gap packet for AI graphics. It consumes accepted external-beta activated launch readiness evidence, the beta/production readiness rollup, and the production launch controls contract. It records all 21 tools as covered by controlled on-demand tool-call evidence, accepts private production controls evidence, and keeps external beta, runtime, and production blocked pending live runtime gates plus final go/no-go and explicit traffic cutover approval.",
   "interfaces": {
     "serverModule": "server/tool-registry/ai-graphics-production-launch-readiness-gap.ts",
     "cli": "server/cli/ai-graphics-production-launch-readiness-gap.ts",
@@ -20,8 +20,8 @@
     "totalAiGraphicsTools": 21,
     "totalProductFacingCapabilities": 12,
     "gpuRuntimeTargetedTools": 8,
-    "externalBetaReadyNowTools": 21,
-    "runtimeReadyForOnDemandExternalBetaToolCallTools": 21,
+    "externalBetaReadyNowTools": 0,
+    "runtimeReadyForOnDemandExternalBetaToolCallTools": 0,
     "productionReadyNowTools": 0
   },
   "productionLaunchBlockers": [
@@ -43,7 +43,7 @@
     "all21ToolsCovered": true,
     "all12CapabilitiesCovered": true,
     "all8GpuToolsTargetGpuRuntime": true,
-    "all21ExternalBetaReadyForControlledOnDemandToolCalls": true,
+    "all21ExternalBetaReadyForControlledOnDemandToolCalls": false,
     "productionLaunchControlsAccepted": true,
     "productionSupportRunbookAccepted": true,
     "productionIncidentRollbackAccepted": true,
@@ -67,7 +67,7 @@
     "gpuRuntimeShouldStartNow": false,
     "runtimeReadyNow": false,
     "internalBetaReadyNow": false,
-    "externalBetaReadyNow": true,
+    "externalBetaReadyNow": false,
     "productionReadyNow": false,
     "dependencyInstallPerformed": false,
     "packageLockMutationPerformed": false,

@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import { pathToFileURL } from 'node:url'
 
 const tools = [
   'librosa',
@@ -318,7 +319,9 @@ async function main() {
   if (result.status !== 'accepted') process.exitCode = 1
 }
 
-main().catch((error) => {
-  console.error(JSON.stringify({ status: 'error', message: error.message }, null, 2))
-  process.exitCode = 1
-})
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(JSON.stringify({ status: 'error', message: error.message }, null, 2))
+    process.exitCode = 1
+  })
+}

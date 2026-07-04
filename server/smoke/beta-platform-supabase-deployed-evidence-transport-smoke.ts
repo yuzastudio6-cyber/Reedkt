@@ -58,6 +58,11 @@ assert.deepEqual(
 )
 assert.equal(admin.calls.inserts.length, 2, 'service-role write and replay probes should insert only controlled evidence packets')
 assert.equal(admin.calls.rpc.length, 1, 'wallet settlement probe should call exactly one RPC')
+assert.ok(
+  report.checks.some((check) => check.id === 'wallet_settlement_verified' &&
+    check.evidence.some((item) => item.includes('wallet_state_updated=true'))),
+  'wallet settlement probe should require deployed wallet state-update evidence',
+)
 assert.deepEqual(admin.calls.rpc[0], {
   functionName: 'settle_tool_cost_event',
   params: {
@@ -193,7 +198,14 @@ function createFakeSupabaseAdminClient(): FakeSupabaseAdminClient {
           id: 'wallet-settlement-smoke-row',
           tool_cost_event_id: params.p_tool_cost_event_id,
           idempotency_key: params.p_idempotency_key,
-          status: 'not_billable',
+          status: 'settled',
+          credits_delta: -1,
+          billable_to_user: true,
+          metadata_json: {
+            wallet_state_updated: true,
+            stripe_call_attempted: false,
+            service_fee_included: false,
+          },
         },
         error: null,
       }

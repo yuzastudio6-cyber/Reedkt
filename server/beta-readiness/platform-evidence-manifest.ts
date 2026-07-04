@@ -124,7 +124,7 @@ function buildRequirements(): BetaPlatformEvidenceManifestRequirement[] {
         'Verifier source can build a platform evidence packet only when all deployed probes and owner approvals pass.',
         'Smoke coverage proves complete evidence clears the shared platform blocker while partial evidence, missing owner approvals, and secret-like notes fail closed.',
         'Probe transport smoke proves deployed observations map into verifier probes and that failed service-role verification keeps the platform blocker closed.',
-        'Supabase deployed transport smoke proves backend-owned table, production evidence table, controlled evidence write/replay, and wallet-settlement RPC probes with explicit persistent-write confirmation.',
+        'Supabase deployed transport smoke proves backend-owned table, production evidence table, controlled evidence write/replay, and billable wallet-settlement state-update RPC probes with explicit persistent-write confirmation.',
         'Staging evidence collector CLI smoke proves deployed route request shape, secret-safe output, production confirmation guard, and require-ready failure behavior.',
         'Staging evidence preflight smoke proves the operator can validate required env vars, owner approvals, redacted attestations, wallet fixture, record confirmations, and secret-like evidence before touching staging.',
         'API smoke proves the authenticated/idempotent route can verify, reject unconfirmed recording, record a ready packet, and replay it without duplicate evidence.',

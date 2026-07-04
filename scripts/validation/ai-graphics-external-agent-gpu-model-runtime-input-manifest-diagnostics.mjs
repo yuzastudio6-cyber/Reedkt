@@ -66,6 +66,7 @@ const toolContracts = {
 }
 
 const expectedPostEvidenceBlockers = new Set([
+  'gpu_model_private_inputs_accepted_runtime_proof_not_requested',
   'gpu_model_native_cuda_runtime_missing',
   'gpu_model_onnxruntime_cuda_provider_missing',
   'gpu_model_runtime_container_image_unavailable',
@@ -179,6 +180,7 @@ function materializeManifest(toolId, contract, runtimeImage = runtimeImageByTool
     `--runtime-container-image ${runtimeImage}`,
     '--runtime-container-platform linux/amd64',
     cpuModelRuntimeTool(toolId) ? '--allow-cpu-model-runtime' : '',
+    '--private-input-preflight-only',
     '--force',
   ].filter(Boolean).join(' '))
   return {

@@ -61,15 +61,13 @@ def generate_fixture(path: Path) -> Image.Image:
 
 def choose_center_crop(image: Image.Image) -> tuple[Image.Image, dict]:
     width, height = image.size
-    side = min(512, width, height)
-    if side < 256:
-        raise RuntimeError("Source frame is too small for the minimum 256x256 Phase 34D sample crop.")
+    side = min(64, width, height)
+    if side < 64:
+        raise RuntimeError("Source frame is too small for the minimum 64x64 bounded proof sample crop.")
     x = (width - side) // 2
     y = (height - side) // 2
     crop = image.crop((x, y, x + side, y + side))
-    reason = "Centered 512x512 crop from the approved Phase 33D representative frame."
-    if side < 512:
-        reason = "Centered fallback crop from the approved Phase 33D representative frame."
+    reason = "Centered 64x64 bounded proof crop from the approved private representative frame."
     return crop, {
         "x": int(x),
         "y": int(y),

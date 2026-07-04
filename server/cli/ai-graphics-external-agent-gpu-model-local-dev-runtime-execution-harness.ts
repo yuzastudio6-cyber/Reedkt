@@ -48,6 +48,7 @@ type HarnessArgs = {
   realEsrganModelLocalPath?: string
   rembgModelLocalPath?: string
   transparentBackgroundCheckpointLocalPath?: string
+  transparentBackgroundMode?: string
   runtimeExecutionBackend?: 'host_python' | 'docker_container'
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
@@ -83,6 +84,7 @@ const runtimeInputManifestStringFields = new Set([
   'modelWeightChecksumEvidenceRef',
   'runtimeContainerImage',
   'runtimeContainerPlatform',
+  'transparentBackgroundMode',
 ])
 
 const runtimeInputManifestPathFields = new Set([
@@ -189,6 +191,7 @@ function parseArgs(): HarnessArgs {
     rembgModelLocalPath: stringFlag('--rembg-model'),
     transparentBackgroundCheckpointLocalPath:
       stringFlag('--transparent-background-checkpoint'),
+    transparentBackgroundMode: stringFlag('--transparent-background-mode'),
     runtimeExecutionBackend: hasFlag('--attempt-local-runtime')
       ? stringFlag('--runtime-backend') === 'host_python'
         ? 'host_python'
@@ -455,6 +458,9 @@ function runtimeInputsForTool(
     transparentBackgroundCheckpointLocalPath:
       args.transparentBackgroundCheckpointLocalPath ??
       manifestStringForTool(toolId, args, 'transparentBackgroundCheckpointLocalPath'),
+    transparentBackgroundMode:
+      args.transparentBackgroundMode ??
+      manifestStringForTool(toolId, args, 'transparentBackgroundMode'),
     modelWeightManifestId:
       manifestStringForTool(toolId, args, 'modelWeightManifestId'),
     modelWeightChecksumSha256:
@@ -941,6 +947,12 @@ function applyRuntimePayloadArgs(
   ) {
     payload.transparentBackgroundCheckpointLocalPath =
       runtimeInputs.transparentBackgroundCheckpointLocalPath
+  }
+  if (
+    toolId === 'transparent_background' &&
+    runtimeInputs.transparentBackgroundMode
+  ) {
+    payload.transparentBackgroundMode = runtimeInputs.transparentBackgroundMode
   }
   if (runtimeInputs.modelWeightManifestId) {
     payload.modelWeightManifestId = runtimeInputs.modelWeightManifestId

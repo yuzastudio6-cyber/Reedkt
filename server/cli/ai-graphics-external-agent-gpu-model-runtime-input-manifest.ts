@@ -272,6 +272,7 @@ function manifestRecordForTool(input: {
   runtimeContainerPlatform?: string
   privateInputPreflightOnly: boolean
   allowCpuModelRuntime: boolean
+  transparentBackgroundMode?: string
 }): Record<string, unknown> {
   const contract = modelRuntimePathContracts[input.toolId]
   const record: Record<string, unknown> = {
@@ -285,6 +286,9 @@ function manifestRecordForTool(input: {
   if (input.runtimeContainerImage) record.runtimeContainerImage = input.runtimeContainerImage
   if (input.runtimeContainerPlatform) record.runtimeContainerPlatform = input.runtimeContainerPlatform
   if (input.allowCpuModelRuntime) record.allowCpuModelRuntime = true
+  if (input.toolId === 'transparent_background' && input.transparentBackgroundMode) {
+    record.transparentBackgroundMode = input.transparentBackgroundMode
+  }
   if (input.privateInputPreflightOnly) {
     record.privateInputPreflightOnly = true
     record.localRuntimeInputPreflightOnly = true
@@ -314,6 +318,7 @@ function main(): void {
   const runtimeContainerPlatform = stringArg('--runtime-container-platform') ?? 'linux/amd64'
   const force = hasFlag('--force')
   const privateInputPreflightOnly = hasFlag('--private-input-preflight-only')
+  const transparentBackgroundMode = stringArg('--transparent-background-mode')
   const allowCpuModelRuntime =
     (
       typedToolId === 'real_esrgan' ||
@@ -330,6 +335,12 @@ function main(): void {
   assertLocalArtifactPath('manifestOut', manifestOut)
   assertModelWeightManifestId(manifestId)
   assertPrivateChecksumEvidenceRef(checksumEvidenceRef)
+  if (
+    transparentBackgroundMode &&
+    !['base', 'fast', 'base-nightly'].includes(transparentBackgroundMode)
+  ) {
+    throw new Error('--transparent-background-mode must be base, fast, or base-nightly')
+  }
   const checksumFile = assertModelPathContract(contract, modelPath)
   const modelWeightChecksumSha256 = sha256File(checksumFile)
 
@@ -353,6 +364,7 @@ function main(): void {
         runtimeContainerPlatform,
         privateInputPreflightOnly,
         allowCpuModelRuntime,
+        transparentBackgroundMode,
       }),
     },
   }

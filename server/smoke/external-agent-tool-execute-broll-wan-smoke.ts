@@ -116,7 +116,9 @@ for (const required of [
   'ai-video-broll-gen-11b:l4-model-import-runner',
   'ai-video-broll-gen-11h:bounded-inference-proof-runner',
   'ai-video-broll-gen-11e:cloud-side-cache-staging-runner',
+  'external_agent_broll_wan_execution_preflight_only_result',
   'external_agent_broll_wan_inference_proof_static_guard',
+  'external_agent_broll_wan_inference_proof_preflight_only_result',
   'external_agent_broll_wan_inference_proof_confirmation_blocked',
   'external_agent_broll_wan_inference_proof_preflight_blocked',
   'external_agent_broll_wan_inference_proof_delegated_11h_result',
@@ -124,6 +126,7 @@ for (const required of [
   'broll_live_quota_verify_before_inference',
   'broll_private_cache_readiness_before_inference',
   '--inference-proof',
+  '--preflight-only',
   'external-agent-tool-prepare-broll-wan-cache',
   '.tmp/external-agent-broll-wan-11e-cloud-side-cache-staging-runner.json',
   '.tmp/external-agent-broll-wan-11b-l4-model-import-runner.json',
@@ -163,6 +166,7 @@ assert.equal(staticReport.mode, 'external_agent_broll_wan_execution_static_guard
 assertAccountOverride(staticReport)
 assertBrollAccessRepair(staticReport)
 assert.equal(staticReport.executeRequired, true)
+assert.equal(staticReport.preflightOnlyCommand, 'npm run external-agent-tool-execute-broll-wan -- --preflight-only --json')
 assert.equal(staticReport.confirmationEnv, CONFIRM_ENV)
 assert.equal(staticReport.confirmationEnvRequiredValue, 'true')
 assert.equal(staticReport.cacheFillConfirmationEnv, CACHE_FILL_CONFIRM_ENV)
@@ -186,6 +190,33 @@ assert.equal(staticReport.creditMutationCreated, false)
 assert.equal(staticReport.betaUnlocked, false)
 assert.equal(staticReport.productionUnlocked, false)
 assert.equal(staticReport.generatedLocalFixturePassedClaimed, false)
+
+const preflightOnly = runCli(['--preflight-only', '--json'])
+assert.equal(preflightOnly.mode, 'external_agent_broll_wan_execution_preflight_only_result')
+assertAccountOverride(preflightOnly)
+assertBrollAccessRepair(preflightOnly)
+assert.equal(typeof preflightOnly.ok, 'boolean')
+assert.equal(typeof preflightOnly.status, 'string')
+assert.equal(Array.isArray(preflightOnly.blockers), true)
+assert.equal(preflightOnly.confirmationEnv, CONFIRM_ENV)
+assert.equal(preflightOnly.confirmationEnvRequiredValue, 'true')
+assert.equal(typeof preflightOnly.brollQuota, 'object')
+assert.equal(typeof preflightOnly.cacheReadiness, 'object')
+assert.equal(typeof preflightOnly.wouldDelegateIfExecuteConfirmed, 'boolean')
+assert.equal(typeof preflightOnly.delegatedRunner, 'object')
+assert.equal(preflightOnly.runtimeRunNow, false)
+assert.equal(preflightOnly.computeVmCreated, false)
+assert.equal(preflightOnly.dockerRun, false)
+assert.equal(preflightOnly.modelImportRun, false)
+assert.equal(preflightOnly.modelInferenceRun, false)
+assert.equal(preflightOnly.generatedVideoCreated, false)
+assert.equal(preflightOnly.generatedAssetsCreated, false)
+assert.equal(preflightOnly.supabaseTouched, false)
+assert.equal(preflightOnly.sqlExecuted, false)
+assert.equal(preflightOnly.creditMutationCreated, false)
+assert.equal(preflightOnly.betaUnlocked, false)
+assert.equal(preflightOnly.productionUnlocked, false)
+assert.equal(preflightOnly.generatedLocalFixturePassedClaimed, false)
 
 const confirmationBlocked = runCli(['--execute', '--json'])
 assert.equal(confirmationBlocked.ok, false)
@@ -212,6 +243,10 @@ assert.equal(inferenceStatic.mode, 'external_agent_broll_wan_inference_proof_sta
 assertAccountOverride(inferenceStatic)
 assertBrollAccessRepair(inferenceStatic)
 assert.equal(inferenceStatic.executeRequired, true)
+assert.equal(
+  inferenceStatic.preflightOnlyCommand,
+  'npm run external-agent-tool-execute-broll-wan -- --inference-proof --preflight-only --json',
+)
 assert.equal(inferenceStatic.confirmationEnv, INFERENCE_CONFIRM_ENV)
 assert.equal(inferenceStatic.delegatedRunnerConfirmationEnv, INFERENCE_RUNNER_CONFIRM_ENV)
 assert.equal(inferenceStatic.delegatedRunnerScript, 'ai-video-broll-gen-11h:bounded-inference-proof-runner')
@@ -230,6 +265,35 @@ assert.equal(inferenceStatic.ffmpegRun, false)
 assert.equal(inferenceStatic.generatedVideoCreated, false)
 assert.equal(inferenceStatic.generatedAssetsCreated, false)
 assert.equal(inferenceStatic.generatedLocalFixturePassedClaimed, false)
+
+const inferencePreflightOnly = runCli(['--inference-proof', '--preflight-only', '--json'])
+assert.equal(inferencePreflightOnly.mode, 'external_agent_broll_wan_inference_proof_preflight_only_result')
+assertAccountOverride(inferencePreflightOnly)
+assertBrollAccessRepair(inferencePreflightOnly)
+assert.equal(typeof inferencePreflightOnly.ok, 'boolean')
+assert.equal(typeof inferencePreflightOnly.status, 'string')
+assert.equal(Array.isArray(inferencePreflightOnly.blockers), true)
+assert.equal(inferencePreflightOnly.confirmationEnv, INFERENCE_CONFIRM_ENV)
+assert.equal(inferencePreflightOnly.confirmationEnvRequiredValue, 'true')
+assert.equal(typeof inferencePreflightOnly.brollQuota, 'object')
+assert.equal(typeof inferencePreflightOnly.cacheReadiness, 'object')
+assert.equal(typeof inferencePreflightOnly.wouldDelegateIfExecuteConfirmed, 'boolean')
+assert.equal(typeof inferencePreflightOnly.delegatedRunner, 'object')
+assert.equal(inferencePreflightOnly.runtimeRunNow, false)
+assert.equal(inferencePreflightOnly.computeVmCreated, false)
+assert.equal(inferencePreflightOnly.dockerRun, false)
+assert.equal(inferencePreflightOnly.modelImportRun, false)
+assert.equal(inferencePreflightOnly.modelLoadRun, false)
+assert.equal(inferencePreflightOnly.modelInferenceRun, false)
+assert.equal(inferencePreflightOnly.promptEncodingRun, false)
+assert.equal(inferencePreflightOnly.denoisingRun, false)
+assert.equal(inferencePreflightOnly.vaeDecodeRun, false)
+assert.equal(inferencePreflightOnly.frameCreationRun, false)
+assert.equal(inferencePreflightOnly.videoEncodingRun, false)
+assert.equal(inferencePreflightOnly.ffmpegRun, false)
+assert.equal(inferencePreflightOnly.generatedVideoCreated, false)
+assert.equal(inferencePreflightOnly.generatedAssetsCreated, false)
+assert.equal(inferencePreflightOnly.generatedLocalFixturePassedClaimed, false)
 
 const inferenceBlocked = runCli(['--inference-proof', '--execute', '--json'])
 assert.equal(inferenceBlocked.ok, false)
@@ -292,8 +356,10 @@ assert.equal(cachePrepareBlocked.generatedLocalFixturePassedClaimed, false)
 
 const forbiddenFindings = scanForbiddenValues({
   staticReport,
+  preflightOnly,
   confirmationBlocked,
   inferenceStatic,
+  inferencePreflightOnly,
   inferenceBlocked,
   cachePrepareStatic,
   cachePrepareBlocked,
@@ -306,8 +372,10 @@ console.log(
       ok: true,
       mode: 'external_agent_broll_wan_execution_wrapper_smoke',
       staticGuardMode: staticReport.mode,
+      preflightOnlyMode: preflightOnly.mode,
       confirmationBlockedMode: confirmationBlocked.mode,
       inferenceStaticMode: inferenceStatic.mode,
+      inferencePreflightOnlyMode: inferencePreflightOnly.mode,
       inferenceBlockedMode: inferenceBlocked.mode,
       cachePrepareStaticMode: cachePrepareStatic.mode,
       cachePrepareBlockedMode: cachePrepareBlocked.mode,

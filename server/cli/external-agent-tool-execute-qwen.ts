@@ -24,12 +24,50 @@ let cachedAccountSelection: AccountSelection | undefined
 
 function main() {
   const execute = process.argv.includes('--execute')
+  const preflightOnly = process.argv.includes('--preflight-only') || process.argv.includes('--verify-gates-only')
+
+  if (preflightOnly) {
+    const liveGate = runJson('external_agent_live_execution_gate', 'npx', ['tsx', EXECUTION_GATE_SCRIPT, '--live'])
+    const nextCommand = runJson('next_command_live_preflight', 'npx', ['tsx', NEXT_COMMAND_SCRIPT])
+    const liveGateBlockers = validateLiveGate(liveGate.json)
+    const nextCommandBlockers = validateNextCommand(nextCommand.json, { requireDelegatedCommands: false })
+    const blockers = [...liveGateBlockers, ...nextCommandBlockers]
+
+    print({
+      ok: blockers.length === 0,
+      mode: 'external_agent_qwen_execution_preflight_only_result',
+      status: blockers.length === 0 ? 'passed' : 'blocked',
+      blockers,
+      confirmationEnv: CONFIRM_ENV,
+      confirmationEnvRequiredValue: 'true',
+      liveGate: summarizeLiveGate(liveGate.json),
+      nextCommand: summarizeNextCommand(nextCommand.json),
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
+      wouldDelegateIfExecuteConfirmed: blockers.length === 0,
+      delegatedBoundedCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand,
+      gcpAccessRepair: qwenAccessRepairHint(),
+      runtimeRunNow: false,
+      cloudRunJobExecuted: false,
+      modelInferenceRun: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
 
   if (!execute) {
     print({
       ok: false,
       mode: 'external_agent_qwen_execution_static_guard',
       executeRequired: true,
+      preflightOnlyCommand: 'npm run external-agent-tool-execute-qwen -- --preflight-only --json',
       confirmationEnv: CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
       gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
@@ -165,7 +203,10 @@ function validateLiveGate(document: JsonRecord | undefined): string[] {
   return blockers
 }
 
-function validateNextCommand(document: JsonRecord | undefined): string[] {
+function validateNextCommand(
+  document: JsonRecord | undefined,
+  options: { requireDelegatedCommands?: boolean } = {},
+): string[] {
   const blockers: string[] = []
   if (!document) return ['next_command_json_missing']
   if (document.ok !== true) blockers.push('next_command_not_ok')
@@ -175,8 +216,10 @@ function validateNextCommand(document: JsonRecord | undefined): string[] {
   }
   if (document.qwenLivePreflightPassed !== true) blockers.push('qwen_live_preflight_not_passed')
   if (document.staticExplicitToolGateReady !== true) blockers.push('static_explicit_tool_gate_not_ready')
-  if (!document.qwenBoundedExecutionCommand) blockers.push('qwen_bounded_execution_command_missing')
-  if (!document.qwenExternalAgentExecutionCommand) blockers.push('qwen_external_agent_execution_command_missing')
+  if (options.requireDelegatedCommands !== false) {
+    if (!document.qwenBoundedExecutionCommand) blockers.push('qwen_bounded_execution_command_missing')
+    if (!document.qwenExternalAgentExecutionCommand) blockers.push('qwen_external_agent_execution_command_missing')
+  }
 
   return blockers
 }

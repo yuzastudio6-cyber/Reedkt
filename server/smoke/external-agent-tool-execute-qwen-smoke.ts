@@ -90,6 +90,9 @@ for (const required of [
   CONFIRM_ENV,
   'external-agent-tool-execution-gate.ts',
   'external-agent-tool-next-command.ts',
+  'external_agent_qwen_execution_preflight_only_result',
+  'preflightOnlyCommand',
+  '--preflight-only',
   'external_agent_qwen_execution_live_gate_blocked',
   'validateLiveGate',
   'summarizeLiveGate',
@@ -118,6 +121,7 @@ const staticReport = runCli(['--json'])
 assert.equal(staticReport.ok, false)
 assert.equal(staticReport.mode, 'external_agent_qwen_execution_static_guard')
 assert.equal(staticReport.executeRequired, true)
+assert.equal(staticReport.preflightOnlyCommand, 'npm run external-agent-tool-execute-qwen -- --preflight-only --json')
 assert.equal(staticReport.confirmationEnv, CONFIRM_ENV)
 assert.equal(staticReport.confirmationEnvRequiredValue, 'true')
 assert.equal(staticReport.gcloudAccountOverrideEnv, ACCOUNT_OVERRIDE_ENV)
@@ -146,6 +150,32 @@ assert.equal(staticReport.betaUnlocked, false)
 assert.equal(staticReport.productionUnlocked, false)
 assert.equal(staticReport.generatedLocalFixturePassedClaimed, false)
 
+const preflightOnly = runCli(['--preflight-only', '--json'])
+assert.equal(preflightOnly.mode, 'external_agent_qwen_execution_preflight_only_result')
+assert.equal(typeof preflightOnly.ok, 'boolean')
+assert.equal(typeof preflightOnly.status, 'string')
+assert.equal(Array.isArray(preflightOnly.blockers), true)
+assert.equal(preflightOnly.confirmationEnv, CONFIRM_ENV)
+assert.equal(preflightOnly.confirmationEnvRequiredValue, 'true')
+assert.equal(typeof preflightOnly.liveGate, 'object')
+assert.equal(typeof preflightOnly.nextCommand, 'object')
+assert.equal(typeof preflightOnly.wouldDelegateIfExecuteConfirmed, 'boolean')
+assert.deepEqual(
+  preflightOnly.delegatedBoundedCommand,
+  EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand,
+)
+assertQwenAccessRepair(preflightOnly)
+assert.equal(preflightOnly.runtimeRunNow, false)
+assert.equal(preflightOnly.cloudRunJobExecuted, false)
+assert.equal(preflightOnly.modelInferenceRun, false)
+assert.equal(preflightOnly.generatedAssetsCreated, false)
+assert.equal(preflightOnly.supabaseTouched, false)
+assert.equal(preflightOnly.sqlExecuted, false)
+assert.equal(preflightOnly.creditMutationCreated, false)
+assert.equal(preflightOnly.betaUnlocked, false)
+assert.equal(preflightOnly.productionUnlocked, false)
+assert.equal(preflightOnly.generatedLocalFixturePassedClaimed, false)
+
 const confirmationBlocked = runCli(['--execute', '--json'])
 assert.equal(confirmationBlocked.ok, false)
 assert.equal(confirmationBlocked.mode, 'external_agent_qwen_execution_confirmation_blocked')
@@ -169,7 +199,7 @@ assert.equal(confirmationBlocked.betaUnlocked, false)
 assert.equal(confirmationBlocked.productionUnlocked, false)
 assert.equal(confirmationBlocked.generatedLocalFixturePassedClaimed, false)
 
-const forbiddenFindings = scanForbiddenValues({ staticReport, confirmationBlocked })
+const forbiddenFindings = scanForbiddenValues({ staticReport, preflightOnly, confirmationBlocked })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(
@@ -178,6 +208,7 @@ console.log(
       ok: true,
       mode: 'external_agent_qwen_execution_wrapper_smoke',
       staticGuardMode: staticReport.mode,
+      preflightOnlyMode: preflightOnly.mode,
       confirmationBlockedMode: confirmationBlocked.mode,
       confirmationEnv: CONFIRM_ENV,
       delegatedCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand.args.join(' '),

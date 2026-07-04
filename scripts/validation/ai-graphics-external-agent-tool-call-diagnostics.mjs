@@ -1443,7 +1443,9 @@ const packageJsonChangedLines = packageJsonDiff
   .filter((line) => /^[+-]\s+/.test(line))
 for (const line of packageJsonChangedLines) {
   if (!line.includes('"ai-graphics:external-agent-tool-call"') &&
-    !line.includes('"ai-graphics:external-agent-tool-call:diagnostics"')) {
+    !line.includes('"ai-graphics:external-agent-tool-call:diagnostics"') &&
+    !line.includes('"ai-graphics:external-agent-gpu-model-runtime-input-manifest"') &&
+    !line.includes('"ai-graphics:external-agent-gpu-model-runtime-input-manifest:diagnostics"')) {
     fail(`package_json_unexpected_changed_line:${line}`)
   }
 }

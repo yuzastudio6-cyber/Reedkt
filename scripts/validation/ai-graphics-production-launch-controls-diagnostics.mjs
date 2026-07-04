@@ -216,6 +216,8 @@ const allowedPackageAdditions = new Set([
   '+    "ai-graphics:production-controlled-per-tool-callable-result-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-per-tool-callable-result-proof-diagnostics.mjs",',
   '+    "ai-graphics:production-controlled-per-tool-traffic-enablement-proof": "tsx server/cli/ai-graphics-production-controlled-per-tool-traffic-enablement-proof.ts",',
   '+    "ai-graphics:production-controlled-per-tool-traffic-enablement-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-per-tool-traffic-enablement-proof-diagnostics.mjs",',
+  '+    "ai-graphics:external-agent-gpu-model-runtime-input-manifest": "tsx server/cli/ai-graphics-external-agent-gpu-model-runtime-input-manifest.ts",',
+  '+    "ai-graphics:external-agent-gpu-model-runtime-input-manifest:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-runtime-input-manifest-diagnostics.mjs",',
 ])
 for (const line of packageDiff.split('\n')) {
   if (

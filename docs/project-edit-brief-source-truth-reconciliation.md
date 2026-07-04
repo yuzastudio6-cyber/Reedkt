@@ -49,6 +49,7 @@ Passed:
 - `npm run smoke:project-edit-brief-visual-context`
 - `npm run smoke:project-edit-brief-e2e`
 - `npm run smoke:project-edit-brief-supabase-repository`
+- `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run typecheck:server`
 - `npm run build`
 - `git diff --check`
@@ -73,6 +74,7 @@ Passed:
 - Internal persistence backend skeleton after RP-EDITBRIEF-17: internal testing now has a backend seam with mock write-path evidence, disabled Supabase fail-closed evidence, mutating-operation idempotency/audit envelope validation, and partial expensive-work approval blocking while production routes and live execution remain blocked.
 - Internal route integration after RP-EDITBRIEF-18: Project Edit Brief route handlers now use the internal persistence backend skeleton and return internal persistence metadata while production HTTP routes, live Supabase, Storage, providers, media processing, workers, render/export, uploads, external beta, paid production, and credits remain blocked.
 - Internal testing readback QA after RP-EDITBRIEF-19: the connected route path is exercised for create brief, create marker, append Marker Chat, summary, and bundle readback with internal persistence metadata and safety flags preserved.
+- Internal testing review after RP-EDITBRIEF-20: the internal testing chain is ready for owner review and repeated mock-internal testing, while PR readiness/merge hygiene still requires explicit owner or user action and public release gates remain separate.
 - Real upload/source-media ingestion and privacy policy implementation.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.

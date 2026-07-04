@@ -52,6 +52,12 @@ RP-EDITBRIEF-19 validates the connected internal route path end to end inside th
 
 Next internal milestone: `RP-EDITBRIEF-20 - Internal Testing Review And PR Readiness`.
 
+## RP-EDITBRIEF-20 Internal Testing Review And PR Readiness
+
+RP-EDITBRIEF-20 accepts the internal testing stack for owner review and repeated internal mock testing. The route seam is production-shaped, responses expose internal persistence metadata, and the readback path has smoke coverage. The PR should remain draft until explicit owner/user action because public release still needs owner evidence, production route/auth policy, Supabase migration/RLS/storage review, approved-plan and credit-reservation wiring, media/provider/worker/render gates, monitoring, rollback, and incident readiness.
+
+Next action: owner review or explicit PR-ready/merge hygiene. External beta, real-user-media beta, and paid production remain conditional on their separate gates.
+
 ## Qwen Runtime Dependency
 
 RP-QWEN-00 is complete as an audit-only package for future reasoning runtime readiness. Edit Brief Marker Chat remains deterministic mock/local until a later owner-approved Qwen milestone. No Qwen call, provider call, Secret Manager inspection, `gcloud`, Supabase CLI, route wiring, Marker Chat runtime change, worker, render/export/progress, credit action, staging, commit, or cleanup occurred.

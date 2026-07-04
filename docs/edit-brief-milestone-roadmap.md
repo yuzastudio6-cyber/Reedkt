@@ -179,3 +179,9 @@ Next recommended milestone for internal testing: `RP-EDITBRIEF-19 — Internal T
 Status: complete as internal readback QA only. The milestone exercises the connected route path for creating an Edit Brief, creating a marker, appending a Marker Chat message, reading a summary, and reading the bundle. It verifies internal persistence metadata, safety flags, mock repository state persistence, and zero production-ready routes. It does not enable production HTTP routes, live Supabase, Storage, signed URLs, providers/models, media processing, workers, render/export, uploads, external beta, paid production, or credit spend.
 
 Next recommended milestone for internal testing: `RP-EDITBRIEF-20 — Internal Testing Review And PR Readiness`.
+
+## RP-EDITBRIEF-20 — Internal Testing Review And PR Readiness
+
+Status: complete as internal PR-readiness review only. The milestone accepts the RP-EDITBRIEF-15H through RP-EDITBRIEF-19 chain as production-shaped internal testing evidence, records `project_edit_brief_internal_testing_review_passed_ready_for_pr_owner_review`, and confirms the Project Edit Brief route flow is ready for repeated internal mock testing through the internal persistence seam. It keeps the PR draft until explicit owner/user action and does not enable production HTTP routes, live Supabase, Storage, providers/models, media processing, workers, render/export, uploads, external beta, paid production, or credit spend.
+
+Next recommended action: owner review or explicit PR-ready/merge hygiene for the draft Project Edit Brief reconciliation PR.

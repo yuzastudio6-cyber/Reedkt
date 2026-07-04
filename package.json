@@ -89,6 +89,8 @@
     "ai-graphics:external-agent-execution-gate:diagnostics": "node scripts/validation/ai-graphics-external-agent-execution-gate-diagnostics.mjs",
     "ai-graphics:external-agent-execution-readiness": "tsx server/cli/ai-graphics-external-agent-execution-readiness.ts",
     "ai-graphics:external-agent-execution-readiness:diagnostics": "node scripts/validation/ai-graphics-external-agent-execution-readiness-diagnostics.mjs",
+    "ai-graphics:external-agent-native-cuda-closeout": "tsx server/cli/ai-graphics-external-agent-native-cuda-closeout.ts",
+    "ai-graphics:external-agent-native-cuda-closeout:diagnostics": "node scripts/validation/ai-graphics-external-agent-native-cuda-closeout-diagnostics.mjs",
     "ai-graphics:external-agent-execution-local-private-proof:diagnostics": "node scripts/validation/ai-graphics-external-agent-execution-local-private-proof-diagnostics.mjs",
     "ai-graphics:external-agent-controlled-route-require-go": "tsx server/cli/ai-graphics-external-agent-controlled-route-require-go.ts",
     "ai-graphics:external-agent-controlled-route-require-go:diagnostics": "node scripts/validation/ai-graphics-external-agent-controlled-route-require-go-diagnostics.mjs",

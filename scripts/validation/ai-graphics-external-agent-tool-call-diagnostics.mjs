@@ -1690,7 +1690,9 @@ for (const line of packageJsonChangedLines) {
   if (!line.includes('"ai-graphics:external-agent-tool-call"') &&
     !line.includes('"ai-graphics:external-agent-tool-call:diagnostics"') &&
     !line.includes('"ai-graphics:external-agent-gpu-model-runtime-input-manifest"') &&
-    !line.includes('"ai-graphics:external-agent-gpu-model-runtime-input-manifest:diagnostics"')) {
+    !line.includes('"ai-graphics:external-agent-gpu-model-runtime-input-manifest:diagnostics"') &&
+    !line.includes('"ai-graphics:external-agent-native-cuda-closeout"') &&
+    !line.includes('"ai-graphics:external-agent-native-cuda-closeout:diagnostics"')) {
     fail(`package_json_unexpected_changed_line:${line}`)
   }
 }

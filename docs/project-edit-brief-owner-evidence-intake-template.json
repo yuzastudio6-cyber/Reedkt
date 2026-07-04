@@ -1,0 +1,132 @@
+{
+  "id": "project-edit-brief-owner-evidence-intake-template",
+  "milestone": "RP-EDITBRIEF-15A",
+  "status": "template_missing_owner_inputs",
+  "decision": "project_edit_brief_owner_evidence_intake_template_ready_blocked_until_completed",
+  "allowedStatuses": [
+    "missing",
+    "approved",
+    "rejected",
+    "waived"
+  ],
+  "requiredOwnerInputs": [
+    {
+      "id": "canonical_workflow_approval",
+      "label": "Canonical workflow approval",
+      "status": "missing",
+      "owner": null,
+      "evidenceRef": null,
+      "reviewedAt": null,
+      "notes": [
+        "Decide whether Project Edit Brief becomes default first-pass workflow, remains optional, or is internal-only."
+      ]
+    },
+    {
+      "id": "durable_root_schema_approval",
+      "label": "Durable root schema approval",
+      "status": "missing",
+      "owner": null,
+      "evidenceRef": null,
+      "reviewedAt": null,
+      "notes": [
+        "Approve edit_briefs/edit_cues durable roots and any required child-table columns."
+      ]
+    },
+    {
+      "id": "auth_access_policy_approval",
+      "label": "Auth/access policy approval",
+      "status": "missing",
+      "owner": null,
+      "evidenceRef": null,
+      "reviewedAt": null,
+      "notes": [
+        "Approve workspace/project/session role matrix and archive/admin boundaries."
+      ]
+    },
+    {
+      "id": "supabase_security_approval",
+      "label": "Supabase security approval",
+      "status": "missing",
+      "owner": null,
+      "evidenceRef": null,
+      "reviewedAt": null,
+      "notes": [
+        "Approve RLS, explicit grants, Storage policies, service-role boundaries, migration/typegen validation, and rollback."
+      ]
+    },
+    {
+      "id": "media_lifecycle_approval",
+      "label": "Media lifecycle approval",
+      "status": "missing",
+      "owner": null,
+      "evidenceRef": null,
+      "reviewedAt": null,
+      "notes": [
+        "Approve uploads, private artifacts, retention/deletion, signed URL delivery, and metadata-only attachment upgrade path."
+      ]
+    },
+    {
+      "id": "planner_integration_approval",
+      "label": "Planner integration approval",
+      "status": "missing",
+      "owner": null,
+      "evidenceRef": null,
+      "reviewedAt": null,
+      "notes": [
+        "Approve Brief Plan Hint entry into approved plan snapshots, priority rules, conflict handling, and revision reset behavior."
+      ]
+    },
+    {
+      "id": "credit_cost_approval",
+      "label": "Credit/cost approval",
+      "status": "missing",
+      "owner": null,
+      "evidenceRef": null,
+      "reviewedAt": null,
+      "notes": [
+        "Approve estimates, reservations, spend/release/refund, cost metering ownership, and no silent overage behavior."
+      ]
+    },
+    {
+      "id": "provider_model_approval",
+      "label": "Provider/model approval",
+      "status": "missing",
+      "owner": null,
+      "evidenceRef": null,
+      "reviewedAt": null,
+      "notes": [
+        "Approve Qwen Marker Chat, Qwen2.5-VL visual context, model/license review, prompt redaction, and fallback rules."
+      ]
+    },
+    {
+      "id": "worker_render_approval",
+      "label": "Worker/render approval",
+      "status": "missing",
+      "owner": null,
+      "evidenceRef": null,
+      "reviewedAt": null,
+      "notes": [
+        "Approve worker consumers, idempotency keys, artifact manifests, QA gates, render readiness, progress events, and rollback."
+      ]
+    },
+    {
+      "id": "operations_approval",
+      "label": "Operations approval",
+      "status": "missing",
+      "owner": null,
+      "evidenceRef": null,
+      "reviewedAt": null,
+      "notes": [
+        "Approve monitoring, incident runbook, privacy/legal, security, deployment owner, rollback owner, beta cohort owner, and support escalation."
+      ]
+    }
+  ],
+  "gateState": {
+    "readyForRpEditBrief16": false,
+    "externalBetaAllowed": false,
+    "realUserMediaBetaAllowed": false,
+    "paidProductionAllowed": false,
+    "supabasePersistenceImplementationAllowed": false
+  },
+  "nextMilestoneWhenComplete": "RP-EDITBRIEF-16 - Production Persistence Implementation Plan"
+}

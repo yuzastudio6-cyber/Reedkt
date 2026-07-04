@@ -83,6 +83,9 @@ assert.equal(
   'Edit Brief owner evidence packet should keep default external beta blocked until owner inputs are recorded',
 )
 assert.ok(evidenceDoc.includes('blocked until named owner inputs are supplied'), 'evidence doc should explicitly block pending owner inputs')
+assert.equal(evidenceDoc.includes('*** Add File'), false, 'owner evidence doc must not contain patch markers')
+assert.equal(evidenceDoc.includes('server/smoke/'), false, 'owner evidence doc must not contain embedded smoke paths')
+assert.equal(evidenceDoc.includes('import assert'), false, 'owner evidence doc must not contain embedded source code')
 
 console.log(JSON.stringify({
   smoke: 'project-edit-brief-owner-review-production-gate-evidence',

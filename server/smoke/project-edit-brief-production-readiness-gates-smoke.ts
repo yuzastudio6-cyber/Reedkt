@@ -127,6 +127,9 @@ assert.equal(routeSummary.productionReadyCount, 0, 'Project Edit Brief routes sh
 assert.equal(PROJECT_EDIT_BRIEF_API_ROUTES.every((route) => !route.requiresSupabase), true, 'Project Edit Brief mock routes should not require Supabase yet')
 assert.ok(gateDoc.includes('stale blanket blocking'), 'gate doc should explain stale blocker replacement')
 assert.ok(gateDoc.includes('No production route was enabled.'), 'gate doc should preserve no-runtime boundary')
+assert.equal(gateDoc.includes('*** Add File'), false, 'gate doc must not contain patch markers')
+assert.equal(gateDoc.includes('server/smoke/'), false, 'gate doc must not contain embedded smoke paths')
+assert.equal(gateDoc.includes('import assert'), false, 'gate doc must not contain embedded source code')
 
 console.log(JSON.stringify({
   smoke: 'project-edit-brief-production-readiness-gates',

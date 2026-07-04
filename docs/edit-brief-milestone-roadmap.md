@@ -18,7 +18,8 @@ Status: architecture/docs only. This report maps future `ProjectEditSession` Bri
 12. RP-EDITBRIEF-13 — Supabase Persistence Plan
 13. RP-EDITBRIEF-14 — Production Readiness Gates
 14. RP-EDITBRIEF-15 — Owner Review and Production Gate Evidence Collection
-15. RP-EDITBRIEF-16 — Production Persistence Implementation Plan
+15. RP-EDITBRIEF-15A — Owner Evidence Intake Template
+16. RP-EDITBRIEF-16 — Production Persistence Implementation Plan
 
 ## Gate
 
@@ -95,3 +96,9 @@ Next recommended milestone after owner review: `RP-EDITBRIEF-15 — Owner Review
 Status: blocked pending owner inputs. The milestone records the exact owner/operator evidence groups required before Edit Brief can move from internal dry-run to production persistence implementation: canonical workflow, durable root schema, auth/access policy, Supabase security, media lifecycle, planner integration, credit/cost, provider/model, worker/render, and operations approvals. It does not approve external beta, real-user-media beta, paid production, Supabase read/write, Storage writes, providers/models, uploads, media processing, worker dispatch, render/export, or credit reservation/spend.
 
 Next recommended milestone after the owner inputs are supplied and recorded: `RP-EDITBRIEF-16 — Production Persistence Implementation Plan`.
+
+## RP-EDITBRIEF-15A — Owner Evidence Intake Template
+
+Status: complete as an intake template only. The milestone adds a concrete owner-evidence template with all required owner inputs set to `missing` by default, plus smoke coverage that blocks RP-EDITBRIEF-16 until owners supply durable evidence. It does not approve any owner input, enable external beta, real-user-media beta, paid production, Supabase persistence, uploads, providers/models, workers, render/export, or credits.
+
+Next recommended milestone after the intake template is completed with real evidence: `RP-EDITBRIEF-16 — Production Persistence Implementation Plan`.

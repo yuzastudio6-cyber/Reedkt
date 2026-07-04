@@ -180,6 +180,7 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       environment: 'production',
       toolCostEventsMigrationDeployed: true,
       betaReadinessEvidenceMigrationDeployed: true,
+      walletSettlementStateMigrationDeployed: true,
       productionReadinessEvidenceMigrationDeployed: true,
       workerRuntimeArtifactManifestMigrationDeployed: true,
       workerRuntimeArtifactManifestServiceRoleOnlyVerified: true,

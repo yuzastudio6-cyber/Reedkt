@@ -60,6 +60,7 @@ export async function runProductionSupabasePersistenceEvidenceCollectorFromEnv(
       productionEnvironment: input.supabasePersistence?.environment === 'production',
       toolCostEventsMigrationDeployed: Boolean(input.supabasePersistence?.toolCostEventsMigrationDeployed),
       betaReadinessEvidenceMigrationDeployed: Boolean(input.supabasePersistence?.betaReadinessEvidenceMigrationDeployed),
+      walletSettlementStateMigrationDeployed: Boolean(input.supabasePersistence?.walletSettlementStateMigrationDeployed),
       productionReadinessEvidenceMigrationDeployed: Boolean(input.supabasePersistence?.productionReadinessEvidenceMigrationDeployed),
       workerRuntimeArtifactManifestMigrationDeployed: Boolean(input.supabasePersistence?.workerRuntimeArtifactManifestMigrationDeployed),
       workerRuntimeArtifactManifestServiceRoleOnlyVerified: Boolean(input.supabasePersistence?.workerRuntimeArtifactManifestServiceRoleOnlyVerified),

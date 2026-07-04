@@ -38,6 +38,7 @@ interface ProductionToolExecutionReadinessEvidencePacketRow {
 }
 
 const mockProductionEvidencePackets = new Map<string, ProductionToolExecutionReadinessEvidencePacket>()
+let lastPacketCreatedAtMs = 0
 
 export function recordMockProductionToolExecutionReadinessEvidencePacket(
   idempotencyKey: string,
@@ -55,7 +56,7 @@ export function recordMockProductionToolExecutionReadinessEvidencePacket(
     idempotencyKey,
     sourceId: input.readinessInput.sourceId,
     sourceSha: input.readinessInput.sourceSha,
-    createdAt: new Date().toISOString(),
+    createdAt: nextPacketCreatedAt(),
     createdByUserId,
     readinessInput: input.readinessInput,
     readinessReport: input.readinessReport,
@@ -173,7 +174,7 @@ function packetToRow(
     idempotency_key: idempotencyKey,
     source_id: input.readinessInput.sourceId,
     source_sha: input.readinessInput.sourceSha ?? null,
-    created_at: new Date().toISOString(),
+    created_at: nextPacketCreatedAt(),
     created_by_user_id: createdByUserId ?? null,
     readiness_input: input.readinessInput,
     readiness_report: input.readinessReport,
@@ -197,6 +198,13 @@ function rowToPacket(row: ProductionToolExecutionReadinessEvidencePacketRow): Pr
 
 function mockStorageKey(workspaceId: string, idempotencyKey: string): string {
   return `${workspaceId}:${idempotencyKey}`
+}
+
+function nextPacketCreatedAt(): string {
+  const now = Date.now()
+  const next = now > lastPacketCreatedAtMs ? now : lastPacketCreatedAtMs + 1
+  lastPacketCreatedAtMs = next
+  return new Date(next).toISOString()
 }
 
 function throwPersistentStoreError(error: { code?: string; message?: string; hint?: string } | null): void {

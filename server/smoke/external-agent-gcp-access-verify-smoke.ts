@@ -121,6 +121,12 @@ const cliOutput = execFileSync('npx', ['tsx', CLI_PATH], {
   maxBuffer: 1024 * 1024 * 16,
 })
 const cli = JSON.parse(cliOutput)
+const indexedCliOutput = execFileSync('npx', ['tsx', CLI_PATH, '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 16,
+})
+const indexedCli = JSON.parse(indexedCliOutput)
 assert.equal(cli.ok, true)
 assert.equal(cli.decision, spec.decision)
 assert.equal(cli.mode, spec.mode)
@@ -143,8 +149,15 @@ if (!cli.allRequiredReadAccessVerified) {
   assert.equal(typeof cli.accountAccessDiagnostic.anyAccountReadyForBoth, 'boolean')
   assert.equal(typeof cli.accountAccessDiagnostic.recommendedNextPrompt, 'string')
 }
+assert.equal(indexedCli.ok, true)
+assert.equal(indexedCli.accountSelection.overrideIndexProvided, true)
+assert.equal(indexedCli.accountSelection.overrideIndex, 2)
+assert.equal(indexedCli.accountAccessDiagnostic.recommendedNextPrompt.includes('--account-index 2'), true)
+assert.equal(indexedCli.recommendedNextPrompt.includes('--account-index 2'), true)
+assert.equal(JSON.stringify(indexedCli).includes('<account-index>'), false)
+assert.equal(JSON.stringify(indexedCli).includes('<redacted-index>'), false)
 
-const forbiddenFindings = scanForbiddenValues({ spec, cli })
+const forbiddenFindings = scanForbiddenValues({ spec, cli, indexedCli })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(

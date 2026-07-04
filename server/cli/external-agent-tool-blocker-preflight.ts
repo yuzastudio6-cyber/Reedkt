@@ -214,6 +214,26 @@ function accountSelectionSummary() {
   }
 }
 
+function selectedAccountIndex(): number | undefined {
+  const selection = resolveAccountSelection()
+  if (
+    typeof selection.overrideIndex !== 'number' ||
+    !Number.isInteger(selection.overrideIndex) ||
+    selection.overrideIndex <= 0
+  ) {
+    return undefined
+  }
+
+  return selection.overrideIndex
+}
+
+function applySelectedAccountIndex(value: string): string {
+  const index = selectedAccountIndex()
+  if (!index) return value
+
+  return value.replace(/<account-index>/g, String(index)).replace(/<redacted-index>/g, String(index))
+}
+
 function runReadOnlyCommand(
   id: string,
   command: string,
@@ -388,19 +408,21 @@ function main() {
     : qwenReadAccessBlocked
       ? spec.qwen.blockerIfPermissionOrResourceFailed
       : spec.qwen.blockerIfFailed
-  const qwenNextAction = qwenAuthCleared
+  const qwenNextActionRaw = qwenAuthCleared
     ? spec.qwen.nextActionIfCleared
     : qwenReadAccessBlocked
       ? spec.qwen.nextActionIfPermissionOrResourceBlocked
       : spec.qwen.nextActionIfBlocked
+  const qwenNextAction = applySelectedAccountIndex(qwenNextActionRaw)
   const brollSkippedForAuth = !downstreamProbeReady && downstreamSkipReason === 'auth_refresh_failed_before_downstream_probe'
-  const brollNextAction = brollQuotaCleared
+  const brollNextActionRaw = brollQuotaCleared
     ? spec.broll.nextActionIfCleared
     : brollSkippedForAuth
       ? spec.broll.nextActionIfSkippedForAuth
       : brollQuotaPermissionBlocked
         ? spec.broll.nextActionIfPermissionBlocked
       : spec.broll.nextActionIfBlocked
+  const brollNextAction = applySelectedAccountIndex(brollNextActionRaw)
   const brollBlocker = brollQuotaCleared
     ? 'cleared'
     : brollSkippedForAuth

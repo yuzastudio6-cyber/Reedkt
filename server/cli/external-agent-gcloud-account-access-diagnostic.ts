@@ -33,6 +33,9 @@ const TOKEN_LIKE_PATTERNS: Array<[string, RegExp]> = [
   ['jwt', /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g],
   ['email', /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi],
 ]
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
 
 function sanitize(value: string | undefined): string | undefined {
   if (!value) return undefined
@@ -91,6 +94,33 @@ function findQuota(document: QuotaDocument | undefined, metric: string): QuotaEn
 
 function commandLabel(command: string, args: readonly string[]): string {
   return [command, ...args].join(' ')
+}
+
+function cliFlagValue(...flags: string[]): string | undefined {
+  for (const flag of flags) {
+    const equalsArg = process.argv.find((arg) => arg.startsWith(`${flag}=`))
+    if (equalsArg) return equalsArg.slice(flag.length + 1).trim()
+
+    const index = process.argv.indexOf(flag)
+    if (index >= 0) return process.argv[index + 1]?.trim()
+  }
+
+  return undefined
+}
+
+function selectedAccountIndex(): number | undefined {
+  const rawIndex =
+    cliFlagValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG, GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS) ??
+    process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  const parsedIndex = rawIndex ? Number(rawIndex) : undefined
+  return Number.isInteger(parsedIndex) && Number(parsedIndex) > 0 ? Number(parsedIndex) : undefined
+}
+
+function applySelectedAccountIndex(value: string): string {
+  const index = selectedAccountIndex()
+  if (!index) return value
+
+  return value.replace(/<account-index>/g, String(index)).replace(/<redacted-index>/g, String(index))
 }
 
 function perAccountGcloudArgs(account: string, args: string[]): string[] {
@@ -280,6 +310,9 @@ function main() {
     (account) => account.qwenReadAccessPassed && account.brollQuotaSufficient,
   )
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
+  const recommendedNextPrompt = applySelectedAccountIndex(
+    anyAccountReadyForBoth ? spec.nextActionIfAnyAccountReady : spec.nextActionIfNoAccountReady,
+  )
 
   console.log(
     JSON.stringify(
@@ -301,13 +334,11 @@ function main() {
         brollQuotaReadyAccountCount,
         anyAccountReadyForBoth,
         accountDiagnostics,
-        postRepairCodexVerificationCommand: spec.postRepairCodexVerificationCommand,
+        postRepairCodexVerificationCommand: applySelectedAccountIndex(spec.postRepairCodexVerificationCommand),
         runtimeSideEffects: spec.runtimeSideEffects,
         runtimeGatesAllFalse,
         readyForAnyExternalAgentExecutionNow: false,
-        recommendedNextPrompt: anyAccountReadyForBoth
-          ? spec.nextActionIfAnyAccountReady
-          : spec.nextActionIfNoAccountReady,
+        recommendedNextPrompt,
       },
       null,
       2,

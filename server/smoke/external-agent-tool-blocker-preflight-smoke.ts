@@ -197,6 +197,12 @@ const liveOutput = execFileSync('npx', ['tsx', CLI_PATH], {
   maxBuffer: 1024 * 1024 * 5,
 })
 const live = JSON.parse(liveOutput)
+const indexedLiveOutput = execFileSync('npx', ['tsx', CLI_PATH, '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 5,
+})
+const indexedLive = JSON.parse(indexedLiveOutput)
 assert.equal(live.ok, true)
 assert.equal(live.mode, spec.mode)
 assert.equal(live.liveReadOnlyChecksRun, true)
@@ -232,6 +238,20 @@ assert.equal(typeof live.gcloud.accountSelection.cloudSdkCoreAccountEnvProvided,
 assert.equal(live.gcloud.accountSelection.mapsToCloudSdkCoreAccount, true)
 assert.equal(live.gcloud.accountSelection.mutatesLocalGcloudConfig, false)
 assert.equal(live.gcloud.accountSelection.printsAccountValue, false)
+assert.equal(indexedLive.gcloud.accountSelection.overrideIndexProvided, true)
+assert.equal(indexedLive.gcloud.accountSelection.overrideIndexSource, 'cli')
+assert.equal(indexedLive.gcloud.accountSelection.overrideIndex, 2)
+assert.equal(JSON.stringify(indexedLive).includes('<account-index>'), false)
+assert.equal(JSON.stringify(indexedLive).includes('<redacted-index>'), false)
+for (const nextAction of [
+  indexedLive.qwen.nextAction,
+  indexedLive.broll.nextAction,
+  indexedLive.recommendedNextPrompt,
+] as string[]) {
+  if (nextAction.includes('external-agent-tool-blockers:preflight')) {
+    assert.equal(nextAction.includes('--account-index 2'), true)
+  }
+}
 assert.equal(typeof live.gcloud.appleSiliconHomebrewPrecedesUsrLocal, 'boolean')
 assert.equal(typeof live.gcloud.expectedAppleSiliconHomebrewPath, 'string')
 assert.equal(typeof live.gcloud.expectedAppleSiliconHomebrewGcloudPresent, 'boolean')

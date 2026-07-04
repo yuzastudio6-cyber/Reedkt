@@ -116,6 +116,10 @@ const cliSource = read(CLI_PATH)
 assert.equal(cliSource.includes('spawnSync'), true)
 assert.equal(cliSource.includes('suppressStdout: true'), true)
 assert.equal(cliSource.includes('perAccountGcloudArgs'), true)
+assert.equal(cliSource.includes('REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'), true)
+assert.equal(cliSource.includes('--account-index'), true)
+assert.equal(cliSource.includes('--gcloud-account-index'), true)
+assert.equal(cliSource.includes('applySelectedAccountIndex'), true)
 for (const forbiddenSource of [
   'execSync',
   'execFileSync',
@@ -147,6 +151,12 @@ const liveOutput = execFileSync('npx', ['tsx', CLI_PATH], {
   maxBuffer: 1024 * 1024 * 8,
 })
 const live = JSON.parse(liveOutput)
+const indexedLiveOutput = execFileSync('npx', ['tsx', CLI_PATH, '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 8,
+})
+const indexedLive = JSON.parse(indexedLiveOutput)
 assert.equal(live.ok, true)
 assert.equal(live.mode, spec.mode)
 assert.equal(live.liveReadOnlyChecksRun, true)
@@ -162,6 +172,10 @@ assert.equal(typeof live.brollQuotaReadAccountCount, 'number')
 assert.equal(typeof live.brollQuotaReadyAccountCount, 'number')
 assert.equal(typeof live.anyAccountReadyForBoth, 'boolean')
 assert.equal(live.postRepairCodexVerificationCommand, spec.postRepairCodexVerificationCommand)
+assert.equal(indexedLive.postRepairCodexVerificationCommand.includes('--account-index 2'), true)
+assert.equal(indexedLive.recommendedNextPrompt.includes('--account-index 2'), true)
+assert.equal(JSON.stringify(indexedLive).includes('<account-index>'), false)
+assert.equal(JSON.stringify(indexedLive).includes('<redacted-index>'), false)
 
 for (const account of live.accountDiagnostics as Array<{
   accountIndex: number

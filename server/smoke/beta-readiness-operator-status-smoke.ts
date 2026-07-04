@@ -73,6 +73,10 @@ const completeEnv: BetaReadinessOperatorStatusEnv = {
 
 const readyReport = buildBetaReadinessOperatorStatus(completeEnv)
 assert.equal(readyReport.ok, true, 'complete operator inputs should pass combined readiness')
+assert.equal(readyReport.readyForInternalBreakFixTesting, true, 'operator status should allow internal break/fix testing separately from beta/production')
+assert.equal(readyReport.internalTestingMode.paidUsersRequired, false, 'internal testing must not require paid users')
+assert.equal(readyReport.internalTestingMode.liveBillingAllowed, false, 'internal testing must not enable live billing')
+assert.ok(readyReport.internalTestingMode.allowedScopes.includes('repeated_break_fix_iteration'), 'internal testing status should expose repeated break/fix scope')
 assert.equal(readyReport.operatorInputsReady, true, 'complete operator inputs should be ready')
 assert.equal(readyReport.toolEvidenceReady, true, 'complete tool evidence inputs should be ready')
 assert.equal(readyReport.platformEvidenceReady, true, 'complete platform evidence inputs should be ready')

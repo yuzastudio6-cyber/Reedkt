@@ -35,6 +35,32 @@ export interface BetaGoNoGoDecision {
   warnings: string[]
 }
 
+export type BetaLaunchStage =
+  | 'internal_dry_run'
+  | 'internal_break_fix_testing'
+  | 'bounded_tool_execution'
+  | 'external_beta'
+  | 'real_user_media_beta'
+  | 'paid_production'
+
+export interface InternalTestingModeDecision {
+  stage: 'internal_break_fix_testing'
+  allowed: boolean
+  signInTestingAllowed: boolean
+  repeatedBreakFixTestingAllowed: boolean
+  boundedToolExecutionTestingAllowed: boolean
+  paidUsersRequired: false
+  liveBillingAllowed: false
+  externalUsersAllowed: false
+  realUserMediaAllowed: false
+  mockOrTestCreditsOnly: true
+  allowedScopes: string[]
+  blockedScopes: string[]
+  guardrails: string[]
+  blockers: string[]
+  warnings: string[]
+}
+
 export type ToolBetaExecutionReadinessBlockerId =
   | 'missing_tool_cost_owner_coverage'
   | 'missing_readiness_spec'
@@ -157,6 +183,7 @@ export interface BetaReadinessReport {
   checklist: BetaReadinessChecklistItem[]
   scenarioMatrix: BetaScenarioReadiness[]
   toolExecutionReadiness: ToolBetaExecutionReadinessReport
+  internalTestingMode: InternalTestingModeDecision
   goNoGo: BetaGoNoGoDecision
   blockers: string[]
   warnings: string[]

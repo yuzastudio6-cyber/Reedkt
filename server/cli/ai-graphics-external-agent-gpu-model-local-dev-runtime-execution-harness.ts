@@ -1235,6 +1235,8 @@ async function buildReport(args: HarnessArgs) {
       dockerContainerBackendSupported: true,
       dockerContainerBackendRequiresRuntimeImage: true,
       dockerContainerBackendRequiresScopedGpuAttachment: true,
+      dockerContainerPythonModulePreflightBeforeRuntime: true,
+      dockerContainerCudaPreflightBeforeRuntime: true,
       privateInputPreflightBeforeGpuAttachment: true,
       missingPrivateInputsBlockBeforeGpuStartup: true,
       privateOutputDirectoryPreflightBeforeGpuStartup: true,
@@ -1376,6 +1378,15 @@ Status: \`${report.status}\`
 This harness exercises the real GPU/model controlled adapter for all eight GPU/model tools in explicit \`local_dev\` mode. The committed record is prerequisite-check only: it records the guarded adapter branch and the exact private local inputs needed before runtime can start. It does not start GPU runtime, load model weights, process media, call providers, create public artifacts, create signed URLs, unlock external beta, or unlock production.
 
 Missing private source/model/checkpoint paths block before Python runtime or Docker GPU attachment. GPU starts only after the scoped tool call supplies the required private inputs and runtime proof.
+
+## Docker Runtime Preflight
+
+When a scoped Docker runtime is requested, the adapter now starts with a bounded Python/module/CUDA preflight inside the selected proof image before launching the heavier model script. Missing Python modules, unavailable Docker Python runtime, unavailable CUDA, or missing ONNX CUDA provider return structured \`blocked_with_reason\` diagnostics before model loading.
+
+- \`dockerContainerPythonModulePreflightBeforeRuntime\`: ${report.localRuntimePolicy.dockerContainerPythonModulePreflightBeforeRuntime}
+- \`dockerContainerCudaPreflightBeforeRuntime\`: ${report.localRuntimePolicy.dockerContainerCudaPreflightBeforeRuntime}
+- \`dockerContainerBackendRequiresScopedGpuAttachment\`: ${report.localRuntimePolicy.dockerContainerBackendRequiresScopedGpuAttachment}
+- \`gpuRuntimeOnDemandOnly\`: ${report.localRuntimePolicy.onDemandOnly}
 
 ## Foundation CPU Runtime Option
 

@@ -8,6 +8,15 @@ This harness exercises the real GPU/model controlled adapter for all eight GPU/m
 
 Missing private source/model/checkpoint paths block before Python runtime or Docker GPU attachment. GPU starts only after the scoped tool call supplies the required private inputs and runtime proof.
 
+## Docker Runtime Preflight
+
+When a scoped Docker runtime is requested, the adapter now starts with a bounded Python/module/CUDA preflight inside the selected proof image before launching the heavier model script. Missing Python modules, unavailable Docker Python runtime, unavailable CUDA, or missing ONNX CUDA provider return structured `blocked_with_reason` diagnostics before model loading.
+
+- `dockerContainerPythonModulePreflightBeforeRuntime`: true
+- `dockerContainerCudaPreflightBeforeRuntime`: true
+- `dockerContainerBackendRequiresScopedGpuAttachment`: true
+- `gpuRuntimeOnDemandOnly`: true
+
 ## Foundation CPU Runtime Option
 
 `torch_torchvision` and `transformers` may use explicit CPU foundation runtime proof for bounded package import and tensor checks when `--allow-cpu-foundation-runtime` is supplied. This does not download models, run inference, process media, or start GPU runtime.

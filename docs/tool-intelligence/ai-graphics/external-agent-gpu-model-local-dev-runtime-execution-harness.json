@@ -79,6 +79,8 @@
     "dockerContainerBackendSupported": true,
     "dockerContainerBackendRequiresRuntimeImage": true,
     "dockerContainerBackendRequiresScopedGpuAttachment": true,
+    "dockerContainerPythonModulePreflightBeforeRuntime": true,
+    "dockerContainerCudaPreflightBeforeRuntime": true,
     "privateInputPreflightBeforeGpuAttachment": true,
     "missingPrivateInputsBlockBeforeGpuStartup": true,
     "privateOutputDirectoryPreflightBeforeGpuStartup": true,

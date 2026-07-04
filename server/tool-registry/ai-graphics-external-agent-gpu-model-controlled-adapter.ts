@@ -270,9 +270,35 @@ function runtimePreflightPython(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   payload: Record<string, unknown>,
 ): Record<string, unknown> | null {
-  const modules = runtimePythonModulesByTool[toolId]
   const pythonBin = process.env.AI_GRAPHICS_PYTHON_BIN ?? process.env.PYTHON_BIN ?? 'python3'
-  const code = `
+  try {
+    return JSON.parse(execFileSync(pythonBin, [
+      '-c',
+      runtimePreflightPythonCode(),
+      ...runtimePreflightPythonArgs(toolId, payload),
+    ], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        HF_DATASETS_OFFLINE: '1',
+        HF_HUB_OFFLINE: '1',
+        MODEL_DOWNLOADS_ENABLED: 'false',
+        PROVIDER_EXECUTION_ENABLED: 'false',
+        REAL_MEDIA_INPUT_ENABLED: 'false',
+        TRANSFORMERS_OFFLINE: '1',
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 30_000,
+    })) as Record<string, unknown>
+  } catch (error) {
+    return {
+      preflightError: error instanceof Error ? error.message : String(error),
+    }
+  }
+}
+
+function runtimePreflightPythonCode(): string {
+  return `
 import importlib.util
 import json
 import sys
@@ -302,26 +328,54 @@ print(json.dumps({
     "allowCpuModelRuntime": allow_cpu_model_runtime,
 }))
 `
+}
+
+function runtimePreflightPythonArgs(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  payload: Record<string, unknown>,
+): string[] {
+  return [
+    toolId,
+    allowKorniaCpuTensorRuntime(toolId, payload) ? 'true' : 'false',
+    allowFoundationCpuRuntime(toolId, payload) ? 'true' : 'false',
+    allowModelCpuRuntime(toolId, payload) ? 'true' : 'false',
+    ...runtimePythonModulesByTool[toolId],
+  ]
+}
+
+function runtimePreflightDocker(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  payload: Record<string, unknown>,
+  input: {
+    image: string
+    platform?: string
+    includeGpu: boolean
+  },
+): Record<string, unknown> | null {
+  const dockerArgs = ['run', '--rm']
+  if (input.platform) dockerArgs.push('--platform', input.platform)
+  if (input.includeGpu) dockerArgs.push('--gpus', 'all')
+  for (const [key, value] of Object.entries({
+    HF_DATASETS_OFFLINE: '1',
+    HF_HUB_OFFLINE: '1',
+    MODEL_DOWNLOADS_ENABLED: 'false',
+    PROVIDER_EXECUTION_ENABLED: 'false',
+    REAL_MEDIA_INPUT_ENABLED: 'false',
+    TRANSFORMERS_OFFLINE: '1',
+  })) {
+    dockerArgs.push('-e', `${key}=${value}`)
+  }
+  dockerArgs.push(
+    '--entrypoint',
+    'python3',
+    input.image,
+    '-c',
+    runtimePreflightPythonCode(),
+    ...runtimePreflightPythonArgs(toolId, payload),
+  )
   try {
-    return JSON.parse(execFileSync(pythonBin, [
-      '-c',
-      code,
-      toolId,
-      allowKorniaCpuTensorRuntime(toolId, payload) ? 'true' : 'false',
-      allowFoundationCpuRuntime(toolId, payload) ? 'true' : 'false',
-      allowModelCpuRuntime(toolId, payload) ? 'true' : 'false',
-      ...modules,
-    ], {
+    return JSON.parse(execFileSync('docker', dockerArgs, {
       encoding: 'utf8',
-      env: {
-        ...process.env,
-        HF_DATASETS_OFFLINE: '1',
-        HF_HUB_OFFLINE: '1',
-        MODEL_DOWNLOADS_ENABLED: 'false',
-        PROVIDER_EXECUTION_ENABLED: 'false',
-        REAL_MEDIA_INPUT_ENABLED: 'false',
-        TRANSFORMERS_OFFLINE: '1',
-      },
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 30_000,
     })) as Record<string, unknown>
@@ -480,8 +534,8 @@ function runtimePrerequisiteBlock(
         ],
       }
     }
+    const platform = runtimeContainerPlatform(payload)
     try {
-      const platform = runtimeContainerPlatform(payload)
       execFileSync(
         'docker',
         [
@@ -499,7 +553,6 @@ function runtimePrerequisiteBlock(
           timeout: 30_000,
         },
       )
-      return null
     } catch (error) {
       return {
         executionInputMode: 'local_dev',
@@ -544,6 +597,120 @@ function runtimePrerequisiteBlock(
         ],
       }
     }
+    const containerPreflight = runtimePreflightDocker(request.toolId, payload, {
+      image,
+      platform,
+      includeGpu: !korniaCpuTensorRuntime && !foundationCpuRuntime && !modelCpuRuntime,
+    })
+    const containerMissingModules = Array.isArray(containerPreflight?.missingModules)
+      ? containerPreflight.missingModules.filter((module): module is string => typeof module === 'string')
+      : []
+    const containerPreflightError = typeof containerPreflight?.preflightError === 'string'
+      ? containerPreflight.preflightError
+      : null
+    const containerCudaAvailable = containerPreflight?.cudaAvailable === true
+    const containerCudaProviderAvailable =
+      containerPreflight?.cudaProviderAvailable === true
+
+    if (containerPreflightError) {
+      return {
+        executionInputMode: 'local_dev',
+        result: {
+          status: 'skipped',
+          tool: request.toolId,
+          commandPlan: {
+            tool: request.toolId,
+            command: 'docker',
+            args: ['run', '--rm', '--entrypoint', 'python3', image, '-c', 'importlib.util.find_spec(...)'],
+            executes: false,
+            summary:
+              'GPU/model Docker Python runtime prerequisite preflight failed before heavy runtime execution.',
+          },
+          skipReason: {
+            code: 'gpu_model_python_runtime_unavailable',
+            message: containerPreflightError,
+            tool: request.toolId,
+          },
+          warningCount: 1,
+          errorMessage: undefined,
+        },
+        localRuntimeExecutionPerformed: false,
+        warnings: [
+          'GPU/model runtime did not start because Docker Python runtime prerequisite preflight failed.',
+        ],
+      }
+    }
+
+    if (containerMissingModules.length > 0) {
+      return {
+        executionInputMode: 'local_dev',
+        result: {
+          status: 'skipped',
+          tool: request.toolId,
+          commandPlan: {
+            tool: request.toolId,
+            command: 'docker',
+            args: ['run', '--rm', '--entrypoint', 'python3', image, '-c', 'importlib.util.find_spec(...)'],
+            executes: false,
+            summary:
+              'GPU/model Docker Python package prerequisite preflight blocked heavy runtime execution before model loading.',
+          },
+          skipReason: {
+            code: 'gpu_model_python_package_missing',
+            message:
+              `Missing Docker image Python package/module prerequisite(s): ${containerMissingModules.join(', ')}`,
+            tool: request.toolId,
+          },
+          missingModules: containerMissingModules,
+          warningCount: 1,
+          errorMessage: undefined,
+        },
+        localRuntimeExecutionPerformed: false,
+        warnings: [
+          'GPU/model runtime did not start because Docker image Python package prerequisites are missing.',
+        ],
+      }
+    }
+
+    if (
+      !korniaCpuTensorRuntime &&
+      !foundationCpuRuntime &&
+      !modelCpuRuntime &&
+      (!containerCudaAvailable ||
+        (request.toolId === 'rembg' && !containerCudaProviderAvailable))
+    ) {
+      return {
+        executionInputMode: 'local_dev',
+        result: {
+          status: 'skipped',
+          tool: request.toolId,
+          commandPlan: {
+            tool: request.toolId,
+            command: 'docker',
+            args: ['run', '--rm', '--gpus', 'all', '--entrypoint', 'python3', image, '-c', 'torch.cuda.is_available() / onnxruntime CUDAExecutionProvider'],
+            executes: false,
+            summary:
+              'GPU/model Docker native CUDA prerequisite preflight blocked heavy runtime execution before model loading.',
+          },
+          skipReason: {
+            code: request.toolId === 'rembg'
+              ? 'gpu_model_onnxruntime_cuda_provider_missing'
+              : 'gpu_model_native_cuda_runtime_missing',
+            message: request.toolId === 'rembg'
+              ? 'onnxruntime CUDAExecutionProvider is unavailable inside the Docker runtime; no CPU fallback is accepted for this scoped native CUDA proof.'
+              : 'torch.cuda.is_available() is false inside the Docker runtime; no CPU fallback is accepted for this scoped native CUDA proof.',
+            tool: request.toolId,
+          },
+          warningCount: 1,
+          errorMessage: undefined,
+        },
+        localRuntimeExecutionPerformed: false,
+        warnings: [
+          'GPU/model runtime did not start because Docker native CUDA runtime proof is missing.',
+        ],
+      }
+    }
+    return null
   }
 
   const privateInputBlock = privateLocalRuntimeInputBlock(request.toolId, payload)

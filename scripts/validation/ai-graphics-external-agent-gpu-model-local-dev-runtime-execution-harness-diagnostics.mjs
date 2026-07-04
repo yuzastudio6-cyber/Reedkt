@@ -407,6 +407,12 @@ if (report.localRuntimePolicy?.dockerContainerBackendRequiresRuntimeImage !== tr
 if (report.localRuntimePolicy?.dockerContainerBackendRequiresScopedGpuAttachment !== true) {
   fail('docker_container_scoped_gpu_attachment_not_required')
 }
+if (report.localRuntimePolicy?.dockerContainerPythonModulePreflightBeforeRuntime !== true) {
+  fail('docker_container_python_module_preflight_not_recorded')
+}
+if (report.localRuntimePolicy?.dockerContainerCudaPreflightBeforeRuntime !== true) {
+  fail('docker_container_cuda_preflight_not_recorded')
+}
 if (report.localRuntimePolicy?.privateInputPreflightBeforeGpuAttachment !== true) {
   fail('private_input_preflight_before_gpu_attachment_not_recorded')
 }
@@ -1401,6 +1407,11 @@ for (const requiredSourceToken of [
   'gpu_model_runtime_container_image_unavailable',
   'gpu_model_runtime_container_gpu_not_requested',
   'gpu_model_runtime_container_gpu_unavailable',
+  'runtimePreflightDocker',
+  'dockerContainerPythonModulePreflightBeforeRuntime',
+  'dockerContainerCudaPreflightBeforeRuntime',
+  'gpu_model_python_package_missing',
+  'gpu_model_native_cuda_runtime_missing',
   'privateLocalRuntimeInputBlock',
   'private-input-preflight',
   'missingPrivateInputsBlockBeforeGpuStartup',

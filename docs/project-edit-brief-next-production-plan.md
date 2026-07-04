@@ -46,6 +46,12 @@ RP-EDITBRIEF-18 connects Project Edit Brief route handlers to the internal persi
 
 Next internal milestone: `RP-EDITBRIEF-19 - Internal Testing Readback And QA`.
 
+## RP-EDITBRIEF-19 Internal Testing Readback QA
+
+RP-EDITBRIEF-19 validates the connected internal route path end to end inside the backend skeleton: create brief, create marker, append Marker Chat, read summary, and read bundle. The path preserves safety flags and internal persistence metadata, proving the route integration is ready for review as an internal testing slice.
+
+Next internal milestone: `RP-EDITBRIEF-20 - Internal Testing Review And PR Readiness`.
+
 ## Qwen Runtime Dependency
 
 RP-QWEN-00 is complete as an audit-only package for future reasoning runtime readiness. Edit Brief Marker Chat remains deterministic mock/local until a later owner-approved Qwen milestone. No Qwen call, provider call, Secret Manager inspection, `gcloud`, Supabase CLI, route wiring, Marker Chat runtime change, worker, render/export/progress, credit action, staging, commit, or cleanup occurred.

@@ -30,6 +30,7 @@ Status: architecture/docs only. This report maps future `ProjectEditSession` Bri
 24. RP-EDITBRIEF-17 — Internal Persistence Backend Skeleton
 25. RP-EDITBRIEF-18 — Internal Route Integration
 26. RP-EDITBRIEF-19 — Internal Testing Readback And QA
+27. RP-EDITBRIEF-20 — Internal Testing Review And PR Readiness
 
 ## Gate
 
@@ -172,3 +173,9 @@ Next recommended milestone for internal testing: `RP-EDITBRIEF-18 — Internal R
 Status: complete as internal route integration only. The milestone routes Project Edit Brief mock handlers through the internal persistence backend skeleton and returns internal persistence metadata in successful route responses while preserving safety flags. It does not enable production HTTP routes, live Supabase, Storage, signed URLs, providers/models, media processing, workers, render/export, uploads, external beta, paid production, or credit spend.
 
 Next recommended milestone for internal testing: `RP-EDITBRIEF-19 — Internal Testing Readback And QA`.
+
+## RP-EDITBRIEF-19 — Internal Testing Readback And QA
+
+Status: complete as internal readback QA only. The milestone exercises the connected route path for creating an Edit Brief, creating a marker, appending a Marker Chat message, reading a summary, and reading the bundle. It verifies internal persistence metadata, safety flags, mock repository state persistence, and zero production-ready routes. It does not enable production HTTP routes, live Supabase, Storage, signed URLs, providers/models, media processing, workers, render/export, uploads, external beta, paid production, or credit spend.
+
+Next recommended milestone for internal testing: `RP-EDITBRIEF-20 — Internal Testing Review And PR Readiness`.

@@ -72,6 +72,7 @@ Passed:
 - Internal persistence plan after RP-EDITBRIEF-16: the production-shaped durable-root, route, idempotency, audit, and release-delta contract is defined for the next backend skeleton while migrations, SQL, live Supabase reads/writes, Storage, signed URLs, production routes, providers, media processing, workers, render/export, uploads, external beta, paid production, and credits remain blocked.
 - Internal persistence backend skeleton after RP-EDITBRIEF-17: internal testing now has a backend seam with mock write-path evidence, disabled Supabase fail-closed evidence, mutating-operation idempotency/audit envelope validation, and partial expensive-work approval blocking while production routes and live execution remain blocked.
 - Internal route integration after RP-EDITBRIEF-18: Project Edit Brief route handlers now use the internal persistence backend skeleton and return internal persistence metadata while production HTTP routes, live Supabase, Storage, providers, media processing, workers, render/export, uploads, external beta, paid production, and credits remain blocked.
+- Internal testing readback QA after RP-EDITBRIEF-19: the connected route path is exercised for create brief, create marker, append Marker Chat, summary, and bundle readback with internal persistence metadata and safety flags preserved.
 - Real upload/source-media ingestion and privacy policy implementation.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.

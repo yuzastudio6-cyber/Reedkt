@@ -1,0 +1,41 @@
+{
+  "id": "project-edit-brief-owner-review-production-gate-evidence",
+  "milestone": "RP-EDITBRIEF-15",
+  "decision": "project_edit_brief_owner_review_production_gate_evidence_collection_blocked_pending_owner_inputs",
+  "status": "blocked_pending_owner_inputs",
+  "requiredOwnerInputs": [
+    "canonical_workflow_approval",
+    "durable_root_schema_approval",
+    "auth_access_policy_approval",
+    "supabase_security_approval",
+    "media_lifecycle_approval",
+    "planner_integration_approval",
+    "credit_cost_approval",
+    "provider_model_approval",
+    "worker_render_approval",
+    "operations_approval"
+  ],
+  "currentEvidenceState": {
+    "rpEditBrief13SupabasePersistencePlan": "passed_plan_only",
+    "rpEditBrief14ConditionalReadinessGates": "passed_conditional_policy_only",
+    "projectEditBriefRoutesProductionReady": false,
+    "externalBetaAllowedByDefault": false,
+    "realUserMediaBetaAllowedByDefault": false,
+    "paidProductionAllowedByDefault": false
+  },
+  "blockedScope": {
+    "externalBeta": true,
+    "realUserMediaBeta": true,
+    "paidProduction": true,
+    "supabaseReadWrite": true,
+    "storageWrite": true,
+    "signedUrlSourceTruth": true,
+    "providerOrModelCalls": true,
+    "uploads": true,
+    "mediaProcessing": true,
+    "workerDispatch": true,
+    "renderOrExport": true,
+    "creditReservationOrSpend": true
+  },
+  "nextMilestone": "RP-EDITBRIEF-16 - Production Persistence Implementation Plan"
+}

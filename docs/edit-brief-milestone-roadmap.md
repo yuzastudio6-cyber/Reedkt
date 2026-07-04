@@ -18,6 +18,7 @@ Status: architecture/docs only. This report maps future `ProjectEditSession` Bri
 12. RP-EDITBRIEF-13 — Supabase Persistence Plan
 13. RP-EDITBRIEF-14 — Production Readiness Gates
 14. RP-EDITBRIEF-15 — Owner Review and Production Gate Evidence Collection
+15. RP-EDITBRIEF-16 — Production Persistence Implementation Plan
 
 ## Gate
 
@@ -88,3 +89,9 @@ Next recommended milestone after owner review: `RP-EDITBRIEF-14 — Production R
 Status: complete as conditional readiness-gate policy only. The milestone replaces stale blanket beta/production blockers with computed go/no-go booleans that can pass only when named evidence is supplied. Default status remains blocked beyond internal dry-run because owner, deployment, security, storage/privacy, model/license, Supabase, approved snapshot, credit reservation, private-media, billing/ledger, observability, and incident gates are not all present. It does not enable external beta, real-user-media beta, paid production, live Supabase reads/writes, migrations, SQL, Supabase CLI, Storage writes, production routes, providers/models, uploads, media processing, worker dispatch, render/export, or credit reservation/spend.
 
 Next recommended milestone after owner review: `RP-EDITBRIEF-15 — Owner Review and Production Gate Evidence Collection`.
+
+## RP-EDITBRIEF-15 — Owner Review and Production Gate Evidence Collection
+
+Status: blocked pending owner inputs. The milestone records the exact owner/operator evidence groups required before Edit Brief can move from internal dry-run to production persistence implementation: canonical workflow, durable root schema, auth/access policy, Supabase security, media lifecycle, planner integration, credit/cost, provider/model, worker/render, and operations approvals. It does not approve external beta, real-user-media beta, paid production, Supabase read/write, Storage writes, providers/models, uploads, media processing, worker dispatch, render/export, or credit reservation/spend.
+
+Next recommended milestone after the owner inputs are supplied and recorded: `RP-EDITBRIEF-16 — Production Persistence Implementation Plan`.

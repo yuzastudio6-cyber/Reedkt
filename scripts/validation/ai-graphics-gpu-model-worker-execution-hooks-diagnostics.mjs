@@ -116,7 +116,11 @@ const runnerExpectations = [
       'executes: true',
       "status: 'failed'",
       'sam2_output_directory_missing',
-      'generatedFixtureOnly: true',
+      'sam2_source_frame_missing',
+      "sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]",
+      "'--source-image-path'",
+      "APPROVED_PRIVATE_SOURCE_FRAME_ENABLED: 'true'",
+      'privateSourceFrameUsed: true',
     ],
   },
   {
@@ -216,6 +220,19 @@ const runtimeScriptExpectations = [
       'modelWeightsLoaded',
       'modelInferencePerformed',
       'modelDownloadedExternally',
+    ],
+  },
+  {
+    file: 'docker/prod/sam2-runtime/sam2_runtime_local.py',
+    tokens: [
+      'MODEL_DOWNLOADS_ENABLED',
+      'PROVIDER_EXECUTION_ENABLED',
+      'REAL_MEDIA_INPUT_ENABLED',
+      'APPROVED_PRIVATE_SOURCE_FRAME_ENABLED',
+      'parser.add_argument("--source-image-path", required=True)',
+      'create_source_frame_sequence',
+      'privateSourceFrameUsed',
+      'broadRealMediaInputEnabled',
     ],
   },
   {

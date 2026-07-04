@@ -624,6 +624,67 @@ const executionGate = json(
   'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
 )
 
+const sam2HarnessRow = Array.isArray(
+  gpuHarness.gpuModelLocalDevRuntimeExecutionHarnessRows,
+)
+  ? gpuHarness.gpuModelLocalDevRuntimeExecutionHarnessRows.find(
+    (row) => row.toolId === 'sam2',
+  )
+  : undefined
+if (!sam2HarnessRow) {
+  fail('gpu_harness_missing_sam2_row')
+} else {
+  const sam2NativeRequirement = Array.isArray(sam2HarnessRow.localInputRequirements)
+    ? sam2HarnessRow.localInputRequirements.find(
+      (entry) => entry.key === 'nativeCudaRuntime',
+    )
+    : undefined
+  if (
+    !String(sam2NativeRequirement?.description ?? '').includes(
+      'one approved private source frame',
+    )
+  ) {
+    fail('gpu_harness_sam2_missing_private_source_frame_requirement')
+  }
+  if (
+    JSON.stringify(sam2HarnessRow).includes(
+      'Current script uses an approved generated fixture only',
+    )
+  ) {
+    fail('gpu_harness_sam2_still_describes_generated_fixture_only')
+  }
+}
+
+const sam2RunnerSource = read('server/workers/masks/sam2-execution-runner.ts')
+for (const requiredSam2Token of [
+  'sam2_source_frame_missing',
+  "'--source-image-path'",
+  "APPROVED_PRIVATE_SOURCE_FRAME_ENABLED: 'true'",
+  'privateSourceFrameUsed: true',
+]) {
+  if (!sam2RunnerSource.includes(requiredSam2Token)) {
+    fail(`sam2_runner_missing_readiness_token:${requiredSam2Token}`)
+  }
+}
+if (sam2RunnerSource.includes('generatedFixtureOnly: true')) {
+  fail('sam2_runner_still_claims_generated_fixture_only')
+}
+
+const sam2RuntimeSource = read('docker/prod/sam2-runtime/sam2_runtime_local.py')
+for (const requiredSam2RuntimeToken of [
+  'parser.add_argument("--source-image-path", required=True)',
+  'APPROVED_PRIVATE_SOURCE_FRAME_ENABLED',
+  'create_source_frame_sequence',
+  'privateSourceFrameUsed',
+]) {
+  if (!sam2RuntimeSource.includes(requiredSam2RuntimeToken)) {
+    fail(`sam2_runtime_missing_readiness_token:${requiredSam2RuntimeToken}`)
+  }
+}
+if (sam2RuntimeSource.includes('create_fixture_frames')) {
+  fail('sam2_runtime_still_uses_generated_fixture_frame_builder')
+}
+
 if (docs.fastestGpuModelUnlockCandidate?.toolId !== 'kornia') {
   fail('fastest_gpu_unlock_candidate_not_kornia')
 }

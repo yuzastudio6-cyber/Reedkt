@@ -43,6 +43,10 @@ export async function runSam2Tracking(input: {
   if (!executionInput.sam2CheckpointLocalPath || !existsSync(executionInput.sam2CheckpointLocalPath)) {
     return { status: 'skipped', tool: 'sam2', commandPlan, skipReason: { code: 'sam2_checkpoint_missing', message: 'SAM2 checkpoint is not available locally; no download attempted.', tool: 'sam2' }, warnings: [] }
   }
+  const sourcePath = executionInput.sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]
+  if (!sourcePath || !existsSync(sourcePath)) {
+    return { status: 'skipped', tool: 'sam2', commandPlan, skipReason: { code: 'sam2_source_frame_missing', message: 'Safe local source image or representative frame is missing.', tool: 'sam2' }, warnings: [] }
+  }
   if (!executionInput.outputDirectory) {
     return { status: 'skipped', tool: 'sam2', commandPlan, skipReason: { code: 'sam2_output_directory_missing', message: 'SAM2 execution requires a private local worker output directory.', tool: 'sam2' }, warnings: [] }
   }
@@ -56,6 +60,8 @@ export async function runSam2Tracking(input: {
         workDir,
         '--checkpoint-path',
         executionInput.sam2CheckpointLocalPath,
+        '--source-image-path',
+        sourcePath,
         '--output-json',
         outputJsonPath,
       ],
@@ -66,17 +72,18 @@ export async function runSam2Tracking(input: {
       containerPlatform: executionInput.runtimeContainerPlatform,
       containerGpu: executionInput.runtimeContainerGpu,
       containerBindMounts: buildAiGraphicsRuntimeContainerBindMounts({
-        readOnlyPaths: [executionInput.sam2CheckpointLocalPath],
+        readOnlyPaths: [executionInput.sam2CheckpointLocalPath, sourcePath],
         readWritePaths: [executionInput.outputDirectory],
       }),
       extraEnv: {
         REAL_MEDIA_INPUT_ENABLED: 'false',
+        APPROVED_PRIVATE_SOURCE_FRAME_ENABLED: 'true',
       },
     })
     return {
       status: 'completed',
       tool: 'sam2',
-      commandPlan: { ...commandPlan, executes: true, summary: 'SAM2 local runtime script executed with private checkpoint and generated fixture; no model download.' },
+      commandPlan: { ...commandPlan, executes: true, summary: 'SAM2 local runtime script executed with private checkpoint and approved private source frame; no model download.' },
       artifacts: [
         buildMaskArtifactRecord({
           workspaceId: executionInput.workspaceId,
@@ -85,7 +92,7 @@ export async function runSam2Tracking(input: {
           artifactType: 'mask_sequence',
           fileName: 'sam2-mask-sequence.json',
           sourceOfTruth: true,
-          metadata: { tool: 'sam2', runtimeExecuted: true, generatedFixtureOnly: true },
+          metadata: { tool: 'sam2', runtimeExecuted: true, privateSourceFrameUsed: true },
         }),
         buildMaskArtifactRecord({
           workspaceId: executionInput.workspaceId,
@@ -97,7 +104,7 @@ export async function runSam2Tracking(input: {
           metadata: { tool: 'sam2', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes },
         }),
       ],
-      warnings: ['SAM2 runtime executed against the approved generated fixture only; real-video temporal execution still requires a later real-media worker milestone.'],
+      warnings: ['SAM2 runtime executed against one approved private source frame only; full real-video temporal execution still requires a later worker milestone.'],
     }
   } catch (error) {
     return {

@@ -308,6 +308,39 @@ for (const workerFile of [
     fail(`worker_missing_private_bind_mounts:${workerFile}`)
   }
 }
+
+const sam2RunnerSource = read('server/workers/masks/sam2-execution-runner.ts')
+for (const requiredSam2Token of [
+  "sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]",
+  'sam2_source_frame_missing',
+  "'--source-image-path'",
+  "APPROVED_PRIVATE_SOURCE_FRAME_ENABLED: 'true'",
+  "REAL_MEDIA_INPUT_ENABLED: 'false'",
+  'privateSourceFrameUsed: true',
+]) {
+  if (!sam2RunnerSource.includes(requiredSam2Token)) {
+    fail(`sam2_runner_missing_private_source_frame_token:${requiredSam2Token}`)
+  }
+}
+if (sam2RunnerSource.includes('generatedFixtureOnly: true')) {
+  fail('sam2_runner_still_claims_generated_fixture_only')
+}
+
+const sam2RuntimeSource = read('docker/prod/sam2-runtime/sam2_runtime_local.py')
+for (const requiredSam2RuntimeToken of [
+  'parser.add_argument("--source-image-path", required=True)',
+  'APPROVED_PRIVATE_SOURCE_FRAME_ENABLED',
+  'create_source_frame_sequence',
+  'privateSourceFrameUsed',
+  'broadRealMediaInputEnabled',
+]) {
+  if (!sam2RuntimeSource.includes(requiredSam2RuntimeToken)) {
+    fail(`sam2_runtime_missing_private_source_frame_token:${requiredSam2RuntimeToken}`)
+  }
+}
+if (sam2RuntimeSource.includes('create_fixture_frames')) {
+  fail('sam2_runtime_still_uses_generated_fixture_frame_builder')
+}
 if (!String(report.interfaces?.privateLocalRuntimeAttemptCommand ?? '').includes('--attempt-local-runtime')) {
   fail('missing_private_runtime_attempt_command')
 }
@@ -438,6 +471,21 @@ for (const tool of tools) {
   if (!row.localInputRequirements.some((entry) => entry.key === 'nativeCudaRuntime')) {
     fail(`missing_native_cuda_requirement:${tool}`)
   }
+  if (tool === 'sam2') {
+    const nativeRequirement = row.localInputRequirements.find(
+      (entry) => entry.key === 'nativeCudaRuntime',
+    )
+    if (!String(nativeRequirement?.description ?? '').includes('one approved private source frame')) {
+      fail('sam2_native_cuda_requirement_missing_private_source_frame_scope')
+    }
+    if (
+      row.localInputRequirements.some((entry) =>
+        String(entry.description ?? '').includes('generated fixture'),
+      )
+    ) {
+      fail('sam2_requirement_still_mentions_generated_fixture')
+    }
+  }
 }
 
 const liveOutput = JSON.parse(exec(`npm run --silent ${runScriptName}`))
@@ -483,6 +531,13 @@ for (const [index, text] of source.entries()) {
 }
 
 const joinedSource = source.join('\n')
+if (
+  joinedSource.includes(
+    'Current script uses an approved generated fixture only, not real media.',
+  )
+) {
+  fail('gpu_model_harness_still_describes_sam2_as_generated_fixture_only')
+}
 for (const requiredSourceToken of [
   'docker_container',
   'runtimeContainerImage',

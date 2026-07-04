@@ -303,7 +303,7 @@ function localInputRequirements(
           requiredForDefaultHarness: false,
           requiredForActualExecution: true,
           description:
-            'Approved CUDA runtime. Current script uses an approved generated fixture only, not real media.',
+            'Approved CUDA runtime for one approved private source frame only; broad real-media/full-video execution is not accepted.',
         },
       ]
     : [

@@ -53,6 +53,18 @@ assert.ok(
   'preflight should document service-role-only settlement RPC evidence variable',
 )
 assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCH_BLOCK_VERIFIED'),
+  'preflight should document deployed kill-switch blocking evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMIT_BLOCK_VERIFIED'),
+  'preflight should document deployed rate-limit blocking evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMIT_BLOCK_VERIFIED'),
+  'preflight should document deployed concurrency-limit blocking evidence variable',
+)
+assert.ok(
   passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_OWNER_PAID_PRODUCTION_APPROVED'),
   'preflight should document paid-production owner approval variable',
 )
@@ -83,6 +95,18 @@ assert.ok(
 assert.ok(
   missing.missingEvidence.some((item) => item.includes('wallet balance before/after readback')),
   'missing report should name wallet balance before/after readback proof',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('kill-switch blocking behavior')),
+  'missing report should name kill-switch negative-control proof',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('rate-limit blocking behavior')),
+  'missing report should name rate-limit negative-control proof',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('concurrency-limit blocking behavior')),
+  'missing report should name concurrency-limit negative-control proof',
 )
 assert.ok(
   missing.missingEvidence.some((item) => item.includes('paid production approval')),
@@ -188,8 +212,11 @@ function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
     REEDITPRO_PRODUCTION_OPERATIONS_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:operations',
     REEDITPRO_PRODUCTION_OPERATIONS_ROLLBACK_APPROVED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCHES_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCH_BLOCK_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMITS_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMIT_BLOCK_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMITS_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMIT_BLOCK_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_SERVICE_ROLE_ONLY_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_READBACK_VERIFIED: yes,

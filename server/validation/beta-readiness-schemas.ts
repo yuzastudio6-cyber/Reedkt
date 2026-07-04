@@ -291,8 +291,11 @@ const productionObservabilityEvidenceSchema = productionEvidenceNotesSchema.exte
 const productionOperationsControlEvidenceSchema = productionEvidenceNotesSchema.extend({
   rollbackPlanApproved: z.boolean(),
   killSwitchesVerified: z.boolean(),
+  killSwitchBlockVerified: z.boolean(),
   rateLimitsVerified: z.boolean(),
+  rateLimitBlockVerified: z.boolean(),
   concurrencyLimitsVerified: z.boolean(),
+  concurrencyLimitBlockVerified: z.boolean(),
   opsAdmissionRpcDeployed: z.boolean(),
   opsAdmissionRpcServiceRoleOnlyVerified: z.boolean(),
   opsAdmissionRpcReadbackVerified: z.boolean(),

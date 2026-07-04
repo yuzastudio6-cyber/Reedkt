@@ -30,6 +30,20 @@ assert.equal(blocked.ok, false, 'missing observability notes should block')
 assert.equal(blocked.evidence.observability.ready, false, 'observability slice should be blocked')
 assert.equal(blocked.evidence.observability.blockers.includes('evidence notes are missing.'), true)
 
+const missingKillSwitchBlock = await runProductionOpsObservabilityEvidenceCollectorFromEnv({
+  ...opsObservabilityEnv(),
+  REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCH_BLOCK_VERIFIED: 'false',
+}, async () => {
+  throw new Error('fetch must not run with missing kill-switch negative-control evidence')
+})
+assert.equal(missingKillSwitchBlock.ok, false, 'missing kill-switch negative-control proof should block')
+assert.equal(missingKillSwitchBlock.evidence.operationsControls.ready, false, 'operations controls should be blocked')
+assert.equal(
+  missingKillSwitchBlock.evidence.operationsControls.blockers.includes('killSwitchBlockVerified is not verified.'),
+  true,
+  'missing kill-switch negative-control proof should be named',
+)
+
 await assert.rejects(
   () => runProductionOpsObservabilityEvidenceCollectorFromEnv({
     ...opsObservabilityEnv(),
@@ -171,8 +185,11 @@ function opsObservabilityEnv(): ProductionOpsObservabilityEvidenceCollectorEnv {
     REEDITPRO_PRODUCTION_OPERATIONS_EVIDENCE_ARTIFACT_ID: 'prod-ops-observability-artifact:operations',
     REEDITPRO_PRODUCTION_OPERATIONS_ROLLBACK_APPROVED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCHES_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCH_BLOCK_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMITS_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMIT_BLOCK_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMITS_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMIT_BLOCK_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_SERVICE_ROLE_ONLY_VERIFIED: yes,
     REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_READBACK_VERIFIED: yes,

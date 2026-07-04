@@ -80,6 +80,8 @@ const privateModelRootEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
 const defaultPrivateModelRoot =
   '.local-artifacts/ai-graphics/private-model-cache'
+const nativeCudaCloseoutScript =
+  'ai-graphics:external-agent-native-cuda-closeout'
 const remainingNativeCudaToolIds = ['sam2', 'birefnet'] as const
 type RemainingNativeCudaToolId = typeof remainingNativeCudaToolIds[number]
 
@@ -642,6 +644,25 @@ function remainingNativeCudaReadinessRecheckCommand(
   ].join(' ')
 }
 
+function remainingNativeCudaCloseoutCommand(options: {
+  strict: boolean
+}): string {
+  const command = [
+    `npm run --silent ${nativeCudaCloseoutScript} --`,
+    '--detect-host',
+    '--private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
+    '--source-image <private-approved-frame.png>',
+    '--output-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout',
+    '--existing-proof-result <accepted-proof-for-torch_torchvision-transformers-kornia.json>',
+    '--existing-proof-result <accepted-proof-for-real_esrgan.json>',
+    '--existing-proof-result <accepted-proof-for-rembg.json>',
+    '--existing-proof-result <accepted-proof-for-transparent_background.json>',
+    '--attempt-local-runtime',
+  ]
+  if (options.strict) command.push('--strict-exit-code')
+  return command.join(' ')
+}
+
 function remainingNativeCudaModelRootForInspection(): string | null {
   if (hasFlag('--write-records')) return null
   const explicitRoot = stringFlag('--private-model-root')
@@ -774,6 +795,12 @@ function remainingNativeCudaClosure(
       : [],
     currentHostPreflightCommand:
       'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible',
+    nativeCudaCloseoutCommand:
+      remainingNativeCudaCloseoutCommand({ strict: false }),
+    nativeCudaCloseoutStrictCommand:
+      remainingNativeCudaCloseoutCommand({ strict: true }),
+    nativeCudaCloseoutDiagnosticCommand:
+      'npm run --silent ai-graphics:external-agent-native-cuda-closeout:diagnostics',
     tools: toolEntries,
     all21CloseoutReadinessCommand:
       [
@@ -2070,6 +2097,9 @@ ${runtimeInputManifestRows}
 - Current host eligible for native GPU proof: \`${report.remainingNativeCudaClosure.currentHostEligibleForNativeGpuProof}\`
 - Current host blockers: \`${report.remainingNativeCudaClosure.currentHostBlockers.join('; ') || 'none'}\`
 - Host preflight command: \`${report.remainingNativeCudaClosure.currentHostPreflightCommand}\`
+- Native CUDA closeout command: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutCommand}\`
+- Native CUDA strict closeout command: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutStrictCommand}\`
+- Native CUDA closeout diagnostic command: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutDiagnosticCommand}\`
 - Private model root inspected: \`${report.remainingNativeCudaClosure.privateModelRootInspection.inspected}\`
 - Private model root exists: \`${report.remainingNativeCudaClosure.privateModelRootInspection.rootExists}\`
 - All-21 closeout readiness command: \`${report.remainingNativeCudaClosure.all21CloseoutReadinessCommand}\`

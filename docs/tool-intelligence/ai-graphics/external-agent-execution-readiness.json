@@ -3098,6 +3098,9 @@
     "currentHostEligibleForNativeGpuProof": false,
     "currentHostBlockers": [],
     "currentHostPreflightCommand": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible",
+    "nativeCudaCloseoutCommand": "npm run --silent ai-graphics:external-agent-native-cuda-closeout -- --detect-host --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --source-image <private-approved-frame.png> --output-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout --existing-proof-result <accepted-proof-for-torch_torchvision-transformers-kornia.json> --existing-proof-result <accepted-proof-for-real_esrgan.json> --existing-proof-result <accepted-proof-for-rembg.json> --existing-proof-result <accepted-proof-for-transparent_background.json> --attempt-local-runtime",
+    "nativeCudaCloseoutStrictCommand": "npm run --silent ai-graphics:external-agent-native-cuda-closeout -- --detect-host --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --source-image <private-approved-frame.png> --output-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout --existing-proof-result <accepted-proof-for-torch_torchvision-transformers-kornia.json> --existing-proof-result <accepted-proof-for-real_esrgan.json> --existing-proof-result <accepted-proof-for-rembg.json> --existing-proof-result <accepted-proof-for-transparent_background.json> --attempt-local-runtime --strict-exit-code",
+    "nativeCudaCloseoutDiagnosticCommand": "npm run --silent ai-graphics:external-agent-native-cuda-closeout:diagnostics",
     "tools": [
       {
         "toolId": "sam2",

@@ -967,6 +967,38 @@ function checkReport(label, report) {
       fail(`${label}_remaining_native_cuda_missing_host_preflight_command`)
     }
     if (
+      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+        'ai-graphics:external-agent-native-cuda-closeout',
+      ) ||
+      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+        '--attempt-local-runtime',
+      ) ||
+      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+        '--existing-proof-result <accepted-proof-for-transparent_background.json>',
+      ) ||
+      String(closure.nativeCudaCloseoutCommand ?? '').includes(
+        '--strict-exit-code',
+      )
+    ) {
+      fail(`${label}_remaining_native_cuda_missing_closeout_command`)
+    }
+    if (
+      !String(closure.nativeCudaCloseoutStrictCommand ?? '').includes(
+        'ai-graphics:external-agent-native-cuda-closeout',
+      ) ||
+      !String(closure.nativeCudaCloseoutStrictCommand ?? '').includes(
+        '--strict-exit-code',
+      )
+    ) {
+      fail(`${label}_remaining_native_cuda_missing_strict_closeout_command`)
+    }
+    if (
+      closure.nativeCudaCloseoutDiagnosticCommand !==
+      'npm run --silent ai-graphics:external-agent-native-cuda-closeout:diagnostics'
+    ) {
+      fail(`${label}_remaining_native_cuda_missing_closeout_diagnostic_command`)
+    }
+    if (
       !String(closure.all21CloseoutReadinessCommand ?? '').includes(
         'ai-graphics:external-agent-execution-readiness',
       ) ||
@@ -2247,6 +2279,9 @@ for (const phrase of [
   'nextExactCurrentHostPreflightCommand',
   'remainingNativeCudaClosure',
   'remainingNativeCudaRuntimeInputManifestPrivateRootCommand',
+  'nativeCudaCloseoutScript',
+  'remainingNativeCudaCloseoutCommand',
+  'ai-graphics:external-agent-native-cuda-closeout',
   'ZhengPeng7/BiRefNet',
   'sam2.1_hiera_tiny.pt',
 ]) {

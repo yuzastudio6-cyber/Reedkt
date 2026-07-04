@@ -26,6 +26,14 @@ type QuotaDocument = {
   quotas?: QuotaEntry[]
 }
 
+type MissingReadPermission = {
+  toolId: string
+  permission: string
+  likelyMinimalRole: string
+  resourceScope: string
+  reason: string
+}
+
 const TOKEN_LIKE_PATTERNS: Array<[string, RegExp]> = [
   ['url', /\bhttps?:\/\/\S+/gi],
   ['access token', /\bya29\.[A-Za-z0-9._-]+/g],
@@ -309,6 +317,87 @@ function main() {
   const anyAccountReadyForBoth = accountDiagnostics.some(
     (account) => account.qwenReadAccessPassed && account.brollQuotaSufficient,
   )
+  const requestedAccountIndex = selectedAccountIndex()
+  const selectedAccount = requestedAccountIndex
+    ? accountDiagnostics.find((account) => account.accountIndex === requestedAccountIndex)
+    : undefined
+  const selectedAccountMissingReadPermissions: MissingReadPermission[] = []
+  if (selectedAccount?.tokenRefreshPassed) {
+    if (!selectedAccount.qwenServiceReadPassed) {
+      selectedAccountMissingReadPermissions.push({
+        toolId: spec.qwen.toolId,
+        permission: 'run.services.get',
+        likelyMinimalRole: spec.qwen.likelyMinimalRole,
+        resourceScope: spec.qwen.requiredResourceScope,
+        reason: 'Qwen Cloud Run service describe failed for the selected account index',
+      })
+    }
+    if (!selectedAccount.qwenJobReadPassed) {
+      selectedAccountMissingReadPermissions.push({
+        toolId: spec.qwen.toolId,
+        permission: 'run.jobs.get',
+        likelyMinimalRole: spec.qwen.likelyMinimalRole,
+        resourceScope: spec.qwen.requiredResourceScope,
+        reason: 'Qwen Cloud Run private caller job describe failed for the selected account index',
+      })
+    }
+    if (!selectedAccount.brollProjectQuotaReadPassed) {
+      selectedAccountMissingReadPermissions.push({
+        toolId: spec.broll.toolId,
+        permission: 'compute.projects.get',
+        likelyMinimalRole: spec.broll.likelyMinimalRole,
+        resourceScope: spec.broll.requiredResourceScope,
+        reason: 'B-roll project quota describe failed for the selected account index',
+      })
+    }
+    if (!selectedAccount.brollRegionQuotaReadPassed) {
+      selectedAccountMissingReadPermissions.push({
+        toolId: spec.broll.toolId,
+        permission: 'compute.regions.get',
+        likelyMinimalRole: spec.broll.likelyMinimalRole,
+        resourceScope: spec.broll.requiredResourceScope,
+        reason: 'B-roll regional L4 quota describe failed for the selected account index',
+      })
+    }
+  }
+  const selectedAccountRepairRequest = requestedAccountIndex
+    ? {
+        accountIndex: requestedAccountIndex,
+        accountFound: Boolean(selectedAccount),
+        accountRedacted: selectedAccount ? '<redacted email>' : undefined,
+        accountDomain: selectedAccount?.accountDomain,
+        tokenRefreshPassed: selectedAccount?.tokenRefreshPassed ?? false,
+        qwenReadAccessPassed: selectedAccount?.qwenReadAccessPassed ?? false,
+        brollQuotaReadAccessPassed: selectedAccount?.brollQuotaReadAccessPassed ?? false,
+        brollQuotaSufficient: selectedAccount?.brollQuotaSufficient ?? false,
+        missingReadPermissions: selectedAccountMissingReadPermissions,
+        likelyMinimalRoles: Array.from(
+          new Set(selectedAccountMissingReadPermissions.map((permission) => permission.likelyMinimalRole)),
+        ),
+        tokenRepairRequired: selectedAccount ? !selectedAccount.tokenRefreshPassed : true,
+        gcpOwnerRepairRequired:
+          Boolean(selectedAccount?.tokenRefreshPassed) && selectedAccountMissingReadPermissions.length > 0,
+        safeRepairChecklist: selectedAccount?.tokenRefreshPassed
+          ? [
+              'ask the GCP owner to grant or confirm only the listed read permissions for the selected account',
+              'do not create replacement Cloud Run resources or Compute VMs from this diagnostic',
+              'rerun the selected account preflight after the read permissions are fixed',
+            ]
+          : [
+              'refresh or select a local gcloud account whose token can refresh in this shell',
+              'rerun the selected account diagnostic before asking for IAM changes',
+            ],
+        postRepairVerificationCommands: [
+          `npm run external-agent-gcp-access:verify -- --account-index ${requestedAccountIndex}`,
+          `npm run external-agent-tool-blockers:preflight -- --account-index ${requestedAccountIndex}`,
+          `npm run external-agent-tool-next-command -- --account-index ${requestedAccountIndex}`,
+        ],
+        mutatesGcp: false,
+        mutatesLocalGcloudConfig: false,
+        runsRuntime: false,
+        runtimeExecutionStillRequiresWrapperGate: true,
+      }
+    : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
   const recommendedNextPrompt = applySelectedAccountIndex(
     anyAccountReadyForBoth ? spec.nextActionIfAnyAccountReady : spec.nextActionIfNoAccountReady,
@@ -334,6 +423,7 @@ function main() {
         brollQuotaReadyAccountCount,
         anyAccountReadyForBoth,
         accountDiagnostics,
+        selectedAccountRepairRequest,
         postRepairCodexVerificationCommand: applySelectedAccountIndex(spec.postRepairCodexVerificationCommand),
         runtimeSideEffects: spec.runtimeSideEffects,
         runtimeGatesAllFalse,

@@ -206,6 +206,9 @@ function main() {
               brollQuotaReadyAccountCount:
                 nestedNumber(accountAccessDiagnostic.json, ['brollQuotaReadyAccountCount']) ?? 0,
               anyAccountReadyForBoth: nestedBoolean(accountAccessDiagnostic.json, ['anyAccountReadyForBoth']),
+              selectedAccountRepairRequest: nested(accountAccessDiagnostic.json, [
+                'selectedAccountRepairRequest',
+              ]),
               recommendedNextPrompt: nestedString(accountAccessDiagnostic.json, ['recommendedNextPrompt']),
             }
           : undefined,

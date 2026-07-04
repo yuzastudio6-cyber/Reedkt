@@ -18,6 +18,9 @@ export const EXTERNAL_AGENT_GCLOUD_ACCOUNT_ACCESS_DIAGNOSTIC = {
     callerJobName: 'reeditpro-qwen2-5-vl-private-caller',
     region: 'us-central1',
     requiredReadAccess: ['run.services.get', 'run.jobs.get'],
+    likelyMinimalRole: 'roles/run.viewer',
+    requiredResourceScope:
+      'project reeditpro, region us-central1, Qwen worker service and private caller job visibility',
   },
   broll: {
     toolId: 'ai_video_broll_generation_wan',
@@ -26,6 +29,9 @@ export const EXTERNAL_AGENT_GCLOUD_ACCOUNT_ACCESS_DIAGNOSTIC = {
     minimumGlobalGpusAllRegionsQuota: 1,
     minimumRegionalL4Quota: 1,
     requiredReadAccess: ['compute.projects.get', 'compute.regions.get'],
+    likelyMinimalRole: 'roles/compute.viewer',
+    requiredResourceScope:
+      'project reeditpro, region northamerica-northeast2, global GPU quota and regional L4 quota visibility',
   },
   nextActionIfAnyAccountReady:
     'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select the redacted local gcloud account candidate with required ReEditPro read access, then rerun npm run external-agent-tool-blockers:preflight -- --account-index <account-index>',

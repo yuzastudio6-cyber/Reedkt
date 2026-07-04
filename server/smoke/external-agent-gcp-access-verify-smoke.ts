@@ -175,6 +175,19 @@ assert.equal(
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json --account-index 2',
 )
 assert.equal(indexedCli.accountAccessDiagnostic.recommendedNextPrompt.includes('--account-index 2'), true)
+assert.equal(indexedCli.accountAccessDiagnostic.selectedAccountRepairRequest.accountIndex, 2)
+assert.equal(indexedCli.accountAccessDiagnostic.selectedAccountRepairRequest.mutatesGcp, false)
+assert.equal(indexedCli.accountAccessDiagnostic.selectedAccountRepairRequest.runsRuntime, false)
+assert.equal(
+  indexedCli.accountAccessDiagnostic.selectedAccountRepairRequest.runtimeExecutionStillRequiresWrapperGate,
+  true,
+)
+assert.equal(
+  indexedCli.accountAccessDiagnostic.selectedAccountRepairRequest.postRepairVerificationCommands.includes(
+    'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+  ),
+  true,
+)
 assert.equal(indexedCli.recommendedNextPrompt.includes('--account-index 2'), true)
 assert.equal(JSON.stringify(indexedCli).includes('<account-index>'), false)
 assert.equal(JSON.stringify(indexedCli).includes('<redacted-index>'), false)

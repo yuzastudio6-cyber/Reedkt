@@ -75,7 +75,11 @@ assert.equal(spec.decision, 'external_agent_gcloud_account_access_diagnostic_rea
 assert.equal(spec.mode, 'read_only_external_agent_gcloud_account_access_diagnostic')
 assert.equal(spec.projectId, 'reeditpro')
 assert.deepEqual(spec.qwen.requiredReadAccess, ['run.services.get', 'run.jobs.get'])
+assert.equal(spec.qwen.likelyMinimalRole, 'roles/run.viewer')
+assert.equal(spec.qwen.requiredResourceScope.includes('Qwen worker service'), true)
 assert.deepEqual(spec.broll.requiredReadAccess, ['compute.projects.get', 'compute.regions.get'])
+assert.equal(spec.broll.likelyMinimalRole, 'roles/compute.viewer')
+assert.equal(spec.broll.requiredResourceScope.includes('regional L4 quota'), true)
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.broll.minimumRegionalL4Quota, 1)
 assert.equal(
@@ -174,6 +178,44 @@ assert.equal(typeof live.anyAccountReadyForBoth, 'boolean')
 assert.equal(live.postRepairCodexVerificationCommand, spec.postRepairCodexVerificationCommand)
 assert.equal(indexedLive.postRepairCodexVerificationCommand.includes('--account-index 2'), true)
 assert.equal(indexedLive.recommendedNextPrompt.includes('--account-index 2'), true)
+assert.equal(indexedLive.selectedAccountRepairRequest.accountIndex, 2)
+assert.equal(typeof indexedLive.selectedAccountRepairRequest.accountFound, 'boolean')
+assert.equal(indexedLive.selectedAccountRepairRequest.mutatesGcp, false)
+assert.equal(indexedLive.selectedAccountRepairRequest.mutatesLocalGcloudConfig, false)
+assert.equal(indexedLive.selectedAccountRepairRequest.runsRuntime, false)
+assert.equal(indexedLive.selectedAccountRepairRequest.runtimeExecutionStillRequiresWrapperGate, true)
+assert.equal(
+  indexedLive.selectedAccountRepairRequest.postRepairVerificationCommands.includes(
+    'npm run external-agent-gcp-access:verify -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLive.selectedAccountRepairRequest.postRepairVerificationCommands.includes(
+    'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLive.selectedAccountRepairRequest.postRepairVerificationCommands.includes(
+    'npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(Array.isArray(indexedLive.selectedAccountRepairRequest.missingReadPermissions), true)
+for (const permission of indexedLive.selectedAccountRepairRequest.missingReadPermissions as Array<{
+  toolId: string
+  permission: string
+  likelyMinimalRole: string
+  resourceScope: string
+  reason: string
+}>) {
+  assert.equal(typeof permission.toolId, 'string')
+  assert.equal(typeof permission.permission, 'string')
+  assert.equal(typeof permission.likelyMinimalRole, 'string')
+  assert.equal(typeof permission.resourceScope, 'string')
+  assert.equal(typeof permission.reason, 'string')
+}
 assert.equal(JSON.stringify(indexedLive).includes('<account-index>'), false)
 assert.equal(JSON.stringify(indexedLive).includes('<redacted-index>'), false)
 
@@ -202,7 +244,7 @@ for (const [flag, value] of Object.entries(live.runtimeSideEffects as Record<str
   assert.equal(value, false, `Runtime side-effect flag must be false: ${flag}`)
 }
 
-const forbiddenFindings = scanForbiddenValues({ spec, plan, live })
+const forbiddenFindings = scanForbiddenValues({ spec, plan, live, indexedLive })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(

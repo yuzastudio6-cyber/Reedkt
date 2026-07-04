@@ -102,6 +102,12 @@ assert.deepEqual(plan.staticExplicitToolGateReadyToolIds, [
   'qwen2_5_vl_7b_instruct',
   'ai_video_broll_generation_wan',
 ])
+assert.deepEqual(plan.safeEvidenceReviewToolIds, [
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(plan.safeEvidenceReviewToolCount, 2)
+assert.equal(plan.readyForAnyExternalAgentSafeEvidenceReviewNow, true)
 assert.equal(plan.livePreflightRequiredBeforeRuntime, true)
 assert.equal(plan.executionNowBlockedByLivePreflight, true)
 assert.equal(plan.blockedToolCount, rollup.tools.length - 1)
@@ -118,8 +124,10 @@ const toolActions = new Map(plan.toolActions.map((tool: { toolId: string }) => [
 const qwen = toolActions.get('qwen2_5_vl_7b_instruct') as {
   readyForExternalAgentExecutionNow: boolean
   readyForExternalAgentRuntimeExecutionNow: boolean
+  staticExplicitToolGateReady: boolean
   staticReadyForExternalAgentExecutionGateNow: boolean
   executionNowBlockedByLivePreflight: boolean
+  safeEvidenceReviewExecutableNow: boolean
   immediateSafeActions: string[]
   externalManualBlocker: string
   forbiddenRuntimeActions: string[]
@@ -138,8 +146,10 @@ const qwen = toolActions.get('qwen2_5_vl_7b_instruct') as {
 }
 assert.equal(qwen.readyForExternalAgentExecutionNow, false)
 assert.equal(qwen.readyForExternalAgentRuntimeExecutionNow, false)
+assert.equal(qwen.staticExplicitToolGateReady, true)
 assert.equal(qwen.staticReadyForExternalAgentExecutionGateNow, true)
 assert.equal(qwen.executionNowBlockedByLivePreflight, true)
+assert.equal(qwen.safeEvidenceReviewExecutableNow, false)
 assert.equal(qwen.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(qwen.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(qwen.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
@@ -169,6 +179,10 @@ for (const tool of plan.toolActions as Array<{
 }
 
 const broll = toolActions.get('ai_video_broll_generation_wan') as {
+  staticExplicitToolGateReady: boolean
+  staticReadyForExternalAgentExecutionGateNow: boolean
+  executionNowBlockedByLivePreflight: boolean
+  safeEvidenceReviewExecutableNow: boolean
   immediateSafeActions: string[]
   externalManualBlocker: string
   forbiddenRuntimeActions: string[]
@@ -199,6 +213,10 @@ const broll = toolActions.get('ai_video_broll_generation_wan') as {
     modelInferenceAllowedNow: boolean
   }
 }
+assert.equal(broll.staticExplicitToolGateReady, true)
+assert.equal(broll.staticReadyForExternalAgentExecutionGateNow, true)
+assert.equal(broll.executionNowBlockedByLivePreflight, true)
+assert.equal(broll.safeEvidenceReviewExecutableNow, false)
 assert.equal(broll.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(broll.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-fast-cache-readiness:check'), true)
@@ -243,10 +261,18 @@ assert.equal(broll.noIdleLifecycleGate.vmCreateAllowedNow, false)
 assert.equal(broll.noIdleLifecycleGate.modelInferenceAllowedNow, false)
 
 const sound = toolActions.get('sound_music_audio') as {
+  staticExplicitToolGateReady: boolean
+  staticReadyForExternalAgentExecutionGateNow: boolean
+  executionNowBlockedByLivePreflight: boolean
+  safeEvidenceReviewExecutableNow: boolean
   immediateSafeActions: string[]
   externalManualBlocker: string
   manualBlockerActions: unknown[]
 }
+assert.equal(sound.staticExplicitToolGateReady, false)
+assert.equal(sound.staticReadyForExternalAgentExecutionGateNow, false)
+assert.equal(sound.executionNowBlockedByLivePreflight, false)
+assert.equal(sound.safeEvidenceReviewExecutableNow, true)
 assert.equal(sound.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(sound.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(sound.immediateSafeActions.includes('npm run external-agent-tool-execute-sound'), true)
@@ -254,10 +280,18 @@ assert.equal(sound.externalManualBlocker.includes('runtime owner handoffs still 
 assert.equal(sound.manualBlockerActions.length, 0)
 
 const supabaseHarness = toolActions.get('supabase_local_fixture_harness') as {
+  staticExplicitToolGateReady: boolean
+  staticReadyForExternalAgentExecutionGateNow: boolean
+  executionNowBlockedByLivePreflight: boolean
+  safeEvidenceReviewExecutableNow: boolean
   immediateSafeActions: string[]
   externalManualBlocker: string
   manualBlockerActions: unknown[]
 }
+assert.equal(supabaseHarness.staticExplicitToolGateReady, false)
+assert.equal(supabaseHarness.staticReadyForExternalAgentExecutionGateNow, false)
+assert.equal(supabaseHarness.executionNowBlockedByLivePreflight, false)
+assert.equal(supabaseHarness.safeEvidenceReviewExecutableNow, true)
 assert.equal(supabaseHarness.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(supabaseHarness.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(

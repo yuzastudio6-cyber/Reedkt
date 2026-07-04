@@ -95,6 +95,10 @@ function main() {
       String(tool.status) === 'bounded_inference_proof_execution_attempted_failed_cleanup_verified_fix_required' ||
       String(tool.status) === 'bounded_inference_proof_fix_implemented_retry_required',
   )
+  const explicitToolGateReadyToolIds = new Set(explicitToolGateReadyTools.map((tool) => tool.toolId))
+  const safeEvidenceReviewToolIds = rollup.tools
+    .filter((tool) => tool.toolId === 'sound_music_audio' || tool.toolId === 'supabase_local_fixture_harness')
+    .map((tool) => tool.toolId)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = Object.values(rollup.runtimeSideEffects).every((value) => value === false)
   const preferredNextSafeCommand =
@@ -114,6 +118,9 @@ function main() {
     readyToolIds: [],
     staticReadyToolIds: staticReadyTools.map((tool) => tool.toolId),
     staticExplicitToolGateReadyToolIds: explicitToolGateReadyTools.map((tool) => tool.toolId),
+    safeEvidenceReviewToolIds,
+    safeEvidenceReviewToolCount: safeEvidenceReviewToolIds.length,
+    readyForAnyExternalAgentSafeEvidenceReviewNow: safeEvidenceReviewToolIds.length > 0,
     livePreflightRequiredBeforeRuntime: explicitToolGateReadyTools.length > 0,
     executionNowBlockedByLivePreflight: explicitToolGateReadyTools.length > 0,
     blockedToolCount: blockedTools.length,
@@ -138,8 +145,12 @@ function main() {
       scaleToZeroRequired: tool.scaleToZeroRequired,
       readyForExternalAgentExecutionNow: false,
       readyForExternalAgentRuntimeExecutionNow: false,
-      staticReadyForExternalAgentExecutionGateNow: tool.readyForExternalAgentExecutionNow,
-      executionNowBlockedByLivePreflight: tool.readyForExternalAgentExecutionNow,
+      staticExplicitToolGateReady: explicitToolGateReadyToolIds.has(tool.toolId),
+      staticReadyForExternalAgentExecutionGateNow:
+        tool.readyForExternalAgentExecutionNow || explicitToolGateReadyToolIds.has(tool.toolId),
+      executionNowBlockedByLivePreflight:
+        tool.readyForExternalAgentExecutionNow || explicitToolGateReadyToolIds.has(tool.toolId),
+      safeEvidenceReviewExecutableNow: safeEvidenceReviewToolIds.includes(tool.toolId),
       readyForBoundedRetryAfterBlockerClears: tool.readyForBoundedRetryAfterBlockerClears,
       noIdleLifecycleGate: tool.noIdleLifecycleGate ?? null,
       primaryBlocker: tool.primaryBlocker,

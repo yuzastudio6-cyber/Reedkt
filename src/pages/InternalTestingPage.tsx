@@ -40,6 +40,11 @@ import {
   DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_SQL_DRAFT_NEXT_GATE,
   getDurableProjectSessionSupabaseMigrationSqlDraft,
 } from '../lib/project-session-supabase-migration-sql-draft'
+import {
+  DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_REVIEW_DECISION,
+  DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_REVIEW_NEXT_GATE,
+  getDurableProjectSessionSupabaseMigrationReview,
+} from '../lib/project-session-supabase-migration-review'
 import { PROJECT_EDIT_SESSION_ACCESS_POLICY_REQUIRED_EVIDENCE } from '../lib/project-edit-session-access-policy'
 import { internalTestingScenarios, type InternalTestingScenarioStatus } from '../lib/internal-testing-scenarios'
 import {
@@ -168,6 +173,7 @@ function getScenarioHighlights() {
     'durable-project-session-supabase-route-contract-plan',
     'durable-project-session-supabase-schema-rls-draft',
     'durable-project-session-supabase-migration-sql-draft',
+    'durable-project-session-supabase-migration-review',
     'feedback-export',
   ])
 
@@ -198,6 +204,7 @@ export function InternalTestingPage() {
   const supabaseRouteContractPlan = useMemo(getDurableProjectSessionSupabaseRouteContractPlan, [])
   const supabaseSchemaRlsDraft = useMemo(getDurableProjectSessionSupabaseSchemaRlsDraft, [])
   const supabaseMigrationSqlDraft = useMemo(getDurableProjectSessionSupabaseMigrationSqlDraft, [])
+  const supabaseMigrationReview = useMemo(getDurableProjectSessionSupabaseMigrationReview, [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -899,6 +906,50 @@ export function InternalTestingPage() {
                 <li>Draft SQL is review metadata only. No executable migration is created or applied.</li>
                 <li>No local Supabase reset, remote validation, generated types, Data API read/write, Storage, or signed URL path.</li>
                 <li>No table-backed route implementation, service-role browser path, worker, media, render, credit, beta, production, or product-ready unlock.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-durable-project-session-supabase-migration-review">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Migration review</span>
+            <h2>Reviewed draft SQL is ready for a local dry-run plan, not an applied migration</h2>
+          </div>
+          <p>
+            This review accepts the draft-only route data select grants and RLS policy chain for Edit Brief route data. It still keeps the SQL under
+            <code> database/migration-drafts</code> and moves the work to a local migration dry-run plan before any Supabase migration can run.
+          </p>
+          <div className="internal-testing-auth-grid">
+            <article data-testid="internal-testing-supabase-migration-review-decision">
+              <Badge accent="success">Local dry-run plan ready</Badge>
+              <strong>{DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_REVIEW_DECISION}</strong>
+              <span>Next gate: {DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_REVIEW_NEXT_GATE}</span>
+            </article>
+            <article data-testid="internal-testing-supabase-migration-review-findings">
+              <Badge accent="cyan">Accepted findings</Badge>
+              <ul>
+                {supabaseMigrationReview.acceptedFindings.map((finding) => (
+                  <li key={finding.id}>
+                    {finding.id}: {finding.status}
+                  </li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-supabase-migration-review-dry-run">
+              <Badge accent="cyan">Dry-run requirements</Badge>
+              <ul>
+                {supabaseMigrationReview.localDryRunRequirements.slice(0, 5).map((requirement) => (
+                  <li key={requirement}>{requirement.replace(/_/g, ' ')}</li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-supabase-migration-review-boundaries">
+              <Badge accent="warning">Still gated</Badge>
+              <ul>
+                <li>No executable migration is created, copied, or applied.</li>
+                <li>No local Supabase reset, remote validation, generated types, table-backed route, Storage, or signed URL path.</li>
+                <li>No service-role browser path, worker, media, render, credit, beta, production, or product-ready unlock.</li>
               </ul>
             </article>
           </div>

@@ -337,6 +337,23 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'durable-project-session-supabase-migration-review',
+    title: 'Durable project/session Supabase migration review',
+    description: 'Review the hardened draft SQL, route data select grants, route data RLS policies, and local dry-run plan boundary.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Supabase migration review panel.',
+      'Confirm edit_briefs, edit_cues, and edit_session_export_settings select grants remain draft-only but reviewed.',
+      'Confirm route data RLS policies chain through edit_sessions, projects, workspace_members, and auth.uid().',
+      'Confirm the next gate is a local migration dry-run plan and that no local reset, remote validation, generated types, table-backed route, or product-ready gate opens.',
+    ],
+    expectedResult:
+      'Internal testers can accept the reviewed draft SQL and route-data hardening before planning a local-only migration dry run.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

@@ -109,11 +109,9 @@ grant select on public.workspaces to authenticated;
 grant select on public.workspace_members to authenticated;
 grant select on public.projects to authenticated;
 grant select on public.edit_sessions to authenticated;
-
--- Route data table select grants remain review-only until policy inheritance is verified:
--- grant select on public.edit_briefs to authenticated;
--- grant select on public.edit_cues to authenticated;
--- grant select on public.edit_session_export_settings to authenticated;
+grant select on public.edit_briefs to authenticated;
+grant select on public.edit_cues to authenticated;
+grant select on public.edit_session_export_settings to authenticated;
 
 alter table public.profiles enable row level security;
 alter table public.workspaces enable row level security;
@@ -166,4 +164,47 @@ create policy edit_sessions_select_project_member on public.edit_sessions
     )
   );
 
--- Route data policies are intentionally left for migration review before select grants graduate.
+create policy edit_briefs_select_project_member on public.edit_briefs
+  for select to authenticated
+  using (
+    exists (
+      select 1
+      from public.edit_sessions es
+      join public.projects p on p.id = es.project_id
+      join public.workspace_members wm on wm.workspace_id = p.workspace_id
+      where edit_briefs.edit_session_id = es.id
+        and edit_briefs.project_id = p.id
+        and wm.user_id = auth.uid()
+    )
+  );
+
+create policy edit_cues_select_project_member on public.edit_cues
+  for select to authenticated
+  using (
+    exists (
+      select 1
+      from public.edit_briefs eb
+      join public.edit_sessions es on es.id = eb.edit_session_id
+      join public.projects p on p.id = es.project_id
+      join public.workspace_members wm on wm.workspace_id = p.workspace_id
+      where edit_cues.brief_id = eb.id
+        and edit_cues.edit_session_id = es.id
+        and wm.user_id = auth.uid()
+    )
+  );
+
+create policy edit_session_export_settings_select_project_member on public.edit_session_export_settings
+  for select to authenticated
+  using (
+    exists (
+      select 1
+      from public.edit_sessions es
+      join public.projects p on p.id = es.project_id
+      join public.workspace_members wm on wm.workspace_id = p.workspace_id
+      where edit_session_export_settings.edit_session_id = es.id
+        and edit_session_export_settings.project_id = p.id
+        and wm.user_id = auth.uid()
+    )
+  );
+
+-- Route data select policies are now reviewed as draft-only SQL. They remain unapplied.

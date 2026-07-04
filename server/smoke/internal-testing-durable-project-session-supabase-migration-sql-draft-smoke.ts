@@ -31,6 +31,10 @@ const requiredFiles = [
   'docs/internal-testing-durable-project-session-supabase-migration-sql-draft.md',
   'docs/internal-testing-durable-project-session-supabase-migration-sql-draft.json',
   'server/smoke/internal-testing-durable-project-session-supabase-migration-sql-draft-smoke.ts',
+  'src/lib/project-session-supabase-migration-review.ts',
+  'docs/internal-testing-durable-project-session-supabase-migration-review.md',
+  'docs/internal-testing-durable-project-session-supabase-migration-review.json',
+  'server/smoke/internal-testing-durable-project-session-supabase-migration-review-smoke.ts',
   'src/lib/project-session-supabase-schema-rls-draft.ts',
   'docs/internal-testing-durable-project-session-supabase-schema-rls-draft.md',
   'docs/internal-testing-durable-project-session-supabase-schema-rls-draft.json',
@@ -95,9 +99,15 @@ for (const phrase of [
   'create index if not exists workspace_members_user_workspace_lookup',
   'grant usage on schema public to authenticated',
   'grant select on public.edit_sessions to authenticated',
+  'grant select on public.edit_briefs to authenticated',
+  'grant select on public.edit_cues to authenticated',
+  'grant select on public.edit_session_export_settings to authenticated',
   'create policy projects_select_workspace_member',
   'create policy edit_sessions_select_project_member',
-  'Route data policies are intentionally left for migration review',
+  'create policy edit_briefs_select_project_member',
+  'create policy edit_cues_select_project_member',
+  'create policy edit_session_export_settings_select_project_member',
+  'Route data select policies are now reviewed as draft-only SQL',
 ]) {
   assert.match(draftSql, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'))
 }
@@ -135,7 +145,7 @@ assert.equal(docJson.draftSqlFile, DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_SQ
 assert.ok(docJson.coreTables?.includes('workspace_members'))
 assert.ok(docJson.routeDataTables?.includes('edit_session_export_settings'))
 assert.equal(docJson.grantPolicy?.mutationGrants, 'absent')
-assert.equal(docJson.grantPolicy?.routeDataSelectGrants, 'review_only_commented_out')
+assert.equal(docJson.grantPolicy?.routeDataSelectGrants, 'reviewed_draft_select_after_migration_review')
 assert.ok(docJson.reviewChecks?.includes('draft_file_lives_under_database_migration_drafts_not_supabase_migrations'))
 assert.equal(docJson.blockedScope?.migrationSqlDraftWritten, true)
 assert.equal(docJson.blockedScope?.executableMigrationCreated, false)
@@ -154,7 +164,7 @@ for (const phrase of [
   'not under `supabase/migrations`',
   'workspace_members',
   'edit_sessions',
-  'route data table select grants remain commented out',
+  'route data table select grants and policies are now reviewed as draft-only SQL',
   'No executable migration is created',
   DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_SQL_DRAFT_NEXT_GATE,
 ]) {
@@ -190,7 +200,10 @@ const sourceTruthJson = JSON.parse(read('docs/project-edit-brief-source-truth-re
 }
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_migration_sql_draft'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-migration-sql-draft'))
-assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_review'))
+assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_migration_review'))
+assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-migration-review'))
+assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_local_migration_dry_run_plan'))
+assert.equal(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_review'), false)
 assert.equal(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_sql_draft'), false)
 
 assert.ok(

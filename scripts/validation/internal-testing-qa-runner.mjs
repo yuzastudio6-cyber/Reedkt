@@ -36,6 +36,7 @@ const smokeCommands = [
   ['npm', ['run', 'smoke:internal-testing-durable-project-session-supabase-route-contract-plan']],
   ['npm', ['run', 'smoke:internal-testing-durable-project-session-supabase-schema-rls-draft']],
   ['npm', ['run', 'smoke:internal-testing-durable-project-session-supabase-migration-sql-draft']],
+  ['npm', ['run', 'smoke:internal-testing-durable-project-session-supabase-migration-review']],
   ['npm', ['run', 'smoke:beta-readiness']],
 ]
 

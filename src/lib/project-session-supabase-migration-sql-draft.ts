@@ -119,7 +119,7 @@ create table if not exists public.edit_session_export_settings (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );`,
-    status: 'draft_only_not_applied_route_data_select_pending_review',
+    status: 'draft_only_not_applied_route_data_select_reviewed_by_migration_review',
   },
   {
     id: 'membership-lookup-indexes',
@@ -154,12 +154,10 @@ grant select on public.workspaces to authenticated;
 grant select on public.workspace_members to authenticated;
 grant select on public.projects to authenticated;
 grant select on public.edit_sessions to authenticated;
-
--- Route data table select grants remain review-only until policy inheritance is verified:
--- grant select on public.edit_briefs to authenticated;
--- grant select on public.edit_cues to authenticated;
--- grant select on public.edit_session_export_settings to authenticated;`,
-    status: 'draft_only_not_applied_core_select_only',
+grant select on public.edit_briefs to authenticated;
+grant select on public.edit_cues to authenticated;
+grant select on public.edit_session_export_settings to authenticated;`,
+    status: 'draft_only_not_applied_core_and_reviewed_route_data_select',
   },
   {
     id: 'authenticated-role-rls-policies',
@@ -214,15 +212,58 @@ create policy edit_sessions_select_project_member on public.edit_sessions
       where p.id = edit_sessions.project_id
         and wm.user_id = auth.uid()
     )
+  );
+
+create policy edit_briefs_select_project_member on public.edit_briefs
+  for select to authenticated
+  using (
+    exists (
+      select 1
+      from public.edit_sessions es
+      join public.projects p on p.id = es.project_id
+      join public.workspace_members wm on wm.workspace_id = p.workspace_id
+      where edit_briefs.edit_session_id = es.id
+        and edit_briefs.project_id = p.id
+        and wm.user_id = auth.uid()
+    )
+  );
+
+create policy edit_cues_select_project_member on public.edit_cues
+  for select to authenticated
+  using (
+    exists (
+      select 1
+      from public.edit_briefs eb
+      join public.edit_sessions es on es.id = eb.edit_session_id
+      join public.projects p on p.id = es.project_id
+      join public.workspace_members wm on wm.workspace_id = p.workspace_id
+      where edit_cues.brief_id = eb.id
+        and edit_cues.edit_session_id = es.id
+        and wm.user_id = auth.uid()
+    )
+  );
+
+create policy edit_session_export_settings_select_project_member on public.edit_session_export_settings
+  for select to authenticated
+  using (
+    exists (
+      select 1
+      from public.edit_sessions es
+      join public.projects p on p.id = es.project_id
+      join public.workspace_members wm on wm.workspace_id = p.workspace_id
+      where edit_session_export_settings.edit_session_id = es.id
+        and edit_session_export_settings.project_id = p.id
+        and wm.user_id = auth.uid()
+    )
   );`,
-    status: 'draft_only_not_applied_route_data_policies_pending_review',
+    status: 'draft_only_not_applied_core_and_route_data_policies_reviewed',
   },
 ] as const
 
 export const DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_SQL_DRAFT_REVIEW_CHECKS = [
   'draft_file_lives_under_database_migration_drafts_not_supabase_migrations',
-  'core_select_grants_only_until_route_data_policy_review',
-  'authenticated_role_rls_uses_workspace_membership_chain',
+  'core_and_reviewed_route_data_select_grants_only',
+  'authenticated_role_rls_uses_workspace_membership_chain_for_core_and_route_data',
   'anonymous_access_denied_by_absent_grants_and_rls',
   'mutation_grants_absent_for_internal_testing_draft',
   'no_local_supabase_reset_or_remote_database_apply',

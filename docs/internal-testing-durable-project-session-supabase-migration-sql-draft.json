@@ -32,7 +32,7 @@
       "projects",
       "edit_sessions"
     ],
-    "routeDataSelectGrants": "review_only_commented_out",
+    "routeDataSelectGrants": "reviewed_draft_select_after_migration_review",
     "mutationGrants": "absent"
   },
   "rlsPolicyIntents": [
@@ -41,12 +41,12 @@
     "workspace_members readable only by the signed-in member",
     "projects readable only through workspace membership",
     "edit_sessions readable only through project workspace membership",
-    "route data policies intentionally pending migration review"
+    "route data policies reviewed as draft-only SQL after migration review"
   ],
   "reviewChecks": [
     "draft_file_lives_under_database_migration_drafts_not_supabase_migrations",
-    "core_select_grants_only_until_route_data_policy_review",
-    "authenticated_role_rls_uses_workspace_membership_chain",
+    "core_and_reviewed_route_data_select_grants_only",
+    "authenticated_role_rls_uses_workspace_membership_chain_for_core_and_route_data",
     "anonymous_access_denied_by_absent_grants_and_rls",
     "mutation_grants_absent_for_internal_testing_draft",
     "no_local_supabase_reset_or_remote_database_apply",

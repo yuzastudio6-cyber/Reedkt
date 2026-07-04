@@ -279,7 +279,7 @@ export function buildAiGraphicsExternalAgentToolCallResult(
 }
 
 function gpuModelRequiresSourceImage(toolId: string): boolean {
-  return !['torch_torchvision', 'transformers', 'sam2'].includes(toolId)
+  return !['torch_torchvision', 'transformers'].includes(toolId)
 }
 
 function gpuModelScopedRuntimeProofFlags(toolId: string): string[] {

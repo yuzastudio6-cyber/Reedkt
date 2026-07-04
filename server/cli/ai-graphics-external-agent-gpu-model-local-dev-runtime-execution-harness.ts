@@ -209,7 +209,7 @@ function modelWeightManifestRequired(toolId: AiGraphicsCanonicalToolId): boolean
 function gpuModelRequiresSourceImage(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 ): boolean {
-  return !['torch_torchvision', 'transformers', 'sam2'].includes(toolId)
+  return !['torch_torchvision', 'transformers'].includes(toolId)
 }
 
 function localInputRequirements(
@@ -296,6 +296,7 @@ function localInputRequirements(
   return toolId === 'sam2'
     ? [
         outputDirectory,
+        sourceImage,
         modelInputByTool[toolId],
         {
           key: 'nativeCudaRuntime',

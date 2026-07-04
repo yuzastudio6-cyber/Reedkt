@@ -338,7 +338,7 @@ function scopedGpuModelPrivateOutputDirectory(
 function gpuModelRequiresSourceImage(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 ): boolean {
-  return !['torch_torchvision', 'transformers', 'sam2'].includes(toolId)
+  return !['torch_torchvision', 'transformers'].includes(toolId)
 }
 
 function scopedGpuModelPrivateSourceImageLocalPath(
@@ -663,7 +663,7 @@ function privateInputBlockingReasonCodes(
   > = {
     torch_torchvision: [],
     transformers: [],
-    sam2: ['sam2_checkpoint_missing'],
+    sam2: ['sam2_checkpoint_missing', 'sam2_source_frame_missing'],
     birefnet: ['birefnet_model_missing', 'birefnet_source_frame_missing'],
     real_esrgan: [
       'real_esrgan_model_missing',

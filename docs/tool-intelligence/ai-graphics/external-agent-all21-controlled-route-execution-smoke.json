@@ -133,7 +133,7 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:sam2_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+        "nextExternalAgentAction": "blocked_with_reason:sam2_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
       },
       "blockingReasonCode": "sam2_disabled_or_not_local_dev",
       "failureDiagnostics": null,
@@ -1241,9 +1241,9 @@
         "gpu_model_runtime_container_image_missing"
       ],
       "executableOnCudaHostWithPrivateInput": false,
-      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-sam2-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-sam2-checkpoint.pt",
+      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-approved-frame.ppm --scoped-gpu-sam2-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-sam2-checkpoint.pt",
       "privateOutputDirectory": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2",
-      "privateSourceImageLocalPath": null,
+      "privateSourceImageLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-approved-frame.ppm",
       "privateRuntimeInputRefs": {
         "sam2CheckpointLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-sam2-checkpoint.pt"
       },
@@ -1275,7 +1275,7 @@
             "publicArtifactCreated": false,
             "signedUrlCreated": false
           },
-          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
         },
         "blockingReasonCode": "gpu_model_runtime_container_image_missing",
         "failureDiagnostics": null,

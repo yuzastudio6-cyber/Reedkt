@@ -160,7 +160,7 @@ function expectedGroup(toolId) {
 }
 
 function gpuModelRequiresSourceImage(toolId) {
-  return !['torch_torchvision', 'transformers', 'sam2'].includes(toolId)
+  return !['torch_torchvision', 'transformers'].includes(toolId)
 }
 
 function expectedMinimumPrivateRuntimeInputKeys(toolId) {

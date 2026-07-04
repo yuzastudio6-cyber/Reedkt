@@ -188,7 +188,9 @@ function hasScopedLocalRuntimeInputs(
   if (!outputDirectory) return false
 
   if (toolId === 'torch_torchvision' || toolId === 'transformers') return true
-  if (toolId === 'sam2') return Boolean(optionalString(payload, 'sam2CheckpointLocalPath'))
+  if (toolId === 'sam2') {
+    return Boolean(sourceFrame && optionalString(payload, 'sam2CheckpointLocalPath'))
+  }
   if (toolId === 'birefnet') {
     return Boolean(sourceFrame && optionalString(payload, 'birefnetModelLocalPath'))
   }
@@ -590,6 +592,11 @@ function privateLocalRuntimeInputBlock(
       pathValue: optionalString(payload, 'sam2CheckpointLocalPath'),
       code: 'sam2_checkpoint_missing',
       label: 'SAM2 checkpoint',
+    }) ?? missingLocalPathBlock({
+      toolId,
+      pathValue: sourceFrame,
+      code: 'sam2_source_frame_missing',
+      label: 'SAM2 private source image/frame',
     })
   }
 

@@ -49,6 +49,7 @@ const gpuModelTools = [
 ]
 const allTools = [...gpuModelTools, ...cpuStaticTools, ...browserRuntimeTools]
 const sourceImageRequiredGpuModelTools = new Set([
+  'sam2',
   'birefnet',
   'real_esrgan',
   'kornia',

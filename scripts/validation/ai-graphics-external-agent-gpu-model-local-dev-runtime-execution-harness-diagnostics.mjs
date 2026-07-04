@@ -28,6 +28,7 @@ const tools = [
 ]
 
 const sourceImageRequiredTools = new Set([
+  'sam2',
   'birefnet',
   'real_esrgan',
   'kornia',

@@ -29,6 +29,7 @@ Status: architecture/docs only. This report maps future `ProjectEditSession` Bri
 23. RP-EDITBRIEF-16 — Production-Shaped Internal Persistence Implementation Plan
 24. RP-EDITBRIEF-17 — Internal Persistence Backend Skeleton
 25. RP-EDITBRIEF-18 — Internal Route Integration
+26. RP-EDITBRIEF-19 — Internal Testing Readback And QA
 
 ## Gate
 
@@ -165,3 +166,9 @@ Next recommended milestone for internal testing: `RP-EDITBRIEF-17 — Internal P
 Status: complete as a backend skeleton only. The milestone adds a production-shaped internal persistence backend seam with `mock_internal` and `supabase_disabled_internal` modes, idempotency and audit envelope validation for mutating operations, partial expensive-work approval blocking, mock repository write-path evidence, and disabled Supabase fail-closed evidence. It does not enable production routes, live Supabase, Storage, signed URLs, providers/models, media processing, workers, render/export, uploads, external beta, paid production, or credit spend.
 
 Next recommended milestone for internal testing: `RP-EDITBRIEF-18 — Internal Route Integration`.
+
+## RP-EDITBRIEF-18 — Internal Route Integration
+
+Status: complete as internal route integration only. The milestone routes Project Edit Brief mock handlers through the internal persistence backend skeleton and returns internal persistence metadata in successful route responses while preserving safety flags. It does not enable production HTTP routes, live Supabase, Storage, signed URLs, providers/models, media processing, workers, render/export, uploads, external beta, paid production, or credit spend.
+
+Next recommended milestone for internal testing: `RP-EDITBRIEF-19 — Internal Testing Readback And QA`.

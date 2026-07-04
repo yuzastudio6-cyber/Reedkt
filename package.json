@@ -125,6 +125,7 @@
     "smoke:project-edit-brief-internal-testing-owner-acceptance": "tsx server/smoke/project-edit-brief-internal-testing-owner-acceptance-smoke.ts",
     "smoke:project-edit-brief-internal-persistence-plan": "tsx server/smoke/project-edit-brief-internal-persistence-plan-smoke.ts",
     "smoke:project-edit-brief-internal-persistence-backend-skeleton": "tsx server/smoke/project-edit-brief-internal-persistence-backend-skeleton-smoke.ts",
+    "smoke:project-edit-brief-internal-route-integration": "tsx server/smoke/project-edit-brief-internal-route-integration-smoke.ts",
     "generate:project-edit-brief-owner-evidence-draft": "tsx scripts/validation/project-edit-brief-owner-evidence-example-generator.ts --mode draft --stdout",
     "smoke:project-edit-brief-visual-context": "tsx server/smoke/project-edit-brief-visual-context-smoke.ts",
     "check:frontend-boundary": "node scripts/check-frontend-server-boundary.mjs",

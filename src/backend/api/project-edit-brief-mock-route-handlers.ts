@@ -29,7 +29,7 @@ import type {
 } from '../../types/project-edit-brief'
 import type { ProjectEditBriefRepositoryResult } from '../../types/project-edit-brief-repository'
 import { createMockDatabase, type MockDatabase } from '../mock/mock-database'
-import { createMockProjectEditBriefRepository } from '../repositories/mock-project-edit-brief-repository'
+import { createProjectEditBriefInternalPersistenceBackend } from '../project-edit-brief-production/internal-persistence-backend'
 import { runQwenMarkerChatBridge } from '../qwen-runtime/qwen-marker-chat-bridge-service'
 
 type RequestRecord = Record<string, unknown>
@@ -124,14 +124,26 @@ function dbFor(request: ApiRequestEnvelope): MockDatabase {
 
 function repositoryFor(request: ApiRequestEnvelope) {
   const body = requestBody(request)
-  return createMockProjectEditBriefRepository({
+  return createProjectEditBriefInternalPersistenceBackend({
+    mode: 'mock_internal',
     db: dbFor(request),
     workspaceId: optionalString(body, 'workspaceId') ?? request.context.workspaceId,
     projectId: optionalString(body, 'projectId') ?? request.context.projectId,
     editSessionId: optionalString(body, 'editSessionId'),
     briefId: optionalString(body, 'briefId'),
     userId: optionalString(body, 'userId') ?? request.context.userId,
-  })
+  }).repository
+}
+
+export function createProjectEditBriefRouteInternalPersistenceMeta() {
+  return {
+    decision: 'project_edit_brief_internal_route_integration_passed_ready_for_internal_testing_readback',
+    backendDecision: 'project_edit_brief_internal_persistence_backend_skeleton_passed_ready_for_internal_route_integration',
+    backendMode: 'mock_internal',
+    supabaseLiveEnabled: false,
+    productionRouteEnabled: false,
+    idempotencyAuditPolicyKnown: true,
+  } as const
 }
 
 function projectIdFor(request: ApiRequestEnvelope, body: RequestRecord = requestBody(request)): string {
@@ -187,10 +199,12 @@ async function intentIdFor(request: ApiRequestEnvelope, body: RequestRecord = re
 
 function withSafety<TData extends RouteData>(data: TData): TData & {
   safety: ReturnType<typeof createProjectEditBriefRouteSafetyFlags>
+  internalPersistence: ReturnType<typeof createProjectEditBriefRouteInternalPersistenceMeta>
 } {
   return {
     ...data,
     safety: createProjectEditBriefRouteSafetyFlags(),
+    internalPersistence: createProjectEditBriefRouteInternalPersistenceMeta(),
   }
 }
 
@@ -203,7 +217,7 @@ function success<TData extends RouteData>(
     statusCode: 200,
     data: withSafety(data),
     warnings: [
-      'Project Edit Brief mock route used repository-backed MockDatabase state only.',
+      'Project Edit Brief mock route used the internal persistence backend skeleton with repository-backed MockDatabase state only.',
       ...warnings,
     ],
     mockOnly: true,

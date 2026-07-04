@@ -40,6 +40,12 @@ RP-EDITBRIEF-17 adds the backend seam for internal testing route integration. It
 
 Next internal milestone: `RP-EDITBRIEF-18 - Internal Route Integration`.
 
+## RP-EDITBRIEF-18 Internal Route Integration
+
+RP-EDITBRIEF-18 connects Project Edit Brief route handlers to the internal persistence backend skeleton. Successful mock route responses now include internal persistence metadata, so internal testing can verify the backend seam used by the UI without turning on live Supabase or production route behavior.
+
+Next internal milestone: `RP-EDITBRIEF-19 - Internal Testing Readback And QA`.
+
 ## Qwen Runtime Dependency
 
 RP-QWEN-00 is complete as an audit-only package for future reasoning runtime readiness. Edit Brief Marker Chat remains deterministic mock/local until a later owner-approved Qwen milestone. No Qwen call, provider call, Secret Manager inspection, `gcloud`, Supabase CLI, route wiring, Marker Chat runtime change, worker, render/export/progress, credit action, staging, commit, or cleanup occurred.

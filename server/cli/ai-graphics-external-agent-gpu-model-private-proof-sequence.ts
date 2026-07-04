@@ -244,17 +244,61 @@ function defaultKorniaCommand(): string {
   ].join(' ')
 }
 
-function sequenceCommand(): string {
+function privateProofSequenceInputFlags(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string[] {
+  const flags: string[] = []
+  if (!['torch_torchvision', 'transformers'].includes(toolId)) {
+    flags.push('--source-image <private-approved-frame.png>')
+  }
+  if (toolId === 'sam2') {
+    flags.push('--sam2-checkpoint <private-sam2-checkpoint.pt>')
+  }
+  if (toolId === 'birefnet') {
+    flags.push('--birefnet-model <private-birefnet-model>')
+  }
+  if (toolId === 'real_esrgan') {
+    flags.push('--real-esrgan-model <private-real-esrgan-model.pth>')
+  }
+  if (toolId === 'rembg') {
+    flags.push('--rembg-model <private-rembg-model.onnx>')
+  }
+  if (toolId === 'transparent_background') {
+    flags.push(
+      '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
+    )
+  }
+  return flags
+}
+
+function sequenceCommandForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string {
   return [
     'npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence --',
     '--attempt-local-runtime',
-    '--tool kornia',
-    '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
-    '--source-image <private-approved-frame.png>',
+    `--tool ${toolId}`,
+    `--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>`,
+    ...privateProofSequenceInputFlags(toolId),
     '--detect-host',
     '--require-host-eligible',
     '--require-accepted-proof',
   ].join(' ')
+}
+
+function sequenceCommand(): string {
+  return sequenceCommandForTool('kornia')
+}
+
+function privateProofSequenceCommandsByTool(): Record<
+  AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  string
+> {
+  return Object.fromEntries(
+    AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.map(
+      (toolId) => [toolId, sequenceCommandForTool(toolId)],
+    ),
+  ) as Record<AiGraphicsExternalAgentGpuModelControlledAdapterToolId, string>
 }
 
 function rowForTool(report: JsonRecord, toolId: string): JsonRecord {
@@ -353,6 +397,7 @@ function buildReport(input: SequenceArgs) {
       writeRecordsCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --write-records',
       korniaFirstPrivateProofSequenceCommand: sequenceCommand(),
+      privateProofSequenceCommandsByTool: privateProofSequenceCommandsByTool(),
       directHarnessCommand: directHarnessCommand(input),
       defaultKorniaHarnessCommand: defaultKorniaCommand(),
       bridgeCommand: privateResultPath ? bridgeCommand(privateResultPath) : null,
@@ -367,6 +412,7 @@ function buildReport(input: SequenceArgs) {
       scopedToolOnly: true,
       oneToolPerPrivateProofSequence: true,
       defaultTool: 'kornia',
+      allGpuModelToolsHaveExactPrivateProofSequenceCommand: true,
       defaultToolReason:
         'Kornia requires CUDA plus one private approved frame and no private model/checkpoint file, so it is the fastest honest GPU/model unlock candidate.',
       explicitRuntimeAttemptRequired: true,
@@ -386,6 +432,7 @@ function buildReport(input: SequenceArgs) {
       hostEligibilityGateSupported: true,
       requireHostEligibleFlagSupported: true,
       requireAcceptedProofFlagSupported: true,
+      perToolPrivateProofSequenceCommandsPrepared: true,
     },
     counts: {
       requestedGpuModelTools: 1,
@@ -516,6 +563,10 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 ## Kornia First Command
 
 \`${report.interfaces.korniaFirstPrivateProofSequenceCommand}\`
+
+## Per-Tool Private Proof Sequence Commands
+
+${Object.entries(report.interfaces.privateProofSequenceCommandsByTool).map(([toolId, command]) => `- \`${toolId}\`: \`${command}\``).join('\n')}
 
 ## Requested Tool Result
 

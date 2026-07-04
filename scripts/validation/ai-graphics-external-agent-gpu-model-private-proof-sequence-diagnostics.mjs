@@ -16,6 +16,35 @@ const diagnosticScriptName =
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-gpu-model-private-proof-sequence-diagnostics.mjs'
 
+const gpuModelTools = [
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+]
+
+const sourceImageRequiredTools = new Set([
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+])
+
+const toolSpecificPrivateProofFlagByTool = {
+  sam2: '--sam2-checkpoint <private-sam2-checkpoint.pt>',
+  birefnet: '--birefnet-model <private-birefnet-model>',
+  real_esrgan: '--real-esrgan-model <private-real-esrgan-model.pth>',
+  rembg: '--rembg-model <private-rembg-model.onnx>',
+  transparent_background:
+    '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
+}
+
 const requiredFiles = [
   'server/cli/ai-graphics-external-agent-gpu-model-private-proof-sequence.ts',
   'scripts/validation/ai-graphics-external-agent-gpu-model-private-proof-sequence-diagnostics.mjs',
@@ -171,6 +200,9 @@ for (const phrase of [
   '--require-accepted-proof',
   'outputJsonSha256',
   'korniaFirstPrivateProofSequenceCommand',
+  'privateProofSequenceCommandsByTool',
+  'sequenceCommandForTool',
+  'allGpuModelToolsHaveExactPrivateProofSequenceCommand',
   '--write-records cannot be combined with --attempt-local-runtime',
   '--write-records cannot be combined with --detect-host',
   '--result-out must stay under .local-artifacts/',
@@ -208,6 +240,40 @@ function checkReport(label, report) {
   if (!String(report.interfaces?.korniaFirstPrivateProofSequenceCommand ?? '').includes('--source-image <private-approved-frame.png>')) {
     fail(`${label}_kornia_sequence_missing_private_source_image`)
   }
+  const perToolCommands = report.interfaces?.privateProofSequenceCommandsByTool ?? {}
+  for (const tool of gpuModelTools) {
+    const command = String(perToolCommands[tool] ?? '')
+    if (!command) fail(`${label}_missing_private_proof_sequence_command:${tool}`)
+    if (!command.includes('--attempt-local-runtime')) {
+      fail(`${label}_private_proof_sequence_missing_attempt_runtime:${tool}`)
+    }
+    if (!command.includes(`--tool ${tool}`)) {
+      fail(`${label}_private_proof_sequence_missing_tool:${tool}`)
+    }
+    if (!command.includes(`.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${tool}>`)) {
+      fail(`${label}_private_proof_sequence_missing_local_output_dir:${tool}`)
+    }
+    if (!command.includes('--detect-host')) {
+      fail(`${label}_private_proof_sequence_missing_detect_host:${tool}`)
+    }
+    if (!command.includes('--require-host-eligible')) {
+      fail(`${label}_private_proof_sequence_missing_host_gate:${tool}`)
+    }
+    if (!command.includes('--require-accepted-proof')) {
+      fail(`${label}_private_proof_sequence_missing_accepted_proof_gate:${tool}`)
+    }
+    if (sourceImageRequiredTools.has(tool)) {
+      if (!command.includes('--source-image <private-approved-frame.png>')) {
+        fail(`${label}_private_proof_sequence_missing_source_image:${tool}`)
+      }
+    } else if (command.includes('--source-image')) {
+      fail(`${label}_private_proof_sequence_unnecessary_source_image:${tool}`)
+    }
+    const toolSpecificFlag = toolSpecificPrivateProofFlagByTool[tool]
+    if (toolSpecificFlag && !command.includes(toolSpecificFlag)) {
+      fail(`${label}_private_proof_sequence_missing_tool_specific_flag:${tool}`)
+    }
+  }
   if (!String(report.interfaces?.defaultKorniaHarnessCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
     fail(`${label}_default_kornia_harness_missing_canonical_image`)
   }
@@ -227,6 +293,8 @@ function checkReport(label, report) {
     'hostEligibilityGateSupported',
     'requireHostEligibleFlagSupported',
     'requireAcceptedProofFlagSupported',
+    'allGpuModelToolsHaveExactPrivateProofSequenceCommand',
+    'perToolPrivateProofSequenceCommandsPrepared',
   ]) {
     if (report.sequencePolicy?.[key] !== true) {
       fail(`${label}_sequence_policy_${key}_not_true`)

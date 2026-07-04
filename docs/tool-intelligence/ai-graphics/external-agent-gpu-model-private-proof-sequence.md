@@ -18,7 +18,18 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 
 ## Kornia First Command
 
-`npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --detect-host --require-host-eligible --require-accepted-proof`
+`npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia> --source-image <private-approved-frame.png> --detect-host --require-host-eligible --require-accepted-proof`
+
+## Per-Tool Private Proof Sequence Commands
+
+- `torch_torchvision`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-torch_torchvision> --detect-host --require-host-eligible --require-accepted-proof`
+- `transformers`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transformers> --detect-host --require-host-eligible --require-accepted-proof`
+- `sam2`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --detect-host --require-host-eligible --require-accepted-proof`
+- `birefnet`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model> --detect-host --require-host-eligible --require-accepted-proof`
+- `real_esrgan`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan> --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --detect-host --require-host-eligible --require-accepted-proof`
+- `kornia`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia> --source-image <private-approved-frame.png> --detect-host --require-host-eligible --require-accepted-proof`
+- `rembg`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg> --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx> --detect-host --require-host-eligible --require-accepted-proof`
+- `transparent_background`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background> --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth> --detect-host --require-host-eligible --require-accepted-proof`
 
 ## Requested Tool Result
 
@@ -57,6 +68,7 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `scopedToolOnly`: true
 - `oneToolPerPrivateProofSequence`: true
 - `defaultTool`: kornia
+- `allGpuModelToolsHaveExactPrivateProofSequenceCommand`: true
 - `defaultToolReason`: Kornia requires CUDA plus one private approved frame and no private model/checkpoint file, so it is the fastest honest GPU/model unlock candidate.
 - `explicitRuntimeAttemptRequired`: true
 - `privateInputsRequired`: true
@@ -74,6 +86,7 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `hostEligibilityGateSupported`: true
 - `requireHostEligibleFlagSupported`: true
 - `requireAcceptedProofFlagSupported`: true
+- `perToolPrivateProofSequenceCommandsPrepared`: true
 
 ## Booleans
 

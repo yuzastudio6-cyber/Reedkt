@@ -300,7 +300,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     ],
     expectedResult: 'Preference Video is documented as internal mock/local coverage only; production runtime remains blocked for later milestones.',
     mockOnly: true,
-    status: 'blocked',
+    status: 'mock_local',
   },
   {
     id: 'project-home-edit-chat-cards',

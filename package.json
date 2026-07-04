@@ -132,6 +132,7 @@
     "smoke:project-edit-brief-pr-ready-merge-hygiene-preflight": "tsx server/smoke/project-edit-brief-pr-ready-merge-hygiene-preflight-smoke.ts",
     "smoke:project-edit-brief-internal-testing-entrypoint": "tsx server/smoke/project-edit-brief-internal-testing-entrypoint-smoke.ts",
     "smoke:edit-preferences-route-entrypoint": "tsx server/smoke/edit-preferences-route-entrypoint-smoke.ts",
+    "smoke:preference-video-mock-limits-internal-testing-closeout": "tsx server/smoke/preference-video-mock-limits-internal-testing-closeout-smoke.ts",
     "generate:project-edit-brief-owner-evidence-draft": "tsx scripts/validation/project-edit-brief-owner-evidence-example-generator.ts --mode draft --stdout",
     "smoke:project-edit-brief-visual-context": "tsx server/smoke/project-edit-brief-visual-context-smoke.ts",
     "check:frontend-boundary": "node scripts/check-frontend-server-boundary.mjs",

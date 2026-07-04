@@ -16,6 +16,13 @@ This is not a shortcut or throwaway testing surface. It keeps the same project/s
 - `/projects/mock-project-edit-chat-foundation`
 - `/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/chat`
 - `/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief`
+- `/edit-preferences`
+
+## Preference Video Limits Closeout
+
+The formerly blocked `preference-video-mock-only-limits` scenario is now classified as `mock_local` because the internal testing route exposes an explicit Preference Video limits panel and `/edit-preferences` is mounted as a browser-safe mock/local preference library.
+
+This closeout only proves that internal testers can see and verify the boundaries. It does not authorize reference upload, URL fetch, real media analysis, Qwen/DeepSeek/provider calls, workers, render/export, credit movement, Supabase persistence, external beta, paid production, or product-ready behavior.
 
 ## Boundaries
 
@@ -34,6 +41,7 @@ Required validation:
 
 - `npm run smoke:project-edit-brief-internal-testing-entrypoint`
 - `npm run smoke:project-edit-brief-internal-testing-completion-audit`
+- `npm run smoke:preference-video-mock-limits-internal-testing-closeout`
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-readback-qa`
 - `npm run smoke:project-edit-brief-e2e`

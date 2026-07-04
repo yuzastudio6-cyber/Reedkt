@@ -49,6 +49,9 @@ assert.match(page, /No worker/)
 assert.match(page, /No render/)
 assert.match(page, /No credits/)
 assert.match(page, /No Supabase write/)
+assert.match(page, /Preference Video limits/)
+assert.match(page, /Mock-local Preference DNA/)
+assert.match(page, /Open \/edit-preferences/)
 assert.doesNotMatch(page, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/)
 assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|service_role|signedUrl/i)
 
@@ -110,7 +113,16 @@ const statusCounts = internalTestingScenarios.reduce<Record<string, number>>((co
 assert.ok(internalTestingScenarios.length >= 100)
 assert.ok(statusCounts.ready >= 10)
 assert.ok(statusCounts.mock_local >= 100)
+assert.equal(statusCounts.blocked ?? 0, 0)
 assert.ok(internalTestingScenarios.some((scenario) => scenario.id === 'feedback-export' && scenario.route === '/internal-testing'))
+assert.ok(
+  internalTestingScenarios.some(
+    (scenario) =>
+      scenario.id === 'preference-video-mock-only-limits' &&
+      scenario.route === '/internal-testing' &&
+      scenario.status === 'mock_local',
+  ),
+)
 assert.ok(internalTestingScenarios.some((scenario) => scenario.id === 'edit-brief-plan-prepare-hints'))
 assert.ok(internalTestingScenarios.some((scenario) => scenario.route === createProjectEditSessionBriefPath(projectId, editSessionId)))
 

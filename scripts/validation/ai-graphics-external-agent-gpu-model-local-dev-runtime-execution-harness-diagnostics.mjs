@@ -75,6 +75,9 @@ function expectedMinimumPrivateRuntimeInputKeys(toolId) {
   if (toolId === 'transparent_background') {
     keys.push('transparentBackgroundCheckpointLocalPath')
   }
+  if (['sam2', 'birefnet', 'real_esrgan', 'rembg', 'transparent_background'].includes(toolId)) {
+    keys.push('modelWeightManifestEvidence')
+  }
   keys.push('nativeCudaRuntime')
   return keys
 }
@@ -776,6 +779,14 @@ for (const tool of tools) {
   if (requiredToolSpecificFlag && !containerCommand.includes(requiredToolSpecificFlag)) {
     fail(`container_runtime_command_missing_tool_specific_flag:${tool}`)
   }
+  if (['sam2', 'birefnet', 'real_esrgan', 'rembg', 'transparent_background'].includes(tool)) {
+    if (!hostCommand.includes('--runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>')) {
+      fail(`host_runtime_command_missing_model_weight_manifest:${tool}`)
+    }
+    if (!containerCommand.includes('--runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>')) {
+      fail(`container_runtime_command_missing_model_weight_manifest:${tool}`)
+    }
+  }
 }
 
 const rows = Array.isArray(report.gpuModelLocalDevRuntimeExecutionHarnessRows)
@@ -1208,6 +1219,60 @@ if (invalidManifestPath.status === 0) {
 }
 if (!invalidManifestPath.stderr.includes('--runtime-input-manifest must stay under .local-artifacts/')) {
   fail('invalid_manifest_path_missing_diagnostic')
+}
+const invalidChecksumManifestPath = `${manifestDir}/invalid-model-weight-checksum.json`
+fs.writeFileSync(absolute(invalidChecksumManifestPath), JSON.stringify({
+  toolInputs: {
+    rembg: {
+      outputDirectory: `${manifestDir}/invalid-checksum-output`,
+      sourceImageLocalPath: '/tmp/private-approved-frame.ppm',
+      rembgModelLocalPath: '/tmp/private-rembg-model.onnx',
+      modelWeightManifestId: 'rembg_private_manifest_review_v1',
+      modelWeightChecksumSha256: 'not-a-sha256',
+      modelWeightChecksumEvidenceRef:
+        'private://reeditpro/ai-graphics/checksum-evidence/rembg.json',
+    },
+  },
+}, null, 2))
+const invalidChecksumManifestRun = spawnRunScript([
+  '--attempt-local-runtime',
+  '--tool',
+  'rembg',
+  '--runtime-input-manifest',
+  invalidChecksumManifestPath,
+])
+if (invalidChecksumManifestRun.status === 0) {
+  fail('invalid_checksum_manifest_unexpected_success')
+}
+if (!invalidChecksumManifestRun.stderr.includes('modelWeightChecksumSha256 must be a 64-character SHA-256 hex digest')) {
+  fail('invalid_checksum_manifest_missing_diagnostic')
+}
+const publicEvidenceManifestPath = `${manifestDir}/public-model-weight-evidence-ref.json`
+fs.writeFileSync(absolute(publicEvidenceManifestPath), JSON.stringify({
+  toolInputs: {
+    rembg: {
+      outputDirectory: `${manifestDir}/public-evidence-output`,
+      sourceImageLocalPath: '/tmp/private-approved-frame.ppm',
+      rembgModelLocalPath: '/tmp/private-rembg-model.onnx',
+      modelWeightManifestId: 'rembg_private_manifest_review_v1',
+      modelWeightChecksumSha256: 'a'.repeat(64),
+      modelWeightChecksumEvidenceRef:
+        'https://signed.example.invalid/rembg/checksum.json?signature=abc',
+    },
+  },
+}, null, 2))
+const publicEvidenceManifestRun = spawnRunScript([
+  '--attempt-local-runtime',
+  '--tool',
+  'rembg',
+  '--runtime-input-manifest',
+  publicEvidenceManifestPath,
+])
+if (publicEvidenceManifestRun.status === 0) {
+  fail('public_evidence_manifest_unexpected_success')
+}
+if (!publicEvidenceManifestRun.stderr.includes('modelWeightChecksumEvidenceRef must be a reviewed private:// checksum evidence ref')) {
+  fail('public_evidence_manifest_missing_diagnostic')
 }
 const writeRecordsWithManifest = spawnRunScript([
   '--write-records',

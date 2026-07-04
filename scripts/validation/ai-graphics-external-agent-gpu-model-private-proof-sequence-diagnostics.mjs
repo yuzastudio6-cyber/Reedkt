@@ -913,6 +913,64 @@ if (!uriManifest.stderr.includes('runtime input manifest field sourceImageLocalP
   fail('uri_runtime_manifest_path_missing_diagnostic')
 }
 
+const invalidChecksumManifestPath =
+  `${runtimeManifestDir}/invalid-model-weight-checksum-runtime-inputs.json`
+fs.writeFileSync(absolute(invalidChecksumManifestPath), JSON.stringify({
+  toolInputs: {
+    rembg: {
+      outputDirectory: `${runtimeManifestDir}/invalid-checksum-output`,
+      sourceImageLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+      rembgModelLocalPath: '/tmp/reeditpro-private-rembg-model.onnx',
+      modelWeightManifestId: 'rembg_private_manifest_review_v1',
+      modelWeightChecksumSha256: 'not-a-sha256',
+      modelWeightChecksumEvidenceRef:
+        'private://reeditpro/ai-graphics/checksum-evidence/rembg.json',
+    },
+  },
+}, null, 2))
+const invalidChecksumManifest = runScriptStatus([
+  '--attempt-local-runtime',
+  '--tool',
+  'rembg',
+  '--runtime-input-manifest',
+  invalidChecksumManifestPath,
+])
+if (invalidChecksumManifest.status === 0) {
+  fail('invalid_checksum_runtime_manifest_unexpected_success')
+}
+if (!invalidChecksumManifest.stderr.includes('modelWeightChecksumSha256 must be a 64-character SHA-256 hex digest')) {
+  fail('invalid_checksum_runtime_manifest_missing_diagnostic')
+}
+
+const publicEvidenceManifestPath =
+  `${runtimeManifestDir}/public-model-weight-evidence-runtime-inputs.json`
+fs.writeFileSync(absolute(publicEvidenceManifestPath), JSON.stringify({
+  toolInputs: {
+    rembg: {
+      outputDirectory: `${runtimeManifestDir}/public-evidence-output`,
+      sourceImageLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+      rembgModelLocalPath: '/tmp/reeditpro-private-rembg-model.onnx',
+      modelWeightManifestId: 'rembg_private_manifest_review_v1',
+      modelWeightChecksumSha256: 'b'.repeat(64),
+      modelWeightChecksumEvidenceRef:
+        'https://signed.example.invalid/rembg/checksum.json?signature=abc',
+    },
+  },
+}, null, 2))
+const publicEvidenceManifest = runScriptStatus([
+  '--attempt-local-runtime',
+  '--tool',
+  'rembg',
+  '--runtime-input-manifest',
+  publicEvidenceManifestPath,
+])
+if (publicEvidenceManifest.status === 0) {
+  fail('public_evidence_runtime_manifest_unexpected_success')
+}
+if (!publicEvidenceManifest.stderr.includes('modelWeightChecksumEvidenceRef must be a reviewed private:// checksum evidence ref')) {
+  fail('public_evidence_runtime_manifest_missing_diagnostic')
+}
+
 const writeRecordsWithManifest = runScriptStatus([
   '--write-records',
   '--runtime-input-manifest',

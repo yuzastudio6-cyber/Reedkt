@@ -67,6 +67,9 @@ const runtimeInputManifestStringFields = new Set([
   'realEsrganModelLocalPath',
   'rembgModelLocalPath',
   'transparentBackgroundCheckpointLocalPath',
+  'modelWeightManifestId',
+  'modelWeightChecksumSha256',
+  'modelWeightChecksumEvidenceRef',
   'runtimeContainerImage',
   'runtimeContainerPlatform',
 ])
@@ -205,6 +208,36 @@ function safeManifestString(key: string, value: unknown): string | undefined {
   if (value === undefined || value === null) return undefined
   if (typeof value !== 'string' || value.length === 0) {
     throw new Error(`runtime input manifest field ${key} must be a non-empty string`)
+  }
+  if (key === 'modelWeightManifestId') {
+    if (
+      /^[a-z][a-z0-9+.-]*:\/\//i.test(value) ||
+      value.includes('/') ||
+      value.includes('\\') ||
+      value.includes('\0') ||
+      value.split(/[\\/]+/).includes('..')
+    ) {
+      throw new Error(`runtime input manifest field ${key} must be a reviewed private manifest id`)
+    }
+    return value
+  }
+  if (key === 'modelWeightChecksumSha256') {
+    if (!/^[a-f0-9]{64}$/i.test(value)) {
+      throw new Error(`runtime input manifest field ${key} must be a 64-character SHA-256 hex digest`)
+    }
+    return value
+  }
+  if (key === 'modelWeightChecksumEvidenceRef') {
+    if (
+      !value.startsWith('private://') ||
+      /^https?:\/\//i.test(value) ||
+      value.startsWith('public://') ||
+      value.includes('\0') ||
+      value.split(/[\\/]+/).includes('..')
+    ) {
+      throw new Error(`runtime input manifest field ${key} must be a reviewed private:// checksum evidence ref`)
+    }
+    return value
   }
   if (
     /^https?:\/\//i.test(value) ||

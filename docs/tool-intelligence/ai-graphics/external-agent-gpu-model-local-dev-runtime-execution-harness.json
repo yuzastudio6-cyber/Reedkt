@@ -33,27 +33,27 @@
     "privateRuntimeAttemptCommandsByTool": {
       "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
       "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
-      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt>",
-      "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model>",
-      "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth>",
+      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+      "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+      "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
       "kornia": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --allow-cpu-tensor-runtime",
-      "rembg": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx>",
-      "transparent_background": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>"
+      "rembg": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+      "transparent_background": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>"
     },
     "privateContainerRuntimeAttemptCommandsByTool": {
       "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
       "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
-      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt>",
-      "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model>",
-      "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth>",
+      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+      "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+      "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
       "kornia": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --allow-cpu-tensor-runtime",
-      "rembg": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx>",
-      "transparent_background": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>"
+      "rembg": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+      "transparent_background": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>"
     },
     "privateScopedRuntimeAttemptExamples": {
       "kornia": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --allow-cpu-tensor-runtime",
       "korniaContainer": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --allow-cpu-tensor-runtime",
-      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt>"
+      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>"
     }
   },
   "localRuntimePolicy": {
@@ -107,7 +107,11 @@
     "privateRuntimeInputManifestSupported": true,
     "privateRuntimeInputManifestOutputDirectoryMustStayUnderLocalArtifacts": true,
     "privateRuntimeInputManifestPath": null,
-    "privateRuntimeInputManifestUsedNow": false
+    "privateRuntimeInputManifestUsedNow": false,
+    "privateInputPreflightOnlySupported": true,
+    "privateInputPreflightOnlyUsedNow": false,
+    "privateInputPreflightStopsBeforeDockerGpuRuntime": true,
+    "privateInputPreflightStopsBeforePythonRuntime": true
   },
   "counts": {
     "totalAiGraphicsTools": 21,
@@ -119,6 +123,7 @@
     "toolExecutionApprovedNowTools": 0,
     "gpuRuntimeApprovedForScopedControlledToolCallTools": 0,
     "gpuRuntimeShouldStartNowTools": 0,
+    "privateLocalRuntimeInputsAcceptedBeforeRuntimeTools": 0,
     "publicArtifactCreatedTools": 0,
     "signedUrlCreatedTools": 0,
     "runtimeReadyNowTools": 0,
@@ -147,6 +152,7 @@
       "skipReasonCode": "foundation_runtime_output_directory_missing",
       "currentBlockingPrerequisiteKey": "outputDirectory",
       "currentBlockingReasonCode": "foundation_runtime_output_directory_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime"
@@ -156,6 +162,7 @@
       ],
       "allowCpuTensorRuntime": false,
       "allowCpuFoundationRuntime": false,
+      "privateInputPreflightOnly": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -199,6 +206,7 @@
       "skipReasonCode": "foundation_runtime_output_directory_missing",
       "currentBlockingPrerequisiteKey": "outputDirectory",
       "currentBlockingReasonCode": "foundation_runtime_output_directory_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime"
@@ -208,6 +216,7 @@
       ],
       "allowCpuTensorRuntime": false,
       "allowCpuFoundationRuntime": false,
+      "privateInputPreflightOnly": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -251,19 +260,23 @@
       "skipReasonCode": "sam2_checkpoint_missing",
       "currentBlockingPrerequisiteKey": "sam2CheckpointLocalPath",
       "currentBlockingReasonCode": "sam2_checkpoint_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "sourceImageLocalPath",
         "sam2CheckpointLocalPath",
+        "modelWeightManifestEvidence",
         "nativeCudaRuntime"
       ],
       "remainingPrivateRuntimeInputKeys": [
         "outputDirectory",
         "sourceImageLocalPath",
+        "modelWeightManifestEvidence",
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
       "allowCpuFoundationRuntime": false,
+      "privateInputPreflightOnly": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -285,6 +298,12 @@
           "requiredForDefaultHarness": false,
           "requiredForActualExecution": true,
           "description": "Reviewed private SAM2 checkpoint path; no download allowed."
+        },
+        {
+          "key": "modelWeightManifestEvidence",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private model-weight manifest id, SHA-256 checksum, and private checksum evidence reference for the supplied model/checkpoint."
         },
         {
           "key": "nativeCudaRuntime",
@@ -319,19 +338,23 @@
       "skipReasonCode": "birefnet_model_missing",
       "currentBlockingPrerequisiteKey": "birefnetModelLocalPath",
       "currentBlockingReasonCode": "birefnet_model_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "sourceImageLocalPath",
         "birefnetModelLocalPath",
+        "modelWeightManifestEvidence",
         "nativeCudaRuntime"
       ],
       "remainingPrivateRuntimeInputKeys": [
         "outputDirectory",
         "sourceImageLocalPath",
+        "modelWeightManifestEvidence",
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
       "allowCpuFoundationRuntime": false,
+      "privateInputPreflightOnly": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -353,6 +376,12 @@
           "requiredForDefaultHarness": false,
           "requiredForActualExecution": true,
           "description": "Reviewed private BiRefNet model/checkpoint path; no download allowed."
+        },
+        {
+          "key": "modelWeightManifestEvidence",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private model-weight manifest id, SHA-256 checksum, and private checksum evidence reference for the supplied model/checkpoint."
         },
         {
           "key": "nativeCudaRuntime",
@@ -387,19 +416,23 @@
       "skipReasonCode": "real_esrgan_model_missing",
       "currentBlockingPrerequisiteKey": "realEsrganModelLocalPath",
       "currentBlockingReasonCode": "real_esrgan_model_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "sourceImageLocalPath",
         "realEsrganModelLocalPath",
+        "modelWeightManifestEvidence",
         "nativeCudaRuntime"
       ],
       "remainingPrivateRuntimeInputKeys": [
         "outputDirectory",
         "sourceImageLocalPath",
+        "modelWeightManifestEvidence",
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
       "allowCpuFoundationRuntime": false,
+      "privateInputPreflightOnly": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -421,6 +454,12 @@
           "requiredForDefaultHarness": false,
           "requiredForActualExecution": true,
           "description": "Reviewed private Real-ESRGAN model path; no download allowed."
+        },
+        {
+          "key": "modelWeightManifestEvidence",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private model-weight manifest id, SHA-256 checksum, and private checksum evidence reference for the supplied model/checkpoint."
         },
         {
           "key": "nativeCudaRuntime",
@@ -455,6 +494,7 @@
       "skipReasonCode": "kornia_source_frame_missing",
       "currentBlockingPrerequisiteKey": "sourceImageLocalPath",
       "currentBlockingReasonCode": "kornia_source_frame_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "sourceImageLocalPath",
@@ -466,6 +506,7 @@
       ],
       "allowCpuTensorRuntime": false,
       "allowCpuFoundationRuntime": false,
+      "privateInputPreflightOnly": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -515,19 +556,23 @@
       "skipReasonCode": "rembg_model_missing",
       "currentBlockingPrerequisiteKey": "rembgModelLocalPath",
       "currentBlockingReasonCode": "rembg_model_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "sourceImageLocalPath",
         "rembgModelLocalPath",
+        "modelWeightManifestEvidence",
         "nativeCudaRuntime"
       ],
       "remainingPrivateRuntimeInputKeys": [
         "outputDirectory",
         "sourceImageLocalPath",
+        "modelWeightManifestEvidence",
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
       "allowCpuFoundationRuntime": false,
+      "privateInputPreflightOnly": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -549,6 +594,12 @@
           "requiredForDefaultHarness": false,
           "requiredForActualExecution": true,
           "description": "Reviewed private rembg ONNX model path; no download allowed."
+        },
+        {
+          "key": "modelWeightManifestEvidence",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private model-weight manifest id, SHA-256 checksum, and private checksum evidence reference for the supplied model/checkpoint."
         },
         {
           "key": "nativeCudaRuntime",
@@ -583,19 +634,23 @@
       "skipReasonCode": "transparent_background_checkpoint_missing",
       "currentBlockingPrerequisiteKey": "transparentBackgroundCheckpointLocalPath",
       "currentBlockingReasonCode": "transparent_background_checkpoint_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "sourceImageLocalPath",
         "transparentBackgroundCheckpointLocalPath",
+        "modelWeightManifestEvidence",
         "nativeCudaRuntime"
       ],
       "remainingPrivateRuntimeInputKeys": [
         "outputDirectory",
         "sourceImageLocalPath",
+        "modelWeightManifestEvidence",
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
       "allowCpuFoundationRuntime": false,
+      "privateInputPreflightOnly": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -617,6 +672,12 @@
           "requiredForDefaultHarness": false,
           "requiredForActualExecution": true,
           "description": "Reviewed private transparent-background checkpoint path; no download allowed."
+        },
+        {
+          "key": "modelWeightManifestEvidence",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private model-weight manifest id, SHA-256 checksum, and private checksum evidence reference for the supplied model/checkpoint."
         },
         {
           "key": "nativeCudaRuntime",

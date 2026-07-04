@@ -551,6 +551,9 @@ function expectedMinimumPrivateRuntimeInputKeys(toolId) {
   if (toolId === 'transparent_background') {
     keys.push('transparentBackgroundCheckpointLocalPath')
   }
+  if (['sam2', 'birefnet', 'real_esrgan', 'rembg', 'transparent_background'].includes(toolId)) {
+    keys.push('modelWeightManifestEvidence')
+  }
   return keys
 }
 

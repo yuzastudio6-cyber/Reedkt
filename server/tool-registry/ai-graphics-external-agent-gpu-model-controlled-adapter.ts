@@ -211,6 +211,15 @@ const runtimePythonModulesByTool: Record<
 
 const minimumPrivateModelFileBytes = 1024 * 1024
 const maximumSafetensorsHeaderBytes = 1024 * 1024
+const modelWeightEvidenceRequiredTools =
+  new Set<AiGraphicsExternalAgentGpuModelControlledAdapterToolId>([
+    'sam2',
+    'birefnet',
+    'real_esrgan',
+    'rembg',
+    'transparent_background',
+  ])
+const modelWeightChecksumPattern = /^[a-f0-9]{64}$/i
 
 function hasScopedLocalRuntimeInputs(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
@@ -412,6 +421,11 @@ function runtimePrerequisiteBlock(
       payload,
     )
     if (privateModelContentBlock) return privateModelContentBlock
+    const modelWeightEvidenceBlock = privateModelWeightEvidenceBlock(
+      request.toolId,
+      payload,
+    )
+    if (modelWeightEvidenceBlock) return modelWeightEvidenceBlock
     try {
       execFileSync('docker', ['image', 'inspect', image], {
         encoding: 'utf8',
@@ -528,6 +542,11 @@ function runtimePrerequisiteBlock(
     payload,
   )
   if (privateModelContentBlock) return privateModelContentBlock
+  const modelWeightEvidenceBlock = privateModelWeightEvidenceBlock(
+    request.toolId,
+    payload,
+  )
+  if (modelWeightEvidenceBlock) return modelWeightEvidenceBlock
 
   const preflight = runtimePreflightPython(request.toolId, payload)
   const missingModules = Array.isArray(preflight?.missingModules)
@@ -912,6 +931,90 @@ function privateModelRuntimeContentBlock(
   return null
 }
 
+function validModelWeightManifestId(value: string): boolean {
+  return /^[a-z0-9][a-z0-9_.:-]{2,127}$/i.test(value) &&
+    !/^[a-z][a-z0-9+.-]*:\/\//i.test(value) &&
+    !value.includes('/') &&
+    !value.includes('\\') &&
+    !value.includes('\0') &&
+    !value.split(/[\\/]+/).includes('..')
+}
+
+function validPrivateChecksumEvidenceRef(value: string): boolean {
+  return value.startsWith('private://') &&
+    !/^https?:\/\//i.test(value) &&
+    !value.startsWith('public://') &&
+    !value.includes('\0') &&
+    !value.split(/[\\/]+/).includes('..')
+}
+
+function privateModelWeightEvidenceBlock(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  payload: Record<string, unknown>,
+): Record<string, unknown> | null {
+  if (!modelWeightEvidenceRequiredTools.has(toolId)) return null
+
+  const manifestId = optionalString(payload, 'modelWeightManifestId')
+  const checksumSha256 = optionalString(payload, 'modelWeightChecksumSha256')
+  const checksumEvidenceRef = optionalString(
+    payload,
+    'modelWeightChecksumEvidenceRef',
+  )
+
+  if (
+    !manifestId ||
+    !checksumSha256 ||
+    !checksumEvidenceRef ||
+    !validModelWeightManifestId(manifestId)
+  ) {
+    return skippedPrerequisiteBlock({
+      toolId,
+      code: `${toolId}_model_weight_manifest_evidence_missing`,
+      message:
+        'Reviewed private model-weight manifest evidence is required before any CUDA/GPU runtime may start. ' +
+        'Provide modelWeightManifestId, modelWeightChecksumSha256, and modelWeightChecksumEvidenceRef with the private model/checkpoint path.',
+      summary:
+        'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because reviewed model-weight manifest evidence was missing.',
+      warning:
+        'GPU/model runtime did not start because the private model/checkpoint path did not include reviewed model-weight evidence.',
+      errorMessage:
+        'Reviewed private model-weight manifest evidence is required for controlled GPU/model runtime proof.',
+    })
+  }
+
+  if (!modelWeightChecksumPattern.test(checksumSha256)) {
+    return skippedPrerequisiteBlock({
+      toolId,
+      code: `${toolId}_model_weight_checksum_invalid`,
+      message:
+        'modelWeightChecksumSha256 must be a 64-character SHA-256 hex digest before any CUDA/GPU runtime may start.',
+      summary:
+        'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because the model-weight checksum was invalid.',
+      warning:
+        'GPU/model runtime did not start because the private model/checkpoint checksum evidence was malformed.',
+      errorMessage:
+        'modelWeightChecksumSha256 must be a 64-character SHA-256 hex digest.',
+    })
+  }
+
+  if (!validPrivateChecksumEvidenceRef(checksumEvidenceRef)) {
+    return skippedPrerequisiteBlock({
+      toolId,
+      code: `${toolId}_model_weight_checksum_evidence_ref_invalid`,
+      message:
+        'modelWeightChecksumEvidenceRef must be a reviewed private:// checksum evidence reference; public, signed, URL, or path-traversal refs are not accepted.',
+      summary:
+        'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because the model-weight checksum evidence reference was not a reviewed private ref.',
+      warning:
+        'GPU/model runtime did not start because the private model/checkpoint checksum evidence reference was not acceptable.',
+      errorMessage:
+        'modelWeightChecksumEvidenceRef must be a reviewed private:// checksum evidence reference.',
+    })
+  }
+
+  return null
+}
+
 function missingLocalPathBlock(input: {
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId
   pathValue: string | undefined
@@ -1093,6 +1196,7 @@ function shouldAddMissingExecutionInputWarning(
     skipReasonCode.includes('_invalid_extension') ||
     skipReasonCode.includes('_invalid_file_name') ||
     skipReasonCode.includes('_invalid_safetensors_header') ||
+    skipReasonCode.includes('_model_weight_') ||
     skipReasonCode.includes('_invalid_path_kind') ||
     skipReasonCode.includes('_outside_local_artifacts') ||
     skipReasonCode.startsWith('gpu_model_python') ||

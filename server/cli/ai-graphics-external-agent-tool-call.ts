@@ -58,6 +58,43 @@ type ExpectedExecutionState =
   | 'failed_with_diagnostics'
 type RuntimeInputManifest = Record<string, unknown>
 
+const runtimeInputManifestStringFields = new Set([
+  'outputDirectory',
+  'sourceImageLocalPath',
+  'sam2CheckpointLocalPath',
+  'birefnetModelLocalPath',
+  'realEsrganModelLocalPath',
+  'rembgModelLocalPath',
+  'transparentBackgroundCheckpointLocalPath',
+  'modelWeightManifestId',
+  'modelWeightChecksumSha256',
+  'modelWeightChecksumEvidenceRef',
+  'runtimeContainerImage',
+  'runtimeContainerPlatform',
+])
+const runtimeInputManifestPathFields = new Set([
+  'outputDirectory',
+  'sourceImageLocalPath',
+  'sam2CheckpointLocalPath',
+  'birefnetModelLocalPath',
+  'realEsrganModelLocalPath',
+  'rembgModelLocalPath',
+  'transparentBackgroundCheckpointLocalPath',
+])
+const runtimeInputManifestBooleanFields = new Set([
+  'allowCpuTensorRuntime',
+  'allowCpuFoundationRuntime',
+  'privateInputPreflightOnly',
+  'localRuntimeInputPreflightOnly',
+])
+const runtimeInputManifestToolRecordFields = new Set([
+  ...runtimeInputManifestStringFields,
+  ...runtimeInputManifestBooleanFields,
+])
+const supportedRuntimeInputManifestTools = new Set<string>(
+  AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS,
+)
+
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
 }
@@ -152,7 +189,64 @@ function readRuntimeInputManifest(
     parsed && typeof parsed === 'object' && !Array.isArray(parsed),
     '--runtime-input-manifest must be a JSON object',
   )
-  return parsed as RuntimeInputManifest
+  const manifest = parsed as RuntimeInputManifest
+  validateRuntimeInputManifest(manifest)
+  return manifest
+}
+
+function validateRuntimeInputManifest(manifest: RuntimeInputManifest): void {
+  const hasToolInputs = Object.prototype.hasOwnProperty.call(manifest, 'toolInputs')
+  const hasTools = Object.prototype.hasOwnProperty.call(manifest, 'tools')
+  assert(
+    !(hasToolInputs && hasTools),
+    'runtime input manifest must use either toolInputs or tools, not both',
+  )
+  for (const [key, value] of Object.entries(manifest)) {
+    if (key === 'toolInputs' || key === 'tools') {
+      validateRuntimeInputManifestToolInputs(key, value)
+      continue
+    }
+    if (runtimeInputManifestStringFields.has(key)) {
+      safeManifestString(key, value)
+      continue
+    }
+    if (runtimeInputManifestBooleanFields.has(key)) {
+      safeManifestBoolean(key, value)
+      continue
+    }
+    throw new Error(`runtime input manifest contains unsupported field ${key}`)
+  }
+}
+
+function validateRuntimeInputManifestToolInputs(
+  key: string,
+  value: unknown,
+): void {
+  assert(
+    value && typeof value === 'object' && !Array.isArray(value),
+    `runtime input manifest field ${key} must be an object`,
+  )
+  for (const [toolId, record] of Object.entries(value as Record<string, unknown>)) {
+    assert(
+      supportedRuntimeInputManifestTools.has(toolId),
+      `runtime input manifest references unsupported tool id ${toolId}`,
+    )
+    assert(
+      record && typeof record === 'object' && !Array.isArray(record),
+      `runtime input manifest tool record ${toolId} must be an object`,
+    )
+    for (const [field, fieldValue] of Object.entries(record as Record<string, unknown>)) {
+      assert(
+        runtimeInputManifestToolRecordFields.has(field),
+        `runtime input manifest tool record ${toolId} contains unsupported field ${field}`,
+      )
+      if (runtimeInputManifestStringFields.has(field)) {
+        safeManifestString(field, fieldValue)
+      } else {
+        safeManifestBoolean(field, fieldValue)
+      }
+    }
+  }
 }
 
 function manifestToolRecord(
@@ -175,8 +269,41 @@ function safeManifestString(key: string, value: unknown): string | undefined {
     typeof value === 'string' && value.length > 0,
     `runtime input manifest field ${key} must be a non-empty string`,
   )
+  if (key === 'modelWeightManifestId') {
+    assert(
+      !/^[a-z][a-z0-9+.-]*:\/\//i.test(value) &&
+        !value.includes('/') &&
+        !value.includes('\\') &&
+        !value.includes('\0') &&
+        !value.split(/[\\/]+/).includes('..'),
+      `runtime input manifest field ${key} must be a reviewed private manifest id`,
+    )
+    return value
+  }
+  if (key === 'modelWeightChecksumSha256') {
+    assert(
+      /^[a-f0-9]{64}$/i.test(value),
+      `runtime input manifest field ${key} must be a 64-character SHA-256 hex digest`,
+    )
+    return value
+  }
+  if (key === 'modelWeightChecksumEvidenceRef') {
+    assert(
+      value.startsWith('private://') &&
+        !/^https?:\/\//i.test(value) &&
+        !value.startsWith('public://') &&
+        !value.includes('\0') &&
+        !value.split(/[\\/]+/).includes('..'),
+      `runtime input manifest field ${key} must be a reviewed private:// checksum evidence ref`,
+    )
+    return value
+  }
   assertNoSignedUrlOrRawUrl(value, key)
   assertNoPathTraversal(value, key)
+  assert(
+    !(runtimeInputManifestPathFields.has(key) && /^[a-z][a-z0-9+.-]*:\/\//i.test(value)),
+    `runtime input manifest field ${key} must be a private local path`,
+  )
   return value
 }
 
@@ -291,6 +418,12 @@ function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
   if (toolId === 'transparent_background') {
     keys.push('transparentBackgroundCheckpointLocalPath')
   }
+  if (
+    ['sam2', 'birefnet', 'real_esrgan', 'rembg', 'transparent_background']
+      .includes(toolId)
+  ) {
+    keys.push('modelWeightManifestEvidence')
+  }
   return keys
 }
 
@@ -357,6 +490,13 @@ function gpuModelCurrentBlockingPrerequisiteKey(
     blockingReasonCode.includes('transparent_background_checkpoint_too_small_for_runtime')
   ) {
     return 'transparentBackgroundCheckpointLocalPath'
+  }
+  if (
+    blockingReasonCode.includes('_model_weight_manifest_evidence_missing') ||
+    blockingReasonCode.includes('_model_weight_checksum_invalid') ||
+    blockingReasonCode.includes('_model_weight_checksum_evidence_ref_invalid')
+  ) {
+    return 'modelWeightManifestEvidence'
   }
   if (
     blockingReasonCode.includes('cuda') ||
@@ -603,6 +743,12 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
       manifest,
       'transparentBackgroundCheckpointLocalPath',
     )
+  const modelWeightManifestId =
+    manifestStringForTool(toolId, manifest, 'modelWeightManifestId')
+  const modelWeightChecksumSha256 =
+    manifestStringForTool(toolId, manifest, 'modelWeightChecksumSha256')
+  const modelWeightChecksumEvidenceRef =
+    manifestStringForTool(toolId, manifest, 'modelWeightChecksumEvidenceRef')
   assertPrivateLocalInputPath('sam2CheckpointLocalPath', sam2CheckpointLocalPath)
   assertPrivateLocalInputPath('birefnetModelLocalPath', birefnetModelLocalPath)
   assertPrivateLocalInputPath('realEsrganModelLocalPath', realEsrganModelLocalPath)
@@ -618,6 +764,13 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
   if (toolId === 'transparent_background') {
     payload.transparentBackgroundCheckpointLocalPath =
       transparentBackgroundCheckpointLocalPath
+  }
+  if (modelWeightManifestId) payload.modelWeightManifestId = modelWeightManifestId
+  if (modelWeightChecksumSha256) {
+    payload.modelWeightChecksumSha256 = modelWeightChecksumSha256
+  }
+  if (modelWeightChecksumEvidenceRef) {
+    payload.modelWeightChecksumEvidenceRef = modelWeightChecksumEvidenceRef
   }
 
   if (gpuModelSourceImageRequired(toolId) && !sourceImageLocalPath) {

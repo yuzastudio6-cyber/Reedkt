@@ -556,20 +556,22 @@
       "mockWorkerEventRecorded": false,
       "controlledWorkerRouteExecutedNow": false,
       "controlledWorkerRouteGpuBlocked": true,
-      "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; sourceImageLocalPath; sam2CheckpointLocalPath; reviewed private proof refs; adapter skip reason: sam2_checkpoint_missing",
+      "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; sourceImageLocalPath; sam2CheckpointLocalPath; modelWeightManifestEvidence; reviewed private proof refs; adapter skip reason: sam2_checkpoint_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
       "currentBlockingPrerequisiteKey": "sam2CheckpointLocalPath",
       "currentBlockingReasonCode": "sam2_checkpoint_missing",
       "remainingPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
-        "sourceImageLocalPath"
+        "sourceImageLocalPath",
+        "modelWeightManifestEvidence"
       ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
         "sourceImageLocalPath",
-        "sam2CheckpointLocalPath"
+        "sam2CheckpointLocalPath",
+        "modelWeightManifestEvidence"
       ],
       "minimumHostRuntimeFlags": [
         "--tool sam2",
@@ -602,13 +604,15 @@
           "remainingPrivateRuntimeInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
-            "sourceImageLocalPath"
+            "sourceImageLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "minimumPrivateRuntimeInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
             "sourceImageLocalPath",
-            "sam2CheckpointLocalPath"
+            "sam2CheckpointLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "note": "Resolve this prerequisite with private local inputs only; missing private model/source files are blockers, not success."
         },
@@ -729,20 +733,22 @@
       "mockWorkerEventRecorded": false,
       "controlledWorkerRouteExecutedNow": false,
       "controlledWorkerRouteGpuBlocked": true,
-      "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; sourceImageLocalPath; birefnetModelLocalPath; reviewed private proof refs; adapter skip reason: birefnet_model_missing",
+      "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; sourceImageLocalPath; birefnetModelLocalPath; modelWeightManifestEvidence; reviewed private proof refs; adapter skip reason: birefnet_model_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
       "currentBlockingPrerequisiteKey": "birefnetModelLocalPath",
       "currentBlockingReasonCode": "birefnet_model_missing",
       "remainingPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
-        "sourceImageLocalPath"
+        "sourceImageLocalPath",
+        "modelWeightManifestEvidence"
       ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
         "sourceImageLocalPath",
-        "birefnetModelLocalPath"
+        "birefnetModelLocalPath",
+        "modelWeightManifestEvidence"
       ],
       "minimumHostRuntimeFlags": [
         "--tool birefnet",
@@ -775,13 +781,15 @@
           "remainingPrivateRuntimeInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
-            "sourceImageLocalPath"
+            "sourceImageLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "minimumPrivateRuntimeInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
             "sourceImageLocalPath",
-            "birefnetModelLocalPath"
+            "birefnetModelLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "note": "Resolve this prerequisite with private local inputs only; missing private model/source files are blockers, not success."
         },
@@ -902,20 +910,22 @@
       "mockWorkerEventRecorded": false,
       "controlledWorkerRouteExecutedNow": false,
       "controlledWorkerRouteGpuBlocked": true,
-      "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; sourceImageLocalPath; realEsrganModelLocalPath; reviewed private proof refs; adapter skip reason: real_esrgan_model_missing",
+      "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; sourceImageLocalPath; realEsrganModelLocalPath; modelWeightManifestEvidence; reviewed private proof refs; adapter skip reason: real_esrgan_model_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
       "currentBlockingPrerequisiteKey": "realEsrganModelLocalPath",
       "currentBlockingReasonCode": "real_esrgan_model_missing",
       "remainingPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
-        "sourceImageLocalPath"
+        "sourceImageLocalPath",
+        "modelWeightManifestEvidence"
       ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
         "sourceImageLocalPath",
-        "realEsrganModelLocalPath"
+        "realEsrganModelLocalPath",
+        "modelWeightManifestEvidence"
       ],
       "minimumHostRuntimeFlags": [
         "--tool real_esrgan",
@@ -948,13 +958,15 @@
           "remainingPrivateRuntimeInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
-            "sourceImageLocalPath"
+            "sourceImageLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "minimumPrivateRuntimeInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
             "sourceImageLocalPath",
-            "realEsrganModelLocalPath"
+            "realEsrganModelLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "note": "Resolve this prerequisite with private local inputs only; missing private model/source files are blockers, not success."
         },
@@ -1244,20 +1256,22 @@
       "mockWorkerEventRecorded": false,
       "controlledWorkerRouteExecutedNow": false,
       "controlledWorkerRouteGpuBlocked": true,
-      "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; sourceImageLocalPath; rembgModelLocalPath; reviewed private proof refs; adapter skip reason: rembg_model_missing",
+      "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; sourceImageLocalPath; rembgModelLocalPath; modelWeightManifestEvidence; reviewed private proof refs; adapter skip reason: rembg_model_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
       "currentBlockingPrerequisiteKey": "rembgModelLocalPath",
       "currentBlockingReasonCode": "rembg_model_missing",
       "remainingPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
-        "sourceImageLocalPath"
+        "sourceImageLocalPath",
+        "modelWeightManifestEvidence"
       ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
         "sourceImageLocalPath",
-        "rembgModelLocalPath"
+        "rembgModelLocalPath",
+        "modelWeightManifestEvidence"
       ],
       "minimumHostRuntimeFlags": [
         "--tool rembg",
@@ -1290,13 +1304,15 @@
           "remainingPrivateRuntimeInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
-            "sourceImageLocalPath"
+            "sourceImageLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "minimumPrivateRuntimeInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
             "sourceImageLocalPath",
-            "rembgModelLocalPath"
+            "rembgModelLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "note": "Resolve this prerequisite with private local inputs only; missing private model/source files are blockers, not success."
         },
@@ -1416,20 +1432,22 @@
       "mockWorkerEventRecorded": false,
       "controlledWorkerRouteExecutedNow": false,
       "controlledWorkerRouteGpuBlocked": true,
-      "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; sourceImageLocalPath; transparentBackgroundCheckpointLocalPath; reviewed private proof refs; adapter skip reason: transparent_background_checkpoint_missing",
+      "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; sourceImageLocalPath; transparentBackgroundCheckpointLocalPath; modelWeightManifestEvidence; reviewed private proof refs; adapter skip reason: transparent_background_checkpoint_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
       "currentBlockingPrerequisiteKey": "transparentBackgroundCheckpointLocalPath",
       "currentBlockingReasonCode": "transparent_background_checkpoint_missing",
       "remainingPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
-        "sourceImageLocalPath"
+        "sourceImageLocalPath",
+        "modelWeightManifestEvidence"
       ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
         "sourceImageLocalPath",
-        "transparentBackgroundCheckpointLocalPath"
+        "transparentBackgroundCheckpointLocalPath",
+        "modelWeightManifestEvidence"
       ],
       "minimumHostRuntimeFlags": [
         "--tool transparent_background",
@@ -1462,13 +1480,15 @@
           "remainingPrivateRuntimeInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
-            "sourceImageLocalPath"
+            "sourceImageLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "minimumPrivateRuntimeInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
             "sourceImageLocalPath",
-            "transparentBackgroundCheckpointLocalPath"
+            "transparentBackgroundCheckpointLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "note": "Resolve this prerequisite with private local inputs only; missing private model/source files are blockers, not success."
         },

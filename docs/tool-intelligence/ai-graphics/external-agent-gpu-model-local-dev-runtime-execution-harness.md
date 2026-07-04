@@ -23,12 +23,12 @@ Missing private source/model/checkpoint paths block before Python runtime or Doc
 | --- | --- | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: |
 | `torch_torchvision` | `model_runtime_foundation` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `outputDirectory` | `foundation_runtime_output_directory_missing` | `nativeCudaRuntime` | `none` | false | false | false |
 | `transformers` | `model_runtime_foundation` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `outputDirectory` | `foundation_runtime_output_directory_missing` | `nativeCudaRuntime` | `none` | false | false | false |
-| `sam2` | `subject_segmentation` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `sam2CheckpointLocalPath` | `sam2_checkpoint_missing` | `outputDirectory, sourceImageLocalPath, nativeCudaRuntime` | `none` | false | false | false |
-| `birefnet` | `background_removal` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `birefnetModelLocalPath` | `birefnet_model_missing` | `outputDirectory, sourceImageLocalPath, nativeCudaRuntime` | `none` | false | false | false |
-| `real_esrgan` | `upscaling` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `realEsrganModelLocalPath` | `real_esrgan_model_missing` | `outputDirectory, sourceImageLocalPath, nativeCudaRuntime` | `none` | false | false | false |
+| `sam2` | `subject_segmentation` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `sam2CheckpointLocalPath` | `sam2_checkpoint_missing` | `outputDirectory, sourceImageLocalPath, modelWeightManifestEvidence, nativeCudaRuntime` | `none` | false | false | false |
+| `birefnet` | `background_removal` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `birefnetModelLocalPath` | `birefnet_model_missing` | `outputDirectory, sourceImageLocalPath, modelWeightManifestEvidence, nativeCudaRuntime` | `none` | false | false | false |
+| `real_esrgan` | `upscaling` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `realEsrganModelLocalPath` | `real_esrgan_model_missing` | `outputDirectory, sourceImageLocalPath, modelWeightManifestEvidence, nativeCudaRuntime` | `none` | false | false | false |
 | `kornia` | `tensor_image_ops` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `sourceImageLocalPath` | `kornia_source_frame_missing` | `outputDirectory, nativeCudaRuntime` | `none` | false | false | false |
-| `rembg` | `background_removal` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `rembgModelLocalPath` | `rembg_model_missing` | `outputDirectory, sourceImageLocalPath, nativeCudaRuntime` | `none` | false | false | false |
-| `transparent_background` | `background_removal` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `transparentBackgroundCheckpointLocalPath` | `transparent_background_checkpoint_missing` | `outputDirectory, sourceImageLocalPath, nativeCudaRuntime` | `none` | false | false | false |
+| `rembg` | `background_removal` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `rembgModelLocalPath` | `rembg_model_missing` | `outputDirectory, sourceImageLocalPath, modelWeightManifestEvidence, nativeCudaRuntime` | `none` | false | false | false |
+| `transparent_background` | `background_removal` | `local_dev_prerequisite_check_only` | `controlled_gpu_model_adapter_invoked_runtime_skipped` | `transparentBackgroundCheckpointLocalPath` | `transparent_background_checkpoint_missing` | `outputDirectory, sourceImageLocalPath, modelWeightManifestEvidence, nativeCudaRuntime` | `none` | false | false | false |
 
 ## Counts
 
@@ -41,6 +41,7 @@ Missing private source/model/checkpoint paths block before Python runtime or Doc
 - `toolExecutionApprovedNowTools`: 0
 - `gpuRuntimeApprovedForScopedControlledToolCallTools`: 0
 - `gpuRuntimeShouldStartNowTools`: 0
+- `privateLocalRuntimeInputsAcceptedBeforeRuntimeTools`: 0
 - `publicArtifactCreatedTools`: 0
 - `signedUrlCreatedTools`: 0
 - `runtimeReadyNowTools`: 0

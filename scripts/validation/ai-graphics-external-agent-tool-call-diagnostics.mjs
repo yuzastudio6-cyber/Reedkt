@@ -662,6 +662,7 @@ function checkPrivateInputPreflightCall(label, report, expectedToolId) {
     'outputDirectory',
     'nativeCudaRuntime',
     'sourceImageLocalPath',
+    'modelWeightManifestEvidence',
   ]) {
     if (!Array.isArray(normalized.requiredPrivateInputKeys) ||
       !normalized.requiredPrivateInputKeys.includes(key)) {
@@ -757,6 +758,9 @@ for (const phrase of [
   'assertNoSignedUrlOrRawUrl',
   'gpuModelRequiredPrivateInputKeys',
   'gpuModelCurrentBlockingPrerequisiteKey',
+  'modelWeightManifestId',
+  'modelWeightChecksumSha256',
+  'modelWeightChecksumEvidenceRef',
   'gpu_model_private_inputs_accepted_runtime_proof_not_requested',
   'blocked_until_scoped_private_gpu_runtime_proof',
   'nextExactScopedToolCallCommand',
@@ -776,6 +780,7 @@ for (const phrase of [
   'currentBlockingPrerequisiteKey',
   'remainingPrivateInputKeys',
   'gpu_model_private_inputs_accepted_runtime_proof_not_requested',
+  'modelWeightManifestEvidence',
   'assertNoSignedUrlOrRawUrl',
   'assertNoPathTraversal',
   'outputDirectory must stay under .local-artifacts/',
@@ -786,6 +791,8 @@ for (const phrase of [
 for (const phrase of [
   'minimumPrivateModelFileBytes',
   'privateModelRuntimeContentBlock',
+  'privateModelWeightEvidenceBlock',
+  'modelWeightChecksumPattern',
   'sam2_checkpoint_too_small_for_runtime',
   'sam2_checkpoint_invalid_extension',
   'birefnet_model_too_small_for_runtime',
@@ -794,6 +801,7 @@ for (const phrase of [
   'real_esrgan_model_invalid_file_name',
   'rembg_model_too_small_for_runtime',
   'rembg_model_invalid_extension',
+  '_model_weight_manifest_evidence_missing',
   'transparent_background_checkpoint_too_small_for_runtime',
   'transparent_background_checkpoint_invalid_extension',
   'blocked before Docker/GPU/Python startup',
@@ -1093,6 +1101,69 @@ if (
   fail(`rembg_invalid_extension_next_action_blocker_mismatch:${rembgInvalidExtensionRuntimeAttempt.nextAction?.currentBlockingPrerequisiteKey}`)
 }
 
+const rembgLargeModelMissingEvidence =
+  `${privatePreflightPaths.rootDir}/models/rembg/u2net-large-missing-evidence.onnx`
+writeLargePrivatePlaceholderFile(rembgLargeModelMissingEvidence)
+const rembgMissingEvidenceRuntimeAttempt = runToolCall([
+  '--tool rembg',
+  '--attempt-gpu-runtime',
+  '--runtime-backend docker_container',
+  `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  '--runtime-container-platform linux/amd64',
+  '--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/rembg-missing-model-weight-evidence-block',
+  `--source-image ${privatePreflightPaths.sourceImage}`,
+  `--rembg-model ${rembgLargeModelMissingEvidence}`,
+].join(' '))
+if (rembgMissingEvidenceRuntimeAttempt.status !== 'external_agent_single_tool_call_blocked_with_reason') {
+  fail(`rembg_missing_evidence_status_mismatch:${rembgMissingEvidenceRuntimeAttempt.status}`)
+}
+if (
+  rembgMissingEvidenceRuntimeAttempt.response?.externalAgentExecutionState !==
+  'blocked_with_reason'
+) {
+  fail(`rembg_missing_evidence_state_mismatch:${rembgMissingEvidenceRuntimeAttempt.response?.externalAgentExecutionState}`)
+}
+if (
+  rembgMissingEvidenceRuntimeAttempt.response?.blockingReasonCode !==
+  'rembg_model_weight_manifest_evidence_missing'
+) {
+  fail(`rembg_missing_evidence_blocking_reason_mismatch:${rembgMissingEvidenceRuntimeAttempt.response?.blockingReasonCode}`)
+}
+const rembgMissingEvidenceNormalized =
+  rembgMissingEvidenceRuntimeAttempt.response?.externalAgentToolCallResult ?? {}
+if (rembgMissingEvidenceNormalized.currentBlockingPrerequisiteKey !== 'modelWeightManifestEvidence') {
+  fail(`rembg_missing_evidence_current_blocker_mismatch:${rembgMissingEvidenceNormalized.currentBlockingPrerequisiteKey}`)
+}
+if (rembgMissingEvidenceNormalized.controlledAdapterInvokedNow !== true) {
+  fail('rembg_missing_evidence_adapter_not_invoked')
+}
+if (rembgMissingEvidenceNormalized.controlledAdapterExecutedNow !== false) {
+  fail('rembg_missing_evidence_adapter_executed')
+}
+if (rembgMissingEvidenceNormalized.localGpuModelRuntimeExecutionPerformed !== false) {
+  fail('rembg_missing_evidence_runtime_executed')
+}
+if (rembgMissingEvidenceNormalized.gpuRuntimeShouldStartNow !== false) {
+  fail('rembg_missing_evidence_started_gpu')
+}
+if (rembgMissingEvidenceRuntimeAttempt.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('rembg_missing_evidence_boolean_started_gpu')
+}
+if (
+  !Array.isArray(rembgMissingEvidenceNormalized.requiredPrivateInputKeys) ||
+  !rembgMissingEvidenceNormalized.requiredPrivateInputKeys.includes(
+    'modelWeightManifestEvidence',
+  )
+) {
+  fail('rembg_missing_evidence_required_key_missing')
+}
+if (
+  rembgMissingEvidenceRuntimeAttempt.nextAction?.currentBlockingPrerequisiteKey !==
+  'modelWeightManifestEvidence'
+) {
+  fail(`rembg_missing_evidence_next_action_blocker_mismatch:${rembgMissingEvidenceRuntimeAttempt.nextAction?.currentBlockingPrerequisiteKey}`)
+}
+
 const manifestOutsideLocalArtifacts = spawnToolCall([
   '--tool',
   'kornia',
@@ -1105,6 +1176,34 @@ if (manifestOutsideLocalArtifacts.status === 0) {
 }
 if (!manifestOutsideLocalArtifacts.stderr.includes('--runtime-input-manifest must stay under .local-artifacts/')) {
   fail('runtime_input_manifest_outside_local_artifacts_missing_diagnostic')
+}
+const invalidChecksumToolCallManifest =
+  `${runtimeManifestDir}/invalid-model-weight-checksum-runtime-inputs.json`
+fs.writeFileSync(absolute(invalidChecksumToolCallManifest), JSON.stringify({
+  toolInputs: {
+    rembg: {
+      outputDirectory: `${runtimeManifestDir}/invalid-checksum-output`,
+      sourceImageLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+      rembgModelLocalPath: '/tmp/reeditpro-private-rembg-model.onnx',
+      modelWeightManifestId: 'rembg_private_manifest_review_v1',
+      modelWeightChecksumSha256: 'not-a-sha256',
+      modelWeightChecksumEvidenceRef:
+        'private://reeditpro/ai-graphics/checksum-evidence/rembg.json',
+    },
+  },
+}, null, 2))
+const invalidChecksumToolCall = spawnToolCall([
+  '--tool',
+  'rembg',
+  '--attempt-gpu-runtime',
+  '--runtime-input-manifest',
+  invalidChecksumToolCallManifest,
+])
+if (invalidChecksumToolCall.status === 0) {
+  fail('runtime_input_manifest_invalid_checksum_unexpected_success')
+}
+if (!invalidChecksumToolCall.stderr.includes('modelWeightChecksumSha256 must be a 64-character SHA-256 hex digest')) {
+  fail('runtime_input_manifest_invalid_checksum_missing_diagnostic')
 }
 
 const unsafeRawUrlRoutePayload = runToolCall([

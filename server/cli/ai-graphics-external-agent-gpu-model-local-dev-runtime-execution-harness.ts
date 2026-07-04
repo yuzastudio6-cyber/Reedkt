@@ -64,6 +64,9 @@ const runtimeInputManifestStringFields = new Set([
   'realEsrganModelLocalPath',
   'rembgModelLocalPath',
   'transparentBackgroundCheckpointLocalPath',
+  'modelWeightManifestId',
+  'modelWeightChecksumSha256',
+  'modelWeightChecksumEvidenceRef',
   'runtimeContainerImage',
   'runtimeContainerPlatform',
 ])
@@ -333,6 +336,36 @@ function safeManifestString(
   if (typeof value !== 'string' || value.length === 0) {
     throw new Error(`runtime input manifest field ${key} must be a non-empty string`)
   }
+  if (key === 'modelWeightManifestId') {
+    if (
+      /^[a-z][a-z0-9+.-]*:\/\//i.test(value) ||
+      value.includes('/') ||
+      value.includes('\\') ||
+      value.includes('\0') ||
+      value.split(/[\\/]+/).includes('..')
+    ) {
+      throw new Error(`runtime input manifest field ${key} must be a reviewed private manifest id`)
+    }
+    return value
+  }
+  if (key === 'modelWeightChecksumSha256') {
+    if (!/^[a-f0-9]{64}$/i.test(value)) {
+      throw new Error(`runtime input manifest field ${key} must be a 64-character SHA-256 hex digest`)
+    }
+    return value
+  }
+  if (key === 'modelWeightChecksumEvidenceRef') {
+    if (
+      !value.startsWith('private://') ||
+      /^https?:\/\//i.test(value) ||
+      value.startsWith('public://') ||
+      value.includes('\0') ||
+      value.split(/[\\/]+/).includes('..')
+    ) {
+      throw new Error(`runtime input manifest field ${key} must be a reviewed private:// checksum evidence ref`)
+    }
+    return value
+  }
   if (
     /^https?:\/\//i.test(value) ||
     (runtimeInputManifestPathFields.has(key) && /^[a-z][a-z0-9+.-]*:\/\//i.test(value)) ||
@@ -403,6 +436,12 @@ function runtimeInputsForTool(
     transparentBackgroundCheckpointLocalPath:
       args.transparentBackgroundCheckpointLocalPath ??
       manifestStringForTool(toolId, args, 'transparentBackgroundCheckpointLocalPath'),
+    modelWeightManifestId:
+      manifestStringForTool(toolId, args, 'modelWeightManifestId'),
+    modelWeightChecksumSha256:
+      manifestStringForTool(toolId, args, 'modelWeightChecksumSha256'),
+    modelWeightChecksumEvidenceRef:
+      manifestStringForTool(toolId, args, 'modelWeightChecksumEvidenceRef'),
     runtimeContainerImage:
       args.runtimeContainerImage ??
       manifestStringForTool(toolId, args, 'runtimeContainerImage'),
@@ -485,6 +524,13 @@ function localInputRequirements(
     requiredForDefaultHarness: false,
     requiredForActualExecution: true,
     description: 'Private local representative image/frame selected from an approved plan.',
+  }
+  const modelWeightManifestEvidence: LocalInputRequirement = {
+    key: 'modelWeightManifestEvidence',
+    requiredForDefaultHarness: false,
+    requiredForActualExecution: true,
+    description:
+      'Reviewed private model-weight manifest id, SHA-256 checksum, and private checksum evidence reference for the supplied model/checkpoint.',
   }
 
   if (toolId === 'torch_torchvision' || toolId === 'transformers') {
@@ -576,6 +622,7 @@ function localInputRequirements(
         outputDirectory,
         sourceImage,
         modelInputByTool[toolId],
+        modelWeightManifestEvidence,
         {
           key: 'nativeCudaRuntime',
           requiredForDefaultHarness: false,
@@ -588,6 +635,7 @@ function localInputRequirements(
         outputDirectory,
         sourceImage,
         modelInputByTool[toolId],
+        modelWeightManifestEvidence,
         {
           key: 'nativeCudaRuntime',
           requiredForDefaultHarness: false,
@@ -671,6 +719,13 @@ function currentBlockingPrerequisiteKey(
     return 'transparentBackgroundCheckpointLocalPath'
   }
   if (
+    blockingReasonCode.includes('_model_weight_manifest_evidence_missing') ||
+    blockingReasonCode.includes('_model_weight_checksum_invalid') ||
+    blockingReasonCode.includes('_model_weight_checksum_evidence_ref_invalid')
+  ) {
+    return 'modelWeightManifestEvidence'
+  }
+  if (
     blockingReasonCode.includes('cuda') ||
     blockingReasonCode.includes('container_gpu')
   ) {
@@ -734,6 +789,9 @@ function exactRuntimeAttemptCommand(
       : '',
     toolId === 'transparent_background'
       ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
+      : '',
+    modelWeightManifestRequired(toolId)
+      ? '--runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>'
       : '',
     toolId === 'kornia'
       ? '--allow-cpu-tensor-runtime'
@@ -832,6 +890,15 @@ function applyRuntimePayloadArgs(
   ) {
     payload.transparentBackgroundCheckpointLocalPath =
       runtimeInputs.transparentBackgroundCheckpointLocalPath
+  }
+  if (runtimeInputs.modelWeightManifestId) {
+    payload.modelWeightManifestId = runtimeInputs.modelWeightManifestId
+  }
+  if (runtimeInputs.modelWeightChecksumSha256) {
+    payload.modelWeightChecksumSha256 = runtimeInputs.modelWeightChecksumSha256
+  }
+  if (runtimeInputs.modelWeightChecksumEvidenceRef) {
+    payload.modelWeightChecksumEvidenceRef = runtimeInputs.modelWeightChecksumEvidenceRef
   }
 
   return payload

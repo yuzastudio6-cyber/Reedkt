@@ -142,6 +142,12 @@ function gpuModelMinimumPrivateRuntimeInputKeys(toolId: string): string[] {
   if (toolId === 'transparent_background') {
     keys.push('transparentBackgroundCheckpointLocalPath')
   }
+  if (
+    ['sam2', 'birefnet', 'real_esrgan', 'rembg', 'transparent_background']
+      .includes(toolId)
+  ) {
+    keys.push('modelWeightManifestEvidence')
+  }
   return keys
 }
 
@@ -201,6 +207,13 @@ function gpuModelCurrentBlockingPrerequisiteKey(
     blockingReasonCode.includes('transparent_background_checkpoint_too_small_for_runtime')
   ) {
     return 'transparentBackgroundCheckpointLocalPath'
+  }
+  if (
+    blockingReasonCode.includes('_model_weight_manifest_evidence_missing') ||
+    blockingReasonCode.includes('_model_weight_checksum_invalid') ||
+    blockingReasonCode.includes('_model_weight_checksum_evidence_ref_invalid')
+  ) {
+    return 'modelWeightManifestEvidence'
   }
   if (
     blockingReasonCode.includes('cuda') ||

@@ -105,6 +105,30 @@ assert.equal(ownerReadback.readinessSummary.durableEvidenceStored, true, 'readba
 assert.equal(ownerReadback.readinessSummary.backendPersistenceMode, 'persistent_supabase', 'persistent service readback should report Supabase-backed mode')
 assert.equal(ownerReadback.readinessSummary.productionActivationAttempted, false, 'evidence readback must not imply production activation')
 
+const blockedInput = productionEvidenceFixture({ walletSettlement: { spendVerified: false } })
+await assert.rejects(
+  () => ownerService.recordEvidence(blockedInput, 'production-readiness-evidence-service-blocked-without-confirmation'),
+  /cannot be recorded until the paid-production gate passes/,
+  'blocked readiness evidence should require explicit blocked-audit recording approval',
+)
+const blockedAuditRecord = await ownerService.recordEvidence(
+  blockedInput,
+  'production-readiness-evidence-service-blocked-audit-record',
+  { allowBlockedEvidencePacket: true },
+)
+const blockedAuditReadback = await ownerService.listEvidence(readinessInput.workspaceId)
+assert.equal(blockedAuditRecord.recordedBlockedAuditPacket, true, 'blocked audit record should be labeled as a blocked audit packet')
+assert.equal(blockedAuditRecord.report.productionToolExecutionAllowed, false, 'blocked audit packet must not allow production execution')
+assert.equal(blockedAuditRecord.report.paidProductionAllowed, false, 'blocked audit packet must not allow paid production')
+assert.equal(blockedAuditReadback.latestPacket?.id, blockedAuditRecord.packet.id, 'latest readback should expose the blocked audit packet')
+assert.equal(blockedAuditReadback.readinessSummary.latestProductionToolExecutionAllowed, false, 'blocked audit readback must preserve production execution denied')
+assert.equal(blockedAuditReadback.readinessSummary.durableEvidenceStored, true, 'persistent blocked audit evidence is durable status evidence')
+assert.equal(
+  blockedAuditRecord.warnings.some((warning) => warning.includes('blocked readiness audit packet only')),
+  true,
+  'blocked audit record should warn that it is not production approval',
+)
+
 const adminService = createProductionToolExecutionReadinessEvidenceService(createProductionReadinessEvidenceServiceContext('admin'))
 const adminReadback = await adminService.listEvidence(readinessInput.workspaceId)
 assert.equal(adminReadback.evidencePacketCount, 0, 'workspace admin membership should be authorized for persistent readback')
@@ -142,9 +166,12 @@ console.log(JSON.stringify({
   memberReadbackAuthorized: true,
   viewerRecordBlocked: true,
   outsiderAccessBlocked: true,
+  blockedAuditPacketRecorded: true,
 }, null, 2))
 
-function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput {
+function productionEvidenceFixture(overrides: {
+  walletSettlement?: Partial<NonNullable<ProductionToolExecutionReadinessGateInput['walletSettlement']>>
+} = {}): ProductionToolExecutionReadinessGateInput {
   return {
     sourceId: 'production-tool-execution-readiness-evidence-store-smoke:complete-fixture',
     sourceSha: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -188,6 +215,7 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       settlementRpcServiceRoleOnlyVerified: true,
       idempotentSettlementReplayVerified: true,
       noSilentChargeVerified: true,
+      ...overrides.walletSettlement,
     },
     stripeBoundary: {
       ...reviewedEvidence('Stripe boundary'),

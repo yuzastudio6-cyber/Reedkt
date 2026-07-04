@@ -113,6 +113,24 @@ try {
     'blocked record response should include production gate blockers',
   )
 
+  const blockedAuditRecorded = await requestJson(`${evidenceRoute}?recordBlockedEvidence=true`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'production-readiness-api-smoke-blocked-audit-record' },
+    body: JSON.stringify({
+      sourceId: 'production-tool-execution-readiness-api-smoke:blocked-audit-record',
+      workspaceId: 'workspace-production-readiness-api-smoke-blocked-audit',
+      projectId: 'project-production-readiness-api-smoke-blocked-audit',
+    }),
+  }, 201)
+  assert.equal(blockedAuditRecorded.ok, true, 'explicit blocked audit evidence should record')
+  assert.equal(blockedAuditRecorded.data.recordedBlockedAuditPacket, true, 'blocked audit route should label the packet')
+  assert.equal(blockedAuditRecorded.data.report.productionToolExecutionAllowed, false, 'blocked audit packet must not allow production execution')
+  assert.equal(blockedAuditRecorded.data.report.paidProductionAllowed, false, 'blocked audit packet must not allow paid production')
+  assert.ok(
+    blockedAuditRecorded.warnings.some((warning: string) => warning.includes('cannot be used as paid-production approval')),
+    'blocked audit route should warn that the packet is not production approval',
+  )
+
   const recorded = await requestJson(evidenceRoute, {
     method: 'POST',
     headers: { 'idempotency-key': 'production-readiness-api-smoke-record' },
@@ -146,6 +164,7 @@ try {
     stagingBlocked: staging.data.report.blockers.length,
     secretSafetyRejected: secretLike.error.code,
     secretSafetyRecordRejected: secretLikeRecord.error.code,
+    blockedAuditPacketRecorded: blockedAuditRecorded.data.recordedBlockedAuditPacket,
     recordedEvidencePacket: recorded.data.packet.id,
     idempotentEvidenceReplay: replayed.data.replayed,
     readbackEvidencePacketCount: readback.data.evidencePacketCount,

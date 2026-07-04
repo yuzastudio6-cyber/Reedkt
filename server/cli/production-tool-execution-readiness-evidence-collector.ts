@@ -12,14 +12,16 @@ export interface ProductionToolExecutionReadinessEvidenceCollectorEnv
   REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN?: string
   REEDITPRO_PRODUCTION_READINESS_IDEMPOTENCY_KEY?: string
   REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_EVIDENCE?: string
+  REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_BLOCKED_EVIDENCE?: string
   REEDITPRO_PRODUCTION_READINESS_REQUIRE_RECORDED_READBACK?: string
 }
 
 export interface ProductionToolExecutionReadinessEvidenceCollectorRunResult {
   ok: boolean
-  mode: 'dry_run' | 'recorded'
+  mode: 'dry_run' | 'recorded' | 'blocked_recorded'
   endpointBaseUrl?: string
   readyForRecord: boolean
+  readyForBlockedAuditRecord: boolean
   recordConfirmationRequired: boolean
   preflight: ProductionToolExecutionReadinessEvidencePreflightReport
   record?: ProductionToolExecutionReadinessEvidenceRecordSummary
@@ -70,27 +72,52 @@ export async function runProductionToolExecutionReadinessEvidenceCollectorFromEn
 ): Promise<ProductionToolExecutionReadinessEvidenceCollectorRunResult> {
   const preflight = buildProductionToolExecutionReadinessEvidencePreflight(env)
   const confirmRecordEvidence = parseBoolean(env.REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_EVIDENCE)
+  const confirmBlockedEvidenceRecord = parseBoolean(env.REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_BLOCKED_EVIDENCE)
   const requireRecordedReadback = env.REEDITPRO_PRODUCTION_READINESS_REQUIRE_RECORDED_READBACK !== 'false'
+  const readyForBlockedAuditRecord = !preflight.ok &&
+    preflight.missingConfiguration.length === 0 &&
+    preflight.secretLikeInputPaths.length === 0
+  const recordingBlockedAuditPacket = !preflight.ok && confirmBlockedEvidenceRecord && readyForBlockedAuditRecord
 
-  if (!preflight.ok) {
+  if (!preflight.ok && !confirmBlockedEvidenceRecord) {
     return {
       ok: false,
       mode: 'dry_run',
       readyForRecord: false,
+      readyForBlockedAuditRecord,
       recordConfirmationRequired: true,
       preflight,
       warnings: [
         ...preflight.warnings,
         'Production readiness evidence was not sent to the backend because local preflight did not pass.',
+        readyForBlockedAuditRecord
+          ? 'Set REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_BLOCKED_EVIDENCE=true to record this blocked status as an audit packet without approving production.'
+          : 'Blocked audit packet recording still requires source/workspace/project identity, evidence-review confirmation, and secret-free input.',
       ],
     }
   }
 
-  if (!confirmRecordEvidence) {
+  if (!preflight.ok && !readyForBlockedAuditRecord) {
+    return {
+      ok: false,
+      mode: 'dry_run',
+      readyForRecord: false,
+      readyForBlockedAuditRecord: false,
+      recordConfirmationRequired: true,
+      preflight,
+      warnings: [
+        ...preflight.warnings,
+        'Blocked readiness audit evidence was not sent to the backend because local identity/configuration checks did not pass.',
+      ],
+    }
+  }
+
+  if (!confirmRecordEvidence && !recordingBlockedAuditPacket) {
     return {
       ok: true,
       mode: 'dry_run',
       readyForRecord: true,
+      readyForBlockedAuditRecord: false,
       recordConfirmationRequired: true,
       preflight,
       endpointBaseUrl: clean(env.REEDITPRO_PRODUCTION_READINESS_API_BASE_URL)?.replace(/\/+$/, ''),
@@ -118,7 +145,7 @@ export async function runProductionToolExecutionReadinessEvidenceCollectorFromEn
   const bearerToken = requiredEnv(env, 'REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN')
   const idempotencyKey = requiredEnv(env, 'REEDITPRO_PRODUCTION_READINESS_IDEMPOTENCY_KEY')
   const request = buildProductionToolExecutionReadinessGateInput(env)
-  const recordEndpoint = `${endpointBaseUrl}/v1/beta-readiness/production-tool-execution-readiness/evidence`
+  const recordEndpoint = `${endpointBaseUrl}/v1/beta-readiness/production-tool-execution-readiness/evidence${recordingBlockedAuditPacket ? '?recordBlockedEvidence=true' : ''}`
   const recordResponse = await fetchImpl(recordEndpoint, {
     method: 'POST',
     headers: {
@@ -129,7 +156,11 @@ export async function runProductionToolExecutionReadinessEvidenceCollectorFromEn
     body: JSON.stringify(request),
   })
   const record = summarizeRecordResponse(recordEndpoint, recordResponse.status, await recordResponse.json())
-  if (record.ok !== true || record.productionToolExecutionAllowed !== true || record.paidProductionAllowed !== true) {
+  if (recordingBlockedAuditPacket) {
+    if (record.ok !== true || record.productionToolExecutionAllowed !== false || record.paidProductionAllowed !== false) {
+      throw new Error('Blocked production readiness audit packet record did not return a blocked production gate report.')
+    }
+  } else if (record.ok !== true || record.productionToolExecutionAllowed !== true || record.paidProductionAllowed !== true) {
     throw new Error('Production readiness evidence record did not return a passing production gate report.')
   }
 
@@ -151,8 +182,8 @@ export async function runProductionToolExecutionReadinessEvidenceCollectorFromEn
     requireRecordedReadback &&
     (
       readback.ok !== true ||
-      readback.latestProductionToolExecutionAllowed !== true ||
-      readback.latestPaidProductionAllowed !== true ||
+      readback.latestProductionToolExecutionAllowed !== !recordingBlockedAuditPacket ||
+      readback.latestPaidProductionAllowed !== !recordingBlockedAuditPacket ||
       readback.recordedEvidencePacketPresent !== true ||
       readback.recordedEvidencePacketLatest !== true
     )
@@ -162,9 +193,10 @@ export async function runProductionToolExecutionReadinessEvidenceCollectorFromEn
 
   return {
     ok: true,
-    mode: 'recorded',
+    mode: recordingBlockedAuditPacket ? 'blocked_recorded' : 'recorded',
     endpointBaseUrl,
-    readyForRecord: true,
+    readyForRecord: !recordingBlockedAuditPacket,
+    readyForBlockedAuditRecord: recordingBlockedAuditPacket,
     recordConfirmationRequired: false,
     preflight,
     record,
@@ -173,7 +205,9 @@ export async function runProductionToolExecutionReadinessEvidenceCollectorFromEn
       ...preflight.warnings,
       ...record.warnings,
       ...readback.warnings,
-      'Production readiness evidence was recorded through the backend route only; this does not run tools, dispatch workers, mutate wallets, call Stripe, process media, or activate production.',
+      recordingBlockedAuditPacket
+        ? 'Blocked production readiness audit evidence was recorded through the backend route only; it cannot approve production dispatch or paid production.'
+        : 'Production readiness evidence was recorded through the backend route only; this does not run tools, dispatch workers, mutate wallets, call Stripe, process media, or activate production.',
     ],
   }
 }

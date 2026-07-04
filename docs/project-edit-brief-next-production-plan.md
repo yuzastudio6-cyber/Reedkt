@@ -64,6 +64,12 @@ RP-EDITBRIEF-21 closes the internal-testing milestone chain with an auditable co
 
 Next action: explicit PR-ready or merge hygiene by user request.
 
+## RP-EDITBRIEF-22 PR Ready / Merge Hygiene Preflight
+
+RP-EDITBRIEF-22 records the safe handoff state for PR #2425. It confirms that remaining blockers are scoped to unsafe release actions and that internal testing, owner review, diagnostics, PR-ready hygiene, and merge hygiene can continue. It does not change GitHub PR state by itself; any mark-ready or merge action must run a fresh live preflight and be explicitly requested.
+
+Next action: explicit mark-ready or merge-hygiene request.
+
 ## Qwen Runtime Dependency
 
 RP-QWEN-00 is complete as an audit-only package for future reasoning runtime readiness. Edit Brief Marker Chat remains deterministic mock/local until a later owner-approved Qwen milestone. No Qwen call, provider call, Secret Manager inspection, `gcloud`, Supabase CLI, route wiring, Marker Chat runtime change, worker, render/export/progress, credit action, staging, commit, or cleanup occurred.

@@ -1,0 +1,85 @@
+{
+  "id": "project-edit-brief-pr-ready-merge-hygiene-preflight",
+  "milestone": "RP-EDITBRIEF-22",
+  "decision": "project_edit_brief_pr_ready_merge_hygiene_preflight_passed_ready_for_explicit_state_change",
+  "pullRequest": 2425,
+  "sourceBranch": "codex/rp-edit-brief-source-truth-reconciliation",
+  "baseBranch": "codex/reeditpro-web-ui-shell",
+  "preflightInput": {
+    "latestAuditedHeadBeforeRp22": "0792c4a0e145042e5bbd531ed98a5cb341378868",
+    "latestObservedPrStateBeforeRp22": "OPEN",
+    "latestObservedDraftBeforeRp22": true,
+    "latestObservedMergeStateBeforeRp22": "CLEAN"
+  },
+  "stateChangePolicy": {
+    "markReadyAllowedOnlyWithExplicitUserRequest": true,
+    "mergeAllowedOnlyWithFreshPreflightAfterReady": true,
+    "branchDeletionFlagsAllowed": false,
+    "closeRebaseRetargetAllowed": false,
+    "postCommentAllowedForDurableHandoff": true,
+    "noStateChangePerformedByThisMilestone": true
+  },
+  "scopedBlockerPolicy": {
+    "intentionalBlanketBlocksAllowed": false,
+    "safeBlockerReductionAllowed": true,
+    "blockerScopeType": "unsafe_action_only",
+    "mustContinueSafeProgressWhenAvailable": true,
+    "blockedDoesNotMeanStopAllWork": true,
+    "blockedActionScope": [
+      "external_beta",
+      "real_user_media_beta",
+      "paid_production",
+      "live_supabase",
+      "provider_worker_render_execution",
+      "credit_spend"
+    ],
+    "allowedForwardProgressScopes": [
+      "internal_testing",
+      "owner_review",
+      "pr_ready_hygiene",
+      "merge_hygiene",
+      "release_gate_evidence_collection",
+      "production_shaped_backend_skeletons",
+      "diagnostics_and_qa_packets"
+    ]
+  },
+  "requiredFreshPreflightForReadyOrMerge": [
+    "PR 2425 is OPEN",
+    "head matches the expected pushed commit",
+    "base branch is codex/reeditpro-web-ui-shell",
+    "mergeStateStatus is CLEAN before any merge",
+    "worktree is clean",
+    "no generated output, node_modules, lockfile, Dockerfile, runtime source, Supabase, media, public artifact, signed URL, or secret mutation",
+    "relevant smokes and diff checks pass",
+    "explicit user request authorizes the PR state change"
+  ],
+  "validatedInternalTestingEvidence": [
+    "project_edit_brief_internal_testing_completion_audit_passed_ready_for_explicit_pr_ready_or_merge_hygiene",
+    "project_edit_brief_internal_testing_review_passed_ready_for_pr_owner_review",
+    "project_edit_brief_internal_testing_readback_qa_passed_ready_for_internal_testing_review",
+    "project_edit_brief_internal_route_integration_passed_ready_for_internal_testing_readback"
+  ],
+  "releaseReadiness": {
+    "internalTestingReady": true,
+    "ownerReviewReady": true,
+    "externalBetaReady": false,
+    "realUserMediaBetaReady": false,
+    "paidProductionReady": false,
+    "productionReadyRoutes": 0
+  },
+  "blockedScope": {
+    "productionHttpRoutes": false,
+    "liveSupabaseReadsWrites": false,
+    "supabaseMigrationOrSql": false,
+    "storageSignedUrls": false,
+    "providerOrModelCalls": false,
+    "mediaProcessing": false,
+    "uploads": false,
+    "workerDispatch": false,
+    "renderOrExportJobs": false,
+    "creditReservationOrSpend": false,
+    "externalBetaActivation": false,
+    "paidProductionActivation": false
+  },
+  "nextAction": "explicit_mark_ready_or_merge_hygiene_request"
+}

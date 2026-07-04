@@ -51,6 +51,7 @@ Passed:
 - `npm run smoke:project-edit-brief-supabase-repository`
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-completion-audit`
+- `npm run smoke:project-edit-brief-pr-ready-merge-hygiene-preflight`
 - `npm run typecheck:server`
 - `npm run build`
 - `git diff --check`
@@ -77,6 +78,7 @@ Passed:
 - Internal testing readback QA after RP-EDITBRIEF-19: the connected route path is exercised for create brief, create marker, append Marker Chat, summary, and bundle readback with internal persistence metadata and safety flags preserved.
 - Internal testing review after RP-EDITBRIEF-20: the internal testing chain is ready for owner review and repeated mock-internal testing, while PR readiness/merge hygiene still requires explicit owner or user action and public release gates remain separate.
 - Internal testing completion audit after RP-EDITBRIEF-21: RP-EDITBRIEF-02 through RP-EDITBRIEF-20 are audited as complete for internal mock testing, while PR-ready/merge hygiene still requires explicit user request and public release gates remain separate.
+- PR-ready / merge hygiene preflight after RP-EDITBRIEF-22: remaining blockers are scoped to unsafe release actions, safe progress remains allowed, and any PR state change requires explicit user request plus fresh live preflight.
 - Real upload/source-media ingestion and privacy policy implementation.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.

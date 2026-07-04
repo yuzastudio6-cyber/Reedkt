@@ -32,6 +32,7 @@ Status: architecture/docs only. This report maps future `ProjectEditSession` Bri
 26. RP-EDITBRIEF-19 — Internal Testing Readback And QA
 27. RP-EDITBRIEF-20 — Internal Testing Review And PR Readiness
 28. RP-EDITBRIEF-21 — Internal Testing Completion Audit
+29. RP-EDITBRIEF-22 — PR Ready / Merge Hygiene Preflight
 
 ## Gate
 
@@ -192,3 +193,9 @@ Next recommended action: owner review or explicit PR-ready/merge hygiene for the
 Status: complete as internal-testing completion audit only. The milestone audits RP-EDITBRIEF-02 through RP-EDITBRIEF-20, records `project_edit_brief_internal_testing_completion_audit_passed_ready_for_explicit_pr_ready_or_merge_hygiene`, and confirms the Project Edit Brief mock/internal feature stack is ready for repeated internal testing through production-shaped seams. It does not mark the draft PR ready, merge the PR, or enable production HTTP routes, live Supabase, Storage, providers/models, media processing, workers, render/export, uploads, external beta, paid production, or credit spend.
 
 Next recommended action: explicit PR-ready or merge hygiene by user request.
+
+## RP-EDITBRIEF-22 — PR Ready / Merge Hygiene Preflight
+
+Status: complete as GitHub handoff preflight only. The milestone records `project_edit_brief_pr_ready_merge_hygiene_preflight_passed_ready_for_explicit_state_change`, confirms blockers are scoped to unsafe actions rather than blanket stop signs, and names the fresh preflight required before marking PR #2425 ready or merging it. It performs no PR state change, no merge, no close/rebase/retarget, no branch deletion, and no production/runtime activation.
+
+Next recommended action: explicit mark-ready or merge-hygiene request.

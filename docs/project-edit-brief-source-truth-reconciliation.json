@@ -64,7 +64,8 @@
       "smoke:project-edit-brief-internal-route-integration",
       "smoke:project-edit-brief-internal-testing-readback-qa",
       "smoke:project-edit-brief-internal-testing-review-pr-readiness",
-      "smoke:project-edit-brief-internal-testing-completion-audit"
+      "smoke:project-edit-brief-internal-testing-completion-audit",
+      "smoke:project-edit-brief-pr-ready-merge-hygiene-preflight"
     ],
     "typecheckServer": "passed",
     "build": "passed",
@@ -85,6 +86,7 @@
     "internal_testing_readback_qa_after_rp_editbrief_19",
     "owner_review_or_explicit_pr_ready_merge_hygiene_after_rp_editbrief_20",
     "explicit_pr_ready_or_merge_hygiene_by_user_request_after_rp_editbrief_21",
+    "explicit_mark_ready_or_merge_hygiene_request_after_rp_editbrief_22",
     "real_source_media_ingestion",
     "planner_integration_to_approved_snapshots",
     "credit_estimate_and_reservation",

@@ -129,6 +129,7 @@
     "smoke:project-edit-brief-internal-testing-readback-qa": "tsx server/smoke/project-edit-brief-internal-testing-readback-qa-smoke.ts",
     "smoke:project-edit-brief-internal-testing-review-pr-readiness": "tsx server/smoke/project-edit-brief-internal-testing-review-pr-readiness-smoke.ts",
     "smoke:project-edit-brief-internal-testing-completion-audit": "tsx server/smoke/project-edit-brief-internal-testing-completion-audit-smoke.ts",
+    "smoke:project-edit-brief-pr-ready-merge-hygiene-preflight": "tsx server/smoke/project-edit-brief-pr-ready-merge-hygiene-preflight-smoke.ts",
     "generate:project-edit-brief-owner-evidence-draft": "tsx scripts/validation/project-edit-brief-owner-evidence-example-generator.ts --mode draft --stdout",
     "smoke:project-edit-brief-visual-context": "tsx server/smoke/project-edit-brief-visual-context-smoke.ts",
     "check:frontend-boundary": "node scripts/check-frontend-server-boundary.mjs",

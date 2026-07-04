@@ -24,7 +24,7 @@ print_image_config() {
   echo "Repository: ${REEDITPRO_ARTIFACT_REPOSITORY}"
   echo "Image tag: ${REEDITPRO_IMAGE_TAG}"
   echo "Images:"
-  for image in reeditpro-api reeditpro-cpu-worker reeditpro-gpu-worker reeditpro-render-worker reeditpro-qa-worker reeditpro-tool-readiness-worker; do
+  for image in reeditpro-api reeditpro-cpu-worker reeditpro-sound-cpu-analysis-worker reeditpro-sound-audio-metadata-worker reeditpro-gpu-worker reeditpro-render-worker reeditpro-qa-worker reeditpro-tool-readiness-worker; do
     echo "  - $(image_name "${image}")"
   done
 }

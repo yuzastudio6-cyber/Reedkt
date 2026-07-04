@@ -113,6 +113,36 @@ check((gpuJob?.cpu ?? 0) >= 4, 'GPU worker must use at least 4 CPU.')
 check(gpuJob?.memory === '16Gi', 'GPU worker must use at least 16Gi memory.')
 check(gpuJob?.parallelism === 1, 'GPU worker parallelism must default to 1.')
 
+const soundCpuJobs = [
+  {
+    name: 'reeditpro-sound-cpu-analysis-worker',
+    imageName: 'reeditpro-sound-cpu-analysis-worker',
+  },
+  {
+    name: 'reeditpro-sound-audio-metadata-worker',
+    imageName: 'reeditpro-sound-audio-metadata-worker',
+  },
+]
+
+for (const expected of soundCpuJobs) {
+  const job = GCP_PRODUCTION_CLOUD_RUN_JOBS.find((candidate) => candidate.name === expected.name)
+  check(Boolean(job), `SOUND CPU job template must exist: ${expected.name}`)
+  check(job?.kind === 'job', `${expected.name} must be a Cloud Run Job template.`)
+  check(job?.serviceAccountKey === 'cpu_analysis_worker', `${expected.name} must use the CPU worker service account.`)
+  check(job?.imageName === expected.imageName, `${expected.name} image mismatch.`)
+  check(!job?.gpuType && !job?.gpuCount, `${expected.name} must not request GPU resources.`)
+  check(job?.cpu === 2, `${expected.name} must use the reviewed CPU value.`)
+  check(job?.memory === '4Gi', `${expected.name} must use the reviewed memory value.`)
+  check(job?.parallelism === 1, `${expected.name} parallelism must default to 1.`)
+  check(job?.maxRetries === 0, `${expected.name} must default to no automatic retries.`)
+  check(job?.deployedByMilestone3 === false, `${expected.name} must remain template-only.`)
+  check(job?.notes.some((note) => note.includes('No GPU')) === true, `${expected.name} must explain CPU-only placement.`)
+  check(
+    job?.notes.some((note) => note.includes('disabled by default')) ?? false,
+    `${expected.name} must preserve disabled runtime flags.`,
+  )
+}
+
 check(
   GCP_PRODUCTION_PREMIUM_GPU_OPTION.status === 'future_premium_evaluation_only',
   'RTX PRO 6000 must remain future/premium/evaluation only.',
@@ -144,6 +174,8 @@ const scriptPaths = [
   'scripts/gcp/prod/06-configure-iam.sh',
   'scripts/gcp/prod/08-deploy-api-service.example.sh',
   'scripts/gcp/prod/09-deploy-cpu-worker-job.example.sh',
+  'scripts/gcp/prod/09a-deploy-sound-cpu-analysis-worker-job.example.sh',
+  'scripts/gcp/prod/09b-deploy-sound-audio-metadata-worker-job.example.sh',
   'scripts/gcp/prod/10-deploy-gpu-worker-job.example.sh',
   'scripts/gcp/prod/11-deploy-render-worker-job.example.sh',
   'scripts/gcp/prod/12-deploy-qa-worker-job.example.sh',
@@ -169,6 +201,22 @@ check(gpuScript.includes('--parallelism=1'), 'GPU deploy example must include --
 check(gpuScript.includes('REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT'), 'GPU deploy example must use the GPU worker service account env var.')
 check(envExample.includes('REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT=reeditpro-gpu-worker-sa'), 'Env example must map GPU worker service account to reeditpro-gpu-worker-sa.')
 
+for (const scriptPath of [
+  'scripts/gcp/prod/09a-deploy-sound-cpu-analysis-worker-job.example.sh',
+  'scripts/gcp/prod/09b-deploy-sound-audio-metadata-worker-job.example.sh',
+]) {
+  const script = readRepoFile(scriptPath)
+  check(script.includes('REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT'), `${scriptPath} must reuse the CPU worker service account.`)
+  check(script.includes('--cpu=2'), `${scriptPath} must use --cpu=2.`)
+  check(script.includes('--memory=4Gi'), `${scriptPath} must use --memory=4Gi.`)
+  check(script.includes('--max-retries=0'), `${scriptPath} must avoid automatic retries.`)
+  check(script.includes('REEDITPRO_SOUND_CPU_RUNTIME_ENABLED=0'), `${scriptPath} must disable SOUND runtime.`)
+  check(script.includes('REEDITPRO_WORKER_EXECUTION_ENABLED=0'), `${scriptPath} must disable worker execution.`)
+  check(script.includes('REEDITPRO_MEDIA_PROCESSING_ENABLED=0'), `${scriptPath} must disable media processing.`)
+  check(script.includes('REEDITPRO_SUPABASE_MUTATION_ENABLED=0'), `${scriptPath} must disable Supabase mutation.`)
+  check(script.includes('REEDITPRO_ARTIFACT_WRITE_ENABLED=0'), `${scriptPath} must disable artifact writes.`)
+}
+
 const allScriptText = scriptPaths.map(readRepoFile).join('\n')
 check(!/signed_url/i.test(allScriptText), 'Scripts must not persist signed_url fields.')
 check(!/SECRET_VALUE|REAL_SECRET|paste secret/i.test(allScriptText), 'Scripts must not include secret payload prompts or values.')
@@ -180,6 +228,7 @@ console.log(JSON.stringify({
   serviceAccounts: GCP_PRODUCTION_SERVICE_ACCOUNTS.length,
   secretPlaceholders: GCP_PRODUCTION_SECRET_PLACEHOLDERS.length,
   cloudRunJobTemplates: GCP_PRODUCTION_CLOUD_RUN_JOBS.length,
+  soundCpuJobTemplates: soundCpuJobs.length,
   gpuTemplate: {
     gpuType: gpuJob?.gpuType,
     gpuCount: gpuJob?.gpuCount,

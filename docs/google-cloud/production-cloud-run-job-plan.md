@@ -16,6 +16,8 @@
 | Job | Runtime | Service account | GPU | Notes |
 | --- | --- | --- | --- | --- |
 | `reeditpro-cpu-analysis-worker` | Cloud Run Job | `reeditpro-cpu-worker-sa` | No | CPU/media analysis command placeholder. |
+| `reeditpro-sound-cpu-analysis-worker` | Cloud Run Job | `reeditpro-cpu-worker-sa` | No | SOUND CPU 15-tool analysis target; runtime/media/worker/Supabase/artifact flags disabled by default. |
+| `reeditpro-sound-audio-metadata-worker` | Cloud Run Job | `reeditpro-cpu-worker-sa` | No | SOUND CPU metadata target for package import, numeric array, symbolic MIDI, and loudness planning jobs; disabled by default. |
 | `reeditpro-gpu-ai-worker` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | First GPU test template only. |
 | `reeditpro-render-worker` | Cloud Run Job | `reeditpro-render-worker-sa` | No by default | Core render stack template: Hyperframe, Remotion, FFmpeg, libass, OpenTimelineIO. |
 | `reeditpro-qa-worker` | Cloud Run Job | `reeditpro-qa-worker-sa` | No by default | GPU only if a later heavy CV QA milestone approves it. |
@@ -41,6 +43,8 @@ Milestone 5 adds production image template names that future Cloud Run services/
 
 - `reeditpro-api`
 - `reeditpro-cpu-worker`
+- `reeditpro-sound-cpu-analysis-worker`
+- `reeditpro-sound-audio-metadata-worker`
 - `reeditpro-gpu-worker`
 - `reeditpro-render-worker`
 - `reeditpro-qa-worker`

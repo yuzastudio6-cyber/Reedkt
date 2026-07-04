@@ -1,10 +1,12 @@
 # Project Edit Brief Next Production Plan
 
-Edit Brief is optional. Chat remains default. Marker Chat is marker-scoped. Attachments are metadata-only. Plan hints are not execution. Production ready: false. Owner approval pending. No migration. No Supabase command.
+Edit Brief is optional. Chat remains default. Marker Chat is marker-scoped. Attachments are metadata-only. Plan hints are not execution. Production ready: false. Public-release owner approval pending. Internal testing owner path accepted by RP-EDITBRIEF-15H. No migration. No Supabase command.
 
 ## Current State
 
 The mock/local Edit Brief flow is intended for internal testing only. It can create marker metadata, capture marker-scoped intent, store metadata-only attachments, save mock export settings, run deterministic QA, and prepare mock plan hints.
+
+Internal testing still has to be production-shaped. Test implementation should use the same route, repository, API, approved-plan, estimate, audit, and validation seams expected for release, with explicit blocked-scope checks for public launch, billing, live Supabase writes, providers, media workers, render/export, uploads, and real-user-media exposure.
 
 ## Production Gates
 
@@ -18,7 +20,13 @@ The mock/local Edit Brief flow is intended for internal testing only. It can cre
 
 ## Recommended Next Milestone
 
-After verification and owner review, use `RP-EDITBRIEF-16 — Production Persistence Implementation Plan` only after RP-EDITBRIEF-15 owner inputs are supplied in the RP-EDITBRIEF-15A intake template and RP-EDITBRIEF-15B evaluates that intake as ready. RP-EDITBRIEF-13 reconciled the Supabase persistence roots, RP-EDITBRIEF-14 converted blanket blockers into computed readiness gates, RP-EDITBRIEF-15 records the missing owner/operator evidence, RP-EDITBRIEF-15A supplies the concrete intake shape, RP-EDITBRIEF-15B adds the executable readiness check, RP-EDITBRIEF-15C names the owner assignment evidence needed to complete the gate, RP-EDITBRIEF-15D adds a local validation command for filled evidence files, RP-EDITBRIEF-15E adds the strict PR diff gate for the reviewed evidence update, RP-EDITBRIEF-15F adds schema validation before readiness/safety evaluation, and RP-EDITBRIEF-15G adds a safe draft generator for external owner collection. Do not jump from these gates to production enablement without the named evidence, a schema-valid intake, a safety-clean validation result, and a passing readiness result.
+For internal testing, proceed through `RP-EDITBRIEF-16 — Production-Shaped Internal Persistence Implementation Plan` after RP-EDITBRIEF-15H because Codex is acting as the implementation owner for the internal testing lane. That milestone should build release-shaped contracts and wiring, not disposable test-only code.
+
+For external beta, real-user-media beta, or paid production, use `RP-EDITBRIEF-16 — Production Persistence Implementation Plan` only after RP-EDITBRIEF-15 owner inputs are supplied in the RP-EDITBRIEF-15A intake template and RP-EDITBRIEF-15B evaluates that intake as ready. RP-EDITBRIEF-13 reconciled the Supabase persistence roots, RP-EDITBRIEF-14 converted blanket blockers into computed readiness gates, RP-EDITBRIEF-15 records the missing owner/operator evidence, RP-EDITBRIEF-15A supplies the concrete intake shape, RP-EDITBRIEF-15B adds the executable readiness check, RP-EDITBRIEF-15C names the owner assignment evidence needed to complete the gate, RP-EDITBRIEF-15D adds a local validation command for filled evidence files, RP-EDITBRIEF-15E adds the strict PR diff gate for the reviewed evidence update, RP-EDITBRIEF-15F adds schema validation before readiness/safety evaluation, and RP-EDITBRIEF-15G adds a safe draft generator for external owner collection. Do not jump from these gates to public production enablement without the named evidence, a schema-valid intake, a safety-clean validation result, and a passing readiness result.
+
+## Internal Testing Owner Path
+
+RP-EDITBRIEF-15H accepts Codex/operator ownership for internal testing only. It allows production-shaped internal persistence planning while keeping external beta, real-user-media beta, paid production, live Supabase writes, provider/model calls, workers, render/export, uploads, and credit spend blocked until their separate evidence gates pass.
 
 ## Qwen Runtime Dependency
 

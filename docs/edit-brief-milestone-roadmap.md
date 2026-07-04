@@ -25,7 +25,8 @@ Status: architecture/docs only. This report maps future `ProjectEditSession` Bri
 19. RP-EDITBRIEF-15E — Owner Evidence PR Diff Validation
 20. RP-EDITBRIEF-15F — Owner Evidence Schema Validation
 21. RP-EDITBRIEF-15G — Owner Evidence Example Generator
-22. RP-EDITBRIEF-16 — Production Persistence Implementation Plan
+22. RP-EDITBRIEF-15H — Internal Testing Owner Acceptance
+23. RP-EDITBRIEF-16 — Production-Shaped Internal Persistence Implementation Plan
 
 ## Gate
 
@@ -143,4 +144,10 @@ Next recommended milestone: `RP-EDITBRIEF-15G — Owner Evidence Example Generat
 
 Status: complete as a safe local generator only. The milestone adds `generate:project-edit-brief-owner-evidence-draft` to produce a draft-to-fill intake from the review packet. The default draft remains readiness-blocked. A strict synthetic example exists only for local format testing and must not be committed as real approval.
 
-Next recommended milestone after the evaluator reports `project_edit_brief_owner_evidence_readiness_passed_ready_for_rp_editbrief_16` on real owner evidence: `RP-EDITBRIEF-16 — Production Persistence Implementation Plan`.
+Next recommended milestone for internal testing progress: `RP-EDITBRIEF-15H — Internal Testing Owner Acceptance`. For external beta, real-user-media beta, or paid production, the owner evidence evaluator still must report `project_edit_brief_owner_evidence_readiness_passed_ready_for_rp_editbrief_16` on real owner evidence.
+
+## RP-EDITBRIEF-15H — Internal Testing Owner Acceptance
+
+Status: complete as a Codex/operator internal-testing owner acceptance only. The milestone records that internal testing work must be production-shaped rather than throwaway: contract-first, backend-safe, aligned to approved-plan and credit-estimate seams, and tracked with a release delta. It allows the next Edit Brief milestone to plan internal persistence without claiming external beta, real-user-media beta, paid production, live Supabase writes, providers/models, workers, render/export, uploads, or credits.
+
+Next recommended milestone for internal testing: `RP-EDITBRIEF-16 — Production-Shaped Internal Persistence Implementation Plan`. Public release lanes still require the RP-EDITBRIEF-15 owner evidence chain.

@@ -68,6 +68,7 @@ Passed:
 - Owner evidence PR diff validation after RP-EDITBRIEF-15E: the future reviewed evidence PR should stage only the owner-evidence intake file, then run strict diff validation plus the readiness/safety evaluator.
 - Owner evidence schema validation after RP-EDITBRIEF-15F: malformed owner evidence JSON fails before readiness, safety, or PR-diff validation runs.
 - Owner evidence drafting after RP-EDITBRIEF-15G: reviewers can generate a safe local draft-to-fill from the review packet; generated strict examples are local format checks only and not source truth.
+- Internal testing owner acceptance after RP-EDITBRIEF-15H: Codex/operator accepts the internal testing lane only, requiring production-shaped implementation and release-delta tracking while external beta, real-user-media beta, paid production, live Supabase writes, providers, workers, render/export, uploads, and credits remain blocked.
 - Real upload/source-media ingestion and privacy policy implementation.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.

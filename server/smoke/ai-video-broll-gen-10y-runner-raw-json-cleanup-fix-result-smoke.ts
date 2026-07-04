@@ -33,9 +33,9 @@ const DECISION =
   'ai_video_broll_gen_10y_runner_raw_json_cleanup_fix_applied_no_execution_10z_retry_ready'
 const HISTORICAL_10Y_BLOCKER = 'broll_10z_no_idle_l4_payload_install_retry_after_runner_fix_required'
 const CURRENT_ROLLUP_BLOCKER =
-  'broll_private_gcs_model_cache_staging_blocked_local_upload_stalled_private_url_list_403'
+  'broll_private_gcs_model_cache_staging_runner_ready_not_yet_executed'
 const CURRENT_ROLLUP_NEXT_PROMPT =
-  'AI-VIDEO-BROLL-GEN-11E-CLOUD-SIDE-CACHE-STAGING-RUNNER: implement no-GPU Wan private cache staging runner, no inference/no generated video'
+  'AI-VIDEO-BROLL-GEN-11E-EXECUTE-CLOUD-SIDE-CACHE-STAGING: run no-GPU Wan private cache staging runner with explicit confirmation, no inference/no generated video'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')

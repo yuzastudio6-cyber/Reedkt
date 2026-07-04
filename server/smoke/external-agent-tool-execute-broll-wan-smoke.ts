@@ -14,6 +14,7 @@ const SMOKE_SCRIPT = 'smoke:external-agent-tool-execute-broll-wan'
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
 const CACHE_FILL_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL'
 const DELEGATED_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11B_MODEL_IMPORT_PROOF'
+const CACHE_STAGING_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11E_CLOUD_SIDE_CACHE_STAGING'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -96,17 +97,18 @@ for (const required of [
   CONFIRM_ENV,
   CACHE_FILL_CONFIRM_ENV,
   DELEGATED_CONFIRM_ENV,
+  CACHE_STAGING_CONFIRM_ENV,
   'ai-video-broll-wan-gpu-global-quota-verify.ts',
   'ai-video-broll-wan-fast-cache-readiness-check.ts',
   'ai-video-broll-gen-11b:l4-model-import-runner',
+  'ai-video-broll-gen-11e:cloud-side-cache-staging-runner',
   'external-agent-tool-prepare-broll-wan-cache',
-  '--cache-fill-only',
-  '.tmp/external-agent-broll-wan-11b-private-cache-fill.json',
+  '.tmp/external-agent-broll-wan-11e-cloud-side-cache-staging-runner.json',
   '.tmp/external-agent-broll-wan-11b-l4-model-import-runner.json',
   'broll_gpus_all_regions_quota_not_sufficient',
   'external_agent_broll_wan_private_cache_prepare_static_guard',
   'external_agent_broll_wan_private_cache_prepare_confirmation_blocked',
-  'external_agent_broll_wan_private_cache_prepare_delegated_result',
+  'external_agent_broll_wan_private_cache_prepare_delegated_11e_result',
   'external_agent_broll_wan_execution_delegated_11b_model_import_result',
   'parseJsonOutput',
   'runtimeRunNow: false',
@@ -184,16 +186,17 @@ assert.equal(cachePrepareStatic.mode, 'external_agent_broll_wan_private_cache_pr
 assert.equal(cachePrepareStatic.executeRequired, true)
 assert.equal(cachePrepareStatic.confirmationEnv, CACHE_FILL_CONFIRM_ENV)
 assert.equal(cachePrepareStatic.confirmationEnvRequiredValue, 'true')
-assert.equal(cachePrepareStatic.delegatedRunnerConfirmationEnv, DELEGATED_CONFIRM_ENV)
-assert.equal(cachePrepareStatic.delegatedRunnerScript, 'ai-video-broll-gen-11b:l4-model-import-runner')
+assert.equal(cachePrepareStatic.delegatedRunnerConfirmationEnv, CACHE_STAGING_CONFIRM_ENV)
+assert.equal(cachePrepareStatic.delegatedRunnerScript, 'ai-video-broll-gen-11e:cloud-side-cache-staging-runner')
 assert.deepEqual(cachePrepareStatic.delegatedRunnerArgs, [
-  '--cache-fill-only',
   '--execute',
   '--summary-path',
-  '.tmp/external-agent-broll-wan-11b-private-cache-fill.json',
+  '.tmp/external-agent-broll-wan-11e-cloud-side-cache-staging-runner.json',
 ])
 assert.equal(cachePrepareStatic.runtimeRunNow, false)
 assert.equal(cachePrepareStatic.computeVmCreated, false)
+assert.equal(cachePrepareStatic.cloudRunJobCreated, false)
+assert.equal(cachePrepareStatic.cloudRunJobExecuted, false)
 assert.equal(cachePrepareStatic.modelImportRun, false)
 assert.equal(cachePrepareStatic.modelInferenceRun, false)
 assert.equal(cachePrepareStatic.privateGcsModelCacheStaged, false)
@@ -209,6 +212,8 @@ assert.equal(cachePrepareBlocked.status, 'blocked')
 assert.deepEqual(cachePrepareBlocked.blockers, [`confirmation_env_required:${CACHE_FILL_CONFIRM_ENV}=true`])
 assert.equal(cachePrepareBlocked.runtimeRunNow, false)
 assert.equal(cachePrepareBlocked.computeVmCreated, false)
+assert.equal(cachePrepareBlocked.cloudRunJobCreated, false)
+assert.equal(cachePrepareBlocked.cloudRunJobExecuted, false)
 assert.equal(cachePrepareBlocked.modelImportRun, false)
 assert.equal(cachePrepareBlocked.modelInferenceRun, false)
 assert.equal(cachePrepareBlocked.privateGcsModelCacheStaged, false)

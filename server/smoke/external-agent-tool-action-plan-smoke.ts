@@ -178,12 +178,11 @@ assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-bl
 assert.equal(broll.externalManualBlocker.includes('10ZB proved the no-idle L4 payload/install path'), true)
 assert.equal(broll.externalManualBlocker.includes('11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers'), true)
 assert.equal(broll.externalManualBlocker.includes('11B added the no-inference model import/load runner'), true)
-assert.equal(broll.externalManualBlocker.includes('private GCS Wan model-cache staging is blocked'), true)
-assert.equal(broll.externalManualBlocker.includes('11C private URL-list Storage Transfer test failed with HTTP 403'), true)
-assert.equal(broll.externalManualBlocker.includes('11D selected a no-GPU cloud-side cache staging runner'), true)
+assert.equal(broll.externalManualBlocker.includes('private GCS Wan model cache still needs the 11E no-GPU cloud-side cache staging runner'), true)
+assert.equal(broll.externalManualBlocker.includes('create the private ready marker before the 11B GPU proof can run'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run AI-VIDEO-BROLL-GEN-11E-CLOUD-SIDE-CACHE-STAGING-RUNNER before retrying private cache preparation or the bounded 11B no-idle L4 model import/load proof',
+  'run AI-VIDEO-BROLL-GEN-11E-EXECUTE-CLOUD-SIDE-CACHE-STAGING through npm run external-agent-tool-prepare-broll-wan-cache before the bounded 11B no-idle L4 model import/load proof',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)

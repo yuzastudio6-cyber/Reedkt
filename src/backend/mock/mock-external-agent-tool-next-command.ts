@@ -77,8 +77,10 @@ export type ExternalAgentToolBrollWanPrivateCachePrepareCommand = {
   args: readonly ['run', 'external-agent-tool-prepare-broll-wan-cache', '--', '--execute', '--json']
   confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL'
   confirmationEnvRequiredValue: 'true'
-  delegatesTo11bRunnerCacheFillOnly: true
+  delegatesTo11eCloudSideCacheStagingRunner: true
   stagesPrivateGcsModelCacheOnly: true
+  createsCloudRunJob: true
+  deletesCloudRunJobAndVerifiesCleanup: true
   createsComputeVm: false
   runsModel: false
   runsModelInference: false
@@ -240,8 +242,10 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     args: ['run', 'external-agent-tool-prepare-broll-wan-cache', '--', '--execute', '--json'],
     confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL',
     confirmationEnvRequiredValue: 'true',
-    delegatesTo11bRunnerCacheFillOnly: true,
+    delegatesTo11eCloudSideCacheStagingRunner: true,
     stagesPrivateGcsModelCacheOnly: true,
+    createsCloudRunJob: true,
+    deletesCloudRunJobAndVerifiesCleanup: true,
     createsComputeVm: false,
     runsModel: false,
     runsModelInference: false,

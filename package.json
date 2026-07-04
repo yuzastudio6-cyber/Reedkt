@@ -693,6 +693,8 @@
     "smoke:ai-video-broll-gen-11b-model-import-runner": "tsx server/smoke/ai-video-broll-gen-11b-model-import-runner-smoke.ts",
     "smoke:ai-video-broll-gen-11c-storage-transfer-naming-test-result": "tsx server/smoke/ai-video-broll-gen-11c-storage-transfer-naming-test-result-smoke.ts",
     "smoke:ai-video-broll-gen-11d-cache-staging-strategy-fix": "tsx server/smoke/ai-video-broll-gen-11d-cache-staging-strategy-fix-smoke.ts",
+    "ai-video-broll-gen-11e:cloud-side-cache-staging-runner": "tsx server/cli/ai-video-broll-gen-11e-cloud-side-cache-staging-runner.ts",
+    "smoke:ai-video-broll-gen-11e-cloud-side-cache-staging-runner": "tsx server/smoke/ai-video-broll-gen-11e-cloud-side-cache-staging-runner-smoke.ts",
     "external-agent-tool-execute-sound": "tsx server/cli/external-agent-tool-execute-sound.ts",
     "smoke:external-agent-tool-execute-sound": "tsx server/smoke/external-agent-tool-execute-sound-smoke.ts",
     "smoke:sound-music-audio-external-agent-wrapper-blocked-result": "tsx server/smoke/sound-music-audio-external-agent-wrapper-blocked-result-smoke.ts",

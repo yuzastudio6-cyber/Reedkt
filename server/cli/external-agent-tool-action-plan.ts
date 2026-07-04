@@ -47,9 +47,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-execute-broll-wan',
       ],
       externalManualBlocker:
-        'B-roll 10ZB proved the no-idle L4 payload/install path with cleanup verified. 11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers model import target, 11E staged the private GCS Wan model cache with the ready marker, 11B executed the bounded no-idle L4 model import/load proof, 11C accepts that passed proof as external-agent evidence, and 11F records the bounded Wan inference boundary plan. The wrapper remains callable for a repeat import/load proof with explicit confirmation, but the next implementation boundary is the 11G inference-proof runner; Wan inference and generated video remain blocked.',
+        'B-roll 10ZB proved the no-idle L4 payload/install path with cleanup verified. 11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers model import target, 11E staged the private GCS Wan model cache with the ready marker, 11B executed the bounded no-idle L4 model import/load proof, 11C accepts that passed proof as external-agent evidence, 11F records the bounded Wan inference boundary plan, and 11G implements the fail-closed inference-proof runner shell. The wrapper remains callable for a repeat import/load proof and now exposes a static inference-proof mode, but the next implementation boundary is the 11H execution prompt; Wan inference and generated video remain blocked.',
       afterBlockerClears:
-        'run AI-VIDEO-BROLL-GEN-11G-INFERENCE-PROOF-RUNNER before any Wan inference-proof attempt; the 11B wrapper may only rerun import/load proof with explicit confirmation',
+        'run AI-VIDEO-BROLL-GEN-11H-INFERENCE-PROOF-EXECUTE before any Wan inference-proof attempt; the 11B wrapper may only rerun import/load proof with explicit confirmation and the 11G runner remains fail-closed until execution is separately approved',
     }
   }
 
@@ -87,7 +87,8 @@ function main() {
       String(tool.status) === 'ready_for_explicit_tool_gate' ||
       String(tool.status) === 'ready_for_bounded_model_import_proof_after_private_cache_staging' ||
       String(tool.status) === 'bounded_model_import_load_proof_reviewed_inference_boundary_plan_required' ||
-      String(tool.status) === 'bounded_inference_boundary_planned_runner_required',
+      String(tool.status) === 'bounded_inference_boundary_planned_runner_required' ||
+      String(tool.status) === 'bounded_inference_proof_runner_implemented_execution_prompt_required',
   )
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = Object.values(rollup.runtimeSideEffects).every((value) => value === false)

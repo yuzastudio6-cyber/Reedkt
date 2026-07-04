@@ -6,12 +6,15 @@ import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-ex
 type JsonRecord = Record<string, unknown>
 
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
+const INFERENCE_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF'
 const CACHE_FILL_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL'
 const DELEGATED_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11B_MODEL_IMPORT_PROOF'
+const INFERENCE_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11G_INFERENCE_PROOF'
 const CACHE_STAGING_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11E_CLOUD_SIDE_CACHE_STAGING'
 const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
 const DELEGATED_RUNNER_SCRIPT = 'ai-video-broll-gen-11b:l4-model-import-runner'
+const INFERENCE_RUNNER_SCRIPT = 'ai-video-broll-gen-11g:bounded-inference-proof-runner'
 const CACHE_STAGING_RUNNER_SCRIPT = 'ai-video-broll-gen-11e:cloud-side-cache-staging-runner'
 const DELEGATED_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11b-l4-model-import-runner.json'
 const CACHE_FILL_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11e-cloud-side-cache-staging-runner.json'
@@ -21,9 +24,15 @@ const NEXT_AFTER_MODEL_IMPORT =
 function main() {
   const execute = process.argv.includes('--execute')
   const prepareCache = process.argv.includes('--prepare-cache') || process.argv.includes('--cache-fill-only')
+  const inferenceProof = process.argv.includes('--inference-proof') || process.argv.includes('--bounded-inference-proof')
   const brollTool = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.find(
     (tool) => tool.toolId === 'ai_video_broll_generation_wan',
   )
+
+  if (inferenceProof) {
+    runInferenceProof(execute, brollTool)
+    return
+  }
 
   if (prepareCache) {
     runPrepareCache(execute, brollTool)
@@ -36,11 +45,16 @@ function main() {
       mode: 'external_agent_broll_wan_execution_static_guard',
       executeRequired: true,
       confirmationEnv: CONFIRM_ENV,
+      inferenceProofConfirmationEnv: INFERENCE_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
       cacheFillConfirmationEnv: CACHE_FILL_CONFIRM_ENV,
       delegatedRunnerConfirmationEnv: DELEGATED_RUNNER_CONFIRM_ENV,
+      inferenceProofRunnerConfirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,
       delegatedRunnerScript: DELEGATED_RUNNER_SCRIPT,
+      inferenceProofRunnerScript: INFERENCE_RUNNER_SCRIPT,
       cachePreparationCommand: 'npm run external-agent-tool-prepare-broll-wan-cache -- --execute --json',
+      inferenceProofCommand:
+        'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
       canonicalCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.brollWanExternalAgentProofCommand,
       noIdleLifecycleGate: brollTool?.noIdleLifecycleGate,
       runtimeRunNow: false,
@@ -67,6 +81,7 @@ function main() {
       status: 'blocked',
       blockers: [`confirmation_env_required:${CONFIRM_ENV}=true`],
       confirmationEnv: CONFIRM_ENV,
+      inferenceProofConfirmationEnv: INFERENCE_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
       cacheFillConfirmationEnv: CACHE_FILL_CONFIRM_ENV,
       runtimeRunNow: false,
@@ -166,6 +181,120 @@ function main() {
       asRecord(delegated.json.runtimeSideEffects).generatedVideoCreated === true,
     generatedAssetsCreated: delegated.json?.runtimeSideEffects &&
       asRecord(delegated.json.runtimeSideEffects).generatedAssetsCreated === true,
+    supabaseTouched: false,
+    sqlExecuted: false,
+    creditMutationCreated: false,
+    betaUnlocked: false,
+    productionUnlocked: false,
+    generatedLocalFixturePassedClaimed: false,
+  })
+}
+
+function runInferenceProof(execute: boolean, brollTool: unknown) {
+  if (!execute) {
+    print({
+      ok: false,
+      mode: 'external_agent_broll_wan_inference_proof_static_guard',
+      executeRequired: true,
+      confirmationEnv: INFERENCE_CONFIRM_ENV,
+      confirmationEnvRequiredValue: 'true',
+      delegatedRunnerConfirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,
+      delegatedRunnerScript: INFERENCE_RUNNER_SCRIPT,
+      delegatedRunnerArgs: ['--execute'],
+      noIdleLifecycleGate: asRecord(brollTool).noIdleLifecycleGate,
+      runtimeRunNow: false,
+      computeVmCreated: false,
+      dockerRun: false,
+      modelImportRun: false,
+      modelLoadRun: false,
+      modelInferenceRun: false,
+      promptEncodingRun: false,
+      denoisingRun: false,
+      vaeDecodeRun: false,
+      frameCreationRun: false,
+      videoEncodingRun: false,
+      ffmpegRun: false,
+      generatedVideoCreated: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
+
+  if (process.env[INFERENCE_CONFIRM_ENV] !== 'true') {
+    print({
+      ok: false,
+      mode: 'external_agent_broll_wan_inference_proof_confirmation_blocked',
+      status: 'blocked',
+      blockers: [`confirmation_env_required:${INFERENCE_CONFIRM_ENV}=true`],
+      confirmationEnv: INFERENCE_CONFIRM_ENV,
+      confirmationEnvRequiredValue: 'true',
+      runtimeRunNow: false,
+      computeVmCreated: false,
+      dockerRun: false,
+      modelImportRun: false,
+      modelLoadRun: false,
+      modelInferenceRun: false,
+      promptEncodingRun: false,
+      denoisingRun: false,
+      vaeDecodeRun: false,
+      frameCreationRun: false,
+      videoEncodingRun: false,
+      ffmpegRun: false,
+      generatedVideoCreated: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
+
+  const delegated = runJson(
+    'broll_11g_bounded_inference_proof_runner',
+    'npm',
+    ['run', INFERENCE_RUNNER_SCRIPT, '--', '--execute'],
+    {
+      [INFERENCE_RUNNER_CONFIRM_ENV]: 'true',
+    },
+    1024 * 1024 * 4,
+  )
+
+  print({
+    ok: false,
+    mode: 'external_agent_broll_wan_inference_proof_delegated_11g_execution_prompt_required',
+    status: 'blocked',
+    delegatedRunner: {
+      script: INFERENCE_RUNNER_SCRIPT,
+      confirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,
+      exitCode: delegated.exitCode,
+    },
+    delegatedResult: delegated.json,
+    stderrSummary: delegated.stderrSummary,
+    nextPrompt:
+      'AI-VIDEO-BROLL-GEN-11H-INFERENCE-PROOF-EXECUTE: run bounded Wan inference proof with mandatory cleanup, no generated video/no persisted assets',
+    runtimeRunNow: false,
+    computeVmCreated: false,
+    dockerRun: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    modelInferenceRun: false,
+    promptEncodingRun: false,
+    denoisingRun: false,
+    vaeDecodeRun: false,
+    frameCreationRun: false,
+    videoEncodingRun: false,
+    ffmpegRun: false,
+    generatedVideoCreated: false,
+    generatedAssetsCreated: false,
     supabaseTouched: false,
     sqlExecuted: false,
     creditMutationCreated: false,

@@ -12,8 +12,10 @@ const PACKAGE_SCRIPT = 'external-agent-tool-execute-broll-wan'
 const CACHE_PREPARE_SCRIPT = 'external-agent-tool-prepare-broll-wan-cache'
 const SMOKE_SCRIPT = 'smoke:external-agent-tool-execute-broll-wan'
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
+const INFERENCE_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF'
 const CACHE_FILL_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL'
 const DELEGATED_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11B_MODEL_IMPORT_PROOF'
+const INFERENCE_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11G_INFERENCE_PROOF'
 const CACHE_STAGING_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11E_CLOUD_SIDE_CACHE_STAGING'
 
 function read(relativePath: string): string {
@@ -28,6 +30,7 @@ function runCli(args: string[] = []) {
     env: {
       ...process.env,
       [CONFIRM_ENV]: '',
+      [INFERENCE_CONFIRM_ENV]: '',
       [CACHE_FILL_CONFIRM_ENV]: '',
     },
   })
@@ -95,13 +98,20 @@ assert.equal(
 const source = read(CLI_PATH)
 for (const required of [
   CONFIRM_ENV,
+  INFERENCE_CONFIRM_ENV,
   CACHE_FILL_CONFIRM_ENV,
   DELEGATED_CONFIRM_ENV,
+  INFERENCE_RUNNER_CONFIRM_ENV,
   CACHE_STAGING_CONFIRM_ENV,
   'ai-video-broll-wan-gpu-global-quota-verify.ts',
   'ai-video-broll-wan-fast-cache-readiness-check.ts',
   'ai-video-broll-gen-11b:l4-model-import-runner',
+  'ai-video-broll-gen-11g:bounded-inference-proof-runner',
   'ai-video-broll-gen-11e:cloud-side-cache-staging-runner',
+  'external_agent_broll_wan_inference_proof_static_guard',
+  'external_agent_broll_wan_inference_proof_confirmation_blocked',
+  'external_agent_broll_wan_inference_proof_delegated_11g_execution_prompt_required',
+  '--inference-proof',
   'external-agent-tool-prepare-broll-wan-cache',
   '.tmp/external-agent-broll-wan-11e-cloud-side-cache-staging-runner.json',
   '.tmp/external-agent-broll-wan-11b-l4-model-import-runner.json',
@@ -180,6 +190,42 @@ assert.equal(confirmationBlocked.betaUnlocked, false)
 assert.equal(confirmationBlocked.productionUnlocked, false)
 assert.equal(confirmationBlocked.generatedLocalFixturePassedClaimed, false)
 
+const inferenceStatic = runCli(['--inference-proof', '--json'])
+assert.equal(inferenceStatic.ok, false)
+assert.equal(inferenceStatic.mode, 'external_agent_broll_wan_inference_proof_static_guard')
+assert.equal(inferenceStatic.executeRequired, true)
+assert.equal(inferenceStatic.confirmationEnv, INFERENCE_CONFIRM_ENV)
+assert.equal(inferenceStatic.delegatedRunnerConfirmationEnv, INFERENCE_RUNNER_CONFIRM_ENV)
+assert.equal(inferenceStatic.delegatedRunnerScript, 'ai-video-broll-gen-11g:bounded-inference-proof-runner')
+assert.deepEqual(inferenceStatic.delegatedRunnerArgs, ['--execute'])
+assert.equal(inferenceStatic.runtimeRunNow, false)
+assert.equal(inferenceStatic.computeVmCreated, false)
+assert.equal(inferenceStatic.modelImportRun, false)
+assert.equal(inferenceStatic.modelLoadRun, false)
+assert.equal(inferenceStatic.modelInferenceRun, false)
+assert.equal(inferenceStatic.promptEncodingRun, false)
+assert.equal(inferenceStatic.denoisingRun, false)
+assert.equal(inferenceStatic.vaeDecodeRun, false)
+assert.equal(inferenceStatic.frameCreationRun, false)
+assert.equal(inferenceStatic.videoEncodingRun, false)
+assert.equal(inferenceStatic.ffmpegRun, false)
+assert.equal(inferenceStatic.generatedVideoCreated, false)
+assert.equal(inferenceStatic.generatedAssetsCreated, false)
+assert.equal(inferenceStatic.generatedLocalFixturePassedClaimed, false)
+
+const inferenceBlocked = runCli(['--inference-proof', '--execute', '--json'])
+assert.equal(inferenceBlocked.ok, false)
+assert.equal(inferenceBlocked.mode, 'external_agent_broll_wan_inference_proof_confirmation_blocked')
+assert.equal(inferenceBlocked.status, 'blocked')
+assert.deepEqual(inferenceBlocked.blockers, [`confirmation_env_required:${INFERENCE_CONFIRM_ENV}=true`])
+assert.equal(inferenceBlocked.runtimeRunNow, false)
+assert.equal(inferenceBlocked.computeVmCreated, false)
+assert.equal(inferenceBlocked.modelInferenceRun, false)
+assert.equal(inferenceBlocked.promptEncodingRun, false)
+assert.equal(inferenceBlocked.generatedVideoCreated, false)
+assert.equal(inferenceBlocked.generatedAssetsCreated, false)
+assert.equal(inferenceBlocked.generatedLocalFixturePassedClaimed, false)
+
 const cachePrepareStatic = runCli(['--prepare-cache', '--json'])
 assert.equal(cachePrepareStatic.ok, false)
 assert.equal(cachePrepareStatic.mode, 'external_agent_broll_wan_private_cache_prepare_static_guard')
@@ -225,6 +271,8 @@ assert.equal(cachePrepareBlocked.generatedLocalFixturePassedClaimed, false)
 const forbiddenFindings = scanForbiddenValues({
   staticReport,
   confirmationBlocked,
+  inferenceStatic,
+  inferenceBlocked,
   cachePrepareStatic,
   cachePrepareBlocked,
 })
@@ -237,6 +285,8 @@ console.log(
       mode: 'external_agent_broll_wan_execution_wrapper_smoke',
       staticGuardMode: staticReport.mode,
       confirmationBlockedMode: confirmationBlocked.mode,
+      inferenceStaticMode: inferenceStatic.mode,
+      inferenceBlockedMode: inferenceBlocked.mode,
       cachePrepareStaticMode: cachePrepareStatic.mode,
       cachePrepareBlockedMode: cachePrepareBlocked.mode,
       confirmationEnv: CONFIRM_ENV,

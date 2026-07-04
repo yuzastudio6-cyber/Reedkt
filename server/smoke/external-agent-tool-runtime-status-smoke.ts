@@ -390,6 +390,10 @@ assert.equal(
   'npm run external-agent-tool-execute-broll-wan -- --preflight-only --json',
 )
 assert.equal(
+  (staticToolsById.get('ai_video_broll_generation_wan') as { executionCommand: string }).executionCommand,
+  'npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
+)
+assert.equal(
   (staticToolsById.get('sound_music_audio') as { supportingEvidenceOnly: boolean }).supportingEvidenceOnly,
   true,
 )
@@ -435,6 +439,14 @@ assert.equal(
     }
   ).accountIndexedCommands.safePreflightCommand,
   'npm run external-agent-tool-execute-broll-wan -- --preflight-only --json --account-index 2',
+)
+assert.equal(
+  (
+    indexedStaticToolsById.get('ai_video_broll_generation_wan') as {
+      accountIndexedCommands: { safePreflightCommand: string; executionCommand: string }
+    }
+  ).accountIndexedCommands.executionCommand,
+  'npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json --account-index 2',
 )
 assert.equal(
   (

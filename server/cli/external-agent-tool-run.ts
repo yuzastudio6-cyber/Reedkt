@@ -71,6 +71,40 @@ const runtimeSideEffectKeys = [
   'generatedLocalFixturePassedClaimed',
 ] as const
 
+const runtimeSideEffectAliases: Record<(typeof runtimeSideEffectKeys)[number], string[]> = {
+  runtimeRunNow: ['runtimeRunNow', 'boundedRetryPromptExecuted', 'inferenceRun', 'runnerExecuted'],
+  modelInferenceRun: ['modelInferenceRun', 'inferenceRun', 'runsModelInference'],
+  modelImportRun: ['modelImportRun', 'modelLoadRun', 'vllmEngineInitialized'],
+  computeVmCreated: ['computeVmCreated', 'vmCreated', 'proofVmCreated'],
+  cloudRunJobExecuted: ['cloudRunJobExecuted', 'cpuCallerJobExecuted'],
+  cloudRunServiceMutated: ['cloudRunServiceMutated', 'temporaryFixtureInferenceServiceRevisionDeployed'],
+  providerCallsMade: ['providerCallsMade'],
+  workersDispatched: ['workersDispatched'],
+  mediaProcessingRun: ['mediaProcessingRun'],
+  ffmpegRun: ['ffmpegRun'],
+  supabaseTouched: ['supabaseTouched'],
+  supabaseCliExecuted: ['supabaseCliExecuted'],
+  dockerRun: ['dockerRun'],
+  dockerStarted: ['dockerStarted'],
+  sqlExecuted: ['sqlExecuted'],
+  databaseCreated: ['databaseCreated'],
+  migrationDeployed: ['migrationDeployed'],
+  rowsCreated: ['rowsCreated'],
+  storageObjectsCreated: ['storageObjectsCreated'],
+  signedUrlsCreated: ['signedUrlsCreated'],
+  generatedAudioCreated: ['generatedAudioCreated'],
+  generatedVideoCreated: ['generatedVideoCreated'],
+  generatedAssetsCreated: ['generatedAssetsCreated'],
+  publicArtifactsCreated: ['publicArtifactsCreated'],
+  creditMutationCreated: ['creditMutationCreated'],
+  betaUnlocked: ['betaUnlocked'],
+  productionUnlocked: ['productionUnlocked'],
+  generatedLocalFixturePassedClaimed: [
+    'generatedLocalFixturePassedClaimed',
+    'generatedLocalFixturePassed',
+  ],
+}
+
 function main() {
   if (manifestRequested()) {
     print(runnerManifest())
@@ -894,11 +928,27 @@ function blockedResult(
 }
 
 function runtimeSideEffectSnapshot(json: JsonRecord | undefined): Record<string, boolean> {
-  return Object.fromEntries(runtimeSideEffectKeys.map((key) => [key, json?.[key] === true]))
+  return Object.fromEntries(
+    runtimeSideEffectKeys.map((key) => [
+      key,
+      runtimeSideEffectAliases[key].some((alias) => booleanAtAnyDepth(json, alias)),
+    ]),
+  )
 }
 
 function allRuntimeSideEffectsFalse(): Record<string, boolean> {
   return Object.fromEntries(runtimeSideEffectKeys.map((key) => [key, false]))
+}
+
+function booleanAtAnyDepth(value: unknown, key: string): boolean {
+  if (!value || typeof value !== 'object') return false
+  if ((value as JsonRecord)[key] === true) return true
+
+  for (const nestedValue of Object.values(value as JsonRecord)) {
+    if (booleanAtAnyDepth(nestedValue, key)) return true
+  }
+
+  return false
 }
 
 function commandLabel(definition: ToolDefinition): string {

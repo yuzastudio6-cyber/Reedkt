@@ -348,6 +348,8 @@ assert.equal(typeof liveReport.liveVerifier.allRequiredReadAccessVerified, 'bool
 assert.equal(typeof liveReport.liveVerifier.qwenReadAccessPassed, 'boolean')
 assert.equal(typeof liveReport.liveVerifier.brollQuotaReadAccessPassed, 'boolean')
 assert.equal(typeof liveReport.liveVerifier.brollQuotaSufficientForOneL4Vm, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.brollCacheReady, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.brollInferenceWrapperMayBeCalledAfterConfirmation, 'boolean')
 assert.equal(typeof liveReport.liveVerifier.nextCommandExecutionAllowedNow, 'boolean')
 if (!liveReport.liveVerifier.allRequiredReadAccessVerified) {
   assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.ok, 'boolean')
@@ -367,6 +369,12 @@ assert.equal(
 assert.equal(liveReport.readyForAnyExternalAgentExecutionNow, liveReport.executionAllowedNow)
 assert.equal(liveReport.readyForAnyExternalAgentRuntimeExecutionNow, liveReport.executionAllowedNow)
 assert.equal(liveReport.executionNowBlockedByLivePreflight, !liveReport.executionAllowedNow)
+for (const row of liveReport.toolRows as Array<{ toolId: string; runtimeExecutionAllowedNow: boolean }>) {
+  assert.equal(row.runtimeExecutionAllowedNow, liveReport.readyToolIds.includes(row.toolId))
+}
+if (liveReport.liveVerifier.brollInferenceWrapperMayBeCalledAfterConfirmation) {
+  assert.equal(liveReport.readyToolIds.includes('ai_video_broll_generation_wan'), true)
+}
 if (!liveReport.executionAllowedNow) {
   assert.equal(liveReport.decision, 'external_agent_execution_no_go_live_preflight_blocked')
   assert.deepEqual(liveReport.readyToolIds, [])

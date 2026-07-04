@@ -29,8 +29,8 @@ const TOOL_COMMANDS: Record<
   ai_video_broll_generation_wan: {
     staticGuardCommand: 'npm run external-agent-tool-execute-broll-wan -- --json',
     safePreflightCommand: 'npm run external-agent-tool-execute-broll-wan -- --preflight-only --json',
-    executionCommand: 'npm run external-agent-tool-execute-broll-wan -- --execute --json',
-    confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF',
+    executionCommand: 'npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
+    confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF',
     runtimeKind: 'bounded_model_runtime',
   },
   sound_music_audio: {

@@ -198,23 +198,11 @@ function main() {
   const accountIndexOverride = resolveAccountIndexOverride()
   const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
   const staticExplicitGateTools = gate.toolRows.filter((tool) => tool.staticExplicitToolGateReady)
-  const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const rollupToolsById = new Map(rollup.tools.map((tool) => [tool.toolId, tool]))
   const selectedAccountIndex =
     accountIndexOverride.cliAccountIndexValid && typeof accountIndexOverride.cliAccountIndex === 'number'
       ? accountIndexOverride.cliAccountIndex
       : undefined
-  const toolRows = gate.toolRows.map((tool) => ({
-    ...tool,
-    runtimeExecutionAllowedNow: tool.executionAllowedNow === true,
-    safeEvidenceReviewExecutableNow:
-      rollupToolsById.get(tool.toolId)?.status === 'metadata_only' ||
-      rollupToolsById.get(tool.toolId)?.status === 'supporting_evidence_only',
-    accountIndexedSafeNextCommand: selectedAccountIndex
-      ? commandWithAccountIndex(tool.safeNextCommand, selectedAccountIndex)
-      : undefined,
-    manualBlockerActions: rollupToolsById.get(tool.toolId)?.manualBlockerActions ?? [],
-  }))
   const runtimeGatesAllFalse = Object.values(gate.runtimeSideEffects).every((value) => value === false)
   const executionAllowedNow =
     gate.readyForAnyExternalAgentExecutionNow && readyTools.length > 0 && runtimeGatesAllFalse
@@ -224,14 +212,43 @@ function main() {
   const liveMode = process.argv.includes('--live') || process.argv.includes('--use-live-verify')
   const liveVerifierResult = liveMode ? runLiveVerifier(accountIndexOverride.childEnv) : undefined
   const liveVerifierJson = liveVerifierResult?.json
+  const staticExplicitToolGateReadyToolIds = staticExplicitGateTools.map((tool) => tool.toolId)
+  const liveQwenWrapperReady =
+    liveMode &&
+    staticExplicitToolGateReadyToolIds.includes('qwen2_5_vl_7b_instruct') &&
+    nestedBoolean(liveVerifierJson, ['qwen', 'wrapperMayBeCalledAfterConfirmation'])
+  const liveBrollInferenceWrapperReady =
+    liveMode &&
+    staticExplicitToolGateReadyToolIds.includes('ai_video_broll_generation_wan') &&
+    nestedBoolean(liveVerifierJson, ['broll', 'inferenceWrapperMayBeCalledAfterConfirmation'])
+  const liveReadyToolIds = liveMode
+    ? [
+        ...(liveQwenWrapperReady ? ['qwen2_5_vl_7b_instruct'] : []),
+        ...(liveBrollInferenceWrapperReady ? ['ai_video_broll_generation_wan'] : []),
+      ]
+    : readyTools.map((tool) => tool.toolId)
+  const liveReadyToolIdSet = new Set(liveReadyToolIds)
   const liveVerifierReady =
     liveVerifierResult?.ok === true &&
-    nestedBoolean(liveVerifierJson, ['readyForAnyExternalAgentExecutionNow']) &&
-    nestedBoolean(liveVerifierJson, ['runtimeGatesAllFalse'])
+    nestedBoolean(liveVerifierJson, ['runtimeGatesAllFalse']) &&
+    liveReadyToolIds.length > 0
   const liveAccountAccessDiagnostic = nestedRecord(liveVerifierJson, ['accountAccessDiagnostic'])
   const liveAwareExecutionAllowedNow = liveMode
     ? staticExplicitToolGateReady && liveVerifierReady
     : executionAllowedNow
+  const toolRows = gate.toolRows.map((tool) => ({
+    ...tool,
+    runtimeExecutionAllowedNow: liveMode
+      ? liveAwareExecutionAllowedNow && liveReadyToolIdSet.has(tool.toolId)
+      : tool.executionAllowedNow === true,
+    safeEvidenceReviewExecutableNow:
+      rollupToolsById.get(tool.toolId)?.status === 'metadata_only' ||
+      rollupToolsById.get(tool.toolId)?.status === 'supporting_evidence_only',
+    accountIndexedSafeNextCommand: selectedAccountIndex
+      ? commandWithAccountIndex(tool.safeNextCommand, selectedAccountIndex)
+      : undefined,
+    manualBlockerActions: rollupToolsById.get(tool.toolId)?.manualBlockerActions ?? [],
+  }))
 
   const report = {
     ok: true,
@@ -260,7 +277,7 @@ function main() {
       printsAccountValue: false,
     },
     staticExplicitToolGateReady,
-    staticExplicitToolGateReadyToolIds: staticExplicitGateTools.map((tool) => tool.toolId),
+    staticExplicitToolGateReadyToolIds,
     staticReadyForAnyExternalAgentExecutionGateNow: readyTools.length > 0,
     staticReadyToolIds: readyTools.map((tool) => tool.toolId),
     requiresLivePreflightBeforeRuntime: gate.requiresLivePreflightBeforeRuntime,
@@ -284,6 +301,11 @@ function main() {
           brollQuotaSufficientForOneL4Vm: nestedBoolean(liveVerifierJson, [
             'broll',
             'quotaSufficientForOneL4Vm',
+          ]),
+          brollCacheReady: nestedBoolean(liveVerifierJson, ['broll', 'cacheReady']),
+          brollInferenceWrapperMayBeCalledAfterConfirmation: nestedBoolean(liveVerifierJson, [
+            'broll',
+            'inferenceWrapperMayBeCalledAfterConfirmation',
           ]),
           nextCommandExecutionAllowedNow: nestedBoolean(liveVerifierJson, [
             'nextCommand',
@@ -329,9 +351,11 @@ function main() {
     ),
     executionAllowedNow: liveAwareExecutionAllowedNow,
     readyForAnyExternalAgentExecutionNow: liveAwareExecutionAllowedNow,
-    readyToolIds: liveAwareExecutionAllowedNow ? readyTools.map((tool) => tool.toolId) : [],
+    readyToolIds: liveAwareExecutionAllowedNow ? liveReadyToolIds : [],
     blockedToolIds: liveAwareExecutionAllowedNow
-      ? blockedTools.map((tool) => tool.toolId)
+      ? rollup.tools
+          .filter((tool) => !liveReadyToolIdSet.has(tool.toolId))
+          .map((tool) => tool.toolId)
       : rollup.tools.map((tool) => tool.toolId),
     requiresApprovedSnapshotBeforeExecution: gate.requiresApprovedSnapshotBeforeExecution,
     requiresStructuredToolEnvelopeBeforeExecution: gate.requiresStructuredToolEnvelopeBeforeExecution,

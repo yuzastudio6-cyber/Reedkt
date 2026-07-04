@@ -153,6 +153,21 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'credit-lifecycle-readiness',
+    title: 'Credit lifecycle readiness',
+    description: 'Verify internal testing explains what happens to a reserved credit record after success, cancellation, or ReEditPro-side failure.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the credit lifecycle readiness panel.',
+      'Confirm success spends a reserved record, blocked/cancelled work releases it, and ReEditPro-side failure refunds it.',
+      'Confirm all lifecycle evidence remains mock/local and does not call Stripe, write Supabase, dispatch workers, or silently bill users.',
+    ],
+    expectedResult: 'Internal testers can verify the post-reservation lifecycle while real ledger mutation remains backend-required and disabled.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

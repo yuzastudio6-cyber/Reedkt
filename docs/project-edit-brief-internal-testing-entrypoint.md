@@ -30,6 +30,12 @@ The `approval-credit-gate-readiness` scenario is classified as `mock_local` beca
 
 This readiness panel is evidence for repeated local testing only. It does not authorize credit spend, ledger writes, Stripe, provider calls, worker dispatch, media processing, render/export, Supabase persistence, external beta, paid production, or product-ready behavior.
 
+## Credit Lifecycle Readiness
+
+The `credit-lifecycle-readiness` scenario is classified as `mock_local` because the internal testing route now explains the post-reservation lifecycle that future backend runtime must enforce after a job outcome. Successful work spends the reserved credit record, cancelled or blocked work releases unused reserved credits, and ReEditPro-side failed work records a credit refund.
+
+This lifecycle panel is evidence for repeated local testing only. It does not authorize real credit spend, wallet mutation, ledger writes, Stripe, provider calls, worker dispatch, media processing, render/export, Supabase persistence, external beta, paid production, or product-ready behavior.
+
 ## Boundaries
 
 - No upload or file-byte read.
@@ -39,6 +45,7 @@ This readiness panel is evidence for repeated local testing only. It does not au
 - No render/export.
 - No credit reservation or spend.
 - No credit spend, ledger write, Stripe call, or silent billing.
+- No live wallet mutation, release/refund mutation, or production billing lifecycle.
 - No live Supabase read/write, Storage, signed URL, SQL, or migration.
 - No external beta, real-user-media beta, paid production, or product-ready claim.
 
@@ -50,6 +57,7 @@ Required validation:
 - `npm run smoke:project-edit-brief-internal-testing-completion-audit`
 - `npm run smoke:preference-video-mock-limits-internal-testing-closeout`
 - `npm run smoke:internal-testing-approval-credit-gates`
+- `npm run smoke:internal-testing-credit-lifecycle-readiness`
 - `npm run qa:internal-testing`
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-readback-qa`

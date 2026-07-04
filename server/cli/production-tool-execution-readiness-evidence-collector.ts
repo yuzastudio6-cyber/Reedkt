@@ -153,10 +153,11 @@ export async function runProductionToolExecutionReadinessEvidenceCollectorFromEn
       readback.ok !== true ||
       readback.latestProductionToolExecutionAllowed !== true ||
       readback.latestPaidProductionAllowed !== true ||
-      readback.recordedEvidencePacketPresent !== true
+      readback.recordedEvidencePacketPresent !== true ||
+      readback.recordedEvidencePacketLatest !== true
     )
   ) {
-    throw new Error('Production readiness evidence readback did not confirm the recorded passing production gate report and exact evidence packet id.')
+    throw new Error('Production readiness evidence readback did not confirm the recorded passing production gate report as the latest exact evidence packet id.')
   }
 
   return {

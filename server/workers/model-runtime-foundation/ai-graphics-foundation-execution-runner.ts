@@ -36,6 +36,7 @@ export interface AiGraphicsFoundationRuntimeResult {
   commandPlan: AiGraphicsFoundationCommandPlan
   outputJsonPath?: string
   outputJsonSizeBytes?: number
+  outputJsonSha256?: string
   skipReason?: { code: string; message: string; tool: AiGraphicsFoundationRuntimeToolId }
   warnings: string[]
   errorMessage?: string
@@ -121,6 +122,7 @@ export async function runAiGraphicsFoundationRuntimeCheck(
       },
       outputJsonPath: runtimeResult.outputJsonPath,
       outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
+      outputJsonSha256: runtimeResult.outputJsonSha256,
       warnings: ['Foundation runtime probe produced private worker JSON only; it did not load models or create media artifacts.'],
     }
   } catch (error) {

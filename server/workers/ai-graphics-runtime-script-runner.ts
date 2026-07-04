@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { existsSync, statSync } from 'node:fs'
 import { mkdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
@@ -10,6 +11,7 @@ export interface AiGraphicsRuntimeScriptResult {
   outputJson: unknown
   outputJsonPath: string
   outputJsonSizeBytes: number
+  outputJsonSha256: string
   stdout: string
   stderr: string
 }
@@ -72,6 +74,7 @@ export async function runAiGraphicsPythonRuntimeScript(input: {
     outputJson,
     outputJsonPath,
     outputJsonSizeBytes: outputStat.size,
+    outputJsonSha256: createHash('sha256').update(rawOutput).digest('hex'),
     stdout: result.stdout,
     stderr: result.stderr,
   }

@@ -325,6 +325,7 @@ const maskExecutionTypes = read('server/workers/masks/mask-execution-types.ts')
 for (const requiredToken of [
   'outputJsonPath?: string',
   'outputJsonSizeBytes?: number',
+  'outputJsonSha256?: string',
 ]) {
   if (!maskExecutionTypes.includes(requiredToken)) {
     fail(`mask_execution_result_missing_runtime_output_token:${requiredToken}`)
@@ -337,6 +338,7 @@ const enhancementExecutionTypes = read(
 for (const requiredToken of [
   'outputJsonPath?: string',
   'outputJsonSizeBytes?: number',
+  'outputJsonSha256?: string',
 ]) {
   if (!enhancementExecutionTypes.includes(requiredToken)) {
     fail(`enhancement_execution_result_missing_runtime_output_token:${requiredToken}`)
@@ -368,6 +370,9 @@ for (const workerFile of [
   if (!source.includes('outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes')) {
     fail(`worker_missing_runtime_output_json_size:${workerFile}`)
   }
+  if (!source.includes('outputJsonSha256: runtimeResult.outputJsonSha256')) {
+    fail(`worker_missing_runtime_output_json_sha256:${workerFile}`)
+  }
   for (const requiredProofToken of [
     'expectedToolId',
     'requireNoModelDownload: true',
@@ -387,6 +392,7 @@ const controlledAdapterSource = read(
 for (const requiredToken of [
   'outputJsonPath: result.outputJsonPath ?? null',
   'outputJsonSizeBytes: result.outputJsonSizeBytes ?? null',
+  'outputJsonSha256: result.outputJsonSha256 ?? null',
 ]) {
   if (!controlledAdapterSource.includes(requiredToken)) {
     fail(`controlled_adapter_summary_missing_runtime_output_token:${requiredToken}`)

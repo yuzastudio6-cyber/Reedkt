@@ -502,6 +502,19 @@ function outputJsonPathForResult(result: AiGraphicsExternalAgentGpuModelControll
   return null
 }
 
+function outputJsonSha256ForResult(result: AiGraphicsExternalAgentGpuModelControlledAdapterResult): string | null {
+  const runtimeResult = result.runtimeOutput.result
+  if (
+    runtimeResult &&
+    typeof runtimeResult === 'object' &&
+    'outputJsonSha256' in runtimeResult
+  ) {
+    const outputSha256 = (runtimeResult as { outputJsonSha256?: unknown }).outputJsonSha256
+    return typeof outputSha256 === 'string' ? outputSha256 : null
+  }
+  return null
+}
+
 function errorMessageForResult(result: AiGraphicsExternalAgentGpuModelControlledAdapterResult): string | null {
   const runtimeResult = result.runtimeOutput.result
   if (
@@ -549,6 +562,7 @@ async function buildReport(args: HarnessArgs) {
       skipReasonCode: skipReasonCode(result),
       errorMessage: errorMessageForResult(result),
       outputJsonPath: outputJsonPathForResult(result),
+      outputJsonSha256: outputJsonSha256ForResult(result),
       localInputRequirements: requirements,
       warnings: result.warnings,
     })

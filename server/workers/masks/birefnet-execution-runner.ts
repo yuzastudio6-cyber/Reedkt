@@ -102,6 +102,7 @@ export async function runBiRefNetMask(input: {
       commandPlan: { ...commandPlan, executes: true, summary: 'BiRefNet local runtime script executed with private model path and private source frame; no model download.' },
       outputJsonPath: runtimeResult.outputJsonPath,
       outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
+      outputJsonSha256: runtimeResult.outputJsonSha256,
       artifacts: [
         buildMaskArtifactRecord({
           workspaceId: executionInput.workspaceId,
@@ -128,7 +129,7 @@ export async function runBiRefNetMask(input: {
           artifactType: 'qa_report',
           fileName: 'birefnet-runtime-result.json',
           sourceOfTruth: true,
-          metadata: { tool: 'birefnet', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes },
+          metadata: { tool: 'birefnet', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes, outputJsonSha256: runtimeResult.outputJsonSha256 },
         }),
       ],
       warnings: ['BiRefNet executed against a private local source frame; full-video temporal masking remains a later worker milestone.'],

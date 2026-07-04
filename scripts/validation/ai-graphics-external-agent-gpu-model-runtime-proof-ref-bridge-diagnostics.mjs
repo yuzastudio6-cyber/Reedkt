@@ -484,11 +484,17 @@ for (const phrase of [
   '--local-runtime-proof-result',
   '--write-records cannot be combined',
   'privateOutputJsonPathExists',
+  'privateOutputJsonSha256Matches',
   'localRuntimeExecutionPerformed',
   'routeSubmissionReadyWithAcceptedPrivateProof',
   'modelWeightsDownloaded',
+  'private_output_json_sha256_missing',
+  'private_output_json_sha256_mismatch',
   'private_output_json_outside_local_artifacts_gpu_model_runtime_namespace',
+  'requiresPrivateOutputJsonSha256Match',
   'requiresPrivateOutputJsonUnderLocalArtifactsGpuModelRuntime',
+  'sha256File',
+  'createHash',
   'path.relative(process.cwd(), file)',
   'return isLocalGpuModelProofOutputPath(relative)',
 ]) {
@@ -500,6 +506,9 @@ if (
     true
 ) {
   fail('proof_ref_bridge_policy_missing_local_artifacts_namespace_requirement')
+}
+if (report.proofRefBridgePolicy?.requiresPrivateOutputJsonSha256Match !== true) {
+  fail('proof_ref_bridge_policy_missing_output_sha256_match_requirement')
 }
 
 if (

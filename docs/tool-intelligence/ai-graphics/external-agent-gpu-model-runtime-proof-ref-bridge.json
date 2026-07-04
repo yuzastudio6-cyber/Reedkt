@@ -31,6 +31,7 @@
     "requiresAdapterExecutedPrivateOutputReadyStatus": true,
     "requiresExecutionStateExecutable": true,
     "requiresExistingPrivateOutputJsonPath": true,
+    "requiresPrivateOutputJsonSha256Match": true,
     "requiresPrivateOutputJsonUnderLocalArtifactsGpuModelRuntime": true,
     "acceptsScopedToolRowsOnly": true,
     "noIdleGpuRuntimeApproved": true,
@@ -88,7 +89,8 @@
         "runtimeReadyNow": false,
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
-        "privateOutputJsonPathExists": true
+        "privateOutputJsonPathExists": true,
+        "privateOutputJsonSha256Matches": true
       },
       "localProofEvidenceObserved": {
         "adapterStatus": null,
@@ -102,7 +104,9 @@
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
+        "privateOutputJsonSha256": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonSha256Matches": false,
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
@@ -138,7 +142,8 @@
         "runtimeReadyNow": false,
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
-        "privateOutputJsonPathExists": true
+        "privateOutputJsonPathExists": true,
+        "privateOutputJsonSha256Matches": true
       },
       "localProofEvidenceObserved": {
         "adapterStatus": null,
@@ -152,7 +157,9 @@
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
+        "privateOutputJsonSha256": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonSha256Matches": false,
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
@@ -189,7 +196,8 @@
         "runtimeReadyNow": false,
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
-        "privateOutputJsonPathExists": true
+        "privateOutputJsonPathExists": true,
+        "privateOutputJsonSha256Matches": true
       },
       "localProofEvidenceObserved": {
         "adapterStatus": null,
@@ -203,7 +211,9 @@
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
+        "privateOutputJsonSha256": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonSha256Matches": false,
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
@@ -240,7 +250,8 @@
         "runtimeReadyNow": false,
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
-        "privateOutputJsonPathExists": true
+        "privateOutputJsonPathExists": true,
+        "privateOutputJsonSha256Matches": true
       },
       "localProofEvidenceObserved": {
         "adapterStatus": null,
@@ -254,7 +265,9 @@
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
+        "privateOutputJsonSha256": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonSha256Matches": false,
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
@@ -291,7 +304,8 @@
         "runtimeReadyNow": false,
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
-        "privateOutputJsonPathExists": true
+        "privateOutputJsonPathExists": true,
+        "privateOutputJsonSha256Matches": true
       },
       "localProofEvidenceObserved": {
         "adapterStatus": null,
@@ -305,7 +319,9 @@
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
+        "privateOutputJsonSha256": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonSha256Matches": false,
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
@@ -341,7 +357,8 @@
         "runtimeReadyNow": false,
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
-        "privateOutputJsonPathExists": true
+        "privateOutputJsonPathExists": true,
+        "privateOutputJsonSha256Matches": true
       },
       "localProofEvidenceObserved": {
         "adapterStatus": null,
@@ -355,7 +372,9 @@
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
+        "privateOutputJsonSha256": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonSha256Matches": false,
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
@@ -392,7 +411,8 @@
         "runtimeReadyNow": false,
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
-        "privateOutputJsonPathExists": true
+        "privateOutputJsonPathExists": true,
+        "privateOutputJsonSha256Matches": true
       },
       "localProofEvidenceObserved": {
         "adapterStatus": null,
@@ -406,7 +426,9 @@
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
+        "privateOutputJsonSha256": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonSha256Matches": false,
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
@@ -443,7 +465,8 @@
         "runtimeReadyNow": false,
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
-        "privateOutputJsonPathExists": true
+        "privateOutputJsonPathExists": true,
+        "privateOutputJsonSha256Matches": true
       },
       "localProofEvidenceObserved": {
         "adapterStatus": null,
@@ -457,7 +480,9 @@
         "externalBetaReadyNow": false,
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
+        "privateOutputJsonSha256": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonSha256Matches": false,
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,

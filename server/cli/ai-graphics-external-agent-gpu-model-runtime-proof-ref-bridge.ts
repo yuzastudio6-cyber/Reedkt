@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import { createHash } from 'node:crypto'
 import path from 'node:path'
 
 const decision =
@@ -62,12 +63,14 @@ interface LocalProofHarnessRow {
   externalBetaReadyNow?: boolean
   productionReadyNow?: boolean
   outputJsonPath?: string | null
+  outputJsonSha256?: string | null
   skipReasonCode?: string | null
   errorMessage?: string | null
 }
 
 interface LocalProofOutputEvidence {
   privateOutputJsonPathExists: boolean
+  privateOutputJsonSha256Matches: boolean
   privateOutputJsonAccepted: boolean
   privateOutputJsonRejectionReason: string | null
 }
@@ -99,6 +102,7 @@ interface BridgeRow {
     externalBetaReadyNow: false
     productionReadyNow: false
     privateOutputJsonPathExists: true
+    privateOutputJsonSha256Matches: true
   }
   localProofEvidenceObserved: {
     adapterStatus: string | null
@@ -112,7 +116,9 @@ interface BridgeRow {
     externalBetaReadyNow: boolean
     productionReadyNow: boolean
     privateOutputJsonPath: string | null
+    privateOutputJsonSha256: string | null
     privateOutputJsonPathExists: boolean
+    privateOutputJsonSha256Matches: boolean
     privateOutputJsonAccepted: boolean
     privateOutputJsonRejectionReason: string | null
     skipReasonCode: string | null
@@ -196,6 +202,12 @@ function localProofRows(localProof?: JsonRecord): Map<string, LocalProofHarnessR
 function localProofOutputExists(row: LocalProofHarnessRow | undefined): boolean {
   if (!row?.outputJsonPath) return false
   return fs.existsSync(asBridgePath(row.outputJsonPath))
+}
+
+function sha256File(file: string): string {
+  return createHash('sha256')
+    .update(fs.readFileSync(file))
+    .digest('hex')
 }
 
 function isLocalGpuModelProofOutputPath(file: string | null | undefined): boolean {
@@ -292,6 +304,7 @@ function localProofOutputEvidence(
   if (!isLocalGpuModelProofOutputPath(row?.outputJsonPath)) {
     return {
       privateOutputJsonPathExists: false,
+      privateOutputJsonSha256Matches: false,
       privateOutputJsonAccepted: false,
       privateOutputJsonRejectionReason:
         'private_output_json_outside_local_artifacts_gpu_model_runtime_namespace',
@@ -302,8 +315,40 @@ function localProofOutputEvidence(
   if (!privateOutputJsonPathExists || !row?.outputJsonPath) {
     return {
       privateOutputJsonPathExists,
+      privateOutputJsonSha256Matches: false,
       privateOutputJsonAccepted: false,
       privateOutputJsonRejectionReason: 'private_output_json_path_missing',
+    }
+  }
+
+  let observedSha256: string
+  try {
+    observedSha256 = sha256File(asBridgePath(row.outputJsonPath))
+  } catch (error) {
+    return {
+      privateOutputJsonPathExists,
+      privateOutputJsonSha256Matches: false,
+      privateOutputJsonAccepted: false,
+      privateOutputJsonRejectionReason:
+        error instanceof Error
+          ? `private_output_json_unreadable:${error.message}`
+          : 'private_output_json_unreadable',
+    }
+  }
+  const expectedSha256 = row.outputJsonSha256
+  const privateOutputJsonSha256Matches =
+    typeof expectedSha256 === 'string' &&
+    /^[a-f0-9]{64}$/i.test(expectedSha256) &&
+    observedSha256 === expectedSha256.toLowerCase()
+  if (!privateOutputJsonSha256Matches) {
+    return {
+      privateOutputJsonPathExists,
+      privateOutputJsonSha256Matches,
+      privateOutputJsonAccepted: false,
+      privateOutputJsonRejectionReason:
+        typeof expectedSha256 === 'string'
+          ? 'private_output_json_sha256_mismatch'
+          : 'private_output_json_sha256_missing',
     }
   }
 
@@ -313,6 +358,7 @@ function localProofOutputEvidence(
   } catch (error) {
     return {
       privateOutputJsonPathExists,
+      privateOutputJsonSha256Matches,
       privateOutputJsonAccepted: false,
       privateOutputJsonRejectionReason:
         error instanceof Error
@@ -338,6 +384,7 @@ function localProofOutputEvidence(
   if (anyTruthyFlag(outputJson, unsafeTruthyFlags)) {
     return {
       privateOutputJsonPathExists,
+      privateOutputJsonSha256Matches,
       privateOutputJsonAccepted: false,
       privateOutputJsonRejectionReason:
         'private_output_json_contains_forbidden_success_or_runtime_flag',
@@ -346,6 +393,7 @@ function localProofOutputEvidence(
   if (anyUnsafeUrl(outputJson)) {
     return {
       privateOutputJsonPathExists,
+      privateOutputJsonSha256Matches,
       privateOutputJsonAccepted: false,
       privateOutputJsonRejectionReason:
         'private_output_json_contains_public_url',
@@ -354,6 +402,7 @@ function localProofOutputEvidence(
   if (outputJson.ok !== true) {
     return {
       privateOutputJsonPathExists,
+      privateOutputJsonSha256Matches,
       privateOutputJsonAccepted: false,
       privateOutputJsonRejectionReason:
         'private_output_json_missing_ok_true',
@@ -362,6 +411,7 @@ function localProofOutputEvidence(
   if (!outputToolMatches(toolId, outputJson)) {
     return {
       privateOutputJsonPathExists,
+      privateOutputJsonSha256Matches,
       privateOutputJsonAccepted: false,
       privateOutputJsonRejectionReason:
         'private_output_json_tool_identity_mismatch',
@@ -370,6 +420,7 @@ function localProofOutputEvidence(
   if (!outputHasGpuEvidence(toolId, outputJson)) {
     return {
       privateOutputJsonPathExists,
+      privateOutputJsonSha256Matches,
       privateOutputJsonAccepted: false,
       privateOutputJsonRejectionReason:
         'private_output_json_missing_cuda_runtime_evidence',
@@ -378,6 +429,7 @@ function localProofOutputEvidence(
 
   return {
     privateOutputJsonPathExists,
+    privateOutputJsonSha256Matches,
     privateOutputJsonAccepted: true,
     privateOutputJsonRejectionReason: null,
   }
@@ -405,7 +457,10 @@ function buildBridgeRow(
     externalBetaReadyNow: localProofRow?.externalBetaReadyNow === true,
     productionReadyNow: localProofRow?.productionReadyNow === true,
     privateOutputJsonPath: localProofRow?.outputJsonPath ?? null,
+    privateOutputJsonSha256: localProofRow?.outputJsonSha256 ?? null,
     privateOutputJsonPathExists,
+    privateOutputJsonSha256Matches:
+      outputEvidence.privateOutputJsonSha256Matches,
     privateOutputJsonAccepted: outputEvidence.privateOutputJsonAccepted,
     privateOutputJsonRejectionReason:
       outputEvidence.privateOutputJsonRejectionReason,
@@ -425,6 +480,7 @@ function buildBridgeRow(
     !localProofEvidenceObserved.externalBetaReadyNow &&
     !localProofEvidenceObserved.productionReadyNow &&
     privateOutputJsonPathExists &&
+    localProofEvidenceObserved.privateOutputJsonSha256Matches &&
     localProofEvidenceObserved.privateOutputJsonAccepted
 
   const proofRefBridgeStatus: BridgeRow['proofRefBridgeStatus'] =
@@ -473,6 +529,7 @@ function buildBridgeRow(
       externalBetaReadyNow: false,
       productionReadyNow: false,
       privateOutputJsonPathExists: true,
+      privateOutputJsonSha256Matches: true,
     },
     localProofEvidenceObserved,
     routeSubmissionReadyWithAcceptedPrivateProof: localRuntimeProofAccepted,
@@ -596,6 +653,7 @@ function buildReport(localProofResultPath?: string) {
       requiresAdapterExecutedPrivateOutputReadyStatus: true,
       requiresExecutionStateExecutable: true,
       requiresExistingPrivateOutputJsonPath: true,
+      requiresPrivateOutputJsonSha256Match: true,
       requiresPrivateOutputJsonUnderLocalArtifactsGpuModelRuntime: true,
       acceptsScopedToolRowsOnly: true,
       noIdleGpuRuntimeApproved: true,

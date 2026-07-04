@@ -174,6 +174,7 @@ export interface MaskToolExecutionResult {
   artifacts?: ToolArtifact[]
   outputJsonPath?: string
   outputJsonSizeBytes?: number
+  outputJsonSha256?: string
   skipReason?: MaskToolSkipReason
   warnings: string[]
   errorMessage?: string

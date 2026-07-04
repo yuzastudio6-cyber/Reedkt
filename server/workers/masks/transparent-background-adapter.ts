@@ -97,6 +97,7 @@ export async function runTransparentBackgroundFallback(input: {
       commandPlan: { ...commandPlan, executes: true, summary: 'transparent-background local runtime script executed with approved local checkpoint and private source frame; no checkpoint download.' },
       outputJsonPath: runtimeResult.outputJsonPath,
       outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
+      outputJsonSha256: runtimeResult.outputJsonSha256,
       artifacts: [
         buildMaskArtifactRecord({
           workspaceId: executionInput.workspaceId,
@@ -123,7 +124,7 @@ export async function runTransparentBackgroundFallback(input: {
           artifactType: 'qa_report',
           fileName: 'transparent-background-runtime-result.json',
           sourceOfTruth: true,
-          metadata: { tool: 'transparent_background', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes },
+          metadata: { tool: 'transparent_background', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes, outputJsonSha256: runtimeResult.outputJsonSha256 },
         }),
       ],
       warnings: ['transparent-background executed against a private local source frame with a local checkpoint; quality/production approval remains separate.'],

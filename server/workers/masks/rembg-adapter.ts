@@ -96,6 +96,7 @@ export async function runRembgFallback(input: {
       commandPlan: { ...commandPlan, executes: true, summary: 'rembg local runtime script executed with approved local ONNX model and private source frame; no model download.' },
       outputJsonPath: runtimeResult.outputJsonPath,
       outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
+      outputJsonSha256: runtimeResult.outputJsonSha256,
       artifacts: [
         buildMaskArtifactRecord({
           workspaceId: executionInput.workspaceId,
@@ -122,7 +123,7 @@ export async function runRembgFallback(input: {
           artifactType: 'qa_report',
           fileName: 'rembg-runtime-result.json',
           sourceOfTruth: true,
-          metadata: { tool: 'rembg', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes },
+          metadata: { tool: 'rembg', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes, outputJsonSha256: runtimeResult.outputJsonSha256 },
         }),
       ],
       warnings: ['rembg executed against a private local source frame with a local model cache; quality/production approval remains separate.'],

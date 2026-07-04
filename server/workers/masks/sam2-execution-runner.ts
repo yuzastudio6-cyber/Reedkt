@@ -94,6 +94,7 @@ export async function runSam2Tracking(input: {
       commandPlan: { ...commandPlan, executes: true, summary: 'SAM2 local runtime script executed with private checkpoint and approved private source frame; no model download.' },
       outputJsonPath: runtimeResult.outputJsonPath,
       outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
+      outputJsonSha256: runtimeResult.outputJsonSha256,
       artifacts: [
         buildMaskArtifactRecord({
           workspaceId: executionInput.workspaceId,
@@ -111,7 +112,7 @@ export async function runSam2Tracking(input: {
           artifactType: 'qa_report',
           fileName: 'sam2-runtime-result.json',
           sourceOfTruth: true,
-          metadata: { tool: 'sam2', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes },
+          metadata: { tool: 'sam2', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes, outputJsonSha256: runtimeResult.outputJsonSha256 },
         }),
       ],
       warnings: ['SAM2 runtime executed against one approved private source frame only; full real-video temporal execution still requires a later worker milestone.'],

@@ -125,6 +125,7 @@
       "skipReasonCode": "foundation_runtime_output_directory_missing",
       "errorMessage": null,
       "outputJsonPath": null,
+      "outputJsonSha256": null,
       "localInputRequirements": [
         {
           "key": "outputDirectory",
@@ -165,6 +166,7 @@
       "skipReasonCode": "foundation_runtime_output_directory_missing",
       "errorMessage": null,
       "outputJsonPath": null,
+      "outputJsonSha256": null,
       "localInputRequirements": [
         {
           "key": "outputDirectory",
@@ -205,6 +207,7 @@
       "skipReasonCode": "sam2_checkpoint_missing",
       "errorMessage": null,
       "outputJsonPath": null,
+      "outputJsonSha256": null,
       "localInputRequirements": [
         {
           "key": "outputDirectory",
@@ -257,6 +260,7 @@
       "skipReasonCode": "birefnet_model_missing",
       "errorMessage": null,
       "outputJsonPath": null,
+      "outputJsonSha256": null,
       "localInputRequirements": [
         {
           "key": "outputDirectory",
@@ -309,6 +313,7 @@
       "skipReasonCode": "real_esrgan_model_missing",
       "errorMessage": null,
       "outputJsonPath": null,
+      "outputJsonSha256": null,
       "localInputRequirements": [
         {
           "key": "outputDirectory",
@@ -361,6 +366,7 @@
       "skipReasonCode": "kornia_source_frame_missing",
       "errorMessage": null,
       "outputJsonPath": null,
+      "outputJsonSha256": null,
       "localInputRequirements": [
         {
           "key": "outputDirectory",
@@ -407,6 +413,7 @@
       "skipReasonCode": "rembg_model_missing",
       "errorMessage": null,
       "outputJsonPath": null,
+      "outputJsonSha256": null,
       "localInputRequirements": [
         {
           "key": "outputDirectory",
@@ -459,6 +466,7 @@
       "skipReasonCode": "transparent_background_checkpoint_missing",
       "errorMessage": null,
       "outputJsonPath": null,
+      "outputJsonSha256": null,
       "localInputRequirements": [
         {
           "key": "outputDirectory",

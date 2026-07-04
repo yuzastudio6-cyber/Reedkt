@@ -104,6 +104,7 @@ export async function runRealEsrganEnhancement(input: {
       commandPlan: { ...commandPlan, executes: true, summary: 'Real-ESRGAN local runtime script executed with private model path and bounded private source sample; no model download.' },
       outputJsonPath: runtimeResult.outputJsonPath,
       outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
+      outputJsonSha256: runtimeResult.outputJsonSha256,
       artifacts: [
         buildEnhancementArtifactRecord({
           workspaceId: executionInput.workspaceId,
@@ -121,7 +122,7 @@ export async function runRealEsrganEnhancement(input: {
           artifactType: 'qa_report',
           fileName: 'real-esrgan-runtime-result.json',
           sourceOfTruth: true,
-          metadata: { tool: 'real_esrgan', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes },
+          metadata: { tool: 'real_esrgan', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes, outputJsonSha256: runtimeResult.outputJsonSha256 },
         }),
       ],
       warnings: ['Real-ESRGAN executed against a bounded private local sample; full-video/frame-batch upscaling remains a later worker milestone.'],

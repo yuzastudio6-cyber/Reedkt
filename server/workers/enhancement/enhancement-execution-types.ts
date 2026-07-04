@@ -146,6 +146,7 @@ export interface EnhancementToolExecutionResult {
   artifacts?: ToolArtifact[]
   outputJsonPath?: string
   outputJsonSizeBytes?: number
+  outputJsonSha256?: string
   skipReason?: EnhancementToolSkipReason
   warnings: string[]
   errorMessage?: string

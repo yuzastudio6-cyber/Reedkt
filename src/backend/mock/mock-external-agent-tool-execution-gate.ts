@@ -50,6 +50,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
     'npm run external-agent-tool-action-plan',
     'npm run external-agent-tool-readiness:check',
     'npm run external-agent-tool-execution-gate',
+    'npm run external-agent-tool-execution-gate -- --live',
+    'npm run external-agent-gcp-access:verify',
     'npm run external-agent-tool-next-command',
     'npm run external-agent-tool-blockers:preflight',
     'npm run external-agent-gcloud-session:diagnostic',

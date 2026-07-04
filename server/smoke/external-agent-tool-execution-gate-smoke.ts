@@ -89,6 +89,11 @@ assert.equal(
   ),
   false,
 )
+assert.equal(
+  gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execution-gate -- --live'),
+  true,
+)
+assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcp-access:verify'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run ai-video-broll-wan-gpu-global-quota:verify'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcloud-session:diagnostic'), true)
@@ -210,7 +215,10 @@ for (const [flag, value] of Object.entries(gate.runtimeSideEffects)) {
 assert.equal(gate.recommendedNextPrompt, QWEN_READY_PROMPT)
 
 const cliSource = read(CLI_PATH)
-for (const forbidden of ['spawnSync', 'execSync', 'execFileSync', 'gcloud ', 'docker ', 'psql', 'from_pretrained', 'torch.']) {
+for (const required of ['--live', 'runLiveVerifier', 'external-agent-gcp-access-verify.ts']) {
+  assert.equal(cliSource.includes(required), true, `Execution gate CLI missing live verifier marker: ${required}`)
+}
+for (const forbidden of ['execSync', 'execFileSync', 'gcloud ', 'docker ', 'psql', 'from_pretrained', 'torch.']) {
   assert.equal(cliSource.includes(forbidden), false, `Execution gate CLI must remain static-only: ${forbidden}`)
 }
 
@@ -223,6 +231,10 @@ const report = JSON.parse(output)
 assert.equal(report.ok, true)
 assert.equal(report.mode, gate.mode)
 assert.equal(report.decision, gate.decision)
+assert.equal(report.liveMode, false)
+assert.equal(report.liveVerifierRun, false)
+assert.equal(report.liveVerifier, undefined)
+assert.equal(report.liveVerifierAvailableCommand, 'npm run external-agent-gcp-access:verify')
 assert.equal(report.staticExplicitToolGateReady, true)
 assert.deepEqual(report.staticExplicitToolGateReadyToolIds, [
   'qwen2_5_vl_7b_instruct',
@@ -262,11 +274,50 @@ const requireGo = spawnSync('npx', ['tsx', CLI_PATH, '--require-go'], {
 })
 const requireGoReport = JSON.parse(String(requireGo.stdout))
 assert.equal(requireGoReport.requireGoMode, true)
+assert.equal(requireGoReport.liveMode, false)
 assert.equal(requireGoReport.staticExplicitToolGateReady, true)
 assert.equal(requireGoReport.executionAllowedNow, false)
 assert.equal(requireGo.status, 2)
 
-const forbiddenFindings = scanForbiddenValues({ gate, report, requireGoReport })
+const live = spawnSync('npx', ['tsx', CLI_PATH, '--live'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 24,
+})
+const liveReport = JSON.parse(String(live.stdout))
+assert.equal(live.status, 0)
+assert.equal(liveReport.liveMode, true)
+assert.equal(liveReport.liveVerifierRun, true)
+assert.equal(typeof liveReport.liveVerifier.ok, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.allRequiredReadAccessVerified, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.qwenReadAccessPassed, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.brollQuotaReadAccessPassed, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.brollQuotaSufficientForOneL4Vm, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.nextCommandExecutionAllowedNow, 'boolean')
+assert.equal(
+  liveReport.executionAllowedNow,
+  liveReport.staticExplicitToolGateReady &&
+    liveReport.liveVerifier.ok &&
+    liveReport.liveVerifier.readyForAnyExternalAgentExecutionNow,
+)
+assert.equal(liveReport.readyForAnyExternalAgentExecutionNow, liveReport.executionAllowedNow)
+if (!liveReport.executionAllowedNow) {
+  assert.equal(liveReport.decision, 'external_agent_execution_no_go_live_preflight_blocked')
+  assert.deepEqual(liveReport.readyToolIds, [])
+  assert.equal(liveReport.blockedToolIds.length, gate.toolRows.length)
+}
+
+const requireGoLive = spawnSync('npx', ['tsx', CLI_PATH, '--require-go', '--live'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 24,
+})
+const requireGoLiveReport = JSON.parse(String(requireGoLive.stdout))
+assert.equal(requireGoLiveReport.requireGoMode, true)
+assert.equal(requireGoLiveReport.liveMode, true)
+assert.equal(requireGoLive.status, requireGoLiveReport.executionAllowedNow ? 0 : 2)
+
+const forbiddenFindings = scanForbiddenValues({ gate, report, requireGoReport, liveReport, requireGoLiveReport })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(
@@ -276,8 +327,10 @@ console.log(
       decision: report.decision,
       mode: report.mode,
       executionAllowedNow: report.executionAllowedNow,
+      liveExecutionAllowedNow: liveReport.executionAllowedNow,
       staticExplicitToolGateReady: report.staticExplicitToolGateReady,
       requireGoExitCode: requireGo.status,
+      requireGoLiveExitCode: requireGoLive.status,
       blockedToolIds: report.blockedToolIds,
       runtimeGatesAllFalse: report.runtimeGatesAllFalse,
       recommendedNextPrompt: report.recommendedNextPrompt,

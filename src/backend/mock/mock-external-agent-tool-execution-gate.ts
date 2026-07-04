@@ -1,6 +1,6 @@
 import {
   AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT,
-  AI_VIDEO_BROLL_GEN_11E_CLOUD_SIDE_CACHE_STAGING_RUNNER_PROMPT,
+  AI_VIDEO_BROLL_GEN_11E_EXECUTE_CLOUD_SIDE_CACHE_STAGING_PROMPT,
   EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
@@ -133,9 +133,10 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '11B no-inference model import proof runner must remain implemented and fail closed before any Wan import/load runtime attempt',
         '11C Storage Transfer naming test must remain recorded as blocked by private URL-list HTTP 403',
         '11D cache staging strategy fix must remain recorded with no-GPU cloud-side transfer runner selected before any Wan import/load runtime attempt',
+        '11E no-GPU cloud-side cache staging runner must execute and create the private ready marker before any Wan import/load runtime attempt',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
-      currentBlocker: 'no_gpu_cloud_side_cache_staging_runner_required_before_broll_11b_model_import_runner',
+      currentBlocker: 'no_gpu_cloud_side_cache_staging_runner_execution_required_before_broll_11b_model_import_runner',
       safeNextCommand: 'npm run external-agent-tool-execute-broll-wan',
       noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
@@ -184,7 +185,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   runtimeSideEffects: ROLLUP.runtimeSideEffects,
   recommendedNextPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   brollCompletedPlanPrompt: AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT,
-  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_11E_CLOUD_SIDE_CACHE_STAGING_RUNNER_PROMPT,
+  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_11E_EXECUTE_CLOUD_SIDE_CACHE_STAGING_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionGate = typeof EXTERNAL_AGENT_TOOL_EXECUTION_GATE

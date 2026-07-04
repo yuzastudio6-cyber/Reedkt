@@ -8,11 +8,13 @@ type JsonRecord = Record<string, unknown>
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
 const CACHE_FILL_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL'
 const DELEGATED_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11B_MODEL_IMPORT_PROOF'
+const CACHE_STAGING_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11E_CLOUD_SIDE_CACHE_STAGING'
 const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
 const DELEGATED_RUNNER_SCRIPT = 'ai-video-broll-gen-11b:l4-model-import-runner'
+const CACHE_STAGING_RUNNER_SCRIPT = 'ai-video-broll-gen-11e:cloud-side-cache-staging-runner'
 const DELEGATED_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11b-l4-model-import-runner.json'
-const CACHE_FILL_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11b-private-cache-fill.json'
+const CACHE_FILL_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11e-cloud-side-cache-staging-runner.json'
 const NEXT_AFTER_MODEL_IMPORT =
   'AI-VIDEO-BROLL-GEN-11C-MODEL-IMPORT-RESULT-REVIEW: review bounded Wan model import proof result, no inference'
 
@@ -181,12 +183,14 @@ function runPrepareCache(execute: boolean, brollTool: unknown) {
       executeRequired: true,
       confirmationEnv: CACHE_FILL_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
-      delegatedRunnerConfirmationEnv: DELEGATED_RUNNER_CONFIRM_ENV,
-      delegatedRunnerScript: DELEGATED_RUNNER_SCRIPT,
-      delegatedRunnerArgs: ['--cache-fill-only', '--execute', '--summary-path', CACHE_FILL_SUMMARY_PATH],
+      delegatedRunnerConfirmationEnv: CACHE_STAGING_RUNNER_CONFIRM_ENV,
+      delegatedRunnerScript: CACHE_STAGING_RUNNER_SCRIPT,
+      delegatedRunnerArgs: ['--execute', '--summary-path', CACHE_FILL_SUMMARY_PATH],
       noIdleLifecycleGate: asRecord(brollTool).noIdleLifecycleGate,
       runtimeRunNow: false,
       computeVmCreated: false,
+      cloudRunJobCreated: false,
+      cloudRunJobExecuted: false,
       dockerRun: false,
       modelImportRun: false,
       modelInferenceRun: false,
@@ -213,6 +217,8 @@ function runPrepareCache(execute: boolean, brollTool: unknown) {
       confirmationEnvRequiredValue: 'true',
       runtimeRunNow: false,
       computeVmCreated: false,
+      cloudRunJobCreated: false,
+      cloudRunJobExecuted: false,
       dockerRun: false,
       modelImportRun: false,
       modelInferenceRun: false,
@@ -230,19 +236,18 @@ function runPrepareCache(execute: boolean, brollTool: unknown) {
   }
 
   const delegated = runJson(
-    'broll_11b_private_model_cache_fill_runner',
+    'broll_11e_cloud_side_private_model_cache_staging_runner',
     'npm',
     [
       'run',
-      DELEGATED_RUNNER_SCRIPT,
+      CACHE_STAGING_RUNNER_SCRIPT,
       '--',
-      '--cache-fill-only',
       '--execute',
       '--summary-path',
       CACHE_FILL_SUMMARY_PATH,
     ],
     {
-      [DELEGATED_RUNNER_CONFIRM_ENV]: 'true',
+      [CACHE_STAGING_RUNNER_CONFIRM_ENV]: 'true',
     },
     1024 * 1024 * 24,
   )
@@ -250,11 +255,11 @@ function runPrepareCache(execute: boolean, brollTool: unknown) {
 
   print({
     ok: delegated.ok && delegated.json?.ok === true,
-    mode: 'external_agent_broll_wan_private_cache_prepare_delegated_result',
+    mode: 'external_agent_broll_wan_private_cache_prepare_delegated_11e_result',
     status: delegated.ok && delegated.json?.ok === true ? 'passed' : 'blocked_or_failed',
     delegatedRunner: {
-      script: DELEGATED_RUNNER_SCRIPT,
-      confirmationEnv: DELEGATED_RUNNER_CONFIRM_ENV,
+      script: CACHE_STAGING_RUNNER_SCRIPT,
+      confirmationEnv: CACHE_STAGING_RUNNER_CONFIRM_ENV,
       summaryPath: CACHE_FILL_SUMMARY_PATH,
       exitCode: delegated.exitCode,
     },
@@ -262,8 +267,10 @@ function runPrepareCache(execute: boolean, brollTool: unknown) {
     stderrSummary: delegated.stderrSummary,
     nextPrompt: delegated.ok && delegated.json?.ok === true
       ? 'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference'
-      : 'AI-VIDEO-BROLL-GEN-11B-CACHE-FILL-FIX: fix private GCS Wan model cache staging, no VM/no inference',
+      : 'AI-VIDEO-BROLL-GEN-11E-FIX-CLOUD-SIDE-CACHE-STAGING-RUNNER: fix no-GPU Wan private cache staging runner, no inference/no generated video',
     runtimeRunNow: true,
+    cloudRunJobCreated: runtimeSideEffects.cloudRunJobCreated === true,
+    cloudRunJobExecuted: runtimeSideEffects.cloudRunJobExecuted === true,
     computeVmCreated: false,
     dockerRun: false,
     modelImportRun: false,

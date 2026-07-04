@@ -150,8 +150,10 @@ assert.equal(
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL',
 )
 assert.equal(spec.brollWanPrivateCachePrepareCommand.confirmationEnvRequiredValue, 'true')
-assert.equal(spec.brollWanPrivateCachePrepareCommand.delegatesTo11bRunnerCacheFillOnly, true)
+assert.equal(spec.brollWanPrivateCachePrepareCommand.delegatesTo11eCloudSideCacheStagingRunner, true)
 assert.equal(spec.brollWanPrivateCachePrepareCommand.stagesPrivateGcsModelCacheOnly, true)
+assert.equal(spec.brollWanPrivateCachePrepareCommand.createsCloudRunJob, true)
+assert.equal(spec.brollWanPrivateCachePrepareCommand.deletesCloudRunJobAndVerifiesCleanup, true)
 assert.equal(spec.brollWanPrivateCachePrepareCommand.createsComputeVm, false)
 assert.equal(spec.brollWanPrivateCachePrepareCommand.runsModel, false)
 assert.equal(spec.brollWanPrivateCachePrepareCommand.runsModelInference, false)
@@ -303,7 +305,7 @@ assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, true)
 assert.equal(
   brollGateSummary.currentBlocker,
-  'no_gpu_cloud_side_cache_staging_runner_required_before_broll_11b_model_import_runner',
+  'no_gpu_cloud_side_cache_staging_runner_execution_required_before_broll_11b_model_import_runner',
 )
 assert.equal(
   brollGateSummary.safeNextCommand,
@@ -412,8 +414,10 @@ assert.equal(
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL',
 )
 assert.equal(decision.brollWanPrivateCachePrepareCommand.confirmationEnvRequiredValue, 'true')
-assert.equal(decision.brollWanPrivateCachePrepareCommand.delegatesTo11bRunnerCacheFillOnly, true)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.delegatesTo11eCloudSideCacheStagingRunner, true)
 assert.equal(decision.brollWanPrivateCachePrepareCommand.stagesPrivateGcsModelCacheOnly, true)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.createsCloudRunJob, true)
+assert.equal(decision.brollWanPrivateCachePrepareCommand.deletesCloudRunJobAndVerifiesCleanup, true)
 assert.equal(decision.brollWanPrivateCachePrepareCommand.executionAllowedNow, false)
 assert.equal(decision.brollWanPrivateCachePrepareCommand.createsComputeVm, false)
 assert.equal(decision.brollWanPrivateCachePrepareCommand.runsModel, false)

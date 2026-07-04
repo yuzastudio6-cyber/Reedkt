@@ -198,6 +198,17 @@ function localProofOutputExists(row: LocalProofHarnessRow | undefined): boolean 
   return fs.existsSync(asBridgePath(row.outputJsonPath))
 }
 
+function isLocalGpuModelProofOutputPath(file: string | null | undefined): boolean {
+  if (!file || path.isAbsolute(file)) return false
+  const normalized = path.normalize(file)
+  return normalized.startsWith(
+    `.local-artifacts${path.sep}ai-graphics${path.sep}gpu-model-local-dev-runtime${path.sep}`,
+  ) ||
+    normalized.startsWith(
+      `local-artifacts${path.sep}ai-graphics${path.sep}gpu-model-local-dev-runtime${path.sep}`,
+    )
+}
+
 function nestedValue(
   value: unknown,
   pathSegments: string[],
@@ -273,6 +284,15 @@ function localProofOutputEvidence(
   toolId: GpuModelToolId,
   row: LocalProofHarnessRow | undefined,
 ): LocalProofOutputEvidence {
+  if (!isLocalGpuModelProofOutputPath(row?.outputJsonPath)) {
+    return {
+      privateOutputJsonPathExists: false,
+      privateOutputJsonAccepted: false,
+      privateOutputJsonRejectionReason:
+        'private_output_json_outside_local_artifacts_gpu_model_runtime_namespace',
+    }
+  }
+
   const privateOutputJsonPathExists = localProofOutputExists(row)
   if (!privateOutputJsonPathExists || !row?.outputJsonPath) {
     return {
@@ -571,6 +591,7 @@ function buildReport(localProofResultPath?: string) {
       requiresAdapterExecutedPrivateOutputReadyStatus: true,
       requiresExecutionStateExecutable: true,
       requiresExistingPrivateOutputJsonPath: true,
+      requiresPrivateOutputJsonUnderLocalArtifactsGpuModelRuntime: true,
       acceptsScopedToolRowsOnly: true,
       noIdleGpuRuntimeApproved: true,
       gpuStartsOnlyInUpstreamScopedProofRun: true,

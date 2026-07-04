@@ -487,8 +487,17 @@ for (const phrase of [
   'localRuntimeExecutionPerformed',
   'routeSubmissionReadyWithAcceptedPrivateProof',
   'modelWeightsDownloaded',
+  'private_output_json_outside_local_artifacts_gpu_model_runtime_namespace',
+  'requiresPrivateOutputJsonUnderLocalArtifactsGpuModelRuntime',
 ]) {
   if (!cli.includes(phrase)) fail(`cli_missing_phrase:${phrase}`)
+}
+
+if (
+  report.proofRefBridgePolicy?.requiresPrivateOutputJsonUnderLocalArtifactsGpuModelRuntime !==
+    true
+) {
+  fail('proof_ref_bridge_policy_missing_local_artifacts_namespace_requirement')
 }
 
 if (
@@ -563,7 +572,7 @@ if (!scopedKorniaRow) {
   if (
     scopedKorniaRow.localProofEvidenceObserved
       ?.privateOutputJsonRejectionReason !==
-    'private_output_json_contains_forbidden_success_or_runtime_flag'
+    'private_output_json_outside_local_artifacts_gpu_model_runtime_namespace'
   ) {
     fail(`synthetic_scoped_bridge_kornia_output_rejection:${scopedKorniaRow.localProofEvidenceObserved?.privateOutputJsonRejectionReason}`)
   }

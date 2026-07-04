@@ -676,6 +676,8 @@ function privateInputPreflightArgs(toolId, paths) {
     args.push(
       '--transparent-background-checkpoint',
       paths.transparentBackgroundCheckpoint,
+      '--transparent-background-mode',
+      'fast',
     )
   }
   return args
@@ -775,6 +777,12 @@ function checkPrivateInputPreflightCall(label, report, expectedToolId) {
     !normalized.requiredPrivateInputKeys.includes('transparentBackgroundCheckpointLocalPath')) {
     fail(`${label}_transparent_background_checkpoint_not_required`)
   }
+  if (
+    expectedToolId === 'transparent_background' &&
+    report.request?.payload?.transparentBackgroundMode !== 'fast'
+  ) {
+    fail(`${label}_transparent_background_mode_not_accepted:${report.request?.payload?.transparentBackgroundMode}`)
+  }
   checkNoBoundaryLeaks(label, report)
 }
 
@@ -835,6 +843,9 @@ for (const phrase of [
   canonicalGpuWorkerRuntimeContainerImage,
   'privateOutputOnly',
   'gpuRuntimeOnDemandOnly',
+  'transparentBackgroundMode',
+  'transparentBackgroundModes',
+  'assertTransparentBackgroundMode',
   '--expect-state',
   '--expect-blocking-reason',
   '--result-out',
@@ -1151,6 +1162,9 @@ const privateModelRootPreflightReports = privateInputPreflightTools.map((toolId)
     '--runtime-container-platform linux/amd64',
     ...(cpuModelRuntimeTool(toolId)
       ? ['--allow-cpu-model-runtime', '--no-runtime-container-gpu']
+      : []),
+    ...(toolId === 'transparent_background'
+      ? ['--transparent-background-mode fast']
       : []),
     '--private-input-preflight-only',
     `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/private-model-root/output/${toolId}`,

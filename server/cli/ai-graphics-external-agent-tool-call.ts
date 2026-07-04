@@ -125,6 +125,7 @@ const runtimeInputManifestStringFields = new Set([
   'modelWeightChecksumEvidenceRef',
   'runtimeContainerImage',
   'runtimeContainerPlatform',
+  'transparentBackgroundMode',
 ])
 const runtimeInputManifestPathFields = new Set([
   'outputDirectory',
@@ -146,6 +147,7 @@ const runtimeInputManifestToolRecordFields = new Set([
   ...runtimeInputManifestStringFields,
   ...runtimeInputManifestBooleanFields,
 ])
+const transparentBackgroundModes = new Set(['base', 'fast', 'base-nightly'])
 const supportedRuntimeInputManifestTools = new Set<string>(
   AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS,
 )
@@ -327,6 +329,15 @@ function resolveRuntimeInputManifestPathForTool(
   if (gpuModelAllowsCpuModelRuntime(toolId) && hasFlag('--allow-cpu-model-runtime')) {
     args.push('--allow-cpu-model-runtime')
   }
+  const transparentBackgroundMode = toolId === 'transparent_background'
+    ? stringArg('--transparent-background-mode')
+    : undefined
+  assertTransparentBackgroundMode(transparentBackgroundMode)
+  pushIfValue(
+    args,
+    '--transparent-background-mode',
+    transparentBackgroundMode,
+  )
   pushIfValue(args, '--runtime-container-image', stringArg('--runtime-container-image'))
   pushIfValue(
     args,
@@ -457,6 +468,13 @@ function safeManifestString(key: string, value: unknown): string | undefined {
     )
     return value
   }
+  if (key === 'transparentBackgroundMode') {
+    assert(
+      transparentBackgroundModes.has(value),
+      `runtime input manifest field ${key} must be base, fast, or base-nightly`,
+    )
+    return value
+  }
   assertNoSignedUrlOrRawUrl(value, key)
   assertNoPathTraversal(value, key)
   assert(
@@ -502,6 +520,14 @@ function assertPrivateLocalInputPath(label: string, value: string | undefined): 
   if (!value) return
   assertNoSignedUrlOrRawUrl(value, label)
   assertNoPathTraversal(value, label)
+}
+
+function assertTransparentBackgroundMode(value: string | undefined): void {
+  if (!value) return
+  assert(
+    transparentBackgroundModes.has(value),
+    '--transparent-background-mode must be base, fast, or base-nightly',
+  )
 }
 
 function buildRuntimeEnv() {
@@ -975,6 +1001,13 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
   if (toolId === 'transparent_background') {
     payload.transparentBackgroundCheckpointLocalPath =
       transparentBackgroundCheckpointLocalPath
+    const transparentBackgroundMode =
+      stringArg('--transparent-background-mode') ??
+      manifestStringForTool(toolId, manifest, 'transparentBackgroundMode')
+    assertTransparentBackgroundMode(transparentBackgroundMode)
+    if (transparentBackgroundMode) {
+      payload.transparentBackgroundMode = transparentBackgroundMode
+    }
   }
   if (modelWeightManifestId) payload.modelWeightManifestId = modelWeightManifestId
   if (modelWeightChecksumSha256) {

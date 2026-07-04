@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const ROOT = process.cwd()
@@ -53,6 +54,7 @@ for (const forbidden of [
   assert.equal(cliSource.includes(forbidden), false, `CLI must not include runtime command/import marker: ${forbidden}`)
 }
 assert.equal(cliSource.includes('Live checks are intentionally not implemented'), true)
+assert.equal(cliSource.includes('EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN'), true)
 
 const output = execFileSync('npx', ['tsx', CLI_PATH], {
   cwd: ROOT,
@@ -120,6 +122,48 @@ assert.equal(summary.noIdleLifecycleGates[0].gate.cleanupVerificationRequired, t
 assert.equal(summary.noIdleLifecycleGates[0].gate.idleGpuAllowed, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.vmCreateAllowedNow, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.modelInferenceAllowedNow, false)
+assert.equal(typeof summary.gcpAccessRepair, 'object')
+assert.equal(summary.gcpAccessRepair.decision, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.decision)
+assert.equal(summary.gcpAccessRepair.mode, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.mode)
+assert.equal(summary.gcpAccessRepair.projectId, 'reeditpro')
+assert.deepEqual(summary.gcpAccessRepair.currentLiveBlockers, [
+  'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
+  'gcloud_account_lacks_compute_quota_read_access',
+])
+assert.equal(summary.gcpAccessRepair.repairScope.doesNotMutateGcp, true)
+assert.equal(summary.gcpAccessRepair.repairScope.doesNotAuthorizeRuntimeExecution, true)
+assert.equal(summary.gcpAccessRepair.tools.length, 2)
+assert.equal(
+  summary.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; failureMeaning: string; safeRepairChecklist: string[]; unsafeBypasses: string[] }) =>
+      tool.toolId === 'qwen2_5_vl_7b_instruct' &&
+      tool.failureMeaning.includes('Cloud Run') &&
+      tool.safeRepairChecklist.length > 0 &&
+      tool.unsafeBypasses.includes('do not skip Cloud Run service/job describe checks'),
+  ),
+  true,
+)
+assert.equal(
+  summary.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; failureMeaning: string; safeRepairChecklist: string[]; unsafeBypasses: string[] }) =>
+      tool.toolId === 'ai_video_broll_generation_wan' &&
+      tool.failureMeaning.includes('Compute quota') &&
+      tool.safeRepairChecklist.length > 0 &&
+      tool.unsafeBypasses.includes('do not create a VM before quota read checks pass'),
+  ),
+  true,
+)
+assert.equal(typeof summary.gcpAccessRepair.failureResponsePolicy.ifReadAccessFails, 'string')
+assert.equal(
+  summary.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index <redacted-index>',
+  ),
+  true,
+)
+assert.equal(summary.gcpAccessRepair.runtimeGatesAllFalse, true)
+for (const [flag, value] of Object.entries(summary.gcpAccessRepair.runtimeSideEffects as Record<string, boolean>)) {
+  assert.equal(value, false, `GCP repair side-effect flag must remain false: ${flag}`)
+}
 assert.deepEqual(summary.manualBlockerActionToolIds, [])
 
 const blockersByTool = new Map(

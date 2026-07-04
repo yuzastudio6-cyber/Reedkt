@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const ROOT = process.cwd()
@@ -81,12 +82,15 @@ function main() {
   const noIdleLifecycleGateTools = rollup.tools.filter((tool) => tool.noIdleLifecycleGate)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = executionGateKeys.every((key) => rollup.runtimeSideEffects[key] === false)
+  const gcpAccessRepairRuntimeGatesAllFalse = Object.values(
+    EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.runtimeSideEffects,
+  ).every((value) => value === false)
   const safeNextCommands = rollup.safeNextCommands
   const preferredNextSafeCommand =
     safeNextCommands.find((command) => command.id === 'live_next_command_decision') ?? safeNextCommands[0]
 
   const summary = {
-    ok: missingEvidence.length === 0 && runtimeGatesAllFalse,
+    ok: missingEvidence.length === 0 && runtimeGatesAllFalse && gcpAccessRepairRuntimeGatesAllFalse,
     mode: 'fast_static_external_agent_tool_readiness_check',
     decision: rollup.decision,
     paidProductionInScope: rollup.paidProductionInScope,
@@ -118,6 +122,19 @@ function main() {
       toolId: tool.toolId,
       gate: tool.noIdleLifecycleGate,
     })),
+    gcpAccessRepair: {
+      decision: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.decision,
+      mode: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.mode,
+      projectId: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.projectId,
+      currentLiveBlockers: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.currentLiveBlockers,
+      repairScope: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.repairScope,
+      tools: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.tools,
+      failureResponsePolicy: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.failureResponsePolicy,
+      safeRetryChecklist: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.safeRetryChecklist,
+      postRepairVerificationCommands: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.postRepairVerificationCommands,
+      runtimeGatesAllFalse: gcpAccessRepairRuntimeGatesAllFalse,
+      runtimeSideEffects: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.runtimeSideEffects,
+    },
     manualBlockerActionToolIds: blockedTools
       .filter((tool) => (tool.manualBlockerActions ?? []).length > 0)
       .map((tool) => tool.toolId),

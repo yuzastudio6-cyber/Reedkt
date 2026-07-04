@@ -24,6 +24,12 @@ The formerly blocked `preference-video-mock-only-limits` scenario is now classif
 
 This closeout only proves that internal testers can see and verify the boundaries. It does not authorize reference upload, URL fetch, real media analysis, Qwen/DeepSeek/provider calls, workers, render/export, credit movement, Supabase persistence, external beta, paid production, or product-ready behavior.
 
+## Approval And Credit Gate Readiness
+
+The `approval-credit-gate-readiness` scenario is classified as `mock_local` because the internal testing route now exposes the approved snapshot and credit gate contract directly. Internal testers can verify that future expensive work must carry `approvedPlanSnapshotId`, `creditEstimateId`, and `creditReservationId` before backend workers, providers, render/export, or tool execution can proceed.
+
+This readiness panel is evidence for repeated local testing only. It does not authorize credit spend, ledger writes, Stripe, provider calls, worker dispatch, media processing, render/export, Supabase persistence, external beta, paid production, or product-ready behavior.
+
 ## Boundaries
 
 - No upload or file-byte read.
@@ -32,6 +38,7 @@ This closeout only proves that internal testers can see and verify the boundarie
 - No media processing.
 - No render/export.
 - No credit reservation or spend.
+- No credit spend, ledger write, Stripe call, or silent billing.
 - No live Supabase read/write, Storage, signed URL, SQL, or migration.
 - No external beta, real-user-media beta, paid production, or product-ready claim.
 
@@ -42,6 +49,7 @@ Required validation:
 - `npm run smoke:project-edit-brief-internal-testing-entrypoint`
 - `npm run smoke:project-edit-brief-internal-testing-completion-audit`
 - `npm run smoke:preference-video-mock-limits-internal-testing-closeout`
+- `npm run smoke:internal-testing-approval-credit-gates`
 - `npm run qa:internal-testing`
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-readback-qa`
@@ -55,4 +63,4 @@ Required validation:
 
 ## Next
 
-Use `/internal-testing` for repeated internal QA and source-truth feedback capture. The next real product milestones remain authenticated project/session access, planner integration into approved snapshots, credit estimate/reservation integration, and explicit runtime/persistence gates.
+Use `/internal-testing` for repeated internal QA and source-truth feedback capture. The next real product milestones remain authenticated project/session access, real planner integration into approved snapshots, transactional credit reservation/spend/release/refund persistence, and explicit runtime/persistence gates.

@@ -105,6 +105,7 @@ function getScenarioHighlights() {
     'edit-brief-qa-run-brief',
     'edit-brief-plan-prepare-hints',
     'preference-video-mock-only-limits',
+    'approval-credit-gate-readiness',
     'feedback-export',
   ])
 
@@ -308,6 +309,49 @@ export function InternalTestingPage() {
             Open /edit-preferences
             <ExternalLink aria-hidden="true" size={15} />
           </Link>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-approval-credit-gates">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Approval and credit gates</span>
+            <h2>Expensive work stays blocked until the approved snapshot and reservation are present</h2>
+          </div>
+          <p>
+            Internal testing now names the same gate contract that future backend workers must enforce: approved plan snapshot, approved credit
+            estimate, and reserved credits. This makes the path testable without turning on live billing, providers, workers, or render/export.
+          </p>
+          <dl className="internal-testing-gate-list" data-testid="internal-testing-approval-credit-gate-list">
+            <div>
+              <dt>approvedPlanSnapshotId</dt>
+              <dd>Required before worker/provider/render execution can read an immutable edit plan.</dd>
+            </div>
+            <div>
+              <dt>creditEstimateId</dt>
+              <dd>Required to prove the user saw and approved the estimate for the exact plan version.</dd>
+            </div>
+            <div>
+              <dt>creditReservationId</dt>
+              <dd>Required before any expensive job can reserve capacity or later spend credits.</dd>
+            </div>
+          </dl>
+          <div className="internal-testing-limit-grid">
+            <article>
+              <Badge accent="success">Mock evidence accepted</Badge>
+              <ul>
+                <li>Browser-visible status for approved snapshot and credit gate readiness.</li>
+                <li>Smoke coverage for allowed mock credit-gate and approved-snapshot validation paths.</li>
+                <li>Smoke coverage proving expensive jobs block when IDs are missing.</li>
+              </ul>
+            </article>
+            <article>
+              <Badge accent="warning">Still blocked until backend gates</Badge>
+              <ul>
+                <li>No credit reservation spend, ledger write, Stripe flow, or silent billing.</li>
+                <li>No provider call, worker dispatch, tool execution, render/export, media processing, or Supabase write.</li>
+                <li>No external beta, paid production, or product-ready local OSS claim.</li>
+              </ul>
+            </article>
+          </div>
         </section>
 
         <section className="internal-testing-content-grid">

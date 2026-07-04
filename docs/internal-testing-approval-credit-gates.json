@@ -1,0 +1,36 @@
+{
+  "id": "internal-testing-approval-credit-gates",
+  "decision": "internal_testing_approval_credit_gates_passed_ready_for_repeated_local_internal_testing",
+  "scenarioId": "approval-credit-gate-readiness",
+  "route": "/internal-testing",
+  "command": "npm run smoke:internal-testing-approval-credit-gates",
+  "wrapperCommand": "npm run qa:internal-testing",
+  "requiredIds": [
+    "approvedPlanSnapshotId",
+    "creditEstimateId",
+    "creditReservationId"
+  ],
+  "acceptedEvidence": [
+    "mock_credit_gate_allows_approved_estimate_and_reservation",
+    "mock_credit_gate_blocks_missing_reservation",
+    "approved_snapshot_requires_credit_reservation_for_worker",
+    "expensive_worker_blocks_without_ids",
+    "expensive_worker_dry_run_passes_with_ids"
+  ],
+  "blockedScope": {
+    "providerCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderExport": false,
+    "creditSpend": false,
+    "ledgerWrites": false,
+    "stripe": false,
+    "supabaseReadWrite": false,
+    "storageSignedUrls": false,
+    "sqlOrMigration": false,
+    "externalBeta": false,
+    "realUserMediaBeta": false,
+    "paidProduction": false,
+    "productReady": false
+  }
+}

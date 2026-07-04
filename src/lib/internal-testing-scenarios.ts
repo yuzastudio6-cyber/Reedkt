@@ -138,6 +138,21 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'ready',
   },
   {
+    id: 'approval-credit-gate-readiness',
+    title: 'Approved snapshot + credit gate readiness',
+    description: 'Verify internal testing exposes the exact IDs required before expensive worker, provider, render, or tool execution can start.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the approval and credit gate readiness panel.',
+      'Confirm approvedPlanSnapshotId, creditEstimateId, and creditReservationId are all required.',
+      'Confirm the panel still blocks spend, provider calls, worker dispatch, render/export, Supabase writes, and production claims.',
+    ],
+    expectedResult: 'Internal testers can see the production-shaped gate contract while all expensive work remains blocked unless approved snapshot and credit reservation evidence exists.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

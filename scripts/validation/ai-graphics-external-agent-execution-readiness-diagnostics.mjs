@@ -269,8 +269,17 @@ function gpuModelRequiresSourceImage(toolId) {
   return !['torch_torchvision', 'transformers'].includes(toolId)
 }
 
+function gpuModelAllowsCpuFoundationRuntime(toolId) {
+  return toolId === 'torch_torchvision' || toolId === 'transformers'
+}
+
 function expectedMinimumPrivateRuntimeInputKeys(toolId) {
-  const keys = ['outputDirectory', 'nativeCudaRuntime']
+  const keys = [
+    'outputDirectory',
+    gpuModelAllowsCpuFoundationRuntime(toolId)
+      ? 'pythonCpuFoundationRuntime'
+      : 'nativeCudaRuntime',
+  ]
   if (gpuModelRequiresSourceImage(toolId)) keys.push('sourceImageLocalPath')
   if (toolId === 'sam2') keys.push('sam2CheckpointLocalPath')
   if (toolId === 'birefnet') keys.push('birefnetModelLocalPath')

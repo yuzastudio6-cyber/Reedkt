@@ -82,8 +82,8 @@ const controlledAdapterSource = requireFile('server/tool-registry/ai-graphics-ex
 if (!controlledAdapterSource.includes('toolExecutionApprovedNow: localRuntimeExecutionPerformed')) {
   failures.push('GPU/model controlled adapter must only set toolExecutionApprovedNow when local runtime actually executed.')
 }
-if (!controlledAdapterSource.includes('gpuRuntimeApprovedForScopedControlledToolCall: localRuntimeExecutionPerformed')) {
-  failures.push('GPU/model controlled adapter must only approve scoped GPU runtime when local runtime actually executed.')
+if (!controlledAdapterSource.includes('gpuRuntimeApprovedForScopedControlledToolCall:\n      gpuRuntimeUsedForScopedControlledToolCall')) {
+  failures.push('GPU/model controlled adapter must only approve scoped GPU runtime when the scoped runtime actually used GPU.')
 }
 
 const packageJson = JSON.parse(requireFile('package.json'))

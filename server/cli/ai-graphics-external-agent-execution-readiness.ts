@@ -127,8 +127,17 @@ function gpuModelRequiresSourceImage(toolId: string): boolean {
   return !['torch_torchvision', 'transformers'].includes(toolId)
 }
 
+function gpuModelAllowsCpuFoundationRuntime(toolId: string): boolean {
+  return toolId === 'torch_torchvision' || toolId === 'transformers'
+}
+
 function gpuModelMinimumPrivateRuntimeInputKeys(toolId: string): string[] {
-  const keys = ['outputDirectory', 'nativeCudaRuntime']
+  const keys = [
+    'outputDirectory',
+    gpuModelAllowsCpuFoundationRuntime(toolId)
+      ? 'pythonCpuFoundationRuntime'
+      : 'nativeCudaRuntime',
+  ]
   if (gpuModelRequiresSourceImage(toolId)) keys.push('sourceImageLocalPath')
   if (toolId === 'sam2') keys.push('sam2CheckpointLocalPath')
   if (toolId === 'birefnet') keys.push('birefnetModelLocalPath')
@@ -192,6 +201,9 @@ function gpuModelHostRuntimeFlags(toolId: string): string[] {
     '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
     '--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
   ]
+  if (gpuModelAllowsCpuFoundationRuntime(toolId)) {
+    flags.push('--allow-cpu-foundation-runtime')
+  }
   if (gpuModelRequiresSourceImage(toolId)) {
     flags.push('--source-image <private-approved-frame.png>')
   }
@@ -216,6 +228,9 @@ function gpuModelControlledRouteFlags(toolId: string): string[] {
     '--scoped-gpu-runtime-container-platform linux/amd64',
     `--scoped-gpu-output-dir ${outputDir}`,
   ]
+  if (gpuModelAllowsCpuFoundationRuntime(toolId)) {
+    flags.push('--scoped-gpu-allow-cpu-foundation-runtime')
+  }
   if (gpuModelRequiresSourceImage(toolId)) {
     flags.push(`--scoped-gpu-source-image ${outputDir}/private-approved-frame.ppm`)
   }

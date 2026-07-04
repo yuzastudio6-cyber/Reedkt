@@ -143,6 +143,7 @@ interface ScopedGpuModelLocalDevRouteAttempt {
 interface ScopedGpuModelLocalDevRouteAttemptOptions {
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
+  allowCpuFoundationRuntime?: boolean
   privateOutputRoot?: string
   privateOutputDirectory?: string
   privateSourceImageLocalPath?: string
@@ -232,6 +233,10 @@ function stringArg(name: string): string | undefined {
   return typeof value === 'string' && value.trim() && !value.startsWith('--')
     ? value
     : undefined
+}
+
+function hasFlag(name: string): boolean {
+  return process.argv.includes(name)
 }
 
 function scopedGpuModelToolIdsFromArgs(): AiGraphicsExternalAgentGpuModelControlledAdapterToolId[] {
@@ -385,12 +390,22 @@ function gpuModelRequiresSourceImage(
   return !['torch_torchvision', 'transformers'].includes(toolId)
 }
 
+function gpuModelAllowsCpuFoundationRuntime(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): boolean {
+  return toolId === 'torch_torchvision' || toolId === 'transformers'
+}
+
 function gpuModelRequiredPrivateInputKeys(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  options: { allowCpuFoundationRuntime?: boolean } = {},
 ): string[] {
   return [
     'outputDirectory',
-    'nativeCudaRuntime',
+    gpuModelAllowsCpuFoundationRuntime(toolId) &&
+      options.allowCpuFoundationRuntime === true
+      ? 'pythonCpuFoundationRuntime'
+      : 'nativeCudaRuntime',
     gpuModelRequiresSourceImage(toolId) ? 'sourceImageLocalPath' : '',
     toolId === 'sam2' ? 'sam2CheckpointLocalPath' : '',
     toolId === 'birefnet' ? 'birefnetModelLocalPath' : '',
@@ -456,11 +471,17 @@ function scopedGpuModelCommand(
   const outputDirectory = scopedGpuModelPrivateOutputDirectory(toolId, options)
   const sourceImage = scopedGpuModelPrivateSourceImageLocalPath(toolId, options)
   const inputRefs = scopedGpuModelPrivateRuntimeInputRefs(toolId, options)
+  const allowCpuFoundationRuntime =
+    gpuModelAllowsCpuFoundationRuntime(toolId) &&
+    options.allowCpuFoundationRuntime === true
   const parts = [
     'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke --',
     `--scoped-gpu-tool ${toolId}`,
     `--scoped-gpu-runtime-container-image ${options.runtimeContainerImage ?? canonicalGpuModelRuntimeContainerImage}`,
     `--scoped-gpu-runtime-container-platform ${options.runtimeContainerPlatform ?? 'linux/amd64'}`,
+    allowCpuFoundationRuntime
+      ? '--scoped-gpu-allow-cpu-foundation-runtime'
+      : '',
     `--scoped-gpu-output-dir ${outputDirectory}`,
     sourceImage ? `--scoped-gpu-source-image ${sourceImage}` : '',
     inputRefs.sam2CheckpointLocalPath
@@ -506,7 +527,10 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
     gpuRuntimeOnDemandOnly: true,
     noIdleGpuRuntimeApproved: true,
     runtimeExecutionBackend: 'docker_container',
-    runtimeContainerGpu: true,
+    runtimeContainerGpu: !(
+      gpuModelAllowsCpuFoundationRuntime(toolId) &&
+      options.allowCpuFoundationRuntime === true
+    ),
     outputDirectory: privateOutputDirectory,
     timeoutMs: 30_000,
     toolExecutionPerformed: false,
@@ -517,6 +541,12 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
     publicArtifactCreated: false,
     signedUrlCreated: false,
     ...privateRuntimeInputRefs,
+  }
+  if (
+    gpuModelAllowsCpuFoundationRuntime(toolId) &&
+    options.allowCpuFoundationRuntime === true
+  ) {
+    payload.allowCpuFoundationRuntime = true
   }
   if (privateSourceImageLocalPath) {
     payload.sourceImageLocalPath = privateSourceImageLocalPath
@@ -566,6 +596,8 @@ async function runControlledCase(
   const booleans = data.booleans ?? {}
   const adapterResult = data.adapterResult ?? data.controlledAdapterResult ?? {}
   const output = adapterResult.output ?? {}
+  const runtimeOutput = objectValue(adapterResult.runtimeOutput)
+  const runtimeResult = objectValue(runtimeOutput.result)
   const group = groupForTool(request.toolId)
   const externalAgentToolCallResult = parseExternalAgentToolCallResult(
     data.externalAgentToolCallResult,
@@ -611,9 +643,13 @@ async function runControlledCase(
       adapterResult.gpuRuntimeShouldStartNow === true,
     outputKind: typeof output.outputKind === 'string'
       ? output.outputKind
+      : typeof runtimeResult.outputJsonPath === 'string'
+      ? 'gpu_model_runtime_json'
       : null,
     outputSha256: typeof output.privateArtifactSha256 === 'string'
       ? output.privateArtifactSha256
+      : typeof runtimeResult.outputJsonSha256 === 'string'
+      ? runtimeResult.outputJsonSha256
       : null,
     publicArtifactCreated:
       data.outputAccess?.publicArtifactCreated === true ||
@@ -647,15 +683,22 @@ function buildScopedGpuModelLocalDevRouteAttempt(
   const runtimeContainerImage = options.runtimeContainerImage ?? null
   const runtimeContainerImageProvided = Boolean(runtimeContainerImage)
   const expectedBlockingReasonCodes = runtimeContainerImageProvided
-    ? [
-        ...privateInputBlockingReasonCodes(toolId),
-        'gpu_model_runtime_container_image_unavailable',
-        'gpu_model_runtime_container_gpu_unavailable',
-        'gpu_model_python_runtime_unavailable',
-        'gpu_model_python_package_missing',
-        'gpu_model_native_cuda_runtime_missing',
-        'gpu_model_onnxruntime_cuda_provider_missing',
-      ]
+    ? gpuModelAllowsCpuFoundationRuntime(toolId) &&
+      options.allowCpuFoundationRuntime === true
+      ? [
+          'gpu_model_runtime_container_image_unavailable',
+          'gpu_model_python_runtime_unavailable',
+          'gpu_model_python_package_missing',
+        ]
+      : [
+          ...privateInputBlockingReasonCodes(toolId),
+          'gpu_model_runtime_container_image_unavailable',
+          'gpu_model_runtime_container_gpu_unavailable',
+          'gpu_model_python_runtime_unavailable',
+          'gpu_model_python_package_missing',
+          'gpu_model_native_cuda_runtime_missing',
+          'gpu_model_onnxruntime_cuda_provider_missing',
+        ]
     : ['gpu_model_runtime_container_image_missing']
   const expectedBlockingReasonCode = expectedBlockingReasonCodes[0]
   const runtimeExecuted =
@@ -750,6 +793,7 @@ function validateResults(
   disabledGpuStatus: number,
   scopedGpuModelLocalDevRouteAttempts: ScopedGpuModelLocalDevRouteAttempt[],
   expectedScopedGpuModelToolIds: AiGraphicsExternalAgentGpuModelControlledAdapterToolId[],
+  scopedGpuModelOptions: ScopedGpuModelLocalDevRouteAttemptOptions,
   capabilityMismatchFailureProbe: ControlledRouteExecutionResult,
 ) {
   assert(disabledGpuStatus === 409, `disabled GPU route should return 409, got ${disabledGpuStatus}`)
@@ -867,38 +911,51 @@ function validateResults(
     }
     assert(scopedResult.failureDiagnostics === null, `${toolId} scoped GPU/model route attempt should not fail`)
     assert(scopedResult.externalAgentToolCallResult !== null, `${toolId} scoped GPU/model route attempt missing normalized result`)
-    assert(
-      scopedResult.externalAgentToolCallResult?.nextExternalAgentCommandKind ===
-        'gpu_model_private_proof_sequence',
-      `${toolId} scoped GPU/model route attempt missing command kind`,
-    )
-    assert(
-      scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes('ai-graphics:external-agent-gpu-model-private-proof-sequence') === true &&
-        scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes(`--tool ${toolId}`) === true &&
-        scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes('--require-host-eligible') === true &&
-        scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes('--require-accepted-proof') === true,
-      `${toolId} scoped GPU/model route attempt missing exact private proof sequence command`,
-    )
-    assert(
-      scopedResult.externalAgentToolCallResult?.nextExternalAgentRouteRetryCommandKind ===
-        'scoped_gpu_model_route_retry_after_private_proof',
-      `${toolId} scoped GPU/model route attempt missing route retry command kind`,
-    )
-    assert(
-      scopedResult.externalAgentToolCallResult?.nextExternalAgentRouteRetryCommand?.includes(`--scoped-gpu-tool ${toolId}`) === true,
-      `${toolId} scoped GPU/model route attempt missing exact scoped route retry command`,
-    )
+    if (scopedResult.externalAgentExecutionState === 'blocked_with_reason') {
+      assert(
+        scopedResult.externalAgentToolCallResult?.nextExternalAgentCommandKind ===
+          'gpu_model_private_proof_sequence',
+        `${toolId} scoped GPU/model route attempt missing command kind`,
+      )
+      assert(
+        scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes('ai-graphics:external-agent-gpu-model-private-proof-sequence') === true &&
+          scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes(`--tool ${toolId}`) === true &&
+          scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes('--require-host-eligible') === true &&
+          scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes('--require-accepted-proof') === true,
+        `${toolId} scoped GPU/model route attempt missing exact private proof sequence command`,
+      )
+      assert(
+        scopedResult.externalAgentToolCallResult?.nextExternalAgentRouteRetryCommandKind ===
+          'scoped_gpu_model_route_retry_after_private_proof',
+        `${toolId} scoped GPU/model route attempt missing route retry command kind`,
+      )
+      assert(
+        scopedResult.externalAgentToolCallResult?.nextExternalAgentRouteRetryCommand?.includes(`--scoped-gpu-tool ${toolId}`) === true,
+        `${toolId} scoped GPU/model route attempt missing exact scoped route retry command`,
+      )
+      for (const key of gpuModelRequiredPrivateInputKeys(toolId, scopedGpuModelOptions)) {
+        assert(
+          scopedResult.externalAgentToolCallResult?.requiredPrivateInputKeys.includes(key) === true,
+          `${toolId} scoped GPU/model route attempt missing required private input ${key}`,
+        )
+      }
+    } else {
+      assert(scopedResult.externalAgentExecutionState === 'executable', `${toolId} scoped GPU/model route attempt should be executable when not blocked`)
+      assert(scopedResult.externalAgentToolCallResult?.executable === true, `${toolId} scoped GPU/model route attempt normalized executable mismatch`)
+      assert(scopedResult.externalAgentToolCallResult?.blockedWithReason === false, `${toolId} scoped GPU/model route attempt normalized blocked mismatch`)
+      assert(scopedResult.controlledAdapterExecutedNow === true, `${toolId} scoped GPU/model route attempt did not execute adapter runtime`)
+      assert(scopedResult.localGpuModelRuntimeExecutionPerformed === true, `${toolId} scoped GPU/model route attempt did not perform local runtime`)
+      assert(Boolean(scopedResult.outputKind), `${toolId} scoped GPU/model route attempt missing output kind`)
+      assert(Boolean(scopedResult.outputSha256), `${toolId} scoped GPU/model route attempt missing private output hash`)
+      assert(scopedResult.blockingReasonCode === null, `${toolId} scoped GPU/model route attempt returned blocking reason after execution`)
+    }
     assert(
       scopedResult.externalAgentToolCallResult?.gpuRuntimeStartPolicy ===
-        'on_demand_only_for_scoped_active_tool_call',
+        (scopedResult.externalAgentExecutionState === 'executable'
+          ? 'gpu_started_only_for_completed_scoped_tool_call'
+          : 'on_demand_only_for_scoped_active_tool_call'),
       `${toolId} scoped GPU/model route attempt runtime policy mismatch`,
     )
-    for (const key of gpuModelRequiredPrivateInputKeys(toolId)) {
-      assert(
-        scopedResult.externalAgentToolCallResult?.requiredPrivateInputKeys.includes(key) === true,
-        `${toolId} scoped GPU/model route attempt missing required private input ${key}`,
-      )
-    }
     assert(scopedResult.publicArtifactCreated === false, `${toolId} scoped GPU/model route attempt created public artifact`)
     assert(scopedResult.signedUrlCreated === false, `${toolId} scoped GPU/model route attempt created signed URL`)
     assert(attempt.booleans.scopedGpuModelLocalDevRouteAttemptAccepted === true, `${toolId} scoped GPU/model route attempt was not accepted`)
@@ -1340,6 +1397,8 @@ async function main() {
     runtimeContainerImage: stringArg('--scoped-gpu-runtime-container-image'),
     runtimeContainerPlatform:
       stringArg('--scoped-gpu-runtime-container-platform'),
+    allowCpuFoundationRuntime:
+      hasFlag('--scoped-gpu-allow-cpu-foundation-runtime'),
     privateOutputRoot: stringArg('--scoped-gpu-output-root'),
     privateOutputDirectory: stringArg('--scoped-gpu-output-dir'),
     privateSourceImageLocalPath: stringArg('--scoped-gpu-source-image'),
@@ -1410,6 +1469,7 @@ async function main() {
     disabledGpuStatus,
     scopedGpuModelLocalDevRouteAttempts,
     scopedGpuModelToolIds,
+    scopedGpuModelOptions,
     capabilityMismatchFailureProbe,
   )
   const report = buildReport(

@@ -57,6 +57,7 @@ interface LocalProofHarnessRow {
   localRuntimeExecutionPerformed?: boolean
   toolExecutionApprovedNow?: boolean
   gpuRuntimeShouldStartNow?: boolean
+  allowCpuFoundationRuntime?: boolean
   publicArtifactCreated?: boolean
   signedUrlCreated?: boolean
   runtimeReadyNow?: boolean
@@ -95,7 +96,7 @@ interface BridgeRow {
     executionState: 'executable'
     localRuntimeExecutionPerformed: true
     toolExecutionApprovedNow: true
-    gpuRuntimeShouldStartNowDuringScopedProof: true
+    gpuRuntimeShouldStartNowDuringScopedProof: boolean
     publicArtifactCreated: false
     signedUrlCreated: false
     runtimeReadyNow: false
@@ -297,6 +298,41 @@ function outputHasGpuEvidence(
   )
 }
 
+function acceptsCpuFoundationProof(
+  toolId: GpuModelToolId,
+  row: LocalProofHarnessRow | undefined,
+  outputJson: JsonRecord,
+): boolean {
+  if (toolId !== 'torch_torchvision' && toolId !== 'transformers') return false
+  if (row?.allowCpuFoundationRuntime !== true) return false
+  return (
+    nestedValue(outputJson, ['runtime', 'cpuFoundationRuntimeAllowed']) === true &&
+    nestedValue(outputJson, ['runtime', 'cudaAvailable']) === false &&
+    nestedValue(outputJson, ['runtime', 'deviceType']) === 'cpu' &&
+    nestedValue(outputJson, ['runtime', 'modelInferencePerformed']) === false &&
+    nestedValue(outputJson, ['runtime', 'mediaProcessed']) === false
+  )
+}
+
+function outputHasAcceptedRuntimeEvidence(
+  toolId: GpuModelToolId,
+  row: LocalProofHarnessRow | undefined,
+  outputJson: JsonRecord,
+): boolean {
+  return outputHasGpuEvidence(toolId, outputJson) ||
+    acceptsCpuFoundationProof(toolId, row, outputJson)
+}
+
+function expectedGpuRuntimeShouldStartDuringScopedProof(
+  toolId: GpuModelToolId,
+  row: LocalProofHarnessRow | undefined,
+): boolean {
+  if (toolId === 'torch_torchvision' || toolId === 'transformers') {
+    return row ? row.allowCpuFoundationRuntime !== true : false
+  }
+  return true
+}
+
 function localProofOutputEvidence(
   toolId: GpuModelToolId,
   row: LocalProofHarnessRow | undefined,
@@ -375,6 +411,9 @@ function localProofOutputEvidence(
     'modelDownloadedExternally',
     'externalModelDownloadAttempted',
     'modelWeightsDownloaded',
+    'modelWeightsLoaded',
+    'modelInferencePerformed',
+    'mediaProcessed',
     'publicArtifactCreated',
     'signedUrlCreated',
     'runtimeReadyNow',
@@ -417,13 +456,15 @@ function localProofOutputEvidence(
         'private_output_json_tool_identity_mismatch',
     }
   }
-  if (!outputHasGpuEvidence(toolId, outputJson)) {
+  if (!outputHasAcceptedRuntimeEvidence(toolId, row, outputJson)) {
     return {
       privateOutputJsonPathExists,
       privateOutputJsonSha256Matches,
       privateOutputJsonAccepted: false,
       privateOutputJsonRejectionReason:
-        'private_output_json_missing_cuda_runtime_evidence',
+        toolId === 'torch_torchvision' || toolId === 'transformers'
+          ? 'private_output_json_missing_cuda_or_cpu_foundation_runtime_evidence'
+          : 'private_output_json_missing_cuda_runtime_evidence',
     }
   }
 
@@ -441,6 +482,11 @@ function buildBridgeRow(
 ): BridgeRow {
   const localRuntimeProofResultProvided = Boolean(localProofRow)
   const outputEvidence = localProofOutputEvidence(proofRefRow.toolId, localProofRow)
+  const expectedGpuRuntimeShouldStart =
+    expectedGpuRuntimeShouldStartDuringScopedProof(
+      proofRefRow.toolId,
+      localProofRow,
+    )
   const privateOutputJsonPathExists =
     outputEvidence.privateOutputJsonPathExists
   const localProofEvidenceObserved = {
@@ -473,7 +519,8 @@ function buildBridgeRow(
     localProofEvidenceObserved.executionState === 'executable' &&
     localProofEvidenceObserved.localRuntimeExecutionPerformed &&
     localProofEvidenceObserved.toolExecutionApprovedNow &&
-    localProofEvidenceObserved.gpuRuntimeShouldStartNowDuringScopedProof &&
+    localProofEvidenceObserved.gpuRuntimeShouldStartNowDuringScopedProof ===
+      expectedGpuRuntimeShouldStart &&
     !localProofEvidenceObserved.publicArtifactCreated &&
     !localProofEvidenceObserved.signedUrlCreated &&
     !localProofEvidenceObserved.runtimeReadyNow &&
@@ -522,7 +569,8 @@ function buildBridgeRow(
       executionState: 'executable',
       localRuntimeExecutionPerformed: true,
       toolExecutionApprovedNow: true,
-      gpuRuntimeShouldStartNowDuringScopedProof: true,
+      gpuRuntimeShouldStartNowDuringScopedProof:
+        expectedGpuRuntimeShouldStart,
       publicArtifactCreated: false,
       signedUrlCreated: false,
       runtimeReadyNow: false,

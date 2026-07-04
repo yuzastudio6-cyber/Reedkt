@@ -2760,8 +2760,9 @@ export function createAiGraphicsExternalBetaToolCallRoutes(
           providerRuntimePerformed: false,
           browserWebglCanvasRuntimeApprovedNow: false,
           browserWebglCanvasRuntimePerformed: false,
-          gpuRuntimeApprovedForScopedControlledToolCall: true,
-          gpuRuntimePerformed: execution.localGpuModelRuntimeExecutionPerformed,
+          gpuRuntimeApprovedForScopedControlledToolCall:
+            execution.gpuRuntimeApprovedForScopedControlledToolCall,
+          gpuRuntimePerformed: execution.gpuRuntimeShouldStartNow,
           gpuRuntimeShouldStartNow: execution.gpuRuntimeShouldStartNow,
           publicArtifactCreated: false,
           signedUrlCreated: false,

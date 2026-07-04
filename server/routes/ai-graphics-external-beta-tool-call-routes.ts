@@ -237,6 +237,8 @@ interface AiGraphicsExternalAgentToolCallResultInput {
   nextExternalAgentAction?: string | null
   nextExternalAgentCommandKind?: string | null
   nextExternalAgentCommand?: string | null
+  nextExternalAgentRouteRetryCommandKind?: string | null
+  nextExternalAgentRouteRetryCommand?: string | null
   requiredPrivateInputKeys?: string[]
   blockedRuntimePrerequisites?: string[]
   gpuRuntimeStartPolicy?: string | null
@@ -283,6 +285,10 @@ export function buildAiGraphicsExternalAgentToolCallResult(
     nextExternalAgentCommandKind:
       input.nextExternalAgentCommandKind ?? null,
     nextExternalAgentCommand: input.nextExternalAgentCommand ?? null,
+    nextExternalAgentRouteRetryCommandKind:
+      input.nextExternalAgentRouteRetryCommandKind ?? null,
+    nextExternalAgentRouteRetryCommand:
+      input.nextExternalAgentRouteRetryCommand ?? null,
     requiredPrivateInputKeys: input.requiredPrivateInputKeys ?? [],
     blockedRuntimePrerequisites: input.blockedRuntimePrerequisites ?? [],
     gpuRuntimeStartPolicy: input.gpuRuntimeStartPolicy ?? null,
@@ -327,6 +333,45 @@ function exactGpuModelScopedRouteProofCommand(toolId: string): string {
   ].join(' ')
 }
 
+function gpuModelPrivateProofSequenceFlags(toolId: string): string[] {
+  return [
+    gpuModelRequiresSourceImage(toolId)
+      ? '--source-image <private-approved-frame.png>'
+      : '',
+    toolId === 'sam2'
+      ? '--sam2-checkpoint <private-sam2-checkpoint.pt>'
+      : '',
+    toolId === 'birefnet'
+      ? '--birefnet-model <private-birefnet-model>'
+      : '',
+    toolId === 'real_esrgan'
+      ? '--real-esrgan-model <private-real-esrgan-model.pth>'
+      : '',
+    toolId === 'rembg'
+      ? '--rembg-model <private-rembg-model.onnx>'
+      : '',
+    toolId === 'transparent_background'
+      ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
+      : '',
+  ].filter(Boolean)
+}
+
+function exactGpuModelPrivateProofSequenceCommand(toolId: string): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence --',
+    '--attempt-local-runtime',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_IMAGE}`,
+    '--runtime-container-platform linux/amd64',
+    `--tool ${toolId}`,
+    `--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>`,
+    ...gpuModelPrivateProofSequenceFlags(toolId),
+    '--detect-host',
+    '--require-host-eligible',
+    '--require-accepted-proof',
+  ].join(' ')
+}
+
 function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
   return [
     'outputDirectory',
@@ -364,8 +409,14 @@ function gpuModelExternalAgentProofFields(input: {
   return {
     nextExternalAgentCommandKind: input.executionPassed
       ? null
-      : 'scoped_gpu_model_local_dev_runtime_proof',
+      : 'gpu_model_private_proof_sequence',
     nextExternalAgentCommand: input.executionPassed
+      ? null
+      : exactGpuModelPrivateProofSequenceCommand(input.toolId),
+    nextExternalAgentRouteRetryCommandKind: input.executionPassed
+      ? null
+      : 'scoped_gpu_model_route_retry_after_private_proof',
+    nextExternalAgentRouteRetryCommand: input.executionPassed
       ? null
       : exactGpuModelScopedRouteProofCommand(input.toolId),
     requiredPrivateInputKeys: input.executionPassed
@@ -394,7 +445,9 @@ function gpuModelNextExternalAgentAction(input: {
     `blocked_with_reason:${blockingReason}`,
     'if the proof-local image is missing, build the exact local proof image first:',
     AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_BUILD_COMMAND,
-    'run the scoped CUDA/local input proof before retrying execution:',
+    'run the private proof sequence before retrying route execution:',
+    exactGpuModelPrivateProofSequenceCommand(input.toolId),
+    'after accepted private proof exists, retry the controlled route with:',
     exactGpuModelScopedRouteProofCommand(input.toolId),
     'GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.',
   ].join(' ')

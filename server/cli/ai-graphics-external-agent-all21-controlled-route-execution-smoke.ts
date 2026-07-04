@@ -73,6 +73,8 @@ interface ExternalAgentToolCallResult {
   nextExternalAgentAction: string | null
   nextExternalAgentCommandKind: string | null
   nextExternalAgentCommand: string | null
+  nextExternalAgentRouteRetryCommandKind: string | null
+  nextExternalAgentRouteRetryCommand: string | null
   requiredPrivateInputKeys: string[]
   blockedRuntimePrerequisites: string[]
   gpuRuntimeStartPolicy: string | null
@@ -212,6 +214,10 @@ function parseExternalAgentToolCallResult(
     nextExternalAgentCommandKind:
       nullableString(raw.nextExternalAgentCommandKind),
     nextExternalAgentCommand: nullableString(raw.nextExternalAgentCommand),
+    nextExternalAgentRouteRetryCommandKind:
+      nullableString(raw.nextExternalAgentRouteRetryCommandKind),
+    nextExternalAgentRouteRetryCommand:
+      nullableString(raw.nextExternalAgentRouteRetryCommand),
     requiredPrivateInputKeys: stringArray(raw.requiredPrivateInputKeys),
     blockedRuntimePrerequisites:
       stringArray(raw.blockedRuntimePrerequisites),
@@ -861,12 +867,24 @@ function validateResults(
     assert(scopedResult.externalAgentToolCallResult !== null, `${toolId} scoped GPU/model route attempt missing normalized result`)
     assert(
       scopedResult.externalAgentToolCallResult?.nextExternalAgentCommandKind ===
-        'scoped_gpu_model_local_dev_runtime_proof',
+        'gpu_model_private_proof_sequence',
       `${toolId} scoped GPU/model route attempt missing command kind`,
     )
     assert(
-      scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes(`--scoped-gpu-tool ${toolId}`) === true,
-      `${toolId} scoped GPU/model route attempt missing exact scoped command`,
+      scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes('ai-graphics:external-agent-gpu-model-private-proof-sequence') === true &&
+        scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes(`--tool ${toolId}`) === true &&
+        scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes('--require-host-eligible') === true &&
+        scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes('--require-accepted-proof') === true,
+      `${toolId} scoped GPU/model route attempt missing exact private proof sequence command`,
+    )
+    assert(
+      scopedResult.externalAgentToolCallResult?.nextExternalAgentRouteRetryCommandKind ===
+        'scoped_gpu_model_route_retry_after_private_proof',
+      `${toolId} scoped GPU/model route attempt missing route retry command kind`,
+    )
+    assert(
+      scopedResult.externalAgentToolCallResult?.nextExternalAgentRouteRetryCommand?.includes(`--scoped-gpu-tool ${toolId}`) === true,
+      `${toolId} scoped GPU/model route attempt missing exact scoped route retry command`,
     )
     assert(
       scopedResult.externalAgentToolCallResult?.gpuRuntimeStartPolicy ===
@@ -993,12 +1011,24 @@ function validateResults(
       assert(result.outputSha256 === null, `${result.toolId} GPU/model smoke should not create output hash`)
       assert(
         result.externalAgentToolCallResult.nextExternalAgentCommandKind ===
-          'scoped_gpu_model_local_dev_runtime_proof',
+          'gpu_model_private_proof_sequence',
         `${result.toolId} GPU/model normalized command kind mismatch`,
       )
       assert(
-        result.externalAgentToolCallResult.nextExternalAgentCommand?.includes(`--scoped-gpu-tool ${result.toolId}`) === true,
-        `${result.toolId} GPU/model normalized scoped command missing tool`,
+        result.externalAgentToolCallResult.nextExternalAgentCommand?.includes('ai-graphics:external-agent-gpu-model-private-proof-sequence') === true &&
+          result.externalAgentToolCallResult.nextExternalAgentCommand?.includes(`--tool ${result.toolId}`) === true &&
+          result.externalAgentToolCallResult.nextExternalAgentCommand?.includes('--require-host-eligible') === true &&
+          result.externalAgentToolCallResult.nextExternalAgentCommand?.includes('--require-accepted-proof') === true,
+        `${result.toolId} GPU/model normalized private proof sequence command missing required fragment`,
+      )
+      assert(
+        result.externalAgentToolCallResult.nextExternalAgentRouteRetryCommandKind ===
+          'scoped_gpu_model_route_retry_after_private_proof',
+        `${result.toolId} GPU/model normalized route retry command kind mismatch`,
+      )
+      assert(
+        result.externalAgentToolCallResult.nextExternalAgentRouteRetryCommand?.includes(`--scoped-gpu-tool ${result.toolId}`) === true,
+        `${result.toolId} GPU/model normalized scoped route retry command missing tool`,
       )
       assert(
         result.externalAgentToolCallResult.gpuRuntimeStartPolicy ===

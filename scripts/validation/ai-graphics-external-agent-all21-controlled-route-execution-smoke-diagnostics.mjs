@@ -183,7 +183,7 @@ function expectedGroup(toolId) {
 function checkGpuStructuredProofFields(label, toolId, normalized) {
   if (
     normalized.nextExternalAgentCommandKind !==
-    'scoped_gpu_model_local_dev_runtime_proof'
+    'gpu_model_private_proof_sequence'
   ) {
     fail(`${label}_${toolId}_gpu_command_kind_mismatch`)
   }
@@ -192,14 +192,41 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
     fail(`${label}_${toolId}_gpu_missing_exact_command`)
   } else {
     for (const requiredFragment of [
+      'ai-graphics:external-agent-gpu-model-private-proof-sequence',
+      '--attempt-local-runtime',
+      '--runtime-backend docker_container',
+      '--runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
+      '--runtime-container-platform linux/amd64',
+      `--tool ${toolId}`,
+      `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>`,
+      '--detect-host',
+      '--require-host-eligible',
+      '--require-accepted-proof',
+    ]) {
+      if (!command.includes(requiredFragment)) {
+        fail(`${label}_${toolId}_gpu_exact_command_missing_fragment:${requiredFragment}`)
+      }
+    }
+  }
+  if (
+    normalized.nextExternalAgentRouteRetryCommandKind !==
+    'scoped_gpu_model_route_retry_after_private_proof'
+  ) {
+    fail(`${label}_${toolId}_gpu_route_retry_command_kind_mismatch`)
+  }
+  const routeRetryCommand = normalized.nextExternalAgentRouteRetryCommand
+  if (typeof routeRetryCommand !== 'string') {
+    fail(`${label}_${toolId}_gpu_missing_route_retry_command`)
+  } else {
+    for (const requiredFragment of [
       'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
       `--scoped-gpu-tool ${toolId}`,
       '--scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
       '--scoped-gpu-runtime-container-platform linux/amd64',
       `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
     ]) {
-      if (!command.includes(requiredFragment)) {
-        fail(`${label}_${toolId}_gpu_exact_command_missing_fragment:${requiredFragment}`)
+      if (!routeRetryCommand.includes(requiredFragment)) {
+        fail(`${label}_${toolId}_gpu_route_retry_command_missing_fragment:${requiredFragment}`)
       }
     }
   }
@@ -399,6 +426,12 @@ function checkReport(label, report) {
       'blocked_with_reason:',
       'if the proof-local image is missing, build the exact local proof image first:',
       canonicalGpuModelRuntimeContainerBuildCommand,
+      'run the private proof sequence before retrying route execution:',
+      'ai-graphics:external-agent-gpu-model-private-proof-sequence',
+      `--tool ${toolId}`,
+      '--require-host-eligible',
+      '--require-accepted-proof',
+      'after accepted private proof exists, retry the controlled route with:',
       'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
       `--scoped-gpu-tool ${toolId}`,
       '--scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',

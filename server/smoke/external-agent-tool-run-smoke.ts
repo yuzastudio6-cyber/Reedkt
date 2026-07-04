@@ -22,6 +22,11 @@ function asRecord(value: unknown, label: string): JsonRecord {
   return value as JsonRecord
 }
 
+function asArray(value: unknown, label: string): unknown[] {
+  assert.equal(Array.isArray(value), true, `${label} must be an array`)
+  return value as unknown[]
+}
+
 function assertRuntimeFlagsFalse(value: unknown, label: string): void {
   const flags = asRecord(value, label)
   for (const [key, flagValue] of Object.entries(flags)) {
@@ -187,6 +192,22 @@ assert.equal(
 )
 assert.equal(qwenAuto.preflightOnly, true)
 assert.equal(qwenAuto.safeEvidenceReviewRun, false)
+assert.equal(
+  ['gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing', undefined].includes(
+    qwenAuto.primaryBlocker as string | undefined,
+  ),
+  true,
+)
+if (qwenAuto.gcpOwnerRepairRequired === true) {
+  assert.equal(qwenAuto.primaryBlocker, 'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing')
+  assert.deepEqual(
+    asArray(qwenAuto.missingReadPermissions, 'qwenAuto.missingReadPermissions').map(
+      (permission) => asRecord(permission, 'qwenAuto permission').permission,
+    ),
+    ['run.services.get', 'run.jobs.get'],
+  )
+  assert.equal(asArray(qwenAuto.likelyMinimalRoles, 'qwenAuto.likelyMinimalRoles').includes('roles/run.viewer'), true)
+}
 
 const broll = runTool([
   '--tool',
@@ -204,6 +225,16 @@ assertSafeResult(
 )
 assert.equal(broll.preflightOnly, true)
 assert.equal(broll.safeEvidenceReviewRun, false)
+if (broll.gcpOwnerRepairRequired === true) {
+  assert.equal(broll.primaryBlocker, 'gcloud_account_lacks_compute_quota_read_access')
+  assert.deepEqual(
+    asArray(broll.missingReadPermissions, 'broll.missingReadPermissions').map(
+      (permission) => asRecord(permission, 'broll permission').permission,
+    ),
+    ['compute.projects.get', 'compute.regions.get'],
+  )
+  assert.equal(asArray(broll.likelyMinimalRoles, 'broll.likelyMinimalRoles').includes('roles/compute.viewer'), true)
+}
 
 const sound = runTool([
   '--tool',

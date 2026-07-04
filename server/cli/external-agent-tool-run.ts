@@ -130,6 +130,15 @@ function main() {
   const expectedModeReturned = child.actualMode === definition.expectedMode
   const runtimeSideEffectsAllFalse = Object.values(child.runtimeSideEffects).every((value) => value === false)
   const structuredResultReturned = Boolean(child.json)
+  const selectedAccountRepairRequest =
+    nestedRecord(child.json, ['selectedAccountRepairRequest']) ??
+    nestedRecord(child.json, [
+      'liveGate',
+      'liveVerifier',
+      'accountAccessDiagnostic',
+      'selectedAccountRepairRequest',
+    ])
+  const repairSummary = repairSummaryFrom(toolId, selectedAccountRepairRequest)
 
   print({
     ok: structuredResultReturned && expectedModeReturned && runtimeSideEffectsAllFalse,
@@ -157,15 +166,9 @@ function main() {
     expectedModeReturned,
     childReportedOk: child.json?.ok === true,
     childReportedBlocked: child.json?.ok === false || stringField(child.json, 'status') === 'blocked',
-    primaryBlocker: primaryBlocker(child.json),
-    selectedAccountRepairRequest:
-      nestedRecord(child.json, ['selectedAccountRepairRequest']) ??
-      nestedRecord(child.json, [
-        'liveGate',
-        'liveVerifier',
-        'accountAccessDiagnostic',
-        'selectedAccountRepairRequest',
-      ]),
+    primaryBlocker: effectivePrimaryBlocker(toolId, child.json, selectedAccountRepairRequest),
+    selectedAccountRepairRequest,
+    ...repairSummary,
     runtimeSideEffects: child.runtimeSideEffects,
     runtimeSideEffectsAllFalse,
     runtimeSideEffectsAllFalseRequired: true,
@@ -463,6 +466,58 @@ function primaryBlocker(json: JsonRecord | undefined): string | undefined {
     nestedString(json, ['liveGate', 'liveVerifier', 'preflight', 'qwenBlocker']) ??
     nestedString(json, ['liveGate', 'liveVerifier', 'preflight', 'brollBlocker'])
   )
+}
+
+function effectivePrimaryBlocker(
+  toolId: ToolId,
+  json: JsonRecord | undefined,
+  selectedAccountRepairRequest: JsonRecord | undefined,
+): string | undefined {
+  if (selectedAccountRepairRequest?.gcpOwnerRepairRequired === true) {
+    if (toolId === 'qwen2_5_vl_7b_instruct') {
+      return 'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing'
+    }
+
+    if (toolId === 'ai_video_broll_generation_wan') {
+      return 'gcloud_account_lacks_compute_quota_read_access'
+    }
+  }
+
+  return primaryBlocker(json)
+}
+
+function repairSummaryFrom(toolId: ToolId, selectedAccountRepairRequest: JsonRecord | undefined): JsonRecord {
+  if (!selectedAccountRepairRequest) {
+    return {
+      gcpOwnerRepairRequired: false,
+      tokenRepairRequired: false,
+      missingReadPermissions: [],
+      likelyMinimalRoles: [],
+      postRepairVerificationCommands: [],
+    }
+  }
+
+  const missingReadPermissions = missingPermissionsForTool(
+    toolId,
+    selectedAccountRepairRequest.missingReadPermissions,
+  )
+
+  return {
+    gcpOwnerRepairRequired: selectedAccountRepairRequest.gcpOwnerRepairRequired === true,
+    tokenRepairRequired: selectedAccountRepairRequest.tokenRepairRequired === true,
+    missingReadPermissions,
+    likelyMinimalRoles: selectedAccountRepairRequest.likelyMinimalRoles,
+    postRepairVerificationCommands: selectedAccountRepairRequest.postRepairVerificationCommands,
+  }
+}
+
+function missingPermissionsForTool(toolId: ToolId, value: unknown): JsonRecord[] {
+  if (!Array.isArray(value)) return []
+
+  return value.filter((item): item is JsonRecord => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return false
+    return (item as JsonRecord).toolId === toolId
+  })
 }
 
 function nestedRecord(document: JsonRecord | undefined, keys: string[]): JsonRecord | undefined {

@@ -33,7 +33,7 @@ It does not claim GPU/model tool execution is ready. It does not perform live qu
 - `expectedProofRefMockQueueAdmissionStatus202Tools`: 8
 - `sourceProofRefMockQueueAdmissionsAcceptedTools`: 8
 - `sourceMockWorkerClaimsCreated`: 8
-- `controlledDirectRouteCallableToolsNow`: 13
+- `controlledDirectRouteCallableToolsNow`: 21
 - `combinedExternalAgentRouteReachableToolsWithCurrentContracts`: 21
 - `directlyExecutableControlledRouteToolsNow`: 13
 - `gpuModelQueueAdmissionOnlyToolsNow`: 8

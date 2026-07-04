@@ -11,7 +11,7 @@
     },
     "controlledRouteCallerForThirteenTools": {
       "path": "docs/tool-intelligence/ai-graphics/external-agent-controlled-route-caller.json",
-      "decision": "ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_thirteen_tools_with_gpu_model_blocks",
+      "decision": "ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_all21_with_gpu_model_on_demand",
       "accepted": true
     }
   },
@@ -20,12 +20,12 @@
     "diagnosticScript": "ai-graphics:external-agent-gpu-model-proof-ref-route-caller:diagnostics",
     "cli": "server/cli/ai-graphics-external-agent-gpu-model-proof-ref-route-caller.ts",
     "diagnostic": "scripts/validation/ai-graphics-external-agent-gpu-model-proof-ref-route-caller-diagnostics.mjs",
-    "routePath": "/api/ai-graphics/external-beta/tool-call",
+    "routePath": "/api/ai-graphics/external-agent/tool-call",
     "method": "POST",
     "contentType": "application/json"
   },
   "requiredFeatureFlags": {
-    "routeMount": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+    "routeMount": "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
     "gpuModelRuntimeAdmission": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
     "mockQueueAdmission": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED"
   },
@@ -40,7 +40,7 @@
     "expectedProofRefMockQueueAdmissionStatus202Tools": 8,
     "sourceProofRefMockQueueAdmissionsAcceptedTools": 8,
     "sourceMockWorkerClaimsCreated": 8,
-    "controlledDirectRouteCallableToolsNow": 13,
+    "controlledDirectRouteCallableToolsNow": 21,
     "combinedExternalAgentRouteReachableToolsWithCurrentContracts": 21,
     "directlyExecutableControlledRouteToolsNow": 13,
     "gpuModelQueueAdmissionOnlyToolsNow": 8,
@@ -60,7 +60,7 @@
       "toolId": "torch_torchvision",
       "capabilityId": "model_runtime_foundation",
       "group": "gpu_model_proof_ref_queue_admission",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
@@ -96,7 +96,7 @@
         "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/torch_torchvision/accepted-recheck"
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED"
       ],
@@ -120,7 +120,7 @@
       "toolId": "transformers",
       "capabilityId": "model_runtime_foundation",
       "group": "gpu_model_proof_ref_queue_admission",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
@@ -156,7 +156,7 @@
         "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/transformers/accepted-recheck"
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED"
       ],
@@ -180,7 +180,7 @@
       "toolId": "sam2",
       "capabilityId": "subject_segmentation",
       "group": "gpu_model_proof_ref_queue_admission",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
@@ -217,7 +217,7 @@
         "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/sam2/accepted-recheck"
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED"
       ],
@@ -241,7 +241,7 @@
       "toolId": "birefnet",
       "capabilityId": "background_removal",
       "group": "gpu_model_proof_ref_queue_admission",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
@@ -278,7 +278,7 @@
         "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/birefnet/accepted-recheck"
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED"
       ],
@@ -302,7 +302,7 @@
       "toolId": "real_esrgan",
       "capabilityId": "upscaling",
       "group": "gpu_model_proof_ref_queue_admission",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
@@ -339,7 +339,7 @@
         "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/real_esrgan/accepted-recheck"
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED"
       ],
@@ -363,7 +363,7 @@
       "toolId": "kornia",
       "capabilityId": "tensor_image_ops",
       "group": "gpu_model_proof_ref_queue_admission",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
@@ -399,7 +399,7 @@
         "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/kornia/accepted-recheck"
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED"
       ],
@@ -423,7 +423,7 @@
       "toolId": "rembg",
       "capabilityId": "background_removal",
       "group": "gpu_model_proof_ref_queue_admission",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
@@ -460,7 +460,7 @@
         "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/rembg/accepted-recheck"
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED"
       ],
@@ -484,7 +484,7 @@
       "toolId": "transparent_background",
       "capabilityId": "background_removal",
       "group": "gpu_model_proof_ref_queue_admission",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_agent_gpu_model_proof_ref_route_caller",
@@ -521,7 +521,7 @@
         "externalBetaPerToolRuntimeProofRef": "private://ai-graphics/external-beta/per-tool-runtime-proof/transparent_background/accepted-recheck"
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED"
       ],

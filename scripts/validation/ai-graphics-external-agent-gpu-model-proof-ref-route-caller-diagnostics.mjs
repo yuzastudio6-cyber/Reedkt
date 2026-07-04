@@ -14,7 +14,7 @@ const diagnosticScriptName =
   'ai-graphics:external-agent-gpu-model-proof-ref-route-caller:diagnostics'
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-gpu-model-proof-ref-route-caller-diagnostics.mjs'
-const routePath = '/api/ai-graphics/external-beta/tool-call'
+const routePath = '/api/ai-graphics/external-agent/tool-call'
 
 const gpuModelTools = [
   'torch_torchvision',
@@ -57,7 +57,7 @@ const expectedCounts = {
   expectedProofRefMockQueueAdmissionStatus202Tools: 8,
   sourceProofRefMockQueueAdmissionsAcceptedTools: 8,
   sourceMockWorkerClaimsCreated: 8,
-  controlledDirectRouteCallableToolsNow: 13,
+  controlledDirectRouteCallableToolsNow: 21,
   combinedExternalAgentRouteReachableToolsWithCurrentContracts: 21,
   directlyExecutableControlledRouteToolsNow: 13,
   gpuModelQueueAdmissionOnlyToolsNow: 8,

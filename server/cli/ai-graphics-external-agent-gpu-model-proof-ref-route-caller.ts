@@ -1,8 +1,9 @@
 import fs from 'node:fs'
 import {
+  AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG,
+  AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_FLAG,
-  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
   listAiGraphicsExternalBetaToolCallBlockedReadinessCases,
   type AiGraphicsExternalBetaToolCallRequest,
 } from '../routes/ai-graphics-external-beta-tool-call-routes'
@@ -19,7 +20,7 @@ const sourceGpuProofRefQueuePath =
   'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke.json'
 const sourceControlledRouteCallerPath =
   'docs/tool-intelligence/ai-graphics/external-agent-controlled-route-caller.json'
-const routeMountFlag = 'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED'
+const routeMountFlag = AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG
 
 const gpuModelTools = [
   'torch_torchvision',
@@ -134,7 +135,7 @@ function callerRow(request: AiGraphicsExternalBetaToolCallRequest): GpuModelProo
     toolId: request.toolId,
     capabilityId: request.capabilityId,
     group: 'gpu_model_proof_ref_queue_admission',
-    routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+    routePath: AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH,
     method: 'POST',
     requestEnvelope: proofReadyRequest(request),
     requiredFeatureFlags: [
@@ -176,7 +177,7 @@ function buildReport() {
   )
   assert(
     controlledRouteCaller.decision ===
-      'ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_thirteen_tools_with_gpu_model_blocks',
+      'ai_graphics_external_agent_controlled_route_caller_contract_prepared_for_all21_with_gpu_model_on_demand',
     'source controlled route caller decision mismatch',
   )
 
@@ -212,7 +213,7 @@ function buildReport() {
       cli: 'server/cli/ai-graphics-external-agent-gpu-model-proof-ref-route-caller.ts',
       diagnostic:
         'scripts/validation/ai-graphics-external-agent-gpu-model-proof-ref-route-caller-diagnostics.mjs',
-      routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+      routePath: AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH,
       method: 'POST',
       contentType: 'application/json',
     },

@@ -114,6 +114,14 @@ function appendSelectedAccountIndex(command: string | undefined, accountIndexArg
   return `${command} ${accountIndexArg}`
 }
 
+function replaceAccountIndexPlaceholders(value: string | undefined, accountIndex: number | undefined) {
+  if (!value || !accountIndex) return value
+
+  return value
+    .replace(/<account-index>/g, String(accountIndex))
+    .replace(/<redacted-index>/g, String(accountIndex))
+}
+
 function compactRecord<T extends Record<string, string | undefined>>(record: T) {
   return Object.fromEntries(
     Object.entries(record).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
@@ -214,6 +222,12 @@ function main() {
   const staticOnly = process.argv.includes('--static-only')
   const accountIndexOverride = resolveAccountIndexOverride()
   const selectedAccountIndexArg = resolveSelectedAccountIndexArg(accountIndexOverride)
+  const selectedAccountIndex =
+    accountIndexOverride.cliAccountIndexProvided &&
+    accountIndexOverride.cliAccountIndexValid &&
+    typeof accountIndexOverride.cliAccountIndex === 'number'
+      ? accountIndexOverride.cliAccountIndex
+      : undefined
   const liveChecksRun = !staticOnly
   const readiness = runJson(
     'static_readiness',
@@ -461,7 +475,10 @@ function main() {
               likelyMinimalRole: row.likelyMinimalRole,
               requiredResourceScope: row.requiredResourceScope,
               requiredReadPermissions: row.requiredReadPermissions,
-              verificationCommand: row.verificationCommand,
+              verificationCommand: replaceAccountIndexPlaceholders(
+                typeof row.verificationCommand === 'string' ? row.verificationCommand : undefined,
+                selectedAccountIndex,
+              ),
               failureMeaning: row.failureMeaning,
               safeRepairChecklist: row.safeRepairChecklist,
               unsafeBypasses: row.unsafeBypasses,
@@ -470,8 +487,19 @@ function main() {
           })
         : [],
       failureResponsePolicy: gcpRepairPlan.json?.failureResponsePolicy,
-      safeRetryChecklist: gcpRepairPlan.json?.safeRetryChecklist,
-      postRepairVerificationCommands: gcpRepairPlan.json?.postRepairVerificationCommands,
+      safeRetryChecklist: Array.isArray(gcpRepairPlan.json?.safeRetryChecklist)
+        ? gcpRepairPlan.json.safeRetryChecklist.map((step) =>
+            replaceAccountIndexPlaceholders(typeof step === 'string' ? step : undefined, selectedAccountIndex),
+          )
+        : gcpRepairPlan.json?.safeRetryChecklist,
+      postRepairVerificationCommands: Array.isArray(gcpRepairPlan.json?.postRepairVerificationCommands)
+        ? gcpRepairPlan.json.postRepairVerificationCommands.map((command) =>
+            replaceAccountIndexPlaceholders(
+              typeof command === 'string' ? command : undefined,
+              selectedAccountIndex,
+            ),
+          )
+        : gcpRepairPlan.json?.postRepairVerificationCommands,
       runtimeGatesAllFalse: gcpRepairPlan.json?.runtimeGatesAllFalse,
       runtimeSideEffects: gcpRepairPlan.json?.runtimeSideEffects,
     },

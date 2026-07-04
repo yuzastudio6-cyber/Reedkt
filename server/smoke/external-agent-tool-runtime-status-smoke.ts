@@ -251,6 +251,24 @@ assert.equal(indexedStaticStatus.accountSelectionGuidance.cliAccountIndexMapsToC
 assert.equal(indexedStaticStatus.accountSelectionGuidance.printsAccountValue, false)
 assert.equal(indexedStaticStatus.accountSelectionGuidance.mutatesLocalGcloudConfig, false)
 assert.equal(
+  indexedStaticStatus.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedStaticStatus.gcpAccessRepair.postRepairVerificationCommands.includes(
+    'npm run external-agent-gcp-access:verify -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedStaticStatus.gcpAccessRepair.tools.every((tool: { verificationCommand: string }) =>
+    tool.verificationCommand.endsWith('--account-index 2'),
+  ),
+  true,
+)
+assert.equal(
   indexedStaticStatus.safeAgentCommands.accountIndexed.liveStatus,
   'npm run external-agent-tool-runtime-status -- --account-index 2',
 )
@@ -469,11 +487,37 @@ assert.equal(typeof liveStatus.nextCommand.ok, 'boolean')
 assert.equal(typeof liveStatus.nextCommand.chosenNextCommand === 'string' || liveStatus.nextCommand.chosenNextCommand === null, true)
 assert.equal(typeof liveStatus.recommendedNextPrompt, 'string')
 
+const indexedLiveStatus = runStatus(['--account-index', '2'])
+assert.equal(indexedLiveStatus.ok, true)
+assert.equal(indexedLiveStatus.liveChecksRun, true)
+assert.equal(indexedLiveStatus.accountSelectionGuidance.cliAccountIndexProvided, true)
+assert.equal(indexedLiveStatus.accountSelectionGuidance.cliAccountIndex, 2)
+assert.equal(indexedLiveStatus.accountSelectionGuidance.cliAccountIndexValid, true)
+assert.equal(indexedLiveStatus.accountSelectionGuidance.cliAccountIndexMapsToChildEnv, true)
+assert.equal(
+  indexedLiveStatus.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveStatus.gcpAccessRepair.postRepairVerificationCommands.includes(
+    'npm run external-agent-gcp-access:verify -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveStatus.gcpAccessRepair.tools.every((tool: { verificationCommand: string }) =>
+    tool.verificationCommand.endsWith('--account-index 2'),
+  ),
+  true,
+)
+
 for (const [flag, value] of Object.entries(liveStatus.runtimeSideEffects)) {
   assert.equal(value, false, `Runtime side-effect flag must remain false: ${flag}`)
 }
 
-const forbiddenFindings = scanForbiddenValues({ staticStatus, liveStatus })
+const forbiddenFindings = scanForbiddenValues({ staticStatus, liveStatus, indexedLiveStatus })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(

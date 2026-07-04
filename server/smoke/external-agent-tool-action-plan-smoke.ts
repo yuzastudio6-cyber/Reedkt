@@ -180,9 +180,10 @@ assert.equal(broll.externalManualBlocker.includes('11A selected the Wan-AI/Wan2.
 assert.equal(broll.externalManualBlocker.includes('11B added the no-inference model import/load runner'), true)
 assert.equal(broll.externalManualBlocker.includes('private GCS Wan model-cache staging is blocked'), true)
 assert.equal(broll.externalManualBlocker.includes('11C private URL-list Storage Transfer test failed with HTTP 403'), true)
+assert.equal(broll.externalManualBlocker.includes('11D selected a no-GPU cloud-side cache staging runner'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run AI-VIDEO-BROLL-GEN-11D-CACHE-STAGING-STRATEGY-FIX before retrying private cache preparation or the bounded 11B no-idle L4 model import/load proof',
+  'run AI-VIDEO-BROLL-GEN-11E-CLOUD-SIDE-CACHE-STAGING-RUNNER before retrying private cache preparation or the bounded 11B no-idle L4 model import/load proof',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)

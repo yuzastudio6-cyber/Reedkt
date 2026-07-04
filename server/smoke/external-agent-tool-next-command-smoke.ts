@@ -303,7 +303,7 @@ assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, true)
 assert.equal(
   brollGateSummary.currentBlocker,
-  'live_preflight_and_explicit_confirmation_required_before_broll_11b_model_import_runner',
+  'no_gpu_cloud_side_cache_staging_runner_required_before_broll_11b_model_import_runner',
 )
 assert.equal(
   brollGateSummary.safeNextCommand,

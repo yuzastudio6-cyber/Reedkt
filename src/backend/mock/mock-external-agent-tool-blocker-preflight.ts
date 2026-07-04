@@ -38,7 +38,7 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
     nextActionIfBlocked:
       'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
     nextActionIfCleared:
-      'AI-VIDEO-BROLL-GEN-11D-CACHE-STAGING-STRATEGY-FIX: choose approved Wan private cache staging strategy after local upload stall and private URL-list 403, no GPU/no inference',
+      'AI-VIDEO-BROLL-GEN-11E-CLOUD-SIDE-CACHE-STAGING-RUNNER: implement no-GPU Wan private cache staging runner, no inference/no generated video',
   },
   allowedReadOnlyCommands: [
     {

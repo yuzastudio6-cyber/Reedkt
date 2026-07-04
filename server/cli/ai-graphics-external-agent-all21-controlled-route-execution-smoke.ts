@@ -91,6 +91,7 @@ interface ControlledRouteExecutionResult {
   externalAgentToolCallResult: ExternalAgentToolCallResult | null
   blockingReasonCode: string | null
   failureDiagnostics: string | null
+  expectedCapabilities: string[]
   controlledAdapterExecutedNow: boolean
   controlledAdapterInvokedNow: boolean
   localPackageExecutionPerformed: boolean
@@ -341,6 +342,23 @@ function controlledRequest(
   }
 }
 
+function capabilityMismatchFailureProbeRequest(
+  request: AiGraphicsExternalBetaToolCallRequest,
+): AiGraphicsExternalBetaToolCallRequest {
+  return {
+    ...request,
+    requestId:
+      'all21-controlled-route-execution-capability-mismatch-failure-probe-d3',
+    capabilityId: 'background_removal',
+    traceId:
+      'trace-all21-controlled-route-execution-capability-mismatch-failure-probe-d3',
+    payload: {
+      capabilityMismatchFailureProbe: true,
+      expectedExecutionState: 'failed_with_diagnostics',
+    },
+  }
+}
+
 function scopedGpuModelPrivateOutputDirectory(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   options: ScopedGpuModelLocalDevRouteAttemptOptions,
@@ -565,9 +583,12 @@ async function runControlledCase(
     failureDiagnostics: typeof data.failureDiagnostics === 'string'
       ? data.failureDiagnostics
       : null,
+    expectedCapabilities: stringArray(data.expectedCapabilities),
     controlledAdapterExecutedNow:
+      data.controlledAdapterExecutedNow === true ||
       adapterResult.controlledAdapterExecutedNow === true,
     controlledAdapterInvokedNow:
+      data.controlledAdapterInvokedNow === true ||
       adapterResult.controlledAdapterInvokedNow === true ||
       adapterResult.controlledAdapterExecutedNow === true,
     localPackageExecutionPerformed:
@@ -588,10 +609,12 @@ async function runControlledCase(
       : null,
     publicArtifactCreated:
       data.outputAccess?.publicArtifactCreated === true ||
+      data.publicArtifactCreated === true ||
       booleans.publicArtifactCreated === true ||
       adapterResult.publicArtifactCreated === true,
     signedUrlCreated:
       data.outputAccess?.signedUrlCreated === true ||
+      data.signedUrlCreated === true ||
       booleans.signedUrlCreated === true ||
       adapterResult.signedUrlCreated === true,
     workerDispatchPerformed: booleans.workerDispatchPerformed === true,
@@ -719,6 +742,7 @@ function validateResults(
   disabledGpuStatus: number,
   scopedGpuModelLocalDevRouteAttempts: ScopedGpuModelLocalDevRouteAttempt[],
   expectedScopedGpuModelToolIds: AiGraphicsExternalAgentGpuModelControlledAdapterToolId[],
+  capabilityMismatchFailureProbe: ControlledRouteExecutionResult,
 ) {
   assert(disabledGpuStatus === 409, `disabled GPU route should return 409, got ${disabledGpuStatus}`)
   assert(results.length === 21, `Expected 21 route results, got ${results.length}`)
@@ -726,6 +750,76 @@ function validateResults(
     scopedGpuModelLocalDevRouteAttempts.length ===
       expectedScopedGpuModelToolIds.length,
     `Expected ${expectedScopedGpuModelToolIds.length} scoped GPU/model route attempts, got ${scopedGpuModelLocalDevRouteAttempts.length}`,
+  )
+  assert(
+    capabilityMismatchFailureProbe.toolId === 'd3',
+    'capability mismatch failure probe tool mismatch',
+  )
+  assert(
+    capabilityMismatchFailureProbe.capabilityId === 'background_removal',
+    'capability mismatch failure probe capability mismatch',
+  )
+  assert(
+    capabilityMismatchFailureProbe.statusCode === 200,
+    `capability mismatch failure probe should return HTTP 200 with normalized failure result, got ${capabilityMismatchFailureProbe.statusCode}`,
+  )
+  assert(
+    capabilityMismatchFailureProbe.ok === true,
+    'capability mismatch failure probe should return ok envelope',
+  )
+  assert(
+    capabilityMismatchFailureProbe.externalAgentExecutionState ===
+      'failed_with_diagnostics',
+    `capability mismatch failure probe state mismatch: ${capabilityMismatchFailureProbe.externalAgentExecutionState}`,
+  )
+  assert(
+    capabilityMismatchFailureProbe.routeStatus ===
+      'external_beta_tool_call_route_failed_with_diagnostics_capability_mismatch',
+    `capability mismatch failure probe route status mismatch: ${capabilityMismatchFailureProbe.routeStatus}`,
+  )
+  assert(
+    capabilityMismatchFailureProbe.externalAgentToolCallResult?.failedWithDiagnostics === true,
+    'capability mismatch failure probe normalized failed flag missing',
+  )
+  assert(
+    capabilityMismatchFailureProbe.externalAgentToolCallResult?.executable === false,
+    'capability mismatch failure probe should not be executable',
+  )
+  assert(
+    capabilityMismatchFailureProbe.controlledAdapterInvokedNow === false,
+    'capability mismatch failure probe invoked adapter unexpectedly',
+  )
+  assert(
+    capabilityMismatchFailureProbe.controlledAdapterExecutedNow === false,
+    'capability mismatch failure probe executed adapter unexpectedly',
+  )
+  assert(
+    capabilityMismatchFailureProbe.localPackageExecutionPerformed === false,
+    'capability mismatch failure probe performed local package execution unexpectedly',
+  )
+  assert(
+    capabilityMismatchFailureProbe.gpuRuntimeShouldStartNow === false,
+    'capability mismatch failure probe started GPU unexpectedly',
+  )
+  assert(
+    capabilityMismatchFailureProbe.publicArtifactCreated === false,
+    'capability mismatch failure probe created public artifact',
+  )
+  assert(
+    capabilityMismatchFailureProbe.signedUrlCreated === false,
+    'capability mismatch failure probe created signed URL',
+  )
+  assert(
+    capabilityMismatchFailureProbe.failureDiagnostics?.includes(
+      'background_removal is not valid for d3',
+    ) === true,
+    'capability mismatch failure probe missing actionable diagnostics',
+  )
+  assert(
+    capabilityMismatchFailureProbe.expectedCapabilities.includes(
+      'chart_overlay',
+    ),
+    'capability mismatch failure probe missing expected d3 capabilities',
   )
   for (const toolId of expectedScopedGpuModelToolIds) {
     const attempt = scopedGpuModelLocalDevRouteAttempts.find(
@@ -929,6 +1023,7 @@ function buildReport(
   disabledGpuStatus: number,
   results: ControlledRouteExecutionResult[],
   scopedGpuModelLocalDevRouteAttempts: ScopedGpuModelLocalDevRouteAttempt[],
+  capabilityMismatchFailureProbe: ControlledRouteExecutionResult,
 ) {
   const scopedGpuModelLocalDevRouteAttempt =
     scopedGpuModelLocalDevRouteAttempts.find(
@@ -958,6 +1053,7 @@ function buildReport(
     },
     disabledGpuControlledRouteStatus: disabledGpuStatus,
     results,
+    capabilityMismatchFailureProbe,
     scopedGpuModelLocalDevRouteAttempt,
     scopedGpuModelLocalDevRouteAttempts,
     gpuModelRuntimePolicy: {
@@ -1022,6 +1118,11 @@ function buildReport(
         scopedGpuModelBlockedAttempts.length,
       scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools:
         scopedGpuModelRuntimeExecutedAttempts.length,
+      capabilityMismatchFailureProbeTools:
+        capabilityMismatchFailureProbe.externalAgentExecutionState ===
+        'failed_with_diagnostics'
+          ? 1
+          : 0,
     },
     booleans: {
       all21ControlledRouteExecutionSmokePassed: true,
@@ -1079,6 +1180,13 @@ function buildReport(
         scopedGpuModelLocalDevRouteAttempts.every((item) => (
           item.booleans.scopedGpuModelRuntimeContainerPayloadAccepted
         )),
+      capabilityMismatchFailureProbeAccepted:
+        capabilityMismatchFailureProbe.externalAgentExecutionState ===
+          'failed_with_diagnostics' &&
+        capabilityMismatchFailureProbe.externalAgentToolCallResult
+          ?.failedWithDiagnostics === true &&
+        capabilityMismatchFailureProbe.controlledAdapterInvokedNow === false &&
+        capabilityMismatchFailureProbe.controlledAdapterExecutedNow === false,
       scopedGpuModelLocalDevRouteAttemptAccepted:
         scopedGpuModelLocalDevRouteAttempt.booleans
           .scopedGpuModelLocalDevRouteAttemptAccepted,
@@ -1132,6 +1240,7 @@ function makeMarkdown(report: ReturnType<typeof buildReport>): string {
       `| \`${item.requestedToolId}\` | \`${item.result.externalAgentExecutionState}\` | \`${item.result.blockingReasonCode}\` | \`${item.runtimeContainerImageProvided}\` | \`${item.result.localGpuModelRuntimeExecutionPerformed}\` | \`${item.result.gpuRuntimeShouldStartNow}\` | \`${item.nextExactCommand}\` |`
     ))
     .join('\n')
+  const failureProbe = report.capabilityMismatchFailureProbe
 
   return `# AI Graphics External Agent All-21 Controlled Route Execution Smoke
 
@@ -1160,6 +1269,17 @@ ${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`
 | Tool | External-agent state | Blocking reason | Runtime image provided | Runtime executed | GPU starts now | Next exact command |
 | --- | --- | --- | --- | --- | --- | --- |
 ${scopedRows}
+
+## Capability mismatch failure probe
+
+- \`toolId\`: \`${failureProbe.toolId}\`
+- \`requestedCapabilityId\`: \`${failureProbe.capabilityId}\`
+- \`externalAgentExecutionState\`: \`${failureProbe.externalAgentExecutionState}\`
+- \`routeStatus\`: \`${failureProbe.routeStatus}\`
+- \`failureDiagnostics\`: \`${failureProbe.failureDiagnostics}\`
+- \`adapterInvoked\`: \`${failureProbe.controlledAdapterInvokedNow}\`
+- \`adapterExecuted\`: \`${failureProbe.controlledAdapterExecutedNow}\`
+- \`expectedCapabilities\`: \`${failureProbe.expectedCapabilities.join(', ')}\`
 
 ## Canonical fastest scoped GPU/model route attempt
 
@@ -1242,17 +1362,28 @@ async function main() {
       return attempts
     },
   )
+  const d3Case = cases.find((item) => item.toolId === 'd3')
+  assert(d3Case, 'Expected d3 controlled route case')
+  const capabilityMismatchFailureProbe = await withServer(
+    true,
+    async (baseUrl) => runControlledCase(
+      baseUrl,
+      capabilityMismatchFailureProbeRequest(d3Case),
+    ),
+  )
 
   validateResults(
     results,
     disabledGpuStatus,
     scopedGpuModelLocalDevRouteAttempts,
     scopedGpuModelToolIds,
+    capabilityMismatchFailureProbe,
   )
   const report = buildReport(
     disabledGpuStatus,
     results,
     scopedGpuModelLocalDevRouteAttempts,
+    capabilityMismatchFailureProbe,
   )
   if (process.argv.includes('--write-records')) {
     fs.writeFileSync(outputJsonPath, `${JSON.stringify(report, null, 2)}\n`)

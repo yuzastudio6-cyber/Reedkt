@@ -698,7 +698,7 @@ function buildReport() {
     decision,
     status: gpuExecutableTools.length > 0 ? privateProofStatus : defaultStatus,
     summary:
-      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools remain blocked_with_reason until approved native CUDA, private model/input paths, and private proof refs are supplied for a scoped on-demand call.',
+      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools remain blocked_with_reason until approved native CUDA, private model/input paths, and private proof refs are supplied for a scoped on-demand call. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
     stateDefinitions: {
       callable:
         'The external agent can submit the controlled private route request.',
@@ -714,6 +714,11 @@ function buildReport() {
         decision: routeSmoke.decision,
         status: routeSmoke.status,
         accepted: true,
+        capabilityMismatchFailureProbeAccepted:
+          routeSmoke.booleans?.capabilityMismatchFailureProbeAccepted === true,
+        capabilityMismatchFailureProbeState:
+          routeSmoke.capabilityMismatchFailureProbe
+            ?.externalAgentExecutionState ?? null,
       },
       gpuModelLocalDevRuntimeExecutionHarness: {
         decision: sourceGpuHarness.decision,
@@ -792,6 +797,8 @@ function buildReport() {
         currentHostGpuProofBlockers.length,
       blockedWithReasonTools: blockedRows.length,
       failedWithDiagnosticsTools: failedRows.length,
+      capabilityMismatchFailureProbeTools:
+        routeSmoke.counts?.capabilityMismatchFailureProbeTools ?? 0,
       gpuRuntimeShouldStartNowTools:
         toolRows.filter((row) => row.gpuRuntimeShouldStartNow).length,
       publicArtifactCreatedTools:
@@ -861,6 +868,8 @@ function buildReport() {
       privateLocalRuntimeProofResultSupplied:
         Boolean(suppliedPrivateLocalRuntimeProof),
       strictCallableExecutableBlockedFailedContractCreated: true,
+      capabilityMismatchFailureProbeAccepted:
+        routeSmoke.booleans?.capabilityMismatchFailureProbeAccepted === true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       gpuRuntimeShouldStartNow: false,
@@ -953,7 +962,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools return \`blocked_with_reason\` until scoped native CUDA, private model/input, and private proof prerequisites are supplied. GPU runtime is on-demand only and does not start idle.
+This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools return \`blocked_with_reason\` until scoped native CUDA, private model/input, and private proof prerequisites are supplied. The mounted route also proves a capability-mismatch request returns \`failed_with_diagnostics\` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
 
 ## State Definitions
 
@@ -986,6 +995,13 @@ ${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).
 - Next proof-ref bridge command: \`${report.fastestGpuModelUnlockCandidate.nextExactProofRefBridgeCommand}\`
 - Next direct readiness command with private proof: \`${report.fastestGpuModelUnlockCandidate.nextExactReadinessWithPrivateProofCommand}\`
 - Next current-host preflight command: \`${report.fastestGpuModelUnlockCandidate.nextExactCurrentHostPreflightCommand}\`
+
+## Failure Diagnostics Guard
+
+- Capability mismatch probe accepted: \`${report.booleans.capabilityMismatchFailureProbeAccepted}\`
+- Probe count: \`${report.counts.capabilityMismatchFailureProbeTools}\`
+- Probe state: \`${report.sourceEvidence.all21ControlledRouteExecutionSmoke.capabilityMismatchFailureProbeState}\`
+- Guard: a valid tool with the wrong product-facing capability returns \`failed_with_diagnostics\` and does not invoke or execute an adapter.
 
 ## Booleans
 

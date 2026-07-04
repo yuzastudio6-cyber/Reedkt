@@ -343,6 +343,7 @@ function checkReport(label, report) {
     currentHostGpuProofBlockers: 0,
     blockedWithReasonTools: 8,
     failedWithDiagnosticsTools: 0,
+    capabilityMismatchFailureProbeTools: 1,
     gpuRuntimeShouldStartNowTools: 0,
     publicArtifactCreatedTools: 0,
     signedUrlCreatedTools: 0,
@@ -356,6 +357,17 @@ function checkReport(label, report) {
   }
   for (const [key, value] of Object.entries(expectedCounts)) {
     if (counts[key] !== value) fail(`${label}_count_mismatch:${key}:${counts[key]}`)
+  }
+  const routeSource =
+    report.sourceEvidence?.all21ControlledRouteExecutionSmoke ?? {}
+  if (routeSource.capabilityMismatchFailureProbeAccepted !== true) {
+    fail(`${label}_capability_mismatch_source_not_accepted`)
+  }
+  if (
+    routeSource.capabilityMismatchFailureProbeState !==
+    'failed_with_diagnostics'
+  ) {
+    fail(`${label}_capability_mismatch_source_state_mismatch:${routeSource.capabilityMismatchFailureProbeState}`)
   }
 
   const booleans = report.booleans ?? {}
@@ -377,6 +389,7 @@ function checkReport(label, report) {
     'gpuModelToolsBlockedUntilPrerequisites',
     'gpuModelProofRefBridgeBlocksUntilPrivateProof',
     'strictCallableExecutableBlockedFailedContractCreated',
+    'capabilityMismatchFailureProbeAccepted',
     'gpuRuntimeOnDemandOnly',
     'noIdleGpuRuntimeApproved',
     'agentCanSelectForPlanning',
@@ -1248,6 +1261,7 @@ for (const phrase of [
   '--controlled-worker-route-smoke-packet',
   'controlledWorkerRouteEvidenceAccepted',
   'privateProofStatus',
+  'capabilityMismatchFailureProbeAccepted',
   'nextExactReadinessWithPrivateProofCommand',
   'nextExactCurrentHostPreflightCommand',
 ]) {
@@ -1259,6 +1273,24 @@ if (routeSmoke.counts?.controlledRouteAdapterExecutedTools !== 13) {
 }
 if (routeSmoke.counts?.gpuModelRuntimeProofRequiredTools !== 8) {
   fail('route_smoke_gpu_proof_required_not_8')
+}
+if (routeSmoke.counts?.capabilityMismatchFailureProbeTools !== 1) {
+  fail('route_smoke_capability_mismatch_probe_count_not_1')
+}
+if (routeSmoke.booleans?.capabilityMismatchFailureProbeAccepted !== true) {
+  fail('route_smoke_capability_mismatch_probe_not_accepted')
+}
+if (
+  routeSmoke.capabilityMismatchFailureProbe?.externalAgentExecutionState !==
+  'failed_with_diagnostics'
+) {
+  fail('route_smoke_capability_mismatch_probe_state_mismatch')
+}
+if (
+  routeSmoke.capabilityMismatchFailureProbe?.controlledAdapterInvokedNow !==
+  false
+) {
+  fail('route_smoke_capability_mismatch_probe_invoked_adapter')
 }
 if (gpuHarness.counts?.localRuntimeExecutionPerformedTools !== 0) {
   fail('gpu_harness_default_executed_runtime')
@@ -1312,6 +1344,8 @@ for (const phrase of [
   'Next proof-ref bridge command',
   'Next direct readiness command with private proof',
   'Next current-host preflight command',
+  'Failure Diagnostics Guard',
+  'failed_with_diagnostics',
   'gpu_model_runtime_container_gpu_unavailable',
 ]) {
   if (!markdown.includes(phrase)) fail(`markdown_missing_phrase:${phrase}`)

@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_agent_execution_readiness_all21_evaluated_with_g
 
 Status: `external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof`
 
-This is the strict all-21 external-agent readiness report. It separates `callable` from `executable`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools return `blocked_with_reason` until scoped native CUDA, private model/input, and private proof prerequisites are supplied. GPU runtime is on-demand only and does not start idle.
+This is the strict all-21 external-agent readiness report. It separates `callable` from `executable`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools return `blocked_with_reason` until scoped native CUDA, private model/input, and private proof prerequisites are supplied. The mounted route also proves a capability-mismatch request returns `failed_with_diagnostics` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
 
 ## State Definitions
 
@@ -76,6 +76,7 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `currentHostGpuProofBlockers`: 0
 - `blockedWithReasonTools`: 8
 - `failedWithDiagnosticsTools`: 0
+- `capabilityMismatchFailureProbeTools`: 1
 - `gpuRuntimeShouldStartNowTools`: 0
 - `publicArtifactCreatedTools`: 0
 - `signedUrlCreatedTools`: 0
@@ -101,6 +102,13 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - Next direct readiness command with private proof: `npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json`
 - Next current-host preflight command: `npm run --silent ai-graphics:external-agent-execution-readiness -- --detect-host`
 
+## Failure Diagnostics Guard
+
+- Capability mismatch probe accepted: `true`
+- Probe count: `1`
+- Probe state: `failed_with_diagnostics`
+- Guard: a valid tool with the wrong product-facing capability returns `failed_with_diagnostics` and does not invoke or execute an adapter.
+
 ## Booleans
 
 - `externalAgentExecutionReadinessCompleted`: true
@@ -122,6 +130,7 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `scopedGpuModelRuntimeProofAcceptedTools`: 0
 - `privateLocalRuntimeProofResultSupplied`: false
 - `strictCallableExecutableBlockedFailedContractCreated`: true
+- `capabilityMismatchFailureProbeAccepted`: true
 - `gpuRuntimeOnDemandOnly`: true
 - `noIdleGpuRuntimeApproved`: true
 - `gpuRuntimeShouldStartNow`: false

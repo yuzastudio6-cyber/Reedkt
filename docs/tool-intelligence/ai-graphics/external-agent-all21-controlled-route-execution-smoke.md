@@ -62,6 +62,7 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 - `scopedGpuModelLocalDevRouteAttemptTools`: 8
 - `scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools`: 8
 - `scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools`: 0
+- `capabilityMismatchFailureProbeTools`: 1
 
 ## Booleans
 
@@ -93,6 +94,7 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 - `noIdleGpuRuntimeApproved`: true
 - `all8ScopedGpuModelLocalDevRouteAttemptsAccepted`: true
 - `all8ScopedGpuModelRuntimeContainerPayloadsAccepted`: true
+- `capabilityMismatchFailureProbeAccepted`: true
 - `scopedGpuModelLocalDevRouteAttemptAccepted`: true
 - `scopedGpuModelLocalDevRouteAttemptBlockedWithReason`: true
 - `scopedGpuModelRuntimeContainerPayloadAccepted`: true
@@ -132,6 +134,17 @@ This smoke starts the real Express app and POSTs all 21 AI graphics tool calls t
 | `kornia` | `blocked_with_reason` | `gpu_model_runtime_container_image_missing` | `false` | `false` | `false` | `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm` |
 | `rembg` | `blocked_with_reason` | `gpu_model_runtime_container_image_missing` | `false` | `false` | `false` | `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool rembg --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg/private-approved-frame.ppm --scoped-gpu-rembg-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg/private-rembg-model.onnx` |
 | `transparent_background` | `blocked_with_reason` | `gpu_model_runtime_container_image_missing` | `false` | `false` | `false` | `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transparent_background --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background/private-approved-frame.ppm --scoped-gpu-transparent-background-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background/private-transparent-background-checkpoint.pth` |
+
+## Capability mismatch failure probe
+
+- `toolId`: `d3`
+- `requestedCapabilityId`: `background_removal`
+- `externalAgentExecutionState`: `failed_with_diagnostics`
+- `routeStatus`: `external_beta_tool_call_route_failed_with_diagnostics_capability_mismatch`
+- `failureDiagnostics`: `AI graphics capability background_removal is not valid for d3.`
+- `adapterInvoked`: `false`
+- `adapterExecuted`: `false`
+- `expectedCapabilities`: `chart_overlay, data_visualization, svg_graphics, diagram_graphics, planning_metadata_only`
 
 ## Canonical fastest scoped GPU/model route attempt
 

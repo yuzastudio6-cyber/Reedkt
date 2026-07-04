@@ -2,7 +2,7 @@
   "schemaVersion": "2026-07-03.ai-graphics.external-agent-execution-readiness",
   "decision": "ai_graphics_external_agent_execution_readiness_all21_evaluated_with_gpu_model_blocks",
   "status": "external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof",
-  "summary": "Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools remain blocked_with_reason until approved native CUDA, private model/input paths, and private proof refs are supplied for a scoped on-demand call.",
+  "summary": "Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools remain blocked_with_reason until approved native CUDA, private model/input paths, and private proof refs are supplied for a scoped on-demand call. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.",
   "stateDefinitions": {
     "callable": "The external agent can submit the controlled private route request.",
     "executable": "The controlled adapter performed bounded runtime work and produced structured private output evidence.",
@@ -13,7 +13,9 @@
     "all21ControlledRouteExecutionSmoke": {
       "decision": "ai_graphics_external_agent_all21_controlled_route_execution_smoke_passed",
       "status": "external_agent_all21_controlled_route_execution_passed_with_gpu_on_demand",
-      "accepted": true
+      "accepted": true,
+      "capabilityMismatchFailureProbeAccepted": true,
+      "capabilityMismatchFailureProbeState": "failed_with_diagnostics"
     },
     "gpuModelLocalDevRuntimeExecutionHarness": {
       "decision": "ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_prepared_with_runtime_blocks",
@@ -73,6 +75,7 @@
     "currentHostGpuProofBlockers": 0,
     "blockedWithReasonTools": 8,
     "failedWithDiagnosticsTools": 0,
+    "capabilityMismatchFailureProbeTools": 1,
     "gpuRuntimeShouldStartNowTools": 0,
     "publicArtifactCreatedTools": 0,
     "signedUrlCreatedTools": 0,
@@ -104,6 +107,7 @@
     "scopedGpuModelRuntimeProofAcceptedTools": 0,
     "privateLocalRuntimeProofResultSupplied": false,
     "strictCallableExecutableBlockedFailedContractCreated": true,
+    "capabilityMismatchFailureProbeAccepted": true,
     "gpuRuntimeOnDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,
     "gpuRuntimeShouldStartNow": false,

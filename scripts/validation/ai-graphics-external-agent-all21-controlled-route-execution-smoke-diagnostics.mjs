@@ -456,6 +456,7 @@ function checkReport(label, report) {
     scopedGpuModelLocalDevRouteAttemptTools: 8,
     scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools: 8,
     scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools: 0,
+    capabilityMismatchFailureProbeTools: 1,
   }
   for (const [key, value] of Object.entries(expectedCounts)) {
     if (counts[key] !== value) fail(`${label}_count_${key}_mismatch:${counts[key]}`)
@@ -603,6 +604,84 @@ function checkReport(label, report) {
       if (scopedAttempt.booleans?.[key] !== false) {
         fail(`${label}_scoped_attempt_boolean_not_false:${key}`)
       }
+    }
+  }
+
+  const failureProbe = report.capabilityMismatchFailureProbe ?? {}
+  if (failureProbe.toolId !== 'd3') {
+    fail(`${label}_capability_mismatch_probe_tool_mismatch:${failureProbe.toolId}`)
+  }
+  if (failureProbe.capabilityId !== 'background_removal') {
+    fail(`${label}_capability_mismatch_probe_capability_mismatch:${failureProbe.capabilityId}`)
+  }
+  if (failureProbe.statusCode !== 200) {
+    fail(`${label}_capability_mismatch_probe_http_not_200:${failureProbe.statusCode}`)
+  }
+  if (failureProbe.ok !== true) {
+    fail(`${label}_capability_mismatch_probe_ok_not_true`)
+  }
+  if (
+    failureProbe.routeStatus !==
+    'external_beta_tool_call_route_failed_with_diagnostics_capability_mismatch'
+  ) {
+    fail(`${label}_capability_mismatch_probe_route_status_mismatch:${failureProbe.routeStatus}`)
+  }
+  if (failureProbe.externalAgentExecutionState !== 'failed_with_diagnostics') {
+    fail(`${label}_capability_mismatch_probe_state_mismatch:${failureProbe.externalAgentExecutionState}`)
+  }
+  if (failureProbe.externalAgentToolCallResult?.failedWithDiagnostics !== true) {
+    fail(`${label}_capability_mismatch_probe_normalized_failed_not_true`)
+  }
+  if (failureProbe.externalAgentToolCallResult?.executable !== false) {
+    fail(`${label}_capability_mismatch_probe_normalized_executable_not_false`)
+  }
+  if (
+    failureProbe.externalAgentToolCallResult?.executionState !==
+    'failed_with_diagnostics'
+  ) {
+    fail(`${label}_capability_mismatch_probe_normalized_state_mismatch`)
+  }
+  if (
+    !String(failureProbe.failureDiagnostics ?? '').includes(
+      'background_removal is not valid for d3',
+    )
+  ) {
+    fail(`${label}_capability_mismatch_probe_diagnostics_missing`)
+  }
+  if (
+    !String(failureProbe.externalAgentToolCallResult?.nextExternalAgentAction ?? '')
+      .includes('retry with one of the expected product-facing capabilities')
+  ) {
+    fail(`${label}_capability_mismatch_probe_next_action_missing`)
+  }
+  if (!Array.isArray(failureProbe.expectedCapabilities)) {
+    fail(`${label}_capability_mismatch_probe_expected_capabilities_missing`)
+  } else {
+    for (const capability of ['chart_overlay', 'data_visualization', 'svg_graphics']) {
+      if (!failureProbe.expectedCapabilities.includes(capability)) {
+        fail(`${label}_capability_mismatch_probe_expected_capability_missing:${capability}`)
+      }
+    }
+    if (failureProbe.expectedCapabilities.includes('background_removal')) {
+      fail(`${label}_capability_mismatch_probe_unexpected_bad_capability_allowed`)
+    }
+  }
+  for (const key of [
+    'controlledAdapterInvokedNow',
+    'controlledAdapterExecutedNow',
+    'localPackageExecutionPerformed',
+    'localGpuModelRuntimeExecutionPerformed',
+    'gpuRuntimeShouldStartNow',
+    'publicArtifactCreated',
+    'signedUrlCreated',
+    'workerDispatchPerformed',
+    'providerRuntimePerformed',
+    'runtimeReadyNow',
+    'externalBetaReadyNow',
+    'productionReadyNow',
+  ]) {
+    if (failureProbe[key] !== false) {
+      fail(`${label}_capability_mismatch_probe_${key}_not_false`)
     }
   }
 
@@ -787,6 +866,7 @@ function checkReport(label, report) {
     'noIdleGpuRuntimeApproved',
     'all8ScopedGpuModelLocalDevRouteAttemptsAccepted',
     'all8ScopedGpuModelRuntimeContainerPayloadsAccepted',
+    'capabilityMismatchFailureProbeAccepted',
     'scopedGpuModelLocalDevRouteAttemptAccepted',
     'scopedGpuModelLocalDevRouteAttemptBlockedWithReason',
     'scopedGpuModelRuntimeContainerPayloadAccepted',
@@ -868,6 +948,7 @@ for (const phrase of [
   'gpuRuntimeShouldStartNow',
   'all21ToolsReturnedHttp200',
   'scopedGpuModelLocalDevRouteAttemptRequest',
+  'capabilityMismatchFailureProbeRequest',
   'scopedGpuModelToolIdsFromArgs',
   'scopedGpuModelLocalDevRouteAttempts',
   'all8ScopedGpuModelLocalDevRouteAttemptsAccepted',
@@ -894,6 +975,7 @@ for (const phrase of [
   'executeAiGraphicsExternalAgentGpuModelControlledAdapter',
   'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_FLAG',
   'controlled_gpu_model_route_blocked_with_reason',
+  'external_beta_tool_call_route_failed_with_diagnostics_capability_mismatch',
   'externalAgentExecutionState',
   'blockingReasonCode',
   'failureDiagnostics',

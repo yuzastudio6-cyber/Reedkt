@@ -1556,6 +1556,97 @@ function getAiGraphicsExternalBetaToolCallRouteMode(toolId: string) {
   return 'not_mapped_to_canonical_route'
 }
 
+function buildAiGraphicsExternalBetaToolCallCapabilityMismatchResult(
+  request: AiGraphicsExternalBetaToolCallRequest,
+) {
+  const readiness = getAiGraphicsToolCallReadiness(request.toolId)
+  const expectedCapabilities = readiness?.capabilities ?? []
+  const failureDiagnostics =
+    `AI graphics capability ${request.capabilityId} is not valid for ${request.toolId}.`
+
+  return {
+    routeDecision:
+      'ai_graphics_external_beta_tool_call_route_failed_capability_mismatch',
+    routeStatus:
+      'external_beta_tool_call_route_failed_with_diagnostics_capability_mismatch',
+    routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+    requestId: request.requestId,
+    toolId: request.toolId,
+    capabilityId: request.capabilityId,
+    expectedCapabilities,
+    externalAgentExecutionState: 'failed_with_diagnostics',
+    blockingReasonCode: null,
+    failureDiagnostics,
+    controlledAdapterInvokedNow: false,
+    controlledAdapterExecutedNow: false,
+    routeExecutionPerformed: true,
+    gpuRuntimeShouldStartNow: false,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    externalAgentToolCallResult: buildAiGraphicsExternalAgentToolCallResult({
+      requestId: request.requestId,
+      toolId: request.toolId,
+      capabilityId: request.capabilityId,
+      routeStatus:
+        'external_beta_tool_call_route_failed_with_diagnostics_capability_mismatch',
+      executionState: 'failed_with_diagnostics',
+      blockingReasonCode: null,
+      failureDiagnostics,
+      callable: true,
+      executable: false,
+      controlledAdapterInvokedNow: false,
+      controlledAdapterExecutedNow: false,
+      routeExecutionPerformed: true,
+      gpuRuntimeShouldStartNow: false,
+      privateArtifactManifestRef: request.privateArtifactManifestRef,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+      nextExternalAgentAction:
+        'retry with one of the expected product-facing capabilities for this tool before requesting controlled execution',
+    }),
+    counts: {
+      totalAiGraphicsTools: 21,
+      capabilityMismatchRejectedTools: 1,
+      requestedToolCallableTools: 1,
+      requestedToolExecutableTools: 0,
+      requestedToolBlockedWithReasonTools: 0,
+      requestedToolFailedWithDiagnosticsTools: 1,
+      controlledAdapterInvokedTools: 0,
+      controlledAdapterExecutedTools: 0,
+      gpuRuntimeShouldStartNowTools: 0,
+      publicArtifactCreatedTools: 0,
+      signedUrlCreatedTools: 0,
+    },
+    booleans: {
+      routeSchemaAccepted: true,
+      routeCapabilityMismatchFailedClosed: true,
+      agentCanSelectForPlanning: true,
+      agentCanCallRequestedToolNow: true,
+      agentCanExecuteRequestedToolNow: false,
+      routeExecutionPerformed: true,
+      workerExecutionApprovedNow: false,
+      workerExecutionPerformed: false,
+      workerDispatchApprovedNow: false,
+      workerDispatchPerformed: false,
+      toolExecutionApprovedNow: false,
+      toolExecutionPerformed: false,
+      providerRuntimeApprovedNow: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimeApprovedNow: false,
+      gpuRuntimePerformed: false,
+      gpuRuntimeShouldStartNow: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
 function buildAiGraphicsGpuModelUnblockPlan(
   toolId: string,
   modelWeightManifestRequired: boolean,
@@ -2007,6 +2098,13 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
   router.post(AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH, asyncRoute(async (request, response) => {
     const body = validateBody(aiGraphicsExternalBetaToolCallRequestSchema, request.body)
     const serviceContext = getServiceContext(request)
+    const readiness = getAiGraphicsToolCallReadiness(body.toolId)
+    if (!readiness?.capabilities.includes(body.capabilityId)) {
+      const mismatch =
+        buildAiGraphicsExternalBetaToolCallCapabilityMismatchResult(body)
+      sendOk(response, mismatch, [mismatch.failureDiagnostics], 200)
+      return
+    }
     if (
       serviceContext.env.aiGraphicsExternalBetaToolCallRouteGpuModelControlledExecutionEnabled &&
       isAiGraphicsExternalAgentGpuModelControlledAdapterTool(body.toolId)

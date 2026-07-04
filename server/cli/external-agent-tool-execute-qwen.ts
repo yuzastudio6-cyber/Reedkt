@@ -49,7 +49,9 @@ function main() {
       ...accountSelectionOutput(),
       gcloudAccountOverrideMutatesLocalConfig: false,
       wouldDelegateIfExecuteConfirmed: blockers.length === 0,
-      delegatedBoundedCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand,
+      delegatedBoundedCommand: withSelectedAccountIndexCommand(
+        EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand,
+      ),
       gcpAccessRepair: qwenAccessRepairHint(),
       runtimeRunNow: false,
       cloudRunJobExecuted: false,
@@ -76,8 +78,12 @@ function main() {
       gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
       ...accountSelectionOutput(),
       gcloudAccountOverrideMutatesLocalConfig: false,
-      canonicalCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenExternalAgentExecutionCommand,
-      delegatedBoundedCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand,
+      canonicalCommand: withSelectedAccountIndexCommand(
+        EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenExternalAgentExecutionCommand,
+      ),
+      delegatedBoundedCommand: withSelectedAccountIndexCommand(
+        EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand,
+      ),
       gcpAccessRepair: qwenAccessRepairHint(),
       runtimeRunNow: false,
       cloudRunJobExecuted: false,
@@ -175,7 +181,7 @@ function main() {
   }
 
   const delegated = EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand
-  const result = runJson('qwen_bounded_execution', delegated.command, [...delegated.args], {
+  const result = runJson('qwen_bounded_execution', delegated.command, withSelectedAccountIndexArgs(delegated.args), {
     [delegated.confirmationEnv]: delegated.confirmationEnvRequiredValue,
   })
 
@@ -288,7 +294,7 @@ function qwenAccessRepairHint() {
     blocker: qwen?.blocker,
     requiredReadPermissions: qwen?.requiredReadPermissions,
     likelyMinimalRole: qwen?.likelyMinimalRole,
-    verificationCommand: qwen?.verificationCommand,
+    verificationCommand: withSelectedAccountIndexPlaceholders(qwen?.verificationCommand),
     mutatesGcp: false,
     authorizesRuntimeExecution: false,
   }
@@ -326,10 +332,11 @@ function runJson(
 }
 
 function childEnv(env: Record<string, string> = {}): NodeJS.ProcessEnv {
-  const accountOverride = resolveAccountSelection().account
+  const selection = resolveAccountSelection()
   return {
     ...process.env,
-    ...(accountOverride ? { CLOUDSDK_CORE_ACCOUNT: accountOverride } : {}),
+    ...(selection.account ? { CLOUDSDK_CORE_ACCOUNT: selection.account } : {}),
+    ...(selection.overrideIndex ? { [GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]: String(selection.overrideIndex) } : {}),
     ...env,
   }
 }
@@ -443,6 +450,29 @@ function cliFlagValue(...flags: string[]): string | undefined {
   }
 
   return undefined
+}
+
+function withSelectedAccountIndexArgs(args: readonly string[]): string[] {
+  const index = resolveAccountSelection().overrideIndex
+  if (!index || args.includes('--account-index') || args.includes('--gcloud-account-index')) {
+    return [...args]
+  }
+
+  return [...args, '--account-index', String(index)]
+}
+
+function withSelectedAccountIndexCommand<T extends { args: readonly string[] }>(command: T): T & { args: string[] } {
+  return {
+    ...command,
+    args: withSelectedAccountIndexArgs(command.args),
+  }
+}
+
+function withSelectedAccountIndexPlaceholders(value: string | undefined): string | undefined {
+  const index = resolveAccountSelection().overrideIndex
+  if (!value || !index) return value
+
+  return value.replace(/<account-index>/g, String(index)).replace(/<redacted-index>/g, String(index))
 }
 
 function parseJsonOutput(output: string): JsonRecord | undefined {

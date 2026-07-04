@@ -68,6 +68,7 @@ function main() {
       delegatedRunner: {
         script: DELEGATED_RUNNER_SCRIPT,
         confirmationEnv: DELEGATED_RUNNER_CONFIRM_ENV,
+        args: withSelectedAccountIndexArgs(['--execute', '--summary-path', DELEGATED_SUMMARY_PATH]),
         summaryPath: DELEGATED_SUMMARY_PATH,
       },
       gcpAccessRepair: brollAccessRepairHint(),
@@ -117,8 +118,12 @@ function main() {
       gcloudAccountOverrideMutatesLocalConfig: false,
       cachePreparationCommand: 'npm run external-agent-tool-prepare-broll-wan-cache -- --execute --json',
       inferenceProofCommand:
-        'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
-      canonicalCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.brollWanExternalAgentProofCommand,
+        withSelectedAccountIndexShell(
+          'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
+        ),
+      canonicalCommand: withSelectedAccountIndexCommand(
+        EXTERNAL_AGENT_TOOL_NEXT_COMMAND.brollWanExternalAgentProofCommand,
+      ),
       noIdleLifecycleGate: brollTool?.noIdleLifecycleGate,
       gcpAccessRepair: brollAccessRepairHint(),
       runtimeRunNow: false,
@@ -285,6 +290,7 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
       delegatedRunner: {
         script: INFERENCE_RUNNER_SCRIPT,
         confirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,
+        args: withSelectedAccountIndexArgs(['--execute']),
       },
       gcpAccessRepair: brollAccessRepairHint(),
       runtimeRunNow: false,
@@ -325,7 +331,7 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
       gcloudAccountOverrideMutatesLocalConfig: false,
       delegatedRunnerConfirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,
       delegatedRunnerScript: INFERENCE_RUNNER_SCRIPT,
-      delegatedRunnerArgs: ['--execute'],
+      delegatedRunnerArgs: withSelectedAccountIndexArgs(['--execute']),
       noIdleLifecycleGate: asRecord(brollTool).noIdleLifecycleGate,
       gcpAccessRepair: brollAccessRepairHint(),
       runtimeRunNow: false,
@@ -432,7 +438,7 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
   const delegated = runJson(
     'broll_11h_bounded_inference_proof_runner',
     'npm',
-    ['run', INFERENCE_RUNNER_SCRIPT, '--', '--execute'],
+    ['run', INFERENCE_RUNNER_SCRIPT, '--', ...withSelectedAccountIndexArgs(['--execute'])],
     {
       [INFERENCE_RUNNER_CONFIRM_ENV]: 'true',
     },
@@ -493,7 +499,7 @@ function runPrepareCache(execute: boolean, brollTool: unknown) {
       gcloudAccountOverrideMutatesLocalConfig: false,
       delegatedRunnerConfirmationEnv: CACHE_STAGING_RUNNER_CONFIRM_ENV,
       delegatedRunnerScript: CACHE_STAGING_RUNNER_SCRIPT,
-      delegatedRunnerArgs: ['--execute', '--summary-path', CACHE_FILL_SUMMARY_PATH],
+      delegatedRunnerArgs: withSelectedAccountIndexArgs(['--execute', '--summary-path', CACHE_FILL_SUMMARY_PATH]),
       noIdleLifecycleGate: asRecord(brollTool).noIdleLifecycleGate,
       runtimeRunNow: false,
       computeVmCreated: false,
@@ -553,9 +559,7 @@ function runPrepareCache(execute: boolean, brollTool: unknown) {
       'run',
       CACHE_STAGING_RUNNER_SCRIPT,
       '--',
-      '--execute',
-      '--summary-path',
-      CACHE_FILL_SUMMARY_PATH,
+      ...withSelectedAccountIndexArgs(['--execute', '--summary-path', CACHE_FILL_SUMMARY_PATH]),
     ],
     {
       [CACHE_STAGING_RUNNER_CONFIRM_ENV]: 'true',
@@ -648,7 +652,7 @@ function brollAccessRepairHint() {
     blocker: broll?.blocker,
     requiredReadPermissions: broll?.requiredReadPermissions,
     likelyMinimalRole: broll?.likelyMinimalRole,
-    verificationCommand: broll?.verificationCommand,
+    verificationCommand: withSelectedAccountIndexPlaceholders(broll?.verificationCommand),
     mutatesGcp: false,
     authorizesRuntimeExecution: false,
   }
@@ -705,10 +709,11 @@ function runJson(
 }
 
 function childEnv(env: Record<string, string> = {}): NodeJS.ProcessEnv {
-  const accountOverride = resolveAccountSelection().account
+  const selection = resolveAccountSelection()
   return {
     ...process.env,
-    ...(accountOverride ? { CLOUDSDK_CORE_ACCOUNT: accountOverride } : {}),
+    ...(selection.account ? { CLOUDSDK_CORE_ACCOUNT: selection.account } : {}),
+    ...(selection.overrideIndex ? { [GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]: String(selection.overrideIndex) } : {}),
     ...env,
   }
 }
@@ -822,6 +827,38 @@ function cliFlagValue(...flags: string[]): string | undefined {
   }
 
   return undefined
+}
+
+function withSelectedAccountIndexArgs(args: readonly string[]): string[] {
+  const index = resolveAccountSelection().overrideIndex
+  if (!index || args.includes('--account-index') || args.includes('--gcloud-account-index')) {
+    return [...args]
+  }
+
+  return [...args, '--account-index', String(index)]
+}
+
+function withSelectedAccountIndexCommand<T extends { args: readonly string[] }>(command: T): T & { args: string[] } {
+  return {
+    ...command,
+    args: withSelectedAccountIndexArgs(command.args),
+  }
+}
+
+function withSelectedAccountIndexShell(command: string): string {
+  const index = resolveAccountSelection().overrideIndex
+  if (!index || command.includes('--account-index') || command.includes('--gcloud-account-index')) {
+    return command
+  }
+
+  return `${command} --account-index ${index}`
+}
+
+function withSelectedAccountIndexPlaceholders(value: string | undefined): string | undefined {
+  const index = resolveAccountSelection().overrideIndex
+  if (!value || !index) return value
+
+  return value.replace(/<account-index>/g, String(index)).replace(/<redacted-index>/g, String(index))
 }
 
 function parseJsonOutput(output: string): JsonRecord | undefined {

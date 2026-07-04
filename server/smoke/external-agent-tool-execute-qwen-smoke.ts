@@ -103,7 +103,9 @@ for (const required of [
   ACCOUNT_OVERRIDE_INDEX_ENV,
   '--account-index',
   '--gcloud-account-index',
-  'CLOUDSDK_CORE_ACCOUNT: accountOverride',
+  'CLOUDSDK_CORE_ACCOUNT: selection.account',
+  'withSelectedAccountIndexCommand',
+  'withSelectedAccountIndexPlaceholders',
   'qwenAccessRepairHint',
   'external-agent-gcp-access:repair-plan',
   'parseJsonOutput',
@@ -162,6 +164,29 @@ assert.equal(invalidCliIndexReport.gcloudAccountOverrideResolved, false)
 assert.equal(invalidCliIndexReport.gcloudAccountOverrideResolutionFailure, 'invalid_account_index')
 assert.equal(invalidCliIndexReport.gcloudAccountOverrideMutatesLocalConfig, false)
 
+const indexedStaticReport = runCli(['--account-index', '2', '--json'])
+assert.equal(indexedStaticReport.mode, 'external_agent_qwen_execution_static_guard')
+assert.equal(indexedStaticReport.gcloudAccountOverrideIndexProvided, true)
+assert.equal(indexedStaticReport.gcloudAccountOverrideIndex, 2)
+assert.equal(indexedStaticReport.gcloudAccountOverrideIndexSource, 'cli')
+assert.equal(indexedStaticReport.gcloudAccountOverrideResolved, true)
+assert.deepEqual(
+  (indexedStaticReport.delegatedBoundedCommand as { args: string[] }).args,
+  [
+    'run',
+    'qwen2-5-vl-58dw-bounded-private-inference-retry',
+    '--',
+    '--execute',
+    '--json',
+    '--account-index',
+    '2',
+  ],
+)
+assert.equal(
+  (indexedStaticReport.gcpAccessRepair as { verificationCommand: string }).verificationCommand,
+  'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+)
+
 const preflightOnly = runCli(['--preflight-only', '--json'])
 assert.equal(preflightOnly.mode, 'external_agent_qwen_execution_preflight_only_result')
 assert.equal(typeof preflightOnly.ok, 'boolean')
@@ -187,6 +212,30 @@ assert.equal(preflightOnly.creditMutationCreated, false)
 assert.equal(preflightOnly.betaUnlocked, false)
 assert.equal(preflightOnly.productionUnlocked, false)
 assert.equal(preflightOnly.generatedLocalFixturePassedClaimed, false)
+
+const indexedPreflightOnly = runCli(['--preflight-only', '--json', '--account-index', '2'])
+assert.equal(indexedPreflightOnly.mode, 'external_agent_qwen_execution_preflight_only_result')
+assert.equal(indexedPreflightOnly.gcloudAccountOverrideIndexProvided, true)
+assert.equal(indexedPreflightOnly.gcloudAccountOverrideIndex, 2)
+assert.equal(indexedPreflightOnly.gcloudAccountOverrideResolved, true)
+assert.deepEqual(
+  (indexedPreflightOnly.delegatedBoundedCommand as { args: string[] }).args,
+  [
+    'run',
+    'qwen2-5-vl-58dw-bounded-private-inference-retry',
+    '--',
+    '--execute',
+    '--json',
+    '--account-index',
+    '2',
+  ],
+)
+assert.equal(
+  ((indexedPreflightOnly.nextCommand as { chosenManualAction: string }).chosenManualAction).includes(
+    '--account-index 2',
+  ),
+  true,
+)
 
 const confirmationBlocked = runCli(['--execute', '--json'])
 assert.equal(confirmationBlocked.ok, false)

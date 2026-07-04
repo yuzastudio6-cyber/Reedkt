@@ -110,7 +110,9 @@ for (const required of [
   ACCOUNT_OVERRIDE_INDEX_ENV,
   '--account-index',
   '--gcloud-account-index',
-  'CLOUDSDK_CORE_ACCOUNT: accountOverride',
+  'CLOUDSDK_CORE_ACCOUNT: selection.account',
+  'withSelectedAccountIndexCommand',
+  'withSelectedAccountIndexPlaceholders',
   'brollAccessRepairHint',
   'external-agent-gcp-access:repair-plan',
   'ai-video-broll-wan-gpu-global-quota-verify.ts',
@@ -201,6 +203,33 @@ assert.equal(invalidCliIndexReport.gcloudAccountOverrideResolved, false)
 assert.equal(invalidCliIndexReport.gcloudAccountOverrideResolutionFailure, 'invalid_account_index')
 assert.equal(invalidCliIndexReport.gcloudAccountOverrideMutatesLocalConfig, false)
 
+const indexedStaticReport = runCli(['--account-index', '2', '--json'])
+assert.equal(indexedStaticReport.mode, 'external_agent_broll_wan_execution_static_guard')
+assert.equal(indexedStaticReport.gcloudAccountOverrideIndexProvided, true)
+assert.equal(indexedStaticReport.gcloudAccountOverrideIndex, 2)
+assert.equal(indexedStaticReport.gcloudAccountOverrideIndexSource, 'cli')
+assert.equal(indexedStaticReport.gcloudAccountOverrideResolved, true)
+assert.deepEqual(
+  (indexedStaticReport.canonicalCommand as { args: string[] }).args,
+  [
+    'run',
+    'external-agent-tool-execute-broll-wan',
+    '--',
+    '--execute',
+    '--json',
+    '--account-index',
+    '2',
+  ],
+)
+assert.equal(
+  indexedStaticReport.inferenceProofCommand,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json --account-index 2',
+)
+assert.equal(
+  (indexedStaticReport.gcpAccessRepair as { verificationCommand: string }).verificationCommand,
+  'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+)
+
 const preflightOnly = runCli(['--preflight-only', '--json'])
 assert.equal(preflightOnly.mode, 'external_agent_broll_wan_execution_preflight_only_result')
 assertAccountOverride(preflightOnly)
@@ -227,6 +256,20 @@ assert.equal(preflightOnly.creditMutationCreated, false)
 assert.equal(preflightOnly.betaUnlocked, false)
 assert.equal(preflightOnly.productionUnlocked, false)
 assert.equal(preflightOnly.generatedLocalFixturePassedClaimed, false)
+
+const indexedPreflightOnly = runCli(['--preflight-only', '--json', '--account-index', '2'])
+assert.equal(indexedPreflightOnly.mode, 'external_agent_broll_wan_execution_preflight_only_result')
+assert.equal(indexedPreflightOnly.gcloudAccountOverrideIndexProvided, true)
+assert.equal(indexedPreflightOnly.gcloudAccountOverrideIndex, 2)
+assert.equal(indexedPreflightOnly.gcloudAccountOverrideResolved, true)
+assert.deepEqual(
+  (indexedPreflightOnly.delegatedRunner as { args: string[] }).args,
+  ['--execute', '--summary-path', '.tmp/external-agent-broll-wan-11b-l4-model-import-runner.json', '--account-index', '2'],
+)
+assert.equal(
+  (indexedPreflightOnly.gcpAccessRepair as { verificationCommand: string }).verificationCommand,
+  'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+)
 
 const confirmationBlocked = runCli(['--execute', '--json'])
 assert.equal(confirmationBlocked.ok, false)
@@ -275,6 +318,10 @@ assert.equal(inferenceStatic.ffmpegRun, false)
 assert.equal(inferenceStatic.generatedVideoCreated, false)
 assert.equal(inferenceStatic.generatedAssetsCreated, false)
 assert.equal(inferenceStatic.generatedLocalFixturePassedClaimed, false)
+
+const indexedInferenceStatic = runCli(['--inference-proof', '--json', '--account-index', '2'])
+assert.equal(indexedInferenceStatic.mode, 'external_agent_broll_wan_inference_proof_static_guard')
+assert.deepEqual(indexedInferenceStatic.delegatedRunnerArgs, ['--execute', '--account-index', '2'])
 
 const inferencePreflightOnly = runCli(['--inference-proof', '--preflight-only', '--json'])
 assert.equal(inferencePreflightOnly.mode, 'external_agent_broll_wan_inference_proof_preflight_only_result')
@@ -346,6 +393,16 @@ assert.equal(cachePrepareStatic.supabaseTouched, false)
 assert.equal(cachePrepareStatic.sqlExecuted, false)
 assert.equal(cachePrepareStatic.generatedLocalFixturePassedClaimed, false)
 
+const indexedCachePrepareStatic = runCli(['--prepare-cache', '--json', '--account-index', '2'])
+assert.equal(indexedCachePrepareStatic.mode, 'external_agent_broll_wan_private_cache_prepare_static_guard')
+assert.deepEqual(indexedCachePrepareStatic.delegatedRunnerArgs, [
+  '--execute',
+  '--summary-path',
+  '.tmp/external-agent-broll-wan-11e-cloud-side-cache-staging-runner.json',
+  '--account-index',
+  '2',
+])
+
 const cachePrepareBlocked = runCli(['--prepare-cache', '--execute', '--json'])
 assert.equal(cachePrepareBlocked.ok, false)
 assert.equal(cachePrepareBlocked.mode, 'external_agent_broll_wan_private_cache_prepare_confirmation_blocked')
@@ -372,6 +429,10 @@ const forbiddenFindings = scanForbiddenValues({
   inferencePreflightOnly,
   inferenceBlocked,
   cachePrepareStatic,
+  indexedStaticReport,
+  indexedPreflightOnly,
+  indexedInferenceStatic,
+  indexedCachePrepareStatic,
   cachePrepareBlocked,
 })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)

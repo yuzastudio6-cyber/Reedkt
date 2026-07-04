@@ -293,6 +293,22 @@ function checkReport(label, report) {
     if (row.externalAgentToolCallResult?.failedWithDiagnostics !== false) {
       fail(`${label}_${toolId}_normalized_gpu_failed_not_false`)
     }
+    const nextAction = row.externalAgentToolCallResult?.nextExternalAgentAction
+    if (typeof nextAction !== 'string') {
+      fail(`${label}_${toolId}_gpu_missing_normalized_next_action`)
+    }
+    for (const requiredFragment of [
+      'blocked_with_reason:',
+      'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
+      `--scoped-gpu-tool ${toolId}`,
+      '--scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
+      `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
+      'GPU starts only during that scoped active tool call',
+    ]) {
+      if (!nextAction.includes(requiredFragment)) {
+        fail(`${label}_${toolId}_gpu_next_action_missing_fragment:${requiredFragment}`)
+      }
+    }
     if (!row.blockingReasonCode) {
       fail(`${label}_${toolId}_gpu_missing_blocking_reason`)
     }

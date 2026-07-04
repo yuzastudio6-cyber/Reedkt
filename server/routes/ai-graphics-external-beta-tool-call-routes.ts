@@ -64,6 +64,9 @@ export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_REQUIRED_FUTURE_MIDDLEWAR
   'killSwitch',
 ] as const
 
+const AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_IMAGE =
+  'reeditpro/ai-graphics-gpu-worker:proof-local'
+
 const aiGraphicsToolIdSchema = z.enum([
   'torch_torchvision',
   'transformers',
@@ -270,6 +273,62 @@ export function buildAiGraphicsExternalAgentToolCallResult(
     },
     nextExternalAgentAction: input.nextExternalAgentAction ?? null,
   }
+}
+
+function gpuModelRequiresSourceImage(toolId: string): boolean {
+  return !['torch_torchvision', 'transformers', 'sam2'].includes(toolId)
+}
+
+function gpuModelScopedRuntimeProofFlags(toolId: string): string[] {
+  return [
+    gpuModelRequiresSourceImage(toolId)
+      ? '--scoped-gpu-source-image <private-approved-frame.png>'
+      : '',
+    toolId === 'sam2'
+      ? '--scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt>'
+      : '',
+    toolId === 'birefnet'
+      ? '--scoped-gpu-birefnet-model <private-birefnet-model>'
+      : '',
+    toolId === 'real_esrgan'
+      ? '--scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth>'
+      : '',
+    toolId === 'rembg'
+      ? '--scoped-gpu-rembg-model <private-rembg-model.onnx>'
+      : '',
+    toolId === 'transparent_background'
+      ? '--scoped-gpu-transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
+      : '',
+  ].filter(Boolean)
+}
+
+function exactGpuModelScopedRouteProofCommand(toolId: string): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke --',
+    `--scoped-gpu-tool ${toolId}`,
+    `--scoped-gpu-runtime-container-image ${AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_IMAGE}`,
+    '--scoped-gpu-runtime-container-platform linux/amd64',
+    `--scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
+    ...gpuModelScopedRuntimeProofFlags(toolId),
+  ].join(' ')
+}
+
+function gpuModelNextExternalAgentAction(input: {
+  toolId: string
+  executionPassed: boolean
+  blockingReasonCode?: string | null
+}): string {
+  if (input.executionPassed) {
+    return 'use the private runtime output in the approved downstream planning or worker lane'
+  }
+
+  const blockingReason = input.blockingReasonCode ?? 'gpu_model_runtime_prerequisites_missing'
+  return [
+    `blocked_with_reason:${blockingReason}`,
+    'run the scoped CUDA/local input proof before retrying execution:',
+    exactGpuModelScopedRouteProofCommand(input.toolId),
+    'GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.',
+  ].join(' ')
 }
 
 function hasAcceptedPrivateRef(value?: string): boolean {
@@ -1930,9 +1989,11 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
           privateArtifactManifestRef: execution.privateArtifactManifestRef,
           publicArtifactCreated: execution.publicArtifactCreated,
           signedUrlCreated: execution.signedUrlCreated,
-          nextExternalAgentAction: gpuModelExecutionPassed
-            ? 'use the private runtime output in the approved downstream planning or worker lane'
-            : 'provide the scoped private CUDA/model/input prerequisites listed by blockingReasonCode before retrying this tool call',
+          nextExternalAgentAction: gpuModelNextExternalAgentAction({
+            toolId: body.toolId,
+            executionPassed: gpuModelExecutionPassed,
+            blockingReasonCode: execution.blockingReasonCode,
+          }),
         }),
         routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
         routeFlag:

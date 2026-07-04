@@ -9,11 +9,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     REEDITPRO_SOUND_CPU_RUNTIME_ENABLED=0 \
     REEDITPRO_WORKER_EXECUTION_ENABLED=0 \
-    REEDITPRO_MEDIA_PROCESSING_ENABLED=0
+    REEDITPRO_MEDIA_PROCESSING_ENABLED=0 \
+    REEDITPRO_SUPABASE_MUTATION_ENABLED=0 \
+    REEDITPRO_ARTIFACT_WRITE_ENABLED=0 \
+    REEDITPRO_EXTERNAL_BETA_READY=false \
+    REEDITPRO_PRODUCTION_READY=false
 
 WORKDIR /opt/reeditpro/sound-cpu
 
 COPY server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt ./requirements.sound-oss-tools.txt
+COPY scripts/validation/worker-runtime-jobs-sound-cpu-bounded-external-agent-no-media-controlled-tool-execution-runner.py ./controlled-tool-execution-runner.py
 
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
@@ -31,4 +36,4 @@ RUN addgroup --system reeditpro \
 
 USER reeditpro
 
-CMD ["python", "-c", "raise SystemExit('SOUND CPU worker Dockerfile source exists, but runtime execution is disabled pending owner gates')"]
+CMD ["python", "./controlled-tool-execution-runner.py", "--require-disabled-env"]

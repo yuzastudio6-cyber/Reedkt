@@ -74,6 +74,16 @@ RUNTIME_FLAGS = [
     "allowProductionUnlock",
 ]
 
+DISABLED_ENV_DEFAULTS = {
+    "REEDITPRO_SOUND_CPU_RUNTIME_ENABLED": "0",
+    "REEDITPRO_WORKER_EXECUTION_ENABLED": "0",
+    "REEDITPRO_MEDIA_PROCESSING_ENABLED": "0",
+    "REEDITPRO_SUPABASE_MUTATION_ENABLED": "0",
+    "REEDITPRO_ARTIFACT_WRITE_ENABLED": "0",
+    "REEDITPRO_EXTERNAL_BETA_READY": "false",
+    "REEDITPRO_PRODUCTION_READY": "false",
+}
+
 FORBIDDEN_PAYLOAD_FIELDS = [
     "rawPrompt",
     "mediaFilePath",
@@ -202,6 +212,14 @@ def validate_request(request: dict[str, Any]) -> list[str]:
         if isinstance(claims, dict) and claims.get(claim) is True:
             reasons.append(f"{claim}_claim_not_allowed")
     return sorted(set(reasons))
+
+
+def validate_disabled_env(env: dict[str, str]) -> list[str]:
+    reasons: list[str] = []
+    for name, expected in DISABLED_ENV_DEFAULTS.items():
+        if env.get(name) != expected:
+            reasons.append(f"{name}_must_equal_{expected}")
+    return sorted(reasons)
 
 
 def version_for(package: str) -> str:
@@ -427,6 +445,7 @@ def describe_contract() -> dict[str, Any]:
         "images": IMAGES,
         "jobTypes": JOB_TYPES,
         "runtimeFlagsRequiredFalse": RUNTIME_FLAGS,
+        "disabledEnvRequiredForCloudRun": DISABLED_ENV_DEFAULTS,
         "forbiddenPayloadFields": FORBIDDEN_PAYLOAD_FIELDS,
         "readsRealMedia": False,
         "writesArtifacts": False,
@@ -442,6 +461,7 @@ def describe_contract() -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--describe-contract", action="store_true")
+    parser.add_argument("--require-disabled-env", action="store_true")
     parser.add_argument("--run-single-tool", choices=TOOL_IDS)
     args = parser.parse_args()
 
@@ -456,6 +476,8 @@ def main() -> int:
 
     request = read_request()
     stop_reasons = validate_request(request)
+    if args.require_disabled_env:
+        stop_reasons.extend(validate_disabled_env(dict(os.environ)))
     if stop_reasons:
         print(
             json.dumps(

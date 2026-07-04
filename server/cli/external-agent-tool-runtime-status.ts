@@ -307,6 +307,7 @@ function main() {
     const supportingEvidenceOnly =
       commands?.runtimeKind === 'metadata_evidence_only' ||
       commands?.runtimeKind === 'local_harness_evidence_only'
+    const safeEvidenceReviewExecutableNow = agentCallable && supportingEvidenceOnly && runtimeGatesAllFalse
 
     return {
       toolId: tool.toolId,
@@ -338,6 +339,7 @@ function main() {
       executionAllowedNow,
       runtimeExecutableNow,
       supportingEvidenceOnly,
+      safeEvidenceReviewExecutableNow,
       selectedGpu: tool.selectedGpu,
       scaleToZeroRequired: tool.scaleToZeroRequired,
       currentBlocker:
@@ -362,6 +364,9 @@ function main() {
   const runtimeExecutableToolIds = toolRows
     .filter((tool) => tool.runtimeExecutableNow)
     .map((tool) => tool.toolId)
+  const safeEvidenceReviewToolIds = toolRows
+    .filter((tool) => tool.safeEvidenceReviewExecutableNow)
+    .map((tool) => tool.toolId)
   const agentCallableToolIds = toolRows.filter((tool) => tool.agentCallable).map((tool) => tool.toolId)
 
   const report = {
@@ -381,6 +386,9 @@ function main() {
     runtimeExecutableToolCount: runtimeExecutableToolIds.length,
     runtimeExecutableToolIds,
     readyForAnyExternalAgentRuntimeExecutionNow: runtimeExecutableToolIds.length > 0,
+    safeEvidenceReviewToolCount: safeEvidenceReviewToolIds.length,
+    safeEvidenceReviewToolIds,
+    readyForAnyExternalAgentSafeEvidenceReviewNow: safeEvidenceReviewToolIds.length > 0,
     staticExplicitToolGateReadyToolIds,
     runtimeGatesAllFalse,
     liveGate: liveChecksRun
@@ -517,6 +525,8 @@ function main() {
       brollPreflight: TOOL_COMMANDS.ai_video_broll_generation_wan.safePreflightCommand,
       brollInferencePreflight:
         'npm run external-agent-tool-execute-broll-wan -- --inference-proof --preflight-only --json',
+      soundEvidenceReview: TOOL_COMMANDS.sound_music_audio.executionCommand,
+      supabaseHarnessEvidenceReview: TOOL_COMMANDS.supabase_local_fixture_harness.executionCommand,
       accountIndexed:
         selectedAccountIndexArg
           ? compactRecord({
@@ -535,6 +545,14 @@ function main() {
               ),
               brollInferencePreflight: appendSelectedAccountIndex(
                 'npm run external-agent-tool-execute-broll-wan -- --inference-proof --preflight-only --json',
+                selectedAccountIndexArg,
+              ),
+              soundEvidenceReview: appendSelectedAccountIndex(
+                TOOL_COMMANDS.sound_music_audio.executionCommand,
+                selectedAccountIndexArg,
+              ),
+              supabaseHarnessEvidenceReview: appendSelectedAccountIndex(
+                TOOL_COMMANDS.supabase_local_fixture_harness.executionCommand,
                 selectedAccountIndexArg,
               ),
             })

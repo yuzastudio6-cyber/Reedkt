@@ -81,6 +81,8 @@ for (const required of [
   'external_agent_tool_runtime_status_report',
   'agentCallable',
   'runtimeExecutableNow',
+  'safeEvidenceReviewExecutableNow',
+  'safeEvidenceReviewToolIds',
   'accountSelectionGuidance',
   'accountIndexedCommands',
   'accountIndexed',
@@ -88,6 +90,8 @@ for (const required of [
   'external-agent-tool-execute-qwen -- --preflight-only',
   'external-agent-tool-execute-broll-wan -- --preflight-only',
   'external-agent-tool-execute-broll-wan -- --inference-proof --preflight-only',
+  'soundEvidenceReview',
+  'supabaseHarnessEvidenceReview',
   'runtimeSideEffects',
 ]) {
   assert.equal(cliSource.includes(required), true, `Runtime status CLI missing ${required}`)
@@ -136,12 +140,26 @@ assert.deepEqual(staticStatus.agentCallableToolIds, [
 ])
 assert.equal(staticStatus.readyForAnyExternalAgentRuntimeExecutionNow, false)
 assert.deepEqual(staticStatus.runtimeExecutableToolIds, [])
+assert.equal(staticStatus.safeEvidenceReviewToolCount, 2)
+assert.deepEqual(staticStatus.safeEvidenceReviewToolIds, [
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(staticStatus.readyForAnyExternalAgentSafeEvidenceReviewNow, true)
 assert.equal(staticStatus.runtimeGatesAllFalse, true)
 assert.equal(staticStatus.safeAgentCommands.liveStatus, 'npm run external-agent-tool-runtime-status')
 assert.equal(staticStatus.safeAgentCommands.accountIndexed, undefined)
 assert.equal(
   staticStatus.safeAgentCommands.brollInferencePreflight,
   'npm run external-agent-tool-execute-broll-wan -- --inference-proof --preflight-only --json',
+)
+assert.equal(
+  staticStatus.safeAgentCommands.soundEvidenceReview,
+  'npm run external-agent-tool-execute-sound -- --execute --json',
+)
+assert.equal(
+  staticStatus.safeAgentCommands.supabaseHarnessEvidenceReview,
+  'npm run external-agent-tool-execute-supabase-harness -- --execute --json',
 )
 assert.equal(staticStatus.gcpAccessRepair.ok, true)
 assert.equal(staticStatus.gcpAccessRepair.mode, 'external_agent_gcp_access_repair_plan_only')
@@ -238,6 +256,14 @@ assert.equal(
   indexedStaticStatus.safeAgentCommands.accountIndexed.brollInferencePreflight,
   'npm run external-agent-tool-execute-broll-wan -- --inference-proof --preflight-only --json --account-index 2',
 )
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.soundEvidenceReview,
+  'npm run external-agent-tool-execute-sound -- --execute --json --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.supabaseHarnessEvidenceReview,
+  'npm run external-agent-tool-execute-supabase-harness -- --execute --json --account-index 2',
+)
 
 const invalidIndexedStaticStatus = runStatus(['--static-only', '--account-index', 'nope'])
 assert.equal(invalidIndexedStaticStatus.ok, true)
@@ -250,6 +276,7 @@ for (const tool of staticStatus.tools as Array<{
   toolId: string
   agentCallable: boolean
   runtimeExecutableNow: boolean
+  safeEvidenceReviewExecutableNow: boolean
   executionAllowedNow: boolean
   wrapperStaticGuardCommand: string
   executionCommand: string
@@ -258,6 +285,11 @@ for (const tool of staticStatus.tools as Array<{
   assert.equal(tool.agentCallable, true, `${tool.toolId} should be agent-callable`)
   assert.equal(tool.runtimeExecutableNow, false, `${tool.toolId} should not be runtime-executable in static mode`)
   assert.equal(tool.executionAllowedNow, false, `${tool.toolId} should not execute from static mode`)
+  assert.equal(
+    tool.safeEvidenceReviewExecutableNow,
+    tool.toolId === 'sound_music_audio' || tool.toolId === 'supabase_local_fixture_harness',
+    `${tool.toolId} safe evidence review flag mismatch`,
+  )
   assert.equal(typeof tool.wrapperStaticGuardCommand, 'string')
   assert.equal(typeof tool.executionCommand, 'string')
   assert.equal(typeof tool.confirmationEnv, 'string')
@@ -281,8 +313,18 @@ assert.equal(
   true,
 )
 assert.equal(
+  (staticToolsById.get('sound_music_audio') as { safeEvidenceReviewExecutableNow: boolean })
+    .safeEvidenceReviewExecutableNow,
+  true,
+)
+assert.equal(
   (staticToolsById.get('supabase_local_fixture_harness') as { supportingEvidenceOnly: boolean })
     .supportingEvidenceOnly,
+  true,
+)
+assert.equal(
+  (staticToolsById.get('supabase_local_fixture_harness') as { safeEvidenceReviewExecutableNow: boolean })
+    .safeEvidenceReviewExecutableNow,
   true,
 )
 
@@ -330,6 +372,12 @@ assert.equal(typeof liveStatus.decision, 'string')
 assert.equal(typeof liveStatus.readyForAnyExternalAgentRuntimeExecutionNow, 'boolean')
 assert.equal(Array.isArray(liveStatus.runtimeExecutableToolIds), true)
 assert.equal(liveStatus.agentCallableToolCount, 4)
+assert.equal(liveStatus.safeEvidenceReviewToolCount, 2)
+assert.deepEqual(liveStatus.safeEvidenceReviewToolIds, [
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(liveStatus.readyForAnyExternalAgentSafeEvidenceReviewNow, true)
 assert.equal(liveStatus.runtimeGatesAllFalse, true)
 assert.equal(typeof liveStatus.liveGate.ok, 'boolean')
 assert.equal(typeof liveStatus.liveGate.executionAllowedNow, 'boolean')

@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import { once } from 'node:events'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
+import path from 'node:path'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
 import {
@@ -45,6 +46,10 @@ const allowedCapabilityIds = [
 
 type ToolGroup = 'cpu_static' | 'browser_runtime' | 'gpu_model'
 type CapabilityId = typeof allowedCapabilityIds[number]
+type ExpectedExecutionState =
+  | 'executable'
+  | 'blocked_with_reason'
+  | 'failed_with_diagnostics'
 
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
@@ -63,8 +68,9 @@ function assert(condition: unknown, message: string): asserts condition {
 }
 
 function isLocalArtifactPath(filePath: string): boolean {
-  return filePath === '.local-artifacts' ||
-    filePath.startsWith('.local-artifacts/')
+  const normalized = filePath.replaceAll('\\', '/')
+  return normalized === '.local-artifacts' ||
+    normalized.startsWith('.local-artifacts/')
 }
 
 function groupForTool(toolId: string): ToolGroup {
@@ -96,6 +102,33 @@ function capabilityArg(): CapabilityId | undefined {
     `Unsupported --capability value: ${value}`,
   )
   return value as CapabilityId
+}
+
+function expectedStateArg(): ExpectedExecutionState | undefined {
+  const value = stringArg('--expect-state')
+  if (!value) return undefined
+  assert(
+    value === 'executable' ||
+      value === 'blocked_with_reason' ||
+      value === 'failed_with_diagnostics',
+    `Unsupported --expect-state value: ${value}`,
+  )
+  return value
+}
+
+function resultOutPath(): string | undefined {
+  const value = stringArg('--result-out')
+  if (!value) return undefined
+  assert(
+    isLocalArtifactPath(value),
+    '--result-out must stay under .local-artifacts/',
+  )
+  return value
+}
+
+function ensureParentDirectory(filePath: string): void {
+  const parent = path.dirname(filePath)
+  if (parent && parent !== '.') fs.mkdirSync(parent, { recursive: true })
 }
 
 function buildRuntimeEnv() {
@@ -317,6 +350,20 @@ async function buildReport() {
       privateArtifactManifestRef: request.privateArtifactManifestRef,
       payload: request.payload ?? {},
     },
+    agentCommandContract: {
+      expectedState: expectedStateArg() ?? null,
+      expectedBlockingReasonCode:
+        stringArg('--expect-blocking-reason') ?? null,
+      resultOut: resultOutPath() ?? null,
+      strictExitCodeRequested: hasFlag('--strict-exit-code'),
+      requireOutputHash: hasFlag('--require-output-hash'),
+      requirePrivateOnlyBoundary: hasFlag('--require-private-only-boundary'),
+      executableExitCode: 0,
+      blockedWithReasonExitCode: 2,
+      failedWithDiagnosticsExitCode: 3,
+      validationFailureExitCode: 1,
+      unknownResultExitCode: 4,
+    },
     response: {
       statusCode: response.statusCode,
       ok: response.body?.ok === true,
@@ -373,6 +420,52 @@ async function buildReport() {
   }
 }
 
+function validationFailures(report: Awaited<ReturnType<typeof buildReport>>): string[] {
+  const failures: string[] = []
+  const expectedState = expectedStateArg()
+  const expectedBlockingReasonCode = stringArg('--expect-blocking-reason')
+  const state = report.response.externalAgentExecutionState
+  if (expectedState && state !== expectedState) {
+    failures.push(`expected_state_mismatch:${expectedState}:${state}`)
+  }
+  if (
+    expectedBlockingReasonCode &&
+    report.response.blockingReasonCode !== expectedBlockingReasonCode
+  ) {
+    failures.push(
+      `expected_blocking_reason_mismatch:${expectedBlockingReasonCode}:${report.response.blockingReasonCode}`,
+    )
+  }
+  if (hasFlag('--require-output-hash')) {
+    const hash = report.response.outputSha256
+    if (typeof hash !== 'string' || !/^[a-f0-9]{64}$/.test(hash)) {
+      failures.push('required_output_hash_missing')
+    }
+  }
+  if (hasFlag('--require-private-only-boundary')) {
+    for (const key of [
+      'publicArtifactCreated',
+      'signedUrlCreated',
+      'runtimeReadyNow',
+      'externalBetaReadyNow',
+      'productionReadyNow',
+    ] as const) {
+      if (report.booleans[key] !== false) {
+        failures.push(`private_boundary_boolean_not_false:${key}`)
+      }
+    }
+  }
+  return failures
+}
+
+function strictExitCodeForReport(report: Awaited<ReturnType<typeof buildReport>>): number {
+  const state = report.response.externalAgentExecutionState
+  if (state === 'executable') return 0
+  if (state === 'blocked_with_reason') return 2
+  if (state === 'failed_with_diagnostics') return 3
+  return 4
+}
+
 function makeMarkdown(report: Awaited<ReturnType<typeof buildReport>>): string {
   return `# AI Graphics External Agent Single Tool Call
 
@@ -412,12 +505,35 @@ This caller starts the local API with only the scoped external-agent controlled 
 }
 
 async function main() {
+  assert(
+    !(hasFlag('--write-records') && resultOutPath()),
+    '--write-records cannot be combined with --result-out',
+  )
   const report = await buildReport()
   if (hasFlag('--write-records')) {
     fs.writeFileSync(outputJsonPath, `${JSON.stringify(report, null, 2)}\n`)
     fs.writeFileSync(outputMdPath, makeMarkdown(report))
   }
+  const localResultOut = resultOutPath()
+  if (localResultOut) {
+    ensureParentDirectory(localResultOut)
+    fs.writeFileSync(localResultOut, `${JSON.stringify(report, null, 2)}\n`)
+  }
   console.log(JSON.stringify(report, null, 2))
+  const failures = validationFailures(report)
+  if (failures.length) {
+    console.error(JSON.stringify({
+      ok: false,
+      decision,
+      failures,
+      executionState: report.response.externalAgentExecutionState,
+      blockingReasonCode: report.response.blockingReasonCode,
+    }, null, 2))
+    process.exit(1)
+  }
+  if (hasFlag('--strict-exit-code')) {
+    process.exit(strictExitCodeForReport(report))
+  }
 }
 
 main().catch((error) => {

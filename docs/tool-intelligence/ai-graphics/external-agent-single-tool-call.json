@@ -17,6 +17,19 @@
       "signedUrlCreated": false
     }
   },
+  "agentCommandContract": {
+    "expectedState": null,
+    "expectedBlockingReasonCode": null,
+    "resultOut": null,
+    "strictExitCodeRequested": false,
+    "requireOutputHash": false,
+    "requirePrivateOnlyBoundary": false,
+    "executableExitCode": 0,
+    "blockedWithReasonExitCode": 2,
+    "failedWithDiagnosticsExitCode": 3,
+    "validationFailureExitCode": 1,
+    "unknownResultExitCode": 4
+  },
   "response": {
     "statusCode": 200,
     "ok": true,

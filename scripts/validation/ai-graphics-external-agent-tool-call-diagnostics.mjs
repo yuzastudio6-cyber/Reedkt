@@ -98,6 +98,30 @@ function runToolCall(args) {
   return JSON.parse(exec(`npm run --silent ${runScriptName} -- ${args}`))
 }
 
+function spawnToolCall(args) {
+  const result = childProcess.spawnSync('npm', [
+    'run',
+    '--silent',
+    runScriptName,
+    '--',
+    ...args,
+  ], {
+    cwd: root,
+    env: {
+      ...process.env,
+      DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+    },
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: 80 * 1024 * 1024,
+  })
+  return {
+    status: result.status,
+    stdout: result.stdout,
+    stderr: result.stderr,
+  }
+}
+
 function checkNoBoundaryLeaks(label, report) {
   const booleans = report.booleans ?? {}
   for (const key of [
@@ -261,6 +285,19 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
   checkNoBoundaryLeaks(label, report)
 }
 
+function readLocalResult(filePath) {
+  if (!fs.existsSync(absolute(filePath))) {
+    fail(`missing_local_result:${filePath}`)
+    return {}
+  }
+  try {
+    return JSON.parse(fs.readFileSync(absolute(filePath), 'utf8'))
+  } catch (error) {
+    fail(`invalid_local_result:${filePath}:${error.message}`)
+    return {}
+  }
+}
+
 for (const file of requiredFiles) read(file)
 
 const packageJson = json('package.json')
@@ -298,6 +335,14 @@ for (const phrase of [
   canonicalGpuModelRuntimeContainerImage,
   'privateOutputOnly',
   'gpuRuntimeOnDemandOnly',
+  '--expect-state',
+  '--expect-blocking-reason',
+  '--result-out',
+  '--strict-exit-code',
+  '--require-output-hash',
+  '--require-private-only-boundary',
+  'strictExitCodeForReport',
+  'validationFailures',
 ]) {
   if (!cliSource.includes(phrase)) fail(`cli_missing:${phrase}`)
 }
@@ -355,6 +400,75 @@ if (
   '/tmp/reeditpro-missing-private-approved-frame.png'
 ) {
   fail('live_kornia_scoped_gpu_attempt_source_image_mismatch')
+}
+
+const localResultDir =
+  '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic'
+const localD3ResultPath = `${localResultDir}/d3-result.json`
+const localKorniaResultPath = `${localResultDir}/kornia-result.json`
+const d3ExpectedState = spawnToolCall([
+  '--tool',
+  'd3',
+  '--expect-state',
+  'executable',
+  '--require-output-hash',
+  '--require-private-only-boundary',
+  '--result-out',
+  localD3ResultPath,
+])
+if (d3ExpectedState.status !== 0) {
+  fail(`d3_expected_state_status:${d3ExpectedState.status}:${d3ExpectedState.stderr}`)
+}
+const localD3Result = readLocalResult(localD3ResultPath)
+checkExecutableCall('local_result_d3', localD3Result, 'd3', 'cpu_static')
+if (localD3Result.agentCommandContract?.resultOut !== localD3ResultPath) {
+  fail('local_result_d3_result_out_mismatch')
+}
+
+const korniaExpectedState = spawnToolCall([
+  '--tool',
+  'kornia',
+  '--expect-state',
+  'blocked_with_reason',
+  '--expect-blocking-reason',
+  'kornia_disabled_or_not_local_dev',
+  '--require-private-only-boundary',
+  '--result-out',
+  localKorniaResultPath,
+])
+if (korniaExpectedState.status !== 0) {
+  fail(`kornia_expected_state_status:${korniaExpectedState.status}:${korniaExpectedState.stderr}`)
+}
+const localKorniaResult = readLocalResult(localKorniaResultPath)
+checkGpuBlockedCall(
+  'local_result_kornia',
+  localKorniaResult,
+  'kornia_disabled_or_not_local_dev',
+)
+if (localKorniaResult.agentCommandContract?.resultOut !== localKorniaResultPath) {
+  fail('local_result_kornia_result_out_mismatch')
+}
+
+const korniaStrictExit = spawnToolCall([
+  '--tool',
+  'kornia',
+  '--strict-exit-code',
+])
+if (korniaStrictExit.status !== 2) {
+  fail(`kornia_strict_exit_code_mismatch:${korniaStrictExit.status}`)
+}
+
+const d3WrongExpectedState = spawnToolCall([
+  '--tool',
+  'd3',
+  '--expect-state',
+  'blocked_with_reason',
+])
+if (d3WrongExpectedState.status !== 1) {
+  fail(`d3_wrong_expected_state_status:${d3WrongExpectedState.status}`)
+}
+if (!d3WrongExpectedState.stderr.includes('expected_state_mismatch')) {
+  fail('d3_wrong_expected_state_missing_diagnostic')
 }
 
 const packageJsonDiff = exec('git diff -- package.json')

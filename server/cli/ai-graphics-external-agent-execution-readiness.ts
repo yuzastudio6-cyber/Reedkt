@@ -26,6 +26,12 @@ const canonicalGpuWorkerProofImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
 const canonicalGpuWorkerProofImageBuildCommand =
   `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${canonicalGpuWorkerProofImage} .`
+const gpuModelRuntimeInputManifestPath =
+  '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json'
+const gpuModelRuntimeInputManifestOutputDir =
+  '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>'
+const gpuModelRuntimeInputManifestSourceImage =
+  '<private-approved-frame.png>'
 
 type ReadinessState =
   | 'callable'
@@ -115,6 +121,16 @@ function sourceReport(pathFlag: string, defaultPath: string, command: string): J
 
 function gpuModelRequiresSourceImage(toolId: string): boolean {
   return !['torch_torchvision', 'transformers'].includes(toolId)
+}
+
+function gpuModelRequiresModelWeightManifest(toolId: string): boolean {
+  return [
+    'sam2',
+    'birefnet',
+    'real_esrgan',
+    'rembg',
+    'transparent_background',
+  ].includes(toolId)
 }
 
 function gpuModelAllowsCpuFoundationRuntime(toolId: string): boolean {
@@ -349,6 +365,78 @@ function controlledRouteGpuCommand(toolId: string): string {
   ].join(' ')
 }
 
+function gpuModelRuntimeInputManifestModelArgs(toolId: string): string[] {
+  if (toolId === 'sam2') {
+    return ['--sam2-checkpoint', '<private-sam2-checkpoint.pt>']
+  }
+  if (toolId === 'birefnet') {
+    return [
+      '--birefnet-model',
+      '<private-birefnet-model-dir-containing-model.safetensors>',
+    ]
+  }
+  if (toolId === 'real_esrgan') {
+    return [
+      '--real-esrgan-model',
+      '<private-real-esrgan-model-dir/RealESRGAN_x4plus.pth>',
+    ]
+  }
+  if (toolId === 'rembg') {
+    return ['--rembg-model', '<private-rembg-model.onnx>']
+  }
+  if (toolId === 'transparent_background') {
+    return [
+      '--transparent-background-checkpoint',
+      '<private-transparent-background-checkpoint.pth>',
+    ]
+  }
+  return []
+}
+
+function gpuModelRuntimeInputManifestMaterializerCommand(
+  toolId: string,
+): string | null {
+  if (!gpuModelRequiresModelWeightManifest(toolId)) return null
+  return [
+    'npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest --',
+    `--tool ${toolId}`,
+    `--source-image ${gpuModelRuntimeInputManifestSourceImage}`,
+    ...gpuModelRuntimeInputManifestModelArgs(toolId),
+    `--output-dir ${gpuModelRuntimeInputManifestOutputDir}`,
+    `--manifest-out ${gpuModelRuntimeInputManifestPath}`,
+    '--model-weight-manifest-id <reviewed-private-model-weight-manifest-id>',
+    `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
+    `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+    '--runtime-container-platform linux/amd64',
+  ].join(' ')
+}
+
+function gpuModelRuntimeInputManifestScopedToolCallCommand(
+  toolId: string,
+): string | null {
+  if (!gpuModelRequiresModelWeightManifest(toolId)) return null
+  return [
+    'npm run --silent ai-graphics:external-agent-tool-call --',
+    `--tool ${toolId}`,
+    '--attempt-gpu-runtime',
+    '--runtime-backend docker_container',
+    `--runtime-input-manifest ${gpuModelRuntimeInputManifestPath}`,
+  ].join(' ')
+}
+
+function gpuModelRuntimeInputManifestHarnessCommand(
+  toolId: string,
+): string | null {
+  if (!gpuModelRequiresModelWeightManifest(toolId)) return null
+  return [
+    'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness --',
+    '--attempt-local-runtime',
+    `--tool ${toolId}`,
+    `--runtime-input-manifest ${gpuModelRuntimeInputManifestPath}`,
+    `--result-out ${gpuModelRuntimeInputManifestOutputDir}/harness-result.json`,
+  ].join(' ')
+}
+
 function proofRefBridgeCommand(): string {
   return [
     'npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge --',
@@ -401,7 +489,7 @@ function gpuModelExecutionUnlockPlan(input: {
     minimumPrivateRuntimeInputKeys,
   } = input
 
-  return [
+  const steps: JsonRecord[] = [
     {
       step: 1,
       action: 'resolve_current_blocker',
@@ -412,8 +500,30 @@ function gpuModelExecutionUnlockPlan(input: {
       note:
         'Resolve this prerequisite with private local inputs only; missing private model/source files are blockers, not success.',
     },
+  ]
+
+  const runtimeInputManifestCommand =
+    gpuModelRuntimeInputManifestMaterializerCommand(toolId)
+  if (runtimeInputManifestCommand) {
+    steps.push({
+      step: steps.length + 1,
+      action: 'materialize_model_weight_runtime_input_manifest',
+      command: runtimeInputManifestCommand,
+      manifestOut: gpuModelRuntimeInputManifestPath,
+      outputDirectory: gpuModelRuntimeInputManifestOutputDir,
+      nextScopedToolCallCommand:
+        gpuModelRuntimeInputManifestScopedToolCallCommand(toolId),
+      nextHarnessCommand: gpuModelRuntimeInputManifestHarnessCommand(toolId),
+      requiresReviewedPrivateModelWeightManifest: true,
+      checksumComputedFromPrivateModelFile: true,
+      gpuStartsDuringManifestMaterialization: false,
+      privateOutputOnly: true,
+    })
+  }
+
+  steps.push(
     {
-      step: 2,
+      step: steps.length + 1,
       action: 'prepare_runtime_surface',
       preferredBackend: toolId === 'kornia'
         ? 'docker_container_cpu_tensor'
@@ -426,7 +536,7 @@ function gpuModelExecutionUnlockPlan(input: {
       gpuStartsIdle: false,
     },
     {
-      step: 3,
+      step: steps.length + 2,
       action: 'run_scoped_private_local_runtime_proof',
       hostPythonCommand: hostPythonGpuCommand(toolId),
       containerCommand: containerGpuCommand(toolId),
@@ -436,27 +546,29 @@ function gpuModelExecutionUnlockPlan(input: {
       privateOutputOnly: true,
     },
     {
-      step: 4,
+      step: steps.length + 3,
       action: 'bridge_private_runtime_proof_ref',
       command: proofRefBridgeCommand(),
       requiresLocalOnlyResult:
         '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
     },
     {
-      step: 5,
+      step: steps.length + 4,
       action: 'recompute_external_agent_readiness_with_private_proof',
       command: directReadinessWithPrivateProofCommand(),
       successCriteria:
         'Only this tool may move from blocked_with_reason to executable after structured private runtime output and proof-ref bridge acceptance.',
     },
     {
-      step: 6,
+      step: steps.length + 5,
       action: 'retry_controlled_route_with_accepted_private_proof',
       command: controlledRouteGpuCommand(toolId),
       productionStillBlocked: true,
       publicArtifactsStillBlocked: true,
     },
-  ]
+  )
+
+  return steps
 }
 
 function mergeGpuHarnessWithPrivateProof(
@@ -862,6 +974,20 @@ function buildToolRows(
         : null,
       nextExactControlledRouteCommand: group === 'gpu_model'
         ? controlledRouteGpuCommand(toolId)
+        : null,
+      nextExactRuntimeInputManifestMaterializerCommand: group === 'gpu_model'
+        ? gpuModelRuntimeInputManifestMaterializerCommand(toolId)
+        : null,
+      nextExactRuntimeInputManifestPath:
+        group === 'gpu_model' && gpuModelRequiresModelWeightManifest(toolId)
+          ? gpuModelRuntimeInputManifestPath
+          : null,
+      nextExactRuntimeInputManifestScopedToolCallCommand:
+        group === 'gpu_model'
+          ? gpuModelRuntimeInputManifestScopedToolCallCommand(toolId)
+          : null,
+      nextExactRuntimeInputManifestHarnessCommand: group === 'gpu_model'
+        ? gpuModelRuntimeInputManifestHarnessCommand(toolId)
         : null,
       nextExactProofRefBridgeCommand: group === 'gpu_model'
         ? proofRefBridgeCommand()
@@ -1418,6 +1544,12 @@ function makeMarkdown(report: ReturnType<typeof buildReport>): string {
       `| \`${row.toolId}\` | \`${row.group}\` | \`${row.packageRuntimeInstallProofPrimaryProfile ?? 'node_or_browser_lockfile'}\` | ${row.packageRuntimeInstallProofPresent} | \`${row.installReadinessState}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | ${row.controlledWorkerRouteEvidenceAccepted} | \`${row.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${row.remainingPrivateRuntimeInputKeys.length ? row.remainingPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.minimumPrivateRuntimeInputKeys.length ? row.minimumPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.nextExactCommand ?? 'none'}\` | \`${row.blockingPrerequisite ?? 'none'}\` |`
     ))
     .join('\n')
+  const runtimeInputManifestRows = report.toolReadinessRows
+    .filter((row) => row.nextExactRuntimeInputManifestMaterializerCommand)
+    .map((row) => (
+      `| \`${row.toolId}\` | \`${row.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${row.nextExactRuntimeInputManifestPath}\` | \`${row.nextExactRuntimeInputManifestMaterializerCommand}\` | \`${row.nextExactRuntimeInputManifestScopedToolCallCommand}\` |`
+    ))
+    .join('\n')
 
   return `# AI Graphics External Agent Execution Readiness
 
@@ -1447,6 +1579,14 @@ ${Object.entries(report.executionScope).map(([key, value]) => `- \`${key}\`: ${A
 | Tool | Group | Install proof profile | Install proof present | Install/runtime state | Readiness state | Callable | Executable | Worker-route evidence accepted | Current blocker | Remaining private runtime inputs | Minimum private runtime inputs | Next exact command | Blocking prerequisite |
 | --- | --- | --- | ---: | --- | --- | ---: | ---: | ---: | --- | --- | --- | --- | --- |
 ${rows}
+
+## Model-Weight Runtime Input Manifest Commands
+
+These commands are local-only preparation steps for the five GPU/model tools that require private model/checkpoint files. They compute checksum evidence from the supplied private model file and write a strict runtime input manifest under \`.local-artifacts/\`; they do not start GPU, run inference, download models, call providers, create signed URLs, or create public artifacts.
+
+| Tool | Current blocker | Manifest path | Manifest materializer command | Next scoped tool-call command |
+| --- | --- | --- | --- | --- |
+${runtimeInputManifestRows}
 
 ## Counts
 

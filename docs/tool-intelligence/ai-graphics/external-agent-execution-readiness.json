@@ -259,6 +259,10 @@
       "nextExactContainerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
       "nextExactContainerBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
       "nextExactControlledRouteCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool torch_torchvision --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision --scoped-gpu-allow-cpu-foundation-runtime",
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "executionUnlockPlan": [
         {
@@ -422,6 +426,10 @@
       "nextExactContainerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
       "nextExactContainerBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
       "nextExactControlledRouteCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transformers --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers --scoped-gpu-allow-cpu-foundation-runtime",
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "executionUnlockPlan": [
         {
@@ -594,6 +602,10 @@
       "nextExactContainerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt>",
       "nextExactContainerBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
       "nextExactControlledRouteCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-approved-frame.ppm --scoped-gpu-sam2-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-sam2-checkpoint.pt",
+      "nextExactRuntimeInputManifestMaterializerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool sam2 --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/sam2.json --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64",
+      "nextExactRuntimeInputManifestPath": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+      "nextExactRuntimeInputManifestScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool sam2 --attempt-gpu-runtime --runtime-backend docker_container --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+      "nextExactRuntimeInputManifestHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "nextExactProofRefBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "executionUnlockPlan": [
         {
@@ -618,6 +630,19 @@
         },
         {
           "step": 2,
+          "action": "materialize_model_weight_runtime_input_manifest",
+          "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool sam2 --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/sam2.json --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64",
+          "manifestOut": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+          "outputDirectory": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>",
+          "nextScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool sam2 --attempt-gpu-runtime --runtime-backend docker_container --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+          "nextHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
+          "requiresReviewedPrivateModelWeightManifest": true,
+          "checksumComputedFromPrivateModelFile": true,
+          "gpuStartsDuringManifestMaterialization": false,
+          "privateOutputOnly": true
+        },
+        {
+          "step": 3,
           "action": "prepare_runtime_surface",
           "preferredBackend": "native_cuda_host_or_cuda_container",
           "runtimePolicy": "Use an approved native CUDA host with reviewed private model/checkpoint and source-frame inputs.",
@@ -626,7 +651,7 @@
           "gpuStartsIdle": false
         },
         {
-          "step": 3,
+          "step": 4,
           "action": "run_scoped_private_local_runtime_proof",
           "hostPythonCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt>",
           "containerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt>",
@@ -634,19 +659,19 @@
           "privateOutputOnly": true
         },
         {
-          "step": 4,
+          "step": 5,
           "action": "bridge_private_runtime_proof_ref",
           "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
           "requiresLocalOnlyResult": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json"
         },
         {
-          "step": 5,
+          "step": 6,
           "action": "recompute_external_agent_readiness_with_private_proof",
           "command": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
           "successCriteria": "Only this tool may move from blocked_with_reason to executable after structured private runtime output and proof-ref bridge acceptance."
         },
         {
-          "step": 6,
+          "step": 7,
           "action": "retry_controlled_route_with_accepted_private_proof",
           "command": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-approved-frame.ppm --scoped-gpu-sam2-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-sam2-checkpoint.pt",
           "productionStillBlocked": true,
@@ -771,6 +796,10 @@
       "nextExactContainerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model>",
       "nextExactContainerBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
       "nextExactControlledRouteCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-approved-frame.ppm --scoped-gpu-birefnet-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-birefnet-model",
+      "nextExactRuntimeInputManifestMaterializerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool birefnet --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model-dir-containing-model.safetensors> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/birefnet.json --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64",
+      "nextExactRuntimeInputManifestPath": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+      "nextExactRuntimeInputManifestScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool birefnet --attempt-gpu-runtime --runtime-backend docker_container --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+      "nextExactRuntimeInputManifestHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool birefnet --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "nextExactProofRefBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "executionUnlockPlan": [
         {
@@ -795,6 +824,19 @@
         },
         {
           "step": 2,
+          "action": "materialize_model_weight_runtime_input_manifest",
+          "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool birefnet --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model-dir-containing-model.safetensors> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/birefnet.json --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64",
+          "manifestOut": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+          "outputDirectory": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>",
+          "nextScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool birefnet --attempt-gpu-runtime --runtime-backend docker_container --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+          "nextHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool birefnet --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
+          "requiresReviewedPrivateModelWeightManifest": true,
+          "checksumComputedFromPrivateModelFile": true,
+          "gpuStartsDuringManifestMaterialization": false,
+          "privateOutputOnly": true
+        },
+        {
+          "step": 3,
           "action": "prepare_runtime_surface",
           "preferredBackend": "native_cuda_host_or_cuda_container",
           "runtimePolicy": "Use an approved native CUDA host with reviewed private model/checkpoint and source-frame inputs.",
@@ -803,7 +845,7 @@
           "gpuStartsIdle": false
         },
         {
-          "step": 3,
+          "step": 4,
           "action": "run_scoped_private_local_runtime_proof",
           "hostPythonCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model>",
           "containerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model>",
@@ -811,19 +853,19 @@
           "privateOutputOnly": true
         },
         {
-          "step": 4,
+          "step": 5,
           "action": "bridge_private_runtime_proof_ref",
           "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
           "requiresLocalOnlyResult": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json"
         },
         {
-          "step": 5,
+          "step": 6,
           "action": "recompute_external_agent_readiness_with_private_proof",
           "command": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
           "successCriteria": "Only this tool may move from blocked_with_reason to executable after structured private runtime output and proof-ref bridge acceptance."
         },
         {
-          "step": 6,
+          "step": 7,
           "action": "retry_controlled_route_with_accepted_private_proof",
           "command": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-approved-frame.ppm --scoped-gpu-birefnet-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-birefnet-model",
           "productionStillBlocked": true,
@@ -948,6 +990,10 @@
       "nextExactContainerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth>",
       "nextExactContainerBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
       "nextExactControlledRouteCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-approved-frame.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-real-esrgan-model.pth",
+      "nextExactRuntimeInputManifestMaterializerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool real_esrgan --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model-dir/RealESRGAN_x4plus.pth> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/real_esrgan.json --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64",
+      "nextExactRuntimeInputManifestPath": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+      "nextExactRuntimeInputManifestScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool real_esrgan --attempt-gpu-runtime --runtime-backend docker_container --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+      "nextExactRuntimeInputManifestHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool real_esrgan --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "nextExactProofRefBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "executionUnlockPlan": [
         {
@@ -972,6 +1018,19 @@
         },
         {
           "step": 2,
+          "action": "materialize_model_weight_runtime_input_manifest",
+          "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool real_esrgan --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model-dir/RealESRGAN_x4plus.pth> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/real_esrgan.json --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64",
+          "manifestOut": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+          "outputDirectory": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>",
+          "nextScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool real_esrgan --attempt-gpu-runtime --runtime-backend docker_container --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+          "nextHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool real_esrgan --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
+          "requiresReviewedPrivateModelWeightManifest": true,
+          "checksumComputedFromPrivateModelFile": true,
+          "gpuStartsDuringManifestMaterialization": false,
+          "privateOutputOnly": true
+        },
+        {
+          "step": 3,
           "action": "prepare_runtime_surface",
           "preferredBackend": "native_cuda_host_or_cuda_container",
           "runtimePolicy": "Use an approved native CUDA host with reviewed private model/checkpoint and source-frame inputs.",
@@ -980,7 +1039,7 @@
           "gpuStartsIdle": false
         },
         {
-          "step": 3,
+          "step": 4,
           "action": "run_scoped_private_local_runtime_proof",
           "hostPythonCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth>",
           "containerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth>",
@@ -988,19 +1047,19 @@
           "privateOutputOnly": true
         },
         {
-          "step": 4,
+          "step": 5,
           "action": "bridge_private_runtime_proof_ref",
           "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
           "requiresLocalOnlyResult": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json"
         },
         {
-          "step": 5,
+          "step": 6,
           "action": "recompute_external_agent_readiness_with_private_proof",
           "command": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
           "successCriteria": "Only this tool may move from blocked_with_reason to executable after structured private runtime output and proof-ref bridge acceptance."
         },
         {
-          "step": 6,
+          "step": 7,
           "action": "retry_controlled_route_with_accepted_private_proof",
           "command": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-approved-frame.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-real-esrgan-model.pth",
           "productionStillBlocked": true,
@@ -1122,6 +1181,10 @@
       "nextExactContainerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-tensor-runtime --source-image <private-approved-frame.png>",
       "nextExactContainerBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
       "nextExactControlledRouteCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-allow-cpu-tensor-runtime --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm",
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "executionUnlockPlan": [
         {
@@ -1294,6 +1357,10 @@
       "nextExactContainerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx>",
       "nextExactContainerBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
       "nextExactControlledRouteCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool rembg --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg/private-approved-frame.ppm --scoped-gpu-rembg-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg/private-rembg-model.onnx",
+      "nextExactRuntimeInputManifestMaterializerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool rembg --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/rembg.json --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64",
+      "nextExactRuntimeInputManifestPath": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+      "nextExactRuntimeInputManifestScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool rembg --attempt-gpu-runtime --runtime-backend docker_container --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+      "nextExactRuntimeInputManifestHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool rembg --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "nextExactProofRefBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "executionUnlockPlan": [
         {
@@ -1318,6 +1385,19 @@
         },
         {
           "step": 2,
+          "action": "materialize_model_weight_runtime_input_manifest",
+          "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool rembg --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/rembg.json --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64",
+          "manifestOut": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+          "outputDirectory": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>",
+          "nextScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool rembg --attempt-gpu-runtime --runtime-backend docker_container --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+          "nextHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool rembg --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
+          "requiresReviewedPrivateModelWeightManifest": true,
+          "checksumComputedFromPrivateModelFile": true,
+          "gpuStartsDuringManifestMaterialization": false,
+          "privateOutputOnly": true
+        },
+        {
+          "step": 3,
           "action": "prepare_runtime_surface",
           "preferredBackend": "native_cuda_host_or_cuda_container",
           "runtimePolicy": "Use an approved native CUDA host with reviewed private model/checkpoint and source-frame inputs.",
@@ -1326,7 +1406,7 @@
           "gpuStartsIdle": false
         },
         {
-          "step": 3,
+          "step": 4,
           "action": "run_scoped_private_local_runtime_proof",
           "hostPythonCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx>",
           "containerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx>",
@@ -1334,19 +1414,19 @@
           "privateOutputOnly": true
         },
         {
-          "step": 4,
+          "step": 5,
           "action": "bridge_private_runtime_proof_ref",
           "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
           "requiresLocalOnlyResult": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json"
         },
         {
-          "step": 5,
+          "step": 6,
           "action": "recompute_external_agent_readiness_with_private_proof",
           "command": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
           "successCriteria": "Only this tool may move from blocked_with_reason to executable after structured private runtime output and proof-ref bridge acceptance."
         },
         {
-          "step": 6,
+          "step": 7,
           "action": "retry_controlled_route_with_accepted_private_proof",
           "command": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool rembg --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg/private-approved-frame.ppm --scoped-gpu-rembg-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg/private-rembg-model.onnx",
           "productionStillBlocked": true,
@@ -1470,6 +1550,10 @@
       "nextExactContainerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>",
       "nextExactContainerBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
       "nextExactControlledRouteCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transparent_background --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background/private-approved-frame.ppm --scoped-gpu-transparent-background-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background/private-transparent-background-checkpoint.pth",
+      "nextExactRuntimeInputManifestMaterializerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool transparent_background --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/transparent_background.json --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64",
+      "nextExactRuntimeInputManifestPath": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+      "nextExactRuntimeInputManifestScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool transparent_background --attempt-gpu-runtime --runtime-backend docker_container --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+      "nextExactRuntimeInputManifestHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool transparent_background --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "nextExactProofRefBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "executionUnlockPlan": [
         {
@@ -1494,6 +1578,19 @@
         },
         {
           "step": 2,
+          "action": "materialize_model_weight_runtime_input_manifest",
+          "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool transparent_background --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/transparent_background.json --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64",
+          "manifestOut": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+          "outputDirectory": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>",
+          "nextScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool transparent_background --attempt-gpu-runtime --runtime-backend docker_container --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
+          "nextHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool transparent_background --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
+          "requiresReviewedPrivateModelWeightManifest": true,
+          "checksumComputedFromPrivateModelFile": true,
+          "gpuStartsDuringManifestMaterialization": false,
+          "privateOutputOnly": true
+        },
+        {
+          "step": 3,
           "action": "prepare_runtime_surface",
           "preferredBackend": "native_cuda_host_or_cuda_container",
           "runtimePolicy": "Use an approved native CUDA host with reviewed private model/checkpoint and source-frame inputs.",
@@ -1502,7 +1599,7 @@
           "gpuStartsIdle": false
         },
         {
-          "step": 3,
+          "step": 4,
           "action": "run_scoped_private_local_runtime_proof",
           "hostPythonCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>",
           "containerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>",
@@ -1510,19 +1607,19 @@
           "privateOutputOnly": true
         },
         {
-          "step": 4,
+          "step": 5,
           "action": "bridge_private_runtime_proof_ref",
           "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
           "requiresLocalOnlyResult": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json"
         },
         {
-          "step": 5,
+          "step": 6,
           "action": "recompute_external_agent_readiness_with_private_proof",
           "command": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
           "successCriteria": "Only this tool may move from blocked_with_reason to executable after structured private runtime output and proof-ref bridge acceptance."
         },
         {
-          "step": 6,
+          "step": 7,
           "action": "retry_controlled_route_with_accepted_private_proof",
           "command": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transparent_background --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background/private-approved-frame.ppm --scoped-gpu-transparent-background-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background/private-transparent-background-checkpoint.pth",
           "productionStillBlocked": true,
@@ -1621,6 +1718,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,
@@ -1716,6 +1817,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,
@@ -1810,6 +1915,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,
@@ -1904,6 +2013,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,
@@ -1999,6 +2112,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,
@@ -2093,6 +2210,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,
@@ -2187,6 +2308,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,
@@ -2282,6 +2407,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,
@@ -2377,6 +2506,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,
@@ -2472,6 +2605,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,
@@ -2567,6 +2704,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,
@@ -2662,6 +2803,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,
@@ -2757,6 +2902,10 @@
       "nextExactContainerCommand": null,
       "nextExactContainerBuildCommand": null,
       "nextExactControlledRouteCommand": null,
+      "nextExactRuntimeInputManifestMaterializerCommand": null,
+      "nextExactRuntimeInputManifestPath": null,
+      "nextExactRuntimeInputManifestScopedToolCallCommand": null,
+      "nextExactRuntimeInputManifestHarnessCommand": null,
       "nextExactProofRefBridgeCommand": null,
       "executionUnlockPlan": [],
       "proofRefBridgeStatus": null,

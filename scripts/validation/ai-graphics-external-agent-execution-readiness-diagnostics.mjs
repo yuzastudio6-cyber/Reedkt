@@ -53,6 +53,13 @@ const gpuModelTools = [
 
 const gpuModelCpuFoundationTools = ['torch_torchvision', 'transformers']
 const gpuModelCpuTensorTools = ['kornia']
+const gpuModelWeightManifestTools = [
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+]
 const allTools = [...gpuModelTools, ...cpuStaticTools, ...browserRuntimeTools]
 const gpuModelInstallProofProfiles = {
   torch_torchvision: ['gpu_worker_ai_graphics', 'sam2', 'birefnet', 'real_esrgan'],
@@ -88,6 +95,7 @@ const scopedProofFixtureCases = [
 
 const requiredFiles = [
   'server/cli/ai-graphics-external-agent-execution-readiness.ts',
+  'server/cli/ai-graphics-external-agent-gpu-model-runtime-input-manifest.ts',
   'scripts/validation/ai-graphics-external-agent-execution-readiness-diagnostics.mjs',
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.json',
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.md',
@@ -532,6 +540,23 @@ function gpuModelRequiresSourceImage(toolId) {
 
 function gpuModelAllowsCpuFoundationRuntime(toolId) {
   return toolId === 'torch_torchvision' || toolId === 'transformers'
+}
+
+function gpuModelRequiresModelWeightManifest(toolId) {
+  return gpuModelWeightManifestTools.includes(toolId)
+}
+
+function expectedRuntimeInputManifestModelFlag(toolId) {
+  return {
+    sam2: '--sam2-checkpoint <private-sam2-checkpoint.pt>',
+    birefnet:
+      '--birefnet-model <private-birefnet-model-dir-containing-model.safetensors>',
+    real_esrgan:
+      '--real-esrgan-model <private-real-esrgan-model-dir/RealESRGAN_x4plus.pth>',
+    rembg: '--rembg-model <private-rembg-model.onnx>',
+    transparent_background:
+      '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
+  }[toolId] ?? null
 }
 
 function expectedMinimumPrivateRuntimeInputKeys(toolId) {
@@ -1006,6 +1031,50 @@ function checkReport(label, report) {
       if (!String(row.nextExactControlledRouteCommand ?? '').includes(`--scoped-gpu-tool ${toolId}`)) {
         fail(`${label}_${toolId}_controlled_route_command_not_tool_scoped`)
       }
+      if (gpuModelRequiresModelWeightManifest(toolId)) {
+        const manifestCommand =
+          String(row.nextExactRuntimeInputManifestMaterializerCommand ?? '')
+        const manifestPath =
+          '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json'
+        for (const fragment of [
+          'ai-graphics:external-agent-gpu-model-runtime-input-manifest',
+          `--tool ${toolId}`,
+          '--source-image <private-approved-frame.png>',
+          expectedRuntimeInputManifestModelFlag(toolId),
+          '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
+          `--manifest-out ${manifestPath}`,
+          '--model-weight-manifest-id <reviewed-private-model-weight-manifest-id>',
+          `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
+          '--runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
+          '--runtime-container-platform linux/amd64',
+        ]) {
+          if (!manifestCommand.includes(fragment)) {
+            fail(`${label}_${toolId}_runtime_input_manifest_command_missing:${fragment}`)
+          }
+        }
+        if (row.nextExactRuntimeInputManifestPath !== manifestPath) {
+          fail(`${label}_${toolId}_runtime_input_manifest_path_mismatch`)
+        }
+        if (
+          !String(row.nextExactRuntimeInputManifestScopedToolCallCommand ?? '')
+            .includes(`--runtime-input-manifest ${manifestPath}`)
+        ) {
+          fail(`${label}_${toolId}_runtime_input_manifest_tool_call_missing`)
+        }
+        if (
+          !String(row.nextExactRuntimeInputManifestHarnessCommand ?? '')
+            .includes(`--runtime-input-manifest ${manifestPath}`)
+        ) {
+          fail(`${label}_${toolId}_runtime_input_manifest_harness_missing`)
+        }
+      } else if (
+        row.nextExactRuntimeInputManifestMaterializerCommand !== null ||
+        row.nextExactRuntimeInputManifestPath !== null ||
+        row.nextExactRuntimeInputManifestScopedToolCallCommand !== null ||
+        row.nextExactRuntimeInputManifestHarnessCommand !== null
+      ) {
+        fail(`${label}_${toolId}_unexpected_runtime_input_manifest_command`)
+      }
       if (
         row.proofRefBridgeStatus !==
         'blocked_missing_private_local_runtime_proof_result'
@@ -1034,17 +1103,27 @@ function checkReport(label, report) {
       const unlockPlan = Array.isArray(row.executionUnlockPlan)
         ? row.executionUnlockPlan
         : []
-      if (unlockPlan.length !== 6) {
+      const expectedUnlockActions = gpuModelRequiresModelWeightManifest(toolId)
+        ? [
+            'resolve_current_blocker',
+            'materialize_model_weight_runtime_input_manifest',
+            'prepare_runtime_surface',
+            'run_scoped_private_local_runtime_proof',
+            'bridge_private_runtime_proof_ref',
+            'recompute_external_agent_readiness_with_private_proof',
+            'retry_controlled_route_with_accepted_private_proof',
+          ]
+        : [
+            'resolve_current_blocker',
+            'prepare_runtime_surface',
+            'run_scoped_private_local_runtime_proof',
+            'bridge_private_runtime_proof_ref',
+            'recompute_external_agent_readiness_with_private_proof',
+            'retry_controlled_route_with_accepted_private_proof',
+          ]
+      if (unlockPlan.length !== expectedUnlockActions.length) {
         fail(`${label}_${toolId}_unlock_plan_step_count_mismatch:${unlockPlan.length}`)
       }
-      const expectedUnlockActions = [
-        'resolve_current_blocker',
-        'prepare_runtime_surface',
-        'run_scoped_private_local_runtime_proof',
-        'bridge_private_runtime_proof_ref',
-        'recompute_external_agent_readiness_with_private_proof',
-        'retry_controlled_route_with_accepted_private_proof',
-      ]
       for (const [index, action] of expectedUnlockActions.entries()) {
         if (unlockPlan[index]?.action !== action) {
           fail(`${label}_${toolId}_unlock_plan_action_mismatch:${index}:${unlockPlan[index]?.action}`)
@@ -1056,35 +1135,71 @@ function checkReport(label, report) {
       if (unlockPlan[0]?.currentBlockingReasonCode !== row.currentBlockingReasonCode) {
         fail(`${label}_${toolId}_unlock_plan_current_reason_mismatch`)
       }
-      if (unlockPlan[1]?.buildCommand !== canonicalGpuWorkerProofImageBuildCommand) {
+      const materializeStep = unlockPlan.find(
+        (step) => step.action === 'materialize_model_weight_runtime_input_manifest',
+      )
+      if (gpuModelRequiresModelWeightManifest(toolId)) {
+        if (
+          !String(materializeStep?.command ?? '').includes(
+            'ai-graphics:external-agent-gpu-model-runtime-input-manifest',
+          )
+        ) {
+          fail(`${label}_${toolId}_unlock_plan_materializer_command_missing`)
+        }
+        if (
+          materializeStep?.gpuStartsDuringManifestMaterialization !== false ||
+          materializeStep?.privateOutputOnly !== true ||
+          materializeStep?.requiresReviewedPrivateModelWeightManifest !== true
+        ) {
+          fail(`${label}_${toolId}_unlock_plan_materializer_boundary_mismatch`)
+        }
+      } else if (materializeStep) {
+        fail(`${label}_${toolId}_unexpected_unlock_plan_materializer_step`)
+      }
+      const prepareStep = unlockPlan.find(
+        (step) => step.action === 'prepare_runtime_surface',
+      )
+      const runtimeProofStep = unlockPlan.find(
+        (step) => step.action === 'run_scoped_private_local_runtime_proof',
+      )
+      const proofRefBridgeStep = unlockPlan.find(
+        (step) => step.action === 'bridge_private_runtime_proof_ref',
+      )
+      const readinessStep = unlockPlan.find(
+        (step) => step.action === 'recompute_external_agent_readiness_with_private_proof',
+      )
+      const retryStep = unlockPlan.find(
+        (step) => step.action === 'retry_controlled_route_with_accepted_private_proof',
+      )
+      if (prepareStep?.buildCommand !== canonicalGpuWorkerProofImageBuildCommand) {
         fail(`${label}_${toolId}_unlock_plan_build_command_mismatch`)
       }
-      if (unlockPlan[1]?.gpuStartsDuringBuild !== false ||
-        unlockPlan[1]?.gpuStartsIdle !== false) {
+      if (prepareStep?.gpuStartsDuringBuild !== false ||
+        prepareStep?.gpuStartsIdle !== false) {
         fail(`${label}_${toolId}_unlock_plan_gpu_idle_policy_mismatch`)
       }
-      if (!String(unlockPlan[2]?.hostPythonCommand ?? '').includes(`--tool ${toolId}`)) {
+      if (!String(runtimeProofStep?.hostPythonCommand ?? '').includes(`--tool ${toolId}`)) {
         fail(`${label}_${toolId}_unlock_plan_host_command_not_tool_scoped`)
       }
-      if (!String(unlockPlan[2]?.containerCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
+      if (!String(runtimeProofStep?.containerCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
         fail(`${label}_${toolId}_unlock_plan_container_command_not_canonical_image`)
       }
       if (toolId === 'kornia' &&
-        !String(unlockPlan[2]?.containerCommand ?? '').includes('--allow-cpu-tensor-runtime')) {
+        !String(runtimeProofStep?.containerCommand ?? '').includes('--allow-cpu-tensor-runtime')) {
         fail(`${label}_${toolId}_unlock_plan_kornia_missing_cpu_tensor_flag`)
       }
       if (gpuModelCpuFoundationTools.includes(toolId) &&
-        !String(unlockPlan[2]?.hostPythonCommand ?? '').includes('--allow-cpu-foundation-runtime')) {
+        !String(runtimeProofStep?.hostPythonCommand ?? '').includes('--allow-cpu-foundation-runtime')) {
         fail(`${label}_${toolId}_unlock_plan_foundation_missing_cpu_flag`)
       }
-      if (!String(unlockPlan[3]?.command ?? '').includes('--local-runtime-proof-result')) {
+      if (!String(proofRefBridgeStep?.command ?? '').includes('--local-runtime-proof-result')) {
         fail(`${label}_${toolId}_unlock_plan_bridge_missing_private_result`)
       }
-      if (!String(unlockPlan[4]?.command ?? '').includes('ai-graphics:external-agent-execution-readiness')) {
+      if (!String(readinessStep?.command ?? '').includes('ai-graphics:external-agent-execution-readiness')) {
         fail(`${label}_${toolId}_unlock_plan_readiness_command_missing`)
       }
-      if (unlockPlan[5]?.productionStillBlocked !== true ||
-        unlockPlan[5]?.publicArtifactsStillBlocked !== true) {
+      if (retryStep?.productionStillBlocked !== true ||
+        retryStep?.publicArtifactsStillBlocked !== true) {
         fail(`${label}_${toolId}_unlock_plan_production_or_public_artifact_not_blocked`)
       }
       for (const flag of expectedControlledRouteFlags(toolId)) {

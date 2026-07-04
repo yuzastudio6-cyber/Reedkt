@@ -49,7 +49,17 @@ def main() -> None:
     rgb = np.asarray(image, dtype=np.float32) / 255.0
     tensor = torch.from_numpy(rgb).permute(2, 0, 1).unsqueeze(0).to(device)
     grayscale = kornia.color.rgb_to_grayscale(tensor)
-    blurred = kornia.filters.gaussian_blur2d(tensor, (5, 5), (1.5, 1.5))
+    min_dimension = min(image.size[0], image.size[1])
+    gaussian_kernel = 5 if min_dimension >= 5 else 3 if min_dimension >= 3 else 1
+    if gaussian_kernel > 1:
+        sigma = 1.5 if gaussian_kernel == 5 else 1.0
+        blurred = kornia.filters.gaussian_blur2d(
+            tensor,
+            (gaussian_kernel, gaussian_kernel),
+            (sigma, sigma),
+        )
+    else:
+        blurred = tensor
     edges = kornia.filters.sobel(grayscale)
 
     edge_tensor = edges.detach().cpu().squeeze(0).squeeze(0).clamp(0, 1)
@@ -89,6 +99,7 @@ def main() -> None:
         "metrics": {
             "mseAfterGaussianBlur": mse,
             "psnrAfterGaussianBlur": psnr,
+            "gaussianKernel": gaussian_kernel,
         },
         "warnings": ["Kornia ran bounded tensor/image operations only; no model inference or download was performed."],
     }

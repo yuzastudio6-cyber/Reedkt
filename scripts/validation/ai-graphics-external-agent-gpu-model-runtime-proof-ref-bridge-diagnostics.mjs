@@ -1,4 +1,5 @@
 import childProcess from 'node:child_process'
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -8,6 +9,8 @@ const decision =
   'ai_graphics_external_agent_gpu_model_runtime_proof_ref_bridge_prepared_with_runtime_blocks'
 const status =
   'gpu_model_runtime_proof_ref_bridge_blocked_until_private_local_runtime_proof_is_supplied'
+const acceptedStatus =
+  'gpu_model_runtime_proof_ref_bridge_accepts_private_local_runtime_proof_for_scoped_route_submission'
 const runScriptName =
   'ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge'
 const runScriptCommand =
@@ -206,15 +209,41 @@ function execFileJson(command, args) {
 }
 
 function createScopedKorniaPrivateProofFixture() {
+  const fixtureRoot = path.join(
+    root,
+    '.local-artifacts',
+    'ai-graphics',
+    'gpu-model-local-dev-runtime',
+  )
+  fs.mkdirSync(fixtureRoot, { recursive: true })
   const tempDir = fs.mkdtempSync(
-    path.join(os.tmpdir(), 'reeditpro-kornia-private-proof-'),
+    path.join(fixtureRoot, 'diagnostic-kornia-private-proof-'),
   )
   const outputJsonPath = path.join(tempDir, 'kornia-runtime-result.json')
+  const maskPath = path.join(tempDir, 'private-kornia-mask.pgm')
+  fs.writeFileSync(maskPath, 'P2\n1 1\n255\n255\n')
   fs.writeFileSync(outputJsonPath, `${JSON.stringify({
+    ok: true,
     toolId: 'kornia',
-    runtimeExecuted: true,
-    privateLocalProofFixture: true,
+    cudaAvailable: false,
+    deviceType: 'cpu',
+    cpuTensorRuntimeAllowed: true,
+    runtime: {
+      modelDownloadedExternally: false,
+      providerRuntimePerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+    mask: {
+      path: maskPath,
+    },
+    metrics: {
+      gaussianKernel: 1,
+    },
   }, null, 2)}\n`)
+  const outputJsonSha256 = createHash('sha256')
+    .update(fs.readFileSync(outputJsonPath))
+    .digest('hex')
 
   const source = json(
     'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json',
@@ -251,8 +280,8 @@ function createScopedKorniaPrivateProofFixture() {
       harnessMode: 'local_dev_runtime_attempt_requested',
       localRuntimeExecutionPerformed: true,
       toolExecutionApprovedNow: true,
-      gpuRuntimeApprovedForScopedControlledToolCall: true,
-      gpuRuntimeShouldStartNow: true,
+      gpuRuntimeApprovedForScopedControlledToolCall: false,
+      gpuRuntimeShouldStartNow: false,
       publicArtifactCreated: false,
       signedUrlCreated: false,
       runtimeReadyNow: false,
@@ -261,6 +290,9 @@ function createScopedKorniaPrivateProofFixture() {
       skipReasonCode: null,
       errorMessage: null,
       outputJsonPath,
+      outputJsonSha256,
+      allowCpuTensorRuntime: true,
+      allowCpuFoundationRuntime: false,
       localInputRequirements: [
         {
           key: 'outputDirectory',
@@ -277,11 +309,11 @@ function createScopedKorniaPrivateProofFixture() {
             'Private local representative image/frame selected from an approved plan.',
         },
         {
-          key: 'nativeCudaRuntime',
+          key: 'pythonCpuTensorRuntime',
           requiredForDefaultHarness: false,
           requiredForActualExecution: true,
           description:
-            'Approved CUDA runtime for bounded tensor/image operations; no model weight required.',
+            'Approved local Python CPU tensor runtime with torch, PIL, numpy, and kornia; no model weight required.',
         },
       ],
       warnings: [
@@ -537,23 +569,23 @@ const scopedBridge = execFileJson('npm', [
   '--local-runtime-proof-result',
   scopedKorniaProofPath,
 ])
-if (scopedBridge.status !== 'gpu_model_runtime_proof_ref_bridge_blocked_until_private_local_runtime_proof_is_supplied') {
+if (scopedBridge.status !== acceptedStatus) {
   fail(`synthetic_scoped_bridge_status_mismatch:${scopedBridge.status}`)
 }
 if (scopedBridge.counts?.privateLocalRuntimeProofResultSuppliedTools !== 1) {
   fail('synthetic_scoped_bridge_supplied_count_not_one')
 }
-if (scopedBridge.counts?.acceptedPrivateLocalRuntimeProofTools !== 0) {
-  fail('synthetic_scoped_bridge_accepted_count_not_zero')
+if (scopedBridge.counts?.acceptedPrivateLocalRuntimeProofTools !== 1) {
+  fail('synthetic_scoped_bridge_accepted_count_not_one')
 }
-if (scopedBridge.counts?.routeSubmissionReadyWithAcceptedPrivateProofTools !== 0) {
-  fail('synthetic_scoped_bridge_route_ready_count_not_zero')
+if (scopedBridge.counts?.routeSubmissionReadyWithAcceptedPrivateProofTools !== 1) {
+  fail('synthetic_scoped_bridge_route_ready_count_not_one')
 }
 if (scopedBridge.counts?.blockedMissingPrivateLocalRuntimeProofResultTools !== 7) {
   fail('synthetic_scoped_bridge_remaining_blocked_count_not_seven')
 }
-if (scopedBridge.counts?.blockedPrivateLocalRuntimeOutputMissingTools !== 1) {
-  fail('synthetic_scoped_bridge_output_missing_count_not_one')
+if (scopedBridge.counts?.blockedPrivateLocalRuntimeOutputMissingTools !== 0) {
+  fail('synthetic_scoped_bridge_output_missing_count_not_zero')
 }
 const scopedBridgeRows = Array.isArray(scopedBridge.gpuModelRuntimeProofRefBridgeRows)
   ? scopedBridge.gpuModelRuntimeProofRefBridgeRows
@@ -562,28 +594,27 @@ const scopedKorniaRow = scopedBridgeRows.find((row) => row.toolId === 'kornia')
 if (!scopedKorniaRow) {
   fail('synthetic_scoped_bridge_missing_kornia_row')
 } else {
-  if (scopedKorniaRow.localRuntimeProofAccepted !== false) {
-    fail('synthetic_scoped_bridge_kornia_accepted')
+  if (scopedKorniaRow.localRuntimeProofAccepted !== true) {
+    fail('synthetic_scoped_bridge_kornia_not_accepted')
   }
-  if (scopedKorniaRow.routeSubmissionReadyWithAcceptedPrivateProof !== false) {
-    fail('synthetic_scoped_bridge_kornia_route_ready')
+  if (scopedKorniaRow.routeSubmissionReadyWithAcceptedPrivateProof !== true) {
+    fail('synthetic_scoped_bridge_kornia_route_not_ready')
   }
   if (
     scopedKorniaRow.proofRefBridgeStatus !==
-    'blocked_private_local_runtime_output_missing'
+    'accepted_private_local_runtime_proof_ready_for_proof_ref_route_submission'
   ) {
     fail(`synthetic_scoped_bridge_kornia_status:${scopedKorniaRow.proofRefBridgeStatus}`)
   }
   if (
     scopedKorniaRow.localProofEvidenceObserved
-      ?.privateOutputJsonAccepted !== false
+      ?.privateOutputJsonAccepted !== true
   ) {
-    fail('synthetic_scoped_bridge_kornia_output_json_accepted')
+    fail('synthetic_scoped_bridge_kornia_output_json_not_accepted')
   }
   if (
     scopedKorniaRow.localProofEvidenceObserved
-      ?.privateOutputJsonRejectionReason !==
-    'private_output_json_outside_local_artifacts_gpu_model_runtime_namespace'
+      ?.privateOutputJsonRejectionReason !== null
   ) {
     fail(`synthetic_scoped_bridge_kornia_output_rejection:${scopedKorniaRow.localProofEvidenceObserved?.privateOutputJsonRejectionReason}`)
   }

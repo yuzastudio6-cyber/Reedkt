@@ -351,7 +351,7 @@
         "executionState": "executable",
         "localRuntimeExecutionPerformed": true,
         "toolExecutionApprovedNow": true,
-        "gpuRuntimeShouldStartNowDuringScopedProof": true,
+        "gpuRuntimeShouldStartNowDuringScopedProof": false,
         "publicArtifactCreated": false,
         "signedUrlCreated": false,
         "runtimeReadyNow": false,

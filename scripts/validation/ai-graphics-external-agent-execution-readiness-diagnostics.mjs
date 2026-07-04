@@ -1,4 +1,5 @@
 import childProcess from 'node:child_process'
+import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -49,6 +50,9 @@ const gpuModelTools = [
   'rembg',
   'transparent_background',
 ]
+
+const gpuModelCpuFoundationTools = ['torch_torchvision', 'transformers']
+const gpuModelCpuTensorTools = ['kornia']
 const allTools = [...gpuModelTools, ...cpuStaticTools, ...browserRuntimeTools]
 
 const requiredFiles = [
@@ -141,15 +145,41 @@ function execFileJson(command, args) {
 }
 
 function createScopedKorniaPrivateProofFixture() {
+  const fixtureRoot = path.join(
+    root,
+    '.local-artifacts',
+    'ai-graphics',
+    'gpu-model-local-dev-runtime',
+  )
+  fs.mkdirSync(fixtureRoot, { recursive: true })
   const tempDir = fs.mkdtempSync(
-    path.join(os.tmpdir(), 'reeditpro-kornia-readiness-proof-'),
+    path.join(fixtureRoot, 'diagnostic-kornia-readiness-proof-'),
   )
   const outputJsonPath = path.join(tempDir, 'kornia-runtime-result.json')
+  const maskPath = path.join(tempDir, 'private-kornia-mask.pgm')
+  fs.writeFileSync(maskPath, 'P2\n1 1\n255\n255\n')
   fs.writeFileSync(outputJsonPath, `${JSON.stringify({
+    ok: true,
     toolId: 'kornia',
-    runtimeExecuted: true,
-    privateLocalProofFixture: true,
+    cudaAvailable: false,
+    deviceType: 'cpu',
+    cpuTensorRuntimeAllowed: true,
+    runtime: {
+      modelDownloadedExternally: false,
+      providerRuntimePerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+    mask: {
+      path: maskPath,
+    },
+    metrics: {
+      gaussianKernel: 1,
+    },
   }, null, 2)}\n`)
+  const outputJsonSha256 = createHash('sha256')
+    .update(fs.readFileSync(outputJsonPath))
+    .digest('hex')
 
   const source = json(
     'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json',
@@ -186,8 +216,8 @@ function createScopedKorniaPrivateProofFixture() {
       harnessMode: 'local_dev_runtime_attempt_requested',
       localRuntimeExecutionPerformed: true,
       toolExecutionApprovedNow: true,
-      gpuRuntimeApprovedForScopedControlledToolCall: true,
-      gpuRuntimeShouldStartNow: true,
+      gpuRuntimeApprovedForScopedControlledToolCall: false,
+      gpuRuntimeShouldStartNow: false,
       publicArtifactCreated: false,
       signedUrlCreated: false,
       runtimeReadyNow: false,
@@ -196,6 +226,9 @@ function createScopedKorniaPrivateProofFixture() {
       skipReasonCode: null,
       errorMessage: null,
       outputJsonPath,
+      outputJsonSha256,
+      allowCpuTensorRuntime: true,
+      allowCpuFoundationRuntime: false,
       localInputRequirements: [
         {
           key: 'outputDirectory',
@@ -212,11 +245,11 @@ function createScopedKorniaPrivateProofFixture() {
             'Private local representative image/frame selected from an approved plan.',
         },
         {
-          key: 'nativeCudaRuntime',
+          key: 'pythonCpuTensorRuntime',
           requiredForDefaultHarness: false,
           requiredForActualExecution: true,
           description:
-            'Approved CUDA runtime for bounded tensor/image operations; no model weight required.',
+            'Approved local Python CPU tensor runtime with torch, PIL, numpy, and kornia; no model weight required.',
         },
       ],
       warnings: [
@@ -265,6 +298,26 @@ function expectedGroup(toolId) {
   return null
 }
 
+function expectedGpuInstallReadinessState(toolId) {
+  if (gpuModelCpuFoundationTools.includes(toolId)) {
+    return 'install_target_prepared_runtime_blocked_pending_cpu_foundation_private_inputs'
+  }
+  if (gpuModelCpuTensorTools.includes(toolId)) {
+    return 'install_target_prepared_runtime_blocked_pending_cpu_tensor_private_inputs'
+  }
+  return 'install_target_prepared_runtime_blocked_pending_cuda_private_inputs'
+}
+
+function expectedGpuRuntimeBlocker(toolId) {
+  if (gpuModelCpuFoundationTools.includes(toolId)) {
+    return 'approved local Python CPU foundation runtime'
+  }
+  if (gpuModelCpuTensorTools.includes(toolId)) {
+    return 'approved local Python CPU tensor runtime'
+  }
+  return 'approved native CUDA host'
+}
+
 function gpuModelRequiresSourceImage(toolId) {
   return !['torch_torchvision', 'transformers'].includes(toolId)
 }
@@ -276,7 +329,9 @@ function gpuModelAllowsCpuFoundationRuntime(toolId) {
 function expectedMinimumPrivateRuntimeInputKeys(toolId) {
   const keys = [
     'outputDirectory',
-    gpuModelAllowsCpuFoundationRuntime(toolId)
+    toolId === 'kornia'
+      ? 'pythonCpuTensorRuntime'
+      : gpuModelAllowsCpuFoundationRuntime(toolId)
       ? 'pythonCpuFoundationRuntime'
       : 'nativeCudaRuntime',
   ]
@@ -306,6 +361,7 @@ function expectedCurrentBlockingPrerequisiteKey(toolId) {
 
 function expectedHostRuntimeFlags(toolId) {
   const flags = [`--tool ${toolId}`, '--output-dir']
+  if (toolId === 'kornia') flags.push('--allow-cpu-tensor-runtime')
   if (gpuModelRequiresSourceImage(toolId)) flags.push('--source-image')
   if (toolId === 'sam2') flags.push('--sam2-checkpoint')
   if (toolId === 'birefnet') flags.push('--birefnet-model')
@@ -324,6 +380,7 @@ function expectedControlledRouteFlags(toolId) {
     '--scoped-gpu-runtime-container-platform',
     '--scoped-gpu-output-dir',
   ]
+  if (toolId === 'kornia') flags.push('--scoped-gpu-allow-cpu-tensor-runtime')
   if (gpuModelRequiresSourceImage(toolId)) flags.push('--scoped-gpu-source-image')
   if (toolId === 'sam2') flags.push('--scoped-gpu-sam2-checkpoint')
   if (toolId === 'birefnet') flags.push('--scoped-gpu-birefnet-model')
@@ -547,14 +604,14 @@ function checkReport(label, report) {
       if (row.controlledExecutionRuntimePresentNow !== false) {
         fail(`${label}_${toolId}_gpu_controlled_runtime_present`)
       }
-      if (
-        row.installReadinessState !==
-        'install_target_prepared_runtime_blocked_pending_cuda_private_inputs'
-      ) {
+      const expectedInstallReadinessState =
+        expectedGpuInstallReadinessState(toolId)
+      if (row.installReadinessState !== expectedInstallReadinessState) {
         fail(`${label}_${toolId}_gpu_install_state_mismatch:${row.installReadinessState}`)
       }
-      if (!String(row.blockingPrerequisite ?? '').includes('approved native CUDA host')) {
-        fail(`${label}_${toolId}_missing_cuda_blocker`)
+      const expectedRuntimeBlocker = expectedGpuRuntimeBlocker(toolId)
+      if (!String(row.blockingPrerequisite ?? '').includes(expectedRuntimeBlocker)) {
+        fail(`${label}_${toolId}_missing_runtime_blocker:${expectedRuntimeBlocker}`)
       }
       if (!String(row.nextExactCommand ?? '').includes('--attempt-local-runtime')) {
         fail(`${label}_${toolId}_missing_gpu_next_command`)
@@ -1083,9 +1140,9 @@ if (docs.fastestGpuModelUnlockCandidate?.toolId !== 'kornia') {
 }
 if (
   docs.fastestGpuModelUnlockCandidate?.expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached !==
-  'gpu_model_runtime_container_gpu_unavailable'
+  'gpu_model_python_package_missing'
 ) {
-  fail('fastest_gpu_unlock_candidate_missing_expected_gpu_unavailable_blocker')
+  fail('fastest_gpu_unlock_candidate_missing_expected_python_package_blocker')
 }
 if (
   !String(docs.fastestGpuModelUnlockCandidate?.nextExactCommand ?? '').includes(
@@ -1156,6 +1213,7 @@ for (const flag of [
   '--scoped-gpu-tool kornia',
   '--scoped-gpu-runtime-container-image',
   '--scoped-gpu-runtime-container-platform',
+  '--scoped-gpu-allow-cpu-tensor-runtime',
   '--scoped-gpu-output-dir',
   '--scoped-gpu-source-image',
 ]) {
@@ -1182,26 +1240,26 @@ const liveWithPrivateProof = execFileJson('npm', [
   '--local-runtime-proof-result',
   scopedKorniaProofPath,
 ])
-if (liveWithPrivateProof.status !== status) {
+if (liveWithPrivateProof.status !== privateProofStatus) {
   fail(`synthetic_private_proof_status_mismatch:${liveWithPrivateProof.status}`)
 }
-if (liveWithPrivateProof.counts?.agentExecutableTools !== 13) {
+if (liveWithPrivateProof.counts?.agentExecutableTools !== 14) {
   fail(`synthetic_private_proof_executable_count_mismatch:${liveWithPrivateProof.counts?.agentExecutableTools}`)
 }
-if (liveWithPrivateProof.counts?.gpuToolsWithValidRuntimeProof !== 0) {
-  fail('synthetic_private_proof_gpu_valid_count_not_zero')
+if (liveWithPrivateProof.counts?.gpuToolsWithValidRuntimeProof !== 1) {
+  fail('synthetic_private_proof_gpu_valid_count_not_one')
 }
-if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeAcceptedTools !== 0) {
-  fail('synthetic_private_proof_bridge_accepted_count_not_zero')
+if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeAcceptedTools !== 1) {
+  fail('synthetic_private_proof_bridge_accepted_count_not_one')
 }
-if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeBlockedTools !== 8) {
-  fail('synthetic_private_proof_bridge_blocked_count_not_eight')
+if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeBlockedTools !== 7) {
+  fail('synthetic_private_proof_bridge_blocked_count_not_seven')
 }
 if (liveWithPrivateProof.counts?.blockedWithReasonTools !== 7) {
   fail('synthetic_private_proof_blocked_count_not_seven')
 }
-if (liveWithPrivateProof.counts?.failedWithDiagnosticsTools !== 1) {
-  fail('synthetic_private_proof_failed_count_not_one')
+if (liveWithPrivateProof.counts?.failedWithDiagnosticsTools !== 0) {
+  fail('synthetic_private_proof_failed_count_not_zero')
 }
 if (liveWithPrivateProof.counts?.gpuRuntimeShouldStartNowTools !== 0) {
   fail('synthetic_private_proof_readiness_started_gpu')
@@ -1209,11 +1267,11 @@ if (liveWithPrivateProof.counts?.gpuRuntimeShouldStartNowTools !== 0) {
 if (liveWithPrivateProof.booleans?.privateLocalRuntimeProofResultSupplied !== true) {
   fail('synthetic_private_proof_result_not_marked_supplied')
 }
-if (liveWithPrivateProof.booleans?.agentCanExecuteGpuModelToolsNow !== false) {
-  fail('synthetic_private_proof_gpu_tools_marked_executable')
+if (liveWithPrivateProof.booleans?.agentCanExecuteGpuModelToolsNow !== true) {
+  fail('synthetic_private_proof_gpu_tools_not_marked_executable')
 }
-if (liveWithPrivateProof.booleans?.toolExecutionApprovedForGpuModelToolsNow !== false) {
-  fail('synthetic_private_proof_gpu_tool_execution_marked_approved')
+if (liveWithPrivateProof.booleans?.toolExecutionApprovedForGpuModelToolsNow !== true) {
+  fail('synthetic_private_proof_gpu_tool_execution_not_marked_approved')
 }
 if (liveWithPrivateProof.booleans?.agentCanExecuteAll21ToolsNow !== false) {
   fail('synthetic_private_proof_claims_all21_executable')
@@ -1228,33 +1286,29 @@ const privateProofKornia = privateProofRows.find((row) => row.toolId === 'kornia
 if (!privateProofKornia) {
   fail('synthetic_private_proof_missing_kornia_row')
 } else {
-  if (privateProofKornia.readinessState !== 'failed_with_diagnostics') {
-    fail(`synthetic_private_proof_kornia_not_failed:${privateProofKornia.readinessState}`)
+  if (privateProofKornia.readinessState !== 'executable') {
+    fail(`synthetic_private_proof_kornia_not_executable:${privateProofKornia.readinessState}`)
   }
-  if (privateProofKornia.executable !== false) {
-    fail('synthetic_private_proof_kornia_executable_true')
+  if (privateProofKornia.executable !== true) {
+    fail('synthetic_private_proof_kornia_executable_false')
   }
-  if (privateProofKornia.routeSubmissionReadyWithAcceptedPrivateProof !== false) {
-    fail('synthetic_private_proof_kornia_route_submission_ready')
+  if (privateProofKornia.routeSubmissionReadyWithAcceptedPrivateProof !== true) {
+    fail('synthetic_private_proof_kornia_route_submission_not_ready')
   }
   if (
     privateProofKornia.proofRefBridgeStatus !==
-    'blocked_private_local_runtime_output_missing'
+    'accepted_private_local_runtime_proof_ready_for_proof_ref_route_submission'
   ) {
     fail(`synthetic_private_proof_kornia_bridge_status:${privateProofKornia.proofRefBridgeStatus}`)
   }
-  if (
-    !String(privateProofKornia.blockingPrerequisite ?? '').includes(
-      'proof bridge status: blocked_private_local_runtime_output_missing',
-    )
-  ) {
-    fail('synthetic_private_proof_kornia_missing_bridge_blocker')
+  if (privateProofKornia.blockingPrerequisite !== null) {
+    fail(`synthetic_private_proof_kornia_unexpected_blocker:${privateProofKornia.blockingPrerequisite}`)
   }
   if (privateProofKornia.gpuRuntimeShouldStartNow !== false) {
     fail('synthetic_private_proof_kornia_idle_gpu_start_claim')
   }
-  if (privateProofKornia.sourceGpuRuntimeShouldStartDuringScopedProof !== true) {
-    fail('synthetic_private_proof_kornia_scoped_gpu_start_not_recorded')
+  if (privateProofKornia.sourceGpuRuntimeShouldStartDuringScopedProof !== false) {
+    fail('synthetic_private_proof_kornia_scoped_gpu_start_recorded')
   }
 }
 for (const row of privateProofRows.filter((item) => gpuModelTools.includes(item.toolId) && item.toolId !== 'kornia')) {
@@ -1392,7 +1446,7 @@ for (const phrase of [
   'Next current-host preflight command',
   'Failure Diagnostics Guard',
   'failed_with_diagnostics',
-  'gpu_model_runtime_container_gpu_unavailable',
+  'gpu_model_python_package_missing',
 ]) {
   if (!markdown.includes(phrase)) fail(`markdown_missing_phrase:${phrase}`)
 }

@@ -143,6 +143,7 @@ interface ScopedGpuModelLocalDevRouteAttempt {
 interface ScopedGpuModelLocalDevRouteAttemptOptions {
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
+  allowCpuTensorRuntime?: boolean
   allowCpuFoundationRuntime?: boolean
   privateOutputRoot?: string
   privateOutputDirectory?: string
@@ -396,14 +397,40 @@ function gpuModelAllowsCpuFoundationRuntime(
   return toolId === 'torch_torchvision' || toolId === 'transformers'
 }
 
+function gpuModelAllowsCpuTensorRuntime(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): boolean {
+  return toolId === 'kornia'
+}
+
+function scopedGpuModelUsesCpuTensorRuntime(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  options: { allowCpuTensorRuntime?: boolean },
+): boolean {
+  return gpuModelAllowsCpuTensorRuntime(toolId) &&
+    options.allowCpuTensorRuntime === true
+}
+
+function scopedGpuModelUsesCpuFoundationRuntime(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  options: { allowCpuFoundationRuntime?: boolean },
+): boolean {
+  return gpuModelAllowsCpuFoundationRuntime(toolId) &&
+    options.allowCpuFoundationRuntime === true
+}
+
 function gpuModelRequiredPrivateInputKeys(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
-  options: { allowCpuFoundationRuntime?: boolean } = {},
+  options: {
+    allowCpuTensorRuntime?: boolean
+    allowCpuFoundationRuntime?: boolean
+  } = {},
 ): string[] {
   return [
     'outputDirectory',
-    gpuModelAllowsCpuFoundationRuntime(toolId) &&
-      options.allowCpuFoundationRuntime === true
+    scopedGpuModelUsesCpuTensorRuntime(toolId, options)
+      ? 'pythonCpuTensorRuntime'
+      : scopedGpuModelUsesCpuFoundationRuntime(toolId, options)
       ? 'pythonCpuFoundationRuntime'
       : 'nativeCudaRuntime',
     gpuModelRequiresSourceImage(toolId) ? 'sourceImageLocalPath' : '',
@@ -471,14 +498,17 @@ function scopedGpuModelCommand(
   const outputDirectory = scopedGpuModelPrivateOutputDirectory(toolId, options)
   const sourceImage = scopedGpuModelPrivateSourceImageLocalPath(toolId, options)
   const inputRefs = scopedGpuModelPrivateRuntimeInputRefs(toolId, options)
+  const allowCpuTensorRuntime = scopedGpuModelUsesCpuTensorRuntime(toolId, options)
   const allowCpuFoundationRuntime =
-    gpuModelAllowsCpuFoundationRuntime(toolId) &&
-    options.allowCpuFoundationRuntime === true
+    scopedGpuModelUsesCpuFoundationRuntime(toolId, options)
   const parts = [
     'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke --',
     `--scoped-gpu-tool ${toolId}`,
     `--scoped-gpu-runtime-container-image ${options.runtimeContainerImage ?? canonicalGpuModelRuntimeContainerImage}`,
     `--scoped-gpu-runtime-container-platform ${options.runtimeContainerPlatform ?? 'linux/amd64'}`,
+    allowCpuTensorRuntime
+      ? '--scoped-gpu-allow-cpu-tensor-runtime'
+      : '',
     allowCpuFoundationRuntime
       ? '--scoped-gpu-allow-cpu-foundation-runtime'
       : '',
@@ -518,6 +548,9 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
     toolId,
     options,
   )
+  const allowCpuTensorRuntime = scopedGpuModelUsesCpuTensorRuntime(toolId, options)
+  const allowCpuFoundationRuntime =
+    scopedGpuModelUsesCpuFoundationRuntime(toolId, options)
   const payload: Record<string, unknown> = {
     mode: 'local_dev',
     enableGpuModelControlledExecution: true,
@@ -527,10 +560,7 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
     gpuRuntimeOnDemandOnly: true,
     noIdleGpuRuntimeApproved: true,
     runtimeExecutionBackend: 'docker_container',
-    runtimeContainerGpu: !(
-      gpuModelAllowsCpuFoundationRuntime(toolId) &&
-      options.allowCpuFoundationRuntime === true
-    ),
+    runtimeContainerGpu: !(allowCpuTensorRuntime || allowCpuFoundationRuntime),
     outputDirectory: privateOutputDirectory,
     timeoutMs: 30_000,
     toolExecutionPerformed: false,
@@ -542,10 +572,10 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
     signedUrlCreated: false,
     ...privateRuntimeInputRefs,
   }
-  if (
-    gpuModelAllowsCpuFoundationRuntime(toolId) &&
-    options.allowCpuFoundationRuntime === true
-  ) {
+  if (allowCpuTensorRuntime) {
+    payload.allowCpuTensorRuntime = true
+  }
+  if (allowCpuFoundationRuntime) {
     payload.allowCpuFoundationRuntime = true
   }
   if (privateSourceImageLocalPath) {
@@ -683,8 +713,14 @@ function buildScopedGpuModelLocalDevRouteAttempt(
   const runtimeContainerImage = options.runtimeContainerImage ?? null
   const runtimeContainerImageProvided = Boolean(runtimeContainerImage)
   const expectedBlockingReasonCodes = runtimeContainerImageProvided
-    ? gpuModelAllowsCpuFoundationRuntime(toolId) &&
-      options.allowCpuFoundationRuntime === true
+    ? scopedGpuModelUsesCpuTensorRuntime(toolId, options)
+      ? [
+          ...privateInputBlockingReasonCodes(toolId),
+          'gpu_model_runtime_container_image_unavailable',
+          'gpu_model_python_runtime_unavailable',
+          'gpu_model_python_package_missing',
+        ]
+      : scopedGpuModelUsesCpuFoundationRuntime(toolId, options)
       ? [
           'gpu_model_runtime_container_image_unavailable',
           'gpu_model_python_runtime_unavailable',
@@ -1295,7 +1331,8 @@ function buildReport(
       browserWebglCanvasRuntimePerformedOutsideControlledAdapter: false,
       gpuRuntimePerformed:
         scopedGpuModelLocalDevRouteAttempts.some((item) => (
-          item.booleans.scopedGpuModelRuntimeExecutionPerformed
+          item.booleans.scopedGpuModelRuntimeExecutionPerformed &&
+            item.booleans.scopedGpuModelGpuRuntimeShouldStartNow
         )),
       gpuRuntimeShouldStartNow:
         scopedGpuModelLocalDevRouteAttempts.some((item) => (
@@ -1397,6 +1434,8 @@ async function main() {
     runtimeContainerImage: stringArg('--scoped-gpu-runtime-container-image'),
     runtimeContainerPlatform:
       stringArg('--scoped-gpu-runtime-container-platform'),
+    allowCpuTensorRuntime:
+      hasFlag('--scoped-gpu-allow-cpu-tensor-runtime'),
     allowCpuFoundationRuntime:
       hasFlag('--scoped-gpu-allow-cpu-foundation-runtime'),
     privateOutputRoot: stringArg('--scoped-gpu-output-root'),

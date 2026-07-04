@@ -57,6 +57,7 @@ interface LocalProofHarnessRow {
   localRuntimeExecutionPerformed?: boolean
   toolExecutionApprovedNow?: boolean
   gpuRuntimeShouldStartNow?: boolean
+  allowCpuTensorRuntime?: boolean
   allowCpuFoundationRuntime?: boolean
   publicArtifactCreated?: boolean
   signedUrlCreated?: boolean
@@ -314,13 +315,34 @@ function acceptsCpuFoundationProof(
   )
 }
 
+function acceptsKorniaCpuTensorProof(
+  toolId: GpuModelToolId,
+  row: LocalProofHarnessRow | undefined,
+  outputJson: JsonRecord,
+): boolean {
+  if (toolId !== 'kornia') return false
+  if (row?.allowCpuTensorRuntime !== true) return false
+  return (
+    outputJson.cpuTensorRuntimeAllowed === true &&
+    outputJson.cudaAvailable === false &&
+    outputJson.deviceType === 'cpu' &&
+    nestedValue(outputJson, ['runtime', 'modelDownloadedExternally']) === false &&
+    nestedValue(outputJson, ['runtime', 'providerRuntimePerformed']) === false &&
+    nestedValue(outputJson, ['runtime', 'publicArtifactCreated']) === false &&
+    nestedValue(outputJson, ['runtime', 'signedUrlCreated']) === false &&
+    typeof nestedValue(outputJson, ['mask', 'path']) === 'string' &&
+    typeof nestedValue(outputJson, ['metrics', 'gaussianKernel']) === 'number'
+  )
+}
+
 function outputHasAcceptedRuntimeEvidence(
   toolId: GpuModelToolId,
   row: LocalProofHarnessRow | undefined,
   outputJson: JsonRecord,
 ): boolean {
   return outputHasGpuEvidence(toolId, outputJson) ||
-    acceptsCpuFoundationProof(toolId, row, outputJson)
+    acceptsCpuFoundationProof(toolId, row, outputJson) ||
+    acceptsKorniaCpuTensorProof(toolId, row, outputJson)
 }
 
 function expectedGpuRuntimeShouldStartDuringScopedProof(
@@ -329,6 +351,9 @@ function expectedGpuRuntimeShouldStartDuringScopedProof(
 ): boolean {
   if (toolId === 'torch_torchvision' || toolId === 'transformers') {
     return row ? row.allowCpuFoundationRuntime !== true : false
+  }
+  if (toolId === 'kornia') {
+    return row ? row.allowCpuTensorRuntime !== true : false
   }
   return true
 }
@@ -464,6 +489,8 @@ function localProofOutputEvidence(
       privateOutputJsonRejectionReason:
         toolId === 'torch_torchvision' || toolId === 'transformers'
           ? 'private_output_json_missing_cuda_or_cpu_foundation_runtime_evidence'
+          : toolId === 'kornia'
+          ? 'private_output_json_missing_cuda_or_cpu_tensor_runtime_evidence'
           : 'private_output_json_missing_cuda_runtime_evidence',
     }
   }

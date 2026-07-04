@@ -111,18 +111,6 @@ function sourceReport(pathFlag: string, defaultPath: string, command: string): J
   return runJsonCommand(command)
 }
 
-function localInputKeys(row: JsonRecord | undefined): string[] {
-  const requirements = Array.isArray(row?.localInputRequirements)
-    ? row?.localInputRequirements
-    : []
-  return requirements
-    .filter((requirement: JsonRecord) => (
-      requirement?.requiredForActualExecution === true &&
-      typeof requirement?.key === 'string'
-    ))
-    .map((requirement: JsonRecord) => requirement.key)
-}
-
 function gpuModelRequiresSourceImage(toolId: string): boolean {
   return !['torch_torchvision', 'transformers'].includes(toolId)
 }
@@ -131,10 +119,16 @@ function gpuModelAllowsCpuFoundationRuntime(toolId: string): boolean {
   return toolId === 'torch_torchvision' || toolId === 'transformers'
 }
 
+function gpuModelAllowsCpuTensorRuntime(toolId: string): boolean {
+  return toolId === 'kornia'
+}
+
 function gpuModelMinimumPrivateRuntimeInputKeys(toolId: string): string[] {
   const keys = [
     'outputDirectory',
-    gpuModelAllowsCpuFoundationRuntime(toolId)
+    gpuModelAllowsCpuTensorRuntime(toolId)
+      ? 'pythonCpuTensorRuntime'
+      : gpuModelAllowsCpuFoundationRuntime(toolId)
       ? 'pythonCpuFoundationRuntime'
       : 'nativeCudaRuntime',
   ]
@@ -150,6 +144,7 @@ function gpuModelMinimumPrivateRuntimeInputKeys(toolId: string): string[] {
 }
 
 function gpuModelCurrentBlockingPrerequisiteKey(
+  toolId: string,
   blockingReasonCode: string | null | undefined,
 ): string | null {
   if (!blockingReasonCode) return null
@@ -184,15 +179,39 @@ function gpuModelCurrentBlockingPrerequisiteKey(
     return 'runtimeContainerImage'
   }
   if (blockingReasonCode.includes('python_package')) {
+    if (gpuModelAllowsCpuTensorRuntime(toolId)) return 'pythonCpuTensorRuntime'
+    if (gpuModelAllowsCpuFoundationRuntime(toolId)) return 'pythonCpuFoundationRuntime'
     return 'pythonPackageRuntime'
   }
   if (blockingReasonCode.includes('python_runtime')) {
+    if (gpuModelAllowsCpuTensorRuntime(toolId)) return 'pythonCpuTensorRuntime'
+    if (gpuModelAllowsCpuFoundationRuntime(toolId)) return 'pythonCpuFoundationRuntime'
     return 'pythonRuntime'
   }
   if (blockingReasonCode.includes('disabled_or_not_local_dev')) {
     return 'attemptGpuRuntime'
   }
   return null
+}
+
+function gpuModelRuntimePrerequisiteLabel(toolId: string): string {
+  if (gpuModelAllowsCpuTensorRuntime(toolId)) {
+    return 'approved local Python CPU tensor runtime'
+  }
+  if (gpuModelAllowsCpuFoundationRuntime(toolId)) {
+    return 'approved local Python CPU foundation runtime'
+  }
+  return 'approved native CUDA host'
+}
+
+function gpuModelBlockedInstallReadinessState(toolId: string): string {
+  if (gpuModelAllowsCpuTensorRuntime(toolId)) {
+    return 'install_target_prepared_runtime_blocked_pending_cpu_tensor_private_inputs'
+  }
+  if (gpuModelAllowsCpuFoundationRuntime(toolId)) {
+    return 'install_target_prepared_runtime_blocked_pending_cpu_foundation_private_inputs'
+  }
+  return 'install_target_prepared_runtime_blocked_pending_cuda_private_inputs'
 }
 
 function gpuModelHostRuntimeFlags(toolId: string): string[] {
@@ -203,6 +222,9 @@ function gpuModelHostRuntimeFlags(toolId: string): string[] {
   ]
   if (gpuModelAllowsCpuFoundationRuntime(toolId)) {
     flags.push('--allow-cpu-foundation-runtime')
+  }
+  if (gpuModelAllowsCpuTensorRuntime(toolId)) {
+    flags.push('--allow-cpu-tensor-runtime')
   }
   if (gpuModelRequiresSourceImage(toolId)) {
     flags.push('--source-image <private-approved-frame.png>')
@@ -230,6 +252,9 @@ function gpuModelControlledRouteFlags(toolId: string): string[] {
   ]
   if (gpuModelAllowsCpuFoundationRuntime(toolId)) {
     flags.push('--scoped-gpu-allow-cpu-foundation-runtime')
+  }
+  if (gpuModelAllowsCpuTensorRuntime(toolId)) {
+    flags.push('--scoped-gpu-allow-cpu-tensor-runtime')
   }
   if (gpuModelRequiresSourceImage(toolId)) {
     flags.push(`--scoped-gpu-source-image ${outputDir}/private-approved-frame.ppm`)
@@ -451,10 +476,13 @@ function buildToolRows(
       ? 'blocked_with_reason'
       : 'callable'
 
+    const minimumPrivateRuntimeInputKeys = group === 'gpu_model'
+      ? gpuModelMinimumPrivateRuntimeInputKeys(toolId)
+      : []
     const blockingPrerequisite = group === 'gpu_model' && !executionPassed
       ? [
-          'approved native CUDA host',
-          ...localInputKeys(gpuRow),
+          gpuModelRuntimePrerequisiteLabel(toolId),
+          ...minimumPrivateRuntimeInputKeys,
           'reviewed private proof refs',
           gpuRow?.skipReasonCode
             ? `adapter skip reason: ${gpuRow.skipReasonCode}`
@@ -466,11 +494,8 @@ function buildToolRows(
         ].join('; ')
       : null
     const currentBlockingPrerequisiteKey = group === 'gpu_model' && !executionPassed
-      ? gpuModelCurrentBlockingPrerequisiteKey(gpuRow?.skipReasonCode)
+      ? gpuModelCurrentBlockingPrerequisiteKey(toolId, gpuRow?.skipReasonCode)
       : null
-    const minimumPrivateRuntimeInputKeys = group === 'gpu_model'
-      ? gpuModelMinimumPrivateRuntimeInputKeys(toolId)
-      : []
     const remainingPrivateRuntimeInputKeys =
       group === 'gpu_model' && !executionPassed
         ? currentBlockingPrerequisiteKey
@@ -488,10 +513,11 @@ function buildToolRows(
       installStatus: readiness.installStatus,
       installEvidence: readiness.installEvidence,
       packageRuntimePresentForPlannedSurface: true,
-      controlledExecutionRuntimePresentNow:
-        group === 'gpu_model' ? false : executionPassed,
+      controlledExecutionRuntimePresentNow: executionPassed,
       installReadinessState: group === 'gpu_model'
-        ? 'install_target_prepared_runtime_blocked_pending_cuda_private_inputs'
+        ? executionPassed
+          ? 'controlled_runtime_present_and_executed_with_private_local_proof'
+          : gpuModelBlockedInstallReadinessState(toolId)
         : 'controlled_runtime_present_and_executed',
       primaryCapability: routeRow.capabilityId,
       group,
@@ -776,7 +802,7 @@ function buildReport() {
     decision,
     status: gpuExecutableTools.length > 0 ? privateProofStatus : defaultStatus,
     summary:
-      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools remain blocked_with_reason until approved native CUDA, private model/input paths, and private proof refs are supplied for a scoped on-demand call. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
+      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools remain blocked_with_reason until approved private proof refs and the tool-specific runtime inputs are supplied: CPU foundation proof for torch/torchvision and transformers, CPU tensor proof for kornia, and native CUDA plus reviewed private model/input paths for the remaining model tools. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
     stateDefinitions: {
       callable:
         'The external agent can submit the controlled private route request.',
@@ -916,8 +942,14 @@ function buildReport() {
       eightGpuModelToolsInstallTargetPreparedButRuntimeBlocked:
         toolRows.filter((row) => (
           row.group === 'gpu_model' &&
-          row.installReadinessState ===
-            'install_target_prepared_runtime_blocked_pending_cuda_private_inputs'
+          (
+            row.installReadinessState ===
+              'install_target_prepared_runtime_blocked_pending_cuda_private_inputs' ||
+            row.installReadinessState ===
+              'install_target_prepared_runtime_blocked_pending_cpu_foundation_private_inputs' ||
+            row.installReadinessState ===
+              'install_target_prepared_runtime_blocked_pending_cpu_tensor_private_inputs'
+          )
         )).length === 8,
       agentCanSubmitControlledToolRequests: true,
       agentCallableToolsReady: toolRows.every((row) => row.callable),
@@ -1007,7 +1039,7 @@ function buildReport() {
     fastestGpuModelUnlockCandidate: {
       toolId: 'kornia',
       reason:
-        'Kornia is the narrowest GPU/model execution unlock candidate because it uses the real controlled adapter, requires CUDA plus a private approved frame and output directory, and does not require a model-weight manifest.',
+        'Kornia is the narrowest GPU/model execution unlock candidate because it uses the real controlled adapter, can prove local CPU tensor execution with a private approved frame and output directory, and does not require a model-weight manifest.',
       recommendedBackend: 'docker_container',
       canonicalProofImage: canonicalGpuWorkerProofImage,
       nextExactContainerBuildCommand: containerGpuImageBuildCommand(),
@@ -1018,12 +1050,12 @@ function buildReport() {
         directReadinessWithPrivateProofCommand(),
       nextExactCurrentHostPreflightCommand: hostDetectionReadinessCommand(),
       expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached:
-        'gpu_model_runtime_container_gpu_unavailable',
+        'gpu_model_python_package_missing',
       remainsBlockedUntil:
-        'Run on an approved native Linux/amd64 NVIDIA CUDA host with the canonical proof image available and a private approved source frame mounted locally.',
+        'Run with the canonical proof image available, approved local Python CPU tensor runtime packages, and a private approved source frame mounted locally.',
     },
     nextExactAction:
-      'First target kornia with the container local-dev command on an approved native CUDA host. After kornia returns structured private local output, feed that private harness result into the GPU/model runtime proof-ref bridge, then repeat per GPU/model tool with reviewed model/checkpoint paths where required.',
+      'First target kornia with the container local-dev CPU tensor command. After kornia returns structured private local output, feed that private harness result into the GPU/model runtime proof-ref bridge, then repeat per GPU/model tool with reviewed model/checkpoint paths where required.',
   }
 }
 
@@ -1040,7 +1072,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools return \`blocked_with_reason\` until scoped native CUDA, private model/input, and private proof prerequisites are supplied. The mounted route also proves a capability-mismatch request returns \`failed_with_diagnostics\` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
+This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools return \`blocked_with_reason\` until approved private proof refs and the tool-specific runtime inputs are supplied: CPU foundation proof for \`torch_torchvision\` and \`transformers\`, CPU tensor proof for \`kornia\`, and native CUDA plus reviewed private model/input paths for the remaining model tools. The mounted route also proves a capability-mismatch request returns \`failed_with_diagnostics\` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
 
 ## State Definitions
 

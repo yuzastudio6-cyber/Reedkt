@@ -159,7 +159,7 @@ child.on('close', (status, signal) => {
 
 function main() {
   const execute = process.argv.includes('--execute')
-  const preflightOnly = process.argv.includes('--preflight-only')
+  const preflightOnly = process.argv.includes('--preflight-only') || process.argv.includes('--read-only-preflight')
   const cacheFillOnly = process.argv.includes('--cache-fill-only')
   const summaryPath = getArgValue('--summary-path') ?? DEFAULT_SUMMARY_PATH
 
@@ -487,9 +487,9 @@ function runExecute(summaryPath: string) {
       return
     }
 
-    const python = runSsh('python312_readiness_check', 'python3.12 --version', 90_000)
-    phaseResults.push(python)
-    python312ReadinessPassed = python.ok && Boolean(python.stdoutSummary?.includes('Python 3.12'))
+    const python = waitForPython312Readiness()
+    phaseResults.push(...python.phaseResults)
+    python312ReadinessPassed = python.ok
     if (!python312ReadinessPassed) {
       cleanupPrompt()
       finishWith('failed', ['python312_readiness_failed_before_payload_transfer'])
@@ -778,6 +778,9 @@ function validatePrivateGcsModelCache() {
     { captureRawStdout: true },
   )
   const markerDocument = parseJson<JsonRecord>(marker.rawStdout)
+  const markerClassMatches =
+    markerDocument?.expectedModelIndexClassName === undefined ||
+    markerDocument?.expectedModelIndexClassName === CACHE_SPEC.expectedModelIndexClassName
   const ok =
     marker.ok &&
     markerDocument?.cacheMode === 'private_gcs_wan_diffusers_model_cache' &&
@@ -785,7 +788,7 @@ function validatePrivateGcsModelCache() {
     markerDocument?.sourceCommit === CACHE_SPEC.sourceCommit &&
     markerDocument?.runtimeEssentialFileCount === CACHE_SPEC.runtimeEssentialFileCount &&
     markerDocument?.aggregateBytes === CACHE_SPEC.aggregateBytes &&
-    markerDocument?.expectedModelIndexClassName === CACHE_SPEC.expectedModelIndexClassName &&
+    markerClassMatches &&
     markerDocument?.modelImportRun === false &&
     markerDocument?.modelInferenceRun === false
   return {
@@ -1006,6 +1009,33 @@ function waitForIapLookupReadiness() {
   }
 
   return { ok, phaseResults }
+}
+
+function waitForPython312Readiness() {
+  const phaseResults: PhaseResult[] = []
+  let ok = false
+
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    const python = runSsh(`python312_readiness_check_attempt_${attempt}`, 'python3.12 --version', 90_000)
+    phaseResults.push(python)
+    ok = python.ok && Boolean(python.stdoutSummary?.includes('Python 3.12'))
+    if (ok) break
+    if (!isTransientSshTransportFailure(python)) break
+    sleep(10_000)
+  }
+
+  return { ok, phaseResults }
+}
+
+function isTransientSshTransportFailure(result: PhaseResult) {
+  if (result.exitCode !== 255 && !result.timedOut) return false
+  const message = result.stderrSummary ?? ''
+  return [
+    'Connection timed out during banner exchange',
+    'Failed to lookup instance',
+    'Permission denied (publickey)',
+    'Connection closed by UNKNOWN port 65535',
+  ].some((marker) => message.includes(marker))
 }
 
 function describeInstanceCompact(id = 'describe_prompt_vm_compact_raw_json') {
@@ -1233,34 +1263,65 @@ function uploadPrivateGcsObject(id: string, sourcePath: string, destinationUri: 
 }
 
 function buildRemoteWheelhouseDownloadScript() {
-  const wheelhouseBaseName = path.basename(WHEELHOUSE_PATH)
   const fileNames = getWheelhouseCacheFileNames()
-  return [
-    'import pathlib, subprocess',
-    `files = ${JSON.stringify(fileNames)}`,
-    `base_uri = ${JSON.stringify(`${PRIVATE_GCS_WHEELHOUSE_PREFIX}/${wheelhouseBaseName}`)}`,
-    `target = pathlib.Path(${JSON.stringify(REMOTE_WHEELHOUSE)})`,
-    'target.mkdir(parents=True, exist_ok=True)',
-    "[subprocess.run(['gcloud', 'storage', 'cp', f'{base_uri}/{file_name}', str(target / file_name)], check=True) for file_name in files]",
-    "print('REEDITPRO_BROLL_11B_PRIVATE_GCS_WHEELHOUSE_EXACT_DOWNLOAD_OK')",
-  ].join('; ')
+  return buildRemoteExactGcsDownloadScript({
+    fileNames,
+    sourcePrefix: `${privateGcsObjectPrefix(PRIVATE_GCS_WHEELHOUSE_PREFIX)}/${path.basename(WHEELHOUSE_PATH)}`,
+    targetPath: REMOTE_WHEELHOUSE,
+    successMarker: 'REEDITPRO_BROLL_11B_PRIVATE_GCS_WHEELHOUSE_EXACT_DOWNLOAD_OK',
+  })
 }
 
 function buildRemoteModelCacheDownloadScript() {
   const fileNames = CACHE_SPEC.manifest.map((entry) => entry.relativePath)
-  return [
-    'import pathlib, subprocess',
-    `files = ${JSON.stringify(fileNames)}`,
-    `base_uri = ${JSON.stringify(`${PRIVATE_GCS_MODEL_CACHE_PREFIX}/files`)}`,
-    `target = pathlib.Path(${JSON.stringify(REMOTE_MODEL_CACHE)})`,
+  return buildRemoteExactGcsDownloadScript({
+    fileNames,
+    sourcePrefix: `${privateGcsObjectPrefix(PRIVATE_GCS_MODEL_CACHE_PREFIX)}/files`,
+    fallbackSourcePrefix: privateGcsObjectPrefix(PRIVATE_GCS_MODEL_CACHE_PREFIX),
+    targetPath: REMOTE_MODEL_CACHE,
+    successMarker: 'REEDITPRO_BROLL_11B_PRIVATE_GCS_MODEL_CACHE_EXACT_DOWNLOAD_OK',
+  })
+}
+
+function privateGcsObjectPrefix(gcsUri: string) {
+  const expectedPrefix = `gs://${PRIVATE_GCS_PAYLOAD_BUCKET}/`
+  if (!gcsUri.startsWith(expectedPrefix)) {
+    throw new Error(`unexpected_private_gcs_prefix:${gcsUri.replace(/^gs:\/\/[^/]+/i, 'gs://redacted_bucket')}`)
+  }
+  return gcsUri.slice(expectedPrefix.length)
+}
+
+function buildRemoteExactGcsDownloadScript(options: {
+  fileNames: string[]
+  sourcePrefix: string
+  fallbackSourcePrefix?: string
+  targetPath: string
+  successMarker: string
+}) {
+  const sourcePrefixes = [
+    options.sourcePrefix,
+    ...(options.fallbackSourcePrefix && options.fallbackSourcePrefix !== options.sourcePrefix
+      ? [options.fallbackSourcePrefix]
+      : []),
+  ]
+  const scriptBody = [
+    'import pathlib, shutil, subprocess, urllib.error, urllib.parse, urllib.request',
+    `files = ${JSON.stringify(options.fileNames)}`,
+    `bucket = ${JSON.stringify(PRIVATE_GCS_PAYLOAD_BUCKET)}`,
+    `source_prefixes = ${JSON.stringify(sourcePrefixes)}`,
+    `target = pathlib.Path(${JSON.stringify(options.targetPath)})`,
     'target.mkdir(parents=True, exist_ok=True)',
-    "[(target / file_name).parent.mkdir(parents=True, exist_ok=True) or subprocess.run(['gcloud', 'storage', 'cp', f'{base_uri}/{file_name}', str(target / file_name)], check=True) for file_name in files]",
-    "print('REEDITPRO_BROLL_11B_PRIVATE_GCS_MODEL_CACHE_EXACT_DOWNLOAD_OK')",
-  ].join('; ')
+    "token = subprocess.check_output(['gcloud', 'auth', 'print-access-token'], text=True).strip()",
+    "host = 'https://' + 'storage.googleapis.com'",
+    "for file_name in files:\n    output_path = target / file_name\n    output_path.parent.mkdir(parents=True, exist_ok=True)\n    last_http_error = None\n    for source_prefix in source_prefixes:\n        object_name = f'{source_prefix}/{file_name}'\n        encoded_object = urllib.parse.quote(object_name, safe='/')\n        request = urllib.request.Request(f'{host}/{bucket}/{encoded_object}', headers={'Authorization': f'Bearer {token}'})\n        try:\n            with urllib.request.urlopen(request, timeout=300) as response, open(output_path, 'wb') as handle:\n                shutil.copyfileobj(response, handle, length=16 * 1024 * 1024)\n            last_http_error = None\n            break\n        except urllib.error.HTTPError as error:\n            last_http_error = error\n            if error.code == 404 and source_prefix != source_prefixes[-1]:\n                continue\n            print(f'REEDITPRO_BROLL_11B_GCS_EXACT_DOWNLOAD_FAILED file={file_name} code={error.code}')\n            raise\n    if last_http_error is not None:\n        raise last_http_error",
+    `print(${JSON.stringify(options.successMarker)})`,
+  ].join('\n')
+
+  return `exec(${JSON.stringify(scriptBody)})`
 }
 
 function buildRemoteModelCacheValidationScript() {
-  return [
+  const scriptBody = [
     'import json, pathlib',
     `root = pathlib.Path(${JSON.stringify(REMOTE_MODEL_CACHE)})`,
     `manifest = ${JSON.stringify(CACHE_SPEC.manifest)}`,
@@ -1275,10 +1336,12 @@ function buildRemoteModelCacheValidationScript() {
     `assert model_index.get('_class_name') == ${JSON.stringify(CACHE_SPEC.expectedModelIndexClassName)}, model_index.get('_class_name')`,
     "print('REEDITPRO_BROLL_11B_REMOTE_MODEL_CACHE_READY')",
   ].join('\n')
+
+  return `exec(${JSON.stringify(scriptBody)})`
 }
 
 function buildWanPipelineLocalLoadScript() {
-  return [
+  const scriptBody = [
     'import gc, json, os, pathlib',
     "os.environ['HF_HUB_OFFLINE'] = '1'",
     "os.environ['TRANSFORMERS_OFFLINE'] = '1'",
@@ -1295,6 +1358,8 @@ function buildWanPipelineLocalLoadScript() {
     'torch.cuda.empty_cache() if torch.cuda.is_available() else None',
     "print('REEDITPRO_BROLL_11B_WAN_PIPELINE_LOAD_OK')",
   ].join('\n')
+
+  return `exec(${JSON.stringify(scriptBody)})`
 }
 
 function getWheelhouseCacheFileNames() {

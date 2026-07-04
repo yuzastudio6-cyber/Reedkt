@@ -10,27 +10,27 @@ This contract gives the external agent one scoped caller shape for all 21 contro
 
 | Tool | Group | Capability | Route | Expected status |
 | --- | --- | --- | --- | --- |
-| `d3` | `cpu_static_controlled_route` | `chart_overlay` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `vega_lite` | `cpu_static_controlled_route` | `data_visualization` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `vega` | `cpu_static_controlled_route` | `data_visualization` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `satori` | `cpu_static_controlled_route` | `svg_graphics` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `svgdotjs_svg_js` | `cpu_static_controlled_route` | `svg_graphics` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `viz_js` | `cpu_static_controlled_route` | `diagram_graphics` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `echarts` | `browser_runtime_controlled_route` | `chart_overlay` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `lottie_web` | `browser_runtime_controlled_route` | `animation_overlay` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `animejs` | `browser_runtime_controlled_route` | `animation_overlay` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `three_js` | `browser_runtime_controlled_route` | `webgl_3d_scene` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `pixi_js` | `browser_runtime_controlled_route` | `canvas_scene` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `konva` | `browser_runtime_controlled_route` | `canvas_scene` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `babylonjs` | `browser_runtime_controlled_route` | `webgl_3d_scene` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `torch_torchvision` | `gpu_model_controlled_route_on_demand` | `model_runtime_foundation` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `transformers` | `gpu_model_controlled_route_on_demand` | `model_runtime_foundation` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `sam2` | `gpu_model_controlled_route_on_demand` | `subject_segmentation` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `birefnet` | `gpu_model_controlled_route_on_demand` | `background_removal` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `real_esrgan` | `gpu_model_controlled_route_on_demand` | `upscaling` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `kornia` | `gpu_model_controlled_route_on_demand` | `tensor_image_ops` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `rembg` | `gpu_model_controlled_route_on_demand` | `background_removal` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
-| `transparent_background` | `gpu_model_controlled_route_on_demand` | `background_removal` | `POST /api/ai-graphics/external-beta/tool-call` | `200` |
+| `d3` | `cpu_static_controlled_route` | `chart_overlay` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `vega_lite` | `cpu_static_controlled_route` | `data_visualization` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `vega` | `cpu_static_controlled_route` | `data_visualization` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `satori` | `cpu_static_controlled_route` | `svg_graphics` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `svgdotjs_svg_js` | `cpu_static_controlled_route` | `svg_graphics` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `viz_js` | `cpu_static_controlled_route` | `diagram_graphics` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `echarts` | `browser_runtime_controlled_route` | `chart_overlay` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `lottie_web` | `browser_runtime_controlled_route` | `animation_overlay` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `animejs` | `browser_runtime_controlled_route` | `animation_overlay` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `three_js` | `browser_runtime_controlled_route` | `webgl_3d_scene` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `pixi_js` | `browser_runtime_controlled_route` | `canvas_scene` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `konva` | `browser_runtime_controlled_route` | `canvas_scene` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `babylonjs` | `browser_runtime_controlled_route` | `webgl_3d_scene` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `torch_torchvision` | `gpu_model_controlled_route_on_demand` | `model_runtime_foundation` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `transformers` | `gpu_model_controlled_route_on_demand` | `model_runtime_foundation` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `sam2` | `gpu_model_controlled_route_on_demand` | `subject_segmentation` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `birefnet` | `gpu_model_controlled_route_on_demand` | `background_removal` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `real_esrgan` | `gpu_model_controlled_route_on_demand` | `upscaling` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `kornia` | `gpu_model_controlled_route_on_demand` | `tensor_image_ops` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `rembg` | `gpu_model_controlled_route_on_demand` | `background_removal` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
+| `transparent_background` | `gpu_model_controlled_route_on_demand` | `background_removal` | `POST /api/ai-graphics/external-agent/tool-call` | `200` |
 
 ## Counts
 
@@ -119,4 +119,4 @@ This contract gives the external agent one scoped caller shape for all 21 contro
 
 ## Agent Call Rule
 
-The agent may invoke `/api/ai-graphics/external-beta/tool-call` for all 21 controlled AI graphics tools using the generated private request envelopes. The request must keep output private, must not request signed URLs, must not create public artifacts, and must not start idle GPU runtime. GPU/model calls are on-demand: the adapter is invoked by the route, while local GPU/model runtime starts only for an explicit approved local-dev runtime request with real private inputs.
+The agent may invoke `/api/ai-graphics/external-agent/tool-call` for all 21 controlled AI graphics tools using the generated private request envelopes. The request must keep output private, must not request signed URLs, must not create public artifacts, and must not start idle GPU runtime. GPU/model calls are on-demand: the adapter is invoked by the route, while local GPU/model runtime starts only for an explicit approved local-dev runtime request with real private inputs.

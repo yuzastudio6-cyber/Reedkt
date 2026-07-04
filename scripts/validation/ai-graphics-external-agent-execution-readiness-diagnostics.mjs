@@ -690,8 +690,14 @@ function checkMountedControlledRouteSmoke(label, report) {
   if (report.status !== 'external_agent_all21_controlled_route_execution_passed_with_gpu_on_demand') {
     fail(`${label}_status_mismatch`)
   }
-  if (report.routePath !== '/api/ai-graphics/external-beta/tool-call') {
+  if (report.routePath !== '/api/ai-graphics/external-agent/tool-call') {
     fail(`${label}_route_path_mismatch`)
+  }
+  if (
+    report.routeFlags?.routeMount !==
+    'AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED'
+  ) {
+    fail(`${label}_route_mount_flag_mismatch`)
   }
 
   const expectedCounts = {

@@ -265,8 +265,14 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
 function checkReport(label, report) {
   if (report.decision !== decision) fail(`${label}_decision_mismatch`)
   if (report.status !== status) fail(`${label}_status_mismatch`)
-  if (report.routePath !== '/api/ai-graphics/external-beta/tool-call') {
+  if (report.routePath !== '/api/ai-graphics/external-agent/tool-call') {
     fail(`${label}_route_path_mismatch`)
+  }
+  if (
+    report.routeFlags?.routeMount !==
+    'AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED'
+  ) {
+    fail(`${label}_route_mount_flag_mismatch`)
   }
   if (report.disabledGpuControlledRouteStatus !== 409) {
     fail(`${label}_disabled_gpu_status_not_409`)

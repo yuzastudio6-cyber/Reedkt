@@ -1,11 +1,12 @@
 import fs from 'node:fs'
 import {
+  AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG,
+  AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_FLAG,
-  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
   listAiGraphicsExternalBetaToolCallBlockedReadinessCases,
   type AiGraphicsExternalBetaToolCallRequest,
 } from '../routes/ai-graphics-external-beta-tool-call-routes'
@@ -27,7 +28,7 @@ const sourceWorkerRouteSmokePath =
   'docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json'
 const sourceAll21RouteSmokePath =
   'docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json'
-const routeMountFlag = 'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED'
+const routeMountFlag = AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG
 
 type JsonRecord = Record<string, any>
 
@@ -117,7 +118,7 @@ function controlledRow(
     toolId: request.toolId,
     capabilityId: request.capabilityId,
     group,
-    routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+    routePath: AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH,
     method: 'POST',
     requestEnvelope: scopedRequest(
       request,
@@ -248,7 +249,7 @@ function buildReport() {
       cli: 'server/cli/ai-graphics-external-agent-controlled-route-caller.ts',
       diagnostic:
         'scripts/validation/ai-graphics-external-agent-controlled-route-caller-diagnostics.mjs',
-      routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+      routePath: AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH,
       method: 'POST',
       contentType: 'application/json',
     },
@@ -357,7 +358,7 @@ function buildReport() {
     },
     nextExternalAgentAction: {
       controlled21Tools:
-        `POST ${AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH} with the matching requestEnvelope when the route mount and scoped controlled execution flags are enabled.`,
+        `POST ${AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH} with the matching requestEnvelope when the route mount and scoped controlled execution flags are enabled.`,
       gpuModel8Tools:
         'Call through the controlled route for on-demand adapter admission. Local GPU/model runtime stays cold unless the request explicitly supplies approved local-dev runtime inputs and private proof refs.',
     },
@@ -396,7 +397,7 @@ ${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`
 
 ## Agent Call Rule
 
-The agent may invoke \`${AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH}\` for all 21 controlled AI graphics tools using the generated private request envelopes. The request must keep output private, must not request signed URLs, must not create public artifacts, and must not start idle GPU runtime. GPU/model calls are on-demand: the adapter is invoked by the route, while local GPU/model runtime starts only for an explicit approved local-dev runtime request with real private inputs.
+The agent may invoke \`${AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH}\` for all 21 controlled AI graphics tools using the generated private request envelopes. The request must keep output private, must not request signed URLs, must not create public artifacts, and must not start idle GPU runtime. GPU/model calls are on-demand: the adapter is invoked by the route, while local GPU/model runtime starts only for an explicit approved local-dev runtime request with real private inputs.
 `
 }
 

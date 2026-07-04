@@ -31,6 +31,15 @@ export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH =
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_READINESS_ROUTE_PATH =
   '/api/ai-graphics/external-beta/tool-call/readiness'
 
+export const AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH =
+  '/api/ai-graphics/external-agent/tool-call'
+
+export const AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_READINESS_ROUTE_PATH =
+  '/api/ai-graphics/external-agent/tool-call/readiness'
+
+export const AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG =
+  'AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED'
+
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_FLAG =
   'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED'
 
@@ -2135,12 +2144,75 @@ export function buildAiGraphicsExternalBetaToolCallRouteReadiness(
   }
 }
 
-export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
+interface AiGraphicsToolCallRoutePaths {
+  toolCallPath: string
+  readinessPath: string
+}
+
+const aiGraphicsExternalBetaToolCallRoutePaths: AiGraphicsToolCallRoutePaths = {
+  toolCallPath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+  readinessPath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_READINESS_ROUTE_PATH,
+}
+
+const aiGraphicsExternalAgentToolCallRoutePaths: AiGraphicsToolCallRoutePaths = {
+  toolCallPath: AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH,
+  readinessPath: AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_READINESS_ROUTE_PATH,
+}
+
+function rewriteAiGraphicsToolCallRoutePaths(
+  value: unknown,
+  paths: AiGraphicsToolCallRoutePaths,
+): unknown {
+  if (paths.toolCallPath === AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH) {
+    return value
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => rewriteAiGraphicsToolCallRoutePaths(item, paths))
+  }
+  if (!value || typeof value !== 'object') {
+    return value
+  }
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, item]) => {
+      if (
+        (key === 'routePath' || key === 'sourceRoute') &&
+        item === AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH
+      ) {
+        return [key, paths.toolCallPath]
+      }
+      if (
+        key === 'readinessRoutePath' &&
+        item === AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_READINESS_ROUTE_PATH
+      ) {
+        return [key, paths.readinessPath]
+      }
+      return [key, rewriteAiGraphicsToolCallRoutePaths(item, paths)]
+    }),
+  )
+}
+
+export function createAiGraphicsExternalBetaToolCallRoutes(
+  paths: AiGraphicsToolCallRoutePaths = aiGraphicsExternalBetaToolCallRoutePaths,
+): Router {
   const router = Router()
 
-  router.get(AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_READINESS_ROUTE_PATH, asyncRoute(async (request, response) => {
-    const serviceContext = getServiceContext(request)
+  const sendRouteOk = (
+    response: Parameters<typeof sendOk>[0],
+    data: unknown,
+    warnings: string[] = [],
+    status = 200,
+  ) => {
     sendOk(
+      response,
+      rewriteAiGraphicsToolCallRoutePaths(data, paths),
+      warnings,
+      status,
+    )
+  }
+
+  router.get(paths.readinessPath, asyncRoute(async (request, response) => {
+    const serviceContext = getServiceContext(request)
+    sendRouteOk(
       response,
       buildAiGraphicsExternalBetaToolCallRouteReadiness(serviceContext),
       [],
@@ -2148,14 +2220,14 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
     )
   }))
 
-  router.post(AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH, asyncRoute(async (request, response) => {
+  router.post(paths.toolCallPath, asyncRoute(async (request, response) => {
     const body = validateBody(aiGraphicsExternalBetaToolCallRequestSchema, request.body)
     const serviceContext = getServiceContext(request)
     const readiness = getAiGraphicsToolCallReadiness(body.toolId)
     if (!readiness?.capabilities.includes(body.capabilityId)) {
       const mismatch =
         buildAiGraphicsExternalBetaToolCallCapabilityMismatchResult(body)
-      sendOk(response, mismatch, [mismatch.failureDiagnostics], 200)
+      sendRouteOk(response, mismatch, [mismatch.failureDiagnostics], 200)
       return
     }
     if (
@@ -2195,7 +2267,7 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
         toolId: body.toolId,
         executionPassed: gpuModelExecutionPassed,
       })
-      sendOk(response, {
+      sendRouteOk(response, {
         routeDecision:
           'ai_graphics_external_beta_tool_call_route_gpu_model_controlled_execution_accepted',
         routeStatus: gpuModelExecutionPassed
@@ -2303,7 +2375,7 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
           body,
           serviceContext,
         )
-      sendOk(response, execution, [], 200)
+      sendRouteOk(response, execution, [], 200)
       return
     }
     if (
@@ -2315,7 +2387,7 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
           body,
           serviceContext,
         )
-      sendOk(response, execution, [], 200)
+      sendRouteOk(response, execution, [], 200)
       return
     }
     if (
@@ -2326,7 +2398,7 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
         body,
         serviceContext,
       )
-      sendOk(response, admission, admission.warnings, 202)
+      sendRouteOk(response, admission, admission.warnings, 202)
       return
     }
     if (serviceContext.env.aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled) {
@@ -2334,7 +2406,7 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
         body,
         serviceContext,
       )
-      sendOk(response, admission, admission.warnings, 202)
+      sendRouteOk(response, admission, admission.warnings, 202)
       return
     }
     throw new ApiError(
@@ -2346,4 +2418,10 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
   }))
 
   return router
+}
+
+export function createAiGraphicsExternalAgentToolCallRoutes(): Router {
+  return createAiGraphicsExternalBetaToolCallRoutes(
+    aiGraphicsExternalAgentToolCallRoutePaths,
+  )
 }

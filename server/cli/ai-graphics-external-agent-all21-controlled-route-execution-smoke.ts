@@ -5,11 +5,12 @@ import type { AddressInfo } from 'node:net'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
 import {
+  AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG,
+  AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_FLAG,
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_FLAG,
-  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
   type AiGraphicsExternalBetaToolCallRequest,
   listAiGraphicsExternalBetaToolCallBlockedReadinessCases,
 } from '../routes/ai-graphics-external-beta-tool-call-routes'
@@ -264,7 +265,8 @@ function buildRuntimeEnv(gpuModelControlledExecutionEnabled: boolean) {
     API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
     STORAGE_MODE: 'local',
     WORKER_RUNTIME_MODE: 'mock',
-    AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED: 'true',
+    [AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG]: 'true',
+    AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED: 'false',
     AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED:
       'false',
     [AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG]:
@@ -309,7 +311,7 @@ async function postToolCall(
   request: AiGraphicsExternalBetaToolCallRequest,
 ) {
   const response = await fetch(
-    `${baseUrl}${AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH}`,
+    `${baseUrl}${AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH}`,
     {
       method: 'POST',
       headers: {
@@ -1070,8 +1072,9 @@ function buildReport(
       '2026-07-03.ai-graphics.external-agent-all21-controlled-route-execution-smoke',
     decision,
     status,
-    routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+    routePath: AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH,
     routeFlags: {
+      routeMount: AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG,
       cpuStatic:
         AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG,
       browserRuntime:

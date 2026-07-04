@@ -43,7 +43,7 @@ const gpuModelTools = [
   'transparent_background',
 ]
 const allTools = [...gpuModelTools, ...cpuStaticTools, ...browserRuntimeTools]
-const routePath = '/api/ai-graphics/external-beta/tool-call'
+const routePath = '/api/ai-graphics/external-agent/tool-call'
 
 const expectedPrimaryCapabilityByTool = {
   torch_torchvision: 'model_runtime_foundation',

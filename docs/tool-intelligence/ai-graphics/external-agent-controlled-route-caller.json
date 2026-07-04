@@ -27,12 +27,12 @@
     "diagnosticScript": "ai-graphics:external-agent-controlled-route-caller:diagnostics",
     "cli": "server/cli/ai-graphics-external-agent-controlled-route-caller.ts",
     "diagnostic": "scripts/validation/ai-graphics-external-agent-controlled-route-caller-diagnostics.mjs",
-    "routePath": "/api/ai-graphics/external-beta/tool-call",
+    "routePath": "/api/ai-graphics/external-agent/tool-call",
     "method": "POST",
     "contentType": "application/json"
   },
   "requiredFeatureFlags": {
-    "routeMount": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+    "routeMount": "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
     "cpuStaticControlledExecution": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED",
     "browserRuntimeControlledExecution": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED",
     "gpuModelRuntimeAdmission": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
@@ -67,7 +67,7 @@
       "toolId": "d3",
       "capabilityId": "chart_overlay",
       "group": "cpu_static_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -89,7 +89,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -105,7 +105,7 @@
       "toolId": "vega_lite",
       "capabilityId": "data_visualization",
       "group": "cpu_static_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -127,7 +127,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -143,7 +143,7 @@
       "toolId": "vega",
       "capabilityId": "data_visualization",
       "group": "cpu_static_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -165,7 +165,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -181,7 +181,7 @@
       "toolId": "satori",
       "capabilityId": "svg_graphics",
       "group": "cpu_static_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -203,7 +203,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -219,7 +219,7 @@
       "toolId": "svgdotjs_svg_js",
       "capabilityId": "svg_graphics",
       "group": "cpu_static_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -241,7 +241,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -257,7 +257,7 @@
       "toolId": "viz_js",
       "capabilityId": "diagram_graphics",
       "group": "cpu_static_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -279,7 +279,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -295,7 +295,7 @@
       "toolId": "echarts",
       "capabilityId": "chart_overlay",
       "group": "browser_runtime_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -317,7 +317,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -333,7 +333,7 @@
       "toolId": "lottie_web",
       "capabilityId": "animation_overlay",
       "group": "browser_runtime_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -355,7 +355,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -371,7 +371,7 @@
       "toolId": "animejs",
       "capabilityId": "animation_overlay",
       "group": "browser_runtime_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -393,7 +393,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -409,7 +409,7 @@
       "toolId": "three_js",
       "capabilityId": "webgl_3d_scene",
       "group": "browser_runtime_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -431,7 +431,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -447,7 +447,7 @@
       "toolId": "pixi_js",
       "capabilityId": "canvas_scene",
       "group": "browser_runtime_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -469,7 +469,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -485,7 +485,7 @@
       "toolId": "konva",
       "capabilityId": "canvas_scene",
       "group": "browser_runtime_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -507,7 +507,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -523,7 +523,7 @@
       "toolId": "babylonjs",
       "capabilityId": "webgl_3d_scene",
       "group": "browser_runtime_controlled_route",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -545,7 +545,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED"
       ],
       "expectedHttpStatusIfInvoked": 200,
@@ -561,7 +561,7 @@
       "toolId": "torch_torchvision",
       "capabilityId": "model_runtime_foundation",
       "group": "gpu_model_controlled_route_on_demand",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -585,7 +585,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
@@ -602,7 +602,7 @@
       "toolId": "transformers",
       "capabilityId": "model_runtime_foundation",
       "group": "gpu_model_controlled_route_on_demand",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -626,7 +626,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
@@ -643,7 +643,7 @@
       "toolId": "sam2",
       "capabilityId": "subject_segmentation",
       "group": "gpu_model_controlled_route_on_demand",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -667,7 +667,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
@@ -684,7 +684,7 @@
       "toolId": "birefnet",
       "capabilityId": "background_removal",
       "group": "gpu_model_controlled_route_on_demand",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -708,7 +708,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
@@ -725,7 +725,7 @@
       "toolId": "real_esrgan",
       "capabilityId": "upscaling",
       "group": "gpu_model_controlled_route_on_demand",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -749,7 +749,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
@@ -766,7 +766,7 @@
       "toolId": "kornia",
       "capabilityId": "tensor_image_ops",
       "group": "gpu_model_controlled_route_on_demand",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -790,7 +790,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
@@ -807,7 +807,7 @@
       "toolId": "rembg",
       "capabilityId": "background_removal",
       "group": "gpu_model_controlled_route_on_demand",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -831,7 +831,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
@@ -848,7 +848,7 @@
       "toolId": "transparent_background",
       "capabilityId": "background_removal",
       "group": "gpu_model_controlled_route_on_demand",
-      "routePath": "/api/ai-graphics/external-beta/tool-call",
+      "routePath": "/api/ai-graphics/external-agent/tool-call",
       "method": "POST",
       "requestEnvelope": {
         "workspaceId": "workspace_ai_graphics_external_beta_all_tool_blocked_details",
@@ -872,7 +872,7 @@
         }
       },
       "requiredFeatureFlags": [
-        "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED",
+        "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",
         "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED"
       ],
@@ -947,7 +947,7 @@
     "packageLockMutationPerformed": false
   },
   "nextExternalAgentAction": {
-    "controlled21Tools": "POST /api/ai-graphics/external-beta/tool-call with the matching requestEnvelope when the route mount and scoped controlled execution flags are enabled.",
+    "controlled21Tools": "POST /api/ai-graphics/external-agent/tool-call with the matching requestEnvelope when the route mount and scoped controlled execution flags are enabled.",
     "gpuModel8Tools": "Call through the controlled route for on-demand adapter admission. Local GPU/model runtime stays cold unless the request explicitly supplies approved local-dev runtime inputs and private proof refs."
   }
 }

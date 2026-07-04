@@ -33,6 +33,7 @@ export interface RuntimeEnv {
   workerInstanceId: string
   workerHeartbeatIntervalSeconds: number
   workerClaimLeaseSeconds: number
+  aiGraphicsExternalAgentToolCallRouteMountEnabled: boolean
   aiGraphicsExternalBetaToolCallRouteMountEnabled: boolean
   aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled: boolean
   aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled: boolean
@@ -84,6 +85,7 @@ const envSchema = z.object({
   WORKER_INSTANCE_ID: z.string().default('local-worker-1'),
   WORKER_HEARTBEAT_INTERVAL_SECONDS: z.coerce.number().int().positive().max(3600).default(30),
   WORKER_CLAIM_LEASE_SECONDS: z.coerce.number().int().positive().max(86400).default(300),
+  AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED: z.string().optional(),
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED: z.string().optional(),
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED: z.string().optional(),
   AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED: z.string().optional(),
@@ -161,6 +163,8 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     workerInstanceId: parsed.WORKER_INSTANCE_ID,
     workerHeartbeatIntervalSeconds: parsed.WORKER_HEARTBEAT_INTERVAL_SECONDS,
     workerClaimLeaseSeconds: parsed.WORKER_CLAIM_LEASE_SECONDS,
+    aiGraphicsExternalAgentToolCallRouteMountEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED),
     aiGraphicsExternalBetaToolCallRouteMountEnabled:
       parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED),
     aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled:
@@ -235,6 +239,8 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
       workerInstanceIdConfigured: Boolean(env.workerInstanceId),
       heartbeatIntervalSeconds: env.workerHeartbeatIntervalSeconds,
       claimLeaseSeconds: env.workerClaimLeaseSeconds,
+      aiGraphicsExternalAgentToolCallRouteMountEnabled:
+        env.aiGraphicsExternalAgentToolCallRouteMountEnabled,
       aiGraphicsExternalBetaToolCallRouteMountEnabled:
         env.aiGraphicsExternalBetaToolCallRouteMountEnabled,
       aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled:

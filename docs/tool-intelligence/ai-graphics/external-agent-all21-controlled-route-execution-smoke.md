@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_agent_all21_controlled_route_execution_smoke_pas
 
 Status: `external_agent_all21_controlled_route_execution_passed_with_gpu_on_demand`
 
-This smoke starts the real Express app and POSTs all 21 AI graphics tool calls through `/api/ai-graphics/external-beta/tool-call` with the controlled CPU/static, browser-runtime, and GPU/model route flags enabled. It proves the agent-facing route can accept every tool call now. It does not claim all 21 tools have real runtime execution proof: CPU/static and browser-runtime adapters execute now, while GPU/model adapters are route-callable and remain blocked from runtime execution until native GPU proof and reviewed private model manifests are accepted.
+This smoke starts the real Express app and POSTs all 21 AI graphics tool calls through `/api/ai-graphics/external-agent/tool-call` with the controlled CPU/static, browser-runtime, and GPU/model route flags enabled. It proves the agent-facing route can accept every tool call now. It does not claim all 21 tools have real runtime execution proof: CPU/static and browser-runtime adapters execute now, while GPU/model adapters are route-callable and remain blocked from runtime execution until native GPU proof and reviewed private model manifests are accepted.
 
 ## Tool Results
 

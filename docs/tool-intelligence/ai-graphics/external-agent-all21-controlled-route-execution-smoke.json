@@ -2,8 +2,9 @@
   "schemaVersion": "2026-07-03.ai-graphics.external-agent-all21-controlled-route-execution-smoke",
   "decision": "ai_graphics_external_agent_all21_controlled_route_execution_smoke_passed",
   "status": "external_agent_all21_controlled_route_execution_passed_with_gpu_on_demand",
-  "routePath": "/api/ai-graphics/external-beta/tool-call",
+  "routePath": "/api/ai-graphics/external-agent/tool-call",
   "routeFlags": {
+    "routeMount": "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED",
     "cpuStatic": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED",
     "browserRuntime": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED",
     "gpuModelRuntimeAdmission": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED",

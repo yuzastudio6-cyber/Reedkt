@@ -176,8 +176,42 @@ assert.equal(cli.runtimeGatesAllFalse, true)
 assert.deepEqual(cli.tools, spec.tools)
 assert.deepEqual(cli.failureResponsePolicy, spec.failureResponsePolicy)
 assert.deepEqual(cli.safeRetryChecklist, spec.safeRetryChecklist)
+assert.equal(cli.accountSelection.cliAccountIndexProvided, false)
+assert.equal(cli.accountSelection.cliAccountIndex, undefined)
+assert.equal(cli.accountSelection.cliAccountIndexValid, false)
 
-const forbiddenFindings = scanForbiddenValues({ spec, cli, doc })
+const indexedCliOutput = execFileSync('npx', ['tsx', CLI_PATH, '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024,
+})
+const indexedCli = JSON.parse(indexedCliOutput)
+assert.equal(indexedCli.ok, true)
+assert.equal(indexedCli.decision, spec.decision)
+assert.equal(indexedCli.accountSelection.cliAccountIndexProvided, true)
+assert.equal(indexedCli.accountSelection.cliAccountIndex, 2)
+assert.equal(indexedCli.accountSelection.cliAccountIndexValid, true)
+assert.equal(indexedCli.accountSelection.cliAccountIndexMapsToChildEnv, true)
+assert.equal(
+  indexedCli.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedCli.postRepairVerificationCommands.includes(
+    'npm run external-agent-gcp-access:verify -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedCli.tools.every((tool: { verificationCommand: string }) =>
+    tool.verificationCommand.endsWith('--account-index 2'),
+  ),
+  true,
+)
+
+const forbiddenFindings = scanForbiddenValues({ spec, cli, indexedCli, doc })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(

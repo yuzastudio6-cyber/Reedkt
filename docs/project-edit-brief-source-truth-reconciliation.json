@@ -68,6 +68,7 @@
     "owner_review",
     "authenticated_project_session_access_policy",
     "supabase_production_readiness_gates_after_rp_editbrief_13",
+    "conditional_launch_readiness_evidence_after_rp_editbrief_14",
     "real_source_media_ingestion",
     "planner_integration_to_approved_snapshots",
     "credit_estimate_and_reservation",

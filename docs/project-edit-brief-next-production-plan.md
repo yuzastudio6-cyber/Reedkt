@@ -18,7 +18,7 @@ The mock/local Edit Brief flow is intended for internal testing only. It can cre
 
 ## Recommended Next Milestone
 
-After verification and owner review, use `RP-EDITBRIEF-13 — Supabase Persistence Plan`. Do not jump from RP-EDITBRIEF-12 to production enablement.
+After verification and owner review, use `RP-EDITBRIEF-15 — Owner Review and Production Gate Evidence Collection`. RP-EDITBRIEF-13 reconciled the Supabase persistence roots, and RP-EDITBRIEF-14 converted blanket blockers into computed readiness gates. Do not jump from these gates to production enablement without the named evidence.
 
 ## Qwen Runtime Dependency
 

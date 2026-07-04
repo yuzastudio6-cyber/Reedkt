@@ -17,6 +17,7 @@ Status: architecture/docs only. This report maps future `ProjectEditSession` Bri
 11. RP-EDITBRIEF-12 — Internal Testing + Playwright Coverage
 12. RP-EDITBRIEF-13 — Supabase Persistence Plan
 13. RP-EDITBRIEF-14 — Production Readiness Gates
+14. RP-EDITBRIEF-15 — Owner Review and Production Gate Evidence Collection
 
 ## Gate
 
@@ -81,3 +82,9 @@ Status: complete as mock/local QA hardening after verification. The milestone ad
 Status: complete as persistence planning and validation only. The milestone reconciles ProjectEditBrief concepts onto existing durable roots (`edit_briefs`, `edit_cues`, child cue tables, `edit_brief_application_logs`, and `edit_session_export_settings`), records Supabase RLS/Data API/Storage/service-role readiness gates, updates stale `project_edit_*` wording, and adds a regression smoke. It does not create migrations, run SQL, run Supabase CLI, enable live Supabase reads/writes, update generated database types, enable production routes, call providers/models, process media, dispatch workers, render/export, or reserve/spend credits.
 
 Next recommended milestone after owner review: `RP-EDITBRIEF-14 — Production Readiness Gates`.
+
+## RP-EDITBRIEF-14 — Production Readiness Gates
+
+Status: complete as conditional readiness-gate policy only. The milestone replaces stale blanket beta/production blockers with computed go/no-go booleans that can pass only when named evidence is supplied. Default status remains blocked beyond internal dry-run because owner, deployment, security, storage/privacy, model/license, Supabase, approved snapshot, credit reservation, private-media, billing/ledger, observability, and incident gates are not all present. It does not enable external beta, real-user-media beta, paid production, live Supabase reads/writes, migrations, SQL, Supabase CLI, Storage writes, production routes, providers/models, uploads, media processing, worker dispatch, render/export, or credit reservation/spend.
+
+Next recommended milestone after owner review: `RP-EDITBRIEF-15 — Owner Review and Production Gate Evidence Collection`.

@@ -16,7 +16,7 @@ export interface ProductionFinalOwnerSignoffEvidenceCollectorEnv
 
 export interface ProductionFinalOwnerSignoffEvidenceCollectorRunResult {
   ok: boolean
-  mode: 'dry_run' | 'recorded'
+  mode: 'dry_run' | 'recorded' | 'blocked_recorded'
   readyForFinalOwnerSignoffEvidence: boolean
   recordConfirmationRequired: boolean
   signoff: ProductionFinalOwnerSignoffSliceStatus
@@ -108,21 +108,24 @@ export async function runProductionFinalOwnerSignoffEvidenceCollectorFromEnv(
   const record = await runProductionToolExecutionReadinessEvidenceCollectorFromEnv({
     ...env,
     REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_EVIDENCE: 'true',
+    REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_BLOCKED_EVIDENCE: 'true',
   }, fetchImpl)
-  if (!record.ok || record.mode !== 'recorded') {
-    throw new Error('Production final owner signoff evidence could not be recorded because the all-up production readiness evidence collector did not record a passing packet.')
+  if (!record.ok || (record.mode !== 'recorded' && record.mode !== 'blocked_recorded')) {
+    throw new Error('Production final owner signoff evidence could not be recorded as a passing or blocked audit packet through the all-up production readiness evidence collector.')
   }
 
   return {
     ok: true,
-    mode: 'recorded',
+    mode: record.mode,
     readyForFinalOwnerSignoffEvidence: true,
     recordConfirmationRequired: false,
     signoff,
     record,
     warnings: [
       ...record.warnings,
-      'Final owner signoff evidence was recorded only as part of the authenticated all-up production readiness evidence packet.',
+      record.mode === 'blocked_recorded'
+        ? 'Final owner signoff evidence was recorded as a blocked audit packet while the all-up production readiness packet remains incomplete.'
+        : 'Final owner signoff evidence was recorded as part of the authenticated all-up production readiness evidence packet.',
       'This collector did not approve owners by itself, deploy, run tools, dispatch workers, process media, write Supabase directly, call Stripe, activate beta, or activate production.',
     ],
   }

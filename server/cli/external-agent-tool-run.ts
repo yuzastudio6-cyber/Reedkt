@@ -6,6 +6,7 @@ type ToolId =
   | 'ai_video_broll_generation_wan'
   | 'sound_music_audio'
   | 'supabase_local_fixture_harness'
+type ToolSelection = ToolId | 'all'
 type RequestedMode = 'safe' | 'preflight' | 'evidence' | 'runtime'
 type RuntimeKind = 'preflight_only' | 'safe_evidence_only'
 
@@ -64,14 +65,20 @@ const runtimeSideEffectKeys = [
 ] as const
 
 function main() {
-  const toolId = readToolId()
+  const toolSelection = readToolSelection()
   const requestedMode = readRequestedMode()
 
-  if (!toolId) {
+  if (!toolSelection) {
     print(blockedResult('missing_or_invalid_tool_id', requestedMode, selectedAccountIndex()))
     return
   }
 
+  if (toolSelection === 'all') {
+    print(runAllTools(requestedMode))
+    return
+  }
+
+  const toolId = toolSelection
   const accountSelection = resolveAccountSelection(toolId)
   const definition = toolDefinitions(accountSelection.accountArgs).find((candidate) => candidate.toolId === toolId)
   if (!definition) {
@@ -126,6 +133,119 @@ function main() {
     return
   }
 
+  print(runSafeTool(toolId, requestedMode, definition, accountSelection))
+}
+
+function runAllTools(requestedMode: RequestedMode): JsonRecord {
+  const toolIds: ToolId[] = [
+    'qwen2_5_vl_7b_instruct',
+    'ai_video_broll_generation_wan',
+    'sound_music_audio',
+    'supabase_local_fixture_harness',
+  ]
+  const sharedDiagnostic = requestedAccountIndex() === 'auto' ? runAccountDiagnostic() : undefined
+
+  if (requestedMode === 'runtime') {
+    const blockedTools = toolIds.map((toolId) => {
+      const accountSelection = resolveAccountSelection(toolId, sharedDiagnostic)
+      const definition = toolDefinitions(accountSelection.accountArgs).find((candidate) => candidate.toolId === toolId)
+      return {
+        toolId,
+        accountIndex: accountSelection.accountIndex,
+        ...accountSelectionOutput(accountSelection),
+        agentCallableNow: true,
+        runtimeExecutableNow: false,
+        runtimeKind: definition?.runtimeKind,
+        blocker: 'runtime_execution_not_allowed_by_current_gate',
+        delegatedCommand: definition ? commandLabel(definition) : undefined,
+        childExecuted: false,
+        runtimeSideEffects: allRuntimeSideEffectsFalse(),
+        runtimeSideEffectsAllFalse: true,
+      }
+    })
+
+    return {
+      ok: false,
+      mode: 'external_agent_tool_run_batch_runtime_blocked',
+      status: 'blocked',
+      toolId: 'all',
+      requestedMode,
+      agentCallableNow: true,
+      runtimeExecutableNow: false,
+      externalAgentCallableToolCount: toolIds.length,
+      runtimeExecutableToolCount: 0,
+      childExecuted: false,
+      tools: blockedTools,
+      runtimeSideEffects: allRuntimeSideEffectsFalse(),
+      runtimeSideEffectsAllFalse: true,
+      generatedLocalFixturePassedClaimed: false,
+      recommendedNextCommand: 'npm run external-agent-tool-next-command',
+    }
+  }
+
+  if (requestedMode !== 'safe') {
+    return {
+      ok: false,
+      mode: 'external_agent_tool_run_batch_mode_blocked',
+      status: 'blocked',
+      toolId: 'all',
+      requestedMode,
+      agentCallableNow: true,
+      runtimeExecutableNow: false,
+      blocker: `requested_mode_not_allowed_for_batch:${requestedMode}`,
+      allowedModes: ['safe', 'runtime'],
+      childExecuted: false,
+      runtimeSideEffects: allRuntimeSideEffectsFalse(),
+      runtimeSideEffectsAllFalse: true,
+      generatedLocalFixturePassedClaimed: false,
+    }
+  }
+
+  const tools = toolIds.map((toolId) => {
+    const accountSelection = resolveAccountSelection(toolId, sharedDiagnostic)
+    const definition = toolDefinitions(accountSelection.accountArgs).find((candidate) => candidate.toolId === toolId)
+    if (!definition) return blockedResult('unsupported_tool_id', requestedMode, accountSelection.accountIndex, toolId)
+    return runSafeTool(toolId, requestedMode, definition, accountSelection)
+  })
+  const runtimeSideEffectsAllFalse = tools.every((tool) => tool.runtimeSideEffectsAllFalse === true)
+  const allExpectedModesReturned = tools.every((tool) => tool.expectedModeReturned === true)
+  const allStructuredResultsReturned = tools.every((tool) => tool.structuredResultReturned === true)
+  const preflightCallableToolIds = tools
+    .filter((tool) => tool.runtimeKind === 'preflight_only')
+    .map((tool) => tool.toolId)
+  const safeEvidenceExecutableToolIds = tools
+    .filter((tool) => tool.runtimeKind === 'safe_evidence_only')
+    .map((tool) => tool.toolId)
+
+  return {
+    ok: allStructuredResultsReturned && allExpectedModesReturned && runtimeSideEffectsAllFalse,
+    decision: 'external_agent_tool_run_batch_completed_runtime_still_blocked',
+    mode: 'external_agent_tool_run_batch_result',
+    status: 'safe_wrappers_completed',
+    toolId: 'all',
+    requestedMode,
+    agentCallableNow: true,
+    runtimeExecutableNow: false,
+    externalAgentCallableToolCount: tools.length,
+    runtimeExecutableToolCount: 0,
+    preflightCallableToolIds,
+    safeEvidenceExecutableToolIds,
+    allStructuredResultsReturned,
+    allExpectedModesReturned,
+    runtimeSideEffectsAllFalse,
+    tools,
+    runtimeSideEffects: allRuntimeSideEffectsFalse(),
+    generatedLocalFixturePassedClaimed: false,
+    recommendedNextCommand: 'npm run external-agent-tool-next-command',
+  }
+}
+
+function runSafeTool(
+  toolId: ToolId,
+  requestedMode: RequestedMode,
+  definition: ToolDefinition,
+  accountSelection: AccountSelection,
+): JsonRecord {
   const child = runChild(definition)
   const expectedModeReturned = child.actualMode === definition.expectedMode
   const runtimeSideEffectsAllFalse = Object.values(child.runtimeSideEffects).every((value) => value === false)
@@ -140,7 +260,7 @@ function main() {
     ])
   const repairSummary = repairSummaryFrom(toolId, selectedAccountRepairRequest)
 
-  print({
+  return {
     ok: structuredResultReturned && expectedModeReturned && runtimeSideEffectsAllFalse,
     decision: 'external_agent_tool_run_completed_runtime_still_blocked',
     mode: 'external_agent_tool_run_result',
@@ -178,7 +298,7 @@ function main() {
     recommendedIndexedNextCommand: accountSelection.accountIndex
       ? `npm run external-agent-tool-next-command -- --account-index ${accountSelection.accountIndex}`
       : undefined,
-  })
+  }
 }
 
 function toolDefinitions(indexedArgs: string[]): ToolDefinition[] {
@@ -254,8 +374,10 @@ function runChild(definition: ToolDefinition) {
   }
 }
 
-function readToolId(): ToolId | undefined {
+function readToolSelection(): ToolSelection | undefined {
   const raw = readArgValue(['--tool', '--tool-id'])
+  if (raw === 'all') return raw
+
   if (
     raw === 'qwen2_5_vl_7b_instruct' ||
     raw === 'ai_video_broll_generation_wan' ||
@@ -301,7 +423,10 @@ function requestedAccountIndex(): string | undefined {
   return readArgValue(ACCOUNT_INDEX_FLAGS)
 }
 
-function resolveAccountSelection(toolId: ToolId): AccountSelection {
+function resolveAccountSelection(
+  toolId: ToolId,
+  diagnosticOverride?: ReturnType<typeof runAccountDiagnostic>,
+): AccountSelection {
   const requested = requestedAccountIndex()
   if (requested !== 'auto') {
     const accountIndex = selectedAccountIndex()
@@ -326,7 +451,7 @@ function resolveAccountSelection(toolId: ToolId): AccountSelection {
     }
   }
 
-  const diagnostic = runAccountDiagnostic()
+  const diagnostic = diagnosticOverride ?? runAccountDiagnostic()
   const accountIndex = chooseAccountIndex(toolId, diagnostic.json)
   return {
     requestedAccountIndex: requested,
@@ -433,6 +558,7 @@ function blockedResult(
     runtimeExecutableNow: false,
     blocker: reason,
     supportedToolIds: [
+      'all',
       'qwen2_5_vl_7b_instruct',
       'ai_video_broll_generation_wan',
       'sound_music_audio',

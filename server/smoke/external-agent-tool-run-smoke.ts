@@ -106,6 +106,12 @@ function assertSafeResult(result: JsonRecord, toolId: string, runtimeKind: strin
   assertRuntimeFlagsFalse(result.runtimeSideEffects, `${toolId}.runtimeSideEffects`)
 }
 
+function rowByTool(rows: unknown, toolId: string): JsonRecord {
+  const row = asArray(rows, 'tools').find((candidate) => asRecord(candidate, 'tools row').toolId === toolId)
+  assert.notEqual(row, undefined, `Missing batch row for ${toolId}`)
+  return asRecord(row, `tools.${toolId}`)
+}
+
 for (const file of [CLI_PATH, SMOKE_PATH, 'package.json']) {
   assert.equal(existsSync(path.join(ROOT, file)), true, `Missing required file: ${file}`)
 }
@@ -125,6 +131,8 @@ assert.equal(
 const cliSource = read(CLI_PATH)
 for (const required of [
   'external_agent_tool_run_result',
+  'external_agent_tool_run_batch_result',
+  'external_agent_tool_run_batch_runtime_blocked',
   'external_agent_tool_run_runtime_blocked',
   'qwen2_5_vl_7b_instruct',
   'ai_video_broll_generation_wan',
@@ -136,6 +144,7 @@ for (const required of [
   'runtimeExecutableNow: false',
   'external-agent-gcloud-account-access-diagnostic.ts',
   "requested !== 'auto'",
+  "raw === 'all'",
 ]) {
   assert.equal(cliSource.includes(required), true, `runner source missing ${required}`)
 }
@@ -272,6 +281,60 @@ assert.equal(supabaseHarness.preflightOnly, false)
 assert.equal(supabaseHarness.safeEvidenceReviewRun, true)
 assert.equal(supabaseHarness.confirmationEnvInjected, true)
 
+const batch = runTool([
+  '--tool',
+  'all',
+  '--mode',
+  'safe',
+  '--account-index',
+  'auto',
+])
+assert.equal(batch.ok, true)
+assert.equal(batch.mode, 'external_agent_tool_run_batch_result')
+assert.equal(batch.decision, 'external_agent_tool_run_batch_completed_runtime_still_blocked')
+assert.equal(batch.toolId, 'all')
+assert.equal(batch.requestedMode, 'safe')
+assert.equal(batch.agentCallableNow, true)
+assert.equal(batch.runtimeExecutableNow, false)
+assert.equal(batch.externalAgentCallableToolCount, 4)
+assert.equal(batch.runtimeExecutableToolCount, 0)
+assert.deepEqual(batch.preflightCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
+assert.deepEqual(batch.safeEvidenceExecutableToolIds, [
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(batch.allStructuredResultsReturned, true)
+assert.equal(batch.allExpectedModesReturned, true)
+assert.equal(batch.runtimeSideEffectsAllFalse, true)
+assertRuntimeFlagsFalse(batch.runtimeSideEffects, 'batch.runtimeSideEffects')
+assertSafeResult(
+  rowByTool(batch.tools, 'qwen2_5_vl_7b_instruct'),
+  'qwen2_5_vl_7b_instruct',
+  'preflight_only',
+  'external_agent_qwen_execution_preflight_only_result',
+)
+assertSafeResult(
+  rowByTool(batch.tools, 'ai_video_broll_generation_wan'),
+  'ai_video_broll_generation_wan',
+  'preflight_only',
+  'external_agent_broll_wan_execution_preflight_only_result',
+)
+assertSafeResult(
+  rowByTool(batch.tools, 'sound_music_audio'),
+  'sound_music_audio',
+  'safe_evidence_only',
+  'external_agent_sound_execution_evidence_review_result',
+)
+assertSafeResult(
+  rowByTool(batch.tools, 'supabase_local_fixture_harness'),
+  'supabase_local_fixture_harness',
+  'safe_evidence_only',
+  'external_agent_supabase_harness_execution_evidence_review_result',
+)
+
 const runtimeBlocked = runTool([
   '--tool',
   'qwen2_5_vl_7b_instruct',
@@ -291,6 +354,34 @@ assert.equal(runtimeBlocked.blocker, 'runtime_execution_not_allowed_by_current_g
 assert.equal(runtimeBlocked.childExecuted, false)
 assertRuntimeFlagsFalse(runtimeBlocked.runtimeSideEffects, 'runtimeBlocked.runtimeSideEffects')
 
+const batchRuntimeBlocked = runTool([
+  '--tool',
+  'all',
+  '--mode',
+  'runtime',
+  '--account-index',
+  '2',
+])
+assert.equal(batchRuntimeBlocked.ok, false)
+assert.equal(batchRuntimeBlocked.mode, 'external_agent_tool_run_batch_runtime_blocked')
+assert.equal(batchRuntimeBlocked.status, 'blocked')
+assert.equal(batchRuntimeBlocked.toolId, 'all')
+assert.equal(batchRuntimeBlocked.requestedMode, 'runtime')
+assert.equal(batchRuntimeBlocked.agentCallableNow, true)
+assert.equal(batchRuntimeBlocked.runtimeExecutableNow, false)
+assert.equal(batchRuntimeBlocked.externalAgentCallableToolCount, 4)
+assert.equal(batchRuntimeBlocked.runtimeExecutableToolCount, 0)
+assert.equal(batchRuntimeBlocked.childExecuted, false)
+assertRuntimeFlagsFalse(batchRuntimeBlocked.runtimeSideEffects, 'batchRuntimeBlocked.runtimeSideEffects')
+for (const row of asArray(batchRuntimeBlocked.tools, 'batchRuntimeBlocked.tools')) {
+  const tool = asRecord(row, 'batchRuntimeBlocked row')
+  assert.equal(tool.agentCallableNow, true)
+  assert.equal(tool.runtimeExecutableNow, false)
+  assert.equal(tool.blocker, 'runtime_execution_not_allowed_by_current_gate')
+  assert.equal(tool.childExecuted, false)
+  assertRuntimeFlagsFalse(tool.runtimeSideEffects, `batchRuntimeBlocked.${tool.toolId}.runtimeSideEffects`)
+}
+
 const invalidTool = runTool(['--tool', 'unknown_tool', '--mode', 'safe'])
 assert.equal(invalidTool.ok, false)
 assert.equal(invalidTool.mode, 'external_agent_tool_run_blocked')
@@ -307,7 +398,9 @@ const forbiddenFindings = scanForbiddenValues([
   broll,
   sound,
   supabaseHarness,
+  batch,
   runtimeBlocked,
+  batchRuntimeBlocked,
   invalidTool,
 ])
 assert.deepEqual(forbiddenFindings, [])
@@ -323,6 +416,7 @@ console.log(
         sound.toolId,
         supabaseHarness.toolId,
       ],
+      batchToolCount: batch.externalAgentCallableToolCount,
       autoAccountSelectionRun: qwenAuto.autoAccountSelectionRun,
       externalAgentCallableToolCount: 4,
       runtimeExecutableToolCount: 0,

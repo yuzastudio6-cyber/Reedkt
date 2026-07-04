@@ -1430,6 +1430,57 @@ function toolResultSummary(
   }
 }
 
+function conciseRuntimeFailureDiagnostics(input: {
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId
+  payload: Record<string, unknown>
+  rawErrorMessage?: string
+}): string {
+  const rawErrorMessage = input.rawErrorMessage ?? ''
+  const cpuModelRuntime = allowModelCpuRuntime(input.toolId, input.payload)
+  const cpuFoundationRuntime = allowFoundationCpuRuntime(input.toolId, input.payload)
+  const cpuTensorRuntime = allowKorniaCpuTensorRuntime(input.toolId, input.payload)
+  const runtimeKind = cpuModelRuntime
+    ? 'cpu_model_runtime'
+    : cpuFoundationRuntime
+    ? 'cpu_foundation_runtime'
+    : cpuTensorRuntime
+    ? 'cpu_tensor_runtime'
+    : 'native_gpu_runtime'
+  const commandKind = runtimeExecutionBackend(input.payload) === 'docker_container'
+    ? 'container_command_failed'
+    : 'host_command_failed'
+  const probableCause = rawErrorMessage.includes('docker run')
+    ? 'runtime command exited before producing accepted private output'
+    : rawErrorMessage.includes('No such file or directory')
+    ? 'runtime path or mounted private input was not available'
+    : rawErrorMessage.includes('ModuleNotFoundError')
+    ? 'runtime package import failed'
+    : rawErrorMessage.includes('CUDA') || rawErrorMessage.includes('cuda')
+    ? 'native CUDA runtime was unavailable or rejected by the tool runtime'
+    : 'runtime failed before producing accepted private output'
+
+  return [
+    `${runtimeKind}_${commandKind}`,
+    `tool=${input.toolId}`,
+    `cause=${probableCause}`,
+    'state=failed_with_diagnostics',
+    'next=run the tool-specific private proof sequence with a real reviewed model/checkpoint, private source frame, and private output directory before retrying the controlled route',
+  ].join('; ')
+}
+
+function runtimeFailureDiagnostics(input: {
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId
+  payload: Record<string, unknown>
+  rawErrorMessage?: string
+  failed: boolean
+}): string | null {
+  if (!input.failed) return null
+  if (!input.rawErrorMessage) {
+    return conciseRuntimeFailureDiagnostics(input)
+  }
+  return conciseRuntimeFailureDiagnostics(input)
+}
+
 async function runMaskTool(
   request: AiGraphicsExternalAgentGpuModelControlledAdapterRequest,
   payload: Record<string, unknown>,
@@ -1601,13 +1652,17 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
       : failed
       ? 'failed_with_diagnostics'
       : 'blocked_with_reason'
-  const failureDiagnostics =
+  const rawErrorMessage =
     typeof (runtimeOutput.result as { errorMessage?: unknown } | undefined)
       ?.errorMessage === 'string'
       ? (runtimeOutput.result as { errorMessage: string }).errorMessage
-      : failed
-      ? 'GPU/model controlled adapter failed before producing private output.'
-      : null
+      : undefined
+  const failureDiagnostics = runtimeFailureDiagnostics({
+    toolId: request.toolId,
+    payload,
+    rawErrorMessage,
+    failed,
+  })
 
   return {
     decision: AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_DECISION,

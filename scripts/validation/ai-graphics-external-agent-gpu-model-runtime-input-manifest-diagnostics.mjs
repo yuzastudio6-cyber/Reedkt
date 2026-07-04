@@ -325,6 +325,12 @@ for (const [toolId, contract] of Object.entries(toolContracts)) {
     if (toolCall.response?.externalAgentToolCallResult?.failedWithDiagnostics !== true) {
       fail(`${toolId}_failed_diagnostics_result_flag_missing`)
     }
+    if (!toolCall.response.failureDiagnostics.includes('cpu_model_runtime_container_command_failed')) {
+      fail(`${toolId}_cpu_model_failure_code_missing`)
+    }
+    if (toolCall.response.failureDiagnostics.includes('docker run')) {
+      fail(`${toolId}_raw_docker_command_leaked_in_failure_diagnostics`)
+    }
   } else if (typeof blockingReason !== 'string') {
     fail(`${toolId}_blocking_reason_missing`)
   } else if (blockingReason.includes('_model_weight_')) {

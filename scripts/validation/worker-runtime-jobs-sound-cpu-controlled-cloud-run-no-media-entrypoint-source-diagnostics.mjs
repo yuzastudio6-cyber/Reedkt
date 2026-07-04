@@ -71,9 +71,15 @@ const dockerfile = read('server/workers/sound-cpu/Dockerfile')
 assert(dockerfile.includes('FROM --platform=linux/amd64 python:3.13-slim'), 'Dockerfile base/platform mismatch')
 assert(
   dockerfile.includes(
-    'COPY scripts/validation/worker-runtime-jobs-sound-cpu-bounded-external-agent-no-media-controlled-tool-execution-runner.py ./controlled-tool-execution-runner.py',
+    'COPY --chmod=0644 scripts/validation/worker-runtime-jobs-sound-cpu-bounded-external-agent-no-media-controlled-tool-execution-runner.py ./controlled-tool-execution-runner.py',
   ),
-  'Dockerfile must copy controlled runner',
+  'Dockerfile must copy controlled runner with non-root-readable permissions',
+)
+assert(
+  dockerfile.includes(
+    'COPY --chmod=0644 server/workers/sound-oss-tools-controlled-install/requirements.sound-oss-tools.txt ./requirements.sound-oss-tools.txt',
+  ),
+  'Dockerfile must copy requirements with non-root-readable permissions',
 )
 assert(
   dockerfile.includes('CMD ["python", "./controlled-tool-execution-runner.py", "--require-disabled-env"]'),

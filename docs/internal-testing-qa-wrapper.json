@@ -12,6 +12,7 @@
     "smoke:project-edit-brief-internal-testing-completion-audit",
     "smoke:internal-testing-approval-credit-gates",
     "smoke:internal-testing-credit-lifecycle-readiness",
+    "smoke:internal-testing-repeated-local-operator-harness",
     "smoke:beta-readiness"
   ],
   "playwrightSpecs": [

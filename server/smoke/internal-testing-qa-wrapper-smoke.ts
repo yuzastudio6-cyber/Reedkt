@@ -23,10 +23,13 @@ const requiredFiles = [
   'server/smoke/internal-testing-qa-wrapper-smoke.ts',
   'server/smoke/internal-testing-approval-credit-gates-smoke.ts',
   'server/smoke/internal-testing-credit-lifecycle-readiness-smoke.ts',
+  'server/smoke/internal-testing-repeated-local-operator-harness-smoke.ts',
   'docs/internal-testing-approval-credit-gates.md',
   'docs/internal-testing-approval-credit-gates.json',
   'docs/internal-testing-credit-lifecycle-readiness.md',
   'docs/internal-testing-credit-lifecycle-readiness.json',
+  'docs/internal-testing-repeated-local-operator-harness.md',
+  'docs/internal-testing-repeated-local-operator-harness.json',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
   'tests/e2e/edit-preferences-route-entrypoint.spec.ts',
 ]
@@ -46,6 +49,7 @@ for (const phrase of [
   'smoke:project-edit-brief-internal-testing-completion-audit',
   'smoke:internal-testing-approval-credit-gates',
   'smoke:internal-testing-credit-lifecycle-readiness',
+  'smoke:internal-testing-repeated-local-operator-harness',
   'smoke:beta-readiness',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
   'tests/e2e/edit-preferences-route-entrypoint.spec.ts',
@@ -62,6 +66,7 @@ for (const phrase of [
   'npm run qa:internal-testing',
   'approval and credit',
   'credit lifecycle',
+  'operator harness',
   'No upload',
   'No live Supabase',
   'fails fast',
@@ -82,6 +87,7 @@ assert.equal(docJson.decision, 'internal_testing_qa_wrapper_passed_ready_for_rep
 assert.equal(docJson.command, 'npm run qa:internal-testing')
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-approval-credit-gates'))
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-credit-lifecycle-readiness'))
+assert.ok(docJson.smokes?.includes('smoke:internal-testing-repeated-local-operator-harness'))
 assert.ok(docJson.smokes?.includes('smoke:project-edit-brief-e2e'))
 assert.ok(docJson.playwrightSpecs?.includes('tests/e2e/edit-preferences-route-entrypoint.spec.ts'))
 assert.equal(docJson.blockedScope?.productReady, false)

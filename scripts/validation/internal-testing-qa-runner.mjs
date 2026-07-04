@@ -26,6 +26,7 @@ const smokeCommands = [
   ['npm', ['run', 'smoke:project-edit-brief-internal-testing-completion-audit']],
   ['npm', ['run', 'smoke:internal-testing-approval-credit-gates']],
   ['npm', ['run', 'smoke:internal-testing-credit-lifecycle-readiness']],
+  ['npm', ['run', 'smoke:internal-testing-repeated-local-operator-harness']],
   ['npm', ['run', 'smoke:beta-readiness']],
 ]
 

@@ -459,7 +459,7 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
   )
 
   print({
-    ok: false,
+    ok: delegated.ok && delegated.json?.ok === true,
     mode: delegated.ok && delegated.json?.ok === true
       ? 'external_agent_broll_wan_inference_proof_delegated_11h_result'
       : 'external_agent_broll_wan_inference_proof_delegated_11h_blocked_or_failed',

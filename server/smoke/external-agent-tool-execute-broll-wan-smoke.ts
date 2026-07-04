@@ -139,6 +139,7 @@ for (const required of [
   'external_agent_broll_wan_private_cache_prepare_confirmation_blocked',
   'external_agent_broll_wan_private_cache_prepare_delegated_11e_result',
   'external_agent_broll_wan_execution_delegated_11b_model_import_result',
+  'ok: delegated.ok && delegated.json?.ok === true',
   'parseJsonOutput',
   'runtimeRunNow: false',
   'runtimeRunNow: true',

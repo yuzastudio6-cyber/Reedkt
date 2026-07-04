@@ -15,8 +15,8 @@ const BROLL_TOOL_ID = 'ai_video_broll_generation_wan'
 const EXPECTED_QWEN_MANUAL_ACTION_IDS: string[] = []
 const EXPECTED_BROLL_MANUAL_ACTION_IDS: string[] = []
 
-function runJsonCli(script: string): JsonObject {
-  const output = execFileSync('npx', ['tsx', script], {
+function runJsonCli(script: string, args: string[] = []): JsonObject {
+  const output = execFileSync('npx', ['tsx', script, ...args], {
     cwd: ROOT,
     encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 10,
@@ -212,6 +212,7 @@ for (const tool of rollup.tools) {
 
 const actionPlan = runJsonCli('server/cli/external-agent-tool-action-plan.ts')
 const readiness = runJsonCli('server/cli/external-agent-tool-readiness-check.ts')
+const runtimeStatus = runJsonCli('server/cli/external-agent-tool-runtime-status.ts', ['--static-only'])
 const executionGate = runJsonCli('server/cli/external-agent-tool-execution-gate.ts')
 const blockerPreflight = runJsonCli('server/cli/external-agent-tool-blocker-preflight.ts')
 const brollQuotaVerify = runJsonCli('server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts')
@@ -316,6 +317,20 @@ for (const readinessFlag of [
   'generatedAssetsCreated',
 ]) {
   assert.equal(readiness[readinessFlag], false, `readiness.${readinessFlag} must remain false`)
+}
+
+assert.equal(runtimeStatus.mode, 'external_agent_tool_runtime_status_report')
+assert.equal(runtimeStatus.decision, 'external_agent_tools_callable_static_status_only')
+assert.equal(runtimeStatus.liveChecksRun, false)
+assert.equal(runtimeStatus.agentCallableToolCount, 4)
+assert.equal(runtimeStatus.readyForAnyExternalAgentRuntimeExecutionNow, false)
+assert.equal(runtimeStatus.runtimeGatesAllFalse, true)
+assert.deepEqual(runtimeStatus.runtimeExecutableToolIds, [])
+assertAllRuntimeFlagsFalse(runtimeStatus.runtimeSideEffects, 'runtimeStatus.runtimeSideEffects')
+for (const tool of asArray(runtimeStatus.tools, 'runtimeStatus.tools')) {
+  const row = asRecord(tool, 'runtimeStatus.tools row')
+  assert.equal(row.agentCallable, true, `${row.toolId} must remain callable through a wrapper`)
+  assert.equal(row.runtimeExecutableNow, false, `${row.toolId} must not execute from static status`)
 }
 
 assert.equal(executionGate.executionAllowedNow, false)
@@ -560,10 +575,16 @@ const normalizedSurfaceData = {
   runtimeSideEffects: {
     rollup: rollup.runtimeSideEffects,
     actionPlan: actionPlan.runtimeSideEffects,
+    runtimeStatus: runtimeStatus.runtimeSideEffects,
     executionGate: executionGate.runtimeSideEffects,
     blockerPreflight: blockerPreflight.runtimeSideEffects,
     brollQuotaVerify: brollQuotaVerify.runtimeSideEffects,
     nextCommand: nextCommand.runtimeSideEffects,
+  },
+  runtimeStatus: {
+    agentCallableToolIds: runtimeStatus.agentCallableToolIds,
+    runtimeExecutableToolIds: runtimeStatus.runtimeExecutableToolIds,
+    runtimeGatesAllFalse: runtimeStatus.runtimeGatesAllFalse,
   },
   qwenExecutionWrapper: {
     canonicalCommand: qwenExecutionWrapper.canonicalCommand,
@@ -612,6 +633,7 @@ console.log(
         'rollup',
         'external-agent-tool-action-plan',
         'external-agent-tool-readiness:check',
+        'external-agent-tool-runtime-status',
         'external-agent-tool-execution-gate',
         'external-agent-tool-blockers:preflight',
         'ai-video-broll-wan-gpu-global-quota:verify',

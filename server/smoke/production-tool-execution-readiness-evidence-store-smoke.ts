@@ -60,6 +60,25 @@ assert.equal(persistentReplay.replayed, true, 'persistent duplicate should repla
 assert.equal(persistentReplay.packet.id, persistentRecord.packet.id, 'persistent replay should return original packet')
 assert.equal(persistentList.length, 1, 'persistent list should include one idempotent packet')
 assert.equal(admin.calls.inserts.length, 1, 'persistent idempotent replay should not insert twice')
+assert.deepEqual(admin.calls.orderColumns, ['created_at', 'id'], 'persistent evidence readback should request deterministic latest-packet ordering')
+
+const tieBreakRows = await listPersistentProductionToolExecutionReadinessEvidencePackets(
+  createFakeProductionReadinessAdminClient([
+    productionEvidenceRowFixture('production-tool-execution-readiness-evidence-b', '2026-07-04T00:00:00.000Z'),
+    productionEvidenceRowFixture('production-tool-execution-readiness-evidence-a', '2026-07-04T00:00:00.000Z'),
+    productionEvidenceRowFixture('production-tool-execution-readiness-evidence-c', '2026-07-04T00:00:01.000Z'),
+  ]),
+  readinessInput.workspaceId,
+)
+assert.deepEqual(
+  tieBreakRows.map((packet) => packet.id),
+  [
+    'production-tool-execution-readiness-evidence-a',
+    'production-tool-execution-readiness-evidence-b',
+    'production-tool-execution-readiness-evidence-c',
+  ],
+  'persistent evidence packets should sort deterministically by created_at and id',
+)
 
 await assert.rejects(
   () => recordPersistentProductionToolExecutionReadinessEvidencePacket(
@@ -247,12 +266,16 @@ function reviewedEvidence(label: string) {
 interface FakeProductionReadinessAdminClient extends SupabaseClient {
   calls: {
     inserts: unknown[]
+    orderColumns: string[]
   }
 }
 
-function createFakeProductionReadinessAdminClient(): FakeProductionReadinessAdminClient {
+function createFakeProductionReadinessAdminClient(initialRows: Record<string, unknown>[] = []): FakeProductionReadinessAdminClient {
   const rows = new Map<string, Record<string, unknown>>()
-  const calls = { inserts: [] as unknown[] }
+  for (const row of initialRows) {
+    rows.set(`${row.workspace_id}:${row.idempotency_key}`, row)
+  }
+  const calls = { inserts: [] as unknown[], orderColumns: [] as string[] }
 
   return {
     calls,
@@ -263,10 +286,18 @@ function createFakeProductionReadinessAdminClient(): FakeProductionReadinessAdmi
           filters[column] = value
           return selectBuilder
         },
-        order: async () => ({
-          data: [...rows.values()].filter((row) => row.workspace_id === filters.workspace_id),
-          error: null,
-        }),
+        order(column: string) {
+          calls.orderColumns.push(column)
+          return selectBuilder
+        },
+        then(resolve: (value: { data: Record<string, unknown>[]; error: null }) => unknown, reject?: (reason: unknown) => unknown) {
+          return Promise.resolve({
+            data: [...rows.values()]
+              .filter((row) => row.workspace_id === filters.workspace_id)
+              .sort(compareProductionEvidenceRows),
+            error: null,
+          }).then(resolve, reject)
+        },
         async maybeSingle() {
           return {
             data: rows.get(`${filters.workspace_id}:${filters.idempotency_key}`) ?? null,
@@ -295,6 +326,25 @@ function createFakeProductionReadinessAdminClient(): FakeProductionReadinessAdmi
       }
     },
   } as unknown as FakeProductionReadinessAdminClient
+}
+
+function productionEvidenceRowFixture(id: string, createdAt: string): Record<string, unknown> {
+  return {
+    id,
+    workspace_id: readinessInput.workspaceId,
+    project_id: readinessInput.projectId,
+    idempotency_key: `${id}:idempotency`,
+    source_id: readinessInput.sourceId,
+    source_sha: readinessInput.sourceSha ?? null,
+    created_at: createdAt,
+    created_by_user_id: 'user-production-readiness-smoke',
+    readiness_input: readinessInput,
+    readiness_report: readinessReport,
+  }
+}
+
+function compareProductionEvidenceRows(left: Record<string, unknown>, right: Record<string, unknown>): number {
+  return String(left.created_at).localeCompare(String(right.created_at)) || String(left.id).localeCompare(String(right.id))
 }
 
 function createMissingMigrationAdminClient(): SupabaseClient {
@@ -381,12 +431,19 @@ function createFakeProductionReadinessServiceAdminClient(
           filters[column] = value
           return builder
         },
-        order: async () => ({
-          data: table === 'production_tool_execution_readiness_evidence_packets'
-            ? [...rows.values()].filter((row) => row.workspace_id === filters.workspace_id)
-            : [],
-          error: null,
-        }),
+        order() {
+          return builder
+        },
+        then(resolve: (value: { data: Record<string, unknown>[]; error: null }) => unknown, reject?: (reason: unknown) => unknown) {
+          return Promise.resolve({
+            data: table === 'production_tool_execution_readiness_evidence_packets'
+              ? [...rows.values()]
+                  .filter((row) => row.workspace_id === filters.workspace_id)
+                  .sort(compareProductionEvidenceRows)
+              : [],
+            error: null,
+          }).then(resolve, reject)
+        },
         async maybeSingle() {
           return {
             data: fakeProductionReadinessServiceRow(table, filters, rows, role),

@@ -1714,16 +1714,8 @@ function createGatewayPersistentReadinessAdminClient(
           }
           return { data: null, error: null }
         },
-        async order() {
-          if (table === 'production_tool_execution_readiness_evidence_packets') {
-            return {
-              data: (options.productionReadinessRows ?? [])
-                .filter((row) => row.workspace_id === filters.workspace_id)
-                .sort((a, b) => a.created_at.localeCompare(b.created_at)),
-              error: null,
-            }
-          }
-          return { data: [], error: null }
+        order() {
+          return builder
         },
         async limit() {
           if (options.missingBillingBackend && table === 'tool_cost_events') {
@@ -1734,7 +1726,15 @@ function createGatewayPersistentReadinessAdminClient(
           }
           return { data: [], error: null }
         },
-        then(resolve: (value: { count?: number; error: null }) => unknown, reject: (reason?: unknown) => unknown) {
+        then(resolve: (value: { count?: number; data?: unknown[]; error: null }) => unknown, reject: (reason?: unknown) => unknown) {
+          if (table === 'production_tool_execution_readiness_evidence_packets') {
+            return Promise.resolve({
+              data: (options.productionReadinessRows ?? [])
+                .filter((row) => row.workspace_id === filters.workspace_id)
+                .sort((a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id)),
+              error: null,
+            }).then(resolve, reject)
+          }
           return Promise.resolve({ count: 0, error: null }).then(resolve, reject)
         },
       }

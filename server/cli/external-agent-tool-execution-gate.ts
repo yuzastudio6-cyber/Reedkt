@@ -206,6 +206,10 @@ function main() {
       : undefined
   const toolRows = gate.toolRows.map((tool) => ({
     ...tool,
+    runtimeExecutionAllowedNow: tool.executionAllowedNow === true,
+    safeEvidenceReviewExecutableNow:
+      rollupToolsById.get(tool.toolId)?.status === 'metadata_only' ||
+      rollupToolsById.get(tool.toolId)?.status === 'supporting_evidence_only',
     accountIndexedSafeNextCommand: selectedAccountIndex
       ? commandWithAccountIndex(tool.safeNextCommand, selectedAccountIndex)
       : undefined,

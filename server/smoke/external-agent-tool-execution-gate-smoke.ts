@@ -450,15 +450,23 @@ assert.equal(
   indexedQwenGateRow.accountIndexedSafeNextCommand,
   'npm run external-agent-tool-next-command -- --account-index 2',
 )
+assert.equal(indexedQwenGateRow.runtimeExecutionAllowedNow, false)
+assert.equal(indexedQwenGateRow.safeEvidenceReviewExecutableNow, false)
 assert.equal(indexedBrollGateRow.accountIndexedSafeNextCommand, indexedBrollGateRow.safeNextCommand)
+assert.equal(indexedBrollGateRow.runtimeExecutionAllowedNow, false)
+assert.equal(indexedBrollGateRow.safeEvidenceReviewExecutableNow, false)
 assert.equal(
   indexedSoundGateRow.accountIndexedSafeNextCommand,
   'npm run external-agent-tool-execute-sound -- --account-index 2',
 )
+assert.equal(indexedSoundGateRow.runtimeExecutionAllowedNow, false)
+assert.equal(indexedSoundGateRow.safeEvidenceReviewExecutableNow, true)
 assert.equal(
   indexedSupabaseHarnessGateRow.accountIndexedSafeNextCommand,
   'npm run external-agent-tool-execute-supabase-harness -- --account-index 2',
 )
+assert.equal(indexedSupabaseHarnessGateRow.runtimeExecutionAllowedNow, false)
+assert.equal(indexedSupabaseHarnessGateRow.safeEvidenceReviewExecutableNow, true)
 assert.equal(
   indexedLiveReport.gcpAccessRepair.safeRetryChecklist.includes(
     'run npm run external-agent-tool-next-command -- --account-index 2',

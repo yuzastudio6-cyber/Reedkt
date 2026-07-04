@@ -153,14 +153,20 @@ export function createBetaReadinessRoutes(): Router {
 
   router.post('/v1/beta-readiness/production-tool-execution-readiness/evidence', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
     const body = validateBody(productionToolExecutionReadinessGateSchema, request.body)
+    const allowBlockedEvidencePacket = stringQueryValue(request.query.recordBlockedEvidence) === 'true' ||
+      request.header('x-reeditpro-record-blocked-evidence') === 'true'
     const result = await createProductionToolExecutionReadinessEvidenceService(getServiceContext(request))
-      .recordEvidence(body, getIdempotencyKey(request))
+      .recordEvidence(body, getIdempotencyKey(request), { allowBlockedEvidencePacket })
     sendOk(response, {
       packet: result.packet,
       replayed: result.replayed,
       report: result.report,
+      recordedBlockedAuditPacket: result.recordedBlockedAuditPacket,
     }, [
       ...result.warnings,
+      result.recordedBlockedAuditPacket
+        ? 'Blocked readiness audit packets are durable status records only; they cannot be used as paid-production approval.'
+        : 'Passing readiness evidence packets may be referenced by production-ready dispatch only while still current and valid.',
       'Production readiness evidence recording does not deploy, run tools, process media, call Stripe, mutate wallets, or enable production by itself.',
     ], result.replayed ? 200 : 201)
   }))

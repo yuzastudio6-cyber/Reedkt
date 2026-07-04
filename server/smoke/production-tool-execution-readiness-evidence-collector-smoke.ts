@@ -42,7 +42,26 @@ const blocked = await runProductionToolExecutionReadinessEvidenceCollectorFromEn
 })
 assert.equal(blocked.ok, false, 'missing evidence should fail collector preflight')
 assert.equal(blocked.readyForRecord, false, 'missing evidence should not be ready for backend record')
+assert.equal(blocked.readyForBlockedAuditRecord, false, 'missing identity/configuration should not be ready for blocked audit recording')
 assert.equal(blockedFetchCalled, false, 'blocked preflight must not call fetch')
+
+const blockedAuditCalls: Array<{ url: string; method: string; headers: Record<string, string>; body?: Record<string, unknown> }> = []
+const blockedAuditRecord = await runProductionToolExecutionReadinessEvidenceCollectorFromEnv(
+  blockedAuditEnv(),
+  fakeFetch(blockedAuditCalls, false),
+)
+assert.equal(blockedAuditRecord.ok, true, 'collector should record blocked audit packets when explicitly confirmed')
+assert.equal(blockedAuditRecord.mode, 'blocked_recorded', 'blocked audit packet recording should have its own mode')
+assert.equal(blockedAuditRecord.readyForRecord, false, 'blocked audit packet must not be treated as paid-production-ready')
+assert.equal(blockedAuditRecord.readyForBlockedAuditRecord, true, 'blocked audit packet should report audit-readiness')
+assert.equal(blockedAuditRecord.record?.status, 201, 'blocked audit packet route should still return a durable record response')
+assert.equal(blockedAuditRecord.record?.productionToolExecutionAllowed, false, 'blocked audit packet must preserve production execution denied')
+assert.equal(blockedAuditRecord.record?.paidProductionAllowed, false, 'blocked audit packet must preserve paid production denied')
+assert.equal(blockedAuditRecord.readback?.latestProductionToolExecutionAllowed, false, 'blocked audit readback must preserve production execution denied')
+assert.equal(blockedAuditRecord.readback?.recordedEvidencePacketPresent, true, 'blocked audit readback should prove exact packet presence')
+assert.equal(blockedAuditCalls[0]?.url.includes('recordBlockedEvidence=true'), true, 'blocked audit recording should use explicit backend query flag')
+assert.equal(blockedAuditCalls[0]?.headers['idempotency-key'], 'production-readiness-blocked-audit-smoke')
+assert.equal(JSON.stringify(blockedAuditRecord).includes('production-readiness-blocked-audit-token'), false, 'blocked audit summary must not expose bearer token')
 
 await assert.rejects(
   () => runProductionToolExecutionReadinessEvidenceCollectorFromEnv({
@@ -145,9 +164,11 @@ function fakeFetch(
   return async (url, init) => {
     const body = init.body ? JSON.parse(init.body) as Record<string, unknown> : undefined
     calls.push({ url, method: init.method, headers: init.headers, body })
-    if (init.method === 'POST' && url.endsWith('/v1/beta-readiness/production-tool-execution-readiness/evidence')) {
-      return jsonResponse(statusOverrides.recordStatus ?? (ready ? 201 : 400), {
-        ok: ready,
+    const blockedAudit = url.includes('recordBlockedEvidence=true')
+    const acceptedRecord = ready || blockedAudit
+    if (init.method === 'POST' && url.includes('/v1/beta-readiness/production-tool-execution-readiness/evidence')) {
+      return jsonResponse(statusOverrides.recordStatus ?? (acceptedRecord ? 201 : 400), {
+        ok: acceptedRecord,
         data: {
           replayed: false,
           packet: {
@@ -218,6 +239,17 @@ function jsonResponse(status: number, payload: unknown): Promise<{ status: numbe
       return payload
     },
   })
+}
+
+function blockedAuditEnv(): ProductionToolExecutionReadinessEvidenceCollectorEnv {
+  return {
+    ...completeEnv(),
+    REEDITPRO_PRODUCTION_WALLET_SPEND_VERIFIED: 'false',
+    REEDITPRO_PRODUCTION_READINESS_API_BASE_URL: 'https://api.production.reeditpro.example',
+    REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN: 'production-readiness-blocked-audit-token',
+    REEDITPRO_PRODUCTION_READINESS_IDEMPOTENCY_KEY: 'production-readiness-blocked-audit-smoke',
+    REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_BLOCKED_EVIDENCE: 'true',
+  }
 }
 
 function confirmedEnv(): ProductionToolExecutionReadinessEvidenceCollectorEnv {

@@ -29,6 +29,10 @@ export interface ProductionToolExecutionReadinessEvidenceServiceReadbackSummary 
   productionActivationAttempted: false
 }
 
+export interface ProductionToolExecutionReadinessEvidenceRecordOptions {
+  allowBlockedEvidencePacket?: boolean
+}
+
 export function createProductionToolExecutionReadinessEvidenceService(context: ServiceContext) {
   return {
     async listEvidence(workspaceId: string) {
@@ -52,7 +56,11 @@ export function createProductionToolExecutionReadinessEvidenceService(context: S
       }
     },
 
-    async recordEvidence(input: ProductionToolExecutionReadinessGateInput, idempotencyKey: string) {
+    async recordEvidence(
+      input: ProductionToolExecutionReadinessGateInput,
+      idempotencyKey: string,
+      options: ProductionToolExecutionReadinessEvidenceRecordOptions = {},
+    ) {
       await assertProductionEvidenceRecordAccess(context, input)
       let report
       try {
@@ -65,7 +73,8 @@ export function createProductionToolExecutionReadinessEvidenceService(context: S
         throw error
       }
 
-      if (!report.productionToolExecutionAllowed) {
+      const recordingBlockedAuditPacket = !report.productionToolExecutionAllowed && options.allowBlockedEvidencePacket === true
+      if (!report.productionToolExecutionAllowed && !recordingBlockedAuditPacket) {
         throw new ApiError(
           'VALIDATION_FAILED',
           'Production readiness evidence cannot be recorded until the paid-production gate passes.',
@@ -91,12 +100,16 @@ export function createProductionToolExecutionReadinessEvidenceService(context: S
         packet: stored.packet,
         replayed: stored.replayed,
         report,
+        recordedBlockedAuditPacket: recordingBlockedAuditPacket,
         warnings: context.clients.admin && !context.env.mockOnly
           ? [
             'Persistent production readiness evidence recorded through the backend service-role path.',
             stored.replayed
               ? 'Idempotent replay returned the original production readiness evidence packet.'
               : 'Production readiness evidence packet recorded once for this idempotency key.',
+            recordingBlockedAuditPacket
+              ? 'This is a blocked readiness audit packet only; it does not allow production dispatch or paid production.'
+              : 'This is a passing paid-production readiness evidence packet.',
             'Recording evidence does not deploy, run tools, call Stripe, mutate wallets, or enable production by itself.',
           ]
           : [
@@ -104,6 +117,9 @@ export function createProductionToolExecutionReadinessEvidenceService(context: S
             stored.replayed
               ? 'Idempotent replay returned the original production readiness evidence packet.'
               : 'Production readiness evidence packet recorded once for this idempotency key.',
+            recordingBlockedAuditPacket
+              ? 'This is a blocked readiness audit packet only; it does not allow production dispatch or paid production.'
+              : 'This is a passing paid-production readiness evidence packet.',
           ],
       }
     },

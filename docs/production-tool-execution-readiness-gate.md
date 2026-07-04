@@ -32,6 +32,7 @@ npm run smoke:production-tool-execution-readiness-api
 npm run smoke:production-tool-execution-readiness-evidence-preflight
 npm run smoke:production-tool-execution-readiness-evidence-collector
 npm run smoke:production-tool-execution-readiness-evidence-bundle
+npm run smoke:production-tool-execution-readiness-evidence-template
 npm run smoke:production-billing-evidence-collector
 npm run smoke:production-ops-observability-evidence-collector
 npm run smoke:production-final-owner-signoff-evidence-collector
@@ -44,6 +45,7 @@ npm run smoke:platform-wallet-lifecycle-qa
 npm run smoke:production-real-worker-handler-readiness
 npm run prod:readiness:tool-execution-gate-preflight
 npm run prod:readiness:tool-execution-evidence-bundle
+npm run prod:readiness:tool-execution-evidence-template -- --output=/tmp/reeditpro-production-readiness-evidence.json
 npm run prod:readiness:tool-execution-evidence-collector
 npm run prod:readiness:billing-evidence-collector
 npm run prod:readiness:ops-observability-evidence-collector
@@ -59,7 +61,7 @@ This is the bridge between beta readiness and paid production. It makes the rema
 
 Use `prod:readiness:tool-execution-gate-preflight` before the final gate report. The preflight reads non-secret operator evidence variables, checks for missing production evidence, rejects secret-like notes, and tells operators whether the supplied packet is ready to evaluate against the paid-production gate. It does not call Supabase, Stripe, workers, tools, media processors, deployments, or production routes.
 
-Operators may also keep the all-up production evidence as a local non-secret JSON packet and point the preflight, bundle, or all-up collector at it with `REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE=/path/to/production-readiness-evidence.json`. The file format is intentionally env-compatible so the same reviewed values can be replayed without pasting dozens of shell exports:
+Operators may also keep the all-up production evidence as a local non-secret JSON packet and point the preflight, bundle, or all-up collector at it with `REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE=/path/to/production-readiness-evidence.json`. Use `prod:readiness:tool-execution-evidence-template -- --output=/tmp/reeditpro-production-readiness-evidence.json` to generate an operator-safe scaffold with every accepted non-secret evidence variable, all booleans defaulted to `"false"`, blank artifact/provenance fields, the current recommended collector sequence, and a blocker summary from the dry-run bundle. The template command rejects secret-like allowed evidence values, omits backend collector credentials, does not call backend routes, Supabase, Stripe, workers, tools, media processors, deployments, or production, and does not grant approval by itself. The file format is intentionally env-compatible so the same reviewed values can be replayed without pasting dozens of shell exports:
 
 ```json
 {
@@ -74,7 +76,7 @@ Operators may also keep the all-up production evidence as a local non-secret JSO
 }
 ```
 
-The evidence file may contain only the non-secret `REEDITPRO_PRODUCTION_*` evidence variables documented by the preflight. It must not contain bearer tokens, API keys, service-role keys, collector API configuration, signed URLs, raw prompts, private media payloads, or backend credentials. Process environment values override file values for controlled reruns, but backend recording still requires the separate explicit collector settings `REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_EVIDENCE=true`, `REEDITPRO_PRODUCTION_READINESS_API_BASE_URL`, `REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN`, and `REEDITPRO_PRODUCTION_READINESS_IDEMPOTENCY_KEY`. The evidence file is local operator input only; it is not a deployment, Supabase write, Stripe call, worker dispatch, or production activation.
+The evidence file may contain only the non-secret `REEDITPRO_PRODUCTION_*` evidence variables documented by the preflight plus the safe scaffold metadata emitted by the template command (`description`, `generatedAt`, `instructions`, `recommendedSequence`, `templateBlockerSummary`, and `warnings`). It must not contain bearer tokens, API keys, service-role keys, collector API configuration, signed URLs, raw prompts, private media payloads, or backend credentials. Process environment values override file values for controlled reruns, but backend recording still requires the separate explicit collector settings `REEDITPRO_PRODUCTION_READINESS_CONFIRM_RECORD_EVIDENCE=true`, `REEDITPRO_PRODUCTION_READINESS_API_BASE_URL`, `REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN`, and `REEDITPRO_PRODUCTION_READINESS_IDEMPOTENCY_KEY`. The evidence file is local operator input only; it is not a deployment, Supabase write, Stripe call, worker dispatch, or production activation.
 
 For CLI preflight input, `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY` and `REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT` apply to the reviewed packet, while each evidence section has its own artifact ID, for example `REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID`, `REEDITPRO_PRODUCTION_WALLET_EVIDENCE_ARTIFACT_ID`, `REEDITPRO_PRODUCTION_STRIPE_EVIDENCE_ARTIFACT_ID`, and `REEDITPRO_PRODUCTION_OWNER_EVIDENCE_ARTIFACT_ID`. Supabase persistence evidence must separately prove `tool_cost_events`, `beta_readiness_evidence_packets`, `production_tool_execution_readiness_evidence_packets`, and production worker artifact manifest deployment/readback with `REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED`, `REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED`, `REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_MIGRATION_DEPLOYED`, `REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_MIGRATION_DEPLOYED`, `REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_SERVICE_ROLE_ONLY_VERIFIED`, and `REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_READBACK_VERIFIED`. Backend-only packet access must be proven separately for beta evidence and production readiness evidence with `REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED` and `REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_BACKEND_ONLY_VERIFIED`. Operations evidence must separately prove the atomic admission RPC with `REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_DEPLOYED`, `REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_SERVICE_ROLE_ONLY_VERIFIED`, and `REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_READBACK_VERIFIED`; it must also prove deployed negative controls with `REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCH_BLOCK_VERIFIED`, `REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMIT_BLOCK_VERIFIED`, and `REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMIT_BLOCK_VERIFIED`.
 

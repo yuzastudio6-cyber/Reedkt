@@ -195,7 +195,7 @@ function summarizeRecordResponse(
   const packet = isRecord(data.packet) ? data.packet : {}
   const report = isRecord(data.report) ? data.report : {}
   return {
-    ok: isRecord(payload) && payload.ok === true,
+    ok: isSuccessfulStatus(status) && isRecord(payload) && payload.ok === true,
     status,
     endpoint,
     replayed: booleanValue(data.replayed),
@@ -233,7 +233,7 @@ function summarizeReadbackResponse(
     ? latestEvidencePacketId === recordedEvidencePacketId
     : undefined
   return {
-    ok: isRecord(payload) && payload.ok === true,
+    ok: isSuccessfulStatus(status) && isRecord(payload) && payload.ok === true,
     status,
     endpoint,
     evidencePacketCount: numberValue(data.evidencePacketCount),
@@ -259,6 +259,10 @@ function requiredEnv(env: ProductionToolExecutionReadinessEvidenceCollectorEnv, 
 
 function parseBoolean(value: string | undefined): boolean {
   return value === 'true' || value === '1'
+}
+
+function isSuccessfulStatus(status: number): boolean {
+  return status >= 200 && status < 300
 }
 
 function clean(value: string | undefined): string | undefined {

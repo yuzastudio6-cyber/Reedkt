@@ -77,6 +77,18 @@ await assert.rejects(
 )
 
 await assert.rejects(
+  () => runProductionToolExecutionReadinessEvidenceCollectorFromEnv(confirmedEnv(), fakeFetch([], true, false, { recordStatus: 500 })),
+  /record did not return/,
+  'collector should fail closed when the record response body is ready but HTTP status is not successful',
+)
+
+await assert.rejects(
+  () => runProductionToolExecutionReadinessEvidenceCollectorFromEnv(confirmedEnv(), fakeFetch([], true, false, { readbackStatus: 503 })),
+  /readback did not confirm/,
+  'collector should fail closed when the readback response body is ready but HTTP status is not successful',
+)
+
+await assert.rejects(
   () => runProductionToolExecutionReadinessEvidenceCollectorFromEnv(confirmedEnv(), fakeFetch([], true, true)),
   /latest exact evidence packet id/,
   'collector should fail closed when the recorded evidence packet is present but not the latest readback packet',
@@ -96,6 +108,7 @@ function fakeFetch(
   calls: Array<{ url: string; method: string; headers: Record<string, string>; body?: Record<string, unknown> }>,
   ready = true,
   staleLatest = false,
+  statusOverrides: { recordStatus?: number; readbackStatus?: number } = {},
 ): ProductionToolExecutionReadinessEvidenceCollectorFetch {
   const latestPacketId = staleLatest
     ? 'production-readiness-evidence-packet-newer-than-recorded'
@@ -104,7 +117,7 @@ function fakeFetch(
     const body = init.body ? JSON.parse(init.body) as Record<string, unknown> : undefined
     calls.push({ url, method: init.method, headers: init.headers, body })
     if (init.method === 'POST' && url.endsWith('/v1/beta-readiness/production-tool-execution-readiness/evidence')) {
-      return jsonResponse(ready ? 201 : 400, {
+      return jsonResponse(statusOverrides.recordStatus ?? (ready ? 201 : 400), {
         ok: ready,
         data: {
           replayed: false,
@@ -124,7 +137,7 @@ function fakeFetch(
     }
 
     if (init.method === 'GET' && url.includes('/v1/beta-readiness/production-tool-execution-readiness/evidence')) {
-      return jsonResponse(200, {
+      return jsonResponse(statusOverrides.readbackStatus ?? 200, {
         ok: true,
         data: {
           evidencePacketCount: 1,

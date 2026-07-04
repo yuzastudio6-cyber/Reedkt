@@ -311,6 +311,10 @@ function main() {
                   'accountAccessDiagnostic',
                   'anyAccountReadyForBoth',
                 ]),
+                selectedAccountRepairRequest: nestedRecord(liveVerifierJson, [
+                  'accountAccessDiagnostic',
+                  'selectedAccountRepairRequest',
+                ]),
                 recommendedNextPrompt: nestedString(liveVerifierJson, [
                   'accountAccessDiagnostic',
                   'recommendedNextPrompt',

@@ -246,25 +246,26 @@ function summarizeLiveGate(document: JsonRecord | undefined) {
     readyForAnyExternalAgentExecutionNow: document.readyForAnyExternalAgentExecutionNow,
     staticExplicitToolGateReady: document.staticExplicitToolGateReady,
     blockedToolIds: document.blockedToolIds,
-    liveVerifier: {
-      ok: liveVerifier.ok,
-      allRequiredReadAccessVerified: liveVerifier.allRequiredReadAccessVerified,
-      qwenReadAccessPassed: liveVerifier.qwenReadAccessPassed,
-      brollQuotaReadAccessPassed: liveVerifier.brollQuotaReadAccessPassed,
-      brollQuotaSufficientForOneL4Vm: liveVerifier.brollQuotaSufficientForOneL4Vm,
-      chosenNextCommand: liveVerifier.chosenNextCommand,
-      manualActionReason: liveVerifier.manualActionReason,
-      accountAccessDiagnostic: Object.keys(accountDiagnostic).length
-        ? {
-            ok: accountDiagnostic.ok,
-            accountCount: accountDiagnostic.accountCount,
-            qwenReadyAccountCount: accountDiagnostic.qwenReadyAccountCount,
-            brollQuotaReadAccountCount: accountDiagnostic.brollQuotaReadAccountCount,
-            brollQuotaReadyAccountCount: accountDiagnostic.brollQuotaReadyAccountCount,
-            anyAccountReadyForBoth: accountDiagnostic.anyAccountReadyForBoth,
-          }
-        : undefined,
-    },
+      liveVerifier: {
+        ok: liveVerifier.ok,
+        allRequiredReadAccessVerified: liveVerifier.allRequiredReadAccessVerified,
+        qwenReadAccessPassed: liveVerifier.qwenReadAccessPassed,
+        brollQuotaReadAccessPassed: liveVerifier.brollQuotaReadAccessPassed,
+        brollQuotaSufficientForOneL4Vm: liveVerifier.brollQuotaSufficientForOneL4Vm,
+        chosenNextCommand: liveVerifier.chosenNextCommand,
+        manualActionReason: liveVerifier.manualActionReason,
+        accountAccessDiagnostic: Object.keys(accountDiagnostic).length
+          ? {
+              ok: accountDiagnostic.ok,
+              accountCount: accountDiagnostic.accountCount,
+              qwenReadyAccountCount: accountDiagnostic.qwenReadyAccountCount,
+              brollQuotaReadAccountCount: accountDiagnostic.brollQuotaReadAccountCount,
+              brollQuotaReadyAccountCount: accountDiagnostic.brollQuotaReadyAccountCount,
+              anyAccountReadyForBoth: accountDiagnostic.anyAccountReadyForBoth,
+              selectedAccountRepairRequest: accountDiagnostic.selectedAccountRepairRequest,
+            }
+          : undefined,
+      },
     recommendedNextPrompt: document.recommendedNextPrompt,
   }
 }

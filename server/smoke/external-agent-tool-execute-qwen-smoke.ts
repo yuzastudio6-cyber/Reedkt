@@ -242,6 +242,13 @@ assert.equal(
   ),
   true,
 )
+assertSelectedAccountRepairRequest(
+  (
+    indexedPreflightOnly.liveGate as {
+      liveVerifier?: { accountAccessDiagnostic?: { selectedAccountRepairRequest?: unknown } }
+    }
+  ).liveVerifier?.accountAccessDiagnostic?.selectedAccountRepairRequest,
+)
 
 const confirmationBlocked = runCli(['--execute', '--json'])
 assert.equal(confirmationBlocked.ok, false)
@@ -266,7 +273,12 @@ assert.equal(confirmationBlocked.betaUnlocked, false)
 assert.equal(confirmationBlocked.productionUnlocked, false)
 assert.equal(confirmationBlocked.generatedLocalFixturePassedClaimed, false)
 
-const forbiddenFindings = scanForbiddenValues({ staticReport, preflightOnly, confirmationBlocked })
+const forbiddenFindings = scanForbiddenValues({
+  staticReport,
+  preflightOnly,
+  indexedPreflightOnly,
+  confirmationBlocked,
+})
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(
@@ -343,4 +355,40 @@ function assertQwenAccessRepair(report: Record<string, unknown>) {
   assert.equal(repair.runtimeExecutionStillRequiresWrapperGate, true)
   assert.equal(repair.mutatesGcp, false)
   assert.equal(repair.authorizesRuntimeExecution, false)
+}
+
+function assertSelectedAccountRepairRequest(value: unknown) {
+  const request = value as {
+    accountIndex?: number
+    missingReadPermissions?: Array<{
+      toolId: string
+      permission: string
+      likelyMinimalRole: string
+      resourceScope: string
+      reason: string
+    }>
+    postRepairVerificationCommands?: string[]
+    mutatesGcp?: boolean
+    runsRuntime?: boolean
+    runtimeExecutionStillRequiresWrapperGate?: boolean
+  }
+
+  assert.equal(request.accountIndex, 2)
+  assert.equal(Array.isArray(request.missingReadPermissions), true)
+  for (const permission of request.missingReadPermissions ?? []) {
+    assert.equal(typeof permission.toolId, 'string')
+    assert.equal(typeof permission.permission, 'string')
+    assert.equal(typeof permission.likelyMinimalRole, 'string')
+    assert.equal(typeof permission.resourceScope, 'string')
+    assert.equal(typeof permission.reason, 'string')
+  }
+  assert.equal(
+    request.postRepairVerificationCommands?.includes(
+      'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+    ),
+    true,
+  )
+  assert.equal(request.mutatesGcp, false)
+  assert.equal(request.runsRuntime, false)
+  assert.equal(request.runtimeExecutionStillRequiresWrapperGate, true)
 }

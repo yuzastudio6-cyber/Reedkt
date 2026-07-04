@@ -276,6 +276,7 @@ assert.equal(
   (indexedPreflightOnly.gcpAccessRepair as { verificationCommand: string }).verificationCommand,
   'npm run external-agent-tool-blockers:preflight -- --account-index 2',
 )
+assertSelectedAccountRepairRequest(indexedPreflightOnly.selectedAccountRepairRequest)
 
 const confirmationBlocked = runCli(['--execute', '--json'])
 assert.equal(confirmationBlocked.ok, false)
@@ -358,6 +359,16 @@ assert.equal(inferencePreflightOnly.generatedVideoCreated, false)
 assert.equal(inferencePreflightOnly.generatedAssetsCreated, false)
 assert.equal(inferencePreflightOnly.generatedLocalFixturePassedClaimed, false)
 
+const indexedInferencePreflightOnly = runCli([
+  '--inference-proof',
+  '--preflight-only',
+  '--json',
+  '--account-index',
+  '2',
+])
+assert.equal(indexedInferencePreflightOnly.mode, 'external_agent_broll_wan_inference_proof_preflight_only_result')
+assertSelectedAccountRepairRequest(indexedInferencePreflightOnly.selectedAccountRepairRequest)
+
 const inferenceBlocked = runCli(['--inference-proof', '--execute', '--json'])
 assert.equal(inferenceBlocked.ok, false)
 assert.equal(inferenceBlocked.mode, 'external_agent_broll_wan_inference_proof_confirmation_blocked')
@@ -433,6 +444,7 @@ const forbiddenFindings = scanForbiddenValues({
   confirmationBlocked,
   inferenceStatic,
   inferencePreflightOnly,
+  indexedInferencePreflightOnly,
   inferenceBlocked,
   cachePrepareStatic,
   indexedStaticReport,
@@ -534,4 +546,40 @@ function assertBrollAccessRepair(report: Record<string, unknown>) {
   assert.equal(repair.runtimeExecutionStillRequiresWrapperGate, true)
   assert.equal(repair.mutatesGcp, false)
   assert.equal(repair.authorizesRuntimeExecution, false)
+}
+
+function assertSelectedAccountRepairRequest(value: unknown) {
+  const request = value as {
+    accountIndex?: number
+    missingReadPermissions?: Array<{
+      toolId: string
+      permission: string
+      likelyMinimalRole: string
+      resourceScope: string
+      reason: string
+    }>
+    postRepairVerificationCommands?: string[]
+    mutatesGcp?: boolean
+    runsRuntime?: boolean
+    runtimeExecutionStillRequiresWrapperGate?: boolean
+  }
+
+  assert.equal(request.accountIndex, 2)
+  assert.equal(Array.isArray(request.missingReadPermissions), true)
+  for (const permission of request.missingReadPermissions ?? []) {
+    assert.equal(typeof permission.toolId, 'string')
+    assert.equal(typeof permission.permission, 'string')
+    assert.equal(typeof permission.likelyMinimalRole, 'string')
+    assert.equal(typeof permission.resourceScope, 'string')
+    assert.equal(typeof permission.reason, 'string')
+  }
+  assert.equal(
+    request.postRepairVerificationCommands?.includes(
+      'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+    ),
+    true,
+  )
+  assert.equal(request.mutatesGcp, false)
+  assert.equal(request.runsRuntime, false)
+  assert.equal(request.runtimeExecutionStillRequiresWrapperGate, true)
 }

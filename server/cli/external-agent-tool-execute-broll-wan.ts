@@ -14,6 +14,7 @@ const INFERENCE_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11H_INFERENCE_PROO
 const CACHE_STAGING_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11E_CLOUD_SIDE_CACHE_STAGING'
 const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
+const GCP_ACCESS_VERIFY_SCRIPT = 'server/cli/external-agent-gcp-access-verify.ts'
 const DELEGATED_RUNNER_SCRIPT = 'ai-video-broll-gen-11b:l4-model-import-runner'
 const INFERENCE_RUNNER_SCRIPT = 'ai-video-broll-gen-11h:bounded-inference-proof-runner'
 const CACHE_STAGING_RUNNER_SCRIPT = 'ai-video-broll-gen-11e:cloud-side-cache-staging-runner'
@@ -51,6 +52,9 @@ function main() {
     const quota = runJson('broll_live_quota_verify', 'npx', ['tsx', QUOTA_VERIFY_SCRIPT])
     const cache = runJson('broll_private_cache_readiness', 'npx', ['tsx', CACHE_READINESS_SCRIPT])
     const blockers = validateReadiness(quota.json, cache.json)
+    const selectedAccountRepairRequest = brollAccessRepairRequired(blockers, quota.json)
+      ? selectedAccountRepairRequestFromVerify()
+      : undefined
 
     print({
       ok: blockers.length === 0,
@@ -72,6 +76,7 @@ function main() {
         summaryPath: DELEGATED_SUMMARY_PATH,
       },
       gcpAccessRepair: brollAccessRepairHint(),
+      selectedAccountRepairRequest,
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -180,6 +185,7 @@ function main() {
 
   if (blockers.length > 0) {
     const accessRepairRequired = brollAccessRepairRequired(blockers, quota.json)
+    const selectedAccountRepairRequest = accessRepairRequired ? selectedAccountRepairRequestFromVerify() : undefined
     print({
       ok: false,
       mode: 'external_agent_broll_wan_execution_preflight_result',
@@ -188,6 +194,7 @@ function main() {
       brollQuota: summarizeBrollQuota(quota.json),
       cacheReadiness: summarizeCacheReadiness(cache.json),
       gcpAccessRepair: brollAccessRepairHint(),
+      selectedAccountRepairRequest,
       nextPrompt: accessRepairRequired
         ? 'QWEN2_5_VL_STACK_TOOL_58DQ-GCP-ACCESS-VERIFY: verify selected local gcloud account can read Qwen Cloud Run and B-roll quota, no execution'
         : blockers.includes('broll_gpus_all_regions_quota_not_sufficient') ||
@@ -273,6 +280,9 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
     const quota = runJson('broll_live_quota_verify_before_inference', 'npx', ['tsx', QUOTA_VERIFY_SCRIPT])
     const cache = runJson('broll_private_cache_readiness_before_inference', 'npx', ['tsx', CACHE_READINESS_SCRIPT])
     const blockers = validateReadiness(quota.json, cache.json)
+    const selectedAccountRepairRequest = brollAccessRepairRequired(blockers, quota.json)
+      ? selectedAccountRepairRequestFromVerify()
+      : undefined
 
     print({
       ok: blockers.length === 0,
@@ -293,6 +303,7 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
         args: withSelectedAccountIndexArgs(['--execute']),
       },
       gcpAccessRepair: brollAccessRepairHint(),
+      selectedAccountRepairRequest,
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -400,6 +411,7 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
 
   if (blockers.length > 0) {
     const accessRepairRequired = brollAccessRepairRequired(blockers, quota.json)
+    const selectedAccountRepairRequest = accessRepairRequired ? selectedAccountRepairRequestFromVerify() : undefined
     print({
       ok: false,
       mode: 'external_agent_broll_wan_inference_proof_preflight_blocked',
@@ -408,6 +420,7 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
       brollQuota: summarizeBrollQuota(quota.json),
       cacheReadiness: summarizeCacheReadiness(cache.json),
       gcpAccessRepair: brollAccessRepairHint(),
+      selectedAccountRepairRequest,
       nextPrompt: accessRepairRequired
         ? 'QWEN2_5_VL_STACK_TOOL_58DQ-GCP-ACCESS-VERIFY: verify selected local gcloud account can read Qwen Cloud Run and B-roll quota, no execution'
         : 'AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF: rerun bounded Wan latent inference proof with 11H fix, no generated video',
@@ -667,6 +680,11 @@ function brollAccessRepairHint() {
     mutatesGcp: false,
     authorizesRuntimeExecution: false,
   }
+}
+
+function selectedAccountRepairRequestFromVerify() {
+  const verify = runJson('selected_gcp_access_repair_verify', 'npx', ['tsx', GCP_ACCESS_VERIFY_SCRIPT])
+  return asRecord(asRecord(verify.json).accountAccessDiagnostic).selectedAccountRepairRequest
 }
 
 function summarizeCacheReadiness(document: JsonRecord | undefined) {

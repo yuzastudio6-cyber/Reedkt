@@ -488,6 +488,16 @@ assert.equal(
 assert.equal(typeof indexedLiveReport.liveVerifier.ok, 'boolean')
 assert.equal(typeof indexedLiveReport.liveVerifier.qwenReadAccessPassed, 'boolean')
 assert.equal(typeof indexedLiveReport.liveVerifier.brollQuotaReadAccessPassed, 'boolean')
+if (!indexedLiveReport.liveVerifier.allRequiredReadAccessVerified) {
+  assert.equal(indexedLiveReport.liveVerifier.accountAccessDiagnostic.selectedAccountRepairRequest.accountIndex, 2)
+  assert.equal(indexedLiveReport.liveVerifier.accountAccessDiagnostic.selectedAccountRepairRequest.mutatesGcp, false)
+  assert.equal(indexedLiveReport.liveVerifier.accountAccessDiagnostic.selectedAccountRepairRequest.runsRuntime, false)
+  assert.equal(
+    indexedLiveReport.liveVerifier.accountAccessDiagnostic.selectedAccountRepairRequest
+      .runtimeExecutionStillRequiresWrapperGate,
+    true,
+  )
+}
 
 const requireGoLive = spawnSync('npx', ['tsx', CLI_PATH, '--require-go', '--live'], {
   cwd: ROOT,

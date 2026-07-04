@@ -83,7 +83,7 @@ assert.equal(spec.broll.targetZone, 'northamerica-northeast2-a')
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.broll.minimumRegionalL4Quota, 1)
 assert.equal(
-  spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-11E-EXECUTE-CLOUD-SIDE-CACHE-STAGING'),
+  spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF'),
   true,
 )
 assert.equal(spec.allowedReadOnlyCommands.length >= 10, true)
@@ -169,7 +169,7 @@ assert.equal(live.liveReadOnlyChecksRun, true)
 assert.equal(live.runtimeGatesAllFalse, true)
 assert.equal(live.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(live.qwen.readyForExternalAgentExecutionNow, false)
-assert.equal(live.broll.readyForExternalAgentExecutionNow, false)
+assert.equal(live.broll.readyForExternalAgentExecutionNow, true)
 assert.deepEqual(live.manualBlockerActionToolIds, [])
 assert.equal(live.qwen.manualBlockerActions.length, 0)
 assert.equal(live.qwen.manualBlockerActions.every((action: { runInsideCodex: boolean }) => action.runInsideCodex === false), true)

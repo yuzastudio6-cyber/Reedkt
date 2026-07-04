@@ -305,7 +305,7 @@ assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, true)
 assert.equal(
   brollGateSummary.currentBlocker,
-  'no_gpu_cloud_side_cache_staging_runner_execution_required_before_broll_11b_model_import_runner',
+  'none_private_gcs_model_cache_staged_model_import_proof_requires_explicit_11b_confirmation',
 )
 assert.equal(
   brollGateSummary.safeNextCommand,

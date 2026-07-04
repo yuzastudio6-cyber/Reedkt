@@ -315,7 +315,7 @@ function main() {
           quotaSufficientForOneL4Vm: brollQuotaCleared,
           blocker: brollBlocker,
           readyForNextQuotaVerify: brollQuotaCleared,
-          readyForExternalAgentExecutionNow: false,
+          readyForExternalAgentExecutionNow: brollQuotaCleared,
           nextAction: brollNextAction,
           manualBlockerActions: brollManualBlockerActions,
         },

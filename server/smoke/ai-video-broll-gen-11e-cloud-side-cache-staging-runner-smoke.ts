@@ -128,9 +128,14 @@ assert.equal(spec.cloudSideRunnerReady, true)
 assert.equal(spec.explicitConfirmationRequired, true)
 assert.equal(spec.gpuRequired, false)
 assert.equal(spec.stagesPrivateGcsModelCacheOnly, true)
+assert.equal(spec.requiredServiceAccountStorageRole, 'roles/storage.objectCreator')
+assert.equal(spec.requiredServiceAccountStorageCondition.includes('Wan-AI__Wan2.1-T2V-1.3B-Diffusers'), true)
 assert.equal(spec.manifest.runtimeEssentialFileCount, 19)
 assert.equal(spec.manifest.aggregateBytes, 28928887859)
 assert.equal(spec.executionGates.noGpu, true)
+assert.equal(spec.executionGates.conditionalObjectCreatePermissionRequired, true)
+assert.equal(spec.executionGates.skipsAlreadyPresentCorrectObjects, true)
+assert.equal(spec.executionGates.blocksMismatchedExistingObjects, true)
 assert.equal(spec.executionGates.noModelImport, true)
 assert.equal(spec.executionGates.noInference, true)
 assert.equal(spec.executionGates.noGeneratedVideo, true)
@@ -143,7 +148,11 @@ for (const [key, value] of Object.entries(spec.runtimeSideEffectsInThisPrompt)) 
 const source = read(CLI_PATH)
 for (const required of [
   CONFIRM_ENV,
-  'gcloud storage cp',
+  '"uploadType": "resumable"',
+  'metadata.google.internal',
+  'REEDITPRO_BROLL_11E_ALREADY_PRESENT',
+  'REEDITPRO_BROLL_11E_PHASE_FAILED',
+  '--upload-file -',
   'run',
   'jobs',
   'create',
@@ -158,7 +167,17 @@ for (const required of [
 ]) {
   assert.equal(source.includes(required), true, `Runner source missing ${required}`)
 }
-for (const forbidden of ['compute instances create', 'docker ', 'psql', 'createdb', 'dropdb', 'supabase ', 'from_pretrained', 'WanPipeline']) {
+for (const forbidden of [
+  'compute instances create',
+  'docker ',
+  'psql',
+  'createdb',
+  'dropdb',
+  'supabase ',
+  'from_pretrained',
+  'WanPipeline',
+  '--data-binary @-',
+]) {
   assert.equal(source.includes(forbidden), false, `Runner source must not include forbidden runtime marker: ${forbidden}`)
 }
 

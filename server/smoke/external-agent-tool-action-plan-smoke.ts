@@ -94,15 +94,18 @@ assert.equal(plan.paidProductionInScope, false)
 assert.equal(plan.dryRunPassedClaimed, false)
 assert.equal(plan.generatedLocalFixturePassedClaimed, false)
 assert.equal(plan.readyForAnyExternalAgentExecutionNow, true)
-assert.deepEqual(plan.readyToolIds, ['qwen2_5_vl_7b_instruct'])
-assert.deepEqual(plan.staticExplicitToolGateReadyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.deepEqual(plan.readyToolIds, ['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
+assert.deepEqual(plan.staticExplicitToolGateReadyToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
 assert.equal(plan.livePreflightRequiredBeforeRuntime, true)
-assert.equal(plan.blockedToolCount, rollup.tools.length - 1)
+assert.equal(plan.blockedToolCount, rollup.tools.length - 2)
 assert.equal(plan.runtimeGatesAllFalse, true)
 assert.deepEqual(plan.safeCommandQueue, rollup.safeNextCommands)
 assert.equal(plan.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
 assert.equal(plan.toolActions.length, rollup.tools.length)
-assert.equal(plan.manualBlockers.length, rollup.tools.length - 1)
+assert.equal(plan.manualBlockers.length, rollup.tools.length - 2)
 assert.equal(plan.sourceRules.approvedSnapshotRequired, true)
 assert.equal(plan.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(plan.sourceRules.remotionOwnsFinalComposition, true)
@@ -173,16 +176,16 @@ assert.equal(broll.immediateSafeActions[0], 'npm run external-agent-tool-next-co
 assert.equal(broll.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-fast-cache-readiness:check'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-gpu-global-quota:verify'), true)
-assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-prepare-broll-wan-cache'), true)
+assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-execute-broll-wan'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(broll.externalManualBlocker.includes('10ZB proved the no-idle L4 payload/install path'), true)
 assert.equal(broll.externalManualBlocker.includes('11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers'), true)
 assert.equal(broll.externalManualBlocker.includes('11B added the no-inference model import/load runner'), true)
-assert.equal(broll.externalManualBlocker.includes('private GCS Wan model cache still needs the 11E no-GPU cloud-side cache staging runner'), true)
-assert.equal(broll.externalManualBlocker.includes('create the private ready marker before the 11B GPU proof can run'), true)
+assert.equal(broll.externalManualBlocker.includes('11E staged the private GCS Wan model cache with the ready marker'), true)
+assert.equal(broll.externalManualBlocker.includes('bounded 11B no-idle L4 model import/load proof is now the next'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run AI-VIDEO-BROLL-GEN-11E-EXECUTE-CLOUD-SIDE-CACHE-STAGING through npm run external-agent-tool-prepare-broll-wan-cache before the bounded 11B no-idle L4 model import/load proof',
+  'run AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF through npm run external-agent-tool-execute-broll-wan with explicit confirmation, no inference',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)

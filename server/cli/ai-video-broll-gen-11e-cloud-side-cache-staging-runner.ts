@@ -375,24 +375,132 @@ import json
 import pathlib
 import subprocess
 import sys
-import tempfile
+import urllib.parse
+import urllib.request
 
 manifest = json.loads(pathlib.Path(sys.argv[1]).read_text())
 entries = manifest["entries"]
 copied = []
+access_token = None
 
-def run(command):
-    return subprocess.run(command, check=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+def run(command, phase):
+    completed = subprocess.run(command, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if completed.returncode != 0:
+        print("REEDITPRO_BROLL_11E_PHASE_FAILED phase=" + phase + " rc=" + str(completed.returncode), file=sys.stderr, flush=True)
+        if completed.stdout:
+            print("stdout_tail=" + completed.stdout[-4000:], file=sys.stderr, flush=True)
+        if completed.stderr:
+            print("stderr_tail=" + completed.stderr[-4000:], file=sys.stderr, flush=True)
+        raise RuntimeError("subprocess_failed:" + phase)
+    return completed
+
+def parse_gs_uri(uri):
+    if not uri.startswith("gs://"):
+        raise RuntimeError("invalid_gs_uri")
+    rest = uri[5:]
+    bucket, object_name = rest.split("/", 1)
+    return bucket, object_name
+
+def token():
+    global access_token
+    if access_token:
+        return access_token
+    request = urllib.request.Request(
+        "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token",
+        headers={"Metadata-Flavor": "Google"},
+    )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    access_token = payload["access_token"]
+    return access_token
+
+def object_size(target_uri):
+    completed = subprocess.run(
+        ["gcloud", "storage", "objects", "describe", target_uri, "--format=value(size)"],
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if completed.returncode == 0:
+        return int(completed.stdout.strip())
+    combined = (completed.stdout or "") + "\n" + (completed.stderr or "")
+    if "matched no objects" in combined or "not found" in combined or "No URLs matched" in combined:
+        return None
+    print("REEDITPRO_BROLL_11E_PHASE_FAILED phase=describe_existing rc=" + str(completed.returncode), file=sys.stderr, flush=True)
+    if completed.stdout:
+        print("stdout_tail=" + completed.stdout[-4000:], file=sys.stderr, flush=True)
+    if completed.stderr:
+        print("stderr_tail=" + completed.stderr[-4000:], file=sys.stderr, flush=True)
+    raise RuntimeError("object_describe_failed")
+
+def initiate_resumable_upload(target_uri, expected_bytes):
+    bucket, object_name = parse_gs_uri(target_uri)
+    query = urllib.parse.urlencode({"uploadType": "resumable", "name": object_name}, quote_via=urllib.parse.quote)
+    url = "https://storage.googleapis.com/upload/storage/v1/b/" + urllib.parse.quote(bucket, safe="") + "/o?" + query
+    request = urllib.request.Request(
+        url,
+        data=b"",
+        method="POST",
+        headers={
+            "Authorization": "Bearer " + token(),
+            "Content-Length": "0",
+            "X-Upload-Content-Type": "application/octet-stream",
+            "X-Upload-Content-Length": str(expected_bytes),
+        },
+    )
+    with urllib.request.urlopen(request, timeout=60) as response:
+        location = response.headers.get("Location")
+    if not location:
+        raise RuntimeError("missing_resumable_upload_location")
+    return location
+
+def upload_url_to_gcs(source_url, target_uri, expected_bytes):
+    upload_url = initiate_resumable_upload(target_uri, expected_bytes)
+    pipe = (
+        "set -euo pipefail; "
+        "curl -fsSL --retry 3 --retry-delay 5 --connect-timeout 30 --max-time 21600 "
+        + json.dumps(source_url)
+        + " | curl -fsS -X PUT -H "
+        + json.dumps("Content-Type: application/octet-stream")
+        + " -H "
+        + json.dumps("Content-Length: " + str(expected_bytes))
+        + " --upload-file - "
+        + json.dumps(upload_url)
+    )
+    run(["bash", "-lc", pipe], "resumable_upload")
+
+def upload_bytes_to_gcs(target_uri, payload, content_type):
+    bucket, object_name = parse_gs_uri(target_uri)
+    query = urllib.parse.urlencode({"uploadType": "media", "name": object_name}, quote_via=urllib.parse.quote)
+    url = "https://storage.googleapis.com/upload/storage/v1/b/" + urllib.parse.quote(bucket, safe="") + "/o?" + query
+    request = urllib.request.Request(
+        url,
+        data=payload,
+        method="POST",
+        headers={
+            "Authorization": "Bearer " + token(),
+            "Content-Type": content_type,
+            "Content-Length": str(len(payload)),
+        },
+    )
+    with urllib.request.urlopen(request, timeout=60) as response:
+        response.read()
 
 for entry in entries:
     relative_path = entry["relativePath"]
     expected_bytes = int(entry["expectedBytes"])
     source_url = entry["sourceUrl"]
     target_uri = entry["targetUri"]
-    pipe = "set -euo pipefail; curl -fL --retry 3 --retry-delay 5 --connect-timeout 30 --max-time 21600 " + json.dumps(source_url) + " | gcloud storage cp - " + json.dumps(target_uri)
-    run(["bash", "-lc", pipe])
-    described = run(["gcloud", "storage", "objects", "describe", target_uri, "--format=value(size)"])
-    actual_bytes = int(described.stdout.strip())
+    existing_bytes = object_size(target_uri)
+    if existing_bytes == expected_bytes:
+        actual_bytes = existing_bytes
+        print(f"REEDITPRO_BROLL_11E_ALREADY_PRESENT {relative_path} {actual_bytes}", flush=True)
+    elif existing_bytes is not None:
+        raise RuntimeError(f"existing_byte_mismatch_requires_manual_cleanup:{relative_path}:{existing_bytes}:{expected_bytes}")
+    else:
+        upload_url_to_gcs(source_url, target_uri, expected_bytes)
+        actual_bytes = object_size(target_uri)
     if actual_bytes != expected_bytes:
         raise RuntimeError(f"byte_mismatch:{relative_path}:{actual_bytes}:{expected_bytes}")
     copied.append({"relativePath": relative_path, "bytes": actual_bytes})
@@ -417,10 +525,11 @@ marker = {
     "generatedVideoCreated": False,
     "generatedAssetsCreated": False,
 }
-with tempfile.NamedTemporaryFile("w", delete=False, suffix=".json") as handle:
-    json.dump(marker, handle, indent=2)
-    marker_path = handle.name
-run(["gcloud", "storage", "cp", marker_path, manifest["readyMarker"]])
+upload_bytes_to_gcs(
+    manifest["readyMarker"],
+    json.dumps(marker, indent=2).encode("utf-8"),
+    "application/json",
+)
 print("REEDITPRO_BROLL_11E_READY_MARKER_WRITTEN", flush=True)
 `
 }

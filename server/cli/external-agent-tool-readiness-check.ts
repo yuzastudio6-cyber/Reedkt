@@ -69,7 +69,9 @@ function main() {
   const missingEvidence = evidence.filter((item) => !item.present)
   const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
   const explicitToolGateReadyTools = rollup.tools.filter(
-    (tool) => String(tool.status) === 'ready_for_explicit_tool_gate',
+    (tool) =>
+      String(tool.status) === 'ready_for_explicit_tool_gate' ||
+      String(tool.status) === 'ready_for_bounded_model_import_proof_after_private_cache_staging',
   )
   const retryReadyAfterBlockerClears = rollup.tools.filter((tool) => tool.readyForBoundedRetryAfterBlockerClears)
   const noIdleLifecycleGateTools = rollup.tools.filter((tool) => tool.noIdleLifecycleGate)

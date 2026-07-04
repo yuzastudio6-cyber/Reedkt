@@ -486,8 +486,17 @@ for (const phrase of [
   'privateOutputJsonPathExists',
   'localRuntimeExecutionPerformed',
   'routeSubmissionReadyWithAcceptedPrivateProof',
+  'modelWeightsDownloaded',
 ]) {
   if (!cli.includes(phrase)) fail(`cli_missing_phrase:${phrase}`)
+}
+
+if (
+  !String(report.interfaces?.upstreamPrivateProofCommand ?? '').includes(
+    '--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
+  )
+) {
+  fail('upstream_private_proof_command_missing_result_out')
 }
 
 for (const forbidden of forbiddenPatterns) {

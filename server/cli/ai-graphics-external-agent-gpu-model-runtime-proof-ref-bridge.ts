@@ -303,6 +303,7 @@ function localProofOutputEvidence(
     'providerRuntimePerformed',
     'modelDownloadedExternally',
     'externalModelDownloadAttempted',
+    'modelWeightsDownloaded',
     'publicArtifactCreated',
     'signedUrlCreated',
     'runtimeReadyNow',
@@ -563,7 +564,7 @@ function buildReport(localProofResultPath?: string) {
       privateProofBridgeCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
       upstreamPrivateProofCommand:
-        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> <per-tool-private-input-flags>',
+        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>',
     },
     proofRefBridgePolicy: {
       localRuntimeProofRequiredBeforeProofRefsAccepted: true,

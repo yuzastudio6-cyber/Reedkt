@@ -38,6 +38,8 @@ const expectedBlockedKeys = {
   rembg: 'rembgModelLocalPath',
   transparent_background: 'transparentBackgroundCheckpointLocalPath',
 }
+const privateInputPreflightAcceptedCode =
+  'gpu_model_private_inputs_accepted_runtime_proof_not_requested'
 
 const failures = []
 
@@ -151,11 +153,32 @@ const runRoot = localPath(
 const inputDir = path.join(runRoot, 'private-inputs')
 const adapterDir = path.join(runRoot, 'adapter-proof')
 const blockersDir = path.join(runRoot, 'blocked-model-tools')
+const privateInputPreflightDir = path.join(runRoot, 'blocked-model-private-input-preflight')
 const routeDir = path.join(runRoot, 'route-proof')
 const sourceImage = path.join(inputDir, 'private-approved-frame.ppm')
 const manifestPath = path.join(runRoot, 'runtime-inputs.json')
+const privateInputPreflightManifestPath = path.join(
+  privateInputPreflightDir,
+  'runtime-inputs.json',
+)
 const harnessResultPath = path.join(adapterDir, 'harness-result.json')
 const blockersResultPath = path.join(blockersDir, 'harness-result.json')
+const privateInputPreflightResultPath = path.join(
+  privateInputPreflightDir,
+  'harness-result.json',
+)
+const placeholderModelPaths = {
+  sam2: path.join(inputDir, 'models', 'sam2', 'sam2-hiera-tiny-local.pt'),
+  birefnet: path.join(inputDir, 'models', 'birefnet'),
+  real_esrgan: path.join(inputDir, 'models', 'real-esrgan', 'RealESRGAN_x4plus.pth'),
+  rembg: path.join(inputDir, 'models', 'rembg', 'u2net.onnx'),
+  transparent_background: path.join(
+    inputDir,
+    'models',
+    'transparent-background',
+    'ckpt_base.pth',
+  ),
+}
 
 ensureProofImage()
 const dockerModuleReadiness = dockerRuntimeModuleReadiness()
@@ -168,6 +191,20 @@ for (const toolId of blockedModelTools) {
   }
 }
 writePrivatePpm(sourceImage)
+for (const filePath of [
+  placeholderModelPaths.sam2,
+  path.join(placeholderModelPaths.birefnet, 'model.safetensors'),
+  placeholderModelPaths.real_esrgan,
+  placeholderModelPaths.rembg,
+  placeholderModelPaths.transparent_background,
+]) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true })
+  fs.writeFileSync(
+    filePath,
+    'local-private-placeholder-for-path-preflight-only\n',
+    'utf8',
+  )
+}
 writeRuntimeInputManifest(manifestPath, {
   outputDirectory: relativeLocalPath(adapterDir),
   runtimeContainerImage: proofImage,
@@ -182,6 +219,32 @@ writeRuntimeInputManifest(manifestPath, {
     kornia: {
       allowCpuTensorRuntime: true,
       sourceImageLocalPath: relativeLocalPath(sourceImage),
+    },
+  },
+})
+writeRuntimeInputManifest(privateInputPreflightManifestPath, {
+  outputDirectory: relativeLocalPath(privateInputPreflightDir),
+  sourceImageLocalPath: relativeLocalPath(sourceImage),
+  runtimeContainerImage: proofImage,
+  runtimeContainerPlatform: platform,
+  privateInputPreflightOnly: true,
+  toolInputs: {
+    sam2: {
+      sam2CheckpointLocalPath: relativeLocalPath(placeholderModelPaths.sam2),
+    },
+    birefnet: {
+      birefnetModelLocalPath: relativeLocalPath(placeholderModelPaths.birefnet),
+    },
+    real_esrgan: {
+      realEsrganModelLocalPath: relativeLocalPath(placeholderModelPaths.real_esrgan),
+    },
+    rembg: {
+      rembgModelLocalPath: relativeLocalPath(placeholderModelPaths.rembg),
+    },
+    transparent_background: {
+      transparentBackgroundCheckpointLocalPath: relativeLocalPath(
+        placeholderModelPaths.transparent_background,
+      ),
     },
   },
 })
@@ -356,6 +419,100 @@ for (const toolId of blockedModelTools) {
   assertFalse(row.gpuRuntimeShouldStartNow, `blocked_tools_gpuRuntimeShouldStartNow:${toolId}`)
 }
 
+const privateInputPreflight = runNpmJson(
+  'ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness',
+  [
+    '--attempt-local-runtime',
+    '--runtime-backend',
+    'docker_container',
+    '--tools',
+    blockedModelTools.join(','),
+    '--runtime-input-manifest',
+    relativeLocalPath(privateInputPreflightManifestPath),
+    '--result-out',
+    relativeLocalPath(privateInputPreflightResultPath),
+  ],
+)
+if (!fs.existsSync(privateInputPreflightResultPath)) {
+  fail('private_input_preflight_result_missing')
+}
+if (privateInputPreflight.counts?.localRuntimeExecutionPerformedTools !== 0) {
+  fail(
+    `private_input_preflight_unexpected_execution:${privateInputPreflight.counts?.localRuntimeExecutionPerformedTools}`,
+  )
+}
+if (
+  privateInputPreflight.counts
+    ?.privateLocalRuntimeInputsAcceptedBeforeRuntimeTools !== blockedModelTools.length
+) {
+  fail(
+    `private_input_preflight_accepted_count_mismatch:${privateInputPreflight.counts?.privateLocalRuntimeInputsAcceptedBeforeRuntimeTools}`,
+  )
+}
+assertFalse(
+  privateInputPreflight.booleans?.gpuRuntimeShouldStartNow,
+  'private_input_preflight_gpuRuntimeShouldStartNow',
+)
+assertFalse(
+  privateInputPreflight.booleans?.publicArtifactCreated,
+  'private_input_preflight_publicArtifactCreated',
+)
+assertFalse(
+  privateInputPreflight.booleans?.signedUrlCreated,
+  'private_input_preflight_signedUrlCreated',
+)
+assertFalse(
+  privateInputPreflight.booleans?.runtimeReadyNow,
+  'private_input_preflight_runtimeReadyNow',
+)
+assertFalse(
+  privateInputPreflight.booleans?.externalBetaReadyNow,
+  'private_input_preflight_externalBetaReadyNow',
+)
+assertFalse(
+  privateInputPreflight.booleans?.productionReadyNow,
+  'private_input_preflight_productionReadyNow',
+)
+for (const toolId of blockedModelTools) {
+  const row = rowByTool(
+    privateInputPreflight.gpuModelLocalDevRuntimeExecutionHarnessRows ?? [],
+    toolId,
+  )
+  if (!row) {
+    fail(`private_input_preflight_missing_row:${toolId}`)
+    continue
+  }
+  if (row.executionState !== 'blocked_with_reason') {
+    fail(`private_input_preflight_state_mismatch:${toolId}:${row.executionState}`)
+  }
+  if (row.currentBlockingReasonCode !== privateInputPreflightAcceptedCode) {
+    fail(
+      `private_input_preflight_blocker_mismatch:${toolId}:${row.currentBlockingReasonCode}`,
+    )
+  }
+  if (row.currentBlockingPrerequisiteKey !== 'nativeCudaRuntime') {
+    fail(
+      `private_input_preflight_blocking_key_mismatch:${toolId}:${row.currentBlockingPrerequisiteKey}`,
+    )
+  }
+  assertTrue(
+    row.privateLocalRuntimeInputsAcceptedBeforeRuntime,
+    `private_input_preflight_inputsAccepted:${toolId}`,
+  )
+  assertFalse(
+    row.localRuntimeExecutionPerformed,
+    `private_input_preflight_localRuntimeExecutionPerformed:${toolId}`,
+  )
+  assertFalse(
+    row.toolExecutionApprovedNow,
+    `private_input_preflight_toolExecutionApprovedNow:${toolId}`,
+  )
+  assertFalse(
+    row.gpuRuntimeShouldStartNow,
+    `private_input_preflight_gpuRuntimeShouldStartNow:${toolId}`,
+  )
+}
+
 try {
   execFileSync('git', ['diff', '--exit-code', '--', 'package-lock.json'], {
     cwd: root,
@@ -403,6 +560,9 @@ const summary = {
         dockerModuleReadiness[toolId].length === 0,
     ]),
   ),
+  privateInputPreflightAcceptedBeforeRuntimeTools:
+    privateInputPreflight.counts?.privateLocalRuntimeInputsAcceptedBeforeRuntimeTools,
+  blockedGpuModelToolsNextRuntimePrerequisite: 'nativeCudaRuntime',
   routeProofs: routeSummaries,
   gpuRuntimeShouldStartNow: readiness.booleans?.gpuRuntimeShouldStartNow,
   runtimeReadyNow: readiness.booleans?.runtimeReadyNow,

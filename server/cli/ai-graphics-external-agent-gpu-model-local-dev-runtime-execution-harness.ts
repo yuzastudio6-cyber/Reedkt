@@ -41,6 +41,7 @@ type HarnessArgs = {
   runtimeContainerGpu: boolean
   allowCpuTensorRuntime: boolean
   allowCpuFoundationRuntime: boolean
+  privateInputPreflightOnly: boolean
   timeoutMs?: number
   resultOut?: string
   writeRecords: boolean
@@ -141,6 +142,7 @@ function parseArgs(): HarnessArgs {
     runtimeContainerGpu: !hasFlag('--no-runtime-container-gpu'),
     allowCpuTensorRuntime: hasFlag('--allow-cpu-tensor-runtime'),
     allowCpuFoundationRuntime: hasFlag('--allow-cpu-foundation-runtime'),
+    privateInputPreflightOnly: hasFlag('--private-input-preflight-only'),
     timeoutMs: numberFlag('--timeout-ms'),
     resultOut: stringFlag('--result-out'),
     writeRecords: hasFlag('--write-records'),
@@ -317,6 +319,10 @@ function runtimeInputsForTool(
     allowCpuFoundationRuntime:
       args.allowCpuFoundationRuntime ||
       manifestBooleanForTool(toolId, args, 'allowCpuFoundationRuntime') === true,
+    privateInputPreflightOnly:
+      args.privateInputPreflightOnly ||
+      manifestBooleanForTool(toolId, args, 'privateInputPreflightOnly') === true ||
+      manifestBooleanForTool(toolId, args, 'localRuntimeInputPreflightOnly') === true,
   }
 }
 
@@ -577,6 +583,9 @@ function currentBlockingPrerequisiteKey(
   if (blockingReasonCode.includes('python_runtime')) {
     return 'pythonRuntime'
   }
+  if (blockingReasonCode.includes('private_inputs_accepted_runtime_proof_not_requested')) {
+    return 'nativeCudaRuntime'
+  }
   if (blockingReasonCode.includes('disabled_or_not_local_dev')) {
     return 'attemptGpuRuntime'
   }
@@ -695,6 +704,9 @@ function applyRuntimePayloadArgs(
   }
   if (runtimeInputs.runtimeContainerPlatform) {
     payload.runtimeContainerPlatform = runtimeInputs.runtimeContainerPlatform
+  }
+  if (runtimeInputs.privateInputPreflightOnly) {
+    payload.privateInputPreflightOnly = true
   }
   if (toolId === 'sam2' && runtimeInputs.sam2CheckpointLocalPath) {
     payload.sam2CheckpointLocalPath = runtimeInputs.sam2CheckpointLocalPath
@@ -830,6 +842,8 @@ async function buildReport(args: HarnessArgs) {
       allowCpuFoundationRuntime: runtimeInputs.allowCpuFoundationRuntime,
     })
     const reasonCode = skipReasonCode(result)
+    const privateLocalRuntimeInputsAcceptedBeforeRuntime =
+      reasonCode === 'gpu_model_private_inputs_accepted_runtime_proof_not_requested'
     const blockingKey = currentBlockingPrerequisiteKey(reasonCode, {
       allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
       allowCpuFoundationRuntime: runtimeInputs.allowCpuFoundationRuntime,
@@ -869,10 +883,12 @@ async function buildReport(args: HarnessArgs) {
       skipReasonCode: reasonCode,
       currentBlockingPrerequisiteKey: blockingKey,
       currentBlockingReasonCode: reasonCode,
+      privateLocalRuntimeInputsAcceptedBeforeRuntime,
       minimumPrivateRuntimeInputKeys: minimumInputKeys,
       remainingPrivateRuntimeInputKeys: remainingInputKeys,
       allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
       allowCpuFoundationRuntime: runtimeInputs.allowCpuFoundationRuntime,
+      privateInputPreflightOnly: runtimeInputs.privateInputPreflightOnly,
       errorMessage: errorMessageForResult(result),
       outputJsonPath: outputJsonPathForResult(result),
       outputJsonSha256: outputJsonSha256ForResult(result),
@@ -1009,6 +1025,11 @@ async function buildReport(args: HarnessArgs) {
       privateRuntimeInputManifestOutputDirectoryMustStayUnderLocalArtifacts: true,
       privateRuntimeInputManifestPath: args.runtimeInputManifestPath ?? null,
       privateRuntimeInputManifestUsedNow: Boolean(args.runtimeInputManifestPath),
+      privateInputPreflightOnlySupported: true,
+      privateInputPreflightOnlyUsedNow: args.privateInputPreflightOnly ||
+        rows.some((row) => row.privateInputPreflightOnly === true),
+      privateInputPreflightStopsBeforeDockerGpuRuntime: true,
+      privateInputPreflightStopsBeforePythonRuntime: true,
     },
     counts: {
       totalAiGraphicsTools: 21,
@@ -1023,6 +1044,8 @@ async function buildReport(args: HarnessArgs) {
       gpuRuntimeApprovedForScopedControlledToolCallTools:
         rows.filter((row) => row.gpuRuntimeApprovedForScopedControlledToolCall).length,
       gpuRuntimeShouldStartNowTools,
+      privateLocalRuntimeInputsAcceptedBeforeRuntimeTools:
+        rows.filter((row) => row.privateLocalRuntimeInputsAcceptedBeforeRuntime).length,
       publicArtifactCreatedTools:
         rows.filter((row) => row.publicArtifactCreated).length,
       signedUrlCreatedTools:

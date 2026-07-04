@@ -170,6 +170,11 @@ function allowFoundationCpuRuntime(
   )
 }
 
+function privateInputPreflightOnly(payload: Record<string, unknown>): boolean {
+  return optionalBoolean(payload, 'privateInputPreflightOnly') ||
+    optionalBoolean(payload, 'localRuntimeInputPreflightOnly')
+}
+
 function runtimeContainerImage(payload: Record<string, unknown>): string | undefined {
   return optionalString(payload, 'runtimeContainerImage') ??
     optionalString(payload, 'containerImage')
@@ -387,6 +392,18 @@ function runtimePrerequisiteBlock(
     }
     const privateInputBlock = privateLocalRuntimeInputBlock(request.toolId, payload)
     if (privateInputBlock) return privateInputBlock
+    if (privateInputPreflightOnly(payload)) {
+      return skippedPrerequisiteBlock({
+        toolId: request.toolId,
+        code: 'gpu_model_private_inputs_accepted_runtime_proof_not_requested',
+        message:
+          'Private local source/model/output inputs passed path-shape preflight; native CUDA/model runtime proof was intentionally not requested for this validation pass.',
+        summary:
+          'GPU/model local-dev preflight accepted private local inputs and stopped before Docker/GPU/runtime startup.',
+        warning:
+          'GPU/model runtime did not start because this validation only proved private input path plumbing.',
+      })
+    }
     try {
       execFileSync('docker', ['image', 'inspect', image], {
         encoding: 'utf8',
@@ -486,6 +503,18 @@ function runtimePrerequisiteBlock(
 
   const privateInputBlock = privateLocalRuntimeInputBlock(request.toolId, payload)
   if (privateInputBlock) return privateInputBlock
+  if (privateInputPreflightOnly(payload)) {
+    return skippedPrerequisiteBlock({
+      toolId: request.toolId,
+      code: 'gpu_model_private_inputs_accepted_runtime_proof_not_requested',
+      message:
+        'Private local source/model/output inputs passed path-shape preflight; native CUDA/model runtime proof was intentionally not requested for this validation pass.',
+      summary:
+        'GPU/model local-dev preflight accepted private local inputs and stopped before Python/GPU/runtime startup.',
+      warning:
+        'GPU/model runtime did not start because this validation only proved private input path plumbing.',
+    })
+  }
 
   const preflight = runtimePreflightPython(request.toolId, payload)
   const missingModules = Array.isArray(preflight?.missingModules)

@@ -48,6 +48,10 @@ const DURABLE_PROJECT_SESSION_BACKEND_ROUTE_INTEGRATION_DECISION =
   'internal_testing_durable_project_session_backend_route_integration_passed_ready_for_readback_qa'
 const DURABLE_PROJECT_SESSION_BACKEND_ROUTE_INTEGRATION_NEXT_GATE =
   'INTERNAL_TESTING_DURABLE_PROJECT_SESSION_BACKEND_READBACK_QA'
+const DURABLE_PROJECT_SESSION_BACKEND_READBACK_QA_DECISION =
+  'internal_testing_durable_project_session_backend_readback_qa_passed_ready_for_durable_supabase_route_contract_plan'
+const DURABLE_PROJECT_SESSION_BACKEND_READBACK_QA_NEXT_GATE =
+  'INTERNAL_TESTING_DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN'
 
 const startCards = [
   {
@@ -145,6 +149,7 @@ function getScenarioHighlights() {
     'durable-auth-project-session-backend-persistence-plan',
     'mock-safe-durable-project-session-backend-skeleton',
     'durable-project-session-backend-route-integration',
+    'durable-project-session-backend-readback-qa',
     'feedback-export',
   ])
 
@@ -699,6 +704,41 @@ export function InternalTestingPage() {
                 <li>Mock route metadata is accepted for internal testing only.</li>
                 <li>Durable Supabase access remains false until RLS, explicit Data API grants, and migrations are verified.</li>
                 <li>No table read/write, Storage, worker, media, render, credit, external beta, production, or product-ready unlock.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-durable-project-session-backend-readback-qa">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Readback QA</span>
+            <h2>Project/session access metadata reads back on success and failure envelopes</h2>
+          </div>
+          <p>
+            Internal testing now verifies that Project Edit Session and Project Edit Brief responses expose <code>projectSessionAccess</code> in
+            successful <code>data</code> envelopes and failed <code>error.details</code> envelopes. This accepts the mock-safe route metadata while
+            keeping durable Supabase and runtime execution gated.
+          </p>
+          <div className="internal-testing-auth-grid">
+            <article data-testid="internal-testing-readback-qa-decision">
+              <Badge accent="success">Contract plan ready</Badge>
+              <strong>{DURABLE_PROJECT_SESSION_BACKEND_READBACK_QA_DECISION}</strong>
+              <span>Next gate: {DURABLE_PROJECT_SESSION_BACKEND_READBACK_QA_NEXT_GATE}</span>
+            </article>
+            <article data-testid="internal-testing-readback-qa-envelope-kinds">
+              <Badge accent="cyan">Readback envelopes</Badge>
+              <ul>
+                <li>Project Edit Session success and failure responses.</li>
+                <li>Project Edit Brief success and failure responses.</li>
+                <li>Access metadata includes status, durable Supabase state, and idempotency audit details.</li>
+              </ul>
+            </article>
+            <article data-testid="internal-testing-readback-qa-boundaries">
+              <Badge accent="warning">Still gated</Badge>
+              <ul>
+                <li>No durable Supabase table read/write or service-role browser path.</li>
+                <li>No worker, tool, media, render, credit, external beta, production, or product-ready unlock.</li>
+                <li>Next work is a route contract plan, not a migration or live data path.</li>
               </ul>
             </article>
           </div>

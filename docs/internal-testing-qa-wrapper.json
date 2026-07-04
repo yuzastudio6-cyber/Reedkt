@@ -18,6 +18,7 @@
     "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan",
     "smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton",
     "smoke:internal-testing-durable-project-session-backend-route-integration",
+    "smoke:internal-testing-durable-project-session-backend-readback-qa",
     "smoke:beta-readiness"
   ],
   "playwrightSpecs": [

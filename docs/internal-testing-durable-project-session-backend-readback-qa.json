@@ -1,0 +1,62 @@
+{
+  "id": "internal-testing-durable-project-session-backend-readback-qa",
+  "scenarioId": "durable-project-session-backend-readback-qa",
+  "decision": "internal_testing_durable_project_session_backend_readback_qa_passed_ready_for_durable_supabase_route_contract_plan",
+  "priorDecision": "internal_testing_durable_project_session_backend_route_integration_passed_ready_for_readback_qa",
+  "sourceSha": "bc2032c369a0e446ac2a95f9e8651f0b28c3f0b7",
+  "routeFamilies": [
+    "project_edit_session",
+    "project_edit_brief"
+  ],
+  "acceptedEnvelopeKinds": [
+    "success_data",
+    "failure_error"
+  ],
+  "acceptedReadback": {
+    "projectSessionAccessPresent": true,
+    "decisionMatchesBackendSkeleton": true,
+    "status": "mock_internal_access_allowed",
+    "mockInternalAccessAllowed": true,
+    "routeAccessAllowed": true,
+    "durableSupabaseAccessAllowed": false,
+    "supabaseLiveEnabled": false,
+    "serviceRoleInBrowserAllowed": false,
+    "auditEnvelopeIdempotent": true,
+    "warningIncluded": true
+  },
+  "blockedScope": {
+    "supabaseMigration": false,
+    "supabaseReadWrite": false,
+    "storageSignedUrls": false,
+    "serviceRoleInBrowser": false,
+    "profileWorkspaceBootstrapWrites": false,
+    "providerOrModelCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "creditSpend": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "productReady": false
+  },
+  "validation": {
+    "required": [
+      "smoke:internal-testing-durable-project-session-backend-readback-qa",
+      "smoke:internal-testing-durable-project-session-backend-route-integration",
+      "smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton",
+      "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan",
+      "smoke:internal-testing-auth-project-session-membership-policy",
+      "smoke:internal-testing-auth-project-access-readiness",
+      "smoke:internal-testing-qa-wrapper",
+      "qa:internal-testing",
+      "smoke:worker",
+      "smoke:prod-cost-controls",
+      "smoke:prod-runtime-contracts",
+      "typecheck:server",
+      "build",
+      "git diff --check",
+      "git diff --cached --check"
+    ]
+  },
+  "nextGate": "INTERNAL_TESTING_DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN"
+}

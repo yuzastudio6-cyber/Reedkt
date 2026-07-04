@@ -97,6 +97,8 @@ assert.equal(summary.preferredNextSafeCommand.command, 'npm run external-agent-t
 assert.equal(summary.preferredNextSafeCommand.mutatesRuntime, false)
 assert.equal(summary.preferredNextSafeCommand.runsModel, false)
 assert.equal(summary.preferredNextSafeCommand.createsAssets, false)
+assert.equal('accountIndexedSafeNextCommands' in summary, false)
+assert.equal('accountIndexedPreferredNextSafeCommand' in summary, false)
 assert.equal(
   summary.recommendedNextPrompt,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.recommendedNextPrompt,
@@ -180,6 +182,47 @@ assert.equal(indexedSummary.gcpAccessRepair.accountSelection.cliAccountIndexProv
 assert.equal(indexedSummary.gcpAccessRepair.accountSelection.cliAccountIndex, 2)
 assert.equal(indexedSummary.gcpAccessRepair.accountSelection.cliAccountIndexValid, true)
 assert.equal(indexedSummary.gcpAccessRepair.accountSelection.cliAccountIndexMapsToChildEnv, true)
+assert.deepEqual(indexedSummary.safeNextCommands, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.safeNextCommands)
+assert.equal(
+  indexedSummary.accountIndexedPreferredNextSafeCommand.command,
+  'npm run external-agent-tool-next-command -- --account-index 2',
+)
+const indexedSafeCommandsById = new Map(
+  indexedSummary.accountIndexedSafeNextCommands.map((command: { id: string }) => [command.id, command]),
+)
+assert.equal(
+  (indexedSafeCommandsById.get('static_action_plan') as { command: string }).command,
+  'npm run external-agent-tool-action-plan -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('static_readiness_check') as { command: string }).command,
+  'npm run external-agent-tool-readiness:check -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('fail_closed_execution_gate') as { command: string }).command,
+  'npm run external-agent-tool-execution-gate -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('live_next_command_decision') as { command: string }).command,
+  'npm run external-agent-tool-next-command -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('live_blocker_preflight') as { command: string }).command,
+  'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('broll_gpu_global_quota_verify') as { command: string }).command,
+  'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=2 npm run ai-video-broll-wan-gpu-global-quota:verify',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('broll_wan_external_agent_wrapper_static_guard') as { command: string }).command,
+  'npm run external-agent-tool-execute-broll-wan -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('sound_music_audio_external_agent_wrapper_static_guard') as { command: string })
+    .command,
+  'npm run external-agent-tool-execute-sound',
+)
 assert.equal(
   indexedSummary.gcpAccessRepair.safeRetryChecklist.includes(
     'run npm run external-agent-tool-next-command -- --account-index 2',

@@ -54,6 +54,46 @@ function replaceAccountIndexPlaceholders(value: string, accountIndex: number | u
     .replace(/<redacted-index>/g, String(accountIndex))
 }
 
+const cliAccountIndexCommands = new Set([
+  'npm run external-agent-tool-action-plan',
+  'npm run external-agent-tool-readiness:check',
+  'npm run external-agent-tool-execution-gate',
+  'npm run external-agent-tool-next-command',
+  'npm run external-agent-tool-blockers:preflight',
+  'npm run external-agent-gcp-access:repair-plan',
+  'npm run external-agent-gcp-access:verify',
+  'npm run external-agent-tool-runtime-status',
+  'npm run external-agent-tool-execute-qwen',
+  'npm run external-agent-tool-execute-broll-wan',
+])
+
+const envAccountIndexCommands = new Set(['npm run ai-video-broll-wan-gpu-global-quota:verify'])
+
+function commandWithAccountIndex(command: string, accountIndex: number | undefined): string {
+  if (!accountIndex) return command
+  if (
+    command.includes('--account-index') ||
+    command.includes('--gcloud-account-index') ||
+    command.includes('REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=')
+  ) {
+    return replaceAccountIndexPlaceholders(command, accountIndex)
+  }
+
+  const runPrefix = command.startsWith('run ')
+  const body = runPrefix ? command.slice('run '.length) : command
+  const prefix = runPrefix ? 'run ' : ''
+
+  if (cliAccountIndexCommands.has(body)) {
+    return `${prefix}${body} -- --account-index ${accountIndex}`
+  }
+
+  if (envAccountIndexCommands.has(body)) {
+    return `${prefix}REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=${accountIndex} ${body}`
+  }
+
+  return replaceAccountIndexPlaceholders(command, accountIndex)
+}
+
 function actionForTool(toolId: string) {
   if (toolId === 'qwen2_5_vl_7b_instruct') {
     return {
@@ -139,6 +179,24 @@ function main() {
   const preferredNextSafeCommand =
     rollup.safeNextCommands.find((command) => command.id === 'live_next_command_decision') ??
     rollup.safeNextCommands[0]
+  const safeCommandQueue = rollup.safeNextCommands.map((command) => ({
+    id: command.id,
+    command: command.command,
+    liveReadOnly: command.liveReadOnly,
+    mutatesRuntime: command.mutatesRuntime,
+    runsModel: command.runsModel,
+    createsAssets: command.createsAssets,
+    purpose: command.purpose,
+  }))
+  const accountIndexedSafeCommandQueue = accountIndex
+    ? safeCommandQueue.map((command) => ({
+        ...command,
+        command: commandWithAccountIndex(command.command, accountIndex),
+      }))
+    : undefined
+  const accountIndexedPreferredNextSafeCommand =
+    accountIndexedSafeCommandQueue?.find((command) => command.id === 'live_next_command_decision') ??
+    accountIndexedSafeCommandQueue?.[0]
 
   const actionPlan = {
     ok: runtimeGatesAllFalse && gcpAccessRepairRuntimeGatesAllFalse,
@@ -187,40 +245,41 @@ function main() {
       runtimeGatesAllFalse: gcpAccessRepairRuntimeGatesAllFalse,
       runtimeSideEffects: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.runtimeSideEffects,
     },
-    safeCommandQueue: rollup.safeNextCommands.map((command) => ({
-      id: command.id,
-      command: command.command,
-      liveReadOnly: command.liveReadOnly,
-      mutatesRuntime: command.mutatesRuntime,
-      runsModel: command.runsModel,
-      createsAssets: command.createsAssets,
-      purpose: command.purpose,
-    })),
+    safeCommandQueue,
     preferredNextSafeCommand,
-    toolActions: rollup.tools.map((tool) => ({
-      toolId: tool.toolId,
-      lane: tool.lane,
-      status: tool.status,
-      currentStage: tool.currentStage,
-      selectedModelOrTool: tool.selectedModelOrTool,
-      selectedGpu: tool.selectedGpu,
-      scaleToZeroRequired: tool.scaleToZeroRequired,
-      readyForExternalAgentExecutionNow: false,
-      readyForExternalAgentRuntimeExecutionNow: false,
-      staticExplicitToolGateReady: explicitToolGateReadyToolIds.has(tool.toolId),
-      staticReadyForExternalAgentExecutionGateNow:
-        tool.readyForExternalAgentExecutionNow || explicitToolGateReadyToolIds.has(tool.toolId),
-      executionNowBlockedByLivePreflight:
-        tool.readyForExternalAgentExecutionNow || explicitToolGateReadyToolIds.has(tool.toolId),
-      safeEvidenceReviewExecutableNow: safeEvidenceReviewToolIds.includes(tool.toolId),
-      readyForBoundedRetryAfterBlockerClears: tool.readyForBoundedRetryAfterBlockerClears,
-      noIdleLifecycleGate: tool.noIdleLifecycleGate ?? null,
-      primaryBlocker: tool.primaryBlocker,
-      nextAction: tool.nextAction,
-      manualBlockerActions: tool.manualBlockerActions ?? [],
-      ...actionForTool(tool.toolId),
-      forbiddenRuntimeActions,
-    })),
+    accountIndexedSafeCommandQueue,
+    accountIndexedPreferredNextSafeCommand,
+    toolActions: rollup.tools.map((tool) => {
+      const toolAction = actionForTool(tool.toolId)
+
+      return {
+        toolId: tool.toolId,
+        lane: tool.lane,
+        status: tool.status,
+        currentStage: tool.currentStage,
+        selectedModelOrTool: tool.selectedModelOrTool,
+        selectedGpu: tool.selectedGpu,
+        scaleToZeroRequired: tool.scaleToZeroRequired,
+        readyForExternalAgentExecutionNow: false,
+        readyForExternalAgentRuntimeExecutionNow: false,
+        staticExplicitToolGateReady: explicitToolGateReadyToolIds.has(tool.toolId),
+        staticReadyForExternalAgentExecutionGateNow:
+          tool.readyForExternalAgentExecutionNow || explicitToolGateReadyToolIds.has(tool.toolId),
+        executionNowBlockedByLivePreflight:
+          tool.readyForExternalAgentExecutionNow || explicitToolGateReadyToolIds.has(tool.toolId),
+        safeEvidenceReviewExecutableNow: safeEvidenceReviewToolIds.includes(tool.toolId),
+        readyForBoundedRetryAfterBlockerClears: tool.readyForBoundedRetryAfterBlockerClears,
+        noIdleLifecycleGate: tool.noIdleLifecycleGate ?? null,
+        primaryBlocker: tool.primaryBlocker,
+        nextAction: tool.nextAction,
+        manualBlockerActions: tool.manualBlockerActions ?? [],
+        ...toolAction,
+        accountIndexedImmediateSafeActions: accountIndex
+          ? toolAction.immediateSafeActions.map((action) => commandWithAccountIndex(action, accountIndex))
+          : undefined,
+        forbiddenRuntimeActions,
+      }
+    }),
     manualBlockers: blockedTools.map((tool) => ({
       toolId: tool.toolId,
       blocker: tool.primaryBlocker,

@@ -64,6 +64,46 @@ function replaceAccountIndexPlaceholders(value: string, accountIndex: number | u
     .replace(/<redacted-index>/g, String(accountIndex))
 }
 
+const cliAccountIndexCommands = new Set([
+  'npm run external-agent-tool-action-plan',
+  'npm run external-agent-tool-readiness:check',
+  'npm run external-agent-tool-execution-gate',
+  'npm run external-agent-tool-next-command',
+  'npm run external-agent-tool-blockers:preflight',
+  'npm run external-agent-gcp-access:repair-plan',
+  'npm run external-agent-gcp-access:verify',
+  'npm run external-agent-tool-runtime-status',
+  'npm run external-agent-tool-execute-qwen',
+  'npm run external-agent-tool-execute-broll-wan',
+])
+
+const envAccountIndexCommands = new Set(['npm run ai-video-broll-wan-gpu-global-quota:verify'])
+
+function commandWithAccountIndex(command: string, accountIndex: number | undefined): string {
+  if (!accountIndex) return command
+  if (
+    command.includes('--account-index') ||
+    command.includes('--gcloud-account-index') ||
+    command.includes('REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=')
+  ) {
+    return replaceAccountIndexPlaceholders(command, accountIndex)
+  }
+
+  const runPrefix = command.startsWith('run ')
+  const body = runPrefix ? command.slice('run '.length) : command
+  const prefix = runPrefix ? 'run ' : ''
+
+  if (cliAccountIndexCommands.has(body)) {
+    return `${prefix}${body} -- --account-index ${accountIndex}`
+  }
+
+  if (envAccountIndexCommands.has(body)) {
+    return `${prefix}REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=${accountIndex} ${body}`
+  }
+
+  return replaceAccountIndexPlaceholders(command, accountIndex)
+}
+
 function isFileEvidence(evidence: string): boolean {
   return (
     evidence.startsWith('docs/') ||
@@ -117,8 +157,17 @@ function main() {
     EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.runtimeSideEffects,
   ).every((value) => value === false)
   const safeNextCommands = rollup.safeNextCommands
+  const accountIndexedSafeNextCommands = accountIndex
+    ? safeNextCommands.map((command) => ({
+        ...command,
+        command: commandWithAccountIndex(command.command, accountIndex),
+      }))
+    : undefined
   const preferredNextSafeCommand =
     safeNextCommands.find((command) => command.id === 'live_next_command_decision') ?? safeNextCommands[0]
+  const accountIndexedPreferredNextSafeCommand =
+    accountIndexedSafeNextCommands?.find((command) => command.id === 'live_next_command_decision') ??
+    accountIndexedSafeNextCommands?.[0]
 
   const summary = {
     ok: missingEvidence.length === 0 && runtimeGatesAllFalse && gcpAccessRepairRuntimeGatesAllFalse,
@@ -191,6 +240,8 @@ function main() {
     })),
     safeNextCommands,
     preferredNextSafeCommand,
+    accountIndexedSafeNextCommands,
+    accountIndexedPreferredNextSafeCommand,
     evidenceChecked: evidence.length,
     missingEvidence,
     recommendedNextPrompt: rollup.recommendedNextPrompt,

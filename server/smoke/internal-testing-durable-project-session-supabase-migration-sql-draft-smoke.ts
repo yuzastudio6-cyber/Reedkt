@@ -35,6 +35,10 @@ const requiredFiles = [
   'docs/internal-testing-durable-project-session-supabase-migration-review.md',
   'docs/internal-testing-durable-project-session-supabase-migration-review.json',
   'server/smoke/internal-testing-durable-project-session-supabase-migration-review-smoke.ts',
+  'src/lib/project-session-supabase-local-migration-dry-run-plan.ts',
+  'docs/internal-testing-durable-project-session-supabase-local-migration-dry-run-plan.md',
+  'docs/internal-testing-durable-project-session-supabase-local-migration-dry-run-plan.json',
+  'server/smoke/internal-testing-durable-project-session-supabase-local-migration-dry-run-plan-smoke.ts',
   'src/lib/project-session-supabase-schema-rls-draft.ts',
   'docs/internal-testing-durable-project-session-supabase-schema-rls-draft.md',
   'docs/internal-testing-durable-project-session-supabase-schema-rls-draft.json',
@@ -202,8 +206,11 @@ assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_projec
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-migration-sql-draft'))
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_migration_review'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-migration-review'))
-assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_local_migration_dry_run_plan'))
+assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_local_migration_dry_run_plan'))
+assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-local-migration-dry-run-plan'))
+assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_local_migration_dry_run_execution'))
 assert.equal(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_review'), false)
+assert.equal(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_local_migration_dry_run_plan'), false)
 assert.equal(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_sql_draft'), false)
 
 assert.ok(

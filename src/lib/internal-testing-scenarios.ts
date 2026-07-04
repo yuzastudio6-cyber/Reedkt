@@ -354,6 +354,24 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'durable-project-session-supabase-local-migration-dry-run-plan',
+    title: 'Durable project/session Supabase local migration dry-run plan',
+    description: 'Review the future local-only Supabase dry-run recipe, fixture assertions, cleanup policy, and no-execution boundary.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Supabase local migration dry-run plan panel.',
+      'Confirm the future temp root is outside the repository.',
+      'Confirm the future command list is local-only and remains unexecuted in this milestone.',
+      'Confirm fixture assertions cover member select pass, non-member and anonymous denial, mutation denial, and no private media or Storage artifacts.',
+      'Confirm no Supabase CLI, local reset, generated types, table-backed route, remote validation, or product-ready gate opens.',
+    ],
+    expectedResult:
+      'Internal testers can approve a precise local dry-run execution recipe without running Supabase or committing executable migrations.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

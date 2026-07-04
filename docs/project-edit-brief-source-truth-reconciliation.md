@@ -27,6 +27,7 @@
 - Durable authenticated project/session backend persistence plan, defining server-side Auth, workspace membership, project/session joins, explicit Data API grants, RLS, service-role boundary, audit, and idempotency evidence before table-backed route access can be called durable.
 - Durable project/session Supabase migration SQL draft after RP-INTTEST-10, with review-only SQL under `database/migration-drafts/024_internal_testing_durable_project_session_access.draft.sql` and no executable Supabase migration apply.
 - Durable project/session Supabase migration review after RP-INTTEST-11, accepting draft-only route data select grants and RLS policy inheritance while leaving local reset, remote validation, generated types, and table-backed route access disabled.
+- Durable project/session Supabase local migration dry-run plan after RP-INTTEST-12, naming the future local-only temp root, command groups, fixture assertions, and cleanup policy while running no Supabase command.
 - Smoke coverage and E2E smoke coverage for Project Edit Brief behavior.
 
 ## Explicitly Not Landed
@@ -71,6 +72,7 @@ Passed:
 - `npm run smoke:internal-testing-durable-project-session-supabase-schema-rls-draft`
 - `npm run smoke:internal-testing-durable-project-session-supabase-migration-sql-draft`
 - `npm run smoke:internal-testing-durable-project-session-supabase-migration-review`
+- `npm run smoke:internal-testing-durable-project-session-supabase-local-migration-dry-run-plan`
 - `npm run typecheck:server`
 - `npm run build`
 - `git diff --check`
@@ -110,8 +112,9 @@ Passed:
 - Durable project/session Supabase schema/RLS draft after RP-INTTEST-09: the core table, route data inheritance, index, authenticated-role RLS, Data API grant, and verification contract is drafted while migration SQL, local reset, remote validation, generated types, and table-backed route access remain disabled.
 - Durable project/session Supabase migration SQL draft after RP-INTTEST-10: review-only SQL exists under `database/migration-drafts/` while executable Supabase migrations, local reset, remote validation, generated types, and table-backed route access remain disabled.
 - Durable project/session Supabase migration review after RP-INTTEST-11: draft-only route data select grants and RLS policy inheritance are accepted for local dry-run planning while local reset, remote validation, generated types, table-backed route access, and production migration remain disabled.
+- Durable project/session Supabase local migration dry-run plan after RP-INTTEST-12: the future local-only dry-run recipe, synthetic fixture assertions, and cleanup policy are defined while Supabase CLI, local reset, executable migration commit, remote validation, generated types, and table-backed route access remain disabled.
 - Real upload/source-media ingestion and privacy policy implementation.
-- Durable project/session Supabase local migration dry-run plan.
+- Durable project/session Supabase local migration dry-run execution.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.
 - Worker/provider/render execution remains separately gated.

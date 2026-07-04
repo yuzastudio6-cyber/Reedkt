@@ -1,0 +1,62 @@
+{
+  "id": "project-edit-brief-supabase-persistence-plan",
+  "milestone": "RP-EDITBRIEF-13",
+  "decision": "project_edit_brief_supabase_persistence_plan_passed_ready_for_production_readiness_gates",
+  "status": "passed_plan_only",
+  "repositoryBranch": "codex/rp-edit-brief-source-truth-reconciliation",
+  "durableRoots": [
+    "edit_briefs",
+    "edit_cues",
+    "edit_cue_assets",
+    "edit_cue_messages",
+    "edit_cue_intents",
+    "edit_cue_confirmations",
+    "edit_cue_conflicts",
+    "edit_cue_revisions",
+    "edit_brief_application_logs",
+    "edit_session_export_settings"
+  ],
+  "historicalLogicalNames": {
+    "project_edit_briefs": "historical_logical_name_not_default_migration_target",
+    "project_edit_brief_markers": "historical_logical_name_not_default_migration_target",
+    "project_edit_brief_marker_children": "historical_logical_name_not_default_migration_target"
+  },
+  "supabasePolicyInputs": {
+    "rlsRequiredOnExposedTables": true,
+    "policiesUseToAuthenticated": true,
+    "authorizationUsesAuthUid": true,
+    "userMetadataNotTrustedForAuthorization": true,
+    "explicitGrantsAndSchemaExposureReviewRequired": true,
+    "storageObjectsPoliciesRequiredForFutureAttachments": true,
+    "serviceRoleBackendOnly": true,
+    "signedUrlsNotSourceTruth": true
+  },
+  "blockedScope": {
+    "migrationAdded": false,
+    "sqlExecuted": false,
+    "supabaseCliCommandRun": false,
+    "supabaseReadEnabled": false,
+    "supabaseWriteEnabled": false,
+    "storageReadEnabled": false,
+    "storageWriteEnabled": false,
+    "signedUrlCreated": false,
+    "productionRouteEnabled": false,
+    "providerOrModelCall": false,
+    "mediaProcessing": false,
+    "workerDispatch": false,
+    "renderOrExportJob": false,
+    "creditReservationOrSpend": false
+  },
+  "requiredProductionReadinessGates": [
+    "owner_approval_for_durable_root_mapping",
+    "authenticated_project_session_access_policy",
+    "rls_policy_review",
+    "explicit_data_api_grants",
+    "backend_only_service_role_boundary",
+    "storage_policy_review_for_future_artifacts",
+    "migration_review_and_typegen",
+    "route_idempotency_and_audit_logging",
+    "approved_plan_snapshot_and_credit_reservation_before_expensive_work"
+  ],
+  "nextMilestone": "RP-EDITBRIEF-14 - Production Readiness Gates"
+}

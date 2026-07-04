@@ -24,9 +24,10 @@ const root = process.cwd()
 const projectId = 'mock-project-edit-chat-foundation'
 const markerId = 'marker-calm-soundtrack'
 
-function assertFalseFlags(value: Record<string, unknown>, label: string) {
+function assertFalseFlags(value: unknown, label: string) {
+  const record = value as Record<string, unknown>
   for (const key of Object.keys(PROJECT_EDIT_BRIEF_MARKER_CHAT_SAFETY_FLAGS)) {
-    assert.equal(value[key], false, `${label}.${key} must remain false`)
+    assert.equal(record[key], false, `${label}.${key} must remain false`)
   }
 }
 
@@ -160,7 +161,7 @@ const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 assert.equal(packageJson.scripts?.['smoke:project-edit-brief-marker-chat'], 'tsx server/smoke/project-edit-brief-marker-chat-smoke.ts')
 
 const migrationCount = readdirSync(join(root, 'supabase/migrations')).filter((name) => !name.startsWith('.')).length
-assert.equal(migrationCount, 24, 'Supabase migration count must remain at the approved PR 637 reconciled baseline.')
+assert.equal(migrationCount, 24, 'Supabase migration count must remain 24')
 
 console.log(JSON.stringify({
   smoke: 'project-edit-brief-marker-chat',

@@ -1,0 +1,32 @@
+{
+  "id": "project-edit-brief-owner-evidence-local-validation",
+  "milestone": "RP-EDITBRIEF-15D",
+  "decision": "project_edit_brief_owner_evidence_local_validation_passed_ready_for_owner_evidence_preflight",
+  "status": "passed_local_validation_command_only",
+  "command": "npm run check:project-edit-brief-owner-evidence-readiness",
+  "strictCommand": "npx tsx scripts/validation/project-edit-brief-owner-evidence-readiness-cli.ts --input /absolute/path/to/local-owner-evidence.json",
+  "defaultInput": "docs/project-edit-brief-owner-evidence-intake-template.json",
+  "defaultInputAllowBlocked": true,
+  "requiredOwnerInputCount": 10,
+  "strictModePassesOnlyWhen": [
+    "all_required_owner_inputs_present",
+    "each_input_approved_or_waived",
+    "each_approved_or_waived_input_has_owner",
+    "each_approved_or_waived_input_has_evidenceRef",
+    "each_approved_or_waived_input_has_reviewedAt",
+    "each_approved_or_waived_input_has_notes",
+    "safety_scan_clean"
+  ],
+  "safetyFailures": [
+    "secret_like_evidence",
+    "signed_url_like_evidence",
+    "raw_prompt_like_evidence",
+    "private_media_or_artifact_like_evidence"
+  ],
+  "launchBoundary": {
+    "externalBetaAllowed": false,
+    "realUserMediaBetaAllowed": false,
+    "paidProductionAllowed": false
+  },
+  "nextMilestoneWhenStrictPasses": "RP-EDITBRIEF-16 - Production Persistence Implementation Plan"
+}

@@ -1,0 +1,71 @@
+{
+  "id": "project-edit-brief-production-shaped-internal-persistence-plan",
+  "milestone": "RP-EDITBRIEF-16",
+  "decision": "project_edit_brief_internal_persistence_plan_passed_ready_for_internal_backend_skeleton",
+  "status": "passed_plan_only",
+  "requiredPriorDecision": "project_edit_brief_internal_testing_owner_acceptance_passed_ready_for_production_shaped_internal_persistence_plan",
+  "productionShapedImplementationRequired": true,
+  "durableRoots": [
+    "edit_briefs",
+    "edit_cues",
+    "edit_cue_assets",
+    "edit_cue_messages",
+    "edit_cue_intents",
+    "edit_cue_confirmations",
+    "edit_cue_conflicts",
+    "edit_cue_revisions",
+    "edit_brief_application_logs",
+    "edit_session_export_settings"
+  ],
+  "repositoryModes": {
+    "currentMockMode": "mock_database",
+    "currentSupabaseMode": "supabase_disabled",
+    "futureServerMode": "supabase_server"
+  },
+  "routePolicy": {
+    "browserUsesApiClient": true,
+    "serviceRoleBackendOnly": true,
+    "directFrontendSupabaseForbidden": true,
+    "idempotencyRequiredForWrites": true,
+    "auditEventsRequiredForFutureWrites": true
+  },
+  "blockedScope": {
+    "migrationAdded": false,
+    "sqlExecuted": false,
+    "supabaseCliCommandRun": false,
+    "liveSupabaseReadEnabled": false,
+    "liveSupabaseWriteEnabled": false,
+    "storageWriteEnabled": false,
+    "signedUrlCreated": false,
+    "productionRouteEnabled": false,
+    "providerOrModelCall": false,
+    "mediaProcessing": false,
+    "workerDispatch": false,
+    "renderOrExportJob": false,
+    "creditReservationOrSpend": false,
+    "externalBetaAllowed": false,
+    "paidProductionAllowed": false
+  },
+  "releaseDelta": [
+    "real_supabase_migration_and_generated_type_review",
+    "workspace_project_session_rls_policy_tests",
+    "explicit_data_api_grants_and_schema_exposure_review",
+    "storage_policy_for_future_media_attachments",
+    "backend_service_role_repository_factory",
+    "route_idempotency_and_audit_event_records",
+    "approved_snapshot_plan_handoff",
+    "credit_estimate_reservation_ledger_persistence",
+    "worker_provider_render_activation_gates"
+  ],
+  "hardInvariants": [
+    "approved_plan_snapshot_required_before_expensive_work",
+    "credit_estimate_reservation_required_before_expensive_work",
+    "no_raw_prompts_as_source_truth",
+    "no_secrets_or_service_role_in_frontend",
+    "no_signed_urls_as_source_truth",
+    "backend_worker_only_heavy_execution",
+    "license_model_weight_review_required_before_external_beta",
+    "no_silent_billing_or_wallet_mutation"
+  ],
+  "nextMilestone": "RP-EDITBRIEF-17 - Internal Persistence Backend Skeleton"
+}

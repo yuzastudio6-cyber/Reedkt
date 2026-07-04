@@ -1,10 +1,12 @@
 # Project Edit Brief Next Production Plan
 
-Edit Brief is optional. Chat remains default. Marker Chat is marker-scoped. Attachments are metadata-only. Plan hints are not execution. Production ready: false. Owner approval pending. No migration. No Supabase command.
+Edit Brief is optional. Chat remains default. Marker Chat is marker-scoped. Attachments are metadata-only. Plan hints are not execution. Production ready: false. Public-release owner approval pending. Internal testing owner path accepted by RP-EDITBRIEF-15H. No migration. No Supabase command.
 
 ## Current State
 
 The mock/local Edit Brief flow is intended for internal testing only. It can create marker metadata, capture marker-scoped intent, store metadata-only attachments, save mock export settings, run deterministic QA, and prepare mock plan hints.
+
+Internal testing still has to be production-shaped. Test implementation should use the same route, repository, API, approved-plan, estimate, audit, and validation seams expected for release, with explicit blocked-scope checks for public launch, billing, live Supabase writes, providers, media workers, render/export, uploads, and real-user-media exposure.
 
 ## Production Gates
 
@@ -18,7 +20,55 @@ The mock/local Edit Brief flow is intended for internal testing only. It can cre
 
 ## Recommended Next Milestone
 
-After verification and owner review, use `RP-EDITBRIEF-13 — Supabase Persistence Plan`. Do not jump from RP-EDITBRIEF-12 to production enablement.
+For internal testing, proceed through `RP-EDITBRIEF-16 — Production-Shaped Internal Persistence Implementation Plan` after RP-EDITBRIEF-15H because Codex is acting as the implementation owner for the internal testing lane. That milestone should build release-shaped contracts and wiring, not disposable test-only code.
+
+For external beta, real-user-media beta, or paid production, use `RP-EDITBRIEF-16 — Production Persistence Implementation Plan` only after RP-EDITBRIEF-15 owner inputs are supplied in the RP-EDITBRIEF-15A intake template and RP-EDITBRIEF-15B evaluates that intake as ready. RP-EDITBRIEF-13 reconciled the Supabase persistence roots, RP-EDITBRIEF-14 converted blanket blockers into computed readiness gates, RP-EDITBRIEF-15 records the missing owner/operator evidence, RP-EDITBRIEF-15A supplies the concrete intake shape, RP-EDITBRIEF-15B adds the executable readiness check, RP-EDITBRIEF-15C names the owner assignment evidence needed to complete the gate, RP-EDITBRIEF-15D adds a local validation command for filled evidence files, RP-EDITBRIEF-15E adds the strict PR diff gate for the reviewed evidence update, RP-EDITBRIEF-15F adds schema validation before readiness/safety evaluation, and RP-EDITBRIEF-15G adds a safe draft generator for external owner collection. Do not jump from these gates to public production enablement without the named evidence, a schema-valid intake, a safety-clean validation result, and a passing readiness result.
+
+## Internal Testing Owner Path
+
+RP-EDITBRIEF-15H accepts Codex/operator ownership for internal testing only. It allows production-shaped internal persistence planning while keeping external beta, real-user-media beta, paid production, live Supabase writes, provider/model calls, workers, render/export, uploads, and credit spend blocked until their separate evidence gates pass.
+
+## RP-EDITBRIEF-16 Internal Persistence Plan
+
+RP-EDITBRIEF-16 defines the production-shaped internal persistence contract for the next backend skeleton. It keeps the durable roots on `edit_briefs`, `edit_cues`, cue child tables, application logs, and export settings; keeps browser access behind the API client; requires service-role access to remain backend-only; requires future write idempotency and audit event planning; and records the public-release delta. It does not add migrations, SQL, Supabase CLI usage, live Supabase reads/writes, Storage writes, signed URLs, production routes, providers, media processing, workers, render/export, uploads, or credit spend.
+
+Next internal milestone: `RP-EDITBRIEF-17 - Internal Persistence Backend Skeleton`.
+
+## RP-EDITBRIEF-17 Internal Persistence Backend Skeleton
+
+RP-EDITBRIEF-17 adds the backend seam for internal testing route integration. It keeps writes in the mock repository, keeps Supabase in disabled fail-closed mode, requires idempotency and audit envelopes for mutating operations, and blocks partial approved-plan/credit approval fields. It is ready for internal route integration but still does not enable production routes, live Supabase, Storage, providers, media processing, workers, render/export, uploads, external beta, paid production, or credits.
+
+Next internal milestone: `RP-EDITBRIEF-18 - Internal Route Integration`.
+
+## RP-EDITBRIEF-18 Internal Route Integration
+
+RP-EDITBRIEF-18 connects Project Edit Brief route handlers to the internal persistence backend skeleton. Successful mock route responses now include internal persistence metadata, so internal testing can verify the backend seam used by the UI without turning on live Supabase or production route behavior.
+
+Next internal milestone: `RP-EDITBRIEF-19 - Internal Testing Readback And QA`.
+
+## RP-EDITBRIEF-19 Internal Testing Readback QA
+
+RP-EDITBRIEF-19 validates the connected internal route path end to end inside the backend skeleton: create brief, create marker, append Marker Chat, read summary, and read bundle. The path preserves safety flags and internal persistence metadata, proving the route integration is ready for review as an internal testing slice.
+
+Next internal milestone: `RP-EDITBRIEF-20 - Internal Testing Review And PR Readiness`.
+
+## RP-EDITBRIEF-20 Internal Testing Review And PR Readiness
+
+RP-EDITBRIEF-20 accepts the internal testing stack for owner review and repeated internal mock testing. The route seam is production-shaped, responses expose internal persistence metadata, and the readback path has smoke coverage. The PR should remain draft until explicit owner/user action because public release still needs owner evidence, production route/auth policy, Supabase migration/RLS/storage review, approved-plan and credit-reservation wiring, media/provider/worker/render gates, monitoring, rollback, and incident readiness.
+
+Next action: owner review or explicit PR-ready/merge hygiene. External beta, real-user-media beta, and paid production remain conditional on their separate gates.
+
+## RP-EDITBRIEF-21 Internal Testing Completion Audit
+
+RP-EDITBRIEF-21 closes the internal-testing milestone chain with an auditable completion record. It confirms RP-EDITBRIEF-02 through RP-EDITBRIEF-20 are represented, that the Edit Brief stack is ready for repeated internal mock testing, and that all public-release gates remain explicit rather than hidden. It does not mark the PR ready or merge it by itself.
+
+Next action: explicit PR-ready or merge hygiene by user request.
+
+## RP-EDITBRIEF-22 PR Ready / Merge Hygiene Preflight
+
+RP-EDITBRIEF-22 records the safe handoff state for PR #2425. It confirms that remaining blockers are scoped to unsafe release actions and that internal testing, owner review, diagnostics, PR-ready hygiene, and merge hygiene can continue. It does not change GitHub PR state by itself; any mark-ready or merge action must run a fresh live preflight and be explicitly requested.
+
+Next action: explicit mark-ready or merge-hygiene request.
 
 ## Qwen Runtime Dependency
 

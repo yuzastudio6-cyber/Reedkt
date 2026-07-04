@@ -1,0 +1,32 @@
+{
+  "id": "project-edit-brief-owner-evidence-pr-diff-validation",
+  "milestone": "RP-EDITBRIEF-15E",
+  "decision": "project_edit_brief_owner_evidence_pr_diff_validation_passed_ready_for_reviewed_evidence_pr",
+  "status": "passed_diff_validation_command_only",
+  "defaultCommand": "npm run check:project-edit-brief-owner-evidence-pr-diff",
+  "strictCommand": "npx tsx scripts/validation/project-edit-brief-owner-evidence-pr-diff.ts --staged --require-intake-change",
+  "ownerEvidenceIntakePath": "docs/project-edit-brief-owner-evidence-intake-template.json",
+  "strictModeRequires": [
+    "owner_evidence_intake_changed",
+    "no_other_files_staged",
+    "owner_evidence_readiness_passed",
+    "owner_evidence_safety_scan_passed"
+  ],
+  "forbiddenInEvidencePr": [
+    "private_media",
+    "runtime_source",
+    "supabase_migrations",
+    "lockfile_churn",
+    "generated_artifacts",
+    "signed_urls",
+    "raw_prompts",
+    "secrets",
+    "unrelated_docs"
+  ],
+  "launchBoundary": {
+    "externalBetaAllowed": false,
+    "realUserMediaBetaAllowed": false,
+    "paidProductionAllowed": false
+  },
+  "nextMilestoneWhenStrictPasses": "RP-EDITBRIEF-16 - Production Persistence Implementation Plan"
+}

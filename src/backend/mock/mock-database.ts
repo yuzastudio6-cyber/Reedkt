@@ -113,6 +113,17 @@ import type {
 import type { ExportRecord } from '../../types/review-render-export'
 import type { RecommendedEditStructureRecord } from '../../types/planning'
 import type {
+  ProjectEditSessionEventRecord,
+  ProjectEditSessionMemoryRecord,
+  ProjectEditSessionMessageRecord,
+  ProjectEditSessionPreviewRecord,
+  ProjectEditSessionRecord,
+  ProjectEditSessionRevisionRecord,
+  ProjectEditSessionSnapshotRecord,
+  ProjectEditSessionSourceRecord,
+  ProjectEditSessionVersionRecord,
+} from '../../types/project-edit-session'
+import type {
   ProjectEditBriefApplicationLogRecord,
   ProjectEditBriefMarkerAttachmentRecord,
   ProjectEditBriefMarkerConfirmationRecord,
@@ -219,6 +230,15 @@ export interface MockDatabase {
   creditRefunds: CreditRefundRecord[]
   backendRuntimeMessages: BackendRuntimeMessageRecord[]
   runtimeIdempotencyRecords: RuntimeIdempotencyRecord[]
+  projectEditSessions: ProjectEditSessionRecord[]
+  projectEditSessionMessages: ProjectEditSessionMessageRecord[]
+  projectEditSessionSources: ProjectEditSessionSourceRecord[]
+  projectEditSessionMemory: ProjectEditSessionMemoryRecord[]
+  projectEditSessionSnapshots: ProjectEditSessionSnapshotRecord[]
+  projectEditSessionVersions: ProjectEditSessionVersionRecord[]
+  projectEditSessionPreviews: ProjectEditSessionPreviewRecord[]
+  projectEditSessionRevisions: ProjectEditSessionRevisionRecord[]
+  projectEditSessionEvents: ProjectEditSessionEventRecord[]
   projectEditBriefs: ProjectEditBriefRecord[]
   projectEditBriefMarkers: ProjectEditBriefMarkerRecord[]
   projectEditBriefMarkerAttachments: ProjectEditBriefMarkerAttachmentRecord[]
@@ -364,6 +384,15 @@ export function createMockDatabase(): MockDatabase {
     creditRefunds: [],
     backendRuntimeMessages: [],
     runtimeIdempotencyRecords: [],
+    projectEditSessions: [],
+    projectEditSessionMessages: [],
+    projectEditSessionSources: [],
+    projectEditSessionMemory: [],
+    projectEditSessionSnapshots: [],
+    projectEditSessionVersions: [],
+    projectEditSessionPreviews: [],
+    projectEditSessionRevisions: [],
+    projectEditSessionEvents: [],
     projectEditBriefs: [],
     projectEditBriefMarkers: [],
     projectEditBriefMarkerAttachments: [],

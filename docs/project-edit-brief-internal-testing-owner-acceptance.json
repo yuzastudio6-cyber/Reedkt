@@ -1,0 +1,47 @@
+{
+  "id": "project-edit-brief-internal-testing-owner-acceptance",
+  "milestone": "RP-EDITBRIEF-15H",
+  "decision": "project_edit_brief_internal_testing_owner_acceptance_passed_ready_for_production_shaped_internal_persistence_plan",
+  "status": "passed_internal_testing_owner_acceptance_only",
+  "acceptedBy": "codex_implementation_owner",
+  "scope": "internal_testing_only",
+  "productionShapedImplementationRequired": true,
+  "releaseDeltaTracked": true,
+  "allowed": {
+    "internalDryRunTesting": true,
+    "internalPersistencePlanning": true,
+    "mockLocalRouteValidation": true,
+    "contractFirstBackendSkeleton": true
+  },
+  "blockedScope": {
+    "externalBetaAllowed": false,
+    "realUserMediaBetaAllowed": false,
+    "paidProductionAllowed": false,
+    "liveSupabaseWritesAllowed": false,
+    "providerCallsAllowed": false,
+    "workerDispatchAllowed": false,
+    "renderExportAllowed": false,
+    "creditSpendAllowed": false,
+    "realUserMediaAllowed": false
+  },
+  "hardInvariants": [
+    "approved_plan_snapshot_required_before_expensive_work",
+    "credit_estimate_reservation_required_before_expensive_work",
+    "no_raw_prompts_as_source_truth",
+    "no_secrets_or_service_role_in_frontend",
+    "no_signed_urls_as_source_truth",
+    "backend_worker_only_heavy_execution",
+    "license_model_weight_review_required_before_external_beta",
+    "no_silent_billing_or_wallet_mutation"
+  ],
+  "releaseDelta": [
+    "real_supabase_migrations_and_rls_review",
+    "durable_media_upload_lifecycle",
+    "planner_integration_to_approved_snapshots",
+    "credit_reservation_and_ledger_persistence",
+    "provider_worker_render_runtime_activation",
+    "monitoring_runbook_and_incident_response",
+    "external_beta_and_paid_production_owner_evidence"
+  ],
+  "nextMilestone": "RP-EDITBRIEF-16 - Production-Shaped Internal Persistence Implementation Plan"
+}

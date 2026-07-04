@@ -1,0 +1,214 @@
+{
+  "id": "project-edit-brief-owner-evidence-review-packet",
+  "milestone": "RP-EDITBRIEF-15C",
+  "decision": "project_edit_brief_owner_evidence_review_packet_passed_ready_for_owner_assignment",
+  "status": "ready_for_owner_assignment",
+  "sourceInputs": [
+    "docs/project-edit-brief-owner-evidence-intake-template.json",
+    "src/backend/project-edit-brief-production/owner-evidence-readiness.ts"
+  ],
+  "requiredOwnerInputs": [
+    {
+      "id": "canonical_workflow_approval",
+      "label": "Canonical workflow approval",
+      "reviewGroup": "product_owner",
+      "decisionRequired": "Decide whether Project Edit Brief becomes the default first-pass workflow, remains optional, or remains internal-only.",
+      "minimumEvidence": [
+        "approved workflow posture",
+        "allowed entry points",
+        "blocked entry points",
+        "user-facing copy owner",
+        "rollback or disable plan"
+      ],
+      "acceptedStatuses": [
+        "approved",
+        "waived",
+        "rejected"
+      ]
+    },
+    {
+      "id": "durable_root_schema_approval",
+      "label": "Durable root schema approval",
+      "reviewGroup": "data_owner",
+      "decisionRequired": "Approve the durable roots and column scope for edit_briefs, edit_cues, cue child tables, application logs, and edit_session_export_settings.",
+      "minimumEvidence": [
+        "approved table roots",
+        "required columns",
+        "foreign key ownership",
+        "type generation plan",
+        "rollback posture"
+      ],
+      "acceptedStatuses": [
+        "approved",
+        "waived",
+        "rejected"
+      ]
+    },
+    {
+      "id": "auth_access_policy_approval",
+      "label": "Auth/access policy approval",
+      "reviewGroup": "security_owner",
+      "decisionRequired": "Approve workspace, project, edit-session, and admin access boundaries for Project Edit Brief records.",
+      "minimumEvidence": [
+        "role matrix",
+        "read/write/archive permissions",
+        "admin override boundary",
+        "service role restriction",
+        "negative access cases"
+      ],
+      "acceptedStatuses": [
+        "approved",
+        "waived",
+        "rejected"
+      ]
+    },
+    {
+      "id": "supabase_security_approval",
+      "label": "Supabase security approval",
+      "reviewGroup": "supabase_owner",
+      "decisionRequired": "Approve RLS, explicit grants, Storage policies, service-role boundaries, migration validation, and rollback.",
+      "minimumEvidence": [
+        "RLS policy matrix",
+        "Data API grant review",
+        "Storage policy review",
+        "service-role audit",
+        "migration and rollback evidence"
+      ],
+      "acceptedStatuses": [
+        "approved",
+        "waived",
+        "rejected"
+      ]
+    },
+    {
+      "id": "media_lifecycle_approval",
+      "label": "Media lifecycle approval",
+      "reviewGroup": "media_privacy_owner",
+      "decisionRequired": "Approve upload, source media, private artifact, retention, deletion, and signed-delivery boundaries.",
+      "minimumEvidence": [
+        "allowed media classes",
+        "metadata-only to durable artifact upgrade rule",
+        "retention and deletion policy",
+        "private artifact manifest policy",
+        "signed URL boundary"
+      ],
+      "acceptedStatuses": [
+        "approved",
+        "waived",
+        "rejected"
+      ]
+    },
+    {
+      "id": "planner_integration_approval",
+      "label": "Planner integration approval",
+      "reviewGroup": "planning_owner",
+      "decisionRequired": "Approve how Brief Plan Hints enter approved plan snapshots and how conflicts reset or block approval.",
+      "minimumEvidence": [
+        "planner input precedence",
+        "approved snapshot write rule",
+        "conflict handling",
+        "revision reset behavior",
+        "user review trigger list"
+      ],
+      "acceptedStatuses": [
+        "approved",
+        "waived",
+        "rejected"
+      ]
+    },
+    {
+      "id": "credit_cost_approval",
+      "label": "Credit/cost approval",
+      "reviewGroup": "billing_owner",
+      "decisionRequired": "Approve estimate, reservation, spend, release, refund, cost metering, and no silent overage behavior for Brief-triggered work.",
+      "minimumEvidence": [
+        "estimate fields",
+        "approved plan snapshot requirement",
+        "credit reservation requirement",
+        "refund/release policy",
+        "tool cost event ownership"
+      ],
+      "acceptedStatuses": [
+        "approved",
+        "waived",
+        "rejected"
+      ]
+    },
+    {
+      "id": "provider_model_approval",
+      "label": "Provider/model approval",
+      "reviewGroup": "ai_model_owner",
+      "decisionRequired": "Approve Qwen Marker Chat, Qwen2.5-VL visual context, prompt redaction, model/license review, and fallback behavior.",
+      "minimumEvidence": [
+        "allowed model routes",
+        "prompt redaction rule",
+        "model and license review",
+        "fallback matrix",
+        "raw prompt storage boundary"
+      ],
+      "acceptedStatuses": [
+        "approved",
+        "waived",
+        "rejected"
+      ]
+    },
+    {
+      "id": "worker_render_approval",
+      "label": "Worker/render approval",
+      "reviewGroup": "worker_render_owner",
+      "decisionRequired": "Approve worker dispatch, idempotency, artifact manifests, QA gates, render readiness, progress events, and rollback.",
+      "minimumEvidence": [
+        "worker contract list",
+        "idempotency key rule",
+        "artifact manifest schema",
+        "QA gate list",
+        "render/progress rollback plan"
+      ],
+      "acceptedStatuses": [
+        "approved",
+        "waived",
+        "rejected"
+      ]
+    },
+    {
+      "id": "operations_approval",
+      "label": "Operations approval",
+      "reviewGroup": "operations_owner",
+      "decisionRequired": "Approve monitoring, incidents, privacy/legal, deployment ownership, rollback ownership, beta cohort ownership, and support escalation.",
+      "minimumEvidence": [
+        "monitoring dashboard or checks",
+        "incident runbook",
+        "privacy/legal review",
+        "deployment owner",
+        "support escalation path"
+      ],
+      "acceptedStatuses": [
+        "approved",
+        "waived",
+        "rejected"
+      ]
+    }
+  ],
+  "evidenceRecordRequirements": {
+    "approvedOrWaivedRequires": [
+      "owner",
+      "evidenceRef",
+      "reviewedAt",
+      "notes"
+    ],
+    "missingOrRejectedBlocksRpEditBrief16": true,
+    "secretsRawPromptsSignedUrlsForbiddenAsEvidence": true,
+    "sourceControlMustNotContainPrivateMediaOrCredentials": true
+  },
+  "currentReadiness": {
+    "checkedInTemplateReadyForRpEditBrief16": false,
+    "missingInputCount": 10,
+    "supabasePersistenceImplementationAllowed": false
+  },
+  "launchBoundary": {
+    "externalBetaAllowed": false,
+    "realUserMediaBetaAllowed": false,
+    "paidProductionAllowed": false
+  },
+  "nextMilestoneWhenEvidencePasses": "RP-EDITBRIEF-16 - Production Persistence Implementation Plan"
+}

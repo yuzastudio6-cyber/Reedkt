@@ -12,7 +12,7 @@ export interface BetaScenarioReadiness {
   scenarioId: string
   dryRunReady: boolean
   localDevFixtureReady: boolean
-  productionReady: false
+  productionReady: boolean
   blockers: string[]
   nextActions: string[]
 }
@@ -20,9 +20,9 @@ export interface BetaScenarioReadiness {
 export interface BetaGoNoGoDecision {
   internalDryRunTestingAllowed: boolean
   limitedLocalDevInternalTestingAllowed: boolean
-  externalBetaAllowed: false
-  realUserMediaBetaAllowed: false
-  paidProductionAllowed: false
+  externalBetaAllowed: boolean
+  realUserMediaBetaAllowed: boolean
+  paidProductionAllowed: boolean
   blockers: string[]
   warnings: string[]
 }
@@ -30,8 +30,8 @@ export interface BetaGoNoGoDecision {
 export interface BetaReadinessReport {
   reportId: string
   createdAt: string
-  overallStatus: 'blocked' | 'internal_testing_ready' | 'warning'
-  productionReady: false
+  overallStatus: 'blocked' | 'internal_testing_ready' | 'external_beta_ready' | 'real_user_media_beta_ready' | 'paid_production_ready' | 'warning'
+  productionReady: boolean
   checklist: BetaReadinessChecklistItem[]
   scenarioMatrix: BetaScenarioReadiness[]
   goNoGo: BetaGoNoGoDecision

@@ -1,0 +1,33 @@
+{
+  "id": "project-edit-brief-owner-evidence-readiness-evaluator",
+  "milestone": "RP-EDITBRIEF-15B",
+  "decision": "project_edit_brief_owner_evidence_readiness_evaluator_passed_ready_for_owner_input_collection",
+  "status": "passed_evaluator_only",
+  "requiredInputCount": 10,
+  "readyWhen": [
+    "all_required_owner_inputs_present",
+    "each_input_approved_or_waived",
+    "each_approved_or_waived_input_has_owner",
+    "each_approved_or_waived_input_has_evidenceRef",
+    "each_approved_or_waived_input_has_reviewedAt",
+    "each_approved_or_waived_input_has_notes"
+  ],
+  "blockedWhen": [
+    "missing_input",
+    "rejected_input",
+    "duplicate_input",
+    "unsupported_status",
+    "missing_owner",
+    "missing_evidenceRef",
+    "missing_reviewedAt",
+    "missing_notes"
+  ],
+  "checkedInTemplateExpectedReady": false,
+  "syntheticCompleteIntakeExpectedReady": true,
+  "launchBoundary": {
+    "externalBetaAllowed": false,
+    "realUserMediaBetaAllowed": false,
+    "paidProductionAllowed": false
+  },
+  "nextMilestoneWhenReady": "RP-EDITBRIEF-16 - Production Persistence Implementation Plan"
+}

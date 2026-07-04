@@ -1,0 +1,267 @@
+/* Inputs, search, segmented controls, toggles, and planning fields. */
+
+input,
+select,
+textarea {
+  accent-color: var(--rp-brand-cyan);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--rp-text-muted);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.search-input {
+  align-items: center;
+  background: rgba(21, 31, 50, 0.88);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-muted);
+  display: flex;
+  gap: 10px;
+  min-height: 44px;
+  max-width: 100%;
+  min-width: min(100%, 330px);
+  padding: 0 12px;
+}
+
+.search-input:focus-within {
+  border-color: var(--rp-brand-cyan);
+  box-shadow: var(--rp-shadow-cyan);
+}
+
+.search-input input {
+  background: transparent;
+  border: 0;
+  color: var(--rp-text-primary);
+  min-width: 0;
+  outline: 0;
+  width: 100%;
+}
+
+.search-input > span:not(.sr-only) {
+  align-items: center;
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-xs);
+  display: inline-flex;
+  font-size: 0.72rem;
+  gap: 3px;
+  padding: 2px 6px;
+}
+
+.segmented-control {
+  background: rgba(5, 7, 13, 0.52);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: flex;
+  padding: 4px;
+}
+
+.segmented-control button {
+  background: transparent;
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-secondary);
+  min-height: 34px;
+  padding: 0 12px;
+}
+
+.segmented-control button.active,
+.segmented-control button[aria-pressed="true"] {
+  background: rgba(37, 99, 255, 0.18);
+  color: var(--rp-text-primary);
+}
+
+.segmented-control button:hover {
+  color: var(--rp-text-primary);
+}
+
+.planning-field {
+  display: grid;
+  gap: 8px;
+}
+
+.planning-field > span,
+.visual-preference-group > span {
+  color: var(--rp-text-secondary);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.planning-field input,
+.planning-field select,
+.planning-field textarea,
+.input-with-icon {
+  background: rgba(5, 7, 13, 0.58);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-primary);
+  min-height: 44px;
+  outline: 0;
+  padding: 0 12px;
+  width: 100%;
+}
+
+.planning-field textarea {
+  min-height: 150px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.planning-field input:focus,
+.planning-field select:focus,
+.planning-field textarea:focus,
+.input-with-icon:focus-within {
+  border-color: var(--rp-brand-cyan);
+  box-shadow: var(--rp-shadow-cyan);
+}
+
+.planning-field small,
+.visual-preference-group small {
+  color: var(--rp-text-muted);
+}
+
+.input-with-icon {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  padding-left: 12px;
+}
+
+.input-with-icon input {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding-left: 0;
+}
+
+.clip-toggle-row label,
+.preview-toggle {
+  align-items: center;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.86rem;
+  gap: 8px;
+}
+
+.visual-preference-group {
+  display: grid;
+  gap: 10px;
+}
+
+.visual-preference-group div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.visual-preference-group button {
+  background: rgba(21, 31, 50, 0.74);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  min-height: 34px;
+  padding: 0 12px;
+}
+
+.visual-preference-group button.active {
+  background: rgba(37, 99, 255, 0.2);
+  border-color: rgba(0, 229, 255, 0.38);
+  color: var(--rp-text-primary);
+}
+
+.preview-select {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.preview-select span {
+  color: var(--rp-text-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.preview-select select {
+  background: rgba(21, 31, 50, 0.9);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-primary);
+  min-height: 36px;
+  padding: 0 8px;
+}
+
+.preview-selectable-element {
+  align-items: center;
+  background: rgba(5, 7, 13, 0.58);
+  border: 1px solid rgba(20, 184, 166, 0.42);
+  border-radius: 8px;
+  color: var(--rp-text-primary);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  min-height: 28px;
+  overflow: hidden;
+  padding: 0.3rem;
+  position: absolute;
+  text-align: center;
+}
+
+.preview-selectable-element span {
+  background: rgba(5, 7, 13, 0.76);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  line-height: 1.25;
+  padding: 0.25rem 0.45rem;
+}
+
+.preview-selectable-element--captions {
+  background: rgba(15, 23, 42, 0.78);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.preview-selectable-element--b-roll {
+  background: rgba(14, 165, 233, 0.12);
+  border-color: rgba(14, 165, 233, 0.28);
+}
+
+.preview-selectable-element--selected {
+  border-color: var(--rp-brand-cyan);
+  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.22);
+}
+
+.preview-selectable-element--locked {
+  border-style: dashed;
+}
+
+.export-settings-grid label,
+.export-settings-toggles label,
+.export-approval-checks label {
+  color: var(--rp-text-secondary);
+}
+
+.export-settings-grid label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.export-settings-grid select {
+  background: var(--rp-surface-3);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 8px;
+  color: var(--rp-text-primary);
+  font: inherit;
+  padding: 0.55rem 0.6rem;
+}
+
+.export-settings-grid select:disabled {
+  color: var(--rp-text-muted);
+  opacity: 0.68;
+}

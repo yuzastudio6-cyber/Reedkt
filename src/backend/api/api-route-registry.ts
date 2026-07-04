@@ -8,6 +8,8 @@ import { JOB_API_ROUTES } from './routes/job-api-routes'
 import { MEDIA_UPLOAD_API_ROUTES } from './routes/media-upload-api-routes'
 import { MUSIC_API_ROUTES } from './routes/music-api-routes'
 import { PROJECT_API_ROUTES } from './routes/project-api-routes'
+import { PROJECT_EDIT_BRIEF_API_ROUTES } from './project-edit-brief-api-route-registry'
+import { PROJECT_EDIT_SESSION_API_ROUTES } from './project-edit-session-api-route-registry'
 import { PROVIDER_API_ROUTES } from './routes/provider-api-routes'
 import { RENDER_API_ROUTES } from './routes/render-api-routes'
 import { SFX_API_ROUTES } from './routes/sfx-api-routes'
@@ -28,6 +30,8 @@ export interface ApiRouteMapSummary {
 export const REEDITPRO_API_ROUTES: ApiRouteDefinition[] = [
   ...AUTH_BOOTSTRAP_API_ROUTES,
   ...PROJECT_API_ROUTES,
+  ...PROJECT_EDIT_SESSION_API_ROUTES,
+  ...PROJECT_EDIT_BRIEF_API_ROUTES,
   ...MEDIA_UPLOAD_API_ROUTES,
   ...EDIT_PLANNING_API_ROUTES,
   ...CREDIT_API_ROUTES,

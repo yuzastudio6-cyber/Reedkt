@@ -1,0 +1,31 @@
+{
+  "id": "project-edit-brief-internal-route-integration",
+  "milestone": "RP-EDITBRIEF-18",
+  "decision": "project_edit_brief_internal_route_integration_passed_ready_for_internal_testing_readback",
+  "status": "passed_internal_route_integration_only",
+  "requiredPriorDecision": "project_edit_brief_internal_persistence_backend_skeleton_passed_ready_for_internal_route_integration",
+  "routeBackend": {
+    "usesInternalPersistenceBackend": true,
+    "backendMode": "mock_internal",
+    "supabaseLiveEnabled": false,
+    "productionRouteEnabled": false
+  },
+  "responseMetadata": {
+    "internalPersistenceDecisionIncluded": true,
+    "safetyFlagsPreserved": true
+  },
+  "blockedScope": {
+    "productionHttpRouteEnabled": false,
+    "liveSupabaseEnabled": false,
+    "storageWriteEnabled": false,
+    "signedUrlCreated": false,
+    "providerOrModelCall": false,
+    "mediaProcessing": false,
+    "workerDispatch": false,
+    "renderOrExportJob": false,
+    "creditReservationOrSpend": false,
+    "externalBetaAllowed": false,
+    "paidProductionAllowed": false
+  },
+  "nextMilestone": "RP-EDITBRIEF-19 - Internal Testing Readback And QA"
+}

@@ -19,7 +19,7 @@ function check(condition: boolean, message: string): void {
 function scenario(id: string): SoundAgentPlannerInput {
   const match = mockSoundMusicAudioScenarios.find((candidate) => candidate.id === id)
   check(Boolean(match), `Missing mock SOUND scenario ${id}.`)
-  return match.input
+  return match!.input
 }
 
 function checkReason(result: { blockedReasons: SoundBlockedUseReason[] }, reason: SoundBlockedUseReason): void {

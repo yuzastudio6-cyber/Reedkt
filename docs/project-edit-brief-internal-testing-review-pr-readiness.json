@@ -1,0 +1,68 @@
+{
+  "id": "project-edit-brief-internal-testing-review-pr-readiness",
+  "milestone": "RP-EDITBRIEF-20",
+  "decision": "project_edit_brief_internal_testing_review_passed_ready_for_pr_owner_review",
+  "sourceBranch": "codex/rp-edit-brief-source-truth-reconciliation",
+  "pullRequest": 2425,
+  "upstreamEvidence": [
+    "project_edit_brief_internal_testing_owner_acceptance_passed_ready_for_production_shaped_internal_persistence_plan",
+    "project_edit_brief_internal_persistence_plan_passed_ready_for_internal_backend_skeleton",
+    "project_edit_brief_internal_persistence_backend_skeleton_passed_ready_for_internal_route_integration",
+    "project_edit_brief_internal_route_integration_passed_ready_for_internal_testing_readback",
+    "project_edit_brief_internal_testing_readback_qa_passed_ready_for_internal_testing_review"
+  ],
+  "readiness": {
+    "productionShapedInternalTestingReady": true,
+    "mockInternalRouteFlowReadyForRepeatedTesting": true,
+    "routeResponsesExposeInternalPersistenceMetadata": true,
+    "prReadyForOwnerReview": true,
+    "keepDraftUntilExplicitOwnerOrUserAction": true,
+    "externalBetaReady": false,
+    "realUserMediaBetaReady": false,
+    "paidProductionReady": false,
+    "productionRoutesReady": false,
+    "liveSupabaseReady": false
+  },
+  "acceptedRouteFlow": [
+    "project.editBrief.create",
+    "project.editBrief.markers.create",
+    "project.editBrief.markerMessages.append",
+    "project.editBrief.summary",
+    "project.editBrief.bundle"
+  ],
+  "validationRequiredForThisReview": [
+    "smoke:project-edit-brief-internal-testing-review-pr-readiness",
+    "smoke:project-edit-brief-internal-testing-readback-qa",
+    "smoke:project-edit-brief-internal-route-integration",
+    "smoke:project-edit-brief-api-routes",
+    "smoke:project-edit-brief-e2e",
+    "smoke:project-edit-brief-production-readiness-gates",
+    "smoke:beta-readiness",
+    "typecheck:server",
+    "build",
+    "git diff --check",
+    "git diff --cached --check"
+  ],
+  "blockedScope": {
+    "productionHttpRoutes": false,
+    "liveSupabaseReadsWrites": false,
+    "supabaseMigrationOrSql": false,
+    "storageSignedUrls": false,
+    "providerOrModelCalls": false,
+    "mediaProcessing": false,
+    "uploads": false,
+    "workerDispatch": false,
+    "renderOrExportJobs": false,
+    "creditReservationOrSpend": false,
+    "externalBetaActivation": false,
+    "paidProductionActivation": false
+  },
+  "releaseDelta": [
+    "owner evidence intake must pass for public release gates",
+    "production route/auth policy must be approved before live HTTP exposure",
+    "Supabase migration, RLS, storage, and service-role policy must be reviewed before live persistence",
+    "approved plan snapshot and credit reservation seams must be connected before expensive work",
+    "provider, worker, media, render, and export execution remain separate backend milestones"
+  ],
+  "nextAction": "owner_review_or_explicit_pr_ready_merge_hygiene"
+}

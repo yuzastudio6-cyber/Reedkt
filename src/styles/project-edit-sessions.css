@@ -1,0 +1,1148 @@
+.project-edit-session-home {
+  display: grid;
+  gap: 18px;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.project-home-header {
+  align-items: start;
+  background: rgba(11, 18, 32, 0.86);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 20px;
+}
+
+.project-home-header__icon {
+  align-items: center;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-brand-cyan);
+  display: flex;
+  height: 54px;
+  justify-content: center;
+  width: 54px;
+}
+
+.project-home-header__copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.project-home-header__copy h1 {
+  font-size: clamp(1.7rem, 3vw, 2.6rem);
+  margin: 0;
+}
+
+.project-home-header__meta,
+.project-edit-session-card__badges,
+.project-edit-session-detail-panel__badges,
+.new-edit-session-placeholder__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.project-home-header__action {
+  justify-self: end;
+}
+
+.new-edit-session-placeholder {
+  align-items: start;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.new-edit-session-placeholder__panel {
+  align-items: center;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.24);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-secondary);
+  display: flex;
+  gap: 8px;
+  grid-column: 1 / -1;
+  padding: 12px;
+}
+
+.new-edit-session-placeholder__panel--success {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.28);
+}
+
+.new-edit-session-create-panel {
+  display: grid;
+  gap: 16px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.new-edit-session-create-panel form,
+.new-edit-session-form-grid,
+.new-edit-session-choice-group,
+.new-edit-session-source-list,
+.new-edit-session-source-row {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.new-edit-session-create-panel__header {
+  align-items: start;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.new-edit-session-create-panel__header h2 {
+  margin: 0;
+}
+
+.new-edit-session-create-panel__header p,
+.new-edit-session-create-panel__footer p,
+.new-edit-session-muted {
+  color: var(--rp-text-secondary);
+  margin: 0;
+}
+
+.new-edit-session-create-panel__badges,
+.new-edit-session-create-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.new-edit-session-create-panel__actions .rp-button {
+  min-width: 0;
+}
+
+.new-edit-session-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.new-edit-session-field--full,
+.new-edit-session-choice-group,
+.new-edit-session-source-list,
+.new-edit-session-create-panel__footer,
+.new-edit-session-error,
+.new-edit-session-success {
+  grid-column: 1 / -1;
+}
+
+.new-edit-session-choice-group {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  margin: 0;
+  padding: 14px;
+}
+
+.new-edit-session-choice-group legend {
+  color: var(--rp-text-primary);
+  font-weight: 800;
+  padding: 0 6px;
+}
+
+.new-edit-session-choice-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.new-edit-session-choice-grid--compact {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.new-edit-session-choice {
+  background: rgba(5, 7, 13, 0.34);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-primary);
+  cursor: pointer;
+  display: grid;
+  gap: 6px;
+  min-height: 76px;
+  min-width: 0;
+  padding: 10px;
+  text-align: left;
+}
+
+.new-edit-session-choice span {
+  color: var(--rp-text-secondary);
+  font-size: 0.86rem;
+}
+
+.new-edit-session-choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.new-edit-session-choice.is-selected {
+  border-color: var(--rp-border-glow);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.16);
+}
+
+.new-edit-session-field {
+  color: var(--rp-text-secondary);
+  display: grid;
+  font-size: 0.88rem;
+  font-weight: 700;
+  gap: 6px;
+  min-width: 0;
+}
+
+.new-edit-session-field input,
+.new-edit-session-field textarea,
+.new-edit-session-field select {
+  background: rgba(5, 7, 13, 0.5);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-primary);
+  font: inherit;
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+.project-edit-session-history-panel,
+.project-edit-session-history-card,
+.project-edit-session-history-section {
+  display: grid;
+  gap: 12px;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.project-edit-session-history-panel {
+  background: rgba(5, 7, 13, 0.26);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  padding: 14px;
+}
+
+.project-edit-session-history-panel__heading,
+.project-edit-session-history-card__heading {
+  align-items: start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.project-edit-session-history-panel__heading h3,
+.project-edit-session-history-card__heading h4,
+.project-edit-session-history-section h4 {
+  margin: 0;
+}
+
+.project-edit-session-history-panel__heading p,
+.project-edit-session-history-card p,
+.project-edit-session-history-section p,
+.project-edit-session-history-status,
+.project-edit-session-history-boundary {
+  color: var(--rp-text-secondary);
+  margin: 0;
+}
+
+.project-edit-session-history-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.project-edit-session-history-card {
+  background: rgba(11, 18, 32, 0.48);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  padding: 12px;
+}
+
+.project-edit-session-history-preview-frame {
+  align-items: center;
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(34, 197, 94, 0.08));
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-secondary);
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.project-edit-session-history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.project-edit-session-history-actions .rp-button {
+  min-width: 0;
+}
+
+.project-edit-session-history-status {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.16);
+  border-radius: var(--rp-radius-sm);
+  padding: 10px;
+}
+
+.project-edit-session-history-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-edit-session-history-list li {
+  background: rgba(5, 7, 13, 0.28);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px;
+}
+
+.project-edit-session-history-list span {
+  color: var(--rp-text-primary);
+  font-weight: 800;
+}
+
+.project-edit-session-history-list small {
+  color: var(--rp-text-secondary);
+}
+
+.project-edit-session-history-boundary {
+  border-top: 1px solid var(--rp-border-subtle);
+  padding-top: 10px;
+}
+
+.new-edit-session-source-row {
+  background: rgba(5, 7, 13, 0.24);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) minmax(140px, 0.4fr) auto;
+  padding: 12px;
+}
+
+.new-edit-session-error,
+.new-edit-session-success {
+  align-items: center;
+  border-radius: var(--rp-radius-md);
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+}
+
+.new-edit-session-error {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.28);
+  color: #fecaca;
+}
+
+.new-edit-session-success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  color: var(--rp-text-secondary);
+}
+
+.new-edit-session-create-panel__footer {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, auto);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.project-edit-session-home__layout {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.project-edit-session-home__cards,
+.project-edit-session-section-heading,
+.project-edit-session-card__body,
+.project-edit-session-detail-panel {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.project-edit-session-card-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.project-edit-session-card {
+  background: rgba(18, 24, 38, 0.76);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  color: var(--rp-text-primary);
+  cursor: pointer;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px;
+  text-align: left;
+  transition: border-color var(--rp-duration-fast) var(--rp-ease-standard), transform var(--rp-duration-fast) var(--rp-ease-standard);
+}
+
+.project-edit-session-card:hover,
+.project-edit-session-card:focus-visible,
+.project-edit-session-card.is-selected {
+  border-color: var(--rp-border-glow);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.project-edit-session-card--wide {
+  grid-column: span 2;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1fr);
+}
+
+.project-edit-session-card--vertical,
+.project-edit-session-card--square,
+.project-edit-session-card--social,
+.project-edit-session-card--custom {
+  grid-template-columns: 1fr;
+}
+
+.project-edit-session-aspect-frame {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  min-width: 0;
+}
+
+.project-edit-session-aspect-frame__screen {
+  align-items: center;
+  background:
+    linear-gradient(135deg, rgba(0, 229, 255, 0.14), rgba(139, 92, 246, 0.12)),
+    #07111f;
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-brand-cyan);
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  min-height: 104px;
+  overflow: hidden;
+  padding: 12px;
+  position: relative;
+  width: min(100%, 260px);
+}
+
+.project-edit-session-aspect-frame--vertical .project-edit-session-aspect-frame__screen {
+  aspect-ratio: 9 / 16;
+  max-height: 260px;
+  width: 150px;
+}
+
+.project-edit-session-aspect-frame--wide .project-edit-session-aspect-frame__screen {
+  aspect-ratio: 16 / 9;
+  width: min(100%, 320px);
+}
+
+.project-edit-session-aspect-frame--square .project-edit-session-aspect-frame__screen {
+  aspect-ratio: 1;
+  width: min(100%, 220px);
+}
+
+.project-edit-session-aspect-frame--social .project-edit-session-aspect-frame__screen,
+.project-edit-session-aspect-frame--custom .project-edit-session-aspect-frame__screen {
+  aspect-ratio: 4 / 5;
+  width: min(100%, 220px);
+}
+
+.project-edit-session-aspect-frame small,
+.project-edit-session-card__preference,
+.project-edit-session-card__time,
+.project-edit-session-section-heading p {
+  color: var(--rp-text-secondary);
+}
+
+.project-edit-session-card__title-row,
+.project-edit-session-detail-panel__heading {
+  align-items: start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.project-edit-session-card__title-row h3,
+.project-edit-session-detail-panel h2,
+.new-edit-session-placeholder h2,
+.project-edit-session-section-heading h2 {
+  margin: 0;
+}
+
+.project-edit-session-card__metrics,
+.project-edit-session-detail-panel__stats {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.project-edit-session-card__metrics span,
+.project-edit-session-detail-panel__stats span,
+.project-edit-session-card__time,
+.project-edit-session-detail-panel__next {
+  align-items: center;
+  background: rgba(5, 7, 13, 0.36);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: inline-flex;
+  gap: 7px;
+  min-width: 0;
+  padding: 8px;
+}
+
+.project-edit-session-detail-panel {
+  position: sticky;
+  top: 18px;
+}
+
+.project-edit-session-detail-panel__summary,
+.project-edit-session-detail-panel__list {
+  background: rgba(5, 7, 13, 0.34);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 12px;
+}
+
+.project-edit-session-detail-panel__list div {
+  display: grid;
+  gap: 4px;
+}
+
+.project-edit-session-detail-panel__list dt {
+  color: var(--rp-text-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.project-edit-session-detail-panel__list dd {
+  color: var(--rp-text-secondary);
+  margin: 0;
+}
+
+.project-edit-session-empty-state {
+  align-items: center;
+  display: grid;
+  justify-items: center;
+  min-height: 260px;
+  text-align: center;
+}
+
+.project-edit-session-chat-page,
+.project-edit-session-chat-main,
+.project-edit-session-message-list,
+.project-edit-session-chat-context,
+.project-edit-session-context-section {
+  display: grid;
+  gap: 14px;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.project-edit-session-chat-header {
+  align-items: start;
+  background: rgba(11, 18, 32, 0.88);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 20px;
+}
+
+.project-edit-session-chat-header__icon {
+  align-items: center;
+  background: rgba(139, 92, 246, 0.14);
+  border: 1px solid rgba(139, 92, 246, 0.24);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-brand-violet);
+  display: flex;
+  height: 54px;
+  justify-content: center;
+  width: 54px;
+}
+
+.project-edit-session-chat-header__copy,
+.project-edit-session-chat-header__actions {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.project-edit-session-chat-header__copy h1 {
+  font-size: clamp(1.6rem, 2.8vw, 2.35rem);
+  margin: 0;
+}
+
+.project-edit-session-chat-header__badges,
+.project-edit-session-chat-boundary__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-edit-session-chat-header__actions {
+  justify-items: end;
+}
+
+.project-edit-session-chat-boundary {
+  align-items: start;
+  background: rgba(14, 165, 233, 0.1);
+  border: 1px solid rgba(14, 165, 233, 0.22);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 12px;
+}
+
+.project-edit-session-chat-boundary strong,
+.project-edit-session-context-section h3,
+.project-edit-session-chat-input label {
+  color: var(--rp-text-primary);
+}
+
+.project-edit-session-chat-boundary p,
+.project-edit-session-chat-input p,
+.project-edit-session-chat-page__status,
+.project-edit-session-context-section p,
+.project-edit-session-message__meta span {
+  color: var(--rp-text-secondary);
+  margin: 0;
+}
+
+.project-edit-session-chat-page__status {
+  background: rgba(5, 7, 13, 0.3);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  padding: 10px 12px;
+}
+
+.project-edit-session-chat-page__layout {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.project-edit-session-chat-main {
+  background: rgba(18, 24, 38, 0.54);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  padding: 14px;
+}
+
+.project-edit-session-message-list {
+  max-height: min(62vh, 720px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.project-edit-session-message-list__empty {
+  align-items: center;
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  min-height: 220px;
+  text-align: center;
+}
+
+.project-edit-session-message {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 8px;
+  max-width: 82%;
+  padding: 12px;
+}
+
+.project-edit-session-message--user {
+  background: rgba(0, 229, 255, 0.1);
+  justify-self: end;
+}
+
+.project-edit-session-message--assistant,
+.project-edit-session-message--system,
+.project-edit-session-message--tool_status,
+.project-edit-session-message--approval,
+.project-edit-session-message--revision,
+.project-edit-session-message--preview {
+  background: rgba(5, 7, 13, 0.38);
+  justify-self: start;
+}
+
+.project-edit-session-message__meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-edit-session-message p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.project-edit-session-chat-input {
+  border-top: 1px solid var(--rp-border-subtle);
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.project-edit-session-chat-input__row {
+  align-items: stretch;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) minmax(86px, auto);
+  min-width: 0;
+}
+
+.project-edit-session-chat-input__row .rp-button {
+  min-width: 0;
+}
+
+.project-edit-session-chat-input textarea {
+  background: rgba(5, 7, 13, 0.52);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-primary);
+  font: inherit;
+  min-width: 0;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.project-edit-session-chat-context {
+  position: sticky;
+  top: 18px;
+}
+
+.project-edit-session-chat-context__heading {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.project-edit-session-chat-context__stats {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.project-edit-session-chat-context__stats span {
+  align-items: center;
+  background: rgba(5, 7, 13, 0.34);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: inline-flex;
+  gap: 7px;
+  padding: 8px;
+}
+
+.project-edit-session-context-section {
+  background: rgba(5, 7, 13, 0.32);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  padding: 12px;
+}
+
+.project-edit-session-context-section h3 {
+  font-size: 0.98rem;
+  margin: 0;
+}
+
+.project-edit-session-context-section ul {
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 7px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-edit-session-context-section li {
+  align-items: start;
+  display: flex;
+  gap: 7px;
+}
+
+.project-edit-session-context-section__boundary {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.16);
+  border-radius: var(--rp-radius-sm);
+  padding: 8px 10px;
+}
+
+.project-edit-session-memory-layer-grid {
+  display: grid;
+  gap: 9px;
+}
+
+.project-edit-session-memory-layer-card {
+  background: rgba(18, 24, 38, 0.58);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.project-edit-session-memory-layer-card--revision {
+  border-color: rgba(245, 158, 11, 0.36);
+}
+
+.project-edit-session-memory-layer-card--source {
+  border-color: rgba(34, 197, 94, 0.32);
+}
+
+.project-edit-session-memory-layer-card--dna {
+  border-color: rgba(0, 229, 255, 0.34);
+}
+
+.project-edit-session-memory-layer-card__header,
+.project-edit-session-memory-layer-card__counts,
+.project-edit-session-memory-update-notice {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-edit-session-memory-layer-card__header {
+  justify-content: space-between;
+}
+
+.project-edit-session-memory-layer-card__counts span {
+  align-items: center;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.82rem;
+  gap: 5px;
+}
+
+.project-edit-session-memory-layer-card__updated {
+  color: var(--rp-text-secondary);
+  font-size: 0.8rem;
+}
+
+.project-edit-session-memory-update-notice {
+  align-items: flex-start;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.24);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-secondary);
+  padding: 10px;
+}
+
+.project-edit-session-memory-update-notice p {
+  margin: 2px 0 0;
+}
+
+.project-edit-session-preference-panel,
+.project-edit-session-preference-status-card,
+.project-edit-session-preference-subcard,
+.project-edit-session-preference-picker {
+  display: grid;
+  gap: 12px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.project-edit-session-preference-panel {
+  background: rgba(5, 7, 13, 0.32);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  padding: 12px;
+}
+
+.project-edit-session-preference-panel__heading,
+.project-edit-session-preference-status-card__heading,
+.project-edit-session-preference-subcard__heading,
+.project-edit-session-preference-picker__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.project-edit-session-preference-panel__heading h3,
+.project-edit-session-preference-status-card__heading h4,
+.project-edit-session-preference-subcard__heading h4 {
+  margin: 0;
+}
+
+.project-edit-session-preference-panel__status,
+.project-edit-session-preference-panel__boundary,
+.project-edit-session-preference-status-card p,
+.project-edit-session-preference-subcard p {
+  color: var(--rp-text-secondary);
+  margin: 0;
+}
+
+.project-edit-session-preference-panel__boundary {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.16);
+  border-radius: var(--rp-radius-sm);
+  padding: 9px 10px;
+}
+
+.project-edit-session-preference-status-card,
+.project-edit-session-preference-subcard {
+  background: rgba(18, 24, 38, 0.58);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  padding: 10px;
+}
+
+.project-edit-session-preference-status-card__badges,
+.project-edit-session-preference-subcard ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.project-edit-session-preference-subcard ul {
+  color: var(--rp-text-secondary);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-edit-session-preference-subcard li {
+  background: rgba(5, 7, 13, 0.36);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  padding: 7px 8px;
+}
+
+.project-edit-session-preference-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.24);
+  border-radius: var(--rp-radius-sm);
+  padding: 8px 10px;
+}
+
+.project-edit-session-preference-picker__grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.project-edit-session-preference-choice {
+  background: rgba(5, 7, 13, 0.36);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-primary);
+  cursor: pointer;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px;
+  text-align: left;
+}
+
+.project-edit-session-preference-choice span {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+}
+
+.project-edit-session-preference-choice.is-selected {
+  border-color: var(--rp-border-glow);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.16);
+}
+
+.project-edit-session-preference-choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.project-edit-session-breadcrumbs ol,
+.project-edit-session-route-tabs,
+.project-edit-session-route-section-header,
+.project-edit-session-route-boundary {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.project-edit-session-breadcrumbs ol {
+  color: var(--rp-text-secondary);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-edit-session-breadcrumbs li {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  min-width: 0;
+}
+
+.project-edit-session-breadcrumbs a,
+.project-edit-session-route-tab {
+  color: var(--rp-text-primary);
+  text-decoration: none;
+}
+
+.project-edit-session-breadcrumbs span {
+  color: var(--rp-text-secondary);
+}
+
+.project-edit-session-route-tabs {
+  background: rgba(5, 7, 13, 0.28);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  padding: 8px;
+}
+
+.project-edit-session-route-tab {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--rp-radius-sm);
+  display: inline-flex;
+  gap: 7px;
+  min-height: 36px;
+  padding: 7px 10px;
+}
+
+.project-edit-session-route-tab.is-active {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: rgba(0, 229, 255, 0.24);
+}
+
+.project-edit-session-route-tab.is-disabled {
+  color: var(--rp-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.project-edit-session-route-section-header,
+.project-edit-session-route-boundary {
+  align-items: flex-start;
+  background: rgba(18, 24, 38, 0.58);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.project-edit-session-route-section-header h2 {
+  margin: 0;
+}
+
+.project-edit-session-route-section-header p,
+.project-edit-session-route-boundary p,
+.project-edit-session-route-boundary ul {
+  color: var(--rp-text-secondary);
+  margin: 4px 0 0;
+}
+
+.project-edit-session-route-boundary {
+  background: rgba(0, 229, 255, 0.07);
+  border-color: rgba(0, 229, 255, 0.16);
+  justify-content: flex-start;
+}
+
+.project-edit-session-route-boundary ul {
+  display: grid;
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+}
+
+@media (max-width: 980px) {
+  .project-home-header,
+  .project-edit-session-chat-header,
+  .new-edit-session-placeholder,
+  .new-edit-session-create-panel__header,
+  .new-edit-session-create-panel__footer,
+  .new-edit-session-form-grid,
+  .new-edit-session-choice-grid,
+  .new-edit-session-choice-grid--compact,
+  .new-edit-session-source-row,
+  .project-edit-session-home__layout,
+  .project-edit-session-chat-page__layout,
+  .project-edit-session-chat-input__row,
+  .project-edit-session-preference-picker__grid,
+  .project-edit-session-route-section-header,
+  .project-edit-session-card--wide {
+    grid-template-columns: 1fr;
+  }
+
+  .project-home-header__action,
+  .project-edit-session-chat-header__actions {
+    justify-self: start;
+    justify-items: start;
+  }
+
+  .project-edit-session-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-edit-session-card--wide {
+    grid-column: auto;
+  }
+
+  .project-edit-session-detail-panel,
+  .project-edit-session-chat-context {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .project-edit-session-card__metrics,
+  .project-edit-session-detail-panel__stats,
+  .project-edit-session-chat-context__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .project-home-header,
+  .project-edit-session-chat-header {
+    padding: 16px;
+  }
+
+  .project-edit-session-message {
+    max-width: 100%;
+  }
+}

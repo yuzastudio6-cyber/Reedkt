@@ -133,10 +133,11 @@ const routeResponse = await routeHandler({
   },
   context: {
     requestId: 'qwen-marker-chat-route-smoke',
-    runtime: 'mock_local',
+    mode: 'mock',
     workspaceId: 'mock-workspace',
     projectId: marker.projectId,
     userId: 'mock-user',
+    mockOnly: true,
     mockDatabase: db,
   },
 })

@@ -105,7 +105,7 @@ const extraScenarios: Array<Omit<MockProjectEditBriefRepositoryScenario, 'mockOn
     title: 'Brief row mapper round trips snake_case to camelCase.',
     operation: 'row_mapping',
     expectedStatus: 'ready_mock',
-    notes: ['Future project_edit_briefs table mapping stays explicit.'],
+    notes: ['Future durable table mapping stays explicit on edit_briefs/edit_cues roots.'],
   },
   {
     id: 'project-edit-brief-repository-row-marker',
@@ -228,7 +228,7 @@ const extraScenarios: Array<Omit<MockProjectEditBriefRepositoryScenario, 'mockOn
   },
   {
     id: 'project-edit-brief-repository-supabase-schema-future',
-    title: 'Supabase skeleton documents future project_edit_briefs dependency.',
+    title: 'Supabase skeleton documents future edit_briefs/edit_cues dependency.',
     operation: 'disabled_supabase',
     expectedStatus: 'blocked_disabled_supabase',
     notes: ['Schema, auth/RLS, service-role, and remote deployment gates remain future.'],

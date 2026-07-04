@@ -1,0 +1,322 @@
+.internal-testing-badge {
+  align-items: center;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-primary);
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  text-decoration: none;
+  transition: border-color var(--rp-duration-base) var(--rp-ease-standard), background var(--rp-duration-base) var(--rp-ease-standard);
+}
+
+.internal-testing-badge:hover,
+.internal-testing-badge.active {
+  background: rgba(37, 99, 255, 0.14);
+  border-color: rgba(0, 229, 255, 0.42);
+}
+
+.internal-testing-badge span {
+  display: grid;
+  gap: 2px;
+}
+
+.internal-testing-badge strong {
+  font-size: 0.82rem;
+}
+
+.internal-testing-badge small {
+  color: var(--rp-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.internal-testing-page {
+  display: grid;
+  gap: 24px;
+}
+
+.internal-testing-hero,
+.internal-testing-content-grid,
+.internal-testing-feedback-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.internal-testing-hero > *,
+.internal-testing-feedback-grid > * {
+  grid-column: span 4;
+}
+
+.internal-testing-content-grid > .internal-testing-checklist {
+  grid-column: span 4;
+}
+
+.internal-testing-content-grid > .internal-testing-scenarios {
+  grid-column: span 8;
+}
+
+.internal-testing-card-heading,
+.internal-testing-section-heading,
+.internal-testing-start-actions,
+.internal-testing-feedback-actions,
+.internal-testing-pill-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.internal-testing-card-heading {
+  justify-content: space-between;
+}
+
+.internal-testing-section-heading {
+  align-items: flex-start;
+  flex-direction: column;
+  margin-bottom: 14px;
+}
+
+.internal-testing-section-heading h2,
+.internal-testing-status-card h2,
+.internal-testing-start-card h3,
+.internal-testing-checklist h3,
+.internal-testing-scenario-card h3,
+.internal-testing-feedback-card h3,
+.internal-testing-feedback-list-card h3,
+.internal-testing-limitations h3 {
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.internal-testing-status-card,
+.internal-testing-start-card,
+.internal-testing-limitations,
+.internal-testing-checklist,
+.internal-testing-scenario-card,
+.internal-testing-feedback-card,
+.internal-testing-feedback-list-card {
+  display: grid;
+  gap: 12px;
+}
+
+.internal-testing-status-icon {
+  align-items: center;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.36);
+  border-radius: var(--rp-radius-md);
+  color: #b8f7de;
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.internal-testing-rc-status-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.internal-testing-rc-status-list div {
+  align-items: center;
+  background: rgba(5, 7, 13, 0.34);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 8px 10px;
+}
+
+.internal-testing-rc-status-list dt,
+.internal-testing-rc-status-list dd {
+  margin: 0;
+}
+
+.internal-testing-rc-status-list dt {
+  color: var(--rp-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.internal-testing-rc-status-list dd {
+  color: var(--rp-text-primary);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.internal-testing-limitations ul,
+.internal-testing-scenario-card ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.internal-testing-limitations li,
+.internal-testing-scenario-card li,
+.internal-testing-page p,
+.internal-testing-page small {
+  color: var(--rp-text-secondary);
+}
+
+.internal-testing-checklist-list,
+.internal-testing-feedback-records {
+  display: grid;
+  gap: 10px;
+}
+
+.internal-testing-checklist-row {
+  align-items: flex-start;
+  background: rgba(5, 7, 13, 0.36);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+}
+
+.internal-testing-checklist-row input {
+  flex: 0 0 auto;
+  margin-top: 3px;
+}
+
+.internal-testing-checklist-row span {
+  display: grid;
+  gap: 3px;
+}
+
+.internal-testing-scenario-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.internal-testing-expected {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  border-radius: var(--rp-radius-md);
+  margin: 0;
+  padding: 10px;
+}
+
+.internal-testing-route-link {
+  align-items: center;
+  color: #b8f8ff;
+  display: inline-flex;
+  font-size: 0.86rem;
+  font-weight: 800;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.internal-testing-form-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.internal-testing-form-grid label {
+  color: var(--rp-text-secondary);
+  display: grid;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 7px;
+}
+
+.internal-testing-form-grid input,
+.internal-testing-form-grid select,
+.internal-testing-form-grid textarea,
+.internal-testing-feedback-json {
+  background: rgba(5, 7, 13, 0.58);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-primary);
+  min-height: 42px;
+  outline: 0;
+  padding: 10px 12px;
+  width: 100%;
+}
+
+.internal-testing-form-grid textarea,
+.internal-testing-feedback-json {
+  resize: vertical;
+}
+
+.internal-testing-form-grid input:focus,
+.internal-testing-form-grid select:focus,
+.internal-testing-form-grid textarea:focus,
+.internal-testing-feedback-json:focus {
+  border-color: var(--rp-brand-cyan);
+  box-shadow: var(--rp-shadow-cyan);
+}
+
+.internal-testing-field-wide {
+  grid-column: 1 / -1;
+}
+
+.internal-testing-form-message {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  border-radius: var(--rp-radius-md);
+  color: #b8f7de;
+  margin: 0;
+  padding: 10px;
+}
+
+.internal-testing-form-message-error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.32);
+  color: #fecaca;
+}
+
+.internal-testing-feedback-json {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  min-height: 110px;
+}
+
+.internal-testing-feedback-record {
+  background: rgba(5, 7, 13, 0.38);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.internal-testing-feedback-record div {
+  display: grid;
+  gap: 4px;
+}
+
+.internal-testing-feedback-record p {
+  margin: 0;
+}
+
+.internal-testing-feedback-record span,
+.internal-testing-empty-state {
+  color: var(--rp-text-muted);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 1180px) {
+  .internal-testing-hero > *,
+  .internal-testing-feedback-grid > *,
+  .internal-testing-content-grid > .internal-testing-checklist,
+  .internal-testing-content-grid > .internal-testing-scenarios {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .internal-testing-scenario-grid,
+  .internal-testing-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

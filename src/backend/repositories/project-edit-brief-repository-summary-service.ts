@@ -25,7 +25,7 @@ export function createProjectEditBriefRepositorySummary(
     summary: [
       context.mode === 'mock_database'
         ? 'ProjectEditBrief repository is using in-memory MockDatabase collections seeded from RP-EDITBRIEF-02 fixtures.'
-        : 'ProjectEditBrief Supabase repository is disabled until schema, auth/RLS, service-role boundaries, and deployment gates are approved.',
+        : 'ProjectEditBrief Supabase repository is disabled until edit_briefs/edit_cues schema roots, auth/RLS, service-role boundaries, and deployment gates are approved.',
       'Repository covers briefs, markers, attachments, Marker Chat, intent, confirmations, conflicts, revisions, application logs, export settings, timeline, drawer, bundle, and summary operations.',
     ],
     warnings: context.notes,
@@ -64,7 +64,7 @@ export function createProjectEditBriefRepositoryReadinessSummary(
 ): string[] {
   return [
     createProjectEditBriefRepositoryModeSummary(context),
-    'Production persistence requires owner-approved project_edit_briefs schema, remote ReEditPro Supabase deployment, auth/RLS, service-role boundaries, and API/runtime gates.',
+    'Production persistence requires owner-approved edit_briefs/edit_cues schema roots, remote ReEditPro Supabase deployment, auth/RLS, explicit Data API grants, service-role boundaries, and API/runtime gates.',
     'No API handlers, UI routes, provider/model calls, uploads, workers, render jobs, or credit reservation/spend are part of RP-EDITBRIEF-03.',
   ]
 }

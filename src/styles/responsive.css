@@ -1,0 +1,409 @@
+/* Responsive web behavior. Desktop/web remains the primary target. */
+
+@media (max-width: 860px) {
+  .sfx-plan-entry-card,
+  .music-plan-entry-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sfx-score-grid,
+  .music-score-grid,
+  .music-info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .soundflow-detail-toggle {
+    padding: var(--rp-space-3);
+  }
+}
+
+@media (max-width: 980px) {
+  .edit-review-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .interactive-preview-frame {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .topbar-actions {
+    justify-content: flex-start;
+  }
+
+  .hero-section,
+  .dashboard-grid,
+  .chat-first-editor-layout,
+  .editor-secondary-row,
+  .editor-layout,
+  .brand-kit-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .scene-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .scene-list .panel-heading {
+    grid-column: 1 / -1;
+  }
+
+  .feature-grid,
+  .metric-grid,
+  .media-grid,
+  .signature-grid,
+  .brand-field-grid,
+  .credit-pack-grid,
+  .reference-dna-grid,
+  .story-strip-items,
+  .step-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .export-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .export-card .progress-wrap,
+  .export-card .export-actions {
+    grid-column: 2;
+  }
+
+  .export-card .export-actions {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 940px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    height: auto;
+    position: static;
+  }
+
+  .sidebar nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-main {
+    padding: 0 20px var(--rp-space-6);
+  }
+
+  .topbar,
+  .marketing-nav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .topbar-actions,
+  .marketing-actions,
+  .marketing-nav nav {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .search-input {
+    min-width: 100%;
+  }
+
+  .metric-grid,
+  .folder-grid,
+  .project-grid,
+  .upload-grid,
+  .pricing-grid,
+  .wallet-grid,
+  .export-summary-grid,
+  .insight-grid,
+  .state-grid,
+  .use-case-grid,
+  .how-it-works-grid,
+  .credit-explainer-grid,
+  .projects-support-grid,
+  .guided-stepper,
+  .plan-grid,
+  .direction-grid,
+  .credit-summary-grid,
+  .sequence-columns,
+  .field-grid,
+  .planning-hero,
+  .project-start-shell,
+  .inline-choice-grid,
+  .reference-dna-grid,
+  .chat-plan-grid,
+  .professional-direction-grid,
+  .schema-plan-summary-grid,
+  .migration-draft-summary-grid,
+  .migration-review-summary-grid,
+  .supabase-readiness-summary-grid,
+  .timing-summary-grid,
+  .timing-base-summary,
+  .timing-validation-summary-grid,
+  .cleanup-preference-grid,
+  .cleanup-decision-summary-grid,
+  .footage-prep-summary-grid,
+  .footage-prep-action-grid,
+  .footage-prep-stat-grid,
+  .footage-prep-asset-role-list,
+  .footage-prep-range-row,
+  .source-library-summary-grid,
+  .source-asset-meta-grid,
+  .source-asset-controls,
+  .edit-brief-summary-grid,
+  .edit-brief-preference-grid,
+  .edit-brief-notes-grid,
+  .edit-cues-summary-grid,
+  .edit-cue-conflict-summary-grid,
+  .edit-cue-field-grid,
+  .trim-review-summary-grid,
+  .agent-execution-summary-grid,
+  .async-reconciliation-summary-grid,
+  .agent-qa-summary-grid,
+  .edit-work-graph-list,
+  .asset-manifest-list,
+  .checkback-item-list,
+  .dependency-readiness-list,
+  .asset-merge-plan-list,
+  .asset-version-reconciliation-list,
+  .agent-gate-check-list,
+  .agent-failure-scenario-list,
+  .agent-fallback-action-list,
+  .agent-fallback-decision-list,
+  .edit-work-item-meta,
+  .edit-dependency-list,
+  .edit-expected-output-list,
+  .launch-tool-stack-grid,
+  .launch-tool-stack-summary,
+  .planning-audit-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stepper {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chat-first-panel,
+  .chat-native-header {
+    min-height: auto;
+  }
+
+  .chat-native-header {
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--rp-space-2);
+  }
+
+  .chat-composer-actions {
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .editor-utility-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-utility-actions {
+    justify-content: flex-start;
+  }
+
+  .wallet-card,
+  .activity-card {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --rp-composer-bottom-offset: var(--rp-composer-bottom-offset-compact);
+    --rp-composer-fade-height: 80px;
+    --rp-chat-scroll-bottom-safe-space-expanded: 260px;
+  }
+
+  .hero-section,
+  .landing-section {
+    padding-inline: 18px;
+  }
+
+  .mock-editor-grid,
+  .project-card,
+  .clip-card,
+  .chat-clip-card,
+  .clip-sequence-row,
+  .source-clip-card,
+  .step-summary-card,
+  .timeline-track,
+  .video-controls,
+  .export-card {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-ruler {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .signature-marketing-grid,
+  .feature-grid,
+  .media-grid,
+  .signature-grid,
+  .brand-field-grid,
+  .upload-step-grid,
+  .credit-pack-grid,
+  .reference-dna-grid,
+  .story-strip-items,
+  .step-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stepper,
+  .guided-stepper {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-thread-large .chat-message {
+    max-width: 100%;
+  }
+
+  .chat-native-message-user,
+  .chat-native-message-ai {
+    justify-self: stretch;
+    max-width: 100%;
+  }
+
+  .pricing-preview,
+  .security-strip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .state-card,
+  .suggestion-row {
+    grid-template-columns: 1fr;
+  }
+
+  .visual-asset-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .visual-asset-meta,
+  .aspect-ratio-option-grid,
+  .aspect-ratio-canvas-meta,
+  .provider-route-row,
+  .layout-summary-grid,
+  .layout-mode-meta,
+  .depth-overlay-summary-grid,
+  .depth-overlay-meta,
+  .color-summary-grid,
+  .color-stage-list,
+  .color-operation-list,
+  .audio-summary-grid,
+  .audio-stage-list,
+  .audio-operation-list,
+  .map-plan-summary-grid,
+  .map-plan-meta,
+  .map-location-list,
+  .map-layout-summary,
+  .map-style-summary,
+  .map-camera-summary,
+  .dataviz-plan-summary-grid,
+  .dataviz-plan-meta,
+  .dataviz-data-summary,
+  .dataviz-node-list,
+  .dataviz-edge-list,
+  .dataviz-style-summary,
+  .dataviz-animation-summary,
+  .dataviz-layout-summary,
+  .renderer-plan-grid,
+  .renderer-plan-summary,
+  .timing-summary-grid,
+  .timing-base-summary,
+  .timing-validation-summary-grid,
+  .cleanup-preference-grid,
+  .cleanup-decision-summary-grid,
+  .footage-prep-summary-grid,
+  .footage-prep-action-grid,
+  .footage-prep-stat-grid,
+  .footage-prep-asset-role-list,
+  .footage-prep-range-row,
+  .footage-prep-empty-actions,
+  .footage-prep-segment-item,
+  .footage-prep-activity-item,
+  .footage-prep-review-toolbar-row,
+  .source-library-summary-grid,
+  .source-asset-meta-grid,
+  .source-asset-controls,
+  .edit-brief-summary-grid,
+  .edit-brief-preference-grid,
+  .edit-brief-notes-grid,
+  .edit-brief-inline-input,
+  .edit-cues-summary-grid,
+  .edit-cue-conflict-summary-grid,
+  .edit-cue-field-grid,
+  .edit-cue-inline-input,
+  .trim-review-summary-grid,
+  .credit-estimate-summary,
+  .credit-asset-summary-grid,
+  .segment-plan-meta,
+  .qa-summary-grid,
+  .prompt-plan-meta,
+  .regression-summary-grid,
+  .planning-audit-summary-grid,
+  .migration-draft-summary-grid,
+  .migration-review-summary-grid,
+  .regression-scenario-item,
+  .planning-phase-list,
+  .planning-phase-item {
+    grid-template-columns: 1fr;
+  }
+
+  .source-sequence-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .source-sequence-header,
+  .source-sequence-action-buttons,
+  .source-sequence-add-block {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .source-sequence-header-badges,
+  .source-clip-controls {
+    justify-items: stretch;
+  }
+
+  .clip-order-controls {
+    justify-content: flex-start;
+  }
+
+.segment-plan-header,
+  .inline-plan-card-header,
+  .source-library-toolbar-row,
+  .source-asset-card-header,
+  .edit-brief-toolbar-row,
+  .edit-cues-toolbar-row,
+  .edit-cue-card-header,
+  .edit-cue-conflict-card-header,
+  .edit-cue-remap-status,
+  .qa-check-item > div,
+  .prompt-plan-header,
+  .regression-check-item div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

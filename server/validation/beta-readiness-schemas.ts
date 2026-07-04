@@ -8,6 +8,9 @@ const knownChecklistItemIds = new Set<string>(betaReadinessChecklist.map((item) 
 const sourceShaSchema = z.string().regex(/^[0-9a-f]{7,40}$/i).optional()
 const noteSchema = z.string().trim().min(1).max(1_000)
 const sourceIdSchema = z.string().trim().min(1).max(200)
+const evidenceArtifactIdSchema = z.string().trim().min(1).max(240)
+const evidenceReviewerSchema = z.string().trim().min(1).max(160)
+const isoTimestampSchema = z.string().datetime({ offset: true })
 
 const checklistEvidenceSchema = z.object({
   itemId: z.string().min(1).refine((value) => knownChecklistItemIds.has(value), 'Unknown beta checklist item.'),
@@ -34,6 +37,7 @@ const platformEvidenceSchema = z.object({
   sourceSha: sourceShaSchema,
   environment: z.enum(['staging', 'production']),
   toolCostEventsMigrationDeployed: z.boolean(),
+  productionReadinessEvidenceMigrationDeployed: z.boolean(),
   serviceRoleWritePathVerified: z.boolean(),
   rlsMemberReadPathVerified: z.boolean(),
   idempotentReplayVerified: z.boolean(),
@@ -108,12 +112,47 @@ export const betaReadinessPlatformBillingQaSchema = z.object({
   sourceSha: sourceShaSchema,
   environment: z.enum(['local_mock', 'staging_persistent', 'production_persistent']).optional(),
   allowPersistentStoreQa: z.boolean().optional(),
+  editPlanId: idSchema.optional(),
+  jobId: idSchema.optional(),
+  creditEstimateId: idSchema.optional(),
+  creditReservationId: idSchema.optional(),
+  notes: z.array(noteSchema).min(1).max(20).optional(),
+}).strict()
+
+export const betaReadinessPlatformWalletLifecycleQaSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema,
+  sourceId: sourceIdSchema,
+  sourceSha: sourceShaSchema,
+  environment: z.enum(['local_mock', 'staging_persistent', 'production_persistent']).optional(),
+  allowPersistentWalletLifecycleQa: z.boolean().optional(),
+  editPlanId: idSchema.optional(),
+  jobIdPrefix: idSchema.optional(),
+  creditEstimateId: idSchema.optional(),
+  creditReservationId: idSchema.optional(),
+  notes: z.array(noteSchema).min(1).max(20).optional(),
+}).strict()
+
+export const betaReadinessPlatformCreditReservationHoldQaSchema = z.object({
+  workspaceId: idSchema,
+  projectId: idSchema,
+  sourceId: sourceIdSchema,
+  sourceSha: sourceShaSchema,
+  environment: z.enum(['local_mock', 'staging_persistent', 'production_persistent']).optional(),
+  allowPersistentReservationHoldQa: z.boolean().optional(),
+  editPlanId: idSchema.optional(),
+  creditWalletId: idSchema.optional(),
+  creditApprovalId: idSchema.optional(),
+  creditEstimateId: idSchema.optional(),
+  reservedCredits: z.number().int().positive().optional(),
+  expiresAt: z.string().datetime().optional(),
   notes: z.array(noteSchema).min(1).max(20).optional(),
 }).strict()
 
 const deployedPlatformProbeIdSchema = z.enum([
   'tool_cost_events_migration_deployed',
   'beta_readiness_evidence_migration_deployed',
+  'production_readiness_evidence_migration_deployed',
   'service_role_write_path_verified',
   'authenticated_rls_member_readback_verified',
   'idempotent_replay_verified',
@@ -151,6 +190,14 @@ const deployedPlatformOwnerApprovalsSchema = z.object({
   supportApproved: z.boolean(),
 }).strict()
 
+const deployedMonitoringCoverageSchema = z.object({
+  dashboardIds: z.array(sourceIdSchema).min(1).max(50),
+  alertRuleIds: z.array(sourceIdSchema).min(1).max(100),
+  metricNames: z.array(sourceIdSchema).min(1).max(100),
+  alertRoutingDestinations: z.array(sourceIdSchema).min(1).max(20),
+  billingQaAlertRuleIds: z.array(sourceIdSchema).min(1).max(30),
+}).strict()
+
 export const betaReadinessPlatformDeployedEvidenceSchema = z.object({
   workspaceId: idSchema,
   projectId: idSchema.optional(),
@@ -158,8 +205,9 @@ export const betaReadinessPlatformDeployedEvidenceSchema = z.object({
   sourceSha: sourceShaSchema,
   environment: z.enum(['staging', 'production']),
   ownerApprovals: deployedPlatformOwnerApprovalsSchema,
+  monitoringDeploymentEvidence: deployedMonitoringCoverageSchema.optional(),
   notes: z.array(noteSchema).min(1).max(20),
-  probes: z.array(deployedPlatformProbeObservationSchema).min(1).max(9),
+  probes: z.array(deployedPlatformProbeObservationSchema).min(1).max(10),
   recordEvidence: z.boolean().optional(),
   confirmRecordEvidence: z.boolean().optional(),
 }).strict()
@@ -171,6 +219,7 @@ export const betaReadinessPlatformSupabaseDeployedProbeSchema = z.object({
   sourceSha: sourceShaSchema,
   environment: z.enum(['staging', 'production']),
   ownerApprovals: deployedPlatformOwnerApprovalsSchema,
+  monitoringDeploymentEvidence: deployedMonitoringCoverageSchema.optional(),
   notes: z.array(noteSchema).min(1).max(20),
   allowPersistentProbeWrites: z.boolean().optional(),
   walletSettlementProbeToolCostEventId: sourceIdSchema.optional(),
@@ -179,9 +228,134 @@ export const betaReadinessPlatformSupabaseDeployedProbeSchema = z.object({
   confirmRecordEvidence: z.boolean().optional(),
 }).strict()
 
+const productionEvidenceNotesSchema = z.object({
+  evidenceArtifactId: evidenceArtifactIdSchema,
+  reviewedBy: evidenceReviewerSchema,
+  reviewedAt: isoTimestampSchema,
+  notes: z.array(noteSchema).min(1).max(20),
+}).strict()
+
+const productionSupabasePersistenceEvidenceSchema = productionEvidenceNotesSchema.extend({
+  environment: z.enum(['staging', 'production']),
+  toolCostEventsMigrationDeployed: z.boolean(),
+  betaReadinessEvidenceMigrationDeployed: z.boolean(),
+  walletSettlementStateMigrationDeployed: z.boolean(),
+  productionReadinessEvidenceMigrationDeployed: z.boolean(),
+  workerRuntimeArtifactManifestMigrationDeployed: z.boolean(),
+  workerRuntimeArtifactManifestServiceRoleOnlyVerified: z.boolean(),
+  workerRuntimeArtifactManifestReadbackVerified: z.boolean(),
+  serviceRoleWritePathVerified: z.boolean(),
+  rlsMemberReadPathVerified: z.boolean(),
+  explicitDataApiGrantsVerified: z.boolean(),
+  betaEvidenceBackendOnlyAccessVerified: z.boolean(),
+  productionEvidenceBackendOnlyAccessVerified: z.boolean(),
+  backupPitrApproved: z.boolean(),
+  securityAdvisorReviewed: z.boolean(),
+  performanceAdvisorReviewed: z.boolean(),
+  storagePoliciesVerified: z.boolean(),
+}).strict()
+
+const productionToolCostLedgerEvidenceSchema = productionEvidenceNotesSchema.extend({
+  toolCostEventWriteVerified: z.boolean(),
+  ledgerAppendOnlyVerified: z.boolean(),
+  idempotentReplayVerified: z.boolean(),
+  projectSummaryReadbackVerified: z.boolean(),
+}).strict()
+
+const productionWalletSettlementEvidenceSchema = productionEvidenceNotesSchema.extend({
+  reservationVerified: z.boolean(),
+  spendVerified: z.boolean(),
+  releaseVerified: z.boolean(),
+  refundVerified: z.boolean(),
+  walletBalanceBeforeAfterReadbackVerified: z.boolean(),
+  settlementRpcVerified: z.boolean(),
+  settlementRpcServiceRoleOnlyVerified: z.boolean(),
+  idempotentSettlementReplayVerified: z.boolean(),
+  noSilentChargeVerified: z.boolean(),
+}).strict()
+
+const productionStripeBoundaryEvidenceSchema = productionEvidenceNotesSchema.extend({
+  billingOwnerApproved: z.boolean(),
+  noStripeFromToolCostSurface: z.boolean(),
+  serviceFeeExcludedFromToolEvents: z.boolean(),
+  stripeWebhookSeparatedFromToolLedger: z.boolean(),
+}).strict()
+
+const productionObservabilityEvidenceSchema = productionEvidenceNotesSchema.extend({
+  dashboardsDeployed: z.boolean(),
+  alertsDeployed: z.boolean(),
+  alertRoutingVerified: z.boolean(),
+  billingQaMonitoringVerified: z.boolean(),
+}).strict()
+
+const productionOperationsControlEvidenceSchema = productionEvidenceNotesSchema.extend({
+  rollbackPlanApproved: z.boolean(),
+  killSwitchesVerified: z.boolean(),
+  killSwitchBlockVerified: z.boolean(),
+  rateLimitsVerified: z.boolean(),
+  rateLimitBlockVerified: z.boolean(),
+  concurrencyLimitsVerified: z.boolean(),
+  concurrencyLimitBlockVerified: z.boolean(),
+  opsAdmissionRpcDeployed: z.boolean(),
+  opsAdmissionRpcServiceRoleOnlyVerified: z.boolean(),
+  opsAdmissionRpcReadbackVerified: z.boolean(),
+  incidentRunbookApproved: z.boolean(),
+}).strict()
+
+const productionToolEvidenceSchema = productionEvidenceNotesSchema.extend({
+  sourceId: sourceIdSchema,
+  sourceSha: sourceShaSchema,
+  allProductionToolsAccepted: z.boolean(),
+  modelWeightLicenseReviewApproved: z.boolean(),
+}).strict()
+
+const productionHardSafetyEvidenceSchema = productionEvidenceNotesSchema.extend({
+  approvedPlanSnapshotRequired: z.boolean(),
+  creditEstimateAndReservationRequired: z.boolean(),
+  idempotencyRequired: z.boolean(),
+  rawPromptsRejected: z.boolean(),
+  secretsRejected: z.boolean(),
+  temporaryAccessLinksRejectedAsSourceTruth: z.boolean(),
+  frontendHeavyExecutionBlocked: z.boolean(),
+  licenseAndModelWeightReviewRequired: z.boolean(),
+  silentBillingBlocked: z.boolean(),
+}).strict()
+
+const productionFinalOwnerSignoffEvidenceSchema = productionEvidenceNotesSchema.extend({
+  deploymentOwnerApproved: z.boolean(),
+  securityOwnerApproved: z.boolean(),
+  storagePrivacyOwnerApproved: z.boolean(),
+  legalOwnerApproved: z.boolean(),
+  supportOwnerApproved: z.boolean(),
+  billingOwnerApproved: z.boolean(),
+  operationsOwnerApproved: z.boolean(),
+  realUserMediaBetaApproved: z.boolean(),
+  privateMediaApproval: z.boolean(),
+  artifactPrivacyEvidenceReady: z.boolean(),
+  paidProductionApproved: z.boolean(),
+  finalDeliveryShareApproved: z.boolean(),
+}).strict()
+
+export const productionToolExecutionReadinessGateSchema = z.object({
+  sourceId: sourceIdSchema,
+  sourceSha: sourceShaSchema,
+  workspaceId: idSchema,
+  projectId: idSchema,
+  supabasePersistence: productionSupabasePersistenceEvidenceSchema.optional(),
+  toolCostLedger: productionToolCostLedgerEvidenceSchema.optional(),
+  walletSettlement: productionWalletSettlementEvidenceSchema.optional(),
+  stripeBoundary: productionStripeBoundaryEvidenceSchema.optional(),
+  observability: productionObservabilityEvidenceSchema.optional(),
+  operationsControls: productionOperationsControlEvidenceSchema.optional(),
+  toolEvidence: productionToolEvidenceSchema.optional(),
+  hardSafety: productionHardSafetyEvidenceSchema.optional(),
+  finalOwnerSignoff: productionFinalOwnerSignoffEvidenceSchema.optional(),
+}).strict()
+
 export type BetaReadinessEvidenceEvaluationBody = z.infer<typeof betaReadinessEvidenceEvaluationSchema>
 export type BetaReadinessEvidencePacketBody = z.infer<typeof betaReadinessEvidencePacketSchema>
 export type BetaReadinessCoreRealCheckEvidenceBody = z.infer<typeof betaReadinessCoreRealCheckEvidenceSchema>
 export type BetaReadinessPlatformBillingQaBody = z.infer<typeof betaReadinessPlatformBillingQaSchema>
 export type BetaReadinessPlatformDeployedEvidenceBody = z.infer<typeof betaReadinessPlatformDeployedEvidenceSchema>
 export type BetaReadinessPlatformSupabaseDeployedProbeBody = z.infer<typeof betaReadinessPlatformSupabaseDeployedProbeSchema>
+export type ProductionToolExecutionReadinessGateBody = z.infer<typeof productionToolExecutionReadinessGateSchema>

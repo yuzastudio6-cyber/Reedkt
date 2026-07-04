@@ -78,7 +78,7 @@ export function InlineTimingValidationCard({ descriptor, plan }: InlineTimingVal
       )}
       defaultExpanded={shouldExpand}
       eyebrow="Approval QA"
-      helper="ReeditPro validates frame-accurate captions, visuals, transitions, SFX, ducking, AI clip placement, and Remotion layer timing before approval."
+      helper="ReeditPro validates frame-accurate captions, visuals, transitions, SFX, ducking, AI clip placement, and renderer layer timing before approval."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Timing validation"

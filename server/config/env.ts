@@ -41,6 +41,11 @@ export interface RuntimeEnv {
   pythonBin: string
   playwrightBin: string
   providerSecretReferenceNames: Record<string, string | undefined>
+  productionGlobalGenerationKillSwitchActive: boolean
+  productionGpuWorkerKillSwitchActive: boolean
+  productionRenderWorkerKillSwitchActive: boolean
+  productionProviderKillSwitchActive: boolean
+  productionFinalExportKillSwitchActive: boolean
   hasSupabaseAdmin: boolean
   hasSupabasePublic: boolean
   mockOnly: boolean
@@ -90,6 +95,11 @@ const envSchema = z.object({
   GOOGLE_SECRET_LYRIA_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_MIRELO_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_MMAUDIO_API_KEY_NAME: z.string().optional(),
+  PRODUCTION_GLOBAL_GENERATION_KILL_SWITCH_ACTIVE: z.string().optional(),
+  PRODUCTION_GPU_WORKER_KILL_SWITCH_ACTIVE: z.string().optional(),
+  PRODUCTION_RENDER_WORKER_KILL_SWITCH_ACTIVE: z.string().optional(),
+  PRODUCTION_PROVIDER_KILL_SWITCH_ACTIVE: z.string().optional(),
+  PRODUCTION_FINAL_EXPORT_KILL_SWITCH_ACTIVE: z.string().optional(),
 })
 
 export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): RuntimeEnv {
@@ -101,6 +111,7 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
   const hasSupabaseAdmin = Boolean(supabaseUrl && supabaseServiceRoleKey)
   const hasSupabasePublic = Boolean(supabaseUrl && supabaseAnonKey)
   const mockOnly = parsed.E2E_RUNTIME_MODE === 'mock' || parsed.E2E_RUNTIME_MODE === 'disabled' || !hasSupabaseAdmin
+  const productionKillSwitchDefaultActive = !mockOnly
   const warnings: string[] = []
 
   if (!hasSupabaseAdmin) {
@@ -161,6 +172,11 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
       mirelo: clean(parsed.GOOGLE_SECRET_MIRELO_API_KEY_NAME),
       mmaudio: clean(parsed.GOOGLE_SECRET_MMAUDIO_API_KEY_NAME),
     },
+    productionGlobalGenerationKillSwitchActive: parseBooleanWithDefault(parsed.PRODUCTION_GLOBAL_GENERATION_KILL_SWITCH_ACTIVE, productionKillSwitchDefaultActive),
+    productionGpuWorkerKillSwitchActive: parseBooleanWithDefault(parsed.PRODUCTION_GPU_WORKER_KILL_SWITCH_ACTIVE, productionKillSwitchDefaultActive),
+    productionRenderWorkerKillSwitchActive: parseBooleanWithDefault(parsed.PRODUCTION_RENDER_WORKER_KILL_SWITCH_ACTIVE, productionKillSwitchDefaultActive),
+    productionProviderKillSwitchActive: parseBooleanWithDefault(parsed.PRODUCTION_PROVIDER_KILL_SWITCH_ACTIVE, productionKillSwitchDefaultActive),
+    productionFinalExportKillSwitchActive: parseBooleanWithDefault(parsed.PRODUCTION_FINAL_EXPORT_KILL_SWITCH_ACTIVE, productionKillSwitchDefaultActive),
     hasSupabaseAdmin,
     hasSupabasePublic,
     mockOnly,
@@ -214,6 +230,13 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
     providerSecretReferenceNamesConfigured: Object.fromEntries(
       Object.entries(env.providerSecretReferenceNames).map(([key, value]) => [key, Boolean(value)]),
     ),
+    productionRuntimeKillSwitches: {
+      globalGenerationActive: env.productionGlobalGenerationKillSwitchActive,
+      gpuWorkerActive: env.productionGpuWorkerKillSwitchActive,
+      renderWorkerActive: env.productionRenderWorkerKillSwitchActive,
+      providerActive: env.productionProviderKillSwitchActive,
+      finalExportActive: env.productionFinalExportKillSwitchActive,
+    },
     mockOnly: env.mockOnly,
     warnings: env.warnings,
   }
@@ -221,6 +244,10 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
 
 function parseBoolean(value: string | undefined): boolean {
   return value === 'true' || value === '1'
+}
+
+function parseBooleanWithDefault(value: string | undefined, fallback: boolean): boolean {
+  return value === undefined ? fallback : parseBoolean(value)
 }
 
 function clean(value: string | undefined): string | undefined {

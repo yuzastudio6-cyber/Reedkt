@@ -2,7 +2,7 @@ import { Router } from 'express'
 import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
-import { buildBetaReadinessReport } from '../beta-readiness'
+import { buildBetaReadinessReport, evaluateProductionToolExecutionReadinessGate } from '../beta-readiness'
 import { createBetaReadinessEvidenceService } from '../beta-readiness/beta-readiness-evidence-service'
 import { buildCoreRealCheckEvidencePacket } from '../beta-readiness/core-real-check-evidence'
 import { buildBetaPlatformEvidencePreflight } from '../beta-readiness/platform-evidence-preflight'
@@ -21,14 +21,20 @@ import {
 } from '../beta-readiness/platform-supabase-deployed-evidence-transport'
 import { buildBetaReadinessBackendOperatorStatus } from '../beta-readiness/beta-readiness-operator-status'
 import { runBetaPlatformBillingQa } from '../beta-readiness/platform-billing-qa'
+import { runBetaPlatformCreditReservationHoldQa } from '../beta-readiness/platform-credit-reservation-hold-qa'
+import { runBetaPlatformWalletLifecycleQa } from '../beta-readiness/platform-wallet-lifecycle-qa'
+import { createProductionToolExecutionReadinessEvidenceService } from '../beta-readiness/production-tool-execution-readiness-evidence-service'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 import {
   betaReadinessCoreRealCheckEvidenceSchema,
   betaReadinessEvidenceEvaluationSchema,
   betaReadinessEvidencePacketSchema,
   betaReadinessPlatformBillingQaSchema,
+  betaReadinessPlatformCreditReservationHoldQaSchema,
   betaReadinessPlatformDeployedEvidenceSchema,
   betaReadinessPlatformSupabaseDeployedProbeSchema,
+  betaReadinessPlatformWalletLifecycleQaSchema,
+  productionToolExecutionReadinessGateSchema,
   type BetaReadinessPlatformDeployedEvidenceBody,
   type BetaReadinessPlatformSupabaseDeployedProbeBody,
 } from '../validation/beta-readiness-schemas'
@@ -112,13 +118,95 @@ export function createBetaReadinessRoutes(): Router {
     ])
   }))
 
+  router.post('/v1/beta-readiness/production-tool-execution-readiness/evaluate', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(productionToolExecutionReadinessGateSchema, request.body)
+
+    try {
+      const report = evaluateProductionToolExecutionReadinessGate(body)
+      sendOk(response, { report }, [
+        ...report.warnings,
+        'Production tool execution readiness evaluation is report-only; no evidence was recorded and no worker, billing, Supabase, Stripe, media, beta, or production action ran.',
+      ])
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new ApiError('VALIDATION_FAILED', error.message, 400)
+      }
+      throw error
+    }
+  }))
+
+  router.get('/v1/beta-readiness/production-tool-execution-readiness/evidence', requireAuth, asyncRoute(async (request, response) => {
+    const workspaceId = stringQueryValue(request.query.workspaceId)
+    if (!workspaceId) {
+      throw new ApiError('VALIDATION_FAILED', 'workspaceId query parameter is required for production readiness evidence readback.', 400)
+    }
+
+    const result = await createProductionToolExecutionReadinessEvidenceService(getServiceContext(request)).listEvidence(workspaceId)
+    sendOk(response, {
+      packets: result.packets,
+      latestPacket: result.latestPacket,
+      latestReport: result.latestReport,
+      readinessSummary: result.readinessSummary,
+      evidencePacketCount: result.evidencePacketCount,
+    }, result.warnings)
+  }))
+
+  router.post('/v1/beta-readiness/production-tool-execution-readiness/evidence', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(productionToolExecutionReadinessGateSchema, request.body)
+    const allowBlockedEvidencePacket = stringQueryValue(request.query.recordBlockedEvidence) === 'true' ||
+      request.header('x-reeditpro-record-blocked-evidence') === 'true'
+    const result = await createProductionToolExecutionReadinessEvidenceService(getServiceContext(request))
+      .recordEvidence(body, getIdempotencyKey(request), { allowBlockedEvidencePacket })
+    sendOk(response, {
+      packet: result.packet,
+      replayed: result.replayed,
+      report: result.report,
+      recordedBlockedAuditPacket: result.recordedBlockedAuditPacket,
+    }, [
+      ...result.warnings,
+      result.recordedBlockedAuditPacket
+        ? 'Blocked readiness audit packets are durable status records only; they cannot be used as paid-production approval.'
+        : 'Passing readiness evidence packets may be referenced by production-ready dispatch only while still current and valid.',
+      'Production readiness evidence recording does not deploy, run tools, process media, call Stripe, mutate wallets, or enable production by itself.',
+    ], result.replayed ? 200 : 201)
+  }))
+
   router.post('/v1/beta-readiness/platform-billing-qa', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
     const body = validateBody(betaReadinessPlatformBillingQaSchema, request.body)
     assertNoSecretLikeBetaReadinessEvidence(body)
     const report = await runBetaPlatformBillingQa(getServiceContext(request), body, getIdempotencyKey(request))
     sendOk(response, { report }, [
-      'Platform billing QA ran only the tool-cost event/summary path; no media, provider, Stripe, wallet settlement, beta, or production action ran.',
+      'Platform billing QA ran only backend billing QA paths; no media, provider, Stripe, beta, or production action ran.',
+      report.persistenceMode === 'supabase_service_role'
+        ? 'Persistent billing QA was explicitly confirmed and may write controlled tool-cost and wallet-settlement rows through service-role backend paths.'
+        : 'No persistent billing writes ran unless explicitly confirmed with approved deployed fixture ids.',
       ...report.missingPlatformEvidence.map((item) => `Missing platform evidence: ${item}`),
+    ])
+  }))
+
+  router.post('/v1/beta-readiness/platform-credit-reservation-hold-qa', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(betaReadinessPlatformCreditReservationHoldQaSchema, request.body)
+    assertNoSecretLikeBetaReadinessEvidence(body)
+    const report = await runBetaPlatformCreditReservationHoldQa(getServiceContext(request), body, getIdempotencyKey(request))
+    sendOk(response, { report }, [
+      'Platform credit reservation hold QA ran only backend reservation QA paths; no media, provider, Stripe, beta, or production action ran.',
+      report.persistenceMode === 'supabase_service_role'
+        ? 'Persistent reservation hold QA was explicitly confirmed and may write a controlled credit reservation row through service-role backend paths.'
+        : 'No persistent reservation hold writes ran unless explicitly confirmed with approved deployed fixture ids.',
+      ...report.missingProductionEvidence.map((item) => `Missing production evidence: ${item}`),
+    ])
+  }))
+
+  router.post('/v1/beta-readiness/platform-wallet-lifecycle-qa', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(betaReadinessPlatformWalletLifecycleQaSchema, request.body)
+    assertNoSecretLikeBetaReadinessEvidence(body)
+    const report = await runBetaPlatformWalletLifecycleQa(getServiceContext(request), body, getIdempotencyKey(request))
+    sendOk(response, { report }, [
+      'Platform wallet lifecycle QA ran only backend settlement QA paths; no media, provider, Stripe, beta, or production action ran.',
+      report.persistenceMode === 'supabase_service_role'
+        ? 'Persistent wallet lifecycle QA was explicitly confirmed and may write controlled tool-cost and wallet-settlement rows through service-role backend paths.'
+        : 'No persistent wallet lifecycle writes ran unless explicitly confirmed with approved deployed fixture ids.',
+      ...report.missingProductionEvidence.map((item) => `Missing production evidence: ${item}`),
     ])
   }))
 

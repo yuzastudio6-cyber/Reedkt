@@ -27,6 +27,9 @@ export type UnifiedCapabilityId =
   | 'qwen_visual_understanding'
   | 'sound_music_audio'
   | 'track_a_container_tools'
+  | 'streamer_render_pipeline_support'
+  | 'mkvtoolnix_container_validation'
+  | 'gpac_mp4box_packaging_validation'
   | 'storage_runtime'
   | 'credit_gate'
 
@@ -44,6 +47,9 @@ export type UnifiedSkillId =
   | 'planning.qwen_visual_understanding'
   | 'sound.music_audio_lane'
   | 'track_a.native_container_tools'
+  | 'track_a.streamer_render_pipeline_support'
+  | 'track_a.mkvtoolnix_container_validation'
+  | 'track_a.gpac_mp4box_packaging_validation'
   | 'platform.storage_runtime'
   | 'platform.credit_gate'
 
@@ -95,7 +101,20 @@ export type UnifiedProductionToolId =
   | 'rnnoise'
   | 'demucs'
   | 'librosa'
+  | 'audioread'
+  | 'pydub'
+  | 'scipy'
+  | 'resampy'
+  | 'pyloudnorm'
   | 'audioflux'
+  | 'music21'
+  | 'pretty_midi'
+  | 'mido'
+  | 'noisereduce'
+  | 'pedalboard'
+  | 'mir_eval'
+  | 'pydub_effects'
+  | 'ebu_r128_pyloudnorm'
   | 'signalsmith_stretch'
   | 'soundtouch'
   | 'rubber_band'
@@ -115,6 +134,9 @@ export type UnifiedProductionToolId =
   | 'deck_gl'
   | 'cesium_js'
   | 'konva'
+  | 'gstreamer'
+  | 'mkvtoolnix'
+  | 'gpac_mp4box'
   | 'vapoursynth'
   | 'revideo'
 
@@ -123,9 +145,6 @@ export type UnifiedToolId =
   | 'qwen_provider_gateway'
   | 'deepseek_provider_gateway'
   | 'sound_cpu_lane'
-  | 'gstreamer'
-  | 'mkvtoolnix'
-  | 'gpac_mp4box'
   | 'supabase_storage'
   | 'gcs_storage'
   | 'tool_cost_metering'
@@ -208,6 +227,28 @@ export const TRACK_B_MEDIA_OSS_TOOL_IDS = [
   'echarts',
 ] as const satisfies readonly UnifiedToolId[]
 
+export const READY_AUDIO_ARCHITECTURE_TOOL_IDS = [
+  'librosa',
+  'audioread',
+  'pydub',
+  'scipy',
+  'resampy',
+  'pyloudnorm',
+  'audioflux',
+  'music21',
+  'pretty_midi',
+  'mido',
+  'noisereduce',
+  'mir_eval',
+  'pydub_effects',
+  'ebu_r128_pyloudnorm',
+  'signalsmith_stretch',
+] as const satisfies readonly UnifiedToolId[]
+
+export const AUDIO_LICENSE_REVIEW_TOOL_IDS = [
+  'pedalboard',
+] as const satisfies readonly UnifiedToolId[]
+
 function lane(input: UnifiedSkillLaneRecord): UnifiedSkillLaneRecord {
   return input
 }
@@ -263,17 +304,24 @@ export const UNIFIED_SKILL_CAPABILITY_REGISTRY = [
     plannerQuestionAliases: ['audio', 'soundsync', 'beat grid', 'onsets', 'stretch', 'music timing'],
     description: 'Maps rhythm/onset cues, timing fits, and music-bed adjustment candidates for approved edit plans.',
     laneStatus: 'ready_for_backend_execution',
-    toolIds: ['audioflux', 'signalsmith_stretch', 'deepfilternet', 'rnnoise', 'demucs', 'sound_cpu_lane'],
-    readyToolIds: ['audioflux', 'signalsmith_stretch'],
+    toolIds: [
+      ...READY_AUDIO_ARCHITECTURE_TOOL_IDS,
+      ...AUDIO_LICENSE_REVIEW_TOOL_IDS,
+      'deepfilternet',
+      'rnnoise',
+      'demucs',
+      'sound_cpu_lane',
+    ],
+    readyToolIds: [...READY_AUDIO_ARCHITECTURE_TOOL_IDS],
     dryRunOnlyToolIds: ['sound_cpu_lane'],
-    blockedToolIds: ['deepfilternet', 'rnnoise', 'demucs'],
+    blockedToolIds: [...AUDIO_LICENSE_REVIEW_TOOL_IDS, 'deepfilternet', 'rnnoise', 'demucs'],
     lanes: [
       lane({
         lane: 'track_b_media_oss',
         status: 'ready_for_backend_execution',
-        toolIds: ['audioflux', 'signalsmith_stretch'],
-        reason: 'Track B audio analysis/stretch candidates are available for backend-gated SoundSync planning and bounded execution evidence.',
-        nextGate: 'accepted_tool_execution_evidence_for_audio_recipe',
+        toolIds: [...READY_AUDIO_ARCHITECTURE_TOOL_IDS],
+        reason: 'The ready audio architecture pack is available for backend-gated SoundSync, loudness, MIR, MIDI, resampling, and simple effects planning after approved snapshot and credit gates.',
+        nextGate: 'ready_audio_tool_adapter_recipe_selection_and_container_import_evidence',
       }),
       lane({
         lane: 'sound_cpu',
@@ -285,13 +333,13 @@ export const UNIFIED_SKILL_CAPABILITY_REGISTRY = [
       lane({
         lane: 'sound_cpu',
         status: 'blocked_by_owner_approval',
-        toolIds: ['deepfilternet', 'rnnoise', 'demucs'],
-        reason: 'Denoise/source-separation tools need model, quality, and owner approval before product execution.',
-        nextGate: 'sound_cleanup_model_and_quality_approval',
+        toolIds: [...AUDIO_LICENSE_REVIEW_TOOL_IDS, 'deepfilternet', 'rnnoise', 'demucs'],
+        reason: 'Pedalboard needs GPL/commercial owner approval, and denoise/source-separation tools need model, quality, and owner approval before product execution.',
+        nextGate: 'sound_cleanup_license_model_and_quality_approval',
       }),
     ],
     executionGuardrails: [...hardExecutionGuardrails, 'speech_clarity_outranks_beat_alignment'],
-    plannerAnswer: 'AudioFlux and Signalsmith Stretch are the usable backend-gated audio tools; SOUND cleanup/separation remains visible but gated.',
+    plannerAnswer: 'The ready audio architecture pack is visible for backend-gated SoundSync/loudness/MIR/MIDI/effects planning; Pedalboard and model cleanup/separation stay owner-gated.',
   }),
   record({
     skillId: 'media.color_image_pipeline',
@@ -545,10 +593,10 @@ export const UNIFIED_SKILL_CAPABILITY_REGISTRY = [
     plannerQuestionAliases: ['sound lane', 'music', 'sfx', 'audio semantics'],
     description: 'SOUND-owned music/SFX/audio semantics and QA handoff that consumes Track B tool evidence without duplicating media processing.',
     laneStatus: 'dry_run_only',
-    toolIds: ['sound_cpu_lane', 'audioflux', 'signalsmith_stretch'],
-    readyToolIds: ['audioflux', 'signalsmith_stretch'],
+    toolIds: ['sound_cpu_lane', ...READY_AUDIO_ARCHITECTURE_TOOL_IDS, ...AUDIO_LICENSE_REVIEW_TOOL_IDS],
+    readyToolIds: [...READY_AUDIO_ARCHITECTURE_TOOL_IDS],
     dryRunOnlyToolIds: ['sound_cpu_lane'],
-    blockedToolIds: [],
+    blockedToolIds: [...AUDIO_LICENSE_REVIEW_TOOL_IDS],
     lanes: [
       lane({
         lane: 'sound_cpu',
@@ -560,44 +608,109 @@ export const UNIFIED_SKILL_CAPABILITY_REGISTRY = [
       lane({
         lane: 'track_b_media_oss',
         status: 'ready_for_backend_execution',
-        toolIds: ['audioflux', 'signalsmith_stretch'],
-        reason: 'Track B can supply bounded audio-feature/stretch candidates to SOUND after approved snapshots.',
-        nextGate: 'approved_sound_tool_handoff_recipe',
+        toolIds: [...READY_AUDIO_ARCHITECTURE_TOOL_IDS],
+        reason: 'Backend-gated audio architecture tools can supply bounded feature/loudness/MIR/MIDI/effects metadata to SOUND after approved snapshots.',
+        nextGate: 'approved_sound_tool_handoff_recipe_and_container_import_evidence',
       }),
     ],
     executionGuardrails: [...hardExecutionGuardrails, 'speech_clarity_qa_required'],
-    plannerAnswer: 'SOUND can plan against AudioFlux/Signalsmith evidence, but SOUND semantic/runtime execution remains dry-run gated.',
+    plannerAnswer: 'SOUND can plan against the ready audio architecture pack, but SOUND semantic/runtime execution remains dry-run gated and Pedalboard remains license-gated.',
   }),
   record({
     skillId: 'track_a.native_container_tools',
     capabilityId: 'track_a_container_tools',
     legacyEditLevelCapabilityIds: ['media_extraction', 'render_worker'],
     displayName: 'Track A native container tools',
-    plannerQuestionAliases: ['track a', 'gstreamer', 'mkvtoolnix', 'mp4box', 'native container'],
-    description: 'Track A-owned native container/render tools such as GStreamer, MKVToolNix, and GPAC/MP4Box.',
-    laneStatus: 'blocked_by_owner_approval',
+    plannerQuestionAliases: ['track a', 'gstreamer', 'mkvtoolnix', 'mp4box', 'native container', 'native render support', 'container validation', 'packaging validation'],
+    description: 'Track A-owned native container/render validation capabilities for backend agent/tool-call routing.',
+    laneStatus: 'ready_for_backend_execution',
     toolIds: ['gstreamer', 'mkvtoolnix', 'gpac_mp4box'],
-    readyToolIds: [],
-    dryRunOnlyToolIds: ['gstreamer', 'mkvtoolnix'],
-    blockedToolIds: ['gpac_mp4box'],
+    readyToolIds: ['gstreamer', 'mkvtoolnix', 'gpac_mp4box'],
+    dryRunOnlyToolIds: [],
+    blockedToolIds: [],
     lanes: [
       lane({
         lane: 'track_a_native_container',
-        status: 'dry_run_only',
-        toolIds: ['gstreamer', 'mkvtoolnix'],
-        reason: 'Synthetic/private fixture evidence exists in Track A, but product execution remains behind Track A QA and handoff.',
-        nextGate: 'track_a_native_container_rollup_and_runtime_acceptance',
-      }),
-      lane({
-        lane: 'track_a_native_container',
-        status: 'blocked_by_owner_approval',
-        toolIds: ['gpac_mp4box'],
-        reason: 'GPAC/MP4Box install-source work is still owner/environment gated and separate from Track B.',
-        nextGate: 'gpac_mp4box_install_source_qa_and_owner_acceptance',
+        status: 'ready_for_backend_execution',
+        toolIds: ['gstreamer', 'mkvtoolnix', 'gpac_mp4box'],
+        reason: 'Track A synthetic/private-fixture and install-source evidence is accepted for backend-gated agent/tool-call validation paths.',
+        nextGate: 'track_a_agent_tool_call_adapter_runtime_acceptance',
       }),
     ],
     executionGuardrails: [...hardExecutionGuardrails, 'track_b_ffmpeg_ffprobe_ownership_preserved'],
-    plannerAnswer: 'Track A tools stay visible for future container paths, but they are not a Track B execution substitute.',
+    plannerAnswer: 'Track A native container capabilities can be routed by agents as backend-gated validation candidates; they are not frontend tools, product-ready claims, or a Track B FFmpeg/ffprobe substitute.',
+  }),
+  record({
+    skillId: 'track_a.streamer_render_pipeline_support',
+    capabilityId: 'streamer_render_pipeline_support',
+    legacyEditLevelCapabilityIds: ['render_worker'],
+    displayName: 'Native render pipeline support',
+    plannerQuestionAliases: ['streamer_render_pipeline_support', 'streamer render pipeline support', 'gstreamer', 'native render pipeline', 'render pipeline support'],
+    description: 'Backend-gated Track A support for validating native render-pipeline/container readiness.',
+    laneStatus: 'ready_for_backend_execution',
+    toolIds: ['gstreamer'],
+    readyToolIds: ['gstreamer'],
+    dryRunOnlyToolIds: [],
+    blockedToolIds: [],
+    lanes: [
+      lane({
+        lane: 'track_a_native_container',
+        status: 'ready_for_backend_execution',
+        toolIds: ['gstreamer'],
+        reason: 'Controlled synthetic and generated-private fixture evidence supports agent/tool-call routing for native render-pipeline support after approval gates.',
+        nextGate: 'track_a_native_render_support_adapter_qa',
+      }),
+    ],
+    executionGuardrails: [...hardExecutionGuardrails, 'track_b_ffmpeg_ffprobe_ownership_preserved', 'no_user_media_without_private_artifact_manifest'],
+    plannerAnswer: 'Native render pipeline support is ready as a backend-gated agent/tool-call capability after approved snapshot, credit, idempotency, and private artifact gates.',
+  }),
+  record({
+    skillId: 'track_a.mkvtoolnix_container_validation',
+    capabilityId: 'mkvtoolnix_container_validation',
+    legacyEditLevelCapabilityIds: ['render_worker'],
+    displayName: 'Container package validation',
+    plannerQuestionAliases: ['mkvtoolnix_container_validation', 'mkvtoolnix container validation', 'mkvtoolnix', 'container validation', 'subtitle container validation'],
+    description: 'Backend-gated Track A validation for generated private container/package metadata and cleanup evidence.',
+    laneStatus: 'ready_for_backend_execution',
+    toolIds: ['mkvtoolnix'],
+    readyToolIds: ['mkvtoolnix'],
+    dryRunOnlyToolIds: [],
+    blockedToolIds: [],
+    lanes: [
+      lane({
+        lane: 'track_a_native_container',
+        status: 'ready_for_backend_execution',
+        toolIds: ['mkvtoolnix'],
+        reason: 'Controlled generated-private fixture evidence supports container validation routing after approval gates and private artifact manifest checks.',
+        nextGate: 'track_a_container_validation_adapter_qa',
+      }),
+    ],
+    executionGuardrails: [...hardExecutionGuardrails, 'track_b_ffmpeg_ffprobe_ownership_preserved', 'no_public_or_signed_url_artifact_source_truth'],
+    plannerAnswer: 'Container package validation is ready as a backend-gated agent/tool-call capability for approved private fixture or artifact manifests.',
+  }),
+  record({
+    skillId: 'track_a.gpac_mp4box_packaging_validation',
+    capabilityId: 'gpac_mp4box_packaging_validation',
+    legacyEditLevelCapabilityIds: ['render_worker'],
+    displayName: 'MP4 packaging validation',
+    plannerQuestionAliases: ['gpac_mp4box_packaging_validation', 'gpac mp4box packaging validation', 'gpac', 'mp4box', 'mp4 packaging validation', 'packaging validation'],
+    description: 'Backend-gated Track A validation for owner-approved MP4 packaging source, provenance, and binary presence.',
+    laneStatus: 'ready_for_backend_execution',
+    toolIds: ['gpac_mp4box'],
+    readyToolIds: ['gpac_mp4box'],
+    dryRunOnlyToolIds: [],
+    blockedToolIds: [],
+    lanes: [
+      lane({
+        lane: 'track_a_native_container',
+        status: 'ready_for_backend_execution',
+        toolIds: ['gpac_mp4box'],
+        reason: 'Official GPAC APT install-source evidence supports MP4 packaging validation routing after approved package provenance and private artifact gates.',
+        nextGate: 'track_a_gpac_mp4box_install_source_qa_acceptance',
+      }),
+    ],
+    executionGuardrails: [...hardExecutionGuardrails, 'track_b_ffmpeg_ffprobe_ownership_preserved', 'official_gpac_apt_source_provenance_required'],
+    plannerAnswer: 'MP4 packaging validation is ready as a backend-gated agent/tool-call capability for approved source/provenance checks; it does not approve public delivery or product export by itself.',
   }),
   record({
     skillId: 'platform.storage_runtime',
@@ -734,7 +847,8 @@ export function buildUnifiedSkillCapabilitySummary(): UnifiedSkillCapabilitySumm
       'This registry maps ReEditPro skills/capabilities to real tool IDs and lane gates.',
       'ready_for_backend_execution means backend-gated candidate only; it is not external beta, paid production, or product-ready local OSS by itself.',
       'External beta/product readiness still requires approved plan snapshots, credit estimate/reservation, idempotency, private artifact storage, deployed billing persistence, owner approvals, and accepted runtime evidence.',
-      'Qwen, SOUND, and Track A lanes stay visible but gated so planners can route honestly without hiding follow-up work.',
+      'Qwen and SOUND lanes stay visible with their current gates; Track A native capabilities are backend-gated candidates and still preserve the Track B FFmpeg/ffprobe boundary.',
+      'The ready audio architecture pack extends audio planning without changing the fixed 16-tool Track B handoff count or product-ready local OSS count.',
     ],
   }
 }

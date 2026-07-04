@@ -104,7 +104,7 @@ export function InlineVisualAssetPlanCard({ descriptor, editLevel, plan }: Inlin
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Visual story plan"
-      helper="ReeditPro only animates beats where motion improves the story. Remotion places these assets into the final frame; provider models do not generate the full final canvas."
+      helper="ReeditPro only animates beats where motion improves the story. The renderer places these assets into the final frame; provider models do not generate the full final canvas."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Visual story plan"
@@ -131,7 +131,7 @@ export function InlineVisualAssetPlanCard({ descriptor, editLevel, plan }: Inlin
                   <Badge accent={signatureAccent[asset.signatureSystem]}>{signatureLabels[asset.signatureSystem]}</Badge>
                   <span className="model-chip">{animationAssetTypes.includes(asset.assetType) ? 'Animation' : 'Still/card'}</span>
                   <span className="model-chip">{labelForAssetType(asset.assetType)}</span>
-                  <span className="model-chip">Placed by Remotion</span>
+                  <span className="model-chip">Placed by renderer</span>
                   <span className="model-chip">Panel background matched</span>
                   {asset.promptPlans && asset.promptPlans.length > 0 && <span className="model-chip">Prompt planned: {asset.promptPlans.length}</span>}
                   {asset.promptPlans && asset.promptPlans.length > 0 && <span className="model-chip">Matching panel background included</span>}

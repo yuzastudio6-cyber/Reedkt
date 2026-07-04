@@ -7,6 +7,7 @@ import {
   type BetaPlatformDeployedEvidenceObservation,
   type BetaPlatformSupabaseAttestedProbeId,
 } from '../beta-readiness'
+import { alertRuleCatalog, productionMetricsCatalog } from '../observability'
 
 const admin = createFakeSupabaseAdminClient()
 const transport = createBetaPlatformSupabaseDeployedEvidenceProbeTransport({
@@ -36,18 +37,32 @@ const report = await runBetaPlatformDeployedEvidenceVerifier({
     monitoringApproved: true,
     supportApproved: true,
   },
+  monitoringDeploymentEvidence: monitoringEvidenceFixture(),
   notes: ['Smoke fixture proves the Supabase deployed probe transport can feed the platform verifier.'],
 }, createBetaPlatformDeployedEvidenceProbeRunners(transport))
 
 assert.equal(report.evidencePacketReady, true, 'complete Supabase transport evidence should build a platform packet')
-assert.equal(report.checks.length, 9, 'Supabase transport should satisfy every deployed evidence probe')
+assert.equal(report.checks.length, 10, 'Supabase transport should satisfy every deployed evidence probe')
 assert.equal(report.evaluatedReadiness.toolExecutionReadiness.platformBlockers.length, 0, 'complete Supabase transport evidence should clear the shared platform blocker')
 assert.equal(report.evaluatedReadiness.toolExecutionReadiness.externalBetaToolExecutionAllowed, false, 'platform evidence alone must not enable tool beta execution')
 assert.equal(report.externalBetaAllowed, false, 'Supabase transport smoke must not enable external beta')
 assert.equal(report.productionAllowed, false, 'Supabase transport smoke must not enable production')
-assert.deepEqual(admin.calls.tables.slice(0, 2), ['tool_cost_events', 'beta_readiness_evidence_packets'], 'migration probes should read both deployed tables')
+assert.deepEqual(
+  admin.calls.tables.slice(0, 3),
+  [
+    'tool_cost_events',
+    'beta_readiness_evidence_packets',
+    'production_tool_execution_readiness_evidence_packets',
+  ],
+  'migration probes should read all deployed table prerequisites',
+)
 assert.equal(admin.calls.inserts.length, 2, 'service-role write and replay probes should insert only controlled evidence packets')
 assert.equal(admin.calls.rpc.length, 1, 'wallet settlement probe should call exactly one RPC')
+assert.ok(
+  report.checks.some((check) => check.id === 'wallet_settlement_verified' &&
+    check.evidence.some((item) => item.includes('wallet_state_updated=true'))),
+  'wallet settlement probe should require deployed wallet state-update evidence',
+)
 assert.deepEqual(admin.calls.rpc[0], {
   functionName: 'settle_tool_cost_event',
   params: {
@@ -106,6 +121,21 @@ function passed(evidence: string): BetaPlatformDeployedEvidenceObservation {
     ok: true,
     evidence: [evidence],
     nextAction: 'No action for smoke fixture.',
+  }
+}
+
+function monitoringEvidenceFixture() {
+  const alertRuleIds = alertRuleCatalog.map((rule) => rule.alertId)
+  return {
+    dashboardIds: ['tool-cost-billing-dashboard', 'worker-runtime-dashboard', 'readiness-gate-dashboard'],
+    alertRuleIds,
+    metricNames: productionMetricsCatalog.map((metric) => metric.metricName),
+    alertRoutingDestinations: ['on-call-ops-route', 'billing-owner-route'],
+    billingQaAlertRuleIds: alertRuleIds.filter((alertId) =>
+      alertId.includes('tool_cost') ||
+      alertId.includes('billing_qa') ||
+      alertId.includes('stripe'),
+    ),
   }
 }
 
@@ -168,7 +198,14 @@ function createFakeSupabaseAdminClient(): FakeSupabaseAdminClient {
           id: 'wallet-settlement-smoke-row',
           tool_cost_event_id: params.p_tool_cost_event_id,
           idempotency_key: params.p_idempotency_key,
-          status: 'not_billable',
+          status: 'settled',
+          credits_delta: -1,
+          billable_to_user: true,
+          metadata_json: {
+            wallet_state_updated: true,
+            stripe_call_attempted: false,
+            service_fee_included: false,
+          },
         },
         error: null,
       }

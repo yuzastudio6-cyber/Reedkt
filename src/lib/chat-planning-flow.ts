@@ -280,7 +280,7 @@ function renderStrategySummary(plan: EditPlan) {
   const toolCount = renderStrategyPlan.openSourceToolsUsed.length
   const providerCount = renderStrategyPlan.providerModelsReferenced.length
 
-  return `${renderStrategyPlan.items.length} render item${renderStrategyPlan.items.length === 1 ? '' : 's'}; ${activeCounts || 'no active strategies'}; ${toolCount} tool${toolCount === 1 ? '' : 's'}, ${providerCount} provider model${providerCount === 1 ? '' : 's'} referenced.`
+  return `${renderStrategyPlan.items.length} render item${renderStrategyPlan.items.length === 1 ? '' : 's'}; ${activeCounts || 'no active strategies'}; ${toolCount} controlled edit support path${toolCount === 1 ? '' : 's'}, ${providerCount} model handoff${providerCount === 1 ? '' : 's'} referenced.`
 }
 
 function toolStrategySummary(plan: EditPlan) {
@@ -296,14 +296,14 @@ function toolStrategySummary(plan: EditPlan) {
     item.chainId === 'browser_capture_chain',
   ).length
 
-  return `${toolStrategyPlan.items.length} tool strateg${toolStrategyPlan.items.length === 1 ? 'y' : 'ies'}; ${toolStrategyPlan.chainIdsUsed.length} chain${toolStrategyPlan.chainIdsUsed.length === 1 ? '' : 's'}, ${exactChains} exact-work chain${exactChains === 1 ? '' : 's'} avoid AI video.`
+  return `${toolStrategyPlan.items.length} edit support strateg${toolStrategyPlan.items.length === 1 ? 'y' : 'ies'}; ${toolStrategyPlan.chainIdsUsed.length} controlled chain${toolStrategyPlan.chainIdsUsed.length === 1 ? '' : 's'}, ${exactChains} exact-work chain${exactChains === 1 ? '' : 's'} avoid AI video.`
 }
 
 function toolCallIntentSummary(plan: EditPlan) {
   const toolCallIntentPlan = plan.toolCallIntentPlan
 
   if (!toolCallIntentPlan) {
-    return 'Tool-call intent plan is not ready.'
+    return 'Edit activity plan is not ready.'
   }
 
   const gatedCount =
@@ -312,7 +312,7 @@ function toolCallIntentSummary(plan: EditPlan) {
     toolCallIntentPlan.readinessCounts.blocked_by_storage_billing +
     toolCallIntentPlan.readinessCounts.dry_run_only
 
-  return `${toolCallIntentPlan.intents.length} planned tool call${toolCallIntentPlan.intents.length === 1 ? '' : 's'}; ${toolCallIntentPlan.readinessCounts.ready_for_backend_execution} backend candidate${toolCallIntentPlan.readinessCounts.ready_for_backend_execution === 1 ? '' : 's'}, ${gatedCount} gated or dry-run.`
+  return `${toolCallIntentPlan.intents.length} planned edit activit${toolCallIntentPlan.intents.length === 1 ? 'y' : 'ies'}; ${toolCallIntentPlan.readinessCounts.ready_for_backend_execution} ready after gates, ${gatedCount} gated or dry-run.`
 }
 
 function colorPipelineSummary(plan: EditPlan) {
@@ -756,7 +756,7 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
     }),
     descriptor({
       id: 'tool_call_intents',
-      label: 'Planned tool calls',
+      label: 'Planned edit work',
       phase: 'credits_approval',
       priority: 'user_summary',
       status: toolCallIntentStatus,

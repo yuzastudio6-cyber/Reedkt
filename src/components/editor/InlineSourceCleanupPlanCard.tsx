@@ -7,6 +7,7 @@ import type {
   EditPlan,
   TrimRiskLevel,
 } from '../../types/reeditpro'
+import { toUserFacingToolCopy } from '../../lib/user-facing-tool-copy'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineSourceCleanupPlanCardProps = {
@@ -157,7 +158,7 @@ export function InlineSourceCleanupPlanCard({
               <span className="trim-decision-meta">
                 {decision.sourceRange.startSeconds.toFixed(0)}-{decision.sourceRange.endSeconds.toFixed(0)}s / {decision.decision.replaceAll('_', ' ')}
               </span>
-              <small>{decision.reason}</small>
+              <small>{toUserFacingToolCopy(decision.reason)}</small>
               <small>Keep: {decision.keepReasons.join(', ') || 'none'} / Cut: {decision.cutReasons.join(', ') || 'none'}</small>
               <Badge accent={riskAccent(decision.riskLevel)}>{decision.userReviewRequired ? 'User review' : 'Planned'}</Badge>
             </article>
@@ -173,7 +174,7 @@ export function InlineSourceCleanupPlanCard({
               <article className="retake-group-item" key={group.id}>
                 <strong>{group.label}</strong>
                 <span>Selected: {group.selectedClipId ?? 'review required'}</span>
-                <small>{group.reason}</small>
+                <small>{toUserFacingToolCopy(group.reason)}</small>
               </article>
             ))}
           </div>
@@ -184,14 +185,14 @@ export function InlineSourceCleanupPlanCard({
         <div className="cleanup-user-review-note">
           <strong>User review needed</strong>
           {sourceCleanupPlan.userReviewItems.slice(0, 4).map((item) => (
-            <span key={item.id}>{item.clipId}: {item.reason}</span>
+            <span key={item.id}>{item.clipId}: {toUserFacingToolCopy(item.reason)}</span>
           ))}
         </div>
       )}
 
       <div className="cleanup-mock-note">
         {sourceCleanupPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{toUserFacingToolCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

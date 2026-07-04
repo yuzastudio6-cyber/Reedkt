@@ -19,6 +19,7 @@ try {
   applyMigration(databaseName, 'supabase/migrations/202606270001_tool_cost_metering_events.sql')
   applyMigration(databaseName, 'supabase/migrations/202606270002_beta_readiness_evidence_packets.sql')
   applyMigration(databaseName, 'supabase/migrations/202606270003_tool_cost_wallet_settlement_rpc.sql')
+  applyMigration(databaseName, 'supabase/migrations/20260702221112_production_tool_execution_readiness_evidence_packets.sql')
   runSql(databaseName, buildFixtureSql())
 
   queryScalar(databaseName, `
@@ -28,18 +29,26 @@ try {
 
   const memberToolCostRows = Number(queryAsAuthenticated(databaseName, memberUserId, 'select count(*) from public.tool_cost_events;'))
   const memberSettlementRows = Number(queryAsAuthenticated(databaseName, memberUserId, 'select count(*) from public.tool_cost_wallet_settlements;'))
-  const memberEvidenceRows = Number(queryAsAuthenticated(databaseName, memberUserId, 'select count(*) from public.beta_readiness_evidence_packets;'))
 
   const nonMemberToolCostRows = Number(queryAsAuthenticated(databaseName, nonMemberUserId, 'select count(*) from public.tool_cost_events;'))
   const nonMemberSettlementRows = Number(queryAsAuthenticated(databaseName, nonMemberUserId, 'select count(*) from public.tool_cost_wallet_settlements;'))
-  const nonMemberEvidenceRows = Number(queryAsAuthenticated(databaseName, nonMemberUserId, 'select count(*) from public.beta_readiness_evidence_packets;'))
 
   assert.equal(memberToolCostRows, 1, 'workspace member should read only the scoped tool cost event')
   assert.equal(memberSettlementRows, 1, 'workspace member should read only the scoped wallet settlement')
-  assert.equal(memberEvidenceRows, 0, 'beta readiness evidence packets should remain backend-only with no authenticated read policy')
   assert.equal(nonMemberToolCostRows, 0, 'non-member should not read tool cost events')
   assert.equal(nonMemberSettlementRows, 0, 'non-member should not read wallet settlements')
-  assert.equal(nonMemberEvidenceRows, 0, 'non-member should not read backend-only beta evidence packets')
+  assertAuthenticatedSelectDenied(
+    databaseName,
+    memberUserId,
+    'select count(*) from public.beta_readiness_evidence_packets;',
+    'authenticated users should not directly read backend-only beta readiness evidence packets',
+  )
+  assertAuthenticatedSelectDenied(
+    databaseName,
+    memberUserId,
+    'select count(*) from public.production_tool_execution_readiness_evidence_packets;',
+    'authenticated users should not directly read backend-only production readiness evidence packets',
+  )
 
   assertAuthenticatedInsertDenied(
     databaseName,
@@ -92,17 +101,40 @@ try {
   `)
 
   assert.equal(policyRows, '2', 'tool cost event and wallet settlement select policies should exist')
+  assertTablePrivilege(databaseName, 'anon', 'public.tool_cost_events', 'select', false)
+  assertTablePrivilege(databaseName, 'authenticated', 'public.tool_cost_events', 'select', true)
+  assertTablePrivilege(databaseName, 'authenticated', 'public.tool_cost_events', 'insert', false)
+  assertTablePrivilege(databaseName, 'service_role', 'public.tool_cost_events', 'select', true)
+  assertTablePrivilege(databaseName, 'service_role', 'public.tool_cost_events', 'insert', true)
+  assertTablePrivilege(databaseName, 'anon', 'public.tool_cost_wallet_settlements', 'select', false)
+  assertTablePrivilege(databaseName, 'authenticated', 'public.tool_cost_wallet_settlements', 'select', true)
+  assertTablePrivilege(databaseName, 'authenticated', 'public.tool_cost_wallet_settlements', 'insert', false)
+  assertTablePrivilege(databaseName, 'service_role', 'public.tool_cost_wallet_settlements', 'select', true)
+  assertTablePrivilege(databaseName, 'service_role', 'public.tool_cost_wallet_settlements', 'insert', true)
+  assertTablePrivilege(databaseName, 'anon', 'public.beta_readiness_evidence_packets', 'select', false)
+  assertTablePrivilege(databaseName, 'authenticated', 'public.beta_readiness_evidence_packets', 'select', false)
+  assertTablePrivilege(databaseName, 'service_role', 'public.beta_readiness_evidence_packets', 'select', true)
+  assertTablePrivilege(databaseName, 'service_role', 'public.beta_readiness_evidence_packets', 'insert', true)
+  assertTablePrivilege(databaseName, 'anon', 'public.production_tool_execution_readiness_evidence_packets', 'select', false)
+  assertTablePrivilege(databaseName, 'authenticated', 'public.production_tool_execution_readiness_evidence_packets', 'select', false)
+  assertTablePrivilege(databaseName, 'service_role', 'public.production_tool_execution_readiness_evidence_packets', 'select', true)
+  assertTablePrivilege(databaseName, 'service_role', 'public.production_tool_execution_readiness_evidence_packets', 'insert', true)
+  assertFunctionPrivilege(databaseName, 'anon', 'public.settle_tool_cost_event(text,text,text)', 'execute', false)
+  assertFunctionPrivilege(databaseName, 'authenticated', 'public.settle_tool_cost_event(text,text,text)', 'execute', false)
+  assertFunctionPrivilege(databaseName, 'service_role', 'public.settle_tool_cost_event(text,text,text)', 'execute', true)
 
   console.log(JSON.stringify({
     ok: true,
     databaseName,
     memberToolCostRows,
     memberSettlementRows,
-    memberEvidenceRows,
     nonMemberToolCostRows,
     nonMemberSettlementRows,
-    nonMemberEvidenceRows,
     authenticatedInsertDenied: true,
+    authenticatedEvidenceReadDenied: true,
+    authenticatedProductionEvidenceReadDenied: true,
+    explicitDataApiGrantsVerified: true,
+    settlementRpcServiceRoleOnly: true,
     remoteSupabaseTouched: false,
   }, null, 2))
 } finally {
@@ -123,8 +155,16 @@ function buildPrerequisiteSql(): string {
 
     do $$
     begin
+      if not exists (select 1 from pg_roles where rolname = 'anon') then
+        create role anon;
+      end if;
+
       if not exists (select 1 from pg_roles where rolname = 'authenticated') then
         create role authenticated;
+      end if;
+
+      if not exists (select 1 from pg_roles where rolname = 'service_role') then
+        create role service_role;
       end if;
     end
     $$;
@@ -326,11 +366,6 @@ function buildFixtureSql(): string {
       '${memberUserId}',
       '{"rlsSmoke":true}'::jsonb
     );
-
-    grant usage on schema public to authenticated;
-    grant select on public.tool_cost_events to authenticated;
-    grant select on public.tool_cost_wallet_settlements to authenticated;
-    grant select on public.beta_readiness_evidence_packets to authenticated;
   `
 }
 
@@ -358,6 +393,14 @@ function queryAsAuthenticated(database: string, userId: string, sql: string): st
 }
 
 function assertAuthenticatedInsertDenied(database: string, userId: string, sql: string): void {
+  assertAuthenticatedSqlDenied(database, userId, sql, 'authenticated tool_cost_events insert should fail')
+}
+
+function assertAuthenticatedSelectDenied(database: string, userId: string, sql: string, message: string): void {
+  assertAuthenticatedSqlDenied(database, userId, sql, message)
+}
+
+function assertAuthenticatedSqlDenied(database: string, userId: string, sql: string, message: string): void {
   const result = spawnSync('psql', ['-v', 'ON_ERROR_STOP=1', '--quiet', database], {
     input: `
       set role authenticated;
@@ -368,11 +411,39 @@ function assertAuthenticatedInsertDenied(database: string, userId: string, sql: 
     env: process.env,
   })
 
-  assert.notEqual(result.status, 0, 'authenticated tool_cost_events insert should fail')
+  assert.notEqual(result.status, 0, message)
   assert.match(
     `${result.stdout}\n${result.stderr}`,
     /permission denied|violates row-level security policy/i,
-    'authenticated insert failure should be permission/RLS related',
+    'authenticated SQL failure should be permission/RLS related',
+  )
+}
+
+function assertTablePrivilege(
+  database: string,
+  role: string,
+  relation: string,
+  privilege: string,
+  expected: boolean,
+): void {
+  assert.equal(
+    queryScalar(database, `select has_table_privilege('${role}', '${relation}', '${privilege}')::text;`),
+    String(expected),
+    `${role} ${privilege} privilege on ${relation} should be ${expected}`,
+  )
+}
+
+function assertFunctionPrivilege(
+  database: string,
+  role: string,
+  functionName: string,
+  privilege: string,
+  expected: boolean,
+): void {
+  assert.equal(
+    queryScalar(database, `select has_function_privilege('${role}', '${functionName}', '${privilege}')::text;`),
+    String(expected),
+    `${role} ${privilege} privilege on ${functionName} should be ${expected}`,
   )
 }
 

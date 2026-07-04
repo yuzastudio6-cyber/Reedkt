@@ -377,10 +377,21 @@ It adds:
 - workspace/project and tool summary indexes
 - credit reservation lookup index
 - RLS with authenticated select scoped to workspace/project membership
+- explicit Supabase Data API grants: authenticated `select`, service-role `select, insert`, and no anon access
 
 The table is append-only from the user/API perspective. No authenticated insert, update, or delete policy is created; backend service-role code owns event writes and idempotent replay. ReEditPro service/edit fees are intentionally excluded from tool events.
 
-This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, settle wallet charges, integrate Stripe, call providers, execute tools, dispatch workers, render media, upload artifacts, add secrets, or make external beta/production billing ready.
+`migrations/202606270002_beta_readiness_evidence_packets.sql` is backend-only. It explicitly grants service-role `select, insert`, revokes anon/authenticated access, and creates no authenticated RLS policy.
+
+`migrations/202606270003_tool_cost_wallet_settlement_rpc.sql` adds wallet settlement rows and the `settle_tool_cost_event` RPC. The settlement table explicitly grants authenticated `select` through RLS and service-role `select, insert`. The security-definer RPC revokes default public/anon/authenticated execution and grants execute only to service-role.
+
+`migrations/20260703234354_wallet_settlement_state_updates.sql` replaces `settle_tool_cost_event` so spend, release, and refund settlements also update reservation spent/released/refunded counters plus cached wallet available/reserved/spent/refunded balances before inserting the settlement and credit-ledger rows. The RPC remains service-role-only, excludes ReEditPro service/edit fees, and records `stripe_call_attempted=false`.
+
+`migrations/20260702221112_production_tool_execution_readiness_evidence_packets.sql` adds a backend-only append-only packet table for the final paid-production tool execution readiness evidence and report. It explicitly grants service-role `select, insert`, revokes anon/authenticated access, creates no authenticated RLS policy, and keeps idempotent replay scoped by workspace plus idempotency key. Paid-production readiness now requires deployment/readback evidence for this table in addition to `tool_cost_events` and `beta_readiness_evidence_packets`.
+
+`migrations/20260703215843_production_gateway_ops_admission_rpc.sql` adds the service-role-only `claim_production_gateway_worker_lease` RPC for production gateway operations admission. The RPC serializes admission per workspace, checks persistent workspace rate-limit counts from `api_idempotency_keys`, checks project and worker concurrency counts from `worker_leases`, inserts the durable admission lease atomically, and revokes public/anon/authenticated execution. It does not deploy the migration, call Supabase remotely, dispatch workers, run tools, process media, mutate wallets, call Stripe, or activate production.
+
+These migrations have not been run in staging or production. They do not connect to Supabase remotely, settle wallet charges in a deployed project, integrate Stripe, call providers, execute tools, dispatch workers, render media, upload artifacts, add secrets, or make external beta/production billing ready.
 
 ## Future Migrations
 

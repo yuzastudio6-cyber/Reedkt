@@ -6,11 +6,16 @@ const sourceFiles = [
   'server/tool-cost-metering/tool-cost-wallet-settlement.ts',
   'server/tool-cost-metering/tool-cost-persistent-store.ts',
   'server/beta-readiness/platform-billing-qa.ts',
+  'server/beta-readiness/platform-credit-reservation-hold-qa.ts',
+  'server/beta-readiness/platform-wallet-lifecycle-qa.ts',
   'server/routes/tool-cost-routes.ts',
   'server/routes/beta-readiness-routes.ts',
+  'supabase/migrations/20260703232842_credit_reservation_hold_rpc.sql',
   'server/smoke/tool-cost-wallet-settlement-smoke.ts',
   'server/smoke/tool-cost-wallet-settlement-rpc-sql-smoke.ts',
   'server/smoke/beta-platform-billing-qa-smoke.ts',
+  'server/smoke/platform-credit-reservation-hold-qa-smoke.ts',
+  'server/smoke/platform-wallet-lifecycle-qa-smoke.ts',
 ]
 
 const forbiddenRuntimePatterns = [
@@ -50,6 +55,23 @@ assert.ok(billingQa.includes("'stripe_boundary'"), 'platform billing QA must inc
 assert.ok(billingQa.includes('Stripe is isolated from tool event recording'), 'platform billing QA should describe Stripe isolation')
 assert.ok(billingQa.includes('first.event.metadata.stripeCallAttempted === false'), 'platform billing QA should assert no Stripe call marker')
 assert.ok(billingQa.includes('Stripe boundary owner approval evidence'), 'platform billing QA should keep owner approval evidence as missing')
+
+const walletLifecycleQa = readFileSync('server/beta-readiness/platform-wallet-lifecycle-qa.ts', 'utf8')
+assert.ok(walletLifecycleQa.includes("'stripe_boundary'"), 'platform wallet lifecycle QA must include a Stripe boundary check')
+assert.ok(walletLifecycleQa.includes('Stripe remains outside wallet lifecycle QA'), 'platform wallet lifecycle QA should describe Stripe isolation')
+assert.ok(walletLifecycleQa.includes('stripeBoundaryPreserved: true'), 'platform wallet lifecycle QA should preserve no-Stripe report state')
+assert.ok(walletLifecycleQa.includes('Stripe boundary owner approval evidence'), 'platform wallet lifecycle QA should keep owner approval evidence as missing')
+
+const creditReservationHoldQa = readFileSync('server/beta-readiness/platform-credit-reservation-hold-qa.ts', 'utf8')
+assert.ok(creditReservationHoldQa.includes("'stripe_boundary'"), 'platform credit reservation hold QA must include a Stripe boundary check')
+assert.ok(creditReservationHoldQa.includes('Stripe remains outside reservation hold QA'), 'platform credit reservation hold QA should describe Stripe isolation')
+assert.ok(creditReservationHoldQa.includes('stripeBoundaryPreserved: true'), 'platform credit reservation hold QA should preserve no-Stripe report state')
+assert.ok(creditReservationHoldQa.includes('Stripe boundary owner approval evidence'), 'platform credit reservation hold QA should keep owner approval evidence as missing')
+
+const reservationRpcMigration = readFileSync('supabase/migrations/20260703232842_credit_reservation_hold_rpc.sql', 'utf8')
+assert.ok(reservationRpcMigration.includes("'stripe_call_attempted', false"), 'reservation hold RPC should write Stripe isolation metadata')
+assert.ok(reservationRpcMigration.includes("'service_fee_included', false"), 'reservation hold RPC should exclude service fees')
+assert.equal(/https:\/\/api\.stripe\.com/i.test(reservationRpcMigration), false, 'reservation hold RPC must not reference Stripe API')
 
 const rpcMigration = readFileSync('supabase/migrations/202606270003_tool_cost_wallet_settlement_rpc.sql', 'utf8')
 assert.ok(rpcMigration.includes("'stripe_call_attempted', false"), 'wallet settlement RPC should write Stripe isolation metadata')

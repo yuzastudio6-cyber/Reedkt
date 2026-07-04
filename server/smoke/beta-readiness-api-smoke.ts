@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { type AddressInfo } from 'node:net'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
+import { alertRuleCatalog, productionMetricsCatalog } from '../observability'
 import { PRODUCTION_TOOL_IDS } from '../tool-registry'
 import { betaReadinessEvidenceEvaluationSchema } from '../validation/beta-readiness-schemas'
 import type {
@@ -235,6 +236,53 @@ try {
     'platform billing QA should still name wallet settlement as missing production evidence',
   )
 
+  const platformCreditReservationHoldQaResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-credit-reservation-hold-qa`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-credit-reservation-hold-qa' },
+    body: JSON.stringify({
+      workspaceId: smokeWorkspaceId,
+      projectId: 'beta-readiness-api-smoke-platform-project',
+      sourceId: 'beta-readiness-api-smoke:platform-credit-reservation-hold-qa',
+      sourceSha: '8888888888888888888888888888888888888888',
+      environment: 'local_mock',
+      reservedCredits: 12,
+      notes: ['Smoke runs platform credit reservation hold QA in mock-safe mode only.'],
+    }),
+  })
+  assert.equal(platformCreditReservationHoldQaResponse.ok, true, 'platform credit reservation hold QA route should return ok')
+  assert.equal(platformCreditReservationHoldQaResponse.data.report.persistenceMode, 'mock_memory', 'platform credit reservation hold QA smoke must use mock memory persistence')
+  assert.equal(platformCreditReservationHoldQaResponse.data.report.reservationHoldVerified, true, 'platform credit reservation hold QA should verify a positive reservation hold')
+  assert.equal(platformCreditReservationHoldQaResponse.data.report.idempotentReplayVerified, true, 'platform credit reservation hold QA should prove idempotent replay')
+  assert.equal(platformCreditReservationHoldQaResponse.data.report.wouldClearWalletReserveBlocker, false, 'platform credit reservation hold QA must not clear the production wallet reserve blocker by itself')
+  assert.equal(platformCreditReservationHoldQaResponse.data.report.stripeBoundaryPreserved, true, 'platform credit reservation hold QA must preserve Stripe isolation')
+  assert.ok(
+    platformCreditReservationHoldQaResponse.data.report.missingProductionEvidence.some((item: string) => item.includes('transactional reservation RPC')),
+    'platform credit reservation hold QA should still require transactional reservation evidence',
+  )
+
+  const platformWalletLifecycleQaResponse = await requestJson(`${baseUrl}/v1/beta-readiness/platform-wallet-lifecycle-qa`, {
+    method: 'POST',
+    headers: { 'idempotency-key': 'beta-readiness-api-smoke-platform-wallet-lifecycle-qa' },
+    body: JSON.stringify({
+      workspaceId: smokeWorkspaceId,
+      projectId: 'beta-readiness-api-smoke-platform-project',
+      sourceId: 'beta-readiness-api-smoke:platform-wallet-lifecycle-qa',
+      sourceSha: '7777777777777777777777777777777777777777',
+      environment: 'local_mock',
+      notes: ['Smoke runs platform wallet lifecycle QA in mock-safe mode only.'],
+    }),
+  })
+  assert.equal(platformWalletLifecycleQaResponse.ok, true, 'platform wallet lifecycle QA route should return ok')
+  assert.equal(platformWalletLifecycleQaResponse.data.report.persistenceMode, 'mock_memory', 'platform wallet lifecycle QA smoke must use mock memory persistence')
+  assert.equal(platformWalletLifecycleQaResponse.data.report.spendVerified, true, 'platform wallet lifecycle QA should verify spend settlement')
+  assert.equal(platformWalletLifecycleQaResponse.data.report.releaseVerified, true, 'platform wallet lifecycle QA should verify release settlement')
+  assert.equal(platformWalletLifecycleQaResponse.data.report.refundVerified, true, 'platform wallet lifecycle QA should verify refund settlement')
+  assert.equal(platformWalletLifecycleQaResponse.data.report.idempotentReplayVerified, true, 'platform wallet lifecycle QA should prove idempotent replay')
+  assert.ok(
+    platformWalletLifecycleQaResponse.data.report.missingProductionEvidence.some((item: string) => item.includes('credit reservation creation')),
+    'platform wallet lifecycle QA should still require reservation creation evidence',
+  )
+
   const settlementResponse = await requestJson(`${baseUrl}/v1/tool-costs/events/${encodeURIComponent(platformBillingQaResponse.data.report.toolEventId)}/settle`, {
     method: 'POST',
     headers: { 'idempotency-key': 'beta-readiness-api-smoke-tool-cost-wallet-settlement' },
@@ -406,6 +454,7 @@ function buildCompleteEvidencePacketBody(): {
       sourceSha: '4444444444444444444444444444444444444444',
       environment: 'staging',
       toolCostEventsMigrationDeployed: true,
+      productionReadinessEvidenceMigrationDeployed: true,
       serviceRoleWritePathVerified: true,
       rlsMemberReadPathVerified: true,
       idempotentReplayVerified: true,
@@ -448,6 +497,7 @@ function buildPassingPlatformDeployedEvidenceBody(workspaceId: string) {
       monitoringApproved: true,
       supportApproved: true,
     },
+    monitoringDeploymentEvidence: monitoringEvidenceFixture(),
     notes: ['Smoke evidence verifies deployed platform evidence route without live beta activation.'],
     probes: buildPassingDeployedProbeObservations(),
   }
@@ -457,6 +507,7 @@ function buildPassingDeployedProbeObservations() {
   return [
     'tool_cost_events_migration_deployed',
     'beta_readiness_evidence_migration_deployed',
+    'production_readiness_evidence_migration_deployed',
     'service_role_write_path_verified',
     'authenticated_rls_member_readback_verified',
     'idempotent_replay_verified',
@@ -470,6 +521,21 @@ function buildPassingDeployedProbeObservations() {
     evidence: [`${id} passed in API smoke fixture.`],
     nextAction: 'No action for API smoke fixture.',
   }))
+}
+
+function monitoringEvidenceFixture() {
+  const alertRuleIds = alertRuleCatalog.map((rule) => rule.alertId)
+  return {
+    dashboardIds: ['tool-cost-billing-dashboard', 'worker-runtime-dashboard', 'readiness-gate-dashboard'],
+    alertRuleIds,
+    metricNames: productionMetricsCatalog.map((metric) => metric.metricName),
+    alertRoutingDestinations: ['on-call-ops-route', 'billing-owner-route'],
+    billingQaAlertRuleIds: alertRuleIds.filter((alertId) =>
+      alertId.includes('tool_cost') ||
+      alertId.includes('billing_qa') ||
+      alertId.includes('stripe'),
+    ),
+  }
 }
 
 async function requestJson(

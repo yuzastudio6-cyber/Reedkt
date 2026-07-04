@@ -33,10 +33,13 @@ Lane status values are intentionally narrow:
 | Planner question | Current answer |
 | --- | --- |
 | OCR | OpenCV can be planned for conservative backend checks. PaddleOCR remains gated by model-weight/privacy/owner approval. Playwright-backed OCR inputs need browser source/privacy approval. |
-| Audio/SoundSync | AudioFlux and Signalsmith Stretch are backend-gated candidates. SOUND semantic/runtime work remains dry-run gated, and cleanup/separation tools need owner/model/quality approval. |
+| Audio/SoundSync | The ready audio architecture pack is visible for backend-gated feature, timing, loudness, MIR, MIDI, and simple effects planning. SOUND semantic/runtime work remains dry-run gated, Pedalboard remains license-review gated, and cleanup/separation model tools need owner/model/quality approval. |
 | Color/image | OpenColorIO, OpenImageIO, OpenCV, Sharp, and FFmpeg are backend-gated candidates. Actual use still needs approved recipes, private artifacts, and color QA. |
 | Render/composition | Remotion, libass, FFmpeg, Sharp, and OpenTimelineIO are backend-gated candidates. Final render/export remains blocked by deployed storage, billing, wallet, and artifact gates. |
 | Transcript | faster-whisper and whisper.cpp are not product execution-ready. They need model-weight/privacy/owner approval, with whisper.cpp remaining evaluation-only. |
+| Native render pipeline support | `streamer_render_pipeline_support` is available to agents as a backend-gated Track A capability. Guided chat should describe this as render pipeline support, not by raw tool name. |
+| Container package validation | `mkvtoolnix_container_validation` is available to agents as a backend-gated Track A capability for approved private artifact/container validation. Guided chat should describe the validation work, not the tool. |
+| MP4 packaging validation | `gpac_mp4box_packaging_validation` is available to agents as a backend-gated Track A capability for owner-approved source/provenance and packaging validation. It does not unlock export/product delivery by itself. |
 
 ## Track B Handoff Set
 
@@ -46,13 +49,21 @@ The registry exposes the Track B media OSS handoff set as 16 tool IDs:
 
 That set is a capability handoff and planning map, not a blanket external beta launch approval.
 
+## Ready Audio Architecture Pack
+
+The audio and SOUND lanes also expose a backend-gated ready audio architecture pack for planning and adapter work:
+
+`librosa`, `audioread`, `pydub`, `scipy`, `resampy`, `pyloudnorm`, `audioflux`, `music21`, `pretty_midi`, `mido`, `noisereduce`, `mir_eval`, `pydub_effects`, `ebu_r128_pyloudnorm`, and existing companion `signalsmith_stretch`.
+
+`server/ready-audio-adapters` gives these audio/music tools a backend adapter contract and gateway call path with `dry_run` and `bounded_execution` adapter modes, private manifests, result schemas, and QA checks. `pedalboard` is deliberately visible but blocked by license/commercial-use review. These entries do not change the fixed 16-tool Track B handoff set, do not approve frontend execution, and do not mark any tool product-ready.
+
 ## Visible Gated Lanes
 
 The registry keeps incomplete lanes visible:
 
 - Qwen provider reasoning and Qwen visual understanding are `blocked_by_provider_lane`.
 - SOUND CPU semantics are `dry_run_only` while consuming Track B audio tools where approved.
-- Track A native container tools are visible but gated, preserving GStreamer/MKVToolNix/GPAC ownership and the Track B FFmpeg/ffprobe boundary.
+- Track A native container capabilities are visible as backend-gated agent/tool-call candidates, preserving ownership and the Track B FFmpeg/ffprobe boundary.
 - Storage and credit gates are `blocked_by_storage_billing` until deployed storage, tool cost persistence, wallet settlement, and billing QA evidence exists.
 
 ## Hard Guardrails
@@ -82,6 +93,8 @@ The smoke checks:
 - all registry records have unique skill IDs and tool mappings
 - the 16-tool Track B handoff set is represented
 - OCR/audio/color/render/transcript queries return expected tools and gates
-- Qwen, SOUND, and Track A lanes remain visible but gated
+- Qwen and SOUND lanes remain visibly gated
+- Track A native capability queries resolve `streamer_render_pipeline_support`, `mkvtoolnix_container_validation`, and `gpac_mp4box_packaging_validation` as backend-gated candidates without unlocking beta/production
+- the ready audio architecture pack resolves through audio and SOUND lanes while Pedalboard remains blocked
 - product-ready local OSS stays `0`
 - external beta/production is not unlocked by the registry

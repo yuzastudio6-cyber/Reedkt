@@ -4,6 +4,10 @@ import { getChatPlanningCards } from '../../src/lib/chat-planning-flow'
 import { createMockEditPlan } from '../../src/lib/mock-planner'
 import { validateMockEditPlan } from '../../src/lib/planner-validation'
 import { runPlannerRegression } from '../../src/lib/planner-regression'
+import {
+  createToolCallIntentPlan,
+  defaultToolForCapability,
+} from '../../src/lib/tool-call-intent-planner'
 import { defaultChatPlannerInput } from '../../src/components/editor/chatNativeData'
 
 const input = {
@@ -56,6 +60,48 @@ assert.equal(opencolorio?.toolLabel, 'OpenColorIO', 'OpenColorIO should use prof
 const ffmpeg = toolCallIntentPlan?.intents.find((intent) => intent.toolId === 'ffmpeg')
 assert.equal(ffmpeg?.toolLabel, 'FFmpeg', 'FFmpeg should use professional display casing')
 
+const nativePlan = createToolCallIntentPlan({
+  includeBaselineIntents: false,
+  requestedCapabilities: [
+    'streamer_render_pipeline_support',
+    'mkvtoolnix_container_validation',
+    'gpac_mp4box_packaging_validation',
+  ],
+})
+
+assert.equal(nativePlan.intents.length, 3, 'requested Track A capabilities should produce three explicit tool-call intents')
+assert.deepEqual(
+  nativePlan.intents.map((intent) => intent.capabilityId),
+  ['streamer_render_pipeline_support', 'mkvtoolnix_container_validation', 'gpac_mp4box_packaging_validation'],
+  'requested Track A capabilities should preserve exact agent-facing IDs',
+)
+assert.deepEqual(
+  nativePlan.intents.map((intent) => intent.toolId),
+  ['gstreamer', 'mkvtoolnix', 'gpac_mp4box'],
+  'requested Track A capabilities should route to the expected backend tool IDs',
+)
+assert.ok(
+  nativePlan.intents.every((intent) => intent.lane === 'track_a_native_container'),
+  'requested Track A capabilities should stay in the Track A native-container lane',
+)
+assert.ok(
+  nativePlan.intents.every((intent) => intent.readinessState === 'ready_for_backend_execution'),
+  'requested Track A capabilities should be backend-gated ready',
+)
+assert.ok(
+  nativePlan.intents.every((intent) => intent.frontendExecutionAllowed === false),
+  'requested Track A capabilities must never be frontend-executable',
+)
+assert.equal(
+  defaultToolForCapability('gpac_mp4box_packaging_validation'),
+  'gpac_mp4box',
+  'MP4 packaging validation should have a default backend tool route',
+)
+assert.ok(
+  !/GStreamer|MKVToolNix|GPAC|MP4Box/.test(nativePlan.summary),
+  'guided native capability summaries should avoid raw tool names',
+)
+
 const transcript = toolCallIntentPlan?.intents.find((intent) => intent.toolId === 'faster_whisper')
 assert.equal(transcript?.readinessState, 'blocked_by_owner_approval', 'faster-whisper should preserve its owner/model approval blocker')
 
@@ -79,10 +125,10 @@ const cards = getChatPlanningCards({
 
 const card = cards.find((item) => item.id === 'tool_call_intents')
 assert.ok(card, 'chat planning cards should include tool_call_intents')
-assert.equal(card?.label, 'Planned tool calls', 'tool-call intent card should use user-facing planned-call label')
+assert.equal(card?.label, 'Planned edit work', 'tool-call intent card should use edit-activity language in guided chat')
 assert.equal(card?.phase, 'credits_approval', 'tool-call intent card should appear before approval/credits')
 assert.equal(card?.requiredBeforeApproval, false, 'tool-call intent card should inform approval without blocking setup')
-assert.ok(card?.summary.includes('planned tool call'), 'tool-call intent card should summarize planned calls')
+assert.ok(card?.summary.includes('planned edit activit'), 'tool-call intent card should summarize planned edit activities')
 
 console.log(JSON.stringify({
   ok: true,

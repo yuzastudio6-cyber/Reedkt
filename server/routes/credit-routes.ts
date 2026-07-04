@@ -4,7 +4,7 @@ import { requireIdempotency } from '../middleware/idempotency'
 import { createCreditGateService } from '../services/credit-gate-service'
 import { approveCreditEstimateSchema, reserveCreditsSchema } from '../validation/credit-schemas'
 import { validateBody } from '../validation/common-schemas'
-import { asyncRoute, getRouteParam, getServiceContext, sendOk } from './route-helpers'
+import { asyncRoute, getIdempotencyKey, getRouteParam, getServiceContext, sendOk } from './route-helpers'
 
 export function createCreditRoutes(): Router {
   const router = Router()
@@ -23,6 +23,7 @@ export function createCreditRoutes(): Router {
     const result = await createCreditGateService(getServiceContext(request)).reserveCredits({
       ...body,
       creditEstimateId: getRouteParam(request, 'creditEstimateId'),
+      idempotencyKey: getIdempotencyKey(request),
     })
     sendOk(response, { creditReservation: result.creditReservation }, result.warnings, 201)
   }))

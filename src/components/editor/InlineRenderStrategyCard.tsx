@@ -13,15 +13,15 @@ type InlineRenderStrategyCardProps = {
 }
 
 const strategyLabels: Record<RenderStrategyType, string> = {
-  ai_video_then_remotion: 'AI video then Remotion',
-  gpt_image_then_remotion: 'GPT-Image then Remotion',
+  ai_video_then_remotion: 'AI video then renderer',
+  gpt_image_then_remotion: 'Generated image then renderer',
   hybrid_generation_then_remotion: 'Hybrid',
   none: 'None',
-  open_source_tool_then_remotion: 'Tool then Remotion',
+  open_source_tool_then_remotion: 'Controlled work then renderer',
   qa_tool_only: 'QA only',
-  remotion_only: 'Remotion only',
+  remotion_only: 'Renderer only',
   remotion_then_worker_postprocess: 'Worker postprocess',
-  worker_preprocess_then_remotion: 'Worker preprocess',
+  worker_preprocess_then_remotion: 'Worker prep then renderer',
 }
 
 function label(value: string | undefined) {
@@ -33,10 +33,10 @@ function yesNo(value: boolean) {
 }
 
 function strategyBadge(item: RenderStrategyPlanItem) {
-  if (item.strategyType === 'remotion_only') return 'Remotion only'
-  if (item.strategyType === 'gpt_image_then_remotion') return 'GPT-Image then Remotion'
-  if (item.strategyType === 'open_source_tool_then_remotion') return 'Tool then Remotion'
-  if (item.strategyType === 'ai_video_then_remotion') return 'AI video then Remotion'
+  if (item.strategyType === 'remotion_only') return 'Renderer only'
+  if (item.strategyType === 'gpt_image_then_remotion') return 'Generated image then renderer'
+  if (item.strategyType === 'open_source_tool_then_remotion') return 'Controlled work then renderer'
+  if (item.strategyType === 'ai_video_then_remotion') return 'AI video then renderer'
   if (item.strategyType === 'hybrid_generation_then_remotion') return 'Hybrid'
   if (item.strategyType === 'worker_preprocess_then_remotion') return 'Worker preprocess'
   if (item.strategyType === 'remotion_then_worker_postprocess') return 'Worker postprocess'
@@ -69,14 +69,14 @@ export function InlineRenderStrategyCard({ descriptor, plan }: InlineRenderStrat
       compactSummary={(
         <div className="compact-summary-row">
           <span className="compact-summary-chip">{renderStrategyPlan.items.length} items</span>
-          <span className="compact-summary-chip">{renderStrategyPlan.remotionCapabilitiesUsed.length} Remotion caps</span>
-          <span className="compact-summary-chip">{renderStrategyPlan.openSourceToolsUsed.length} tools</span>
+          <span className="compact-summary-chip">{renderStrategyPlan.remotionCapabilitiesUsed.length} renderer caps</span>
+          <span className="compact-summary-chip">{renderStrategyPlan.openSourceToolsUsed.length} controlled supports</span>
           <span className="compact-summary-chip">no real execution</span>
         </div>
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Render intelligence"
-      helper="ReeditPro decides whether Remotion can build a visual directly, whether GPT-Image-2 should create assets, whether open-source tools should generate maps/charts/screenshots, or whether AI video is actually needed."
+      helper="ReeditPro decides whether the renderer can build a visual directly, whether generated images should create assets, whether controlled edit work should prepare exact visuals, or whether AI video is actually needed."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Render strategy"
@@ -125,23 +125,23 @@ export function InlineRenderStrategyCard({ descriptor, plan }: InlineRenderStrat
                 <Badge accent={item.tierAllowed.basic ? 'success' : 'violet'}>{tierText(item.tierAllowed)}</Badge>
               </div>
               <div className="render-strategy-meta">
-                <span><strong>GPT-Image</strong>{yesNo(item.needsGptImage)}</span>
+                <span><strong>Generated image</strong>{yesNo(item.needsGptImage)}</span>
                 <span><strong>AI video</strong>{yesNo(item.needsAiVideo)}</span>
-                <span><strong>Open-source tool</strong>{yesNo(item.needsOpenSourceTool)}</span>
+                <span><strong>Controlled support</strong>{yesNo(item.needsOpenSourceTool)}</span>
                 <span><strong>Worker preprocess</strong>{yesNo(item.needsWorkerPreprocess)}</span>
                 <span><strong>Worker postprocess</strong>{yesNo(item.needsWorkerPostprocess)}</span>
-                <span><strong>Remotion final</strong>{yesNo(item.remotionOwnsFinalComposition)}</span>
+                <span><strong>Renderer final</strong>{yesNo(item.remotionOwnsFinalComposition)}</span>
               </div>
               <div className="understanding-chip-row">
                 {item.selectedRemotionCapabilities.slice(0, 6).map((capability) => (
                   <span className="remotion-capability-list" key={capability}>{label(capability)}</span>
                 ))}
-                {item.selectedOpenSourceTools.map((toolId) => (
-                  <span className="tool-id-list" key={toolId}>{label(toolId)}</span>
-                ))}
-                {item.selectedProviderModels.map((model) => (
-                  <span className="provider-model-list" key={model}>{label(model)}</span>
-                ))}
+                {item.selectedOpenSourceTools.length > 0 && (
+                  <span className="tool-id-list">{item.selectedOpenSourceTools.length} controlled support path{item.selectedOpenSourceTools.length === 1 ? '' : 's'}</span>
+                )}
+                {item.selectedProviderModels.length > 0 && (
+                  <span className="provider-model-list">{item.selectedProviderModels.length} generation handoff{item.selectedProviderModels.length === 1 ? '' : 's'}</span>
+                )}
               </div>
               <p>{item.reason}</p>
               {item.fallbackStrategyType && (

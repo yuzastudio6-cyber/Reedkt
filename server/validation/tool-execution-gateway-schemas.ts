@@ -1,6 +1,8 @@
 import { z } from 'zod'
+import { readyAudioAdapterExecutionModeSchema, readyAudioAdapterToolIdSchema } from '../ready-audio-adapters'
 import { trackBAdapterExecutionModeSchema, trackBAdapterToolIdSchema } from '../trackb-adapters'
 import { PRODUCTION_TOOL_IDS, type ProductionToolId } from '../tool-registry'
+import { productionToolExecutionReadinessGateSchema } from './beta-readiness-schemas'
 import { idSchema } from './common-schemas'
 
 const productionToolIdSchema = z.enum(PRODUCTION_TOOL_IDS as unknown as [ProductionToolId, ...ProductionToolId[]])
@@ -21,10 +23,26 @@ const executionModeSchema = z.enum([
 ])
 
 const adapterSchema = z.enum([
+  'cpu_analysis_worker_media_audio_extract',
+  'cpu_analysis_worker_media_keyframes',
+  'cpu_analysis_worker_media_probe',
+  'cpu_analysis_worker_media_proxy',
+  'cpu_analysis_worker_media_representative_frames',
+  'cpu_analysis_worker_audio_metadata',
+  'cpu_analysis_worker_color_metadata',
+  'cpu_analysis_worker_smart_cut_timeline',
   'cpu_analysis_worker_placeholder',
   'gpu_ai_worker_placeholder',
+  'render_worker_caption_metadata',
+  'render_worker_final_render_metadata',
   'render_worker_placeholder',
+  'qa_worker_caption_metadata',
+  'qa_worker_final_render_qa_metadata',
   'qa_worker_placeholder',
+  'tool_readiness_worker_core_checks',
+  'tool_readiness_worker_streamer_render_pipeline_support',
+  'tool_readiness_worker_mkvtoolnix_container_validation',
+  'tool_readiness_worker_gpac_mp4box_packaging_validation',
   'tool_readiness_worker_placeholder',
 ])
 
@@ -85,6 +103,8 @@ export const toolExecutionGatewayDispatchSchema = z.object({
   adapterId: adapterSchema.optional(),
   trackBAdapterToolId: trackBAdapterToolIdSchema.optional(),
   trackBAdapterExecutionMode: trackBAdapterExecutionModeSchema.optional(),
+  readyAudioAdapterToolId: readyAudioAdapterToolIdSchema.optional(),
+  readyAudioAdapterExecutionMode: readyAudioAdapterExecutionModeSchema.optional(),
   requestedToolIds: z.array(productionToolIdSchema).min(1),
   requestedRecipeIds: z.array(idSchema).default([]),
   artifactReferences: z.array(z.object({
@@ -97,6 +117,8 @@ export const toolExecutionGatewayDispatchSchema = z.object({
   renderMode: z.enum(['preview', 'final_export', 'qa_probe']).optional(),
   requiredQualityGateIds: z.array(idSchema).optional(),
   requiredQualityGateTypes: z.array(qualityGateTypeSchema).optional(),
+  productionReadinessEvidencePacketId: idSchema.optional(),
+  productionReadinessEvidence: productionToolExecutionReadinessGateSchema.optional(),
   attempt: z.number().int().positive().default(1),
   maxAttempts: z.number().int().positive().default(1),
   metadata: z.record(z.string(), z.unknown()).optional(),

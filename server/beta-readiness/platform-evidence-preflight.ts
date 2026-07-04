@@ -49,11 +49,32 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       ['create table if not exists public.tool_cost_wallet_settlements', 'create or replace function public.settle_tool_cost_event', 'credit_ledger_entries', 'service_fee_included', 'stripe_call_attempted'],
       'Deploy and verify transactional wallet spend/release/refund settlement in staging or production.',
     ),
+    migrationFileCheck(
+      'tool_cost_wallet_settlement_state_rpc_source_present',
+      'tool cost wallet settlement state-update RPC source is present',
+      'supabase/migrations/20260703234354_wallet_settlement_state_updates.sql',
+      ['create or replace function public.settle_tool_cost_event', 'cached_reserved_credits', 'spent_credits', 'released_credits', 'refunded_credits', 'wallet_state_updated'],
+      'Deploy and verify wallet cached-balance and reservation state movement in staging or production.',
+    ),
+    migrationFileCheck(
+      'credit_reservation_hold_rpc_source_present',
+      'credit reservation hold RPC source is present',
+      'supabase/migrations/20260703232842_credit_reservation_hold_rpc.sql',
+      ['create or replace function public.reserve_credit_hold', 'credit_wallets', 'credit_reservations', 'credit_ledger_entries', 'service_fee_included', 'stripe_call_attempted'],
+      'Deploy and verify transactional credit reservation hold in staging or production.',
+    ),
+    sourceFileCheck(
+      'credit_reservation_hold_rpc_sql_smoke_present',
+      'credit reservation hold RPC local SQL smoke is present',
+      'server/smoke/credit-reservation-hold-rpc-sql-smoke.ts',
+      ['reserve_credit_hold', 'cached_available_credits', 'cached_reserved_credits', 'reservationRpcServiceRoleOnly'],
+      'Run the SQL smoke against a disposable local Postgres database, then repeat equivalent checks against staging Supabase.',
+    ),
     sourceFileCheck(
       'tool_cost_wallet_settlement_rpc_sql_smoke_present',
       'tool cost wallet settlement RPC local SQL smoke is present',
       'server/smoke/tool-cost-wallet-settlement-rpc-sql-smoke.ts',
-      ['settle_tool_cost_event', 'credit_ledger_entries', 'service_fee_included', 'stripe_call_attempted', 'relrowsecurity'],
+      ['settle_tool_cost_event', 'credit_ledger_entries', 'cached_reserved_credits', 'spent_credits', 'released_credits', 'refunded_credits', 'relrowsecurity'],
       'Run the SQL smoke against a disposable local Postgres database, then repeat equivalent checks against staging Supabase.',
     ),
     sourceFileCheck(
@@ -74,7 +95,7 @@ export function buildBetaPlatformEvidencePreflight(context: ServiceContext): Bet
       'backend_evidence_routes_present',
       'Backend beta readiness evidence routes are present',
       'server/routes/beta-readiness-routes.ts',
-      ['/v1/beta-readiness/evidence', '/v1/beta-readiness/evidence/core-real-check', '/v1/beta-readiness/platform-billing-qa', '/v1/beta-readiness/platform-deployed-evidence/verify'],
+      ['/v1/beta-readiness/evidence', '/v1/beta-readiness/evidence/core-real-check', '/v1/beta-readiness/platform-billing-qa', '/v1/beta-readiness/platform-credit-reservation-hold-qa', '/v1/beta-readiness/platform-deployed-evidence/verify'],
       'Exercise the routes against staging with authenticated users and service-role persistence.',
     ),
     sourceFileCheck(

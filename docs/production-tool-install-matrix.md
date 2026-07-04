@@ -17,9 +17,20 @@ Milestone 2 production registry coverage now includes these server-only `Product
 - Core media/timeline/render: `ffmpeg`, `ffprobe`, `pyav`, `opentimelineio`, `hyperframe`, `remotion`, `libass`, `sharp`, `duckdb`, `polars`.
 - Speech, transcript, OCR, scene, and visual analysis: `faster_whisper`, `whisper_cpp`, `paddleocr`, `pyscenedetect`, `opencv`, `mediapipe`, `kornia`.
 - Background removal, masks, color, image, and finishing: `birefnet`, `sam2`, `transparent_background`, `rembg`, `opencolorio`, `openimageio`.
-- Audio cleanup, audio analysis, music stretch, and source separation: `deepfilternet`, `rnnoise`, `demucs`, `librosa`, `audioflux`, `signalsmith_stretch`, `soundtouch`, `rubber_band`, `essentia`.
+- Audio cleanup, audio analysis, MIR/MIDI support, music stretch, and source separation: `deepfilternet`, `rnnoise`, `demucs`, `librosa`, `audioread`, `pydub`, `scipy`, `resampy`, `pyloudnorm`, `audioflux`, `music21`, `pretty_midi`, `mido`, `noisereduce`, `pedalboard`, `mir_eval`, `pydub_effects`, `ebu_r128_pyloudnorm`, `signalsmith_stretch`, `soundtouch`, `rubber_band`, `essentia`.
 - Enhancement, interpolation, motion graphics, browser capture, maps, charts, and future visual layers: `real_esrgan`, `film`, `pixijs`, `three_js`, `babylon_js`, `lottie`, `playwright`, `maplibre`, `turf`, `d3`, `echarts`, `vega_lite`, `deck_gl`, `cesium_js`, `konva`, `vapoursynth`.
 - Evaluation only: `revideo`.
+
+## Ready Audio Architecture Addendum
+
+The ready-audio adapter pack adds a backend-gated architecture path for the requested audio/music tools without changing package installation state. It is not an install manifest and does not approve frontend execution, live media processing, external beta, paid production, or product-ready local OSS.
+
+| Tool group | Tools | Install status | Architecture status |
+| --- | --- | --- | --- |
+| Audio feature/timing/loudness analysis | `librosa`, `audioread`, `scipy`, `resampy`, `pyloudnorm`, `audioflux`, `ebu_r128_pyloudnorm` | `not_installed_by_m0` | Ready-audio backend adapter contracts, private manifests, QA checks, and gateway call path. |
+| Simple cleanup/effects preparation | `pydub`, `noisereduce`, `pydub_effects` | `not_installed_by_m0` | Backend-gated adapter candidates; no final mix, mux, export, or browser execution. |
+| Music/MIDI/MIR analysis and QA | `music21`, `pretty_midi`, `mido`, `mir_eval` | `not_installed_by_m0` | Backend-gated adapter candidates; `mir_eval` remains QA-worker owned. |
+| Effects license review | `pedalboard` | `evaluation_only` | Visible but blocked pending owner/license review. |
 
 ## Matrix
 

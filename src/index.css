@@ -4744,6 +4744,102 @@ li {
   border-color: rgba(16, 185, 129, 0.28);
 }
 
+.edit-activity-overview-card {
+  border-color: rgba(34, 197, 94, 0.32);
+}
+
+.edit-activity-card-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.edit-activity-card {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.edit-activity-card-tool_plan,
+.edit-activity-card-blocker_next_action,
+.edit-activity-card-qa_summary {
+  grid-column: 1 / -1;
+}
+
+.edit-activity-card-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.edit-activity-card-heading h4,
+.edit-activity-item strong {
+  color: var(--rp-text-primary);
+}
+
+.edit-activity-card-heading h4 {
+  margin: 0;
+}
+
+.edit-activity-card p,
+.edit-activity-item span,
+.edit-activity-item em,
+.edit-activity-next-action {
+  color: var(--rp-text-muted);
+}
+
+.edit-activity-item-list {
+  display: grid;
+  gap: 8px;
+}
+
+.edit-activity-item {
+  background: var(--rp-surface-3);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: 4px;
+  padding: 9px;
+}
+
+.edit-activity-item em {
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.edit-activity-next-action {
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.18);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 9px;
+}
+
+.edit-activity-next-action strong {
+  color: var(--rp-text-primary);
+}
+
+.edit-activity-developer-details {
+  border-top: 1px solid var(--rp-border-subtle);
+  color: var(--rp-text-secondary);
+  padding-top: 8px;
+}
+
+.edit-activity-developer-details summary {
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 .tool-strategy-summary-grid {
   display: grid;
   gap: 9px;
@@ -9332,6 +9428,7 @@ li {
   .trim-review-summary-grid,
   .credit-estimate-summary,
   .credit-asset-summary-grid,
+  .edit-activity-card-grid,
   .segment-plan-meta,
   .qa-summary-grid,
   .prompt-plan-meta,

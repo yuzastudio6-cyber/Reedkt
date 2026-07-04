@@ -58,6 +58,12 @@ RP-EDITBRIEF-20 accepts the internal testing stack for owner review and repeated
 
 Next action: owner review or explicit PR-ready/merge hygiene. External beta, real-user-media beta, and paid production remain conditional on their separate gates.
 
+## RP-EDITBRIEF-21 Internal Testing Completion Audit
+
+RP-EDITBRIEF-21 closes the internal-testing milestone chain with an auditable completion record. It confirms RP-EDITBRIEF-02 through RP-EDITBRIEF-20 are represented, that the Edit Brief stack is ready for repeated internal mock testing, and that all public-release gates remain explicit rather than hidden. It does not mark the PR ready or merge it by itself.
+
+Next action: explicit PR-ready or merge hygiene by user request.
+
 ## Qwen Runtime Dependency
 
 RP-QWEN-00 is complete as an audit-only package for future reasoning runtime readiness. Edit Brief Marker Chat remains deterministic mock/local until a later owner-approved Qwen milestone. No Qwen call, provider call, Secret Manager inspection, `gcloud`, Supabase CLI, route wiring, Marker Chat runtime change, worker, render/export/progress, credit action, staging, commit, or cleanup occurred.

@@ -200,9 +200,11 @@ for (const phrase of [
   '--require-accepted-proof',
   'outputJsonSha256',
   'korniaFirstPrivateProofSequenceCommand',
-  'privateProofSequenceCommandsByTool',
+  'privateContainerProofSequenceCommandsByTool',
+  'privateHostProofSequenceCommandsByTool',
   'sequenceCommandForTool',
   'allGpuModelToolsHaveExactPrivateProofSequenceCommand',
+  'allGpuModelToolsHaveExactContainerPrivateProofSequenceCommand',
   '--write-records cannot be combined with --attempt-local-runtime',
   '--write-records cannot be combined with --detect-host',
   '--result-out must stay under .local-artifacts/',
@@ -237,41 +239,96 @@ function checkReport(label, report) {
   if (!String(report.interfaces?.korniaFirstPrivateProofSequenceCommand ?? '').includes('--attempt-local-runtime')) {
     fail(`${label}_kornia_sequence_not_runtime_attempt`)
   }
+  if (!String(report.interfaces?.korniaFirstPrivateProofSequenceCommand ?? '').includes('--runtime-backend docker_container')) {
+    fail(`${label}_kornia_sequence_missing_container_backend`)
+  }
+  if (!String(report.interfaces?.korniaFirstPrivateProofSequenceCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
+    fail(`${label}_kornia_sequence_missing_canonical_container_image`)
+  }
+  if (!String(report.interfaces?.korniaFirstPrivateProofSequenceCommand ?? '').includes('--runtime-container-platform linux/amd64')) {
+    fail(`${label}_kornia_sequence_missing_container_platform`)
+  }
   if (!String(report.interfaces?.korniaFirstPrivateProofSequenceCommand ?? '').includes('--source-image <private-approved-frame.png>')) {
     fail(`${label}_kornia_sequence_missing_private_source_image`)
   }
-  const perToolCommands = report.interfaces?.privateProofSequenceCommandsByTool ?? {}
+  const perToolCommands =
+    report.interfaces?.privateContainerProofSequenceCommandsByTool ?? {}
+  const hostPerToolCommands =
+    report.interfaces?.privateHostProofSequenceCommandsByTool ?? {}
   for (const tool of gpuModelTools) {
     const command = String(perToolCommands[tool] ?? '')
-    if (!command) fail(`${label}_missing_private_proof_sequence_command:${tool}`)
+    const hostCommand = String(hostPerToolCommands[tool] ?? '')
+    if (!command) fail(`${label}_missing_container_private_proof_sequence_command:${tool}`)
+    if (!hostCommand) fail(`${label}_missing_host_private_proof_sequence_command:${tool}`)
     if (!command.includes('--attempt-local-runtime')) {
-      fail(`${label}_private_proof_sequence_missing_attempt_runtime:${tool}`)
+      fail(`${label}_container_private_proof_sequence_missing_attempt_runtime:${tool}`)
+    }
+    if (!hostCommand.includes('--attempt-local-runtime')) {
+      fail(`${label}_host_private_proof_sequence_missing_attempt_runtime:${tool}`)
+    }
+    if (!command.includes('--runtime-backend docker_container')) {
+      fail(`${label}_container_private_proof_sequence_missing_backend:${tool}`)
+    }
+    if (!command.includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
+      fail(`${label}_container_private_proof_sequence_missing_canonical_image:${tool}`)
+    }
+    if (!command.includes('--runtime-container-platform linux/amd64')) {
+      fail(`${label}_container_private_proof_sequence_missing_platform:${tool}`)
+    }
+    if (hostCommand.includes('--runtime-backend docker_container')) {
+      fail(`${label}_host_private_proof_sequence_unexpected_container_backend:${tool}`)
+    }
+    if (hostCommand.includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
+      fail(`${label}_host_private_proof_sequence_unexpected_container_image:${tool}`)
     }
     if (!command.includes(`--tool ${tool}`)) {
-      fail(`${label}_private_proof_sequence_missing_tool:${tool}`)
+      fail(`${label}_container_private_proof_sequence_missing_tool:${tool}`)
+    }
+    if (!hostCommand.includes(`--tool ${tool}`)) {
+      fail(`${label}_host_private_proof_sequence_missing_tool:${tool}`)
     }
     if (!command.includes(`.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${tool}>`)) {
-      fail(`${label}_private_proof_sequence_missing_local_output_dir:${tool}`)
+      fail(`${label}_container_private_proof_sequence_missing_local_output_dir:${tool}`)
+    }
+    if (!hostCommand.includes(`.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${tool}>`)) {
+      fail(`${label}_host_private_proof_sequence_missing_local_output_dir:${tool}`)
     }
     if (!command.includes('--detect-host')) {
-      fail(`${label}_private_proof_sequence_missing_detect_host:${tool}`)
+      fail(`${label}_container_private_proof_sequence_missing_detect_host:${tool}`)
+    }
+    if (!hostCommand.includes('--detect-host')) {
+      fail(`${label}_host_private_proof_sequence_missing_detect_host:${tool}`)
     }
     if (!command.includes('--require-host-eligible')) {
-      fail(`${label}_private_proof_sequence_missing_host_gate:${tool}`)
+      fail(`${label}_container_private_proof_sequence_missing_host_gate:${tool}`)
+    }
+    if (!hostCommand.includes('--require-host-eligible')) {
+      fail(`${label}_host_private_proof_sequence_missing_host_gate:${tool}`)
     }
     if (!command.includes('--require-accepted-proof')) {
-      fail(`${label}_private_proof_sequence_missing_accepted_proof_gate:${tool}`)
+      fail(`${label}_container_private_proof_sequence_missing_accepted_proof_gate:${tool}`)
+    }
+    if (!hostCommand.includes('--require-accepted-proof')) {
+      fail(`${label}_host_private_proof_sequence_missing_accepted_proof_gate:${tool}`)
     }
     if (sourceImageRequiredTools.has(tool)) {
       if (!command.includes('--source-image <private-approved-frame.png>')) {
-        fail(`${label}_private_proof_sequence_missing_source_image:${tool}`)
+        fail(`${label}_container_private_proof_sequence_missing_source_image:${tool}`)
+      }
+      if (!hostCommand.includes('--source-image <private-approved-frame.png>')) {
+        fail(`${label}_host_private_proof_sequence_missing_source_image:${tool}`)
       }
     } else if (command.includes('--source-image')) {
-      fail(`${label}_private_proof_sequence_unnecessary_source_image:${tool}`)
+      fail(`${label}_container_private_proof_sequence_unnecessary_source_image:${tool}`)
+    } else if (hostCommand.includes('--source-image')) {
+      fail(`${label}_host_private_proof_sequence_unnecessary_source_image:${tool}`)
     }
     const toolSpecificFlag = toolSpecificPrivateProofFlagByTool[tool]
     if (toolSpecificFlag && !command.includes(toolSpecificFlag)) {
-      fail(`${label}_private_proof_sequence_missing_tool_specific_flag:${tool}`)
+      fail(`${label}_container_private_proof_sequence_missing_tool_specific_flag:${tool}`)
+    }
+    if (toolSpecificFlag && !hostCommand.includes(toolSpecificFlag)) {
+      fail(`${label}_host_private_proof_sequence_missing_tool_specific_flag:${tool}`)
     }
   }
   if (!String(report.interfaces?.defaultKorniaHarnessCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
@@ -294,7 +351,11 @@ function checkReport(label, report) {
     'requireHostEligibleFlagSupported',
     'requireAcceptedProofFlagSupported',
     'allGpuModelToolsHaveExactPrivateProofSequenceCommand',
+    'allGpuModelToolsHaveExactContainerPrivateProofSequenceCommand',
+    'allGpuModelToolsHaveExactHostPrivateProofSequenceCommand',
     'perToolPrivateProofSequenceCommandsPrepared',
+    'perToolContainerPrivateProofSequenceCommandsPrepared',
+    'perToolHostPrivateProofSequenceCommandsPrepared',
   ]) {
     if (report.sequencePolicy?.[key] !== true) {
       fail(`${label}_sequence_policy_${key}_not_true`)

@@ -273,10 +273,18 @@ function privateProofSequenceInputFlags(
 
 function sequenceCommandForTool(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  options: { container: boolean },
 ): string {
   return [
     'npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence --',
     '--attempt-local-runtime',
+    ...(options.container
+      ? [
+          '--runtime-backend docker_container',
+          `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+          '--runtime-container-platform linux/amd64',
+        ]
+      : []),
     `--tool ${toolId}`,
     `--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>`,
     ...privateProofSequenceInputFlags(toolId),
@@ -287,16 +295,18 @@ function sequenceCommandForTool(
 }
 
 function sequenceCommand(): string {
-  return sequenceCommandForTool('kornia')
+  return sequenceCommandForTool('kornia', { container: true })
 }
 
-function privateProofSequenceCommandsByTool(): Record<
+function privateProofSequenceCommandsByTool(options: {
+  container: boolean
+}): Record<
   AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   string
 > {
   return Object.fromEntries(
     AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.map(
-      (toolId) => [toolId, sequenceCommandForTool(toolId)],
+      (toolId) => [toolId, sequenceCommandForTool(toolId, options)],
     ),
   ) as Record<AiGraphicsExternalAgentGpuModelControlledAdapterToolId, string>
 }
@@ -397,7 +407,10 @@ function buildReport(input: SequenceArgs) {
       writeRecordsCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --write-records',
       korniaFirstPrivateProofSequenceCommand: sequenceCommand(),
-      privateProofSequenceCommandsByTool: privateProofSequenceCommandsByTool(),
+      privateContainerProofSequenceCommandsByTool:
+        privateProofSequenceCommandsByTool({ container: true }),
+      privateHostProofSequenceCommandsByTool:
+        privateProofSequenceCommandsByTool({ container: false }),
       directHarnessCommand: directHarnessCommand(input),
       defaultKorniaHarnessCommand: defaultKorniaCommand(),
       bridgeCommand: privateResultPath ? bridgeCommand(privateResultPath) : null,
@@ -413,6 +426,8 @@ function buildReport(input: SequenceArgs) {
       oneToolPerPrivateProofSequence: true,
       defaultTool: 'kornia',
       allGpuModelToolsHaveExactPrivateProofSequenceCommand: true,
+      allGpuModelToolsHaveExactContainerPrivateProofSequenceCommand: true,
+      allGpuModelToolsHaveExactHostPrivateProofSequenceCommand: true,
       defaultToolReason:
         'Kornia requires CUDA plus one private approved frame and no private model/checkpoint file, so it is the fastest honest GPU/model unlock candidate.',
       explicitRuntimeAttemptRequired: true,
@@ -433,6 +448,8 @@ function buildReport(input: SequenceArgs) {
       requireHostEligibleFlagSupported: true,
       requireAcceptedProofFlagSupported: true,
       perToolPrivateProofSequenceCommandsPrepared: true,
+      perToolContainerPrivateProofSequenceCommandsPrepared: true,
+      perToolHostPrivateProofSequenceCommandsPrepared: true,
     },
     counts: {
       requestedGpuModelTools: 1,
@@ -564,9 +581,13 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 
 \`${report.interfaces.korniaFirstPrivateProofSequenceCommand}\`
 
-## Per-Tool Private Proof Sequence Commands
+## Per-Tool Container Private Proof Sequence Commands
 
-${Object.entries(report.interfaces.privateProofSequenceCommandsByTool).map(([toolId, command]) => `- \`${toolId}\`: \`${command}\``).join('\n')}
+${Object.entries(report.interfaces.privateContainerProofSequenceCommandsByTool).map(([toolId, command]) => `- \`${toolId}\`: \`${command}\``).join('\n')}
+
+## Per-Tool Host Python Private Proof Sequence Commands
+
+${Object.entries(report.interfaces.privateHostProofSequenceCommandsByTool).map(([toolId, command]) => `- \`${toolId}\`: \`${command}\``).join('\n')}
 
 ## Requested Tool Result
 

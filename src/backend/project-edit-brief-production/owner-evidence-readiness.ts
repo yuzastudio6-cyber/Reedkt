@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 export type ProjectEditBriefOwnerEvidenceStatus = 'missing' | 'approved' | 'rejected' | 'waived'
 
 export interface ProjectEditBriefOwnerEvidenceInput {
@@ -52,6 +54,14 @@ export interface ProjectEditBriefOwnerEvidenceSafetyScan {
   findings: string[]
 }
 
+export type ProjectEditBriefOwnerEvidenceParseResult = {
+  success: true
+  intake: ProjectEditBriefOwnerEvidenceIntake
+} | {
+  success: false
+  errors: string[]
+}
+
 export const PROJECT_EDIT_BRIEF_OWNER_EVIDENCE_INPUT_IDS = [
   'canonical_workflow_approval',
   'durable_root_schema_approval',
@@ -72,12 +82,57 @@ const signedUrlPattern = /\b(X-Amz-Signature|X-Goog-Signature|signature=|sig=|si
 const rawPromptPattern = /\b(raw prompt|raw_prompt|unredacted prompt|full prompt transcript|provider prompt)\b/i
 const privateArtifactPattern = /\.(mp4|mov|mkv|webm|avi|wav|mp3|flac|aac|srt|vtt|png|jpe?g|heic|gif|zip|tar|gz|7z)(\?|#|$)/i
 
+const ownerEvidenceInputSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  status: z.string().min(1),
+  owner: z.string().nullable(),
+  evidenceRef: z.string().nullable(),
+  reviewedAt: z.string().nullable(),
+  notes: z.array(z.string()),
+}).strict()
+
+const ownerEvidenceIntakeSchema = z.object({
+  id: z.string().min(1),
+  milestone: z.string().min(1),
+  status: z.string().min(1),
+  decision: z.string().min(1),
+  allowedStatuses: z.array(z.enum(['missing', 'approved', 'rejected', 'waived'])),
+  requiredOwnerInputs: z.array(ownerEvidenceInputSchema),
+  gateState: z.object({
+    readyForRpEditBrief16: z.boolean(),
+    externalBetaAllowed: z.boolean(),
+    realUserMediaBetaAllowed: z.boolean(),
+    paidProductionAllowed: z.boolean(),
+    supabasePersistenceImplementationAllowed: z.boolean(),
+  }).strict(),
+  nextMilestoneWhenComplete: z.string().min(1),
+}).strict()
+
 function hasText(value: string | null | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
 function hasIsoTimestamp(value: string | null | undefined): value is string {
   return hasText(value) && !Number.isNaN(Date.parse(value))
+}
+
+export function parseProjectEditBriefOwnerEvidenceIntake(value: unknown): ProjectEditBriefOwnerEvidenceParseResult {
+  const parsed = ownerEvidenceIntakeSchema.safeParse(value)
+  if (!parsed.success) {
+    return {
+      success: false,
+      errors: parsed.error.issues.map((issue) => {
+        const path = issue.path.length > 0 ? issue.path.join('.') : 'root'
+        return `${path}: ${issue.message}`
+      }),
+    }
+  }
+
+  return {
+    success: true,
+    intake: parsed.data,
+  }
 }
 
 export function evaluateProjectEditBriefOwnerEvidenceReadiness(

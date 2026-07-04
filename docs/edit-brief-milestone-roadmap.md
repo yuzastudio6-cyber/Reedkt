@@ -23,7 +23,8 @@ Status: architecture/docs only. This report maps future `ProjectEditSession` Bri
 17. RP-EDITBRIEF-15C — Owner Evidence Review Packet
 18. RP-EDITBRIEF-15D — Owner Evidence Local Validation
 19. RP-EDITBRIEF-15E — Owner Evidence PR Diff Validation
-20. RP-EDITBRIEF-16 — Production Persistence Implementation Plan
+20. RP-EDITBRIEF-15F — Owner Evidence Schema Validation
+21. RP-EDITBRIEF-16 — Production Persistence Implementation Plan
 
 ## Gate
 
@@ -128,5 +129,11 @@ Next recommended milestone: `RP-EDITBRIEF-15E — Owner Evidence PR Diff Validat
 ## RP-EDITBRIEF-15E — Owner Evidence PR Diff Validation
 
 Status: complete as a source-control hygiene validator only. The milestone adds `check:project-edit-brief-owner-evidence-pr-diff` and a strict mode for the future owner-evidence PR. Strict mode requires the staged diff to update only `docs/project-edit-brief-owner-evidence-intake-template.json`, the readiness evaluator to pass, and the evidence safety scan to pass.
+
+Next recommended milestone: `RP-EDITBRIEF-15F — Owner Evidence Schema Validation`.
+
+## RP-EDITBRIEF-15F — Owner Evidence Schema Validation
+
+Status: complete as strict schema validation only. The milestone adds `parseProjectEditBriefOwnerEvidenceIntake` so malformed intake JSON fails before readiness, safety, or PR-diff validation runs. The checked-in template is schema-valid but remains readiness-blocked because owner evidence is still missing.
 
 Next recommended milestone after the evaluator reports `project_edit_brief_owner_evidence_readiness_passed_ready_for_rp_editbrief_16` on real owner evidence: `RP-EDITBRIEF-16 — Production Persistence Implementation Plan`.

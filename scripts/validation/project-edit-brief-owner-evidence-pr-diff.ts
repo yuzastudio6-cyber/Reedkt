@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import {
   evaluateProjectEditBriefOwnerEvidenceReadiness,
+  parseProjectEditBriefOwnerEvidenceIntake,
   scanProjectEditBriefOwnerEvidenceSafety,
   type ProjectEditBriefOwnerEvidenceIntake,
 } from '../../src/backend/project-edit-brief-production/owner-evidence-readiness'
@@ -72,7 +73,11 @@ function readChangedFiles(args: ParsedArgs): string[] {
 }
 
 function readIntake(): ProjectEditBriefOwnerEvidenceIntake {
-  return JSON.parse(readFileSync(path.resolve(process.cwd(), ownerEvidenceIntakePath), 'utf8')) as ProjectEditBriefOwnerEvidenceIntake
+  const parsed = parseProjectEditBriefOwnerEvidenceIntake(JSON.parse(readFileSync(path.resolve(process.cwd(), ownerEvidenceIntakePath), 'utf8')))
+  if (!parsed.success) {
+    throw new Error(`Owner evidence intake schema validation failed:\n${parsed.errors.join('\n')}`)
+  }
+  return parsed.intake
 }
 
 try {

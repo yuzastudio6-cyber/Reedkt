@@ -36,7 +36,8 @@ This does not create generated B-roll video, does not decode frames, does not ru
 - read-only preflight mode: validates local cache, private cache markers, quota, and pre-existing resources without VM creation
 - execution mode: prompt-scoped L4 latent inference proof with cleanup verification
 - selected GPU: `nvidia_l4`
-- machine type: `g2-standard-4`
+- machine type: `g2-standard-8`
+- source payload/install proof machine type: `g2-standard-4`
 - target zone: `northamerica-northeast2-a`
 - proof VM: `reeditpro-ai-broll-wan-l4-proof`
 - no public IP: required
@@ -55,6 +56,9 @@ The 11H canary uses the approved local Wan Diffusers cache and the approved inte
 - `guidance_scale=1.0`
 - `max_sequence_length=64`
 - deterministic seed `112358`
+- pipeline-load success marker before inference: `REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_OK`
+- latent canary timeout: 90 minutes
+- parallel/offline load hints: `HF_ENABLE_PARALLEL_LOADING=true`, `HF_PARALLEL_LOADING_WORKERS=4`
 
 This may run prompt encoding, one denoising step, and transient latent creation. It must not run VAE decode, frame postprocessing, video encoding, FFmpeg, export, storage writes, generated asset creation, public delivery, signed URLs, Supabase mutation, provider calls, workers, credits, beta, or production.
 

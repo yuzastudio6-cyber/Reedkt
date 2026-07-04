@@ -16,10 +16,22 @@ type PhaseResult = {
   stderrSummary?: string
 }
 
+type GcloudAccountSelection = {
+  account?: string
+  overrideIndexProvided: boolean
+  overrideIndexSource?: 'cli' | 'env'
+  overrideIndex?: number
+  overrideResolved: boolean
+  resolutionFailure?: string
+}
+
 const SPEC = AI_VIDEO_BROLL_GEN_11E_CLOUD_SIDE_CACHE_STAGING_RUNNER
 const CACHE_SPEC = AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC
 
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11E_CLOUD_SIDE_CACHE_STAGING' satisfies typeof SPEC.confirmationEnv
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
 const MODEL_REPOSITORY = 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers' satisfies typeof SPEC.modelRepository
 const DEFAULT_SUMMARY_PATH = path.join('.tmp', 'ai-video-broll-gen-11e-cloud-side-cache-staging-runner.json')
 const PROJECT_ID = 'reeditpro'
@@ -37,6 +49,8 @@ const NEXT_PROMPT_IF_PASSED =
   'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference'
 const NEXT_PROMPT_IF_FAILED =
   'AI-VIDEO-BROLL-GEN-11E-FIX-CLOUD-SIDE-CACHE-STAGING-RUNNER: fix no-GPU Wan private cache staging runner, no inference/no generated video'
+
+let cachedGcloudAccountSelection: GcloudAccountSelection | undefined
 
 function main() {
   const execute = process.argv.includes('--execute')
@@ -598,6 +612,7 @@ function runCommand(
       ...process.env,
       CLOUDSDK_CORE_DISABLE_PROMPTS: '1',
       CLOUDSDK_PYTHON_SITEPACKAGES: '1',
+      ...gcloudAccountEnv(),
     },
     encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 12,
@@ -647,6 +662,7 @@ function buildSummary(input: {
     targetPrivateBucket: TARGET_BUCKET,
     targetPrivatePrefix: TARGET_PREFIX,
     readyMarker: READY_MARKER,
+    accountSelection: accountSelectionOutput(),
     blockers: input.blockers,
     phaseResults: input.phaseResults,
     localModelCacheExpectedFiles: CACHE_SPEC.runtimeEssentialFileCount,
@@ -687,7 +703,96 @@ function buildSummary(input: {
   }
 }
 
+function accountSelectionOutput() {
+  const selection = resolveAccountSelection()
+  return {
+    overrideIndexEnv: GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV,
+    overrideIndexCliFlag: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG,
+    overrideIndexCliFlagAlias: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS,
+    overrideIndexProvided: selection.overrideIndexProvided,
+    overrideIndexSource: selection.overrideIndexSource,
+    overrideIndex: selection.overrideIndex,
+    overrideResolved: selection.overrideResolved,
+    overrideResolutionFailure: selection.resolutionFailure,
+    mutatesLocalGcloudConfig: false,
+  }
+}
+
+function gcloudAccountEnv(): Record<string, string> {
+  const selection = resolveAccountSelection()
+  return {
+    ...(selection.account ? { CLOUDSDK_CORE_ACCOUNT: selection.account } : {}),
+    ...(selection.overrideIndex ? { [GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]: String(selection.overrideIndex) } : {}),
+  }
+}
+
+function resolveAccountSelection(): GcloudAccountSelection {
+  if (cachedGcloudAccountSelection) return cachedGcloudAccountSelection
+
+  const cliIndex = getArgValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG) ?? getArgValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  const envIndex = process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  const rawIndex = cliIndex ?? envIndex
+  const indexSource = cliIndex ? 'cli' : envIndex ? 'env' : undefined
+  if (!rawIndex) {
+    cachedGcloudAccountSelection = {
+      overrideIndexProvided: false,
+      overrideResolved: false,
+    }
+    return cachedGcloudAccountSelection
+  }
+
+  const accountIndex = Number(rawIndex)
+  if (!Number.isInteger(accountIndex) || accountIndex < 1) {
+    cachedGcloudAccountSelection = {
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: Number.isFinite(accountIndex) ? accountIndex : undefined,
+      overrideResolved: false,
+      resolutionFailure: 'invalid_account_index',
+    }
+    return cachedGcloudAccountSelection
+  }
+
+  const result = spawnSync('gcloud', ['auth', 'list', '--format=json'], {
+    cwd: process.cwd(),
+    env: {
+      ...process.env,
+      CLOUDSDK_CORE_DISABLE_PROMPTS: '1',
+    },
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    timeout: 90_000,
+  })
+
+  if (result.status !== 0) {
+    cachedGcloudAccountSelection = {
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_failed',
+    }
+    return cachedGcloudAccountSelection
+  }
+
+  const accounts = parseJson<Array<{ account?: string }>>(String(result.stdout ?? '')) ?? []
+  const account = accounts[accountIndex - 1]?.account?.trim()
+  cachedGcloudAccountSelection = {
+    account,
+    overrideIndexProvided: true,
+    overrideIndexSource: indexSource,
+    overrideIndex: accountIndex,
+    overrideResolved: Boolean(account),
+    resolutionFailure: account ? undefined : 'account_index_not_found',
+  }
+  return cachedGcloudAccountSelection
+}
+
 function getArgValue(name: string): string | undefined {
+  const inlineValue = process.argv.find((arg) => arg.startsWith(`${name}=`))
+  if (inlineValue) return inlineValue.slice(name.length + 1)
+
   const index = process.argv.indexOf(name)
   if (index === -1) return undefined
   return process.argv[index + 1]

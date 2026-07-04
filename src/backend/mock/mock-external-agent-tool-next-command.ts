@@ -121,6 +121,8 @@ export type ExternalAgentToolSoundMusicAudioEvidenceCommand = {
   confirmationEnvRequiredValue: 'true'
   verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime: true
   verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime: true
+  safeEvidenceReviewExecutableNow: true
+  runtimeExecutionAllowedNow: false
   blocksRealProviderWorkerStorageExport: true
   runsProvider: false
   dispatchesWorker: false
@@ -140,6 +142,8 @@ export type ExternalAgentToolSupabaseHarnessEvidenceCommand = {
   confirmationEnvRequiredValue: 'true'
   verifiesLocalConfigBeforeAnyRuntime: true
   verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime: true
+  safeEvidenceReviewExecutableNow: true
+  runtimeExecutionAllowedNow: false
   blocksLiveSupabaseMutation: true
   runsSupabaseCli: false
   runsDocker: false
@@ -158,6 +162,16 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
   generatedLocalFixturePassedClaimed: false,
+  accountSelection: {
+    overrideEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT',
+    overrideIndexEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX',
+    overrideIndexCliFlag: '--account-index',
+    overrideIndexCliFlagAlias: '--gcloud-account-index',
+    mapsToCloudSdkCoreAccount: true,
+    mutatesLocalGcloudConfig: false,
+    printsAccountValue: false,
+    tokenStdoutSuppressed: true,
+  },
   allowedProbeScripts: [
     {
       id: 'execution_gate',
@@ -186,10 +200,21 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
       createsAssets: false,
       purpose: 'read local gcloud session/config diagnostics when auth refresh is still blocked',
     },
+    {
+      id: 'gcloud_account_access_diagnostic',
+      script: 'server/cli/external-agent-gcloud-account-access-diagnostic.ts',
+      liveReadOnly: true,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'read local gcloud account token refresh and ReEditPro read-access status across redacted local accounts',
+    },
   ] satisfies ExternalAgentToolNextCommandAllowedProbe[],
   nextCommandRules: {
     whenExecutionGateAllowsRuntime: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
     whenStaticGateAllowsButQwenLivePreflightFails: 'npm run external-agent-tool-blockers:preflight',
+    whenGcpReadAccessRepairRequired: 'npm run external-agent-gcp-access:repair-plan',
     whenQwenAuthRefreshFails: 'npm run external-agent-gcloud-session:diagnostic',
     whenQwenLivePreflightPassesButExecutionGateBlocked: QWEN2_5_VL_58DX_RESULT_REVIEW_PROMPT,
     whenQwenAuthClearsAndBrollQuotaBlocked: 'npm run external-agent-tool-execution-gate -- --require-go',
@@ -200,6 +225,12 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     whenQwenAuthRefreshFails: {
       required: true,
       reason: 'gcloud_auth_refresh_required_before_downstream_probes',
+      blocksRuntime: true,
+      rerunAfterManualAction: 'npm run external-agent-tool-blockers:preflight',
+    },
+    whenQwenPermissionOrResourceReadFails: {
+      required: true,
+      reason: 'gcloud_account_or_resource_read_access_required_before_runtime',
       blocksRuntime: true,
       rerunAfterManualAction: 'npm run external-agent-tool-blockers:preflight',
     },
@@ -307,6 +338,8 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     confirmationEnvRequiredValue: 'true',
     verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime: true,
     verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime: true,
+    safeEvidenceReviewExecutableNow: true,
+    runtimeExecutionAllowedNow: false,
     blocksRealProviderWorkerStorageExport: true,
     runsProvider: false,
     dispatchesWorker: false,
@@ -325,6 +358,8 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     confirmationEnvRequiredValue: 'true',
     verifiesLocalConfigBeforeAnyRuntime: true,
     verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime: true,
+    safeEvidenceReviewExecutableNow: true,
+    runtimeExecutionAllowedNow: false,
     blocksLiveSupabaseMutation: true,
     runsSupabaseCli: false,
     runsDocker: false,

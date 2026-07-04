@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const ROOT = process.cwd()
@@ -93,16 +94,160 @@ assert.equal(plan.decision, rollup.decision)
 assert.equal(plan.paidProductionInScope, false)
 assert.equal(plan.dryRunPassedClaimed, false)
 assert.equal(plan.generatedLocalFixturePassedClaimed, false)
-assert.equal(plan.readyForAnyExternalAgentExecutionNow, true)
-assert.deepEqual(plan.readyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(plan.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(plan.readyForAnyExternalAgentRuntimeExecutionNow, false)
+assert.equal(plan.externalAgentCallableToolCount, 4)
+assert.deepEqual(plan.externalAgentCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(plan.runtimeExecutableToolCount, 0)
+assert.deepEqual(plan.runtimeExecutableToolIds, [])
+assert.deepEqual(plan.preflightCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
+assert.equal(plan.staticReadyForAnyExternalAgentExecutionGateNow, true)
+assert.deepEqual(plan.readyToolIds, [])
+assert.deepEqual(plan.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])
 assert.deepEqual(plan.staticExplicitToolGateReadyToolIds, [
   'qwen2_5_vl_7b_instruct',
   'ai_video_broll_generation_wan',
 ])
+assert.deepEqual(plan.safeEvidenceReviewToolIds, [
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(plan.safeEvidenceReviewToolCount, 2)
+assert.equal(plan.readyForAnyExternalAgentSafeEvidenceReviewNow, true)
 assert.equal(plan.livePreflightRequiredBeforeRuntime, true)
+assert.equal(plan.executionNowBlockedByLivePreflight, true)
 assert.equal(plan.blockedToolCount, rollup.tools.length - 1)
 assert.equal(plan.runtimeGatesAllFalse, true)
+assert.equal(plan.gcpAccessRepair.decision, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.decision)
+assert.equal(plan.gcpAccessRepair.mode, 'external_agent_gcp_access_repair_plan_only')
+assert.equal(plan.gcpAccessRepair.projectId, 'reeditpro')
+assert.equal(plan.gcpAccessRepair.repairScope.doesNotMutateGcp, true)
+assert.equal(plan.gcpAccessRepair.repairScope.doesNotAuthorizeRuntimeExecution, true)
+assert.deepEqual(plan.gcpAccessRepair.currentLiveBlockers, [
+  'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
+  'gcloud_account_lacks_compute_quota_read_access',
+])
+assert.equal(
+  plan.gcpAccessRepair.failureResponsePolicy.ifReadAccessFails,
+  'treat it as external GCP access or resource visibility work; do not weaken wrapper gates or mark runtime executable',
+)
+assert.equal(
+  plan.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index <redacted-index>',
+  ),
+  true,
+)
+assert.equal(plan.gcpAccessRepair.accountSelection.cliAccountIndexProvided, false)
+assert.equal(plan.gcpAccessRepair.accountSelection.cliAccountIndex, undefined)
+assert.equal(plan.gcpAccessRepair.accountSelection.cliAccountIndexValid, false)
+assert.equal(plan.gcpAccessRepair.tools.length, 2)
+assert.equal(
+  plan.gcpAccessRepair.tools.some(
+    (tool: {
+      toolId: string
+      failureMeaning: string
+      unsafeBypasses: string[]
+    }) =>
+      tool.toolId === 'qwen2_5_vl_7b_instruct' &&
+      tool.failureMeaning.includes('Token refresh can pass') &&
+      tool.unsafeBypasses.includes('do not skip Cloud Run service/job describe checks'),
+  ),
+  true,
+)
+assert.equal(
+  plan.gcpAccessRepair.tools.some(
+    (tool: {
+      toolId: string
+      failureMeaning: string
+      unsafeBypasses: string[]
+    }) =>
+      tool.toolId === 'ai_video_broll_generation_wan' &&
+      tool.failureMeaning.includes('cannot read project or regional Compute quota') &&
+      tool.unsafeBypasses.includes('do not switch to an always-on GPU instance to bypass no-idle gating'),
+  ),
+  true,
+)
+assert.equal(plan.gcpAccessRepair.runtimeGatesAllFalse, true)
+for (const [flag, value] of Object.entries(plan.gcpAccessRepair.runtimeSideEffects)) {
+  assert.equal(value, false, `GCP repair side-effect flag must remain false: ${flag}`)
+}
+assert.equal('accountIndexedSafeCommandQueue' in plan, false)
+assert.equal('accountIndexedPreferredNextSafeCommand' in plan, false)
+
+const indexedOutput = execFileSync('npx', ['tsx', CLI_PATH, '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024,
+})
+const indexedPlan = JSON.parse(indexedOutput)
+assert.equal(indexedPlan.ok, true)
+assert.equal(indexedPlan.gcpAccessRepair.accountSelection.cliAccountIndexProvided, true)
+assert.equal(indexedPlan.gcpAccessRepair.accountSelection.cliAccountIndex, 2)
+assert.equal(indexedPlan.gcpAccessRepair.accountSelection.cliAccountIndexValid, true)
+assert.equal(indexedPlan.gcpAccessRepair.accountSelection.cliAccountIndexMapsToChildEnv, true)
+assert.equal(
+  indexedPlan.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedPlan.gcpAccessRepair.postRepairVerificationCommands.includes(
+    'npm run external-agent-gcp-access:verify -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedPlan.gcpAccessRepair.tools.every((tool: { verificationCommand: string }) =>
+    tool.verificationCommand.endsWith('--account-index 2'),
+  ),
+  true,
+)
 assert.deepEqual(plan.safeCommandQueue, rollup.safeNextCommands)
+assert.deepEqual(indexedPlan.safeCommandQueue, rollup.safeNextCommands)
+assert.equal(
+  indexedPlan.accountIndexedPreferredNextSafeCommand.command,
+  'npm run external-agent-tool-next-command -- --account-index 2',
+)
+const indexedSafeCommandQueueById = new Map(
+  indexedPlan.accountIndexedSafeCommandQueue.map((command: { id: string }) => [command.id, command]),
+)
+assert.equal(
+  (indexedSafeCommandQueueById.get('static_action_plan') as { command: string }).command,
+  'npm run external-agent-tool-action-plan -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandQueueById.get('static_readiness_check') as { command: string }).command,
+  'npm run external-agent-tool-readiness:check -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandQueueById.get('fail_closed_execution_gate') as { command: string }).command,
+  'npm run external-agent-tool-execution-gate -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandQueueById.get('live_next_command_decision') as { command: string }).command,
+  'npm run external-agent-tool-next-command -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandQueueById.get('live_blocker_preflight') as { command: string }).command,
+  'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandQueueById.get('broll_gpu_global_quota_verify') as { command: string }).command,
+  'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=2 npm run ai-video-broll-wan-gpu-global-quota:verify',
+)
+assert.equal(
+  (indexedSafeCommandQueueById.get('broll_wan_external_agent_wrapper_static_guard') as { command: string }).command,
+  'npm run external-agent-tool-execute-broll-wan -- --account-index 2',
+)
 assert.equal(plan.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
 assert.equal(plan.toolActions.length, rollup.tools.length)
 assert.equal(plan.manualBlockers.length, rollup.tools.length - 1)
@@ -112,9 +257,16 @@ assert.equal(plan.sourceRules.remotionOwnsFinalComposition, true)
 
 const toolActions = new Map(plan.toolActions.map((tool: { toolId: string }) => [tool.toolId, tool]))
 const qwen = toolActions.get('qwen2_5_vl_7b_instruct') as {
+  readyForExternalAgentExecutionNow: boolean
+  readyForExternalAgentRuntimeExecutionNow: boolean
+  staticExplicitToolGateReady: boolean
+  staticReadyForExternalAgentExecutionGateNow: boolean
+  executionNowBlockedByLivePreflight: boolean
+  safeEvidenceReviewExecutableNow: boolean
   immediateSafeActions: string[]
   externalManualBlocker: string
   forbiddenRuntimeActions: string[]
+  accountIndexedImmediateSafeActions: string[]
   manualBlockerActions: Array<{
     id: string
     runInsideCodex: boolean
@@ -128,9 +280,28 @@ const qwen = toolActions.get('qwen2_5_vl_7b_instruct') as {
     afterCompletionCommand: string
   }>
 }
+assert.equal(qwen.readyForExternalAgentExecutionNow, false)
+assert.equal(qwen.readyForExternalAgentRuntimeExecutionNow, false)
+assert.equal(qwen.staticExplicitToolGateReady, true)
+assert.equal(qwen.staticReadyForExternalAgentExecutionGateNow, true)
+assert.equal(qwen.executionNowBlockedByLivePreflight, true)
+assert.equal(qwen.safeEvidenceReviewExecutableNow, false)
 assert.equal(qwen.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(qwen.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(qwen.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
+assert.equal(qwen.immediateSafeActions.includes('npm run external-agent-gcp-access:repair-plan'), true)
+assert.equal(qwen.immediateSafeActions.includes('npm run external-agent-gcp-access:verify'), true)
+const indexedToolActions = new Map(indexedPlan.toolActions.map((tool: { toolId: string }) => [tool.toolId, tool]))
+const indexedQwen = indexedToolActions.get('qwen2_5_vl_7b_instruct') as {
+  accountIndexedImmediateSafeActions: string[]
+}
+assert.deepEqual(indexedQwen.accountIndexedImmediateSafeActions, [
+  'npm run external-agent-tool-next-command -- --account-index 2',
+  'npm run external-agent-tool-execution-gate -- --account-index 2',
+  'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+  'npm run external-agent-gcp-access:repair-plan -- --account-index 2',
+  'npm run external-agent-gcp-access:verify -- --account-index 2',
+])
 assert.equal(qwen.externalManualBlocker.includes('58DX result review accepted'), true)
 assert.equal(qwen.externalManualBlocker.includes('live preflight is still required'), true)
 assert.equal(
@@ -141,8 +312,37 @@ assert.equal(
 )
 assert.equal(qwen.manualBlockerActions.length, 0)
 
+for (const tool of plan.toolActions as Array<{
+  toolId: string
+  agentCallableNow: boolean
+  preflightCallableNow: boolean
+  readyForExternalAgentExecutionNow: boolean
+  readyForExternalAgentRuntimeExecutionNow: boolean
+  runtimeExecutableNow: boolean
+  realRuntimeExecutionAllowedNow: boolean
+}>) {
+  assert.equal(tool.agentCallableNow, true, `${tool.toolId} must remain callable by an external agent`)
+  assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must not claim static execution-now`)
+  assert.equal(
+    tool.readyForExternalAgentRuntimeExecutionNow,
+    false,
+    `${tool.toolId} must not claim runtime execution-now from the static action plan`,
+  )
+  assert.equal(tool.runtimeExecutableNow, false, `${tool.toolId} must not claim runtime execution-now`)
+  assert.equal(
+    tool.realRuntimeExecutionAllowedNow,
+    false,
+    `${tool.toolId} must not claim real runtime execution from the action plan`,
+  )
+}
+
 const broll = toolActions.get('ai_video_broll_generation_wan') as {
+  staticExplicitToolGateReady: boolean
+  staticReadyForExternalAgentExecutionGateNow: boolean
+  executionNowBlockedByLivePreflight: boolean
+  safeEvidenceReviewExecutableNow: boolean
   immediateSafeActions: string[]
+  accountIndexedImmediateSafeActions: string[]
   externalManualBlocker: string
   forbiddenRuntimeActions: string[]
   manualBlockerActions: Array<{
@@ -172,12 +372,31 @@ const broll = toolActions.get('ai_video_broll_generation_wan') as {
     modelInferenceAllowedNow: boolean
   }
 }
+assert.equal(broll.staticExplicitToolGateReady, true)
+assert.equal(broll.staticReadyForExternalAgentExecutionGateNow, true)
+assert.equal(broll.executionNowBlockedByLivePreflight, true)
+assert.equal(broll.safeEvidenceReviewExecutableNow, false)
 assert.equal(broll.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(broll.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-fast-cache-readiness:check'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-gpu-global-quota:verify'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-execute-broll-wan'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
+assert.equal(broll.immediateSafeActions.includes('npm run external-agent-gcp-access:repair-plan'), true)
+assert.equal(broll.immediateSafeActions.includes('npm run external-agent-gcp-access:verify'), true)
+const indexedBroll = indexedToolActions.get('ai_video_broll_generation_wan') as {
+  accountIndexedImmediateSafeActions: string[]
+}
+assert.deepEqual(indexedBroll.accountIndexedImmediateSafeActions, [
+  'npm run external-agent-tool-next-command -- --account-index 2',
+  'npm run external-agent-tool-execution-gate -- --account-index 2',
+  'npm run ai-video-broll-wan-fast-cache-readiness:check',
+  'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=2 npm run ai-video-broll-wan-gpu-global-quota:verify',
+  'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+  'npm run external-agent-gcp-access:repair-plan -- --account-index 2',
+  'npm run external-agent-gcp-access:verify -- --account-index 2',
+  'npm run external-agent-tool-execute-broll-wan -- --account-index 2',
+])
 assert.equal(broll.externalManualBlocker.includes('10ZB proved the no-idle L4 payload/install path'), true)
 assert.equal(broll.externalManualBlocker.includes('11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers'), true)
 assert.equal(broll.externalManualBlocker.includes('11B executed the bounded no-idle L4 model import/load proof'), true)
@@ -186,15 +405,15 @@ assert.equal(broll.externalManualBlocker.includes('11E staged the private GCS Wa
 assert.equal(broll.externalManualBlocker.includes('11F records the bounded Wan inference boundary plan'), true)
 assert.equal(broll.externalManualBlocker.includes('11G implements the fail-closed inference-proof runner shell'), true)
 assert.equal(broll.externalManualBlocker.includes('11H attempted the bounded latent inference proof'), true)
-assert.equal(broll.externalManualBlocker.includes('timed out while loading pipeline weights'), true)
+assert.equal(broll.externalManualBlocker.includes('11H-FIX updates the retry shape to g2-standard-8'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF before any Wan inference-proof retry; the current 11H attempt failed during pipeline load timeout with cleanup verified',
+  'run AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF as a separate explicit bounded retry; the current fix only prepares the runner and does not create video',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)
 assert.equal(broll.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
-assert.equal(broll.noIdleLifecycleGate.machineType, 'g2-standard-4')
+assert.equal(broll.noIdleLifecycleGate.machineType, 'g2-standard-8')
 assert.equal(broll.noIdleLifecycleGate.targetRegion, 'northamerica-northeast2')
 assert.equal(broll.noIdleLifecycleGate.targetZone, 'northamerica-northeast2-a')
 assert.equal(broll.noIdleLifecycleGate.minimumGlobalGpusAllRegionsQuota, 1)
@@ -214,27 +433,61 @@ assert.equal(broll.noIdleLifecycleGate.vmCreateAllowedNow, false)
 assert.equal(broll.noIdleLifecycleGate.modelInferenceAllowedNow, false)
 
 const sound = toolActions.get('sound_music_audio') as {
+  staticExplicitToolGateReady: boolean
+  staticReadyForExternalAgentExecutionGateNow: boolean
+  executionNowBlockedByLivePreflight: boolean
+  safeEvidenceReviewExecutableNow: boolean
   immediateSafeActions: string[]
+  accountIndexedImmediateSafeActions: string[]
   externalManualBlocker: string
   manualBlockerActions: unknown[]
 }
+assert.equal(sound.staticExplicitToolGateReady, false)
+assert.equal(sound.staticReadyForExternalAgentExecutionGateNow, false)
+assert.equal(sound.executionNowBlockedByLivePreflight, false)
+assert.equal(sound.safeEvidenceReviewExecutableNow, true)
 assert.equal(sound.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(sound.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(sound.immediateSafeActions.includes('npm run external-agent-tool-execute-sound'), true)
+const indexedSound = indexedToolActions.get('sound_music_audio') as {
+  accountIndexedImmediateSafeActions: string[]
+}
+assert.deepEqual(indexedSound.accountIndexedImmediateSafeActions, [
+  'npm run external-agent-tool-next-command -- --account-index 2',
+  'npm run external-agent-tool-execution-gate -- --account-index 2',
+  'npm run external-agent-tool-execute-sound',
+])
 assert.equal(sound.externalManualBlocker.includes('runtime owner handoffs still required'), true)
 assert.equal(sound.manualBlockerActions.length, 0)
 
 const supabaseHarness = toolActions.get('supabase_local_fixture_harness') as {
+  staticExplicitToolGateReady: boolean
+  staticReadyForExternalAgentExecutionGateNow: boolean
+  executionNowBlockedByLivePreflight: boolean
+  safeEvidenceReviewExecutableNow: boolean
   immediateSafeActions: string[]
+  accountIndexedImmediateSafeActions: string[]
   externalManualBlocker: string
   manualBlockerActions: unknown[]
 }
+assert.equal(supabaseHarness.staticExplicitToolGateReady, false)
+assert.equal(supabaseHarness.staticReadyForExternalAgentExecutionGateNow, false)
+assert.equal(supabaseHarness.executionNowBlockedByLivePreflight, false)
+assert.equal(supabaseHarness.safeEvidenceReviewExecutableNow, true)
 assert.equal(supabaseHarness.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(supabaseHarness.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(
   supabaseHarness.immediateSafeActions.includes('npm run external-agent-tool-execute-supabase-harness'),
   true,
 )
+const indexedSupabaseHarness = indexedToolActions.get('supabase_local_fixture_harness') as {
+  accountIndexedImmediateSafeActions: string[]
+}
+assert.deepEqual(indexedSupabaseHarness.accountIndexedImmediateSafeActions, [
+  'npm run external-agent-tool-next-command -- --account-index 2',
+  'npm run external-agent-tool-execution-gate -- --account-index 2',
+  'npm run external-agent-tool-execute-supabase-harness',
+])
 assert.equal(supabaseHarness.externalManualBlocker.includes('not a model or media execution lane'), true)
 assert.equal(supabaseHarness.manualBlockerActions.length, 0)
 
@@ -276,7 +529,7 @@ for (const [flag, value] of Object.entries(plan.runtimeSideEffects as Record<str
   assert.equal(value, false, `Runtime flag must remain false: ${flag}`)
 }
 
-const forbiddenFindings = scanForbiddenValues(plan)
+const forbiddenFindings = scanForbiddenValues({ plan, indexedPlan })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(

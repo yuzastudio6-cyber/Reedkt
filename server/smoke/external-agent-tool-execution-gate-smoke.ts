@@ -3,6 +3,7 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_GATE } from '../../src/backend/mock/mock-external-agent-tool-execution-gate'
 
 const ROOT = process.cwd()
@@ -89,9 +90,15 @@ assert.equal(
   ),
   false,
 )
+assert.equal(
+  gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execution-gate -- --live'),
+  true,
+)
+assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcp-access:verify'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run ai-video-broll-wan-gpu-global-quota:verify'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcloud-session:diagnostic'), true)
+assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcloud-account-access:diagnostic'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-broll-wan'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-sound'), true)
 assert.equal(
@@ -194,7 +201,7 @@ assert.equal(
 )
 assert.equal(brollGateRow?.noIdleLifecycleGate?.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.selectedGpu, 'nvidia_l4')
-assert.equal(brollGateRow?.noIdleLifecycleGate?.machineType, 'g2-standard-4')
+assert.equal(brollGateRow?.noIdleLifecycleGate?.machineType, 'g2-standard-8')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.targetRegion, 'northamerica-northeast2')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.targetZone, 'northamerica-northeast2-a')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.noPublicIpRequired, true)
@@ -209,7 +216,18 @@ for (const [flag, value] of Object.entries(gate.runtimeSideEffects)) {
 assert.equal(gate.recommendedNextPrompt, QWEN_READY_PROMPT)
 
 const cliSource = read(CLI_PATH)
-for (const forbidden of ['spawnSync', 'execSync', 'execFileSync', 'gcloud ', 'docker ', 'psql', 'from_pretrained', 'torch.']) {
+for (const required of [
+  '--live',
+  '--account-index',
+  'cliAccountIndexMapsToChildEnv',
+  'runLiveVerifier',
+  'external-agent-gcp-access-verify.ts',
+  'EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN',
+  'gcpAccessRepairGuidance',
+]) {
+  assert.equal(cliSource.includes(required), true, `Execution gate CLI missing live verifier marker: ${required}`)
+}
+for (const forbidden of ['execSync', 'execFileSync', 'gcloud ', 'docker ', 'psql', 'from_pretrained', 'torch.']) {
   assert.equal(cliSource.includes(forbidden), false, `Execution gate CLI must remain static-only: ${forbidden}`)
 }
 
@@ -222,18 +240,68 @@ const report = JSON.parse(output)
 assert.equal(report.ok, true)
 assert.equal(report.mode, gate.mode)
 assert.equal(report.decision, gate.decision)
+assert.equal(report.liveMode, false)
+assert.equal(report.accountSelectionGuidance.cliAccountIndexProvided, false)
+assert.equal(report.accountSelectionGuidance.cliAccountIndexValid, false)
+assert.equal(report.accountSelectionGuidance.mutatesLocalGcloudConfig, false)
+assert.equal(report.accountSelectionGuidance.printsAccountValue, false)
+assert.equal(report.liveVerifierRun, false)
+assert.equal(report.liveVerifier, undefined)
+assert.equal(report.liveVerifierAvailableCommand, 'npm run external-agent-gcp-access:verify')
+assert.equal(report.accountIndexedLiveVerifierAvailableCommand, undefined)
+assert.equal(report.accountIndexedSafeCommandsBeforeExecution, undefined)
+assert.equal(typeof report.gcpAccessRepair, 'object')
+assert.equal(report.gcpAccessRepair.decision, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.decision)
+assert.equal(report.gcpAccessRepair.mode, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.mode)
+assert.equal(report.gcpAccessRepair.projectId, 'reeditpro')
+assert.deepEqual(report.gcpAccessRepair.currentLiveBlockers, [
+  'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
+  'gcloud_account_lacks_compute_quota_read_access',
+])
+assert.equal(report.gcpAccessRepair.repairScope.doesNotMutateGcp, true)
+assert.equal(report.gcpAccessRepair.repairScope.doesNotAuthorizeRuntimeExecution, true)
+assert.equal(report.gcpAccessRepair.tools.length, 2)
+assert.equal(
+  report.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; failureMeaning: string; safeRepairChecklist: string[]; unsafeBypasses: string[] }) =>
+      tool.toolId === 'qwen2_5_vl_7b_instruct' &&
+      tool.failureMeaning.includes('Cloud Run') &&
+      tool.safeRepairChecklist.length > 0 &&
+      tool.unsafeBypasses.includes('do not skip Cloud Run service/job describe checks'),
+  ),
+  true,
+)
+assert.equal(
+  report.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; failureMeaning: string; safeRepairChecklist: string[]; unsafeBypasses: string[] }) =>
+      tool.toolId === 'ai_video_broll_generation_wan' &&
+      tool.failureMeaning.includes('Compute quota') &&
+      tool.safeRepairChecklist.length > 0 &&
+      tool.unsafeBypasses.includes('do not create a VM before quota read checks pass'),
+  ),
+  true,
+)
+assert.equal(typeof report.gcpAccessRepair.failureResponsePolicy.ifReadAccessFails, 'string')
+assert.equal(report.gcpAccessRepair.runtimeGatesAllFalse, true)
+for (const [flag, value] of Object.entries(report.gcpAccessRepair.runtimeSideEffects as Record<string, boolean>)) {
+  assert.equal(value, false, `GCP repair side-effect flag must remain false: ${flag}`)
+}
 assert.equal(report.staticExplicitToolGateReady, true)
 assert.deepEqual(report.staticExplicitToolGateReadyToolIds, [
   'qwen2_5_vl_7b_instruct',
   'ai_video_broll_generation_wan',
 ])
+assert.equal(report.staticReadyForAnyExternalAgentExecutionGateNow, true)
+assert.deepEqual(report.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])
 assert.equal(report.requiresLivePreflightBeforeRuntime, true)
+assert.equal(report.executionNowBlockedByLivePreflight, true)
 assert.equal(report.executionAllowedNow, false)
 assert.equal(report.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(report.readyForAnyExternalAgentRuntimeExecutionNow, false)
 assert.equal(report.runtimeGatesAllFalse, true)
 assert.equal(report.rawChatExecutionAllowed, false)
-assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct'])
-assert.equal(report.blockedToolIds.length, 3)
+assert.deepEqual(report.readyToolIds, [])
+assert.equal(report.blockedToolIds.length, gate.toolRows.length)
 const reportBrollGateRow = report.toolRows.find(
   (row: { toolId: string }) => row.toolId === 'ai_video_broll_generation_wan',
 )
@@ -243,11 +311,11 @@ const reportQwenGateRow = report.toolRows.find(
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(
   reportBrollGateRow.currentBlocker,
-  'wan_pipeline_load_timeout_before_latent_inference_canary',
+  'bounded_wan_inference_proof_retry_required_after_11h_fix',
 )
 assert.equal(
   reportBrollGateRow.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-11h-inference-proof-execution-result',
+  'npm run smoke:ai-video-broll-gen-11h-fix-inference-proof',
 )
 assert.equal(reportBrollGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
@@ -261,11 +329,202 @@ const requireGo = spawnSync('npx', ['tsx', CLI_PATH, '--require-go'], {
 })
 const requireGoReport = JSON.parse(String(requireGo.stdout))
 assert.equal(requireGoReport.requireGoMode, true)
+assert.equal(requireGoReport.liveMode, false)
 assert.equal(requireGoReport.staticExplicitToolGateReady, true)
 assert.equal(requireGoReport.executionAllowedNow, false)
 assert.equal(requireGo.status, 2)
 
-const forbiddenFindings = scanForbiddenValues({ gate, report, requireGoReport })
+const live = spawnSync('npx', ['tsx', CLI_PATH, '--live'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 24,
+})
+const liveReport = JSON.parse(String(live.stdout))
+assert.equal(live.status, 0)
+assert.equal(liveReport.liveMode, true)
+assert.equal(liveReport.liveVerifierRun, true)
+assert.equal(typeof liveReport.liveVerifier.ok, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.allRequiredReadAccessVerified, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.qwenReadAccessPassed, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.brollQuotaReadAccessPassed, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.brollQuotaSufficientForOneL4Vm, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.brollCacheReady, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.brollInferenceWrapperMayBeCalledAfterConfirmation, 'boolean')
+assert.equal(typeof liveReport.liveVerifier.nextCommandExecutionAllowedNow, 'boolean')
+if (!liveReport.liveVerifier.allRequiredReadAccessVerified) {
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.ok, 'boolean')
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.accountCount, 'number')
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.qwenReadyAccountCount, 'number')
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.brollQuotaReadAccountCount, 'number')
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.brollQuotaReadyAccountCount, 'number')
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.anyAccountReadyForBoth, 'boolean')
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.recommendedNextPrompt, 'string')
+}
+assert.equal(
+  liveReport.executionAllowedNow,
+  liveReport.staticExplicitToolGateReady &&
+    liveReport.liveVerifier.ok &&
+    liveReport.liveVerifier.readyForAnyExternalAgentExecutionNow,
+)
+assert.equal(liveReport.readyForAnyExternalAgentExecutionNow, liveReport.executionAllowedNow)
+assert.equal(liveReport.readyForAnyExternalAgentRuntimeExecutionNow, liveReport.executionAllowedNow)
+assert.equal(liveReport.executionNowBlockedByLivePreflight, !liveReport.executionAllowedNow)
+for (const row of liveReport.toolRows as Array<{ toolId: string; runtimeExecutionAllowedNow: boolean }>) {
+  assert.equal(row.runtimeExecutionAllowedNow, liveReport.readyToolIds.includes(row.toolId))
+}
+if (liveReport.liveVerifier.brollInferenceWrapperMayBeCalledAfterConfirmation) {
+  assert.equal(liveReport.readyToolIds.includes('ai_video_broll_generation_wan'), true)
+}
+if (!liveReport.executionAllowedNow) {
+  assert.equal(liveReport.decision, 'external_agent_execution_no_go_live_preflight_blocked')
+  assert.deepEqual(liveReport.readyToolIds, [])
+  assert.equal(liveReport.blockedToolIds.length, gate.toolRows.length)
+}
+
+const indexedLive = spawnSync('npx', ['tsx', CLI_PATH, '--live', '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 24,
+})
+const indexedLiveReport = JSON.parse(String(indexedLive.stdout))
+assert.equal(indexedLive.status, 0)
+assert.equal(indexedLiveReport.liveMode, true)
+assert.equal(indexedLiveReport.accountSelectionGuidance.cliAccountIndexProvided, true)
+assert.equal(indexedLiveReport.accountSelectionGuidance.cliAccountIndex, 2)
+assert.equal(indexedLiveReport.accountSelectionGuidance.cliAccountIndexValid, true)
+assert.equal(indexedLiveReport.accountSelectionGuidance.cliAccountIndexMapsToChildEnv, true)
+assert.equal(indexedLiveReport.accountSelectionGuidance.mutatesLocalGcloudConfig, false)
+assert.equal(indexedLiveReport.accountSelectionGuidance.printsAccountValue, false)
+assert.equal(
+  indexedLiveReport.accountIndexedLiveVerifierAvailableCommand,
+  'npm run external-agent-gcp-access:verify -- --account-index 2',
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'npm run external-agent-tool-action-plan -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'npm run external-agent-tool-execution-gate -- --live --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'npm run external-agent-gcp-access:verify -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=2 npm run ai-video-broll-wan-gpu-global-quota:verify',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'npm run external-agent-tool-execute-broll-wan -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'npm run external-agent-tool-execute-sound -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'npm run external-agent-tool-execute-supabase-harness -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(JSON.stringify(indexedLiveReport.accountIndexedSafeCommandsBeforeExecution).includes('<account-index>'), false)
+const indexedQwenGateRow = indexedLiveReport.toolRows.find(
+  (row: { toolId: string }) => row.toolId === 'qwen2_5_vl_7b_instruct',
+)
+const indexedBrollGateRow = indexedLiveReport.toolRows.find(
+  (row: { toolId: string }) => row.toolId === 'ai_video_broll_generation_wan',
+)
+const indexedSoundGateRow = indexedLiveReport.toolRows.find(
+  (row: { toolId: string }) => row.toolId === 'sound_music_audio',
+)
+const indexedSupabaseHarnessGateRow = indexedLiveReport.toolRows.find(
+  (row: { toolId: string }) => row.toolId === 'supabase_local_fixture_harness',
+)
+assert.equal(
+  indexedQwenGateRow.accountIndexedSafeNextCommand,
+  'npm run external-agent-tool-next-command -- --account-index 2',
+)
+assert.equal(indexedQwenGateRow.runtimeExecutionAllowedNow, false)
+assert.equal(indexedQwenGateRow.safeEvidenceReviewExecutableNow, false)
+assert.equal(indexedBrollGateRow.accountIndexedSafeNextCommand, indexedBrollGateRow.safeNextCommand)
+assert.equal(indexedBrollGateRow.runtimeExecutionAllowedNow, false)
+assert.equal(indexedBrollGateRow.safeEvidenceReviewExecutableNow, false)
+assert.equal(
+  indexedSoundGateRow.accountIndexedSafeNextCommand,
+  'npm run external-agent-tool-execute-sound -- --account-index 2',
+)
+assert.equal(indexedSoundGateRow.runtimeExecutionAllowedNow, false)
+assert.equal(indexedSoundGateRow.safeEvidenceReviewExecutableNow, true)
+assert.equal(
+  indexedSupabaseHarnessGateRow.accountIndexedSafeNextCommand,
+  'npm run external-agent-tool-execute-supabase-harness -- --account-index 2',
+)
+assert.equal(indexedSupabaseHarnessGateRow.runtimeExecutionAllowedNow, false)
+assert.equal(indexedSupabaseHarnessGateRow.safeEvidenceReviewExecutableNow, true)
+assert.equal(
+  indexedLiveReport.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.gcpAccessRepair.postRepairVerificationCommands.includes(
+    'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.gcpAccessRepair.tools.every((tool: { verificationCommand: string }) =>
+    tool.verificationCommand.endsWith('--account-index 2'),
+  ),
+  true,
+)
+assert.equal(typeof indexedLiveReport.liveVerifier.ok, 'boolean')
+assert.equal(typeof indexedLiveReport.liveVerifier.qwenReadAccessPassed, 'boolean')
+assert.equal(typeof indexedLiveReport.liveVerifier.brollQuotaReadAccessPassed, 'boolean')
+if (!indexedLiveReport.liveVerifier.allRequiredReadAccessVerified) {
+  assert.equal(indexedLiveReport.liveVerifier.accountAccessDiagnostic.selectedAccountRepairRequest.accountIndex, 2)
+  assert.equal(indexedLiveReport.liveVerifier.accountAccessDiagnostic.selectedAccountRepairRequest.mutatesGcp, false)
+  assert.equal(indexedLiveReport.liveVerifier.accountAccessDiagnostic.selectedAccountRepairRequest.runsRuntime, false)
+  assert.equal(
+    indexedLiveReport.liveVerifier.accountAccessDiagnostic.selectedAccountRepairRequest
+      .runtimeExecutionStillRequiresWrapperGate,
+    true,
+  )
+}
+
+const requireGoLive = spawnSync('npx', ['tsx', CLI_PATH, '--require-go', '--live'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 24,
+})
+const requireGoLiveReport = JSON.parse(String(requireGoLive.stdout))
+assert.equal(requireGoLiveReport.requireGoMode, true)
+assert.equal(requireGoLiveReport.liveMode, true)
+assert.equal(requireGoLive.status, requireGoLiveReport.executionAllowedNow ? 0 : 2)
+
+const forbiddenFindings = scanForbiddenValues({
+  gate,
+  report,
+  requireGoReport,
+  liveReport,
+  indexedLiveReport,
+  requireGoLiveReport,
+})
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(
@@ -275,8 +534,10 @@ console.log(
       decision: report.decision,
       mode: report.mode,
       executionAllowedNow: report.executionAllowedNow,
+      liveExecutionAllowedNow: liveReport.executionAllowedNow,
       staticExplicitToolGateReady: report.staticExplicitToolGateReady,
       requireGoExitCode: requireGo.status,
+      requireGoLiveExitCode: requireGoLive.status,
       blockedToolIds: report.blockedToolIds,
       runtimeGatesAllFalse: report.runtimeGatesAllFalse,
       recommendedNextPrompt: report.recommendedNextPrompt,

@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const ROOT = process.cwd()
@@ -53,6 +54,7 @@ for (const forbidden of [
   assert.equal(cliSource.includes(forbidden), false, `CLI must not include runtime command/import marker: ${forbidden}`)
 }
 assert.equal(cliSource.includes('Live checks are intentionally not implemented'), true)
+assert.equal(cliSource.includes('EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN'), true)
 
 const output = execFileSync('npx', ['tsx', CLI_PATH], {
   cwd: ROOT,
@@ -77,13 +79,71 @@ assert.equal(summary.supabaseTouched, false)
 assert.equal(summary.sqlExecuted, false)
 assert.equal(summary.modelInferenceRun, false)
 assert.equal(summary.generatedAssetsCreated, false)
-assert.equal(summary.readyForAnyExternalAgentExecutionNow, true)
-assert.deepEqual(summary.readyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(summary.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(summary.readyForAnyExternalAgentRuntimeExecutionNow, false)
+assert.equal(summary.externalAgentCallableToolCount, 4)
+assert.deepEqual(summary.externalAgentCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(summary.runtimeExecutableToolCount, 0)
+assert.deepEqual(summary.runtimeExecutableToolIds, [])
+assert.deepEqual(summary.safeEvidenceExecutableToolIds, [
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.deepEqual(summary.preflightCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
+assert.equal(summary.toolExecutionReadiness.length, 4)
+for (const tool of summary.toolExecutionReadiness as Array<{
+  toolId: string
+  agentCallableNow: boolean
+  runtimeExecutableNow: boolean
+  realRuntimeExecutionAllowedNow: boolean
+  primaryBlocker: string
+}>) {
+  assert.equal(tool.agentCallableNow, true, `${tool.toolId} must remain agent-callable`)
+  assert.equal(tool.runtimeExecutableNow, false, `${tool.toolId} must not claim runtime execution`)
+  assert.equal(
+    tool.realRuntimeExecutionAllowedNow,
+    false,
+    `${tool.toolId} must not claim real runtime execution`,
+  )
+  assert.equal(typeof tool.primaryBlocker, 'string')
+}
+const readinessByTool = new Map(
+  summary.toolExecutionReadiness.map((tool: { toolId: string }) => [tool.toolId, tool]),
+)
+assert.equal(
+  (readinessByTool.get('qwen2_5_vl_7b_instruct') as { preflightCallableNow: boolean }).preflightCallableNow,
+  true,
+)
+assert.equal(
+  (readinessByTool.get('ai_video_broll_generation_wan') as { preflightCallableNow: boolean }).preflightCallableNow,
+  true,
+)
+assert.equal(
+  (readinessByTool.get('sound_music_audio') as { safeEvidenceExecutableNow: boolean }).safeEvidenceExecutableNow,
+  true,
+)
+assert.equal(
+  (readinessByTool.get('supabase_local_fixture_harness') as { safeEvidenceExecutableNow: boolean })
+    .safeEvidenceExecutableNow,
+  true,
+)
+assert.equal(summary.staticReadyForAnyExternalAgentExecutionGateNow, true)
+assert.deepEqual(summary.readyToolIds, [])
+assert.deepEqual(summary.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])
 assert.deepEqual(summary.staticExplicitToolGateReadyToolIds, [
   'qwen2_5_vl_7b_instruct',
   'ai_video_broll_generation_wan',
 ])
 assert.equal(summary.livePreflightRequiredBeforeRuntime, true)
+assert.equal(summary.executionNowBlockedByLivePreflight, true)
 assert.equal(summary.blockedToolCount, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.length - 1)
 assert.deepEqual(summary.missingEvidence, [])
 assert.deepEqual(summary.safeNextCommands, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.safeNextCommands)
@@ -91,6 +151,8 @@ assert.equal(summary.preferredNextSafeCommand.command, 'npm run external-agent-t
 assert.equal(summary.preferredNextSafeCommand.mutatesRuntime, false)
 assert.equal(summary.preferredNextSafeCommand.runsModel, false)
 assert.equal(summary.preferredNextSafeCommand.createsAssets, false)
+assert.equal('accountIndexedSafeNextCommands' in summary, false)
+assert.equal('accountIndexedPreferredNextSafeCommand' in summary, false)
 assert.equal(
   summary.recommendedNextPrompt,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.recommendedNextPrompt,
@@ -107,7 +169,7 @@ assert.deepEqual(summary.noIdleLifecycleGateToolIds, ['ai_video_broll_generation
 assert.equal(summary.noIdleLifecycleGates.length, 1)
 assert.equal(summary.noIdleLifecycleGates[0].toolId, 'ai_video_broll_generation_wan')
 assert.equal(summary.noIdleLifecycleGates[0].gate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
-assert.equal(summary.noIdleLifecycleGates[0].gate.machineType, 'g2-standard-4')
+assert.equal(summary.noIdleLifecycleGates[0].gate.machineType, 'g2-standard-8')
 assert.equal(summary.noIdleLifecycleGates[0].gate.targetRegion, 'northamerica-northeast2')
 assert.equal(summary.noIdleLifecycleGates[0].gate.targetZone, 'northamerica-northeast2-a')
 assert.equal(summary.noIdleLifecycleGates[0].gate.noPublicIpRequired, true)
@@ -116,7 +178,123 @@ assert.equal(summary.noIdleLifecycleGates[0].gate.cleanupVerificationRequired, t
 assert.equal(summary.noIdleLifecycleGates[0].gate.idleGpuAllowed, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.vmCreateAllowedNow, false)
 assert.equal(summary.noIdleLifecycleGates[0].gate.modelInferenceAllowedNow, false)
+assert.equal(typeof summary.gcpAccessRepair, 'object')
+assert.equal(summary.gcpAccessRepair.decision, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.decision)
+assert.equal(summary.gcpAccessRepair.mode, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.mode)
+assert.equal(summary.gcpAccessRepair.projectId, 'reeditpro')
+assert.deepEqual(summary.gcpAccessRepair.currentLiveBlockers, [
+  'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
+  'gcloud_account_lacks_compute_quota_read_access',
+])
+assert.equal(summary.gcpAccessRepair.repairScope.doesNotMutateGcp, true)
+assert.equal(summary.gcpAccessRepair.repairScope.doesNotAuthorizeRuntimeExecution, true)
+assert.equal(summary.gcpAccessRepair.tools.length, 2)
+assert.equal(
+  summary.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; failureMeaning: string; safeRepairChecklist: string[]; unsafeBypasses: string[] }) =>
+      tool.toolId === 'qwen2_5_vl_7b_instruct' &&
+      tool.failureMeaning.includes('Cloud Run') &&
+      tool.safeRepairChecklist.length > 0 &&
+      tool.unsafeBypasses.includes('do not skip Cloud Run service/job describe checks'),
+  ),
+  true,
+)
+assert.equal(
+  summary.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; failureMeaning: string; safeRepairChecklist: string[]; unsafeBypasses: string[] }) =>
+      tool.toolId === 'ai_video_broll_generation_wan' &&
+      tool.failureMeaning.includes('Compute quota') &&
+      tool.safeRepairChecklist.length > 0 &&
+      tool.unsafeBypasses.includes('do not create a VM before quota read checks pass'),
+  ),
+  true,
+)
+assert.equal(typeof summary.gcpAccessRepair.failureResponsePolicy.ifReadAccessFails, 'string')
+assert.equal(
+  summary.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index <redacted-index>',
+  ),
+  true,
+)
+assert.equal(summary.gcpAccessRepair.accountSelection.cliAccountIndexProvided, false)
+assert.equal(summary.gcpAccessRepair.accountSelection.cliAccountIndex, undefined)
+assert.equal(summary.gcpAccessRepair.accountSelection.cliAccountIndexValid, false)
+assert.equal(summary.gcpAccessRepair.runtimeGatesAllFalse, true)
+for (const [flag, value] of Object.entries(summary.gcpAccessRepair.runtimeSideEffects as Record<string, boolean>)) {
+  assert.equal(value, false, `GCP repair side-effect flag must remain false: ${flag}`)
+}
 assert.deepEqual(summary.manualBlockerActionToolIds, [])
+
+const indexedOutput = execFileSync('npx', ['tsx', CLI_PATH, '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024,
+})
+const indexedSummary = JSON.parse(indexedOutput)
+assert.equal(indexedSummary.ok, true)
+assert.equal(indexedSummary.gcpAccessRepair.accountSelection.cliAccountIndexProvided, true)
+assert.equal(indexedSummary.gcpAccessRepair.accountSelection.cliAccountIndex, 2)
+assert.equal(indexedSummary.gcpAccessRepair.accountSelection.cliAccountIndexValid, true)
+assert.equal(indexedSummary.gcpAccessRepair.accountSelection.cliAccountIndexMapsToChildEnv, true)
+assert.deepEqual(indexedSummary.safeNextCommands, EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.safeNextCommands)
+assert.equal(
+  indexedSummary.accountIndexedPreferredNextSafeCommand.command,
+  'npm run external-agent-tool-next-command -- --account-index 2',
+)
+const indexedSafeCommandsById = new Map(
+  indexedSummary.accountIndexedSafeNextCommands.map((command: { id: string }) => [command.id, command]),
+)
+assert.equal(
+  (indexedSafeCommandsById.get('static_action_plan') as { command: string }).command,
+  'npm run external-agent-tool-action-plan -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('static_readiness_check') as { command: string }).command,
+  'npm run external-agent-tool-readiness:check -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('fail_closed_execution_gate') as { command: string }).command,
+  'npm run external-agent-tool-execution-gate -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('live_next_command_decision') as { command: string }).command,
+  'npm run external-agent-tool-next-command -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('live_blocker_preflight') as { command: string }).command,
+  'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('broll_gpu_global_quota_verify') as { command: string }).command,
+  'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=2 npm run ai-video-broll-wan-gpu-global-quota:verify',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('broll_wan_external_agent_wrapper_static_guard') as { command: string }).command,
+  'npm run external-agent-tool-execute-broll-wan -- --account-index 2',
+)
+assert.equal(
+  (indexedSafeCommandsById.get('sound_music_audio_external_agent_wrapper_static_guard') as { command: string })
+    .command,
+  'npm run external-agent-tool-execute-sound',
+)
+assert.equal(
+  indexedSummary.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedSummary.gcpAccessRepair.postRepairVerificationCommands.includes(
+    'npm run external-agent-gcp-access:verify -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedSummary.gcpAccessRepair.tools.every((tool: { verificationCommand: string }) =>
+    tool.verificationCommand.endsWith('--account-index 2'),
+  ),
+  true,
+)
 
 const blockersByTool = new Map(
   summary.blockers.map((blocker: { toolId: string }) => [blocker.toolId, blocker]),
@@ -125,7 +303,7 @@ assert.equal(blockersByTool.has('qwen2_5_vl_7b_instruct'), false)
 assert.equal(blockersByTool.has('ai_video_broll_generation_wan'), true)
 assert.equal(
   (blockersByTool.get('ai_video_broll_generation_wan') as { blocker: string }).blocker,
-  'wan_pipeline_load_timeout_before_latent_inference_canary',
+  'bounded_wan_inference_proof_retry_required_after_11h_fix',
 )
 
 for (const blocker of summary.blockers as Array<{

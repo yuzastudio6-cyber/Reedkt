@@ -73,17 +73,33 @@ const spec = EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT
 assert.equal(spec.decision, 'external_agent_tool_blocker_preflight_read_only_probe_defined')
 assert.equal(spec.mode, 'read_only_external_agent_tool_blocker_preflight')
 assert.equal(spec.projectId, 'reeditpro')
+assert.equal(spec.accountSelection.overrideEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT')
+assert.equal(spec.accountSelection.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
+assert.equal(spec.accountSelection.overrideIndexCliFlag, '--account-index')
+assert.equal(spec.accountSelection.overrideIndexCliFlagAlias, '--gcloud-account-index')
+assert.equal(spec.accountSelection.mapsToCloudSdkCoreAccount, true)
+assert.equal(spec.accountSelection.mutatesLocalGcloudConfig, false)
+assert.equal(spec.accountSelection.printsAccountValue, false)
+assert.equal(spec.accountSelection.tokenStdoutSuppressed, true)
 assert.equal(spec.qwen.blockerIfFailed, 'local_gcloud_reauthentication_required')
+assert.equal(
+  spec.qwen.blockerIfPermissionOrResourceFailed,
+  'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
+)
 assert.equal(spec.qwen.nextActionIfCleared.includes('58DQ-AUTH-REFRESH-VERIFY'), true)
 assert.equal(spec.qwen.nextActionIfCleared.includes('58DW-PRIVATE'), false)
+assert.equal(spec.qwen.nextActionIfPermissionOrResourceBlocked.includes('Cloud Run read access'), true)
+assert.equal(spec.qwen.nextActionIfPermissionOrResourceBlocked.includes('--account-index <account-index>'), true)
 assert.equal(spec.broll.blockerIfSkippedForAuth, 'quota_probe_skipped_auth_refresh_failed')
 assert.equal(spec.broll.blockerIfFailed, 'gpus_all_regions_quota_zero_or_unverified')
+assert.equal(spec.broll.blockerIfPermissionFailed, 'gcloud_account_lacks_compute_quota_read_access')
+assert.equal(spec.broll.nextActionIfPermissionBlocked.includes('--account-index <account-index>'), true)
 assert.equal(spec.broll.targetRegion, 'northamerica-northeast2')
 assert.equal(spec.broll.targetZone, 'northamerica-northeast2-a')
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.broll.minimumRegionalL4Quota, 1)
 assert.equal(
-  spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF'),
+  spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF'),
   true,
 )
 assert.equal(spec.allowedReadOnlyCommands.length >= 10, true)
@@ -126,6 +142,23 @@ assert.equal(
   'CLI must derive active account domain before sanitizing account output',
 )
 assert.equal(
+  cliSource.includes('REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'),
+  true,
+  'CLI must support a non-mutating gcloud account override env var',
+)
+assert.equal(
+  cliSource.includes('REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'),
+  true,
+  'CLI must support a redacted account-index override env var',
+)
+assert.equal(cliSource.includes('--account-index'), true, 'CLI must support account-index flag')
+assert.equal(cliSource.includes('--gcloud-account-index'), true, 'CLI must support gcloud account-index flag alias')
+assert.equal(
+  cliSource.includes('CLOUDSDK_CORE_ACCOUNT: accountOverride'),
+  true,
+  'CLI must map the override to CLOUDSDK_CORE_ACCOUNT only for child gcloud calls',
+)
+assert.equal(
   cliSource.includes('JSON.parse(result.rawStdout)'),
   true,
   'CLI must parse raw captured JSON internally before emitting sanitized summaries',
@@ -156,6 +189,7 @@ assert.equal(plan.ok, true)
 assert.equal(plan.liveReadOnlyChecksRun, false)
 assert.equal(plan.allowedReadOnlyCommands.length, spec.allowedReadOnlyCommands.length)
 assert.deepEqual(plan.manualBlockerActionToolIds, [])
+assert.deepEqual(plan.accountSelection, spec.accountSelection)
 
 const liveOutput = execFileSync('npx', ['tsx', CLI_PATH], {
   cwd: ROOT,
@@ -163,13 +197,18 @@ const liveOutput = execFileSync('npx', ['tsx', CLI_PATH], {
   maxBuffer: 1024 * 1024 * 5,
 })
 const live = JSON.parse(liveOutput)
+const indexedLiveOutput = execFileSync('npx', ['tsx', CLI_PATH, '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 5,
+})
+const indexedLive = JSON.parse(indexedLiveOutput)
 assert.equal(live.ok, true)
 assert.equal(live.mode, spec.mode)
 assert.equal(live.liveReadOnlyChecksRun, true)
 assert.equal(live.runtimeGatesAllFalse, true)
 assert.equal(live.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(live.qwen.readyForExternalAgentExecutionNow, false)
-assert.equal(live.broll.readyForExternalAgentExecutionNow, true)
 assert.deepEqual(live.manualBlockerActionToolIds, [])
 assert.equal(live.qwen.manualBlockerActions.length, 0)
 assert.equal(live.qwen.manualBlockerActions.every((action: { runInsideCodex: boolean }) => action.runInsideCodex === false), true)
@@ -189,6 +228,30 @@ assert.equal(Array.isArray(live.gcloud.pathCandidates), true)
 assert.equal(typeof live.gcloud.pathCandidateCount, 'number')
 assert.equal(live.gcloud.pathCandidateCount >= 1, true)
 assert.equal(Array.isArray(live.gcloud.pathToolSearchEntries), true)
+assert.equal(typeof live.gcloud.accountSelection, 'object')
+assert.equal(live.gcloud.accountSelection.overrideEnv, spec.accountSelection.overrideEnv)
+assert.equal(live.gcloud.accountSelection.overrideIndexEnv, spec.accountSelection.overrideIndexEnv)
+assert.equal(typeof live.gcloud.accountSelection.overrideProvided, 'boolean')
+assert.equal(typeof live.gcloud.accountSelection.overrideIndexProvided, 'boolean')
+assert.equal(typeof live.gcloud.accountSelection.overrideResolved, 'boolean')
+assert.equal(typeof live.gcloud.accountSelection.cloudSdkCoreAccountEnvProvided, 'boolean')
+assert.equal(live.gcloud.accountSelection.mapsToCloudSdkCoreAccount, true)
+assert.equal(live.gcloud.accountSelection.mutatesLocalGcloudConfig, false)
+assert.equal(live.gcloud.accountSelection.printsAccountValue, false)
+assert.equal(indexedLive.gcloud.accountSelection.overrideIndexProvided, true)
+assert.equal(indexedLive.gcloud.accountSelection.overrideIndexSource, 'cli')
+assert.equal(indexedLive.gcloud.accountSelection.overrideIndex, 2)
+assert.equal(JSON.stringify(indexedLive).includes('<account-index>'), false)
+assert.equal(JSON.stringify(indexedLive).includes('<redacted-index>'), false)
+for (const nextAction of [
+  indexedLive.qwen.nextAction,
+  indexedLive.broll.nextAction,
+  indexedLive.recommendedNextPrompt,
+] as string[]) {
+  if (nextAction.includes('external-agent-tool-blockers:preflight')) {
+    assert.equal(nextAction.includes('--account-index 2'), true)
+  }
+}
 assert.equal(typeof live.gcloud.appleSiliconHomebrewPrecedesUsrLocal, 'boolean')
 assert.equal(typeof live.gcloud.expectedAppleSiliconHomebrewPath, 'string')
 assert.equal(typeof live.gcloud.expectedAppleSiliconHomebrewGcloudPresent, 'boolean')
@@ -205,6 +268,7 @@ const downstreamCommandIds = [
 if (!live.qwen.accessTokenRefreshPassed) {
   assert.equal(live.qwen.downstreamProbeSkipped, true)
   assert.equal(live.broll.quotaProbeSkipped, true)
+  assert.equal(live.broll.readyForExternalAgentExecutionNow, false)
   assert.equal(live.broll.blocker, spec.broll.blockerIfSkippedForAuth)
   assert.equal(live.broll.nextAction, spec.broll.nextActionIfSkippedForAuth)
   assert.equal(live.skippedCommandSummaries.length, downstreamCommandIds.length)
@@ -226,9 +290,25 @@ if (!live.qwen.accessTokenRefreshPassed) {
     'auth failure must recommend refreshing the active local gcloud account/configuration',
   )
 } else {
-  assert.equal(live.qwen.blocker, 'cleared')
-  assert.equal(live.qwen.nextAction, spec.qwen.nextActionIfCleared)
   assert.equal(live.qwen.downstreamProbeSkipped, false)
+  if (live.qwen.serviceDescribePassed && live.qwen.jobDescribePassed) {
+    assert.equal(live.qwen.blocker, 'cleared')
+    assert.equal(live.qwen.nextAction, spec.qwen.nextActionIfCleared)
+  } else {
+    assert.equal(live.qwen.blocker, spec.qwen.blockerIfPermissionOrResourceFailed)
+    assert.equal(live.qwen.nextAction, spec.qwen.nextActionIfPermissionOrResourceBlocked)
+  }
+  assert.equal(live.broll.readyForExternalAgentExecutionNow, live.broll.quotaSufficientForOneL4Vm)
+  if (live.broll.quotaSufficientForOneL4Vm) {
+    assert.equal(live.broll.blocker, 'cleared')
+    assert.equal(live.broll.nextAction, spec.broll.nextActionIfCleared)
+  } else if (!live.broll.projectQuotaReadPassed || !live.broll.regionQuotaReadPassed) {
+    assert.equal(live.broll.blocker, spec.broll.blockerIfPermissionFailed)
+    assert.equal(live.broll.nextAction, spec.broll.nextActionIfPermissionBlocked)
+  } else {
+    assert.equal(live.broll.blocker, spec.broll.blockerIfFailed)
+    assert.equal(live.broll.nextAction, spec.broll.nextActionIfBlocked)
+  }
 }
 
 for (const [flag, value] of Object.entries(live.runtimeSideEffects as Record<string, boolean>)) {

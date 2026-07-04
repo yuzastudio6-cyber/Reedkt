@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
@@ -18,6 +19,11 @@ const TOKEN_LIKE_PATTERNS: Array<[string, RegExp]> = [
   ['jwt', /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g],
   ['email', /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi],
 ]
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
+const BROLL_CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
+const preflightCallableToolIds = new Set(['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
+const safeEvidenceExecutableToolIds = new Set(['sound_music_audio', 'supabase_local_fixture_harness'])
 
 function sanitize(value: string | undefined): string | undefined {
   if (!value) return undefined
@@ -34,6 +40,7 @@ function runProbe(id: string, script: string): ProbeResult {
   const result = spawnSync('npx', ['tsx', script], {
     encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 6,
+    env: childEnv(),
     stdio: ['ignore', 'pipe', 'pipe'],
   })
   const stdout = String(result.stdout ?? '')
@@ -52,6 +59,28 @@ function runProbe(id: string, script: string): ProbeResult {
     json,
     stderrSummary: sanitize(String(result.stderr ?? '')),
   }
+}
+
+function childEnv(): NodeJS.ProcessEnv {
+  const rawIndex = cliFlagValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG, GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  if (!rawIndex) return process.env
+
+  return {
+    ...process.env,
+    [EXTERNAL_AGENT_TOOL_NEXT_COMMAND.accountSelection.overrideIndexEnv]: rawIndex,
+  }
+}
+
+function cliFlagValue(...flags: string[]): string | undefined {
+  for (const flag of flags) {
+    const equalsArg = process.argv.find((arg) => arg.startsWith(`${flag}=`))
+    if (equalsArg) return equalsArg.slice(flag.length + 1).trim()
+
+    const index = process.argv.indexOf(flag)
+    if (index >= 0) return process.argv[index + 1]?.trim()
+  }
+
+  return undefined
 }
 
 function nestedBoolean(document: Record<string, unknown> | undefined, keys: string[]): boolean {
@@ -179,14 +208,152 @@ function liveBlockerSummary(document: Record<string, unknown> | undefined) {
   }
 }
 
+function brollCacheSummary(document: Record<string, unknown> | undefined) {
+  if (!document) return undefined
+
+  return {
+    ok: document.ok,
+    mode: document.mode,
+    statOnly: document.statOnly,
+    cachePathExists: document.cachePathExists,
+    runtimeEssentialFileCount: document.runtimeEssentialFileCount,
+    expectedFileCount: document.expectedFileCount,
+    actualFileCount: document.actualFileCount,
+    aggregateBytesMatches: document.aggregateBytesMatches,
+    missingFiles: document.missingFiles,
+    byteMismatches: document.byteMismatches,
+    unexpectedFiles: document.unexpectedFiles,
+    modelIndexClassNameMatches: document.modelIndexClassNameMatches,
+    indexRefsLocal: document.indexRefsLocal,
+    runtimeGatesAllFalse: document.runtimeGatesAllFalse,
+    nextAction: document.nextAction,
+  }
+}
+
+function accountAccessSummary(document: Record<string, unknown> | undefined) {
+  if (!document) return undefined
+
+  return {
+    accountCount: nestedUnknown(document, ['accountCount']),
+    qwenReadyAccountCount: nestedUnknown(document, ['qwenReadyAccountCount']),
+    brollQuotaReadAccountCount: nestedUnknown(document, ['brollQuotaReadAccountCount']),
+    brollQuotaReadyAccountCount: nestedUnknown(document, ['brollQuotaReadyAccountCount']),
+    anyAccountReadyForBoth: nestedUnknown(document, ['anyAccountReadyForBoth']),
+    recommendedNextPrompt: nestedString(document, ['recommendedNextPrompt']),
+  }
+}
+
+function accountSelectionSummary(spec: typeof EXTERNAL_AGENT_TOOL_NEXT_COMMAND, liveBlockerJson: Record<string, unknown> | undefined) {
+  const liveSelection = nestedUnknown(liveBlockerJson, ['gcloud', 'accountSelection'])
+  if (liveSelection && typeof liveSelection === 'object' && !Array.isArray(liveSelection)) {
+    return liveSelection
+  }
+
+  const cliIndex = cliFlagValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG, GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  const envIndex = process.env[spec.accountSelection.overrideIndexEnv]?.trim()
+  const rawIndex = cliIndex ?? envIndex
+  const parsedIndex = rawIndex ? Number(rawIndex) : undefined
+
+  return {
+    ...spec.accountSelection,
+    overrideIndexCliFlag: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG,
+    overrideIndexCliFlagAlias: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS,
+    overrideProvided: Boolean(process.env[spec.accountSelection.overrideEnv]?.trim()),
+    overrideIndexProvided: Boolean(rawIndex),
+    overrideIndexSource: cliIndex ? 'cli' : envIndex ? 'env' : undefined,
+    overrideIndex: Number.isInteger(parsedIndex) ? parsedIndex : undefined,
+    overrideResolved: Boolean(process.env[spec.accountSelection.overrideEnv]?.trim()),
+    cloudSdkCoreAccountEnvProvided: Boolean(process.env.CLOUDSDK_CORE_ACCOUNT?.trim()),
+  }
+}
+
+function selectedAccountIndex(accountSelection: unknown): number | undefined {
+  if (!accountSelection || typeof accountSelection !== 'object' || Array.isArray(accountSelection)) {
+    return undefined
+  }
+
+  const record = accountSelection as Record<string, unknown>
+  const index = record.overrideIndex
+  return typeof index === 'number' && Number.isInteger(index) && index > 0 ? index : undefined
+}
+
+function applySelectedAccountIndex(value: string | undefined, accountSelection: unknown): string | undefined {
+  const index = selectedAccountIndex(accountSelection)
+  if (!value || !index) return value
+
+  return value
+    .replace(/<account-index>/g, String(index))
+    .replace(/<redacted-index>/g, String(index))
+}
+
+function withSelectedAccountIndex(command: string | undefined, accountSelection: unknown): string | undefined {
+  const index = selectedAccountIndex(accountSelection)
+  if (!command || !index || command.includes('--account-index') || command.includes('--gcloud-account-index')) {
+    return command
+  }
+
+  return `${command} -- --account-index ${index}`
+}
+
+function withSelectedAccountIndexArgs(args: readonly string[], accountSelection: unknown): string[] {
+  const index = selectedAccountIndex(accountSelection)
+  if (!index || args.includes('--account-index') || args.includes('--gcloud-account-index')) {
+    return [...args]
+  }
+
+  return args.includes('--') ? [...args, '--account-index', String(index)] : [...args, '--', '--account-index', String(index)]
+}
+
+function shellExampleFor(
+  command: {
+    command: string
+    args: readonly string[]
+    confirmationEnv: string
+    confirmationEnvRequiredValue: string
+  },
+  accountSelection: unknown,
+): string {
+  return `${command.confirmationEnv}=${command.confirmationEnvRequiredValue} ${[
+    command.command,
+    ...withSelectedAccountIndexArgs(command.args, accountSelection),
+  ].join(' ')}`
+}
+
+function gcpAccessRepairGuidance(accountSelection: unknown) {
+  const repairPlan = EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN
+
+  return {
+    ok: true,
+    decision: repairPlan.decision,
+    mode: repairPlan.mode,
+    projectId: repairPlan.projectId,
+    currentLiveBlockers: repairPlan.currentLiveBlockers,
+    repairScope: repairPlan.repairScope,
+    tools: repairPlan.tools.map((tool) => ({
+      ...tool,
+      verificationCommand: applySelectedAccountIndex(tool.verificationCommand, accountSelection),
+    })),
+    failureResponsePolicy: repairPlan.failureResponsePolicy,
+    safeRetryChecklist: repairPlan.safeRetryChecklist.map((step) =>
+      applySelectedAccountIndex(step, accountSelection) ?? step,
+    ),
+    postRepairVerificationCommands: repairPlan.postRepairVerificationCommands.map((command) =>
+      applySelectedAccountIndex(command, accountSelection) ?? command,
+    ),
+    runtimeGatesAllFalse: Object.values(repairPlan.runtimeSideEffects).every((value) => value === false),
+    runtimeSideEffects: repairPlan.runtimeSideEffects,
+  }
+}
+
 function main() {
   const spec = EXTERNAL_AGENT_TOOL_NEXT_COMMAND
   const probeById = new Map(spec.allowedProbeScripts.map((probe) => [probe.id, probe]))
   const executionGateProbe = probeById.get('execution_gate')
   const liveBlockerProbe = probeById.get('live_blocker_preflight')
   const gcloudDiagnosticProbe = probeById.get('gcloud_session_diagnostic')
+  const accountAccessDiagnosticProbe = probeById.get('gcloud_account_access_diagnostic')
 
-  if (!executionGateProbe || !liveBlockerProbe || !gcloudDiagnosticProbe) {
+  if (!executionGateProbe || !liveBlockerProbe || !gcloudDiagnosticProbe || !accountAccessDiagnosticProbe) {
     throw new Error('Missing required external-agent next-command probe')
   }
 
@@ -202,7 +369,18 @@ function main() {
     qwenJobDescribePassed &&
     !qwenDownstreamProbeSkipped &&
     nestedString(liveBlocker.json, ['qwen', 'blocker']) === 'cleared'
+  const qwenPermissionOrResourceReadBlocked =
+    qwenAuthRefreshPassed && !qwenLivePreflightPassed && !qwenDownstreamProbeSkipped
   const brollQuotaSufficient = nestedBoolean(liveBlocker.json, ['broll', 'quotaSufficientForOneL4Vm'])
+  const brollCacheReadiness = runProbe('broll_private_cache_readiness', BROLL_CACHE_READINESS_SCRIPT)
+  const brollCacheReady =
+    brollCacheReadiness.ok &&
+    nestedBoolean(brollCacheReadiness.json, ['ok']) &&
+    nestedBoolean(brollCacheReadiness.json, ['cachePathExists']) &&
+    nestedBoolean(brollCacheReadiness.json, ['aggregateBytesMatches']) &&
+    nestedBoolean(brollCacheReadiness.json, ['modelIndexClassNameMatches']) &&
+    nestedBoolean(brollCacheReadiness.json, ['indexRefsLocal']) &&
+    nestedBoolean(brollCacheReadiness.json, ['runtimeGatesAllFalse'])
   const executionGateAllowsRuntime = nestedBoolean(executionGate.json, ['executionAllowedNow'])
   const staticExplicitToolGateReady = nestedBoolean(executionGate.json, ['staticExplicitToolGateReady'])
   const staticExplicitToolGatePrepared = staticExplicitToolGateReady
@@ -210,8 +388,16 @@ function main() {
   const staticGatePlanningOnly = staticExplicitToolGatePrepared && !executionGateAllowsRuntime
   const staticGateDoesNotAuthorizeRuntime = !executionGateAllowsRuntime
   const gateToolSummaries = executionGateToolSummaries(executionGate.json)
-  const executionAllowedNow =
+  const brollStaticExplicitToolGateReady = gateToolSummaries.some(
+    (tool) =>
+      tool.toolId === 'ai_video_broll_generation_wan' &&
+      tool.staticExplicitToolGateReady === true,
+  )
+  const brollInferenceProofAllowedNow =
+    brollStaticExplicitToolGateReady && brollQuotaSufficient && brollCacheReady
+  const qwenExecutionAllowedNow =
     (executionGateAllowsRuntime || staticExplicitToolGateReady) && qwenLivePreflightPassed
+  const executionAllowedNow = qwenExecutionAllowedNow || brollInferenceProofAllowedNow
   const qwenLivePreflightVerificationRequired =
     staticExplicitToolGateReady && !qwenLivePreflightPassed
   const shouldRunGcloudDiagnostic = !qwenAuthRefreshPassed
@@ -219,7 +405,15 @@ function main() {
     ? runProbe(gcloudDiagnosticProbe.id, gcloudDiagnosticProbe.script)
     : undefined
   const diagnosticSummary = shouldRunGcloudDiagnostic ? gcloudDiagnosticSummary(gcloudDiagnostic?.json) : undefined
+  const shouldRunAccountAccessDiagnostic = !qwenLivePreflightPassed
+  const accountAccessDiagnostic = shouldRunAccountAccessDiagnostic
+    ? runProbe(accountAccessDiagnosticProbe.id, accountAccessDiagnosticProbe.script)
+    : undefined
+  const accountAccessDiagnosticSummary = shouldRunAccountAccessDiagnostic
+    ? accountAccessSummary(accountAccessDiagnostic?.json)
+    : undefined
   const blockerSummary = liveBlockerSummary(liveBlocker.json)
+  const accountSelection = accountSelectionSummary(spec, liveBlocker.json)
   const diagnosticRecommendedNextPrompt = shouldRunGcloudDiagnostic
     ? nestedString(gcloudDiagnostic?.json, ['recommendedNextPrompt'])
     : undefined
@@ -228,25 +422,48 @@ function main() {
     ? undefined
     : !qwenAuthRefreshPassed
       ? spec.nextCommandRules.whenQwenAuthRefreshFails
+      : qwenPermissionOrResourceReadBlocked
+        ? spec.nextCommandRules.whenGcpReadAccessRepairRequired
       : !qwenLivePreflightPassed || qwenLivePreflightVerificationRequired
         ? spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails
         : !brollQuotaSufficient
           ? spec.nextCommandRules.whenBrollQuotaNeedsVerification
           : spec.nextCommandRules.whenQwenAuthClearsAndBrollQuotaBlocked
-  const chosenManualAction = executionAllowedNow
+  const rawChosenManualAction = executionAllowedNow
     ? spec.nextCommandRules.whenExecutionGateAllowsRuntime
     : !qwenAuthRefreshPassed
       ? diagnosticRecommendedNextPrompt ??
         nestedString(liveBlocker.json, ['recommendedNextPrompt']) ??
         spec.nextCommandRules.whenQwenAuthRefreshFails
+      : qwenPermissionOrResourceReadBlocked
+        ? nestedString(liveBlocker.json, ['qwen', 'nextAction']) ??
+          nestedString(liveBlocker.json, ['recommendedNextPrompt']) ??
+          spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails
       : qwenLivePreflightVerificationRequired
         ? spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked
         : nestedString(liveBlocker.json, ['recommendedNextPrompt']) ?? spec.defaultDecision
+  const chosenManualAction = applySelectedAccountIndex(rawChosenManualAction, accountSelection)
   const authManualActionRule = spec.manualActionRules.whenQwenAuthRefreshFails
-  const manualActionRequired = !qwenAuthRefreshPassed && authManualActionRule.required
-  const manualActionReason = manualActionRequired ? authManualActionRule.reason : undefined
-  const manualActionBlocksRuntime = manualActionRequired ? authManualActionRule.blocksRuntime : undefined
-  const rerunAfterManualAction = manualActionRequired ? authManualActionRule.rerunAfterManualAction : undefined
+  const readAccessManualActionRule = spec.manualActionRules.whenQwenPermissionOrResourceReadFails
+  const manualActionRequired =
+    (!qwenAuthRefreshPassed && authManualActionRule.required) ||
+    (qwenPermissionOrResourceReadBlocked && readAccessManualActionRule.required)
+  const manualActionReason = !qwenAuthRefreshPassed
+    ? authManualActionRule.reason
+    : qwenPermissionOrResourceReadBlocked
+      ? readAccessManualActionRule.reason
+      : undefined
+  const manualActionBlocksRuntime = !qwenAuthRefreshPassed
+    ? authManualActionRule.blocksRuntime
+    : qwenPermissionOrResourceReadBlocked
+      ? readAccessManualActionRule.blocksRuntime
+      : undefined
+  const rawRerunAfterManualAction = !qwenAuthRefreshPassed
+    ? authManualActionRule.rerunAfterManualAction
+    : qwenPermissionOrResourceReadBlocked
+      ? readAccessManualActionRule.rerunAfterManualAction
+      : undefined
+  const rerunAfterManualAction = withSelectedAccountIndex(rawRerunAfterManualAction, accountSelection)
   const chosenNextCommandAlreadyExecutedInThisRun =
     chosenNextCommand === spec.nextCommandRules.whenQwenAuthRefreshFails && shouldRunGcloudDiagnostic
   const codexRunnableNextCommandNow =
@@ -254,60 +471,109 @@ function main() {
   const qwenBoundedExecutionCommand = executionAllowedNow
     ? {
         ...spec.qwenBoundedExecutionCommand,
-        shellExample: `${spec.qwenBoundedExecutionCommand.confirmationEnv}=${spec.qwenBoundedExecutionCommand.confirmationEnvRequiredValue} ${[
-          spec.qwenBoundedExecutionCommand.command,
-          ...spec.qwenBoundedExecutionCommand.args,
-        ].join(' ')}`,
+        args: withSelectedAccountIndexArgs(spec.qwenBoundedExecutionCommand.args, accountSelection),
+        shellExample: shellExampleFor(spec.qwenBoundedExecutionCommand, accountSelection),
       }
     : null
   const qwenExternalAgentExecutionCommand = executionAllowedNow
     ? {
         ...spec.qwenExternalAgentExecutionCommand,
-        shellExample: `${spec.qwenExternalAgentExecutionCommand.confirmationEnv}=${spec.qwenExternalAgentExecutionCommand.confirmationEnvRequiredValue} ${[
-          spec.qwenExternalAgentExecutionCommand.command,
-          ...spec.qwenExternalAgentExecutionCommand.args,
-        ].join(' ')}`,
+        args: withSelectedAccountIndexArgs(spec.qwenExternalAgentExecutionCommand.args, accountSelection),
+        shellExample: shellExampleFor(spec.qwenExternalAgentExecutionCommand, accountSelection),
       }
     : null
   const brollWanExternalAgentProofCommand = {
     ...spec.brollWanExternalAgentProofCommand,
-    executionAllowedNow: false,
+    args: withSelectedAccountIndexArgs(spec.brollWanExternalAgentProofCommand.args, accountSelection),
+    executionAllowedNow: brollStaticExplicitToolGateReady && brollQuotaSufficient,
     blocker: nestedString(liveBlocker.json, ['broll', 'blocker']) ?? 'broll_preflight_not_cleared',
-    shellExample: `${spec.brollWanExternalAgentProofCommand.confirmationEnv}=${spec.brollWanExternalAgentProofCommand.confirmationEnvRequiredValue} ${[
-      spec.brollWanExternalAgentProofCommand.command,
-      ...spec.brollWanExternalAgentProofCommand.args,
-    ].join(' ')}`,
+    shellExample: shellExampleFor(spec.brollWanExternalAgentProofCommand, accountSelection),
+  }
+  const brollWanInferenceProofCommand = {
+    ...spec.brollWanInferenceProofCommand,
+    args: withSelectedAccountIndexArgs(spec.brollWanInferenceProofCommand.args, accountSelection),
+    executionAllowedNow: brollInferenceProofAllowedNow,
+    blocker: brollInferenceProofAllowedNow
+      ? 'cleared'
+      : !brollStaticExplicitToolGateReady
+        ? 'broll_static_explicit_tool_gate_not_ready'
+        : !brollQuotaSufficient
+          ? nestedString(liveBlocker.json, ['broll', 'blocker']) ?? 'broll_quota_preflight_not_cleared'
+          : 'broll_private_cache_not_ready',
+    verifiesPrivateCacheBeforeAnyVmAction: true,
+    shellExample: shellExampleFor(spec.brollWanInferenceProofCommand, accountSelection),
   }
   const brollWanPrivateCachePrepareCommand = {
     ...spec.brollWanPrivateCachePrepareCommand,
+    args: withSelectedAccountIndexArgs(spec.brollWanPrivateCachePrepareCommand.args, accountSelection),
     executionAllowedNow: false,
     blocker: 'private_gcs_model_cache_marker_missing_or_unverified',
-    shellExample: `${spec.brollWanPrivateCachePrepareCommand.confirmationEnv}=${spec.brollWanPrivateCachePrepareCommand.confirmationEnvRequiredValue} ${[
-      spec.brollWanPrivateCachePrepareCommand.command,
-      ...spec.brollWanPrivateCachePrepareCommand.args,
-    ].join(' ')}`,
+    shellExample: shellExampleFor(spec.brollWanPrivateCachePrepareCommand, accountSelection),
   }
   const soundMusicAudioEvidenceCommand = {
     ...spec.soundMusicAudioEvidenceCommand,
+    args: withSelectedAccountIndexArgs(spec.soundMusicAudioEvidenceCommand.args, accountSelection),
     executionAllowedNow: false,
+    runtimeExecutionAllowedNow: false,
+    safeEvidenceReviewExecutableNow: true,
     blocker: 'real_provider_worker_storage_track_qa_billing_export_handoffs_required',
-    shellExample: `${spec.soundMusicAudioEvidenceCommand.confirmationEnv}=${spec.soundMusicAudioEvidenceCommand.confirmationEnvRequiredValue} ${[
-      spec.soundMusicAudioEvidenceCommand.command,
-      ...spec.soundMusicAudioEvidenceCommand.args,
-    ].join(' ')}`,
+    shellExample: shellExampleFor(spec.soundMusicAudioEvidenceCommand, accountSelection),
   }
   const supabaseLocalHarnessEvidenceCommand = {
     ...spec.supabaseLocalHarnessEvidenceCommand,
+    args: withSelectedAccountIndexArgs(spec.supabaseLocalHarnessEvidenceCommand.args, accountSelection),
     executionAllowedNow: false,
+    runtimeExecutionAllowedNow: false,
+    safeEvidenceReviewExecutableNow: true,
     blocker: 'not_a_model_or_media_execution_lane_on_this_branch',
-    shellExample: `${spec.supabaseLocalHarnessEvidenceCommand.confirmationEnv}=${spec.supabaseLocalHarnessEvidenceCommand.confirmationEnvRequiredValue} ${[
-      spec.supabaseLocalHarnessEvidenceCommand.command,
-      ...spec.supabaseLocalHarnessEvidenceCommand.args,
-    ].join(' ')}`,
+    shellExample: shellExampleFor(spec.supabaseLocalHarnessEvidenceCommand, accountSelection),
   }
   const nextCodexCommandAfterManualAction = manualActionRequired ? rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
-  const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic]
+  const toolExecutionReadiness = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.map((tool) => {
+    const qwenRuntimeExecutable = tool.toolId === 'qwen2_5_vl_7b_instruct' && qwenExecutionAllowedNow
+    const brollRuntimeExecutable =
+      tool.toolId === 'ai_video_broll_generation_wan' && brollInferenceProofAllowedNow
+    return {
+      toolId: tool.toolId,
+      lane: tool.lane,
+      status: tool.status,
+      selectedModelOrTool: tool.selectedModelOrTool,
+      selectedGpu: tool.selectedGpu,
+      agentCallableNow: true,
+      preflightCallableNow: preflightCallableToolIds.has(tool.toolId),
+      safeEvidenceExecutableNow: safeEvidenceExecutableToolIds.has(tool.toolId),
+      runtimeExecutableNow: qwenRuntimeExecutable || brollRuntimeExecutable,
+      realRuntimeExecutionAllowedNow: qwenRuntimeExecutable || brollRuntimeExecutable,
+      readyForBoundedRetryAfterBlockerClears: tool.readyForBoundedRetryAfterBlockerClears,
+      primaryBlocker:
+        tool.toolId === 'qwen2_5_vl_7b_instruct'
+          ? nestedString(liveBlocker.json, ['qwen', 'blocker']) ?? tool.primaryBlocker
+          : tool.toolId === 'ai_video_broll_generation_wan'
+            ? nestedString(liveBlocker.json, ['broll', 'blocker']) ?? tool.primaryBlocker
+            : tool.primaryBlocker,
+      nextAction:
+        tool.toolId === 'qwen2_5_vl_7b_instruct'
+          ? nestedString(liveBlocker.json, ['qwen', 'nextAction']) ?? tool.nextAction
+          : tool.toolId === 'ai_video_broll_generation_wan'
+            ? nestedString(liveBlocker.json, ['broll', 'nextAction']) ?? tool.nextAction
+            : tool.nextAction,
+    }
+  })
+  const runtimeExecutableToolIds = toolExecutionReadiness
+    .filter((tool) => tool.runtimeExecutableNow)
+    .map((tool) => tool.toolId)
+  const externalAgentCallableToolIds = toolExecutionReadiness.map((tool) => tool.toolId)
+  const safeEvidenceReviewToolIds = toolExecutionReadiness
+    .filter((tool) => tool.safeEvidenceExecutableNow)
+    .map((tool) => tool.toolId)
+  const probeSummaries = [
+    executionGate,
+    liveBlocker,
+    brollCacheReadiness,
+    gcloudDiagnostic,
+    accountAccessDiagnostic,
+  ]
     .filter((probe): probe is ProbeResult => Boolean(probe))
     .map((probe) => ({
       id: probe.id,
@@ -321,13 +587,19 @@ function main() {
   console.log(
     JSON.stringify(
       {
-        ok: executionGate.ok && liveBlocker.ok && (!gcloudDiagnostic || gcloudDiagnostic.ok) && runtimeGatesAllFalse,
+        ok:
+          executionGate.ok &&
+          liveBlocker.ok &&
+          (!gcloudDiagnostic || gcloudDiagnostic.ok) &&
+          (!accountAccessDiagnostic || accountAccessDiagnostic.ok) &&
+          runtimeGatesAllFalse,
         decision: spec.decision,
         mode: spec.mode,
         liveReadOnlyChecksRun: true,
         paidProductionInScope: spec.paidProductionInScope,
         dryRunPassedClaimed: spec.dryRunPassedClaimed,
         generatedLocalFixturePassedClaimed: spec.generatedLocalFixturePassedClaimed,
+        accountSelection,
         staticExecutionGateAllowed,
         staticExplicitToolGateReady,
         staticExplicitToolGatePrepared,
@@ -340,19 +612,40 @@ function main() {
         qwenServiceDescribePassed,
         qwenJobDescribePassed,
         qwenDownstreamProbeSkipped,
+        qwenExecutionAllowedNow,
+        brollStaticExplicitToolGateReady,
+        brollCacheReady,
+        brollCacheReadiness: brollCacheSummary(brollCacheReadiness.json),
+        brollInferenceProofAllowedNow,
         executionAllowedNow,
         readyForAnyExternalAgentExecutionNow: executionAllowedNow,
+        externalAgentCallableToolCount: externalAgentCallableToolIds.length,
+        externalAgentCallableToolIds,
+        runtimeExecutableToolCount: runtimeExecutableToolIds.length,
+        runtimeExecutableToolIds,
+        readyForAnyExternalAgentRuntimeExecutionNow: runtimeExecutableToolIds.length > 0,
+        preflightCallableToolIds: toolExecutionReadiness
+          .filter((tool) => tool.preflightCallableNow)
+          .map((tool) => tool.toolId),
+        safeEvidenceExecutableToolIds: safeEvidenceReviewToolIds,
+        safeEvidenceReviewToolCount: safeEvidenceReviewToolIds.length,
+        readyForAnyExternalAgentSafeEvidenceReviewNow: safeEvidenceReviewToolIds.length > 0,
+        toolExecutionReadiness,
         qwenAuthRefreshPassed,
         brollQuotaSufficientForOneL4Vm: brollQuotaSufficient,
         liveBlockerSummary: blockerSummary,
+        gcpAccessRepair: gcpAccessRepairGuidance(accountSelection),
         gcloudDiagnosticRun: shouldRunGcloudDiagnostic,
         gcloudDiagnosticSummary: diagnosticSummary,
+        gcloudAccountAccessDiagnosticRun: shouldRunAccountAccessDiagnostic,
+        gcloudAccountAccessSummary: accountAccessDiagnosticSummary,
         chosenNextCommand,
         chosenNextCommandAlreadyExecutedInThisRun,
         codexRunnableNextCommandNow: codexRunnableNextCommandNow ?? null,
         qwenExternalAgentExecutionCommand,
         qwenBoundedExecutionCommand,
         brollWanExternalAgentProofCommand,
+        brollWanInferenceProofCommand,
         brollWanPrivateCachePrepareCommand,
         soundMusicAudioEvidenceCommand,
         supabaseLocalHarnessEvidenceCommand,

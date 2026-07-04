@@ -1,3 +1,4 @@
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const forbiddenRuntimeActions = [
@@ -23,12 +24,88 @@ const externalAgentPreExecutionActions = [
   'npm run external-agent-tool-execution-gate',
 ] as const
 
+function readArgValue(names: string[]): string | undefined {
+  for (const name of names) {
+    const equalsPrefix = `${name}=`
+    const equalsMatch = process.argv.find((arg) => arg.startsWith(equalsPrefix))
+    if (equalsMatch) return equalsMatch.slice(equalsPrefix.length).trim()
+
+    const index = process.argv.indexOf(name)
+    if (index >= 0) {
+      const next = process.argv[index + 1]?.trim()
+      if (next && !next.startsWith('--')) return next
+    }
+  }
+
+  return undefined
+}
+
+function selectedAccountIndex(): number | undefined {
+  const rawIndex = readArgValue(['--account-index', '--gcloud-account-index'])
+  const parsed = rawIndex ? Number(rawIndex) : undefined
+  return Number.isInteger(parsed) && Number(parsed) > 0 ? Number(parsed) : undefined
+}
+
+function replaceAccountIndexPlaceholders(value: string, accountIndex: number | undefined) {
+  if (!accountIndex) return value
+
+  return value
+    .replace(/<account-index>/g, String(accountIndex))
+    .replace(/<redacted-index>/g, String(accountIndex))
+}
+
+const cliAccountIndexCommands = new Set([
+  'npm run external-agent-tool-action-plan',
+  'npm run external-agent-tool-callability-proof',
+  'npm run external-agent-tool-run',
+  'npm run external-agent-tool-readiness:check',
+  'npm run external-agent-tool-execution-gate',
+  'npm run external-agent-tool-next-command',
+  'npm run external-agent-tool-blockers:preflight',
+  'npm run external-agent-gcp-access:repair-plan',
+  'npm run external-agent-gcp-access:verify',
+  'npm run external-agent-tool-runtime-status',
+  'npm run external-agent-tool-execute-qwen',
+  'npm run external-agent-tool-execute-broll-wan',
+])
+
+const envAccountIndexCommands = new Set(['npm run ai-video-broll-wan-gpu-global-quota:verify'])
+const preflightCallableToolIds = new Set(['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
+const safeEvidenceExecutableToolIds = new Set(['sound_music_audio', 'supabase_local_fixture_harness'])
+
+function commandWithAccountIndex(command: string, accountIndex: number | undefined): string {
+  if (!accountIndex) return command
+  if (
+    command.includes('--account-index') ||
+    command.includes('--gcloud-account-index') ||
+    command.includes('REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=')
+  ) {
+    return replaceAccountIndexPlaceholders(command, accountIndex)
+  }
+
+  const runPrefix = command.startsWith('run ')
+  const body = runPrefix ? command.slice('run '.length) : command
+  const prefix = runPrefix ? 'run ' : ''
+
+  if (cliAccountIndexCommands.has(body)) {
+    return `${prefix}${body} -- --account-index ${accountIndex}`
+  }
+
+  if (envAccountIndexCommands.has(body)) {
+    return `${prefix}REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=${accountIndex} ${body}`
+  }
+
+  return replaceAccountIndexPlaceholders(command, accountIndex)
+}
+
 function actionForTool(toolId: string) {
   if (toolId === 'qwen2_5_vl_7b_instruct') {
     return {
       immediateSafeActions: [
         ...externalAgentPreExecutionActions,
         'npm run external-agent-tool-blockers:preflight',
+        'npm run external-agent-gcp-access:repair-plan',
+        'npm run external-agent-gcp-access:verify',
       ],
       externalManualBlocker:
         'Qwen 58DX result review accepted the bounded approved-fixture private inference result for the explicit external-agent gate; live preflight is still required before any runtime attempt',
@@ -44,12 +121,14 @@ function actionForTool(toolId: string) {
         'npm run ai-video-broll-wan-fast-cache-readiness:check',
         'npm run ai-video-broll-wan-gpu-global-quota:verify',
         'npm run external-agent-tool-blockers:preflight',
+        'npm run external-agent-gcp-access:repair-plan',
+        'npm run external-agent-gcp-access:verify',
         'npm run external-agent-tool-execute-broll-wan',
       ],
       externalManualBlocker:
-        'B-roll 10ZB proved the no-idle L4 payload/install path with cleanup verified. 11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers model import target, 11E staged the private GCS Wan model cache with the ready marker, 11B executed the bounded no-idle L4 model import/load proof, 11C accepts that passed proof as external-agent evidence, 11F records the bounded Wan inference boundary plan, 11G implements the fail-closed inference-proof runner shell, and 11H attempted the bounded latent inference proof with cleanup verified. The wrapper can call the 11H runner, but the canary timed out while loading pipeline weights before prompt encoding or denoising, so generated video remains blocked.',
+        'B-roll 10ZB proved the no-idle L4 payload/install path with cleanup verified. 11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers model import target, 11E staged the private GCS Wan model cache with the ready marker, 11B executed the bounded no-idle L4 model import/load proof, 11C accepts that passed proof as external-agent evidence, 11F records the bounded Wan inference boundary plan, 11G implements the fail-closed inference-proof runner shell, 11H attempted the bounded latent inference proof with cleanup verified, and 11H-FIX updates the retry shape to g2-standard-8 with early pipeline-load markers. The wrapper can call the 11H runner, but generated video remains blocked until a separate bounded retry passes.',
       afterBlockerClears:
-        'run AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF before any Wan inference-proof retry; the current 11H attempt failed during pipeline load timeout with cleanup verified',
+        'run AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF as a separate explicit bounded retry; the current fix only prepares the runner and does not create video',
     }
   }
 
@@ -81,61 +160,143 @@ function actionForTool(toolId: string) {
 
 function main() {
   const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
-  const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
+  const accountIndex = selectedAccountIndex()
+  const staticReadyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
   const explicitToolGateReadyTools = rollup.tools.filter(
     (tool) =>
       String(tool.status) === 'ready_for_explicit_tool_gate' ||
       String(tool.status) === 'ready_for_bounded_model_import_proof_after_private_cache_staging' ||
       String(tool.status) === 'bounded_model_import_load_proof_reviewed_inference_boundary_plan_required' ||
       String(tool.status) === 'bounded_inference_boundary_planned_runner_required' ||
-      String(tool.status) === 'bounded_inference_proof_execution_attempted_failed_cleanup_verified_fix_required',
+      String(tool.status) === 'bounded_inference_proof_execution_attempted_failed_cleanup_verified_fix_required' ||
+      String(tool.status) === 'bounded_inference_proof_fix_implemented_retry_required',
   )
+  const explicitToolGateReadyToolIds = new Set(explicitToolGateReadyTools.map((tool) => tool.toolId))
+  const safeEvidenceReviewToolIds = rollup.tools
+    .filter((tool) => safeEvidenceExecutableToolIds.has(tool.toolId))
+    .map((tool) => tool.toolId)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
+  const externalAgentCallableToolIds = rollup.tools.map((tool) => tool.toolId)
+  const runtimeExecutableToolIds: string[] = []
   const runtimeGatesAllFalse = Object.values(rollup.runtimeSideEffects).every((value) => value === false)
+  const gcpAccessRepairRuntimeGatesAllFalse = Object.values(
+    EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.runtimeSideEffects,
+  ).every((value) => value === false)
   const preferredNextSafeCommand =
     rollup.safeNextCommands.find((command) => command.id === 'live_next_command_decision') ??
     rollup.safeNextCommands[0]
+  const safeCommandQueue = rollup.safeNextCommands.map((command) => ({
+    id: command.id,
+    command: command.command,
+    liveReadOnly: command.liveReadOnly,
+    mutatesRuntime: command.mutatesRuntime,
+    runsModel: command.runsModel,
+    createsAssets: command.createsAssets,
+    purpose: command.purpose,
+  }))
+  const accountIndexedSafeCommandQueue = accountIndex
+    ? safeCommandQueue.map((command) => ({
+        ...command,
+        command: commandWithAccountIndex(command.command, accountIndex),
+      }))
+    : undefined
+  const accountIndexedPreferredNextSafeCommand =
+    accountIndexedSafeCommandQueue?.find((command) => command.id === 'live_next_command_decision') ??
+    accountIndexedSafeCommandQueue?.[0]
 
   const actionPlan = {
-    ok: runtimeGatesAllFalse,
+    ok: runtimeGatesAllFalse && gcpAccessRepairRuntimeGatesAllFalse,
     mode: 'static_external_agent_tool_action_plan',
     decision: rollup.decision,
     paidProductionInScope: rollup.paidProductionInScope,
     dryRunPassedClaimed: rollup.dryRunPassedClaimed,
     generatedLocalFixturePassedClaimed: rollup.generatedLocalFixturePassedClaimed,
-    readyForAnyExternalAgentExecutionNow: readyTools.length > 0,
-    readyToolIds: readyTools.map((tool) => tool.toolId),
+    readyForAnyExternalAgentExecutionNow: false,
+    readyForAnyExternalAgentRuntimeExecutionNow: false,
+    externalAgentCallableToolCount: externalAgentCallableToolIds.length,
+    externalAgentCallableToolIds,
+    runtimeExecutableToolCount: runtimeExecutableToolIds.length,
+    runtimeExecutableToolIds,
+    preflightCallableToolIds: rollup.tools
+      .filter((tool) => preflightCallableToolIds.has(tool.toolId))
+      .map((tool) => tool.toolId),
+    staticReadyForAnyExternalAgentExecutionGateNow: staticReadyTools.length > 0,
+    readyToolIds: [],
+    staticReadyToolIds: staticReadyTools.map((tool) => tool.toolId),
     staticExplicitToolGateReadyToolIds: explicitToolGateReadyTools.map((tool) => tool.toolId),
+    safeEvidenceReviewToolIds,
+    safeEvidenceReviewToolCount: safeEvidenceReviewToolIds.length,
+    readyForAnyExternalAgentSafeEvidenceReviewNow: safeEvidenceReviewToolIds.length > 0,
     livePreflightRequiredBeforeRuntime: explicitToolGateReadyTools.length > 0,
+    executionNowBlockedByLivePreflight: explicitToolGateReadyTools.length > 0,
     blockedToolCount: blockedTools.length,
     runtimeGatesAllFalse,
-    safeCommandQueue: rollup.safeNextCommands.map((command) => ({
-      id: command.id,
-      command: command.command,
-      liveReadOnly: command.liveReadOnly,
-      mutatesRuntime: command.mutatesRuntime,
-      runsModel: command.runsModel,
-      createsAssets: command.createsAssets,
-      purpose: command.purpose,
-    })),
+    gcpAccessRepair: {
+      accountSelection: {
+        ...EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.accountSelection,
+        cliAccountIndexProvided: Boolean(accountIndex),
+        cliAccountIndex: accountIndex,
+        cliAccountIndexValid: Boolean(accountIndex),
+        cliAccountIndexMapsToChildEnv: Boolean(accountIndex),
+      },
+      decision: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.decision,
+      mode: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.mode,
+      projectId: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.projectId,
+      currentLiveBlockers: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.currentLiveBlockers,
+      repairScope: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.repairScope,
+      tools: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.tools.map((tool) => ({
+        ...tool,
+        verificationCommand: replaceAccountIndexPlaceholders(tool.verificationCommand, accountIndex),
+      })),
+      failureResponsePolicy: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.failureResponsePolicy,
+      safeRetryChecklist: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.safeRetryChecklist.map((step) =>
+        replaceAccountIndexPlaceholders(step, accountIndex),
+      ),
+      postRepairVerificationCommands: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.postRepairVerificationCommands.map(
+        (command) => replaceAccountIndexPlaceholders(command, accountIndex),
+      ),
+      runtimeGatesAllFalse: gcpAccessRepairRuntimeGatesAllFalse,
+      runtimeSideEffects: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.runtimeSideEffects,
+    },
+    safeCommandQueue,
     preferredNextSafeCommand,
-    toolActions: rollup.tools.map((tool) => ({
-      toolId: tool.toolId,
-      lane: tool.lane,
-      status: tool.status,
-      currentStage: tool.currentStage,
-      selectedModelOrTool: tool.selectedModelOrTool,
-      selectedGpu: tool.selectedGpu,
-      scaleToZeroRequired: tool.scaleToZeroRequired,
-      readyForExternalAgentExecutionNow: tool.readyForExternalAgentExecutionNow,
-      readyForBoundedRetryAfterBlockerClears: tool.readyForBoundedRetryAfterBlockerClears,
-      noIdleLifecycleGate: tool.noIdleLifecycleGate ?? null,
-      primaryBlocker: tool.primaryBlocker,
-      nextAction: tool.nextAction,
-      manualBlockerActions: tool.manualBlockerActions ?? [],
-      ...actionForTool(tool.toolId),
-      forbiddenRuntimeActions,
-    })),
+    accountIndexedSafeCommandQueue,
+    accountIndexedPreferredNextSafeCommand,
+    toolActions: rollup.tools.map((tool) => {
+      const toolAction = actionForTool(tool.toolId)
+
+      return {
+        toolId: tool.toolId,
+        lane: tool.lane,
+        status: tool.status,
+        currentStage: tool.currentStage,
+        selectedModelOrTool: tool.selectedModelOrTool,
+        selectedGpu: tool.selectedGpu,
+        scaleToZeroRequired: tool.scaleToZeroRequired,
+        agentCallableNow: true,
+        preflightCallableNow: preflightCallableToolIds.has(tool.toolId),
+        readyForExternalAgentExecutionNow: false,
+        readyForExternalAgentRuntimeExecutionNow: false,
+        runtimeExecutableNow: false,
+        realRuntimeExecutionAllowedNow: false,
+        staticExplicitToolGateReady: explicitToolGateReadyToolIds.has(tool.toolId),
+        staticReadyForExternalAgentExecutionGateNow:
+          tool.readyForExternalAgentExecutionNow || explicitToolGateReadyToolIds.has(tool.toolId),
+        executionNowBlockedByLivePreflight:
+          tool.readyForExternalAgentExecutionNow || explicitToolGateReadyToolIds.has(tool.toolId),
+        safeEvidenceReviewExecutableNow: safeEvidenceReviewToolIds.includes(tool.toolId),
+        readyForBoundedRetryAfterBlockerClears: tool.readyForBoundedRetryAfterBlockerClears,
+        noIdleLifecycleGate: tool.noIdleLifecycleGate ?? null,
+        primaryBlocker: tool.primaryBlocker,
+        nextAction: tool.nextAction,
+        manualBlockerActions: tool.manualBlockerActions ?? [],
+        ...toolAction,
+        accountIndexedImmediateSafeActions: accountIndex
+          ? toolAction.immediateSafeActions.map((action) => commandWithAccountIndex(action, accountIndex))
+          : undefined,
+        forbiddenRuntimeActions,
+      }
+    }),
     manualBlockers: blockedTools.map((tool) => ({
       toolId: tool.toolId,
       blocker: tool.primaryBlocker,

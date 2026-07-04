@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
 const ROOT = process.cwd()
@@ -11,6 +12,8 @@ const SMOKE_PATH = 'server/smoke/external-agent-tool-execute-qwen-smoke.ts'
 const PACKAGE_SCRIPT = 'external-agent-tool-execute-qwen'
 const SMOKE_SCRIPT = 'smoke:external-agent-tool-execute-qwen'
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_QWEN_EXECUTION'
+const ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
+const ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -85,9 +88,26 @@ assert.equal(
 const source = read(CLI_PATH)
 for (const required of [
   CONFIRM_ENV,
+  'external-agent-tool-execution-gate.ts',
   'external-agent-tool-next-command.ts',
+  'external_agent_qwen_execution_preflight_only_result',
+  'preflightOnlyCommand',
+  '--preflight-only',
+  'external_agent_qwen_execution_live_gate_blocked',
+  'validateLiveGate',
+  'summarizeLiveGate',
+  'live_execution_gate_execution_allowed_now_false',
   'qwenBoundedExecutionCommand',
   'qwenExternalAgentExecutionCommand',
+  ACCOUNT_OVERRIDE_ENV,
+  ACCOUNT_OVERRIDE_INDEX_ENV,
+  '--account-index',
+  '--gcloud-account-index',
+  'CLOUDSDK_CORE_ACCOUNT: selection.account',
+  'withSelectedAccountIndexCommand',
+  'withSelectedAccountIndexPlaceholders',
+  'qwenAccessRepairHint',
+  'external-agent-gcp-access:repair-plan',
   'parseJsonOutput',
   "trimmed.indexOf('{')",
   "trimmed.lastIndexOf('}')",
@@ -105,8 +125,18 @@ const staticReport = runCli(['--json'])
 assert.equal(staticReport.ok, false)
 assert.equal(staticReport.mode, 'external_agent_qwen_execution_static_guard')
 assert.equal(staticReport.executeRequired, true)
+assert.equal(staticReport.preflightOnlyCommand, 'npm run external-agent-tool-execute-qwen -- --preflight-only --json')
 assert.equal(staticReport.confirmationEnv, CONFIRM_ENV)
 assert.equal(staticReport.confirmationEnvRequiredValue, 'true')
+assert.equal(staticReport.gcloudAccountOverrideEnv, ACCOUNT_OVERRIDE_ENV)
+assert.equal(typeof staticReport.gcloudAccountOverrideProvided, 'boolean')
+assert.equal(staticReport.gcloudAccountOverrideIndexEnv, ACCOUNT_OVERRIDE_INDEX_ENV)
+assert.equal(staticReport.gcloudAccountOverrideIndexCliFlag, '--account-index')
+assert.equal(staticReport.gcloudAccountOverrideIndexCliFlagAlias, '--gcloud-account-index')
+assert.equal(typeof staticReport.gcloudAccountOverrideIndexProvided, 'boolean')
+assert.equal(typeof staticReport.gcloudAccountOverrideResolved, 'boolean')
+assert.equal(staticReport.gcloudAccountOverrideMutatesLocalConfig, false)
+assertQwenAccessRepair(staticReport)
 assert.deepEqual(
   staticReport.canonicalCommand,
   EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenExternalAgentExecutionCommand,
@@ -126,11 +156,112 @@ assert.equal(staticReport.betaUnlocked, false)
 assert.equal(staticReport.productionUnlocked, false)
 assert.equal(staticReport.generatedLocalFixturePassedClaimed, false)
 
+const invalidCliIndexReport = runCli(['--account-index=0', '--json'])
+assert.equal(invalidCliIndexReport.mode, 'external_agent_qwen_execution_static_guard')
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideIndexProvided, true)
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideIndexSource, 'cli')
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideResolved, false)
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideResolutionFailure, 'invalid_account_index')
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideMutatesLocalConfig, false)
+
+const indexedStaticReport = runCli(['--account-index', '2', '--json'])
+assert.equal(indexedStaticReport.mode, 'external_agent_qwen_execution_static_guard')
+assert.equal(indexedStaticReport.gcloudAccountOverrideIndexProvided, true)
+assert.equal(indexedStaticReport.gcloudAccountOverrideIndex, 2)
+assert.equal(indexedStaticReport.gcloudAccountOverrideIndexSource, 'cli')
+assert.equal(indexedStaticReport.gcloudAccountOverrideResolved, true)
+assert.deepEqual(
+  (indexedStaticReport.delegatedBoundedCommand as { args: string[] }).args,
+  [
+    'run',
+    'qwen2-5-vl-58dw-bounded-private-inference-retry',
+    '--',
+    '--execute',
+    '--json',
+    '--account-index',
+    '2',
+  ],
+)
+assert.equal(
+  (indexedStaticReport.gcpAccessRepair as { verificationCommand: string }).verificationCommand,
+  'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+)
+assert.equal(
+  ((indexedStaticReport.gcpAccessRepair as { safeRetryChecklist: string[] }).safeRetryChecklist).includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+
+const preflightOnly = runCli(['--preflight-only', '--json'])
+assert.equal(preflightOnly.mode, 'external_agent_qwen_execution_preflight_only_result')
+assert.equal(typeof preflightOnly.ok, 'boolean')
+assert.equal(typeof preflightOnly.status, 'string')
+assert.equal(Array.isArray(preflightOnly.blockers), true)
+assert.equal(preflightOnly.confirmationEnv, CONFIRM_ENV)
+assert.equal(preflightOnly.confirmationEnvRequiredValue, 'true')
+assert.equal(typeof preflightOnly.liveGate, 'object')
+assert.equal(typeof preflightOnly.nextCommand, 'object')
+assert.equal(typeof preflightOnly.wouldDelegateIfExecuteConfirmed, 'boolean')
+assert.deepEqual(
+  preflightOnly.delegatedBoundedCommand,
+  EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand,
+)
+assertQwenAccessRepair(preflightOnly)
+assert.equal(preflightOnly.runtimeRunNow, false)
+assert.equal(preflightOnly.cloudRunJobExecuted, false)
+assert.equal(preflightOnly.modelInferenceRun, false)
+assert.equal(preflightOnly.generatedAssetsCreated, false)
+assert.equal(preflightOnly.supabaseTouched, false)
+assert.equal(preflightOnly.sqlExecuted, false)
+assert.equal(preflightOnly.creditMutationCreated, false)
+assert.equal(preflightOnly.betaUnlocked, false)
+assert.equal(preflightOnly.productionUnlocked, false)
+assert.equal(preflightOnly.generatedLocalFixturePassedClaimed, false)
+
+const indexedPreflightOnly = runCli(['--preflight-only', '--json', '--account-index', '2'])
+assert.equal(indexedPreflightOnly.mode, 'external_agent_qwen_execution_preflight_only_result')
+assert.equal(indexedPreflightOnly.gcloudAccountOverrideIndexProvided, true)
+assert.equal(indexedPreflightOnly.gcloudAccountOverrideIndex, 2)
+assert.equal(indexedPreflightOnly.gcloudAccountOverrideResolved, true)
+assert.deepEqual(
+  (indexedPreflightOnly.delegatedBoundedCommand as { args: string[] }).args,
+  [
+    'run',
+    'qwen2-5-vl-58dw-bounded-private-inference-retry',
+    '--',
+    '--execute',
+    '--json',
+    '--account-index',
+    '2',
+  ],
+)
+assert.equal(
+  ((indexedPreflightOnly.nextCommand as { chosenManualAction: string }).chosenManualAction).includes(
+    '--account-index 2',
+  ),
+  true,
+)
+assertSelectedAccountRepairRequest(
+  (
+    indexedPreflightOnly.liveGate as {
+      liveVerifier?: { accountAccessDiagnostic?: { selectedAccountRepairRequest?: unknown } }
+    }
+  ).liveVerifier?.accountAccessDiagnostic?.selectedAccountRepairRequest,
+)
+
 const confirmationBlocked = runCli(['--execute', '--json'])
 assert.equal(confirmationBlocked.ok, false)
 assert.equal(confirmationBlocked.mode, 'external_agent_qwen_execution_confirmation_blocked')
 assert.equal(confirmationBlocked.status, 'blocked')
 assert.deepEqual(confirmationBlocked.blockers, [`confirmation_env_required:${CONFIRM_ENV}=true`])
+assert.equal(confirmationBlocked.gcloudAccountOverrideEnv, ACCOUNT_OVERRIDE_ENV)
+assert.equal(typeof confirmationBlocked.gcloudAccountOverrideProvided, 'boolean')
+assert.equal(confirmationBlocked.gcloudAccountOverrideIndexEnv, ACCOUNT_OVERRIDE_INDEX_ENV)
+assert.equal(typeof confirmationBlocked.gcloudAccountOverrideIndexProvided, 'boolean')
+assert.equal(typeof confirmationBlocked.gcloudAccountOverrideResolved, 'boolean')
+assert.equal(confirmationBlocked.gcloudAccountOverrideMutatesLocalConfig, false)
+assertQwenAccessRepair(confirmationBlocked)
 assert.equal(confirmationBlocked.runtimeRunNow, false)
 assert.equal(confirmationBlocked.cloudRunJobExecuted, false)
 assert.equal(confirmationBlocked.modelInferenceRun, false)
@@ -142,7 +273,12 @@ assert.equal(confirmationBlocked.betaUnlocked, false)
 assert.equal(confirmationBlocked.productionUnlocked, false)
 assert.equal(confirmationBlocked.generatedLocalFixturePassedClaimed, false)
 
-const forbiddenFindings = scanForbiddenValues({ staticReport, confirmationBlocked })
+const forbiddenFindings = scanForbiddenValues({
+  staticReport,
+  preflightOnly,
+  indexedPreflightOnly,
+  confirmationBlocked,
+})
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(
@@ -151,6 +287,7 @@ console.log(
       ok: true,
       mode: 'external_agent_qwen_execution_wrapper_smoke',
       staticGuardMode: staticReport.mode,
+      preflightOnlyMode: preflightOnly.mode,
       confirmationBlockedMode: confirmationBlocked.mode,
       confirmationEnv: CONFIRM_ENV,
       delegatedCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand.args.join(' '),
@@ -162,3 +299,96 @@ console.log(
     2,
   ),
 )
+
+function assertQwenAccessRepair(report: Record<string, unknown>) {
+  const repair = report.gcpAccessRepair as {
+    command?: string
+    blocker?: string
+    requiredReadPermissions?: Array<{ permission: string }>
+    likelyMinimalRole?: string
+    verificationCommand?: string
+    failureMeaning?: string
+    safeRepairChecklist?: string[]
+    unsafeBypasses?: string[]
+    failureResponsePolicy?: { ifReadAccessFails?: string; ifResourcesAreMissing?: string }
+    safeRetryChecklist?: string[]
+    postRepairVerificationCommands?: string[]
+    runtimeExecutionStillRequiresWrapperGate?: boolean
+    mutatesGcp?: boolean
+    authorizesRuntimeExecution?: boolean
+  }
+  const qwenRepair = EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.tools.find(
+    (tool) => tool.toolId === 'qwen2_5_vl_7b_instruct',
+  )
+
+  assert.equal(repair.command, 'npm run external-agent-gcp-access:repair-plan')
+  assert.equal(repair.blocker, qwenRepair?.blocker)
+  assert.deepEqual(
+    repair.requiredReadPermissions?.map((permission) => permission.permission),
+    ['run.services.get', 'run.jobs.get'],
+  )
+  assert.equal(repair.likelyMinimalRole, 'roles/run.viewer')
+  assert.equal(repair.verificationCommand, qwenRepair?.verificationCommand)
+  assert.equal(repair.failureMeaning, qwenRepair?.failureMeaning)
+  assert.deepEqual(repair.safeRepairChecklist, qwenRepair?.safeRepairChecklist)
+  assert.deepEqual(repair.unsafeBypasses, qwenRepair?.unsafeBypasses)
+  assert.equal(
+    repair.failureResponsePolicy?.ifReadAccessFails,
+    'treat it as external GCP access or resource visibility work; do not weaken wrapper gates or mark runtime executable',
+  )
+  assert.equal(
+    repair.failureResponsePolicy?.ifResourcesAreMissing,
+    'stop at diagnosis and hand off to the owning infrastructure path; do not create replacement resources from this repair plan',
+  )
+  assert.equal(
+    repair.safeRetryChecklist?.includes(
+      'run npm run external-agent-tool-next-command -- --account-index <redacted-index>',
+    ),
+    true,
+  )
+  assert.equal(
+    repair.postRepairVerificationCommands?.includes(
+      'npm run external-agent-gcp-access:verify -- --account-index <redacted-index>',
+    ),
+    true,
+  )
+  assert.equal(repair.runtimeExecutionStillRequiresWrapperGate, true)
+  assert.equal(repair.mutatesGcp, false)
+  assert.equal(repair.authorizesRuntimeExecution, false)
+}
+
+function assertSelectedAccountRepairRequest(value: unknown) {
+  const request = value as {
+    accountIndex?: number
+    missingReadPermissions?: Array<{
+      toolId: string
+      permission: string
+      likelyMinimalRole: string
+      resourceScope: string
+      reason: string
+    }>
+    postRepairVerificationCommands?: string[]
+    mutatesGcp?: boolean
+    runsRuntime?: boolean
+    runtimeExecutionStillRequiresWrapperGate?: boolean
+  }
+
+  assert.equal(request.accountIndex, 2)
+  assert.equal(Array.isArray(request.missingReadPermissions), true)
+  for (const permission of request.missingReadPermissions ?? []) {
+    assert.equal(typeof permission.toolId, 'string')
+    assert.equal(typeof permission.permission, 'string')
+    assert.equal(typeof permission.likelyMinimalRole, 'string')
+    assert.equal(typeof permission.resourceScope, 'string')
+    assert.equal(typeof permission.reason, 'string')
+  }
+  assert.equal(
+    request.postRepairVerificationCommands?.includes(
+      'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+    ),
+    true,
+  )
+  assert.equal(request.mutatesGcp, false)
+  assert.equal(request.runsRuntime, false)
+  assert.equal(request.runtimeExecutionStillRequiresWrapperGate, true)
+}

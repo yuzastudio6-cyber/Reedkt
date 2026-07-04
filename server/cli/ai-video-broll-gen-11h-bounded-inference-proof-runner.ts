@@ -16,6 +16,15 @@ type PhaseResult = {
   stderrSummary?: string
 }
 
+type GcloudAccountSelection = {
+  account?: string
+  overrideIndexProvided: boolean
+  overrideIndexSource?: 'cli' | 'env'
+  overrideIndex?: number
+  overrideResolved: boolean
+  resolutionFailure?: string
+}
+
 type RunnerSummary = {
   ok: boolean
   mode: string
@@ -23,6 +32,10 @@ type RunnerSummary = {
   decision: string
   summaryPath: string
   nextPrompt: string
+  accountSelection: ReturnType<typeof accountSelectionOutput>
+  targetRegion: string
+  targetZone: string
+  sourceContractTargetZone: string
   blockers: string[]
   phaseResults: PhaseResult[]
   preflightPassed: boolean
@@ -61,12 +74,17 @@ const CONTRACT = AI_VIDEO_BROLL_GEN_10Y_L4_PAYLOAD_INSTALL_RUNNER_CONTRACT
 const CACHE_SPEC = AI_VIDEO_BROLL_WAN_FAST_CACHE_READINESS_SPEC
 
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11H_INFERENCE_PROOF_EXECUTE'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
 const DEFAULT_SUMMARY_PATH = path.join('.tmp', 'ai-video-broll-gen-11h-inference-proof-summary.json')
 const PROJECT_ID = CONTRACT.projectId
 const PROOF_VM_NAME = CONTRACT.proofVmName
 const TARGET_REGION = CONTRACT.targetRegion
-const TARGET_ZONE = CONTRACT.targetZone
-const MACHINE_TYPE = CONTRACT.machineType
+const TARGET_ZONE = 'northamerica-northeast2-b'
+const SOURCE_CONTRACT_TARGET_ZONE = CONTRACT.targetZone
+const SOURCE_PAYLOAD_INSTALL_MACHINE_TYPE = CONTRACT.machineType
+const MACHINE_TYPE = 'g2-standard-8'
 const ACCELERATOR = 'nvidia-l4'
 const TARGET_TAG = 'ai-video-broll-wan-l4-proof'
 const IMAGE_FAMILY = 'common-cu129-ubuntu-2404-nvidia-580'
@@ -94,11 +112,14 @@ const PRIVATE_GCS_MODEL_CACHE_PREFIX =
 const WHEELHOUSE_CACHE_MARKER_FILE_NAME = 'wheelhouse-cache-ready.json'
 const MODEL_CACHE_MARKER_FILE_NAME = 'wan-model-cache-ready.json'
 const GCS_PAYLOAD_TIMEOUT_MS = 90 * 60_000
+const WAN_LATENT_CANARY_TIMEOUT_MS = 90 * 60_000
 
 const NEXT_PROMPT_IF_PASSED =
   'AI-VIDEO-BROLL-GEN-11I-INFERENCE-PROOF-RESULT-REVIEW: review bounded Wan inference proof result, no generated video'
 const NEXT_PROMPT_IF_FAILED =
   'AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF: fix blocked bounded Wan inference proof, no generated video'
+
+let cachedGcloudAccountSelection: GcloudAccountSelection | undefined
 
 const GCLOUD_TIMEOUT_RUNNER_SCRIPT = `
 const { spawn } = require('node:child_process');
@@ -650,14 +671,15 @@ function runExecute(summaryPath: string) {
         `PYTHONPATH=${REMOTE_TARGET_DEPS}`,
         `HF_HOME=${REMOTE_HF_HOME}`,
         'HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 DIFFUSERS_OFFLINE=1',
+        'HF_ENABLE_PARALLEL_LOADING=true HF_PARALLEL_LOADING_WORKERS=4',
+        'PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True',
         'python3.12 -c',
         JSON.stringify(buildWanPipelineLatentInferenceCanaryScript()),
       ].join(' '),
-      45 * 60_000,
+      WAN_LATENT_CANARY_TIMEOUT_MS,
     )
     phaseResults.push(canary)
-    wanPipelineLocalLoadPassed =
-      canary.ok && Boolean(canary.stdoutSummary?.includes('REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_OK'))
+    wanPipelineLocalLoadPassed = Boolean(canary.stdoutSummary?.includes('REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_OK'))
     wanLatentInferenceCanaryPassed =
       canary.ok && Boolean(canary.stdoutSummary?.includes('REEDITPRO_BROLL_11H_LATENT_INFERENCE_CANARY_OK'))
     promptEncodingRun = wanLatentInferenceCanaryPassed
@@ -1174,6 +1196,7 @@ function runGcloud(
         ...process.env,
         CLOUDSDK_CORE_DISABLE_PROMPTS: '1',
         CLOUDSDK_PYTHON_SITEPACKAGES: '1',
+        ...gcloudAccountEnv(),
       },
       encoding: 'utf8',
       maxBuffer: 1024 * 1024 * 18,
@@ -1231,6 +1254,7 @@ function validateLocalGcloudIapAcceleration(): PhaseResult {
       ...process.env,
       CLOUDSDK_CORE_DISABLE_PROMPTS: '1',
       CLOUDSDK_PYTHON_SITEPACKAGES: '1',
+      ...gcloudAccountEnv(),
     },
     encoding: 'utf8',
     maxBuffer: 1024 * 1024,
@@ -1383,25 +1407,32 @@ function buildWanPipelineLatentInferenceCanaryScript() {
     "os.environ['HF_HUB_OFFLINE'] = '1'",
     "os.environ['TRANSFORMERS_OFFLINE'] = '1'",
     "os.environ['DIFFUSERS_OFFLINE'] = '1'",
+    "os.environ['HF_ENABLE_PARALLEL_LOADING'] = 'true'",
+    "os.environ['HF_PARALLEL_LOADING_WORKERS'] = '4'",
+    "os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'",
     'import torch',
     'from diffusers import WanPipeline',
     `model_path = pathlib.Path(${JSON.stringify(REMOTE_MODEL_CACHE)})`,
     "model_index = json.load(open(model_path / 'model_index.json'))",
     `assert model_index.get('_class_name') == ${JSON.stringify(CACHE_SPEC.expectedModelIndexClassName)}, model_index.get('_class_name')`,
+    `print('REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_START machine_type=${MACHINE_TYPE} source_payload_install_machine_type=${SOURCE_PAYLOAD_INSTALL_MACHINE_TYPE}', flush=True)`,
     "pipe = WanPipeline.from_pretrained(str(model_path), torch_dtype=torch.bfloat16, local_files_only=True, low_cpu_mem_usage=True)",
     "assert pipe.__class__.__name__ == 'WanPipeline', pipe.__class__.__name__",
+    "print('REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_OK', flush=True)",
     "assert torch.cuda.is_available(), 'cuda_required_for_11h_latent_canary'",
+    "print('REEDITPRO_BROLL_11H_CUDA_DEVICE ' + torch.cuda.get_device_name(0), flush=True)",
     'try:',
     "    pipe.enable_model_cpu_offload(device='cuda')",
     'except TypeError:',
     '    pipe.enable_model_cpu_offload()',
+    "print('REEDITPRO_BROLL_11H_WAN_PIPELINE_CPU_OFFLOAD_OK', flush=True)",
     "generator = torch.Generator(device='cuda').manual_seed(112358)",
+    "print('REEDITPRO_BROLL_11H_LATENT_INFERENCE_CANARY_START', flush=True)",
     "result = pipe(prompt='approved internal ReeditPro fixture: quiet tabletop product camera pan, neutral studio light', negative_prompt='text, watermark, logo, people, face', height=128, width=128, num_frames=1, num_inference_steps=1, guidance_scale=1.0, generator=generator, output_type='latent', max_sequence_length=64)",
     "latents = result.frames",
     "assert hasattr(latents, 'shape'), type(latents)",
     "assert tuple(latents.shape)[0] == 1, tuple(latents.shape)",
-    "print('REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_OK')",
-    "print('REEDITPRO_BROLL_11H_LATENT_INFERENCE_CANARY_OK shape=' + 'x'.join(str(x) for x in tuple(latents.shape)))",
+    "print('REEDITPRO_BROLL_11H_LATENT_INFERENCE_CANARY_OK shape=' + 'x'.join(str(x) for x in tuple(latents.shape)), flush=True)",
     'del result',
     'del latents',
     'del pipe',
@@ -1429,6 +1460,10 @@ function baseSummary(summaryPath: string, status: RunnerSummary['status']): Runn
         : 'ai_video_broll_gen_11h_l4_inference_proof_planned_or_blocked',
     summaryPath,
     nextPrompt: status === 'passed' ? NEXT_PROMPT_IF_PASSED : NEXT_PROMPT_IF_FAILED,
+    accountSelection: accountSelectionOutput(),
+    targetRegion: TARGET_REGION,
+    targetZone: TARGET_ZONE,
+    sourceContractTargetZone: SOURCE_CONTRACT_TARGET_ZONE,
     blockers: [],
     phaseResults: [],
     preflightPassed: false,
@@ -1560,6 +1595,92 @@ function readInstanceReadiness(document: JsonRecord | undefined) {
   }
 }
 
+function accountSelectionOutput() {
+  const selection = resolveAccountSelection()
+  return {
+    overrideIndexEnv: GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV,
+    overrideIndexCliFlag: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG,
+    overrideIndexCliFlagAlias: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS,
+    overrideIndexProvided: selection.overrideIndexProvided,
+    overrideIndexSource: selection.overrideIndexSource,
+    overrideIndex: selection.overrideIndex,
+    overrideResolved: selection.overrideResolved,
+    overrideResolutionFailure: selection.resolutionFailure,
+    mutatesLocalGcloudConfig: false,
+  }
+}
+
+function gcloudAccountEnv(): Record<string, string> {
+  const selection = resolveAccountSelection()
+  return {
+    ...(selection.account ? { CLOUDSDK_CORE_ACCOUNT: selection.account } : {}),
+    ...(selection.overrideIndex ? { [GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]: String(selection.overrideIndex) } : {}),
+  }
+}
+
+function resolveAccountSelection(): GcloudAccountSelection {
+  if (cachedGcloudAccountSelection) return cachedGcloudAccountSelection
+
+  const cliIndex = getArgValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG) ?? getArgValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  const envIndex = process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  const rawIndex = cliIndex ?? envIndex
+  const indexSource = cliIndex ? 'cli' : envIndex ? 'env' : undefined
+  if (!rawIndex) {
+    cachedGcloudAccountSelection = {
+      overrideIndexProvided: false,
+      overrideResolved: false,
+    }
+    return cachedGcloudAccountSelection
+  }
+
+  const accountIndex = Number(rawIndex)
+  if (!Number.isInteger(accountIndex) || accountIndex < 1) {
+    cachedGcloudAccountSelection = {
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: Number.isFinite(accountIndex) ? accountIndex : undefined,
+      overrideResolved: false,
+      resolutionFailure: 'invalid_account_index',
+    }
+    return cachedGcloudAccountSelection
+  }
+
+  const result = spawnSync('gcloud', ['auth', 'list', '--format=json'], {
+    cwd: process.cwd(),
+    env: {
+      ...process.env,
+      CLOUDSDK_CORE_DISABLE_PROMPTS: '1',
+    },
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    timeout: 90_000,
+  })
+
+  if (result.status !== 0) {
+    cachedGcloudAccountSelection = {
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_failed',
+    }
+    return cachedGcloudAccountSelection
+  }
+
+  const accounts = parseJson<Array<{ account?: string }>>(String(result.stdout ?? '')) ?? []
+  const account = accounts[accountIndex - 1]?.account?.trim()
+  cachedGcloudAccountSelection = {
+    account,
+    overrideIndexProvided: true,
+    overrideIndexSource: indexSource,
+    overrideIndex: accountIndex,
+    overrideResolved: Boolean(account),
+    resolutionFailure: account ? undefined : 'account_index_not_found',
+  }
+  return cachedGcloudAccountSelection
+}
+
 function parseJson<T>(raw: string | undefined): T | undefined {
   if (!raw) return undefined
   try {
@@ -1615,6 +1736,9 @@ function sanitizeSummaryForOutput(summary: RunnerSummary): RunnerSummary {
 }
 
 function getArgValue(flag: string): string | undefined {
+  const inlineValue = process.argv.find((arg) => arg.startsWith(`${flag}=`))
+  if (inlineValue) return inlineValue.slice(flag.length + 1)
+
   const index = process.argv.indexOf(flag)
   if (index < 0) return undefined
   return process.argv[index + 1]

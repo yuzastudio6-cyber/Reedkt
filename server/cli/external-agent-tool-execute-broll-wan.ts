@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
@@ -13,21 +14,85 @@ const INFERENCE_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11H_INFERENCE_PROO
 const CACHE_STAGING_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11E_CLOUD_SIDE_CACHE_STAGING'
 const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
+const GCP_ACCESS_VERIFY_SCRIPT = 'server/cli/external-agent-gcp-access-verify.ts'
 const DELEGATED_RUNNER_SCRIPT = 'ai-video-broll-gen-11b:l4-model-import-runner'
 const INFERENCE_RUNNER_SCRIPT = 'ai-video-broll-gen-11h:bounded-inference-proof-runner'
 const CACHE_STAGING_RUNNER_SCRIPT = 'ai-video-broll-gen-11e:cloud-side-cache-staging-runner'
 const DELEGATED_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11b-l4-model-import-runner.json'
 const CACHE_FILL_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11e-cloud-side-cache-staging-runner.json'
+const GCLOUD_ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
 const NEXT_AFTER_MODEL_IMPORT =
   'AI-VIDEO-BROLL-GEN-11C-MODEL-IMPORT-RESULT-REVIEW: review bounded Wan model import proof result, no inference'
 
+type AccountSelection = {
+  account?: string
+  overrideProvided: boolean
+  overrideIndexProvided: boolean
+  overrideIndexSource?: 'cli' | 'env'
+  overrideIndex?: number
+  overrideResolved: boolean
+  resolutionFailure?: string
+}
+
+let cachedAccountSelection: AccountSelection | undefined
+
 function main() {
   const execute = process.argv.includes('--execute')
+  const preflightOnly = process.argv.includes('--preflight-only') || process.argv.includes('--verify-gates-only')
   const prepareCache = process.argv.includes('--prepare-cache') || process.argv.includes('--cache-fill-only')
   const inferenceProof = process.argv.includes('--inference-proof') || process.argv.includes('--bounded-inference-proof')
   const brollTool = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.find(
     (tool) => tool.toolId === 'ai_video_broll_generation_wan',
   )
+
+  if (preflightOnly && !prepareCache && !inferenceProof) {
+    const quota = runJson('broll_live_quota_verify', 'npx', ['tsx', QUOTA_VERIFY_SCRIPT])
+    const cache = runJson('broll_private_cache_readiness', 'npx', ['tsx', CACHE_READINESS_SCRIPT])
+    const blockers = validateReadiness(quota.json, cache.json)
+    const selectedAccountRepairRequest = brollAccessRepairRequired(blockers, quota.json)
+      ? selectedAccountRepairRequestFromVerify()
+      : undefined
+
+    print({
+      ok: blockers.length === 0,
+      mode: 'external_agent_broll_wan_execution_preflight_only_result',
+      status: blockers.length === 0 ? 'passed' : 'blocked',
+      blockers,
+      confirmationEnv: CONFIRM_ENV,
+      confirmationEnvRequiredValue: 'true',
+      brollQuota: summarizeBrollQuota(quota.json),
+      cacheReadiness: summarizeCacheReadiness(cache.json),
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
+      wouldDelegateIfExecuteConfirmed: blockers.length === 0,
+      delegatedRunner: {
+        script: DELEGATED_RUNNER_SCRIPT,
+        confirmationEnv: DELEGATED_RUNNER_CONFIRM_ENV,
+        args: withSelectedAccountIndexArgs(['--execute', '--summary-path', DELEGATED_SUMMARY_PATH]),
+        summaryPath: DELEGATED_SUMMARY_PATH,
+      },
+      gcpAccessRepair: brollAccessRepairHint(),
+      selectedAccountRepairRequest,
+      runtimeRunNow: false,
+      computeVmCreated: false,
+      dockerRun: false,
+      modelImportRun: false,
+      modelInferenceRun: false,
+      generatedVideoCreated: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
 
   if (inferenceProof) {
     runInferenceProof(execute, brollTool)
@@ -44,6 +109,7 @@ function main() {
       ok: false,
       mode: 'external_agent_broll_wan_execution_static_guard',
       executeRequired: true,
+      preflightOnlyCommand: 'npm run external-agent-tool-execute-broll-wan -- --preflight-only --json',
       confirmationEnv: CONFIRM_ENV,
       inferenceProofConfirmationEnv: INFERENCE_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
@@ -52,11 +118,19 @@ function main() {
       inferenceProofRunnerConfirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,
       delegatedRunnerScript: DELEGATED_RUNNER_SCRIPT,
       inferenceProofRunnerScript: INFERENCE_RUNNER_SCRIPT,
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
       cachePreparationCommand: 'npm run external-agent-tool-prepare-broll-wan-cache -- --execute --json',
       inferenceProofCommand:
-        'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
-      canonicalCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.brollWanExternalAgentProofCommand,
+        withSelectedAccountIndexShell(
+          'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
+        ),
+      canonicalCommand: withSelectedAccountIndexCommand(
+        EXTERNAL_AGENT_TOOL_NEXT_COMMAND.brollWanExternalAgentProofCommand,
+      ),
       noIdleLifecycleGate: brollTool?.noIdleLifecycleGate,
+      gcpAccessRepair: brollAccessRepairHint(),
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -84,6 +158,10 @@ function main() {
       inferenceProofConfirmationEnv: INFERENCE_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
       cacheFillConfirmationEnv: CACHE_FILL_CONFIRM_ENV,
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
+      gcpAccessRepair: brollAccessRepairHint(),
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -106,6 +184,8 @@ function main() {
   const blockers = validateReadiness(quota.json, cache.json)
 
   if (blockers.length > 0) {
+    const accessRepairRequired = brollAccessRepairRequired(blockers, quota.json)
+    const selectedAccountRepairRequest = accessRepairRequired ? selectedAccountRepairRequestFromVerify() : undefined
     print({
       ok: false,
       mode: 'external_agent_broll_wan_execution_preflight_result',
@@ -113,9 +193,12 @@ function main() {
       blockers,
       brollQuota: summarizeBrollQuota(quota.json),
       cacheReadiness: summarizeCacheReadiness(cache.json),
-      nextPrompt:
-        blockers.includes('broll_gpus_all_regions_quota_not_sufficient') ||
-        blockers.includes('broll_live_quota_verify_missing')
+      gcpAccessRepair: brollAccessRepairHint(),
+      selectedAccountRepairRequest,
+      nextPrompt: accessRepairRequired
+        ? 'QWEN2_5_VL_STACK_TOOL_58DQ-GCP-ACCESS-VERIFY: verify selected local gcloud account can read Qwen Cloud Run and B-roll quota, no execution'
+        : blockers.includes('broll_gpus_all_regions_quota_not_sufficient') ||
+            blockers.includes('broll_live_quota_verify_missing')
           ? 'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes'
           : 'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference',
       runtimeRunNow: false,
@@ -191,17 +274,77 @@ function main() {
 }
 
 function runInferenceProof(execute: boolean, brollTool: unknown) {
+  const preflightOnly = process.argv.includes('--preflight-only') || process.argv.includes('--verify-gates-only')
+
+  if (preflightOnly) {
+    const quota = runJson('broll_live_quota_verify_before_inference', 'npx', ['tsx', QUOTA_VERIFY_SCRIPT])
+    const cache = runJson('broll_private_cache_readiness_before_inference', 'npx', ['tsx', CACHE_READINESS_SCRIPT])
+    const blockers = validateReadiness(quota.json, cache.json)
+    const selectedAccountRepairRequest = brollAccessRepairRequired(blockers, quota.json)
+      ? selectedAccountRepairRequestFromVerify()
+      : undefined
+
+    print({
+      ok: blockers.length === 0,
+      mode: 'external_agent_broll_wan_inference_proof_preflight_only_result',
+      status: blockers.length === 0 ? 'passed' : 'blocked',
+      blockers,
+      confirmationEnv: INFERENCE_CONFIRM_ENV,
+      confirmationEnvRequiredValue: 'true',
+      brollQuota: summarizeBrollQuota(quota.json),
+      cacheReadiness: summarizeCacheReadiness(cache.json),
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
+      wouldDelegateIfExecuteConfirmed: blockers.length === 0,
+      delegatedRunner: {
+        script: INFERENCE_RUNNER_SCRIPT,
+        confirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,
+        args: withSelectedAccountIndexArgs(['--execute']),
+      },
+      gcpAccessRepair: brollAccessRepairHint(),
+      selectedAccountRepairRequest,
+      runtimeRunNow: false,
+      computeVmCreated: false,
+      dockerRun: false,
+      modelImportRun: false,
+      modelLoadRun: false,
+      modelInferenceRun: false,
+      promptEncodingRun: false,
+      denoisingRun: false,
+      vaeDecodeRun: false,
+      frameCreationRun: false,
+      videoEncodingRun: false,
+      ffmpegRun: false,
+      generatedVideoCreated: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
+
   if (!execute) {
     print({
       ok: false,
       mode: 'external_agent_broll_wan_inference_proof_static_guard',
       executeRequired: true,
+      preflightOnlyCommand:
+        'npm run external-agent-tool-execute-broll-wan -- --inference-proof --preflight-only --json',
       confirmationEnv: INFERENCE_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
       delegatedRunnerConfirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,
       delegatedRunnerScript: INFERENCE_RUNNER_SCRIPT,
-      delegatedRunnerArgs: ['--execute'],
+      delegatedRunnerArgs: withSelectedAccountIndexArgs(['--execute']),
       noIdleLifecycleGate: asRecord(brollTool).noIdleLifecycleGate,
+      gcpAccessRepair: brollAccessRepairHint(),
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -234,6 +377,53 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
       blockers: [`confirmation_env_required:${INFERENCE_CONFIRM_ENV}=true`],
       confirmationEnv: INFERENCE_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
+      gcpAccessRepair: brollAccessRepairHint(),
+      runtimeRunNow: false,
+      computeVmCreated: false,
+      dockerRun: false,
+      modelImportRun: false,
+      modelLoadRun: false,
+      modelInferenceRun: false,
+      promptEncodingRun: false,
+      denoisingRun: false,
+      vaeDecodeRun: false,
+      frameCreationRun: false,
+      videoEncodingRun: false,
+      ffmpegRun: false,
+      generatedVideoCreated: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
+
+  const quota = runJson('broll_live_quota_verify_before_inference', 'npx', ['tsx', QUOTA_VERIFY_SCRIPT])
+  const cache = runJson('broll_private_cache_readiness_before_inference', 'npx', ['tsx', CACHE_READINESS_SCRIPT])
+  const blockers = validateReadiness(quota.json, cache.json)
+
+  if (blockers.length > 0) {
+    const accessRepairRequired = brollAccessRepairRequired(blockers, quota.json)
+    const selectedAccountRepairRequest = accessRepairRequired ? selectedAccountRepairRequestFromVerify() : undefined
+    print({
+      ok: false,
+      mode: 'external_agent_broll_wan_inference_proof_preflight_blocked',
+      status: 'blocked',
+      blockers,
+      brollQuota: summarizeBrollQuota(quota.json),
+      cacheReadiness: summarizeCacheReadiness(cache.json),
+      gcpAccessRepair: brollAccessRepairHint(),
+      selectedAccountRepairRequest,
+      nextPrompt: accessRepairRequired
+        ? 'QWEN2_5_VL_STACK_TOOL_58DQ-GCP-ACCESS-VERIFY: verify selected local gcloud account can read Qwen Cloud Run and B-roll quota, no execution'
+        : 'AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF: rerun bounded Wan latent inference proof with 11H fix, no generated video',
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -261,7 +451,7 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
   const delegated = runJson(
     'broll_11h_bounded_inference_proof_runner',
     'npm',
-    ['run', INFERENCE_RUNNER_SCRIPT, '--', '--execute'],
+    ['run', INFERENCE_RUNNER_SCRIPT, '--', ...withSelectedAccountIndexArgs(['--execute'])],
     {
       [INFERENCE_RUNNER_CONFIRM_ENV]: 'true',
     },
@@ -269,11 +459,13 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
   )
 
   print({
-    ok: false,
+    ok: delegated.ok && delegated.json?.ok === true,
     mode: delegated.ok && delegated.json?.ok === true
       ? 'external_agent_broll_wan_inference_proof_delegated_11h_result'
       : 'external_agent_broll_wan_inference_proof_delegated_11h_blocked_or_failed',
     status: delegated.ok && delegated.json?.ok === true ? 'passed' : 'blocked_or_failed',
+    brollQuota: summarizeBrollQuota(quota.json),
+    cacheReadiness: summarizeCacheReadiness(cache.json),
     delegatedRunner: {
       script: INFERENCE_RUNNER_SCRIPT,
       confirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,
@@ -315,9 +507,12 @@ function runPrepareCache(execute: boolean, brollTool: unknown) {
       executeRequired: true,
       confirmationEnv: CACHE_FILL_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
       delegatedRunnerConfirmationEnv: CACHE_STAGING_RUNNER_CONFIRM_ENV,
       delegatedRunnerScript: CACHE_STAGING_RUNNER_SCRIPT,
-      delegatedRunnerArgs: ['--execute', '--summary-path', CACHE_FILL_SUMMARY_PATH],
+      delegatedRunnerArgs: withSelectedAccountIndexArgs(['--execute', '--summary-path', CACHE_FILL_SUMMARY_PATH]),
       noIdleLifecycleGate: asRecord(brollTool).noIdleLifecycleGate,
       runtimeRunNow: false,
       computeVmCreated: false,
@@ -347,6 +542,9 @@ function runPrepareCache(execute: boolean, brollTool: unknown) {
       blockers: [`confirmation_env_required:${CACHE_FILL_CONFIRM_ENV}=true`],
       confirmationEnv: CACHE_FILL_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
       runtimeRunNow: false,
       computeVmCreated: false,
       cloudRunJobCreated: false,
@@ -374,9 +572,7 @@ function runPrepareCache(execute: boolean, brollTool: unknown) {
       'run',
       CACHE_STAGING_RUNNER_SCRIPT,
       '--',
-      '--execute',
-      '--summary-path',
-      CACHE_FILL_SUMMARY_PATH,
+      ...withSelectedAccountIndexArgs(['--execute', '--summary-path', CACHE_FILL_SUMMARY_PATH]),
     ],
     {
       [CACHE_STAGING_RUNNER_CONFIRM_ENV]: 'true',
@@ -450,6 +646,47 @@ function summarizeBrollQuota(document: JsonRecord | undefined) {
   }
 }
 
+function brollAccessRepairRequired(blockers: string[], quota: JsonRecord | undefined): boolean {
+  const quotaRecord = asRecord(quota)
+  return (
+    quotaRecord.blocker === 'gcloud_account_lacks_compute_quota_read_access' ||
+    blockers.includes('broll_project_quota_read_not_passed') ||
+    blockers.includes('broll_region_quota_read_not_passed')
+  )
+}
+
+function brollAccessRepairHint() {
+  const broll = EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.tools.find(
+    (tool) => tool.toolId === 'ai_video_broll_generation_wan',
+  )
+
+  return {
+    command: 'npm run external-agent-gcp-access:repair-plan',
+    blocker: broll?.blocker,
+    requiredReadPermissions: broll?.requiredReadPermissions,
+    likelyMinimalRole: broll?.likelyMinimalRole,
+    verificationCommand: withSelectedAccountIndexPlaceholders(broll?.verificationCommand),
+    failureMeaning: broll?.failureMeaning,
+    safeRepairChecklist: broll?.safeRepairChecklist,
+    unsafeBypasses: broll?.unsafeBypasses,
+    failureResponsePolicy: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.failureResponsePolicy,
+    safeRetryChecklist: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.safeRetryChecklist.map((item) =>
+      withSelectedAccountIndexPlaceholders(item),
+    ),
+    postRepairVerificationCommands: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.postRepairVerificationCommands.map((item) =>
+      withSelectedAccountIndexPlaceholders(item),
+    ),
+    runtimeExecutionStillRequiresWrapperGate: broll?.runtimeExecutionStillRequiresWrapperGate,
+    mutatesGcp: false,
+    authorizesRuntimeExecution: false,
+  }
+}
+
+function selectedAccountRepairRequestFromVerify() {
+  const verify = runJson('selected_gcp_access_repair_verify', 'npx', ['tsx', GCP_ACCESS_VERIFY_SCRIPT])
+  return asRecord(asRecord(verify.json).accountAccessDiagnostic).selectedAccountRepairRequest
+}
+
 function summarizeCacheReadiness(document: JsonRecord | undefined) {
   if (!document) return undefined
   return {
@@ -483,10 +720,7 @@ function runJson(
 } {
   const result = spawnSync(command, args, {
     cwd: process.cwd(),
-    env: {
-      ...process.env,
-      ...env,
-    },
+    env: childEnv(env),
     encoding: 'utf8',
     maxBuffer,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -501,6 +735,159 @@ function runJson(
     json,
     stderrSummary: sanitize(String(result.stderr ?? '')),
   }
+}
+
+function childEnv(env: Record<string, string> = {}): NodeJS.ProcessEnv {
+  const selection = resolveAccountSelection()
+  return {
+    ...process.env,
+    ...(selection.account ? { CLOUDSDK_CORE_ACCOUNT: selection.account } : {}),
+    ...(selection.overrideIndex ? { [GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]: String(selection.overrideIndex) } : {}),
+    ...env,
+  }
+}
+
+function accountSelectionOutput() {
+  const selection = resolveAccountSelection()
+  return {
+    gcloudAccountOverrideProvided: selection.overrideProvided,
+    gcloudAccountOverrideIndexEnv: GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV,
+    gcloudAccountOverrideIndexCliFlag: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG,
+    gcloudAccountOverrideIndexCliFlagAlias: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS,
+    gcloudAccountOverrideIndexProvided: selection.overrideIndexProvided,
+    gcloudAccountOverrideIndexSource: selection.overrideIndexSource,
+    gcloudAccountOverrideIndex: selection.overrideIndex,
+    gcloudAccountOverrideResolved: selection.overrideResolved,
+    gcloudAccountOverrideResolutionFailure: selection.resolutionFailure,
+  }
+}
+
+function resolveAccountSelection(): AccountSelection {
+  if (cachedAccountSelection) return cachedAccountSelection
+
+  const directAccount = process.env[GCLOUD_ACCOUNT_OVERRIDE_ENV]?.trim()
+  if (directAccount) {
+    cachedAccountSelection = {
+      account: directAccount,
+      overrideProvided: true,
+      overrideIndexProvided: false,
+      overrideResolved: true,
+    }
+    return cachedAccountSelection
+  }
+
+  const cliIndex = cliFlagValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG, GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  const envIndex = process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  const rawIndex = cliIndex ?? envIndex
+  const indexSource = cliIndex ? 'cli' : envIndex ? 'env' : undefined
+  if (!rawIndex) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: false,
+      overrideResolved: false,
+    }
+    return cachedAccountSelection
+  }
+
+  const accountIndex = Number(rawIndex)
+  if (!Number.isInteger(accountIndex) || accountIndex < 1) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: Number.isFinite(accountIndex) ? accountIndex : undefined,
+      overrideResolved: false,
+      resolutionFailure: 'invalid_account_index',
+    }
+    return cachedAccountSelection
+  }
+
+  const result = spawnSync('gcloud', ['auth', 'list', '--format=json'], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+
+  if (result.status !== 0) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_failed',
+    }
+    return cachedAccountSelection
+  }
+
+  try {
+    const accounts = JSON.parse(String(result.stdout ?? '')) as Array<{ account?: string }>
+    const account = accounts[accountIndex - 1]?.account?.trim()
+    cachedAccountSelection = {
+      account,
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: Boolean(account),
+      resolutionFailure: account ? undefined : 'account_index_not_found',
+    }
+    return cachedAccountSelection
+  } catch {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_parse_failed',
+    }
+    return cachedAccountSelection
+  }
+}
+
+function cliFlagValue(...flags: string[]): string | undefined {
+  for (const flag of flags) {
+    const equalsArg = process.argv.find((arg) => arg.startsWith(`${flag}=`))
+    if (equalsArg) return equalsArg.slice(flag.length + 1).trim()
+
+    const index = process.argv.indexOf(flag)
+    if (index >= 0) return process.argv[index + 1]?.trim()
+  }
+
+  return undefined
+}
+
+function withSelectedAccountIndexArgs(args: readonly string[]): string[] {
+  const index = resolveAccountSelection().overrideIndex
+  if (!index || args.includes('--account-index') || args.includes('--gcloud-account-index')) {
+    return [...args]
+  }
+
+  return [...args, '--account-index', String(index)]
+}
+
+function withSelectedAccountIndexCommand<T extends { args: readonly string[] }>(command: T): T & { args: string[] } {
+  return {
+    ...command,
+    args: withSelectedAccountIndexArgs(command.args),
+  }
+}
+
+function withSelectedAccountIndexShell(command: string): string {
+  const index = resolveAccountSelection().overrideIndex
+  if (!index || command.includes('--account-index') || command.includes('--gcloud-account-index')) {
+    return command
+  }
+
+  return `${command} --account-index ${index}`
+}
+
+function withSelectedAccountIndexPlaceholders(value: string | undefined): string | undefined {
+  const index = resolveAccountSelection().overrideIndex
+  if (!value || !index) return value
+
+  return value.replace(/<account-index>/g, String(index)).replace(/<redacted-index>/g, String(index))
 }
 
 function parseJsonOutput(output: string): JsonRecord | undefined {

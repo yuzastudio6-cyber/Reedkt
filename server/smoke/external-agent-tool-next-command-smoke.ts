@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
 const ROOT = process.cwd()
@@ -17,6 +18,8 @@ const QWEN_RESULT_REVIEW_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta'
 const QWEN_AUTH_NEXT_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
+const QWEN_READ_ACCESS_NEXT_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select a local gcloud account with Cloud Run read access to project reeditpro and Qwen worker resources, then rerun npm run external-agent-tool-blockers:preflight -- --account-index <account-index>'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -82,10 +85,26 @@ assert.equal(spec.mode, 'read_only_external_agent_tool_next_command_decision')
 assert.equal(spec.paidProductionInScope, false)
 assert.equal(spec.dryRunPassedClaimed, false)
 assert.equal(spec.generatedLocalFixturePassedClaimed, false)
-assert.equal(spec.allowedProbeScripts.length, 3)
+assert.equal(spec.accountSelection.overrideEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT')
+assert.equal(spec.accountSelection.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
+assert.equal(spec.accountSelection.overrideIndexCliFlag, '--account-index')
+assert.equal(spec.accountSelection.overrideIndexCliFlagAlias, '--gcloud-account-index')
+assert.equal(spec.accountSelection.mapsToCloudSdkCoreAccount, true)
+assert.equal(spec.accountSelection.mutatesLocalGcloudConfig, false)
+assert.equal(spec.accountSelection.printsAccountValue, false)
+assert.equal(spec.accountSelection.tokenStdoutSuppressed, true)
+assert.equal(spec.allowedProbeScripts.length, 4)
+assert.equal(
+  spec.allowedProbeScripts.some((probe) => probe.id === 'gcloud_account_access_diagnostic'),
+  true,
+)
 assert.equal(
   spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails,
   'npm run external-agent-tool-blockers:preflight',
+)
+assert.equal(
+  spec.nextCommandRules.whenGcpReadAccessRepairRequired,
+  'npm run external-agent-gcp-access:repair-plan',
 )
 assert.equal(
   spec.nextCommandRules.whenBrollQuotaNeedsVerification,
@@ -96,6 +115,11 @@ assert.equal(
   QWEN_RESULT_REVIEW_PROMPT,
 )
 assert.equal(spec.nextCommandRules.whenExecutionGateAllowsRuntime, QWEN_READY_PROMPT)
+assert.equal(spec.manualActionRules.whenQwenPermissionOrResourceReadFails.required, true)
+assert.equal(
+  spec.manualActionRules.whenQwenPermissionOrResourceReadFails.reason,
+  'gcloud_account_or_resource_read_access_required_before_runtime',
+)
 assert.deepEqual(spec.qwenBoundedExecutionCommand.args, [
   'run',
   'qwen2-5-vl-58dw-bounded-private-inference-retry',
@@ -138,6 +162,33 @@ assert.equal(spec.brollWanExternalAgentProofCommand.createsGeneratedAssets, fals
 assert.equal(spec.brollWanExternalAgentProofCommand.touchesSupabase, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.touchesSql, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.unlocksBetaOrProduction, false)
+assert.deepEqual(spec.brollWanInferenceProofCommand.args, [
+  'run',
+  'external-agent-tool-execute-broll-wan',
+  '--',
+  '--inference-proof',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  spec.brollWanInferenceProofCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF',
+)
+assert.equal(spec.brollWanInferenceProofCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(spec.brollWanInferenceProofCommand.delegatesTo11hRunner, true)
+assert.equal(spec.brollWanInferenceProofCommand.requiresNoIdleLifecycleGate, true)
+assert.equal(spec.brollWanInferenceProofCommand.createsComputeVm, true)
+assert.equal(spec.brollWanInferenceProofCommand.deletesComputeVmAndVerifiesCleanup, true)
+assert.equal(spec.brollWanInferenceProofCommand.runsModel, true)
+assert.equal(spec.brollWanInferenceProofCommand.runsModelInference, true)
+assert.equal(spec.brollWanInferenceProofCommand.outputType, 'latent')
+assert.equal(spec.brollWanInferenceProofCommand.persistsInferenceOutput, false)
+assert.equal(spec.brollWanInferenceProofCommand.createsVideoFrames, false)
+assert.equal(spec.brollWanInferenceProofCommand.encodesVideo, false)
+assert.equal(spec.brollWanInferenceProofCommand.createsGeneratedAssets, false)
+assert.equal(spec.brollWanInferenceProofCommand.touchesSupabase, false)
+assert.equal(spec.brollWanInferenceProofCommand.touchesSql, false)
+assert.equal(spec.brollWanInferenceProofCommand.unlocksBetaOrProduction, false)
 assert.deepEqual(spec.brollWanPrivateCachePrepareCommand.args, [
   'run',
   'external-agent-tool-prepare-broll-wan-cache',
@@ -175,6 +226,8 @@ assert.equal(
 assert.equal(spec.soundMusicAudioEvidenceCommand.confirmationEnvRequiredValue, 'true')
 assert.equal(spec.soundMusicAudioEvidenceCommand.verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime, true)
 assert.equal(spec.soundMusicAudioEvidenceCommand.verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime, true)
+assert.equal(spec.soundMusicAudioEvidenceCommand.safeEvidenceReviewExecutableNow, true)
+assert.equal(spec.soundMusicAudioEvidenceCommand.runtimeExecutionAllowedNow, false)
 assert.equal(spec.soundMusicAudioEvidenceCommand.blocksRealProviderWorkerStorageExport, true)
 assert.equal(spec.soundMusicAudioEvidenceCommand.runsProvider, false)
 assert.equal(spec.soundMusicAudioEvidenceCommand.dispatchesWorker, false)
@@ -198,6 +251,8 @@ assert.equal(
 assert.equal(spec.supabaseLocalHarnessEvidenceCommand.confirmationEnvRequiredValue, 'true')
 assert.equal(spec.supabaseLocalHarnessEvidenceCommand.verifiesLocalConfigBeforeAnyRuntime, true)
 assert.equal(spec.supabaseLocalHarnessEvidenceCommand.verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime, true)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.safeEvidenceReviewExecutableNow, true)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.runtimeExecutionAllowedNow, false)
 assert.equal(spec.supabaseLocalHarnessEvidenceCommand.blocksLiveSupabaseMutation, true)
 assert.equal(spec.supabaseLocalHarnessEvidenceCommand.runsSupabaseCli, false)
 assert.equal(spec.supabaseLocalHarnessEvidenceCommand.runsDocker, false)
@@ -216,6 +271,16 @@ for (const probe of spec.allowedProbeScripts) {
 
 const cliSource = read(CLI_PATH)
 assert.equal(cliSource.includes('spawnSync'), true)
+assert.equal(cliSource.includes('spec.accountSelection.overrideEnv'), true)
+assert.equal(cliSource.includes('--account-index'), true)
+assert.equal(cliSource.includes('--gcloud-account-index'), true)
+assert.equal(cliSource.includes('accountSelection.overrideIndexEnv'), true)
+assert.equal(cliSource.includes('applySelectedAccountIndex'), true)
+assert.equal(cliSource.includes('withSelectedAccountIndex'), true)
+assert.equal(cliSource.includes('selectedAccountIndex'), true)
+assert.equal(cliSource.includes('EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN'), true)
+assert.equal(cliSource.includes('gcpAccessRepairGuidance'), true)
+assert.equal(cliSource.includes('whenGcpReadAccessRepairRequired'), true)
 for (const forbidden of [
   'gcloud ',
   'docker ',
@@ -238,6 +303,16 @@ const decision = JSON.parse(output)
 assert.equal(decision.ok, true)
 assert.equal(decision.mode, spec.mode)
 assert.equal(decision.liveReadOnlyChecksRun, true)
+assert.equal(typeof decision.accountSelection, 'object')
+assert.equal(decision.accountSelection.overrideEnv, spec.accountSelection.overrideEnv)
+assert.equal(decision.accountSelection.overrideIndexEnv, spec.accountSelection.overrideIndexEnv)
+assert.equal(typeof decision.accountSelection.overrideProvided, 'boolean')
+assert.equal(typeof decision.accountSelection.overrideIndexProvided, 'boolean')
+assert.equal(typeof decision.accountSelection.overrideResolved, 'boolean')
+assert.equal(typeof decision.accountSelection.cloudSdkCoreAccountEnvProvided, 'boolean')
+assert.equal(decision.accountSelection.mapsToCloudSdkCoreAccount, true)
+assert.equal(decision.accountSelection.mutatesLocalGcloudConfig, false)
+assert.equal(decision.accountSelection.printsAccountValue, false)
 assert.equal(decision.staticExecutionGateAllowed, decision.executionGateAllowsRuntime)
 assert.equal(typeof decision.staticExplicitToolGateReady, 'boolean')
 assert.equal(decision.staticExplicitToolGatePrepared, decision.staticExplicitToolGateReady)
@@ -305,11 +380,11 @@ assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, true)
 assert.equal(
   brollGateSummary.currentBlocker,
-  'wan_pipeline_load_timeout_before_latent_inference_canary',
+  'bounded_wan_inference_proof_retry_required_after_11h_fix',
 )
 assert.equal(
   brollGateSummary.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-11h-inference-proof-execution-result',
+  'npm run smoke:ai-video-broll-gen-11h-fix-inference-proof',
 )
 assert.equal(brollGateSummary.manualBlockerActions.length, 0)
 assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
@@ -363,12 +438,119 @@ for (const summary of decision.executionGateToolSummaries as Array<{
   }
 }
 assert.equal(decision.readyForAnyExternalAgentExecutionNow, decision.executionAllowedNow)
+assert.equal(decision.externalAgentCallableToolCount, 4)
+assert.deepEqual(decision.externalAgentCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(Array.isArray(decision.runtimeExecutableToolIds), true)
+assert.equal(
+  decision.runtimeExecutableToolCount,
+  decision.runtimeExecutableToolIds.length,
+)
+assert.equal(
+  decision.readyForAnyExternalAgentRuntimeExecutionNow,
+  decision.runtimeExecutableToolCount > 0,
+)
+assert.deepEqual(decision.preflightCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
+assert.deepEqual(decision.safeEvidenceExecutableToolIds, [
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(decision.safeEvidenceReviewToolCount, 2)
+assert.equal(decision.readyForAnyExternalAgentSafeEvidenceReviewNow, true)
+assert.equal(decision.toolExecutionReadiness.length, 4)
+for (const tool of decision.toolExecutionReadiness as Array<{
+  toolId: string
+  agentCallableNow: boolean
+  runtimeExecutableNow: boolean
+  realRuntimeExecutionAllowedNow: boolean
+  primaryBlocker: string
+}>) {
+  assert.equal(tool.agentCallableNow, true, `${tool.toolId} must remain externally callable`)
+  assert.equal(
+    tool.runtimeExecutableNow,
+    decision.runtimeExecutableToolIds.includes(tool.toolId),
+    `${tool.toolId} runtime flag must match runtimeExecutableToolIds`,
+  )
+  assert.equal(
+    tool.realRuntimeExecutionAllowedNow,
+    tool.runtimeExecutableNow,
+    `${tool.toolId} real runtime flag must match runtime executable flag`,
+  )
+  assert.equal(typeof tool.primaryBlocker, 'string')
+}
 assert.equal(decision.runtimeGatesAllFalse, true)
 assert.equal(Array.isArray(decision.probeSummaries), true)
 assert.equal(decision.probeSummaries.length >= 2, true)
 assert.equal(typeof decision.liveBlockerSummary, 'object')
 assert.equal(typeof decision.liveBlockerSummary.qwen, 'object')
 assert.equal(typeof decision.liveBlockerSummary.broll, 'object')
+assert.equal(typeof decision.gcpAccessRepair, 'object')
+assert.equal(decision.gcpAccessRepair.decision, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.decision)
+assert.equal(decision.gcpAccessRepair.mode, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.mode)
+assert.equal(decision.gcpAccessRepair.projectId, 'reeditpro')
+assert.deepEqual(decision.gcpAccessRepair.currentLiveBlockers, [
+  'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
+  'gcloud_account_lacks_compute_quota_read_access',
+])
+assert.equal(decision.gcpAccessRepair.repairScope.doesNotMutateGcp, true)
+assert.equal(decision.gcpAccessRepair.repairScope.doesNotAuthorizeRuntimeExecution, true)
+assert.equal(decision.gcpAccessRepair.tools.length, 2)
+assert.equal(
+  decision.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; failureMeaning: string; safeRepairChecklist: string[]; unsafeBypasses: string[] }) =>
+      tool.toolId === 'qwen2_5_vl_7b_instruct' &&
+      tool.failureMeaning.includes('Cloud Run') &&
+      tool.safeRepairChecklist.length > 0 &&
+      tool.unsafeBypasses.includes('do not skip Cloud Run service/job describe checks'),
+  ),
+  true,
+)
+assert.equal(
+  decision.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; failureMeaning: string; safeRepairChecklist: string[]; unsafeBypasses: string[] }) =>
+      tool.toolId === 'ai_video_broll_generation_wan' &&
+      tool.failureMeaning.includes('Compute quota') &&
+      tool.safeRepairChecklist.length > 0 &&
+      tool.unsafeBypasses.includes('do not create a VM before quota read checks pass'),
+  ),
+  true,
+)
+assert.equal(typeof decision.gcpAccessRepair.failureResponsePolicy.ifReadAccessFails, 'string')
+assert.equal(
+  decision.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index <redacted-index>',
+  ),
+  true,
+)
+assert.equal(decision.gcpAccessRepair.runtimeGatesAllFalse, true)
+for (const [flag, value] of Object.entries(
+  decision.gcpAccessRepair.runtimeSideEffects as Record<string, boolean>,
+)) {
+  assert.equal(value, false, `GCP repair side-effect flag must remain false: ${flag}`)
+}
+assert.equal(typeof decision.gcloudAccountAccessDiagnosticRun, 'boolean')
+if (!decision.qwenLivePreflightPassed) {
+  assert.equal(decision.gcloudAccountAccessDiagnosticRun, true)
+  assert.equal(typeof decision.gcloudAccountAccessSummary, 'object')
+  assert.equal(typeof decision.gcloudAccountAccessSummary.accountCount, 'number')
+  assert.equal(typeof decision.gcloudAccountAccessSummary.qwenReadyAccountCount, 'number')
+  assert.equal(typeof decision.gcloudAccountAccessSummary.brollQuotaReadAccountCount, 'number')
+  assert.equal(typeof decision.gcloudAccountAccessSummary.brollQuotaReadyAccountCount, 'number')
+  assert.equal(typeof decision.gcloudAccountAccessSummary.anyAccountReadyForBoth, 'boolean')
+  assert.equal(
+    decision.probeSummaries.some(
+      (probe: { id: string }) => probe.id === 'gcloud_account_access_diagnostic',
+    ),
+    true,
+  )
+}
 assert.equal(typeof decision.brollWanExternalAgentProofCommand, 'object')
 assert.deepEqual(decision.brollWanExternalAgentProofCommand.args, [
   'run',
@@ -386,7 +568,7 @@ assert.equal(decision.brollWanExternalAgentProofCommand.verifiesLiveQuotaBeforeA
 assert.equal(decision.brollWanExternalAgentProofCommand.verifiesPrivateCacheBeforeAnyVmAction, true)
 assert.equal(decision.brollWanExternalAgentProofCommand.requiresNoIdleLifecycleGate, true)
 assert.equal(decision.brollWanExternalAgentProofCommand.blocksWhenGpusAllRegionsQuotaInsufficient, true)
-assert.equal(decision.brollWanExternalAgentProofCommand.executionAllowedNow, false)
+assert.equal(typeof decision.brollWanExternalAgentProofCommand.executionAllowedNow, 'boolean')
 assert.equal(decision.brollWanExternalAgentProofCommand.createsComputeVm, true)
 assert.equal(decision.brollWanExternalAgentProofCommand.deletesComputeVmAndVerifiesCleanup, true)
 assert.equal(decision.brollWanExternalAgentProofCommand.dependencyInstallOnly, false)
@@ -400,6 +582,46 @@ assert.equal(decision.brollWanExternalAgentProofCommand.unlocksBetaOrProduction,
 assert.equal(
   decision.brollWanExternalAgentProofCommand.shellExample,
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json',
+)
+assert.equal(decision.brollStaticExplicitToolGateReady, true)
+assert.equal(typeof decision.brollCacheReady, 'boolean')
+assert.equal(typeof decision.brollInferenceProofAllowedNow, 'boolean')
+assert.equal(typeof decision.brollCacheReadiness, 'object')
+assert.equal(decision.brollCacheReadiness.statOnly, true)
+assert.equal(decision.brollCacheReadiness.runtimeGatesAllFalse, true)
+assert.equal(typeof decision.brollWanInferenceProofCommand, 'object')
+assert.deepEqual(decision.brollWanInferenceProofCommand.args, [
+  'run',
+  'external-agent-tool-execute-broll-wan',
+  '--',
+  '--inference-proof',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  decision.brollWanInferenceProofCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF',
+)
+assert.equal(decision.brollWanInferenceProofCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(decision.brollWanInferenceProofCommand.delegatesTo11hRunner, true)
+assert.equal(decision.brollWanInferenceProofCommand.requiresNoIdleLifecycleGate, true)
+assert.equal(decision.brollWanInferenceProofCommand.executionAllowedNow, decision.brollInferenceProofAllowedNow)
+assert.equal(decision.brollWanInferenceProofCommand.createsComputeVm, true)
+assert.equal(decision.brollWanInferenceProofCommand.deletesComputeVmAndVerifiesCleanup, true)
+assert.equal(decision.brollWanInferenceProofCommand.runsModel, true)
+assert.equal(decision.brollWanInferenceProofCommand.runsModelInference, true)
+assert.equal(decision.brollWanInferenceProofCommand.outputType, 'latent')
+assert.equal(decision.brollWanInferenceProofCommand.persistsInferenceOutput, false)
+assert.equal(decision.brollWanInferenceProofCommand.createsVideoFrames, false)
+assert.equal(decision.brollWanInferenceProofCommand.encodesVideo, false)
+assert.equal(decision.brollWanInferenceProofCommand.createsGeneratedAssets, false)
+assert.equal(decision.brollWanInferenceProofCommand.touchesSupabase, false)
+assert.equal(decision.brollWanInferenceProofCommand.touchesSql, false)
+assert.equal(decision.brollWanInferenceProofCommand.unlocksBetaOrProduction, false)
+assert.equal(decision.brollWanInferenceProofCommand.verifiesPrivateCacheBeforeAnyVmAction, true)
+assert.equal(
+  decision.brollWanInferenceProofCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
 )
 assert.equal(typeof decision.brollWanPrivateCachePrepareCommand, 'object')
 assert.deepEqual(decision.brollWanPrivateCachePrepareCommand.args, [
@@ -450,6 +672,8 @@ assert.equal(
 )
 assert.equal(decision.soundMusicAudioEvidenceCommand.blocksRealProviderWorkerStorageExport, true)
 assert.equal(decision.soundMusicAudioEvidenceCommand.executionAllowedNow, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.safeEvidenceReviewExecutableNow, true)
+assert.equal(decision.soundMusicAudioEvidenceCommand.runtimeExecutionAllowedNow, false)
 assert.equal(decision.soundMusicAudioEvidenceCommand.runsProvider, false)
 assert.equal(decision.soundMusicAudioEvidenceCommand.dispatchesWorker, false)
 assert.equal(decision.soundMusicAudioEvidenceCommand.runsMediaProcessing, false)
@@ -479,6 +703,8 @@ assert.equal(decision.supabaseLocalHarnessEvidenceCommand.verifiesLocalConfigBef
 assert.equal(decision.supabaseLocalHarnessEvidenceCommand.verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime, true)
 assert.equal(decision.supabaseLocalHarnessEvidenceCommand.blocksLiveSupabaseMutation, true)
 assert.equal(decision.supabaseLocalHarnessEvidenceCommand.executionAllowedNow, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.safeEvidenceReviewExecutableNow, true)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.runtimeExecutionAllowedNow, false)
 assert.equal(decision.supabaseLocalHarnessEvidenceCommand.runsSupabaseCli, false)
 assert.equal(decision.supabaseLocalHarnessEvidenceCommand.runsDocker, false)
 assert.equal(decision.supabaseLocalHarnessEvidenceCommand.executesSql, false)
@@ -622,16 +848,152 @@ if (decision.gcloudDiagnosticRun) {
   assert.equal(decision.liveBlockerSummary.broll.blocker, 'quota_probe_skipped_auth_refresh_failed')
   assert.equal(decision.liveBlockerSummary.broll.quotaProbeSkipped, true)
 } else if (!decision.qwenLivePreflightPassed) {
-  assert.equal(decision.manualActionRequired, false)
   assert.equal(decision.qwenAuthRefreshPassed, true)
   assert.equal(decision.qwenServiceDescribePassed && decision.qwenJobDescribePassed, false)
+  assert.equal(decision.chosenManualAction, QWEN_READ_ACCESS_NEXT_PROMPT)
+  assert.equal(decision.manualActionRequired, true)
+  assert.equal(
+    decision.manualActionReason,
+    spec.manualActionRules.whenQwenPermissionOrResourceReadFails.reason,
+  )
+  assert.equal(decision.manualActionBlocksRuntime, true)
+  assert.equal(
+    decision.rerunAfterManualAction,
+    spec.manualActionRules.whenQwenPermissionOrResourceReadFails.rerunAfterManualAction,
+  )
+  assert.equal(
+    decision.nextCodexCommandAfterManualAction,
+    spec.manualActionRules.whenQwenPermissionOrResourceReadFails.rerunAfterManualAction,
+  )
+  assert.equal(decision.codexRunnableNextCommandNow, null)
+  assert.equal(
+    decision.liveBlockerSummary.qwen.blocker,
+    'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
+  )
 }
 
 for (const [flag, value] of Object.entries(decision.runtimeSideEffects as Record<string, boolean>)) {
   assert.equal(value, false, `Runtime side-effect flag must remain false: ${flag}`)
 }
 
-const forbiddenFindings = scanForbiddenValues({ spec, decision })
+const indexedOutput = execFileSync('npx', ['tsx', CLI_PATH, '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 8,
+})
+const indexedDecision = JSON.parse(indexedOutput)
+assert.equal(indexedDecision.ok, true)
+assert.equal(indexedDecision.accountSelection.overrideIndexProvided, true)
+assert.equal(indexedDecision.accountSelection.overrideIndex, 2)
+assert.equal(
+  indexedDecision.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedDecision.gcpAccessRepair.postRepairVerificationCommands.includes(
+    'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedDecision.gcpAccessRepair.tools.every((tool: { verificationCommand: string }) =>
+    tool.verificationCommand.endsWith('--account-index 2'),
+  ),
+  true,
+)
+if (indexedDecision.manualActionRequired === true) {
+  assert.equal(indexedDecision.rerunAfterManualAction.includes('--account-index 2'), true)
+  assert.equal(indexedDecision.nextCodexCommandAfterManualAction.includes('--account-index 2'), true)
+}
+assert.deepEqual(indexedDecision.brollWanExternalAgentProofCommand.args, [
+  'run',
+  'external-agent-tool-execute-broll-wan',
+  '--',
+  '--execute',
+  '--json',
+  '--account-index',
+  '2',
+])
+assert.equal(
+  indexedDecision.brollWanExternalAgentProofCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json --account-index 2',
+)
+assert.deepEqual(indexedDecision.brollWanInferenceProofCommand.args, [
+  'run',
+  'external-agent-tool-execute-broll-wan',
+  '--',
+  '--inference-proof',
+  '--execute',
+  '--json',
+  '--account-index',
+  '2',
+])
+assert.equal(
+  indexedDecision.brollWanInferenceProofCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json --account-index 2',
+)
+assert.deepEqual(indexedDecision.brollWanPrivateCachePrepareCommand.args, [
+  'run',
+  'external-agent-tool-prepare-broll-wan-cache',
+  '--',
+  '--execute',
+  '--json',
+  '--account-index',
+  '2',
+])
+assert.equal(
+  indexedDecision.brollWanPrivateCachePrepareCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL=true npm run external-agent-tool-prepare-broll-wan-cache -- --execute --json --account-index 2',
+)
+assert.deepEqual(indexedDecision.soundMusicAudioEvidenceCommand.args, [
+  'run',
+  'external-agent-tool-execute-sound',
+  '--',
+  '--execute',
+  '--json',
+  '--account-index',
+  '2',
+])
+assert.equal(
+  indexedDecision.soundMusicAudioEvidenceCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true npm run external-agent-tool-execute-sound -- --execute --json --account-index 2',
+)
+assert.equal(indexedDecision.soundMusicAudioEvidenceCommand.safeEvidenceReviewExecutableNow, true)
+assert.equal(indexedDecision.soundMusicAudioEvidenceCommand.runtimeExecutionAllowedNow, false)
+assert.deepEqual(indexedDecision.supabaseLocalHarnessEvidenceCommand.args, [
+  'run',
+  'external-agent-tool-execute-supabase-harness',
+  '--',
+  '--execute',
+  '--json',
+  '--account-index',
+  '2',
+])
+assert.equal(
+  indexedDecision.supabaseLocalHarnessEvidenceCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW=true npm run external-agent-tool-execute-supabase-harness -- --execute --json --account-index 2',
+)
+assert.equal(indexedDecision.supabaseLocalHarnessEvidenceCommand.safeEvidenceReviewExecutableNow, true)
+assert.equal(indexedDecision.supabaseLocalHarnessEvidenceCommand.runtimeExecutionAllowedNow, false)
+if (indexedDecision.qwenBoundedExecutionCommand) {
+  assert.deepEqual(indexedDecision.qwenBoundedExecutionCommand.args, [
+    'run',
+    'qwen2-5-vl-58dw-bounded-private-inference-retry',
+    '--',
+    '--execute',
+    '--json',
+    '--account-index',
+    '2',
+  ])
+  assert.equal(
+    indexedDecision.qwenBoundedExecutionCommand.shellExample,
+    'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY=true npm run qwen2-5-vl-58dw-bounded-private-inference-retry -- --execute --json --account-index 2',
+  )
+}
+
+const forbiddenFindings = scanForbiddenValues({ spec, decision, indexedDecision })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(

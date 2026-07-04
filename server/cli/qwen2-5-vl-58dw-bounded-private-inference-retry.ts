@@ -13,11 +13,23 @@ type CommandResult = {
   errorSummary?: string
 }
 
+type GcloudAccountSelection = {
+  account?: string
+  overrideIndexProvided: boolean
+  overrideIndexSource?: 'cli' | 'env'
+  overrideIndex?: number
+  overrideResolved: boolean
+  resolutionFailure?: string
+}
+
 const PROJECT = 'reeditpro'
 const REGION = 'us-central1'
 const SERVICE = 'reeditpro-qwen2-5-vl-l4-worker'
 const JOB = 'reeditpro-qwen2-5-vl-private-caller'
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
 const EXACT_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DW-RETRY-2: run one bounded approved-fixture private inference retry after strict structured-output fix, no generated assets/no mutation'
 
@@ -44,6 +56,7 @@ const SERVICE_RESTORE_ENV: Record<string, string> = {
 
 const SERVICE_TEMP_ENV_KEYS = Object.keys(SERVICE_ENABLE_ENV).filter((key) => !(key in SERVICE_RESTORE_ENV))
 const ACCEPTED_EXECUTION_PROMPTS = [EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT, EXACT_PROMPT] as const
+let cachedGcloudAccountSelection: GcloudAccountSelection | undefined
 
 const FORBIDDEN_OUTPUT_PATTERNS: Array<[string, RegExp]> = [
   ['run app url', /\brun\.app\b/i],
@@ -69,6 +82,7 @@ function main() {
       executeRequired: true,
       confirmationEnv: CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      accountSelection: accountSelectionOutput(),
       runtimeRunNow: false,
       generatedAssetsCreated: false,
       supabaseTouched: false,
@@ -88,6 +102,7 @@ function main() {
 
 function runBoundedRetry() {
   const runId = `qwen58dw-${new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15)}`
+  const accountSelection = accountSelectionOutput()
   const commands: CommandResult[] = []
   const blockers: string[] = []
   let serviceWasEnabled = false
@@ -143,6 +158,7 @@ function runBoundedRetry() {
   if (blockers.length) {
     return buildResult({
       runId,
+      accountSelection,
       status: 'blocked',
       blockers,
       commands,
@@ -273,6 +289,7 @@ function runBoundedRetry() {
 
   return buildResult({
     runId,
+    accountSelection,
     status: blockers.length ? 'blocked' : 'passed',
     blockers,
     commands,
@@ -339,6 +356,7 @@ function runCommand(
       env: {
         ...process.env,
         CLOUDSDK_CORE_DISABLE_PROMPTS: '1',
+        ...gcloudAccountEnv(),
       },
       encoding: 'utf8',
       maxBuffer: 1024 * 1024 * 12,
@@ -368,6 +386,7 @@ function runCommand(
 
 function buildResult(input: {
   runId: string
+  accountSelection: ReturnType<typeof accountSelectionOutput>
   status: 'passed' | 'blocked'
   blockers: string[]
   commands: CommandResult[]
@@ -390,6 +409,7 @@ function buildResult(input: {
     externalAgentReadyPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
     acceptedExecutionPrompts: ACCEPTED_EXECUTION_PROMPTS,
     runId: input.runId,
+    accountSelection: input.accountSelection,
     status: input.status,
     blockers: Array.from(new Set(input.blockers)),
     executionName: input.executionName,
@@ -531,6 +551,101 @@ function envMap(value: unknown) {
 
 function envArg(values: Record<string, string>) {
   return Object.entries(values).map(([key, value]) => `${key}=${value}`).join(',')
+}
+
+function accountSelectionOutput() {
+  const selection = resolveAccountSelection()
+  return {
+    overrideIndexEnv: GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV,
+    overrideIndexCliFlag: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG,
+    overrideIndexCliFlagAlias: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS,
+    overrideIndexProvided: selection.overrideIndexProvided,
+    overrideIndexSource: selection.overrideIndexSource,
+    overrideIndex: selection.overrideIndex,
+    overrideResolved: selection.overrideResolved,
+    overrideResolutionFailure: selection.resolutionFailure,
+    mutatesLocalGcloudConfig: false,
+  }
+}
+
+function gcloudAccountEnv(): Record<string, string> {
+  const selection = resolveAccountSelection()
+  return {
+    ...(selection.account ? { CLOUDSDK_CORE_ACCOUNT: selection.account } : {}),
+    ...(selection.overrideIndex ? { [GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]: String(selection.overrideIndex) } : {}),
+  }
+}
+
+function resolveAccountSelection(): GcloudAccountSelection {
+  if (cachedGcloudAccountSelection) return cachedGcloudAccountSelection
+
+  const cliIndex = cliFlagValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG, GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  const envIndex = process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  const rawIndex = cliIndex ?? envIndex
+  const indexSource = cliIndex ? 'cli' : envIndex ? 'env' : undefined
+  if (!rawIndex) {
+    cachedGcloudAccountSelection = {
+      overrideIndexProvided: false,
+      overrideResolved: false,
+    }
+    return cachedGcloudAccountSelection
+  }
+
+  const accountIndex = Number(rawIndex)
+  if (!Number.isInteger(accountIndex) || accountIndex < 1) {
+    cachedGcloudAccountSelection = {
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: Number.isFinite(accountIndex) ? accountIndex : undefined,
+      overrideResolved: false,
+      resolutionFailure: 'invalid_account_index',
+    }
+    return cachedGcloudAccountSelection
+  }
+
+  try {
+    const result = execFileSync('gcloud', ['auth', 'list', '--format=json'], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        CLOUDSDK_CORE_DISABLE_PROMPTS: '1',
+      },
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024,
+    })
+    const accounts = JSON.parse(result) as Array<{ account?: string }>
+    const account = accounts[accountIndex - 1]?.account?.trim()
+    cachedGcloudAccountSelection = {
+      account,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: Boolean(account),
+      resolutionFailure: account ? undefined : 'account_index_not_found',
+    }
+    return cachedGcloudAccountSelection
+  } catch {
+    cachedGcloudAccountSelection = {
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_failed',
+    }
+    return cachedGcloudAccountSelection
+  }
+}
+
+function cliFlagValue(...flags: string[]): string | undefined {
+  for (const flag of flags) {
+    const equalsArg = process.argv.find((arg) => arg.startsWith(`${flag}=`))
+    if (equalsArg) return equalsArg.slice(flag.length + 1).trim()
+
+    const index = process.argv.indexOf(flag)
+    if (index >= 0) return process.argv[index + 1]?.trim()
+  }
+
+  return undefined
 }
 
 function summarizeKnownOutput(id: string, output: string) {

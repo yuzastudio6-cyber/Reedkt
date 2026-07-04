@@ -113,6 +113,13 @@ for (const required of [
   'isTransientSshTransportFailure',
   'fallbackSourcePrefix',
   'source_prefixes',
+  'GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV',
+  "const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'",
+  "const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'",
+  'accountSelectionOutput()',
+  'gcloudAccountEnv()',
+  'CLOUDSDK_CORE_ACCOUNT',
+  'mutatesLocalGcloudConfig: false',
   'exec(${JSON.stringify(scriptBody)})',
   'urllib.request.urlopen',
   'urllib.error.HTTPError',
@@ -167,6 +174,20 @@ assert.equal((staticReport.runtimeSideEffects as Record<string, unknown>).modelI
 assert.equal((staticReport.runtimeSideEffects as Record<string, unknown>).generatedVideoCreated, false)
 assert.equal((staticReport.runtimeSideEffects as Record<string, unknown>).generatedAssetsCreated, false)
 assert.equal((staticReport.runtimeSideEffects as Record<string, unknown>).generatedLocalFixturePassedClaimed, false)
+const staticAccountSelection = staticReport.accountSelection as Record<string, unknown>
+assert.equal(staticAccountSelection.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
+assert.equal(staticAccountSelection.overrideIndexCliFlag, '--account-index')
+assert.equal(staticAccountSelection.overrideIndexCliFlagAlias, '--gcloud-account-index')
+assert.equal(staticAccountSelection.overrideIndexProvided, false)
+assert.equal(staticAccountSelection.overrideResolved, false)
+assert.equal(staticAccountSelection.mutatesLocalGcloudConfig, false)
+
+const indexedStaticReport = runCli(['--json', '--account-index=2'])
+const indexedAccountSelection = indexedStaticReport.accountSelection as Record<string, unknown>
+assert.equal(indexedAccountSelection.overrideIndexProvided, true)
+assert.equal(indexedAccountSelection.overrideIndexSource, 'cli')
+assert.equal(indexedAccountSelection.overrideIndex, 2)
+assert.equal(indexedAccountSelection.mutatesLocalGcloudConfig, false)
 
 const confirmationBlocked = runCli(['--execute', '--json'])
 assert.equal(confirmationBlocked.ok, false)
@@ -182,6 +203,9 @@ assert.equal((confirmationBlocked.runtimeSideEffects as Record<string, unknown>)
 assert.equal((confirmationBlocked.runtimeSideEffects as Record<string, unknown>).generatedVideoCreated, false)
 assert.equal((confirmationBlocked.runtimeSideEffects as Record<string, unknown>).generatedAssetsCreated, false)
 assert.equal((confirmationBlocked.runtimeSideEffects as Record<string, unknown>).generatedLocalFixturePassedClaimed, false)
+const blockedAccountSelection = confirmationBlocked.accountSelection as Record<string, unknown>
+assert.equal(blockedAccountSelection.overrideIndexProvided, false)
+assert.equal(blockedAccountSelection.mutatesLocalGcloudConfig, false)
 
 const spec = AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_RUNNER
 assert.equal(spec.decision, 'ai_video_broll_gen_11b_model_import_runner_ready_for_explicit_no_inference_execution')
@@ -207,7 +231,7 @@ for (const [flag, value] of Object.entries(spec.runtimeSideEffectsWhenStatic)) {
   assert.equal(value, false, `Static side-effect flag must remain false: ${flag}`)
 }
 
-const forbiddenFindings = scanForbiddenValues({ staticReport, confirmationBlocked, spec })
+const forbiddenFindings = scanForbiddenValues({ staticReport, indexedStaticReport, confirmationBlocked, spec })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(

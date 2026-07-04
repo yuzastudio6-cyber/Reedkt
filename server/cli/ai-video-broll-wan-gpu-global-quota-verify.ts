@@ -40,6 +40,19 @@ const DOWNSTREAM_AUTH_REQUIRED_COMMAND_IDS = [
   'project_gpu_quota_describe',
   'regional_l4_quota_describe',
 ] as const
+const GCLOUD_ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
+
+type AccountSelection = {
+  account?: string
+  overrideProvided: boolean
+  overrideIndexProvided: boolean
+  overrideIndex?: number
+  overrideResolved: boolean
+  resolutionFailure?: string
+}
+
+let cachedAccountSelection: AccountSelection | undefined
 
 function sanitize(value: string | undefined): string | undefined {
   if (!value) return undefined
@@ -69,6 +82,110 @@ function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)]
 }
 
+function resolveAccountSelection(): AccountSelection {
+  if (cachedAccountSelection) return cachedAccountSelection
+
+  const directAccount = process.env[GCLOUD_ACCOUNT_OVERRIDE_ENV]?.trim()
+  if (directAccount) {
+    cachedAccountSelection = {
+      account: directAccount,
+      overrideProvided: true,
+      overrideIndexProvided: false,
+      overrideResolved: true,
+    }
+    return cachedAccountSelection
+  }
+
+  const rawIndex = process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  if (!rawIndex) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: false,
+      overrideResolved: false,
+    }
+    return cachedAccountSelection
+  }
+
+  const accountIndex = Number(rawIndex)
+  if (!Number.isInteger(accountIndex) || accountIndex < 1) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndex: Number.isFinite(accountIndex) ? accountIndex : undefined,
+      overrideResolved: false,
+      resolutionFailure: 'invalid_account_index',
+    }
+    return cachedAccountSelection
+  }
+
+  const result = spawnSync('gcloud', ['auth', 'list', '--format=json'], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+
+  if (result.status !== 0) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_failed',
+    }
+    return cachedAccountSelection
+  }
+
+  try {
+    const accounts = JSON.parse(String(result.stdout ?? '')) as Array<{ account?: string }>
+    const account = accounts[accountIndex - 1]?.account?.trim()
+    cachedAccountSelection = {
+      account,
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndex: accountIndex,
+      overrideResolved: Boolean(account),
+      resolutionFailure: account ? undefined : 'account_index_not_found',
+    }
+    return cachedAccountSelection
+  } catch {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_parse_failed',
+    }
+    return cachedAccountSelection
+  }
+}
+
+function childEnvFor(command: string): NodeJS.ProcessEnv {
+  const accountOverride = resolveAccountSelection().account
+  if (command !== 'gcloud' || !accountOverride) return process.env
+
+  return {
+    ...process.env,
+    CLOUDSDK_CORE_ACCOUNT: accountOverride,
+  }
+}
+
+function accountSelectionSummary() {
+  const selection = resolveAccountSelection()
+  return {
+    overrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+    overrideProvided: selection.overrideProvided,
+    overrideIndexEnv: GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV,
+    overrideIndexProvided: selection.overrideIndexProvided,
+    overrideIndex: selection.overrideIndex,
+    overrideResolved: selection.overrideResolved,
+    cloudSdkCoreAccountEnvProvided: Boolean(process.env.CLOUDSDK_CORE_ACCOUNT?.trim()),
+    mapsToCloudSdkCoreAccount: true,
+    mutatesLocalGcloudConfig: false,
+    printsAccountValue: false,
+    resolutionFailure: selection.resolutionFailure,
+  }
+}
+
 function runReadOnlyCommand(
   id: string,
   command: string,
@@ -77,6 +194,7 @@ function runReadOnlyCommand(
 ): CommandResult {
   const result = spawnSync(command, [...args], {
     encoding: 'utf8',
+    env: childEnvFor(command),
     maxBuffer: 1024 * 1024 * 4,
     stdio: ['ignore', options.suppressStdout ? 'ignore' : 'pipe', 'pipe'],
   })
@@ -127,6 +245,7 @@ function main() {
             requestsQuota: command.requestsQuota,
             runsInference: command.runsInference,
           })),
+          accountSelection: spec.accountSelection,
           runtimeSideEffects: spec.runtimeSideEffects,
         },
         null,
@@ -224,6 +343,7 @@ function main() {
           versionChecked: Boolean(gcloudVersion?.ok),
           configuredProject: project?.stdout,
           projectMatches,
+          accountSelection: accountSelectionSummary(),
           accessTokenRefreshPassed: Boolean(accessTokenRefresh?.ok),
         },
         quotaProbeSkipped: !quotaProbeReady,

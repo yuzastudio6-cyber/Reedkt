@@ -77,12 +77,18 @@ function main() {
     ...SOUND_RUNTIME_ROUTE_DIAGNOSTICS,
   ])
   const blockers = validateEvidence(soundOss, soundRuntimeRoute)
+  const safeEvidenceReviewCompleted = soundOss.ok && soundRuntimeRoute.ok
 
   print({
     ok: false,
     mode: 'external_agent_sound_execution_evidence_review_result',
     status: 'blocked',
     blockers,
+    safeEvidenceReviewRun: true,
+    safeEvidenceReviewCompleted,
+    safeEvidenceReviewExecutableNow: true,
+    supportingEvidenceOnly: true,
+    runtimeExecutionBlockedAsExpected: true,
     soundOssDiagnostics: summarizeProbe(soundOss),
     soundRuntimeRouteDiagnostics: summarizeProbe(soundRuntimeRoute),
     nextPrompt:

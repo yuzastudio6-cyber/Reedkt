@@ -1,24 +1,90 @@
 import { spawnSync } from 'node:child_process'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
 type JsonRecord = Record<string, unknown>
 
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_QWEN_EXECUTION'
 const NEXT_COMMAND_SCRIPT = 'server/cli/external-agent-tool-next-command.ts'
+const EXECUTION_GATE_SCRIPT = 'server/cli/external-agent-tool-execution-gate.ts'
+const GCLOUD_ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
+
+type AccountSelection = {
+  account?: string
+  overrideProvided: boolean
+  overrideIndexProvided: boolean
+  overrideIndexSource?: 'cli' | 'env'
+  overrideIndex?: number
+  overrideResolved: boolean
+  resolutionFailure?: string
+}
+
+let cachedAccountSelection: AccountSelection | undefined
 
 function main() {
   const execute = process.argv.includes('--execute')
+  const preflightOnly = process.argv.includes('--preflight-only') || process.argv.includes('--verify-gates-only')
+
+  if (preflightOnly) {
+    const liveGate = runJson('external_agent_live_execution_gate', 'npx', ['tsx', EXECUTION_GATE_SCRIPT, '--live'])
+    const nextCommand = runJson('next_command_live_preflight', 'npx', ['tsx', NEXT_COMMAND_SCRIPT])
+    const liveGateBlockers = validateLiveGate(liveGate.json)
+    const nextCommandBlockers = validateNextCommand(nextCommand.json, { requireDelegatedCommands: false })
+    const blockers = [...liveGateBlockers, ...nextCommandBlockers]
+
+    print({
+      ok: blockers.length === 0,
+      mode: 'external_agent_qwen_execution_preflight_only_result',
+      status: blockers.length === 0 ? 'passed' : 'blocked',
+      blockers,
+      confirmationEnv: CONFIRM_ENV,
+      confirmationEnvRequiredValue: 'true',
+      liveGate: summarizeLiveGate(liveGate.json),
+      nextCommand: summarizeNextCommand(nextCommand.json),
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
+      wouldDelegateIfExecuteConfirmed: blockers.length === 0,
+      delegatedBoundedCommand: withSelectedAccountIndexCommand(
+        EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand,
+      ),
+      gcpAccessRepair: qwenAccessRepairHint(),
+      runtimeRunNow: false,
+      cloudRunJobExecuted: false,
+      modelInferenceRun: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
 
   if (!execute) {
     print({
       ok: false,
       mode: 'external_agent_qwen_execution_static_guard',
       executeRequired: true,
+      preflightOnlyCommand: 'npm run external-agent-tool-execute-qwen -- --preflight-only --json',
       confirmationEnv: CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
-      canonicalCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenExternalAgentExecutionCommand,
-      delegatedBoundedCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand,
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
+      canonicalCommand: withSelectedAccountIndexCommand(
+        EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenExternalAgentExecutionCommand,
+      ),
+      delegatedBoundedCommand: withSelectedAccountIndexCommand(
+        EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand,
+      ),
+      gcpAccessRepair: qwenAccessRepairHint(),
       runtimeRunNow: false,
       cloudRunJobExecuted: false,
       modelInferenceRun: false,
@@ -41,6 +107,37 @@ function main() {
       blockers: [`confirmation_env_required:${CONFIRM_ENV}=true`],
       confirmationEnv: CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
+      gcpAccessRepair: qwenAccessRepairHint(),
+      runtimeRunNow: false,
+      cloudRunJobExecuted: false,
+      modelInferenceRun: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
+
+  const liveGate = runJson('external_agent_live_execution_gate', 'npx', ['tsx', EXECUTION_GATE_SCRIPT, '--live'])
+  const liveGateBlockers = validateLiveGate(liveGate.json)
+  if (liveGateBlockers.length) {
+    print({
+      ok: false,
+      mode: 'external_agent_qwen_execution_live_gate_blocked',
+      status: 'blocked',
+      blockers: liveGateBlockers,
+      liveGate: summarizeLiveGate(liveGate.json),
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
+      gcpAccessRepair: qwenAccessRepairHint(),
       runtimeRunNow: false,
       cloudRunJobExecuted: false,
       modelInferenceRun: false,
@@ -63,7 +160,12 @@ function main() {
       mode: 'external_agent_qwen_execution_preflight_blocked',
       status: 'blocked',
       blockers,
+      liveGate: summarizeLiveGate(liveGate.json),
       nextCommand: summarizeNextCommand(nextCommand.json),
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
+      gcpAccessRepair: qwenAccessRepairHint(),
       runtimeRunNow: false,
       cloudRunJobExecuted: false,
       modelInferenceRun: false,
@@ -79,7 +181,7 @@ function main() {
   }
 
   const delegated = EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand
-  const result = runJson('qwen_bounded_execution', delegated.command, [...delegated.args], {
+  const result = runJson('qwen_bounded_execution', delegated.command, withSelectedAccountIndexArgs(delegated.args), {
     [delegated.confirmationEnv]: delegated.confirmationEnvRequiredValue,
   })
 
@@ -88,6 +190,7 @@ function main() {
     mode: 'external_agent_qwen_execution_delegated_result',
     status: result.ok && result.json?.ok === true ? 'passed' : 'blocked_or_failed',
     delegatedExitCode: result.exitCode,
+    liveGate: summarizeLiveGate(liveGate.json),
     nextCommand: summarizeNextCommand(nextCommand.json),
     delegatedResult: result.json,
     stderrSummary: result.stderrSummary,
@@ -95,7 +198,24 @@ function main() {
   })
 }
 
-function validateNextCommand(document: JsonRecord | undefined): string[] {
+function validateLiveGate(document: JsonRecord | undefined): string[] {
+  const blockers: string[] = []
+  if (!document) return ['live_execution_gate_json_missing']
+  if (document.ok !== true) blockers.push('live_execution_gate_not_ok')
+  if (document.liveMode !== true) blockers.push('live_execution_gate_not_live_mode')
+  if (document.executionAllowedNow !== true) blockers.push('live_execution_gate_execution_allowed_now_false')
+  if (document.readyForAnyExternalAgentExecutionNow !== true) {
+    blockers.push('live_execution_gate_ready_for_any_external_agent_execution_now_false')
+  }
+  if (document.staticExplicitToolGateReady !== true) blockers.push('static_explicit_tool_gate_not_ready')
+
+  return blockers
+}
+
+function validateNextCommand(
+  document: JsonRecord | undefined,
+  options: { requireDelegatedCommands?: boolean } = {},
+): string[] {
   const blockers: string[] = []
   if (!document) return ['next_command_json_missing']
   if (document.ok !== true) blockers.push('next_command_not_ok')
@@ -105,10 +225,49 @@ function validateNextCommand(document: JsonRecord | undefined): string[] {
   }
   if (document.qwenLivePreflightPassed !== true) blockers.push('qwen_live_preflight_not_passed')
   if (document.staticExplicitToolGateReady !== true) blockers.push('static_explicit_tool_gate_not_ready')
-  if (!document.qwenBoundedExecutionCommand) blockers.push('qwen_bounded_execution_command_missing')
-  if (!document.qwenExternalAgentExecutionCommand) blockers.push('qwen_external_agent_execution_command_missing')
+  if (options.requireDelegatedCommands !== false) {
+    if (!document.qwenBoundedExecutionCommand) blockers.push('qwen_bounded_execution_command_missing')
+    if (!document.qwenExternalAgentExecutionCommand) blockers.push('qwen_external_agent_execution_command_missing')
+  }
 
   return blockers
+}
+
+function summarizeLiveGate(document: JsonRecord | undefined) {
+  if (!document) return undefined
+  const liveVerifier = asRecord(document.liveVerifier)
+  const accountDiagnostic = asRecord(liveVerifier.accountAccessDiagnostic)
+
+  return {
+    ok: document.ok,
+    liveMode: document.liveMode,
+    decision: document.decision,
+    executionAllowedNow: document.executionAllowedNow,
+    readyForAnyExternalAgentExecutionNow: document.readyForAnyExternalAgentExecutionNow,
+    staticExplicitToolGateReady: document.staticExplicitToolGateReady,
+    blockedToolIds: document.blockedToolIds,
+      liveVerifier: {
+        ok: liveVerifier.ok,
+        allRequiredReadAccessVerified: liveVerifier.allRequiredReadAccessVerified,
+        qwenReadAccessPassed: liveVerifier.qwenReadAccessPassed,
+        brollQuotaReadAccessPassed: liveVerifier.brollQuotaReadAccessPassed,
+        brollQuotaSufficientForOneL4Vm: liveVerifier.brollQuotaSufficientForOneL4Vm,
+        chosenNextCommand: liveVerifier.chosenNextCommand,
+        manualActionReason: liveVerifier.manualActionReason,
+        accountAccessDiagnostic: Object.keys(accountDiagnostic).length
+          ? {
+              ok: accountDiagnostic.ok,
+              accountCount: accountDiagnostic.accountCount,
+              qwenReadyAccountCount: accountDiagnostic.qwenReadyAccountCount,
+              brollQuotaReadAccountCount: accountDiagnostic.brollQuotaReadAccountCount,
+              brollQuotaReadyAccountCount: accountDiagnostic.brollQuotaReadyAccountCount,
+              anyAccountReadyForBoth: accountDiagnostic.anyAccountReadyForBoth,
+              selectedAccountRepairRequest: accountDiagnostic.selectedAccountRepairRequest,
+            }
+          : undefined,
+      },
+    recommendedNextPrompt: document.recommendedNextPrompt,
+  }
 }
 
 function summarizeNextCommand(document: JsonRecord | undefined) {
@@ -120,9 +279,36 @@ function summarizeNextCommand(document: JsonRecord | undefined) {
     readyForAnyExternalAgentExecutionNow: document.readyForAnyExternalAgentExecutionNow,
     staticExplicitToolGateReady: document.staticExplicitToolGateReady,
     qwenLivePreflightPassed: document.qwenLivePreflightPassed,
+    chosenNextCommand: document.chosenNextCommand,
+    manualActionReason: document.manualActionReason,
     chosenManualAction: document.chosenManualAction,
     qwenExternalAgentExecutionCommandPresent: Boolean(document.qwenExternalAgentExecutionCommand),
     qwenBoundedExecutionCommandPresent: Boolean(document.qwenBoundedExecutionCommand),
+  }
+}
+
+function qwenAccessRepairHint() {
+  const qwen = EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.tools.find((tool) => tool.toolId === 'qwen2_5_vl_7b_instruct')
+
+  return {
+    command: 'npm run external-agent-gcp-access:repair-plan',
+    blocker: qwen?.blocker,
+    requiredReadPermissions: qwen?.requiredReadPermissions,
+    likelyMinimalRole: qwen?.likelyMinimalRole,
+    verificationCommand: withSelectedAccountIndexPlaceholders(qwen?.verificationCommand),
+    failureMeaning: qwen?.failureMeaning,
+    safeRepairChecklist: qwen?.safeRepairChecklist,
+    unsafeBypasses: qwen?.unsafeBypasses,
+    failureResponsePolicy: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.failureResponsePolicy,
+    safeRetryChecklist: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.safeRetryChecklist.map((item) =>
+      withSelectedAccountIndexPlaceholders(item),
+    ),
+    postRepairVerificationCommands: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.postRepairVerificationCommands.map((item) =>
+      withSelectedAccountIndexPlaceholders(item),
+    ),
+    runtimeExecutionStillRequiresWrapperGate: qwen?.runtimeExecutionStillRequiresWrapperGate,
+    mutatesGcp: false,
+    authorizesRuntimeExecution: false,
   }
 }
 
@@ -140,10 +326,7 @@ function runJson(
 } {
   const result = spawnSync(command, args, {
     cwd: process.cwd(),
-    env: {
-      ...process.env,
-      ...env,
-    },
+    env: childEnv(env),
     encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 12,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -158,6 +341,150 @@ function runJson(
     json,
     stderrSummary: sanitize(String(result.stderr ?? '')),
   }
+}
+
+function childEnv(env: Record<string, string> = {}): NodeJS.ProcessEnv {
+  const selection = resolveAccountSelection()
+  return {
+    ...process.env,
+    ...(selection.account ? { CLOUDSDK_CORE_ACCOUNT: selection.account } : {}),
+    ...(selection.overrideIndex ? { [GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]: String(selection.overrideIndex) } : {}),
+    ...env,
+  }
+}
+
+function accountSelectionOutput() {
+  const selection = resolveAccountSelection()
+  return {
+    gcloudAccountOverrideProvided: selection.overrideProvided,
+    gcloudAccountOverrideIndexEnv: GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV,
+    gcloudAccountOverrideIndexCliFlag: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG,
+    gcloudAccountOverrideIndexCliFlagAlias: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS,
+    gcloudAccountOverrideIndexProvided: selection.overrideIndexProvided,
+    gcloudAccountOverrideIndexSource: selection.overrideIndexSource,
+    gcloudAccountOverrideIndex: selection.overrideIndex,
+    gcloudAccountOverrideResolved: selection.overrideResolved,
+    gcloudAccountOverrideResolutionFailure: selection.resolutionFailure,
+  }
+}
+
+function resolveAccountSelection(): AccountSelection {
+  if (cachedAccountSelection) return cachedAccountSelection
+
+  const directAccount = process.env[GCLOUD_ACCOUNT_OVERRIDE_ENV]?.trim()
+  if (directAccount) {
+    cachedAccountSelection = {
+      account: directAccount,
+      overrideProvided: true,
+      overrideIndexProvided: false,
+      overrideResolved: true,
+    }
+    return cachedAccountSelection
+  }
+
+  const cliIndex = cliFlagValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG, GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  const envIndex = process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  const rawIndex = cliIndex ?? envIndex
+  const indexSource = cliIndex ? 'cli' : envIndex ? 'env' : undefined
+  if (!rawIndex) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: false,
+      overrideResolved: false,
+    }
+    return cachedAccountSelection
+  }
+
+  const accountIndex = Number(rawIndex)
+  if (!Number.isInteger(accountIndex) || accountIndex < 1) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: Number.isFinite(accountIndex) ? accountIndex : undefined,
+      overrideResolved: false,
+      resolutionFailure: 'invalid_account_index',
+    }
+    return cachedAccountSelection
+  }
+
+  const result = spawnSync('gcloud', ['auth', 'list', '--format=json'], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+
+  if (result.status !== 0) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_failed',
+    }
+    return cachedAccountSelection
+  }
+
+  try {
+    const accounts = JSON.parse(String(result.stdout ?? '')) as Array<{ account?: string }>
+    const account = accounts[accountIndex - 1]?.account?.trim()
+    cachedAccountSelection = {
+      account,
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: Boolean(account),
+      resolutionFailure: account ? undefined : 'account_index_not_found',
+    }
+    return cachedAccountSelection
+  } catch {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_parse_failed',
+    }
+    return cachedAccountSelection
+  }
+}
+
+function cliFlagValue(...flags: string[]): string | undefined {
+  for (const flag of flags) {
+    const equalsArg = process.argv.find((arg) => arg.startsWith(`${flag}=`))
+    if (equalsArg) return equalsArg.slice(flag.length + 1).trim()
+
+    const index = process.argv.indexOf(flag)
+    if (index >= 0) return process.argv[index + 1]?.trim()
+  }
+
+  return undefined
+}
+
+function withSelectedAccountIndexArgs(args: readonly string[]): string[] {
+  const index = resolveAccountSelection().overrideIndex
+  if (!index || args.includes('--account-index') || args.includes('--gcloud-account-index')) {
+    return [...args]
+  }
+
+  return [...args, '--account-index', String(index)]
+}
+
+function withSelectedAccountIndexCommand<T extends { args: readonly string[] }>(command: T): T & { args: string[] } {
+  return {
+    ...command,
+    args: withSelectedAccountIndexArgs(command.args),
+  }
+}
+
+function withSelectedAccountIndexPlaceholders(value: string | undefined): string | undefined {
+  const index = resolveAccountSelection().overrideIndex
+  if (!value || !index) return value
+
+  return value.replace(/<account-index>/g, String(index)).replace(/<redacted-index>/g, String(index))
 }
 
 function parseJsonOutput(output: string): JsonRecord | undefined {
@@ -187,6 +514,10 @@ function sanitize(value: string): string | undefined {
     .trim()
 
   return sanitized ? sanitized.slice(0, 1000) : undefined
+}
+
+function asRecord(value: unknown): JsonRecord {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as JsonRecord : {}
 }
 
 function print(value: unknown) {

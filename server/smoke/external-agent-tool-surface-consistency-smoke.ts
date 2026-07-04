@@ -15,8 +15,8 @@ const BROLL_TOOL_ID = 'ai_video_broll_generation_wan'
 const EXPECTED_QWEN_MANUAL_ACTION_IDS: string[] = []
 const EXPECTED_BROLL_MANUAL_ACTION_IDS: string[] = []
 
-function runJsonCli(script: string): JsonObject {
-  const output = execFileSync('npx', ['tsx', script], {
+function runJsonCli(script: string, args: string[] = []): JsonObject {
+  const output = execFileSync('npx', ['tsx', script, ...args], {
     cwd: ROOT,
     encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 10,
@@ -212,10 +212,15 @@ for (const tool of rollup.tools) {
 
 const actionPlan = runJsonCli('server/cli/external-agent-tool-action-plan.ts')
 const readiness = runJsonCli('server/cli/external-agent-tool-readiness-check.ts')
+const runtimeStatus = runJsonCli('server/cli/external-agent-tool-runtime-status.ts', ['--static-only'])
 const executionGate = runJsonCli('server/cli/external-agent-tool-execution-gate.ts')
 const blockerPreflight = runJsonCli('server/cli/external-agent-tool-blocker-preflight.ts')
 const brollQuotaVerify = runJsonCli('server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts')
 const nextCommand = runJsonCli('server/cli/external-agent-tool-next-command.ts')
+const callabilityProof = runJsonCli('server/cli/external-agent-tool-callability-proof.ts', [
+  '--account-index',
+  '2',
+])
 const qwenExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-qwen.ts')
 const brollExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-broll-wan.ts')
 const soundExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-sound.ts')
@@ -298,11 +303,34 @@ for (const [label, actions] of brollSurfaceActions) {
   assertBrollManualActions(actions, `${label}.broll`)
 }
 
-assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, true)
+assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(actionPlan.readyForAnyExternalAgentRuntimeExecutionNow, false)
+assert.equal(actionPlan.staticReadyForAnyExternalAgentExecutionGateNow, true)
+assert.deepEqual(actionPlan.readyToolIds, [])
+assert.deepEqual(actionPlan.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(actionPlan.executionNowBlockedByLivePreflight, true)
 assert.equal(actionPlan.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(actionPlan.runtimeSideEffects, 'actionPlan.runtimeSideEffects')
+for (const tool of asArray(actionPlan.toolActions, 'actionPlan.toolActions')) {
+  const row = asRecord(tool, 'actionPlan.toolActions row')
+  assert.equal(row.readyForExternalAgentExecutionNow, false, `${row.toolId} must not claim static execution-now`)
+  assert.equal(
+    row.readyForExternalAgentRuntimeExecutionNow,
+    false,
+    `${row.toolId} must not claim runtime execution-now from the static action plan`,
+  )
+  if (row.toolId === QWEN_TOOL_ID) {
+    assert.equal(row.staticReadyForExternalAgentExecutionGateNow, true)
+    assert.equal(row.executionNowBlockedByLivePreflight, true)
+  }
+}
 
-assert.equal(readiness.readyForAnyExternalAgentExecutionNow, true)
+assert.equal(readiness.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(readiness.readyForAnyExternalAgentRuntimeExecutionNow, false)
+assert.equal(readiness.staticReadyForAnyExternalAgentExecutionGateNow, true)
+assert.deepEqual(readiness.readyToolIds, [])
+assert.deepEqual(readiness.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(readiness.executionNowBlockedByLivePreflight, true)
 assert.equal(readiness.runtimeGatesAllFalse, true)
 for (const readinessFlag of [
   'cloudRunTouched',
@@ -318,8 +346,28 @@ for (const readinessFlag of [
   assert.equal(readiness[readinessFlag], false, `readiness.${readinessFlag} must remain false`)
 }
 
+assert.equal(runtimeStatus.mode, 'external_agent_tool_runtime_status_report')
+assert.equal(runtimeStatus.decision, 'external_agent_tools_callable_static_status_only')
+assert.equal(runtimeStatus.liveChecksRun, false)
+assert.equal(runtimeStatus.agentCallableToolCount, 4)
+assert.equal(runtimeStatus.readyForAnyExternalAgentRuntimeExecutionNow, false)
+assert.equal(runtimeStatus.runtimeGatesAllFalse, true)
+assert.deepEqual(runtimeStatus.runtimeExecutableToolIds, [])
+assertAllRuntimeFlagsFalse(runtimeStatus.runtimeSideEffects, 'runtimeStatus.runtimeSideEffects')
+for (const tool of asArray(runtimeStatus.tools, 'runtimeStatus.tools')) {
+  const row = asRecord(tool, 'runtimeStatus.tools row')
+  assert.equal(row.agentCallable, true, `${row.toolId} must remain callable through a wrapper`)
+  assert.equal(row.runtimeExecutableNow, false, `${row.toolId} must not execute from static status`)
+}
+
 assert.equal(executionGate.executionAllowedNow, false)
 assert.equal(executionGate.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(executionGate.readyForAnyExternalAgentRuntimeExecutionNow, false)
+assert.deepEqual(executionGate.readyToolIds, [])
+assert.deepEqual(executionGate.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(executionGate.staticReadyForAnyExternalAgentExecutionGateNow, true)
+assert.equal(executionGate.executionNowBlockedByLivePreflight, true)
+assert.equal(executionGate.blockedToolIds.length, asArray(executionGate.toolRows, 'executionGate.toolRows').length)
 assert.equal(executionGate.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(executionGate.runtimeSideEffects, 'executionGate.runtimeSideEffects')
 
@@ -340,6 +388,22 @@ assert.equal(
 assert.equal(nextCommand.readyForAnyExternalAgentExecutionNow, nextCommand.executionAllowedNow)
 assert.equal(nextCommand.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(nextCommand.runtimeSideEffects, 'nextCommand.runtimeSideEffects')
+
+assert.equal(callabilityProof.mode, 'external_agent_tool_callability_proof_result')
+assert.equal(callabilityProof.externalAgentCallableToolCount, 4)
+assert.equal(callabilityProof.runtimeExecutableToolCount, 0)
+assert.deepEqual(callabilityProof.preflightCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
+assert.deepEqual(callabilityProof.safeEvidenceExecutableToolIds, [
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(callabilityProof.allStructuredCallsReturned, true)
+assert.equal(callabilityProof.allExpectedModesReturned, true)
+assert.equal(callabilityProof.runtimeSideEffectsAllFalse, true)
+assertAllRuntimeFlagsFalse(callabilityProof.runtimeSideEffects, 'callabilityProof.runtimeSideEffects')
 
 const wrapperCanonicalCommand = asRecord(qwenExecutionWrapper.canonicalCommand, 'qwenExecutionWrapper.canonicalCommand')
 assert.equal(qwenExecutionWrapper.mode, 'external_agent_qwen_execution_static_guard')
@@ -560,10 +624,17 @@ const normalizedSurfaceData = {
   runtimeSideEffects: {
     rollup: rollup.runtimeSideEffects,
     actionPlan: actionPlan.runtimeSideEffects,
+    runtimeStatus: runtimeStatus.runtimeSideEffects,
     executionGate: executionGate.runtimeSideEffects,
     blockerPreflight: blockerPreflight.runtimeSideEffects,
     brollQuotaVerify: brollQuotaVerify.runtimeSideEffects,
     nextCommand: nextCommand.runtimeSideEffects,
+    callabilityProof: callabilityProof.runtimeSideEffects,
+  },
+  runtimeStatus: {
+    agentCallableToolIds: runtimeStatus.agentCallableToolIds,
+    runtimeExecutableToolIds: runtimeStatus.runtimeExecutableToolIds,
+    runtimeGatesAllFalse: runtimeStatus.runtimeGatesAllFalse,
   },
   qwenExecutionWrapper: {
     canonicalCommand: qwenExecutionWrapper.canonicalCommand,
@@ -599,6 +670,12 @@ const normalizedSurfaceData = {
     generatedAssetsCreated: supabaseHarnessExecutionWrapper.generatedAssetsCreated,
     generatedLocalFixturePassedClaimed: supabaseHarnessExecutionWrapper.generatedLocalFixturePassedClaimed,
   },
+  callabilityProof: {
+    wrapperCalls: callabilityProof.wrapperCalls,
+    runtimeSideEffectsAllFalse: callabilityProof.runtimeSideEffectsAllFalse,
+    runtimeExecutableToolIds: callabilityProof.runtimeExecutableToolIds,
+    generatedLocalFixturePassedClaimed: callabilityProof.generatedLocalFixturePassedClaimed,
+  },
 }
 const forbiddenFindings = scanForbiddenValues(normalizedSurfaceData)
 assert.equal(forbiddenFindings.length, 0, `Forbidden values in surface data: ${forbiddenFindings.join('; ')}`)
@@ -612,10 +689,12 @@ console.log(
         'rollup',
         'external-agent-tool-action-plan',
         'external-agent-tool-readiness:check',
+        'external-agent-tool-runtime-status',
         'external-agent-tool-execution-gate',
         'external-agent-tool-blockers:preflight',
         'ai-video-broll-wan-gpu-global-quota:verify',
         'external-agent-tool-next-command',
+        'external-agent-tool-callability-proof',
         'external-agent-tool-execute-qwen',
         'external-agent-tool-execute-broll-wan',
         'external-agent-tool-execute-sound',

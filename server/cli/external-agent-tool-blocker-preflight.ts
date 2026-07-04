@@ -43,6 +43,22 @@ const DOWNSTREAM_AUTH_REQUIRED_COMMAND_IDS = [
   'broll_project_quota_describe',
   'broll_region_quota_describe',
 ] as const
+const GCLOUD_ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
+
+type AccountSelection = {
+  account?: string
+  overrideProvided: boolean
+  overrideIndexProvided: boolean
+  overrideIndexSource?: 'cli' | 'env'
+  overrideIndex?: number
+  overrideResolved: boolean
+  resolutionFailure?: string
+}
+
+let cachedAccountSelection: AccountSelection | undefined
 
 function sanitize(value: string | undefined): string | undefined {
   if (!value) return undefined
@@ -72,6 +88,152 @@ function uniqueStrings(values: string[]): string[] {
   return [...new Set(values)]
 }
 
+function resolveAccountSelection(): AccountSelection {
+  if (cachedAccountSelection) return cachedAccountSelection
+
+  const directAccount = process.env[GCLOUD_ACCOUNT_OVERRIDE_ENV]?.trim()
+  if (directAccount) {
+    cachedAccountSelection = {
+      account: directAccount,
+      overrideProvided: true,
+      overrideIndexProvided: false,
+      overrideResolved: true,
+    }
+    return cachedAccountSelection
+  }
+
+  const cliIndex = cliFlagValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG, GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  const envIndex = process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  const rawIndex = cliIndex ?? envIndex
+  const indexSource = cliIndex ? 'cli' : envIndex ? 'env' : undefined
+  if (!rawIndex) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: false,
+      overrideResolved: false,
+    }
+    return cachedAccountSelection
+  }
+
+  const accountIndex = Number(rawIndex)
+  if (!Number.isInteger(accountIndex) || accountIndex < 1) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: Number.isFinite(accountIndex) ? accountIndex : undefined,
+      overrideResolved: false,
+      resolutionFailure: 'invalid_account_index',
+    }
+    return cachedAccountSelection
+  }
+
+  const result = spawnSync('gcloud', ['auth', 'list', '--format=json'], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+
+  if (result.status !== 0) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_failed',
+    }
+    return cachedAccountSelection
+  }
+
+  try {
+    const accounts = JSON.parse(String(result.stdout ?? '')) as Array<{ account?: string }>
+    const account = accounts[accountIndex - 1]?.account?.trim()
+    cachedAccountSelection = {
+      account,
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: Boolean(account),
+      resolutionFailure: account ? undefined : 'account_index_not_found',
+    }
+    return cachedAccountSelection
+  } catch {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_parse_failed',
+    }
+    return cachedAccountSelection
+  }
+}
+
+function cliFlagValue(...flags: string[]): string | undefined {
+  for (const flag of flags) {
+    const equalsArg = process.argv.find((arg) => arg.startsWith(`${flag}=`))
+    if (equalsArg) return equalsArg.slice(flag.length + 1).trim()
+
+    const index = process.argv.indexOf(flag)
+    if (index >= 0) return process.argv[index + 1]?.trim()
+  }
+
+  return undefined
+}
+
+function childEnvFor(command: string): NodeJS.ProcessEnv {
+  const accountOverride = resolveAccountSelection().account
+  if (command !== 'gcloud' || !accountOverride) return process.env
+
+  return {
+    ...process.env,
+    CLOUDSDK_CORE_ACCOUNT: accountOverride,
+  }
+}
+
+function accountSelectionSummary() {
+  const selection = resolveAccountSelection()
+  return {
+    overrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+    overrideProvided: selection.overrideProvided,
+    overrideIndexEnv: GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV,
+    overrideIndexCliFlag: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG,
+    overrideIndexCliFlagAlias: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS,
+    overrideIndexProvided: selection.overrideIndexProvided,
+    overrideIndexSource: selection.overrideIndexSource,
+    overrideIndex: selection.overrideIndex,
+    overrideResolved: selection.overrideResolved,
+    cloudSdkCoreAccountEnvProvided: Boolean(process.env.CLOUDSDK_CORE_ACCOUNT?.trim()),
+    mapsToCloudSdkCoreAccount: true,
+    mutatesLocalGcloudConfig: false,
+    printsAccountValue: false,
+    resolutionFailure: selection.resolutionFailure,
+  }
+}
+
+function selectedAccountIndex(): number | undefined {
+  const selection = resolveAccountSelection()
+  if (
+    typeof selection.overrideIndex !== 'number' ||
+    !Number.isInteger(selection.overrideIndex) ||
+    selection.overrideIndex <= 0
+  ) {
+    return undefined
+  }
+
+  return selection.overrideIndex
+}
+
+function applySelectedAccountIndex(value: string): string {
+  const index = selectedAccountIndex()
+  if (!index) return value
+
+  return value.replace(/<account-index>/g, String(index)).replace(/<redacted-index>/g, String(index))
+}
+
 function runReadOnlyCommand(
   id: string,
   command: string,
@@ -80,6 +242,7 @@ function runReadOnlyCommand(
 ): CommandResult {
   const result = spawnSync(command, [...args], {
     encoding: 'utf8',
+    env: childEnvFor(command),
     maxBuffer: 1024 * 1024 * 4,
     stdio: ['ignore', options.suppressStdout ? 'ignore' : 'pipe', 'pipe'],
   })
@@ -148,6 +311,7 @@ function main() {
             runsInference: command.runsInference,
           })),
           manualBlockerActionToolIds,
+          accountSelection: spec.accountSelection,
           runtimeSideEffects: spec.runtimeSideEffects,
         },
         null,
@@ -234,19 +398,37 @@ function main() {
     (globalGpuQuota?.limit ?? 0) >= spec.broll.minimumGlobalGpusAllRegionsQuota &&
       (regionalL4Quota?.limit ?? 0) >= spec.broll.minimumRegionalL4Quota,
   )
+  const brollQuotaPermissionBlocked = Boolean(downstreamProbeReady && (!projectQuota?.ok || !regionQuota?.ok))
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
 
-  const qwenNextAction = qwenAuthCleared ? spec.qwen.nextActionIfCleared : spec.qwen.nextActionIfBlocked
+  const qwenTokenRefreshPassed = Boolean(accessTokenRefresh?.ok)
+  const qwenReadAccessBlocked = Boolean(qwenTokenRefreshPassed && !qwenAuthCleared)
+  const qwenBlocker = qwenAuthCleared
+    ? 'cleared'
+    : qwenReadAccessBlocked
+      ? spec.qwen.blockerIfPermissionOrResourceFailed
+      : spec.qwen.blockerIfFailed
+  const qwenNextActionRaw = qwenAuthCleared
+    ? spec.qwen.nextActionIfCleared
+    : qwenReadAccessBlocked
+      ? spec.qwen.nextActionIfPermissionOrResourceBlocked
+      : spec.qwen.nextActionIfBlocked
+  const qwenNextAction = applySelectedAccountIndex(qwenNextActionRaw)
   const brollSkippedForAuth = !downstreamProbeReady && downstreamSkipReason === 'auth_refresh_failed_before_downstream_probe'
-  const brollNextAction = brollQuotaCleared
+  const brollNextActionRaw = brollQuotaCleared
     ? spec.broll.nextActionIfCleared
     : brollSkippedForAuth
       ? spec.broll.nextActionIfSkippedForAuth
+      : brollQuotaPermissionBlocked
+        ? spec.broll.nextActionIfPermissionBlocked
       : spec.broll.nextActionIfBlocked
+  const brollNextAction = applySelectedAccountIndex(brollNextActionRaw)
   const brollBlocker = brollQuotaCleared
     ? 'cleared'
     : brollSkippedForAuth
       ? spec.broll.blockerIfSkippedForAuth
+      : brollQuotaPermissionBlocked
+        ? spec.broll.blockerIfPermissionFailed
       : spec.broll.blockerIfFailed
   const recommendedNextPrompt = accessTokenRefresh?.ok && qwenAuthCleared ? brollNextAction : qwenNextAction
 
@@ -280,6 +462,7 @@ function main() {
           versionChecked: Boolean(gcloudVersion?.ok),
           configuredProject: project?.stdout,
           projectMatches: project?.stdout === spec.projectId,
+          accountSelection: accountSelectionSummary(),
           activeAccountDomain: activeAccountDomain(activeAccount?.rawStdout),
         },
         qwen: {
@@ -291,7 +474,7 @@ function main() {
           downstreamProbeSkipReason: downstreamProbeReady ? undefined : downstreamSkipReason,
           serviceNameMatched: qwenService?.stdout === spec.qwen.serviceName,
           jobNameMatched: qwenJob?.stdout === spec.qwen.callerJobName,
-          blocker: qwenAuthCleared ? 'cleared' : spec.qwen.blockerIfFailed,
+          blocker: qwenBlocker,
           readyForNextAuthRefreshVerify: qwenAuthCleared,
           readyForExternalAgentExecutionNow: false,
           nextAction: qwenNextAction,

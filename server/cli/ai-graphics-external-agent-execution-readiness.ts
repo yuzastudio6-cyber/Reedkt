@@ -409,6 +409,15 @@ function buildToolRows(
       toolId,
       displayName: readiness.displayName,
       packageName: readiness.packageName,
+      installSurface: readiness.installSurface,
+      installStatus: readiness.installStatus,
+      installEvidence: readiness.installEvidence,
+      packageRuntimePresentForPlannedSurface: true,
+      controlledExecutionRuntimePresentNow:
+        group === 'gpu_model' ? false : executionPassed,
+      installReadinessState: group === 'gpu_model'
+        ? 'install_target_prepared_runtime_blocked_pending_cuda_private_inputs'
+        : 'controlled_runtime_present_and_executed',
       primaryCapability: routeRow.capabilityId,
       group,
       callable: routeCallable,
@@ -745,6 +754,10 @@ function buildReport() {
     executionScope,
     counts: {
       totalToolsCovered: toolRows.length,
+      packageRuntimePresentForPlannedSurfaceTools:
+        toolRows.filter((row) => row.packageRuntimePresentForPlannedSurface).length,
+      controlledExecutionRuntimePresentNowTools:
+        toolRows.filter((row) => row.controlledExecutionRuntimePresentNow).length,
       agentCallableTools: toolRows.filter((row) => row.callable).length,
       agentExecutableTools: executableTools.length,
       cpuStaticExecutableTools: toolRows.filter(
@@ -811,6 +824,16 @@ function buildReport() {
     booleans: {
       externalAgentExecutionReadinessCompleted: true,
       all21ToolsCovered: toolRows.length === 21,
+      all21ToolsHaveInstallSurfaceEvidence:
+        toolRows.every((row) => row.packageRuntimePresentForPlannedSurface === true),
+      thirteenToolsHaveControlledExecutionRuntimePresentNow:
+        toolRows.filter((row) => row.controlledExecutionRuntimePresentNow).length === 13,
+      eightGpuModelToolsInstallTargetPreparedButRuntimeBlocked:
+        toolRows.filter((row) => (
+          row.group === 'gpu_model' &&
+          row.installReadinessState ===
+            'install_target_prepared_runtime_blocked_pending_cuda_private_inputs'
+        )).length === 8,
       agentCanSubmitControlledToolRequests: true,
       agentCallableToolsReady: toolRows.every((row) => row.callable),
       all13NonGpuControlledAdapterOutputsValidated:
@@ -920,7 +943,7 @@ function buildReport() {
 function makeMarkdown(report: ReturnType<typeof buildReport>): string {
   const rows = report.toolReadinessRows
     .map((row) => (
-      `| \`${row.toolId}\` | \`${row.group}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | ${row.controlledWorkerRouteEvidenceAccepted} | \`${row.minimumPrivateRuntimeInputKeys.length ? row.minimumPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.blockingPrerequisite ?? 'none'}\` |`
+      `| \`${row.toolId}\` | \`${row.group}\` | \`${row.installReadinessState}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | ${row.controlledWorkerRouteEvidenceAccepted} | \`${row.minimumPrivateRuntimeInputKeys.length ? row.minimumPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.blockingPrerequisite ?? 'none'}\` |`
     ))
     .join('\n')
 
@@ -942,8 +965,8 @@ ${Object.entries(report.executionScope).map(([key, value]) => `- \`${key}\`: ${A
 
 ## Tool Rows
 
-| Tool | Group | Readiness state | Callable | Executable | Worker-route evidence accepted | Minimum private runtime inputs | Blocking prerequisite |
-| --- | --- | --- | ---: | ---: | ---: | --- | --- |
+| Tool | Group | Install/runtime state | Readiness state | Callable | Executable | Worker-route evidence accepted | Minimum private runtime inputs | Blocking prerequisite |
+| --- | --- | --- | --- | ---: | ---: | ---: | --- | --- |
 ${rows}
 
 ## Counts

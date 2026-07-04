@@ -325,6 +325,8 @@ function checkReport(label, report) {
   const counts = report.counts ?? {}
   const expectedCounts = {
     totalToolsCovered: 21,
+    packageRuntimePresentForPlannedSurfaceTools: 21,
+    controlledExecutionRuntimePresentNowTools: 13,
     agentCallableTools: 21,
     agentExecutableTools: 13,
     cpuStaticExecutableTools: 6,
@@ -360,6 +362,9 @@ function checkReport(label, report) {
   for (const key of [
     'externalAgentExecutionReadinessCompleted',
     'all21ToolsCovered',
+    'all21ToolsHaveInstallSurfaceEvidence',
+    'thirteenToolsHaveControlledExecutionRuntimePresentNow',
+    'eightGpuModelToolsInstallTargetPreparedButRuntimeBlocked',
     'agentCanSubmitControlledToolRequests',
     'agentCallableToolsReady',
     'all13NonGpuControlledAdapterOutputsValidated',
@@ -467,6 +472,18 @@ function checkReport(label, report) {
       continue
     }
     if (row.group !== expectedGroup(toolId)) fail(`${label}_${toolId}_group_mismatch`)
+    if (typeof row.installSurface !== 'string' || row.installSurface.length === 0) {
+      fail(`${label}_${toolId}_missing_install_surface`)
+    }
+    if (typeof row.installStatus !== 'string' || row.installStatus.length === 0) {
+      fail(`${label}_${toolId}_missing_install_status`)
+    }
+    if (!Array.isArray(row.installEvidence) || row.installEvidence.length === 0) {
+      fail(`${label}_${toolId}_missing_install_evidence`)
+    }
+    if (row.packageRuntimePresentForPlannedSurface !== true) {
+      fail(`${label}_${toolId}_planned_surface_runtime_not_present`)
+    }
     if (row.callable !== true) fail(`${label}_${toolId}_not_callable`)
     if (row.routeCallable !== true) fail(`${label}_${toolId}_route_not_callable`)
     if (row.adapterReachable !== true) fail(`${label}_${toolId}_adapter_not_reachable`)
@@ -491,6 +508,15 @@ function checkReport(label, report) {
       }
       if (row.executable !== false || row.executionPassed !== false) {
         fail(`${label}_${toolId}_gpu_claimed_executable`)
+      }
+      if (row.controlledExecutionRuntimePresentNow !== false) {
+        fail(`${label}_${toolId}_gpu_controlled_runtime_present`)
+      }
+      if (
+        row.installReadinessState !==
+        'install_target_prepared_runtime_blocked_pending_cuda_private_inputs'
+      ) {
+        fail(`${label}_${toolId}_gpu_install_state_mismatch:${row.installReadinessState}`)
       }
       if (!String(row.blockingPrerequisite ?? '').includes('approved native CUDA host')) {
         fail(`${label}_${toolId}_missing_cuda_blocker`)
@@ -615,6 +641,12 @@ function checkReport(label, report) {
       }
       if (row.executable !== true || row.executionPassed !== true) {
         fail(`${label}_${toolId}_non_gpu_not_executable`)
+      }
+      if (row.controlledExecutionRuntimePresentNow !== true) {
+        fail(`${label}_${toolId}_non_gpu_controlled_runtime_not_present`)
+      }
+      if (row.installReadinessState !== 'controlled_runtime_present_and_executed') {
+        fail(`${label}_${toolId}_non_gpu_install_state_mismatch:${row.installReadinessState}`)
       }
       if (row.controlledWorkerRouteExecutedNow !== true) {
         fail(`${label}_${toolId}_worker_route_not_executed`)

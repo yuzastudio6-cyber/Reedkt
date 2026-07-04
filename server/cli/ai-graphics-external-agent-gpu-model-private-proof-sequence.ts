@@ -59,6 +59,44 @@ type SequenceArgs = {
 
 type RuntimeInputManifest = Record<string, unknown>
 
+const runtimeInputManifestStringFields = new Set([
+  'outputDirectory',
+  'sourceImageLocalPath',
+  'sam2CheckpointLocalPath',
+  'birefnetModelLocalPath',
+  'realEsrganModelLocalPath',
+  'rembgModelLocalPath',
+  'transparentBackgroundCheckpointLocalPath',
+  'runtimeContainerImage',
+  'runtimeContainerPlatform',
+])
+
+const runtimeInputManifestPathFields = new Set([
+  'outputDirectory',
+  'sourceImageLocalPath',
+  'sam2CheckpointLocalPath',
+  'birefnetModelLocalPath',
+  'realEsrganModelLocalPath',
+  'rembgModelLocalPath',
+  'transparentBackgroundCheckpointLocalPath',
+])
+
+const runtimeInputManifestBooleanFields = new Set([
+  'allowCpuTensorRuntime',
+  'allowCpuFoundationRuntime',
+  'privateInputPreflightOnly',
+  'localRuntimeInputPreflightOnly',
+])
+
+const runtimeInputManifestToolRecordFields = new Set([
+  ...runtimeInputManifestStringFields,
+  ...runtimeInputManifestBooleanFields,
+])
+
+const supportedRuntimeInputManifestTools = new Set<string>(
+  AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS,
+)
+
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
 }
@@ -92,7 +130,61 @@ function readRuntimeInputManifest(filePath: string): RuntimeInputManifest {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     throw new Error('--runtime-input-manifest must be a JSON object')
   }
-  return parsed as RuntimeInputManifest
+  const manifest = parsed as RuntimeInputManifest
+  validateRuntimeInputManifest(manifest)
+  return manifest
+}
+
+function validateRuntimeInputManifest(manifest: RuntimeInputManifest): void {
+  const hasToolInputs = Object.prototype.hasOwnProperty.call(manifest, 'toolInputs')
+  const hasTools = Object.prototype.hasOwnProperty.call(manifest, 'tools')
+  if (hasToolInputs && hasTools) {
+    throw new Error('runtime input manifest must use either toolInputs or tools, not both')
+  }
+  for (const [key, value] of Object.entries(manifest)) {
+    if (key === 'toolInputs' || key === 'tools') {
+      validateRuntimeInputManifestToolInputs(key, value)
+      continue
+    }
+    if (runtimeInputManifestStringFields.has(key)) {
+      safeManifestString(key, value)
+      continue
+    }
+    if (runtimeInputManifestBooleanFields.has(key)) {
+      safeManifestBoolean(key, value)
+      continue
+    }
+    throw new Error(`runtime input manifest contains unsupported field ${key}`)
+  }
+}
+
+function validateRuntimeInputManifestToolInputs(
+  key: string,
+  value: unknown,
+): void {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`runtime input manifest field ${key} must be an object`)
+  }
+  for (const [toolId, record] of Object.entries(value as Record<string, unknown>)) {
+    if (!supportedRuntimeInputManifestTools.has(toolId)) {
+      throw new Error(`runtime input manifest references unsupported tool id ${toolId}`)
+    }
+    if (!record || typeof record !== 'object' || Array.isArray(record)) {
+      throw new Error(`runtime input manifest tool record ${toolId} must be an object`)
+    }
+    for (const [field, fieldValue] of Object.entries(record as Record<string, unknown>)) {
+      if (!runtimeInputManifestToolRecordFields.has(field)) {
+        throw new Error(
+          `runtime input manifest tool record ${toolId} contains unsupported field ${field}`,
+        )
+      }
+      if (runtimeInputManifestStringFields.has(field)) {
+        safeManifestString(field, fieldValue)
+      } else {
+        safeManifestBoolean(field, fieldValue)
+      }
+    }
+  }
 }
 
 function manifestToolRecord(
@@ -114,7 +206,11 @@ function safeManifestString(key: string, value: unknown): string | undefined {
   if (typeof value !== 'string' || value.length === 0) {
     throw new Error(`runtime input manifest field ${key} must be a non-empty string`)
   }
-  if (/^https?:\/\//i.test(value) || value.includes('\0')) {
+  if (
+    /^https?:\/\//i.test(value) ||
+    (runtimeInputManifestPathFields.has(key) && /^[a-z][a-z0-9+.-]*:\/\//i.test(value)) ||
+    value.includes('\0')
+  ) {
     throw new Error(`runtime input manifest field ${key} must be a private local path`)
   }
   if (value.split(/[\\/]+/).includes('..')) {

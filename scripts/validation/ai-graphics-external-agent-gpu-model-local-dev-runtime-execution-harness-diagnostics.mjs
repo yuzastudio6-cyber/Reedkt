@@ -962,6 +962,99 @@ if (!unsafeManifestOutputRun.stderr.includes('runtime input manifest outputDirec
   fail('unsafe_manifest_output_directory_missing_diagnostic')
 }
 
+const unsupportedManifestFieldPath = `${manifestDir}/unsupported-field-runtime-inputs.json`
+fs.writeFileSync(absolute(unsupportedManifestFieldPath), JSON.stringify({
+  outputDirectory: `${manifestDir}/unsupported-field-output`,
+  unexpectedProofField: 'typo',
+  toolInputs: {
+    kornia: {
+      sourceImageLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+    },
+  },
+}, null, 2))
+const unsupportedManifestFieldRun = spawnRunScript([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--runtime-input-manifest',
+  unsupportedManifestFieldPath,
+])
+if (unsupportedManifestFieldRun.status === 0) {
+  fail('unsupported_manifest_field_unexpected_success')
+}
+if (!unsupportedManifestFieldRun.stderr.includes('runtime input manifest contains unsupported field unexpectedProofField')) {
+  fail('unsupported_manifest_field_missing_diagnostic')
+}
+
+const unsupportedManifestToolPath = `${manifestDir}/unsupported-tool-runtime-inputs.json`
+fs.writeFileSync(absolute(unsupportedManifestToolPath), JSON.stringify({
+  outputDirectory: `${manifestDir}/unsupported-tool-output`,
+  toolInputs: {
+    not_an_ai_graphics_tool: {
+      sourceImageLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+    },
+  },
+}, null, 2))
+const unsupportedManifestToolRun = spawnRunScript([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--runtime-input-manifest',
+  unsupportedManifestToolPath,
+])
+if (unsupportedManifestToolRun.status === 0) {
+  fail('unsupported_manifest_tool_unexpected_success')
+}
+if (!unsupportedManifestToolRun.stderr.includes('runtime input manifest references unsupported tool id not_an_ai_graphics_tool')) {
+  fail('unsupported_manifest_tool_missing_diagnostic')
+}
+
+const unsupportedManifestToolFieldPath = `${manifestDir}/unsupported-tool-field-runtime-inputs.json`
+fs.writeFileSync(absolute(unsupportedManifestToolFieldPath), JSON.stringify({
+  outputDirectory: `${manifestDir}/unsupported-tool-field-output`,
+  toolInputs: {
+    kornia: {
+      sourceImageTypoLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+    },
+  },
+}, null, 2))
+const unsupportedManifestToolFieldRun = spawnRunScript([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--runtime-input-manifest',
+  unsupportedManifestToolFieldPath,
+])
+if (unsupportedManifestToolFieldRun.status === 0) {
+  fail('unsupported_manifest_tool_field_unexpected_success')
+}
+if (!unsupportedManifestToolFieldRun.stderr.includes('runtime input manifest tool record kornia contains unsupported field sourceImageTypoLocalPath')) {
+  fail('unsupported_manifest_tool_field_missing_diagnostic')
+}
+
+const uriManifestPath = `${manifestDir}/uri-runtime-inputs.json`
+fs.writeFileSync(absolute(uriManifestPath), JSON.stringify({
+  outputDirectory: `${manifestDir}/uri-output`,
+  toolInputs: {
+    kornia: {
+      sourceImageLocalPath: 'private://approved-frame.png',
+    },
+  },
+}, null, 2))
+const uriManifestRun = spawnRunScript([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--runtime-input-manifest',
+  uriManifestPath,
+])
+if (uriManifestRun.status === 0) {
+  fail('uri_manifest_path_unexpected_success')
+}
+if (!uriManifestRun.stderr.includes('runtime input manifest field sourceImageLocalPath must be a private local path')) {
+  fail('uri_manifest_path_missing_diagnostic')
+}
+
 const directAdapterUnsafeOutputRun = spawnDirectAdapterUnsafeOutputProbe()
 if (directAdapterUnsafeOutputRun.status !== 0) {
   fail(`direct_adapter_unsafe_output_probe_failed:${directAdapterUnsafeOutputRun.status}:${directAdapterUnsafeOutputRun.stderr}`)

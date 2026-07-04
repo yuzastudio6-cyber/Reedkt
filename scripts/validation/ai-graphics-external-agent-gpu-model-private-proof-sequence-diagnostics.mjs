@@ -843,6 +843,76 @@ if (!invalidManifestPath.stderr.includes('--runtime-input-manifest must stay und
   fail('invalid_runtime_manifest_path_missing_diagnostic')
 }
 
+const unsupportedManifestFieldPath = `${runtimeManifestDir}/unsupported-field-runtime-inputs.json`
+fs.writeFileSync(absolute(unsupportedManifestFieldPath), JSON.stringify({
+  outputDirectory: `${runtimeManifestDir}/unsupported-field-output`,
+  unexpectedProofField: 'typo',
+  toolInputs: {
+    kornia: {
+      sourceImageLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+    },
+  },
+}, null, 2))
+const unsupportedManifestField = runScriptStatus([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--runtime-input-manifest',
+  unsupportedManifestFieldPath,
+])
+if (unsupportedManifestField.status === 0) {
+  fail('unsupported_runtime_manifest_field_unexpected_success')
+}
+if (!unsupportedManifestField.stderr.includes('runtime input manifest contains unsupported field unexpectedProofField')) {
+  fail('unsupported_runtime_manifest_field_missing_diagnostic')
+}
+
+const unsupportedManifestToolPath = `${runtimeManifestDir}/unsupported-tool-runtime-inputs.json`
+fs.writeFileSync(absolute(unsupportedManifestToolPath), JSON.stringify({
+  outputDirectory: `${runtimeManifestDir}/unsupported-tool-output`,
+  toolInputs: {
+    not_an_ai_graphics_tool: {
+      sourceImageLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+    },
+  },
+}, null, 2))
+const unsupportedManifestTool = runScriptStatus([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--runtime-input-manifest',
+  unsupportedManifestToolPath,
+])
+if (unsupportedManifestTool.status === 0) {
+  fail('unsupported_runtime_manifest_tool_unexpected_success')
+}
+if (!unsupportedManifestTool.stderr.includes('runtime input manifest references unsupported tool id not_an_ai_graphics_tool')) {
+  fail('unsupported_runtime_manifest_tool_missing_diagnostic')
+}
+
+const uriManifestPath = `${runtimeManifestDir}/uri-runtime-inputs.json`
+fs.writeFileSync(absolute(uriManifestPath), JSON.stringify({
+  outputDirectory: `${runtimeManifestDir}/uri-output`,
+  toolInputs: {
+    kornia: {
+      sourceImageLocalPath: 'private://approved-frame.png',
+    },
+  },
+}, null, 2))
+const uriManifest = runScriptStatus([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--runtime-input-manifest',
+  uriManifestPath,
+])
+if (uriManifest.status === 0) {
+  fail('uri_runtime_manifest_path_unexpected_success')
+}
+if (!uriManifest.stderr.includes('runtime input manifest field sourceImageLocalPath must be a private local path')) {
+  fail('uri_runtime_manifest_path_missing_diagnostic')
+}
+
 const writeRecordsWithManifest = runScriptStatus([
   '--write-records',
   '--runtime-input-manifest',

@@ -45,6 +45,10 @@ assert.ok(
   'preflight should document wallet refund evidence variable',
 )
 assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_WALLET_BALANCE_BEFORE_AFTER_READBACK_VERIFIED'),
+  'preflight should document wallet balance before/after readback evidence variable',
+)
+assert.ok(
   passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_SERVICE_ROLE_ONLY_VERIFIED'),
   'preflight should document service-role-only settlement RPC evidence variable',
 )
@@ -75,6 +79,10 @@ assert.ok(
 assert.ok(
   missing.missingEvidence.some((item) => item.includes('wallet refund')),
   'missing report should name wallet refund proof',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('wallet balance before/after readback')),
+  'missing report should name wallet balance before/after readback proof',
 )
 assert.ok(
   missing.missingEvidence.some((item) => item.includes('paid production approval')),
@@ -159,6 +167,7 @@ function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
     REEDITPRO_PRODUCTION_WALLET_SPEND_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_WALLET_BALANCE_BEFORE_AFTER_READBACK_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_SERVICE_ROLE_ONLY_VERIFIED: yes,
     REEDITPRO_PRODUCTION_WALLET_IDEMPOTENT_REPLAY_VERIFIED: yes,

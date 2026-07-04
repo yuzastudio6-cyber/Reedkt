@@ -51,6 +51,7 @@ export interface ProductionWalletSettlementEvidence extends ProductionToolExecut
   spendVerified: boolean
   releaseVerified: boolean
   refundVerified: boolean
+  walletBalanceBeforeAfterReadbackVerified: boolean
   settlementRpcVerified: boolean
   settlementRpcServiceRoleOnlyVerified: boolean
   idempotentSettlementReplayVerified: boolean
@@ -310,6 +311,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
       requireBoolean(input.walletSettlement?.spendVerified, 'wallet spend verification is missing.'),
       requireBoolean(input.walletSettlement?.releaseVerified, 'wallet release verification is missing.'),
       requireBoolean(input.walletSettlement?.refundVerified, 'wallet refund verification is missing.'),
+      requireBoolean(input.walletSettlement?.walletBalanceBeforeAfterReadbackVerified, 'deployed wallet balance before/after readback is missing.'),
       requireBoolean(input.walletSettlement?.settlementRpcVerified, 'settlement RPC verification is missing.'),
       requireBoolean(input.walletSettlement?.settlementRpcServiceRoleOnlyVerified, 'settlement RPC service-role-only execution is unverified.'),
       requireBoolean(input.walletSettlement?.idempotentSettlementReplayVerified, 'idempotent settlement replay is missing.'),
@@ -484,6 +486,7 @@ function isWalletSettlementReady(input: ProductionToolExecutionReadinessGateInpu
     evidence.spendVerified &&
     evidence.releaseVerified &&
     evidence.refundVerified &&
+    evidence.walletBalanceBeforeAfterReadbackVerified &&
     evidence.settlementRpcVerified &&
     evidence.settlementRpcServiceRoleOnlyVerified &&
     evidence.idempotentSettlementReplayVerified &&

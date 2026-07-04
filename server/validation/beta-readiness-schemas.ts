@@ -267,6 +267,7 @@ const productionWalletSettlementEvidenceSchema = productionEvidenceNotesSchema.e
   spendVerified: z.boolean(),
   releaseVerified: z.boolean(),
   refundVerified: z.boolean(),
+  walletBalanceBeforeAfterReadbackVerified: z.boolean(),
   settlementRpcVerified: z.boolean(),
   settlementRpcServiceRoleOnlyVerified: z.boolean(),
   idempotentSettlementReplayVerified: z.boolean(),

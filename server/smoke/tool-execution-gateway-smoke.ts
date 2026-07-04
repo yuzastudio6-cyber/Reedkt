@@ -1552,6 +1552,7 @@ function productionEvidenceFixture(
       spendVerified: true,
       releaseVerified: true,
       refundVerified: true,
+      walletBalanceBeforeAfterReadbackVerified: true,
       settlementRpcVerified: true,
       settlementRpcServiceRoleOnlyVerified: true,
       idempotentSettlementReplayVerified: true,

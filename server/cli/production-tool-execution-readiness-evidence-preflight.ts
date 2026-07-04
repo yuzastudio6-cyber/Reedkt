@@ -42,6 +42,7 @@ export interface ProductionToolExecutionReadinessEvidencePreflightEnv {
   REEDITPRO_PRODUCTION_WALLET_SPEND_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED?: string
+  REEDITPRO_PRODUCTION_WALLET_BALANCE_BEFORE_AFTER_READBACK_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_SERVICE_ROLE_ONLY_VERIFIED?: string
   REEDITPRO_PRODUCTION_WALLET_IDEMPOTENT_REPLAY_VERIFIED?: string
@@ -215,6 +216,7 @@ export function buildProductionToolExecutionReadinessGateInput(env: ProductionTo
       spendVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_SPEND_VERIFIED),
       releaseVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED),
       refundVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED),
+      walletBalanceBeforeAfterReadbackVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_BALANCE_BEFORE_AFTER_READBACK_VERIFIED),
       settlementRpcVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_VERIFIED),
       settlementRpcServiceRoleOnlyVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_SERVICE_ROLE_ONLY_VERIFIED),
       idempotentSettlementReplayVerified: parseBoolean(env.REEDITPRO_PRODUCTION_WALLET_IDEMPOTENT_REPLAY_VERIFIED),
@@ -361,6 +363,7 @@ function requiredEnvironmentVariables(): ProductionToolExecutionReadinessEvidenc
     { name: 'REEDITPRO_PRODUCTION_WALLET_SPEND_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED', requiredFor: 'production_evidence' },
+    { name: 'REEDITPRO_PRODUCTION_WALLET_BALANCE_BEFORE_AFTER_READBACK_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_SERVICE_ROLE_ONLY_VERIFIED', requiredFor: 'production_evidence' },
     { name: 'REEDITPRO_PRODUCTION_WALLET_IDEMPOTENT_REPLAY_VERIFIED', requiredFor: 'production_evidence' },

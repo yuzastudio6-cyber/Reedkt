@@ -88,7 +88,12 @@ assert.equal(
 const source = read(CLI_PATH)
 for (const required of [
   CONFIRM_ENV,
+  'external-agent-tool-execution-gate.ts',
   'external-agent-tool-next-command.ts',
+  'external_agent_qwen_execution_live_gate_blocked',
+  'validateLiveGate',
+  'summarizeLiveGate',
+  'live_execution_gate_execution_allowed_now_false',
   'qwenBoundedExecutionCommand',
   'qwenExternalAgentExecutionCommand',
   ACCOUNT_OVERRIDE_ENV,

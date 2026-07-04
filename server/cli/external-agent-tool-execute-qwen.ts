@@ -7,6 +7,7 @@ type JsonRecord = Record<string, unknown>
 
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_QWEN_EXECUTION'
 const NEXT_COMMAND_SCRIPT = 'server/cli/external-agent-tool-next-command.ts'
+const EXECUTION_GATE_SCRIPT = 'server/cli/external-agent-tool-execution-gate.ts'
 const GCLOUD_ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
 const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
 
@@ -77,6 +78,33 @@ function main() {
     return
   }
 
+  const liveGate = runJson('external_agent_live_execution_gate', 'npx', ['tsx', EXECUTION_GATE_SCRIPT, '--live'])
+  const liveGateBlockers = validateLiveGate(liveGate.json)
+  if (liveGateBlockers.length) {
+    print({
+      ok: false,
+      mode: 'external_agent_qwen_execution_live_gate_blocked',
+      status: 'blocked',
+      blockers: liveGateBlockers,
+      liveGate: summarizeLiveGate(liveGate.json),
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
+      gcpAccessRepair: qwenAccessRepairHint(),
+      runtimeRunNow: false,
+      cloudRunJobExecuted: false,
+      modelInferenceRun: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
+
   const nextCommand = runJson('next_command_live_preflight', 'npx', ['tsx', NEXT_COMMAND_SCRIPT])
   const blockers = validateNextCommand(nextCommand.json)
   if (blockers.length) {
@@ -85,6 +113,7 @@ function main() {
       mode: 'external_agent_qwen_execution_preflight_blocked',
       status: 'blocked',
       blockers,
+      liveGate: summarizeLiveGate(liveGate.json),
       nextCommand: summarizeNextCommand(nextCommand.json),
       gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
       ...accountSelectionOutput(),
@@ -114,11 +143,26 @@ function main() {
     mode: 'external_agent_qwen_execution_delegated_result',
     status: result.ok && result.json?.ok === true ? 'passed' : 'blocked_or_failed',
     delegatedExitCode: result.exitCode,
+    liveGate: summarizeLiveGate(liveGate.json),
     nextCommand: summarizeNextCommand(nextCommand.json),
     delegatedResult: result.json,
     stderrSummary: result.stderrSummary,
     generatedLocalFixturePassedClaimed: false,
   })
+}
+
+function validateLiveGate(document: JsonRecord | undefined): string[] {
+  const blockers: string[] = []
+  if (!document) return ['live_execution_gate_json_missing']
+  if (document.ok !== true) blockers.push('live_execution_gate_not_ok')
+  if (document.liveMode !== true) blockers.push('live_execution_gate_not_live_mode')
+  if (document.executionAllowedNow !== true) blockers.push('live_execution_gate_execution_allowed_now_false')
+  if (document.readyForAnyExternalAgentExecutionNow !== true) {
+    blockers.push('live_execution_gate_ready_for_any_external_agent_execution_now_false')
+  }
+  if (document.staticExplicitToolGateReady !== true) blockers.push('static_explicit_tool_gate_not_ready')
+
+  return blockers
 }
 
 function validateNextCommand(document: JsonRecord | undefined): string[] {
@@ -135,6 +179,42 @@ function validateNextCommand(document: JsonRecord | undefined): string[] {
   if (!document.qwenExternalAgentExecutionCommand) blockers.push('qwen_external_agent_execution_command_missing')
 
   return blockers
+}
+
+function summarizeLiveGate(document: JsonRecord | undefined) {
+  if (!document) return undefined
+  const liveVerifier = asRecord(document.liveVerifier)
+  const accountDiagnostic = asRecord(liveVerifier.accountAccessDiagnostic)
+
+  return {
+    ok: document.ok,
+    liveMode: document.liveMode,
+    decision: document.decision,
+    executionAllowedNow: document.executionAllowedNow,
+    readyForAnyExternalAgentExecutionNow: document.readyForAnyExternalAgentExecutionNow,
+    staticExplicitToolGateReady: document.staticExplicitToolGateReady,
+    blockedToolIds: document.blockedToolIds,
+    liveVerifier: {
+      ok: liveVerifier.ok,
+      allRequiredReadAccessVerified: liveVerifier.allRequiredReadAccessVerified,
+      qwenReadAccessPassed: liveVerifier.qwenReadAccessPassed,
+      brollQuotaReadAccessPassed: liveVerifier.brollQuotaReadAccessPassed,
+      brollQuotaSufficientForOneL4Vm: liveVerifier.brollQuotaSufficientForOneL4Vm,
+      chosenNextCommand: liveVerifier.chosenNextCommand,
+      manualActionReason: liveVerifier.manualActionReason,
+      accountAccessDiagnostic: Object.keys(accountDiagnostic).length
+        ? {
+            ok: accountDiagnostic.ok,
+            accountCount: accountDiagnostic.accountCount,
+            qwenReadyAccountCount: accountDiagnostic.qwenReadyAccountCount,
+            brollQuotaReadAccountCount: accountDiagnostic.brollQuotaReadAccountCount,
+            brollQuotaReadyAccountCount: accountDiagnostic.brollQuotaReadyAccountCount,
+            anyAccountReadyForBoth: accountDiagnostic.anyAccountReadyForBoth,
+          }
+        : undefined,
+    },
+    recommendedNextPrompt: document.recommendedNextPrompt,
+  }
 }
 
 function summarizeNextCommand(document: JsonRecord | undefined) {
@@ -324,6 +404,10 @@ function sanitize(value: string): string | undefined {
     .trim()
 
   return sanitized ? sanitized.slice(0, 1000) : undefined
+}
+
+function asRecord(value: unknown): JsonRecord {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as JsonRecord : {}
 }
 
 function print(value: unknown) {

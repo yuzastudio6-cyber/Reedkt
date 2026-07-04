@@ -291,6 +291,46 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
     return
   }
 
+  const quota = runJson('broll_live_quota_verify_before_inference', 'npx', ['tsx', QUOTA_VERIFY_SCRIPT])
+  const cache = runJson('broll_private_cache_readiness_before_inference', 'npx', ['tsx', CACHE_READINESS_SCRIPT])
+  const blockers = validateReadiness(quota.json, cache.json)
+  if (blockers.length > 0) {
+    const accessRepairRequired = brollAccessRepairRequired(blockers, quota.json)
+    print({
+      ok: false,
+      mode: 'external_agent_broll_wan_inference_proof_preflight_blocked',
+      status: 'blocked',
+      blockers,
+      brollQuota: summarizeBrollQuota(quota.json),
+      cacheReadiness: summarizeCacheReadiness(cache.json),
+      gcpAccessRepair: brollAccessRepairHint(),
+      nextPrompt: accessRepairRequired
+        ? 'QWEN2_5_VL_STACK_TOOL_58DQ-GCP-ACCESS-VERIFY: verify selected local gcloud account can read Qwen Cloud Run and B-roll quota, no execution'
+        : 'AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF: rerun bounded Wan latent inference proof with 11H fix, no generated video',
+      runtimeRunNow: false,
+      computeVmCreated: false,
+      dockerRun: false,
+      modelImportRun: false,
+      modelLoadRun: false,
+      modelInferenceRun: false,
+      promptEncodingRun: false,
+      denoisingRun: false,
+      vaeDecodeRun: false,
+      frameCreationRun: false,
+      videoEncodingRun: false,
+      ffmpegRun: false,
+      generatedVideoCreated: false,
+      generatedAssetsCreated: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      creditMutationCreated: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+      generatedLocalFixturePassedClaimed: false,
+    })
+    return
+  }
+
   const delegated = runJson(
     'broll_11h_bounded_inference_proof_runner',
     'npm',
@@ -307,6 +347,8 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
       ? 'external_agent_broll_wan_inference_proof_delegated_11h_result'
       : 'external_agent_broll_wan_inference_proof_delegated_11h_blocked_or_failed',
     status: delegated.ok && delegated.json?.ok === true ? 'passed' : 'blocked_or_failed',
+    brollQuota: summarizeBrollQuota(quota.json),
+    cacheReadiness: summarizeCacheReadiness(cache.json),
     delegatedRunner: {
       script: INFERENCE_RUNNER_SCRIPT,
       confirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,

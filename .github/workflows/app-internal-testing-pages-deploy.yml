@@ -1,0 +1,109 @@
+name: App Internal Testing Pages Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_internal_testing_app_deploy:
+        description: "Type DEPLOY_REEDITPRO_INTERNAL_TESTING_APP to deploy the static app shell to GitHub Pages"
+        required: true
+        type: string
+      source_ref:
+        description: "Source ref to deploy"
+        required: true
+        default: "codex/reeditpro-web-ui-shell"
+        type: string
+      source_sha:
+        description: "Exact source commit SHA to deploy"
+        required: true
+        type: string
+      vite_base_path:
+        description: "Vite base path. Use /Reedkt/ for github.io testing, or / only after custom app DNS is ready."
+        required: true
+        default: "/Reedkt/"
+        type: string
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: app-internal-testing-pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: Build and deploy internal testing app shell
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Fail closed unless this is the internal testing app deploy lane
+        shell: bash
+        env:
+          CONFIRM_INTERNAL_TESTING_APP_DEPLOY: ${{ inputs.confirm_internal_testing_app_deploy }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          VITE_BASE_PATH: ${{ inputs.vite_base_path }}
+        run: |
+          set -euo pipefail
+          test "${CONFIRM_INTERNAL_TESTING_APP_DEPLOY}" = "DEPLOY_REEDITPRO_INTERNAL_TESTING_APP"
+          test "${SOURCE_REF}" = "codex/reeditpro-web-ui-shell"
+          [[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+          case "${VITE_BASE_PATH}" in
+            "/"|"/Reedkt/") ;;
+            *)
+              echo "Refusing unsupported Vite base path: ${VITE_BASE_PATH}" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Checkout requested source
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+
+      - name: Verify exact source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "${{ inputs.source_sha }}" HEAD
+          git checkout --detach "${{ inputs.source_sha }}"
+          test "$(git rev-parse HEAD)" = "${{ inputs.source_sha }}"
+          git diff --exit-code -- package-lock.json .dockerignore docker/prod docker/worker Dockerfile.backend
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund --progress=false
+
+      - name: Build static app shell
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          VITE_REEDITPRO_API_MODE: mock
+          VITE_REEDITPRO_API_BASE_URL: ""
+          VITE_REEDITPRO_APP_DEPLOYMENT: github_pages_internal_testing
+        run: npm run build -- --base="${{ inputs.vite_base_path }}"
+
+      - name: Add SPA fallback
+        run: cp dist/index.html dist/404.html
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

@@ -1,9 +1,14 @@
 import assert from 'node:assert/strict'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import {
   runProductionToolExecutionReadinessEvidenceCollectorFromEnv,
   type ProductionToolExecutionReadinessEvidenceCollectorEnv,
   type ProductionToolExecutionReadinessEvidenceCollectorFetch,
 } from '../cli/production-tool-execution-readiness-evidence-collector'
+
+const tempRoot = mkdtempSync(join(tmpdir(), 'reeditpro-production-evidence-collector-'))
 
 const dryRunEnv = completeEnv()
 let dryRunFetchCalled = false
@@ -16,6 +21,19 @@ assert.equal(dryRun.mode, 'dry_run', 'collector should default to dry-run mode')
 assert.equal(dryRun.readyForRecord, true, 'complete dry-run evidence should be ready for backend record')
 assert.equal(dryRun.recordConfirmationRequired, true, 'dry-run should require explicit record confirmation')
 assert.equal(dryRunFetchCalled, false, 'dry-run mode must not call fetch')
+
+const evidenceFile = writeEvidenceFile('collector-complete-evidence.json', completeEnv())
+let fileDryRunFetchCalled = false
+const fileDryRun = await runProductionToolExecutionReadinessEvidenceCollectorFromEnv({
+  REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE: evidenceFile,
+}, async () => {
+  fileDryRunFetchCalled = true
+  throw new Error('fetch must not run in evidence-file dry-run mode')
+})
+assert.equal(fileDryRun.ok, true, 'collector dry-run should accept a complete non-secret evidence file')
+assert.equal(fileDryRun.mode, 'dry_run', 'evidence-file collector should remain dry-run without record confirmation')
+assert.equal(fileDryRun.preflight.evidenceFile.loaded, true, 'collector preflight should report loaded evidence file')
+assert.equal(fileDryRunFetchCalled, false, 'evidence-file dry-run mode must not call fetch')
 
 let blockedFetchCalled = false
 const blocked = await runProductionToolExecutionReadinessEvidenceCollectorFromEnv({}, async () => {
@@ -103,6 +121,17 @@ console.log(JSON.stringify({
   calls: calls.map((call) => ({ method: call.method, url: call.url, idempotencyKey: call.headers['idempotency-key'] })),
   tokenInSummary: JSON.stringify(recorded).includes('production-readiness-evidence-collector-token'),
 }, null, 2))
+
+rmSync(tempRoot, { force: true, recursive: true })
+
+function writeEvidenceFile(name: string, env: ProductionToolExecutionReadinessEvidenceCollectorEnv): string {
+  const filePath = join(tempRoot, name)
+  writeFileSync(filePath, JSON.stringify({
+    version: 'production-tool-execution-readiness-evidence-v1',
+    environment: env,
+  }, null, 2))
+  return filePath
+}
 
 function fakeFetch(
   calls: Array<{ url: string; method: string; headers: Record<string, string>; body?: Record<string, unknown> }>,

@@ -3,7 +3,10 @@ import {
   type ProductionToolExecutionReadinessEvidenceCollectorEnv,
   type ProductionToolExecutionReadinessEvidenceCollectorFetch,
 } from './production-tool-execution-readiness-evidence-collector'
-import { buildProductionToolExecutionReadinessGateInput } from './production-tool-execution-readiness-evidence-preflight'
+import {
+  buildProductionToolExecutionReadinessGateInput,
+  resolveProductionToolExecutionReadinessEvidenceEnv,
+} from './production-tool-execution-readiness-evidence-preflight'
 import { buildCostControlSummary } from '../cost-controls'
 import { alertRuleCatalog, productionMetricsCatalog } from '../observability'
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
@@ -46,18 +49,19 @@ export async function runProductionOpsObservabilityEvidenceCollectorFromEnv(
   env: ProductionOpsObservabilityEvidenceCollectorEnv,
   fetchImpl: ProductionToolExecutionReadinessEvidenceCollectorFetch = fetch as ProductionToolExecutionReadinessEvidenceCollectorFetch,
 ): Promise<ProductionOpsObservabilityEvidenceCollectorRunResult> {
-  const input = buildProductionToolExecutionReadinessGateInput(env)
+  const evidenceEnv = resolveProductionToolExecutionReadinessEvidenceEnv(env).env
+  const input = buildProductionToolExecutionReadinessGateInput(evidenceEnv)
   const secretLikeInputPaths = collectSecretLikePaths({
-    sourceId: env.REEDITPRO_PRODUCTION_READINESS_SOURCE_ID,
-    sourceSha: env.REEDITPRO_PRODUCTION_READINESS_SOURCE_SHA,
-    workspaceId: env.REEDITPRO_PRODUCTION_READINESS_WORKSPACE_ID,
-    projectId: env.REEDITPRO_PRODUCTION_READINESS_PROJECT_ID,
-    reviewedBy: env.REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY,
-    reviewedAt: env.REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT,
-    observabilityArtifactId: env.REEDITPRO_PRODUCTION_OBSERVABILITY_EVIDENCE_ARTIFACT_ID,
-    observabilityNotes: env.REEDITPRO_PRODUCTION_OBSERVABILITY_NOTES,
-    operationsArtifactId: env.REEDITPRO_PRODUCTION_OPERATIONS_EVIDENCE_ARTIFACT_ID,
-    operationsNotes: env.REEDITPRO_PRODUCTION_OPERATIONS_NOTES,
+    sourceId: evidenceEnv.REEDITPRO_PRODUCTION_READINESS_SOURCE_ID,
+    sourceSha: evidenceEnv.REEDITPRO_PRODUCTION_READINESS_SOURCE_SHA,
+    workspaceId: evidenceEnv.REEDITPRO_PRODUCTION_READINESS_WORKSPACE_ID,
+    projectId: evidenceEnv.REEDITPRO_PRODUCTION_READINESS_PROJECT_ID,
+    reviewedBy: evidenceEnv.REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY,
+    reviewedAt: evidenceEnv.REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT,
+    observabilityArtifactId: evidenceEnv.REEDITPRO_PRODUCTION_OBSERVABILITY_EVIDENCE_ARTIFACT_ID,
+    observabilityNotes: evidenceEnv.REEDITPRO_PRODUCTION_OBSERVABILITY_NOTES,
+    operationsArtifactId: evidenceEnv.REEDITPRO_PRODUCTION_OPERATIONS_EVIDENCE_ARTIFACT_ID,
+    operationsNotes: evidenceEnv.REEDITPRO_PRODUCTION_OPERATIONS_NOTES,
     idempotencyKey: env.REEDITPRO_PRODUCTION_READINESS_IDEMPOTENCY_KEY,
   }, 'productionOpsObservabilityEvidenceCollector')
   if (secretLikeInputPaths.length > 0) {

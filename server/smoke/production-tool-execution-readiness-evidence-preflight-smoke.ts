@@ -1,14 +1,20 @@
 import assert from 'node:assert/strict'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import {
   buildProductionToolExecutionReadinessEvidencePreflight,
   type ProductionToolExecutionReadinessEvidencePreflightEnv,
 } from '../cli/production-tool-execution-readiness-evidence-preflight'
+
+const tempRoot = mkdtempSync(join(tmpdir(), 'reeditpro-production-evidence-preflight-'))
 
 const passing = buildProductionToolExecutionReadinessEvidencePreflight(completeEnv())
 assert.equal(passing.ok, true, 'complete production evidence preflight should pass')
 assert.equal(passing.readyToEvaluateGate, true, 'complete production evidence should be ready for gate evaluation')
 assert.equal(passing.readyForPaidProduction, true, 'complete production evidence should pass paid-production gate')
 assert.equal(passing.gateStatus, 'ready_for_paid_production', 'complete production evidence should return ready status')
+assert.equal(passing.evidenceFile.loaded, false, 'env-only preflight should not report an evidence file')
 assert.equal(passing.secretLikeInputPaths.length, 0, 'complete fixture should not contain secret-like values')
 assert.equal(passing.missingConfiguration.length, 0, 'complete fixture should not miss configuration')
 assert.equal(passing.missingEvidence.length, 0, 'complete fixture should not miss evidence')
@@ -142,6 +148,53 @@ assert.equal(secretLike.ok, false, 'secret-like notes should fail preflight')
 assert.ok(secretLike.secretLikeInputPaths.length > 0, 'secret-like note path should be reported')
 assert.equal(secretLike.readyForPaidProduction, false, 'secret-like notes should not evaluate as production-ready')
 
+const evidenceFilePath = writeEvidenceFile('complete-evidence.json', completeEnv())
+const fileOnly = buildProductionToolExecutionReadinessEvidencePreflight({
+  REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE: evidenceFilePath,
+})
+assert.equal(fileOnly.ok, true, 'complete evidence file should pass preflight without individual env vars')
+assert.equal(fileOnly.evidenceFile.loaded, true, 'complete evidence file should report loaded')
+assert.ok(fileOnly.evidenceFile.variableCount > 80, 'complete evidence file should expose expected evidence variable count')
+assert.equal(fileOnly.evidenceFile.errors.length, 0, 'complete evidence file should not report file errors')
+assert.equal(fileOnly.sourceId, 'production-readiness-evidence-preflight-smoke', 'file-only preflight should use source id from evidence file')
+
+const fileOverride = buildProductionToolExecutionReadinessEvidencePreflight({
+  REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE: evidenceFilePath,
+  REEDITPRO_PRODUCTION_READINESS_SOURCE_ID: 'production-readiness-evidence-preflight-smoke-env-override',
+})
+assert.equal(fileOverride.ok, true, 'env overrides on top of a complete evidence file should still pass')
+assert.equal(
+  fileOverride.sourceId,
+  'production-readiness-evidence-preflight-smoke-env-override',
+  'process env values should override evidence file values for operator reruns',
+)
+
+const unknownKeyFile = writeRawEvidenceFile('unknown-key-evidence.json', {
+  version: 'production-tool-execution-readiness-evidence-v1',
+  environment: {
+    ...completeEnv(),
+    REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN: 'do-not-allow-collector-config-in-evidence-file',
+  },
+})
+const unknownKey = buildProductionToolExecutionReadinessEvidencePreflight({
+  REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE: unknownKeyFile,
+})
+assert.equal(unknownKey.ok, false, 'evidence file with unsupported collector config should fail closed')
+assert.ok(
+  unknownKey.evidenceFile.errors.some((item) => item.includes('REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN')),
+  'unsupported evidence file key should be named',
+)
+
+const secretFile = writeEvidenceFile('secret-evidence.json', {
+  ...completeEnv(),
+  REEDITPRO_PRODUCTION_OWNER_NOTES: 'owner note accidentally included service_role_key',
+})
+const secretFromFile = buildProductionToolExecutionReadinessEvidencePreflight({
+  REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE: secretFile,
+})
+assert.equal(secretFromFile.ok, false, 'secret-like evidence file value should fail preflight')
+assert.ok(secretFromFile.secretLikeInputPaths.length > 0, 'secret-like evidence file value should be reported through normal secret safety')
+
 console.log(JSON.stringify({
   ok: true,
   passingReady: passing.readyForPaidProduction,
@@ -149,7 +202,23 @@ console.log(JSON.stringify({
   missingBlockers: missing.missingEvidence.length,
   stagingBlockers: stagingOnly.missingEvidence.length,
   secretLikePaths: secretLike.secretLikeInputPaths.length,
+  fileEvidenceLoaded: fileOnly.evidenceFile.loaded,
 }, null, 2))
+
+rmSync(tempRoot, { force: true, recursive: true })
+
+function writeEvidenceFile(name: string, env: ProductionToolExecutionReadinessEvidencePreflightEnv): string {
+  return writeRawEvidenceFile(name, {
+    version: 'production-tool-execution-readiness-evidence-v1',
+    environment: env,
+  })
+}
+
+function writeRawEvidenceFile(name: string, payload: unknown): string {
+  const filePath = join(tempRoot, name)
+  writeFileSync(filePath, JSON.stringify(payload, null, 2))
+  return filePath
+}
 
 function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
   const yes = 'true'

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+
 import {
   evaluateProductionToolExecutionReadinessGate,
   type ProductionToolExecutionReadinessGateInput,
@@ -5,6 +7,7 @@ import {
 import { collectSecretLikePaths } from '../tool-cost-metering/secret-safety'
 
 export interface ProductionToolExecutionReadinessEvidencePreflightEnv {
+  REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE?: string
   REEDITPRO_PRODUCTION_READINESS_SOURCE_ID?: string
   REEDITPRO_PRODUCTION_READINESS_SOURCE_SHA?: string
   REEDITPRO_PRODUCTION_READINESS_WORKSPACE_ID?: string
@@ -111,6 +114,7 @@ export interface ProductionToolExecutionReadinessEvidencePreflightReport {
   readyToEvaluateGate: boolean
   readyForPaidProduction: boolean
   gateStatus: string
+  evidenceFile: ProductionToolExecutionReadinessEvidenceFileSummary
   sourceId: string
   sourceShaPresent: boolean
   workspaceIdPresent: boolean
@@ -127,16 +131,31 @@ export interface ProductionToolExecutionReadinessEvidencePreflightReport {
   warnings: string[]
 }
 
+export interface ProductionToolExecutionReadinessEvidenceFileSummary {
+  path?: string
+  loaded: boolean
+  variableCount: number
+  errors: string[]
+}
+
+export interface ResolvedProductionToolExecutionReadinessEvidenceEnv {
+  env: ProductionToolExecutionReadinessEvidencePreflightEnv
+  evidenceFile: ProductionToolExecutionReadinessEvidenceFileSummary
+}
+
 export function buildProductionToolExecutionReadinessEvidencePreflight(
   env: ProductionToolExecutionReadinessEvidencePreflightEnv,
 ): ProductionToolExecutionReadinessEvidencePreflightReport {
-  const input = buildProductionToolExecutionReadinessGateInput(env)
-  const secretLikeInputPaths = collectSecretLikePaths(evidenceValues(env), 'productionToolExecutionReadinessEvidencePreflight')
+  const resolved = resolveProductionToolExecutionReadinessEvidenceEnv(env)
+  const effectiveEnv = resolved.env
+  const input = buildProductionToolExecutionReadinessGateInputFromResolvedEnv(effectiveEnv)
+  const secretLikeInputPaths = collectSecretLikePaths(evidenceValues(effectiveEnv), 'productionToolExecutionReadinessEvidencePreflight')
   const missingConfiguration = [
-    missingEnv(env, 'REEDITPRO_PRODUCTION_READINESS_SOURCE_ID'),
-    missingEnv(env, 'REEDITPRO_PRODUCTION_READINESS_WORKSPACE_ID'),
-    missingEnv(env, 'REEDITPRO_PRODUCTION_READINESS_PROJECT_ID'),
-    parseBoolean(env.REEDITPRO_PRODUCTION_READINESS_CONFIRM_EVIDENCE_REVIEW)
+    ...resolved.evidenceFile.errors,
+    missingEnv(effectiveEnv, 'REEDITPRO_PRODUCTION_READINESS_SOURCE_ID'),
+    missingEnv(effectiveEnv, 'REEDITPRO_PRODUCTION_READINESS_WORKSPACE_ID'),
+    missingEnv(effectiveEnv, 'REEDITPRO_PRODUCTION_READINESS_PROJECT_ID'),
+    parseBoolean(effectiveEnv.REEDITPRO_PRODUCTION_READINESS_CONFIRM_EVIDENCE_REVIEW)
       ? undefined
       : 'REEDITPRO_PRODUCTION_READINESS_CONFIRM_EVIDENCE_REVIEW=true is required before evaluating paid-production readiness evidence.',
   ].filter((item): item is string => Boolean(item))
@@ -160,11 +179,12 @@ export function buildProductionToolExecutionReadinessEvidencePreflight(
     readyToEvaluateGate,
     readyForPaidProduction,
     gateStatus,
+    evidenceFile: resolved.evidenceFile,
     sourceId: input.sourceId,
     sourceShaPresent: Boolean(input.sourceSha),
     workspaceIdPresent: Boolean(input.workspaceId),
     projectIdPresent: Boolean(input.projectId),
-    confirmEvidenceReview: parseBoolean(env.REEDITPRO_PRODUCTION_READINESS_CONFIRM_EVIDENCE_REVIEW),
+    confirmEvidenceReview: parseBoolean(effectiveEnv.REEDITPRO_PRODUCTION_READINESS_CONFIRM_EVIDENCE_REVIEW),
     command: 'npm run prod:readiness:tool-execution-gate',
     missingConfiguration,
     missingEvidence,
@@ -173,12 +193,54 @@ export function buildProductionToolExecutionReadinessEvidencePreflight(
     warnings: [
       'This preflight does not call Supabase, Stripe, workers, tools, media processors, deployments, or production routes.',
       'readyForPaidProduction=true means the supplied non-secret evidence satisfies the local policy gate; operators still need to retain the authoritative production evidence packet.',
+      'REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE can point to a local JSON evidence packet with an environment object; process environment values override file values.',
       'Secret-like values in notes/source fields fail closed and are not printed.',
     ],
   }
 }
 
 export function buildProductionToolExecutionReadinessGateInput(env: ProductionToolExecutionReadinessEvidencePreflightEnv): ProductionToolExecutionReadinessGateInput {
+  return buildProductionToolExecutionReadinessGateInputFromResolvedEnv(resolveProductionToolExecutionReadinessEvidenceEnv(env).env)
+}
+
+export function resolveProductionToolExecutionReadinessEvidenceEnv(
+  env: ProductionToolExecutionReadinessEvidencePreflightEnv,
+): ResolvedProductionToolExecutionReadinessEvidenceEnv {
+  const evidenceFilePath = clean(env.REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE)
+  if (!evidenceFilePath) {
+    return {
+      env: mergeEvidenceFileEnv({}, env),
+      evidenceFile: {
+        loaded: false,
+        variableCount: 0,
+        errors: [],
+      },
+    }
+  }
+
+  const errors: string[] = []
+  let fileEnv: ProductionToolExecutionReadinessEvidencePreflightEnv = {}
+  try {
+    const payload = JSON.parse(readFileSync(evidenceFilePath, 'utf8')) as unknown
+    const extracted = extractEvidenceFileEnvironment(payload)
+    fileEnv = extracted.env
+    errors.push(...extracted.errors)
+  } catch (error) {
+    errors.push(`REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE could not be read as JSON: ${error instanceof Error ? error.message : String(error)}`)
+  }
+
+  return {
+    env: mergeEvidenceFileEnv(fileEnv, env),
+    evidenceFile: {
+      path: evidenceFilePath,
+      loaded: errors.length === 0,
+      variableCount: Object.keys(fileEnv).length,
+      errors,
+    },
+  }
+}
+
+function buildProductionToolExecutionReadinessGateInputFromResolvedEnv(env: ProductionToolExecutionReadinessEvidencePreflightEnv): ProductionToolExecutionReadinessGateInput {
   return {
     sourceId: clean(env.REEDITPRO_PRODUCTION_READINESS_SOURCE_ID) ?? 'production-tool-execution-readiness-evidence-preflight',
     sourceSha: clean(env.REEDITPRO_PRODUCTION_READINESS_SOURCE_SHA),
@@ -295,6 +357,85 @@ export function buildProductionToolExecutionReadinessGateInput(env: ProductionTo
       notes: noteList(env.REEDITPRO_PRODUCTION_OWNER_NOTES),
     },
   }
+}
+
+function extractEvidenceFileEnvironment(payload: unknown): {
+  env: ProductionToolExecutionReadinessEvidencePreflightEnv
+  errors: string[]
+} {
+  if (!isRecord(payload)) {
+    return {
+      env: {},
+      errors: ['REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE must contain a JSON object.'],
+    }
+  }
+
+  const errors: string[] = []
+  const topLevelMetadataKeys = new Set(['$schema', 'description', 'environment', 'version'])
+  const environmentSource = isRecord(payload.environment) ? payload.environment : payload
+  if (environmentSource !== payload) {
+    for (const key of Object.keys(payload)) {
+      if (!topLevelMetadataKeys.has(key)) {
+        errors.push(`REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE contains unsupported top-level key ${key}. Use environment for evidence values.`)
+      }
+    }
+  }
+
+  const allowedEnvironmentVariables = evidenceFileEnvironmentVariables()
+  const fileEnv: ProductionToolExecutionReadinessEvidencePreflightEnv = {}
+  for (const [key, value] of Object.entries(environmentSource)) {
+    if (environmentSource === payload && topLevelMetadataKeys.has(key)) continue
+    if (!allowedEnvironmentVariables.has(key as keyof ProductionToolExecutionReadinessEvidencePreflightEnv)) {
+      errors.push(`REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE contains unsupported evidence variable ${key}.`)
+      continue
+    }
+
+    const normalized = normalizeEvidenceFileValue(value)
+    if (normalized === undefined) {
+      errors.push(`REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE variable ${key} must be a string, number, boolean, or null.`)
+      continue
+    }
+    if (normalized) {
+      fileEnv[key as keyof ProductionToolExecutionReadinessEvidencePreflightEnv] = normalized
+    }
+  }
+
+  return { env: fileEnv, errors }
+}
+
+function evidenceFileEnvironmentVariables(): Set<keyof ProductionToolExecutionReadinessEvidencePreflightEnv> {
+  return new Set([
+    ...requiredEnvironmentVariables().map((item) => item.name),
+    'REEDITPRO_PRODUCTION_TOOLS_SOURCE_ID',
+    'REEDITPRO_PRODUCTION_TOOLS_SOURCE_SHA',
+  ])
+}
+
+function normalizeEvidenceFileValue(value: unknown): string | undefined {
+  if (value === null || value === undefined) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'boolean') return value ? 'true' : 'false'
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return undefined
+}
+
+function mergeEvidenceFileEnv(
+  fileEnv: ProductionToolExecutionReadinessEvidencePreflightEnv,
+  env: ProductionToolExecutionReadinessEvidencePreflightEnv,
+): ProductionToolExecutionReadinessEvidencePreflightEnv {
+  const merged: ProductionToolExecutionReadinessEvidencePreflightEnv = { ...fileEnv }
+  for (const [key, value] of Object.entries(env)) {
+    if (key === 'REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE') continue
+    const cleaned = clean(value)
+    if (cleaned !== undefined) {
+      merged[key as keyof ProductionToolExecutionReadinessEvidencePreflightEnv] = cleaned
+    }
+  }
+  return merged
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
 function evidenceValues(env: ProductionToolExecutionReadinessEvidencePreflightEnv): unknown {

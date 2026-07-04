@@ -313,6 +313,55 @@ async function postToolCall(baseUrl: string, request: AiGraphicsExternalBetaTool
   return { statusCode: response.status, body, rawBody: text }
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {}
+}
+
+function stringValue(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null
+}
+
+function outputSummaryFromAdapterResult(
+  adapterResult: Record<string, unknown>,
+): {
+  outputKind: string | null
+  outputSha256: string | null
+  outputJsonPath: string | null
+  outputSource: string | null
+} {
+  const staticOutput = asRecord(adapterResult.output)
+  const staticOutputSha256 = stringValue(staticOutput.privateArtifactSha256)
+  if (staticOutputSha256) {
+    return {
+      outputKind: stringValue(staticOutput.outputKind),
+      outputSha256: staticOutputSha256,
+      outputJsonPath: null,
+      outputSource: 'controlled_adapter_private_artifact',
+    }
+  }
+
+  const runtimeOutput = asRecord(adapterResult.runtimeOutput)
+  const runtimeResult = asRecord(runtimeOutput.result)
+  const runtimeOutputSha256 = stringValue(runtimeResult.outputJsonSha256)
+  if (runtimeOutputSha256) {
+    return {
+      outputKind: 'gpu_model_private_runtime_output',
+      outputSha256: runtimeOutputSha256,
+      outputJsonPath: stringValue(runtimeResult.outputJsonPath),
+      outputSource: 'gpu_model_controlled_adapter_runtime_output',
+    }
+  }
+
+  return {
+    outputKind: stringValue(staticOutput.outputKind),
+    outputSha256: null,
+    outputJsonPath: stringValue(runtimeResult.outputJsonPath),
+    outputSource: null,
+  }
+}
+
 async function buildReport() {
   const request = requestForTool()
   const group = groupForTool(request.toolId)
@@ -321,7 +370,7 @@ async function buildReport() {
   const normalized = data.externalAgentToolCallResult ?? null
   const adapterResult = data.adapterResult ?? data.controlledAdapterResult ?? {}
   const booleans = data.booleans ?? {}
-  const output = adapterResult.output ?? {}
+  const outputSummary = outputSummaryFromAdapterResult(asRecord(adapterResult))
   const executable = normalized?.executable === true ||
     data.externalAgentExecutionState === 'executable'
   const blockedWithReason = normalized?.blockedWithReason === true ||
@@ -372,8 +421,10 @@ async function buildReport() {
       blockingReasonCode: data.blockingReasonCode ?? null,
       failureDiagnostics: data.failureDiagnostics ?? null,
       externalAgentToolCallResult: normalized,
-      outputKind: output.outputKind ?? null,
-      outputSha256: output.privateArtifactSha256 ?? null,
+      outputKind: outputSummary.outputKind,
+      outputSha256: outputSummary.outputSha256,
+      outputJsonPath: outputSummary.outputJsonPath,
+      outputSource: outputSummary.outputSource,
     },
     booleans: {
       externalAgentSingleToolCallPerformed: true,
@@ -493,6 +544,8 @@ Route: \`${report.routePath}\`
 - \`failureDiagnostics\`: \`${report.response.failureDiagnostics}\`
 - \`outputKind\`: \`${report.response.outputKind}\`
 - \`outputSha256\`: \`${report.response.outputSha256}\`
+- \`outputJsonPath\`: \`${report.response.outputJsonPath}\`
+- \`outputSource\`: \`${report.response.outputSource}\`
 
 ## Booleans
 

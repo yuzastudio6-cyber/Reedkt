@@ -186,6 +186,9 @@ function checkExecutableCall(label, report, expectedToolId, expectedGroup) {
   if (!/^[a-f0-9]{64}$/.test(String(report.response?.outputSha256 ?? ''))) {
     fail(`${label}_missing_output_sha256`)
   }
+  if (report.response?.outputSource !== 'controlled_adapter_private_artifact') {
+    fail(`${label}_output_source_mismatch:${report.response?.outputSource}`)
+  }
   checkNoBoundaryLeaks(label, report)
 }
 
@@ -213,6 +216,7 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
   }
   if (report.response?.outputKind !== null) fail(`${label}_unexpected_output_kind`)
   if (report.response?.outputSha256 !== null) fail(`${label}_unexpected_output_hash`)
+  if (report.response?.outputSource !== null) fail(`${label}_unexpected_output_source`)
   const normalized = report.response?.externalAgentToolCallResult ?? {}
   if (normalized.callable !== true) fail(`${label}_not_callable`)
   if (normalized.executable !== false) fail(`${label}_unexpected_executable`)
@@ -343,6 +347,11 @@ for (const phrase of [
   '--require-private-only-boundary',
   'strictExitCodeForReport',
   'validationFailures',
+  'outputSummaryFromAdapterResult',
+  'gpu_model_private_runtime_output',
+  'gpu_model_controlled_adapter_runtime_output',
+  'outputJsonSha256',
+  'outputJsonPath',
 ]) {
   if (!cliSource.includes(phrase)) fail(`cli_missing:${phrase}`)
 }

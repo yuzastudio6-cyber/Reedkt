@@ -72,7 +72,9 @@
       "gpuRuntimeStartPolicy": null
     },
     "outputKind": "svg_private_artifact_candidate",
-    "outputSha256": "b47b8e006d730f9e7494f854f9ffac9963fa4a4be11acc9ad067bb6d2a53b7ef"
+    "outputSha256": "b47b8e006d730f9e7494f854f9ffac9963fa4a4be11acc9ad067bb6d2a53b7ef",
+    "outputJsonPath": null,
+    "outputSource": "controlled_adapter_private_artifact"
   },
   "booleans": {
     "externalAgentSingleToolCallPerformed": true,

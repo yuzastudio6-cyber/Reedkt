@@ -218,6 +218,23 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'durable-auth-project-session-backend-persistence-plan',
+    title: 'Durable auth project/session backend persistence plan',
+    description: 'Review the future server-side access, RLS, Data API grant, audit, and service-role boundary contract before backend skeleton work.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the durable backend persistence plan panel.',
+      'Confirm the route family will authorize through Supabase Auth, workspace membership, project membership, and edit-session access.',
+      'Confirm explicit Data API grants and RLS are both required before durable table-backed access can pass.',
+      'Confirm this milestone does not run Supabase writes, migrations, Storage, workers, media, credits, external beta, or production gates.',
+    ],
+    expectedResult:
+      'Internal testers can see the backend persistence contract before a mock-safe backend skeleton or real Supabase migration is implemented.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

@@ -29,6 +29,7 @@ const smokeCommands = [
   ['npm', ['run', 'smoke:internal-testing-repeated-local-operator-harness']],
   ['npm', ['run', 'smoke:internal-testing-auth-project-access-readiness']],
   ['npm', ['run', 'smoke:internal-testing-auth-project-session-membership-policy']],
+  ['npm', ['run', 'smoke:internal-testing-durable-auth-project-session-backend-persistence-plan']],
   ['npm', ['run', 'smoke:beta-readiness']],
 ]
 

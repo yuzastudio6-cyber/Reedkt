@@ -24,6 +24,7 @@
 - Repeated local operator harness for one-command QA, route launch, approval/credit gate checks, and browser-local evidence export.
 - Auth-only project/session readiness for public Supabase Auth session readback plus mock Project Home, Edit Chat, and Edit Brief route access.
 - Route-visible project/session membership policy for Project Home, Edit Chat, and Edit Brief, with mock route access allowed and durable authenticated access blocked until signed-in user, membership, RLS, explicit Data API grant, and backend persistence evidence exist.
+- Durable authenticated project/session backend persistence plan, defining server-side Auth, workspace membership, project/session joins, explicit Data API grants, RLS, service-role boundary, audit, and idempotency evidence before table-backed route access can be called durable.
 - Smoke coverage and E2E smoke coverage for Project Edit Brief behavior.
 
 ## Explicitly Not Landed
@@ -60,6 +61,7 @@ Passed:
 - `npm run smoke:internal-testing-repeated-local-operator-harness`
 - `npm run smoke:internal-testing-auth-project-access-readiness`
 - `npm run smoke:internal-testing-auth-project-session-membership-policy`
+- `npm run smoke:internal-testing-durable-auth-project-session-backend-persistence-plan`
 - `npm run typecheck:server`
 - `npm run build`
 - `git diff --check`
@@ -91,8 +93,9 @@ Passed:
 - Repeated local operator harness after RP-INTTEST-01: internal testers have one command plus one browser workflow for repeatable local evidence capture while live backend, tool execution, media, billing, Supabase, external beta, and product-ready gates remain closed.
 - Auth project access readiness after RP-INTTEST-02: internal testers can read frontend-safe Supabase Auth session state and open the mock project/session route family while profile/workspace bootstrap writes, Supabase Data API access, Storage, SQL, workers, media, credits, external beta, and product-ready gates remain closed.
 - Auth project/session membership policy after RP-INTTEST-03: Project Home, Edit Chat, and Edit Brief show the same route-level access policy, mock route access remains allowed for internal testing, and durable authenticated project/session access remains blocked until signed-in user, membership, RLS, explicit Data API grant, and backend persistence evidence exist.
+- Durable auth project/session backend persistence plan after RP-INTTEST-04: the next backend skeleton must verify Auth server-side, workspace membership, project/session joins, explicit Data API grants, RLS, service-role boundary, audit, and idempotency before durable table-backed access can pass.
 - Real upload/source-media ingestion and privacy policy implementation.
-- Durable authenticated project/session backend persistence plan.
+- Mock-safe durable project/session backend skeleton.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.
 - Worker/provider/render execution remains separately gated.

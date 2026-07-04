@@ -54,6 +54,12 @@ The `auth-project-session-membership-policy` scenario is classified as `mock_loc
 
 This policy panel does not run profile/workspace bootstrap, read or write Supabase tables, create Storage objects, issue signed URLs, mutate credits, dispatch workers, process media, render/export, or mark the product ready.
 
+## Durable Auth Project Session Backend Persistence Plan
+
+The `durable-auth-project-session-backend-persistence-plan` scenario is classified as `mock_local` because the internal testing route now records the future server-side membership contract. The next backend skeleton must verify Supabase Auth server-side, join workspace membership to project and edit-session access, require explicit Data API grants plus RLS, and preserve audit/idempotency metadata before durable table-backed access can pass.
+
+This plan does not run migrations, SQL, Supabase table reads/writes, Storage, signed URLs, service-role browser code, profile/workspace bootstrap writes, workers, media, render/export, credits, external beta, paid production, or product-ready behavior.
+
 ## Boundaries
 
 - No upload or file-byte read.
@@ -80,6 +86,7 @@ Required validation:
 - `npm run smoke:internal-testing-repeated-local-operator-harness`
 - `npm run smoke:internal-testing-auth-project-access-readiness`
 - `npm run smoke:internal-testing-auth-project-session-membership-policy`
+- `npm run smoke:internal-testing-durable-auth-project-session-backend-persistence-plan`
 - `npm run qa:internal-testing`
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-readback-qa`

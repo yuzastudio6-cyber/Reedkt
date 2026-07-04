@@ -31,6 +31,7 @@ const requiredFiles = [
   'src/lib/internal-testing-auth-project-access-readiness.ts',
   'src/lib/project-edit-session-access-policy-core.ts',
   'src/lib/project-edit-session-access-policy.ts',
+  'src/lib/project-edit-session-backend-persistence-plan.ts',
   'src/components/projects/ProjectEditSessionAccessPolicyNotice.tsx',
   'docs/project-edit-brief-internal-testing-entrypoint.md',
   'docs/project-edit-brief-internal-testing-entrypoint.json',
@@ -38,6 +39,8 @@ const requiredFiles = [
   'docs/internal-testing-auth-project-access-readiness.json',
   'docs/internal-testing-auth-project-session-membership-policy.md',
   'docs/internal-testing-auth-project-session-membership-policy.json',
+  'docs/internal-testing-durable-auth-project-session-backend-persistence-plan.md',
+  'docs/internal-testing-durable-auth-project-session-backend-persistence-plan.json',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
 ]
 
@@ -80,6 +83,10 @@ assert.match(page, /internal-testing-auth-project-session-membership-policy/)
 assert.match(page, /Membership policy/)
 assert.match(page, /PROJECT_EDIT_SESSION_ACCESS_POLICY_REQUIRED_EVIDENCE/)
 assert.match(page, /No Supabase Data API table access/)
+assert.match(page, /internal-testing-durable-auth-project-session-backend-persistence-plan/)
+assert.match(page, /Backend persistence plan/)
+assert.match(page, /DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_REQUIRED_GATES/)
+assert.match(page, /No migration, SQL, Storage/)
 assert.doesNotMatch(page, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/)
 assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|service_role|signedUrl/i)
 
@@ -97,6 +104,12 @@ assert.doesNotMatch(membershipCore, /\.(from|insert|update|delete)\s*\(|service_
 const membershipReader = read('src/lib/project-edit-session-access-policy.ts')
 assert.match(membershipReader, /readInternalTestingAuthProjectAccessReadiness/)
 assert.doesNotMatch(membershipReader, /runAuthBootstrapFlow|service_role|createSignedUrl|\.from\s*\(/i)
+
+const backendPersistencePlan = read('src/lib/project-edit-session-backend-persistence-plan.ts')
+assert.match(backendPersistencePlan, /workspace_membership_verified_by_workspace_members/)
+assert.match(backendPersistencePlan, /explicit_data_api_grants_verified_for_authenticated_role/)
+assert.match(backendPersistencePlan, /mock_safe_backend_skeleton/)
+assert.doesNotMatch(backendPersistencePlan, /createClient|\.from\s*\(|insert\s*\(|update\s*\(|delete\s*\(|createSignedUrl/i)
 
 const docs = read('docs/project-edit-brief-internal-testing-entrypoint.md')
 for (const phrase of [
@@ -117,6 +130,8 @@ for (const phrase of [
   'auth-project-access-readiness',
   'Auth Project Session Membership Policy',
   'auth-project-session-membership-policy',
+  'Durable Auth Project Session Backend Persistence Plan',
+  'durable-auth-project-session-backend-persistence-plan',
   'No Supabase Data API',
 ]) {
   assert.match(docs, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'))
@@ -142,11 +157,13 @@ assert.ok(docJson.features?.includes('credit_lifecycle_readiness'))
 assert.ok(docJson.features?.includes('repeated_local_operator_harness'))
 assert.ok(docJson.features?.includes('auth_project_access_readiness'))
 assert.ok(docJson.features?.includes('auth_project_session_membership_policy'))
+assert.ok(docJson.features?.includes('durable_auth_project_session_backend_persistence_plan'))
 assert.equal(docJson.scenarioStatus?.['approval-credit-gate-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['credit-lifecycle-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['repeated-local-operator-harness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['auth-project-access-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['auth-project-session-membership-policy'], 'mock_local')
+assert.equal(docJson.scenarioStatus?.['durable-auth-project-session-backend-persistence-plan'], 'mock_local')
 assert.equal(docJson.blockedScope?.productReady, false)
 assert.equal(docJson.blockedScope?.supabaseReadWrite, false)
 assert.equal(docJson.blockedScope?.workerDispatch, false)
@@ -158,6 +175,7 @@ assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-credit-
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-repeated-local-operator-harness'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-auth-project-access-readiness'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-auth-project-session-membership-policy'))
+assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable-auth-project-session-backend-persistence-plan'))
 
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
 assert.equal(
@@ -169,6 +187,7 @@ const sourceTruth = read('docs/project-edit-brief-source-truth-reconciliation.md
 assert.match(sourceTruth, /Internal testing entrypoint after RP-EDITBRIEF-23/)
 assert.match(sourceTruth, /smoke:project-edit-brief-internal-testing-entrypoint/)
 assert.match(sourceTruth, /Auth project\/session membership policy after RP-INTTEST-03/)
+assert.match(sourceTruth, /Durable auth project\/session backend persistence plan after RP-INTTEST-04/)
 
 const sourceTruthJson = JSON.parse(read('docs/project-edit-brief-source-truth-reconciliation.json')) as {
   landedScope?: string[]
@@ -177,8 +196,10 @@ const sourceTruthJson = JSON.parse(read('docs/project-edit-brief-source-truth-re
 }
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_entrypoint'))
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_auth_project_session_membership_policy'))
+assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_auth_project_session_backend_persistence_plan'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:project-edit-brief-internal-testing-entrypoint'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-auth-project-session-membership-policy'))
+assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-auth-project-session-backend-persistence-plan'))
 assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_entrypoint_after_rp_editbrief_23'))
 
 const statusCounts = internalTestingScenarios.reduce<Record<string, number>>((counts, scenario) => {
@@ -234,6 +255,14 @@ assert.ok(
   internalTestingScenarios.some(
     (scenario) =>
       scenario.id === 'auth-project-session-membership-policy' &&
+      scenario.route === '/internal-testing' &&
+      scenario.status === 'mock_local',
+  ),
+)
+assert.ok(
+  internalTestingScenarios.some(
+    (scenario) =>
+      scenario.id === 'durable-auth-project-session-backend-persistence-plan' &&
       scenario.route === '/internal-testing' &&
       scenario.status === 'mock_local',
   ),

@@ -15,6 +15,7 @@
     "smoke:internal-testing-repeated-local-operator-harness",
     "smoke:internal-testing-auth-project-access-readiness",
     "smoke:internal-testing-auth-project-session-membership-policy",
+    "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan",
     "smoke:beta-readiness"
   ],
   "playwrightSpecs": [

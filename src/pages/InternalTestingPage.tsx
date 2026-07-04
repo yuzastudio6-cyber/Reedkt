@@ -19,6 +19,11 @@ import {
   type InternalTestingAuthProjectAccessReadiness,
   type InternalTestingAuthProjectAccessStatus,
 } from '../lib/internal-testing-auth-project-access-readiness'
+import {
+  DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_REQUIRED_GATES,
+  DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_ROUTE_CONTRACTS,
+  DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_TABLES,
+} from '../lib/project-edit-session-backend-persistence-plan'
 import { PROJECT_EDIT_SESSION_ACCESS_POLICY_REQUIRED_EVIDENCE } from '../lib/project-edit-session-access-policy'
 import { internalTestingScenarios, type InternalTestingScenarioStatus } from '../lib/internal-testing-scenarios'
 import {
@@ -132,10 +137,11 @@ function getScenarioHighlights() {
     'repeated-local-operator-harness',
     'auth-project-access-readiness',
     'auth-project-session-membership-policy',
+    'durable-auth-project-session-backend-persistence-plan',
     'feedback-export',
   ])
 
-  return internalTestingScenarios.filter((scenario) => prioritizedIds.has(scenario.id)).slice(0, 12)
+  return internalTestingScenarios.filter((scenario) => prioritizedIds.has(scenario.id)).slice(0, 16)
 }
 
 export function InternalTestingPage() {
@@ -574,6 +580,47 @@ export function InternalTestingPage() {
                 <li>No Supabase Data API table access, Storage, SQL, or migration.</li>
                 <li>No production route, real media, worker, render, credit, external beta, or product-ready unlock.</li>
               </ul>
+            </article>
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-durable-auth-project-session-backend-persistence-plan">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Backend persistence plan</span>
+            <h2>Durable access graduates through server-side membership checks</h2>
+          </div>
+          <p>
+            The next backend milestone should turn the route policy into a mock-safe server seam first: Supabase Auth identifies the signed-in user,
+            workspace membership scopes the project, project membership scopes the edit session, and explicit Data API grants plus RLS must be proven
+            before table-backed route access can be called durable.
+          </p>
+          <div className="internal-testing-auth-grid">
+            <article data-testid="internal-testing-durable-backend-required-gates">
+              <Badge accent="cyan">Required gates</Badge>
+              <ul>
+                {DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_REQUIRED_GATES.map((item) => (
+                  <li key={item}>{item.replace(/_/g, ' ')}</li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-durable-backend-route-contracts">
+              <Badge accent="success">Route contract</Badge>
+              <ul>
+                {DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_ROUTE_CONTRACTS.map((contract) => (
+                  <li key={contract.surface}>
+                    {contract.path}: {contract.accessCheck}
+                  </li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-durable-backend-tables">
+              <Badge accent="warning">Planned tables only</Badge>
+              <ul>
+                {DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_TABLES.map((table) => (
+                  <li key={table}>{table}</li>
+                ))}
+              </ul>
+              <p>No migration, SQL, Storage, service-role browser path, or Supabase write is enabled by this plan.</p>
             </article>
           </div>
         </section>

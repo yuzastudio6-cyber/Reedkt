@@ -15,6 +15,8 @@ function main() {
         currentLiveBlockers: spec.currentLiveBlockers,
         repairScope: spec.repairScope,
         tools: spec.tools,
+        failureResponsePolicy: spec.failureResponsePolicy,
+        safeRetryChecklist: spec.safeRetryChecklist,
         postRepairVerificationCommands: spec.postRepairVerificationCommands,
         runtimeGatesAllFalse,
         runtimeSideEffects: spec.runtimeSideEffects,

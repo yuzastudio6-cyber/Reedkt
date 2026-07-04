@@ -462,10 +462,15 @@ function main() {
               requiredResourceScope: row.requiredResourceScope,
               requiredReadPermissions: row.requiredReadPermissions,
               verificationCommand: row.verificationCommand,
+              failureMeaning: row.failureMeaning,
+              safeRepairChecklist: row.safeRepairChecklist,
+              unsafeBypasses: row.unsafeBypasses,
               runtimeExecutionStillRequiresWrapperGate: row.runtimeExecutionStillRequiresWrapperGate,
             }
           })
         : [],
+      failureResponsePolicy: gcpRepairPlan.json?.failureResponsePolicy,
+      safeRetryChecklist: gcpRepairPlan.json?.safeRetryChecklist,
       postRepairVerificationCommands: gcpRepairPlan.json?.postRepairVerificationCommands,
       runtimeGatesAllFalse: gcpRepairPlan.json?.runtimeGatesAllFalse,
       runtimeSideEffects: gcpRepairPlan.json?.runtimeSideEffects,

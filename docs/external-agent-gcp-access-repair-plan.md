@@ -32,6 +32,29 @@ For Qwen, the selected account must read the project `reeditpro` Cloud Run worke
 
 For B-roll, the selected account must read project-level `GPUS_ALL_REGIONS` quota and regional `NVIDIA_L4_GPUS` quota for `northamerica-northeast2`.
 
+## Failure Meanings
+
+For Qwen, token refresh can pass while the selected account still cannot read the Cloud Run worker service or private caller job. Treat that as missing Cloud Run viewer access or missing expected resources, not as permission to weaken the wrapper gate.
+
+For B-roll, quota read failure means the agent cannot prove one no-idle L4 VM can be created and cleaned up. Treat that as missing Compute read visibility, not as permission to create a VM, request quota, or switch to an always-on GPU instance.
+
+If resources are missing, stop at diagnosis and hand off to the owning infrastructure path. This packet must not create replacement Cloud Run, Compute, storage, or worker resources.
+
+## Safe Repair Checklist
+
+Use this checklist after a GCP refusal:
+
+1. Run `npm run external-agent-gcloud-account-access:diagnostic` to find a redacted account index candidate.
+2. Confirm the account is intended to read project `reeditpro` resources.
+3. Ask the GCP owner to confirm the Qwen Cloud Run service and private caller job exist in `us-central1`.
+4. Ask the GCP owner to grant or confirm read-only Cloud Run visibility for Qwen and read-only Compute quota visibility for B-roll.
+5. Rerun `npm run external-agent-gcp-access:verify -- --account-index <redacted-index>`.
+6. Rerun `npm run external-agent-tool-blockers:preflight -- --account-index <redacted-index>`.
+7. Rerun `npm run external-agent-tool-next-command -- --account-index <redacted-index>`.
+8. Execute only the emitted guarded wrapper whose `executionAllowedNow` field is true.
+
+Do not skip service/job describe checks, do not run Qwen from raw chat, do not create a VM before quota read checks pass, do not request quota from the wrapper, and do not use an always-on GPU instance to bypass no-idle gating.
+
 ## What This Does Not Do
 
 This repair plan does not grant IAM and does not authorize runtime execution. It is a precise target for whoever controls GCP access. After access is repaired, agents must rerun the live preflight and the fail-closed wrappers must still verify their own gates.

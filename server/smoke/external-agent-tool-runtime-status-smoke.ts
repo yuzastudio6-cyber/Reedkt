@@ -169,16 +169,42 @@ assert.equal(staticStatus.gcpAccessRepair.repairScope.doesNotMutateGcp, true)
 assert.equal(staticStatus.gcpAccessRepair.repairScope.doesNotAuthorizeRuntimeExecution, true)
 assert.equal(staticStatus.gcpAccessRepair.tools.length, 2)
 assert.equal(
-  staticStatus.gcpAccessRepair.tools.some(
-    (tool: { toolId: string; likelyMinimalRole: string }) =>
-      tool.toolId === 'qwen2_5_vl_7b_instruct' && tool.likelyMinimalRole === 'roles/run.viewer',
+  staticStatus.gcpAccessRepair.failureResponsePolicy.ifReadAccessFails,
+  'treat it as external GCP access or resource visibility work; do not weaken wrapper gates or mark runtime executable',
+)
+assert.equal(
+  staticStatus.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index <redacted-index>',
   ),
   true,
 )
 assert.equal(
   staticStatus.gcpAccessRepair.tools.some(
-    (tool: { toolId: string; likelyMinimalRole: string }) =>
-      tool.toolId === 'ai_video_broll_generation_wan' && tool.likelyMinimalRole === 'roles/compute.viewer',
+    (tool: {
+      toolId: string
+      likelyMinimalRole: string
+      failureMeaning: string
+      unsafeBypasses: string[]
+    }) =>
+      tool.toolId === 'qwen2_5_vl_7b_instruct' &&
+      tool.likelyMinimalRole === 'roles/run.viewer' &&
+      tool.failureMeaning.includes('Token refresh can pass') &&
+      tool.unsafeBypasses.includes('do not skip Cloud Run service/job describe checks'),
+  ),
+  true,
+)
+assert.equal(
+  staticStatus.gcpAccessRepair.tools.some(
+    (tool: {
+      toolId: string
+      likelyMinimalRole: string
+      failureMeaning: string
+      unsafeBypasses: string[]
+    }) =>
+      tool.toolId === 'ai_video_broll_generation_wan' &&
+      tool.likelyMinimalRole === 'roles/compute.viewer' &&
+      tool.failureMeaning.includes('cannot read project or regional Compute quota') &&
+      tool.unsafeBypasses.includes('do not switch to an always-on GPU instance to bypass no-idle gating'),
   ),
   true,
 )
@@ -419,6 +445,16 @@ for (const account of liveStatus.accountSelectionGuidance.visibleAccounts as Arr
   assert.equal(typeof account.blockers, 'object')
 }
 assert.equal(liveStatus.gcpAccessRepair.ok, true)
+assert.equal(
+  liveStatus.gcpAccessRepair.failureResponsePolicy.ifReadAccessFails,
+  'treat it as external GCP access or resource visibility work; do not weaken wrapper gates or mark runtime executable',
+)
+assert.equal(
+  liveStatus.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index <redacted-index>',
+  ),
+  true,
+)
 assert.equal(Array.isArray(liveStatus.gcpAccessRepair.postRepairVerificationCommands), true)
 assert.equal(
   liveStatus.gcpAccessRepair.postRepairVerificationCommands.includes(

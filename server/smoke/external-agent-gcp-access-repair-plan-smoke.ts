@@ -87,6 +87,20 @@ assert.equal(spec.repairScope.doesNotGrantIam, true)
 assert.equal(spec.repairScope.doesNotMutateGcp, true)
 assert.equal(spec.repairScope.doesNotAuthorizeRuntimeExecution, true)
 assert.equal(
+  spec.failureResponsePolicy.ifReadAccessFails,
+  'treat it as external GCP access or resource visibility work; do not weaken wrapper gates or mark runtime executable',
+)
+assert.equal(
+  spec.failureResponsePolicy.ifResourcesAreMissing,
+  'stop at diagnosis and hand off to the owning infrastructure path; do not create replacement resources from this repair plan',
+)
+assert.equal(
+  spec.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index <redacted-index>',
+  ),
+  true,
+)
+assert.equal(
   spec.postRepairVerificationCommands.includes(
     'npm run external-agent-gcp-access:verify -- --account-index <redacted-index>',
   ),
@@ -102,6 +116,9 @@ assert.deepEqual(
   ['run.services.get', 'run.jobs.get'],
 )
 assert.equal(qwen.likelyMinimalRole, 'roles/run.viewer')
+assert.equal(qwen.failureMeaning.includes('Token refresh can pass'), true)
+assert.equal(qwen.safeRepairChecklist.includes('ask the GCP owner to confirm the Qwen service and private caller job exist in us-central1'), true)
+assert.equal(qwen.unsafeBypasses.includes('do not skip Cloud Run service/job describe checks'), true)
 assert.equal(qwen.runtimeExecutionStillRequiresWrapperGate, true)
 
 const broll = spec.tools.find((tool) => tool.toolId === 'ai_video_broll_generation_wan')
@@ -112,6 +129,9 @@ assert.deepEqual(
   ['compute.projects.get', 'compute.regions.get'],
 )
 assert.equal(broll.likelyMinimalRole, 'roles/compute.viewer')
+assert.equal(broll.failureMeaning.includes('cannot read project or regional Compute quota'), true)
+assert.equal(broll.safeRepairChecklist.includes('verify GPUS_ALL_REGIONS and regional NVIDIA_L4_GPUS quota before any VM create path'), true)
+assert.equal(broll.unsafeBypasses.includes('do not switch to an always-on GPU instance to bypass no-idle gating'), true)
 assert.equal(broll.runtimeExecutionStillRequiresWrapperGate, true)
 
 for (const [flag, value] of Object.entries(spec.runtimeSideEffects)) {
@@ -127,10 +147,19 @@ for (const phrase of [
   'compute.regions.get',
   'roles/run.viewer',
   'roles/compute.viewer',
+  '## Failure Meanings',
+  '## Safe Repair Checklist',
+  'token refresh can pass',
+  'not as permission to weaken the wrapper gate',
+  'not as permission to create a VM',
+  'do not use an always-on GPU instance to bypass no-idle gating',
+  'executionAllowedNow',
   'does not grant IAM',
   'does not authorize runtime execution',
+  'npm run external-agent-gcloud-account-access:diagnostic',
   'npm run external-agent-gcp-access:verify -- --account-index <redacted-index>',
   'npm run external-agent-tool-blockers:preflight -- --account-index <redacted-index>',
+  'npm run external-agent-tool-next-command -- --account-index <redacted-index>',
 ]) {
   assert.equal(doc.includes(phrase), true, `Repair doc missing phrase: ${phrase}`)
 }
@@ -145,6 +174,8 @@ assert.equal(cli.ok, true)
 assert.equal(cli.decision, spec.decision)
 assert.equal(cli.runtimeGatesAllFalse, true)
 assert.deepEqual(cli.tools, spec.tools)
+assert.deepEqual(cli.failureResponsePolicy, spec.failureResponsePolicy)
+assert.deepEqual(cli.safeRetryChecklist, spec.safeRetryChecklist)
 
 const forbiddenFindings = scanForbiddenValues({ spec, cli, doc })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)

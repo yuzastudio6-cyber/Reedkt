@@ -27,6 +27,7 @@ Status: architecture/docs only. This report maps future `ProjectEditSession` Bri
 21. RP-EDITBRIEF-15G — Owner Evidence Example Generator
 22. RP-EDITBRIEF-15H — Internal Testing Owner Acceptance
 23. RP-EDITBRIEF-16 — Production-Shaped Internal Persistence Implementation Plan
+24. RP-EDITBRIEF-17 — Internal Persistence Backend Skeleton
 
 ## Gate
 
@@ -151,3 +152,9 @@ Next recommended milestone for internal testing progress: `RP-EDITBRIEF-15H — 
 Status: complete as a Codex/operator internal-testing owner acceptance only. The milestone records that internal testing work must be production-shaped rather than throwaway: contract-first, backend-safe, aligned to approved-plan and credit-estimate seams, and tracked with a release delta. It allows the next Edit Brief milestone to plan internal persistence without claiming external beta, real-user-media beta, paid production, live Supabase writes, providers/models, workers, render/export, uploads, or credits.
 
 Next recommended milestone for internal testing: `RP-EDITBRIEF-16 — Production-Shaped Internal Persistence Implementation Plan`. Public release lanes still require the RP-EDITBRIEF-15 owner evidence chain.
+
+## RP-EDITBRIEF-16 — Production-Shaped Internal Persistence Implementation Plan
+
+Status: complete as an executable internal persistence plan only. The milestone defines the durable roots, repository modes, route policy, idempotency/audit expectations, release delta, and blocked scope for the next backend skeleton. It keeps current Project Edit Brief routes mock/local or Supabase-disabled and does not add migrations, SQL, Supabase CLI usage, live Supabase reads/writes, Storage writes, signed URLs, provider/model calls, media processing, workers, render/export, uploads, external beta, paid production, or credit spend.
+
+Next recommended milestone for internal testing: `RP-EDITBRIEF-17 — Internal Persistence Backend Skeleton`.

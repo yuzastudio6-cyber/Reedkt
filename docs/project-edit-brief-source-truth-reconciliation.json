@@ -58,7 +58,8 @@
       "smoke:project-edit-brief-visual-context",
       "smoke:project-edit-brief-e2e",
       "smoke:project-edit-brief-supabase-repository",
-      "smoke:project-edit-brief-internal-testing-owner-acceptance"
+      "smoke:project-edit-brief-internal-testing-owner-acceptance",
+      "smoke:project-edit-brief-internal-persistence-plan"
     ],
     "typecheckServer": "passed",
     "build": "passed",
@@ -73,6 +74,7 @@
     "owner_input_collection_after_rp_editbrief_15",
     "owner_evidence_intake_after_rp_editbrief_15a",
     "internal_testing_owner_acceptance_after_rp_editbrief_15h",
+    "internal_persistence_plan_after_rp_editbrief_16",
     "real_source_media_ingestion",
     "planner_integration_to_approved_snapshots",
     "credit_estimate_and_reservation",

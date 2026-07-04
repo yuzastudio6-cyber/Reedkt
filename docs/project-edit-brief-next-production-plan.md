@@ -28,6 +28,12 @@ For external beta, real-user-media beta, or paid production, use `RP-EDITBRIEF-1
 
 RP-EDITBRIEF-15H accepts Codex/operator ownership for internal testing only. It allows production-shaped internal persistence planning while keeping external beta, real-user-media beta, paid production, live Supabase writes, provider/model calls, workers, render/export, uploads, and credit spend blocked until their separate evidence gates pass.
 
+## RP-EDITBRIEF-16 Internal Persistence Plan
+
+RP-EDITBRIEF-16 defines the production-shaped internal persistence contract for the next backend skeleton. It keeps the durable roots on `edit_briefs`, `edit_cues`, cue child tables, application logs, and export settings; keeps browser access behind the API client; requires service-role access to remain backend-only; requires future write idempotency and audit event planning; and records the public-release delta. It does not add migrations, SQL, Supabase CLI usage, live Supabase reads/writes, Storage writes, signed URLs, production routes, providers, media processing, workers, render/export, uploads, or credit spend.
+
+Next internal milestone: `RP-EDITBRIEF-17 - Internal Persistence Backend Skeleton`.
+
 ## Qwen Runtime Dependency
 
 RP-QWEN-00 is complete as an audit-only package for future reasoning runtime readiness. Edit Brief Marker Chat remains deterministic mock/local until a later owner-approved Qwen milestone. No Qwen call, provider call, Secret Manager inspection, `gcloud`, Supabase CLI, route wiring, Marker Chat runtime change, worker, render/export/progress, credit action, staging, commit, or cleanup occurred.

@@ -14,6 +14,23 @@ const blockedModelTools = [
   'rembg',
   'transparent_background',
 ]
+const dockerRuntimeModulesByTool = {
+  sam2: ['torch', 'torchvision', 'numpy', 'PIL', 'sam2'],
+  birefnet: [
+    'torch',
+    'torchvision',
+    'transformers',
+    'PIL',
+    'timm',
+    'kornia',
+    'einops',
+    'scipy',
+    'skimage',
+  ],
+  real_esrgan: ['torch', 'torchvision', 'PIL', 'cv2', 'basicsr', 'realesrgan'],
+  rembg: ['numpy', 'PIL', 'onnxruntime', 'rembg'],
+  transparent_background: ['torch', 'PIL', 'numpy', 'transparent_background'],
+}
 const expectedBlockedKeys = {
   sam2: 'sam2CheckpointLocalPath',
   birefnet: 'birefnetModelLocalPath',
@@ -68,6 +85,32 @@ function ensureProofImage() {
   }
 }
 
+function dockerRuntimeModuleReadiness() {
+  const code = `
+import importlib.util
+import json
+import sys
+
+raw = json.loads(sys.argv[1])
+print(json.dumps({
+    tool_id: [module for module in modules if importlib.util.find_spec(module) is None]
+    for tool_id, modules in raw.items()
+}, sort_keys=True))
+`
+  return runJson('docker', [
+    'run',
+    '--rm',
+    '--platform',
+    platform,
+    '--entrypoint',
+    'python3',
+    proofImage,
+    '-c',
+    code,
+    JSON.stringify(dockerRuntimeModulesByTool),
+  ], { timeout: 30_000 })
+}
+
 function writePrivatePpm(filePath) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true })
   const lines = ['P3', '8 8', '255']
@@ -115,6 +158,15 @@ const harnessResultPath = path.join(adapterDir, 'harness-result.json')
 const blockersResultPath = path.join(blockersDir, 'harness-result.json')
 
 ensureProofImage()
+const dockerModuleReadiness = dockerRuntimeModuleReadiness()
+for (const toolId of blockedModelTools) {
+  const missingModules = dockerModuleReadiness?.[toolId]
+  if (!Array.isArray(missingModules)) {
+    fail(`docker_module_readiness_missing_tool:${toolId}`)
+  } else if (missingModules.length > 0) {
+    fail(`docker_module_readiness_missing_modules:${toolId}:${missingModules.join(',')}`)
+  }
+}
 writePrivatePpm(sourceImage)
 writeRuntimeInputManifest(manifestPath, {
   outputDirectory: relativeLocalPath(adapterDir),
@@ -344,6 +396,13 @@ const summary = {
   gpuToolsWithValidRuntimeProof: readiness.counts?.gpuToolsWithValidRuntimeProof,
   executableGpuModelTools: proofTools,
   blockedGpuModelTools: blockedModelTools,
+  dockerRuntimePythonModulesPresentForBlockedTools: Object.fromEntries(
+    blockedModelTools.map((toolId) => [
+      toolId,
+      Array.isArray(dockerModuleReadiness?.[toolId]) &&
+        dockerModuleReadiness[toolId].length === 0,
+    ]),
+  ),
   routeProofs: routeSummaries,
   gpuRuntimeShouldStartNow: readiness.booleans?.gpuRuntimeShouldStartNow,
   runtimeReadyNow: readiness.booleans?.runtimeReadyNow,

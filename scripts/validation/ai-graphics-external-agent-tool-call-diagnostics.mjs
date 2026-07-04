@@ -536,6 +536,11 @@ function writePrivatePlaceholderFile(filePath) {
   )
 }
 
+function writeLargePrivatePlaceholderFile(filePath) {
+  fs.mkdirSync(path.dirname(absolute(filePath)), { recursive: true })
+  fs.writeFileSync(absolute(filePath), Buffer.alloc(1024 * 1024 + 8, 1))
+}
+
 function privateInputPreflightPaths() {
   const rootDir =
     '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/private-input-preflight'
@@ -782,11 +787,17 @@ for (const phrase of [
   'minimumPrivateModelFileBytes',
   'privateModelRuntimeContentBlock',
   'sam2_checkpoint_too_small_for_runtime',
+  'sam2_checkpoint_invalid_extension',
   'birefnet_model_too_small_for_runtime',
+  'birefnet_model_invalid_safetensors_header',
   'real_esrgan_model_too_small_for_runtime',
+  'real_esrgan_model_invalid_file_name',
   'rembg_model_too_small_for_runtime',
+  'rembg_model_invalid_extension',
   'transparent_background_checkpoint_too_small_for_runtime',
+  'transparent_background_checkpoint_invalid_extension',
   'blocked before Docker/GPU/Python startup',
+  'shouldAddMissingExecutionInputWarning',
 ]) {
   if (!gpuModelAdapterSource.includes(phrase)) {
     fail(`gpu_model_adapter_missing:${phrase}`)
@@ -1027,6 +1038,61 @@ if (rembgTinyModelRuntimeAttempt.nextAction?.currentBlockingPrerequisiteKey !== 
   fail(`rembg_tiny_model_next_action_blocker_mismatch:${rembgTinyModelRuntimeAttempt.nextAction?.currentBlockingPrerequisiteKey}`)
 }
 
+const rembgInvalidExtensionModel =
+  `${privatePreflightPaths.rootDir}/models/rembg/u2net-invalid-extension.bin`
+writeLargePrivatePlaceholderFile(rembgInvalidExtensionModel)
+const rembgInvalidExtensionRuntimeAttempt = runToolCall([
+  '--tool rembg',
+  '--attempt-gpu-runtime',
+  '--runtime-backend docker_container',
+  `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  '--runtime-container-platform linux/amd64',
+  '--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/rembg-invalid-extension-block',
+  `--source-image ${privatePreflightPaths.sourceImage}`,
+  `--rembg-model ${rembgInvalidExtensionModel}`,
+].join(' '))
+if (rembgInvalidExtensionRuntimeAttempt.status !== 'external_agent_single_tool_call_blocked_with_reason') {
+  fail(`rembg_invalid_extension_status_mismatch:${rembgInvalidExtensionRuntimeAttempt.status}`)
+}
+if (
+  rembgInvalidExtensionRuntimeAttempt.response?.externalAgentExecutionState !==
+  'blocked_with_reason'
+) {
+  fail(`rembg_invalid_extension_state_mismatch:${rembgInvalidExtensionRuntimeAttempt.response?.externalAgentExecutionState}`)
+}
+if (
+  rembgInvalidExtensionRuntimeAttempt.response?.blockingReasonCode !==
+  'rembg_model_invalid_extension'
+) {
+  fail(`rembg_invalid_extension_blocking_reason_mismatch:${rembgInvalidExtensionRuntimeAttempt.response?.blockingReasonCode}`)
+}
+const rembgInvalidExtensionNormalized =
+  rembgInvalidExtensionRuntimeAttempt.response?.externalAgentToolCallResult ?? {}
+if (rembgInvalidExtensionNormalized.currentBlockingPrerequisiteKey !== 'rembgModelLocalPath') {
+  fail(`rembg_invalid_extension_current_blocker_mismatch:${rembgInvalidExtensionNormalized.currentBlockingPrerequisiteKey}`)
+}
+if (rembgInvalidExtensionNormalized.controlledAdapterInvokedNow !== true) {
+  fail('rembg_invalid_extension_adapter_not_invoked')
+}
+if (rembgInvalidExtensionNormalized.controlledAdapterExecutedNow !== false) {
+  fail('rembg_invalid_extension_adapter_executed')
+}
+if (rembgInvalidExtensionNormalized.localGpuModelRuntimeExecutionPerformed !== false) {
+  fail('rembg_invalid_extension_runtime_executed')
+}
+if (rembgInvalidExtensionNormalized.gpuRuntimeShouldStartNow !== false) {
+  fail('rembg_invalid_extension_started_gpu')
+}
+if (rembgInvalidExtensionRuntimeAttempt.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('rembg_invalid_extension_boolean_started_gpu')
+}
+if (
+  rembgInvalidExtensionRuntimeAttempt.nextAction?.currentBlockingPrerequisiteKey !==
+  'rembgModelLocalPath'
+) {
+  fail(`rembg_invalid_extension_next_action_blocker_mismatch:${rembgInvalidExtensionRuntimeAttempt.nextAction?.currentBlockingPrerequisiteKey}`)
+}
+
 const manifestOutsideLocalArtifacts = spawnToolCall([
   '--tool',
   'kornia',
@@ -1241,6 +1307,10 @@ console.log(JSON.stringify({
   tinyPrivateModelRuntimeProofBlockedBeforeGpu: true,
   tinyPrivateModelRuntimeProofBlockingReason:
     rembgTinyModelRuntimeAttempt.response.externalAgentToolCallResult
+      .blockingReasonCode,
+  invalidPrivateModelRuntimeProofBlockedBeforeGpu: true,
+  invalidPrivateModelRuntimeProofBlockingReason:
+    rembgInvalidExtensionRuntimeAttempt.response.externalAgentToolCallResult
       .blockingReasonCode,
   gpuRuntimeShouldStartNow: false,
   publicArtifactCreated: false,

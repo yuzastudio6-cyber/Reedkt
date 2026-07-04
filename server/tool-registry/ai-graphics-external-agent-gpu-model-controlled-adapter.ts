@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync, statSync } from 'node:fs'
+import { closeSync, existsSync, openSync, readSync, statSync } from 'node:fs'
 import path from 'node:path'
 import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
 import {
@@ -210,6 +210,7 @@ const runtimePythonModulesByTool: Record<
 }
 
 const minimumPrivateModelFileBytes = 1024 * 1024
+const maximumSafetensorsHeaderBytes = 1024 * 1024
 
 function hasScopedLocalRuntimeInputs(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
@@ -717,12 +718,16 @@ function modelFilePathForRuntimeContentCheck(
   pathValue?: string
   code: string
   label: string
+  expectedExtensions?: string[]
+  expectedFileName?: string
+  requiresSafetensorsHeader?: boolean
 } | null {
   if (toolId === 'sam2') {
     return {
       pathValue: optionalString(payload, 'sam2CheckpointLocalPath'),
       code: 'sam2_checkpoint_too_small_for_runtime',
       label: 'SAM2 checkpoint',
+      expectedExtensions: ['.pt', '.pth'],
     }
   }
   if (toolId === 'birefnet') {
@@ -731,6 +736,8 @@ function modelFilePathForRuntimeContentCheck(
       pathValue: modelDir ? path.join(modelDir, 'model.safetensors') : undefined,
       code: 'birefnet_model_too_small_for_runtime',
       label: 'BiRefNet model.safetensors',
+      expectedFileName: 'model.safetensors',
+      requiresSafetensorsHeader: true,
     }
   }
   if (toolId === 'real_esrgan') {
@@ -738,6 +745,8 @@ function modelFilePathForRuntimeContentCheck(
       pathValue: optionalString(payload, 'realEsrganModelLocalPath'),
       code: 'real_esrgan_model_too_small_for_runtime',
       label: 'Real-ESRGAN model',
+      expectedFileName: 'RealESRGAN_x4plus.pth',
+      expectedExtensions: ['.pth'],
     }
   }
   if (toolId === 'rembg') {
@@ -745,6 +754,7 @@ function modelFilePathForRuntimeContentCheck(
       pathValue: optionalString(payload, 'rembgModelLocalPath'),
       code: 'rembg_model_too_small_for_runtime',
       label: 'rembg ONNX model',
+      expectedExtensions: ['.onnx'],
     }
   }
   if (toolId === 'transparent_background') {
@@ -752,7 +762,97 @@ function modelFilePathForRuntimeContentCheck(
       pathValue: optionalString(payload, 'transparentBackgroundCheckpointLocalPath'),
       code: 'transparent_background_checkpoint_too_small_for_runtime',
       label: 'transparent-background checkpoint',
+      expectedExtensions: ['.pth'],
     }
+  }
+  return null
+}
+
+function readBytes(filePath: string, byteLength: number, position = 0): Buffer | null {
+  let fd: number | null = null
+  try {
+    fd = openSync(filePath, 'r')
+    const buffer = Buffer.alloc(byteLength)
+    const bytesRead = readSync(fd, buffer, 0, byteLength, position)
+    return buffer.subarray(0, bytesRead)
+  } catch {
+    return null
+  } finally {
+    if (fd !== null) closeSync(fd)
+  }
+}
+
+function hasReadableSafetensorsHeader(filePath: string): boolean {
+  const prefix = readBytes(filePath, 8)
+  if (!prefix || prefix.length !== 8) return false
+  const headerLength = Number(prefix.readBigUInt64LE(0))
+  if (
+    !Number.isSafeInteger(headerLength) ||
+    headerLength <= 0 ||
+    headerLength > maximumSafetensorsHeaderBytes
+  ) {
+    return false
+  }
+  const headerBytes = readBytes(filePath, headerLength, 8)
+  if (!headerBytes || headerBytes.length !== headerLength) return false
+  try {
+    const header = JSON.parse(headerBytes.toString('utf8')) as unknown
+    return Boolean(header && typeof header === 'object' && !Array.isArray(header))
+  } catch {
+    return false
+  }
+}
+
+function invalidModelFileNameOrExtensionBlock(input: {
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId
+  pathValue: string
+  label: string
+  expectedExtensions?: string[]
+  expectedFileName?: string
+}): Record<string, unknown> | null {
+  const fileName = path.basename(input.pathValue)
+  if (input.expectedFileName && fileName !== input.expectedFileName) {
+    const code = input.toolId === 'real_esrgan'
+      ? 'real_esrgan_model_invalid_file_name'
+      : `${input.toolId}_model_invalid_file_name`
+    return skippedPrerequisiteBlock({
+      toolId: input.toolId,
+      code,
+      message:
+        `${input.label} must use the approved private filename ${input.expectedFileName}; ` +
+        'no model download, alias resolution, or public fetch is allowed.',
+      summary:
+        'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because the supplied private model file name did not match the approved runtime contract.',
+      warning:
+        'GPU/model runtime did not start because the supplied private model/checkpoint filename did not match the approved runtime artifact contract.',
+      errorMessage:
+        `${input.label} filename must be ${input.expectedFileName} for controlled GPU/model runtime proof.`,
+    })
+  }
+  if (
+    input.expectedExtensions &&
+    !input.expectedExtensions.includes(path.extname(input.pathValue).toLowerCase())
+  ) {
+    const code = input.toolId === 'sam2'
+      ? 'sam2_checkpoint_invalid_extension'
+      : input.toolId === 'transparent_background'
+      ? 'transparent_background_checkpoint_invalid_extension'
+      : input.toolId === 'rembg'
+      ? 'rembg_model_invalid_extension'
+      : `${input.toolId}_model_invalid_extension`
+    return skippedPrerequisiteBlock({
+      toolId: input.toolId,
+      code,
+      message:
+        `${input.label} must use approved private runtime extension(s): ` +
+        `${input.expectedExtensions.join(', ')}.`,
+      summary:
+        'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because the supplied private model file extension did not match the approved runtime contract.',
+      warning:
+        'GPU/model runtime did not start because the supplied private model/checkpoint extension did not match the approved runtime artifact contract.',
+      errorMessage:
+        `${input.label} extension is not accepted for controlled GPU/model runtime proof.`,
+    })
   }
   return null
 }
@@ -763,26 +863,53 @@ function privateModelRuntimeContentBlock(
 ): Record<string, unknown> | null {
   const modelFile = modelFilePathForRuntimeContentCheck(toolId, payload)
   if (!modelFile || !modelFile.pathValue) return null
+  const fileNameBlock = invalidModelFileNameOrExtensionBlock({
+    toolId,
+    pathValue: modelFile.pathValue,
+    label: modelFile.label,
+    expectedExtensions: modelFile.expectedExtensions,
+    expectedFileName: modelFile.expectedFileName,
+  })
+  if (fileNameBlock) return fileNameBlock
   let sizeBytes = 0
   try {
     sizeBytes = statSync(modelFile.pathValue).size
   } catch {
     return null
   }
-  if (sizeBytes >= minimumPrivateModelFileBytes) return null
-  return skippedPrerequisiteBlock({
-    toolId,
-    code: modelFile.code,
-    message:
-      `${modelFile.label} is too small (${sizeBytes} bytes) for accepted private runtime proof; ` +
-      `expected at least ${minimumPrivateModelFileBytes} bytes before any CUDA/GPU runtime may start.`,
-    summary:
-      'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because the supplied private model file was too small to be accepted as runtime proof input.',
-    warning:
-      'GPU/model runtime did not start because the supplied private model/checkpoint file looked like a placeholder rather than a real reviewed model artifact.',
-    errorMessage:
-      `${modelFile.label} is too small for controlled GPU/model runtime proof.`,
-  })
+  if (sizeBytes < minimumPrivateModelFileBytes) {
+    return skippedPrerequisiteBlock({
+      toolId,
+      code: modelFile.code,
+      message:
+        `${modelFile.label} is too small (${sizeBytes} bytes) for accepted private runtime proof; ` +
+        `expected at least ${minimumPrivateModelFileBytes} bytes before any CUDA/GPU runtime may start.`,
+      summary:
+        'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because the supplied private model file was too small to be accepted as runtime proof input.',
+      warning:
+        'GPU/model runtime did not start because the supplied private model/checkpoint file looked like a placeholder rather than a real reviewed model artifact.',
+      errorMessage:
+        `${modelFile.label} is too small for controlled GPU/model runtime proof.`,
+    })
+  }
+  if (
+    modelFile.requiresSafetensorsHeader &&
+    !hasReadableSafetensorsHeader(modelFile.pathValue)
+  ) {
+    return skippedPrerequisiteBlock({
+      toolId,
+      code: 'birefnet_model_invalid_safetensors_header',
+      message:
+        `${modelFile.label} must contain a readable safetensors header before any CUDA/GPU runtime may start.`,
+      summary:
+        'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because the supplied private safetensors file did not contain a readable safetensors header.',
+      warning:
+        'GPU/model runtime did not start because the supplied private BiRefNet model file did not look like a valid safetensors artifact.',
+      errorMessage:
+        `${modelFile.label} did not contain a readable safetensors header for controlled GPU/model runtime proof.`,
+    })
+  }
+  return null
 }
 
 function missingLocalPathBlock(input: {
@@ -955,6 +1082,26 @@ export function isAiGraphicsExternalAgentGpuModelControlledAdapterTool(
 
 function executionEnabled(payload: Record<string, unknown>): boolean {
   return optionalBoolean(payload, 'enableGpuModelControlledExecution')
+}
+
+function shouldAddMissingExecutionInputWarning(
+  skipReasonCode: string | null,
+): boolean {
+  if (!skipReasonCode) return true
+  if (
+    skipReasonCode.includes('_too_small_for_runtime') ||
+    skipReasonCode.includes('_invalid_extension') ||
+    skipReasonCode.includes('_invalid_file_name') ||
+    skipReasonCode.includes('_invalid_safetensors_header') ||
+    skipReasonCode.includes('_invalid_path_kind') ||
+    skipReasonCode.includes('_outside_local_artifacts') ||
+    skipReasonCode.startsWith('gpu_model_python') ||
+    skipReasonCode.startsWith('gpu_model_runtime_container') ||
+    skipReasonCode.includes('cuda')
+  ) {
+    return false
+  }
+  return true
 }
 
 function maskInput(
@@ -1322,10 +1469,7 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
           ? runtimeOutput.warnings.filter((warning): warning is string => typeof warning === 'string')
           : []
       ),
-      ...(skipped &&
-        !skipReasonCode?.startsWith('gpu_model_python') &&
-        !skipReasonCode?.startsWith('gpu_model_runtime_container') &&
-        !skipReasonCode?.includes('cuda')
+      ...(skipped && shouldAddMissingExecutionInputWarning(skipReasonCode)
         ? ['GPU/model runtime did not start because explicit local-dev execution inputs were not provided.']
         : []),
       'GPU/model runtime is approved only for the scoped accepted tool call; idle GPU startup remains blocked.',

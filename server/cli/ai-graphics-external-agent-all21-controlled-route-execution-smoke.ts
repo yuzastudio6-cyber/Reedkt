@@ -71,6 +71,11 @@ interface ExternalAgentToolCallResult {
     signedUrlCreated: boolean
   }
   nextExternalAgentAction: string | null
+  nextExternalAgentCommandKind: string | null
+  nextExternalAgentCommand: string | null
+  requiredPrivateInputKeys: string[]
+  blockedRuntimePrerequisites: string[]
+  gpuRuntimeStartPolicy: string | null
 }
 
 interface ControlledRouteExecutionResult {
@@ -158,6 +163,12 @@ function nullableString(value: unknown): string | null {
   return typeof value === 'string' ? value : null
 }
 
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : []
+}
+
 function externalAgentExecutionState(
   value: unknown,
 ): ExternalAgentToolCallExecutionState | null {
@@ -197,6 +208,13 @@ function parseExternalAgentToolCallResult(
       signedUrlCreated: outputAccess.signedUrlCreated === true,
     },
     nextExternalAgentAction: nullableString(raw.nextExternalAgentAction),
+    nextExternalAgentCommandKind:
+      nullableString(raw.nextExternalAgentCommandKind),
+    nextExternalAgentCommand: nullableString(raw.nextExternalAgentCommand),
+    requiredPrivateInputKeys: stringArray(raw.requiredPrivateInputKeys),
+    blockedRuntimePrerequisites:
+      stringArray(raw.blockedRuntimePrerequisites),
+    gpuRuntimeStartPolicy: nullableString(raw.gpuRuntimeStartPolicy),
   }
 }
 
@@ -339,6 +357,23 @@ function gpuModelRequiresSourceImage(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 ): boolean {
   return !['torch_torchvision', 'transformers'].includes(toolId)
+}
+
+function gpuModelRequiredPrivateInputKeys(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string[] {
+  return [
+    'outputDirectory',
+    'nativeCudaRuntime',
+    gpuModelRequiresSourceImage(toolId) ? 'sourceImageLocalPath' : '',
+    toolId === 'sam2' ? 'sam2CheckpointLocalPath' : '',
+    toolId === 'birefnet' ? 'birefnetModelLocalPath' : '',
+    toolId === 'real_esrgan' ? 'realEsrganModelLocalPath' : '',
+    toolId === 'rembg' ? 'rembgModelLocalPath' : '',
+    toolId === 'transparent_background'
+      ? 'transparentBackgroundCheckpointLocalPath'
+      : '',
+  ].filter(Boolean)
 }
 
 function scopedGpuModelPrivateSourceImageLocalPath(
@@ -729,6 +764,27 @@ function validateResults(
       assert(scopedResult.gpuRuntimeShouldStartNow === false, `${toolId} scoped GPU/model route attempt started GPU unexpectedly`)
     }
     assert(scopedResult.failureDiagnostics === null, `${toolId} scoped GPU/model route attempt should not fail`)
+    assert(scopedResult.externalAgentToolCallResult !== null, `${toolId} scoped GPU/model route attempt missing normalized result`)
+    assert(
+      scopedResult.externalAgentToolCallResult?.nextExternalAgentCommandKind ===
+        'scoped_gpu_model_local_dev_runtime_proof',
+      `${toolId} scoped GPU/model route attempt missing command kind`,
+    )
+    assert(
+      scopedResult.externalAgentToolCallResult?.nextExternalAgentCommand?.includes(`--scoped-gpu-tool ${toolId}`) === true,
+      `${toolId} scoped GPU/model route attempt missing exact scoped command`,
+    )
+    assert(
+      scopedResult.externalAgentToolCallResult?.gpuRuntimeStartPolicy ===
+        'on_demand_only_for_scoped_active_tool_call',
+      `${toolId} scoped GPU/model route attempt runtime policy mismatch`,
+    )
+    for (const key of gpuModelRequiredPrivateInputKeys(toolId)) {
+      assert(
+        scopedResult.externalAgentToolCallResult?.requiredPrivateInputKeys.includes(key) === true,
+        `${toolId} scoped GPU/model route attempt missing required private input ${key}`,
+      )
+    }
     assert(scopedResult.publicArtifactCreated === false, `${toolId} scoped GPU/model route attempt created public artifact`)
     assert(scopedResult.signedUrlCreated === false, `${toolId} scoped GPU/model route attempt created signed URL`)
     assert(attempt.booleans.scopedGpuModelLocalDevRouteAttemptAccepted === true, `${toolId} scoped GPU/model route attempt was not accepted`)
@@ -823,6 +879,8 @@ function validateResults(
     }
 
     if (result.group === 'gpu_model') {
+      const toolId =
+        result.toolId as AiGraphicsExternalAgentGpuModelControlledAdapterToolId
       assert(result.externalAgentExecutionState === 'blocked_with_reason', `${result.toolId} GPU/model execution state mismatch`)
       assert(result.externalAgentToolCallResult.executable === false, `${result.toolId} normalized GPU/model executable mismatch`)
       assert(result.externalAgentToolCallResult.blockedWithReason === true, `${result.toolId} normalized GPU/model block mismatch`)
@@ -839,6 +897,30 @@ function validateResults(
       assert(result.localGpuModelRuntimeExecutionPerformed === false, `${result.toolId} GPU/model runtime performed unexpectedly`)
       assert(result.outputKind === null, `${result.toolId} GPU/model smoke should not create output kind`)
       assert(result.outputSha256 === null, `${result.toolId} GPU/model smoke should not create output hash`)
+      assert(
+        result.externalAgentToolCallResult.nextExternalAgentCommandKind ===
+          'scoped_gpu_model_local_dev_runtime_proof',
+        `${result.toolId} GPU/model normalized command kind mismatch`,
+      )
+      assert(
+        result.externalAgentToolCallResult.nextExternalAgentCommand?.includes(`--scoped-gpu-tool ${result.toolId}`) === true,
+        `${result.toolId} GPU/model normalized scoped command missing tool`,
+      )
+      assert(
+        result.externalAgentToolCallResult.gpuRuntimeStartPolicy ===
+          'on_demand_only_for_scoped_active_tool_call',
+        `${result.toolId} GPU/model normalized runtime policy mismatch`,
+      )
+      for (const key of gpuModelRequiredPrivateInputKeys(toolId)) {
+        assert(
+          result.externalAgentToolCallResult.requiredPrivateInputKeys.includes(key),
+          `${result.toolId} GPU/model normalized result missing private input key ${key}`,
+        )
+      }
+      assert(
+        result.externalAgentToolCallResult.blockedRuntimePrerequisites.some((item) => item.includes('CUDA')),
+        `${result.toolId} GPU/model normalized result missing CUDA prerequisite`,
+      )
     }
   }
 }

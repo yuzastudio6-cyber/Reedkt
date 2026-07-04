@@ -39,7 +39,20 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:foundation_runtime_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool torch_torchvision --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+        "nextExternalAgentAction": "blocked_with_reason:foundation_runtime_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool torch_torchvision --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+        "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool torch_torchvision --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision",
+        "requiredPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime"
+        ],
+        "blockedRuntimePrerequisites": [
+          "private output directory under .local-artifacts/ai-graphics",
+          "native CUDA-capable host with NVIDIA runtime proof",
+          "proof-local GPU worker container image or equivalent approved runtime",
+          "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
       "blockingReasonCode": "foundation_runtime_disabled_or_not_local_dev",
       "failureDiagnostics": null,
@@ -86,7 +99,20 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:foundation_runtime_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transformers --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+        "nextExternalAgentAction": "blocked_with_reason:foundation_runtime_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transformers --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+        "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transformers --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers",
+        "requiredPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime"
+        ],
+        "blockedRuntimePrerequisites": [
+          "private output directory under .local-artifacts/ai-graphics",
+          "native CUDA-capable host with NVIDIA runtime proof",
+          "proof-local GPU worker container image or equivalent approved runtime",
+          "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
       "blockingReasonCode": "foundation_runtime_disabled_or_not_local_dev",
       "failureDiagnostics": null,
@@ -133,7 +159,24 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:sam2_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+        "nextExternalAgentAction": "blocked_with_reason:sam2_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+        "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt>",
+        "requiredPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath",
+          "sam2CheckpointLocalPath"
+        ],
+        "blockedRuntimePrerequisites": [
+          "private output directory under .local-artifacts/ai-graphics",
+          "native CUDA-capable host with NVIDIA runtime proof",
+          "private approved source image or frame local path",
+          "reviewed private model/checkpoint path with checksum evidence",
+          "proof-local GPU worker container image or equivalent approved runtime",
+          "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
       "blockingReasonCode": "sam2_disabled_or_not_local_dev",
       "failureDiagnostics": null,
@@ -180,7 +223,24 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:birefnet_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+        "nextExternalAgentAction": "blocked_with_reason:birefnet_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+        "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model>",
+        "requiredPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath",
+          "birefnetModelLocalPath"
+        ],
+        "blockedRuntimePrerequisites": [
+          "private output directory under .local-artifacts/ai-graphics",
+          "native CUDA-capable host with NVIDIA runtime proof",
+          "private approved source image or frame local path",
+          "reviewed private model/checkpoint path with checksum evidence",
+          "proof-local GPU worker container image or equivalent approved runtime",
+          "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
       "blockingReasonCode": "birefnet_disabled_or_not_local_dev",
       "failureDiagnostics": null,
@@ -227,7 +287,24 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:real_esrgan_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+        "nextExternalAgentAction": "blocked_with_reason:real_esrgan_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+        "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth>",
+        "requiredPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath",
+          "realEsrganModelLocalPath"
+        ],
+        "blockedRuntimePrerequisites": [
+          "private output directory under .local-artifacts/ai-graphics",
+          "native CUDA-capable host with NVIDIA runtime proof",
+          "private approved source image or frame local path",
+          "reviewed private model/checkpoint path with checksum evidence",
+          "proof-local GPU worker container image or equivalent approved runtime",
+          "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
       "blockingReasonCode": "real_esrgan_disabled_or_not_local_dev",
       "failureDiagnostics": null,
@@ -274,7 +351,22 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:kornia_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image <private-approved-frame.png> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+        "nextExternalAgentAction": "blocked_with_reason:kornia_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image <private-approved-frame.png> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+        "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image <private-approved-frame.png>",
+        "requiredPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath"
+        ],
+        "blockedRuntimePrerequisites": [
+          "private output directory under .local-artifacts/ai-graphics",
+          "native CUDA-capable host with NVIDIA runtime proof",
+          "private approved source image or frame local path",
+          "proof-local GPU worker container image or equivalent approved runtime",
+          "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
       "blockingReasonCode": "kornia_disabled_or_not_local_dev",
       "failureDiagnostics": null,
@@ -321,7 +413,24 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:rembg_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool rembg --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-rembg-model <private-rembg-model.onnx> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+        "nextExternalAgentAction": "blocked_with_reason:rembg_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool rembg --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-rembg-model <private-rembg-model.onnx> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+        "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool rembg --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-rembg-model <private-rembg-model.onnx>",
+        "requiredPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath",
+          "rembgModelLocalPath"
+        ],
+        "blockedRuntimePrerequisites": [
+          "private output directory under .local-artifacts/ai-graphics",
+          "native CUDA-capable host with NVIDIA runtime proof",
+          "private approved source image or frame local path",
+          "reviewed private model/checkpoint path with checksum evidence",
+          "proof-local GPU worker container image or equivalent approved runtime",
+          "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
       "blockingReasonCode": "rembg_disabled_or_not_local_dev",
       "failureDiagnostics": null,
@@ -368,7 +477,24 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:transparent_background_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transparent_background --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-transparent-background-checkpoint <private-transparent-background-checkpoint.pth> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+        "nextExternalAgentAction": "blocked_with_reason:transparent_background_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transparent_background --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-transparent-background-checkpoint <private-transparent-background-checkpoint.pth> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+        "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transparent_background --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-transparent-background-checkpoint <private-transparent-background-checkpoint.pth>",
+        "requiredPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath",
+          "transparentBackgroundCheckpointLocalPath"
+        ],
+        "blockedRuntimePrerequisites": [
+          "private output directory under .local-artifacts/ai-graphics",
+          "native CUDA-capable host with NVIDIA runtime proof",
+          "private approved source image or frame local path",
+          "reviewed private model/checkpoint path with checksum evidence",
+          "proof-local GPU worker container image or equivalent approved runtime",
+          "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
       "blockingReasonCode": "transparent_background_disabled_or_not_local_dev",
       "failureDiagnostics": null,
@@ -415,7 +541,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -462,7 +593,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -509,7 +645,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -556,7 +697,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -603,7 +749,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -650,7 +801,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -697,7 +853,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -744,7 +905,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -791,7 +957,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -838,7 +1009,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -885,7 +1061,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -932,7 +1113,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -979,7 +1165,12 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane"
+        "nextExternalAgentAction": "use the returned private artifact manifest ref in the approved downstream planning or worker lane",
+        "nextExternalAgentCommandKind": null,
+        "nextExternalAgentCommand": null,
+        "requiredPrivateInputKeys": [],
+        "blockedRuntimePrerequisites": [],
+        "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
       "failureDiagnostics": null,
@@ -1044,7 +1235,22 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image <private-approved-frame.png> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+        "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image <private-approved-frame.png> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+        "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image <private-approved-frame.png>",
+        "requiredPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath"
+        ],
+        "blockedRuntimePrerequisites": [
+          "private output directory under .local-artifacts/ai-graphics",
+          "native CUDA-capable host with NVIDIA runtime proof",
+          "private approved source image or frame local path",
+          "proof-local GPU worker container image or equivalent approved runtime",
+          "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
       "blockingReasonCode": "gpu_model_runtime_container_image_missing",
       "failureDiagnostics": null,
@@ -1121,7 +1327,20 @@
             "publicArtifactCreated": false,
             "signedUrlCreated": false
           },
-          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool torch_torchvision --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool torch_torchvision --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+          "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool torch_torchvision --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/torch_torchvision",
+          "requiredPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime"
+          ],
+          "blockedRuntimePrerequisites": [
+            "private output directory under .local-artifacts/ai-graphics",
+            "native CUDA-capable host with NVIDIA runtime proof",
+            "proof-local GPU worker container image or equivalent approved runtime",
+            "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
         "blockingReasonCode": "gpu_model_runtime_container_image_missing",
         "failureDiagnostics": null,
@@ -1197,7 +1416,20 @@
             "publicArtifactCreated": false,
             "signedUrlCreated": false
           },
-          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transformers --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transformers --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+          "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transformers --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transformers",
+          "requiredPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime"
+          ],
+          "blockedRuntimePrerequisites": [
+            "private output directory under .local-artifacts/ai-graphics",
+            "native CUDA-capable host with NVIDIA runtime proof",
+            "proof-local GPU worker container image or equivalent approved runtime",
+            "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
         "blockingReasonCode": "gpu_model_runtime_container_image_missing",
         "failureDiagnostics": null,
@@ -1275,7 +1507,24 @@
             "publicArtifactCreated": false,
             "signedUrlCreated": false
           },
-          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+          "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt>",
+          "requiredPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime",
+            "sourceImageLocalPath",
+            "sam2CheckpointLocalPath"
+          ],
+          "blockedRuntimePrerequisites": [
+            "private output directory under .local-artifacts/ai-graphics",
+            "native CUDA-capable host with NVIDIA runtime proof",
+            "private approved source image or frame local path",
+            "reviewed private model/checkpoint path with checksum evidence",
+            "proof-local GPU worker container image or equivalent approved runtime",
+            "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
         "blockingReasonCode": "gpu_model_runtime_container_image_missing",
         "failureDiagnostics": null,
@@ -1353,7 +1602,24 @@
             "publicArtifactCreated": false,
             "signedUrlCreated": false
           },
-          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+          "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model>",
+          "requiredPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime",
+            "sourceImageLocalPath",
+            "birefnetModelLocalPath"
+          ],
+          "blockedRuntimePrerequisites": [
+            "private output directory under .local-artifacts/ai-graphics",
+            "native CUDA-capable host with NVIDIA runtime proof",
+            "private approved source image or frame local path",
+            "reviewed private model/checkpoint path with checksum evidence",
+            "proof-local GPU worker container image or equivalent approved runtime",
+            "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
         "blockingReasonCode": "gpu_model_runtime_container_image_missing",
         "failureDiagnostics": null,
@@ -1431,7 +1697,24 @@
             "publicArtifactCreated": false,
             "signedUrlCreated": false
           },
-          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+          "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth>",
+          "requiredPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime",
+            "sourceImageLocalPath",
+            "realEsrganModelLocalPath"
+          ],
+          "blockedRuntimePrerequisites": [
+            "private output directory under .local-artifacts/ai-graphics",
+            "native CUDA-capable host with NVIDIA runtime proof",
+            "private approved source image or frame local path",
+            "reviewed private model/checkpoint path with checksum evidence",
+            "proof-local GPU worker container image or equivalent approved runtime",
+            "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
         "blockingReasonCode": "gpu_model_runtime_container_image_missing",
         "failureDiagnostics": null,
@@ -1507,7 +1790,22 @@
             "publicArtifactCreated": false,
             "signedUrlCreated": false
           },
-          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image <private-approved-frame.png> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image <private-approved-frame.png> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+          "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image <private-approved-frame.png>",
+          "requiredPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime",
+            "sourceImageLocalPath"
+          ],
+          "blockedRuntimePrerequisites": [
+            "private output directory under .local-artifacts/ai-graphics",
+            "native CUDA-capable host with NVIDIA runtime proof",
+            "private approved source image or frame local path",
+            "proof-local GPU worker container image or equivalent approved runtime",
+            "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
         "blockingReasonCode": "gpu_model_runtime_container_image_missing",
         "failureDiagnostics": null,
@@ -1585,7 +1883,24 @@
             "publicArtifactCreated": false,
             "signedUrlCreated": false
           },
-          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool rembg --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-rembg-model <private-rembg-model.onnx> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool rembg --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-rembg-model <private-rembg-model.onnx> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+          "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool rembg --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-rembg-model <private-rembg-model.onnx>",
+          "requiredPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime",
+            "sourceImageLocalPath",
+            "rembgModelLocalPath"
+          ],
+          "blockedRuntimePrerequisites": [
+            "private output directory under .local-artifacts/ai-graphics",
+            "native CUDA-capable host with NVIDIA runtime proof",
+            "private approved source image or frame local path",
+            "reviewed private model/checkpoint path with checksum evidence",
+            "proof-local GPU worker container image or equivalent approved runtime",
+            "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
         "blockingReasonCode": "gpu_model_runtime_container_image_missing",
         "failureDiagnostics": null,
@@ -1663,7 +1978,24 @@
             "publicArtifactCreated": false,
             "signedUrlCreated": false
           },
-          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transparent_background --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-transparent-background-checkpoint <private-transparent-background-checkpoint.pth> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass."
+          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the scoped CUDA/local input proof before retrying execution: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transparent_background --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-transparent-background-checkpoint <private-transparent-background-checkpoint.pth> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+          "nextExternalAgentCommandKind": "scoped_gpu_model_local_dev_runtime_proof",
+          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool transparent_background --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/transparent_background --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-transparent-background-checkpoint <private-transparent-background-checkpoint.pth>",
+          "requiredPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime",
+            "sourceImageLocalPath",
+            "transparentBackgroundCheckpointLocalPath"
+          ],
+          "blockedRuntimePrerequisites": [
+            "private output directory under .local-artifacts/ai-graphics",
+            "native CUDA-capable host with NVIDIA runtime proof",
+            "private approved source image or frame local path",
+            "reviewed private model/checkpoint path with checksum evidence",
+            "proof-local GPU worker container image or equivalent approved runtime",
+            "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
         "blockingReasonCode": "gpu_model_runtime_container_image_missing",
         "failureDiagnostics": null,

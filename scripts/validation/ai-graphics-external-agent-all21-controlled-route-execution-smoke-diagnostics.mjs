@@ -57,6 +57,46 @@ const sourceImageRequiredGpuModelTools = new Set([
   'transparent_background',
 ])
 
+const expectedGpuPrivateInputKeys = {
+  torch_torchvision: ['outputDirectory', 'nativeCudaRuntime'],
+  transformers: ['outputDirectory', 'nativeCudaRuntime'],
+  sam2: [
+    'outputDirectory',
+    'nativeCudaRuntime',
+    'sourceImageLocalPath',
+    'sam2CheckpointLocalPath',
+  ],
+  birefnet: [
+    'outputDirectory',
+    'nativeCudaRuntime',
+    'sourceImageLocalPath',
+    'birefnetModelLocalPath',
+  ],
+  real_esrgan: [
+    'outputDirectory',
+    'nativeCudaRuntime',
+    'sourceImageLocalPath',
+    'realEsrganModelLocalPath',
+  ],
+  kornia: [
+    'outputDirectory',
+    'nativeCudaRuntime',
+    'sourceImageLocalPath',
+  ],
+  rembg: [
+    'outputDirectory',
+    'nativeCudaRuntime',
+    'sourceImageLocalPath',
+    'rembgModelLocalPath',
+  ],
+  transparent_background: [
+    'outputDirectory',
+    'nativeCudaRuntime',
+    'sourceImageLocalPath',
+    'transparentBackgroundCheckpointLocalPath',
+  ],
+}
+
 const requiredFiles = [
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
   'server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts',
@@ -138,6 +178,61 @@ function expectedGroup(toolId) {
   if (browserRuntimeTools.includes(toolId)) return 'browser_runtime'
   if (gpuModelTools.includes(toolId)) return 'gpu_model'
   return null
+}
+
+function checkGpuStructuredProofFields(label, toolId, normalized) {
+  if (
+    normalized.nextExternalAgentCommandKind !==
+    'scoped_gpu_model_local_dev_runtime_proof'
+  ) {
+    fail(`${label}_${toolId}_gpu_command_kind_mismatch`)
+  }
+  const command = normalized.nextExternalAgentCommand
+  if (typeof command !== 'string') {
+    fail(`${label}_${toolId}_gpu_missing_exact_command`)
+  } else {
+    for (const requiredFragment of [
+      'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
+      `--scoped-gpu-tool ${toolId}`,
+      '--scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
+      '--scoped-gpu-runtime-container-platform linux/amd64',
+      `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
+    ]) {
+      if (!command.includes(requiredFragment)) {
+        fail(`${label}_${toolId}_gpu_exact_command_missing_fragment:${requiredFragment}`)
+      }
+    }
+  }
+  if (
+    normalized.gpuRuntimeStartPolicy !==
+    'on_demand_only_for_scoped_active_tool_call'
+  ) {
+    fail(`${label}_${toolId}_gpu_runtime_start_policy_mismatch`)
+  }
+  const inputKeys = normalized.requiredPrivateInputKeys
+  if (!Array.isArray(inputKeys)) {
+    fail(`${label}_${toolId}_gpu_required_private_input_keys_missing`)
+  } else {
+    for (const key of expectedGpuPrivateInputKeys[toolId] ?? []) {
+      if (!inputKeys.includes(key)) {
+        fail(`${label}_${toolId}_gpu_required_private_input_key_missing:${key}`)
+      }
+    }
+  }
+  const prerequisites = normalized.blockedRuntimePrerequisites
+  if (!Array.isArray(prerequisites)) {
+    fail(`${label}_${toolId}_gpu_blocked_prerequisites_missing`)
+  } else {
+    for (const fragment of [
+      'CUDA',
+      'proof-local GPU worker container image',
+      'no public artifact',
+    ]) {
+      if (!prerequisites.some((item) => String(item).includes(fragment))) {
+        fail(`${label}_${toolId}_gpu_prerequisite_missing:${fragment}`)
+      }
+    }
+  }
 }
 
 function checkReport(label, report) {
@@ -314,6 +409,7 @@ function checkReport(label, report) {
         fail(`${label}_${toolId}_gpu_next_action_missing_fragment:${requiredFragment}`)
       }
     }
+    checkGpuStructuredProofFields(label, toolId, row.externalAgentToolCallResult)
     if (!row.blockingReasonCode) {
       fail(`${label}_${toolId}_gpu_missing_blocking_reason`)
     }
@@ -462,6 +558,11 @@ function checkReport(label, report) {
     ) {
       fail(`${label}_scoped_attempt_normalized_state_mismatch`)
     }
+    checkGpuStructuredProofFields(
+      `${label}_scoped_attempt`,
+      scopedAttempt.requestedToolId,
+      scopedResult.externalAgentToolCallResult ?? {},
+    )
     if (scopedResult.blockingReasonCode !== 'gpu_model_runtime_container_image_missing') {
       fail(`${label}_scoped_attempt_block_code_mismatch:${scopedResult.blockingReasonCode}`)
     }
@@ -558,6 +659,11 @@ function checkReport(label, report) {
     ) {
       fail(`${label}_${toolId}_scoped_normalized_state_mismatch`)
     }
+    checkGpuStructuredProofFields(
+      `${label}_${toolId}_scoped`,
+      toolId,
+      scopedResult.externalAgentToolCallResult ?? {},
+    )
     if (scopedResult.blockingReasonCode !== 'gpu_model_runtime_container_image_missing') {
       fail(`${label}_${toolId}_scoped_block_code_mismatch:${scopedResult.blockingReasonCode}`)
     }

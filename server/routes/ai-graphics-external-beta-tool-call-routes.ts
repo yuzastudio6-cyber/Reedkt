@@ -235,6 +235,11 @@ interface AiGraphicsExternalAgentToolCallResultInput {
   publicArtifactCreated?: boolean
   signedUrlCreated?: boolean
   nextExternalAgentAction?: string | null
+  nextExternalAgentCommandKind?: string | null
+  nextExternalAgentCommand?: string | null
+  requiredPrivateInputKeys?: string[]
+  blockedRuntimePrerequisites?: string[]
+  gpuRuntimeStartPolicy?: string | null
 }
 
 export function buildAiGraphicsExternalAgentToolCallResult(
@@ -275,6 +280,12 @@ export function buildAiGraphicsExternalAgentToolCallResult(
       signedUrlCreated: input.signedUrlCreated === true,
     },
     nextExternalAgentAction: input.nextExternalAgentAction ?? null,
+    nextExternalAgentCommandKind:
+      input.nextExternalAgentCommandKind ?? null,
+    nextExternalAgentCommand: input.nextExternalAgentCommand ?? null,
+    requiredPrivateInputKeys: input.requiredPrivateInputKeys ?? [],
+    blockedRuntimePrerequisites: input.blockedRuntimePrerequisites ?? [],
+    gpuRuntimeStartPolicy: input.gpuRuntimeStartPolicy ?? null,
   }
 }
 
@@ -314,6 +325,59 @@ function exactGpuModelScopedRouteProofCommand(toolId: string): string {
     `--scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
     ...gpuModelScopedRuntimeProofFlags(toolId),
   ].join(' ')
+}
+
+function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
+  return [
+    'outputDirectory',
+    'nativeCudaRuntime',
+    gpuModelRequiresSourceImage(toolId) ? 'sourceImageLocalPath' : '',
+    toolId === 'sam2' ? 'sam2CheckpointLocalPath' : '',
+    toolId === 'birefnet' ? 'birefnetModelLocalPath' : '',
+    toolId === 'real_esrgan' ? 'realEsrganModelLocalPath' : '',
+    toolId === 'rembg' ? 'rembgModelLocalPath' : '',
+    toolId === 'transparent_background'
+      ? 'transparentBackgroundCheckpointLocalPath'
+      : '',
+  ].filter(Boolean)
+}
+
+function gpuModelBlockedRuntimePrerequisites(toolId: string): string[] {
+  return [
+    'private output directory under .local-artifacts/ai-graphics',
+    'native CUDA-capable host with NVIDIA runtime proof',
+    gpuModelRequiresSourceImage(toolId)
+      ? 'private approved source image or frame local path'
+      : '',
+    aiGraphicsModelWeightManifestRequiredToolIds.has(toolId)
+      ? 'reviewed private model/checkpoint path with checksum evidence'
+      : '',
+    'proof-local GPU worker container image or equivalent approved runtime',
+    'no public artifact, signed URL, provider call, beta, or production unlock',
+  ].filter(Boolean)
+}
+
+function gpuModelExternalAgentProofFields(input: {
+  toolId: string
+  executionPassed: boolean
+}) {
+  return {
+    nextExternalAgentCommandKind: input.executionPassed
+      ? null
+      : 'scoped_gpu_model_local_dev_runtime_proof',
+    nextExternalAgentCommand: input.executionPassed
+      ? null
+      : exactGpuModelScopedRouteProofCommand(input.toolId),
+    requiredPrivateInputKeys: input.executionPassed
+      ? []
+      : gpuModelRequiredPrivateInputKeys(input.toolId),
+    blockedRuntimePrerequisites: input.executionPassed
+      ? []
+      : gpuModelBlockedRuntimePrerequisites(input.toolId),
+    gpuRuntimeStartPolicy: input.executionPassed
+      ? 'gpu_started_only_for_completed_scoped_tool_call'
+      : 'on_demand_only_for_scoped_active_tool_call',
+  }
 }
 
 function gpuModelNextExternalAgentAction(input: {
@@ -955,6 +1019,10 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
   const nextExternalAgentAction = runtimeJobAdmissionReadyWithProvidedEvidence
     ? 'wait_for_live_worker_enqueue_authorization_or_submit_to_approved_worker_lane'
     : gpuModelUnblockPlan.nextExternalAgentAction
+  const gpuModelProofFields = gpuModelExternalAgentProofFields({
+    toolId: request.toolId,
+    executionPassed: false,
+  })
   const missingPrivateModelWeightEvidence = missingRuntimeProofGates.length === 0
     ? []
     : [
@@ -991,6 +1059,15 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
     gpuModelExternalBetaReadinessBlocker: gpuModelUnblockPlan.status,
     gpuModelAdmissionEvidenceState,
     nextExternalAgentAction,
+    nextExternalAgentCommandKind:
+      gpuModelProofFields.nextExternalAgentCommandKind,
+    nextExternalAgentCommand:
+      gpuModelProofFields.nextExternalAgentCommand,
+    requiredPrivateInputKeys:
+      gpuModelProofFields.requiredPrivateInputKeys,
+    blockedRuntimePrerequisites:
+      gpuModelProofFields.blockedRuntimePrerequisites,
+    gpuRuntimeStartPolicy: gpuModelProofFields.gpuRuntimeStartPolicy,
     modelWeightPrivateEvidenceRequired:
       gpuModelUnblockPlan.modelWeightPrivateEvidenceRequired,
     modelWeightPrivateEvidenceAccepted: modelWeightManifestRefAccepted,
@@ -1029,6 +1106,7 @@ export function buildAiGraphicsExternalBetaToolCallGpuModelRuntimeAdmissionBlock
       gpuRuntimeShouldStartNow: false,
       privateArtifactManifestRef: request.privateArtifactManifestRef,
       nextExternalAgentAction,
+      ...gpuModelProofFields,
     }),
     nextRequiredProofs: [
       'collect reviewed private checksum evidence for model-weight tools',
@@ -1962,6 +2040,10 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
         gpuModelExecutionState === 'blocked_with_reason'
       const gpuModelFailedWithDiagnostics =
         gpuModelExecutionState === 'failed_with_diagnostics'
+      const gpuModelProofFields = gpuModelExternalAgentProofFields({
+        toolId: body.toolId,
+        executionPassed: gpuModelExecutionPassed,
+      })
       sendOk(response, {
         routeDecision:
           'ai_graphics_external_beta_tool_call_route_gpu_model_controlled_execution_accepted',
@@ -1999,6 +2081,7 @@ export function createAiGraphicsExternalBetaToolCallRoutes(): Router {
             executionPassed: gpuModelExecutionPassed,
             blockingReasonCode: execution.blockingReasonCode,
           }),
+          ...gpuModelProofFields,
         }),
         routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
         routeFlag:

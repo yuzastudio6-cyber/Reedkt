@@ -78,14 +78,61 @@ export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_REQUIRED_FUTURE_MIDDLEWAR
   'killSwitch',
 ] as const
 
-const AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_IMAGE =
+const AI_GRAPHICS_CANONICAL_GPU_WORKER_RUNTIME_CONTAINER_IMAGE =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
 
 const AI_GRAPHICS_GPU_MODEL_PRIVATE_INPUT_PREFLIGHT_ACCEPTED_BLOCKING_REASON =
   'gpu_model_private_inputs_accepted_runtime_proof_not_requested'
 
-const AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_BUILD_COMMAND =
-  `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_IMAGE} .`
+const aiGraphicsGpuModelRuntimeContainerTargets: Record<
+  string,
+  {
+    image: string
+    dockerfile: string
+    profile: string
+  }
+> = {
+  torch_torchvision: {
+    image: AI_GRAPHICS_CANONICAL_GPU_WORKER_RUNTIME_CONTAINER_IMAGE,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  transformers: {
+    image: AI_GRAPHICS_CANONICAL_GPU_WORKER_RUNTIME_CONTAINER_IMAGE,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  sam2: {
+    image: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+    dockerfile: 'docker/prod/sam2-runtime/Dockerfile',
+    profile: 'sam2',
+  },
+  birefnet: {
+    image: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+    dockerfile: 'docker/prod/birefnet-runtime/Dockerfile',
+    profile: 'birefnet',
+  },
+  real_esrgan: {
+    image: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+    dockerfile: 'docker/prod/real-esrgan-runtime/Dockerfile',
+    profile: 'real_esrgan',
+  },
+  kornia: {
+    image: AI_GRAPHICS_CANONICAL_GPU_WORKER_RUNTIME_CONTAINER_IMAGE,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  rembg: {
+    image: AI_GRAPHICS_CANONICAL_GPU_WORKER_RUNTIME_CONTAINER_IMAGE,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  transparent_background: {
+    image: AI_GRAPHICS_CANONICAL_GPU_WORKER_RUNTIME_CONTAINER_IMAGE,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+}
 
 const aiGraphicsToolIdSchema = z.enum([
   'torch_torchvision',
@@ -422,6 +469,27 @@ function preferredCpuFoundationRuntimeForTool(toolId: string): boolean {
   return toolId === 'torch_torchvision' || toolId === 'transformers'
 }
 
+function aiGraphicsGpuModelRuntimeContainerTarget(toolId: string) {
+  return aiGraphicsGpuModelRuntimeContainerTargets[toolId] ??
+    aiGraphicsGpuModelRuntimeContainerTargets.torch_torchvision
+}
+
+function aiGraphicsGpuModelRuntimeContainerImage(toolId: string): string {
+  return aiGraphicsGpuModelRuntimeContainerTarget(toolId).image
+}
+
+function aiGraphicsGpuModelRuntimeContainerBuildCommand(toolId: string): string {
+  const target = aiGraphicsGpuModelRuntimeContainerTarget(toolId)
+  return [
+    'docker buildx build',
+    '--platform linux/amd64',
+    '--target ai_graphics_install_proof',
+    `-f ${target.dockerfile}`,
+    `-t ${target.image}`,
+    '.',
+  ].join(' ')
+}
+
 function exactGpuModelScopedRouteProofCommand(
   toolId: string,
   options?: {
@@ -452,7 +520,7 @@ function exactGpuModelScopedRouteProofCommand(
   return [
     'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke --',
     `--scoped-gpu-tool ${toolId}`,
-    `--scoped-gpu-runtime-container-image ${AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_IMAGE}`,
+    `--scoped-gpu-runtime-container-image ${aiGraphicsGpuModelRuntimeContainerImage(toolId)}`,
     '--scoped-gpu-runtime-container-platform linux/amd64',
     `--scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
     ...gpuModelScopedRuntimeProofFlags(toolId),
@@ -502,7 +570,7 @@ function exactGpuModelPrivateProofSequenceCommand(
         ]
       : [
           '--runtime-backend docker_container',
-          `--runtime-container-image ${AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_IMAGE}`,
+          `--runtime-container-image ${aiGraphicsGpuModelRuntimeContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]),
     `--tool ${toolId}`,
@@ -673,7 +741,7 @@ function gpuModelBlockedRuntimePrerequisites(
     aiGraphicsModelWeightManifestRequiredToolIds.has(toolId)
       ? 'reviewed private model/checkpoint path with checksum evidence'
       : '',
-    'proof-local GPU worker container image or equivalent approved runtime',
+    'proof-local tool-specific runtime container image or equivalent approved runtime',
     'no public artifact, signed URL, provider call, beta, or production unlock',
   ].filter(Boolean)
 }
@@ -786,7 +854,7 @@ function gpuModelNextExternalAgentAction(input: {
       ? (allowCpuTensorRuntime
         ? 'python runtime must import torch, PIL, numpy, and kornia with private local input/output paths'
         : 'python runtime must import torch and the package-specific foundation module with private local output paths')
-      : AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_BUILD_COMMAND,
+      : aiGraphicsGpuModelRuntimeContainerBuildCommand(input.toolId),
     'run the private proof sequence before retrying route execution:',
     privateProofSequenceCommand,
     'after accepted private proof exists, retry the controlled route with:',

@@ -29,8 +29,21 @@ const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json'
 const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.md'
-const canonicalGpuModelRuntimeContainerImage =
+const canonicalGpuWorkerRuntimeContainerImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
+const gpuModelRuntimeContainerImageByTool: Record<
+  AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  string
+> = {
+  torch_torchvision: canonicalGpuWorkerRuntimeContainerImage,
+  transformers: canonicalGpuWorkerRuntimeContainerImage,
+  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+  real_esrgan: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+  kornia: canonicalGpuWorkerRuntimeContainerImage,
+  rembg: canonicalGpuWorkerRuntimeContainerImage,
+  transparent_background: canonicalGpuWorkerRuntimeContainerImage,
+}
 const defaultScopedGpuModelPrivateOutputRoot =
   '.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke'
 
@@ -146,6 +159,7 @@ interface ScopedGpuModelLocalDevRouteAttempt {
 interface ScopedGpuModelLocalDevRouteAttemptOptions {
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
+  useToolSpecificRuntimeImages?: boolean
   privateInputPreflightOnly?: boolean
   allowCpuTensorRuntime?: boolean
   allowCpuFoundationRuntime?: boolean
@@ -412,6 +426,12 @@ function gpuModelAllowsCpuTensorRuntime(
   return toolId === 'kornia'
 }
 
+function gpuModelRuntimeContainerImage(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string {
+  return gpuModelRuntimeContainerImageByTool[toolId]
+}
+
 function gpuModelPrefersCpuTensorRuntime(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 ): boolean {
@@ -586,7 +606,7 @@ function scopedGpuModelCommand(
   const parts = [
     'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke --',
     `--scoped-gpu-tool ${toolId}`,
-    `--scoped-gpu-runtime-container-image ${options.runtimeContainerImage ?? canonicalGpuModelRuntimeContainerImage}`,
+    `--scoped-gpu-runtime-container-image ${options.runtimeContainerImage ?? gpuModelRuntimeContainerImage(toolId)}`,
     `--scoped-gpu-runtime-container-platform ${options.runtimeContainerPlatform ?? 'linux/amd64'}`,
     allowCpuTensorRuntime
       ? '--scoped-gpu-allow-cpu-tensor-runtime'
@@ -860,7 +880,7 @@ function buildScopedGpuModelLocalDevRouteAttempt(
       : 'POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route. The request includes explicit private local input/output paths and runtimeExecutionBackend=docker_container, but intentionally omits runtimeContainerImage so the route proves payload forwarding into the GPU/model adapter while blocking before any GPU startup or model execution.',
     requestedToolId: toolId,
     requestedRuntimeBackend: 'docker_container',
-    canonicalRuntimeContainerImage: canonicalGpuModelRuntimeContainerImage,
+    canonicalRuntimeContainerImage: gpuModelRuntimeContainerImage(toolId),
     requestedRuntimeContainerImage: runtimeContainerImage,
     requestedRuntimeContainerPlatform: options.runtimeContainerPlatform ?? null,
     runtimeContainerImageProvided,
@@ -1535,6 +1555,8 @@ async function main() {
     runtimeContainerImage: stringArg('--scoped-gpu-runtime-container-image'),
     runtimeContainerPlatform:
       stringArg('--scoped-gpu-runtime-container-platform'),
+    useToolSpecificRuntimeImages:
+      hasFlag('--scoped-gpu-use-tool-specific-runtime-images'),
     allowCpuTensorRuntime:
       hasFlag('--scoped-gpu-allow-cpu-tensor-runtime'),
     allowCpuFoundationRuntime:
@@ -1575,6 +1597,14 @@ async function main() {
     async (baseUrl) => {
       const attempts: ScopedGpuModelLocalDevRouteAttempt[] = []
       for (const toolId of scopedGpuModelToolIds) {
+        const scopedOptions: ScopedGpuModelLocalDevRouteAttemptOptions = {
+          ...scopedGpuModelOptions,
+          runtimeContainerImage:
+            scopedGpuModelOptions.runtimeContainerImage ??
+            (scopedGpuModelOptions.useToolSpecificRuntimeImages
+              ? gpuModelRuntimeContainerImage(toolId)
+              : undefined),
+        }
         const sourceCase = cases.find((item) => item.toolId === toolId) ?? gpuCase
         const result = await runControlledCase(
           baseUrl,
@@ -1585,12 +1615,12 @@ async function main() {
               capabilityId: sourceCase.capabilityId,
             },
             toolId,
-            scopedGpuModelOptions,
+            scopedOptions,
           ),
         )
         attempts.push(buildScopedGpuModelLocalDevRouteAttempt(
           result,
-          scopedGpuModelOptions,
+          scopedOptions,
         ))
       }
       return attempts

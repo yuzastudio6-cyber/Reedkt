@@ -52,8 +52,14 @@
         "blockedRuntimePrerequisites": [
           "private output directory under .local-artifacts/ai-graphics",
           "local Python CPU foundation runtime with torch and package-specific imports",
-          "proof-local GPU worker container image or equivalent approved runtime",
+          "proof-local tool-specific runtime container image or equivalent approved runtime",
           "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "currentBlockingPrerequisiteKey": "attemptGpuRuntime",
+        "currentBlockingReasonCode": "foundation_runtime_disabled_or_not_local_dev",
+        "remainingPrivateInputKeys": [
+          "outputDirectory",
+          "pythonCpuFoundationRuntime"
         ],
         "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
@@ -115,8 +121,14 @@
         "blockedRuntimePrerequisites": [
           "private output directory under .local-artifacts/ai-graphics",
           "local Python CPU foundation runtime with torch and package-specific imports",
-          "proof-local GPU worker container image or equivalent approved runtime",
+          "proof-local tool-specific runtime container image or equivalent approved runtime",
           "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "currentBlockingPrerequisiteKey": "attemptGpuRuntime",
+        "currentBlockingReasonCode": "foundation_runtime_disabled_or_not_local_dev",
+        "remainingPrivateInputKeys": [
+          "outputDirectory",
+          "pythonCpuFoundationRuntime"
         ],
         "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
@@ -166,24 +178,34 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:sam2_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the private proof sequence before retrying route execution: npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --detect-host --require-host-eligible --require-accepted-proof after accepted private proof exists, retry the controlled route with: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+        "nextExternalAgentAction": "blocked_with_reason:sam2_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/sam2-runtime/Dockerfile -t reeditpro/ai-graphics-sam2-runtime:proof-local . run the private proof sequence before retrying route execution: npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --detect-host --require-host-eligible --require-accepted-proof after accepted private proof exists, retry the controlled route with: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
         "nextExternalAgentCommandKind": "gpu_model_private_proof_sequence",
-        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --detect-host --require-host-eligible --require-accepted-proof",
+        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --detect-host --require-host-eligible --require-accepted-proof",
         "nextExternalAgentRouteRetryCommandKind": "scoped_gpu_model_route_retry_after_private_proof",
-        "nextExternalAgentRouteRetryCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt>",
+        "nextExternalAgentRouteRetryCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt>",
         "requiredPrivateInputKeys": [
           "outputDirectory",
           "nativeCudaRuntime",
           "sourceImageLocalPath",
-          "sam2CheckpointLocalPath"
+          "sam2CheckpointLocalPath",
+          "modelWeightManifestEvidence"
         ],
         "blockedRuntimePrerequisites": [
           "private output directory under .local-artifacts/ai-graphics",
           "native CUDA-capable host with NVIDIA runtime proof",
           "private approved source image or frame local path",
           "reviewed private model/checkpoint path with checksum evidence",
-          "proof-local GPU worker container image or equivalent approved runtime",
+          "proof-local tool-specific runtime container image or equivalent approved runtime",
           "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "currentBlockingPrerequisiteKey": "attemptGpuRuntime",
+        "currentBlockingReasonCode": "sam2_disabled_or_not_local_dev",
+        "remainingPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath",
+          "sam2CheckpointLocalPath",
+          "modelWeightManifestEvidence"
         ],
         "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
@@ -233,24 +255,34 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:birefnet_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the private proof sequence before retrying route execution: npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model> --detect-host --require-host-eligible --require-accepted-proof after accepted private proof exists, retry the controlled route with: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+        "nextExternalAgentAction": "blocked_with_reason:birefnet_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/birefnet-runtime/Dockerfile -t reeditpro/ai-graphics-birefnet-runtime:proof-local . run the private proof sequence before retrying route execution: npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model> --detect-host --require-host-eligible --require-accepted-proof after accepted private proof exists, retry the controlled route with: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
         "nextExternalAgentCommandKind": "gpu_model_private_proof_sequence",
-        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model> --detect-host --require-host-eligible --require-accepted-proof",
+        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model> --detect-host --require-host-eligible --require-accepted-proof",
         "nextExternalAgentRouteRetryCommandKind": "scoped_gpu_model_route_retry_after_private_proof",
-        "nextExternalAgentRouteRetryCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model>",
+        "nextExternalAgentRouteRetryCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model>",
         "requiredPrivateInputKeys": [
           "outputDirectory",
           "nativeCudaRuntime",
           "sourceImageLocalPath",
-          "birefnetModelLocalPath"
+          "birefnetModelLocalPath",
+          "modelWeightManifestEvidence"
         ],
         "blockedRuntimePrerequisites": [
           "private output directory under .local-artifacts/ai-graphics",
           "native CUDA-capable host with NVIDIA runtime proof",
           "private approved source image or frame local path",
           "reviewed private model/checkpoint path with checksum evidence",
-          "proof-local GPU worker container image or equivalent approved runtime",
+          "proof-local tool-specific runtime container image or equivalent approved runtime",
           "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "currentBlockingPrerequisiteKey": "attemptGpuRuntime",
+        "currentBlockingReasonCode": "birefnet_disabled_or_not_local_dev",
+        "remainingPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath",
+          "birefnetModelLocalPath",
+          "modelWeightManifestEvidence"
         ],
         "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
@@ -300,24 +332,34 @@
           "publicArtifactCreated": false,
           "signedUrlCreated": false
         },
-        "nextExternalAgentAction": "blocked_with_reason:real_esrgan_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the private proof sequence before retrying route execution: npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan> --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --detect-host --require-host-eligible --require-accepted-proof after accepted private proof exists, retry the controlled route with: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+        "nextExternalAgentAction": "blocked_with_reason:real_esrgan_disabled_or_not_local_dev if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/real-esrgan-runtime/Dockerfile -t reeditpro/ai-graphics-real-esrgan-runtime:proof-local . run the private proof sequence before retrying route execution: npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan> --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --detect-host --require-host-eligible --require-accepted-proof after accepted private proof exists, retry the controlled route with: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
         "nextExternalAgentCommandKind": "gpu_model_private_proof_sequence",
-        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan> --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --detect-host --require-host-eligible --require-accepted-proof",
+        "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan> --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --detect-host --require-host-eligible --require-accepted-proof",
         "nextExternalAgentRouteRetryCommandKind": "scoped_gpu_model_route_retry_after_private_proof",
-        "nextExternalAgentRouteRetryCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth>",
+        "nextExternalAgentRouteRetryCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth>",
         "requiredPrivateInputKeys": [
           "outputDirectory",
           "nativeCudaRuntime",
           "sourceImageLocalPath",
-          "realEsrganModelLocalPath"
+          "realEsrganModelLocalPath",
+          "modelWeightManifestEvidence"
         ],
         "blockedRuntimePrerequisites": [
           "private output directory under .local-artifacts/ai-graphics",
           "native CUDA-capable host with NVIDIA runtime proof",
           "private approved source image or frame local path",
           "reviewed private model/checkpoint path with checksum evidence",
-          "proof-local GPU worker container image or equivalent approved runtime",
+          "proof-local tool-specific runtime container image or equivalent approved runtime",
           "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "currentBlockingPrerequisiteKey": "attemptGpuRuntime",
+        "currentBlockingReasonCode": "real_esrgan_disabled_or_not_local_dev",
+        "remainingPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath",
+          "realEsrganModelLocalPath",
+          "modelWeightManifestEvidence"
         ],
         "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
@@ -381,8 +423,15 @@
           "private output directory under .local-artifacts/ai-graphics",
           "local Python CPU tensor runtime with torch, PIL, numpy, and kornia",
           "private approved source image or frame local path",
-          "proof-local GPU worker container image or equivalent approved runtime",
+          "proof-local tool-specific runtime container image or equivalent approved runtime",
           "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "currentBlockingPrerequisiteKey": "attemptGpuRuntime",
+        "currentBlockingReasonCode": "kornia_disabled_or_not_local_dev",
+        "remainingPrivateInputKeys": [
+          "outputDirectory",
+          "pythonCpuTensorRuntime",
+          "sourceImageLocalPath"
         ],
         "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
@@ -441,15 +490,25 @@
           "outputDirectory",
           "nativeCudaRuntime",
           "sourceImageLocalPath",
-          "rembgModelLocalPath"
+          "rembgModelLocalPath",
+          "modelWeightManifestEvidence"
         ],
         "blockedRuntimePrerequisites": [
           "private output directory under .local-artifacts/ai-graphics",
           "native CUDA-capable host with NVIDIA runtime proof",
           "private approved source image or frame local path",
           "reviewed private model/checkpoint path with checksum evidence",
-          "proof-local GPU worker container image or equivalent approved runtime",
+          "proof-local tool-specific runtime container image or equivalent approved runtime",
           "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "currentBlockingPrerequisiteKey": "attemptGpuRuntime",
+        "currentBlockingReasonCode": "rembg_disabled_or_not_local_dev",
+        "remainingPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath",
+          "rembgModelLocalPath",
+          "modelWeightManifestEvidence"
         ],
         "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
@@ -508,15 +567,25 @@
           "outputDirectory",
           "nativeCudaRuntime",
           "sourceImageLocalPath",
-          "transparentBackgroundCheckpointLocalPath"
+          "transparentBackgroundCheckpointLocalPath",
+          "modelWeightManifestEvidence"
         ],
         "blockedRuntimePrerequisites": [
           "private output directory under .local-artifacts/ai-graphics",
           "native CUDA-capable host with NVIDIA runtime proof",
           "private approved source image or frame local path",
           "reviewed private model/checkpoint path with checksum evidence",
-          "proof-local GPU worker container image or equivalent approved runtime",
+          "proof-local tool-specific runtime container image or equivalent approved runtime",
           "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "currentBlockingPrerequisiteKey": "attemptGpuRuntime",
+        "currentBlockingReasonCode": "transparent_background_disabled_or_not_local_dev",
+        "remainingPrivateInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath",
+          "transparentBackgroundCheckpointLocalPath",
+          "modelWeightManifestEvidence"
         ],
         "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
@@ -573,6 +642,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -628,6 +700,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -683,6 +758,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -738,6 +816,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -793,6 +874,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -848,6 +932,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -903,6 +990,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -958,6 +1048,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -1013,6 +1106,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -1068,6 +1164,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -1123,6 +1222,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -1178,6 +1280,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -1233,6 +1338,9 @@
         "nextExternalAgentRouteRetryCommand": null,
         "requiredPrivateInputKeys": [],
         "blockedRuntimePrerequisites": [],
+        "currentBlockingPrerequisiteKey": null,
+        "currentBlockingReasonCode": null,
+        "remainingPrivateInputKeys": [],
         "gpuRuntimeStartPolicy": null
       },
       "blockingReasonCode": null,
@@ -1289,6 +1397,9 @@
       "nextExternalAgentRouteRetryCommand": null,
       "requiredPrivateInputKeys": [],
       "blockedRuntimePrerequisites": [],
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateInputKeys": [],
       "gpuRuntimeStartPolicy": null
     },
     "blockingReasonCode": null,
@@ -1374,8 +1485,15 @@
           "private output directory under .local-artifacts/ai-graphics",
           "local Python CPU tensor runtime with torch, PIL, numpy, and kornia",
           "private approved source image or frame local path",
-          "proof-local GPU worker container image or equivalent approved runtime",
+          "proof-local tool-specific runtime container image or equivalent approved runtime",
           "no public artifact, signed URL, provider call, beta, or production unlock"
+        ],
+        "currentBlockingPrerequisiteKey": "runtimeContainerImage",
+        "currentBlockingReasonCode": "gpu_model_runtime_container_image_missing",
+        "remainingPrivateInputKeys": [
+          "outputDirectory",
+          "pythonCpuTensorRuntime",
+          "sourceImageLocalPath"
         ],
         "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
       },
@@ -1467,8 +1585,14 @@
           "blockedRuntimePrerequisites": [
             "private output directory under .local-artifacts/ai-graphics",
             "local Python CPU foundation runtime with torch and package-specific imports",
-            "proof-local GPU worker container image or equivalent approved runtime",
+            "proof-local tool-specific runtime container image or equivalent approved runtime",
             "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "currentBlockingPrerequisiteKey": "runtimeContainerImage",
+          "currentBlockingReasonCode": "gpu_model_runtime_container_image_missing",
+          "remainingPrivateInputKeys": [
+            "outputDirectory",
+            "pythonCpuFoundationRuntime"
           ],
           "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
@@ -1559,8 +1683,14 @@
           "blockedRuntimePrerequisites": [
             "private output directory under .local-artifacts/ai-graphics",
             "local Python CPU foundation runtime with torch and package-specific imports",
-            "proof-local GPU worker container image or equivalent approved runtime",
+            "proof-local tool-specific runtime container image or equivalent approved runtime",
             "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "currentBlockingPrerequisiteKey": "runtimeContainerImage",
+          "currentBlockingReasonCode": "gpu_model_runtime_container_image_missing",
+          "remainingPrivateInputKeys": [
+            "outputDirectory",
+            "pythonCpuFoundationRuntime"
           ],
           "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
@@ -1598,7 +1728,7 @@
       "summary": "POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route. The request includes explicit private local input/output paths and runtimeExecutionBackend=docker_container, but intentionally omits runtimeContainerImage so the route proves payload forwarding into the GPU/model adapter while blocking before any GPU startup or model execution.",
       "requestedToolId": "sam2",
       "requestedRuntimeBackend": "docker_container",
-      "canonicalRuntimeContainerImage": "reeditpro/ai-graphics-gpu-worker:proof-local",
+      "canonicalRuntimeContainerImage": "reeditpro/ai-graphics-sam2-runtime:proof-local",
       "requestedRuntimeContainerImage": null,
       "requestedRuntimeContainerPlatform": null,
       "runtimeContainerImageProvided": false,
@@ -1607,7 +1737,7 @@
         "gpu_model_runtime_container_image_missing"
       ],
       "executableOnCudaHostWithPrivateInput": false,
-      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-approved-frame.ppm --scoped-gpu-sam2-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-sam2-checkpoint.pt",
+      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-approved-frame.ppm --scoped-gpu-sam2-checkpoint .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-sam2-checkpoint.pt",
       "privateOutputDirectory": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2",
       "privateSourceImageLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2/private-approved-frame.ppm",
       "privateRuntimeInputRefs": {
@@ -1641,24 +1771,34 @@
             "publicArtifactCreated": false,
             "signedUrlCreated": false
           },
-          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the private proof sequence before retrying route execution: npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --detect-host --require-host-eligible --require-accepted-proof after accepted private proof exists, retry the controlled route with: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/sam2-runtime/Dockerfile -t reeditpro/ai-graphics-sam2-runtime:proof-local . run the private proof sequence before retrying route execution: npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --detect-host --require-host-eligible --require-accepted-proof after accepted private proof exists, retry the controlled route with: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
           "nextExternalAgentCommandKind": "gpu_model_private_proof_sequence",
-          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --detect-host --require-host-eligible --require-accepted-proof",
+          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --detect-host --require-host-eligible --require-accepted-proof",
           "nextExternalAgentRouteRetryCommandKind": "scoped_gpu_model_route_retry_after_private_proof",
-          "nextExternalAgentRouteRetryCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt>",
+          "nextExternalAgentRouteRetryCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool sam2 --scoped-gpu-runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/sam2 --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt>",
           "requiredPrivateInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
             "sourceImageLocalPath",
-            "sam2CheckpointLocalPath"
+            "sam2CheckpointLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "blockedRuntimePrerequisites": [
             "private output directory under .local-artifacts/ai-graphics",
             "native CUDA-capable host with NVIDIA runtime proof",
             "private approved source image or frame local path",
             "reviewed private model/checkpoint path with checksum evidence",
-            "proof-local GPU worker container image or equivalent approved runtime",
+            "proof-local tool-specific runtime container image or equivalent approved runtime",
             "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "currentBlockingPrerequisiteKey": "runtimeContainerImage",
+          "currentBlockingReasonCode": "gpu_model_runtime_container_image_missing",
+          "remainingPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime",
+            "sourceImageLocalPath",
+            "sam2CheckpointLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
@@ -1696,7 +1836,7 @@
       "summary": "POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route. The request includes explicit private local input/output paths and runtimeExecutionBackend=docker_container, but intentionally omits runtimeContainerImage so the route proves payload forwarding into the GPU/model adapter while blocking before any GPU startup or model execution.",
       "requestedToolId": "birefnet",
       "requestedRuntimeBackend": "docker_container",
-      "canonicalRuntimeContainerImage": "reeditpro/ai-graphics-gpu-worker:proof-local",
+      "canonicalRuntimeContainerImage": "reeditpro/ai-graphics-birefnet-runtime:proof-local",
       "requestedRuntimeContainerImage": null,
       "requestedRuntimeContainerPlatform": null,
       "runtimeContainerImageProvided": false,
@@ -1705,7 +1845,7 @@
         "gpu_model_runtime_container_image_missing"
       ],
       "executableOnCudaHostWithPrivateInput": false,
-      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-approved-frame.ppm --scoped-gpu-birefnet-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-birefnet-model",
+      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-approved-frame.ppm --scoped-gpu-birefnet-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-birefnet-model",
       "privateOutputDirectory": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet",
       "privateSourceImageLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-approved-frame.ppm",
       "privateRuntimeInputRefs": {
@@ -1739,24 +1879,34 @@
             "publicArtifactCreated": false,
             "signedUrlCreated": false
           },
-          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the private proof sequence before retrying route execution: npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model> --detect-host --require-host-eligible --require-accepted-proof after accepted private proof exists, retry the controlled route with: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/birefnet-runtime/Dockerfile -t reeditpro/ai-graphics-birefnet-runtime:proof-local . run the private proof sequence before retrying route execution: npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model> --detect-host --require-host-eligible --require-accepted-proof after accepted private proof exists, retry the controlled route with: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
           "nextExternalAgentCommandKind": "gpu_model_private_proof_sequence",
-          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model> --detect-host --require-host-eligible --require-accepted-proof",
+          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model> --detect-host --require-host-eligible --require-accepted-proof",
           "nextExternalAgentRouteRetryCommandKind": "scoped_gpu_model_route_retry_after_private_proof",
-          "nextExternalAgentRouteRetryCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model>",
+          "nextExternalAgentRouteRetryCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-birefnet-model <private-birefnet-model>",
           "requiredPrivateInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
             "sourceImageLocalPath",
-            "birefnetModelLocalPath"
+            "birefnetModelLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "blockedRuntimePrerequisites": [
             "private output directory under .local-artifacts/ai-graphics",
             "native CUDA-capable host with NVIDIA runtime proof",
             "private approved source image or frame local path",
             "reviewed private model/checkpoint path with checksum evidence",
-            "proof-local GPU worker container image or equivalent approved runtime",
+            "proof-local tool-specific runtime container image or equivalent approved runtime",
             "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "currentBlockingPrerequisiteKey": "runtimeContainerImage",
+          "currentBlockingReasonCode": "gpu_model_runtime_container_image_missing",
+          "remainingPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime",
+            "sourceImageLocalPath",
+            "birefnetModelLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
@@ -1794,7 +1944,7 @@
       "summary": "POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route. The request includes explicit private local input/output paths and runtimeExecutionBackend=docker_container, but intentionally omits runtimeContainerImage so the route proves payload forwarding into the GPU/model adapter while blocking before any GPU startup or model execution.",
       "requestedToolId": "real_esrgan",
       "requestedRuntimeBackend": "docker_container",
-      "canonicalRuntimeContainerImage": "reeditpro/ai-graphics-gpu-worker:proof-local",
+      "canonicalRuntimeContainerImage": "reeditpro/ai-graphics-real-esrgan-runtime:proof-local",
       "requestedRuntimeContainerImage": null,
       "requestedRuntimeContainerPlatform": null,
       "runtimeContainerImageProvided": false,
@@ -1803,7 +1953,7 @@
         "gpu_model_runtime_container_image_missing"
       ],
       "executableOnCudaHostWithPrivateInput": false,
-      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-approved-frame.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-real-esrgan-model.pth",
+      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-approved-frame.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-real-esrgan-model.pth",
       "privateOutputDirectory": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan",
       "privateSourceImageLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-approved-frame.ppm",
       "privateRuntimeInputRefs": {
@@ -1837,24 +1987,34 @@
             "publicArtifactCreated": false,
             "signedUrlCreated": false
           },
-          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local . run the private proof sequence before retrying route execution: npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan> --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --detect-host --require-host-eligible --require-accepted-proof after accepted private proof exists, retry the controlled route with: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
+          "nextExternalAgentAction": "blocked_with_reason:gpu_model_runtime_container_image_missing if the proof-local image is missing, build the exact local proof image first: docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/real-esrgan-runtime/Dockerfile -t reeditpro/ai-graphics-real-esrgan-runtime:proof-local . run the private proof sequence before retrying route execution: npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan> --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --detect-host --require-host-eligible --require-accepted-proof after accepted private proof exists, retry the controlled route with: npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth> GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.",
           "nextExternalAgentCommandKind": "gpu_model_private_proof_sequence",
-          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan> --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --detect-host --require-host-eligible --require-accepted-proof",
+          "nextExternalAgentCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan> --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --detect-host --require-host-eligible --require-accepted-proof",
           "nextExternalAgentRouteRetryCommandKind": "scoped_gpu_model_route_retry_after_private_proof",
-          "nextExternalAgentRouteRetryCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth>",
+          "nextExternalAgentRouteRetryCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-source-image <private-approved-frame.png> --scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth>",
           "requiredPrivateInputKeys": [
             "outputDirectory",
             "nativeCudaRuntime",
             "sourceImageLocalPath",
-            "realEsrganModelLocalPath"
+            "realEsrganModelLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "blockedRuntimePrerequisites": [
             "private output directory under .local-artifacts/ai-graphics",
             "native CUDA-capable host with NVIDIA runtime proof",
             "private approved source image or frame local path",
             "reviewed private model/checkpoint path with checksum evidence",
-            "proof-local GPU worker container image or equivalent approved runtime",
+            "proof-local tool-specific runtime container image or equivalent approved runtime",
             "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "currentBlockingPrerequisiteKey": "runtimeContainerImage",
+          "currentBlockingReasonCode": "gpu_model_runtime_container_image_missing",
+          "remainingPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime",
+            "sourceImageLocalPath",
+            "realEsrganModelLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
@@ -1947,8 +2107,15 @@
             "private output directory under .local-artifacts/ai-graphics",
             "local Python CPU tensor runtime with torch, PIL, numpy, and kornia",
             "private approved source image or frame local path",
-            "proof-local GPU worker container image or equivalent approved runtime",
+            "proof-local tool-specific runtime container image or equivalent approved runtime",
             "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "currentBlockingPrerequisiteKey": "runtimeContainerImage",
+          "currentBlockingReasonCode": "gpu_model_runtime_container_image_missing",
+          "remainingPrivateInputKeys": [
+            "outputDirectory",
+            "pythonCpuTensorRuntime",
+            "sourceImageLocalPath"
           ],
           "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
@@ -2038,15 +2205,25 @@
             "outputDirectory",
             "nativeCudaRuntime",
             "sourceImageLocalPath",
-            "rembgModelLocalPath"
+            "rembgModelLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "blockedRuntimePrerequisites": [
             "private output directory under .local-artifacts/ai-graphics",
             "native CUDA-capable host with NVIDIA runtime proof",
             "private approved source image or frame local path",
             "reviewed private model/checkpoint path with checksum evidence",
-            "proof-local GPU worker container image or equivalent approved runtime",
+            "proof-local tool-specific runtime container image or equivalent approved runtime",
             "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "currentBlockingPrerequisiteKey": "runtimeContainerImage",
+          "currentBlockingReasonCode": "gpu_model_runtime_container_image_missing",
+          "remainingPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime",
+            "sourceImageLocalPath",
+            "rembgModelLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },
@@ -2136,15 +2313,25 @@
             "outputDirectory",
             "nativeCudaRuntime",
             "sourceImageLocalPath",
-            "transparentBackgroundCheckpointLocalPath"
+            "transparentBackgroundCheckpointLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "blockedRuntimePrerequisites": [
             "private output directory under .local-artifacts/ai-graphics",
             "native CUDA-capable host with NVIDIA runtime proof",
             "private approved source image or frame local path",
             "reviewed private model/checkpoint path with checksum evidence",
-            "proof-local GPU worker container image or equivalent approved runtime",
+            "proof-local tool-specific runtime container image or equivalent approved runtime",
             "no public artifact, signed URL, provider call, beta, or production unlock"
+          ],
+          "currentBlockingPrerequisiteKey": "runtimeContainerImage",
+          "currentBlockingReasonCode": "gpu_model_runtime_container_image_missing",
+          "remainingPrivateInputKeys": [
+            "outputDirectory",
+            "nativeCudaRuntime",
+            "sourceImageLocalPath",
+            "transparentBackgroundCheckpointLocalPath",
+            "modelWeightManifestEvidence"
           ],
           "gpuRuntimeStartPolicy": "on_demand_only_for_scoped_active_tool_call"
         },

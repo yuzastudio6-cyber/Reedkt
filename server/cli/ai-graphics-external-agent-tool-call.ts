@@ -31,8 +31,57 @@ const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-single-tool-call.json'
 const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-agent-single-tool-call.md'
-const canonicalGpuModelRuntimeContainerImage =
+const canonicalGpuWorkerRuntimeContainerImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
+const gpuModelRuntimeContainerTargets: Record<
+  AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  {
+    image: string
+    dockerfile: string
+    profile: string
+  }
+> = {
+  torch_torchvision: {
+    image: canonicalGpuWorkerRuntimeContainerImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  transformers: {
+    image: canonicalGpuWorkerRuntimeContainerImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  sam2: {
+    image: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+    dockerfile: 'docker/prod/sam2-runtime/Dockerfile',
+    profile: 'sam2',
+  },
+  birefnet: {
+    image: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+    dockerfile: 'docker/prod/birefnet-runtime/Dockerfile',
+    profile: 'birefnet',
+  },
+  real_esrgan: {
+    image: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+    dockerfile: 'docker/prod/real-esrgan-runtime/Dockerfile',
+    profile: 'real_esrgan',
+  },
+  kornia: {
+    image: canonicalGpuWorkerRuntimeContainerImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  rembg: {
+    image: canonicalGpuWorkerRuntimeContainerImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  transparent_background: {
+    image: canonicalGpuWorkerRuntimeContainerImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+}
 const gpuModelPrivateInputPreflightAcceptedBlockingReason =
   'gpu_model_private_inputs_accepted_runtime_proof_not_requested'
 const allowedCapabilityIds = [
@@ -401,6 +450,16 @@ function gpuModelAllowsCpuTensorRuntime(toolId: string): boolean {
   return toolId === 'kornia'
 }
 
+function gpuModelRuntimeContainerTarget(toolId: string) {
+  return gpuModelRuntimeContainerTargets[
+    toolId as AiGraphicsExternalAgentGpuModelControlledAdapterToolId
+  ] ?? gpuModelRuntimeContainerTargets.torch_torchvision
+}
+
+function gpuModelRuntimeContainerImage(toolId: string): string {
+  return gpuModelRuntimeContainerTarget(toolId).image
+}
+
 function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
   const keys = [
     'outputDirectory',
@@ -543,7 +602,7 @@ function gpuModelBlockedPrerequisites(toolId: string): string[] {
       : gpuModelAllowsCpuFoundationRuntime(toolId)
       ? 'approved local Python CPU foundation runtime with torch and package-specific imports'
       : 'approved native CUDA-capable host or approved linux/amd64 Docker GPU runtime',
-    'proof-local GPU worker container image built locally',
+    'proof-local tool-specific runtime container image built locally',
     'private output directory under .local-artifacts/',
     'no public artifact, signed URL, provider call, model download, beta unlock, or production unlock',
   ]
@@ -564,13 +623,14 @@ function gpuModelHostPreflightCommand(): string {
   return 'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host'
 }
 
-function gpuModelContainerBuildCommand(): string {
+function gpuModelContainerBuildCommand(toolId: string): string {
+  const target = gpuModelRuntimeContainerTarget(toolId)
   return [
     'docker buildx build',
     '--platform linux/amd64',
     '--target ai_graphics_install_proof',
-    '-f docker/prod/gpu-worker/Dockerfile',
-    `-t ${canonicalGpuModelRuntimeContainerImage}`,
+    `-f ${target.dockerfile}`,
+    `-t ${target.image}`,
     '.',
   ].join(' ')
 }
@@ -590,7 +650,7 @@ function gpuModelScopedToolCallCommand(toolId: string): string {
     ...(cpuRuntimePreferred
       ? []
       : [
-          `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+          `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]),
     `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/${toolId}`,
@@ -618,7 +678,7 @@ function gpuModelScopedToolCallManifestCommand(toolId: string): string {
     ...(cpuRuntimePreferred
       ? []
       : [
-          `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+          `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]),
     `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/${toolId}`,
@@ -709,7 +769,7 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
         : !hasFlag('--no-runtime-container-gpu')
     payload.runtimeContainerImage =
       stringArg('--runtime-container-image') ??
-      canonicalGpuModelRuntimeContainerImage
+      gpuModelRuntimeContainerImage(toolId)
     payload.runtimeContainerPlatform =
       stringArg('--runtime-container-platform') ?? 'linux/amd64'
   }
@@ -793,7 +853,7 @@ function unsafeRoutePayloadForGpuModelTool(
     noIdleGpuRuntimeApproved: true,
     runtimeExecutionBackend: 'docker_container',
     runtimeContainerGpu: true,
-    runtimeContainerImage: canonicalGpuModelRuntimeContainerImage,
+    runtimeContainerImage: gpuModelRuntimeContainerImage(toolId),
     runtimeContainerPlatform: 'linux/amd64',
     outputDirectory:
       '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/unsafe-route-payload',
@@ -891,7 +951,7 @@ function nextActionForReport(input: {
           ? requiredPrivateInputKeys.filter((key) => key !== currentBlockingPrerequisiteKey)
           : requiredPrivateInputKeys),
       nextExactGpuHostPreflightCommand: gpuModelHostPreflightCommand(),
-      nextExactGpuContainerBuildCommand: gpuModelContainerBuildCommand(),
+      nextExactGpuContainerBuildCommand: gpuModelContainerBuildCommand(input.toolId),
       nextExactScopedToolCallCommand: gpuModelScopedToolCallCommand(input.toolId),
       nextExactScopedToolCallManifestCommand:
         gpuModelScopedToolCallManifestCommand(input.toolId),

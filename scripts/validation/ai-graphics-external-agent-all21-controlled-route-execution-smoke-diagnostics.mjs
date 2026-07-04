@@ -15,10 +15,34 @@ const diagnosticScriptName =
   'ai-graphics:external-agent-all21-controlled-route-execution-smoke:diagnostics'
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-all21-controlled-route-execution-smoke-diagnostics.mjs'
-const canonicalGpuModelRuntimeContainerImage =
+const canonicalGpuWorkerRuntimeContainerImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
-const canonicalGpuModelRuntimeContainerBuildCommand =
-  `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${canonicalGpuModelRuntimeContainerImage} .`
+const gpuModelRuntimeContainerImages = {
+  torch_torchvision: canonicalGpuWorkerRuntimeContainerImage,
+  transformers: canonicalGpuWorkerRuntimeContainerImage,
+  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+  real_esrgan: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+  kornia: canonicalGpuWorkerRuntimeContainerImage,
+  rembg: canonicalGpuWorkerRuntimeContainerImage,
+  transparent_background: canonicalGpuWorkerRuntimeContainerImage,
+}
+const gpuModelRuntimeDockerfiles = {
+  torch_torchvision: 'docker/prod/gpu-worker/Dockerfile',
+  transformers: 'docker/prod/gpu-worker/Dockerfile',
+  sam2: 'docker/prod/sam2-runtime/Dockerfile',
+  birefnet: 'docker/prod/birefnet-runtime/Dockerfile',
+  real_esrgan: 'docker/prod/real-esrgan-runtime/Dockerfile',
+  kornia: 'docker/prod/gpu-worker/Dockerfile',
+  rembg: 'docker/prod/gpu-worker/Dockerfile',
+  transparent_background: 'docker/prod/gpu-worker/Dockerfile',
+}
+function gpuModelRuntimeContainerImage(toolId) {
+  return gpuModelRuntimeContainerImages[toolId] ?? canonicalGpuWorkerRuntimeContainerImage
+}
+function gpuModelRuntimeContainerBuildCommand(toolId) {
+  return `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f ${gpuModelRuntimeDockerfiles[toolId] ?? 'docker/prod/gpu-worker/Dockerfile'} -t ${gpuModelRuntimeContainerImage(toolId)} .`
+}
 const privateInputPreflightBlockingReason =
   'gpu_model_private_inputs_accepted_runtime_proof_not_requested'
 
@@ -258,7 +282,7 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
         ? ['--runtime-backend host_python', '--allow-cpu-foundation-runtime']
         : [
             '--runtime-backend docker_container',
-            '--runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
+            `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
             '--runtime-container-platform linux/amd64',
           ]
     for (const requiredFragment of [
@@ -341,7 +365,7 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
         : [
             'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
             `--scoped-gpu-tool ${toolId}`,
-            '--scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
+            `--scoped-gpu-runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
             '--scoped-gpu-runtime-container-platform linux/amd64',
             `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
           ]
@@ -390,7 +414,7 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
       : 'CUDA'
     for (const fragment of [
       runtimePrerequisite,
-      'proof-local GPU worker container image',
+      'proof-local tool-specific runtime container image',
       'no public artifact',
     ]) {
       if (!prerequisites.some((item) => String(item).includes(fragment))) {
@@ -585,10 +609,10 @@ function checkReport(label, report) {
           ]
         : [
             'if the proof-local image is missing, build the exact local proof image first:',
-            canonicalGpuModelRuntimeContainerBuildCommand,
+            gpuModelRuntimeContainerBuildCommand(toolId),
             'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
             `--scoped-gpu-tool ${toolId}`,
-            '--scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
+            `--scoped-gpu-runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
             'GPU starts only during that scoped active tool call',
           ]
     for (const requiredFragment of [
@@ -689,7 +713,7 @@ function checkReport(label, report) {
     ) {
       fail(`${label}_scoped_attempt_expected_block_code_mismatch`)
     }
-    if (scopedAttempt.canonicalRuntimeContainerImage !== canonicalGpuModelRuntimeContainerImage) {
+    if (scopedAttempt.canonicalRuntimeContainerImage !== gpuModelRuntimeContainerImage('kornia')) {
       fail(`${label}_scoped_attempt_canonical_image_mismatch:${scopedAttempt.canonicalRuntimeContainerImage}`)
     }
     if (scopedAttempt.requestedRuntimeContainerImage !== null) {
@@ -707,7 +731,7 @@ function checkReport(label, report) {
     ) {
       fail(`${label}_scoped_attempt_expected_codes_mismatch`)
     }
-    if (!String(scopedAttempt.nextExactCommand ?? '').includes(canonicalGpuModelRuntimeContainerImage)) {
+    if (!String(scopedAttempt.nextExactCommand ?? '').includes(gpuModelRuntimeContainerImage('kornia'))) {
       fail(`${label}_scoped_attempt_next_command_missing_canonical_image`)
     }
     for (const flag of [
@@ -901,7 +925,7 @@ function checkReport(label, report) {
     if (attempt.requestedRuntimeBackend !== 'docker_container') {
       fail(`${label}_${toolId}_scoped_backend_mismatch:${attempt.requestedRuntimeBackend}`)
     }
-    if (attempt.canonicalRuntimeContainerImage !== canonicalGpuModelRuntimeContainerImage) {
+    if (attempt.canonicalRuntimeContainerImage !== gpuModelRuntimeContainerImage(toolId)) {
       fail(`${label}_${toolId}_scoped_canonical_image_mismatch`)
     }
     if (attempt.runtimeContainerImageProvided !== false) {
@@ -1104,7 +1128,11 @@ function checkReport(label, report) {
   }
 }
 
-function checkRuntimeImageProvidedScopedReport(label, report) {
+function checkRuntimeImageProvidedScopedReport(
+  label,
+  report,
+  expectedImageForTool = () => canonicalGpuWorkerRuntimeContainerImage,
+) {
   if (report.decision !== decision) fail(`${label}_decision_mismatch`)
   if (report.status !== status) fail(`${label}_status_mismatch`)
   if (report.routePath !== '/api/ai-graphics/external-agent/tool-call') {
@@ -1146,8 +1174,12 @@ function checkRuntimeImageProvidedScopedReport(label, report) {
     if (attempt.runtimeContainerImageProvided !== true) {
       fail(`${label}_${toolId}_runtime_image_not_provided`)
     }
-    if (attempt.requestedRuntimeContainerImage !== canonicalGpuModelRuntimeContainerImage) {
+    const expectedRuntimeImage = expectedImageForTool(toolId)
+    if (attempt.requestedRuntimeContainerImage !== expectedRuntimeImage) {
       fail(`${label}_${toolId}_runtime_image_mismatch:${attempt.requestedRuntimeContainerImage}`)
+    }
+    if (attempt.canonicalRuntimeContainerImage !== gpuModelRuntimeContainerImage(toolId)) {
+      fail(`${label}_${toolId}_canonical_image_mismatch:${attempt.canonicalRuntimeContainerImage}`)
     }
     if (attempt.requestedRuntimeContainerPlatform !== 'linux/amd64') {
       fail(`${label}_${toolId}_runtime_platform_mismatch:${attempt.requestedRuntimeContainerPlatform}`)
@@ -1253,6 +1285,12 @@ function checkPrivateInputPreflightScopedReport(label, report) {
     if (!String(attempt.nextExactCommand ?? '').includes('--scoped-gpu-private-input-preflight-only')) {
       fail(`${label}_${toolId}_next_command_missing_preflight_flag`)
     }
+    if (attempt.requestedRuntimeContainerImage !== gpuModelRuntimeContainerImage(toolId)) {
+      fail(`${label}_${toolId}_preflight_runtime_image_mismatch:${attempt.requestedRuntimeContainerImage}`)
+    }
+    if (attempt.canonicalRuntimeContainerImage !== gpuModelRuntimeContainerImage(toolId)) {
+      fail(`${label}_${toolId}_preflight_canonical_image_mismatch:${attempt.canonicalRuntimeContainerImage}`)
+    }
     if (scopedResult.statusCode !== 200) {
       fail(`${label}_${toolId}_http_not_200:${scopedResult.statusCode}`)
     }
@@ -1340,7 +1378,7 @@ const live = JSON.parse(exec(`npm run --silent ${runScriptName}`))
 checkReport('live', live)
 const liveWithRuntimeImage = JSON.parse(exec([
   `npm run --silent ${runScriptName} --`,
-  `--scoped-gpu-runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  `--scoped-gpu-runtime-container-image ${canonicalGpuWorkerRuntimeContainerImage}`,
   '--scoped-gpu-runtime-container-platform linux/amd64',
   '--scoped-gpu-output-root .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke-image-provided-diagnostic',
 ].join(' ')))
@@ -1348,11 +1386,22 @@ checkRuntimeImageProvidedScopedReport(
   'live_runtime_image_provided',
   liveWithRuntimeImage,
 )
+const liveWithToolSpecificRuntimeImages = JSON.parse(exec([
+  `npm run --silent ${runScriptName} --`,
+  '--scoped-gpu-use-tool-specific-runtime-images',
+  '--scoped-gpu-runtime-container-platform linux/amd64',
+  '--scoped-gpu-output-root .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-tool-specific-image-diagnostic',
+].join(' ')))
+checkRuntimeImageProvidedScopedReport(
+  'live_tool_specific_runtime_images',
+  liveWithToolSpecificRuntimeImages,
+  gpuModelRuntimeContainerImage,
+)
 const routePreflightPaths = ensureRoutePrivateInputPreflightPlaceholders()
 const livePrivateInputPreflight = JSON.parse(exec([
   `npm run --silent ${runScriptName} --`,
   `--scoped-gpu-tool ${privateInputPreflightGpuModelTools.join(',')}`,
-  `--scoped-gpu-runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  '--scoped-gpu-use-tool-specific-runtime-images',
   '--scoped-gpu-runtime-container-platform linux/amd64',
   '--scoped-gpu-private-input-preflight-only',
   `--scoped-gpu-output-root ${routePreflightPaths.rootDir}/outputs`,
@@ -1386,6 +1435,7 @@ for (const phrase of [
   'scopedGpuModelLocalDevRouteAttempts',
   'all8ScopedGpuModelLocalDevRouteAttemptsAccepted',
   '--scoped-gpu-tool',
+  '--scoped-gpu-use-tool-specific-runtime-images',
   '--scoped-gpu-runtime-container-image',
   '--scoped-gpu-runtime-container-platform',
   '--scoped-gpu-private-input-preflight-only',
@@ -1397,7 +1447,10 @@ for (const phrase of [
   '--scoped-gpu-real-esrgan-model',
   '--scoped-gpu-rembg-model',
   '--scoped-gpu-transparent-background-checkpoint',
-  canonicalGpuModelRuntimeContainerImage,
+  canonicalGpuWorkerRuntimeContainerImage,
+  gpuModelRuntimeContainerImage('sam2'),
+  gpuModelRuntimeContainerImage('birefnet'),
+  gpuModelRuntimeContainerImage('real_esrgan'),
   'runtimeExecutionBackend',
   'runtimeContainerImage',
   'privateInputPreflightOnly',

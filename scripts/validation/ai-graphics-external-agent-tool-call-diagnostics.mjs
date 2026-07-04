@@ -12,8 +12,31 @@ const diagnosticScriptName =
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-tool-call-diagnostics.mjs'
 const routePath = '/api/ai-graphics/external-agent/tool-call'
-const canonicalGpuModelRuntimeContainerImage =
+const canonicalGpuWorkerRuntimeContainerImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
+const gpuModelRuntimeContainerImages = {
+  torch_torchvision: canonicalGpuWorkerRuntimeContainerImage,
+  transformers: canonicalGpuWorkerRuntimeContainerImage,
+  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+  real_esrgan: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+  kornia: canonicalGpuWorkerRuntimeContainerImage,
+  rembg: canonicalGpuWorkerRuntimeContainerImage,
+  transparent_background: canonicalGpuWorkerRuntimeContainerImage,
+}
+const gpuModelRuntimeDockerfiles = {
+  torch_torchvision: 'docker/prod/gpu-worker/Dockerfile',
+  transformers: 'docker/prod/gpu-worker/Dockerfile',
+  sam2: 'docker/prod/sam2-runtime/Dockerfile',
+  birefnet: 'docker/prod/birefnet-runtime/Dockerfile',
+  real_esrgan: 'docker/prod/real-esrgan-runtime/Dockerfile',
+  kornia: 'docker/prod/gpu-worker/Dockerfile',
+  rembg: 'docker/prod/gpu-worker/Dockerfile',
+  transparent_background: 'docker/prod/gpu-worker/Dockerfile',
+}
+function gpuModelRuntimeContainerImage(toolId) {
+  return gpuModelRuntimeContainerImages[toolId] ?? canonicalGpuWorkerRuntimeContainerImage
+}
 const privateInputPreflightBlockingReason =
   'gpu_model_private_inputs_accepted_runtime_proof_not_requested'
 const privateInputPreflightTools = [
@@ -318,7 +341,7 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
   for (const fragment of [
     'local Python CPU tensor runtime',
     'private approved source image',
-    'proof-local GPU worker container image',
+    'proof-local tool-specific runtime container image',
     'no public artifact',
   ]) {
     if (!Array.isArray(normalized.blockedRuntimePrerequisites) ||
@@ -396,7 +419,8 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
   for (const fragment of [
     'docker buildx build',
     '--platform linux/amd64',
-    `-t ${canonicalGpuModelRuntimeContainerImage}`,
+    `-f ${gpuModelRuntimeDockerfiles.kornia}`,
+    `-t ${gpuModelRuntimeContainerImage('kornia')}`,
   ]) {
     if (!String(nextAction.nextExactGpuContainerBuildCommand ?? '').includes(fragment)) {
       fail(`${label}_next_action_container_build_missing:${fragment}`)
@@ -580,7 +604,7 @@ function privateInputPreflightArgs(toolId, paths) {
     '--runtime-backend',
     'docker_container',
     '--runtime-container-image',
-    canonicalGpuModelRuntimeContainerImage,
+    gpuModelRuntimeContainerImage(toolId),
     '--runtime-container-platform',
     'linux/amd64',
     '--private-input-preflight-only',
@@ -657,6 +681,12 @@ function checkPrivateInputPreflightCall(label, report, expectedToolId) {
     report.request?.payload?.localRuntimeInputPreflightOnly !== true
   ) {
     fail(`${label}_private_input_preflight_flag_missing`)
+  }
+  if (
+    report.request?.payload?.runtimeContainerImage !==
+    gpuModelRuntimeContainerImage(expectedToolId)
+  ) {
+    fail(`${label}_runtime_container_image_mismatch:${report.request?.payload?.runtimeContainerImage}`)
   }
   for (const key of [
     'outputDirectory',
@@ -737,7 +767,7 @@ for (const phrase of [
   'manifestStringForTool',
   'gpuModelScopedToolCallManifestCommand',
   '--runtime-container-image',
-  canonicalGpuModelRuntimeContainerImage,
+  canonicalGpuWorkerRuntimeContainerImage,
   'privateOutputOnly',
   'gpuRuntimeOnDemandOnly',
   '--expect-state',
@@ -841,7 +871,7 @@ const korniaScopedGpuAttemptLive = runToolCall([
   '--tool kornia',
   '--attempt-gpu-runtime',
   '--runtime-backend docker_container',
-  `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  `--runtime-container-image ${gpuModelRuntimeContainerImage('kornia')}`,
   '--runtime-container-platform linux/amd64',
   '--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/kornia',
   '--source-image /tmp/reeditpro-missing-private-approved-frame.png',
@@ -853,7 +883,7 @@ checkGpuBlockedCall(
 )
 if (
   korniaScopedGpuAttemptLive.request?.payload?.runtimeContainerImage !==
-  canonicalGpuModelRuntimeContainerImage
+  gpuModelRuntimeContainerImage('kornia')
 ) {
   fail('live_kornia_scoped_gpu_attempt_runtime_image_not_accepted')
 }
@@ -886,7 +916,7 @@ const korniaManifestGpuAttemptLive = runToolCall([
   '--tool kornia',
   '--attempt-gpu-runtime',
   '--runtime-backend docker_container',
-  `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  `--runtime-container-image ${gpuModelRuntimeContainerImage('kornia')}`,
   '--runtime-container-platform linux/amd64',
   `--runtime-input-manifest ${runtimeManifestPath}`,
 ].join(' '))
@@ -1004,7 +1034,7 @@ const rembgTinyModelRuntimeAttempt = runToolCall([
   '--tool rembg',
   '--attempt-gpu-runtime',
   '--runtime-backend docker_container',
-  `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  `--runtime-container-image ${gpuModelRuntimeContainerImage('rembg')}`,
   '--runtime-container-platform linux/amd64',
   '--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/rembg-tiny-model-block',
   `--source-image ${privatePreflightPaths.sourceImage}`,
@@ -1056,7 +1086,7 @@ const rembgInvalidExtensionRuntimeAttempt = runToolCall([
   '--tool rembg',
   '--attempt-gpu-runtime',
   '--runtime-backend docker_container',
-  `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  `--runtime-container-image ${gpuModelRuntimeContainerImage('rembg')}`,
   '--runtime-container-platform linux/amd64',
   '--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/rembg-invalid-extension-block',
   `--source-image ${privatePreflightPaths.sourceImage}`,
@@ -1111,7 +1141,7 @@ const rembgMissingEvidenceRuntimeAttempt = runToolCall([
   '--tool rembg',
   '--attempt-gpu-runtime',
   '--runtime-backend docker_container',
-  `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  `--runtime-container-image ${gpuModelRuntimeContainerImage('rembg')}`,
   '--runtime-container-platform linux/amd64',
   '--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/rembg-missing-model-weight-evidence-block',
   `--source-image ${privatePreflightPaths.sourceImage}`,
@@ -1189,7 +1219,7 @@ const rembgWrongChecksumRuntimeAttempt = runToolCall([
   '--tool rembg',
   '--attempt-gpu-runtime',
   '--runtime-backend docker_container',
-  `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  `--runtime-container-image ${gpuModelRuntimeContainerImage('rembg')}`,
   '--runtime-container-platform linux/amd64',
   `--runtime-input-manifest ${rembgWrongChecksumManifest}`,
 ].join(' '))

@@ -87,6 +87,14 @@ export async function runBiRefNetMask(input: {
         ],
         readWritePaths: [executionInput.outputDirectory],
       }),
+      proofExpectation: {
+        expectedToolId: 'birefnet',
+        requireCuda: true,
+        requireNoModelDownload: true,
+        requireNoProviderRuntime: true,
+        requireNoPublicArtifact: true,
+        requireNoSignedUrl: true,
+      },
     })
     return {
       status: 'completed',

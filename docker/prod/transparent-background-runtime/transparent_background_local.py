@@ -66,6 +66,9 @@ def main() -> None:
             "mode": args.mode,
             "checkpointPath": str(checkpoint_path),
             "modelDownloadedExternally": False,
+            "providerRuntimePerformed": False,
+            "publicArtifactCreated": False,
+            "signedUrlCreated": False,
         },
         "input": {
             "path": str(input_path),

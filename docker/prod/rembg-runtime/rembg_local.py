@@ -70,6 +70,9 @@ def main() -> None:
             "availableProviders": ort.get_available_providers(),
             "modelName": model_name,
             "modelDownloadedExternally": False,
+            "providerRuntimePerformed": False,
+            "publicArtifactCreated": False,
+            "signedUrlCreated": False,
         },
         "input": {
             "path": str(input_path),

@@ -646,6 +646,14 @@ async function buildReport(args: HarnessArgs) {
       dockerContainerBackendAutoMountsPrivateRuntimePaths: true,
       dockerContainerBackendMountsSourceAndModelPathsReadOnly: true,
       dockerContainerBackendMountsOutputPathsReadWrite: true,
+      runtimeProofOutputValidatedBeforeCompleted: true,
+      runtimeProofOutputMustDeclareOkTrue: true,
+      runtimeProofOutputMustMatchExpectedToolId: true,
+      runtimeProofOutputMustProveCudaOrCudaExecutionProvider: true,
+      runtimeProofOutputMustProveNoModelDownload: true,
+      runtimeProofOutputMustProveNoProviderRuntime: true,
+      runtimeProofOutputMustProveNoPublicArtifact: true,
+      runtimeProofOutputMustProveNoSignedUrl: true,
       privateLocalProofResultWriteSupported: true,
       privateLocalProofResultWritePath:
         '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
@@ -762,6 +770,17 @@ ${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).
 ## Booleans
 
 ${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`).join('\n')}
+
+## Runtime proof output contract
+
+- \`runtimeProofOutputValidatedBeforeCompleted\`: ${report.localRuntimePolicy.runtimeProofOutputValidatedBeforeCompleted}
+- \`runtimeProofOutputMustDeclareOkTrue\`: ${report.localRuntimePolicy.runtimeProofOutputMustDeclareOkTrue}
+- \`runtimeProofOutputMustMatchExpectedToolId\`: ${report.localRuntimePolicy.runtimeProofOutputMustMatchExpectedToolId}
+- \`runtimeProofOutputMustProveCudaOrCudaExecutionProvider\`: ${report.localRuntimePolicy.runtimeProofOutputMustProveCudaOrCudaExecutionProvider}
+- \`runtimeProofOutputMustProveNoModelDownload\`: ${report.localRuntimePolicy.runtimeProofOutputMustProveNoModelDownload}
+- \`runtimeProofOutputMustProveNoProviderRuntime\`: ${report.localRuntimePolicy.runtimeProofOutputMustProveNoProviderRuntime}
+- \`runtimeProofOutputMustProveNoPublicArtifact\`: ${report.localRuntimePolicy.runtimeProofOutputMustProveNoPublicArtifact}
+- \`runtimeProofOutputMustProveNoSignedUrl\`: ${report.localRuntimePolicy.runtimeProofOutputMustProveNoSignedUrl}
 
 ## Private runtime attempt command
 

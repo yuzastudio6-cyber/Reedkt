@@ -128,6 +128,13 @@ const requiredFiles = [
   'server/workers/enhancement/real-esrgan-execution-runner.ts',
   'server/workers/masks/rembg-adapter.ts',
   'server/workers/masks/transparent-background-adapter.ts',
+  'docker/prod/model-runtime-foundation/foundation_local.py',
+  'docker/prod/kornia-runtime/kornia_local.py',
+  'docker/prod/sam2-runtime/sam2_runtime_local.py',
+  'docker/prod/birefnet-runtime/birefnet_local.py',
+  'docker/prod/real-esrgan-runtime/real_esrgan_local.py',
+  'docker/prod/rembg-runtime/rembg_local.py',
+  'docker/prod/transparent-background-runtime/transparent_background_local.py',
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-controlled-worker-dispatch-proof.json',
   'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json',
   'docs/tool-intelligence/ai-graphics/gpu-runtime-proof-local-preflight.json',
@@ -270,6 +277,20 @@ if (report.localRuntimePolicy?.dockerContainerBackendMountsSourceAndModelPathsRe
 if (report.localRuntimePolicy?.dockerContainerBackendMountsOutputPathsReadWrite !== true) {
   fail('docker_container_readwrite_output_mounts_not_recorded')
 }
+for (const requiredProofPolicy of [
+  'runtimeProofOutputValidatedBeforeCompleted',
+  'runtimeProofOutputMustDeclareOkTrue',
+  'runtimeProofOutputMustMatchExpectedToolId',
+  'runtimeProofOutputMustProveCudaOrCudaExecutionProvider',
+  'runtimeProofOutputMustProveNoModelDownload',
+  'runtimeProofOutputMustProveNoProviderRuntime',
+  'runtimeProofOutputMustProveNoPublicArtifact',
+  'runtimeProofOutputMustProveNoSignedUrl',
+]) {
+  if (report.localRuntimePolicy?.[requiredProofPolicy] !== true) {
+    fail(`runtime_proof_policy_not_recorded:${requiredProofPolicy}`)
+  }
+}
 if (report.localRuntimePolicy?.privateLocalProofResultWriteSupported !== true) {
   fail('private_local_proof_result_write_not_supported')
 }
@@ -283,9 +304,17 @@ if (!String(report.localRuntimePolicy?.privateLocalProofResultWritePath ?? '').i
 const runtimeRunnerSource = read('server/workers/ai-graphics-runtime-script-runner.ts')
 for (const requiredSnippet of [
   'AiGraphicsRuntimeContainerBindMount',
+  'AiGraphicsRuntimeProofExpectation',
+  'assertAiGraphicsRuntimeProofOutput',
   'buildAiGraphicsRuntimeContainerBindMounts',
   'normalizeContainerBindMounts',
   'containerBindMountPath cannot be the filesystem root',
+  'AI graphics runtime proof output must include ok=true',
+  'AI graphics runtime proof output toolId mismatch',
+  'modelDownloadedExternally',
+  'providerRuntimePerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
 ]) {
   if (!runtimeRunnerSource.includes(requiredSnippet)) {
     fail(`runtime_runner_missing_private_bind_mount_support:${requiredSnippet}`)
@@ -306,6 +335,62 @@ for (const workerFile of [
   }
   if (!source.includes('containerBindMounts')) {
     fail(`worker_missing_private_bind_mounts:${workerFile}`)
+  }
+  if (!source.includes('proofExpectation')) {
+    fail(`worker_missing_runtime_proof_expectation:${workerFile}`)
+  }
+  for (const requiredProofToken of [
+    'expectedToolId',
+    'requireNoModelDownload: true',
+    'requireNoProviderRuntime: true',
+    'requireNoPublicArtifact: true',
+    'requireNoSignedUrl: true',
+  ]) {
+    if (!source.includes(requiredProofToken)) {
+      fail(`worker_missing_runtime_proof_token:${workerFile}:${requiredProofToken}`)
+    }
+  }
+}
+
+const runtimeProofFilesByTool = {
+  torch_torchvision: 'docker/prod/model-runtime-foundation/foundation_local.py',
+  transformers: 'docker/prod/model-runtime-foundation/foundation_local.py',
+  sam2: 'docker/prod/sam2-runtime/sam2_runtime_local.py',
+  birefnet: 'docker/prod/birefnet-runtime/birefnet_local.py',
+  real_esrgan: 'docker/prod/real-esrgan-runtime/real_esrgan_local.py',
+  kornia: 'docker/prod/kornia-runtime/kornia_local.py',
+  rembg: 'docker/prod/rembg-runtime/rembg_local.py',
+  transparent_background: 'docker/prod/transparent-background-runtime/transparent_background_local.py',
+}
+
+for (const [tool, file] of Object.entries(runtimeProofFilesByTool)) {
+  const source = read(file)
+  if (!source.includes('"ok": True')) {
+    fail(`runtime_script_missing_ok_true:${tool}`)
+  }
+  if (tool === 'torch_torchvision' || tool === 'transformers') {
+    if (!source.includes('"toolId": "')) {
+      fail(`runtime_script_missing_tool_id:${tool}`)
+    }
+  } else if (!source.includes(`"toolId": "${tool}"`)) {
+    fail(`runtime_script_missing_tool_id:${tool}`)
+  }
+  if (tool === 'rembg') {
+    if (!source.includes('"cudaExecutionProviderAvailable": True')) {
+      fail('runtime_script_missing_rembg_cuda_provider_proof')
+    }
+  } else if (!source.includes('"cudaAvailable": True')) {
+    fail(`runtime_script_missing_cuda_proof:${tool}`)
+  }
+  for (const requiredRuntimeFlag of [
+    '"modelDownloadedExternally": False',
+    '"providerRuntimePerformed": False',
+    '"publicArtifactCreated": False',
+    '"signedUrlCreated": False',
+  ]) {
+    if (!source.includes(requiredRuntimeFlag)) {
+      fail(`runtime_script_missing_boundary_flag:${tool}:${requiredRuntimeFlag}`)
+    }
   }
 }
 

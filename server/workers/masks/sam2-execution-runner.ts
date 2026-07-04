@@ -79,6 +79,14 @@ export async function runSam2Tracking(input: {
         REAL_MEDIA_INPUT_ENABLED: 'false',
         APPROVED_PRIVATE_SOURCE_FRAME_ENABLED: 'true',
       },
+      proofExpectation: {
+        expectedToolId: 'sam2',
+        requireCuda: true,
+        requireNoModelDownload: true,
+        requireNoProviderRuntime: true,
+        requireNoPublicArtifact: true,
+        requireNoSignedUrl: true,
+      },
     })
     return {
       status: 'completed',

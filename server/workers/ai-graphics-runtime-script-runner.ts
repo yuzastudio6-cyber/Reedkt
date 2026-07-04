@@ -16,6 +16,16 @@ export interface AiGraphicsRuntimeScriptResult {
 
 export type AiGraphicsPythonRuntimeBackend = 'host_python' | 'docker_container'
 
+export interface AiGraphicsRuntimeProofExpectation {
+  expectedToolId: string
+  requireCuda?: boolean
+  requireCudaExecutionProvider?: boolean
+  requireNoModelDownload?: boolean
+  requireNoProviderRuntime?: boolean
+  requireNoPublicArtifact?: boolean
+  requireNoSignedUrl?: boolean
+}
+
 export interface AiGraphicsRuntimeContainerBindMount {
   hostPath: string
   containerPath?: string
@@ -33,6 +43,7 @@ export async function runAiGraphicsPythonRuntimeScript(input: {
   containerPlatform?: string
   containerGpu?: boolean
   containerBindMounts?: AiGraphicsRuntimeContainerBindMount[]
+  proofExpectation?: AiGraphicsRuntimeProofExpectation
 }): Promise<AiGraphicsRuntimeScriptResult> {
   const scriptPath = path.resolve(process.cwd(), input.scriptRelativePath)
   assertSafeRuntimeValue(scriptPath, 'scriptPath')
@@ -53,6 +64,9 @@ export async function runAiGraphicsPythonRuntimeScript(input: {
 
   const rawOutput = await readFile(outputJsonPath, 'utf8')
   const outputJson = JSON.parse(rawOutput)
+  if (input.proofExpectation) {
+    assertAiGraphicsRuntimeProofOutput(outputJson, input.proofExpectation)
+  }
   const outputStat = await stat(outputJsonPath)
   return {
     outputJson,
@@ -61,6 +75,109 @@ export async function runAiGraphicsPythonRuntimeScript(input: {
     stdout: result.stdout,
     stderr: result.stderr,
   }
+}
+
+export function assertAiGraphicsRuntimeProofOutput(
+  outputJson: unknown,
+  expectation: AiGraphicsRuntimeProofExpectation,
+): void {
+  const root = asRecord(outputJson)
+  if (root.ok !== true) {
+    throw new Error('AI graphics runtime proof output must include ok=true.')
+  }
+
+  const toolId = firstStringValue(root, ['toolId']) ??
+    firstStringValue(asRecord(root.runtime), ['toolId'])
+  if (toolId !== expectation.expectedToolId) {
+    throw new Error(
+      `AI graphics runtime proof output toolId mismatch: expected ${expectation.expectedToolId}, got ${toolId ?? 'missing'}.`,
+    )
+  }
+
+  if (
+    expectation.requireCuda === true &&
+    firstBooleanValue(outputJson, ['cudaAvailable']) !== true
+  ) {
+    throw new Error('AI graphics runtime proof output must prove cudaAvailable=true.')
+  }
+
+  if (
+    expectation.requireCudaExecutionProvider === true &&
+    firstBooleanValue(outputJson, ['cudaExecutionProviderAvailable']) !== true
+  ) {
+    throw new Error(
+      'AI graphics runtime proof output must prove cudaExecutionProviderAvailable=true.',
+    )
+  }
+
+  assertFalseProofBoolean(outputJson, expectation.requireNoModelDownload, [
+    'modelDownloadedExternally',
+    'externalModelDownloadAttempted',
+    'modelWeightsDownloaded',
+  ])
+  assertFalseProofBoolean(outputJson, expectation.requireNoProviderRuntime, [
+    'providerRuntimePerformed',
+  ])
+  assertFalseProofBoolean(outputJson, expectation.requireNoPublicArtifact, [
+    'publicArtifactCreated',
+  ])
+  assertFalseProofBoolean(outputJson, expectation.requireNoSignedUrl, [
+    'signedUrlCreated',
+  ])
+}
+
+function assertFalseProofBoolean(
+  outputJson: unknown,
+  required: boolean | undefined,
+  keys: string[],
+): void {
+  if (required !== true) return
+  const found = firstBooleanValue(outputJson, keys)
+  if (found !== false) {
+    throw new Error(
+      `AI graphics runtime proof output must include ${keys.join('/')}=false.`,
+    )
+  }
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {}
+}
+
+function firstStringValue(
+  record: Record<string, unknown>,
+  keys: string[],
+): string | undefined {
+  for (const key of keys) {
+    const value = record[key]
+    if (typeof value === 'string') return value
+  }
+  return undefined
+}
+
+function firstBooleanValue(value: unknown, keys: string[]): boolean | undefined {
+  const record = asRecord(value)
+  for (const key of keys) {
+    const direct = record[key]
+    if (typeof direct === 'boolean') return direct
+  }
+
+  for (const nested of Object.values(record)) {
+    if (!nested || typeof nested !== 'object') continue
+    if (Array.isArray(nested)) {
+      for (const item of nested) {
+        const valueInItem = firstBooleanValue(item, keys)
+        if (typeof valueInItem === 'boolean') return valueInItem
+      }
+      continue
+    }
+    const valueInNested = firstBooleanValue(nested, keys)
+    if (typeof valueInNested === 'boolean') return valueInNested
+  }
+
+  return undefined
 }
 
 async function runPythonRuntimeOnHost(

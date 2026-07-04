@@ -184,6 +184,7 @@ def main() -> None:
 
     output = {
         "ok": True,
+        "toolId": "real_esrgan",
         "cudaAvailable": True,
         "deviceName": torch.cuda.get_device_name(0),
         "enhanced": {
@@ -200,6 +201,9 @@ def main() -> None:
             "gfpganImported": False,
             "filmUsed": False,
             "modelDownloadedExternally": False,
+            "providerRuntimePerformed": False,
+            "publicArtifactCreated": False,
+            "signedUrlCreated": False,
         },
         "warnings": warnings,
     }

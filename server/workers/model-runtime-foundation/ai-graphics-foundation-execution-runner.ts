@@ -101,6 +101,14 @@ export async function runAiGraphicsFoundationRuntimeCheck(
       containerBindMounts: buildAiGraphicsRuntimeContainerBindMounts({
         readWritePaths: [input.outputDirectory],
       }),
+      proofExpectation: {
+        expectedToolId: input.toolId,
+        requireCuda: true,
+        requireNoModelDownload: true,
+        requireNoProviderRuntime: true,
+        requireNoPublicArtifact: true,
+        requireNoSignedUrl: true,
+      },
     })
     return {
       status: 'completed',

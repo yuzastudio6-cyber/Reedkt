@@ -90,6 +90,17 @@ Missing private source/model/checkpoint paths block before Python runtime or Doc
 - `publicArtifactCreated`: false
 - `signedUrlCreated`: false
 
+## Runtime proof output contract
+
+- `runtimeProofOutputValidatedBeforeCompleted`: true
+- `runtimeProofOutputMustDeclareOkTrue`: true
+- `runtimeProofOutputMustMatchExpectedToolId`: true
+- `runtimeProofOutputMustProveCudaOrCudaExecutionProvider`: true
+- `runtimeProofOutputMustProveNoModelDownload`: true
+- `runtimeProofOutputMustProveNoProviderRuntime`: true
+- `runtimeProofOutputMustProveNoPublicArtifact`: true
+- `runtimeProofOutputMustProveNoSignedUrl`: true
+
 ## Private runtime attempt command
 
 `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>`

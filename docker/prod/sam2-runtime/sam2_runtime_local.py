@@ -102,6 +102,7 @@ def main():
 
     output = {
         "ok": True,
+        "toolId": "sam2",
         "cudaAvailable": True,
         "deviceName": device_name,
         "privateSourceFrame": {
@@ -127,6 +128,10 @@ def main():
             "modelId": "sam2.1_hiera_tiny",
             "configName": "configs/sam2.1/sam2.1_hiera_t.yaml",
             "externalModelDownloadAttempted": False,
+            "modelDownloadedExternally": False,
+            "providerRuntimePerformed": False,
+            "publicArtifactCreated": False,
+            "signedUrlCreated": False,
             "privateSourceFrameUsed": True,
             "realMediaUsed": False,
             "broadRealMediaInputEnabled": False,

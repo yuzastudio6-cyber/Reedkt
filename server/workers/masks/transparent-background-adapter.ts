@@ -82,6 +82,14 @@ export async function runTransparentBackgroundFallback(input: {
         ],
         readWritePaths: [executionInput.outputDirectory],
       }),
+      proofExpectation: {
+        expectedToolId: 'transparent_background',
+        requireCuda: true,
+        requireNoModelDownload: true,
+        requireNoProviderRuntime: true,
+        requireNoPublicArtifact: true,
+        requireNoSignedUrl: true,
+      },
     })
     return {
       status: 'completed',

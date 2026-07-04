@@ -89,6 +89,14 @@ export async function runRealEsrganEnhancement(input: {
         ],
         readWritePaths: [executionInput.outputDirectory],
       }),
+      proofExpectation: {
+        expectedToolId: 'real_esrgan',
+        requireCuda: true,
+        requireNoModelDownload: true,
+        requireNoProviderRuntime: true,
+        requireNoPublicArtifact: true,
+        requireNoSignedUrl: true,
+      },
     })
     return {
       status: 'completed',

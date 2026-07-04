@@ -103,8 +103,15 @@ def main() -> None:
     alpha = np.asarray(mask_image).astype(np.float32) / 255.0
     output = {
         "ok": True,
+        "toolId": "birefnet",
         "cudaAvailable": True,
         "deviceName": torch.cuda.get_device_name(0),
+        "runtime": {
+            "modelDownloadedExternally": False,
+            "providerRuntimePerformed": False,
+            "publicArtifactCreated": False,
+            "signedUrlCreated": False,
+        },
         "fixture": {
             "width": image.size[0],
             "height": image.size[1],

@@ -60,6 +60,14 @@ export async function runKorniaMaskRefinement(input: {
         readOnlyPaths: [sourcePath],
         readWritePaths: [executionInput.outputDirectory],
       }),
+      proofExpectation: {
+        expectedToolId: 'kornia',
+        requireCuda: true,
+        requireNoModelDownload: true,
+        requireNoProviderRuntime: true,
+        requireNoPublicArtifact: true,
+        requireNoSignedUrl: true,
+      },
     })
     return {
       status: 'completed',

@@ -66,6 +66,8 @@ def main() -> None:
             "korniaVersion": getattr(kornia, "__version__", "unknown"),
             "modelDownloadedExternally": False,
             "providerRuntimePerformed": False,
+            "publicArtifactCreated": False,
+            "signedUrlCreated": False,
         },
         "input": {
             "path": str(input_path),

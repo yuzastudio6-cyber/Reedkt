@@ -81,6 +81,14 @@ export async function runRembgFallback(input: {
         ],
         readWritePaths: [executionInput.outputDirectory],
       }),
+      proofExpectation: {
+        expectedToolId: 'rembg',
+        requireCudaExecutionProvider: true,
+        requireNoModelDownload: true,
+        requireNoProviderRuntime: true,
+        requireNoPublicArtifact: true,
+        requireNoSignedUrl: true,
+      },
     })
     return {
       status: 'completed',

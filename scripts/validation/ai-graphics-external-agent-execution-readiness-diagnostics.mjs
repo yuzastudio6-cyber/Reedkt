@@ -602,6 +602,177 @@ function checkReport(label, report) {
   }
 }
 
+function checkMountedControlledRouteSmoke(label, report) {
+  if (report.decision !== 'ai_graphics_external_agent_all21_controlled_route_execution_smoke_passed') {
+    fail(`${label}_decision_mismatch`)
+  }
+  if (report.status !== 'external_agent_all21_controlled_route_execution_passed_with_gpu_on_demand') {
+    fail(`${label}_status_mismatch`)
+  }
+  if (report.routePath !== '/api/ai-graphics/external-beta/tool-call') {
+    fail(`${label}_route_path_mismatch`)
+  }
+
+  const expectedCounts = {
+    totalAiGraphicsTools: 21,
+    controlledRouteHttp200Tools: 21,
+    controlledRouteCallableTools: 21,
+    controlledRouteAdapterInvokedTools: 21,
+    controlledRouteAdapterExecutedTools: 13,
+    realRuntimeExecutedTools: 13,
+    executableStateTools: 13,
+    blockedWithReasonStateTools: 8,
+    failedWithDiagnosticsStateTools: 0,
+    normalizedExternalAgentToolCallResultTools: 21,
+    normalizedExternalAgentCallableResultTools: 21,
+    normalizedExternalAgentExecutableResultTools: 13,
+    normalizedExternalAgentBlockedWithReasonResultTools: 8,
+    normalizedExternalAgentFailedWithDiagnosticsResultTools: 0,
+    cpuStaticControlledRouteExecutedTools: 6,
+    browserRuntimeControlledRouteExecutedTools: 7,
+    gpuModelControlledRouteInvokedTools: 8,
+    gpuModelRuntimeProofRequiredTools: 8,
+    localPackageExecutionPerformedTools: 13,
+    localGpuModelRuntimeExecutionPerformedTools: 0,
+    gpuRuntimeShouldStartNowTools: 0,
+    workerDispatchPerformedTools: 0,
+    providerRuntimePerformedTools: 0,
+    publicArtifactCreatedTools: 0,
+    signedUrlCreatedTools: 0,
+  }
+  const counts = report.counts ?? {}
+  for (const [key, value] of Object.entries(expectedCounts)) {
+    if (counts[key] !== value) {
+      fail(`${label}_count_mismatch:${key}:expected_${value}:got_${counts[key]}`)
+    }
+  }
+
+  const requiredTrueBooleans = [
+    'all21ControlledRouteExecutionSmokePassed',
+    'all21ToolsCovered',
+    'all21ToolsReturnedHttp200',
+    'all21ControlledAdaptersInvoked',
+    'cpuStaticControlledAdaptersExecuted',
+    'browserRuntimeControlledAdaptersExecuted',
+    'gpuModelControlledAdaptersInvoked',
+    'normalizedExternalAgentExecutionStatesReturned',
+    'normalizedExternalAgentToolCallResultsReturned',
+    'normalizedExternalAgentToolCallResultsMatchStates',
+    'normalizedExternalAgentToolCallResultsPreserveSafetyGates',
+    'thirteenToolsReturnExecutableState',
+    'eightGpuModelToolsReturnBlockedWithReasonState',
+    'agentCanCallAll21ControlledRoutesNow',
+    'agentCanExecuteRealRuntimeFor13ToolsNow',
+    'gpuRuntimeOnDemandOnly',
+    'noIdleGpuRuntimeApproved',
+  ]
+  const requiredFalseBooleans = [
+    'agentCanExecuteAll21ToolsNow',
+    'agentCanExecuteGpuModelToolsNow',
+    'agentCanExecuteRealRuntimeForAll21ToolsNow',
+    'gpuModelRuntimeProofAcceptedNow',
+    'workerExecutionApprovedNow',
+    'workerExecutionPerformed',
+    'workerDispatchApprovedNow',
+    'workerDispatchPerformed',
+    'providerRuntimeApprovedNow',
+    'providerRuntimePerformed',
+    'gpuRuntimePerformed',
+    'gpuRuntimeShouldStartNow',
+    'modelWeightsDownloaded',
+    'modelWeightsLoaded',
+    'modelInferencePerformed',
+    'mediaProcessingPerformed',
+    'supabaseMutationPerformed',
+    'gcsUploadPerformed',
+    'publicArtifactCreated',
+    'signedUrlCreated',
+    'runtimeReadyNow',
+    'internalBetaReadyNow',
+    'externalBetaReadyNow',
+    'productionReadyNow',
+    'dependencyInstallPerformed',
+    'packageLockMutationPerformed',
+  ]
+  const booleans = report.booleans ?? {}
+  for (const key of requiredTrueBooleans) {
+    if (booleans[key] !== true) fail(`${label}_boolean_not_true:${key}`)
+  }
+  for (const key of requiredFalseBooleans) {
+    if (booleans[key] !== false) fail(`${label}_boolean_not_false:${key}`)
+  }
+
+  const rows = Array.isArray(report.results) ? report.results : []
+  if (rows.length !== 21) {
+    fail(`${label}_result_count_mismatch:${rows.length}`)
+    return
+  }
+  for (const toolId of allTools) {
+    const row = rows.find((item) => item.toolId === toolId)
+    if (!row) {
+      fail(`${label}_missing_route_result:${toolId}`)
+      continue
+    }
+    const normalized = row.externalAgentToolCallResult ?? {}
+    if (row.statusCode !== 200) fail(`${label}_${toolId}_status_not_200`)
+    if (row.ok !== true) fail(`${label}_${toolId}_ok_not_true`)
+    if (row.controlledAdapterInvokedNow !== true) {
+      fail(`${label}_${toolId}_adapter_not_invoked`)
+    }
+    if (normalized.callable !== true) {
+      fail(`${label}_${toolId}_normalized_callable_not_true`)
+    }
+    if (normalized.routeExecutionPerformed !== true) {
+      fail(`${label}_${toolId}_normalized_route_execution_not_true`)
+    }
+    if (normalized.gpuRuntimeShouldStartNow !== false) {
+      fail(`${label}_${toolId}_normalized_gpu_start_not_false`)
+    }
+    if (normalized.outputAccess?.publicArtifactCreated !== false) {
+      fail(`${label}_${toolId}_normalized_public_artifact_not_false`)
+    }
+    if (normalized.outputAccess?.signedUrlCreated !== false) {
+      fail(`${label}_${toolId}_normalized_signed_url_not_false`)
+    }
+    if (gpuModelTools.includes(toolId)) {
+      if (row.externalAgentExecutionState !== 'blocked_with_reason') {
+        fail(`${label}_${toolId}_gpu_state_not_blocked:${row.externalAgentExecutionState}`)
+      }
+      if (normalized.executable !== false) {
+        fail(`${label}_${toolId}_normalized_gpu_executable_not_false`)
+      }
+      if (normalized.blockedWithReason !== true) {
+        fail(`${label}_${toolId}_normalized_gpu_blocked_not_true`)
+      }
+      if (normalized.failedWithDiagnostics !== false) {
+        fail(`${label}_${toolId}_normalized_gpu_failed_not_false`)
+      }
+      if (row.localGpuModelRuntimeExecutionPerformed !== false) {
+        fail(`${label}_${toolId}_gpu_runtime_performed`)
+      }
+    } else {
+      if (row.externalAgentExecutionState !== 'executable') {
+        fail(`${label}_${toolId}_non_gpu_state_not_executable:${row.externalAgentExecutionState}`)
+      }
+      if (normalized.executable !== true) {
+        fail(`${label}_${toolId}_normalized_non_gpu_executable_not_true`)
+      }
+      if (normalized.blockedWithReason !== false) {
+        fail(`${label}_${toolId}_normalized_non_gpu_blocked_not_false`)
+      }
+      if (normalized.failedWithDiagnostics !== false) {
+        fail(`${label}_${toolId}_normalized_non_gpu_failed_not_false`)
+      }
+      if (row.localPackageExecutionPerformed !== true) {
+        fail(`${label}_${toolId}_local_package_not_executed`)
+      }
+      if (!row.outputSha256 || row.outputSha256.length !== 64) {
+        fail(`${label}_${toolId}_missing_private_output_hash`)
+      }
+    }
+  }
+}
+
 for (const file of requiredFiles) read(file)
 checkPackageJson()
 
@@ -775,6 +946,7 @@ for (const flag of [
   }
 }
 
+checkMountedControlledRouteSmoke('route_smoke', routeSmoke)
 checkReport('docs', docs)
 const live = JSON.parse(exec(`npm run --silent ${runScriptName}`))
 checkReport('live', live)

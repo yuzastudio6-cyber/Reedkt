@@ -392,6 +392,7 @@ export function evaluateAiGraphicsExternalBetaPerToolTrafficEnablementGate(
       input.sourceExternalBetaLaunchGoNoGoPacket?.decision ?? null,
     status,
     sourcePerToolCallableResultGateAccepted: callableAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
     sourceExternalBetaLaunchGoNoGoAccepted: launchAccepted,
     trafficEnablementControlsAccepted: controlsAccepted,
     rejectionReasons: missing,

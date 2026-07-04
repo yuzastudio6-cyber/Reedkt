@@ -121,6 +121,7 @@ export interface AiGraphicsExternalBetaLaunchGoNoGo {
     providerRuntimeApprovedNow: false
     browserWebglCanvasRuntimeApprovedNow: false
     gpuRuntimeApprovedNow: false
+    gpuRuntimeShouldStartNow: false
     runtimeReadyNow: false
     internalBetaReadyNow: false
     externalBetaReadyNow: false
@@ -179,7 +180,7 @@ const nextMilestones = [
   'Add production launch approval only after external-beta runtime soak, support, incident, and cost evidence exists.',
 ]
 
-function hasNonEmptyRef(value: string | undefined): boolean {
+function hasNonEmptyRef(value: string | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
@@ -532,6 +533,7 @@ export function buildAiGraphicsExternalBetaLaunchGoNoGo(
       providerRuntimeApprovedNow: false,
       browserWebglCanvasRuntimeApprovedNow: false,
       gpuRuntimeApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
       runtimeReadyNow: false,
       internalBetaReadyNow: false,
       externalBetaReadyNow: false,

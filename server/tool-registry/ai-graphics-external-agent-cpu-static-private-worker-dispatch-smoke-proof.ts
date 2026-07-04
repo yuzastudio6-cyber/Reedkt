@@ -483,17 +483,20 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerDispatchSmokeP
         acceptedRows.length === 5 &&
         acceptedRows.every((row) => {
           const evidence = row.providedDispatchSmokeEvidence
-          return Boolean(evidence) &&
+          if (!evidence) return false
+          return (
             evidence.workerDispatchSmokeEvidenceRef.includes(row.toolId) &&
             evidence.workerDispatchSmokeTelemetryRef.includes(row.toolId) &&
             evidence.workerDispatchSmokeLeaseAuditRef.includes(row.toolId) &&
             evidence.workerDispatchSmokeCleanupProofRef.includes(row.toolId)
+          )
         }),
       sourceDryDispatchContractsPreserved:
         acceptedRows.length === 5 &&
         acceptedRows.every((row) => {
           const evidence = row.providedDispatchSmokeEvidence
-          return Boolean(evidence) &&
+          if (!evidence) return false
+          return (
             evidence.approvedPlanSnapshotRef.startsWith('approved-plan-snapshot://') &&
             evidence.creditReservationRef.startsWith('credit-reservation://') &&
             evidence.privateArtifactManifestRef.startsWith('private://') &&
@@ -501,6 +504,7 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerDispatchSmokeP
             evidence.dryDispatchIdempotencyKey.includes(row.toolId) &&
             evidence.sourceWorkerDispatchAttemptRef.startsWith('dispatch://') &&
             evidence.expectedOutputVisibility === 'private_artifact_only'
+          )
         }),
       privateArtifactOnlyPolicyAccepted: true,
       noLiveWorkerLeaseBySmokeProof: true,

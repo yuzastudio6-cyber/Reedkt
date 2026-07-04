@@ -11,6 +11,7 @@ import {
   type AiGraphicsExternalAgentCpuStaticPrivateWorkerQueueServiceProofJob,
 } from '../tool-registry/ai-graphics-external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof'
 import type { AiGraphicsCanonicalToolId } from '../tool-registry/ai-graphics-tool-call-readiness'
+import type { ProductionToolId } from '../tool-registry/production-tool-types'
 
 const sourceAdmissionPath =
   'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json'
@@ -30,6 +31,13 @@ const proofTools: AiGraphicsCanonicalToolId[] = [
   'svgdotjs_svg_js',
   'viz_js',
 ]
+
+function asProductionToolId(toolId: unknown): ProductionToolId {
+  if (typeof toolId === 'string' && proofTools.includes(toolId as AiGraphicsCanonicalToolId)) {
+    return toolId as ProductionToolId
+  }
+  throw new Error(`Unexpected CPU/static production tool id in queue proof: ${String(toolId)}`)
+}
 
 type JsonRecord = Record<string, any>
 type Report = ReturnType<
@@ -95,7 +103,7 @@ function buildQueueJob(row: JsonRecord): AiGraphicsToolRuntimeQueueJobInput {
 
   return {
     toolId: row.toolId,
-    productionToolId: row.productionToolId,
+    productionToolId: asProductionToolId(row.productionToolId),
     workerType: row.workerType,
     runtimeTarget: row.runtimeTarget,
     capabilityIds: [row.capabilityId],
@@ -124,7 +132,7 @@ function buildProofJob(row: JsonRecord, job: AiGraphicsToolRuntimeQueueJobInput)
   const evidence = row.adapterInvocationEnqueueEvidence as JsonRecord
   return {
     toolId: row.toolId,
-    productionToolId: job.productionToolId,
+    productionToolId: job.productionToolId as ProductionToolId,
     workerType: job.workerType as AiGraphicsExternalAgentCpuStaticPrivateWorkerQueueServiceProofJob['workerType'],
     runtimeTarget: job.runtimeTarget as AiGraphicsExternalAgentCpuStaticPrivateWorkerQueueServiceProofJob['runtimeTarget'],
     capabilityIds: job.capabilityIds,

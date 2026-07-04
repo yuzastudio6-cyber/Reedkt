@@ -5,6 +5,7 @@ import { createProductionWorkerRuntimeState } from '../workers/production/produc
 import type {
   ProductionWorkerEventType,
   ProductionWorkerJobPayload,
+  ProductionWorkerRuntimeType,
 } from '../workers/production/production-worker-types'
 import {
   AI_GRAPHICS_CANONICAL_TOOL_IDS,
@@ -53,6 +54,19 @@ function recipeIdForRuntimeTarget(runtimeTarget: string): string {
   return 'ai_graphics_external_agent_metadata_controlled_dispatcher_dry_run'
 }
 
+function asProductionWorkerRuntimeType(workerType: string): ProductionWorkerRuntimeType {
+  if (
+    workerType === 'cpu_analysis_worker' ||
+    workerType === 'gpu_ai_worker' ||
+    workerType === 'render_worker' ||
+    workerType === 'qa_worker' ||
+    workerType === 'tool_readiness_worker'
+  ) {
+    return workerType
+  }
+  throw new Error(`AI graphics controlled dispatcher cannot use registry-only worker type: ${workerType}`)
+}
+
 function buildPayload(toolId: AiGraphicsCanonicalToolId): ProductionWorkerJobPayload {
   const readiness = getAiGraphicsToolCallReadiness(toolId)
   assert(readiness, `Missing AI graphics readiness record for ${toolId}`)
@@ -75,7 +89,7 @@ function buildPayload(toolId: AiGraphicsCanonicalToolId): ProductionWorkerJobPay
       'edit_plan_ai_graphics_external_agent_controlled_dispatcher_dry_run',
     toolExecutionPlanId:
       `tool_execution_plan_ai_graphics_external_agent_controlled_dispatcher_dry_run_${toolId}`,
-    workerType: readiness.productionWorkerType,
+    workerType: asProductionWorkerRuntimeType(readiness.productionWorkerType),
     executionMode: 'dry_run',
     idempotencyKey: 'pending',
     attempt: 1,

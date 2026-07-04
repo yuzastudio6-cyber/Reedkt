@@ -244,7 +244,7 @@ export function evaluateAiGraphicsExternalBetaAll21ActivationRollup(
   const accepted = status ===
     'external_beta_all_21_activation_rollup_accepted_runtime_on_demand'
   const acceptedToolIds = aiGraphicsTools.filter((toolId) => acceptedByTool.has(toolId))
-  const activatedTools = acceptedToolIds.flatMap((toolId) => {
+  const activatedTools: AiGraphicsExternalBetaAll21ActivatedTool[] = acceptedToolIds.flatMap((toolId) => {
     const readiness = acceptedByTool.get(toolId)?.activatedToolCallReadiness
     if (!readiness) return []
     return [{

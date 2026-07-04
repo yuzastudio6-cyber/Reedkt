@@ -258,13 +258,14 @@ function backendAdapterAccepted(
 }
 
 function countFrom(
-  packet: Record<string, unknown> | undefined,
+  packet: AiGraphicsExternalBetaApiRouteBackendAdapter | Record<string, unknown> | undefined,
   key: string,
 ): number | undefined {
-  const counts = (packet?.counts ?? {}) as Record<string, unknown>
-  const coverage = (packet?.coverage ?? {}) as Record<string, unknown>
-  const scope = (packet?.scope ?? {}) as Record<string, unknown>
-  const value = packet?.[key]
+  const record = packet as Record<string, unknown> | undefined
+  const counts = (record?.counts ?? {}) as Record<string, unknown>
+  const coverage = (record?.coverage ?? {}) as Record<string, unknown>
+  const scope = (record?.scope ?? {}) as Record<string, unknown>
+  const value = record?.[key]
   return typeof value === 'number' ? value :
     typeof counts[key] === 'number' ? counts[key] as number :
     typeof coverage[key] === 'number' ? coverage[key] as number :
@@ -273,10 +274,11 @@ function countFrom(
 }
 
 function booleanFrom(
-  packet: Record<string, unknown> | undefined,
+  packet: AiGraphicsExternalBetaApiRouteBackendAdapter | Record<string, unknown> | undefined,
   key: string,
 ): boolean | undefined {
-  const booleans = (packet?.booleans ?? {}) as Record<string, unknown>
+  const record = packet as Record<string, unknown> | undefined
+  const booleans = (record?.booleans ?? {}) as Record<string, unknown>
   const value = booleans[key]
   return typeof value === 'boolean' ? value : undefined
 }

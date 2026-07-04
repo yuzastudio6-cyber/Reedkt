@@ -516,9 +516,6 @@ export function buildAiGraphicsExternalAgentCpuStaticPrivateWorkerToolExecutionD
   const claimAndDispatchSourceAccepted = sourceWorkerClaimAndDispatchSmokeProofAccepted(
     input.sourceWorkerClaimAndDispatchSmokeProofReport,
   )
-  const claimAndDispatchSourceProvided = Boolean(
-    input.sourceWorkerClaimAndDispatchSmokeProofReport,
-  )
 
   const rows = AI_GRAPHICS_CANONICAL_TOOL_IDS.map((toolId) => {
     const source = sourceRow(input.sourceDispatchSmokeProofReport, toolId)

@@ -153,13 +153,17 @@ function createMockRuntimeQueueServiceContext(): ServiceContext {
   }
 }
 
+function gpuModelToolOrder(toolId: string): number {
+  const index = gpuModelTools.indexOf(canonicalToolId(toolId))
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index
+}
+
 function proofReadyRows(source: SourceAdmissionSmoke): ProofReadyAdmissionResult[] {
   return [
     ...(source.proofReadyNativeOnlyResults ?? []),
     ...(source.proofReadyModelWeightResults ?? []),
   ].sort((left, right) => (
-    gpuModelTools.indexOf(left.toolId as AiGraphicsCanonicalToolId) -
-    gpuModelTools.indexOf(right.toolId as AiGraphicsCanonicalToolId)
+    gpuModelToolOrder(left.toolId) - gpuModelToolOrder(right.toolId)
   ))
 }
 
@@ -191,12 +195,14 @@ function assertSourceAccepted(source: SourceAdmissionSmoke): void {
   )
 }
 
-function canonicalToolId(toolId: string): AiGraphicsCanonicalToolId {
+type GpuModelToolId = typeof gpuModelTools[number]
+
+function canonicalToolId(toolId: string): GpuModelToolId {
   assert(
     (gpuModelTools as readonly string[]).includes(toolId),
     `unexpected GPU/model tool in proof-ready source rows: ${toolId}`,
   )
-  return toolId as AiGraphicsCanonicalToolId
+  return toolId as GpuModelToolId
 }
 
 function buildProductionWorkerPayload(input: {

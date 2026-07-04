@@ -81,9 +81,8 @@ function collectChecksumEvidenceRecords(): ChecksumEvidenceInput[] {
 const evidenceRecords = collectChecksumEvidenceRecords()
 const packet = buildAiGraphicsModelWeightChecksumEvidencePacket(evidenceRecords)
 const allowPartial = hasFlag('--allow-partial')
-const providedToolIds = new Set(evidenceRecords
-  .map((record) => record.toolId)
-  .filter((toolId): toolId is string => typeof toolId === 'string' && toolId.length > 0))
+const providedToolIds = new Set<string>(evidenceRecords.flatMap((record) =>
+  typeof record.toolId === 'string' && record.toolId.length > 0 ? [record.toolId] : []))
 const providedResults = packet.validationResults.filter((result) =>
   typeof result.toolId === 'string' && providedToolIds.has(result.toolId))
 const allProvidedRecordsAccepted = evidenceRecords.length > 0 &&

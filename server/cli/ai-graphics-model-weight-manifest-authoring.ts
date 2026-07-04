@@ -155,10 +155,12 @@ const manifestSupplements = collectManifestSupplementRecords()
 const authoring = buildAiGraphicsModelWeightManifestAuthoringDrafts(checksumEvidenceRecords, manifestSupplements)
 const outDir = valuesAfterFlag('--out-dir')[0]
 const allowPartial = hasFlag('--allow-partial')
-const providedToolIds = new Set([
-  ...checksumEvidenceRecords.map((record) => record.toolId),
-  ...manifestSupplements.map((record) => record.toolId),
-].filter((toolId): toolId is string => typeof toolId === 'string' && toolId.length > 0))
+const providedToolIds = new Set<string>([
+  ...checksumEvidenceRecords.flatMap((record) =>
+    typeof record.toolId === 'string' && record.toolId.length > 0 ? [record.toolId] : []),
+  ...manifestSupplements.flatMap((record) =>
+    typeof record.toolId === 'string' && record.toolId.length > 0 ? [record.toolId] : []),
+])
 const providedResults = authoring.packet.validationResults.filter((result) => providedToolIds.has(result.toolId))
 const allRequiredDraftsReady = authoring.packet.localPrivateManifestDraftsReady === 5
 const allProvidedRecordsReady = providedToolIds.size > 0 &&

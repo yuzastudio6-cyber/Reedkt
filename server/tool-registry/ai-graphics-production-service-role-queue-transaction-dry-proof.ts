@@ -303,7 +303,7 @@ const requiredPrivateRefFields = [
   'productionWorkerDispatchPolicyRef',
 ] as const
 
-function hasValue(value?: string): boolean {
+function hasValue(value?: string): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 

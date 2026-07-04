@@ -93,9 +93,8 @@ function collectManifestSupplementRecords(): ManifestSupplementInput[] {
 const supplementRecords = collectManifestSupplementRecords()
 const packet = buildAiGraphicsModelWeightManifestSupplementPacket(supplementRecords)
 const allowPartial = hasFlag('--allow-partial')
-const providedToolIds = new Set(supplementRecords
-  .map((record) => record.toolId)
-  .filter((toolId): toolId is string => typeof toolId === 'string' && toolId.length > 0))
+const providedToolIds = new Set<string>(supplementRecords.flatMap((record) =>
+  typeof record.toolId === 'string' && record.toolId.length > 0 ? [record.toolId] : []))
 const providedResults = packet.validationResults.filter((result) =>
   typeof result.toolId === 'string' && providedToolIds.has(result.toolId))
 const allProvidedRecordsAccepted = supplementRecords.length > 0 &&

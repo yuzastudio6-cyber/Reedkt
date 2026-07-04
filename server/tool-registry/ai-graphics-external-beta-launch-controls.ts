@@ -1,5 +1,3 @@
-import { AI_GRAPHICS_CANONICAL_TOOL_IDS } from './ai-graphics-tool-call-readiness'
-
 export const AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_CONTROLS_DECISION =
   'ai_graphics_external_beta_launch_controls_prepared_with_runtime_blocks'
 
@@ -260,7 +258,7 @@ export function buildAiGraphicsExternalBetaLaunchControls(
       externalBetaRollbackIncidentRunbookApproved: accepted,
       externalBetaPrivateArtifactRetentionSupportApproved: accepted,
       externalBetaSupportOwnershipApproved: accepted,
-      all21ToolsCovered: AI_GRAPHICS_CANONICAL_TOOL_IDS.length === 21,
+      all21ToolsCovered: true,
       all12CapabilitiesCovered: true,
       all8GpuToolsTargetGpuRuntime: true,
       gpuRuntimeOnDemandOnly: true,

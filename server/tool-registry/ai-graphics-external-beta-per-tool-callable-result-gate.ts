@@ -526,6 +526,7 @@ export function evaluateAiGraphicsExternalBetaPerToolCallableResultGate(
       input.sourceWorkerRuntimeSmokeProofPacket?.decision ?? null,
     status,
     sourceWorkerRuntimeSmokeProofAccepted: sourceAccepted,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted,
     callableResultGateAcceptedWithProvidedEvidence: resultAccepted,
     rejectionReasons,
     requestedToolId:

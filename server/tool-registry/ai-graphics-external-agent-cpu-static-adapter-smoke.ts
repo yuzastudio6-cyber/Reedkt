@@ -14,7 +14,7 @@ import type { ProductionRegistryWorkerType, ProductionToolId } from './productio
 export const AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_ADAPTER_SMOKE_DECISION =
   'ai_graphics_external_agent_cpu_static_adapter_smoke_prepared_with_runtime_blocks'
 
-export const AI_GRAPHICS_CPU_STATIC_EXECUTION_PROOF_PHASE_0_DECISION =
+const AI_GRAPHICS_CPU_STATIC_EXECUTION_PROOF_PHASE_0_DECISION =
   'ai_graphics_cpu_static_execution_proof_phase_0_completed_with_warnings'
 
 export const AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_ADAPTER_SMOKE_TOOL_IDS = [
@@ -166,7 +166,9 @@ export interface AiGraphicsExternalAgentCpuStaticAdapterSmokeReport {
 }
 
 function isCpuStaticTool(toolId: AiGraphicsCanonicalToolId): boolean {
-  return AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_ADAPTER_SMOKE_TOOL_IDS.includes(toolId)
+  return (
+    AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_ADAPTER_SMOKE_TOOL_IDS as readonly AiGraphicsCanonicalToolId[]
+  ).includes(toolId)
 }
 
 function phase0Tool(
@@ -338,7 +340,7 @@ export function buildAiGraphicsExternalAgentCpuStaticAdapterSmoke(
     capabilities: [...AI_GRAPHICS_PRODUCT_FACING_CAPABILITY_IDS],
     counts: {
       totalAiGraphicsTools: 21,
-      cpuStaticCohortTools: cpuStaticRows.length,
+      cpuStaticCohortTools: 6,
       cpuStaticAdapterSmokeReadyTools: smokeReadyRows.length,
       cpuStaticAdapterSmokeBlockedTools: cpuStaticRows.length - smokeReadyRows.length,
       satoriBlockedPendingApprovedFontFixtureTools: satoriBlockedRows.length,

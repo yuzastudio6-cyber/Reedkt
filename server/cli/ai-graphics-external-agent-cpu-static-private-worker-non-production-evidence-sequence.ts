@@ -53,6 +53,9 @@ const requiredFlags = [
   '--output-dir',
 ] as const
 
+type RequiredFlag = typeof requiredFlags[number]
+type ValueRequiredFlag = Exclude<RequiredFlag, typeof executeFlag>
+
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
 }
@@ -120,7 +123,11 @@ function flagValueRejection(flag: string, value: string): string | undefined {
   return undefined
 }
 
-function invalidFlagValueFindings() {
+function invalidFlagValueFindings(): Array<{
+  flag: ValueRequiredFlag
+  valuePreview: string
+  rejection: string
+}> {
   return requiredFlags
     .filter((flag) => flag !== executeFlag)
     .map((flag) => {
@@ -135,9 +142,11 @@ function invalidFlagValueFindings() {
         }
         : null
     })
-    .filter((finding): finding is { flag: string; valuePreview: string; rejection: string } =>
-      Boolean(finding),
-    )
+    .filter((finding): finding is {
+      flag: ValueRequiredFlag
+      valuePreview: string
+      rejection: string
+    } => finding !== null)
 }
 
 function assertRuntimeFlagValues(): void {
@@ -459,7 +468,7 @@ function buildOperatorPreflightReport() {
   })
   const flagChecks = requiredFlags.map((flag) => {
     const present =
-      flag === executeFlag || flag === operatorPreflightFlag
+      flag === executeFlag
         ? hasFlag(flag)
         : Boolean(valueAfterFlag(flag))
     return {

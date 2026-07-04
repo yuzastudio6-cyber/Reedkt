@@ -278,15 +278,15 @@ function sourceHandoffAccepted(
 }
 
 function isDryAdmittedTool(toolId: AiGraphicsCanonicalToolId): boolean {
-  return AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_HANDOFF_ADMISSION_TOOL_IDS.includes(
-    toolId,
-  )
+  return (
+    AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_HANDOFF_ADMISSION_TOOL_IDS as readonly AiGraphicsCanonicalToolId[]
+  ).includes(toolId)
 }
 
 function isSatoriBlockedTool(toolId: AiGraphicsCanonicalToolId): boolean {
-  return AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_HANDOFF_BLOCKED_TOOL_IDS.includes(
-    toolId,
-  )
+  return (
+    AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_HANDOFF_BLOCKED_TOOL_IDS as readonly AiGraphicsCanonicalToolId[]
+  ).includes(toolId)
 }
 
 function statusFor(input: {

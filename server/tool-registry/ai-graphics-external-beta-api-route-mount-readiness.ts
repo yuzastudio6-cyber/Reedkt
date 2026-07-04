@@ -1,10 +1,6 @@
 import {
   AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_HANDLER_GATEWAY_FULL_PROOF_DECISION,
 } from './ai-graphics-external-beta-api-route-handler-gateway-full-proof'
-import {
-  AI_GRAPHICS_CANONICAL_TOOL_IDS,
-  AI_GRAPHICS_TOOL_CALL_CAPABILITY_IDS,
-} from './ai-graphics-tool-call-readiness'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_API_ROUTE_MOUNT_READINESS_DECISION =
   'ai_graphics_external_beta_api_route_mount_readiness_prepared_with_runtime_blocks'

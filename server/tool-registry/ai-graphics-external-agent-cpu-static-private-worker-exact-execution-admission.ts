@@ -405,7 +405,7 @@ function buildRow(input: {
     toolId: input.toolId,
     productionToolId: input.source?.productionToolId ?? (`ai_graphics_${input.toolId}` as ProductionToolId),
     workerType: input.source?.workerType ?? 'tool_readiness_worker',
-    runtimeTarget: input.source?.runtimeTarget ?? 'deferred',
+    runtimeTarget: input.source?.runtimeTarget ?? 'planning_only_no_runtime',
     queueName: ready ? AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_QUEUE_NAME : null,
     sourceControlledToolExecutionProofStatus:
       input.source?.controlledToolExecutionProofStatus ?? null,

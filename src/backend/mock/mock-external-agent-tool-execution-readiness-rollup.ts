@@ -6,6 +6,7 @@ export type ExternalAgentToolReadinessStatus =
   | 'supporting_evidence_only'
   | 'callable_cloud_side_cache_staging_runner_required_before_gpu_import_proof'
   | 'callable_cloud_side_cache_staging_runner_ready_before_gpu_import_proof'
+  | 'ready_for_bounded_model_import_proof_after_private_cache_staging'
 
 export type ExternalAgentToolReadinessEntry = {
   toolId: string
@@ -221,7 +222,7 @@ export const AI_VIDEO_BROLL_GEN_11E_EXECUTE_CLOUD_SIDE_CACHE_STAGING_PROMPT =
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
-    'external_agent_tool_execution_readiness_qwen_ready_broll_cloud_side_cache_staging_runner_ready_execute_required',
+    'external_agent_tool_execution_readiness_qwen_ready_broll_private_cache_staged_11b_model_import_ready',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -454,16 +455,21 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     {
       toolId: 'ai_video_broll_generation_wan',
       lane: 'open_source_generated_broll',
-      status: 'callable_cloud_side_cache_staging_runner_ready_before_gpu_import_proof',
+      status: 'ready_for_bounded_model_import_proof_after_private_cache_staging',
       currentStage:
-        'controlled_l4_no_idle_payload_install_proof_passed_11b_model_import_runner_ready_11e_cloud_side_cache_staging_runner_implemented_but_private_gcs_model_cache_not_staged',
+        'controlled_l4_no_idle_payload_install_proof_passed_11e_private_gcs_model_cache_staged_11b_model_import_runner_ready',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
-      readyForExternalAgentExecutionNow: false,
-      readyForBoundedRetryAfterBlockerClears: false,
-      primaryBlocker: 'broll_private_gcs_model_cache_staging_runner_ready_not_yet_executed',
+      readyForExternalAgentExecutionNow: true,
+      readyForBoundedRetryAfterBlockerClears: true,
+      primaryBlocker: 'none_private_gcs_model_cache_staged_model_import_proof_requires_explicit_11b_confirmation',
       evidence: [
+        'docs/ai-video-broll-gen-11e-cloud-side-cache-staging-execution-result.md',
+        'src/backend/mock/mock-ai-video-broll-gen-11e-cloud-side-cache-staging-execution-result.ts',
+        'server/smoke/ai-video-broll-gen-11e-cloud-side-cache-staging-execution-result-smoke.ts',
+        'package_json_script:smoke:ai-video-broll-gen-11e-cloud-side-cache-staging-execution-result',
+        'live_summary:11e_private_gcs_wan_model_cache_staged_ready_marker_created_cloud_run_job_deleted_support_files_cleaned_no_gpu_no_inference',
         'docs/ai-video-broll-gen-11e-cloud-side-cache-staging-runner.md',
         'src/backend/mock/mock-ai-video-broll-gen-11e-cloud-side-cache-staging-runner.ts',
         'server/cli/ai-video-broll-gen-11e-cloud-side-cache-staging-runner.ts',
@@ -702,7 +708,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
-      nextAction: AI_VIDEO_BROLL_GEN_11E_EXECUTE_CLOUD_SIDE_CACHE_STAGING_PROMPT,
+      nextAction: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
       manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
@@ -732,7 +738,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
         quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
         nextActionAfterQuotaClears:
-          AI_VIDEO_BROLL_GEN_11E_EXECUTE_CLOUD_SIDE_CACHE_STAGING_PROMPT,
+          AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
       },
     },
     {
@@ -785,7 +791,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
   recommendedNextPrompt:
-    AI_VIDEO_BROLL_GEN_11E_EXECUTE_CLOUD_SIDE_CACHE_STAGING_PROMPT,
+    AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

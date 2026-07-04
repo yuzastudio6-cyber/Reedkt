@@ -232,8 +232,8 @@ assert.equal(report.executionAllowedNow, false)
 assert.equal(report.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(report.runtimeGatesAllFalse, true)
 assert.equal(report.rawChatExecutionAllowed, false)
-assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct'])
-assert.equal(report.blockedToolIds.length, 3)
+assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
+assert.equal(report.blockedToolIds.length, 2)
 const reportBrollGateRow = report.toolRows.find(
   (row: { toolId: string }) => row.toolId === 'ai_video_broll_generation_wan',
 )
@@ -243,7 +243,7 @@ const reportQwenGateRow = report.toolRows.find(
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(
   reportBrollGateRow.currentBlocker,
-  'no_gpu_cloud_side_cache_staging_runner_execution_required_before_broll_11b_model_import_runner',
+  'none_private_gcs_model_cache_staged_model_import_proof_requires_explicit_11b_confirmation',
 )
 assert.equal(
   reportBrollGateRow.safeNextCommand,

@@ -22,7 +22,7 @@ This implementation does not run the runner, create a Cloud Run Job, execute a C
 - Target private prefix: `proof-payloads/ai-video-broll/11b/model-cache-by-commit/Wan-AI__Wan2.1-T2V-1.3B-Diffusers/0fad780a534b6463e45facd96134c9f345acfa5b`
 - Ready marker: `wan-model-cache-ready.json`
 
-The runner uses a CPU-only Cloud Run Job to copy pinned Hugging Face `resolve/<commit>/...` files into the private GCS model-cache prefix, validate per-file byte counts and aggregate bytes, and write the ready marker only after the expected 19 files and `28928887859` aggregate bytes match.
+The runner uses a CPU-only Cloud Run Job to stream pinned Hugging Face `resolve/<commit>/...` files into the private GCS model-cache prefix through the GCS resumable upload API, validate per-file byte counts and aggregate bytes, and write the ready marker only after the expected 19 files and `28928887859` aggregate bytes match. Existing objects with the exact expected byte count are skipped; mismatched existing objects block for manual cleanup instead of being overwritten blindly. Failed worker phases print `REEDITPRO_BROLL_11E_PHASE_FAILED` plus bounded stdout/stderr tails so the next repair is diagnosable.
 
 ## Execution Boundary
 
@@ -33,6 +33,7 @@ The runner may create private GCS support files and a prompt-scoped CPU-only Clo
 - the local Wan cache manifest is present and matches expected file count and bytes;
 - the target private bucket is readable;
 - no mismatched ready marker already exists;
+- the Cloud Run service account has conditional object-create access to the target private model-cache prefix;
 - cleanup verification runs after the job.
 
 The runner must not:

@@ -43,13 +43,13 @@ function actionForTool(toolId: string) {
         ...externalAgentPreExecutionActions,
         'npm run ai-video-broll-wan-fast-cache-readiness:check',
         'npm run ai-video-broll-wan-gpu-global-quota:verify',
-        'npm run external-agent-tool-prepare-broll-wan-cache',
         'npm run external-agent-tool-blockers:preflight',
+        'npm run external-agent-tool-execute-broll-wan',
       ],
       externalManualBlocker:
-        'B-roll 10ZB proved the no-idle L4 payload/install path with cleanup verified. 11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers model import target and 11B added the no-inference model import/load runner. Current live preflight shows local model cache and private wheelhouse are ready, but the private GCS Wan model cache still needs the 11E no-GPU cloud-side cache staging runner to execute and create the private ready marker before the 11B GPU proof can run.',
+        'B-roll 10ZB proved the no-idle L4 payload/install path with cleanup verified. 11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers model import target, 11B added the no-inference model import/load runner, and 11E staged the private GCS Wan model cache with the ready marker. The bounded 11B no-idle L4 model import/load proof is now the next explicit external-agent action; Wan inference and generated video remain blocked.',
       afterBlockerClears:
-        'run AI-VIDEO-BROLL-GEN-11E-EXECUTE-CLOUD-SIDE-CACHE-STAGING through npm run external-agent-tool-prepare-broll-wan-cache before the bounded 11B no-idle L4 model import/load proof',
+        'run AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF through npm run external-agent-tool-execute-broll-wan with explicit confirmation, no inference',
     }
   }
 
@@ -83,7 +83,9 @@ function main() {
   const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
   const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
   const explicitToolGateReadyTools = rollup.tools.filter(
-    (tool) => String(tool.status) === 'ready_for_explicit_tool_gate',
+    (tool) =>
+      String(tool.status) === 'ready_for_explicit_tool_gate' ||
+      String(tool.status) === 'ready_for_bounded_model_import_proof_after_private_cache_staging',
   )
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = Object.values(rollup.runtimeSideEffects).every((value) => value === false)

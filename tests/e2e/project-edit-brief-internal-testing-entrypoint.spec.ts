@@ -83,6 +83,13 @@ test.describe('Project Edit Brief internal testing entrypoint', () => {
     await expect(page.getByTestId('internal-testing-supabase-schema-rls-draft-tables')).toContainText('edit_sessions')
     await expect(page.getByTestId('internal-testing-supabase-schema-rls-draft-verification')).toContainText('non member project read denied')
     await expect(page.getByTestId('internal-testing-supabase-schema-rls-draft-boundaries')).toContainText('No migration SQL')
+    await expect(page.getByTestId('internal-testing-durable-project-session-supabase-migration-sql-draft')).toContainText('Migration SQL draft')
+    await expect(page.getByTestId('internal-testing-supabase-migration-sql-draft-decision')).toContainText(
+      'internal_testing_durable_project_session_supabase_migration_sql_draft_passed_ready_for_migration_review',
+    )
+    await expect(page.getByTestId('internal-testing-supabase-migration-sql-draft-statements')).toContainText('rls_policy')
+    await expect(page.getByTestId('internal-testing-supabase-migration-sql-draft-review-checks')).toContainText('migration review required')
+    await expect(page.getByTestId('internal-testing-supabase-migration-sql-draft-boundaries')).toContainText('No executable migration')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Edit Brief')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Approved snapshot + credit gate readiness')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Credit lifecycle readiness')
@@ -95,6 +102,7 @@ test.describe('Project Edit Brief internal testing entrypoint', () => {
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Durable project/session backend readback QA')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Durable project/session Supabase route contract plan')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Durable project/session Supabase schema/RLS draft')
+    await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Durable project/session Supabase migration SQL draft')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Preference Video mock-only limits')
     const editBriefStart = page.getByTestId('internal-testing-start-edit-brief')
     await expect(editBriefStart).toContainText('Edit Brief')

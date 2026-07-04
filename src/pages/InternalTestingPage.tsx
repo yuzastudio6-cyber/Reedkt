@@ -35,6 +35,11 @@ import {
   DURABLE_PROJECT_SESSION_SUPABASE_SCHEMA_RLS_DRAFT_NEXT_GATE,
   getDurableProjectSessionSupabaseSchemaRlsDraft,
 } from '../lib/project-session-supabase-schema-rls-draft'
+import {
+  DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_SQL_DRAFT_DECISION,
+  DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_SQL_DRAFT_NEXT_GATE,
+  getDurableProjectSessionSupabaseMigrationSqlDraft,
+} from '../lib/project-session-supabase-migration-sql-draft'
 import { PROJECT_EDIT_SESSION_ACCESS_POLICY_REQUIRED_EVIDENCE } from '../lib/project-edit-session-access-policy'
 import { internalTestingScenarios, type InternalTestingScenarioStatus } from '../lib/internal-testing-scenarios'
 import {
@@ -162,10 +167,11 @@ function getScenarioHighlights() {
     'durable-project-session-backend-readback-qa',
     'durable-project-session-supabase-route-contract-plan',
     'durable-project-session-supabase-schema-rls-draft',
+    'durable-project-session-supabase-migration-sql-draft',
     'feedback-export',
   ])
 
-  return internalTestingScenarios.filter((scenario) => prioritizedIds.has(scenario.id)).slice(0, 20)
+  return internalTestingScenarios.filter((scenario) => prioritizedIds.has(scenario.id)).slice(0, 24)
 }
 
 export function InternalTestingPage() {
@@ -191,6 +197,7 @@ export function InternalTestingPage() {
   const backendSkeleton = useMemo(getMockSafeDurableProjectSessionBackendSkeleton, [])
   const supabaseRouteContractPlan = useMemo(getDurableProjectSessionSupabaseRouteContractPlan, [])
   const supabaseSchemaRlsDraft = useMemo(getDurableProjectSessionSupabaseSchemaRlsDraft, [])
+  const supabaseMigrationSqlDraft = useMemo(getDurableProjectSessionSupabaseMigrationSqlDraft, [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -845,6 +852,51 @@ export function InternalTestingPage() {
               <Badge accent="warning">Still gated</Badge>
               <ul>
                 <li>No migration SQL is written, applied, or validated.</li>
+                <li>No local Supabase reset, remote validation, generated types, Data API read/write, Storage, or signed URL path.</li>
+                <li>No table-backed route implementation, service-role browser path, worker, media, render, credit, beta, production, or product-ready unlock.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-durable-project-session-supabase-migration-sql-draft">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Migration SQL draft</span>
+            <h2>Reviewable SQL exists, but no executable migration is applied</h2>
+          </div>
+          <p>
+            This draft writes the review artifact at <code>{supabaseMigrationSqlDraft.draftSqlFile}</code> and keeps it outside
+            <code> supabase/migrations</code>. It preserves the <code>workspace_members</code> and <code>auth.uid()</code> access chain
+            while requiring a later migration review before any real Supabase CLI migration can run.
+          </p>
+          <div className="internal-testing-auth-grid">
+            <article data-testid="internal-testing-supabase-migration-sql-draft-decision">
+              <Badge accent="success">Migration review ready</Badge>
+              <strong>{DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_SQL_DRAFT_DECISION}</strong>
+              <span>Next gate: {DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_SQL_DRAFT_NEXT_GATE}</span>
+            </article>
+            <article data-testid="internal-testing-supabase-migration-sql-draft-statements">
+              <Badge accent="cyan">Draft statement groups</Badge>
+              <ul>
+                {supabaseMigrationSqlDraft.draftStatements.map((statement) => (
+                  <li key={statement.id}>
+                    {statement.kind}: {statement.target}
+                  </li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-supabase-migration-sql-draft-review-checks">
+              <Badge accent="cyan">Review checks</Badge>
+              <ul>
+                {supabaseMigrationSqlDraft.reviewChecks.map((check) => (
+                  <li key={check}>{check.replace(/_/g, ' ')}</li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-supabase-migration-sql-draft-boundaries">
+              <Badge accent="warning">Still gated</Badge>
+              <ul>
+                <li>Draft SQL is review metadata only. No executable migration is created or applied.</li>
                 <li>No local Supabase reset, remote validation, generated types, Data API read/write, Storage, or signed URL path.</li>
                 <li>No table-backed route implementation, service-role browser path, worker, media, render, credit, beta, production, or product-ready unlock.</li>
               </ul>

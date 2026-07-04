@@ -1,0 +1,109 @@
+{
+  "id": "internal-testing-durable-project-session-supabase-migration-sql-draft",
+  "scenarioId": "durable-project-session-supabase-migration-sql-draft",
+  "decision": "internal_testing_durable_project_session_supabase_migration_sql_draft_passed_ready_for_migration_review",
+  "priorDecision": "internal_testing_durable_project_session_supabase_schema_rls_draft_passed_ready_for_migration_sql_draft",
+  "currentMode": "migration_sql_draft_only",
+  "nextMode": "migration_review",
+  "draftSqlFile": "database/migration-drafts/024_internal_testing_durable_project_session_access.draft.sql",
+  "coreTables": [
+    "profiles",
+    "workspaces",
+    "workspace_members",
+    "projects",
+    "edit_sessions"
+  ],
+  "routeDataTables": [
+    "edit_briefs",
+    "edit_cues",
+    "edit_session_export_settings"
+  ],
+  "draftStatementKinds": [
+    "schema",
+    "index",
+    "grant",
+    "rls_policy"
+  ],
+  "grantPolicy": {
+    "coreSelectGrants": [
+      "profiles",
+      "workspaces",
+      "workspace_members",
+      "projects",
+      "edit_sessions"
+    ],
+    "routeDataSelectGrants": "review_only_commented_out",
+    "mutationGrants": "absent"
+  },
+  "rlsPolicyIntents": [
+    "profiles self-read by auth.uid()",
+    "workspaces readable only through workspace_members",
+    "workspace_members readable only by the signed-in member",
+    "projects readable only through workspace membership",
+    "edit_sessions readable only through project workspace membership",
+    "route data policies intentionally pending migration review"
+  ],
+  "reviewChecks": [
+    "draft_file_lives_under_database_migration_drafts_not_supabase_migrations",
+    "core_select_grants_only_until_route_data_policy_review",
+    "authenticated_role_rls_uses_workspace_membership_chain",
+    "anonymous_access_denied_by_absent_grants_and_rls",
+    "mutation_grants_absent_for_internal_testing_draft",
+    "no_local_supabase_reset_or_remote_database_apply",
+    "no_generated_types_or_table_backed_routes",
+    "migration_review_required_before_real_supabase_cli_migration"
+  ],
+  "blockedScope": {
+    "supabaseMigration": false,
+    "supabaseWrite": false,
+    "supabaseDataApiRead": false,
+    "storageSignedUrls": false,
+    "serviceRoleInBrowser": false,
+    "profileWorkspaceBootstrapWrites": false,
+    "providerOrModelCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "creditSpend": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "productReady": false,
+    "supabaseRouteImplementation": false,
+    "supabaseSchemaDraftApplied": false,
+    "rlsPolicyApplied": false,
+    "dataApiGrantApplied": false,
+    "liveRouteRead": false,
+    "liveRouteWrite": false,
+    "serviceRoleServerUse": false,
+    "migrationSqlWritten": true,
+    "migrationSqlDraftWritten": true,
+    "executableMigrationCreated": false,
+    "migrationApplied": false,
+    "remoteSupabaseValidation": false,
+    "localSupabaseReset": false,
+    "generatedTypes": false,
+    "tableBackedRouteImplementation": false
+  },
+  "migrationApplied": false,
+  "durableSupabaseAccessAllowed": false,
+  "productReady": false,
+  "validation": {
+    "required": [
+      "smoke:internal-testing-durable-project-session-supabase-migration-sql-draft",
+      "smoke:internal-testing-durable-project-session-supabase-schema-rls-draft",
+      "smoke:internal-testing-durable-project-session-supabase-route-contract-plan",
+      "smoke:internal-testing-durable-project-session-backend-readback-qa",
+      "smoke:internal-testing-durable-project-session-backend-route-integration",
+      "smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton",
+      "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan",
+      "smoke:internal-testing-qa-wrapper",
+      "smoke:project-edit-brief-internal-testing-entrypoint",
+      "qa:internal-testing",
+      "typecheck:server",
+      "build",
+      "git diff --check",
+      "git diff --cached --check"
+    ]
+  },
+  "nextGate": "INTERNAL_TESTING_DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_REVIEW"
+}

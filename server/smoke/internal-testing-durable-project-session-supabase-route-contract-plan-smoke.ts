@@ -172,7 +172,9 @@ const sourceTruthJson = JSON.parse(read('docs/project-edit-brief-source-truth-re
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_route_contract_plan'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-route-contract-plan'))
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_schema_rls_draft'))
-assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_sql_draft'))
+assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_migration_sql_draft'))
+assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_review'))
+assert.equal(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_sql_draft'), false)
 assert.equal(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_schema_rls_draft'), false)
 assert.equal(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_route_contract_plan'), false)
 

@@ -30,6 +30,9 @@ const requiredFiles = [
   'docs/internal-testing-durable-project-session-supabase-schema-rls-draft.md',
   'docs/internal-testing-durable-project-session-supabase-schema-rls-draft.json',
   'server/smoke/internal-testing-durable-project-session-supabase-schema-rls-draft-smoke.ts',
+  'docs/internal-testing-durable-project-session-supabase-migration-sql-draft.md',
+  'docs/internal-testing-durable-project-session-supabase-migration-sql-draft.json',
+  'server/smoke/internal-testing-durable-project-session-supabase-migration-sql-draft-smoke.ts',
   'docs/internal-testing-durable-project-session-supabase-route-contract-plan.md',
   'docs/internal-testing-durable-project-session-supabase-route-contract-plan.json',
   'server/smoke/internal-testing-durable-project-session-supabase-route-contract-plan-smoke.ts',
@@ -157,8 +160,11 @@ const sourceTruthJson = JSON.parse(read('docs/project-edit-brief-source-truth-re
   remainingGates?: string[]
 }
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_schema_rls_draft'))
+assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_migration_sql_draft'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-schema-rls-draft'))
-assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_sql_draft'))
+assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-migration-sql-draft'))
+assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_review'))
+assert.equal(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_sql_draft'), false)
 assert.equal(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_schema_rls_draft'), false)
 
 assert.ok(

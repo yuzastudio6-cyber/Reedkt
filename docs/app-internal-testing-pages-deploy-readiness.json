@@ -1,0 +1,37 @@
+{
+  "decision": "app_internal_testing_pages_deploy_readiness_passed_ready_for_manual_pages_workflow",
+  "sourceRef": "codex/reeditpro-web-ui-shell",
+  "workflow": ".github/workflows/app-internal-testing-pages-deploy.yml",
+  "defaultBasePath": "/Reedkt/",
+  "githubPagesSignInUrl": "https://yuzastudio6-cyber.github.io/Reedkt/sign-in",
+  "futureCustomDomainSignInUrl": "https://app.reeditpro.com/sign-in",
+  "frontendAuthMode": "supabase_anon_client_only",
+  "safeSecretMappings": {
+    "STAGING_SUPABASE_URL": "VITE_SUPABASE_URL",
+    "STAGING_SUPABASE_ANON_KEY": "VITE_SUPABASE_ANON_KEY"
+  },
+  "blockedSecrets": [
+    "STAGING_SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "PROVIDER_GATEWAY_SHARED_SECRET",
+    "WORKER_WEBHOOK_SECRET",
+    "STRIPE_SECRET_KEY"
+  ],
+  "blockedScope": {
+    "backendApiDeploy": false,
+    "serviceRole": false,
+    "supabaseWrite": false,
+    "storageSignedUrls": false,
+    "providerCalls": false,
+    "workerDispatch": false,
+    "toolExecution": false,
+    "mediaProcessing": false,
+    "renderExport": false,
+    "creditReservation": false,
+    "creditSpend": false,
+    "stripe": false,
+    "externalBeta": false,
+    "production": false
+  },
+  "nextGate": "APP_INTERNAL_TESTING_PAGES_DEPLOY_WORKFLOW_RUN_AND_AUTH_READBACK"
+}

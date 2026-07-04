@@ -620,6 +620,9 @@ function exactRuntimeAttemptCommand(
     toolId === 'transparent_background'
       ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
       : '',
+    toolId === 'kornia'
+      ? '--allow-cpu-tensor-runtime'
+      : '',
     (toolId === 'torch_torchvision' || toolId === 'transformers')
       ? '--allow-cpu-foundation-runtime'
       : '',

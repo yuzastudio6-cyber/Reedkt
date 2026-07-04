@@ -355,6 +355,89 @@ function nextGpuCommand(toolId: string): string {
     : hostPythonGpuCommand(toolId)
 }
 
+function gpuModelRuntimeBackendDescription(toolId: string): string {
+  if (gpuModelAllowsCpuTensorRuntime(toolId)) {
+    return 'Use the explicit CPU tensor runtime path first; it proves Kornia with a private source frame and does not start GPU.'
+  }
+  if (gpuModelAllowsCpuFoundationRuntime(toolId)) {
+    return 'Use the explicit CPU foundation runtime path first; it proves bounded package/runtime checks and does not start GPU.'
+  }
+  return 'Use an approved native CUDA host with reviewed private model/checkpoint and source-frame inputs.'
+}
+
+function gpuModelExecutionUnlockPlan(input: {
+  toolId: string
+  currentBlockingPrerequisiteKey: string | null
+  currentBlockingReasonCode: string | null
+  remainingPrivateRuntimeInputKeys: string[]
+  minimumPrivateRuntimeInputKeys: string[]
+}): JsonRecord[] {
+  const {
+    toolId,
+    currentBlockingPrerequisiteKey,
+    currentBlockingReasonCode,
+    remainingPrivateRuntimeInputKeys,
+    minimumPrivateRuntimeInputKeys,
+  } = input
+
+  return [
+    {
+      step: 1,
+      action: 'resolve_current_blocker',
+      currentBlockingPrerequisiteKey,
+      currentBlockingReasonCode,
+      remainingPrivateRuntimeInputKeys,
+      minimumPrivateRuntimeInputKeys,
+      note:
+        'Resolve this prerequisite with private local inputs only; missing private model/source files are blockers, not success.',
+    },
+    {
+      step: 2,
+      action: 'prepare_runtime_surface',
+      preferredBackend: toolId === 'kornia'
+        ? 'docker_container_cpu_tensor'
+        : gpuModelAllowsCpuFoundationRuntime(toolId)
+        ? 'host_python_or_docker_container_cpu_foundation'
+        : 'native_cuda_host_or_cuda_container',
+      runtimePolicy: gpuModelRuntimeBackendDescription(toolId),
+      buildCommand: containerGpuImageBuildCommand(),
+      gpuStartsDuringBuild: false,
+      gpuStartsIdle: false,
+    },
+    {
+      step: 3,
+      action: 'run_scoped_private_local_runtime_proof',
+      hostPythonCommand: hostPythonGpuCommand(toolId),
+      containerCommand: containerGpuCommand(toolId),
+      startsGpuOnlyForThisToolCall:
+        !gpuModelAllowsCpuTensorRuntime(toolId) &&
+        !gpuModelAllowsCpuFoundationRuntime(toolId),
+      privateOutputOnly: true,
+    },
+    {
+      step: 4,
+      action: 'bridge_private_runtime_proof_ref',
+      command: proofRefBridgeCommand(),
+      requiresLocalOnlyResult:
+        '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
+    },
+    {
+      step: 5,
+      action: 'recompute_external_agent_readiness_with_private_proof',
+      command: directReadinessWithPrivateProofCommand(),
+      successCriteria:
+        'Only this tool may move from blocked_with_reason to executable after structured private runtime output and proof-ref bridge acceptance.',
+    },
+    {
+      step: 6,
+      action: 'retry_controlled_route_with_accepted_private_proof',
+      command: controlledRouteGpuCommand(toolId),
+      productionStillBlocked: true,
+      publicArtifactsStillBlocked: true,
+    },
+  ]
+}
+
 function mergeGpuHarnessWithPrivateProof(
   sourceHarness: JsonRecord,
   suppliedPrivateProof?: JsonRecord,
@@ -613,6 +696,15 @@ function buildToolRows(
       nextExactProofRefBridgeCommand: group === 'gpu_model'
         ? proofRefBridgeCommand()
         : null,
+      executionUnlockPlan: group === 'gpu_model'
+        ? gpuModelExecutionUnlockPlan({
+            toolId,
+            currentBlockingPrerequisiteKey,
+            currentBlockingReasonCode: gpuRow?.skipReasonCode ?? null,
+            remainingPrivateRuntimeInputKeys,
+            minimumPrivateRuntimeInputKeys,
+          })
+        : [],
       proofRefBridgeStatus: group === 'gpu_model'
         ? bridgeRow?.proofRefBridgeStatus ?? null
         : null,
@@ -1083,7 +1175,7 @@ function buildReport() {
 function makeMarkdown(report: ReturnType<typeof buildReport>): string {
   const rows = report.toolReadinessRows
     .map((row) => (
-      `| \`${row.toolId}\` | \`${row.group}\` | \`${row.installReadinessState}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | ${row.controlledWorkerRouteEvidenceAccepted} | \`${row.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${row.remainingPrivateRuntimeInputKeys.length ? row.remainingPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.minimumPrivateRuntimeInputKeys.length ? row.minimumPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.blockingPrerequisite ?? 'none'}\` |`
+      `| \`${row.toolId}\` | \`${row.group}\` | \`${row.installReadinessState}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | ${row.controlledWorkerRouteEvidenceAccepted} | \`${row.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${row.remainingPrivateRuntimeInputKeys.length ? row.remainingPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.minimumPrivateRuntimeInputKeys.length ? row.minimumPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.nextExactCommand ?? 'none'}\` | \`${row.blockingPrerequisite ?? 'none'}\` |`
     ))
     .join('\n')
 
@@ -1105,8 +1197,8 @@ ${Object.entries(report.executionScope).map(([key, value]) => `- \`${key}\`: ${A
 
 ## Tool Rows
 
-| Tool | Group | Install/runtime state | Readiness state | Callable | Executable | Worker-route evidence accepted | Current blocker | Remaining private runtime inputs | Minimum private runtime inputs | Blocking prerequisite |
-| --- | --- | --- | --- | ---: | ---: | ---: | --- | --- | --- | --- |
+| Tool | Group | Install/runtime state | Readiness state | Callable | Executable | Worker-route evidence accepted | Current blocker | Remaining private runtime inputs | Minimum private runtime inputs | Next exact command | Blocking prerequisite |
+| --- | --- | --- | --- | ---: | ---: | ---: | --- | --- | --- | --- | --- |
 ${rows}
 
 ## Counts

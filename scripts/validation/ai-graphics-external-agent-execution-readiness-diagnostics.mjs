@@ -906,6 +906,62 @@ function checkReport(label, report) {
       if (!String(row.nextExactProofRefBridgeCommand ?? '').includes('--local-runtime-proof-result')) {
         fail(`${label}_${toolId}_proof_ref_bridge_command_missing_private_result_flag`)
       }
+      const unlockPlan = Array.isArray(row.executionUnlockPlan)
+        ? row.executionUnlockPlan
+        : []
+      if (unlockPlan.length !== 6) {
+        fail(`${label}_${toolId}_unlock_plan_step_count_mismatch:${unlockPlan.length}`)
+      }
+      const expectedUnlockActions = [
+        'resolve_current_blocker',
+        'prepare_runtime_surface',
+        'run_scoped_private_local_runtime_proof',
+        'bridge_private_runtime_proof_ref',
+        'recompute_external_agent_readiness_with_private_proof',
+        'retry_controlled_route_with_accepted_private_proof',
+      ]
+      for (const [index, action] of expectedUnlockActions.entries()) {
+        if (unlockPlan[index]?.action !== action) {
+          fail(`${label}_${toolId}_unlock_plan_action_mismatch:${index}:${unlockPlan[index]?.action}`)
+        }
+      }
+      if (unlockPlan[0]?.currentBlockingPrerequisiteKey !== row.currentBlockingPrerequisiteKey) {
+        fail(`${label}_${toolId}_unlock_plan_current_blocker_mismatch`)
+      }
+      if (unlockPlan[0]?.currentBlockingReasonCode !== row.currentBlockingReasonCode) {
+        fail(`${label}_${toolId}_unlock_plan_current_reason_mismatch`)
+      }
+      if (unlockPlan[1]?.buildCommand !== canonicalGpuWorkerProofImageBuildCommand) {
+        fail(`${label}_${toolId}_unlock_plan_build_command_mismatch`)
+      }
+      if (unlockPlan[1]?.gpuStartsDuringBuild !== false ||
+        unlockPlan[1]?.gpuStartsIdle !== false) {
+        fail(`${label}_${toolId}_unlock_plan_gpu_idle_policy_mismatch`)
+      }
+      if (!String(unlockPlan[2]?.hostPythonCommand ?? '').includes(`--tool ${toolId}`)) {
+        fail(`${label}_${toolId}_unlock_plan_host_command_not_tool_scoped`)
+      }
+      if (!String(unlockPlan[2]?.containerCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
+        fail(`${label}_${toolId}_unlock_plan_container_command_not_canonical_image`)
+      }
+      if (toolId === 'kornia' &&
+        !String(unlockPlan[2]?.containerCommand ?? '').includes('--allow-cpu-tensor-runtime')) {
+        fail(`${label}_${toolId}_unlock_plan_kornia_missing_cpu_tensor_flag`)
+      }
+      if (gpuModelCpuFoundationTools.includes(toolId) &&
+        !String(unlockPlan[2]?.hostPythonCommand ?? '').includes('--allow-cpu-foundation-runtime')) {
+        fail(`${label}_${toolId}_unlock_plan_foundation_missing_cpu_flag`)
+      }
+      if (!String(unlockPlan[3]?.command ?? '').includes('--local-runtime-proof-result')) {
+        fail(`${label}_${toolId}_unlock_plan_bridge_missing_private_result`)
+      }
+      if (!String(unlockPlan[4]?.command ?? '').includes('ai-graphics:external-agent-execution-readiness')) {
+        fail(`${label}_${toolId}_unlock_plan_readiness_command_missing`)
+      }
+      if (unlockPlan[5]?.productionStillBlocked !== true ||
+        unlockPlan[5]?.publicArtifactsStillBlocked !== true) {
+        fail(`${label}_${toolId}_unlock_plan_production_or_public_artifact_not_blocked`)
+      }
       for (const flag of expectedControlledRouteFlags(toolId)) {
         if (!String(row.nextExactControlledRouteCommand ?? '').includes(flag)) {
           fail(`${label}_${toolId}_controlled_route_command_missing:${flag}`)

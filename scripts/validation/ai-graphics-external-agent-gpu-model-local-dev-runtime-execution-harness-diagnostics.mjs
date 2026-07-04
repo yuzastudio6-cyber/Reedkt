@@ -733,6 +733,14 @@ for (const tool of tools) {
       fail(`foundation_container_runtime_command_missing_cpu_flag:${tool}`)
     }
   }
+  if (tool === 'kornia') {
+    if (!hostCommand.includes('--allow-cpu-tensor-runtime')) {
+      fail('kornia_host_runtime_command_missing_cpu_tensor_flag')
+    }
+    if (!containerCommand.includes('--allow-cpu-tensor-runtime')) {
+      fail('kornia_container_runtime_command_missing_cpu_tensor_flag')
+    }
+  }
   if (!hostCommand.includes('--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>')) {
     fail(`host_runtime_command_missing_local_output:${tool}`)
   }

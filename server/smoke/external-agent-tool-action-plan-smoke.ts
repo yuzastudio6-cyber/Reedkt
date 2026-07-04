@@ -116,6 +116,10 @@ assert.equal(plan.sourceRules.remotionOwnsFinalComposition, true)
 
 const toolActions = new Map(plan.toolActions.map((tool: { toolId: string }) => [tool.toolId, tool]))
 const qwen = toolActions.get('qwen2_5_vl_7b_instruct') as {
+  readyForExternalAgentExecutionNow: boolean
+  readyForExternalAgentRuntimeExecutionNow: boolean
+  staticReadyForExternalAgentExecutionGateNow: boolean
+  executionNowBlockedByLivePreflight: boolean
   immediateSafeActions: string[]
   externalManualBlocker: string
   forbiddenRuntimeActions: string[]
@@ -132,6 +136,10 @@ const qwen = toolActions.get('qwen2_5_vl_7b_instruct') as {
     afterCompletionCommand: string
   }>
 }
+assert.equal(qwen.readyForExternalAgentExecutionNow, false)
+assert.equal(qwen.readyForExternalAgentRuntimeExecutionNow, false)
+assert.equal(qwen.staticReadyForExternalAgentExecutionGateNow, true)
+assert.equal(qwen.executionNowBlockedByLivePreflight, true)
 assert.equal(qwen.immediateSafeActions[0], 'npm run external-agent-tool-next-command')
 assert.equal(qwen.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(qwen.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
@@ -146,6 +154,19 @@ assert.equal(
   true,
 )
 assert.equal(qwen.manualBlockerActions.length, 0)
+
+for (const tool of plan.toolActions as Array<{
+  toolId: string
+  readyForExternalAgentExecutionNow: boolean
+  readyForExternalAgentRuntimeExecutionNow: boolean
+}>) {
+  assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must not claim static execution-now`)
+  assert.equal(
+    tool.readyForExternalAgentRuntimeExecutionNow,
+    false,
+    `${tool.toolId} must not claim runtime execution-now from the static action plan`,
+  )
+}
 
 const broll = toolActions.get('ai_video_broll_generation_wan') as {
   immediateSafeActions: string[]

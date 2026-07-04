@@ -201,6 +201,7 @@ for (const required of [
   'readyForAnyExternalAgentRuntimeExecutionNow=false',
   'staticReadyForAnyExternalAgentExecutionGateNow=true',
   'executionNowBlockedByLivePreflight=true',
+  'Per-tool rows in the static action plan must follow the same rule',
   'The preferred next safe command is `npm run external-agent-tool-next-command`',
   'combines the static gate and live read-only blocker probes',
   '`npm run external-agent-tool-next-command` emits `qwenExternalAgentExecutionCommand`',

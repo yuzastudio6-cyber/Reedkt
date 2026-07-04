@@ -307,6 +307,19 @@ assert.deepEqual(actionPlan.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])
 assert.equal(actionPlan.executionNowBlockedByLivePreflight, true)
 assert.equal(actionPlan.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(actionPlan.runtimeSideEffects, 'actionPlan.runtimeSideEffects')
+for (const tool of asArray(actionPlan.toolActions, 'actionPlan.toolActions')) {
+  const row = asRecord(tool, 'actionPlan.toolActions row')
+  assert.equal(row.readyForExternalAgentExecutionNow, false, `${row.toolId} must not claim static execution-now`)
+  assert.equal(
+    row.readyForExternalAgentRuntimeExecutionNow,
+    false,
+    `${row.toolId} must not claim runtime execution-now from the static action plan`,
+  )
+  if (row.toolId === QWEN_TOOL_ID) {
+    assert.equal(row.staticReadyForExternalAgentExecutionGateNow, true)
+    assert.equal(row.executionNowBlockedByLivePreflight, true)
+  }
+}
 
 assert.equal(readiness.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(readiness.readyForAnyExternalAgentRuntimeExecutionNow, false)

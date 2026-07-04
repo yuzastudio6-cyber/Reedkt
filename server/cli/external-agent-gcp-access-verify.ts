@@ -56,6 +56,22 @@ function nestedNumber(document: JsonRecord | undefined, keys: string[]): number 
   return typeof value === 'number' ? value : undefined
 }
 
+function selectedAccountIndex(accountSelection: unknown): number | undefined {
+  if (!accountSelection || typeof accountSelection !== 'object' || Array.isArray(accountSelection)) return undefined
+
+  const value = (accountSelection as JsonRecord).overrideIndex
+  return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : undefined
+}
+
+function withSelectedAccountIndex(command: string, accountSelection: unknown): string {
+  const index = selectedAccountIndex(accountSelection)
+  if (!index || command.includes('--account-index') || command.includes('--gcloud-account-index')) return command
+
+  return command.includes(' -- ')
+    ? `${command} --account-index ${index}`
+    : `${command} -- --account-index ${index}`
+}
+
 function runScript(id: string, script: string): CommandResult {
   const result = spawnSync('npx', ['tsx', script], {
     cwd: process.cwd(),
@@ -128,6 +144,9 @@ function main() {
         'server/cli/external-agent-gcloud-account-access-diagnostic.ts',
       )
     : undefined
+  const accountSelection = nested(preflight.json, ['gcloud', 'accountSelection'])
+  const qwenWrapperCommand = withSelectedAccountIndex(spec.qwen.wrapperCommand, accountSelection)
+  const brollWrapperCommand = withSelectedAccountIndex(spec.broll.wrapperCommand, accountSelection)
 
   console.log(
     JSON.stringify(
@@ -137,7 +156,7 @@ function main() {
         mode: spec.mode,
         liveReadOnlyChecksRun: true,
         projectId: spec.projectId,
-        accountSelection: nested(preflight.json, ['gcloud', 'accountSelection']),
+        accountSelection,
         preflight: {
           ok: preflight.ok,
           qwenBlocker: nestedString(preflight.json, ['qwen', 'blocker']),
@@ -152,7 +171,8 @@ function main() {
           serviceDescribePassed: nestedBoolean(preflight.json, ['qwen', 'serviceDescribePassed']),
           jobDescribePassed: nestedBoolean(preflight.json, ['qwen', 'jobDescribePassed']),
           wrapperMayBeCalledAfterConfirmation: qwenWrapperMayBeCalledAfterConfirmation,
-          wrapperCommand: spec.qwen.wrapperCommand,
+          wrapperCommand: qwenWrapperCommand,
+          wrapperShellExample: `${spec.qwen.confirmationEnv}=true ${qwenWrapperCommand}`,
           confirmationEnv: spec.qwen.confirmationEnv,
         },
         broll: {
@@ -163,7 +183,8 @@ function main() {
           regionQuotaReadPassed: nestedBoolean(preflight.json, ['broll', 'regionQuotaReadPassed']),
           quotaSufficientForOneL4Vm: brollQuotaSufficientForOneL4Vm,
           wrapperMayBeCalledAfterConfirmation: brollWrapperMayBeCalledAfterConfirmation,
-          wrapperCommand: spec.broll.wrapperCommand,
+          wrapperCommand: brollWrapperCommand,
+          wrapperShellExample: `${spec.broll.confirmationEnv}=true ${brollWrapperCommand}`,
           confirmationEnv: spec.broll.confirmationEnv,
         },
         nextCommand: {

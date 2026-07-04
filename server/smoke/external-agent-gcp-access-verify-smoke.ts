@@ -96,6 +96,8 @@ for (const required of [
   'allRequiredReadAccessVerified',
   'accountAccessDiagnostic',
   'wrapperMayBeCalledAfterConfirmation',
+  'withSelectedAccountIndex',
+  'wrapperShellExample',
   'runtimeGatesAllFalse',
   '--account-index',
   '--gcloud-account-index',
@@ -133,9 +135,13 @@ assert.equal(cli.mode, spec.mode)
 assert.equal(cli.liveReadOnlyChecksRun, true)
 assert.equal(typeof cli.qwen.readAccessPassed, 'boolean')
 assert.equal(typeof cli.qwen.wrapperMayBeCalledAfterConfirmation, 'boolean')
+assert.equal(cli.qwen.wrapperCommand, spec.qwen.wrapperCommand)
+assert.equal(cli.qwen.wrapperShellExample, `${spec.qwen.confirmationEnv}=true ${spec.qwen.wrapperCommand}`)
 assert.equal(typeof cli.broll.quotaReadAccessPassed, 'boolean')
 assert.equal(typeof cli.broll.quotaSufficientForOneL4Vm, 'boolean')
 assert.equal(typeof cli.broll.wrapperMayBeCalledAfterConfirmation, 'boolean')
+assert.equal(cli.broll.wrapperCommand, spec.broll.wrapperCommand)
+assert.equal(cli.broll.wrapperShellExample, `${spec.broll.confirmationEnv}=true ${spec.broll.wrapperCommand}`)
 assert.equal(typeof cli.nextCommand.executionAllowedNow, 'boolean')
 assert.equal(typeof cli.allRequiredReadAccessVerified, 'boolean')
 assert.equal(cli.readyForAnyExternalAgentExecutionNow, cli.nextCommand.executionAllowedNow)
@@ -152,6 +158,22 @@ if (!cli.allRequiredReadAccessVerified) {
 assert.equal(indexedCli.ok, true)
 assert.equal(indexedCli.accountSelection.overrideIndexProvided, true)
 assert.equal(indexedCli.accountSelection.overrideIndex, 2)
+assert.equal(
+  indexedCli.qwen.wrapperCommand,
+  'npm run external-agent-tool-execute-qwen -- --execute --json --account-index 2',
+)
+assert.equal(
+  indexedCli.qwen.wrapperShellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_QWEN_EXECUTION=true npm run external-agent-tool-execute-qwen -- --execute --json --account-index 2',
+)
+assert.equal(
+  indexedCli.broll.wrapperCommand,
+  'npm run external-agent-tool-execute-broll-wan -- --execute --json --account-index 2',
+)
+assert.equal(
+  indexedCli.broll.wrapperShellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json --account-index 2',
+)
 assert.equal(indexedCli.accountAccessDiagnostic.recommendedNextPrompt.includes('--account-index 2'), true)
 assert.equal(indexedCli.recommendedNextPrompt.includes('--account-index 2'), true)
 assert.equal(JSON.stringify(indexedCli).includes('<account-index>'), false)

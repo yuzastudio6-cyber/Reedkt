@@ -295,6 +295,17 @@ function qwenAccessRepairHint() {
     requiredReadPermissions: qwen?.requiredReadPermissions,
     likelyMinimalRole: qwen?.likelyMinimalRole,
     verificationCommand: withSelectedAccountIndexPlaceholders(qwen?.verificationCommand),
+    failureMeaning: qwen?.failureMeaning,
+    safeRepairChecklist: qwen?.safeRepairChecklist,
+    unsafeBypasses: qwen?.unsafeBypasses,
+    failureResponsePolicy: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.failureResponsePolicy,
+    safeRetryChecklist: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.safeRetryChecklist.map((item) =>
+      withSelectedAccountIndexPlaceholders(item),
+    ),
+    postRepairVerificationCommands: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.postRepairVerificationCommands.map((item) =>
+      withSelectedAccountIndexPlaceholders(item),
+    ),
+    runtimeExecutionStillRequiresWrapperGate: qwen?.runtimeExecutionStillRequiresWrapperGate,
     mutatesGcp: false,
     authorizesRuntimeExecution: false,
   }

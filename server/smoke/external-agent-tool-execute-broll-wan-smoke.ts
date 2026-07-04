@@ -229,6 +229,12 @@ assert.equal(
   (indexedStaticReport.gcpAccessRepair as { verificationCommand: string }).verificationCommand,
   'npm run external-agent-tool-blockers:preflight -- --account-index 2',
 )
+assert.equal(
+  ((indexedStaticReport.gcpAccessRepair as { safeRetryChecklist: string[] }).safeRetryChecklist).includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
 
 const preflightOnly = runCli(['--preflight-only', '--json'])
 assert.equal(preflightOnly.mode, 'external_agent_broll_wan_execution_preflight_only_result')
@@ -480,6 +486,13 @@ function assertBrollAccessRepair(report: Record<string, unknown>) {
     requiredReadPermissions?: Array<{ permission: string }>
     likelyMinimalRole?: string
     verificationCommand?: string
+    failureMeaning?: string
+    safeRepairChecklist?: string[]
+    unsafeBypasses?: string[]
+    failureResponsePolicy?: { ifReadAccessFails?: string; ifQuotaInsufficient?: string }
+    safeRetryChecklist?: string[]
+    postRepairVerificationCommands?: string[]
+    runtimeExecutionStillRequiresWrapperGate?: boolean
     mutatesGcp?: boolean
     authorizesRuntimeExecution?: boolean
   }
@@ -495,6 +508,30 @@ function assertBrollAccessRepair(report: Record<string, unknown>) {
   )
   assert.equal(repair.likelyMinimalRole, 'roles/compute.viewer')
   assert.equal(repair.verificationCommand, brollRepair?.verificationCommand)
+  assert.equal(repair.failureMeaning, brollRepair?.failureMeaning)
+  assert.deepEqual(repair.safeRepairChecklist, brollRepair?.safeRepairChecklist)
+  assert.deepEqual(repair.unsafeBypasses, brollRepair?.unsafeBypasses)
+  assert.equal(
+    repair.failureResponsePolicy?.ifReadAccessFails,
+    'treat it as external GCP access or resource visibility work; do not weaken wrapper gates or mark runtime executable',
+  )
+  assert.equal(
+    repair.failureResponsePolicy?.ifQuotaInsufficient,
+    'keep B-roll runtime blocked until read-only quota verification proves one L4 VM can be created and cleaned up',
+  )
+  assert.equal(
+    repair.safeRetryChecklist?.includes(
+      'run npm run external-agent-tool-next-command -- --account-index <redacted-index>',
+    ),
+    true,
+  )
+  assert.equal(
+    repair.postRepairVerificationCommands?.includes(
+      'npm run external-agent-gcp-access:verify -- --account-index <redacted-index>',
+    ),
+    true,
+  )
+  assert.equal(repair.runtimeExecutionStillRequiresWrapperGate, true)
   assert.equal(repair.mutatesGcp, false)
   assert.equal(repair.authorizesRuntimeExecution, false)
 }

@@ -653,6 +653,17 @@ function brollAccessRepairHint() {
     requiredReadPermissions: broll?.requiredReadPermissions,
     likelyMinimalRole: broll?.likelyMinimalRole,
     verificationCommand: withSelectedAccountIndexPlaceholders(broll?.verificationCommand),
+    failureMeaning: broll?.failureMeaning,
+    safeRepairChecklist: broll?.safeRepairChecklist,
+    unsafeBypasses: broll?.unsafeBypasses,
+    failureResponsePolicy: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.failureResponsePolicy,
+    safeRetryChecklist: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.safeRetryChecklist.map((item) =>
+      withSelectedAccountIndexPlaceholders(item),
+    ),
+    postRepairVerificationCommands: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.postRepairVerificationCommands.map((item) =>
+      withSelectedAccountIndexPlaceholders(item),
+    ),
+    runtimeExecutionStillRequiresWrapperGate: broll?.runtimeExecutionStillRequiresWrapperGate,
     mutatesGcp: false,
     authorizesRuntimeExecution: false,
   }

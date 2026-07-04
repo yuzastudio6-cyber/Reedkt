@@ -164,6 +164,7 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       spendVerified: true,
       releaseVerified: true,
       refundVerified: true,
+      walletBalanceBeforeAfterReadbackVerified: true,
       settlementRpcVerified: true,
       settlementRpcServiceRoleOnlyVerified: true,
       idempotentSettlementReplayVerified: true,

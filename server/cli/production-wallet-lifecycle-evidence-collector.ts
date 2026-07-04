@@ -61,6 +61,7 @@ export async function runProductionWalletLifecycleEvidenceCollectorFromEnv(
       spendVerified: Boolean(input.walletSettlement?.spendVerified),
       releaseVerified: Boolean(input.walletSettlement?.releaseVerified),
       refundVerified: Boolean(input.walletSettlement?.refundVerified),
+      walletBalanceBeforeAfterReadbackVerified: Boolean(input.walletSettlement?.walletBalanceBeforeAfterReadbackVerified),
       settlementRpcVerified: Boolean(input.walletSettlement?.settlementRpcVerified),
       settlementRpcServiceRoleOnlyVerified: Boolean(input.walletSettlement?.settlementRpcServiceRoleOnlyVerified),
       idempotentSettlementReplayVerified: Boolean(input.walletSettlement?.idempotentSettlementReplayVerified),

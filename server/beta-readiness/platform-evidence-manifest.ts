@@ -227,12 +227,14 @@ function buildRequirements(): BetaPlatformEvidenceManifestRequirement[] {
       localEvidence: [
         'Local SQL smoke proves billable spend/release/refund, reservation spent/released/refunded counters, cached wallet available/reserved/spent/refunded balances, idempotent replay, non-billable provider failure, service-fee exclusion, Stripe isolation, and RLS metadata.',
         'Service-role smoke proves the non-mock RPC call shape with a controlled fake admin client.',
+        'Production readiness preflight now requires deployed wallet balance before/after readback before wallet lifecycle evidence can clear.',
       ],
       remainingEvidence: [
         'Deploy the RPC and settlement table in staging or production.',
         'Verify service-role settlement against deployed Supabase without exposing service-role secrets.',
+        'Record deployed wallet balance before/after readback for reservation, spend, release, and refund lifecycle cases.',
       ],
-      nextSafeAction: 'Run staging wallet-settlement evidence with billable, replay, refund/release, and non-billable failure cases.',
+      nextSafeAction: 'Run staging wallet-settlement evidence with billable, replay, refund/release, non-billable failure, and wallet before/after balance readback cases.',
       clearsPlatformGate: false,
       requiresDeployedEvidence: true,
       requiresOwnerApproval: false,

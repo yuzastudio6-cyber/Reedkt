@@ -107,6 +107,19 @@ const refundBlocked = evaluateProductionToolExecutionReadinessGate({
 assert.equal(refundBlocked.productionToolExecutionAllowed, false, 'missing refund proof should block production')
 assert.ok(refundBlocked.blockers.some((blocker) => blocker.includes('wallet refund')), 'missing refund proof should be named')
 
+const walletBeforeAfterReadbackBlocked = evaluateProductionToolExecutionReadinessGate({
+  ...completeEvidence,
+  walletSettlement: {
+    ...completeEvidence.walletSettlement!,
+    walletBalanceBeforeAfterReadbackVerified: false,
+  },
+})
+assert.equal(walletBeforeAfterReadbackBlocked.productionToolExecutionAllowed, false, 'missing wallet before/after readback should block production')
+assert.ok(
+  walletBeforeAfterReadbackBlocked.blockers.some((blocker) => blocker.includes('wallet balance before/after readback')),
+  'missing wallet before/after readback should be named',
+)
+
 const provenanceBlocked = evaluateProductionToolExecutionReadinessGate({
   ...completeEvidence,
   observability: {
@@ -186,6 +199,7 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       spendVerified: true,
       releaseVerified: true,
       refundVerified: true,
+      walletBalanceBeforeAfterReadbackVerified: true,
       settlementRpcVerified: true,
       settlementRpcServiceRoleOnlyVerified: true,
       idempotentSettlementReplayVerified: true,

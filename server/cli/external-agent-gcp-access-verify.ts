@@ -1,0 +1,155 @@
+import { spawnSync } from 'node:child_process'
+
+import { EXTERNAL_AGENT_GCP_ACCESS_VERIFY } from '../../src/backend/mock/mock-external-agent-gcp-access-verify'
+
+type JsonRecord = Record<string, unknown>
+
+type CommandResult = {
+  id: string
+  ok: boolean
+  exitCode: number | null
+  json?: JsonRecord
+  stderrSummary?: string
+}
+
+const TOKEN_LIKE_PATTERNS: Array<[string, RegExp]> = [
+  ['url', /\bhttps?:\/\/\S+/gi],
+  ['access token', /\bya29\.[A-Za-z0-9._-]+/g],
+  ['authorization header', /\bAuthorization\s*:\s*Bearer\s+\S+/gi],
+  ['jwt', /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g],
+  ['email', /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi],
+]
+
+function sanitize(value: string | undefined): string | undefined {
+  if (!value) return undefined
+
+  let output = value
+  for (const [label, pattern] of TOKEN_LIKE_PATTERNS) {
+    output = output.replace(pattern, `<redacted ${label}>`)
+  }
+
+  return output.trim().slice(0, 700) || undefined
+}
+
+function nested(document: JsonRecord | undefined, keys: string[]): unknown {
+  let value: unknown = document
+  for (const key of keys) {
+    if (!value || typeof value !== 'object' || !(key in value)) return undefined
+    value = (value as JsonRecord)[key]
+  }
+  return value
+}
+
+function nestedBoolean(document: JsonRecord | undefined, keys: string[]): boolean {
+  return nested(document, keys) === true
+}
+
+function nestedString(document: JsonRecord | undefined, keys: string[]): string | undefined {
+  const value = nested(document, keys)
+  return typeof value === 'string' ? value : undefined
+}
+
+function runScript(id: string, script: string): CommandResult {
+  const result = spawnSync('npx', ['tsx', script], {
+    cwd: process.cwd(),
+    env: process.env,
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 12,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  const stdout = String(result.stdout ?? '')
+
+  let json: JsonRecord | undefined
+  try {
+    json = JSON.parse(stdout) as JsonRecord
+  } catch {
+    json = undefined
+  }
+
+  return {
+    id,
+    ok: result.status === 0 && Boolean(json),
+    exitCode: result.status,
+    json,
+    stderrSummary: sanitize(String(result.stderr ?? '')),
+  }
+}
+
+function main() {
+  const spec = EXTERNAL_AGENT_GCP_ACCESS_VERIFY
+  const preflight = runScript('external_agent_tool_blocker_preflight', 'server/cli/external-agent-tool-blocker-preflight.ts')
+  const nextCommand = runScript('external_agent_tool_next_command', 'server/cli/external-agent-tool-next-command.ts')
+  const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
+
+  const qwenReadAccessPassed =
+    nestedBoolean(preflight.json, ['qwen', 'accessTokenRefreshPassed']) &&
+    nestedBoolean(preflight.json, ['qwen', 'serviceDescribePassed']) &&
+    nestedBoolean(preflight.json, ['qwen', 'jobDescribePassed'])
+  const brollQuotaReadAccessPassed =
+    nestedBoolean(preflight.json, ['broll', 'projectQuotaReadPassed']) &&
+    nestedBoolean(preflight.json, ['broll', 'regionQuotaReadPassed'])
+  const brollQuotaSufficientForOneL4Vm = nestedBoolean(preflight.json, ['broll', 'quotaSufficientForOneL4Vm'])
+  const allRequiredReadAccessVerified = qwenReadAccessPassed && brollQuotaReadAccessPassed
+  const qwenWrapperMayBeCalledAfterConfirmation = qwenReadAccessPassed
+  const brollWrapperMayBeCalledAfterConfirmation = brollQuotaReadAccessPassed && brollQuotaSufficientForOneL4Vm
+  const externalAgentExecutionAllowedNow = nestedBoolean(nextCommand.json, ['executionAllowedNow'])
+
+  console.log(
+    JSON.stringify(
+      {
+        ok: preflight.ok && nextCommand.ok && runtimeGatesAllFalse,
+        decision: spec.decision,
+        mode: spec.mode,
+        liveReadOnlyChecksRun: true,
+        projectId: spec.projectId,
+        accountSelection: nested(preflight.json, ['gcloud', 'accountSelection']),
+        preflight: {
+          ok: preflight.ok,
+          qwenBlocker: nestedString(preflight.json, ['qwen', 'blocker']),
+          brollBlocker: nestedString(preflight.json, ['broll', 'blocker']),
+          runtimeGatesAllFalse: nestedBoolean(preflight.json, ['runtimeGatesAllFalse']),
+        },
+        qwen: {
+          toolId: spec.qwen.toolId,
+          requiredReadPermissions: spec.qwen.requiredReadPermissions,
+          readAccessPassed: qwenReadAccessPassed,
+          accessTokenRefreshPassed: nestedBoolean(preflight.json, ['qwen', 'accessTokenRefreshPassed']),
+          serviceDescribePassed: nestedBoolean(preflight.json, ['qwen', 'serviceDescribePassed']),
+          jobDescribePassed: nestedBoolean(preflight.json, ['qwen', 'jobDescribePassed']),
+          wrapperMayBeCalledAfterConfirmation: qwenWrapperMayBeCalledAfterConfirmation,
+          wrapperCommand: spec.qwen.wrapperCommand,
+          confirmationEnv: spec.qwen.confirmationEnv,
+        },
+        broll: {
+          toolId: spec.broll.toolId,
+          requiredReadPermissions: spec.broll.requiredReadPermissions,
+          quotaReadAccessPassed: brollQuotaReadAccessPassed,
+          projectQuotaReadPassed: nestedBoolean(preflight.json, ['broll', 'projectQuotaReadPassed']),
+          regionQuotaReadPassed: nestedBoolean(preflight.json, ['broll', 'regionQuotaReadPassed']),
+          quotaSufficientForOneL4Vm: brollQuotaSufficientForOneL4Vm,
+          wrapperMayBeCalledAfterConfirmation: brollWrapperMayBeCalledAfterConfirmation,
+          wrapperCommand: spec.broll.wrapperCommand,
+          confirmationEnv: spec.broll.confirmationEnv,
+        },
+        nextCommand: {
+          ok: nextCommand.ok,
+          executionAllowedNow: externalAgentExecutionAllowedNow,
+          readyForAnyExternalAgentExecutionNow: nestedBoolean(nextCommand.json, ['readyForAnyExternalAgentExecutionNow']),
+          chosenNextCommand: nestedString(nextCommand.json, ['chosenNextCommand']),
+          manualActionReason: nestedString(nextCommand.json, ['manualActionReason']),
+        },
+        allRequiredReadAccessVerified,
+        readyForAnyExternalAgentExecutionNow: externalAgentExecutionAllowedNow,
+        runtimeGatesAllFalse,
+        runtimeSideEffects: spec.runtimeSideEffects,
+        recommendedNextPrompt: allRequiredReadAccessVerified
+          ? spec.recommendedNextPromptIfVerified
+          : spec.recommendedNextPromptIfAccessBlocked,
+      },
+      null,
+      2,
+    ),
+  )
+}
+
+main()

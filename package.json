@@ -724,6 +724,8 @@
     "smoke:external-agent-gcloud-account-access-diagnostic": "tsx server/smoke/external-agent-gcloud-account-access-diagnostic-smoke.ts",
     "external-agent-gcp-access:repair-plan": "tsx server/cli/external-agent-gcp-access-repair-plan.ts",
     "smoke:external-agent-gcp-access-repair-plan": "tsx server/smoke/external-agent-gcp-access-repair-plan-smoke.ts",
+    "external-agent-gcp-access:verify": "tsx server/cli/external-agent-gcp-access-verify.ts",
+    "smoke:external-agent-gcp-access-verify": "tsx server/smoke/external-agent-gcp-access-verify-smoke.ts",
     "smoke:ai-video-broll-wan-fast-cache-readiness-check": "tsx server/smoke/ai-video-broll-wan-fast-cache-readiness-check-smoke.ts",
     "smoke:ai-video-broll-wan-gpu-global-quota-verify": "tsx server/smoke/ai-video-broll-wan-gpu-global-quota-verify-smoke.ts",
     "smoke:qwen2-5-vl-7b-cloud-run-gpu-private-invoke-auth-preflight-runner": "tsx server/smoke/qwen2-5-vl-cloud-run-gpu-private-invoke-auth-preflight-runner-smoke.ts",

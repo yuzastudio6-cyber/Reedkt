@@ -41,6 +41,7 @@ This repair plan does not grant IAM and does not authorize runtime execution. It
 After GCP access is repaired for a redacted local account candidate, run:
 
 ```bash
+REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-gcp-access:verify
 REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-blockers:preflight
 REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-next-command
 ```

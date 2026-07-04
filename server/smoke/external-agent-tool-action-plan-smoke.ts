@@ -132,6 +132,7 @@ assert.equal(qwen.immediateSafeActions[0], 'npm run external-agent-tool-next-com
 assert.equal(qwen.immediateSafeActions[1], 'npm run external-agent-tool-execution-gate')
 assert.equal(qwen.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(qwen.immediateSafeActions.includes('npm run external-agent-gcp-access:repair-plan'), true)
+assert.equal(qwen.immediateSafeActions.includes('npm run external-agent-gcp-access:verify'), true)
 assert.equal(qwen.externalManualBlocker.includes('58DX result review accepted'), true)
 assert.equal(qwen.externalManualBlocker.includes('live preflight is still required'), true)
 assert.equal(
@@ -180,6 +181,7 @@ assert.equal(broll.immediateSafeActions.includes('npm run ai-video-broll-wan-gpu
 assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-execute-broll-wan'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(broll.immediateSafeActions.includes('npm run external-agent-gcp-access:repair-plan'), true)
+assert.equal(broll.immediateSafeActions.includes('npm run external-agent-gcp-access:verify'), true)
 assert.equal(broll.externalManualBlocker.includes('10ZB proved the no-idle L4 payload/install path'), true)
 assert.equal(broll.externalManualBlocker.includes('11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers'), true)
 assert.equal(broll.externalManualBlocker.includes('11B executed the bounded no-idle L4 model import/load proof'), true)

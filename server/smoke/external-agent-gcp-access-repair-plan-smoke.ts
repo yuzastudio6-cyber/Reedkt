@@ -84,6 +84,12 @@ assert.equal(spec.accountSelection.printsAccountValue, false)
 assert.equal(spec.repairScope.doesNotGrantIam, true)
 assert.equal(spec.repairScope.doesNotMutateGcp, true)
 assert.equal(spec.repairScope.doesNotAuthorizeRuntimeExecution, true)
+assert.equal(
+  spec.postRepairVerificationCommands.includes(
+    'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-gcp-access:verify',
+  ),
+  true,
+)
 assert.equal(spec.tools.length, 2)
 
 const qwen = spec.tools.find((tool) => tool.toolId === 'qwen2_5_vl_7b_instruct')
@@ -121,6 +127,7 @@ for (const phrase of [
   'roles/compute.viewer',
   'does not grant IAM',
   'does not authorize runtime execution',
+  'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-gcp-access:verify',
   'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-blockers:preflight',
 ]) {
   assert.equal(doc.includes(phrase), true, `Repair doc missing phrase: ${phrase}`)

@@ -80,6 +80,7 @@ export const EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN = {
     },
   ] satisfies ExternalAgentGcpAccessRepairTool[],
   postRepairVerificationCommands: [
+    'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-gcp-access:verify',
     'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-blockers:preflight',
     'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-next-command',
   ],

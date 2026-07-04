@@ -8,6 +8,7 @@ export type ExternalAgentToolReadinessStatus =
   | 'callable_cloud_side_cache_staging_runner_ready_before_gpu_import_proof'
   | 'ready_for_bounded_model_import_proof_after_private_cache_staging'
   | 'bounded_model_import_load_proof_reviewed_inference_boundary_plan_required'
+  | 'bounded_inference_boundary_planned_runner_required'
 
 export type ExternalAgentToolReadinessEntry = {
   toolId: string
@@ -218,6 +219,8 @@ export const AI_VIDEO_BROLL_GEN_11C_MODEL_IMPORT_RESULT_REVIEW_PROMPT =
   'AI-VIDEO-BROLL-GEN-11C-MODEL-IMPORT-RESULT-REVIEW: review bounded Wan model import proof result, no inference' as const
 export const AI_VIDEO_BROLL_GEN_11F_INFERENCE_BOUNDARY_PLAN_PROMPT =
   'AI-VIDEO-BROLL-GEN-11F-INFERENCE-BOUNDARY-PLAN: plan bounded Wan inference proof after import/load review, no generated video' as const
+export const AI_VIDEO_BROLL_GEN_11G_INFERENCE_PROOF_RUNNER_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11G-INFERENCE-PROOF-RUNNER: implement bounded Wan inference proof runner, no execution/no generated video' as const
 export const AI_VIDEO_BROLL_GEN_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-11D-CACHE-STAGING-STRATEGY-FIX: choose approved Wan private cache staging strategy after local upload stall and private URL-list 403, no GPU/no inference' as const
 export const AI_VIDEO_BROLL_GEN_11E_CLOUD_SIDE_CACHE_STAGING_RUNNER_PROMPT =
@@ -227,7 +230,7 @@ export const AI_VIDEO_BROLL_GEN_11E_EXECUTE_CLOUD_SIDE_CACHE_STAGING_PROMPT =
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
-    'external_agent_tool_execution_readiness_qwen_ready_broll_11b_import_load_reviewed_inference_boundary_required',
+    'external_agent_tool_execution_readiness_qwen_ready_broll_11f_inference_boundary_planned_runner_required',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -460,16 +463,21 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     {
       toolId: 'ai_video_broll_generation_wan',
       lane: 'open_source_generated_broll',
-      status: 'bounded_model_import_load_proof_reviewed_inference_boundary_plan_required',
+      status: 'bounded_inference_boundary_planned_runner_required',
       currentStage:
-        'bounded_l4_no_idle_wan_model_import_load_proof_passed_reviewed_no_inference',
+        'bounded_wan_inference_boundary_planned_runner_required',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: true,
       readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'wan_inference_boundary_plan_required_before_generated_video',
+      primaryBlocker: 'bounded_wan_inference_proof_runner_required_before_execution',
       evidence: [
+        'docs/ai-video-broll-gen-11f-inference-boundary-plan.md',
+        'src/backend/mock/mock-ai-video-broll-gen-11f-inference-boundary-plan.ts',
+        'server/smoke/ai-video-broll-gen-11f-inference-boundary-plan-smoke.ts',
+        'package_json_script:smoke:ai-video-broll-gen-11f-inference-boundary-plan',
+        'live_summary:11f_inference_boundary_planned_runner_required_no_execution',
         'docs/ai-video-broll-gen-11c-model-import-result-review.md',
         'src/backend/mock/mock-ai-video-broll-gen-11c-model-import-result-review.ts',
         'server/smoke/ai-video-broll-gen-11c-model-import-result-review-smoke.ts',
@@ -722,7 +730,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
-      nextAction: AI_VIDEO_BROLL_GEN_11F_INFERENCE_BOUNDARY_PLAN_PROMPT,
+      nextAction: AI_VIDEO_BROLL_GEN_11G_INFERENCE_PROOF_RUNNER_PROMPT,
       manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
@@ -752,7 +760,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
         quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
         nextActionAfterQuotaClears:
-          AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
+          AI_VIDEO_BROLL_GEN_11G_INFERENCE_PROOF_RUNNER_PROMPT,
       },
     },
     {
@@ -805,7 +813,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
   recommendedNextPrompt:
-    AI_VIDEO_BROLL_GEN_11F_INFERENCE_BOUNDARY_PLAN_PROMPT,
+    AI_VIDEO_BROLL_GEN_11G_INFERENCE_PROOF_RUNNER_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

@@ -1,5 +1,7 @@
 import { buildBetaPlatformEvidenceManifest } from '../beta-readiness/platform-evidence-manifest'
+import { evaluateInternalTestingMode } from '../beta-readiness/internal-testing-mode-policy'
 import { buildToolBetaExecutionReadinessReport } from '../beta-readiness/tool-beta-execution-readiness'
+import type { InternalTestingModeDecision } from '../beta-readiness'
 import {
   buildBetaPlatformStagingEvidencePreflight,
   type BetaPlatformStagingEvidencePreflightReport,
@@ -23,6 +25,7 @@ export interface BetaReadinessOperatorStatusEnv extends
 
 export interface BetaReadinessOperatorStatusReport {
   ok: boolean
+  readyForInternalBreakFixTesting: boolean
   operatorInputsReady: boolean
   toolEvidenceReady: boolean
   platformEvidenceReady: boolean
@@ -47,6 +50,7 @@ export interface BetaReadinessOperatorStatusReport {
     blockedActionScope: string[]
     allowedForwardProgressScopes: string[]
   }
+  internalTestingMode: InternalTestingModeDecision
   toolEvidence: {
     previewCommand: 'npm run beta:tools:core-real-check-preview'
     hydratedPreviewCommand: 'npm run beta:tools:core-real-check-preview:hydrated'
@@ -100,6 +104,9 @@ export function buildBetaReadinessOperatorStatus(
   const platformEvidence = buildBetaPlatformStagingEvidencePreflight(env)
   const launchApprovalEvidence = buildBetaReadinessLaunchApprovalEvidencePreflight(env)
   const readiness = buildToolBetaExecutionReadinessReport()
+  const internalTestingMode = evaluateInternalTestingMode({
+    boundedToolExecutionEvidenceReady: readiness.internalDryRunMonitoringAllowed,
+  })
   const manifest = buildBetaPlatformEvidenceManifest()
   const toolEvidenceReady = toolEvidence.readyToRecordAcceptedEvidence
   const platformEvidenceReady = platformEvidence.readyToRecordEvidencePacket
@@ -108,6 +115,7 @@ export function buildBetaReadinessOperatorStatus(
 
   return {
     ok: operatorInputsReady,
+    readyForInternalBreakFixTesting: internalTestingMode.allowed,
     operatorInputsReady,
     toolEvidenceReady,
     platformEvidenceReady,
@@ -127,6 +135,7 @@ export function buildBetaReadinessOperatorStatus(
       blockedActionScope: readiness.blockedActionScope,
       allowedForwardProgressScopes: buildAllowedForwardProgressScopes(readiness.safeBlockerReductionAllowed),
     },
+    internalTestingMode,
     toolEvidence: toolEvidenceSummary(toolEvidence),
     platformEvidence: platformEvidenceSummary(platformEvidence),
     launchApprovalEvidence: launchApprovalEvidenceSummary(launchApprovalEvidence),
@@ -138,6 +147,7 @@ export function buildBetaReadinessOperatorStatus(
     },
     nextActions: buildNextActions(toolEvidence, platformEvidence, launchApprovalEvidence),
     warnings: [
+      'Internal break/fix testing is separate from external beta and paid production; paid users are not required for internal testing.',
       'This operator status is no-network and does not call the deployed backend, run tool checks, write evidence, enable external beta, or enable production.',
       'External beta and production remain disabled until accepted tool evidence, deployed platform evidence, and launch approvals are complete.',
       'Blocked beta/production actions do not block bounded source reviews, local proofs, diagnostics, QA packets, deployment preflights, or owner approval evidence that retire named blockers.',

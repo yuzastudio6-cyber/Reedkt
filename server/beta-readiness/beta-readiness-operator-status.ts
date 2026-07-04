@@ -6,6 +6,7 @@ export interface BetaReadinessBackendOperatorStatusOptions {
 }
 
 export interface BetaReadinessBackendOperatorStatusReport {
+  readyForInternalBreakFixTesting: boolean
   readyForExternalBeta: boolean
   readyForRealUserMediaBeta: boolean
   readyForPaidProduction: boolean
@@ -32,6 +33,7 @@ export interface BetaReadinessBackendOperatorStatusReport {
     blockedActionScope: string[]
     allowedForwardProgressScopes: string[]
   }
+  internalTestingMode: BetaReadinessReport['internalTestingMode']
   evidenceGaps: {
     goNoGoBlockers: string[]
     blockedChecklistItems: string[]
@@ -52,6 +54,7 @@ export function buildBetaReadinessBackendOperatorStatus(
   const blockedActionScope = buildBlockedActionScope(report)
 
   return {
+    readyForInternalBreakFixTesting: report.internalTestingMode.allowed,
     readyForExternalBeta: report.goNoGo.externalBetaAllowed,
     readyForRealUserMediaBeta: report.goNoGo.realUserMediaBetaAllowed,
     readyForPaidProduction: report.goNoGo.paidProductionAllowed,
@@ -73,6 +76,7 @@ export function buildBetaReadinessBackendOperatorStatus(
       blockedActionScope,
       allowedForwardProgressScopes: buildAllowedForwardProgressScopes(report.toolExecutionReadiness.safeBlockerReductionAllowed),
     },
+    internalTestingMode: report.internalTestingMode,
     evidenceGaps: {
       goNoGoBlockers: report.goNoGo.blockers,
       blockedChecklistItems,
@@ -81,6 +85,7 @@ export function buildBetaReadinessBackendOperatorStatus(
     },
     nextActions: buildNextActions(report, options.workspaceId),
     warnings: [
+      'Internal break/fix testing is separate from external beta and paid production.',
       'Read-only backend operator status; no beta readiness evidence was recorded.',
       'This status does not run tool checks, process media, call providers, write Supabase records, enable external beta, or enable production.',
       'Blocked action scopes protect only unsafe beta/production actions while bounded blocker-reduction work remains allowed.',

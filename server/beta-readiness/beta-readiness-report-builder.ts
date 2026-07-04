@@ -1,6 +1,7 @@
 import { betaReadinessChecklist } from './beta-readiness-checklist'
 import { evaluateBetaGoNoGo } from './beta-go-no-go-policy'
 import { buildBetaScenarioReadinessMatrix } from './beta-scenario-readiness-matrix'
+import { evaluateInternalTestingMode } from './internal-testing-mode-policy'
 import { buildToolBetaExecutionReadinessReport } from './tool-beta-execution-readiness'
 import type {
   BetaReadinessChecklistEvidence,
@@ -26,6 +27,8 @@ export interface BuildBetaReadinessReportOptions {
   supportApproved?: boolean
   realUserMediaBetaApproved?: boolean
   paidProductionApproved?: boolean
+  authSignInAvailable?: boolean
+  mockOrTestCreditsAvailable?: boolean
 }
 
 export function buildBetaReadinessReport(options: BuildBetaReadinessReportOptions = {}): BetaReadinessReport {
@@ -51,6 +54,14 @@ export function buildBetaReadinessReport(options: BuildBetaReadinessReportOption
     paidProductionApproved: options.paidProductionApproved,
     checklist,
   })
+  const internalTestingMode = evaluateInternalTestingMode({
+    e2eDryRunPassed: options.e2eDryRunPassed ?? true,
+    safetyDocsExist: options.safetyDocsExist ?? true,
+    costDocsExist: options.costDocsExist ?? true,
+    authSignInAvailable: options.authSignInAvailable ?? true,
+    mockOrTestCreditsAvailable: options.mockOrTestCreditsAvailable ?? true,
+    boundedToolExecutionEvidenceReady: toolExecutionReadiness.internalDryRunMonitoringAllowed,
+  })
   const blockers = [
     ...goNoGo.blockers,
     ...scenarioMatrix.flatMap((scenario) => scenario.blockers),
@@ -65,16 +76,19 @@ export function buildBetaReadinessReport(options: BuildBetaReadinessReportOption
   return {
     reportId: `beta-readiness-${new Date().toISOString()}`,
     createdAt: new Date().toISOString(),
-    overallStatus: goNoGo.internalDryRunTestingAllowed ? 'internal_testing_ready' : 'blocked',
-    productionReady: false,
+    overallStatus: internalTestingMode.allowed ? 'internal_testing_ready' : 'blocked',
+    productionReady: goNoGo.paidProductionAllowed,
     checklist,
     scenarioMatrix,
     toolExecutionReadiness,
+    internalTestingMode,
     goNoGo,
     blockers: [...new Set(blockers)],
     warnings: [...new Set(warnings)],
     nextActions: [
-      'Run M16B dry-run E2E and M17 hardening smokes before any internal demo.',
+      internalTestingMode.allowed
+        ? 'Use signed-in internal testing with mock/test credits to break, fix, and retest without paid users.'
+        : 'Restore the internal testing prerequisites before running signed-in break/fix testing.',
       ...toolExecutionReadiness.nextActions,
       'Complete human security, cost, storage, deployment, model, and legal reviews before external beta.',
       'Keep real user media beta and paid production blocked until readiness is explicitly approved.',

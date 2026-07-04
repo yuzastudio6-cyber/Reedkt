@@ -52,11 +52,12 @@ const maximumSafetensorsHeaderBytes = 1024 * 1024
 const privateModelRootEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
 const modelRootPathCandidatesByTool: Record<ModelWeightToolId, string[]> = {
   sam2: [
+    'sam2.1_hiera_tiny.pt',
     'sam2/sam2.1_hiera_tiny.pt',
     'sam2/sam2-checkpoint.pt',
     'sam2/checkpoint.pt',
   ],
-  birefnet: ['birefnet'],
+  birefnet: ['birefnet', 'ZhengPeng7/BiRefNet', 'BiRefNet'],
   real_esrgan: ['real-esrgan/RealESRGAN_x4plus.pth'],
   rembg: ['rembg/isnet-general-use.onnx', 'rembg/u2net.onnx', 'rembg/u2netp.onnx'],
   transparent_background: [

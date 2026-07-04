@@ -76,6 +76,12 @@ const gpuModelRuntimeInputManifestOutputDir =
   '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>'
 const gpuModelRuntimeInputManifestSourceImage =
   '<private-approved-frame.png>'
+const privateModelRootEnvVar =
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
+const defaultPrivateModelRoot =
+  '.local-artifacts/ai-graphics/private-model-cache'
+const remainingNativeCudaToolIds = ['sam2', 'birefnet'] as const
+type RemainingNativeCudaToolId = typeof remainingNativeCudaToolIds[number]
 
 type ReadinessState =
   | 'callable'
@@ -526,6 +532,271 @@ function gpuModelRuntimeInputManifestModelArgs(toolId: string): string[] {
     ]
   }
   return []
+}
+
+function remainingNativeCudaModelExpectation(toolId: RemainingNativeCudaToolId) {
+  if (toolId === 'sam2') {
+    return {
+      modelField: 'sam2CheckpointLocalPath',
+      modelFlag: '--sam2-checkpoint',
+      expectedArtifact:
+        'SAM2.1 Hiera Tiny checkpoint file, normally sam2.1_hiera_tiny.pt',
+      expectedReviewedChecksumSha256:
+        '45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2',
+      expectedPrivateRootCandidates: [
+        'sam2.1_hiera_tiny.pt',
+        'sam2/sam2.1_hiera_tiny.pt',
+        'sam2/sam2-checkpoint.pt',
+        'sam2/checkpoint.pt',
+      ],
+      sourceEvidence:
+        'facebookresearch/sam2 and facebook/sam2.1-hiera-tiny source evidence; private manifest still required',
+    }
+  }
+
+  return {
+    modelField: 'birefnetModelLocalPath',
+    modelFlag: '--birefnet-model',
+    expectedArtifact:
+      'BiRefNet model directory containing model.safetensors',
+    expectedReviewedChecksumSha256:
+      '1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7',
+    expectedPrivateRootCandidates: [
+      'birefnet',
+      'ZhengPeng7/BiRefNet',
+      'BiRefNet',
+    ],
+    sourceEvidence:
+      'ZhengPeng7/BiRefNet Hugging Face source evidence; private manifest still required',
+  }
+}
+
+function remainingNativeCudaOutputDir(toolId: RemainingNativeCudaToolId): string {
+  return `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>`
+}
+
+function remainingNativeCudaRuntimeInputManifestPath(
+  toolId: RemainingNativeCudaToolId,
+): string {
+  return `${remainingNativeCudaOutputDir(toolId)}/runtime-inputs.json`
+}
+
+function remainingNativeCudaRuntimeInputManifestPrivateRootCommand(
+  toolId: RemainingNativeCudaToolId,
+): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest --',
+    `--tool ${toolId}`,
+    `--source-image ${gpuModelRuntimeInputManifestSourceImage}`,
+    `--private-model-root "$${privateModelRootEnvVar}"`,
+    `--output-dir ${remainingNativeCudaOutputDir(toolId)}`,
+    `--manifest-out ${remainingNativeCudaRuntimeInputManifestPath(toolId)}`,
+    `--model-weight-manifest-id ${toolId}_private_manifest_review_v1`,
+    `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
+    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    '--runtime-container-platform linux/amd64',
+  ].join(' ')
+}
+
+function remainingNativeCudaProofSequenceCommand(
+  toolId: RemainingNativeCudaToolId,
+): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence --',
+    '--attempt-local-runtime',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    '--runtime-container-platform linux/amd64',
+    `--tool ${toolId}`,
+    `--runtime-input-manifest ${remainingNativeCudaRuntimeInputManifestPath(toolId)}`,
+    '--detect-host',
+    '--require-host-eligible',
+    '--require-accepted-proof',
+  ].join(' ')
+}
+
+function remainingNativeCudaFinalToolCallCommand(
+  toolId: RemainingNativeCudaToolId,
+): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-tool-call --',
+    `--tool ${toolId}`,
+    '--attempt-gpu-runtime',
+    '--expect-state executable',
+    '--require-output-hash',
+    '--require-private-only-boundary',
+    '--strict-exit-code',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    '--runtime-container-platform linux/amd64',
+    `--runtime-input-manifest ${remainingNativeCudaRuntimeInputManifestPath(toolId)}`,
+  ].join(' ')
+}
+
+function remainingNativeCudaReadinessRecheckCommand(
+  toolId: RemainingNativeCudaToolId,
+): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-execution-readiness --',
+    `--local-runtime-proof-result ${remainingNativeCudaOutputDir(toolId)}/harness-result.json`,
+  ].join(' ')
+}
+
+function remainingNativeCudaModelRootForInspection(): string | null {
+  if (hasFlag('--write-records')) return null
+  const explicitRoot = stringFlag('--private-model-root')
+  if (explicitRoot) return explicitRoot
+  const envRoot = process.env[privateModelRootEnvVar]
+  if (envRoot) return envRoot
+  return fs.existsSync(defaultPrivateModelRoot) ? defaultPrivateModelRoot : null
+}
+
+function remainingNativeCudaCandidatePresent(
+  toolId: RemainingNativeCudaToolId,
+  root: string,
+  candidate: string,
+): boolean {
+  const candidatePath = path.join(root, candidate)
+  if (!fs.existsSync(candidatePath)) return false
+  const stats = fs.statSync(candidatePath)
+  if (toolId === 'sam2') return stats.isFile()
+  return stats.isDirectory() &&
+    fs.existsSync(path.join(candidatePath, 'model.safetensors')) &&
+    fs.statSync(path.join(candidatePath, 'model.safetensors')).isFile()
+}
+
+function inspectRemainingNativeCudaPrivateModelRoot() {
+  const root = remainingNativeCudaModelRootForInspection()
+  if (!root) {
+    return {
+      inspected: false,
+      privateModelRootEnvVar,
+      defaultPrivateModelRoot,
+      rootExists: false,
+      reason:
+        hasFlag('--write-records')
+          ? 'skipped_for_write_records_to_avoid_committing_local_private_paths'
+          : 'no_private_model_root_supplied_or_detected',
+      tools: remainingNativeCudaToolIds.map((toolId) => ({
+        toolId,
+        modelPresent: false,
+        matchingCandidate: null,
+      })),
+    }
+  }
+  const rootExists = fs.existsSync(root) && fs.statSync(root).isDirectory()
+  return {
+    inspected: true,
+    privateModelRootEnvVar,
+    defaultPrivateModelRoot,
+    root,
+    rootExists,
+    tools: remainingNativeCudaToolIds.map((toolId) => {
+      const expectation = remainingNativeCudaModelExpectation(toolId)
+      const matchingCandidate = rootExists
+        ? expectation.expectedPrivateRootCandidates.find((candidate) =>
+            remainingNativeCudaCandidatePresent(toolId, root, candidate))
+        : undefined
+      return {
+        toolId,
+        modelPresent: Boolean(matchingCandidate),
+        matchingCandidate: matchingCandidate ?? null,
+        checkedCandidates: expectation.expectedPrivateRootCandidates,
+      }
+    }),
+  }
+}
+
+function remainingNativeCudaClosure(
+  toolRows: JsonRecord[],
+  currentHostEnvironment: JsonRecord | null,
+) {
+  const privateModelRootInspection =
+    inspectRemainingNativeCudaPrivateModelRoot()
+  const toolEntries = remainingNativeCudaToolIds.map((toolId) => {
+    const row = toolRows.find((candidate) => candidate.toolId === toolId) ?? {}
+    const modelProbe = Array.isArray(privateModelRootInspection.tools)
+      ? privateModelRootInspection.tools.find((entry) => entry.toolId === toolId)
+      : null
+    const expectation = remainingNativeCudaModelExpectation(toolId)
+    return {
+      toolId,
+      currentReadinessState: row.readinessState ?? null,
+      callable: row.callable === true,
+      executable: row.executable === true,
+      currentBlockingPrerequisiteKey:
+        row.currentBlockingPrerequisiteKey ?? null,
+      currentBlockingReasonCode: row.currentBlockingReasonCode ?? null,
+      remainingPrivateRuntimeInputKeys:
+        row.remainingPrivateRuntimeInputKeys ?? [],
+      modelField: expectation.modelField,
+      modelFlag: expectation.modelFlag,
+      expectedArtifact: expectation.expectedArtifact,
+      expectedReviewedChecksumSha256:
+        expectation.expectedReviewedChecksumSha256,
+      expectedPrivateRootCandidates:
+        expectation.expectedPrivateRootCandidates,
+      sourceEvidence: expectation.sourceEvidence,
+      privateModelRootCandidatePresent: modelProbe?.modelPresent === true,
+      privateModelRootMatchingCandidate:
+        modelProbe?.matchingCandidate ?? null,
+      manifestMaterializerCommand:
+        remainingNativeCudaRuntimeInputManifestPrivateRootCommand(toolId),
+      nativeGpuProofSequenceCommand:
+        remainingNativeCudaProofSequenceCommand(toolId),
+      finalExternalAgentToolCallCommand:
+        remainingNativeCudaFinalToolCallCommand(toolId),
+      readinessRecheckCommand:
+        remainingNativeCudaReadinessRecheckCommand(toolId),
+      requiredHost:
+        'native linux/amd64 host with Docker NVIDIA runtime, nvidia-smi, CUDA visible to the proof container, and reviewed private model/source inputs',
+      gpuRuntimeStartsIdle: false,
+      gpuStartsOnlyDuringScopedToolCall: true,
+    }
+  })
+
+  return {
+    status:
+      toolEntries.every((entry) => entry.executable)
+        ? 'remaining_native_cuda_tools_executable'
+        : 'remaining_native_cuda_tools_blocked_pending_native_host_and_private_model_inputs',
+    purpose:
+      'Fast closeout for the only two tools that still require native CUDA proof instead of CPU foundation/tensor/model proof.',
+    remainingToolIds: toolEntries
+      .filter((entry) => entry.executable !== true)
+      .map((entry) => entry.toolId),
+    remainingToolCount: toolEntries.filter((entry) => entry.executable !== true).length,
+    privateModelRootInspection,
+    currentHostEligibleForNativeGpuProof:
+      currentHostEnvironment?.hostEligibleForNativeGpuProof === true,
+    currentHostBlockers: Array.isArray(currentHostEnvironment?.blockers)
+      ? currentHostEnvironment.blockers
+      : [],
+    currentHostPreflightCommand:
+      'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible',
+    tools: toolEntries,
+    all21CloseoutReadinessCommand:
+      [
+        'npm run --silent ai-graphics:external-agent-execution-readiness --',
+        '--local-runtime-proof-result <accepted-proof-for-torch_torchvision-or-foundation-bundle.json>',
+        '--local-runtime-proof-result <accepted-proof-for-real_esrgan.json>',
+        '--local-runtime-proof-result <accepted-proof-for-rembg.json>',
+        '--local-runtime-proof-result <accepted-proof-for-transparent_background.json>',
+        `--local-runtime-proof-result ${remainingNativeCudaOutputDir('sam2')}/harness-result.json`,
+        `--local-runtime-proof-result ${remainingNativeCudaOutputDir('birefnet')}/harness-result.json`,
+      ].join(' '),
+    noScopeExpansion: {
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      gpuRuntimeStartsIdle: false,
+      modelDownloadPerformed: false,
+      providerRuntimePerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
 }
 
 function gpuModelRuntimeInputManifestMaterializerCommand(
@@ -1717,6 +1988,8 @@ function buildReport() {
       packageLockMutationPerformed: false,
     },
     toolReadinessRows: toolRows,
+    remainingNativeCudaClosure:
+      remainingNativeCudaClosure(toolRows, currentHostEnvironment),
     fastestGpuModelUnlockCandidate: {
       toolId: 'kornia',
       reason:
@@ -1789,6 +2062,21 @@ These commands are local-only preparation steps for the five GPU/model tools tha
 | Tool | Current blocker | Manifest path | Manifest materializer command | Next scoped tool-call command |
 | --- | --- | --- | --- | --- |
 ${runtimeInputManifestRows}
+
+## Remaining Native CUDA Closure
+
+- Status: \`${report.remainingNativeCudaClosure.status}\`
+- Remaining native CUDA tools: \`${report.remainingNativeCudaClosure.remainingToolIds.join(', ') || 'none'}\`
+- Current host eligible for native GPU proof: \`${report.remainingNativeCudaClosure.currentHostEligibleForNativeGpuProof}\`
+- Current host blockers: \`${report.remainingNativeCudaClosure.currentHostBlockers.join('; ') || 'none'}\`
+- Host preflight command: \`${report.remainingNativeCudaClosure.currentHostPreflightCommand}\`
+- Private model root inspected: \`${report.remainingNativeCudaClosure.privateModelRootInspection.inspected}\`
+- Private model root exists: \`${report.remainingNativeCudaClosure.privateModelRootInspection.rootExists}\`
+- All-21 closeout readiness command: \`${report.remainingNativeCudaClosure.all21CloseoutReadinessCommand}\`
+
+| Tool | Current state | Current blocker | Model field | Expected candidates | Model candidate present | Matching candidate | Manifest command | Native proof command | Final tool call |
+| --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- |
+${report.remainingNativeCudaClosure.tools.map((entry) => `| \`${entry.toolId}\` | \`${entry.currentReadinessState}\` | \`${entry.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${entry.modelField}\` | \`${entry.expectedPrivateRootCandidates.join(', ')}\` | ${entry.privateModelRootCandidatePresent} | \`${entry.privateModelRootMatchingCandidate ?? 'none'}\` | \`${entry.manifestMaterializerCommand}\` | \`${entry.nativeGpuProofSequenceCommand}\` | \`${entry.finalExternalAgentToolCallCommand}\` |`).join('\n')}
 
 ## Counts
 

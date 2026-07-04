@@ -3068,6 +3068,118 @@
       }
     }
   ],
+  "remainingNativeCudaClosure": {
+    "status": "remaining_native_cuda_tools_blocked_pending_native_host_and_private_model_inputs",
+    "purpose": "Fast closeout for the only two tools that still require native CUDA proof instead of CPU foundation/tensor/model proof.",
+    "remainingToolIds": [
+      "sam2",
+      "birefnet"
+    ],
+    "remainingToolCount": 2,
+    "privateModelRootInspection": {
+      "inspected": false,
+      "privateModelRootEnvVar": "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT",
+      "defaultPrivateModelRoot": ".local-artifacts/ai-graphics/private-model-cache",
+      "rootExists": false,
+      "reason": "skipped_for_write_records_to_avoid_committing_local_private_paths",
+      "tools": [
+        {
+          "toolId": "sam2",
+          "modelPresent": false,
+          "matchingCandidate": null
+        },
+        {
+          "toolId": "birefnet",
+          "modelPresent": false,
+          "matchingCandidate": null
+        }
+      ]
+    },
+    "currentHostEligibleForNativeGpuProof": false,
+    "currentHostBlockers": [],
+    "currentHostPreflightCommand": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible",
+    "tools": [
+      {
+        "toolId": "sam2",
+        "currentReadinessState": "blocked_with_reason",
+        "callable": true,
+        "executable": false,
+        "currentBlockingPrerequisiteKey": "sam2CheckpointLocalPath",
+        "currentBlockingReasonCode": "sam2_checkpoint_missing",
+        "remainingPrivateRuntimeInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath",
+          "modelWeightManifestEvidence"
+        ],
+        "modelField": "sam2CheckpointLocalPath",
+        "modelFlag": "--sam2-checkpoint",
+        "expectedArtifact": "SAM2.1 Hiera Tiny checkpoint file, normally sam2.1_hiera_tiny.pt",
+        "expectedReviewedChecksumSha256": "45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2",
+        "expectedPrivateRootCandidates": [
+          "sam2.1_hiera_tiny.pt",
+          "sam2/sam2.1_hiera_tiny.pt",
+          "sam2/sam2-checkpoint.pt",
+          "sam2/checkpoint.pt"
+        ],
+        "sourceEvidence": "facebookresearch/sam2 and facebook/sam2.1-hiera-tiny source evidence; private manifest still required",
+        "privateModelRootCandidatePresent": false,
+        "privateModelRootMatchingCandidate": null,
+        "manifestMaterializerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool sam2 --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/runtime-inputs.json --model-weight-manifest-id sam2_private_manifest_review_v1 --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/sam2.json --runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --runtime-container-platform linux/amd64",
+        "nativeGpuProofSequenceCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --runtime-container-platform linux/amd64 --tool sam2 --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+        "finalExternalAgentToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool sam2 --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --runtime-container-platform linux/amd64 --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/runtime-inputs.json",
+        "readinessRecheckCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/harness-result.json",
+        "requiredHost": "native linux/amd64 host with Docker NVIDIA runtime, nvidia-smi, CUDA visible to the proof container, and reviewed private model/source inputs",
+        "gpuRuntimeStartsIdle": false,
+        "gpuStartsOnlyDuringScopedToolCall": true
+      },
+      {
+        "toolId": "birefnet",
+        "currentReadinessState": "blocked_with_reason",
+        "callable": true,
+        "executable": false,
+        "currentBlockingPrerequisiteKey": "birefnetModelLocalPath",
+        "currentBlockingReasonCode": "birefnet_model_missing",
+        "remainingPrivateRuntimeInputKeys": [
+          "outputDirectory",
+          "nativeCudaRuntime",
+          "sourceImageLocalPath",
+          "modelWeightManifestEvidence"
+        ],
+        "modelField": "birefnetModelLocalPath",
+        "modelFlag": "--birefnet-model",
+        "expectedArtifact": "BiRefNet model directory containing model.safetensors",
+        "expectedReviewedChecksumSha256": "1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7",
+        "expectedPrivateRootCandidates": [
+          "birefnet",
+          "ZhengPeng7/BiRefNet",
+          "BiRefNet"
+        ],
+        "sourceEvidence": "ZhengPeng7/BiRefNet Hugging Face source evidence; private manifest still required",
+        "privateModelRootCandidatePresent": false,
+        "privateModelRootMatchingCandidate": null,
+        "manifestMaterializerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool birefnet --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/runtime-inputs.json --model-weight-manifest-id birefnet_private_manifest_review_v1 --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/birefnet.json --runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --runtime-container-platform linux/amd64",
+        "nativeGpuProofSequenceCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --runtime-container-platform linux/amd64 --tool birefnet --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+        "finalExternalAgentToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool birefnet --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --runtime-container-platform linux/amd64 --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/runtime-inputs.json",
+        "readinessRecheckCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/harness-result.json",
+        "requiredHost": "native linux/amd64 host with Docker NVIDIA runtime, nvidia-smi, CUDA visible to the proof container, and reviewed private model/source inputs",
+        "gpuRuntimeStartsIdle": false,
+        "gpuStartsOnlyDuringScopedToolCall": true
+      }
+    ],
+    "all21CloseoutReadinessCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result <accepted-proof-for-torch_torchvision-or-foundation-bundle.json> --local-runtime-proof-result <accepted-proof-for-real_esrgan.json> --local-runtime-proof-result <accepted-proof-for-rembg.json> --local-runtime-proof-result <accepted-proof-for-transparent_background.json> --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/harness-result.json --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/harness-result.json",
+    "noScopeExpansion": {
+      "dependencyInstallPerformed": false,
+      "packageLockMutationPerformed": false,
+      "gpuRuntimeStartsIdle": false,
+      "modelDownloadPerformed": false,
+      "providerRuntimePerformed": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false
+    }
+  },
   "fastestGpuModelUnlockCandidate": {
     "toolId": "kornia",
     "reason": "Kornia is the narrowest GPU/model execution unlock candidate because it uses the real controlled adapter, can prove local CPU tensor execution with a private approved frame and output directory, and does not require a model-weight manifest.",

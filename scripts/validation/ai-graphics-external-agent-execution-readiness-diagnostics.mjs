@@ -103,6 +103,20 @@ const gpuModelWeightManifestTools = [
   'rembg',
   'transparent_background',
 ]
+const remainingNativeCudaTools = ['sam2', 'birefnet']
+const remainingNativeCudaExpectedCandidates = {
+  sam2: [
+    'sam2.1_hiera_tiny.pt',
+    'sam2/sam2.1_hiera_tiny.pt',
+    'sam2/sam2-checkpoint.pt',
+    'sam2/checkpoint.pt',
+  ],
+  birefnet: ['birefnet', 'ZhengPeng7/BiRefNet', 'BiRefNet'],
+}
+const remainingNativeCudaExpectedChecksum = {
+  sam2: '45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2',
+  birefnet: '1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7',
+}
 const allTools = [...gpuModelTools, ...cpuStaticTools, ...browserRuntimeTools]
 const gpuModelInstallProofProfiles = {
   torch_torchvision: ['gpu_worker_ai_graphics', 'sam2', 'birefnet', 'real_esrgan'],
@@ -925,6 +939,122 @@ function checkReport(label, report) {
   if (rows.length !== 21) {
     fail(`${label}_row_count_mismatch:${rows.length}`)
     return
+  }
+  const closure = report.remainingNativeCudaClosure
+  if (!closure || typeof closure !== 'object') {
+    fail(`${label}_missing_remaining_native_cuda_closure`)
+  } else {
+    if (
+      closure.status !==
+      'remaining_native_cuda_tools_blocked_pending_native_host_and_private_model_inputs'
+    ) {
+      fail(`${label}_remaining_native_cuda_status_mismatch:${closure.status}`)
+    }
+    if (!arrayMatches(closure.remainingToolIds, remainingNativeCudaTools)) {
+      fail(`${label}_remaining_native_cuda_tool_ids_mismatch:${JSON.stringify(closure.remainingToolIds)}`)
+    }
+    if (closure.remainingToolCount !== 2) {
+      fail(`${label}_remaining_native_cuda_count_mismatch:${closure.remainingToolCount}`)
+    }
+    if (
+      !String(closure.currentHostPreflightCommand ?? '').includes(
+        'ai-graphics:gpu-runtime-proof-local-preflight',
+      ) ||
+      !String(closure.currentHostPreflightCommand ?? '').includes(
+        '--require-host-eligible',
+      )
+    ) {
+      fail(`${label}_remaining_native_cuda_missing_host_preflight_command`)
+    }
+    if (
+      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+        'ai-graphics:external-agent-execution-readiness',
+      ) ||
+      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+        '<private-run-sam2>/harness-result.json',
+      ) ||
+      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+        '<private-run-birefnet>/harness-result.json',
+      )
+    ) {
+      fail(`${label}_remaining_native_cuda_missing_all21_closeout_command`)
+    }
+    const probe = closure.privateModelRootInspection
+    if (!probe || typeof probe !== 'object') {
+      fail(`${label}_remaining_native_cuda_missing_model_root_probe`)
+    } else {
+      if (probe.privateModelRootEnvVar !== 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT') {
+        fail(`${label}_remaining_native_cuda_env_var_mismatch:${probe.privateModelRootEnvVar}`)
+      }
+      if (probe.defaultPrivateModelRoot !== '.local-artifacts/ai-graphics/private-model-cache') {
+        fail(`${label}_remaining_native_cuda_default_root_mismatch:${probe.defaultPrivateModelRoot}`)
+      }
+    }
+    const closureTools = Array.isArray(closure.tools) ? closure.tools : []
+    if (closureTools.length !== 2) {
+      fail(`${label}_remaining_native_cuda_tools_count_mismatch:${closureTools.length}`)
+    }
+    for (const toolId of remainingNativeCudaTools) {
+      const entry = closureTools.find((tool) => tool.toolId === toolId)
+      if (!entry) {
+        fail(`${label}_remaining_native_cuda_missing_tool:${toolId}`)
+        continue
+      }
+      if (entry.executable !== false) {
+        fail(`${label}_remaining_native_cuda_claims_executable:${toolId}`)
+      }
+      if (entry.callable !== true) {
+        fail(`${label}_remaining_native_cuda_not_callable:${toolId}`)
+      }
+      if (!remainingNativeCudaExpectedCandidates[toolId].every((candidate) => (
+        entry.expectedPrivateRootCandidates?.includes(candidate)
+      ))) {
+        fail(`${label}_remaining_native_cuda_candidates_mismatch:${toolId}`)
+      }
+      if (
+        entry.expectedReviewedChecksumSha256 !==
+        remainingNativeCudaExpectedChecksum[toolId]
+      ) {
+        fail(`${label}_remaining_native_cuda_checksum_mismatch:${toolId}`)
+      }
+      const expectedImage = expectedRuntimeContainerTarget(toolId).image
+      for (const [field, scriptName] of [
+        ['manifestMaterializerCommand', 'ai-graphics:external-agent-gpu-model-runtime-input-manifest'],
+        ['nativeGpuProofSequenceCommand', 'ai-graphics:external-agent-gpu-model-private-proof-sequence'],
+        ['finalExternalAgentToolCallCommand', 'ai-graphics:external-agent-tool-call'],
+        ['readinessRecheckCommand', 'ai-graphics:external-agent-execution-readiness'],
+      ]) {
+        if (!String(entry[field] ?? '').includes(scriptName)) {
+          fail(`${label}_remaining_native_cuda_${toolId}_${field}_missing_script`)
+        }
+      }
+      if (!String(entry.manifestMaterializerCommand ?? '').includes('--private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"')) {
+        fail(`${label}_remaining_native_cuda_${toolId}_manifest_missing_private_root`)
+      }
+      if (!String(entry.nativeGpuProofSequenceCommand ?? '').includes('--require-host-eligible')) {
+        fail(`${label}_remaining_native_cuda_${toolId}_proof_missing_host_gate`)
+      }
+      if (!String(entry.nativeGpuProofSequenceCommand ?? '').includes('--require-accepted-proof')) {
+        fail(`${label}_remaining_native_cuda_${toolId}_proof_missing_acceptance_gate`)
+      }
+      if (!String(entry.nativeGpuProofSequenceCommand ?? '').includes(expectedImage)) {
+        fail(`${label}_remaining_native_cuda_${toolId}_proof_missing_image`)
+      }
+      if (!String(entry.finalExternalAgentToolCallCommand ?? '').includes('--strict-exit-code')) {
+        fail(`${label}_remaining_native_cuda_${toolId}_final_call_missing_strict_exit`)
+      }
+      if (entry.gpuRuntimeStartsIdle !== false) {
+        fail(`${label}_remaining_native_cuda_${toolId}_idle_gpu_start_not_false`)
+      }
+      if (entry.gpuStartsOnlyDuringScopedToolCall !== true) {
+        fail(`${label}_remaining_native_cuda_${toolId}_scoped_gpu_start_not_true`)
+      }
+    }
+    for (const [key, value] of Object.entries(closure.noScopeExpansion ?? {})) {
+      if (value !== false) {
+        fail(`${label}_remaining_native_cuda_no_scope_${key}_not_false`)
+      }
+    }
   }
   for (const toolId of allTools) {
     const row = rows.find((item) => item.toolId === toolId)
@@ -2115,6 +2245,10 @@ for (const phrase of [
   'capabilityMismatchFailureProbeAccepted',
   'nextExactReadinessWithPrivateProofCommand',
   'nextExactCurrentHostPreflightCommand',
+  'remainingNativeCudaClosure',
+  'remainingNativeCudaRuntimeInputManifestPrivateRootCommand',
+  'ZhengPeng7/BiRefNet',
+  'sam2.1_hiera_tiny.pt',
 ]) {
   if (!cli.includes(phrase)) fail(`cli_missing_private_proof_phrase:${phrase}`)
 }
@@ -2198,6 +2332,10 @@ for (const phrase of [
   'Next proof-ref bridge command',
   'Next direct readiness command with private proof',
   'Next current-host preflight command',
+  'Remaining Native CUDA Closure',
+  'remaining_native_cuda_tools_blocked_pending_native_host_and_private_model_inputs',
+  'ZhengPeng7/BiRefNet',
+  'sam2.1_hiera_tiny.pt',
   'Failure Diagnostics Guard',
   'failed_with_diagnostics',
   'gpu_model_python_package_missing',

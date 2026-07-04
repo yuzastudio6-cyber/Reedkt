@@ -3,6 +3,7 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_GATE } from '../../src/backend/mock/mock-external-agent-tool-execution-gate'
 
 const ROOT = process.cwd()
@@ -221,6 +222,8 @@ for (const required of [
   'cliAccountIndexMapsToChildEnv',
   'runLiveVerifier',
   'external-agent-gcp-access-verify.ts',
+  'EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN',
+  'gcpAccessRepairGuidance',
 ]) {
   assert.equal(cliSource.includes(required), true, `Execution gate CLI missing live verifier marker: ${required}`)
 }
@@ -245,6 +248,42 @@ assert.equal(report.accountSelectionGuidance.printsAccountValue, false)
 assert.equal(report.liveVerifierRun, false)
 assert.equal(report.liveVerifier, undefined)
 assert.equal(report.liveVerifierAvailableCommand, 'npm run external-agent-gcp-access:verify')
+assert.equal(typeof report.gcpAccessRepair, 'object')
+assert.equal(report.gcpAccessRepair.decision, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.decision)
+assert.equal(report.gcpAccessRepair.mode, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.mode)
+assert.equal(report.gcpAccessRepair.projectId, 'reeditpro')
+assert.deepEqual(report.gcpAccessRepair.currentLiveBlockers, [
+  'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
+  'gcloud_account_lacks_compute_quota_read_access',
+])
+assert.equal(report.gcpAccessRepair.repairScope.doesNotMutateGcp, true)
+assert.equal(report.gcpAccessRepair.repairScope.doesNotAuthorizeRuntimeExecution, true)
+assert.equal(report.gcpAccessRepair.tools.length, 2)
+assert.equal(
+  report.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; failureMeaning: string; safeRepairChecklist: string[]; unsafeBypasses: string[] }) =>
+      tool.toolId === 'qwen2_5_vl_7b_instruct' &&
+      tool.failureMeaning.includes('Cloud Run') &&
+      tool.safeRepairChecklist.length > 0 &&
+      tool.unsafeBypasses.includes('do not skip Cloud Run service/job describe checks'),
+  ),
+  true,
+)
+assert.equal(
+  report.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; failureMeaning: string; safeRepairChecklist: string[]; unsafeBypasses: string[] }) =>
+      tool.toolId === 'ai_video_broll_generation_wan' &&
+      tool.failureMeaning.includes('Compute quota') &&
+      tool.safeRepairChecklist.length > 0 &&
+      tool.unsafeBypasses.includes('do not create a VM before quota read checks pass'),
+  ),
+  true,
+)
+assert.equal(typeof report.gcpAccessRepair.failureResponsePolicy.ifReadAccessFails, 'string')
+assert.equal(report.gcpAccessRepair.runtimeGatesAllFalse, true)
+for (const [flag, value] of Object.entries(report.gcpAccessRepair.runtimeSideEffects as Record<string, boolean>)) {
+  assert.equal(value, false, `GCP repair side-effect flag must remain false: ${flag}`)
+}
 assert.equal(report.staticExplicitToolGateReady, true)
 assert.deepEqual(report.staticExplicitToolGateReadyToolIds, [
   'qwen2_5_vl_7b_instruct',
@@ -346,6 +385,24 @@ assert.equal(indexedLiveReport.accountSelectionGuidance.cliAccountIndexValid, tr
 assert.equal(indexedLiveReport.accountSelectionGuidance.cliAccountIndexMapsToChildEnv, true)
 assert.equal(indexedLiveReport.accountSelectionGuidance.mutatesLocalGcloudConfig, false)
 assert.equal(indexedLiveReport.accountSelectionGuidance.printsAccountValue, false)
+assert.equal(
+  indexedLiveReport.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.gcpAccessRepair.postRepairVerificationCommands.includes(
+    'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.gcpAccessRepair.tools.every((tool: { verificationCommand: string }) =>
+    tool.verificationCommand.endsWith('--account-index 2'),
+  ),
+  true,
+)
 assert.equal(typeof indexedLiveReport.liveVerifier.ok, 'boolean')
 assert.equal(typeof indexedLiveReport.liveVerifier.qwenReadAccessPassed, 'boolean')
 assert.equal(typeof indexedLiveReport.liveVerifier.brollQuotaReadAccessPassed, 'boolean')

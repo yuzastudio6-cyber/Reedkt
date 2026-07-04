@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
@@ -293,6 +294,32 @@ function shellExampleFor(
   ].join(' ')}`
 }
 
+function gcpAccessRepairGuidance(accountSelection: unknown) {
+  const repairPlan = EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN
+
+  return {
+    ok: true,
+    decision: repairPlan.decision,
+    mode: repairPlan.mode,
+    projectId: repairPlan.projectId,
+    currentLiveBlockers: repairPlan.currentLiveBlockers,
+    repairScope: repairPlan.repairScope,
+    tools: repairPlan.tools.map((tool) => ({
+      ...tool,
+      verificationCommand: applySelectedAccountIndex(tool.verificationCommand, accountSelection),
+    })),
+    failureResponsePolicy: repairPlan.failureResponsePolicy,
+    safeRetryChecklist: repairPlan.safeRetryChecklist.map((step) =>
+      applySelectedAccountIndex(step, accountSelection) ?? step,
+    ),
+    postRepairVerificationCommands: repairPlan.postRepairVerificationCommands.map((command) =>
+      applySelectedAccountIndex(command, accountSelection) ?? command,
+    ),
+    runtimeGatesAllFalse: Object.values(repairPlan.runtimeSideEffects).every((value) => value === false),
+    runtimeSideEffects: repairPlan.runtimeSideEffects,
+  }
+}
+
 function main() {
   const spec = EXTERNAL_AGENT_TOOL_NEXT_COMMAND
   const probeById = new Map(spec.allowedProbeScripts.map((probe) => [probe.id, probe]))
@@ -487,6 +514,7 @@ function main() {
         qwenAuthRefreshPassed,
         brollQuotaSufficientForOneL4Vm: brollQuotaSufficient,
         liveBlockerSummary: blockerSummary,
+        gcpAccessRepair: gcpAccessRepairGuidance(accountSelection),
         gcloudDiagnosticRun: shouldRunGcloudDiagnostic,
         gcloudDiagnosticSummary: diagnosticSummary,
         gcloudAccountAccessDiagnosticRun: shouldRunAccountAccessDiagnostic,

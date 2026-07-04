@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
 const ROOT = process.cwd()
@@ -246,6 +247,8 @@ assert.equal(cliSource.includes('accountSelection.overrideIndexEnv'), true)
 assert.equal(cliSource.includes('applySelectedAccountIndex'), true)
 assert.equal(cliSource.includes('withSelectedAccountIndex'), true)
 assert.equal(cliSource.includes('selectedAccountIndex'), true)
+assert.equal(cliSource.includes('EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN'), true)
+assert.equal(cliSource.includes('gcpAccessRepairGuidance'), true)
 assert.equal(cliSource.includes('whenGcpReadAccessRepairRequired'), true)
 for (const forbidden of [
   'gcloud ',
@@ -410,6 +413,50 @@ assert.equal(decision.probeSummaries.length >= 2, true)
 assert.equal(typeof decision.liveBlockerSummary, 'object')
 assert.equal(typeof decision.liveBlockerSummary.qwen, 'object')
 assert.equal(typeof decision.liveBlockerSummary.broll, 'object')
+assert.equal(typeof decision.gcpAccessRepair, 'object')
+assert.equal(decision.gcpAccessRepair.decision, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.decision)
+assert.equal(decision.gcpAccessRepair.mode, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.mode)
+assert.equal(decision.gcpAccessRepair.projectId, 'reeditpro')
+assert.deepEqual(decision.gcpAccessRepair.currentLiveBlockers, [
+  'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
+  'gcloud_account_lacks_compute_quota_read_access',
+])
+assert.equal(decision.gcpAccessRepair.repairScope.doesNotMutateGcp, true)
+assert.equal(decision.gcpAccessRepair.repairScope.doesNotAuthorizeRuntimeExecution, true)
+assert.equal(decision.gcpAccessRepair.tools.length, 2)
+assert.equal(
+  decision.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; failureMeaning: string; safeRepairChecklist: string[]; unsafeBypasses: string[] }) =>
+      tool.toolId === 'qwen2_5_vl_7b_instruct' &&
+      tool.failureMeaning.includes('Cloud Run') &&
+      tool.safeRepairChecklist.length > 0 &&
+      tool.unsafeBypasses.includes('do not skip Cloud Run service/job describe checks'),
+  ),
+  true,
+)
+assert.equal(
+  decision.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; failureMeaning: string; safeRepairChecklist: string[]; unsafeBypasses: string[] }) =>
+      tool.toolId === 'ai_video_broll_generation_wan' &&
+      tool.failureMeaning.includes('Compute quota') &&
+      tool.safeRepairChecklist.length > 0 &&
+      tool.unsafeBypasses.includes('do not create a VM before quota read checks pass'),
+  ),
+  true,
+)
+assert.equal(typeof decision.gcpAccessRepair.failureResponsePolicy.ifReadAccessFails, 'string')
+assert.equal(
+  decision.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index <redacted-index>',
+  ),
+  true,
+)
+assert.equal(decision.gcpAccessRepair.runtimeGatesAllFalse, true)
+for (const [flag, value] of Object.entries(
+  decision.gcpAccessRepair.runtimeSideEffects as Record<string, boolean>,
+)) {
+  assert.equal(value, false, `GCP repair side-effect flag must remain false: ${flag}`)
+}
 assert.equal(typeof decision.gcloudAccountAccessDiagnosticRun, 'boolean')
 if (!decision.qwenLivePreflightPassed) {
   assert.equal(decision.gcloudAccountAccessDiagnosticRun, true)
@@ -716,6 +763,24 @@ const indexedDecision = JSON.parse(indexedOutput)
 assert.equal(indexedDecision.ok, true)
 assert.equal(indexedDecision.accountSelection.overrideIndexProvided, true)
 assert.equal(indexedDecision.accountSelection.overrideIndex, 2)
+assert.equal(
+  indexedDecision.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedDecision.gcpAccessRepair.postRepairVerificationCommands.includes(
+    'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedDecision.gcpAccessRepair.tools.every((tool: { verificationCommand: string }) =>
+    tool.verificationCommand.endsWith('--account-index 2'),
+  ),
+  true,
+)
 if (indexedDecision.manualActionRequired === true) {
   assert.equal(indexedDecision.rerunAfterManualAction.includes('--account-index 2'), true)
   assert.equal(indexedDecision.nextCodexCommandAfterManualAction.includes('--account-index 2'), true)

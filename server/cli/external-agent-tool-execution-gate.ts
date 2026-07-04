@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_GATE } from '../../src/backend/mock/mock-external-agent-tool-execution-gate'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
@@ -110,6 +111,38 @@ function runLiveVerifier(childEnv: NodeJS.ProcessEnv) {
     exitCode: result.status,
     ok: result.status === 0 && Boolean(json),
     json,
+  }
+}
+
+function applyAccountIndex(value: string, accountIndex: number | undefined): string {
+  if (!accountIndex) return value
+
+  return value
+    .replace(/<account-index>/g, String(accountIndex))
+    .replace(/<redacted-index>/g, String(accountIndex))
+}
+
+function gcpAccessRepairGuidance(accountIndex: number | undefined) {
+  const repairPlan = EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN
+
+  return {
+    ok: true,
+    decision: repairPlan.decision,
+    mode: repairPlan.mode,
+    projectId: repairPlan.projectId,
+    currentLiveBlockers: repairPlan.currentLiveBlockers,
+    repairScope: repairPlan.repairScope,
+    tools: repairPlan.tools.map((tool) => ({
+      ...tool,
+      verificationCommand: applyAccountIndex(tool.verificationCommand, accountIndex),
+    })),
+    failureResponsePolicy: repairPlan.failureResponsePolicy,
+    safeRetryChecklist: repairPlan.safeRetryChecklist.map((step) => applyAccountIndex(step, accountIndex)),
+    postRepairVerificationCommands: repairPlan.postRepairVerificationCommands.map((command) =>
+      applyAccountIndex(command, accountIndex),
+    ),
+    runtimeGatesAllFalse: Object.values(repairPlan.runtimeSideEffects).every((value) => value === false),
+    runtimeSideEffects: repairPlan.runtimeSideEffects,
   }
 }
 
@@ -227,6 +260,9 @@ function main() {
           recommendedNextPrompt: nestedString(liveVerifierJson, ['recommendedNextPrompt']),
         }
       : undefined,
+    gcpAccessRepair: gcpAccessRepairGuidance(
+      accountIndexOverride.cliAccountIndexValid ? accountIndexOverride.cliAccountIndex : undefined,
+    ),
     executionAllowedNow: liveAwareExecutionAllowedNow,
     readyForAnyExternalAgentExecutionNow: liveAwareExecutionAllowedNow,
     readyToolIds: liveAwareExecutionAllowedNow ? readyTools.map((tool) => tool.toolId) : [],

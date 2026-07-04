@@ -60,6 +60,39 @@ const expectedCounts = {
   productionReadyNowTools: 0,
 }
 
+function expectedMinimumPrivateRuntimeInputKeys(toolId) {
+  const keys = ['outputDirectory']
+  if (sourceImageRequiredTools.has(toolId)) keys.push('sourceImageLocalPath')
+  if (toolId === 'sam2') keys.push('sam2CheckpointLocalPath')
+  if (toolId === 'birefnet') keys.push('birefnetModelLocalPath')
+  if (toolId === 'real_esrgan') keys.push('realEsrganModelLocalPath')
+  if (toolId === 'rembg') keys.push('rembgModelLocalPath')
+  if (toolId === 'transparent_background') {
+    keys.push('transparentBackgroundCheckpointLocalPath')
+  }
+  keys.push('nativeCudaRuntime')
+  return keys
+}
+
+function expectedCurrentBlockingPrerequisiteKey(toolId) {
+  return {
+    torch_torchvision: 'outputDirectory',
+    transformers: 'outputDirectory',
+    sam2: 'sam2CheckpointLocalPath',
+    birefnet: 'birefnetModelLocalPath',
+    real_esrgan: 'realEsrganModelLocalPath',
+    kornia: 'sourceImageLocalPath',
+    rembg: 'rembgModelLocalPath',
+    transparent_background: 'transparentBackgroundCheckpointLocalPath',
+  }[toolId] ?? null
+}
+
+function arrayMatches(actual, expected) {
+  return Array.isArray(actual) &&
+    actual.length === expected.length &&
+    expected.every((value, index) => actual[index] === value)
+}
+
 const trueKeys = [
   'externalAgentGpuModelLocalDevRuntimeExecutionHarnessPrepared',
   'scopedGpuModelToolSelectionSupported',
@@ -615,6 +648,30 @@ for (const tool of tools) {
   if (!row.localInputRequirements.some((entry) => entry.key === 'nativeCudaRuntime')) {
     fail(`missing_native_cuda_requirement:${tool}`)
   }
+  const expectedInputKeys = expectedMinimumPrivateRuntimeInputKeys(tool)
+  if (!arrayMatches(row.minimumPrivateRuntimeInputKeys, expectedInputKeys)) {
+    fail(`minimum_private_runtime_input_keys_mismatch:${tool}:${JSON.stringify(row.minimumPrivateRuntimeInputKeys)}`)
+  }
+  const expectedCurrentBlocker = expectedCurrentBlockingPrerequisiteKey(tool)
+  if (row.currentBlockingPrerequisiteKey !== expectedCurrentBlocker) {
+    fail(`current_blocking_prerequisite_key_mismatch:${tool}:${row.currentBlockingPrerequisiteKey}`)
+  }
+  if (row.currentBlockingReasonCode !== row.skipReasonCode) {
+    fail(`current_blocking_reason_code_mismatch:${tool}:${row.currentBlockingReasonCode}`)
+  }
+  if (typeof row.currentBlockingReasonCode !== 'string' ||
+    row.currentBlockingReasonCode.length === 0) {
+    fail(`missing_current_blocking_reason_code:${tool}`)
+  }
+  const expectedRemainingInputKeys = expectedInputKeys.filter(
+    (key) => key !== expectedCurrentBlocker,
+  )
+  if (!arrayMatches(row.remainingPrivateRuntimeInputKeys, expectedRemainingInputKeys)) {
+    fail(`remaining_private_runtime_input_keys_mismatch:${tool}:${JSON.stringify(row.remainingPrivateRuntimeInputKeys)}`)
+  }
+  if (row.remainingPrivateRuntimeInputKeys?.includes(expectedCurrentBlocker)) {
+    fail(`remaining_private_runtime_inputs_include_current_blocker:${tool}`)
+  }
   if (tool === 'sam2') {
     const nativeRequirement = row.localInputRequirements.find(
       (entry) => entry.key === 'nativeCudaRuntime',
@@ -657,6 +714,18 @@ if (scopedRows.length !== 1 || scopedRows[0]?.toolId !== 'kornia') {
 if (scopedRows[0]?.skipReasonCode !== 'kornia_source_frame_missing') {
   fail(`scoped_output_unexpected_skip_reason:${scopedRows[0]?.skipReasonCode}`)
 }
+if (scopedRows[0]?.currentBlockingPrerequisiteKey !== 'sourceImageLocalPath') {
+  fail(`scoped_output_current_blocker_mismatch:${scopedRows[0]?.currentBlockingPrerequisiteKey}`)
+}
+if (scopedRows[0]?.currentBlockingReasonCode !== 'kornia_source_frame_missing') {
+  fail(`scoped_output_current_reason_mismatch:${scopedRows[0]?.currentBlockingReasonCode}`)
+}
+if (!arrayMatches(scopedRows[0]?.remainingPrivateRuntimeInputKeys, [
+  'outputDirectory',
+  'nativeCudaRuntime',
+])) {
+  fail(`scoped_output_remaining_inputs_mismatch:${JSON.stringify(scopedRows[0]?.remainingPrivateRuntimeInputKeys)}`)
+}
 if (scopedRows[0]?.executionState !== 'blocked_with_reason') {
   fail(`scoped_output_unexpected_execution_state:${scopedRows[0]?.executionState}`)
 }
@@ -694,6 +763,8 @@ for (const requiredSourceToken of [
   'privateLocalRuntimeInputBlock',
   'private-input-preflight',
   'missingPrivateInputsBlockBeforeGpuStartup',
+  'currentBlockingPrerequisiteKey',
+  'remainingPrivateRuntimeInputKeys',
   'executionState',
 ]) {
   if (!joinedSource.includes(requiredSourceToken)) {

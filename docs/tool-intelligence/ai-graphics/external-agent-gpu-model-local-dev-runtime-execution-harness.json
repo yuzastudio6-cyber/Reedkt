@@ -126,6 +126,15 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "foundation_runtime_output_directory_missing",
+      "currentBlockingPrerequisiteKey": "outputDirectory",
+      "currentBlockingReasonCode": "foundation_runtime_output_directory_missing",
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "nativeCudaRuntime"
+      ],
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -167,6 +176,15 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "foundation_runtime_output_directory_missing",
+      "currentBlockingPrerequisiteKey": "outputDirectory",
+      "currentBlockingReasonCode": "foundation_runtime_output_directory_missing",
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "nativeCudaRuntime"
+      ],
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -208,6 +226,19 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "sam2_checkpoint_missing",
+      "currentBlockingPrerequisiteKey": "sam2CheckpointLocalPath",
+      "currentBlockingReasonCode": "sam2_checkpoint_missing",
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "sam2CheckpointLocalPath",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "nativeCudaRuntime"
+      ],
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -261,6 +292,19 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "birefnet_model_missing",
+      "currentBlockingPrerequisiteKey": "birefnetModelLocalPath",
+      "currentBlockingReasonCode": "birefnet_model_missing",
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "birefnetModelLocalPath",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "nativeCudaRuntime"
+      ],
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -314,6 +358,19 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "real_esrgan_model_missing",
+      "currentBlockingPrerequisiteKey": "realEsrganModelLocalPath",
+      "currentBlockingReasonCode": "real_esrgan_model_missing",
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "realEsrganModelLocalPath",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "nativeCudaRuntime"
+      ],
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -367,6 +424,17 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "kornia_source_frame_missing",
+      "currentBlockingPrerequisiteKey": "sourceImageLocalPath",
+      "currentBlockingReasonCode": "kornia_source_frame_missing",
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime"
+      ],
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -414,6 +482,19 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "rembg_model_missing",
+      "currentBlockingPrerequisiteKey": "rembgModelLocalPath",
+      "currentBlockingReasonCode": "rembg_model_missing",
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "rembgModelLocalPath",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "nativeCudaRuntime"
+      ],
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -467,6 +548,19 @@
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
       "skipReasonCode": "transparent_background_checkpoint_missing",
+      "currentBlockingPrerequisiteKey": "transparentBackgroundCheckpointLocalPath",
+      "currentBlockingReasonCode": "transparent_background_checkpoint_missing",
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "transparentBackgroundCheckpointLocalPath",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "nativeCudaRuntime"
+      ],
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,

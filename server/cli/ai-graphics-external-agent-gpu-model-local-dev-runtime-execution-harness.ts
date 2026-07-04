@@ -320,6 +320,60 @@ function localInputRequirements(
       ]
 }
 
+function minimumPrivateRuntimeInputKeys(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string[] {
+  return localInputRequirements(toolId)
+    .filter((requirement) => requirement.requiredForActualExecution)
+    .map((requirement) => requirement.key)
+}
+
+function currentBlockingPrerequisiteKey(
+  blockingReasonCode: string | null | undefined,
+): string | null {
+  if (!blockingReasonCode) return null
+  if (blockingReasonCode.includes('output_directory_missing')) {
+    return 'outputDirectory'
+  }
+  if (blockingReasonCode.includes('source_frame_missing')) {
+    return 'sourceImageLocalPath'
+  }
+  if (blockingReasonCode.includes('sam2_checkpoint_missing')) {
+    return 'sam2CheckpointLocalPath'
+  }
+  if (blockingReasonCode.includes('birefnet_model_missing')) {
+    return 'birefnetModelLocalPath'
+  }
+  if (blockingReasonCode.includes('real_esrgan_model_missing')) {
+    return 'realEsrganModelLocalPath'
+  }
+  if (blockingReasonCode.includes('rembg_model_missing')) {
+    return 'rembgModelLocalPath'
+  }
+  if (blockingReasonCode.includes('transparent_background_checkpoint_missing')) {
+    return 'transparentBackgroundCheckpointLocalPath'
+  }
+  if (
+    blockingReasonCode.includes('cuda') ||
+    blockingReasonCode.includes('container_gpu')
+  ) {
+    return 'nativeCudaRuntime'
+  }
+  if (blockingReasonCode.includes('container_image')) {
+    return 'runtimeContainerImage'
+  }
+  if (blockingReasonCode.includes('python_package')) {
+    return 'pythonPackageRuntime'
+  }
+  if (blockingReasonCode.includes('python_runtime')) {
+    return 'pythonRuntime'
+  }
+  if (blockingReasonCode.includes('disabled_or_not_local_dev')) {
+    return 'attemptGpuRuntime'
+  }
+  return null
+}
+
 function exactRuntimeAttemptCommand(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   options: {
@@ -537,6 +591,15 @@ async function buildReport(args: HarnessArgs) {
     const request = buildRequest(toolId, args)
     const result = await executeAiGraphicsExternalAgentGpuModelControlledAdapter(request)
     const requirements = localInputRequirements(toolId)
+    const reasonCode = skipReasonCode(result)
+    const blockingKey = currentBlockingPrerequisiteKey(reasonCode)
+    const minimumInputKeys = minimumPrivateRuntimeInputKeys(toolId)
+    const remainingInputKeys =
+      result.localGpuModelRuntimeExecutionPerformed
+        ? []
+        : blockingKey
+        ? minimumInputKeys.filter((key) => key !== blockingKey)
+        : minimumInputKeys
     rows.push({
       toolId,
       capabilityId: request.capabilityId,
@@ -559,7 +622,11 @@ async function buildReport(args: HarnessArgs) {
       runtimeReadyNow: result.runtimeReadyNow,
       externalBetaReadyNow: result.externalBetaReadyNow,
       productionReadyNow: result.productionReadyNow,
-      skipReasonCode: skipReasonCode(result),
+      skipReasonCode: reasonCode,
+      currentBlockingPrerequisiteKey: blockingKey,
+      currentBlockingReasonCode: reasonCode,
+      minimumPrivateRuntimeInputKeys: minimumInputKeys,
+      remainingPrivateRuntimeInputKeys: remainingInputKeys,
       errorMessage: errorMessageForResult(result),
       outputJsonPath: outputJsonPathForResult(result),
       outputJsonSha256: outputJsonSha256ForResult(result),
@@ -760,7 +827,7 @@ async function buildReport(args: HarnessArgs) {
 function makeMarkdown(report: Awaited<ReturnType<typeof buildReport>>): string {
   const rows = report.gpuModelLocalDevRuntimeExecutionHarnessRows
     .map((row) => (
-      `| \`${row.toolId}\` | \`${row.capabilityId}\` | \`${row.harnessMode}\` | \`${row.adapterStatus}\` | \`${row.skipReasonCode ?? 'none'}\` | \`${row.errorMessage ?? 'none'}\` | ${row.localRuntimeExecutionPerformed} | ${row.toolExecutionApprovedNow} | ${row.gpuRuntimeShouldStartNow} |`
+      `| \`${row.toolId}\` | \`${row.capabilityId}\` | \`${row.harnessMode}\` | \`${row.adapterStatus}\` | \`${row.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${row.currentBlockingReasonCode ?? 'none'}\` | \`${row.remainingPrivateRuntimeInputKeys.length ? row.remainingPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.errorMessage ?? 'none'}\` | ${row.localRuntimeExecutionPerformed} | ${row.toolExecutionApprovedNow} | ${row.gpuRuntimeShouldStartNow} |`
     ))
     .join('\n')
 
@@ -776,8 +843,8 @@ Missing private source/model/checkpoint paths block before Python runtime or Doc
 
 ## Tool rows
 
-| Tool | Capability | Harness mode | Adapter status | Skip reason | Error message | Local runtime executed | Tool execution approved | GPU starts now |
-| --- | --- | --- | --- | --- | --- | ---: | ---: | ---: |
+| Tool | Capability | Harness mode | Adapter status | Current blocker | Blocking reason | Remaining private inputs | Error message | Local runtime executed | Tool execution approved | GPU starts now |
+| --- | --- | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: |
 ${rows}
 
 ## Counts

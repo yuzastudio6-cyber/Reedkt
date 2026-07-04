@@ -1,0 +1,37 @@
+{
+  "id": "project-edit-brief-internal-persistence-backend-skeleton",
+  "milestone": "RP-EDITBRIEF-17",
+  "decision": "project_edit_brief_internal_persistence_backend_skeleton_passed_ready_for_internal_route_integration",
+  "status": "passed_backend_skeleton_only",
+  "requiredPriorDecision": "project_edit_brief_internal_persistence_plan_passed_ready_for_internal_backend_skeleton",
+  "backendModes": [
+    "mock_internal",
+    "supabase_disabled_internal"
+  ],
+  "mutatingOperationsRequire": {
+    "idempotencyKey": true,
+    "auditEventType": true
+  },
+  "expensiveWorkStillRequires": {
+    "approvedPlanSnapshotId": true,
+    "creditEstimateId": true,
+    "creditReservationId": true
+  },
+  "blockedScope": {
+    "liveSupabaseEnabled": false,
+    "productionRouteEnabled": false,
+    "externalBetaAllowed": false,
+    "paidProductionAllowed": false,
+    "providerOrModelCall": false,
+    "mediaProcessing": false,
+    "workerDispatch": false,
+    "renderOrExportJob": false,
+    "creditReservationOrSpend": false
+  },
+  "validationEvidence": {
+    "mockRepositoryWritePathExercised": true,
+    "disabledSupabasePathFailsClosed": true,
+    "partialExpensiveWorkApprovalBlocked": true
+  },
+  "nextMilestone": "RP-EDITBRIEF-18 - Internal Route Integration"
+}

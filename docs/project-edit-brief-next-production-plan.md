@@ -34,6 +34,12 @@ RP-EDITBRIEF-16 defines the production-shaped internal persistence contract for 
 
 Next internal milestone: `RP-EDITBRIEF-17 - Internal Persistence Backend Skeleton`.
 
+## RP-EDITBRIEF-17 Internal Persistence Backend Skeleton
+
+RP-EDITBRIEF-17 adds the backend seam for internal testing route integration. It keeps writes in the mock repository, keeps Supabase in disabled fail-closed mode, requires idempotency and audit envelopes for mutating operations, and blocks partial approved-plan/credit approval fields. It is ready for internal route integration but still does not enable production routes, live Supabase, Storage, providers, media processing, workers, render/export, uploads, external beta, paid production, or credits.
+
+Next internal milestone: `RP-EDITBRIEF-18 - Internal Route Integration`.
+
 ## Qwen Runtime Dependency
 
 RP-QWEN-00 is complete as an audit-only package for future reasoning runtime readiness. Edit Brief Marker Chat remains deterministic mock/local until a later owner-approved Qwen milestone. No Qwen call, provider call, Secret Manager inspection, `gcloud`, Supabase CLI, route wiring, Marker Chat runtime change, worker, render/export/progress, credit action, staging, commit, or cleanup occurred.

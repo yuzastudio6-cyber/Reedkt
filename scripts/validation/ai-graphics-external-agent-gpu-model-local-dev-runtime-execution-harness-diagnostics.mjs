@@ -847,6 +847,29 @@ if (scopedManifestRows[0]?.skipReasonCode !== 'kornia_source_frame_missing') {
   fail(`scoped_manifest_output_unexpected_skip_reason:${scopedManifestRows[0]?.skipReasonCode}`)
 }
 
+const unsafeManifestOutputPath = `${manifestDir}/unsafe-runtime-inputs.json`
+fs.writeFileSync(absolute(unsafeManifestOutputPath), JSON.stringify({
+  outputDirectory: '/tmp/reeditpro-ai-graphics-unsafe-output',
+  toolInputs: {
+    kornia: {
+      sourceImageLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+    },
+  },
+}, null, 2))
+const unsafeManifestOutputRun = spawnRunScript([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--runtime-input-manifest',
+  unsafeManifestOutputPath,
+])
+if (unsafeManifestOutputRun.status === 0) {
+  fail('unsafe_manifest_output_directory_unexpected_success')
+}
+if (!unsafeManifestOutputRun.stderr.includes('runtime input manifest outputDirectory must stay under .local-artifacts/')) {
+  fail('unsafe_manifest_output_directory_missing_diagnostic')
+}
+
 const cpuTensorDir =
   '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/diagnostic-kornia-cpu'
 const cpuTensorSourcePath = `${cpuTensorDir}/private-approved-frame.ppm`
@@ -981,6 +1004,7 @@ for (const requiredSourceToken of [
   'runtimeInputManifestPath',
   '--runtime-input-manifest',
   'privateRuntimeInputManifestSupported',
+  'privateRuntimeInputManifestOutputDirectoryMustStayUnderLocalArtifacts',
   'currentBlockingPrerequisiteKey',
   'remainingPrivateRuntimeInputKeys',
   'executionState',

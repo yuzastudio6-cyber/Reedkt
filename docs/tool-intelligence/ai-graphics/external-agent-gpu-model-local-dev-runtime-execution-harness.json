@@ -99,6 +99,7 @@
     "privateLocalProofResultWritePath": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
     "privateLocalProofResultWrittenNow": false,
     "privateRuntimeInputManifestSupported": true,
+    "privateRuntimeInputManifestOutputDirectoryMustStayUnderLocalArtifacts": true,
     "privateRuntimeInputManifestPath": null,
     "privateRuntimeInputManifestUsedNow": false
   },
@@ -642,6 +643,7 @@
     "privateLocalProofResultWriteSupported": true,
     "privateLocalProofResultWrittenNow": false,
     "privateRuntimeInputManifestSupported": true,
+    "privateRuntimeInputManifestOutputDirectoryMustStayUnderLocalArtifacts": true,
     "privateRuntimeInputManifestUsedNow": false,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteGpuModelToolsNow": false,

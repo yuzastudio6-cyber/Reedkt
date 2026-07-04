@@ -185,6 +185,19 @@ function parseArgs(): HarnessArgs {
       '--attempt-local-runtime requires --output-dir or runtime-input-manifest outputDirectory',
     )
   }
+  if (args.attemptLocalRuntime) {
+    const unsafeOutputDirectory = args.toolIds
+      .map((toolId) => runtimeInputsForTool(toolId, args).outputDirectory)
+      .find((outputDirectory) => (
+        typeof outputDirectory === 'string' &&
+        !isLocalArtifactPath(outputDirectory)
+      ))
+    if (unsafeOutputDirectory) {
+      throw new Error(
+        'runtime input manifest outputDirectory must stay under .local-artifacts/',
+      )
+    }
+  }
 
   return args
 }
@@ -963,6 +976,7 @@ async function buildReport(args: HarnessArgs) {
         '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
       privateLocalProofResultWrittenNow: Boolean(args.resultOut),
       privateRuntimeInputManifestSupported: true,
+      privateRuntimeInputManifestOutputDirectoryMustStayUnderLocalArtifacts: true,
       privateRuntimeInputManifestPath: args.runtimeInputManifestPath ?? null,
       privateRuntimeInputManifestUsedNow: Boolean(args.runtimeInputManifestPath),
     },
@@ -1009,6 +1023,7 @@ async function buildReport(args: HarnessArgs) {
       privateLocalProofResultWriteSupported: true,
       privateLocalProofResultWrittenNow: Boolean(args.resultOut),
       privateRuntimeInputManifestSupported: true,
+      privateRuntimeInputManifestOutputDirectoryMustStayUnderLocalArtifacts: true,
       privateRuntimeInputManifestUsedNow: Boolean(args.runtimeInputManifestPath),
       agentCanSelectForPlanning: true,
       agentCanExecuteGpuModelToolsNow: false,

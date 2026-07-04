@@ -66,6 +66,7 @@ Missing private source/model/checkpoint paths block before Python runtime or Doc
 - `privateLocalProofResultWriteSupported`: true
 - `privateLocalProofResultWrittenNow`: false
 - `privateRuntimeInputManifestSupported`: true
+- `privateRuntimeInputManifestOutputDirectoryMustStayUnderLocalArtifacts`: true
 - `privateRuntimeInputManifestUsedNow`: false
 - `agentCanSelectForPlanning`: true
 - `agentCanExecuteGpuModelToolsNow`: false

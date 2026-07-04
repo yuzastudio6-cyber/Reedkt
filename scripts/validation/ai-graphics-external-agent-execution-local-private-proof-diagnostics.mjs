@@ -503,6 +503,7 @@ writeRuntimeInputManifest(privateInputPreflightManifestPath, {
       transparentBackgroundCheckpointLocalPath: relativeLocalPath(
         placeholderModelPaths.transparent_background,
       ),
+      transparentBackgroundMode: 'fast',
     },
   },
 })

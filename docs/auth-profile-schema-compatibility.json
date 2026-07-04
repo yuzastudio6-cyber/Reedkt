@@ -1,0 +1,24 @@
+{
+  "decision": "auth_profile_schema_compatibility_passed_ready_for_internal_tester_bootstrap_readback",
+  "supportedProfileIdentityColumns": ["user_id", "id"],
+  "primaryCompatibilityReason": "internal_testing_sql_draft_uses_profiles_id_while_existing_runtime_queried_profiles_user_id",
+  "rlsHandling": "backend_required_remains_fail_closed",
+  "frontendAuthMode": "supabase_anon_client_only",
+  "blockedScope": {
+    "serviceRole": false,
+    "supabaseMigration": false,
+    "schemaMutation": false,
+    "storageSignedUrls": false,
+    "providerCalls": false,
+    "workerDispatch": false,
+    "toolExecution": false,
+    "mediaProcessing": false,
+    "renderExport": false,
+    "creditReservation": false,
+    "creditSpend": false,
+    "stripe": false,
+    "externalBeta": false,
+    "production": false
+  },
+  "nextGate": "INTERNAL_TESTER_BACKEND_PROFILE_WORKSPACE_PROVISIONING_READBACK"
+}

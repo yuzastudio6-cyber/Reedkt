@@ -209,6 +209,8 @@ for (const phrase of [
   'korniaFirstPrivateProofSequenceCommand',
   'finalExternalAgentToolCallCommand',
   'finalExternalAgentToolCallArgs',
+  'finalExternalAgentToolCallCommandForTool',
+  'finalExternalAgentToolCallCommandsByTool',
   'finalExternalAgentSingleToolCall',
   'privateContainerProofSequenceCommandsByTool',
   'privateHostProofSequenceCommandsByTool',
@@ -224,6 +226,9 @@ for (const phrase of [
   'proofBridgeRequiresOutputJsonSha256Match',
   'finalExternalAgentSingleToolCallProofRunsAfterAcceptedPrivateProof',
   'finalExternalAgentSingleToolCallRequiresExecutableState',
+  'allGpuModelToolsHaveExactFinalExternalAgentSingleToolCallCommand',
+  'allGpuModelToolsHaveExactContainerFinalExternalAgentSingleToolCallCommand',
+  'allGpuModelToolsHaveExactHostFinalExternalAgentSingleToolCallCommand',
 ]) {
   if (!source.includes(phrase)) fail(`source_missing_phrase:${phrase}`)
 }
@@ -267,11 +272,19 @@ function checkReport(label, report) {
     report.interfaces?.privateContainerProofSequenceCommandsByTool ?? {}
   const hostPerToolCommands =
     report.interfaces?.privateHostProofSequenceCommandsByTool ?? {}
+  const finalContainerCommands =
+    report.interfaces?.finalExternalAgentSingleToolCallContainerCommandsByTool ?? {}
+  const finalHostCommands =
+    report.interfaces?.finalExternalAgentSingleToolCallHostCommandsByTool ?? {}
   for (const tool of gpuModelTools) {
     const command = String(perToolCommands[tool] ?? '')
     const hostCommand = String(hostPerToolCommands[tool] ?? '')
+    const finalContainerCommand = String(finalContainerCommands[tool] ?? '')
+    const finalHostCommand = String(finalHostCommands[tool] ?? '')
     if (!command) fail(`${label}_missing_container_private_proof_sequence_command:${tool}`)
     if (!hostCommand) fail(`${label}_missing_host_private_proof_sequence_command:${tool}`)
+    if (!finalContainerCommand) fail(`${label}_missing_container_final_single_tool_call_command:${tool}`)
+    if (!finalHostCommand) fail(`${label}_missing_host_final_single_tool_call_command:${tool}`)
     if (!command.includes('--attempt-local-runtime')) {
       fail(`${label}_container_private_proof_sequence_missing_attempt_runtime:${tool}`)
     }
@@ -292,6 +305,46 @@ function checkReport(label, report) {
     }
     if (hostCommand.includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
       fail(`${label}_host_private_proof_sequence_unexpected_container_image:${tool}`)
+    }
+    for (const fragment of [
+      'ai-graphics:external-agent-tool-call',
+      `--tool ${tool}`,
+      '--attempt-gpu-runtime',
+      '--expect-state executable',
+      '--require-output-hash',
+      '--require-private-only-boundary',
+      '--strict-exit-code',
+      '--runtime-backend docker_container',
+      'reeditpro/ai-graphics-gpu-worker:proof-local',
+      '--runtime-container-platform linux/amd64',
+      `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${tool}>/external-agent-single-tool-call/${tool}`,
+      `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${tool}>/external-agent-single-tool-call-result.json`,
+    ]) {
+      if (!finalContainerCommand.includes(fragment)) {
+        fail(`${label}_container_final_single_tool_call_missing:${tool}:${fragment}`)
+      }
+    }
+    for (const fragment of [
+      'ai-graphics:external-agent-tool-call',
+      `--tool ${tool}`,
+      '--attempt-gpu-runtime',
+      '--expect-state executable',
+      '--require-output-hash',
+      '--require-private-only-boundary',
+      '--strict-exit-code',
+      '--runtime-backend host_python',
+      `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${tool}>/external-agent-single-tool-call/${tool}`,
+      `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${tool}>/external-agent-single-tool-call-result.json`,
+    ]) {
+      if (!finalHostCommand.includes(fragment)) {
+        fail(`${label}_host_final_single_tool_call_missing:${tool}:${fragment}`)
+      }
+    }
+    if (finalHostCommand.includes('--runtime-backend docker_container')) {
+      fail(`${label}_host_final_single_tool_call_unexpected_container_backend:${tool}`)
+    }
+    if (finalHostCommand.includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
+      fail(`${label}_host_final_single_tool_call_unexpected_container_image:${tool}`)
     }
     if (!command.includes(`--tool ${tool}`)) {
       fail(`${label}_container_private_proof_sequence_missing_tool:${tool}`)
@@ -330,10 +383,20 @@ function checkReport(label, report) {
       if (!hostCommand.includes('--source-image <private-approved-frame.png>')) {
         fail(`${label}_host_private_proof_sequence_missing_source_image:${tool}`)
       }
+      if (!finalContainerCommand.includes('--source-image <private-approved-frame.png>')) {
+        fail(`${label}_container_final_single_tool_call_missing_source_image:${tool}`)
+      }
+      if (!finalHostCommand.includes('--source-image <private-approved-frame.png>')) {
+        fail(`${label}_host_final_single_tool_call_missing_source_image:${tool}`)
+      }
     } else if (command.includes('--source-image')) {
       fail(`${label}_container_private_proof_sequence_unnecessary_source_image:${tool}`)
     } else if (hostCommand.includes('--source-image')) {
       fail(`${label}_host_private_proof_sequence_unnecessary_source_image:${tool}`)
+    } else if (finalContainerCommand.includes('--source-image')) {
+      fail(`${label}_container_final_single_tool_call_unnecessary_source_image:${tool}`)
+    } else if (finalHostCommand.includes('--source-image')) {
+      fail(`${label}_host_final_single_tool_call_unnecessary_source_image:${tool}`)
     }
     const toolSpecificFlag = toolSpecificPrivateProofFlagByTool[tool]
     if (toolSpecificFlag && !command.includes(toolSpecificFlag)) {
@@ -341,6 +404,12 @@ function checkReport(label, report) {
     }
     if (toolSpecificFlag && !hostCommand.includes(toolSpecificFlag)) {
       fail(`${label}_host_private_proof_sequence_missing_tool_specific_flag:${tool}`)
+    }
+    if (toolSpecificFlag && !finalContainerCommand.includes(toolSpecificFlag)) {
+      fail(`${label}_container_final_single_tool_call_missing_tool_specific_flag:${tool}`)
+    }
+    if (toolSpecificFlag && !finalHostCommand.includes(toolSpecificFlag)) {
+      fail(`${label}_host_final_single_tool_call_missing_tool_specific_flag:${tool}`)
     }
   }
   if (!String(report.interfaces?.defaultKorniaHarnessCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
@@ -380,6 +449,9 @@ function checkReport(label, report) {
     'perToolPrivateProofSequenceCommandsPrepared',
     'perToolContainerPrivateProofSequenceCommandsPrepared',
     'perToolHostPrivateProofSequenceCommandsPrepared',
+    'allGpuModelToolsHaveExactFinalExternalAgentSingleToolCallCommand',
+    'allGpuModelToolsHaveExactContainerFinalExternalAgentSingleToolCallCommand',
+    'allGpuModelToolsHaveExactHostFinalExternalAgentSingleToolCallCommand',
   ]) {
     if (report.sequencePolicy?.[key] !== true) {
       fail(`${label}_sequence_policy_${key}_not_true`)

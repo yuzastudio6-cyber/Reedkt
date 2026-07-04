@@ -310,6 +310,44 @@ function finalExternalAgentToolCallCommand(input: SequenceArgs): string | null {
   ].join(' ')
 }
 
+function finalExternalAgentToolCallCommandForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  options: { container: boolean },
+): string {
+  return [
+    `npm run --silent ${externalAgentToolCallScript} --`,
+    `--tool ${toolId}`,
+    '--attempt-gpu-runtime',
+    '--expect-state executable',
+    '--require-output-hash',
+    '--require-private-only-boundary',
+    '--strict-exit-code',
+    ...(options.container
+      ? [
+          '--runtime-backend docker_container',
+          `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+          '--runtime-container-platform linux/amd64',
+        ]
+      : ['--runtime-backend host_python']),
+    `--gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>/external-agent-single-tool-call/${toolId}`,
+    `--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>/external-agent-single-tool-call-result.json`,
+    ...privateProofSequenceInputFlags(toolId),
+  ].join(' ')
+}
+
+function finalExternalAgentToolCallCommandsByTool(options: {
+  container: boolean
+}): Record<
+  AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  string
+> {
+  return Object.fromEntries(
+    AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.map(
+      (toolId) => [toolId, finalExternalAgentToolCallCommandForTool(toolId, options)],
+    ),
+  ) as Record<AiGraphicsExternalAgentGpuModelControlledAdapterToolId, string>
+}
+
 function defaultKorniaCommand(): string {
   return [
     `npm run --silent ${harnessScript} --`,
@@ -504,6 +542,10 @@ function buildReport(input: SequenceArgs) {
         finalExternalAgentToolCallOutputDirectory(input) ?? null,
       finalExternalAgentSingleToolCallResultPath:
         finalExternalAgentToolCallResultPath(input) ?? null,
+      finalExternalAgentSingleToolCallContainerCommandsByTool:
+        finalExternalAgentToolCallCommandsByTool({ container: true }),
+      finalExternalAgentSingleToolCallHostCommandsByTool:
+        finalExternalAgentToolCallCommandsByTool({ container: false }),
       hostPreflightCommand:
         `npm run --silent ${hostPreflightScript} -- --detect-host`,
       canonicalGpuWorkerProofImage,
@@ -541,6 +583,9 @@ function buildReport(input: SequenceArgs) {
       perToolHostPrivateProofSequenceCommandsPrepared: true,
       finalExternalAgentSingleToolCallProofRunsAfterAcceptedPrivateProof: true,
       finalExternalAgentSingleToolCallRequiresExecutableState: true,
+      allGpuModelToolsHaveExactFinalExternalAgentSingleToolCallCommand: true,
+      allGpuModelToolsHaveExactContainerFinalExternalAgentSingleToolCallCommand: true,
+      allGpuModelToolsHaveExactHostFinalExternalAgentSingleToolCallCommand: true,
     },
     counts: {
       requestedGpuModelTools: 1,
@@ -741,6 +786,16 @@ ${Object.entries(report.interfaces.privateHostProofSequenceCommandsByTool).map((
 - Command: \`${report.interfaces.finalExternalAgentSingleToolCallCommand}\`
 - Output directory: \`${report.interfaces.finalExternalAgentSingleToolCallOutputDirectory}\`
 - Result path: \`${report.interfaces.finalExternalAgentSingleToolCallResultPath}\`
+
+## Per-Tool Final External-Agent Single-Tool Caller Commands
+
+### Container
+
+${Object.entries(report.interfaces.finalExternalAgentSingleToolCallContainerCommandsByTool).map(([toolId, command]) => `- \`${toolId}\`: \`${command}\``).join('\n')}
+
+### Host Python
+
+${Object.entries(report.interfaces.finalExternalAgentSingleToolCallHostCommandsByTool).map(([toolId, command]) => `- \`${toolId}\`: \`${command}\``).join('\n')}
 
 ## Counts
 

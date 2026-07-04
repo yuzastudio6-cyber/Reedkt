@@ -203,6 +203,7 @@ function materializeManifestFromPrivateRoot(toolId, contract, privateModelRootPa
     `--model-weight-manifest-id ${contract.manifestId}`,
     `--model-weight-checksum-evidence-ref ${contract.evidenceRef}`,
     '--runtime-container-platform linux/amd64',
+    cpuModelRuntimeTool(toolId) ? '--allow-cpu-model-runtime' : '',
     '--private-input-preflight-only',
     '--force',
   ].filter(Boolean).join(' '))
@@ -246,6 +247,10 @@ for (const phrase of [
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
   '--private-model-root',
   'modelRootPathCandidatesByTool',
+  'rembg/u2netp.onnx',
+  'transparent-background/ckpt_fast.pth',
+  'inferredTransparentBackgroundMode',
+  'ckpt_fast.pth',
   'privateModelRootUsed',
 ]) {
   if (!source.includes(phrase)) fail(`source_missing:${phrase}`)
@@ -269,6 +274,12 @@ writeLargePrivatePlaceholder(toolContracts.transparent_background.modelPath, 6)
 const privateModelRootPath = `${runRoot}/private-model-root`
 writeLargePrivatePlaceholder(`${privateModelRootPath}/sam2/sam2.1_hiera_tiny.pt`, 7)
 writeSafetensorsPlaceholder(`${privateModelRootPath}/birefnet/model.safetensors`)
+const aliasPrivateModelRootPath = `${runRoot}/alias-private-model-root`
+writeLargePrivatePlaceholder(`${aliasPrivateModelRootPath}/rembg/u2netp.onnx`, 8)
+writeLargePrivatePlaceholder(
+  `${aliasPrivateModelRootPath}/transparent-background/ckpt_fast.pth`,
+  9,
+)
 
 const materialized = {}
 const routeBlockers = {}
@@ -454,6 +465,55 @@ if (
   runtimeImageByTool.birefnet
 ) {
   fail('birefnet_private_root_runtime_image_mismatch')
+}
+
+const rembgAliasPrivateRootManifest = materializeManifestFromPrivateRoot(
+  'rembg',
+  toolContracts.rembg,
+  aliasPrivateModelRootPath,
+)
+if (rembgAliasPrivateRootManifest.report.privateModelRootUsed !== true) {
+  fail('rembg_alias_private_root_not_used')
+}
+if (
+  json(rembgAliasPrivateRootManifest.manifestOut).toolInputs?.rembg?.rembgModelLocalPath !==
+  `${aliasPrivateModelRootPath}/rembg/u2netp.onnx`
+) {
+  fail('rembg_alias_private_root_model_path_mismatch')
+}
+if (
+  json(rembgAliasPrivateRootManifest.manifestOut).toolInputs?.rembg?.allowCpuModelRuntime !==
+  true
+) {
+  fail('rembg_alias_private_root_cpu_model_runtime_flag_missing')
+}
+
+const transparentAliasPrivateRootManifest = materializeManifestFromPrivateRoot(
+  'transparent_background',
+  toolContracts.transparent_background,
+  aliasPrivateModelRootPath,
+)
+if (transparentAliasPrivateRootManifest.report.privateModelRootUsed !== true) {
+  fail('transparent_background_alias_private_root_not_used')
+}
+if (
+  json(transparentAliasPrivateRootManifest.manifestOut)
+    .toolInputs?.transparent_background?.transparentBackgroundCheckpointLocalPath !==
+  `${aliasPrivateModelRootPath}/transparent-background/ckpt_fast.pth`
+) {
+  fail('transparent_background_alias_private_root_model_path_mismatch')
+}
+if (
+  json(transparentAliasPrivateRootManifest.manifestOut)
+    .toolInputs?.transparent_background?.allowCpuModelRuntime !== true
+) {
+  fail('transparent_background_alias_private_root_cpu_model_runtime_flag_missing')
+}
+if (
+  json(transparentAliasPrivateRootManifest.manifestOut)
+    .toolInputs?.transparent_background?.transparentBackgroundMode !== 'fast'
+) {
+  fail('transparent_background_alias_private_root_mode_mismatch')
 }
 
 const missingPrivateModelRoot = spawn([

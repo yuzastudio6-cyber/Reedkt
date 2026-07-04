@@ -100,6 +100,7 @@ type SequenceArgs = {
   realEsrganModelLocalPath?: string
   rembgModelLocalPath?: string
   transparentBackgroundCheckpointLocalPath?: string
+  transparentBackgroundMode?: string
   timeoutMs?: string
 }
 
@@ -118,6 +119,7 @@ const runtimeInputManifestStringFields = new Set([
   'modelWeightChecksumEvidenceRef',
   'runtimeContainerImage',
   'runtimeContainerPlatform',
+  'transparentBackgroundMode',
 ])
 
 const runtimeInputManifestPathFields = new Set([
@@ -142,6 +144,7 @@ const runtimeInputManifestToolRecordFields = new Set([
   ...runtimeInputManifestStringFields,
   ...runtimeInputManifestBooleanFields,
 ])
+const transparentBackgroundModes = new Set(['base', 'fast', 'base-nightly'])
 
 const supportedRuntimeInputManifestTools = new Set<string>(
   AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS,
@@ -319,6 +322,12 @@ function safeManifestString(key: string, value: unknown): string | undefined {
     }
     return value
   }
+  if (key === 'transparentBackgroundMode') {
+    if (!transparentBackgroundModes.has(value)) {
+      throw new Error(`runtime input manifest field ${key} must be base, fast, or base-nightly`)
+    }
+    return value
+  }
   if (
     /^https?:\/\//i.test(value) ||
     (runtimeInputManifestPathFields.has(key) && /^[a-z][a-z0-9+.-]*:\/\//i.test(value)) ||
@@ -486,6 +495,9 @@ function parseArgs(): SequenceArgs {
     rembgModelLocalPath: stringFlag('--rembg-model'),
     transparentBackgroundCheckpointLocalPath:
       stringFlag('--transparent-background-checkpoint'),
+    transparentBackgroundMode:
+      stringFlag('--transparent-background-mode') ??
+      manifestStringForTool(toolId, runtimeInputManifest, 'transparentBackgroundMode'),
     timeoutMs: stringFlag('--timeout-ms'),
   }
 }
@@ -538,6 +550,7 @@ function harnessArgs(input: SequenceArgs): string[] {
     '--transparent-background-checkpoint',
     input.transparentBackgroundCheckpointLocalPath,
   )
+  pushIfValue(args, '--transparent-background-mode', input.transparentBackgroundMode)
   pushIfValue(args, '--timeout-ms', input.timeoutMs)
   return args
 }
@@ -608,6 +621,7 @@ function finalExternalAgentToolCallArgs(input: SequenceArgs): string[] {
     '--transparent-background-checkpoint',
     input.transparentBackgroundCheckpointLocalPath,
   )
+  pushIfValue(args, '--transparent-background-mode', input.transparentBackgroundMode)
   pushIfValue(args, '--timeout-ms', input.timeoutMs)
   return args
 }

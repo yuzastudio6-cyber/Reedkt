@@ -58,8 +58,11 @@ const modelRootPathCandidatesByTool: Record<ModelWeightToolId, string[]> = {
   ],
   birefnet: ['birefnet'],
   real_esrgan: ['real-esrgan/RealESRGAN_x4plus.pth'],
-  rembg: ['rembg/isnet-general-use.onnx', 'rembg/u2net.onnx'],
-  transparent_background: ['transparent-background/ckpt_base.pth'],
+  rembg: ['rembg/isnet-general-use.onnx', 'rembg/u2net.onnx', 'rembg/u2netp.onnx'],
+  transparent_background: [
+    'transparent-background/ckpt_base.pth',
+    'transparent-background/ckpt_fast.pth',
+  ],
 }
 
 const modelRuntimePathContracts: Record<ModelWeightToolId, ModelRuntimePathContract> = {
@@ -307,6 +310,18 @@ function capabilityForTool(toolId: ModelWeightToolId): string {
   return 'background_removal'
 }
 
+function inferredTransparentBackgroundMode(
+  toolId: ModelWeightToolId,
+  modelPath: string,
+): string | undefined {
+  if (toolId !== 'transparent_background') return undefined
+  const fileName = path.basename(modelPath)
+  if (fileName === 'ckpt_fast.pth') return 'fast'
+  if (fileName === 'ckpt_base-nightly.pth') return 'base-nightly'
+  if (fileName === 'ckpt_base.pth') return 'base'
+  return undefined
+}
+
 function manifestRecordForTool(input: {
   toolId: ModelWeightToolId
   sourceImage: string
@@ -373,7 +388,9 @@ function main(): void {
   const runtimeContainerPlatform = stringArg('--runtime-container-platform') ?? 'linux/amd64'
   const force = hasFlag('--force')
   const privateInputPreflightOnly = hasFlag('--private-input-preflight-only')
-  const transparentBackgroundMode = stringArg('--transparent-background-mode')
+  const transparentBackgroundMode =
+    stringArg('--transparent-background-mode') ??
+    inferredTransparentBackgroundMode(typedToolId, modelPath)
   const allowCpuModelRuntime =
     (
       typedToolId === 'real_esrgan' ||

@@ -358,6 +358,12 @@ for (const tool of asArray(runtimeStatus.tools, 'runtimeStatus.tools')) {
 
 assert.equal(executionGate.executionAllowedNow, false)
 assert.equal(executionGate.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(executionGate.readyForAnyExternalAgentRuntimeExecutionNow, false)
+assert.deepEqual(executionGate.readyToolIds, [])
+assert.deepEqual(executionGate.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(executionGate.staticReadyForAnyExternalAgentExecutionGateNow, true)
+assert.equal(executionGate.executionNowBlockedByLivePreflight, true)
+assert.equal(executionGate.blockedToolIds.length, asArray(executionGate.toolRows, 'executionGate.toolRows').length)
 assert.equal(executionGate.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(executionGate.runtimeSideEffects, 'executionGate.runtimeSideEffects')
 

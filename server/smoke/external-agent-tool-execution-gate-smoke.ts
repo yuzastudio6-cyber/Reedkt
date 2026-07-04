@@ -240,13 +240,17 @@ assert.deepEqual(report.staticExplicitToolGateReadyToolIds, [
   'qwen2_5_vl_7b_instruct',
   'ai_video_broll_generation_wan',
 ])
+assert.equal(report.staticReadyForAnyExternalAgentExecutionGateNow, true)
+assert.deepEqual(report.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])
 assert.equal(report.requiresLivePreflightBeforeRuntime, true)
+assert.equal(report.executionNowBlockedByLivePreflight, true)
 assert.equal(report.executionAllowedNow, false)
 assert.equal(report.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(report.readyForAnyExternalAgentRuntimeExecutionNow, false)
 assert.equal(report.runtimeGatesAllFalse, true)
 assert.equal(report.rawChatExecutionAllowed, false)
-assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct'])
-assert.equal(report.blockedToolIds.length, 3)
+assert.deepEqual(report.readyToolIds, [])
+assert.equal(report.blockedToolIds.length, gate.toolRows.length)
 const reportBrollGateRow = report.toolRows.find(
   (row: { toolId: string }) => row.toolId === 'ai_video_broll_generation_wan',
 )
@@ -310,6 +314,8 @@ assert.equal(
     liveReport.liveVerifier.readyForAnyExternalAgentExecutionNow,
 )
 assert.equal(liveReport.readyForAnyExternalAgentExecutionNow, liveReport.executionAllowedNow)
+assert.equal(liveReport.readyForAnyExternalAgentRuntimeExecutionNow, liveReport.executionAllowedNow)
+assert.equal(liveReport.executionNowBlockedByLivePreflight, !liveReport.executionAllowedNow)
 if (!liveReport.executionAllowedNow) {
   assert.equal(liveReport.decision, 'external_agent_execution_no_go_live_preflight_blocked')
   assert.deepEqual(liveReport.readyToolIds, [])

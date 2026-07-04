@@ -110,7 +110,11 @@ function main() {
     liveMode,
     staticExplicitToolGateReady,
     staticExplicitToolGateReadyToolIds: staticExplicitGateTools.map((tool) => tool.toolId),
+    staticReadyForAnyExternalAgentExecutionGateNow: readyTools.length > 0,
+    staticReadyToolIds: readyTools.map((tool) => tool.toolId),
     requiresLivePreflightBeforeRuntime: gate.requiresLivePreflightBeforeRuntime,
+    executionNowBlockedByLivePreflight: staticExplicitToolGateReady && !liveAwareExecutionAllowedNow,
+    readyForAnyExternalAgentRuntimeExecutionNow: liveAwareExecutionAllowedNow,
     liveVerifierAvailableCommand: 'npm run external-agent-gcp-access:verify',
     liveVerifierRun: liveMode,
     liveVerifier: liveMode
@@ -164,11 +168,10 @@ function main() {
       : undefined,
     executionAllowedNow: liveAwareExecutionAllowedNow,
     readyForAnyExternalAgentExecutionNow: liveAwareExecutionAllowedNow,
-    readyToolIds: liveMode && !liveAwareExecutionAllowedNow ? [] : readyTools.map((tool) => tool.toolId),
-    blockedToolIds:
-      liveMode && !liveAwareExecutionAllowedNow
-        ? rollup.tools.map((tool) => tool.toolId)
-        : blockedTools.map((tool) => tool.toolId),
+    readyToolIds: liveAwareExecutionAllowedNow ? readyTools.map((tool) => tool.toolId) : [],
+    blockedToolIds: liveAwareExecutionAllowedNow
+      ? blockedTools.map((tool) => tool.toolId)
+      : rollup.tools.map((tool) => tool.toolId),
     requiresApprovedSnapshotBeforeExecution: gate.requiresApprovedSnapshotBeforeExecution,
     requiresStructuredToolEnvelopeBeforeExecution: gate.requiresStructuredToolEnvelopeBeforeExecution,
     rawChatExecutionAllowed: gate.rawChatExecutionAllowed,

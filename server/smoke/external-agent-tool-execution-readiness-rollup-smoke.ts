@@ -201,6 +201,8 @@ for (const required of [
   'readyForAnyExternalAgentRuntimeExecutionNow=false',
   'staticReadyForAnyExternalAgentExecutionGateNow=true',
   'executionNowBlockedByLivePreflight=true',
+  'The fail-closed execution gate follows the same JSON contract',
+  '`readyToolIds` must stay empty',
   'Per-tool rows in the static action plan must follow the same rule',
   'The preferred next safe command is `npm run external-agent-tool-next-command`',
   'combines the static gate and live read-only blocker probes',

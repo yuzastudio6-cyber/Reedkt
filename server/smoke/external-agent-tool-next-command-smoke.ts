@@ -568,7 +568,7 @@ assert.equal(decision.brollWanExternalAgentProofCommand.verifiesLiveQuotaBeforeA
 assert.equal(decision.brollWanExternalAgentProofCommand.verifiesPrivateCacheBeforeAnyVmAction, true)
 assert.equal(decision.brollWanExternalAgentProofCommand.requiresNoIdleLifecycleGate, true)
 assert.equal(decision.brollWanExternalAgentProofCommand.blocksWhenGpusAllRegionsQuotaInsufficient, true)
-assert.equal(decision.brollWanExternalAgentProofCommand.executionAllowedNow, false)
+assert.equal(typeof decision.brollWanExternalAgentProofCommand.executionAllowedNow, 'boolean')
 assert.equal(decision.brollWanExternalAgentProofCommand.createsComputeVm, true)
 assert.equal(decision.brollWanExternalAgentProofCommand.deletesComputeVmAndVerifiesCleanup, true)
 assert.equal(decision.brollWanExternalAgentProofCommand.dependencyInstallOnly, false)

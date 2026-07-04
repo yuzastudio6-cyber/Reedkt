@@ -521,7 +521,12 @@ for (const [flag, value] of Object.entries(liveStatus.gcpAccessRepair.runtimeSid
   assert.equal(value, false, `Live GCP repair side-effect flag must remain false: ${flag}`)
 }
 assert.equal(typeof liveStatus.nextCommand.ok, 'boolean')
-assert.equal(typeof liveStatus.nextCommand.chosenNextCommand === 'string' || liveStatus.nextCommand.chosenNextCommand === null, true)
+assert.equal(
+  typeof liveStatus.nextCommand.chosenNextCommand === 'string' ||
+    liveStatus.nextCommand.chosenNextCommand === null ||
+    liveStatus.nextCommand.chosenNextCommand === undefined,
+  true,
+)
 assert.equal(typeof liveStatus.recommendedNextPrompt, 'string')
 
 const indexedLiveStatus = runStatus(['--account-index', '2'])

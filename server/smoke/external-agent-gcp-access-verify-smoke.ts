@@ -77,6 +77,23 @@ assert.equal(spec.mode, 'read_only_external_agent_gcp_access_verify')
 assert.equal(spec.projectId, 'reeditpro')
 assert.deepEqual(spec.qwen.requiredReadPermissions, ['run.services.get', 'run.jobs.get'])
 assert.deepEqual(spec.broll.requiredReadPermissions, ['compute.projects.get', 'compute.regions.get'])
+assert.equal(spec.broll.cacheReadinessCommand, 'npm run ai-video-broll-wan-fast-cache-readiness:check')
+assert.deepEqual(spec.broll.requiredInferenceFields, [
+  'quotaSufficientForOneL4Vm',
+  'cachePathExists',
+  'aggregateBytesMatches',
+  'modelIndexClassNameMatches',
+  'indexRefsLocal',
+  'runtimeGatesAllFalse',
+])
+assert.equal(
+  spec.broll.inferenceWrapperCommand,
+  'npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
+)
+assert.equal(
+  spec.broll.inferenceConfirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF',
+)
 assert.equal(spec.accountSelection.overrideIndexCliFlag, '--account-index')
 assert.equal(spec.accountSelection.overrideIndexCliFlagAlias, '--gcloud-account-index')
 assert.equal(spec.requiredRepairPlanCommand, 'npm run external-agent-gcp-access:repair-plan')
@@ -92,10 +109,14 @@ const source = read(CLI_PATH)
 for (const required of [
   'server/cli/external-agent-tool-blocker-preflight.ts',
   'server/cli/external-agent-tool-next-command.ts',
+  'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts',
   'server/cli/external-agent-gcloud-account-access-diagnostic.ts',
   'allRequiredReadAccessVerified',
   'accountAccessDiagnostic',
+  'brollCacheReady',
   'wrapperMayBeCalledAfterConfirmation',
+  'inferenceWrapperMayBeCalledAfterConfirmation',
+  'inferenceWrapperShellExample',
   'withSelectedAccountIndex',
   'wrapperShellExample',
   'runtimeGatesAllFalse',
@@ -139,9 +160,23 @@ assert.equal(cli.qwen.wrapperCommand, spec.qwen.wrapperCommand)
 assert.equal(cli.qwen.wrapperShellExample, `${spec.qwen.confirmationEnv}=true ${spec.qwen.wrapperCommand}`)
 assert.equal(typeof cli.broll.quotaReadAccessPassed, 'boolean')
 assert.equal(typeof cli.broll.quotaSufficientForOneL4Vm, 'boolean')
+assert.equal(typeof cli.broll.cacheReady, 'boolean')
+assert.equal(typeof cli.broll.cacheReadiness.ok, 'boolean')
+assert.equal(typeof cli.broll.cacheReadiness.cachePathExists, 'boolean')
+assert.equal(typeof cli.broll.cacheReadiness.aggregateBytesMatches, 'boolean')
+assert.equal(typeof cli.broll.cacheReadiness.modelIndexClassNameMatches, 'boolean')
+assert.equal(typeof cli.broll.cacheReadiness.indexRefsLocal, 'boolean')
+assert.equal(typeof cli.broll.cacheReadiness.runtimeGatesAllFalse, 'boolean')
 assert.equal(typeof cli.broll.wrapperMayBeCalledAfterConfirmation, 'boolean')
 assert.equal(cli.broll.wrapperCommand, spec.broll.wrapperCommand)
 assert.equal(cli.broll.wrapperShellExample, `${spec.broll.confirmationEnv}=true ${spec.broll.wrapperCommand}`)
+assert.equal(typeof cli.broll.inferenceWrapperMayBeCalledAfterConfirmation, 'boolean')
+assert.equal(cli.broll.inferenceWrapperCommand, spec.broll.inferenceWrapperCommand)
+assert.equal(
+  cli.broll.inferenceWrapperShellExample,
+  `${spec.broll.inferenceConfirmationEnv}=true ${spec.broll.inferenceWrapperCommand}`,
+)
+assert.equal(cli.broll.inferenceConfirmationEnv, spec.broll.inferenceConfirmationEnv)
 assert.equal(typeof cli.nextCommand.executionAllowedNow, 'boolean')
 assert.equal(typeof cli.allRequiredReadAccessVerified, 'boolean')
 assert.equal(cli.readyForAnyExternalAgentExecutionNow, cli.nextCommand.executionAllowedNow)
@@ -173,6 +208,14 @@ assert.equal(
 assert.equal(
   indexedCli.broll.wrapperShellExample,
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json --account-index 2',
+)
+assert.equal(
+  indexedCli.broll.inferenceWrapperCommand,
+  'npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json --account-index 2',
+)
+assert.equal(
+  indexedCli.broll.inferenceWrapperShellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json --account-index 2',
 )
 assert.equal(indexedCli.accountAccessDiagnostic.recommendedNextPrompt.includes('--account-index 2'), true)
 assert.equal(indexedCli.accountAccessDiagnostic.selectedAccountRepairRequest.accountIndex, 2)

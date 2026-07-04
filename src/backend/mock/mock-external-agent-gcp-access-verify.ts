@@ -20,8 +20,20 @@ export const EXTERNAL_AGENT_GCP_ACCESS_VERIFY = {
     toolId: 'ai_video_broll_generation_wan',
     requiredReadPermissions: ['compute.projects.get', 'compute.regions.get'],
     requiredLiveFields: ['projectQuotaReadPassed', 'regionQuotaReadPassed', 'quotaSufficientForOneL4Vm'],
+    cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
+    requiredInferenceFields: [
+      'quotaSufficientForOneL4Vm',
+      'cachePathExists',
+      'aggregateBytesMatches',
+      'modelIndexClassNameMatches',
+      'indexRefsLocal',
+      'runtimeGatesAllFalse',
+    ],
     wrapperCommand: 'npm run external-agent-tool-execute-broll-wan -- --execute --json',
     confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF',
+    inferenceWrapperCommand:
+      'npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
+    inferenceConfirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF',
   },
   runtimeSideEffects: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.runtimeSideEffects,
   recommendedNextPromptIfAccessBlocked:

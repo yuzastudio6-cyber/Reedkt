@@ -21,6 +21,7 @@ const TOKEN_LIKE_PATTERNS: Array<[string, RegExp]> = [
 ]
 const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
 const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
+const BROLL_CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
 
 function sanitize(value: string | undefined): string | undefined {
   if (!value) return undefined
@@ -124,6 +125,7 @@ function main() {
   const spec = EXTERNAL_AGENT_GCP_ACCESS_VERIFY
   const preflight = runScript('external_agent_tool_blocker_preflight', 'server/cli/external-agent-tool-blocker-preflight.ts')
   const nextCommand = runScript('external_agent_tool_next_command', 'server/cli/external-agent-tool-next-command.ts')
+  const brollCacheReadiness = runScript('broll_private_cache_readiness', BROLL_CACHE_READINESS_SCRIPT)
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
 
   const qwenReadAccessPassed =
@@ -134,9 +136,19 @@ function main() {
     nestedBoolean(preflight.json, ['broll', 'projectQuotaReadPassed']) &&
     nestedBoolean(preflight.json, ['broll', 'regionQuotaReadPassed'])
   const brollQuotaSufficientForOneL4Vm = nestedBoolean(preflight.json, ['broll', 'quotaSufficientForOneL4Vm'])
+  const brollCacheReady =
+    brollCacheReadiness.ok &&
+    nestedBoolean(brollCacheReadiness.json, ['ok']) &&
+    nestedBoolean(brollCacheReadiness.json, ['cachePathExists']) &&
+    nestedBoolean(brollCacheReadiness.json, ['aggregateBytesMatches']) &&
+    nestedBoolean(brollCacheReadiness.json, ['modelIndexClassNameMatches']) &&
+    nestedBoolean(brollCacheReadiness.json, ['indexRefsLocal']) &&
+    nestedBoolean(brollCacheReadiness.json, ['runtimeGatesAllFalse'])
   const allRequiredReadAccessVerified = qwenReadAccessPassed && brollQuotaReadAccessPassed
   const qwenWrapperMayBeCalledAfterConfirmation = qwenReadAccessPassed
   const brollWrapperMayBeCalledAfterConfirmation = brollQuotaReadAccessPassed && brollQuotaSufficientForOneL4Vm
+  const brollInferenceWrapperMayBeCalledAfterConfirmation =
+    brollWrapperMayBeCalledAfterConfirmation && brollCacheReady
   const externalAgentExecutionAllowedNow = nestedBoolean(nextCommand.json, ['executionAllowedNow'])
   const accountAccessDiagnostic = !allRequiredReadAccessVerified
     ? runScript(
@@ -147,11 +159,15 @@ function main() {
   const accountSelection = nested(preflight.json, ['gcloud', 'accountSelection'])
   const qwenWrapperCommand = withSelectedAccountIndex(spec.qwen.wrapperCommand, accountSelection)
   const brollWrapperCommand = withSelectedAccountIndex(spec.broll.wrapperCommand, accountSelection)
+  const brollInferenceWrapperCommand = withSelectedAccountIndex(
+    spec.broll.inferenceWrapperCommand,
+    accountSelection,
+  )
 
   console.log(
     JSON.stringify(
       {
-        ok: preflight.ok && nextCommand.ok && runtimeGatesAllFalse,
+        ok: preflight.ok && nextCommand.ok && brollCacheReadiness.ok && runtimeGatesAllFalse,
         decision: spec.decision,
         mode: spec.mode,
         liveReadOnlyChecksRun: true,
@@ -182,10 +198,28 @@ function main() {
           projectQuotaReadPassed: nestedBoolean(preflight.json, ['broll', 'projectQuotaReadPassed']),
           regionQuotaReadPassed: nestedBoolean(preflight.json, ['broll', 'regionQuotaReadPassed']),
           quotaSufficientForOneL4Vm: brollQuotaSufficientForOneL4Vm,
+          cacheReady: brollCacheReady,
+          cacheReadiness: {
+            ok: brollCacheReadiness.ok,
+            exitCode: brollCacheReadiness.exitCode,
+            cachePathExists: nestedBoolean(brollCacheReadiness.json, ['cachePathExists']),
+            aggregateBytesMatches: nestedBoolean(brollCacheReadiness.json, ['aggregateBytesMatches']),
+            modelIndexClassNameMatches: nestedBoolean(brollCacheReadiness.json, [
+              'modelIndexClassNameMatches',
+            ]),
+            indexRefsLocal: nestedBoolean(brollCacheReadiness.json, ['indexRefsLocal']),
+            runtimeGatesAllFalse: nestedBoolean(brollCacheReadiness.json, ['runtimeGatesAllFalse']),
+            stderrSummary: brollCacheReadiness.stderrSummary,
+          },
           wrapperMayBeCalledAfterConfirmation: brollWrapperMayBeCalledAfterConfirmation,
           wrapperCommand: brollWrapperCommand,
           wrapperShellExample: `${spec.broll.confirmationEnv}=true ${brollWrapperCommand}`,
           confirmationEnv: spec.broll.confirmationEnv,
+          inferenceWrapperMayBeCalledAfterConfirmation:
+            brollInferenceWrapperMayBeCalledAfterConfirmation,
+          inferenceWrapperCommand: brollInferenceWrapperCommand,
+          inferenceWrapperShellExample: `${spec.broll.inferenceConfirmationEnv}=true ${brollInferenceWrapperCommand}`,
+          inferenceConfirmationEnv: spec.broll.inferenceConfirmationEnv,
         },
         nextCommand: {
           ok: nextCommand.ok,

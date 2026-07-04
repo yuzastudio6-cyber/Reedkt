@@ -720,8 +720,75 @@ if (indexedDecision.manualActionRequired === true) {
   assert.equal(indexedDecision.rerunAfterManualAction.includes('--account-index 2'), true)
   assert.equal(indexedDecision.nextCodexCommandAfterManualAction.includes('--account-index 2'), true)
 }
+assert.deepEqual(indexedDecision.brollWanExternalAgentProofCommand.args, [
+  'run',
+  'external-agent-tool-execute-broll-wan',
+  '--',
+  '--execute',
+  '--json',
+  '--account-index',
+  '2',
+])
+assert.equal(
+  indexedDecision.brollWanExternalAgentProofCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json --account-index 2',
+)
+assert.deepEqual(indexedDecision.brollWanPrivateCachePrepareCommand.args, [
+  'run',
+  'external-agent-tool-prepare-broll-wan-cache',
+  '--',
+  '--execute',
+  '--json',
+  '--account-index',
+  '2',
+])
+assert.equal(
+  indexedDecision.brollWanPrivateCachePrepareCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL=true npm run external-agent-tool-prepare-broll-wan-cache -- --execute --json --account-index 2',
+)
+assert.deepEqual(indexedDecision.soundMusicAudioEvidenceCommand.args, [
+  'run',
+  'external-agent-tool-execute-sound',
+  '--',
+  '--execute',
+  '--json',
+  '--account-index',
+  '2',
+])
+assert.equal(
+  indexedDecision.soundMusicAudioEvidenceCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true npm run external-agent-tool-execute-sound -- --execute --json --account-index 2',
+)
+assert.deepEqual(indexedDecision.supabaseLocalHarnessEvidenceCommand.args, [
+  'run',
+  'external-agent-tool-execute-supabase-harness',
+  '--',
+  '--execute',
+  '--json',
+  '--account-index',
+  '2',
+])
+assert.equal(
+  indexedDecision.supabaseLocalHarnessEvidenceCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW=true npm run external-agent-tool-execute-supabase-harness -- --execute --json --account-index 2',
+)
+if (indexedDecision.qwenBoundedExecutionCommand) {
+  assert.deepEqual(indexedDecision.qwenBoundedExecutionCommand.args, [
+    'run',
+    'qwen2-5-vl-58dw-bounded-private-inference-retry',
+    '--',
+    '--execute',
+    '--json',
+    '--account-index',
+    '2',
+  ])
+  assert.equal(
+    indexedDecision.qwenBoundedExecutionCommand.shellExample,
+    'REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY=true npm run qwen2-5-vl-58dw-bounded-private-inference-retry -- --execute --json --account-index 2',
+  )
+}
 
-const forbiddenFindings = scanForbiddenValues({ spec, decision })
+const forbiddenFindings = scanForbiddenValues({ spec, decision, indexedDecision })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(

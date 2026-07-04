@@ -269,6 +269,30 @@ function withSelectedAccountIndex(command: string | undefined, accountSelection:
   return `${command} -- --account-index ${index}`
 }
 
+function withSelectedAccountIndexArgs(args: readonly string[], accountSelection: unknown): string[] {
+  const index = selectedAccountIndex(accountSelection)
+  if (!index || args.includes('--account-index') || args.includes('--gcloud-account-index')) {
+    return [...args]
+  }
+
+  return args.includes('--') ? [...args, '--account-index', String(index)] : [...args, '--', '--account-index', String(index)]
+}
+
+function shellExampleFor(
+  command: {
+    command: string
+    args: readonly string[]
+    confirmationEnv: string
+    confirmationEnvRequiredValue: string
+  },
+  accountSelection: unknown,
+): string {
+  return `${command.confirmationEnv}=${command.confirmationEnvRequiredValue} ${[
+    command.command,
+    ...withSelectedAccountIndexArgs(command.args, accountSelection),
+  ].join(' ')}`
+}
+
 function main() {
   const spec = EXTERNAL_AGENT_TOOL_NEXT_COMMAND
   const probeById = new Map(spec.allowedProbeScripts.map((probe) => [probe.id, probe]))
@@ -378,56 +402,44 @@ function main() {
   const qwenBoundedExecutionCommand = executionAllowedNow
     ? {
         ...spec.qwenBoundedExecutionCommand,
-        shellExample: `${spec.qwenBoundedExecutionCommand.confirmationEnv}=${spec.qwenBoundedExecutionCommand.confirmationEnvRequiredValue} ${[
-          spec.qwenBoundedExecutionCommand.command,
-          ...spec.qwenBoundedExecutionCommand.args,
-        ].join(' ')}`,
+        args: withSelectedAccountIndexArgs(spec.qwenBoundedExecutionCommand.args, accountSelection),
+        shellExample: shellExampleFor(spec.qwenBoundedExecutionCommand, accountSelection),
       }
     : null
   const qwenExternalAgentExecutionCommand = executionAllowedNow
     ? {
         ...spec.qwenExternalAgentExecutionCommand,
-        shellExample: `${spec.qwenExternalAgentExecutionCommand.confirmationEnv}=${spec.qwenExternalAgentExecutionCommand.confirmationEnvRequiredValue} ${[
-          spec.qwenExternalAgentExecutionCommand.command,
-          ...spec.qwenExternalAgentExecutionCommand.args,
-        ].join(' ')}`,
+        args: withSelectedAccountIndexArgs(spec.qwenExternalAgentExecutionCommand.args, accountSelection),
+        shellExample: shellExampleFor(spec.qwenExternalAgentExecutionCommand, accountSelection),
       }
     : null
   const brollWanExternalAgentProofCommand = {
     ...spec.brollWanExternalAgentProofCommand,
+    args: withSelectedAccountIndexArgs(spec.brollWanExternalAgentProofCommand.args, accountSelection),
     executionAllowedNow: false,
     blocker: nestedString(liveBlocker.json, ['broll', 'blocker']) ?? 'broll_preflight_not_cleared',
-    shellExample: `${spec.brollWanExternalAgentProofCommand.confirmationEnv}=${spec.brollWanExternalAgentProofCommand.confirmationEnvRequiredValue} ${[
-      spec.brollWanExternalAgentProofCommand.command,
-      ...spec.brollWanExternalAgentProofCommand.args,
-    ].join(' ')}`,
+    shellExample: shellExampleFor(spec.brollWanExternalAgentProofCommand, accountSelection),
   }
   const brollWanPrivateCachePrepareCommand = {
     ...spec.brollWanPrivateCachePrepareCommand,
+    args: withSelectedAccountIndexArgs(spec.brollWanPrivateCachePrepareCommand.args, accountSelection),
     executionAllowedNow: false,
     blocker: 'private_gcs_model_cache_marker_missing_or_unverified',
-    shellExample: `${spec.brollWanPrivateCachePrepareCommand.confirmationEnv}=${spec.brollWanPrivateCachePrepareCommand.confirmationEnvRequiredValue} ${[
-      spec.brollWanPrivateCachePrepareCommand.command,
-      ...spec.brollWanPrivateCachePrepareCommand.args,
-    ].join(' ')}`,
+    shellExample: shellExampleFor(spec.brollWanPrivateCachePrepareCommand, accountSelection),
   }
   const soundMusicAudioEvidenceCommand = {
     ...spec.soundMusicAudioEvidenceCommand,
+    args: withSelectedAccountIndexArgs(spec.soundMusicAudioEvidenceCommand.args, accountSelection),
     executionAllowedNow: false,
     blocker: 'real_provider_worker_storage_track_qa_billing_export_handoffs_required',
-    shellExample: `${spec.soundMusicAudioEvidenceCommand.confirmationEnv}=${spec.soundMusicAudioEvidenceCommand.confirmationEnvRequiredValue} ${[
-      spec.soundMusicAudioEvidenceCommand.command,
-      ...spec.soundMusicAudioEvidenceCommand.args,
-    ].join(' ')}`,
+    shellExample: shellExampleFor(spec.soundMusicAudioEvidenceCommand, accountSelection),
   }
   const supabaseLocalHarnessEvidenceCommand = {
     ...spec.supabaseLocalHarnessEvidenceCommand,
+    args: withSelectedAccountIndexArgs(spec.supabaseLocalHarnessEvidenceCommand.args, accountSelection),
     executionAllowedNow: false,
     blocker: 'not_a_model_or_media_execution_lane_on_this_branch',
-    shellExample: `${spec.supabaseLocalHarnessEvidenceCommand.confirmationEnv}=${spec.supabaseLocalHarnessEvidenceCommand.confirmationEnvRequiredValue} ${[
-      spec.supabaseLocalHarnessEvidenceCommand.command,
-      ...spec.supabaseLocalHarnessEvidenceCommand.args,
-    ].join(' ')}`,
+    shellExample: shellExampleFor(spec.supabaseLocalHarnessEvidenceCommand, accountSelection),
   }
   const nextCodexCommandAfterManualAction = manualActionRequired ? rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)

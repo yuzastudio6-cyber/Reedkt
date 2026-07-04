@@ -8,6 +8,15 @@ This harness exercises the real GPU/model controlled adapter for all eight GPU/m
 
 Missing private source/model/checkpoint paths block before Python runtime or Docker GPU attachment. GPU starts only after the scoped tool call supplies the required private inputs and runtime proof.
 
+## Foundation CPU Runtime Option
+
+`torch_torchvision` and `transformers` may use explicit CPU foundation runtime proof for bounded package import and tensor checks when `--allow-cpu-foundation-runtime` is supplied. This does not download models, run inference, process media, or start GPU runtime.
+
+- `torch_torchvision`: `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime`
+- `transformers`: `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime`
+- `foundationCpuRuntimeAllowedWhenExplicitlyRequested`: true
+- `foundationCpuRuntimeDoesNotStartGpu`: true
+
 ## Tool rows
 
 | Tool | Capability | Harness mode | Adapter status | Current blocker | Blocking reason | Remaining private inputs | Error message | Local runtime executed | Tool execution approved | GPU starts now |
@@ -98,6 +107,8 @@ Missing private source/model/checkpoint paths block before Python runtime or Doc
 - `runtimeProofOutputMustDeclareOkTrue`: true
 - `runtimeProofOutputMustMatchExpectedToolId`: true
 - `runtimeProofOutputMustProveCudaOrCudaExecutionProvider`: true
+- `runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime`: true
+- `runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime`: true
 - `runtimeProofOutputMustProveNoModelDownload`: true
 - `runtimeProofOutputMustProveNoProviderRuntime`: true
 - `runtimeProofOutputMustProveNoPublicArtifact`: true

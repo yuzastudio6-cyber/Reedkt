@@ -18,6 +18,7 @@ export interface AiGraphicsFoundationRuntimeInput {
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
   runtimeContainerGpu?: boolean
+  allowCpuFoundationRuntime?: boolean
   timeoutMs?: number
 }
 
@@ -54,6 +55,7 @@ export async function runAiGraphicsFoundationRuntimeCheck(
       input.toolId,
       '--output-json',
       input.outputDirectory ? `${input.outputDirectory}/model-runtime-foundation/${input.toolId}.json` : '[worker-private-output-json]',
+      ...(input.allowCpuFoundationRuntime ? ['--allow-cpu'] : []),
     ],
     expectedOutputPath: input.outputDirectory ? `${input.outputDirectory}/model-runtime-foundation/${input.toolId}.json` : undefined,
     executes: false,
@@ -89,10 +91,17 @@ export async function runAiGraphicsFoundationRuntimeCheck(
   }
 
   const outputJsonPath = path.join(input.outputDirectory, 'model-runtime-foundation', `${input.toolId}.json`)
+  const runtimeArgs = [
+    '--tool-id',
+    input.toolId,
+    '--output-json',
+    outputJsonPath,
+    ...(input.allowCpuFoundationRuntime ? ['--allow-cpu'] : []),
+  ]
   try {
     const runtimeResult = await runAiGraphicsPythonRuntimeScript({
       scriptRelativePath: 'docker/prod/model-runtime-foundation/foundation_local.py',
-      args: ['--tool-id', input.toolId, '--output-json', outputJsonPath],
+      args: runtimeArgs,
       outputJsonPath,
       timeoutMs: input.timeoutMs,
       runtimeBackend: input.runtimeExecutionBackend,
@@ -104,7 +113,7 @@ export async function runAiGraphicsFoundationRuntimeCheck(
       }),
       proofExpectation: {
         expectedToolId: input.toolId,
-        requireCuda: true,
+        requireCuda: input.allowCpuFoundationRuntime !== true,
         requireNoModelDownload: true,
         requireNoProviderRuntime: true,
         requireNoPublicArtifact: true,
@@ -118,7 +127,9 @@ export async function runAiGraphicsFoundationRuntimeCheck(
         ...commandPlan,
         executes: true,
         expectedOutputPath: outputJsonPath,
-        summary: 'AI graphics foundation runtime probe executed on-demand with CUDA visibility and offline package imports only.',
+        summary: input.allowCpuFoundationRuntime
+          ? 'AI graphics foundation runtime probe executed on-demand with explicit CPU tensor/package checks and offline package imports only.'
+          : 'AI graphics foundation runtime probe executed on-demand with CUDA visibility and offline package imports only.',
       },
       outputJsonPath: runtimeResult.outputJsonPath,
       outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,

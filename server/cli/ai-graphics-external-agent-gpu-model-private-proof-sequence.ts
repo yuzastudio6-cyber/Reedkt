@@ -47,6 +47,7 @@ type SequenceArgs = {
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
   allowCpuTensorRuntime: boolean
+  allowCpuFoundationRuntime: boolean
   sourceImageLocalPath?: string
   sam2CheckpointLocalPath?: string
   birefnetModelLocalPath?: string
@@ -177,13 +178,19 @@ function parseArgs(): SequenceArgs {
       hasFlag('--allow-cpu-tensor-runtime') ||
       manifestBooleanForTool(toolId, runtimeInputManifest, 'allowCpuTensorRuntime') === true
     )
+  const allowCpuFoundationRuntime =
+    (toolId === 'torch_torchvision' || toolId === 'transformers') &&
+    (
+      hasFlag('--allow-cpu-foundation-runtime') ||
+      manifestBooleanForTool(toolId, runtimeInputManifest, 'allowCpuFoundationRuntime') === true
+    )
   const requestedBackend = stringFlag('--runtime-backend')
   const runtimeBackend =
     requestedBackend === 'docker_container'
       ? 'docker_container'
       : requestedBackend === 'host_python'
       ? 'host_python'
-      : allowCpuTensorRuntime
+      : allowCpuTensorRuntime || allowCpuFoundationRuntime
       ? 'host_python'
       : toolId === 'kornia'
       ? 'docker_container'
@@ -247,6 +254,7 @@ function parseArgs(): SequenceArgs {
     runtimeContainerImage,
     runtimeContainerPlatform,
     allowCpuTensorRuntime,
+    allowCpuFoundationRuntime,
     sourceImageLocalPath: stringFlag('--source-image'),
     sam2CheckpointLocalPath: stringFlag('--sam2-checkpoint'),
     birefnetModelLocalPath: stringFlag('--birefnet-model'),
@@ -287,6 +295,7 @@ function harnessArgs(input: SequenceArgs): string[] {
   const args = ['--tool', input.toolId]
   if (input.attemptLocalRuntime) args.push('--attempt-local-runtime')
   if (input.allowCpuTensorRuntime) args.push('--allow-cpu-tensor-runtime')
+  if (input.allowCpuFoundationRuntime) args.push('--allow-cpu-foundation-runtime')
   pushIfValue(args, '--runtime-input-manifest', input.runtimeInputManifestPath)
   pushIfValue(args, '--output-dir', input.outputDirectory)
   pushIfValue(args, '--result-out', input.resultOut)
@@ -355,6 +364,7 @@ function finalExternalAgentToolCallArgs(input: SequenceArgs): string[] {
   ]
   if (input.runtimeBackend) args.push('--runtime-backend', input.runtimeBackend)
   if (input.allowCpuTensorRuntime) args.push('--allow-cpu-tensor-runtime')
+  if (input.allowCpuFoundationRuntime) args.push('--allow-cpu-foundation-runtime')
   pushIfValue(args, '--runtime-input-manifest', input.runtimeInputManifestPath)
   pushIfValue(args, '--runtime-container-image', input.runtimeContainerImage)
   pushIfValue(args, '--runtime-container-platform', input.runtimeContainerPlatform)
@@ -454,6 +464,10 @@ function finalExternalAgentToolCallCommandForTool(
     ...(toolId === 'kornia' && !options.container
       ? ['--allow-cpu-tensor-runtime']
       : []),
+    ...((toolId === 'torch_torchvision' || toolId === 'transformers') &&
+    !options.container
+      ? ['--allow-cpu-foundation-runtime']
+      : []),
     `--gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>/external-agent-single-tool-call/${toolId}`,
     `--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>/external-agent-single-tool-call-result.json`,
     ...privateProofSequenceInputFlags(toolId),
@@ -497,6 +511,18 @@ function defaultKorniaCpuTensorCommand(): string {
     '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-kornia-cpu-run>',
     '--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-kornia-cpu-run>/harness-result.json',
     '--source-image <private-approved-frame.png>',
+  ].join(' ')
+}
+
+function defaultFoundationCpuCommand(toolId: 'torch_torchvision' | 'transformers'): string {
+  return [
+    `npm run --silent ${harnessScript} --`,
+    '--attempt-local-runtime',
+    '--runtime-backend host_python',
+    '--allow-cpu-foundation-runtime',
+    `--tool ${toolId}`,
+    `--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-${toolId}-cpu-run>`,
+    `--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-${toolId}-cpu-run>/harness-result.json`,
   ].join(' ')
 }
 
@@ -544,6 +570,10 @@ function sequenceCommandForTool(
     ...(toolId === 'kornia' && !options.container
       ? ['--runtime-backend host_python', '--allow-cpu-tensor-runtime']
       : []),
+    ...((toolId === 'torch_torchvision' || toolId === 'transformers') &&
+    !options.container
+      ? ['--runtime-backend host_python', '--allow-cpu-foundation-runtime']
+      : []),
     `--tool ${toolId}`,
     `--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>`,
     ...privateProofSequenceInputFlags(toolId),
@@ -569,6 +599,10 @@ function sequenceManifestCommandForTool(
       : []),
     ...(toolId === 'kornia' && !options.container
       ? ['--runtime-backend host_python', '--allow-cpu-tensor-runtime']
+      : []),
+    ...((toolId === 'torch_torchvision' || toolId === 'transformers') &&
+    !options.container
+      ? ['--runtime-backend host_python', '--allow-cpu-foundation-runtime']
       : []),
     `--tool ${toolId}`,
     `--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>/runtime-inputs.json`,
@@ -720,6 +754,10 @@ function buildReport(input: SequenceArgs) {
       directHarnessCommand: directHarnessCommand(input),
       defaultKorniaHarnessCommand: defaultKorniaCommand(),
       defaultKorniaCpuTensorHarnessCommand: defaultKorniaCpuTensorCommand(),
+      defaultTorchTorchvisionCpuFoundationHarnessCommand:
+        defaultFoundationCpuCommand('torch_torchvision'),
+      defaultTransformersCpuFoundationHarnessCommand:
+        defaultFoundationCpuCommand('transformers'),
       bridgeCommand: privateResultPath ? bridgeCommand(privateResultPath) : null,
       readinessCommand: privateResultPath ? readinessCommand(privateResultPath) : null,
       finalExternalAgentSingleToolCallCommand:
@@ -752,16 +790,21 @@ function buildReport(input: SequenceArgs) {
       privateRuntimeInputManifestSupported: true,
       privateRuntimeInputManifestUsedNow: Boolean(input.runtimeInputManifestPath),
       korniaCpuTensorRuntimeRequested: input.allowCpuTensorRuntime,
+      foundationCpuRuntimeRequested: input.allowCpuFoundationRuntime,
       privateRuntimeInputManifestMustStayUnderLocalArtifacts: true,
       privateRuntimeInputManifestRejectedForWriteRecords: true,
       privateProofResultMustStayUnderLocalArtifacts: true,
       proofBridgeRequiresOutputJsonSha256Match: true,
       noIdleGpuRuntimeApproved: true,
       gpuMayStartOnlyDuringScopedLocalRuntimeAttempt:
-        input.attemptLocalRuntime === true && input.allowCpuTensorRuntime !== true,
+        input.attemptLocalRuntime === true &&
+        input.allowCpuTensorRuntime !== true &&
+        input.allowCpuFoundationRuntime !== true,
       noCpuFallbackForGpuModelTools: true,
       korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested: true,
       korniaCpuTensorRuntimeDoesNotStartGpu: true,
+      foundationCpuRuntimeAllowedWhenExplicitlyRequested: true,
+      foundationCpuRuntimeDoesNotStartGpu: true,
       noModelDownload: true,
       noProviderRuntime: true,
       noPublicArtifacts: true,

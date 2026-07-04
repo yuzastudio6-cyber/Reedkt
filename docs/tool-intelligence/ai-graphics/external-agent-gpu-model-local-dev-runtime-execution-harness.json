@@ -31,8 +31,8 @@
     "privateRuntimeInputManifestAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
     "privateContainerRuntimeAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>",
     "privateRuntimeAttemptCommandsByTool": {
-      "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
-      "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
+      "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
+      "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
       "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt>",
       "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model>",
       "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth>",
@@ -41,8 +41,8 @@
       "transparent_background": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>"
     },
     "privateContainerRuntimeAttemptCommandsByTool": {
-      "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
-      "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
+      "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
+      "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
       "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt>",
       "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model>",
       "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth>",
@@ -66,6 +66,8 @@
     "korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested": true,
     "korniaCpuTensorRuntimeRequiresPrivateSourceFrame": true,
     "korniaCpuTensorRuntimeDoesNotStartGpu": true,
+    "foundationCpuRuntimeAllowedWhenExplicitlyRequested": true,
+    "foundationCpuRuntimeDoesNotStartGpu": true,
     "noModelDownload": true,
     "noProviderRuntime": true,
     "noPublicArtifacts": true,
@@ -88,6 +90,7 @@
     "runtimeProofOutputMustMatchExpectedToolId": true,
     "runtimeProofOutputMustProveCudaOrCudaExecutionProvider": true,
     "runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime": true,
+    "runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime": true,
     "runtimeProofOutputMustProveNoModelDownload": true,
     "runtimeProofOutputMustProveNoProviderRuntime": true,
     "runtimeProofOutputMustProveNoPublicArtifact": true,
@@ -145,6 +148,7 @@
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -196,6 +200,7 @@
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -251,6 +256,7 @@
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -318,6 +324,7 @@
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -385,6 +392,7 @@
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -450,6 +458,7 @@
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -511,6 +520,7 @@
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -578,6 +588,7 @@
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,

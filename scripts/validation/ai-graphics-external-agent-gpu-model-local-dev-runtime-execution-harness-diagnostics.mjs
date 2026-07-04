@@ -36,6 +36,11 @@ const sourceImageRequiredTools = new Set([
   'transparent_background',
 ])
 
+const foundationCpuRuntimeTools = new Set([
+  'torch_torchvision',
+  'transformers',
+])
+
 const toolSpecificFlagByTool = {
   sam2: '--sam2-checkpoint',
   birefnet: '--birefnet-model',
@@ -350,6 +355,8 @@ for (const requiredProofPolicy of [
   'runtimeProofOutputMustDeclareOkTrue',
   'runtimeProofOutputMustMatchExpectedToolId',
   'runtimeProofOutputMustProveCudaOrCudaExecutionProvider',
+  'runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime',
+  'runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime',
   'runtimeProofOutputMustProveNoModelDownload',
   'runtimeProofOutputMustProveNoProviderRuntime',
   'runtimeProofOutputMustProveNoPublicArtifact',
@@ -517,6 +524,18 @@ for (const [tool, file] of Object.entries(runtimeProofFilesByTool)) {
         fail(`runtime_script_missing_kornia_cpu_tensor_token:${requiredKorniaToken}`)
       }
     }
+  } else if (foundationCpuRuntimeTools.has(tool)) {
+    for (const requiredFoundationToken of [
+      'parser.add_argument("--allow-cpu", action="store_true")',
+      '"cudaAvailable": cuda_available',
+      '"deviceType": str(device)',
+      '"cpuFoundationRuntimeAllowed": bool(allow_cpu)',
+      'torch.device("cuda" if cuda_available else "cpu")',
+    ]) {
+      if (!source.includes(requiredFoundationToken)) {
+        fail(`runtime_script_missing_foundation_cpu_token:${tool}:${requiredFoundationToken}`)
+      }
+    }
   } else if (!source.includes('"cudaAvailable": True')) {
     fail(`runtime_script_missing_cuda_proof:${tool}`)
   }
@@ -621,6 +640,14 @@ for (const tool of tools) {
   }
   if (!containerCommand.includes(`--tool ${tool}`)) {
     fail(`missing_exact_container_runtime_command:${tool}`)
+  }
+  if (foundationCpuRuntimeTools.has(tool)) {
+    if (!hostCommand.includes('--allow-cpu-foundation-runtime')) {
+      fail(`foundation_host_runtime_command_missing_cpu_flag:${tool}`)
+    }
+    if (!containerCommand.includes('--allow-cpu-foundation-runtime')) {
+      fail(`foundation_container_runtime_command_missing_cpu_flag:${tool}`)
+    }
   }
   if (!hostCommand.includes('--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>')) {
     fail(`host_runtime_command_missing_local_output:${tool}`)

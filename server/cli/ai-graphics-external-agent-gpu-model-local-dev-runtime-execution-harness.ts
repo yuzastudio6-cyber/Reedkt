@@ -40,6 +40,7 @@ type HarnessArgs = {
   runtimeContainerPlatform?: string
   runtimeContainerGpu: boolean
   allowCpuTensorRuntime: boolean
+  allowCpuFoundationRuntime: boolean
   timeoutMs?: number
   resultOut?: string
   writeRecords: boolean
@@ -139,6 +140,7 @@ function parseArgs(): HarnessArgs {
     runtimeContainerPlatform: stringFlag('--runtime-container-platform'),
     runtimeContainerGpu: !hasFlag('--no-runtime-container-gpu'),
     allowCpuTensorRuntime: hasFlag('--allow-cpu-tensor-runtime'),
+    allowCpuFoundationRuntime: hasFlag('--allow-cpu-foundation-runtime'),
     timeoutMs: numberFlag('--timeout-ms'),
     resultOut: stringFlag('--result-out'),
     writeRecords: hasFlag('--write-records'),
@@ -299,6 +301,9 @@ function runtimeInputsForTool(
     allowCpuTensorRuntime:
       args.allowCpuTensorRuntime ||
       manifestBooleanForTool(toolId, args, 'allowCpuTensorRuntime') === true,
+    allowCpuFoundationRuntime:
+      args.allowCpuFoundationRuntime ||
+      manifestBooleanForTool(toolId, args, 'allowCpuFoundationRuntime') === true,
   }
 }
 
@@ -348,7 +353,10 @@ function gpuModelRequiresSourceImage(
 
 function localInputRequirements(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
-  options?: { allowCpuTensorRuntime?: boolean },
+  options?: {
+    allowCpuTensorRuntime?: boolean
+    allowCpuFoundationRuntime?: boolean
+  },
 ): LocalInputRequirement[] {
   const outputDirectory: LocalInputRequirement = {
     key: 'outputDirectory',
@@ -365,15 +373,25 @@ function localInputRequirements(
   }
 
   if (toolId === 'torch_torchvision' || toolId === 'transformers') {
+    const foundationRuntimeRequirement: LocalInputRequirement =
+      options?.allowCpuFoundationRuntime === true
+        ? {
+            key: 'pythonCpuFoundationRuntime',
+            requiredForDefaultHarness: false,
+            requiredForActualExecution: true,
+            description:
+              'Approved local Python foundation runtime with torch and the package-specific import; no GPU, model download, model inference, provider call, or media processing required.',
+          }
+        : {
+            key: 'nativeCudaRuntime',
+            requiredForDefaultHarness: false,
+            requiredForActualExecution: true,
+            description:
+              'Approved local/native CUDA runtime; CPU fallback is intentionally not accepted.',
+          }
     return [
       outputDirectory,
-      {
-        key: 'nativeCudaRuntime',
-        requiredForDefaultHarness: false,
-        requiredForActualExecution: true,
-        description:
-          'Approved local/native CUDA runtime; CPU fallback is intentionally not accepted.',
-      },
+      foundationRuntimeRequirement,
     ]
   }
 
@@ -467,7 +485,10 @@ function localInputRequirements(
 
 function minimumPrivateRuntimeInputKeys(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
-  options?: { allowCpuTensorRuntime?: boolean },
+  options?: {
+    allowCpuTensorRuntime?: boolean
+    allowCpuFoundationRuntime?: boolean
+  },
 ): string[] {
   return localInputRequirements(toolId, options)
     .filter((requirement) => requirement.requiredForActualExecution)
@@ -476,7 +497,10 @@ function minimumPrivateRuntimeInputKeys(
 
 function currentBlockingPrerequisiteKey(
   blockingReasonCode: string | null | undefined,
-  options?: { allowCpuTensorRuntime?: boolean },
+  options?: {
+    allowCpuTensorRuntime?: boolean
+    allowCpuFoundationRuntime?: boolean
+  },
 ): string | null {
   if (!blockingReasonCode) return null
   if (blockingReasonCode.includes('output_directory_missing')) {
@@ -512,6 +536,8 @@ function currentBlockingPrerequisiteKey(
   if (blockingReasonCode.includes('python_package')) {
     return options?.allowCpuTensorRuntime === true
       ? 'pythonCpuTensorRuntime'
+      : options?.allowCpuFoundationRuntime === true
+      ? 'pythonCpuFoundationRuntime'
       : 'pythonPackageRuntime'
   }
   if (blockingReasonCode.includes('python_runtime')) {
@@ -560,6 +586,9 @@ function exactRuntimeAttemptCommand(
     toolId === 'transparent_background'
       ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
       : '',
+    (toolId === 'torch_torchvision' || toolId === 'transformers')
+      ? '--allow-cpu-foundation-runtime'
+      : '',
   ]
 
   return parts.filter(Boolean).join(' ')
@@ -604,13 +633,24 @@ function applyRuntimePayloadArgs(
     payload.allowCpuTensorRuntime = true
     payload.runtimeContainerGpu = false
   }
+  if (
+    (toolId === 'torch_torchvision' || toolId === 'transformers') &&
+    runtimeInputs.allowCpuFoundationRuntime
+  ) {
+    payload.allowCpuFoundationRuntime = true
+    payload.runtimeContainerGpu = false
+  }
   if (runtimeInputs.sourceImageLocalPath) {
     payload.sourceImageLocalPath = runtimeInputs.sourceImageLocalPath
     payload.representativeFrameLocalPath = runtimeInputs.sourceImageLocalPath
   }
   payload.runtimeExecutionBackend = args.runtimeExecutionBackend
   payload.runtimeContainerGpu =
-    toolId === 'kornia' && runtimeInputs.allowCpuTensorRuntime
+    (toolId === 'kornia' && runtimeInputs.allowCpuTensorRuntime) ||
+    (
+      (toolId === 'torch_torchvision' || toolId === 'transformers') &&
+      runtimeInputs.allowCpuFoundationRuntime
+    )
       ? false
       : args.runtimeContainerGpu
   if (runtimeInputs.runtimeContainerImage) {
@@ -750,13 +790,16 @@ async function buildReport(args: HarnessArgs) {
     const runtimeInputs = runtimeInputsForTool(toolId, args)
     const requirements = localInputRequirements(toolId, {
       allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
+      allowCpuFoundationRuntime: runtimeInputs.allowCpuFoundationRuntime,
     })
     const reasonCode = skipReasonCode(result)
     const blockingKey = currentBlockingPrerequisiteKey(reasonCode, {
       allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
+      allowCpuFoundationRuntime: runtimeInputs.allowCpuFoundationRuntime,
     })
     const minimumInputKeys = minimumPrivateRuntimeInputKeys(toolId, {
       allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
+      allowCpuFoundationRuntime: runtimeInputs.allowCpuFoundationRuntime,
     })
     const remainingInputKeys =
       result.localGpuModelRuntimeExecutionPerformed
@@ -792,6 +835,7 @@ async function buildReport(args: HarnessArgs) {
       minimumPrivateRuntimeInputKeys: minimumInputKeys,
       remainingPrivateRuntimeInputKeys: remainingInputKeys,
       allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
+      allowCpuFoundationRuntime: runtimeInputs.allowCpuFoundationRuntime,
       errorMessage: errorMessageForResult(result),
       outputJsonPath: outputJsonPathForResult(result),
       outputJsonSha256: outputJsonSha256ForResult(result),
@@ -885,6 +929,8 @@ async function buildReport(args: HarnessArgs) {
       korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested: true,
       korniaCpuTensorRuntimeRequiresPrivateSourceFrame: true,
       korniaCpuTensorRuntimeDoesNotStartGpu: true,
+      foundationCpuRuntimeAllowedWhenExplicitlyRequested: true,
+      foundationCpuRuntimeDoesNotStartGpu: true,
       noModelDownload: true,
       noProviderRuntime: true,
       noPublicArtifacts: true,
@@ -907,6 +953,7 @@ async function buildReport(args: HarnessArgs) {
       runtimeProofOutputMustMatchExpectedToolId: true,
       runtimeProofOutputMustProveCudaOrCudaExecutionProvider: true,
       runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime: true,
+      runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime: true,
       runtimeProofOutputMustProveNoModelDownload: true,
       runtimeProofOutputMustProveNoProviderRuntime: true,
       runtimeProofOutputMustProveNoPublicArtifact: true,
@@ -1019,6 +1066,15 @@ This harness exercises the real GPU/model controlled adapter for all eight GPU/m
 
 Missing private source/model/checkpoint paths block before Python runtime or Docker GPU attachment. GPU starts only after the scoped tool call supplies the required private inputs and runtime proof.
 
+## Foundation CPU Runtime Option
+
+\`torch_torchvision\` and \`transformers\` may use explicit CPU foundation runtime proof for bounded package import and tensor checks when \`--allow-cpu-foundation-runtime\` is supplied. This does not download models, run inference, process media, or start GPU runtime.
+
+- \`torch_torchvision\`: \`${report.interfaces.privateRuntimeAttemptCommandsByTool.torch_torchvision}\`
+- \`transformers\`: \`${report.interfaces.privateRuntimeAttemptCommandsByTool.transformers}\`
+- \`foundationCpuRuntimeAllowedWhenExplicitlyRequested\`: ${report.localRuntimePolicy.foundationCpuRuntimeAllowedWhenExplicitlyRequested}
+- \`foundationCpuRuntimeDoesNotStartGpu\`: ${report.localRuntimePolicy.foundationCpuRuntimeDoesNotStartGpu}
+
 ## Tool rows
 
 | Tool | Capability | Harness mode | Adapter status | Current blocker | Blocking reason | Remaining private inputs | Error message | Local runtime executed | Tool execution approved | GPU starts now |
@@ -1039,6 +1095,8 @@ ${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`
 - \`runtimeProofOutputMustDeclareOkTrue\`: ${report.localRuntimePolicy.runtimeProofOutputMustDeclareOkTrue}
 - \`runtimeProofOutputMustMatchExpectedToolId\`: ${report.localRuntimePolicy.runtimeProofOutputMustMatchExpectedToolId}
 - \`runtimeProofOutputMustProveCudaOrCudaExecutionProvider\`: ${report.localRuntimePolicy.runtimeProofOutputMustProveCudaOrCudaExecutionProvider}
+- \`runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime\`: ${report.localRuntimePolicy.runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime}
+- \`runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime\`: ${report.localRuntimePolicy.runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime}
 - \`runtimeProofOutputMustProveNoModelDownload\`: ${report.localRuntimePolicy.runtimeProofOutputMustProveNoModelDownload}
 - \`runtimeProofOutputMustProveNoProviderRuntime\`: ${report.localRuntimePolicy.runtimeProofOutputMustProveNoProviderRuntime}
 - \`runtimeProofOutputMustProveNoPublicArtifact\`: ${report.localRuntimePolicy.runtimeProofOutputMustProveNoPublicArtifact}

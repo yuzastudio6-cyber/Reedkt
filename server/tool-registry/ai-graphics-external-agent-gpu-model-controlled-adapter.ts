@@ -150,6 +150,16 @@ function allowKorniaCpuTensorRuntime(
   return toolId === 'kornia' && optionalBoolean(payload, 'allowCpuTensorRuntime')
 }
 
+function allowFoundationCpuRuntime(
+  toolId: AiGraphicsCanonicalToolId | string,
+  payload: Record<string, unknown>,
+): boolean {
+  return (
+    (toolId === 'torch_torchvision' || toolId === 'transformers') &&
+    optionalBoolean(payload, 'allowCpuFoundationRuntime')
+  )
+}
+
 function runtimeContainerImage(payload: Record<string, unknown>): string | undefined {
   return optionalString(payload, 'runtimeContainerImage') ??
     optionalString(payload, 'containerImage')
@@ -227,7 +237,8 @@ import sys
 
 tool_id = sys.argv[1]
 allow_cpu_tensor_runtime = sys.argv[2] == "true"
-modules = sys.argv[3:]
+allow_cpu_foundation_runtime = sys.argv[3] == "true"
+modules = sys.argv[4:]
 missing = [module for module in modules if importlib.util.find_spec(module) is None]
 cuda_available = False
 cuda_provider_available = False
@@ -244,6 +255,7 @@ print(json.dumps({
     "cudaAvailable": cuda_available,
     "cudaProviderAvailable": cuda_provider_available,
     "allowCpuTensorRuntime": allow_cpu_tensor_runtime,
+    "allowCpuFoundationRuntime": allow_cpu_foundation_runtime,
 }))
 `
   try {
@@ -252,6 +264,7 @@ print(json.dumps({
       code,
       toolId,
       allowKorniaCpuTensorRuntime(toolId, payload) ? 'true' : 'false',
+      allowFoundationCpuRuntime(toolId, payload) ? 'true' : 'false',
       ...modules,
     ], {
       encoding: 'utf8',
@@ -285,6 +298,7 @@ function runtimePrerequisiteBlock(
   }
   if (!hasScopedLocalRuntimeInputs(request.toolId, payload)) return null
   const korniaCpuTensorRuntime = allowKorniaCpuTensorRuntime(request.toolId, payload)
+  const foundationCpuRuntime = allowFoundationCpuRuntime(request.toolId, payload)
 
   if (runtimeExecutionBackend(payload) === 'docker_container') {
     const image = runtimeContainerImage(payload)
@@ -317,7 +331,7 @@ function runtimePrerequisiteBlock(
         ],
       }
     }
-    if (!korniaCpuTensorRuntime && !runtimeContainerGpu(payload)) {
+    if (!korniaCpuTensorRuntime && !foundationCpuRuntime && !runtimeContainerGpu(payload)) {
       return {
         executionInputMode: 'local_dev',
         result: {
@@ -391,7 +405,7 @@ function runtimePrerequisiteBlock(
           'run',
           '--rm',
           ...(platform ? ['--platform', platform] : []),
-          ...(!korniaCpuTensorRuntime ? ['--gpus', 'all'] : []),
+          ...(!korniaCpuTensorRuntime && !foundationCpuRuntime ? ['--gpus', 'all'] : []),
           '--entrypoint',
           'true',
           image,
@@ -415,7 +429,7 @@ function runtimePrerequisiteBlock(
             args: [
               'run',
               '--rm',
-              ...(!korniaCpuTensorRuntime ? ['--gpus', 'all'] : []),
+            ...(!korniaCpuTensorRuntime && !foundationCpuRuntime ? ['--gpus', 'all'] : []),
               '--entrypoint',
               'true',
               image,
@@ -424,6 +438,8 @@ function runtimePrerequisiteBlock(
             summary:
               korniaCpuTensorRuntime
                 ? 'Kornia CPU tensor Docker runtime prerequisite blocked execution because Docker could not start the runtime image.'
+                : foundationCpuRuntime
+                ? 'Foundation CPU Docker runtime prerequisite blocked execution because Docker could not start the runtime image.'
                 : 'GPU/model Docker runtime prerequisite blocked execution because Docker could not attach a GPU.',
           },
           skipReason: {
@@ -517,6 +533,7 @@ function runtimePrerequisiteBlock(
 
   if (
     !korniaCpuTensorRuntime &&
+    !foundationCpuRuntime &&
     (!cudaAvailable || (request.toolId === 'rembg' && !cudaProviderAvailable))
   ) {
     return {
@@ -947,6 +964,7 @@ async function runFoundationTool(
     runtimeContainerImage: runtimeContainerImage(payload),
     runtimeContainerPlatform: runtimeContainerPlatform(payload),
     runtimeContainerGpu: runtimeContainerGpu(payload),
+    allowCpuFoundationRuntime: allowFoundationCpuRuntime(request.toolId, payload),
     timeoutMs: optionalNumber(payload, 'timeoutMs'),
   })
   return {
@@ -1023,7 +1041,8 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
     runtimeOutput.localRuntimeExecutionPerformed === true
   const gpuRuntimeUsedForScopedControlledToolCall =
     localRuntimeExecutionPerformed &&
-    !allowKorniaCpuTensorRuntime(request.toolId, payload)
+    !allowKorniaCpuTensorRuntime(request.toolId, payload) &&
+    !allowFoundationCpuRuntime(request.toolId, payload)
   const skipped = (
     runtimeOutput.result as { status?: unknown } | undefined
   )?.status === 'skipped'

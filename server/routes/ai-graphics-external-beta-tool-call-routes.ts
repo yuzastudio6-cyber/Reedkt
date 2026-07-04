@@ -378,17 +378,35 @@ function payloadAllowsKorniaCpuTensorRuntime(
   return toolId === 'kornia' && payload?.allowCpuTensorRuntime === true
 }
 
+function payloadAllowsFoundationCpuRuntime(
+  toolId: string,
+  payload?: Record<string, unknown> | null,
+): boolean {
+  return (
+    (toolId === 'torch_torchvision' || toolId === 'transformers') &&
+    payload?.allowCpuFoundationRuntime === true
+  )
+}
+
 function exactGpuModelScopedRouteProofCommand(
   toolId: string,
-  options?: { allowCpuTensorRuntime?: boolean },
+  options?: {
+    allowCpuTensorRuntime?: boolean
+    allowCpuFoundationRuntime?: boolean
+  },
 ): string {
-  if (options?.allowCpuTensorRuntime === true) {
+  if (
+    options?.allowCpuTensorRuntime === true ||
+    options?.allowCpuFoundationRuntime === true
+  ) {
     return [
       'npm run --silent ai-graphics:external-agent-tool-call --',
       `--tool ${toolId}`,
       '--attempt-gpu-runtime',
       '--runtime-backend host_python',
-      '--allow-cpu-tensor-runtime',
+      ...(options?.allowCpuTensorRuntime === true
+        ? ['--allow-cpu-tensor-runtime']
+        : ['--allow-cpu-foundation-runtime']),
       `--gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
       ...gpuModelScopedRuntimeProofFlags(toolId),
       '--expect-state executable',
@@ -432,13 +450,22 @@ function gpuModelPrivateProofSequenceFlags(toolId: string): string[] {
 
 function exactGpuModelPrivateProofSequenceCommand(
   toolId: string,
-  options?: { allowCpuTensorRuntime?: boolean },
+  options?: {
+    allowCpuTensorRuntime?: boolean
+    allowCpuFoundationRuntime?: boolean
+  },
 ): string {
   return [
     'npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence --',
     '--attempt-local-runtime',
-    ...(options?.allowCpuTensorRuntime === true
-      ? ['--runtime-backend host_python', '--allow-cpu-tensor-runtime']
+    ...(options?.allowCpuTensorRuntime === true ||
+    options?.allowCpuFoundationRuntime === true
+      ? [
+          '--runtime-backend host_python',
+          options?.allowCpuTensorRuntime === true
+            ? '--allow-cpu-tensor-runtime'
+            : '--allow-cpu-foundation-runtime',
+        ]
       : [
           '--runtime-backend docker_container',
           `--runtime-container-image ${AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_IMAGE}`,
@@ -455,12 +482,17 @@ function exactGpuModelPrivateProofSequenceCommand(
 
 function gpuModelRequiredPrivateInputKeys(
   toolId: string,
-  options?: { allowCpuTensorRuntime?: boolean },
+  options?: {
+    allowCpuTensorRuntime?: boolean
+    allowCpuFoundationRuntime?: boolean
+  },
 ): string[] {
   return [
     'outputDirectory',
     options?.allowCpuTensorRuntime === true
       ? 'pythonCpuTensorRuntime'
+      : options?.allowCpuFoundationRuntime === true
+      ? 'pythonCpuFoundationRuntime'
       : 'nativeCudaRuntime',
     gpuModelRequiresSourceImage(toolId) ? 'sourceImageLocalPath' : '',
     toolId === 'sam2' ? 'sam2CheckpointLocalPath' : '',
@@ -475,7 +507,10 @@ function gpuModelRequiredPrivateInputKeys(
 
 function gpuModelCurrentBlockingPrerequisiteKey(
   blockingReasonCode: string | null | undefined,
-  options?: { allowCpuTensorRuntime?: boolean },
+  options?: {
+    allowCpuTensorRuntime?: boolean
+    allowCpuFoundationRuntime?: boolean
+  },
 ): string | null {
   if (!blockingReasonCode) return null
   if (blockingReasonCode.includes('output_directory_missing')) {
@@ -511,6 +546,8 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   if (blockingReasonCode.includes('python_package')) {
     return options?.allowCpuTensorRuntime === true
       ? 'pythonCpuTensorRuntime'
+      : options?.allowCpuFoundationRuntime === true
+      ? 'pythonCpuFoundationRuntime'
       : 'pythonPackageRuntime'
   }
   if (blockingReasonCode.includes('python_runtime')) {
@@ -524,12 +561,17 @@ function gpuModelCurrentBlockingPrerequisiteKey(
 
 function gpuModelBlockedRuntimePrerequisites(
   toolId: string,
-  options?: { allowCpuTensorRuntime?: boolean },
+  options?: {
+    allowCpuTensorRuntime?: boolean
+    allowCpuFoundationRuntime?: boolean
+  },
 ): string[] {
   return [
     'private output directory under .local-artifacts/ai-graphics',
     options?.allowCpuTensorRuntime === true
       ? 'local Python CPU tensor runtime with torch, PIL, numpy, and kornia'
+      : options?.allowCpuFoundationRuntime === true
+      ? 'local Python CPU foundation runtime with torch and package-specific imports'
       : 'native CUDA-capable host with NVIDIA runtime proof',
     gpuModelRequiresSourceImage(toolId)
       ? 'private approved source image or frame local path'
@@ -552,14 +594,22 @@ function gpuModelExternalAgentProofFields(input: {
     input.toolId,
     input.payload,
   )
+  const allowCpuFoundationRuntime = payloadAllowsFoundationCpuRuntime(
+    input.toolId,
+    input.payload,
+  )
   const currentBlockingPrerequisiteKey = input.executionPassed
     ? null
     : gpuModelCurrentBlockingPrerequisiteKey(input.blockingReasonCode, {
         allowCpuTensorRuntime,
+        allowCpuFoundationRuntime,
       })
   const requiredPrivateInputKeys = input.executionPassed
     ? []
-    : gpuModelRequiredPrivateInputKeys(input.toolId, { allowCpuTensorRuntime })
+    : gpuModelRequiredPrivateInputKeys(input.toolId, {
+        allowCpuTensorRuntime,
+        allowCpuFoundationRuntime,
+      })
   return {
     nextExternalAgentCommandKind: input.executionPassed
       ? null
@@ -568,6 +618,7 @@ function gpuModelExternalAgentProofFields(input: {
       ? null
       : exactGpuModelPrivateProofSequenceCommand(input.toolId, {
           allowCpuTensorRuntime,
+          allowCpuFoundationRuntime,
         }),
     nextExternalAgentRouteRetryCommandKind: input.executionPassed
       ? null
@@ -576,12 +627,14 @@ function gpuModelExternalAgentProofFields(input: {
       ? null
       : exactGpuModelScopedRouteProofCommand(input.toolId, {
           allowCpuTensorRuntime,
+          allowCpuFoundationRuntime,
         }),
     requiredPrivateInputKeys,
     blockedRuntimePrerequisites: input.executionPassed
       ? []
       : gpuModelBlockedRuntimePrerequisites(input.toolId, {
           allowCpuTensorRuntime,
+          allowCpuFoundationRuntime,
         }),
     currentBlockingPrerequisiteKey,
     currentBlockingReasonCode: input.executionPassed
@@ -600,6 +653,7 @@ function gpuModelNextExternalAgentAction(input: {
   toolId: string
   executionPassed: boolean
   blockingReasonCode?: string | null
+  payload?: Record<string, unknown> | null
 }): string {
   if (input.executionPassed) {
     return 'use the private runtime output in the approved downstream planning or worker lane'
@@ -611,9 +665,27 @@ function gpuModelNextExternalAgentAction(input: {
     'if the proof-local image is missing, build the exact local proof image first:',
     AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_BUILD_COMMAND,
     'run the private proof sequence before retrying route execution:',
-    exactGpuModelPrivateProofSequenceCommand(input.toolId),
+    exactGpuModelPrivateProofSequenceCommand(input.toolId, {
+      allowCpuTensorRuntime: payloadAllowsKorniaCpuTensorRuntime(
+        input.toolId,
+        input.payload,
+      ),
+      allowCpuFoundationRuntime: payloadAllowsFoundationCpuRuntime(
+        input.toolId,
+        input.payload,
+      ),
+    }),
     'after accepted private proof exists, retry the controlled route with:',
-    exactGpuModelScopedRouteProofCommand(input.toolId),
+    exactGpuModelScopedRouteProofCommand(input.toolId, {
+      allowCpuTensorRuntime: payloadAllowsKorniaCpuTensorRuntime(
+        input.toolId,
+        input.payload,
+      ),
+      allowCpuFoundationRuntime: payloadAllowsFoundationCpuRuntime(
+        input.toolId,
+        input.payload,
+      ),
+    }),
     'GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.',
   ].join(' ')
 }
@@ -2637,6 +2709,7 @@ export function createAiGraphicsExternalBetaToolCallRoutes(
             toolId: body.toolId,
             executionPassed: gpuModelExecutionPassed,
             blockingReasonCode: execution.blockingReasonCode,
+            payload: body.payload ?? {},
           }),
           ...gpuModelProofFields,
         }),

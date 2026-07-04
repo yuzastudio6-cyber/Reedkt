@@ -267,9 +267,16 @@ function gpuModelSourceImageRequired(toolId: string): boolean {
 function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
   const korniaCpuTensorRuntime =
     toolId === 'kornia' && hasFlag('--allow-cpu-tensor-runtime')
+  const foundationCpuRuntime =
+    (toolId === 'torch_torchvision' || toolId === 'transformers') &&
+    hasFlag('--allow-cpu-foundation-runtime')
   const keys = [
     'outputDirectory',
-    korniaCpuTensorRuntime ? 'pythonCpuTensorRuntime' : 'nativeCudaRuntime',
+    korniaCpuTensorRuntime
+      ? 'pythonCpuTensorRuntime'
+      : foundationCpuRuntime
+      ? 'pythonCpuFoundationRuntime'
+      : 'nativeCudaRuntime',
   ]
   if (gpuModelSourceImageRequired(toolId)) keys.push('sourceImageLocalPath')
   if (toolId === 'sam2') keys.push('sam2CheckpointLocalPath')
@@ -319,6 +326,8 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   if (blockingReasonCode.includes('python_package')) {
     return hasFlag('--allow-cpu-tensor-runtime')
       ? 'pythonCpuTensorRuntime'
+      : hasFlag('--allow-cpu-foundation-runtime')
+      ? 'pythonCpuFoundationRuntime'
       : 'pythonPackageRuntime'
   }
   if (blockingReasonCode.includes('python_runtime')) {
@@ -350,9 +359,14 @@ function gpuModelPrivateInputPlaceholders(toolId: string): string[] {
 function gpuModelBlockedPrerequisites(toolId: string): string[] {
   const korniaCpuTensorRuntime =
     toolId === 'kornia' && hasFlag('--allow-cpu-tensor-runtime')
+  const foundationCpuRuntime =
+    (toolId === 'torch_torchvision' || toolId === 'transformers') &&
+    hasFlag('--allow-cpu-foundation-runtime')
   const prerequisites = [
     korniaCpuTensorRuntime
       ? 'approved local Python CPU tensor runtime with torch, PIL, numpy, and kornia'
+      : foundationCpuRuntime
+      ? 'approved local Python CPU foundation runtime with torch and package-specific imports'
       : 'approved native CUDA-capable host or approved linux/amd64 Docker GPU runtime',
     'proof-local GPU worker container image built locally',
     'private output directory under .local-artifacts/',
@@ -387,6 +401,10 @@ function gpuModelContainerBuildCommand(): string {
 }
 
 function gpuModelScopedToolCallCommand(toolId: string): string {
+  const foundationCpuFlag =
+    toolId === 'torch_torchvision' || toolId === 'transformers'
+      ? '--allow-cpu-foundation-runtime'
+      : ''
   return [
     'npm run --silent ai-graphics:external-agent-tool-call --',
     `--tool ${toolId}`,
@@ -396,6 +414,7 @@ function gpuModelScopedToolCallCommand(toolId: string): string {
     '--runtime-container-platform linux/amd64',
     `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/${toolId}`,
     ...gpuModelPrivateInputPlaceholders(toolId),
+    foundationCpuFlag,
     '--expect-state executable',
     '--require-output-hash',
     '--require-private-only-boundary',
@@ -404,6 +423,10 @@ function gpuModelScopedToolCallCommand(toolId: string): string {
 }
 
 function gpuModelScopedToolCallManifestCommand(toolId: string): string {
+  const foundationCpuFlag =
+    toolId === 'torch_torchvision' || toolId === 'transformers'
+      ? '--allow-cpu-foundation-runtime'
+      : ''
   return [
     'npm run --silent ai-graphics:external-agent-tool-call --',
     `--tool ${toolId}`,
@@ -413,6 +436,7 @@ function gpuModelScopedToolCallManifestCommand(toolId: string): string {
     '--runtime-container-platform linux/amd64',
     `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/${toolId}`,
     '--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json',
+    foundationCpuFlag,
     '--expect-state executable',
     '--require-output-hash',
     '--require-private-only-boundary',
@@ -433,6 +457,12 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
     (
       hasFlag('--allow-cpu-tensor-runtime') ||
       manifestBooleanForTool(toolId, manifest, 'allowCpuTensorRuntime') === true
+    )
+  const allowCpuFoundationRuntime =
+    (toolId === 'torch_torchvision' || toolId === 'transformers') &&
+    (
+      hasFlag('--allow-cpu-foundation-runtime') ||
+      manifestBooleanForTool(toolId, manifest, 'allowCpuFoundationRuntime') === true
     )
   const outputDirectory =
     stringArg('--gpu-output-dir') ??
@@ -474,12 +504,17 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
   if (allowCpuTensorRuntime) {
     payload.allowCpuTensorRuntime = true
   }
+  if (allowCpuFoundationRuntime) {
+    payload.allowCpuFoundationRuntime = true
+  }
   payload.runtimeExecutionBackend = runtimeBackend
   payload.outputDirectory = outputDirectory
   payload.timeoutMs = Number(stringArg('--timeout-ms') ?? '30000')
   if (runtimeBackend === 'docker_container') {
     payload.runtimeContainerGpu =
-      allowCpuTensorRuntime ? false : !hasFlag('--no-runtime-container-gpu')
+      allowCpuTensorRuntime || allowCpuFoundationRuntime
+        ? false
+        : !hasFlag('--no-runtime-container-gpu')
     payload.runtimeContainerImage =
       stringArg('--runtime-container-image') ??
       canonicalGpuModelRuntimeContainerImage
@@ -853,6 +888,7 @@ async function buildReport() {
       runtimeInputManifest: runtimeInputManifestPath() ?? null,
       runtimeInputManifestUsed: Boolean(runtimeInputManifestPath()),
       allowCpuTensorRuntimeRequested: hasFlag('--allow-cpu-tensor-runtime'),
+      allowCpuFoundationRuntimeRequested: hasFlag('--allow-cpu-foundation-runtime'),
       unsafeRoutePayloadTest: unsafeRoutePayloadTestKind() ?? null,
       strictExitCodeRequested: hasFlag('--strict-exit-code'),
       requireOutputHash: hasFlag('--require-output-hash'),

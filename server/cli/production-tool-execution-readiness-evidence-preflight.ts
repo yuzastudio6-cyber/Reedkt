@@ -371,7 +371,17 @@ function extractEvidenceFileEnvironment(payload: unknown): {
   }
 
   const errors: string[] = []
-  const topLevelMetadataKeys = new Set(['$schema', 'description', 'environment', 'version'])
+  const topLevelMetadataKeys = new Set([
+    '$schema',
+    'description',
+    'environment',
+    'generatedAt',
+    'instructions',
+    'recommendedSequence',
+    'templateBlockerSummary',
+    'version',
+    'warnings',
+  ])
   const environmentSource = isRecord(payload.environment) ? payload.environment : payload
   if (environmentSource !== payload) {
     for (const key of Object.keys(payload)) {

@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const root = process.cwd()
@@ -189,6 +190,108 @@ function exec(command) {
     stdio: ['ignore', 'pipe', 'pipe'],
     maxBuffer: 180 * 1024 * 1024,
   })
+}
+
+function execFileJson(command, args) {
+  return JSON.parse(childProcess.execFileSync(command, args, {
+    cwd: root,
+    env: {
+      ...process.env,
+      DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+    },
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: 180 * 1024 * 1024,
+  }))
+}
+
+function createScopedKorniaPrivateProofFixture() {
+  const tempDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'reeditpro-kornia-private-proof-'),
+  )
+  const outputJsonPath = path.join(tempDir, 'kornia-runtime-result.json')
+  fs.writeFileSync(outputJsonPath, `${JSON.stringify({
+    toolId: 'kornia',
+    runtimeExecuted: true,
+    privateLocalProofFixture: true,
+  }, null, 2)}\n`)
+
+  const source = json(
+    'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json',
+  )
+  const proof = {
+    ...source,
+    status:
+      'local_dev_runtime_executed_for_private_opt_in_subset_not_global_ready',
+    counts: {
+      ...(source.counts ?? {}),
+      requestedGpuModelTools: 1,
+      gpuModelToolsCovered: 1,
+      localDevAdapterBranchInvokedTools: 1,
+      localDevPrerequisiteCheckOnlyTools: 0,
+      localRuntimeExecutionPerformedTools: 1,
+      toolExecutionApprovedNowTools: 1,
+      gpuRuntimeApprovedForScopedControlledToolCallTools: 1,
+      gpuRuntimeShouldStartNowTools: 1,
+      publicArtifactCreatedTools: 0,
+      signedUrlCreatedTools: 0,
+      runtimeReadyNowTools: 0,
+      externalBetaReadyNowTools: 0,
+      productionReadyNowTools: 0,
+    },
+    gpuModelLocalDevRuntimeExecutionHarnessRows: [{
+      toolId: 'kornia',
+      capabilityId: 'tensor_image_ops',
+      adapterDecision:
+        'ai_graphics_external_agent_gpu_model_controlled_adapter_executable_eight_on_demand_with_runtime_blocks',
+      adapterStatus: 'controlled_gpu_model_adapter_executed_private_output_ready',
+      executionState: 'executable',
+      controlledAdapterExecutableNow: true,
+      controlledAdapterInvokedNow: true,
+      harnessMode: 'local_dev_runtime_attempt_requested',
+      localRuntimeExecutionPerformed: true,
+      toolExecutionApprovedNow: true,
+      gpuRuntimeApprovedForScopedControlledToolCall: true,
+      gpuRuntimeShouldStartNow: true,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+      runtimeReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      skipReasonCode: null,
+      errorMessage: null,
+      outputJsonPath,
+      localInputRequirements: [
+        {
+          key: 'outputDirectory',
+          requiredForDefaultHarness: false,
+          requiredForActualExecution: true,
+          description:
+            'Private local worker output directory; must not be public artifact storage.',
+        },
+        {
+          key: 'sourceImageLocalPath',
+          requiredForDefaultHarness: false,
+          requiredForActualExecution: true,
+          description:
+            'Private local representative image/frame selected from an approved plan.',
+        },
+        {
+          key: 'nativeCudaRuntime',
+          requiredForDefaultHarness: false,
+          requiredForActualExecution: true,
+          description:
+            'Approved CUDA runtime for bounded tensor/image operations; no model weight required.',
+        },
+      ],
+      warnings: [
+        'Diagnostic-only private proof fixture; no GPU/runtime was started by this diagnostic.',
+      ],
+    }],
+  }
+  const proofPath = path.join(tempDir, 'harness-result.json')
+  fs.writeFileSync(proofPath, `${JSON.stringify(proof, null, 2)}\n`)
+  return proofPath
 }
 
 function checkPackageJson() {
@@ -393,6 +496,53 @@ for (const forbidden of forbiddenPatterns) {
     'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.md',
   ]) {
     if (forbidden.test(read(file))) fail(`forbidden_claim:${file}:${forbidden}`)
+  }
+}
+
+const scopedKorniaProofPath = createScopedKorniaPrivateProofFixture()
+const scopedBridge = execFileJson('npm', [
+  'run',
+  '--silent',
+  runScriptName,
+  '--',
+  '--local-runtime-proof-result',
+  scopedKorniaProofPath,
+])
+if (scopedBridge.status !== 'gpu_model_runtime_proof_ref_bridge_accepts_private_local_runtime_proof_for_scoped_route_submission') {
+  fail(`scoped_bridge_status_mismatch:${scopedBridge.status}`)
+}
+if (scopedBridge.counts?.privateLocalRuntimeProofResultSuppliedTools !== 1) {
+  fail('scoped_bridge_supplied_count_not_one')
+}
+if (scopedBridge.counts?.acceptedPrivateLocalRuntimeProofTools !== 1) {
+  fail('scoped_bridge_accepted_count_not_one')
+}
+if (scopedBridge.counts?.routeSubmissionReadyWithAcceptedPrivateProofTools !== 1) {
+  fail('scoped_bridge_route_ready_count_not_one')
+}
+if (scopedBridge.counts?.blockedMissingPrivateLocalRuntimeProofResultTools !== 7) {
+  fail('scoped_bridge_remaining_blocked_count_not_seven')
+}
+const scopedBridgeRows = Array.isArray(scopedBridge.gpuModelRuntimeProofRefBridgeRows)
+  ? scopedBridge.gpuModelRuntimeProofRefBridgeRows
+  : []
+const scopedKorniaRow = scopedBridgeRows.find((row) => row.toolId === 'kornia')
+if (!scopedKorniaRow) {
+  fail('scoped_bridge_missing_kornia_row')
+} else {
+  if (scopedKorniaRow.localRuntimeProofAccepted !== true) {
+    fail('scoped_bridge_kornia_not_accepted')
+  }
+  if (scopedKorniaRow.routeSubmissionReadyWithAcceptedPrivateProof !== true) {
+    fail('scoped_bridge_kornia_route_not_ready')
+  }
+  if (scopedKorniaRow.gpuRuntimeShouldStartNow !== false) {
+    fail('scoped_bridge_kornia_started_gpu')
+  }
+}
+for (const row of scopedBridgeRows.filter((item) => item.toolId !== 'kornia')) {
+  if (row.proofRefBridgeStatus !== 'blocked_missing_private_local_runtime_proof_result') {
+    fail(`scoped_bridge_unexpected_non_kornia_status:${row.toolId}:${row.proofRefBridgeStatus}`)
   }
 }
 

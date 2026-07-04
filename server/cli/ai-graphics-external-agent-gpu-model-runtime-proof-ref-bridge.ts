@@ -284,7 +284,7 @@ function buildBridgeRow(
   }
 }
 
-function validateSources(localDevHarness: JsonRecord, proofRefRouteCaller: JsonRecord): void {
+function validateCommittedSources(localDevHarness: JsonRecord, proofRefRouteCaller: JsonRecord): void {
   assert(
     localDevHarness.decision ===
       'ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_prepared_with_runtime_blocks',
@@ -305,16 +305,38 @@ function validateSources(localDevHarness: JsonRecord, proofRefRouteCaller: JsonR
   )
 }
 
+function validateSuppliedLocalProofResult(localProof: JsonRecord): void {
+  assert(
+    localProof.decision ===
+      'ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_prepared_with_runtime_blocks',
+    'supplied local-dev runtime proof decision mismatch',
+  )
+  const rows = localProof.gpuModelLocalDevRuntimeExecutionHarnessRows
+  assert(Array.isArray(rows), 'supplied local runtime proof result has no harness rows')
+  assert(rows.length > 0, 'supplied local runtime proof result must include at least one scoped tool row')
+  assert(rows.length <= gpuModelTools.length, 'supplied local runtime proof result has too many rows')
+
+  const seen = new Set<string>()
+  for (const row of rows) {
+    assert(
+      gpuModelTools.includes(row.toolId),
+      `unexpected supplied GPU/model local proof tool: ${row.toolId}`,
+    )
+    assert(!seen.has(row.toolId), `duplicate supplied GPU/model local proof tool: ${row.toolId}`)
+    seen.add(row.toolId)
+  }
+}
+
 function buildReport(localProofResultPath?: string) {
   const localDevHarness = readJson(sourceLocalDevHarnessPath)
   const proofRefRouteCaller = readJson(sourceProofRefRouteCallerPath)
-  validateSources(localDevHarness, proofRefRouteCaller)
+  validateCommittedSources(localDevHarness, proofRefRouteCaller)
 
   const suppliedLocalProof = localProofResultPath
     ? readJson(localProofResultPath)
     : undefined
   if (suppliedLocalProof) {
-    validateSources(suppliedLocalProof, proofRefRouteCaller)
+    validateSuppliedLocalProofResult(suppliedLocalProof)
   }
 
   const proofRows = sourceProofRefRows(proofRefRouteCaller)

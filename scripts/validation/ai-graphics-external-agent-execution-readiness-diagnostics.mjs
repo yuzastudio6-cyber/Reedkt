@@ -1,5 +1,6 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 
 const root = process.cwd()
@@ -7,6 +8,8 @@ const decision =
   'ai_graphics_external_agent_execution_readiness_all21_evaluated_with_gpu_model_blocks'
 const status =
   'external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof'
+const privateProofStatus =
+  'external_agent_call_ready_for_all21_runtime_execution_ready_for13_plus_private_gpu_model_proof_subset'
 const runScriptName = 'ai-graphics:external-agent-execution-readiness'
 const runScriptCommand =
   'tsx server/cli/ai-graphics-external-agent-execution-readiness.ts'
@@ -121,6 +124,108 @@ function exec(command) {
       DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
     },
   })
+}
+
+function execFileJson(command, args) {
+  return JSON.parse(childProcess.execFileSync(command, args, {
+    cwd: root,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: 180 * 1024 * 1024,
+    env: {
+      ...process.env,
+      DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+    },
+  }))
+}
+
+function createScopedKorniaPrivateProofFixture() {
+  const tempDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'reeditpro-kornia-readiness-proof-'),
+  )
+  const outputJsonPath = path.join(tempDir, 'kornia-runtime-result.json')
+  fs.writeFileSync(outputJsonPath, `${JSON.stringify({
+    toolId: 'kornia',
+    runtimeExecuted: true,
+    privateLocalProofFixture: true,
+  }, null, 2)}\n`)
+
+  const source = json(
+    'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json',
+  )
+  const proof = {
+    ...source,
+    status:
+      'local_dev_runtime_executed_for_private_opt_in_subset_not_global_ready',
+    counts: {
+      ...(source.counts ?? {}),
+      requestedGpuModelTools: 1,
+      gpuModelToolsCovered: 1,
+      localDevAdapterBranchInvokedTools: 1,
+      localDevPrerequisiteCheckOnlyTools: 0,
+      localRuntimeExecutionPerformedTools: 1,
+      toolExecutionApprovedNowTools: 1,
+      gpuRuntimeApprovedForScopedControlledToolCallTools: 1,
+      gpuRuntimeShouldStartNowTools: 1,
+      publicArtifactCreatedTools: 0,
+      signedUrlCreatedTools: 0,
+      runtimeReadyNowTools: 0,
+      externalBetaReadyNowTools: 0,
+      productionReadyNowTools: 0,
+    },
+    gpuModelLocalDevRuntimeExecutionHarnessRows: [{
+      toolId: 'kornia',
+      capabilityId: 'tensor_image_ops',
+      adapterDecision:
+        'ai_graphics_external_agent_gpu_model_controlled_adapter_executable_eight_on_demand_with_runtime_blocks',
+      adapterStatus: 'controlled_gpu_model_adapter_executed_private_output_ready',
+      executionState: 'executable',
+      controlledAdapterExecutableNow: true,
+      controlledAdapterInvokedNow: true,
+      harnessMode: 'local_dev_runtime_attempt_requested',
+      localRuntimeExecutionPerformed: true,
+      toolExecutionApprovedNow: true,
+      gpuRuntimeApprovedForScopedControlledToolCall: true,
+      gpuRuntimeShouldStartNow: true,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+      runtimeReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      skipReasonCode: null,
+      errorMessage: null,
+      outputJsonPath,
+      localInputRequirements: [
+        {
+          key: 'outputDirectory',
+          requiredForDefaultHarness: false,
+          requiredForActualExecution: true,
+          description:
+            'Private local worker output directory; must not be public artifact storage.',
+        },
+        {
+          key: 'sourceImageLocalPath',
+          requiredForDefaultHarness: false,
+          requiredForActualExecution: true,
+          description:
+            'Private local representative image/frame selected from an approved plan.',
+        },
+        {
+          key: 'nativeCudaRuntime',
+          requiredForDefaultHarness: false,
+          requiredForActualExecution: true,
+          description:
+            'Approved CUDA runtime for bounded tensor/image operations; no model weight required.',
+        },
+      ],
+      warnings: [
+        'Diagnostic-only private proof fixture; no GPU/runtime was started by this diagnostic.',
+      ],
+    }],
+  }
+  const proofPath = path.join(tempDir, 'harness-result.json')
+  fs.writeFileSync(proofPath, `${JSON.stringify(proof, null, 2)}\n`)
+  return proofPath
 }
 
 function checkPackageJson() {
@@ -612,6 +717,79 @@ for (const flag of [
 checkReport('docs', docs)
 const live = JSON.parse(exec(`npm run --silent ${runScriptName}`))
 checkReport('live', live)
+const scopedKorniaProofPath = createScopedKorniaPrivateProofFixture()
+const liveWithPrivateProof = execFileJson('npm', [
+  'run',
+  '--silent',
+  runScriptName,
+  '--',
+  '--local-runtime-proof-result',
+  scopedKorniaProofPath,
+])
+if (liveWithPrivateProof.status !== privateProofStatus) {
+  fail(`private_proof_status_mismatch:${liveWithPrivateProof.status}`)
+}
+if (liveWithPrivateProof.counts?.agentExecutableTools !== 14) {
+  fail(`private_proof_executable_count_mismatch:${liveWithPrivateProof.counts?.agentExecutableTools}`)
+}
+if (liveWithPrivateProof.counts?.gpuToolsWithValidRuntimeProof !== 1) {
+  fail('private_proof_gpu_valid_count_not_one')
+}
+if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeAcceptedTools !== 1) {
+  fail('private_proof_bridge_accepted_count_not_one')
+}
+if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeBlockedTools !== 7) {
+  fail('private_proof_bridge_blocked_count_not_seven')
+}
+if (liveWithPrivateProof.counts?.blockedWithReasonTools !== 7) {
+  fail('private_proof_blocked_count_not_seven')
+}
+if (liveWithPrivateProof.counts?.gpuRuntimeShouldStartNowTools !== 0) {
+  fail('private_proof_readiness_started_gpu')
+}
+if (liveWithPrivateProof.booleans?.privateLocalRuntimeProofResultSupplied !== true) {
+  fail('private_proof_result_not_marked_supplied')
+}
+if (liveWithPrivateProof.booleans?.agentCanExecuteGpuModelToolsNow !== true) {
+  fail('private_proof_gpu_tools_not_marked_executable')
+}
+if (liveWithPrivateProof.booleans?.toolExecutionApprovedForGpuModelToolsNow !== true) {
+  fail('private_proof_gpu_tool_execution_not_marked_approved')
+}
+if (liveWithPrivateProof.booleans?.agentCanExecuteAll21ToolsNow !== false) {
+  fail('private_proof_claims_all21_executable')
+}
+if (liveWithPrivateProof.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('private_proof_idle_gpu_start_claim')
+}
+const privateProofRows = Array.isArray(liveWithPrivateProof.toolReadinessRows)
+  ? liveWithPrivateProof.toolReadinessRows
+  : []
+const privateProofKornia = privateProofRows.find((row) => row.toolId === 'kornia')
+if (!privateProofKornia) {
+  fail('private_proof_missing_kornia_row')
+} else {
+  if (privateProofKornia.readinessState !== 'executable') {
+    fail(`private_proof_kornia_not_executable:${privateProofKornia.readinessState}`)
+  }
+  if (privateProofKornia.executable !== true) {
+    fail('private_proof_kornia_executable_false')
+  }
+  if (privateProofKornia.routeSubmissionReadyWithAcceptedPrivateProof !== true) {
+    fail('private_proof_kornia_route_submission_not_ready')
+  }
+  if (privateProofKornia.gpuRuntimeShouldStartNow !== false) {
+    fail('private_proof_kornia_idle_gpu_start_claim')
+  }
+  if (privateProofKornia.sourceGpuRuntimeShouldStartDuringScopedProof !== true) {
+    fail('private_proof_kornia_scoped_gpu_start_not_recorded')
+  }
+}
+for (const row of privateProofRows.filter((item) => gpuModelTools.includes(item.toolId) && item.toolId !== 'kornia')) {
+  if (row.readinessState !== 'blocked_with_reason') {
+    fail(`private_proof_unexpected_non_kornia_gpu_state:${row.toolId}:${row.readinessState}`)
+  }
+}
 const liveHost = JSON.parse(exec(`npm run --silent ${runScriptName} -- --detect-host`))
 if (liveHost.executionScope?.currentHostGpuProofPreflightRequested !== true) {
   fail('live_host_preflight_not_requested')

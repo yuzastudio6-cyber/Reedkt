@@ -423,16 +423,20 @@ function hostPythonGpuCommand(toolId: string): string {
   ].join(' ')
 }
 
-function containerGpuCommand(toolId: string): string {
+function containerGpuCommandForImage(toolId: string, image: string): string {
   return [
     'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness --',
     '--attempt-local-runtime',
     '--runtime-backend docker_container',
-    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    `--runtime-container-image ${image}`,
     '--runtime-container-platform linux/amd64',
     ...(gpuModelAllowsCpuModelRuntime(toolId) ? ['--no-runtime-container-gpu'] : []),
     ...gpuModelHostRuntimeFlags(toolId),
   ].join(' ')
+}
+
+function containerGpuCommand(toolId: string): string {
+  return containerGpuCommandForImage(toolId, gpuModelRuntimeContainerImage(toolId))
 }
 
 function gpuModelRuntimeContainerTarget(toolId: string) {
@@ -441,6 +445,42 @@ function gpuModelRuntimeContainerTarget(toolId: string) {
 
 function gpuModelRuntimeContainerImage(toolId: string): string {
   return gpuModelRuntimeContainerTarget(toolId).image
+}
+
+function gpuModelPracticalLocalProofContainerImage(toolId: string): string | null {
+  return toolId === 'sam2' || toolId === 'birefnet'
+    ? canonicalGpuWorkerProofImage
+    : null
+}
+
+function practicalLocalProofContainerCommand(toolId: string): string | null {
+  const image = gpuModelPracticalLocalProofContainerImage(toolId)
+  return image ? containerGpuCommandForImage(toolId, image) : null
+}
+
+function practicalLocalProofImageProbeCommand(toolId: string): string | null {
+  const image = gpuModelPracticalLocalProofContainerImage(toolId)
+  if (!image) return null
+  const requiredModules = toolId === 'sam2'
+    ? ['torch', 'torchvision', 'numpy', 'PIL', 'sam2']
+    : [
+        'torch',
+        'torchvision',
+        'transformers',
+        'PIL',
+        'timm',
+        'kornia',
+        'einops',
+        'scipy',
+        'skimage',
+        'safetensors',
+      ]
+  return [
+    'docker run --rm --entrypoint python3',
+    image,
+    '-c',
+    `'import importlib.util, json; modules=${JSON.stringify(requiredModules)}; print(json.dumps({"missingModules":[m for m in modules if importlib.util.find_spec(m) is None]}))'`,
+  ].join(' ')
 }
 
 function containerGpuImageBuildCommand(toolId: string): string {
@@ -637,6 +677,16 @@ function gpuModelExecutionUnlockPlan(input: {
       runtimeContainerImage: gpuModelRuntimeContainerImage(toolId),
       runtimeContainerProfile: gpuModelRuntimeContainerTarget(toolId).profile,
       buildCommand: containerGpuImageBuildCommand(toolId),
+      practicalLocalProofContainerImage:
+        gpuModelPracticalLocalProofContainerImage(toolId),
+      practicalLocalProofImageProbeCommand:
+        practicalLocalProofImageProbeCommand(toolId),
+      practicalLocalProofContainerCommand:
+        practicalLocalProofContainerCommand(toolId),
+      practicalLocalProofNote:
+        gpuModelPracticalLocalProofContainerImage(toolId)
+          ? 'Use this already-built shared proof image only for local private proof when the dedicated runtime proof tag is absent; canonical dedicated runtime image remains the production-shaped target.'
+          : null,
       gpuStartsDuringBuild: false,
       gpuStartsIdle: false,
     },
@@ -645,6 +695,8 @@ function gpuModelExecutionUnlockPlan(input: {
       action: 'run_scoped_private_local_runtime_proof',
       hostPythonCommand: hostPythonGpuCommand(toolId),
       containerCommand: containerGpuCommand(toolId),
+      practicalLocalProofContainerCommand:
+        practicalLocalProofContainerCommand(toolId),
       startsGpuOnlyForThisToolCall:
         !gpuModelAllowsCpuTensorRuntime(toolId) &&
         !gpuModelAllowsCpuFoundationRuntime(toolId) &&
@@ -1080,6 +1132,12 @@ function buildToolRows(
         : null,
       nextExactContainerCommand: group === 'gpu_model'
         ? containerGpuCommand(toolId)
+        : null,
+      nextExactPracticalLocalProofContainerCommand: group === 'gpu_model'
+        ? practicalLocalProofContainerCommand(toolId)
+        : null,
+      nextExactPracticalLocalProofImageProbeCommand: group === 'gpu_model'
+        ? practicalLocalProofImageProbeCommand(toolId)
         : null,
       nextExactContainerBuildCommand: group === 'gpu_model'
         ? containerGpuImageBuildCommand(toolId)

@@ -717,6 +717,12 @@ function expectedRuntimeContainerTarget(toolId) {
   return gpuModelRuntimeContainerTargets[toolId] ?? gpuModelRuntimeContainerTargets.torch_torchvision
 }
 
+function expectedPracticalLocalProofContainerImage(toolId) {
+  return toolId === 'sam2' || toolId === 'birefnet'
+    ? canonicalGpuWorkerProofImage
+    : null
+}
+
 function expectedRuntimeContainerBuildCommand(toolId) {
   const target = expectedRuntimeContainerTarget(toolId)
   return [
@@ -1110,6 +1116,35 @@ function checkReport(label, report) {
           fail(`${label}_${toolId}_minimum_host_flags_missing:${flag}`)
         }
       }
+      const practicalLocalProofImage =
+        expectedPracticalLocalProofContainerImage(toolId)
+      if (practicalLocalProofImage) {
+        if (
+          !String(row.nextExactPracticalLocalProofContainerCommand ?? '')
+            .includes(`--runtime-container-image ${practicalLocalProofImage}`)
+        ) {
+          fail(`${label}_${toolId}_practical_container_command_missing_image`)
+        }
+        if (
+          !String(row.nextExactPracticalLocalProofImageProbeCommand ?? '')
+            .includes(practicalLocalProofImage)
+        ) {
+          fail(`${label}_${toolId}_practical_probe_command_missing_image`)
+        }
+        for (const flag of expectedHostRuntimeFlags(toolId)) {
+          if (
+            !String(row.nextExactPracticalLocalProofContainerCommand ?? '')
+              .includes(flag)
+          ) {
+            fail(`${label}_${toolId}_practical_container_command_missing:${flag}`)
+          }
+        }
+      } else if (
+        row.nextExactPracticalLocalProofContainerCommand !== null ||
+        row.nextExactPracticalLocalProofImageProbeCommand !== null
+      ) {
+        fail(`${label}_${toolId}_unexpected_practical_container_command`)
+      }
       if (!gpuModelRequiresSourceImage(toolId)) {
         if (String(row.nextExactHostPythonCommand ?? '').includes('--source-image')) {
           fail(`${label}_${toolId}_host_python_command_has_unneeded_source_image`)
@@ -1280,6 +1315,36 @@ function checkReport(label, report) {
       if (prepareStep?.buildCommand !== expectedRuntimeContainerBuildCommand(toolId)) {
         fail(`${label}_${toolId}_unlock_plan_build_command_mismatch`)
       }
+      if (practicalLocalProofImage) {
+        if (prepareStep?.practicalLocalProofContainerImage !== practicalLocalProofImage) {
+          fail(`${label}_${toolId}_unlock_plan_practical_container_image_mismatch`)
+        }
+        if (
+          !String(prepareStep?.practicalLocalProofContainerCommand ?? '')
+            .includes(`--runtime-container-image ${practicalLocalProofImage}`)
+        ) {
+          fail(`${label}_${toolId}_unlock_plan_practical_container_command_missing_image`)
+        }
+        if (
+          !String(prepareStep?.practicalLocalProofImageProbeCommand ?? '')
+            .includes(practicalLocalProofImage)
+        ) {
+          fail(`${label}_${toolId}_unlock_plan_practical_probe_command_missing_image`)
+        }
+        if (
+          !String(prepareStep?.practicalLocalProofNote ?? '')
+            .includes('dedicated runtime image remains the production-shaped target')
+        ) {
+          fail(`${label}_${toolId}_unlock_plan_practical_note_missing`)
+        }
+      } else if (
+        prepareStep?.practicalLocalProofContainerImage !== null ||
+        prepareStep?.practicalLocalProofContainerCommand !== null ||
+        prepareStep?.practicalLocalProofImageProbeCommand !== null ||
+        prepareStep?.practicalLocalProofNote !== null
+      ) {
+        fail(`${label}_${toolId}_unexpected_unlock_plan_practical_container_command`)
+      }
       if (prepareStep?.gpuStartsDuringBuild !== false ||
         prepareStep?.gpuStartsIdle !== false) {
         fail(`${label}_${toolId}_unlock_plan_gpu_idle_policy_mismatch`)
@@ -1289,6 +1354,16 @@ function checkReport(label, report) {
       }
       if (!String(runtimeProofStep?.containerCommand ?? '').includes(runtimeContainerTarget.image)) {
         fail(`${label}_${toolId}_unlock_plan_container_command_not_tool_specific_image`)
+      }
+      if (practicalLocalProofImage) {
+        if (
+          !String(runtimeProofStep?.practicalLocalProofContainerCommand ?? '')
+            .includes(`--runtime-container-image ${practicalLocalProofImage}`)
+        ) {
+          fail(`${label}_${toolId}_unlock_plan_runtime_practical_command_missing_image`)
+        }
+      } else if (runtimeProofStep?.practicalLocalProofContainerCommand !== null) {
+        fail(`${label}_${toolId}_unexpected_unlock_plan_runtime_practical_command`)
       }
       if (toolId === 'kornia' &&
         !String(runtimeProofStep?.containerCommand ?? '').includes('--allow-cpu-tensor-runtime')) {

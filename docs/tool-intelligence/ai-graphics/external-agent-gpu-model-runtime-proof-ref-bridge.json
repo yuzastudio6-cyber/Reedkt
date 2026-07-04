@@ -44,7 +44,141 @@
     "noProviderRuntime": true,
     "noPublicArtifact": true,
     "noSignedUrl": true,
-    "committedRecordMustAcceptZeroTools": true
+    "committedRecordMustAcceptZeroTools": true,
+    "exactPerToolPrivateOutputContracts": {
+      "torch_torchvision": {
+        "acceptedRuntimeEvidence": "cpu_foundation_runtime_when_allowCpuFoundationRuntime_is_true",
+        "requiredPrivateOutputFields": [
+          "runtime.cpuFoundationRuntimeAllowed=true",
+          "runtime.cudaAvailable=false",
+          "runtime.deviceType=cpu",
+          "runtime.modelInferencePerformed=false",
+          "runtime.mediaProcessed=false"
+        ]
+      },
+      "transformers": {
+        "acceptedRuntimeEvidence": "cpu_foundation_runtime_when_allowCpuFoundationRuntime_is_true",
+        "requiredPrivateOutputFields": [
+          "runtime.cpuFoundationRuntimeAllowed=true",
+          "runtime.cudaAvailable=false",
+          "runtime.deviceType=cpu",
+          "runtime.modelInferencePerformed=false",
+          "runtime.mediaProcessed=false"
+        ]
+      },
+      "sam2": {
+        "acceptedRuntimeEvidence": "native_cuda_sam2_mask_sequence",
+        "requiredPrivateOutputFields": [
+          "toolId=sam2",
+          "cudaAvailable=true",
+          "deviceName",
+          "privateSourceFrame.sourceImagePath",
+          "privateSourceFrame.framePaths[]",
+          "masks.maskPaths[]",
+          "masks.overlayPaths[]",
+          "masks.perFrame[]",
+          "runtime.modelId=sam2.1_hiera_tiny",
+          "runtime.privateSourceFrameUsed=true",
+          "runtime.realMediaUsed=false",
+          "runtime.broadRealMediaInputEnabled=false",
+          "runtime.externalModelDownloadAttempted=false",
+          "runtime.modelDownloadedExternally=false",
+          "runtime.providerRuntimePerformed=false",
+          "runtime.publicArtifactCreated=false",
+          "runtime.signedUrlCreated=false"
+        ]
+      },
+      "birefnet": {
+        "acceptedRuntimeEvidence": "native_cuda_birefnet_mask_and_cutout",
+        "requiredPrivateOutputFields": [
+          "toolId=birefnet",
+          "cudaAvailable=true",
+          "deviceName",
+          "fixture.path",
+          "fixture.kind",
+          "mask.path",
+          "mask.cutoutPath",
+          "mask.nonZeroRatio",
+          "mask.meanAlpha",
+          "runtime.modelDownloadedExternally=false",
+          "runtime.providerRuntimePerformed=false",
+          "runtime.publicArtifactCreated=false",
+          "runtime.signedUrlCreated=false"
+        ]
+      },
+      "real_esrgan": {
+        "acceptedRuntimeEvidence": "native_cuda_real_esrgan_enhanced_image",
+        "requiredPrivateOutputFields": [
+          "toolId=real_esrgan",
+          "cudaAvailable=true",
+          "deviceName",
+          "enhanced.path",
+          "enhanced.scale=4",
+          "enhanced.sizeBytes",
+          "sourceFrame.path_or_fixture.path_or_sampleCrop.path",
+          "runtime.modelName=RealESRGAN_x4plus",
+          "runtime.faceEnhanceRan=false",
+          "runtime.gfpganImported=false",
+          "runtime.filmUsed=false",
+          "runtime.modelDownloadedExternally=false",
+          "runtime.providerRuntimePerformed=false",
+          "runtime.publicArtifactCreated=false",
+          "runtime.signedUrlCreated=false"
+        ]
+      },
+      "kornia": {
+        "acceptedRuntimeEvidence": "cpu_tensor_runtime_when_allowCpuTensorRuntime_is_true",
+        "requiredPrivateOutputFields": [
+          "toolId=kornia",
+          "cpuTensorRuntimeAllowed=true",
+          "cudaAvailable=false",
+          "deviceType=cpu",
+          "mask.path",
+          "metrics.gaussianKernel",
+          "runtime.modelDownloadedExternally=false",
+          "runtime.providerRuntimePerformed=false",
+          "runtime.publicArtifactCreated=false",
+          "runtime.signedUrlCreated=false"
+        ]
+      },
+      "rembg": {
+        "acceptedRuntimeEvidence": "native_cuda_onnxruntime_rembg_cutout",
+        "requiredPrivateOutputFields": [
+          "toolId=rembg",
+          "cudaExecutionProviderAvailable=true",
+          "runtime.availableProviders includes CUDAExecutionProvider",
+          "runtime.modelName",
+          "input.path",
+          "mask.path",
+          "mask.cutoutPath",
+          "mask.meanAlpha",
+          "mask.nonZeroRatio",
+          "runtime.modelDownloadedExternally=false",
+          "runtime.providerRuntimePerformed=false",
+          "runtime.publicArtifactCreated=false",
+          "runtime.signedUrlCreated=false"
+        ]
+      },
+      "transparent_background": {
+        "acceptedRuntimeEvidence": "native_cuda_transparent_background_checkpoint_cutout",
+        "requiredPrivateOutputFields": [
+          "toolId=transparent_background",
+          "cudaAvailable=true",
+          "deviceName",
+          "runtime.mode",
+          "runtime.checkpointPath",
+          "input.path",
+          "mask.path",
+          "mask.cutoutPath",
+          "mask.meanAlpha",
+          "mask.nonZeroRatio",
+          "runtime.modelDownloadedExternally=false",
+          "runtime.providerRuntimePerformed=false",
+          "runtime.publicArtifactCreated=false",
+          "runtime.signedUrlCreated=false"
+        ]
+      }
+    }
   },
   "counts": {
     "totalAiGraphicsTools": 21,

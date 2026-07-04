@@ -39,6 +39,144 @@ const modelWeightManifestRequiredTools = new Set<string>([
 type JsonRecord = Record<string, any>
 type GpuModelToolId = (typeof gpuModelTools)[number]
 
+const privateOutputContractByTool: Record<GpuModelToolId, {
+  acceptedRuntimeEvidence: string
+  requiredPrivateOutputFields: string[]
+}> = {
+  torch_torchvision: {
+    acceptedRuntimeEvidence: 'cpu_foundation_runtime_when_allowCpuFoundationRuntime_is_true',
+    requiredPrivateOutputFields: [
+      'runtime.cpuFoundationRuntimeAllowed=true',
+      'runtime.cudaAvailable=false',
+      'runtime.deviceType=cpu',
+      'runtime.modelInferencePerformed=false',
+      'runtime.mediaProcessed=false',
+    ],
+  },
+  transformers: {
+    acceptedRuntimeEvidence: 'cpu_foundation_runtime_when_allowCpuFoundationRuntime_is_true',
+    requiredPrivateOutputFields: [
+      'runtime.cpuFoundationRuntimeAllowed=true',
+      'runtime.cudaAvailable=false',
+      'runtime.deviceType=cpu',
+      'runtime.modelInferencePerformed=false',
+      'runtime.mediaProcessed=false',
+    ],
+  },
+  sam2: {
+    acceptedRuntimeEvidence: 'native_cuda_sam2_mask_sequence',
+    requiredPrivateOutputFields: [
+      'toolId=sam2',
+      'cudaAvailable=true',
+      'deviceName',
+      'privateSourceFrame.sourceImagePath',
+      'privateSourceFrame.framePaths[]',
+      'masks.maskPaths[]',
+      'masks.overlayPaths[]',
+      'masks.perFrame[]',
+      'runtime.modelId=sam2.1_hiera_tiny',
+      'runtime.privateSourceFrameUsed=true',
+      'runtime.realMediaUsed=false',
+      'runtime.broadRealMediaInputEnabled=false',
+      'runtime.externalModelDownloadAttempted=false',
+      'runtime.modelDownloadedExternally=false',
+      'runtime.providerRuntimePerformed=false',
+      'runtime.publicArtifactCreated=false',
+      'runtime.signedUrlCreated=false',
+    ],
+  },
+  birefnet: {
+    acceptedRuntimeEvidence: 'native_cuda_birefnet_mask_and_cutout',
+    requiredPrivateOutputFields: [
+      'toolId=birefnet',
+      'cudaAvailable=true',
+      'deviceName',
+      'fixture.path',
+      'fixture.kind',
+      'mask.path',
+      'mask.cutoutPath',
+      'mask.nonZeroRatio',
+      'mask.meanAlpha',
+      'runtime.modelDownloadedExternally=false',
+      'runtime.providerRuntimePerformed=false',
+      'runtime.publicArtifactCreated=false',
+      'runtime.signedUrlCreated=false',
+    ],
+  },
+  real_esrgan: {
+    acceptedRuntimeEvidence: 'native_cuda_real_esrgan_enhanced_image',
+    requiredPrivateOutputFields: [
+      'toolId=real_esrgan',
+      'cudaAvailable=true',
+      'deviceName',
+      'enhanced.path',
+      'enhanced.scale=4',
+      'enhanced.sizeBytes',
+      'sourceFrame.path_or_fixture.path_or_sampleCrop.path',
+      'runtime.modelName=RealESRGAN_x4plus',
+      'runtime.faceEnhanceRan=false',
+      'runtime.gfpganImported=false',
+      'runtime.filmUsed=false',
+      'runtime.modelDownloadedExternally=false',
+      'runtime.providerRuntimePerformed=false',
+      'runtime.publicArtifactCreated=false',
+      'runtime.signedUrlCreated=false',
+    ],
+  },
+  kornia: {
+    acceptedRuntimeEvidence: 'cpu_tensor_runtime_when_allowCpuTensorRuntime_is_true',
+    requiredPrivateOutputFields: [
+      'toolId=kornia',
+      'cpuTensorRuntimeAllowed=true',
+      'cudaAvailable=false',
+      'deviceType=cpu',
+      'mask.path',
+      'metrics.gaussianKernel',
+      'runtime.modelDownloadedExternally=false',
+      'runtime.providerRuntimePerformed=false',
+      'runtime.publicArtifactCreated=false',
+      'runtime.signedUrlCreated=false',
+    ],
+  },
+  rembg: {
+    acceptedRuntimeEvidence: 'native_cuda_onnxruntime_rembg_cutout',
+    requiredPrivateOutputFields: [
+      'toolId=rembg',
+      'cudaExecutionProviderAvailable=true',
+      'runtime.availableProviders includes CUDAExecutionProvider',
+      'runtime.modelName',
+      'input.path',
+      'mask.path',
+      'mask.cutoutPath',
+      'mask.meanAlpha',
+      'mask.nonZeroRatio',
+      'runtime.modelDownloadedExternally=false',
+      'runtime.providerRuntimePerformed=false',
+      'runtime.publicArtifactCreated=false',
+      'runtime.signedUrlCreated=false',
+    ],
+  },
+  transparent_background: {
+    acceptedRuntimeEvidence: 'native_cuda_transparent_background_checkpoint_cutout',
+    requiredPrivateOutputFields: [
+      'toolId=transparent_background',
+      'cudaAvailable=true',
+      'deviceName',
+      'runtime.mode',
+      'runtime.checkpointPath',
+      'input.path',
+      'mask.path',
+      'mask.cutoutPath',
+      'mask.meanAlpha',
+      'mask.nonZeroRatio',
+      'runtime.modelDownloadedExternally=false',
+      'runtime.providerRuntimePerformed=false',
+      'runtime.publicArtifactCreated=false',
+      'runtime.signedUrlCreated=false',
+    ],
+  },
+}
+
 interface ProofRefCallerRow {
   toolId: GpuModelToolId
   capabilityId: string
@@ -258,6 +396,35 @@ function anyUnsafeUrl(value: unknown): boolean {
   return Object.values(value as JsonRecord).some(anyUnsafeUrl)
 }
 
+function nonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+function positiveNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+}
+
+function nonEmptyStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.length > 0 && value.every(nonEmptyString)
+}
+
+function nonEmptyRecordArray(value: unknown): value is JsonRecord[] {
+  return Array.isArray(value) && value.length > 0 && value.every((item) => (
+    item !== null && typeof item === 'object' && !Array.isArray(item)
+  ))
+}
+
+function runtimeFlagIsFalse(outputJson: JsonRecord, key: string): boolean {
+  return nestedValue(outputJson, ['runtime', key]) === false
+}
+
+function requiredRuntimeFlagsAreFalse(
+  outputJson: JsonRecord,
+  keys: string[],
+): boolean {
+  return keys.every((key) => runtimeFlagIsFalse(outputJson, key))
+}
+
 function outputToolMatches(
   toolId: GpuModelToolId,
   outputJson: JsonRecord,
@@ -297,6 +464,157 @@ function outputHasGpuEvidence(
     outputJson.cudaAvailable === true ||
     nestedValue(outputJson, ['runtime', 'cudaAvailable']) === true
   )
+}
+
+function acceptsSam2GpuProof(outputJson: JsonRecord): boolean {
+  const perFrame = nestedValue(outputJson, ['masks', 'perFrame'])
+  return (
+    outputJson.cudaAvailable === true &&
+    nonEmptyString(outputJson.deviceName) &&
+    nestedValue(outputJson, ['runtime', 'modelId']) === 'sam2.1_hiera_tiny' &&
+    nestedValue(outputJson, ['runtime', 'privateSourceFrameUsed']) === true &&
+    nestedValue(outputJson, ['runtime', 'realMediaUsed']) === false &&
+    nestedValue(outputJson, ['runtime', 'broadRealMediaInputEnabled']) === false &&
+    requiredRuntimeFlagsAreFalse(outputJson, [
+      'externalModelDownloadAttempted',
+      'modelDownloadedExternally',
+      'providerRuntimePerformed',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+    ]) &&
+    nonEmptyString(nestedValue(outputJson, ['privateSourceFrame', 'sourceImagePath'])) &&
+    positiveNumber(nestedValue(outputJson, ['privateSourceFrame', 'width'])) &&
+    positiveNumber(nestedValue(outputJson, ['privateSourceFrame', 'height'])) &&
+    positiveNumber(nestedValue(outputJson, ['privateSourceFrame', 'frameCount'])) &&
+    nonEmptyStringArray(nestedValue(outputJson, ['privateSourceFrame', 'framePaths'])) &&
+    nonEmptyStringArray(nestedValue(outputJson, ['privateSourceFrame', 'jpegFramePaths'])) &&
+    nonEmptyStringArray(nestedValue(outputJson, ['masks', 'maskPaths'])) &&
+    nonEmptyStringArray(nestedValue(outputJson, ['masks', 'overlayPaths'])) &&
+    nonEmptyRecordArray(perFrame) &&
+    perFrame.every((frame) => (
+      typeof frame.frameIndex === 'number' &&
+      Number.isFinite(frame.frameIndex) &&
+      typeof frame.nonZeroRatio === 'number' &&
+      Number.isFinite(frame.nonZeroRatio)
+    ))
+  )
+}
+
+function acceptsBirefnetGpuProof(outputJson: JsonRecord): boolean {
+  return (
+    outputJson.cudaAvailable === true &&
+    nonEmptyString(outputJson.deviceName) &&
+    requiredRuntimeFlagsAreFalse(outputJson, [
+      'modelDownloadedExternally',
+      'providerRuntimePerformed',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+    ]) &&
+    positiveNumber(nestedValue(outputJson, ['fixture', 'width'])) &&
+    positiveNumber(nestedValue(outputJson, ['fixture', 'height'])) &&
+    nonEmptyString(nestedValue(outputJson, ['fixture', 'path'])) &&
+    nonEmptyString(nestedValue(outputJson, ['fixture', 'kind'])) &&
+    positiveNumber(nestedValue(outputJson, ['mask', 'width'])) &&
+    positiveNumber(nestedValue(outputJson, ['mask', 'height'])) &&
+    typeof nestedValue(outputJson, ['mask', 'nonZeroRatio']) === 'number' &&
+    typeof nestedValue(outputJson, ['mask', 'meanAlpha']) === 'number' &&
+    typeof nestedValue(outputJson, ['mask', 'minAlpha']) === 'number' &&
+    typeof nestedValue(outputJson, ['mask', 'maxAlpha']) === 'number' &&
+    nonEmptyString(nestedValue(outputJson, ['mask', 'path'])) &&
+    nonEmptyString(nestedValue(outputJson, ['mask', 'cutoutPath']))
+  )
+}
+
+function acceptsRealEsrganGpuProof(outputJson: JsonRecord): boolean {
+  return (
+    outputJson.cudaAvailable === true &&
+    nonEmptyString(outputJson.deviceName) &&
+    nestedValue(outputJson, ['runtime', 'modelName']) === 'RealESRGAN_x4plus' &&
+    nestedValue(outputJson, ['runtime', 'faceEnhanceRan']) === false &&
+    nestedValue(outputJson, ['runtime', 'gfpganImported']) === false &&
+    nestedValue(outputJson, ['runtime', 'filmUsed']) === false &&
+    requiredRuntimeFlagsAreFalse(outputJson, [
+      'modelDownloadedExternally',
+      'providerRuntimePerformed',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+    ]) &&
+    positiveNumber(nestedValue(outputJson, ['enhanced', 'width'])) &&
+    positiveNumber(nestedValue(outputJson, ['enhanced', 'height'])) &&
+    nestedValue(outputJson, ['enhanced', 'scale']) === 4 &&
+    nonEmptyString(nestedValue(outputJson, ['enhanced', 'path'])) &&
+    positiveNumber(nestedValue(outputJson, ['enhanced', 'sizeBytes'])) &&
+    (
+      nonEmptyString(nestedValue(outputJson, ['sourceFrame', 'path'])) ||
+      nonEmptyString(nestedValue(outputJson, ['fixture', 'path'])) ||
+      nonEmptyString(nestedValue(outputJson, ['sampleCrop', 'path']))
+    )
+  )
+}
+
+function acceptsRembgGpuProof(outputJson: JsonRecord): boolean {
+  const providers = nestedValue(outputJson, ['runtime', 'availableProviders'])
+  return (
+    outputJson.cudaExecutionProviderAvailable === true &&
+    Array.isArray(providers) &&
+    providers.includes('CUDAExecutionProvider') &&
+    nonEmptyString(nestedValue(outputJson, ['runtime', 'modelName'])) &&
+    requiredRuntimeFlagsAreFalse(outputJson, [
+      'modelDownloadedExternally',
+      'providerRuntimePerformed',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+    ]) &&
+    nonEmptyString(nestedValue(outputJson, ['input', 'path'])) &&
+    positiveNumber(nestedValue(outputJson, ['input', 'width'])) &&
+    positiveNumber(nestedValue(outputJson, ['input', 'height'])) &&
+    nonEmptyString(nestedValue(outputJson, ['mask', 'path'])) &&
+    nonEmptyString(nestedValue(outputJson, ['mask', 'cutoutPath'])) &&
+    typeof nestedValue(outputJson, ['mask', 'meanAlpha']) === 'number' &&
+    typeof nestedValue(outputJson, ['mask', 'nonZeroRatio']) === 'number'
+  )
+}
+
+function acceptsTransparentBackgroundGpuProof(outputJson: JsonRecord): boolean {
+  return (
+    outputJson.cudaAvailable === true &&
+    nonEmptyString(outputJson.deviceName) &&
+    nonEmptyString(nestedValue(outputJson, ['runtime', 'mode'])) &&
+    nonEmptyString(nestedValue(outputJson, ['runtime', 'checkpointPath'])) &&
+    requiredRuntimeFlagsAreFalse(outputJson, [
+      'modelDownloadedExternally',
+      'providerRuntimePerformed',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+    ]) &&
+    nonEmptyString(nestedValue(outputJson, ['input', 'path'])) &&
+    positiveNumber(nestedValue(outputJson, ['input', 'width'])) &&
+    positiveNumber(nestedValue(outputJson, ['input', 'height'])) &&
+    nonEmptyString(nestedValue(outputJson, ['mask', 'path'])) &&
+    nonEmptyString(nestedValue(outputJson, ['mask', 'cutoutPath'])) &&
+    typeof nestedValue(outputJson, ['mask', 'meanAlpha']) === 'number' &&
+    typeof nestedValue(outputJson, ['mask', 'nonZeroRatio']) === 'number'
+  )
+}
+
+function acceptsToolSpecificGpuProof(
+  toolId: GpuModelToolId,
+  outputJson: JsonRecord,
+): boolean {
+  switch (toolId) {
+    case 'sam2':
+      return acceptsSam2GpuProof(outputJson)
+    case 'birefnet':
+      return acceptsBirefnetGpuProof(outputJson)
+    case 'real_esrgan':
+      return acceptsRealEsrganGpuProof(outputJson)
+    case 'rembg':
+      return acceptsRembgGpuProof(outputJson)
+    case 'transparent_background':
+      return acceptsTransparentBackgroundGpuProof(outputJson)
+    default:
+      return outputHasGpuEvidence(toolId, outputJson)
+  }
 }
 
 function acceptsCpuFoundationProof(
@@ -340,9 +658,9 @@ function outputHasAcceptedRuntimeEvidence(
   row: LocalProofHarnessRow | undefined,
   outputJson: JsonRecord,
 ): boolean {
-  return outputHasGpuEvidence(toolId, outputJson) ||
-    acceptsCpuFoundationProof(toolId, row, outputJson) ||
-    acceptsKorniaCpuTensorProof(toolId, row, outputJson)
+  return acceptsCpuFoundationProof(toolId, row, outputJson) ||
+    acceptsKorniaCpuTensorProof(toolId, row, outputJson) ||
+    acceptsToolSpecificGpuProof(toolId, outputJson)
 }
 
 function expectedGpuRuntimeShouldStartDuringScopedProof(
@@ -742,6 +1060,7 @@ function buildReport(localProofResultPath?: string) {
       noPublicArtifact: true,
       noSignedUrl: true,
       committedRecordMustAcceptZeroTools: !localProofResultPath,
+      exactPerToolPrivateOutputContracts: privateOutputContractByTool,
     },
     counts: {
       totalAiGraphicsTools: 21,
@@ -841,6 +1160,8 @@ Status: \`${report.status}\`
 This bridge connects real scoped local-dev GPU/model runtime proof evidence to the external-agent proof-ref route caller. The committed record intentionally accepts zero GPU/model proofs because no private local runtime proof result is supplied.
 
 It does not start GPU runtime, write live queues, dispatch workers, execute tools, load model weights, create public artifacts, create signed URLs, unlock external beta, or unlock production. GPU runtime can start only in the upstream scoped local-dev harness call that supplies private inputs for one requested tool.
+
+Private output proof is accepted only when the JSON matches the exact per-tool contract for that tool. The model/checkpoint-backed tools require tool-shaped evidence such as SAM2 mask sequences, BiRefNet mask/cutout output, Real-ESRGAN enhanced output, rembg CUDAExecutionProvider output, or transparent-background checkpoint output; generic CUDA-looking JSON is not enough.
 
 ## Bridge rows
 

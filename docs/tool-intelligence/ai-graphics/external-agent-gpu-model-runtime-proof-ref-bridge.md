@@ -8,6 +8,8 @@ This bridge connects real scoped local-dev GPU/model runtime proof evidence to t
 
 It does not start GPU runtime, write live queues, dispatch workers, execute tools, load model weights, create public artifacts, create signed URLs, unlock external beta, or unlock production. GPU runtime can start only in the upstream scoped local-dev harness call that supplies private inputs for one requested tool.
 
+Private output proof is accepted only when the JSON matches the exact per-tool contract for that tool. The model/checkpoint-backed tools require tool-shaped evidence such as SAM2 mask sequences, BiRefNet mask/cutout output, Real-ESRGAN enhanced output, rembg CUDAExecutionProvider output, or transparent-background checkpoint output; generic CUDA-looking JSON is not enough.
+
 ## Bridge rows
 
 | Tool | Capability | Needs model manifest | Local proof supplied | Local proof accepted | Bridge status | Route submission ready | GPU starts now |

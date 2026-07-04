@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { readyAudioAdapterExecutionModeSchema, readyAudioAdapterToolIdSchema } from '../ready-audio-adapters'
 import { trackBAdapterExecutionModeSchema, trackBAdapterToolIdSchema } from '../trackb-adapters'
 import { PRODUCTION_TOOL_IDS, type ProductionToolId } from '../tool-registry'
 import { productionToolExecutionReadinessGateSchema } from './beta-readiness-schemas'
@@ -102,6 +103,8 @@ export const toolExecutionGatewayDispatchSchema = z.object({
   adapterId: adapterSchema.optional(),
   trackBAdapterToolId: trackBAdapterToolIdSchema.optional(),
   trackBAdapterExecutionMode: trackBAdapterExecutionModeSchema.optional(),
+  readyAudioAdapterToolId: readyAudioAdapterToolIdSchema.optional(),
+  readyAudioAdapterExecutionMode: readyAudioAdapterExecutionModeSchema.optional(),
   requestedToolIds: z.array(productionToolIdSchema).min(1),
   requestedRecipeIds: z.array(idSchema).default([]),
   artifactReferences: z.array(z.object({

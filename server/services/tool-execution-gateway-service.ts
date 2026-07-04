@@ -24,6 +24,12 @@ import {
   type ToolCostWalletSettlement,
 } from '../tool-cost-metering'
 import {
+  getReadyAudioAdapterContract,
+  isReadyAudioAdapterToolId,
+  runReadyAudioAdapter,
+  type ReadyAudioAdapterResult,
+} from '../ready-audio-adapters'
+import {
   getTrackBAdapterContract,
   isTrackBAdapterToolId,
   runTrackBAdapter,
@@ -125,6 +131,7 @@ export interface ToolExecutionGatewayDispatchResult {
   toolCostEvents?: ToolCostEvent[]
   walletSettlements?: ToolCostWalletSettlement[]
   trackBAdapterResult?: TrackBAdapterResult
+  readyAudioAdapterResult?: ReadyAudioAdapterResult
   workerRuntimeArtifactPipeline?: WorkerRuntimeArtifactPipelineResult
   workerResult?: ProductionWorkerExecutionResult
   warnings: string[]
@@ -195,14 +202,18 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
       const trackBAdapterResult = input.trackBAdapterToolId
         ? runTrackBAdapter(buildTrackBAdapterRequest(input))
         : undefined
+      const readyAudioAdapterResult = input.readyAudioAdapterToolId
+        ? runReadyAudioAdapter(buildReadyAudioAdapterRequest(input))
+        : undefined
       const productionReadiness = await validateProductionReadinessGate(context, input)
       blockers.push(...await validateApprovedSnapshotAndCreditReservation(context, input))
       blockers.push(...validateGatewayAdapter(adapterId, input))
-      blockers.push(...validateToolReadiness(input.requestedToolIds, input.workerType, input.executionMode, input.trackBAdapterToolId, adapterId))
+      blockers.push(...validateToolReadiness(input.requestedToolIds, input.workerType, input.executionMode, input.trackBAdapterToolId, input.readyAudioAdapterToolId, adapterId))
       blockers.push(...validateArtifactPrivacy(input))
       blockers.push(...validateMetadataSafety(input.metadata, adapterId))
       blockers.push(...validateCostCreditGate(input))
       blockers.push(...validateTrackBAdapterSelection(input, trackBAdapterResult))
+      blockers.push(...validateReadyAudioAdapterSelection(input, readyAudioAdapterResult))
       blockers.push(...productionReadiness.blockers)
 
       const payload = buildGatewayWorkerPayload({
@@ -227,6 +238,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
           }),
           productionReadinessReport: productionReadiness.report,
           trackBAdapterResult,
+          readyAudioAdapterResult,
           warnings,
         }
       }
@@ -248,6 +260,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
           }),
           productionReadinessReport: productionReadiness.report,
           trackBAdapterResult,
+          readyAudioAdapterResult,
           warnings: [
             ...warnings,
             ...billingBackendPreflight.warnings,
@@ -278,6 +291,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
           toolCostEvents: billingAudit.toolCostEvents,
           walletSettlements: billingAudit.walletSettlements,
           trackBAdapterResult: replay.trackBAdapterResult ?? trackBAdapterResult,
+          readyAudioAdapterResult: replay.readyAudioAdapterResult ?? readyAudioAdapterResult,
           workerRuntimeArtifactPipeline: replay.pipeline,
           workerResult: replay.workerResult,
           warnings: [
@@ -303,6 +317,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
             }),
             productionReadinessReport: productionReadiness.report,
             trackBAdapterResult,
+            readyAudioAdapterResult,
             workerRuntimeArtifactPipeline: persistentReplay,
             warnings: [
               ...warnings,
@@ -337,6 +352,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
           }),
           productionReadinessReport: productionReadiness.report,
           trackBAdapterResult,
+          readyAudioAdapterResult,
           warnings: [
             ...warnings,
             ...opsAdmission.warnings,
@@ -372,6 +388,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
         payload,
         workerResult,
         trackBAdapterResult,
+        readyAudioAdapterResult,
         apiIdempotencyKey: input.apiIdempotencyKey,
       })
       if (context.clients.admin && !context.env.mockOnly) {
@@ -402,6 +419,7 @@ export function createToolExecutionGatewayService(context: ServiceContext) {
         toolCostEvents: billingAudit.toolCostEvents,
         walletSettlements: billingAudit.walletSettlements,
         trackBAdapterResult,
+        readyAudioAdapterResult,
         workerRuntimeArtifactPipeline,
         workerResult,
         warnings: [
@@ -475,6 +493,8 @@ function buildGatewayWorkerPayload(input: {
       gatewayAdapterId: input.adapterId,
       trackBAdapterToolId: input.input.trackBAdapterToolId,
       trackBAdapterExecutionMode: input.input.trackBAdapterExecutionMode,
+      readyAudioAdapterToolId: input.input.readyAudioAdapterToolId,
+      readyAudioAdapterExecutionMode: input.input.readyAudioAdapterExecutionMode,
       creditEstimateId: input.input.creditEstimateId,
       approvedReservationRemainingCredits: input.input.approvedReservationRemainingCredits,
       estimatedHighCredits: input.input.estimatedHighCredits,
@@ -1151,7 +1171,9 @@ function validateGatewayAdapter(
       ? audioRecord.tasks
       : []
     const taskSet = new Set(tasks)
-    const expectedTasks = ['build_audio_analysis', 'build_loudness_plan', 'build_soundsync_cues', 'build_audio_qa_report']
+    const expectedTasks = input.readyAudioAdapterToolId
+      ? ['run_ready_audio_adapter', 'build_private_audio_manifest', 'build_audio_qa_report']
+      : ['build_audio_analysis', 'build_loudness_plan', 'build_soundsync_cues', 'build_audio_qa_report']
     const unexpectedTasks = tasks.filter((task) => !expectedTasks.includes(String(task)))
     const missingTasks = expectedTasks.filter((task) => !taskSet.has(task))
     const audioCleanupPlan = audioRecord?.audioCleanupPlan && typeof audioRecord.audioCleanupPlan === 'object'
@@ -1161,7 +1183,16 @@ function validateGatewayAdapter(
       ? audioCleanupPlan.fallbackTools
       : []
 
-    if (input.requestedToolIds.length !== 1 || input.requestedToolIds[0] !== 'audioflux') {
+    if (input.readyAudioAdapterToolId) {
+      if (!isReadyAudioAdapterToolId(input.readyAudioAdapterToolId) || input.requestedToolIds.length !== 1 || input.requestedToolIds[0] !== input.readyAudioAdapterToolId) {
+        blockers.push({
+          code: 'AUDIO_METADATA_READY_AUDIO_ADAPTER_TOOL_SCOPE_BLOCKED',
+          gateName: 'adapter_dispatch',
+          message: 'cpu_analysis_worker_audio_metadata may dispatch one reviewed ready-audio adapter tool per approved backend job.',
+          details: { readyAudioAdapterToolId: input.readyAudioAdapterToolId, requestedToolIds: input.requestedToolIds },
+        })
+      }
+    } else if (input.requestedToolIds.length !== 1 || input.requestedToolIds[0] !== 'audioflux') {
       blockers.push({
         code: 'AUDIO_METADATA_ADAPTER_TOOL_SCOPE_BLOCKED',
         gateName: 'adapter_dispatch',
@@ -1628,12 +1659,17 @@ function validateToolReadiness(
   workerType: ProductionWorkerRuntimeType,
   executionMode: ProductionWorkerExecutionMode,
   trackBAdapterToolId?: string,
+  readyAudioAdapterToolId?: string,
   adapterId?: ToolExecutionGatewayAdapterId,
 ): ToolExecutionGatewayBlocker[] {
   const blockers: ToolExecutionGatewayBlocker[] = []
 
   for (const toolId of toolIds) {
     if (trackBAdapterToolId && isTrackBAdapterToolId(trackBAdapterToolId) && toolId === trackBAdapterToolId) {
+      continue
+    }
+
+    if (readyAudioAdapterToolId && isReadyAudioAdapterToolId(readyAudioAdapterToolId) && toolId === readyAudioAdapterToolId) {
       continue
     }
 
@@ -1725,6 +1761,67 @@ function validateTrackBAdapterSelection(
     blockers.push(...result.blockers.map((blocker) => ({
       code: blocker.code,
       gateName: 'trackb_adapter_pack',
+      message: blocker.message,
+      details: blocker.details,
+    })))
+  }
+
+  return blockers
+}
+
+function validateReadyAudioAdapterSelection(
+  input: ToolExecutionGatewayDispatchBody,
+  result: ReadyAudioAdapterResult | undefined,
+): ToolExecutionGatewayBlocker[] {
+  if (!input.readyAudioAdapterToolId) return []
+
+  const blockers: ToolExecutionGatewayBlocker[] = []
+
+  if (input.trackBAdapterToolId) {
+    blockers.push({
+      code: 'GATEWAY_ADAPTER_PACK_AMBIGUOUS',
+      gateName: 'ready_audio_adapter_pack',
+      message: 'Ready audio adapter dispatch cannot be combined with a Track B adapter selection in the same approved backend job.',
+      details: {
+        trackBAdapterToolId: input.trackBAdapterToolId,
+        readyAudioAdapterToolId: input.readyAudioAdapterToolId,
+      },
+    })
+  }
+
+  if (!input.requestedToolIds.includes(input.readyAudioAdapterToolId)) {
+    blockers.push({
+      code: 'READY_AUDIO_ADAPTER_TOOL_NOT_REQUESTED',
+      gateName: 'ready_audio_adapter_pack',
+      message: 'Ready audio adapter tool must also appear in requestedToolIds.',
+      details: { readyAudioAdapterToolId: input.readyAudioAdapterToolId, requestedToolIds: input.requestedToolIds },
+    })
+  }
+
+  if (input.requestedToolIds.length !== 1) {
+    blockers.push({
+      code: 'READY_AUDIO_ADAPTER_ONE_TOOL_PER_REQUEST',
+      gateName: 'ready_audio_adapter_pack',
+      message: 'Ready audio adapter dispatch handles exactly one tool per approved backend job.',
+      details: { requestedToolIds: input.requestedToolIds },
+    })
+  }
+
+  const contract = getReadyAudioAdapterContract(input.readyAudioAdapterToolId)
+  const adapterId = input.adapterId ?? defaultAdapterForWorker(input.workerType)
+  if (contract.workerType === 'cpu_analysis_worker' && adapterId !== 'cpu_analysis_worker_audio_metadata') {
+    blockers.push({
+      code: 'READY_AUDIO_ADAPTER_GATEWAY_ADAPTER_REQUIRED',
+      gateName: 'ready_audio_adapter_pack',
+      message: 'CPU-owned ready audio tools must dispatch through cpu_analysis_worker_audio_metadata.',
+      details: { readyAudioAdapterToolId: input.readyAudioAdapterToolId, adapterId },
+    })
+  }
+
+  if (result?.status === 'blocked') {
+    blockers.push(...result.blockers.map((blocker) => ({
+      code: blocker.code,
+      gateName: 'ready_audio_adapter_pack',
       message: blocker.message,
       details: blocker.details,
     })))
@@ -2288,6 +2385,39 @@ function buildTrackBAdapterRequest(
       ...artifact,
       artifactType: contract.inputManifest[index]?.artifactType ?? defaultInputArtifactType,
       description: `Gateway Track B adapter input ${index + 1} for ${input.trackBAdapterToolId}.`,
+    })),
+    metadata: {
+      ...(input.metadata ?? {}),
+      apiIdempotencyKey: input.apiIdempotencyKey,
+    },
+  }
+}
+
+function buildReadyAudioAdapterRequest(
+  input: ToolExecutionGatewayDispatchBody & { apiIdempotencyKey: string },
+) {
+  if (!input.readyAudioAdapterToolId) {
+    throw new Error('Ready audio adapter tool ID is required to build adapter request.')
+  }
+
+  const contract = getReadyAudioAdapterContract(input.readyAudioAdapterToolId)
+  const defaultInputArtifactType = contract.inputManifest[0]?.artifactType ?? 'source_media'
+
+  return {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    jobId: input.jobId,
+    toolExecutionPlanId: input.toolExecutionPlanId,
+    approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+    creditEstimateId: input.creditEstimateId,
+    creditReservationId: input.creditReservationId,
+    toolId: input.readyAudioAdapterToolId,
+    workerType: input.workerType,
+    executionMode: input.readyAudioAdapterExecutionMode ?? 'dry_run',
+    inputArtifacts: input.artifactReferences.map((artifact, index) => ({
+      ...artifact,
+      artifactType: contract.inputManifest[index]?.artifactType ?? defaultInputArtifactType,
+      description: `Gateway ready-audio adapter input ${index + 1} for ${input.readyAudioAdapterToolId}.`,
     })),
     metadata: {
       ...(input.metadata ?? {}),

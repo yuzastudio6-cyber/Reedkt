@@ -101,7 +101,20 @@ export type UnifiedProductionToolId =
   | 'rnnoise'
   | 'demucs'
   | 'librosa'
+  | 'audioread'
+  | 'pydub'
+  | 'scipy'
+  | 'resampy'
+  | 'pyloudnorm'
   | 'audioflux'
+  | 'music21'
+  | 'pretty_midi'
+  | 'mido'
+  | 'noisereduce'
+  | 'pedalboard'
+  | 'mir_eval'
+  | 'pydub_effects'
+  | 'ebu_r128_pyloudnorm'
   | 'signalsmith_stretch'
   | 'soundtouch'
   | 'rubber_band'
@@ -214,6 +227,28 @@ export const TRACK_B_MEDIA_OSS_TOOL_IDS = [
   'echarts',
 ] as const satisfies readonly UnifiedToolId[]
 
+export const READY_AUDIO_ARCHITECTURE_TOOL_IDS = [
+  'librosa',
+  'audioread',
+  'pydub',
+  'scipy',
+  'resampy',
+  'pyloudnorm',
+  'audioflux',
+  'music21',
+  'pretty_midi',
+  'mido',
+  'noisereduce',
+  'mir_eval',
+  'pydub_effects',
+  'ebu_r128_pyloudnorm',
+  'signalsmith_stretch',
+] as const satisfies readonly UnifiedToolId[]
+
+export const AUDIO_LICENSE_REVIEW_TOOL_IDS = [
+  'pedalboard',
+] as const satisfies readonly UnifiedToolId[]
+
 function lane(input: UnifiedSkillLaneRecord): UnifiedSkillLaneRecord {
   return input
 }
@@ -269,17 +304,24 @@ export const UNIFIED_SKILL_CAPABILITY_REGISTRY = [
     plannerQuestionAliases: ['audio', 'soundsync', 'beat grid', 'onsets', 'stretch', 'music timing'],
     description: 'Maps rhythm/onset cues, timing fits, and music-bed adjustment candidates for approved edit plans.',
     laneStatus: 'ready_for_backend_execution',
-    toolIds: ['audioflux', 'signalsmith_stretch', 'deepfilternet', 'rnnoise', 'demucs', 'sound_cpu_lane'],
-    readyToolIds: ['audioflux', 'signalsmith_stretch'],
+    toolIds: [
+      ...READY_AUDIO_ARCHITECTURE_TOOL_IDS,
+      ...AUDIO_LICENSE_REVIEW_TOOL_IDS,
+      'deepfilternet',
+      'rnnoise',
+      'demucs',
+      'sound_cpu_lane',
+    ],
+    readyToolIds: [...READY_AUDIO_ARCHITECTURE_TOOL_IDS],
     dryRunOnlyToolIds: ['sound_cpu_lane'],
-    blockedToolIds: ['deepfilternet', 'rnnoise', 'demucs'],
+    blockedToolIds: [...AUDIO_LICENSE_REVIEW_TOOL_IDS, 'deepfilternet', 'rnnoise', 'demucs'],
     lanes: [
       lane({
         lane: 'track_b_media_oss',
         status: 'ready_for_backend_execution',
-        toolIds: ['audioflux', 'signalsmith_stretch'],
-        reason: 'Track B audio analysis/stretch candidates are available for backend-gated SoundSync planning and bounded execution evidence.',
-        nextGate: 'accepted_tool_execution_evidence_for_audio_recipe',
+        toolIds: [...READY_AUDIO_ARCHITECTURE_TOOL_IDS],
+        reason: 'The ready audio architecture pack is available for backend-gated SoundSync, loudness, MIR, MIDI, resampling, and simple effects planning after approved snapshot and credit gates.',
+        nextGate: 'ready_audio_tool_adapter_recipe_selection_and_container_import_evidence',
       }),
       lane({
         lane: 'sound_cpu',
@@ -291,13 +333,13 @@ export const UNIFIED_SKILL_CAPABILITY_REGISTRY = [
       lane({
         lane: 'sound_cpu',
         status: 'blocked_by_owner_approval',
-        toolIds: ['deepfilternet', 'rnnoise', 'demucs'],
-        reason: 'Denoise/source-separation tools need model, quality, and owner approval before product execution.',
-        nextGate: 'sound_cleanup_model_and_quality_approval',
+        toolIds: [...AUDIO_LICENSE_REVIEW_TOOL_IDS, 'deepfilternet', 'rnnoise', 'demucs'],
+        reason: 'Pedalboard needs GPL/commercial owner approval, and denoise/source-separation tools need model, quality, and owner approval before product execution.',
+        nextGate: 'sound_cleanup_license_model_and_quality_approval',
       }),
     ],
     executionGuardrails: [...hardExecutionGuardrails, 'speech_clarity_outranks_beat_alignment'],
-    plannerAnswer: 'AudioFlux and Signalsmith Stretch are the usable backend-gated audio tools; SOUND cleanup/separation remains visible but gated.',
+    plannerAnswer: 'The ready audio architecture pack is visible for backend-gated SoundSync/loudness/MIR/MIDI/effects planning; Pedalboard and model cleanup/separation stay owner-gated.',
   }),
   record({
     skillId: 'media.color_image_pipeline',
@@ -551,10 +593,10 @@ export const UNIFIED_SKILL_CAPABILITY_REGISTRY = [
     plannerQuestionAliases: ['sound lane', 'music', 'sfx', 'audio semantics'],
     description: 'SOUND-owned music/SFX/audio semantics and QA handoff that consumes Track B tool evidence without duplicating media processing.',
     laneStatus: 'dry_run_only',
-    toolIds: ['sound_cpu_lane', 'audioflux', 'signalsmith_stretch'],
-    readyToolIds: ['audioflux', 'signalsmith_stretch'],
+    toolIds: ['sound_cpu_lane', ...READY_AUDIO_ARCHITECTURE_TOOL_IDS, ...AUDIO_LICENSE_REVIEW_TOOL_IDS],
+    readyToolIds: [...READY_AUDIO_ARCHITECTURE_TOOL_IDS],
     dryRunOnlyToolIds: ['sound_cpu_lane'],
-    blockedToolIds: [],
+    blockedToolIds: [...AUDIO_LICENSE_REVIEW_TOOL_IDS],
     lanes: [
       lane({
         lane: 'sound_cpu',
@@ -566,13 +608,13 @@ export const UNIFIED_SKILL_CAPABILITY_REGISTRY = [
       lane({
         lane: 'track_b_media_oss',
         status: 'ready_for_backend_execution',
-        toolIds: ['audioflux', 'signalsmith_stretch'],
-        reason: 'Track B can supply bounded audio-feature/stretch candidates to SOUND after approved snapshots.',
-        nextGate: 'approved_sound_tool_handoff_recipe',
+        toolIds: [...READY_AUDIO_ARCHITECTURE_TOOL_IDS],
+        reason: 'Backend-gated audio architecture tools can supply bounded feature/loudness/MIR/MIDI/effects metadata to SOUND after approved snapshots.',
+        nextGate: 'approved_sound_tool_handoff_recipe_and_container_import_evidence',
       }),
     ],
     executionGuardrails: [...hardExecutionGuardrails, 'speech_clarity_qa_required'],
-    plannerAnswer: 'SOUND can plan against AudioFlux/Signalsmith evidence, but SOUND semantic/runtime execution remains dry-run gated.',
+    plannerAnswer: 'SOUND can plan against the ready audio architecture pack, but SOUND semantic/runtime execution remains dry-run gated and Pedalboard remains license-gated.',
   }),
   record({
     skillId: 'track_a.native_container_tools',
@@ -806,6 +848,7 @@ export function buildUnifiedSkillCapabilitySummary(): UnifiedSkillCapabilitySumm
       'ready_for_backend_execution means backend-gated candidate only; it is not external beta, paid production, or product-ready local OSS by itself.',
       'External beta/product readiness still requires approved plan snapshots, credit estimate/reservation, idempotency, private artifact storage, deployed billing persistence, owner approvals, and accepted runtime evidence.',
       'Qwen and SOUND lanes stay visible with their current gates; Track A native capabilities are backend-gated candidates and still preserve the Track B FFmpeg/ffprobe boundary.',
+      'The ready audio architecture pack extends audio planning without changing the fixed 16-tool Track B handoff count or product-ready local OSS count.',
     ],
   }
 }

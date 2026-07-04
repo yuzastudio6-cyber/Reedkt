@@ -33,7 +33,7 @@ Lane status values are intentionally narrow:
 | Planner question | Current answer |
 | --- | --- |
 | OCR | OpenCV can be planned for conservative backend checks. PaddleOCR remains gated by model-weight/privacy/owner approval. Playwright-backed OCR inputs need browser source/privacy approval. |
-| Audio/SoundSync | AudioFlux and Signalsmith Stretch are backend-gated candidates. SOUND semantic/runtime work remains dry-run gated, and cleanup/separation tools need owner/model/quality approval. |
+| Audio/SoundSync | The ready audio architecture pack is visible for backend-gated feature, timing, loudness, MIR, MIDI, and simple effects planning. SOUND semantic/runtime work remains dry-run gated, Pedalboard remains license-review gated, and cleanup/separation model tools need owner/model/quality approval. |
 | Color/image | OpenColorIO, OpenImageIO, OpenCV, Sharp, and FFmpeg are backend-gated candidates. Actual use still needs approved recipes, private artifacts, and color QA. |
 | Render/composition | Remotion, libass, FFmpeg, Sharp, and OpenTimelineIO are backend-gated candidates. Final render/export remains blocked by deployed storage, billing, wallet, and artifact gates. |
 | Transcript | faster-whisper and whisper.cpp are not product execution-ready. They need model-weight/privacy/owner approval, with whisper.cpp remaining evaluation-only. |
@@ -48,6 +48,14 @@ The registry exposes the Track B media OSS handoff set as 16 tool IDs:
 `ffmpeg`, `ffprobe`, `pyav`, `opentimelineio`, `remotion`, `libass`, `sharp`, `paddleocr`, `pyscenedetect`, `opencv`, `opencolorio`, `openimageio`, `audioflux`, `signalsmith_stretch`, `d3`, and `echarts`.
 
 That set is a capability handoff and planning map, not a blanket external beta launch approval.
+
+## Ready Audio Architecture Pack
+
+The audio and SOUND lanes also expose a backend-gated ready audio architecture pack for planning and adapter work:
+
+`librosa`, `audioread`, `pydub`, `scipy`, `resampy`, `pyloudnorm`, `audioflux`, `music21`, `pretty_midi`, `mido`, `noisereduce`, `mir_eval`, `pydub_effects`, `ebu_r128_pyloudnorm`, and existing companion `signalsmith_stretch`.
+
+`server/ready-audio-adapters` gives these audio/music tools a backend adapter contract and gateway call path with `dry_run` and `bounded_execution` adapter modes, private manifests, result schemas, and QA checks. `pedalboard` is deliberately visible but blocked by license/commercial-use review. These entries do not change the fixed 16-tool Track B handoff set, do not approve frontend execution, and do not mark any tool product-ready.
 
 ## Visible Gated Lanes
 
@@ -87,5 +95,6 @@ The smoke checks:
 - OCR/audio/color/render/transcript queries return expected tools and gates
 - Qwen and SOUND lanes remain visibly gated
 - Track A native capability queries resolve `streamer_render_pipeline_support`, `mkvtoolnix_container_validation`, and `gpac_mp4box_packaging_validation` as backend-gated candidates without unlocking beta/production
+- the ready audio architecture pack resolves through audio and SOUND lanes while Pedalboard remains blocked
 - product-ready local OSS stays `0`
 - external beta/production is not unlocked by the registry

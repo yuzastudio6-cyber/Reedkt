@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "2026-07-03.ai-graphics.external-agent-gpu-model-private-proof-sequence",
+  "decision": "ai_graphics_external_agent_gpu_model_private_proof_sequence_prepared_with_runtime_blocks",
+  "status": "gpu_model_private_proof_sequence_ready_kornia_first_blocked_until_scoped_private_cuda_proof",
+  "summary": "Runs the scoped GPU/model private proof sequence for one tool: local-dev controlled adapter harness, SHA-checked proof-ref bridge, then all-21 external-agent readiness recomputation. The default committed record targets Kornia without runtime execution and stays blocked. Actual GPU execution requires --attempt-local-runtime plus private inputs and remains local-only.",
+  "requestedToolId": "kornia",
+  "fastestUnlockCandidate": "kornia",
+  "sourceEvidence": {
+    "gpuModelLocalDevRuntimeExecutionHarness": {
+      "decision": "ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_prepared_with_runtime_blocks",
+      "status": "local_dev_runtime_inputs_required_before_eight_gpu_model_tools_execute",
+      "accepted": true
+    },
+    "gpuModelRuntimeProofRefBridge": {
+      "decision": "ai_graphics_external_agent_gpu_model_runtime_proof_ref_bridge_prepared_with_runtime_blocks",
+      "status": "gpu_model_runtime_proof_ref_bridge_blocked_until_private_local_runtime_proof_is_supplied",
+      "accepted": true
+    },
+    "externalAgentExecutionReadiness": {
+      "decision": "ai_graphics_external_agent_execution_readiness_all21_evaluated_with_gpu_model_blocks",
+      "status": "external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof",
+      "accepted": true
+    }
+  },
+  "interfaces": {
+    "packageScript": "ai-graphics:external-agent-gpu-model-private-proof-sequence",
+    "diagnosticScript": "ai-graphics:external-agent-gpu-model-private-proof-sequence:diagnostics",
+    "cli": "server/cli/ai-graphics-external-agent-gpu-model-private-proof-sequence.ts",
+    "diagnostic": "scripts/validation/ai-graphics-external-agent-gpu-model-private-proof-sequence-diagnostics.mjs",
+    "defaultCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence",
+    "writeRecordsCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --write-records",
+    "korniaFirstPrivateProofSequenceCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>",
+    "directHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --tool kornia --runtime-backend host_python",
+    "defaultKorniaHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png>",
+    "bridgeCommand": null,
+    "readinessCommand": null,
+    "canonicalGpuWorkerProofImage": "reeditpro/ai-graphics-gpu-worker:proof-local",
+    "canonicalGpuWorkerProofImageBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local ."
+  },
+  "sequencePolicy": {
+    "scopedToolOnly": true,
+    "oneToolPerPrivateProofSequence": true,
+    "defaultTool": "kornia",
+    "defaultToolReason": "Kornia requires CUDA plus one private approved frame and no private model/checkpoint file, so it is the fastest honest GPU/model unlock candidate.",
+    "explicitRuntimeAttemptRequired": true,
+    "privateInputsRequired": true,
+    "privateProofResultMustStayUnderLocalArtifacts": true,
+    "proofBridgeRequiresOutputJsonSha256Match": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuMayStartOnlyDuringScopedLocalRuntimeAttempt": false,
+    "noCpuFallbackForGpuModelTools": true,
+    "noModelDownload": true,
+    "noProviderRuntime": true,
+    "noPublicArtifacts": true,
+    "noSignedUrls": true,
+    "noExternalBetaUnlock": true,
+    "noProductionUnlock": true
+  },
+  "counts": {
+    "requestedGpuModelTools": 1,
+    "localRuntimeExecutionPerformedTools": 0,
+    "toolExecutionApprovedNowTools": 0,
+    "acceptedPrivateProofTools": 0,
+    "routeSubmissionReadyWithAcceptedPrivateProofTools": 0,
+    "readinessAgentExecutableTools": 13,
+    "readinessGpuToolsWithValidRuntimeProof": 0,
+    "readinessBlockedWithReasonTools": 8,
+    "gpuRuntimeShouldStartNowTools": 0,
+    "publicArtifactCreatedTools": 0,
+    "signedUrlCreatedTools": 0
+  },
+  "requestedToolResult": {
+    "harness": {
+      "adapterStatus": "controlled_gpu_model_adapter_invoked_runtime_skipped",
+      "executionState": "blocked_with_reason",
+      "localRuntimeExecutionPerformed": false,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "skipReasonCode": "kornia_source_frame_missing",
+      "errorMessage": null,
+      "outputJsonPath": null,
+      "outputJsonSha256": null
+    },
+    "bridge": {
+      "proofRefBridgeStatus": "blocked_missing_private_local_runtime_proof_result",
+      "routeSubmissionReadyWithAcceptedPrivateProof": false,
+      "localRuntimeProofAccepted": false,
+      "privateOutputJsonSha256Matches": false,
+      "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace"
+    },
+    "readiness": {
+      "readinessState": "blocked_with_reason",
+      "executable": false,
+      "routeSubmissionReadyWithAcceptedPrivateProof": false,
+      "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing"
+    }
+  },
+  "booleans": {
+    "externalAgentGpuModelPrivateProofSequencePrepared": true,
+    "korniaFirstUnlockPathPrepared": true,
+    "scopedToolOnly": true,
+    "localRuntimeAttemptRequested": false,
+    "localRuntimeExecutedForRequestedTool": false,
+    "proofBridgeExecuted": true,
+    "readinessRecomputed": true,
+    "acceptedPrivateProofForRequestedTool": false,
+    "agentCanExecute13NonGpuControlledToolsNow": true,
+    "agentCanExecuteGpuModelToolsNow": false,
+    "agentCanExecuteAll21ToolsNow": false,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuRuntimeShouldStartNow": false,
+    "gpuRuntimeStartedOnlyDuringScopedAttempt": true,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "providerRuntimePerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "runtimeReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "nextExactAction": "Run the Kornia-first private proof sequence on an approved native Linux/amd64 NVIDIA CUDA host with the canonical proof image and one private approved source frame."
+}

@@ -1066,6 +1066,8 @@ for (const section of ['dependencies', 'devDependencies', 'optionalDependencies'
 
 const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
 const allowedPackageAdditions = new Set([
+  '+    "ai-graphics:external-agent-gpu-model-private-proof-sequence": "tsx server/cli/ai-graphics-external-agent-gpu-model-private-proof-sequence.ts",',
+  '+    "ai-graphics:external-agent-gpu-model-private-proof-sequence:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-private-proof-sequence-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-api-route-controlled-worker-runtime-proof": "tsx server/cli/ai-graphics-external-beta-api-route-controlled-worker-runtime-proof.ts",',
   '+    "ai-graphics:external-beta-api-route-controlled-worker-runtime-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-controlled-worker-runtime-proof-diagnostics.mjs",',
   '+    "ai-graphics:external-beta-api-route-worker-runtime-smoke-authorization": "tsx server/cli/ai-graphics-external-beta-api-route-worker-runtime-smoke-authorization.ts",',

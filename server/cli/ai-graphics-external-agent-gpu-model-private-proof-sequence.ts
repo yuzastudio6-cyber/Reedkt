@@ -384,23 +384,29 @@ function parseArgs(): SequenceArgs {
       manifestBooleanForTool(toolId, runtimeInputManifest, 'allowCpuFoundationRuntime') === true
     )
   const requestedBackend = stringFlag('--runtime-backend')
+  const manifestRuntimeContainerImage =
+    manifestStringForTool(toolId, runtimeInputManifest, 'runtimeContainerImage')
+  const manifestRuntimeContainerPlatform =
+    manifestStringForTool(toolId, runtimeInputManifest, 'runtimeContainerPlatform')
   const runtimeBackend =
     requestedBackend === 'docker_container'
       ? 'docker_container'
       : requestedBackend === 'host_python'
       ? 'host_python'
+      : manifestRuntimeContainerImage
+      ? 'docker_container'
       : allowCpuTensorRuntime || allowCpuFoundationRuntime
       ? 'host_python'
-      : toolId === 'kornia'
-      ? 'docker_container'
-      : 'host_python'
+      : 'docker_container'
   const runtimeContainerImage =
     stringFlag('--runtime-container-image') ??
+    manifestRuntimeContainerImage ??
     (runtimeBackend === 'docker_container'
       ? gpuModelRuntimeContainerImage(toolId)
       : undefined)
   const runtimeContainerPlatform =
     stringFlag('--runtime-container-platform') ??
+    manifestRuntimeContainerPlatform ??
     (runtimeBackend === 'docker_container' ? 'linux/amd64' : undefined)
   if (hasFlag('--write-records') && attemptLocalRuntime) {
     throw new Error(

@@ -18,9 +18,9 @@ const runRoot =
   '.local-artifacts/ai-graphics/gpu-model-runtime-input-manifest-materializer/diagnostic'
 const canonicalRuntimeImage = 'reeditpro/ai-graphics-gpu-worker:proof-local'
 const runtimeImageByTool = {
-  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
-  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
-  real_esrgan: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+  sam2: canonicalRuntimeImage,
+  birefnet: canonicalRuntimeImage,
+  real_esrgan: canonicalRuntimeImage,
   rembg: canonicalRuntimeImage,
   transparent_background: canonicalRuntimeImage,
 }
@@ -278,6 +278,12 @@ for (const [toolId, contract] of Object.entries(toolContracts)) {
   }
   if (record.outputDirectory !== result.outputDir) {
     fail(`${toolId}_output_dir_mismatch`)
+  }
+  if (record.runtimeContainerImage !== canonicalRuntimeImage) {
+    fail(`${toolId}_runtime_container_image_not_shared_local_proof_image:${record.runtimeContainerImage}`)
+  }
+  if (record.runtimeContainerPlatform !== 'linux/amd64') {
+    fail(`${toolId}_runtime_container_platform_mismatch:${record.runtimeContainerPlatform}`)
   }
 
   const toolCall = runToolCall(toolId, result.manifestOut)

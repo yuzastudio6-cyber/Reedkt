@@ -34,9 +34,9 @@ const decision =
 const canonicalGpuModelRuntimeContainerImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
 const runtimeContainerImageByTool: Record<ModelWeightToolId, string> = {
-  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
-  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
-  real_esrgan: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+  sam2: canonicalGpuModelRuntimeContainerImage,
+  birefnet: canonicalGpuModelRuntimeContainerImage,
+  real_esrgan: canonicalGpuModelRuntimeContainerImage,
   rembg: canonicalGpuModelRuntimeContainerImage,
   transparent_background: canonicalGpuModelRuntimeContainerImage,
 }

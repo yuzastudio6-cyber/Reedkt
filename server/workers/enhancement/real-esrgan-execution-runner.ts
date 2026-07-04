@@ -96,6 +96,7 @@ export async function runRealEsrganEnhancement(input: {
       proofExpectation: {
         expectedToolId: 'real_esrgan',
         requireCuda: allowCpuModelRuntime ? false : true,
+        requireCpuModelRuntime: allowCpuModelRuntime,
         requireNoModelDownload: true,
         requireNoProviderRuntime: true,
         requireNoPublicArtifact: true,

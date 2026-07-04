@@ -54,9 +54,9 @@ def main() -> None:
     mask_path = Path(args.mask_path)
     output_path = Path(args.output_json)
     providers = (
-        ["CUDAExecutionProvider", "CPUExecutionProvider"]
-        if cuda_provider_available
-        else ["CPUExecutionProvider"]
+        ["CPUExecutionProvider"]
+        if args.allow_cpu_model_runtime
+        else ["CUDAExecutionProvider", "CPUExecutionProvider"]
     )
     session = new_session(model_name, providers=providers)
     input_bytes = input_path.read_bytes()

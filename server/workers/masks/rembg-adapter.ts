@@ -88,6 +88,7 @@ export async function runRembgFallback(input: {
       proofExpectation: {
         expectedToolId: 'rembg',
         requireCudaExecutionProvider: allowCpuModelRuntime ? false : true,
+        requireCpuModelRuntime: allowCpuModelRuntime,
         requireNoModelDownload: true,
         requireNoProviderRuntime: true,
         requireNoPublicArtifact: true,

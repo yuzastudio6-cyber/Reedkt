@@ -132,7 +132,7 @@ def main() -> None:
     cuda_available = bool(torch.cuda.is_available())
     if not cuda_available and not args.allow_cpu_model_runtime:
         raise RuntimeError("CUDA is required for the Real-ESRGAN activation runtime; no CPU fallback is allowed.")
-    use_cuda = cuda_available
+    use_cuda = False if args.allow_cpu_model_runtime else cuda_available
 
     enhanced_path = Path(args.enhanced_path)
     output_path = Path(args.output_json)

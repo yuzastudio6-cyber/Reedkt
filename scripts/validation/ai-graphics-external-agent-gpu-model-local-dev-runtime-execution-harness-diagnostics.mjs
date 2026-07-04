@@ -568,6 +568,35 @@ for (const workerFile of [
       fail(`worker_missing_runtime_proof_token:${workerFile}:${requiredProofToken}`)
     }
   }
+  if (
+    workerFile === 'server/workers/enhancement/real-esrgan-execution-runner.ts' ||
+    workerFile === 'server/workers/masks/rembg-adapter.ts'
+  ) {
+    for (const requiredCpuModelProofToken of [
+      'requireCpuModelRuntime: allowCpuModelRuntime',
+      'containerGpu: allowCpuModelRuntime',
+    ]) {
+      if (!source.includes(requiredCpuModelProofToken)) {
+        fail(`worker_missing_cpu_model_runtime_proof_token:${workerFile}:${requiredCpuModelProofToken}`)
+      }
+    }
+  }
+}
+
+const runtimeScriptRunnerSource = read(
+  'server/workers/ai-graphics-runtime-script-runner.ts',
+)
+for (const requiredCpuProofRunnerToken of [
+  'requireCpuModelRuntime?: boolean',
+  "firstBooleanValue(outputJson, ['cpuModelRuntimeAllowed'])",
+  "'runtimeDevice'",
+  "'onnxRuntimeDevice'",
+  'firstStringArrayValue(outputJson,',
+  '/cuda/i.test(provider)',
+]) {
+  if (!runtimeScriptRunnerSource.includes(requiredCpuProofRunnerToken)) {
+    fail(`runtime_script_runner_missing_cpu_model_proof_token:${requiredCpuProofRunnerToken}`)
+  }
 }
 
 const controlledAdapterSource = read(
@@ -619,7 +648,8 @@ for (const [tool, file] of Object.entries(runtimeProofFilesByTool)) {
       '"cudaExecutionProviderAvailable": cuda_provider_available',
       '"selectedProviders": providers',
       '"cpuModelRuntimeAllowed": bool(args.allow_cpu_model_runtime)',
-      'else ["CPUExecutionProvider"]',
+      'if args.allow_cpu_model_runtime',
+      '["CPUExecutionProvider"]',
     ]) {
       if (!source.includes(requiredRembgCpuModelToken)) {
         fail(`runtime_script_missing_rembg_cpu_model_token:${requiredRembgCpuModelToken}`)
@@ -642,6 +672,7 @@ for (const [tool, file] of Object.entries(runtimeProofFilesByTool)) {
       '"cudaAvailable": cuda_available',
       '"runtimeDevice": "cuda" if use_cuda else "cpu"',
       '"cpuModelRuntimeAllowed": bool(args.allow_cpu_model_runtime)',
+      'use_cuda = False if args.allow_cpu_model_runtime else cuda_available',
       'half=use_cuda',
       'gpu_id=0 if use_cuda else None',
     ]) {

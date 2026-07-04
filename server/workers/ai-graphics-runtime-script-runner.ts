@@ -22,6 +22,7 @@ export interface AiGraphicsRuntimeProofExpectation {
   expectedToolId: string
   requireCuda?: boolean
   requireCudaExecutionProvider?: boolean
+  requireCpuModelRuntime?: boolean
   requireNoModelDownload?: boolean
   requireNoProviderRuntime?: boolean
   requireNoPublicArtifact?: boolean
@@ -113,6 +114,34 @@ export function assertAiGraphicsRuntimeProofOutput(
     )
   }
 
+  if (expectation.requireCpuModelRuntime === true) {
+    if (firstBooleanValue(outputJson, ['cpuModelRuntimeAllowed']) !== true) {
+      throw new Error(
+        'AI graphics runtime proof output must prove cpuModelRuntimeAllowed=true.',
+      )
+    }
+    const runtimeDevice = firstStringValueDeep(outputJson, [
+      'runtimeDevice',
+      'onnxRuntimeDevice',
+    ])
+    if (typeof runtimeDevice !== 'string' || !/cpu/i.test(runtimeDevice)) {
+      throw new Error(
+        `AI graphics runtime proof output must prove CPU runtime device; got ${runtimeDevice ?? 'missing'}.`,
+      )
+    }
+    const selectedProviders = firstStringArrayValue(outputJson, [
+      'selectedProviders',
+    ])
+    if (
+      selectedProviders &&
+      selectedProviders.some((provider) => /cuda/i.test(provider))
+    ) {
+      throw new Error(
+        'AI graphics runtime proof output must not select CUDA providers for CPU model runtime proof.',
+      )
+    }
+  }
+
   assertFalseProofBoolean(outputJson, expectation.requireNoModelDownload, [
     'modelDownloadedExternally',
     'externalModelDownloadAttempted',
@@ -157,6 +186,54 @@ function firstStringValue(
     const value = record[key]
     if (typeof value === 'string') return value
   }
+  return undefined
+}
+
+function firstStringValueDeep(value: unknown, keys: string[]): string | undefined {
+  const record = asRecord(value)
+  for (const key of keys) {
+    const direct = record[key]
+    if (typeof direct === 'string') return direct
+  }
+
+  for (const nested of Object.values(record)) {
+    if (!nested || typeof nested !== 'object') continue
+    if (Array.isArray(nested)) {
+      for (const item of nested) {
+        const valueInItem = firstStringValueDeep(item, keys)
+        if (typeof valueInItem === 'string') return valueInItem
+      }
+      continue
+    }
+    const valueInNested = firstStringValueDeep(nested, keys)
+    if (typeof valueInNested === 'string') return valueInNested
+  }
+
+  return undefined
+}
+
+function firstStringArrayValue(value: unknown, keys: string[]): string[] | undefined {
+  const record = asRecord(value)
+  for (const key of keys) {
+    const direct = record[key]
+    if (Array.isArray(direct) && direct.every((item) => typeof item === 'string')) {
+      return direct
+    }
+  }
+
+  for (const nested of Object.values(record)) {
+    if (!nested || typeof nested !== 'object') continue
+    if (Array.isArray(nested)) {
+      for (const item of nested) {
+        const valueInItem = firstStringArrayValue(item, keys)
+        if (valueInItem) return valueInItem
+      }
+      continue
+    }
+    const valueInNested = firstStringArrayValue(nested, keys)
+    if (valueInNested) return valueInNested
+  }
+
   return undefined
 }
 

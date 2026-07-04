@@ -28,6 +28,7 @@ const requiredFiles = [
   'server/cli/ai-graphics-external-agent-tool-call.ts',
   'scripts/validation/ai-graphics-external-agent-tool-call-diagnostics.mjs',
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
+  'server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts',
   'docs/tool-intelligence/ai-graphics/external-agent-single-tool-call.json',
   'docs/tool-intelligence/ai-graphics/external-agent-single-tool-call.md',
   'package.json',
@@ -696,6 +697,9 @@ const docsMd = read(
 )
 const cliSource = read('server/cli/ai-graphics-external-agent-tool-call.ts')
 const routeSource = read('server/routes/ai-graphics-external-beta-tool-call-routes.ts')
+const gpuModelAdapterSource = read(
+  'server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts',
+)
 
 if (packageJson.scripts?.[runScriptName] !== runScriptCommand) {
   fail('run_script_mismatch')
@@ -772,6 +776,21 @@ for (const phrase of [
   'outputDirectory must stay under .local-artifacts/',
 ]) {
   if (!routeSource.includes(phrase)) fail(`route_missing:${phrase}`)
+}
+
+for (const phrase of [
+  'minimumPrivateModelFileBytes',
+  'privateModelRuntimeContentBlock',
+  'sam2_checkpoint_too_small_for_runtime',
+  'birefnet_model_too_small_for_runtime',
+  'real_esrgan_model_too_small_for_runtime',
+  'rembg_model_too_small_for_runtime',
+  'transparent_background_checkpoint_too_small_for_runtime',
+  'blocked before Docker/GPU/Python startup',
+]) {
+  if (!gpuModelAdapterSource.includes(phrase)) {
+    fail(`gpu_model_adapter_missing:${phrase}`)
+  }
 }
 
 for (const [label, text] of [
@@ -957,6 +976,55 @@ const privateInputPreflightReports = privateInputPreflightTools.map((toolId) => 
 })
 if (privateInputPreflightReports.length !== 5) {
   fail(`private_input_preflight_report_count_mismatch:${privateInputPreflightReports.length}`)
+}
+
+const rembgTinyModelRuntimeAttempt = runToolCall([
+  '--tool rembg',
+  '--attempt-gpu-runtime',
+  '--runtime-backend docker_container',
+  `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  '--runtime-container-platform linux/amd64',
+  '--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/rembg-tiny-model-block',
+  `--source-image ${privatePreflightPaths.sourceImage}`,
+  `--rembg-model ${privatePreflightPaths.rembgModel}`,
+].join(' '))
+if (rembgTinyModelRuntimeAttempt.status !== 'external_agent_single_tool_call_blocked_with_reason') {
+  fail(`rembg_tiny_model_status_mismatch:${rembgTinyModelRuntimeAttempt.status}`)
+}
+if (
+  rembgTinyModelRuntimeAttempt.response?.externalAgentExecutionState !==
+  'blocked_with_reason'
+) {
+  fail(`rembg_tiny_model_state_mismatch:${rembgTinyModelRuntimeAttempt.response?.externalAgentExecutionState}`)
+}
+if (
+  rembgTinyModelRuntimeAttempt.response?.blockingReasonCode !==
+  'rembg_model_too_small_for_runtime'
+) {
+  fail(`rembg_tiny_model_blocking_reason_mismatch:${rembgTinyModelRuntimeAttempt.response?.blockingReasonCode}`)
+}
+const rembgTinyModelNormalized =
+  rembgTinyModelRuntimeAttempt.response?.externalAgentToolCallResult ?? {}
+if (rembgTinyModelNormalized.currentBlockingPrerequisiteKey !== 'rembgModelLocalPath') {
+  fail(`rembg_tiny_model_current_blocker_mismatch:${rembgTinyModelNormalized.currentBlockingPrerequisiteKey}`)
+}
+if (rembgTinyModelNormalized.controlledAdapterInvokedNow !== true) {
+  fail('rembg_tiny_model_adapter_not_invoked')
+}
+if (rembgTinyModelNormalized.controlledAdapterExecutedNow !== false) {
+  fail('rembg_tiny_model_adapter_executed')
+}
+if (rembgTinyModelNormalized.localGpuModelRuntimeExecutionPerformed !== false) {
+  fail('rembg_tiny_model_runtime_executed')
+}
+if (rembgTinyModelNormalized.gpuRuntimeShouldStartNow !== false) {
+  fail('rembg_tiny_model_started_gpu')
+}
+if (rembgTinyModelRuntimeAttempt.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('rembg_tiny_model_boolean_started_gpu')
+}
+if (rembgTinyModelRuntimeAttempt.nextAction?.currentBlockingPrerequisiteKey !== 'rembgModelLocalPath') {
+  fail(`rembg_tiny_model_next_action_blocker_mismatch:${rembgTinyModelRuntimeAttempt.nextAction?.currentBlockingPrerequisiteKey}`)
 }
 
 const manifestOutsideLocalArtifacts = spawnToolCall([
@@ -1170,6 +1238,10 @@ console.log(JSON.stringify({
       .blockingReasonCode,
   privateInputPreflightAcceptedBeforeRuntimeTools:
     privateInputPreflightReports.length,
+  tinyPrivateModelRuntimeProofBlockedBeforeGpu: true,
+  tinyPrivateModelRuntimeProofBlockingReason:
+    rembgTinyModelRuntimeAttempt.response.externalAgentToolCallResult
+      .blockingReasonCode,
   gpuRuntimeShouldStartNow: false,
   publicArtifactCreated: false,
   signedUrlCreated: false,

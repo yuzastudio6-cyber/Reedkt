@@ -209,6 +209,8 @@ const runtimePythonModulesByTool: Record<
   transparent_background: ['torch', 'PIL', 'numpy', 'transparent_background'],
 }
 
+const minimumPrivateModelFileBytes = 1024 * 1024
+
 function hasScopedLocalRuntimeInputs(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   payload: Record<string, unknown>,
@@ -404,6 +406,11 @@ function runtimePrerequisiteBlock(
           'GPU/model runtime did not start because this validation only proved private input path plumbing.',
       })
     }
+    const privateModelContentBlock = privateModelRuntimeContentBlock(
+      request.toolId,
+      payload,
+    )
+    if (privateModelContentBlock) return privateModelContentBlock
     try {
       execFileSync('docker', ['image', 'inspect', image], {
         encoding: 'utf8',
@@ -515,6 +522,11 @@ function runtimePrerequisiteBlock(
         'GPU/model runtime did not start because this validation only proved private input path plumbing.',
     })
   }
+  const privateModelContentBlock = privateModelRuntimeContentBlock(
+    request.toolId,
+    payload,
+  )
+  if (privateModelContentBlock) return privateModelContentBlock
 
   const preflight = runtimePreflightPython(request.toolId, payload)
   const missingModules = Array.isArray(preflight?.missingModules)
@@ -696,6 +708,81 @@ function privateLocalPathExpectationLabel(
     return 'a directory containing model.safetensors'
   }
   return `a ${expectation}`
+}
+
+function modelFilePathForRuntimeContentCheck(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  payload: Record<string, unknown>,
+): {
+  pathValue?: string
+  code: string
+  label: string
+} | null {
+  if (toolId === 'sam2') {
+    return {
+      pathValue: optionalString(payload, 'sam2CheckpointLocalPath'),
+      code: 'sam2_checkpoint_too_small_for_runtime',
+      label: 'SAM2 checkpoint',
+    }
+  }
+  if (toolId === 'birefnet') {
+    const modelDir = optionalString(payload, 'birefnetModelLocalPath')
+    return {
+      pathValue: modelDir ? path.join(modelDir, 'model.safetensors') : undefined,
+      code: 'birefnet_model_too_small_for_runtime',
+      label: 'BiRefNet model.safetensors',
+    }
+  }
+  if (toolId === 'real_esrgan') {
+    return {
+      pathValue: optionalString(payload, 'realEsrganModelLocalPath'),
+      code: 'real_esrgan_model_too_small_for_runtime',
+      label: 'Real-ESRGAN model',
+    }
+  }
+  if (toolId === 'rembg') {
+    return {
+      pathValue: optionalString(payload, 'rembgModelLocalPath'),
+      code: 'rembg_model_too_small_for_runtime',
+      label: 'rembg ONNX model',
+    }
+  }
+  if (toolId === 'transparent_background') {
+    return {
+      pathValue: optionalString(payload, 'transparentBackgroundCheckpointLocalPath'),
+      code: 'transparent_background_checkpoint_too_small_for_runtime',
+      label: 'transparent-background checkpoint',
+    }
+  }
+  return null
+}
+
+function privateModelRuntimeContentBlock(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  payload: Record<string, unknown>,
+): Record<string, unknown> | null {
+  const modelFile = modelFilePathForRuntimeContentCheck(toolId, payload)
+  if (!modelFile || !modelFile.pathValue) return null
+  let sizeBytes = 0
+  try {
+    sizeBytes = statSync(modelFile.pathValue).size
+  } catch {
+    return null
+  }
+  if (sizeBytes >= minimumPrivateModelFileBytes) return null
+  return skippedPrerequisiteBlock({
+    toolId,
+    code: modelFile.code,
+    message:
+      `${modelFile.label} is too small (${sizeBytes} bytes) for accepted private runtime proof; ` +
+      `expected at least ${minimumPrivateModelFileBytes} bytes before any CUDA/GPU runtime may start.`,
+    summary:
+      'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because the supplied private model file was too small to be accepted as runtime proof input.',
+    warning:
+      'GPU/model runtime did not start because the supplied private model/checkpoint file looked like a placeholder rather than a real reviewed model artifact.',
+    errorMessage:
+      `${modelFile.label} is too small for controlled GPU/model runtime proof.`,
+  })
 }
 
 function missingLocalPathBlock(input: {

@@ -536,31 +536,36 @@ function currentBlockingPrerequisiteKey(
   }
   if (
     blockingReasonCode.includes('sam2_checkpoint_missing') ||
-    blockingReasonCode.includes('sam2_checkpoint_invalid_path_kind')
+    blockingReasonCode.includes('sam2_checkpoint_invalid_path_kind') ||
+    blockingReasonCode.includes('sam2_checkpoint_too_small_for_runtime')
   ) {
     return 'sam2CheckpointLocalPath'
   }
   if (
     blockingReasonCode.includes('birefnet_model_missing') ||
-    blockingReasonCode.includes('birefnet_model_invalid_path_kind')
+    blockingReasonCode.includes('birefnet_model_invalid_path_kind') ||
+    blockingReasonCode.includes('birefnet_model_too_small_for_runtime')
   ) {
     return 'birefnetModelLocalPath'
   }
   if (
     blockingReasonCode.includes('real_esrgan_model_missing') ||
-    blockingReasonCode.includes('real_esrgan_model_invalid_path_kind')
+    blockingReasonCode.includes('real_esrgan_model_invalid_path_kind') ||
+    blockingReasonCode.includes('real_esrgan_model_too_small_for_runtime')
   ) {
     return 'realEsrganModelLocalPath'
   }
   if (
     blockingReasonCode.includes('rembg_model_missing') ||
-    blockingReasonCode.includes('rembg_model_invalid_path_kind')
+    blockingReasonCode.includes('rembg_model_invalid_path_kind') ||
+    blockingReasonCode.includes('rembg_model_too_small_for_runtime')
   ) {
     return 'rembgModelLocalPath'
   }
   if (
     blockingReasonCode.includes('transparent_background_checkpoint_missing') ||
-    blockingReasonCode.includes('transparent_background_checkpoint_invalid_path_kind')
+    blockingReasonCode.includes('transparent_background_checkpoint_invalid_path_kind') ||
+    blockingReasonCode.includes('transparent_background_checkpoint_too_small_for_runtime')
   ) {
     return 'transparentBackgroundCheckpointLocalPath'
   }

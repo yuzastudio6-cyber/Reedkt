@@ -566,16 +566,35 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   if (blockingReasonCode.includes('sam2_checkpoint_missing')) {
     return 'sam2CheckpointLocalPath'
   }
+  if (blockingReasonCode.includes('sam2_checkpoint_too_small_for_runtime')) {
+    return 'sam2CheckpointLocalPath'
+  }
   if (blockingReasonCode.includes('birefnet_model_missing')) {
+    return 'birefnetModelLocalPath'
+  }
+  if (blockingReasonCode.includes('birefnet_model_too_small_for_runtime')) {
     return 'birefnetModelLocalPath'
   }
   if (blockingReasonCode.includes('real_esrgan_model_missing')) {
     return 'realEsrganModelLocalPath'
   }
+  if (blockingReasonCode.includes('real_esrgan_model_too_small_for_runtime')) {
+    return 'realEsrganModelLocalPath'
+  }
   if (blockingReasonCode.includes('rembg_model_missing')) {
     return 'rembgModelLocalPath'
   }
+  if (blockingReasonCode.includes('rembg_model_too_small_for_runtime')) {
+    return 'rembgModelLocalPath'
+  }
   if (blockingReasonCode.includes('transparent_background_checkpoint_missing')) {
+    return 'transparentBackgroundCheckpointLocalPath'
+  }
+  if (
+    blockingReasonCode.includes(
+      'transparent_background_checkpoint_too_small_for_runtime',
+    )
+  ) {
     return 'transparentBackgroundCheckpointLocalPath'
   }
   if (

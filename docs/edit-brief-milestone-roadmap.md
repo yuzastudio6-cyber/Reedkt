@@ -21,7 +21,8 @@ Status: architecture/docs only. This report maps future `ProjectEditSession` Bri
 15. RP-EDITBRIEF-15A — Owner Evidence Intake Template
 16. RP-EDITBRIEF-15B — Owner Evidence Readiness Evaluator
 17. RP-EDITBRIEF-15C — Owner Evidence Review Packet
-18. RP-EDITBRIEF-16 — Production Persistence Implementation Plan
+18. RP-EDITBRIEF-15D — Owner Evidence Local Validation
+19. RP-EDITBRIEF-16 — Production Persistence Implementation Plan
 
 ## Gate
 
@@ -114,5 +115,11 @@ Next recommended milestone: `RP-EDITBRIEF-15C — Owner Evidence Review Packet`.
 ## RP-EDITBRIEF-15C — Owner Evidence Review Packet
 
 Status: complete as an owner assignment packet only. The milestone names the exact owner group, decision, and minimum evidence required for each of the ten RP-EDITBRIEF-15 inputs. The checked-in intake remains missing, and RP-EDITBRIEF-16 remains blocked until real owner evidence is recorded and RP-EDITBRIEF-15B evaluates it as ready.
+
+Next recommended milestone: `RP-EDITBRIEF-15D — Owner Evidence Local Validation`.
+
+## RP-EDITBRIEF-15D — Owner Evidence Local Validation
+
+Status: complete as an operator-safe local validation command only. The milestone adds `check:project-edit-brief-owner-evidence-readiness` and a safety scan for owner evidence files. The default checked-in template runs in allow-blocked mode; a local filled evidence file can be tested in strict mode before a reviewed PR. The command rejects secret-like evidence, signed URL-like evidence, raw prompt-like evidence, and private/media artifact-like evidence.
 
 Next recommended milestone after the evaluator reports `project_edit_brief_owner_evidence_readiness_passed_ready_for_rp_editbrief_16` on real owner evidence: `RP-EDITBRIEF-16 — Production Persistence Implementation Plan`.

@@ -43,6 +43,15 @@ export interface ProjectEditBriefOwnerEvidenceReadiness {
   nextMilestone: string
 }
 
+export interface ProjectEditBriefOwnerEvidenceSafetyScan {
+  safe: boolean
+  secretLikeEvidence: string[]
+  signedUrlEvidence: string[]
+  rawPromptEvidence: string[]
+  privateArtifactEvidence: string[]
+  findings: string[]
+}
+
 export const PROJECT_EDIT_BRIEF_OWNER_EVIDENCE_INPUT_IDS = [
   'canonical_workflow_approval',
   'durable_root_schema_approval',
@@ -57,6 +66,11 @@ export const PROJECT_EDIT_BRIEF_OWNER_EVIDENCE_INPUT_IDS = [
 ] as const
 
 const allowedStatuses = new Set<ProjectEditBriefOwnerEvidenceStatus>(['missing', 'approved', 'rejected', 'waived'])
+const secretLikePattern =
+  /\b(api[_-]?key|secret[_-]?(key|token|value)|password|credential|authorization|bearer|access[_-]?token|refresh[_-]?token|private[_-]?key|service[_-]?role(?:[_\s-]?(key|token|secret)))\b|sk-[A-Za-z0-9_-]{12,}/i
+const signedUrlPattern = /\b(X-Amz-Signature|X-Goog-Signature|signature=|sig=|signedUrl=|signed_url=)\b/i
+const rawPromptPattern = /\b(raw prompt|raw_prompt|unredacted prompt|full prompt transcript|provider prompt)\b/i
+const privateArtifactPattern = /\.(mp4|mov|mkv|webm|avi|wav|mp3|flac|aac|srt|vtt|png|jpe?g|heic|gif|zip|tar|gz|7z)(\?|#|$)/i
 
 function hasText(value: string | null | undefined): value is string {
   return typeof value === 'string' && value.trim().length > 0
@@ -147,5 +161,67 @@ export function evaluateProjectEditBriefOwnerEvidenceReadiness(
     invalidInputs,
     blockedReasons: [...new Set(blockedReasons)],
     nextMilestone: intake.nextMilestoneWhenComplete,
+  }
+}
+
+export function scanProjectEditBriefOwnerEvidenceSafety(
+  intake: ProjectEditBriefOwnerEvidenceIntake,
+): ProjectEditBriefOwnerEvidenceSafetyScan {
+  const secretLikeEvidence: string[] = []
+  const signedUrlEvidence: string[] = []
+  const rawPromptEvidence: string[] = []
+  const privateArtifactEvidence: string[] = []
+
+  function scan(value: unknown, path: string) {
+    if (typeof value !== 'string') {
+      return
+    }
+    if (secretLikePattern.test(value)) {
+      secretLikeEvidence.push(path)
+    }
+    if (signedUrlPattern.test(value)) {
+      signedUrlEvidence.push(path)
+    }
+    if (rawPromptPattern.test(value)) {
+      rawPromptEvidence.push(path)
+    }
+    if (privateArtifactPattern.test(value)) {
+      privateArtifactEvidence.push(path)
+    }
+  }
+
+  scan(intake.id, 'intake.id')
+  scan(intake.milestone, 'intake.milestone')
+  scan(intake.status, 'intake.status')
+  scan(intake.decision, 'intake.decision')
+  scan(intake.nextMilestoneWhenComplete, 'intake.nextMilestoneWhenComplete')
+
+  intake.requiredOwnerInputs.forEach((input, inputIndex) => {
+    const prefix = `requiredOwnerInputs[${inputIndex}:${input.id}]`
+    scan(input.id, `${prefix}.id`)
+    scan(input.label, `${prefix}.label`)
+    scan(input.status, `${prefix}.status`)
+    scan(input.owner, `${prefix}.owner`)
+    scan(input.evidenceRef, `${prefix}.evidenceRef`)
+    scan(input.reviewedAt, `${prefix}.reviewedAt`)
+    if (Array.isArray(input.notes)) {
+      input.notes.forEach((note, noteIndex) => scan(note, `${prefix}.notes[${noteIndex}]`))
+    }
+  })
+
+  const findings = [
+    ...secretLikeEvidence.map((path) => `${path} contains secret-like evidence.`),
+    ...signedUrlEvidence.map((path) => `${path} contains signed URL-like evidence.`),
+    ...rawPromptEvidence.map((path) => `${path} contains raw prompt-like evidence.`),
+    ...privateArtifactEvidence.map((path) => `${path} references private/media artifact-like evidence.`),
+  ]
+
+  return {
+    safe: findings.length === 0,
+    secretLikeEvidence,
+    signedUrlEvidence,
+    rawPromptEvidence,
+    privateArtifactEvidence,
+    findings,
   }
 }

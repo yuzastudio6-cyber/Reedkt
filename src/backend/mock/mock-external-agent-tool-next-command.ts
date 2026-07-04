@@ -208,6 +208,7 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
   nextCommandRules: {
     whenExecutionGateAllowsRuntime: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
     whenStaticGateAllowsButQwenLivePreflightFails: 'npm run external-agent-tool-blockers:preflight',
+    whenGcpReadAccessRepairRequired: 'npm run external-agent-gcp-access:repair-plan',
     whenQwenAuthRefreshFails: 'npm run external-agent-gcloud-session:diagnostic',
     whenQwenLivePreflightPassesButExecutionGateBlocked: QWEN2_5_VL_58DX_RESULT_REVIEW_PROMPT,
     whenQwenAuthClearsAndBrollQuotaBlocked: 'npm run external-agent-tool-execution-gate -- --require-go',

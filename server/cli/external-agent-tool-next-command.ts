@@ -270,6 +270,8 @@ function main() {
     ? undefined
     : !qwenAuthRefreshPassed
       ? spec.nextCommandRules.whenQwenAuthRefreshFails
+      : qwenPermissionOrResourceReadBlocked
+        ? spec.nextCommandRules.whenGcpReadAccessRepairRequired
       : !qwenLivePreflightPassed || qwenLivePreflightVerificationRequired
         ? spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails
         : !brollQuotaSufficient

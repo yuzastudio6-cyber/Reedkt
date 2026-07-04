@@ -29,6 +29,7 @@ function actionForTool(toolId: string) {
       immediateSafeActions: [
         ...externalAgentPreExecutionActions,
         'npm run external-agent-tool-blockers:preflight',
+        'npm run external-agent-gcp-access:repair-plan',
       ],
       externalManualBlocker:
         'Qwen 58DX result review accepted the bounded approved-fixture private inference result for the explicit external-agent gate; live preflight is still required before any runtime attempt',
@@ -44,6 +45,7 @@ function actionForTool(toolId: string) {
         'npm run ai-video-broll-wan-fast-cache-readiness:check',
         'npm run ai-video-broll-wan-gpu-global-quota:verify',
         'npm run external-agent-tool-blockers:preflight',
+        'npm run external-agent-gcp-access:repair-plan',
         'npm run external-agent-tool-execute-broll-wan',
       ],
       externalManualBlocker:

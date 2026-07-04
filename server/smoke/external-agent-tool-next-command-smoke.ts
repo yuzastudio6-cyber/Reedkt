@@ -100,6 +100,10 @@ assert.equal(
   'npm run external-agent-tool-blockers:preflight',
 )
 assert.equal(
+  spec.nextCommandRules.whenGcpReadAccessRepairRequired,
+  'npm run external-agent-gcp-access:repair-plan',
+)
+assert.equal(
   spec.nextCommandRules.whenBrollQuotaNeedsVerification,
   'npm run ai-video-broll-wan-gpu-global-quota:verify',
 )
@@ -234,6 +238,7 @@ for (const probe of spec.allowedProbeScripts) {
 const cliSource = read(CLI_PATH)
 assert.equal(cliSource.includes('spawnSync'), true)
 assert.equal(cliSource.includes('spec.accountSelection.overrideEnv'), true)
+assert.equal(cliSource.includes('whenGcpReadAccessRepairRequired'), true)
 for (const forbidden of [
   'gcloud ',
   'docker ',

@@ -26,6 +26,7 @@
     "mock_safe_durable_project_session_backend_skeleton",
     "durable_project_session_backend_route_integration",
     "durable_project_session_backend_readback_qa",
+    "durable_project_session_supabase_route_contract_plan",
     "testing_discipline_checklist",
     "browser_local_feedback_records",
     "manual_feedback_json_export"
@@ -41,6 +42,7 @@
     "mock-safe-durable-project-session-backend-skeleton": "mock_local",
     "durable-project-session-backend-route-integration": "mock_local",
     "durable-project-session-backend-readback-qa": "mock_local",
+    "durable-project-session-supabase-route-contract-plan": "mock_local",
     "blockedScenarioCount": 0
   },
   "blockedScope": {
@@ -79,6 +81,7 @@
       "smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton",
       "smoke:internal-testing-durable-project-session-backend-route-integration",
       "smoke:internal-testing-durable-project-session-backend-readback-qa",
+      "smoke:internal-testing-durable-project-session-supabase-route-contract-plan",
       "qa:internal-testing",
       "smoke:project-edit-brief-internal-testing-review-pr-readiness",
       "smoke:project-edit-brief-internal-testing-readback-qa",

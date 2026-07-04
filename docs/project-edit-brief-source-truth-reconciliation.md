@@ -62,6 +62,10 @@ Passed:
 - `npm run smoke:internal-testing-auth-project-access-readiness`
 - `npm run smoke:internal-testing-auth-project-session-membership-policy`
 - `npm run smoke:internal-testing-durable-auth-project-session-backend-persistence-plan`
+- `npm run smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton`
+- `npm run smoke:internal-testing-durable-project-session-backend-route-integration`
+- `npm run smoke:internal-testing-durable-project-session-backend-readback-qa`
+- `npm run smoke:internal-testing-durable-project-session-supabase-route-contract-plan`
 - `npm run typecheck:server`
 - `npm run build`
 - `git diff --check`
@@ -97,8 +101,9 @@ Passed:
 - Mock-safe durable project/session backend skeleton after RP-INTTEST-05: seeded mock internal project/session access can pass through a server-shaped evaluator with request id and idempotency key, while durable Supabase table-backed access still fails closed until RLS, explicit Data API grants, migration, and backend-only service-role evidence exist.
 - Durable project/session backend route integration after RP-INTTEST-06: Project Edit Session and Project Edit Brief mock route responses include `projectSessionAccess` metadata from the backend skeleton while durable Supabase access remains disabled.
 - Durable project/session backend readback QA after RP-INTTEST-07: Project Edit Session and Project Edit Brief success and failure envelopes read back `projectSessionAccess` metadata with idempotent audit details while durable Supabase access remains disabled.
+- Durable project/session Supabase route contract plan after RP-INTTEST-08: Project Home, Project Edit Session, and Project Edit Brief route contracts are planned through `workspace_members`, `auth.uid()`, explicit Data API grants, authenticated-role RLS, service-role boundaries, audit/idempotency, and rate-limit requirements while live Supabase access remains disabled.
 - Real upload/source-media ingestion and privacy policy implementation.
-- Durable project/session Supabase route contract plan.
+- Durable project/session Supabase schema/RLS draft.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.
 - Worker/provider/render execution remains separately gated.

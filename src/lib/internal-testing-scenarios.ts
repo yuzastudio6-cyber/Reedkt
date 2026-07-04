@@ -286,6 +286,23 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'durable-project-session-supabase-route-contract-plan',
+    title: 'Durable project/session Supabase route contract plan',
+    description: 'Review the route contract for future Supabase grants, authenticated-role RLS, project/session access chains, and service-role boundaries.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Supabase route contract plan panel.',
+      'Confirm Project Home, Project Edit Session, and Project Edit Brief access all chain through workspace_members and auth.uid().',
+      'Confirm explicit Data API grants and authenticated-role RLS policies are both required before durable access can pass.',
+      'Confirm no migration, SQL, live Supabase read/write, Storage, service-role browser path, worker, media, render, credit, external beta, production, or product-ready gates open.',
+    ],
+    expectedResult:
+      'Internal testers can review the future Supabase route contract before schema/RLS draft work starts, while live Supabase access remains disabled.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

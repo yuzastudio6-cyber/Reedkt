@@ -1,0 +1,94 @@
+{
+  "id": "internal-testing-mock-safe-durable-project-session-backend-skeleton",
+  "scenarioId": "mock-safe-durable-project-session-backend-skeleton",
+  "decision": "internal_testing_mock_safe_durable_project_session_backend_skeleton_passed_ready_for_backend_route_integration",
+  "priorDecision": "internal_testing_durable_auth_project_session_backend_persistence_plan_passed_ready_for_mock_safe_backend_skeleton",
+  "currentMode": "mock_safe_backend_skeleton",
+  "routeIntegrationReady": true,
+  "durableSupabaseReady": false,
+  "nextGate": "INTERNAL_TESTING_DURABLE_PROJECT_SESSION_BACKEND_ROUTE_INTEGRATION",
+  "requiredEvidence": [
+    "signed_in_auth_user_verified_server_side",
+    "workspace_membership_verified_by_workspace_members",
+    "project_membership_verified_by_projects_workspace_id",
+    "edit_session_access_verified_by_project_id",
+    "rls_policies_verified_for_authenticated_role",
+    "explicit_data_api_grants_verified_for_authenticated_role",
+    "service_role_confined_to_trusted_backend_worker_context",
+    "audit_idempotency_and_rate_limit_envelope_defined"
+  ],
+  "mockAccessModel": {
+    "defaultUserId": "mock-auth-user-internal-tester",
+    "defaultWorkspaceId": "workspace-internal-testing",
+    "defaultProjectId": "mock-project-edit-chat-foundation",
+    "defaultEditSessionId": "edit-session-youtube-wide",
+    "allowedStatus": "mock_internal_access_allowed",
+    "deniedStatuses": [
+      "blocked_missing_request_context",
+      "blocked_mock_membership",
+      "blocked_durable_supabase_missing_evidence",
+      "blocked_durable_supabase_runtime_not_implemented"
+    ]
+  },
+  "routeContracts": [
+    {
+      "surface": "project_home",
+      "path": "/projects/:projectId",
+      "accessCheck": "projectId -> projects.workspace_id -> workspace_members.user_id"
+    },
+    {
+      "surface": "edit_chat",
+      "path": "/projects/:projectId/edits/:editSessionId/chat",
+      "accessCheck": "editSessionId -> edit_sessions.project_id -> projects.workspace_id -> workspace_members.user_id"
+    },
+    {
+      "surface": "edit_brief",
+      "path": "/projects/:projectId/edits/:editSessionId/brief",
+      "accessCheck": "editSessionId -> edit_sessions.project_id -> projects.workspace_id -> workspace_members.user_id"
+    }
+  ],
+  "plannedTables": [
+    "profiles",
+    "workspaces",
+    "workspace_members",
+    "projects",
+    "edit_sessions",
+    "audit_events"
+  ],
+  "blockedScope": {
+    "supabaseMigration": false,
+    "supabaseWrite": false,
+    "supabaseDataApiRead": false,
+    "storageSignedUrls": false,
+    "serviceRoleInBrowser": false,
+    "profileWorkspaceBootstrapWrites": false,
+    "providerOrModelCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "creditSpend": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "productReady": false
+  },
+  "validation": {
+    "required": [
+      "smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton",
+      "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan",
+      "smoke:internal-testing-auth-project-session-membership-policy",
+      "smoke:internal-testing-auth-project-access-readiness",
+      "smoke:internal-testing-qa-wrapper",
+      "qa:internal-testing",
+      "smoke:worker",
+      "smoke:prod-cost-controls",
+      "smoke:prod-runtime-contracts",
+      "typecheck:server",
+      "build",
+      "git diff --check",
+      "git diff --cached --check"
+    ],
+    "liveRuntimeCommands": false,
+    "supabaseCommands": false,
+    "productReadyClaim": false
+  }
+}

@@ -94,8 +94,9 @@ Passed:
 - Auth project access readiness after RP-INTTEST-02: internal testers can read frontend-safe Supabase Auth session state and open the mock project/session route family while profile/workspace bootstrap writes, Supabase Data API access, Storage, SQL, workers, media, credits, external beta, and product-ready gates remain closed.
 - Auth project/session membership policy after RP-INTTEST-03: Project Home, Edit Chat, and Edit Brief show the same route-level access policy, mock route access remains allowed for internal testing, and durable authenticated project/session access remains blocked until signed-in user, membership, RLS, explicit Data API grant, and backend persistence evidence exist.
 - Durable auth project/session backend persistence plan after RP-INTTEST-04: the next backend skeleton must verify Auth server-side, workspace membership, project/session joins, explicit Data API grants, RLS, service-role boundary, audit, and idempotency before durable table-backed access can pass.
+- Mock-safe durable project/session backend skeleton after RP-INTTEST-05: seeded mock internal project/session access can pass through a server-shaped evaluator with request id and idempotency key, while durable Supabase table-backed access still fails closed until RLS, explicit Data API grants, migration, and backend-only service-role evidence exist.
 - Real upload/source-media ingestion and privacy policy implementation.
-- Mock-safe durable project/session backend skeleton.
+- Durable project/session backend route integration.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.
 - Worker/provider/render execution remains separately gated.

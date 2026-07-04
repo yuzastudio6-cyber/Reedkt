@@ -235,6 +235,23 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'mock-safe-durable-project-session-backend-skeleton',
+    title: 'Mock-safe durable project/session backend skeleton',
+    description: 'Verify the server-shaped access seam allows seeded mock project/session access while durable Supabase access fails closed.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the backend skeleton panel.',
+      'Confirm mock internal route access can pass with auth user, workspace, project, edit session, request id, and idempotency key.',
+      'Confirm durable Supabase access remains blocked until RLS, explicit Data API grants, migration, and backend-only service-role evidence exist.',
+      'Confirm no table reads/writes, Storage, workers, media, credits, external beta, production, or product-ready gates open.',
+    ],
+    expectedResult:
+      'Internal testers can validate the production-shaped access evaluator before HTTP route integration or live Supabase persistence is enabled.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

@@ -27,6 +27,7 @@ const requiredFiles = [
   'server/smoke/internal-testing-auth-project-access-readiness-smoke.ts',
   'server/smoke/internal-testing-auth-project-session-membership-policy-smoke.ts',
   'server/smoke/internal-testing-durable-auth-project-session-backend-persistence-plan-smoke.ts',
+  'server/smoke/internal-testing-mock-safe-durable-project-session-backend-skeleton-smoke.ts',
   'docs/internal-testing-approval-credit-gates.md',
   'docs/internal-testing-approval-credit-gates.json',
   'docs/internal-testing-credit-lifecycle-readiness.md',
@@ -39,6 +40,8 @@ const requiredFiles = [
   'docs/internal-testing-auth-project-session-membership-policy.json',
   'docs/internal-testing-durable-auth-project-session-backend-persistence-plan.md',
   'docs/internal-testing-durable-auth-project-session-backend-persistence-plan.json',
+  'docs/internal-testing-mock-safe-durable-project-session-backend-skeleton.md',
+  'docs/internal-testing-mock-safe-durable-project-session-backend-skeleton.json',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
   'tests/e2e/edit-preferences-route-entrypoint.spec.ts',
 ]
@@ -62,6 +65,7 @@ for (const phrase of [
   'smoke:internal-testing-auth-project-access-readiness',
   'smoke:internal-testing-auth-project-session-membership-policy',
   'smoke:internal-testing-durable-auth-project-session-backend-persistence-plan',
+  'smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton',
   'smoke:beta-readiness',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
   'tests/e2e/edit-preferences-route-entrypoint.spec.ts',
@@ -82,6 +86,7 @@ for (const phrase of [
   'Auth',
   'Membership policy',
   'Backend persistence plan',
+  'Mock-safe durable backend skeleton',
   'No upload',
   'No Supabase Data API',
   'fails fast',
@@ -106,6 +111,7 @@ assert.ok(docJson.smokes?.includes('smoke:internal-testing-repeated-local-operat
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-auth-project-access-readiness'))
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-auth-project-session-membership-policy'))
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-durable-auth-project-session-backend-persistence-plan'))
+assert.ok(docJson.smokes?.includes('smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton'))
 assert.ok(docJson.smokes?.includes('smoke:project-edit-brief-e2e'))
 assert.ok(docJson.playwrightSpecs?.includes('tests/e2e/edit-preferences-route-entrypoint.spec.ts'))
 assert.equal(docJson.blockedScope?.productReady, false)

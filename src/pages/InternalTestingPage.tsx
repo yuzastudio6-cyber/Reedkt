@@ -24,6 +24,7 @@ import {
   DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_ROUTE_CONTRACTS,
   DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_TABLES,
 } from '../lib/project-edit-session-backend-persistence-plan'
+import { getMockSafeDurableProjectSessionBackendSkeleton } from '../lib/project-edit-session-backend-skeleton'
 import { PROJECT_EDIT_SESSION_ACCESS_POLICY_REQUIRED_EVIDENCE } from '../lib/project-edit-session-access-policy'
 import { internalTestingScenarios, type InternalTestingScenarioStatus } from '../lib/internal-testing-scenarios'
 import {
@@ -138,6 +139,7 @@ function getScenarioHighlights() {
     'auth-project-access-readiness',
     'auth-project-session-membership-policy',
     'durable-auth-project-session-backend-persistence-plan',
+    'mock-safe-durable-project-session-backend-skeleton',
     'feedback-export',
   ])
 
@@ -164,6 +166,7 @@ export function InternalTestingPage() {
   }, [])
 
   const highlightedScenarios = useMemo(getScenarioHighlights, [])
+  const backendSkeleton = useMemo(getMockSafeDurableProjectSessionBackendSkeleton, [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -621,6 +624,42 @@ export function InternalTestingPage() {
                 ))}
               </ul>
               <p>No migration, SQL, Storage, service-role browser path, or Supabase write is enabled by this plan.</p>
+            </article>
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-mock-safe-durable-project-session-backend-skeleton">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Backend skeleton</span>
+            <h2>Mock project/session access can pass while durable Supabase stays fail-closed</h2>
+          </div>
+          <p>
+            The backend skeleton now evaluates a server-shaped project/session access request with request id, idempotency key, workspace
+            membership, project membership, and edit-session membership. It is ready for internal route integration, but live table-backed access
+            remains blocked until RLS, explicit Data API grants, migrations, and backend-only service-role boundaries are proven.
+          </p>
+          <div className="internal-testing-auth-grid">
+            <article data-testid="internal-testing-backend-skeleton-decision">
+              <Badge accent="success">Route integration ready</Badge>
+              <strong>{backendSkeleton.decision}</strong>
+              <span>Current mode: {backendSkeleton.currentMode.replace(/_/g, ' ')}</span>
+              <span>Next gate: {backendSkeleton.nextGate}</span>
+            </article>
+            <article data-testid="internal-testing-backend-skeleton-required-evidence">
+              <Badge accent="cyan">Durable evidence still required</Badge>
+              <ul>
+                {backendSkeleton.requiredEvidence.map((item) => (
+                  <li key={item}>{item.replace(/_/g, ' ')}</li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-backend-skeleton-boundaries">
+              <Badge accent="warning">Durable path disabled</Badge>
+              <ul>
+                <li>Mock internal route access can pass for seeded internal testing fixtures.</li>
+                <li>Durable Supabase access still fails closed without RLS and explicit Data API grant evidence.</li>
+                <li>No Supabase migration, table read/write, Storage, worker, media, render, credit, external beta, or product-ready unlock.</li>
+              </ul>
             </article>
           </div>
         </section>

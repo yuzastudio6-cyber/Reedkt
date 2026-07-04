@@ -60,6 +60,12 @@ The `durable-auth-project-session-backend-persistence-plan` scenario is classifi
 
 This plan does not run migrations, SQL, Supabase table reads/writes, Storage, signed URLs, service-role browser code, profile/workspace bootstrap writes, workers, media, render/export, credits, external beta, paid production, or product-ready behavior.
 
+## Mock-Safe Durable Project Session Backend Skeleton
+
+The `mock-safe-durable-project-session-backend-skeleton` scenario is classified as `mock_local` because the internal testing route now exposes the server-shaped access evaluator. Seeded mock route access can pass with auth user, workspace, project, edit session, request id, and idempotency key. Durable Supabase access still fails closed until RLS, explicit Data API grants, migration, and backend-only service-role evidence exist.
+
+This skeleton does not run Supabase Data API table reads/writes, SQL, migrations, Storage, signed URLs, service-role browser code, profile/workspace bootstrap writes, workers, media, render/export, credits, external beta, paid production, or product-ready behavior.
+
 ## Boundaries
 
 - No upload or file-byte read.
@@ -87,6 +93,7 @@ Required validation:
 - `npm run smoke:internal-testing-auth-project-access-readiness`
 - `npm run smoke:internal-testing-auth-project-session-membership-policy`
 - `npm run smoke:internal-testing-durable-auth-project-session-backend-persistence-plan`
+- `npm run smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton`
 - `npm run qa:internal-testing`
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-readback-qa`
@@ -100,4 +107,4 @@ Required validation:
 
 ## Next
 
-Use `/internal-testing` for repeated internal QA and source-truth feedback capture. The next real product milestones remain durable authenticated project/session backend persistence, real planner integration into approved snapshots, transactional credit reservation/spend/release/refund persistence, and explicit runtime/persistence gates.
+Use `/internal-testing` for repeated internal QA and source-truth feedback capture. The next real product milestones remain durable authenticated project/session route integration, real planner integration into approved snapshots, transactional credit reservation/spend/release/refund persistence, and explicit runtime/persistence gates.

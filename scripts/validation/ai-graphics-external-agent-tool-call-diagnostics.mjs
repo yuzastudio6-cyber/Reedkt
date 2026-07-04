@@ -189,6 +189,15 @@ function checkExecutableCall(label, report, expectedToolId, expectedGroup) {
   if (report.response?.outputSource !== 'controlled_adapter_private_artifact') {
     fail(`${label}_output_source_mismatch:${report.response?.outputSource}`)
   }
+  if (report.nextAction?.status !== 'none_required_tool_executed') {
+    fail(`${label}_next_action_status_mismatch:${report.nextAction?.status}`)
+  }
+  if (
+    !Array.isArray(report.nextAction?.requiredPrivateInputKeys) ||
+    report.nextAction.requiredPrivateInputKeys.length !== 0
+  ) {
+    fail(`${label}_unexpected_next_action_private_inputs`)
+  }
   checkNoBoundaryLeaks(label, report)
 }
 
@@ -286,6 +295,72 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
   ) {
     fail(`${label}_gpu_runtime_start_policy_mismatch`)
   }
+  const nextAction = report.nextAction ?? {}
+  if (nextAction.status !== 'blocked_until_scoped_private_gpu_runtime_proof') {
+    fail(`${label}_next_action_status_mismatch:${nextAction.status}`)
+  }
+  if (
+    nextAction.gpuRuntimeStartPolicy !==
+    'on_demand_only_for_scoped_active_tool_call'
+  ) {
+    fail(`${label}_next_action_gpu_policy_mismatch`)
+  }
+  for (const key of [
+    'outputDirectory',
+    'nativeCudaRuntime',
+    'sourceImageLocalPath',
+  ]) {
+    if (!Array.isArray(nextAction.requiredPrivateInputKeys) ||
+      !nextAction.requiredPrivateInputKeys.includes(key)) {
+      fail(`${label}_next_action_required_private_input_missing:${key}`)
+    }
+  }
+  for (const fragment of [
+    'approved native CUDA-capable host',
+    'private approved source image',
+    'no public artifact',
+  ]) {
+    if (!Array.isArray(nextAction.blockedRuntimePrerequisites) ||
+      !nextAction.blockedRuntimePrerequisites.some((item) =>
+        String(item).includes(fragment))) {
+      fail(`${label}_next_action_prerequisite_missing:${fragment}`)
+    }
+  }
+  for (const fragment of [
+    'ai-graphics:gpu-runtime-proof-local-preflight',
+    '--detect-host',
+  ]) {
+    if (!String(nextAction.nextExactGpuHostPreflightCommand ?? '').includes(fragment)) {
+      fail(`${label}_next_action_host_preflight_missing:${fragment}`)
+    }
+  }
+  for (const fragment of [
+    'docker buildx build',
+    '--platform linux/amd64',
+    `-t ${canonicalGpuModelRuntimeContainerImage}`,
+  ]) {
+    if (!String(nextAction.nextExactGpuContainerBuildCommand ?? '').includes(fragment)) {
+      fail(`${label}_next_action_container_build_missing:${fragment}`)
+    }
+  }
+  for (const fragment of [
+    'ai-graphics:external-agent-tool-call',
+    '--tool kornia',
+    '--attempt-gpu-runtime',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+    '--runtime-container-platform linux/amd64',
+    '--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/kornia',
+    '--source-image <private-approved-frame.png>',
+    '--expect-state executable',
+    '--require-output-hash',
+    '--require-private-only-boundary',
+    '--strict-exit-code',
+  ]) {
+    if (!String(nextAction.nextExactScopedToolCallCommand ?? '').includes(fragment)) {
+      fail(`${label}_next_action_scoped_tool_call_missing:${fragment}`)
+    }
+  }
   checkNoBoundaryLeaks(label, report)
 }
 
@@ -352,6 +427,12 @@ for (const phrase of [
   'gpu_model_controlled_adapter_runtime_output',
   'outputJsonSha256',
   'outputJsonPath',
+  'nextActionForReport',
+  'assertPrivateLocalInputPath',
+  'assertNoSignedUrlOrRawUrl',
+  'gpuModelRequiredPrivateInputKeys',
+  'blocked_until_scoped_private_gpu_runtime_proof',
+  'nextExactScopedToolCallCommand',
 ]) {
   if (!cliSource.includes(phrase)) fail(`cli_missing:${phrase}`)
 }
@@ -478,6 +559,44 @@ if (d3WrongExpectedState.status !== 1) {
 }
 if (!d3WrongExpectedState.stderr.includes('expected_state_mismatch')) {
   fail('d3_wrong_expected_state_missing_diagnostic')
+}
+
+const korniaRawUrlInput = spawnToolCall([
+  '--tool',
+  'kornia',
+  '--attempt-gpu-runtime',
+  '--runtime-backend',
+  'docker_container',
+  '--gpu-output-dir',
+  '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/kornia-url-rejected',
+  '--source-image',
+  'https://example.com/private-frame.png',
+])
+if (korniaRawUrlInput.status === 0) {
+  fail('kornia_raw_url_input_unexpected_success')
+}
+if (!korniaRawUrlInput.stderr.includes('sourceImageLocalPath must be a private storage/local reference')) {
+  fail('kornia_raw_url_input_missing_diagnostic')
+}
+
+const sam2TraversalInput = spawnToolCall([
+  '--tool',
+  'sam2',
+  '--attempt-gpu-runtime',
+  '--runtime-backend',
+  'docker_container',
+  '--gpu-output-dir',
+  '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/sam2-traversal-rejected',
+  '--source-image',
+  '/tmp/reeditpro-missing-private-approved-frame.png',
+  '--sam2-checkpoint',
+  '../private-sam2-checkpoint.pt',
+])
+if (sam2TraversalInput.status === 0) {
+  fail('sam2_traversal_input_unexpected_success')
+}
+if (!sam2TraversalInput.stderr.includes('sam2CheckpointLocalPath must not contain path traversal segments')) {
+  fail('sam2_traversal_input_missing_diagnostic')
 }
 
 const packageJsonDiff = exec('git diff -- package.json')

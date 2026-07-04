@@ -21,6 +21,10 @@ import {
   AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS,
   type AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 } from '../tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter'
+import {
+  assertNoPathTraversal,
+  assertNoSignedUrlOrRawUrl,
+} from '../workers/media/media-path-safety'
 
 const decision = 'ai_graphics_external_agent_single_tool_call_ready'
 const outputJsonPath =
@@ -131,6 +135,12 @@ function ensureParentDirectory(filePath: string): void {
   if (parent && parent !== '.') fs.mkdirSync(parent, { recursive: true })
 }
 
+function assertPrivateLocalInputPath(label: string, value: string | undefined): void {
+  if (!value) return
+  assertNoSignedUrlOrRawUrl(value, label)
+  assertNoPathTraversal(value, label)
+}
+
 function buildRuntimeEnv() {
   return loadRuntimeEnv({
     NODE_ENV: 'test',
@@ -179,6 +189,88 @@ function gpuModelSourceImageRequired(toolId: string): boolean {
   return !['torch_torchvision', 'transformers'].includes(toolId)
 }
 
+function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
+  const keys = ['outputDirectory', 'nativeCudaRuntime']
+  if (gpuModelSourceImageRequired(toolId)) keys.push('sourceImageLocalPath')
+  if (toolId === 'sam2') keys.push('sam2CheckpointLocalPath')
+  if (toolId === 'birefnet') keys.push('birefnetModelLocalPath')
+  if (toolId === 'real_esrgan') keys.push('realEsrganModelLocalPath')
+  if (toolId === 'rembg') keys.push('rembgModelLocalPath')
+  if (toolId === 'transparent_background') {
+    keys.push('transparentBackgroundCheckpointLocalPath')
+  }
+  return keys
+}
+
+function gpuModelPrivateInputPlaceholders(toolId: string): string[] {
+  const placeholders: string[] = []
+  if (gpuModelSourceImageRequired(toolId)) {
+    placeholders.push('--source-image <private-approved-frame.png>')
+  }
+  if (toolId === 'sam2') placeholders.push('--sam2-checkpoint <private-sam2-checkpoint.pt>')
+  if (toolId === 'birefnet') placeholders.push('--birefnet-model <private-birefnet-model>')
+  if (toolId === 'real_esrgan') {
+    placeholders.push('--real-esrgan-model <private-real-esrgan-model.pth>')
+  }
+  if (toolId === 'rembg') placeholders.push('--rembg-model <private-rembg-model.onnx>')
+  if (toolId === 'transparent_background') {
+    placeholders.push('--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>')
+  }
+  return placeholders
+}
+
+function gpuModelBlockedPrerequisites(toolId: string): string[] {
+  const prerequisites = [
+    'approved native CUDA-capable host or approved linux/amd64 Docker GPU runtime',
+    'proof-local GPU worker container image built locally',
+    'private output directory under .local-artifacts/',
+    'no public artifact, signed URL, provider call, model download, beta unlock, or production unlock',
+  ]
+  if (gpuModelSourceImageRequired(toolId)) {
+    prerequisites.push('private approved source image/frame on local disk')
+  }
+  if (toolId === 'sam2') prerequisites.push('private SAM2 checkpoint path')
+  if (toolId === 'birefnet') prerequisites.push('private BiRefNet model path')
+  if (toolId === 'real_esrgan') prerequisites.push('private Real-ESRGAN model path')
+  if (toolId === 'rembg') prerequisites.push('private rembg model path')
+  if (toolId === 'transparent_background') {
+    prerequisites.push('private transparent-background checkpoint path')
+  }
+  return prerequisites
+}
+
+function gpuModelHostPreflightCommand(): string {
+  return 'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host'
+}
+
+function gpuModelContainerBuildCommand(): string {
+  return [
+    'docker buildx build',
+    '--platform linux/amd64',
+    '--target ai_graphics_install_proof',
+    '-f docker/prod/gpu-worker/Dockerfile',
+    `-t ${canonicalGpuModelRuntimeContainerImage}`,
+    '.',
+  ].join(' ')
+}
+
+function gpuModelScopedToolCallCommand(toolId: string): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-tool-call --',
+    `--tool ${toolId}`,
+    '--attempt-gpu-runtime',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+    '--runtime-container-platform linux/amd64',
+    `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/${toolId}`,
+    ...gpuModelPrivateInputPlaceholders(toolId),
+    '--expect-state executable',
+    '--require-output-hash',
+    '--require-private-only-boundary',
+    '--strict-exit-code',
+  ].join(' ')
+}
+
 function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId) {
   const attemptGpuRuntime = hasFlag('--attempt-gpu-runtime')
   const outputDirectory = stringArg('--gpu-output-dir')
@@ -208,6 +300,7 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
   if (!attemptGpuRuntime) return payload
 
   const sourceImageLocalPath = stringArg('--source-image')
+  assertPrivateLocalInputPath('sourceImageLocalPath', sourceImageLocalPath)
   const runtimeBackend = stringArg('--runtime-backend') === 'host_python'
     ? 'host_python'
     : 'docker_container'
@@ -227,13 +320,27 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
     payload.sourceImageLocalPath = sourceImageLocalPath
     payload.representativeFrameLocalPath = sourceImageLocalPath
   }
-  if (toolId === 'sam2') payload.sam2CheckpointLocalPath = stringArg('--sam2-checkpoint')
-  if (toolId === 'birefnet') payload.birefnetModelLocalPath = stringArg('--birefnet-model')
-  if (toolId === 'real_esrgan') payload.realEsrganModelLocalPath = stringArg('--real-esrgan-model')
-  if (toolId === 'rembg') payload.rembgModelLocalPath = stringArg('--rembg-model')
+  const sam2CheckpointLocalPath = stringArg('--sam2-checkpoint')
+  const birefnetModelLocalPath = stringArg('--birefnet-model')
+  const realEsrganModelLocalPath = stringArg('--real-esrgan-model')
+  const rembgModelLocalPath = stringArg('--rembg-model')
+  const transparentBackgroundCheckpointLocalPath =
+    stringArg('--transparent-background-checkpoint')
+  assertPrivateLocalInputPath('sam2CheckpointLocalPath', sam2CheckpointLocalPath)
+  assertPrivateLocalInputPath('birefnetModelLocalPath', birefnetModelLocalPath)
+  assertPrivateLocalInputPath('realEsrganModelLocalPath', realEsrganModelLocalPath)
+  assertPrivateLocalInputPath('rembgModelLocalPath', rembgModelLocalPath)
+  assertPrivateLocalInputPath(
+    'transparentBackgroundCheckpointLocalPath',
+    transparentBackgroundCheckpointLocalPath,
+  )
+  if (toolId === 'sam2') payload.sam2CheckpointLocalPath = sam2CheckpointLocalPath
+  if (toolId === 'birefnet') payload.birefnetModelLocalPath = birefnetModelLocalPath
+  if (toolId === 'real_esrgan') payload.realEsrganModelLocalPath = realEsrganModelLocalPath
+  if (toolId === 'rembg') payload.rembgModelLocalPath = rembgModelLocalPath
   if (toolId === 'transparent_background') {
     payload.transparentBackgroundCheckpointLocalPath =
-      stringArg('--transparent-background-checkpoint')
+      transparentBackgroundCheckpointLocalPath
   }
 
   if (gpuModelSourceImageRequired(toolId) && !sourceImageLocalPath) {
@@ -241,6 +348,57 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
   }
 
   return payload
+}
+
+function nextActionForReport(input: {
+  toolId: string
+  group: ToolGroup
+  executable: boolean
+  blockedWithReason: boolean
+  failedWithDiagnostics: boolean
+}) {
+  if (input.executable) {
+    return {
+      status: 'none_required_tool_executed',
+      requiredPrivateInputKeys: [],
+      blockedRuntimePrerequisites: [],
+      nextExactGpuHostPreflightCommand: null,
+      nextExactGpuContainerBuildCommand: null,
+      nextExactScopedToolCallCommand: null,
+      gpuRuntimeStartPolicy: 'gpu_runtime_not_started_for_completed_non_gpu_or_successful_scoped_call',
+    }
+  }
+  if (input.group === 'gpu_model' && input.blockedWithReason) {
+    return {
+      status: 'blocked_until_scoped_private_gpu_runtime_proof',
+      requiredPrivateInputKeys: gpuModelRequiredPrivateInputKeys(input.toolId),
+      blockedRuntimePrerequisites: gpuModelBlockedPrerequisites(input.toolId),
+      nextExactGpuHostPreflightCommand: gpuModelHostPreflightCommand(),
+      nextExactGpuContainerBuildCommand: gpuModelContainerBuildCommand(),
+      nextExactScopedToolCallCommand: gpuModelScopedToolCallCommand(input.toolId),
+      gpuRuntimeStartPolicy: 'on_demand_only_for_scoped_active_tool_call',
+    }
+  }
+  if (input.failedWithDiagnostics) {
+    return {
+      status: 'inspect_failure_diagnostics_before_retry',
+      requiredPrivateInputKeys: [],
+      blockedRuntimePrerequisites: [],
+      nextExactGpuHostPreflightCommand: null,
+      nextExactGpuContainerBuildCommand: null,
+      nextExactScopedToolCallCommand: null,
+      gpuRuntimeStartPolicy: 'do_not_start_gpu_for_failed_request',
+    }
+  }
+  return {
+    status: 'unknown_result_requires_route_diagnostic',
+    requiredPrivateInputKeys: [],
+    blockedRuntimePrerequisites: [],
+    nextExactGpuHostPreflightCommand: null,
+    nextExactGpuContainerBuildCommand: null,
+    nextExactScopedToolCallCommand: null,
+    gpuRuntimeStartPolicy: 'do_not_start_gpu_for_unknown_result',
+  }
 }
 
 function requestForTool(): AiGraphicsExternalBetaToolCallRequest {
@@ -426,6 +584,13 @@ async function buildReport() {
       outputJsonPath: outputSummary.outputJsonPath,
       outputSource: outputSummary.outputSource,
     },
+    nextAction: nextActionForReport({
+      toolId: request.toolId,
+      group,
+      executable,
+      blockedWithReason,
+      failedWithDiagnostics,
+    }),
     booleans: {
       externalAgentSingleToolCallPerformed: true,
       routeMountedForCall: response.statusCode !== 404,
@@ -546,6 +711,16 @@ Route: \`${report.routePath}\`
 - \`outputSha256\`: \`${report.response.outputSha256}\`
 - \`outputJsonPath\`: \`${report.response.outputJsonPath}\`
 - \`outputSource\`: \`${report.response.outputSource}\`
+
+## Next Action
+
+- \`status\`: \`${report.nextAction.status}\`
+- \`requiredPrivateInputKeys\`: \`${report.nextAction.requiredPrivateInputKeys.join(', ') || 'none'}\`
+- \`blockedRuntimePrerequisites\`: \`${report.nextAction.blockedRuntimePrerequisites.join(' | ') || 'none'}\`
+- \`nextExactGpuHostPreflightCommand\`: \`${report.nextAction.nextExactGpuHostPreflightCommand}\`
+- \`nextExactGpuContainerBuildCommand\`: \`${report.nextAction.nextExactGpuContainerBuildCommand}\`
+- \`nextExactScopedToolCallCommand\`: \`${report.nextAction.nextExactScopedToolCallCommand}\`
+- \`gpuRuntimeStartPolicy\`: \`${report.nextAction.gpuRuntimeStartPolicy}\`
 
 ## Booleans
 

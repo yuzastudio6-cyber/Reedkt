@@ -27,6 +27,16 @@ Route: `/api/ai-graphics/external-agent/tool-call`
 - `outputJsonPath`: `null`
 - `outputSource`: `controlled_adapter_private_artifact`
 
+## Next Action
+
+- `status`: `none_required_tool_executed`
+- `requiredPrivateInputKeys`: `none`
+- `blockedRuntimePrerequisites`: `none`
+- `nextExactGpuHostPreflightCommand`: `null`
+- `nextExactGpuContainerBuildCommand`: `null`
+- `nextExactScopedToolCallCommand`: `null`
+- `gpuRuntimeStartPolicy`: `gpu_runtime_not_started_for_completed_non_gpu_or_successful_scoped_call`
+
 ## Booleans
 
 - `externalAgentSingleToolCallPerformed`: true

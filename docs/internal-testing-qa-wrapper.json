@@ -16,6 +16,7 @@
     "smoke:internal-testing-auth-project-access-readiness",
     "smoke:internal-testing-auth-project-session-membership-policy",
     "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan",
+    "smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton",
     "smoke:beta-readiness"
   ],
   "playwrightSpecs": [

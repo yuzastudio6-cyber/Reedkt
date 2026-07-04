@@ -23,6 +23,7 @@
     "auth_project_access_readiness",
     "auth_project_session_membership_policy",
     "durable_auth_project_session_backend_persistence_plan",
+    "mock_safe_durable_project_session_backend_skeleton",
     "testing_discipline_checklist",
     "browser_local_feedback_records",
     "manual_feedback_json_export"
@@ -35,6 +36,7 @@
     "auth-project-access-readiness": "mock_local",
     "auth-project-session-membership-policy": "mock_local",
     "durable-auth-project-session-backend-persistence-plan": "mock_local",
+    "mock-safe-durable-project-session-backend-skeleton": "mock_local",
     "blockedScenarioCount": 0
   },
   "blockedScope": {
@@ -70,6 +72,7 @@
       "smoke:internal-testing-auth-project-access-readiness",
       "smoke:internal-testing-auth-project-session-membership-policy",
       "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan",
+      "smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton",
       "qa:internal-testing",
       "smoke:project-edit-brief-internal-testing-review-pr-readiness",
       "smoke:project-edit-brief-internal-testing-readback-qa",

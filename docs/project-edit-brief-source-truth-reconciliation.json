@@ -30,7 +30,8 @@
     "internal_testing_repeated_local_operator_harness",
     "internal_testing_auth_project_access_readiness",
     "internal_testing_auth_project_session_membership_policy",
-    "internal_testing_durable_auth_project_session_backend_persistence_plan"
+    "internal_testing_durable_auth_project_session_backend_persistence_plan",
+    "internal_testing_mock_safe_durable_project_session_backend_skeleton"
   ],
   "blockedScope": {
     "supabaseReadWrite": false,
@@ -75,7 +76,8 @@
       "smoke:internal-testing-repeated-local-operator-harness",
       "smoke:internal-testing-auth-project-access-readiness",
       "smoke:internal-testing-auth-project-session-membership-policy",
-      "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan"
+      "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan",
+      "smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton"
     ],
     "typecheckServer": "passed",
     "build": "passed",
@@ -102,7 +104,7 @@
     "internal_testing_auth_project_access_readiness_after_rp_inttest_02",
     "internal_testing_auth_project_session_membership_policy_after_rp_inttest_03",
     "internal_testing_durable_auth_project_session_backend_persistence_plan_after_rp_inttest_04",
-    "mock_safe_durable_project_session_backend_skeleton",
+    "internal_testing_durable_project_session_backend_route_integration",
     "real_source_media_ingestion",
     "planner_integration_to_approved_snapshots",
     "credit_estimate_and_reservation",

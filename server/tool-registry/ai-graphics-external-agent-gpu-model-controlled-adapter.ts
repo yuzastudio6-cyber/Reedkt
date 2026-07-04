@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, statSync } from 'node:fs'
 import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
 import {
   runAiGraphicsFoundationRuntimeCheck,
@@ -577,6 +577,7 @@ function skippedPrerequisiteBlock(input: {
   message: string
   summary: string
   warning: string
+  errorMessage?: string
 }): Record<string, unknown> {
   return {
     executionInputMode: 'local_dev',
@@ -596,11 +597,51 @@ function skippedPrerequisiteBlock(input: {
         tool: input.toolId,
       },
       warningCount: 1,
-      errorMessage: undefined,
+      errorMessage: input.errorMessage,
     },
     localRuntimeExecutionPerformed: false,
     warnings: [input.warning],
   }
+}
+
+type PrivateLocalPathExpectation =
+  | 'file'
+  | 'directory'
+  | 'birefnet_model_directory'
+
+function privateLocalPathMatchesExpectation(
+  pathValue: string,
+  expectation: PrivateLocalPathExpectation,
+): boolean {
+  let pathStat
+  try {
+    pathStat = statSync(pathValue)
+  } catch {
+    return false
+  }
+
+  if (expectation === 'file') return pathStat.isFile()
+  if (expectation === 'directory') return pathStat.isDirectory()
+  if (expectation === 'birefnet_model_directory') {
+    if (!pathStat.isDirectory()) return false
+    const modelFilePath = `${pathValue}/model.safetensors`
+    if (!existsSync(modelFilePath)) return false
+    try {
+      return statSync(modelFilePath).isFile()
+    } catch {
+      return false
+    }
+  }
+  return false
+}
+
+function privateLocalPathExpectationLabel(
+  expectation: PrivateLocalPathExpectation,
+): string {
+  if (expectation === 'birefnet_model_directory') {
+    return 'a directory containing model.safetensors'
+  }
+  return `a ${expectation}`
 }
 
 function missingLocalPathBlock(input: {
@@ -608,8 +649,26 @@ function missingLocalPathBlock(input: {
   pathValue: string | undefined
   code: string
   label: string
+  expectation: PrivateLocalPathExpectation
 }): Record<string, unknown> | null {
-  if (input.pathValue && existsSync(input.pathValue)) return null
+  if (
+    input.pathValue &&
+    existsSync(input.pathValue) &&
+    privateLocalPathMatchesExpectation(input.pathValue, input.expectation)
+  ) return null
+  if (input.pathValue && existsSync(input.pathValue)) {
+    return skippedPrerequisiteBlock({
+      toolId: input.toolId,
+      code: input.code.replace(/_missing$/, '_invalid_path_kind'),
+      message: `${input.label} must be ${privateLocalPathExpectationLabel(input.expectation)} at the supplied private local path; no download or public fetch is allowed.`,
+      summary:
+        'GPU/model local-dev execution prerequisite blocked before Docker/GPU startup because a required private local runtime input had the wrong filesystem type.',
+      warning:
+        'GPU/model runtime did not start because a required private local input path had the wrong filesystem type.',
+      errorMessage:
+        `${input.label} has the wrong filesystem type for this controlled GPU/model tool call.`,
+    })
+  }
   return skippedPrerequisiteBlock({
     toolId: input.toolId,
     code: input.code,
@@ -637,11 +696,13 @@ function privateLocalRuntimeInputBlock(
       pathValue: optionalString(payload, 'sam2CheckpointLocalPath'),
       code: 'sam2_checkpoint_missing',
       label: 'SAM2 checkpoint',
+      expectation: 'file',
     }) ?? missingLocalPathBlock({
       toolId,
       pathValue: sourceFrame,
       code: 'sam2_source_frame_missing',
       label: 'SAM2 private source image/frame',
+      expectation: 'file',
     })
   }
 
@@ -651,11 +712,13 @@ function privateLocalRuntimeInputBlock(
       pathValue: optionalString(payload, 'birefnetModelLocalPath'),
       code: 'birefnet_model_missing',
       label: 'BiRefNet model/checkpoint',
+      expectation: 'birefnet_model_directory',
     }) ?? missingLocalPathBlock({
       toolId,
       pathValue: sourceFrame,
       code: 'birefnet_source_frame_missing',
       label: 'BiRefNet private source image/frame',
+      expectation: 'file',
     })
   }
 
@@ -665,11 +728,13 @@ function privateLocalRuntimeInputBlock(
       pathValue: optionalString(payload, 'realEsrganModelLocalPath'),
       code: 'real_esrgan_model_missing',
       label: 'Real-ESRGAN model',
+      expectation: 'file',
     }) ?? missingLocalPathBlock({
       toolId,
       pathValue: sourceFrame,
       code: 'real_esrgan_source_frame_missing',
       label: 'Real-ESRGAN private source image/frame',
+      expectation: 'file',
     })
   }
 
@@ -679,6 +744,7 @@ function privateLocalRuntimeInputBlock(
       pathValue: sourceFrame,
       code: 'kornia_source_frame_missing',
       label: 'Kornia private source image/frame',
+      expectation: 'file',
     })
   }
 
@@ -688,11 +754,13 @@ function privateLocalRuntimeInputBlock(
       pathValue: optionalString(payload, 'rembgModelLocalPath'),
       code: 'rembg_model_missing',
       label: 'rembg ONNX model',
+      expectation: 'file',
     }) ?? missingLocalPathBlock({
       toolId,
       pathValue: sourceFrame,
       code: 'rembg_source_frame_missing',
       label: 'rembg private source image/frame',
+      expectation: 'file',
     })
   }
 
@@ -701,11 +769,13 @@ function privateLocalRuntimeInputBlock(
     pathValue: optionalString(payload, 'transparentBackgroundCheckpointLocalPath'),
     code: 'transparent_background_checkpoint_missing',
     label: 'transparent-background checkpoint',
+    expectation: 'file',
   }) ?? missingLocalPathBlock({
     toolId,
     pathValue: sourceFrame,
     code: 'transparent_background_source_frame_missing',
     label: 'transparent-background private source image/frame',
+    expectation: 'file',
   })
 }
 

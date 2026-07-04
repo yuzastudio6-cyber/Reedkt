@@ -151,22 +151,40 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   if (blockingReasonCode.includes('output_directory_missing')) {
     return 'outputDirectory'
   }
-  if (blockingReasonCode.includes('source_frame_missing')) {
+  if (
+    blockingReasonCode.includes('source_frame_missing') ||
+    blockingReasonCode.includes('source_frame_invalid_path_kind')
+  ) {
     return 'sourceImageLocalPath'
   }
-  if (blockingReasonCode.includes('sam2_checkpoint_missing')) {
+  if (
+    blockingReasonCode.includes('sam2_checkpoint_missing') ||
+    blockingReasonCode.includes('sam2_checkpoint_invalid_path_kind')
+  ) {
     return 'sam2CheckpointLocalPath'
   }
-  if (blockingReasonCode.includes('birefnet_model_missing')) {
+  if (
+    blockingReasonCode.includes('birefnet_model_missing') ||
+    blockingReasonCode.includes('birefnet_model_invalid_path_kind')
+  ) {
     return 'birefnetModelLocalPath'
   }
-  if (blockingReasonCode.includes('real_esrgan_model_missing')) {
+  if (
+    blockingReasonCode.includes('real_esrgan_model_missing') ||
+    blockingReasonCode.includes('real_esrgan_model_invalid_path_kind')
+  ) {
     return 'realEsrganModelLocalPath'
   }
-  if (blockingReasonCode.includes('rembg_model_missing')) {
+  if (
+    blockingReasonCode.includes('rembg_model_missing') ||
+    blockingReasonCode.includes('rembg_model_invalid_path_kind')
+  ) {
     return 'rembgModelLocalPath'
   }
-  if (blockingReasonCode.includes('transparent_background_checkpoint_missing')) {
+  if (
+    blockingReasonCode.includes('transparent_background_checkpoint_missing') ||
+    blockingReasonCode.includes('transparent_background_checkpoint_invalid_path_kind')
+  ) {
     return 'transparentBackgroundCheckpointLocalPath'
   }
   if (

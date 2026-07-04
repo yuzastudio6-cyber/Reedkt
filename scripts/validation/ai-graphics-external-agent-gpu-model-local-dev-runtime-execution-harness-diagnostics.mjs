@@ -332,6 +332,16 @@ if (report.localRuntimePolicy?.privateInputPreflightBeforeGpuAttachment !== true
 if (report.localRuntimePolicy?.missingPrivateInputsBlockBeforeGpuStartup !== true) {
   fail('missing_private_inputs_do_not_block_before_gpu_startup')
 }
+for (const requiredPathKindPolicy of [
+  'privateRuntimeInputPathKindPreflightBeforeGpuStartup',
+  'sourceFrameInputsMustBeFiles',
+  'fileBackedModelInputsMustBeFiles',
+  'birefnetModelInputMustBeDirectoryWithModelSafetensors',
+]) {
+  if (report.localRuntimePolicy?.[requiredPathKindPolicy] !== true) {
+    fail(`private_runtime_input_path_kind_policy_not_recorded:${requiredPathKindPolicy}`)
+  }
+}
 if (report.localRuntimePolicy?.dockerContainerBackendAutoMountsPrivateRuntimePaths !== true) {
   fail('docker_container_private_runtime_path_mounts_not_recorded')
 }
@@ -480,6 +490,10 @@ for (const requiredToken of [
   'outputJsonPath: result.outputJsonPath ?? null',
   'outputJsonSizeBytes: result.outputJsonSizeBytes ?? null',
   'outputJsonSha256: result.outputJsonSha256 ?? null',
+  'privateLocalPathMatchesExpectation',
+  '_invalid_path_kind',
+  'birefnet_model_directory',
+  'model.safetensors',
 ]) {
   if (!controlledAdapterSource.includes(requiredToken)) {
     fail(`controlled_adapter_summary_missing_runtime_output_token:${requiredToken}`)
@@ -868,6 +882,50 @@ if (unsafeManifestOutputRun.status === 0) {
 }
 if (!unsafeManifestOutputRun.stderr.includes('runtime input manifest outputDirectory must stay under .local-artifacts/')) {
   fail('unsafe_manifest_output_directory_missing_diagnostic')
+}
+
+const invalidSourceKindDir =
+  `${manifestDir}/invalid-private-source-frame-directory`
+fs.mkdirSync(absolute(invalidSourceKindDir), { recursive: true })
+const invalidSourceKindRun = spawnRunScript([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--output-dir',
+  `${manifestDir}/invalid-source-kind-output`,
+  '--source-image',
+  invalidSourceKindDir,
+])
+if (invalidSourceKindRun.status !== 0) {
+  fail(`invalid_source_kind_run_failed:${invalidSourceKindRun.status}:${invalidSourceKindRun.stderr}`)
+}
+const invalidSourceKindOutput = invalidSourceKindRun.status === 0
+  ? JSON.parse(invalidSourceKindRun.stdout)
+  : {}
+if (invalidSourceKindOutput.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('invalid_source_kind_run_started_gpu')
+}
+if (invalidSourceKindOutput.counts?.localRuntimeExecutionPerformedTools !== 0) {
+  fail('invalid_source_kind_run_runtime_executed')
+}
+const invalidSourceKindRows = Array.isArray(invalidSourceKindOutput.gpuModelLocalDevRuntimeExecutionHarnessRows)
+  ? invalidSourceKindOutput.gpuModelLocalDevRuntimeExecutionHarnessRows
+  : []
+const invalidSourceKindRow = invalidSourceKindRows[0] ?? {}
+if (invalidSourceKindRows.length !== 1 || invalidSourceKindRow.toolId !== 'kornia') {
+  fail('invalid_source_kind_run_not_limited_to_kornia')
+}
+if (invalidSourceKindRow.skipReasonCode !== 'kornia_source_frame_invalid_path_kind') {
+  fail(`invalid_source_kind_run_unexpected_skip_reason:${invalidSourceKindRow.skipReasonCode}`)
+}
+if (invalidSourceKindRow.currentBlockingPrerequisiteKey !== 'sourceImageLocalPath') {
+  fail(`invalid_source_kind_run_current_blocker_mismatch:${invalidSourceKindRow.currentBlockingPrerequisiteKey}`)
+}
+if (invalidSourceKindRow.executionState !== 'blocked_with_reason') {
+  fail(`invalid_source_kind_run_unexpected_execution_state:${invalidSourceKindRow.executionState}`)
+}
+if (!String(invalidSourceKindRow.errorMessage ?? '').includes('wrong filesystem type')) {
+  fail('invalid_source_kind_run_missing_error_message')
 }
 
 const cpuTensorDir =

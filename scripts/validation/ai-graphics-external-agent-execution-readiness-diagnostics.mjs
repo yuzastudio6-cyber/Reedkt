@@ -719,7 +719,7 @@ function expectedRuntimeContainerTarget(toolId) {
 
 function expectedPracticalLocalProofContainerImage(toolId) {
   return toolId === 'sam2' || toolId === 'birefnet'
-    ? canonicalGpuWorkerProofImage
+    ? expectedRuntimeContainerTarget(toolId).image
     : null
 }
 

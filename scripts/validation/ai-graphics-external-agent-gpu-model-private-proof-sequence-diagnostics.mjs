@@ -59,17 +59,17 @@ const runtimeContainerTargetByTool = {
   sam2: {
     image: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
     dockerfile: 'docker/prod/sam2-runtime/Dockerfile',
-    target: 'sam2_runtime_proof',
+    target: 'ai_graphics_install_proof',
   },
   birefnet: {
     image: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
     dockerfile: 'docker/prod/birefnet-runtime/Dockerfile',
-    target: 'birefnet_runtime_proof',
+    target: 'ai_graphics_install_proof',
   },
   real_esrgan: {
     image: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
     dockerfile: 'docker/prod/real-esrgan-runtime/Dockerfile',
-    target: 'real_esrgan_runtime_proof',
+    target: 'ai_graphics_install_proof',
   },
   kornia: {
     image: 'reeditpro/ai-graphics-gpu-worker:proof-local',

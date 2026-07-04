@@ -58,8 +58,8 @@ const toolSpecificFlagByTool = {
 const runtimeContainerImageByTool = {
   torch_torchvision: 'reeditpro/ai-graphics-gpu-worker:proof-local',
   transformers: 'reeditpro/ai-graphics-gpu-worker:proof-local',
-  sam2: 'reeditpro/ai-graphics-gpu-worker:proof-local',
-  birefnet: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
   real_esrgan: 'reeditpro/ai-graphics-gpu-worker:proof-local',
   kornia: 'reeditpro/ai-graphics-gpu-worker:proof-local',
   rembg: 'reeditpro/ai-graphics-gpu-worker:proof-local',

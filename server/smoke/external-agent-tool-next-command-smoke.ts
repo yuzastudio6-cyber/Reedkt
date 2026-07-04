@@ -243,6 +243,9 @@ assert.equal(cliSource.includes('spec.accountSelection.overrideEnv'), true)
 assert.equal(cliSource.includes('--account-index'), true)
 assert.equal(cliSource.includes('--gcloud-account-index'), true)
 assert.equal(cliSource.includes('accountSelection.overrideIndexEnv'), true)
+assert.equal(cliSource.includes('applySelectedAccountIndex'), true)
+assert.equal(cliSource.includes('withSelectedAccountIndex'), true)
+assert.equal(cliSource.includes('selectedAccountIndex'), true)
 assert.equal(cliSource.includes('whenGcpReadAccessRepairRequired'), true)
 for (const forbidden of [
   'gcloud ',
@@ -702,6 +705,20 @@ if (decision.gcloudDiagnosticRun) {
 
 for (const [flag, value] of Object.entries(decision.runtimeSideEffects as Record<string, boolean>)) {
   assert.equal(value, false, `Runtime side-effect flag must remain false: ${flag}`)
+}
+
+const indexedOutput = execFileSync('npx', ['tsx', CLI_PATH, '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 8,
+})
+const indexedDecision = JSON.parse(indexedOutput)
+assert.equal(indexedDecision.ok, true)
+assert.equal(indexedDecision.accountSelection.overrideIndexProvided, true)
+assert.equal(indexedDecision.accountSelection.overrideIndex, 2)
+if (indexedDecision.manualActionRequired === true) {
+  assert.equal(indexedDecision.rerunAfterManualAction.includes('--account-index 2'), true)
+  assert.equal(indexedDecision.nextCodexCommandAfterManualAction.includes('--account-index 2'), true)
 }
 
 const forbiddenFindings = scanForbiddenValues({ spec, decision })

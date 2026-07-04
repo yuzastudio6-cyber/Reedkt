@@ -241,6 +241,34 @@ function accountSelectionSummary(spec: typeof EXTERNAL_AGENT_TOOL_NEXT_COMMAND, 
   }
 }
 
+function selectedAccountIndex(accountSelection: unknown): number | undefined {
+  if (!accountSelection || typeof accountSelection !== 'object' || Array.isArray(accountSelection)) {
+    return undefined
+  }
+
+  const record = accountSelection as Record<string, unknown>
+  const index = record.overrideIndex
+  return typeof index === 'number' && Number.isInteger(index) && index > 0 ? index : undefined
+}
+
+function applySelectedAccountIndex(value: string | undefined, accountSelection: unknown): string | undefined {
+  const index = selectedAccountIndex(accountSelection)
+  if (!value || !index) return value
+
+  return value
+    .replace(/<account-index>/g, String(index))
+    .replace(/<redacted-index>/g, String(index))
+}
+
+function withSelectedAccountIndex(command: string | undefined, accountSelection: unknown): string | undefined {
+  const index = selectedAccountIndex(accountSelection)
+  if (!command || !index || command.includes('--account-index') || command.includes('--gcloud-account-index')) {
+    return command
+  }
+
+  return `${command} -- --account-index ${index}`
+}
+
 function main() {
   const spec = EXTERNAL_AGENT_TOOL_NEXT_COMMAND
   const probeById = new Map(spec.allowedProbeScripts.map((probe) => [probe.id, probe]))
@@ -292,6 +320,7 @@ function main() {
     ? accountAccessSummary(accountAccessDiagnostic?.json)
     : undefined
   const blockerSummary = liveBlockerSummary(liveBlocker.json)
+  const accountSelection = accountSelectionSummary(spec, liveBlocker.json)
   const diagnosticRecommendedNextPrompt = shouldRunGcloudDiagnostic
     ? nestedString(gcloudDiagnostic?.json, ['recommendedNextPrompt'])
     : undefined
@@ -307,7 +336,7 @@ function main() {
         : !brollQuotaSufficient
           ? spec.nextCommandRules.whenBrollQuotaNeedsVerification
           : spec.nextCommandRules.whenQwenAuthClearsAndBrollQuotaBlocked
-  const chosenManualAction = executionAllowedNow
+  const rawChosenManualAction = executionAllowedNow
     ? spec.nextCommandRules.whenExecutionGateAllowsRuntime
     : !qwenAuthRefreshPassed
       ? diagnosticRecommendedNextPrompt ??
@@ -320,6 +349,7 @@ function main() {
       : qwenLivePreflightVerificationRequired
         ? spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked
         : nestedString(liveBlocker.json, ['recommendedNextPrompt']) ?? spec.defaultDecision
+  const chosenManualAction = applySelectedAccountIndex(rawChosenManualAction, accountSelection)
   const authManualActionRule = spec.manualActionRules.whenQwenAuthRefreshFails
   const readAccessManualActionRule = spec.manualActionRules.whenQwenPermissionOrResourceReadFails
   const manualActionRequired =
@@ -335,11 +365,12 @@ function main() {
     : qwenPermissionOrResourceReadBlocked
       ? readAccessManualActionRule.blocksRuntime
       : undefined
-  const rerunAfterManualAction = !qwenAuthRefreshPassed
+  const rawRerunAfterManualAction = !qwenAuthRefreshPassed
     ? authManualActionRule.rerunAfterManualAction
     : qwenPermissionOrResourceReadBlocked
       ? readAccessManualActionRule.rerunAfterManualAction
       : undefined
+  const rerunAfterManualAction = withSelectedAccountIndex(rawRerunAfterManualAction, accountSelection)
   const chosenNextCommandAlreadyExecutedInThisRun =
     chosenNextCommand === spec.nextCommandRules.whenQwenAuthRefreshFails && shouldRunGcloudDiagnostic
   const codexRunnableNextCommandNow =
@@ -426,7 +457,7 @@ function main() {
         paidProductionInScope: spec.paidProductionInScope,
         dryRunPassedClaimed: spec.dryRunPassedClaimed,
         generatedLocalFixturePassedClaimed: spec.generatedLocalFixturePassedClaimed,
-        accountSelection: accountSelectionSummary(spec, liveBlocker.json),
+        accountSelection,
         staticExecutionGateAllowed,
         staticExplicitToolGateReady,
         staticExplicitToolGatePrepared,

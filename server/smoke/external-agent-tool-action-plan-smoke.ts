@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 
 const ROOT = process.cwd()
@@ -112,6 +113,56 @@ assert.equal(plan.livePreflightRequiredBeforeRuntime, true)
 assert.equal(plan.executionNowBlockedByLivePreflight, true)
 assert.equal(plan.blockedToolCount, rollup.tools.length - 1)
 assert.equal(plan.runtimeGatesAllFalse, true)
+assert.equal(plan.gcpAccessRepair.decision, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.decision)
+assert.equal(plan.gcpAccessRepair.mode, 'external_agent_gcp_access_repair_plan_only')
+assert.equal(plan.gcpAccessRepair.projectId, 'reeditpro')
+assert.equal(plan.gcpAccessRepair.repairScope.doesNotMutateGcp, true)
+assert.equal(plan.gcpAccessRepair.repairScope.doesNotAuthorizeRuntimeExecution, true)
+assert.deepEqual(plan.gcpAccessRepair.currentLiveBlockers, [
+  'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
+  'gcloud_account_lacks_compute_quota_read_access',
+])
+assert.equal(
+  plan.gcpAccessRepair.failureResponsePolicy.ifReadAccessFails,
+  'treat it as external GCP access or resource visibility work; do not weaken wrapper gates or mark runtime executable',
+)
+assert.equal(
+  plan.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index <redacted-index>',
+  ),
+  true,
+)
+assert.equal(plan.gcpAccessRepair.tools.length, 2)
+assert.equal(
+  plan.gcpAccessRepair.tools.some(
+    (tool: {
+      toolId: string
+      failureMeaning: string
+      unsafeBypasses: string[]
+    }) =>
+      tool.toolId === 'qwen2_5_vl_7b_instruct' &&
+      tool.failureMeaning.includes('Token refresh can pass') &&
+      tool.unsafeBypasses.includes('do not skip Cloud Run service/job describe checks'),
+  ),
+  true,
+)
+assert.equal(
+  plan.gcpAccessRepair.tools.some(
+    (tool: {
+      toolId: string
+      failureMeaning: string
+      unsafeBypasses: string[]
+    }) =>
+      tool.toolId === 'ai_video_broll_generation_wan' &&
+      tool.failureMeaning.includes('cannot read project or regional Compute quota') &&
+      tool.unsafeBypasses.includes('do not switch to an always-on GPU instance to bypass no-idle gating'),
+  ),
+  true,
+)
+assert.equal(plan.gcpAccessRepair.runtimeGatesAllFalse, true)
+for (const [flag, value] of Object.entries(plan.gcpAccessRepair.runtimeSideEffects)) {
+  assert.equal(value, false, `GCP repair side-effect flag must remain false: ${flag}`)
+}
 assert.deepEqual(plan.safeCommandQueue, rollup.safeNextCommands)
 assert.equal(plan.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
 assert.equal(plan.toolActions.length, rollup.tools.length)

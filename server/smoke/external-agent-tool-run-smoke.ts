@@ -145,6 +145,8 @@ for (const required of [
   'runtimeExecutableNow: false',
   'external-agent-gcloud-account-access-diagnostic.ts',
   'manifestAliases',
+  'runtimeGateChecked',
+  'runRuntimeTool',
   "requested !== 'auto'",
   "raw === 'all'",
 ]) {
@@ -216,6 +218,22 @@ for (const toolId of [
     `npm run external-agent-tool-run -- --tool ${toolId} --mode runtime`,
   )
 }
+assert.equal(
+  rowByTool(manifest.tools, 'qwen2_5_vl_7b_instruct').runtimeDelegationCommand,
+  'npm run external-agent-tool-execute-qwen -- --execute --json',
+)
+assert.equal(
+  rowByTool(manifest.tools, 'qwen2_5_vl_7b_instruct').runtimeConfirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_QWEN_EXECUTION',
+)
+assert.equal(
+  rowByTool(manifest.tools, 'ai_video_broll_generation_wan').runtimeDelegationCommand,
+  'npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
+)
+assert.equal(
+  rowByTool(manifest.tools, 'ai_video_broll_generation_wan').runtimeConfirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF',
+)
 assert.deepEqual(
   asArray(
     rowByTool(manifest.tools, 'qwen2_5_vl_7b_instruct').missingReadPermissionsWhenBlocked,
@@ -418,7 +436,17 @@ assert.equal(runtimeBlocked.requestedMode, 'runtime')
 assert.equal(runtimeBlocked.agentCallableNow, true)
 assert.equal(runtimeBlocked.runtimeExecutableNow, false)
 assert.equal(runtimeBlocked.blocker, 'runtime_execution_not_allowed_by_current_gate')
+assert.equal(runtimeBlocked.runtimeGateChecked, true)
 assert.equal(runtimeBlocked.childExecuted, false)
+assert.equal(asRecord(runtimeBlocked.liveGate, 'runtimeBlocked.liveGate').executionAllowedNow, false)
+assert.equal(asRecord(runtimeBlocked.nextCommand, 'runtimeBlocked.nextCommand').executionAllowedNow, false)
+assert.equal(runtimeBlocked.runtimeDelegatedCommand, 'npm run external-agent-tool-execute-qwen -- --execute --json --account-index 2')
+assert.equal(
+  asArray(runtimeBlocked.blockers, 'runtimeBlocked.blockers').includes(
+    'live_execution_gate_execution_allowed_now_false',
+  ),
+  true,
+)
 assertRuntimeFlagsFalse(runtimeBlocked.runtimeSideEffects, 'runtimeBlocked.runtimeSideEffects')
 
 const batchRuntimeBlocked = runTool([

@@ -19,6 +19,9 @@ type ToolDefinition = {
   expectedMode: string
   confirmationEnv?: string
   confirmationEnvRequiredValue?: 'true'
+  runtimeArgs?: string[]
+  runtimeConfirmationEnv?: string
+  runtimeConfirmationEnvRequiredValue?: 'true'
 }
 
 type AccountSelection = {
@@ -30,8 +33,12 @@ type AccountSelection = {
 }
 
 const ACCOUNT_INDEX_FLAGS = ['--account-index', '--gcloud-account-index'] as const
+const QWEN_RUNTIME_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_QWEN_EXECUTION'
+const BROLL_RUNTIME_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF'
 const SOUND_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW'
 const SUPABASE_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW'
+const EXECUTION_GATE_SCRIPT = 'server/cli/external-agent-tool-execution-gate.ts'
+const NEXT_COMMAND_SCRIPT = 'server/cli/external-agent-tool-next-command.ts'
 
 const runtimeSideEffectKeys = [
   'runtimeRunNow',
@@ -92,27 +99,7 @@ function main() {
   }
 
   if (requestedMode === 'runtime') {
-    print({
-      ok: false,
-      mode: 'external_agent_tool_run_runtime_blocked',
-      status: 'blocked',
-      toolId,
-      requestedMode,
-      accountIndex: accountSelection.accountIndex,
-      ...accountSelectionOutput(accountSelection),
-      agentCallableNow: true,
-      runtimeExecutableNow: false,
-      runtimeKind: definition.runtimeKind,
-      blocker: 'runtime_execution_not_allowed_by_current_gate',
-      runtimeSideEffects: allRuntimeSideEffectsFalse(),
-      runtimeSideEffectsAllFalse: true,
-      delegatedCommand: commandLabel(definition),
-      childExecuted: false,
-      recommendedNextCommand: 'npm run external-agent-tool-next-command',
-      recommendedIndexedNextCommand: accountSelection.accountIndex
-        ? `npm run external-agent-tool-next-command -- --account-index ${accountSelection.accountIndex}`
-        : undefined,
-    })
+    print(runRuntimeTool(toolId, definition, accountSelection))
     return
   }
 
@@ -163,6 +150,7 @@ function runAllTools(requestedMode: RequestedMode): JsonRecord {
         runtimeKind: definition?.runtimeKind,
         blocker: 'runtime_execution_not_allowed_by_current_gate',
         delegatedCommand: definition ? commandLabel(definition) : undefined,
+        runtimeDelegatedCommand: definition ? runtimeCommandLabel(definition) : undefined,
         childExecuted: false,
         runtimeSideEffects: allRuntimeSideEffectsFalse(),
         runtimeSideEffectsAllFalse: true,
@@ -306,6 +294,86 @@ function runSafeTool(
   }
 }
 
+function runRuntimeTool(
+  toolId: ToolId,
+  definition: ToolDefinition,
+  accountSelection: AccountSelection,
+): JsonRecord {
+  const liveGate = runJsonCommand('external_agent_live_execution_gate', 'npx', [
+    'tsx',
+    EXECUTION_GATE_SCRIPT,
+    '--live',
+    ...accountSelection.accountArgs,
+  ])
+  const nextCommand = runJsonCommand('external_agent_next_command', 'npx', [
+    'tsx',
+    NEXT_COMMAND_SCRIPT,
+    ...accountSelection.accountArgs,
+  ])
+  const blockers = runtimeBlockersForTool(toolId, definition, liveGate.json, nextCommand.json)
+
+  if (blockers.length > 0) {
+    return {
+      ok: false,
+      mode: 'external_agent_tool_run_runtime_blocked',
+      status: 'blocked',
+      toolId,
+      requestedMode: 'runtime',
+      accountIndex: accountSelection.accountIndex,
+      ...accountSelectionOutput(accountSelection),
+      agentCallableNow: true,
+      runtimeExecutableNow: false,
+      runtimeKind: definition.runtimeKind,
+      runtimeGateChecked: true,
+      liveGate: summarizeRuntimeGate(liveGate.json),
+      nextCommand: summarizeRuntimeNextCommand(nextCommand.json),
+      blocker: 'runtime_execution_not_allowed_by_current_gate',
+      blockers,
+      delegatedCommand: commandLabel(definition),
+      runtimeDelegatedCommand: runtimeCommandLabel(definition),
+      childExecuted: false,
+      runtimeSideEffects: allRuntimeSideEffectsFalse(),
+      runtimeSideEffectsAllFalse: true,
+      generatedLocalFixturePassedClaimed: false,
+      recommendedNextCommand: 'npm run external-agent-tool-next-command',
+      recommendedIndexedNextCommand: accountSelection.accountIndex
+        ? `npm run external-agent-tool-next-command -- --account-index ${accountSelection.accountIndex}`
+        : undefined,
+      stderrSummary: liveGate.stderrSummary ?? nextCommand.stderrSummary,
+    }
+  }
+
+  const child = runRuntimeChild(definition)
+  const runtimeSideEffectsAllFalse = Object.values(child.runtimeSideEffects).every((value) => value === false)
+
+  return {
+    ok: child.exitCode === 0 && child.json?.ok === true,
+    mode: 'external_agent_tool_run_runtime_result',
+    status: child.exitCode === 0 && child.json?.ok === true ? 'passed' : 'blocked_or_failed',
+    toolId,
+    requestedMode: 'runtime',
+    accountIndex: accountSelection.accountIndex,
+    ...accountSelectionOutput(accountSelection),
+    agentCallableNow: true,
+    runtimeExecutableNow: true,
+    runtimeKind: definition.runtimeKind,
+    runtimeGateChecked: true,
+    liveGate: summarizeRuntimeGate(liveGate.json),
+    nextCommand: summarizeRuntimeNextCommand(nextCommand.json),
+    runtimeDelegatedCommand: runtimeCommandLabel(definition),
+    childExecuted: true,
+    childProcessExitedCleanly: child.exitCode === 0,
+    childExitCode: child.exitCode,
+    structuredResultReturned: Boolean(child.json),
+    actualMode: child.actualMode,
+    delegatedResult: child.json,
+    runtimeSideEffects: child.runtimeSideEffects,
+    runtimeSideEffectsAllFalse,
+    generatedLocalFixturePassedClaimed: child.json?.generatedLocalFixturePassedClaimed === true,
+    stderrSummary: child.stderrSummary,
+  }
+}
+
 function toolDefinitions(indexedArgs: string[]): ToolDefinition[] {
   return [
     {
@@ -315,6 +383,9 @@ function toolDefinitions(indexedArgs: string[]): ToolDefinition[] {
       command: 'npm',
       args: ['run', 'external-agent-tool-execute-qwen', '--', '--preflight-only', '--json', ...indexedArgs],
       expectedMode: 'external_agent_qwen_execution_preflight_only_result',
+      runtimeArgs: ['run', 'external-agent-tool-execute-qwen', '--', '--execute', '--json', ...indexedArgs],
+      runtimeConfirmationEnv: QWEN_RUNTIME_CONFIRM_ENV,
+      runtimeConfirmationEnvRequiredValue: 'true',
     },
     {
       toolId: 'ai_video_broll_generation_wan',
@@ -330,6 +401,17 @@ function toolDefinitions(indexedArgs: string[]): ToolDefinition[] {
         ...indexedArgs,
       ],
       expectedMode: 'external_agent_broll_wan_execution_preflight_only_result',
+      runtimeArgs: [
+        'run',
+        'external-agent-tool-execute-broll-wan',
+        '--',
+        '--inference-proof',
+        '--execute',
+        '--json',
+        ...indexedArgs,
+      ],
+      runtimeConfirmationEnv: BROLL_RUNTIME_CONFIRM_ENV,
+      runtimeConfirmationEnvRequiredValue: 'true',
     },
     {
       toolId: 'sound_music_audio',
@@ -372,11 +454,14 @@ function runnerManifest(): JsonRecord {
       expectedMode: definition.expectedMode,
       confirmationEnv: definition.confirmationEnv,
       confirmationEnvRequiredValue: definition.confirmationEnvRequiredValue,
+      runtimeConfirmationEnv: definition.runtimeConfirmationEnv,
+      runtimeConfirmationEnvRequiredValue: definition.runtimeConfirmationEnvRequiredValue,
       safeCommand: `npm run external-agent-tool-run -- --tool ${definition.toolId} --mode safe`,
       safeAutoAccountCommand: isGcpBacked
         ? `npm run external-agent-tool-run -- --tool ${definition.toolId} --mode safe --account-index auto`
         : `npm run external-agent-tool-run -- --tool ${definition.toolId} --mode safe`,
       runtimeGuardCommand: `npm run external-agent-tool-run -- --tool ${definition.toolId} --mode runtime`,
+      runtimeDelegationCommand: runtimeCommandLabel(definition),
       childCommandPreview: commandLabel(definition),
       agentCallableNow: true,
       runtimeExecutableNow: false,
@@ -468,6 +553,142 @@ function runChild(definition: ToolDefinition) {
     actualMode: stringField(json, 'mode'),
     runtimeSideEffects: runtimeSideEffectSnapshot(json),
     stderrSummary: sanitize(String(result.stderr ?? '')),
+  }
+}
+
+function runRuntimeChild(definition: ToolDefinition) {
+  const runtimeArgs = definition.runtimeArgs ?? definition.args
+  const childEnv = {
+    ...process.env,
+    ...(definition.runtimeConfirmationEnv
+      ? { [definition.runtimeConfirmationEnv]: definition.runtimeConfirmationEnvRequiredValue }
+      : {}),
+  }
+  const result = spawnSync(definition.command, runtimeArgs, {
+    cwd: process.cwd(),
+    env: childEnv,
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 80,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  const json = parseJsonOutput(String(result.stdout ?? ''))
+
+  return {
+    exitCode: result.status,
+    json,
+    actualMode: stringField(json, 'mode'),
+    runtimeSideEffects: runtimeSideEffectSnapshot(json),
+    stderrSummary: sanitize(String(result.stderr ?? '')),
+  }
+}
+
+function runJsonCommand(
+  id: string,
+  command: string,
+  args: string[],
+): {
+  id: string
+  ok: boolean
+  exitCode: number | null
+  json?: JsonRecord
+  stderrSummary?: string
+} {
+  const result = spawnSync(command, args, {
+    cwd: process.cwd(),
+    env: process.env,
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 80,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  const json = parseJsonOutput(String(result.stdout ?? ''))
+
+  return {
+    id,
+    ok: result.status === 0 && Boolean(json),
+    exitCode: result.status,
+    json,
+    stderrSummary: sanitize(String(result.stderr ?? '')),
+  }
+}
+
+function runtimeBlockersForTool(
+  toolId: ToolId,
+  definition: ToolDefinition,
+  liveGate: JsonRecord | undefined,
+  nextCommand: JsonRecord | undefined,
+): string[] {
+  const blockers: string[] = []
+
+  if (!definition.runtimeArgs || !definition.runtimeConfirmationEnv) {
+    blockers.push('tool_has_no_runtime_delegation_command')
+  }
+
+  if (!liveGate) blockers.push('live_execution_gate_json_missing')
+  if (liveGate?.ok !== true) blockers.push('live_execution_gate_not_ok')
+  if (liveGate?.liveMode !== true) blockers.push('live_execution_gate_not_live_mode')
+  if (liveGate?.executionAllowedNow !== true) blockers.push('live_execution_gate_execution_allowed_now_false')
+  if (liveGate?.readyForAnyExternalAgentExecutionNow !== true) {
+    blockers.push('live_execution_gate_ready_for_any_external_agent_execution_now_false')
+  }
+
+  if (!nextCommand) blockers.push('next_command_json_missing')
+  if (nextCommand?.ok !== true) blockers.push('next_command_not_ok')
+  if (nextCommand?.executionAllowedNow !== true) blockers.push('next_command_execution_allowed_now_false')
+  if (nextCommand?.readyForAnyExternalAgentExecutionNow !== true) {
+    blockers.push('next_command_ready_for_any_external_agent_execution_now_false')
+  }
+
+  if (toolId === 'qwen2_5_vl_7b_instruct') {
+    if (!nextCommand?.qwenExternalAgentExecutionCommand && !nextCommand?.qwenBoundedExecutionCommand) {
+      blockers.push('qwen_runtime_command_not_present')
+    }
+  } else if (toolId === 'ai_video_broll_generation_wan') {
+    if (nestedBoolean(nextCommand, ['brollWanExternalAgentProofCommand', 'executionAllowedNow']) !== true) {
+      blockers.push('broll_runtime_command_not_allowed_now')
+    }
+  } else {
+    blockers.push('tool_is_safe_evidence_only_not_runtime_executable')
+  }
+
+  return Array.from(new Set(blockers))
+}
+
+function summarizeRuntimeGate(document: JsonRecord | undefined): JsonRecord | undefined {
+  if (!document) return undefined
+
+  return {
+    ok: document.ok,
+    mode: document.mode,
+    decision: document.decision,
+    liveMode: document.liveMode,
+    executionAllowedNow: document.executionAllowedNow,
+    readyForAnyExternalAgentExecutionNow: document.readyForAnyExternalAgentExecutionNow,
+    staticExplicitToolGateReady: document.staticExplicitToolGateReady,
+    blockedToolIds: document.blockedToolIds,
+    recommendedNextPrompt: document.recommendedNextPrompt,
+  }
+}
+
+function summarizeRuntimeNextCommand(document: JsonRecord | undefined): JsonRecord | undefined {
+  if (!document) return undefined
+
+  return {
+    ok: document.ok,
+    mode: document.mode,
+    decision: document.decision,
+    executionAllowedNow: document.executionAllowedNow,
+    readyForAnyExternalAgentExecutionNow: document.readyForAnyExternalAgentExecutionNow,
+    qwenLivePreflightPassed: document.qwenLivePreflightPassed,
+    qwenExternalAgentExecutionCommandPresent: Boolean(document.qwenExternalAgentExecutionCommand),
+    qwenBoundedExecutionCommandPresent: Boolean(document.qwenBoundedExecutionCommand),
+    brollWanExternalAgentProofExecutionAllowedNow: nestedBoolean(document, [
+      'brollWanExternalAgentProofCommand',
+      'executionAllowedNow',
+    ]),
+    chosenNextCommand: document.chosenNextCommand,
+    manualActionRequired: document.manualActionRequired,
+    manualActionReason: document.manualActionReason,
+    chosenNextCommandAlreadyExecutedInThisRun: document.chosenNextCommandAlreadyExecutedInThisRun,
   }
 }
 
@@ -680,6 +901,10 @@ function commandLabel(definition: ToolDefinition): string {
   return [definition.command, ...definition.args].join(' ')
 }
 
+function runtimeCommandLabel(definition: ToolDefinition): string | undefined {
+  return definition.runtimeArgs ? [definition.command, ...definition.runtimeArgs].join(' ') : undefined
+}
+
 function primaryBlocker(json: JsonRecord | undefined): string | undefined {
   const blockers = json?.blockers
   if (Array.isArray(blockers)) return blockers.find((blocker): blocker is string => typeof blocker === 'string')
@@ -751,6 +976,11 @@ function nestedRecord(document: JsonRecord | undefined, keys: string[]): JsonRec
 function nestedString(document: JsonRecord | undefined, keys: string[]): string | undefined {
   const value = nestedUnknown(document, keys)
   return typeof value === 'string' ? value : undefined
+}
+
+function nestedBoolean(document: JsonRecord | undefined, keys: string[]): boolean {
+  const value = nestedUnknown(document, keys)
+  return value === true
 }
 
 function nestedUnknown(document: JsonRecord | undefined, keys: string[]): unknown {

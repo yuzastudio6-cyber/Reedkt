@@ -208,8 +208,8 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
       : 'sourceImageLocalPath'
   const expectedRemainingPrivateInputKeys =
     expectedCurrentBlockingPrerequisite === 'sourceImageLocalPath'
-      ? ['outputDirectory', 'nativeCudaRuntime']
-      : ['outputDirectory', 'nativeCudaRuntime', 'sourceImageLocalPath']
+      ? ['outputDirectory', 'pythonCpuTensorRuntime']
+      : ['outputDirectory', 'pythonCpuTensorRuntime', 'sourceImageLocalPath']
   if (report.decision !== decision) fail(`${label}_decision_mismatch`)
   if (report.status !== 'external_agent_single_tool_call_blocked_with_reason') {
     fail(`${label}_status_mismatch:${report.status}`)
@@ -263,9 +263,8 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
   const command = String(normalized.nextExternalAgentCommand ?? '')
   for (const fragment of [
     'ai-graphics:external-agent-gpu-model-private-proof-sequence',
-    '--runtime-backend docker_container',
-    `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
-    '--runtime-container-platform linux/amd64',
+    '--runtime-backend host_python',
+    '--allow-cpu-tensor-runtime',
     '--tool kornia',
     '--source-image <private-approved-frame.png>',
     '--require-host-eligible',
@@ -277,7 +276,7 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
   }
   for (const key of [
     'outputDirectory',
-    'nativeCudaRuntime',
+    'pythonCpuTensorRuntime',
     'sourceImageLocalPath',
   ]) {
     if (!Array.isArray(normalized.requiredPrivateInputKeys) ||
@@ -307,7 +306,7 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
     fail(`${label}_remaining_private_input_still_contains_current_blocker`)
   }
   for (const fragment of [
-    'native CUDA-capable host',
+    'local Python CPU tensor runtime',
     'private approved source image',
     'proof-local GPU worker container image',
     'no public artifact',
@@ -357,7 +356,7 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
   }
   for (const key of [
     'outputDirectory',
-    'nativeCudaRuntime',
+    'pythonCpuTensorRuntime',
     'sourceImageLocalPath',
   ]) {
     if (!Array.isArray(nextAction.requiredPrivateInputKeys) ||
@@ -366,7 +365,7 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
     }
   }
   for (const fragment of [
-    'approved native CUDA-capable host',
+    'approved local Python CPU tensor runtime',
     'private approved source image',
     'no public artifact',
   ]) {
@@ -397,9 +396,8 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
     'ai-graphics:external-agent-tool-call',
     '--tool kornia',
     '--attempt-gpu-runtime',
-    '--runtime-backend docker_container',
-    `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
-    '--runtime-container-platform linux/amd64',
+    '--runtime-backend host_python',
+    '--allow-cpu-tensor-runtime',
     '--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/kornia',
     '--source-image <private-approved-frame.png>',
     '--expect-state executable',
@@ -415,7 +413,9 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
     'ai-graphics:external-agent-tool-call',
     '--tool kornia',
     '--attempt-gpu-runtime',
+    '--runtime-backend host_python',
     '--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json',
+    '--allow-cpu-tensor-runtime',
     '--expect-state executable',
     '--require-output-hash',
     '--require-private-only-boundary',

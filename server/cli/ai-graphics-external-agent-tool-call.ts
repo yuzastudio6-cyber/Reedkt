@@ -264,17 +264,20 @@ function gpuModelSourceImageRequired(toolId: string): boolean {
   return !['torch_torchvision', 'transformers'].includes(toolId)
 }
 
+function gpuModelAllowsCpuFoundationRuntime(toolId: string): boolean {
+  return toolId === 'torch_torchvision' || toolId === 'transformers'
+}
+
+function gpuModelAllowsCpuTensorRuntime(toolId: string): boolean {
+  return toolId === 'kornia'
+}
+
 function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
-  const korniaCpuTensorRuntime =
-    toolId === 'kornia' && hasFlag('--allow-cpu-tensor-runtime')
-  const foundationCpuRuntime =
-    (toolId === 'torch_torchvision' || toolId === 'transformers') &&
-    hasFlag('--allow-cpu-foundation-runtime')
   const keys = [
     'outputDirectory',
-    korniaCpuTensorRuntime
+    gpuModelAllowsCpuTensorRuntime(toolId)
       ? 'pythonCpuTensorRuntime'
-      : foundationCpuRuntime
+      : gpuModelAllowsCpuFoundationRuntime(toolId)
       ? 'pythonCpuFoundationRuntime'
       : 'nativeCudaRuntime',
   ]
@@ -290,6 +293,7 @@ function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
 }
 
 function gpuModelCurrentBlockingPrerequisiteKey(
+  toolId: string,
   blockingReasonCode: string | null | undefined,
 ): string | null {
   if (!blockingReasonCode) return null
@@ -345,13 +349,13 @@ function gpuModelCurrentBlockingPrerequisiteKey(
     return 'runtimeContainerImage'
   }
   if (blockingReasonCode.includes('python_package')) {
-    return hasFlag('--allow-cpu-tensor-runtime')
-      ? 'pythonCpuTensorRuntime'
-      : hasFlag('--allow-cpu-foundation-runtime')
-      ? 'pythonCpuFoundationRuntime'
-      : 'pythonPackageRuntime'
+    if (gpuModelAllowsCpuTensorRuntime(toolId)) return 'pythonCpuTensorRuntime'
+    if (gpuModelAllowsCpuFoundationRuntime(toolId)) return 'pythonCpuFoundationRuntime'
+    return 'pythonPackageRuntime'
   }
   if (blockingReasonCode.includes('python_runtime')) {
+    if (gpuModelAllowsCpuTensorRuntime(toolId)) return 'pythonCpuTensorRuntime'
+    if (gpuModelAllowsCpuFoundationRuntime(toolId)) return 'pythonCpuFoundationRuntime'
     return 'pythonRuntime'
   }
   if (blockingReasonCode.includes('disabled_or_not_local_dev')) {
@@ -378,15 +382,10 @@ function gpuModelPrivateInputPlaceholders(toolId: string): string[] {
 }
 
 function gpuModelBlockedPrerequisites(toolId: string): string[] {
-  const korniaCpuTensorRuntime =
-    toolId === 'kornia' && hasFlag('--allow-cpu-tensor-runtime')
-  const foundationCpuRuntime =
-    (toolId === 'torch_torchvision' || toolId === 'transformers') &&
-    hasFlag('--allow-cpu-foundation-runtime')
   const prerequisites = [
-    korniaCpuTensorRuntime
+    gpuModelAllowsCpuTensorRuntime(toolId)
       ? 'approved local Python CPU tensor runtime with torch, PIL, numpy, and kornia'
-      : foundationCpuRuntime
+      : gpuModelAllowsCpuFoundationRuntime(toolId)
       ? 'approved local Python CPU foundation runtime with torch and package-specific imports'
       : 'approved native CUDA-capable host or approved linux/amd64 Docker GPU runtime',
     'proof-local GPU worker container image built locally',
@@ -422,20 +421,26 @@ function gpuModelContainerBuildCommand(): string {
 }
 
 function gpuModelScopedToolCallCommand(toolId: string): string {
-  const foundationCpuFlag =
-    toolId === 'torch_torchvision' || toolId === 'transformers'
-      ? '--allow-cpu-foundation-runtime'
-      : ''
+  const preferredCpuRuntimeFlag = gpuModelAllowsCpuTensorRuntime(toolId)
+    ? '--allow-cpu-tensor-runtime'
+    : gpuModelAllowsCpuFoundationRuntime(toolId)
+    ? '--allow-cpu-foundation-runtime'
+    : ''
+  const cpuRuntimePreferred = preferredCpuRuntimeFlag.length > 0
   return [
     'npm run --silent ai-graphics:external-agent-tool-call --',
     `--tool ${toolId}`,
     '--attempt-gpu-runtime',
-    '--runtime-backend docker_container',
-    `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
-    '--runtime-container-platform linux/amd64',
+    cpuRuntimePreferred ? '--runtime-backend host_python' : '--runtime-backend docker_container',
+    ...(cpuRuntimePreferred
+      ? []
+      : [
+          `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+          '--runtime-container-platform linux/amd64',
+        ]),
     `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/${toolId}`,
     ...gpuModelPrivateInputPlaceholders(toolId),
-    foundationCpuFlag,
+    preferredCpuRuntimeFlag,
     '--expect-state executable',
     '--require-output-hash',
     '--require-private-only-boundary',
@@ -444,20 +449,26 @@ function gpuModelScopedToolCallCommand(toolId: string): string {
 }
 
 function gpuModelScopedToolCallManifestCommand(toolId: string): string {
-  const foundationCpuFlag =
-    toolId === 'torch_torchvision' || toolId === 'transformers'
-      ? '--allow-cpu-foundation-runtime'
-      : ''
+  const preferredCpuRuntimeFlag = gpuModelAllowsCpuTensorRuntime(toolId)
+    ? '--allow-cpu-tensor-runtime'
+    : gpuModelAllowsCpuFoundationRuntime(toolId)
+    ? '--allow-cpu-foundation-runtime'
+    : ''
+  const cpuRuntimePreferred = preferredCpuRuntimeFlag.length > 0
   return [
     'npm run --silent ai-graphics:external-agent-tool-call --',
     `--tool ${toolId}`,
     '--attempt-gpu-runtime',
-    '--runtime-backend docker_container',
-    `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
-    '--runtime-container-platform linux/amd64',
+    cpuRuntimePreferred ? '--runtime-backend host_python' : '--runtime-backend docker_container',
+    ...(cpuRuntimePreferred
+      ? []
+      : [
+          `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+          '--runtime-container-platform linux/amd64',
+        ]),
     `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/${toolId}`,
     '--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json',
-    foundationCpuFlag,
+    preferredCpuRuntimeFlag,
     '--expect-state executable',
     '--require-output-hash',
     '--require-private-only-boundary',
@@ -688,7 +699,10 @@ function nextActionForReport(input: {
     const requiredPrivateInputKeys = gpuModelRequiredPrivateInputKeys(input.toolId)
     const currentBlockingPrerequisiteKey =
       input.normalizedCurrentBlockingPrerequisiteKey ??
-      gpuModelCurrentBlockingPrerequisiteKey(input.blockingReasonCode)
+      gpuModelCurrentBlockingPrerequisiteKey(
+        input.toolId,
+        input.blockingReasonCode,
+      )
     return {
       status: 'blocked_until_scoped_private_gpu_runtime_proof',
       requiredPrivateInputKeys,

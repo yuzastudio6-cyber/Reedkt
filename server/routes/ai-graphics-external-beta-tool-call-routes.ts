@@ -371,6 +371,29 @@ function gpuModelScopedRuntimeProofFlags(toolId: string): string[] {
   ].filter(Boolean)
 }
 
+function gpuModelSingleToolRuntimeProofFlags(toolId: string): string[] {
+  return [
+    gpuModelRequiresSourceImage(toolId)
+      ? '--source-image <private-approved-frame.png>'
+      : '',
+    toolId === 'sam2'
+      ? '--sam2-checkpoint <private-sam2-checkpoint.pt>'
+      : '',
+    toolId === 'birefnet'
+      ? '--birefnet-model <private-birefnet-model>'
+      : '',
+    toolId === 'real_esrgan'
+      ? '--real-esrgan-model <private-real-esrgan-model.pth>'
+      : '',
+    toolId === 'rembg'
+      ? '--rembg-model <private-rembg-model.onnx>'
+      : '',
+    toolId === 'transparent_background'
+      ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
+      : '',
+  ].filter(Boolean)
+}
+
 function payloadAllowsKorniaCpuTensorRuntime(
   toolId: string,
   payload?: Record<string, unknown> | null,
@@ -386,6 +409,14 @@ function payloadAllowsFoundationCpuRuntime(
     (toolId === 'torch_torchvision' || toolId === 'transformers') &&
     payload?.allowCpuFoundationRuntime === true
   )
+}
+
+function preferredCpuTensorRuntimeForTool(toolId: string): boolean {
+  return toolId === 'kornia'
+}
+
+function preferredCpuFoundationRuntimeForTool(toolId: string): boolean {
+  return toolId === 'torch_torchvision' || toolId === 'transformers'
 }
 
 function exactGpuModelScopedRouteProofCommand(
@@ -408,7 +439,7 @@ function exactGpuModelScopedRouteProofCommand(
         ? ['--allow-cpu-tensor-runtime']
         : ['--allow-cpu-foundation-runtime']),
       `--gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
-      ...gpuModelScopedRuntimeProofFlags(toolId),
+      ...gpuModelSingleToolRuntimeProofFlags(toolId),
       '--expect-state executable',
       '--require-output-hash',
       '--require-private-only-boundary',
@@ -551,7 +582,11 @@ function gpuModelCurrentBlockingPrerequisiteKey(
       : 'pythonPackageRuntime'
   }
   if (blockingReasonCode.includes('python_runtime')) {
-    return 'pythonRuntime'
+    return options?.allowCpuTensorRuntime === true
+      ? 'pythonCpuTensorRuntime'
+      : options?.allowCpuFoundationRuntime === true
+      ? 'pythonCpuFoundationRuntime'
+      : 'pythonRuntime'
   }
   if (blockingReasonCode.includes('disabled_or_not_local_dev')) {
     return 'attemptGpuRuntime'
@@ -593,11 +628,11 @@ function gpuModelExternalAgentProofFields(input: {
   const allowCpuTensorRuntime = payloadAllowsKorniaCpuTensorRuntime(
     input.toolId,
     input.payload,
-  )
+  ) || preferredCpuTensorRuntimeForTool(input.toolId)
   const allowCpuFoundationRuntime = payloadAllowsFoundationCpuRuntime(
     input.toolId,
     input.payload,
-  )
+  ) || preferredCpuFoundationRuntimeForTool(input.toolId)
   const currentBlockingPrerequisiteKey = input.executionPassed
     ? null
     : gpuModelCurrentBlockingPrerequisiteKey(input.blockingReasonCode, {
@@ -660,33 +695,46 @@ function gpuModelNextExternalAgentAction(input: {
   }
 
   const blockingReason = input.blockingReasonCode ?? 'gpu_model_runtime_prerequisites_missing'
+  const allowCpuTensorRuntime = payloadAllowsKorniaCpuTensorRuntime(
+    input.toolId,
+    input.payload,
+  ) || preferredCpuTensorRuntimeForTool(input.toolId)
+  const allowCpuFoundationRuntime = payloadAllowsFoundationCpuRuntime(
+    input.toolId,
+    input.payload,
+  ) || preferredCpuFoundationRuntimeForTool(input.toolId)
+  const cpuProofAllowed = allowCpuTensorRuntime || allowCpuFoundationRuntime
+  const privateProofSequenceCommand = exactGpuModelPrivateProofSequenceCommand(
+    input.toolId,
+    {
+      allowCpuTensorRuntime,
+      allowCpuFoundationRuntime,
+    },
+  )
+  const scopedRouteRetryCommand = exactGpuModelScopedRouteProofCommand(
+    input.toolId,
+    {
+      allowCpuTensorRuntime,
+      allowCpuFoundationRuntime,
+    },
+  )
   return [
     `blocked_with_reason:${blockingReason}`,
-    'if the proof-local image is missing, build the exact local proof image first:',
-    AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_BUILD_COMMAND,
+    cpuProofAllowed
+      ? 'verify the approved local Python CPU runtime first; do not start GPU for this blocked call:'
+      : 'if the proof-local image is missing, build the exact local proof image first:',
+    cpuProofAllowed
+      ? (allowCpuTensorRuntime
+        ? 'python runtime must import torch, PIL, numpy, and kornia with private local input/output paths'
+        : 'python runtime must import torch and the package-specific foundation module with private local output paths')
+      : AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_BUILD_COMMAND,
     'run the private proof sequence before retrying route execution:',
-    exactGpuModelPrivateProofSequenceCommand(input.toolId, {
-      allowCpuTensorRuntime: payloadAllowsKorniaCpuTensorRuntime(
-        input.toolId,
-        input.payload,
-      ),
-      allowCpuFoundationRuntime: payloadAllowsFoundationCpuRuntime(
-        input.toolId,
-        input.payload,
-      ),
-    }),
+    privateProofSequenceCommand,
     'after accepted private proof exists, retry the controlled route with:',
-    exactGpuModelScopedRouteProofCommand(input.toolId, {
-      allowCpuTensorRuntime: payloadAllowsKorniaCpuTensorRuntime(
-        input.toolId,
-        input.payload,
-      ),
-      allowCpuFoundationRuntime: payloadAllowsFoundationCpuRuntime(
-        input.toolId,
-        input.payload,
-      ),
-    }),
-    'GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.',
+    scopedRouteRetryCommand,
+    cpuProofAllowed
+      ? 'GPU remains idle for CPU proof tools unless a later scoped GPU proof is explicitly requested; missing CPU runtime or private input proof remains a block, not a pass.'
+      : 'GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.',
   ].join(' ')
 }
 

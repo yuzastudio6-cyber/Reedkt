@@ -56,10 +56,15 @@ const sourceImageRequiredGpuModelTools = new Set([
   'rembg',
   'transparent_background',
 ])
+const cpuFoundationGpuModelTools = new Set([
+  'torch_torchvision',
+  'transformers',
+])
+const cpuTensorGpuModelTools = new Set(['kornia'])
 
 const expectedGpuPrivateInputKeys = {
-  torch_torchvision: ['outputDirectory', 'nativeCudaRuntime'],
-  transformers: ['outputDirectory', 'nativeCudaRuntime'],
+  torch_torchvision: ['outputDirectory', 'pythonCpuFoundationRuntime'],
+  transformers: ['outputDirectory', 'pythonCpuFoundationRuntime'],
   sam2: [
     'outputDirectory',
     'nativeCudaRuntime',
@@ -80,7 +85,7 @@ const expectedGpuPrivateInputKeys = {
   ],
   kornia: [
     'outputDirectory',
-    'nativeCudaRuntime',
+    'pythonCpuTensorRuntime',
     'sourceImageLocalPath',
   ],
   rembg: [
@@ -191,12 +196,20 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
   if (typeof command !== 'string') {
     fail(`${label}_${toolId}_gpu_missing_exact_command`)
   } else {
+    const preferredProofFragments =
+      cpuTensorGpuModelTools.has(toolId)
+        ? ['--runtime-backend host_python', '--allow-cpu-tensor-runtime']
+        : cpuFoundationGpuModelTools.has(toolId)
+        ? ['--runtime-backend host_python', '--allow-cpu-foundation-runtime']
+        : [
+            '--runtime-backend docker_container',
+            '--runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
+            '--runtime-container-platform linux/amd64',
+          ]
     for (const requiredFragment of [
       'ai-graphics:external-agent-gpu-model-private-proof-sequence',
       '--attempt-local-runtime',
-      '--runtime-backend docker_container',
-      '--runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
-      '--runtime-container-platform linux/amd64',
+      ...preferredProofFragments,
       `--tool ${toolId}`,
       `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>`,
       '--detect-host',
@@ -205,6 +218,41 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
     ]) {
       if (!command.includes(requiredFragment)) {
         fail(`${label}_${toolId}_gpu_exact_command_missing_fragment:${requiredFragment}`)
+      }
+    }
+  }
+  const action = normalized.nextExternalAgentAction
+  if (typeof action !== 'string') {
+    fail(`${label}_${toolId}_gpu_missing_next_action`)
+  } else if (
+    cpuTensorGpuModelTools.has(toolId) ||
+    cpuFoundationGpuModelTools.has(toolId)
+  ) {
+    const expectedFlag = cpuTensorGpuModelTools.has(toolId)
+      ? '--allow-cpu-tensor-runtime'
+      : '--allow-cpu-foundation-runtime'
+    for (const requiredFragment of [
+      'verify the approved local Python CPU runtime first',
+      '--runtime-backend host_python',
+      expectedFlag,
+      'GPU remains idle for CPU proof tools',
+    ]) {
+      if (!action.includes(requiredFragment)) {
+        fail(`${label}_${toolId}_gpu_next_action_missing_fragment:${requiredFragment}`)
+      }
+    }
+    if (action.includes('docker buildx build')) {
+      fail(`${label}_${toolId}_gpu_next_action_should_not_require_docker_build_first`)
+    }
+  } else {
+    for (const requiredFragment of [
+      'if the proof-local image is missing',
+      'docker buildx build',
+      '--runtime-backend docker_container',
+      'GPU starts only during that scoped active tool call',
+    ]) {
+      if (!action.includes(requiredFragment)) {
+        fail(`${label}_${toolId}_gpu_next_action_missing_fragment:${requiredFragment}`)
       }
     }
   }
@@ -218,15 +266,45 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
   if (typeof routeRetryCommand !== 'string') {
     fail(`${label}_${toolId}_gpu_missing_route_retry_command`)
   } else {
-    for (const requiredFragment of [
-      'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
-      `--scoped-gpu-tool ${toolId}`,
-      '--scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
-      '--scoped-gpu-runtime-container-platform linux/amd64',
-      `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
-    ]) {
+    const routeRetryFragments =
+      cpuTensorGpuModelTools.has(toolId)
+        ? [
+            'ai-graphics:external-agent-tool-call',
+            `--tool ${toolId}`,
+            '--runtime-backend host_python',
+            '--allow-cpu-tensor-runtime',
+            `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
+          ]
+        : cpuFoundationGpuModelTools.has(toolId)
+        ? [
+            'ai-graphics:external-agent-tool-call',
+            `--tool ${toolId}`,
+            '--runtime-backend host_python',
+            '--allow-cpu-foundation-runtime',
+            `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
+          ]
+        : [
+            'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
+            `--scoped-gpu-tool ${toolId}`,
+            '--scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
+            '--scoped-gpu-runtime-container-platform linux/amd64',
+            `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
+          ]
+    for (const requiredFragment of routeRetryFragments) {
       if (!routeRetryCommand.includes(requiredFragment)) {
         fail(`${label}_${toolId}_gpu_route_retry_command_missing_fragment:${requiredFragment}`)
+      }
+    }
+    if (
+      (cpuTensorGpuModelTools.has(toolId) ||
+        cpuFoundationGpuModelTools.has(toolId)) &&
+      sourceImageRequiredGpuModelTools.has(toolId)
+    ) {
+      if (!routeRetryCommand.includes('--source-image <private-approved-frame.png>')) {
+        fail(`${label}_${toolId}_gpu_route_retry_command_missing_single_tool_source_image`)
+      }
+      if (routeRetryCommand.includes('--scoped-gpu-source-image')) {
+        fail(`${label}_${toolId}_gpu_route_retry_command_uses_scoped_source_image_for_single_tool_call`)
       }
     }
   }
@@ -250,8 +328,13 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
   if (!Array.isArray(prerequisites)) {
     fail(`${label}_${toolId}_gpu_blocked_prerequisites_missing`)
   } else {
+    const runtimePrerequisite = cpuTensorGpuModelTools.has(toolId)
+      ? 'CPU tensor runtime'
+      : cpuFoundationGpuModelTools.has(toolId)
+      ? 'CPU foundation runtime'
+      : 'CUDA'
     for (const fragment of [
-      'CUDA',
+      runtimePrerequisite,
       'proof-local GPU worker container image',
       'no public artifact',
     ]) {
@@ -428,21 +511,41 @@ function checkReport(label, report) {
     if (typeof nextAction !== 'string') {
       fail(`${label}_${toolId}_gpu_missing_normalized_next_action`)
     }
+    const preferredCpuNextActionFragments =
+      cpuTensorGpuModelTools.has(toolId)
+        ? [
+            'verify the approved local Python CPU runtime first',
+            '--runtime-backend host_python',
+            '--allow-cpu-tensor-runtime',
+            'ai-graphics:external-agent-tool-call',
+            'GPU remains idle for CPU proof tools',
+          ]
+        : cpuFoundationGpuModelTools.has(toolId)
+        ? [
+            'verify the approved local Python CPU runtime first',
+            '--runtime-backend host_python',
+            '--allow-cpu-foundation-runtime',
+            'ai-graphics:external-agent-tool-call',
+            'GPU remains idle for CPU proof tools',
+          ]
+        : [
+            'if the proof-local image is missing, build the exact local proof image first:',
+            canonicalGpuModelRuntimeContainerBuildCommand,
+            'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
+            `--scoped-gpu-tool ${toolId}`,
+            '--scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
+            'GPU starts only during that scoped active tool call',
+          ]
     for (const requiredFragment of [
       'blocked_with_reason:',
-      'if the proof-local image is missing, build the exact local proof image first:',
-      canonicalGpuModelRuntimeContainerBuildCommand,
       'run the private proof sequence before retrying route execution:',
       'ai-graphics:external-agent-gpu-model-private-proof-sequence',
       `--tool ${toolId}`,
       '--require-host-eligible',
       '--require-accepted-proof',
       'after accepted private proof exists, retry the controlled route with:',
-      'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
-      `--scoped-gpu-tool ${toolId}`,
-      '--scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
       `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
-      'GPU starts only during that scoped active tool call',
+      ...preferredCpuNextActionFragments,
     ]) {
       if (!nextAction.includes(requiredFragment)) {
         fail(`${label}_${toolId}_gpu_next_action_missing_fragment:${requiredFragment}`)

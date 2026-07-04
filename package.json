@@ -136,6 +136,7 @@
     "smoke:internal-testing-approval-credit-gates": "tsx server/smoke/internal-testing-approval-credit-gates-smoke.ts",
     "smoke:internal-testing-credit-lifecycle-readiness": "tsx server/smoke/internal-testing-credit-lifecycle-readiness-smoke.ts",
     "smoke:internal-testing-repeated-local-operator-harness": "tsx server/smoke/internal-testing-repeated-local-operator-harness-smoke.ts",
+    "smoke:app-sign-in-entrypoint": "tsx server/smoke/app-sign-in-entrypoint-smoke.ts",
     "smoke:internal-testing-auth-project-access-readiness": "tsx server/smoke/internal-testing-auth-project-access-readiness-smoke.ts",
     "smoke:internal-testing-auth-project-session-membership-policy": "tsx server/smoke/internal-testing-auth-project-session-membership-policy-smoke.ts",
     "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan": "tsx server/smoke/internal-testing-durable-auth-project-session-backend-persistence-plan-smoke.ts",

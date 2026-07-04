@@ -13,6 +13,7 @@ const PricingPage = lazy(() => import('./pages/PricingPage').then((module) => ({
 const ProjectHomePage = lazy(() => import('./pages/ProjectHomePage').then((module) => ({ default: module.ProjectHomePage })))
 const ProjectEditSessionChatPage = lazy(() => import('./pages/ProjectEditSessionChatPage').then((module) => ({ default: module.ProjectEditSessionChatPage })))
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage').then((module) => ({ default: module.ProjectsPage })))
+const SignInPage = lazy(() => import('./pages/SignInPage').then((module) => ({ default: module.SignInPage })))
 const WalletPage = lazy(() => import('./pages/WalletPage').then((module) => ({ default: module.WalletPage })))
 
 function RouteLoadingFallback() {
@@ -34,6 +35,8 @@ export default function App() {
     <Suspense fallback={<RouteLoadingFallback />}>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/sign-in" element={<SignInPage />} />
+        <Route path="/auth" element={<Navigate to="/sign-in" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/projects/new" element={<CreateProjectPage />} />

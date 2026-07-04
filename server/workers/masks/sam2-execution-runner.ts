@@ -92,6 +92,8 @@ export async function runSam2Tracking(input: {
       status: 'completed',
       tool: 'sam2',
       commandPlan: { ...commandPlan, executes: true, summary: 'SAM2 local runtime script executed with private checkpoint and approved private source frame; no model download.' },
+      outputJsonPath: runtimeResult.outputJsonPath,
+      outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
       artifacts: [
         buildMaskArtifactRecord({
           workspaceId: executionInput.workspaceId,

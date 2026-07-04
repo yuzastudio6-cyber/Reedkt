@@ -100,6 +100,8 @@ export async function runBiRefNetMask(input: {
       status: 'completed',
       tool: 'birefnet',
       commandPlan: { ...commandPlan, executes: true, summary: 'BiRefNet local runtime script executed with private model path and private source frame; no model download.' },
+      outputJsonPath: runtimeResult.outputJsonPath,
+      outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
       artifacts: [
         buildMaskArtifactRecord({
           workspaceId: executionInput.workspaceId,

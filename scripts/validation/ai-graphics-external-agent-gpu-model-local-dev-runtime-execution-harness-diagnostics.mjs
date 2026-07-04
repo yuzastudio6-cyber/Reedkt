@@ -320,6 +320,29 @@ for (const requiredSnippet of [
     fail(`runtime_runner_missing_private_bind_mount_support:${requiredSnippet}`)
   }
 }
+
+const maskExecutionTypes = read('server/workers/masks/mask-execution-types.ts')
+for (const requiredToken of [
+  'outputJsonPath?: string',
+  'outputJsonSizeBytes?: number',
+]) {
+  if (!maskExecutionTypes.includes(requiredToken)) {
+    fail(`mask_execution_result_missing_runtime_output_token:${requiredToken}`)
+  }
+}
+
+const enhancementExecutionTypes = read(
+  'server/workers/enhancement/enhancement-execution-types.ts',
+)
+for (const requiredToken of [
+  'outputJsonPath?: string',
+  'outputJsonSizeBytes?: number',
+]) {
+  if (!enhancementExecutionTypes.includes(requiredToken)) {
+    fail(`enhancement_execution_result_missing_runtime_output_token:${requiredToken}`)
+  }
+}
+
 for (const workerFile of [
   'server/workers/model-runtime-foundation/ai-graphics-foundation-execution-runner.ts',
   'server/workers/masks/kornia-mask-refinement-adapter.ts',
@@ -339,6 +362,12 @@ for (const workerFile of [
   if (!source.includes('proofExpectation')) {
     fail(`worker_missing_runtime_proof_expectation:${workerFile}`)
   }
+  if (!source.includes('outputJsonPath: runtimeResult.outputJsonPath')) {
+    fail(`worker_missing_runtime_output_json_path:${workerFile}`)
+  }
+  if (!source.includes('outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes')) {
+    fail(`worker_missing_runtime_output_json_size:${workerFile}`)
+  }
   for (const requiredProofToken of [
     'expectedToolId',
     'requireNoModelDownload: true',
@@ -349,6 +378,18 @@ for (const workerFile of [
     if (!source.includes(requiredProofToken)) {
       fail(`worker_missing_runtime_proof_token:${workerFile}:${requiredProofToken}`)
     }
+  }
+}
+
+const controlledAdapterSource = read(
+  'server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts',
+)
+for (const requiredToken of [
+  'outputJsonPath: result.outputJsonPath ?? null',
+  'outputJsonSizeBytes: result.outputJsonSizeBytes ?? null',
+]) {
+  if (!controlledAdapterSource.includes(requiredToken)) {
+    fail(`controlled_adapter_summary_missing_runtime_output_token:${requiredToken}`)
   }
 }
 

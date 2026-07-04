@@ -119,7 +119,7 @@ export async function runAiGraphicsFoundationRuntimeCheck(
         expectedOutputPath: outputJsonPath,
         summary: 'AI graphics foundation runtime probe executed on-demand with CUDA visibility and offline package imports only.',
       },
-      outputJsonPath,
+      outputJsonPath: runtimeResult.outputJsonPath,
       outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
       warnings: ['Foundation runtime probe produced private worker JSON only; it did not load models or create media artifacts.'],
     }

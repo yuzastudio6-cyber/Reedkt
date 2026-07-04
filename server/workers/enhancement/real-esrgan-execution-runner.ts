@@ -102,6 +102,8 @@ export async function runRealEsrganEnhancement(input: {
       status: 'completed',
       tool: 'real_esrgan',
       commandPlan: { ...commandPlan, executes: true, summary: 'Real-ESRGAN local runtime script executed with private model path and bounded private source sample; no model download.' },
+      outputJsonPath: runtimeResult.outputJsonPath,
+      outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
       artifacts: [
         buildEnhancementArtifactRecord({
           workspaceId: executionInput.workspaceId,

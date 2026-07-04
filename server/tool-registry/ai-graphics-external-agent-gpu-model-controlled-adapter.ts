@@ -835,6 +835,8 @@ function toolResultSummary(
     artifactCount:
       (result.artifact ? 1 : 0) +
       (Array.isArray(result.artifacts) ? result.artifacts.length : 0),
+    outputJsonPath: result.outputJsonPath ?? null,
+    outputJsonSizeBytes: result.outputJsonSizeBytes ?? null,
     skipReason: result.skipReason ?? null,
     warningCount: result.warnings.length,
     errorMessage: result.errorMessage,

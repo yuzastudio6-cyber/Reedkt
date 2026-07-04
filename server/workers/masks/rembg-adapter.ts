@@ -94,6 +94,8 @@ export async function runRembgFallback(input: {
       status: 'completed',
       tool: 'rembg',
       commandPlan: { ...commandPlan, executes: true, summary: 'rembg local runtime script executed with approved local ONNX model and private source frame; no model download.' },
+      outputJsonPath: runtimeResult.outputJsonPath,
+      outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
       artifacts: [
         buildMaskArtifactRecord({
           workspaceId: executionInput.workspaceId,

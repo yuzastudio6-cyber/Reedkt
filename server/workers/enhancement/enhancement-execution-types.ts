@@ -144,6 +144,8 @@ export interface EnhancementToolExecutionResult {
   commandPlan?: EnhancementToolCommandPlan
   artifact?: ToolArtifact
   artifacts?: ToolArtifact[]
+  outputJsonPath?: string
+  outputJsonSizeBytes?: number
   skipReason?: EnhancementToolSkipReason
   warnings: string[]
   errorMessage?: string

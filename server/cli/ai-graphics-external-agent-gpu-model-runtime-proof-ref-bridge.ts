@@ -199,7 +199,12 @@ function localProofOutputExists(row: LocalProofHarnessRow | undefined): boolean 
 }
 
 function isLocalGpuModelProofOutputPath(file: string | null | undefined): boolean {
-  if (!file || path.isAbsolute(file)) return false
+  if (!file) return false
+  if (path.isAbsolute(file)) {
+    const relative = path.relative(process.cwd(), file)
+    if (relative.startsWith('..') || path.isAbsolute(relative)) return false
+    return isLocalGpuModelProofOutputPath(relative)
+  }
   const normalized = path.normalize(file)
   return normalized.startsWith(
     `.local-artifacts${path.sep}ai-graphics${path.sep}gpu-model-local-dev-runtime${path.sep}`,

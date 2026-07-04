@@ -73,6 +73,8 @@ export async function runKorniaMaskRefinement(input: {
       status: 'completed',
       tool: 'kornia',
       commandPlan: { ...commandPlan, executes: true, summary: 'Kornia local runtime script executed bounded CUDA tensor/image operations on a private source frame.' },
+      outputJsonPath: runtimeResult.outputJsonPath,
+      outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
       artifacts: [
         buildMaskArtifactRecord({
           workspaceId: executionInput.workspaceId,

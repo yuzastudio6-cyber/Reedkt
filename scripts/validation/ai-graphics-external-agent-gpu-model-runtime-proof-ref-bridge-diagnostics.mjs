@@ -489,6 +489,8 @@ for (const phrase of [
   'modelWeightsDownloaded',
   'private_output_json_outside_local_artifacts_gpu_model_runtime_namespace',
   'requiresPrivateOutputJsonUnderLocalArtifactsGpuModelRuntime',
+  'path.relative(process.cwd(), file)',
+  'return isLocalGpuModelProofOutputPath(relative)',
 ]) {
   if (!cli.includes(phrase)) fail(`cli_missing_phrase:${phrase}`)
 }

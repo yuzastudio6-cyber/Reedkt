@@ -172,6 +172,8 @@ export interface MaskToolExecutionResult {
   commandPlan?: MaskToolCommandPlan
   artifact?: ToolArtifact
   artifacts?: ToolArtifact[]
+  outputJsonPath?: string
+  outputJsonSizeBytes?: number
   skipReason?: MaskToolSkipReason
   warnings: string[]
   errorMessage?: string

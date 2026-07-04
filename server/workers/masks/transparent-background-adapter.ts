@@ -95,6 +95,8 @@ export async function runTransparentBackgroundFallback(input: {
       status: 'completed',
       tool: 'transparent_background',
       commandPlan: { ...commandPlan, executes: true, summary: 'transparent-background local runtime script executed with approved local checkpoint and private source frame; no checkpoint download.' },
+      outputJsonPath: runtimeResult.outputJsonPath,
+      outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
       artifacts: [
         buildMaskArtifactRecord({
           workspaceId: executionInput.workspaceId,

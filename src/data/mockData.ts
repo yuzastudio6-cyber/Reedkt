@@ -106,6 +106,7 @@ export const appNav: NavItem[] = [
   { label: 'Home', to: '/dashboard', icon: Home },
   { label: 'Projects', to: '/projects', icon: FolderKanban },
   { label: 'AI Editor', to: '/editor', icon: WandSparkles },
+  { label: 'Preferences', to: '/edit-preferences', icon: ListChecks },
   { label: 'Media Library', to: '/projects#media-library', icon: Library },
   { label: 'Templates', to: '/dashboard', icon: LayoutTemplate, disabled: true },
   { label: 'Team', to: '/dashboard', icon: UsersRound, disabled: true },

@@ -1,0 +1,51 @@
+{
+  "id": "edit-preferences-route-entrypoint",
+  "decision": "edit_preferences_route_entrypoint_passed_mock_local_ready_for_internal_testing",
+  "route": "/edit-preferences",
+  "source": {
+    "adapter": "src/lib/project-edit-session-preference-ui-adapter.ts",
+    "page": "src/pages/EditPreferencesPage.tsx",
+    "defaultProjectId": "mock-project-edit-chat-foundation",
+    "defaultEditSessionId": "edit-session-youtube-wide"
+  },
+  "features": [
+    "seeded_preference_library",
+    "preference_detail_panel",
+    "browser_local_draft_creator",
+    "do_not_copy_policy_visibility",
+    "mock_local_boundary_summary",
+    "sidebar_navigation"
+  ],
+  "blockedScope": {
+    "upload": false,
+    "fileBytesRead": false,
+    "referenceUrlFetch": false,
+    "qwenCall": false,
+    "deepseekCall": false,
+    "providerCall": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "creditReservationOrSpend": false,
+    "supabaseReadWrite": false,
+    "storageSignedUrls": false,
+    "sqlOrMigration": false,
+    "externalBeta": false,
+    "realUserMediaBeta": false,
+    "paidProduction": false,
+    "productReady": false
+  },
+  "validation": {
+    "required": [
+      "smoke:edit-preferences-route-entrypoint",
+      "edit-preferences-route-entrypoint.spec.ts",
+      "smoke:project-edit-brief-internal-testing-entrypoint",
+      "smoke:project-edit-brief-e2e",
+      "smoke:beta-readiness",
+      "typecheck:server",
+      "build",
+      "git diff --check",
+      "git diff --cached --check"
+    ]
+  }
+}

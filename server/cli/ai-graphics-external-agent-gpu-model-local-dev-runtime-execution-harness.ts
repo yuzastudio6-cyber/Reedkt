@@ -28,9 +28,9 @@ const runtimeContainerImageByTool: Record<
 > = {
   torch_torchvision: canonicalGpuWorkerProofImage,
   transformers: canonicalGpuWorkerProofImage,
-  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
-  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
-  real_esrgan: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+  sam2: canonicalGpuWorkerProofImage,
+  birefnet: canonicalGpuWorkerProofImage,
+  real_esrgan: canonicalGpuWorkerProofImage,
   kornia: canonicalGpuWorkerProofImage,
   rembg: canonicalGpuWorkerProofImage,
   transparent_background: canonicalGpuWorkerProofImage,
@@ -187,10 +187,13 @@ function parseArgs(): HarnessArgs {
     rembgModelLocalPath: stringFlag('--rembg-model'),
     transparentBackgroundCheckpointLocalPath:
       stringFlag('--transparent-background-checkpoint'),
-    runtimeExecutionBackend:
-      stringFlag('--runtime-backend') === 'docker_container'
-        ? 'docker_container'
-        : 'host_python',
+    runtimeExecutionBackend: hasFlag('--attempt-local-runtime')
+      ? stringFlag('--runtime-backend') === 'host_python'
+        ? 'host_python'
+        : 'docker_container'
+      : stringFlag('--runtime-backend') === 'docker_container'
+      ? 'docker_container'
+      : 'host_python',
     runtimeContainerImage: stringFlag('--runtime-container-image'),
     runtimeContainerPlatform: stringFlag('--runtime-container-platform'),
     runtimeContainerGpu: !hasFlag('--no-runtime-container-gpu'),
@@ -457,10 +460,16 @@ function runtimeInputsForTool(
       manifestStringForTool(toolId, args, 'modelWeightChecksumEvidenceRef'),
     runtimeContainerImage:
       args.runtimeContainerImage ??
-      manifestStringForTool(toolId, args, 'runtimeContainerImage'),
+      manifestStringForTool(toolId, args, 'runtimeContainerImage') ??
+      (args.runtimeExecutionBackend === 'docker_container'
+        ? runtimeContainerImageByTool[toolId]
+        : undefined),
     runtimeContainerPlatform:
       args.runtimeContainerPlatform ??
-      manifestStringForTool(toolId, args, 'runtimeContainerPlatform'),
+      manifestStringForTool(toolId, args, 'runtimeContainerPlatform') ??
+      (args.runtimeExecutionBackend === 'docker_container'
+        ? 'linux/amd64'
+        : undefined),
     allowCpuTensorRuntime:
       args.allowCpuTensorRuntime ||
       manifestBooleanForTool(toolId, args, 'allowCpuTensorRuntime') === true,

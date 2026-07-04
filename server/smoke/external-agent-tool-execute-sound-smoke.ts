@@ -90,6 +90,8 @@ for (const required of [
   'sound-runtime-media-gate-2f:diagnostics',
   'sound_metadata_only_runtime_execution_not_accepted',
   'real_provider_worker_storage_track_qa_billing_export_handoffs_required',
+  'safeEvidenceReviewCompleted',
+  'runtimeExecutionBlockedAsExpected',
   'parseJsonOutput',
   'runtimeRunNow: false',
   'providerCallsMade: false',
@@ -160,6 +162,11 @@ assert.equal(
   ),
   true,
 )
+assert.equal(evidenceReview.safeEvidenceReviewRun, true)
+assert.equal(evidenceReview.safeEvidenceReviewCompleted, true)
+assert.equal(evidenceReview.safeEvidenceReviewExecutableNow, true)
+assert.equal(evidenceReview.supportingEvidenceOnly, true)
+assert.equal(evidenceReview.runtimeExecutionBlockedAsExpected, true)
 assert.equal((evidenceReview.soundOssDiagnostics as Record<string, unknown>).ok, true)
 assert.equal((evidenceReview.soundRuntimeRouteDiagnostics as Record<string, unknown>).ok, true)
 assert.equal(evidenceReview.runtimeRunNow, false)

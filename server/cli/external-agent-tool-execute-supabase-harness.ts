@@ -83,12 +83,18 @@ function main() {
     ...RETRY_15_RESULT_SMOKE,
   ])
   const blockers = validateEvidence(configVerify, retry15)
+  const safeEvidenceReviewCompleted = configVerify.ok && retry15.ok
 
   print({
     ok: false,
     mode: 'external_agent_supabase_harness_execution_evidence_review_result',
     status: 'blocked',
     blockers,
+    safeEvidenceReviewRun: true,
+    safeEvidenceReviewCompleted,
+    safeEvidenceReviewExecutableNow: true,
+    supportingEvidenceOnly: true,
+    runtimeExecutionBlockedAsExpected: true,
     configVerify: summarizeProbe(configVerify),
     retry15Result: summarizeProbe(retry15),
     nextPrompt:

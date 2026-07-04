@@ -92,6 +92,8 @@ for (const required of [
   'supabase_local_harness_supporting_evidence_only',
   'not_a_model_or_media_execution_lane_on_this_branch',
   'active_migration_plan_required_before_real_dispatch',
+  'safeEvidenceReviewCompleted',
+  'runtimeExecutionBlockedAsExpected',
   'parseJsonOutput',
   'runtimeRunNow: false',
   'supabaseCliExecuted: false',
@@ -161,6 +163,11 @@ assert.equal(
   (evidenceReview.blockers as string[]).includes('active_migration_plan_required_before_real_dispatch'),
   true,
 )
+assert.equal(evidenceReview.safeEvidenceReviewRun, true)
+assert.equal(evidenceReview.safeEvidenceReviewCompleted, true)
+assert.equal(evidenceReview.safeEvidenceReviewExecutableNow, true)
+assert.equal(evidenceReview.supportingEvidenceOnly, true)
+assert.equal(evidenceReview.runtimeExecutionBlockedAsExpected, true)
 assert.equal((evidenceReview.configVerify as Record<string, unknown>).ok, true)
 assert.equal((evidenceReview.retry15Result as Record<string, unknown>).ok, true)
 assert.equal(evidenceReview.runtimeRunNow, false)

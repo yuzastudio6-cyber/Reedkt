@@ -63,6 +63,7 @@ Passed:
 - Owner input collection after RP-EDITBRIEF-15: canonical workflow, durable schema roots, auth/access, Supabase security, media lifecycle, planner integration, credit/cost, provider/model, worker/render, and operations approvals remain required before production persistence implementation.
 - Owner evidence intake after RP-EDITBRIEF-15A: the checked-in template is complete but intentionally contains no approvals; RP-EDITBRIEF-16 remains blocked until real owner evidence is recorded.
 - Owner evidence readiness after RP-EDITBRIEF-15B: the checked-in template still evaluates as blocked; RP-EDITBRIEF-16 may start only after all ten owner inputs are approved or waived with owner, evidence reference, reviewed timestamp, and notes.
+- Owner evidence assignment after RP-EDITBRIEF-15C: the review packet names the owner group, required decision, and minimum evidence for each missing owner input; it does not approve or waive any input.
 - Real upload/source-media ingestion and privacy policy implementation.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.

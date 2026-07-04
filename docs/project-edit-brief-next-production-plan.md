@@ -18,7 +18,7 @@ The mock/local Edit Brief flow is intended for internal testing only. It can cre
 
 ## Recommended Next Milestone
 
-After verification and owner review, use `RP-EDITBRIEF-16 — Production Persistence Implementation Plan` only after RP-EDITBRIEF-15 owner inputs are supplied in the RP-EDITBRIEF-15A intake template and RP-EDITBRIEF-15B evaluates that intake as ready. RP-EDITBRIEF-13 reconciled the Supabase persistence roots, RP-EDITBRIEF-14 converted blanket blockers into computed readiness gates, RP-EDITBRIEF-15 records the missing owner/operator evidence, RP-EDITBRIEF-15A supplies the concrete intake shape, and RP-EDITBRIEF-15B adds the executable readiness check. Do not jump from these gates to production enablement without the named evidence and a passing readiness result.
+After verification and owner review, use `RP-EDITBRIEF-16 — Production Persistence Implementation Plan` only after RP-EDITBRIEF-15 owner inputs are supplied in the RP-EDITBRIEF-15A intake template and RP-EDITBRIEF-15B evaluates that intake as ready. RP-EDITBRIEF-13 reconciled the Supabase persistence roots, RP-EDITBRIEF-14 converted blanket blockers into computed readiness gates, RP-EDITBRIEF-15 records the missing owner/operator evidence, RP-EDITBRIEF-15A supplies the concrete intake shape, RP-EDITBRIEF-15B adds the executable readiness check, and RP-EDITBRIEF-15C names the owner assignment evidence needed to complete the gate. Do not jump from these gates to production enablement without the named evidence and a passing readiness result.
 
 ## Qwen Runtime Dependency
 

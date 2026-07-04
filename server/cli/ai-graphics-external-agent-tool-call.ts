@@ -350,6 +350,76 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
   return payload
 }
 
+function unsafeRoutePayloadTestKind(): string | undefined {
+  return stringArg('--unsafe-route-payload-test')
+}
+
+function unsafeRoutePayloadForGpuModelTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  kind: string,
+): Record<string, unknown> {
+  const base: Record<string, unknown> = {
+    externalAgentSingleToolCall: true,
+    privateOutputOnly: true,
+    mode: 'local_dev',
+    enableGpuModelControlledExecution: true,
+    gpuRuntimeOnDemandOnly: true,
+    noIdleGpuRuntimeApproved: true,
+    runtimeExecutionBackend: 'docker_container',
+    runtimeContainerGpu: true,
+    runtimeContainerImage: canonicalGpuModelRuntimeContainerImage,
+    runtimeContainerPlatform: 'linux/amd64',
+    outputDirectory:
+      '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/unsafe-route-payload',
+    sourceImageLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+    representativeFrameLocalPath:
+      '/tmp/reeditpro-missing-private-approved-frame.png',
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    providerRuntimePerformed: false,
+    modelWeightsDownloaded: false,
+    toolExecutionPerformed: false,
+    gpuRuntimeShouldStartNow: false,
+  }
+
+  if (toolId === 'sam2') base.sam2CheckpointLocalPath = '/tmp/private-sam2-checkpoint.pt'
+  if (toolId === 'birefnet') base.birefnetModelLocalPath = '/tmp/private-birefnet-model'
+  if (toolId === 'real_esrgan') base.realEsrganModelLocalPath = '/tmp/private-real-esrgan-model.pth'
+  if (toolId === 'rembg') base.rembgModelLocalPath = '/tmp/private-rembg-model.onnx'
+  if (toolId === 'transparent_background') {
+    base.transparentBackgroundCheckpointLocalPath =
+      '/tmp/private-transparent-background-checkpoint.pth'
+  }
+
+  if (kind === 'raw_url_source_image') {
+    return {
+      ...base,
+      sourceImageLocalPath: 'https://example.com/private-frame.png',
+      representativeFrameLocalPath: 'https://example.com/private-frame.png',
+    }
+  }
+  if (kind === 'path_traversal_checkpoint') {
+    return {
+      ...base,
+      sam2CheckpointLocalPath: '../private-sam2-checkpoint.pt',
+    }
+  }
+  if (kind === 'unsafe_output_directory') {
+    return {
+      ...base,
+      outputDirectory: '/tmp/reeditpro-external-agent-gpu-output',
+    }
+  }
+  if (kind === 'public_artifact_claim') {
+    return {
+      ...base,
+      publicArtifactCreated: true,
+    }
+  }
+
+  throw new Error(`Unsupported --unsafe-route-payload-test value: ${kind}`)
+}
+
 function nextActionForReport(input: {
   toolId: string
   group: ToolGroup
@@ -409,6 +479,11 @@ function requestForTool(): AiGraphicsExternalBetaToolCallRequest {
   assert(source, `Unsupported AI graphics tool id: ${toolId}`)
 
   const group = groupForTool(toolId)
+  const unsafePayloadKind = unsafeRoutePayloadTestKind()
+  assert(
+    !unsafePayloadKind || (group === 'gpu_model' && isGpuModelTool(toolId)),
+    '--unsafe-route-payload-test is supported only for GPU/model tools',
+  )
   const request: AiGraphicsExternalBetaToolCallRequest = {
     ...source.request,
     requestId: `external-agent-single-tool-call-${toolId}`,
@@ -429,7 +504,9 @@ function requestForTool(): AiGraphicsExternalBetaToolCallRequest {
       `private://ai-graphics/external-agent/single-tool-call/${toolId}/owner-runtime-approval`,
     traceId: `trace-external-agent-single-tool-call-${toolId}`,
     payload: group === 'gpu_model' && isGpuModelTool(toolId)
-      ? gpuRuntimePayload(toolId)
+      ? unsafePayloadKind
+        ? unsafeRoutePayloadForGpuModelTool(toolId, unsafePayloadKind)
+        : gpuRuntimePayload(toolId)
       : {
           externalAgentSingleToolCall: true,
           privateOutputOnly: true,
@@ -562,6 +639,7 @@ async function buildReport() {
       expectedBlockingReasonCode:
         stringArg('--expect-blocking-reason') ?? null,
       resultOut: resultOutPath() ?? null,
+      unsafeRoutePayloadTest: unsafeRoutePayloadTestKind() ?? null,
       strictExitCodeRequested: hasFlag('--strict-exit-code'),
       requireOutputHash: hasFlag('--require-output-hash'),
       requirePrivateOnlyBoundary: hasFlag('--require-private-only-boundary'),

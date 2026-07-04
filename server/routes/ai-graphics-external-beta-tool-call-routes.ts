@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import path from 'node:path'
 import { z } from 'zod'
 import { ApiError } from '../errors/api-error'
 import { createAiGraphicsToolRuntimeQueueService } from '../services/ai-graphics-tool-runtime-queue-service'
@@ -23,6 +24,10 @@ import {
 } from '../tool-registry/ai-graphics-tool-call-readiness'
 import type { ServiceContext } from '../types'
 import { validateBody } from '../validation/common-schemas'
+import {
+  assertNoPathTraversal,
+  assertNoSignedUrlOrRawUrl,
+} from '../workers/media/media-path-safety'
 import { asyncRoute, getServiceContext, sendOk } from './route-helpers'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH =
@@ -150,6 +155,34 @@ const aiGraphicsExternalBetaToolCallPrimaryCapabilityByToolId: Record<
 }
 
 const privateRefSchema = z.string().min(1).regex(/^private:\/\//)
+
+const gpuModelPayloadLocalPathFields = [
+  'sourceImageLocalPath',
+  'representativeFrameLocalPath',
+  'sourceVideoLocalPath',
+  'proxyVideoLocalPath',
+  'sam2CheckpointLocalPath',
+  'birefnetModelLocalPath',
+  'realEsrganModelLocalPath',
+  'rembgModelLocalPath',
+  'transparentBackgroundCheckpointLocalPath',
+] as const
+
+const gpuModelPayloadForbiddenTrueFields = [
+  'publicArtifactCreated',
+  'signedUrlCreated',
+  'providerRuntimePerformed',
+  'providerRuntimeApprovedNow',
+  'modelWeightsDownloaded',
+  'modelDownloadedExternally',
+  'externalModelDownloadAttempted',
+  'supabaseMutationPerformed',
+  'gcsUploadPerformed',
+  'runtimeReadyNow',
+  'internalBetaReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+] as const
 
 const aiGraphicsGpuModelRuntimeAdmissionToolIds = new Set<string>([
   'torch_torchvision',
@@ -1709,6 +1742,171 @@ function buildAiGraphicsExternalBetaToolCallCapabilityMismatchResult(
   }
 }
 
+function stringPayloadValue(
+  payload: Record<string, unknown>,
+  key: string,
+): string | undefined {
+  const value = payload[key]
+  return typeof value === 'string' && value.trim() ? value : undefined
+}
+
+function isLocalArtifactPath(value: string): boolean {
+  const normalized = value.replaceAll('\\', '/')
+  return normalized === '.local-artifacts' ||
+    normalized.startsWith('.local-artifacts/')
+}
+
+function assertGpuModelPayloadLocalPath(
+  field: string,
+  value: string | undefined,
+): void {
+  if (!value) return
+  assertNoSignedUrlOrRawUrl(value, field)
+  assertNoPathTraversal(value, field)
+  const resolved = path.resolve(value)
+  if (resolved === path.parse(resolved).root) {
+    throw new Error(`${field} must not resolve to a filesystem root.`)
+  }
+}
+
+function validateAiGraphicsGpuModelControlledPayloadBoundary(
+  request: AiGraphicsExternalBetaToolCallRequest,
+): string | null {
+  const payload = request.payload ?? {}
+
+  for (const field of gpuModelPayloadForbiddenTrueFields) {
+    if (payload[field] === true) {
+      return `${field}=true is not allowed in an external-agent GPU/model tool-call payload.`
+    }
+  }
+
+  const outputDirectory = stringPayloadValue(payload, 'outputDirectory')
+  if (outputDirectory) {
+    try {
+      assertGpuModelPayloadLocalPath('outputDirectory', outputDirectory)
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error)
+    }
+    if (!isLocalArtifactPath(outputDirectory)) {
+      return 'outputDirectory must stay under .local-artifacts/ for external-agent GPU/model local proof.'
+    }
+  }
+
+  for (const field of gpuModelPayloadLocalPathFields) {
+    try {
+      assertGpuModelPayloadLocalPath(field, stringPayloadValue(payload, field))
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error)
+    }
+  }
+
+  for (const field of [
+    'runtimeContainerImage',
+    'containerImage',
+    'runtimeContainerPlatform',
+    'containerPlatform',
+  ]) {
+    const value = stringPayloadValue(payload, field)
+    if (!value) continue
+    try {
+      assertNoSignedUrlOrRawUrl(value, field)
+      assertNoPathTraversal(value, field)
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error)
+    }
+  }
+
+  return null
+}
+
+function buildAiGraphicsExternalBetaToolCallUnsafeGpuPayloadResult(
+  request: AiGraphicsExternalBetaToolCallRequest,
+  failureDiagnostics: string,
+) {
+  return {
+    routeDecision:
+      'ai_graphics_external_beta_tool_call_route_failed_gpu_model_payload_boundary',
+    routeStatus:
+      'controlled_gpu_model_route_failed_with_diagnostics_payload_boundary',
+    routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+    requestId: request.requestId,
+    toolId: request.toolId,
+    capabilityId: request.capabilityId,
+    externalAgentExecutionState: 'failed_with_diagnostics',
+    blockingReasonCode: null,
+    failureDiagnostics,
+    controlledAdapterInvokedNow: false,
+    controlledAdapterExecutedNow: false,
+    routeExecutionPerformed: true,
+    gpuRuntimeShouldStartNow: false,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    externalAgentToolCallResult: buildAiGraphicsExternalAgentToolCallResult({
+      requestId: request.requestId,
+      toolId: request.toolId,
+      capabilityId: request.capabilityId,
+      routeStatus:
+        'controlled_gpu_model_route_failed_with_diagnostics_payload_boundary',
+      executionState: 'failed_with_diagnostics',
+      blockingReasonCode: null,
+      failureDiagnostics,
+      callable: true,
+      executable: false,
+      controlledAdapterInvokedNow: false,
+      controlledAdapterExecutedNow: false,
+      routeExecutionPerformed: true,
+      gpuRuntimeShouldStartNow: false,
+      privateArtifactManifestRef: request.privateArtifactManifestRef,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+      nextExternalAgentAction:
+        'fix the private local GPU/model payload boundary before retrying the controlled route',
+    }),
+    counts: {
+      totalAiGraphicsTools: 21,
+      gpuModelControlledCallableTools: 1,
+      gpuModelControlledExecutableNowTools: 0,
+      gpuModelBlockedWithReasonTools: 0,
+      gpuModelFailedWithDiagnosticsTools: 1,
+      controlledAdapterInvokedTools: 0,
+      controlledAdapterExecutedTools: 0,
+      gpuRuntimeShouldStartNowTools: 0,
+      publicArtifactCreatedTools: 0,
+      signedUrlCreatedTools: 0,
+    },
+    booleans: {
+      routeSchemaAccepted: true,
+      gpuModelPayloadBoundaryRejectedUnsafeInput: true,
+      agentCanSelectForPlanning: true,
+      agentCanCallRequestedToolNow: true,
+      agentCanExecuteRequestedToolNow: false,
+      agentCanExecuteGpuModelToolsNow: false,
+      agentCanExecuteAll21ToolsNow: false,
+      agentCanExecuteToolsNow: false,
+      routeExecutionPerformed: true,
+      workerExecutionApprovedNow: false,
+      workerExecutionPerformed: false,
+      workerDispatchApprovedNow: false,
+      workerDispatchPerformed: false,
+      toolExecutionApprovedNow: false,
+      toolExecutionPerformed: false,
+      providerRuntimeApprovedNow: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimeApprovedNow: false,
+      gpuRuntimePerformed: false,
+      gpuRuntimeShouldStartNow: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+    },
+  }
+}
+
 function buildAiGraphicsGpuModelUnblockPlan(
   toolId: string,
   modelWeightManifestRequired: boolean,
@@ -2251,6 +2449,17 @@ export function createAiGraphicsExternalBetaToolCallRoutes(
             signedUrlCreated: false,
           },
         )
+      }
+      const gpuModelPayloadBoundaryFailure =
+        validateAiGraphicsGpuModelControlledPayloadBoundary(body)
+      if (gpuModelPayloadBoundaryFailure) {
+        const failureResult =
+          buildAiGraphicsExternalBetaToolCallUnsafeGpuPayloadResult(
+            body,
+            gpuModelPayloadBoundaryFailure,
+          )
+        sendRouteOk(response, failureResult, [gpuModelPayloadBoundaryFailure], 200)
+        return
       }
       const execution =
         await executeAiGraphicsExternalAgentGpuModelControlledAdapter({

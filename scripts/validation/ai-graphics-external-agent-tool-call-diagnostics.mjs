@@ -364,6 +364,71 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
   checkNoBoundaryLeaks(label, report)
 }
 
+function checkUnsafeGpuPayloadFailure(
+  label,
+  report,
+  expectedToolId,
+  expectedDiagnosticFragment,
+) {
+  if (report.decision !== decision) fail(`${label}_decision_mismatch`)
+  if (report.status !== 'external_agent_single_tool_call_failed_with_diagnostics') {
+    fail(`${label}_status_mismatch:${report.status}`)
+  }
+  if (report.routePath !== routePath) fail(`${label}_route_path_mismatch`)
+  if (report.request?.toolId !== expectedToolId) {
+    fail(`${label}_tool_mismatch:${report.request?.toolId}`)
+  }
+  if (report.request?.group !== 'gpu_model') {
+    fail(`${label}_group_mismatch:${report.request?.group}`)
+  }
+  if (report.response?.statusCode !== 200) {
+    fail(`${label}_http_not_200:${report.response?.statusCode}`)
+  }
+  if (report.response?.ok !== true) fail(`${label}_ok_not_true`)
+  if (report.response?.routeStatus !== 'controlled_gpu_model_route_failed_with_diagnostics_payload_boundary') {
+    fail(`${label}_route_status_mismatch:${report.response?.routeStatus}`)
+  }
+  if (report.response?.externalAgentExecutionState !== 'failed_with_diagnostics') {
+    fail(`${label}_state_not_failed:${report.response?.externalAgentExecutionState}`)
+  }
+  if (!String(report.response?.failureDiagnostics ?? '').includes(expectedDiagnosticFragment)) {
+    fail(`${label}_failure_diagnostic_missing:${expectedDiagnosticFragment}`)
+  }
+  if (report.response?.outputKind !== null) fail(`${label}_unexpected_output_kind`)
+  if (report.response?.outputSha256 !== null) fail(`${label}_unexpected_output_hash`)
+  if (report.response?.outputSource !== null) fail(`${label}_unexpected_output_source`)
+  const normalized = report.response?.externalAgentToolCallResult ?? {}
+  if (normalized.callable !== true) fail(`${label}_not_callable`)
+  if (normalized.executable !== false) fail(`${label}_unexpected_executable`)
+  if (normalized.blockedWithReason !== false) fail(`${label}_unexpected_block`)
+  if (normalized.failedWithDiagnostics !== true) fail(`${label}_not_failed`)
+  if (normalized.controlledAdapterInvokedNow !== false) {
+    fail(`${label}_adapter_should_not_be_invoked`)
+  }
+  if (normalized.controlledAdapterExecutedNow !== false) {
+    fail(`${label}_adapter_should_not_execute`)
+  }
+  if (normalized.localGpuModelRuntimeExecutionPerformed !== false) {
+    fail(`${label}_gpu_runtime_should_not_execute`)
+  }
+  if (normalized.nextExternalAgentAction !== 'fix the private local GPU/model payload boundary before retrying the controlled route') {
+    fail(`${label}_next_external_agent_action_mismatch`)
+  }
+  if (report.nextAction?.status !== 'inspect_failure_diagnostics_before_retry') {
+    fail(`${label}_next_action_status_mismatch:${report.nextAction?.status}`)
+  }
+  if (report.booleans?.controlledAdapterInvokedNow !== false) {
+    fail(`${label}_boolean_adapter_invoked_not_false`)
+  }
+  if (report.booleans?.controlledAdapterExecutedNow !== false) {
+    fail(`${label}_boolean_adapter_executed_not_false`)
+  }
+  if (report.booleans?.localGpuModelRuntimeExecutionPerformed !== false) {
+    fail(`${label}_boolean_gpu_runtime_executed_not_false`)
+  }
+  checkNoBoundaryLeaks(label, report)
+}
+
 function readLocalResult(filePath) {
   if (!fs.existsSync(absolute(filePath))) {
     fail(`missing_local_result:${filePath}`)
@@ -387,6 +452,7 @@ const docsMd = read(
   'docs/tool-intelligence/ai-graphics/external-agent-single-tool-call.md',
 )
 const cliSource = read('server/cli/ai-graphics-external-agent-tool-call.ts')
+const routeSource = read('server/routes/ai-graphics-external-beta-tool-call-routes.ts')
 
 if (packageJson.scripts?.[runScriptName] !== runScriptCommand) {
   fail('run_script_mismatch')
@@ -433,8 +499,23 @@ for (const phrase of [
   'gpuModelRequiredPrivateInputKeys',
   'blocked_until_scoped_private_gpu_runtime_proof',
   'nextExactScopedToolCallCommand',
+  '--unsafe-route-payload-test',
+  'unsafeRoutePayloadForGpuModelTool',
 ]) {
   if (!cliSource.includes(phrase)) fail(`cli_missing:${phrase}`)
+}
+
+for (const phrase of [
+  'validateAiGraphicsGpuModelControlledPayloadBoundary',
+  'buildAiGraphicsExternalBetaToolCallUnsafeGpuPayloadResult',
+  'controlled_gpu_model_route_failed_with_diagnostics_payload_boundary',
+  'gpuModelPayloadLocalPathFields',
+  'gpuModelPayloadForbiddenTrueFields',
+  'assertNoSignedUrlOrRawUrl',
+  'assertNoPathTraversal',
+  'outputDirectory must stay under .local-artifacts/',
+]) {
+  if (!routeSource.includes(phrase)) fail(`route_missing:${phrase}`)
 }
 
 for (const [label, text] of [
@@ -491,6 +572,50 @@ if (
 ) {
   fail('live_kornia_scoped_gpu_attempt_source_image_mismatch')
 }
+
+const unsafeRawUrlRoutePayload = runToolCall([
+  '--tool kornia',
+  '--unsafe-route-payload-test raw_url_source_image',
+].join(' '))
+checkUnsafeGpuPayloadFailure(
+  'live_unsafe_raw_url_route_payload',
+  unsafeRawUrlRoutePayload,
+  'kornia',
+  'sourceImageLocalPath must be a private storage/local reference',
+)
+
+const unsafeTraversalRoutePayload = runToolCall([
+  '--tool sam2',
+  '--unsafe-route-payload-test path_traversal_checkpoint',
+].join(' '))
+checkUnsafeGpuPayloadFailure(
+  'live_unsafe_traversal_route_payload',
+  unsafeTraversalRoutePayload,
+  'sam2',
+  'sam2CheckpointLocalPath must not contain path traversal segments',
+)
+
+const unsafeOutputRoutePayload = runToolCall([
+  '--tool kornia',
+  '--unsafe-route-payload-test unsafe_output_directory',
+].join(' '))
+checkUnsafeGpuPayloadFailure(
+  'live_unsafe_output_route_payload',
+  unsafeOutputRoutePayload,
+  'kornia',
+  'outputDirectory must stay under .local-artifacts/',
+)
+
+const unsafePublicArtifactRoutePayload = runToolCall([
+  '--tool kornia',
+  '--unsafe-route-payload-test public_artifact_claim',
+].join(' '))
+checkUnsafeGpuPayloadFailure(
+  'live_unsafe_public_artifact_route_payload',
+  unsafePublicArtifactRoutePayload,
+  'kornia',
+  'publicArtifactCreated=true is not allowed',
+)
 
 const localResultDir =
   '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic'

@@ -10,6 +10,7 @@
     "smoke:project-edit-brief-internal-testing-entrypoint",
     "smoke:project-edit-brief-e2e",
     "smoke:project-edit-brief-internal-testing-completion-audit",
+    "smoke:internal-testing-approval-credit-gates",
     "smoke:beta-readiness"
   ],
   "playwrightSpecs": [
@@ -25,6 +26,9 @@
     "mediaProcessing": false,
     "renderOrExport": false,
     "creditReservationOrSpend": false,
+    "creditSpend": false,
+    "ledgerWrites": false,
+    "stripe": false,
     "supabaseReadWrite": false,
     "storageSignedUrls": false,
     "sqlOrMigration": false,

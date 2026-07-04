@@ -24,6 +24,7 @@ const smokeCommands = [
   ['npm', ['run', 'smoke:project-edit-brief-internal-testing-entrypoint']],
   ['npm', ['run', 'smoke:project-edit-brief-e2e']],
   ['npm', ['run', 'smoke:project-edit-brief-internal-testing-completion-audit']],
+  ['npm', ['run', 'smoke:internal-testing-approval-credit-gates']],
   ['npm', ['run', 'smoke:beta-readiness']],
 ]
 

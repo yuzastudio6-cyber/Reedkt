@@ -52,6 +52,10 @@ assert.match(page, /No Supabase write/)
 assert.match(page, /Preference Video limits/)
 assert.match(page, /Mock-local Preference DNA/)
 assert.match(page, /Open \/edit-preferences/)
+assert.match(page, /internal-testing-approval-credit-gates/)
+assert.match(page, /approvedPlanSnapshotId/)
+assert.match(page, /creditEstimateId/)
+assert.match(page, /creditReservationId/)
 assert.doesNotMatch(page, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/)
 assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|service_role|signedUrl/i)
 
@@ -64,6 +68,8 @@ for (const phrase of [
   'No worker dispatch',
   'No render/export',
   'No credit reservation or spend',
+  'Approval And Credit Gate Readiness',
+  'approval-credit-gate-readiness',
   'No live Supabase',
 ]) {
   assert.match(docs, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'))
@@ -73,6 +79,8 @@ const docJson = JSON.parse(read('docs/project-edit-brief-internal-testing-entryp
   decision?: string
   route?: string
   connectedRoutes?: string[]
+  features?: string[]
+  scenarioStatus?: Record<string, string | number>
   blockedScope?: Record<string, boolean>
   validation?: { required?: string[] }
 }
@@ -82,10 +90,14 @@ assert.equal(docJson.route, '/internal-testing')
 assert.ok(docJson.connectedRoutes?.includes(createProjectHomePath(projectId)))
 assert.ok(docJson.connectedRoutes?.includes(createProjectEditSessionChatPath(projectId, editSessionId)))
 assert.ok(docJson.connectedRoutes?.includes(createProjectEditSessionBriefPath(projectId, editSessionId)))
+assert.ok(docJson.features?.includes('approval_credit_gate_readiness'))
+assert.equal(docJson.scenarioStatus?.['approval-credit-gate-readiness'], 'mock_local')
 assert.equal(docJson.blockedScope?.productReady, false)
 assert.equal(docJson.blockedScope?.supabaseReadWrite, false)
 assert.equal(docJson.blockedScope?.workerDispatch, false)
+assert.equal(docJson.blockedScope?.creditSpend, false)
 assert.ok(docJson.validation?.required?.includes('smoke:project-edit-brief-internal-testing-entrypoint'))
+assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-approval-credit-gates'))
 
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
 assert.equal(
@@ -119,6 +131,14 @@ assert.ok(
   internalTestingScenarios.some(
     (scenario) =>
       scenario.id === 'preference-video-mock-only-limits' &&
+      scenario.route === '/internal-testing' &&
+      scenario.status === 'mock_local',
+  ),
+)
+assert.ok(
+  internalTestingScenarios.some(
+    (scenario) =>
+      scenario.id === 'approval-credit-gate-readiness' &&
       scenario.route === '/internal-testing' &&
       scenario.status === 'mock_local',
   ),

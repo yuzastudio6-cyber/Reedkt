@@ -20,6 +20,8 @@ const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.json'
 const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.md'
+const gpuModelInstallBuildTargetsPath =
+  'docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json'
 const canonicalGpuWorkerProofImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
 const canonicalGpuWorkerProofImageBuildCommand =
@@ -473,11 +475,92 @@ function mergeGpuHarnessWithPrivateProof(
   }
 }
 
+function gpuModelInstallProofForTool(
+  toolId: string,
+  gpuInstallProof: JsonRecord,
+): JsonRecord | null {
+  if (!gpuModelTools.has(toolId)) return null
+
+  const toolRecord = Array.isArray(gpuInstallProof.tools)
+    ? gpuInstallProof.tools.find((row: JsonRecord) => row.toolId === toolId)
+    : null
+  const profileIds = Array.isArray(toolRecord?.profiles)
+    ? toolRecord.profiles.filter(
+        (profileId: unknown): profileId is string => typeof profileId === 'string',
+      )
+    : []
+  const primaryProfileId = profileIds.includes(toolId)
+    ? toolId
+    : profileIds[0] ?? null
+  const evidenceRows = Array.isArray(gpuInstallProof.localBuildEvidence)
+    ? gpuInstallProof.localBuildEvidence.filter((row: JsonRecord) => (
+        typeof row?.profileId === 'string' && profileIds.includes(row.profileId)
+      ))
+    : []
+  const primaryEvidence = evidenceRows.find((row: JsonRecord) => (
+    row.profileId === primaryProfileId
+  )) ?? evidenceRows[0] ?? null
+  const profileRows = Array.isArray(gpuInstallProof.profiles)
+    ? gpuInstallProof.profiles.filter((row: JsonRecord) => (
+        typeof row?.profileId === 'string' && profileIds.includes(row.profileId)
+      ))
+    : []
+  const primaryProfile = profileRows.find((row: JsonRecord) => (
+    row.profileId === primaryProfileId
+  )) ?? profileRows[0] ?? null
+  const installProofTargetPrepared =
+    String(toolRecord?.status ?? '').includes('install_proof_target_prepared') &&
+    evidenceRows.some((row: JsonRecord) => row.status === 'passed')
+  const importSmokePassed = evidenceRows.some((row: JsonRecord) => (
+    row.importSmokeStatus === 'passed'
+  ))
+
+  return {
+    sourceEvidence: gpuModelInstallBuildTargetsPath,
+    proofScope: gpuInstallProof.proofScope ?? null,
+    toolStatus: toolRecord?.status ?? null,
+    runtimeTarget: toolRecord?.runtimeTarget ?? null,
+    profiles: profileIds,
+    primaryProfile: primaryProfileId,
+    primaryDockerfile: primaryProfile?.dockerfile ?? primaryEvidence?.dockerfile ?? null,
+    primaryTarget: primaryProfile?.target ?? primaryEvidence?.target ?? null,
+    primaryPlatform: primaryEvidence?.platform ?? 'linux/amd64',
+    primaryBuildCommand: primaryEvidence?.command ?? null,
+    primaryImportSmokeCommand: primaryProfile?.smokeCommand ?? null,
+    installProofTargetPrepared,
+    importSmokePassed,
+    localBuildEvidenceStatuses: evidenceRows.map((row: JsonRecord) => ({
+      profileId: row.profileId,
+      status: row.status ?? null,
+      importSmokeStatus: row.importSmokeStatus ?? null,
+    })),
+    appBundleRequiredForInstallProof:
+      profileRows.some((row: JsonRecord) => row.appBundleRequiredForInstallProof === true),
+    modelWeightsRequiredForInstallProof:
+      profileRows.some((row: JsonRecord) => row.modelWeightsRequiredForInstallProof === true),
+    nativeGpuRuntimeUsedInInstallProof:
+      evidenceRows.some((row: JsonRecord) => row.nvidiaRuntimeUsed === true),
+    modelWeightsLoadedInInstallProof:
+      evidenceRows.some((row: JsonRecord) => row.modelWeightsLoaded === true),
+    mediaProcessedInInstallProof:
+      evidenceRows.some((row: JsonRecord) => row.mediaProcessed === true),
+    providerRuntimeUsedInInstallProof:
+      evidenceRows.some((row: JsonRecord) => row.providerRuntimeUsed === true),
+    publicArtifactCreatedInInstallProof:
+      evidenceRows.some((row: JsonRecord) => row.publicArtifactCreated === true),
+    signedUrlCreatedInInstallProof:
+      evidenceRows.some((row: JsonRecord) => row.signedUrlCreated === true),
+    runtimeProofStillRequired:
+      gpuInstallProof.booleans?.nativeGpuRuntimeStillRequired === true,
+  }
+}
+
 function buildToolRows(
   routeSmoke: JsonRecord,
   gpuHarness: JsonRecord,
   gpuProofRefBridge: JsonRecord,
   controlledWorkerRouteSmoke: JsonRecord,
+  gpuInstallProof: JsonRecord,
 ) {
   const routeRows = new Map<string, JsonRecord>(
     (Array.isArray(routeSmoke.results) ? routeSmoke.results : [])
@@ -552,6 +635,10 @@ function buildToolRows(
       bridgeRow?.routeSubmissionReadyWithAcceptedPrivateProof === true
     const gpuRuntimeFailed =
       gpuAdapterStatus === 'controlled_gpu_model_adapter_failed_before_output'
+    const gpuInstallProofRow =
+      group === 'gpu_model'
+        ? gpuModelInstallProofForTool(toolId, gpuInstallProof)
+        : null
     const executionAttempted =
       group === 'gpu_model'
         ? gpuRuntimeSucceeded || gpuRuntimeFailed
@@ -617,6 +704,70 @@ function buildToolRows(
       installStatus: readiness.installStatus,
       installEvidence: readiness.installEvidence,
       packageRuntimePresentForPlannedSurface: true,
+      packageRuntimeInstallProofPresent: group === 'gpu_model'
+        ? gpuInstallProofRow?.installProofTargetPrepared === true &&
+          gpuInstallProofRow?.importSmokePassed === true
+        : true,
+      packageRuntimeInstallProofSource: group === 'gpu_model'
+        ? gpuInstallProofRow?.sourceEvidence ?? null
+        : 'node/package runtime proof records',
+      packageRuntimeInstallProofStatus: group === 'gpu_model'
+        ? gpuInstallProofRow?.toolStatus ?? null
+        : 'controlled_package_runtime_proof_passed',
+      packageRuntimeInstallProofProfiles: group === 'gpu_model'
+        ? gpuInstallProofRow?.profiles ?? []
+        : [],
+      packageRuntimeInstallProofPrimaryProfile: group === 'gpu_model'
+        ? gpuInstallProofRow?.primaryProfile ?? null
+        : null,
+      packageRuntimeInstallProofPrimaryDockerfile: group === 'gpu_model'
+        ? gpuInstallProofRow?.primaryDockerfile ?? null
+        : null,
+      packageRuntimeInstallProofPrimaryTarget: group === 'gpu_model'
+        ? gpuInstallProofRow?.primaryTarget ?? null
+        : null,
+      packageRuntimeInstallProofPrimaryPlatform: group === 'gpu_model'
+        ? gpuInstallProofRow?.primaryPlatform ?? null
+        : null,
+      packageRuntimeInstallProofPrimaryBuildCommand: group === 'gpu_model'
+        ? gpuInstallProofRow?.primaryBuildCommand ?? null
+        : null,
+      packageRuntimeInstallProofPrimaryImportSmokeCommand: group === 'gpu_model'
+        ? gpuInstallProofRow?.primaryImportSmokeCommand ?? null
+        : null,
+      packageRuntimeInstallProofImportSmokePassed: group === 'gpu_model'
+        ? gpuInstallProofRow?.importSmokePassed === true
+        : true,
+      packageRuntimeInstallProofTargetPrepared: group === 'gpu_model'
+        ? gpuInstallProofRow?.installProofTargetPrepared === true
+        : true,
+      packageRuntimeInstallProofRuntimeTarget: group === 'gpu_model'
+        ? gpuInstallProofRow?.runtimeTarget ?? null
+        : readiness.runtimeTarget,
+      packageRuntimeInstallProofNativeGpuRuntimeUsed: group === 'gpu_model'
+        ? gpuInstallProofRow?.nativeGpuRuntimeUsedInInstallProof === true
+        : false,
+      packageRuntimeInstallProofModelWeightsRequired: group === 'gpu_model'
+        ? gpuInstallProofRow?.modelWeightsRequiredForInstallProof === true
+        : false,
+      packageRuntimeInstallProofModelWeightsLoaded: group === 'gpu_model'
+        ? gpuInstallProofRow?.modelWeightsLoadedInInstallProof === true
+        : false,
+      packageRuntimeInstallProofMediaProcessed: group === 'gpu_model'
+        ? gpuInstallProofRow?.mediaProcessedInInstallProof === true
+        : false,
+      packageRuntimeInstallProofProviderRuntimeUsed: group === 'gpu_model'
+        ? gpuInstallProofRow?.providerRuntimeUsedInInstallProof === true
+        : false,
+      packageRuntimeInstallProofPublicArtifactCreated: group === 'gpu_model'
+        ? gpuInstallProofRow?.publicArtifactCreatedInInstallProof === true
+        : false,
+      packageRuntimeInstallProofSignedUrlCreated: group === 'gpu_model'
+        ? gpuInstallProofRow?.signedUrlCreatedInInstallProof === true
+        : false,
+      packageRuntimeInstallProofRuntimeProofStillRequired: group === 'gpu_model'
+        ? gpuInstallProofRow?.runtimeProofStillRequired === true
+        : false,
       controlledExecutionRuntimePresentNow: executionPassed,
       installReadinessState: group === 'gpu_model'
         ? executionPassed
@@ -753,6 +904,9 @@ function buildToolRows(
           'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
         controlledWorkerRouteSmoke:
           'docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json',
+        gpuModelInstallBuildTargets: group === 'gpu_model'
+          ? gpuModelInstallBuildTargetsPath
+          : null,
       },
     }
   })
@@ -799,6 +953,10 @@ function buildReport() {
   const executionGate = readJson(
     stringFlag('--execution-gate-packet') ??
       'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
+  )
+  const gpuInstallProof = readJson(
+    stringFlag('--gpu-model-install-build-targets-packet') ??
+      gpuModelInstallBuildTargetsPath,
   )
   const gpuProofRefBridge = localRuntimeProofResultPath
     ? runJsonFileCommand('npm', [
@@ -860,12 +1018,22 @@ function buildReport() {
       'ai_graphics_external_agent_controlled_worker_route_execution_smoke_passed_with_runtime_blocks',
     'external-agent controlled worker route smoke decision mismatch',
   )
+  assert(
+    gpuInstallProof.decision ===
+      'ai_graphics_gpu_model_install_build_targets_prepared_with_warnings',
+    'GPU/model install build targets decision mismatch',
+  )
+  assert(
+    gpuInstallProof.booleans?.all8GpuModelInstallProofTargetsBuiltLocally === true,
+    'GPU/model install build targets must record all eight install-proof targets built locally',
+  )
 
   const toolRows = buildToolRows(
     routeSmoke,
     gpuHarness,
     gpuProofRefBridge,
     controlledWorkerRouteSmoke,
+    gpuInstallProof,
   )
   const executableTools = toolRows.filter((row) => row.executable)
   const nonGpuExecutableTools = executableTools.filter(
@@ -915,7 +1083,7 @@ function buildReport() {
     decision,
     status: gpuExecutableTools.length > 0 ? privateProofStatus : defaultStatus,
     summary:
-      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools remain blocked_with_reason until approved private proof refs and the tool-specific runtime inputs are supplied: CPU foundation proof for torch/torchvision and transformers, CPU tensor proof for kornia, and native CUDA plus reviewed private model/input paths for the remaining model tools. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
+      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools now carry explicit install-proof linkage from gpu-model-install-build-targets: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to torch/torchvision and transformers, CPU tensor proof applies to kornia, and native CUDA plus reviewed private model/input paths apply to the remaining model tools. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
     stateDefinitions: {
       callable:
         'The external agent can submit the controlled private route request.',
@@ -965,6 +1133,16 @@ function buildReport() {
         status: controlledWorkerRouteSmoke.status,
         accepted: true,
       },
+      gpuModelInstallBuildTargets: {
+        decision: gpuInstallProof.decision,
+        status: gpuInstallProof.status,
+        proofScope: gpuInstallProof.proofScope,
+        accepted: true,
+        all8GpuModelInstallProofTargetsBuiltLocally:
+          gpuInstallProof.booleans?.all8GpuModelInstallProofTargetsBuiltLocally === true,
+        nativeGpuRuntimeStillRequired:
+          gpuInstallProof.booleans?.nativeGpuRuntimeStillRequired === true,
+      },
       currentHostGpuProofPreflight: currentHostGpuProofPreflight
         ? {
             decision: currentHostGpuProofPreflight.decision,
@@ -978,6 +1156,18 @@ function buildReport() {
       totalToolsCovered: toolRows.length,
       packageRuntimePresentForPlannedSurfaceTools:
         toolRows.filter((row) => row.packageRuntimePresentForPlannedSurface).length,
+      packageRuntimeInstallProofPresentTools:
+        toolRows.filter((row) => row.packageRuntimeInstallProofPresent).length,
+      gpuModelInstallProofTargetPreparedTools:
+        toolRows.filter((row) => (
+          row.group === 'gpu_model' &&
+          row.packageRuntimeInstallProofTargetPrepared === true
+        )).length,
+      gpuModelInstallProofImportSmokePassedTools:
+        toolRows.filter((row) => (
+          row.group === 'gpu_model' &&
+          row.packageRuntimeInstallProofImportSmokePassed === true
+        )).length,
       controlledExecutionRuntimePresentNowTools:
         toolRows.filter((row) => row.controlledExecutionRuntimePresentNow).length,
       agentCallableTools: toolRows.filter((row) => row.callable).length,
@@ -1050,6 +1240,37 @@ function buildReport() {
       all21ToolsCovered: toolRows.length === 21,
       all21ToolsHaveInstallSurfaceEvidence:
         toolRows.every((row) => row.packageRuntimePresentForPlannedSurface === true),
+      all21ToolsHaveRuntimeInstallProofEvidence:
+        toolRows.every((row) => row.packageRuntimeInstallProofPresent === true),
+      all8GpuModelToolsHaveInstallProofTargetEvidence:
+        toolRows.filter((row) => (
+          row.group === 'gpu_model' &&
+          row.packageRuntimeInstallProofTargetPrepared === true
+        )).length === 8,
+      all8GpuModelInstallProofImportSmokesPassed:
+        toolRows.filter((row) => (
+          row.group === 'gpu_model' &&
+          row.packageRuntimeInstallProofImportSmokePassed === true
+        )).length === 8,
+      gpuModelInstallProofSeparatedFromRuntimeExecution:
+        toolRows
+          .filter((row) => row.group === 'gpu_model')
+          .every((row) => (
+            row.packageRuntimeInstallProofPresent === true &&
+            row.packageRuntimeInstallProofRuntimeProofStillRequired === true &&
+            row.executable === false
+          )),
+      gpuModelInstallProofDidNotStartNativeGpu:
+        toolRows
+          .filter((row) => row.group === 'gpu_model')
+          .every((row) => row.packageRuntimeInstallProofNativeGpuRuntimeUsed === false),
+      gpuModelInstallProofDidNotLoadModelsOrProcessMedia:
+        toolRows
+          .filter((row) => row.group === 'gpu_model')
+          .every((row) => (
+            row.packageRuntimeInstallProofModelWeightsLoaded === false &&
+            row.packageRuntimeInstallProofMediaProcessed === false
+          )),
       thirteenToolsHaveControlledExecutionRuntimePresentNow:
         toolRows.filter((row) => row.controlledExecutionRuntimePresentNow).length === 13,
       eightGpuModelToolsInstallTargetPreparedButRuntimeBlocked:
@@ -1175,7 +1396,7 @@ function buildReport() {
 function makeMarkdown(report: ReturnType<typeof buildReport>): string {
   const rows = report.toolReadinessRows
     .map((row) => (
-      `| \`${row.toolId}\` | \`${row.group}\` | \`${row.installReadinessState}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | ${row.controlledWorkerRouteEvidenceAccepted} | \`${row.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${row.remainingPrivateRuntimeInputKeys.length ? row.remainingPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.minimumPrivateRuntimeInputKeys.length ? row.minimumPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.nextExactCommand ?? 'none'}\` | \`${row.blockingPrerequisite ?? 'none'}\` |`
+      `| \`${row.toolId}\` | \`${row.group}\` | \`${row.packageRuntimeInstallProofPrimaryProfile ?? 'node_or_browser_lockfile'}\` | ${row.packageRuntimeInstallProofPresent} | \`${row.installReadinessState}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | ${row.controlledWorkerRouteEvidenceAccepted} | \`${row.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${row.remainingPrivateRuntimeInputKeys.length ? row.remainingPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.minimumPrivateRuntimeInputKeys.length ? row.minimumPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.nextExactCommand ?? 'none'}\` | \`${row.blockingPrerequisite ?? 'none'}\` |`
     ))
     .join('\n')
 
@@ -1185,7 +1406,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools return \`blocked_with_reason\` until approved private proof refs and the tool-specific runtime inputs are supplied: CPU foundation proof for \`torch_torchvision\` and \`transformers\`, CPU tensor proof for \`kornia\`, and native CUDA plus reviewed private model/input paths for the remaining model tools. The mounted route also proves a capability-mismatch request returns \`failed_with_diagnostics\` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
+This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools now carry explicit install-proof linkage from \`gpu-model-install-build-targets\`: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to \`torch_torchvision\` and \`transformers\`, CPU tensor proof applies to \`kornia\`, and native CUDA plus reviewed private model/input paths apply to the remaining model tools. The mounted route also proves a capability-mismatch request returns \`failed_with_diagnostics\` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
 
 ## State Definitions
 
@@ -1195,10 +1416,17 @@ ${Object.entries(report.stateDefinitions).map(([key, value]) => `- \`${key}\`: $
 
 ${Object.entries(report.executionScope).map(([key, value]) => `- \`${key}\`: ${Array.isArray(value) ? value.join('; ') || 'none' : value}`).join('\n')}
 
+## Install Proof Linkage
+
+- GPU/model install proof source: \`${report.sourceEvidence.gpuModelInstallBuildTargets.proofScope}\`
+- All eight GPU/model install-proof targets built locally: \`${report.sourceEvidence.gpuModelInstallBuildTargets.all8GpuModelInstallProofTargetsBuiltLocally}\`
+- Native GPU runtime still required before model execution: \`${report.sourceEvidence.gpuModelInstallBuildTargets.nativeGpuRuntimeStillRequired}\`
+- Guard: install/import-smoke proof is not runtime execution proof and does not start native GPU, load model weights, process media, create public artifacts, or sign URLs.
+
 ## Tool Rows
 
-| Tool | Group | Install/runtime state | Readiness state | Callable | Executable | Worker-route evidence accepted | Current blocker | Remaining private runtime inputs | Minimum private runtime inputs | Next exact command | Blocking prerequisite |
-| --- | --- | --- | --- | ---: | ---: | ---: | --- | --- | --- | --- | --- |
+| Tool | Group | Install proof profile | Install proof present | Install/runtime state | Readiness state | Callable | Executable | Worker-route evidence accepted | Current blocker | Remaining private runtime inputs | Minimum private runtime inputs | Next exact command | Blocking prerequisite |
+| --- | --- | --- | ---: | --- | --- | ---: | ---: | ---: | --- | --- | --- | --- | --- |
 ${rows}
 
 ## Counts

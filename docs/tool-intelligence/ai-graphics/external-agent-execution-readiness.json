@@ -2,7 +2,7 @@
   "schemaVersion": "2026-07-03.ai-graphics.external-agent-execution-readiness",
   "decision": "ai_graphics_external_agent_execution_readiness_all21_evaluated_with_gpu_model_blocks",
   "status": "external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof",
-  "summary": "Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools remain blocked_with_reason until approved private proof refs and the tool-specific runtime inputs are supplied: CPU foundation proof for torch/torchvision and transformers, CPU tensor proof for kornia, and native CUDA plus reviewed private model/input paths for the remaining model tools. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.",
+  "summary": "Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools now carry explicit install-proof linkage from gpu-model-install-build-targets: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to torch/torchvision and transformers, CPU tensor proof applies to kornia, and native CUDA plus reviewed private model/input paths apply to the remaining model tools. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.",
   "stateDefinitions": {
     "callable": "The external agent can submit the controlled private route request.",
     "executable": "The controlled adapter performed bounded runtime work and produced structured private output evidence.",
@@ -38,6 +38,14 @@
       "status": "controlled_worker_claim_route_execution_passed_for_thirteen_tools_gpu_model_still_blocked",
       "accepted": true
     },
+    "gpuModelInstallBuildTargets": {
+      "decision": "ai_graphics_gpu_model_install_build_targets_prepared_with_warnings",
+      "status": "completed_with_warnings",
+      "proofScope": "docker_ai_graphics_install_proof_targets_for_8_gpu_model_tools",
+      "accepted": true,
+      "all8GpuModelInstallProofTargetsBuiltLocally": true,
+      "nativeGpuRuntimeStillRequired": true
+    },
     "currentHostGpuProofPreflight": null
   },
   "executionScope": {
@@ -58,6 +66,9 @@
   "counts": {
     "totalToolsCovered": 21,
     "packageRuntimePresentForPlannedSurfaceTools": 21,
+    "packageRuntimeInstallProofPresentTools": 21,
+    "gpuModelInstallProofTargetPreparedTools": 8,
+    "gpuModelInstallProofImportSmokePassedTools": 8,
     "controlledExecutionRuntimePresentNowTools": 13,
     "agentCallableTools": 21,
     "agentExecutableTools": 13,
@@ -91,6 +102,12 @@
     "externalAgentExecutionReadinessCompleted": true,
     "all21ToolsCovered": true,
     "all21ToolsHaveInstallSurfaceEvidence": true,
+    "all21ToolsHaveRuntimeInstallProofEvidence": true,
+    "all8GpuModelToolsHaveInstallProofTargetEvidence": true,
+    "all8GpuModelInstallProofImportSmokesPassed": true,
+    "gpuModelInstallProofSeparatedFromRuntimeExecution": true,
+    "gpuModelInstallProofDidNotStartNativeGpu": true,
+    "gpuModelInstallProofDidNotLoadModelsOrProcessMedia": true,
     "thirteenToolsHaveControlledExecutionRuntimePresentNow": true,
     "eightGpuModelToolsInstallTargetPreparedButRuntimeBlocked": true,
     "agentCanSubmitControlledToolRequests": true,
@@ -163,6 +180,32 @@
         "torchvision==0.20.1+cu124"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json",
+      "packageRuntimeInstallProofStatus": "install_proof_target_prepared_runtime_gpu_required",
+      "packageRuntimeInstallProofProfiles": [
+        "gpu_worker_ai_graphics",
+        "sam2",
+        "birefnet",
+        "real_esrgan"
+      ],
+      "packageRuntimeInstallProofPrimaryProfile": "gpu_worker_ai_graphics",
+      "packageRuntimeInstallProofPrimaryDockerfile": "docker/prod/gpu-worker/Dockerfile",
+      "packageRuntimeInstallProofPrimaryTarget": "ai_graphics_install_proof",
+      "packageRuntimeInstallProofPrimaryPlatform": "linux/amd64",
+      "packageRuntimeInstallProofPrimaryBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile --progress=plain .",
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": "NUMBA_DISABLE_JIT=1 python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics",
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "nvidia_l4_gpu_worker",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": true,
       "controlledExecutionRuntimePresentNow": false,
       "installReadinessState": "install_target_prepared_runtime_blocked_pending_cpu_foundation_private_inputs",
       "primaryCapability": "model_runtime_foundation",
@@ -288,7 +331,8 @@
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json"
       }
     },
     {
@@ -301,6 +345,30 @@
         "docker/prod/gpu-worker/requirements.gpu.txt: transformers==4.57.6"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json",
+      "packageRuntimeInstallProofStatus": "install_proof_target_prepared_runtime_gpu_required",
+      "packageRuntimeInstallProofProfiles": [
+        "gpu_worker_ai_graphics",
+        "birefnet"
+      ],
+      "packageRuntimeInstallProofPrimaryProfile": "gpu_worker_ai_graphics",
+      "packageRuntimeInstallProofPrimaryDockerfile": "docker/prod/gpu-worker/Dockerfile",
+      "packageRuntimeInstallProofPrimaryTarget": "ai_graphics_install_proof",
+      "packageRuntimeInstallProofPrimaryPlatform": "linux/amd64",
+      "packageRuntimeInstallProofPrimaryBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile --progress=plain .",
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": "NUMBA_DISABLE_JIT=1 python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics",
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "nvidia_l4_gpu_worker",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": true,
       "controlledExecutionRuntimePresentNow": false,
       "installReadinessState": "install_target_prepared_runtime_blocked_pending_cpu_foundation_private_inputs",
       "primaryCapability": "model_runtime_foundation",
@@ -426,7 +494,8 @@
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json"
       }
     },
     {
@@ -440,6 +509,30 @@
         "pinned git source install at 2b90b9f5ceec907a1c18123530e92e794ad901a4"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json",
+      "packageRuntimeInstallProofStatus": "install_proof_target_prepared_runtime_gpu_required",
+      "packageRuntimeInstallProofProfiles": [
+        "gpu_worker_ai_graphics",
+        "sam2"
+      ],
+      "packageRuntimeInstallProofPrimaryProfile": "sam2",
+      "packageRuntimeInstallProofPrimaryDockerfile": "docker/prod/sam2-runtime/Dockerfile",
+      "packageRuntimeInstallProofPrimaryTarget": "ai_graphics_install_proof",
+      "packageRuntimeInstallProofPrimaryPlatform": "linux/amd64",
+      "packageRuntimeInstallProofPrimaryBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/sam2-runtime/Dockerfile --progress=plain .",
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": "python3 ./ai-graphics-gpu-install-smoke.py --profile sam2",
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "nvidia_l4_sam2_runtime_worker",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": true,
       "controlledExecutionRuntimePresentNow": false,
       "installReadinessState": "install_target_prepared_runtime_blocked_pending_cuda_private_inputs",
       "primaryCapability": "subject_segmentation",
@@ -575,7 +668,8 @@
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json"
       }
     },
     {
@@ -589,6 +683,29 @@
         "private BiRefNet model snapshot required"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json",
+      "packageRuntimeInstallProofStatus": "install_proof_target_prepared_runtime_gpu_required",
+      "packageRuntimeInstallProofProfiles": [
+        "birefnet"
+      ],
+      "packageRuntimeInstallProofPrimaryProfile": "birefnet",
+      "packageRuntimeInstallProofPrimaryDockerfile": "docker/prod/birefnet-runtime/Dockerfile",
+      "packageRuntimeInstallProofPrimaryTarget": "ai_graphics_install_proof",
+      "packageRuntimeInstallProofPrimaryPlatform": "linux/amd64",
+      "packageRuntimeInstallProofPrimaryBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/birefnet-runtime/Dockerfile --progress=plain .",
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": "python3 /tmp/ai-graphics-gpu-install-smoke.py --profile birefnet",
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "nvidia_l4_birefnet_runtime_worker",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": true,
       "controlledExecutionRuntimePresentNow": false,
       "installReadinessState": "install_target_prepared_runtime_blocked_pending_cuda_private_inputs",
       "primaryCapability": "background_removal",
@@ -724,7 +841,8 @@
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json"
       }
     },
     {
@@ -737,6 +855,30 @@
         "docker/prod/real-esrgan-runtime/requirements.real-esrgan.txt: realesrgan==0.3.0"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json",
+      "packageRuntimeInstallProofStatus": "install_proof_target_prepared_runtime_gpu_required",
+      "packageRuntimeInstallProofProfiles": [
+        "gpu_worker_ai_graphics",
+        "real_esrgan"
+      ],
+      "packageRuntimeInstallProofPrimaryProfile": "real_esrgan",
+      "packageRuntimeInstallProofPrimaryDockerfile": "docker/prod/real-esrgan-runtime/Dockerfile",
+      "packageRuntimeInstallProofPrimaryTarget": "ai_graphics_install_proof",
+      "packageRuntimeInstallProofPrimaryPlatform": "linux/amd64",
+      "packageRuntimeInstallProofPrimaryBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/real-esrgan-runtime/Dockerfile --progress=plain .",
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": "python3 /tmp/ai-graphics-gpu-install-smoke.py --profile real_esrgan",
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "nvidia_l4_real_esrgan_runtime_worker",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": true,
       "controlledExecutionRuntimePresentNow": false,
       "installReadinessState": "install_target_prepared_runtime_blocked_pending_cuda_private_inputs",
       "primaryCapability": "upscaling",
@@ -872,7 +1014,8 @@
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json"
       }
     },
     {
@@ -886,6 +1029,30 @@
         "docker/prod/birefnet-runtime/requirements.birefnet.txt: kornia==0.8.1"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json",
+      "packageRuntimeInstallProofStatus": "install_proof_target_prepared_runtime_gpu_required",
+      "packageRuntimeInstallProofProfiles": [
+        "gpu_worker_ai_graphics",
+        "birefnet"
+      ],
+      "packageRuntimeInstallProofPrimaryProfile": "gpu_worker_ai_graphics",
+      "packageRuntimeInstallProofPrimaryDockerfile": "docker/prod/gpu-worker/Dockerfile",
+      "packageRuntimeInstallProofPrimaryTarget": "ai_graphics_install_proof",
+      "packageRuntimeInstallProofPrimaryPlatform": "linux/amd64",
+      "packageRuntimeInstallProofPrimaryBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile --progress=plain .",
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": "NUMBA_DISABLE_JIT=1 python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics",
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "nvidia_l4_gpu_worker",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": true,
       "controlledExecutionRuntimePresentNow": false,
       "installReadinessState": "install_target_prepared_runtime_blocked_pending_cpu_tensor_private_inputs",
       "primaryCapability": "tensor_image_ops",
@@ -1017,7 +1184,8 @@
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json"
       }
     },
     {
@@ -1030,6 +1198,29 @@
         "docker/prod/gpu-worker/requirements.gpu.txt: rembg[gpu]==2.0.69"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json",
+      "packageRuntimeInstallProofStatus": "install_proof_target_prepared_runtime_gpu_required",
+      "packageRuntimeInstallProofProfiles": [
+        "gpu_worker_ai_graphics"
+      ],
+      "packageRuntimeInstallProofPrimaryProfile": "gpu_worker_ai_graphics",
+      "packageRuntimeInstallProofPrimaryDockerfile": "docker/prod/gpu-worker/Dockerfile",
+      "packageRuntimeInstallProofPrimaryTarget": "ai_graphics_install_proof",
+      "packageRuntimeInstallProofPrimaryPlatform": "linux/amd64",
+      "packageRuntimeInstallProofPrimaryBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile --progress=plain .",
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": "NUMBA_DISABLE_JIT=1 python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics",
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "nvidia_l4_gpu_worker",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": true,
       "controlledExecutionRuntimePresentNow": false,
       "installReadinessState": "install_target_prepared_runtime_blocked_pending_cuda_private_inputs",
       "primaryCapability": "background_removal",
@@ -1165,7 +1356,8 @@
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json"
       }
     },
     {
@@ -1178,6 +1370,29 @@
         "docker/prod/gpu-worker/requirements.gpu.txt: transparent-background==1.3.4"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json",
+      "packageRuntimeInstallProofStatus": "install_proof_target_prepared_runtime_gpu_required",
+      "packageRuntimeInstallProofProfiles": [
+        "gpu_worker_ai_graphics"
+      ],
+      "packageRuntimeInstallProofPrimaryProfile": "gpu_worker_ai_graphics",
+      "packageRuntimeInstallProofPrimaryDockerfile": "docker/prod/gpu-worker/Dockerfile",
+      "packageRuntimeInstallProofPrimaryTarget": "ai_graphics_install_proof",
+      "packageRuntimeInstallProofPrimaryPlatform": "linux/amd64",
+      "packageRuntimeInstallProofPrimaryBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile --progress=plain .",
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": "NUMBA_DISABLE_JIT=1 python3 /tmp/ai-graphics-gpu-install-smoke.py --profile gpu_worker_ai_graphics",
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "nvidia_l4_gpu_worker",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": true,
       "controlledExecutionRuntimePresentNow": false,
       "installReadinessState": "install_target_prepared_runtime_blocked_pending_cuda_private_inputs",
       "primaryCapability": "background_removal",
@@ -1313,7 +1528,8 @@
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json"
       }
     },
     {
@@ -1327,6 +1543,27 @@
         "package-lock.json node_modules/d3"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "node_cpu_static",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "chart_overlay",
@@ -1385,7 +1622,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     },
     {
@@ -1400,6 +1638,27 @@
         "browser-runtime-proof: browser_svg_chart_runtime_proof_passed"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "browser_chart_runtime_later",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "chart_overlay",
@@ -1458,7 +1717,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     },
     {
@@ -1472,6 +1732,27 @@
         "package-lock.json node_modules/vega-lite"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "node_cpu_static",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "data_visualization",
@@ -1530,7 +1811,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     },
     {
@@ -1544,6 +1826,27 @@
         "package-lock.json node_modules/vega"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "node_cpu_static",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "data_visualization",
@@ -1602,7 +1905,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     },
     {
@@ -1617,6 +1921,27 @@
         "satori-font-runtime-proof: satoriTextSvgLayoutProofPassed=true"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "node_cpu_static",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "svg_graphics",
@@ -1675,7 +2000,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     },
     {
@@ -1689,6 +2015,27 @@
         "package-lock.json node_modules/@svgdotjs/svg.js"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "node_cpu_static",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "svg_graphics",
@@ -1747,7 +2094,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     },
     {
@@ -1761,6 +2109,27 @@
         "package-lock.json node_modules/@viz-js/viz"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "node_cpu_static",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "diagram_graphics",
@@ -1819,7 +2188,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     },
     {
@@ -1834,6 +2204,27 @@
         "browser-runtime-proof: browser_svg_animation_runtime_proof_passed"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "browser_animation_runtime_later",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "animation_overlay",
@@ -1892,7 +2283,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     },
     {
@@ -1907,6 +2299,27 @@
         "browser-runtime-proof: browser_dom_animation_runtime_proof_passed"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "browser_animation_runtime_later",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "animation_overlay",
@@ -1965,7 +2378,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     },
     {
@@ -1980,6 +2394,27 @@
         "browser-runtime-proof: browser_webgl_runtime_proof_passed"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "browser_canvas_webgl_runtime_later",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "webgl_3d_scene",
@@ -2038,7 +2473,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     },
     {
@@ -2053,6 +2489,27 @@
         "browser-runtime-proof: browser_canvas_webgl_runtime_proof_passed"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "browser_canvas_webgl_runtime_later",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "canvas_scene",
@@ -2111,7 +2568,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     },
     {
@@ -2126,6 +2584,27 @@
         "browser-runtime-proof: browser_canvas_runtime_proof_passed"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "browser_canvas_webgl_runtime_later",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "canvas_scene",
@@ -2184,7 +2663,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     },
     {
@@ -2199,6 +2679,27 @@
         "browser-runtime-proof: browser_webgl_runtime_proof_passed"
       ],
       "packageRuntimePresentForPlannedSurface": true,
+      "packageRuntimeInstallProofPresent": true,
+      "packageRuntimeInstallProofSource": "node/package runtime proof records",
+      "packageRuntimeInstallProofStatus": "controlled_package_runtime_proof_passed",
+      "packageRuntimeInstallProofProfiles": [],
+      "packageRuntimeInstallProofPrimaryProfile": null,
+      "packageRuntimeInstallProofPrimaryDockerfile": null,
+      "packageRuntimeInstallProofPrimaryTarget": null,
+      "packageRuntimeInstallProofPrimaryPlatform": null,
+      "packageRuntimeInstallProofPrimaryBuildCommand": null,
+      "packageRuntimeInstallProofPrimaryImportSmokeCommand": null,
+      "packageRuntimeInstallProofImportSmokePassed": true,
+      "packageRuntimeInstallProofTargetPrepared": true,
+      "packageRuntimeInstallProofRuntimeTarget": "browser_canvas_webgl_runtime_later",
+      "packageRuntimeInstallProofNativeGpuRuntimeUsed": false,
+      "packageRuntimeInstallProofModelWeightsRequired": false,
+      "packageRuntimeInstallProofModelWeightsLoaded": false,
+      "packageRuntimeInstallProofMediaProcessed": false,
+      "packageRuntimeInstallProofProviderRuntimeUsed": false,
+      "packageRuntimeInstallProofPublicArtifactCreated": false,
+      "packageRuntimeInstallProofSignedUrlCreated": false,
+      "packageRuntimeInstallProofRuntimeProofStillRequired": false,
       "controlledExecutionRuntimePresentNow": true,
       "installReadinessState": "controlled_runtime_present_and_executed",
       "primaryCapability": "webgl_3d_scene",
@@ -2257,7 +2758,8 @@
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
         "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
-        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
+        "gpuModelInstallBuildTargets": null
       }
     }
   ],

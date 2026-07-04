@@ -54,6 +54,26 @@ const gpuModelTools = [
 const gpuModelCpuFoundationTools = ['torch_torchvision', 'transformers']
 const gpuModelCpuTensorTools = ['kornia']
 const allTools = [...gpuModelTools, ...cpuStaticTools, ...browserRuntimeTools]
+const gpuModelInstallProofProfiles = {
+  torch_torchvision: ['gpu_worker_ai_graphics', 'sam2', 'birefnet', 'real_esrgan'],
+  transformers: ['gpu_worker_ai_graphics', 'birefnet'],
+  sam2: ['gpu_worker_ai_graphics', 'sam2'],
+  birefnet: ['birefnet'],
+  real_esrgan: ['gpu_worker_ai_graphics', 'real_esrgan'],
+  kornia: ['gpu_worker_ai_graphics', 'birefnet'],
+  rembg: ['gpu_worker_ai_graphics'],
+  transparent_background: ['gpu_worker_ai_graphics'],
+}
+const gpuModelPrimaryInstallProofProfiles = {
+  torch_torchvision: 'gpu_worker_ai_graphics',
+  transformers: 'gpu_worker_ai_graphics',
+  sam2: 'sam2',
+  birefnet: 'birefnet',
+  real_esrgan: 'real_esrgan',
+  kornia: 'gpu_worker_ai_graphics',
+  rembg: 'gpu_worker_ai_graphics',
+  transparent_background: 'gpu_worker_ai_graphics',
+}
 
 const scopedProofFixtureCases = [
   { toolId: 'torch_torchvision', capabilityId: 'model_runtime_foundation', gpuShouldStartDuringScopedProof: false },
@@ -76,6 +96,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json',
   'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
   'docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json',
+  'docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json',
   'package.json',
 ]
 
@@ -592,6 +613,9 @@ function checkReport(label, report) {
   const expectedCounts = {
     totalToolsCovered: 21,
     packageRuntimePresentForPlannedSurfaceTools: 21,
+    packageRuntimeInstallProofPresentTools: 21,
+    gpuModelInstallProofTargetPreparedTools: 8,
+    gpuModelInstallProofImportSmokePassedTools: 8,
     controlledExecutionRuntimePresentNowTools: 13,
     agentCallableTools: 21,
     agentExecutableTools: 13,
@@ -635,12 +659,37 @@ function checkReport(label, report) {
   ) {
     fail(`${label}_capability_mismatch_source_state_mismatch:${routeSource.capabilityMismatchFailureProbeState}`)
   }
+  const gpuInstallSource =
+    report.sourceEvidence?.gpuModelInstallBuildTargets ?? {}
+  if (gpuInstallSource.accepted !== true) {
+    fail(`${label}_gpu_install_source_not_accepted`)
+  }
+  if (
+    gpuInstallSource.decision !==
+    'ai_graphics_gpu_model_install_build_targets_prepared_with_warnings'
+  ) {
+    fail(`${label}_gpu_install_source_decision_mismatch:${gpuInstallSource.decision}`)
+  }
+  if (
+    gpuInstallSource.all8GpuModelInstallProofTargetsBuiltLocally !== true
+  ) {
+    fail(`${label}_gpu_install_source_all8_not_built_locally`)
+  }
+  if (gpuInstallSource.nativeGpuRuntimeStillRequired !== true) {
+    fail(`${label}_gpu_install_source_native_runtime_not_required`)
+  }
 
   const booleans = report.booleans ?? {}
   for (const key of [
     'externalAgentExecutionReadinessCompleted',
     'all21ToolsCovered',
     'all21ToolsHaveInstallSurfaceEvidence',
+    'all21ToolsHaveRuntimeInstallProofEvidence',
+    'all8GpuModelToolsHaveInstallProofTargetEvidence',
+    'all8GpuModelInstallProofImportSmokesPassed',
+    'gpuModelInstallProofSeparatedFromRuntimeExecution',
+    'gpuModelInstallProofDidNotStartNativeGpu',
+    'gpuModelInstallProofDidNotLoadModelsOrProcessMedia',
     'thirteenToolsHaveControlledExecutionRuntimePresentNow',
     'eightGpuModelToolsInstallTargetPreparedButRuntimeBlocked',
     'agentCanSubmitControlledToolRequests',
@@ -763,6 +812,9 @@ function checkReport(label, report) {
     if (row.packageRuntimePresentForPlannedSurface !== true) {
       fail(`${label}_${toolId}_planned_surface_runtime_not_present`)
     }
+    if (row.packageRuntimeInstallProofPresent !== true) {
+      fail(`${label}_${toolId}_runtime_install_proof_not_present`)
+    }
     if (row.callable !== true) fail(`${label}_${toolId}_not_callable`)
     if (row.routeCallable !== true) fail(`${label}_${toolId}_route_not_callable`)
     if (row.adapterReachable !== true) fail(`${label}_${toolId}_adapter_not_reachable`)
@@ -790,6 +842,76 @@ function checkReport(label, report) {
       }
       if (row.controlledExecutionRuntimePresentNow !== false) {
         fail(`${label}_${toolId}_gpu_controlled_runtime_present`)
+      }
+      if (
+        row.packageRuntimeInstallProofSource !==
+        'docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json'
+      ) {
+        fail(`${label}_${toolId}_gpu_install_source_mismatch:${row.packageRuntimeInstallProofSource}`)
+      }
+      if (!arrayMatches(
+        row.packageRuntimeInstallProofProfiles,
+        gpuModelInstallProofProfiles[toolId],
+      )) {
+        fail(`${label}_${toolId}_gpu_install_profiles_mismatch:${JSON.stringify(row.packageRuntimeInstallProofProfiles)}`)
+      }
+      if (
+        row.packageRuntimeInstallProofPrimaryProfile !==
+        gpuModelPrimaryInstallProofProfiles[toolId]
+      ) {
+        fail(`${label}_${toolId}_gpu_install_primary_profile_mismatch:${row.packageRuntimeInstallProofPrimaryProfile}`)
+      }
+      if (
+        row.packageRuntimeInstallProofStatus !==
+        'install_proof_target_prepared_runtime_gpu_required'
+      ) {
+        fail(`${label}_${toolId}_gpu_install_status_mismatch:${row.packageRuntimeInstallProofStatus}`)
+      }
+      if (row.packageRuntimeInstallProofTargetPrepared !== true) {
+        fail(`${label}_${toolId}_gpu_install_target_not_prepared`)
+      }
+      if (row.packageRuntimeInstallProofImportSmokePassed !== true) {
+        fail(`${label}_${toolId}_gpu_import_smoke_not_passed`)
+      }
+      if (
+        typeof row.packageRuntimeInstallProofPrimaryDockerfile !== 'string' ||
+        !row.packageRuntimeInstallProofPrimaryDockerfile.includes('docker/prod/')
+      ) {
+        fail(`${label}_${toolId}_gpu_install_missing_primary_dockerfile`)
+      }
+      if (row.packageRuntimeInstallProofPrimaryTarget !== 'ai_graphics_install_proof') {
+        fail(`${label}_${toolId}_gpu_install_primary_target_mismatch:${row.packageRuntimeInstallProofPrimaryTarget}`)
+      }
+      if (row.packageRuntimeInstallProofPrimaryPlatform !== 'linux/amd64') {
+        fail(`${label}_${toolId}_gpu_install_primary_platform_mismatch:${row.packageRuntimeInstallProofPrimaryPlatform}`)
+      }
+      if (
+        !String(row.packageRuntimeInstallProofPrimaryBuildCommand ?? '').includes(
+          '--target ai_graphics_install_proof',
+        )
+      ) {
+        fail(`${label}_${toolId}_gpu_install_primary_build_command_missing_target`)
+      }
+      if (
+        !String(row.packageRuntimeInstallProofPrimaryImportSmokeCommand ?? '').includes(
+          '--profile',
+        )
+      ) {
+        fail(`${label}_${toolId}_gpu_install_import_smoke_missing_profile`)
+      }
+      if (row.packageRuntimeInstallProofRuntimeProofStillRequired !== true) {
+        fail(`${label}_${toolId}_gpu_install_runtime_proof_not_required`)
+      }
+      for (const key of [
+        'packageRuntimeInstallProofNativeGpuRuntimeUsed',
+        'packageRuntimeInstallProofModelWeightsRequired',
+        'packageRuntimeInstallProofModelWeightsLoaded',
+        'packageRuntimeInstallProofMediaProcessed',
+        'packageRuntimeInstallProofProviderRuntimeUsed',
+        'packageRuntimeInstallProofPublicArtifactCreated',
+        'packageRuntimeInstallProofSignedUrlCreated',
+      ]) {
+        if (row[key] !== false) fail(`${label}_${toolId}_${key}_not_false`)
       }
       const expectedInstallReadinessState =
         expectedGpuInstallReadinessState(toolId)
@@ -1316,6 +1438,45 @@ const executionGate = json(
 const controlledWorkerRouteSmoke = json(
   'docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json',
 )
+const gpuInstallProof = json(
+  'docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json',
+)
+
+if (
+  gpuInstallProof.decision !==
+  'ai_graphics_gpu_model_install_build_targets_prepared_with_warnings'
+) {
+  fail(`gpu_install_proof_decision_mismatch:${gpuInstallProof.decision}`)
+}
+if (gpuInstallProof.booleans?.all8GpuModelInstallProofTargetsBuiltLocally !== true) {
+  fail('gpu_install_proof_all8_not_built_locally')
+}
+if (gpuInstallProof.booleans?.nativeGpuRuntimeStillRequired !== true) {
+  fail('gpu_install_proof_native_runtime_not_required')
+}
+for (const toolId of gpuModelTools) {
+  const toolRow = Array.isArray(gpuInstallProof.tools)
+    ? gpuInstallProof.tools.find((row) => row.toolId === toolId)
+    : undefined
+  if (!toolRow) {
+    fail(`gpu_install_proof_missing_tool:${toolId}`)
+    continue
+  }
+  if (!arrayMatches(toolRow.profiles, gpuModelInstallProofProfiles[toolId])) {
+    fail(`gpu_install_proof_profiles_mismatch:${toolId}:${JSON.stringify(toolRow.profiles)}`)
+  }
+  const evidenceRows = Array.isArray(gpuInstallProof.localBuildEvidence)
+    ? gpuInstallProof.localBuildEvidence.filter((row) => (
+      toolRow.profiles?.includes(row.profileId)
+    ))
+    : []
+  if (!evidenceRows.some((row) => row.status === 'passed')) {
+    fail(`gpu_install_proof_no_passed_build_evidence:${toolId}`)
+  }
+  if (!evidenceRows.some((row) => row.importSmokeStatus === 'passed')) {
+    fail(`gpu_install_proof_no_passed_import_smoke:${toolId}`)
+  }
+}
 
 const sam2HarnessRow = Array.isArray(
   gpuHarness.gpuModelLocalDevRuntimeExecutionHarnessRows,
@@ -1610,6 +1771,10 @@ for (const phrase of [
   'controlledWorkerRouteSmoke',
   '--controlled-worker-route-smoke-packet',
   'controlledWorkerRouteEvidenceAccepted',
+  'gpuModelInstallBuildTargetsPath',
+  '--gpu-model-install-build-targets-packet',
+  'gpuModelInstallProofForTool',
+  'packageRuntimeInstallProofPrimaryProfile',
   'privateProofStatus',
   'capabilityMismatchFailureProbeAccepted',
   'nextExactReadinessWithPrivateProofCommand',
@@ -1688,6 +1853,9 @@ for (const phrase of [
   'GPU runtime is on-demand only',
   '13 tools execute controlled local adapters now',
   'mock worker-claim-to-canonical-route smoke',
+  'Install Proof Linkage',
+  'gpu-model-install-build-targets',
+  'install/import-smoke proof is not runtime execution proof',
   'Execution Scope',
   'Fastest GPU/Model Unlock Candidate',
   'Next controlled route command',

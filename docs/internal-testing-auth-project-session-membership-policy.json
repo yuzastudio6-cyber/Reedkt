@@ -1,0 +1,72 @@
+{
+  "id": "internal-testing-auth-project-session-membership-policy",
+  "decision": "internal_testing_auth_project_session_membership_policy_passed_ready_for_durable_auth_project_session_backend_persistence_plan",
+  "scenarioId": "auth-project-session-membership-policy",
+  "routeSurfaces": [
+    "/internal-testing",
+    "/projects/mock-project-edit-chat-foundation",
+    "/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/chat",
+    "/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief"
+  ],
+  "mockInternalRouteAccessAllowed": true,
+  "durableAuthenticatedAccessAllowedByDefault": false,
+  "requiredEvidence": [
+    "signed_in_auth_user",
+    "workspace_membership_verified",
+    "project_membership_verified",
+    "edit_session_access_verified",
+    "rls_policy_verified",
+    "explicit_data_api_grants_verified",
+    "backend_persistence_mode_verified"
+  ],
+  "currentPersistenceMode": "mock_internal",
+  "supabaseContext": {
+    "dataApiExposureMustBeExplicitlyVerified": true,
+    "rlsPolicyMustBeVerified": true,
+    "serviceRoleBrowserUseAllowed": false,
+    "profileWorkspaceBootstrapWritesRun": false
+  },
+  "acceptedEvidence": [
+    "src/lib/project-edit-session-access-policy.ts",
+    "src/lib/project-edit-session-access-policy-core.ts",
+    "src/components/projects/ProjectEditSessionAccessPolicyNotice.tsx",
+    "src/pages/ProjectHomePage.tsx",
+    "src/pages/ProjectEditSessionChatPage.tsx",
+    "src/pages/InternalTestingPage.tsx",
+    "src/lib/internal-testing-scenarios.ts",
+    "server/smoke/internal-testing-auth-project-session-membership-policy-smoke.ts"
+  ],
+  "blockedScope": {
+    "serviceRole": false,
+    "profileWorkspaceBootstrapWrites": false,
+    "supabaseDataReadWrite": false,
+    "storageSignedUrls": false,
+    "sqlOrMigration": false,
+    "providerOrModelCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "creditSpend": false,
+    "ledgerWrites": false,
+    "stripe": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "productReady": false
+  },
+  "validation": {
+    "required": [
+      "smoke:internal-testing-auth-project-session-membership-policy",
+      "smoke:internal-testing-auth-project-access-readiness",
+      "smoke:internal-testing-qa-wrapper",
+      "qa:internal-testing",
+      "smoke:worker",
+      "smoke:prod-cost-controls",
+      "smoke:prod-runtime-contracts",
+      "typecheck:server",
+      "build",
+      "git diff --check",
+      "git diff --cached --check"
+    ]
+  },
+  "nextMilestone": "durable_authenticated_project_session_backend_persistence_plan"
+}

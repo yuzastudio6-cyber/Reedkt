@@ -21,6 +21,7 @@
     "credit_lifecycle_readiness",
     "repeated_local_operator_harness",
     "auth_project_access_readiness",
+    "auth_project_session_membership_policy",
     "testing_discipline_checklist",
     "browser_local_feedback_records",
     "manual_feedback_json_export"
@@ -31,6 +32,7 @@
     "credit-lifecycle-readiness": "mock_local",
     "repeated-local-operator-harness": "mock_local",
     "auth-project-access-readiness": "mock_local",
+    "auth-project-session-membership-policy": "mock_local",
     "blockedScenarioCount": 0
   },
   "blockedScope": {
@@ -64,6 +66,7 @@
       "smoke:internal-testing-credit-lifecycle-readiness",
       "smoke:internal-testing-repeated-local-operator-harness",
       "smoke:internal-testing-auth-project-access-readiness",
+      "smoke:internal-testing-auth-project-session-membership-policy",
       "qa:internal-testing",
       "smoke:project-edit-brief-internal-testing-review-pr-readiness",
       "smoke:project-edit-brief-internal-testing-readback-qa",

@@ -19,6 +19,7 @@ import {
   type InternalTestingAuthProjectAccessReadiness,
   type InternalTestingAuthProjectAccessStatus,
 } from '../lib/internal-testing-auth-project-access-readiness'
+import { PROJECT_EDIT_SESSION_ACCESS_POLICY_REQUIRED_EVIDENCE } from '../lib/project-edit-session-access-policy'
 import { internalTestingScenarios, type InternalTestingScenarioStatus } from '../lib/internal-testing-scenarios'
 import {
   createProjectEditSessionBriefPath,
@@ -130,6 +131,7 @@ function getScenarioHighlights() {
     'credit-lifecycle-readiness',
     'repeated-local-operator-harness',
     'auth-project-access-readiness',
+    'auth-project-session-membership-policy',
     'feedback-export',
   ])
 
@@ -533,6 +535,44 @@ export function InternalTestingPage() {
                 <li>No service-role, profile/workspace bootstrap writes, table reads/writes, Storage, SQL, or migrations.</li>
                 <li>No provider/model calls, worker dispatch, media processing, render/export, credit spend, or product-ready claim.</li>
                 <li>Durable project membership and backend persistence remain separate release gates.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-auth-project-session-membership-policy">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Membership policy</span>
+            <h2>Durable project/session access has a named evidence contract</h2>
+          </div>
+          <p>
+            Project Home, Edit Chat, and Edit Brief now display the same access policy notice. Mock internal route access is allowed for repeated
+            testing, but durable authenticated access stays pending until membership, RLS, Data API grant, and backend persistence evidence exists.
+          </p>
+          <div className="internal-testing-auth-grid">
+            <article data-testid="internal-testing-membership-required-evidence">
+              <Badge accent="cyan">Required evidence</Badge>
+              <ul>
+                {PROJECT_EDIT_SESSION_ACCESS_POLICY_REQUIRED_EVIDENCE.map((item) => (
+                  <li key={item}>{item.replace(/_/g, ' ')}</li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-membership-route-surfaces">
+              <Badge accent="success">Route surfaces</Badge>
+              <ul>
+                <li>Project Home access policy notice.</li>
+                <li>Edit Chat access policy notice.</li>
+                <li>Edit Brief access policy notice.</li>
+                <li>Internal Testing source-truth scenario.</li>
+              </ul>
+            </article>
+            <article data-testid="internal-testing-membership-boundaries">
+              <Badge accent="warning">Still gated</Badge>
+              <ul>
+                <li>No profile/workspace bootstrap writes or service-role fallback.</li>
+                <li>No Supabase Data API table access, Storage, SQL, or migration.</li>
+                <li>No production route, real media, worker, render, credit, external beta, or product-ready unlock.</li>
               </ul>
             </article>
           </div>

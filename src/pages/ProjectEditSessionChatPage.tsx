@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { Card } from '../components/Card'
+import { ProjectEditSessionAccessPolicyNotice } from '../components/projects/ProjectEditSessionAccessPolicyNotice'
 import { ProjectEditSessionBoundaryNotice } from '../components/projects/ProjectEditSessionBoundaryNotice'
 import { ProjectEditSessionBreadcrumbs } from '../components/projects/ProjectEditSessionBreadcrumbs'
 import { ProjectEditSessionChatHeader } from '../components/projects/ProjectEditSessionChatHeader'
@@ -128,6 +129,7 @@ export function ProjectEditSessionChatPage() {
       >
         <ProjectEditSessionBreadcrumbs items={breadcrumbs} />
         <ProjectEditSessionRouteTabs tabs={routeTabs} />
+        <ProjectEditSessionAccessPolicyNotice editSessionId={editSessionId} projectId={projectId} />
         <ProjectEditSessionRouteSectionHeader section={routeSection} summary={routeSummary} />
         <ProjectEditSessionRouteBoundaryNotice boundary={navigationBoundary} />
         {header ? <ProjectEditSessionChatHeader header={header} /> : null}

@@ -28,7 +28,8 @@
     "visual_context_sampling_plan",
     "internal_testing_entrypoint",
     "internal_testing_repeated_local_operator_harness",
-    "internal_testing_auth_project_access_readiness"
+    "internal_testing_auth_project_access_readiness",
+    "internal_testing_auth_project_session_membership_policy"
   ],
   "blockedScope": {
     "supabaseReadWrite": false,
@@ -71,7 +72,8 @@
       "smoke:project-edit-brief-pr-ready-merge-hygiene-preflight",
       "smoke:project-edit-brief-internal-testing-entrypoint",
       "smoke:internal-testing-repeated-local-operator-harness",
-      "smoke:internal-testing-auth-project-access-readiness"
+      "smoke:internal-testing-auth-project-access-readiness",
+      "smoke:internal-testing-auth-project-session-membership-policy"
     ],
     "typecheckServer": "passed",
     "build": "passed",
@@ -80,7 +82,7 @@
   },
   "remainingGates": [
     "owner_review",
-    "authenticated_project_session_access_policy",
+    "durable_authenticated_project_session_backend_persistence_plan",
     "supabase_production_readiness_gates_after_rp_editbrief_13",
     "conditional_launch_readiness_evidence_after_rp_editbrief_14",
     "owner_input_collection_after_rp_editbrief_15",
@@ -96,7 +98,8 @@
     "internal_testing_entrypoint_after_rp_editbrief_23",
     "internal_testing_repeated_local_operator_harness_after_rp_inttest_01",
     "internal_testing_auth_project_access_readiness_after_rp_inttest_02",
-    "durable_authenticated_project_membership_policy",
+    "internal_testing_auth_project_session_membership_policy_after_rp_inttest_03",
+    "durable_authenticated_project_session_backend_persistence_plan",
     "real_source_media_ingestion",
     "planner_integration_to_approved_snapshots",
     "credit_estimate_and_reservation",

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { NewEditSessionCreatePanel } from '../components/projects/NewEditSessionCreatePanel'
+import { ProjectEditSessionAccessPolicyNotice } from '../components/projects/ProjectEditSessionAccessPolicyNotice'
 import { ProjectEditSessionCardGrid } from '../components/projects/ProjectEditSessionCardGrid'
 import { ProjectEditSessionDetailPanel } from '../components/projects/ProjectEditSessionDetailPanel'
 import { ProjectHomeHeader } from '../components/projects/ProjectHomeHeader'
@@ -99,6 +100,8 @@ export function ProjectHomePage() {
           projectId={projectId}
           projectTitle={homeModel?.projectTitle ?? 'Project Home'}
         />
+
+        <ProjectEditSessionAccessPolicyNotice projectId={projectId} />
 
         <NewEditSessionPlaceholder
           lastCreatedName={lastCreateResult?.session?.name}

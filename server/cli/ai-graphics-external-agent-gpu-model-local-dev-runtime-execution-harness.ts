@@ -530,7 +530,9 @@ function modelWeightManifestRequired(toolId: AiGraphicsCanonicalToolId): boolean
 function gpuModelAllowsCpuModelRuntime(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 ): boolean {
-  return toolId === 'real_esrgan' || toolId === 'rembg'
+  return toolId === 'real_esrgan' ||
+    toolId === 'rembg' ||
+    toolId === 'transparent_background'
 }
 
 function gpuModelRequiresSourceImage(
@@ -1205,7 +1207,7 @@ async function buildReport(args: HarnessArgs) {
       onDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       noCpuFallbackForCudaOnlyGpuModelTools: true,
-      cpuModelRuntimeAllowedForReviewedRealEsrganAndRembgWhenExplicitlyRequested: true,
+      cpuModelRuntimeAllowedForReviewedRealEsrganRembgAndTransparentBackgroundWhenExplicitlyRequested: true,
       cpuModelRuntimeDoesNotStartGpu: true,
       korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested: true,
       korniaCpuTensorRuntimeRequiresPrivateSourceFrame: true,

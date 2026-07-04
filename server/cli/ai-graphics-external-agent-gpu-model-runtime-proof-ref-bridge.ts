@@ -658,6 +658,33 @@ function acceptsTransparentBackgroundGpuProof(outputJson: JsonRecord): boolean {
   )
 }
 
+function acceptsTransparentBackgroundCpuModelProof(
+  row: LocalProofHarnessRow | undefined,
+  outputJson: JsonRecord,
+): boolean {
+  return (
+    row?.allowCpuModelRuntime === true &&
+    outputJson.cudaAvailable === false &&
+    nestedValue(outputJson, ['runtime', 'runtimeDevice']) === 'cpu' &&
+    nestedValue(outputJson, ['runtime', 'cpuModelRuntimeAllowed']) === true &&
+    nonEmptyString(nestedValue(outputJson, ['runtime', 'mode'])) &&
+    nonEmptyString(nestedValue(outputJson, ['runtime', 'checkpointPath'])) &&
+    requiredRuntimeFlagsAreFalse(outputJson, [
+      'modelDownloadedExternally',
+      'providerRuntimePerformed',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+    ]) &&
+    nonEmptyString(nestedValue(outputJson, ['input', 'path'])) &&
+    positiveNumber(nestedValue(outputJson, ['input', 'width'])) &&
+    positiveNumber(nestedValue(outputJson, ['input', 'height'])) &&
+    nonEmptyString(nestedValue(outputJson, ['mask', 'path'])) &&
+    nonEmptyString(nestedValue(outputJson, ['mask', 'cutoutPath'])) &&
+    typeof nestedValue(outputJson, ['mask', 'meanAlpha']) === 'number' &&
+    typeof nestedValue(outputJson, ['mask', 'nonZeroRatio']) === 'number'
+  )
+}
+
 function acceptsToolSpecificGpuProof(
   toolId: GpuModelToolId,
   outputJson: JsonRecord,
@@ -723,6 +750,7 @@ function outputHasAcceptedRuntimeEvidence(
     acceptsKorniaCpuTensorProof(toolId, row, outputJson) ||
     (toolId === 'real_esrgan' && acceptsRealEsrganCpuModelProof(row, outputJson)) ||
     (toolId === 'rembg' && acceptsRembgCpuModelProof(row, outputJson)) ||
+    (toolId === 'transparent_background' && acceptsTransparentBackgroundCpuModelProof(row, outputJson)) ||
     acceptsToolSpecificGpuProof(toolId, outputJson)
 }
 
@@ -736,7 +764,11 @@ function expectedGpuRuntimeShouldStartDuringScopedProof(
   if (toolId === 'kornia') {
     return row ? row.allowCpuTensorRuntime !== true : false
   }
-  if (toolId === 'real_esrgan' || toolId === 'rembg') {
+  if (
+    toolId === 'real_esrgan' ||
+    toolId === 'rembg' ||
+    toolId === 'transparent_background'
+  ) {
     return row ? row.allowCpuModelRuntime !== true : false
   }
   return true
@@ -875,7 +907,9 @@ function localProofOutputEvidence(
           ? 'private_output_json_missing_cuda_or_cpu_foundation_runtime_evidence'
           : toolId === 'kornia'
           ? 'private_output_json_missing_cuda_or_cpu_tensor_runtime_evidence'
-          : toolId === 'real_esrgan' || toolId === 'rembg'
+          : toolId === 'real_esrgan' ||
+            toolId === 'rembg' ||
+            toolId === 'transparent_background'
           ? 'private_output_json_missing_cuda_or_cpu_model_runtime_evidence'
           : 'private_output_json_missing_cuda_runtime_evidence',
     }
@@ -1230,7 +1264,7 @@ This bridge connects real scoped local-dev GPU/model runtime proof evidence to t
 
 It does not start GPU runtime, write live queues, dispatch workers, execute tools, load model weights, create public artifacts, create signed URLs, unlock external beta, or unlock production. GPU runtime can start only in the upstream scoped local-dev harness call that supplies private inputs for one requested tool.
 
-Private output proof is accepted only when the JSON matches the exact per-tool contract for that tool. The model/checkpoint-backed tools require tool-shaped evidence such as SAM2 mask sequences, BiRefNet mask/cutout output, Real-ESRGAN enhanced output, rembg cutout output, or transparent-background checkpoint output; generic CUDA-looking JSON is not enough. Real-ESRGAN and rembg also accept explicit CPU model proof when the local proof row has \`allowCpuModelRuntime=true\`, the private model/input/checksum evidence is present, and no GPU attachment is requested.
+Private output proof is accepted only when the JSON matches the exact per-tool contract for that tool. The model/checkpoint-backed tools require tool-shaped evidence such as SAM2 mask sequences, BiRefNet mask/cutout output, Real-ESRGAN enhanced output, rembg cutout output, or transparent-background checkpoint output; generic CUDA-looking JSON is not enough. Real-ESRGAN, rembg, and transparent-background also accept explicit CPU model proof when the local proof row has \`allowCpuModelRuntime=true\`, the private model/input/checksum evidence is present, and no GPU attachment is requested.
 
 ## Bridge rows
 

@@ -44,6 +44,7 @@ const foundationCpuRuntimeTools = new Set([
 const cpuModelRuntimeTools = new Set([
   'real_esrgan',
   'rembg',
+  'transparent_background',
 ])
 
 const toolSpecificFlagByTool = {
@@ -570,7 +571,8 @@ for (const workerFile of [
   }
   if (
     workerFile === 'server/workers/enhancement/real-esrgan-execution-runner.ts' ||
-    workerFile === 'server/workers/masks/rembg-adapter.ts'
+    workerFile === 'server/workers/masks/rembg-adapter.ts' ||
+    workerFile === 'server/workers/masks/transparent-background-adapter.ts'
   ) {
     for (const requiredCpuModelProofToken of [
       'requireCpuModelRuntime: allowCpuModelRuntime',
@@ -678,6 +680,20 @@ for (const [tool, file] of Object.entries(runtimeProofFilesByTool)) {
     ]) {
       if (!source.includes(requiredRealEsrganCpuModelToken)) {
         fail(`runtime_script_missing_real_esrgan_cpu_model_token:${requiredRealEsrganCpuModelToken}`)
+      }
+    }
+  } else if (tool === 'transparent_background') {
+    for (const requiredTransparentBackgroundCpuModelToken of [
+      'parser.add_argument("--allow-cpu-model-runtime", action="store_true")',
+      'runtime_device = "cpu" if args.allow_cpu_model_runtime else "cuda:0"',
+      '"cudaAvailable": cuda_available',
+      '"runtimeDevice": output_runtime_device',
+      '"selectedProviders": []',
+      '"cpuModelRuntimeAllowed": bool(args.allow_cpu_model_runtime)',
+      'Remover(mode=args.mode, jit=False, device=runtime_device',
+    ]) {
+      if (!source.includes(requiredTransparentBackgroundCpuModelToken)) {
+        fail(`runtime_script_missing_transparent_background_cpu_model_token:${requiredTransparentBackgroundCpuModelToken}`)
       }
     }
   } else if (foundationCpuRuntimeTools.has(tool)) {

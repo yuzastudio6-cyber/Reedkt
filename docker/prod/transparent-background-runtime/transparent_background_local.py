@@ -25,6 +25,7 @@ def main() -> None:
     parser.add_argument("--cutout-path", required=True)
     parser.add_argument("--mask-path", required=True)
     parser.add_argument("--output-json", required=True)
+    parser.add_argument("--allow-cpu-model-runtime", action="store_true")
     args = parser.parse_args()
 
     os.environ["MODEL_DOWNLOADS_ENABLED"] = "false"
@@ -33,8 +34,11 @@ def main() -> None:
 
     from transparent_background import Remover
 
-    if not torch.cuda.is_available():
-        raise RuntimeError("CUDA is required for the transparent-background runtime; no CPU fallback is allowed.")
+    cuda_available = bool(torch.cuda.is_available())
+    if not cuda_available and not args.allow_cpu_model_runtime:
+        raise RuntimeError("CUDA is required for the transparent-background runtime unless explicit CPU model runtime proof is requested.")
+    runtime_device = "cpu" if args.allow_cpu_model_runtime else "cuda:0"
+    output_runtime_device = "cpu" if args.allow_cpu_model_runtime else "cuda"
 
     checkpoint_path = Path(args.checkpoint_path)
     if checkpoint_path.suffix != ".pth" or not checkpoint_path.exists() or checkpoint_path.stat().st_size <= 0:
@@ -48,7 +52,7 @@ def main() -> None:
     mask_path = Path(args.mask_path)
     output_path = Path(args.output_json)
     image = Image.open(input_path).convert("RGB")
-    remover = Remover(mode=args.mode, jit=False, device="cuda:0", ckpt=str(checkpoint_path))
+    remover = Remover(mode=args.mode, jit=False, device=runtime_device, ckpt=str(checkpoint_path))
     cutout = remover.process(image, type="rgba")
     cutout_path.parent.mkdir(parents=True, exist_ok=True)
     cutout.save(cutout_path)
@@ -60,11 +64,20 @@ def main() -> None:
     output = {
         "ok": True,
         "toolId": "transparent_background",
-        "cudaAvailable": True,
-        "deviceName": torch.cuda.get_device_name(0),
+        "cudaAvailable": cuda_available,
+        "cpuModelRuntimeAllowed": bool(args.allow_cpu_model_runtime),
+        "runtimeDevice": output_runtime_device,
+        "selectedProviders": [],
+        "deviceName": "cpu" if args.allow_cpu_model_runtime else torch.cuda.get_device_name(0),
+        "modelDownloadedExternally": False,
+        "providerRuntimePerformed": False,
+        "publicArtifactCreated": False,
+        "signedUrlCreated": False,
         "runtime": {
             "mode": args.mode,
             "checkpointPath": str(checkpoint_path),
+            "runtimeDevice": output_runtime_device,
+            "cpuModelRuntimeAllowed": bool(args.allow_cpu_model_runtime),
             "modelDownloadedExternally": False,
             "providerRuntimePerformed": False,
             "publicArtifactCreated": False,

@@ -186,7 +186,9 @@ function gpuModelAllowsCpuTensorRuntime(toolId: string): boolean {
 }
 
 function gpuModelAllowsCpuModelRuntime(toolId: string): boolean {
-  return toolId === 'real_esrgan' || toolId === 'rembg'
+  return toolId === 'real_esrgan' ||
+    toolId === 'rembg' ||
+    toolId === 'transparent_background'
 }
 
 function gpuModelMinimumPrivateRuntimeInputKeys(toolId: string): string[] {
@@ -1319,7 +1321,7 @@ function buildReport() {
     decision,
     status: gpuExecutableTools.length > 0 ? privateProofStatus : defaultStatus,
     summary:
-      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools now carry explicit install-proof linkage from gpu-model-install-build-targets: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to torch/torchvision and transformers, CPU tensor proof applies to kornia, explicit CPU model proof applies to Real-ESRGAN and rembg when reviewed private model/input/checksum evidence is supplied, and native CUDA remains required for SAM2, BiRefNet, and transparent-background. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
+      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools now carry explicit install-proof linkage from gpu-model-install-build-targets: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to torch/torchvision and transformers, CPU tensor proof applies to kornia, explicit CPU model proof applies to Real-ESRGAN, rembg, and transparent-background when reviewed private model/input/checksum evidence is supplied, and native CUDA remains required for SAM2 and BiRefNet. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
     stateDefinitions: {
       callable:
         'The external agent can submit the controlled private route request.',
@@ -1650,7 +1652,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools now carry explicit install-proof linkage from \`gpu-model-install-build-targets\`: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to \`torch_torchvision\` and \`transformers\`, CPU tensor proof applies to \`kornia\`, explicit CPU model proof applies to \`real_esrgan\` and \`rembg\` when reviewed private model/input/checksum evidence is supplied, and native CUDA remains required for \`sam2\`, \`birefnet\`, and \`transparent_background\`. The mounted route also proves a capability-mismatch request returns \`failed_with_diagnostics\` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
+This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools now carry explicit install-proof linkage from \`gpu-model-install-build-targets\`: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to \`torch_torchvision\` and \`transformers\`, CPU tensor proof applies to \`kornia\`, explicit CPU model proof applies to \`real_esrgan\`, \`rembg\`, and \`transparent_background\` when reviewed private model/input/checksum evidence is supplied, and native CUDA remains required for \`sam2\` and \`birefnet\`. The mounted route also proves a capability-mismatch request returns \`failed_with_diagnostics\` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
 
 ## State Definitions
 

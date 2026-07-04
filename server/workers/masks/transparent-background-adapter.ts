@@ -27,6 +27,7 @@ export async function runTransparentBackgroundFallback(input: {
 }): Promise<MaskToolExecutionResult> {
   const commandPlan = buildTransparentBackgroundCommandPlan(input)
   const executionInput = input.executionInput
+  const allowCpuModelRuntime = executionInput.allowCpuModelRuntime === true
   if (executionInput.mode !== 'local_dev' || executionInput.enableModelMaskExecution !== true) {
     return {
       status: 'skipped',
@@ -68,13 +69,16 @@ export async function runTransparentBackgroundFallback(input: {
         maskPath,
         '--output-json',
         outputJsonPath,
+        ...(allowCpuModelRuntime ? ['--allow-cpu-model-runtime'] : []),
       ],
       outputJsonPath,
       timeoutMs: executionInput.timeoutMs,
       runtimeBackend: executionInput.runtimeExecutionBackend,
       containerImage: executionInput.runtimeContainerImage,
       containerPlatform: executionInput.runtimeContainerPlatform,
-      containerGpu: executionInput.runtimeContainerGpu,
+      containerGpu: allowCpuModelRuntime
+        ? false
+        : executionInput.runtimeContainerGpu,
       containerBindMounts: buildAiGraphicsRuntimeContainerBindMounts({
         readOnlyPaths: [
           sourcePath,
@@ -84,7 +88,8 @@ export async function runTransparentBackgroundFallback(input: {
       }),
       proofExpectation: {
         expectedToolId: 'transparent_background',
-        requireCuda: true,
+        requireCuda: allowCpuModelRuntime ? false : true,
+        requireCpuModelRuntime: allowCpuModelRuntime,
         requireNoModelDownload: true,
         requireNoProviderRuntime: true,
         requireNoPublicArtifact: true,
@@ -94,7 +99,13 @@ export async function runTransparentBackgroundFallback(input: {
     return {
       status: 'completed',
       tool: 'transparent_background',
-      commandPlan: { ...commandPlan, executes: true, summary: 'transparent-background local runtime script executed with approved local checkpoint and private source frame; no checkpoint download.' },
+      commandPlan: {
+        ...commandPlan,
+        executes: true,
+        summary: allowCpuModelRuntime
+          ? 'transparent-background local CPU model runtime script executed with approved local checkpoint and private source frame; no checkpoint download, GPU attachment, provider call, or public artifact.'
+          : 'transparent-background local CUDA runtime script executed with approved local checkpoint and private source frame; no checkpoint download.',
+      },
       outputJsonPath: runtimeResult.outputJsonPath,
       outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
       outputJsonSha256: runtimeResult.outputJsonSha256,

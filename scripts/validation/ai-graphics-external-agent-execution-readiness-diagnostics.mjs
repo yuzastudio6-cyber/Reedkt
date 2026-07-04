@@ -95,7 +95,7 @@ const gpuModelTools = [
 
 const gpuModelCpuFoundationTools = ['torch_torchvision', 'transformers']
 const gpuModelCpuTensorTools = ['kornia']
-const gpuModelCpuModelTools = ['real_esrgan', 'rembg']
+const gpuModelCpuModelTools = ['real_esrgan', 'rembg', 'transparent_background']
 const gpuModelWeightManifestTools = [
   'sam2',
   'birefnet',
@@ -133,7 +133,7 @@ const scopedProofFixtureCases = [
   { toolId: 'real_esrgan', capabilityId: 'upscaling', gpuShouldStartDuringScopedProof: false },
   { toolId: 'kornia', capabilityId: 'tensor_image_ops', gpuShouldStartDuringScopedProof: false },
   { toolId: 'rembg', capabilityId: 'background_removal', gpuShouldStartDuringScopedProof: false },
-  { toolId: 'transparent_background', capabilityId: 'background_removal', gpuShouldStartDuringScopedProof: true },
+  { toolId: 'transparent_background', capabilityId: 'background_removal', gpuShouldStartDuringScopedProof: false },
 ]
 
 const requiredFiles = [
@@ -394,11 +394,20 @@ function privateOutputJsonForTool(toolId, tempDir) {
       return {
         ok: true,
         toolId: 'transparent_background',
-        cudaAvailable: true,
-        deviceName: 'NVIDIA L4',
+        cudaAvailable: false,
+        cpuModelRuntimeAllowed: true,
+        runtimeDevice: 'cpu',
+        selectedProviders: [],
+        deviceName: 'cpu',
+        modelDownloadedExternally: false,
+        providerRuntimePerformed: false,
+        publicArtifactCreated: false,
+        signedUrlCreated: false,
         runtime: {
           mode: 'base',
           checkpointPath: p('transparent-background-checkpoint.pth'),
+          runtimeDevice: 'cpu',
+          cpuModelRuntimeAllowed: true,
           modelDownloadedExternally: false,
           providerRuntimePerformed: false,
           publicArtifactCreated: false,

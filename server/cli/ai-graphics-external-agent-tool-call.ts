@@ -452,7 +452,9 @@ function gpuModelAllowsCpuTensorRuntime(toolId: string): boolean {
 }
 
 function gpuModelAllowsCpuModelRuntime(toolId: string): boolean {
-  return toolId === 'real_esrgan' || toolId === 'rembg'
+  return toolId === 'real_esrgan' ||
+    toolId === 'rembg' ||
+    toolId === 'transparent_background'
 }
 
 function gpuModelRuntimeContainerTarget(toolId: string) {

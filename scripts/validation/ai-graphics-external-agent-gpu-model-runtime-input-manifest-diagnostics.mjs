@@ -144,6 +144,12 @@ function writeLargePrivatePlaceholder(filePath, byte) {
   fs.writeFileSync(absolute(filePath), Buffer.alloc(1024 * 1024 + 32, byte))
 }
 
+function cpuModelRuntimeTool(toolId) {
+  return toolId === 'real_esrgan' ||
+    toolId === 'rembg' ||
+    toolId === 'transparent_background'
+}
+
 function writeSafetensorsPlaceholder(filePath) {
   fs.mkdirSync(path.dirname(absolute(filePath)), { recursive: true })
   const header = Buffer.from(JSON.stringify({
@@ -172,8 +178,9 @@ function materializeManifest(toolId, contract, runtimeImage = runtimeImageByTool
     `--model-weight-checksum-evidence-ref ${contract.evidenceRef}`,
     `--runtime-container-image ${runtimeImage}`,
     '--runtime-container-platform linux/amd64',
+    cpuModelRuntimeTool(toolId) ? '--allow-cpu-model-runtime' : '',
     '--force',
-  ].join(' '))
+  ].filter(Boolean).join(' '))
   return {
     report: JSON.parse(stdout),
     manifestOut,
@@ -285,23 +292,50 @@ for (const [toolId, contract] of Object.entries(toolContracts)) {
   if (record.runtimeContainerPlatform !== 'linux/amd64') {
     fail(`${toolId}_runtime_container_platform_mismatch:${record.runtimeContainerPlatform}`)
   }
+  if (cpuModelRuntimeTool(toolId) && record.allowCpuModelRuntime !== true) {
+    fail(`${toolId}_cpu_model_runtime_flag_missing`)
+  }
+  if (!cpuModelRuntimeTool(toolId) && record.allowCpuModelRuntime === true) {
+    fail(`${toolId}_unexpected_cpu_model_runtime_flag`)
+  }
+  if (result.report.booleans?.cpuModelRuntimeRequested !== cpuModelRuntimeTool(toolId)) {
+    fail(`${toolId}_cpu_model_runtime_request_mismatch`)
+  }
 
   const toolCall = runToolCall(toolId, result.manifestOut)
   const blockingReason = toolCall.response?.blockingReasonCode
+  const executionState = toolCall.response?.externalAgentExecutionState
+  const cpuModelFailureWithDiagnostics =
+    cpuModelRuntimeTool(toolId) &&
+    executionState === 'failed_with_diagnostics' &&
+    typeof toolCall.response?.failureDiagnostics === 'string' &&
+    toolCall.response.failureDiagnostics.length > 0
   routeBlockers[toolId] = blockingReason
   routeBackends[toolId] = toolCall.request?.payload?.runtimeExecutionBackend
   if (routeBackends[toolId] !== 'docker_container') {
     fail(`${toolId}_tool_call_backend_not_container:${routeBackends[toolId]}`)
   }
-  if (toolCall.response?.externalAgentExecutionState !== 'blocked_with_reason') {
-    fail(`${toolId}_tool_call_state_mismatch:${toolCall.response?.externalAgentExecutionState}`)
+  if (
+    executionState !== 'blocked_with_reason' &&
+    !cpuModelFailureWithDiagnostics
+  ) {
+    fail(`${toolId}_tool_call_state_mismatch:${executionState}`)
   }
-  if (typeof blockingReason !== 'string') {
+  if (cpuModelFailureWithDiagnostics) {
+    if (toolCall.response?.externalAgentToolCallResult?.failedWithDiagnostics !== true) {
+      fail(`${toolId}_failed_diagnostics_result_flag_missing`)
+    }
+  } else if (typeof blockingReason !== 'string') {
     fail(`${toolId}_blocking_reason_missing`)
   } else if (blockingReason.includes('_model_weight_')) {
     fail(`${toolId}_still_blocked_on_model_weight:${blockingReason}`)
   } else if (blockingReason === 'gpu_model_python_package_missing') {
     fail(`${toolId}_container_route_regressed_to_host_python_package_blocker`)
+  } else if (
+    cpuModelRuntimeTool(toolId) &&
+    blockingReason === 'gpu_model_runtime_container_gpu_unavailable'
+  ) {
+    fail(`${toolId}_cpu_model_route_regressed_to_gpu_container_blocker`)
   } else if (!expectedPostEvidenceBlockers.has(blockingReason)) {
     fail(`${toolId}_unexpected_post_evidence_blocker:${blockingReason}`)
   }
@@ -313,6 +347,12 @@ for (const [toolId, contract] of Object.entries(toolContracts)) {
   }
   if (toolCall.response?.externalAgentToolCallResult?.controlledAdapterExecutedNow !== false) {
     fail(`${toolId}_unexpected_adapter_execution`)
+  }
+  if (toolCall.response?.externalAgentToolCallResult?.publicArtifactCreated === true) {
+    fail(`${toolId}_public_artifact_created`)
+  }
+  if (toolCall.response?.externalAgentToolCallResult?.signedUrlCreated === true) {
+    fail(`${toolId}_signed_url_created`)
   }
   if (toolCall.booleans?.gpuRuntimeShouldStartNow !== false) {
     fail(`${toolId}_tool_call_started_gpu`)

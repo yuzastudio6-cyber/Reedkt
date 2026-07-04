@@ -466,7 +466,11 @@ function payloadAllowsModelCpuRuntime(
   payload?: Record<string, unknown> | null,
 ): boolean {
   return (
-    (toolId === 'real_esrgan' || toolId === 'rembg') &&
+    (
+      toolId === 'real_esrgan' ||
+      toolId === 'rembg' ||
+      toolId === 'transparent_background'
+    ) &&
     payload?.allowCpuModelRuntime === true
   )
 }
@@ -480,7 +484,9 @@ function preferredCpuFoundationRuntimeForTool(toolId: string): boolean {
 }
 
 function preferredCpuModelRuntimeForTool(toolId: string): boolean {
-  return toolId === 'real_esrgan' || toolId === 'rembg'
+  return toolId === 'real_esrgan' ||
+    toolId === 'rembg' ||
+    toolId === 'transparent_background'
 }
 
 function aiGraphicsGpuModelRuntimeContainerTarget(toolId: string) {

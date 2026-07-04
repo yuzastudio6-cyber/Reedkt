@@ -176,7 +176,11 @@ function allowModelCpuRuntime(
   payload: Record<string, unknown>,
 ): boolean {
   return (
-    (toolId === 'real_esrgan' || toolId === 'rembg') &&
+    (
+      toolId === 'real_esrgan' ||
+      toolId === 'rembg' ||
+      toolId === 'transparent_background'
+    ) &&
     optionalBoolean(payload, 'allowCpuModelRuntime')
   )
 }

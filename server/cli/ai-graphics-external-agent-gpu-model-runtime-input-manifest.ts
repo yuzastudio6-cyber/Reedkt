@@ -315,7 +315,11 @@ function main(): void {
   const force = hasFlag('--force')
   const privateInputPreflightOnly = hasFlag('--private-input-preflight-only')
   const allowCpuModelRuntime =
-    (typedToolId === 'real_esrgan' || typedToolId === 'rembg') &&
+    (
+      typedToolId === 'real_esrgan' ||
+      typedToolId === 'rembg' ||
+      typedToolId === 'transparent_background'
+    ) &&
     hasFlag('--allow-cpu-model-runtime')
 
   assertLocalPath('sourceImageLocalPath', sourceImage)

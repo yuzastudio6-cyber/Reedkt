@@ -448,7 +448,9 @@ function gpuModelPrefersCpuFoundationRuntime(
 function gpuModelAllowsCpuModelRuntime(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 ): boolean {
-  return toolId === 'real_esrgan' || toolId === 'rembg'
+  return toolId === 'real_esrgan' ||
+    toolId === 'rembg' ||
+    toolId === 'transparent_background'
 }
 
 function gpuModelPrefersCpuModelRuntime(

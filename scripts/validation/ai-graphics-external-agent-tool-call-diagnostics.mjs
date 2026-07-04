@@ -48,7 +48,9 @@ const privateInputPreflightTools = [
 ]
 
 function cpuModelRuntimeTool(toolId) {
-  return toolId === 'real_esrgan' || toolId === 'rembg'
+  return toolId === 'real_esrgan' ||
+    toolId === 'rembg' ||
+    toolId === 'transparent_background'
 }
 
 const requiredFiles = [

@@ -94,7 +94,11 @@ const cpuFoundationGpuModelTools = new Set([
   'transformers',
 ])
 const cpuTensorGpuModelTools = new Set(['kornia'])
-const cpuModelGpuModelTools = new Set(['real_esrgan', 'rembg'])
+const cpuModelGpuModelTools = new Set([
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+])
 
 const expectedGpuPrivateInputKeys = {
   torch_torchvision: ['outputDirectory', 'pythonCpuFoundationRuntime'],
@@ -130,7 +134,7 @@ const expectedGpuPrivateInputKeys = {
   ],
   transparent_background: [
     'outputDirectory',
-    'nativeCudaRuntime',
+    'pythonCpuModelRuntime',
     'sourceImageLocalPath',
     'transparentBackgroundCheckpointLocalPath',
   ],

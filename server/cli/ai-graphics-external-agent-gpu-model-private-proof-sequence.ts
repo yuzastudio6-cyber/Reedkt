@@ -197,7 +197,9 @@ function gpuModelRuntimeContainerBuildCommand(
 function gpuModelAllowsCpuModelRuntime(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 ): boolean {
-  return toolId === 'real_esrgan' || toolId === 'rembg'
+  return toolId === 'real_esrgan' ||
+    toolId === 'rembg' ||
+    toolId === 'transparent_background'
 }
 
 function isLocalArtifactPath(filePath: string): boolean {
@@ -772,7 +774,9 @@ function defaultFoundationCpuCommand(toolId: 'torch_torchvision' | 'transformers
   ].join(' ')
 }
 
-function defaultCpuModelCommand(toolId: 'real_esrgan' | 'rembg'): string {
+function defaultCpuModelCommand(
+  toolId: 'real_esrgan' | 'rembg' | 'transparent_background',
+): string {
   return [
     `npm run --silent ${harnessScript} --`,
     '--attempt-local-runtime',
@@ -787,7 +791,9 @@ function defaultCpuModelCommand(toolId: 'real_esrgan' | 'rembg'): string {
     '--source-image <private-approved-frame.png>',
     toolId === 'real_esrgan'
       ? '--real-esrgan-model <private-real-esrgan-model.pth>'
-      : '--rembg-model <private-rembg-model.onnx>',
+      : toolId === 'rembg'
+      ? '--rembg-model <private-rembg-model.onnx>'
+      : '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
     '--runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>',
   ].join(' ')
 }
@@ -1055,6 +1061,8 @@ function buildReport(input: SequenceArgs) {
         defaultCpuModelCommand('real_esrgan'),
       defaultRembgCpuModelHarnessCommand:
         defaultCpuModelCommand('rembg'),
+      defaultTransparentBackgroundCpuModelHarnessCommand:
+        defaultCpuModelCommand('transparent_background'),
       bridgeCommand: privateResultPath ? bridgeCommand(privateResultPath) : null,
       readinessCommand: privateResultPath ? readinessCommand(privateResultPath) : null,
       finalExternalAgentSingleToolCallCommand:
@@ -1106,7 +1114,7 @@ function buildReport(input: SequenceArgs) {
         input.allowCpuFoundationRuntime !== true &&
         input.allowCpuModelRuntime !== true,
       noCpuFallbackForCudaOnlyGpuModelTools: true,
-      cpuModelRuntimeAllowedForReviewedRealEsrganAndRembgWhenExplicitlyRequested: true,
+      cpuModelRuntimeAllowedForReviewedRealEsrganRembgAndTransparentBackgroundWhenExplicitlyRequested: true,
       cpuModelRuntimeDoesNotStartGpu: true,
       korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested: true,
       korniaCpuTensorRuntimeDoesNotStartGpu: true,

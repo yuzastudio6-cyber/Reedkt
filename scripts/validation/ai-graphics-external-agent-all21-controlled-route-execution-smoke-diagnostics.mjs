@@ -19,6 +19,8 @@ const canonicalGpuModelRuntimeContainerImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
 const canonicalGpuModelRuntimeContainerBuildCommand =
   `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${canonicalGpuModelRuntimeContainerImage} .`
+const privateInputPreflightBlockingReason =
+  'gpu_model_private_inputs_accepted_runtime_proof_not_requested'
 
 const cpuStaticTools = [
   'd3',
@@ -44,6 +46,13 @@ const gpuModelTools = [
   'birefnet',
   'real_esrgan',
   'kornia',
+  'rembg',
+  'transparent_background',
+]
+const privateInputPreflightGpuModelTools = [
+  'sam2',
+  'birefnet',
+  'real_esrgan',
   'rembg',
   'transparent_background',
 ]
@@ -176,6 +185,52 @@ function exec(command) {
     stdio: ['ignore', 'pipe', 'pipe'],
     maxBuffer: 160 * 1024 * 1024,
   })
+}
+
+function writePrivateProofPpm(filePath) {
+  fs.mkdirSync(path.dirname(absolute(filePath)), { recursive: true })
+  fs.writeFileSync(absolute(filePath), [
+    'P3',
+    '2 2',
+    '255',
+    '255 0 0 0 255 0',
+    '0 0 255 255 255 255',
+    '',
+  ].join('\n'))
+}
+
+function writePrivatePlaceholderFile(filePath) {
+  fs.mkdirSync(path.dirname(absolute(filePath)), { recursive: true })
+  fs.writeFileSync(
+    absolute(filePath),
+    'local-only placeholder used for route preflight; not a real model\n',
+  )
+}
+
+function ensureRoutePrivateInputPreflightPlaceholders() {
+  const rootDir =
+    '.local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic'
+  const paths = {
+    rootDir,
+    sourceImage: `${rootDir}/inputs/private-approved-frame.ppm`,
+    sam2Checkpoint: `${rootDir}/models/sam2/sam2-checkpoint.pt`,
+    birefnetModel: `${rootDir}/models/birefnet`,
+    realEsrganModel: `${rootDir}/models/real-esrgan/RealESRGAN_x4plus.pth`,
+    rembgModel: `${rootDir}/models/rembg/u2net.onnx`,
+    transparentBackgroundCheckpoint:
+      `${rootDir}/models/transparent-background/ckpt_base.pth`,
+  }
+  writePrivateProofPpm(paths.sourceImage)
+  for (const filePath of [
+    paths.sam2Checkpoint,
+    `${paths.birefnetModel}/model.safetensors`,
+    paths.realEsrganModel,
+    paths.rembgModel,
+    paths.transparentBackgroundCheckpoint,
+  ]) {
+    writePrivatePlaceholderFile(filePath)
+  }
+  return paths
 }
 
 function expectedGroup(toolId) {
@@ -1170,6 +1225,92 @@ function checkRuntimeImageProvidedScopedReport(label, report) {
   }
 }
 
+function checkPrivateInputPreflightScopedReport(label, report) {
+  if (report.decision !== decision) fail(`${label}_decision_mismatch`)
+  if (report.status !== status) fail(`${label}_status_mismatch`)
+
+  const scopedAttempts = Array.isArray(report.scopedGpuModelLocalDevRouteAttempts)
+    ? report.scopedGpuModelLocalDevRouteAttempts
+    : []
+  if (scopedAttempts.length !== privateInputPreflightGpuModelTools.length) {
+    fail(`${label}_scoped_attempts_count_mismatch:${scopedAttempts.length}`)
+  }
+
+  for (const toolId of privateInputPreflightGpuModelTools) {
+    const attempt = scopedAttempts.find((item) => item.requestedToolId === toolId)
+    if (!attempt) {
+      fail(`${label}_missing_scoped_attempt:${toolId}`)
+      continue
+    }
+    const scopedResult = attempt.result ?? {}
+    if (attempt.expectedBlockingReasonCode !== privateInputPreflightBlockingReason) {
+      fail(`${label}_${toolId}_expected_block_code_mismatch:${attempt.expectedBlockingReasonCode}`)
+    }
+    if (!Array.isArray(attempt.expectedBlockingReasonCodes) ||
+      !attempt.expectedBlockingReasonCodes.includes(privateInputPreflightBlockingReason)) {
+      fail(`${label}_${toolId}_expected_block_codes_missing_preflight`)
+    }
+    if (!String(attempt.nextExactCommand ?? '').includes('--scoped-gpu-private-input-preflight-only')) {
+      fail(`${label}_${toolId}_next_command_missing_preflight_flag`)
+    }
+    if (scopedResult.statusCode !== 200) {
+      fail(`${label}_${toolId}_http_not_200:${scopedResult.statusCode}`)
+    }
+    if (scopedResult.ok !== true) fail(`${label}_${toolId}_ok_not_true`)
+    if (scopedResult.controlledAdapterInvokedNow !== true) {
+      fail(`${label}_${toolId}_adapter_not_invoked`)
+    }
+    if (scopedResult.controlledAdapterExecutedNow !== false) {
+      fail(`${label}_${toolId}_adapter_should_not_execute`)
+    }
+    if (scopedResult.externalAgentExecutionState !== 'blocked_with_reason') {
+      fail(`${label}_${toolId}_state_not_blocked:${scopedResult.externalAgentExecutionState}`)
+    }
+    if (scopedResult.blockingReasonCode !== privateInputPreflightBlockingReason) {
+      fail(`${label}_${toolId}_block_code_mismatch:${scopedResult.blockingReasonCode}`)
+    }
+    if (scopedResult.localGpuModelRuntimeExecutionPerformed !== false) {
+      fail(`${label}_${toolId}_runtime_should_not_execute`)
+    }
+    if (scopedResult.gpuRuntimeShouldStartNow !== false) {
+      fail(`${label}_${toolId}_gpu_runtime_started`)
+    }
+    if (scopedResult.externalAgentToolCallResult?.blockedWithReason !== true) {
+      fail(`${label}_${toolId}_normalized_not_blocked`)
+    }
+    if (
+      scopedResult.externalAgentToolCallResult?.currentBlockingPrerequisiteKey !==
+      'nativeCudaRuntime'
+    ) {
+      fail(`${label}_${toolId}_current_blocking_prerequisite_mismatch:${scopedResult.externalAgentToolCallResult?.currentBlockingPrerequisiteKey}`)
+    }
+    for (const key of expectedGpuPrivateInputKeys[toolId] ?? []) {
+      if (!scopedResult.externalAgentToolCallResult?.requiredPrivateInputKeys?.includes(key)) {
+        fail(`${label}_${toolId}_required_private_input_missing:${key}`)
+      }
+    }
+    for (const key of [
+      'publicArtifactCreated',
+      'signedUrlCreated',
+      'workerDispatchPerformed',
+      'providerRuntimePerformed',
+      'runtimeReadyNow',
+      'externalBetaReadyNow',
+      'productionReadyNow',
+    ]) {
+      if (scopedResult[key] !== false) {
+        fail(`${label}_${toolId}_${key}_not_false`)
+      }
+    }
+    if (attempt.booleans?.scopedGpuModelLocalDevRouteAttemptAccepted !== true) {
+      fail(`${label}_${toolId}_scoped_attempt_not_accepted`)
+    }
+    if (attempt.booleans?.scopedGpuModelRuntimeContainerPayloadAccepted !== true) {
+      fail(`${label}_${toolId}_runtime_container_payload_not_accepted`)
+    }
+  }
+}
+
 for (const file of requiredFiles) read(file)
 
 const docs = json(
@@ -1207,6 +1348,25 @@ checkRuntimeImageProvidedScopedReport(
   'live_runtime_image_provided',
   liveWithRuntimeImage,
 )
+const routePreflightPaths = ensureRoutePrivateInputPreflightPlaceholders()
+const livePrivateInputPreflight = JSON.parse(exec([
+  `npm run --silent ${runScriptName} --`,
+  `--scoped-gpu-tool ${privateInputPreflightGpuModelTools.join(',')}`,
+  `--scoped-gpu-runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  '--scoped-gpu-runtime-container-platform linux/amd64',
+  '--scoped-gpu-private-input-preflight-only',
+  `--scoped-gpu-output-root ${routePreflightPaths.rootDir}/outputs`,
+  `--scoped-gpu-source-image ${routePreflightPaths.sourceImage}`,
+  `--scoped-gpu-sam2-checkpoint ${routePreflightPaths.sam2Checkpoint}`,
+  `--scoped-gpu-birefnet-model ${routePreflightPaths.birefnetModel}`,
+  `--scoped-gpu-real-esrgan-model ${routePreflightPaths.realEsrganModel}`,
+  `--scoped-gpu-rembg-model ${routePreflightPaths.rembgModel}`,
+  `--scoped-gpu-transparent-background-checkpoint ${routePreflightPaths.transparentBackgroundCheckpoint}`,
+].join(' ')))
+checkPrivateInputPreflightScopedReport(
+  'live_private_input_preflight',
+  livePrivateInputPreflight,
+)
 
 if (packageJson.scripts?.[runScriptName] !== runScriptCommand) fail('run_script_mismatch')
 if (packageJson.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
@@ -1228,6 +1388,7 @@ for (const phrase of [
   '--scoped-gpu-tool',
   '--scoped-gpu-runtime-container-image',
   '--scoped-gpu-runtime-container-platform',
+  '--scoped-gpu-private-input-preflight-only',
   '--scoped-gpu-output-root',
   '--scoped-gpu-output-dir',
   '--scoped-gpu-source-image',
@@ -1239,6 +1400,8 @@ for (const phrase of [
   canonicalGpuModelRuntimeContainerImage,
   'runtimeExecutionBackend',
   'runtimeContainerImage',
+  'privateInputPreflightOnly',
+  'gpu_model_private_inputs_accepted_runtime_proof_not_requested',
   'gpu_model_runtime_container_image_missing',
   'gpu_model_runtime_container_gpu_unavailable',
 ]) {

@@ -78,6 +78,9 @@ interface ExternalAgentToolCallResult {
   nextExternalAgentRouteRetryCommand: string | null
   requiredPrivateInputKeys: string[]
   blockedRuntimePrerequisites: string[]
+  currentBlockingPrerequisiteKey: string | null
+  currentBlockingReasonCode: string | null
+  remainingPrivateInputKeys: string[]
   gpuRuntimeStartPolicy: string | null
 }
 
@@ -143,6 +146,7 @@ interface ScopedGpuModelLocalDevRouteAttempt {
 interface ScopedGpuModelLocalDevRouteAttemptOptions {
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
+  privateInputPreflightOnly?: boolean
   allowCpuTensorRuntime?: boolean
   allowCpuFoundationRuntime?: boolean
   privateOutputRoot?: string
@@ -224,6 +228,11 @@ function parseExternalAgentToolCallResult(
     requiredPrivateInputKeys: stringArray(raw.requiredPrivateInputKeys),
     blockedRuntimePrerequisites:
       stringArray(raw.blockedRuntimePrerequisites),
+    currentBlockingPrerequisiteKey:
+      nullableString(raw.currentBlockingPrerequisiteKey),
+    currentBlockingReasonCode:
+      nullableString(raw.currentBlockingReasonCode),
+    remainingPrivateInputKeys: stringArray(raw.remainingPrivateInputKeys),
     gpuRuntimeStartPolicy: nullableString(raw.gpuRuntimeStartPolicy),
   }
 }
@@ -585,6 +594,9 @@ function scopedGpuModelCommand(
     allowCpuFoundationRuntime
       ? '--scoped-gpu-allow-cpu-foundation-runtime'
       : '',
+    options.privateInputPreflightOnly
+      ? '--scoped-gpu-private-input-preflight-only'
+      : '',
     `--scoped-gpu-output-dir ${outputDirectory}`,
     sourceImage ? `--scoped-gpu-source-image ${sourceImage}` : '',
     inputRefs.sam2CheckpointLocalPath
@@ -644,6 +656,10 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
     publicArtifactCreated: false,
     signedUrlCreated: false,
     ...privateRuntimeInputRefs,
+  }
+  if (options.privateInputPreflightOnly) {
+    payload.privateInputPreflightOnly = true
+    payload.localRuntimeInputPreflightOnly = true
   }
   if (allowCpuTensorRuntime) {
     payload.allowCpuTensorRuntime = true
@@ -786,7 +802,12 @@ function buildScopedGpuModelLocalDevRouteAttempt(
   const runtimeContainerImage = options.runtimeContainerImage ?? null
   const runtimeContainerImageProvided = Boolean(runtimeContainerImage)
   const expectedBlockingReasonCodes = runtimeContainerImageProvided
-    ? scopedGpuModelUsesCpuTensorRuntime(toolId, options)
+    ? options.privateInputPreflightOnly
+      ? [
+          'gpu_model_private_inputs_accepted_runtime_proof_not_requested',
+          ...privateInputBlockingReasonCodes(toolId),
+        ]
+      : scopedGpuModelUsesCpuTensorRuntime(toolId, options)
       ? [
           ...privateInputBlockingReasonCodes(toolId),
           'gpu_model_runtime_container_image_unavailable',
@@ -833,7 +854,9 @@ function buildScopedGpuModelLocalDevRouteAttempt(
 
   return {
     summary: runtimeContainerImageProvided
-      ? 'POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route with explicit private local input/output paths, runtimeExecutionBackend=docker_container, and runtimeContainerImage supplied. On this host it may block at image/GPU/source prerequisites; on a CUDA Docker host with a private source frame it can execute only this scoped tool call on demand.'
+      ? options.privateInputPreflightOnly
+        ? 'POSTs a scoped GPU/model local-dev preflight request through the mounted external-agent route with explicit private local input/output paths and runtimeContainerImage supplied. The request intentionally stops after private input path-shape validation so Docker/GPU/runtime startup cannot occur.'
+        : 'POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route with explicit private local input/output paths, runtimeExecutionBackend=docker_container, and runtimeContainerImage supplied. On this host it may block at image/GPU/source prerequisites; on a CUDA Docker host with a private source frame it can execute only this scoped tool call on demand.'
       : 'POSTs a scoped GPU/model local-dev runtime request through the mounted external-agent route. The request includes explicit private local input/output paths and runtimeExecutionBackend=docker_container, but intentionally omits runtimeContainerImage so the route proves payload forwarding into the GPU/model adapter while blocking before any GPU startup or model execution.',
     requestedToolId: toolId,
     requestedRuntimeBackend: 'docker_container',
@@ -1516,6 +1539,8 @@ async function main() {
       hasFlag('--scoped-gpu-allow-cpu-tensor-runtime'),
     allowCpuFoundationRuntime:
       hasFlag('--scoped-gpu-allow-cpu-foundation-runtime'),
+    privateInputPreflightOnly:
+      hasFlag('--scoped-gpu-private-input-preflight-only'),
     privateOutputRoot: stringArg('--scoped-gpu-output-root'),
     privateOutputDirectory: stringArg('--scoped-gpu-output-dir'),
     privateSourceImageLocalPath: stringArg('--scoped-gpu-source-image'),

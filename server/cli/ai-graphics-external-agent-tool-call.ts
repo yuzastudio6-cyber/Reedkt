@@ -33,6 +33,8 @@ const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-agent-single-tool-call.md'
 const canonicalGpuModelRuntimeContainerImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
+const gpuModelPrivateInputPreflightAcceptedBlockingReason =
+  'gpu_model_private_inputs_accepted_runtime_proof_not_requested'
 const allowedCapabilityIds = [
   'chart_overlay',
   'data_visualization',
@@ -297,6 +299,13 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   blockingReasonCode: string | null | undefined,
 ): string | null {
   if (!blockingReasonCode) return null
+  if (blockingReasonCode === gpuModelPrivateInputPreflightAcceptedBlockingReason) {
+    return gpuModelAllowsCpuTensorRuntime(toolId)
+      ? 'pythonCpuTensorRuntime'
+      : gpuModelAllowsCpuFoundationRuntime(toolId)
+      ? 'pythonCpuFoundationRuntime'
+      : 'nativeCudaRuntime'
+  }
   if (
     blockingReasonCode.includes('output_directory_missing') ||
     blockingReasonCode.includes('output_directory_outside_local_artifacts')
@@ -484,6 +493,10 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
     '--runtime-input-manifest requires --attempt-gpu-runtime',
   )
   const manifest = readRuntimeInputManifest(manifestPath)
+  const privateInputPreflightOnly =
+    hasFlag('--private-input-preflight-only') ||
+    manifestBooleanForTool(toolId, manifest, 'privateInputPreflightOnly') === true ||
+    manifestBooleanForTool(toolId, manifest, 'localRuntimeInputPreflightOnly') === true
   const allowCpuTensorRuntime =
     toolId === 'kornia' &&
     (
@@ -521,6 +534,7 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
     modelWeightsLoaded: false,
     modelInferencePerformed: false,
     runtimeInputManifestUsed: Boolean(manifestPath),
+    privateInputPreflightOnly,
   }
 
   if (!attemptGpuRuntime) return payload
@@ -552,6 +566,9 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
       canonicalGpuModelRuntimeContainerImage
     payload.runtimeContainerPlatform =
       stringArg('--runtime-container-platform') ?? 'linux/amd64'
+  }
+  if (privateInputPreflightOnly) {
+    payload.localRuntimeInputPreflightOnly = true
   }
   if (sourceImageLocalPath) {
     payload.sourceImageLocalPath = sourceImageLocalPath
@@ -922,6 +939,7 @@ async function buildReport() {
       resultOut: resultOutPath() ?? null,
       runtimeInputManifest: runtimeInputManifestPath() ?? null,
       runtimeInputManifestUsed: Boolean(runtimeInputManifestPath()),
+      privateInputPreflightOnlyRequested: hasFlag('--private-input-preflight-only'),
       allowCpuTensorRuntimeRequested: hasFlag('--allow-cpu-tensor-runtime'),
       allowCpuFoundationRuntimeRequested: hasFlag('--allow-cpu-foundation-runtime'),
       unsafeRoutePayloadTest: unsafeRoutePayloadTestKind() ?? null,

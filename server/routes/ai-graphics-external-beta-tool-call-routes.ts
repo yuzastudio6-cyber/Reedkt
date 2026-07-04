@@ -81,6 +81,9 @@ export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_REQUIRED_FUTURE_MIDDLEWAR
 const AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_IMAGE =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
 
+const AI_GRAPHICS_GPU_MODEL_PRIVATE_INPUT_PREFLIGHT_ACCEPTED_BLOCKING_REASON =
+  'gpu_model_private_inputs_accepted_runtime_proof_not_requested'
+
 const AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_BUILD_COMMAND =
   `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_IMAGE} .`
 
@@ -544,6 +547,16 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   },
 ): string | null {
   if (!blockingReasonCode) return null
+  if (
+    blockingReasonCode ===
+    AI_GRAPHICS_GPU_MODEL_PRIVATE_INPUT_PREFLIGHT_ACCEPTED_BLOCKING_REASON
+  ) {
+    return options?.allowCpuTensorRuntime === true
+      ? 'pythonCpuTensorRuntime'
+      : options?.allowCpuFoundationRuntime === true
+      ? 'pythonCpuFoundationRuntime'
+      : 'nativeCudaRuntime'
+  }
   if (blockingReasonCode.includes('output_directory_missing')) {
     return 'outputDirectory'
   }

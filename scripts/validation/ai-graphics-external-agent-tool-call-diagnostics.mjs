@@ -14,6 +14,15 @@ const diagnosticScriptCommand =
 const routePath = '/api/ai-graphics/external-agent/tool-call'
 const canonicalGpuModelRuntimeContainerImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
+const privateInputPreflightBlockingReason =
+  'gpu_model_private_inputs_accepted_runtime_proof_not_requested'
+const privateInputPreflightTools = [
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+]
 
 const requiredFiles = [
   'server/cli/ai-graphics-external-agent-tool-call.ts',
@@ -506,6 +515,176 @@ function readLocalResult(filePath) {
   }
 }
 
+function writePrivateProofPpm(filePath) {
+  fs.mkdirSync(path.dirname(absolute(filePath)), { recursive: true })
+  fs.writeFileSync(absolute(filePath), [
+    'P3',
+    '2 2',
+    '255',
+    '255 0 0 0 255 0',
+    '0 0 255 255 255 255',
+    '',
+  ].join('\n'))
+}
+
+function writePrivatePlaceholderFile(filePath) {
+  fs.mkdirSync(path.dirname(absolute(filePath)), { recursive: true })
+  fs.writeFileSync(
+    absolute(filePath),
+    'local-only placeholder used for path-shape preflight; not a real model\n',
+  )
+}
+
+function privateInputPreflightPaths() {
+  const rootDir =
+    '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/private-input-preflight'
+  return {
+    rootDir,
+    sourceImage: `${rootDir}/inputs/private-approved-frame.ppm`,
+    sam2Checkpoint: `${rootDir}/models/sam2/sam2-checkpoint.pt`,
+    birefnetModel: `${rootDir}/models/birefnet`,
+    realEsrganModel: `${rootDir}/models/real-esrgan/RealESRGAN_x4plus.pth`,
+    rembgModel: `${rootDir}/models/rembg/u2net.onnx`,
+    transparentBackgroundCheckpoint:
+      `${rootDir}/models/transparent-background/ckpt_base.pth`,
+  }
+}
+
+function ensurePrivateInputPreflightPlaceholders() {
+  const paths = privateInputPreflightPaths()
+  writePrivateProofPpm(paths.sourceImage)
+  for (const filePath of [
+    paths.sam2Checkpoint,
+    `${paths.birefnetModel}/model.safetensors`,
+    paths.realEsrganModel,
+    paths.rembgModel,
+    paths.transparentBackgroundCheckpoint,
+  ]) {
+    writePrivatePlaceholderFile(filePath)
+  }
+  return paths
+}
+
+function privateInputPreflightArgs(toolId, paths) {
+  const outputDir = `${paths.rootDir}/outputs/${toolId}`
+  const args = [
+    '--tool',
+    toolId,
+    '--attempt-gpu-runtime',
+    '--runtime-backend',
+    'docker_container',
+    '--runtime-container-image',
+    canonicalGpuModelRuntimeContainerImage,
+    '--runtime-container-platform',
+    'linux/amd64',
+    '--private-input-preflight-only',
+    '--gpu-output-dir',
+    outputDir,
+    '--source-image',
+    paths.sourceImage,
+  ]
+  if (toolId === 'sam2') args.push('--sam2-checkpoint', paths.sam2Checkpoint)
+  if (toolId === 'birefnet') args.push('--birefnet-model', paths.birefnetModel)
+  if (toolId === 'real_esrgan') {
+    args.push('--real-esrgan-model', paths.realEsrganModel)
+  }
+  if (toolId === 'rembg') args.push('--rembg-model', paths.rembgModel)
+  if (toolId === 'transparent_background') {
+    args.push(
+      '--transparent-background-checkpoint',
+      paths.transparentBackgroundCheckpoint,
+    )
+  }
+  return args
+}
+
+function checkPrivateInputPreflightCall(label, report, expectedToolId) {
+  if (report.decision !== decision) fail(`${label}_decision_mismatch`)
+  if (report.status !== 'external_agent_single_tool_call_blocked_with_reason') {
+    fail(`${label}_status_mismatch:${report.status}`)
+  }
+  if (report.request?.toolId !== expectedToolId) {
+    fail(`${label}_tool_mismatch:${report.request?.toolId}`)
+  }
+  if (report.request?.group !== 'gpu_model') {
+    fail(`${label}_group_mismatch:${report.request?.group}`)
+  }
+  if (report.response?.statusCode !== 200) {
+    fail(`${label}_http_not_200:${report.response?.statusCode}`)
+  }
+  if (report.response?.externalAgentExecutionState !== 'blocked_with_reason') {
+    fail(`${label}_state_not_blocked:${report.response?.externalAgentExecutionState}`)
+  }
+  if (report.response?.blockingReasonCode !== privateInputPreflightBlockingReason) {
+    fail(`${label}_blocking_reason_mismatch:${report.response?.blockingReasonCode}`)
+  }
+  const normalized = report.response?.externalAgentToolCallResult ?? {}
+  if (normalized.callable !== true) fail(`${label}_not_callable`)
+  if (normalized.executable !== false) fail(`${label}_unexpected_executable`)
+  if (normalized.blockedWithReason !== true) fail(`${label}_not_blocked`)
+  if (normalized.failedWithDiagnostics !== false) fail(`${label}_unexpected_failure`)
+  if (normalized.controlledAdapterInvokedNow !== true) {
+    fail(`${label}_adapter_not_invoked`)
+  }
+  if (normalized.controlledAdapterExecutedNow !== false) {
+    fail(`${label}_adapter_should_not_execute`)
+  }
+  if (normalized.localGpuModelRuntimeExecutionPerformed !== false) {
+    fail(`${label}_gpu_runtime_should_not_execute`)
+  }
+  if (normalized.currentBlockingPrerequisiteKey !== 'nativeCudaRuntime') {
+    fail(`${label}_current_blocking_prerequisite_mismatch:${normalized.currentBlockingPrerequisiteKey}`)
+  }
+  if (normalized.currentBlockingReasonCode !== privateInputPreflightBlockingReason) {
+    fail(`${label}_current_blocking_reason_mismatch:${normalized.currentBlockingReasonCode}`)
+  }
+  if (!Array.isArray(normalized.remainingPrivateInputKeys) ||
+    normalized.remainingPrivateInputKeys.includes('nativeCudaRuntime')) {
+    fail(`${label}_remaining_private_inputs_still_include_runtime_blocker`)
+  }
+  if (report.nextAction?.currentBlockingPrerequisiteKey !== 'nativeCudaRuntime') {
+    fail(`${label}_next_action_blocker_mismatch:${report.nextAction?.currentBlockingPrerequisiteKey}`)
+  }
+  if (
+    report.agentCommandContract?.privateInputPreflightOnlyRequested !== true ||
+    report.request?.payload?.privateInputPreflightOnly !== true ||
+    report.request?.payload?.localRuntimeInputPreflightOnly !== true
+  ) {
+    fail(`${label}_private_input_preflight_flag_missing`)
+  }
+  for (const key of [
+    'outputDirectory',
+    'nativeCudaRuntime',
+    'sourceImageLocalPath',
+  ]) {
+    if (!Array.isArray(normalized.requiredPrivateInputKeys) ||
+      !normalized.requiredPrivateInputKeys.includes(key)) {
+      fail(`${label}_required_private_input_missing:${key}`)
+    }
+  }
+  if (expectedToolId === 'sam2' &&
+    !normalized.requiredPrivateInputKeys.includes('sam2CheckpointLocalPath')) {
+    fail(`${label}_sam2_checkpoint_not_required`)
+  }
+  if (expectedToolId === 'birefnet' &&
+    !normalized.requiredPrivateInputKeys.includes('birefnetModelLocalPath')) {
+    fail(`${label}_birefnet_model_not_required`)
+  }
+  if (expectedToolId === 'real_esrgan' &&
+    !normalized.requiredPrivateInputKeys.includes('realEsrganModelLocalPath')) {
+    fail(`${label}_real_esrgan_model_not_required`)
+  }
+  if (expectedToolId === 'rembg' &&
+    !normalized.requiredPrivateInputKeys.includes('rembgModelLocalPath')) {
+    fail(`${label}_rembg_model_not_required`)
+  }
+  if (expectedToolId === 'transparent_background' &&
+    !normalized.requiredPrivateInputKeys.includes('transparentBackgroundCheckpointLocalPath')) {
+    fail(`${label}_transparent_background_checkpoint_not_required`)
+  }
+  checkNoBoundaryLeaks(label, report)
+}
+
 for (const file of requiredFiles) read(file)
 
 const packageJson = json('package.json')
@@ -541,6 +720,7 @@ for (const phrase of [
   '--attempt-gpu-runtime',
   '--gpu-output-dir',
   '--runtime-input-manifest',
+  '--private-input-preflight-only',
   '--allow-cpu-tensor-runtime',
   'readRuntimeInputManifest',
   'manifestBooleanForTool',
@@ -568,6 +748,7 @@ for (const phrase of [
   'assertNoSignedUrlOrRawUrl',
   'gpuModelRequiredPrivateInputKeys',
   'gpuModelCurrentBlockingPrerequisiteKey',
+  'gpu_model_private_inputs_accepted_runtime_proof_not_requested',
   'blocked_until_scoped_private_gpu_runtime_proof',
   'nextExactScopedToolCallCommand',
   'nextExactScopedToolCallManifestCommand',
@@ -585,6 +766,7 @@ for (const phrase of [
   'gpuModelPayloadForbiddenTrueFields',
   'currentBlockingPrerequisiteKey',
   'remainingPrivateInputKeys',
+  'gpu_model_private_inputs_accepted_runtime_proof_not_requested',
   'assertNoSignedUrlOrRawUrl',
   'assertNoPathTraversal',
   'outputDirectory must stay under .local-artifacts/',
@@ -761,6 +943,20 @@ if (
   }
 } else {
   fail(`live_kornia_cpu_tensor_attempt_unexpected_state:${korniaCpuTensorAttemptLive.response?.externalAgentExecutionState}`)
+}
+
+const privatePreflightPaths = ensurePrivateInputPreflightPlaceholders()
+const privateInputPreflightReports = privateInputPreflightTools.map((toolId) => {
+  const report = runToolCall(privateInputPreflightArgs(toolId, privatePreflightPaths).join(' '))
+  checkPrivateInputPreflightCall(
+    `live_${toolId}_private_input_preflight`,
+    report,
+    toolId,
+  )
+  return report
+})
+if (privateInputPreflightReports.length !== 5) {
+  fail(`private_input_preflight_report_count_mismatch:${privateInputPreflightReports.length}`)
 }
 
 const manifestOutsideLocalArtifacts = spawnToolCall([
@@ -972,6 +1168,8 @@ console.log(JSON.stringify({
   korniaGpuAttemptBlockedReason:
     korniaScopedGpuAttemptLive.response.externalAgentToolCallResult
       .blockingReasonCode,
+  privateInputPreflightAcceptedBeforeRuntimeTools:
+    privateInputPreflightReports.length,
   gpuRuntimeShouldStartNow: false,
   publicArtifactCreated: false,
   signedUrlCreated: false,

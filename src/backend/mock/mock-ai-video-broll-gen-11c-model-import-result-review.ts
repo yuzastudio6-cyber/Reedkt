@@ -1,0 +1,111 @@
+import { AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_EXECUTION_RESULT } from './mock-ai-video-broll-gen-11b-model-import-proof-execution-result'
+
+export const AI_VIDEO_BROLL_GEN_11F_INFERENCE_BOUNDARY_PLAN_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11F-INFERENCE-BOUNDARY-PLAN: plan bounded Wan inference proof after import/load review, no generated video' as const
+
+export const AI_VIDEO_BROLL_GEN_11C_MODEL_IMPORT_RESULT_REVIEW = {
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  toolId: 'ai_video_broll_generation_wan',
+  mode: 'ai_video_broll_gen_11c_model_import_result_review_only',
+  decision: 'ai_video_broll_gen_11c_model_import_result_review_accepts_11b_import_load_proof_no_inference',
+  currentStage: 'bounded_l4_no_idle_wan_model_import_load_proof_passed_reviewed_no_inference',
+  acceptedEvidence: {
+    sourceResultDecision: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_EXECUTION_RESULT.decision,
+    sourceResultStatus: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_EXECUTION_RESULT.status,
+    modelImportRun: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_EXECUTION_RESULT.runtimeSideEffects.modelImportRun,
+    modelLoadRun: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_EXECUTION_RESULT.runtimeSideEffects.modelLoadRun,
+    modelInferenceRun: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_EXECUTION_RESULT.runtimeSideEffects.modelInferenceRun,
+    cleanupVerified: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_EXECUTION_RESULT.runtimeSideEffects.cleanupVerified,
+    generatedAssetsCreated:
+      AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_EXECUTION_RESULT.runtimeSideEffects.generatedAssetsCreated,
+    generatedVideoCreated:
+      AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_EXECUTION_RESULT.runtimeSideEffects.generatedVideoCreated,
+    generatedLocalFixturePassedClaimed:
+      AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_EXECUTION_RESULT.runtimeSideEffects
+        .generatedLocalFixturePassedClaimed,
+  },
+  externalAgentReadinessAfterReview: {
+    wrapperCallable: true,
+    boundedImportLoadProofExecutableWithConfirmation: true,
+    readyForWanInference: false,
+    readyForGeneratedBrollVideo: false,
+    readyForGeneratedAssets: false,
+    primaryBlocker: 'wan_inference_boundary_plan_required_before_generated_video',
+    proofCommand:
+      'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json',
+    proofCommandStillBoundedToImportLoad: true,
+    proofCommandMayCreatePromptScopedNoPublicIpVm: true,
+    proofCommandMustVerifyCleanup: true,
+  },
+  selectedRuntimeBoundary: {
+    selectedGpu: 'nvidia_l4',
+    machineType: 'g2-standard-4',
+    targetRegion: 'northamerica-northeast2',
+    targetZone: 'northamerica-northeast2-a',
+    proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
+    noPublicIpRequired: true,
+    idleGpuAllowed: false,
+    alwaysOnGpuAllowed: false,
+    cleanupVerificationRequired: true,
+  },
+  acceptedCapabilities: {
+    externalAgentWrapperCallable: true,
+    liveQuotaPreflightBeforeProof: true,
+    privateCachePreflightBeforeProof: true,
+    privateWheelhouseTransfer: true,
+    privateWanCacheTransfer: true,
+    offlineDependencyInstall: true,
+    wanPipelineClassImport: true,
+    localFilesOnlyWanPipelineLoad: true,
+    cleanupVerified: true,
+  },
+  blockedCapabilities: {
+    wanInference: true,
+    promptEncoding: true,
+    denoising: true,
+    vaeDecode: true,
+    frameCreation: true,
+    videoEncoding: true,
+    ffmpeg: true,
+    generatedBrollVideo: true,
+    generatedAssets: true,
+    publicArtifacts: true,
+    signedUrls: true,
+    supabaseMutation: true,
+    sql: true,
+    providerCalls: true,
+    workerDispatch: true,
+    creditMutation: true,
+    beta: true,
+    production: true,
+    paidProduction: true,
+  },
+  runtimeSideEffects: {
+    modelInferenceRun: false,
+    promptEncodingRun: false,
+    denoisingRun: false,
+    vaeDecodeRun: false,
+    frameCreationRun: false,
+    videoEncodingRun: false,
+    ffmpegRun: false,
+    generatedVideoCreated: false,
+    generatedAssetsCreated: false,
+    providerCallsMade: false,
+    workersDispatched: false,
+    supabaseTouched: false,
+    sqlExecuted: false,
+    storageObjectsCreated: false,
+    signedUrlsCreated: false,
+    publicArtifactsCreated: false,
+    creditMutationCreated: false,
+    betaUnlocked: false,
+    productionUnlocked: false,
+    paidProductionUnlocked: false,
+    dryRunPassedClaimed: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  nextPrompt: AI_VIDEO_BROLL_GEN_11F_INFERENCE_BOUNDARY_PLAN_PROMPT,
+} as const
+
+export type AiVideoBrollGen11cModelImportResultReview =
+  typeof AI_VIDEO_BROLL_GEN_11C_MODEL_IMPORT_RESULT_REVIEW

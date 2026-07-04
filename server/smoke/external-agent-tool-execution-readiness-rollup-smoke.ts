@@ -89,8 +89,12 @@ const BROLL_11A_MODEL_IMPORT_PLAN_PROMPT =
   'AI-VIDEO-BROLL-GEN-11A-MODEL-IMPORT-PLAN: plan Wan model import proof after payload/install readiness, no inference'
 const BROLL_11B_MODEL_IMPORT_PROOF_PROMPT =
   'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference'
+const BROLL_11C_MODEL_IMPORT_RESULT_REVIEW_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11C-MODEL-IMPORT-RESULT-REVIEW: review bounded Wan model import proof result, no inference'
 const BROLL_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-11D-CACHE-STAGING-STRATEGY-FIX: choose approved Wan private cache staging strategy after local upload stall and private URL-list 403, no GPU/no inference'
+const BROLL_11F_INFERENCE_BOUNDARY_PLAN_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11F-INFERENCE-BOUNDARY-PLAN: plan bounded Wan inference proof after import/load review, no generated video'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -145,7 +149,7 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_ready_broll_private_cache_staged_11b_model_import_ready',
+  'external_agent_tool_execution_readiness_qwen_ready_broll_11b_import_load_reviewed_inference_boundary_required',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
@@ -237,15 +241,17 @@ for (const required of [
   BROLL_10ZA_PAYLOAD_DELIVERY_TIMEOUT_FIX_PROMPT,
   BROLL_11A_MODEL_IMPORT_PLAN_PROMPT,
   BROLL_11B_MODEL_IMPORT_PROOF_PROMPT,
+  BROLL_11C_MODEL_IMPORT_RESULT_REVIEW_PROMPT,
   BROLL_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT,
+  BROLL_11F_INFERENCE_BOUNDARY_PLAN_PROMPT,
   '11E cache staging runner has passed and created the private ready marker',
-  'current executable B-roll proof step is `REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json`',
+  'The wrapper may still rerun the proof with `REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json`',
   '`REEDITPRO_CONFIRM_BROLL_11B_MODEL_IMPORT_PROOF=true`',
   'docs/ai-video-broll-gen-11e-cloud-side-cache-staging-runner.md',
   'docs/ai-video-broll-gen-11e-cloud-side-cache-staging-execution-result.md',
   'server/cli/ai-video-broll-gen-11e-cloud-side-cache-staging-runner.ts',
   '11E executed that runner successfully',
-  '11B adds the narrower no-inference import/load runner',
+  '11B executed the bounded no-idle model import/load proof',
   '11C proved that a private GCS-hosted URL-list through HTTPS fails with HTTP 403',
   '11D rejected repeat local upload, public URL-list, signed URL-list, GPU transfer host, and runtime auto-download',
   'selected a no-GPU cloud-side cache staging runner as the next strategy',
@@ -429,7 +435,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_ready_broll_private_cache_staged_11b_model_import_ready',
+  'external_agent_tool_execution_readiness_qwen_ready_broll_11b_import_load_reviewed_inference_boundary_required',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -441,7 +447,7 @@ assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(
   rollup.recommendedNextPrompt,
-  BROLL_11B_MODEL_IMPORT_PROOF_PROMPT,
+  BROLL_11F_INFERENCE_BOUNDARY_PLAN_PROMPT,
 )
 assert.equal(rollup.safeNextCommands.length, 13)
 assert.equal(
@@ -702,14 +708,14 @@ assert.equal(qwen?.evidence.includes('server/cli/external-agent-gcloud-session-d
 assert.equal(qwen?.evidence.includes('server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts'), true)
 
 const broll = toolsById.get('ai_video_broll_generation_wan')
-assert.equal(broll?.status, 'ready_for_bounded_model_import_proof_after_private_cache_staging')
+assert.equal(broll?.status, 'bounded_model_import_load_proof_reviewed_inference_boundary_plan_required')
 assert.equal(broll?.selectedGpu, 'nvidia_l4')
 assert.equal(broll?.scaleToZeroRequired, true)
 assert.equal(broll?.readyForExternalAgentExecutionNow, true)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(
   broll?.primaryBlocker,
-  'none_private_gcs_model_cache_staged_model_import_proof_requires_explicit_11b_confirmation',
+  'wan_inference_boundary_plan_required_before_generated_video',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9q-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-a-result.md'),
@@ -1183,10 +1189,32 @@ assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner-smoke.ts'),
   true,
 )
-assert.equal(broll?.nextAction, BROLL_11B_MODEL_IMPORT_PROOF_PROMPT)
+assert.equal(broll?.nextAction, BROLL_11F_INFERENCE_BOUNDARY_PLAN_PROMPT)
 assert.equal(
   broll?.primaryBlocker,
-  'none_private_gcs_model_cache_staged_model_import_proof_requires_explicit_11b_confirmation',
+  'wan_inference_boundary_plan_required_before_generated_video',
+)
+assert.equal(broll?.evidence.includes('docs/ai-video-broll-gen-11c-model-import-result-review.md'), true)
+assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-11c-model-import-result-review.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-gen-11c-model-import-result-review-smoke.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('package_json_script:smoke:ai-video-broll-gen-11c-model-import-result-review'),
+  true,
+)
+assert.equal(broll?.evidence.includes('docs/ai-video-broll-gen-11b-model-import-proof-execution-result.md'), true)
+assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-11b-model-import-proof-execution-result.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-gen-11b-model-import-proof-execution-result-smoke.ts'),
+  true,
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-11e-cloud-side-cache-staging-execution-result.md'),

@@ -1,6 +1,8 @@
 import {
   AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT,
   AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
+  AI_VIDEO_BROLL_GEN_11C_MODEL_IMPORT_RESULT_REVIEW_PROMPT,
+  AI_VIDEO_BROLL_GEN_11F_INFERENCE_BOUNDARY_PLAN_PROMPT,
   EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
@@ -131,13 +133,15 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         'external-agent B-roll wrapper must delegate only to the 11B no-idle model import/load runner after quota/cache preflight and explicit confirmation',
         '11A model import proof plan must remain completed before any Wan model import attempt',
         '11B no-inference model import proof runner must remain implemented and fail closed before any Wan import/load runtime attempt',
+        '11B model import/load proof execution result must remain recorded as passed with cleanup verified and inference blocked',
+        '11C model import result review must remain recorded before any Wan inference-boundary planning',
         '11C Storage Transfer naming test must remain recorded as blocked by private URL-list HTTP 403',
         '11D cache staging strategy fix must remain recorded with no-GPU cloud-side transfer runner selected before any Wan import/load runtime attempt',
         '11E no-GPU cloud-side cache staging runner execution result must remain passed with the private ready marker created before any Wan import/load runtime attempt',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
-      currentBlocker: 'none_private_gcs_model_cache_staged_model_import_proof_requires_explicit_11b_confirmation',
-      safeNextCommand: 'npm run external-agent-tool-execute-broll-wan',
+      currentBlocker: 'wan_inference_boundary_plan_required_before_generated_video',
+      safeNextCommand: 'npm run smoke:ai-video-broll-gen-11c-model-import-result-review',
       noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {
@@ -185,7 +189,9 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   runtimeSideEffects: ROLLUP.runtimeSideEffects,
   recommendedNextPrompt: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   brollCompletedPlanPrompt: AI_VIDEO_BROLL_GEN_11A_MODEL_IMPORT_PLAN_PROMPT,
-  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
+  brollCompletedProofPrompt: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
+  brollCompletedReviewPrompt: AI_VIDEO_BROLL_GEN_11C_MODEL_IMPORT_RESULT_REVIEW_PROMPT,
+  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_11F_INFERENCE_BOUNDARY_PLAN_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionGate = typeof EXTERNAL_AGENT_TOOL_EXECUTION_GATE

@@ -83,7 +83,7 @@ assert.equal(spec.broll.targetZone, 'northamerica-northeast2-a')
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.broll.minimumRegionalL4Quota, 1)
 assert.equal(
-  spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF'),
+  spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-11F-INFERENCE-BOUNDARY-PLAN'),
   true,
 )
 assert.equal(spec.allowedReadOnlyCommands.length >= 10, true)

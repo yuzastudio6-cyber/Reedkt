@@ -5,6 +5,54 @@ import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backen
 
 type JsonRecord = Record<string, unknown>
 
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
+
+function readArgValue(names: string[]): string | undefined {
+  for (const name of names) {
+    const equalsPrefix = `${name}=`
+    const equalsMatch = process.argv.find((arg) => arg.startsWith(equalsPrefix))
+    if (equalsMatch) return equalsMatch.slice(equalsPrefix.length).trim()
+
+    const index = process.argv.indexOf(name)
+    if (index >= 0) {
+      const next = process.argv[index + 1]?.trim()
+      if (next && !next.startsWith('--')) return next
+    }
+  }
+
+  return undefined
+}
+
+function resolveAccountIndexOverride(): {
+  cliAccountIndexProvided: boolean
+  cliAccountIndex?: number
+  cliAccountIndexValid: boolean
+  childEnv: NodeJS.ProcessEnv
+} {
+  const rawIndex = readArgValue(['--account-index', '--gcloud-account-index'])
+  if (!rawIndex) {
+    return {
+      cliAccountIndexProvided: false,
+      cliAccountIndexValid: false,
+      childEnv: process.env,
+    }
+  }
+
+  const parsedIndex = Number(rawIndex)
+  const cliAccountIndexValid = Number.isInteger(parsedIndex) && parsedIndex > 0
+  return {
+    cliAccountIndexProvided: true,
+    cliAccountIndex: Number.isFinite(parsedIndex) ? parsedIndex : undefined,
+    cliAccountIndexValid,
+    childEnv: cliAccountIndexValid
+      ? {
+          ...process.env,
+          [GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]: String(parsedIndex),
+        }
+      : process.env,
+  }
+}
+
 function nestedBoolean(document: JsonRecord | undefined, keys: string[]): boolean {
   let value: unknown = document
   for (const key of keys) {
@@ -41,10 +89,10 @@ function nestedRecord(document: JsonRecord | undefined, keys: string[]): JsonRec
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as JsonRecord) : undefined
 }
 
-function runLiveVerifier() {
+function runLiveVerifier(childEnv: NodeJS.ProcessEnv) {
   const result = spawnSync('npx', ['tsx', 'server/cli/external-agent-gcp-access-verify.ts'], {
     cwd: process.cwd(),
-    env: process.env,
+    env: childEnv,
     encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 16,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -68,6 +116,7 @@ function runLiveVerifier() {
 function main() {
   const gate = EXTERNAL_AGENT_TOOL_EXECUTION_GATE
   const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
+  const accountIndexOverride = resolveAccountIndexOverride()
   const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
   const staticExplicitGateTools = gate.toolRows.filter((tool) => tool.staticExplicitToolGateReady)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
@@ -83,7 +132,7 @@ function main() {
     gate.staticExplicitToolGateReady && staticExplicitGateTools.length > 0 && runtimeGatesAllFalse
   const requireGo = process.argv.includes('--require-go')
   const liveMode = process.argv.includes('--live') || process.argv.includes('--use-live-verify')
-  const liveVerifierResult = liveMode ? runLiveVerifier() : undefined
+  const liveVerifierResult = liveMode ? runLiveVerifier(accountIndexOverride.childEnv) : undefined
   const liveVerifierJson = liveVerifierResult?.json
   const liveVerifierReady =
     liveVerifierResult?.ok === true &&
@@ -108,6 +157,18 @@ function main() {
     generatedLocalFixturePassedClaimed: gate.generatedLocalFixturePassedClaimed,
     requireGoMode: requireGo,
     liveMode,
+    accountSelectionGuidance: {
+      overrideIndexEnv: GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV,
+      cliAccountIndexFlag: '--account-index <account-index>',
+      cliGcloudAccountIndexFlagAlias: '--gcloud-account-index <account-index>',
+      cliAccountIndexProvided: accountIndexOverride.cliAccountIndexProvided,
+      cliAccountIndex: accountIndexOverride.cliAccountIndex,
+      cliAccountIndexValid: accountIndexOverride.cliAccountIndexValid,
+      cliAccountIndexMapsToChildEnv:
+        accountIndexOverride.cliAccountIndexProvided && accountIndexOverride.cliAccountIndexValid,
+      mutatesLocalGcloudConfig: false,
+      printsAccountValue: false,
+    },
     staticExplicitToolGateReady,
     staticExplicitToolGateReadyToolIds: staticExplicitGateTools.map((tool) => tool.toolId),
     staticReadyForAnyExternalAgentExecutionGateNow: readyTools.length > 0,

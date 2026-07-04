@@ -215,7 +215,13 @@ for (const [flag, value] of Object.entries(gate.runtimeSideEffects)) {
 assert.equal(gate.recommendedNextPrompt, QWEN_READY_PROMPT)
 
 const cliSource = read(CLI_PATH)
-for (const required of ['--live', 'runLiveVerifier', 'external-agent-gcp-access-verify.ts']) {
+for (const required of [
+  '--live',
+  '--account-index',
+  'cliAccountIndexMapsToChildEnv',
+  'runLiveVerifier',
+  'external-agent-gcp-access-verify.ts',
+]) {
   assert.equal(cliSource.includes(required), true, `Execution gate CLI missing live verifier marker: ${required}`)
 }
 for (const forbidden of ['execSync', 'execFileSync', 'gcloud ', 'docker ', 'psql', 'from_pretrained', 'torch.']) {
@@ -232,6 +238,10 @@ assert.equal(report.ok, true)
 assert.equal(report.mode, gate.mode)
 assert.equal(report.decision, gate.decision)
 assert.equal(report.liveMode, false)
+assert.equal(report.accountSelectionGuidance.cliAccountIndexProvided, false)
+assert.equal(report.accountSelectionGuidance.cliAccountIndexValid, false)
+assert.equal(report.accountSelectionGuidance.mutatesLocalGcloudConfig, false)
+assert.equal(report.accountSelectionGuidance.printsAccountValue, false)
 assert.equal(report.liveVerifierRun, false)
 assert.equal(report.liveVerifier, undefined)
 assert.equal(report.liveVerifierAvailableCommand, 'npm run external-agent-gcp-access:verify')
@@ -322,6 +332,24 @@ if (!liveReport.executionAllowedNow) {
   assert.equal(liveReport.blockedToolIds.length, gate.toolRows.length)
 }
 
+const indexedLive = spawnSync('npx', ['tsx', CLI_PATH, '--live', '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 24,
+})
+const indexedLiveReport = JSON.parse(String(indexedLive.stdout))
+assert.equal(indexedLive.status, 0)
+assert.equal(indexedLiveReport.liveMode, true)
+assert.equal(indexedLiveReport.accountSelectionGuidance.cliAccountIndexProvided, true)
+assert.equal(indexedLiveReport.accountSelectionGuidance.cliAccountIndex, 2)
+assert.equal(indexedLiveReport.accountSelectionGuidance.cliAccountIndexValid, true)
+assert.equal(indexedLiveReport.accountSelectionGuidance.cliAccountIndexMapsToChildEnv, true)
+assert.equal(indexedLiveReport.accountSelectionGuidance.mutatesLocalGcloudConfig, false)
+assert.equal(indexedLiveReport.accountSelectionGuidance.printsAccountValue, false)
+assert.equal(typeof indexedLiveReport.liveVerifier.ok, 'boolean')
+assert.equal(typeof indexedLiveReport.liveVerifier.qwenReadAccessPassed, 'boolean')
+assert.equal(typeof indexedLiveReport.liveVerifier.brollQuotaReadAccessPassed, 'boolean')
+
 const requireGoLive = spawnSync('npx', ['tsx', CLI_PATH, '--require-go', '--live'], {
   cwd: ROOT,
   encoding: 'utf8',
@@ -332,7 +360,14 @@ assert.equal(requireGoLiveReport.requireGoMode, true)
 assert.equal(requireGoLiveReport.liveMode, true)
 assert.equal(requireGoLive.status, requireGoLiveReport.executionAllowedNow ? 0 : 2)
 
-const forbiddenFindings = scanForbiddenValues({ gate, report, requireGoReport, liveReport, requireGoLiveReport })
+const forbiddenFindings = scanForbiddenValues({
+  gate,
+  report,
+  requireGoReport,
+  liveReport,
+  indexedLiveReport,
+  requireGoLiveReport,
+})
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(

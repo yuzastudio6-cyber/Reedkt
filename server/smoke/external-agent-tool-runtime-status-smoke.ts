@@ -82,6 +82,8 @@ for (const required of [
   'agentCallable',
   'runtimeExecutableNow',
   'accountSelectionGuidance',
+  'accountIndexedCommands',
+  'accountIndexed',
   'safePreflightCommand',
   'external-agent-tool-execute-qwen -- --preflight-only',
   'external-agent-tool-execute-broll-wan -- --preflight-only',
@@ -136,6 +138,7 @@ assert.equal(staticStatus.readyForAnyExternalAgentRuntimeExecutionNow, false)
 assert.deepEqual(staticStatus.runtimeExecutableToolIds, [])
 assert.equal(staticStatus.runtimeGatesAllFalse, true)
 assert.equal(staticStatus.safeAgentCommands.liveStatus, 'npm run external-agent-tool-runtime-status')
+assert.equal(staticStatus.safeAgentCommands.accountIndexed, undefined)
 assert.equal(
   staticStatus.safeAgentCommands.brollInferencePreflight,
   'npm run external-agent-tool-execute-broll-wan -- --inference-proof --preflight-only --json',
@@ -203,6 +206,38 @@ assert.equal(indexedStaticStatus.accountSelectionGuidance.cliAccountIndexValid, 
 assert.equal(indexedStaticStatus.accountSelectionGuidance.cliAccountIndexMapsToChildEnv, true)
 assert.equal(indexedStaticStatus.accountSelectionGuidance.printsAccountValue, false)
 assert.equal(indexedStaticStatus.accountSelectionGuidance.mutatesLocalGcloudConfig, false)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.liveStatus,
+  'npm run external-agent-tool-runtime-status -- --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.liveGate,
+  'npm run external-agent-tool-execution-gate -- --live --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.nextCommand,
+  'npm run external-agent-tool-next-command -- --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.blockerPreflight,
+  'npm run external-agent-tool-blockers:preflight -- --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.gcpAccessVerify,
+  'npm run external-agent-gcp-access:verify -- --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.qwenPreflight,
+  'npm run external-agent-tool-execute-qwen -- --preflight-only --json --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.brollPreflight,
+  'npm run external-agent-tool-execute-broll-wan -- --preflight-only --json --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.brollInferencePreflight,
+  'npm run external-agent-tool-execute-broll-wan -- --inference-proof --preflight-only --json --account-index 2',
+)
 
 const invalidIndexedStaticStatus = runStatus(['--static-only', '--account-index', 'nope'])
 assert.equal(invalidIndexedStaticStatus.ok, true)
@@ -233,6 +268,11 @@ assert.equal(
   'npm run external-agent-tool-execute-qwen -- --preflight-only --json',
 )
 assert.equal(
+  (staticToolsById.get('qwen2_5_vl_7b_instruct') as { accountIndexedCommands?: unknown })
+    .accountIndexedCommands,
+  undefined,
+)
+assert.equal(
   (staticToolsById.get('ai_video_broll_generation_wan') as { safePreflightCommand: string }).safePreflightCommand,
   'npm run external-agent-tool-execute-broll-wan -- --preflight-only --json',
 )
@@ -244,6 +284,42 @@ assert.equal(
   (staticToolsById.get('supabase_local_fixture_harness') as { supportingEvidenceOnly: boolean })
     .supportingEvidenceOnly,
   true,
+)
+
+const indexedStaticToolsById = new Map(
+  indexedStaticStatus.tools.map((tool: { toolId: string }) => [tool.toolId, tool]),
+)
+assert.equal(
+  (
+    indexedStaticToolsById.get('qwen2_5_vl_7b_instruct') as {
+      accountIndexedCommands: { safePreflightCommand: string; executionCommand: string }
+    }
+  ).accountIndexedCommands.safePreflightCommand,
+  'npm run external-agent-tool-execute-qwen -- --preflight-only --json --account-index 2',
+)
+assert.equal(
+  (
+    indexedStaticToolsById.get('qwen2_5_vl_7b_instruct') as {
+      accountIndexedCommands: { safePreflightCommand: string; executionCommand: string }
+    }
+  ).accountIndexedCommands.executionCommand,
+  'npm run external-agent-tool-execute-qwen -- --execute --json --account-index 2',
+)
+assert.equal(
+  (
+    indexedStaticToolsById.get('ai_video_broll_generation_wan') as {
+      accountIndexedCommands: { safePreflightCommand: string; executionCommand: string }
+    }
+  ).accountIndexedCommands.safePreflightCommand,
+  'npm run external-agent-tool-execute-broll-wan -- --preflight-only --json --account-index 2',
+)
+assert.equal(
+  (
+    indexedStaticToolsById.get('sound_music_audio') as {
+      accountIndexedCommands: { wrapperStaticGuardCommand: string; executionCommand: string }
+    }
+  ).accountIndexedCommands.executionCommand,
+  'npm run external-agent-tool-execute-sound -- --execute --json --account-index 2',
 )
 
 const liveStatus = runStatus()

@@ -93,6 +93,33 @@ function resolveAccountIndexOverride(): {
   }
 }
 
+function resolveSelectedAccountIndexArg(
+  accountIndexOverride: ReturnType<typeof resolveAccountIndexOverride>,
+): string | undefined {
+  if (
+    !accountIndexOverride.cliAccountIndexProvided ||
+    !accountIndexOverride.cliAccountIndexValid ||
+    typeof accountIndexOverride.cliAccountIndex !== 'number'
+  ) {
+    return undefined
+  }
+
+  return `--account-index ${accountIndexOverride.cliAccountIndex}`
+}
+
+function appendSelectedAccountIndex(command: string | undefined, accountIndexArg: string | undefined) {
+  if (!command || !accountIndexArg) return undefined
+  if (command.includes('--account-index') || command.includes('--gcloud-account-index')) return command
+
+  return `${command} ${accountIndexArg}`
+}
+
+function compactRecord<T extends Record<string, string | undefined>>(record: T) {
+  return Object.fromEntries(
+    Object.entries(record).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+  )
+}
+
 function runJson(id: string, command: string, args: string[], childEnv: NodeJS.ProcessEnv) {
   const result = spawnSync(command, args, {
     cwd: process.cwd(),
@@ -186,6 +213,7 @@ function resolveRecommendedNextPrompt({
 function main() {
   const staticOnly = process.argv.includes('--static-only')
   const accountIndexOverride = resolveAccountIndexOverride()
+  const selectedAccountIndexArg = resolveSelectedAccountIndexArg(accountIndexOverride)
   const liveChecksRun = !staticOnly
   const readiness = runJson(
     'static_readiness',
@@ -288,6 +316,20 @@ function main() {
       wrapperStaticGuardCommand: commands?.staticGuardCommand,
       safePreflightCommand: commands?.safePreflightCommand,
       executionCommand: commands?.executionCommand,
+      accountIndexedCommands:
+        selectedAccountIndexArg && commands
+          ? compactRecord({
+              wrapperStaticGuardCommand: appendSelectedAccountIndex(
+                commands.staticGuardCommand,
+                selectedAccountIndexArg,
+              ),
+              safePreflightCommand: appendSelectedAccountIndex(
+                commands.safePreflightCommand,
+                selectedAccountIndexArg,
+              ),
+              executionCommand: appendSelectedAccountIndex(commands.executionCommand, selectedAccountIndexArg),
+            })
+          : undefined,
       confirmationEnv: commands?.confirmationEnv,
       runtimeKind: commands?.runtimeKind,
       staticStatus: tool.status,
@@ -475,6 +517,28 @@ function main() {
       brollPreflight: TOOL_COMMANDS.ai_video_broll_generation_wan.safePreflightCommand,
       brollInferencePreflight:
         'npm run external-agent-tool-execute-broll-wan -- --inference-proof --preflight-only --json',
+      accountIndexed:
+        selectedAccountIndexArg
+          ? compactRecord({
+              liveStatus: `npm run external-agent-tool-runtime-status -- ${selectedAccountIndexArg}`,
+              liveGate: `npm run external-agent-tool-execution-gate -- --live ${selectedAccountIndexArg}`,
+              nextCommand: `npm run external-agent-tool-next-command -- ${selectedAccountIndexArg}`,
+              blockerPreflight: `npm run external-agent-tool-blockers:preflight -- ${selectedAccountIndexArg}`,
+              gcpAccessVerify: `npm run external-agent-gcp-access:verify -- ${selectedAccountIndexArg}`,
+              qwenPreflight: appendSelectedAccountIndex(
+                TOOL_COMMANDS.qwen2_5_vl_7b_instruct.safePreflightCommand,
+                selectedAccountIndexArg,
+              ),
+              brollPreflight: appendSelectedAccountIndex(
+                TOOL_COMMANDS.ai_video_broll_generation_wan.safePreflightCommand,
+                selectedAccountIndexArg,
+              ),
+              brollInferencePreflight: appendSelectedAccountIndex(
+                'npm run external-agent-tool-execute-broll-wan -- --inference-proof --preflight-only --json',
+                selectedAccountIndexArg,
+              ),
+            })
+          : undefined,
     },
     forbiddenRuntimeActions: [
       'do not execute wrappers without explicit confirmation envs',

@@ -69,7 +69,7 @@ export function listMockProductionToolExecutionReadinessEvidencePackets(
 ): ProductionToolExecutionReadinessEvidencePacket[] {
   return [...mockProductionEvidencePackets.values()]
     .filter((packet) => packet.workspaceId === workspaceId)
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
 }
 
 export function getMockProductionToolExecutionReadinessEvidencePacket(
@@ -139,6 +139,7 @@ export async function listPersistentProductionToolExecutionReadinessEvidencePack
     .select('*')
     .eq('workspace_id', workspaceId)
     .order('created_at', { ascending: true })
+    .order('id', { ascending: true })
 
   throwPersistentStoreError(result.error)
   return ((result.data ?? []) as ProductionToolExecutionReadinessEvidencePacketRow[]).map(rowToPacket)

@@ -25,6 +25,11 @@ import {
   DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_TABLES,
 } from '../lib/project-edit-session-backend-persistence-plan'
 import { getMockSafeDurableProjectSessionBackendSkeleton } from '../lib/project-edit-session-backend-skeleton'
+import {
+  DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_DECISION,
+  DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_NEXT_GATE,
+  getDurableProjectSessionSupabaseRouteContractPlan,
+} from '../lib/project-session-supabase-route-contract-plan'
 import { PROJECT_EDIT_SESSION_ACCESS_POLICY_REQUIRED_EVIDENCE } from '../lib/project-edit-session-access-policy'
 import { internalTestingScenarios, type InternalTestingScenarioStatus } from '../lib/internal-testing-scenarios'
 import {
@@ -150,10 +155,11 @@ function getScenarioHighlights() {
     'mock-safe-durable-project-session-backend-skeleton',
     'durable-project-session-backend-route-integration',
     'durable-project-session-backend-readback-qa',
+    'durable-project-session-supabase-route-contract-plan',
     'feedback-export',
   ])
 
-  return internalTestingScenarios.filter((scenario) => prioritizedIds.has(scenario.id)).slice(0, 16)
+  return internalTestingScenarios.filter((scenario) => prioritizedIds.has(scenario.id)).slice(0, 20)
 }
 
 export function InternalTestingPage() {
@@ -177,6 +183,7 @@ export function InternalTestingPage() {
 
   const highlightedScenarios = useMemo(getScenarioHighlights, [])
   const backendSkeleton = useMemo(getMockSafeDurableProjectSessionBackendSkeleton, [])
+  const supabaseRouteContractPlan = useMemo(getDurableProjectSessionSupabaseRouteContractPlan, [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -739,6 +746,56 @@ export function InternalTestingPage() {
                 <li>No durable Supabase table read/write or service-role browser path.</li>
                 <li>No worker, tool, media, render, credit, external beta, production, or product-ready unlock.</li>
                 <li>Next work is a route contract plan, not a migration or live data path.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-durable-project-session-supabase-route-contract-plan">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Supabase route contract</span>
+            <h2>Durable project/session routes need grants and RLS before live access</h2>
+          </div>
+          <p>
+            This plan converts the readback QA into a future Supabase route contract. Project Home, Project Edit Session, and Project Edit Brief
+            access must chain through <code>workspace_members</code> and <code>auth.uid()</code>, with explicit Data API grants and
+            authenticated-role RLS verified together before any durable table-backed route can pass.
+          </p>
+          <div className="internal-testing-auth-grid">
+            <article data-testid="internal-testing-supabase-route-contract-decision">
+              <Badge accent="success">Schema/RLS draft ready</Badge>
+              <strong>{DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_DECISION}</strong>
+              <span>Next gate: {DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_NEXT_GATE}</span>
+            </article>
+            <article data-testid="internal-testing-supabase-route-contract-families">
+              <Badge accent="cyan">Route families</Badge>
+              <ul>
+                {supabaseRouteContractPlan.routeFamilies.map((route) => (
+                  <li key={route.routeFamily}>
+                    {route.path}: {route.accessChain}
+                  </li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-supabase-route-contract-grants">
+              <Badge accent="cyan">Grant and RLS requirements</Badge>
+              <ul>
+                {supabaseRouteContractPlan.requiredDataApiGrants.map((grant) => (
+                  <li key={grant}>{grant.replace(/_/g, ' ')}</li>
+                ))}
+                {supabaseRouteContractPlan.rlsPolicyIntents.slice(0, 3).map((policy) => (
+                  <li key={policy.table}>
+                    {policy.table}: {policy.intent}
+                  </li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-supabase-route-contract-boundaries">
+              <Badge accent="warning">Still gated</Badge>
+              <ul>
+                <li>No Supabase migration, SQL, Data API read/write, Storage, signed URL, grant application, or RLS policy application.</li>
+                <li>No service-role browser path, worker, tool, media, render, credit, external beta, production, or product-ready unlock.</li>
+                <li>Next work is a schema/RLS draft, not live route access.</li>
               </ul>
             </article>
           </div>

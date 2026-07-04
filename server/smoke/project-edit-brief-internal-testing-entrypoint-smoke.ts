@@ -33,6 +33,7 @@ const requiredFiles = [
   'src/lib/project-edit-session-access-policy.ts',
   'src/lib/project-edit-session-backend-persistence-plan.ts',
   'src/lib/project-edit-session-backend-skeleton.ts',
+  'src/lib/project-session-supabase-route-contract-plan.ts',
   'src/backend/api/project-session-access-route-integration.ts',
   'src/backend/api/project-session-access-readback-qa.ts',
   'src/components/projects/ProjectEditSessionAccessPolicyNotice.tsx',
@@ -50,6 +51,8 @@ const requiredFiles = [
   'docs/internal-testing-durable-project-session-backend-route-integration.json',
   'docs/internal-testing-durable-project-session-backend-readback-qa.md',
   'docs/internal-testing-durable-project-session-backend-readback-qa.json',
+  'docs/internal-testing-durable-project-session-supabase-route-contract-plan.md',
+  'docs/internal-testing-durable-project-session-supabase-route-contract-plan.json',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
 ]
 
@@ -107,6 +110,11 @@ assert.match(page, /DURABLE_PROJECT_SESSION_BACKEND_ROUTE_INTEGRATION_DECISION/)
 assert.match(page, /internal-testing-durable-project-session-backend-readback-qa/)
 assert.match(page, /Readback QA/)
 assert.match(page, /DURABLE_PROJECT_SESSION_BACKEND_READBACK_QA_DECISION/)
+assert.match(page, /internal-testing-durable-project-session-supabase-route-contract-plan/)
+assert.match(page, /Supabase route contract/)
+assert.match(page, /DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_DECISION/)
+assert.match(page, /getDurableProjectSessionSupabaseRouteContractPlan/)
+assert.match(page, /schema\/RLS draft/)
 assert.doesNotMatch(page, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/)
 assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|service_role|signedUrl/i)
 
@@ -151,6 +159,14 @@ assert.match(readbackQa, /success_data/)
 assert.match(readbackQa, /failure_error/)
 assert.doesNotMatch(readbackQa, /createClient|\.from\s*\(|insert\s*\(|update\s*\(|delete\s*\(|createSignedUrl/i)
 
+const supabaseRouteContractPlan = read('src/lib/project-session-supabase-route-contract-plan.ts')
+assert.match(supabaseRouteContractPlan, /DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_DECISION/)
+assert.match(supabaseRouteContractPlan, /workspace_members/)
+assert.match(supabaseRouteContractPlan, /edit_sessions\.project_id/)
+assert.match(supabaseRouteContractPlan, /schema_usage_granted_to_authenticated/)
+assert.match(supabaseRouteContractPlan, /INTERNAL_TESTING_DURABLE_PROJECT_SESSION_SUPABASE_SCHEMA_RLS_DRAFT/)
+assert.doesNotMatch(supabaseRouteContractPlan, /createClient|\.from\s*\(|insert\s*\(|update\s*\(|delete\s*\(|createSignedUrl|SUPABASE_SERVICE_ROLE_KEY/i)
+
 const docs = read('docs/project-edit-brief-internal-testing-entrypoint.md')
 for (const phrase of [
   'production-shaped',
@@ -178,6 +194,8 @@ for (const phrase of [
   'durable-project-session-backend-route-integration',
   'Durable Project Session Backend Readback QA',
   'durable-project-session-backend-readback-qa',
+  'Durable Project Session Supabase Route Contract Plan',
+  'durable-project-session-supabase-route-contract-plan',
   'No Supabase Data API',
 ]) {
   assert.match(docs, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'))
@@ -207,6 +225,7 @@ assert.ok(docJson.features?.includes('durable_auth_project_session_backend_persi
 assert.ok(docJson.features?.includes('mock_safe_durable_project_session_backend_skeleton'))
 assert.ok(docJson.features?.includes('durable_project_session_backend_route_integration'))
 assert.ok(docJson.features?.includes('durable_project_session_backend_readback_qa'))
+assert.ok(docJson.features?.includes('durable_project_session_supabase_route_contract_plan'))
 assert.equal(docJson.scenarioStatus?.['approval-credit-gate-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['credit-lifecycle-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['repeated-local-operator-harness'], 'mock_local')
@@ -216,6 +235,7 @@ assert.equal(docJson.scenarioStatus?.['durable-auth-project-session-backend-pers
 assert.equal(docJson.scenarioStatus?.['mock-safe-durable-project-session-backend-skeleton'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['durable-project-session-backend-route-integration'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['durable-project-session-backend-readback-qa'], 'mock_local')
+assert.equal(docJson.scenarioStatus?.['durable-project-session-supabase-route-contract-plan'], 'mock_local')
 assert.equal(docJson.blockedScope?.productReady, false)
 assert.equal(docJson.blockedScope?.supabaseReadWrite, false)
 assert.equal(docJson.blockedScope?.workerDispatch, false)
@@ -231,6 +251,7 @@ assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable-project-session-backend-route-integration'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable-project-session-backend-readback-qa'))
+assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable-project-session-supabase-route-contract-plan'))
 
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
 assert.equal(
@@ -246,6 +267,7 @@ assert.match(sourceTruth, /Durable auth project\/session backend persistence pla
 assert.match(sourceTruth, /Mock-safe durable project\/session backend skeleton after RP-INTTEST-05/)
 assert.match(sourceTruth, /Durable project\/session backend route integration after RP-INTTEST-06/)
 assert.match(sourceTruth, /Durable project\/session backend readback QA after RP-INTTEST-07/)
+assert.match(sourceTruth, /Durable project\/session Supabase route contract plan after RP-INTTEST-08/)
 
 const sourceTruthJson = JSON.parse(read('docs/project-edit-brief-source-truth-reconciliation.json')) as {
   landedScope?: string[]
@@ -258,12 +280,14 @@ assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_auth_p
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_mock_safe_durable_project_session_backend_skeleton'))
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_backend_route_integration'))
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_backend_readback_qa'))
+assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_route_contract_plan'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:project-edit-brief-internal-testing-entrypoint'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-auth-project-session-membership-policy'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-auth-project-session-backend-persistence-plan'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-backend-route-integration'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-backend-readback-qa'))
+assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-route-contract-plan'))
 assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_entrypoint_after_rp_editbrief_23'))
 
 const statusCounts = internalTestingScenarios.reduce<Record<string, number>>((counts, scenario) => {
@@ -343,6 +367,14 @@ assert.ok(
   internalTestingScenarios.some(
     (scenario) =>
       scenario.id === 'durable-project-session-backend-route-integration' &&
+      scenario.route === '/internal-testing' &&
+      scenario.status === 'mock_local',
+  ),
+)
+assert.ok(
+  internalTestingScenarios.some(
+    (scenario) =>
+      scenario.id === 'durable-project-session-supabase-route-contract-plan' &&
       scenario.route === '/internal-testing' &&
       scenario.status === 'mock_local',
   ),

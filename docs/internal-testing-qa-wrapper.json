@@ -19,6 +19,7 @@
     "smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton",
     "smoke:internal-testing-durable-project-session-backend-route-integration",
     "smoke:internal-testing-durable-project-session-backend-readback-qa",
+    "smoke:internal-testing-durable-project-session-supabase-route-contract-plan",
     "smoke:beta-readiness"
   ],
   "playwrightSpecs": [

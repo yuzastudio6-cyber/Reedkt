@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { closeSync, existsSync, openSync, readSync, statSync } from 'node:fs'
 import path from 'node:path'
 import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
@@ -948,6 +949,25 @@ function validPrivateChecksumEvidenceRef(value: string): boolean {
     !value.split(/[\\/]+/).includes('..')
 }
 
+function sha256File(filePath: string): string | null {
+  let fd: number | null = null
+  try {
+    fd = openSync(filePath, 'r')
+    const hash = createHash('sha256')
+    const buffer = Buffer.alloc(1024 * 1024)
+    while (true) {
+      const bytesRead = readSync(fd, buffer, 0, buffer.length, null)
+      if (bytesRead === 0) break
+      hash.update(buffer.subarray(0, bytesRead))
+    }
+    return hash.digest('hex')
+  } catch {
+    return null
+  } finally {
+    if (fd !== null) closeSync(fd)
+  }
+}
+
 function privateModelWeightEvidenceBlock(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   payload: Record<string, unknown>,
@@ -1009,6 +1029,39 @@ function privateModelWeightEvidenceBlock(
         'GPU/model runtime did not start because the private model/checkpoint checksum evidence reference was not acceptable.',
       errorMessage:
         'modelWeightChecksumEvidenceRef must be a reviewed private:// checksum evidence reference.',
+    })
+  }
+
+  const modelFile = modelFilePathForRuntimeContentCheck(toolId, payload)
+  if (!modelFile || !modelFile.pathValue) return null
+  const actualChecksumSha256 = sha256File(modelFile.pathValue)
+  if (!actualChecksumSha256) {
+    return skippedPrerequisiteBlock({
+      toolId,
+      code: `${toolId}_model_weight_checksum_unreadable`,
+      message:
+        `${modelFile.label} could not be read for SHA-256 verification before CUDA/GPU runtime startup.`,
+      summary:
+        'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because the private model/checkpoint checksum could not be computed.',
+      warning:
+        'GPU/model runtime did not start because the supplied private model/checkpoint file could not be hashed against reviewed model-weight evidence.',
+      errorMessage:
+        `${modelFile.label} could not be hashed for controlled GPU/model runtime proof.`,
+    })
+  }
+  if (actualChecksumSha256.toLowerCase() !== checksumSha256.toLowerCase()) {
+    return skippedPrerequisiteBlock({
+      toolId,
+      code: `${toolId}_model_weight_checksum_mismatch`,
+      message:
+        `${modelFile.label} SHA-256 does not match modelWeightChecksumSha256; ` +
+        'reviewed model-weight evidence must match the exact private model/checkpoint file before CUDA/GPU runtime may start.',
+      summary:
+        'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because the private model/checkpoint checksum did not match reviewed evidence.',
+      warning:
+        'GPU/model runtime did not start because the supplied private model/checkpoint file did not match the reviewed model-weight checksum.',
+      errorMessage:
+        `${modelFile.label} checksum did not match modelWeightChecksumSha256.`,
     })
   }
 

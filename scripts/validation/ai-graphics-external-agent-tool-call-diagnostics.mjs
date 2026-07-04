@@ -802,6 +802,9 @@ for (const phrase of [
   'rembg_model_too_small_for_runtime',
   'rembg_model_invalid_extension',
   '_model_weight_manifest_evidence_missing',
+  '_model_weight_checksum_mismatch',
+  '_model_weight_checksum_unreadable',
+  'sha256File',
   'transparent_background_checkpoint_too_small_for_runtime',
   'transparent_background_checkpoint_invalid_extension',
   'blocked before Docker/GPU/Python startup',
@@ -1162,6 +1165,83 @@ if (
   'modelWeightManifestEvidence'
 ) {
   fail(`rembg_missing_evidence_next_action_blocker_mismatch:${rembgMissingEvidenceRuntimeAttempt.nextAction?.currentBlockingPrerequisiteKey}`)
+}
+
+const rembgWrongChecksumModel =
+  `${privatePreflightPaths.rootDir}/models/rembg/u2net-large-wrong-checksum.onnx`
+writeLargePrivatePlaceholderFile(rembgWrongChecksumModel)
+const rembgWrongChecksumManifest =
+  `${runtimeManifestDir}/wrong-model-weight-checksum-runtime-inputs.json`
+fs.writeFileSync(absolute(rembgWrongChecksumManifest), JSON.stringify({
+  toolInputs: {
+    rembg: {
+      outputDirectory: `${runtimeManifestDir}/wrong-checksum-output`,
+      sourceImageLocalPath: privatePreflightPaths.sourceImage,
+      rembgModelLocalPath: rembgWrongChecksumModel,
+      modelWeightManifestId: 'rembg_private_manifest_review_v1',
+      modelWeightChecksumSha256: '0'.repeat(64),
+      modelWeightChecksumEvidenceRef:
+        'private://reeditpro/ai-graphics/checksum-evidence/rembg.json',
+    },
+  },
+}, null, 2))
+const rembgWrongChecksumRuntimeAttempt = runToolCall([
+  '--tool rembg',
+  '--attempt-gpu-runtime',
+  '--runtime-backend docker_container',
+  `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  '--runtime-container-platform linux/amd64',
+  `--runtime-input-manifest ${rembgWrongChecksumManifest}`,
+].join(' '))
+if (rembgWrongChecksumRuntimeAttempt.status !== 'external_agent_single_tool_call_blocked_with_reason') {
+  fail(`rembg_wrong_checksum_status_mismatch:${rembgWrongChecksumRuntimeAttempt.status}`)
+}
+if (
+  rembgWrongChecksumRuntimeAttempt.response?.externalAgentExecutionState !==
+  'blocked_with_reason'
+) {
+  fail(`rembg_wrong_checksum_state_mismatch:${rembgWrongChecksumRuntimeAttempt.response?.externalAgentExecutionState}`)
+}
+if (
+  rembgWrongChecksumRuntimeAttempt.response?.blockingReasonCode !==
+  'rembg_model_weight_checksum_mismatch'
+) {
+  fail(`rembg_wrong_checksum_blocking_reason_mismatch:${rembgWrongChecksumRuntimeAttempt.response?.blockingReasonCode}`)
+}
+if (rembgWrongChecksumRuntimeAttempt.request?.payload?.modelWeightChecksumSha256 !== '0'.repeat(64)) {
+  fail('rembg_wrong_checksum_payload_checksum_not_accepted')
+}
+if (
+  rembgWrongChecksumRuntimeAttempt.request?.payload?.modelWeightChecksumEvidenceRef !==
+  'private://reeditpro/ai-graphics/checksum-evidence/rembg.json'
+) {
+  fail('rembg_wrong_checksum_payload_evidence_ref_not_accepted')
+}
+const rembgWrongChecksumNormalized =
+  rembgWrongChecksumRuntimeAttempt.response?.externalAgentToolCallResult ?? {}
+if (rembgWrongChecksumNormalized.currentBlockingPrerequisiteKey !== 'modelWeightManifestEvidence') {
+  fail(`rembg_wrong_checksum_current_blocker_mismatch:${rembgWrongChecksumNormalized.currentBlockingPrerequisiteKey}`)
+}
+if (rembgWrongChecksumNormalized.controlledAdapterInvokedNow !== true) {
+  fail('rembg_wrong_checksum_adapter_not_invoked')
+}
+if (rembgWrongChecksumNormalized.controlledAdapterExecutedNow !== false) {
+  fail('rembg_wrong_checksum_adapter_executed')
+}
+if (rembgWrongChecksumNormalized.localGpuModelRuntimeExecutionPerformed !== false) {
+  fail('rembg_wrong_checksum_runtime_executed')
+}
+if (rembgWrongChecksumNormalized.gpuRuntimeShouldStartNow !== false) {
+  fail('rembg_wrong_checksum_started_gpu')
+}
+if (rembgWrongChecksumRuntimeAttempt.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('rembg_wrong_checksum_boolean_started_gpu')
+}
+if (
+  rembgWrongChecksumRuntimeAttempt.nextAction?.currentBlockingPrerequisiteKey !==
+  'modelWeightManifestEvidence'
+) {
+  fail(`rembg_wrong_checksum_next_action_blocker_mismatch:${rembgWrongChecksumRuntimeAttempt.nextAction?.currentBlockingPrerequisiteKey}`)
 }
 
 const manifestOutsideLocalArtifacts = spawnToolCall([

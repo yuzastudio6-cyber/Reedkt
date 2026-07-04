@@ -208,11 +208,7 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   ) {
     return 'transparentBackgroundCheckpointLocalPath'
   }
-  if (
-    blockingReasonCode.includes('_model_weight_manifest_evidence_missing') ||
-    blockingReasonCode.includes('_model_weight_checksum_invalid') ||
-    blockingReasonCode.includes('_model_weight_checksum_evidence_ref_invalid')
-  ) {
+  if (blockingReasonCode.includes('_model_weight_')) {
     return 'modelWeightManifestEvidence'
   }
   if (

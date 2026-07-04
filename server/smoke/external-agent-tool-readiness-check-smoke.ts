@@ -160,11 +160,44 @@ assert.equal(
   ),
   true,
 )
+assert.equal(summary.gcpAccessRepair.accountSelection.cliAccountIndexProvided, false)
+assert.equal(summary.gcpAccessRepair.accountSelection.cliAccountIndex, undefined)
+assert.equal(summary.gcpAccessRepair.accountSelection.cliAccountIndexValid, false)
 assert.equal(summary.gcpAccessRepair.runtimeGatesAllFalse, true)
 for (const [flag, value] of Object.entries(summary.gcpAccessRepair.runtimeSideEffects as Record<string, boolean>)) {
   assert.equal(value, false, `GCP repair side-effect flag must remain false: ${flag}`)
 }
 assert.deepEqual(summary.manualBlockerActionToolIds, [])
+
+const indexedOutput = execFileSync('npx', ['tsx', CLI_PATH, '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024,
+})
+const indexedSummary = JSON.parse(indexedOutput)
+assert.equal(indexedSummary.ok, true)
+assert.equal(indexedSummary.gcpAccessRepair.accountSelection.cliAccountIndexProvided, true)
+assert.equal(indexedSummary.gcpAccessRepair.accountSelection.cliAccountIndex, 2)
+assert.equal(indexedSummary.gcpAccessRepair.accountSelection.cliAccountIndexValid, true)
+assert.equal(indexedSummary.gcpAccessRepair.accountSelection.cliAccountIndexMapsToChildEnv, true)
+assert.equal(
+  indexedSummary.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedSummary.gcpAccessRepair.postRepairVerificationCommands.includes(
+    'npm run external-agent-gcp-access:verify -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedSummary.gcpAccessRepair.tools.every((tool: { verificationCommand: string }) =>
+    tool.verificationCommand.endsWith('--account-index 2'),
+  ),
+  true,
+)
 
 const blockersByTool = new Map(
   summary.blockers.map((blocker: { toolId: string }) => [blocker.toolId, blocker]),

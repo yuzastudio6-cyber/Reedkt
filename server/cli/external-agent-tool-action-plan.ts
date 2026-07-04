@@ -24,6 +24,36 @@ const externalAgentPreExecutionActions = [
   'npm run external-agent-tool-execution-gate',
 ] as const
 
+function readArgValue(names: string[]): string | undefined {
+  for (const name of names) {
+    const equalsPrefix = `${name}=`
+    const equalsMatch = process.argv.find((arg) => arg.startsWith(equalsPrefix))
+    if (equalsMatch) return equalsMatch.slice(equalsPrefix.length).trim()
+
+    const index = process.argv.indexOf(name)
+    if (index >= 0) {
+      const next = process.argv[index + 1]?.trim()
+      if (next && !next.startsWith('--')) return next
+    }
+  }
+
+  return undefined
+}
+
+function selectedAccountIndex(): number | undefined {
+  const rawIndex = readArgValue(['--account-index', '--gcloud-account-index'])
+  const parsed = rawIndex ? Number(rawIndex) : undefined
+  return Number.isInteger(parsed) && Number(parsed) > 0 ? Number(parsed) : undefined
+}
+
+function replaceAccountIndexPlaceholders(value: string, accountIndex: number | undefined) {
+  if (!accountIndex) return value
+
+  return value
+    .replace(/<account-index>/g, String(accountIndex))
+    .replace(/<redacted-index>/g, String(accountIndex))
+}
+
 function actionForTool(toolId: string) {
   if (toolId === 'qwen2_5_vl_7b_instruct') {
     return {
@@ -86,6 +116,7 @@ function actionForTool(toolId: string) {
 
 function main() {
   const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
+  const accountIndex = selectedAccountIndex()
   const staticReadyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
   const explicitToolGateReadyTools = rollup.tools.filter(
     (tool) =>
@@ -130,15 +161,29 @@ function main() {
     blockedToolCount: blockedTools.length,
     runtimeGatesAllFalse,
     gcpAccessRepair: {
+      accountSelection: {
+        ...EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.accountSelection,
+        cliAccountIndexProvided: Boolean(accountIndex),
+        cliAccountIndex: accountIndex,
+        cliAccountIndexValid: Boolean(accountIndex),
+        cliAccountIndexMapsToChildEnv: Boolean(accountIndex),
+      },
       decision: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.decision,
       mode: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.mode,
       projectId: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.projectId,
       currentLiveBlockers: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.currentLiveBlockers,
       repairScope: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.repairScope,
-      tools: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.tools,
+      tools: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.tools.map((tool) => ({
+        ...tool,
+        verificationCommand: replaceAccountIndexPlaceholders(tool.verificationCommand, accountIndex),
+      })),
       failureResponsePolicy: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.failureResponsePolicy,
-      safeRetryChecklist: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.safeRetryChecklist,
-      postRepairVerificationCommands: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.postRepairVerificationCommands,
+      safeRetryChecklist: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.safeRetryChecklist.map((step) =>
+        replaceAccountIndexPlaceholders(step, accountIndex),
+      ),
+      postRepairVerificationCommands: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.postRepairVerificationCommands.map(
+        (command) => replaceAccountIndexPlaceholders(command, accountIndex),
+      ),
       runtimeGatesAllFalse: gcpAccessRepairRuntimeGatesAllFalse,
       runtimeSideEffects: EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.runtimeSideEffects,
     },

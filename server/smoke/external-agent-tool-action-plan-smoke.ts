@@ -132,6 +132,9 @@ assert.equal(
   ),
   true,
 )
+assert.equal(plan.gcpAccessRepair.accountSelection.cliAccountIndexProvided, false)
+assert.equal(plan.gcpAccessRepair.accountSelection.cliAccountIndex, undefined)
+assert.equal(plan.gcpAccessRepair.accountSelection.cliAccountIndexValid, false)
 assert.equal(plan.gcpAccessRepair.tools.length, 2)
 assert.equal(
   plan.gcpAccessRepair.tools.some(
@@ -163,6 +166,36 @@ assert.equal(plan.gcpAccessRepair.runtimeGatesAllFalse, true)
 for (const [flag, value] of Object.entries(plan.gcpAccessRepair.runtimeSideEffects)) {
   assert.equal(value, false, `GCP repair side-effect flag must remain false: ${flag}`)
 }
+
+const indexedOutput = execFileSync('npx', ['tsx', CLI_PATH, '--account-index', '2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024,
+})
+const indexedPlan = JSON.parse(indexedOutput)
+assert.equal(indexedPlan.ok, true)
+assert.equal(indexedPlan.gcpAccessRepair.accountSelection.cliAccountIndexProvided, true)
+assert.equal(indexedPlan.gcpAccessRepair.accountSelection.cliAccountIndex, 2)
+assert.equal(indexedPlan.gcpAccessRepair.accountSelection.cliAccountIndexValid, true)
+assert.equal(indexedPlan.gcpAccessRepair.accountSelection.cliAccountIndexMapsToChildEnv, true)
+assert.equal(
+  indexedPlan.gcpAccessRepair.safeRetryChecklist.includes(
+    'run npm run external-agent-tool-next-command -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedPlan.gcpAccessRepair.postRepairVerificationCommands.includes(
+    'npm run external-agent-gcp-access:verify -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedPlan.gcpAccessRepair.tools.every((tool: { verificationCommand: string }) =>
+    tool.verificationCommand.endsWith('--account-index 2'),
+  ),
+  true,
+)
 assert.deepEqual(plan.safeCommandQueue, rollup.safeNextCommands)
 assert.equal(plan.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
 assert.equal(plan.toolActions.length, rollup.tools.length)
@@ -390,7 +423,7 @@ for (const [flag, value] of Object.entries(plan.runtimeSideEffects as Record<str
   assert.equal(value, false, `Runtime flag must remain false: ${flag}`)
 }
 
-const forbiddenFindings = scanForbiddenValues(plan)
+const forbiddenFindings = scanForbiddenValues({ plan, indexedPlan })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(

@@ -9,12 +9,12 @@ const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
 const INFERENCE_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF'
 const CACHE_FILL_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL'
 const DELEGATED_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11B_MODEL_IMPORT_PROOF'
-const INFERENCE_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11G_INFERENCE_PROOF'
+const INFERENCE_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11H_INFERENCE_PROOF_EXECUTE'
 const CACHE_STAGING_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11E_CLOUD_SIDE_CACHE_STAGING'
 const QUOTA_VERIFY_SCRIPT = 'server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts'
 const CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
 const DELEGATED_RUNNER_SCRIPT = 'ai-video-broll-gen-11b:l4-model-import-runner'
-const INFERENCE_RUNNER_SCRIPT = 'ai-video-broll-gen-11g:bounded-inference-proof-runner'
+const INFERENCE_RUNNER_SCRIPT = 'ai-video-broll-gen-11h:bounded-inference-proof-runner'
 const CACHE_STAGING_RUNNER_SCRIPT = 'ai-video-broll-gen-11e:cloud-side-cache-staging-runner'
 const DELEGATED_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11b-l4-model-import-runner.json'
 const CACHE_FILL_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11e-cloud-side-cache-staging-runner.json'
@@ -259,7 +259,7 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
   }
 
   const delegated = runJson(
-    'broll_11g_bounded_inference_proof_runner',
+    'broll_11h_bounded_inference_proof_runner',
     'npm',
     ['run', INFERENCE_RUNNER_SCRIPT, '--', '--execute'],
     {
@@ -270,8 +270,10 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
 
   print({
     ok: false,
-    mode: 'external_agent_broll_wan_inference_proof_delegated_11g_execution_prompt_required',
-    status: 'blocked',
+    mode: delegated.ok && delegated.json?.ok === true
+      ? 'external_agent_broll_wan_inference_proof_delegated_11h_result'
+      : 'external_agent_broll_wan_inference_proof_delegated_11h_blocked_or_failed',
+    status: delegated.ok && delegated.json?.ok === true ? 'passed' : 'blocked_or_failed',
     delegatedRunner: {
       script: INFERENCE_RUNNER_SCRIPT,
       confirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,
@@ -279,19 +281,20 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
     },
     delegatedResult: delegated.json,
     stderrSummary: delegated.stderrSummary,
-    nextPrompt:
-      'AI-VIDEO-BROLL-GEN-11H-INFERENCE-PROOF-EXECUTE: run bounded Wan inference proof with mandatory cleanup, no generated video/no persisted assets',
-    runtimeRunNow: false,
-    computeVmCreated: false,
+    nextPrompt: delegated.ok && delegated.json?.ok === true
+      ? 'AI-VIDEO-BROLL-GEN-11I-INFERENCE-PROOF-RESULT-REVIEW: review bounded Wan inference proof result, no generated video'
+      : 'AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF: fix blocked bounded Wan inference proof, no generated video',
+    runtimeRunNow: delegated.ok && delegated.json?.ok === true,
+    computeVmCreated: delegated.json?.computeVmCreated === true,
     dockerRun: false,
-    modelImportRun: false,
-    modelLoadRun: false,
-    modelInferenceRun: false,
-    promptEncodingRun: false,
-    denoisingRun: false,
-    vaeDecodeRun: false,
-    frameCreationRun: false,
-    videoEncodingRun: false,
+    modelImportRun: asRecord(delegated.json?.runtimeSideEffects).modelImportRun === true,
+    modelLoadRun: asRecord(delegated.json?.runtimeSideEffects).modelLoadRun === true,
+    modelInferenceRun: asRecord(delegated.json?.runtimeSideEffects).modelInferenceRun === true,
+    promptEncodingRun: asRecord(delegated.json?.runtimeSideEffects).promptEncodingRun === true,
+    denoisingRun: asRecord(delegated.json?.runtimeSideEffects).denoisingRun === true,
+    vaeDecodeRun: asRecord(delegated.json?.runtimeSideEffects).vaeDecodeRun === true,
+    frameCreationRun: asRecord(delegated.json?.runtimeSideEffects).frameCreationRun === true,
+    videoEncodingRun: asRecord(delegated.json?.runtimeSideEffects).videoEncodingRun === true,
     ffmpegRun: false,
     generatedVideoCreated: false,
     generatedAssetsCreated: false,

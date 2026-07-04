@@ -232,8 +232,8 @@ assert.equal(report.executionAllowedNow, false)
 assert.equal(report.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(report.runtimeGatesAllFalse, true)
 assert.equal(report.rawChatExecutionAllowed, false)
-assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
-assert.equal(report.blockedToolIds.length, 2)
+assert.deepEqual(report.readyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(report.blockedToolIds.length, 3)
 const reportBrollGateRow = report.toolRows.find(
   (row: { toolId: string }) => row.toolId === 'ai_video_broll_generation_wan',
 )
@@ -243,11 +243,11 @@ const reportQwenGateRow = report.toolRows.find(
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(
   reportBrollGateRow.currentBlocker,
-  'bounded_wan_inference_proof_execution_prompt_required',
+  'wan_pipeline_load_timeout_before_latent_inference_canary',
 )
 assert.equal(
   reportBrollGateRow.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-11g-bounded-inference-proof-runner',
+  'npm run smoke:ai-video-broll-gen-11h-inference-proof-execution-result',
 )
 assert.equal(reportBrollGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

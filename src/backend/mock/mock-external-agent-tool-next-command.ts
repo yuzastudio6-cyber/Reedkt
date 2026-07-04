@@ -77,12 +77,17 @@ export type ExternalAgentToolBrollWanInferenceProofCommand = {
   args: readonly ['run', 'external-agent-tool-execute-broll-wan', '--', '--inference-proof', '--execute', '--json']
   confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF'
   confirmationEnvRequiredValue: 'true'
-  delegatesTo11gRunner: true
-  executionRequiresSeparatePrompt: true
+  delegatesTo11hRunner: true
+  executionRequiresSeparatePrompt: false
   requiresNoIdleLifecycleGate: true
-  createsComputeVm: false
-  runsModel: false
-  runsModelInference: false
+  createsComputeVm: true
+  deletesComputeVmAndVerifiesCleanup: true
+  runsModel: true
+  runsModelInference: true
+  outputType: 'latent'
+  persistsInferenceOutput: false
+  createsVideoFrames: false
+  encodesVideo: false
   createsGeneratedAssets: false
   touchesSupabase: false
   touchesSql: false
@@ -260,12 +265,17 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     args: ['run', 'external-agent-tool-execute-broll-wan', '--', '--inference-proof', '--execute', '--json'],
     confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF',
     confirmationEnvRequiredValue: 'true',
-    delegatesTo11gRunner: true,
-    executionRequiresSeparatePrompt: true,
+    delegatesTo11hRunner: true,
+    executionRequiresSeparatePrompt: false,
     requiresNoIdleLifecycleGate: true,
-    createsComputeVm: false,
-    runsModel: false,
-    runsModelInference: false,
+    createsComputeVm: true,
+    deletesComputeVmAndVerifiesCleanup: true,
+    runsModel: true,
+    runsModelInference: true,
+    outputType: 'latent',
+    persistsInferenceOutput: false,
+    createsVideoFrames: false,
+    encodesVideo: false,
     createsGeneratedAssets: false,
     touchesSupabase: false,
     touchesSql: false,

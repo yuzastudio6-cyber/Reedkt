@@ -20,7 +20,8 @@
       "decision": "ai_graphics_external_agent_execution_readiness_all21_evaluated_with_gpu_model_blocks",
       "status": "external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof",
       "accepted": true
-    }
+    },
+    "currentHostGpuProofPreflight": null
   },
   "interfaces": {
     "packageScript": "ai-graphics:external-agent-gpu-model-private-proof-sequence",
@@ -29,11 +30,12 @@
     "diagnostic": "scripts/validation/ai-graphics-external-agent-gpu-model-private-proof-sequence-diagnostics.mjs",
     "defaultCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence",
     "writeRecordsCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --write-records",
-    "korniaFirstPrivateProofSequenceCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>",
+    "korniaFirstPrivateProofSequenceCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --detect-host --require-host-eligible --require-accepted-proof",
     "directHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --tool kornia --runtime-backend host_python",
     "defaultKorniaHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png>",
     "bridgeCommand": null,
     "readinessCommand": null,
+    "hostPreflightCommand": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host",
     "canonicalGpuWorkerProofImage": "reeditpro/ai-graphics-gpu-worker:proof-local",
     "canonicalGpuWorkerProofImageBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local ."
   },
@@ -54,7 +56,10 @@
     "noPublicArtifacts": true,
     "noSignedUrls": true,
     "noExternalBetaUnlock": true,
-    "noProductionUnlock": true
+    "noProductionUnlock": true,
+    "hostEligibilityGateSupported": true,
+    "requireHostEligibleFlagSupported": true,
+    "requireAcceptedProofFlagSupported": true
   },
   "counts": {
     "requestedGpuModelTools": 1,
@@ -67,7 +72,14 @@
     "readinessBlockedWithReasonTools": 8,
     "gpuRuntimeShouldStartNowTools": 0,
     "publicArtifactCreatedTools": 0,
-    "signedUrlCreatedTools": 0
+    "signedUrlCreatedTools": 0,
+    "currentHostGpuProofBlockers": 0
+  },
+  "currentHostGpuProofPreflight": {
+    "requested": false,
+    "hostEligibleForNativeGpuProof": false,
+    "blockers": [],
+    "hostEnvironment": null
   },
   "requestedToolResult": {
     "harness": {
@@ -104,6 +116,10 @@
     "proofBridgeExecuted": true,
     "readinessRecomputed": true,
     "acceptedPrivateProofForRequestedTool": false,
+    "hostPreflightRequested": false,
+    "hostEligibleForNativeGpuProof": false,
+    "requireHostEligible": false,
+    "requireAcceptedProof": false,
     "agentCanExecute13NonGpuControlledToolsNow": true,
     "agentCanExecuteGpuModelToolsNow": false,
     "agentCanExecuteAll21ToolsNow": false,

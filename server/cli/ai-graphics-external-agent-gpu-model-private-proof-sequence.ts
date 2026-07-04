@@ -24,6 +24,8 @@ const bridgeScript =
   'ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge'
 const readinessScript =
   'ai-graphics:external-agent-execution-readiness'
+const hostPreflightScript =
+  'ai-graphics:gpu-runtime-proof-local-preflight'
 
 type JsonRecord = Record<string, any>
 
@@ -31,6 +33,9 @@ type SequenceArgs = {
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId
   attemptLocalRuntime: boolean
   writeRecords: boolean
+  detectHost: boolean
+  requireHostEligible: boolean
+  requireAcceptedProof: boolean
   outputDirectory?: string
   resultOut?: string
   runtimeBackend?: 'host_python' | 'docker_container'
@@ -112,6 +117,16 @@ function parseArgs(): SequenceArgs {
       '--write-records cannot be combined with --result-out; private proof result files must stay local-only.',
     )
   }
+  if (hasFlag('--write-records') && hasFlag('--detect-host')) {
+    throw new Error(
+      '--write-records cannot be combined with --detect-host; host-specific proof preflight must stay local-only.',
+    )
+  }
+  if (hasFlag('--write-records') && hasFlag('--require-accepted-proof')) {
+    throw new Error(
+      '--write-records cannot be combined with --require-accepted-proof; committed records must remain blocked without private proof.',
+    )
+  }
   if (attemptLocalRuntime && !outputDirectory) {
     throw new Error('--attempt-local-runtime requires --output-dir')
   }
@@ -126,6 +141,9 @@ function parseArgs(): SequenceArgs {
     toolId,
     attemptLocalRuntime,
     writeRecords: hasFlag('--write-records'),
+    detectHost: hasFlag('--detect-host') || hasFlag('--require-host-eligible'),
+    requireHostEligible: hasFlag('--require-host-eligible'),
+    requireAcceptedProof: hasFlag('--require-accepted-proof'),
     outputDirectory,
     resultOut,
     runtimeBackend,
@@ -233,6 +251,9 @@ function sequenceCommand(): string {
     '--tool kornia',
     '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
     '--source-image <private-approved-frame.png>',
+    '--detect-host',
+    '--require-host-eligible',
+    '--require-accepted-proof',
   ].join(' ')
 }
 
@@ -263,6 +284,9 @@ function buildReport(input: SequenceArgs) {
   const readiness = shouldRunPrivateProofChecks
     ? runJsonScript(readinessScript, ['--local-runtime-proof-result', privateResultPath])
     : runJsonScript(readinessScript, [])
+  const hostPreflight = input.detectHost
+    ? runJsonScript(hostPreflightScript, ['--detect-host'])
+    : null
   const readinessRow = readinessToolRow(readiness, input.toolId)
   const bridgeRows = Array.isArray(bridge.gpuModelRuntimeProofRefBridgeRows)
     ? bridge.gpuModelRuntimeProofRefBridgeRows
@@ -272,6 +296,15 @@ function buildReport(input: SequenceArgs) {
   const acceptedPrivateProof =
     bridgeRow.routeSubmissionReadyWithAcceptedPrivateProof === true &&
     readinessRow.executable === true
+  const hostEnvironment =
+    hostPreflight && typeof hostPreflight.hostEnvironment === 'object'
+      ? hostPreflight.hostEnvironment
+      : null
+  const hostEligibleForNativeGpuProof =
+    hostEnvironment?.hostEligibleForNativeGpuProof === true
+  const hostBlockers = Array.isArray(hostEnvironment?.blockers)
+    ? hostEnvironment.blockers.filter((blocker: unknown): blocker is string => typeof blocker === 'string')
+    : []
 
   return {
     schemaVersion:
@@ -298,6 +331,13 @@ function buildReport(input: SequenceArgs) {
         status: readiness.status,
         accepted: true,
       },
+      currentHostGpuProofPreflight: hostPreflight
+        ? {
+            decision: hostPreflight.decision,
+            hostEnvironment,
+            accepted: true,
+          }
+        : null,
     },
     interfaces: {
       packageScript:
@@ -317,6 +357,8 @@ function buildReport(input: SequenceArgs) {
       defaultKorniaHarnessCommand: defaultKorniaCommand(),
       bridgeCommand: privateResultPath ? bridgeCommand(privateResultPath) : null,
       readinessCommand: privateResultPath ? readinessCommand(privateResultPath) : null,
+      hostPreflightCommand:
+        `npm run --silent ${hostPreflightScript} -- --detect-host`,
       canonicalGpuWorkerProofImage,
       canonicalGpuWorkerProofImageBuildCommand:
         `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${canonicalGpuWorkerProofImage} .`,
@@ -341,6 +383,9 @@ function buildReport(input: SequenceArgs) {
       noSignedUrls: true,
       noExternalBetaUnlock: true,
       noProductionUnlock: true,
+      hostEligibilityGateSupported: true,
+      requireHostEligibleFlagSupported: true,
+      requireAcceptedProofFlagSupported: true,
     },
     counts: {
       requestedGpuModelTools: 1,
@@ -364,6 +409,13 @@ function buildReport(input: SequenceArgs) {
         readiness.counts?.publicArtifactCreatedTools ?? 0,
       signedUrlCreatedTools:
         readiness.counts?.signedUrlCreatedTools ?? 0,
+      currentHostGpuProofBlockers: hostBlockers.length,
+    },
+    currentHostGpuProofPreflight: {
+      requested: input.detectHost,
+      hostEligibleForNativeGpuProof,
+      blockers: hostBlockers,
+      hostEnvironment,
     },
     requestedToolResult: {
       harness: {
@@ -410,6 +462,10 @@ function buildReport(input: SequenceArgs) {
       proofBridgeExecuted: true,
       readinessRecomputed: true,
       acceptedPrivateProofForRequestedTool: acceptedPrivateProof,
+      hostPreflightRequested: input.detectHost,
+      hostEligibleForNativeGpuProof,
+      requireHostEligible: input.requireHostEligible,
+      requireAcceptedProof: input.requireAcceptedProof,
       agentCanExecute13NonGpuControlledToolsNow:
         readiness.booleans?.agentCanExecute13NonGpuControlledToolsNow === true,
       agentCanExecuteGpuModelToolsNow:
@@ -432,6 +488,8 @@ function buildReport(input: SequenceArgs) {
     },
     nextExactAction: acceptedPrivateProof
       ? 'Feed the accepted private proof into the controlled external-agent route admission path for this scoped tool, then repeat the sequence for the next GPU/model tool.'
+      : input.detectHost && !hostEligibleForNativeGpuProof
+      ? 'Move this proof sequence to an approved native Linux/amd64 NVIDIA CUDA host, then rerun with --require-host-eligible and --require-accepted-proof.'
       : 'Run the Kornia-first private proof sequence on an approved native Linux/amd64 NVIDIA CUDA host with the canonical proof image and one private approved source frame.',
   }
 }
@@ -452,6 +510,8 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - Local runtime attempted: \`${report.booleans.localRuntimeAttemptRequested}\`
 - Local runtime executed for requested tool: \`${report.booleans.localRuntimeExecutedForRequestedTool}\`
 - Accepted private proof: \`${report.booleans.acceptedPrivateProofForRequestedTool}\`
+- Host preflight requested: \`${report.booleans.hostPreflightRequested}\`
+- Host eligible for native GPU proof: \`${report.booleans.hostEligibleForNativeGpuProof}\`
 
 ## Kornia First Command
 
@@ -471,6 +531,12 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 ## Counts
 
 ${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).join('\n')}
+
+## Current Host Preflight
+
+- Requested: \`${report.currentHostGpuProofPreflight.requested}\`
+- Eligible: \`${report.currentHostGpuProofPreflight.hostEligibleForNativeGpuProof}\`
+- Blockers: \`${report.currentHostGpuProofPreflight.blockers.join('; ') || 'none'}\`
 
 ## Safety Boundary
 
@@ -494,3 +560,8 @@ if (args.writeRecords) {
   fs.writeFileSync(outputMdPath, makeMarkdown(report))
 }
 console.log(JSON.stringify(report, null, 2))
+if (args.requireHostEligible && !report.currentHostGpuProofPreflight.hostEligibleForNativeGpuProof) {
+  process.exitCode = 2
+} else if (args.requireAcceptedProof && !report.booleans.acceptedPrivateProofForRequestedTool) {
+  process.exitCode = 2
+}

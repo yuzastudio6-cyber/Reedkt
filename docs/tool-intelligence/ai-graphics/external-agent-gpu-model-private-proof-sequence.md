@@ -13,10 +13,12 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - Local runtime attempted: `false`
 - Local runtime executed for requested tool: `false`
 - Accepted private proof: `false`
+- Host preflight requested: `false`
+- Host eligible for native GPU proof: `false`
 
 ## Kornia First Command
 
-`npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png>`
+`npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --source-image <private-approved-frame.png> --detect-host --require-host-eligible --require-accepted-proof`
 
 ## Requested Tool Result
 
@@ -42,6 +44,13 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `gpuRuntimeShouldStartNowTools`: 0
 - `publicArtifactCreatedTools`: 0
 - `signedUrlCreatedTools`: 0
+- `currentHostGpuProofBlockers`: 0
+
+## Current Host Preflight
+
+- Requested: `false`
+- Eligible: `false`
+- Blockers: `none`
 
 ## Safety Boundary
 
@@ -62,6 +71,9 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `noSignedUrls`: true
 - `noExternalBetaUnlock`: true
 - `noProductionUnlock`: true
+- `hostEligibilityGateSupported`: true
+- `requireHostEligibleFlagSupported`: true
+- `requireAcceptedProofFlagSupported`: true
 
 ## Booleans
 
@@ -73,6 +85,10 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `proofBridgeExecuted`: true
 - `readinessRecomputed`: true
 - `acceptedPrivateProofForRequestedTool`: false
+- `hostPreflightRequested`: false
+- `hostEligibleForNativeGpuProof`: false
+- `requireHostEligible`: false
+- `requireAcceptedProof`: false
 - `agentCanExecute13NonGpuControlledToolsNow`: true
 - `agentCanExecuteGpuModelToolsNow`: false
 - `agentCanExecuteAll21ToolsNow`: false

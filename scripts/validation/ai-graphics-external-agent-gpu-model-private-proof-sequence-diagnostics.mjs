@@ -105,6 +105,29 @@ function runJsonScript(args = []) {
   }))
 }
 
+function runScriptStatus(args = []) {
+  const result = childProcess.spawnSync('npm', [
+    'run',
+    '--silent',
+    runScriptName,
+    '--',
+    ...args,
+  ], {
+    cwd: root,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: {
+      ...process.env,
+      DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+    },
+  })
+  return {
+    status: result.status,
+    stdout: result.stdout,
+    stderr: result.stderr,
+  }
+}
+
 for (const file of requiredFiles) {
   if (!fs.existsSync(absolute(file))) fail(`missing_required_file:${file}`)
 }
@@ -141,11 +164,18 @@ for (const phrase of [
   'ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness',
   'ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge',
   'ai-graphics:external-agent-execution-readiness',
+  'ai-graphics:gpu-runtime-proof-local-preflight',
   '--local-runtime-proof-result',
+  '--detect-host',
+  '--require-host-eligible',
+  '--require-accepted-proof',
   'outputJsonSha256',
   'korniaFirstPrivateProofSequenceCommand',
   '--write-records cannot be combined with --attempt-local-runtime',
+  '--write-records cannot be combined with --detect-host',
   '--result-out must stay under .local-artifacts/',
+  'currentHostGpuProofPreflight',
+  'hostEligibilityGateSupported',
   'noIdleGpuRuntimeApproved',
   'proofBridgeRequiresOutputJsonSha256Match',
 ]) {
@@ -193,6 +223,15 @@ function checkReport(label, report) {
   if (report.sequencePolicy?.noSignedUrls !== true) {
     fail(`${label}_signed_url_policy_not_true`)
   }
+  for (const key of [
+    'hostEligibilityGateSupported',
+    'requireHostEligibleFlagSupported',
+    'requireAcceptedProofFlagSupported',
+  ]) {
+    if (report.sequencePolicy?.[key] !== true) {
+      fail(`${label}_sequence_policy_${key}_not_true`)
+    }
+  }
   const counts = report.counts ?? {}
   const expectedCounts = {
     requestedGpuModelTools: 1,
@@ -206,6 +245,7 @@ function checkReport(label, report) {
     gpuRuntimeShouldStartNowTools: 0,
     publicArtifactCreatedTools: 0,
     signedUrlCreatedTools: 0,
+    currentHostGpuProofBlockers: 0,
   }
   for (const [key, value] of Object.entries(expectedCounts)) {
     if (counts[key] !== value) fail(`${label}_count_mismatch:${key}:${counts[key]}`)
@@ -228,6 +268,10 @@ function checkReport(label, report) {
     'localRuntimeAttemptRequested',
     'localRuntimeExecutedForRequestedTool',
     'acceptedPrivateProofForRequestedTool',
+    'hostPreflightRequested',
+    'hostEligibleForNativeGpuProof',
+    'requireHostEligible',
+    'requireAcceptedProof',
     'agentCanExecuteGpuModelToolsNow',
     'agentCanExecuteAll21ToolsNow',
     'gpuRuntimeShouldStartNow',
@@ -255,10 +299,66 @@ function checkReport(label, report) {
   if (requested.readiness?.readinessState !== 'blocked_with_reason') {
     fail(`${label}_readiness_state_mismatch:${requested.readiness?.readinessState}`)
   }
+  if (report.currentHostGpuProofPreflight?.requested !== false) {
+    fail(`${label}_default_host_preflight_requested_not_false`)
+  }
+  if (report.currentHostGpuProofPreflight?.hostEligibleForNativeGpuProof !== false) {
+    fail(`${label}_default_host_eligible_not_false`)
+  }
+  if (!Array.isArray(report.currentHostGpuProofPreflight?.blockers)) {
+    fail(`${label}_default_host_blockers_not_array`)
+  } else if (report.currentHostGpuProofPreflight.blockers.length !== 0) {
+    fail(`${label}_default_host_blockers_not_empty`)
+  }
 }
 
 checkReport('record', record)
 checkReport('live', live)
+
+let detected = null
+try {
+  detected = runJsonScript(['--detect-host'])
+} catch (error) {
+  fail(`detect_host_run_failed:${error.message}`)
+}
+
+if (detected) {
+  if (detected.currentHostGpuProofPreflight?.requested !== true) {
+    fail('detect_host_preflight_requested_not_true')
+  }
+  if (typeof detected.currentHostGpuProofPreflight?.hostEligibleForNativeGpuProof !== 'boolean') {
+    fail('detect_host_eligible_not_boolean')
+  }
+  if (!Array.isArray(detected.currentHostGpuProofPreflight?.blockers)) {
+    fail('detect_host_blockers_not_array')
+  }
+  if (detected.booleans?.hostPreflightRequested !== true) {
+    fail('detect_host_boolean_host_preflight_not_true')
+  }
+  if (
+    detected.booleans?.hostEligibleForNativeGpuProof !==
+    detected.currentHostGpuProofPreflight?.hostEligibleForNativeGpuProof
+  ) {
+    fail('detect_host_boolean_eligibility_mismatch')
+  }
+  if (
+    detected.counts?.currentHostGpuProofBlockers !==
+    detected.currentHostGpuProofPreflight?.blockers?.length
+  ) {
+    fail('detect_host_blocker_count_mismatch')
+  }
+  if (detected.currentHostGpuProofPreflight?.hostEligibleForNativeGpuProof !== true) {
+    const requiredHost = runScriptStatus(['--require-host-eligible'])
+    if (requiredHost.status !== 2) {
+      fail(`require_host_eligible_exit_status_mismatch:${requiredHost.status}`)
+    }
+  }
+}
+
+const requiredAcceptedProof = runScriptStatus(['--require-accepted-proof'])
+if (requiredAcceptedProof.status !== 2) {
+  fail(`require_accepted_proof_exit_status_mismatch:${requiredAcceptedProof.status}`)
+}
 
 for (const pattern of forbiddenCommittedTruePatterns) {
   if (pattern.test(JSON.stringify(record)) || pattern.test(read('docs/tool-intelligence/ai-graphics/external-agent-gpu-model-private-proof-sequence.md'))) {
@@ -292,5 +392,8 @@ console.log(JSON.stringify({
     record.counts?.readinessGpuToolsWithValidRuntimeProof,
   acceptedPrivateProofTools: record.counts?.acceptedPrivateProofTools,
   gpuRuntimeShouldStartNow: record.booleans?.gpuRuntimeShouldStartNow,
+  hostPreflightSupported: detected?.booleans?.hostPreflightRequested === true,
+  hostEligibleForNativeGpuProof:
+    detected?.currentHostGpuProofPreflight?.hostEligibleForNativeGpuProof,
   packageLockUnchanged: true,
 }, null, 2))

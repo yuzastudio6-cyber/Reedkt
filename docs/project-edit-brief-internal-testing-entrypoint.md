@@ -42,6 +42,7 @@ Required validation:
 - `npm run smoke:project-edit-brief-internal-testing-entrypoint`
 - `npm run smoke:project-edit-brief-internal-testing-completion-audit`
 - `npm run smoke:preference-video-mock-limits-internal-testing-closeout`
+- `npm run qa:internal-testing`
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-readback-qa`
 - `npm run smoke:project-edit-brief-e2e`

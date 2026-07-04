@@ -1,0 +1,36 @@
+{
+  "id": "internal-testing-qa-wrapper",
+  "decision": "internal_testing_qa_wrapper_passed_ready_for_repeated_local_internal_testing",
+  "command": "npm run qa:internal-testing",
+  "script": "scripts/validation/internal-testing-qa-runner.mjs",
+  "smokes": [
+    "smoke:internal-testing-qa-wrapper",
+    "smoke:preference-video-mock-limits-internal-testing-closeout",
+    "smoke:edit-preferences-route-entrypoint",
+    "smoke:project-edit-brief-internal-testing-entrypoint",
+    "smoke:project-edit-brief-e2e",
+    "smoke:project-edit-brief-internal-testing-completion-audit",
+    "smoke:beta-readiness"
+  ],
+  "playwrightSpecs": [
+    "tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts",
+    "tests/e2e/edit-preferences-route-entrypoint.spec.ts"
+  ],
+  "blockedScope": {
+    "upload": false,
+    "fileBytesRead": false,
+    "referenceUrlFetch": false,
+    "providerOrModelCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "creditReservationOrSpend": false,
+    "supabaseReadWrite": false,
+    "storageSignedUrls": false,
+    "sqlOrMigration": false,
+    "externalBeta": false,
+    "realUserMediaBeta": false,
+    "paidProduction": false,
+    "productReady": false
+  }
+}

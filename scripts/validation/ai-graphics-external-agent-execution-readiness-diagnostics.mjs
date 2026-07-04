@@ -14,6 +14,10 @@ const diagnosticScriptName =
   'ai-graphics:external-agent-execution-readiness:diagnostics'
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-execution-readiness-diagnostics.mjs'
+const canonicalGpuWorkerProofImage =
+  'reeditpro/ai-graphics-gpu-worker:proof-local'
+const canonicalGpuWorkerProofImageBuildCommand =
+  `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${canonicalGpuWorkerProofImage} .`
 
 const cpuStaticTools = [
   'd3',
@@ -352,6 +356,9 @@ function checkReport(label, report) {
       if (!String(row.nextExactContainerCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
         fail(`${label}_${toolId}_gpu_container_command_not_canonical_image`)
       }
+      if (row.nextExactContainerBuildCommand !== canonicalGpuWorkerProofImageBuildCommand) {
+        fail(`${label}_${toolId}_gpu_container_build_command_mismatch`)
+      }
       if (!String(row.nextExactHostPythonCommand ?? '').includes('--attempt-local-runtime')) {
         fail(`${label}_${toolId}_missing_gpu_host_python_command`)
       }
@@ -483,10 +490,16 @@ if (
 }
 if (
   !String(docs.fastestGpuModelUnlockCandidate?.nextExactCommand ?? '').includes(
-    'reeditpro/ai-graphics-gpu-worker:proof-local',
+    canonicalGpuWorkerProofImage,
   )
 ) {
   fail('fastest_gpu_unlock_candidate_not_using_canonical_image')
+}
+if (
+  docs.fastestGpuModelUnlockCandidate?.nextExactContainerBuildCommand !==
+  canonicalGpuWorkerProofImageBuildCommand
+) {
+  fail('fastest_gpu_unlock_candidate_container_build_command_mismatch')
 }
 if (
   !String(docs.fastestGpuModelUnlockCandidate?.nextExactCommand ?? '').includes(

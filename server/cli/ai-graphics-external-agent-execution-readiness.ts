@@ -20,6 +20,8 @@ const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.md'
 const canonicalGpuWorkerProofImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
+const canonicalGpuWorkerProofImageBuildCommand =
+  `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${canonicalGpuWorkerProofImage} .`
 
 type ReadinessState =
   | 'callable'
@@ -191,6 +193,10 @@ function containerGpuCommand(toolId: string): string {
   ].join(' ')
 }
 
+function containerGpuImageBuildCommand(): string {
+  return canonicalGpuWorkerProofImageBuildCommand
+}
+
 function controlledRouteGpuCommand(toolId: string): string {
   return [
     'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke --',
@@ -333,6 +339,9 @@ function buildToolRows(
         : null,
       nextExactContainerCommand: group === 'gpu_model'
         ? containerGpuCommand(toolId)
+        : null,
+      nextExactContainerBuildCommand: group === 'gpu_model'
+        ? containerGpuImageBuildCommand()
         : null,
       nextExactControlledRouteCommand: group === 'gpu_model'
         ? controlledRouteGpuCommand(toolId)
@@ -589,6 +598,7 @@ function buildReport() {
         'Kornia is the narrowest GPU/model execution unlock candidate because it uses the real controlled adapter, requires CUDA plus a private approved frame and output directory, and does not require a model-weight manifest.',
       recommendedBackend: 'docker_container',
       canonicalProofImage: canonicalGpuWorkerProofImage,
+      nextExactContainerBuildCommand: containerGpuImageBuildCommand(),
       nextExactCommand: containerGpuCommand('kornia'),
       nextExactControlledRouteCommand: controlledRouteGpuCommand('kornia'),
       nextExactProofRefBridgeCommand: proofRefBridgeCommand(),
@@ -638,6 +648,7 @@ ${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).
 - Canonical proof image: \`${report.fastestGpuModelUnlockCandidate.canonicalProofImage}\`
 - Reason: ${report.fastestGpuModelUnlockCandidate.reason}
 - Expected current-host blocker without attached NVIDIA GPU: \`${report.fastestGpuModelUnlockCandidate.expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached}\`
+- Build proof-local image if missing: \`${report.fastestGpuModelUnlockCandidate.nextExactContainerBuildCommand}\`
 - Next direct harness command: \`${report.fastestGpuModelUnlockCandidate.nextExactCommand}\`
 - Next controlled route command: \`${report.fastestGpuModelUnlockCandidate.nextExactControlledRouteCommand}\`
 - Next proof-ref bridge command: \`${report.fastestGpuModelUnlockCandidate.nextExactProofRefBridgeCommand}\`

@@ -17,6 +17,8 @@ const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-all21-controlled-route-execution-smoke-diagnostics.mjs'
 const canonicalGpuModelRuntimeContainerImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
+const canonicalGpuModelRuntimeContainerBuildCommand =
+  `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${canonicalGpuModelRuntimeContainerImage} .`
 
 const cpuStaticTools = [
   'd3',
@@ -299,6 +301,8 @@ function checkReport(label, report) {
     }
     for (const requiredFragment of [
       'blocked_with_reason:',
+      'if the proof-local image is missing, build the exact local proof image first:',
+      canonicalGpuModelRuntimeContainerBuildCommand,
       'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
       `--scoped-gpu-tool ${toolId}`,
       '--scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',

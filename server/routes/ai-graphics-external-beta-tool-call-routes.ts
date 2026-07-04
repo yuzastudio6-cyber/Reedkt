@@ -67,6 +67,9 @@ export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_REQUIRED_FUTURE_MIDDLEWAR
 const AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_IMAGE =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
 
+const AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_BUILD_COMMAND =
+  `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_IMAGE} .`
+
 const aiGraphicsToolIdSchema = z.enum([
   'torch_torchvision',
   'transformers',
@@ -325,6 +328,8 @@ function gpuModelNextExternalAgentAction(input: {
   const blockingReason = input.blockingReasonCode ?? 'gpu_model_runtime_prerequisites_missing'
   return [
     `blocked_with_reason:${blockingReason}`,
+    'if the proof-local image is missing, build the exact local proof image first:',
+    AI_GRAPHICS_CANONICAL_GPU_MODEL_RUNTIME_CONTAINER_BUILD_COMMAND,
     'run the scoped CUDA/local input proof before retrying execution:',
     exactGpuModelScopedRouteProofCommand(input.toolId),
     'GPU starts only during that scoped active tool call; missing CUDA/model/input proof remains a block, not a pass.',

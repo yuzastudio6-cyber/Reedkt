@@ -201,6 +201,23 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'auth-project-session-membership-policy',
+    title: 'Authenticated project/session membership policy',
+    description: 'Verify Project Home, Edit Chat, and Edit Brief expose the durable access evidence contract without enabling Supabase writes.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the membership policy panel and required evidence list.',
+      'Open Project Home and confirm the project/session access policy notice is visible.',
+      'Open Edit Chat or Edit Brief and confirm mock route access is allowed while durable access is pending evidence.',
+      'Confirm no profile/workspace bootstrap writes, Supabase Data API access, Storage, SQL, workers, media, credits, or product-ready gates open.',
+    ],
+    expectedResult:
+      'Internal testers can see the route-level access contract before durable authenticated project/session membership is implemented or claimed.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

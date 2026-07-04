@@ -48,6 +48,12 @@ The `auth-project-access-readiness` scenario is classified as `mock_local` becau
 
 This readiness panel does not run profile/workspace bootstrap, read or write Supabase project/profile/workspace tables, create Storage objects, issue signed URLs, mutate credits, dispatch workers, process media, render/export, or mark the product ready.
 
+## Auth Project Session Membership Policy
+
+The `auth-project-session-membership-policy` scenario is classified as `mock_local` because Project Home, Edit Chat, and Edit Brief now display a shared project/session access policy notice. Mock route access remains allowed for repeated local testing, while durable authenticated project/session access stays blocked until signed-in user, workspace membership, project membership, edit-session access, RLS policy, explicit Data API grant, and backend persistence evidence all exist.
+
+This policy panel does not run profile/workspace bootstrap, read or write Supabase tables, create Storage objects, issue signed URLs, mutate credits, dispatch workers, process media, render/export, or mark the product ready.
+
 ## Boundaries
 
 - No upload or file-byte read.
@@ -73,6 +79,7 @@ Required validation:
 - `npm run smoke:internal-testing-credit-lifecycle-readiness`
 - `npm run smoke:internal-testing-repeated-local-operator-harness`
 - `npm run smoke:internal-testing-auth-project-access-readiness`
+- `npm run smoke:internal-testing-auth-project-session-membership-policy`
 - `npm run qa:internal-testing`
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-readback-qa`
@@ -86,4 +93,4 @@ Required validation:
 
 ## Next
 
-Use `/internal-testing` for repeated internal QA and source-truth feedback capture. The next real product milestones remain durable authenticated project/session membership, real planner integration into approved snapshots, transactional credit reservation/spend/release/refund persistence, and explicit runtime/persistence gates.
+Use `/internal-testing` for repeated internal QA and source-truth feedback capture. The next real product milestones remain durable authenticated project/session backend persistence, real planner integration into approved snapshots, transactional credit reservation/spend/release/refund persistence, and explicit runtime/persistence gates.

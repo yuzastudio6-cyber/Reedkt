@@ -23,6 +23,7 @@
 - Internal testing entrypoint at `/internal-testing` with production-shaped mock route links, scenario readiness summary, and browser-local feedback export.
 - Repeated local operator harness for one-command QA, route launch, approval/credit gate checks, and browser-local evidence export.
 - Auth-only project/session readiness for public Supabase Auth session readback plus mock Project Home, Edit Chat, and Edit Brief route access.
+- Route-visible project/session membership policy for Project Home, Edit Chat, and Edit Brief, with mock route access allowed and durable authenticated access blocked until signed-in user, membership, RLS, explicit Data API grant, and backend persistence evidence exist.
 - Smoke coverage and E2E smoke coverage for Project Edit Brief behavior.
 
 ## Explicitly Not Landed
@@ -57,6 +58,8 @@ Passed:
 - `npm run smoke:project-edit-brief-pr-ready-merge-hygiene-preflight`
 - `npm run smoke:project-edit-brief-internal-testing-entrypoint`
 - `npm run smoke:internal-testing-repeated-local-operator-harness`
+- `npm run smoke:internal-testing-auth-project-access-readiness`
+- `npm run smoke:internal-testing-auth-project-session-membership-policy`
 - `npm run typecheck:server`
 - `npm run build`
 - `git diff --check`
@@ -65,7 +68,7 @@ Passed:
 ## Remaining Gates
 
 - Owner review for whether this Project Edit Brief shell should become the canonical first-pass user workflow.
-- Real authenticated project/session access policy.
+- Durable authenticated project/session backend persistence plan.
 - Supabase production readiness gates after RP-EDITBRIEF-13: owner-approved durable roots, migration review, RLS, explicit Data API grants, Storage policy review, service-role boundary, and remote deployment validation.
 - Conditional launch-readiness evidence after RP-EDITBRIEF-14: external beta, real-user-media beta, and paid production can pass only when their named approvals/evidence exist; default status remains blocked beyond internal dry-run.
 - Owner input collection after RP-EDITBRIEF-15: canonical workflow, durable schema roots, auth/access, Supabase security, media lifecycle, planner integration, credit/cost, provider/model, worker/render, and operations approvals remain required before production persistence implementation.
@@ -87,8 +90,9 @@ Passed:
 - Internal testing entrypoint after RP-EDITBRIEF-23: `/internal-testing` gives testers a production-shaped mock route console, scenario summary, and browser-local feedback export while keeping release/runtime gates explicit.
 - Repeated local operator harness after RP-INTTEST-01: internal testers have one command plus one browser workflow for repeatable local evidence capture while live backend, tool execution, media, billing, Supabase, external beta, and product-ready gates remain closed.
 - Auth project access readiness after RP-INTTEST-02: internal testers can read frontend-safe Supabase Auth session state and open the mock project/session route family while profile/workspace bootstrap writes, Supabase Data API access, Storage, SQL, workers, media, credits, external beta, and product-ready gates remain closed.
+- Auth project/session membership policy after RP-INTTEST-03: Project Home, Edit Chat, and Edit Brief show the same route-level access policy, mock route access remains allowed for internal testing, and durable authenticated project/session access remains blocked until signed-in user, membership, RLS, explicit Data API grant, and backend persistence evidence exist.
 - Real upload/source-media ingestion and privacy policy implementation.
-- Durable authenticated project membership and backend persistence policy.
+- Durable authenticated project/session backend persistence plan.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.
 - Worker/provider/render execution remains separately gated.

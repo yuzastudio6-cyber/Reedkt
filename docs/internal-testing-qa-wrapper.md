@@ -8,7 +8,7 @@
 
 This milestone adds `npm run qa:internal-testing` as the single local command for repeated internal testing of the current production-shaped mock UI path.
 
-The wrapper runs the safe smoke checks for Edit Preferences, Preference Video limits, Project Edit Brief internal testing, Project Edit Brief mock E2E, approval and credit gate readiness, credit lifecycle readiness, the repeated local operator harness, Auth/project access readiness, and beta readiness. It then starts a local Vite server, runs focused Playwright checks for `/internal-testing` and `/edit-preferences`, and shuts the server down.
+The wrapper runs the safe smoke checks for Edit Preferences, Preference Video limits, Project Edit Brief internal testing, Project Edit Brief mock E2E, approval and credit gate readiness, credit lifecycle readiness, the repeated local operator harness, Auth/project access readiness, Membership policy, and beta readiness. It then starts a local Vite server, runs focused Playwright checks for `/internal-testing` and `/edit-preferences`, and shuts the server down.
 
 ## Boundaries
 
@@ -45,6 +45,7 @@ INTERNAL_TESTING_QA_PORT=4341 npm run qa:internal-testing
 - `npm run smoke:internal-testing-credit-lifecycle-readiness`
 - `npm run smoke:internal-testing-repeated-local-operator-harness`
 - `npm run smoke:internal-testing-auth-project-access-readiness`
+- `npm run smoke:internal-testing-auth-project-session-membership-policy`
 - `npm run smoke:edit-preferences-route-entrypoint`
 - `npm run smoke:beta-readiness`
 - `npm run typecheck:server`

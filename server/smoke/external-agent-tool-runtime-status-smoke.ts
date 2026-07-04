@@ -148,6 +148,7 @@ assert.deepEqual(staticStatus.safeEvidenceReviewToolIds, [
 assert.equal(staticStatus.readyForAnyExternalAgentSafeEvidenceReviewNow, true)
 assert.equal(staticStatus.runtimeGatesAllFalse, true)
 assert.equal(staticStatus.safeAgentCommands.liveStatus, 'npm run external-agent-tool-runtime-status')
+assert.equal(staticStatus.safeAgentCommands.runnerManifest, 'npm run external-agent-tool-run -- --manifest')
 assert.equal(
   staticStatus.safeAgentCommands.unifiedRunner,
   'npm run external-agent-tool-run -- --tool <tool-id> --mode safe',

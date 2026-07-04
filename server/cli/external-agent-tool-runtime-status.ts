@@ -552,6 +552,7 @@ function main() {
     safeAgentCommands: {
       staticReadiness: 'npm run external-agent-tool-readiness:check',
       liveStatus: 'npm run external-agent-tool-runtime-status',
+      runnerManifest: 'npm run external-agent-tool-run -- --manifest',
       unifiedRunner: 'npm run external-agent-tool-run -- --tool <tool-id> --mode safe',
       batchSafeRunner: 'npm run external-agent-tool-run -- --tool all --mode safe --account-index auto',
       batchRuntimeGuard: 'npm run external-agent-tool-run -- --tool all --mode runtime',

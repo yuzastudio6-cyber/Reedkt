@@ -131,6 +131,7 @@ assert.equal(
 const cliSource = read(CLI_PATH)
 for (const required of [
   'external_agent_tool_run_result',
+  'external_agent_tool_run_manifest',
   'external_agent_tool_run_batch_result',
   'external_agent_tool_run_batch_runtime_blocked',
   'external_agent_tool_run_runtime_blocked',
@@ -143,6 +144,7 @@ for (const required of [
   '--preflight-only',
   'runtimeExecutableNow: false',
   'external-agent-gcloud-account-access-diagnostic.ts',
+  'manifestAliases',
   "requested !== 'auto'",
   "raw === 'all'",
 ]) {
@@ -163,6 +165,71 @@ for (const forbidden of [
 ]) {
   assert.equal(cliSource.includes(forbidden), false, `runner must not include runtime marker: ${forbidden}`)
 }
+
+const manifest = runTool(['--manifest'])
+assert.equal(manifest.ok, true)
+assert.equal(manifest.mode, 'external_agent_tool_run_manifest')
+assert.equal(manifest.status, 'manifest_only')
+assert.equal(manifest.childExecuted, false)
+assert.equal(manifest.liveDiagnosticsRun, false)
+assert.equal(manifest.agentCallableNow, true)
+assert.equal(manifest.runtimeExecutableNow, false)
+assert.equal(manifest.externalAgentCallableToolCount, 4)
+assert.equal(manifest.runtimeExecutableToolCount, 0)
+assert.deepEqual(manifest.supportedToolIds, [
+  'all',
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.deepEqual(manifest.supportedModes, ['safe', 'preflight', 'evidence', 'runtime'])
+assert.deepEqual(manifest.manifestAliases, ['--manifest', '--list', '--list-tools'])
+const manifestBatchCommands = asRecord(manifest.batchCommands, 'manifest.batchCommands')
+assert.equal(
+  manifestBatchCommands.safe,
+  'npm run external-agent-tool-run -- --tool all --mode safe --account-index auto',
+)
+assert.equal(
+  manifestBatchCommands.runtimeGuard,
+  'npm run external-agent-tool-run -- --tool all --mode runtime',
+)
+assert.equal(manifest.runtimeSideEffectsAllFalse, true)
+assertRuntimeFlagsFalse(manifest.runtimeSideEffects, 'manifest.runtimeSideEffects')
+for (const toolId of [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+]) {
+  const tool = rowByTool(manifest.tools, toolId)
+  assert.equal(tool.agentCallableNow, true)
+  assert.equal(tool.runtimeExecutableNow, false)
+  assert.equal(tool.runtimeExecutionRequiresLiveGate, true)
+  assert.equal(tool.runtimeSideEffectsAllFalseRequired, true)
+  assert.equal(
+    tool.safeCommand,
+    `npm run external-agent-tool-run -- --tool ${toolId} --mode safe`,
+  )
+  assert.equal(
+    tool.runtimeGuardCommand,
+    `npm run external-agent-tool-run -- --tool ${toolId} --mode runtime`,
+  )
+}
+assert.deepEqual(
+  asArray(
+    rowByTool(manifest.tools, 'qwen2_5_vl_7b_instruct').missingReadPermissionsWhenBlocked,
+    'manifest qwen permissions',
+  ).map((permission) => asRecord(permission, 'manifest qwen permission').permission),
+  ['run.services.get', 'run.jobs.get'],
+)
+assert.deepEqual(
+  asArray(
+    rowByTool(manifest.tools, 'ai_video_broll_generation_wan').missingReadPermissionsWhenBlocked,
+    'manifest broll permissions',
+  ).map((permission) => asRecord(permission, 'manifest broll permission').permission),
+  ['compute.projects.get', 'compute.regions.get'],
+)
 
 const qwen = runTool([
   '--tool',
@@ -398,6 +465,7 @@ const forbiddenFindings = scanForbiddenValues([
   broll,
   sound,
   supabaseHarness,
+  manifest,
   batch,
   runtimeBlocked,
   batchRuntimeBlocked,
@@ -420,6 +488,7 @@ console.log(
       autoAccountSelectionRun: qwenAuto.autoAccountSelectionRun,
       externalAgentCallableToolCount: 4,
       runtimeExecutableToolCount: 0,
+      manifestMode: manifest.mode,
       runtimeModeBlocked: runtimeBlocked.blocker,
       invalidToolBlocked: invalidTool.blocker,
       runtimeSideEffectsAllFalse: true,

@@ -65,6 +65,11 @@ const runtimeSideEffectKeys = [
 ] as const
 
 function main() {
+  if (manifestRequested()) {
+    print(runnerManifest())
+    return
+  }
+
   const toolSelection = readToolSelection()
   const requestedMode = readRequestedMode()
 
@@ -347,6 +352,98 @@ function toolDefinitions(indexedArgs: string[]): ToolDefinition[] {
       confirmationEnvRequiredValue: 'true',
     },
   ]
+}
+
+function manifestRequested(): boolean {
+  return process.argv.includes('--manifest') || process.argv.includes('--list') || process.argv.includes('--list-tools')
+}
+
+function runnerManifest(): JsonRecord {
+  const definitions = toolDefinitions([])
+  const tools = definitions.map((definition) => {
+    const isQwen = definition.toolId === 'qwen2_5_vl_7b_instruct'
+    const isBroll = definition.toolId === 'ai_video_broll_generation_wan'
+    const isGcpBacked = isQwen || isBroll
+
+    return {
+      toolId: definition.toolId,
+      safeModes: definition.safeModes,
+      runtimeKind: definition.runtimeKind,
+      expectedMode: definition.expectedMode,
+      confirmationEnv: definition.confirmationEnv,
+      confirmationEnvRequiredValue: definition.confirmationEnvRequiredValue,
+      safeCommand: `npm run external-agent-tool-run -- --tool ${definition.toolId} --mode safe`,
+      safeAutoAccountCommand: isGcpBacked
+        ? `npm run external-agent-tool-run -- --tool ${definition.toolId} --mode safe --account-index auto`
+        : `npm run external-agent-tool-run -- --tool ${definition.toolId} --mode safe`,
+      runtimeGuardCommand: `npm run external-agent-tool-run -- --tool ${definition.toolId} --mode runtime`,
+      childCommandPreview: commandLabel(definition),
+      agentCallableNow: true,
+      runtimeExecutableNow: false,
+      preflightOnly: definition.runtimeKind === 'preflight_only',
+      safeEvidenceReviewOnly: definition.runtimeKind === 'safe_evidence_only',
+      runtimeExecutionRequiresLiveGate: true,
+      runtimeSideEffectsAllFalseRequired: true,
+      missingReadPermissionsWhenBlocked: isQwen
+        ? [
+            {
+              permission: 'run.services.get',
+              likelyMinimalRole: 'roles/run.viewer',
+              reason: 'Qwen Cloud Run service read access is required before runtime gate review',
+            },
+            {
+              permission: 'run.jobs.get',
+              likelyMinimalRole: 'roles/run.viewer',
+              reason: 'Qwen private caller job read access is required before runtime gate review',
+            },
+          ]
+        : isBroll
+          ? [
+              {
+                permission: 'compute.projects.get',
+                likelyMinimalRole: 'roles/compute.viewer',
+                reason: 'B-roll global GPU quota read access is required before no-idle GPU proof',
+              },
+              {
+                permission: 'compute.regions.get',
+                likelyMinimalRole: 'roles/compute.viewer',
+                reason: 'B-roll regional L4 quota read access is required before no-idle GPU proof',
+              },
+            ]
+          : [],
+    }
+  })
+
+  return {
+    ok: true,
+    mode: 'external_agent_tool_run_manifest',
+    status: 'manifest_only',
+    childExecuted: false,
+    liveDiagnosticsRun: false,
+    agentCallableNow: true,
+    runtimeExecutableNow: false,
+    externalAgentCallableToolCount: tools.length,
+    runtimeExecutableToolCount: 0,
+    supportedToolIds: ['all', ...definitions.map((definition) => definition.toolId)],
+    supportedModes: ['safe', 'preflight', 'evidence', 'runtime'],
+    manifestAliases: ['--manifest', '--list', '--list-tools'],
+    defaultMode: 'safe',
+    batchCommands: {
+      safe: 'npm run external-agent-tool-run -- --tool all --mode safe --account-index auto',
+      runtimeGuard: 'npm run external-agent-tool-run -- --tool all --mode runtime',
+    },
+    tools,
+    runtimeSideEffects: allRuntimeSideEffectsFalse(),
+    runtimeSideEffectsAllFalse: true,
+    generatedLocalFixturePassedClaimed: false,
+    forbiddenRuntimeActions: [
+      'do not execute wrappers without explicit confirmation envs',
+      'do not execute model runtime unless runtimeExecutableNow=true for that tool',
+      'do not bypass live GCP read/quota preflight',
+      'do not run raw chat as worker input',
+      'do not touch Supabase, SQL, storage, signed URLs, credits, beta, or production from this manifest',
+    ],
+  }
 }
 
 function runChild(definition: ToolDefinition) {

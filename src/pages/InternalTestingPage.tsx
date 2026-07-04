@@ -107,6 +107,7 @@ function getScenarioHighlights() {
     'preference-video-mock-only-limits',
     'approval-credit-gate-readiness',
     'credit-lifecycle-readiness',
+    'repeated-local-operator-harness',
     'feedback-export',
   ])
 
@@ -384,6 +385,38 @@ export function InternalTestingPage() {
           </div>
           <div className="internal-testing-pill-row" data-testid="internal-testing-credit-lifecycle-boundaries">
             {['No silent billing', 'No Stripe', 'No ledger write', 'No worker dispatch', 'No Supabase write', 'No production claim'].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-repeated-local-operator-harness">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Operator harness</span>
+            <h2>One local loop proves the current testable path before a pass is filed</h2>
+          </div>
+          <p>
+            Internal testers now have a single repeatable sequence: run the QA command, open the same mock project routes, verify approval and credit
+            gates, record browser-local notes, and export JSON evidence for the next PR. The loop is production-shaped, but it still keeps all live
+            execution and release gates closed by default.
+          </p>
+          <div className="internal-testing-operator-grid" data-testid="internal-testing-operator-sequence">
+            {[
+              ['Run QA', 'npm run qa:internal-testing'],
+              ['Open routes', 'Project home, Edit Chat, Edit Brief'],
+              ['Check gates', 'Approval IDs and credit lifecycle'],
+              ['Export notes', 'Browser-local JSON only'],
+            ].map(([title, detail]) => (
+              <article key={title}>
+                <Badge accent="cyan">{title}</Badge>
+                <span>{detail}</span>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-operator-boundaries">
+            {['No live backend', 'No tool execution', 'No media work', 'No real billing', 'No external beta', 'No product-ready claim'].map((item) => (
               <Badge accent="muted" key={item}>
                 {item}
               </Badge>

@@ -36,6 +36,12 @@ The `credit-lifecycle-readiness` scenario is classified as `mock_local` because 
 
 This lifecycle panel is evidence for repeated local testing only. It does not authorize real credit spend, wallet mutation, ledger writes, Stripe, provider calls, worker dispatch, media processing, render/export, Supabase persistence, external beta, paid production, or product-ready behavior.
 
+## Repeated Local Operator Harness
+
+The `repeated-local-operator-harness` scenario is classified as `mock_local` because the internal testing route now gives testers one source-truth loop: run `npm run qa:internal-testing`, open the mock project/session route family, verify approval and credit lifecycle gates, record browser-local notes, and export JSON evidence for the next PR.
+
+This harness is evidence for disciplined repeated local testing only. It does not authorize live backend calls, tool execution, media processing, real billing, Supabase persistence, external beta, paid production, or product-ready behavior.
+
 ## Boundaries
 
 - No upload or file-byte read.
@@ -58,6 +64,7 @@ Required validation:
 - `npm run smoke:preference-video-mock-limits-internal-testing-closeout`
 - `npm run smoke:internal-testing-approval-credit-gates`
 - `npm run smoke:internal-testing-credit-lifecycle-readiness`
+- `npm run smoke:internal-testing-repeated-local-operator-harness`
 - `npm run qa:internal-testing`
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-readback-qa`

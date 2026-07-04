@@ -21,6 +21,7 @@
 - Mock/local Project Edit Brief repository, row mappers, disabled Supabase repository skeleton, API route registry, browser-safe API client, and route handler coverage.
 - Marker timeline and drawer, Marker Chat, metadata-only attachments, export settings recommendations, QA/conflict detection, planner-hint packaging, and visual-context sampling plans.
 - Internal testing entrypoint at `/internal-testing` with production-shaped mock route links, scenario readiness summary, and browser-local feedback export.
+- Repeated local operator harness for one-command QA, route launch, approval/credit gate checks, and browser-local evidence export.
 - Smoke coverage and E2E smoke coverage for Project Edit Brief behavior.
 
 ## Explicitly Not Landed
@@ -54,6 +55,7 @@ Passed:
 - `npm run smoke:project-edit-brief-internal-testing-completion-audit`
 - `npm run smoke:project-edit-brief-pr-ready-merge-hygiene-preflight`
 - `npm run smoke:project-edit-brief-internal-testing-entrypoint`
+- `npm run smoke:internal-testing-repeated-local-operator-harness`
 - `npm run typecheck:server`
 - `npm run build`
 - `git diff --check`
@@ -82,6 +84,7 @@ Passed:
 - Internal testing completion audit after RP-EDITBRIEF-21: RP-EDITBRIEF-02 through RP-EDITBRIEF-20 are audited as complete for internal mock testing, while PR-ready/merge hygiene still requires explicit user request and public release gates remain separate.
 - PR-ready / merge hygiene preflight after RP-EDITBRIEF-22: remaining blockers are scoped to unsafe release actions, safe progress remains allowed, and any PR state change requires explicit user request plus fresh live preflight.
 - Internal testing entrypoint after RP-EDITBRIEF-23: `/internal-testing` gives testers a production-shaped mock route console, scenario summary, and browser-local feedback export while keeping release/runtime gates explicit.
+- Repeated local operator harness after RP-INTTEST-01: internal testers have one command plus one browser workflow for repeatable local evidence capture while live backend, tool execution, media, billing, Supabase, external beta, and product-ready gates remain closed.
 - Real upload/source-media ingestion and privacy policy implementation.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.

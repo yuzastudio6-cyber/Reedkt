@@ -168,6 +168,22 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'repeated-local-operator-harness',
+    title: 'Repeated local operator harness',
+    description: 'Run the local internal-testing loop as one operator workflow before filing a pass for repeated manual testing.',
+    route: '/internal-testing',
+    steps: [
+      'Run npm run qa:internal-testing from a clean local checkout.',
+      'Confirm the wrapper includes route, approval gate, credit lifecycle, beta readiness, and Playwright checks.',
+      'Open Internal Testing and follow the operator sequence from route launch to feedback export.',
+      'Confirm runtime, billing, provider, worker, Supabase, external beta, and product-ready gates stay closed.',
+    ],
+    expectedResult:
+      'Internal testers have one repeatable local command and one browser workflow for source-truth feedback while release/runtime gates remain closed.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

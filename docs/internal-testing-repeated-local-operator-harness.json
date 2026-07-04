@@ -1,0 +1,64 @@
+{
+  "id": "internal-testing-repeated-local-operator-harness",
+  "decision": "internal_testing_repeated_local_operator_harness_passed_ready_for_repeated_local_internal_testing",
+  "baseBranch": "codex/reeditpro-web-ui-shell",
+  "priorSourceSha": "5db8f04ebddf656c48b657054d66f6443adbe284",
+  "priorPullRequest": 2431,
+  "route": "/internal-testing",
+  "command": "npm run qa:internal-testing",
+  "scenarioId": "repeated-local-operator-harness",
+  "operatorSequence": [
+    "run_internal_testing_qa_command",
+    "open_internal_testing_route",
+    "launch_project_home_edit_chat_and_edit_brief",
+    "verify_approval_credit_and_lifecycle_gates",
+    "record_browser_local_feedback",
+    "export_feedback_json_for_next_pr"
+  ],
+  "requiredPriorDecisions": [
+    "internal_testing_approval_credit_gates_passed_ready_for_repeated_local_internal_testing",
+    "internal_testing_credit_lifecycle_readiness_passed_ready_for_repeated_local_internal_testing",
+    "internal_testing_qa_wrapper_passed_ready_for_repeated_local_internal_testing"
+  ],
+  "blockedScope": {
+    "upload": false,
+    "fileBytesRead": false,
+    "providerOrModelCalls": false,
+    "workerDispatch": false,
+    "toolExecution": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "realCreditReservation": false,
+    "realCreditSpendReleaseRefund": false,
+    "walletMutation": false,
+    "ledgerWrites": false,
+    "stripe": false,
+    "supabaseReadWrite": false,
+    "storageSignedUrls": false,
+    "sqlOrMigration": false,
+    "externalBeta": false,
+    "realUserMediaBeta": false,
+    "paidProduction": false,
+    "productReady": false
+  },
+  "validation": {
+    "required": [
+      "smoke:internal-testing-repeated-local-operator-harness",
+      "smoke:internal-testing-qa-wrapper",
+      "qa:internal-testing",
+      "smoke:worker",
+      "smoke:prod-cost-controls",
+      "smoke:prod-runtime-contracts",
+      "typecheck:server",
+      "build",
+      "git diff --check",
+      "git diff --cached --check"
+    ]
+  },
+  "nextGates": [
+    "authenticated_project_session_access",
+    "approved_plan_snapshot_persistence",
+    "transactional_credit_lifecycle_persistence",
+    "backend_worker_dispatch"
+  ]
+}

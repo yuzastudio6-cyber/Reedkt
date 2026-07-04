@@ -197,6 +197,12 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.internal-testing-operator-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .internal-testing-limit-grid article {
   background: rgba(5, 7, 13, 0.36);
   border: 1px solid var(--rp-border-subtle);
@@ -216,6 +222,16 @@
   padding: 14px;
 }
 
+.internal-testing-operator-grid article {
+  background: rgba(5, 7, 13, 0.36);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+}
+
 .internal-testing-lifecycle-grid strong {
   color: var(--rp-text-primary);
   font-size: 0.9rem;
@@ -224,6 +240,12 @@
 .internal-testing-lifecycle-grid span {
   color: var(--rp-text-secondary);
   font-size: 0.8rem;
+}
+
+.internal-testing-operator-grid span {
+  color: var(--rp-text-primary);
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .internal-testing-limitations li,
@@ -386,6 +408,7 @@
   .internal-testing-scenario-grid,
   .internal-testing-limit-grid,
   .internal-testing-lifecycle-grid,
+  .internal-testing-operator-grid,
   .internal-testing-form-grid {
     grid-template-columns: 1fr;
   }

@@ -502,7 +502,18 @@ function parseArgs(): SequenceArgs {
   }
 }
 
-function runJsonScript(scriptName: string, args: string[]): JsonRecord {
+function scriptTimeoutMs(timeoutMs: string | undefined): number | undefined {
+  if (!timeoutMs) return undefined
+  const parsed = Number.parseInt(timeoutMs, 10)
+  if (!Number.isFinite(parsed) || parsed <= 0) return undefined
+  return parsed + 60_000
+}
+
+function runJsonScript(
+  scriptName: string,
+  args: string[],
+  options: { timeoutMs?: number } = {},
+): JsonRecord {
   const output = childProcess.execFileSync('npm', [
     'run',
     '--silent',
@@ -514,6 +525,7 @@ function runJsonScript(scriptName: string, args: string[]): JsonRecord {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
     maxBuffer: 180 * 1024 * 1024,
+    timeout: options.timeoutMs,
     env: {
       ...process.env,
       DEVELOPER_DIR:
@@ -949,7 +961,10 @@ function readinessToolRow(report: JsonRecord, toolId: string): JsonRecord {
 }
 
 function buildReport(input: SequenceArgs) {
-  const harness = runJsonScript(harnessScript, harnessArgs(input))
+  const scopedRuntimeScriptTimeoutMs = scriptTimeoutMs(input.timeoutMs)
+  const harness = runJsonScript(harnessScript, harnessArgs(input), {
+    timeoutMs: scopedRuntimeScriptTimeoutMs,
+  })
   const harnessRow = rowForTool(harness, input.toolId)
   const localRuntimeExecuted = harnessRow.localRuntimeExecutionPerformed === true
   const privateResultPath = input.resultOut ?? null
@@ -974,7 +989,11 @@ function buildReport(input: SequenceArgs) {
     bridgeRow.routeSubmissionReadyWithAcceptedPrivateProof === true &&
     readinessRow.executable === true
   const finalExternalAgentSingleToolCall = acceptedPrivateProof
-    ? runJsonScript(externalAgentToolCallScript, finalExternalAgentToolCallArgs(input))
+    ? runJsonScript(
+        externalAgentToolCallScript,
+        finalExternalAgentToolCallArgs(input),
+        { timeoutMs: scopedRuntimeScriptTimeoutMs },
+      )
     : null
   const hostEnvironment =
     hostPreflight && typeof hostPreflight.hostEnvironment === 'object'

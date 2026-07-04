@@ -45,6 +45,9 @@ const privateModelRootEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
 const privateSourceImageEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE'
 const requirePrivateCpuModelProofEnvVar =
   'REEDITPRO_AI_GRAPHICS_REQUIRE_PRIVATE_CPU_MODEL_PROOF'
+const privateCpuModelProofTimeoutEnvVar =
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_CPU_MODEL_PROOF_TIMEOUT_MS'
+const defaultPrivateCpuModelProofTimeoutMs = 180_000
 
 const failures = []
 
@@ -98,10 +101,124 @@ function runNpmJsonAttempt(script, args = [], options = {}) {
     ok: result.status === 0,
     exitCode: result.status,
     signal: result.signal,
+    timedOut: result.error?.code === 'ETIMEDOUT',
     json,
     stdout: result.stdout,
     stderr: result.stderr,
     error: result.error,
+  }
+}
+
+function attemptTimedOut(attempt) {
+  if (attempt?.timedOut === true) return true
+  const errorMessage = attempt?.error?.message ?? ''
+  const stderr = attempt?.stderr ?? ''
+  return /ETIMEDOUT|timed out|timeout/i.test(`${errorMessage}\n${stderr}`)
+}
+
+function sleepMs(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+}
+
+function processIsAlive(pid) {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function findRuntimeProcessesForOutputDir(toolOutputDir) {
+  const relativeToolOutputDir = relativeLocalPath(toolOutputDir)
+  const workspaceToolOutputDir = path.join('/workspace', relativeToolOutputDir)
+  const markers = [
+    'ai-graphics-external-agent-gpu-model-private-proof-sequence',
+    'ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness',
+    'real_esrgan_local.py',
+    'rembg_local.py',
+    'transparent_background_local.py',
+    'docker run',
+  ]
+
+  let psOutput = ''
+  try {
+    psOutput = execFileSync('ps', ['-axo', 'pid=,ppid=,command='], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 30_000,
+    })
+  } catch {
+    return []
+  }
+
+  return psOutput
+    .split('\n')
+    .map((line) => {
+      const match = line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/)
+      if (!match) return null
+      return {
+        pid: Number.parseInt(match[1], 10),
+        ppid: Number.parseInt(match[2], 10),
+        command: match[3],
+      }
+    })
+    .filter(Boolean)
+    .filter((entry) => {
+      if (entry.pid === process.pid || entry.pid === process.ppid) return false
+      const command = entry.command ?? ''
+      const referencesOutputDir =
+        command.includes(toolOutputDir) ||
+        command.includes(relativeToolOutputDir) ||
+        command.includes(workspaceToolOutputDir)
+      const hasRuntimeMarker = markers.some((marker) => command.includes(marker))
+      return referencesOutputDir && hasRuntimeMarker
+    })
+}
+
+function cleanupTimedOutPrivateCpuModelProof(toolId, toolOutputDir) {
+  const initialProcesses = findRuntimeProcessesForOutputDir(toolOutputDir)
+  const targetPids = [...new Set(initialProcesses.map((entry) => entry.pid))]
+    .filter((pid) => Number.isInteger(pid) && pid > 1)
+    .sort((a, b) => b - a)
+  const killedPids = []
+
+  for (const pid of targetPids) {
+    if (!processIsAlive(pid)) continue
+    try {
+      process.kill(pid, 'SIGTERM')
+      killedPids.push({ pid, signal: 'SIGTERM' })
+    } catch {
+      // The process may have exited between ps and kill.
+    }
+  }
+
+  if (targetPids.length > 0) sleepMs(1500)
+
+  const aliveAfterSigterm = targetPids.filter(processIsAlive)
+  for (const pid of aliveAfterSigterm) {
+    try {
+      process.kill(pid, 'SIGKILL')
+      killedPids.push({ pid, signal: 'SIGKILL' })
+    } catch {
+      // The process may have exited between the liveness check and SIGKILL.
+    }
+  }
+
+  if (aliveAfterSigterm.length > 0) sleepMs(500)
+  const aliveAfterCleanup = targetPids.filter(processIsAlive)
+
+  return {
+    toolId,
+    cleanupAttempted: true,
+    matchedProcesses: initialProcesses.map((entry) => ({
+      pid: entry.pid,
+      ppid: entry.ppid,
+      command: entry.command,
+    })),
+    killedPids,
+    aliveAfterCleanup,
   }
 }
 
@@ -185,6 +302,11 @@ function optionalPrivateCpuModelRuntimeProof(input) {
   const privateSourceImage = process.env[privateSourceImageEnvVar]
   const requireAllPrivateCpuModelProof =
     process.env[requirePrivateCpuModelProofEnvVar] === 'true'
+  const privateCpuModelProofTimeoutMs = Number.parseInt(
+    process.env[privateCpuModelProofTimeoutEnvVar] ??
+      String(defaultPrivateCpuModelProofTimeoutMs),
+    10,
+  )
   const requested = Boolean(privateModelRoot || privateSourceImage)
   const proofRoot = path.join(input.runRoot, 'private-cpu-model-runtime-proof')
   const records = []
@@ -199,6 +321,7 @@ function optionalPrivateCpuModelRuntimeProof(input) {
         privateModelRootEnvVar,
         privateSourceImageEnvVar,
         requirePrivateCpuModelProofEnvVar,
+        privateCpuModelProofTimeoutEnvVar,
       },
       requireAllPrivateCpuModelProof,
       attemptedTools: [],
@@ -220,6 +343,7 @@ function optionalPrivateCpuModelRuntimeProof(input) {
         privateModelRootEnvVar,
         privateSourceImageEnvVar,
         requirePrivateCpuModelProofEnvVar,
+        privateCpuModelProofTimeoutEnvVar,
       },
       requireAllPrivateCpuModelProof,
       attemptedTools: [],
@@ -321,10 +445,19 @@ function optionalPrivateCpuModelRuntimeProof(input) {
         '--runtime-input-manifest',
         relativeLocalPath(manifestOut),
         '--require-accepted-proof',
+        '--timeout-ms',
+        String(privateCpuModelProofTimeoutMs),
       ],
-      { timeout: 30 * 60 * 1000 },
+      { timeout: privateCpuModelProofTimeoutMs + 60_000 },
     )
     const sequenceJson = sequence.json ?? {}
+    const sequenceTimedOut = attemptTimedOut(sequence)
+    const timeoutCleanup = sequenceTimedOut
+      ? cleanupTimedOutPrivateCpuModelProof(toolId, toolOutputDir)
+      : null
+    if (timeoutCleanup?.aliveAfterCleanup?.length > 0) {
+      fail(`private_cpu_model_runtime_timeout_cleanup_failed:${toolId}`)
+    }
     const accepted =
       sequence.ok &&
       sequenceJson.booleans?.acceptedPrivateProofForRequestedTool === true &&
@@ -342,6 +475,9 @@ function optionalPrivateCpuModelRuntimeProof(input) {
       harnessResultPath: relativeLocalPath(harnessResultPath),
       acceptedPrivateProof:
         sequenceJson.booleans?.acceptedPrivateProofForRequestedTool === true,
+      timeoutMs: privateCpuModelProofTimeoutMs,
+      timedOut: sequenceTimedOut,
+      timeoutCleanup,
       finalExternalAgentSingleToolCallExecutable:
         sequenceJson.booleans?.finalExternalAgentSingleToolCallExecutable === true,
       readinessAgentExecutableTools:

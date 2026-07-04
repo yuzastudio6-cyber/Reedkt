@@ -129,6 +129,8 @@ for (const required of [
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW',
   '--preflight-only',
   'runtimeExecutableNow: false',
+  'external-agent-gcloud-account-access-diagnostic.ts',
+  "requested !== 'auto'",
 ]) {
   assert.equal(cliSource.includes(required), true, `runner source missing ${required}`)
 }
@@ -159,6 +161,32 @@ const qwen = runTool([
 assertSafeResult(qwen, 'qwen2_5_vl_7b_instruct', 'preflight_only', 'external_agent_qwen_execution_preflight_only_result')
 assert.equal(qwen.preflightOnly, true)
 assert.equal(qwen.safeEvidenceReviewRun, false)
+
+const qwenAuto = runTool([
+  '--tool',
+  'qwen2_5_vl_7b_instruct',
+  '--mode',
+  'safe',
+  '--account-index',
+  'auto',
+])
+assertSafeResult(
+  qwenAuto,
+  'qwen2_5_vl_7b_instruct',
+  'preflight_only',
+  'external_agent_qwen_execution_preflight_only_result',
+)
+assert.equal(qwenAuto.accountIndexAutoRequested, true)
+assert.equal(qwenAuto.autoAccountSelectionRun, true)
+assert.equal(asRecord(qwenAuto.autoAccountSelection, 'qwenAuto.autoAccountSelection').requested, 'auto')
+assert.equal(
+  ['tool_ready', 'token_refresh_only_fallback'].includes(
+    String(asRecord(qwenAuto.autoAccountSelection, 'qwenAuto.autoAccountSelection').selectedAccountCandidateKind),
+  ),
+  true,
+)
+assert.equal(qwenAuto.preflightOnly, true)
+assert.equal(qwenAuto.safeEvidenceReviewRun, false)
 
 const broll = runTool([
   '--tool',
@@ -244,6 +272,7 @@ assertRuntimeFlagsFalse(invalidTool.runtimeSideEffects, 'invalidTool.runtimeSide
 
 const forbiddenFindings = scanForbiddenValues([
   qwen,
+  qwenAuto,
   broll,
   sound,
   supabaseHarness,
@@ -263,6 +292,7 @@ console.log(
         sound.toolId,
         supabaseHarness.toolId,
       ],
+      autoAccountSelectionRun: qwenAuto.autoAccountSelectionRun,
       externalAgentCallableToolCount: 4,
       runtimeExecutableToolCount: 0,
       runtimeModeBlocked: runtimeBlocked.blocker,

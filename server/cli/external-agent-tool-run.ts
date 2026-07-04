@@ -20,6 +20,14 @@ type ToolDefinition = {
   confirmationEnvRequiredValue?: 'true'
 }
 
+type AccountSelection = {
+  requestedAccountIndex?: string
+  accountIndex?: number
+  accountArgs: string[]
+  autoAccountSelectionRun: boolean
+  autoAccountSelection?: JsonRecord
+}
+
 const ACCOUNT_INDEX_FLAGS = ['--account-index', '--gcloud-account-index'] as const
 const SOUND_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW'
 const SUPABASE_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW'
@@ -58,16 +66,16 @@ const runtimeSideEffectKeys = [
 function main() {
   const toolId = readToolId()
   const requestedMode = readRequestedMode()
-  const accountIndex = selectedAccountIndex()
 
   if (!toolId) {
-    print(blockedResult('missing_or_invalid_tool_id', requestedMode, accountIndex))
+    print(blockedResult('missing_or_invalid_tool_id', requestedMode, selectedAccountIndex()))
     return
   }
 
-  const definition = toolDefinitions(accountArgs()).find((candidate) => candidate.toolId === toolId)
+  const accountSelection = resolveAccountSelection(toolId)
+  const definition = toolDefinitions(accountSelection.accountArgs).find((candidate) => candidate.toolId === toolId)
   if (!definition) {
-    print(blockedResult('unsupported_tool_id', requestedMode, accountIndex, toolId))
+    print(blockedResult('unsupported_tool_id', requestedMode, accountSelection.accountIndex, toolId))
     return
   }
 
@@ -78,7 +86,8 @@ function main() {
       status: 'blocked',
       toolId,
       requestedMode,
-      accountIndex,
+      accountIndex: accountSelection.accountIndex,
+      ...accountSelectionOutput(accountSelection),
       agentCallableNow: true,
       runtimeExecutableNow: false,
       runtimeKind: definition.runtimeKind,
@@ -88,8 +97,8 @@ function main() {
       delegatedCommand: commandLabel(definition),
       childExecuted: false,
       recommendedNextCommand: 'npm run external-agent-tool-next-command',
-      recommendedIndexedNextCommand: accountIndex
-        ? `npm run external-agent-tool-next-command -- --account-index ${accountIndex}`
+      recommendedIndexedNextCommand: accountSelection.accountIndex
+        ? `npm run external-agent-tool-next-command -- --account-index ${accountSelection.accountIndex}`
         : undefined,
     })
     return
@@ -102,7 +111,8 @@ function main() {
       status: 'blocked',
       toolId,
       requestedMode,
-      accountIndex,
+      accountIndex: accountSelection.accountIndex,
+      ...accountSelectionOutput(accountSelection),
       agentCallableNow: true,
       runtimeExecutableNow: false,
       runtimeKind: definition.runtimeKind,
@@ -128,7 +138,8 @@ function main() {
     status: 'safe_wrapper_completed',
     toolId,
     requestedMode,
-    accountIndex,
+    accountIndex: accountSelection.accountIndex,
+    ...accountSelectionOutput(accountSelection),
     agentCallableNow: true,
     runtimeExecutableNow: false,
     runtimeKind: definition.runtimeKind,
@@ -161,8 +172,8 @@ function main() {
     generatedLocalFixturePassedClaimed: false,
     stderrSummary: child.stderrSummary,
     recommendedNextCommand: 'npm run external-agent-tool-next-command',
-    recommendedIndexedNextCommand: accountIndex
-      ? `npm run external-agent-tool-next-command -- --account-index ${accountIndex}`
+    recommendedIndexedNextCommand: accountSelection.accountIndex
+      ? `npm run external-agent-tool-next-command -- --account-index ${accountSelection.accountIndex}`
       : undefined,
   })
 }
@@ -278,13 +289,128 @@ function readArgValue(names: readonly string[]): string | undefined {
 
 function selectedAccountIndex(): number | undefined {
   const rawIndex = readArgValue(ACCOUNT_INDEX_FLAGS)
+  if (rawIndex === 'auto') return undefined
   const parsed = rawIndex ? Number(rawIndex) : undefined
   return Number.isInteger(parsed) && Number(parsed) > 0 ? Number(parsed) : undefined
 }
 
-function accountArgs(): string[] {
-  const index = selectedAccountIndex()
-  return index ? ['--account-index', String(index)] : []
+function requestedAccountIndex(): string | undefined {
+  return readArgValue(ACCOUNT_INDEX_FLAGS)
+}
+
+function resolveAccountSelection(toolId: ToolId): AccountSelection {
+  const requested = requestedAccountIndex()
+  if (requested !== 'auto') {
+    const accountIndex = selectedAccountIndex()
+    return {
+      requestedAccountIndex: requested,
+      accountIndex,
+      accountArgs: accountIndex ? ['--account-index', String(accountIndex)] : [],
+      autoAccountSelectionRun: false,
+    }
+  }
+
+  if (toolId === 'sound_music_audio' || toolId === 'supabase_local_fixture_harness') {
+    return {
+      requestedAccountIndex: requested,
+      accountArgs: [],
+      autoAccountSelectionRun: false,
+      autoAccountSelection: {
+        requested: 'auto',
+        skipped: true,
+        reason: 'selected_tool_does_not_use_gcloud_account_index',
+      },
+    }
+  }
+
+  const diagnostic = runAccountDiagnostic()
+  const accountIndex = chooseAccountIndex(toolId, diagnostic.json)
+  return {
+    requestedAccountIndex: requested,
+    accountIndex,
+    accountArgs: accountIndex ? ['--account-index', String(accountIndex)] : [],
+    autoAccountSelectionRun: true,
+    autoAccountSelection: {
+      requested: 'auto',
+      diagnosticOk: diagnostic.ok,
+      accountCount: diagnostic.json?.accountCount,
+      selectedAccountIndex: accountIndex,
+      selectedAccountCandidateKind: accountIndexCandidateKind(toolId, diagnostic.json, accountIndex),
+      anyAccountReadyForBoth: diagnostic.json?.anyAccountReadyForBoth === true,
+      qwenReadyAccountCount: diagnostic.json?.qwenReadyAccountCount,
+      brollQuotaReadAccountCount: diagnostic.json?.brollQuotaReadAccountCount,
+      brollQuotaReadyAccountCount: diagnostic.json?.brollQuotaReadyAccountCount,
+      runtimeSideEffectsAllFalse: Object.values(runtimeSideEffectSnapshot(diagnostic.json)).every(
+        (value) => value === false,
+      ),
+      stderrSummary: diagnostic.stderrSummary,
+    },
+  }
+}
+
+function runAccountDiagnostic(): {
+  ok: boolean
+  json?: JsonRecord
+  stderrSummary?: string
+} {
+  const result = spawnSync('npx', ['tsx', 'server/cli/external-agent-gcloud-account-access-diagnostic.ts', '--json'], {
+    cwd: process.cwd(),
+    env: process.env,
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 32,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  const json = parseJsonOutput(String(result.stdout ?? ''))
+
+  return {
+    ok: result.status === 0 && Boolean(json),
+    json,
+    stderrSummary: sanitize(String(result.stderr ?? '')),
+  }
+}
+
+function chooseAccountIndex(toolId: ToolId, diagnostic: JsonRecord | undefined): number | undefined {
+  const accounts = accountDiagnosticRows(diagnostic)
+  const readyAccount = accounts.find((account) => accountReadyForTool(toolId, account))
+  const fallbackAccount = accounts.find((account) => account.tokenRefreshPassed === true)
+  const selected = readyAccount ?? fallbackAccount
+  const index = selected?.accountIndex
+  return typeof index === 'number' && Number.isInteger(index) && index > 0 ? index : undefined
+}
+
+function accountIndexCandidateKind(
+  toolId: ToolId,
+  diagnostic: JsonRecord | undefined,
+  accountIndex: number | undefined,
+): string | undefined {
+  if (!accountIndex) return 'none'
+  const account = accountDiagnosticRows(diagnostic).find((candidate) => candidate.accountIndex === accountIndex)
+  if (!account) return 'none'
+  if (accountReadyForTool(toolId, account)) return 'tool_ready'
+  if (account.tokenRefreshPassed === true) return 'token_refresh_only_fallback'
+  return 'not_ready'
+}
+
+function accountDiagnosticRows(diagnostic: JsonRecord | undefined): JsonRecord[] {
+  const rows = diagnostic?.accountDiagnostics
+  return Array.isArray(rows)
+    ? rows.filter((row): row is JsonRecord => Boolean(row) && typeof row === 'object' && !Array.isArray(row))
+    : []
+}
+
+function accountReadyForTool(toolId: ToolId, account: JsonRecord): boolean {
+  if (toolId === 'qwen2_5_vl_7b_instruct') return account.qwenReadAccessPassed === true
+  if (toolId === 'ai_video_broll_generation_wan') return account.brollQuotaSufficient === true
+  return false
+}
+
+function accountSelectionOutput(selection: AccountSelection): JsonRecord {
+  return {
+    requestedAccountIndex: selection.requestedAccountIndex,
+    accountIndexAutoRequested: selection.requestedAccountIndex === 'auto',
+    autoAccountSelectionRun: selection.autoAccountSelectionRun,
+    autoAccountSelection: selection.autoAccountSelection,
+  }
 }
 
 function blockedResult(

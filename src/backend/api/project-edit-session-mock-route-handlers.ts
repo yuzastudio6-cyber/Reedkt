@@ -43,6 +43,7 @@ import {
 } from '../project-edit-session-preference/project-edit-session-preference-dna-bridge-service'
 import { validateProjectEditSessionPreferenceApplicationPlan } from '../project-edit-session-preference/project-edit-session-preference-validation-service'
 import type { ProjectEditSessionPreferenceApplicationPlan } from '../../types/project-edit-session-preference'
+import { decorateProjectSessionRouteAccess } from './project-session-access-route-integration'
 
 type RequestRecord = Record<string, unknown>
 type RouteData = Record<string, unknown>
@@ -413,7 +414,7 @@ async function ensureEditSessionId(request: ApiRequestEnvelope, body: RequestRec
   return editSessionId
 }
 
-export async function handleProjectEditSessionMockRoute(request: ApiRequestEnvelope): Promise<ApiResponseEnvelope> {
+async function handleProjectEditSessionMockRouteInner(request: ApiRequestEnvelope): Promise<ApiResponseEnvelope> {
   if (!PROJECT_EDIT_SESSION_API_ROUTE_IDS.includes(request.routeId as ProjectEditSessionApiRouteId)) {
     return failure(
       'PROJECT_EDIT_SESSION_ROUTE_NOT_REGISTERED',
@@ -891,6 +892,10 @@ export async function handleProjectEditSessionMockRoute(request: ApiRequestEnvel
     default:
       return failure('PROJECT_EDIT_SESSION_ROUTE_UNHANDLED', `${routeId} is registered but has no Project Edit Session mock handler.`, 501)
   }
+}
+
+export async function handleProjectEditSessionMockRoute(request: ApiRequestEnvelope): Promise<ApiResponseEnvelope> {
+  return decorateProjectSessionRouteAccess(request, await handleProjectEditSessionMockRouteInner(request))
 }
 
 export function createProjectEditSessionMockRouteResponse<TData extends RouteData>(

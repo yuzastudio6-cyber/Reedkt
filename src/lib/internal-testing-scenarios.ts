@@ -252,6 +252,23 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'durable-project-session-backend-route-integration',
+    title: 'Durable project/session backend route integration',
+    description: 'Verify Edit Session and Edit Brief mock routes return project/session access metadata from the backend skeleton.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the route integration panel.',
+      'Confirm Project Edit Session and Project Edit Brief route families attach projectSessionAccess metadata.',
+      'Confirm mock internal access can pass while durable Supabase access remains false.',
+      'Confirm no Supabase read/write, Storage, worker, media, render, credit, external beta, production, or product-ready gates open.',
+    ],
+    expectedResult:
+      'Internal testers can verify route responses carry the exact project/session access decision before durable Supabase persistence is enabled.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

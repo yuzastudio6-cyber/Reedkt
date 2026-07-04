@@ -44,6 +44,10 @@ type FeedbackRecord = {
 const FEEDBACK_STORAGE_KEY = 'reeditpro:internal-testing-feedback:v1'
 const PROJECT_ID = 'mock-project-edit-chat-foundation'
 const EDIT_SESSION_ID = 'edit-session-youtube-wide'
+const DURABLE_PROJECT_SESSION_BACKEND_ROUTE_INTEGRATION_DECISION =
+  'internal_testing_durable_project_session_backend_route_integration_passed_ready_for_readback_qa'
+const DURABLE_PROJECT_SESSION_BACKEND_ROUTE_INTEGRATION_NEXT_GATE =
+  'INTERNAL_TESTING_DURABLE_PROJECT_SESSION_BACKEND_READBACK_QA'
 
 const startCards = [
   {
@@ -140,6 +144,7 @@ function getScenarioHighlights() {
     'auth-project-session-membership-policy',
     'durable-auth-project-session-backend-persistence-plan',
     'mock-safe-durable-project-session-backend-skeleton',
+    'durable-project-session-backend-route-integration',
     'feedback-export',
   ])
 
@@ -659,6 +664,41 @@ export function InternalTestingPage() {
                 <li>Mock internal route access can pass for seeded internal testing fixtures.</li>
                 <li>Durable Supabase access still fails closed without RLS and explicit Data API grant evidence.</li>
                 <li>No Supabase migration, table read/write, Storage, worker, media, render, credit, external beta, or product-ready unlock.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-durable-project-session-backend-route-integration">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Route integration</span>
+            <h2>Edit Session and Edit Brief route responses now carry access metadata</h2>
+          </div>
+          <p>
+            The mock API route families now attach <code>projectSessionAccess</code> metadata from the backend skeleton. Internal testing can verify
+            the exact project/session access decision that future durable routes must enforce before any worker, tool, render, or credit execution
+            is allowed.
+          </p>
+          <div className="internal-testing-auth-grid">
+            <article data-testid="internal-testing-route-integration-decision">
+              <Badge accent="success">Readback QA ready</Badge>
+              <strong>{DURABLE_PROJECT_SESSION_BACKEND_ROUTE_INTEGRATION_DECISION}</strong>
+              <span>Next gate: {DURABLE_PROJECT_SESSION_BACKEND_ROUTE_INTEGRATION_NEXT_GATE}</span>
+            </article>
+            <article data-testid="internal-testing-route-integration-families">
+              <Badge accent="cyan">Route families</Badge>
+              <ul>
+                <li>Project Edit Session mock routes.</li>
+                <li>Project Edit Brief mock routes.</li>
+                <li>Responses include access status, durable Supabase status, and audit/idempotency envelope.</li>
+              </ul>
+            </article>
+            <article data-testid="internal-testing-route-integration-boundaries">
+              <Badge accent="warning">Still gated</Badge>
+              <ul>
+                <li>Mock route metadata is accepted for internal testing only.</li>
+                <li>Durable Supabase access remains false until RLS, explicit Data API grants, and migrations are verified.</li>
+                <li>No table read/write, Storage, worker, media, render, credit, external beta, production, or product-ready unlock.</li>
               </ul>
             </article>
           </div>

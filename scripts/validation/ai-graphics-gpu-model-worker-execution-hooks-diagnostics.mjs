@@ -49,6 +49,8 @@ for (const token of [
   "PROVIDER_EXECUTION_ENABLED: 'false'",
   "HF_HUB_OFFLINE: '1'",
   "TRANSFORMERS_OFFLINE: '1'",
+  "addMount({ hostPath: cwd, containerPath: cwd, mode: 'ro' })",
+  'bindMountDirectoryForPath(outputJsonPath)',
   'must be a local/private filesystem path or command argument, not a URL',
 ]) {
   if (!helper.includes(token)) {

@@ -271,6 +271,15 @@ if (report.localRuntimePolicy?.missingPrivateInputsBlockBeforeGpuStartup !== tru
 if (report.localRuntimePolicy?.dockerContainerBackendAutoMountsPrivateRuntimePaths !== true) {
   fail('docker_container_private_runtime_path_mounts_not_recorded')
 }
+if (report.localRuntimePolicy?.dockerContainerBackendMountsRepositoryReadOnly !== true) {
+  fail('docker_container_repository_readonly_mount_not_recorded')
+}
+if (report.localRuntimePolicy?.dockerContainerBackendMountsRuntimeScriptsReadOnly !== true) {
+  fail('docker_container_runtime_script_readonly_mount_not_recorded')
+}
+if (report.localRuntimePolicy?.dockerContainerBackendMountsProofOutputParentReadWrite !== true) {
+  fail('docker_container_proof_output_parent_readwrite_mount_not_recorded')
+}
 if (report.localRuntimePolicy?.dockerContainerBackendMountsSourceAndModelPathsReadOnly !== true) {
   fail('docker_container_readonly_input_model_mounts_not_recorded')
 }
@@ -308,6 +317,9 @@ for (const requiredSnippet of [
   'assertAiGraphicsRuntimeProofOutput',
   'buildAiGraphicsRuntimeContainerBindMounts',
   'normalizeContainerBindMounts',
+  "addMount({ hostPath: cwd, containerPath: cwd, mode: 'ro' })",
+  "mode: 'rw'",
+  'bindMountDirectoryForPath(outputJsonPath)',
   'containerBindMountPath cannot be the filesystem root',
   'AI graphics runtime proof output must include ok=true',
   'AI graphics runtime proof output toolId mismatch',

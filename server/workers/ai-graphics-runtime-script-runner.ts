@@ -204,6 +204,7 @@ async function runPythonRuntimeOnHost(
 async function runPythonRuntimeInDockerContainer(
   input: {
     args: string[]
+    outputJsonPath: string
     timeoutMs?: number
     extraEnv?: Record<string, string>
     containerImage?: string
@@ -230,7 +231,11 @@ async function runPythonRuntimeInDockerContainer(
   for (const [key, value] of Object.entries(containerRuntimeEnv(input.extraEnv))) {
     dockerArgs.push('-e', `${key}=${value}`)
   }
-  for (const mount of normalizeContainerBindMounts(cwd, input.containerBindMounts)) {
+  for (const mount of normalizeContainerBindMounts(
+    cwd,
+    input.outputJsonPath,
+    input.containerBindMounts,
+  )) {
     dockerArgs.push('-v', `${mount.hostPath}:${mount.containerPath}:${mount.mode}`)
   }
   dockerArgs.push('-w', cwd, '--entrypoint', 'python3', image, scriptPath, ...input.args)
@@ -283,6 +288,7 @@ function bindMountDirectoryForPath(candidate: string): string {
 
 function normalizeContainerBindMounts(
   cwd: string,
+  outputJsonPath: string,
   mounts: AiGraphicsRuntimeContainerBindMount[] | undefined,
 ): Required<AiGraphicsRuntimeContainerBindMount>[] {
   const normalized = new Map<string, Required<AiGraphicsRuntimeContainerBindMount>>()
@@ -307,7 +313,12 @@ function normalizeContainerBindMounts(
     })
   }
 
-  addMount({ hostPath: cwd, containerPath: cwd, mode: 'rw' })
+  addMount({ hostPath: cwd, containerPath: cwd, mode: 'ro' })
+  addMount({
+    hostPath: bindMountDirectoryForPath(outputJsonPath),
+    containerPath: bindMountDirectoryForPath(outputJsonPath),
+    mode: 'rw',
+  })
   for (const mount of mounts ?? []) addMount(mount)
   return [...normalized.values()]
 }

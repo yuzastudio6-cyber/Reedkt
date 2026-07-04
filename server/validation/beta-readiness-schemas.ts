@@ -239,6 +239,7 @@ const productionSupabasePersistenceEvidenceSchema = productionEvidenceNotesSchem
   environment: z.enum(['staging', 'production']),
   toolCostEventsMigrationDeployed: z.boolean(),
   betaReadinessEvidenceMigrationDeployed: z.boolean(),
+  walletSettlementStateMigrationDeployed: z.boolean(),
   productionReadinessEvidenceMigrationDeployed: z.boolean(),
   workerRuntimeArtifactManifestMigrationDeployed: z.boolean(),
   workerRuntimeArtifactManifestServiceRoleOnlyVerified: z.boolean(),

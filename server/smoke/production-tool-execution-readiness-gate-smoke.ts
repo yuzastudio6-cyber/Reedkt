@@ -58,6 +58,19 @@ assert.ok(
   'missing production evidence packet migration proof should name the durable production evidence table',
 )
 
+const walletStateMigrationBlocked = evaluateProductionToolExecutionReadinessGate({
+  ...completeEvidence,
+  supabasePersistence: {
+    ...completeEvidence.supabasePersistence!,
+    walletSettlementStateMigrationDeployed: false,
+  },
+})
+assert.equal(walletStateMigrationBlocked.productionToolExecutionAllowed, false, 'missing wallet state migration proof should block production')
+assert.ok(
+  walletStateMigrationBlocked.blockers.some((blocker) => blocker.includes('wallet settlement state-update migration deployment')),
+  'missing wallet state migration proof should name the exact state-update migration gap',
+)
+
 const productionEvidenceBackendOnlyBlocked = evaluateProductionToolExecutionReadinessGate({
   ...completeEvidence,
   supabasePersistence: {
@@ -126,6 +139,7 @@ console.log(JSON.stringify({
   defaultBlocked: defaultBlocked.blockers.length,
   stagingBlocked: stagingBlocked.blockers.length,
   productionEvidenceMigrationBlocked: productionEvidenceMigrationBlocked.blockers.length,
+  walletStateMigrationBlocked: walletStateMigrationBlocked.blockers.length,
   productionEvidenceBackendOnlyBlocked: productionEvidenceBackendOnlyBlocked.blockers.length,
   opsAdmissionRpcBlocked: opsAdmissionRpcBlocked.blockers.length,
   refundBlocked: refundBlocked.blockers.length,
@@ -144,6 +158,7 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       environment: 'production',
       toolCostEventsMigrationDeployed: true,
       betaReadinessEvidenceMigrationDeployed: true,
+      walletSettlementStateMigrationDeployed: true,
       productionReadinessEvidenceMigrationDeployed: true,
       workerRuntimeArtifactManifestMigrationDeployed: true,
       workerRuntimeArtifactManifestServiceRoleOnlyVerified: true,

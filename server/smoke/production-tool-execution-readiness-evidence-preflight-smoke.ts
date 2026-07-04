@@ -29,6 +29,10 @@ assert.ok(
   'preflight should document production readiness evidence packet migration evidence variable',
 )
 assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_SUPABASE_WALLET_SETTLEMENT_STATE_MIGRATION_DEPLOYED'),
+  'preflight should document wallet settlement state migration evidence variable',
+)
+assert.ok(
   passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_BACKEND_ONLY_VERIFIED'),
   'preflight should document backend-only production readiness evidence access variable',
 )
@@ -59,6 +63,10 @@ assert.ok(
 assert.ok(
   missing.missingEvidence.some((item) => item.includes('tool_cost_events migration')),
   'missing report should name Supabase migration deployment',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('wallet settlement state-update migration')),
+  'missing report should name wallet settlement state migration deployment',
 )
 assert.ok(
   missing.missingEvidence.some((item) => item.includes('evidence artifact ID')),
@@ -125,6 +133,7 @@ function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
     REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:supabase',
     REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_WALLET_SETTLEMENT_STATE_MIGRATION_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_MIGRATION_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_MIGRATION_DEPLOYED: yes,
     REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_SERVICE_ROLE_ONLY_VERIFIED: yes,

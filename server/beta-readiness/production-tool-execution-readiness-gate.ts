@@ -23,6 +23,7 @@ export interface ProductionSupabasePersistenceEvidence extends ProductionToolExe
   environment: 'staging' | 'production'
   toolCostEventsMigrationDeployed: boolean
   betaReadinessEvidenceMigrationDeployed: boolean
+  walletSettlementStateMigrationDeployed: boolean
   productionReadinessEvidenceMigrationDeployed: boolean
   workerRuntimeArtifactManifestMigrationDeployed: boolean
   workerRuntimeArtifactManifestServiceRoleOnlyVerified: boolean
@@ -277,6 +278,7 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
       requireBoolean(input.supabasePersistence?.environment === 'production', 'Evidence environment is not production.'),
       requireBoolean(input.supabasePersistence?.toolCostEventsMigrationDeployed, 'tool_cost_events migration deployment is unverified.'),
       requireBoolean(input.supabasePersistence?.betaReadinessEvidenceMigrationDeployed, 'beta_readiness_evidence migration deployment is unverified.'),
+      requireBoolean(input.supabasePersistence?.walletSettlementStateMigrationDeployed, 'wallet settlement state-update migration deployment is unverified.'),
       requireBoolean(input.supabasePersistence?.productionReadinessEvidenceMigrationDeployed, 'production_tool_execution_readiness_evidence_packets migration deployment is unverified.'),
       requireBoolean(input.supabasePersistence?.workerRuntimeArtifactManifestMigrationDeployed, 'production_worker_runtime artifact manifest migration deployment is unverified.'),
       requireBoolean(input.supabasePersistence?.workerRuntimeArtifactManifestServiceRoleOnlyVerified, 'production worker artifact manifest service-role-only access is unverified.'),
@@ -448,6 +450,7 @@ function isSupabasePersistenceReady(input: ProductionToolExecutionReadinessGateI
     evidence.environment === 'production' &&
     evidence.toolCostEventsMigrationDeployed &&
     evidence.betaReadinessEvidenceMigrationDeployed &&
+    evidence.walletSettlementStateMigrationDeployed &&
     evidence.productionReadinessEvidenceMigrationDeployed &&
     evidence.workerRuntimeArtifactManifestMigrationDeployed &&
     evidence.workerRuntimeArtifactManifestServiceRoleOnlyVerified &&

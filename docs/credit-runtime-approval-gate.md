@@ -52,3 +52,5 @@ The mock gate returns allowed/blocked decisions and warnings. It does not call S
 ## Remaining Work
 
 Production still needs deployed reservation and settlement migration evidence, service-role runtime verification, authenticated RLS readback, wallet balance readback in staging/production, billing-owner Stripe-boundary approval, billing-owner QA, monitoring, and owner approvals before these wallet paths can clear the platform blocker.
+
+The paid-production evidence preflight treats the wallet settlement state-update migration as its own Supabase deployment proof. Operators must provide `REEDITPRO_PRODUCTION_SUPABASE_WALLET_SETTLEMENT_STATE_MIGRATION_DEPLOYED=true` alongside the older table/RPC migration evidence so wallet spend/release/refund cannot be approved from a settlement-row-only deployment.

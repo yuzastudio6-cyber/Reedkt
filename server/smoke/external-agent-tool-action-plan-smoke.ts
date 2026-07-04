@@ -180,12 +180,13 @@ assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-ex
 assert.equal(broll.immediateSafeActions.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(broll.externalManualBlocker.includes('10ZB proved the no-idle L4 payload/install path'), true)
 assert.equal(broll.externalManualBlocker.includes('11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers'), true)
-assert.equal(broll.externalManualBlocker.includes('11B added the no-inference model import/load runner'), true)
+assert.equal(broll.externalManualBlocker.includes('11B executed the bounded no-idle L4 model import/load proof'), true)
+assert.equal(broll.externalManualBlocker.includes('11C accepts that passed proof as external-agent evidence'), true)
 assert.equal(broll.externalManualBlocker.includes('11E staged the private GCS Wan model cache with the ready marker'), true)
-assert.equal(broll.externalManualBlocker.includes('bounded 11B no-idle L4 model import/load proof is now the next'), true)
+assert.equal(broll.externalManualBlocker.includes('11F inference-boundary plan'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF through npm run external-agent-tool-execute-broll-wan with explicit confirmation, no inference',
+  'run AI-VIDEO-BROLL-GEN-11F-INFERENCE-BOUNDARY-PLAN before any Wan inference or generated-video attempt; the 11B wrapper may only rerun import/load proof with explicit confirmation',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)

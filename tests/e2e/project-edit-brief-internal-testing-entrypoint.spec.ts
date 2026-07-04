@@ -97,6 +97,15 @@ test.describe('Project Edit Brief internal testing entrypoint', () => {
     await expect(page.getByTestId('internal-testing-supabase-migration-review-findings')).toContainText('route-data-hardening')
     await expect(page.getByTestId('internal-testing-supabase-migration-review-dry-run')).toContainText('verify member project session')
     await expect(page.getByTestId('internal-testing-supabase-migration-review-boundaries')).toContainText('No local Supabase reset')
+    await expect(page.getByTestId('internal-testing-durable-project-session-supabase-local-migration-dry-run-plan')).toContainText(
+      'Local migration dry-run plan',
+    )
+    await expect(page.getByTestId('internal-testing-supabase-local-dry-run-plan-decision')).toContainText(
+      'internal_testing_durable_project_session_supabase_local_migration_dry_run_plan_passed_ready_for_local_migration_dry_run_execution',
+    )
+    await expect(page.getByTestId('internal-testing-supabase-local-dry-run-plan-commands')).toContainText('local-only')
+    await expect(page.getByTestId('internal-testing-supabase-local-dry-run-plan-fixtures')).toContainText('member can select project session')
+    await expect(page.getByTestId('internal-testing-supabase-local-dry-run-plan-boundaries')).toContainText('No Supabase command is run')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Edit Brief')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Approved snapshot + credit gate readiness')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Credit lifecycle readiness')
@@ -111,6 +120,7 @@ test.describe('Project Edit Brief internal testing entrypoint', () => {
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Durable project/session Supabase schema/RLS draft')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Durable project/session Supabase migration SQL draft')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Durable project/session Supabase migration review')
+    await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Durable project/session Supabase local migration dry-run plan')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Preference Video mock-only limits')
     const editBriefStart = page.getByTestId('internal-testing-start-edit-brief')
     await expect(editBriefStart).toContainText('Edit Brief')

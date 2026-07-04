@@ -34,6 +34,7 @@ const requiredFiles = [
   'server/smoke/internal-testing-durable-project-session-supabase-schema-rls-draft-smoke.ts',
   'server/smoke/internal-testing-durable-project-session-supabase-migration-sql-draft-smoke.ts',
   'server/smoke/internal-testing-durable-project-session-supabase-migration-review-smoke.ts',
+  'server/smoke/internal-testing-durable-project-session-supabase-local-migration-dry-run-plan-smoke.ts',
   'docs/internal-testing-approval-credit-gates.md',
   'docs/internal-testing-approval-credit-gates.json',
   'docs/internal-testing-credit-lifecycle-readiness.md',
@@ -60,6 +61,8 @@ const requiredFiles = [
   'docs/internal-testing-durable-project-session-supabase-migration-sql-draft.json',
   'docs/internal-testing-durable-project-session-supabase-migration-review.md',
   'docs/internal-testing-durable-project-session-supabase-migration-review.json',
+  'docs/internal-testing-durable-project-session-supabase-local-migration-dry-run-plan.md',
+  'docs/internal-testing-durable-project-session-supabase-local-migration-dry-run-plan.json',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
   'tests/e2e/edit-preferences-route-entrypoint.spec.ts',
 ]
@@ -90,6 +93,7 @@ for (const phrase of [
   'smoke:internal-testing-durable-project-session-supabase-schema-rls-draft',
   'smoke:internal-testing-durable-project-session-supabase-migration-sql-draft',
   'smoke:internal-testing-durable-project-session-supabase-migration-review',
+  'smoke:internal-testing-durable-project-session-supabase-local-migration-dry-run-plan',
   'smoke:beta-readiness',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
   'tests/e2e/edit-preferences-route-entrypoint.spec.ts',
@@ -117,6 +121,7 @@ for (const phrase of [
   'Durable project/session Supabase schema/RLS draft',
   'Durable project/session Supabase migration SQL draft',
   'Durable project/session Supabase migration review',
+  'Durable project/session Supabase local migration dry-run plan',
   'No upload',
   'No Supabase Data API',
   'fails fast',
@@ -148,6 +153,7 @@ assert.ok(docJson.smokes?.includes('smoke:internal-testing-durable-project-sessi
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-durable-project-session-supabase-schema-rls-draft'))
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-durable-project-session-supabase-migration-sql-draft'))
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-durable-project-session-supabase-migration-review'))
+assert.ok(docJson.smokes?.includes('smoke:internal-testing-durable-project-session-supabase-local-migration-dry-run-plan'))
 assert.ok(docJson.smokes?.includes('smoke:project-edit-brief-e2e'))
 assert.ok(docJson.playwrightSpecs?.includes('tests/e2e/edit-preferences-route-entrypoint.spec.ts'))
 assert.equal(docJson.blockedScope?.productReady, false)

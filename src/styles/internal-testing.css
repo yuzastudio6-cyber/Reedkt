@@ -251,11 +251,13 @@
 .internal-testing-auth-grid strong {
   color: var(--rp-text-primary);
   font-size: 0.9rem;
+  overflow-wrap: anywhere;
 }
 
 .internal-testing-auth-grid span {
   color: var(--rp-text-secondary);
   font-size: 0.82rem;
+  overflow-wrap: anywhere;
 }
 
 .internal-testing-auth-routes {
@@ -285,6 +287,7 @@
 .internal-testing-page p,
 .internal-testing-page small {
   color: var(--rp-text-secondary);
+  overflow-wrap: anywhere;
 }
 
 .internal-testing-checklist-list,

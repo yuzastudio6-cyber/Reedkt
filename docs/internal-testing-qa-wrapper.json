@@ -23,6 +23,7 @@
     "smoke:internal-testing-durable-project-session-supabase-schema-rls-draft",
     "smoke:internal-testing-durable-project-session-supabase-migration-sql-draft",
     "smoke:internal-testing-durable-project-session-supabase-migration-review",
+    "smoke:internal-testing-durable-project-session-supabase-local-migration-dry-run-plan",
     "smoke:beta-readiness"
   ],
   "playwrightSpecs": [

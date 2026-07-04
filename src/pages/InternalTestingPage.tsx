@@ -45,6 +45,11 @@ import {
   DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_REVIEW_NEXT_GATE,
   getDurableProjectSessionSupabaseMigrationReview,
 } from '../lib/project-session-supabase-migration-review'
+import {
+  DURABLE_PROJECT_SESSION_SUPABASE_LOCAL_MIGRATION_DRY_RUN_PLAN_DECISION,
+  DURABLE_PROJECT_SESSION_SUPABASE_LOCAL_MIGRATION_DRY_RUN_PLAN_NEXT_GATE,
+  getDurableProjectSessionSupabaseLocalMigrationDryRunPlan,
+} from '../lib/project-session-supabase-local-migration-dry-run-plan'
 import { PROJECT_EDIT_SESSION_ACCESS_POLICY_REQUIRED_EVIDENCE } from '../lib/project-edit-session-access-policy'
 import { internalTestingScenarios, type InternalTestingScenarioStatus } from '../lib/internal-testing-scenarios'
 import {
@@ -174,6 +179,7 @@ function getScenarioHighlights() {
     'durable-project-session-supabase-schema-rls-draft',
     'durable-project-session-supabase-migration-sql-draft',
     'durable-project-session-supabase-migration-review',
+    'durable-project-session-supabase-local-migration-dry-run-plan',
     'feedback-export',
   ])
 
@@ -205,6 +211,7 @@ export function InternalTestingPage() {
   const supabaseSchemaRlsDraft = useMemo(getDurableProjectSessionSupabaseSchemaRlsDraft, [])
   const supabaseMigrationSqlDraft = useMemo(getDurableProjectSessionSupabaseMigrationSqlDraft, [])
   const supabaseMigrationReview = useMemo(getDurableProjectSessionSupabaseMigrationReview, [])
+  const supabaseLocalMigrationDryRunPlan = useMemo(getDurableProjectSessionSupabaseLocalMigrationDryRunPlan, [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -950,6 +957,53 @@ export function InternalTestingPage() {
                 <li>No executable migration is created, copied, or applied.</li>
                 <li>No local Supabase reset, remote validation, generated types, table-backed route, Storage, or signed URL path.</li>
                 <li>No service-role browser path, worker, media, render, credit, beta, production, or product-ready unlock.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section
+          className="internal-testing-limitations"
+          data-testid="internal-testing-durable-project-session-supabase-local-migration-dry-run-plan"
+        >
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Local migration dry-run plan</span>
+            <h2>Local Supabase execution has a precise future recipe, but it has not run</h2>
+          </div>
+          <p>
+            This plan names the temp-root, future command sequence, fixture assertions, and cleanup policy for the next local-only dry-run execution
+            gate. It does not start Supabase, reset a database, apply SQL, generate types, or implement table-backed routes.
+          </p>
+          <div className="internal-testing-auth-grid">
+            <article data-testid="internal-testing-supabase-local-dry-run-plan-decision">
+              <Badge accent="success">Local dry-run execution ready</Badge>
+              <strong>{DURABLE_PROJECT_SESSION_SUPABASE_LOCAL_MIGRATION_DRY_RUN_PLAN_DECISION}</strong>
+              <span>Next gate: {DURABLE_PROJECT_SESSION_SUPABASE_LOCAL_MIGRATION_DRY_RUN_PLAN_NEXT_GATE}</span>
+            </article>
+            <article data-testid="internal-testing-supabase-local-dry-run-plan-commands">
+              <Badge accent="cyan">Future command groups</Badge>
+              <ul>
+                {supabaseLocalMigrationDryRunPlan.futureCommands.map((command) => (
+                  <li key={command.id}>
+                    {command.id}: {command.purpose}
+                  </li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-supabase-local-dry-run-plan-fixtures">
+              <Badge accent="cyan">Fixture assertions</Badge>
+              <ul>
+                {supabaseLocalMigrationDryRunPlan.fixtureAssertions.slice(0, 5).map((assertion) => (
+                  <li key={assertion}>{assertion.replace(/_/g, ' ')}</li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-supabase-local-dry-run-plan-boundaries">
+              <Badge accent="warning">Still gated</Badge>
+              <ul>
+                <li>No Supabase command is run in this planning milestone.</li>
+                <li>No executable migration is committed and no file is added under supabase/migrations.</li>
+                <li>No local reset, remote validation, generated types, table-backed route, Storage, signed URL, beta, production, or product-ready unlock.</li>
               </ul>
             </article>
           </div>

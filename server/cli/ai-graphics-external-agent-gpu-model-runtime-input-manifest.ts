@@ -271,6 +271,7 @@ function manifestRecordForTool(input: {
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
   privateInputPreflightOnly: boolean
+  allowCpuModelRuntime: boolean
 }): Record<string, unknown> {
   const contract = modelRuntimePathContracts[input.toolId]
   const record: Record<string, unknown> = {
@@ -283,6 +284,7 @@ function manifestRecordForTool(input: {
   }
   if (input.runtimeContainerImage) record.runtimeContainerImage = input.runtimeContainerImage
   if (input.runtimeContainerPlatform) record.runtimeContainerPlatform = input.runtimeContainerPlatform
+  if (input.allowCpuModelRuntime) record.allowCpuModelRuntime = true
   if (input.privateInputPreflightOnly) {
     record.privateInputPreflightOnly = true
     record.localRuntimeInputPreflightOnly = true
@@ -312,6 +314,9 @@ function main(): void {
   const runtimeContainerPlatform = stringArg('--runtime-container-platform') ?? 'linux/amd64'
   const force = hasFlag('--force')
   const privateInputPreflightOnly = hasFlag('--private-input-preflight-only')
+  const allowCpuModelRuntime =
+    (typedToolId === 'real_esrgan' || typedToolId === 'rembg') &&
+    hasFlag('--allow-cpu-model-runtime')
 
   assertLocalPath('sourceImageLocalPath', sourceImage)
   if (!existsSync(sourceImage) || !statSync(sourceImage).isFile()) {
@@ -343,6 +348,7 @@ function main(): void {
         runtimeContainerImage,
         runtimeContainerPlatform,
         privateInputPreflightOnly,
+        allowCpuModelRuntime,
       }),
     },
   }
@@ -362,6 +368,7 @@ function main(): void {
     checksumFileLocalPath: checksumFile,
     runtimeContainerImage,
     runtimeContainerPlatform,
+    allowCpuModelRuntime,
     manifestTopLevelFields: Object.keys(manifest),
     manifestToolRecordFields: Object.keys(manifest.toolInputs[typedToolId]),
     nextExactScopedToolCallCommand:
@@ -376,6 +383,7 @@ function main(): void {
       localOnly: true,
       runtimeInputManifestWritten: true,
       checksumComputedFromPrivateModelFile: true,
+      cpuModelRuntimeRequested: allowCpuModelRuntime,
       agentCanExecuteAfterNativeRuntimeProof: true,
       toolExecutionPerformed: false,
       workerExecutionPerformed: false,

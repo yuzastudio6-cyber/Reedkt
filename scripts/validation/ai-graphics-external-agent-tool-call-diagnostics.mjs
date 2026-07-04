@@ -47,6 +47,10 @@ const privateInputPreflightTools = [
   'transparent_background',
 ]
 
+function cpuModelRuntimeTool(toolId) {
+  return toolId === 'real_esrgan' || toolId === 'rembg'
+}
+
 const requiredFiles = [
   'server/cli/ai-graphics-external-agent-tool-call.ts',
   'scripts/validation/ai-graphics-external-agent-tool-call-diagnostics.mjs',
@@ -607,6 +611,9 @@ function privateInputPreflightArgs(toolId, paths) {
     gpuModelRuntimeContainerImage(toolId),
     '--runtime-container-platform',
     'linux/amd64',
+    ...(cpuModelRuntimeTool(toolId)
+      ? ['--allow-cpu-model-runtime', '--no-runtime-container-gpu']
+      : []),
     '--private-input-preflight-only',
     '--gpu-output-dir',
     outputDir,
@@ -649,6 +656,9 @@ function checkPrivateInputPreflightCall(label, report, expectedToolId) {
     fail(`${label}_blocking_reason_mismatch:${report.response?.blockingReasonCode}`)
   }
   const normalized = report.response?.externalAgentToolCallResult ?? {}
+  const expectedRuntimeKey = cpuModelRuntimeTool(expectedToolId)
+    ? 'pythonCpuModelRuntime'
+    : 'nativeCudaRuntime'
   if (normalized.callable !== true) fail(`${label}_not_callable`)
   if (normalized.executable !== false) fail(`${label}_unexpected_executable`)
   if (normalized.blockedWithReason !== true) fail(`${label}_not_blocked`)
@@ -662,17 +672,17 @@ function checkPrivateInputPreflightCall(label, report, expectedToolId) {
   if (normalized.localGpuModelRuntimeExecutionPerformed !== false) {
     fail(`${label}_gpu_runtime_should_not_execute`)
   }
-  if (normalized.currentBlockingPrerequisiteKey !== 'nativeCudaRuntime') {
+  if (normalized.currentBlockingPrerequisiteKey !== expectedRuntimeKey) {
     fail(`${label}_current_blocking_prerequisite_mismatch:${normalized.currentBlockingPrerequisiteKey}`)
   }
   if (normalized.currentBlockingReasonCode !== privateInputPreflightBlockingReason) {
     fail(`${label}_current_blocking_reason_mismatch:${normalized.currentBlockingReasonCode}`)
   }
   if (!Array.isArray(normalized.remainingPrivateInputKeys) ||
-    normalized.remainingPrivateInputKeys.includes('nativeCudaRuntime')) {
+    normalized.remainingPrivateInputKeys.includes(expectedRuntimeKey)) {
     fail(`${label}_remaining_private_inputs_still_include_runtime_blocker`)
   }
-  if (report.nextAction?.currentBlockingPrerequisiteKey !== 'nativeCudaRuntime') {
+  if (report.nextAction?.currentBlockingPrerequisiteKey !== expectedRuntimeKey) {
     fail(`${label}_next_action_blocker_mismatch:${report.nextAction?.currentBlockingPrerequisiteKey}`)
   }
   if (
@@ -690,7 +700,7 @@ function checkPrivateInputPreflightCall(label, report, expectedToolId) {
   }
   for (const key of [
     'outputDirectory',
-    'nativeCudaRuntime',
+    expectedRuntimeKey,
     'sourceImageLocalPath',
     'modelWeightManifestEvidence',
   ]) {

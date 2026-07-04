@@ -54,6 +54,7 @@ type HarnessArgs = {
   runtimeContainerGpu: boolean
   allowCpuTensorRuntime: boolean
   allowCpuFoundationRuntime: boolean
+  allowCpuModelRuntime: boolean
   privateInputPreflightOnly: boolean
   timeoutMs?: number
   resultOut?: string
@@ -97,6 +98,7 @@ const runtimeInputManifestPathFields = new Set([
 const runtimeInputManifestBooleanFields = new Set([
   'allowCpuTensorRuntime',
   'allowCpuFoundationRuntime',
+  'allowCpuModelRuntime',
   'privateInputPreflightOnly',
   'localRuntimeInputPreflightOnly',
 ])
@@ -199,6 +201,7 @@ function parseArgs(): HarnessArgs {
     runtimeContainerGpu: !hasFlag('--no-runtime-container-gpu'),
     allowCpuTensorRuntime: hasFlag('--allow-cpu-tensor-runtime'),
     allowCpuFoundationRuntime: hasFlag('--allow-cpu-foundation-runtime'),
+    allowCpuModelRuntime: hasFlag('--allow-cpu-model-runtime'),
     privateInputPreflightOnly: hasFlag('--private-input-preflight-only'),
     timeoutMs: numberFlag('--timeout-ms'),
     resultOut: stringFlag('--result-out'),
@@ -476,6 +479,9 @@ function runtimeInputsForTool(
     allowCpuFoundationRuntime:
       args.allowCpuFoundationRuntime ||
       manifestBooleanForTool(toolId, args, 'allowCpuFoundationRuntime') === true,
+    allowCpuModelRuntime:
+      args.allowCpuModelRuntime ||
+      manifestBooleanForTool(toolId, args, 'allowCpuModelRuntime') === true,
     privateInputPreflightOnly:
       args.privateInputPreflightOnly ||
       manifestBooleanForTool(toolId, args, 'privateInputPreflightOnly') === true ||
@@ -521,6 +527,12 @@ function modelWeightManifestRequired(toolId: AiGraphicsCanonicalToolId): boolean
   ].includes(toolId)
 }
 
+function gpuModelAllowsCpuModelRuntime(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): boolean {
+  return toolId === 'real_esrgan' || toolId === 'rembg'
+}
+
 function gpuModelRequiresSourceImage(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 ): boolean {
@@ -532,6 +544,7 @@ function localInputRequirements(
   options?: {
     allowCpuTensorRuntime?: boolean
     allowCpuFoundationRuntime?: boolean
+    allowCpuModelRuntime?: boolean
   },
 ): LocalInputRequirement[] {
   const outputDirectory: LocalInputRequirement = {
@@ -639,33 +652,31 @@ function localInputRequirements(
     },
   }
 
-  return toolId === 'sam2'
-    ? [
-        outputDirectory,
-        sourceImage,
-        modelInputByTool[toolId],
-        modelWeightManifestEvidence,
-        {
-          key: 'nativeCudaRuntime',
+  const runtimeRequirement: LocalInputRequirement =
+    gpuModelAllowsCpuModelRuntime(toolId) && options?.allowCpuModelRuntime === true
+      ? {
+          key: 'pythonCpuModelRuntime',
           requiredForDefaultHarness: false,
           requiredForActualExecution: true,
           description:
-            'Approved CUDA runtime for one approved private source frame only; broad real-media/full-video execution is not accepted.',
-        },
-      ]
-    : [
-        outputDirectory,
-        sourceImage,
-        modelInputByTool[toolId],
-        modelWeightManifestEvidence,
-        {
+            'Explicit local CPU model runtime with reviewed private model/checkpoint and private source input; no GPU attachment, model download, provider call, or public output allowed.',
+        }
+      : {
           key: 'nativeCudaRuntime',
           requiredForDefaultHarness: false,
           requiredForActualExecution: true,
-          description:
-            'Approved CUDA runtime for the scoped local worker call only.',
-        },
-      ]
+          description: toolId === 'sam2'
+            ? 'Approved CUDA runtime for one approved private source frame only; broad real-media/full-video execution is not accepted.'
+            : 'Approved CUDA runtime for the scoped local worker call only.',
+        }
+
+  return [
+    outputDirectory,
+    sourceImage,
+    modelInputByTool[toolId],
+    modelWeightManifestEvidence,
+    runtimeRequirement,
+  ]
 }
 
 function minimumPrivateRuntimeInputKeys(
@@ -673,6 +684,7 @@ function minimumPrivateRuntimeInputKeys(
   options?: {
     allowCpuTensorRuntime?: boolean
     allowCpuFoundationRuntime?: boolean
+    allowCpuModelRuntime?: boolean
   },
 ): string[] {
   return localInputRequirements(toolId, options)
@@ -685,6 +697,7 @@ function currentBlockingPrerequisiteKey(
   options?: {
     allowCpuTensorRuntime?: boolean
     allowCpuFoundationRuntime?: boolean
+    allowCpuModelRuntime?: boolean
   },
 ): string | null {
   if (!blockingReasonCode) return null
@@ -747,6 +760,14 @@ function currentBlockingPrerequisiteKey(
     blockingReasonCode.includes('cuda') ||
     blockingReasonCode.includes('container_gpu')
   ) {
+    return options?.allowCpuModelRuntime === true
+      ? 'pythonCpuModelRuntime'
+      : 'nativeCudaRuntime'
+  }
+  if (blockingReasonCode.includes('private_inputs_accepted_runtime_proof_not_requested')) {
+    if (options?.allowCpuTensorRuntime === true) return 'pythonCpuTensorRuntime'
+    if (options?.allowCpuFoundationRuntime === true) return 'pythonCpuFoundationRuntime'
+    if (options?.allowCpuModelRuntime === true) return 'pythonCpuModelRuntime'
     return 'nativeCudaRuntime'
   }
   if (blockingReasonCode.includes('container_image')) {
@@ -757,13 +778,12 @@ function currentBlockingPrerequisiteKey(
       ? 'pythonCpuTensorRuntime'
       : options?.allowCpuFoundationRuntime === true
       ? 'pythonCpuFoundationRuntime'
+      : options?.allowCpuModelRuntime === true
+      ? 'pythonCpuModelRuntime'
       : 'pythonPackageRuntime'
   }
   if (blockingReasonCode.includes('python_runtime')) {
     return 'pythonRuntime'
-  }
-  if (blockingReasonCode.includes('private_inputs_accepted_runtime_proof_not_requested')) {
-    return 'nativeCudaRuntime'
   }
   if (blockingReasonCode.includes('disabled_or_not_local_dev')) {
     return 'attemptGpuRuntime'
@@ -817,6 +837,12 @@ function exactRuntimeAttemptCommand(
     (toolId === 'torch_torchvision' || toolId === 'transformers')
       ? '--allow-cpu-foundation-runtime'
       : '',
+    gpuModelAllowsCpuModelRuntime(toolId)
+      ? '--allow-cpu-model-runtime'
+      : '',
+    options.container && gpuModelAllowsCpuModelRuntime(toolId)
+      ? '--no-runtime-container-gpu'
+      : '',
   ]
 
   return parts.filter(Boolean).join(' ')
@@ -868,6 +894,10 @@ function applyRuntimePayloadArgs(
     payload.allowCpuFoundationRuntime = true
     payload.runtimeContainerGpu = false
   }
+  if (gpuModelAllowsCpuModelRuntime(toolId) && runtimeInputs.allowCpuModelRuntime) {
+    payload.allowCpuModelRuntime = true
+    payload.runtimeContainerGpu = false
+  }
   if (runtimeInputs.sourceImageLocalPath) {
     payload.sourceImageLocalPath = runtimeInputs.sourceImageLocalPath
     payload.representativeFrameLocalPath = runtimeInputs.sourceImageLocalPath
@@ -878,7 +908,8 @@ function applyRuntimePayloadArgs(
     (
       (toolId === 'torch_torchvision' || toolId === 'transformers') &&
       runtimeInputs.allowCpuFoundationRuntime
-    )
+    ) ||
+    (gpuModelAllowsCpuModelRuntime(toolId) && runtimeInputs.allowCpuModelRuntime)
       ? false
       : args.runtimeContainerGpu
   if (runtimeInputs.runtimeContainerImage) {
@@ -1031,6 +1062,7 @@ async function buildReport(args: HarnessArgs) {
     const requirements = localInputRequirements(toolId, {
       allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
       allowCpuFoundationRuntime: runtimeInputs.allowCpuFoundationRuntime,
+      allowCpuModelRuntime: runtimeInputs.allowCpuModelRuntime,
     })
     const reasonCode = skipReasonCode(result)
     const privateLocalRuntimeInputsAcceptedBeforeRuntime =
@@ -1038,10 +1070,12 @@ async function buildReport(args: HarnessArgs) {
     const blockingKey = currentBlockingPrerequisiteKey(reasonCode, {
       allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
       allowCpuFoundationRuntime: runtimeInputs.allowCpuFoundationRuntime,
+      allowCpuModelRuntime: runtimeInputs.allowCpuModelRuntime,
     })
     const minimumInputKeys = minimumPrivateRuntimeInputKeys(toolId, {
       allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
       allowCpuFoundationRuntime: runtimeInputs.allowCpuFoundationRuntime,
+      allowCpuModelRuntime: runtimeInputs.allowCpuModelRuntime,
     })
     const remainingInputKeys =
       result.localGpuModelRuntimeExecutionPerformed
@@ -1079,6 +1113,7 @@ async function buildReport(args: HarnessArgs) {
       remainingPrivateRuntimeInputKeys: remainingInputKeys,
       allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
       allowCpuFoundationRuntime: runtimeInputs.allowCpuFoundationRuntime,
+      allowCpuModelRuntime: runtimeInputs.allowCpuModelRuntime,
       privateInputPreflightOnly: runtimeInputs.privateInputPreflightOnly,
       errorMessage: errorMessageForResult(result),
       outputJsonPath: outputJsonPathForResult(result),
@@ -1169,7 +1204,9 @@ async function buildReport(args: HarnessArgs) {
       requiresNativeCudaHost: true,
       onDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
-      noCpuFallbackForHeavyGpuModelTools: true,
+      noCpuFallbackForCudaOnlyGpuModelTools: true,
+      cpuModelRuntimeAllowedForReviewedRealEsrganAndRembgWhenExplicitlyRequested: true,
+      cpuModelRuntimeDoesNotStartGpu: true,
       korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested: true,
       korniaCpuTensorRuntimeRequiresPrivateSourceFrame: true,
       korniaCpuTensorRuntimeDoesNotStartGpu: true,
@@ -1204,6 +1241,7 @@ async function buildReport(args: HarnessArgs) {
       runtimeProofOutputMustProveCudaOrCudaExecutionProvider: true,
       runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime: true,
       runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime: true,
+      runtimeProofOutputCanSkipCudaOnlyForExplicitCpuModelRuntime: true,
       runtimeProofOutputMustProveNoModelDownload: true,
       runtimeProofOutputMustProveNoProviderRuntime: true,
       runtimeProofOutputMustProveNoPublicArtifact: true,

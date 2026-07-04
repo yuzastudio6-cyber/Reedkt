@@ -95,6 +95,7 @@ const gpuModelTools = [
 
 const gpuModelCpuFoundationTools = ['torch_torchvision', 'transformers']
 const gpuModelCpuTensorTools = ['kornia']
+const gpuModelCpuModelTools = ['real_esrgan', 'rembg']
 const gpuModelWeightManifestTools = [
   'sam2',
   'birefnet',
@@ -129,9 +130,9 @@ const scopedProofFixtureCases = [
   { toolId: 'transformers', capabilityId: 'model_runtime_foundation', gpuShouldStartDuringScopedProof: false },
   { toolId: 'sam2', capabilityId: 'subject_segmentation', gpuShouldStartDuringScopedProof: true },
   { toolId: 'birefnet', capabilityId: 'background_removal', gpuShouldStartDuringScopedProof: true },
-  { toolId: 'real_esrgan', capabilityId: 'upscaling', gpuShouldStartDuringScopedProof: true },
+  { toolId: 'real_esrgan', capabilityId: 'upscaling', gpuShouldStartDuringScopedProof: false },
   { toolId: 'kornia', capabilityId: 'tensor_image_ops', gpuShouldStartDuringScopedProof: false },
-  { toolId: 'rembg', capabilityId: 'background_removal', gpuShouldStartDuringScopedProof: true },
+  { toolId: 'rembg', capabilityId: 'background_removal', gpuShouldStartDuringScopedProof: false },
   { toolId: 'transparent_background', capabilityId: 'background_removal', gpuShouldStartDuringScopedProof: true },
 ]
 
@@ -313,8 +314,8 @@ function privateOutputJsonForTool(toolId, tempDir) {
       return {
         ok: true,
         toolId: 'real_esrgan',
-        cudaAvailable: true,
-        deviceName: 'NVIDIA L4',
+        cudaAvailable: false,
+        deviceName: 'cpu',
         enhanced: {
           width: 1024,
           height: 1024,
@@ -324,6 +325,8 @@ function privateOutputJsonForTool(toolId, tempDir) {
         },
         runtime: {
           modelName: 'RealESRGAN_x4plus',
+          runtimeDevice: 'cpu',
+          cpuModelRuntimeAllowed: true,
           faceEnhanceRan: false,
           gfpganImported: false,
           filmUsed: false,
@@ -363,10 +366,12 @@ function privateOutputJsonForTool(toolId, tempDir) {
       return {
         ok: true,
         toolId: 'rembg',
-        cudaExecutionProviderAvailable: true,
+        cudaExecutionProviderAvailable: false,
         runtime: {
-          onnxRuntimeDevice: 'GPU',
-          availableProviders: ['CUDAExecutionProvider', 'CPUExecutionProvider'],
+          onnxRuntimeDevice: 'CPU',
+          availableProviders: ['CPUExecutionProvider'],
+          selectedProviders: ['CPUExecutionProvider'],
+          cpuModelRuntimeAllowed: true,
           modelName: 'u2net',
           modelDownloadedExternally: false,
           providerRuntimePerformed: false,
@@ -487,6 +492,7 @@ function createScopedPrivateProofFixture(caseDef) {
       allowCpuFoundationRuntime:
         caseDef.toolId === 'torch_torchvision' ||
         caseDef.toolId === 'transformers',
+      allowCpuModelRuntime: gpuModelCpuModelTools.includes(caseDef.toolId),
       localInputRequirements: [
         {
           key: 'outputDirectory',
@@ -503,11 +509,23 @@ function createScopedPrivateProofFixture(caseDef) {
             'Private local representative image/frame selected from an approved plan.',
         },
         {
-          key: 'pythonCpuTensorRuntime',
+          key: caseDef.toolId === 'kornia'
+            ? 'pythonCpuTensorRuntime'
+            : gpuModelCpuFoundationTools.includes(caseDef.toolId)
+            ? 'pythonCpuFoundationRuntime'
+            : gpuModelCpuModelTools.includes(caseDef.toolId)
+            ? 'pythonCpuModelRuntime'
+            : 'nativeCudaRuntime',
           requiredForDefaultHarness: false,
           requiredForActualExecution: true,
           description:
-            'Approved local Python CPU tensor runtime with torch, PIL, numpy, and kornia; no model weight required.',
+            gpuModelCpuModelTools.includes(caseDef.toolId)
+              ? 'Approved local Python/Docker CPU model runtime with reviewed private model inputs; no GPU attachment.'
+              : caseDef.toolId === 'kornia'
+              ? 'Approved local Python CPU tensor runtime with torch, PIL, numpy, and kornia; no model weight required.'
+              : gpuModelCpuFoundationTools.includes(caseDef.toolId)
+              ? 'Approved local Python CPU foundation runtime with torch and package imports.'
+              : 'Approved native CUDA runtime for scoped private model execution.',
         },
       ],
       warnings: [
@@ -563,6 +581,9 @@ function expectedGpuInstallReadinessState(toolId) {
   if (gpuModelCpuTensorTools.includes(toolId)) {
     return 'install_target_prepared_runtime_blocked_pending_cpu_tensor_private_inputs'
   }
+  if (gpuModelCpuModelTools.includes(toolId)) {
+    return 'install_target_prepared_runtime_blocked_pending_cpu_model_private_inputs'
+  }
   return 'install_target_prepared_runtime_blocked_pending_cuda_private_inputs'
 }
 
@@ -573,6 +594,9 @@ function expectedGpuRuntimeBlocker(toolId) {
   if (gpuModelCpuTensorTools.includes(toolId)) {
     return 'approved local Python CPU tensor runtime'
   }
+  if (gpuModelCpuModelTools.includes(toolId)) {
+    return 'approved local Python/Docker CPU model runtime'
+  }
   return 'approved native CUDA host'
 }
 
@@ -582,6 +606,10 @@ function gpuModelRequiresSourceImage(toolId) {
 
 function gpuModelAllowsCpuFoundationRuntime(toolId) {
   return toolId === 'torch_torchvision' || toolId === 'transformers'
+}
+
+function gpuModelAllowsCpuModelRuntime(toolId) {
+  return gpuModelCpuModelTools.includes(toolId)
 }
 
 function gpuModelRequiresModelWeightManifest(toolId) {
@@ -608,6 +636,8 @@ function expectedMinimumPrivateRuntimeInputKeys(toolId) {
       ? 'pythonCpuTensorRuntime'
       : gpuModelAllowsCpuFoundationRuntime(toolId)
       ? 'pythonCpuFoundationRuntime'
+      : gpuModelAllowsCpuModelRuntime(toolId)
+      ? 'pythonCpuModelRuntime'
       : 'nativeCudaRuntime',
   ]
   if (gpuModelRequiresSourceImage(toolId)) keys.push('sourceImageLocalPath')
@@ -640,6 +670,7 @@ function expectedCurrentBlockingPrerequisiteKey(toolId) {
 function expectedHostRuntimeFlags(toolId) {
   const flags = [`--tool ${toolId}`, '--output-dir']
   if (toolId === 'kornia') flags.push('--allow-cpu-tensor-runtime')
+  if (gpuModelAllowsCpuModelRuntime(toolId)) flags.push('--allow-cpu-model-runtime')
   if (gpuModelRequiresSourceImage(toolId)) flags.push('--source-image')
   if (toolId === 'sam2') flags.push('--sam2-checkpoint')
   if (toolId === 'birefnet') flags.push('--birefnet-model')
@@ -659,6 +690,9 @@ function expectedControlledRouteFlags(toolId) {
     '--scoped-gpu-output-dir',
   ]
   if (toolId === 'kornia') flags.push('--scoped-gpu-allow-cpu-tensor-runtime')
+  if (gpuModelAllowsCpuModelRuntime(toolId)) {
+    flags.push('--scoped-gpu-allow-cpu-model-runtime')
+  }
   if (gpuModelRequiresSourceImage(toolId)) flags.push('--scoped-gpu-source-image')
   if (toolId === 'sam2') flags.push('--scoped-gpu-sam2-checkpoint')
   if (toolId === 'birefnet') flags.push('--scoped-gpu-birefnet-model')

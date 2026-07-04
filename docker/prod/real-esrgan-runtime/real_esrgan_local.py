@@ -79,7 +79,7 @@ def choose_center_crop(image: Image.Image) -> tuple[Image.Image, dict]:
     }
 
 
-def enhance_rgb_image(model_path: Path, image: Image.Image) -> np.ndarray:
+def enhance_rgb_image(model_path: Path, image: Image.Image, use_cuda: bool) -> np.ndarray:
     from basicsr.archs.rrdbnet_arch import RRDBNet
     from realesrgan import RealESRGANer
 
@@ -92,8 +92,8 @@ def enhance_rgb_image(model_path: Path, image: Image.Image) -> np.ndarray:
         tile=64,
         tile_pad=10,
         pre_pad=0,
-        half=True,
-        gpu_id=0,
+        half=use_cuda,
+        gpu_id=0 if use_cuda else None,
     )
     output_bgr, _ = upsampler.enhance(input_bgr, outscale=4)
     return output_bgr
@@ -108,6 +108,7 @@ def main() -> None:
     parser.add_argument("--sample-path")
     parser.add_argument("--enhanced-path", required=True)
     parser.add_argument("--output-json", required=True)
+    parser.add_argument("--allow-cpu-model-runtime", action="store_true")
     args = parser.parse_args()
 
     os.environ["MODEL_DOWNLOADS_ENABLED"] = "false"
@@ -128,8 +129,10 @@ def main() -> None:
         raise RuntimeError("Approved local RealESRGAN_x4plus.pth is missing or empty.")
     if os.environ.get("REAL_ESRGAN_FACE_ENHANCE") != "false":
         raise RuntimeError("GFPGAN/face enhancement is blocked in the Real-ESRGAN activation runtime.")
-    if not torch.cuda.is_available():
+    cuda_available = bool(torch.cuda.is_available())
+    if not cuda_available and not args.allow_cpu_model_runtime:
         raise RuntimeError("CUDA is required for the Real-ESRGAN activation runtime; no CPU fallback is allowed.")
+    use_cuda = cuda_available
 
     enhanced_path = Path(args.enhanced_path)
     output_path = Path(args.output_json)
@@ -142,7 +145,7 @@ def main() -> None:
         sample_image, crop = choose_center_crop(source_image)
         sample_path.parent.mkdir(parents=True, exist_ok=True)
         sample_image.save(sample_path)
-        output_bgr = enhance_rgb_image(model_path, sample_image)
+        output_bgr = enhance_rgb_image(model_path, sample_image, use_cuda)
         fixture_payload = None
         source_payload = {
             "width": source_image.size[0],
@@ -164,7 +167,7 @@ def main() -> None:
             raise RuntimeError("Generated fixture mode requires --fixture-path.")
         fixture_path = Path(args.fixture_path)
         image = generate_fixture(fixture_path)
-        output_bgr = enhance_rgb_image(model_path, image)
+        output_bgr = enhance_rgb_image(model_path, image, use_cuda)
         fixture_payload = {
             "width": image.size[0],
             "height": image.size[1],
@@ -185,8 +188,8 @@ def main() -> None:
     output = {
         "ok": True,
         "toolId": "real_esrgan",
-        "cudaAvailable": True,
-        "deviceName": torch.cuda.get_device_name(0),
+        "cudaAvailable": cuda_available,
+        "deviceName": torch.cuda.get_device_name(0) if cuda_available else "cpu",
         "enhanced": {
             "width": int(output_bgr.shape[1]),
             "height": int(output_bgr.shape[0]),
@@ -197,6 +200,8 @@ def main() -> None:
         "runtime": {
             "modelName": "RealESRGAN_x4plus",
             "tile": 64,
+            "runtimeDevice": "cuda" if use_cuda else "cpu",
+            "cpuModelRuntimeAllowed": bool(args.allow_cpu_model_runtime),
             "faceEnhanceRan": False,
             "gfpganImported": False,
             "filmUsed": False,

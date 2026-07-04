@@ -107,11 +107,11 @@
         ]
       },
       "real_esrgan": {
-        "acceptedRuntimeEvidence": "native_cuda_real_esrgan_enhanced_image",
+        "acceptedRuntimeEvidence": "native_cuda_or_explicit_cpu_model_real_esrgan_enhanced_image",
         "requiredPrivateOutputFields": [
           "toolId=real_esrgan",
-          "cudaAvailable=true",
-          "deviceName",
+          "native proof: cudaAvailable=true and deviceName",
+          "CPU model proof: cudaAvailable=false, runtime.runtimeDevice=cpu, runtime.cpuModelRuntimeAllowed=true",
           "enhanced.path",
           "enhanced.scale=4",
           "enhanced.sizeBytes",
@@ -142,11 +142,11 @@
         ]
       },
       "rembg": {
-        "acceptedRuntimeEvidence": "native_cuda_onnxruntime_rembg_cutout",
+        "acceptedRuntimeEvidence": "native_cuda_or_explicit_cpu_model_onnxruntime_rembg_cutout",
         "requiredPrivateOutputFields": [
           "toolId=rembg",
-          "cudaExecutionProviderAvailable=true",
-          "runtime.availableProviders includes CUDAExecutionProvider",
+          "native proof: cudaExecutionProviderAvailable=true and runtime.availableProviders includes CUDAExecutionProvider",
+          "CPU model proof: cudaExecutionProviderAvailable=false, runtime.cpuModelRuntimeAllowed=true, runtime.selectedProviders includes CPUExecutionProvider",
           "runtime.modelName",
           "input.path",
           "mask.path",
@@ -211,7 +211,7 @@
       "localRuntimeProofResultProvided": false,
       "localRuntimeProofAccepted": false,
       "proofRefBridgeStatus": "blocked_missing_private_local_runtime_proof_result",
-      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness on a CUDA host with private inputs first.",
+      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness with the approved per-tool runtime mode and private inputs first.",
       "expectedLocalProofEvidence": {
         "adapterStatus": "controlled_gpu_model_adapter_executed_private_output_ready",
         "executionState": "executable",
@@ -244,7 +244,8 @@
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
-        "errorMessage": null
+        "errorMessage": null,
+        "allowCpuModelRuntime": false
       },
       "routeSubmissionReadyWithAcceptedPrivateProof": false,
       "gpuRuntimeShouldStartNow": false,
@@ -264,7 +265,7 @@
       "localRuntimeProofResultProvided": false,
       "localRuntimeProofAccepted": false,
       "proofRefBridgeStatus": "blocked_missing_private_local_runtime_proof_result",
-      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness on a CUDA host with private inputs first.",
+      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness with the approved per-tool runtime mode and private inputs first.",
       "expectedLocalProofEvidence": {
         "adapterStatus": "controlled_gpu_model_adapter_executed_private_output_ready",
         "executionState": "executable",
@@ -297,7 +298,8 @@
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
-        "errorMessage": null
+        "errorMessage": null,
+        "allowCpuModelRuntime": false
       },
       "routeSubmissionReadyWithAcceptedPrivateProof": false,
       "gpuRuntimeShouldStartNow": false,
@@ -318,7 +320,7 @@
       "localRuntimeProofResultProvided": false,
       "localRuntimeProofAccepted": false,
       "proofRefBridgeStatus": "blocked_missing_private_local_runtime_proof_result",
-      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness on a CUDA host with private inputs first.",
+      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness with the approved per-tool runtime mode and private inputs first.",
       "expectedLocalProofEvidence": {
         "adapterStatus": "controlled_gpu_model_adapter_executed_private_output_ready",
         "executionState": "executable",
@@ -351,7 +353,8 @@
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
-        "errorMessage": null
+        "errorMessage": null,
+        "allowCpuModelRuntime": false
       },
       "routeSubmissionReadyWithAcceptedPrivateProof": false,
       "gpuRuntimeShouldStartNow": false,
@@ -372,7 +375,7 @@
       "localRuntimeProofResultProvided": false,
       "localRuntimeProofAccepted": false,
       "proofRefBridgeStatus": "blocked_missing_private_local_runtime_proof_result",
-      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness on a CUDA host with private inputs first.",
+      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness with the approved per-tool runtime mode and private inputs first.",
       "expectedLocalProofEvidence": {
         "adapterStatus": "controlled_gpu_model_adapter_executed_private_output_ready",
         "executionState": "executable",
@@ -405,7 +408,8 @@
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
-        "errorMessage": null
+        "errorMessage": null,
+        "allowCpuModelRuntime": false
       },
       "routeSubmissionReadyWithAcceptedPrivateProof": false,
       "gpuRuntimeShouldStartNow": false,
@@ -426,13 +430,13 @@
       "localRuntimeProofResultProvided": false,
       "localRuntimeProofAccepted": false,
       "proofRefBridgeStatus": "blocked_missing_private_local_runtime_proof_result",
-      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness on a CUDA host with private inputs first.",
+      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness with the approved per-tool runtime mode and private inputs first.",
       "expectedLocalProofEvidence": {
         "adapterStatus": "controlled_gpu_model_adapter_executed_private_output_ready",
         "executionState": "executable",
         "localRuntimeExecutionPerformed": true,
         "toolExecutionApprovedNow": true,
-        "gpuRuntimeShouldStartNowDuringScopedProof": true,
+        "gpuRuntimeShouldStartNowDuringScopedProof": false,
         "publicArtifactCreated": false,
         "signedUrlCreated": false,
         "runtimeReadyNow": false,
@@ -459,7 +463,8 @@
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
-        "errorMessage": null
+        "errorMessage": null,
+        "allowCpuModelRuntime": false
       },
       "routeSubmissionReadyWithAcceptedPrivateProof": false,
       "gpuRuntimeShouldStartNow": false,
@@ -479,7 +484,7 @@
       "localRuntimeProofResultProvided": false,
       "localRuntimeProofAccepted": false,
       "proofRefBridgeStatus": "blocked_missing_private_local_runtime_proof_result",
-      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness on a CUDA host with private inputs first.",
+      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness with the approved per-tool runtime mode and private inputs first.",
       "expectedLocalProofEvidence": {
         "adapterStatus": "controlled_gpu_model_adapter_executed_private_output_ready",
         "executionState": "executable",
@@ -512,7 +517,8 @@
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
-        "errorMessage": null
+        "errorMessage": null,
+        "allowCpuModelRuntime": false
       },
       "routeSubmissionReadyWithAcceptedPrivateProof": false,
       "gpuRuntimeShouldStartNow": false,
@@ -533,13 +539,13 @@
       "localRuntimeProofResultProvided": false,
       "localRuntimeProofAccepted": false,
       "proofRefBridgeStatus": "blocked_missing_private_local_runtime_proof_result",
-      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness on a CUDA host with private inputs first.",
+      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness with the approved per-tool runtime mode and private inputs first.",
       "expectedLocalProofEvidence": {
         "adapterStatus": "controlled_gpu_model_adapter_executed_private_output_ready",
         "executionState": "executable",
         "localRuntimeExecutionPerformed": true,
         "toolExecutionApprovedNow": true,
-        "gpuRuntimeShouldStartNowDuringScopedProof": true,
+        "gpuRuntimeShouldStartNowDuringScopedProof": false,
         "publicArtifactCreated": false,
         "signedUrlCreated": false,
         "runtimeReadyNow": false,
@@ -566,7 +572,8 @@
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
-        "errorMessage": null
+        "errorMessage": null,
+        "allowCpuModelRuntime": false
       },
       "routeSubmissionReadyWithAcceptedPrivateProof": false,
       "gpuRuntimeShouldStartNow": false,
@@ -587,7 +594,7 @@
       "localRuntimeProofResultProvided": false,
       "localRuntimeProofAccepted": false,
       "proofRefBridgeStatus": "blocked_missing_private_local_runtime_proof_result",
-      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness on a CUDA host with private inputs first.",
+      "blockingReason": "No private local-dev runtime proof result was supplied. Run the scoped harness with the approved per-tool runtime mode and private inputs first.",
       "expectedLocalProofEvidence": {
         "adapterStatus": "controlled_gpu_model_adapter_executed_private_output_ready",
         "executionState": "executable",
@@ -620,7 +627,8 @@
         "privateOutputJsonAccepted": false,
         "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace",
         "skipReasonCode": null,
-        "errorMessage": null
+        "errorMessage": null,
+        "allowCpuModelRuntime": false
       },
       "routeSubmissionReadyWithAcceptedPrivateProof": false,
       "gpuRuntimeShouldStartNow": false,

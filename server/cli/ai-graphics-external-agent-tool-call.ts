@@ -133,6 +133,7 @@ const runtimeInputManifestPathFields = new Set([
 const runtimeInputManifestBooleanFields = new Set([
   'allowCpuTensorRuntime',
   'allowCpuFoundationRuntime',
+  'allowCpuModelRuntime',
   'privateInputPreflightOnly',
   'localRuntimeInputPreflightOnly',
 ])
@@ -450,6 +451,10 @@ function gpuModelAllowsCpuTensorRuntime(toolId: string): boolean {
   return toolId === 'kornia'
 }
 
+function gpuModelAllowsCpuModelRuntime(toolId: string): boolean {
+  return toolId === 'real_esrgan' || toolId === 'rembg'
+}
+
 function gpuModelRuntimeContainerTarget(toolId: string) {
   return gpuModelRuntimeContainerTargets[
     toolId as AiGraphicsExternalAgentGpuModelControlledAdapterToolId
@@ -467,6 +472,8 @@ function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
       ? 'pythonCpuTensorRuntime'
       : gpuModelAllowsCpuFoundationRuntime(toolId)
       ? 'pythonCpuFoundationRuntime'
+      : gpuModelAllowsCpuModelRuntime(toolId)
+      ? 'pythonCpuModelRuntime'
       : 'nativeCudaRuntime',
   ]
   if (gpuModelSourceImageRequired(toolId)) keys.push('sourceImageLocalPath')
@@ -496,6 +503,8 @@ function gpuModelCurrentBlockingPrerequisiteKey(
       ? 'pythonCpuTensorRuntime'
       : gpuModelAllowsCpuFoundationRuntime(toolId)
       ? 'pythonCpuFoundationRuntime'
+      : gpuModelAllowsCpuModelRuntime(toolId)
+      ? 'pythonCpuModelRuntime'
       : 'nativeCudaRuntime'
   }
   if (
@@ -557,6 +566,7 @@ function gpuModelCurrentBlockingPrerequisiteKey(
     blockingReasonCode.includes('cuda') ||
     blockingReasonCode.includes('container_gpu')
   ) {
+    if (gpuModelAllowsCpuModelRuntime(toolId)) return 'pythonCpuModelRuntime'
     return 'nativeCudaRuntime'
   }
   if (blockingReasonCode.includes('container_image')) {
@@ -565,11 +575,13 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   if (blockingReasonCode.includes('python_package')) {
     if (gpuModelAllowsCpuTensorRuntime(toolId)) return 'pythonCpuTensorRuntime'
     if (gpuModelAllowsCpuFoundationRuntime(toolId)) return 'pythonCpuFoundationRuntime'
+    if (gpuModelAllowsCpuModelRuntime(toolId)) return 'pythonCpuModelRuntime'
     return 'pythonPackageRuntime'
   }
   if (blockingReasonCode.includes('python_runtime')) {
     if (gpuModelAllowsCpuTensorRuntime(toolId)) return 'pythonCpuTensorRuntime'
     if (gpuModelAllowsCpuFoundationRuntime(toolId)) return 'pythonCpuFoundationRuntime'
+    if (gpuModelAllowsCpuModelRuntime(toolId)) return 'pythonCpuModelRuntime'
     return 'pythonRuntime'
   }
   if (blockingReasonCode.includes('disabled_or_not_local_dev')) {
@@ -601,6 +613,8 @@ function gpuModelBlockedPrerequisites(toolId: string): string[] {
       ? 'approved local Python CPU tensor runtime with torch, PIL, numpy, and kornia'
       : gpuModelAllowsCpuFoundationRuntime(toolId)
       ? 'approved local Python CPU foundation runtime with torch and package-specific imports'
+      : gpuModelAllowsCpuModelRuntime(toolId)
+      ? 'approved local Python or Docker CPU model runtime with reviewed private model weights and private source input'
       : 'approved native CUDA-capable host or approved linux/amd64 Docker GPU runtime',
     'proof-local tool-specific runtime container image built locally',
     'private output directory under .local-artifacts/',
@@ -640,19 +654,25 @@ function gpuModelScopedToolCallCommand(toolId: string): string {
     ? '--allow-cpu-tensor-runtime'
     : gpuModelAllowsCpuFoundationRuntime(toolId)
     ? '--allow-cpu-foundation-runtime'
+    : gpuModelAllowsCpuModelRuntime(toolId)
+    ? '--allow-cpu-model-runtime'
     : ''
   const cpuRuntimePreferred = preferredCpuRuntimeFlag.length > 0
+  const cpuModelRuntimePreferred = gpuModelAllowsCpuModelRuntime(toolId)
   return [
     'npm run --silent ai-graphics:external-agent-tool-call --',
     `--tool ${toolId}`,
     '--attempt-gpu-runtime',
-    cpuRuntimePreferred ? '--runtime-backend host_python' : '--runtime-backend docker_container',
-    ...(cpuRuntimePreferred
+    cpuRuntimePreferred && !cpuModelRuntimePreferred
+      ? '--runtime-backend host_python'
+      : '--runtime-backend docker_container',
+    ...(cpuRuntimePreferred && !cpuModelRuntimePreferred
       ? []
       : [
           `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]),
+    cpuModelRuntimePreferred ? '--no-runtime-container-gpu' : '',
     `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/${toolId}`,
     ...gpuModelPrivateInputPlaceholders(toolId),
     preferredCpuRuntimeFlag,
@@ -668,19 +688,25 @@ function gpuModelScopedToolCallManifestCommand(toolId: string): string {
     ? '--allow-cpu-tensor-runtime'
     : gpuModelAllowsCpuFoundationRuntime(toolId)
     ? '--allow-cpu-foundation-runtime'
+    : gpuModelAllowsCpuModelRuntime(toolId)
+    ? '--allow-cpu-model-runtime'
     : ''
   const cpuRuntimePreferred = preferredCpuRuntimeFlag.length > 0
+  const cpuModelRuntimePreferred = gpuModelAllowsCpuModelRuntime(toolId)
   return [
     'npm run --silent ai-graphics:external-agent-tool-call --',
     `--tool ${toolId}`,
     '--attempt-gpu-runtime',
-    cpuRuntimePreferred ? '--runtime-backend host_python' : '--runtime-backend docker_container',
-    ...(cpuRuntimePreferred
+    cpuRuntimePreferred && !cpuModelRuntimePreferred
+      ? '--runtime-backend host_python'
+      : '--runtime-backend docker_container',
+    ...(cpuRuntimePreferred && !cpuModelRuntimePreferred
       ? []
       : [
           `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]),
+    cpuModelRuntimePreferred ? '--no-runtime-container-gpu' : '',
     `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/${toolId}`,
     '--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json',
     preferredCpuRuntimeFlag,
@@ -714,6 +740,12 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
     (
       hasFlag('--allow-cpu-foundation-runtime') ||
       manifestBooleanForTool(toolId, manifest, 'allowCpuFoundationRuntime') === true
+    )
+  const allowCpuModelRuntime =
+    gpuModelAllowsCpuModelRuntime(toolId) &&
+    (
+      hasFlag('--allow-cpu-model-runtime') ||
+      manifestBooleanForTool(toolId, manifest, 'allowCpuModelRuntime') === true
     )
   const outputDirectory =
     stringArg('--gpu-output-dir') ??
@@ -759,12 +791,15 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
   if (allowCpuFoundationRuntime) {
     payload.allowCpuFoundationRuntime = true
   }
+  if (allowCpuModelRuntime) {
+    payload.allowCpuModelRuntime = true
+  }
   payload.runtimeExecutionBackend = runtimeBackend
   payload.outputDirectory = outputDirectory
   payload.timeoutMs = Number(stringArg('--timeout-ms') ?? '30000')
   if (runtimeBackend === 'docker_container') {
     payload.runtimeContainerGpu =
-      allowCpuTensorRuntime || allowCpuFoundationRuntime
+      allowCpuTensorRuntime || allowCpuFoundationRuntime || allowCpuModelRuntime
         ? false
         : !hasFlag('--no-runtime-container-gpu')
     payload.runtimeContainerImage =

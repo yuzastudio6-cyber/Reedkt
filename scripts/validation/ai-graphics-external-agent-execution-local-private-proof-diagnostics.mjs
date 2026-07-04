@@ -14,6 +14,7 @@ const blockedModelTools = [
   'rembg',
   'transparent_background',
 ]
+const cpuModelRuntimeTools = ['real_esrgan', 'rembg']
 const dockerRuntimeModulesByTool = {
   sam2: ['torch', 'torchvision', 'numpy', 'PIL', 'sam2'],
   birefnet: [
@@ -236,9 +237,11 @@ writeRuntimeInputManifest(privateInputPreflightManifestPath, {
       birefnetModelLocalPath: relativeLocalPath(placeholderModelPaths.birefnet),
     },
     real_esrgan: {
+      allowCpuModelRuntime: true,
       realEsrganModelLocalPath: relativeLocalPath(placeholderModelPaths.real_esrgan),
     },
     rembg: {
+      allowCpuModelRuntime: true,
       rembgModelLocalPath: relativeLocalPath(placeholderModelPaths.rembg),
     },
     transparent_background: {
@@ -490,7 +493,10 @@ for (const toolId of blockedModelTools) {
       `private_input_preflight_blocker_mismatch:${toolId}:${row.currentBlockingReasonCode}`,
     )
   }
-  if (row.currentBlockingPrerequisiteKey !== 'nativeCudaRuntime') {
+  const expectedRuntimeKey = cpuModelRuntimeTools.includes(toolId)
+    ? 'pythonCpuModelRuntime'
+    : 'nativeCudaRuntime'
+  if (row.currentBlockingPrerequisiteKey !== expectedRuntimeKey) {
     fail(
       `private_input_preflight_blocking_key_mismatch:${toolId}:${row.currentBlockingPrerequisiteKey}`,
     )
@@ -562,7 +568,8 @@ const summary = {
   ),
   privateInputPreflightAcceptedBeforeRuntimeTools:
     privateInputPreflight.counts?.privateLocalRuntimeInputsAcceptedBeforeRuntimeTools,
-  blockedGpuModelToolsNextRuntimePrerequisite: 'nativeCudaRuntime',
+  blockedGpuModelToolsNextRuntimePrerequisite:
+    'nativeCudaRuntime for sam2/birefnet/transparent_background; pythonCpuModelRuntime for real_esrgan/rembg',
   routeProofs: routeSummaries,
   gpuRuntimeShouldStartNow: readiness.booleans?.gpuRuntimeShouldStartNow,
   runtimeReadyNow: readiness.booleans?.runtimeReadyNow,

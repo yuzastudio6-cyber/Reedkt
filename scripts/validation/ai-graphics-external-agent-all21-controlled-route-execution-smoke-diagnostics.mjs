@@ -94,6 +94,7 @@ const cpuFoundationGpuModelTools = new Set([
   'transformers',
 ])
 const cpuTensorGpuModelTools = new Set(['kornia'])
+const cpuModelGpuModelTools = new Set(['real_esrgan', 'rembg'])
 
 const expectedGpuPrivateInputKeys = {
   torch_torchvision: ['outputDirectory', 'pythonCpuFoundationRuntime'],
@@ -112,7 +113,7 @@ const expectedGpuPrivateInputKeys = {
   ],
   real_esrgan: [
     'outputDirectory',
-    'nativeCudaRuntime',
+    'pythonCpuModelRuntime',
     'sourceImageLocalPath',
     'realEsrganModelLocalPath',
   ],
@@ -123,7 +124,7 @@ const expectedGpuPrivateInputKeys = {
   ],
   rembg: [
     'outputDirectory',
-    'nativeCudaRuntime',
+    'pythonCpuModelRuntime',
     'sourceImageLocalPath',
     'rembgModelLocalPath',
   ],
@@ -323,6 +324,18 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
     if (action.includes('docker buildx build')) {
       fail(`${label}_${toolId}_gpu_next_action_should_not_require_docker_build_first`)
     }
+  } else if (cpuModelGpuModelTools.has(toolId)) {
+    for (const requiredFragment of [
+      'verify the approved local Python CPU model runtime first',
+      '--runtime-backend docker_container',
+      '--allow-cpu-model-runtime',
+      '--no-runtime-container-gpu',
+      'GPU remains idle for explicit CPU model proof tools',
+    ]) {
+      if (!action.includes(requiredFragment)) {
+        fail(`${label}_${toolId}_gpu_next_action_missing_fragment:${requiredFragment}`)
+      }
+    }
   } else {
     for (const requiredFragment of [
       'if the proof-local image is missing',
@@ -362,6 +375,17 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
             '--allow-cpu-foundation-runtime',
             `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
           ]
+        : cpuModelGpuModelTools.has(toolId)
+        ? [
+            'ai-graphics:external-agent-tool-call',
+            `--tool ${toolId}`,
+            '--runtime-backend docker_container',
+            `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+            '--runtime-container-platform linux/amd64',
+            '--no-runtime-container-gpu',
+            '--allow-cpu-model-runtime',
+            `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
+          ]
         : [
             'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
             `--scoped-gpu-tool ${toolId}`,
@@ -376,7 +400,8 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
     }
     if (
       (cpuTensorGpuModelTools.has(toolId) ||
-        cpuFoundationGpuModelTools.has(toolId)) &&
+        cpuFoundationGpuModelTools.has(toolId) ||
+        cpuModelGpuModelTools.has(toolId)) &&
       sourceImageRequiredGpuModelTools.has(toolId)
     ) {
       if (!routeRetryCommand.includes('--source-image <private-approved-frame.png>')) {
@@ -411,6 +436,8 @@ function checkGpuStructuredProofFields(label, toolId, normalized) {
       ? 'CPU tensor runtime'
       : cpuFoundationGpuModelTools.has(toolId)
       ? 'CPU foundation runtime'
+      : cpuModelGpuModelTools.has(toolId)
+      ? 'CPU model runtime'
       : 'CUDA'
     for (const fragment of [
       runtimePrerequisite,
@@ -606,6 +633,15 @@ function checkReport(label, report) {
             '--allow-cpu-foundation-runtime',
             'ai-graphics:external-agent-tool-call',
             'GPU remains idle for CPU proof tools',
+          ]
+        : cpuModelGpuModelTools.has(toolId)
+        ? [
+            'verify the approved local Python CPU model runtime first',
+            '--runtime-backend docker_container',
+            '--allow-cpu-model-runtime',
+            '--no-runtime-container-gpu',
+            'ai-graphics:external-agent-tool-call',
+            'GPU remains idle for explicit CPU model proof tools',
           ]
         : [
             'if the proof-local image is missing, build the exact local proof image first:',
@@ -1318,7 +1354,9 @@ function checkPrivateInputPreflightScopedReport(label, report) {
     }
     if (
       scopedResult.externalAgentToolCallResult?.currentBlockingPrerequisiteKey !==
-      'nativeCudaRuntime'
+      (cpuModelGpuModelTools.has(toolId)
+        ? 'pythonCpuModelRuntime'
+        : 'nativeCudaRuntime')
     ) {
       fail(`${label}_${toolId}_current_blocking_prerequisite_mismatch:${scopedResult.externalAgentToolCallResult?.currentBlockingPrerequisiteKey}`)
     }

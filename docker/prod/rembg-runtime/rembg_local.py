@@ -24,6 +24,7 @@ def main() -> None:
     parser.add_argument("--cutout-path", required=True)
     parser.add_argument("--mask-path", required=True)
     parser.add_argument("--output-json", required=True)
+    parser.add_argument("--allow-cpu-model-runtime", action="store_true")
     args = parser.parse_args()
 
     os.environ["MODEL_DOWNLOADS_ENABLED"] = "false"
@@ -34,7 +35,9 @@ def main() -> None:
     import onnxruntime as ort
     from rembg import new_session, remove
 
-    if "CUDAExecutionProvider" not in ort.get_available_providers():
+    available_providers = ort.get_available_providers()
+    cuda_provider_available = "CUDAExecutionProvider" in available_providers
+    if not cuda_provider_available and not args.allow_cpu_model_runtime:
         raise RuntimeError("CUDAExecutionProvider is required for the rembg GPU runtime; no CPU fallback is allowed.")
 
     model_path = Path(args.model_path)
@@ -50,7 +53,12 @@ def main() -> None:
     cutout_path = Path(args.cutout_path)
     mask_path = Path(args.mask_path)
     output_path = Path(args.output_json)
-    session = new_session(model_name, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
+    providers = (
+        ["CUDAExecutionProvider", "CPUExecutionProvider"]
+        if cuda_provider_available
+        else ["CPUExecutionProvider"]
+    )
+    session = new_session(model_name, providers=providers)
     input_bytes = input_path.read_bytes()
     output_bytes = remove(input_bytes, session=session, force_return_bytes=True)
     cutout_path.parent.mkdir(parents=True, exist_ok=True)
@@ -64,10 +72,12 @@ def main() -> None:
     output = {
         "ok": True,
         "toolId": "rembg",
-        "cudaExecutionProviderAvailable": True,
+        "cudaExecutionProviderAvailable": cuda_provider_available,
         "runtime": {
             "onnxRuntimeDevice": ort.get_device(),
-            "availableProviders": ort.get_available_providers(),
+            "availableProviders": available_providers,
+            "selectedProviders": providers,
+            "cpuModelRuntimeAllowed": bool(args.allow_cpu_model_runtime),
             "modelName": model_name,
             "modelDownloadedExternally": False,
             "providerRuntimePerformed": False,

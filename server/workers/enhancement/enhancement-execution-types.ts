@@ -70,6 +70,7 @@ export interface EnhancementExecutionInput {
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
   runtimeContainerGpu?: boolean
+  allowCpuModelRuntime?: boolean
   timeoutMs?: number
   readinessReport?: { overallStatus?: string; blockers?: unknown[]; blockerSummaries?: unknown[] }
   rawPrompt?: unknown

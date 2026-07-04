@@ -93,6 +93,7 @@ type SequenceArgs = {
   runtimeContainerPlatform?: string
   allowCpuTensorRuntime: boolean
   allowCpuFoundationRuntime: boolean
+  allowCpuModelRuntime: boolean
   sourceImageLocalPath?: string
   sam2CheckpointLocalPath?: string
   birefnetModelLocalPath?: string
@@ -132,6 +133,7 @@ const runtimeInputManifestPathFields = new Set([
 const runtimeInputManifestBooleanFields = new Set([
   'allowCpuTensorRuntime',
   'allowCpuFoundationRuntime',
+  'allowCpuModelRuntime',
   'privateInputPreflightOnly',
   'localRuntimeInputPreflightOnly',
 ])
@@ -190,6 +192,12 @@ function gpuModelRuntimeContainerBuildCommand(
     `-t ${target.image}`,
     '.',
   ].join(' ')
+}
+
+function gpuModelAllowsCpuModelRuntime(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): boolean {
+  return toolId === 'real_esrgan' || toolId === 'rembg'
 }
 
 function isLocalArtifactPath(filePath: string): boolean {
@@ -383,6 +391,12 @@ function parseArgs(): SequenceArgs {
       hasFlag('--allow-cpu-foundation-runtime') ||
       manifestBooleanForTool(toolId, runtimeInputManifest, 'allowCpuFoundationRuntime') === true
     )
+  const allowCpuModelRuntime =
+    gpuModelAllowsCpuModelRuntime(toolId) &&
+    (
+      hasFlag('--allow-cpu-model-runtime') ||
+      manifestBooleanForTool(toolId, runtimeInputManifest, 'allowCpuModelRuntime') === true
+    )
   const requestedBackend = stringFlag('--runtime-backend')
   const manifestRuntimeContainerImage =
     manifestStringForTool(toolId, runtimeInputManifest, 'runtimeContainerImage')
@@ -462,6 +476,7 @@ function parseArgs(): SequenceArgs {
     runtimeContainerPlatform,
     allowCpuTensorRuntime,
     allowCpuFoundationRuntime,
+    allowCpuModelRuntime,
     sourceImageLocalPath: stringFlag('--source-image'),
     sam2CheckpointLocalPath: stringFlag('--sam2-checkpoint'),
     birefnetModelLocalPath: stringFlag('--birefnet-model'),
@@ -503,6 +518,8 @@ function harnessArgs(input: SequenceArgs): string[] {
   if (input.attemptLocalRuntime) args.push('--attempt-local-runtime')
   if (input.allowCpuTensorRuntime) args.push('--allow-cpu-tensor-runtime')
   if (input.allowCpuFoundationRuntime) args.push('--allow-cpu-foundation-runtime')
+  if (input.allowCpuModelRuntime) args.push('--allow-cpu-model-runtime')
+  if (input.allowCpuModelRuntime) args.push('--no-runtime-container-gpu')
   pushIfValue(args, '--runtime-input-manifest', input.runtimeInputManifestPath)
   pushIfValue(args, '--output-dir', input.outputDirectory)
   pushIfValue(args, '--result-out', input.resultOut)
@@ -572,6 +589,8 @@ function finalExternalAgentToolCallArgs(input: SequenceArgs): string[] {
   if (input.runtimeBackend) args.push('--runtime-backend', input.runtimeBackend)
   if (input.allowCpuTensorRuntime) args.push('--allow-cpu-tensor-runtime')
   if (input.allowCpuFoundationRuntime) args.push('--allow-cpu-foundation-runtime')
+  if (input.allowCpuModelRuntime) args.push('--allow-cpu-model-runtime')
+  if (input.allowCpuModelRuntime) args.push('--no-runtime-container-gpu')
   pushIfValue(args, '--runtime-input-manifest', input.runtimeInputManifestPath)
   pushIfValue(args, '--runtime-container-image', input.runtimeContainerImage)
   pushIfValue(args, '--runtime-container-platform', input.runtimeContainerPlatform)
@@ -653,10 +672,12 @@ type RequestedProofMode =
   | 'native_gpu'
   | 'cpu_tensor'
   | 'cpu_foundation'
+  | 'cpu_model'
 
 function requestedProofMode(input: SequenceArgs): RequestedProofMode {
   if (input.allowCpuFoundationRuntime) return 'cpu_foundation'
   if (input.allowCpuTensorRuntime) return 'cpu_tensor'
+  if (input.allowCpuModelRuntime) return 'cpu_model'
   return 'native_gpu'
 }
 
@@ -689,6 +710,9 @@ function finalExternalAgentToolCallCommandForTool(
     ...((toolId === 'torch_torchvision' || toolId === 'transformers') &&
     !options.container
       ? ['--allow-cpu-foundation-runtime']
+      : []),
+    ...(gpuModelAllowsCpuModelRuntime(toolId)
+      ? ['--allow-cpu-model-runtime', '--no-runtime-container-gpu']
       : []),
     `--gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>/external-agent-single-tool-call/${toolId}`,
     `--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>/external-agent-single-tool-call-result.json`,
@@ -748,6 +772,26 @@ function defaultFoundationCpuCommand(toolId: 'torch_torchvision' | 'transformers
   ].join(' ')
 }
 
+function defaultCpuModelCommand(toolId: 'real_esrgan' | 'rembg'): string {
+  return [
+    `npm run --silent ${harnessScript} --`,
+    '--attempt-local-runtime',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+    '--runtime-container-platform linux/amd64',
+    '--no-runtime-container-gpu',
+    '--allow-cpu-model-runtime',
+    `--tool ${toolId}`,
+    `--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-${toolId}-cpu-run>`,
+    `--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-${toolId}-cpu-run>/harness-result.json`,
+    '--source-image <private-approved-frame.png>',
+    toolId === 'real_esrgan'
+      ? '--real-esrgan-model <private-real-esrgan-model.pth>'
+      : '--rembg-model <private-rembg-model.onnx>',
+    '--runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>',
+  ].join(' ')
+}
+
 function privateProofSequenceInputFlags(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 ): string[] {
@@ -796,6 +840,9 @@ function sequenceCommandForTool(
     !options.container
       ? ['--runtime-backend host_python', '--allow-cpu-foundation-runtime']
       : []),
+    ...(gpuModelAllowsCpuModelRuntime(toolId)
+      ? ['--allow-cpu-model-runtime', '--no-runtime-container-gpu']
+      : []),
     `--tool ${toolId}`,
     `--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>`,
     ...privateProofSequenceInputFlags(toolId),
@@ -825,6 +872,9 @@ function sequenceManifestCommandForTool(
     ...((toolId === 'torch_torchvision' || toolId === 'transformers') &&
     !options.container
       ? ['--runtime-backend host_python', '--allow-cpu-foundation-runtime']
+      : []),
+    ...(gpuModelAllowsCpuModelRuntime(toolId)
+      ? ['--allow-cpu-model-runtime', '--no-runtime-container-gpu']
       : []),
     `--tool ${toolId}`,
     `--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>/runtime-inputs.json`,
@@ -1001,6 +1051,10 @@ function buildReport(input: SequenceArgs) {
         defaultFoundationCpuCommand('torch_torchvision'),
       defaultTransformersCpuFoundationHarnessCommand:
         defaultFoundationCpuCommand('transformers'),
+      defaultRealEsrganCpuModelHarnessCommand:
+        defaultCpuModelCommand('real_esrgan'),
+      defaultRembgCpuModelHarnessCommand:
+        defaultCpuModelCommand('rembg'),
       bridgeCommand: privateResultPath ? bridgeCommand(privateResultPath) : null,
       readinessCommand: privateResultPath ? readinessCommand(privateResultPath) : null,
       finalExternalAgentSingleToolCallCommand:
@@ -1040,6 +1094,7 @@ function buildReport(input: SequenceArgs) {
       privateRuntimeInputManifestUsedNow: Boolean(input.runtimeInputManifestPath),
       korniaCpuTensorRuntimeRequested: input.allowCpuTensorRuntime,
       foundationCpuRuntimeRequested: input.allowCpuFoundationRuntime,
+      cpuModelRuntimeRequested: input.allowCpuModelRuntime,
       privateRuntimeInputManifestMustStayUnderLocalArtifacts: true,
       privateRuntimeInputManifestRejectedForWriteRecords: true,
       privateProofResultMustStayUnderLocalArtifacts: true,
@@ -1048,8 +1103,11 @@ function buildReport(input: SequenceArgs) {
       gpuMayStartOnlyDuringScopedLocalRuntimeAttempt:
         input.attemptLocalRuntime === true &&
         input.allowCpuTensorRuntime !== true &&
-        input.allowCpuFoundationRuntime !== true,
-      noCpuFallbackForGpuModelTools: true,
+        input.allowCpuFoundationRuntime !== true &&
+        input.allowCpuModelRuntime !== true,
+      noCpuFallbackForCudaOnlyGpuModelTools: true,
+      cpuModelRuntimeAllowedForReviewedRealEsrganAndRembgWhenExplicitlyRequested: true,
+      cpuModelRuntimeDoesNotStartGpu: true,
       korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested: true,
       korniaCpuTensorRuntimeDoesNotStartGpu: true,
       foundationCpuRuntimeAllowedWhenExplicitlyRequested: true,
@@ -1220,7 +1278,7 @@ function buildReport(input: SequenceArgs) {
       noIdleGpuRuntimeApproved: true,
       gpuRuntimeShouldStartNow: false,
       gpuRuntimeStartedOnlyDuringScopedAttempt:
-        input.allowCpuTensorRuntime
+        input.allowCpuTensorRuntime || input.allowCpuFoundationRuntime || input.allowCpuModelRuntime
           ? harnessRow.gpuRuntimeShouldStartNow !== true
           : !localRuntimeExecuted || harnessRow.gpuRuntimeShouldStartNow === true,
       dependencyInstallPerformed: false,

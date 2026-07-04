@@ -58,6 +58,7 @@ export async function runRealEsrganEnhancement(input: {
   const samplePath = path.join(runtimeDir, 'real-esrgan-sample.png')
   const enhancedPath = path.join(runtimeDir, 'real-esrgan-enhanced.png')
   const outputJsonPath = path.join(runtimeDir, 'real-esrgan-runtime-result.json')
+  const allowCpuModelRuntime = executionInput.allowCpuModelRuntime === true
 
   try {
     const runtimeResult = await runAiGraphicsPythonRuntimeScript({
@@ -75,13 +76,16 @@ export async function runRealEsrganEnhancement(input: {
         enhancedPath,
         '--output-json',
         outputJsonPath,
+        ...(allowCpuModelRuntime ? ['--allow-cpu-model-runtime'] : []),
       ],
       outputJsonPath,
       timeoutMs: executionInput.timeoutMs,
       runtimeBackend: executionInput.runtimeExecutionBackend,
       containerImage: executionInput.runtimeContainerImage,
       containerPlatform: executionInput.runtimeContainerPlatform,
-      containerGpu: executionInput.runtimeContainerGpu,
+      containerGpu: allowCpuModelRuntime
+        ? false
+        : executionInput.runtimeContainerGpu,
       containerBindMounts: buildAiGraphicsRuntimeContainerBindMounts({
         readOnlyPaths: [
           sourcePath,
@@ -91,7 +95,7 @@ export async function runRealEsrganEnhancement(input: {
       }),
       proofExpectation: {
         expectedToolId: 'real_esrgan',
-        requireCuda: true,
+        requireCuda: allowCpuModelRuntime ? false : true,
         requireNoModelDownload: true,
         requireNoProviderRuntime: true,
         requireNoPublicArtifact: true,
@@ -101,7 +105,13 @@ export async function runRealEsrganEnhancement(input: {
     return {
       status: 'completed',
       tool: 'real_esrgan',
-      commandPlan: { ...commandPlan, executes: true, summary: 'Real-ESRGAN local runtime script executed with private model path and bounded private source sample; no model download.' },
+      commandPlan: {
+        ...commandPlan,
+        executes: true,
+        summary: allowCpuModelRuntime
+          ? 'Real-ESRGAN local CPU model runtime script executed with private model path and bounded private source sample; no model download and no GPU attachment.'
+          : 'Real-ESRGAN local runtime script executed with private model path and bounded private source sample; no model download.',
+      },
       outputJsonPath: runtimeResult.outputJsonPath,
       outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
       outputJsonSha256: runtimeResult.outputJsonSha256,

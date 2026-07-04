@@ -51,6 +51,7 @@ export async function runRembgFallback(input: {
   const maskPath = path.join(runtimeDir, 'rembg-mask.png')
   const cutoutPath = path.join(runtimeDir, 'rembg-cutout.png')
   const outputJsonPath = path.join(runtimeDir, 'rembg-runtime-result.json')
+  const allowCpuModelRuntime = executionInput.allowCpuModelRuntime === true
 
   try {
     const runtimeResult = await runAiGraphicsPythonRuntimeScript({
@@ -67,13 +68,16 @@ export async function runRembgFallback(input: {
         maskPath,
         '--output-json',
         outputJsonPath,
+        ...(allowCpuModelRuntime ? ['--allow-cpu-model-runtime'] : []),
       ],
       outputJsonPath,
       timeoutMs: executionInput.timeoutMs,
       runtimeBackend: executionInput.runtimeExecutionBackend,
       containerImage: executionInput.runtimeContainerImage,
       containerPlatform: executionInput.runtimeContainerPlatform,
-      containerGpu: executionInput.runtimeContainerGpu,
+      containerGpu: allowCpuModelRuntime
+        ? false
+        : executionInput.runtimeContainerGpu,
       containerBindMounts: buildAiGraphicsRuntimeContainerBindMounts({
         readOnlyPaths: [
           sourcePath,
@@ -83,7 +87,7 @@ export async function runRembgFallback(input: {
       }),
       proofExpectation: {
         expectedToolId: 'rembg',
-        requireCudaExecutionProvider: true,
+        requireCudaExecutionProvider: allowCpuModelRuntime ? false : true,
         requireNoModelDownload: true,
         requireNoProviderRuntime: true,
         requireNoPublicArtifact: true,
@@ -93,7 +97,13 @@ export async function runRembgFallback(input: {
     return {
       status: 'completed',
       tool: 'rembg',
-      commandPlan: { ...commandPlan, executes: true, summary: 'rembg local runtime script executed with approved local ONNX model and private source frame; no model download.' },
+      commandPlan: {
+        ...commandPlan,
+        executes: true,
+        summary: allowCpuModelRuntime
+          ? 'rembg local CPU ONNX runtime script executed with approved local ONNX model and private source frame; no model download and no GPU attachment.'
+          : 'rembg local runtime script executed with approved local ONNX model and private source frame; no model download.',
+      },
       outputJsonPath: runtimeResult.outputJsonPath,
       outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
       outputJsonSha256: runtimeResult.outputJsonSha256,

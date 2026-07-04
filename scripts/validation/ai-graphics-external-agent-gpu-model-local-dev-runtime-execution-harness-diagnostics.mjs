@@ -41,6 +41,11 @@ const foundationCpuRuntimeTools = new Set([
   'transformers',
 ])
 
+const cpuModelRuntimeTools = new Set([
+  'real_esrgan',
+  'rembg',
+])
+
 const toolSpecificFlagByTool = {
   sam2: '--sam2-checkpoint',
   birefnet: '--birefnet-model',
@@ -448,6 +453,7 @@ for (const requiredProofPolicy of [
   'runtimeProofOutputMustProveCudaOrCudaExecutionProvider',
   'runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime',
   'runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime',
+  'runtimeProofOutputCanSkipCudaOnlyForExplicitCpuModelRuntime',
   'runtimeProofOutputMustProveNoModelDownload',
   'runtimeProofOutputMustProveNoProviderRuntime',
   'runtimeProofOutputMustProveNoPublicArtifact',
@@ -608,8 +614,16 @@ for (const [tool, file] of Object.entries(runtimeProofFilesByTool)) {
     fail(`runtime_script_missing_tool_id:${tool}`)
   }
   if (tool === 'rembg') {
-    if (!source.includes('"cudaExecutionProviderAvailable": True')) {
-      fail('runtime_script_missing_rembg_cuda_provider_proof')
+    for (const requiredRembgCpuModelToken of [
+      'parser.add_argument("--allow-cpu-model-runtime", action="store_true")',
+      '"cudaExecutionProviderAvailable": cuda_provider_available',
+      '"selectedProviders": providers',
+      '"cpuModelRuntimeAllowed": bool(args.allow_cpu_model_runtime)',
+      'else ["CPUExecutionProvider"]',
+    ]) {
+      if (!source.includes(requiredRembgCpuModelToken)) {
+        fail(`runtime_script_missing_rembg_cpu_model_token:${requiredRembgCpuModelToken}`)
+      }
     }
   } else if (tool === 'kornia') {
     for (const requiredKorniaToken of [
@@ -620,6 +634,19 @@ for (const [tool, file] of Object.entries(runtimeProofFilesByTool)) {
     ]) {
       if (!source.includes(requiredKorniaToken)) {
         fail(`runtime_script_missing_kornia_cpu_tensor_token:${requiredKorniaToken}`)
+      }
+    }
+  } else if (tool === 'real_esrgan') {
+    for (const requiredRealEsrganCpuModelToken of [
+      'parser.add_argument("--allow-cpu-model-runtime", action="store_true")',
+      '"cudaAvailable": cuda_available',
+      '"runtimeDevice": "cuda" if use_cuda else "cpu"',
+      '"cpuModelRuntimeAllowed": bool(args.allow_cpu_model_runtime)',
+      'half=use_cuda',
+      'gpu_id=0 if use_cuda else None',
+    ]) {
+      if (!source.includes(requiredRealEsrganCpuModelToken)) {
+        fail(`runtime_script_missing_real_esrgan_cpu_model_token:${requiredRealEsrganCpuModelToken}`)
       }
     }
   } else if (foundationCpuRuntimeTools.has(tool)) {
@@ -634,7 +661,7 @@ for (const [tool, file] of Object.entries(runtimeProofFilesByTool)) {
         fail(`runtime_script_missing_foundation_cpu_token:${tool}:${requiredFoundationToken}`)
       }
     }
-  } else if (!source.includes('"cudaAvailable": True')) {
+  } else if (!cpuModelRuntimeTools.has(tool) && !source.includes('"cudaAvailable": True')) {
     fail(`runtime_script_missing_cuda_proof:${tool}`)
   }
   for (const requiredRuntimeFlag of [

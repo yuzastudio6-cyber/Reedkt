@@ -185,6 +185,10 @@ function gpuModelAllowsCpuTensorRuntime(toolId: string): boolean {
   return toolId === 'kornia'
 }
 
+function gpuModelAllowsCpuModelRuntime(toolId: string): boolean {
+  return toolId === 'real_esrgan' || toolId === 'rembg'
+}
+
 function gpuModelMinimumPrivateRuntimeInputKeys(toolId: string): string[] {
   const keys = [
     'outputDirectory',
@@ -192,6 +196,8 @@ function gpuModelMinimumPrivateRuntimeInputKeys(toolId: string): string[] {
       ? 'pythonCpuTensorRuntime'
       : gpuModelAllowsCpuFoundationRuntime(toolId)
       ? 'pythonCpuFoundationRuntime'
+      : gpuModelAllowsCpuModelRuntime(toolId)
+      ? 'pythonCpuModelRuntime'
       : 'nativeCudaRuntime',
   ]
   if (gpuModelRequiresSourceImage(toolId)) keys.push('sourceImageLocalPath')
@@ -275,6 +281,7 @@ function gpuModelCurrentBlockingPrerequisiteKey(
     blockingReasonCode.includes('cuda') ||
     blockingReasonCode.includes('container_gpu')
   ) {
+    if (gpuModelAllowsCpuModelRuntime(toolId)) return 'pythonCpuModelRuntime'
     return 'nativeCudaRuntime'
   }
   if (blockingReasonCode.includes('container_image')) {
@@ -283,11 +290,13 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   if (blockingReasonCode.includes('python_package')) {
     if (gpuModelAllowsCpuTensorRuntime(toolId)) return 'pythonCpuTensorRuntime'
     if (gpuModelAllowsCpuFoundationRuntime(toolId)) return 'pythonCpuFoundationRuntime'
+    if (gpuModelAllowsCpuModelRuntime(toolId)) return 'pythonCpuModelRuntime'
     return 'pythonPackageRuntime'
   }
   if (blockingReasonCode.includes('python_runtime')) {
     if (gpuModelAllowsCpuTensorRuntime(toolId)) return 'pythonCpuTensorRuntime'
     if (gpuModelAllowsCpuFoundationRuntime(toolId)) return 'pythonCpuFoundationRuntime'
+    if (gpuModelAllowsCpuModelRuntime(toolId)) return 'pythonCpuModelRuntime'
     return 'pythonRuntime'
   }
   if (blockingReasonCode.includes('disabled_or_not_local_dev')) {
@@ -303,6 +312,9 @@ function gpuModelRuntimePrerequisiteLabel(toolId: string): string {
   if (gpuModelAllowsCpuFoundationRuntime(toolId)) {
     return 'approved local Python CPU foundation runtime'
   }
+  if (gpuModelAllowsCpuModelRuntime(toolId)) {
+    return 'approved local Python/Docker CPU model runtime'
+  }
   return 'approved native CUDA host'
 }
 
@@ -312,6 +324,9 @@ function gpuModelBlockedInstallReadinessState(toolId: string): string {
   }
   if (gpuModelAllowsCpuFoundationRuntime(toolId)) {
     return 'install_target_prepared_runtime_blocked_pending_cpu_foundation_private_inputs'
+  }
+  if (gpuModelAllowsCpuModelRuntime(toolId)) {
+    return 'install_target_prepared_runtime_blocked_pending_cpu_model_private_inputs'
   }
   return 'install_target_prepared_runtime_blocked_pending_cuda_private_inputs'
 }
@@ -327,6 +342,9 @@ function gpuModelHostRuntimeFlags(toolId: string): string[] {
   }
   if (gpuModelAllowsCpuTensorRuntime(toolId)) {
     flags.push('--allow-cpu-tensor-runtime')
+  }
+  if (gpuModelAllowsCpuModelRuntime(toolId)) {
+    flags.push('--allow-cpu-model-runtime')
   }
   if (gpuModelRequiresSourceImage(toolId)) {
     flags.push('--source-image <private-approved-frame.png>')
@@ -357,6 +375,9 @@ function gpuModelControlledRouteFlags(toolId: string): string[] {
   }
   if (gpuModelAllowsCpuTensorRuntime(toolId)) {
     flags.push('--scoped-gpu-allow-cpu-tensor-runtime')
+  }
+  if (gpuModelAllowsCpuModelRuntime(toolId)) {
+    flags.push('--scoped-gpu-allow-cpu-model-runtime')
   }
   if (gpuModelRequiresSourceImage(toolId)) {
     flags.push(`--scoped-gpu-source-image ${outputDir}/private-approved-frame.ppm`)
@@ -394,6 +415,7 @@ function containerGpuCommand(toolId: string): string {
     '--runtime-backend docker_container',
     `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
+    ...(gpuModelAllowsCpuModelRuntime(toolId) ? ['--no-runtime-container-gpu'] : []),
     ...gpuModelHostRuntimeFlags(toolId),
   ].join(' ')
 }
@@ -466,6 +488,7 @@ function gpuModelRuntimeInputManifestMaterializerCommand(
     `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
     `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
+    ...(gpuModelAllowsCpuModelRuntime(toolId) ? ['--allow-cpu-model-runtime'] : []),
   ].join(' ')
 }
 
@@ -478,6 +501,7 @@ function gpuModelRuntimeInputManifestScopedToolCallCommand(
     `--tool ${toolId}`,
     '--attempt-gpu-runtime',
     '--runtime-backend docker_container',
+    ...(gpuModelAllowsCpuModelRuntime(toolId) ? ['--allow-cpu-model-runtime', '--no-runtime-container-gpu'] : []),
     `--runtime-input-manifest ${gpuModelRuntimeInputManifestPath}`,
   ].join(' ')
 }
@@ -490,6 +514,7 @@ function gpuModelRuntimeInputManifestHarnessCommand(
     'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness --',
     '--attempt-local-runtime',
     `--tool ${toolId}`,
+    ...(gpuModelAllowsCpuModelRuntime(toolId) ? ['--allow-cpu-model-runtime'] : []),
     `--runtime-input-manifest ${gpuModelRuntimeInputManifestPath}`,
     `--result-out ${gpuModelRuntimeInputManifestOutputDir}/harness-result.json`,
   ].join(' ')
@@ -517,7 +542,7 @@ function hostDetectionReadinessCommand(): string {
 }
 
 function nextGpuCommand(toolId: string): string {
-  return toolId === 'kornia'
+  return toolId === 'kornia' || gpuModelAllowsCpuModelRuntime(toolId)
     ? containerGpuCommand(toolId)
     : hostPythonGpuCommand(toolId)
 }
@@ -528,6 +553,9 @@ function gpuModelRuntimeBackendDescription(toolId: string): string {
   }
   if (gpuModelAllowsCpuFoundationRuntime(toolId)) {
     return 'Use the explicit CPU foundation runtime path first; it proves bounded package/runtime checks and does not start GPU.'
+  }
+  if (gpuModelAllowsCpuModelRuntime(toolId)) {
+    return 'Use the explicit CPU model runtime path with reviewed private model weights and private source input first; it does not attach GPU, download models, or create public outputs.'
   }
   return 'Use an approved native CUDA host with reviewed private model/checkpoint and source-frame inputs.'
 }
@@ -587,6 +615,8 @@ function gpuModelExecutionUnlockPlan(input: {
         ? 'docker_container_cpu_tensor'
         : gpuModelAllowsCpuFoundationRuntime(toolId)
         ? 'host_python_or_docker_container_cpu_foundation'
+        : gpuModelAllowsCpuModelRuntime(toolId)
+        ? 'docker_container_cpu_model'
         : 'native_cuda_host_or_cuda_container',
       runtimePolicy: gpuModelRuntimeBackendDescription(toolId),
       runtimeContainerImage: gpuModelRuntimeContainerImage(toolId),
@@ -602,7 +632,8 @@ function gpuModelExecutionUnlockPlan(input: {
       containerCommand: containerGpuCommand(toolId),
       startsGpuOnlyForThisToolCall:
         !gpuModelAllowsCpuTensorRuntime(toolId) &&
-        !gpuModelAllowsCpuFoundationRuntime(toolId),
+        !gpuModelAllowsCpuFoundationRuntime(toolId) &&
+        !gpuModelAllowsCpuModelRuntime(toolId),
       privateOutputOnly: true,
     },
     {
@@ -1288,7 +1319,7 @@ function buildReport() {
     decision,
     status: gpuExecutableTools.length > 0 ? privateProofStatus : defaultStatus,
     summary:
-      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools now carry explicit install-proof linkage from gpu-model-install-build-targets: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to torch/torchvision and transformers, CPU tensor proof applies to kornia, and native CUDA plus reviewed private model/input paths apply to the remaining model tools. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
+      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools now carry explicit install-proof linkage from gpu-model-install-build-targets: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to torch/torchvision and transformers, CPU tensor proof applies to kornia, explicit CPU model proof applies to Real-ESRGAN and rembg when reviewed private model/input/checksum evidence is supplied, and native CUDA remains required for SAM2, BiRefNet, and transparent-background. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
     stateDefinitions: {
       callable:
         'The external agent can submit the controlled private route request.',
@@ -1487,7 +1518,9 @@ function buildReport() {
             row.installReadinessState ===
               'install_target_prepared_runtime_blocked_pending_cpu_foundation_private_inputs' ||
             row.installReadinessState ===
-              'install_target_prepared_runtime_blocked_pending_cpu_tensor_private_inputs'
+              'install_target_prepared_runtime_blocked_pending_cpu_tensor_private_inputs' ||
+            row.installReadinessState ===
+              'install_target_prepared_runtime_blocked_pending_cpu_model_private_inputs'
           )
         )).length === 8,
       agentCanSubmitControlledToolRequests: true,
@@ -1617,7 +1650,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools now carry explicit install-proof linkage from \`gpu-model-install-build-targets\`: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to \`torch_torchvision\` and \`transformers\`, CPU tensor proof applies to \`kornia\`, and native CUDA plus reviewed private model/input paths apply to the remaining model tools. The mounted route also proves a capability-mismatch request returns \`failed_with_diagnostics\` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
+This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools now carry explicit install-proof linkage from \`gpu-model-install-build-targets\`: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to \`torch_torchvision\` and \`transformers\`, CPU tensor proof applies to \`kornia\`, explicit CPU model proof applies to \`real_esrgan\` and \`rembg\` when reviewed private model/input/checksum evidence is supplied, and native CUDA remains required for \`sam2\`, \`birefnet\`, and \`transparent_background\`. The mounted route also proves a capability-mismatch request returns \`failed_with_diagnostics\` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
 
 ## State Definitions
 

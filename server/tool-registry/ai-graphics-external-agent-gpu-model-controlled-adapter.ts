@@ -171,6 +171,16 @@ function allowFoundationCpuRuntime(
   )
 }
 
+function allowModelCpuRuntime(
+  toolId: AiGraphicsCanonicalToolId | string,
+  payload: Record<string, unknown>,
+): boolean {
+  return (
+    (toolId === 'real_esrgan' || toolId === 'rembg') &&
+    optionalBoolean(payload, 'allowCpuModelRuntime')
+  )
+}
+
 function privateInputPreflightOnly(payload: Record<string, unknown>): boolean {
   return optionalBoolean(payload, 'privateInputPreflightOnly') ||
     optionalBoolean(payload, 'localRuntimeInputPreflightOnly')
@@ -266,7 +276,8 @@ import sys
 tool_id = sys.argv[1]
 allow_cpu_tensor_runtime = sys.argv[2] == "true"
 allow_cpu_foundation_runtime = sys.argv[3] == "true"
-modules = sys.argv[4:]
+allow_cpu_model_runtime = sys.argv[4] == "true"
+modules = sys.argv[5:]
 missing = [module for module in modules if importlib.util.find_spec(module) is None]
 cuda_available = False
 cuda_provider_available = False
@@ -284,6 +295,7 @@ print(json.dumps({
     "cudaProviderAvailable": cuda_provider_available,
     "allowCpuTensorRuntime": allow_cpu_tensor_runtime,
     "allowCpuFoundationRuntime": allow_cpu_foundation_runtime,
+    "allowCpuModelRuntime": allow_cpu_model_runtime,
 }))
 `
   try {
@@ -293,6 +305,7 @@ print(json.dumps({
       toolId,
       allowKorniaCpuTensorRuntime(toolId, payload) ? 'true' : 'false',
       allowFoundationCpuRuntime(toolId, payload) ? 'true' : 'false',
+      allowModelCpuRuntime(toolId, payload) ? 'true' : 'false',
       ...modules,
     ], {
       encoding: 'utf8',
@@ -342,6 +355,7 @@ function runtimePrerequisiteBlock(
   if (!hasScopedLocalRuntimeInputs(request.toolId, payload)) return null
   const korniaCpuTensorRuntime = allowKorniaCpuTensorRuntime(request.toolId, payload)
   const foundationCpuRuntime = allowFoundationCpuRuntime(request.toolId, payload)
+  const modelCpuRuntime = allowModelCpuRuntime(request.toolId, payload)
 
   if (runtimeExecutionBackend(payload) === 'docker_container') {
     const image = runtimeContainerImage(payload)
@@ -374,7 +388,7 @@ function runtimePrerequisiteBlock(
         ],
       }
     }
-    if (!korniaCpuTensorRuntime && !foundationCpuRuntime && !runtimeContainerGpu(payload)) {
+    if (!korniaCpuTensorRuntime && !foundationCpuRuntime && !modelCpuRuntime && !runtimeContainerGpu(payload)) {
       return {
         executionInputMode: 'local_dev',
         result: {
@@ -470,7 +484,7 @@ function runtimePrerequisiteBlock(
           'run',
           '--rm',
           ...(platform ? ['--platform', platform] : []),
-          ...(!korniaCpuTensorRuntime && !foundationCpuRuntime ? ['--gpus', 'all'] : []),
+          ...(!korniaCpuTensorRuntime && !foundationCpuRuntime && !modelCpuRuntime ? ['--gpus', 'all'] : []),
           '--entrypoint',
           'true',
           image,
@@ -494,7 +508,7 @@ function runtimePrerequisiteBlock(
             args: [
               'run',
               '--rm',
-            ...(!korniaCpuTensorRuntime && !foundationCpuRuntime ? ['--gpus', 'all'] : []),
+            ...(!korniaCpuTensorRuntime && !foundationCpuRuntime && !modelCpuRuntime ? ['--gpus', 'all'] : []),
               '--entrypoint',
               'true',
               image,
@@ -505,6 +519,8 @@ function runtimePrerequisiteBlock(
                 ? 'Kornia CPU tensor Docker runtime prerequisite blocked execution because Docker could not start the runtime image.'
                 : foundationCpuRuntime
                 ? 'Foundation CPU Docker runtime prerequisite blocked execution because Docker could not start the runtime image.'
+                : modelCpuRuntime
+                ? 'CPU model Docker runtime prerequisite blocked execution because Docker could not start the runtime image.'
                 : 'GPU/model Docker runtime prerequisite blocked execution because Docker could not attach a GPU.',
           },
           skipReason: {
@@ -518,7 +534,9 @@ function runtimePrerequisiteBlock(
         },
         localRuntimeExecutionPerformed: false,
         warnings: [
-          'GPU/model Docker runtime did not start because Docker GPU attachment is unavailable on this host.',
+          modelCpuRuntime
+            ? 'CPU model Docker runtime did not start because Docker could not start the runtime image.'
+            : 'GPU/model Docker runtime did not start because Docker GPU attachment is unavailable on this host.',
         ],
       }
     }
@@ -621,6 +639,7 @@ function runtimePrerequisiteBlock(
   if (
     !korniaCpuTensorRuntime &&
     !foundationCpuRuntime &&
+    !modelCpuRuntime &&
     (!cudaAvailable || (request.toolId === 'rembg' && !cudaProviderAvailable))
   ) {
     return {
@@ -1327,6 +1346,7 @@ function maskInput(
     runtimeContainerPlatform: runtimeContainerPlatform(payload),
     runtimeContainerGpu: runtimeContainerGpu(payload),
     allowCpuTensorRuntime: allowKorniaCpuTensorRuntime(request.toolId, payload),
+    allowCpuModelRuntime: allowModelCpuRuntime(request.toolId, payload),
     timeoutMs: optionalNumber(payload, 'timeoutMs'),
   }
 }
@@ -1382,6 +1402,7 @@ function enhancementInput(
     runtimeContainerImage: runtimeContainerImage(payload),
     runtimeContainerPlatform: runtimeContainerPlatform(payload),
     runtimeContainerGpu: runtimeContainerGpu(payload),
+    allowCpuModelRuntime: allowModelCpuRuntime(request.toolId, payload),
     timeoutMs: optionalNumber(payload, 'timeoutMs'),
   }
 }

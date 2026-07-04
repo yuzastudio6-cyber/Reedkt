@@ -104,11 +104,11 @@ const privateOutputContractByTool: Record<GpuModelToolId, {
     ],
   },
   real_esrgan: {
-    acceptedRuntimeEvidence: 'native_cuda_real_esrgan_enhanced_image',
+    acceptedRuntimeEvidence: 'native_cuda_or_explicit_cpu_model_real_esrgan_enhanced_image',
     requiredPrivateOutputFields: [
       'toolId=real_esrgan',
-      'cudaAvailable=true',
-      'deviceName',
+      'native proof: cudaAvailable=true and deviceName',
+      'CPU model proof: cudaAvailable=false, runtime.runtimeDevice=cpu, runtime.cpuModelRuntimeAllowed=true',
       'enhanced.path',
       'enhanced.scale=4',
       'enhanced.sizeBytes',
@@ -139,11 +139,11 @@ const privateOutputContractByTool: Record<GpuModelToolId, {
     ],
   },
   rembg: {
-    acceptedRuntimeEvidence: 'native_cuda_onnxruntime_rembg_cutout',
+    acceptedRuntimeEvidence: 'native_cuda_or_explicit_cpu_model_onnxruntime_rembg_cutout',
     requiredPrivateOutputFields: [
       'toolId=rembg',
-      'cudaExecutionProviderAvailable=true',
-      'runtime.availableProviders includes CUDAExecutionProvider',
+      'native proof: cudaExecutionProviderAvailable=true and runtime.availableProviders includes CUDAExecutionProvider',
+      'CPU model proof: cudaExecutionProviderAvailable=false, runtime.cpuModelRuntimeAllowed=true, runtime.selectedProviders includes CPUExecutionProvider',
       'runtime.modelName',
       'input.path',
       'mask.path',
@@ -197,6 +197,7 @@ interface LocalProofHarnessRow {
   gpuRuntimeShouldStartNow?: boolean
   allowCpuTensorRuntime?: boolean
   allowCpuFoundationRuntime?: boolean
+  allowCpuModelRuntime?: boolean
   publicArtifactCreated?: boolean
   signedUrlCreated?: boolean
   runtimeReadyNow?: boolean
@@ -575,6 +576,66 @@ function acceptsRembgGpuProof(outputJson: JsonRecord): boolean {
   )
 }
 
+function acceptsRealEsrganCpuModelProof(
+  row: LocalProofHarnessRow | undefined,
+  outputJson: JsonRecord,
+): boolean {
+  return (
+    row?.allowCpuModelRuntime === true &&
+    outputJson.cudaAvailable === false &&
+    nestedValue(outputJson, ['runtime', 'runtimeDevice']) === 'cpu' &&
+    nestedValue(outputJson, ['runtime', 'cpuModelRuntimeAllowed']) === true &&
+    nestedValue(outputJson, ['runtime', 'modelName']) === 'RealESRGAN_x4plus' &&
+    nestedValue(outputJson, ['runtime', 'faceEnhanceRan']) === false &&
+    nestedValue(outputJson, ['runtime', 'gfpganImported']) === false &&
+    nestedValue(outputJson, ['runtime', 'filmUsed']) === false &&
+    requiredRuntimeFlagsAreFalse(outputJson, [
+      'modelDownloadedExternally',
+      'providerRuntimePerformed',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+    ]) &&
+    positiveNumber(nestedValue(outputJson, ['enhanced', 'width'])) &&
+    positiveNumber(nestedValue(outputJson, ['enhanced', 'height'])) &&
+    nestedValue(outputJson, ['enhanced', 'scale']) === 4 &&
+    nonEmptyString(nestedValue(outputJson, ['enhanced', 'path'])) &&
+    positiveNumber(nestedValue(outputJson, ['enhanced', 'sizeBytes'])) &&
+    (
+      nonEmptyString(nestedValue(outputJson, ['sourceFrame', 'path'])) ||
+      nonEmptyString(nestedValue(outputJson, ['fixture', 'path'])) ||
+      nonEmptyString(nestedValue(outputJson, ['sampleCrop', 'path']))
+    )
+  )
+}
+
+function acceptsRembgCpuModelProof(
+  row: LocalProofHarnessRow | undefined,
+  outputJson: JsonRecord,
+): boolean {
+  const selectedProviders = nestedValue(outputJson, ['runtime', 'selectedProviders'])
+  return (
+    row?.allowCpuModelRuntime === true &&
+    outputJson.cudaExecutionProviderAvailable === false &&
+    Array.isArray(selectedProviders) &&
+    selectedProviders.includes('CPUExecutionProvider') &&
+    nestedValue(outputJson, ['runtime', 'cpuModelRuntimeAllowed']) === true &&
+    nonEmptyString(nestedValue(outputJson, ['runtime', 'modelName'])) &&
+    requiredRuntimeFlagsAreFalse(outputJson, [
+      'modelDownloadedExternally',
+      'providerRuntimePerformed',
+      'publicArtifactCreated',
+      'signedUrlCreated',
+    ]) &&
+    nonEmptyString(nestedValue(outputJson, ['input', 'path'])) &&
+    positiveNumber(nestedValue(outputJson, ['input', 'width'])) &&
+    positiveNumber(nestedValue(outputJson, ['input', 'height'])) &&
+    nonEmptyString(nestedValue(outputJson, ['mask', 'path'])) &&
+    nonEmptyString(nestedValue(outputJson, ['mask', 'cutoutPath'])) &&
+    typeof nestedValue(outputJson, ['mask', 'meanAlpha']) === 'number' &&
+    typeof nestedValue(outputJson, ['mask', 'nonZeroRatio']) === 'number'
+  )
+}
+
 function acceptsTransparentBackgroundGpuProof(outputJson: JsonRecord): boolean {
   return (
     outputJson.cudaAvailable === true &&
@@ -660,6 +721,8 @@ function outputHasAcceptedRuntimeEvidence(
 ): boolean {
   return acceptsCpuFoundationProof(toolId, row, outputJson) ||
     acceptsKorniaCpuTensorProof(toolId, row, outputJson) ||
+    (toolId === 'real_esrgan' && acceptsRealEsrganCpuModelProof(row, outputJson)) ||
+    (toolId === 'rembg' && acceptsRembgCpuModelProof(row, outputJson)) ||
     acceptsToolSpecificGpuProof(toolId, outputJson)
 }
 
@@ -672,6 +735,9 @@ function expectedGpuRuntimeShouldStartDuringScopedProof(
   }
   if (toolId === 'kornia') {
     return row ? row.allowCpuTensorRuntime !== true : false
+  }
+  if (toolId === 'real_esrgan' || toolId === 'rembg') {
+    return row ? row.allowCpuModelRuntime !== true : false
   }
   return true
 }
@@ -809,6 +875,8 @@ function localProofOutputEvidence(
           ? 'private_output_json_missing_cuda_or_cpu_foundation_runtime_evidence'
           : toolId === 'kornia'
           ? 'private_output_json_missing_cuda_or_cpu_tensor_runtime_evidence'
+          : toolId === 'real_esrgan' || toolId === 'rembg'
+          ? 'private_output_json_missing_cuda_or_cpu_model_runtime_evidence'
           : 'private_output_json_missing_cuda_runtime_evidence',
     }
   }
@@ -857,6 +925,7 @@ function buildBridgeRow(
       outputEvidence.privateOutputJsonRejectionReason,
     skipReasonCode: localProofRow?.skipReasonCode ?? null,
     errorMessage: localProofRow?.errorMessage ?? null,
+    allowCpuModelRuntime: localProofRow?.allowCpuModelRuntime === true,
   }
   const localRuntimeProofAccepted =
     localProofEvidenceObserved.adapterStatus ===
@@ -887,7 +956,7 @@ function buildBridgeRow(
   const blockingReason = localRuntimeProofAccepted
     ? null
     : !localRuntimeProofResultProvided
-    ? 'No private local-dev runtime proof result was supplied. Run the scoped harness on a CUDA host with private inputs first.'
+    ? 'No private local-dev runtime proof result was supplied. Run the scoped harness with the approved per-tool runtime mode and private inputs first.'
     : !localProofEvidenceObserved.localRuntimeExecutionPerformed
     ? `Private local proof for ${proofRefRow.toolId} did not execute; blocker: ${localProofEvidenceObserved.skipReasonCode ?? localProofEvidenceObserved.errorMessage ?? 'unknown'}`
     : `Private local proof executed but was not accepted by the proof bridge: ${
@@ -1161,7 +1230,7 @@ This bridge connects real scoped local-dev GPU/model runtime proof evidence to t
 
 It does not start GPU runtime, write live queues, dispatch workers, execute tools, load model weights, create public artifacts, create signed URLs, unlock external beta, or unlock production. GPU runtime can start only in the upstream scoped local-dev harness call that supplies private inputs for one requested tool.
 
-Private output proof is accepted only when the JSON matches the exact per-tool contract for that tool. The model/checkpoint-backed tools require tool-shaped evidence such as SAM2 mask sequences, BiRefNet mask/cutout output, Real-ESRGAN enhanced output, rembg CUDAExecutionProvider output, or transparent-background checkpoint output; generic CUDA-looking JSON is not enough.
+Private output proof is accepted only when the JSON matches the exact per-tool contract for that tool. The model/checkpoint-backed tools require tool-shaped evidence such as SAM2 mask sequences, BiRefNet mask/cutout output, Real-ESRGAN enhanced output, rembg cutout output, or transparent-background checkpoint output; generic CUDA-looking JSON is not enough. Real-ESRGAN and rembg also accept explicit CPU model proof when the local proof row has \`allowCpuModelRuntime=true\`, the private model/input/checksum evidence is present, and no GPU attachment is requested.
 
 ## Bridge rows
 

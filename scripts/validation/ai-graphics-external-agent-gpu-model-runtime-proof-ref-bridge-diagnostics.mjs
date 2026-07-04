@@ -40,12 +40,14 @@ const modelWeightManifestRequiredTools = [
 ]
 
 const scopedProofFixtureCases = [
-  { toolId: 'sam2', capabilityId: 'subject_segmentation', gpuShouldStartDuringScopedProof: true },
-  { toolId: 'birefnet', capabilityId: 'background_removal', gpuShouldStartDuringScopedProof: true },
-  { toolId: 'real_esrgan', capabilityId: 'upscaling', gpuShouldStartDuringScopedProof: true },
-  { toolId: 'kornia', capabilityId: 'tensor_image_ops', gpuShouldStartDuringScopedProof: false },
-  { toolId: 'rembg', capabilityId: 'background_removal', gpuShouldStartDuringScopedProof: true },
-  { toolId: 'transparent_background', capabilityId: 'background_removal', gpuShouldStartDuringScopedProof: true },
+  { toolId: 'sam2', capabilityId: 'subject_segmentation', proofMode: 'native_gpu', gpuShouldStartDuringScopedProof: true },
+  { toolId: 'birefnet', capabilityId: 'background_removal', proofMode: 'native_gpu', gpuShouldStartDuringScopedProof: true },
+  { toolId: 'real_esrgan', capabilityId: 'upscaling', proofMode: 'native_gpu', gpuShouldStartDuringScopedProof: true },
+  { toolId: 'real_esrgan', capabilityId: 'upscaling', proofMode: 'cpu_model', gpuShouldStartDuringScopedProof: false },
+  { toolId: 'kornia', capabilityId: 'tensor_image_ops', proofMode: 'cpu_tensor', gpuShouldStartDuringScopedProof: false },
+  { toolId: 'rembg', capabilityId: 'background_removal', proofMode: 'native_gpu', gpuShouldStartDuringScopedProof: true },
+  { toolId: 'rembg', capabilityId: 'background_removal', proofMode: 'cpu_model', gpuShouldStartDuringScopedProof: false },
+  { toolId: 'transparent_background', capabilityId: 'background_removal', proofMode: 'native_gpu', gpuShouldStartDuringScopedProof: true },
 ]
 
 const requiredFiles = [
@@ -217,7 +219,7 @@ function execFileJson(command, args) {
   }))
 }
 
-function privateOutputJsonForTool(toolId, tempDir) {
+function privateOutputJsonForTool(toolId, tempDir, proofMode = 'native_gpu') {
   const p = (name) => path.join(tempDir, name)
   switch (toolId) {
     case 'sam2':
@@ -292,6 +294,48 @@ function privateOutputJsonForTool(toolId, tempDir) {
         warnings: [],
       }
     case 'real_esrgan':
+      if (proofMode === 'cpu_model') {
+        return {
+          ok: true,
+          toolId: 'real_esrgan',
+          cudaAvailable: false,
+          deviceName: 'cpu',
+          enhanced: {
+            width: 1024,
+            height: 1024,
+            scale: 4,
+            path: p('real-esrgan-enhanced.png'),
+            sizeBytes: 4096,
+          },
+          runtime: {
+            modelName: 'RealESRGAN_x4plus',
+            runtimeDevice: 'cpu',
+            cpuModelRuntimeAllowed: true,
+            tile: 64,
+            faceEnhanceRan: false,
+            gfpganImported: false,
+            filmUsed: false,
+            modelDownloadedExternally: false,
+            providerRuntimePerformed: false,
+            publicArtifactCreated: false,
+            signedUrlCreated: false,
+          },
+          sourceFrame: {
+            width: 512,
+            height: 512,
+            path: p('private-source-frame.png'),
+            kind: 'approved_phase33d_frame',
+          },
+          sampleCrop: {
+            x: 0,
+            y: 0,
+            width: 256,
+            height: 256,
+            path: p('real-esrgan-sample.png'),
+          },
+          warnings: [],
+        }
+      }
       return {
         ok: true,
         toolId: 'real_esrgan',
@@ -351,6 +395,36 @@ function privateOutputJsonForTool(toolId, tempDir) {
         },
       }
     case 'rembg':
+      if (proofMode === 'cpu_model') {
+        return {
+          ok: true,
+          toolId: 'rembg',
+          cudaExecutionProviderAvailable: false,
+          runtime: {
+            onnxRuntimeDevice: 'CPU',
+            selectedProviders: ['CPUExecutionProvider'],
+            availableProviders: ['CPUExecutionProvider'],
+            cpuModelRuntimeAllowed: true,
+            modelName: 'u2net',
+            modelDownloadedExternally: false,
+            providerRuntimePerformed: false,
+            publicArtifactCreated: false,
+            signedUrlCreated: false,
+          },
+          input: {
+            path: p('private-source-frame.png'),
+            width: 512,
+            height: 512,
+          },
+          mask: {
+            path: p('rembg-mask.png'),
+            cutoutPath: p('rembg-cutout.png'),
+            meanAlpha: 0.46,
+            nonZeroRatio: 0.52,
+          },
+          warnings: [],
+        }
+      }
       return {
         ok: true,
         toolId: 'rembg',
@@ -421,7 +495,11 @@ function createScopedPrivateProofFixture(caseDef) {
     path.join(fixtureRoot, `diagnostic-${caseDef.toolId}-private-proof-`),
   )
   const outputJsonPath = path.join(tempDir, `${caseDef.toolId}-runtime-result.json`)
-  const outputJson = privateOutputJsonForTool(caseDef.toolId, tempDir)
+  const outputJson = privateOutputJsonForTool(
+    caseDef.toolId,
+    tempDir,
+    caseDef.proofMode,
+  )
   fs.writeFileSync(outputJsonPath, `${JSON.stringify(outputJson, null, 2)}\n`)
   const outputJsonSha256 = createHash('sha256')
     .update(fs.readFileSync(outputJsonPath))
@@ -478,6 +556,7 @@ function createScopedPrivateProofFixture(caseDef) {
       outputJsonSha256,
       allowCpuTensorRuntime: caseDef.toolId === 'kornia',
       allowCpuFoundationRuntime: false,
+      allowCpuModelRuntime: caseDef.proofMode === 'cpu_model',
       localInputRequirements: [
         {
           key: 'outputDirectory',

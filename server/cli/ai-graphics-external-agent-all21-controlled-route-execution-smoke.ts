@@ -163,6 +163,7 @@ interface ScopedGpuModelLocalDevRouteAttemptOptions {
   privateInputPreflightOnly?: boolean
   allowCpuTensorRuntime?: boolean
   allowCpuFoundationRuntime?: boolean
+  allowCpuModelRuntime?: boolean
   privateOutputRoot?: string
   privateOutputDirectory?: string
   privateSourceImageLocalPath?: string
@@ -444,6 +445,18 @@ function gpuModelPrefersCpuFoundationRuntime(
   return gpuModelAllowsCpuFoundationRuntime(toolId)
 }
 
+function gpuModelAllowsCpuModelRuntime(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): boolean {
+  return toolId === 'real_esrgan' || toolId === 'rembg'
+}
+
+function gpuModelPrefersCpuModelRuntime(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): boolean {
+  return gpuModelAllowsCpuModelRuntime(toolId)
+}
+
 function scopedGpuModelUsesCpuTensorRuntime(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   options: { allowCpuTensorRuntime?: boolean },
@@ -460,11 +473,20 @@ function scopedGpuModelUsesCpuFoundationRuntime(
     options.allowCpuFoundationRuntime === true
 }
 
+function scopedGpuModelUsesCpuModelRuntime(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  options: { allowCpuModelRuntime?: boolean },
+): boolean {
+  return gpuModelAllowsCpuModelRuntime(toolId) &&
+    options.allowCpuModelRuntime === true
+}
+
 function gpuModelRequiredPrivateInputKeys(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   options: {
     allowCpuTensorRuntime?: boolean
     allowCpuFoundationRuntime?: boolean
+    allowCpuModelRuntime?: boolean
   } = {},
 ): string[] {
   return [
@@ -473,6 +495,8 @@ function gpuModelRequiredPrivateInputKeys(
       ? 'pythonCpuTensorRuntime'
       : scopedGpuModelUsesCpuFoundationRuntime(toolId, options)
       ? 'pythonCpuFoundationRuntime'
+      : scopedGpuModelUsesCpuModelRuntime(toolId, options)
+      ? 'pythonCpuModelRuntime'
       : 'nativeCudaRuntime',
     gpuModelRequiresSourceImage(toolId) ? 'sourceImageLocalPath' : '',
     toolId === 'sam2' ? 'sam2CheckpointLocalPath' : '',
@@ -491,6 +515,7 @@ function gpuModelPreferredPrivateInputKeys(
   return gpuModelRequiredPrivateInputKeys(toolId, {
     allowCpuTensorRuntime: gpuModelPrefersCpuTensorRuntime(toolId),
     allowCpuFoundationRuntime: gpuModelPrefersCpuFoundationRuntime(toolId),
+    allowCpuModelRuntime: gpuModelPrefersCpuModelRuntime(toolId),
   })
 }
 
@@ -500,14 +525,19 @@ function assertPreferredGpuModelRetryCommand(
   label: string,
 ): void {
   if (gpuModelPrefersCpuTensorRuntime(toolId) ||
-    gpuModelPrefersCpuFoundationRuntime(toolId)) {
+    gpuModelPrefersCpuFoundationRuntime(toolId) ||
+    gpuModelPrefersCpuModelRuntime(toolId)) {
     assert(
       command?.includes('ai-graphics:external-agent-tool-call') === true &&
         command.includes(`--tool ${toolId}`) &&
-        command.includes('--runtime-backend host_python') &&
+        (gpuModelPrefersCpuModelRuntime(toolId)
+          ? command.includes('--runtime-backend docker_container')
+          : command.includes('--runtime-backend host_python')) &&
         command.includes(
           gpuModelPrefersCpuTensorRuntime(toolId)
             ? '--allow-cpu-tensor-runtime'
+            : gpuModelPrefersCpuModelRuntime(toolId)
+            ? '--allow-cpu-model-runtime'
             : '--allow-cpu-foundation-runtime',
         ),
       `${label} missing CPU-preferred scoped route retry command`,
@@ -539,6 +569,8 @@ function assertPreferredGpuModelBlockedPrerequisite(
     ? 'CPU tensor runtime'
     : gpuModelPrefersCpuFoundationRuntime(toolId)
     ? 'CPU foundation runtime'
+    : gpuModelPrefersCpuModelRuntime(toolId)
+    ? 'CPU model runtime'
     : 'CUDA'
   assert(
     prerequisites.some((item) => item.includes(expectedFragment)),
@@ -603,6 +635,8 @@ function scopedGpuModelCommand(
   const allowCpuTensorRuntime = scopedGpuModelUsesCpuTensorRuntime(toolId, options)
   const allowCpuFoundationRuntime =
     scopedGpuModelUsesCpuFoundationRuntime(toolId, options)
+  const allowCpuModelRuntime =
+    scopedGpuModelUsesCpuModelRuntime(toolId, options)
   const parts = [
     'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke --',
     `--scoped-gpu-tool ${toolId}`,
@@ -613,6 +647,9 @@ function scopedGpuModelCommand(
       : '',
     allowCpuFoundationRuntime
       ? '--scoped-gpu-allow-cpu-foundation-runtime'
+      : '',
+    allowCpuModelRuntime
+      ? '--scoped-gpu-allow-cpu-model-runtime'
       : '',
     options.privateInputPreflightOnly
       ? '--scoped-gpu-private-input-preflight-only'
@@ -656,6 +693,8 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
   const allowCpuTensorRuntime = scopedGpuModelUsesCpuTensorRuntime(toolId, options)
   const allowCpuFoundationRuntime =
     scopedGpuModelUsesCpuFoundationRuntime(toolId, options)
+  const allowCpuModelRuntime =
+    scopedGpuModelUsesCpuModelRuntime(toolId, options)
   const payload: Record<string, unknown> = {
     mode: 'local_dev',
     enableGpuModelControlledExecution: true,
@@ -665,7 +704,11 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
     gpuRuntimeOnDemandOnly: true,
     noIdleGpuRuntimeApproved: true,
     runtimeExecutionBackend: 'docker_container',
-    runtimeContainerGpu: !(allowCpuTensorRuntime || allowCpuFoundationRuntime),
+    runtimeContainerGpu: !(
+      allowCpuTensorRuntime ||
+      allowCpuFoundationRuntime ||
+      allowCpuModelRuntime
+    ),
     outputDirectory: privateOutputDirectory,
     timeoutMs: 30_000,
     toolExecutionPerformed: false,
@@ -686,6 +729,9 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
   }
   if (allowCpuFoundationRuntime) {
     payload.allowCpuFoundationRuntime = true
+  }
+  if (allowCpuModelRuntime) {
+    payload.allowCpuModelRuntime = true
   }
   if (privateSourceImageLocalPath) {
     payload.sourceImageLocalPath = privateSourceImageLocalPath
@@ -1561,6 +1607,8 @@ async function main() {
       hasFlag('--scoped-gpu-allow-cpu-tensor-runtime'),
     allowCpuFoundationRuntime:
       hasFlag('--scoped-gpu-allow-cpu-foundation-runtime'),
+    allowCpuModelRuntime:
+      hasFlag('--scoped-gpu-allow-cpu-model-runtime'),
     privateInputPreflightOnly:
       hasFlag('--scoped-gpu-private-input-preflight-only'),
     privateOutputRoot: stringArg('--scoped-gpu-output-root'),

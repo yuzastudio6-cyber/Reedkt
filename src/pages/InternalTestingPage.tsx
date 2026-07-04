@@ -106,6 +106,7 @@ function getScenarioHighlights() {
     'edit-brief-plan-prepare-hints',
     'preference-video-mock-only-limits',
     'approval-credit-gate-readiness',
+    'credit-lifecycle-readiness',
     'feedback-export',
   ])
 
@@ -351,6 +352,42 @@ export function InternalTestingPage() {
                 <li>No external beta, paid production, or product-ready local OSS claim.</li>
               </ul>
             </article>
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-credit-lifecycle-readiness">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Credit lifecycle</span>
+            <h2>Reserved credits have explicit success, release, and refund paths</h2>
+          </div>
+          <p>
+            Internal testing now tracks the post-reservation lifecycle separately from approval. A successful run spends the reservation, cancelled
+            or blocked work releases it, and a ReEditPro-side failed run creates a credit refund record. All three paths are mock/local evidence
+            only until backend transactional persistence is approved.
+          </p>
+          <div className="internal-testing-lifecycle-grid" data-testid="internal-testing-credit-lifecycle-list">
+            <article>
+              <Badge accent="success">Success</Badge>
+              <strong>Spend reserved credits</strong>
+              <span>Only after approved work completes successfully.</span>
+            </article>
+            <article>
+              <Badge accent="cyan">Cancel or block</Badge>
+              <strong>Release reservation</strong>
+              <span>Unused credits return to the available mock balance.</span>
+            </article>
+            <article>
+              <Badge accent="warning">ReEditPro failure</Badge>
+              <strong>Refund credits</strong>
+              <span>Failure caused by ReEditPro creates refund metadata, not a money refund.</span>
+            </article>
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-credit-lifecycle-boundaries">
+            {['No silent billing', 'No Stripe', 'No ledger write', 'No worker dispatch', 'No Supabase write', 'No production claim'].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
           </div>
         </section>
 

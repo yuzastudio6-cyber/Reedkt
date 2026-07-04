@@ -18,6 +18,7 @@
     "high_signal_edit_brief_launch_links",
     "preference_video_mock_limits_closeout",
     "approval_credit_gate_readiness",
+    "credit_lifecycle_readiness",
     "testing_discipline_checklist",
     "browser_local_feedback_records",
     "manual_feedback_json_export"
@@ -25,6 +26,7 @@
   "scenarioStatus": {
     "preference-video-mock-only-limits": "mock_local",
     "approval-credit-gate-readiness": "mock_local",
+    "credit-lifecycle-readiness": "mock_local",
     "blockedScenarioCount": 0
   },
   "blockedScope": {
@@ -36,6 +38,7 @@
     "renderOrExport": false,
     "creditReservationOrSpend": false,
     "creditSpend": false,
+    "walletMutation": false,
     "ledgerWrites": false,
     "stripe": false,
     "supabaseReadWrite": false,
@@ -52,6 +55,7 @@
       "smoke:project-edit-brief-internal-testing-completion-audit",
       "smoke:preference-video-mock-limits-internal-testing-closeout",
       "smoke:internal-testing-approval-credit-gates",
+      "smoke:internal-testing-credit-lifecycle-readiness",
       "qa:internal-testing",
       "smoke:project-edit-brief-internal-testing-review-pr-readiness",
       "smoke:project-edit-brief-internal-testing-readback-qa",

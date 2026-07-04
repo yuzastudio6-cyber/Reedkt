@@ -22,8 +22,11 @@ const requiredFiles = [
   'docs/internal-testing-qa-wrapper.json',
   'server/smoke/internal-testing-qa-wrapper-smoke.ts',
   'server/smoke/internal-testing-approval-credit-gates-smoke.ts',
+  'server/smoke/internal-testing-credit-lifecycle-readiness-smoke.ts',
   'docs/internal-testing-approval-credit-gates.md',
   'docs/internal-testing-approval-credit-gates.json',
+  'docs/internal-testing-credit-lifecycle-readiness.md',
+  'docs/internal-testing-credit-lifecycle-readiness.json',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
   'tests/e2e/edit-preferences-route-entrypoint.spec.ts',
 ]
@@ -42,6 +45,7 @@ for (const phrase of [
   'smoke:project-edit-brief-e2e',
   'smoke:project-edit-brief-internal-testing-completion-audit',
   'smoke:internal-testing-approval-credit-gates',
+  'smoke:internal-testing-credit-lifecycle-readiness',
   'smoke:beta-readiness',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
   'tests/e2e/edit-preferences-route-entrypoint.spec.ts',
@@ -57,6 +61,7 @@ const docs = read('docs/internal-testing-qa-wrapper.md')
 for (const phrase of [
   'npm run qa:internal-testing',
   'approval and credit',
+  'credit lifecycle',
   'No upload',
   'No live Supabase',
   'fails fast',
@@ -76,6 +81,7 @@ const docJson = JSON.parse(read('docs/internal-testing-qa-wrapper.json')) as {
 assert.equal(docJson.decision, 'internal_testing_qa_wrapper_passed_ready_for_repeated_local_internal_testing')
 assert.equal(docJson.command, 'npm run qa:internal-testing')
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-approval-credit-gates'))
+assert.ok(docJson.smokes?.includes('smoke:internal-testing-credit-lifecycle-readiness'))
 assert.ok(docJson.smokes?.includes('smoke:project-edit-brief-e2e'))
 assert.ok(docJson.playwrightSpecs?.includes('tests/e2e/edit-preferences-route-entrypoint.spec.ts'))
 assert.equal(docJson.blockedScope?.productReady, false)

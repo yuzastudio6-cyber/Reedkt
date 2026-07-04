@@ -38,6 +38,7 @@ Route: `/api/ai-graphics/external-agent/tool-call`
 - `nextExactGpuHostPreflightCommand`: `null`
 - `nextExactGpuContainerBuildCommand`: `null`
 - `nextExactScopedToolCallCommand`: `null`
+- `nextExactScopedToolCallManifestCommand`: `null`
 - `gpuRuntimeStartPolicy`: `gpu_runtime_not_started_for_completed_non_gpu_or_successful_scoped_call`
 
 ## Booleans

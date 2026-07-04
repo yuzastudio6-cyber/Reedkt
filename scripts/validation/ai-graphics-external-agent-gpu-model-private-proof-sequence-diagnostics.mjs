@@ -201,6 +201,9 @@ for (const phrase of [
   '--detect-host',
   '--require-host-eligible',
   '--require-accepted-proof',
+  '--runtime-input-manifest',
+  'readRuntimeInputManifest',
+  'manifestStringForTool',
   '--expect-state',
   '--require-output-hash',
   '--require-private-only-boundary',
@@ -214,11 +217,17 @@ for (const phrase of [
   'finalExternalAgentSingleToolCall',
   'privateContainerProofSequenceCommandsByTool',
   'privateHostProofSequenceCommandsByTool',
+  'privateContainerProofSequenceManifestCommandsByTool',
+  'privateHostProofSequenceManifestCommandsByTool',
+  'korniaFirstPrivateProofSequenceManifestCommand',
   'sequenceCommandForTool',
+  'sequenceManifestCommandForTool',
   'allGpuModelToolsHaveExactPrivateProofSequenceCommand',
   'allGpuModelToolsHaveExactContainerPrivateProofSequenceCommand',
   '--write-records cannot be combined with --attempt-local-runtime',
+  '--write-records cannot be combined with --runtime-input-manifest',
   '--write-records cannot be combined with --detect-host',
+  '--runtime-input-manifest must stay under .local-artifacts/',
   '--result-out must stay under .local-artifacts/',
   'currentHostGpuProofPreflight',
   'hostEligibilityGateSupported',
@@ -268,10 +277,17 @@ function checkReport(label, report) {
   if (!String(report.interfaces?.korniaFirstPrivateProofSequenceCommand ?? '').includes('--source-image <private-approved-frame.png>')) {
     fail(`${label}_kornia_sequence_missing_private_source_image`)
   }
+  if (!String(report.interfaces?.korniaFirstPrivateProofSequenceManifestCommand ?? '').includes('--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/runtime-inputs.json')) {
+    fail(`${label}_kornia_manifest_sequence_missing_private_manifest`)
+  }
   const perToolCommands =
     report.interfaces?.privateContainerProofSequenceCommandsByTool ?? {}
   const hostPerToolCommands =
     report.interfaces?.privateHostProofSequenceCommandsByTool ?? {}
+  const perToolManifestCommands =
+    report.interfaces?.privateContainerProofSequenceManifestCommandsByTool ?? {}
+  const hostPerToolManifestCommands =
+    report.interfaces?.privateHostProofSequenceManifestCommandsByTool ?? {}
   const finalContainerCommands =
     report.interfaces?.finalExternalAgentSingleToolCallContainerCommandsByTool ?? {}
   const finalHostCommands =
@@ -279,10 +295,14 @@ function checkReport(label, report) {
   for (const tool of gpuModelTools) {
     const command = String(perToolCommands[tool] ?? '')
     const hostCommand = String(hostPerToolCommands[tool] ?? '')
+    const manifestCommand = String(perToolManifestCommands[tool] ?? '')
+    const hostManifestCommand = String(hostPerToolManifestCommands[tool] ?? '')
     const finalContainerCommand = String(finalContainerCommands[tool] ?? '')
     const finalHostCommand = String(finalHostCommands[tool] ?? '')
     if (!command) fail(`${label}_missing_container_private_proof_sequence_command:${tool}`)
     if (!hostCommand) fail(`${label}_missing_host_private_proof_sequence_command:${tool}`)
+    if (!manifestCommand) fail(`${label}_missing_container_private_manifest_proof_sequence_command:${tool}`)
+    if (!hostManifestCommand) fail(`${label}_missing_host_private_manifest_proof_sequence_command:${tool}`)
     if (!finalContainerCommand) fail(`${label}_missing_container_final_single_tool_call_command:${tool}`)
     if (!finalHostCommand) fail(`${label}_missing_host_final_single_tool_call_command:${tool}`)
     if (!command.includes('--attempt-local-runtime')) {
@@ -290,6 +310,12 @@ function checkReport(label, report) {
     }
     if (!hostCommand.includes('--attempt-local-runtime')) {
       fail(`${label}_host_private_proof_sequence_missing_attempt_runtime:${tool}`)
+    }
+    if (!manifestCommand.includes('--attempt-local-runtime')) {
+      fail(`${label}_container_private_manifest_proof_sequence_missing_attempt_runtime:${tool}`)
+    }
+    if (!hostManifestCommand.includes('--attempt-local-runtime')) {
+      fail(`${label}_host_private_manifest_proof_sequence_missing_attempt_runtime:${tool}`)
     }
     if (!command.includes('--runtime-backend docker_container')) {
       fail(`${label}_container_private_proof_sequence_missing_backend:${tool}`)
@@ -351,6 +377,18 @@ function checkReport(label, report) {
     }
     if (!hostCommand.includes(`--tool ${tool}`)) {
       fail(`${label}_host_private_proof_sequence_missing_tool:${tool}`)
+    }
+    if (!manifestCommand.includes(`--tool ${tool}`)) {
+      fail(`${label}_container_private_manifest_proof_sequence_missing_tool:${tool}`)
+    }
+    if (!hostManifestCommand.includes(`--tool ${tool}`)) {
+      fail(`${label}_host_private_manifest_proof_sequence_missing_tool:${tool}`)
+    }
+    if (!manifestCommand.includes(`--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${tool}>/runtime-inputs.json`)) {
+      fail(`${label}_container_private_manifest_proof_sequence_missing_manifest:${tool}`)
+    }
+    if (!hostManifestCommand.includes(`--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${tool}>/runtime-inputs.json`)) {
+      fail(`${label}_host_private_manifest_proof_sequence_missing_manifest:${tool}`)
     }
     if (!command.includes(`.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${tool}>`)) {
       fail(`${label}_container_private_proof_sequence_missing_local_output_dir:${tool}`)
@@ -433,6 +471,18 @@ function checkReport(label, report) {
   if (report.sequencePolicy?.noIdleGpuRuntimeApproved !== true) {
     fail(`${label}_no_idle_gpu_policy_not_true`)
   }
+  if (report.sequencePolicy?.privateRuntimeInputManifestSupported !== true) {
+    fail(`${label}_private_manifest_policy_not_true`)
+  }
+  if (report.sequencePolicy?.privateRuntimeInputManifestUsedNow !== false) {
+    fail(`${label}_private_manifest_used_in_default_record`)
+  }
+  if (report.sequencePolicy?.privateRuntimeInputManifestMustStayUnderLocalArtifacts !== true) {
+    fail(`${label}_private_manifest_local_artifact_policy_not_true`)
+  }
+  if (report.sequencePolicy?.privateRuntimeInputManifestRejectedForWriteRecords !== true) {
+    fail(`${label}_private_manifest_write_records_rejection_policy_not_true`)
+  }
   if (report.sequencePolicy?.noPublicArtifacts !== true) {
     fail(`${label}_public_artifact_policy_not_true`)
   }
@@ -483,6 +533,7 @@ function checkReport(label, report) {
     'scopedToolOnly',
     'proofBridgeExecuted',
     'readinessRecomputed',
+    'privateRuntimeInputManifestSupported',
     'agentCanExecute13NonGpuControlledToolsNow',
     'gpuRuntimeOnDemandOnly',
     'noIdleGpuRuntimeApproved',
@@ -492,6 +543,7 @@ function checkReport(label, report) {
   }
   for (const key of [
     'localRuntimeAttemptRequested',
+    'privateRuntimeInputManifestUsedNow',
     'localRuntimeExecutedForRequestedTool',
     'acceptedPrivateProofForRequestedTool',
     'finalExternalAgentSingleToolCallAttempted',
@@ -625,6 +677,74 @@ if (detected) {
 const requiredAcceptedProof = runScriptStatus(['--require-accepted-proof'])
 if (requiredAcceptedProof.status !== 2) {
   fail(`require_accepted_proof_exit_status_mismatch:${requiredAcceptedProof.status}`)
+}
+
+const runtimeManifestDir =
+  '.local-artifacts/ai-graphics/gpu-model-private-proof-sequence-diagnostic/manifest'
+const runtimeManifestPath = `${runtimeManifestDir}/runtime-inputs.json`
+fs.mkdirSync(absolute(runtimeManifestDir), { recursive: true })
+fs.writeFileSync(absolute(runtimeManifestPath), JSON.stringify({
+  outputDirectory: `${runtimeManifestDir}/kornia-output`,
+  toolInputs: {
+    kornia: {
+      sourceImageLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+    },
+  },
+}, null, 2))
+let manifestRun = null
+try {
+  manifestRun = runJsonScript([
+    '--attempt-local-runtime',
+    '--tool',
+    'kornia',
+    '--runtime-input-manifest',
+    runtimeManifestPath,
+  ])
+} catch (error) {
+  fail(`runtime_manifest_sequence_run_failed:${error.message}`)
+}
+if (manifestRun) {
+  if (manifestRun.booleans?.privateRuntimeInputManifestUsedNow !== true) {
+    fail('runtime_manifest_sequence_manifest_used_not_true')
+  }
+  if (manifestRun.booleans?.localRuntimeExecutedForRequestedTool !== false) {
+    fail('runtime_manifest_sequence_executed_without_private_frame')
+  }
+  if (manifestRun.booleans?.finalExternalAgentSingleToolCallAttempted !== false) {
+    fail('runtime_manifest_sequence_final_call_attempted_without_private_proof')
+  }
+  if (manifestRun.requestedToolResult?.harness?.skipReasonCode !== 'kornia_source_frame_missing') {
+    fail(`runtime_manifest_sequence_skip_reason_mismatch:${manifestRun.requestedToolResult?.harness?.skipReasonCode}`)
+  }
+  if (manifestRun.counts?.gpuRuntimeShouldStartNowTools !== 0) {
+    fail('runtime_manifest_sequence_gpu_started')
+  }
+}
+
+const invalidManifestPath = runScriptStatus([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--runtime-input-manifest',
+  '/tmp/reeditpro-runtime-inputs.json',
+])
+if (invalidManifestPath.status === 0) {
+  fail('invalid_runtime_manifest_path_unexpected_success')
+}
+if (!invalidManifestPath.stderr.includes('--runtime-input-manifest must stay under .local-artifacts/')) {
+  fail('invalid_runtime_manifest_path_missing_diagnostic')
+}
+
+const writeRecordsWithManifest = runScriptStatus([
+  '--write-records',
+  '--runtime-input-manifest',
+  runtimeManifestPath,
+])
+if (writeRecordsWithManifest.status === 0) {
+  fail('write_records_with_runtime_manifest_unexpected_success')
+}
+if (!writeRecordsWithManifest.stderr.includes('--write-records cannot be combined with --runtime-input-manifest')) {
+  fail('write_records_with_runtime_manifest_missing_diagnostic')
 }
 
 for (const pattern of forbiddenCommittedTruePatterns) {

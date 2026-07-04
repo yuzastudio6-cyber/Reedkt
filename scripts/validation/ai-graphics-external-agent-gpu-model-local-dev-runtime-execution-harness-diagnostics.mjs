@@ -107,12 +107,14 @@ const trueKeys = [
   'gpuStartsOnlyForApprovedWorkerOrToolCall',
   'committedRecordSkipSafe',
   'privateLocalProofResultWriteSupported',
+  'privateRuntimeInputManifestSupported',
   'agentCanSelectForPlanning',
 ]
 
 const falseKeys = [
   'privateLocalRuntimeAttemptRequested',
   'privateLocalProofResultWrittenNow',
+  'privateRuntimeInputManifestUsedNow',
   'agentCanExecuteGpuModelToolsNow',
   'agentCanExecuteAll21ToolsNow',
   'agentCanExecuteToolsNow',
@@ -239,6 +241,30 @@ function exec(command) {
   })
 }
 
+function spawnRunScript(args = []) {
+  const result = childProcess.spawnSync('npm', [
+    'run',
+    '--silent',
+    runScriptName,
+    '--',
+    ...args,
+  ], {
+    cwd: root,
+    env: {
+      ...process.env,
+      DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+    },
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: 120 * 1024 * 1024,
+  })
+  return {
+    status: result.status,
+    stdout: result.stdout,
+    stderr: result.stderr,
+  }
+}
+
 function checkCounts(label, counts) {
   for (const [key, value] of Object.entries(expectedCounts)) {
     if (counts?.[key] !== value) {
@@ -341,6 +367,15 @@ if (report.localRuntimePolicy?.privateLocalProofResultWrittenNow !== false) {
 }
 if (!String(report.localRuntimePolicy?.privateLocalProofResultWritePath ?? '').includes('.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json')) {
   fail('private_local_proof_result_path_not_local_artifact')
+}
+if (report.localRuntimePolicy?.privateRuntimeInputManifestSupported !== true) {
+  fail('private_runtime_input_manifest_not_supported')
+}
+if (report.localRuntimePolicy?.privateRuntimeInputManifestUsedNow !== false) {
+  fail('private_runtime_input_manifest_used_in_committed_record')
+}
+if (!String(report.interfaces?.privateRuntimeInputManifestAttemptCommand ?? '').includes('--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json')) {
+  fail('private_runtime_input_manifest_attempt_command_missing')
 }
 
 const runtimeRunnerSource = read('server/workers/ai-graphics-runtime-script-runner.ts')
@@ -730,6 +765,74 @@ if (scopedRows[0]?.executionState !== 'blocked_with_reason') {
   fail(`scoped_output_unexpected_execution_state:${scopedRows[0]?.executionState}`)
 }
 
+const manifestDir =
+  '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/diagnostic-manifest'
+const manifestPath = `${manifestDir}/runtime-inputs.json`
+fs.mkdirSync(absolute(manifestDir), { recursive: true })
+fs.writeFileSync(absolute(manifestPath), JSON.stringify({
+  outputDirectory: `${manifestDir}/kornia-output`,
+  toolInputs: {
+    kornia: {
+      sourceImageLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+    },
+  },
+}, null, 2))
+const scopedManifestRun = spawnRunScript([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--runtime-input-manifest',
+  manifestPath,
+])
+if (scopedManifestRun.status !== 0) {
+  fail(`scoped_manifest_output_run_failed:${scopedManifestRun.status}:${scopedManifestRun.stderr}`)
+}
+const scopedManifestOutput = scopedManifestRun.status === 0
+  ? JSON.parse(scopedManifestRun.stdout)
+  : {}
+if (scopedManifestOutput.booleans?.privateRuntimeInputManifestUsedNow !== true) {
+  fail('scoped_manifest_output_manifest_not_used')
+}
+if (scopedManifestOutput.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('scoped_manifest_output_started_gpu')
+}
+if (scopedManifestOutput.counts?.localRuntimeExecutionPerformedTools !== 0) {
+  fail('scoped_manifest_output_runtime_executed')
+}
+const scopedManifestRows = Array.isArray(scopedManifestOutput.gpuModelLocalDevRuntimeExecutionHarnessRows)
+  ? scopedManifestOutput.gpuModelLocalDevRuntimeExecutionHarnessRows
+  : []
+if (scopedManifestRows.length !== 1 || scopedManifestRows[0]?.toolId !== 'kornia') {
+  fail('scoped_manifest_output_not_limited_to_kornia')
+}
+if (scopedManifestRows[0]?.skipReasonCode !== 'kornia_source_frame_missing') {
+  fail(`scoped_manifest_output_unexpected_skip_reason:${scopedManifestRows[0]?.skipReasonCode}`)
+}
+const invalidManifestPath = spawnRunScript([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--runtime-input-manifest',
+  '/tmp/reeditpro-runtime-inputs.json',
+])
+if (invalidManifestPath.status === 0) {
+  fail('invalid_manifest_path_unexpected_success')
+}
+if (!invalidManifestPath.stderr.includes('--runtime-input-manifest must stay under .local-artifacts/')) {
+  fail('invalid_manifest_path_missing_diagnostic')
+}
+const writeRecordsWithManifest = spawnRunScript([
+  '--write-records',
+  '--runtime-input-manifest',
+  manifestPath,
+])
+if (writeRecordsWithManifest.status === 0) {
+  fail('write_records_with_manifest_unexpected_success')
+}
+if (!writeRecordsWithManifest.stderr.includes('--write-records cannot be combined with --runtime-input-manifest')) {
+  fail('write_records_with_manifest_missing_diagnostic')
+}
+
 const source = [
   read('docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json'),
   read('docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.md'),
@@ -763,6 +866,9 @@ for (const requiredSourceToken of [
   'privateLocalRuntimeInputBlock',
   'private-input-preflight',
   'missingPrivateInputsBlockBeforeGpuStartup',
+  'runtimeInputManifestPath',
+  '--runtime-input-manifest',
+  'privateRuntimeInputManifestSupported',
   'currentBlockingPrerequisiteKey',
   'remainingPrivateRuntimeInputKeys',
   'executionState',

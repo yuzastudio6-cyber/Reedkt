@@ -54,6 +54,7 @@ type ExpectedExecutionState =
   | 'executable'
   | 'blocked_with_reason'
   | 'failed_with_diagnostics'
+type RuntimeInputManifest = Record<string, unknown>
 
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
@@ -128,6 +129,62 @@ function resultOutPath(): string | undefined {
     '--result-out must stay under .local-artifacts/',
   )
   return value
+}
+
+function runtimeInputManifestPath(): string | undefined {
+  const value = stringArg('--runtime-input-manifest')
+  if (!value) return undefined
+  assert(
+    isLocalArtifactPath(value),
+    '--runtime-input-manifest must stay under .local-artifacts/',
+  )
+  return value
+}
+
+function readRuntimeInputManifest(
+  filePath: string | undefined,
+): RuntimeInputManifest | undefined {
+  if (!filePath) return undefined
+  const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8')) as unknown
+  assert(
+    parsed && typeof parsed === 'object' && !Array.isArray(parsed),
+    '--runtime-input-manifest must be a JSON object',
+  )
+  return parsed as RuntimeInputManifest
+}
+
+function manifestToolRecord(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  manifest: RuntimeInputManifest | undefined,
+): RuntimeInputManifest {
+  if (!manifest) return {}
+  const toolInputs = manifest.toolInputs ?? manifest.tools
+  if (!toolInputs || typeof toolInputs !== 'object' || Array.isArray(toolInputs)) {
+    return {}
+  }
+  const record = (toolInputs as Record<string, unknown>)[toolId]
+  if (!record || typeof record !== 'object' || Array.isArray(record)) return {}
+  return record as RuntimeInputManifest
+}
+
+function safeManifestString(key: string, value: unknown): string | undefined {
+  if (value === undefined || value === null) return undefined
+  assert(
+    typeof value === 'string' && value.length > 0,
+    `runtime input manifest field ${key} must be a non-empty string`,
+  )
+  assertNoSignedUrlOrRawUrl(value, key)
+  assertNoPathTraversal(value, key)
+  return value
+}
+
+function manifestStringForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  manifest: RuntimeInputManifest | undefined,
+  key: string,
+): string | undefined {
+  const toolRecord = manifestToolRecord(toolId, manifest)
+  return safeManifestString(key, toolRecord[key] ?? manifest?.[key])
 }
 
 function ensureParentDirectory(filePath: string): void {
@@ -317,9 +374,34 @@ function gpuModelScopedToolCallCommand(toolId: string): string {
   ].join(' ')
 }
 
+function gpuModelScopedToolCallManifestCommand(toolId: string): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-tool-call --',
+    `--tool ${toolId}`,
+    '--attempt-gpu-runtime',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+    '--runtime-container-platform linux/amd64',
+    `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/${toolId}`,
+    '--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json',
+    '--expect-state executable',
+    '--require-output-hash',
+    '--require-private-only-boundary',
+    '--strict-exit-code',
+  ].join(' ')
+}
+
 function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId) {
   const attemptGpuRuntime = hasFlag('--attempt-gpu-runtime')
-  const outputDirectory = stringArg('--gpu-output-dir')
+  const manifestPath = runtimeInputManifestPath()
+  assert(
+    !manifestPath || attemptGpuRuntime,
+    '--runtime-input-manifest requires --attempt-gpu-runtime',
+  )
+  const manifest = readRuntimeInputManifest(manifestPath)
+  const outputDirectory =
+    stringArg('--gpu-output-dir') ??
+    manifestStringForTool(toolId, manifest, 'outputDirectory')
   if (attemptGpuRuntime) {
     assert(outputDirectory, '--attempt-gpu-runtime requires --gpu-output-dir')
     assert(
@@ -341,11 +423,14 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
     modelWeightsDownloaded: false,
     modelWeightsLoaded: false,
     modelInferencePerformed: false,
+    runtimeInputManifestUsed: Boolean(manifestPath),
   }
 
   if (!attemptGpuRuntime) return payload
 
-  const sourceImageLocalPath = stringArg('--source-image')
+  const sourceImageLocalPath =
+    stringArg('--source-image') ??
+    manifestStringForTool(toolId, manifest, 'sourceImageLocalPath')
   assertPrivateLocalInputPath('sourceImageLocalPath', sourceImageLocalPath)
   const runtimeBackend = stringArg('--runtime-backend') === 'host_python'
     ? 'host_python'
@@ -366,12 +451,25 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
     payload.sourceImageLocalPath = sourceImageLocalPath
     payload.representativeFrameLocalPath = sourceImageLocalPath
   }
-  const sam2CheckpointLocalPath = stringArg('--sam2-checkpoint')
-  const birefnetModelLocalPath = stringArg('--birefnet-model')
-  const realEsrganModelLocalPath = stringArg('--real-esrgan-model')
-  const rembgModelLocalPath = stringArg('--rembg-model')
+  const sam2CheckpointLocalPath =
+    stringArg('--sam2-checkpoint') ??
+    manifestStringForTool(toolId, manifest, 'sam2CheckpointLocalPath')
+  const birefnetModelLocalPath =
+    stringArg('--birefnet-model') ??
+    manifestStringForTool(toolId, manifest, 'birefnetModelLocalPath')
+  const realEsrganModelLocalPath =
+    stringArg('--real-esrgan-model') ??
+    manifestStringForTool(toolId, manifest, 'realEsrganModelLocalPath')
+  const rembgModelLocalPath =
+    stringArg('--rembg-model') ??
+    manifestStringForTool(toolId, manifest, 'rembgModelLocalPath')
   const transparentBackgroundCheckpointLocalPath =
-    stringArg('--transparent-background-checkpoint')
+    stringArg('--transparent-background-checkpoint') ??
+    manifestStringForTool(
+      toolId,
+      manifest,
+      'transparentBackgroundCheckpointLocalPath',
+    )
   assertPrivateLocalInputPath('sam2CheckpointLocalPath', sam2CheckpointLocalPath)
   assertPrivateLocalInputPath('birefnetModelLocalPath', birefnetModelLocalPath)
   assertPrivateLocalInputPath('realEsrganModelLocalPath', realEsrganModelLocalPath)
@@ -487,6 +585,7 @@ function nextActionForReport(input: {
       nextExactGpuHostPreflightCommand: null,
       nextExactGpuContainerBuildCommand: null,
       nextExactScopedToolCallCommand: null,
+      nextExactScopedToolCallManifestCommand: null,
       gpuRuntimeStartPolicy: 'gpu_runtime_not_started_for_completed_non_gpu_or_successful_scoped_call',
     }
   }
@@ -509,6 +608,8 @@ function nextActionForReport(input: {
       nextExactGpuHostPreflightCommand: gpuModelHostPreflightCommand(),
       nextExactGpuContainerBuildCommand: gpuModelContainerBuildCommand(),
       nextExactScopedToolCallCommand: gpuModelScopedToolCallCommand(input.toolId),
+      nextExactScopedToolCallManifestCommand:
+        gpuModelScopedToolCallManifestCommand(input.toolId),
       gpuRuntimeStartPolicy: 'on_demand_only_for_scoped_active_tool_call',
     }
   }
@@ -523,6 +624,7 @@ function nextActionForReport(input: {
       nextExactGpuHostPreflightCommand: null,
       nextExactGpuContainerBuildCommand: null,
       nextExactScopedToolCallCommand: null,
+      nextExactScopedToolCallManifestCommand: null,
       gpuRuntimeStartPolicy: 'do_not_start_gpu_for_failed_request',
     }
   }
@@ -536,6 +638,7 @@ function nextActionForReport(input: {
     nextExactGpuHostPreflightCommand: null,
     nextExactGpuContainerBuildCommand: null,
     nextExactScopedToolCallCommand: null,
+    nextExactScopedToolCallManifestCommand: null,
     gpuRuntimeStartPolicy: 'do_not_start_gpu_for_unknown_result',
   }
 }
@@ -708,6 +811,8 @@ async function buildReport() {
       expectedBlockingReasonCode:
         stringArg('--expect-blocking-reason') ?? null,
       resultOut: resultOutPath() ?? null,
+      runtimeInputManifest: runtimeInputManifestPath() ?? null,
+      runtimeInputManifestUsed: Boolean(runtimeInputManifestPath()),
       unsafeRoutePayloadTest: unsafeRoutePayloadTestKind() ?? null,
       strictExitCodeRequested: hasFlag('--strict-exit-code'),
       requireOutputHash: hasFlag('--require-output-hash'),
@@ -877,6 +982,7 @@ Route: \`${report.routePath}\`
 - \`nextExactGpuHostPreflightCommand\`: \`${report.nextAction.nextExactGpuHostPreflightCommand}\`
 - \`nextExactGpuContainerBuildCommand\`: \`${report.nextAction.nextExactGpuContainerBuildCommand}\`
 - \`nextExactScopedToolCallCommand\`: \`${report.nextAction.nextExactScopedToolCallCommand}\`
+- \`nextExactScopedToolCallManifestCommand\`: \`${report.nextAction.nextExactScopedToolCallManifestCommand}\`
 - \`gpuRuntimeStartPolicy\`: \`${report.nextAction.gpuRuntimeStartPolicy}\`
 
 ## Booleans

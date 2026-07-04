@@ -27,6 +27,7 @@
     "defaultCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness",
     "committedRecordCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --write-records",
     "privateLocalRuntimeAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>",
+    "privateRuntimeInputManifestAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
     "privateContainerRuntimeAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>",
     "privateRuntimeAttemptCommandsByTool": {
       "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
@@ -88,7 +89,10 @@
     "runtimeProofOutputMustProveNoSignedUrl": true,
     "privateLocalProofResultWriteSupported": true,
     "privateLocalProofResultWritePath": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
-    "privateLocalProofResultWrittenNow": false
+    "privateLocalProofResultWrittenNow": false,
+    "privateRuntimeInputManifestSupported": true,
+    "privateRuntimeInputManifestPath": null,
+    "privateRuntimeInputManifestUsedNow": false
   },
   "counts": {
     "totalAiGraphicsTools": 21,
@@ -613,6 +617,8 @@
     "privateLocalRuntimeAttemptRequested": false,
     "privateLocalProofResultWriteSupported": true,
     "privateLocalProofResultWrittenNow": false,
+    "privateRuntimeInputManifestSupported": true,
+    "privateRuntimeInputManifestUsedNow": false,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteGpuModelToolsNow": false,
     "agentCanExecuteAll21ToolsNow": false,

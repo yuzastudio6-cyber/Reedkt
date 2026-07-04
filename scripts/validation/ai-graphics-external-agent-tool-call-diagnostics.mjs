@@ -411,6 +411,20 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
       fail(`${label}_next_action_scoped_tool_call_missing:${fragment}`)
     }
   }
+  for (const fragment of [
+    'ai-graphics:external-agent-tool-call',
+    '--tool kornia',
+    '--attempt-gpu-runtime',
+    '--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json',
+    '--expect-state executable',
+    '--require-output-hash',
+    '--require-private-only-boundary',
+    '--strict-exit-code',
+  ]) {
+    if (!String(nextAction.nextExactScopedToolCallManifestCommand ?? '').includes(fragment)) {
+      fail(`${label}_next_action_manifest_scoped_tool_call_missing:${fragment}`)
+    }
+  }
   checkNoBoundaryLeaks(label, report)
 }
 
@@ -526,6 +540,10 @@ for (const phrase of [
   'listAiGraphicsExternalBetaToolCallBlockedReadinessCases',
   '--attempt-gpu-runtime',
   '--gpu-output-dir',
+  '--runtime-input-manifest',
+  'readRuntimeInputManifest',
+  'manifestStringForTool',
+  'gpuModelScopedToolCallManifestCommand',
   '--runtime-container-image',
   canonicalGpuModelRuntimeContainerImage,
   'privateOutputOnly',
@@ -550,6 +568,7 @@ for (const phrase of [
   'gpuModelCurrentBlockingPrerequisiteKey',
   'blocked_until_scoped_private_gpu_runtime_proof',
   'nextExactScopedToolCallCommand',
+  'nextExactScopedToolCallManifestCommand',
   '--unsafe-route-payload-test',
   'unsafeRoutePayloadForGpuModelTool',
 ]) {
@@ -624,6 +643,67 @@ if (
   '/tmp/reeditpro-missing-private-approved-frame.png'
 ) {
   fail('live_kornia_scoped_gpu_attempt_source_image_mismatch')
+}
+
+const runtimeManifestDir =
+  '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/manifest'
+const runtimeManifestPath = `${runtimeManifestDir}/runtime-inputs.json`
+fs.mkdirSync(absolute(runtimeManifestDir), { recursive: true })
+fs.writeFileSync(absolute(runtimeManifestPath), JSON.stringify({
+  outputDirectory: `${runtimeManifestDir}/kornia-output`,
+  toolInputs: {
+    kornia: {
+      sourceImageLocalPath: '/tmp/reeditpro-missing-private-approved-frame.png',
+    },
+  },
+}, null, 2))
+const korniaManifestGpuAttemptLive = runToolCall([
+  '--tool kornia',
+  '--attempt-gpu-runtime',
+  '--runtime-backend docker_container',
+  `--runtime-container-image ${canonicalGpuModelRuntimeContainerImage}`,
+  '--runtime-container-platform linux/amd64',
+  `--runtime-input-manifest ${runtimeManifestPath}`,
+].join(' '))
+checkGpuBlockedCall(
+  'live_kornia_manifest_gpu_attempt',
+  korniaManifestGpuAttemptLive,
+  'kornia_source_frame_missing',
+)
+if (korniaManifestGpuAttemptLive.agentCommandContract?.runtimeInputManifest !== runtimeManifestPath) {
+  fail('live_kornia_manifest_gpu_attempt_contract_path_mismatch')
+}
+if (korniaManifestGpuAttemptLive.agentCommandContract?.runtimeInputManifestUsed !== true) {
+  fail('live_kornia_manifest_gpu_attempt_contract_used_not_true')
+}
+if (korniaManifestGpuAttemptLive.request?.payload?.runtimeInputManifestUsed !== true) {
+  fail('live_kornia_manifest_gpu_attempt_payload_manifest_used_not_true')
+}
+if (
+  korniaManifestGpuAttemptLive.request?.payload?.outputDirectory !==
+  `${runtimeManifestDir}/kornia-output`
+) {
+  fail('live_kornia_manifest_gpu_attempt_output_dir_mismatch')
+}
+if (
+  korniaManifestGpuAttemptLive.request?.payload?.sourceImageLocalPath !==
+  '/tmp/reeditpro-missing-private-approved-frame.png'
+) {
+  fail('live_kornia_manifest_gpu_attempt_source_image_mismatch')
+}
+
+const manifestOutsideLocalArtifacts = spawnToolCall([
+  '--tool',
+  'kornia',
+  '--attempt-gpu-runtime',
+  '--runtime-input-manifest',
+  '/tmp/reeditpro-runtime-inputs.json',
+])
+if (manifestOutsideLocalArtifacts.status === 0) {
+  fail('runtime_input_manifest_outside_local_artifacts_unexpected_success')
+}
+if (!manifestOutsideLocalArtifacts.stderr.includes('--runtime-input-manifest must stay under .local-artifacts/')) {
+  fail('runtime_input_manifest_outside_local_artifacts_missing_diagnostic')
 }
 
 const unsafeRawUrlRoutePayload = runToolCall([

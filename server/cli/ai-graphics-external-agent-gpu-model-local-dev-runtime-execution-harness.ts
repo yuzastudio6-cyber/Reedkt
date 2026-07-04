@@ -26,6 +26,8 @@ const canonicalGpuWorkerProofImage =
 type HarnessArgs = {
   attemptLocalRuntime: boolean
   toolIds: AiGraphicsExternalAgentGpuModelControlledAdapterToolId[]
+  runtimeInputManifestPath?: string
+  runtimeInputManifest?: RuntimeInputManifest
   outputDirectory?: string
   sourceImageLocalPath?: string
   sam2CheckpointLocalPath?: string
@@ -41,6 +43,8 @@ type HarnessArgs = {
   resultOut?: string
   writeRecords: boolean
 }
+
+type RuntimeInputManifest = Record<string, unknown>
 
 type LocalInputRequirement = {
   key: string
@@ -106,9 +110,18 @@ function parseToolIds(): AiGraphicsExternalAgentGpuModelControlledAdapterToolId[
 }
 
 function parseArgs(): HarnessArgs {
+  const runtimeInputManifestPath = stringFlag('--runtime-input-manifest')
+  if (runtimeInputManifestPath && !isLocalArtifactPath(runtimeInputManifestPath)) {
+    throw new Error('--runtime-input-manifest must stay under .local-artifacts/')
+  }
+
   const args: HarnessArgs = {
     attemptLocalRuntime: hasFlag('--attempt-local-runtime'),
     toolIds: parseToolIds(),
+    runtimeInputManifestPath,
+    runtimeInputManifest: runtimeInputManifestPath
+      ? readRuntimeInputManifest(runtimeInputManifestPath)
+      : undefined,
     outputDirectory: stringFlag('--output-dir'),
     sourceImageLocalPath: stringFlag('--source-image'),
     sam2CheckpointLocalPath: stringFlag('--sam2-checkpoint'),
@@ -139,6 +152,11 @@ function parseArgs(): HarnessArgs {
       '--write-records cannot be combined with --result-out; private proof results must stay local-only.',
     )
   }
+  if (args.writeRecords && args.runtimeInputManifestPath) {
+    throw new Error(
+      '--write-records cannot be combined with --runtime-input-manifest; private input manifests must stay local-only.',
+    )
+  }
   if (args.resultOut && !args.attemptLocalRuntime) {
     throw new Error('--result-out requires --attempt-local-runtime')
   }
@@ -155,8 +173,13 @@ function parseArgs(): HarnessArgs {
     )
   }
 
-  if (args.attemptLocalRuntime && !args.outputDirectory) {
-    throw new Error('--attempt-local-runtime requires --output-dir')
+  if (
+    args.attemptLocalRuntime &&
+    args.toolIds.some((toolId) => !runtimeInputsForTool(toolId, args).outputDirectory)
+  ) {
+    throw new Error(
+      '--attempt-local-runtime requires --output-dir or runtime-input-manifest outputDirectory',
+    )
   }
 
   return args
@@ -166,6 +189,92 @@ function isLocalArtifactPath(filePath: string): boolean {
   const normalized = path.normalize(filePath)
   return normalized === '.local-artifacts' ||
     normalized.startsWith(`.local-artifacts${path.sep}`)
+}
+
+function readRuntimeInputManifest(filePath: string): RuntimeInputManifest {
+  const raw = fs.readFileSync(filePath, 'utf8')
+  const parsed = JSON.parse(raw) as unknown
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('--runtime-input-manifest must be a JSON object')
+  }
+  return parsed as RuntimeInputManifest
+}
+
+function manifestToolRecord(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  manifest: RuntimeInputManifest | undefined,
+): RuntimeInputManifest {
+  if (!manifest) return {}
+  const toolInputs = manifest.toolInputs ?? manifest.tools
+  if (!toolInputs || typeof toolInputs !== 'object' || Array.isArray(toolInputs)) {
+    return {}
+  }
+  const record = (toolInputs as Record<string, unknown>)[toolId]
+  if (!record || typeof record !== 'object' || Array.isArray(record)) return {}
+  return record as RuntimeInputManifest
+}
+
+function safeManifestString(
+  key: string,
+  value: unknown,
+): string | undefined {
+  if (value === undefined || value === null) return undefined
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(`runtime input manifest field ${key} must be a non-empty string`)
+  }
+  if (/^https?:\/\//i.test(value) || value.includes('\0')) {
+    throw new Error(`runtime input manifest field ${key} must be a private local path`)
+  }
+  if (value.split(/[\\/]+/).includes('..')) {
+    throw new Error(`runtime input manifest field ${key} must not contain path traversal segments`)
+  }
+  return value
+}
+
+function manifestStringForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  args: HarnessArgs,
+  key: string,
+): string | undefined {
+  const toolRecord = manifestToolRecord(toolId, args.runtimeInputManifest)
+  return safeManifestString(
+    key,
+    toolRecord[key] ?? args.runtimeInputManifest?.[key],
+  )
+}
+
+function runtimeInputsForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  args: HarnessArgs,
+) {
+  return {
+    outputDirectory:
+      args.outputDirectory ?? manifestStringForTool(toolId, args, 'outputDirectory'),
+    sourceImageLocalPath:
+      args.sourceImageLocalPath ??
+      manifestStringForTool(toolId, args, 'sourceImageLocalPath'),
+    sam2CheckpointLocalPath:
+      args.sam2CheckpointLocalPath ??
+      manifestStringForTool(toolId, args, 'sam2CheckpointLocalPath'),
+    birefnetModelLocalPath:
+      args.birefnetModelLocalPath ??
+      manifestStringForTool(toolId, args, 'birefnetModelLocalPath'),
+    realEsrganModelLocalPath:
+      args.realEsrganModelLocalPath ??
+      manifestStringForTool(toolId, args, 'realEsrganModelLocalPath'),
+    rembgModelLocalPath:
+      args.rembgModelLocalPath ??
+      manifestStringForTool(toolId, args, 'rembgModelLocalPath'),
+    transparentBackgroundCheckpointLocalPath:
+      args.transparentBackgroundCheckpointLocalPath ??
+      manifestStringForTool(toolId, args, 'transparentBackgroundCheckpointLocalPath'),
+    runtimeContainerImage:
+      args.runtimeContainerImage ??
+      manifestStringForTool(toolId, args, 'runtimeContainerImage'),
+    runtimeContainerPlatform:
+      args.runtimeContainerPlatform ??
+      manifestStringForTool(toolId, args, 'runtimeContainerPlatform'),
+  }
 }
 
 function productCapabilities(capabilityIds: readonly string[]): string[] {
@@ -430,6 +539,7 @@ function applyRuntimePayloadArgs(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   args: HarnessArgs,
 ): Record<string, unknown> {
+  const runtimeInputs = runtimeInputsForTool(toolId, args)
   const payload: Record<string, unknown> = {
     mode: 'local_dev',
     enableGpuModelControlledExecution: true,
@@ -448,38 +558,38 @@ function applyRuntimePayloadArgs(
 
   if (!args.attemptLocalRuntime) return payload
 
-  payload.outputDirectory = args.outputDirectory
+  payload.outputDirectory = runtimeInputs.outputDirectory
   payload.timeoutMs = args.timeoutMs
-  if (args.sourceImageLocalPath) {
-    payload.sourceImageLocalPath = args.sourceImageLocalPath
-    payload.representativeFrameLocalPath = args.sourceImageLocalPath
+  if (runtimeInputs.sourceImageLocalPath) {
+    payload.sourceImageLocalPath = runtimeInputs.sourceImageLocalPath
+    payload.representativeFrameLocalPath = runtimeInputs.sourceImageLocalPath
   }
   payload.runtimeExecutionBackend = args.runtimeExecutionBackend
   payload.runtimeContainerGpu = args.runtimeContainerGpu
-  if (args.runtimeContainerImage) {
-    payload.runtimeContainerImage = args.runtimeContainerImage
+  if (runtimeInputs.runtimeContainerImage) {
+    payload.runtimeContainerImage = runtimeInputs.runtimeContainerImage
   }
-  if (args.runtimeContainerPlatform) {
-    payload.runtimeContainerPlatform = args.runtimeContainerPlatform
+  if (runtimeInputs.runtimeContainerPlatform) {
+    payload.runtimeContainerPlatform = runtimeInputs.runtimeContainerPlatform
   }
-  if (toolId === 'sam2' && args.sam2CheckpointLocalPath) {
-    payload.sam2CheckpointLocalPath = args.sam2CheckpointLocalPath
+  if (toolId === 'sam2' && runtimeInputs.sam2CheckpointLocalPath) {
+    payload.sam2CheckpointLocalPath = runtimeInputs.sam2CheckpointLocalPath
   }
-  if (toolId === 'birefnet' && args.birefnetModelLocalPath) {
-    payload.birefnetModelLocalPath = args.birefnetModelLocalPath
+  if (toolId === 'birefnet' && runtimeInputs.birefnetModelLocalPath) {
+    payload.birefnetModelLocalPath = runtimeInputs.birefnetModelLocalPath
   }
-  if (toolId === 'real_esrgan' && args.realEsrganModelLocalPath) {
-    payload.realEsrganModelLocalPath = args.realEsrganModelLocalPath
+  if (toolId === 'real_esrgan' && runtimeInputs.realEsrganModelLocalPath) {
+    payload.realEsrganModelLocalPath = runtimeInputs.realEsrganModelLocalPath
   }
-  if (toolId === 'rembg' && args.rembgModelLocalPath) {
-    payload.rembgModelLocalPath = args.rembgModelLocalPath
+  if (toolId === 'rembg' && runtimeInputs.rembgModelLocalPath) {
+    payload.rembgModelLocalPath = runtimeInputs.rembgModelLocalPath
   }
   if (
     toolId === 'transparent_background' &&
-    args.transparentBackgroundCheckpointLocalPath
+    runtimeInputs.transparentBackgroundCheckpointLocalPath
   ) {
     payload.transparentBackgroundCheckpointLocalPath =
-      args.transparentBackgroundCheckpointLocalPath
+      runtimeInputs.transparentBackgroundCheckpointLocalPath
   }
 
   return payload
@@ -691,6 +801,8 @@ async function buildReport(args: HarnessArgs) {
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --write-records',
       privateLocalRuntimeAttemptCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>',
+      privateRuntimeInputManifestAttemptCommand:
+        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
       privateContainerRuntimeAttemptCommand:
         `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image ${canonicalGpuWorkerProofImage} --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>`,
       privateRuntimeAttemptCommandsByTool:
@@ -742,6 +854,9 @@ async function buildReport(args: HarnessArgs) {
       privateLocalProofResultWritePath:
         '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
       privateLocalProofResultWrittenNow: Boolean(args.resultOut),
+      privateRuntimeInputManifestSupported: true,
+      privateRuntimeInputManifestPath: args.runtimeInputManifestPath ?? null,
+      privateRuntimeInputManifestUsedNow: Boolean(args.runtimeInputManifestPath),
     },
     counts: {
       totalAiGraphicsTools: 21,
@@ -785,6 +900,8 @@ async function buildReport(args: HarnessArgs) {
       privateLocalRuntimeAttemptRequested: args.attemptLocalRuntime,
       privateLocalProofResultWriteSupported: true,
       privateLocalProofResultWrittenNow: Boolean(args.resultOut),
+      privateRuntimeInputManifestSupported: true,
+      privateRuntimeInputManifestUsedNow: Boolean(args.runtimeInputManifestPath),
       agentCanSelectForPlanning: true,
       agentCanExecuteGpuModelToolsNow: false,
       agentCanExecuteAll21ToolsNow: false,
@@ -869,6 +986,10 @@ ${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`
 ## Private runtime attempt command
 
 \`${report.interfaces.privateLocalRuntimeAttemptCommand}\`
+
+## Private runtime input manifest command
+
+\`${report.interfaces.privateRuntimeInputManifestAttemptCommand}\`
 
 ## Next milestone
 

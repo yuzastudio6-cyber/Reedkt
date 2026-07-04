@@ -21,6 +21,8 @@
     "expectedState": null,
     "expectedBlockingReasonCode": null,
     "resultOut": null,
+    "runtimeInputManifest": null,
+    "runtimeInputManifestUsed": false,
     "unsafeRoutePayloadTest": null,
     "strictExitCodeRequested": false,
     "requireOutputHash": false,
@@ -90,6 +92,7 @@
     "nextExactGpuHostPreflightCommand": null,
     "nextExactGpuContainerBuildCommand": null,
     "nextExactScopedToolCallCommand": null,
+    "nextExactScopedToolCallManifestCommand": null,
     "gpuRuntimeStartPolicy": "gpu_runtime_not_started_for_completed_non_gpu_or_successful_scoped_call"
   },
   "booleans": {

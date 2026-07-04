@@ -39,7 +39,10 @@ type SequenceArgs = {
   requireHostEligible: boolean
   requireAcceptedProof: boolean
   outputDirectory?: string
+  resolvedOutputDirectory?: string
   resultOut?: string
+  runtimeInputManifestPath?: string
+  runtimeInputManifest?: RuntimeInputManifest
   runtimeBackend?: 'host_python' | 'docker_container'
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
@@ -51,6 +54,8 @@ type SequenceArgs = {
   transparentBackgroundCheckpointLocalPath?: string
   timeoutMs?: string
 }
+
+type RuntimeInputManifest = Record<string, unknown>
 
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
@@ -80,6 +85,51 @@ function isLocalArtifactPath(filePath: string): boolean {
     normalized.startsWith(`.local-artifacts${path.sep}`)
 }
 
+function readRuntimeInputManifest(filePath: string): RuntimeInputManifest {
+  const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8')) as unknown
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('--runtime-input-manifest must be a JSON object')
+  }
+  return parsed as RuntimeInputManifest
+}
+
+function manifestToolRecord(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  manifest: RuntimeInputManifest | undefined,
+): RuntimeInputManifest {
+  if (!manifest) return {}
+  const toolInputs = manifest.toolInputs ?? manifest.tools
+  if (!toolInputs || typeof toolInputs !== 'object' || Array.isArray(toolInputs)) {
+    return {}
+  }
+  const record = (toolInputs as Record<string, unknown>)[toolId]
+  if (!record || typeof record !== 'object' || Array.isArray(record)) return {}
+  return record as RuntimeInputManifest
+}
+
+function safeManifestString(key: string, value: unknown): string | undefined {
+  if (value === undefined || value === null) return undefined
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(`runtime input manifest field ${key} must be a non-empty string`)
+  }
+  if (/^https?:\/\//i.test(value) || value.includes('\0')) {
+    throw new Error(`runtime input manifest field ${key} must be a private local path`)
+  }
+  if (value.split(/[\\/]+/).includes('..')) {
+    throw new Error(`runtime input manifest field ${key} must not contain path traversal segments`)
+  }
+  return value
+}
+
+function manifestStringForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  manifest: RuntimeInputManifest | undefined,
+  key: string,
+): string | undefined {
+  const toolRecord = manifestToolRecord(toolId, manifest)
+  return safeManifestString(key, toolRecord[key] ?? manifest?.[key])
+}
+
 function parseArgs(): SequenceArgs {
   const toolId = stringFlag('--tool') ?? 'kornia'
   if (!isGpuModelTool(toolId)) {
@@ -87,11 +137,21 @@ function parseArgs(): SequenceArgs {
   }
 
   const attemptLocalRuntime = hasFlag('--attempt-local-runtime')
+  const runtimeInputManifestPath = stringFlag('--runtime-input-manifest')
+  if (runtimeInputManifestPath && !isLocalArtifactPath(runtimeInputManifestPath)) {
+    throw new Error('--runtime-input-manifest must stay under .local-artifacts/')
+  }
+  const runtimeInputManifest = runtimeInputManifestPath
+    ? readRuntimeInputManifest(runtimeInputManifestPath)
+    : undefined
   const outputDirectory = stringFlag('--output-dir')
+  const resolvedOutputDirectory =
+    outputDirectory ??
+    manifestStringForTool(toolId, runtimeInputManifest, 'outputDirectory')
   const resultOut =
     stringFlag('--result-out') ??
-    (attemptLocalRuntime && outputDirectory
-      ? path.join(outputDirectory, 'harness-result.json')
+    (attemptLocalRuntime && resolvedOutputDirectory
+      ? path.join(resolvedOutputDirectory, 'harness-result.json')
       : undefined)
   const requestedBackend = stringFlag('--runtime-backend')
   const runtimeBackend =
@@ -119,6 +179,11 @@ function parseArgs(): SequenceArgs {
       '--write-records cannot be combined with --result-out; private proof result files must stay local-only.',
     )
   }
+  if (hasFlag('--write-records') && runtimeInputManifestPath) {
+    throw new Error(
+      '--write-records cannot be combined with --runtime-input-manifest; private input manifests must stay local-only.',
+    )
+  }
   if (hasFlag('--write-records') && hasFlag('--detect-host')) {
     throw new Error(
       '--write-records cannot be combined with --detect-host; host-specific proof preflight must stay local-only.',
@@ -129,13 +194,15 @@ function parseArgs(): SequenceArgs {
       '--write-records cannot be combined with --require-accepted-proof; committed records must remain blocked without private proof.',
     )
   }
-  if (attemptLocalRuntime && !outputDirectory) {
-    throw new Error('--attempt-local-runtime requires --output-dir')
+  if (attemptLocalRuntime && !resolvedOutputDirectory) {
+    throw new Error(
+      '--attempt-local-runtime requires --output-dir or runtime-input-manifest outputDirectory',
+    )
   }
   if (resultOut && !isLocalArtifactPath(resultOut)) {
     throw new Error('--result-out must stay under .local-artifacts/')
   }
-  if (outputDirectory && !isLocalArtifactPath(outputDirectory)) {
+  if (resolvedOutputDirectory && !isLocalArtifactPath(resolvedOutputDirectory)) {
     throw new Error('--output-dir must stay under .local-artifacts/')
   }
 
@@ -147,7 +214,10 @@ function parseArgs(): SequenceArgs {
     requireHostEligible: hasFlag('--require-host-eligible'),
     requireAcceptedProof: hasFlag('--require-accepted-proof'),
     outputDirectory,
+    resolvedOutputDirectory,
     resultOut,
+    runtimeInputManifestPath,
+    runtimeInputManifest,
     runtimeBackend,
     runtimeContainerImage,
     runtimeContainerPlatform,
@@ -190,6 +260,7 @@ function pushIfValue(args: string[], flag: string, value: string | undefined): v
 function harnessArgs(input: SequenceArgs): string[] {
   const args = ['--tool', input.toolId]
   if (input.attemptLocalRuntime) args.push('--attempt-local-runtime')
+  pushIfValue(args, '--runtime-input-manifest', input.runtimeInputManifestPath)
   pushIfValue(args, '--output-dir', input.outputDirectory)
   pushIfValue(args, '--result-out', input.resultOut)
   if (input.runtimeBackend) args.push('--runtime-backend', input.runtimeBackend)
@@ -233,14 +304,14 @@ function readinessCommand(resultPath: string): string {
 }
 
 function finalExternalAgentToolCallOutputDirectory(input: SequenceArgs): string | undefined {
-  return input.outputDirectory
-    ? path.join(input.outputDirectory, 'external-agent-single-tool-call', input.toolId)
+  return input.resolvedOutputDirectory
+    ? path.join(input.resolvedOutputDirectory, 'external-agent-single-tool-call', input.toolId)
     : `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${input.toolId}>/external-agent-single-tool-call/${input.toolId}`
 }
 
 function finalExternalAgentToolCallResultPath(input: SequenceArgs): string | undefined {
-  return input.outputDirectory
-    ? path.join(input.outputDirectory, 'external-agent-single-tool-call-result.json')
+  return input.resolvedOutputDirectory
+    ? path.join(input.resolvedOutputDirectory, 'external-agent-single-tool-call-result.json')
     : `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${input.toolId}>/external-agent-single-tool-call-result.json`
 }
 
@@ -256,6 +327,7 @@ function finalExternalAgentToolCallArgs(input: SequenceArgs): string[] {
     '--strict-exit-code',
   ]
   if (input.runtimeBackend) args.push('--runtime-backend', input.runtimeBackend)
+  pushIfValue(args, '--runtime-input-manifest', input.runtimeInputManifestPath)
   pushIfValue(args, '--runtime-container-image', input.runtimeContainerImage)
   pushIfValue(args, '--runtime-container-platform', input.runtimeContainerPlatform)
   pushIfValue(args, '--gpu-output-dir', finalExternalAgentToolCallOutputDirectory(input))
@@ -276,23 +348,45 @@ function finalExternalAgentToolCallArgs(input: SequenceArgs): string[] {
 
 function finalExternalAgentToolCallCommandArgs(input: SequenceArgs): string[] {
   const args = finalExternalAgentToolCallArgs(input)
-  if (!input.sourceImageLocalPath && !['torch_torchvision', 'transformers'].includes(input.toolId)) {
+  const manifestCanProvidePrivateInputs = Boolean(input.runtimeInputManifestPath)
+  if (
+    !manifestCanProvidePrivateInputs &&
+    !input.sourceImageLocalPath &&
+    !['torch_torchvision', 'transformers'].includes(input.toolId)
+  ) {
     args.push('--source-image', '<private-approved-frame.png>')
   }
-  if (input.toolId === 'sam2' && !input.sam2CheckpointLocalPath) {
+  if (
+    input.toolId === 'sam2' &&
+    !manifestCanProvidePrivateInputs &&
+    !input.sam2CheckpointLocalPath
+  ) {
     args.push('--sam2-checkpoint', '<private-sam2-checkpoint.pt>')
   }
-  if (input.toolId === 'birefnet' && !input.birefnetModelLocalPath) {
+  if (
+    input.toolId === 'birefnet' &&
+    !manifestCanProvidePrivateInputs &&
+    !input.birefnetModelLocalPath
+  ) {
     args.push('--birefnet-model', '<private-birefnet-model>')
   }
-  if (input.toolId === 'real_esrgan' && !input.realEsrganModelLocalPath) {
+  if (
+    input.toolId === 'real_esrgan' &&
+    !manifestCanProvidePrivateInputs &&
+    !input.realEsrganModelLocalPath
+  ) {
     args.push('--real-esrgan-model', '<private-real-esrgan-model.pth>')
   }
-  if (input.toolId === 'rembg' && !input.rembgModelLocalPath) {
+  if (
+    input.toolId === 'rembg' &&
+    !manifestCanProvidePrivateInputs &&
+    !input.rembgModelLocalPath
+  ) {
     args.push('--rembg-model', '<private-rembg-model.onnx>')
   }
   if (
     input.toolId === 'transparent_background' &&
+    !manifestCanProvidePrivateInputs &&
     !input.transparentBackgroundCheckpointLocalPath
   ) {
     args.push(
@@ -412,6 +506,28 @@ function sequenceCommandForTool(
   ].join(' ')
 }
 
+function sequenceManifestCommandForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  options: { container: boolean },
+): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence --',
+    '--attempt-local-runtime',
+    ...(options.container
+      ? [
+          '--runtime-backend docker_container',
+          `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+          '--runtime-container-platform linux/amd64',
+        ]
+      : []),
+    `--tool ${toolId}`,
+    `--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>/runtime-inputs.json`,
+    '--detect-host',
+    '--require-host-eligible',
+    '--require-accepted-proof',
+  ].join(' ')
+}
+
 function sequenceCommand(): string {
   return sequenceCommandForTool('kornia', { container: true })
 }
@@ -425,6 +541,19 @@ function privateProofSequenceCommandsByTool(options: {
   return Object.fromEntries(
     AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.map(
       (toolId) => [toolId, sequenceCommandForTool(toolId, options)],
+    ),
+  ) as Record<AiGraphicsExternalAgentGpuModelControlledAdapterToolId, string>
+}
+
+function privateProofSequenceManifestCommandsByTool(options: {
+  container: boolean
+}): Record<
+  AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  string
+> {
+  return Object.fromEntries(
+    AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.map(
+      (toolId) => [toolId, sequenceManifestCommandForTool(toolId, options)],
     ),
   ) as Record<AiGraphicsExternalAgentGpuModelControlledAdapterToolId, string>
 }
@@ -528,10 +657,16 @@ function buildReport(input: SequenceArgs) {
       writeRecordsCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --write-records',
       korniaFirstPrivateProofSequenceCommand: sequenceCommand(),
+      korniaFirstPrivateProofSequenceManifestCommand:
+        sequenceManifestCommandForTool('kornia', { container: true }),
       privateContainerProofSequenceCommandsByTool:
         privateProofSequenceCommandsByTool({ container: true }),
       privateHostProofSequenceCommandsByTool:
         privateProofSequenceCommandsByTool({ container: false }),
+      privateContainerProofSequenceManifestCommandsByTool:
+        privateProofSequenceManifestCommandsByTool({ container: true }),
+      privateHostProofSequenceManifestCommandsByTool:
+        privateProofSequenceManifestCommandsByTool({ container: false }),
       directHarnessCommand: directHarnessCommand(input),
       defaultKorniaHarnessCommand: defaultKorniaCommand(),
       bridgeCommand: privateResultPath ? bridgeCommand(privateResultPath) : null,
@@ -563,6 +698,10 @@ function buildReport(input: SequenceArgs) {
         'Kornia requires CUDA plus one private approved frame and no private model/checkpoint file, so it is the fastest honest GPU/model unlock candidate.',
       explicitRuntimeAttemptRequired: true,
       privateInputsRequired: true,
+      privateRuntimeInputManifestSupported: true,
+      privateRuntimeInputManifestUsedNow: Boolean(input.runtimeInputManifestPath),
+      privateRuntimeInputManifestMustStayUnderLocalArtifacts: true,
+      privateRuntimeInputManifestRejectedForWriteRecords: true,
       privateProofResultMustStayUnderLocalArtifacts: true,
       proofBridgeRequiresOutputJsonSha256Match: true,
       noIdleGpuRuntimeApproved: true,
@@ -694,6 +833,8 @@ function buildReport(input: SequenceArgs) {
       korniaFirstUnlockPathPrepared: true,
       scopedToolOnly: true,
       localRuntimeAttemptRequested: input.attemptLocalRuntime,
+      privateRuntimeInputManifestSupported: true,
+      privateRuntimeInputManifestUsedNow: Boolean(input.runtimeInputManifestPath),
       localRuntimeExecutedForRequestedTool: localRuntimeExecuted,
       proofBridgeExecuted: true,
       readinessRecomputed: true,
@@ -757,6 +898,10 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 
 \`${report.interfaces.korniaFirstPrivateProofSequenceCommand}\`
 
+## Kornia First Manifest Command
+
+\`${report.interfaces.korniaFirstPrivateProofSequenceManifestCommand}\`
+
 ## Per-Tool Container Private Proof Sequence Commands
 
 ${Object.entries(report.interfaces.privateContainerProofSequenceCommandsByTool).map(([toolId, command]) => `- \`${toolId}\`: \`${command}\``).join('\n')}
@@ -764,6 +909,14 @@ ${Object.entries(report.interfaces.privateContainerProofSequenceCommandsByTool).
 ## Per-Tool Host Python Private Proof Sequence Commands
 
 ${Object.entries(report.interfaces.privateHostProofSequenceCommandsByTool).map(([toolId, command]) => `- \`${toolId}\`: \`${command}\``).join('\n')}
+
+## Per-Tool Container Private Manifest Proof Sequence Commands
+
+${Object.entries(report.interfaces.privateContainerProofSequenceManifestCommandsByTool).map(([toolId, command]) => `- \`${toolId}\`: \`${command}\``).join('\n')}
+
+## Per-Tool Host Python Private Manifest Proof Sequence Commands
+
+${Object.entries(report.interfaces.privateHostProofSequenceManifestCommandsByTool).map(([toolId, command]) => `- \`${toolId}\`: \`${command}\``).join('\n')}
 
 ## Requested Tool Result
 

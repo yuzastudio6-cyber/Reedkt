@@ -717,6 +717,7 @@
     "worker-runtime-jobs:sound-cpu-bounded-external-agent-no-media-agent-callable-execution-readiness:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-bounded-external-agent-no-media-agent-callable-execution-readiness-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-cloud-worker-runtime-plan:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-cloud-worker-runtime-plan-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-gcp-foundation-resource-creation-result:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-gcp-foundation-resource-creation-result-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-gcp-iam-role-binding-result:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-gcp-iam-role-binding-result-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-read-only-gcp-preflight:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-read-only-gcp-preflight-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",

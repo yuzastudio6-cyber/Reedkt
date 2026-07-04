@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_agent_execution_readiness_all21_evaluated_with_g
 
 Status: `external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof`
 
-This is the strict all-21 external-agent readiness report. It separates `callable` from `executable`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and the eight GPU/model tools return `blocked_with_reason` until scoped native CUDA, private model/input, and private proof prerequisites are supplied. GPU runtime is on-demand only and does not start idle.
+This is the strict all-21 external-agent readiness report. It separates `callable` from `executable`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools return `blocked_with_reason` until scoped native CUDA, private model/input, and private proof prerequisites are supplied. GPU runtime is on-demand only and does not start idle.
 
 ## State Definitions
 
@@ -31,29 +31,29 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 
 ## Tool Rows
 
-| Tool | Group | Readiness state | Callable | Executable | Minimum private runtime inputs | Blocking prerequisite |
-| --- | --- | --- | ---: | ---: | --- | --- |
-| `torch_torchvision` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime` | `approved native CUDA host; outputDirectory; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: foundation_runtime_output_directory_missing` |
-| `transformers` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime` | `approved native CUDA host; outputDirectory; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: foundation_runtime_output_directory_missing` |
-| `sam2` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, sam2CheckpointLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; sam2CheckpointLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: sam2_checkpoint_missing` |
-| `birefnet` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, birefnetModelLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; birefnetModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: birefnet_model_missing` |
-| `real_esrgan` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, realEsrganModelLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; realEsrganModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: real_esrgan_model_missing` |
-| `kornia` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing` |
-| `rembg` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, rembgModelLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; rembgModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: rembg_model_missing` |
-| `transparent_background` | `gpu_model` | `blocked_with_reason` | true | false | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, transparentBackgroundCheckpointLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; transparentBackgroundCheckpointLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: transparent_background_checkpoint_missing` |
-| `d3` | `cpu_static` | `executable` | true | true | `none` | `none` |
-| `echarts` | `browser_runtime` | `executable` | true | true | `none` | `none` |
-| `vega_lite` | `cpu_static` | `executable` | true | true | `none` | `none` |
-| `vega` | `cpu_static` | `executable` | true | true | `none` | `none` |
-| `satori` | `cpu_static` | `executable` | true | true | `none` | `none` |
-| `svgdotjs_svg_js` | `cpu_static` | `executable` | true | true | `none` | `none` |
-| `viz_js` | `cpu_static` | `executable` | true | true | `none` | `none` |
-| `lottie_web` | `browser_runtime` | `executable` | true | true | `none` | `none` |
-| `animejs` | `browser_runtime` | `executable` | true | true | `none` | `none` |
-| `three_js` | `browser_runtime` | `executable` | true | true | `none` | `none` |
-| `pixi_js` | `browser_runtime` | `executable` | true | true | `none` | `none` |
-| `konva` | `browser_runtime` | `executable` | true | true | `none` | `none` |
-| `babylonjs` | `browser_runtime` | `executable` | true | true | `none` | `none` |
+| Tool | Group | Readiness state | Callable | Executable | Worker-route evidence accepted | Minimum private runtime inputs | Blocking prerequisite |
+| --- | --- | --- | ---: | ---: | ---: | --- | --- |
+| `torch_torchvision` | `gpu_model` | `blocked_with_reason` | true | false | true | `outputDirectory, nativeCudaRuntime` | `approved native CUDA host; outputDirectory; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: foundation_runtime_output_directory_missing` |
+| `transformers` | `gpu_model` | `blocked_with_reason` | true | false | true | `outputDirectory, nativeCudaRuntime` | `approved native CUDA host; outputDirectory; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: foundation_runtime_output_directory_missing` |
+| `sam2` | `gpu_model` | `blocked_with_reason` | true | false | true | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, sam2CheckpointLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; sam2CheckpointLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: sam2_checkpoint_missing` |
+| `birefnet` | `gpu_model` | `blocked_with_reason` | true | false | true | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, birefnetModelLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; birefnetModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: birefnet_model_missing` |
+| `real_esrgan` | `gpu_model` | `blocked_with_reason` | true | false | true | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, realEsrganModelLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; realEsrganModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: real_esrgan_model_missing` |
+| `kornia` | `gpu_model` | `blocked_with_reason` | true | false | true | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing` |
+| `rembg` | `gpu_model` | `blocked_with_reason` | true | false | true | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, rembgModelLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; rembgModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: rembg_model_missing` |
+| `transparent_background` | `gpu_model` | `blocked_with_reason` | true | false | true | `outputDirectory, nativeCudaRuntime, sourceImageLocalPath, transparentBackgroundCheckpointLocalPath` | `approved native CUDA host; outputDirectory; sourceImageLocalPath; transparentBackgroundCheckpointLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: transparent_background_checkpoint_missing` |
+| `d3` | `cpu_static` | `executable` | true | true | true | `none` | `none` |
+| `echarts` | `browser_runtime` | `executable` | true | true | true | `none` | `none` |
+| `vega_lite` | `cpu_static` | `executable` | true | true | true | `none` | `none` |
+| `vega` | `cpu_static` | `executable` | true | true | true | `none` | `none` |
+| `satori` | `cpu_static` | `executable` | true | true | true | `none` | `none` |
+| `svgdotjs_svg_js` | `cpu_static` | `executable` | true | true | true | `none` | `none` |
+| `viz_js` | `cpu_static` | `executable` | true | true | true | `none` | `none` |
+| `lottie_web` | `browser_runtime` | `executable` | true | true | true | `none` | `none` |
+| `animejs` | `browser_runtime` | `executable` | true | true | true | `none` | `none` |
+| `three_js` | `browser_runtime` | `executable` | true | true | true | `none` | `none` |
+| `pixi_js` | `browser_runtime` | `executable` | true | true | true | `none` | `none` |
+| `konva` | `browser_runtime` | `executable` | true | true | true | `none` | `none` |
+| `babylonjs` | `browser_runtime` | `executable` | true | true | true | `none` | `none` |
 
 ## Counts
 
@@ -65,6 +65,11 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `gpuToolsWithValidRuntimeProof`: 0
 - `gpuModelProofRefBridgeAcceptedTools`: 0
 - `gpuModelProofRefBridgeBlockedTools`: 8
+- `controlledWorkerRouteExecutableTools`: 13
+- `mockWorkerQueueJobCreatedTools`: 13
+- `mockWorkerClaimPerformedTools`: 13
+- `mockWorkerEventRecordedTools`: 13
+- `gpuModelBlockedByControlledWorkerRouteTools`: 8
 - `gpuModelBlockedWithReasonTools`: 8
 - `currentHostGpuProofBlockers`: 0
 - `blockedWithReasonTools`: 8
@@ -101,6 +106,11 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `agentCanSubmitControlledToolRequests`: true
 - `agentCallableToolsReady`: true
 - `all13NonGpuControlledAdapterOutputsValidated`: true
+- `controlledWorkerRouteSmokeAccepted`: true
+- `all13NonGpuControlledWorkerRouteOutputsValidated`: true
+- `mockWorkerClaimBeforeRouteExecutionAccepted`: true
+- `mockWorkerEventAfterRouteExecutionAccepted`: true
+- `all8GpuModelToolsBlockedByControlledWorkerRoute`: true
 - `all8GpuModelToolsEvaluated`: true
 - `gpuModelToolsBlockedUntilPrerequisites`: true
 - `gpuModelProofRefBridgeBlocksUntilPrivateProof`: true
@@ -123,6 +133,7 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `currentHostEligibleForGpuProof`: false
 - `routeExecutionApprovedNow`: true
 - `routeExecutionPerformedInReadinessRunner`: true
+- `controlledWorkerRouteExecutionPerformedInReadinessRunner`: true
 - `toolExecutionApprovedFor13ControlledToolsNow`: true
 - `toolExecutionApprovedForGpuModelToolsNow`: false
 - `toolExecutionApprovedForAll21ToolsNow`: false

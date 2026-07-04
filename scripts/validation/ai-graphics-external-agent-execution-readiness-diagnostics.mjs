@@ -60,6 +60,7 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json',
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json',
   'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json',
   'package.json',
 ]
 
@@ -331,6 +332,11 @@ function checkReport(label, report) {
     gpuToolsWithValidRuntimeProof: 0,
     gpuModelProofRefBridgeAcceptedTools: 0,
     gpuModelProofRefBridgeBlockedTools: 8,
+    controlledWorkerRouteExecutableTools: 13,
+    mockWorkerQueueJobCreatedTools: 13,
+    mockWorkerClaimPerformedTools: 13,
+    mockWorkerEventRecordedTools: 13,
+    gpuModelBlockedByControlledWorkerRouteTools: 8,
     gpuModelBlockedWithReasonTools: 8,
     currentHostGpuProofBlockers: 0,
     blockedWithReasonTools: 8,
@@ -357,6 +363,11 @@ function checkReport(label, report) {
     'agentCanSubmitControlledToolRequests',
     'agentCallableToolsReady',
     'all13NonGpuControlledAdapterOutputsValidated',
+    'controlledWorkerRouteSmokeAccepted',
+    'all13NonGpuControlledWorkerRouteOutputsValidated',
+    'mockWorkerClaimBeforeRouteExecutionAccepted',
+    'mockWorkerEventAfterRouteExecutionAccepted',
+    'all8GpuModelToolsBlockedByControlledWorkerRoute',
     'all8GpuModelToolsEvaluated',
     'gpuModelToolsBlockedUntilPrerequisites',
     'gpuModelProofRefBridgeBlocksUntilPrivateProof',
@@ -369,6 +380,7 @@ function checkReport(label, report) {
     'agentCanExecute13ControlledToolsNow',
     'agentCanExecute13NonGpuControlledToolsNow',
     'routeExecutionApprovedNow',
+    'controlledWorkerRouteExecutionPerformedInReadinessRunner',
     'toolExecutionApprovedFor13ControlledToolsNow',
   ]) {
     if (booleans[key] !== true) fail(`${label}_${key}_not_true`)
@@ -458,6 +470,9 @@ function checkReport(label, report) {
     if (row.callable !== true) fail(`${label}_${toolId}_not_callable`)
     if (row.routeCallable !== true) fail(`${label}_${toolId}_route_not_callable`)
     if (row.adapterReachable !== true) fail(`${label}_${toolId}_adapter_not_reachable`)
+    if (row.controlledWorkerRouteEvidenceAccepted !== true) {
+      fail(`${label}_${toolId}_worker_route_evidence_not_accepted`)
+    }
     for (const key of [
       'gpuRuntimeShouldStartNow',
       'publicArtifactCreated',
@@ -552,6 +567,12 @@ function checkReport(label, report) {
       if (row.routeSubmissionReadyWithAcceptedPrivateProof !== false) {
         fail(`${label}_${toolId}_proof_ref_route_submission_unexpectedly_ready`)
       }
+      if (row.controlledWorkerRouteGpuBlocked !== true) {
+        fail(`${label}_${toolId}_worker_route_gpu_block_not_true`)
+      }
+      if (row.controlledWorkerRouteExecutedNow !== false) {
+        fail(`${label}_${toolId}_worker_route_executed_unexpectedly`)
+      }
       if (
         !String(row.nextExactProofRefBridgeCommand ?? '').includes(
           'ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge',
@@ -594,6 +615,21 @@ function checkReport(label, report) {
       }
       if (row.executable !== true || row.executionPassed !== true) {
         fail(`${label}_${toolId}_non_gpu_not_executable`)
+      }
+      if (row.controlledWorkerRouteExecutedNow !== true) {
+        fail(`${label}_${toolId}_worker_route_not_executed`)
+      }
+      if (row.mockWorkerQueueJobCreated !== true) {
+        fail(`${label}_${toolId}_mock_worker_queue_job_missing`)
+      }
+      if (row.mockWorkerClaimPerformed !== true) {
+        fail(`${label}_${toolId}_mock_worker_claim_missing`)
+      }
+      if (row.mockWorkerEventRecorded !== true) {
+        fail(`${label}_${toolId}_mock_worker_event_missing`)
+      }
+      if (!row.controlledWorkerRouteOutputSha256 || row.controlledWorkerRouteOutputSha256.length !== 64) {
+        fail(`${label}_${toolId}_worker_route_missing_output_hash`)
       }
       if (!row.outputSha256 || row.outputSha256.length !== 64) {
         fail(`${label}_${toolId}_missing_output_hash`)
@@ -773,6 +809,98 @@ function checkMountedControlledRouteSmoke(label, report) {
   }
 }
 
+function checkControlledWorkerRouteSmoke(label, report) {
+  if (
+    report.decision !==
+    'ai_graphics_external_agent_controlled_worker_route_execution_smoke_passed_with_runtime_blocks'
+  ) {
+    fail(`${label}_decision_mismatch`)
+  }
+  if (
+    report.status !==
+    'controlled_worker_claim_route_execution_passed_for_thirteen_tools_gpu_model_still_blocked'
+  ) {
+    fail(`${label}_status_mismatch`)
+  }
+
+  const expectedCounts = {
+    totalAiGraphicsTools: 21,
+    totalProductFacingCapabilities: 12,
+    controlledWorkerRouteExecutionAttemptedTools: 13,
+    controlledWorkerRouteExecutionCompletedTools: 13,
+    mockQueueInsertedJobsWithProvidedEvidence: 13,
+    mockWorkerClaimsCreatedWithProvidedEvidence: 13,
+    mockWorkerEventsRecordedWithProvidedEvidence: 13,
+    controlledCanonicalRouteExecutedToolsWithProvidedEvidence: 13,
+    cpuStaticControlledCanonicalRouteExecutedToolsWithProvidedEvidence: 6,
+    browserRuntimeControlledCanonicalRouteExecutedToolsWithProvidedEvidence: 7,
+    localControlledPackageExecutionPerformedToolsWithProvidedEvidence: 13,
+    controlledAdapterExecutedToolsWithProvidedEvidence: 13,
+    gpuModelBlockedToolsWithProvidedEvidence: 8,
+    externalAgentControlledWorkerRouteExecutableToolsWithProvidedEvidence: 13,
+    externalAgentBroadExecutableNowTools: 0,
+    workerDispatchPerformedTools: 0,
+    routeExecutionPerformedTools: 13,
+    toolExecutionPerformedTools: 0,
+    gpuRuntimeShouldStartNowTools: 0,
+    publicArtifactCreatedTools: 0,
+    signedUrlCreatedTools: 0,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+  }
+  for (const [key, value] of Object.entries(expectedCounts)) {
+    if (report.counts?.[key] !== value) {
+      fail(`${label}_count_mismatch:${key}:expected_${value}:got_${report.counts?.[key]}`)
+    }
+  }
+
+  const rows = Array.isArray(report.controlledWorkerRouteResults)
+    ? report.controlledWorkerRouteResults
+    : []
+  if (rows.length !== 13) fail(`${label}_controlled_row_count_mismatch:${rows.length}`)
+  for (const toolId of [...cpuStaticTools, ...browserRuntimeTools]) {
+    const row = rows.find((item) => item.toolId === toolId)
+    if (!row) {
+      fail(`${label}_missing_worker_route_tool:${toolId}`)
+      continue
+    }
+    if (row.routeStatusCode !== 200) fail(`${label}_${toolId}_status_not_200`)
+    if (row.routeOk !== true) fail(`${label}_${toolId}_ok_not_true`)
+    if (row.controlledAdapterExecutedNow !== true) fail(`${label}_${toolId}_adapter_not_executed`)
+    if (row.localControlledPackageExecutionPerformed !== true) fail(`${label}_${toolId}_local_package_not_executed`)
+    if (row.mockQueueJobIdPresent !== true) fail(`${label}_${toolId}_missing_mock_queue_job`)
+    if (row.mockWorkerClaimIdPresent !== true) fail(`${label}_${toolId}_missing_mock_worker_claim`)
+    if (row.mockWorkerEventIdPresent !== true) fail(`${label}_${toolId}_missing_mock_worker_event`)
+    if (!row.outputSha256 || row.outputSha256.length !== 64) {
+      fail(`${label}_${toolId}_missing_private_output_hash`)
+    }
+    for (const key of [
+      'publicArtifactCreated',
+      'signedUrlCreated',
+      'gpuRuntimeShouldStartNow',
+      'workerDispatchPerformed',
+    ]) {
+      if (row[key] !== false) fail(`${label}_${toolId}_${key}_not_false`)
+    }
+  }
+
+  const blocked = Array.isArray(report.blockedGpuModelResults)
+    ? report.blockedGpuModelResults
+    : []
+  if (blocked.length !== 8) fail(`${label}_blocked_gpu_count_mismatch:${blocked.length}`)
+  for (const toolId of gpuModelTools) {
+    const row = blocked.find((item) => item.toolId === toolId)
+    if (!row) {
+      fail(`${label}_missing_blocked_gpu_tool:${toolId}`)
+      continue
+    }
+    if (row.statusCode !== 409) fail(`${label}_${toolId}_blocked_status_not_409`)
+    if (row.blocked !== true) fail(`${label}_${toolId}_blocked_not_true`)
+    if (row.gpuRuntimeShouldStartNow !== false) fail(`${label}_${toolId}_gpu_start_not_false`)
+    if (row.agentCanExecuteToolsNow !== false) fail(`${label}_${toolId}_agent_execution_not_false`)
+  }
+}
+
 for (const file of requiredFiles) read(file)
 checkPackageJson()
 
@@ -793,6 +921,9 @@ const gpuProofRefBridge = json(
 )
 const executionGate = json(
   'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
+)
+const controlledWorkerRouteSmoke = json(
+  'docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json',
 )
 
 const sam2HarnessRow = Array.isArray(
@@ -947,6 +1078,7 @@ for (const flag of [
 }
 
 checkMountedControlledRouteSmoke('route_smoke', routeSmoke)
+checkControlledWorkerRouteSmoke('controlled_worker_route_smoke', controlledWorkerRouteSmoke)
 checkReport('docs', docs)
 const live = JSON.parse(exec(`npm run --silent ${runScriptName}`))
 checkReport('live', live)
@@ -1080,6 +1212,9 @@ for (const phrase of [
   'currentHostEligibleForGpuProof',
   'mergeGpuHarnessWithPrivateProof',
   'runJsonFileCommand',
+  'controlledWorkerRouteSmoke',
+  '--controlled-worker-route-smoke-packet',
+  'controlledWorkerRouteEvidenceAccepted',
   'privateProofStatus',
   'nextExactReadinessWithPrivateProofCommand',
   'nextExactCurrentHostPreflightCommand',
@@ -1111,6 +1246,21 @@ if (executionGate.counts?.externalAgentExecutableNowTools !== 13) {
 if (executionGate.booleans?.agentCanExecuteAll21ToolsNow !== false) {
   fail('execution_gate_claims_all21_execution')
 }
+if (controlledWorkerRouteSmoke.counts?.controlledWorkerRouteExecutionCompletedTools !== 13) {
+  fail('controlled_worker_route_smoke_completed_count_not_13')
+}
+if (controlledWorkerRouteSmoke.counts?.mockWorkerClaimsCreatedWithProvidedEvidence !== 13) {
+  fail('controlled_worker_route_smoke_claim_count_not_13')
+}
+if (controlledWorkerRouteSmoke.counts?.mockWorkerEventsRecordedWithProvidedEvidence !== 13) {
+  fail('controlled_worker_route_smoke_event_count_not_13')
+}
+if (controlledWorkerRouteSmoke.counts?.gpuModelBlockedToolsWithProvidedEvidence !== 8) {
+  fail('controlled_worker_route_smoke_gpu_blocked_not_8')
+}
+if (controlledWorkerRouteSmoke.booleans?.workerDispatchPerformed !== false) {
+  fail('controlled_worker_route_smoke_worker_dispatch_performed')
+}
 
 for (const toolId of allTools) {
   if (!JSON.stringify(docs).includes(`"${toolId}"`)) fail(`docs_missing_tool:${toolId}`)
@@ -1123,6 +1273,7 @@ for (const phrase of [
   'failed_with_diagnostics',
   'GPU runtime is on-demand only',
   '13 tools execute controlled local adapters now',
+  'mock worker-claim-to-canonical-route smoke',
   'Execution Scope',
   'Fastest GPU/Model Unlock Candidate',
   'Next controlled route command',

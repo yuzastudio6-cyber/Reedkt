@@ -287,10 +287,25 @@ function buildToolRows(
   routeSmoke: JsonRecord,
   gpuHarness: JsonRecord,
   gpuProofRefBridge: JsonRecord,
+  controlledWorkerRouteSmoke: JsonRecord,
 ) {
   const routeRows = new Map<string, JsonRecord>(
     (Array.isArray(routeSmoke.results) ? routeSmoke.results : [])
       .map((row: JsonRecord) => [row.toolId, row]),
+  )
+  const workerRouteRows = new Map<string, JsonRecord>(
+    (
+      Array.isArray(controlledWorkerRouteSmoke.controlledWorkerRouteResults)
+        ? controlledWorkerRouteSmoke.controlledWorkerRouteResults
+        : []
+    ).map((row: JsonRecord) => [row.toolId, row]),
+  )
+  const workerBlockedGpuRows = new Map<string, JsonRecord>(
+    (
+      Array.isArray(controlledWorkerRouteSmoke.blockedGpuModelResults)
+        ? controlledWorkerRouteSmoke.blockedGpuModelResults
+        : []
+    ).map((row: JsonRecord) => [row.toolId, row]),
   )
   const gpuRows = new Map<string, JsonRecord>(
     (
@@ -313,6 +328,8 @@ function buildToolRows(
     const group = groupForTool(toolId)
     const routeRow = routeRows.get(toolId)
     assert(routeRow, `Missing all-21 route smoke row for ${toolId}`)
+    const workerRouteRow = workerRouteRows.get(toolId)
+    const workerBlockedGpuRow = workerBlockedGpuRows.get(toolId)
     const gpuRow = gpuRows.get(toolId)
     const bridgeRow = groupForTool(toolId) === 'gpu_model'
       ? bridgeRows.get(toolId)
@@ -321,6 +338,24 @@ function buildToolRows(
     const routeCallable =
       routeRow.statusCode === 200 && routeRow.controlledAdapterInvokedNow === true
     const adapterReachable = routeCallable
+    const controlledWorkerRouteAccepted = group === 'gpu_model'
+      ? workerBlockedGpuRow?.statusCode === 409 &&
+        workerBlockedGpuRow?.blocked === true &&
+        workerBlockedGpuRow?.gpuRuntimeShouldStartNow === false &&
+        workerBlockedGpuRow?.agentCanExecuteToolsNow === false
+      : workerRouteRow?.routeStatusCode === 200 &&
+        workerRouteRow?.routeOk === true &&
+        workerRouteRow?.controlledAdapterExecutedNow === true &&
+        workerRouteRow?.localControlledPackageExecutionPerformed === true &&
+        workerRouteRow?.mockQueueJobIdPresent === true &&
+        workerRouteRow?.mockWorkerClaimIdPresent === true &&
+        workerRouteRow?.mockWorkerEventIdPresent === true &&
+        typeof workerRouteRow?.outputSha256 === 'string' &&
+        workerRouteRow.outputSha256.length === 64 &&
+        workerRouteRow?.publicArtifactCreated === false &&
+        workerRouteRow?.signedUrlCreated === false &&
+        workerRouteRow?.gpuRuntimeShouldStartNow === false &&
+        workerRouteRow?.workerDispatchPerformed === false
     const gpuAdapterStatus = String(gpuRow?.adapterStatus ?? '')
     const gpuRuntimeSucceeded = gpuRow?.localRuntimeExecutionPerformed === true
     const routeSubmissionAccepted =
@@ -338,6 +373,7 @@ function buildToolRows(
           routeSubmissionAccepted
         : routeRow.controlledAdapterExecutedNow === true &&
           routeRow.localPackageExecutionPerformed === true &&
+          controlledWorkerRouteAccepted &&
           typeof routeRow.outputSha256 === 'string' &&
           routeRow.outputSha256.length === 64
     const failed =
@@ -386,6 +422,29 @@ function buildToolRows(
       executionPassed,
       outputKind: routeRow.outputKind ?? null,
       outputSha256: routeRow.outputSha256 ?? null,
+      controlledWorkerRouteEvidenceAccepted: controlledWorkerRouteAccepted,
+      controlledWorkerRouteStatus: group === 'gpu_model'
+        ? workerBlockedGpuRow?.statusCode === 409
+          ? 'blocked_with_reason'
+          : null
+        : workerRouteRow?.routeStatus ?? null,
+      controlledWorkerRouteOutputSha256: workerRouteRow?.outputSha256 ?? null,
+      mockWorkerQueueJobCreated:
+        group === 'gpu_model'
+          ? false
+          : workerRouteRow?.mockQueueJobIdPresent === true,
+      mockWorkerClaimPerformed:
+        group === 'gpu_model'
+          ? false
+          : workerRouteRow?.mockWorkerClaimIdPresent === true,
+      mockWorkerEventRecorded:
+        group === 'gpu_model'
+          ? false
+          : workerRouteRow?.mockWorkerEventIdPresent === true,
+      controlledWorkerRouteExecutedNow:
+        group === 'gpu_model' ? false : controlledWorkerRouteAccepted,
+      controlledWorkerRouteGpuBlocked:
+        group === 'gpu_model' ? controlledWorkerRouteAccepted : false,
       blockingPrerequisite,
       recommendedGpuProofBackend: group === 'gpu_model'
         ? toolId === 'kornia'
@@ -466,6 +525,8 @@ function buildToolRows(
           : null,
         executionGate:
           'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
+        controlledWorkerRouteSmoke:
+          'docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json',
       },
     }
   })
@@ -535,6 +596,11 @@ function buildReport() {
         '--detect-host',
       ])
     : null
+  const controlledWorkerRouteSmoke = sourceReport(
+    '--controlled-worker-route-smoke-packet',
+    'docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json',
+    'npm run --silent ai-graphics:external-agent-controlled-worker-route-execution-smoke',
+  )
 
   assert(
     routeSmoke.decision ===
@@ -563,8 +629,18 @@ function buildReport() {
       'ai_graphics_external_agent_gpu_model_runtime_proof_ref_bridge_prepared_with_runtime_blocks',
     'GPU/model runtime proof-ref bridge decision mismatch',
   )
+  assert(
+    controlledWorkerRouteSmoke.decision ===
+      'ai_graphics_external_agent_controlled_worker_route_execution_smoke_passed_with_runtime_blocks',
+    'external-agent controlled worker route smoke decision mismatch',
+  )
 
-  const toolRows = buildToolRows(routeSmoke, gpuHarness, gpuProofRefBridge)
+  const toolRows = buildToolRows(
+    routeSmoke,
+    gpuHarness,
+    gpuProofRefBridge,
+    controlledWorkerRouteSmoke,
+  )
   const executableTools = toolRows.filter((row) => row.executable)
   const nonGpuExecutableTools = executableTools.filter(
     (row) => row.group !== 'gpu_model',
@@ -613,7 +689,7 @@ function buildReport() {
     decision,
     status: gpuExecutableTools.length > 0 ? privateProofStatus : defaultStatus,
     summary:
-      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence. GPU/model tools remain blocked_with_reason until approved native CUDA, private model/input paths, and private proof refs are supplied for a scoped on-demand call.',
+      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools remain blocked_with_reason until approved native CUDA, private model/input paths, and private proof refs are supplied for a scoped on-demand call.',
     stateDefinitions: {
       callable:
         'The external agent can submit the controlled private route request.',
@@ -653,6 +729,11 @@ function buildReport() {
         status: gpuProofRefBridge.status,
         accepted: true,
       },
+      controlledWorkerRouteExecutionSmoke: {
+        decision: controlledWorkerRouteSmoke.decision,
+        status: controlledWorkerRouteSmoke.status,
+        accepted: true,
+      },
       currentHostGpuProofPreflight: currentHostGpuProofPreflight
         ? {
             decision: currentHostGpuProofPreflight.decision,
@@ -680,6 +761,19 @@ function buildReport() {
           row.group === 'gpu_model' &&
           row.routeSubmissionReadyWithAcceptedPrivateProof === false
         )).length,
+      controlledWorkerRouteExecutableTools:
+        toolRows.filter((row) => (
+          row.group !== 'gpu_model' &&
+          row.controlledWorkerRouteEvidenceAccepted === true
+        )).length,
+      mockWorkerQueueJobCreatedTools:
+        toolRows.filter((row) => row.mockWorkerQueueJobCreated === true).length,
+      mockWorkerClaimPerformedTools:
+        toolRows.filter((row) => row.mockWorkerClaimPerformed === true).length,
+      mockWorkerEventRecordedTools:
+        toolRows.filter((row) => row.mockWorkerEventRecorded === true).length,
+      gpuModelBlockedByControlledWorkerRouteTools:
+        toolRows.filter((row) => row.controlledWorkerRouteGpuBlocked === true).length,
       gpuModelBlockedWithReasonTools: gpuBlockedRows.length,
       currentHostGpuProofBlockers:
         currentHostGpuProofBlockers.length,
@@ -721,6 +815,18 @@ function buildReport() {
       agentCallableToolsReady: toolRows.every((row) => row.callable),
       all13NonGpuControlledAdapterOutputsValidated:
         nonGpuExecutableTools.length === 13,
+      controlledWorkerRouteSmokeAccepted: true,
+      all13NonGpuControlledWorkerRouteOutputsValidated:
+        toolRows.filter((row) => (
+          row.group !== 'gpu_model' &&
+          row.controlledWorkerRouteEvidenceAccepted === true
+        )).length === 13,
+      mockWorkerClaimBeforeRouteExecutionAccepted:
+        toolRows.filter((row) => row.mockWorkerClaimPerformed === true).length === 13,
+      mockWorkerEventAfterRouteExecutionAccepted:
+        toolRows.filter((row) => row.mockWorkerEventRecorded === true).length === 13,
+      all8GpuModelToolsBlockedByControlledWorkerRoute:
+        toolRows.filter((row) => row.controlledWorkerRouteGpuBlocked === true).length === 8,
       all8GpuModelToolsEvaluated: toolRows.filter((row) => row.group === 'gpu_model').length === 8,
       gpuModelToolsBlockedUntilPrerequisites:
         gpuBlockedRows.length + gpuExecutableTools.length === 8,
@@ -759,6 +865,8 @@ function buildReport() {
         executionScope.currentHostEligibleForGpuProof,
       routeExecutionApprovedNow: true,
       routeExecutionPerformedInReadinessRunner: !hasFlag('--use-records-only'),
+      controlledWorkerRouteExecutionPerformedInReadinessRunner:
+        !hasFlag('--use-records-only'),
       toolExecutionApprovedFor13ControlledToolsNow: true,
       toolExecutionApprovedForGpuModelToolsNow: gpuExecutableTools.length > 0,
       toolExecutionApprovedForAll21ToolsNow: executableTools.length === 21,
@@ -812,7 +920,7 @@ function buildReport() {
 function makeMarkdown(report: ReturnType<typeof buildReport>): string {
   const rows = report.toolReadinessRows
     .map((row) => (
-      `| \`${row.toolId}\` | \`${row.group}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | \`${row.minimumPrivateRuntimeInputKeys.length ? row.minimumPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.blockingPrerequisite ?? 'none'}\` |`
+      `| \`${row.toolId}\` | \`${row.group}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | ${row.controlledWorkerRouteEvidenceAccepted} | \`${row.minimumPrivateRuntimeInputKeys.length ? row.minimumPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.blockingPrerequisite ?? 'none'}\` |`
     ))
     .join('\n')
 
@@ -822,7 +930,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and the eight GPU/model tools return \`blocked_with_reason\` until scoped native CUDA, private model/input, and private proof prerequisites are supplied. GPU runtime is on-demand only and does not start idle.
+This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools return \`blocked_with_reason\` until scoped native CUDA, private model/input, and private proof prerequisites are supplied. GPU runtime is on-demand only and does not start idle.
 
 ## State Definitions
 
@@ -834,8 +942,8 @@ ${Object.entries(report.executionScope).map(([key, value]) => `- \`${key}\`: ${A
 
 ## Tool Rows
 
-| Tool | Group | Readiness state | Callable | Executable | Minimum private runtime inputs | Blocking prerequisite |
-| --- | --- | --- | ---: | ---: | --- | --- |
+| Tool | Group | Readiness state | Callable | Executable | Worker-route evidence accepted | Minimum private runtime inputs | Blocking prerequisite |
+| --- | --- | --- | ---: | ---: | ---: | --- | --- |
 ${rows}
 
 ## Counts

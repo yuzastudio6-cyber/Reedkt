@@ -2,7 +2,7 @@
   "schemaVersion": "2026-07-03.ai-graphics.external-agent-execution-readiness",
   "decision": "ai_graphics_external_agent_execution_readiness_all21_evaluated_with_gpu_model_blocks",
   "status": "external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof",
-  "summary": "Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence. GPU/model tools remain blocked_with_reason until approved native CUDA, private model/input paths, and private proof refs are supplied for a scoped on-demand call.",
+  "summary": "Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools remain blocked_with_reason until approved native CUDA, private model/input paths, and private proof refs are supplied for a scoped on-demand call.",
   "stateDefinitions": {
     "callable": "The external agent can submit the controlled private route request.",
     "executable": "The controlled adapter performed bounded runtime work and produced structured private output evidence.",
@@ -31,6 +31,11 @@
       "status": "gpu_model_runtime_proof_ref_bridge_blocked_until_private_local_runtime_proof_is_supplied",
       "accepted": true
     },
+    "controlledWorkerRouteExecutionSmoke": {
+      "decision": "ai_graphics_external_agent_controlled_worker_route_execution_smoke_passed_with_runtime_blocks",
+      "status": "controlled_worker_claim_route_execution_passed_for_thirteen_tools_gpu_model_still_blocked",
+      "accepted": true
+    },
     "currentHostGpuProofPreflight": null
   },
   "executionScope": {
@@ -57,6 +62,11 @@
     "gpuToolsWithValidRuntimeProof": 0,
     "gpuModelProofRefBridgeAcceptedTools": 0,
     "gpuModelProofRefBridgeBlockedTools": 8,
+    "controlledWorkerRouteExecutableTools": 13,
+    "mockWorkerQueueJobCreatedTools": 13,
+    "mockWorkerClaimPerformedTools": 13,
+    "mockWorkerEventRecordedTools": 13,
+    "gpuModelBlockedByControlledWorkerRouteTools": 8,
     "gpuModelBlockedWithReasonTools": 8,
     "currentHostGpuProofBlockers": 0,
     "blockedWithReasonTools": 8,
@@ -78,6 +88,11 @@
     "agentCanSubmitControlledToolRequests": true,
     "agentCallableToolsReady": true,
     "all13NonGpuControlledAdapterOutputsValidated": true,
+    "controlledWorkerRouteSmokeAccepted": true,
+    "all13NonGpuControlledWorkerRouteOutputsValidated": true,
+    "mockWorkerClaimBeforeRouteExecutionAccepted": true,
+    "mockWorkerEventAfterRouteExecutionAccepted": true,
+    "all8GpuModelToolsBlockedByControlledWorkerRoute": true,
     "all8GpuModelToolsEvaluated": true,
     "gpuModelToolsBlockedUntilPrerequisites": true,
     "gpuModelProofRefBridgeBlocksUntilPrivateProof": true,
@@ -100,6 +115,7 @@
     "currentHostEligibleForGpuProof": false,
     "routeExecutionApprovedNow": true,
     "routeExecutionPerformedInReadinessRunner": true,
+    "controlledWorkerRouteExecutionPerformedInReadinessRunner": true,
     "toolExecutionApprovedFor13ControlledToolsNow": true,
     "toolExecutionApprovedForGpuModelToolsNow": false,
     "toolExecutionApprovedForAll21ToolsNow": false,
@@ -144,6 +160,14 @@
       "executionPassed": false,
       "outputKind": null,
       "outputSha256": null,
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "blocked_with_reason",
+      "controlledWorkerRouteOutputSha256": null,
+      "mockWorkerQueueJobCreated": false,
+      "mockWorkerClaimPerformed": false,
+      "mockWorkerEventRecorded": false,
+      "controlledWorkerRouteExecutedNow": false,
+      "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: foundation_runtime_output_directory_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
       "minimumPrivateRuntimeInputKeys": [
@@ -186,7 +210,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -206,6 +231,14 @@
       "executionPassed": false,
       "outputKind": null,
       "outputSha256": null,
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "blocked_with_reason",
+      "controlledWorkerRouteOutputSha256": null,
+      "mockWorkerQueueJobCreated": false,
+      "mockWorkerClaimPerformed": false,
+      "mockWorkerEventRecorded": false,
+      "controlledWorkerRouteExecutedNow": false,
+      "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: foundation_runtime_output_directory_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
       "minimumPrivateRuntimeInputKeys": [
@@ -248,7 +281,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -268,6 +302,14 @@
       "executionPassed": false,
       "outputKind": null,
       "outputSha256": null,
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "blocked_with_reason",
+      "controlledWorkerRouteOutputSha256": null,
+      "mockWorkerQueueJobCreated": false,
+      "mockWorkerClaimPerformed": false,
+      "mockWorkerEventRecorded": false,
+      "controlledWorkerRouteExecutedNow": false,
+      "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; sam2CheckpointLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: sam2_checkpoint_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
       "minimumPrivateRuntimeInputKeys": [
@@ -316,7 +358,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -336,6 +379,14 @@
       "executionPassed": false,
       "outputKind": null,
       "outputSha256": null,
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "blocked_with_reason",
+      "controlledWorkerRouteOutputSha256": null,
+      "mockWorkerQueueJobCreated": false,
+      "mockWorkerClaimPerformed": false,
+      "mockWorkerEventRecorded": false,
+      "controlledWorkerRouteExecutedNow": false,
+      "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; birefnetModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: birefnet_model_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
       "minimumPrivateRuntimeInputKeys": [
@@ -384,7 +435,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -404,6 +456,14 @@
       "executionPassed": false,
       "outputKind": null,
       "outputSha256": null,
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "blocked_with_reason",
+      "controlledWorkerRouteOutputSha256": null,
+      "mockWorkerQueueJobCreated": false,
+      "mockWorkerClaimPerformed": false,
+      "mockWorkerEventRecorded": false,
+      "controlledWorkerRouteExecutedNow": false,
+      "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; realEsrganModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: real_esrgan_model_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
       "minimumPrivateRuntimeInputKeys": [
@@ -452,7 +512,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -472,6 +533,14 @@
       "executionPassed": false,
       "outputKind": null,
       "outputSha256": null,
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "blocked_with_reason",
+      "controlledWorkerRouteOutputSha256": null,
+      "mockWorkerQueueJobCreated": false,
+      "mockWorkerClaimPerformed": false,
+      "mockWorkerEventRecorded": false,
+      "controlledWorkerRouteExecutedNow": false,
+      "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing",
       "recommendedGpuProofBackend": "docker_container",
       "minimumPrivateRuntimeInputKeys": [
@@ -517,7 +586,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -537,6 +607,14 @@
       "executionPassed": false,
       "outputKind": null,
       "outputSha256": null,
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "blocked_with_reason",
+      "controlledWorkerRouteOutputSha256": null,
+      "mockWorkerQueueJobCreated": false,
+      "mockWorkerClaimPerformed": false,
+      "mockWorkerEventRecorded": false,
+      "controlledWorkerRouteExecutedNow": false,
+      "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; rembgModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: rembg_model_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
       "minimumPrivateRuntimeInputKeys": [
@@ -585,7 +663,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -605,6 +684,14 @@
       "executionPassed": false,
       "outputKind": null,
       "outputSha256": null,
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "blocked_with_reason",
+      "controlledWorkerRouteOutputSha256": null,
+      "mockWorkerQueueJobCreated": false,
+      "mockWorkerClaimPerformed": false,
+      "mockWorkerEventRecorded": false,
+      "controlledWorkerRouteExecutedNow": false,
+      "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; transparentBackgroundCheckpointLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: transparent_background_checkpoint_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
       "minimumPrivateRuntimeInputKeys": [
@@ -653,7 +740,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json",
         "gpuRuntimeProofRefBridge": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json",
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -673,6 +761,14 @@
       "executionPassed": true,
       "outputKind": "svg_private_artifact_candidate",
       "outputSha256": "b47b8e006d730f9e7494f854f9ffac9963fa4a4be11acc9ad067bb6d2a53b7ef",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_cpu_static_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "b47b8e006d730f9e7494f854f9ffac9963fa4a4be11acc9ad067bb6d2a53b7ef",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -703,7 +799,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -723,6 +820,14 @@
       "executionPassed": true,
       "outputKind": "browser_runtime_private_metadata",
       "outputSha256": "a28fe3b0c9d89ca9dcc91709d99272f8201df46916b31f63eb94b1288c92c40e",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_browser_runtime_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "a28fe3b0c9d89ca9dcc91709d99272f8201df46916b31f63eb94b1288c92c40e",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -753,7 +858,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -773,6 +879,14 @@
       "executionPassed": true,
       "outputKind": "vega_lite_compiled_spec_metadata",
       "outputSha256": "69d2d01ec40c6a1baf26dee726788787a7eca0c15cd724ce5f600a197921ad70",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_cpu_static_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "69d2d01ec40c6a1baf26dee726788787a7eca0c15cd724ce5f600a197921ad70",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -803,7 +917,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -823,6 +938,14 @@
       "executionPassed": true,
       "outputKind": "vega_parsed_spec_metadata",
       "outputSha256": "0467d176faa6481480d43e978759a947b4ca11fe05a655ffbbfb4bc9b4ca5273",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_cpu_static_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "0467d176faa6481480d43e978759a947b4ca11fe05a655ffbbfb4bc9b4ca5273",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -853,7 +976,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -873,6 +997,14 @@
       "executionPassed": true,
       "outputKind": "svg_private_artifact_candidate",
       "outputSha256": "5373ceb763423c434287d19f3ca4eddfa4faafb9c973d73b8cb333daf14edf9b",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_cpu_static_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "5373ceb763423c434287d19f3ca4eddfa4faafb9c973d73b8cb333daf14edf9b",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -903,7 +1035,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -923,6 +1056,14 @@
       "executionPassed": true,
       "outputKind": "svg_private_artifact_candidate",
       "outputSha256": "1b4371b87611e269cdad42d3e1d4e12c4d4ac74dac14dc1175f6e464c10c3880",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_cpu_static_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "1b4371b87611e269cdad42d3e1d4e12c4d4ac74dac14dc1175f6e464c10c3880",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -953,7 +1094,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -973,6 +1115,14 @@
       "executionPassed": true,
       "outputKind": "svg_private_artifact_candidate",
       "outputSha256": "41df4bbd201b472bed7df9e34788c12e842f9b646fc1d462b6d45dc18ccbe2ab",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_cpu_static_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "41df4bbd201b472bed7df9e34788c12e842f9b646fc1d462b6d45dc18ccbe2ab",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -1003,7 +1153,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -1023,6 +1174,14 @@
       "executionPassed": true,
       "outputKind": "browser_runtime_private_metadata",
       "outputSha256": "33cb7aca04016b94b7378e946ed3f71186b2fcd1fe3844331c0e1ae716f55145",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_browser_runtime_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "33cb7aca04016b94b7378e946ed3f71186b2fcd1fe3844331c0e1ae716f55145",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -1053,7 +1212,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -1073,6 +1233,14 @@
       "executionPassed": true,
       "outputKind": "browser_runtime_private_metadata",
       "outputSha256": "d381074c0c0a05dba85ea9bd0bbee5f1ec26ae04ca4b005a6af432cec4683ec1",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_browser_runtime_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "d381074c0c0a05dba85ea9bd0bbee5f1ec26ae04ca4b005a6af432cec4683ec1",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -1103,7 +1271,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -1123,6 +1292,14 @@
       "executionPassed": true,
       "outputKind": "browser_runtime_private_metadata",
       "outputSha256": "2772043539899ab4b9bb15ba71845323d90d99516de30e405dfb1ea814f63e9c",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_browser_runtime_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "2772043539899ab4b9bb15ba71845323d90d99516de30e405dfb1ea814f63e9c",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -1153,7 +1330,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -1173,6 +1351,14 @@
       "executionPassed": true,
       "outputKind": "browser_runtime_private_metadata",
       "outputSha256": "3fe621f89fac91a591eba230ca2b24df6d4fafa7d172f9e425313e9f806f0651",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_browser_runtime_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "3fe621f89fac91a591eba230ca2b24df6d4fafa7d172f9e425313e9f806f0651",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -1203,7 +1389,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -1223,6 +1410,14 @@
       "executionPassed": true,
       "outputKind": "browser_runtime_private_metadata",
       "outputSha256": "b8f793930c556ca1abfbf85f3e50a0d959b681b9e32564c3f7995bf8710d1f02",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_browser_runtime_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "b8f793930c556ca1abfbf85f3e50a0d959b681b9e32564c3f7995bf8710d1f02",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -1253,7 +1448,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     },
     {
@@ -1273,6 +1469,14 @@
       "executionPassed": true,
       "outputKind": "browser_runtime_private_metadata",
       "outputSha256": "c2da8372b5c891497d77b9af67a9ee36b008d5fa92668242054598f8bc60bee8",
+      "controlledWorkerRouteEvidenceAccepted": true,
+      "controlledWorkerRouteStatus": "external_beta_tool_call_route_browser_runtime_controlled_execution_private_output_ready",
+      "controlledWorkerRouteOutputSha256": "c2da8372b5c891497d77b9af67a9ee36b008d5fa92668242054598f8bc60bee8",
+      "mockWorkerQueueJobCreated": true,
+      "mockWorkerClaimPerformed": true,
+      "mockWorkerEventRecorded": true,
+      "controlledWorkerRouteExecutedNow": true,
+      "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
       "minimumPrivateRuntimeInputKeys": [],
@@ -1303,7 +1507,8 @@
         "routeSmoke": "docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json",
         "gpuLocalDevHarness": null,
         "gpuRuntimeProofRefBridge": null,
-        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json"
+        "executionGate": "docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json",
+        "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json"
       }
     }
   ],

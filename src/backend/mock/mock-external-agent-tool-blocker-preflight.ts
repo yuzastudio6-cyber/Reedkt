@@ -19,8 +19,11 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
     callerJobName: 'reeditpro-qwen2-5-vl-private-caller',
     region: 'us-central1',
     blockerIfFailed: 'local_gcloud_reauthentication_required',
+    blockerIfPermissionOrResourceFailed: 'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
     nextActionIfBlocked:
       'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
+    nextActionIfPermissionOrResourceBlocked:
+      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select a local gcloud account with Cloud Run read access to project reeditpro and Qwen worker resources, then rerun npm run external-agent-tool-blockers:preflight',
     nextActionIfCleared:
       'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-REFRESH-VERIFY: record refreshed read-only gcloud auth/service/job readiness, no inference/no mutation',
   },
@@ -33,12 +36,15 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
     minimumRegionalL4Quota: 1,
     blockerIfSkippedForAuth: 'quota_probe_skipped_auth_refresh_failed',
     blockerIfFailed: 'gpus_all_regions_quota_zero_or_unverified',
+    blockerIfPermissionFailed: 'gcloud_account_lacks_compute_quota_read_access',
     nextActionIfSkippedForAuth:
       'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
     nextActionIfBlocked:
       'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
+    nextActionIfPermissionBlocked:
+      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select a local gcloud account with Compute quota read access to project reeditpro, then rerun npm run external-agent-tool-blockers:preflight',
     nextActionIfCleared:
-      'AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF: fix blocked bounded Wan inference proof, no generated video',
+      'AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF: rerun bounded Wan latent inference proof with 11H fix, no generated video',
   },
   allowedReadOnlyCommands: [
     {

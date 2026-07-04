@@ -10,6 +10,8 @@ export type ExternalAgentToolReadinessStatus =
   | 'bounded_model_import_load_proof_reviewed_inference_boundary_plan_required'
   | 'bounded_inference_boundary_planned_runner_required'
   | 'bounded_inference_proof_runner_implemented_execution_prompt_required'
+  | 'bounded_inference_proof_execution_attempted_failed_cleanup_verified_fix_required'
+  | 'bounded_inference_proof_fix_implemented_retry_required'
 
 export type ExternalAgentToolReadinessEntry = {
   toolId: string
@@ -46,7 +48,7 @@ export type ExternalAgentManualBlockerAction = {
 export type ExternalAgentToolNoIdleLifecycleGate = {
   proofVmName: string
   selectedGpu: 'nvidia_l4'
-  machineType: 'g2-standard-4'
+  machineType: 'g2-standard-4' | 'g2-standard-8'
   targetRegion:
     | 'us-central1'
     | 'us-west1'
@@ -228,6 +230,8 @@ export const AI_VIDEO_BROLL_GEN_11I_INFERENCE_PROOF_RESULT_REVIEW_PROMPT =
   'AI-VIDEO-BROLL-GEN-11I-INFERENCE-PROOF-RESULT-REVIEW: review bounded Wan inference proof result, no generated video' as const
 export const AI_VIDEO_BROLL_GEN_11H_FIX_INFERENCE_PROOF_PROMPT =
   'AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF: fix blocked bounded Wan inference proof, no generated video' as const
+export const AI_VIDEO_BROLL_GEN_11H_RETRY_INFERENCE_PROOF_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF: rerun bounded Wan latent inference proof with 11H fix, no generated video' as const
 export const AI_VIDEO_BROLL_GEN_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-11D-CACHE-STAGING-STRATEGY-FIX: choose approved Wan private cache staging strategy after local upload stall and private URL-list 403, no GPU/no inference' as const
 export const AI_VIDEO_BROLL_GEN_11E_CLOUD_SIDE_CACHE_STAGING_RUNNER_PROMPT =
@@ -237,7 +241,7 @@ export const AI_VIDEO_BROLL_GEN_11E_EXECUTE_CLOUD_SIDE_CACHE_STAGING_PROMPT =
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
-    'external_agent_tool_execution_readiness_qwen_ready_broll_11h_inference_attempt_failed_cleanup_verified_fix_required',
+    'external_agent_tool_execution_readiness_qwen_ready_broll_11h_fix_implemented_retry_required',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -350,6 +354,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'Read-only local gcloud session diagnostic for auth/config mismatches when refreshed auth is not visible to this shell.',
     },
     {
+      id: 'gcloud_account_access_diagnostic',
+      command: 'npm run external-agent-gcloud-account-access:diagnostic',
+      liveReadOnly: true,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Read-only local gcloud account-access diagnostic across redacted local accounts for Qwen Cloud Run and B-roll Compute quota reads.',
+    },
+    {
       id: 'broll_fast_cache_readiness',
       command: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
       liveReadOnly: false,
@@ -444,10 +458,14 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'docs/qwen2-5-vl-7b-cloud-run-gpu-private-invoke-readiness-rollup.md',
         'src/backend/mock/mock-external-agent-tool-blocker-preflight.ts',
         'src/backend/mock/mock-external-agent-gcloud-session-diagnostic.ts',
+        'src/backend/mock/mock-external-agent-gcloud-account-access-diagnostic.ts',
         'server/cli/external-agent-tool-blocker-preflight.ts',
         'server/cli/external-agent-gcloud-session-diagnostic.ts',
+        'server/cli/external-agent-gcloud-account-access-diagnostic.ts',
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts',
+        'server/smoke/external-agent-gcloud-account-access-diagnostic-smoke.ts',
+        'package_json_script:external-agent-gcloud-account-access:diagnostic',
         'server/smoke/qwen2-5-vl-58ea-external-agent-wrapper-execution-result-smoke.ts',
         'server/smoke/qwen2-5-vl-58dz-external-agent-wrapper-rerun-result-smoke.ts',
         'server/smoke/external-agent-tool-live-next-command-result-smoke.ts',
@@ -470,16 +488,25 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     {
       toolId: 'ai_video_broll_generation_wan',
       lane: 'open_source_generated_broll',
-      status: 'bounded_inference_proof_execution_attempted_failed_cleanup_verified_fix_required',
+      status: 'bounded_inference_proof_fix_implemented_retry_required',
       currentStage:
-        'bounded_wan_inference_proof_failed_pipeline_load_timeout_cleanup_verified',
+        'bounded_wan_inference_proof_fix_ready_for_explicit_retry',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
       readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'wan_pipeline_load_timeout_before_latent_inference_canary',
+      primaryBlocker: 'bounded_wan_inference_proof_retry_required_after_11h_fix',
       evidence: [
+        'docs/ai-video-broll-gen-11h-fix-inference-proof.md',
+        'src/backend/mock/mock-ai-video-broll-gen-11h-fix-inference-proof.ts',
+        'server/smoke/ai-video-broll-gen-11h-fix-inference-proof-smoke.ts',
+        'package_json_script:smoke:ai-video-broll-gen-11h-fix-inference-proof',
+        'src/backend/mock/mock-external-agent-gcloud-account-access-diagnostic.ts',
+        'server/cli/external-agent-gcloud-account-access-diagnostic.ts',
+        'server/smoke/external-agent-gcloud-account-access-diagnostic-smoke.ts',
+        'package_json_script:external-agent-gcloud-account-access:diagnostic',
+        'live_summary:11h_fix_inference_proof_static_fix_ready_no_execution',
         'docs/ai-video-broll-gen-11h-inference-proof-execution-result.md',
         'src/backend/mock/mock-ai-video-broll-gen-11h-inference-proof-execution-result.ts',
         'server/smoke/ai-video-broll-gen-11h-inference-proof-execution-result-smoke.ts',
@@ -756,12 +783,12 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
-      nextAction: AI_VIDEO_BROLL_GEN_11H_FIX_INFERENCE_PROOF_PROMPT,
+      nextAction: AI_VIDEO_BROLL_GEN_11H_RETRY_INFERENCE_PROOF_PROMPT,
       manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
         selectedGpu: 'nvidia_l4',
-        machineType: 'g2-standard-4',
+        machineType: 'g2-standard-8',
         targetRegion: 'northamerica-northeast2',
         targetZone: 'northamerica-northeast2-a',
         minimumGlobalGpusAllRegionsQuota: 1,
@@ -786,7 +813,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
         quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
         nextActionAfterQuotaClears:
-          AI_VIDEO_BROLL_GEN_11H_FIX_INFERENCE_PROOF_PROMPT,
+          AI_VIDEO_BROLL_GEN_11H_RETRY_INFERENCE_PROOF_PROMPT,
       },
     },
     {
@@ -839,7 +866,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
   recommendedNextPrompt:
-    AI_VIDEO_BROLL_GEN_11H_FIX_INFERENCE_PROOF_PROMPT,
+    AI_VIDEO_BROLL_GEN_11H_RETRY_INFERENCE_PROOF_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

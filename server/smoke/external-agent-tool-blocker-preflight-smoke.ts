@@ -74,16 +74,22 @@ assert.equal(spec.decision, 'external_agent_tool_blocker_preflight_read_only_pro
 assert.equal(spec.mode, 'read_only_external_agent_tool_blocker_preflight')
 assert.equal(spec.projectId, 'reeditpro')
 assert.equal(spec.qwen.blockerIfFailed, 'local_gcloud_reauthentication_required')
+assert.equal(
+  spec.qwen.blockerIfPermissionOrResourceFailed,
+  'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
+)
 assert.equal(spec.qwen.nextActionIfCleared.includes('58DQ-AUTH-REFRESH-VERIFY'), true)
 assert.equal(spec.qwen.nextActionIfCleared.includes('58DW-PRIVATE'), false)
+assert.equal(spec.qwen.nextActionIfPermissionOrResourceBlocked.includes('Cloud Run read access'), true)
 assert.equal(spec.broll.blockerIfSkippedForAuth, 'quota_probe_skipped_auth_refresh_failed')
 assert.equal(spec.broll.blockerIfFailed, 'gpus_all_regions_quota_zero_or_unverified')
+assert.equal(spec.broll.blockerIfPermissionFailed, 'gcloud_account_lacks_compute_quota_read_access')
 assert.equal(spec.broll.targetRegion, 'northamerica-northeast2')
 assert.equal(spec.broll.targetZone, 'northamerica-northeast2-a')
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.broll.minimumRegionalL4Quota, 1)
 assert.equal(
-  spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF'),
+  spec.broll.nextActionIfCleared.includes('AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF'),
   true,
 )
 assert.equal(spec.allowedReadOnlyCommands.length >= 10, true)
@@ -169,7 +175,6 @@ assert.equal(live.liveReadOnlyChecksRun, true)
 assert.equal(live.runtimeGatesAllFalse, true)
 assert.equal(live.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(live.qwen.readyForExternalAgentExecutionNow, false)
-assert.equal(live.broll.readyForExternalAgentExecutionNow, true)
 assert.deepEqual(live.manualBlockerActionToolIds, [])
 assert.equal(live.qwen.manualBlockerActions.length, 0)
 assert.equal(live.qwen.manualBlockerActions.every((action: { runInsideCodex: boolean }) => action.runInsideCodex === false), true)
@@ -205,6 +210,7 @@ const downstreamCommandIds = [
 if (!live.qwen.accessTokenRefreshPassed) {
   assert.equal(live.qwen.downstreamProbeSkipped, true)
   assert.equal(live.broll.quotaProbeSkipped, true)
+  assert.equal(live.broll.readyForExternalAgentExecutionNow, false)
   assert.equal(live.broll.blocker, spec.broll.blockerIfSkippedForAuth)
   assert.equal(live.broll.nextAction, spec.broll.nextActionIfSkippedForAuth)
   assert.equal(live.skippedCommandSummaries.length, downstreamCommandIds.length)
@@ -226,9 +232,25 @@ if (!live.qwen.accessTokenRefreshPassed) {
     'auth failure must recommend refreshing the active local gcloud account/configuration',
   )
 } else {
-  assert.equal(live.qwen.blocker, 'cleared')
-  assert.equal(live.qwen.nextAction, spec.qwen.nextActionIfCleared)
   assert.equal(live.qwen.downstreamProbeSkipped, false)
+  if (live.qwen.serviceDescribePassed && live.qwen.jobDescribePassed) {
+    assert.equal(live.qwen.blocker, 'cleared')
+    assert.equal(live.qwen.nextAction, spec.qwen.nextActionIfCleared)
+  } else {
+    assert.equal(live.qwen.blocker, spec.qwen.blockerIfPermissionOrResourceFailed)
+    assert.equal(live.qwen.nextAction, spec.qwen.nextActionIfPermissionOrResourceBlocked)
+  }
+  assert.equal(live.broll.readyForExternalAgentExecutionNow, live.broll.quotaSufficientForOneL4Vm)
+  if (live.broll.quotaSufficientForOneL4Vm) {
+    assert.equal(live.broll.blocker, 'cleared')
+    assert.equal(live.broll.nextAction, spec.broll.nextActionIfCleared)
+  } else if (!live.broll.projectQuotaReadPassed || !live.broll.regionQuotaReadPassed) {
+    assert.equal(live.broll.blocker, spec.broll.blockerIfPermissionFailed)
+    assert.equal(live.broll.nextAction, spec.broll.nextActionIfPermissionBlocked)
+  } else {
+    assert.equal(live.broll.blocker, spec.broll.blockerIfFailed)
+    assert.equal(live.broll.nextAction, spec.broll.nextActionIfBlocked)
+  }
 }
 
 for (const [flag, value] of Object.entries(live.runtimeSideEffects as Record<string, boolean>)) {

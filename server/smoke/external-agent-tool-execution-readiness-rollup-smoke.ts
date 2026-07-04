@@ -99,8 +99,8 @@ const BROLL_11G_INFERENCE_PROOF_RUNNER_PROMPT =
   'AI-VIDEO-BROLL-GEN-11G-INFERENCE-PROOF-RUNNER: implement bounded Wan inference proof runner, no execution/no generated video'
 const BROLL_11H_INFERENCE_PROOF_EXECUTE_PROMPT =
   'AI-VIDEO-BROLL-GEN-11H-INFERENCE-PROOF-EXECUTE: run bounded Wan inference proof with mandatory cleanup, no generated video/no persisted assets'
-const BROLL_11H_FIX_INFERENCE_PROOF_PROMPT =
-  'AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF: fix blocked bounded Wan inference proof, no generated video'
+const BROLL_11H_RETRY_INFERENCE_PROOF_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF: rerun bounded Wan latent inference proof with 11H fix, no generated video'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -155,7 +155,7 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_ready_broll_11h_inference_attempt_failed_cleanup_verified_fix_required',
+  'external_agent_tool_execution_readiness_qwen_ready_broll_11h_fix_implemented_retry_required',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
@@ -185,7 +185,7 @@ for (const required of [
   'B-roll no-idle GPU lifecycle is required',
   'B-roll structured no-idle lifecycle gate',
   'proof VM `reeditpro-ai-broll-wan-l4-proof`',
-  'machine `g2-standard-4`',
+  'machine `g2-standard-8`',
   'minimum `GPUS_ALL_REGIONS` quota `1`',
   '## Safe Agent Commands',
   '58DW bounded retry result remains recorded as schema-invalid runtime evidence',
@@ -227,6 +227,11 @@ for (const required of [
   '`npm run external-agent-tool-blockers:preflight` provides a read-only live blocker preflight',
   '`npm run external-agent-gcloud-session:diagnostic`',
   'read-only local gcloud session/config diagnostic',
+  '`npm run external-agent-gcloud-account-access:diagnostic`',
+  'read-only local multi-account diagnostic',
+  '`gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing`',
+  '`gcloud_account_lacks_compute_quota_read_access`',
+  'current runtime permission must still be decided by rerunning `npm run external-agent-tool-next-command`',
   '`npm run ai-video-broll-wan-fast-cache-readiness:check` provides a stat-only Wan private cache preflight',
   '`npm run ai-video-broll-wan-gpu-global-quota:verify` provides the B-roll-specific read-only quota verifier',
   '`npm run external-agent-tool-execute-broll-wan`',
@@ -443,7 +448,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_ready_broll_11h_inference_attempt_failed_cleanup_verified_fix_required',
+  'external_agent_tool_execution_readiness_qwen_ready_broll_11h_fix_implemented_retry_required',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -455,9 +460,9 @@ assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(
   rollup.recommendedNextPrompt,
-  BROLL_11H_FIX_INFERENCE_PROOF_PROMPT,
+  BROLL_11H_RETRY_INFERENCE_PROOF_PROMPT,
 )
-assert.equal(rollup.safeNextCommands.length, 13)
+assert.equal(rollup.safeNextCommands.length, 14)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
   true,
@@ -484,6 +489,12 @@ assert.equal(
 )
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-gcloud-session:diagnostic'),
+  true,
+)
+assert.equal(
+  rollup.safeNextCommands.some(
+    (command) => command.command === 'npm run external-agent-gcloud-account-access:diagnostic',
+  ),
   true,
 )
 assert.equal(
@@ -714,17 +725,29 @@ assert.equal(qwen?.evidence.includes('server/cli/external-agent-tool-blocker-pre
 assert.equal(qwen?.evidence.includes('server/smoke/external-agent-tool-blocker-preflight-smoke.ts'), true)
 assert.equal(qwen?.evidence.includes('server/cli/external-agent-gcloud-session-diagnostic.ts'), true)
 assert.equal(qwen?.evidence.includes('server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts'), true)
+assert.equal(qwen?.evidence.includes('server/cli/external-agent-gcloud-account-access-diagnostic.ts'), true)
+assert.equal(
+  qwen?.evidence.includes('server/smoke/external-agent-gcloud-account-access-diagnostic-smoke.ts'),
+  true,
+)
+assert.equal(qwen?.evidence.includes('package_json_script:external-agent-gcloud-account-access:diagnostic'), true)
 
 const broll = toolsById.get('ai_video_broll_generation_wan')
-assert.equal(broll?.status, 'bounded_inference_proof_execution_attempted_failed_cleanup_verified_fix_required')
+assert.equal(broll?.status, 'bounded_inference_proof_fix_implemented_retry_required')
 assert.equal(broll?.selectedGpu, 'nvidia_l4')
 assert.equal(broll?.scaleToZeroRequired, true)
 assert.equal(broll?.readyForExternalAgentExecutionNow, false)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(
   broll?.primaryBlocker,
-  'wan_pipeline_load_timeout_before_latent_inference_canary',
+  'bounded_wan_inference_proof_retry_required_after_11h_fix',
 )
+assert.equal(broll?.evidence.includes('server/cli/external-agent-gcloud-account-access-diagnostic.ts'), true)
+assert.equal(
+  broll?.evidence.includes('server/smoke/external-agent-gcloud-account-access-diagnostic-smoke.ts'),
+  true,
+)
+assert.equal(broll?.evidence.includes('package_json_script:external-agent-gcloud-account-access:diagnostic'), true)
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9q-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-a-result.md'),
   true,
@@ -1197,10 +1220,23 @@ assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner-smoke.ts'),
   true,
 )
-assert.equal(broll?.nextAction, BROLL_11H_FIX_INFERENCE_PROOF_PROMPT)
+assert.equal(broll?.nextAction, BROLL_11H_RETRY_INFERENCE_PROOF_PROMPT)
 assert.equal(
   broll?.primaryBlocker,
-  'wan_pipeline_load_timeout_before_latent_inference_canary',
+  'bounded_wan_inference_proof_retry_required_after_11h_fix',
+)
+assert.equal(broll?.evidence.includes('docs/ai-video-broll-gen-11h-fix-inference-proof.md'), true)
+assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-11h-fix-inference-proof.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-gen-11h-fix-inference-proof-smoke.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('package_json_script:smoke:ai-video-broll-gen-11h-fix-inference-proof'),
+  true,
 )
 assert.equal(broll?.evidence.includes('docs/ai-video-broll-gen-11h-inference-proof-execution-result.md'), true)
 assert.equal(
@@ -1446,7 +1482,7 @@ assert.equal(broll?.evidence.includes('server/smoke/external-agent-tool-blocker-
 assert.equal(broll?.manualBlockerActions?.length, 0)
 assert.equal(broll?.noIdleLifecycleGate?.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(broll?.noIdleLifecycleGate?.selectedGpu, 'nvidia_l4')
-assert.equal(broll?.noIdleLifecycleGate?.machineType, 'g2-standard-4')
+assert.equal(broll?.noIdleLifecycleGate?.machineType, 'g2-standard-8')
 assert.equal(broll?.noIdleLifecycleGate?.targetRegion, 'northamerica-northeast2')
 assert.equal(broll?.noIdleLifecycleGate?.targetZone, 'northamerica-northeast2-a')
 assert.equal(broll?.noIdleLifecycleGate?.minimumGlobalGpusAllRegionsQuota, 1)
@@ -1471,7 +1507,7 @@ assert.equal(
 )
 assert.equal(
   broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  BROLL_11H_FIX_INFERENCE_PROOF_PROMPT,
+  BROLL_11H_RETRY_INFERENCE_PROOF_PROMPT,
 )
 
 const sound = toolsById.get('sound_music_audio')

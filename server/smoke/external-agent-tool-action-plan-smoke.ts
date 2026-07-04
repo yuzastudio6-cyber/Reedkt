@@ -186,15 +186,15 @@ assert.equal(broll.externalManualBlocker.includes('11E staged the private GCS Wa
 assert.equal(broll.externalManualBlocker.includes('11F records the bounded Wan inference boundary plan'), true)
 assert.equal(broll.externalManualBlocker.includes('11G implements the fail-closed inference-proof runner shell'), true)
 assert.equal(broll.externalManualBlocker.includes('11H attempted the bounded latent inference proof'), true)
-assert.equal(broll.externalManualBlocker.includes('timed out while loading pipeline weights'), true)
+assert.equal(broll.externalManualBlocker.includes('11H-FIX updates the retry shape to g2-standard-8'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF before any Wan inference-proof retry; the current 11H attempt failed during pipeline load timeout with cleanup verified',
+  'run AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF as a separate explicit bounded retry; the current fix only prepares the runner and does not create video',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)
 assert.equal(broll.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
-assert.equal(broll.noIdleLifecycleGate.machineType, 'g2-standard-4')
+assert.equal(broll.noIdleLifecycleGate.machineType, 'g2-standard-8')
 assert.equal(broll.noIdleLifecycleGate.targetRegion, 'northamerica-northeast2')
 assert.equal(broll.noIdleLifecycleGate.targetZone, 'northamerica-northeast2-a')
 assert.equal(broll.noIdleLifecycleGate.minimumGlobalGpusAllRegionsQuota, 1)

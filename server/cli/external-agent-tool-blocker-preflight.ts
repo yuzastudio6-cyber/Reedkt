@@ -234,19 +234,35 @@ function main() {
     (globalGpuQuota?.limit ?? 0) >= spec.broll.minimumGlobalGpusAllRegionsQuota &&
       (regionalL4Quota?.limit ?? 0) >= spec.broll.minimumRegionalL4Quota,
   )
+  const brollQuotaPermissionBlocked = Boolean(downstreamProbeReady && (!projectQuota?.ok || !regionQuota?.ok))
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
 
-  const qwenNextAction = qwenAuthCleared ? spec.qwen.nextActionIfCleared : spec.qwen.nextActionIfBlocked
+  const qwenTokenRefreshPassed = Boolean(accessTokenRefresh?.ok)
+  const qwenReadAccessBlocked = Boolean(qwenTokenRefreshPassed && !qwenAuthCleared)
+  const qwenBlocker = qwenAuthCleared
+    ? 'cleared'
+    : qwenReadAccessBlocked
+      ? spec.qwen.blockerIfPermissionOrResourceFailed
+      : spec.qwen.blockerIfFailed
+  const qwenNextAction = qwenAuthCleared
+    ? spec.qwen.nextActionIfCleared
+    : qwenReadAccessBlocked
+      ? spec.qwen.nextActionIfPermissionOrResourceBlocked
+      : spec.qwen.nextActionIfBlocked
   const brollSkippedForAuth = !downstreamProbeReady && downstreamSkipReason === 'auth_refresh_failed_before_downstream_probe'
   const brollNextAction = brollQuotaCleared
     ? spec.broll.nextActionIfCleared
     : brollSkippedForAuth
       ? spec.broll.nextActionIfSkippedForAuth
+      : brollQuotaPermissionBlocked
+        ? spec.broll.nextActionIfPermissionBlocked
       : spec.broll.nextActionIfBlocked
   const brollBlocker = brollQuotaCleared
     ? 'cleared'
     : brollSkippedForAuth
       ? spec.broll.blockerIfSkippedForAuth
+      : brollQuotaPermissionBlocked
+        ? spec.broll.blockerIfPermissionFailed
       : spec.broll.blockerIfFailed
   const recommendedNextPrompt = accessTokenRefresh?.ok && qwenAuthCleared ? brollNextAction : qwenNextAction
 
@@ -291,7 +307,7 @@ function main() {
           downstreamProbeSkipReason: downstreamProbeReady ? undefined : downstreamSkipReason,
           serviceNameMatched: qwenService?.stdout === spec.qwen.serviceName,
           jobNameMatched: qwenJob?.stdout === spec.qwen.callerJobName,
-          blocker: qwenAuthCleared ? 'cleared' : spec.qwen.blockerIfFailed,
+          blocker: qwenBlocker,
           readyForNextAuthRefreshVerify: qwenAuthCleared,
           readyForExternalAgentExecutionNow: false,
           nextAction: qwenNextAction,

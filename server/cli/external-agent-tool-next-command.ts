@@ -179,14 +179,28 @@ function liveBlockerSummary(document: Record<string, unknown> | undefined) {
   }
 }
 
+function accountAccessSummary(document: Record<string, unknown> | undefined) {
+  if (!document) return undefined
+
+  return {
+    accountCount: nestedUnknown(document, ['accountCount']),
+    qwenReadyAccountCount: nestedUnknown(document, ['qwenReadyAccountCount']),
+    brollQuotaReadAccountCount: nestedUnknown(document, ['brollQuotaReadAccountCount']),
+    brollQuotaReadyAccountCount: nestedUnknown(document, ['brollQuotaReadyAccountCount']),
+    anyAccountReadyForBoth: nestedUnknown(document, ['anyAccountReadyForBoth']),
+    recommendedNextPrompt: nestedString(document, ['recommendedNextPrompt']),
+  }
+}
+
 function main() {
   const spec = EXTERNAL_AGENT_TOOL_NEXT_COMMAND
   const probeById = new Map(spec.allowedProbeScripts.map((probe) => [probe.id, probe]))
   const executionGateProbe = probeById.get('execution_gate')
   const liveBlockerProbe = probeById.get('live_blocker_preflight')
   const gcloudDiagnosticProbe = probeById.get('gcloud_session_diagnostic')
+  const accountAccessDiagnosticProbe = probeById.get('gcloud_account_access_diagnostic')
 
-  if (!executionGateProbe || !liveBlockerProbe || !gcloudDiagnosticProbe) {
+  if (!executionGateProbe || !liveBlockerProbe || !gcloudDiagnosticProbe || !accountAccessDiagnosticProbe) {
     throw new Error('Missing required external-agent next-command probe')
   }
 
@@ -202,6 +216,8 @@ function main() {
     qwenJobDescribePassed &&
     !qwenDownstreamProbeSkipped &&
     nestedString(liveBlocker.json, ['qwen', 'blocker']) === 'cleared'
+  const qwenPermissionOrResourceReadBlocked =
+    qwenAuthRefreshPassed && !qwenLivePreflightPassed && !qwenDownstreamProbeSkipped
   const brollQuotaSufficient = nestedBoolean(liveBlocker.json, ['broll', 'quotaSufficientForOneL4Vm'])
   const executionGateAllowsRuntime = nestedBoolean(executionGate.json, ['executionAllowedNow'])
   const staticExplicitToolGateReady = nestedBoolean(executionGate.json, ['staticExplicitToolGateReady'])
@@ -219,6 +235,13 @@ function main() {
     ? runProbe(gcloudDiagnosticProbe.id, gcloudDiagnosticProbe.script)
     : undefined
   const diagnosticSummary = shouldRunGcloudDiagnostic ? gcloudDiagnosticSummary(gcloudDiagnostic?.json) : undefined
+  const shouldRunAccountAccessDiagnostic = !qwenLivePreflightPassed
+  const accountAccessDiagnostic = shouldRunAccountAccessDiagnostic
+    ? runProbe(accountAccessDiagnosticProbe.id, accountAccessDiagnosticProbe.script)
+    : undefined
+  const accountAccessDiagnosticSummary = shouldRunAccountAccessDiagnostic
+    ? accountAccessSummary(accountAccessDiagnostic?.json)
+    : undefined
   const blockerSummary = liveBlockerSummary(liveBlocker.json)
   const diagnosticRecommendedNextPrompt = shouldRunGcloudDiagnostic
     ? nestedString(gcloudDiagnostic?.json, ['recommendedNextPrompt'])
@@ -239,14 +262,33 @@ function main() {
       ? diagnosticRecommendedNextPrompt ??
         nestedString(liveBlocker.json, ['recommendedNextPrompt']) ??
         spec.nextCommandRules.whenQwenAuthRefreshFails
+      : qwenPermissionOrResourceReadBlocked
+        ? nestedString(liveBlocker.json, ['qwen', 'nextAction']) ??
+          nestedString(liveBlocker.json, ['recommendedNextPrompt']) ??
+          spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails
       : qwenLivePreflightVerificationRequired
         ? spec.nextCommandRules.whenQwenLivePreflightPassesButExecutionGateBlocked
         : nestedString(liveBlocker.json, ['recommendedNextPrompt']) ?? spec.defaultDecision
   const authManualActionRule = spec.manualActionRules.whenQwenAuthRefreshFails
-  const manualActionRequired = !qwenAuthRefreshPassed && authManualActionRule.required
-  const manualActionReason = manualActionRequired ? authManualActionRule.reason : undefined
-  const manualActionBlocksRuntime = manualActionRequired ? authManualActionRule.blocksRuntime : undefined
-  const rerunAfterManualAction = manualActionRequired ? authManualActionRule.rerunAfterManualAction : undefined
+  const readAccessManualActionRule = spec.manualActionRules.whenQwenPermissionOrResourceReadFails
+  const manualActionRequired =
+    (!qwenAuthRefreshPassed && authManualActionRule.required) ||
+    (qwenPermissionOrResourceReadBlocked && readAccessManualActionRule.required)
+  const manualActionReason = !qwenAuthRefreshPassed
+    ? authManualActionRule.reason
+    : qwenPermissionOrResourceReadBlocked
+      ? readAccessManualActionRule.reason
+      : undefined
+  const manualActionBlocksRuntime = !qwenAuthRefreshPassed
+    ? authManualActionRule.blocksRuntime
+    : qwenPermissionOrResourceReadBlocked
+      ? readAccessManualActionRule.blocksRuntime
+      : undefined
+  const rerunAfterManualAction = !qwenAuthRefreshPassed
+    ? authManualActionRule.rerunAfterManualAction
+    : qwenPermissionOrResourceReadBlocked
+      ? readAccessManualActionRule.rerunAfterManualAction
+      : undefined
   const chosenNextCommandAlreadyExecutedInThisRun =
     chosenNextCommand === spec.nextCommandRules.whenQwenAuthRefreshFails && shouldRunGcloudDiagnostic
   const codexRunnableNextCommandNow =
@@ -307,7 +349,7 @@ function main() {
   }
   const nextCodexCommandAfterManualAction = manualActionRequired ? rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
-  const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic]
+  const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic, accountAccessDiagnostic]
     .filter((probe): probe is ProbeResult => Boolean(probe))
     .map((probe) => ({
       id: probe.id,
@@ -321,7 +363,12 @@ function main() {
   console.log(
     JSON.stringify(
       {
-        ok: executionGate.ok && liveBlocker.ok && (!gcloudDiagnostic || gcloudDiagnostic.ok) && runtimeGatesAllFalse,
+        ok:
+          executionGate.ok &&
+          liveBlocker.ok &&
+          (!gcloudDiagnostic || gcloudDiagnostic.ok) &&
+          (!accountAccessDiagnostic || accountAccessDiagnostic.ok) &&
+          runtimeGatesAllFalse,
         decision: spec.decision,
         mode: spec.mode,
         liveReadOnlyChecksRun: true,
@@ -347,6 +394,8 @@ function main() {
         liveBlockerSummary: blockerSummary,
         gcloudDiagnosticRun: shouldRunGcloudDiagnostic,
         gcloudDiagnosticSummary: diagnosticSummary,
+        gcloudAccountAccessDiagnosticRun: shouldRunAccountAccessDiagnostic,
+        gcloudAccountAccessSummary: accountAccessDiagnosticSummary,
         chosenNextCommand,
         chosenNextCommandAlreadyExecutedInThisRun,
         codexRunnableNextCommandNow: codexRunnableNextCommandNow ?? null,

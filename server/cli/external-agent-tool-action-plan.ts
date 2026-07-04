@@ -47,9 +47,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-execute-broll-wan',
       ],
       externalManualBlocker:
-        'B-roll 10ZB proved the no-idle L4 payload/install path with cleanup verified. 11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers model import target, 11E staged the private GCS Wan model cache with the ready marker, 11B executed the bounded no-idle L4 model import/load proof, 11C accepts that passed proof as external-agent evidence, 11F records the bounded Wan inference boundary plan, 11G implements the fail-closed inference-proof runner shell, and 11H attempted the bounded latent inference proof with cleanup verified. The wrapper can call the 11H runner, but the canary timed out while loading pipeline weights before prompt encoding or denoising, so generated video remains blocked.',
+        'B-roll 10ZB proved the no-idle L4 payload/install path with cleanup verified. 11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers model import target, 11E staged the private GCS Wan model cache with the ready marker, 11B executed the bounded no-idle L4 model import/load proof, 11C accepts that passed proof as external-agent evidence, 11F records the bounded Wan inference boundary plan, 11G implements the fail-closed inference-proof runner shell, 11H attempted the bounded latent inference proof with cleanup verified, and 11H-FIX updates the retry shape to g2-standard-8 with early pipeline-load markers. The wrapper can call the 11H runner, but generated video remains blocked until a separate bounded retry passes.',
       afterBlockerClears:
-        'run AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF before any Wan inference-proof retry; the current 11H attempt failed during pipeline load timeout with cleanup verified',
+        'run AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF as a separate explicit bounded retry; the current fix only prepares the runner and does not create video',
     }
   }
 
@@ -88,7 +88,8 @@ function main() {
       String(tool.status) === 'ready_for_bounded_model_import_proof_after_private_cache_staging' ||
       String(tool.status) === 'bounded_model_import_load_proof_reviewed_inference_boundary_plan_required' ||
       String(tool.status) === 'bounded_inference_boundary_planned_runner_required' ||
-      String(tool.status) === 'bounded_inference_proof_execution_attempted_failed_cleanup_verified_fix_required',
+      String(tool.status) === 'bounded_inference_proof_execution_attempted_failed_cleanup_verified_fix_required' ||
+      String(tool.status) === 'bounded_inference_proof_fix_implemented_retry_required',
   )
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const runtimeGatesAllFalse = Object.values(rollup.runtimeSideEffects).every((value) => value === false)

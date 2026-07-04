@@ -186,6 +186,16 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
       createsAssets: false,
       purpose: 'read local gcloud session/config diagnostics when auth refresh is still blocked',
     },
+    {
+      id: 'gcloud_account_access_diagnostic',
+      script: 'server/cli/external-agent-gcloud-account-access-diagnostic.ts',
+      liveReadOnly: true,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'read local gcloud account token refresh and ReEditPro read-access status across redacted local accounts',
+    },
   ] satisfies ExternalAgentToolNextCommandAllowedProbe[],
   nextCommandRules: {
     whenExecutionGateAllowsRuntime: EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
@@ -200,6 +210,12 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     whenQwenAuthRefreshFails: {
       required: true,
       reason: 'gcloud_auth_refresh_required_before_downstream_probes',
+      blocksRuntime: true,
+      rerunAfterManualAction: 'npm run external-agent-tool-blockers:preflight',
+    },
+    whenQwenPermissionOrResourceReadFails: {
+      required: true,
+      reason: 'gcloud_account_or_resource_read_access_required_before_runtime',
       blocksRuntime: true,
       rerunAfterManualAction: 'npm run external-agent-tool-blockers:preflight',
     },

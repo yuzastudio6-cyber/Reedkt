@@ -17,6 +17,8 @@ const QWEN_RESULT_REVIEW_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DX-PRIVATE-INFERENCE-RESULT-REVIEW: review bounded Qwen private inference retry metadata, no generated assets/no beta'
 const QWEN_AUTH_NEXT_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
+const QWEN_READ_ACCESS_NEXT_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select a local gcloud account with Cloud Run read access to project reeditpro and Qwen worker resources, then rerun npm run external-agent-tool-blockers:preflight'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -82,7 +84,11 @@ assert.equal(spec.mode, 'read_only_external_agent_tool_next_command_decision')
 assert.equal(spec.paidProductionInScope, false)
 assert.equal(spec.dryRunPassedClaimed, false)
 assert.equal(spec.generatedLocalFixturePassedClaimed, false)
-assert.equal(spec.allowedProbeScripts.length, 3)
+assert.equal(spec.allowedProbeScripts.length, 4)
+assert.equal(
+  spec.allowedProbeScripts.some((probe) => probe.id === 'gcloud_account_access_diagnostic'),
+  true,
+)
 assert.equal(
   spec.nextCommandRules.whenStaticGateAllowsButQwenLivePreflightFails,
   'npm run external-agent-tool-blockers:preflight',
@@ -96,6 +102,11 @@ assert.equal(
   QWEN_RESULT_REVIEW_PROMPT,
 )
 assert.equal(spec.nextCommandRules.whenExecutionGateAllowsRuntime, QWEN_READY_PROMPT)
+assert.equal(spec.manualActionRules.whenQwenPermissionOrResourceReadFails.required, true)
+assert.equal(
+  spec.manualActionRules.whenQwenPermissionOrResourceReadFails.reason,
+  'gcloud_account_or_resource_read_access_required_before_runtime',
+)
 assert.deepEqual(spec.qwenBoundedExecutionCommand.args, [
   'run',
   'qwen2-5-vl-58dw-bounded-private-inference-retry',
@@ -305,11 +316,11 @@ assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, true)
 assert.equal(
   brollGateSummary.currentBlocker,
-  'wan_pipeline_load_timeout_before_latent_inference_canary',
+  'bounded_wan_inference_proof_retry_required_after_11h_fix',
 )
 assert.equal(
   brollGateSummary.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-11h-inference-proof-execution-result',
+  'npm run smoke:ai-video-broll-gen-11h-fix-inference-proof',
 )
 assert.equal(brollGateSummary.manualBlockerActions.length, 0)
 assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
@@ -369,6 +380,22 @@ assert.equal(decision.probeSummaries.length >= 2, true)
 assert.equal(typeof decision.liveBlockerSummary, 'object')
 assert.equal(typeof decision.liveBlockerSummary.qwen, 'object')
 assert.equal(typeof decision.liveBlockerSummary.broll, 'object')
+assert.equal(typeof decision.gcloudAccountAccessDiagnosticRun, 'boolean')
+if (!decision.qwenLivePreflightPassed) {
+  assert.equal(decision.gcloudAccountAccessDiagnosticRun, true)
+  assert.equal(typeof decision.gcloudAccountAccessSummary, 'object')
+  assert.equal(typeof decision.gcloudAccountAccessSummary.accountCount, 'number')
+  assert.equal(typeof decision.gcloudAccountAccessSummary.qwenReadyAccountCount, 'number')
+  assert.equal(typeof decision.gcloudAccountAccessSummary.brollQuotaReadAccountCount, 'number')
+  assert.equal(typeof decision.gcloudAccountAccessSummary.brollQuotaReadyAccountCount, 'number')
+  assert.equal(typeof decision.gcloudAccountAccessSummary.anyAccountReadyForBoth, 'boolean')
+  assert.equal(
+    decision.probeSummaries.some(
+      (probe: { id: string }) => probe.id === 'gcloud_account_access_diagnostic',
+    ),
+    true,
+  )
+}
 assert.equal(typeof decision.brollWanExternalAgentProofCommand, 'object')
 assert.deepEqual(decision.brollWanExternalAgentProofCommand.args, [
   'run',
@@ -622,9 +649,28 @@ if (decision.gcloudDiagnosticRun) {
   assert.equal(decision.liveBlockerSummary.broll.blocker, 'quota_probe_skipped_auth_refresh_failed')
   assert.equal(decision.liveBlockerSummary.broll.quotaProbeSkipped, true)
 } else if (!decision.qwenLivePreflightPassed) {
-  assert.equal(decision.manualActionRequired, false)
   assert.equal(decision.qwenAuthRefreshPassed, true)
   assert.equal(decision.qwenServiceDescribePassed && decision.qwenJobDescribePassed, false)
+  assert.equal(decision.chosenManualAction, QWEN_READ_ACCESS_NEXT_PROMPT)
+  assert.equal(decision.manualActionRequired, true)
+  assert.equal(
+    decision.manualActionReason,
+    spec.manualActionRules.whenQwenPermissionOrResourceReadFails.reason,
+  )
+  assert.equal(decision.manualActionBlocksRuntime, true)
+  assert.equal(
+    decision.rerunAfterManualAction,
+    spec.manualActionRules.whenQwenPermissionOrResourceReadFails.rerunAfterManualAction,
+  )
+  assert.equal(
+    decision.nextCodexCommandAfterManualAction,
+    spec.manualActionRules.whenQwenPermissionOrResourceReadFails.rerunAfterManualAction,
+  )
+  assert.equal(decision.codexRunnableNextCommandNow, null)
+  assert.equal(
+    decision.liveBlockerSummary.qwen.blocker,
+    'gcloud_account_lacks_qwen_cloud_run_read_access_or_resources_missing',
+  )
 }
 
 for (const [flag, value] of Object.entries(decision.runtimeSideEffects as Record<string, boolean>)) {

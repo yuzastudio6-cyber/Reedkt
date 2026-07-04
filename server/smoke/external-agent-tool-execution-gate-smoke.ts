@@ -92,6 +92,7 @@ assert.equal(
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-blockers:preflight'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run ai-video-broll-wan-gpu-global-quota:verify'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcloud-session:diagnostic'), true)
+assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-gcloud-account-access:diagnostic'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-broll-wan'), true)
 assert.equal(gate.safeCommandsBeforeExecution.includes('npm run external-agent-tool-execute-sound'), true)
 assert.equal(
@@ -194,7 +195,7 @@ assert.equal(
 )
 assert.equal(brollGateRow?.noIdleLifecycleGate?.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.selectedGpu, 'nvidia_l4')
-assert.equal(brollGateRow?.noIdleLifecycleGate?.machineType, 'g2-standard-4')
+assert.equal(brollGateRow?.noIdleLifecycleGate?.machineType, 'g2-standard-8')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.targetRegion, 'northamerica-northeast2')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.targetZone, 'northamerica-northeast2-a')
 assert.equal(brollGateRow?.noIdleLifecycleGate?.noPublicIpRequired, true)
@@ -243,11 +244,11 @@ const reportQwenGateRow = report.toolRows.find(
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(
   reportBrollGateRow.currentBlocker,
-  'wan_pipeline_load_timeout_before_latent_inference_canary',
+  'bounded_wan_inference_proof_retry_required_after_11h_fix',
 )
 assert.equal(
   reportBrollGateRow.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-11h-inference-proof-execution-result',
+  'npm run smoke:ai-video-broll-gen-11h-fix-inference-proof',
 )
 assert.equal(reportBrollGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

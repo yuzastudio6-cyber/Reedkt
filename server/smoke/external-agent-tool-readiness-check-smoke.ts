@@ -107,7 +107,7 @@ assert.deepEqual(summary.noIdleLifecycleGateToolIds, ['ai_video_broll_generation
 assert.equal(summary.noIdleLifecycleGates.length, 1)
 assert.equal(summary.noIdleLifecycleGates[0].toolId, 'ai_video_broll_generation_wan')
 assert.equal(summary.noIdleLifecycleGates[0].gate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')
-assert.equal(summary.noIdleLifecycleGates[0].gate.machineType, 'g2-standard-4')
+assert.equal(summary.noIdleLifecycleGates[0].gate.machineType, 'g2-standard-8')
 assert.equal(summary.noIdleLifecycleGates[0].gate.targetRegion, 'northamerica-northeast2')
 assert.equal(summary.noIdleLifecycleGates[0].gate.targetZone, 'northamerica-northeast2-a')
 assert.equal(summary.noIdleLifecycleGates[0].gate.noPublicIpRequired, true)
@@ -125,7 +125,7 @@ assert.equal(blockersByTool.has('qwen2_5_vl_7b_instruct'), false)
 assert.equal(blockersByTool.has('ai_video_broll_generation_wan'), true)
 assert.equal(
   (blockersByTool.get('ai_video_broll_generation_wan') as { blocker: string }).blocker,
-  'wan_pipeline_load_timeout_before_latent_inference_canary',
+  'bounded_wan_inference_proof_retry_required_after_11h_fix',
 )
 
 for (const blocker of summary.blockers as Array<{

@@ -115,8 +115,12 @@ for (const required of [
   'command name: `ai-video-broll-gen-11h:bounded-inference-proof-runner`',
   'runner confirmation env: `REEDITPRO_CONFIRM_BROLL_11H_INFERENCE_PROOF_EXECUTE=true`',
   'wrapper confirmation env: `REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true`',
+  '- machine type: `g2-standard-8`',
+  '- source payload/install proof machine type: `g2-standard-4`',
   '`output_type="latent"`',
   '`num_inference_steps=1`',
+  'pipeline-load success marker before inference: `REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_OK`',
+  'latent canary timeout: 90 minutes',
   '`transientLatentsCreated=true`',
   '`inferenceOutputPersisted=false`',
   '`vaeDecodeRun=false`',
@@ -143,6 +147,15 @@ for (const required of [
   "output_type='latent'",
   'num_inference_steps=1',
   'num_frames=1',
+  'g2-standard-8',
+  'SOURCE_PAYLOAD_INSTALL_MACHINE_TYPE',
+  'WAN_LATENT_CANARY_TIMEOUT_MS',
+  'HF_ENABLE_PARALLEL_LOADING=true',
+  'HF_PARALLEL_LOADING_WORKERS=4',
+  'REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_START',
+  'REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_OK',
+  'REEDITPRO_BROLL_11H_WAN_PIPELINE_CPU_OFFLOAD_OK',
+  'REEDITPRO_BROLL_11H_LATENT_INFERENCE_CANARY_START',
   'REEDITPRO_BROLL_11H_LATENT_INFERENCE_CANARY_OK',
   'inferenceOutputPersisted: false',
   'vaeDecodeRun: false',
@@ -202,7 +215,14 @@ assert.equal(spec.runnerScript, CLI_PATH)
 assert.equal(spec.packageScript, PACKAGE_RUNNER_SCRIPT)
 assert.equal(spec.confirmationEnv, CONFIRM_ENV)
 assert.equal(spec.wrapperConfirmationEnv, 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF')
+assert.equal(spec.machineType, 'g2-standard-8')
+assert.equal(spec.sourcePayloadInstallMachineType, 'g2-standard-4')
 assert.equal(spec.liveExecutionContract.outputType, 'latent')
+assert.equal(spec.liveExecutionContract.pipelineLoadMarkerBeforeInferenceRequired, true)
+assert.equal(spec.liveExecutionContract.pipelineCpuOffloadMarkerRequired, true)
+assert.equal(spec.liveExecutionContract.canaryTimeoutMinutes, 90)
+assert.equal(spec.liveExecutionContract.parallelLoadingEnabled, true)
+assert.equal(spec.liveExecutionContract.parallelLoadingWorkers, 4)
 assert.equal(spec.liveExecutionContract.numInferenceSteps, 1)
 assert.equal(spec.liveExecutionContract.numFrames, 1)
 assert.equal(spec.liveExecutionContract.vaeDecodeAllowed, false)

@@ -4,6 +4,7 @@
 @import './styles/surfaces.css';
 @import './styles/buttons.css';
 @import './styles/forms.css';
+@import './styles/auth.css';
 @import './styles/layout.css';
 @import './styles/preferences.css';
 @import './styles/internal-testing.css';

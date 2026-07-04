@@ -23,7 +23,7 @@ export function MarketingNav() {
         )}
       </nav>
       <div className="marketing-actions">
-        <Button to="/dashboard" variant="ghost">
+        <Button to="/sign-in" variant="ghost">
           Sign In
         </Button>
         <Button to="/projects/new" variant="primary">

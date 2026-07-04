@@ -1,0 +1,23 @@
+{
+  "decision": "app_sign_in_entrypoint_passed_ready_for_internal_testing_auth_smoke",
+  "route": "/sign-in",
+  "defaultRedirect": "/internal-testing",
+  "frontendAuthMode": "supabase_anon_client_only",
+  "allowedPublicEnv": ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],
+  "blockedScope": {
+    "serviceRole": false,
+    "supabaseMigration": false,
+    "backendTableMutation": false,
+    "storageSignedUrls": false,
+    "providerCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderExport": false,
+    "creditReservation": false,
+    "creditSpend": false,
+    "stripe": false,
+    "externalBeta": false,
+    "production": false
+  },
+  "nextGate": "APP_SIGN_IN_ENTRYPOINT_DEPLOYMENT_AND_SUPABASE_ENV_CONFIGURATION"
+}

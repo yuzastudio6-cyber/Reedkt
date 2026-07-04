@@ -80,6 +80,7 @@ assert.deepEqual(spec.broll.requiredReadPermissions, ['compute.projects.get', 'c
 assert.equal(spec.requiredRepairPlanCommand, 'npm run external-agent-gcp-access:repair-plan')
 assert.equal(spec.livePreflightCommand, 'npm run external-agent-tool-blockers:preflight')
 assert.equal(spec.liveNextCommand, 'npm run external-agent-tool-next-command')
+assert.equal(spec.accountAccessDiagnosticCommand, 'npm run external-agent-gcloud-account-access:diagnostic')
 
 for (const [flag, value] of Object.entries(spec.runtimeSideEffects)) {
   assert.equal(value, false, `Runtime side-effect flag must remain false: ${flag}`)
@@ -89,7 +90,9 @@ const source = read(CLI_PATH)
 for (const required of [
   'server/cli/external-agent-tool-blocker-preflight.ts',
   'server/cli/external-agent-tool-next-command.ts',
+  'server/cli/external-agent-gcloud-account-access-diagnostic.ts',
   'allRequiredReadAccessVerified',
+  'accountAccessDiagnostic',
   'wrapperMayBeCalledAfterConfirmation',
   'runtimeGatesAllFalse',
 ]) {
@@ -126,6 +129,15 @@ assert.equal(typeof cli.nextCommand.executionAllowedNow, 'boolean')
 assert.equal(typeof cli.allRequiredReadAccessVerified, 'boolean')
 assert.equal(cli.readyForAnyExternalAgentExecutionNow, cli.nextCommand.executionAllowedNow)
 assert.equal(cli.runtimeGatesAllFalse, true)
+if (!cli.allRequiredReadAccessVerified) {
+  assert.equal(typeof cli.accountAccessDiagnostic.ok, 'boolean')
+  assert.equal(typeof cli.accountAccessDiagnostic.accountCount, 'number')
+  assert.equal(typeof cli.accountAccessDiagnostic.qwenReadyAccountCount, 'number')
+  assert.equal(typeof cli.accountAccessDiagnostic.brollQuotaReadAccountCount, 'number')
+  assert.equal(typeof cli.accountAccessDiagnostic.brollQuotaReadyAccountCount, 'number')
+  assert.equal(typeof cli.accountAccessDiagnostic.anyAccountReadyForBoth, 'boolean')
+  assert.equal(typeof cli.accountAccessDiagnostic.recommendedNextPrompt, 'string')
+}
 
 const forbiddenFindings = scanForbiddenValues({ spec, cli })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
@@ -140,6 +152,7 @@ console.log(
       brollQuotaReadAccessPassed: cli.broll.quotaReadAccessPassed,
       brollQuotaSufficientForOneL4Vm: cli.broll.quotaSufficientForOneL4Vm,
       allRequiredReadAccessVerified: cli.allRequiredReadAccessVerified,
+      accountAccessDiagnostic: cli.accountAccessDiagnostic,
       readyForAnyExternalAgentExecutionNow: cli.readyForAnyExternalAgentExecutionNow,
       runtimeGatesAllFalse: cli.runtimeGatesAllFalse,
       recommendedNextPrompt: cli.recommendedNextPrompt,

@@ -294,6 +294,15 @@ assert.equal(typeof liveReport.liveVerifier.qwenReadAccessPassed, 'boolean')
 assert.equal(typeof liveReport.liveVerifier.brollQuotaReadAccessPassed, 'boolean')
 assert.equal(typeof liveReport.liveVerifier.brollQuotaSufficientForOneL4Vm, 'boolean')
 assert.equal(typeof liveReport.liveVerifier.nextCommandExecutionAllowedNow, 'boolean')
+if (!liveReport.liveVerifier.allRequiredReadAccessVerified) {
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.ok, 'boolean')
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.accountCount, 'number')
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.qwenReadyAccountCount, 'number')
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.brollQuotaReadAccountCount, 'number')
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.brollQuotaReadyAccountCount, 'number')
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.anyAccountReadyForBoth, 'boolean')
+  assert.equal(typeof liveReport.liveVerifier.accountAccessDiagnostic.recommendedNextPrompt, 'string')
+}
 assert.equal(
   liveReport.executionAllowedNow,
   liveReport.staticExplicitToolGateReady &&

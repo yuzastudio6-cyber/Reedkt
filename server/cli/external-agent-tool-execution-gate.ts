@@ -23,6 +23,24 @@ function nestedString(document: JsonRecord | undefined, keys: string[]): string 
   return typeof value === 'string' ? value : undefined
 }
 
+function nestedNumber(document: JsonRecord | undefined, keys: string[]): number | undefined {
+  let value: unknown = document
+  for (const key of keys) {
+    if (!value || typeof value !== 'object' || !(key in value)) return undefined
+    value = (value as JsonRecord)[key]
+  }
+  return typeof value === 'number' ? value : undefined
+}
+
+function nestedRecord(document: JsonRecord | undefined, keys: string[]): JsonRecord | undefined {
+  let value: unknown = document
+  for (const key of keys) {
+    if (!value || typeof value !== 'object' || !(key in value)) return undefined
+    value = (value as JsonRecord)[key]
+  }
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as JsonRecord) : undefined
+}
+
 function runLiveVerifier() {
   const result = spawnSync('npx', ['tsx', 'server/cli/external-agent-gcp-access-verify.ts'], {
     cwd: process.cwd(),
@@ -71,6 +89,7 @@ function main() {
     liveVerifierResult?.ok === true &&
     nestedBoolean(liveVerifierJson, ['readyForAnyExternalAgentExecutionNow']) &&
     nestedBoolean(liveVerifierJson, ['runtimeGatesAllFalse'])
+  const liveAccountAccessDiagnostic = nestedRecord(liveVerifierJson, ['accountAccessDiagnostic'])
   const liveAwareExecutionAllowedNow = liveMode
     ? staticExplicitToolGateReady && liveVerifierReady
     : executionAllowedNow
@@ -114,6 +133,32 @@ function main() {
           ]),
           chosenNextCommand: nestedString(liveVerifierJson, ['nextCommand', 'chosenNextCommand']),
           manualActionReason: nestedString(liveVerifierJson, ['nextCommand', 'manualActionReason']),
+          accountAccessDiagnostic: liveAccountAccessDiagnostic
+            ? {
+                ok: nestedBoolean(liveVerifierJson, ['accountAccessDiagnostic', 'ok']),
+                accountCount: nestedNumber(liveVerifierJson, ['accountAccessDiagnostic', 'accountCount']),
+                qwenReadyAccountCount: nestedNumber(liveVerifierJson, [
+                  'accountAccessDiagnostic',
+                  'qwenReadyAccountCount',
+                ]),
+                brollQuotaReadAccountCount: nestedNumber(liveVerifierJson, [
+                  'accountAccessDiagnostic',
+                  'brollQuotaReadAccountCount',
+                ]),
+                brollQuotaReadyAccountCount: nestedNumber(liveVerifierJson, [
+                  'accountAccessDiagnostic',
+                  'brollQuotaReadyAccountCount',
+                ]),
+                anyAccountReadyForBoth: nestedBoolean(liveVerifierJson, [
+                  'accountAccessDiagnostic',
+                  'anyAccountReadyForBoth',
+                ]),
+                recommendedNextPrompt: nestedString(liveVerifierJson, [
+                  'accountAccessDiagnostic',
+                  'recommendedNextPrompt',
+                ]),
+              }
+            : undefined,
           recommendedNextPrompt: nestedString(liveVerifierJson, ['recommendedNextPrompt']),
         }
       : undefined,

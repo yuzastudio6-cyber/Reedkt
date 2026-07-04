@@ -8,6 +8,7 @@ export const EXTERNAL_AGENT_GCP_ACCESS_VERIFY = {
   requiredRepairPlanCommand: 'npm run external-agent-gcp-access:repair-plan',
   livePreflightCommand: 'npm run external-agent-tool-blockers:preflight',
   liveNextCommand: 'npm run external-agent-tool-next-command',
+  accountAccessDiagnosticCommand: 'npm run external-agent-gcloud-account-access:diagnostic',
   qwen: {
     toolId: 'qwen2_5_vl_7b_instruct',
     requiredReadPermissions: ['run.services.get', 'run.jobs.get'],

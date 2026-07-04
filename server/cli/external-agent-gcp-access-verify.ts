@@ -49,6 +49,11 @@ function nestedString(document: JsonRecord | undefined, keys: string[]): string 
   return typeof value === 'string' ? value : undefined
 }
 
+function nestedNumber(document: JsonRecord | undefined, keys: string[]): number | undefined {
+  const value = nested(document, keys)
+  return typeof value === 'number' ? value : undefined
+}
+
 function runScript(id: string, script: string): CommandResult {
   const result = spawnSync('npx', ['tsx', script], {
     cwd: process.cwd(),
@@ -93,6 +98,12 @@ function main() {
   const qwenWrapperMayBeCalledAfterConfirmation = qwenReadAccessPassed
   const brollWrapperMayBeCalledAfterConfirmation = brollQuotaReadAccessPassed && brollQuotaSufficientForOneL4Vm
   const externalAgentExecutionAllowedNow = nestedBoolean(nextCommand.json, ['executionAllowedNow'])
+  const accountAccessDiagnostic = !allRequiredReadAccessVerified
+    ? runScript(
+        'external_agent_gcloud_account_access_diagnostic',
+        'server/cli/external-agent-gcloud-account-access-diagnostic.ts',
+      )
+    : undefined
 
   console.log(
     JSON.stringify(
@@ -138,13 +149,29 @@ function main() {
           chosenNextCommand: nestedString(nextCommand.json, ['chosenNextCommand']),
           manualActionReason: nestedString(nextCommand.json, ['manualActionReason']),
         },
+        accountAccessDiagnostic: accountAccessDiagnostic
+          ? {
+              ok: accountAccessDiagnostic.ok,
+              exitCode: accountAccessDiagnostic.exitCode,
+              accountCount: nestedNumber(accountAccessDiagnostic.json, ['accountCount']) ?? 0,
+              qwenReadyAccountCount:
+                nestedNumber(accountAccessDiagnostic.json, ['qwenReadyAccountCount']) ?? 0,
+              brollQuotaReadAccountCount:
+                nestedNumber(accountAccessDiagnostic.json, ['brollQuotaReadAccountCount']) ?? 0,
+              brollQuotaReadyAccountCount:
+                nestedNumber(accountAccessDiagnostic.json, ['brollQuotaReadyAccountCount']) ?? 0,
+              anyAccountReadyForBoth: nestedBoolean(accountAccessDiagnostic.json, ['anyAccountReadyForBoth']),
+              recommendedNextPrompt: nestedString(accountAccessDiagnostic.json, ['recommendedNextPrompt']),
+            }
+          : undefined,
         allRequiredReadAccessVerified,
         readyForAnyExternalAgentExecutionNow: externalAgentExecutionAllowedNow,
         runtimeGatesAllFalse,
         runtimeSideEffects: spec.runtimeSideEffects,
         recommendedNextPrompt: allRequiredReadAccessVerified
           ? spec.recommendedNextPromptIfVerified
-          : spec.recommendedNextPromptIfAccessBlocked,
+          : nestedString(accountAccessDiagnostic?.json, ['recommendedNextPrompt']) ??
+            spec.recommendedNextPromptIfAccessBlocked,
       },
       null,
       2,

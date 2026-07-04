@@ -19,7 +19,8 @@ Status: architecture/docs only. This report maps future `ProjectEditSession` Bri
 13. RP-EDITBRIEF-14 — Production Readiness Gates
 14. RP-EDITBRIEF-15 — Owner Review and Production Gate Evidence Collection
 15. RP-EDITBRIEF-15A — Owner Evidence Intake Template
-16. RP-EDITBRIEF-16 — Production Persistence Implementation Plan
+16. RP-EDITBRIEF-15B — Owner Evidence Readiness Evaluator
+17. RP-EDITBRIEF-16 — Production Persistence Implementation Plan
 
 ## Gate
 
@@ -101,4 +102,10 @@ Next recommended milestone after the owner inputs are supplied and recorded: `RP
 
 Status: complete as an intake template only. The milestone adds a concrete owner-evidence template with all required owner inputs set to `missing` by default, plus smoke coverage that blocks RP-EDITBRIEF-16 until owners supply durable evidence. It does not approve any owner input, enable external beta, real-user-media beta, paid production, Supabase persistence, uploads, providers/models, workers, render/export, or credits.
 
-Next recommended milestone after the intake template is completed with real evidence: `RP-EDITBRIEF-16 — Production Persistence Implementation Plan`.
+Next recommended milestone: `RP-EDITBRIEF-15B — Owner Evidence Readiness Evaluator`.
+
+## RP-EDITBRIEF-15B — Owner Evidence Readiness Evaluator
+
+Status: complete as an executable readiness evaluator only. The milestone adds a server-side evaluator and smoke coverage for the RP-EDITBRIEF-15A intake record. It requires the exact ten owner inputs, blocks missing/rejected/duplicate/unsupported entries, and requires owner, evidence reference, reviewed timestamp, and notes for every approved or waived input. Completing the evidence intake can make `readyForRpEditBrief16` true, but it does not enable external beta, real-user-media beta, paid production, live Supabase persistence, uploads, providers/models, workers, render/export, or credits.
+
+Next recommended milestone after the evaluator reports `project_edit_brief_owner_evidence_readiness_passed_ready_for_rp_editbrief_16` on real owner evidence: `RP-EDITBRIEF-16 — Production Persistence Implementation Plan`.

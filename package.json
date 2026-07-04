@@ -114,6 +114,7 @@
     "smoke:project-edit-brief-production-readiness-gates": "tsx server/smoke/project-edit-brief-production-readiness-gates-smoke.ts",
     "smoke:project-edit-brief-owner-review-production-gate-evidence": "tsx server/smoke/project-edit-brief-owner-review-production-gate-evidence-smoke.ts",
     "smoke:project-edit-brief-owner-evidence-intake-template": "tsx server/smoke/project-edit-brief-owner-evidence-intake-template-smoke.ts",
+    "smoke:project-edit-brief-owner-evidence-readiness": "tsx server/smoke/project-edit-brief-owner-evidence-readiness-smoke.ts",
     "smoke:project-edit-brief-visual-context": "tsx server/smoke/project-edit-brief-visual-context-smoke.ts",
     "check:frontend-boundary": "node scripts/check-frontend-server-boundary.mjs",
     "smoke:supabase-command-safety": "tsx server/smoke/supabase-command-safety-smoke.ts",

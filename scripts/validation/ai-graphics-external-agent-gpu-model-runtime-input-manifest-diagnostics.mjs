@@ -18,8 +18,8 @@ const runRoot =
   '.local-artifacts/ai-graphics/gpu-model-runtime-input-manifest-materializer/diagnostic'
 const canonicalRuntimeImage = 'reeditpro/ai-graphics-gpu-worker:proof-local'
 const runtimeImageByTool = {
-  sam2: canonicalRuntimeImage,
-  birefnet: canonicalRuntimeImage,
+  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
   real_esrgan: canonicalRuntimeImage,
   rembg: canonicalRuntimeImage,
   transparent_background: canonicalRuntimeImage,
@@ -190,6 +190,29 @@ function materializeManifest(toolId, contract, runtimeImage = runtimeImageByTool
   }
 }
 
+function materializeManifestFromPrivateRoot(toolId, contract, privateModelRootPath) {
+  const manifestOut = `${runRoot}/runtime-inputs/${toolId}-private-root.json`
+  const outputDir = `${runRoot}/outputs/${toolId}-private-root`
+  const stdout = exec([
+    `npm run --silent ${runScriptName} --`,
+    `--tool ${toolId}`,
+    `--source-image ${runRoot}/inputs/private-approved-frame.ppm`,
+    `--private-model-root ${privateModelRootPath}`,
+    `--output-dir ${outputDir}`,
+    `--manifest-out ${manifestOut}`,
+    `--model-weight-manifest-id ${contract.manifestId}`,
+    `--model-weight-checksum-evidence-ref ${contract.evidenceRef}`,
+    '--runtime-container-platform linux/amd64',
+    '--private-input-preflight-only',
+    '--force',
+  ].filter(Boolean).join(' '))
+  return {
+    report: JSON.parse(stdout),
+    manifestOut,
+    outputDir,
+  }
+}
+
 function runToolCall(toolId, manifestOut) {
   return JSON.parse(exec([
     `npm run --silent ${toolCallScriptName} --`,
@@ -220,6 +243,10 @@ for (const phrase of [
   'gpuRuntimeShouldStartNow: false',
   'modelWeightsDownloaded: false',
   'modelInferencePerformed: false',
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
+  '--private-model-root',
+  'modelRootPathCandidatesByTool',
+  'privateModelRootUsed',
 ]) {
   if (!source.includes(phrase)) fail(`source_missing:${phrase}`)
 }
@@ -239,6 +266,9 @@ writeSafetensorsPlaceholder(toolContracts.birefnet.checksumFile)
 writeLargePrivatePlaceholder(toolContracts.real_esrgan.modelPath, 4)
 writeLargePrivatePlaceholder(toolContracts.rembg.modelPath, 5)
 writeLargePrivatePlaceholder(toolContracts.transparent_background.modelPath, 6)
+const privateModelRootPath = `${runRoot}/private-model-root`
+writeLargePrivatePlaceholder(`${privateModelRootPath}/sam2/sam2.1_hiera_tiny.pt`, 7)
+writeSafetensorsPlaceholder(`${privateModelRootPath}/birefnet/model.safetensors`)
 
 const materialized = {}
 const routeBlockers = {}
@@ -288,8 +318,8 @@ for (const [toolId, contract] of Object.entries(toolContracts)) {
   if (record.outputDirectory !== result.outputDir) {
     fail(`${toolId}_output_dir_mismatch`)
   }
-  if (record.runtimeContainerImage !== canonicalRuntimeImage) {
-    fail(`${toolId}_runtime_container_image_not_shared_local_proof_image:${record.runtimeContainerImage}`)
+  if (record.runtimeContainerImage !== runtimeImageByTool[toolId]) {
+    fail(`${toolId}_runtime_container_image_mismatch:${record.runtimeContainerImage}`)
   }
   if (record.runtimeContainerPlatform !== 'linux/amd64') {
     fail(`${toolId}_runtime_container_platform_mismatch:${record.runtimeContainerPlatform}`)
@@ -384,6 +414,61 @@ if (sharedSam2ToolCall.response?.blockingReasonCode === 'gpu_model_python_packag
   fail('sam2_shared_manifest_regressed_to_host_python_package_blocker')
 }
 
+const sam2PrivateRootManifest = materializeManifestFromPrivateRoot(
+  'sam2',
+  toolContracts.sam2,
+  privateModelRootPath,
+)
+if (sam2PrivateRootManifest.report.privateModelRootUsed !== true) {
+  fail('sam2_private_root_not_used')
+}
+if (
+  json(sam2PrivateRootManifest.manifestOut).toolInputs?.sam2?.sam2CheckpointLocalPath !==
+  `${privateModelRootPath}/sam2/sam2.1_hiera_tiny.pt`
+) {
+  fail('sam2_private_root_model_path_mismatch')
+}
+if (
+  json(sam2PrivateRootManifest.manifestOut).toolInputs?.sam2?.runtimeContainerImage !==
+  runtimeImageByTool.sam2
+) {
+  fail('sam2_private_root_runtime_image_mismatch')
+}
+
+const birefnetPrivateRootManifest = materializeManifestFromPrivateRoot(
+  'birefnet',
+  toolContracts.birefnet,
+  privateModelRootPath,
+)
+if (birefnetPrivateRootManifest.report.privateModelRootUsed !== true) {
+  fail('birefnet_private_root_not_used')
+}
+if (
+  json(birefnetPrivateRootManifest.manifestOut).toolInputs?.birefnet?.birefnetModelLocalPath !==
+  `${privateModelRootPath}/birefnet`
+) {
+  fail('birefnet_private_root_model_path_mismatch')
+}
+if (
+  json(birefnetPrivateRootManifest.manifestOut).toolInputs?.birefnet?.runtimeContainerImage !==
+  runtimeImageByTool.birefnet
+) {
+  fail('birefnet_private_root_runtime_image_mismatch')
+}
+
+const missingPrivateModelRoot = spawn([
+  `npm run --silent ${runScriptName} --`,
+  '--tool sam2',
+  `--source-image ${runRoot}/inputs/private-approved-frame.ppm`,
+  `--private-model-root ${runRoot}/missing-private-model-root`,
+  `--output-dir ${runRoot}/outputs/missing-private-root`,
+  `--manifest-out ${runRoot}/runtime-inputs/missing-private-root.json`,
+].join(' '))
+if (missingPrivateModelRoot.status === 0) fail('missing_private_model_root_unexpected_success')
+if (!missingPrivateModelRoot.stderr.includes('must point to a readable private local directory')) {
+  fail('missing_private_model_root_missing_diagnostic')
+}
+
 const outsideManifest = spawn([
   `npm run --silent ${runScriptName} --`,
   '--tool rembg',
@@ -436,6 +521,7 @@ console.log(JSON.stringify({
   ok: true,
   decision,
   materializedTools: Object.keys(materialized).length,
+  privateModelRootResolvedTools: 2,
   routeManifestAcceptedPastModelWeightEvidenceTools: Object.keys(routeBlockers).length,
   routeContainerBackendTools: Object.values(routeBackends)
     .filter((backend) => backend === 'docker_container').length,

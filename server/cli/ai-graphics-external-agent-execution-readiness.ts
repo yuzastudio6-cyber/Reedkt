@@ -547,6 +547,25 @@ function gpuModelRuntimeInputManifestMaterializerCommand(
   ].join(' ')
 }
 
+function gpuModelRuntimeInputManifestPrivateRootMaterializerCommand(
+  toolId: string,
+): string | null {
+  if (!gpuModelRequiresModelWeightManifest(toolId)) return null
+  return [
+    'npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest --',
+    `--tool ${toolId}`,
+    `--source-image ${gpuModelRuntimeInputManifestSourceImage}`,
+    '--private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
+    `--output-dir ${gpuModelRuntimeInputManifestOutputDir}`,
+    `--manifest-out ${gpuModelRuntimeInputManifestPath}`,
+    '--model-weight-manifest-id <reviewed-private-model-weight-manifest-id>',
+    `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
+    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    '--runtime-container-platform linux/amd64',
+    ...(gpuModelAllowsCpuModelRuntime(toolId) ? ['--allow-cpu-model-runtime'] : []),
+  ].join(' ')
+}
+
 function gpuModelRuntimeInputManifestScopedToolCallCommand(
   toolId: string,
 ): string | null {
@@ -645,11 +664,15 @@ function gpuModelExecutionUnlockPlan(input: {
 
   const runtimeInputManifestCommand =
     gpuModelRuntimeInputManifestMaterializerCommand(toolId)
+  const privateRootRuntimeInputManifestCommand =
+    gpuModelRuntimeInputManifestPrivateRootMaterializerCommand(toolId)
   if (runtimeInputManifestCommand) {
     steps.push({
       step: steps.length + 1,
       action: 'materialize_model_weight_runtime_input_manifest',
       command: runtimeInputManifestCommand,
+      privateModelRootCommand: privateRootRuntimeInputManifestCommand,
+      privateModelRootEnvVar: 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
       manifestOut: gpuModelRuntimeInputManifestPath,
       outputDirectory: gpuModelRuntimeInputManifestOutputDir,
       nextScopedToolCallCommand:
@@ -1148,6 +1171,10 @@ function buildToolRows(
       nextExactRuntimeInputManifestMaterializerCommand: group === 'gpu_model'
         ? gpuModelRuntimeInputManifestMaterializerCommand(toolId)
         : null,
+      nextExactRuntimeInputManifestPrivateRootMaterializerCommand:
+        group === 'gpu_model'
+          ? gpuModelRuntimeInputManifestPrivateRootMaterializerCommand(toolId)
+          : null,
       nextExactRuntimeInputManifestPath:
         group === 'gpu_model' && gpuModelRequiresModelWeightManifest(toolId)
           ? gpuModelRuntimeInputManifestPath

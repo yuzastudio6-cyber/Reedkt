@@ -1169,6 +1169,8 @@ function checkReport(label, report) {
       if (gpuModelRequiresModelWeightManifest(toolId)) {
         const manifestCommand =
           String(row.nextExactRuntimeInputManifestMaterializerCommand ?? '')
+        const privateRootManifestCommand =
+          String(row.nextExactRuntimeInputManifestPrivateRootMaterializerCommand ?? '')
         const manifestPath =
           '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json'
         for (const fragment of [
@@ -1185,6 +1187,22 @@ function checkReport(label, report) {
         ]) {
           if (!manifestCommand.includes(fragment)) {
             fail(`${label}_${toolId}_runtime_input_manifest_command_missing:${fragment}`)
+          }
+        }
+        for (const fragment of [
+          'ai-graphics:external-agent-gpu-model-runtime-input-manifest',
+          `--tool ${toolId}`,
+          '--source-image <private-approved-frame.png>',
+          '--private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
+          '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
+          `--manifest-out ${manifestPath}`,
+          '--model-weight-manifest-id <reviewed-private-model-weight-manifest-id>',
+          `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
+          `--runtime-container-image ${runtimeContainerTarget.image}`,
+          '--runtime-container-platform linux/amd64',
+        ]) {
+          if (!privateRootManifestCommand.includes(fragment)) {
+            fail(`${label}_${toolId}_runtime_input_manifest_private_root_command_missing:${fragment}`)
           }
         }
         if (row.nextExactRuntimeInputManifestPath !== manifestPath) {
@@ -1204,6 +1222,7 @@ function checkReport(label, report) {
         }
       } else if (
         row.nextExactRuntimeInputManifestMaterializerCommand !== null ||
+        row.nextExactRuntimeInputManifestPrivateRootMaterializerCommand !== null ||
         row.nextExactRuntimeInputManifestPath !== null ||
         row.nextExactRuntimeInputManifestScopedToolCallCommand !== null ||
         row.nextExactRuntimeInputManifestHarnessCommand !== null
@@ -1280,6 +1299,19 @@ function checkReport(label, report) {
           )
         ) {
           fail(`${label}_${toolId}_unlock_plan_materializer_command_missing`)
+        }
+        if (
+          !String(materializeStep?.privateModelRootCommand ?? '').includes(
+            '--private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
+          )
+        ) {
+          fail(`${label}_${toolId}_unlock_plan_private_root_materializer_command_missing`)
+        }
+        if (
+          materializeStep?.privateModelRootEnvVar !==
+          'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
+        ) {
+          fail(`${label}_${toolId}_unlock_plan_private_root_env_mismatch`)
         }
         if (
           materializeStep?.gpuStartsDuringManifestMaterialization !== false ||

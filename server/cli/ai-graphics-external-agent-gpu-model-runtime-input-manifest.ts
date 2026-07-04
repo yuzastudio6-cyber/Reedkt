@@ -49,6 +49,18 @@ const modelWeightTools: readonly ModelWeightToolId[] = [
 ]
 const minimumPrivateModelFileBytes = 1024 * 1024
 const maximumSafetensorsHeaderBytes = 1024 * 1024
+const privateModelRootEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
+const modelRootPathCandidatesByTool: Record<ModelWeightToolId, string[]> = {
+  sam2: [
+    'sam2/sam2.1_hiera_tiny.pt',
+    'sam2/sam2-checkpoint.pt',
+    'sam2/checkpoint.pt',
+  ],
+  birefnet: ['birefnet'],
+  real_esrgan: ['real-esrgan/RealESRGAN_x4plus.pth'],
+  rembg: ['rembg/isnet-general-use.onnx', 'rembg/u2net.onnx'],
+  transparent_background: ['transparent-background/ckpt_base.pth'],
+}
 
 const modelRuntimePathContracts: Record<ModelWeightToolId, ModelRuntimePathContract> = {
   sam2: {
@@ -128,6 +140,41 @@ function assertLocalPath(label: string, value: string): void {
   if (value.split(/[\\/]+/).includes('..')) {
     throw new Error(`${label} must not contain path traversal segments`)
   }
+}
+
+function privateModelRoot(): string | undefined {
+  return stringArg('--private-model-root') ?? process.env[privateModelRootEnvVar]
+}
+
+function modelPathFromPrivateRoot(
+  toolId: ModelWeightToolId,
+  contract: ModelRuntimePathContract,
+  rootValue: string | undefined,
+): string | undefined {
+  if (!rootValue) return undefined
+  assertLocalPath('--private-model-root', rootValue)
+  if (!existsSync(rootValue) || !statSync(rootValue).isDirectory()) {
+    throw new Error(
+      `--private-model-root/${privateModelRootEnvVar} must point to a readable private local directory`,
+    )
+  }
+  const candidates = modelRootPathCandidatesByTool[toolId].map((relativePath) =>
+    path.join(rootValue, relativePath))
+  const matchingCandidate = candidates.find((candidate) => {
+    try {
+      const modelFile = assertModelPathContract(contract, candidate)
+      return existsSync(modelFile)
+    } catch {
+      return false
+    }
+  })
+  if (!matchingCandidate) {
+    throw new Error(
+      `${contract.modelFlag} was not supplied and the private model root did not contain ` +
+      `a valid ${contract.modelLabel}; checked ${candidates.join(', ')}`,
+    )
+  }
+  return matchingCandidate
 }
 
 function isLocalArtifactPath(filePath: string): boolean {
@@ -304,7 +351,15 @@ function main(): void {
   const typedToolId = toolId as ModelWeightToolId
   const contract = modelRuntimePathContracts[typedToolId]
   const sourceImage = requiredStringArg('--source-image')
-  const modelPath = requiredStringArg(contract.modelFlag)
+  const resolvedPrivateModelRoot = privateModelRoot()
+  const modelPath =
+    stringArg(contract.modelFlag) ??
+    modelPathFromPrivateRoot(typedToolId, contract, resolvedPrivateModelRoot)
+  if (!modelPath) {
+    throw new Error(
+      `${contract.modelFlag} or --private-model-root/${privateModelRootEnvVar} is required`,
+    )
+  }
   const outputDirectory = requiredStringArg('--output-dir')
   const manifestOut = requiredStringArg('--manifest-out')
   const manifestId =
@@ -382,6 +437,8 @@ function main(): void {
     modelWeightChecksumSha256,
     modelWeightChecksumEvidenceRef: checksumEvidenceRef,
     checksumFileLocalPath: checksumFile,
+    privateModelRootUsed: Boolean(resolvedPrivateModelRoot && !stringArg(contract.modelFlag)),
+    privateModelRootEnvVar,
     runtimeContainerImage,
     runtimeContainerPlatform,
     allowCpuModelRuntime,

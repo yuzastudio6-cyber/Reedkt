@@ -295,7 +295,25 @@ assert(dockerfile.includes('REEDITPRO_SOUND_CPU_RUNTIME_ENABLED=0'), 'Dockerfile
 assert(dockerfile.includes('REEDITPRO_WORKER_EXECUTION_ENABLED=0'), 'Dockerfile missing disabled worker env')
 assert(dockerfile.includes('REEDITPRO_MEDIA_PROCESSING_ENABLED=0'), 'Dockerfile missing disabled media env')
 assert(dockerfile.includes('USER reeditpro'), 'Dockerfile must use non-root user')
-assert(dockerfile.includes('runtime execution is disabled'), 'Dockerfile must fail closed')
+const hasFailClosedPlaceholder = dockerfile.includes('runtime execution is disabled')
+const hasControlledNoMediaEntrypoint =
+  dockerfile.includes('CMD ["python", "./controlled-tool-execution-runner.py", "--require-disabled-env"]') &&
+  dockerfile.includes(
+    'COPY --chmod=0644 scripts/validation/worker-runtime-jobs-sound-cpu-bounded-external-agent-no-media-controlled-tool-execution-runner.py ./controlled-tool-execution-runner.py',
+  )
+if (hasControlledNoMediaEntrypoint) {
+  const entrypointSource = parseBlock(
+    'docs/worker-runtime-jobs-sound-cpu-controlled-cloud-run-no-media-entrypoint-source.md',
+    'worker-runtime-jobs-sound-cpu-controlled-cloud-run-no-media-entrypoint-source',
+  )
+  assert(
+    entrypointSource.decision ===
+      'worker_runtime_jobs_sound_cpu_controlled_cloud_run_no_media_entrypoint_source_completed_with_warnings_ready_for_image_rebuild_deploy_execution_proof',
+    'controlled no-media entrypoint must be backed by merged source evidence',
+  )
+} else {
+  assert(hasFailClosedPlaceholder, 'Dockerfile must fail closed or use the controlled no-media entrypoint')
+}
 
 const gcpConfig = read('server/config/gcp-production-config.ts')
 const smoke = read('server/smoke/gcp-foundation-config-smoke.ts')

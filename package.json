@@ -724,6 +724,7 @@
     "worker-runtime-jobs:sound-cpu-controlled-cloud-run-no-media-image-rebuild-deploy-execution-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-controlled-cloud-run-no-media-image-rebuild-deploy-execution-proof-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-controlled-cloud-run-no-media-execution-readback-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-controlled-cloud-run-no-media-execution-readback-proof-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-agent-cloud-tool-call-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-agent-cloud-tool-call-proof-diagnostics.mjs",
+    "worker-runtime-jobs:sound-cpu-external-beta-blocker-reconciliation-after-agent-cloud-proof:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-external-beta-blocker-reconciliation-after-agent-cloud-proof-diagnostics.mjs",
     "worker-runtime-jobs:sound-cpu-read-only-gcp-preflight:diagnostics": "node scripts/validation/worker-runtime-jobs-sound-cpu-read-only-gcp-preflight-diagnostics.mjs",
     "reeditpro:e2e-blocker-unlock-0:diagnostics": "node scripts/validation/reeditpro-e2e-blocker-unlock-0-diagnostics.mjs",
     "tool-study-pending-owners-0:diagnostics": "node scripts/validation/tool-study-pending-owners-0-diagnostics.mjs",

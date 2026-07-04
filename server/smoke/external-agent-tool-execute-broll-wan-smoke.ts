@@ -15,7 +15,7 @@ const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF'
 const INFERENCE_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF'
 const CACHE_FILL_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE_FILL'
 const DELEGATED_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11B_MODEL_IMPORT_PROOF'
-const INFERENCE_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11G_INFERENCE_PROOF'
+const INFERENCE_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11H_INFERENCE_PROOF_EXECUTE'
 const CACHE_STAGING_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11E_CLOUD_SIDE_CACHE_STAGING'
 
 function read(relativePath: string): string {
@@ -106,11 +106,12 @@ for (const required of [
   'ai-video-broll-wan-gpu-global-quota-verify.ts',
   'ai-video-broll-wan-fast-cache-readiness-check.ts',
   'ai-video-broll-gen-11b:l4-model-import-runner',
-  'ai-video-broll-gen-11g:bounded-inference-proof-runner',
+  'ai-video-broll-gen-11h:bounded-inference-proof-runner',
   'ai-video-broll-gen-11e:cloud-side-cache-staging-runner',
   'external_agent_broll_wan_inference_proof_static_guard',
   'external_agent_broll_wan_inference_proof_confirmation_blocked',
-  'external_agent_broll_wan_inference_proof_delegated_11g_execution_prompt_required',
+  'external_agent_broll_wan_inference_proof_delegated_11h_result',
+  'external_agent_broll_wan_inference_proof_delegated_11h_blocked_or_failed',
   '--inference-proof',
   'external-agent-tool-prepare-broll-wan-cache',
   '.tmp/external-agent-broll-wan-11e-cloud-side-cache-staging-runner.json',
@@ -196,7 +197,7 @@ assert.equal(inferenceStatic.mode, 'external_agent_broll_wan_inference_proof_sta
 assert.equal(inferenceStatic.executeRequired, true)
 assert.equal(inferenceStatic.confirmationEnv, INFERENCE_CONFIRM_ENV)
 assert.equal(inferenceStatic.delegatedRunnerConfirmationEnv, INFERENCE_RUNNER_CONFIRM_ENV)
-assert.equal(inferenceStatic.delegatedRunnerScript, 'ai-video-broll-gen-11g:bounded-inference-proof-runner')
+assert.equal(inferenceStatic.delegatedRunnerScript, 'ai-video-broll-gen-11h:bounded-inference-proof-runner')
 assert.deepEqual(inferenceStatic.delegatedRunnerArgs, ['--execute'])
 assert.equal(inferenceStatic.runtimeRunNow, false)
 assert.equal(inferenceStatic.computeVmCreated, false)

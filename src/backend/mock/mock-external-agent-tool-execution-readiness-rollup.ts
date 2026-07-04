@@ -224,6 +224,10 @@ export const AI_VIDEO_BROLL_GEN_11G_INFERENCE_PROOF_RUNNER_PROMPT =
   'AI-VIDEO-BROLL-GEN-11G-INFERENCE-PROOF-RUNNER: implement bounded Wan inference proof runner, no execution/no generated video' as const
 export const AI_VIDEO_BROLL_GEN_11H_INFERENCE_PROOF_EXECUTE_PROMPT =
   'AI-VIDEO-BROLL-GEN-11H-INFERENCE-PROOF-EXECUTE: run bounded Wan inference proof with mandatory cleanup, no generated video/no persisted assets' as const
+export const AI_VIDEO_BROLL_GEN_11I_INFERENCE_PROOF_RESULT_REVIEW_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11I-INFERENCE-PROOF-RESULT-REVIEW: review bounded Wan inference proof result, no generated video' as const
+export const AI_VIDEO_BROLL_GEN_11H_FIX_INFERENCE_PROOF_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF: fix blocked bounded Wan inference proof, no generated video' as const
 export const AI_VIDEO_BROLL_GEN_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT =
   'AI-VIDEO-BROLL-GEN-11D-CACHE-STAGING-STRATEGY-FIX: choose approved Wan private cache staging strategy after local upload stall and private URL-list 403, no GPU/no inference' as const
 export const AI_VIDEO_BROLL_GEN_11E_CLOUD_SIDE_CACHE_STAGING_RUNNER_PROMPT =
@@ -233,7 +237,7 @@ export const AI_VIDEO_BROLL_GEN_11E_EXECUTE_CLOUD_SIDE_CACHE_STAGING_PROMPT =
 
 export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
   decision:
-    'external_agent_tool_execution_readiness_qwen_ready_broll_11g_inference_runner_implemented_execution_prompt_required',
+    'external_agent_tool_execution_readiness_qwen_ready_broll_11h_inference_attempt_failed_cleanup_verified_fix_required',
   mode: 'external_agent_tool_execution_readiness_rollup_only',
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
@@ -466,16 +470,28 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     {
       toolId: 'ai_video_broll_generation_wan',
       lane: 'open_source_generated_broll',
-      status: 'bounded_inference_proof_runner_implemented_execution_prompt_required',
+      status: 'bounded_inference_proof_execution_attempted_failed_cleanup_verified_fix_required',
       currentStage:
-        'bounded_wan_inference_proof_runner_implemented_no_execution',
+        'bounded_wan_inference_proof_failed_pipeline_load_timeout_cleanup_verified',
       selectedModelOrTool: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
       selectedGpu: 'nvidia_l4',
       scaleToZeroRequired: true,
-      readyForExternalAgentExecutionNow: true,
+      readyForExternalAgentExecutionNow: false,
       readyForBoundedRetryAfterBlockerClears: true,
-      primaryBlocker: 'bounded_wan_inference_proof_execution_prompt_required',
+      primaryBlocker: 'wan_pipeline_load_timeout_before_latent_inference_canary',
       evidence: [
+        'docs/ai-video-broll-gen-11h-inference-proof-execution-result.md',
+        'src/backend/mock/mock-ai-video-broll-gen-11h-inference-proof-execution-result.ts',
+        'server/smoke/ai-video-broll-gen-11h-inference-proof-execution-result-smoke.ts',
+        'package_json_script:smoke:ai-video-broll-gen-11h-inference-proof-execution-result',
+        'live_summary:11h_inference_proof_failed_pipeline_load_timeout_cleanup_verified',
+        'docs/ai-video-broll-gen-11h-inference-proof-execute.md',
+        'src/backend/mock/mock-ai-video-broll-gen-11h-inference-proof-execute.ts',
+        'server/cli/ai-video-broll-gen-11h-bounded-inference-proof-runner.ts',
+        'server/smoke/ai-video-broll-gen-11h-inference-proof-execute-smoke.ts',
+        'package_json_script:ai-video-broll-gen-11h:bounded-inference-proof-runner',
+        'package_json_script:smoke:ai-video-broll-gen-11h-inference-proof-execute',
+        'live_summary:11h_inference_proof_runner_static_guard_ready_execution_confirmation_required',
         'docs/ai-video-broll-gen-11g-bounded-inference-proof-runner.md',
         'src/backend/mock/mock-ai-video-broll-gen-11g-bounded-inference-proof-runner.ts',
         'server/cli/ai-video-broll-gen-11g-bounded-inference-proof-runner.ts',
@@ -740,7 +756,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'server/smoke/external-agent-tool-blocker-preflight-smoke.ts',
         'server/workers/ai-video-broll-controlled-install/run_wan_l4_private_tabletop_proof.py',
       ],
-      nextAction: AI_VIDEO_BROLL_GEN_11H_INFERENCE_PROOF_EXECUTE_PROMPT,
+      nextAction: AI_VIDEO_BROLL_GEN_11H_FIX_INFERENCE_PROOF_PROMPT,
       manualBlockerActions: [],
       noIdleLifecycleGate: {
         proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
@@ -770,7 +786,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         cacheReadinessCommand: 'npm run ai-video-broll-wan-fast-cache-readiness:check',
         quotaVerificationCommand: 'npm run ai-video-broll-wan-gpu-global-quota:verify',
         nextActionAfterQuotaClears:
-          AI_VIDEO_BROLL_GEN_11H_INFERENCE_PROOF_EXECUTE_PROMPT,
+          AI_VIDEO_BROLL_GEN_11H_FIX_INFERENCE_PROOF_PROMPT,
       },
     },
     {
@@ -823,7 +839,7 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
     },
   ] satisfies ExternalAgentToolReadinessEntry[],
   recommendedNextPrompt:
-    AI_VIDEO_BROLL_GEN_11H_INFERENCE_PROOF_EXECUTE_PROMPT,
+    AI_VIDEO_BROLL_GEN_11H_FIX_INFERENCE_PROOF_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionReadinessRollup =

@@ -74,7 +74,7 @@ function main() {
       String(tool.status) === 'ready_for_bounded_model_import_proof_after_private_cache_staging' ||
       String(tool.status) === 'bounded_model_import_load_proof_reviewed_inference_boundary_plan_required' ||
       String(tool.status) === 'bounded_inference_boundary_planned_runner_required' ||
-      String(tool.status) === 'bounded_inference_proof_runner_implemented_execution_prompt_required',
+      String(tool.status) === 'bounded_inference_proof_execution_attempted_failed_cleanup_verified_fix_required',
   )
   const retryReadyAfterBlockerClears = rollup.tools.filter((tool) => tool.readyForBoundedRetryAfterBlockerClears)
   const noIdleLifecycleGateTools = rollup.tools.filter((tool) => tool.noIdleLifecycleGate)

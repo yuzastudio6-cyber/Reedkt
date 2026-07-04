@@ -305,11 +305,11 @@ assert.equal(brollGateSummary.executionAllowedNow, false)
 assert.equal(brollGateSummary.staticExplicitToolGateReady, true)
 assert.equal(
   brollGateSummary.currentBlocker,
-  'bounded_wan_inference_proof_execution_prompt_required',
+  'wan_pipeline_load_timeout_before_latent_inference_canary',
 )
 assert.equal(
   brollGateSummary.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-11g-bounded-inference-proof-runner',
+  'npm run smoke:ai-video-broll-gen-11h-inference-proof-execution-result',
 )
 assert.equal(brollGateSummary.manualBlockerActions.length, 0)
 assert.equal(brollGateSummary.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

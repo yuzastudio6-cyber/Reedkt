@@ -94,18 +94,18 @@ assert.equal(plan.paidProductionInScope, false)
 assert.equal(plan.dryRunPassedClaimed, false)
 assert.equal(plan.generatedLocalFixturePassedClaimed, false)
 assert.equal(plan.readyForAnyExternalAgentExecutionNow, true)
-assert.deepEqual(plan.readyToolIds, ['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
+assert.deepEqual(plan.readyToolIds, ['qwen2_5_vl_7b_instruct'])
 assert.deepEqual(plan.staticExplicitToolGateReadyToolIds, [
   'qwen2_5_vl_7b_instruct',
   'ai_video_broll_generation_wan',
 ])
 assert.equal(plan.livePreflightRequiredBeforeRuntime, true)
-assert.equal(plan.blockedToolCount, rollup.tools.length - 2)
+assert.equal(plan.blockedToolCount, rollup.tools.length - 1)
 assert.equal(plan.runtimeGatesAllFalse, true)
 assert.deepEqual(plan.safeCommandQueue, rollup.safeNextCommands)
 assert.equal(plan.preferredNextSafeCommand.command, 'npm run external-agent-tool-next-command')
 assert.equal(plan.toolActions.length, rollup.tools.length)
-assert.equal(plan.manualBlockers.length, rollup.tools.length - 2)
+assert.equal(plan.manualBlockers.length, rollup.tools.length - 1)
 assert.equal(plan.sourceRules.approvedSnapshotRequired, true)
 assert.equal(plan.sourceRules.rawChatExecutionAllowed, false)
 assert.equal(plan.sourceRules.remotionOwnsFinalComposition, true)
@@ -185,10 +185,11 @@ assert.equal(broll.externalManualBlocker.includes('11C accepts that passed proof
 assert.equal(broll.externalManualBlocker.includes('11E staged the private GCS Wan model cache with the ready marker'), true)
 assert.equal(broll.externalManualBlocker.includes('11F records the bounded Wan inference boundary plan'), true)
 assert.equal(broll.externalManualBlocker.includes('11G implements the fail-closed inference-proof runner shell'), true)
-assert.equal(broll.externalManualBlocker.includes('11H execution prompt'), true)
+assert.equal(broll.externalManualBlocker.includes('11H attempted the bounded latent inference proof'), true)
+assert.equal(broll.externalManualBlocker.includes('timed out while loading pipeline weights'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run AI-VIDEO-BROLL-GEN-11H-INFERENCE-PROOF-EXECUTE before any Wan inference-proof attempt; the 11B wrapper may only rerun import/load proof with explicit confirmation and the 11G runner remains fail-closed until execution is separately approved',
+  'run AI-VIDEO-BROLL-GEN-11H-FIX-INFERENCE-PROOF before any Wan inference-proof retry; the current 11H attempt failed during pipeline load timeout with cleanup verified',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)

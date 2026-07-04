@@ -18,6 +18,10 @@ interface ProfileRow {
   default_workspace_id?: string | null
 }
 
+type ProfileIdentityColumn = 'user_id' | 'id'
+
+const PROFILE_IDENTITY_COLUMNS: ProfileIdentityColumn[] = ['user_id', 'id']
+
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -35,6 +39,25 @@ function isBackendRequiredError(error: { code?: string; message?: string }): boo
     || message.includes('row-level security')
     || message.includes('permission denied')
     || message.includes('policy')
+  )
+}
+
+function isMissingColumnError(error: { code?: string; message?: string }, columnName: string): boolean {
+  const message = error.message?.toLowerCase() ?? ''
+  const normalizedColumn = columnName.toLowerCase()
+
+  return (
+    error.code === '42703'
+    || error.code === 'PGRST204'
+    || (
+      message.includes(normalizedColumn)
+      && (
+        message.includes('column')
+        || message.includes('schema cache')
+        || message.includes('does not exist')
+        || message.includes('could not find')
+      )
+    )
   )
 }
 
@@ -64,6 +87,10 @@ function currentWorkspaceIdFromProfile(profile?: ProfileRow | null): string | un
   )
 }
 
+function profileIdFromProfile(profile: ProfileRow): string | undefined {
+  return stringValue(profile.id) ?? stringValue(profile.user_id)
+}
+
 function createUserContext(
   user: User,
   profile: ProfileRow | null,
@@ -78,6 +105,57 @@ function createUserContext(
     roles: [],
     bootstrapStatus: status,
   }
+}
+
+async function findProfileByIdentityColumn(
+  column: ProfileIdentityColumn,
+  userId: string,
+): Promise<{ data: ProfileRow | null; error: { code?: string; message?: string } | null }> {
+  const client = getSupabaseClient()
+  if (!client) return { data: null, error: { message: 'Supabase is not configured.' } }
+
+  const { data, error } = await client
+    .from(TABLE_NAMES.profiles)
+    .select('*')
+    .eq(column, userId)
+    .maybeSingle()
+
+  return {
+    data: data as ProfileRow | null,
+    error,
+  }
+}
+
+function profileInsertVariants(user: User): Array<Record<string, unknown>> {
+  const baseProfile = {
+    display_name: displayNameFromUser(user),
+    avatar_url: avatarUrlFromUser(user),
+  }
+  const metadata = {
+    bootstrap_source: 'supabase_frontend',
+    email: user.email,
+  }
+
+  return [
+    {
+      user_id: user.id,
+      ...baseProfile,
+      metadata_json: metadata,
+    },
+    {
+      user_id: user.id,
+      ...baseProfile,
+    },
+    {
+      id: user.id,
+      ...baseProfile,
+      metadata_json: metadata,
+    },
+    {
+      id: user.id,
+      ...baseProfile,
+    },
+  ]
 }
 
 function notConfiguredProfileResult(): UserProfileBootstrapResult {
@@ -110,25 +188,30 @@ export async function getCurrentUserProfile(user?: User | null): Promise<UserPro
 
   if (!currentUser) return signedOutProfileResult()
 
-  const { data, error } = await client
-    .from(TABLE_NAMES.profiles)
-    .select('*')
-    .eq('user_id', currentUser.id)
-    .maybeSingle()
+  let profile: ProfileRow | null = null
+  let lastError: { code?: string; message?: string } | null = null
 
-  if (error) {
+  for (const column of PROFILE_IDENTITY_COLUMNS) {
+    const result = await findProfileByIdentityColumn(column, currentUser.id)
+    profile = result.data
+    lastError = result.error
+
+    if (!lastError || profile) break
+    if (isBackendRequiredError(lastError)) break
+    if (!isMissingColumnError(lastError, column)) break
+  }
+
+  if (lastError) {
     return {
       ok: false,
       status: 'error',
-      mode: isBackendRequiredError(error) ? 'backend_required' : 'supabase_frontend',
-      message: error.message,
-      warnings: isBackendRequiredError(error)
+      mode: isBackendRequiredError(lastError) ? 'backend_required' : 'supabase_frontend',
+      message: lastError.message ?? 'Profile lookup failed.',
+      warnings: isBackendRequiredError(lastError)
         ? ['RLS blocked profile lookup; backend-mediated profile bootstrap may be required.']
         : ['Profile lookup failed.'],
     }
   }
-
-  const profile = data as ProfileRow | null
 
   if (!profile) {
     return {
@@ -146,7 +229,7 @@ export async function getCurrentUserProfile(user?: User | null): Promise<UserPro
     status: 'ready',
     mode: 'supabase_frontend',
     userContext: createUserContext(currentUser, profile, 'ready'),
-    profileId: profile.id,
+    profileId: profileIdFromProfile(profile),
     workspaceId: currentWorkspaceIdFromProfile(profile),
     message: 'ReeditPro profile is ready.',
     warnings: [],
@@ -166,24 +249,33 @@ export async function createUserProfileIfMissing(user?: User | null): Promise<Us
   const existing = await getCurrentUserProfile(currentUser)
   if (existing.ok || existing.status !== 'profile_missing') return existing
 
-  const profileInsert = {
-    user_id: currentUser.id,
-    display_name: displayNameFromUser(currentUser),
-    avatar_url: avatarUrlFromUser(currentUser),
-    metadata_json: {
-      bootstrap_source: 'supabase_frontend',
-      email: currentUser.email,
-    },
+  let profile: ProfileRow | null = null
+  let lastError: { code?: string; message?: string } | null = null
+
+  for (const profileInsert of profileInsertVariants(currentUser)) {
+    const { data, error } = await client
+      .from(TABLE_NAMES.profiles)
+      .insert(profileInsert)
+      .select('*')
+      .single()
+
+    profile = data as ProfileRow | null
+    lastError = error
+
+    if (!lastError && profile) break
+    if (lastError && isBackendRequiredError(lastError)) break
+    if (
+      lastError
+      && !isMissingColumnError(lastError, 'user_id')
+      && !isMissingColumnError(lastError, 'id')
+      && !isMissingColumnError(lastError, 'metadata_json')
+    ) {
+      break
+    }
   }
 
-  const { data, error } = await client
-    .from(TABLE_NAMES.profiles)
-    .insert(profileInsert)
-    .select('*')
-    .single()
-
-  if (error) {
-    const backendRequired = isBackendRequiredError(error)
+  if (lastError || !profile) {
+    const backendRequired = lastError ? isBackendRequiredError(lastError) : false
     return {
       ok: false,
       status: 'profile_missing',
@@ -191,20 +283,19 @@ export async function createUserProfileIfMissing(user?: User | null): Promise<Us
       userContext: createUserContext(currentUser, null, 'profile_missing'),
       message: backendRequired
         ? 'Profile creation is blocked by RLS and needs a backend runtime.'
-        : error.message,
+        : lastError?.message ?? 'Profile creation did not return a profile row.',
       warnings: backendRequired
         ? ['Backend profile creation is required under the current RLS policy.']
         : ['Profile creation failed.'],
     }
   }
 
-  const profile = data as ProfileRow
   return {
     ok: true,
     status: 'ready',
     mode: 'supabase_frontend',
     userContext: createUserContext(currentUser, profile, 'ready'),
-    profileId: profile.id,
+    profileId: profileIdFromProfile(profile),
     message: 'Created ReeditPro profile for the signed-in user.',
     warnings: [],
   }
@@ -230,32 +321,43 @@ export async function updateUserProfileDisplayName(displayName: string): Promise
 
   if (!currentUser) return signedOutProfileResult()
 
-  const { data, error } = await client
-    .from(TABLE_NAMES.profiles)
-    .update({ display_name: displayName })
-    .eq('user_id', currentUser.id)
-    .select('*')
-    .single()
+  let profile: ProfileRow | null = null
+  let lastError: { code?: string; message?: string } | null = null
 
-  if (error) {
+  for (const column of PROFILE_IDENTITY_COLUMNS) {
+    const { data, error } = await client
+      .from(TABLE_NAMES.profiles)
+      .update({ display_name: displayName })
+      .eq(column, currentUser.id)
+      .select('*')
+      .single()
+
+    profile = data as ProfileRow | null
+    lastError = error
+
+    if (!lastError && profile) break
+    if (lastError && isBackendRequiredError(lastError)) break
+    if (lastError && !isMissingColumnError(lastError, column)) break
+  }
+
+  if (lastError || !profile) {
     return {
       ok: false,
       status: 'error',
-      mode: isBackendRequiredError(error) ? 'backend_required' : 'supabase_frontend',
-      message: error.message,
-      warnings: isBackendRequiredError(error)
+      mode: lastError && isBackendRequiredError(lastError) ? 'backend_required' : 'supabase_frontend',
+      message: lastError?.message ?? 'Profile display name update did not return a profile row.',
+      warnings: lastError && isBackendRequiredError(lastError)
         ? ['RLS blocked profile update; backend-mediated profile writes may be required.']
         : ['Profile display name update failed.'],
     }
   }
 
-  const profile = data as ProfileRow
   return {
     ok: true,
     status: 'ready',
     mode: 'supabase_frontend',
     userContext: createUserContext(currentUser, profile, 'ready'),
-    profileId: profile.id,
+    profileId: profileIdFromProfile(profile),
     workspaceId: currentWorkspaceIdFromProfile(profile),
     message: 'Updated profile display name.',
     warnings: [],

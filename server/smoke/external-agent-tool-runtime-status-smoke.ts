@@ -258,6 +258,21 @@ assert.equal(typeof liveStatus.accountSelectionGuidance.visibleAccountCount, 'nu
 assert.equal(Array.isArray(liveStatus.accountSelectionGuidance.visibleAccounts), true)
 assert.equal(Array.isArray(liveStatus.accountSelectionGuidance.tokenRefreshPassedAccountIndexes), true)
 assert.equal(Array.isArray(liveStatus.accountSelectionGuidance.readyAccountIndexes), true)
+if (
+  liveStatus.accountSelectionGuidance.tokenRefreshPassedAccountIndexes.length > 0 &&
+  liveStatus.accountSelectionGuidance.readyAccountIndexes.length === 0
+) {
+  assert.equal(
+    liveStatus.recommendedNextPrompt.includes('Cloud Run and Compute quota read access'),
+    true,
+    'status should point at GCP read-access repair when a visible account can refresh but no account is ready',
+  )
+  assert.equal(
+    liveStatus.recommendedNextPrompt.includes('refresh the active local gcloud account/configuration'),
+    false,
+    'status should not point at active-account refresh when another visible account already refreshes',
+  )
+}
 for (const account of liveStatus.accountSelectionGuidance.visibleAccounts as Array<{
   accountIndex: number
   active: boolean

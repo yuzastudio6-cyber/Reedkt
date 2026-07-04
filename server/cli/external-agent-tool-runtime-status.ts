@@ -6,6 +6,8 @@ type JsonRecord = Record<string, unknown>
 
 const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
 const GCLOUD_ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
+const GCP_READ_ACCESS_REPAIR_PROMPT =
+  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: grant or select a local gcloud account with Cloud Run and Compute quota read access for project reeditpro, then rerun REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-blockers:preflight'
 
 const TOOL_COMMANDS: Record<
   string,
@@ -145,6 +147,40 @@ function nestedNumber(document: JsonRecord | undefined, keys: string[]): number 
     value = (value as JsonRecord)[key]
   }
   return typeof value === 'number' ? value : undefined
+}
+
+function resolveRecommendedNextPrompt({
+  liveChecksRun,
+  cliAccountIndexProvided,
+  tokenRefreshPassedAccountIndexes,
+  readyAccountIndexes,
+  nextCommandJson,
+  liveGateJson,
+}: {
+  liveChecksRun: boolean
+  cliAccountIndexProvided: boolean
+  tokenRefreshPassedAccountIndexes: unknown[]
+  readyAccountIndexes: unknown[]
+  nextCommandJson: JsonRecord | undefined
+  liveGateJson: JsonRecord | undefined
+}): string {
+  const nextCommandPrompt = liveChecksRun ? nestedString(nextCommandJson, ['chosenManualAction']) : undefined
+  const liveGatePrompt = liveChecksRun ? nestedString(liveGateJson, ['recommendedNextPrompt']) : undefined
+
+  if (
+    liveChecksRun &&
+    !cliAccountIndexProvided &&
+    tokenRefreshPassedAccountIndexes.length > 0 &&
+    readyAccountIndexes.length === 0
+  ) {
+    return GCP_READ_ACCESS_REPAIR_PROMPT
+  }
+
+  return (
+    nextCommandPrompt ??
+    liveGatePrompt ??
+    EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.recommendedNextPrompt
+  )
 }
 
 function main() {
@@ -468,10 +504,14 @@ function main() {
       betaUnlocked: false,
       productionUnlocked: false,
     },
-    recommendedNextPrompt:
-      (liveChecksRun && nestedString(nextCommandJson, ['chosenManualAction'])) ||
-      (liveChecksRun && nestedString(liveGateJson, ['recommendedNextPrompt'])) ||
-      EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.recommendedNextPrompt,
+    recommendedNextPrompt: resolveRecommendedNextPrompt({
+      liveChecksRun,
+      cliAccountIndexProvided: accountIndexOverride.cliAccountIndexProvided,
+      tokenRefreshPassedAccountIndexes,
+      readyAccountIndexes,
+      nextCommandJson,
+      liveGateJson,
+    }),
     probeSummaries: [
       {
         id: gcpRepairPlan.id,

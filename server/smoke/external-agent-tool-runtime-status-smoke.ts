@@ -81,6 +81,7 @@ for (const required of [
   'external_agent_tool_runtime_status_report',
   'agentCallable',
   'runtimeExecutableNow',
+  'accountSelectionGuidance',
   'safePreflightCommand',
   'external-agent-tool-execute-qwen -- --preflight-only',
   'external-agent-tool-execute-broll-wan -- --preflight-only',
@@ -163,6 +164,24 @@ assert.equal(
 for (const [flag, value] of Object.entries(staticStatus.gcpAccessRepair.runtimeSideEffects)) {
   assert.equal(value, false, `GCP repair side-effect flag must remain false: ${flag}`)
 }
+assert.equal(
+  staticStatus.accountSelectionGuidance.diagnosticCommand,
+  'npm run external-agent-gcloud-account-access:diagnostic',
+)
+assert.equal(staticStatus.accountSelectionGuidance.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
+assert.equal(staticStatus.accountSelectionGuidance.overrideEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT')
+assert.equal(
+  staticStatus.accountSelectionGuidance.indexedRuntimeStatusCommand,
+  'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-runtime-status',
+)
+assert.equal(
+  staticStatus.accountSelectionGuidance.indexedPreflightCommand,
+  'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-blockers:preflight',
+)
+assert.equal(staticStatus.accountSelectionGuidance.mutatesLocalGcloudConfig, false)
+assert.equal(staticStatus.accountSelectionGuidance.printsAccountValue, false)
+assert.equal(staticStatus.accountSelectionGuidance.tokenStdoutSuppressed, true)
+assert.equal(staticStatus.accountSelectionGuidance.liveAccountDiagnosticsRun, false)
 assert.equal(staticStatus.tools.length, 4)
 
 const staticToolsById = new Map(staticStatus.tools.map((tool: { toolId: string }) => [tool.toolId, tool]))
@@ -212,6 +231,28 @@ assert.equal(liveStatus.agentCallableToolCount, 4)
 assert.equal(liveStatus.runtimeGatesAllFalse, true)
 assert.equal(typeof liveStatus.liveGate.ok, 'boolean')
 assert.equal(typeof liveStatus.liveGate.executionAllowedNow, 'boolean')
+assert.equal(liveStatus.accountSelectionGuidance.liveAccountDiagnosticsRun, true)
+assert.equal(typeof liveStatus.accountSelectionGuidance.visibleAccountCount, 'number')
+assert.equal(Array.isArray(liveStatus.accountSelectionGuidance.visibleAccounts), true)
+assert.equal(Array.isArray(liveStatus.accountSelectionGuidance.tokenRefreshPassedAccountIndexes), true)
+assert.equal(Array.isArray(liveStatus.accountSelectionGuidance.readyAccountIndexes), true)
+for (const account of liveStatus.accountSelectionGuidance.visibleAccounts as Array<{
+  accountIndex: number
+  active: boolean
+  tokenRefreshPassed: boolean
+  qwenReadAccessPassed: boolean
+  brollQuotaReadAccessPassed: boolean
+  brollQuotaSufficient: boolean
+  blockers: Record<string, string>
+}>) {
+  assert.equal(typeof account.accountIndex, 'number')
+  assert.equal(typeof account.active, 'boolean')
+  assert.equal(typeof account.tokenRefreshPassed, 'boolean')
+  assert.equal(typeof account.qwenReadAccessPassed, 'boolean')
+  assert.equal(typeof account.brollQuotaReadAccessPassed, 'boolean')
+  assert.equal(typeof account.brollQuotaSufficient, 'boolean')
+  assert.equal(typeof account.blockers, 'object')
+}
 assert.equal(liveStatus.gcpAccessRepair.ok, true)
 assert.equal(Array.isArray(liveStatus.gcpAccessRepair.postRepairVerificationCommands), true)
 assert.equal(

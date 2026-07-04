@@ -109,6 +109,12 @@ function main() {
     'tsx',
     'server/cli/external-agent-gcp-access-repair-plan.ts',
   ])
+  const accountAccessDiagnostic = liveChecksRun
+    ? runJson('gcloud_account_access_diagnostic', 'npx', [
+        'tsx',
+        'server/cli/external-agent-gcloud-account-access-diagnostic.ts',
+      ])
+    : undefined
   const liveGate = liveChecksRun
     ? runJson('live_execution_gate', 'npx', [
         'tsx',
@@ -122,6 +128,34 @@ function main() {
 
   const liveGateJson = liveGate?.json
   const nextCommandJson = nextCommand?.json
+  const accountAccessDiagnosticJson = accountAccessDiagnostic?.json
+  const visibleAccounts = Array.isArray(accountAccessDiagnosticJson?.accountDiagnostics)
+    ? accountAccessDiagnosticJson.accountDiagnostics.map((account) => {
+        const row = account as JsonRecord
+        const blockers = row.blockers && typeof row.blockers === 'object' ? (row.blockers as JsonRecord) : {}
+        return {
+          accountIndex: row.accountIndex,
+          active: row.active,
+          tokenRefreshPassed: row.tokenRefreshPassed,
+          qwenReadAccessPassed: row.qwenReadAccessPassed,
+          brollQuotaReadAccessPassed: row.brollQuotaReadAccessPassed,
+          brollQuotaSufficient: row.brollQuotaSufficient,
+          blockers,
+        }
+      })
+    : []
+  const tokenRefreshPassedAccountIndexes = visibleAccounts
+    .filter((account) => account.tokenRefreshPassed === true)
+    .map((account) => account.accountIndex)
+  const readyAccountIndexes = visibleAccounts
+    .filter(
+      (account) =>
+        account.tokenRefreshPassed === true &&
+        account.qwenReadAccessPassed === true &&
+        account.brollQuotaReadAccessPassed === true &&
+        account.brollQuotaSufficient === true,
+    )
+    .map((account) => account.accountIndex)
   const liveReadyToolIds = asStringArray(liveGateJson?.readyToolIds)
   const staticExplicitToolGateReadyToolIds = asStringArray(
     liveChecksRun
@@ -288,6 +322,33 @@ function main() {
       runtimeGatesAllFalse: gcpRepairPlan.json?.runtimeGatesAllFalse,
       runtimeSideEffects: gcpRepairPlan.json?.runtimeSideEffects,
     },
+    accountSelectionGuidance: {
+      diagnosticCommand: 'npm run external-agent-gcloud-account-access:diagnostic',
+      overrideIndexEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX',
+      overrideEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT',
+      indexedRuntimeStatusCommand:
+        'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-runtime-status',
+      indexedPreflightCommand:
+        'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-blockers:preflight',
+      indexedAccessVerifyCommand:
+        'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-gcp-access:verify',
+      mutatesLocalGcloudConfig: false,
+      printsAccountValue: false,
+      tokenStdoutSuppressed: true,
+      liveAccountDiagnosticsRun: liveChecksRun,
+      visibleAccountCount: liveChecksRun
+        ? nestedNumber(accountAccessDiagnosticJson, ['accountCount'])
+        : undefined,
+      tokenRefreshPassedAccountIndexes: liveChecksRun ? tokenRefreshPassedAccountIndexes : undefined,
+      readyAccountIndexes: liveChecksRun ? readyAccountIndexes : undefined,
+      visibleAccounts: liveChecksRun ? visibleAccounts : undefined,
+      noReadyAccountInterpretation:
+        liveChecksRun && readyAccountIndexes.length === 0
+          ? 'no visible local account can currently satisfy both Qwen Cloud Run read access and B-roll quota read/quota sufficiency'
+          : undefined,
+      nextAfterAccountRepair:
+        'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-runtime-status',
+    },
     nextCommand: liveChecksRun
       ? {
           ok: nextCommand?.ok === true,
@@ -350,6 +411,15 @@ function main() {
         mode: gcpRepairPlan.json?.mode,
         decision: gcpRepairPlan.json?.decision,
       },
+      accountAccessDiagnostic
+        ? {
+            id: accountAccessDiagnostic.id,
+            ok: accountAccessDiagnostic.ok,
+            exitCode: accountAccessDiagnostic.exitCode,
+            mode: accountAccessDiagnostic.json?.mode,
+            decision: accountAccessDiagnostic.json?.decision,
+          }
+        : undefined,
       {
         id: readiness.id,
         ok: readiness.ok,

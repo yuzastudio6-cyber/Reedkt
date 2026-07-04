@@ -227,15 +227,29 @@ async function verifyWalletSettlementRpc(
         'Fix deployed settle_tool_cost_event RPC or staging fixture event before recording platform evidence.',
       )
     }
+    const settlementRow = firstDataRow(result.data)
+    const settlementMetadata = settlementMetadataJson(settlementRow)
+    const walletStateUpdated = settlementMetadata?.wallet_state_updated === true ||
+      settlementMetadata?.wallet_state_updated === 'true'
+    const settled = settlementRow?.status === 'settled'
+    if (!settlementRow || !settled || !walletStateUpdated) {
+      return {
+        ok: false,
+        evidence: [
+          `Wallet settlement RPC returned row=${Boolean(settlementRow)}, status=${String(settlementRow?.status ?? 'missing')}, wallet_state_updated=${String(walletStateUpdated)}.`,
+        ],
+        nextAction: 'Use an approved billable staging fixture event and verify the deployed wallet state-update migration before recording platform evidence.',
+      }
+    }
+
     return {
-      ok: Boolean(result.data),
+      ok: true,
       evidence: [
-        `Wallet settlement RPC returned a settlement row=${Boolean(result.data)} for the approved staging fixture event.`,
+        `Wallet settlement RPC returned a settled row for the approved billable staging fixture event ${String(settlementRow.tool_cost_event_id ?? options.walletSettlementProbeToolCostEventId)}.`,
+        'The deployed RPC recorded wallet_state_updated=true, proving the state-update migration is active for this fixture.',
         'Stripe was not called by this RPC probe.',
       ],
-      nextAction: result.data
-        ? 'No action; deployed wallet settlement RPC probe passed.'
-        : 'Fix deployed settle_tool_cost_event RPC return shape before recording platform evidence.',
+      nextAction: 'No action; deployed wallet settlement state-update RPC probe passed.',
     }
   } catch (error) {
     return {
@@ -306,4 +320,27 @@ function safeErrorSummary(error: unknown): string {
     }
   }
   return 'operation failed'
+}
+
+function firstDataRow(data: unknown): Record<string, unknown> | null {
+  if (Array.isArray(data)) {
+    const first = data[0]
+    return first && typeof first === 'object' ? first as Record<string, unknown> : null
+  }
+  return data && typeof data === 'object' ? data as Record<string, unknown> : null
+}
+
+function settlementMetadataJson(row: Record<string, unknown> | null): Record<string, unknown> | null {
+  if (!row) return null
+  const metadata = row.metadata_json ?? row.metadata
+  if (!metadata) return null
+  if (typeof metadata === 'string') {
+    try {
+      const parsed = JSON.parse(metadata) as unknown
+      return parsed && typeof parsed === 'object' ? parsed as Record<string, unknown> : null
+    } catch {
+      return null
+    }
+  }
+  return metadata && typeof metadata === 'object' ? metadata as Record<string, unknown> : null
 }

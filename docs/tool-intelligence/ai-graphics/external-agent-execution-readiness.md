@@ -61,6 +61,7 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `externalBetaReadyNowTools`: 0
 - `productionReadyNowTools`: 0
 - `fastestGpuModelUnlockCandidateTools`: 1
+- `privateLocalRuntimeProofResultSuppliedTools`: 0
 
 ## Fastest GPU/Model Unlock Candidate
 
@@ -73,6 +74,7 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - Next direct harness command: `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png>`
 - Next controlled route command: `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm`
 - Next proof-ref bridge command: `npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json`
+- Next direct readiness command with private proof: `npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json`
 
 ## Booleans
 
@@ -85,6 +87,7 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `gpuModelToolsBlockedUntilPrerequisites`: true
 - `gpuModelProofRefBridgeBlocksUntilPrivateProof`: true
 - `scopedGpuModelRuntimeProofAcceptedTools`: 0
+- `privateLocalRuntimeProofResultSupplied`: false
 - `strictCallableExecutableBlockedFailedContractCreated`: true
 - `gpuRuntimeOnDemandOnly`: true
 - `noIdleGpuRuntimeApproved`: true

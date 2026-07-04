@@ -20,6 +20,7 @@
       "status": "local_dev_runtime_inputs_required_before_eight_gpu_model_tools_execute",
       "accepted": true
     },
+    "suppliedPrivateLocalRuntimeProofResult": null,
     "externalAgentExecutionGate": {
       "decision": "ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings",
       "status": "external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked",
@@ -51,7 +52,8 @@
     "runtimeReadyNowTools": 0,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0,
-    "fastestGpuModelUnlockCandidateTools": 1
+    "fastestGpuModelUnlockCandidateTools": 1,
+    "privateLocalRuntimeProofResultSuppliedTools": 0
   },
   "booleans": {
     "externalAgentExecutionReadinessCompleted": true,
@@ -63,6 +65,7 @@
     "gpuModelToolsBlockedUntilPrerequisites": true,
     "gpuModelProofRefBridgeBlocksUntilPrivateProof": true,
     "scopedGpuModelRuntimeProofAcceptedTools": 0,
+    "privateLocalRuntimeProofResultSupplied": false,
     "strictCallableExecutableBlockedFailedContractCreated": true,
     "gpuRuntimeOnDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,
@@ -1288,6 +1291,7 @@
     "nextExactCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png>",
     "nextExactControlledRouteCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm",
     "nextExactProofRefBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
+    "nextExactReadinessWithPrivateProofCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
     "expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached": "gpu_model_runtime_container_gpu_unavailable",
     "remainsBlockedUntil": "Run on an approved native Linux/amd64 NVIDIA CUDA host with the canonical proof image available and a private approved source frame mounted locally."
   },

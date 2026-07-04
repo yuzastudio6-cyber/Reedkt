@@ -12,8 +12,10 @@ import { AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS } from
 
 const decision =
   'ai_graphics_external_agent_execution_readiness_all21_evaluated_with_gpu_model_blocks'
-const status =
+const defaultStatus =
   'external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof'
+const privateProofStatus =
+  'external_agent_call_ready_for_all21_runtime_execution_ready_for13_plus_private_gpu_model_proof_subset'
 const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.json'
 const outputMdPath =
@@ -67,6 +69,21 @@ function readJson(file: string): JsonRecord {
 
 function runJsonCommand(command: string): JsonRecord {
   const output = childProcess.execSync(command, {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: 160 * 1024 * 1024,
+    env: {
+      ...process.env,
+      DEVELOPER_DIR:
+        process.env.DEVELOPER_DIR ?? '/Library/Developer/CommandLineTools',
+    },
+  })
+  return JSON.parse(output) as JsonRecord
+}
+
+function runJsonFileCommand(command: string, args: string[]): JsonRecord {
+  const output = childProcess.execFileSync(command, args, {
     cwd: process.cwd(),
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -211,10 +228,52 @@ function proofRefBridgeCommand(): string {
   ].join(' ')
 }
 
+function directReadinessWithPrivateProofCommand(): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-execution-readiness --',
+    '--local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
+  ].join(' ')
+}
+
 function nextGpuCommand(toolId: string): string {
   return toolId === 'kornia'
     ? containerGpuCommand(toolId)
     : hostPythonGpuCommand(toolId)
+}
+
+function mergeGpuHarnessWithPrivateProof(
+  sourceHarness: JsonRecord,
+  suppliedPrivateProof?: JsonRecord,
+): JsonRecord {
+  if (!suppliedPrivateProof) return sourceHarness
+
+  const sourceRows = Array.isArray(
+    sourceHarness.gpuModelLocalDevRuntimeExecutionHarnessRows,
+  )
+    ? sourceHarness.gpuModelLocalDevRuntimeExecutionHarnessRows
+    : []
+  const suppliedRows = Array.isArray(
+    suppliedPrivateProof.gpuModelLocalDevRuntimeExecutionHarnessRows,
+  )
+    ? suppliedPrivateProof.gpuModelLocalDevRuntimeExecutionHarnessRows
+    : []
+  const rowsByTool = new Map<string, JsonRecord>(
+    sourceRows.map((row: JsonRecord) => [String(row.toolId), row]),
+  )
+  for (const row of suppliedRows) {
+    if (typeof row?.toolId === 'string') rowsByTool.set(row.toolId, row)
+  }
+
+  return {
+    ...sourceHarness,
+    privateLocalRuntimeProofMergedIntoRows: true,
+    suppliedPrivateLocalRuntimeProofResult: {
+      decision: suppliedPrivateProof.decision ?? null,
+      status: suppliedPrivateProof.status ?? null,
+      suppliedRows: suppliedRows.length,
+    },
+    gpuModelLocalDevRuntimeExecutionHarnessRows: [...rowsByTool.values()],
+  }
 }
 
 function buildToolRows(
@@ -401,24 +460,55 @@ function buildToolRows(
 }
 
 function buildReport() {
+  const localRuntimeProofResultPath = stringFlag('--local-runtime-proof-result')
+  if (localRuntimeProofResultPath && hasFlag('--write-records')) {
+    throw new Error(
+      '--write-records cannot be combined with --local-runtime-proof-result; private proof results must stay local-only.',
+    )
+  }
+  if (
+    localRuntimeProofResultPath &&
+    stringFlag('--gpu-runtime-proof-ref-bridge-packet')
+  ) {
+    throw new Error(
+      '--local-runtime-proof-result cannot be combined with --gpu-runtime-proof-ref-bridge-packet.',
+    )
+  }
+
   const routeSmoke = sourceReport(
     '--all21-route-smoke-packet',
     'docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json',
     'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke',
   )
-  const gpuHarness = sourceReport(
+  const sourceGpuHarness = sourceReport(
     '--gpu-local-dev-harness-packet',
     'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json',
     'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness',
+  )
+  const suppliedPrivateLocalRuntimeProof = localRuntimeProofResultPath
+    ? readJson(localRuntimeProofResultPath)
+    : undefined
+  const gpuHarness = mergeGpuHarnessWithPrivateProof(
+    sourceGpuHarness,
+    suppliedPrivateLocalRuntimeProof,
   )
   const executionGate = readJson(
     stringFlag('--execution-gate-packet') ??
       'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
   )
-  const gpuProofRefBridge = readJson(
-    stringFlag('--gpu-runtime-proof-ref-bridge-packet') ??
-      'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json',
-  )
+  const gpuProofRefBridge = localRuntimeProofResultPath
+    ? runJsonFileCommand('npm', [
+        'run',
+        '--silent',
+        'ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge',
+        '--',
+        '--local-runtime-proof-result',
+        localRuntimeProofResultPath,
+      ])
+    : readJson(
+        stringFlag('--gpu-runtime-proof-ref-bridge-packet') ??
+          'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json',
+      )
 
   assert(
     routeSmoke.decision ===
@@ -426,10 +516,17 @@ function buildReport() {
     'all-21 controlled route smoke decision mismatch',
   )
   assert(
-    gpuHarness.decision ===
+      sourceGpuHarness.decision ===
       'ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_prepared_with_runtime_blocks',
     'GPU/model local-dev harness decision mismatch',
   )
+  if (suppliedPrivateLocalRuntimeProof) {
+    assert(
+      suppliedPrivateLocalRuntimeProof.decision ===
+        'ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_prepared_with_runtime_blocks',
+      'supplied private GPU/model local-dev proof decision mismatch',
+    )
+  }
   assert(
     executionGate.decision ===
       'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings',
@@ -457,7 +554,7 @@ function buildReport() {
     schemaVersion:
       '2026-07-03.ai-graphics.external-agent-execution-readiness',
     decision,
-    status,
+    status: gpuExecutableTools.length > 0 ? privateProofStatus : defaultStatus,
     summary:
       'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence. GPU/model tools remain blocked_with_reason until approved native CUDA, private model/input paths, and private proof refs are supplied for a scoped on-demand call.',
     stateDefinitions: {
@@ -477,10 +574,18 @@ function buildReport() {
         accepted: true,
       },
       gpuModelLocalDevRuntimeExecutionHarness: {
-        decision: gpuHarness.decision,
-        status: gpuHarness.status,
+        decision: sourceGpuHarness.decision,
+        status: sourceGpuHarness.status,
         accepted: true,
       },
+      suppliedPrivateLocalRuntimeProofResult: suppliedPrivateLocalRuntimeProof
+        ? {
+            path: localRuntimeProofResultPath,
+            decision: suppliedPrivateLocalRuntimeProof.decision,
+            status: suppliedPrivateLocalRuntimeProof.status,
+            mergedIntoReadinessRows: true,
+          }
+        : null,
       externalAgentExecutionGate: {
         decision: executionGate.decision,
         status: executionGate.status,
@@ -531,6 +636,16 @@ function buildReport() {
         toolRows.filter((row) => row.productionReadyNow).length,
       fastestGpuModelUnlockCandidateTools:
         toolRows.filter((row) => row.fastestGpuModelUnlockCandidate).length,
+      privateLocalRuntimeProofResultSuppliedTools:
+        suppliedPrivateLocalRuntimeProof &&
+        Array.isArray(
+          suppliedPrivateLocalRuntimeProof
+            .gpuModelLocalDevRuntimeExecutionHarnessRows,
+        )
+          ? suppliedPrivateLocalRuntimeProof
+              .gpuModelLocalDevRuntimeExecutionHarnessRows
+              .length
+          : 0,
     },
     booleans: {
       externalAgentExecutionReadinessCompleted: true,
@@ -547,6 +662,8 @@ function buildReport() {
           .filter((row) => row.group === 'gpu_model')
           .every((row) => row.routeSubmissionReadyWithAcceptedPrivateProof === false),
       scopedGpuModelRuntimeProofAcceptedTools: gpuExecutableTools.length,
+      privateLocalRuntimeProofResultSupplied:
+        Boolean(suppliedPrivateLocalRuntimeProof),
       strictCallableExecutableBlockedFailedContractCreated: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
@@ -602,6 +719,8 @@ function buildReport() {
       nextExactCommand: containerGpuCommand('kornia'),
       nextExactControlledRouteCommand: controlledRouteGpuCommand('kornia'),
       nextExactProofRefBridgeCommand: proofRefBridgeCommand(),
+      nextExactReadinessWithPrivateProofCommand:
+        directReadinessWithPrivateProofCommand(),
       expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached:
         'gpu_model_runtime_container_gpu_unavailable',
       remainsBlockedUntil:
@@ -652,6 +771,7 @@ ${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).
 - Next direct harness command: \`${report.fastestGpuModelUnlockCandidate.nextExactCommand}\`
 - Next controlled route command: \`${report.fastestGpuModelUnlockCandidate.nextExactControlledRouteCommand}\`
 - Next proof-ref bridge command: \`${report.fastestGpuModelUnlockCandidate.nextExactProofRefBridgeCommand}\`
+- Next direct readiness command with private proof: \`${report.fastestGpuModelUnlockCandidate.nextExactReadinessWithPrivateProofCommand}\`
 
 ## Booleans
 

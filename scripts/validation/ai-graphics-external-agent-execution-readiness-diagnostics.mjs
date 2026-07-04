@@ -238,6 +238,7 @@ function checkReport(label, report) {
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
     fastestGpuModelUnlockCandidateTools: 1,
+    privateLocalRuntimeProofResultSuppliedTools: 0,
   }
   for (const [key, value] of Object.entries(expectedCounts)) {
     if (counts[key] !== value) fail(`${label}_count_mismatch:${key}:${counts[key]}`)
@@ -268,6 +269,7 @@ function checkReport(label, report) {
     'gpuRuntimeShouldStartNow',
     'agentCanExecuteAll21ToolsNow',
     'agentCanExecuteGpuModelToolsNow',
+    'privateLocalRuntimeProofResultSupplied',
     'toolExecutionApprovedForGpuModelToolsNow',
     'toolExecutionApprovedForAll21ToolsNow',
     'workerExecutionApprovedNow',
@@ -529,6 +531,22 @@ if (
 ) {
   fail('fastest_gpu_unlock_candidate_proof_ref_bridge_missing_private_result_flag')
 }
+if (
+  !String(
+    docs.fastestGpuModelUnlockCandidate
+      ?.nextExactReadinessWithPrivateProofCommand ?? '',
+  ).includes('ai-graphics:external-agent-execution-readiness')
+) {
+  fail('fastest_gpu_unlock_candidate_missing_private_proof_readiness_command')
+}
+if (
+  !String(
+    docs.fastestGpuModelUnlockCandidate
+      ?.nextExactReadinessWithPrivateProofCommand ?? '',
+  ).includes('--local-runtime-proof-result')
+) {
+  fail('fastest_gpu_unlock_candidate_readiness_command_missing_private_result_flag')
+}
 for (const flag of [
   '--scoped-gpu-tool kornia',
   '--scoped-gpu-runtime-container-image',
@@ -548,6 +566,18 @@ for (const flag of [
 checkReport('docs', docs)
 const live = JSON.parse(exec(`npm run --silent ${runScriptName}`))
 checkReport('live', live)
+
+const cli = read('server/cli/ai-graphics-external-agent-execution-readiness.ts')
+for (const phrase of [
+  '--local-runtime-proof-result',
+  '--write-records cannot be combined with --local-runtime-proof-result',
+  'mergeGpuHarnessWithPrivateProof',
+  'runJsonFileCommand',
+  'privateProofStatus',
+  'nextExactReadinessWithPrivateProofCommand',
+]) {
+  if (!cli.includes(phrase)) fail(`cli_missing_private_proof_phrase:${phrase}`)
+}
 
 if (routeSmoke.counts?.controlledRouteAdapterExecutedTools !== 13) {
   fail('route_smoke_executed_count_not_13')
@@ -588,6 +618,7 @@ for (const phrase of [
   'Fastest GPU/Model Unlock Candidate',
   'Next controlled route command',
   'Next proof-ref bridge command',
+  'Next direct readiness command with private proof',
   'gpu_model_runtime_container_gpu_unavailable',
 ]) {
   if (!markdown.includes(phrase)) fail(`markdown_missing_phrase:${phrase}`)

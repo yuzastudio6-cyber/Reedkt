@@ -528,6 +528,7 @@ async function buildReport(args: HarnessArgs) {
       capabilityId: request.capabilityId,
       adapterDecision: result.decision,
       adapterStatus: result.status,
+      executionState: result.executionState,
       controlledAdapterExecutableNow: result.controlledAdapterExecutableNow,
       controlledAdapterInvokedNow: result.controlledAdapterInvokedNow,
       harnessMode: args.attemptLocalRuntime

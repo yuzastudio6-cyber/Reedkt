@@ -277,6 +277,13 @@ if (
   fail('source_proof_ref_route_caller_decision_mismatch')
 }
 
+for (const row of sourceHarness.gpuModelLocalDevRuntimeExecutionHarnessRows ?? []) {
+  if (!gpuModelTools.includes(row.toolId)) continue
+  if (row.executionState !== 'blocked_with_reason') {
+    fail(`source_harness_execution_state_mismatch:${row.toolId}:${row.executionState}`)
+  }
+}
+
 for (const [key, expected] of Object.entries(expectedCounts)) {
   if (report.counts?.[key] !== expected) {
     fail(`count_mismatch:${key}:expected_${expected}:got_${report.counts?.[key]}`)

@@ -415,6 +415,9 @@ for (const tool of tools) {
   if (row.adapterDecision !== 'ai_graphics_external_agent_gpu_model_controlled_adapter_executable_eight_on_demand_with_runtime_blocks') {
     fail(`adapter_decision_mismatch:${tool}`)
   }
+  if (row.executionState !== 'blocked_with_reason') {
+    fail(`execution_state_mismatch:${tool}:${row.executionState}`)
+  }
   if (row.harnessMode !== 'local_dev_prerequisite_check_only') {
     fail(`harness_mode_mismatch:${tool}`)
   }
@@ -461,6 +464,9 @@ if (scopedRows.length !== 1 || scopedRows[0]?.toolId !== 'kornia') {
 if (scopedRows[0]?.skipReasonCode !== 'kornia_source_frame_missing') {
   fail(`scoped_output_unexpected_skip_reason:${scopedRows[0]?.skipReasonCode}`)
 }
+if (scopedRows[0]?.executionState !== 'blocked_with_reason') {
+  fail(`scoped_output_unexpected_execution_state:${scopedRows[0]?.executionState}`)
+}
 
 const source = [
   read('docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json'),
@@ -488,6 +494,7 @@ for (const requiredSourceToken of [
   'privateLocalRuntimeInputBlock',
   'private-input-preflight',
   'missingPrivateInputsBlockBeforeGpuStartup',
+  'executionState',
 ]) {
   if (!joinedSource.includes(requiredSourceToken)) {
     fail(`missing_container_runtime_source_token:${requiredSourceToken}`)

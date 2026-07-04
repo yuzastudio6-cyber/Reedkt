@@ -97,6 +97,45 @@ assert.ok(
   'missing ops admission RPC proof should name the exact RPC deployment gap',
 )
 
+const killSwitchBlockProofBlocked = evaluateProductionToolExecutionReadinessGate({
+  ...completeEvidence,
+  operationsControls: {
+    ...completeEvidence.operationsControls!,
+    killSwitchBlockVerified: false,
+  },
+})
+assert.equal(killSwitchBlockProofBlocked.productionToolExecutionAllowed, false, 'missing kill-switch negative-control proof should block production')
+assert.ok(
+  killSwitchBlockProofBlocked.blockers.some((blocker) => blocker.includes('kill-switch blocking behavior')),
+  'missing kill-switch negative-control proof should be named',
+)
+
+const rateLimitBlockProofBlocked = evaluateProductionToolExecutionReadinessGate({
+  ...completeEvidence,
+  operationsControls: {
+    ...completeEvidence.operationsControls!,
+    rateLimitBlockVerified: false,
+  },
+})
+assert.equal(rateLimitBlockProofBlocked.productionToolExecutionAllowed, false, 'missing rate-limit negative-control proof should block production')
+assert.ok(
+  rateLimitBlockProofBlocked.blockers.some((blocker) => blocker.includes('rate-limit blocking behavior')),
+  'missing rate-limit negative-control proof should be named',
+)
+
+const concurrencyBlockProofBlocked = evaluateProductionToolExecutionReadinessGate({
+  ...completeEvidence,
+  operationsControls: {
+    ...completeEvidence.operationsControls!,
+    concurrencyLimitBlockVerified: false,
+  },
+})
+assert.equal(concurrencyBlockProofBlocked.productionToolExecutionAllowed, false, 'missing concurrency-limit negative-control proof should block production')
+assert.ok(
+  concurrencyBlockProofBlocked.blockers.some((blocker) => blocker.includes('concurrency-limit blocking behavior')),
+  'missing concurrency-limit negative-control proof should be named',
+)
+
 const refundBlocked = evaluateProductionToolExecutionReadinessGate({
   ...completeEvidence,
   walletSettlement: {
@@ -155,6 +194,9 @@ console.log(JSON.stringify({
   walletStateMigrationBlocked: walletStateMigrationBlocked.blockers.length,
   productionEvidenceBackendOnlyBlocked: productionEvidenceBackendOnlyBlocked.blockers.length,
   opsAdmissionRpcBlocked: opsAdmissionRpcBlocked.blockers.length,
+  killSwitchBlockProofBlocked: killSwitchBlockProofBlocked.blockers.length,
+  rateLimitBlockProofBlocked: rateLimitBlockProofBlocked.blockers.length,
+  concurrencyBlockProofBlocked: concurrencyBlockProofBlocked.blockers.length,
   refundBlocked: refundBlocked.blockers.length,
   provenanceBlocked: provenanceBlocked.blockers.length,
   paidProductionAllowed: passingReport.paidProductionAllowed,
@@ -223,8 +265,11 @@ function productionEvidenceFixture(): ProductionToolExecutionReadinessGateInput 
       ...reviewedEvidence('Operations controls'),
       rollbackPlanApproved: true,
       killSwitchesVerified: true,
+      killSwitchBlockVerified: true,
       rateLimitsVerified: true,
+      rateLimitBlockVerified: true,
       concurrencyLimitsVerified: true,
+      concurrencyLimitBlockVerified: true,
       opsAdmissionRpcDeployed: true,
       opsAdmissionRpcServiceRoleOnlyVerified: true,
       opsAdmissionRpcReadbackVerified: true,

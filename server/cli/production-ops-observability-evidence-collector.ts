@@ -88,8 +88,11 @@ export async function runProductionOpsObservabilityEvidenceCollectorFromEnv(
     checks: {
       rollbackPlanApproved: Boolean(input.operationsControls?.rollbackPlanApproved),
       killSwitchesVerified: Boolean(input.operationsControls?.killSwitchesVerified),
+      killSwitchBlockVerified: Boolean(input.operationsControls?.killSwitchBlockVerified),
       rateLimitsVerified: Boolean(input.operationsControls?.rateLimitsVerified),
+      rateLimitBlockVerified: Boolean(input.operationsControls?.rateLimitBlockVerified),
       concurrencyLimitsVerified: Boolean(input.operationsControls?.concurrencyLimitsVerified),
+      concurrencyLimitBlockVerified: Boolean(input.operationsControls?.concurrencyLimitBlockVerified),
       opsAdmissionRpcDeployed: Boolean(input.operationsControls?.opsAdmissionRpcDeployed),
       opsAdmissionRpcServiceRoleOnlyVerified: Boolean(input.operationsControls?.opsAdmissionRpcServiceRoleOnlyVerified),
       opsAdmissionRpcReadbackVerified: Boolean(input.operationsControls?.opsAdmissionRpcReadbackVerified),

@@ -75,8 +75,11 @@ export interface ProductionObservabilityEvidence extends ProductionToolExecution
 export interface ProductionOperationsControlEvidence extends ProductionToolExecutionEvidenceNotes {
   rollbackPlanApproved: boolean
   killSwitchesVerified: boolean
+  killSwitchBlockVerified: boolean
   rateLimitsVerified: boolean
+  rateLimitBlockVerified: boolean
   concurrencyLimitsVerified: boolean
+  concurrencyLimitBlockVerified: boolean
   opsAdmissionRpcDeployed: boolean
   opsAdmissionRpcServiceRoleOnlyVerified: boolean
   opsAdmissionRpcReadbackVerified: boolean
@@ -229,10 +232,16 @@ export function evaluateProductionToolExecutionReadinessGate(
     walletReserveSpendReleaseRefundReady: isWalletSettlementReady(input),
     stripeBoundaryConfirmed: isStripeBoundaryReady(input),
     observabilityAlertsReady: isObservabilityReady(input),
-    rollbackKillSwitchesReady: Boolean(input.operationsControls?.rollbackPlanApproved && input.operationsControls.killSwitchesVerified),
+    rollbackKillSwitchesReady: Boolean(
+      input.operationsControls?.rollbackPlanApproved &&
+      input.operationsControls.killSwitchesVerified &&
+      input.operationsControls.killSwitchBlockVerified,
+    ),
     rateConcurrencyLimitsReady: Boolean(
       input.operationsControls?.rateLimitsVerified &&
+      input.operationsControls.rateLimitBlockVerified &&
       input.operationsControls.concurrencyLimitsVerified &&
+      input.operationsControls.concurrencyLimitBlockVerified &&
       input.operationsControls.opsAdmissionRpcDeployed &&
       input.operationsControls.opsAdmissionRpcServiceRoleOnlyVerified &&
       input.operationsControls.opsAdmissionRpcReadbackVerified,
@@ -343,8 +352,11 @@ function buildChecks(input: ProductionToolExecutionReadinessGateInput): Producti
       ...requireEvidenceProvenance(input.operationsControls, 'Operations controls'),
       requireBoolean(input.operationsControls?.rollbackPlanApproved, 'rollback plan approval is missing.'),
       requireBoolean(input.operationsControls?.killSwitchesVerified, 'kill switches are unverified.'),
+      requireBoolean(input.operationsControls?.killSwitchBlockVerified, 'deployed kill-switch blocking behavior is unverified.'),
       requireBoolean(input.operationsControls?.rateLimitsVerified, 'rate limits are unverified.'),
+      requireBoolean(input.operationsControls?.rateLimitBlockVerified, 'deployed rate-limit blocking behavior is unverified.'),
       requireBoolean(input.operationsControls?.concurrencyLimitsVerified, 'concurrency limits are unverified.'),
+      requireBoolean(input.operationsControls?.concurrencyLimitBlockVerified, 'deployed concurrency-limit blocking behavior is unverified.'),
       requireBoolean(input.operationsControls?.opsAdmissionRpcDeployed, 'claim_production_gateway_worker_lease RPC deployment is unverified.'),
       requireBoolean(input.operationsControls?.opsAdmissionRpcServiceRoleOnlyVerified, 'claim_production_gateway_worker_lease service-role-only execution is unverified.'),
       requireBoolean(input.operationsControls?.opsAdmissionRpcReadbackVerified, 'claim_production_gateway_worker_lease deployed readback is unverified.'),
@@ -521,8 +533,11 @@ function isOperationsControlReady(input: ProductionToolExecutionReadinessGateInp
   return Boolean(evidence && hasEvidenceProvenance(evidence) &&
     evidence.rollbackPlanApproved &&
     evidence.killSwitchesVerified &&
+    evidence.killSwitchBlockVerified &&
     evidence.rateLimitsVerified &&
+    evidence.rateLimitBlockVerified &&
     evidence.concurrencyLimitsVerified &&
+    evidence.concurrencyLimitBlockVerified &&
     evidence.opsAdmissionRpcDeployed &&
     evidence.opsAdmissionRpcServiceRoleOnlyVerified &&
     evidence.opsAdmissionRpcReadbackVerified &&

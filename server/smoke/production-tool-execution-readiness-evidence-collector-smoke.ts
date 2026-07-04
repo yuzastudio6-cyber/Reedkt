@@ -76,6 +76,12 @@ await assert.rejects(
   'collector should fail closed when backend readback is not production-ready',
 )
 
+await assert.rejects(
+  () => runProductionToolExecutionReadinessEvidenceCollectorFromEnv(confirmedEnv(), fakeFetch([], true, true)),
+  /latest exact evidence packet id/,
+  'collector should fail closed when the recorded evidence packet is present but not the latest readback packet',
+)
+
 console.log(JSON.stringify({
   ok: true,
   dryRunMode: dryRun.mode,
@@ -89,7 +95,11 @@ console.log(JSON.stringify({
 function fakeFetch(
   calls: Array<{ url: string; method: string; headers: Record<string, string>; body?: Record<string, unknown> }>,
   ready = true,
+  staleLatest = false,
 ): ProductionToolExecutionReadinessEvidenceCollectorFetch {
+  const latestPacketId = staleLatest
+    ? 'production-readiness-evidence-packet-newer-than-recorded'
+    : 'production-readiness-evidence-packet-smoke'
   return async (url, init) => {
     const body = init.body ? JSON.parse(init.body) as Record<string, unknown> : undefined
     calls.push({ url, method: init.method, headers: init.headers, body })
@@ -124,7 +134,7 @@ function fakeFetch(
             paidProductionAllowed: ready,
           },
           latestPacket: {
-            id: 'production-readiness-evidence-packet-smoke',
+            id: latestPacketId,
             workspaceId: 'workspace-production-readiness-collector-smoke',
           },
           packets: [
@@ -132,11 +142,17 @@ function fakeFetch(
               id: 'production-readiness-evidence-packet-smoke',
               workspaceId: 'workspace-production-readiness-collector-smoke',
             },
+            ...(staleLatest
+              ? [{
+                  id: latestPacketId,
+                  workspaceId: 'workspace-production-readiness-collector-smoke',
+                }]
+              : []),
           ],
           readinessSummary: {
             workspaceId: 'workspace-production-readiness-collector-smoke',
-            evidencePacketCount: 1,
-            latestEvidencePacketId: 'production-readiness-evidence-packet-smoke',
+            evidencePacketCount: staleLatest ? 2 : 1,
+            latestEvidencePacketId: latestPacketId,
             latestGateStatus: ready ? 'ready_for_paid_production' : 'blocked',
             latestProductionToolExecutionAllowed: ready,
             latestPaidProductionAllowed: ready,

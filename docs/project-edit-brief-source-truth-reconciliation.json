@@ -67,7 +67,7 @@
   "remainingGates": [
     "owner_review",
     "authenticated_project_session_access_policy",
-    "supabase_migration_rls_and_read_write",
+    "supabase_production_readiness_gates_after_rp_editbrief_13",
     "real_source_media_ingestion",
     "planner_integration_to_approved_snapshots",
     "credit_estimate_and_reservation",

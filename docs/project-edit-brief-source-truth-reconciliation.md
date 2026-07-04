@@ -58,7 +58,7 @@ Passed:
 
 - Owner review for whether this Project Edit Brief shell should become the canonical first-pass user workflow.
 - Real authenticated project/session access policy.
-- Supabase migration/read-write implementation and RLS review.
+- Supabase production readiness gates after RP-EDITBRIEF-13: owner-approved durable roots, migration review, RLS, explicit Data API grants, Storage policy review, service-role boundary, and remote deployment validation.
 - Real upload/source-media ingestion and privacy policy implementation.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.

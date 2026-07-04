@@ -452,7 +452,7 @@ assert.equal(mapProjectEditBriefMarkerRevisionRowToRecord(mapProjectEditBriefMar
 assert.equal(mapProjectEditBriefApplicationLogRowToRecord(mapProjectEditBriefApplicationLogRecordToInsertRow(seededLog)).id, seededLog.id)
 assert.equal(mapProjectEditSessionExportSettingsRowToRecord(mapProjectEditSessionExportSettingsRecordToInsertRow(seededExport)).id, seededExport.id)
 assert.equal(createProjectEditBriefRowMappingSummary({
-  tableName: 'project_edit_briefs',
+  tableName: 'edit_briefs',
   sourceId: seededBrief.id,
   mappedId: seededBrief.id,
 }).ok, true)
@@ -473,7 +473,11 @@ assert.equal(disabledRead.error?.code, 'PROJECT_EDIT_BRIEF_REPOSITORY_DISABLED')
 const disabledWrite = await disabled.createEditBrief(createRequest.input)
 assertSafeResult(disabledWrite, 'disabled supabase write')
 assert.equal(disabledWrite.ok, false)
-assert.equal(validateProjectEditBriefRepositoryOperationAllowed(disabled.context, 'create_brief').ok, false)
+const disabledOperation = validateProjectEditBriefRepositoryOperationAllowed(disabled.context, 'create_brief')
+assert.equal(disabledOperation.ok, false)
+if (!disabledOperation.ok) {
+  assert.equal(disabledOperation.error.code, 'PROJECT_EDIT_BRIEF_REPOSITORY_DISABLED')
+}
 
 const orchestrator = await runMockProjectEditBriefRepositoryOrchestrator()
 assert.equal(orchestrator.ok, true)

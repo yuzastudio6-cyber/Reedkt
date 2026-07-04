@@ -66,8 +66,8 @@ for (const phrase of [
   /do_not_use/,
   /general_note/,
   /confirm_only/,
-  /project_edit_briefs/,
-  /project_edit_session_export_settings/,
+  /edit_briefs/,
+  /edit_session_export_settings/,
   /RP-EDITBRIEF-02/,
 ]) {
   assert.match(aggregate, phrase, `architecture package should contain ${phrase}`)

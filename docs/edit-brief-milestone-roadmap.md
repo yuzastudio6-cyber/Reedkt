@@ -75,3 +75,9 @@ RP-EDITBRIEF-11 is the mock/local Plan Bridge milestone. It converts eligible QA
 ## RP-EDITBRIEF-12 — Internal Testing + Playwright Coverage
 
 Status: complete as mock/local QA hardening after verification. The milestone adds consolidated smoke coverage, full-path Playwright coverage, internal-testing scenarios, QA docs, and boundary-copy hardening. It does not add features, production routes, migrations, direct Supabase CLI, real planner execution, edit-plan records, providers/models, media processing, workers, render/export/progress, credits, staging, commit, cleanup, or `ChatNativeEditor` runtime changes. Next recommended milestone after owner review: `RP-EDITBRIEF-13 — Supabase Persistence Plan`.
+
+## RP-EDITBRIEF-13 — Supabase Persistence Plan
+
+Status: complete as persistence planning and validation only. The milestone reconciles ProjectEditBrief concepts onto existing durable roots (`edit_briefs`, `edit_cues`, child cue tables, `edit_brief_application_logs`, and `edit_session_export_settings`), records Supabase RLS/Data API/Storage/service-role readiness gates, updates stale `project_edit_*` wording, and adds a regression smoke. It does not create migrations, run SQL, run Supabase CLI, enable live Supabase reads/writes, update generated database types, enable production routes, call providers/models, process media, dispatch workers, render/export, or reserve/spend credits.
+
+Next recommended milestone after owner review: `RP-EDITBRIEF-14 — Production Readiness Gates`.

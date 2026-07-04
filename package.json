@@ -110,6 +110,7 @@
     "smoke:project-edit-brief-plan": "tsx server/smoke/project-edit-brief-plan-smoke.ts",
     "smoke:project-edit-brief-e2e": "tsx server/smoke/project-edit-brief-e2e-smoke.ts",
     "smoke:project-edit-brief-supabase-repository": "tsx server/smoke/project-edit-brief-supabase-repository-smoke.ts",
+    "smoke:project-edit-brief-supabase-persistence-plan": "tsx server/smoke/project-edit-brief-supabase-persistence-plan-smoke.ts",
     "smoke:project-edit-brief-visual-context": "tsx server/smoke/project-edit-brief-visual-context-smoke.ts",
     "check:frontend-boundary": "node scripts/check-frontend-server-boundary.mjs",
     "smoke:supabase-command-safety": "tsx server/smoke/supabase-command-safety-smoke.ts",

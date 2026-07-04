@@ -16,13 +16,13 @@ export function validateProjectEditBriefRepositoryContext(
   context: ProjectEditBriefRepositoryContext,
 ): ServiceResult<{ context: ProjectEditBriefRepositoryContext }> {
   if (!context.mockOnly) {
-    return fail('EDIT_PREFERENCE_REPOSITORY_VALIDATION_FAILED', 'ProjectEditBrief repository context must remain mockOnly in RP-EDITBRIEF-03.', context)
+    return fail('PROJECT_EDIT_BRIEF_REPOSITORY_VALIDATION_FAILED', 'ProjectEditBrief repository context must remain mockOnly in RP-EDITBRIEF-03.', context)
   }
   if (context.mode === 'mock_database' && context.writeSafety !== 'mock_write_only') {
-    return fail('EDIT_PREFERENCE_REPOSITORY_VALIDATION_FAILED', 'Mock ProjectEditBrief repository must use mock_write_only safety.', context)
+    return fail('PROJECT_EDIT_BRIEF_REPOSITORY_VALIDATION_FAILED', 'Mock ProjectEditBrief repository must use mock_write_only safety.', context)
   }
   if (context.mode === 'supabase_disabled' && context.writeSafety !== 'supabase_write_disabled') {
-    return fail('EDIT_PREFERENCE_REPOSITORY_VALIDATION_FAILED', 'Disabled Supabase ProjectEditBrief repository must use supabase_write_disabled safety.', context)
+    return fail('PROJECT_EDIT_BRIEF_REPOSITORY_VALIDATION_FAILED', 'Disabled Supabase ProjectEditBrief repository must use supabase_write_disabled safety.', context)
   }
   return ok({ context })
 }
@@ -34,7 +34,7 @@ export function validateProjectEditBriefRepositoryOperationAllowed(
   const contextValidation = validateProjectEditBriefRepositoryContext(context)
   if (!contextValidation.ok) return contextValidation
   if (context.mode === 'supabase_disabled') {
-    return fail('EDIT_PREFERENCE_REPOSITORY_DISABLED', `Supabase ProjectEditBrief repository blocks ${operation} until project_edit_briefs schema, auth/RLS, service-role, and deployment gates are ready.`, {
+    return fail('PROJECT_EDIT_BRIEF_REPOSITORY_DISABLED', `Supabase ProjectEditBrief repository blocks ${operation} until edit_briefs/edit_cues schema roots, auth/RLS, explicit Data API grants, service-role, and deployment gates are ready.`, {
       operation,
       status: context.status,
     })
@@ -52,7 +52,7 @@ export function validateProjectEditBriefRecord(
   if (!brief.title) warnings.push('Brief title is missing.')
   if (!brief.mockOnly) warnings.push('Brief is not marked mockOnly.')
   if (warnings.length) {
-    return fail('EDIT_PREFERENCE_REPOSITORY_VALIDATION_FAILED', 'ProjectEditBrief record failed validation.', {
+    return fail('PROJECT_EDIT_BRIEF_REPOSITORY_VALIDATION_FAILED', 'ProjectEditBrief record failed validation.', {
       briefId: brief.id,
       warnings,
     })
@@ -83,7 +83,7 @@ export function validateProjectEditBriefBundle(
     || (bundle.exportSettings.editSessionId === bundle.brief.editSessionId && bundle.exportSettings.mockOnly)
 
   if (!bundle.mockOnly || !bundle.brief.mockOnly || !childrenMatch || !exportSettingsMatch) {
-    return fail('EDIT_PREFERENCE_REPOSITORY_VALIDATION_FAILED', 'ProjectEditBrief bundle failed mock/link validation.', {
+    return fail('PROJECT_EDIT_BRIEF_REPOSITORY_VALIDATION_FAILED', 'ProjectEditBrief bundle failed mock/link validation.', {
       briefId: bundle.brief.id,
     })
   }
@@ -94,7 +94,7 @@ export function validateProjectEditBriefDrawerModel(
   drawer: ProjectEditBriefMarkerDrawerModel,
 ): ServiceResult<{ drawer: ProjectEditBriefMarkerDrawerModel }> {
   if (!drawer.mockOnly || !drawer.marker.id || drawer.attachments.some((attachment) => !attachment.mockOnly)) {
-    return fail('EDIT_PREFERENCE_REPOSITORY_VALIDATION_FAILED', 'ProjectEditBrief drawer model failed validation.', drawer)
+    return fail('PROJECT_EDIT_BRIEF_REPOSITORY_VALIDATION_FAILED', 'ProjectEditBrief drawer model failed validation.', drawer)
   }
   return ok({ drawer }, drawer.warnings)
 }
@@ -103,7 +103,7 @@ export function validateProjectEditSessionExportSettings(
   settings: ProjectEditSessionExportSettingsRecord,
 ): ServiceResult<{ settings: ProjectEditSessionExportSettingsRecord }> {
   if (!settings.id || !settings.editSessionId || !settings.projectId || !settings.mockOnly) {
-    return fail('EDIT_PREFERENCE_REPOSITORY_VALIDATION_FAILED', 'ProjectEditSession export settings failed Edit Brief repository validation.', settings)
+    return fail('PROJECT_EDIT_BRIEF_REPOSITORY_VALIDATION_FAILED', 'ProjectEditSession export settings failed Edit Brief repository validation.', settings)
   }
   return ok({ settings })
 }
@@ -128,7 +128,7 @@ export function validateProjectEditBriefRepositoryResultSafety<T>(
   ].some(Boolean)
 
   if (unsafe) {
-    return fail('EDIT_PREFERENCE_REPOSITORY_VALIDATION_FAILED', 'ProjectEditBrief repository result reported a forbidden side effect.', result)
+    return fail('PROJECT_EDIT_BRIEF_REPOSITORY_VALIDATION_FAILED', 'ProjectEditBrief repository result reported a forbidden side effect.', result)
   }
   return ok({ result })
 }

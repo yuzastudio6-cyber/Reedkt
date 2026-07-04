@@ -472,7 +472,7 @@ assert.equal(
   rollup.recommendedNextPrompt,
   BROLL_11H_RETRY_INFERENCE_PROOF_PROMPT,
 )
-assert.equal(rollup.safeNextCommands.length, 14)
+assert.equal(rollup.safeNextCommands.length, 15)
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-action-plan'),
   true,
@@ -483,6 +483,10 @@ assert.equal(
 )
 assert.equal(
   rollup.safeNextCommands.some((command) => command.command === 'npm run smoke:external-agent-tool-surface-consistency'),
+  true,
+)
+assert.equal(
+  rollup.safeNextCommands.some((command) => command.command === 'npm run external-agent-tool-callability-proof'),
   true,
 )
 assert.equal(

@@ -217,6 +217,10 @@ const executionGate = runJsonCli('server/cli/external-agent-tool-execution-gate.
 const blockerPreflight = runJsonCli('server/cli/external-agent-tool-blocker-preflight.ts')
 const brollQuotaVerify = runJsonCli('server/cli/ai-video-broll-wan-gpu-global-quota-verify.ts')
 const nextCommand = runJsonCli('server/cli/external-agent-tool-next-command.ts')
+const callabilityProof = runJsonCli('server/cli/external-agent-tool-callability-proof.ts', [
+  '--account-index',
+  '2',
+])
 const qwenExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-qwen.ts')
 const brollExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-broll-wan.ts')
 const soundExecutionWrapper = runJsonCli('server/cli/external-agent-tool-execute-sound.ts')
@@ -384,6 +388,22 @@ assert.equal(
 assert.equal(nextCommand.readyForAnyExternalAgentExecutionNow, nextCommand.executionAllowedNow)
 assert.equal(nextCommand.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(nextCommand.runtimeSideEffects, 'nextCommand.runtimeSideEffects')
+
+assert.equal(callabilityProof.mode, 'external_agent_tool_callability_proof_result')
+assert.equal(callabilityProof.externalAgentCallableToolCount, 4)
+assert.equal(callabilityProof.runtimeExecutableToolCount, 0)
+assert.deepEqual(callabilityProof.preflightCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
+assert.deepEqual(callabilityProof.safeEvidenceExecutableToolIds, [
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(callabilityProof.allStructuredCallsReturned, true)
+assert.equal(callabilityProof.allExpectedModesReturned, true)
+assert.equal(callabilityProof.runtimeSideEffectsAllFalse, true)
+assertAllRuntimeFlagsFalse(callabilityProof.runtimeSideEffects, 'callabilityProof.runtimeSideEffects')
 
 const wrapperCanonicalCommand = asRecord(qwenExecutionWrapper.canonicalCommand, 'qwenExecutionWrapper.canonicalCommand')
 assert.equal(qwenExecutionWrapper.mode, 'external_agent_qwen_execution_static_guard')
@@ -609,6 +629,7 @@ const normalizedSurfaceData = {
     blockerPreflight: blockerPreflight.runtimeSideEffects,
     brollQuotaVerify: brollQuotaVerify.runtimeSideEffects,
     nextCommand: nextCommand.runtimeSideEffects,
+    callabilityProof: callabilityProof.runtimeSideEffects,
   },
   runtimeStatus: {
     agentCallableToolIds: runtimeStatus.agentCallableToolIds,
@@ -649,6 +670,12 @@ const normalizedSurfaceData = {
     generatedAssetsCreated: supabaseHarnessExecutionWrapper.generatedAssetsCreated,
     generatedLocalFixturePassedClaimed: supabaseHarnessExecutionWrapper.generatedLocalFixturePassedClaimed,
   },
+  callabilityProof: {
+    wrapperCalls: callabilityProof.wrapperCalls,
+    runtimeSideEffectsAllFalse: callabilityProof.runtimeSideEffectsAllFalse,
+    runtimeExecutableToolIds: callabilityProof.runtimeExecutableToolIds,
+    generatedLocalFixturePassedClaimed: callabilityProof.generatedLocalFixturePassedClaimed,
+  },
 }
 const forbiddenFindings = scanForbiddenValues(normalizedSurfaceData)
 assert.equal(forbiddenFindings.length, 0, `Forbidden values in surface data: ${forbiddenFindings.join('; ')}`)
@@ -667,6 +694,7 @@ console.log(
         'external-agent-tool-blockers:preflight',
         'ai-video-broll-wan-gpu-global-quota:verify',
         'external-agent-tool-next-command',
+        'external-agent-tool-callability-proof',
         'external-agent-tool-execute-qwen',
         'external-agent-tool-execute-broll-wan',
         'external-agent-tool-execute-sound',

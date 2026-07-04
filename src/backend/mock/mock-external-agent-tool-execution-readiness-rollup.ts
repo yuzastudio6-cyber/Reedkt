@@ -304,6 +304,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'Read-only smoke that compares external-agent readiness surfaces for shared manual blockers, fail-closed gates, and drift.',
     },
     {
+      id: 'wrapper_callability_proof',
+      command: 'npm run external-agent-tool-callability-proof',
+      liveReadOnly: true,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Calls all external-agent wrappers in their currently allowed modes: Qwen/Wan preflight-only plus Sound/Supabase safe evidence-only, with runtime side effects blocked.',
+    },
+    {
       id: 'fail_closed_execution_gate',
       command: 'npm run external-agent-tool-execution-gate',
       liveReadOnly: false,

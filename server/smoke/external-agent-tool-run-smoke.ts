@@ -449,6 +449,40 @@ assert.equal(
 )
 assertRuntimeFlagsFalse(runtimeBlocked.runtimeSideEffects, 'runtimeBlocked.runtimeSideEffects')
 
+const brollRuntimeBlocked = runTool([
+  '--tool',
+  'ai_video_broll_generation_wan',
+  '--mode',
+  'runtime',
+  '--account-index',
+  '2',
+])
+assert.equal(brollRuntimeBlocked.ok, false)
+assert.equal(brollRuntimeBlocked.mode, 'external_agent_tool_run_runtime_blocked')
+assert.equal(brollRuntimeBlocked.status, 'blocked')
+assert.equal(brollRuntimeBlocked.toolId, 'ai_video_broll_generation_wan')
+assert.equal(brollRuntimeBlocked.requestedMode, 'runtime')
+assert.equal(brollRuntimeBlocked.agentCallableNow, true)
+assert.equal(brollRuntimeBlocked.runtimeExecutableNow, false)
+assert.equal(brollRuntimeBlocked.runtimeGateChecked, true)
+assert.equal(brollRuntimeBlocked.childExecuted, false)
+assert.equal(
+  brollRuntimeBlocked.runtimeDelegatedCommand,
+  'npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json --account-index 2',
+)
+assert.equal(
+  asRecord(brollRuntimeBlocked.nextCommand, 'brollRuntimeBlocked.nextCommand')
+    .brollWanInferenceProofExecutionAllowedNow,
+  false,
+)
+assert.equal(
+  asArray(brollRuntimeBlocked.blockers, 'brollRuntimeBlocked.blockers').includes(
+    'broll_inference_runtime_command_not_allowed_now',
+  ),
+  true,
+)
+assertRuntimeFlagsFalse(brollRuntimeBlocked.runtimeSideEffects, 'brollRuntimeBlocked.runtimeSideEffects')
+
 const batchRuntimeBlocked = runTool([
   '--tool',
   'all',
@@ -496,6 +530,7 @@ const forbiddenFindings = scanForbiddenValues([
   manifest,
   batch,
   runtimeBlocked,
+  brollRuntimeBlocked,
   batchRuntimeBlocked,
   invalidTool,
 ])

@@ -21,6 +21,7 @@ const TOKEN_LIKE_PATTERNS: Array<[string, RegExp]> = [
 ]
 const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
 const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
+const BROLL_CACHE_READINESS_SCRIPT = 'server/cli/ai-video-broll-wan-fast-cache-readiness-check.ts'
 const preflightCallableToolIds = new Set(['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
 const safeEvidenceExecutableToolIds = new Set(['sound_music_audio', 'supabase_local_fixture_harness'])
 
@@ -207,6 +208,28 @@ function liveBlockerSummary(document: Record<string, unknown> | undefined) {
   }
 }
 
+function brollCacheSummary(document: Record<string, unknown> | undefined) {
+  if (!document) return undefined
+
+  return {
+    ok: document.ok,
+    mode: document.mode,
+    statOnly: document.statOnly,
+    cachePathExists: document.cachePathExists,
+    runtimeEssentialFileCount: document.runtimeEssentialFileCount,
+    expectedFileCount: document.expectedFileCount,
+    actualFileCount: document.actualFileCount,
+    aggregateBytesMatches: document.aggregateBytesMatches,
+    missingFiles: document.missingFiles,
+    byteMismatches: document.byteMismatches,
+    unexpectedFiles: document.unexpectedFiles,
+    modelIndexClassNameMatches: document.modelIndexClassNameMatches,
+    indexRefsLocal: document.indexRefsLocal,
+    runtimeGatesAllFalse: document.runtimeGatesAllFalse,
+    nextAction: document.nextAction,
+  }
+}
+
 function accountAccessSummary(document: Record<string, unknown> | undefined) {
   if (!document) return undefined
 
@@ -349,6 +372,15 @@ function main() {
   const qwenPermissionOrResourceReadBlocked =
     qwenAuthRefreshPassed && !qwenLivePreflightPassed && !qwenDownstreamProbeSkipped
   const brollQuotaSufficient = nestedBoolean(liveBlocker.json, ['broll', 'quotaSufficientForOneL4Vm'])
+  const brollCacheReadiness = runProbe('broll_private_cache_readiness', BROLL_CACHE_READINESS_SCRIPT)
+  const brollCacheReady =
+    brollCacheReadiness.ok &&
+    nestedBoolean(brollCacheReadiness.json, ['ok']) &&
+    nestedBoolean(brollCacheReadiness.json, ['cachePathExists']) &&
+    nestedBoolean(brollCacheReadiness.json, ['aggregateBytesMatches']) &&
+    nestedBoolean(brollCacheReadiness.json, ['modelIndexClassNameMatches']) &&
+    nestedBoolean(brollCacheReadiness.json, ['indexRefsLocal']) &&
+    nestedBoolean(brollCacheReadiness.json, ['runtimeGatesAllFalse'])
   const executionGateAllowsRuntime = nestedBoolean(executionGate.json, ['executionAllowedNow'])
   const staticExplicitToolGateReady = nestedBoolean(executionGate.json, ['staticExplicitToolGateReady'])
   const staticExplicitToolGatePrepared = staticExplicitToolGateReady
@@ -356,8 +388,16 @@ function main() {
   const staticGatePlanningOnly = staticExplicitToolGatePrepared && !executionGateAllowsRuntime
   const staticGateDoesNotAuthorizeRuntime = !executionGateAllowsRuntime
   const gateToolSummaries = executionGateToolSummaries(executionGate.json)
-  const executionAllowedNow =
+  const brollStaticExplicitToolGateReady = gateToolSummaries.some(
+    (tool) =>
+      tool.toolId === 'ai_video_broll_generation_wan' &&
+      tool.staticExplicitToolGateReady === true,
+  )
+  const brollInferenceProofAllowedNow =
+    brollStaticExplicitToolGateReady && brollQuotaSufficient && brollCacheReady
+  const qwenExecutionAllowedNow =
     (executionGateAllowsRuntime || staticExplicitToolGateReady) && qwenLivePreflightPassed
+  const executionAllowedNow = qwenExecutionAllowedNow || brollInferenceProofAllowedNow
   const qwenLivePreflightVerificationRequired =
     staticExplicitToolGateReady && !qwenLivePreflightPassed
   const shouldRunGcloudDiagnostic = !qwenAuthRefreshPassed
@@ -445,9 +485,23 @@ function main() {
   const brollWanExternalAgentProofCommand = {
     ...spec.brollWanExternalAgentProofCommand,
     args: withSelectedAccountIndexArgs(spec.brollWanExternalAgentProofCommand.args, accountSelection),
-    executionAllowedNow: false,
+    executionAllowedNow: brollStaticExplicitToolGateReady && brollQuotaSufficient,
     blocker: nestedString(liveBlocker.json, ['broll', 'blocker']) ?? 'broll_preflight_not_cleared',
     shellExample: shellExampleFor(spec.brollWanExternalAgentProofCommand, accountSelection),
+  }
+  const brollWanInferenceProofCommand = {
+    ...spec.brollWanInferenceProofCommand,
+    args: withSelectedAccountIndexArgs(spec.brollWanInferenceProofCommand.args, accountSelection),
+    executionAllowedNow: brollInferenceProofAllowedNow,
+    blocker: brollInferenceProofAllowedNow
+      ? 'cleared'
+      : !brollStaticExplicitToolGateReady
+        ? 'broll_static_explicit_tool_gate_not_ready'
+        : !brollQuotaSufficient
+          ? nestedString(liveBlocker.json, ['broll', 'blocker']) ?? 'broll_quota_preflight_not_cleared'
+          : 'broll_private_cache_not_ready',
+    verifiesPrivateCacheBeforeAnyVmAction: true,
+    shellExample: shellExampleFor(spec.brollWanInferenceProofCommand, accountSelection),
   }
   const brollWanPrivateCachePrepareCommand = {
     ...spec.brollWanPrivateCachePrepareCommand,
@@ -477,7 +531,9 @@ function main() {
   const nextCodexCommandAfterManualAction = manualActionRequired ? rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
   const toolExecutionReadiness = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.map((tool) => {
-    const qwenRuntimeExecutable = tool.toolId === 'qwen2_5_vl_7b_instruct' && executionAllowedNow
+    const qwenRuntimeExecutable = tool.toolId === 'qwen2_5_vl_7b_instruct' && qwenExecutionAllowedNow
+    const brollRuntimeExecutable =
+      tool.toolId === 'ai_video_broll_generation_wan' && brollInferenceProofAllowedNow
     return {
       toolId: tool.toolId,
       lane: tool.lane,
@@ -487,8 +543,8 @@ function main() {
       agentCallableNow: true,
       preflightCallableNow: preflightCallableToolIds.has(tool.toolId),
       safeEvidenceExecutableNow: safeEvidenceExecutableToolIds.has(tool.toolId),
-      runtimeExecutableNow: qwenRuntimeExecutable,
-      realRuntimeExecutionAllowedNow: qwenRuntimeExecutable,
+      runtimeExecutableNow: qwenRuntimeExecutable || brollRuntimeExecutable,
+      realRuntimeExecutionAllowedNow: qwenRuntimeExecutable || brollRuntimeExecutable,
       readyForBoundedRetryAfterBlockerClears: tool.readyForBoundedRetryAfterBlockerClears,
       primaryBlocker:
         tool.toolId === 'qwen2_5_vl_7b_instruct'
@@ -511,7 +567,13 @@ function main() {
   const safeEvidenceReviewToolIds = toolExecutionReadiness
     .filter((tool) => tool.safeEvidenceExecutableNow)
     .map((tool) => tool.toolId)
-  const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic, accountAccessDiagnostic]
+  const probeSummaries = [
+    executionGate,
+    liveBlocker,
+    brollCacheReadiness,
+    gcloudDiagnostic,
+    accountAccessDiagnostic,
+  ]
     .filter((probe): probe is ProbeResult => Boolean(probe))
     .map((probe) => ({
       id: probe.id,
@@ -550,6 +612,11 @@ function main() {
         qwenServiceDescribePassed,
         qwenJobDescribePassed,
         qwenDownstreamProbeSkipped,
+        qwenExecutionAllowedNow,
+        brollStaticExplicitToolGateReady,
+        brollCacheReady,
+        brollCacheReadiness: brollCacheSummary(brollCacheReadiness.json),
+        brollInferenceProofAllowedNow,
         executionAllowedNow,
         readyForAnyExternalAgentExecutionNow: executionAllowedNow,
         externalAgentCallableToolCount: externalAgentCallableToolIds.length,
@@ -578,6 +645,7 @@ function main() {
         qwenExternalAgentExecutionCommand,
         qwenBoundedExecutionCommand,
         brollWanExternalAgentProofCommand,
+        brollWanInferenceProofCommand,
         brollWanPrivateCachePrepareCommand,
         soundMusicAudioEvidenceCommand,
         supabaseLocalHarnessEvidenceCommand,

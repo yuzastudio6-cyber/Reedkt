@@ -162,6 +162,33 @@ assert.equal(spec.brollWanExternalAgentProofCommand.createsGeneratedAssets, fals
 assert.equal(spec.brollWanExternalAgentProofCommand.touchesSupabase, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.touchesSql, false)
 assert.equal(spec.brollWanExternalAgentProofCommand.unlocksBetaOrProduction, false)
+assert.deepEqual(spec.brollWanInferenceProofCommand.args, [
+  'run',
+  'external-agent-tool-execute-broll-wan',
+  '--',
+  '--inference-proof',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  spec.brollWanInferenceProofCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF',
+)
+assert.equal(spec.brollWanInferenceProofCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(spec.brollWanInferenceProofCommand.delegatesTo11hRunner, true)
+assert.equal(spec.brollWanInferenceProofCommand.requiresNoIdleLifecycleGate, true)
+assert.equal(spec.brollWanInferenceProofCommand.createsComputeVm, true)
+assert.equal(spec.brollWanInferenceProofCommand.deletesComputeVmAndVerifiesCleanup, true)
+assert.equal(spec.brollWanInferenceProofCommand.runsModel, true)
+assert.equal(spec.brollWanInferenceProofCommand.runsModelInference, true)
+assert.equal(spec.brollWanInferenceProofCommand.outputType, 'latent')
+assert.equal(spec.brollWanInferenceProofCommand.persistsInferenceOutput, false)
+assert.equal(spec.brollWanInferenceProofCommand.createsVideoFrames, false)
+assert.equal(spec.brollWanInferenceProofCommand.encodesVideo, false)
+assert.equal(spec.brollWanInferenceProofCommand.createsGeneratedAssets, false)
+assert.equal(spec.brollWanInferenceProofCommand.touchesSupabase, false)
+assert.equal(spec.brollWanInferenceProofCommand.touchesSql, false)
+assert.equal(spec.brollWanInferenceProofCommand.unlocksBetaOrProduction, false)
 assert.deepEqual(spec.brollWanPrivateCachePrepareCommand.args, [
   'run',
   'external-agent-tool-prepare-broll-wan-cache',
@@ -556,6 +583,46 @@ assert.equal(
   decision.brollWanExternalAgentProofCommand.shellExample,
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json',
 )
+assert.equal(decision.brollStaticExplicitToolGateReady, true)
+assert.equal(typeof decision.brollCacheReady, 'boolean')
+assert.equal(typeof decision.brollInferenceProofAllowedNow, 'boolean')
+assert.equal(typeof decision.brollCacheReadiness, 'object')
+assert.equal(decision.brollCacheReadiness.statOnly, true)
+assert.equal(decision.brollCacheReadiness.runtimeGatesAllFalse, true)
+assert.equal(typeof decision.brollWanInferenceProofCommand, 'object')
+assert.deepEqual(decision.brollWanInferenceProofCommand.args, [
+  'run',
+  'external-agent-tool-execute-broll-wan',
+  '--',
+  '--inference-proof',
+  '--execute',
+  '--json',
+])
+assert.equal(
+  decision.brollWanInferenceProofCommand.confirmationEnv,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF',
+)
+assert.equal(decision.brollWanInferenceProofCommand.confirmationEnvRequiredValue, 'true')
+assert.equal(decision.brollWanInferenceProofCommand.delegatesTo11hRunner, true)
+assert.equal(decision.brollWanInferenceProofCommand.requiresNoIdleLifecycleGate, true)
+assert.equal(decision.brollWanInferenceProofCommand.executionAllowedNow, decision.brollInferenceProofAllowedNow)
+assert.equal(decision.brollWanInferenceProofCommand.createsComputeVm, true)
+assert.equal(decision.brollWanInferenceProofCommand.deletesComputeVmAndVerifiesCleanup, true)
+assert.equal(decision.brollWanInferenceProofCommand.runsModel, true)
+assert.equal(decision.brollWanInferenceProofCommand.runsModelInference, true)
+assert.equal(decision.brollWanInferenceProofCommand.outputType, 'latent')
+assert.equal(decision.brollWanInferenceProofCommand.persistsInferenceOutput, false)
+assert.equal(decision.brollWanInferenceProofCommand.createsVideoFrames, false)
+assert.equal(decision.brollWanInferenceProofCommand.encodesVideo, false)
+assert.equal(decision.brollWanInferenceProofCommand.createsGeneratedAssets, false)
+assert.equal(decision.brollWanInferenceProofCommand.touchesSupabase, false)
+assert.equal(decision.brollWanInferenceProofCommand.touchesSql, false)
+assert.equal(decision.brollWanInferenceProofCommand.unlocksBetaOrProduction, false)
+assert.equal(decision.brollWanInferenceProofCommand.verifiesPrivateCacheBeforeAnyVmAction, true)
+assert.equal(
+  decision.brollWanInferenceProofCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
+)
 assert.equal(typeof decision.brollWanPrivateCachePrepareCommand, 'object')
 assert.deepEqual(decision.brollWanPrivateCachePrepareCommand.args, [
   'run',
@@ -852,6 +919,20 @@ assert.deepEqual(indexedDecision.brollWanExternalAgentProofCommand.args, [
 assert.equal(
   indexedDecision.brollWanExternalAgentProofCommand.shellExample,
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json --account-index 2',
+)
+assert.deepEqual(indexedDecision.brollWanInferenceProofCommand.args, [
+  'run',
+  'external-agent-tool-execute-broll-wan',
+  '--',
+  '--inference-proof',
+  '--execute',
+  '--json',
+  '--account-index',
+  '2',
+])
+assert.equal(
+  indexedDecision.brollWanInferenceProofCommand.shellExample,
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json --account-index 2',
 )
 assert.deepEqual(indexedDecision.brollWanPrivateCachePrepareCommand.args, [
   'run',

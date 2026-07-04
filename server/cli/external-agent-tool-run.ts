@@ -643,8 +643,8 @@ function runtimeBlockersForTool(
       blockers.push('qwen_runtime_command_not_present')
     }
   } else if (toolId === 'ai_video_broll_generation_wan') {
-    if (nestedBoolean(nextCommand, ['brollWanExternalAgentProofCommand', 'executionAllowedNow']) !== true) {
-      blockers.push('broll_runtime_command_not_allowed_now')
+    if (nestedBoolean(nextCommand, ['brollWanInferenceProofCommand', 'executionAllowedNow']) !== true) {
+      blockers.push('broll_inference_runtime_command_not_allowed_now')
     }
   } else {
     blockers.push('tool_is_safe_evidence_only_not_runtime_executable')
@@ -683,6 +683,10 @@ function summarizeRuntimeNextCommand(document: JsonRecord | undefined): JsonReco
     qwenBoundedExecutionCommandPresent: Boolean(document.qwenBoundedExecutionCommand),
     brollWanExternalAgentProofExecutionAllowedNow: nestedBoolean(document, [
       'brollWanExternalAgentProofCommand',
+      'executionAllowedNow',
+    ]),
+    brollWanInferenceProofExecutionAllowedNow: nestedBoolean(document, [
+      'brollWanInferenceProofCommand',
       'executionAllowedNow',
     ]),
     chosenNextCommand: document.chosenNextCommand,

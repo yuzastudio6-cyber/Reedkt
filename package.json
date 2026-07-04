@@ -121,6 +121,8 @@
     "smoke:project-edit-brief-owner-evidence-pr-diff-validation": "tsx server/smoke/project-edit-brief-owner-evidence-pr-diff-validation-smoke.ts",
     "check:project-edit-brief-owner-evidence-pr-diff": "tsx scripts/validation/project-edit-brief-owner-evidence-pr-diff.ts --staged --allow-no-diff",
     "smoke:project-edit-brief-owner-evidence-schema-validation": "tsx server/smoke/project-edit-brief-owner-evidence-schema-validation-smoke.ts",
+    "smoke:project-edit-brief-owner-evidence-example-generator": "tsx server/smoke/project-edit-brief-owner-evidence-example-generator-smoke.ts",
+    "generate:project-edit-brief-owner-evidence-draft": "tsx scripts/validation/project-edit-brief-owner-evidence-example-generator.ts --mode draft --stdout",
     "smoke:project-edit-brief-visual-context": "tsx server/smoke/project-edit-brief-visual-context-smoke.ts",
     "check:frontend-boundary": "node scripts/check-frontend-server-boundary.mjs",
     "smoke:supabase-command-safety": "tsx server/smoke/supabase-command-safety-smoke.ts",

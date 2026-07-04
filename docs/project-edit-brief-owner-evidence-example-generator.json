@@ -1,0 +1,23 @@
+{
+  "id": "project-edit-brief-owner-evidence-example-generator",
+  "milestone": "RP-EDITBRIEF-15G",
+  "decision": "project_edit_brief_owner_evidence_example_generator_passed_ready_for_safe_owner_evidence_drafting",
+  "status": "passed_generator_only",
+  "defaultCommand": "npm run --silent generate:project-edit-brief-owner-evidence-draft",
+  "strictExampleCommand": "npx tsx scripts/validation/project-edit-brief-owner-evidence-example-generator.ts --mode strict-example --stdout",
+  "defaultMode": "draft",
+  "draftExpectedReadyForRpEditBrief16": false,
+  "strictExampleExpectedReadyForRpEditBrief16": true,
+  "strictExampleIsRealApproval": false,
+  "sourceInputs": [
+    "docs/project-edit-brief-owner-evidence-intake-template.json",
+    "docs/project-edit-brief-owner-evidence-review-packet.json"
+  ],
+  "safetyScanRequired": true,
+  "launchBoundary": {
+    "externalBetaAllowed": false,
+    "realUserMediaBetaAllowed": false,
+    "paidProductionAllowed": false
+  },
+  "nextMilestoneWhenRealEvidencePasses": "RP-EDITBRIEF-16 - Production Persistence Implementation Plan"
+}

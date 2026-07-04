@@ -24,7 +24,8 @@ Status: architecture/docs only. This report maps future `ProjectEditSession` Bri
 18. RP-EDITBRIEF-15D — Owner Evidence Local Validation
 19. RP-EDITBRIEF-15E — Owner Evidence PR Diff Validation
 20. RP-EDITBRIEF-15F — Owner Evidence Schema Validation
-21. RP-EDITBRIEF-16 — Production Persistence Implementation Plan
+21. RP-EDITBRIEF-15G — Owner Evidence Example Generator
+22. RP-EDITBRIEF-16 — Production Persistence Implementation Plan
 
 ## Gate
 
@@ -135,5 +136,11 @@ Next recommended milestone: `RP-EDITBRIEF-15F — Owner Evidence Schema Validati
 ## RP-EDITBRIEF-15F — Owner Evidence Schema Validation
 
 Status: complete as strict schema validation only. The milestone adds `parseProjectEditBriefOwnerEvidenceIntake` so malformed intake JSON fails before readiness, safety, or PR-diff validation runs. The checked-in template is schema-valid but remains readiness-blocked because owner evidence is still missing.
+
+Next recommended milestone: `RP-EDITBRIEF-15G — Owner Evidence Example Generator`.
+
+## RP-EDITBRIEF-15G — Owner Evidence Example Generator
+
+Status: complete as a safe local generator only. The milestone adds `generate:project-edit-brief-owner-evidence-draft` to produce a draft-to-fill intake from the review packet. The default draft remains readiness-blocked. A strict synthetic example exists only for local format testing and must not be committed as real approval.
 
 Next recommended milestone after the evaluator reports `project_edit_brief_owner_evidence_readiness_passed_ready_for_rp_editbrief_16` on real owner evidence: `RP-EDITBRIEF-16 — Production Persistence Implementation Plan`.

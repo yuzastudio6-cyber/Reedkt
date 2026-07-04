@@ -28,6 +28,51 @@ const hostPreflightScript =
   'ai-graphics:gpu-runtime-proof-local-preflight'
 const externalAgentToolCallScript =
   'ai-graphics:external-agent-tool-call'
+const gpuModelRuntimeContainerTargets: Record<
+  AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  { image: string; dockerfile: string; target: string }
+> = {
+  torch_torchvision: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    target: 'ai_graphics_install_proof',
+  },
+  transformers: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    target: 'ai_graphics_install_proof',
+  },
+  sam2: {
+    image: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+    dockerfile: 'docker/prod/sam2-runtime/Dockerfile',
+    target: 'sam2_runtime_proof',
+  },
+  birefnet: {
+    image: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+    dockerfile: 'docker/prod/birefnet-runtime/Dockerfile',
+    target: 'birefnet_runtime_proof',
+  },
+  real_esrgan: {
+    image: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+    dockerfile: 'docker/prod/real-esrgan-runtime/Dockerfile',
+    target: 'real_esrgan_runtime_proof',
+  },
+  kornia: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    target: 'ai_graphics_install_proof',
+  },
+  rembg: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    target: 'ai_graphics_install_proof',
+  },
+  transparent_background: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    target: 'ai_graphics_install_proof',
+  },
+}
 
 type JsonRecord = Record<string, any>
 
@@ -120,6 +165,31 @@ function isGpuModelTool(
   return AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.includes(
     toolId as AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   )
+}
+
+function gpuModelRuntimeContainerTarget(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): { image: string; dockerfile: string; target: string } {
+  return gpuModelRuntimeContainerTargets[toolId]
+}
+
+function gpuModelRuntimeContainerImage(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string {
+  return gpuModelRuntimeContainerTarget(toolId).image
+}
+
+function gpuModelRuntimeContainerBuildCommand(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string {
+  const target = gpuModelRuntimeContainerTarget(toolId)
+  return [
+    'docker buildx build --platform linux/amd64',
+    `--target ${target.target}`,
+    `-f ${target.dockerfile}`,
+    `-t ${target.image}`,
+    '.',
+  ].join(' ')
 }
 
 function isLocalArtifactPath(filePath: string): boolean {
@@ -326,7 +396,9 @@ function parseArgs(): SequenceArgs {
       : 'host_python'
   const runtimeContainerImage =
     stringFlag('--runtime-container-image') ??
-    (runtimeBackend === 'docker_container' ? canonicalGpuWorkerProofImage : undefined)
+    (runtimeBackend === 'docker_container'
+      ? gpuModelRuntimeContainerImage(toolId)
+      : undefined)
   const runtimeContainerPlatform =
     stringFlag('--runtime-container-platform') ??
     (runtimeBackend === 'docker_container' ? 'linux/amd64' : undefined)
@@ -601,7 +673,7 @@ function finalExternalAgentToolCallCommandForTool(
     ...(options.container
       ? [
           '--runtime-backend docker_container',
-          `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+          `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]
       : ['--runtime-backend host_python']),
@@ -707,7 +779,7 @@ function sequenceCommandForTool(
     ...(options.container
       ? [
           '--runtime-backend docker_container',
-          `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+          `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]
       : []),
@@ -737,7 +809,7 @@ function sequenceManifestCommandForTool(
     ...(options.container
       ? [
           '--runtime-backend docker_container',
-          `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+          `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]
       : []),
@@ -940,6 +1012,12 @@ function buildReport(input: SequenceArgs) {
       canonicalGpuWorkerProofImage,
       canonicalGpuWorkerProofImageBuildCommand:
         `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${canonicalGpuWorkerProofImage} .`,
+      gpuModelRuntimeContainerTargets,
+      gpuModelRuntimeContainerBuildCommandsByTool: Object.fromEntries(
+        AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.map(
+          (toolId) => [toolId, gpuModelRuntimeContainerBuildCommand(toolId)],
+        ),
+      ),
     },
     sequencePolicy: {
       scopedToolOnly: true,

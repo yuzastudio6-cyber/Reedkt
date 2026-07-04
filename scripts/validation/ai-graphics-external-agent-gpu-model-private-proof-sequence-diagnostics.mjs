@@ -45,6 +45,49 @@ const toolSpecificPrivateProofFlagByTool = {
     '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>',
 }
 
+const runtimeContainerTargetByTool = {
+  torch_torchvision: {
+    image: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    target: 'ai_graphics_install_proof',
+  },
+  transformers: {
+    image: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    target: 'ai_graphics_install_proof',
+  },
+  sam2: {
+    image: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+    dockerfile: 'docker/prod/sam2-runtime/Dockerfile',
+    target: 'sam2_runtime_proof',
+  },
+  birefnet: {
+    image: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+    dockerfile: 'docker/prod/birefnet-runtime/Dockerfile',
+    target: 'birefnet_runtime_proof',
+  },
+  real_esrgan: {
+    image: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+    dockerfile: 'docker/prod/real-esrgan-runtime/Dockerfile',
+    target: 'real_esrgan_runtime_proof',
+  },
+  kornia: {
+    image: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    target: 'ai_graphics_install_proof',
+  },
+  rembg: {
+    image: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    target: 'ai_graphics_install_proof',
+  },
+  transparent_background: {
+    image: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    target: 'ai_graphics_install_proof',
+  },
+}
+
 const requiredFiles = [
   'server/cli/ai-graphics-external-agent-gpu-model-private-proof-sequence.ts',
   'scripts/validation/ai-graphics-external-agent-gpu-model-private-proof-sequence-diagnostics.mjs',
@@ -248,6 +291,10 @@ for (const phrase of [
   'allGpuModelToolsHaveExactFinalExternalAgentSingleToolCallCommand',
   'allGpuModelToolsHaveExactContainerFinalExternalAgentSingleToolCallCommand',
   'allGpuModelToolsHaveExactHostFinalExternalAgentSingleToolCallCommand',
+  'gpuModelRuntimeContainerTargets',
+  'gpuModelRuntimeContainerImage',
+  'gpuModelRuntimeContainerBuildCommand',
+  'gpuModelRuntimeContainerBuildCommandsByTool',
 ]) {
   if (!source.includes(phrase)) fail(`source_missing_phrase:${phrase}`)
 }
@@ -303,18 +350,34 @@ function checkReport(label, report) {
   const finalHostCommands =
     report.interfaces?.finalExternalAgentSingleToolCallHostCommandsByTool ?? {}
   for (const tool of gpuModelTools) {
+    const expectedRuntimeTarget = runtimeContainerTargetByTool[tool]
+    const expectedRuntimeImage = expectedRuntimeTarget.image
     const command = String(perToolCommands[tool] ?? '')
     const hostCommand = String(hostPerToolCommands[tool] ?? '')
     const manifestCommand = String(perToolManifestCommands[tool] ?? '')
     const hostManifestCommand = String(hostPerToolManifestCommands[tool] ?? '')
     const finalContainerCommand = String(finalContainerCommands[tool] ?? '')
     const finalHostCommand = String(finalHostCommands[tool] ?? '')
+    const buildCommand = String(
+      report.interfaces?.gpuModelRuntimeContainerBuildCommandsByTool?.[tool] ?? '',
+    )
     if (!command) fail(`${label}_missing_container_private_proof_sequence_command:${tool}`)
     if (!hostCommand) fail(`${label}_missing_host_private_proof_sequence_command:${tool}`)
     if (!manifestCommand) fail(`${label}_missing_container_private_manifest_proof_sequence_command:${tool}`)
     if (!hostManifestCommand) fail(`${label}_missing_host_private_manifest_proof_sequence_command:${tool}`)
     if (!finalContainerCommand) fail(`${label}_missing_container_final_single_tool_call_command:${tool}`)
     if (!finalHostCommand) fail(`${label}_missing_host_final_single_tool_call_command:${tool}`)
+    if (!buildCommand) fail(`${label}_missing_runtime_container_build_command:${tool}`)
+    for (const fragment of [
+      'docker buildx build --platform linux/amd64',
+      `--target ${expectedRuntimeTarget.target}`,
+      `-f ${expectedRuntimeTarget.dockerfile}`,
+      `-t ${expectedRuntimeTarget.image}`,
+    ]) {
+      if (!buildCommand.includes(fragment)) {
+        fail(`${label}_runtime_container_build_command_missing:${tool}:${fragment}`)
+      }
+    }
     if (!command.includes('--attempt-local-runtime')) {
       fail(`${label}_container_private_proof_sequence_missing_attempt_runtime:${tool}`)
     }
@@ -330,17 +393,25 @@ function checkReport(label, report) {
     if (!command.includes('--runtime-backend docker_container')) {
       fail(`${label}_container_private_proof_sequence_missing_backend:${tool}`)
     }
-    if (!command.includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
-      fail(`${label}_container_private_proof_sequence_missing_canonical_image:${tool}`)
+    if (!command.includes(expectedRuntimeImage)) {
+      fail(`${label}_container_private_proof_sequence_missing_runtime_image:${tool}:${expectedRuntimeImage}`)
     }
     if (!command.includes('--runtime-container-platform linux/amd64')) {
       fail(`${label}_container_private_proof_sequence_missing_platform:${tool}`)
     }
+    if (!manifestCommand.includes(expectedRuntimeImage)) {
+      fail(`${label}_container_private_manifest_proof_sequence_missing_runtime_image:${tool}:${expectedRuntimeImage}`)
+    }
     if (hostCommand.includes('--runtime-backend docker_container')) {
       fail(`${label}_host_private_proof_sequence_unexpected_container_backend:${tool}`)
     }
-    if (hostCommand.includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
-      fail(`${label}_host_private_proof_sequence_unexpected_container_image:${tool}`)
+    for (const runtimeTarget of Object.values(runtimeContainerTargetByTool)) {
+      if (hostCommand.includes(runtimeTarget.image)) {
+        fail(`${label}_host_private_proof_sequence_unexpected_container_image:${tool}:${runtimeTarget.image}`)
+      }
+      if (hostManifestCommand.includes(runtimeTarget.image)) {
+        fail(`${label}_host_private_manifest_proof_sequence_unexpected_container_image:${tool}:${runtimeTarget.image}`)
+      }
     }
     for (const fragment of [
       'ai-graphics:external-agent-tool-call',
@@ -351,7 +422,7 @@ function checkReport(label, report) {
       '--require-private-only-boundary',
       '--strict-exit-code',
       '--runtime-backend docker_container',
-      'reeditpro/ai-graphics-gpu-worker:proof-local',
+      expectedRuntimeImage,
       '--runtime-container-platform linux/amd64',
       `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${tool}>/external-agent-single-tool-call/${tool}`,
       `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${tool}>/external-agent-single-tool-call-result.json`,
@@ -379,8 +450,10 @@ function checkReport(label, report) {
     if (finalHostCommand.includes('--runtime-backend docker_container')) {
       fail(`${label}_host_final_single_tool_call_unexpected_container_backend:${tool}`)
     }
-    if (finalHostCommand.includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
-      fail(`${label}_host_final_single_tool_call_unexpected_container_image:${tool}`)
+    for (const runtimeTarget of Object.values(runtimeContainerTargetByTool)) {
+      if (finalHostCommand.includes(runtimeTarget.image)) {
+        fail(`${label}_host_final_single_tool_call_unexpected_container_image:${tool}:${runtimeTarget.image}`)
+      }
     }
     if (!command.includes(`--tool ${tool}`)) {
       fail(`${label}_container_private_proof_sequence_missing_tool:${tool}`)

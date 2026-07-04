@@ -769,9 +769,12 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
         : !hasFlag('--no-runtime-container-gpu')
     payload.runtimeContainerImage =
       stringArg('--runtime-container-image') ??
+      manifestStringForTool(toolId, manifest, 'runtimeContainerImage') ??
       gpuModelRuntimeContainerImage(toolId)
     payload.runtimeContainerPlatform =
-      stringArg('--runtime-container-platform') ?? 'linux/amd64'
+      stringArg('--runtime-container-platform') ??
+      manifestStringForTool(toolId, manifest, 'runtimeContainerPlatform') ??
+      'linux/amd64'
   }
   if (privateInputPreflightOnly) {
     payload.localRuntimeInputPreflightOnly = true

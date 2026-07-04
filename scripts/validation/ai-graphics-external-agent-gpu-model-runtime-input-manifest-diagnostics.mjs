@@ -66,8 +66,6 @@ const toolContracts = {
 }
 
 const expectedPostEvidenceBlockers = new Set([
-  'gpu_model_python_package_missing',
-  'gpu_model_python_runtime_unavailable',
   'gpu_model_native_cuda_runtime_missing',
   'gpu_model_onnxruntime_cuda_provider_missing',
   'gpu_model_runtime_container_image_unavailable',
@@ -160,7 +158,7 @@ function writeSafetensorsPlaceholder(filePath) {
   fs.writeFileSync(absolute(filePath), Buffer.concat([length, header, padding]))
 }
 
-function materializeManifest(toolId, contract) {
+function materializeManifest(toolId, contract, runtimeImage = runtimeImageByTool[toolId]) {
   const manifestOut = `${runRoot}/runtime-inputs/${toolId}.json`
   const outputDir = `${runRoot}/outputs/${toolId}`
   const stdout = exec([
@@ -172,7 +170,7 @@ function materializeManifest(toolId, contract) {
     `--manifest-out ${manifestOut}`,
     `--model-weight-manifest-id ${contract.manifestId}`,
     `--model-weight-checksum-evidence-ref ${contract.evidenceRef}`,
-    `--runtime-container-image ${runtimeImageByTool[toolId]}`,
+    `--runtime-container-image ${runtimeImage}`,
     '--runtime-container-platform linux/amd64',
     '--force',
   ].join(' '))
@@ -188,7 +186,7 @@ function runToolCall(toolId, manifestOut) {
     `npm run --silent ${toolCallScriptName} --`,
     `--tool ${toolId}`,
     '--attempt-gpu-runtime',
-    '--runtime-backend host_python',
+    '--runtime-backend docker_container',
     `--runtime-input-manifest ${manifestOut}`,
   ].join(' ')))
 }
@@ -235,6 +233,7 @@ writeLargePrivatePlaceholder(toolContracts.transparent_background.modelPath, 6)
 
 const materialized = {}
 const routeBlockers = {}
+const routeBackends = {}
 for (const [toolId, contract] of Object.entries(toolContracts)) {
   const result = materializeManifest(toolId, contract)
   materialized[toolId] = result
@@ -284,6 +283,10 @@ for (const [toolId, contract] of Object.entries(toolContracts)) {
   const toolCall = runToolCall(toolId, result.manifestOut)
   const blockingReason = toolCall.response?.blockingReasonCode
   routeBlockers[toolId] = blockingReason
+  routeBackends[toolId] = toolCall.request?.payload?.runtimeExecutionBackend
+  if (routeBackends[toolId] !== 'docker_container') {
+    fail(`${toolId}_tool_call_backend_not_container:${routeBackends[toolId]}`)
+  }
   if (toolCall.response?.externalAgentExecutionState !== 'blocked_with_reason') {
     fail(`${toolId}_tool_call_state_mismatch:${toolCall.response?.externalAgentExecutionState}`)
   }
@@ -291,6 +294,8 @@ for (const [toolId, contract] of Object.entries(toolContracts)) {
     fail(`${toolId}_blocking_reason_missing`)
   } else if (blockingReason.includes('_model_weight_')) {
     fail(`${toolId}_still_blocked_on_model_weight:${blockingReason}`)
+  } else if (blockingReason === 'gpu_model_python_package_missing') {
+    fail(`${toolId}_container_route_regressed_to_host_python_package_blocker`)
   } else if (!expectedPostEvidenceBlockers.has(blockingReason)) {
     fail(`${toolId}_unexpected_post_evidence_blocker:${blockingReason}`)
   }
@@ -306,6 +311,23 @@ for (const [toolId, contract] of Object.entries(toolContracts)) {
   if (toolCall.booleans?.gpuRuntimeShouldStartNow !== false) {
     fail(`${toolId}_tool_call_started_gpu`)
   }
+}
+
+const sharedSam2Manifest = materializeManifest(
+  'sam2',
+  toolContracts.sam2,
+  canonicalRuntimeImage,
+)
+const sharedSam2ToolCall = runToolCall('sam2', sharedSam2Manifest.manifestOut)
+if (
+  sharedSam2ToolCall.request?.payload?.runtimeContainerImage !== canonicalRuntimeImage
+) {
+  fail(
+    `sam2_manifest_runtime_container_image_not_consumed:${sharedSam2ToolCall.request?.payload?.runtimeContainerImage}`,
+  )
+}
+if (sharedSam2ToolCall.response?.blockingReasonCode === 'gpu_model_python_package_missing') {
+  fail('sam2_shared_manifest_regressed_to_host_python_package_blocker')
 }
 
 const outsideManifest = spawn([
@@ -361,6 +383,8 @@ console.log(JSON.stringify({
   decision,
   materializedTools: Object.keys(materialized).length,
   routeManifestAcceptedPastModelWeightEvidenceTools: Object.keys(routeBlockers).length,
+  routeContainerBackendTools: Object.values(routeBackends)
+    .filter((backend) => backend === 'docker_container').length,
   routeBlockers,
   gpuRuntimeShouldStartNow: false,
   packageLockUnchanged: !fs.existsSync(absolute('package-lock.json')) ||

@@ -608,8 +608,12 @@ function privateModelRootToolCallPaths() {
     rootDir,
     privateModelRoot: `${rootDir}/model-root`,
     sourceImage: `${rootDir}/inputs/private-approved-frame.ppm`,
+    sam2Checkpoint: `${rootDir}/model-root/sam2/sam2.1_hiera_tiny.pt`,
     rembgModel: `${rootDir}/model-root/rembg/isnet-general-use.onnx`,
     birefnetModel: `${rootDir}/model-root/birefnet/model.safetensors`,
+    realEsrganModel: `${rootDir}/model-root/real-esrgan/RealESRGAN_x4plus.pth`,
+    transparentBackgroundCheckpoint:
+      `${rootDir}/model-root/transparent-background/ckpt_base.pth`,
   }
 }
 
@@ -631,8 +635,11 @@ function ensurePrivateInputPreflightPlaceholders() {
 function ensurePrivateModelRootToolCallPlaceholders() {
   const paths = privateModelRootToolCallPaths()
   writePrivateProofPpm(paths.sourceImage)
+  writeLargePrivatePlaceholderFile(paths.sam2Checkpoint)
   writeLargePrivatePlaceholderFile(paths.rembgModel)
   writeSafetensorsPlaceholder(paths.birefnetModel)
+  writeLargePrivatePlaceholderFile(paths.realEsrganModel)
+  writeLargePrivatePlaceholderFile(paths.transparentBackgroundCheckpoint)
   return paths
 }
 
@@ -1083,88 +1090,115 @@ if (privateInputPreflightReports.length !== 5) {
 }
 
 const privateModelRootPaths = ensurePrivateModelRootToolCallPlaceholders()
-const rembgPrivateModelRootPreflight = runToolCall([
-  '--tool rembg',
-  '--attempt-gpu-runtime',
-  '--runtime-backend docker_container',
-  `--runtime-container-image ${gpuModelRuntimeContainerImage('rembg')}`,
-  '--runtime-container-platform linux/amd64',
-  '--allow-cpu-model-runtime',
-  '--no-runtime-container-gpu',
-  '--private-input-preflight-only',
-  '--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/private-model-root/output/rembg',
-  `--source-image ${privateModelRootPaths.sourceImage}`,
-  `--private-model-root ${privateModelRootPaths.privateModelRoot}`,
-].join(' '))
-checkPrivateInputPreflightCall(
-  'live_rembg_private_model_root_preflight',
-  rembgPrivateModelRootPreflight,
-  'rembg',
-)
-if (
-  rembgPrivateModelRootPreflight.agentCommandContract
-    ?.privateModelRootProvided !== true
-) {
-  fail('rembg_private_model_root_contract_flag_missing')
+const privateModelRootExpectedModelPaths = {
+  sam2: {
+    payloadField: 'sam2CheckpointLocalPath',
+    localPath: privateModelRootPaths.sam2Checkpoint,
+  },
+  birefnet: {
+    payloadField: 'birefnetModelLocalPath',
+    localPath: path.dirname(privateModelRootPaths.birefnetModel),
+  },
+  real_esrgan: {
+    payloadField: 'realEsrganModelLocalPath',
+    localPath: privateModelRootPaths.realEsrganModel,
+  },
+  rembg: {
+    payloadField: 'rembgModelLocalPath',
+    localPath: privateModelRootPaths.rembgModel,
+  },
+  transparent_background: {
+    payloadField: 'transparentBackgroundCheckpointLocalPath',
+    localPath: privateModelRootPaths.transparentBackgroundCheckpoint,
+  },
 }
-if (
-  rembgPrivateModelRootPreflight.agentCommandContract
-    ?.runtimeInputManifestMaterializedFromPrivateRoot !== true
-) {
-  fail('rembg_private_model_root_materialization_flag_missing')
-}
-if (
-  rembgPrivateModelRootPreflight.agentCommandContract
-    ?.runtimeInputManifestMaterializerDecision !==
-    'ai_graphics_external_agent_gpu_model_runtime_input_manifest_materialized_local_only'
-) {
-  fail('rembg_private_model_root_materializer_decision_mismatch')
-}
-if (
-  rembgPrivateModelRootPreflight.agentCommandContract
-    ?.runtimeInputManifestMaterializerStatus !==
-    'runtime_input_manifest_ready_for_scoped_private_execution'
-) {
-  fail('rembg_private_model_root_materializer_status_mismatch')
-}
-const rembgPrivateRootManifest =
-  rembgPrivateModelRootPreflight.agentCommandContract?.runtimeInputManifest
-if (
-  !String(rembgPrivateRootManifest ?? '').endsWith('/runtime-inputs.json') ||
-  !fs.existsSync(absolute(rembgPrivateRootManifest))
-) {
-  fail('rembg_private_model_root_manifest_not_written')
-}
-if (
-  rembgPrivateModelRootPreflight.request?.payload?.runtimeInputManifestUsed !== true
-) {
-  fail('rembg_private_model_root_payload_manifest_used_not_true')
-}
-if (
-  rembgPrivateModelRootPreflight.request?.payload?.rembgModelLocalPath !==
-  privateModelRootPaths.rembgModel
-) {
-  fail('rembg_private_model_root_model_path_mismatch')
-}
-if (
-  !/^[a-f0-9]{64}$/.test(String(
-    rembgPrivateModelRootPreflight.request?.payload?.modelWeightChecksumSha256 ?? '',
-  ))
-) {
-  fail('rembg_private_model_root_checksum_missing')
-}
-if (
-  rembgPrivateModelRootPreflight.request?.payload
-    ?.modelWeightChecksumEvidenceRef !==
-    'private://reeditpro/ai-graphics/checksum-evidence/rembg.json'
-) {
-  fail('rembg_private_model_root_checksum_evidence_ref_mismatch')
-}
-if (
-  rembgPrivateModelRootPreflight.request?.payload?.allowCpuModelRuntime !== true ||
-  rembgPrivateModelRootPreflight.request?.payload?.runtimeContainerGpu !== false
-) {
-  fail('rembg_private_model_root_cpu_model_runtime_flags_missing')
+const privateModelRootPreflightReports = privateInputPreflightTools.map((toolId) => {
+  const args = [
+    `--tool ${toolId}`,
+    '--attempt-gpu-runtime',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    '--runtime-container-platform linux/amd64',
+    ...(cpuModelRuntimeTool(toolId)
+      ? ['--allow-cpu-model-runtime', '--no-runtime-container-gpu']
+      : []),
+    '--private-input-preflight-only',
+    `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/private-model-root/output/${toolId}`,
+    `--source-image ${privateModelRootPaths.sourceImage}`,
+    `--private-model-root ${privateModelRootPaths.privateModelRoot}`,
+  ]
+  const report = runToolCall(args.join(' '))
+  checkPrivateInputPreflightCall(
+    `live_${toolId}_private_model_root_preflight`,
+    report,
+    toolId,
+  )
+  if (report.agentCommandContract?.privateModelRootProvided !== true) {
+    fail(`${toolId}_private_model_root_contract_flag_missing`)
+  }
+  if (
+    report.agentCommandContract
+      ?.runtimeInputManifestMaterializedFromPrivateRoot !== true
+  ) {
+    fail(`${toolId}_private_model_root_materialization_flag_missing`)
+  }
+  if (
+    report.agentCommandContract?.runtimeInputManifestMaterializerDecision !==
+      'ai_graphics_external_agent_gpu_model_runtime_input_manifest_materialized_local_only'
+  ) {
+    fail(`${toolId}_private_model_root_materializer_decision_mismatch`)
+  }
+  if (
+    report.agentCommandContract?.runtimeInputManifestMaterializerStatus !==
+      'runtime_input_manifest_ready_for_scoped_private_execution'
+  ) {
+    fail(`${toolId}_private_model_root_materializer_status_mismatch`)
+  }
+  const manifestPath = report.agentCommandContract?.runtimeInputManifest
+  if (
+    !String(manifestPath ?? '').endsWith('/runtime-inputs.json') ||
+    !fs.existsSync(absolute(manifestPath))
+  ) {
+    fail(`${toolId}_private_model_root_manifest_not_written`)
+  }
+  if (report.request?.payload?.runtimeInputManifestUsed !== true) {
+    fail(`${toolId}_private_model_root_payload_manifest_used_not_true`)
+  }
+  const expectedModelPath = privateModelRootExpectedModelPaths[toolId]
+  if (
+    report.request?.payload?.[expectedModelPath.payloadField] !==
+    expectedModelPath.localPath
+  ) {
+    fail(`${toolId}_private_model_root_model_path_mismatch`)
+  }
+  if (
+    !/^[a-f0-9]{64}$/.test(String(
+      report.request?.payload?.modelWeightChecksumSha256 ?? '',
+    ))
+  ) {
+    fail(`${toolId}_private_model_root_checksum_missing`)
+  }
+  if (
+    report.request?.payload?.modelWeightChecksumEvidenceRef !==
+    `private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`
+  ) {
+    fail(`${toolId}_private_model_root_checksum_evidence_ref_mismatch`)
+  }
+  if (cpuModelRuntimeTool(toolId)) {
+    if (
+      report.request?.payload?.allowCpuModelRuntime !== true ||
+      report.request?.payload?.runtimeContainerGpu !== false
+    ) {
+      fail(`${toolId}_private_model_root_cpu_model_runtime_flags_missing`)
+    }
+  }
+  if (!cpuModelRuntimeTool(toolId) && report.request?.payload?.runtimeContainerGpu !== true) {
+    fail(`${toolId}_private_model_root_native_gpu_runtime_flag_missing`)
+  }
+  return report
+})
+if (privateModelRootPreflightReports.length !== 5) {
+  fail(`private_model_root_preflight_count_mismatch:${privateModelRootPreflightReports.length}`)
 }
 
 const rembgTinyModelRuntimeAttempt = runToolCall([
@@ -1652,6 +1686,12 @@ console.log(JSON.stringify({
       .blockingReasonCode,
   privateInputPreflightAcceptedBeforeRuntimeTools:
     privateInputPreflightReports.length,
+  privateModelRootPreflightAcceptedBeforeRuntimeTools:
+    privateModelRootPreflightReports.length,
+  privateModelRootMaterializedTools:
+    privateModelRootPreflightReports.filter((report) =>
+      report.agentCommandContract?.runtimeInputManifestMaterializedFromPrivateRoot === true)
+      .length,
   tinyPrivateModelRuntimeProofBlockedBeforeGpu: true,
   tinyPrivateModelRuntimeProofBlockingReason:
     rembgTinyModelRuntimeAttempt.response.externalAgentToolCallResult

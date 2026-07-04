@@ -54,6 +54,13 @@ test.describe('Project Edit Brief internal testing entrypoint', () => {
     )
     await expect(page.getByTestId('internal-testing-backend-skeleton-required-evidence')).toContainText('explicit data api grants')
     await expect(page.getByTestId('internal-testing-backend-skeleton-boundaries')).toContainText('Durable Supabase access still fails closed')
+    await expect(page.getByTestId('internal-testing-durable-project-session-backend-route-integration')).toContainText('Route integration')
+    await expect(page.getByTestId('internal-testing-route-integration-decision')).toContainText(
+      'internal_testing_durable_project_session_backend_route_integration_passed_ready_for_readback_qa',
+    )
+    await expect(page.getByTestId('internal-testing-route-integration-families')).toContainText('Project Edit Session mock routes')
+    await expect(page.getByTestId('internal-testing-route-integration-families')).toContainText('Project Edit Brief mock routes')
+    await expect(page.getByTestId('internal-testing-route-integration-boundaries')).toContainText('Durable Supabase access remains false')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Edit Brief')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Approved snapshot + credit gate readiness')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Credit lifecycle readiness')
@@ -62,6 +69,7 @@ test.describe('Project Edit Brief internal testing entrypoint', () => {
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Authenticated project/session membership policy')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Durable auth project/session backend persistence plan')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Mock-safe durable project/session backend skeleton')
+    await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Durable project/session backend route integration')
     await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Preference Video mock-only limits')
     const editBriefStart = page.getByTestId('internal-testing-start-edit-brief')
     await expect(editBriefStart).toContainText('Edit Brief')

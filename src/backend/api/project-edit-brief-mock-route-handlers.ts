@@ -29,6 +29,7 @@ import type {
 } from '../../types/project-edit-brief'
 import type { ProjectEditBriefRepositoryResult } from '../../types/project-edit-brief-repository'
 import { createMockDatabase, type MockDatabase } from '../mock/mock-database'
+import { decorateProjectSessionRouteAccess } from './project-session-access-route-integration'
 import { createProjectEditBriefInternalPersistenceBackend } from '../project-edit-brief-production/internal-persistence-backend'
 import { runQwenMarkerChatBridge } from '../qwen-runtime/qwen-marker-chat-bridge-service'
 
@@ -878,7 +879,7 @@ async function handleMarkerDrawerGet(request: ApiRequestEnvelope) {
   return fromRepositoryResult(await repositoryFor(request).createMarkerDrawerModel(markerId), (drawer) => ({ drawer }))
 }
 
-export async function handleProjectEditBriefMockRoute(request: ApiRequestEnvelope): Promise<ApiResponseEnvelope> {
+async function handleProjectEditBriefMockRouteInner(request: ApiRequestEnvelope): Promise<ApiResponseEnvelope> {
   const handler = PROJECT_EDIT_BRIEF_MOCK_ROUTE_HANDLERS[request.routeId as ProjectEditBriefApiRouteId]
   if (!handler) {
     return failure('PROJECT_EDIT_BRIEF_ROUTE_NOT_FOUND', `${request.routeId} is not a registered Project Edit Brief mock route.`, 404, {
@@ -886,6 +887,10 @@ export async function handleProjectEditBriefMockRoute(request: ApiRequestEnvelop
     })
   }
   return handler(request)
+}
+
+export async function handleProjectEditBriefMockRoute(request: ApiRequestEnvelope): Promise<ApiResponseEnvelope> {
+  return decorateProjectSessionRouteAccess(request, await handleProjectEditBriefMockRouteInner(request))
 }
 
 export const PROJECT_EDIT_BRIEF_MOCK_ROUTE_HANDLERS: Record<ProjectEditBriefApiRouteId, ApiRouteHandler> = {

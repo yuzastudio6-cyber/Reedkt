@@ -33,6 +33,7 @@ const requiredFiles = [
   'src/lib/project-edit-session-access-policy.ts',
   'src/lib/project-edit-session-backend-persistence-plan.ts',
   'src/lib/project-edit-session-backend-skeleton.ts',
+  'src/backend/api/project-session-access-route-integration.ts',
   'src/components/projects/ProjectEditSessionAccessPolicyNotice.tsx',
   'docs/project-edit-brief-internal-testing-entrypoint.md',
   'docs/project-edit-brief-internal-testing-entrypoint.json',
@@ -44,6 +45,8 @@ const requiredFiles = [
   'docs/internal-testing-durable-auth-project-session-backend-persistence-plan.json',
   'docs/internal-testing-mock-safe-durable-project-session-backend-skeleton.md',
   'docs/internal-testing-mock-safe-durable-project-session-backend-skeleton.json',
+  'docs/internal-testing-durable-project-session-backend-route-integration.md',
+  'docs/internal-testing-durable-project-session-backend-route-integration.json',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
 ]
 
@@ -94,6 +97,10 @@ assert.match(page, /internal-testing-mock-safe-durable-project-session-backend-s
 assert.match(page, /Backend skeleton/)
 assert.match(page, /Mock project\/session access can pass/)
 assert.match(page, /getMockSafeDurableProjectSessionBackendSkeleton/)
+assert.match(page, /internal-testing-durable-project-session-backend-route-integration/)
+assert.match(page, /Route integration/)
+assert.match(page, /projectSessionAccess/)
+assert.match(page, /DURABLE_PROJECT_SESSION_BACKEND_ROUTE_INTEGRATION_DECISION/)
 assert.doesNotMatch(page, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/)
 assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|service_role|signedUrl/i)
 
@@ -125,6 +132,12 @@ assert.match(backendSkeleton, /blocked_durable_supabase_runtime_not_implemented/
 assert.match(backendSkeleton, /DEFAULT_MOCK_PROJECT_SESSION_MEMBERSHIP_RECORDS/)
 assert.doesNotMatch(backendSkeleton, /createClient|\.from\s*\(|insert\s*\(|update\s*\(|delete\s*\(|createSignedUrl/i)
 
+const routeIntegration = read('src/backend/api/project-session-access-route-integration.ts')
+assert.match(routeIntegration, /decorateProjectSessionRouteAccess/)
+assert.match(routeIntegration, /projectSessionAccess/)
+assert.match(routeIntegration, /DURABLE_PROJECT_SESSION_BACKEND_ROUTE_INTEGRATION_DECISION/)
+assert.doesNotMatch(routeIntegration, /createClient|\.from\s*\(|insert\s*\(|update\s*\(|delete\s*\(|createSignedUrl/i)
+
 const docs = read('docs/project-edit-brief-internal-testing-entrypoint.md')
 for (const phrase of [
   'production-shaped',
@@ -148,6 +161,8 @@ for (const phrase of [
   'durable-auth-project-session-backend-persistence-plan',
   'Mock-Safe Durable Project Session Backend Skeleton',
   'mock-safe-durable-project-session-backend-skeleton',
+  'Durable Project Session Backend Route Integration',
+  'durable-project-session-backend-route-integration',
   'No Supabase Data API',
 ]) {
   assert.match(docs, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'))
@@ -175,6 +190,7 @@ assert.ok(docJson.features?.includes('auth_project_access_readiness'))
 assert.ok(docJson.features?.includes('auth_project_session_membership_policy'))
 assert.ok(docJson.features?.includes('durable_auth_project_session_backend_persistence_plan'))
 assert.ok(docJson.features?.includes('mock_safe_durable_project_session_backend_skeleton'))
+assert.ok(docJson.features?.includes('durable_project_session_backend_route_integration'))
 assert.equal(docJson.scenarioStatus?.['approval-credit-gate-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['credit-lifecycle-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['repeated-local-operator-harness'], 'mock_local')
@@ -182,6 +198,7 @@ assert.equal(docJson.scenarioStatus?.['auth-project-access-readiness'], 'mock_lo
 assert.equal(docJson.scenarioStatus?.['auth-project-session-membership-policy'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['durable-auth-project-session-backend-persistence-plan'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['mock-safe-durable-project-session-backend-skeleton'], 'mock_local')
+assert.equal(docJson.scenarioStatus?.['durable-project-session-backend-route-integration'], 'mock_local')
 assert.equal(docJson.blockedScope?.productReady, false)
 assert.equal(docJson.blockedScope?.supabaseReadWrite, false)
 assert.equal(docJson.blockedScope?.workerDispatch, false)
@@ -195,6 +212,7 @@ assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-auth-pr
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-auth-project-session-membership-policy'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable-auth-project-session-backend-persistence-plan'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton'))
+assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable-project-session-backend-route-integration'))
 
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
 assert.equal(
@@ -208,6 +226,7 @@ assert.match(sourceTruth, /smoke:project-edit-brief-internal-testing-entrypoint/
 assert.match(sourceTruth, /Auth project\/session membership policy after RP-INTTEST-03/)
 assert.match(sourceTruth, /Durable auth project\/session backend persistence plan after RP-INTTEST-04/)
 assert.match(sourceTruth, /Mock-safe durable project\/session backend skeleton after RP-INTTEST-05/)
+assert.match(sourceTruth, /Durable project\/session backend route integration after RP-INTTEST-06/)
 
 const sourceTruthJson = JSON.parse(read('docs/project-edit-brief-source-truth-reconciliation.json')) as {
   landedScope?: string[]
@@ -218,10 +237,12 @@ assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_entrypoint'))
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_auth_project_session_membership_policy'))
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_auth_project_session_backend_persistence_plan'))
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_mock_safe_durable_project_session_backend_skeleton'))
+assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_backend_route_integration'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:project-edit-brief-internal-testing-entrypoint'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-auth-project-session-membership-policy'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-auth-project-session-backend-persistence-plan'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton'))
+assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-backend-route-integration'))
 assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_entrypoint_after_rp_editbrief_23'))
 
 const statusCounts = internalTestingScenarios.reduce<Record<string, number>>((counts, scenario) => {
@@ -293,6 +314,14 @@ assert.ok(
   internalTestingScenarios.some(
     (scenario) =>
       scenario.id === 'mock-safe-durable-project-session-backend-skeleton' &&
+      scenario.route === '/internal-testing' &&
+      scenario.status === 'mock_local',
+  ),
+)
+assert.ok(
+  internalTestingScenarios.some(
+    (scenario) =>
+      scenario.id === 'durable-project-session-backend-route-integration' &&
       scenario.route === '/internal-testing' &&
       scenario.status === 'mock_local',
   ),

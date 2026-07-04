@@ -95,8 +95,9 @@ Passed:
 - Auth project/session membership policy after RP-INTTEST-03: Project Home, Edit Chat, and Edit Brief show the same route-level access policy, mock route access remains allowed for internal testing, and durable authenticated project/session access remains blocked until signed-in user, membership, RLS, explicit Data API grant, and backend persistence evidence exist.
 - Durable auth project/session backend persistence plan after RP-INTTEST-04: the next backend skeleton must verify Auth server-side, workspace membership, project/session joins, explicit Data API grants, RLS, service-role boundary, audit, and idempotency before durable table-backed access can pass.
 - Mock-safe durable project/session backend skeleton after RP-INTTEST-05: seeded mock internal project/session access can pass through a server-shaped evaluator with request id and idempotency key, while durable Supabase table-backed access still fails closed until RLS, explicit Data API grants, migration, and backend-only service-role evidence exist.
+- Durable project/session backend route integration after RP-INTTEST-06: Project Edit Session and Project Edit Brief mock route responses include `projectSessionAccess` metadata from the backend skeleton while durable Supabase access remains disabled.
 - Real upload/source-media ingestion and privacy policy implementation.
-- Durable project/session backend route integration.
+- Durable project/session backend route readback QA.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.
 - Worker/provider/render execution remains separately gated.

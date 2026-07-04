@@ -158,6 +158,13 @@ for (const required of [
   'create',
   'execute_prompt_scoped_no_gpu_cloud_run_job',
   'delete_prompt_scoped_no_gpu_cloud_run_job',
+  'GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV',
+  "const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'",
+  "const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'",
+  'accountSelectionOutput()',
+  'gcloudAccountEnv()',
+  'CLOUDSDK_CORE_ACCOUNT',
+  'mutatesLocalGcloudConfig: false',
   'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
   'wan-model-cache-ready.json',
   'modelInferenceRun: false',
@@ -190,6 +197,20 @@ assert.equal(staticReport.confirmationEnvRequiredValue, 'true')
 assert.equal(staticReport.selectedGpu, 'none')
 assert.equal(staticReport.nextPrompt, NEXT_PROMPT)
 assertRuntimeFalse(staticReport)
+const staticAccountSelection = staticReport.accountSelection as Record<string, unknown>
+assert.equal(staticAccountSelection.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
+assert.equal(staticAccountSelection.overrideIndexCliFlag, '--account-index')
+assert.equal(staticAccountSelection.overrideIndexCliFlagAlias, '--gcloud-account-index')
+assert.equal(staticAccountSelection.overrideIndexProvided, false)
+assert.equal(staticAccountSelection.overrideResolved, false)
+assert.equal(staticAccountSelection.mutatesLocalGcloudConfig, false)
+
+const indexedStaticReport = runCli(['--json', '--account-index=2'])
+const indexedAccountSelection = indexedStaticReport.accountSelection as Record<string, unknown>
+assert.equal(indexedAccountSelection.overrideIndexProvided, true)
+assert.equal(indexedAccountSelection.overrideIndexSource, 'cli')
+assert.equal(indexedAccountSelection.overrideIndex, 2)
+assert.equal(indexedAccountSelection.mutatesLocalGcloudConfig, false)
 
 const confirmationBlocked = runCli(['--execute', '--json'])
 assert.equal(confirmationBlocked.ok, false)
@@ -198,10 +219,14 @@ assert.equal(confirmationBlocked.status, 'blocked')
 assert.deepEqual(confirmationBlocked.blockers, [`confirmation_env_required:${CONFIRM_ENV}=true`])
 assert.equal(confirmationBlocked.nextPrompt, NEXT_PROMPT)
 assertRuntimeFalse(confirmationBlocked)
+const blockedAccountSelection = confirmationBlocked.accountSelection as Record<string, unknown>
+assert.equal(blockedAccountSelection.overrideIndexProvided, false)
+assert.equal(blockedAccountSelection.mutatesLocalGcloudConfig, false)
 
 const forbiddenFindings = [
   ...scanForbiddenValues(spec),
   ...scanForbiddenValues(staticReport, 'broll11eStatic'),
+  ...scanForbiddenValues(indexedStaticReport, 'broll11eIndexedStatic'),
   ...scanForbiddenValues(confirmationBlocked, 'broll11eBlocked'),
 ]
 assert.deepEqual(forbiddenFindings, [])

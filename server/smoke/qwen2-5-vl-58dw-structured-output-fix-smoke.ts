@@ -211,9 +211,38 @@ for (const phrase of [
   NEXT_PROMPT,
   "QWEN_FIXTURE_MAX_TOKENS: '256'",
   "QWEN_FIXTURE_IMAGE_SIZE_PX: '384'",
+  'GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV',
+  "const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'",
+  "const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'",
+  'accountSelectionOutput()',
+  'gcloudAccountEnv()',
+  'CLOUDSDK_CORE_ACCOUNT',
+  'mutatesLocalGcloudConfig: false',
 ]) {
   assert.ok(runnerText.includes(phrase), `Runner missing phrase: ${phrase}`)
 }
+
+const runnerStatic = spawnSync(
+  'npx',
+  ['tsx', 'server/cli/qwen2-5-vl-58dw-bounded-private-inference-retry.ts', '--json', '--account-index=2'],
+  {
+    cwd: ROOT,
+    env: {
+      ...process.env,
+      REEDITPRO_CONFIRM_QWEN_58DW_BOUNDED_RETRY: '',
+    },
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
+  },
+)
+assert.equal(runnerStatic.status, 0, runnerStatic.stderr)
+const runnerStaticReport = JSON.parse(String(runnerStatic.stdout ?? '{}')) as JsonRecord
+const runnerAccountSelection = runnerStaticReport.accountSelection as JsonRecord
+assert.equal(runnerStaticReport.mode, 'qwen2_5_vl_58dw_bounded_private_inference_retry_static_guard')
+assert.equal(runnerAccountSelection.overrideIndexProvided, true)
+assert.equal(runnerAccountSelection.overrideIndexSource, 'cli')
+assert.equal(runnerAccountSelection.overrideIndex, 2)
+assert.equal(runnerAccountSelection.mutatesLocalGcloudConfig, false)
 
 const parserResults = runParserValidation()
 assert.equal(parserResults.valid?.schemaValid, true, 'valid fixture metadata must pass')

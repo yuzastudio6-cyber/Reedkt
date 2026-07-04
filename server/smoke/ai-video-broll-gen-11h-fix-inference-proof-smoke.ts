@@ -109,6 +109,13 @@ for (const required of [
   'REEDITPRO_BROLL_11H_WAN_PIPELINE_CPU_OFFLOAD_OK',
   'REEDITPRO_BROLL_11H_LATENT_INFERENCE_CANARY_START',
   'WAN_LATENT_CANARY_TIMEOUT_MS',
+  'GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV',
+  "const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'",
+  "const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'",
+  'accountSelectionOutput()',
+  'gcloudAccountEnv()',
+  'CLOUDSDK_CORE_ACCOUNT',
+  'mutatesLocalGcloudConfig: false',
   "wanPipelineLocalLoadPassed = Boolean(canary.stdoutSummary?.includes('REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_OK'))",
 ]) {
   assert.equal(runner.includes(required), true, `11H runner missing fixed marker: ${required}`)
@@ -130,6 +137,29 @@ assert.equal(staticReport.computeVmCreated, false)
 assert.equal(staticReport.generatedVideoCreated, false)
 assert.equal(staticReport.generatedAssetsCreated, false)
 assertAllFalse(staticReport.runtimeSideEffects as Record<string, unknown>)
+const staticAccountSelection = staticReport.accountSelection as Record<string, unknown>
+assert.equal(staticAccountSelection.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
+assert.equal(staticAccountSelection.overrideIndexCliFlag, '--account-index')
+assert.equal(staticAccountSelection.overrideIndexCliFlagAlias, '--gcloud-account-index')
+assert.equal(staticAccountSelection.overrideIndexProvided, false)
+assert.equal(staticAccountSelection.overrideResolved, false)
+assert.equal(staticAccountSelection.mutatesLocalGcloudConfig, false)
+
+const indexedStaticOutput = execFileSync('npx', ['tsx', RUNNER_PATH, '--json', '--account-index=2'], {
+  cwd: ROOT,
+  encoding: 'utf8',
+  maxBuffer: 1024 * 1024 * 8,
+  env: {
+    ...process.env,
+    REEDITPRO_CONFIRM_BROLL_11H_INFERENCE_PROOF_EXECUTE: '',
+  },
+})
+const indexedStaticReport = JSON.parse(indexedStaticOutput) as Record<string, unknown>
+const indexedAccountSelection = indexedStaticReport.accountSelection as Record<string, unknown>
+assert.equal(indexedAccountSelection.overrideIndexProvided, true)
+assert.equal(indexedAccountSelection.overrideIndexSource, 'cli')
+assert.equal(indexedAccountSelection.overrideIndex, 2)
+assert.equal(indexedAccountSelection.mutatesLocalGcloudConfig, false)
 
 const spec = AI_VIDEO_BROLL_GEN_11H_FIX_INFERENCE_PROOF
 assert.equal(spec.decision, 'ai_video_broll_gen_11h_fix_inference_proof_static_fix_ready_no_execution')
@@ -150,7 +180,7 @@ assert.equal(spec.futureRetryRequirements.persistedLatentsAllowed, false)
 assert.equal(spec.futureRetryRequirements.supabaseMutationAllowed, false)
 assert.equal(spec.futureRetryRequirements.creditMutationAllowed, false)
 
-const forbiddenFindings = scanForbiddenValues({ doc, spec, staticReport })
+const forbiddenFindings = scanForbiddenValues({ doc, spec, staticReport, indexedStaticReport })
 assert.equal(forbiddenFindings.length, 0, `Forbidden values found: ${forbiddenFindings.join('; ')}`)
 
 console.log(

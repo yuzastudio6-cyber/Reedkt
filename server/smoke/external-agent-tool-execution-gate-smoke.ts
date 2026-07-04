@@ -243,11 +243,11 @@ const reportQwenGateRow = report.toolRows.find(
 assert.equal(reportQwenGateRow.manualBlockerActions.length, 0)
 assert.equal(
   reportBrollGateRow.currentBlocker,
-  'wan_inference_boundary_plan_required_before_generated_video',
+  'bounded_wan_inference_proof_runner_required_before_execution',
 )
 assert.equal(
   reportBrollGateRow.safeNextCommand,
-  'npm run smoke:ai-video-broll-gen-11c-model-import-result-review',
+  'npm run smoke:ai-video-broll-gen-11f-inference-boundary-plan',
 )
 assert.equal(reportBrollGateRow.manualBlockerActions.length, 0)
 assert.equal(reportBrollGateRow.noIdleLifecycleGate.proofVmName, 'reeditpro-ai-broll-wan-l4-proof')

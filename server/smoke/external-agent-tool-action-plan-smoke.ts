@@ -183,10 +183,11 @@ assert.equal(broll.externalManualBlocker.includes('11A selected the Wan-AI/Wan2.
 assert.equal(broll.externalManualBlocker.includes('11B executed the bounded no-idle L4 model import/load proof'), true)
 assert.equal(broll.externalManualBlocker.includes('11C accepts that passed proof as external-agent evidence'), true)
 assert.equal(broll.externalManualBlocker.includes('11E staged the private GCS Wan model cache with the ready marker'), true)
-assert.equal(broll.externalManualBlocker.includes('11F inference-boundary plan'), true)
+assert.equal(broll.externalManualBlocker.includes('11F records the bounded Wan inference boundary plan'), true)
+assert.equal(broll.externalManualBlocker.includes('11G inference-proof runner'), true)
 assert.equal(
   broll.afterBlockerClears,
-  'run AI-VIDEO-BROLL-GEN-11F-INFERENCE-BOUNDARY-PLAN before any Wan inference or generated-video attempt; the 11B wrapper may only rerun import/load proof with explicit confirmation',
+  'run AI-VIDEO-BROLL-GEN-11G-INFERENCE-PROOF-RUNNER before any Wan inference-proof attempt; the 11B wrapper may only rerun import/load proof with explicit confirmation',
 )
 assert.equal(broll.forbiddenRuntimeActions.includes('do not create Compute Engine VMs'), true)
 assert.equal(broll.manualBlockerActions.length, 0)

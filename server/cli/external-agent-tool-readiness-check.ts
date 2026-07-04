@@ -34,6 +34,9 @@ const executionGateKeys = [
   'productionUnlocked',
 ] as const
 
+const preflightCallableToolIds = new Set(['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
+const safeEvidenceExecutableToolIds = new Set(['sound_music_audio', 'supabase_local_fixture_harness'])
+
 function readArgValue(names: string[]): string | undefined {
   for (const name of names) {
     const equalsPrefix = `${name}=`
@@ -152,6 +155,8 @@ function main() {
   const retryReadyAfterBlockerClears = rollup.tools.filter((tool) => tool.readyForBoundedRetryAfterBlockerClears)
   const noIdleLifecycleGateTools = rollup.tools.filter((tool) => tool.noIdleLifecycleGate)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
+  const externalAgentCallableTools = rollup.tools
+  const runtimeExecutableTools: typeof rollup.tools = []
   const runtimeGatesAllFalse = executionGateKeys.every((key) => rollup.runtimeSideEffects[key] === false)
   const gcpAccessRepairRuntimeGatesAllFalse = Object.values(
     EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.runtimeSideEffects,
@@ -189,6 +194,32 @@ function main() {
     generatedAssetsCreated: false,
     readyForAnyExternalAgentExecutionNow: false,
     readyForAnyExternalAgentRuntimeExecutionNow: false,
+    externalAgentCallableToolCount: externalAgentCallableTools.length,
+    externalAgentCallableToolIds: externalAgentCallableTools.map((tool) => tool.toolId),
+    runtimeExecutableToolCount: runtimeExecutableTools.length,
+    runtimeExecutableToolIds: runtimeExecutableTools.map((tool) => tool.toolId),
+    safeEvidenceExecutableToolIds: externalAgentCallableTools
+      .filter((tool) => safeEvidenceExecutableToolIds.has(tool.toolId))
+      .map((tool) => tool.toolId),
+    preflightCallableToolIds: externalAgentCallableTools
+      .filter((tool) => preflightCallableToolIds.has(tool.toolId))
+      .map((tool) => tool.toolId),
+    toolExecutionReadiness: externalAgentCallableTools.map((tool) => ({
+      toolId: tool.toolId,
+      lane: tool.lane,
+      status: tool.status,
+      selectedModelOrTool: tool.selectedModelOrTool,
+      selectedGpu: tool.selectedGpu,
+      agentCallableNow: true,
+      preflightCallableNow: preflightCallableToolIds.has(tool.toolId),
+      safeEvidenceExecutableNow: safeEvidenceExecutableToolIds.has(tool.toolId),
+      runtimeExecutableNow: false,
+      realRuntimeExecutionAllowedNow: false,
+      readyForBoundedRetryAfterBlockerClears: tool.readyForBoundedRetryAfterBlockerClears,
+      requiresLivePreflightBeforeRuntime: preflightCallableToolIds.has(tool.toolId),
+      primaryBlocker: tool.primaryBlocker,
+      nextAction: tool.nextAction,
+    })),
     staticReadyForAnyExternalAgentExecutionGateNow: staticReadyTools.length > 0,
     readyToolIds: [],
     staticReadyToolIds: staticReadyTools.map((tool) => tool.toolId),

@@ -81,6 +81,60 @@ assert.equal(summary.modelInferenceRun, false)
 assert.equal(summary.generatedAssetsCreated, false)
 assert.equal(summary.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(summary.readyForAnyExternalAgentRuntimeExecutionNow, false)
+assert.equal(summary.externalAgentCallableToolCount, 4)
+assert.deepEqual(summary.externalAgentCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(summary.runtimeExecutableToolCount, 0)
+assert.deepEqual(summary.runtimeExecutableToolIds, [])
+assert.deepEqual(summary.safeEvidenceExecutableToolIds, [
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.deepEqual(summary.preflightCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
+assert.equal(summary.toolExecutionReadiness.length, 4)
+for (const tool of summary.toolExecutionReadiness as Array<{
+  toolId: string
+  agentCallableNow: boolean
+  runtimeExecutableNow: boolean
+  realRuntimeExecutionAllowedNow: boolean
+  primaryBlocker: string
+}>) {
+  assert.equal(tool.agentCallableNow, true, `${tool.toolId} must remain agent-callable`)
+  assert.equal(tool.runtimeExecutableNow, false, `${tool.toolId} must not claim runtime execution`)
+  assert.equal(
+    tool.realRuntimeExecutionAllowedNow,
+    false,
+    `${tool.toolId} must not claim real runtime execution`,
+  )
+  assert.equal(typeof tool.primaryBlocker, 'string')
+}
+const readinessByTool = new Map(
+  summary.toolExecutionReadiness.map((tool: { toolId: string }) => [tool.toolId, tool]),
+)
+assert.equal(
+  (readinessByTool.get('qwen2_5_vl_7b_instruct') as { preflightCallableNow: boolean }).preflightCallableNow,
+  true,
+)
+assert.equal(
+  (readinessByTool.get('ai_video_broll_generation_wan') as { preflightCallableNow: boolean }).preflightCallableNow,
+  true,
+)
+assert.equal(
+  (readinessByTool.get('sound_music_audio') as { safeEvidenceExecutableNow: boolean }).safeEvidenceExecutableNow,
+  true,
+)
+assert.equal(
+  (readinessByTool.get('supabase_local_fixture_harness') as { safeEvidenceExecutableNow: boolean })
+    .safeEvidenceExecutableNow,
+  true,
+)
 assert.equal(summary.staticReadyForAnyExternalAgentExecutionGateNow, true)
 assert.deepEqual(summary.readyToolIds, [])
 assert.deepEqual(summary.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])

@@ -1,0 +1,112 @@
+{
+  "id": "internal-testing-durable-project-session-supabase-migration-review",
+  "scenarioId": "durable-project-session-supabase-migration-review",
+  "decision": "internal_testing_durable_project_session_supabase_migration_review_passed_ready_for_local_migration_dry_run_plan",
+  "priorDecision": "internal_testing_durable_project_session_supabase_migration_sql_draft_passed_ready_for_migration_review",
+  "currentMode": "migration_review_only",
+  "nextMode": "local_migration_dry_run_plan",
+  "reviewedDraftSqlFile": "database/migration-drafts/024_internal_testing_durable_project_session_access.draft.sql",
+  "acceptedFindings": [
+    {
+      "id": "draft-location",
+      "status": "accepted",
+      "finding": "SQL remains under database/migration-drafts and is not copied into supabase/migrations."
+    },
+    {
+      "id": "core-access-chain",
+      "status": "accepted",
+      "finding": "profiles, workspaces, workspace_members, projects, and edit_sessions preserve the workspace_members/auth.uid() access chain."
+    },
+    {
+      "id": "route-data-hardening",
+      "status": "accepted",
+      "finding": "edit_briefs, edit_cues, and edit_session_export_settings now have review-only select grants plus project/session membership RLS policies in the draft."
+    },
+    {
+      "id": "mutation-boundary",
+      "status": "accepted",
+      "finding": "mutation grants are absent; this draft only plans authenticated select access for internal-testing routes."
+    },
+    {
+      "id": "destructive-sql-boundary",
+      "status": "accepted",
+      "finding": "draft contains no drop table, drop schema, role mutation, service-role grant, or provider-secret storage."
+    }
+  ],
+  "productionBlockers": [
+    "full_mvp_schema_review_still_required_before_production_migration",
+    "approved_plan_snapshots_and_worker_tables_are_out_of_scope_for_this_project_session_draft",
+    "credit_ledger_and_audit_append_only_tables_are_out_of_scope_for_this_project_session_draft",
+    "storage_bucket_policies_remain_unapplied_and_unvalidated",
+    "remote_supabase_validation_has_not_run",
+    "generated_types_have_not_been_created",
+    "table_backed_routes_are_not_implemented"
+  ],
+  "localDryRunRequirements": [
+    "create_an_ephemeral_local_supabase_project_or_reset_target_only_after_explicit_approval",
+    "apply_only_database_migration_drafts_024_internal_testing_durable_project_session_access_as_a_dry_run",
+    "seed_member_and_non_member_fixture_users_without_private_media",
+    "verify_member_project_session_brief_cue_export_select_passes",
+    "verify_non_member_and_anonymous_select_denied",
+    "verify_mutation_attempts_denied_for_authenticated_role",
+    "remove_local_generated_outputs_and_do_not_commit_types_or_database_state"
+  ],
+  "blockedScope": {
+    "supabaseMigration": false,
+    "supabaseWrite": false,
+    "supabaseDataApiRead": false,
+    "storageSignedUrls": false,
+    "serviceRoleInBrowser": false,
+    "profileWorkspaceBootstrapWrites": false,
+    "providerOrModelCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "creditSpend": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "productReady": false,
+    "supabaseRouteImplementation": false,
+    "supabaseSchemaDraftApplied": false,
+    "rlsPolicyApplied": false,
+    "dataApiGrantApplied": false,
+    "liveRouteRead": false,
+    "liveRouteWrite": false,
+    "serviceRoleServerUse": false,
+    "migrationSqlWritten": true,
+    "migrationSqlDraftWritten": true,
+    "migrationReviewCompleted": true,
+    "localMigrationDryRunPlanAllowed": true,
+    "localMigrationDryRunExecuted": false,
+    "executableMigrationCreated": false,
+    "migrationApplied": false,
+    "remoteSupabaseValidation": false,
+    "localSupabaseReset": false,
+    "generatedTypes": false,
+    "tableBackedRouteImplementation": false,
+    "productionMigrationAllowed": false,
+    "durableSupabaseAccessAllowed": false
+  },
+  "durableSupabaseAccessAllowed": false,
+  "productReady": false,
+  "validation": {
+    "required": [
+      "smoke:internal-testing-durable-project-session-supabase-migration-review",
+      "smoke:internal-testing-durable-project-session-supabase-migration-sql-draft",
+      "smoke:internal-testing-durable-project-session-supabase-schema-rls-draft",
+      "smoke:internal-testing-durable-project-session-supabase-route-contract-plan",
+      "smoke:internal-testing-durable-project-session-backend-readback-qa",
+      "smoke:internal-testing-durable-project-session-backend-route-integration",
+      "smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton",
+      "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan",
+      "smoke:internal-testing-qa-wrapper",
+      "smoke:project-edit-brief-internal-testing-entrypoint",
+      "qa:internal-testing",
+      "typecheck:server",
+      "build",
+      "git diff --check",
+      "git diff --cached --check"
+    ]
+  },
+  "nextGate": "INTERNAL_TESTING_DURABLE_PROJECT_SESSION_SUPABASE_LOCAL_MIGRATION_DRY_RUN_PLAN"
+}

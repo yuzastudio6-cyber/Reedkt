@@ -18,9 +18,10 @@ The draft covers:
 - Route data tables: `edit_briefs`, `edit_cues`, and `edit_session_export_settings`.
 - Membership lookup indexes for workspace, project, edit-session, brief, cue, and export-setting reads.
 - Core authenticated-role select grants for `profiles`, `workspaces`, `workspace_members`, `projects`, and `edit_sessions`.
-- Authenticated-role RLS policies using the `workspace_members` and `auth.uid()` access chain.
+- Reviewed draft-only route data select grants for `edit_briefs`, `edit_cues`, and `edit_session_export_settings`.
+- Authenticated-role RLS policies using the `workspace_members` and `auth.uid()` access chain for core project/session rows and route data rows.
 
-Route data table select grants remain commented out until migration review verifies policy inheritance for every Project Edit Brief route data table.
+Route data table select grants and policies are now reviewed as draft-only SQL after migration review. They remain unapplied and outside executable migration history.
 
 ## Grant And RLS Policy
 
@@ -33,8 +34,8 @@ The RLS predicates preserve the same chain from the route contract:
 ## Review Checks
 
 - Draft file lives under `database/migration-drafts/`, not `supabase/migrations/`.
-- Core select grants only; route data select grants are review-only comments.
-- Authenticated-role RLS uses the workspace membership chain.
+- Core and reviewed route data select grants only.
+- Authenticated-role RLS uses the workspace membership chain for core and route data rows.
 - Anonymous access remains denied.
 - Mutation grants are absent.
 - No local Supabase reset or remote database apply occurred.

@@ -36,6 +36,7 @@ const requiredFiles = [
   'src/lib/project-session-supabase-route-contract-plan.ts',
   'src/lib/project-session-supabase-schema-rls-draft.ts',
   'src/lib/project-session-supabase-migration-sql-draft.ts',
+  'src/lib/project-session-supabase-migration-review.ts',
   'database/migration-drafts/024_internal_testing_durable_project_session_access.draft.sql',
   'src/backend/api/project-session-access-route-integration.ts',
   'src/backend/api/project-session-access-readback-qa.ts',
@@ -60,6 +61,9 @@ const requiredFiles = [
   'docs/internal-testing-durable-project-session-supabase-schema-rls-draft.json',
   'docs/internal-testing-durable-project-session-supabase-migration-sql-draft.md',
   'docs/internal-testing-durable-project-session-supabase-migration-sql-draft.json',
+  'docs/internal-testing-durable-project-session-supabase-migration-review.md',
+  'docs/internal-testing-durable-project-session-supabase-migration-review.json',
+  'server/smoke/internal-testing-durable-project-session-supabase-migration-review-smoke.ts',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
 ]
 
@@ -132,6 +136,10 @@ assert.match(page, /Migration SQL draft/)
 assert.match(page, /DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_SQL_DRAFT_DECISION/)
 assert.match(page, /getDurableProjectSessionSupabaseMigrationSqlDraft/)
 assert.match(page, /migration review/)
+assert.match(page, /internal-testing-durable-project-session-supabase-migration-review/)
+assert.match(page, /DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_REVIEW_DECISION/)
+assert.match(page, /getDurableProjectSessionSupabaseMigrationReview/)
+assert.match(page, /local migration dry-run plan/i)
 assert.doesNotMatch(page, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/)
 assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|service_role|signedUrl/i)
 
@@ -202,6 +210,13 @@ assert.match(supabaseMigrationSqlDraft, /create policy/)
 assert.match(supabaseMigrationSqlDraft, /INTERNAL_TESTING_DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_REVIEW/)
 assert.doesNotMatch(supabaseMigrationSqlDraft, /createClient|\.from\s*\(|insert\s*\(|update\s*\(|delete\s*\(|createSignedUrl|SUPABASE_SERVICE_ROLE_KEY/i)
 
+const supabaseMigrationReview = read('src/lib/project-session-supabase-migration-review.ts')
+assert.match(supabaseMigrationReview, /DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_REVIEW_DECISION/)
+assert.match(supabaseMigrationReview, /route-data-hardening/)
+assert.match(supabaseMigrationReview, /local_migration_dry_run_plan/)
+assert.match(supabaseMigrationReview, /verify_member_project_session_brief_cue_export_select_passes/)
+assert.doesNotMatch(supabaseMigrationReview, /createClient|\.from\s*\(|insert\s*\(|update\s*\(|delete\s*\(|createSignedUrl|SUPABASE_SERVICE_ROLE_KEY/i)
+
 const docs = read('docs/project-edit-brief-internal-testing-entrypoint.md')
 for (const phrase of [
   'production-shaped',
@@ -235,6 +250,8 @@ for (const phrase of [
   'durable-project-session-supabase-schema-rls-draft',
   'Durable Project Session Supabase Migration SQL Draft',
   'durable-project-session-supabase-migration-sql-draft',
+  'Durable Project Session Supabase Migration Review',
+  'durable-project-session-supabase-migration-review',
   'No Supabase Data API',
 ]) {
   assert.match(docs, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'))
@@ -267,6 +284,7 @@ assert.ok(docJson.features?.includes('durable_project_session_backend_readback_q
 assert.ok(docJson.features?.includes('durable_project_session_supabase_route_contract_plan'))
 assert.ok(docJson.features?.includes('durable_project_session_supabase_schema_rls_draft'))
 assert.ok(docJson.features?.includes('durable_project_session_supabase_migration_sql_draft'))
+assert.ok(docJson.features?.includes('durable_project_session_supabase_migration_review'))
 assert.equal(docJson.scenarioStatus?.['approval-credit-gate-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['credit-lifecycle-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['repeated-local-operator-harness'], 'mock_local')
@@ -279,6 +297,7 @@ assert.equal(docJson.scenarioStatus?.['durable-project-session-backend-readback-
 assert.equal(docJson.scenarioStatus?.['durable-project-session-supabase-route-contract-plan'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['durable-project-session-supabase-schema-rls-draft'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['durable-project-session-supabase-migration-sql-draft'], 'mock_local')
+assert.equal(docJson.scenarioStatus?.['durable-project-session-supabase-migration-review'], 'mock_local')
 assert.equal(docJson.blockedScope?.productReady, false)
 assert.equal(docJson.blockedScope?.supabaseReadWrite, false)
 assert.equal(docJson.blockedScope?.workerDispatch, false)
@@ -297,6 +316,7 @@ assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable-project-session-supabase-route-contract-plan'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable-project-session-supabase-schema-rls-draft'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable-project-session-supabase-migration-sql-draft'))
+assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable-project-session-supabase-migration-review'))
 
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
 assert.equal(
@@ -315,6 +335,7 @@ assert.match(sourceTruth, /Durable project\/session backend readback QA after RP
 assert.match(sourceTruth, /Durable project\/session Supabase route contract plan after RP-INTTEST-08/)
 assert.match(sourceTruth, /Durable project\/session Supabase schema\/RLS draft after RP-INTTEST-09/)
 assert.match(sourceTruth, /Durable project\/session Supabase migration SQL draft after RP-INTTEST-10/)
+assert.match(sourceTruth, /Durable project\/session Supabase migration review after RP-INTTEST-11/)
 
 const sourceTruthJson = JSON.parse(read('docs/project-edit-brief-source-truth-reconciliation.json')) as {
   landedScope?: string[]
@@ -330,6 +351,7 @@ assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_projec
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_route_contract_plan'))
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_schema_rls_draft'))
 assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_migration_sql_draft'))
+assert.ok(sourceTruthJson.landedScope?.includes('internal_testing_durable_project_session_supabase_migration_review'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:project-edit-brief-internal-testing-entrypoint'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-auth-project-session-membership-policy'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-auth-project-session-backend-persistence-plan'))
@@ -339,8 +361,10 @@ assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-tes
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-route-contract-plan'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-schema-rls-draft'))
 assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-migration-sql-draft'))
+assert.ok(sourceTruthJson.validation?.smokesPassed?.includes('smoke:internal-testing-durable-project-session-supabase-migration-review'))
 assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_entrypoint_after_rp_editbrief_23'))
-assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_review'))
+assert.ok(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_local_migration_dry_run_plan'))
+assert.equal(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_review'), false)
 assert.equal(sourceTruthJson.remainingGates?.includes('internal_testing_durable_project_session_supabase_migration_sql_draft'), false)
 
 const statusCounts = internalTestingScenarios.reduce<Record<string, number>>((counts, scenario) => {
@@ -372,6 +396,14 @@ assert.ok(
   internalTestingScenarios.some(
     (scenario) =>
       scenario.id === 'durable-project-session-supabase-migration-sql-draft' &&
+      scenario.route === '/internal-testing' &&
+      scenario.status === 'mock_local',
+  ),
+)
+assert.ok(
+  internalTestingScenarios.some(
+    (scenario) =>
+      scenario.id === 'durable-project-session-supabase-migration-review' &&
       scenario.route === '/internal-testing' &&
       scenario.status === 'mock_local',
   ),

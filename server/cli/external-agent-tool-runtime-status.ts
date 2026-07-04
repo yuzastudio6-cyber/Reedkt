@@ -105,6 +105,10 @@ function main() {
     'tsx',
     'server/cli/external-agent-tool-readiness-check.ts',
   ])
+  const gcpRepairPlan = runJson('gcp_access_repair_plan', 'npx', [
+    'tsx',
+    'server/cli/external-agent-gcp-access-repair-plan.ts',
+  ])
   const liveGate = liveChecksRun
     ? runJson('live_execution_gate', 'npx', [
         'tsx',
@@ -259,6 +263,31 @@ function main() {
           },
         }
       : undefined,
+    gcpAccessRepair: {
+      ok: gcpRepairPlan.ok,
+      decision: gcpRepairPlan.json?.decision,
+      mode: gcpRepairPlan.json?.mode,
+      projectId: gcpRepairPlan.json?.projectId,
+      currentLiveBlockers: gcpRepairPlan.json?.currentLiveBlockers,
+      repairScope: gcpRepairPlan.json?.repairScope,
+      tools: Array.isArray(gcpRepairPlan.json?.tools)
+        ? gcpRepairPlan.json.tools.map((tool) => {
+            const row = tool as JsonRecord
+            return {
+              toolId: row.toolId,
+              blocker: row.blocker,
+              likelyMinimalRole: row.likelyMinimalRole,
+              requiredResourceScope: row.requiredResourceScope,
+              requiredReadPermissions: row.requiredReadPermissions,
+              verificationCommand: row.verificationCommand,
+              runtimeExecutionStillRequiresWrapperGate: row.runtimeExecutionStillRequiresWrapperGate,
+            }
+          })
+        : [],
+      postRepairVerificationCommands: gcpRepairPlan.json?.postRepairVerificationCommands,
+      runtimeGatesAllFalse: gcpRepairPlan.json?.runtimeGatesAllFalse,
+      runtimeSideEffects: gcpRepairPlan.json?.runtimeSideEffects,
+    },
     nextCommand: liveChecksRun
       ? {
           ok: nextCommand?.ok === true,
@@ -314,6 +343,13 @@ function main() {
       (liveChecksRun && nestedString(liveGateJson, ['recommendedNextPrompt'])) ||
       EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.recommendedNextPrompt,
     probeSummaries: [
+      {
+        id: gcpRepairPlan.id,
+        ok: gcpRepairPlan.ok,
+        exitCode: gcpRepairPlan.exitCode,
+        mode: gcpRepairPlan.json?.mode,
+        decision: gcpRepairPlan.json?.decision,
+      },
       {
         id: readiness.id,
         ok: readiness.ok,

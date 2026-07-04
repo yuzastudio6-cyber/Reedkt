@@ -139,6 +139,30 @@ assert.equal(
   staticStatus.safeAgentCommands.brollInferencePreflight,
   'npm run external-agent-tool-execute-broll-wan -- --inference-proof --preflight-only --json',
 )
+assert.equal(staticStatus.gcpAccessRepair.ok, true)
+assert.equal(staticStatus.gcpAccessRepair.mode, 'external_agent_gcp_access_repair_plan_only')
+assert.equal(staticStatus.gcpAccessRepair.projectId, 'reeditpro')
+assert.equal(staticStatus.gcpAccessRepair.repairScope.doesNotGrantIam, true)
+assert.equal(staticStatus.gcpAccessRepair.repairScope.doesNotMutateGcp, true)
+assert.equal(staticStatus.gcpAccessRepair.repairScope.doesNotAuthorizeRuntimeExecution, true)
+assert.equal(staticStatus.gcpAccessRepair.tools.length, 2)
+assert.equal(
+  staticStatus.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; likelyMinimalRole: string }) =>
+      tool.toolId === 'qwen2_5_vl_7b_instruct' && tool.likelyMinimalRole === 'roles/run.viewer',
+  ),
+  true,
+)
+assert.equal(
+  staticStatus.gcpAccessRepair.tools.some(
+    (tool: { toolId: string; likelyMinimalRole: string }) =>
+      tool.toolId === 'ai_video_broll_generation_wan' && tool.likelyMinimalRole === 'roles/compute.viewer',
+  ),
+  true,
+)
+for (const [flag, value] of Object.entries(staticStatus.gcpAccessRepair.runtimeSideEffects)) {
+  assert.equal(value, false, `GCP repair side-effect flag must remain false: ${flag}`)
+}
 assert.equal(staticStatus.tools.length, 4)
 
 const staticToolsById = new Map(staticStatus.tools.map((tool: { toolId: string }) => [tool.toolId, tool]))
@@ -188,6 +212,17 @@ assert.equal(liveStatus.agentCallableToolCount, 4)
 assert.equal(liveStatus.runtimeGatesAllFalse, true)
 assert.equal(typeof liveStatus.liveGate.ok, 'boolean')
 assert.equal(typeof liveStatus.liveGate.executionAllowedNow, 'boolean')
+assert.equal(liveStatus.gcpAccessRepair.ok, true)
+assert.equal(Array.isArray(liveStatus.gcpAccessRepair.postRepairVerificationCommands), true)
+assert.equal(
+  liveStatus.gcpAccessRepair.postRepairVerificationCommands.includes(
+    'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-gcp-access:verify',
+  ),
+  true,
+)
+for (const [flag, value] of Object.entries(liveStatus.gcpAccessRepair.runtimeSideEffects)) {
+  assert.equal(value, false, `Live GCP repair side-effect flag must remain false: ${flag}`)
+}
 assert.equal(typeof liveStatus.nextCommand.ok, 'boolean')
 assert.equal(typeof liveStatus.nextCommand.chosenNextCommand === 'string' || liveStatus.nextCommand.chosenNextCommand === null, true)
 assert.equal(typeof liveStatus.recommendedNextPrompt, 'string')

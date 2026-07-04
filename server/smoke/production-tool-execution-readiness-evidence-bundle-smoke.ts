@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import {
   buildProductionToolExecutionReadinessEvidenceBundleFromEnv,
   type ProductionToolExecutionReadinessEvidenceBundleEnv,
 } from '../cli/production-tool-execution-readiness-evidence-bundle'
+
+const tempRoot = mkdtempSync(join(tmpdir(), 'reeditpro-production-evidence-bundle-'))
 
 const empty = await buildProductionToolExecutionReadinessEvidenceBundleFromEnv({})
 assert.equal(empty.ok, false, 'empty production evidence bundle should remain blocked')
@@ -89,6 +93,30 @@ assert.equal(
   'bundle should include the real worker handler readiness check',
 )
 
+const evidenceFilePath = writeEvidenceFile('complete-bundle-evidence.json', completeEnv())
+const fileComplete = await buildProductionToolExecutionReadinessEvidenceBundleFromEnv({
+  REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE: evidenceFilePath,
+})
+assert.equal(fileComplete.ok, true, 'complete production evidence file should drive the full dry-run bundle ready')
+assert.equal(fileComplete.readyForAllUpRecord, true, 'complete evidence file should be ready for all-up record')
+assert.equal(
+  fileComplete.sections.filter((section) => section.id !== 'real_worker_handlers').every((section) => section.ready),
+  true,
+  'complete evidence file should satisfy every evidence-backed bundle section',
+)
+
+const secretEvidenceFilePath = writeEvidenceFile('secret-bundle-evidence.json', {
+  ...completeEnv(),
+  REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_NOTES: 'Supabase note accidentally included service_role_key',
+})
+await assert.rejects(
+  () => buildProductionToolExecutionReadinessEvidenceBundleFromEnv({
+    REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE: secretEvidenceFilePath,
+  }),
+  /secret-like/,
+  'bundle should fail closed on secret-like evidence loaded from the production evidence file',
+)
+
 await assert.rejects(
   () => buildProductionToolExecutionReadinessEvidenceBundleFromEnv({
     ...completeEnv(),
@@ -122,7 +150,19 @@ console.log(JSON.stringify({
   })),
   sequence: complete.recommendedSequence.map((item) => item.command),
   backendCallsAttempted: complete.backendCallsAttempted,
+  fileCompleteReady: fileComplete.ok,
 }, null, 2))
+
+rmSync(tempRoot, { force: true, recursive: true })
+
+function writeEvidenceFile(name: string, env: ProductionToolExecutionReadinessEvidenceBundleEnv): string {
+  const filePath = join(tempRoot, name)
+  writeFileSync(filePath, JSON.stringify({
+    version: 'production-tool-execution-readiness-evidence-v1',
+    environment: env,
+  }, null, 2))
+  return filePath
+}
 
 function completeEnv(): ProductionToolExecutionReadinessEvidenceBundleEnv {
   const yes = 'true'

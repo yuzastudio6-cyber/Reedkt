@@ -95,6 +95,8 @@ const storedProductionEvidencePacket = recordMockProductionToolExecutionReadines
   },
   context.auth!.userId,
 ).packet
+staleProductionEvidencePacket.createdAt = '2026-07-03T00:00:00.000Z'
+storedProductionEvidencePacket.createdAt = '2026-07-03T00:00:01.000Z'
 
 const dispatched = await service.dispatchApprovedToolCall(baseInput)
 assert.equal(dispatched.gateway.status, 'dispatched', 'valid request should dispatch through the backend gateway')

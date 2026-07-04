@@ -1445,6 +1445,8 @@ function buildReport() {
         decision: gpuProofRefBridge.decision,
         status: gpuProofRefBridge.status,
         accepted: true,
+        diagnosticOnlyPrivateProofFixtureRejectionReason:
+          'private_local_runtime_proof_bundle_is_diagnostic_only',
       },
       controlledWorkerRouteExecutionSmoke: {
         decision: controlledWorkerRouteSmoke.decision,

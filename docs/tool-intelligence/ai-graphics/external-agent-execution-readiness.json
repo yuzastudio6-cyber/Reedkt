@@ -31,7 +31,8 @@
     "gpuModelRuntimeProofRefBridge": {
       "decision": "ai_graphics_external_agent_gpu_model_runtime_proof_ref_bridge_prepared_with_runtime_blocks",
       "status": "gpu_model_runtime_proof_ref_bridge_blocked_until_private_local_runtime_proof_is_supplied",
-      "accepted": true
+      "accepted": true,
+      "diagnosticOnlyPrivateProofFixtureRejectionReason": "private_local_runtime_proof_bundle_is_diagnostic_only"
     },
     "controlledWorkerRouteExecutionSmoke": {
       "decision": "ai_graphics_external_agent_controlled_worker_route_execution_smoke_passed_with_runtime_blocks",

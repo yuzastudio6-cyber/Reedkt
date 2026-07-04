@@ -795,6 +795,7 @@ for (const phrase of [
   'private_output_json_sha256_missing',
   'private_output_json_sha256_mismatch',
   'private_output_json_outside_local_artifacts_gpu_model_runtime_namespace',
+  'private_local_runtime_proof_bundle_is_diagnostic_only',
   'requiresPrivateOutputJsonSha256Match',
   'requiresPrivateOutputJsonUnderLocalArtifactsGpuModelRuntime',
   'sha256File',
@@ -813,6 +814,9 @@ if (
 }
 if (report.proofRefBridgePolicy?.requiresPrivateOutputJsonSha256Match !== true) {
   fail('proof_ref_bridge_policy_missing_output_sha256_match_requirement')
+}
+if (report.proofRefBridgePolicy?.rejectsDiagnosticOnlyPrivateProofFixtures !== true) {
+  fail('proof_ref_bridge_policy_missing_diagnostic_fixture_rejection')
 }
 for (const toolId of gpuModelTools) {
   const contract =
@@ -854,54 +858,55 @@ for (const caseDef of scopedProofFixtureCases) {
     '--local-runtime-proof-result',
     scopedProofPath,
   ])
-  if (scopedBridge.status !== acceptedStatus) {
-    fail(`synthetic_scoped_bridge_status_mismatch:${caseDef.toolId}:${scopedBridge.status}`)
+  if (scopedBridge.status !== status) {
+    fail(`diagnostic_only_scoped_bridge_status_mismatch:${caseDef.toolId}:${scopedBridge.status}`)
   }
   if (scopedBridge.counts?.privateLocalRuntimeProofResultSuppliedTools !== 1) {
-    fail(`synthetic_scoped_bridge_supplied_count_not_one:${caseDef.toolId}`)
+    fail(`diagnostic_only_scoped_bridge_supplied_count_not_one:${caseDef.toolId}`)
   }
-  if (scopedBridge.counts?.acceptedPrivateLocalRuntimeProofTools !== 1) {
-    fail(`synthetic_scoped_bridge_accepted_count_not_one:${caseDef.toolId}`)
+  if (scopedBridge.counts?.acceptedPrivateLocalRuntimeProofTools !== 0) {
+    fail(`diagnostic_only_scoped_bridge_accepted_count_not_zero:${caseDef.toolId}`)
   }
-  if (scopedBridge.counts?.routeSubmissionReadyWithAcceptedPrivateProofTools !== 1) {
-    fail(`synthetic_scoped_bridge_route_ready_count_not_one:${caseDef.toolId}`)
+  if (scopedBridge.counts?.routeSubmissionReadyWithAcceptedPrivateProofTools !== 0) {
+    fail(`diagnostic_only_scoped_bridge_route_ready_count_not_zero:${caseDef.toolId}`)
   }
   if (scopedBridge.counts?.blockedMissingPrivateLocalRuntimeProofResultTools !== 7) {
-    fail(`synthetic_scoped_bridge_remaining_blocked_count_not_seven:${caseDef.toolId}`)
+    fail(`diagnostic_only_scoped_bridge_remaining_missing_count_not_seven:${caseDef.toolId}`)
   }
-  if (scopedBridge.counts?.blockedPrivateLocalRuntimeOutputMissingTools !== 0) {
-    fail(`synthetic_scoped_bridge_output_missing_count_not_zero:${caseDef.toolId}`)
+  if (scopedBridge.counts?.blockedPrivateLocalRuntimeOutputMissingTools !== 1) {
+    fail(`diagnostic_only_scoped_bridge_output_missing_count_not_one:${caseDef.toolId}`)
   }
   const scopedBridgeRows = Array.isArray(scopedBridge.gpuModelRuntimeProofRefBridgeRows)
     ? scopedBridge.gpuModelRuntimeProofRefBridgeRows
     : []
   const scopedRow = scopedBridgeRows.find((row) => row.toolId === caseDef.toolId)
   if (!scopedRow) {
-    fail(`synthetic_scoped_bridge_missing_row:${caseDef.toolId}`)
+    fail(`diagnostic_only_scoped_bridge_missing_row:${caseDef.toolId}`)
   } else {
-    if (scopedRow.localRuntimeProofAccepted !== true) {
-      fail(`synthetic_scoped_bridge_row_not_accepted:${caseDef.toolId}`)
+    if (scopedRow.localRuntimeProofAccepted !== false) {
+      fail(`diagnostic_only_scoped_bridge_row_accepted:${caseDef.toolId}`)
     }
-    if (scopedRow.routeSubmissionReadyWithAcceptedPrivateProof !== true) {
-      fail(`synthetic_scoped_bridge_route_not_ready:${caseDef.toolId}`)
+    if (scopedRow.routeSubmissionReadyWithAcceptedPrivateProof !== false) {
+      fail(`diagnostic_only_scoped_bridge_route_ready:${caseDef.toolId}`)
     }
     if (
       scopedRow.proofRefBridgeStatus !==
-      'accepted_private_local_runtime_proof_ready_for_proof_ref_route_submission'
+      'blocked_private_local_runtime_output_missing'
     ) {
-      fail(`synthetic_scoped_bridge_status:${caseDef.toolId}:${scopedRow.proofRefBridgeStatus}`)
+      fail(`diagnostic_only_scoped_bridge_status:${caseDef.toolId}:${scopedRow.proofRefBridgeStatus}`)
     }
     if (
       scopedRow.localProofEvidenceObserved
-        ?.privateOutputJsonAccepted !== true
+        ?.privateOutputJsonAccepted !== false
     ) {
-      fail(`synthetic_scoped_bridge_output_json_not_accepted:${caseDef.toolId}`)
+      fail(`diagnostic_only_scoped_bridge_output_json_accepted:${caseDef.toolId}`)
     }
     if (
       scopedRow.localProofEvidenceObserved
-        ?.privateOutputJsonRejectionReason !== null
+        ?.privateOutputJsonRejectionReason !==
+      'private_local_runtime_proof_bundle_is_diagnostic_only'
     ) {
-      fail(`synthetic_scoped_bridge_output_rejection:${caseDef.toolId}:${scopedRow.localProofEvidenceObserved?.privateOutputJsonRejectionReason}`)
+      fail(`diagnostic_only_scoped_bridge_output_rejection:${caseDef.toolId}:${scopedRow.localProofEvidenceObserved?.privateOutputJsonRejectionReason}`)
     }
     if (
       scopedRow.localProofEvidenceObserved

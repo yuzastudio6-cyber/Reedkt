@@ -207,6 +207,7 @@ interface LocalProofHarnessRow {
   outputJsonSha256?: string | null
   skipReasonCode?: string | null
   errorMessage?: string | null
+  warnings?: unknown[]
 }
 
 interface LocalProofOutputEvidence {
@@ -805,6 +806,19 @@ function localProofOutputEvidence(
   toolId: GpuModelToolId,
   row: LocalProofHarnessRow | undefined,
 ): LocalProofOutputEvidence {
+  const warningText = Array.isArray(row?.warnings)
+    ? row.warnings.filter((warning): warning is string => typeof warning === 'string').join('\n')
+    : ''
+  if (/diagnostic-only private proof fixture/i.test(warningText)) {
+    return {
+      privateOutputJsonPathExists: false,
+      privateOutputJsonSha256Matches: false,
+      privateOutputJsonAccepted: false,
+      privateOutputJsonRejectionReason:
+        'private_local_runtime_proof_bundle_is_diagnostic_only',
+    }
+  }
+
   if (!isLocalGpuModelProofOutputPath(row?.outputJsonPath)) {
     return {
       privateOutputJsonPathExists: false,
@@ -1193,6 +1207,7 @@ function buildReport(localProofResultPaths: string[] = []) {
       requiresPrivateOutputJsonUnderLocalArtifactsGpuModelRuntime: true,
       acceptsScopedToolRowsOnly: true,
       acceptsMultiplePrivateProofBundles: true,
+      rejectsDiagnosticOnlyPrivateProofFixtures: true,
       noIdleGpuRuntimeApproved: true,
       gpuStartsOnlyInUpstreamScopedProofRun: true,
       bridgeStartsGpuRuntime: false,

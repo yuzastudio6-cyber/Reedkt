@@ -14,7 +14,7 @@
       "decision": "ai_graphics_external_agent_gpu_model_proof_ref_route_caller_contract_prepared_with_runtime_blocks",
       "accepted": true
     },
-    "suppliedPrivateLocalProofResult": null
+    "suppliedPrivateLocalProofResults": null
   },
   "interfaces": {
     "packageScript": "ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge",
@@ -24,6 +24,7 @@
     "defaultCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge",
     "committedRecordCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --write-records",
     "privateProofBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
+    "privateProofBridgeMultipleProofsCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-a>/harness-result.json --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-b>/harness-result.json",
     "upstreamPrivateProofCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>"
   },
   "proofRefBridgePolicy": {
@@ -34,6 +35,8 @@
     "requiresPrivateOutputJsonSha256Match": true,
     "requiresPrivateOutputJsonUnderLocalArtifactsGpuModelRuntime": true,
     "acceptsScopedToolRowsOnly": true,
+    "acceptsMultiplePrivateProofBundles": true,
+    "rejectsDiagnosticOnlyPrivateProofFixtures": true,
     "noIdleGpuRuntimeApproved": true,
     "gpuStartsOnlyInUpstreamScopedProofRun": true,
     "bridgeStartsGpuRuntime": false,

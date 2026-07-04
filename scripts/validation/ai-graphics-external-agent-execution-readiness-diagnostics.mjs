@@ -1944,72 +1944,76 @@ for (const caseDef of scopedProofFixtureCases) {
     '--local-runtime-proof-result',
     scopedProofPath,
   ])
-  if (liveWithPrivateProof.status !== privateProofStatus) {
-    fail(`synthetic_private_proof_status_mismatch:${caseDef.toolId}:${liveWithPrivateProof.status}`)
+  if (liveWithPrivateProof.status !== status) {
+    fail(`diagnostic_only_private_proof_status_mismatch:${caseDef.toolId}:${liveWithPrivateProof.status}`)
   }
-  if (liveWithPrivateProof.counts?.agentExecutableTools !== 14) {
-    fail(`synthetic_private_proof_executable_count_mismatch:${caseDef.toolId}:${liveWithPrivateProof.counts?.agentExecutableTools}`)
+  if (liveWithPrivateProof.counts?.agentExecutableTools !== 13) {
+    fail(`diagnostic_only_private_proof_executable_count_mismatch:${caseDef.toolId}:${liveWithPrivateProof.counts?.agentExecutableTools}`)
   }
-  if (liveWithPrivateProof.counts?.gpuToolsWithValidRuntimeProof !== 1) {
-    fail(`synthetic_private_proof_gpu_valid_count_not_one:${caseDef.toolId}`)
+  if (liveWithPrivateProof.counts?.gpuToolsWithValidRuntimeProof !== 0) {
+    fail(`diagnostic_only_private_proof_gpu_valid_count_not_zero:${caseDef.toolId}`)
   }
-  if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeAcceptedTools !== 1) {
-    fail(`synthetic_private_proof_bridge_accepted_count_not_one:${caseDef.toolId}`)
+  if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeAcceptedTools !== 0) {
+    fail(`diagnostic_only_private_proof_bridge_accepted_count_not_zero:${caseDef.toolId}`)
   }
-  if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeBlockedTools !== 7) {
-    fail(`synthetic_private_proof_bridge_blocked_count_not_seven:${caseDef.toolId}`)
+  if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeBlockedTools !== 8) {
+    fail(`diagnostic_only_private_proof_bridge_blocked_count_not_eight:${caseDef.toolId}`)
   }
   if (liveWithPrivateProof.counts?.blockedWithReasonTools !== 7) {
-    fail(`synthetic_private_proof_blocked_count_not_seven:${caseDef.toolId}`)
+    fail(`diagnostic_only_private_proof_blocked_count_not_seven:${caseDef.toolId}`)
   }
-  if (liveWithPrivateProof.counts?.failedWithDiagnosticsTools !== 0) {
-    fail(`synthetic_private_proof_failed_count_not_zero:${caseDef.toolId}`)
+  if (liveWithPrivateProof.counts?.failedWithDiagnosticsTools !== 1) {
+    fail(`diagnostic_only_private_proof_failed_count_not_one:${caseDef.toolId}`)
   }
   if (liveWithPrivateProof.counts?.gpuRuntimeShouldStartNowTools !== 0) {
-    fail(`synthetic_private_proof_readiness_started_gpu:${caseDef.toolId}`)
+    fail(`diagnostic_only_private_proof_readiness_started_gpu:${caseDef.toolId}`)
   }
   if (liveWithPrivateProof.booleans?.privateLocalRuntimeProofResultSupplied !== true) {
-    fail(`synthetic_private_proof_result_not_marked_supplied:${caseDef.toolId}`)
+    fail(`diagnostic_only_private_proof_result_not_marked_supplied:${caseDef.toolId}`)
   }
-  if (liveWithPrivateProof.booleans?.agentCanExecuteGpuModelToolsNow !== true) {
-    fail(`synthetic_private_proof_gpu_tools_not_marked_executable:${caseDef.toolId}`)
+  if (liveWithPrivateProof.booleans?.agentCanExecuteGpuModelToolsNow !== false) {
+    fail(`diagnostic_only_private_proof_gpu_tools_marked_executable:${caseDef.toolId}`)
   }
-  if (liveWithPrivateProof.booleans?.toolExecutionApprovedForGpuModelToolsNow !== true) {
-    fail(`synthetic_private_proof_gpu_tool_execution_not_marked_approved:${caseDef.toolId}`)
+  if (liveWithPrivateProof.booleans?.toolExecutionApprovedForGpuModelToolsNow !== false) {
+    fail(`diagnostic_only_private_proof_gpu_tool_execution_marked_approved:${caseDef.toolId}`)
   }
   if (liveWithPrivateProof.booleans?.agentCanExecuteAll21ToolsNow !== false) {
-    fail(`synthetic_private_proof_claims_all21_executable:${caseDef.toolId}`)
+    fail(`diagnostic_only_private_proof_claims_all21_executable:${caseDef.toolId}`)
   }
   if (liveWithPrivateProof.booleans?.gpuRuntimeShouldStartNow !== false) {
-    fail(`synthetic_private_proof_idle_gpu_start_claim:${caseDef.toolId}`)
+    fail(`diagnostic_only_private_proof_idle_gpu_start_claim:${caseDef.toolId}`)
   }
   const privateProofRows = Array.isArray(liveWithPrivateProof.toolReadinessRows)
     ? liveWithPrivateProof.toolReadinessRows
     : []
   const privateProofTool = privateProofRows.find((row) => row.toolId === caseDef.toolId)
   if (!privateProofTool) {
-    fail(`synthetic_private_proof_missing_row:${caseDef.toolId}`)
+    fail(`diagnostic_only_private_proof_missing_row:${caseDef.toolId}`)
   } else {
-    if (privateProofTool.readinessState !== 'executable') {
-      fail(`synthetic_private_proof_not_executable:${caseDef.toolId}:${privateProofTool.readinessState}`)
+    if (privateProofTool.readinessState !== 'failed_with_diagnostics') {
+      fail(`diagnostic_only_private_proof_not_failed:${caseDef.toolId}:${privateProofTool.readinessState}`)
     }
-    if (privateProofTool.executable !== true) {
-      fail(`synthetic_private_proof_executable_false:${caseDef.toolId}`)
+    if (privateProofTool.executable !== false) {
+      fail(`diagnostic_only_private_proof_executable_true:${caseDef.toolId}`)
     }
-    if (privateProofTool.routeSubmissionReadyWithAcceptedPrivateProof !== true) {
-      fail(`synthetic_private_proof_route_submission_not_ready:${caseDef.toolId}`)
+    if (privateProofTool.routeSubmissionReadyWithAcceptedPrivateProof !== false) {
+      fail(`diagnostic_only_private_proof_route_submission_ready:${caseDef.toolId}`)
     }
     if (
       privateProofTool.proofRefBridgeStatus !==
-      'accepted_private_local_runtime_proof_ready_for_proof_ref_route_submission'
+      'blocked_private_local_runtime_output_missing'
     ) {
-      fail(`synthetic_private_proof_bridge_status:${caseDef.toolId}:${privateProofTool.proofRefBridgeStatus}`)
+      fail(`diagnostic_only_private_proof_bridge_status:${caseDef.toolId}:${privateProofTool.proofRefBridgeStatus}`)
     }
-    if (privateProofTool.blockingPrerequisite !== null) {
-      fail(`synthetic_private_proof_unexpected_blocker:${caseDef.toolId}:${privateProofTool.blockingPrerequisite}`)
+    if (
+      !String(privateProofTool.blockingPrerequisite ?? '').includes(
+        'proof bridge status: blocked_private_local_runtime_output_missing',
+      )
+    ) {
+      fail(`diagnostic_only_private_proof_missing_blocker:${caseDef.toolId}:${privateProofTool.blockingPrerequisite}`)
     }
     if (privateProofTool.gpuRuntimeShouldStartNow !== false) {
-      fail(`synthetic_private_proof_idle_gpu_start_claim:${caseDef.toolId}`)
+      fail(`diagnostic_only_private_proof_idle_gpu_start_claim:${caseDef.toolId}`)
     }
     if (
       privateProofTool.sourceGpuRuntimeShouldStartDuringScopedProof !==
@@ -2067,6 +2071,7 @@ for (const phrase of [
   'currentHostEligibleForGpuProof',
   'mergeGpuHarnessWithPrivateProof',
   'runJsonFileCommand',
+  'private_local_runtime_proof_bundle_is_diagnostic_only',
   'controlledWorkerRouteSmoke',
   '--controlled-worker-route-smoke-packet',
   'controlledWorkerRouteEvidenceAccepted',

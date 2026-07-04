@@ -38,16 +38,20 @@ await assert.rejects(
   'collector should reject secret-like Stripe boundary evidence fields before backend calls',
 )
 
-await assert.rejects(
-  () => runProductionStripeBoundaryEvidenceCollectorFromEnv({
-    ...stripeBoundaryEnv(),
-    REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_CONFIRM_RECORD_EVIDENCE: 'true',
-  }, async () => {
-    throw new Error('fetch must not run when the all-up production packet is incomplete')
-  }),
-  /all-up production readiness evidence collector did not record/,
-  'confirmed recording should fail closed until the all-up production packet is complete',
-)
+const blockedAuditCalls: Array<{ url: string; method: string; headers: Record<string, string>; body?: Record<string, unknown> }> = []
+const blockedAuditRecord = await runProductionStripeBoundaryEvidenceCollectorFromEnv({
+  ...stripeBoundaryEnv(),
+  REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_CONFIRM_RECORD_EVIDENCE: 'true',
+  REEDITPRO_PRODUCTION_READINESS_API_BASE_URL: 'https://api.production.reeditpro.example',
+  REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN: 'production-stripe-boundary-bearer-token',
+  REEDITPRO_PRODUCTION_READINESS_IDEMPOTENCY_KEY: 'production-stripe-boundary-blocked-audit-smoke',
+}, fakeFetch(blockedAuditCalls, false))
+assert.equal(blockedAuditRecord.ok, true, 'confirmed slice evidence should record a blocked audit packet when all-up evidence is incomplete')
+assert.equal(blockedAuditRecord.mode, 'blocked_recorded', 'collector should surface blocked audit record mode')
+assert.equal(blockedAuditRecord.record?.mode, 'blocked_recorded', 'underlying collector should record a blocked audit packet')
+assert.equal(blockedAuditRecord.record?.readyForRecord, false, 'blocked audit record must not be paid-production-ready')
+assert.equal(blockedAuditRecord.record?.readback?.latestPaidProductionAllowed, false, 'blocked audit readback must preserve paid production denied')
+assert.equal(blockedAuditCalls[0]?.url.includes('recordBlockedEvidence=true'), true, 'slice blocked audit recording should use explicit backend query flag')
 
 const calls: Array<{ url: string; method: string; headers: Record<string, string>; body?: Record<string, unknown> }> = []
 const recorded = await runProductionStripeBoundaryEvidenceCollectorFromEnv(completeEnv(), fakeFetch(calls))
@@ -75,11 +79,12 @@ console.log(JSON.stringify({
 
 function fakeFetch(
   calls: Array<{ url: string; method: string; headers: Record<string, string>; body?: Record<string, unknown> }>,
+  ready = true,
 ): ProductionToolExecutionReadinessEvidenceCollectorFetch {
   return async (url, init) => {
     const body = init.body ? JSON.parse(init.body) as Record<string, unknown> : undefined
     calls.push({ url, method: init.method, headers: init.headers, body })
-    if (init.method === 'POST' && url.endsWith('/v1/beta-readiness/production-tool-execution-readiness/evidence')) {
+    if (init.method === 'POST' && url.includes('/v1/beta-readiness/production-tool-execution-readiness/evidence')) {
       return jsonResponse(201, {
         ok: true,
         data: {
@@ -89,10 +94,10 @@ function fakeFetch(
             workspaceId: body?.workspaceId,
           },
           report: {
-            status: 'ready_for_paid_production',
-            productionToolExecutionAllowed: true,
-            paidProductionAllowed: true,
-            blockers: [],
+            status: ready ? 'ready_for_paid_production' : 'blocked',
+            productionToolExecutionAllowed: ready,
+            paidProductionAllowed: ready,
+            blockers: ready ? [] : ['all-up production readiness evidence remains incomplete'],
           },
         },
         warnings: ['Production Stripe boundary route smoke response.'],
@@ -105,9 +110,9 @@ function fakeFetch(
         data: {
           evidencePacketCount: 1,
           latestReport: {
-            status: 'ready_for_paid_production',
-            productionToolExecutionAllowed: true,
-            paidProductionAllowed: true,
+            status: ready ? 'ready_for_paid_production' : 'blocked',
+            productionToolExecutionAllowed: ready,
+            paidProductionAllowed: ready,
           },
           latestPacket: {
             id: 'production-stripe-boundary-evidence-packet-smoke',
@@ -123,9 +128,9 @@ function fakeFetch(
             workspaceId: 'workspace-production-stripe-boundary-smoke',
             evidencePacketCount: 1,
             latestEvidencePacketId: 'production-stripe-boundary-evidence-packet-smoke',
-            latestGateStatus: 'ready_for_paid_production',
-            latestProductionToolExecutionAllowed: true,
-            latestPaidProductionAllowed: true,
+            latestGateStatus: ready ? 'ready_for_paid_production' : 'blocked',
+            latestProductionToolExecutionAllowed: ready,
+            latestPaidProductionAllowed: ready,
             durableEvidenceStored: true,
             backendPersistenceMode: 'persistent_supabase',
             productionActivationAttempted: false,

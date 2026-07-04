@@ -691,6 +691,7 @@
     "smoke:ai-video-broll-gen-11a-model-import-plan": "tsx server/smoke/ai-video-broll-gen-11a-model-import-plan-smoke.ts",
     "ai-video-broll-gen-11b:l4-model-import-runner": "tsx server/cli/ai-video-broll-gen-11b-l4-model-import-runner.ts",
     "smoke:ai-video-broll-gen-11b-model-import-runner": "tsx server/smoke/ai-video-broll-gen-11b-model-import-runner-smoke.ts",
+    "smoke:ai-video-broll-gen-11b-model-import-proof-execution-result": "tsx server/smoke/ai-video-broll-gen-11b-model-import-proof-execution-result-smoke.ts",
     "smoke:ai-video-broll-gen-11c-storage-transfer-naming-test-result": "tsx server/smoke/ai-video-broll-gen-11c-storage-transfer-naming-test-result-smoke.ts",
     "smoke:ai-video-broll-gen-11d-cache-staging-strategy-fix": "tsx server/smoke/ai-video-broll-gen-11d-cache-staging-strategy-fix-smoke.ts",
     "ai-video-broll-gen-11e:cloud-side-cache-staging-runner": "tsx server/cli/ai-video-broll-gen-11e-cloud-side-cache-staging-runner.ts",

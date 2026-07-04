@@ -269,6 +269,23 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'durable-project-session-backend-readback-qa',
+    title: 'Durable project/session backend readback QA',
+    description: 'Verify Project Edit Session and Project Edit Brief success and failure envelopes expose project/session access metadata consistently.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the readback QA panel.',
+      'Confirm success data envelopes and failure error envelopes carry projectSessionAccess metadata.',
+      'Confirm request/idempotency envelopes are present and durable Supabase access remains false.',
+      'Confirm no Supabase read/write, Storage, worker, media, render, credit, external beta, production, or product-ready gates open.',
+    ],
+    expectedResult:
+      'Internal testers can accept the route integration readback before planning durable Supabase route contracts.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

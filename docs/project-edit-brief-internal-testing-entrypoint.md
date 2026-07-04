@@ -72,6 +72,12 @@ The `durable-project-session-backend-route-integration` scenario is classified a
 
 This route integration does not run Supabase Data API table reads/writes, SQL, migrations, Storage, signed URLs, service-role browser code, profile/workspace bootstrap writes, workers, media, render/export, credits, external beta, paid production, or product-ready behavior.
 
+## Durable Project Session Backend Readback QA
+
+The `durable-project-session-backend-readback-qa` scenario is classified as `mock_local` because Project Edit Session and Project Edit Brief mock route responses now have readback QA coverage for both success and failure envelopes. Internal testers can verify `projectSessionAccess` metadata is present in successful `data` payloads and failed `error.details` payloads before durable Supabase route contracts are planned.
+
+This readback QA does not run Supabase Data API table reads/writes, SQL, migrations, Storage, signed URLs, service-role browser code, profile/workspace bootstrap writes, workers, media, render/export, credits, external beta, paid production, or product-ready behavior.
+
 ## Boundaries
 
 - No upload or file-byte read.
@@ -101,6 +107,7 @@ Required validation:
 - `npm run smoke:internal-testing-durable-auth-project-session-backend-persistence-plan`
 - `npm run smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton`
 - `npm run smoke:internal-testing-durable-project-session-backend-route-integration`
+- `npm run smoke:internal-testing-durable-project-session-backend-readback-qa`
 - `npm run qa:internal-testing`
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-readback-qa`
@@ -114,4 +121,4 @@ Required validation:
 
 ## Next
 
-Use `/internal-testing` for repeated internal QA and source-truth feedback capture. The next real product milestones remain durable authenticated project/session route readback QA, real planner integration into approved snapshots, transactional credit reservation/spend/release/refund persistence, and explicit runtime/persistence gates.
+Use `/internal-testing` for repeated internal QA and source-truth feedback capture. The next real product milestones remain durable project/session Supabase route contract planning, real planner integration into approved snapshots, transactional credit reservation/spend/release/refund persistence, and explicit runtime/persistence gates.

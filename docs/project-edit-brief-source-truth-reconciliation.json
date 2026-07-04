@@ -35,7 +35,8 @@
     "internal_testing_durable_project_session_backend_route_integration",
     "internal_testing_durable_project_session_backend_readback_qa",
     "internal_testing_durable_project_session_supabase_route_contract_plan",
-    "internal_testing_durable_project_session_supabase_schema_rls_draft"
+    "internal_testing_durable_project_session_supabase_schema_rls_draft",
+    "internal_testing_durable_project_session_supabase_migration_sql_draft"
   ],
   "blockedScope": {
     "supabaseReadWrite": false,
@@ -85,7 +86,8 @@
       "smoke:internal-testing-durable-project-session-backend-route-integration",
       "smoke:internal-testing-durable-project-session-backend-readback-qa",
       "smoke:internal-testing-durable-project-session-supabase-route-contract-plan",
-      "smoke:internal-testing-durable-project-session-supabase-schema-rls-draft"
+      "smoke:internal-testing-durable-project-session-supabase-schema-rls-draft",
+      "smoke:internal-testing-durable-project-session-supabase-migration-sql-draft"
     ],
     "typecheckServer": "passed",
     "build": "passed",
@@ -112,7 +114,7 @@
     "internal_testing_auth_project_access_readiness_after_rp_inttest_02",
     "internal_testing_auth_project_session_membership_policy_after_rp_inttest_03",
     "internal_testing_durable_auth_project_session_backend_persistence_plan_after_rp_inttest_04",
-    "internal_testing_durable_project_session_supabase_migration_sql_draft",
+    "internal_testing_durable_project_session_supabase_migration_review",
     "real_source_media_ingestion",
     "planner_integration_to_approved_snapshots",
     "credit_estimate_and_reservation",

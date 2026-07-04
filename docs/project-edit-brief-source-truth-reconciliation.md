@@ -25,6 +25,7 @@
 - Auth-only project/session readiness for public Supabase Auth session readback plus mock Project Home, Edit Chat, and Edit Brief route access.
 - Route-visible project/session membership policy for Project Home, Edit Chat, and Edit Brief, with mock route access allowed and durable authenticated access blocked until signed-in user, membership, RLS, explicit Data API grant, and backend persistence evidence exist.
 - Durable authenticated project/session backend persistence plan, defining server-side Auth, workspace membership, project/session joins, explicit Data API grants, RLS, service-role boundary, audit, and idempotency evidence before table-backed route access can be called durable.
+- Durable project/session Supabase migration SQL draft after RP-INTTEST-10, with review-only SQL under `database/migration-drafts/024_internal_testing_durable_project_session_access.draft.sql` and no executable Supabase migration apply.
 - Smoke coverage and E2E smoke coverage for Project Edit Brief behavior.
 
 ## Explicitly Not Landed
@@ -67,6 +68,7 @@ Passed:
 - `npm run smoke:internal-testing-durable-project-session-backend-readback-qa`
 - `npm run smoke:internal-testing-durable-project-session-supabase-route-contract-plan`
 - `npm run smoke:internal-testing-durable-project-session-supabase-schema-rls-draft`
+- `npm run smoke:internal-testing-durable-project-session-supabase-migration-sql-draft`
 - `npm run typecheck:server`
 - `npm run build`
 - `git diff --check`
@@ -104,8 +106,9 @@ Passed:
 - Durable project/session backend readback QA after RP-INTTEST-07: Project Edit Session and Project Edit Brief success and failure envelopes read back `projectSessionAccess` metadata with idempotent audit details while durable Supabase access remains disabled.
 - Durable project/session Supabase route contract plan after RP-INTTEST-08: Project Home, Project Edit Session, and Project Edit Brief route contracts are planned through `workspace_members`, `auth.uid()`, explicit Data API grants, authenticated-role RLS, service-role boundaries, audit/idempotency, and rate-limit requirements while live Supabase access remains disabled.
 - Durable project/session Supabase schema/RLS draft after RP-INTTEST-09: the core table, route data inheritance, index, authenticated-role RLS, Data API grant, and verification contract is drafted while migration SQL, local reset, remote validation, generated types, and table-backed route access remain disabled.
+- Durable project/session Supabase migration SQL draft after RP-INTTEST-10: review-only SQL exists under `database/migration-drafts/` while executable Supabase migrations, local reset, remote validation, generated types, and table-backed route access remain disabled.
 - Real upload/source-media ingestion and privacy policy implementation.
-- Durable project/session Supabase migration SQL draft.
+- Durable project/session Supabase migration review.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.
 - Worker/provider/render execution remains separately gated.

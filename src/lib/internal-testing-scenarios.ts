@@ -320,6 +320,23 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'durable-project-session-supabase-migration-sql-draft',
+    title: 'Durable project/session Supabase migration SQL draft',
+    description: 'Review the draft SQL file for core project/session tables, authenticated-role grants, RLS policy intent, and migration-review readiness.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Supabase migration SQL draft panel.',
+      'Confirm the draft file lives under database/migration-drafts and not supabase/migrations.',
+      'Confirm core select grants and RLS policies preserve the workspace_members/auth.uid() access chain.',
+      'Confirm no Supabase migration apply, local reset, remote validation, generated types, table-backed route, or product-ready gate opens.',
+    ],
+    expectedResult:
+      'Internal testers can review migration SQL as a draft artifact before migration review while live Supabase access remains disabled.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

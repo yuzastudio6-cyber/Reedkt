@@ -28,6 +28,7 @@
     "durable_project_session_backend_readback_qa",
     "durable_project_session_supabase_route_contract_plan",
     "durable_project_session_supabase_schema_rls_draft",
+    "durable_project_session_supabase_migration_sql_draft",
     "testing_discipline_checklist",
     "browser_local_feedback_records",
     "manual_feedback_json_export"
@@ -45,6 +46,7 @@
     "durable-project-session-backend-readback-qa": "mock_local",
     "durable-project-session-supabase-route-contract-plan": "mock_local",
     "durable-project-session-supabase-schema-rls-draft": "mock_local",
+    "durable-project-session-supabase-migration-sql-draft": "mock_local",
     "blockedScenarioCount": 0
   },
   "blockedScope": {
@@ -85,6 +87,7 @@
       "smoke:internal-testing-durable-project-session-backend-readback-qa",
       "smoke:internal-testing-durable-project-session-supabase-route-contract-plan",
       "smoke:internal-testing-durable-project-session-supabase-schema-rls-draft",
+      "smoke:internal-testing-durable-project-session-supabase-migration-sql-draft",
       "qa:internal-testing",
       "smoke:project-edit-brief-internal-testing-review-pr-readiness",
       "smoke:project-edit-brief-internal-testing-readback-qa",

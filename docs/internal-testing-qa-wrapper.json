@@ -21,6 +21,7 @@
     "smoke:internal-testing-durable-project-session-backend-readback-qa",
     "smoke:internal-testing-durable-project-session-supabase-route-contract-plan",
     "smoke:internal-testing-durable-project-session-supabase-schema-rls-draft",
+    "smoke:internal-testing-durable-project-session-supabase-migration-sql-draft",
     "smoke:beta-readiness"
   ],
   "playwrightSpecs": [

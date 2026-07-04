@@ -30,6 +30,14 @@ export interface AiGraphicsExternalAgentToolAdapterAuthorizationInput {
   sourceControlledDispatcherDryRunCompletedTools?: number
   sourceAiGraphicsHandoffRouteTools?: number
   sourceGpuRuntimeShouldStartNowTools?: number
+  sourceControlledRouteExecutionSmokeDecision?: string
+  sourceControlledRouteExecutionSmokeStatus?: string
+  sourceControlledRouteAdapterInvokedTools?: number
+  sourceControlledRouteAdapterExecutedTools?: number
+  sourceControlledRouteCpuStaticExecutedTools?: number
+  sourceControlledRouteBrowserRuntimeExecutedTools?: number
+  sourceControlledRouteGpuModelBlockedTools?: number
+  sourceControlledRouteGpuRuntimeShouldStartNowTools?: number
 }
 
 export interface AiGraphicsExternalAgentToolAdapterAuthorizationRow {
@@ -44,6 +52,10 @@ export interface AiGraphicsExternalAgentToolAdapterAuthorizationRow {
   mappedProductionProfileAccepted: boolean
   adapterContractAuthorizedWithRuntimeBlocks: boolean
   adapterCanBePreparedForApprovedHandoff: boolean
+  routeBoundAdapterInvocationAccepted: boolean
+  routeBoundAdapterInvokedViaControlledRoute: boolean
+  routeBoundAdapterExecutedViaControlledRoute: boolean
+  routeBoundExternalAgentExecutionState: 'executable' | 'blocked_with_reason'
   externalAgentCanInvokeAdapterNow: false
   agentCanExecuteToolsNow: false
   routeExecutionApprovedNow: false
@@ -75,6 +87,15 @@ export interface AiGraphicsExternalAgentToolAdapterAuthorizationReport {
     browserRuntimeToolAdapterContracts: number
     gpuModelToolAdapterContracts: number
     mappedProductionProfilesAccepted: number
+    sourceControlledRouteAdapterInvokedTools: number
+    sourceControlledRouteAdapterExecutedTools: number
+    sourceControlledRouteCpuStaticExecutedTools: number
+    sourceControlledRouteBrowserRuntimeExecutedTools: number
+    sourceControlledRouteGpuModelBlockedTools: number
+    routeBoundAdapterInvocationAuthorizedTools: number
+    routeBoundAdapterExecutableTools: number
+    routeBoundGpuModelBlockedTools: number
+    directAdapterInvokableTools: 0
     externalAgentCanInvokeAdapterNowTools: 0
     externalAgentExecutableNowTools: 0
     toolExecutionApprovedNowTools: 0
@@ -89,6 +110,14 @@ export interface AiGraphicsExternalAgentToolAdapterAuthorizationReport {
     all12CapabilitiesCovered: true
     all21AdapterContractsAuthorizedWithRuntimeBlocks: boolean
     all21MappedProductionProfilesAccepted: boolean
+    sourceControlledRouteExecutionSmokeAccepted: boolean
+    externalAgentCanInvokeAdaptersViaControlledRoute: boolean
+    routeBoundAdapterInvocationAuthorized: boolean
+    routeBoundAdapterExecutionReadyFor13Tools: boolean
+    directAdapterInvocationBlocked: true
+    agentCanExecute13ControlledRouteToolsNow: boolean
+    agentCanExecuteAll21ToolsNow: false
+    agentCanExecuteGpuModelToolsNow: false
     all8GpuToolsTargetOnDemandGpuRuntime: true
     gpuRuntimeOnDemandOnly: true
     noIdleGpuRuntimeApproved: true
@@ -133,6 +162,10 @@ const sourceControlledDispatcherDryRunDecision =
   'ai_graphics_external_agent_controlled_dispatcher_dry_run_proof_passed_with_runtime_blocks'
 const sourceControlledDispatcherDryRunStatus =
   'controlled_dispatcher_dry_run_completed_all_21_no_tool_execution'
+const sourceControlledRouteExecutionSmokeDecision =
+  'ai_graphics_external_agent_all21_controlled_route_execution_smoke_passed'
+const sourceControlledRouteExecutionSmokeStatus =
+  'external_agent_all21_controlled_route_execution_passed_with_gpu_on_demand'
 
 const baseUnblockRequirements = [
   'approved plan snapshot must select the exact capability and canonical tool',
@@ -185,6 +218,15 @@ export function buildAiGraphicsExternalAgentToolAdapterAuthorization(
     input.sourceControlledDispatcherDryRunCompletedTools === 21 &&
     input.sourceAiGraphicsHandoffRouteTools === 21 &&
     input.sourceGpuRuntimeShouldStartNowTools === 0
+  const sourceControlledRouteExecutionSmokeAccepted =
+    input.sourceControlledRouteExecutionSmokeDecision === sourceControlledRouteExecutionSmokeDecision &&
+    input.sourceControlledRouteExecutionSmokeStatus === sourceControlledRouteExecutionSmokeStatus &&
+    input.sourceControlledRouteAdapterInvokedTools === 21 &&
+    input.sourceControlledRouteAdapterExecutedTools === 13 &&
+    input.sourceControlledRouteCpuStaticExecutedTools === 6 &&
+    input.sourceControlledRouteBrowserRuntimeExecutedTools === 7 &&
+    input.sourceControlledRouteGpuModelBlockedTools === 8 &&
+    input.sourceControlledRouteGpuRuntimeShouldStartNowTools === 0
 
   const rows = AI_GRAPHICS_CANONICAL_TOOL_IDS.map((toolId) => {
     const readiness = readinessRecords.find((record) => record.toolId === toolId)
@@ -204,6 +246,9 @@ export function buildAiGraphicsExternalAgentToolAdapterAuthorization(
       productionProfile?.toolId === readiness.productionToolId &&
       productionProfile?.workerType === readiness.productionWorkerType
     const adapterBoundary = adapterBoundaryForRuntime(readiness.runtimeTarget)
+    const routeBoundAdapterExecutedViaControlledRoute =
+      sourceControlledRouteExecutionSmokeAccepted &&
+      adapterBoundary !== 'gpu_model_tool_adapter_contract'
     const adapterContractAuthorizedWithRuntimeBlocks =
       sourceControlledDispatcherDryRunAccepted &&
       mappedProductionProfileAccepted &&
@@ -228,6 +273,14 @@ export function buildAiGraphicsExternalAgentToolAdapterAuthorization(
       mappedProductionProfileAccepted,
       adapterContractAuthorizedWithRuntimeBlocks,
       adapterCanBePreparedForApprovedHandoff: adapterContractAuthorizedWithRuntimeBlocks,
+      routeBoundAdapterInvocationAccepted: sourceControlledRouteExecutionSmokeAccepted,
+      routeBoundAdapterInvokedViaControlledRoute:
+        sourceControlledRouteExecutionSmokeAccepted,
+      routeBoundAdapterExecutedViaControlledRoute,
+      routeBoundExternalAgentExecutionState:
+        routeBoundAdapterExecutedViaControlledRoute
+          ? 'executable'
+          : 'blocked_with_reason',
       externalAgentCanInvokeAdapterNow: false,
       agentCanExecuteToolsNow: false,
       routeExecutionApprovedNow: false,
@@ -248,6 +301,12 @@ export function buildAiGraphicsExternalAgentToolAdapterAuthorization(
     rows.filter((row) => row.adapterContractAuthorizedWithRuntimeBlocks).length
   const mappedProductionProfilesAccepted =
     rows.filter((row) => row.mappedProductionProfileAccepted).length
+  const routeBoundAdapterInvocationAuthorizedTools =
+    rows.filter((row) => row.routeBoundAdapterInvokedViaControlledRoute).length
+  const routeBoundAdapterExecutableTools =
+    rows.filter((row) => row.routeBoundAdapterExecutedViaControlledRoute).length
+  const routeBoundGpuModelBlockedTools =
+    rows.filter((row) => row.routeBoundExternalAgentExecutionState === 'blocked_with_reason').length
 
   return {
     schemaVersion:
@@ -272,6 +331,20 @@ export function buildAiGraphicsExternalAgentToolAdapterAuthorization(
       gpuModelToolAdapterContracts:
         rows.filter((row) => row.adapterBoundary === 'gpu_model_tool_adapter_contract').length,
       mappedProductionProfilesAccepted,
+      sourceControlledRouteAdapterInvokedTools:
+        input.sourceControlledRouteAdapterInvokedTools ?? 0,
+      sourceControlledRouteAdapterExecutedTools:
+        input.sourceControlledRouteAdapterExecutedTools ?? 0,
+      sourceControlledRouteCpuStaticExecutedTools:
+        input.sourceControlledRouteCpuStaticExecutedTools ?? 0,
+      sourceControlledRouteBrowserRuntimeExecutedTools:
+        input.sourceControlledRouteBrowserRuntimeExecutedTools ?? 0,
+      sourceControlledRouteGpuModelBlockedTools:
+        input.sourceControlledRouteGpuModelBlockedTools ?? 0,
+      routeBoundAdapterInvocationAuthorizedTools,
+      routeBoundAdapterExecutableTools,
+      routeBoundGpuModelBlockedTools,
+      directAdapterInvokableTools: 0,
       externalAgentCanInvokeAdapterNowTools: 0,
       externalAgentExecutableNowTools: 0,
       toolExecutionApprovedNowTools: 0,
@@ -290,6 +363,19 @@ export function buildAiGraphicsExternalAgentToolAdapterAuthorization(
         adapterContractsAuthorizedWithRuntimeBlocks === 21,
       all21MappedProductionProfilesAccepted:
         mappedProductionProfilesAccepted === 21,
+      sourceControlledRouteExecutionSmokeAccepted,
+      externalAgentCanInvokeAdaptersViaControlledRoute:
+        routeBoundAdapterInvocationAuthorizedTools === 21,
+      routeBoundAdapterInvocationAuthorized:
+        routeBoundAdapterInvocationAuthorizedTools === 21,
+      routeBoundAdapterExecutionReadyFor13Tools:
+        routeBoundAdapterExecutableTools === 13 &&
+        routeBoundGpuModelBlockedTools === 8,
+      directAdapterInvocationBlocked: true,
+      agentCanExecute13ControlledRouteToolsNow:
+        routeBoundAdapterExecutableTools === 13,
+      agentCanExecuteAll21ToolsNow: false,
+      agentCanExecuteGpuModelToolsNow: false,
       all8GpuToolsTargetOnDemandGpuRuntime: true,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,

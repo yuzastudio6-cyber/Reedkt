@@ -11,6 +11,10 @@ const sourceDecision =
   'ai_graphics_external_agent_controlled_dispatcher_dry_run_proof_passed_with_runtime_blocks'
 const sourceStatus =
   'controlled_dispatcher_dry_run_completed_all_21_no_tool_execution'
+const routeSourceDecision =
+  'ai_graphics_external_agent_all21_controlled_route_execution_smoke_passed'
+const routeSourceStatus =
+  'external_agent_all21_controlled_route_execution_passed_with_gpu_on_demand'
 const runScriptName =
   'ai-graphics:external-agent-tool-adapter-authorization-proof'
 const runScriptCommand =
@@ -106,6 +110,15 @@ const expectedCounts = {
   browserRuntimeToolAdapterContracts: 7,
   gpuModelToolAdapterContracts: 8,
   mappedProductionProfilesAccepted: 21,
+  sourceControlledRouteAdapterInvokedTools: 21,
+  sourceControlledRouteAdapterExecutedTools: 13,
+  sourceControlledRouteCpuStaticExecutedTools: 6,
+  sourceControlledRouteBrowserRuntimeExecutedTools: 7,
+  sourceControlledRouteGpuModelBlockedTools: 8,
+  routeBoundAdapterInvocationAuthorizedTools: 21,
+  routeBoundAdapterExecutableTools: 13,
+  routeBoundGpuModelBlockedTools: 8,
+  directAdapterInvokableTools: 0,
   externalAgentCanInvokeAdapterNowTools: 0,
   externalAgentExecutableNowTools: 0,
   toolExecutionApprovedNowTools: 0,
@@ -120,6 +133,12 @@ const trueKeys = [
   'all12CapabilitiesCovered',
   'all21AdapterContractsAuthorizedWithRuntimeBlocks',
   'all21MappedProductionProfilesAccepted',
+  'sourceControlledRouteExecutionSmokeAccepted',
+  'externalAgentCanInvokeAdaptersViaControlledRoute',
+  'routeBoundAdapterInvocationAuthorized',
+  'routeBoundAdapterExecutionReadyFor13Tools',
+  'directAdapterInvocationBlocked',
+  'agentCanExecute13ControlledRouteToolsNow',
   'all8GpuToolsTargetOnDemandGpuRuntime',
   'gpuRuntimeOnDemandOnly',
   'noIdleGpuRuntimeApproved',
@@ -130,6 +149,8 @@ const trueKeys = [
 
 const falseKeys = [
   'externalAgentCanInvokeAdapterNow',
+  'agentCanExecuteAll21ToolsNow',
+  'agentCanExecuteGpuModelToolsNow',
   'agentCanExecuteToolsNow',
   'routeExecutionApprovedNow',
   'workerExecutionApprovedNow',
@@ -199,6 +220,8 @@ const requiredFiles = [
   'docs/tool-intelligence/ai-graphics/external-agent-tool-adapter-authorization-proof.md',
   'docs/tool-intelligence/ai-graphics/external-agent-controlled-dispatcher-dry-run-proof.json',
   'docs/tool-intelligence/ai-graphics/external-agent-controlled-dispatcher-dry-run-proof.md',
+  'docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.md',
   'server/tool-registry/ai-graphics-tool-call-readiness.ts',
   'server/tool-registry/ai-graphics-tool-call-handoff.ts',
   'server/tool-registry/index.ts',
@@ -339,8 +362,20 @@ function checkRows(label, rows) {
       'mappedProductionProfileAccepted',
       'adapterContractAuthorizedWithRuntimeBlocks',
       'adapterCanBePreparedForApprovedHandoff',
+      'routeBoundAdapterInvocationAccepted',
+      'routeBoundAdapterInvokedViaControlledRoute',
     ]) {
       if (row[key] !== true) fail(`${label}_${toolId}_${key}_not_true`)
+    }
+    const expectedRouteBoundExecuted = expectedBoundary !== 'gpu_model_tool_adapter_contract'
+    if (row.routeBoundAdapterExecutedViaControlledRoute !== expectedRouteBoundExecuted) {
+      fail(`${label}_${toolId}_route_bound_executed_mismatch`)
+    }
+    const expectedRouteBoundState = expectedRouteBoundExecuted
+      ? 'executable'
+      : 'blocked_with_reason'
+    if (row.routeBoundExternalAgentExecutionState !== expectedRouteBoundState) {
+      fail(`${label}_${toolId}_route_bound_state_mismatch`)
     }
     for (const key of [
       'externalAgentCanInvokeAdapterNow',
@@ -386,6 +421,7 @@ for (const file of requiredFiles) {
 const docs = json('docs/tool-intelligence/ai-graphics/external-agent-tool-adapter-authorization-proof.json')
 const docsMd = read('docs/tool-intelligence/ai-graphics/external-agent-tool-adapter-authorization-proof.md')
 const source = json('docs/tool-intelligence/ai-graphics/external-agent-controlled-dispatcher-dry-run-proof.json')
+const routeSource = json('docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json')
 const packageJson = json('package.json')
 const moduleSource = read('server/tool-registry/ai-graphics-external-agent-tool-adapter-authorization.ts')
 const cliSource = read('server/cli/ai-graphics-external-agent-tool-adapter-authorization-proof.ts')
@@ -400,6 +436,12 @@ if (docs.sourceEvidence?.controlledDispatcherDryRunDecision !== sourceDecision) 
 }
 if (docs.sourceEvidence?.controlledDispatcherDryRunStatus !== sourceStatus) {
   fail('docs_source_status_mismatch')
+}
+if (docs.sourceEvidence?.controlledRouteExecutionSmokeDecision !== routeSourceDecision) {
+  fail('docs_route_source_decision_mismatch')
+}
+if (docs.sourceEvidence?.controlledRouteExecutionSmokeStatus !== routeSourceStatus) {
+  fail('docs_route_source_status_mismatch')
 }
 if (docs.interfaces?.packageScript !== runScriptName) fail('docs_package_script_mismatch')
 if (docs.interfaces?.diagnosticScript !== diagnosticScriptName) fail('docs_diagnostic_script_mismatch')
@@ -426,6 +468,35 @@ if (source.counts?.gpuRuntimeShouldStartNowTools !== 0) {
 if (source.booleans?.agentCanExecuteToolsNow !== false) fail('source_agent_execute_not_false')
 if (source.booleans?.toolExecutionPerformed !== false) fail('source_tool_execution_not_false')
 if (source.booleans?.gpuRuntimePerformed !== false) fail('source_gpu_runtime_not_false')
+if (routeSource.decision !== routeSourceDecision) fail('route_source_decision_mismatch')
+if (routeSource.status !== routeSourceStatus) fail('route_source_status_mismatch')
+if (routeSource.counts?.controlledRouteAdapterInvokedTools !== 21) {
+  fail('route_source_adapter_invoked_count_mismatch')
+}
+if (routeSource.counts?.controlledRouteAdapterExecutedTools !== 13) {
+  fail('route_source_adapter_executed_count_mismatch')
+}
+if (routeSource.counts?.cpuStaticControlledRouteExecutedTools !== 6) {
+  fail('route_source_cpu_static_executed_count_mismatch')
+}
+if (routeSource.counts?.browserRuntimeControlledRouteExecutedTools !== 7) {
+  fail('route_source_browser_runtime_executed_count_mismatch')
+}
+if (routeSource.counts?.gpuModelRuntimeProofRequiredTools !== 8) {
+  fail('route_source_gpu_model_blocked_count_mismatch')
+}
+if (routeSource.counts?.gpuRuntimeShouldStartNowTools !== 0) {
+  fail('route_source_gpu_start_count_not_zero')
+}
+if (routeSource.booleans?.agentCanCallAll21ControlledRoutesNow !== true) {
+  fail('route_source_agent_call_not_true')
+}
+if (routeSource.booleans?.agentCanExecuteRealRuntimeFor13ToolsNow !== true) {
+  fail('route_source_agent_execute_13_not_true')
+}
+if (routeSource.booleans?.agentCanExecuteAll21ToolsNow !== false) {
+  fail('route_source_agent_execute_all21_not_false')
+}
 
 if (packageJson.scripts?.[runScriptName] !== runScriptCommand) fail('package_run_script_mismatch')
 if (packageJson.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
@@ -438,6 +509,8 @@ for (const required of [
   'adapterBoundaryForRuntime',
   'gpuRuntimeOnDemandOnly: true',
   'externalAgentCanInvokeAdapterNow: false',
+  'externalAgentCanInvokeAdaptersViaControlledRoute',
+  'routeBoundAdapterExecutableTools',
   'agentCanExecuteToolsNow: false',
   'gpuRuntimeShouldStartNow: false',
 ]) {
@@ -446,9 +519,12 @@ for (const required of [
 
 for (const required of [
   'sourceControlledDispatcherDryRunPath',
+  'sourceControlledRouteExecutionSmokePath',
   'buildAiGraphicsExternalAgentToolAdapterAuthorization',
   'source.counts.controlledDispatcherDryRunCompletedTools',
+  'routeSource.counts.controlledRouteAdapterInvokedTools',
   'report.counts.adapterAuthorizationRows === 21',
+  'report.counts.routeBoundAdapterExecutableTools === 13',
   'report.counts.gpuRuntimeShouldStartNowTools === 0',
 ]) {
   if (!cliSource.includes(required)) fail(`cli_missing_required_text:${required}`)
@@ -466,6 +542,9 @@ for (const required of [
   decision,
   acceptedStatus,
   'externalAgentCanInvokeAdapterNow=false',
+  'externalAgentCanInvokeAdaptersViaControlledRoute=true',
+  'routeBoundAdapterExecutableTools=13',
+  'directAdapterInvokableTools=0',
   'agentCanExecuteToolsNow=false',
   'gpuRuntimeShouldStartNow=false',
   'CPU/static adapter contracts',
@@ -502,6 +581,18 @@ if (docs.counts?.totalProductFacingCapabilities !== 12) {
 checkCounts('cli', cliReport.counts)
 checkBooleans('cli', cliReport.booleans)
 checkRows('cli', cliReport.rows)
+if (cliReport.counts?.routeBoundAdapterInvocationAuthorizedTools !== 21) {
+  fail('cli_route_bound_adapter_invocation_count_mismatch')
+}
+if (cliReport.counts?.routeBoundAdapterExecutableTools !== 13) {
+  fail('cli_route_bound_adapter_executable_count_mismatch')
+}
+if (cliReport.counts?.routeBoundGpuModelBlockedTools !== 8) {
+  fail('cli_route_bound_gpu_model_blocked_count_mismatch')
+}
+if (cliReport.counts?.directAdapterInvokableTools !== 0) {
+  fail('cli_direct_adapter_invokable_not_zero')
+}
 
 for (const [key, value] of Object.entries(expectedCounts)) {
   if (docs.counts?.[key] !== value || cliReport.counts?.[key] !== value) {
@@ -534,6 +625,8 @@ for (const required of [
   'browserRuntimeToolAdapterContracts=7',
   'gpuModelToolAdapterContracts=8',
   'externalAgentCanInvokeAdapterNowTools=0',
+  'routeBoundAdapterExecutableTools=13',
+  'directAdapterInvokableTools=0',
   'gpuRuntimeShouldStartNowTools=0',
 ]) {
   if (!scorecard.includes(required)) fail(`scorecard_missing:${required}`)
@@ -591,6 +684,10 @@ console.log(
       capabilities: capabilities.length,
       counts: expectedCounts,
       agentCanSelectForPlanning: true,
+      externalAgentCanInvokeAdaptersViaControlledRoute: true,
+      routeBoundAdapterExecutableTools: 13,
+      routeBoundGpuModelBlockedTools: 8,
+      directAdapterInvokableTools: 0,
       externalAgentCanInvokeAdapterNow: false,
       agentCanExecuteToolsNow: false,
       gpuRuntimeShouldStartNow: false,

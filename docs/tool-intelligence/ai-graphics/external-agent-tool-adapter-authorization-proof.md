@@ -6,13 +6,16 @@ Status: `external_agent_tool_adapter_authorization_prepared_all_21_execution_blo
 
 This packet is the next step after the external-agent controlled dispatcher dry-run proof. The source proof showed that all 21 AI graphics tools can pass through `dispatchProductionWorkerJob` in `dry_run` plus `metadata_dry_run` mode and produce AI graphics handoff route output without tool execution, artifacts, QA results, live queue writes, or GPU startup.
 
-This proof binds that accepted source evidence to per-tool adapter authorization contracts. It prepares the contract shape the external agent will eventually use, but it does not make any adapter invokable now.
+This proof binds that accepted source evidence to per-tool adapter authorization contracts. It keeps direct adapter invocation blocked, but it also records the accepted route-bound adapter invocation path from the all-21 controlled route smoke: external agents can invoke adapters through the controlled route, and that route executes the 13 currently proven CPU/static and browser-runtime tools.
 
 ## Source Evidence
 
 - Source proof: `docs/tool-intelligence/ai-graphics/external-agent-controlled-dispatcher-dry-run-proof.json`
 - Source decision: `ai_graphics_external_agent_controlled_dispatcher_dry_run_proof_passed_with_runtime_blocks`
 - Source status: `controlled_dispatcher_dry_run_completed_all_21_no_tool_execution`
+- Route-bound source proof: `docs/tool-intelligence/ai-graphics/external-agent-all21-controlled-route-execution-smoke.json`
+- Route-bound source decision: `ai_graphics_external_agent_all21_controlled_route_execution_smoke_passed`
+- Route-bound source status: `external_agent_all21_controlled_route_execution_passed_with_gpu_on_demand`
 - Tool readiness registry: `server/tool-registry/ai-graphics-tool-call-readiness.ts`
 - Tool handoff registry: `server/tool-registry/ai-graphics-tool-call-handoff.ts`
 - Adapter authorization module: `server/tool-registry/ai-graphics-external-agent-tool-adapter-authorization.ts`
@@ -32,6 +35,12 @@ This proof binds that accepted source evidence to per-tool adapter authorization
 - Adapter authorization rows: `21`
 - Adapter contracts authorized with runtime blocks: `21`
 - Mapped production profiles accepted: `21`
+- Source route-bound adapter invocations: `21`
+- Source route-bound adapter executions: `13`
+- Route-bound adapter invocation authorized tools: `21`
+- Route-bound adapter executable tools: `13`
+- Route-bound GPU/model blocked tools: `8`
+- Direct adapter invokable tools: `0`
 - External-agent invokable adapter tools now: `0`
 - External-agent executable tools now: `0`
 - Tool execution approved tools now: `0`
@@ -42,6 +51,12 @@ The GPU policy remains on-demand only: `gpuRuntimeOnDemandOnly=true`, `noIdleGpu
 ## Runtime Boundary
 
 - `agentCanSelectForPlanning=true`
+- `externalAgentCanInvokeAdaptersViaControlledRoute=true`
+- `routeBoundAdapterExecutableTools=13`
+- `directAdapterInvokableTools=0`
+- `agentCanExecute13ControlledRouteToolsNow=true`
+- `agentCanExecuteAll21ToolsNow=false`
+- `agentCanExecuteGpuModelToolsNow=false`
 - `externalAgentCanInvokeAdapterNow=false`
 - `agentCanExecuteToolsNow=false`
 - `routeExecutionApprovedNow=false`

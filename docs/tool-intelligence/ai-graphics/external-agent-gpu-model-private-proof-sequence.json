@@ -138,6 +138,9 @@
     "noExternalBetaUnlock": true,
     "noProductionUnlock": true,
     "hostEligibilityGateSupported": true,
+    "hostEligibilityGateUsesRequestedProofMode": true,
+    "nativeGpuHostEligibilityRequired": true,
+    "cpuHostEligibilityCanSatisfyRequestedProof": false,
     "requireHostEligibleFlagSupported": true,
     "requireAcceptedProofFlagSupported": true,
     "perToolPrivateProofSequenceCommandsPrepared": true,
@@ -162,12 +165,23 @@
     "publicArtifactCreatedTools": 0,
     "signedUrlCreatedTools": 0,
     "currentHostGpuProofBlockers": 0,
+    "currentRequestedProofHostBlockers": 0,
     "finalExternalAgentSingleToolCallsExecuted": 0
   },
   "currentHostGpuProofPreflight": {
     "requested": false,
     "hostEligibleForNativeGpuProof": false,
     "blockers": [],
+    "hostEnvironment": null
+  },
+  "currentHostProofPreflight": {
+    "requested": false,
+    "requestedProofMode": "native_gpu",
+    "nativeGpuHostEligibilityRequired": true,
+    "hostEligibleForNativeGpuProof": false,
+    "hostEligibleForRequestedProof": false,
+    "nativeGpuBlockers": [],
+    "requestedProofBlockers": [],
     "hostEnvironment": null
   },
   "requestedToolResult": {
@@ -193,7 +207,7 @@
       "readinessState": "blocked_with_reason",
       "executable": false,
       "routeSubmissionReadyWithAcceptedPrivateProof": false,
-      "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing"
+      "blockingPrerequisite": "approved local Python CPU tensor runtime; outputDirectory; pythonCpuTensorRuntime; sourceImageLocalPath; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing"
     },
     "finalExternalAgentSingleToolCall": {
       "status": "not_run_until_private_proof_is_accepted",
@@ -222,6 +236,8 @@
     "finalExternalAgentSingleToolCallExecutable": false,
     "hostPreflightRequested": false,
     "hostEligibleForNativeGpuProof": false,
+    "hostEligibleForRequestedProof": false,
+    "nativeGpuHostEligibilityRequired": true,
     "requireHostEligible": false,
     "requireAcceptedProof": false,
     "agentCanExecute13NonGpuControlledToolsNow": true,

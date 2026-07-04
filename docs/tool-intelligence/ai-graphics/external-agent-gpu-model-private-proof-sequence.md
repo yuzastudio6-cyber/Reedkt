@@ -77,7 +77,7 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - Bridge status: `blocked_missing_private_local_runtime_proof_result`
 - Bridge SHA-256 accepted: `false`
 - Readiness state: `blocked_with_reason`
-- Readiness blocking prerequisite: `approved native CUDA host; outputDirectory; sourceImageLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing`
+- Readiness blocking prerequisite: `approved local Python CPU tensor runtime; outputDirectory; pythonCpuTensorRuntime; sourceImageLocalPath; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing`
 - Final external-agent single-tool call status: `not_run_until_private_proof_is_accepted`
 - Final external-agent single-tool call execution state: `null`
 - Final external-agent single-tool call executable: `false`
@@ -128,6 +128,7 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `publicArtifactCreatedTools`: 0
 - `signedUrlCreatedTools`: 0
 - `currentHostGpuProofBlockers`: 0
+- `currentRequestedProofHostBlockers`: 0
 - `finalExternalAgentSingleToolCallsExecuted`: 0
 
 ## Current Host Preflight
@@ -135,6 +136,10 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - Requested: `false`
 - Eligible: `false`
 - Blockers: `none`
+- Requested proof mode: `native_gpu`
+- Native GPU required for requested proof: `true`
+- Requested proof eligible: `false`
+- Requested proof blockers: `none`
 
 ## Safety Boundary
 
@@ -169,6 +174,9 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `noExternalBetaUnlock`: true
 - `noProductionUnlock`: true
 - `hostEligibilityGateSupported`: true
+- `hostEligibilityGateUsesRequestedProofMode`: true
+- `nativeGpuHostEligibilityRequired`: true
+- `cpuHostEligibilityCanSatisfyRequestedProof`: false
 - `requireHostEligibleFlagSupported`: true
 - `requireAcceptedProofFlagSupported`: true
 - `perToolPrivateProofSequenceCommandsPrepared`: true
@@ -196,6 +204,8 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `finalExternalAgentSingleToolCallExecutable`: false
 - `hostPreflightRequested`: false
 - `hostEligibleForNativeGpuProof`: false
+- `hostEligibleForRequestedProof`: false
+- `nativeGpuHostEligibilityRequired`: true
 - `requireHostEligible`: false
 - `requireAcceptedProof`: false
 - `agentCanExecute13NonGpuControlledToolsNow`: true

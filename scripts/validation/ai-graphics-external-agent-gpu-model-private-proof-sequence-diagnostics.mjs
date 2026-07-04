@@ -235,6 +235,11 @@ for (const phrase of [
   '--runtime-input-manifest must stay under .local-artifacts/',
   '--result-out must stay under .local-artifacts/',
   'currentHostGpuProofPreflight',
+  'currentHostProofPreflight',
+  'hostEligibleForRequestedProof',
+  'hostEligibilityGateUsesRequestedProofMode',
+  'nativeGpuHostEligibilityRequired',
+  'cpuHostEligibilityCanSatisfyRequestedProof',
   'hostEligibilityGateSupported',
   'noIdleGpuRuntimeApproved',
   'proofBridgeRequiresOutputJsonSha256Match',
@@ -496,6 +501,7 @@ function checkReport(label, report) {
   }
   for (const key of [
     'hostEligibilityGateSupported',
+    'hostEligibilityGateUsesRequestedProofMode',
     'requireHostEligibleFlagSupported',
     'requireAcceptedProofFlagSupported',
     'allGpuModelToolsHaveExactPrivateProofSequenceCommand',
@@ -526,6 +532,7 @@ function checkReport(label, report) {
     publicArtifactCreatedTools: 0,
     signedUrlCreatedTools: 0,
     currentHostGpuProofBlockers: 0,
+    currentRequestedProofHostBlockers: 0,
     finalExternalAgentSingleToolCallsExecuted: 0,
   }
   for (const [key, value] of Object.entries(expectedCounts)) {
@@ -555,6 +562,7 @@ function checkReport(label, report) {
     'finalExternalAgentSingleToolCallExecutable',
     'hostPreflightRequested',
     'hostEligibleForNativeGpuProof',
+    'hostEligibleForRequestedProof',
     'requireHostEligible',
     'requireAcceptedProof',
     'agentCanExecuteGpuModelToolsNow',
@@ -634,6 +642,23 @@ function checkReport(label, report) {
   } else if (report.currentHostGpuProofPreflight.blockers.length !== 0) {
     fail(`${label}_default_host_blockers_not_empty`)
   }
+  if (report.currentHostProofPreflight?.requested !== false) {
+    fail(`${label}_default_requested_host_preflight_requested_not_false`)
+  }
+  if (report.currentHostProofPreflight?.requestedProofMode !== 'native_gpu') {
+    fail(`${label}_default_requested_proof_mode_mismatch:${report.currentHostProofPreflight?.requestedProofMode}`)
+  }
+  if (report.currentHostProofPreflight?.nativeGpuHostEligibilityRequired !== true) {
+    fail(`${label}_default_requested_native_gpu_required_not_true`)
+  }
+  if (report.currentHostProofPreflight?.hostEligibleForRequestedProof !== false) {
+    fail(`${label}_default_requested_proof_eligible_not_false`)
+  }
+  if (!Array.isArray(report.currentHostProofPreflight?.requestedProofBlockers)) {
+    fail(`${label}_default_requested_proof_blockers_not_array`)
+  } else if (report.currentHostProofPreflight.requestedProofBlockers.length !== 0) {
+    fail(`${label}_default_requested_proof_blockers_not_empty`)
+  }
 }
 
 checkReport('record', record)
@@ -671,11 +696,89 @@ if (detected) {
   ) {
     fail('detect_host_blocker_count_mismatch')
   }
+  if (detected.currentHostProofPreflight?.requested !== true) {
+    fail('detect_host_requested_proof_preflight_not_true')
+  }
+  if (detected.currentHostProofPreflight?.requestedProofMode !== 'native_gpu') {
+    fail(`detect_host_requested_proof_mode_mismatch:${detected.currentHostProofPreflight?.requestedProofMode}`)
+  }
+  if (detected.currentHostProofPreflight?.nativeGpuHostEligibilityRequired !== true) {
+    fail('detect_host_requested_native_gpu_required_not_true')
+  }
+  if (
+    detected.currentHostProofPreflight?.hostEligibleForRequestedProof !==
+    detected.currentHostGpuProofPreflight?.hostEligibleForNativeGpuProof
+  ) {
+    fail('detect_host_requested_proof_eligibility_not_native_eligibility')
+  }
+  if (
+    detected.booleans?.hostEligibleForRequestedProof !==
+    detected.currentHostProofPreflight?.hostEligibleForRequestedProof
+  ) {
+    fail('detect_host_requested_proof_boolean_mismatch')
+  }
+  if (
+    detected.counts?.currentRequestedProofHostBlockers !==
+    detected.currentHostProofPreflight?.requestedProofBlockers?.length
+  ) {
+    fail('detect_host_requested_proof_blocker_count_mismatch')
+  }
   if (detected.currentHostGpuProofPreflight?.hostEligibleForNativeGpuProof !== true) {
     const requiredHost = runScriptStatus(['--require-host-eligible'])
     if (requiredHost.status !== 2) {
       fail(`require_host_eligible_exit_status_mismatch:${requiredHost.status}`)
     }
+  }
+}
+
+const cpuFoundationRequiredHost = runScriptStatus([
+  '--attempt-local-runtime',
+  '--runtime-backend',
+  'host_python',
+  '--allow-cpu-foundation-runtime',
+  '--tool',
+  'torch_torchvision',
+  '--output-dir',
+  '.local-artifacts/ai-graphics/gpu-model-private-proof-sequence-diagnostic/cpu-foundation',
+  '--detect-host',
+  '--require-host-eligible',
+])
+let cpuFoundationReport = null
+try {
+  cpuFoundationReport = JSON.parse(cpuFoundationRequiredHost.stdout)
+} catch (error) {
+  fail(`cpu_foundation_required_host_json_parse_failed:${error.message}`)
+}
+if (cpuFoundationReport) {
+  if (cpuFoundationReport.currentHostProofPreflight?.requestedProofMode !== 'cpu_foundation') {
+    fail(`cpu_foundation_requested_proof_mode_mismatch:${cpuFoundationReport.currentHostProofPreflight?.requestedProofMode}`)
+  }
+  if (cpuFoundationReport.currentHostProofPreflight?.nativeGpuHostEligibilityRequired !== false) {
+    fail('cpu_foundation_native_gpu_required_not_false')
+  }
+  if (cpuFoundationReport.booleans?.nativeGpuHostEligibilityRequired !== false) {
+    fail('cpu_foundation_native_gpu_boolean_not_false')
+  }
+  if (!Array.isArray(cpuFoundationReport.currentHostProofPreflight?.requestedProofBlockers)) {
+    fail('cpu_foundation_requested_proof_blockers_not_array')
+  }
+  if (
+    cpuFoundationReport.currentHostProofPreflight?.hostEligibleForRequestedProof !==
+    cpuFoundationReport.booleans?.hostEligibleForRequestedProof
+  ) {
+    fail('cpu_foundation_requested_proof_boolean_mismatch')
+  }
+  if (
+    cpuFoundationReport.currentHostProofPreflight?.hostEligibleForRequestedProof === false &&
+    !String(cpuFoundationReport.nextExactAction ?? '').includes('local Python CPU runtime')
+  ) {
+    fail('cpu_foundation_missing_cpu_next_action')
+  }
+  if (cpuFoundationReport.requestedToolResult?.harness?.skipReasonCode === 'gpu_model_native_cuda_runtime_missing') {
+    fail('cpu_foundation_wrongly_blocked_on_native_cuda')
+  }
+  if (cpuFoundationReport.requestedToolResult?.harness?.skipReasonCode === 'gpu_model_runtime_container_gpu_unavailable') {
+    fail('cpu_foundation_wrongly_blocked_on_container_gpu')
   }
 }
 

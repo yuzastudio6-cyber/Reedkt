@@ -442,6 +442,21 @@ function finalExternalAgentToolCallCommand(input: SequenceArgs): string | null {
   ].join(' ')
 }
 
+type RequestedProofMode =
+  | 'native_gpu'
+  | 'cpu_tensor'
+  | 'cpu_foundation'
+
+function requestedProofMode(input: SequenceArgs): RequestedProofMode {
+  if (input.allowCpuFoundationRuntime) return 'cpu_foundation'
+  if (input.allowCpuTensorRuntime) return 'cpu_tensor'
+  return 'native_gpu'
+}
+
+function requestedProofRequiresNativeGpu(input: SequenceArgs): boolean {
+  return requestedProofMode(input) === 'native_gpu'
+}
+
 function finalExternalAgentToolCallCommandForTool(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   options: { container: boolean },
@@ -693,6 +708,27 @@ function buildReport(input: SequenceArgs) {
   const hostBlockers = Array.isArray(hostEnvironment?.blockers)
     ? hostEnvironment.blockers.filter((blocker: unknown): blocker is string => typeof blocker === 'string')
     : []
+  const proofMode = requestedProofMode(input)
+  const nativeGpuHostEligibilityRequired =
+    requestedProofRequiresNativeGpu(input)
+  const harnessSkipReasonCode =
+    typeof harnessRow.skipReasonCode === 'string'
+      ? harnessRow.skipReasonCode
+      : null
+  const hostEligibleForRequestedProof = nativeGpuHostEligibilityRequired
+    ? hostEligibleForNativeGpuProof
+    : localRuntimeExecuted
+  const requestedProofHostBlockers = nativeGpuHostEligibilityRequired
+    ? hostBlockers
+    : hostEligibleForRequestedProof
+    ? []
+    : harnessSkipReasonCode
+    ? [
+        `CPU proof host/runtime is not eligible for ${input.toolId}: ${harnessSkipReasonCode}.`,
+      ]
+    : [
+        `CPU proof host/runtime is not eligible for ${input.toolId}; run the host Python private proof with the required local packages and private inputs.`,
+      ]
 
   return {
     schemaVersion:
@@ -812,6 +848,10 @@ function buildReport(input: SequenceArgs) {
       noExternalBetaUnlock: true,
       noProductionUnlock: true,
       hostEligibilityGateSupported: true,
+      hostEligibilityGateUsesRequestedProofMode: true,
+      nativeGpuHostEligibilityRequired,
+      cpuHostEligibilityCanSatisfyRequestedProof:
+        nativeGpuHostEligibilityRequired === false,
       requireHostEligibleFlagSupported: true,
       requireAcceptedProofFlagSupported: true,
       perToolPrivateProofSequenceCommandsPrepared: true,
@@ -846,6 +886,7 @@ function buildReport(input: SequenceArgs) {
       signedUrlCreatedTools:
         readiness.counts?.signedUrlCreatedTools ?? 0,
       currentHostGpuProofBlockers: hostBlockers.length,
+      currentRequestedProofHostBlockers: requestedProofHostBlockers.length,
       finalExternalAgentSingleToolCallsExecuted:
         finalExternalAgentSingleToolCall ? 1 : 0,
     },
@@ -853,6 +894,16 @@ function buildReport(input: SequenceArgs) {
       requested: input.detectHost,
       hostEligibleForNativeGpuProof,
       blockers: hostBlockers,
+      hostEnvironment,
+    },
+    currentHostProofPreflight: {
+      requested: input.detectHost,
+      requestedProofMode: proofMode,
+      nativeGpuHostEligibilityRequired,
+      hostEligibleForNativeGpuProof,
+      hostEligibleForRequestedProof,
+      nativeGpuBlockers: hostBlockers,
+      requestedProofBlockers: requestedProofHostBlockers,
       hostEnvironment,
     },
     requestedToolResult: {
@@ -942,6 +993,8 @@ function buildReport(input: SequenceArgs) {
         finalExternalAgentSingleToolCall?.booleans?.executable === true,
       hostPreflightRequested: input.detectHost,
       hostEligibleForNativeGpuProof,
+      hostEligibleForRequestedProof,
+      nativeGpuHostEligibilityRequired,
       requireHostEligible: input.requireHostEligible,
       requireAcceptedProof: input.requireAcceptedProof,
       agentCanExecute13NonGpuControlledToolsNow:
@@ -968,8 +1021,10 @@ function buildReport(input: SequenceArgs) {
     },
     nextExactAction: acceptedPrivateProof
       ? 'Feed the accepted private proof into the controlled external-agent route admission path for this scoped tool, then repeat the sequence for the next GPU/model tool.'
-      : input.detectHost && !hostEligibleForNativeGpuProof
+      : input.detectHost && !hostEligibleForRequestedProof && nativeGpuHostEligibilityRequired
       ? 'Move this proof sequence to an approved native Linux/amd64 NVIDIA CUDA host, then rerun with --require-host-eligible and --require-accepted-proof.'
+      : input.detectHost && !hostEligibleForRequestedProof
+      ? 'Install or activate the approved local Python CPU runtime packages for this scoped tool, keep outputs under .local-artifacts/, then rerun with --require-host-eligible and --require-accepted-proof.'
       : 'Run the Kornia-first private proof sequence with either explicit CPU tensor runtime on a host with torch/PIL/numpy/kornia or CUDA runtime on an approved native Linux/amd64 NVIDIA CUDA host.',
   }
 }
@@ -1058,6 +1113,10 @@ ${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).
 - Requested: \`${report.currentHostGpuProofPreflight.requested}\`
 - Eligible: \`${report.currentHostGpuProofPreflight.hostEligibleForNativeGpuProof}\`
 - Blockers: \`${report.currentHostGpuProofPreflight.blockers.join('; ') || 'none'}\`
+- Requested proof mode: \`${report.currentHostProofPreflight.requestedProofMode}\`
+- Native GPU required for requested proof: \`${report.currentHostProofPreflight.nativeGpuHostEligibilityRequired}\`
+- Requested proof eligible: \`${report.currentHostProofPreflight.hostEligibleForRequestedProof}\`
+- Requested proof blockers: \`${report.currentHostProofPreflight.requestedProofBlockers.join('; ') || 'none'}\`
 
 ## Safety Boundary
 
@@ -1081,7 +1140,7 @@ if (args.writeRecords) {
   fs.writeFileSync(outputMdPath, makeMarkdown(report))
 }
 console.log(JSON.stringify(report, null, 2))
-if (args.requireHostEligible && !report.currentHostGpuProofPreflight.hostEligibleForNativeGpuProof) {
+if (args.requireHostEligible && !report.currentHostProofPreflight.hostEligibleForRequestedProof) {
   process.exitCode = 2
 } else if (args.requireAcceptedProof && !report.booleans.acceptedPrivateProofForRequestedTool) {
   process.exitCode = 2

@@ -104,6 +104,7 @@ function getScenarioHighlights() {
     'edit-brief-export-settings-save',
     'edit-brief-qa-run-brief',
     'edit-brief-plan-prepare-hints',
+    'preference-video-mock-only-limits',
     'feedback-export',
   ])
 
@@ -273,6 +274,40 @@ export function InternalTestingPage() {
               </div>
             </Card>
           ))}
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-preference-video-limits">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Preference Video limits</span>
+            <h2>Mock-local Preference DNA is visible, not executable media analysis</h2>
+          </div>
+          <p>
+            Preference Video scenarios are now closeout-ready for internal testing because the referenced route is mounted and the limitations are
+            explicit. This does not authorize real reference media analysis, URL fetches, provider calls, workers, render/export, credit movement,
+            Supabase persistence, external beta, or product-ready behavior.
+          </p>
+          <div className="internal-testing-limit-grid">
+            <article>
+              <Badge accent="success">Allowed in internal testing</Badge>
+              <ul>
+                <li>Inspect seeded and browser-local Edit Preference records.</li>
+                <li>Record reference labels or URL text without fetching the URL.</li>
+                <li>Verify do-not-copy, adapted-not-copied, and QA boundary copy.</li>
+              </ul>
+            </article>
+            <article>
+              <Badge accent="warning">Still blocked until later gates</Badge>
+              <ul>
+                <li>Reference upload, file-byte reads, URL fetch, or real media analysis.</li>
+                <li>Qwen, DeepSeek, provider, worker, media, render/export, or credit execution.</li>
+                <li>Supabase persistence, Storage, signed URLs, external beta, paid production, or product-ready claims.</li>
+              </ul>
+            </article>
+          </div>
+          <Link className="internal-testing-route-link" to="/edit-preferences">
+            Open /edit-preferences
+            <ExternalLink aria-hidden="true" size={15} />
+          </Link>
         </section>
 
         <section className="internal-testing-content-grid">

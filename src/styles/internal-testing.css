@@ -158,6 +158,25 @@
   padding-left: 20px;
 }
 
+.internal-testing-limitations {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.internal-testing-limit-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.internal-testing-limit-grid article {
+  background: rgba(5, 7, 13, 0.36);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
 .internal-testing-limitations li,
 .internal-testing-scenario-card li,
 .internal-testing-page p,
@@ -316,6 +335,7 @@
 
 @media (max-width: 760px) {
   .internal-testing-scenario-grid,
+  .internal-testing-limit-grid,
   .internal-testing-form-grid {
     grid-template-columns: 1fr;
   }

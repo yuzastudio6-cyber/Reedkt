@@ -248,6 +248,8 @@ assert.equal(report.accountSelectionGuidance.printsAccountValue, false)
 assert.equal(report.liveVerifierRun, false)
 assert.equal(report.liveVerifier, undefined)
 assert.equal(report.liveVerifierAvailableCommand, 'npm run external-agent-gcp-access:verify')
+assert.equal(report.accountIndexedLiveVerifierAvailableCommand, undefined)
+assert.equal(report.accountIndexedSafeCommandsBeforeExecution, undefined)
 assert.equal(typeof report.gcpAccessRepair, 'object')
 assert.equal(report.gcpAccessRepair.decision, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.decision)
 assert.equal(report.gcpAccessRepair.mode, EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.mode)
@@ -385,6 +387,78 @@ assert.equal(indexedLiveReport.accountSelectionGuidance.cliAccountIndexValid, tr
 assert.equal(indexedLiveReport.accountSelectionGuidance.cliAccountIndexMapsToChildEnv, true)
 assert.equal(indexedLiveReport.accountSelectionGuidance.mutatesLocalGcloudConfig, false)
 assert.equal(indexedLiveReport.accountSelectionGuidance.printsAccountValue, false)
+assert.equal(
+  indexedLiveReport.accountIndexedLiveVerifierAvailableCommand,
+  'npm run external-agent-gcp-access:verify -- --account-index 2',
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'npm run external-agent-tool-action-plan -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'npm run external-agent-tool-execution-gate -- --live --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'npm run external-agent-gcp-access:verify -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=2 npm run ai-video-broll-wan-gpu-global-quota:verify',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'npm run external-agent-tool-execute-broll-wan -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'npm run external-agent-tool-execute-sound -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(
+  indexedLiveReport.accountIndexedSafeCommandsBeforeExecution.includes(
+    'npm run external-agent-tool-execute-supabase-harness -- --account-index 2',
+  ),
+  true,
+)
+assert.equal(JSON.stringify(indexedLiveReport.accountIndexedSafeCommandsBeforeExecution).includes('<account-index>'), false)
+const indexedQwenGateRow = indexedLiveReport.toolRows.find(
+  (row: { toolId: string }) => row.toolId === 'qwen2_5_vl_7b_instruct',
+)
+const indexedBrollGateRow = indexedLiveReport.toolRows.find(
+  (row: { toolId: string }) => row.toolId === 'ai_video_broll_generation_wan',
+)
+const indexedSoundGateRow = indexedLiveReport.toolRows.find(
+  (row: { toolId: string }) => row.toolId === 'sound_music_audio',
+)
+const indexedSupabaseHarnessGateRow = indexedLiveReport.toolRows.find(
+  (row: { toolId: string }) => row.toolId === 'supabase_local_fixture_harness',
+)
+assert.equal(
+  indexedQwenGateRow.accountIndexedSafeNextCommand,
+  'npm run external-agent-tool-next-command -- --account-index 2',
+)
+assert.equal(indexedBrollGateRow.accountIndexedSafeNextCommand, indexedBrollGateRow.safeNextCommand)
+assert.equal(
+  indexedSoundGateRow.accountIndexedSafeNextCommand,
+  'npm run external-agent-tool-execute-sound -- --account-index 2',
+)
+assert.equal(
+  indexedSupabaseHarnessGateRow.accountIndexedSafeNextCommand,
+  'npm run external-agent-tool-execute-supabase-harness -- --account-index 2',
+)
 assert.equal(
   indexedLiveReport.gcpAccessRepair.safeRetryChecklist.includes(
     'run npm run external-agent-tool-next-command -- --account-index 2',

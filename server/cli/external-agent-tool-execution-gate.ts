@@ -122,6 +122,52 @@ function applyAccountIndex(value: string, accountIndex: number | undefined): str
     .replace(/<redacted-index>/g, String(accountIndex))
 }
 
+const cliAccountIndexCommands = new Set([
+  'npm run external-agent-tool-action-plan',
+  'npm run external-agent-tool-readiness:check',
+  'npm run external-agent-tool-execution-gate',
+  'npm run external-agent-tool-next-command',
+  'npm run external-agent-tool-blockers:preflight',
+  'npm run external-agent-gcp-access:repair-plan',
+  'npm run external-agent-gcp-access:verify',
+  'npm run external-agent-tool-runtime-status',
+  'npm run external-agent-tool-execute-qwen',
+  'npm run external-agent-tool-execute-broll-wan',
+  'npm run external-agent-tool-execute-sound',
+  'npm run external-agent-tool-execute-supabase-harness',
+])
+
+const envAccountIndexCommands = new Set(['npm run ai-video-broll-wan-gpu-global-quota:verify'])
+
+function commandWithAccountIndex(command: string, accountIndex: number | undefined): string {
+  if (!accountIndex) return command
+  if (
+    command.includes('--account-index') ||
+    command.includes('--gcloud-account-index') ||
+    command.includes('REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=')
+  ) {
+    return applyAccountIndex(command, accountIndex)
+  }
+
+  const runPrefix = command.startsWith('run ')
+  const body = runPrefix ? command.slice('run '.length) : command
+  const prefix = runPrefix ? 'run ' : ''
+
+  const cliAccountIndexCommand = Array.from(cliAccountIndexCommands).find(
+    (candidate) => body === candidate || body.startsWith(`${candidate} -- `),
+  )
+  if (cliAccountIndexCommand) {
+    const separator = body.includes(' -- ') ? '' : ' --'
+    return `${prefix}${body}${separator} --account-index ${accountIndex}`
+  }
+
+  if (envAccountIndexCommands.has(body)) {
+    return `${prefix}REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=${accountIndex} ${body}`
+  }
+
+  return applyAccountIndex(command, accountIndex)
+}
+
 function gcpAccessRepairGuidance(accountIndex: number | undefined) {
   const repairPlan = EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN
 
@@ -154,8 +200,15 @@ function main() {
   const staticExplicitGateTools = gate.toolRows.filter((tool) => tool.staticExplicitToolGateReady)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
   const rollupToolsById = new Map(rollup.tools.map((tool) => [tool.toolId, tool]))
+  const selectedAccountIndex =
+    accountIndexOverride.cliAccountIndexValid && typeof accountIndexOverride.cliAccountIndex === 'number'
+      ? accountIndexOverride.cliAccountIndex
+      : undefined
   const toolRows = gate.toolRows.map((tool) => ({
     ...tool,
+    accountIndexedSafeNextCommand: selectedAccountIndex
+      ? commandWithAccountIndex(tool.safeNextCommand, selectedAccountIndex)
+      : undefined,
     manualBlockerActions: rollupToolsById.get(tool.toolId)?.manualBlockerActions ?? [],
   }))
   const runtimeGatesAllFalse = Object.values(gate.runtimeSideEffects).every((value) => value === false)
@@ -210,6 +263,9 @@ function main() {
     executionNowBlockedByLivePreflight: staticExplicitToolGateReady && !liveAwareExecutionAllowedNow,
     readyForAnyExternalAgentRuntimeExecutionNow: liveAwareExecutionAllowedNow,
     liveVerifierAvailableCommand: 'npm run external-agent-gcp-access:verify',
+    accountIndexedLiveVerifierAvailableCommand: selectedAccountIndex
+      ? commandWithAccountIndex('npm run external-agent-gcp-access:verify', selectedAccountIndex)
+      : undefined,
     liveVerifierRun: liveMode,
     liveVerifier: liveMode
       ? {
@@ -275,6 +331,9 @@ function main() {
     runtimeGatesAllFalse,
     toolRows,
     safeCommandsBeforeExecution: gate.safeCommandsBeforeExecution,
+    accountIndexedSafeCommandsBeforeExecution: selectedAccountIndex
+      ? gate.safeCommandsBeforeExecution.map((command) => commandWithAccountIndex(command, selectedAccountIndex))
+      : undefined,
     forbiddenRuntimeActions: gate.forbiddenRuntimeActions,
     runtimeSideEffects: gate.runtimeSideEffects,
     recommendedNextPrompt:

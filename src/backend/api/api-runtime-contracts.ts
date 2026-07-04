@@ -68,6 +68,7 @@ export interface ApiRuntimeContext {
   projectId?: string
   requestId: string
   mockOnly: boolean
+  mockDatabase?: unknown
 }
 
 export interface ApiRequestEnvelope<TBody = unknown> {
@@ -89,6 +90,20 @@ export interface ApiResponseEnvelope<TData = unknown> {
   }
   warnings: string[]
   mockOnly: boolean
+  providerCallMade?: false
+  modelCallMade?: false
+  supabaseReadMade?: false
+  supabaseWriteMade?: false
+  storageReadMade?: false
+  storageWriteMade?: false
+  signedUrlCreated?: false
+  fileBytesRead?: false
+  externalUrlFetched?: false
+  mediaProcessingStarted?: false
+  generationRequestCreated?: false
+  renderJobCreated?: false
+  workerJobCreated?: false
+  creditReservedOrSpent?: false
 }
 
 export type ApiRouteHandler<TBody = unknown, TData = unknown> = (

@@ -1,0 +1,177 @@
+/* Shared cards, badges, progress surfaces, and glass utilities. */
+
+.rp-surface,
+.rp-surface-glass,
+.rp-surface-panel {
+  border: 1px solid var(--rp-border-subtle);
+  color: var(--rp-text-primary);
+}
+
+.rp-surface {
+  background: var(--rp-surface-card);
+  border-radius: var(--rp-radius-md);
+}
+
+.rp-surface-glass {
+  backdrop-filter: var(--rp-blur-glass);
+  background: var(--rp-surface-glass);
+  border-radius: var(--rp-radius-lg);
+}
+
+.rp-surface-panel {
+  background: var(--rp-surface-panel);
+  border-radius: var(--rp-radius-lg);
+}
+
+.rp-gradient-border-shell {
+  background:
+    linear-gradient(var(--rp-bg-deep), var(--rp-bg-deep)) padding-box,
+    var(--rp-gradient-border) border-box;
+  border: 1px solid transparent;
+  border-radius: var(--rp-radius-lg);
+}
+
+.rp-soft-divider {
+  background: var(--rp-border-subtle);
+  height: 1px;
+  width: 100%;
+}
+
+.rp-status-dot {
+  background: var(--rp-brand-cyan);
+  border-radius: var(--rp-radius-pill);
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+}
+
+.rp-card {
+  background:
+    linear-gradient(180deg, rgba(16, 24, 39, 0.92), rgba(11, 18, 32, 0.96)),
+    var(--rp-surface-1);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  box-shadow: var(--rp-shadow-card);
+  color: var(--rp-text-primary);
+  padding: 20px;
+}
+
+.rp-badge {
+  align-items: center;
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-pill);
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  gap: 6px;
+  min-height: 26px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.rp-badge-blue {
+  background: rgba(37, 99, 255, 0.14);
+  border-color: rgba(37, 99, 255, 0.42);
+  color: #bfd2ff;
+}
+
+.rp-badge-cyan {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.4);
+  color: #b8f8ff;
+}
+
+.rp-badge-violet,
+.rp-badge-purple {
+  background: rgba(139, 92, 246, 0.16);
+  border-color: rgba(139, 92, 246, 0.42);
+  color: #ded2ff;
+}
+
+.rp-badge-success {
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.42);
+  color: #b8f7de;
+}
+
+.rp-badge-warning {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.42);
+  color: #fde4ae;
+}
+
+.rp-badge-danger {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.42);
+  color: #fecaca;
+}
+
+.rp-badge-info {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #bae6fd;
+}
+
+.storage-bar,
+.progress-wrap,
+.scrubber {
+  background: rgba(30, 42, 61, 0.78);
+  border-radius: var(--rp-radius-pill);
+  height: 8px;
+  overflow: hidden;
+}
+
+.storage-bar span,
+.progress-wrap span,
+.scrubber span {
+  background: var(--rp-gradient-timeline);
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+}
+
+.metric-line {
+  background: var(--rp-gradient-timeline);
+  border-radius: var(--rp-radius-pill);
+  height: 3px;
+  width: 60%;
+}
+
+.dashboard-side .rp-card {
+  display: grid;
+  gap: 12px;
+}
+
+.media-icon,
+.signature-icon,
+.export-icon,
+.dropzone-icon {
+  align-items: center;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.24);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-brand-cyan);
+  display: inline-flex;
+  height: 46px;
+  justify-content: center;
+  width: 46px;
+}
+
+.export-card span:not(.rp-badge, .progress-wrap span) {
+  color: var(--rp-text-muted);
+  font-size: 0.82rem;
+}
+
+.project-status-row span:not(.rp-badge) {
+  color: var(--rp-text-muted);
+  font-size: 0.82rem;
+}
+
+.video-controls .scrubber {
+  flex: 1 1 180px;
+}
+
+.edit-level-card .rp-badge {
+  justify-self: start;
+}

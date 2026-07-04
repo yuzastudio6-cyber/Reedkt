@@ -6,7 +6,11 @@ import type {
 } from './api-runtime-contracts'
 import { createApiBackendRequiredResponse, createApiErrorResponse, createApiMockResponse, createApiNotImplementedResponse } from './api-response'
 import { createApiRouteMapSummary, getApiRouteById, getMockReadyRoutes } from './api-route-registry'
+import { PROJECT_EDIT_BRIEF_API_ROUTE_IDS } from '../../types/api-routes'
 import type { ChatNativePlanningInput } from '../backend-types'
+import { handleProjectEditBriefMockRoute } from './project-edit-brief-mock-route-handlers'
+import { handleProjectEditSessionMockRoute } from './project-edit-session-mock-route-handlers'
+import { PROJECT_EDIT_SESSION_API_ROUTE_IDS } from '../../types/api-routes'
 import { runAuthBootstrapFlow } from '../auth/auth-bootstrap-orchestrator'
 import { getAuthClientStatus } from '../auth/auth-client-service'
 import { createMockDatabase } from '../mock/mock-database'
@@ -153,6 +157,8 @@ export function createMockApiRouterSummary() {
 const DEFAULT_MOCK_HANDLERS: Record<string, ApiRouteHandler> = {
   'auth.bootstrap.status': handleAuthBootstrapStatus,
   'auth.bootstrap.currentUser': handleAuthBootstrapCurrentUser,
+  ...Object.fromEntries(PROJECT_EDIT_SESSION_API_ROUTE_IDS.map((routeId) => [routeId, handleProjectEditSessionMockRoute] as const)),
+  ...Object.fromEntries(PROJECT_EDIT_BRIEF_API_ROUTE_IDS.map((routeId) => [routeId, handleProjectEditBriefMockRoute] as const)),
   'projects.demo.create': handleMockChatNativePlanning,
   'media.uploadPlan.create': handleCreateUploadPlan,
   'media.upload.validate': handleValidateUpload,

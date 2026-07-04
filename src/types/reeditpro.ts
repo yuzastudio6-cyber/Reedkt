@@ -13,6 +13,8 @@ export type SignatureSystem =
 
 export type EditLevel = 'basic' | 'pro' | 'premium'
 
+export type UserFacingEditLevel = EditLevel | 'normal' | 'ultra_premium'
+
 export type EditingCategory =
   | 'storytelling'
   | 'lifestyle'

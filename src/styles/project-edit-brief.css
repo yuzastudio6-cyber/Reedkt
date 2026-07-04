@@ -1,0 +1,1117 @@
+.project-edit-brief-workspace,
+.project-edit-brief-main,
+.project-edit-brief-side-panel,
+.project-edit-brief-summary-panel,
+.project-edit-brief-marker-detail,
+.project-edit-brief-export-summary,
+.project-edit-brief-source-video-picker,
+.project-edit-brief-source-video-summary,
+.project-edit-brief-empty-state {
+  display: grid;
+  gap: 14px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.project-edit-brief-header,
+.project-edit-brief-boundary,
+.project-edit-brief-status,
+.project-edit-brief-source-video-picker,
+.project-edit-brief-source-video-summary,
+.project-edit-brief-video-shell,
+.project-edit-brief-timeline {
+  background: rgba(11, 18, 32, 0.82);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  min-width: 0;
+}
+
+.project-edit-brief-header {
+  align-items: start;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 18px;
+}
+
+.project-edit-brief-header h2,
+.project-edit-brief-summary-panel h3,
+.project-edit-brief-marker-detail h3,
+.project-edit-brief-export-summary h3,
+.project-edit-brief-empty-state h3 {
+  margin: 0;
+}
+
+.project-edit-brief-header p,
+.project-edit-brief-muted,
+.project-edit-brief-source-video-picker p,
+.project-edit-brief-source-video-summary p,
+.project-edit-brief-empty-state p,
+.project-edit-brief-export-summary p,
+.project-edit-brief-summary-panel li,
+.project-edit-brief-marker-detail p,
+.project-edit-brief-detail-list dd,
+.project-edit-brief-boundary p {
+  color: var(--rp-text-secondary);
+}
+
+.project-edit-brief-header__badges,
+.project-edit-brief-summary-panel__badges,
+.project-edit-brief-marker-detail__badges,
+.project-edit-brief-source-video-picker__actions,
+.project-edit-brief-source-video-summary__header,
+.project-edit-brief-video-shell__controls,
+.project-edit-brief-attachment-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.project-edit-brief-boundary {
+  align-items: start;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 14px;
+}
+
+.project-edit-brief-boundary svg {
+  color: var(--rp-brand-cyan);
+}
+
+.project-edit-brief-boundary ul,
+.project-edit-brief-summary-panel ul,
+.project-edit-brief-note-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.project-edit-brief-status {
+  color: var(--rp-text-secondary);
+  padding: 10px 14px;
+}
+
+.project-edit-brief-source-video-picker,
+.project-edit-brief-source-video-summary {
+  padding: 14px;
+}
+
+.project-edit-brief-source-video-picker {
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.project-edit-brief-source-video-picker h3,
+.project-edit-brief-source-video-summary h3 {
+  margin: 0;
+}
+
+.project-edit-brief-source-video-picker__actions {
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.project-edit-brief-source-video-picker__input {
+  align-items: center;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.88rem;
+  font-weight: 700;
+  gap: 8px;
+  min-height: 36px;
+  overflow: hidden;
+  padding: 8px 12px;
+  position: relative;
+}
+
+.project-edit-brief-source-video-picker__input input {
+  cursor: pointer;
+  inset: 0;
+  opacity: 0;
+  position: absolute;
+}
+
+.project-edit-brief-source-video-picker__error {
+  color: var(--rp-danger);
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.project-edit-brief-source-video-summary__header {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.project-edit-brief-source-video-summary__grid,
+.project-edit-brief-export-summary__source-video {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.project-edit-brief-source-video-summary__grid span,
+.project-edit-brief-export-summary__source-video {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  min-width: 0;
+  padding: 10px;
+}
+
+.project-edit-brief-source-video-summary__grid strong,
+.project-edit-brief-export-summary__source-video strong {
+  color: var(--rp-text-primary);
+  display: block;
+  font-size: 0.78rem;
+  margin-bottom: 4px;
+}
+
+.project-edit-brief-workspace__layout {
+  align-items: start;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.75fr);
+  min-width: 0;
+}
+
+.project-edit-brief-video-shell {
+  overflow: hidden;
+}
+
+.project-edit-brief-video-shell__frame {
+  align-items: center;
+  aspect-ratio: 16 / 9;
+  background:
+    linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(19, 25, 42, 0.78)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 34px);
+  color: var(--rp-text-primary);
+  display: grid;
+  gap: 12px;
+  justify-content: center;
+  justify-items: center;
+  min-height: 260px;
+  padding: 24px;
+  text-align: center;
+}
+
+.project-edit-brief-video-shell__frame--local {
+  background: #05070d;
+  display: block;
+  padding: 0;
+  position: relative;
+}
+
+.project-edit-brief-video-shell__video {
+  aspect-ratio: 16 / 9;
+  background: #05070d;
+  display: block;
+  max-height: 56vh;
+  object-fit: contain;
+  width: 100%;
+}
+
+.project-edit-brief-video-shell__local-badge {
+  background: rgba(0, 0, 0, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--rp-radius-md);
+  bottom: 12px;
+  color: var(--rp-text-primary);
+  font-size: 0.78rem;
+  left: 12px;
+  padding: 6px 8px;
+  position: absolute;
+}
+
+.project-edit-brief-video-shell__frame svg {
+  color: var(--rp-brand-cyan);
+}
+
+.project-edit-brief-video-shell__frame span,
+.project-edit-brief-video-shell__controls span {
+  color: var(--rp-text-secondary);
+}
+
+.project-edit-brief-video-shell__controls {
+  align-items: center;
+  border-top: 1px solid var(--rp-border-subtle);
+  padding: 12px;
+}
+
+.project-edit-brief-export-summary__source-video {
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.project-edit-brief-export-summary__source-video span {
+  color: var(--rp-text-secondary);
+  display: block;
+  font-size: 0.84rem;
+}
+
+.project-edit-brief-timeline {
+  display: grid;
+  gap: 12px;
+  overflow: hidden;
+  padding: 14px;
+}
+
+.project-edit-brief-timeline__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.project-edit-brief-timeline__header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.project-edit-brief-add-marker {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.project-edit-brief-add-marker span {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+}
+
+.project-edit-brief-timeline-ruler,
+.project-edit-brief-marker-lane {
+  position: relative;
+  width: 100%;
+}
+
+.project-edit-brief-timeline-ruler {
+  border-bottom: 1px solid var(--rp-border-subtle);
+  height: 28px;
+}
+
+.project-edit-brief-timeline-ruler__tick {
+  color: var(--rp-text-secondary);
+  font-size: 0.78rem;
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.project-edit-brief-timeline-ruler__tick::after {
+  background: var(--rp-border-subtle);
+  content: '';
+  height: 10px;
+  left: 50%;
+  position: absolute;
+  top: 18px;
+  width: 1px;
+}
+
+.project-edit-brief-marker-lane {
+  background: rgba(5, 7, 13, 0.38);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  min-height: 92px;
+  overflow: hidden;
+}
+
+.project-edit-brief-playhead {
+  background: var(--rp-brand-cyan);
+  bottom: 0;
+  position: absolute;
+  top: 0;
+  width: 2px;
+  z-index: 3;
+}
+
+.project-edit-brief-playhead::before {
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 9px solid var(--rp-brand-cyan);
+  content: '';
+  left: 50%;
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.project-edit-brief-marker-pill {
+  align-items: center;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.32);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-primary);
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 54px;
+  min-width: 74px;
+  overflow: hidden;
+  padding: 8px;
+  position: absolute;
+  text-align: left;
+  top: 20px;
+}
+
+.project-edit-brief-marker-pill.is-selected {
+  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.24);
+}
+
+.project-edit-brief-marker-pill--edit-brief-marker-primary,
+.project-edit-brief-marker-pill--edit-brief-marker-success {
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.36);
+}
+
+.project-edit-brief-marker-pill--edit-brief-marker-warning,
+.project-edit-brief-marker-pill--warning,
+.project-edit-brief-marker-pill--conflict,
+.project-edit-brief-marker-pill--needs_asset,
+.project-edit-brief-marker-pill--needs_clarification {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.36);
+}
+
+.project-edit-brief-marker-pill--edit-brief-marker-danger,
+.project-edit-brief-marker-pill--edit-brief-marker-avoid,
+.project-edit-brief-marker-pill--blocked,
+.project-edit-brief-marker-pill--avoid {
+  background: rgba(239, 68, 68, 0.13);
+  border-color: rgba(239, 68, 68, 0.34);
+}
+
+.project-edit-brief-marker-pill--edit-brief-marker-neutral {
+  background: rgba(0, 229, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.32);
+}
+
+.project-edit-brief-marker-pill__label,
+.project-edit-brief-marker-pill__time {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-edit-brief-marker-pill__label {
+  font-weight: 800;
+}
+
+.project-edit-brief-marker-pill__time {
+  color: var(--rp-text-secondary);
+  font-size: 0.78rem;
+  grid-column: 2;
+}
+
+.project-edit-brief-marker-detail__header {
+  align-items: start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.project-edit-brief-marker-drawer {
+  background: rgba(7, 13, 24, 0.88);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  border-radius: var(--rp-radius-lg);
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+}
+
+.project-edit-brief-marker-drawer__header {
+  align-items: start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.project-edit-brief-marker-drawer__header h3 {
+  margin: 0;
+}
+
+.project-edit-brief-marker-form-grid,
+.project-edit-brief-marker-time-editor__grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.project-edit-brief-marker-drawer__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-edit-brief-marker-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.project-edit-brief-marker-field span,
+.project-edit-brief-marker-time-editor legend,
+.project-edit-brief-marker-drawer__readonly strong {
+  color: var(--rp-text-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.project-edit-brief-marker-field input,
+.project-edit-brief-marker-field select,
+.project-edit-brief-marker-field textarea {
+  background: rgba(5, 7, 13, 0.56);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-primary);
+  font: inherit;
+  min-width: 0;
+  padding: 10px;
+  width: 100%;
+}
+
+.project-edit-brief-marker-field textarea {
+  resize: vertical;
+}
+
+.project-edit-brief-marker-field small,
+.project-edit-brief-marker-boundary,
+.project-edit-brief-marker-drawer__readonly span {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+}
+
+.project-edit-brief-marker-time-editor {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  min-width: 0;
+  padding: 12px;
+}
+
+.project-edit-brief-marker-errors {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: var(--rp-radius-sm);
+  color: #fecaca;
+  margin: 0;
+  padding: 8px 10px 8px 26px;
+}
+
+.project-edit-brief-marker-status-controls,
+.project-edit-brief-marker-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-edit-brief-marker-drawer__readonly {
+  display: grid;
+  gap: 8px;
+}
+
+.project-edit-brief-marker-chat {
+  background: rgba(5, 7, 13, 0.34);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.project-edit-brief-visual-context {
+  background: rgba(5, 7, 13, 0.34);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.project-edit-brief-visual-context__header,
+.project-edit-brief-visual-context__actions,
+.project-edit-brief-visual-context-summary__headline {
+  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.project-edit-brief-visual-context__header h4,
+.project-edit-brief-visual-context__header p,
+.project-edit-brief-visual-context-boundary p,
+.project-edit-brief-visual-context-summary p,
+.project-edit-brief-visual-context-summary dl,
+.project-edit-brief-visual-context-summary dd {
+  margin: 0;
+}
+
+.project-edit-brief-visual-context__header p,
+.project-edit-brief-visual-context__status,
+.project-edit-brief-visual-context__actions span,
+.project-edit-brief-visual-context-boundary p,
+.project-edit-brief-marker-chat__visual-context {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+}
+
+.project-edit-brief-visual-context-boundary,
+.project-edit-brief-visual-context-summary {
+  background: rgba(11, 18, 32, 0.56);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.project-edit-brief-visual-context-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.project-edit-brief-visual-context-grid div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.project-edit-brief-visual-context-grid dt {
+  color: var(--rp-text-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.project-edit-brief-visual-context-grid dd {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.project-edit-brief-visual-context-lists {
+  display: grid;
+  gap: 6px;
+}
+
+.project-edit-brief-marker-chat__header,
+.project-edit-brief-marker-chat-card-header {
+  align-items: start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.project-edit-brief-marker-chat__header h4,
+.project-edit-brief-marker-chat-card-header h4,
+.project-edit-brief-marker-chat__header p,
+.project-edit-brief-marker-chat-boundary p,
+.project-edit-brief-marker-chat-bubble p,
+.project-edit-brief-marker-chat-intent p,
+.project-edit-brief-marker-chat-confirmation p,
+.project-edit-brief-marker-chat-empty {
+  margin: 0;
+}
+
+.project-edit-brief-marker-chat__header p,
+.project-edit-brief-marker-chat-boundary p,
+.project-edit-brief-marker-chat__status,
+.project-edit-brief-marker-chat-bubble span,
+.project-edit-brief-marker-chat-empty {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+}
+
+.project-edit-brief-marker-chat-boundary,
+.project-edit-brief-marker-chat-intent,
+.project-edit-brief-marker-chat-confirmation,
+.project-edit-brief-marker-chat-empty {
+  background: rgba(11, 18, 32, 0.56);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.project-edit-brief-marker-chat-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  padding: 0;
+}
+
+.project-edit-brief-marker-chat-bubble {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 5px;
+  max-width: 92%;
+  padding: 9px 10px;
+}
+
+.project-edit-brief-marker-chat-bubble--user {
+  justify-self: end;
+  background: rgba(0, 229, 255, 0.12);
+}
+
+.project-edit-brief-marker-chat-bubble--assistant {
+  justify-self: start;
+  background: rgba(52, 211, 153, 0.1);
+}
+
+.project-edit-brief-marker-chat-bubble--system,
+.project-edit-brief-marker-chat-bubble--marker_status {
+  justify-self: start;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.project-edit-brief-marker-chat-input {
+  display: grid;
+  gap: 8px;
+}
+
+.project-edit-brief-marker-chat-input textarea {
+  background: rgba(5, 7, 13, 0.56);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-primary);
+  font: inherit;
+  min-width: 0;
+  padding: 10px;
+  resize: vertical;
+  width: 100%;
+}
+
+.project-edit-brief-marker-chat__cards {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.project-edit-brief-marker-drawer__readonly h4,
+.project-edit-brief-marker-drawer__readonly p {
+  margin: 0;
+}
+
+.project-edit-brief-marker-drawer__readonly .project-edit-brief-detail-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.project-edit-brief-marker-boundary {
+  background: rgba(5, 7, 13, 0.34);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 10px;
+}
+
+.project-edit-brief-detail-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.project-edit-brief-detail-list div,
+.project-edit-brief-export-summary__grid span {
+  background: rgba(5, 7, 13, 0.34);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.project-edit-brief-detail-list dt,
+.project-edit-brief-export-summary__grid strong {
+  color: var(--rp-text-primary);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.project-edit-brief-attachment-chip {
+  background: rgba(5, 7, 13, 0.34);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 6px;
+  min-width: min(100%, 220px);
+  padding: 10px;
+}
+
+.project-edit-brief-attachment-chip small {
+  color: var(--rp-text-secondary);
+}
+
+.project-edit-brief-attachment-panel,
+.project-edit-brief-attachment-form,
+.project-edit-brief-attachment-detail {
+  background: rgba(5, 7, 13, 0.34);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.project-edit-brief-attachment-panel__header,
+.project-edit-brief-attachment-detail__header,
+.project-edit-brief-attachment-actions,
+.project-edit-brief-attachment-boundary {
+  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.project-edit-brief-attachment-panel__header h4,
+.project-edit-brief-attachment-panel__header p,
+.project-edit-brief-attachment-detail h5,
+.project-edit-brief-attachment-detail p,
+.project-edit-brief-attachment-boundary p {
+  margin: 0;
+}
+
+.project-edit-brief-attachment-panel__header p,
+.project-edit-brief-attachment-detail p,
+.project-edit-brief-attachment-boundary p,
+.project-edit-brief-attachment-upload-placeholder small {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+}
+
+.project-edit-brief-attachment-chip-button {
+  align-items: start;
+  background: rgba(11, 18, 32, 0.58);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-primary);
+  cursor: pointer;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  min-width: min(100%, 260px);
+  padding: 10px;
+  text-align: left;
+}
+
+.project-edit-brief-attachment-chip-button.is-selected {
+  border-color: rgba(0, 229, 255, 0.42);
+  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.18);
+}
+
+.project-edit-brief-attachment-chip-button span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.project-edit-brief-attachment-chip-button small {
+  color: var(--rp-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-edit-brief-attachment-upload-placeholder {
+  border: 1px dashed rgba(148, 163, 184, 0.34);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+}
+
+.project-edit-brief-attachment-upload-placeholder span {
+  color: var(--rp-text-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.project-edit-brief-attachment-upload-placeholder input {
+  max-width: 100%;
+}
+
+.project-edit-brief-note-list {
+  color: var(--rp-text-secondary);
+}
+
+.project-edit-brief-note-list--safety {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.26);
+  border-radius: var(--rp-radius-md);
+  padding: 10px 10px 10px 26px;
+}
+
+.project-edit-brief-export-summary__grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.project-edit-brief-export-summary__header {
+  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.project-edit-brief-export-summary__header h3,
+.project-edit-brief-export-summary__header p {
+  margin: 0;
+}
+
+.project-edit-brief-export-form {
+  background: rgba(5, 7, 13, 0.34);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.project-edit-brief-export-form label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.project-edit-brief-export-form label span {
+  color: var(--rp-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.project-edit-brief-export-form input,
+.project-edit-brief-export-form select {
+  background: rgba(11, 18, 32, 0.78);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-primary);
+  min-width: 0;
+  padding: 9px 10px;
+  width: 100%;
+}
+
+.project-edit-brief-export-form__row {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.project-edit-brief-export-form__check {
+  align-items: center;
+  display: flex !important;
+  gap: 8px;
+}
+
+.project-edit-brief-export-form__check input {
+  width: auto;
+}
+
+.project-edit-brief-export-form__error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: var(--rp-radius-sm);
+  margin: 0;
+  padding: 8px;
+}
+
+.project-edit-brief-empty-state {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.24);
+}
+
+.project-edit-brief-qa-summary-card,
+.project-edit-brief-marker-qa-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.project-edit-brief-qa-summary-card__header,
+.project-edit-brief-marker-qa-panel__header,
+.project-edit-brief-conflict-card__header {
+  align-items: start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.project-edit-brief-qa-summary-card__header h3,
+.project-edit-brief-marker-qa-panel__header h4,
+.project-edit-brief-marker-qa-panel__header p {
+  margin: 0;
+}
+
+.project-edit-brief-qa-summary-card__badges,
+.project-edit-brief-marker-qa-panel__badges,
+.project-edit-brief-conflict-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.project-edit-brief-qa-boundary {
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.22);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 0;
+  padding: 10px;
+}
+
+.project-edit-brief-qa-finding-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-edit-brief-qa-finding-list li,
+.project-edit-brief-conflict-card {
+  background: rgba(15, 23, 42, 0.48);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+}
+
+.project-edit-brief-qa-finding-list strong,
+.project-edit-brief-qa-finding-list span,
+.project-edit-brief-qa-finding-list em,
+.project-edit-brief-conflict-card p {
+  overflow-wrap: anywhere;
+}
+
+.project-edit-brief-conflict-list {
+  display: grid;
+  gap: 8px;
+}
+
+.project-edit-brief-marker-pill .rp-badge {
+  font-size: 0.66rem;
+  max-width: 100%;
+  padding: 2px 5px;
+}
+
+.project-edit-brief-plan-bridge,
+.project-edit-brief-plan-instruction-list,
+.project-edit-brief-plan-skipped-list {
+  display: grid;
+  gap: 12px;
+}
+
+.project-edit-brief-plan-bridge__header {
+  align-items: start;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.project-edit-brief-plan-bridge__header h3,
+.project-edit-brief-plan-bridge__header p {
+  margin: 0;
+}
+
+.project-edit-brief-plan-bridge__actions,
+.project-edit-brief-plan-readiness,
+.project-edit-brief-plan-instruction-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.project-edit-brief-plan-instruction-list,
+.project-edit-brief-plan-skipped-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-edit-brief-plan-instruction-card,
+.project-edit-brief-plan-skipped-list li,
+.project-edit-brief-plan-log {
+  background: rgba(15, 23, 42, 0.48);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+}
+
+.project-edit-brief-plan-instruction-card div:first-child,
+.project-edit-brief-plan-skipped-list li {
+  min-width: 0;
+}
+
+.project-edit-brief-plan-instruction-card p,
+.project-edit-brief-plan-instruction-card span,
+.project-edit-brief-plan-skipped-list p,
+.project-edit-brief-plan-skipped-list em,
+.project-edit-brief-plan-log p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.project-edit-brief-plan-boundary {
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid rgba(6, 182, 212, 0.22);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 0;
+  padding: 10px;
+}
+
+@media (max-width: 980px) {
+  .project-edit-brief-header,
+  .project-edit-brief-workspace__layout,
+  .project-edit-brief-marker-form-grid,
+  .project-edit-brief-marker-time-editor__grid,
+  .project-edit-brief-marker-chat__cards,
+  .project-edit-brief-visual-context-grid,
+  .project-edit-brief-export-form__row,
+  .project-edit-brief-qa-summary-card__header,
+  .project-edit-brief-plan-bridge__header,
+  .project-edit-brief-marker-qa-panel__header,
+  .project-edit-brief-marker-drawer__readonly .project-edit-brief-detail-list {
+    grid-template-columns: 1fr;
+  }
+
+  .project-edit-brief-side-panel {
+    grid-row: auto;
+  }
+}

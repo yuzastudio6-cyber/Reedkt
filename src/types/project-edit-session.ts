@@ -1,3 +1,5 @@
+import type { UserFacingEditLevel } from './reeditpro'
+
 export type ProjectEditSessionStatus =
   | 'draft'
   | 'setup_ready'
@@ -113,11 +115,6 @@ export type ProjectEditSessionCardShape =
   | 'social'
   | 'custom'
 
-export type ProjectEditSessionUserFacingEditLevel =
-  | 'basic'
-  | 'premium'
-  | 'ultra_premium'
-
 export interface ProjectEditSessionRecord {
   id: string
   projectId: string
@@ -135,7 +132,7 @@ export interface ProjectEditSessionRecord {
   thumbnailUrl?: string
   latestPreviewUrl?: string
   sourceMediaAssetIds: string[]
-  selectedEditLevel?: ProjectEditSessionUserFacingEditLevel
+  selectedEditLevel?: UserFacingEditLevel
   selectedEditPreferenceId?: string
   selectedPreferenceVersionId?: string
   selectedEditPreferenceHandle?: string

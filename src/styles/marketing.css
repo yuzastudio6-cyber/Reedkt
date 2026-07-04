@@ -1,0 +1,814 @@
+/* Public marketing and pricing page styles. */
+
+.marketing-nav .brand-logo-mark {
+  width: 64px;
+}
+
+.marketing-nav .brand-wordmark-tail {
+  font-size: 2.1rem;
+}
+
+.marketing-page {
+  background:
+    linear-gradient(180deg, rgba(5, 7, 13, 0.2), rgba(7, 17, 31, 0.92)),
+    var(--rp-bg-black);
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.marketing-nav {
+  align-items: center;
+  display: flex;
+  gap: 28px;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 22px 28px;
+  position: relative;
+  z-index: 5;
+}
+
+.marketing-nav nav,
+.marketing-actions,
+.hero-actions,
+.dropzone-actions,
+.wallet-actions,
+.quick-action-row,
+.filter-chip-row,
+.preview-badges {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.marketing-nav nav {
+  color: var(--rp-text-secondary);
+  gap: 18px;
+}
+
+.marketing-nav nav a:hover {
+  color: var(--rp-text-primary);
+}
+
+.hero-section {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.88fr) minmax(460px, 1.12fr);
+  margin: 0 auto;
+  max-width: 1280px;
+  min-height: 720px;
+  padding: 80px 28px 72px;
+  position: relative;
+}
+
+.hero-background {
+  background:
+    linear-gradient(rgba(30, 42, 61, 0.32) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 42, 61, 0.32) 1px, transparent 1px);
+  background-size: 48px 48px;
+  inset: 0;
+  mask-image: linear-gradient(180deg, black 0%, black 62%, transparent 100%);
+  opacity: 0.42;
+  position: absolute;
+}
+
+.hero-timeline {
+  background: var(--rp-gradient-timeline);
+  border-radius: 999px;
+  box-shadow: var(--rp-shadow-cyan);
+  height: 3px;
+  left: 14%;
+  position: absolute;
+  top: 17%;
+  width: 68%;
+}
+
+.hero-grid-plane {
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  border-radius: var(--rp-radius-xl);
+  height: 220px;
+  position: absolute;
+  right: 7%;
+  top: 22%;
+  transform: skewY(-6deg);
+  width: 360px;
+}
+
+.hero-waveform {
+  background: repeating-linear-gradient(90deg, rgba(139, 92, 246, 0.08) 0 12px, rgba(0, 229, 255, 0.18) 12px 16px);
+  border-radius: var(--rp-radius-lg);
+  bottom: 16%;
+  height: 82px;
+  left: 8%;
+  position: absolute;
+  width: 42%;
+}
+
+.hero-content {
+  align-content: center;
+  display: grid;
+  gap: 24px;
+  max-width: 620px;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-content p {
+  font-size: 1.16rem;
+  max-width: 570px;
+}
+
+.hero-product {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.mock-editor-window {
+  background:
+    var(--rp-gradient-surface),
+    linear-gradient(180deg, rgba(16, 24, 39, 0.96), rgba(5, 7, 13, 0.98));
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: var(--rp-radius-2xl);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.46);
+  max-width: 690px;
+  padding: 16px;
+  width: 100%;
+}
+
+.mock-window-top {
+  align-items: center;
+  color: var(--rp-text-secondary);
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mock-window-top span {
+  background: var(--rp-border-strong);
+  border-radius: 999px;
+  height: 9px;
+  width: 9px;
+}
+
+.mock-window-top strong {
+  margin-left: 10px;
+}
+
+.mock-editor-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 0.58fr 1.5fr 0.78fr;
+}
+
+.mock-scene-list,
+.mock-chat {
+  background: rgba(11, 18, 32, 0.86);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.mock-scene-list span {
+  background: rgba(21, 31, 50, 0.82);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-muted);
+  padding: 10px;
+}
+
+.mock-scene-list .active {
+  color: var(--rp-brand-cyan);
+  outline: 1px solid rgba(0, 229, 255, 0.34);
+}
+
+.mock-video {
+  aspect-ratio: 16 / 10;
+  background:
+    linear-gradient(135deg, rgba(37, 99, 255, 0.16), rgba(139, 92, 246, 0.1)),
+    #0b1220;
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  overflow: hidden;
+  position: relative;
+}
+
+.mock-speaker,
+.speaker-silhouette {
+  background: linear-gradient(180deg, rgba(203, 213, 225, 0.88), rgba(100, 116, 139, 0.32));
+  border-radius: 999px 999px 0 0;
+  bottom: 0;
+  height: 62%;
+  left: 14%;
+  position: absolute;
+  width: 32%;
+}
+
+.mock-overlay-card,
+.mock-real-motion {
+  border-radius: var(--rp-radius-md);
+  position: absolute;
+}
+
+.mock-overlay-card {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.46);
+  color: #ede9fe;
+  padding: 12px;
+  right: 7%;
+  top: 16%;
+}
+
+.mock-real-motion {
+  background: rgba(37, 99, 255, 0.18);
+  border: 1px solid rgba(0, 229, 255, 0.42);
+  bottom: 18%;
+  color: #dbeafe;
+  padding: 9px 12px;
+  right: 12%;
+}
+
+.mock-chat p {
+  font-size: 0.84rem;
+}
+
+.mock-timeline {
+  background: rgba(5, 7, 13, 0.72);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+}
+
+.mock-timeline span {
+  border-radius: 999px;
+  display: block;
+  height: 10px;
+}
+
+.landing-section {
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 72px 28px;
+}
+
+.trust-strip {
+  border-block: 1px solid var(--rp-border-subtle);
+  color: var(--rp-text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-weight: 800;
+  gap: 20px;
+  justify-content: space-between;
+  padding-block: 24px;
+  text-transform: uppercase;
+}
+
+.feature-grid,
+.signature-marketing-grid,
+.use-case-grid,
+.metric-grid,
+.folder-grid,
+.project-grid,
+.media-grid,
+.upload-grid,
+.pricing-grid,
+.signature-grid,
+.editor-settings-grid,
+.brand-field-grid,
+.export-summary-grid,
+.insight-grid,
+.state-grid,
+.wallet-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.feature-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.feature-card {
+  min-height: 192px;
+}
+
+.feature-card svg,
+.upload-info-card svg,
+.export-summary-card svg,
+.brand-field-card svg,
+.insight-card svg {
+  color: var(--rp-brand-cyan);
+}
+
+.feature-card p,
+.signature-marketing-card p {
+  margin-top: 10px;
+}
+
+.signature-marketing-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.signature-marketing-card,
+.use-case-grid article {
+  background: rgba(11, 18, 32, 0.78);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  padding: 20px;
+}
+
+.signature-marketing-card span {
+  color: var(--rp-text-muted);
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin: 12px 0 6px;
+}
+
+.signature-cyan svg,
+.feature-cyan svg,
+.metric-cyan strong {
+  color: var(--rp-brand-cyan);
+}
+
+.signature-violet svg,
+.feature-violet svg,
+.metric-violet strong {
+  color: var(--rp-brand-violet);
+}
+
+.signature-blue svg,
+.feature-blue svg,
+.metric-blue strong {
+  color: var(--rp-brand-blue);
+}
+
+.signature-success svg,
+.feature-success svg,
+.metric-success strong {
+  color: var(--rp-success);
+}
+
+.use-case-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.pricing-preview,
+.security-strip {
+  align-items: center;
+  background: rgba(11, 18, 32, 0.8);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-2xl);
+  display: flex;
+  gap: 22px;
+  justify-content: space-between;
+  margin-bottom: 56px;
+}
+
+.security-strip {
+  justify-content: flex-start;
+}
+
+.marketing-footer {
+  border-top: 1px solid var(--rp-border-subtle);
+  color: var(--rp-text-muted);
+  display: flex;
+  justify-content: space-between;
+  padding: 28px;
+}
+
+.pricing-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 28px;
+}
+
+.pricing-card {
+  display: grid;
+  gap: 16px;
+}
+
+.pricing-featured {
+  background:
+    var(--rp-gradient-surface),
+    linear-gradient(180deg, rgba(16, 24, 39, 0.98), rgba(11, 18, 32, 1));
+  border-color: rgba(0, 229, 255, 0.36);
+  box-shadow: var(--rp-shadow-cyan);
+}
+
+.price-row {
+  align-items: baseline;
+  display: flex;
+  gap: 8px;
+}
+
+.price-row strong {
+  font-size: 2.4rem;
+}
+
+.pricing-card ul {
+  display: grid;
+  gap: 10px;
+}
+
+.pricing-card li {
+  align-items: center;
+  color: var(--rp-text-secondary);
+  display: flex;
+  gap: 8px;
+}
+
+.pricing-card li svg {
+  color: var(--rp-success);
+}
+
+.pricing-hero,
+.planning-hero {
+  background:
+    var(--rp-gradient-surface),
+    linear-gradient(180deg, rgba(16, 24, 39, 0.94), rgba(5, 7, 13, 0.96));
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-2xl);
+  display: grid;
+  gap: 22px;
+  margin: 28px auto;
+  max-width: 1180px;
+  padding: clamp(28px, 6vw, 64px);
+}
+
+.pricing-hero {
+  text-align: center;
+}
+
+.pricing-hero .hero-actions,
+.planning-hero {
+  align-items: center;
+  justify-content: center;
+}
+
+.how-it-works-grid,
+.credit-explainer-grid,
+.credit-pack-grid,
+.projects-support-grid,
+.credit-summary-grid,
+.plan-grid,
+.reference-dna-grid,
+.direction-grid,
+.field-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.how-it-works-grid article,
+.credit-model-band,
+.credit-pack-grid article,
+.workflow-profile-card,
+.recommended-structure-preview,
+.planner-empty,
+.planner-error,
+.planner-loading,
+.approved-state,
+.approval-placeholder,
+.library-empty-state,
+.upload-placeholder-card,
+.storage-widget-card,
+.direction-grid article {
+  background: rgba(11, 18, 32, 0.76);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  padding: 18px;
+}
+
+.credit-model-band {
+  align-items: center;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.credit-explainer-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.credit-explainer-grid .rp-card {
+  display: grid;
+  gap: 12px;
+}
+
+.credit-pack-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.credit-pack-grid article {
+  display: grid;
+  gap: 12px;
+}
+
+.credit-pack-grid strong {
+  font-size: 1.6rem;
+}
+
+.credit-pack-grid span {
+  color: var(--rp-text-secondary);
+}
+
+.mock-dropzone {
+  margin-top: 0;
+  min-height: 190px;
+  padding: 28px;
+}
+
+.dataviz-tool-badge,
+.dataviz-source-needed-badge,
+.dataviz-confidence-badge,
+.dataviz-controlled-tool-note,
+.dataviz-no-render-note,
+.dataviz-mock-data-badge,
+.dataviz-fictional-data-badge {
+  align-items: center;
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.2;
+  padding: 6px 9px;
+  width: fit-content;
+}
+
+.dataviz-mock-data-badge,
+.dataviz-fictional-data-badge {
+  border-color: var(--rp-brand-violet);
+  color: var(--rp-brand-violet);
+}
+
+.caption-visual-mock-note,
+.caption-collision-warning {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 8px;
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.8rem;
+}
+
+.timing-approval-blocked-note,
+.timing-validation-mock-note {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 8px;
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.8rem;
+}
+
+.timing-validation-mock-note {
+  border-color: var(--rp-brand-violet);
+  color: var(--rp-text-muted);
+}
+
+.generation-readiness-intro,
+.generation-readiness-summary,
+.mock-credit-estimate-card,
+.generation-approval-card,
+.mock-preview-job-progress,
+.generation-readiness-issue-list,
+.generation-readiness-explainer {
+  border-color: rgba(168, 85, 247, 0.24);
+}
+
+.generation-readiness-stat-grid span,
+.mock-credit-line-item,
+.mock-preview-step,
+.generation-readiness-issue {
+  background: rgba(5, 7, 13, 0.42);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem;
+}
+
+.generation-readiness-stat-grid strong,
+.mock-credit-line-item strong,
+.mock-preview-step strong,
+.generation-readiness-issue strong {
+  color: var(--rp-text-primary);
+}
+
+.generation-readiness-stat-grid small,
+.mock-credit-line-item small,
+.mock-preview-step small,
+.generation-readiness-issue small {
+  color: var(--rp-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.generation-readiness-next-actions,
+.mock-credit-line-list,
+.mock-preview-step-list,
+.generation-readiness-issue-groups,
+.generation-readiness-issue-group,
+.generation-readiness-issue-stack,
+.generation-approval-checks {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.generation-status--blocked,
+.generation-readiness-issue--blocking,
+.mock-preview-step--failed {
+  border-color: rgba(239, 68, 68, 0.44);
+  box-shadow: inset 3px 0 0 rgba(239, 68, 68, 0.72);
+}
+
+.generation-status--needs_review,
+.generation-status--ready_with_warnings,
+.generation-readiness-issue--warning,
+.mock-preview-step--warning {
+  border-color: rgba(245, 158, 11, 0.38);
+  box-shadow: inset 3px 0 0 rgba(245, 158, 11, 0.64);
+}
+
+.generation-status--ready,
+.generation-status--approved,
+.generation-status--preview_ready,
+.generation-readiness-issue--info,
+.mock-preview-step--completed {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.export-readiness-summary,
+.export-explainer,
+.export-issue-list,
+.export-settings-panel,
+.mock-export-estimate-card,
+.export-approval-card,
+.mock-export-job-progress,
+.export-output-list,
+.export-history-card {
+  border-color: rgba(14, 165, 233, 0.24);
+}
+
+.export-stat-grid span,
+.export-issue,
+.export-target-settings,
+.mock-export-line-item,
+.mock-export-step,
+.export-output-row,
+.export-history-row {
+  background: rgba(5, 7, 13, 0.42);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem;
+}
+
+.export-stat-grid strong,
+.export-issue strong,
+.export-target-settings strong,
+.mock-export-line-item strong,
+.mock-export-step strong,
+.export-output-row strong,
+.export-history-row strong {
+  color: var(--rp-text-primary);
+}
+
+.export-stat-grid small,
+.export-issue small,
+.mock-export-line-item small,
+.mock-export-step small,
+.mock-export-step p,
+.export-output-row small,
+.export-output-row p,
+.export-history-row small,
+.export-history-row p {
+  color: var(--rp-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.export-next-actions,
+.export-target-picker,
+.export-settings-toggles,
+.export-approval-checks,
+.export-issue-groups,
+.export-issue-stack,
+.export-target-settings-list,
+.mock-export-line-list,
+.mock-export-step-list,
+.export-output-stack,
+.export-history-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.export-status--blocked,
+.export-status--failed,
+.export-job--failed,
+.mock-export-step--failed,
+.export-issue--blocking {
+  border-color: rgba(239, 68, 68, 0.44);
+  box-shadow: inset 3px 0 0 rgba(239, 68, 68, 0.72);
+}
+
+.export-status--needs_review,
+.export-status--ready_with_warnings,
+.export-status--exporting,
+.export-job--queued,
+.export-job--running,
+.mock-export-step--running,
+.mock-export-step--warning,
+.export-issue--warning {
+  border-color: rgba(245, 158, 11, 0.38);
+  box-shadow: inset 3px 0 0 rgba(245, 158, 11, 0.64);
+}
+
+.export-status--ready,
+.export-status--approved,
+.export-status--export_ready,
+.export-job--completed,
+.mock-export-step--completed,
+.export-issue--info {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.cleanup-preference-option span,
+.trim-decision-item span,
+.trim-decision-item small,
+.trim-decision-item em,
+.retake-group-item span,
+.retake-group-item small,
+.cleanup-user-review-note,
+.cleanup-blocked-note,
+.cleanup-mock-note {
+  color: var(--rp-text-muted);
+  font-style: normal;
+}
+
+.trim-decision-item,
+.retake-group-item,
+.cleanup-user-review-note,
+.cleanup-blocked-note,
+.cleanup-mock-note {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 8px;
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.75rem;
+}
+
+.cleanup-mock-note {
+  border-color: var(--rp-brand-violet);
+}
+
+.trim-review-summary-grid span,
+.trim-review-blocked-note,
+.trim-review-mock-note {
+  background: var(--rp-surface-2);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 8px;
+  color: var(--rp-text-secondary);
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem;
+}
+
+.trim-review-summary-grid strong,
+.trim-review-blocked-note strong,
+.trim-review-mock-note strong,
+.retake-selection-item strong,
+.retake-candidate-item strong,
+.meaning-preservation-check strong {
+  color: var(--rp-text-primary);
+}
+
+.retake-selection-item span,
+.retake-selection-item small,
+.retake-selection-item em,
+.retake-candidate-item span,
+.retake-candidate-item small,
+.retake-candidate-item em,
+.meaning-preservation-check span,
+.meaning-preservation-check small,
+.meaning-preservation-check em,
+.trim-review-blocked-note span,
+.trim-review-mock-note span {
+  color: var(--rp-text-muted);
+  font-style: normal;
+}
+
+.trim-review-mock-note {
+  border-color: var(--rp-brand-violet);
+}

@@ -1,0 +1,116 @@
+/* Typography scales and text utilities. */
+
+.rp-display,
+.rp-title-xl,
+.rp-title-lg,
+.rp-title-md,
+.rp-body,
+.rp-body-sm,
+.rp-label {
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.rp-display {
+  color: var(--rp-text-primary);
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 750;
+  line-height: 1.1;
+}
+
+.rp-title-xl {
+  color: var(--rp-text-primary);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 720;
+  line-height: 1.16;
+}
+
+.rp-title-lg {
+  color: var(--rp-text-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.22;
+}
+
+.rp-title-md {
+  color: var(--rp-text-primary);
+  font-size: 1.1rem;
+  font-weight: 680;
+  line-height: 1.32;
+}
+
+.rp-body {
+  color: var(--rp-text-secondary);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.rp-body-sm {
+  color: var(--rp-text-muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.rp-label {
+  color: var(--rp-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--rp-text-primary);
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.14;
+}
+
+h2 {
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+h3 {
+  font-size: 1.05rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+p {
+  color: var(--rp-text-secondary);
+}
+
+.section-eyebrow {
+  align-items: center;
+  color: var(--rp-brand-cyan);
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  gap: 8px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.section-heading {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 28px;
+  max-width: 760px;
+}
+
+.section-heading.compact {
+  margin-bottom: 16px;
+}

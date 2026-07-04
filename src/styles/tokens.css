@@ -1,0 +1,175 @@
+/* ReeditPro design tokens. Keep legacy aliases for existing components. */
+
+:root {
+  /* Core backgrounds */
+  --rp-bg-void: #05070d;
+  --rp-bg-deep: #0a1020;
+  --rp-bg-app: #0f1117;
+  --rp-bg-elevated: #121826;
+  --rp-bg-panel: #182033;
+
+  /* Backward-compatible background aliases */
+  --rp-bg-black: var(--rp-bg-void);
+  --rp-bg-base: var(--rp-bg-app);
+  --rp-bg-navy: #07111f;
+  --rp-surface-1: #0b1220;
+  --rp-surface-2: #101827;
+  --rp-surface-3: #151f32;
+
+  /* Glass surfaces */
+  --rp-surface-glass: rgba(18, 24, 38, 0.72);
+  --rp-surface-glass-strong: rgba(18, 24, 38, 0.88);
+  --rp-surface-panel: rgba(11, 18, 32, 0.86);
+  --rp-surface-card: rgba(18, 24, 38, 0.76);
+  --rp-surface-input: rgba(5, 7, 13, 0.62);
+
+  /* Text */
+  --rp-text-primary: #f8fafc;
+  --rp-text-secondary: #a1a6b3;
+  --rp-text-muted: #6b7280;
+  --rp-text-inverse: #05070d;
+
+  /* Brand/accent */
+  --rp-cyan: #00e5ff;
+  --rp-blue: #2563ff;
+  --rp-violet: #8b5cf6;
+  --rp-purple: #5b21b6;
+  --rp-brand-cyan: var(--rp-cyan);
+  --rp-brand-blue: var(--rp-blue);
+  --rp-brand-violet: var(--rp-violet);
+  --rp-brand-purple: var(--rp-purple);
+
+  /* Semantic */
+  --rp-success: #10b981;
+  --rp-warning: #f59e0b;
+  --rp-danger: #ef4444;
+  --rp-info: #38bdf8;
+
+  /* Borders */
+  --rp-border-subtle: #1e2a3d;
+  --rp-border-soft: rgba(51, 65, 85, 0.52);
+  --rp-border-strong: #334155;
+  --rp-border-glow: rgba(0, 229, 255, 0.32);
+  --rp-border-violet: rgba(139, 92, 246, 0.42);
+  --rp-border-danger: rgba(239, 68, 68, 0.42);
+  --rp-border-warning: rgba(245, 158, 11, 0.42);
+  --rp-border-success: rgba(16, 185, 129, 0.42);
+
+  /* Gradients */
+  --rp-gradient-primary: linear-gradient(135deg, #00a3ff 0%, #2563ff 45%, #7c3aed 100%);
+  --rp-gradient-logo: linear-gradient(135deg, #00e5ff 0%, #2563ff 52%, #8b5cf6 78%, #c026d3 100%);
+  --rp-gradient-timeline: linear-gradient(90deg, #00e5ff 0%, #2563ff 52%, #8b5cf6 100%);
+  --rp-gradient-surface: radial-gradient(circle at top left, rgba(0, 229, 255, 0.16), transparent 36%), radial-gradient(circle at bottom right, rgba(139, 92, 246, 0.18), transparent 42%);
+  --rp-gradient-border: linear-gradient(135deg, rgba(0, 229, 255, 0.52), rgba(37, 99, 255, 0.26), rgba(139, 92, 246, 0.42));
+  --rp-gradient-topology: radial-gradient(circle at 14% 8%, rgba(0, 229, 255, 0.12), transparent 28%), radial-gradient(circle at 82% 18%, rgba(139, 92, 246, 0.14), transparent 34%), linear-gradient(180deg, rgba(10, 16, 32, 0.94), rgba(5, 7, 13, 1));
+
+  /* Spacing */
+  --rp-space-0: 0;
+  --rp-space-0-5: 2px;
+  --rp-space-1: 4px;
+  --rp-space-1-5: 6px;
+  --rp-space-2: 8px;
+  --rp-space-2-5: 10px;
+  --rp-space-3: 12px;
+  --rp-space-4: 16px;
+  --rp-space-5: 20px;
+  --rp-space-6: 24px;
+  --rp-space-8: 32px;
+  --rp-space-10: 40px;
+  --rp-space-12: 48px;
+  --rp-space-16: 64px;
+  --rp-space-20: 80px;
+  --rp-space-28: 112px;
+
+  /* Radius */
+  --rp-radius-xs: 8px;
+  --rp-radius-sm: 12px;
+  --rp-radius-md: 16px;
+  --rp-radius-lg: 24px;
+  --rp-radius-xl: 32px;
+  --rp-radius-2xl: 36px;
+  --rp-radius-pill: 999px;
+  --radius-sm: var(--rp-radius-sm);
+  --radius-md: var(--rp-radius-md);
+  --radius-lg: var(--rp-radius-lg);
+
+  /* Shadows / glow */
+  --rp-shadow-card: 0 12px 30px rgba(0, 0, 0, 0.26);
+  --rp-shadow-elevated: 0 18px 54px rgba(0, 0, 0, 0.34);
+  --rp-shadow-blue: 0 0 24px rgba(37, 99, 255, 0.2);
+  --rp-shadow-violet: 0 0 24px rgba(139, 92, 246, 0.2);
+  --rp-shadow-cyan: 0 0 20px rgba(0, 229, 255, 0.18);
+  --rp-shadow-focus: 0 0 0 3px rgba(0, 229, 255, 0.18);
+  --rp-shadow-danger: 0 0 0 3px rgba(239, 68, 68, 0.18);
+  --shadow-card: var(--rp-shadow-card);
+  --shadow-soft: var(--rp-shadow-card);
+  --shadow-elevated: var(--rp-shadow-elevated);
+
+  /* Blur */
+  --rp-blur-glass: blur(22px) saturate(130%);
+  --rp-blur-soft: blur(12px) saturate(120%);
+
+  /* Motion */
+  --rp-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --rp-ease-emphasized: cubic-bezier(0.2, 0, 0, 1.1);
+  --rp-duration-instant: 80ms;
+  --rp-duration-fast: 140ms;
+  --rp-duration-base: 180ms;
+  --rp-duration-slow: 260ms;
+  --rp-duration-ambient: 1200ms;
+
+  /* Layout */
+  --rp-sidebar-width: 264px;
+  --rp-sidebar-compact-width: 88px;
+  --rp-chat-sidebar-width: 320px;
+  --rp-topbar-min-height: 96px;
+  --rp-project-strip-min-height: 72px;
+  --rp-content-max: 1200px;
+  --rp-editor-max: 1440px;
+  --rp-chat-column-max: 1040px;
+  --rp-chat-card-compact-max: 720px;
+  --rp-chat-card-max: 800px;
+  --rp-chat-card-wide-max: 848px;
+  --rp-chat-card-padding: var(--rp-space-4);
+  --rp-chat-card-padding-compact: var(--rp-space-3);
+  --rp-chat-card-gap: var(--rp-space-3);
+  --rp-chat-card-row-gap: var(--rp-space-2);
+  --rp-chat-turn-gap: var(--rp-space-5);
+  --rp-chat-turn-gap-tight: var(--rp-space-3);
+  --rp-chat-turn-gap-loose: var(--rp-space-6);
+  --rp-chat-message-gap: var(--rp-space-2);
+  --rp-chat-label-gap: var(--rp-space-1);
+  --rp-chat-card-stack-gap: var(--rp-space-2);
+  --rp-chat-card-attach-gap: var(--rp-space-3);
+  --rp-chat-group-gap: var(--rp-space-3);
+  --rp-chat-bubble-padding-y: var(--rp-space-3);
+  --rp-chat-bubble-padding-x: var(--rp-space-4);
+  --rp-chat-thread-max: var(--rp-chat-column-max);
+  --rp-preview-rail-width: 360px;
+  --rp-preview-rail-min: 280px;
+  --rp-composer-max: var(--rp-chat-column-max);
+  --rp-composer-surface-max: 880px;
+  --rp-composer-bar-min-height: 56px;
+  --rp-composer-bar-max-height: 104px;
+  --rp-composer-control-size: 36px;
+  --rp-composer-inline-gap: 6px;
+  --rp-composer-bottom-offset: 4px;
+  --rp-composer-bottom-offset-compact: 4px;
+  --rp-composer-fade-height: 88px;
+  --rp-composer-fade-width-extra: 24px;
+  --rp-chat-scroll-mask-height: 72px;
+  --rp-chat-scroll-mask-strong-start: var(--rp-composer-bar-min-height);
+  --rp-chat-scroll-mask-soft-start: 40px;
+  --rp-chat-scroll-mask-hidden-start: 30px;
+  --rp-chat-bottom-safe-space: 260px;
+  --rp-chat-scroll-bottom-safe-space-expanded: 280px;
+  --rp-composer-layer-z: 12;
+  --rp-composer-occlusion-z: 11;
+  --rp-composer-fade-z: 9;
+  --rp-editor-chrome-offset: 210px;
+  --rp-shell-padding-inline: 32px;
+  --rp-shell-padding-block: 32px;
+  --rp-grid-size: 48px;
+
+  --rp-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}

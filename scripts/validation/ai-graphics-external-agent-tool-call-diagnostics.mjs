@@ -58,6 +58,7 @@ const requiredFiles = [
   'scripts/validation/ai-graphics-external-agent-tool-call-diagnostics.mjs',
   'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
   'server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts',
+  'server/workers/ai-graphics-runtime-script-runner.ts',
   'docker/prod/rembg-runtime/rembg_local.py',
   'docs/tool-intelligence/ai-graphics/external-agent-single-tool-call.json',
   'docs/tool-intelligence/ai-graphics/external-agent-single-tool-call.md',
@@ -791,6 +792,9 @@ const routeSource = read('server/routes/ai-graphics-external-beta-tool-call-rout
 const gpuModelAdapterSource = read(
   'server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts',
 )
+const runtimeScriptRunnerSource = read(
+  'server/workers/ai-graphics-runtime-script-runner.ts',
+)
 const rembgRuntimeSource = read('docker/prod/rembg-runtime/rembg_local.py')
 
 if (packageJson.scripts?.[runScriptName] !== runScriptCommand) {
@@ -903,6 +907,18 @@ for (const phrase of [
 ]) {
   if (!gpuModelAdapterSource.includes(phrase)) {
     fail(`gpu_model_adapter_missing:${phrase}`)
+  }
+}
+
+for (const phrase of [
+  'NUMBA_DISABLE_JIT',
+  'MODEL_DOWNLOADS_ENABLED',
+  'PROVIDER_EXECUTION_ENABLED',
+  '--entrypoint',
+  'python3',
+]) {
+  if (!runtimeScriptRunnerSource.includes(phrase)) {
+    fail(`runtime_script_runner_missing:${phrase}`)
   }
 }
 

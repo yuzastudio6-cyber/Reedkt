@@ -21,6 +21,8 @@ const TOKEN_LIKE_PATTERNS: Array<[string, RegExp]> = [
 ]
 const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
 const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
+const preflightCallableToolIds = new Set(['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
+const safeEvidenceExecutableToolIds = new Set(['sound_music_audio', 'supabase_local_fixture_harness'])
 
 function sanitize(value: string | undefined): string | undefined {
   if (!value) return undefined
@@ -474,6 +476,41 @@ function main() {
   }
   const nextCodexCommandAfterManualAction = manualActionRequired ? rerunAfterManualAction : undefined
   const runtimeGatesAllFalse = Object.values(spec.runtimeSideEffects).every((value) => value === false)
+  const toolExecutionReadiness = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP.tools.map((tool) => {
+    const qwenRuntimeExecutable = tool.toolId === 'qwen2_5_vl_7b_instruct' && executionAllowedNow
+    return {
+      toolId: tool.toolId,
+      lane: tool.lane,
+      status: tool.status,
+      selectedModelOrTool: tool.selectedModelOrTool,
+      selectedGpu: tool.selectedGpu,
+      agentCallableNow: true,
+      preflightCallableNow: preflightCallableToolIds.has(tool.toolId),
+      safeEvidenceExecutableNow: safeEvidenceExecutableToolIds.has(tool.toolId),
+      runtimeExecutableNow: qwenRuntimeExecutable,
+      realRuntimeExecutionAllowedNow: qwenRuntimeExecutable,
+      readyForBoundedRetryAfterBlockerClears: tool.readyForBoundedRetryAfterBlockerClears,
+      primaryBlocker:
+        tool.toolId === 'qwen2_5_vl_7b_instruct'
+          ? nestedString(liveBlocker.json, ['qwen', 'blocker']) ?? tool.primaryBlocker
+          : tool.toolId === 'ai_video_broll_generation_wan'
+            ? nestedString(liveBlocker.json, ['broll', 'blocker']) ?? tool.primaryBlocker
+            : tool.primaryBlocker,
+      nextAction:
+        tool.toolId === 'qwen2_5_vl_7b_instruct'
+          ? nestedString(liveBlocker.json, ['qwen', 'nextAction']) ?? tool.nextAction
+          : tool.toolId === 'ai_video_broll_generation_wan'
+            ? nestedString(liveBlocker.json, ['broll', 'nextAction']) ?? tool.nextAction
+            : tool.nextAction,
+    }
+  })
+  const runtimeExecutableToolIds = toolExecutionReadiness
+    .filter((tool) => tool.runtimeExecutableNow)
+    .map((tool) => tool.toolId)
+  const externalAgentCallableToolIds = toolExecutionReadiness.map((tool) => tool.toolId)
+  const safeEvidenceReviewToolIds = toolExecutionReadiness
+    .filter((tool) => tool.safeEvidenceExecutableNow)
+    .map((tool) => tool.toolId)
   const probeSummaries = [executionGate, liveBlocker, gcloudDiagnostic, accountAccessDiagnostic]
     .filter((probe): probe is ProbeResult => Boolean(probe))
     .map((probe) => ({
@@ -515,6 +552,18 @@ function main() {
         qwenDownstreamProbeSkipped,
         executionAllowedNow,
         readyForAnyExternalAgentExecutionNow: executionAllowedNow,
+        externalAgentCallableToolCount: externalAgentCallableToolIds.length,
+        externalAgentCallableToolIds,
+        runtimeExecutableToolCount: runtimeExecutableToolIds.length,
+        runtimeExecutableToolIds,
+        readyForAnyExternalAgentRuntimeExecutionNow: runtimeExecutableToolIds.length > 0,
+        preflightCallableToolIds: toolExecutionReadiness
+          .filter((tool) => tool.preflightCallableNow)
+          .map((tool) => tool.toolId),
+        safeEvidenceExecutableToolIds: safeEvidenceReviewToolIds,
+        safeEvidenceReviewToolCount: safeEvidenceReviewToolIds.length,
+        readyForAnyExternalAgentSafeEvidenceReviewNow: safeEvidenceReviewToolIds.length > 0,
+        toolExecutionReadiness,
         qwenAuthRefreshPassed,
         brollQuotaSufficientForOneL4Vm: brollQuotaSufficient,
         liveBlockerSummary: blockerSummary,

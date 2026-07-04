@@ -411,6 +411,53 @@ for (const summary of decision.executionGateToolSummaries as Array<{
   }
 }
 assert.equal(decision.readyForAnyExternalAgentExecutionNow, decision.executionAllowedNow)
+assert.equal(decision.externalAgentCallableToolCount, 4)
+assert.deepEqual(decision.externalAgentCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(Array.isArray(decision.runtimeExecutableToolIds), true)
+assert.equal(
+  decision.runtimeExecutableToolCount,
+  decision.runtimeExecutableToolIds.length,
+)
+assert.equal(
+  decision.readyForAnyExternalAgentRuntimeExecutionNow,
+  decision.runtimeExecutableToolCount > 0,
+)
+assert.deepEqual(decision.preflightCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
+assert.deepEqual(decision.safeEvidenceExecutableToolIds, [
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(decision.safeEvidenceReviewToolCount, 2)
+assert.equal(decision.readyForAnyExternalAgentSafeEvidenceReviewNow, true)
+assert.equal(decision.toolExecutionReadiness.length, 4)
+for (const tool of decision.toolExecutionReadiness as Array<{
+  toolId: string
+  agentCallableNow: boolean
+  runtimeExecutableNow: boolean
+  realRuntimeExecutionAllowedNow: boolean
+  primaryBlocker: string
+}>) {
+  assert.equal(tool.agentCallableNow, true, `${tool.toolId} must remain externally callable`)
+  assert.equal(
+    tool.runtimeExecutableNow,
+    decision.runtimeExecutableToolIds.includes(tool.toolId),
+    `${tool.toolId} runtime flag must match runtimeExecutableToolIds`,
+  )
+  assert.equal(
+    tool.realRuntimeExecutionAllowedNow,
+    tool.runtimeExecutableNow,
+    `${tool.toolId} real runtime flag must match runtime executable flag`,
+  )
+  assert.equal(typeof tool.primaryBlocker, 'string')
+}
 assert.equal(decision.runtimeGatesAllFalse, true)
 assert.equal(Array.isArray(decision.probeSummaries), true)
 assert.equal(decision.probeSummaries.length >= 2, true)

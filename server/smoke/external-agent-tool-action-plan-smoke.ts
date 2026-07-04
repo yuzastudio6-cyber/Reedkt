@@ -96,6 +96,19 @@ assert.equal(plan.dryRunPassedClaimed, false)
 assert.equal(plan.generatedLocalFixturePassedClaimed, false)
 assert.equal(plan.readyForAnyExternalAgentExecutionNow, false)
 assert.equal(plan.readyForAnyExternalAgentRuntimeExecutionNow, false)
+assert.equal(plan.externalAgentCallableToolCount, 4)
+assert.deepEqual(plan.externalAgentCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+])
+assert.equal(plan.runtimeExecutableToolCount, 0)
+assert.deepEqual(plan.runtimeExecutableToolIds, [])
+assert.deepEqual(plan.preflightCallableToolIds, [
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+])
 assert.equal(plan.staticReadyForAnyExternalAgentExecutionGateNow, true)
 assert.deepEqual(plan.readyToolIds, [])
 assert.deepEqual(plan.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])
@@ -301,14 +314,25 @@ assert.equal(qwen.manualBlockerActions.length, 0)
 
 for (const tool of plan.toolActions as Array<{
   toolId: string
+  agentCallableNow: boolean
+  preflightCallableNow: boolean
   readyForExternalAgentExecutionNow: boolean
   readyForExternalAgentRuntimeExecutionNow: boolean
+  runtimeExecutableNow: boolean
+  realRuntimeExecutionAllowedNow: boolean
 }>) {
+  assert.equal(tool.agentCallableNow, true, `${tool.toolId} must remain callable by an external agent`)
   assert.equal(tool.readyForExternalAgentExecutionNow, false, `${tool.toolId} must not claim static execution-now`)
   assert.equal(
     tool.readyForExternalAgentRuntimeExecutionNow,
     false,
     `${tool.toolId} must not claim runtime execution-now from the static action plan`,
+  )
+  assert.equal(tool.runtimeExecutableNow, false, `${tool.toolId} must not claim runtime execution-now`)
+  assert.equal(
+    tool.realRuntimeExecutionAllowedNow,
+    false,
+    `${tool.toolId} must not claim real runtime execution from the action plan`,
   )
 }
 

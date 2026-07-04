@@ -68,6 +68,8 @@ const cliAccountIndexCommands = new Set([
 ])
 
 const envAccountIndexCommands = new Set(['npm run ai-video-broll-wan-gpu-global-quota:verify'])
+const preflightCallableToolIds = new Set(['qwen2_5_vl_7b_instruct', 'ai_video_broll_generation_wan'])
+const safeEvidenceExecutableToolIds = new Set(['sound_music_audio', 'supabase_local_fixture_harness'])
 
 function commandWithAccountIndex(command: string, accountIndex: number | undefined): string {
   if (!accountIndex) return command
@@ -169,9 +171,11 @@ function main() {
   )
   const explicitToolGateReadyToolIds = new Set(explicitToolGateReadyTools.map((tool) => tool.toolId))
   const safeEvidenceReviewToolIds = rollup.tools
-    .filter((tool) => tool.toolId === 'sound_music_audio' || tool.toolId === 'supabase_local_fixture_harness')
+    .filter((tool) => safeEvidenceExecutableToolIds.has(tool.toolId))
     .map((tool) => tool.toolId)
   const blockedTools = rollup.tools.filter((tool) => !tool.readyForExternalAgentExecutionNow)
+  const externalAgentCallableToolIds = rollup.tools.map((tool) => tool.toolId)
+  const runtimeExecutableToolIds: string[] = []
   const runtimeGatesAllFalse = Object.values(rollup.runtimeSideEffects).every((value) => value === false)
   const gcpAccessRepairRuntimeGatesAllFalse = Object.values(
     EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.runtimeSideEffects,
@@ -207,6 +211,13 @@ function main() {
     generatedLocalFixturePassedClaimed: rollup.generatedLocalFixturePassedClaimed,
     readyForAnyExternalAgentExecutionNow: false,
     readyForAnyExternalAgentRuntimeExecutionNow: false,
+    externalAgentCallableToolCount: externalAgentCallableToolIds.length,
+    externalAgentCallableToolIds,
+    runtimeExecutableToolCount: runtimeExecutableToolIds.length,
+    runtimeExecutableToolIds,
+    preflightCallableToolIds: rollup.tools
+      .filter((tool) => preflightCallableToolIds.has(tool.toolId))
+      .map((tool) => tool.toolId),
     staticReadyForAnyExternalAgentExecutionGateNow: staticReadyTools.length > 0,
     readyToolIds: [],
     staticReadyToolIds: staticReadyTools.map((tool) => tool.toolId),
@@ -260,8 +271,12 @@ function main() {
         selectedModelOrTool: tool.selectedModelOrTool,
         selectedGpu: tool.selectedGpu,
         scaleToZeroRequired: tool.scaleToZeroRequired,
+        agentCallableNow: true,
+        preflightCallableNow: preflightCallableToolIds.has(tool.toolId),
         readyForExternalAgentExecutionNow: false,
         readyForExternalAgentRuntimeExecutionNow: false,
+        runtimeExecutableNow: false,
+        realRuntimeExecutionAllowedNow: false,
         staticExplicitToolGateReady: explicitToolGateReadyToolIds.has(tool.toolId),
         staticReadyForExternalAgentExecutionGateNow:
           tool.readyForExternalAgentExecutionNow || explicitToolGateReadyToolIds.has(tool.toolId),

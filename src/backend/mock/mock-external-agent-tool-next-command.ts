@@ -71,6 +71,24 @@ export type ExternalAgentToolBrollWanExternalAgentProofCommand = {
   unlocksBetaOrProduction: false
 }
 
+export type ExternalAgentToolBrollWanInferenceProofCommand = {
+  toolId: 'ai_video_broll_generation_wan'
+  command: 'npm'
+  args: readonly ['run', 'external-agent-tool-execute-broll-wan', '--', '--inference-proof', '--execute', '--json']
+  confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF'
+  confirmationEnvRequiredValue: 'true'
+  delegatesTo11gRunner: true
+  executionRequiresSeparatePrompt: true
+  requiresNoIdleLifecycleGate: true
+  createsComputeVm: false
+  runsModel: false
+  runsModelInference: false
+  createsGeneratedAssets: false
+  touchesSupabase: false
+  touchesSql: false
+  unlocksBetaOrProduction: false
+}
+
 export type ExternalAgentToolBrollWanPrivateCachePrepareCommand = {
   toolId: 'ai_video_broll_generation_wan'
   command: 'npm'
@@ -236,6 +254,23 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     touchesSql: false,
     unlocksBetaOrProduction: false,
   } satisfies ExternalAgentToolBrollWanExternalAgentProofCommand,
+  brollWanInferenceProofCommand: {
+    toolId: 'ai_video_broll_generation_wan',
+    command: 'npm',
+    args: ['run', 'external-agent-tool-execute-broll-wan', '--', '--inference-proof', '--execute', '--json'],
+    confirmationEnv: 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF',
+    confirmationEnvRequiredValue: 'true',
+    delegatesTo11gRunner: true,
+    executionRequiresSeparatePrompt: true,
+    requiresNoIdleLifecycleGate: true,
+    createsComputeVm: false,
+    runsModel: false,
+    runsModelInference: false,
+    createsGeneratedAssets: false,
+    touchesSupabase: false,
+    touchesSql: false,
+    unlocksBetaOrProduction: false,
+  } satisfies ExternalAgentToolBrollWanInferenceProofCommand,
   brollWanPrivateCachePrepareCommand: {
     toolId: 'ai_video_broll_generation_wan',
     command: 'npm',

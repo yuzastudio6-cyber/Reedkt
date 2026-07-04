@@ -4,6 +4,7 @@ import {
   AI_VIDEO_BROLL_GEN_11C_MODEL_IMPORT_RESULT_REVIEW_PROMPT,
   AI_VIDEO_BROLL_GEN_11F_INFERENCE_BOUNDARY_PLAN_PROMPT,
   AI_VIDEO_BROLL_GEN_11G_INFERENCE_PROOF_RUNNER_PROMPT,
+  AI_VIDEO_BROLL_GEN_11H_INFERENCE_PROOF_EXECUTE_PROMPT,
   EXTERNAL_AGENT_TOOL_QWEN_READY_PROMPT,
   EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP,
   type ExternalAgentToolNoIdleLifecycleGate,
@@ -137,13 +138,14 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
         '11B model import/load proof execution result must remain recorded as passed with cleanup verified and inference blocked',
         '11C model import result review must remain recorded before any Wan inference-boundary planning',
         '11F inference-boundary plan must remain recorded before any Wan inference-proof runner implementation',
+        '11G bounded inference-proof runner must remain implemented and fail closed before any Wan inference-proof execution prompt',
         '11C Storage Transfer naming test must remain recorded as blocked by private URL-list HTTP 403',
         '11D cache staging strategy fix must remain recorded with no-GPU cloud-side transfer runner selected before any Wan import/load runtime attempt',
         '11E no-GPU cloud-side cache staging runner execution result must remain passed with the private ready marker created before any Wan import/load runtime attempt',
         'controlled L4 proof must be no-idle: no public IP, prompt-scoped VM only, delete VM and verify cleanup before completion',
       ],
-      currentBlocker: 'bounded_wan_inference_proof_runner_required_before_execution',
-      safeNextCommand: 'npm run smoke:ai-video-broll-gen-11f-inference-boundary-plan',
+      currentBlocker: 'bounded_wan_inference_proof_execution_prompt_required',
+      safeNextCommand: 'npm run smoke:ai-video-broll-gen-11g-bounded-inference-proof-runner',
       noIdleLifecycleGate: BROLL_NO_IDLE_LIFECYCLE_GATE,
     },
     {
@@ -194,7 +196,8 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_GATE = {
   brollCompletedProofPrompt: AI_VIDEO_BROLL_GEN_11B_MODEL_IMPORT_PROOF_PROMPT,
   brollCompletedReviewPrompt: AI_VIDEO_BROLL_GEN_11C_MODEL_IMPORT_RESULT_REVIEW_PROMPT,
   brollCompletedInferenceBoundaryPrompt: AI_VIDEO_BROLL_GEN_11F_INFERENCE_BOUNDARY_PLAN_PROMPT,
-  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_11G_INFERENCE_PROOF_RUNNER_PROMPT,
+  brollCompletedInferenceRunnerPrompt: AI_VIDEO_BROLL_GEN_11G_INFERENCE_PROOF_RUNNER_PROMPT,
+  brollRecommendedNextPrompt: AI_VIDEO_BROLL_GEN_11H_INFERENCE_PROOF_EXECUTE_PROMPT,
 } as const
 
 export type ExternalAgentToolExecutionGate = typeof EXTERNAL_AGENT_TOOL_EXECUTION_GATE

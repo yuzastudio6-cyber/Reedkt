@@ -694,6 +694,8 @@
     "smoke:ai-video-broll-gen-11b-model-import-proof-execution-result": "tsx server/smoke/ai-video-broll-gen-11b-model-import-proof-execution-result-smoke.ts",
     "smoke:ai-video-broll-gen-11c-model-import-result-review": "tsx server/smoke/ai-video-broll-gen-11c-model-import-result-review-smoke.ts",
     "smoke:ai-video-broll-gen-11f-inference-boundary-plan": "tsx server/smoke/ai-video-broll-gen-11f-inference-boundary-plan-smoke.ts",
+    "ai-video-broll-gen-11g:bounded-inference-proof-runner": "tsx server/cli/ai-video-broll-gen-11g-bounded-inference-proof-runner.ts",
+    "smoke:ai-video-broll-gen-11g-bounded-inference-proof-runner": "tsx server/smoke/ai-video-broll-gen-11g-bounded-inference-proof-runner-smoke.ts",
     "smoke:ai-video-broll-gen-11c-storage-transfer-naming-test-result": "tsx server/smoke/ai-video-broll-gen-11c-storage-transfer-naming-test-result-smoke.ts",
     "smoke:ai-video-broll-gen-11d-cache-staging-strategy-fix": "tsx server/smoke/ai-video-broll-gen-11d-cache-staging-strategy-fix-smoke.ts",
     "ai-video-broll-gen-11e:cloud-side-cache-staging-runner": "tsx server/cli/ai-video-broll-gen-11e-cloud-side-cache-staging-runner.ts",

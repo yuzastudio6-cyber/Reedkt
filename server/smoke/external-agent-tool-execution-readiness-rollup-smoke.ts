@@ -97,6 +97,8 @@ const BROLL_11F_INFERENCE_BOUNDARY_PLAN_PROMPT =
   'AI-VIDEO-BROLL-GEN-11F-INFERENCE-BOUNDARY-PLAN: plan bounded Wan inference proof after import/load review, no generated video'
 const BROLL_11G_INFERENCE_PROOF_RUNNER_PROMPT =
   'AI-VIDEO-BROLL-GEN-11G-INFERENCE-PROOF-RUNNER: implement bounded Wan inference proof runner, no execution/no generated video'
+const BROLL_11H_INFERENCE_PROOF_EXECUTE_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11H-INFERENCE-PROOF-EXECUTE: run bounded Wan inference proof with mandatory cleanup, no generated video/no persisted assets'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -151,7 +153,7 @@ assert.equal(
 
 const doc = read(DOC_PATH)
 for (const required of [
-  'external_agent_tool_execution_readiness_qwen_ready_broll_11f_inference_boundary_planned_runner_required',
+  'external_agent_tool_execution_readiness_qwen_ready_broll_11g_inference_runner_implemented_execution_prompt_required',
   '`qwen2_5_vl_7b_instruct`',
   '`ai_video_broll_generation_wan`',
   '`sound_music_audio`',
@@ -247,6 +249,7 @@ for (const required of [
   BROLL_11D_CACHE_STAGING_STRATEGY_FIX_PROMPT,
   BROLL_11F_INFERENCE_BOUNDARY_PLAN_PROMPT,
   BROLL_11G_INFERENCE_PROOF_RUNNER_PROMPT,
+  BROLL_11H_INFERENCE_PROOF_EXECUTE_PROMPT,
   '11E cache staging runner has passed and created the private ready marker',
   'The wrapper may still rerun the proof with `REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_PROOF=true npm run external-agent-tool-execute-broll-wan -- --execute --json`',
   '`REEDITPRO_CONFIRM_BROLL_11B_MODEL_IMPORT_PROOF=true`',
@@ -438,7 +441,7 @@ for (const required of [
 const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
 assert.equal(
   rollup.decision,
-  'external_agent_tool_execution_readiness_qwen_ready_broll_11f_inference_boundary_planned_runner_required',
+  'external_agent_tool_execution_readiness_qwen_ready_broll_11g_inference_runner_implemented_execution_prompt_required',
 )
 assert.equal(rollup.mode, 'external_agent_tool_execution_readiness_rollup_only')
 assert.equal(rollup.paidProductionInScope, false)
@@ -450,7 +453,7 @@ assert.equal(rollup.sourceRules.aiVideoOwnsFinalCanvas, false)
 assert.equal(rollup.sourceRules.remotionOwnsFinalComposition, true)
 assert.equal(
   rollup.recommendedNextPrompt,
-  BROLL_11G_INFERENCE_PROOF_RUNNER_PROMPT,
+  BROLL_11H_INFERENCE_PROOF_EXECUTE_PROMPT,
 )
 assert.equal(rollup.safeNextCommands.length, 13)
 assert.equal(
@@ -711,14 +714,14 @@ assert.equal(qwen?.evidence.includes('server/cli/external-agent-gcloud-session-d
 assert.equal(qwen?.evidence.includes('server/smoke/external-agent-gcloud-session-diagnostic-smoke.ts'), true)
 
 const broll = toolsById.get('ai_video_broll_generation_wan')
-assert.equal(broll?.status, 'bounded_inference_boundary_planned_runner_required')
+assert.equal(broll?.status, 'bounded_inference_proof_runner_implemented_execution_prompt_required')
 assert.equal(broll?.selectedGpu, 'nvidia_l4')
 assert.equal(broll?.scaleToZeroRequired, true)
 assert.equal(broll?.readyForExternalAgentExecutionNow, true)
 assert.equal(broll?.readyForBoundedRetryAfterBlockerClears, true)
 assert.equal(
   broll?.primaryBlocker,
-  'bounded_wan_inference_proof_runner_required_before_execution',
+  'bounded_wan_inference_proof_execution_prompt_required',
 )
 assert.equal(
   broll?.evidence.includes('docs/ai-video-broll-gen-9q-no-idle-l4-iap-wheelhouse-transfer-proof-us-west1-a-result.md'),
@@ -1192,10 +1195,31 @@ assert.equal(
   broll?.evidence.includes('server/smoke/ai-video-broll-gen-10r-fix-iap-ssh-canary-bounded-runner-smoke.ts'),
   true,
 )
-assert.equal(broll?.nextAction, BROLL_11G_INFERENCE_PROOF_RUNNER_PROMPT)
+assert.equal(broll?.nextAction, BROLL_11H_INFERENCE_PROOF_EXECUTE_PROMPT)
 assert.equal(
   broll?.primaryBlocker,
-  'bounded_wan_inference_proof_runner_required_before_execution',
+  'bounded_wan_inference_proof_execution_prompt_required',
+)
+assert.equal(broll?.evidence.includes('docs/ai-video-broll-gen-11g-bounded-inference-proof-runner.md'), true)
+assert.equal(
+  broll?.evidence.includes('src/backend/mock/mock-ai-video-broll-gen-11g-bounded-inference-proof-runner.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/cli/ai-video-broll-gen-11g-bounded-inference-proof-runner.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('server/smoke/ai-video-broll-gen-11g-bounded-inference-proof-runner-smoke.ts'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('package_json_script:ai-video-broll-gen-11g:bounded-inference-proof-runner'),
+  true,
+)
+assert.equal(
+  broll?.evidence.includes('package_json_script:smoke:ai-video-broll-gen-11g-bounded-inference-proof-runner'),
+  true,
 )
 assert.equal(broll?.evidence.includes('docs/ai-video-broll-gen-11f-inference-boundary-plan.md'), true)
 assert.equal(
@@ -1419,7 +1443,7 @@ assert.equal(
 )
 assert.equal(
   broll?.noIdleLifecycleGate?.nextActionAfterQuotaClears,
-  BROLL_11G_INFERENCE_PROOF_RUNNER_PROMPT,
+  BROLL_11H_INFERENCE_PROOF_EXECUTE_PROMPT,
 )
 
 const sound = toolsById.get('sound_music_audio')

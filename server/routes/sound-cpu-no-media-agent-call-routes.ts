@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { spawn } from 'node:child_process'
 
 export const SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_PATH =
   '/api/internal/workers/sound-cpu/no-media-agent-call' as const
@@ -10,11 +11,22 @@ export const SOUND_CPU_NO_MEDIA_AGENT_CALL_SOURCE_DECISION =
   'worker_runtime_jobs_sound_cpu_bounded_external_agent_no_media_actual_disabled_route_source_created_with_warnings_ready_for_source_owner_review' as const
 export const SOUND_CPU_NO_MEDIA_AGENT_CALL_REGISTRATION_SOURCE_DECISION =
   'worker_runtime_jobs_sound_cpu_bounded_external_agent_no_media_actual_disabled_route_registration_source_gate_completed_with_warnings_ready_for_disabled_route_registration_source_owner_review' as const
+export const SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_TO_TOOL_SOURCE_GATE_DECISION =
+  'worker_runtime_jobs_sound_cpu_bounded_external_agent_no_media_route_to_tool_source_gate_completed_with_warnings_ready_for_controlled_route_to_tool_proof' as const
 
 export const SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_EXECUTION_ENABLED = false as const
 export const SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP = true as const
 export const SOUND_CPU_NO_MEDIA_AGENT_CALL_DISABLED_REASON =
   'bounded_external_agent_no_media_route_not_enabled' as const
+export const SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_TO_TOOL_EXECUTION_ENV =
+  'REEDITPRO_SOUND_CPU_NO_MEDIA_ROUTE_TO_TOOL_EXECUTION_ENABLED' as const
+export const SOUND_CPU_NO_MEDIA_AGENT_CALL_CONTROLLED_TOOL_PYTHON_ENV =
+  'REEDITPRO_SOUND_CPU_CONTROLLED_TOOL_PYTHON' as const
+export const SOUND_CPU_NO_MEDIA_AGENT_CALL_CONTROLLED_TOOL_TIMEOUT_MS_ENV =
+  'REEDITPRO_SOUND_CPU_CONTROLLED_TOOL_TIMEOUT_MS' as const
+export const SOUND_CPU_NO_MEDIA_AGENT_CALL_CONTROLLED_TOOL_RUNNER =
+  'scripts/validation/worker-runtime-jobs-sound-cpu-bounded-external-agent-no-media-controlled-tool-execution-runner.py' as const
+const DEFAULT_SOUND_CPU_NO_MEDIA_AGENT_CALL_TOOL_TIMEOUT_MS = 180_000
 
 export const SOUND_CPU_NO_MEDIA_AGENT_CALL_DISABLED_ENV_DEFAULTS = {
   REEDITPRO_SOUND_CPU_BOUNDED_NO_MEDIA_PRODUCT_ROUTE_ENABLED: '0',
@@ -193,6 +205,59 @@ export type SoundCpuNoMediaAgentCallDisabledResult = Readonly<{
   }
 }>
 
+export type SoundCpuNoMediaAgentCallExecutionResult = Readonly<{
+  ok: true
+  status: 'accepted'
+  routePath: typeof SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_PATH
+  sourceFile: typeof SOUND_CPU_NO_MEDIA_AGENT_CALL_SOURCE_FILE
+  sourceDecision: typeof SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_TO_TOOL_SOURCE_GATE_DECISION
+  validation: Extract<SoundCpuNoMediaAgentCallValidationResult, { ok: true }>
+  acceptedForExecution: true
+  routeRegisteredInApp: typeof SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP
+  routeToToolExecutionEnabled: true
+  routeExecutionEnabled: true
+  workerDispatchExecutionEnabled: false
+  mediaProcessingEnabled: false
+  acceptedToolCount: 15
+  acceptedWorkerCount: 2
+  acceptedImageCount: 2
+  acceptedJobTypeCount: 4
+  controlledRunner: {
+    ok: true
+    runnerPath: typeof SOUND_CPU_NO_MEDIA_AGENT_CALL_CONTROLLED_TOOL_RUNNER
+    toolId: SoundCpuNoMediaAgentCallToolId
+    attemptedToolCount: number
+    passedToolCount: number
+    failedToolCount: number
+  }
+  sideEffects: {
+    routeToToolExecuted: true
+    workerDispatched: false
+    workerExecuted: false
+    mediaOpened: false
+    mediaProcessed: false
+    providerCalled: false
+    modelCalled: false
+    supabaseTouched: false
+    sqlExecuted: false
+    storageObjectCreated: false
+    signedUrlCreated: false
+    publicArtifactCreated: false
+    artifactWritten: false
+    dockerOrCloudRunExecuted: false
+    betaUnlocked: false
+    productionUnlocked: false
+  }
+}>
+
+type SoundCpuNoMediaAgentCallRunnerPayload = Readonly<{
+  ok?: unknown
+  attemptedToolCount?: unknown
+  passedToolCount?: unknown
+  failedToolCount?: unknown
+  toolResults?: unknown
+}>
+
 export type SoundCpuNoMediaAgentCallRouteRequestLike = Readonly<{
   body?: unknown
 }>
@@ -320,6 +385,138 @@ function hasForbiddenReadinessClaim(value: unknown): string | undefined {
   return undefined
 }
 
+export function isSoundCpuNoMediaAgentCallRouteToToolExecutionEnabled(
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  return env[SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_TO_TOOL_EXECUTION_ENV] === '1'
+}
+
+function createControlledRunnerRequest(envelope: SoundCpuNoMediaAgentCallEnvelope): Record<string, unknown> {
+  return {
+    requestKind: 'sound_cpu_bounded_external_agent_no_media_controlled_tool_execution',
+    adapterMode: 'bounded_external_agent_no_media_controlled_tool_execution',
+    approvedPlanSnapshotId: envelope.approvedPlanSnapshotId,
+    workspaceId: envelope.workspaceId,
+    projectId: envelope.projectId,
+    jobId: envelope.jobId,
+    idempotencyKey: envelope.idempotencyKey,
+    workerName: envelope.workerName,
+    imageName: envelope.imageName,
+    jobType: envelope.jobType,
+    toolId: envelope.toolId,
+    syntheticOrNoMediaInput: true,
+    realExternalAgentUsed: false,
+    realUserMediaUsed: false,
+    runtimeFlags: {
+      allowRealExternalAgentExecution: false,
+      allowRealUserMedia: false,
+      allowWorkerDispatch: false,
+      allowRouteExecution: false,
+      allowManifestPersistence: false,
+      allowMediaOpen: false,
+      allowProviderCall: false,
+      allowModelCall: false,
+      allowSupabaseMutation: false,
+      allowSqlExecution: false,
+      allowStorageObjectCreation: false,
+      allowSignedUrlCreation: false,
+      allowPublicArtifactCreation: false,
+      allowBetaUnlock: false,
+      allowProductionUnlock: false,
+    },
+    claims: {
+      generated_local_fixture_passed: false,
+      dry_run_passed: false,
+      runtimeReadiness: false,
+      workerReadiness: false,
+      mediaReadiness: false,
+      externalBetaReady: false,
+      productionReady: false,
+    },
+  }
+}
+
+function sanitizeRunnerStderr(stderr: string): string {
+  return stderr
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 12)
+    .join('\n')
+    .slice(0, 1200)
+}
+
+function parseTimeoutMs(value: string | undefined): number {
+  if (!value) return DEFAULT_SOUND_CPU_NO_MEDIA_AGENT_CALL_TOOL_TIMEOUT_MS
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed < 1_000 || parsed > 300_000) {
+    return DEFAULT_SOUND_CPU_NO_MEDIA_AGENT_CALL_TOOL_TIMEOUT_MS
+  }
+  return Math.floor(parsed)
+}
+
+async function runSoundCpuNoMediaControlledToolRunner(
+  envelope: SoundCpuNoMediaAgentCallEnvelope,
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<SoundCpuNoMediaAgentCallRunnerPayload> {
+  const pythonExecutable = env[SOUND_CPU_NO_MEDIA_AGENT_CALL_CONTROLLED_TOOL_PYTHON_ENV] || 'python3'
+  const timeoutMs = parseTimeoutMs(env[SOUND_CPU_NO_MEDIA_AGENT_CALL_CONTROLLED_TOOL_TIMEOUT_MS_ENV])
+  const requestJson = JSON.stringify(createControlledRunnerRequest(envelope))
+
+  return await new Promise((resolve, reject) => {
+    const child = spawn(pythonExecutable, [SOUND_CPU_NO_MEDIA_AGENT_CALL_CONTROLLED_TOOL_RUNNER], {
+      cwd: process.cwd(),
+      env: {
+        ...env,
+        REEDITPRO_SOUND_CPU_TOOL_TIMEOUT_SECONDS: String(Math.ceil(timeoutMs / 1000)),
+      },
+      shell: false,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+
+    let stdout = ''
+    let stderr = ''
+    let timedOut = false
+    const timer = setTimeout(() => {
+      timedOut = true
+      child.kill('SIGTERM')
+    }, timeoutMs)
+
+    child.stdout.setEncoding('utf8')
+    child.stderr.setEncoding('utf8')
+    child.stdout.on('data', (chunk: string) => {
+      stdout += chunk
+    })
+    child.stderr.on('data', (chunk: string) => {
+      stderr += chunk
+    })
+    child.on('error', (error) => {
+      clearTimeout(timer)
+      reject(error)
+    })
+    child.on('close', (code) => {
+      clearTimeout(timer)
+      if (timedOut) {
+        reject(new Error('sound_cpu_no_media_controlled_tool_runner_timeout'))
+        return
+      }
+      let parsed: SoundCpuNoMediaAgentCallRunnerPayload
+      try {
+        parsed = JSON.parse(stdout) as SoundCpuNoMediaAgentCallRunnerPayload
+      } catch {
+        reject(new Error(`sound_cpu_no_media_controlled_tool_runner_invalid_json:${sanitizeRunnerStderr(stderr)}`))
+        return
+      }
+      if (code !== 0 || parsed.ok !== true) {
+        reject(new Error(`sound_cpu_no_media_controlled_tool_runner_failed:${sanitizeRunnerStderr(stderr)}`))
+        return
+      }
+      resolve(parsed)
+    })
+    child.stdin.end(requestJson)
+  })
+}
+
 export function validateSoundCpuNoMediaAgentCallEnvelope(
   value: unknown,
 ): SoundCpuNoMediaAgentCallValidationResult {
@@ -433,6 +630,57 @@ export function createSoundCpuNoMediaAgentCallDisabledResult(
   }
 }
 
+export async function createSoundCpuNoMediaAgentCallExecutionResult(
+  validation: Extract<SoundCpuNoMediaAgentCallValidationResult, { ok: true }>,
+): Promise<SoundCpuNoMediaAgentCallExecutionResult> {
+  const runnerPayload = await runSoundCpuNoMediaControlledToolRunner(validation.envelope)
+
+  return {
+    ok: true,
+    status: 'accepted',
+    routePath: SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_PATH,
+    sourceFile: SOUND_CPU_NO_MEDIA_AGENT_CALL_SOURCE_FILE,
+    sourceDecision: SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_TO_TOOL_SOURCE_GATE_DECISION,
+    validation,
+    acceptedForExecution: true,
+    routeRegisteredInApp: SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_REGISTERED_IN_APP,
+    routeToToolExecutionEnabled: true,
+    routeExecutionEnabled: true,
+    workerDispatchExecutionEnabled: false,
+    mediaProcessingEnabled: false,
+    acceptedToolCount: 15,
+    acceptedWorkerCount: 2,
+    acceptedImageCount: 2,
+    acceptedJobTypeCount: 4,
+    controlledRunner: {
+      ok: true,
+      runnerPath: SOUND_CPU_NO_MEDIA_AGENT_CALL_CONTROLLED_TOOL_RUNNER,
+      toolId: validation.envelope.toolId,
+      attemptedToolCount: Number(runnerPayload.attemptedToolCount ?? 0),
+      passedToolCount: Number(runnerPayload.passedToolCount ?? 0),
+      failedToolCount: Number(runnerPayload.failedToolCount ?? 0),
+    },
+    sideEffects: {
+      routeToToolExecuted: true,
+      workerDispatched: false,
+      workerExecuted: false,
+      mediaOpened: false,
+      mediaProcessed: false,
+      providerCalled: false,
+      modelCalled: false,
+      supabaseTouched: false,
+      sqlExecuted: false,
+      storageObjectCreated: false,
+      signedUrlCreated: false,
+      publicArtifactCreated: false,
+      artifactWritten: false,
+      dockerOrCloudRunExecuted: false,
+      betaUnlocked: false,
+      productionUnlocked: false,
+    },
+  }
+}
+
 export function soundCpuNoMediaAgentCallDisabledRouteHandler(
   request: SoundCpuNoMediaAgentCallRouteRequestLike,
   response: SoundCpuNoMediaAgentCallRouteResponseLike,
@@ -460,8 +708,71 @@ export function soundCpuNoMediaAgentCallDisabledRouteHandler(
   })
 }
 
+export async function soundCpuNoMediaAgentCallRouteToToolHandler(
+  request: SoundCpuNoMediaAgentCallRouteRequestLike,
+  response: SoundCpuNoMediaAgentCallRouteResponseLike,
+): Promise<void> {
+  if (!isSoundCpuNoMediaAgentCallRouteToToolExecutionEnabled()) {
+    soundCpuNoMediaAgentCallDisabledRouteHandler(request, response)
+    return
+  }
+
+  const validation = validateSoundCpuNoMediaAgentCallEnvelope(request.body)
+  if (!validation.ok) {
+    response.status(400).json({
+      ok: false,
+      error: {
+        code: 'SOUND_CPU_NO_MEDIA_AGENT_CALL_INVALID_ENVELOPE',
+        message: 'SOUND CPU no-media agent-call route rejected the envelope before tool execution.',
+        reason: validation.reason,
+        field: validation.field,
+      },
+      data: {
+        soundCpuNoMediaAgentCall: {
+          acceptedForExecution: false,
+          validation,
+          sideEffects: createSoundCpuNoMediaAgentCallDisabledResult(request.body).sideEffects,
+        },
+      },
+    })
+    return
+  }
+
+  try {
+    const result = await createSoundCpuNoMediaAgentCallExecutionResult(validation)
+    response.status(200).json({
+      ok: true,
+      data: {
+        soundCpuNoMediaAgentCall: result,
+      },
+      warnings: [
+        'bounded_no_media_route_to_tool_execution_enabled_by_explicit_env',
+        'worker_dispatch_execution_not_enabled',
+        'media_processing_not_enabled',
+        'supabase_mutation_not_enabled',
+        'artifact_creation_not_enabled',
+      ],
+    })
+  } catch (error) {
+    response.status(500).json({
+      ok: false,
+      error: {
+        code: 'SOUND_CPU_NO_MEDIA_CONTROLLED_TOOL_RUNNER_FAILED',
+        message: error instanceof Error ? error.message : 'sound_cpu_no_media_controlled_tool_runner_failed',
+      },
+      data: {
+        soundCpuNoMediaAgentCall: {
+          acceptedForExecution: false,
+          validation,
+          sideEffects: createSoundCpuNoMediaAgentCallDisabledResult(request.body).sideEffects,
+        },
+      },
+    })
+  }
+}
+
 export function createSoundCpuNoMediaAgentCallRoutes(): Router {
   const router = Router()
-  router.post(SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_PATH, soundCpuNoMediaAgentCallDisabledRouteHandler)
+  router.post(SOUND_CPU_NO_MEDIA_AGENT_CALL_ROUTE_PATH, soundCpuNoMediaAgentCallRouteToToolHandler)
   return router
 }

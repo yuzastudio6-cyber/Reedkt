@@ -23,3 +23,14 @@ These scripts are human-run templates for Milestone 3. Codex must not run them, 
 9. `.example.sh` Cloud Run service/job templates in later deployment milestones
 
 Milestone 3 does not deploy Cloud Run, build images, run media tools, call providers, create real secret values, or process customer media.
+
+## SOUND CPU Job Templates
+
+`09a-deploy-sound-cpu-analysis-worker-job.example.sh` and
+`09b-deploy-sound-audio-metadata-worker-job.example.sh` map the 15 proven SOUND
+CPU tools to CPU-only Cloud Run Job targets. They reuse
+`REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT`, point at Artifact Registry images
+`reeditpro-sound-cpu-analysis-worker` and `reeditpro-sound-audio-metadata-worker`,
+and keep all runtime/media/worker/Supabase/artifact flags disabled. They are
+deployment templates only; this repo change does not run `gcloud`, deploy jobs,
+execute Cloud Run, process media, or unlock beta/production.

@@ -10,6 +10,8 @@ Review and run these commands manually in a later milestone:
 
 docker push "$(image_name reeditpro-api)"
 docker push "$(image_name reeditpro-cpu-worker)"
+docker push "$(image_name reeditpro-sound-cpu-analysis-worker)"
+docker push "$(image_name reeditpro-sound-audio-metadata-worker)"
 docker push "$(image_name reeditpro-gpu-worker)"
 docker push "$(image_name reeditpro-render-worker)"
 docker push "$(image_name reeditpro-qa-worker)"

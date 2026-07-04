@@ -1,0 +1,97 @@
+{
+  "id": "internal-testing-durable-auth-project-session-backend-persistence-plan",
+  "decision": "internal_testing_durable_auth_project_session_backend_persistence_plan_passed_ready_for_mock_safe_backend_skeleton",
+  "source": {
+    "baseBranch": "codex/reeditpro-web-ui-shell",
+    "sourceSha": "024aef4f184afbfa7fe6e6715d27ac506ea37c1c",
+    "predecessor": "PR #2434 route-visible project/session membership policy"
+  },
+  "scenarioId": "durable-auth-project-session-backend-persistence-plan",
+  "currentMode": "mock_internal_plan_only",
+  "nextMode": "mock_safe_backend_skeleton",
+  "requiredGates": [
+    "signed_in_auth_user_verified_server_side",
+    "workspace_membership_verified_by_workspace_members",
+    "project_membership_verified_by_projects_workspace_id",
+    "edit_session_access_verified_by_project_id",
+    "rls_policies_verified_for_authenticated_role",
+    "explicit_data_api_grants_verified_for_authenticated_role",
+    "service_role_confined_to_trusted_backend_worker_context",
+    "audit_idempotency_and_rate_limit_envelope_defined"
+  ],
+  "plannedTables": [
+    "profiles",
+    "workspaces",
+    "workspace_members",
+    "projects",
+    "edit_sessions",
+    "audit_events"
+  ],
+  "routeContracts": [
+    {
+      "surface": "project_home",
+      "path": "/projects/:projectId",
+      "accessCheck": "projectId -> projects.workspace_id -> workspace_members.user_id"
+    },
+    {
+      "surface": "edit_chat",
+      "path": "/projects/:projectId/edits/:editSessionId/chat",
+      "accessCheck": "editSessionId -> edit_sessions.project_id -> projects.workspace_id -> workspace_members.user_id"
+    },
+    {
+      "surface": "edit_brief",
+      "path": "/projects/:projectId/edits/:editSessionId/brief",
+      "accessCheck": "editSessionId -> edit_sessions.project_id -> projects.workspace_id -> workspace_members.user_id"
+    }
+  ],
+  "supabaseEvidence": {
+    "changelog": "https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically",
+    "securingApi": "https://supabase.com/docs/guides/api/securing-your-api",
+    "explicitDataApiGrantsRequired": true,
+    "rlsRequired": true,
+    "serviceRoleBrowserUseAllowed": false,
+    "userMetadataAuthorizationAllowed": false
+  },
+  "acceptedEvidence": [
+    "src/lib/project-edit-session-backend-persistence-plan.ts",
+    "src/pages/InternalTestingPage.tsx",
+    "src/lib/internal-testing-scenarios.ts",
+    "docs/internal-testing-durable-auth-project-session-backend-persistence-plan.md",
+    "server/smoke/internal-testing-durable-auth-project-session-backend-persistence-plan-smoke.ts"
+  ],
+  "blockedScope": {
+    "supabaseMigration": false,
+    "supabaseWrite": false,
+    "supabaseDataApiRead": false,
+    "storageSignedUrls": false,
+    "serviceRoleInBrowser": false,
+    "profileWorkspaceBootstrapWrites": false,
+    "providerOrModelCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "creditSpend": false,
+    "ledgerWrites": false,
+    "stripe": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "productReady": false
+  },
+  "validation": {
+    "required": [
+      "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan",
+      "smoke:internal-testing-auth-project-session-membership-policy",
+      "smoke:internal-testing-auth-project-access-readiness",
+      "smoke:internal-testing-qa-wrapper",
+      "qa:internal-testing",
+      "smoke:worker",
+      "smoke:prod-cost-controls",
+      "smoke:prod-runtime-contracts",
+      "typecheck:server",
+      "build",
+      "git diff --check",
+      "git diff --cached --check"
+    ]
+  },
+  "nextMilestone": "mock_safe_durable_project_session_backend_skeleton"
+}

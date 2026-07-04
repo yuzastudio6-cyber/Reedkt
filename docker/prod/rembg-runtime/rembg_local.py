@@ -30,6 +30,7 @@ def main() -> None:
     os.environ["MODEL_DOWNLOADS_ENABLED"] = "false"
     os.environ["PROVIDER_EXECUTION_ENABLED"] = "false"
     os.environ["MODEL_CHECKSUM_DISABLED"] = "1"
+    os.environ.setdefault("NUMBA_DISABLE_JIT", "1")
     block_network()
 
     import onnxruntime as ort

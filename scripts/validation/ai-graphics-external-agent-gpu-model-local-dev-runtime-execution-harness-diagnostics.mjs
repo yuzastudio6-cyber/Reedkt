@@ -270,6 +270,67 @@ function spawnRunScript(args = []) {
   }
 }
 
+function spawnDirectAdapterUnsafeOutputProbe() {
+  const tsxBin = path.join(
+    root,
+    'node_modules',
+    '.bin',
+    process.platform === 'win32' ? 'tsx.cmd' : 'tsx',
+  )
+  const source = `
+    import { executeAiGraphicsExternalAgentGpuModelControlledAdapter } from './server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts'
+
+    void (async () => {
+      const result = await executeAiGraphicsExternalAgentGpuModelControlledAdapter({
+        workspaceId: 'diagnostic-workspace',
+        requestId: 'unsafe-output-preflight',
+        toolId: 'kornia',
+        capabilityId: 'tensor_image_ops',
+        approvedPlanSnapshotId: 'approved-plan-unsafe-output-preflight',
+        creditReservationId: 'credit-reservation-unsafe-output-preflight',
+        privateArtifactManifestRef: 'private://manifest/unsafe-output-preflight',
+        toolRouteApprovalRef: 'private://route/unsafe-output-preflight',
+        workerApprovalRef: 'private://worker/unsafe-output-preflight',
+        runtimeEnqueueApprovalRef: 'private://runtime/unsafe-output-preflight',
+        ownerRuntimeApprovalRef: 'private://owner/unsafe-output-preflight',
+        traceId: 'trace-unsafe-output-preflight',
+        payload: {
+          mode: 'local_dev',
+          enableGpuModelControlledExecution: true,
+          allowCpuTensorRuntime: true,
+          outputDirectory: '/tmp/reeditpro-unsafe-output',
+          sourceImageLocalPath: '/tmp/reeditpro-missing-private-frame.png',
+        },
+      })
+      console.log(JSON.stringify({
+        status: result.status,
+        executionState: result.executionState,
+        blockingReasonCode: result.blockingReasonCode,
+        localGpuModelRuntimeExecutionPerformed:
+          result.localGpuModelRuntimeExecutionPerformed,
+        gpuRuntimeShouldStartNow: result.gpuRuntimeShouldStartNow,
+        publicArtifactCreated: result.publicArtifactCreated,
+        signedUrlCreated: result.signedUrlCreated,
+      }))
+    })()
+  `
+  const result = childProcess.spawnSync(tsxBin, ['-e', source], {
+    cwd: root,
+    env: {
+      ...process.env,
+      DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+    },
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: 120 * 1024 * 1024,
+  })
+  return {
+    status: result.status,
+    stdout: result.stdout,
+    stderr: result.stderr,
+  }
+}
+
 function checkCounts(label, counts) {
   for (const [key, value] of Object.entries(expectedCounts)) {
     if (counts?.[key] !== value) {
@@ -331,6 +392,12 @@ if (report.localRuntimePolicy?.privateInputPreflightBeforeGpuAttachment !== true
 }
 if (report.localRuntimePolicy?.missingPrivateInputsBlockBeforeGpuStartup !== true) {
   fail('missing_private_inputs_do_not_block_before_gpu_startup')
+}
+if (report.localRuntimePolicy?.privateOutputDirectoryPreflightBeforeGpuStartup !== true) {
+  fail('private_output_directory_preflight_before_gpu_startup_not_recorded')
+}
+if (report.localRuntimePolicy?.directControlledAdapterOutputDirectoryPreflightBeforeRuntime !== true) {
+  fail('direct_adapter_output_directory_preflight_before_runtime_not_recorded')
 }
 for (const requiredPathKindPolicy of [
   'privateRuntimeInputPathKindPreflightBeforeGpuStartup',
@@ -494,6 +561,9 @@ for (const requiredToken of [
   '_invalid_path_kind',
   'birefnet_model_directory',
   'model.safetensors',
+  'isLocalArtifactPath',
+  'gpu_model_output_directory_outside_local_artifacts',
+  'outputDirectory must stay under .local-artifacts/',
 ]) {
   if (!controlledAdapterSource.includes(requiredToken)) {
     fail(`controlled_adapter_summary_missing_runtime_output_token:${requiredToken}`)
@@ -884,6 +954,30 @@ if (!unsafeManifestOutputRun.stderr.includes('runtime input manifest outputDirec
   fail('unsafe_manifest_output_directory_missing_diagnostic')
 }
 
+const directAdapterUnsafeOutputRun = spawnDirectAdapterUnsafeOutputProbe()
+if (directAdapterUnsafeOutputRun.status !== 0) {
+  fail(`direct_adapter_unsafe_output_probe_failed:${directAdapterUnsafeOutputRun.status}:${directAdapterUnsafeOutputRun.stderr}`)
+}
+const directAdapterUnsafeOutput = JSON.parse(directAdapterUnsafeOutputRun.stdout)
+if (directAdapterUnsafeOutput.blockingReasonCode !== 'gpu_model_output_directory_outside_local_artifacts') {
+  fail(`direct_adapter_unsafe_output_blocker_mismatch:${directAdapterUnsafeOutput.blockingReasonCode}`)
+}
+if (directAdapterUnsafeOutput.executionState !== 'blocked_with_reason') {
+  fail(`direct_adapter_unsafe_output_execution_state_mismatch:${directAdapterUnsafeOutput.executionState}`)
+}
+if (directAdapterUnsafeOutput.localGpuModelRuntimeExecutionPerformed !== false) {
+  fail('direct_adapter_unsafe_output_runtime_executed')
+}
+if (directAdapterUnsafeOutput.gpuRuntimeShouldStartNow !== false) {
+  fail('direct_adapter_unsafe_output_started_gpu')
+}
+if (
+  directAdapterUnsafeOutput.publicArtifactCreated !== false ||
+  directAdapterUnsafeOutput.signedUrlCreated !== false
+) {
+  fail('direct_adapter_unsafe_output_created_public_artifact_or_signed_url')
+}
+
 const invalidSourceKindDir =
   `${manifestDir}/invalid-private-source-frame-directory`
 fs.mkdirSync(absolute(invalidSourceKindDir), { recursive: true })
@@ -1063,6 +1157,9 @@ for (const requiredSourceToken of [
   '--runtime-input-manifest',
   'privateRuntimeInputManifestSupported',
   'privateRuntimeInputManifestOutputDirectoryMustStayUnderLocalArtifacts',
+  'privateOutputDirectoryPreflightBeforeGpuStartup',
+  'directControlledAdapterOutputDirectoryPreflightBeforeRuntime',
+  'gpu_model_output_directory_outside_local_artifacts',
   'currentBlockingPrerequisiteKey',
   'remainingPrivateRuntimeInputKeys',
   'executionState',

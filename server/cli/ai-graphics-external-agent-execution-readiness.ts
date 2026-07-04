@@ -148,7 +148,10 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   blockingReasonCode: string | null | undefined,
 ): string | null {
   if (!blockingReasonCode) return null
-  if (blockingReasonCode.includes('output_directory_missing')) {
+  if (
+    blockingReasonCode.includes('output_directory_missing') ||
+    blockingReasonCode.includes('output_directory_outside_local_artifacts')
+  ) {
     return 'outputDirectory'
   }
   if (

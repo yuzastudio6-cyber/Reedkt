@@ -79,6 +79,8 @@
     "dockerContainerBackendRequiresScopedGpuAttachment": true,
     "privateInputPreflightBeforeGpuAttachment": true,
     "missingPrivateInputsBlockBeforeGpuStartup": true,
+    "privateOutputDirectoryPreflightBeforeGpuStartup": true,
+    "directControlledAdapterOutputDirectoryPreflightBeforeRuntime": true,
     "privateRuntimeInputPathKindPreflightBeforeGpuStartup": true,
     "sourceFrameInputsMustBeFiles": true,
     "fileBackedModelInputsMustBeFiles": true,

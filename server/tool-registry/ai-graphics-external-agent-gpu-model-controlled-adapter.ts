@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, statSync } from 'node:fs'
+import path from 'node:path'
 import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
 import {
   runAiGraphicsFoundationRuntimeCheck,
@@ -128,6 +129,15 @@ function optionalNumber(
 
 function optionalBoolean(payload: Record<string, unknown>, key: string): boolean {
   return payload[key] === true
+}
+
+function isLocalArtifactPath(filePath: string): boolean {
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(filePath)) return false
+  if (filePath.includes('\0')) return false
+  const localArtifactsRoot = path.resolve('.local-artifacts')
+  const resolvedPath = path.resolve(filePath)
+  return resolvedPath === localArtifactsRoot ||
+    resolvedPath.startsWith(`${localArtifactsRoot}${path.sep}`)
 }
 
 function runtimeExecutionBackend(
@@ -295,6 +305,21 @@ function runtimePrerequisiteBlock(
   if (!executionEnabled(payload)) return null
   if (!isAiGraphicsExternalAgentGpuModelControlledAdapterTool(request.toolId)) {
     return null
+  }
+  const outputDirectory = optionalString(payload, 'outputDirectory')
+  if (outputDirectory && !isLocalArtifactPath(outputDirectory)) {
+    return skippedPrerequisiteBlock({
+      toolId: request.toolId,
+      code: 'gpu_model_output_directory_outside_local_artifacts',
+      message:
+        'GPU/model local-dev proof outputDirectory must stay under .local-artifacts/; public, signed URL, or arbitrary output locations are not approved.',
+      summary:
+        'GPU/model local-dev execution prerequisite blocked before runtime/GPU startup because the private proof output directory was outside .local-artifacts/.',
+      warning:
+        'GPU/model runtime did not start because outputDirectory was outside the approved local-only artifact root.',
+      errorMessage:
+        'outputDirectory must be a local-only .local-artifacts/ path for controlled GPU/model proof execution.',
+    })
   }
   if (!hasScopedLocalRuntimeInputs(request.toolId, payload)) return null
   const korniaCpuTensorRuntime = allowKorniaCpuTensorRuntime(request.toolId, payload)

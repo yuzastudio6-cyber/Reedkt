@@ -1,0 +1,275 @@
+import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
+import path from 'node:path'
+
+const ROOT = process.cwd()
+const CLI_PATH = 'server/cli/external-agent-tool-run.ts'
+const SMOKE_PATH = 'server/smoke/external-agent-tool-run-smoke.ts'
+const PACKAGE_SCRIPT = 'external-agent-tool-run'
+const SMOKE_SCRIPT = 'smoke:external-agent-tool-run'
+
+type JsonRecord = Record<string, unknown>
+
+function read(relativePath: string): string {
+  return readFileSync(path.join(ROOT, relativePath), 'utf8')
+}
+
+function asRecord(value: unknown, label: string): JsonRecord {
+  assert.equal(typeof value, 'object', `${label} must be an object`)
+  assert.notEqual(value, null, `${label} must not be null`)
+  assert.equal(Array.isArray(value), false, `${label} must not be an array`)
+  return value as JsonRecord
+}
+
+function assertRuntimeFlagsFalse(value: unknown, label: string): void {
+  const flags = asRecord(value, label)
+  for (const [key, flagValue] of Object.entries(flags)) {
+    assert.equal(flagValue, false, `${label}.${key} must remain false`)
+  }
+}
+
+function scanForbiddenValues(value: unknown, prefix = 'externalAgentToolRun'): string[] {
+  const findings: string[] = []
+
+  if (typeof value === 'string') {
+    const patterns: Array<[string, RegExp]> = [
+      ['concrete public URL', /\bhttps?:\/\/\S+/i],
+      ['access token value', /\bya29\.[A-Za-z0-9._-]+/i],
+      ['authorization bearer value', /\bAuthorization\s*:\s*Bearer\s+\S+/i],
+      ['jwt value', /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/i],
+      ['service-role value', /\bservice[_-]?role\s*[:=]\s*['"][^'"]+/i],
+      ['api key value', /\bapi[_-]?key\s*[:=]\s*['"][^'"]+/i],
+      ['database URL', /\b(postgres(?:ql)?:\/\/|mysql:\/\/|mongodb(?:\+srv)?:\/\/)/i],
+      ['signed URL token', /\b(X-Amz-Signature|X-Amz-Credential|Signature=|Key-Pair-Id=|Policy=)/i],
+      ['raw worker prompt field', /\braw[_-]?worker[_-]?prompt\b/i],
+      ['raw provider prompt field', /\braw[_-]?provider[_-]?prompt\b/i],
+      ['public storage URL', /\bstorage\.googleapis\.com\b/i],
+      ['Supabase project URL', /https:\/\/[a-z0-9]{20}\.supabase\.co/i],
+    ]
+
+    for (const [name, pattern] of patterns) {
+      if (pattern.test(value)) findings.push(`${prefix}: ${name}`)
+    }
+
+    return findings
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => findings.push(...scanForbiddenValues(item, `${prefix}[${index}]`)))
+    return findings
+  }
+
+  if (value && typeof value === 'object') {
+    for (const [key, nestedValue] of Object.entries(value)) {
+      findings.push(...scanForbiddenValues(nestedValue, `${prefix}.${key}`))
+    }
+  }
+
+  return findings
+}
+
+function runTool(args: string[]): JsonRecord {
+  const output = execFileSync('npx', ['tsx', CLI_PATH, ...args], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024 * 80,
+  })
+
+  return JSON.parse(output) as JsonRecord
+}
+
+function assertSafeResult(result: JsonRecord, toolId: string, runtimeKind: string, expectedMode: string): void {
+  assert.equal(result.ok, true, `${toolId} safe runner result must be structurally ok`)
+  assert.equal(result.mode, 'external_agent_tool_run_result')
+  assert.equal(result.decision, 'external_agent_tool_run_completed_runtime_still_blocked')
+  assert.equal(result.toolId, toolId)
+  assert.equal(result.requestedMode, 'safe')
+  assert.equal(result.agentCallableNow, true)
+  assert.equal(result.runtimeExecutableNow, false)
+  assert.equal(result.runtimeKind, runtimeKind)
+  assert.equal(result.safeModeExecuted, true)
+  assert.equal(result.childExecuted, true)
+  assert.equal(result.childProcessExitedCleanly, true)
+  assert.equal(result.structuredResultReturned, true)
+  assert.equal(result.expectedMode, expectedMode)
+  assert.equal(result.actualMode, expectedMode)
+  assert.equal(result.expectedModeReturned, true)
+  assert.equal(result.runtimeSideEffectsAllFalse, true)
+  assert.equal(result.runtimeSideEffectsAllFalseRequired, true)
+  assert.equal(result.generatedLocalFixturePassedClaimed, false)
+  assertRuntimeFlagsFalse(result.runtimeSideEffects, `${toolId}.runtimeSideEffects`)
+}
+
+for (const file of [CLI_PATH, SMOKE_PATH, 'package.json']) {
+  assert.equal(existsSync(path.join(ROOT, file)), true, `Missing required file: ${file}`)
+}
+
+const packageJson = JSON.parse(read('package.json'))
+assert.equal(
+  packageJson.scripts?.[PACKAGE_SCRIPT],
+  'tsx server/cli/external-agent-tool-run.ts',
+  'package external-agent-tool-run script mismatch',
+)
+assert.equal(
+  packageJson.scripts?.[SMOKE_SCRIPT],
+  'tsx server/smoke/external-agent-tool-run-smoke.ts',
+  'package external-agent-tool-run smoke script mismatch',
+)
+
+const cliSource = read(CLI_PATH)
+for (const required of [
+  'external_agent_tool_run_result',
+  'external_agent_tool_run_runtime_blocked',
+  'qwen2_5_vl_7b_instruct',
+  'ai_video_broll_generation_wan',
+  'sound_music_audio',
+  'supabase_local_fixture_harness',
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW',
+  'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW',
+  '--preflight-only',
+  'runtimeExecutableNow: false',
+]) {
+  assert.equal(cliSource.includes(required), true, `runner source missing ${required}`)
+}
+
+for (const forbidden of [
+  'instances create',
+  'jobs execute',
+  'supabase start',
+  'docker run',
+  'psql ',
+  'createdb',
+  'dropdb',
+  'from_pretrained',
+  'WanPipeline',
+  'torch.',
+]) {
+  assert.equal(cliSource.includes(forbidden), false, `runner must not include runtime marker: ${forbidden}`)
+}
+
+const qwen = runTool([
+  '--tool',
+  'qwen2_5_vl_7b_instruct',
+  '--mode',
+  'safe',
+  '--account-index',
+  '2',
+])
+assertSafeResult(qwen, 'qwen2_5_vl_7b_instruct', 'preflight_only', 'external_agent_qwen_execution_preflight_only_result')
+assert.equal(qwen.preflightOnly, true)
+assert.equal(qwen.safeEvidenceReviewRun, false)
+
+const broll = runTool([
+  '--tool',
+  'ai_video_broll_generation_wan',
+  '--mode',
+  'safe',
+  '--account-index',
+  '2',
+])
+assertSafeResult(
+  broll,
+  'ai_video_broll_generation_wan',
+  'preflight_only',
+  'external_agent_broll_wan_execution_preflight_only_result',
+)
+assert.equal(broll.preflightOnly, true)
+assert.equal(broll.safeEvidenceReviewRun, false)
+
+const sound = runTool([
+  '--tool',
+  'sound_music_audio',
+  '--mode',
+  'safe',
+  '--account-index',
+  '2',
+])
+assertSafeResult(
+  sound,
+  'sound_music_audio',
+  'safe_evidence_only',
+  'external_agent_sound_execution_evidence_review_result',
+)
+assert.equal(sound.preflightOnly, false)
+assert.equal(sound.safeEvidenceReviewRun, true)
+assert.equal(sound.confirmationEnvInjected, true)
+
+const supabaseHarness = runTool([
+  '--tool',
+  'supabase_local_fixture_harness',
+  '--mode',
+  'safe',
+  '--account-index',
+  '2',
+])
+assertSafeResult(
+  supabaseHarness,
+  'supabase_local_fixture_harness',
+  'safe_evidence_only',
+  'external_agent_supabase_harness_execution_evidence_review_result',
+)
+assert.equal(supabaseHarness.preflightOnly, false)
+assert.equal(supabaseHarness.safeEvidenceReviewRun, true)
+assert.equal(supabaseHarness.confirmationEnvInjected, true)
+
+const runtimeBlocked = runTool([
+  '--tool',
+  'qwen2_5_vl_7b_instruct',
+  '--mode',
+  'runtime',
+  '--account-index',
+  '2',
+])
+assert.equal(runtimeBlocked.ok, false)
+assert.equal(runtimeBlocked.mode, 'external_agent_tool_run_runtime_blocked')
+assert.equal(runtimeBlocked.status, 'blocked')
+assert.equal(runtimeBlocked.toolId, 'qwen2_5_vl_7b_instruct')
+assert.equal(runtimeBlocked.requestedMode, 'runtime')
+assert.equal(runtimeBlocked.agentCallableNow, true)
+assert.equal(runtimeBlocked.runtimeExecutableNow, false)
+assert.equal(runtimeBlocked.blocker, 'runtime_execution_not_allowed_by_current_gate')
+assert.equal(runtimeBlocked.childExecuted, false)
+assertRuntimeFlagsFalse(runtimeBlocked.runtimeSideEffects, 'runtimeBlocked.runtimeSideEffects')
+
+const invalidTool = runTool(['--tool', 'unknown_tool', '--mode', 'safe'])
+assert.equal(invalidTool.ok, false)
+assert.equal(invalidTool.mode, 'external_agent_tool_run_blocked')
+assert.equal(invalidTool.status, 'blocked')
+assert.equal(invalidTool.agentCallableNow, false)
+assert.equal(invalidTool.runtimeExecutableNow, false)
+assert.equal(invalidTool.blocker, 'missing_or_invalid_tool_id')
+assert.equal(invalidTool.childExecuted, false)
+assertRuntimeFlagsFalse(invalidTool.runtimeSideEffects, 'invalidTool.runtimeSideEffects')
+
+const forbiddenFindings = scanForbiddenValues([
+  qwen,
+  broll,
+  sound,
+  supabaseHarness,
+  runtimeBlocked,
+  invalidTool,
+])
+assert.deepEqual(forbiddenFindings, [])
+
+console.log(
+  JSON.stringify(
+    {
+      ok: true,
+      mode: 'external_agent_tool_run_smoke',
+      checkedToolIds: [
+        qwen.toolId,
+        broll.toolId,
+        sound.toolId,
+        supabaseHarness.toolId,
+      ],
+      externalAgentCallableToolCount: 4,
+      runtimeExecutableToolCount: 0,
+      runtimeModeBlocked: runtimeBlocked.blocker,
+      invalidToolBlocked: invalidTool.blocker,
+      runtimeSideEffectsAllFalse: true,
+    },
+    null,
+    2,
+  ),
+)

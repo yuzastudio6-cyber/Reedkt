@@ -57,6 +57,7 @@ function replaceAccountIndexPlaceholders(value: string, accountIndex: number | u
 const cliAccountIndexCommands = new Set([
   'npm run external-agent-tool-action-plan',
   'npm run external-agent-tool-callability-proof',
+  'npm run external-agent-tool-run',
   'npm run external-agent-tool-readiness:check',
   'npm run external-agent-tool-execution-gate',
   'npm run external-agent-tool-next-command',

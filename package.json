@@ -679,6 +679,8 @@
     "smoke:external-agent-tool-surface-consistency": "tsx server/smoke/external-agent-tool-surface-consistency-smoke.ts",
     "external-agent-tool-callability-proof": "tsx server/cli/external-agent-tool-callability-proof.ts",
     "smoke:external-agent-tool-callability-proof": "tsx server/smoke/external-agent-tool-callability-proof-smoke.ts",
+    "external-agent-tool-run": "tsx server/cli/external-agent-tool-run.ts",
+    "smoke:external-agent-tool-run": "tsx server/smoke/external-agent-tool-run-smoke.ts",
     "external-agent-tool-action-plan": "tsx server/cli/external-agent-tool-action-plan.ts",
     "smoke:external-agent-tool-action-plan": "tsx server/smoke/external-agent-tool-action-plan-smoke.ts",
     "external-agent-tool-execution-gate": "tsx server/cli/external-agent-tool-execution-gate.ts",

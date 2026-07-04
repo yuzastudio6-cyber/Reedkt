@@ -314,6 +314,16 @@ export const EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP = {
         'Calls all external-agent wrappers in their currently allowed modes: Qwen/Wan preflight-only plus Sound/Supabase safe evidence-only, with runtime side effects blocked.',
     },
     {
+      id: 'unified_external_agent_tool_runner',
+      command: 'npm run external-agent-tool-run',
+      liveReadOnly: true,
+      mutatesRuntime: false,
+      runsModel: false,
+      createsAssets: false,
+      purpose:
+        'Single external-agent entrypoint that delegates each tracked tool to its currently allowed safe mode and blocks runtime execution until live gates clear.',
+    },
+    {
       id: 'fail_closed_execution_gate',
       command: 'npm run external-agent-tool-execution-gate',
       liveReadOnly: false,

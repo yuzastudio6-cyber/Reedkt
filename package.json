@@ -66,6 +66,7 @@
     "smoke:tool-cost-wallet-settlement": "tsx server/smoke/tool-cost-wallet-settlement-smoke.ts",
     "smoke:tool-cost-wallet-settlement:service-role": "tsx server/smoke/tool-cost-wallet-settlement-service-role-smoke.ts",
     "smoke:tool-cost-wallet-settlement:sql": "tsx server/smoke/tool-cost-wallet-settlement-rpc-sql-smoke.ts",
+    "smoke:ready-audio-tools-architecture": "tsx server/smoke/ready-audio-tools-architecture-smoke.ts",
     "smoke:unified-skill-capability-registry": "tsx server/smoke/unified-skill-capability-registry-smoke.ts",
     "smoke:tool-call-intent-planner": "tsx server/smoke/tool-call-intent-planner-smoke.ts",
     "smoke:tool-call-cost-credit-gate": "tsx server/smoke/tool-call-cost-credit-gate-smoke.ts",

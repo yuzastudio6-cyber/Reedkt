@@ -28,7 +28,20 @@ export type ProductionToolId =
   | 'rnnoise'
   | 'demucs'
   | 'librosa'
+  | 'audioread'
+  | 'pydub'
+  | 'scipy'
+  | 'resampy'
+  | 'pyloudnorm'
   | 'audioflux'
+  | 'music21'
+  | 'pretty_midi'
+  | 'mido'
+  | 'noisereduce'
+  | 'pedalboard'
+  | 'mir_eval'
+  | 'pydub_effects'
+  | 'ebu_r128_pyloudnorm'
   | 'signalsmith_stretch'
   | 'soundtouch'
   | 'rubber_band'
@@ -82,7 +95,20 @@ export const PRODUCTION_TOOL_IDS = [
   'rnnoise',
   'demucs',
   'librosa',
+  'audioread',
+  'pydub',
+  'scipy',
+  'resampy',
+  'pyloudnorm',
   'audioflux',
+  'music21',
+  'pretty_midi',
+  'mido',
+  'noisereduce',
+  'pedalboard',
+  'mir_eval',
+  'pydub_effects',
+  'ebu_r128_pyloudnorm',
   'signalsmith_stretch',
   'soundtouch',
   'rubber_band',

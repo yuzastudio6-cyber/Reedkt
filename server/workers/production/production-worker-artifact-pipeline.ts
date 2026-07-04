@@ -1,4 +1,5 @@
 import type { ToolArtifact } from '../../../src/backend/contracts/tool-artifact-contracts'
+import type { ReadyAudioAdapterResult, ReadyAudioArtifactManifestEntry } from '../../ready-audio-adapters'
 import type { TrackBAdapterResult, TrackBArtifactManifestEntry } from '../../trackb-adapters'
 import { findForbiddenWorkerPayloadEntries, validateProductionStorageReference } from './production-worker-artifact-policy'
 import {
@@ -83,6 +84,7 @@ interface WorkerRuntimeReplayRecord {
   pipeline: WorkerRuntimeArtifactPipelineResult
   workerResult?: ProductionWorkerExecutionResult
   trackBAdapterResult?: TrackBAdapterResult
+  readyAudioAdapterResult?: ReadyAudioAdapterResult
 }
 
 interface WorkerRuntimeArtifactState {
@@ -131,9 +133,10 @@ export function recordWorkerRuntimeArtifactPipeline(input: {
   payload: ProductionWorkerJobPayload
   workerResult: ProductionWorkerExecutionResult
   trackBAdapterResult?: TrackBAdapterResult
+  readyAudioAdapterResult?: ReadyAudioAdapterResult
   apiIdempotencyKey?: string
 }): WorkerRuntimeArtifactPipelineResult {
-  validatePipelinePayload(input.payload, input.trackBAdapterResult)
+  validatePipelinePayload(input.payload, input.trackBAdapterResult, input.readyAudioAdapterResult)
 
   const replay = getWorkerRuntimeArtifactReplay(input.payload.idempotencyKey)
   if (replay) return replay.pipeline
@@ -142,6 +145,7 @@ export function recordWorkerRuntimeArtifactPipeline(input: {
   const outputManifest = buildOutputManifest({
     payload: input.payload,
     trackBAdapterResult: input.trackBAdapterResult,
+    readyAudioAdapterResult: input.readyAudioAdapterResult,
     workerResult: input.workerResult,
     createdAt,
   })
@@ -197,6 +201,7 @@ export function recordWorkerRuntimeArtifactPipeline(input: {
         ? 'No signed URLs, public artifacts, Supabase writes, provider calls, or media execution occurred in the artifact pipeline.'
         : 'No signed URLs, public artifacts, Supabase writes, or provider calls occurred in the artifact pipeline; media/tool execution evidence remains scoped to the worker result.',
       ...(input.trackBAdapterResult?.warnings ?? []),
+      ...(input.readyAudioAdapterResult?.warnings ?? []),
     ]),
   }
 
@@ -204,6 +209,7 @@ export function recordWorkerRuntimeArtifactPipeline(input: {
     pipeline,
     workerResult: input.workerResult,
     trackBAdapterResult: input.trackBAdapterResult,
+    readyAudioAdapterResult: input.readyAudioAdapterResult,
   })
 
   return pipeline
@@ -226,10 +232,12 @@ export function getProjectWorkerRuntimeOutputManifest(input: {
 function validatePipelinePayload(
   payload: ProductionWorkerJobPayload,
   trackBAdapterResult: TrackBAdapterResult | undefined,
+  readyAudioAdapterResult: ReadyAudioAdapterResult | undefined,
 ): void {
   const findings = findForbiddenWorkerPayloadEntries({
     payload,
     trackBAdapterResult,
+    readyAudioAdapterResult,
   })
 
   if (findings.length > 0) {
@@ -237,13 +245,17 @@ function validatePipelinePayload(
   }
 
   for (const manifest of trackBAdapterResult?.outputManifest ?? []) {
-    validateTrackBManifestEntry(payload, manifest)
+    validateAdapterManifestEntry(payload, manifest)
+  }
+
+  for (const manifest of readyAudioAdapterResult?.outputManifest ?? []) {
+    validateAdapterManifestEntry(payload, manifest)
   }
 }
 
-function validateTrackBManifestEntry(
+function validateAdapterManifestEntry(
   payload: ProductionWorkerJobPayload,
-  manifest: TrackBArtifactManifestEntry,
+  manifest: TrackBArtifactManifestEntry | ReadyAudioArtifactManifestEntry,
 ): void {
   validateProductionStorageReference(manifest as ProductionWorkerStorageReferenceInput)
 
@@ -256,11 +268,15 @@ function validateTrackBManifestEntry(
 function buildOutputManifest(input: {
   payload: ProductionWorkerJobPayload
   trackBAdapterResult?: TrackBAdapterResult
+  readyAudioAdapterResult?: ReadyAudioAdapterResult
   workerResult: ProductionWorkerExecutionResult
   createdAt: string
 }): ToolArtifact[] {
   const adapterArtifacts = (input.trackBAdapterResult?.outputManifest ?? []).map((manifest) => (
-    toolArtifactFromTrackBManifest(input.payload, manifest, input.createdAt)
+    toolArtifactFromAdapterManifest(input.payload, manifest, input.createdAt, 'trackb-adapter-pack-v1')
+  ))
+  const readyAudioAdapterArtifacts = (input.readyAudioAdapterResult?.outputManifest ?? []).map((manifest) => (
+    toolArtifactFromAdapterManifest(input.payload, manifest, input.createdAt, 'ready-audio-adapter-pack-v1')
   ))
 
   const workerArtifacts = input.workerResult.artifactRecords.filter((artifact) => {
@@ -268,13 +284,14 @@ function buildOutputManifest(input: {
     return artifact.workspaceId === input.payload.workspaceId && artifact.projectId === input.payload.projectId
   })
 
-  return dedupeArtifacts([...adapterArtifacts, ...workerArtifacts])
+  return dedupeArtifacts([...adapterArtifacts, ...readyAudioAdapterArtifacts, ...workerArtifacts])
 }
 
-function toolArtifactFromTrackBManifest(
+function toolArtifactFromAdapterManifest(
   payload: ProductionWorkerJobPayload,
-  manifest: TrackBArtifactManifestEntry,
+  manifest: TrackBArtifactManifestEntry | ReadyAudioArtifactManifestEntry,
   createdAt: string,
+  adapterPackVersion: 'trackb-adapter-pack-v1' | 'ready-audio-adapter-pack-v1',
 ): ToolArtifact {
   return {
     id: manifest.id,
@@ -295,7 +312,7 @@ function toolArtifactFromTrackBManifest(
       workerType: payload.workerType,
       toolExecutionPlanId: payload.toolExecutionPlanId,
       producedByToolId: manifest.producedByToolId ?? payload.requestedToolIds[0] ?? 'unknown',
-      adapterPackVersion: 'trackb-adapter-pack-v1',
+      adapterPackVersion,
       mockOnly: true,
     },
     previewAllowed: manifest.storageBucketPurpose === 'previews',

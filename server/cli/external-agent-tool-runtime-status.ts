@@ -552,6 +552,9 @@ function main() {
     safeAgentCommands: {
       staticReadiness: 'npm run external-agent-tool-readiness:check',
       liveStatus: 'npm run external-agent-tool-runtime-status',
+      unifiedRunner: 'npm run external-agent-tool-run -- --tool <tool-id> --mode safe',
+      batchSafeRunner: 'npm run external-agent-tool-run -- --tool all --mode safe --account-index auto',
+      batchRuntimeGuard: 'npm run external-agent-tool-run -- --tool all --mode runtime',
       liveGate: 'npm run external-agent-tool-execution-gate -- --live',
       nextCommand: 'npm run external-agent-tool-next-command',
       qwenPreflight: TOOL_COMMANDS.qwen2_5_vl_7b_instruct.safePreflightCommand,
@@ -564,6 +567,12 @@ function main() {
         selectedAccountIndexArg
           ? compactRecord({
               liveStatus: `npm run external-agent-tool-runtime-status -- ${selectedAccountIndexArg}`,
+              qwenSafeRunner: `npm run external-agent-tool-run -- --tool qwen2_5_vl_7b_instruct --mode safe ${selectedAccountIndexArg}`,
+              brollSafeRunner: `npm run external-agent-tool-run -- --tool ai_video_broll_generation_wan --mode safe ${selectedAccountIndexArg}`,
+              soundSafeRunner: `npm run external-agent-tool-run -- --tool sound_music_audio --mode safe ${selectedAccountIndexArg}`,
+              supabaseHarnessSafeRunner: `npm run external-agent-tool-run -- --tool supabase_local_fixture_harness --mode safe ${selectedAccountIndexArg}`,
+              batchSafeRunner: `npm run external-agent-tool-run -- --tool all --mode safe ${selectedAccountIndexArg}`,
+              batchRuntimeGuard: `npm run external-agent-tool-run -- --tool all --mode runtime ${selectedAccountIndexArg}`,
               liveGate: `npm run external-agent-tool-execution-gate -- --live ${selectedAccountIndexArg}`,
               nextCommand: `npm run external-agent-tool-next-command -- ${selectedAccountIndexArg}`,
               blockerPreflight: `npm run external-agent-tool-blockers:preflight -- ${selectedAccountIndexArg}`,

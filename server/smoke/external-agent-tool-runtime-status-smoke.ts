@@ -148,6 +148,18 @@ assert.deepEqual(staticStatus.safeEvidenceReviewToolIds, [
 assert.equal(staticStatus.readyForAnyExternalAgentSafeEvidenceReviewNow, true)
 assert.equal(staticStatus.runtimeGatesAllFalse, true)
 assert.equal(staticStatus.safeAgentCommands.liveStatus, 'npm run external-agent-tool-runtime-status')
+assert.equal(
+  staticStatus.safeAgentCommands.unifiedRunner,
+  'npm run external-agent-tool-run -- --tool <tool-id> --mode safe',
+)
+assert.equal(
+  staticStatus.safeAgentCommands.batchSafeRunner,
+  'npm run external-agent-tool-run -- --tool all --mode safe --account-index auto',
+)
+assert.equal(
+  staticStatus.safeAgentCommands.batchRuntimeGuard,
+  'npm run external-agent-tool-run -- --tool all --mode runtime',
+)
 assert.equal(staticStatus.safeAgentCommands.accountIndexed, undefined)
 assert.equal(
   staticStatus.safeAgentCommands.brollInferencePreflight,
@@ -271,6 +283,30 @@ assert.equal(
 assert.equal(
   indexedStaticStatus.safeAgentCommands.accountIndexed.liveStatus,
   'npm run external-agent-tool-runtime-status -- --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.qwenSafeRunner,
+  'npm run external-agent-tool-run -- --tool qwen2_5_vl_7b_instruct --mode safe --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.brollSafeRunner,
+  'npm run external-agent-tool-run -- --tool ai_video_broll_generation_wan --mode safe --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.soundSafeRunner,
+  'npm run external-agent-tool-run -- --tool sound_music_audio --mode safe --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.supabaseHarnessSafeRunner,
+  'npm run external-agent-tool-run -- --tool supabase_local_fixture_harness --mode safe --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.batchSafeRunner,
+  'npm run external-agent-tool-run -- --tool all --mode safe --account-index 2',
+)
+assert.equal(
+  indexedStaticStatus.safeAgentCommands.accountIndexed.batchRuntimeGuard,
+  'npm run external-agent-tool-run -- --tool all --mode runtime --account-index 2',
 )
 assert.equal(
   indexedStaticStatus.safeAgentCommands.accountIndexed.liveGate,

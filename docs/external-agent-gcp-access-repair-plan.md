@@ -16,7 +16,7 @@ Until those read checks pass in `npm run external-agent-tool-blockers:preflight`
 Agents should use the non-mutating selector instead of changing global gcloud config:
 
 ```bash
-REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-blockers:preflight
+npm run external-agent-tool-blockers:preflight -- --account-index <redacted-index>
 ```
 
 The selector maps privately to `CLOUDSDK_CORE_ACCOUNT` only for child gcloud commands. It must not print account values and must not run `gcloud config set account`.
@@ -41,9 +41,9 @@ This repair plan does not grant IAM and does not authorize runtime execution. It
 After GCP access is repaired for a redacted local account candidate, run:
 
 ```bash
-REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-gcp-access:verify
-REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-blockers:preflight
-REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-next-command
+npm run external-agent-gcp-access:verify -- --account-index <redacted-index>
+npm run external-agent-tool-blockers:preflight -- --account-index <redacted-index>
+npm run external-agent-tool-next-command -- --account-index <redacted-index>
 ```
 
 Only if live preflight clears should an agent consider the guarded wrapper command emitted by `npm run external-agent-tool-next-command`.

@@ -57,7 +57,7 @@ export const EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN = {
       requiredResourceScope:
         'project reeditpro, region us-central1, Qwen worker service and private caller job visibility',
       verificationCommand:
-        'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-blockers:preflight',
+        'npm run external-agent-tool-blockers:preflight -- --account-index <redacted-index>',
       runtimeExecutionStillRequiresWrapperGate: true,
     },
     {
@@ -77,14 +77,14 @@ export const EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN = {
       requiredResourceScope:
         'project reeditpro, region northamerica-northeast2, global GPU quota and regional L4 quota visibility',
       verificationCommand:
-        'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-blockers:preflight',
+        'npm run external-agent-tool-blockers:preflight -- --account-index <redacted-index>',
       runtimeExecutionStillRequiresWrapperGate: true,
     },
   ] satisfies ExternalAgentGcpAccessRepairTool[],
   postRepairVerificationCommands: [
-    'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-gcp-access:verify',
-    'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-blockers:preflight',
-    'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-next-command',
+    'npm run external-agent-gcp-access:verify -- --account-index <redacted-index>',
+    'npm run external-agent-tool-blockers:preflight -- --account-index <redacted-index>',
+    'npm run external-agent-tool-next-command -- --account-index <redacted-index>',
   ],
   runtimeSideEffects: {
     iamPolicyMutated: false,

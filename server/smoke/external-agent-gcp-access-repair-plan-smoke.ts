@@ -79,6 +79,8 @@ assert.equal(spec.mode, 'external_agent_gcp_access_repair_plan_only')
 assert.equal(spec.projectId, 'reeditpro')
 assert.equal(spec.accountSelection.overrideEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT')
 assert.equal(spec.accountSelection.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
+assert.equal(spec.accountSelection.overrideIndexCliFlag, '--account-index')
+assert.equal(spec.accountSelection.overrideIndexCliFlagAlias, '--gcloud-account-index')
 assert.equal(spec.accountSelection.mutatesLocalGcloudConfig, false)
 assert.equal(spec.accountSelection.printsAccountValue, false)
 assert.equal(spec.repairScope.doesNotGrantIam, true)
@@ -86,7 +88,7 @@ assert.equal(spec.repairScope.doesNotMutateGcp, true)
 assert.equal(spec.repairScope.doesNotAuthorizeRuntimeExecution, true)
 assert.equal(
   spec.postRepairVerificationCommands.includes(
-    'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-gcp-access:verify',
+    'npm run external-agent-gcp-access:verify -- --account-index <redacted-index>',
   ),
   true,
 )
@@ -127,8 +129,8 @@ for (const phrase of [
   'roles/compute.viewer',
   'does not grant IAM',
   'does not authorize runtime execution',
-  'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-gcp-access:verify',
-  'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-tool-blockers:preflight',
+  'npm run external-agent-gcp-access:verify -- --account-index <redacted-index>',
+  'npm run external-agent-tool-blockers:preflight -- --account-index <redacted-index>',
 ]) {
   assert.equal(doc.includes(phrase), true, `Repair doc missing phrase: ${phrase}`)
 }

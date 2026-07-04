@@ -78,7 +78,10 @@ assert.deepEqual(spec.qwen.requiredReadAccess, ['run.services.get', 'run.jobs.ge
 assert.deepEqual(spec.broll.requiredReadAccess, ['compute.projects.get', 'compute.regions.get'])
 assert.equal(spec.broll.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.broll.minimumRegionalL4Quota, 1)
-assert.equal(spec.postRepairCodexVerificationCommand, 'npm run external-agent-tool-blockers:preflight')
+assert.equal(
+  spec.postRepairCodexVerificationCommand,
+  'npm run external-agent-tool-blockers:preflight -- --account-index <account-index>',
+)
 
 for (const command of spec.allowedReadOnlyCommands) {
   assert.equal(command.capturesTokenValue, false, `${command.id} must not capture token values`)

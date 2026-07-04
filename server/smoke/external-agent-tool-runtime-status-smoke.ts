@@ -183,7 +183,11 @@ assert.equal(
 )
 assert.equal(
   staticStatus.accountSelectionGuidance.indexedPreflightCommand,
-  'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-blockers:preflight',
+  'npm run external-agent-tool-blockers:preflight -- --account-index <account-index>',
+)
+assert.equal(
+  staticStatus.accountSelectionGuidance.indexedAccessVerifyCommand,
+  'npm run external-agent-gcp-access:verify -- --account-index <account-index>',
 )
 assert.equal(staticStatus.accountSelectionGuidance.mutatesLocalGcloudConfig, false)
 assert.equal(staticStatus.accountSelectionGuidance.printsAccountValue, false)
@@ -294,7 +298,7 @@ assert.equal(liveStatus.gcpAccessRepair.ok, true)
 assert.equal(Array.isArray(liveStatus.gcpAccessRepair.postRepairVerificationCommands), true)
 assert.equal(
   liveStatus.gcpAccessRepair.postRepairVerificationCommands.includes(
-    'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<redacted-index> npm run external-agent-gcp-access:verify',
+    'npm run external-agent-gcp-access:verify -- --account-index <redacted-index>',
   ),
   true,
 )

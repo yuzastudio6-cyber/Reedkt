@@ -28,10 +28,11 @@ export const EXTERNAL_AGENT_GCLOUD_ACCOUNT_ACCESS_DIAGNOSTIC = {
     requiredReadAccess: ['compute.projects.get', 'compute.regions.get'],
   },
   nextActionIfAnyAccountReady:
-    'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select the redacted local gcloud account candidate with required ReEditPro read access, then rerun npm run external-agent-tool-blockers:preflight',
+    'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select the redacted local gcloud account candidate with required ReEditPro read access, then rerun npm run external-agent-tool-blockers:preflight -- --account-index <account-index>',
   nextActionIfNoAccountReady:
-    'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh or grant a local gcloud account Cloud Run and Compute read access for project reeditpro, then rerun npm run external-agent-tool-blockers:preflight',
-  postRepairCodexVerificationCommand: 'npm run external-agent-tool-blockers:preflight',
+    'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh or grant a local gcloud account Cloud Run and Compute read access for project reeditpro, then rerun npm run external-agent-tool-blockers:preflight -- --account-index <account-index>',
+  postRepairCodexVerificationCommand:
+    'npm run external-agent-tool-blockers:preflight -- --account-index <account-index>',
   allowedReadOnlyCommands: [
     {
       id: 'gcloud_path',

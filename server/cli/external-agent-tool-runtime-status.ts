@@ -7,7 +7,7 @@ type JsonRecord = Record<string, unknown>
 const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
 const GCLOUD_ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
 const GCP_READ_ACCESS_REPAIR_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: grant or select a local gcloud account with Cloud Run and Compute quota read access for project reeditpro, then rerun REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-blockers:preflight'
+  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: grant or select a local gcloud account with Cloud Run and Compute quota read access for project reeditpro, then rerun npm run external-agent-tool-blockers:preflight -- --account-index <account-index>'
 
 const TOOL_COMMANDS: Record<
   string,
@@ -434,9 +434,9 @@ function main() {
       indexedRuntimeStatusCommand:
         'npm run external-agent-tool-runtime-status -- --account-index <account-index>',
       indexedPreflightCommand:
-        'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-blockers:preflight',
+        'npm run external-agent-tool-blockers:preflight -- --account-index <account-index>',
       indexedAccessVerifyCommand:
-        'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-gcp-access:verify',
+        'npm run external-agent-gcp-access:verify -- --account-index <account-index>',
       mutatesLocalGcloudConfig: false,
       printsAccountValue: false,
       tokenStdoutSuppressed: true,
@@ -452,7 +452,7 @@ function main() {
           ? 'no visible local account can currently satisfy both Qwen Cloud Run read access and B-roll quota read/quota sufficiency'
           : undefined,
       nextAfterAccountRepair:
-        'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-runtime-status',
+        'npm run external-agent-tool-runtime-status -- --account-index <account-index>',
     },
     nextCommand: liveChecksRun
       ? {

@@ -65,6 +65,7 @@ Passed:
 - Owner evidence readiness after RP-EDITBRIEF-15B: the checked-in template still evaluates as blocked; RP-EDITBRIEF-16 may start only after all ten owner inputs are approved or waived with owner, evidence reference, reviewed timestamp, and notes.
 - Owner evidence assignment after RP-EDITBRIEF-15C: the review packet names the owner group, required decision, and minimum evidence for each missing owner input; it does not approve or waive any input.
 - Owner evidence local validation after RP-EDITBRIEF-15D: reviewers can run `check:project-edit-brief-owner-evidence-readiness` or the strict CLI against a local filled evidence file before proposing a reviewed PR; unsafe evidence patterns fail closed.
+- Owner evidence PR diff validation after RP-EDITBRIEF-15E: the future reviewed evidence PR should stage only the owner-evidence intake file, then run strict diff validation plus the readiness/safety evaluator.
 - Real upload/source-media ingestion and privacy policy implementation.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.

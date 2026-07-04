@@ -27,7 +27,8 @@
     "planner_hint_packaging",
     "visual_context_sampling_plan",
     "internal_testing_entrypoint",
-    "internal_testing_repeated_local_operator_harness"
+    "internal_testing_repeated_local_operator_harness",
+    "internal_testing_auth_project_access_readiness"
   ],
   "blockedScope": {
     "supabaseReadWrite": false,
@@ -69,7 +70,8 @@
       "smoke:project-edit-brief-internal-testing-completion-audit",
       "smoke:project-edit-brief-pr-ready-merge-hygiene-preflight",
       "smoke:project-edit-brief-internal-testing-entrypoint",
-      "smoke:internal-testing-repeated-local-operator-harness"
+      "smoke:internal-testing-repeated-local-operator-harness",
+      "smoke:internal-testing-auth-project-access-readiness"
     ],
     "typecheckServer": "passed",
     "build": "passed",
@@ -93,6 +95,8 @@
     "explicit_mark_ready_or_merge_hygiene_request_after_rp_editbrief_22",
     "internal_testing_entrypoint_after_rp_editbrief_23",
     "internal_testing_repeated_local_operator_harness_after_rp_inttest_01",
+    "internal_testing_auth_project_access_readiness_after_rp_inttest_02",
+    "durable_authenticated_project_membership_policy",
     "real_source_media_ingestion",
     "planner_integration_to_approved_snapshots",
     "credit_estimate_and_reservation",

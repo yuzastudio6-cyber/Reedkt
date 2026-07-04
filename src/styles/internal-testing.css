@@ -203,6 +203,12 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.internal-testing-auth-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
 .internal-testing-limit-grid article {
   background: rgba(5, 7, 13, 0.36);
   border: 1px solid var(--rp-border-subtle);
@@ -230,6 +236,32 @@
   gap: 10px;
   min-width: 0;
   padding: 14px;
+}
+
+.internal-testing-auth-grid article {
+  background: rgba(5, 7, 13, 0.36);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+}
+
+.internal-testing-auth-grid strong {
+  color: var(--rp-text-primary);
+  font-size: 0.9rem;
+}
+
+.internal-testing-auth-grid span {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+}
+
+.internal-testing-auth-routes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .internal-testing-lifecycle-grid strong {
@@ -409,6 +441,7 @@
   .internal-testing-limit-grid,
   .internal-testing-lifecycle-grid,
   .internal-testing-operator-grid,
+  .internal-testing-auth-grid,
   .internal-testing-form-grid {
     grid-template-columns: 1fr;
   }

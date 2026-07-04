@@ -184,6 +184,23 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'auth-project-access-readiness',
+    title: 'Auth + project access readiness',
+    description: 'Check public Supabase Auth session state and mock project/session route access before authenticated testing graduates.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Auth and project access panel.',
+      'Refresh the read-only Auth readiness check.',
+      'Confirm Project Home, Edit Chat, and Edit Brief routes are available without profile/workspace bootstrap writes.',
+      'Confirm service-role, Supabase Data API, Storage, SQL, workers, media, credits, and product-ready gates stay closed.',
+    ],
+    expectedResult:
+      'Internal testers can verify browser Auth state and mock project/session route readiness while durable project membership and backend persistence remain separately gated.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

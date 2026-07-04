@@ -28,8 +28,11 @@ const requiredFiles = [
   'src/pages/InternalTestingPage.tsx',
   'src/styles/internal-testing.css',
   'src/lib/internal-testing-scenarios.ts',
+  'src/lib/internal-testing-auth-project-access-readiness.ts',
   'docs/project-edit-brief-internal-testing-entrypoint.md',
   'docs/project-edit-brief-internal-testing-entrypoint.json',
+  'docs/internal-testing-auth-project-access-readiness.md',
+  'docs/internal-testing-auth-project-access-readiness.json',
   'tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts',
 ]
 
@@ -63,8 +66,18 @@ assert.match(page, /internal-testing-repeated-local-operator-harness/)
 assert.match(page, /One local loop proves the current testable path before a pass is filed/)
 assert.match(page, /npm run qa:internal-testing/)
 assert.match(page, /No tool execution/)
+assert.match(page, /internal-testing-auth-project-access-readiness/)
+assert.match(page, /Auth and project access/)
+assert.match(page, /read-only Auth readiness check/)
+assert.match(page, /No service-role/)
+assert.match(page, /Durable project membership/)
 assert.doesNotMatch(page, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/)
 assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|service_role|signedUrl/i)
+
+const authHelper = read('src/lib/internal-testing-auth-project-access-readiness.ts')
+assert.match(authHelper, /getCurrentSupabaseSession/)
+assert.match(authHelper, /getCurrentSupabaseUser/)
+assert.doesNotMatch(authHelper, /runAuthBootstrapFlow|service_role|createSignedUrl/i)
 
 const docs = read('docs/project-edit-brief-internal-testing-entrypoint.md')
 for (const phrase of [
@@ -81,7 +94,9 @@ for (const phrase of [
   'credit-lifecycle-readiness',
   'Repeated Local Operator Harness',
   'repeated-local-operator-harness',
-  'No live Supabase',
+  'Auth Project Access Readiness',
+  'auth-project-access-readiness',
+  'No Supabase Data API',
 ]) {
   assert.match(docs, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'))
 }
@@ -104,9 +119,11 @@ assert.ok(docJson.connectedRoutes?.includes(createProjectEditSessionBriefPath(pr
 assert.ok(docJson.features?.includes('approval_credit_gate_readiness'))
 assert.ok(docJson.features?.includes('credit_lifecycle_readiness'))
 assert.ok(docJson.features?.includes('repeated_local_operator_harness'))
+assert.ok(docJson.features?.includes('auth_project_access_readiness'))
 assert.equal(docJson.scenarioStatus?.['approval-credit-gate-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['credit-lifecycle-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['repeated-local-operator-harness'], 'mock_local')
+assert.equal(docJson.scenarioStatus?.['auth-project-access-readiness'], 'mock_local')
 assert.equal(docJson.blockedScope?.productReady, false)
 assert.equal(docJson.blockedScope?.supabaseReadWrite, false)
 assert.equal(docJson.blockedScope?.workerDispatch, false)
@@ -116,6 +133,7 @@ assert.ok(docJson.validation?.required?.includes('smoke:project-edit-brief-inter
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-approval-credit-gates'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-credit-lifecycle-readiness'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-repeated-local-operator-harness'))
+assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-auth-project-access-readiness'))
 
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
 assert.equal(
@@ -173,6 +191,14 @@ assert.ok(
   internalTestingScenarios.some(
     (scenario) =>
       scenario.id === 'repeated-local-operator-harness' &&
+      scenario.route === '/internal-testing' &&
+      scenario.status === 'mock_local',
+  ),
+)
+assert.ok(
+  internalTestingScenarios.some(
+    (scenario) =>
+      scenario.id === 'auth-project-access-readiness' &&
       scenario.route === '/internal-testing' &&
       scenario.status === 'mock_local',
   ),

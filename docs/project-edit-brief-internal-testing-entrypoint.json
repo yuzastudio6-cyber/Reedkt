@@ -20,6 +20,7 @@
     "approval_credit_gate_readiness",
     "credit_lifecycle_readiness",
     "repeated_local_operator_harness",
+    "auth_project_access_readiness",
     "testing_discipline_checklist",
     "browser_local_feedback_records",
     "manual_feedback_json_export"
@@ -29,6 +30,7 @@
     "approval-credit-gate-readiness": "mock_local",
     "credit-lifecycle-readiness": "mock_local",
     "repeated-local-operator-harness": "mock_local",
+    "auth-project-access-readiness": "mock_local",
     "blockedScenarioCount": 0
   },
   "blockedScope": {
@@ -43,6 +45,8 @@
     "walletMutation": false,
     "ledgerWrites": false,
     "stripe": false,
+    "publicSupabaseAuthReadOnlyIfConfigured": true,
+    "profileWorkspaceBootstrapWrites": false,
     "supabaseReadWrite": false,
     "storageSignedUrls": false,
     "sqlOrMigration": false,
@@ -59,6 +63,7 @@
       "smoke:internal-testing-approval-credit-gates",
       "smoke:internal-testing-credit-lifecycle-readiness",
       "smoke:internal-testing-repeated-local-operator-harness",
+      "smoke:internal-testing-auth-project-access-readiness",
       "qa:internal-testing",
       "smoke:project-edit-brief-internal-testing-review-pr-readiness",
       "smoke:project-edit-brief-internal-testing-readback-qa",

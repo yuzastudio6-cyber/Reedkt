@@ -121,6 +121,8 @@ export type ExternalAgentToolSoundMusicAudioEvidenceCommand = {
   confirmationEnvRequiredValue: 'true'
   verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime: true
   verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime: true
+  safeEvidenceReviewExecutableNow: true
+  runtimeExecutionAllowedNow: false
   blocksRealProviderWorkerStorageExport: true
   runsProvider: false
   dispatchesWorker: false
@@ -140,6 +142,8 @@ export type ExternalAgentToolSupabaseHarnessEvidenceCommand = {
   confirmationEnvRequiredValue: 'true'
   verifiesLocalConfigBeforeAnyRuntime: true
   verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime: true
+  safeEvidenceReviewExecutableNow: true
+  runtimeExecutionAllowedNow: false
   blocksLiveSupabaseMutation: true
   runsSupabaseCli: false
   runsDocker: false
@@ -334,6 +338,8 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     confirmationEnvRequiredValue: 'true',
     verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime: true,
     verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime: true,
+    safeEvidenceReviewExecutableNow: true,
+    runtimeExecutionAllowedNow: false,
     blocksRealProviderWorkerStorageExport: true,
     runsProvider: false,
     dispatchesWorker: false,
@@ -352,6 +358,8 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
     confirmationEnvRequiredValue: 'true',
     verifiesLocalConfigBeforeAnyRuntime: true,
     verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime: true,
+    safeEvidenceReviewExecutableNow: true,
+    runtimeExecutionAllowedNow: false,
     blocksLiveSupabaseMutation: true,
     runsSupabaseCli: false,
     runsDocker: false,

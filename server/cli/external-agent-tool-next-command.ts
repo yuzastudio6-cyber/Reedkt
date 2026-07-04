@@ -458,6 +458,8 @@ function main() {
     ...spec.soundMusicAudioEvidenceCommand,
     args: withSelectedAccountIndexArgs(spec.soundMusicAudioEvidenceCommand.args, accountSelection),
     executionAllowedNow: false,
+    runtimeExecutionAllowedNow: false,
+    safeEvidenceReviewExecutableNow: true,
     blocker: 'real_provider_worker_storage_track_qa_billing_export_handoffs_required',
     shellExample: shellExampleFor(spec.soundMusicAudioEvidenceCommand, accountSelection),
   }
@@ -465,6 +467,8 @@ function main() {
     ...spec.supabaseLocalHarnessEvidenceCommand,
     args: withSelectedAccountIndexArgs(spec.supabaseLocalHarnessEvidenceCommand.args, accountSelection),
     executionAllowedNow: false,
+    runtimeExecutionAllowedNow: false,
+    safeEvidenceReviewExecutableNow: true,
     blocker: 'not_a_model_or_media_execution_lane_on_this_branch',
     shellExample: shellExampleFor(spec.supabaseLocalHarnessEvidenceCommand, accountSelection),
   }

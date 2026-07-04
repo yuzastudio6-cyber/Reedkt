@@ -199,6 +199,8 @@ assert.equal(
 assert.equal(spec.soundMusicAudioEvidenceCommand.confirmationEnvRequiredValue, 'true')
 assert.equal(spec.soundMusicAudioEvidenceCommand.verifiesSoundOssArchiveDiagnosticsBeforeAnyRuntime, true)
 assert.equal(spec.soundMusicAudioEvidenceCommand.verifiesSoundRuntimeRouteSourceDiagnosticsBeforeAnyRuntime, true)
+assert.equal(spec.soundMusicAudioEvidenceCommand.safeEvidenceReviewExecutableNow, true)
+assert.equal(spec.soundMusicAudioEvidenceCommand.runtimeExecutionAllowedNow, false)
 assert.equal(spec.soundMusicAudioEvidenceCommand.blocksRealProviderWorkerStorageExport, true)
 assert.equal(spec.soundMusicAudioEvidenceCommand.runsProvider, false)
 assert.equal(spec.soundMusicAudioEvidenceCommand.dispatchesWorker, false)
@@ -222,6 +224,8 @@ assert.equal(
 assert.equal(spec.supabaseLocalHarnessEvidenceCommand.confirmationEnvRequiredValue, 'true')
 assert.equal(spec.supabaseLocalHarnessEvidenceCommand.verifiesLocalConfigBeforeAnyRuntime, true)
 assert.equal(spec.supabaseLocalHarnessEvidenceCommand.verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime, true)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.safeEvidenceReviewExecutableNow, true)
+assert.equal(spec.supabaseLocalHarnessEvidenceCommand.runtimeExecutionAllowedNow, false)
 assert.equal(spec.supabaseLocalHarnessEvidenceCommand.blocksLiveSupabaseMutation, true)
 assert.equal(spec.supabaseLocalHarnessEvidenceCommand.runsSupabaseCli, false)
 assert.equal(spec.supabaseLocalHarnessEvidenceCommand.runsDocker, false)
@@ -554,6 +558,8 @@ assert.equal(
 )
 assert.equal(decision.soundMusicAudioEvidenceCommand.blocksRealProviderWorkerStorageExport, true)
 assert.equal(decision.soundMusicAudioEvidenceCommand.executionAllowedNow, false)
+assert.equal(decision.soundMusicAudioEvidenceCommand.safeEvidenceReviewExecutableNow, true)
+assert.equal(decision.soundMusicAudioEvidenceCommand.runtimeExecutionAllowedNow, false)
 assert.equal(decision.soundMusicAudioEvidenceCommand.runsProvider, false)
 assert.equal(decision.soundMusicAudioEvidenceCommand.dispatchesWorker, false)
 assert.equal(decision.soundMusicAudioEvidenceCommand.runsMediaProcessing, false)
@@ -583,6 +589,8 @@ assert.equal(decision.supabaseLocalHarnessEvidenceCommand.verifiesLocalConfigBef
 assert.equal(decision.supabaseLocalHarnessEvidenceCommand.verifiesLocalHarnessRetryEvidenceBeforeAnyRuntime, true)
 assert.equal(decision.supabaseLocalHarnessEvidenceCommand.blocksLiveSupabaseMutation, true)
 assert.equal(decision.supabaseLocalHarnessEvidenceCommand.executionAllowedNow, false)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.safeEvidenceReviewExecutableNow, true)
+assert.equal(decision.supabaseLocalHarnessEvidenceCommand.runtimeExecutionAllowedNow, false)
 assert.equal(decision.supabaseLocalHarnessEvidenceCommand.runsSupabaseCli, false)
 assert.equal(decision.supabaseLocalHarnessEvidenceCommand.runsDocker, false)
 assert.equal(decision.supabaseLocalHarnessEvidenceCommand.executesSql, false)
@@ -824,6 +832,8 @@ assert.equal(
   indexedDecision.soundMusicAudioEvidenceCommand.shellExample,
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SOUND_EVIDENCE_REVIEW=true npm run external-agent-tool-execute-sound -- --execute --json --account-index 2',
 )
+assert.equal(indexedDecision.soundMusicAudioEvidenceCommand.safeEvidenceReviewExecutableNow, true)
+assert.equal(indexedDecision.soundMusicAudioEvidenceCommand.runtimeExecutionAllowedNow, false)
 assert.deepEqual(indexedDecision.supabaseLocalHarnessEvidenceCommand.args, [
   'run',
   'external-agent-tool-execute-supabase-harness',
@@ -837,6 +847,8 @@ assert.equal(
   indexedDecision.supabaseLocalHarnessEvidenceCommand.shellExample,
   'REEDITPRO_CONFIRM_EXTERNAL_AGENT_SUPABASE_HARNESS_EVIDENCE_REVIEW=true npm run external-agent-tool-execute-supabase-harness -- --execute --json --account-index 2',
 )
+assert.equal(indexedDecision.supabaseLocalHarnessEvidenceCommand.safeEvidenceReviewExecutableNow, true)
+assert.equal(indexedDecision.supabaseLocalHarnessEvidenceCommand.runtimeExecutionAllowedNow, false)
 if (indexedDecision.qwenBoundedExecutionCommand) {
   assert.deepEqual(indexedDecision.qwenBoundedExecutionCommand.args, [
     'run',

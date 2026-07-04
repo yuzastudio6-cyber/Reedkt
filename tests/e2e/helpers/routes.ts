@@ -20,8 +20,17 @@ export const checkedRoutes = [
   { path: '/exports', label: 'exports' },
 ] as const
 
+function resolveRoute(path: string) {
+  if (/^https?:\/\//.test(path)) {
+    return path
+  }
+
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL ?? (process.env.PLAYWRIGHT_PORT ? `http://127.0.0.1:${process.env.PLAYWRIGHT_PORT}` : '')
+  return baseUrl ? new URL(path, baseUrl).toString() : path
+}
+
 export async function gotoRoute(page: Page, path: string) {
-  await page.goto(path)
+  await page.goto(resolveRoute(path))
   await page.waitForLoadState('domcontentloaded')
   await page.locator('body').waitFor({ state: 'visible' })
 }

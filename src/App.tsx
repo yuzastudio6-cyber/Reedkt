@@ -6,6 +6,7 @@ const CreateProjectPage = lazy(() => import('./pages/CreateProjectPage').then((m
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
 const EditorPage = lazy(() => import('./pages/EditorPage').then((module) => ({ default: module.EditorPage })))
 const ExportQueuePage = lazy(() => import('./pages/ExportQueuePage').then((module) => ({ default: module.ExportQueuePage })))
+const InternalTestingPage = lazy(() => import('./pages/InternalTestingPage').then((module) => ({ default: module.InternalTestingPage })))
 const LandingPage = lazy(() => import('./pages/LandingPage').then((module) => ({ default: module.LandingPage })))
 const PricingPage = lazy(() => import('./pages/PricingPage').then((module) => ({ default: module.PricingPage })))
 const ProjectHomePage = lazy(() => import('./pages/ProjectHomePage').then((module) => ({ default: module.ProjectHomePage })))
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/brand-kit" element={<BrandKitPage />} />
         <Route path="/exports" element={<ExportQueuePage />} />
+        <Route path="/internal-testing" element={<InternalTestingPage />} />
         <Route path="/app" element={<Navigate to="/dashboard" replace />} />
         <Route path="/create" element={<Navigate to="/projects/new" replace />} />
         <Route path="/upload" element={<Navigate to="/projects/new" replace />} />

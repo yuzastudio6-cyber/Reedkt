@@ -20,13 +20,14 @@
 - Project Edit Brief workspace route at `/projects/:projectId/edits/:editSessionId/brief`.
 - Mock/local Project Edit Brief repository, row mappers, disabled Supabase repository skeleton, API route registry, browser-safe API client, and route handler coverage.
 - Marker timeline and drawer, Marker Chat, metadata-only attachments, export settings recommendations, QA/conflict detection, planner-hint packaging, and visual-context sampling plans.
+- Internal testing entrypoint at `/internal-testing` with production-shaped mock route links, scenario readiness summary, and browser-local feedback export.
 - Smoke coverage and E2E smoke coverage for Project Edit Brief behavior.
 
 ## Explicitly Not Landed
 
 - Live Supabase migrations, reads, writes, storage, signed URL creation, or service-role actions.
 - Provider/model calls, Qwen runtime execution, media processing, file-byte reads, uploads, external URL fetches, render/export jobs, worker dispatch, or credit reservation/spend.
-- Unrelated historical Edit Preference DNA runtime and internal-testing UI panels. The Edit Brief slice keeps a static mock preference option only where Project Edit Session UX needs a visible preference card.
+- Unrelated historical Edit Preference DNA runtime. The internal-testing entrypoint lands only a mock/local route console and browser-local feedback export; it does not restore unrelated historical preference runtime.
 
 ## Validation Summary
 
@@ -52,6 +53,7 @@ Passed:
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-completion-audit`
 - `npm run smoke:project-edit-brief-pr-ready-merge-hygiene-preflight`
+- `npm run smoke:project-edit-brief-internal-testing-entrypoint`
 - `npm run typecheck:server`
 - `npm run build`
 - `git diff --check`
@@ -79,6 +81,7 @@ Passed:
 - Internal testing review after RP-EDITBRIEF-20: the internal testing chain is ready for owner review and repeated mock-internal testing, while PR readiness/merge hygiene still requires explicit owner or user action and public release gates remain separate.
 - Internal testing completion audit after RP-EDITBRIEF-21: RP-EDITBRIEF-02 through RP-EDITBRIEF-20 are audited as complete for internal mock testing, while PR-ready/merge hygiene still requires explicit user request and public release gates remain separate.
 - PR-ready / merge hygiene preflight after RP-EDITBRIEF-22: remaining blockers are scoped to unsafe release actions, safe progress remains allowed, and any PR state change requires explicit user request plus fresh live preflight.
+- Internal testing entrypoint after RP-EDITBRIEF-23: `/internal-testing` gives testers a production-shaped mock route console, scenario summary, and browser-local feedback export while keeping release/runtime gates explicit.
 - Real upload/source-media ingestion and privacy policy implementation.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.

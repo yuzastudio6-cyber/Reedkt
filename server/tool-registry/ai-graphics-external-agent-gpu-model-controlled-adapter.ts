@@ -1633,7 +1633,8 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
   const gpuRuntimeUsedForScopedControlledToolCall =
     localRuntimeExecutionPerformed &&
     !allowKorniaCpuTensorRuntime(request.toolId, payload) &&
-    !allowFoundationCpuRuntime(request.toolId, payload)
+    !allowFoundationCpuRuntime(request.toolId, payload) &&
+    !allowModelCpuRuntime(request.toolId, payload)
   const skipped = (
     runtimeOutput.result as { status?: unknown } | undefined
   )?.status === 'skipped'

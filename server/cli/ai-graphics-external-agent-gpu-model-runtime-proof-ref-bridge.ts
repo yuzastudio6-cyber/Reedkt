@@ -289,6 +289,19 @@ function stringFlag(flag: string): string | undefined {
   return value
 }
 
+function stringFlags(flag: string): string[] {
+  const values: string[] = []
+  for (let index = 0; index < process.argv.length; index += 1) {
+    if (process.argv[index] !== flag) continue
+    const value = process.argv[index + 1]
+    if (!value || value.startsWith('--')) {
+      throw new Error(`${flag} requires a value`)
+    }
+    values.push(value)
+  }
+  return values
+}
+
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message)
 }
@@ -338,6 +351,20 @@ function localProofRows(localProof?: JsonRecord): Map<string, LocalProofHarnessR
   const rows = localProof.gpuModelLocalDevRuntimeExecutionHarnessRows
   assert(Array.isArray(rows), 'local runtime proof result has no harness rows')
   return new Map(rows.map((row) => [String(row.toolId), row as LocalProofHarnessRow]))
+}
+
+function mergeLocalProofRows(localProofs: JsonRecord[]): Map<string, LocalProofHarnessRow> {
+  const merged = new Map<string, LocalProofHarnessRow>()
+  for (const proof of localProofs) {
+    for (const [toolId, row] of localProofRows(proof)) {
+      assert(
+        !merged.has(toolId),
+        `duplicate supplied GPU/model local proof tool across proof bundles: ${toolId}`,
+      )
+      merged.set(toolId, row)
+    }
+  }
+  return merged
 }
 
 function localProofOutputExists(row: LocalProofHarnessRow | undefined): boolean {
@@ -1082,20 +1109,31 @@ function validateSuppliedLocalProofResult(localProof: JsonRecord): void {
   }
 }
 
-function buildReport(localProofResultPath?: string) {
+function buildReport(localProofResultPaths: string[] = []) {
   const localDevHarness = readJson(sourceLocalDevHarnessPath)
   const proofRefRouteCaller = readJson(sourceProofRefRouteCallerPath)
   validateCommittedSources(localDevHarness, proofRefRouteCaller)
 
-  const suppliedLocalProof = localProofResultPath
-    ? readJson(localProofResultPath)
-    : undefined
-  if (suppliedLocalProof) {
-    validateSuppliedLocalProofResult(suppliedLocalProof)
+  const suppliedLocalProofs = localProofResultPaths.map((proofPath) => {
+    const proof = readJson(proofPath)
+    validateSuppliedLocalProofResult(proof)
+    return proof
+  })
+  if (localProofResultPaths.length > 0) {
+    const seen = new Set<string>()
+    for (const proof of suppliedLocalProofs) {
+      for (const row of proof.gpuModelLocalDevRuntimeExecutionHarnessRows) {
+        assert(
+          !seen.has(row.toolId),
+          `duplicate supplied GPU/model local proof tool across proof bundles: ${row.toolId}`,
+        )
+        seen.add(row.toolId)
+      }
+    }
   }
 
   const proofRows = sourceProofRefRows(proofRefRouteCaller)
-  const suppliedRowsByTool = localProofRows(suppliedLocalProof)
+  const suppliedRowsByTool = mergeLocalProofRows(suppliedLocalProofs)
   const bridgeRows = proofRows.map((row) => buildBridgeRow(row, suppliedRowsByTool.get(row.toolId)))
   const acceptedPrivateLocalRuntimeProofTools =
     bridgeRows.filter((row) => row.localRuntimeProofAccepted).length
@@ -1120,11 +1158,11 @@ function buildReport(localProofResultPath?: string) {
         decision: proofRefRouteCaller.decision,
         accepted: true,
       },
-      suppliedPrivateLocalProofResult: localProofResultPath
-        ? {
-            path: localProofResultPath,
+      suppliedPrivateLocalProofResults: localProofResultPaths.length > 0
+        ? localProofResultPaths.map((proofPath) => ({
+            path: proofPath,
             acceptedRows: acceptedPrivateLocalRuntimeProofTools,
-          }
+          }))
         : null,
     },
     interfaces: {
@@ -1141,6 +1179,8 @@ function buildReport(localProofResultPath?: string) {
         'npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --write-records',
       privateProofBridgeCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
+      privateProofBridgeMultipleProofsCommand:
+        'npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-a>/harness-result.json --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-b>/harness-result.json',
       upstreamPrivateProofCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>',
     },
@@ -1152,6 +1192,7 @@ function buildReport(localProofResultPath?: string) {
       requiresPrivateOutputJsonSha256Match: true,
       requiresPrivateOutputJsonUnderLocalArtifactsGpuModelRuntime: true,
       acceptsScopedToolRowsOnly: true,
+      acceptsMultiplePrivateProofBundles: true,
       noIdleGpuRuntimeApproved: true,
       gpuStartsOnlyInUpstreamScopedProofRun: true,
       bridgeStartsGpuRuntime: false,
@@ -1162,7 +1203,7 @@ function buildReport(localProofResultPath?: string) {
       noProviderRuntime: true,
       noPublicArtifact: true,
       noSignedUrl: true,
-      committedRecordMustAcceptZeroTools: !localProofResultPath,
+      committedRecordMustAcceptZeroTools: localProofResultPaths.length === 0,
       exactPerToolPrivateOutputContracts: privateOutputContractByTool,
     },
     counts: {
@@ -1200,7 +1241,8 @@ function buildReport(localProofResultPath?: string) {
       exactPerToolPrivateProofEvidenceShapeEnforced: true,
       routeSubmissionAllowedOnlyWithAcceptedPrivateProof:
         routeSubmissionReadyWithAcceptedPrivateProofTools > 0,
-      committedRecordAcceptsZeroGpuModelRuntimeProofs: !localProofResultPath,
+      committedRecordAcceptsZeroGpuModelRuntimeProofs:
+        localProofResultPaths.length === 0,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       gpuStartsOnlyForScopedAcceptedToolCall: true,
@@ -1291,17 +1333,17 @@ ${report.nextRequiredImplementationStep}
 }
 
 function main() {
-  const localProofResultPath = stringFlag('--local-runtime-proof-result')
+  const localProofResultPaths = stringFlags('--local-runtime-proof-result')
   const outputJson = stringFlag('--output-json')
   const writeRecords = hasFlag('--write-records')
 
-  if (writeRecords && localProofResultPath) {
+  if (writeRecords && localProofResultPaths.length > 0) {
     throw new Error(
       '--write-records cannot be combined with --local-runtime-proof-result; private proof bridge outputs must stay local-only.',
     )
   }
 
-  const report = buildReport(localProofResultPath)
+  const report = buildReport(localProofResultPaths)
   if (writeRecords) {
     fs.writeFileSync(outputJsonPath, `${JSON.stringify(report, null, 2)}\n`)
     fs.writeFileSync(outputMdPath, makeMarkdown(report))

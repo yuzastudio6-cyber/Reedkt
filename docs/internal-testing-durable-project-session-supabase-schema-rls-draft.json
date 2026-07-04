@@ -1,0 +1,135 @@
+{
+  "id": "internal-testing-durable-project-session-supabase-schema-rls-draft",
+  "scenarioId": "durable-project-session-supabase-schema-rls-draft",
+  "decision": "internal_testing_durable_project_session_supabase_schema_rls_draft_passed_ready_for_migration_sql_draft",
+  "priorDecision": "internal_testing_durable_project_session_supabase_route_contract_plan_passed_ready_for_schema_rls_draft",
+  "currentMode": "schema_rls_draft_only",
+  "nextMode": "migration_sql_draft",
+  "coreTables": [
+    {
+      "table": "profiles",
+      "requiredColumns": ["id"],
+      "accessPurpose": "server-verified user identity anchor",
+      "requiredIndex": "primary key on id"
+    },
+    {
+      "table": "workspaces",
+      "requiredColumns": ["id"],
+      "accessPurpose": "workspace scope anchor",
+      "requiredIndex": "primary key on id"
+    },
+    {
+      "table": "workspace_members",
+      "requiredColumns": ["workspace_id", "user_id", "role"],
+      "accessPurpose": "workspace membership proof for project/session access",
+      "requiredIndex": "workspace_members_user_workspace_lookup on user_id and workspace_id"
+    },
+    {
+      "table": "projects",
+      "requiredColumns": ["id", "workspace_id"],
+      "accessPurpose": "project-to-workspace ownership chain",
+      "requiredIndex": "projects_workspace_lookup on workspace_id"
+    },
+    {
+      "table": "edit_sessions",
+      "requiredColumns": ["id", "project_id"],
+      "accessPurpose": "edit-session-to-project ownership chain",
+      "requiredIndex": "edit_sessions_project_lookup on project_id"
+    }
+  ],
+  "routeDataTables": [
+    {
+      "table": "edit_briefs",
+      "requiredColumns": ["id", "project_id", "edit_session_id"],
+      "accessPurpose": "brief rows inherit project/session access",
+      "grantStatus": "draft_select_only_after_policy_review"
+    },
+    {
+      "table": "edit_cues",
+      "requiredColumns": ["id", "brief_id", "edit_session_id"],
+      "accessPurpose": "cue rows inherit brief and edit-session access",
+      "grantStatus": "draft_select_only_after_policy_review"
+    },
+    {
+      "table": "edit_session_export_settings",
+      "requiredColumns": ["id", "project_id", "edit_session_id"],
+      "accessPurpose": "export settings inherit project/session access",
+      "grantStatus": "draft_select_only_after_policy_review"
+    }
+  ],
+  "rlsPolicyIntents": [
+    "profiles self-read by auth.uid()",
+    "workspaces readable only through workspace_members",
+    "workspace_members readable only by the signed-in member",
+    "projects readable only through workspace membership",
+    "edit_sessions readable only through project workspace membership",
+    "route data tables inherit edit_session and project membership before any select grant graduates"
+  ],
+  "dataApiGrantIntents": [
+    "schema_usage_granted_to_authenticated",
+    "select_granted_to_authenticated_for_profiles_workspaces_workspace_members_projects_edit_sessions",
+    "route_data_table_select_grants_graduated_only_after_rls_policy_review",
+    "no_mutation_grants_until_write_route_contracts_are_separately_approved"
+  ],
+  "verificationChecks": [
+    "authenticated_user_can_read_own_profile",
+    "authenticated_user_can_read_only_member_workspaces",
+    "authenticated_user_can_read_only_projects_in_member_workspaces",
+    "authenticated_user_can_read_only_edit_sessions_in_member_projects",
+    "non_member_project_read_denied",
+    "non_member_edit_session_read_denied",
+    "anonymous_role_denied",
+    "mutation_grants_absent_for_internal_testing_draft",
+    "service_role_not_required_for_browser_or_frontend_safe_route_access"
+  ],
+  "blockedScope": {
+    "supabaseMigration": false,
+    "supabaseWrite": false,
+    "supabaseDataApiRead": false,
+    "storageSignedUrls": false,
+    "serviceRoleInBrowser": false,
+    "profileWorkspaceBootstrapWrites": false,
+    "providerOrModelCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "creditSpend": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "productReady": false,
+    "supabaseRouteImplementation": false,
+    "supabaseSchemaDraftApplied": false,
+    "rlsPolicyApplied": false,
+    "dataApiGrantApplied": false,
+    "liveRouteRead": false,
+    "liveRouteWrite": false,
+    "serviceRoleServerUse": false,
+    "migrationSqlWritten": false,
+    "migrationApplied": false,
+    "remoteSupabaseValidation": false,
+    "localSupabaseReset": false,
+    "generatedTypes": false,
+    "tableBackedRouteImplementation": false
+  },
+  "migrationApplied": false,
+  "durableSupabaseAccessAllowed": false,
+  "productReady": false,
+  "validation": {
+    "required": [
+      "smoke:internal-testing-durable-project-session-supabase-schema-rls-draft",
+      "smoke:internal-testing-durable-project-session-supabase-route-contract-plan",
+      "smoke:internal-testing-durable-project-session-backend-readback-qa",
+      "smoke:internal-testing-durable-project-session-backend-route-integration",
+      "smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton",
+      "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan",
+      "smoke:internal-testing-qa-wrapper",
+      "smoke:project-edit-brief-internal-testing-entrypoint",
+      "qa:internal-testing",
+      "typecheck:server",
+      "build",
+      "git diff --check",
+      "git diff --cached --check"
+    ]
+  },
+  "nextGate": "INTERNAL_TESTING_DURABLE_PROJECT_SESSION_SUPABASE_MIGRATION_SQL_DRAFT"
+}

@@ -303,6 +303,23 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'durable-project-session-supabase-schema-rls-draft',
+    title: 'Durable project/session Supabase schema/RLS draft',
+    description: 'Review the draft table, index, RLS, Data API grant, and verification contract before migration SQL is written.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Supabase schema/RLS draft panel.',
+      'Confirm the core tables include profiles, workspaces, workspace_members, projects, and edit_sessions.',
+      'Confirm route data tables inherit project/session access before select grants can graduate.',
+      'Confirm no SQL, migration, local reset, remote validation, generated types, live route read/write, or product-ready gate opens.',
+    ],
+    expectedResult:
+      'Internal testers can review the durable schema/RLS draft before migration SQL is written while live Supabase access remains disabled.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'library-search-filter',
     title: 'Edit Preferences library search/filter',
     description: 'Check seeded preference discovery, search, tag filters, and detail panels.',

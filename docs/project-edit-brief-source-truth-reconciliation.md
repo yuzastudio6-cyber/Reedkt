@@ -66,6 +66,7 @@ Passed:
 - `npm run smoke:internal-testing-durable-project-session-backend-route-integration`
 - `npm run smoke:internal-testing-durable-project-session-backend-readback-qa`
 - `npm run smoke:internal-testing-durable-project-session-supabase-route-contract-plan`
+- `npm run smoke:internal-testing-durable-project-session-supabase-schema-rls-draft`
 - `npm run typecheck:server`
 - `npm run build`
 - `git diff --check`
@@ -102,8 +103,9 @@ Passed:
 - Durable project/session backend route integration after RP-INTTEST-06: Project Edit Session and Project Edit Brief mock route responses include `projectSessionAccess` metadata from the backend skeleton while durable Supabase access remains disabled.
 - Durable project/session backend readback QA after RP-INTTEST-07: Project Edit Session and Project Edit Brief success and failure envelopes read back `projectSessionAccess` metadata with idempotent audit details while durable Supabase access remains disabled.
 - Durable project/session Supabase route contract plan after RP-INTTEST-08: Project Home, Project Edit Session, and Project Edit Brief route contracts are planned through `workspace_members`, `auth.uid()`, explicit Data API grants, authenticated-role RLS, service-role boundaries, audit/idempotency, and rate-limit requirements while live Supabase access remains disabled.
+- Durable project/session Supabase schema/RLS draft after RP-INTTEST-09: the core table, route data inheritance, index, authenticated-role RLS, Data API grant, and verification contract is drafted while migration SQL, local reset, remote validation, generated types, and table-backed route access remain disabled.
 - Real upload/source-media ingestion and privacy policy implementation.
-- Durable project/session Supabase schema/RLS draft.
+- Durable project/session Supabase migration SQL draft.
 - Planner integration from prepared Brief hints into approved plan snapshots.
 - Credit estimate/reservation integration before expensive work.
 - Worker/provider/render execution remains separately gated.

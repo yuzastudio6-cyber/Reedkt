@@ -34,6 +34,7 @@ const smokeCommands = [
   ['npm', ['run', 'smoke:internal-testing-durable-project-session-backend-route-integration']],
   ['npm', ['run', 'smoke:internal-testing-durable-project-session-backend-readback-qa']],
   ['npm', ['run', 'smoke:internal-testing-durable-project-session-supabase-route-contract-plan']],
+  ['npm', ['run', 'smoke:internal-testing-durable-project-session-supabase-schema-rls-draft']],
   ['npm', ['run', 'smoke:beta-readiness']],
 ]
 

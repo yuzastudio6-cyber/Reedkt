@@ -30,6 +30,11 @@ import {
   DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_NEXT_GATE,
   getDurableProjectSessionSupabaseRouteContractPlan,
 } from '../lib/project-session-supabase-route-contract-plan'
+import {
+  DURABLE_PROJECT_SESSION_SUPABASE_SCHEMA_RLS_DRAFT_DECISION,
+  DURABLE_PROJECT_SESSION_SUPABASE_SCHEMA_RLS_DRAFT_NEXT_GATE,
+  getDurableProjectSessionSupabaseSchemaRlsDraft,
+} from '../lib/project-session-supabase-schema-rls-draft'
 import { PROJECT_EDIT_SESSION_ACCESS_POLICY_REQUIRED_EVIDENCE } from '../lib/project-edit-session-access-policy'
 import { internalTestingScenarios, type InternalTestingScenarioStatus } from '../lib/internal-testing-scenarios'
 import {
@@ -156,6 +161,7 @@ function getScenarioHighlights() {
     'durable-project-session-backend-route-integration',
     'durable-project-session-backend-readback-qa',
     'durable-project-session-supabase-route-contract-plan',
+    'durable-project-session-supabase-schema-rls-draft',
     'feedback-export',
   ])
 
@@ -184,6 +190,7 @@ export function InternalTestingPage() {
   const highlightedScenarios = useMemo(getScenarioHighlights, [])
   const backendSkeleton = useMemo(getMockSafeDurableProjectSessionBackendSkeleton, [])
   const supabaseRouteContractPlan = useMemo(getDurableProjectSessionSupabaseRouteContractPlan, [])
+  const supabaseSchemaRlsDraft = useMemo(getDurableProjectSessionSupabaseSchemaRlsDraft, [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -796,6 +803,50 @@ export function InternalTestingPage() {
                 <li>No Supabase migration, SQL, Data API read/write, Storage, signed URL, grant application, or RLS policy application.</li>
                 <li>No service-role browser path, worker, tool, media, render, credit, external beta, production, or product-ready unlock.</li>
                 <li>Next work is a schema/RLS draft, not live route access.</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-durable-project-session-supabase-schema-rls-draft">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Schema/RLS draft</span>
+            <h2>Table-backed access needs a migration SQL draft before it can run</h2>
+          </div>
+          <p>
+            This draft names the core tables, route data tables, index intent, RLS intent, Data API grant intent, and verification checks needed
+            before durable project/session access can move toward a migration. It still writes no SQL and applies no Supabase policy.
+          </p>
+          <div className="internal-testing-auth-grid">
+            <article data-testid="internal-testing-supabase-schema-rls-draft-decision">
+              <Badge accent="success">Migration SQL draft ready</Badge>
+              <strong>{DURABLE_PROJECT_SESSION_SUPABASE_SCHEMA_RLS_DRAFT_DECISION}</strong>
+              <span>Next gate: {DURABLE_PROJECT_SESSION_SUPABASE_SCHEMA_RLS_DRAFT_NEXT_GATE}</span>
+            </article>
+            <article data-testid="internal-testing-supabase-schema-rls-draft-tables">
+              <Badge accent="cyan">Core tables</Badge>
+              <ul>
+                {supabaseSchemaRlsDraft.coreTables.map((table) => (
+                  <li key={table.table}>
+                    {table.table}: {table.requiredColumns.join(', ')}
+                  </li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-supabase-schema-rls-draft-verification">
+              <Badge accent="cyan">Verification checks</Badge>
+              <ul>
+                {supabaseSchemaRlsDraft.verificationChecks.slice(0, 5).map((check) => (
+                  <li key={check}>{check.replace(/_/g, ' ')}</li>
+                ))}
+              </ul>
+            </article>
+            <article data-testid="internal-testing-supabase-schema-rls-draft-boundaries">
+              <Badge accent="warning">Still gated</Badge>
+              <ul>
+                <li>No migration SQL is written, applied, or validated.</li>
+                <li>No local Supabase reset, remote validation, generated types, Data API read/write, Storage, or signed URL path.</li>
+                <li>No table-backed route implementation, service-role browser path, worker, media, render, credit, beta, production, or product-ready unlock.</li>
               </ul>
             </article>
           </div>

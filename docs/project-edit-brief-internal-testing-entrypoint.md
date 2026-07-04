@@ -84,6 +84,12 @@ The `durable-project-session-supabase-route-contract-plan` scenario is classifie
 
 This contract plan does not run Supabase Data API table reads/writes, SQL, migrations, Storage, signed URLs, service-role browser code, profile/workspace bootstrap writes, workers, media, render/export, credits, external beta, paid production, or product-ready behavior.
 
+## Durable Project Session Supabase Schema/RLS Draft
+
+The `durable-project-session-supabase-schema-rls-draft` scenario is classified as `mock_local` because the internal testing route now records the future table, index, RLS, Data API grant, and verification contract before any migration SQL is written. It names the core `profiles`, `workspaces`, `workspace_members`, `projects`, and `edit_sessions` chain plus route data inheritance for Brief rows.
+
+This schema/RLS draft does not write migration SQL, apply migrations, run local Supabase reset, validate a remote project, generate types, run Supabase Data API table reads/writes, create Storage objects, issue signed URLs, mutate credits, dispatch workers, process media, render/export, or mark the product ready.
+
 ## Boundaries
 
 - No upload or file-byte read.
@@ -115,6 +121,7 @@ Required validation:
 - `npm run smoke:internal-testing-durable-project-session-backend-route-integration`
 - `npm run smoke:internal-testing-durable-project-session-backend-readback-qa`
 - `npm run smoke:internal-testing-durable-project-session-supabase-route-contract-plan`
+- `npm run smoke:internal-testing-durable-project-session-supabase-schema-rls-draft`
 - `npm run qa:internal-testing`
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-readback-qa`
@@ -128,4 +135,4 @@ Required validation:
 
 ## Next
 
-Use `/internal-testing` for repeated internal QA and source-truth feedback capture. The next real product milestones remain durable project/session Supabase schema/RLS drafting, real planner integration into approved snapshots, transactional credit reservation/spend/release/refund persistence, and explicit runtime/persistence gates.
+Use `/internal-testing` for repeated internal QA and source-truth feedback capture. The next real product milestones remain durable project/session Supabase migration SQL drafting, real planner integration into approved snapshots, transactional credit reservation/spend/release/refund persistence, and explicit runtime/persistence gates.

@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
 const ROOT = process.cwd()
@@ -108,6 +109,8 @@ for (const required of [
   ACCOUNT_OVERRIDE_ENV,
   ACCOUNT_OVERRIDE_INDEX_ENV,
   'CLOUDSDK_CORE_ACCOUNT: accountOverride',
+  'brollAccessRepairHint',
+  'external-agent-gcp-access:repair-plan',
   'ai-video-broll-wan-gpu-global-quota-verify.ts',
   'ai-video-broll-wan-fast-cache-readiness-check.ts',
   'ai-video-broll-gen-11b:l4-model-import-runner',
@@ -155,6 +158,7 @@ const staticReport = runCli(['--json'])
 assert.equal(staticReport.ok, false)
 assert.equal(staticReport.mode, 'external_agent_broll_wan_execution_static_guard')
 assertAccountOverride(staticReport)
+assertBrollAccessRepair(staticReport)
 assert.equal(staticReport.executeRequired, true)
 assert.equal(staticReport.confirmationEnv, CONFIRM_ENV)
 assert.equal(staticReport.confirmationEnvRequiredValue, 'true')
@@ -184,6 +188,7 @@ const confirmationBlocked = runCli(['--execute', '--json'])
 assert.equal(confirmationBlocked.ok, false)
 assert.equal(confirmationBlocked.mode, 'external_agent_broll_wan_execution_confirmation_blocked')
 assertAccountOverride(confirmationBlocked)
+assertBrollAccessRepair(confirmationBlocked)
 assert.equal(confirmationBlocked.status, 'blocked')
 assert.deepEqual(confirmationBlocked.blockers, [`confirmation_env_required:${CONFIRM_ENV}=true`])
 assert.equal(confirmationBlocked.cacheFillConfirmationEnv, CACHE_FILL_CONFIRM_ENV)
@@ -202,6 +207,7 @@ const inferenceStatic = runCli(['--inference-proof', '--json'])
 assert.equal(inferenceStatic.ok, false)
 assert.equal(inferenceStatic.mode, 'external_agent_broll_wan_inference_proof_static_guard')
 assertAccountOverride(inferenceStatic)
+assertBrollAccessRepair(inferenceStatic)
 assert.equal(inferenceStatic.executeRequired, true)
 assert.equal(inferenceStatic.confirmationEnv, INFERENCE_CONFIRM_ENV)
 assert.equal(inferenceStatic.delegatedRunnerConfirmationEnv, INFERENCE_RUNNER_CONFIRM_ENV)
@@ -226,6 +232,7 @@ const inferenceBlocked = runCli(['--inference-proof', '--execute', '--json'])
 assert.equal(inferenceBlocked.ok, false)
 assert.equal(inferenceBlocked.mode, 'external_agent_broll_wan_inference_proof_confirmation_blocked')
 assertAccountOverride(inferenceBlocked)
+assertBrollAccessRepair(inferenceBlocked)
 assert.equal(inferenceBlocked.status, 'blocked')
 assert.deepEqual(inferenceBlocked.blockers, [`confirmation_env_required:${INFERENCE_CONFIRM_ENV}=true`])
 assert.equal(inferenceBlocked.runtimeRunNow, false)
@@ -320,4 +327,30 @@ function assertAccountOverride(report: Record<string, unknown>) {
   assert.equal(typeof report.gcloudAccountOverrideIndexProvided, 'boolean')
   assert.equal(typeof report.gcloudAccountOverrideResolved, 'boolean')
   assert.equal(report.gcloudAccountOverrideMutatesLocalConfig, false)
+}
+
+function assertBrollAccessRepair(report: Record<string, unknown>) {
+  const repair = report.gcpAccessRepair as {
+    command?: string
+    blocker?: string
+    requiredReadPermissions?: Array<{ permission: string }>
+    likelyMinimalRole?: string
+    verificationCommand?: string
+    mutatesGcp?: boolean
+    authorizesRuntimeExecution?: boolean
+  }
+  const brollRepair = EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.tools.find(
+    (tool) => tool.toolId === 'ai_video_broll_generation_wan',
+  )
+
+  assert.equal(repair.command, 'npm run external-agent-gcp-access:repair-plan')
+  assert.equal(repair.blocker, brollRepair?.blocker)
+  assert.deepEqual(
+    repair.requiredReadPermissions?.map((permission) => permission.permission),
+    ['compute.projects.get', 'compute.regions.get'],
+  )
+  assert.equal(repair.likelyMinimalRole, 'roles/compute.viewer')
+  assert.equal(repair.verificationCommand, brollRepair?.verificationCommand)
+  assert.equal(repair.mutatesGcp, false)
+  assert.equal(repair.authorizesRuntimeExecution, false)
 }

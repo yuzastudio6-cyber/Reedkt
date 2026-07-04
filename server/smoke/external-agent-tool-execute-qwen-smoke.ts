@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
 const ROOT = process.cwd()
@@ -93,6 +94,8 @@ for (const required of [
   ACCOUNT_OVERRIDE_ENV,
   ACCOUNT_OVERRIDE_INDEX_ENV,
   'CLOUDSDK_CORE_ACCOUNT: accountOverride',
+  'qwenAccessRepairHint',
+  'external-agent-gcp-access:repair-plan',
   'parseJsonOutput',
   "trimmed.indexOf('{')",
   "trimmed.lastIndexOf('}')",
@@ -118,6 +121,7 @@ assert.equal(staticReport.gcloudAccountOverrideIndexEnv, ACCOUNT_OVERRIDE_INDEX_
 assert.equal(typeof staticReport.gcloudAccountOverrideIndexProvided, 'boolean')
 assert.equal(typeof staticReport.gcloudAccountOverrideResolved, 'boolean')
 assert.equal(staticReport.gcloudAccountOverrideMutatesLocalConfig, false)
+assertQwenAccessRepair(staticReport)
 assert.deepEqual(
   staticReport.canonicalCommand,
   EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenExternalAgentExecutionCommand,
@@ -148,6 +152,7 @@ assert.equal(confirmationBlocked.gcloudAccountOverrideIndexEnv, ACCOUNT_OVERRIDE
 assert.equal(typeof confirmationBlocked.gcloudAccountOverrideIndexProvided, 'boolean')
 assert.equal(typeof confirmationBlocked.gcloudAccountOverrideResolved, 'boolean')
 assert.equal(confirmationBlocked.gcloudAccountOverrideMutatesLocalConfig, false)
+assertQwenAccessRepair(confirmationBlocked)
 assert.equal(confirmationBlocked.runtimeRunNow, false)
 assert.equal(confirmationBlocked.cloudRunJobExecuted, false)
 assert.equal(confirmationBlocked.modelInferenceRun, false)
@@ -179,3 +184,29 @@ console.log(
     2,
   ),
 )
+
+function assertQwenAccessRepair(report: Record<string, unknown>) {
+  const repair = report.gcpAccessRepair as {
+    command?: string
+    blocker?: string
+    requiredReadPermissions?: Array<{ permission: string }>
+    likelyMinimalRole?: string
+    verificationCommand?: string
+    mutatesGcp?: boolean
+    authorizesRuntimeExecution?: boolean
+  }
+  const qwenRepair = EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.tools.find(
+    (tool) => tool.toolId === 'qwen2_5_vl_7b_instruct',
+  )
+
+  assert.equal(repair.command, 'npm run external-agent-gcp-access:repair-plan')
+  assert.equal(repair.blocker, qwenRepair?.blocker)
+  assert.deepEqual(
+    repair.requiredReadPermissions?.map((permission) => permission.permission),
+    ['run.services.get', 'run.jobs.get'],
+  )
+  assert.equal(repair.likelyMinimalRole, 'roles/run.viewer')
+  assert.equal(repair.verificationCommand, qwenRepair?.verificationCommand)
+  assert.equal(repair.mutatesGcp, false)
+  assert.equal(repair.authorizesRuntimeExecution, false)
+}

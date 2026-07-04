@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backend/mock/mock-external-agent-tool-execution-readiness-rollup'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
@@ -73,6 +74,7 @@ function main() {
         'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
       canonicalCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.brollWanExternalAgentProofCommand,
       noIdleLifecycleGate: brollTool?.noIdleLifecycleGate,
+      gcpAccessRepair: brollAccessRepairHint(),
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -103,6 +105,7 @@ function main() {
       gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
       ...accountSelectionOutput(),
       gcloudAccountOverrideMutatesLocalConfig: false,
+      gcpAccessRepair: brollAccessRepairHint(),
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -125,6 +128,7 @@ function main() {
   const blockers = validateReadiness(quota.json, cache.json)
 
   if (blockers.length > 0) {
+    const accessRepairRequired = brollAccessRepairRequired(blockers, quota.json)
     print({
       ok: false,
       mode: 'external_agent_broll_wan_execution_preflight_result',
@@ -132,9 +136,11 @@ function main() {
       blockers,
       brollQuota: summarizeBrollQuota(quota.json),
       cacheReadiness: summarizeCacheReadiness(cache.json),
-      nextPrompt:
-        blockers.includes('broll_gpus_all_regions_quota_not_sufficient') ||
-        blockers.includes('broll_live_quota_verify_missing')
+      gcpAccessRepair: brollAccessRepairHint(),
+      nextPrompt: accessRepairRequired
+        ? 'QWEN2_5_VL_STACK_TOOL_58DQ-GCP-ACCESS-VERIFY: verify selected local gcloud account can read Qwen Cloud Run and B-roll quota, no execution'
+        : blockers.includes('broll_gpus_all_regions_quota_not_sufficient') ||
+            blockers.includes('broll_live_quota_verify_missing')
           ? 'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes'
           : 'AI-VIDEO-BROLL-GEN-11B-MODEL-IMPORT-PROOF: run bounded no-idle L4 Wan model import proof, no inference',
       runtimeRunNow: false,
@@ -224,6 +230,7 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
       delegatedRunnerScript: INFERENCE_RUNNER_SCRIPT,
       delegatedRunnerArgs: ['--execute'],
       noIdleLifecycleGate: asRecord(brollTool).noIdleLifecycleGate,
+      gcpAccessRepair: brollAccessRepairHint(),
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -259,6 +266,7 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
       gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
       ...accountSelectionOutput(),
       gcloudAccountOverrideMutatesLocalConfig: false,
+      gcpAccessRepair: brollAccessRepairHint(),
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -478,6 +486,31 @@ function summarizeBrollQuota(document: JsonRecord | undefined) {
     targetRegion: quota.targetRegion,
     targetZone: quota.targetZone,
     readyForBrollNoIdleProofPrompt: quota.readyForBrollNoIdleProofPrompt,
+  }
+}
+
+function brollAccessRepairRequired(blockers: string[], quota: JsonRecord | undefined): boolean {
+  const quotaRecord = asRecord(quota)
+  return (
+    quotaRecord.blocker === 'gcloud_account_lacks_compute_quota_read_access' ||
+    blockers.includes('broll_project_quota_read_not_passed') ||
+    blockers.includes('broll_region_quota_read_not_passed')
+  )
+}
+
+function brollAccessRepairHint() {
+  const broll = EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.tools.find(
+    (tool) => tool.toolId === 'ai_video_broll_generation_wan',
+  )
+
+  return {
+    command: 'npm run external-agent-gcp-access:repair-plan',
+    blocker: broll?.blocker,
+    requiredReadPermissions: broll?.requiredReadPermissions,
+    likelyMinimalRole: broll?.likelyMinimalRole,
+    verificationCommand: broll?.verificationCommand,
+    mutatesGcp: false,
+    authorizesRuntimeExecution: false,
   }
 }
 

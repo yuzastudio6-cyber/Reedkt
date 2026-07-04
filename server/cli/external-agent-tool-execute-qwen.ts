@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
+import { EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN } from '../../src/backend/mock/mock-external-agent-gcp-access-repair-plan'
 import { EXTERNAL_AGENT_TOOL_NEXT_COMMAND } from '../../src/backend/mock/mock-external-agent-tool-next-command'
 
 type JsonRecord = Record<string, unknown>
@@ -35,6 +36,7 @@ function main() {
       gcloudAccountOverrideMutatesLocalConfig: false,
       canonicalCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenExternalAgentExecutionCommand,
       delegatedBoundedCommand: EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenBoundedExecutionCommand,
+      gcpAccessRepair: qwenAccessRepairHint(),
       runtimeRunNow: false,
       cloudRunJobExecuted: false,
       modelInferenceRun: false,
@@ -60,6 +62,7 @@ function main() {
       gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
       ...accountSelectionOutput(),
       gcloudAccountOverrideMutatesLocalConfig: false,
+      gcpAccessRepair: qwenAccessRepairHint(),
       runtimeRunNow: false,
       cloudRunJobExecuted: false,
       modelInferenceRun: false,
@@ -86,6 +89,7 @@ function main() {
       gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
       ...accountSelectionOutput(),
       gcloudAccountOverrideMutatesLocalConfig: false,
+      gcpAccessRepair: qwenAccessRepairHint(),
       runtimeRunNow: false,
       cloudRunJobExecuted: false,
       modelInferenceRun: false,
@@ -142,9 +146,25 @@ function summarizeNextCommand(document: JsonRecord | undefined) {
     readyForAnyExternalAgentExecutionNow: document.readyForAnyExternalAgentExecutionNow,
     staticExplicitToolGateReady: document.staticExplicitToolGateReady,
     qwenLivePreflightPassed: document.qwenLivePreflightPassed,
+    chosenNextCommand: document.chosenNextCommand,
+    manualActionReason: document.manualActionReason,
     chosenManualAction: document.chosenManualAction,
     qwenExternalAgentExecutionCommandPresent: Boolean(document.qwenExternalAgentExecutionCommand),
     qwenBoundedExecutionCommandPresent: Boolean(document.qwenBoundedExecutionCommand),
+  }
+}
+
+function qwenAccessRepairHint() {
+  const qwen = EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN.tools.find((tool) => tool.toolId === 'qwen2_5_vl_7b_instruct')
+
+  return {
+    command: 'npm run external-agent-gcp-access:repair-plan',
+    blocker: qwen?.blocker,
+    requiredReadPermissions: qwen?.requiredReadPermissions,
+    likelyMinimalRole: qwen?.likelyMinimalRole,
+    verificationCommand: qwen?.verificationCommand,
+    mutatesGcp: false,
+    authorizesRuntimeExecution: false,
   }
 }
 

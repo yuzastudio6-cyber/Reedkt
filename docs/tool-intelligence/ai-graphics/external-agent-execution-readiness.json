@@ -30,7 +30,23 @@
       "decision": "ai_graphics_external_agent_gpu_model_runtime_proof_ref_bridge_prepared_with_runtime_blocks",
       "status": "gpu_model_runtime_proof_ref_bridge_blocked_until_private_local_runtime_proof_is_supplied",
       "accepted": true
-    }
+    },
+    "currentHostGpuProofPreflight": null
+  },
+  "executionScope": {
+    "agentCanSubmitControlledRequestsForAll21": true,
+    "agentCanExecuteAnyControlledToolNow": true,
+    "agentCanExecute13NonGpuControlledToolsNow": true,
+    "agentCanExecuteGpuModelToolsNow": false,
+    "agentCanExecuteAll21ControlledToolsNow": false,
+    "agentExecutableToolCountNow": 13,
+    "agentExecutableNonGpuToolCountNow": 13,
+    "agentExecutableGpuModelToolCountNow": 0,
+    "gpuModelBlockedToolCountNow": 8,
+    "currentHostGpuProofPreflightRequested": false,
+    "currentHostEligibleForGpuProof": false,
+    "currentHostGpuProofBlockers": [],
+    "currentHostGpuProofPreflightCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --detect-host"
   },
   "counts": {
     "totalToolsCovered": 21,
@@ -42,6 +58,7 @@
     "gpuModelProofRefBridgeAcceptedTools": 0,
     "gpuModelProofRefBridgeBlockedTools": 8,
     "gpuModelBlockedWithReasonTools": 8,
+    "currentHostGpuProofBlockers": 0,
     "blockedWithReasonTools": 8,
     "failedWithDiagnosticsTools": 0,
     "gpuRuntimeShouldStartNowTools": 0,
@@ -73,9 +90,14 @@
     "sourceScopedGpuRuntimeStartedOnlyDuringAcceptedProof": true,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": true,
+    "agentCanExecuteAnyControlledToolNow": true,
     "agentCanExecute13ControlledToolsNow": true,
+    "agentCanExecute13NonGpuControlledToolsNow": true,
     "agentCanExecuteAll21ToolsNow": false,
+    "agentCanExecuteAll21ControlledToolsNow": false,
     "agentCanExecuteGpuModelToolsNow": false,
+    "currentHostGpuProofPreflightRequested": false,
+    "currentHostEligibleForGpuProof": false,
     "routeExecutionApprovedNow": true,
     "routeExecutionPerformedInReadinessRunner": true,
     "toolExecutionApprovedFor13ControlledToolsNow": true,
@@ -1292,6 +1314,7 @@
     "nextExactControlledRouteCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm",
     "nextExactProofRefBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
     "nextExactReadinessWithPrivateProofCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
+    "nextExactCurrentHostPreflightCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --detect-host",
     "expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached": "gpu_model_runtime_container_gpu_unavailable",
     "remainsBlockedUntil": "Run on an approved native Linux/amd64 NVIDIA CUDA host with the canonical proof image available and a private approved source frame mounted locally."
   },

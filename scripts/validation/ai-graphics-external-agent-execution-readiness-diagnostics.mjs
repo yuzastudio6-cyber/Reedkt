@@ -227,6 +227,7 @@ function checkReport(label, report) {
     gpuModelProofRefBridgeAcceptedTools: 0,
     gpuModelProofRefBridgeBlockedTools: 8,
     gpuModelBlockedWithReasonTools: 8,
+    currentHostGpuProofBlockers: 0,
     blockedWithReasonTools: 8,
     failedWithDiagnosticsTools: 0,
     gpuRuntimeShouldStartNowTools: 0,
@@ -259,7 +260,9 @@ function checkReport(label, report) {
     'noIdleGpuRuntimeApproved',
     'agentCanSelectForPlanning',
     'agentCanExecuteToolsNow',
+    'agentCanExecuteAnyControlledToolNow',
     'agentCanExecute13ControlledToolsNow',
+    'agentCanExecute13NonGpuControlledToolsNow',
     'routeExecutionApprovedNow',
     'toolExecutionApprovedFor13ControlledToolsNow',
   ]) {
@@ -268,7 +271,10 @@ function checkReport(label, report) {
   for (const key of [
     'gpuRuntimeShouldStartNow',
     'agentCanExecuteAll21ToolsNow',
+    'agentCanExecuteAll21ControlledToolsNow',
     'agentCanExecuteGpuModelToolsNow',
+    'currentHostGpuProofPreflightRequested',
+    'currentHostEligibleForGpuProof',
     'privateLocalRuntimeProofResultSupplied',
     'toolExecutionApprovedForGpuModelToolsNow',
     'toolExecutionApprovedForAll21ToolsNow',
@@ -296,6 +302,38 @@ function checkReport(label, report) {
     'packageLockMutationPerformed',
   ]) {
     if (booleans[key] !== false) fail(`${label}_${key}_not_false`)
+  }
+
+  const executionScope = report.executionScope ?? {}
+  const expectedScope = {
+    agentCanSubmitControlledRequestsForAll21: true,
+    agentCanExecuteAnyControlledToolNow: true,
+    agentCanExecute13NonGpuControlledToolsNow: true,
+    agentCanExecuteGpuModelToolsNow: false,
+    agentCanExecuteAll21ControlledToolsNow: false,
+    agentExecutableToolCountNow: 13,
+    agentExecutableNonGpuToolCountNow: 13,
+    agentExecutableGpuModelToolCountNow: 0,
+    gpuModelBlockedToolCountNow: 8,
+    currentHostGpuProofPreflightRequested: false,
+    currentHostEligibleForGpuProof: false,
+  }
+  for (const [key, value] of Object.entries(expectedScope)) {
+    if (executionScope[key] !== value) {
+      fail(`${label}_execution_scope_mismatch:${key}:${executionScope[key]}`)
+    }
+  }
+  if (!Array.isArray(executionScope.currentHostGpuProofBlockers)) {
+    fail(`${label}_execution_scope_host_blockers_not_array`)
+  } else if (executionScope.currentHostGpuProofBlockers.length !== 0) {
+    fail(`${label}_execution_scope_default_host_blockers_not_empty`)
+  }
+  if (
+    !String(executionScope.currentHostGpuProofPreflightCommand ?? '').includes(
+      '--detect-host',
+    )
+  ) {
+    fail(`${label}_execution_scope_missing_detect_host_command`)
   }
 
   const rows = Array.isArray(report.toolReadinessRows)
@@ -547,6 +585,14 @@ if (
 ) {
   fail('fastest_gpu_unlock_candidate_readiness_command_missing_private_result_flag')
 }
+if (
+  !String(
+    docs.fastestGpuModelUnlockCandidate
+      ?.nextExactCurrentHostPreflightCommand ?? '',
+  ).includes('--detect-host')
+) {
+  fail('fastest_gpu_unlock_candidate_missing_current_host_preflight_command')
+}
 for (const flag of [
   '--scoped-gpu-tool kornia',
   '--scoped-gpu-runtime-container-image',
@@ -566,15 +612,50 @@ for (const flag of [
 checkReport('docs', docs)
 const live = JSON.parse(exec(`npm run --silent ${runScriptName}`))
 checkReport('live', live)
+const liveHost = JSON.parse(exec(`npm run --silent ${runScriptName} -- --detect-host`))
+if (liveHost.executionScope?.currentHostGpuProofPreflightRequested !== true) {
+  fail('live_host_preflight_not_requested')
+}
+if (liveHost.booleans?.currentHostGpuProofPreflightRequested !== true) {
+  fail('live_host_boolean_preflight_not_requested')
+}
+if (liveHost.sourceEvidence?.currentHostGpuProofPreflight?.accepted !== true) {
+  fail('live_host_preflight_source_not_accepted')
+}
+if (
+  typeof liveHost.executionScope?.currentHostEligibleForGpuProof !== 'boolean'
+) {
+  fail('live_host_eligible_not_boolean')
+}
+const liveHostBlockers = liveHost.executionScope?.currentHostGpuProofBlockers
+if (!Array.isArray(liveHostBlockers)) {
+  fail('live_host_blockers_not_array')
+} else if (
+  liveHost.executionScope.currentHostEligibleForGpuProof === false &&
+  liveHostBlockers.length === 0
+) {
+  fail('live_host_ineligible_without_blockers')
+}
+if (
+  liveHost.counts?.currentHostGpuProofBlockers !==
+  (Array.isArray(liveHostBlockers) ? liveHostBlockers.length : undefined)
+) {
+  fail('live_host_blocker_count_mismatch')
+}
 
 const cli = read('server/cli/ai-graphics-external-agent-execution-readiness.ts')
 for (const phrase of [
   '--local-runtime-proof-result',
   '--write-records cannot be combined with --local-runtime-proof-result',
+  '--write-records cannot be combined with --detect-host',
+  'hostDetectionReadinessCommand',
+  'currentHostGpuProofPreflight',
+  'currentHostEligibleForGpuProof',
   'mergeGpuHarnessWithPrivateProof',
   'runJsonFileCommand',
   'privateProofStatus',
   'nextExactReadinessWithPrivateProofCommand',
+  'nextExactCurrentHostPreflightCommand',
 ]) {
   if (!cli.includes(phrase)) fail(`cli_missing_private_proof_phrase:${phrase}`)
 }
@@ -615,10 +696,12 @@ for (const phrase of [
   'failed_with_diagnostics',
   'GPU runtime is on-demand only',
   '13 tools execute controlled local adapters now',
+  'Execution Scope',
   'Fastest GPU/Model Unlock Candidate',
   'Next controlled route command',
   'Next proof-ref bridge command',
   'Next direct readiness command with private proof',
+  'Next current-host preflight command',
   'gpu_model_runtime_container_gpu_unavailable',
 ]) {
   if (!markdown.includes(phrase)) fail(`markdown_missing_phrase:${phrase}`)

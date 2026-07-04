@@ -13,6 +13,22 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `blocked_with_reason`: The request shape is valid, but a required runtime/model/input prerequisite is absent.
 - `failed_with_diagnostics`: Execution was attempted or route validation failed and the row includes an actionable reason.
 
+## Execution Scope
+
+- `agentCanSubmitControlledRequestsForAll21`: true
+- `agentCanExecuteAnyControlledToolNow`: true
+- `agentCanExecute13NonGpuControlledToolsNow`: true
+- `agentCanExecuteGpuModelToolsNow`: false
+- `agentCanExecuteAll21ControlledToolsNow`: false
+- `agentExecutableToolCountNow`: 13
+- `agentExecutableNonGpuToolCountNow`: 13
+- `agentExecutableGpuModelToolCountNow`: 0
+- `gpuModelBlockedToolCountNow`: 8
+- `currentHostGpuProofPreflightRequested`: false
+- `currentHostEligibleForGpuProof`: false
+- `currentHostGpuProofBlockers`: none
+- `currentHostGpuProofPreflightCommand`: npm run --silent ai-graphics:external-agent-execution-readiness -- --detect-host
+
 ## Tool Rows
 
 | Tool | Group | Readiness state | Callable | Executable | Minimum private runtime inputs | Blocking prerequisite |
@@ -50,6 +66,7 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `gpuModelProofRefBridgeAcceptedTools`: 0
 - `gpuModelProofRefBridgeBlockedTools`: 8
 - `gpuModelBlockedWithReasonTools`: 8
+- `currentHostGpuProofBlockers`: 0
 - `blockedWithReasonTools`: 8
 - `failedWithDiagnosticsTools`: 0
 - `gpuRuntimeShouldStartNowTools`: 0
@@ -75,6 +92,7 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - Next controlled route command: `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm`
 - Next proof-ref bridge command: `npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json`
 - Next direct readiness command with private proof: `npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json`
+- Next current-host preflight command: `npm run --silent ai-graphics:external-agent-execution-readiness -- --detect-host`
 
 ## Booleans
 
@@ -95,9 +113,14 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `sourceScopedGpuRuntimeStartedOnlyDuringAcceptedProof`: true
 - `agentCanSelectForPlanning`: true
 - `agentCanExecuteToolsNow`: true
+- `agentCanExecuteAnyControlledToolNow`: true
 - `agentCanExecute13ControlledToolsNow`: true
+- `agentCanExecute13NonGpuControlledToolsNow`: true
 - `agentCanExecuteAll21ToolsNow`: false
+- `agentCanExecuteAll21ControlledToolsNow`: false
 - `agentCanExecuteGpuModelToolsNow`: false
+- `currentHostGpuProofPreflightRequested`: false
+- `currentHostEligibleForGpuProof`: false
 - `routeExecutionApprovedNow`: true
 - `routeExecutionPerformedInReadinessRunner`: true
 - `toolExecutionApprovedFor13ControlledToolsNow`: true

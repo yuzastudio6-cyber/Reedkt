@@ -235,6 +235,13 @@ function directReadinessWithPrivateProofCommand(): string {
   ].join(' ')
 }
 
+function hostDetectionReadinessCommand(): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-execution-readiness --',
+    '--detect-host',
+  ].join(' ')
+}
+
 function nextGpuCommand(toolId: string): string {
   return toolId === 'kornia'
     ? containerGpuCommand(toolId)
@@ -466,6 +473,11 @@ function buildReport() {
       '--write-records cannot be combined with --local-runtime-proof-result; private proof results must stay local-only.',
     )
   }
+  if (hasFlag('--write-records') && hasFlag('--detect-host')) {
+    throw new Error(
+      '--write-records cannot be combined with --detect-host; host-specific GPU proof preflight must stay local-only.',
+    )
+  }
   if (
     localRuntimeProofResultPath &&
     stringFlag('--gpu-runtime-proof-ref-bridge-packet')
@@ -509,6 +521,15 @@ function buildReport() {
         stringFlag('--gpu-runtime-proof-ref-bridge-packet') ??
           'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-proof-ref-bridge.json',
       )
+  const currentHostGpuProofPreflight = hasFlag('--detect-host')
+    ? runJsonFileCommand('npm', [
+        'run',
+        '--silent',
+        'ai-graphics:gpu-runtime-proof-local-preflight',
+        '--',
+        '--detect-host',
+      ])
+    : null
 
   assert(
     routeSmoke.decision ===
@@ -549,6 +570,37 @@ function buildReport() {
   const blockedRows = toolRows.filter((row) => row.blockedWithReason)
   const gpuBlockedRows = blockedRows.filter((row) => row.group === 'gpu_model')
   const failedRows = toolRows.filter((row) => row.failedWithDiagnostics)
+  const currentHostEnvironment =
+    currentHostGpuProofPreflight &&
+    typeof currentHostGpuProofPreflight.hostEnvironment === 'object'
+      ? currentHostGpuProofPreflight.hostEnvironment
+      : null
+  const currentHostGpuProofBlockers = Array.isArray(
+    currentHostEnvironment?.blockers,
+  )
+    ? currentHostEnvironment.blockers.filter(
+        (blocker: unknown): blocker is string => typeof blocker === 'string',
+      )
+    : []
+  const currentHostEligibleForGpuProof =
+    currentHostEnvironment?.hostEligibleForNativeGpuProof === true
+  const executionScope = {
+    agentCanSubmitControlledRequestsForAll21: true,
+    agentCanExecuteAnyControlledToolNow: executableTools.length > 0,
+    agentCanExecute13NonGpuControlledToolsNow:
+      nonGpuExecutableTools.length === 13,
+    agentCanExecuteGpuModelToolsNow: gpuExecutableTools.length > 0,
+    agentCanExecuteAll21ControlledToolsNow: executableTools.length === 21,
+    agentExecutableToolCountNow: executableTools.length,
+    agentExecutableNonGpuToolCountNow: nonGpuExecutableTools.length,
+    agentExecutableGpuModelToolCountNow: gpuExecutableTools.length,
+    gpuModelBlockedToolCountNow: gpuBlockedRows.length,
+    currentHostGpuProofPreflightRequested:
+      currentHostGpuProofPreflight !== null,
+    currentHostEligibleForGpuProof,
+    currentHostGpuProofBlockers,
+    currentHostGpuProofPreflightCommand: hostDetectionReadinessCommand(),
+  }
 
   return {
     schemaVersion:
@@ -596,7 +648,15 @@ function buildReport() {
         status: gpuProofRefBridge.status,
         accepted: true,
       },
+      currentHostGpuProofPreflight: currentHostGpuProofPreflight
+        ? {
+            decision: currentHostGpuProofPreflight.decision,
+            hostEnvironment: currentHostEnvironment,
+            accepted: true,
+          }
+        : null,
     },
+    executionScope,
     counts: {
       totalToolsCovered: toolRows.length,
       agentCallableTools: toolRows.filter((row) => row.callable).length,
@@ -616,6 +676,8 @@ function buildReport() {
           row.routeSubmissionReadyWithAcceptedPrivateProof === false
         )).length,
       gpuModelBlockedWithReasonTools: gpuBlockedRows.length,
+      currentHostGpuProofBlockers:
+        currentHostGpuProofBlockers.length,
       blockedWithReasonTools: blockedRows.length,
       failedWithDiagnosticsTools: failedRows.length,
       gpuRuntimeShouldStartNowTools:
@@ -677,9 +739,19 @@ function buildReport() {
           )),
       agentCanSelectForPlanning: true,
       agentCanExecuteToolsNow: executableTools.length > 0,
+      agentCanExecuteAnyControlledToolNow:
+        executionScope.agentCanExecuteAnyControlledToolNow,
       agentCanExecute13ControlledToolsNow: nonGpuExecutableTools.length === 13,
+      agentCanExecute13NonGpuControlledToolsNow:
+        executionScope.agentCanExecute13NonGpuControlledToolsNow,
       agentCanExecuteAll21ToolsNow: executableTools.length === 21,
+      agentCanExecuteAll21ControlledToolsNow:
+        executionScope.agentCanExecuteAll21ControlledToolsNow,
       agentCanExecuteGpuModelToolsNow: gpuExecutableTools.length > 0,
+      currentHostGpuProofPreflightRequested:
+        executionScope.currentHostGpuProofPreflightRequested,
+      currentHostEligibleForGpuProof:
+        executionScope.currentHostEligibleForGpuProof,
       routeExecutionApprovedNow: true,
       routeExecutionPerformedInReadinessRunner: !hasFlag('--use-records-only'),
       toolExecutionApprovedFor13ControlledToolsNow: true,
@@ -721,6 +793,7 @@ function buildReport() {
       nextExactProofRefBridgeCommand: proofRefBridgeCommand(),
       nextExactReadinessWithPrivateProofCommand:
         directReadinessWithPrivateProofCommand(),
+      nextExactCurrentHostPreflightCommand: hostDetectionReadinessCommand(),
       expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached:
         'gpu_model_runtime_container_gpu_unavailable',
       remainsBlockedUntil:
@@ -750,6 +823,10 @@ This is the strict all-21 external-agent readiness report. It separates \`callab
 
 ${Object.entries(report.stateDefinitions).map(([key, value]) => `- \`${key}\`: ${value}`).join('\n')}
 
+## Execution Scope
+
+${Object.entries(report.executionScope).map(([key, value]) => `- \`${key}\`: ${Array.isArray(value) ? value.join('; ') || 'none' : value}`).join('\n')}
+
 ## Tool Rows
 
 | Tool | Group | Readiness state | Callable | Executable | Minimum private runtime inputs | Blocking prerequisite |
@@ -772,6 +849,7 @@ ${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).
 - Next controlled route command: \`${report.fastestGpuModelUnlockCandidate.nextExactControlledRouteCommand}\`
 - Next proof-ref bridge command: \`${report.fastestGpuModelUnlockCandidate.nextExactProofRefBridgeCommand}\`
 - Next direct readiness command with private proof: \`${report.fastestGpuModelUnlockCandidate.nextExactReadinessWithPrivateProofCommand}\`
+- Next current-host preflight command: \`${report.fastestGpuModelUnlockCandidate.nextExactCurrentHostPreflightCommand}\`
 
 ## Booleans
 

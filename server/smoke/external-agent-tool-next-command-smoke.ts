@@ -84,6 +84,12 @@ assert.equal(spec.mode, 'read_only_external_agent_tool_next_command_decision')
 assert.equal(spec.paidProductionInScope, false)
 assert.equal(spec.dryRunPassedClaimed, false)
 assert.equal(spec.generatedLocalFixturePassedClaimed, false)
+assert.equal(spec.accountSelection.overrideEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT')
+assert.equal(spec.accountSelection.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
+assert.equal(spec.accountSelection.mapsToCloudSdkCoreAccount, true)
+assert.equal(spec.accountSelection.mutatesLocalGcloudConfig, false)
+assert.equal(spec.accountSelection.printsAccountValue, false)
+assert.equal(spec.accountSelection.tokenStdoutSuppressed, true)
 assert.equal(spec.allowedProbeScripts.length, 4)
 assert.equal(
   spec.allowedProbeScripts.some((probe) => probe.id === 'gcloud_account_access_diagnostic'),
@@ -227,6 +233,7 @@ for (const probe of spec.allowedProbeScripts) {
 
 const cliSource = read(CLI_PATH)
 assert.equal(cliSource.includes('spawnSync'), true)
+assert.equal(cliSource.includes('spec.accountSelection.overrideEnv'), true)
 for (const forbidden of [
   'gcloud ',
   'docker ',
@@ -249,6 +256,16 @@ const decision = JSON.parse(output)
 assert.equal(decision.ok, true)
 assert.equal(decision.mode, spec.mode)
 assert.equal(decision.liveReadOnlyChecksRun, true)
+assert.equal(typeof decision.accountSelection, 'object')
+assert.equal(decision.accountSelection.overrideEnv, spec.accountSelection.overrideEnv)
+assert.equal(decision.accountSelection.overrideIndexEnv, spec.accountSelection.overrideIndexEnv)
+assert.equal(typeof decision.accountSelection.overrideProvided, 'boolean')
+assert.equal(typeof decision.accountSelection.overrideIndexProvided, 'boolean')
+assert.equal(typeof decision.accountSelection.overrideResolved, 'boolean')
+assert.equal(typeof decision.accountSelection.cloudSdkCoreAccountEnvProvided, 'boolean')
+assert.equal(decision.accountSelection.mapsToCloudSdkCoreAccount, true)
+assert.equal(decision.accountSelection.mutatesLocalGcloudConfig, false)
+assert.equal(decision.accountSelection.printsAccountValue, false)
 assert.equal(decision.staticExecutionGateAllowed, decision.executionGateAllowsRuntime)
 assert.equal(typeof decision.staticExplicitToolGateReady, 'boolean')
 assert.equal(decision.staticExplicitToolGatePrepared, decision.staticExplicitToolGateReady)

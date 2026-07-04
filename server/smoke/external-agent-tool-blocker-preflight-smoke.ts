@@ -73,6 +73,12 @@ const spec = EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT
 assert.equal(spec.decision, 'external_agent_tool_blocker_preflight_read_only_probe_defined')
 assert.equal(spec.mode, 'read_only_external_agent_tool_blocker_preflight')
 assert.equal(spec.projectId, 'reeditpro')
+assert.equal(spec.accountSelection.overrideEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT')
+assert.equal(spec.accountSelection.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
+assert.equal(spec.accountSelection.mapsToCloudSdkCoreAccount, true)
+assert.equal(spec.accountSelection.mutatesLocalGcloudConfig, false)
+assert.equal(spec.accountSelection.printsAccountValue, false)
+assert.equal(spec.accountSelection.tokenStdoutSuppressed, true)
 assert.equal(spec.qwen.blockerIfFailed, 'local_gcloud_reauthentication_required')
 assert.equal(
   spec.qwen.blockerIfPermissionOrResourceFailed,
@@ -132,6 +138,21 @@ assert.equal(
   'CLI must derive active account domain before sanitizing account output',
 )
 assert.equal(
+  cliSource.includes('REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'),
+  true,
+  'CLI must support a non-mutating gcloud account override env var',
+)
+assert.equal(
+  cliSource.includes('REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'),
+  true,
+  'CLI must support a redacted account-index override env var',
+)
+assert.equal(
+  cliSource.includes('CLOUDSDK_CORE_ACCOUNT: accountOverride'),
+  true,
+  'CLI must map the override to CLOUDSDK_CORE_ACCOUNT only for child gcloud calls',
+)
+assert.equal(
   cliSource.includes('JSON.parse(result.rawStdout)'),
   true,
   'CLI must parse raw captured JSON internally before emitting sanitized summaries',
@@ -162,6 +183,7 @@ assert.equal(plan.ok, true)
 assert.equal(plan.liveReadOnlyChecksRun, false)
 assert.equal(plan.allowedReadOnlyCommands.length, spec.allowedReadOnlyCommands.length)
 assert.deepEqual(plan.manualBlockerActionToolIds, [])
+assert.deepEqual(plan.accountSelection, spec.accountSelection)
 
 const liveOutput = execFileSync('npx', ['tsx', CLI_PATH], {
   cwd: ROOT,
@@ -194,6 +216,16 @@ assert.equal(Array.isArray(live.gcloud.pathCandidates), true)
 assert.equal(typeof live.gcloud.pathCandidateCount, 'number')
 assert.equal(live.gcloud.pathCandidateCount >= 1, true)
 assert.equal(Array.isArray(live.gcloud.pathToolSearchEntries), true)
+assert.equal(typeof live.gcloud.accountSelection, 'object')
+assert.equal(live.gcloud.accountSelection.overrideEnv, spec.accountSelection.overrideEnv)
+assert.equal(live.gcloud.accountSelection.overrideIndexEnv, spec.accountSelection.overrideIndexEnv)
+assert.equal(typeof live.gcloud.accountSelection.overrideProvided, 'boolean')
+assert.equal(typeof live.gcloud.accountSelection.overrideIndexProvided, 'boolean')
+assert.equal(typeof live.gcloud.accountSelection.overrideResolved, 'boolean')
+assert.equal(typeof live.gcloud.accountSelection.cloudSdkCoreAccountEnvProvided, 'boolean')
+assert.equal(live.gcloud.accountSelection.mapsToCloudSdkCoreAccount, true)
+assert.equal(live.gcloud.accountSelection.mutatesLocalGcloudConfig, false)
+assert.equal(live.gcloud.accountSelection.printsAccountValue, false)
 assert.equal(typeof live.gcloud.appleSiliconHomebrewPrecedesUsrLocal, 'boolean')
 assert.equal(typeof live.gcloud.expectedAppleSiliconHomebrewPath, 'string')
 assert.equal(typeof live.gcloud.expectedAppleSiliconHomebrewGcloudPresent, 'boolean')

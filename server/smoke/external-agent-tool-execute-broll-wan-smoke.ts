@@ -17,6 +17,8 @@ const CACHE_FILL_CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_CACHE
 const DELEGATED_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11B_MODEL_IMPORT_PROOF'
 const INFERENCE_RUNNER_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11H_INFERENCE_PROOF_EXECUTE'
 const CACHE_STAGING_CONFIRM_ENV = 'REEDITPRO_CONFIRM_BROLL_11E_CLOUD_SIDE_CACHE_STAGING'
+const ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
+const ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -103,6 +105,9 @@ for (const required of [
   DELEGATED_CONFIRM_ENV,
   INFERENCE_RUNNER_CONFIRM_ENV,
   CACHE_STAGING_CONFIRM_ENV,
+  ACCOUNT_OVERRIDE_ENV,
+  ACCOUNT_OVERRIDE_INDEX_ENV,
+  'CLOUDSDK_CORE_ACCOUNT: accountOverride',
   'ai-video-broll-wan-gpu-global-quota-verify.ts',
   'ai-video-broll-wan-fast-cache-readiness-check.ts',
   'ai-video-broll-gen-11b:l4-model-import-runner',
@@ -149,6 +154,7 @@ for (const forbidden of [
 const staticReport = runCli(['--json'])
 assert.equal(staticReport.ok, false)
 assert.equal(staticReport.mode, 'external_agent_broll_wan_execution_static_guard')
+assertAccountOverride(staticReport)
 assert.equal(staticReport.executeRequired, true)
 assert.equal(staticReport.confirmationEnv, CONFIRM_ENV)
 assert.equal(staticReport.confirmationEnvRequiredValue, 'true')
@@ -177,6 +183,7 @@ assert.equal(staticReport.generatedLocalFixturePassedClaimed, false)
 const confirmationBlocked = runCli(['--execute', '--json'])
 assert.equal(confirmationBlocked.ok, false)
 assert.equal(confirmationBlocked.mode, 'external_agent_broll_wan_execution_confirmation_blocked')
+assertAccountOverride(confirmationBlocked)
 assert.equal(confirmationBlocked.status, 'blocked')
 assert.deepEqual(confirmationBlocked.blockers, [`confirmation_env_required:${CONFIRM_ENV}=true`])
 assert.equal(confirmationBlocked.cacheFillConfirmationEnv, CACHE_FILL_CONFIRM_ENV)
@@ -194,6 +201,7 @@ assert.equal(confirmationBlocked.generatedLocalFixturePassedClaimed, false)
 const inferenceStatic = runCli(['--inference-proof', '--json'])
 assert.equal(inferenceStatic.ok, false)
 assert.equal(inferenceStatic.mode, 'external_agent_broll_wan_inference_proof_static_guard')
+assertAccountOverride(inferenceStatic)
 assert.equal(inferenceStatic.executeRequired, true)
 assert.equal(inferenceStatic.confirmationEnv, INFERENCE_CONFIRM_ENV)
 assert.equal(inferenceStatic.delegatedRunnerConfirmationEnv, INFERENCE_RUNNER_CONFIRM_ENV)
@@ -217,6 +225,7 @@ assert.equal(inferenceStatic.generatedLocalFixturePassedClaimed, false)
 const inferenceBlocked = runCli(['--inference-proof', '--execute', '--json'])
 assert.equal(inferenceBlocked.ok, false)
 assert.equal(inferenceBlocked.mode, 'external_agent_broll_wan_inference_proof_confirmation_blocked')
+assertAccountOverride(inferenceBlocked)
 assert.equal(inferenceBlocked.status, 'blocked')
 assert.deepEqual(inferenceBlocked.blockers, [`confirmation_env_required:${INFERENCE_CONFIRM_ENV}=true`])
 assert.equal(inferenceBlocked.runtimeRunNow, false)
@@ -230,6 +239,7 @@ assert.equal(inferenceBlocked.generatedLocalFixturePassedClaimed, false)
 const cachePrepareStatic = runCli(['--prepare-cache', '--json'])
 assert.equal(cachePrepareStatic.ok, false)
 assert.equal(cachePrepareStatic.mode, 'external_agent_broll_wan_private_cache_prepare_static_guard')
+assertAccountOverride(cachePrepareStatic)
 assert.equal(cachePrepareStatic.executeRequired, true)
 assert.equal(cachePrepareStatic.confirmationEnv, CACHE_FILL_CONFIRM_ENV)
 assert.equal(cachePrepareStatic.confirmationEnvRequiredValue, 'true')
@@ -255,6 +265,7 @@ assert.equal(cachePrepareStatic.generatedLocalFixturePassedClaimed, false)
 const cachePrepareBlocked = runCli(['--prepare-cache', '--execute', '--json'])
 assert.equal(cachePrepareBlocked.ok, false)
 assert.equal(cachePrepareBlocked.mode, 'external_agent_broll_wan_private_cache_prepare_confirmation_blocked')
+assertAccountOverride(cachePrepareBlocked)
 assert.equal(cachePrepareBlocked.status, 'blocked')
 assert.deepEqual(cachePrepareBlocked.blockers, [`confirmation_env_required:${CACHE_FILL_CONFIRM_ENV}=true`])
 assert.equal(cachePrepareBlocked.runtimeRunNow, false)
@@ -301,3 +312,12 @@ console.log(
     2,
   ),
 )
+
+function assertAccountOverride(report: Record<string, unknown>) {
+  assert.equal(report.gcloudAccountOverrideEnv, ACCOUNT_OVERRIDE_ENV)
+  assert.equal(typeof report.gcloudAccountOverrideProvided, 'boolean')
+  assert.equal(report.gcloudAccountOverrideIndexEnv, ACCOUNT_OVERRIDE_INDEX_ENV)
+  assert.equal(typeof report.gcloudAccountOverrideIndexProvided, 'boolean')
+  assert.equal(typeof report.gcloudAccountOverrideResolved, 'boolean')
+  assert.equal(report.gcloudAccountOverrideMutatesLocalConfig, false)
+}

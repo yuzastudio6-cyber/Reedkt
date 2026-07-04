@@ -158,6 +158,14 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
   paidProductionInScope: false,
   dryRunPassedClaimed: false,
   generatedLocalFixturePassedClaimed: false,
+  accountSelection: {
+    overrideEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT',
+    overrideIndexEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX',
+    mapsToCloudSdkCoreAccount: true,
+    mutatesLocalGcloudConfig: false,
+    printsAccountValue: false,
+    tokenStdoutSuppressed: true,
+  },
   allowedProbeScripts: [
     {
       id: 'execution_gate',

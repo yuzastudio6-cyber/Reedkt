@@ -192,6 +192,25 @@ function accountAccessSummary(document: Record<string, unknown> | undefined) {
   }
 }
 
+function accountSelectionSummary(spec: typeof EXTERNAL_AGENT_TOOL_NEXT_COMMAND, liveBlockerJson: Record<string, unknown> | undefined) {
+  const liveSelection = nestedUnknown(liveBlockerJson, ['gcloud', 'accountSelection'])
+  if (liveSelection && typeof liveSelection === 'object' && !Array.isArray(liveSelection)) {
+    return liveSelection
+  }
+
+  const rawIndex = process.env[spec.accountSelection.overrideIndexEnv]?.trim()
+  const parsedIndex = rawIndex ? Number(rawIndex) : undefined
+
+  return {
+    ...spec.accountSelection,
+    overrideProvided: Boolean(process.env[spec.accountSelection.overrideEnv]?.trim()),
+    overrideIndexProvided: Boolean(rawIndex),
+    overrideIndex: Number.isInteger(parsedIndex) ? parsedIndex : undefined,
+    overrideResolved: Boolean(process.env[spec.accountSelection.overrideEnv]?.trim()),
+    cloudSdkCoreAccountEnvProvided: Boolean(process.env.CLOUDSDK_CORE_ACCOUNT?.trim()),
+  }
+}
+
 function main() {
   const spec = EXTERNAL_AGENT_TOOL_NEXT_COMMAND
   const probeById = new Map(spec.allowedProbeScripts.map((probe) => [probe.id, probe]))
@@ -375,6 +394,7 @@ function main() {
         paidProductionInScope: spec.paidProductionInScope,
         dryRunPassedClaimed: spec.dryRunPassedClaimed,
         generatedLocalFixturePassedClaimed: spec.generatedLocalFixturePassedClaimed,
+        accountSelection: accountSelectionSummary(spec, liveBlocker.json),
         staticExecutionGateAllowed,
         staticExplicitToolGateReady,
         staticExplicitToolGatePrepared,

@@ -11,6 +11,8 @@ const SMOKE_PATH = 'server/smoke/external-agent-tool-execute-qwen-smoke.ts'
 const PACKAGE_SCRIPT = 'external-agent-tool-execute-qwen'
 const SMOKE_SCRIPT = 'smoke:external-agent-tool-execute-qwen'
 const CONFIRM_ENV = 'REEDITPRO_CONFIRM_EXTERNAL_AGENT_QWEN_EXECUTION'
+const ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
+const ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')
@@ -88,6 +90,9 @@ for (const required of [
   'external-agent-tool-next-command.ts',
   'qwenBoundedExecutionCommand',
   'qwenExternalAgentExecutionCommand',
+  ACCOUNT_OVERRIDE_ENV,
+  ACCOUNT_OVERRIDE_INDEX_ENV,
+  'CLOUDSDK_CORE_ACCOUNT: accountOverride',
   'parseJsonOutput',
   "trimmed.indexOf('{')",
   "trimmed.lastIndexOf('}')",
@@ -107,6 +112,12 @@ assert.equal(staticReport.mode, 'external_agent_qwen_execution_static_guard')
 assert.equal(staticReport.executeRequired, true)
 assert.equal(staticReport.confirmationEnv, CONFIRM_ENV)
 assert.equal(staticReport.confirmationEnvRequiredValue, 'true')
+assert.equal(staticReport.gcloudAccountOverrideEnv, ACCOUNT_OVERRIDE_ENV)
+assert.equal(typeof staticReport.gcloudAccountOverrideProvided, 'boolean')
+assert.equal(staticReport.gcloudAccountOverrideIndexEnv, ACCOUNT_OVERRIDE_INDEX_ENV)
+assert.equal(typeof staticReport.gcloudAccountOverrideIndexProvided, 'boolean')
+assert.equal(typeof staticReport.gcloudAccountOverrideResolved, 'boolean')
+assert.equal(staticReport.gcloudAccountOverrideMutatesLocalConfig, false)
 assert.deepEqual(
   staticReport.canonicalCommand,
   EXTERNAL_AGENT_TOOL_NEXT_COMMAND.qwenExternalAgentExecutionCommand,
@@ -131,6 +142,12 @@ assert.equal(confirmationBlocked.ok, false)
 assert.equal(confirmationBlocked.mode, 'external_agent_qwen_execution_confirmation_blocked')
 assert.equal(confirmationBlocked.status, 'blocked')
 assert.deepEqual(confirmationBlocked.blockers, [`confirmation_env_required:${CONFIRM_ENV}=true`])
+assert.equal(confirmationBlocked.gcloudAccountOverrideEnv, ACCOUNT_OVERRIDE_ENV)
+assert.equal(typeof confirmationBlocked.gcloudAccountOverrideProvided, 'boolean')
+assert.equal(confirmationBlocked.gcloudAccountOverrideIndexEnv, ACCOUNT_OVERRIDE_INDEX_ENV)
+assert.equal(typeof confirmationBlocked.gcloudAccountOverrideIndexProvided, 'boolean')
+assert.equal(typeof confirmationBlocked.gcloudAccountOverrideResolved, 'boolean')
+assert.equal(confirmationBlocked.gcloudAccountOverrideMutatesLocalConfig, false)
 assert.equal(confirmationBlocked.runtimeRunNow, false)
 assert.equal(confirmationBlocked.cloudRunJobExecuted, false)
 assert.equal(confirmationBlocked.modelInferenceRun, false)

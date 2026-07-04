@@ -18,8 +18,21 @@ const INFERENCE_RUNNER_SCRIPT = 'ai-video-broll-gen-11h:bounded-inference-proof-
 const CACHE_STAGING_RUNNER_SCRIPT = 'ai-video-broll-gen-11e:cloud-side-cache-staging-runner'
 const DELEGATED_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11b-l4-model-import-runner.json'
 const CACHE_FILL_SUMMARY_PATH = '.tmp/external-agent-broll-wan-11e-cloud-side-cache-staging-runner.json'
+const GCLOUD_ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
 const NEXT_AFTER_MODEL_IMPORT =
   'AI-VIDEO-BROLL-GEN-11C-MODEL-IMPORT-RESULT-REVIEW: review bounded Wan model import proof result, no inference'
+
+type AccountSelection = {
+  account?: string
+  overrideProvided: boolean
+  overrideIndexProvided: boolean
+  overrideIndex?: number
+  overrideResolved: boolean
+  resolutionFailure?: string
+}
+
+let cachedAccountSelection: AccountSelection | undefined
 
 function main() {
   const execute = process.argv.includes('--execute')
@@ -52,6 +65,9 @@ function main() {
       inferenceProofRunnerConfirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,
       delegatedRunnerScript: DELEGATED_RUNNER_SCRIPT,
       inferenceProofRunnerScript: INFERENCE_RUNNER_SCRIPT,
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
       cachePreparationCommand: 'npm run external-agent-tool-prepare-broll-wan-cache -- --execute --json',
       inferenceProofCommand:
         'REEDITPRO_CONFIRM_EXTERNAL_AGENT_BROLL_WAN_INFERENCE_PROOF=true npm run external-agent-tool-execute-broll-wan -- --inference-proof --execute --json',
@@ -84,6 +100,9 @@ function main() {
       inferenceProofConfirmationEnv: INFERENCE_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
       cacheFillConfirmationEnv: CACHE_FILL_CONFIRM_ENV,
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -198,6 +217,9 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
       executeRequired: true,
       confirmationEnv: INFERENCE_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
       delegatedRunnerConfirmationEnv: INFERENCE_RUNNER_CONFIRM_ENV,
       delegatedRunnerScript: INFERENCE_RUNNER_SCRIPT,
       delegatedRunnerArgs: ['--execute'],
@@ -234,6 +256,9 @@ function runInferenceProof(execute: boolean, brollTool: unknown) {
       blockers: [`confirmation_env_required:${INFERENCE_CONFIRM_ENV}=true`],
       confirmationEnv: INFERENCE_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
       runtimeRunNow: false,
       computeVmCreated: false,
       dockerRun: false,
@@ -315,6 +340,9 @@ function runPrepareCache(execute: boolean, brollTool: unknown) {
       executeRequired: true,
       confirmationEnv: CACHE_FILL_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
       delegatedRunnerConfirmationEnv: CACHE_STAGING_RUNNER_CONFIRM_ENV,
       delegatedRunnerScript: CACHE_STAGING_RUNNER_SCRIPT,
       delegatedRunnerArgs: ['--execute', '--summary-path', CACHE_FILL_SUMMARY_PATH],
@@ -347,6 +375,9 @@ function runPrepareCache(execute: boolean, brollTool: unknown) {
       blockers: [`confirmation_env_required:${CACHE_FILL_CONFIRM_ENV}=true`],
       confirmationEnv: CACHE_FILL_CONFIRM_ENV,
       confirmationEnvRequiredValue: 'true',
+      gcloudAccountOverrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      ...accountSelectionOutput(),
+      gcloudAccountOverrideMutatesLocalConfig: false,
       runtimeRunNow: false,
       computeVmCreated: false,
       cloudRunJobCreated: false,
@@ -483,10 +514,7 @@ function runJson(
 } {
   const result = spawnSync(command, args, {
     cwd: process.cwd(),
-    env: {
-      ...process.env,
-      ...env,
-    },
+    env: childEnv(env),
     encoding: 'utf8',
     maxBuffer,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -500,6 +528,104 @@ function runJson(
     exitCode: result.status,
     json,
     stderrSummary: sanitize(String(result.stderr ?? '')),
+  }
+}
+
+function childEnv(env: Record<string, string> = {}): NodeJS.ProcessEnv {
+  const accountOverride = resolveAccountSelection().account
+  return {
+    ...process.env,
+    ...(accountOverride ? { CLOUDSDK_CORE_ACCOUNT: accountOverride } : {}),
+    ...env,
+  }
+}
+
+function accountSelectionOutput() {
+  const selection = resolveAccountSelection()
+  return {
+    gcloudAccountOverrideProvided: selection.overrideProvided,
+    gcloudAccountOverrideIndexEnv: GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV,
+    gcloudAccountOverrideIndexProvided: selection.overrideIndexProvided,
+    gcloudAccountOverrideIndex: selection.overrideIndex,
+    gcloudAccountOverrideResolved: selection.overrideResolved,
+    gcloudAccountOverrideResolutionFailure: selection.resolutionFailure,
+  }
+}
+
+function resolveAccountSelection(): AccountSelection {
+  if (cachedAccountSelection) return cachedAccountSelection
+
+  const directAccount = process.env[GCLOUD_ACCOUNT_OVERRIDE_ENV]?.trim()
+  if (directAccount) {
+    cachedAccountSelection = {
+      account: directAccount,
+      overrideProvided: true,
+      overrideIndexProvided: false,
+      overrideResolved: true,
+    }
+    return cachedAccountSelection
+  }
+
+  const rawIndex = process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  if (!rawIndex) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: false,
+      overrideResolved: false,
+    }
+    return cachedAccountSelection
+  }
+
+  const accountIndex = Number(rawIndex)
+  if (!Number.isInteger(accountIndex) || accountIndex < 1) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndex: Number.isFinite(accountIndex) ? accountIndex : undefined,
+      overrideResolved: false,
+      resolutionFailure: 'invalid_account_index',
+    }
+    return cachedAccountSelection
+  }
+
+  const result = spawnSync('gcloud', ['auth', 'list', '--format=json'], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+
+  if (result.status !== 0) {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_failed',
+    }
+    return cachedAccountSelection
+  }
+
+  try {
+    const accounts = JSON.parse(String(result.stdout ?? '')) as Array<{ account?: string }>
+    const account = accounts[accountIndex - 1]?.account?.trim()
+    cachedAccountSelection = {
+      account,
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndex: accountIndex,
+      overrideResolved: Boolean(account),
+      resolutionFailure: account ? undefined : 'account_index_not_found',
+    }
+    return cachedAccountSelection
+  } catch {
+    cachedAccountSelection = {
+      overrideProvided: false,
+      overrideIndexProvided: true,
+      overrideIndex: accountIndex,
+      overrideResolved: false,
+      resolutionFailure: 'auth_list_parse_failed',
+    }
+    return cachedAccountSelection
   }
 }
 

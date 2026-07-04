@@ -120,6 +120,12 @@ assert.equal(spec.targetRegion, 'northamerica-northeast2')
 assert.equal(spec.targetZone, 'northamerica-northeast2-a')
 assert.equal(spec.selectedGpu, 'nvidia_l4')
 assert.equal(spec.machineType, 'g2-standard-4')
+assert.equal(spec.accountSelection.overrideEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT')
+assert.equal(spec.accountSelection.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
+assert.equal(spec.accountSelection.mapsToCloudSdkCoreAccount, true)
+assert.equal(spec.accountSelection.mutatesLocalGcloudConfig, false)
+assert.equal(spec.accountSelection.printsAccountValue, false)
+assert.equal(spec.accountSelection.tokenStdoutSuppressed, true)
 assert.equal(spec.minimumGlobalGpusAllRegionsQuota, 1)
 assert.equal(spec.minimumRegionalL4Quota, 1)
 assert.equal(spec.globalQuotaMetric, 'GPUS_ALL_REGIONS')
@@ -231,6 +237,21 @@ for (const forbiddenPattern of [
 
 const cliSource = read(CLI_PATH)
 assert.equal(cliSource.includes('spawnSync'), true)
+assert.equal(
+  cliSource.includes('REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'),
+  true,
+  'CLI must support a non-mutating gcloud account override env var',
+)
+assert.equal(
+  cliSource.includes('REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'),
+  true,
+  'CLI must support a redacted account-index override env var',
+)
+assert.equal(
+  cliSource.includes('CLOUDSDK_CORE_ACCOUNT: accountOverride'),
+  true,
+  'CLI must map the override to CLOUDSDK_CORE_ACCOUNT only for child gcloud calls',
+)
 for (const forbiddenSource of [
   'execSync',
   'execFileSync',
@@ -254,6 +275,7 @@ const plan = JSON.parse(planOutput)
 assert.equal(plan.ok, true)
 assert.equal(plan.liveReadOnlyChecksRun, false)
 assert.equal(plan.allowedReadOnlyCommands.length, spec.allowedReadOnlyCommands.length)
+assert.deepEqual(plan.accountSelection, spec.accountSelection)
 
 const liveOutput = execFileSync('npx', ['tsx', CLI_PATH], {
   cwd: ROOT,
@@ -273,6 +295,16 @@ assert.equal(live.machineType, spec.machineType)
 assert.equal(typeof live.gcloud.available, 'boolean')
 assert.equal(typeof live.gcloud.accessTokenRefreshPassed, 'boolean')
 assert.equal(Array.isArray(live.gcloud.pathCandidates), true)
+assert.equal(typeof live.gcloud.accountSelection, 'object')
+assert.equal(live.gcloud.accountSelection.overrideEnv, spec.accountSelection.overrideEnv)
+assert.equal(live.gcloud.accountSelection.overrideIndexEnv, spec.accountSelection.overrideIndexEnv)
+assert.equal(typeof live.gcloud.accountSelection.overrideProvided, 'boolean')
+assert.equal(typeof live.gcloud.accountSelection.overrideIndexProvided, 'boolean')
+assert.equal(typeof live.gcloud.accountSelection.overrideResolved, 'boolean')
+assert.equal(typeof live.gcloud.accountSelection.cloudSdkCoreAccountEnvProvided, 'boolean')
+assert.equal(live.gcloud.accountSelection.mapsToCloudSdkCoreAccount, true)
+assert.equal(live.gcloud.accountSelection.mutatesLocalGcloudConfig, false)
+assert.equal(live.gcloud.accountSelection.printsAccountValue, false)
 assert.equal(typeof live.quotaProbeSkipped, 'boolean')
 assert.equal(typeof live.projectQuotaReadPassed, 'boolean')
 assert.equal(typeof live.regionQuotaReadPassed, 'boolean')

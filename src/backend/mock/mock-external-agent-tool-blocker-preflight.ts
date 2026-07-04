@@ -13,6 +13,14 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
   decision: 'external_agent_tool_blocker_preflight_read_only_probe_defined',
   mode: 'read_only_external_agent_tool_blocker_preflight',
   projectId: 'reeditpro',
+  accountSelection: {
+    overrideEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT',
+    overrideIndexEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX',
+    mapsToCloudSdkCoreAccount: true,
+    mutatesLocalGcloudConfig: false,
+    printsAccountValue: false,
+    tokenStdoutSuppressed: true,
+  },
   qwen: {
     toolId: 'qwen2_5_vl_7b_instruct',
     serviceName: 'reeditpro-qwen2-5-vl-l4-worker',

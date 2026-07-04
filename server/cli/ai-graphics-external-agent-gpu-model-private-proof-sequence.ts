@@ -26,6 +26,8 @@ const readinessScript =
   'ai-graphics:external-agent-execution-readiness'
 const hostPreflightScript =
   'ai-graphics:gpu-runtime-proof-local-preflight'
+const externalAgentToolCallScript =
+  'ai-graphics:external-agent-tool-call'
 
 type JsonRecord = Record<string, any>
 
@@ -97,7 +99,7 @@ function parseArgs(): SequenceArgs {
       ? 'docker_container'
       : requestedBackend === 'host_python'
       ? 'host_python'
-      : toolId === 'kornia' && attemptLocalRuntime
+      : toolId === 'kornia'
       ? 'docker_container'
       : 'host_python'
   const runtimeContainerImage =
@@ -230,6 +232,84 @@ function readinessCommand(resultPath: string): string {
   ].join(' ')
 }
 
+function finalExternalAgentToolCallOutputDirectory(input: SequenceArgs): string | undefined {
+  return input.outputDirectory
+    ? path.join(input.outputDirectory, 'external-agent-single-tool-call', input.toolId)
+    : `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${input.toolId}>/external-agent-single-tool-call/${input.toolId}`
+}
+
+function finalExternalAgentToolCallResultPath(input: SequenceArgs): string | undefined {
+  return input.outputDirectory
+    ? path.join(input.outputDirectory, 'external-agent-single-tool-call-result.json')
+    : `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${input.toolId}>/external-agent-single-tool-call-result.json`
+}
+
+function finalExternalAgentToolCallArgs(input: SequenceArgs): string[] {
+  const args = [
+    '--tool',
+    input.toolId,
+    '--attempt-gpu-runtime',
+    '--expect-state',
+    'executable',
+    '--require-output-hash',
+    '--require-private-only-boundary',
+    '--strict-exit-code',
+  ]
+  if (input.runtimeBackend) args.push('--runtime-backend', input.runtimeBackend)
+  pushIfValue(args, '--runtime-container-image', input.runtimeContainerImage)
+  pushIfValue(args, '--runtime-container-platform', input.runtimeContainerPlatform)
+  pushIfValue(args, '--gpu-output-dir', finalExternalAgentToolCallOutputDirectory(input))
+  pushIfValue(args, '--result-out', finalExternalAgentToolCallResultPath(input))
+  pushIfValue(args, '--source-image', input.sourceImageLocalPath)
+  pushIfValue(args, '--sam2-checkpoint', input.sam2CheckpointLocalPath)
+  pushIfValue(args, '--birefnet-model', input.birefnetModelLocalPath)
+  pushIfValue(args, '--real-esrgan-model', input.realEsrganModelLocalPath)
+  pushIfValue(args, '--rembg-model', input.rembgModelLocalPath)
+  pushIfValue(
+    args,
+    '--transparent-background-checkpoint',
+    input.transparentBackgroundCheckpointLocalPath,
+  )
+  pushIfValue(args, '--timeout-ms', input.timeoutMs)
+  return args
+}
+
+function finalExternalAgentToolCallCommandArgs(input: SequenceArgs): string[] {
+  const args = finalExternalAgentToolCallArgs(input)
+  if (!input.sourceImageLocalPath && !['torch_torchvision', 'transformers'].includes(input.toolId)) {
+    args.push('--source-image', '<private-approved-frame.png>')
+  }
+  if (input.toolId === 'sam2' && !input.sam2CheckpointLocalPath) {
+    args.push('--sam2-checkpoint', '<private-sam2-checkpoint.pt>')
+  }
+  if (input.toolId === 'birefnet' && !input.birefnetModelLocalPath) {
+    args.push('--birefnet-model', '<private-birefnet-model>')
+  }
+  if (input.toolId === 'real_esrgan' && !input.realEsrganModelLocalPath) {
+    args.push('--real-esrgan-model', '<private-real-esrgan-model.pth>')
+  }
+  if (input.toolId === 'rembg' && !input.rembgModelLocalPath) {
+    args.push('--rembg-model', '<private-rembg-model.onnx>')
+  }
+  if (
+    input.toolId === 'transparent_background' &&
+    !input.transparentBackgroundCheckpointLocalPath
+  ) {
+    args.push(
+      '--transparent-background-checkpoint',
+      '<private-transparent-background-checkpoint.pth>',
+    )
+  }
+  return args
+}
+
+function finalExternalAgentToolCallCommand(input: SequenceArgs): string | null {
+  return [
+    `npm run --silent ${externalAgentToolCallScript} --`,
+    ...finalExternalAgentToolCallCommandArgs(input),
+  ].join(' ')
+}
+
 function defaultKorniaCommand(): string {
   return [
     `npm run --silent ${harnessScript} --`,
@@ -350,6 +430,9 @@ function buildReport(input: SequenceArgs) {
   const acceptedPrivateProof =
     bridgeRow.routeSubmissionReadyWithAcceptedPrivateProof === true &&
     readinessRow.executable === true
+  const finalExternalAgentSingleToolCall = acceptedPrivateProof
+    ? runJsonScript(externalAgentToolCallScript, finalExternalAgentToolCallArgs(input))
+    : null
   const hostEnvironment =
     hostPreflight && typeof hostPreflight.hostEnvironment === 'object'
       ? hostPreflight.hostEnvironment
@@ -415,6 +498,12 @@ function buildReport(input: SequenceArgs) {
       defaultKorniaHarnessCommand: defaultKorniaCommand(),
       bridgeCommand: privateResultPath ? bridgeCommand(privateResultPath) : null,
       readinessCommand: privateResultPath ? readinessCommand(privateResultPath) : null,
+      finalExternalAgentSingleToolCallCommand:
+        finalExternalAgentToolCallCommand(input),
+      finalExternalAgentSingleToolCallOutputDirectory:
+        finalExternalAgentToolCallOutputDirectory(input) ?? null,
+      finalExternalAgentSingleToolCallResultPath:
+        finalExternalAgentToolCallResultPath(input) ?? null,
       hostPreflightCommand:
         `npm run --silent ${hostPreflightScript} -- --detect-host`,
       canonicalGpuWorkerProofImage,
@@ -450,6 +539,8 @@ function buildReport(input: SequenceArgs) {
       perToolPrivateProofSequenceCommandsPrepared: true,
       perToolContainerPrivateProofSequenceCommandsPrepared: true,
       perToolHostPrivateProofSequenceCommandsPrepared: true,
+      finalExternalAgentSingleToolCallProofRunsAfterAcceptedPrivateProof: true,
+      finalExternalAgentSingleToolCallRequiresExecutableState: true,
     },
     counts: {
       requestedGpuModelTools: 1,
@@ -474,6 +565,8 @@ function buildReport(input: SequenceArgs) {
       signedUrlCreatedTools:
         readiness.counts?.signedUrlCreatedTools ?? 0,
       currentHostGpuProofBlockers: hostBlockers.length,
+      finalExternalAgentSingleToolCallsExecuted:
+        finalExternalAgentSingleToolCall ? 1 : 0,
     },
     currentHostGpuProofPreflight: {
       requested: input.detectHost,
@@ -516,6 +609,40 @@ function buildReport(input: SequenceArgs) {
           readinessRow.routeSubmissionReadyWithAcceptedPrivateProof === true,
         blockingPrerequisite: readinessRow.blockingPrerequisite ?? null,
       },
+      finalExternalAgentSingleToolCall: finalExternalAgentSingleToolCall
+        ? {
+            status: finalExternalAgentSingleToolCall.status ?? null,
+            executionState:
+              finalExternalAgentSingleToolCall.response
+                ?.externalAgentExecutionState ?? null,
+            executable:
+              finalExternalAgentSingleToolCall.booleans?.executable === true,
+            outputSource:
+              finalExternalAgentSingleToolCall.response?.outputSource ?? null,
+            outputSha256:
+              finalExternalAgentSingleToolCall.response?.outputSha256 ?? null,
+            outputJsonPath:
+              finalExternalAgentSingleToolCall.response?.outputJsonPath ?? null,
+            gpuRuntimeShouldStartNow:
+              finalExternalAgentSingleToolCall.booleans
+                ?.gpuRuntimeShouldStartNow === true,
+            publicArtifactCreated:
+              finalExternalAgentSingleToolCall.booleans
+                ?.publicArtifactCreated === true,
+            signedUrlCreated:
+              finalExternalAgentSingleToolCall.booleans?.signedUrlCreated === true,
+          }
+        : {
+            status: 'not_run_until_private_proof_is_accepted',
+            executionState: null,
+            executable: false,
+            outputSource: null,
+            outputSha256: null,
+            outputJsonPath: null,
+            gpuRuntimeShouldStartNow: false,
+            publicArtifactCreated: false,
+            signedUrlCreated: false,
+          },
     },
     booleans: {
       externalAgentGpuModelPrivateProofSequencePrepared: true,
@@ -526,6 +653,10 @@ function buildReport(input: SequenceArgs) {
       proofBridgeExecuted: true,
       readinessRecomputed: true,
       acceptedPrivateProofForRequestedTool: acceptedPrivateProof,
+      finalExternalAgentSingleToolCallAttempted:
+        finalExternalAgentSingleToolCall !== null,
+      finalExternalAgentSingleToolCallExecutable:
+        finalExternalAgentSingleToolCall?.booleans?.executable === true,
       hostPreflightRequested: input.detectHost,
       hostEligibleForNativeGpuProof,
       requireHostEligible: input.requireHostEligible,
@@ -599,6 +730,17 @@ ${Object.entries(report.interfaces.privateHostProofSequenceCommandsByTool).map((
 - Bridge SHA-256 accepted: \`${report.requestedToolResult.bridge.privateOutputJsonSha256Matches}\`
 - Readiness state: \`${report.requestedToolResult.readiness.readinessState}\`
 - Readiness blocking prerequisite: \`${report.requestedToolResult.readiness.blockingPrerequisite}\`
+- Final external-agent single-tool call status: \`${report.requestedToolResult.finalExternalAgentSingleToolCall.status}\`
+- Final external-agent single-tool call execution state: \`${report.requestedToolResult.finalExternalAgentSingleToolCall.executionState}\`
+- Final external-agent single-tool call executable: \`${report.requestedToolResult.finalExternalAgentSingleToolCall.executable}\`
+- Final external-agent single-tool call output source: \`${report.requestedToolResult.finalExternalAgentSingleToolCall.outputSource}\`
+- Final external-agent single-tool call output SHA-256: \`${report.requestedToolResult.finalExternalAgentSingleToolCall.outputSha256}\`
+
+## Final External-Agent Single-Tool Caller
+
+- Command: \`${report.interfaces.finalExternalAgentSingleToolCallCommand}\`
+- Output directory: \`${report.interfaces.finalExternalAgentSingleToolCallOutputDirectory}\`
+- Result path: \`${report.interfaces.finalExternalAgentSingleToolCallResultPath}\`
 
 ## Counts
 

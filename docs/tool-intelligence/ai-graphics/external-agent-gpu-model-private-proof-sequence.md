@@ -52,6 +52,17 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - Bridge SHA-256 accepted: `false`
 - Readiness state: `blocked_with_reason`
 - Readiness blocking prerequisite: `approved native CUDA host; outputDirectory; sourceImageLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing`
+- Final external-agent single-tool call status: `not_run_until_private_proof_is_accepted`
+- Final external-agent single-tool call execution state: `null`
+- Final external-agent single-tool call executable: `false`
+- Final external-agent single-tool call output source: `null`
+- Final external-agent single-tool call output SHA-256: `null`
+
+## Final External-Agent Single-Tool Caller
+
+- Command: `npm run --silent ai-graphics:external-agent-tool-call -- --tool kornia --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call/kornia --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png>`
+- Output directory: `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call/kornia`
+- Result path: `.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call-result.json`
 
 ## Counts
 
@@ -67,6 +78,7 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `publicArtifactCreatedTools`: 0
 - `signedUrlCreatedTools`: 0
 - `currentHostGpuProofBlockers`: 0
+- `finalExternalAgentSingleToolCallsExecuted`: 0
 
 ## Current Host Preflight
 
@@ -102,6 +114,8 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `perToolPrivateProofSequenceCommandsPrepared`: true
 - `perToolContainerPrivateProofSequenceCommandsPrepared`: true
 - `perToolHostPrivateProofSequenceCommandsPrepared`: true
+- `finalExternalAgentSingleToolCallProofRunsAfterAcceptedPrivateProof`: true
+- `finalExternalAgentSingleToolCallRequiresExecutableState`: true
 
 ## Booleans
 
@@ -113,6 +127,8 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `proofBridgeExecuted`: true
 - `readinessRecomputed`: true
 - `acceptedPrivateProofForRequestedTool`: false
+- `finalExternalAgentSingleToolCallAttempted`: false
+- `finalExternalAgentSingleToolCallExecutable`: false
 - `hostPreflightRequested`: false
 - `hostEligibleForNativeGpuProof`: false
 - `requireHostEligible`: false

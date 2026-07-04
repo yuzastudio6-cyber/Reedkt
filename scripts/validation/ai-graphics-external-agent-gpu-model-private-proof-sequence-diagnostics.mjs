@@ -59,6 +59,8 @@ const requiredFiles = [
 const forbiddenCommittedTruePatterns = [
   /acceptedPrivateProofForRequestedTool["`:\s=]+true/i,
   /localRuntimeExecutedForRequestedTool["`:\s=]+true/i,
+  /finalExternalAgentSingleToolCallAttempted["`:\s=]+true/i,
+  /finalExternalAgentSingleToolCallExecutable["`:\s=]+true/i,
   /agentCanExecuteGpuModelToolsNow["`:\s=]+true/i,
   /agentCanExecuteAll21ToolsNow["`:\s=]+true/i,
   /gpuRuntimeShouldStartNow["`:\s=]+true/i,
@@ -194,12 +196,20 @@ for (const phrase of [
   'ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge',
   'ai-graphics:external-agent-execution-readiness',
   'ai-graphics:gpu-runtime-proof-local-preflight',
+  'ai-graphics:external-agent-tool-call',
   '--local-runtime-proof-result',
   '--detect-host',
   '--require-host-eligible',
   '--require-accepted-proof',
+  '--expect-state',
+  '--require-output-hash',
+  '--require-private-only-boundary',
+  '--strict-exit-code',
   'outputJsonSha256',
   'korniaFirstPrivateProofSequenceCommand',
+  'finalExternalAgentToolCallCommand',
+  'finalExternalAgentToolCallArgs',
+  'finalExternalAgentSingleToolCall',
   'privateContainerProofSequenceCommandsByTool',
   'privateHostProofSequenceCommandsByTool',
   'sequenceCommandForTool',
@@ -212,6 +222,8 @@ for (const phrase of [
   'hostEligibilityGateSupported',
   'noIdleGpuRuntimeApproved',
   'proofBridgeRequiresOutputJsonSha256Match',
+  'finalExternalAgentSingleToolCallProofRunsAfterAcceptedPrivateProof',
+  'finalExternalAgentSingleToolCallRequiresExecutableState',
 ]) {
   if (!source.includes(phrase)) fail(`source_missing_phrase:${phrase}`)
 }
@@ -337,6 +349,18 @@ function checkReport(label, report) {
   if (report.sequencePolicy?.proofBridgeRequiresOutputJsonSha256Match !== true) {
     fail(`${label}_sha256_policy_not_true`)
   }
+  if (
+    report.sequencePolicy?.finalExternalAgentSingleToolCallProofRunsAfterAcceptedPrivateProof !==
+    true
+  ) {
+    fail(`${label}_final_single_tool_call_policy_not_true`)
+  }
+  if (
+    report.sequencePolicy?.finalExternalAgentSingleToolCallRequiresExecutableState !==
+    true
+  ) {
+    fail(`${label}_final_single_tool_call_executable_policy_not_true`)
+  }
   if (report.sequencePolicy?.noIdleGpuRuntimeApproved !== true) {
     fail(`${label}_no_idle_gpu_policy_not_true`)
   }
@@ -375,6 +399,7 @@ function checkReport(label, report) {
     publicArtifactCreatedTools: 0,
     signedUrlCreatedTools: 0,
     currentHostGpuProofBlockers: 0,
+    finalExternalAgentSingleToolCallsExecuted: 0,
   }
   for (const [key, value] of Object.entries(expectedCounts)) {
     if (counts[key] !== value) fail(`${label}_count_mismatch:${key}:${counts[key]}`)
@@ -397,6 +422,8 @@ function checkReport(label, report) {
     'localRuntimeAttemptRequested',
     'localRuntimeExecutedForRequestedTool',
     'acceptedPrivateProofForRequestedTool',
+    'finalExternalAgentSingleToolCallAttempted',
+    'finalExternalAgentSingleToolCallExecutable',
     'hostPreflightRequested',
     'hostEligibleForNativeGpuProof',
     'requireHostEligible',
@@ -427,6 +454,45 @@ function checkReport(label, report) {
   }
   if (requested.readiness?.readinessState !== 'blocked_with_reason') {
     fail(`${label}_readiness_state_mismatch:${requested.readiness?.readinessState}`)
+  }
+  const finalCall = requested.finalExternalAgentSingleToolCall ?? {}
+  if (finalCall.status !== 'not_run_until_private_proof_is_accepted') {
+    fail(`${label}_final_single_tool_call_status_mismatch:${finalCall.status}`)
+  }
+  if (finalCall.executionState !== null) {
+    fail(`${label}_final_single_tool_call_execution_state_not_null`)
+  }
+  if (finalCall.executable !== false) {
+    fail(`${label}_final_single_tool_call_executable_not_false`)
+  }
+  if (finalCall.outputSource !== null || finalCall.outputSha256 !== null || finalCall.outputJsonPath !== null) {
+    fail(`${label}_final_single_tool_call_output_not_null`)
+  }
+  if (finalCall.gpuRuntimeShouldStartNow !== false) {
+    fail(`${label}_final_single_tool_call_gpu_start_not_false`)
+  }
+  if (finalCall.publicArtifactCreated !== false || finalCall.signedUrlCreated !== false) {
+    fail(`${label}_final_single_tool_call_public_boundary_not_false`)
+  }
+  const finalCommand = String(report.interfaces?.finalExternalAgentSingleToolCallCommand ?? '')
+  for (const fragment of [
+    'ai-graphics:external-agent-tool-call',
+    '--tool kornia',
+    '--attempt-gpu-runtime',
+    '--runtime-backend docker_container',
+    'reeditpro/ai-graphics-gpu-worker:proof-local',
+    '--runtime-container-platform linux/amd64',
+    '--gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call/kornia',
+    '--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call-result.json',
+    '--source-image <private-approved-frame.png>',
+    '--expect-state executable',
+    '--require-output-hash',
+    '--require-private-only-boundary',
+    '--strict-exit-code',
+  ]) {
+    if (!finalCommand.includes(fragment)) {
+      fail(`${label}_final_single_tool_call_command_missing:${fragment}`)
+    }
   }
   if (report.currentHostGpuProofPreflight?.requested !== false) {
     fail(`${label}_default_host_preflight_requested_not_false`)

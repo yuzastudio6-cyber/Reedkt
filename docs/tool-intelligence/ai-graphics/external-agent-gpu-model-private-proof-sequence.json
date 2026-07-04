@@ -51,10 +51,13 @@
       "rembg": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg> --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx> --detect-host --require-host-eligible --require-accepted-proof",
       "transparent_background": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background> --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth> --detect-host --require-host-eligible --require-accepted-proof"
     },
-    "directHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --tool kornia --runtime-backend host_python",
+    "directHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --tool kornia --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64",
     "defaultKorniaHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png>",
     "bridgeCommand": null,
     "readinessCommand": null,
+    "finalExternalAgentSingleToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool kornia --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call/kornia --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png>",
+    "finalExternalAgentSingleToolCallOutputDirectory": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call/kornia",
+    "finalExternalAgentSingleToolCallResultPath": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call-result.json",
     "hostPreflightCommand": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host",
     "canonicalGpuWorkerProofImage": "reeditpro/ai-graphics-gpu-worker:proof-local",
     "canonicalGpuWorkerProofImageBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local ."
@@ -85,7 +88,9 @@
     "requireAcceptedProofFlagSupported": true,
     "perToolPrivateProofSequenceCommandsPrepared": true,
     "perToolContainerPrivateProofSequenceCommandsPrepared": true,
-    "perToolHostPrivateProofSequenceCommandsPrepared": true
+    "perToolHostPrivateProofSequenceCommandsPrepared": true,
+    "finalExternalAgentSingleToolCallProofRunsAfterAcceptedPrivateProof": true,
+    "finalExternalAgentSingleToolCallRequiresExecutableState": true
   },
   "counts": {
     "requestedGpuModelTools": 1,
@@ -99,7 +104,8 @@
     "gpuRuntimeShouldStartNowTools": 0,
     "publicArtifactCreatedTools": 0,
     "signedUrlCreatedTools": 0,
-    "currentHostGpuProofBlockers": 0
+    "currentHostGpuProofBlockers": 0,
+    "finalExternalAgentSingleToolCallsExecuted": 0
   },
   "currentHostGpuProofPreflight": {
     "requested": false,
@@ -131,6 +137,17 @@
       "executable": false,
       "routeSubmissionReadyWithAcceptedPrivateProof": false,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing"
+    },
+    "finalExternalAgentSingleToolCall": {
+      "status": "not_run_until_private_proof_is_accepted",
+      "executionState": null,
+      "executable": false,
+      "outputSource": null,
+      "outputSha256": null,
+      "outputJsonPath": null,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
     }
   },
   "booleans": {
@@ -142,6 +159,8 @@
     "proofBridgeExecuted": true,
     "readinessRecomputed": true,
     "acceptedPrivateProofForRequestedTool": false,
+    "finalExternalAgentSingleToolCallAttempted": false,
+    "finalExternalAgentSingleToolCallExecutable": false,
     "hostPreflightRequested": false,
     "hostEligibleForNativeGpuProof": false,
     "requireHostEligible": false,

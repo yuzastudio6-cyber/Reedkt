@@ -23,6 +23,7 @@ def main() -> None:
     parser.add_argument("--input-image-path", required=True)
     parser.add_argument("--mask-path", required=True)
     parser.add_argument("--output-json", required=True)
+    parser.add_argument("--allow-cpu", action="store_true")
     args = parser.parse_args()
 
     os.environ["MODEL_DOWNLOADS_ENABLED"] = "false"
@@ -33,8 +34,10 @@ def main() -> None:
     import kornia.color
     import kornia.filters
 
-    if not torch.cuda.is_available():
+    cuda_available = bool(torch.cuda.is_available())
+    if not cuda_available and not args.allow_cpu:
         raise RuntimeError("CUDA is required for the Kornia AI graphics runtime; no CPU fallback is allowed.")
+    device = torch.device("cuda" if cuda_available else "cpu")
 
     input_path = Path(args.input_image_path)
     if not input_path.exists():
@@ -44,7 +47,7 @@ def main() -> None:
     output_path = Path(args.output_json)
     image = Image.open(input_path).convert("RGB")
     rgb = np.asarray(image, dtype=np.float32) / 255.0
-    tensor = torch.from_numpy(rgb).permute(2, 0, 1).unsqueeze(0).to("cuda")
+    tensor = torch.from_numpy(rgb).permute(2, 0, 1).unsqueeze(0).to(device)
     grayscale = kornia.color.rgb_to_grayscale(tensor)
     blurred = kornia.filters.gaussian_blur2d(tensor, (5, 5), (1.5, 1.5))
     edges = kornia.filters.sobel(grayscale)
@@ -59,8 +62,10 @@ def main() -> None:
     output = {
         "ok": True,
         "toolId": "kornia",
-        "cudaAvailable": True,
-        "deviceName": torch.cuda.get_device_name(0),
+        "cudaAvailable": cuda_available,
+        "deviceType": str(device),
+        "deviceName": torch.cuda.get_device_name(0) if cuda_available else "cpu",
+        "cpuTensorRuntimeAllowed": bool(args.allow_cpu),
         "runtime": {
             "torchVersion": getattr(torch, "__version__", "unknown"),
             "korniaVersion": getattr(kornia, "__version__", "unknown"),

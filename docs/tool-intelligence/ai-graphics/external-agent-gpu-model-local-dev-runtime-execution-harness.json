@@ -27,6 +27,7 @@
     "defaultCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness",
     "committedRecordCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --write-records",
     "privateLocalRuntimeAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>",
+    "korniaPrivateCpuTensorRuntimeAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool kornia --runtime-backend host_python --allow-cpu-tensor-runtime --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-kornia-cpu-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-kornia-cpu-run>/harness-result.json --source-image <private-approved-frame.png>",
     "privateRuntimeInputManifestAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
     "privateContainerRuntimeAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>",
     "privateRuntimeAttemptCommandsByTool": {
@@ -62,6 +63,9 @@
     "onDemandOnly": true,
     "noIdleGpuRuntimeApproved": true,
     "noCpuFallbackForHeavyGpuModelTools": true,
+    "korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested": true,
+    "korniaCpuTensorRuntimeRequiresPrivateSourceFrame": true,
+    "korniaCpuTensorRuntimeDoesNotStartGpu": true,
     "noModelDownload": true,
     "noProviderRuntime": true,
     "noPublicArtifacts": true,
@@ -83,6 +87,7 @@
     "runtimeProofOutputMustDeclareOkTrue": true,
     "runtimeProofOutputMustMatchExpectedToolId": true,
     "runtimeProofOutputMustProveCudaOrCudaExecutionProvider": true,
+    "runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime": true,
     "runtimeProofOutputMustProveNoModelDownload": true,
     "runtimeProofOutputMustProveNoProviderRuntime": true,
     "runtimeProofOutputMustProveNoPublicArtifact": true,
@@ -139,6 +144,7 @@
       "remainingPrivateRuntimeInputKeys": [
         "nativeCudaRuntime"
       ],
+      "allowCpuTensorRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -189,6 +195,7 @@
       "remainingPrivateRuntimeInputKeys": [
         "nativeCudaRuntime"
       ],
+      "allowCpuTensorRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -243,6 +250,7 @@
         "sourceImageLocalPath",
         "nativeCudaRuntime"
       ],
+      "allowCpuTensorRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -309,6 +317,7 @@
         "sourceImageLocalPath",
         "nativeCudaRuntime"
       ],
+      "allowCpuTensorRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -375,6 +384,7 @@
         "sourceImageLocalPath",
         "nativeCudaRuntime"
       ],
+      "allowCpuTensorRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -439,6 +449,7 @@
         "outputDirectory",
         "nativeCudaRuntime"
       ],
+      "allowCpuTensorRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -499,6 +510,7 @@
         "sourceImageLocalPath",
         "nativeCudaRuntime"
       ],
+      "allowCpuTensorRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,
@@ -565,6 +577,7 @@
         "sourceImageLocalPath",
         "nativeCudaRuntime"
       ],
+      "allowCpuTensorRuntime": false,
       "errorMessage": null,
       "outputJsonPath": null,
       "outputJsonSha256": null,

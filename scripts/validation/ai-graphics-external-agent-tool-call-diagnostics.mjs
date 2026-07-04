@@ -541,7 +541,9 @@ for (const phrase of [
   '--attempt-gpu-runtime',
   '--gpu-output-dir',
   '--runtime-input-manifest',
+  '--allow-cpu-tensor-runtime',
   'readRuntimeInputManifest',
+  'manifestBooleanForTool',
   'manifestStringForTool',
   'gpuModelScopedToolCallManifestCommand',
   '--runtime-container-image',
@@ -690,6 +692,75 @@ if (
   '/tmp/reeditpro-missing-private-approved-frame.png'
 ) {
   fail('live_kornia_manifest_gpu_attempt_source_image_mismatch')
+}
+
+const cpuTensorDir =
+  '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/kornia-cpu'
+const cpuTensorSourcePath = `${cpuTensorDir}/private-approved-frame.ppm`
+fs.mkdirSync(absolute(cpuTensorDir), { recursive: true })
+fs.writeFileSync(absolute(cpuTensorSourcePath), [
+  'P3',
+  '2 2',
+  '255',
+  '255 0 0 0 255 0',
+  '0 0 255 255 255 255',
+  '',
+].join('\n'))
+const korniaCpuTensorAttemptLive = runToolCall([
+  '--tool kornia',
+  '--attempt-gpu-runtime',
+  '--runtime-backend host_python',
+  '--allow-cpu-tensor-runtime',
+  `--gpu-output-dir ${cpuTensorDir}/output`,
+  `--source-image ${cpuTensorSourcePath}`,
+].join(' '))
+if (korniaCpuTensorAttemptLive.decision !== decision) {
+  fail('live_kornia_cpu_tensor_attempt_decision_mismatch')
+}
+if (korniaCpuTensorAttemptLive.request?.payload?.allowCpuTensorRuntime !== true) {
+  fail('live_kornia_cpu_tensor_attempt_payload_flag_missing')
+}
+if (korniaCpuTensorAttemptLive.request?.payload?.runtimeExecutionBackend !== 'host_python') {
+  fail('live_kornia_cpu_tensor_attempt_backend_mismatch')
+}
+if (korniaCpuTensorAttemptLive.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('live_kornia_cpu_tensor_attempt_started_gpu')
+}
+if (
+  korniaCpuTensorAttemptLive.response?.externalAgentExecutionState ===
+  'blocked_with_reason'
+) {
+  const normalized =
+    korniaCpuTensorAttemptLive.response?.externalAgentToolCallResult ?? {}
+  if (
+    korniaCpuTensorAttemptLive.response?.blockingReasonCode !==
+    'gpu_model_python_package_missing'
+  ) {
+    fail(`live_kornia_cpu_tensor_attempt_unexpected_block:${korniaCpuTensorAttemptLive.response?.blockingReasonCode}`)
+  }
+  if (normalized.currentBlockingPrerequisiteKey !== 'pythonCpuTensorRuntime') {
+    fail(`live_kornia_cpu_tensor_attempt_blocker_mismatch:${normalized.currentBlockingPrerequisiteKey}`)
+  }
+  if (normalized.localGpuModelRuntimeExecutionPerformed !== false) {
+    fail('live_kornia_cpu_tensor_attempt_blocked_but_runtime_executed')
+  }
+} else if (
+  korniaCpuTensorAttemptLive.response?.externalAgentExecutionState ===
+  'executable'
+) {
+  const normalized =
+    korniaCpuTensorAttemptLive.response?.externalAgentToolCallResult ?? {}
+  if (normalized.controlledAdapterExecutedNow !== true) {
+    fail('live_kornia_cpu_tensor_attempt_executable_adapter_not_executed')
+  }
+  if (!/^[a-f0-9]{64}$/.test(String(korniaCpuTensorAttemptLive.response?.outputSha256 ?? ''))) {
+    fail('live_kornia_cpu_tensor_attempt_missing_output_sha256')
+  }
+  if (normalized.gpuRuntimeShouldStartNow !== false) {
+    fail('live_kornia_cpu_tensor_attempt_executable_started_gpu')
+  }
+} else {
+  fail(`live_kornia_cpu_tensor_attempt_unexpected_state:${korniaCpuTensorAttemptLive.response?.externalAgentExecutionState}`)
 }
 
 const manifestOutsideLocalArtifacts = spawnToolCall([

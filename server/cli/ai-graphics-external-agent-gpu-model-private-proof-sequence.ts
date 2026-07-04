@@ -9,7 +9,7 @@ import {
 const decision =
   'ai_graphics_external_agent_gpu_model_private_proof_sequence_prepared_with_runtime_blocks'
 const defaultStatus =
-  'gpu_model_private_proof_sequence_ready_kornia_first_blocked_until_scoped_private_cuda_proof'
+  'gpu_model_private_proof_sequence_ready_kornia_first_blocked_until_scoped_private_runtime_proof'
 const privateProofStatus =
   'gpu_model_private_proof_sequence_accepted_scoped_private_runtime_proof'
 const outputJsonPath =
@@ -46,6 +46,7 @@ type SequenceArgs = {
   runtimeBackend?: 'host_python' | 'docker_container'
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
+  allowCpuTensorRuntime: boolean
   sourceImageLocalPath?: string
   sam2CheckpointLocalPath?: string
   birefnetModelLocalPath?: string
@@ -121,6 +122,14 @@ function safeManifestString(key: string, value: unknown): string | undefined {
   return value
 }
 
+function safeManifestBoolean(key: string, value: unknown): boolean | undefined {
+  if (value === undefined || value === null) return undefined
+  if (typeof value !== 'boolean') {
+    throw new Error(`runtime input manifest field ${key} must be a boolean`)
+  }
+  return value
+}
+
 function manifestStringForTool(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   manifest: RuntimeInputManifest | undefined,
@@ -128,6 +137,15 @@ function manifestStringForTool(
 ): string | undefined {
   const toolRecord = manifestToolRecord(toolId, manifest)
   return safeManifestString(key, toolRecord[key] ?? manifest?.[key])
+}
+
+function manifestBooleanForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  manifest: RuntimeInputManifest | undefined,
+  key: string,
+): boolean | undefined {
+  const toolRecord = manifestToolRecord(toolId, manifest)
+  return safeManifestBoolean(key, toolRecord[key] ?? manifest?.[key])
 }
 
 function parseArgs(): SequenceArgs {
@@ -153,11 +171,19 @@ function parseArgs(): SequenceArgs {
     (attemptLocalRuntime && resolvedOutputDirectory
       ? path.join(resolvedOutputDirectory, 'harness-result.json')
       : undefined)
+  const allowCpuTensorRuntime =
+    toolId === 'kornia' &&
+    (
+      hasFlag('--allow-cpu-tensor-runtime') ||
+      manifestBooleanForTool(toolId, runtimeInputManifest, 'allowCpuTensorRuntime') === true
+    )
   const requestedBackend = stringFlag('--runtime-backend')
   const runtimeBackend =
     requestedBackend === 'docker_container'
       ? 'docker_container'
       : requestedBackend === 'host_python'
+      ? 'host_python'
+      : allowCpuTensorRuntime
       ? 'host_python'
       : toolId === 'kornia'
       ? 'docker_container'
@@ -168,7 +194,6 @@ function parseArgs(): SequenceArgs {
   const runtimeContainerPlatform =
     stringFlag('--runtime-container-platform') ??
     (runtimeBackend === 'docker_container' ? 'linux/amd64' : undefined)
-
   if (hasFlag('--write-records') && attemptLocalRuntime) {
     throw new Error(
       '--write-records cannot be combined with --attempt-local-runtime; private proof execution output must stay local-only.',
@@ -221,6 +246,7 @@ function parseArgs(): SequenceArgs {
     runtimeBackend,
     runtimeContainerImage,
     runtimeContainerPlatform,
+    allowCpuTensorRuntime,
     sourceImageLocalPath: stringFlag('--source-image'),
     sam2CheckpointLocalPath: stringFlag('--sam2-checkpoint'),
     birefnetModelLocalPath: stringFlag('--birefnet-model'),
@@ -260,6 +286,7 @@ function pushIfValue(args: string[], flag: string, value: string | undefined): v
 function harnessArgs(input: SequenceArgs): string[] {
   const args = ['--tool', input.toolId]
   if (input.attemptLocalRuntime) args.push('--attempt-local-runtime')
+  if (input.allowCpuTensorRuntime) args.push('--allow-cpu-tensor-runtime')
   pushIfValue(args, '--runtime-input-manifest', input.runtimeInputManifestPath)
   pushIfValue(args, '--output-dir', input.outputDirectory)
   pushIfValue(args, '--result-out', input.resultOut)
@@ -327,6 +354,7 @@ function finalExternalAgentToolCallArgs(input: SequenceArgs): string[] {
     '--strict-exit-code',
   ]
   if (input.runtimeBackend) args.push('--runtime-backend', input.runtimeBackend)
+  if (input.allowCpuTensorRuntime) args.push('--allow-cpu-tensor-runtime')
   pushIfValue(args, '--runtime-input-manifest', input.runtimeInputManifestPath)
   pushIfValue(args, '--runtime-container-image', input.runtimeContainerImage)
   pushIfValue(args, '--runtime-container-platform', input.runtimeContainerPlatform)
@@ -423,6 +451,9 @@ function finalExternalAgentToolCallCommandForTool(
           '--runtime-container-platform linux/amd64',
         ]
       : ['--runtime-backend host_python']),
+    ...(toolId === 'kornia' && !options.container
+      ? ['--allow-cpu-tensor-runtime']
+      : []),
     `--gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>/external-agent-single-tool-call/${toolId}`,
     `--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>/external-agent-single-tool-call-result.json`,
     ...privateProofSequenceInputFlags(toolId),
@@ -452,6 +483,19 @@ function defaultKorniaCommand(): string {
     '--tool kornia',
     '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>',
     '--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
+    '--source-image <private-approved-frame.png>',
+  ].join(' ')
+}
+
+function defaultKorniaCpuTensorCommand(): string {
+  return [
+    `npm run --silent ${harnessScript} --`,
+    '--attempt-local-runtime',
+    '--runtime-backend host_python',
+    '--allow-cpu-tensor-runtime',
+    '--tool kornia',
+    '--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-kornia-cpu-run>',
+    '--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-kornia-cpu-run>/harness-result.json',
     '--source-image <private-approved-frame.png>',
   ].join(' ')
 }
@@ -497,6 +541,9 @@ function sequenceCommandForTool(
           '--runtime-container-platform linux/amd64',
         ]
       : []),
+    ...(toolId === 'kornia' && !options.container
+      ? ['--runtime-backend host_python', '--allow-cpu-tensor-runtime']
+      : []),
     `--tool ${toolId}`,
     `--output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>`,
     ...privateProofSequenceInputFlags(toolId),
@@ -519,6 +566,9 @@ function sequenceManifestCommandForTool(
           `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
           '--runtime-container-platform linux/amd64',
         ]
+      : []),
+    ...(toolId === 'kornia' && !options.container
+      ? ['--runtime-backend host_python', '--allow-cpu-tensor-runtime']
       : []),
     `--tool ${toolId}`,
     `--runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-${toolId}>/runtime-inputs.json`,
@@ -616,7 +666,7 @@ function buildReport(input: SequenceArgs) {
     decision,
     status: acceptedPrivateProof ? privateProofStatus : defaultStatus,
     summary:
-      'Runs the scoped GPU/model private proof sequence for one tool: local-dev controlled adapter harness, SHA-checked proof-ref bridge, then all-21 external-agent readiness recomputation. The default committed record targets Kornia without runtime execution and stays blocked. Actual GPU execution requires --attempt-local-runtime plus private inputs and remains local-only.',
+      'Runs the scoped GPU/model private proof sequence for one tool: local-dev controlled adapter harness, SHA-checked proof-ref bridge, then all-21 external-agent readiness recomputation. The default committed record targets Kornia without runtime execution and stays blocked. Actual runtime execution requires --attempt-local-runtime plus private inputs and remains local-only; Kornia may use explicit CPU tensor runtime when local torch/PIL/numpy/kornia prerequisites exist.',
     requestedToolId: input.toolId,
     fastestUnlockCandidate: 'kornia',
     sourceEvidence: {
@@ -669,6 +719,7 @@ function buildReport(input: SequenceArgs) {
         privateProofSequenceManifestCommandsByTool({ container: false }),
       directHarnessCommand: directHarnessCommand(input),
       defaultKorniaHarnessCommand: defaultKorniaCommand(),
+      defaultKorniaCpuTensorHarnessCommand: defaultKorniaCpuTensorCommand(),
       bridgeCommand: privateResultPath ? bridgeCommand(privateResultPath) : null,
       readinessCommand: privateResultPath ? readinessCommand(privateResultPath) : null,
       finalExternalAgentSingleToolCallCommand:
@@ -695,19 +746,22 @@ function buildReport(input: SequenceArgs) {
       allGpuModelToolsHaveExactContainerPrivateProofSequenceCommand: true,
       allGpuModelToolsHaveExactHostPrivateProofSequenceCommand: true,
       defaultToolReason:
-        'Kornia requires CUDA plus one private approved frame and no private model/checkpoint file, so it is the fastest honest GPU/model unlock candidate.',
+        'Kornia requires one private approved frame and no private model/checkpoint file; it can use explicit CPU tensor runtime when torch/PIL/numpy/kornia are locally present, otherwise CUDA proof remains available.',
       explicitRuntimeAttemptRequired: true,
       privateInputsRequired: true,
       privateRuntimeInputManifestSupported: true,
       privateRuntimeInputManifestUsedNow: Boolean(input.runtimeInputManifestPath),
+      korniaCpuTensorRuntimeRequested: input.allowCpuTensorRuntime,
       privateRuntimeInputManifestMustStayUnderLocalArtifacts: true,
       privateRuntimeInputManifestRejectedForWriteRecords: true,
       privateProofResultMustStayUnderLocalArtifacts: true,
       proofBridgeRequiresOutputJsonSha256Match: true,
       noIdleGpuRuntimeApproved: true,
       gpuMayStartOnlyDuringScopedLocalRuntimeAttempt:
-        input.attemptLocalRuntime === true,
+        input.attemptLocalRuntime === true && input.allowCpuTensorRuntime !== true,
       noCpuFallbackForGpuModelTools: true,
+      korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested: true,
+      korniaCpuTensorRuntimeDoesNotStartGpu: true,
       noModelDownload: true,
       noProviderRuntime: true,
       noPublicArtifacts: true,
@@ -857,7 +911,9 @@ function buildReport(input: SequenceArgs) {
       noIdleGpuRuntimeApproved: true,
       gpuRuntimeShouldStartNow: false,
       gpuRuntimeStartedOnlyDuringScopedAttempt:
-        !localRuntimeExecuted || harnessRow.gpuRuntimeShouldStartNow === true,
+        input.allowCpuTensorRuntime
+          ? harnessRow.gpuRuntimeShouldStartNow !== true
+          : !localRuntimeExecuted || harnessRow.gpuRuntimeShouldStartNow === true,
       dependencyInstallPerformed: false,
       packageLockMutationPerformed: false,
       providerRuntimePerformed: false,
@@ -871,7 +927,7 @@ function buildReport(input: SequenceArgs) {
       ? 'Feed the accepted private proof into the controlled external-agent route admission path for this scoped tool, then repeat the sequence for the next GPU/model tool.'
       : input.detectHost && !hostEligibleForNativeGpuProof
       ? 'Move this proof sequence to an approved native Linux/amd64 NVIDIA CUDA host, then rerun with --require-host-eligible and --require-accepted-proof.'
-      : 'Run the Kornia-first private proof sequence on an approved native Linux/amd64 NVIDIA CUDA host with the canonical proof image and one private approved source frame.',
+      : 'Run the Kornia-first private proof sequence with either explicit CPU tensor runtime on a host with torch/PIL/numpy/kornia or CUDA runtime on an approved native Linux/amd64 NVIDIA CUDA host.',
   }
 }
 

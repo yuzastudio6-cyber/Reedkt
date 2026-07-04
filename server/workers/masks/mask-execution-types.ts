@@ -92,6 +92,7 @@ export interface MaskExecutionInput {
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
   runtimeContainerGpu?: boolean
+  allowCpuTensorRuntime?: boolean
   timeoutMs?: number
   readinessReport?: { overallStatus?: string; blockers?: unknown[]; blockerSummaries?: unknown[] }
   rawPrompt?: unknown

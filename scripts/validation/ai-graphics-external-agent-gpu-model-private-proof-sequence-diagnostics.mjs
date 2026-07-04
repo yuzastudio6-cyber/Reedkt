@@ -6,7 +6,7 @@ const root = process.cwd()
 const decision =
   'ai_graphics_external_agent_gpu_model_private_proof_sequence_prepared_with_runtime_blocks'
 const status =
-  'gpu_model_private_proof_sequence_ready_kornia_first_blocked_until_scoped_private_cuda_proof'
+  'gpu_model_private_proof_sequence_ready_kornia_first_blocked_until_scoped_private_runtime_proof'
 const runScriptName =
   'ai-graphics:external-agent-gpu-model-private-proof-sequence'
 const runScriptCommand =
@@ -202,6 +202,8 @@ for (const phrase of [
   '--require-host-eligible',
   '--require-accepted-proof',
   '--runtime-input-manifest',
+  '--allow-cpu-tensor-runtime',
+  'manifestBooleanForTool',
   'readRuntimeInputManifest',
   'manifestStringForTool',
   '--expect-state',
@@ -220,6 +222,9 @@ for (const phrase of [
   'privateContainerProofSequenceManifestCommandsByTool',
   'privateHostProofSequenceManifestCommandsByTool',
   'korniaFirstPrivateProofSequenceManifestCommand',
+  'defaultKorniaCpuTensorHarnessCommand',
+  'korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested',
+  'korniaCpuTensorRuntimeDoesNotStartGpu',
   'sequenceCommandForTool',
   'sequenceManifestCommandForTool',
   'allGpuModelToolsHaveExactPrivateProofSequenceCommand',

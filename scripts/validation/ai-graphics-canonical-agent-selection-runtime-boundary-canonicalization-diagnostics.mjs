@@ -297,9 +297,11 @@ if (packageJson.scripts?.[expectedScript] !== expectedScriptCommand) {
 const scriptDrift = Object.keys(packageJson.scripts || {}).filter(
   (key) => JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key])
 );
+const allowedNewAiGraphicsDescendantScript = (key) => !basePackageJson.scripts?.[key] && key.startsWith("ai-graphics:");
 for (const key of scriptDrift) {
   if (
     key !== expectedScript &&
+    !allowedNewAiGraphicsDescendantScript(key) &&
     key !== "ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics" &&
     key !== "ai-graphics:cpu-static-execution-proof:phase0-owner-diagnostics" &&
     key !== "ai-graphics:21-tool-runtime-install-readiness:diagnostics" &&

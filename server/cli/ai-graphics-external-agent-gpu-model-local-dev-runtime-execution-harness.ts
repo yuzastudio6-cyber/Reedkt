@@ -39,6 +39,7 @@ type HarnessArgs = {
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
   runtimeContainerGpu: boolean
+  allowCpuTensorRuntime: boolean
   timeoutMs?: number
   resultOut?: string
   writeRecords: boolean
@@ -137,6 +138,7 @@ function parseArgs(): HarnessArgs {
     runtimeContainerImage: stringFlag('--runtime-container-image'),
     runtimeContainerPlatform: stringFlag('--runtime-container-platform'),
     runtimeContainerGpu: !hasFlag('--no-runtime-container-gpu'),
+    allowCpuTensorRuntime: hasFlag('--allow-cpu-tensor-runtime'),
     timeoutMs: numberFlag('--timeout-ms'),
     resultOut: stringFlag('--result-out'),
     writeRecords: hasFlag('--write-records'),
@@ -231,6 +233,14 @@ function safeManifestString(
   return value
 }
 
+function safeManifestBoolean(key: string, value: unknown): boolean | undefined {
+  if (value === undefined || value === null) return undefined
+  if (typeof value !== 'boolean') {
+    throw new Error(`runtime input manifest field ${key} must be a boolean`)
+  }
+  return value
+}
+
 function manifestStringForTool(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   args: HarnessArgs,
@@ -238,6 +248,18 @@ function manifestStringForTool(
 ): string | undefined {
   const toolRecord = manifestToolRecord(toolId, args.runtimeInputManifest)
   return safeManifestString(
+    key,
+    toolRecord[key] ?? args.runtimeInputManifest?.[key],
+  )
+}
+
+function manifestBooleanForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  args: HarnessArgs,
+  key: string,
+): boolean | undefined {
+  const toolRecord = manifestToolRecord(toolId, args.runtimeInputManifest)
+  return safeManifestBoolean(
     key,
     toolRecord[key] ?? args.runtimeInputManifest?.[key],
   )
@@ -274,6 +296,9 @@ function runtimeInputsForTool(
     runtimeContainerPlatform:
       args.runtimeContainerPlatform ??
       manifestStringForTool(toolId, args, 'runtimeContainerPlatform'),
+    allowCpuTensorRuntime:
+      args.allowCpuTensorRuntime ||
+      manifestBooleanForTool(toolId, args, 'allowCpuTensorRuntime') === true,
   }
 }
 
@@ -323,6 +348,7 @@ function gpuModelRequiresSourceImage(
 
 function localInputRequirements(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  options?: { allowCpuTensorRuntime?: boolean },
 ): LocalInputRequirement[] {
   const outputDirectory: LocalInputRequirement = {
     key: 'outputDirectory',
@@ -352,16 +378,26 @@ function localInputRequirements(
   }
 
   if (toolId === 'kornia') {
+    const korniaRuntimeRequirement: LocalInputRequirement =
+      options?.allowCpuTensorRuntime === true
+        ? {
+            key: 'pythonCpuTensorRuntime',
+            requiredForDefaultHarness: false,
+            requiredForActualExecution: true,
+            description:
+              'Approved local Python tensor runtime with torch, PIL, numpy, and kornia; no GPU, model download, or provider call required.',
+          }
+        : {
+            key: 'nativeCudaRuntime',
+            requiredForDefaultHarness: false,
+            requiredForActualExecution: true,
+            description:
+              'Approved CUDA runtime for bounded tensor/image operations; no model weight required.',
+          }
     return [
       outputDirectory,
       sourceImage,
-      {
-        key: 'nativeCudaRuntime',
-        requiredForDefaultHarness: false,
-        requiredForActualExecution: true,
-        description:
-          'Approved CUDA runtime for bounded tensor/image operations; no model weight required.',
-      },
+      korniaRuntimeRequirement,
     ]
   }
 
@@ -431,14 +467,16 @@ function localInputRequirements(
 
 function minimumPrivateRuntimeInputKeys(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  options?: { allowCpuTensorRuntime?: boolean },
 ): string[] {
-  return localInputRequirements(toolId)
+  return localInputRequirements(toolId, options)
     .filter((requirement) => requirement.requiredForActualExecution)
     .map((requirement) => requirement.key)
 }
 
 function currentBlockingPrerequisiteKey(
   blockingReasonCode: string | null | undefined,
+  options?: { allowCpuTensorRuntime?: boolean },
 ): string | null {
   if (!blockingReasonCode) return null
   if (blockingReasonCode.includes('output_directory_missing')) {
@@ -472,7 +510,9 @@ function currentBlockingPrerequisiteKey(
     return 'runtimeContainerImage'
   }
   if (blockingReasonCode.includes('python_package')) {
-    return 'pythonPackageRuntime'
+    return options?.allowCpuTensorRuntime === true
+      ? 'pythonCpuTensorRuntime'
+      : 'pythonPackageRuntime'
   }
   if (blockingReasonCode.includes('python_runtime')) {
     return 'pythonRuntime'
@@ -560,12 +600,19 @@ function applyRuntimePayloadArgs(
 
   payload.outputDirectory = runtimeInputs.outputDirectory
   payload.timeoutMs = args.timeoutMs
+  if (toolId === 'kornia' && runtimeInputs.allowCpuTensorRuntime) {
+    payload.allowCpuTensorRuntime = true
+    payload.runtimeContainerGpu = false
+  }
   if (runtimeInputs.sourceImageLocalPath) {
     payload.sourceImageLocalPath = runtimeInputs.sourceImageLocalPath
     payload.representativeFrameLocalPath = runtimeInputs.sourceImageLocalPath
   }
   payload.runtimeExecutionBackend = args.runtimeExecutionBackend
-  payload.runtimeContainerGpu = args.runtimeContainerGpu
+  payload.runtimeContainerGpu =
+    toolId === 'kornia' && runtimeInputs.allowCpuTensorRuntime
+      ? false
+      : args.runtimeContainerGpu
   if (runtimeInputs.runtimeContainerImage) {
     payload.runtimeContainerImage = runtimeInputs.runtimeContainerImage
   }
@@ -700,10 +747,17 @@ async function buildReport(args: HarnessArgs) {
   for (const toolId of args.toolIds) {
     const request = buildRequest(toolId, args)
     const result = await executeAiGraphicsExternalAgentGpuModelControlledAdapter(request)
-    const requirements = localInputRequirements(toolId)
+    const runtimeInputs = runtimeInputsForTool(toolId, args)
+    const requirements = localInputRequirements(toolId, {
+      allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
+    })
     const reasonCode = skipReasonCode(result)
-    const blockingKey = currentBlockingPrerequisiteKey(reasonCode)
-    const minimumInputKeys = minimumPrivateRuntimeInputKeys(toolId)
+    const blockingKey = currentBlockingPrerequisiteKey(reasonCode, {
+      allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
+    })
+    const minimumInputKeys = minimumPrivateRuntimeInputKeys(toolId, {
+      allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
+    })
     const remainingInputKeys =
       result.localGpuModelRuntimeExecutionPerformed
         ? []
@@ -737,6 +791,7 @@ async function buildReport(args: HarnessArgs) {
       currentBlockingReasonCode: reasonCode,
       minimumPrivateRuntimeInputKeys: minimumInputKeys,
       remainingPrivateRuntimeInputKeys: remainingInputKeys,
+      allowCpuTensorRuntime: runtimeInputs.allowCpuTensorRuntime,
       errorMessage: errorMessageForResult(result),
       outputJsonPath: outputJsonPathForResult(result),
       outputJsonSha256: outputJsonSha256ForResult(result),
@@ -801,6 +856,8 @@ async function buildReport(args: HarnessArgs) {
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --write-records',
       privateLocalRuntimeAttemptCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>',
+      korniaPrivateCpuTensorRuntimeAttemptCommand:
+        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool kornia --runtime-backend host_python --allow-cpu-tensor-runtime --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-kornia-cpu-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-kornia-cpu-run>/harness-result.json --source-image <private-approved-frame.png>',
       privateRuntimeInputManifestAttemptCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
       privateContainerRuntimeAttemptCommand:
@@ -825,6 +882,9 @@ async function buildReport(args: HarnessArgs) {
       onDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       noCpuFallbackForHeavyGpuModelTools: true,
+      korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested: true,
+      korniaCpuTensorRuntimeRequiresPrivateSourceFrame: true,
+      korniaCpuTensorRuntimeDoesNotStartGpu: true,
       noModelDownload: true,
       noProviderRuntime: true,
       noPublicArtifacts: true,
@@ -846,6 +906,7 @@ async function buildReport(args: HarnessArgs) {
       runtimeProofOutputMustDeclareOkTrue: true,
       runtimeProofOutputMustMatchExpectedToolId: true,
       runtimeProofOutputMustProveCudaOrCudaExecutionProvider: true,
+      runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime: true,
       runtimeProofOutputMustProveNoModelDownload: true,
       runtimeProofOutputMustProveNoProviderRuntime: true,
       runtimeProofOutputMustProveNoPublicArtifact: true,

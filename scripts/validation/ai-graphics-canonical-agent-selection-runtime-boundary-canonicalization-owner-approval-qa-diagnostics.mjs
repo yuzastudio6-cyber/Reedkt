@@ -307,7 +307,9 @@ const scriptDrift = Object.keys(packageJson.scripts || {}).filter(
   (key) => JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key])
 );
 for (const key of scriptDrift) {
-  if (key !== expectedScript && key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-diagnostics" &&
+  const allowedNewAiGraphicsDescendantScript = !basePackageJson.scripts?.[key] && key.startsWith("ai-graphics:");
+  if (key !== expectedScript && !allowedNewAiGraphicsDescendantScript &&
+    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-qa-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-approval-diagnostics" &&

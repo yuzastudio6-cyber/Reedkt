@@ -2,7 +2,7 @@
 
 Decision: `ai_graphics_external_agent_gpu_model_private_proof_sequence_prepared_with_runtime_blocks`
 
-Status: `gpu_model_private_proof_sequence_ready_kornia_first_blocked_until_scoped_private_cuda_proof`
+Status: `gpu_model_private_proof_sequence_ready_kornia_first_blocked_until_scoped_private_runtime_proof`
 
 This runner is the one-command local-only path for a scoped GPU/model proof: it calls the real local-dev controlled adapter harness, validates the resulting private proof through the SHA-checked proof-ref bridge, then recomputes all-21 external-agent readiness.
 
@@ -42,7 +42,7 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `sam2`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --detect-host --require-host-eligible --require-accepted-proof`
 - `birefnet`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model> --detect-host --require-host-eligible --require-accepted-proof`
 - `real_esrgan`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan> --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --detect-host --require-host-eligible --require-accepted-proof`
-- `kornia`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia> --source-image <private-approved-frame.png> --detect-host --require-host-eligible --require-accepted-proof`
+- `kornia`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-tensor-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia> --source-image <private-approved-frame.png> --detect-host --require-host-eligible --require-accepted-proof`
 - `rembg`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg> --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx> --detect-host --require-host-eligible --require-accepted-proof`
 - `transparent_background`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background> --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth> --detect-host --require-host-eligible --require-accepted-proof`
 
@@ -64,7 +64,7 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `sam2`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool sam2 --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof`
 - `birefnet`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool birefnet --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof`
 - `real_esrgan`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool real_esrgan --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof`
-- `kornia`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool kornia --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof`
+- `kornia`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-tensor-runtime --tool kornia --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof`
 - `rembg`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool rembg --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof`
 - `transparent_background`: `npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --tool transparent_background --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof`
 
@@ -110,7 +110,7 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `sam2`: `npm run --silent ai-graphics:external-agent-tool-call -- --tool sam2 --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/external-agent-single-tool-call/sam2 --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt>`
 - `birefnet`: `npm run --silent ai-graphics:external-agent-tool-call -- --tool birefnet --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/external-agent-single-tool-call/birefnet --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model>`
 - `real_esrgan`: `npm run --silent ai-graphics:external-agent-tool-call -- --tool real_esrgan --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan>/external-agent-single-tool-call/real_esrgan --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth>`
-- `kornia`: `npm run --silent ai-graphics:external-agent-tool-call -- --tool kornia --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call/kornia --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png>`
+- `kornia`: `npm run --silent ai-graphics:external-agent-tool-call -- --tool kornia --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --allow-cpu-tensor-runtime --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call/kornia --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png>`
 - `rembg`: `npm run --silent ai-graphics:external-agent-tool-call -- --tool rembg --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg>/external-agent-single-tool-call/rembg --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx>`
 - `transparent_background`: `npm run --silent ai-graphics:external-agent-tool-call -- --tool transparent_background --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background>/external-agent-single-tool-call/transparent_background --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth>`
 
@@ -144,11 +144,12 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `allGpuModelToolsHaveExactPrivateProofSequenceCommand`: true
 - `allGpuModelToolsHaveExactContainerPrivateProofSequenceCommand`: true
 - `allGpuModelToolsHaveExactHostPrivateProofSequenceCommand`: true
-- `defaultToolReason`: Kornia requires CUDA plus one private approved frame and no private model/checkpoint file, so it is the fastest honest GPU/model unlock candidate.
+- `defaultToolReason`: Kornia requires one private approved frame and no private model/checkpoint file; it can use explicit CPU tensor runtime when torch/PIL/numpy/kornia are locally present, otherwise CUDA proof remains available.
 - `explicitRuntimeAttemptRequired`: true
 - `privateInputsRequired`: true
 - `privateRuntimeInputManifestSupported`: true
 - `privateRuntimeInputManifestUsedNow`: false
+- `korniaCpuTensorRuntimeRequested`: false
 - `privateRuntimeInputManifestMustStayUnderLocalArtifacts`: true
 - `privateRuntimeInputManifestRejectedForWriteRecords`: true
 - `privateProofResultMustStayUnderLocalArtifacts`: true
@@ -156,6 +157,8 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 - `noIdleGpuRuntimeApproved`: true
 - `gpuMayStartOnlyDuringScopedLocalRuntimeAttempt`: false
 - `noCpuFallbackForGpuModelTools`: true
+- `korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested`: true
+- `korniaCpuTensorRuntimeDoesNotStartGpu`: true
 - `noModelDownload`: true
 - `noProviderRuntime`: true
 - `noPublicArtifacts`: true
@@ -210,4 +213,4 @@ This runner is the one-command local-only path for a scoped GPU/model proof: it 
 
 ## Next Action
 
-Run the Kornia-first private proof sequence on an approved native Linux/amd64 NVIDIA CUDA host with the canonical proof image and one private approved source frame.
+Run the Kornia-first private proof sequence with either explicit CPU tensor runtime on a host with torch/PIL/numpy/kornia or CUDA runtime on an approved native Linux/amd64 NVIDIA CUDA host.

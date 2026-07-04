@@ -506,6 +506,17 @@ for (const [tool, file] of Object.entries(runtimeProofFilesByTool)) {
     if (!source.includes('"cudaExecutionProviderAvailable": True')) {
       fail('runtime_script_missing_rembg_cuda_provider_proof')
     }
+  } else if (tool === 'kornia') {
+    for (const requiredKorniaToken of [
+      'parser.add_argument("--allow-cpu", action="store_true")',
+      '"cudaAvailable": cuda_available',
+      '"cpuTensorRuntimeAllowed": bool(args.allow_cpu)',
+      'torch.device("cuda" if cuda_available else "cpu")',
+    ]) {
+      if (!source.includes(requiredKorniaToken)) {
+        fail(`runtime_script_missing_kornia_cpu_tensor_token:${requiredKorniaToken}`)
+      }
+    }
   } else if (!source.includes('"cudaAvailable": True')) {
     fail(`runtime_script_missing_cuda_proof:${tool}`)
   }
@@ -807,6 +818,80 @@ if (scopedManifestRows.length !== 1 || scopedManifestRows[0]?.toolId !== 'kornia
 }
 if (scopedManifestRows[0]?.skipReasonCode !== 'kornia_source_frame_missing') {
   fail(`scoped_manifest_output_unexpected_skip_reason:${scopedManifestRows[0]?.skipReasonCode}`)
+}
+
+const cpuTensorDir =
+  '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/diagnostic-kornia-cpu'
+const cpuTensorSourcePath = `${cpuTensorDir}/private-approved-frame.ppm`
+fs.mkdirSync(absolute(cpuTensorDir), { recursive: true })
+fs.writeFileSync(absolute(cpuTensorSourcePath), [
+  'P3',
+  '2 2',
+  '255',
+  '255 0 0 0 255 0',
+  '0 0 255 255 255 255',
+  '',
+].join('\n'))
+const scopedCpuTensorRun = spawnRunScript([
+  '--attempt-local-runtime',
+  '--tool',
+  'kornia',
+  '--runtime-backend',
+  'host_python',
+  '--allow-cpu-tensor-runtime',
+  '--output-dir',
+  `${cpuTensorDir}/output`,
+  '--source-image',
+  cpuTensorSourcePath,
+])
+if (scopedCpuTensorRun.status !== 0) {
+  fail(`scoped_cpu_tensor_run_failed:${scopedCpuTensorRun.status}:${scopedCpuTensorRun.stderr}`)
+}
+const scopedCpuTensorOutput = scopedCpuTensorRun.status === 0
+  ? JSON.parse(scopedCpuTensorRun.stdout)
+  : {}
+if (scopedCpuTensorOutput.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('scoped_cpu_tensor_run_started_gpu')
+}
+const scopedCpuTensorRows = Array.isArray(scopedCpuTensorOutput.gpuModelLocalDevRuntimeExecutionHarnessRows)
+  ? scopedCpuTensorOutput.gpuModelLocalDevRuntimeExecutionHarnessRows
+  : []
+const scopedCpuTensorRow = scopedCpuTensorRows[0] ?? {}
+if (scopedCpuTensorRows.length !== 1 || scopedCpuTensorRow.toolId !== 'kornia') {
+  fail('scoped_cpu_tensor_run_not_limited_to_kornia')
+}
+if (scopedCpuTensorRow.allowCpuTensorRuntime !== true) {
+  fail('scoped_cpu_tensor_run_cpu_flag_not_recorded')
+}
+if (!Array.isArray(scopedCpuTensorRow.minimumPrivateRuntimeInputKeys) ||
+  !scopedCpuTensorRow.minimumPrivateRuntimeInputKeys.includes('pythonCpuTensorRuntime')) {
+  fail('scoped_cpu_tensor_run_missing_python_cpu_runtime_requirement')
+}
+if (scopedCpuTensorRow.executionState === 'blocked_with_reason') {
+  if (scopedCpuTensorRow.skipReasonCode !== 'gpu_model_python_package_missing') {
+    fail(`scoped_cpu_tensor_run_unexpected_block:${scopedCpuTensorRow.skipReasonCode}`)
+  }
+  if (scopedCpuTensorRow.currentBlockingPrerequisiteKey !== 'pythonCpuTensorRuntime') {
+    fail(`scoped_cpu_tensor_run_current_blocker_mismatch:${scopedCpuTensorRow.currentBlockingPrerequisiteKey}`)
+  }
+  if (scopedCpuTensorRow.localRuntimeExecutionPerformed !== false) {
+    fail('scoped_cpu_tensor_run_blocked_but_runtime_executed')
+  }
+} else if (scopedCpuTensorRow.executionState === 'executable') {
+  if (scopedCpuTensorRow.localRuntimeExecutionPerformed !== true) {
+    fail('scoped_cpu_tensor_run_executable_without_runtime')
+  }
+  if (scopedCpuTensorRow.toolExecutionApprovedNow !== true) {
+    fail('scoped_cpu_tensor_run_executable_without_tool_execution')
+  }
+  if (!/^[a-f0-9]{64}$/.test(String(scopedCpuTensorRow.outputJsonSha256 ?? ''))) {
+    fail('scoped_cpu_tensor_run_missing_output_sha256')
+  }
+  if (scopedCpuTensorRow.gpuRuntimeShouldStartNow !== false) {
+    fail('scoped_cpu_tensor_run_executable_started_gpu')
+  }
+} else {
+  fail(`scoped_cpu_tensor_run_unexpected_state:${scopedCpuTensorRow.executionState}`)
 }
 const invalidManifestPath = spawnRunScript([
   '--attempt-local-runtime',

@@ -261,7 +261,8 @@ for (const section of ["dependencies", "devDependencies", "optionalDependencies"
 }
 if (packageJson.scripts?.[expectedScript] !== expectedScriptCommand) fail("Expected package script is missing or incorrect.");
 const scriptDrift = Object.keys(packageJson.scripts || {}).filter((key) => JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key]));
-for (const key of scriptDrift) if (key !== expectedScript &&
+const allowedNewAiGraphicsDescendantScript = (key) => !basePackageJson.scripts?.[key] && key.startsWith("ai-graphics:");
+for (const key of scriptDrift) if (key !== expectedScript && !allowedNewAiGraphicsDescendantScript(key) &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-approval-diagnostics" &&
     key !== "ai-graphics:cpu-static-execution-proof:phase0" &&

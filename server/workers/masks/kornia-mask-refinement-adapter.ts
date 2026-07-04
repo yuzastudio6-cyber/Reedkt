@@ -11,12 +11,20 @@ export async function runKorniaMaskRefinement(input: {
   executionInput: MaskExecutionInput
   taskPlan: MaskTaskPlan
 }): Promise<MaskToolExecutionResult> {
+  const allowCpuTensorRuntime = input.executionInput.allowCpuTensorRuntime === true
   const commandPlan = {
     tool: 'kornia' as const,
     command: 'python',
-    args: ['docker/prod/kornia-runtime/kornia_local.py', '--input-image-path', input.executionInput.sourceImageLocalPath ?? '[private-frame-ref]'],
+    args: [
+      'docker/prod/kornia-runtime/kornia_local.py',
+      '--input-image-path',
+      input.executionInput.sourceImageLocalPath ?? '[private-frame-ref]',
+      ...(allowCpuTensorRuntime ? ['--allow-cpu'] : []),
+    ],
     executes: false,
-    summary: 'Kornia refinement runtime plan; no model download or provider runtime.',
+    summary: allowCpuTensorRuntime
+      ? 'Kornia CPU tensor refinement runtime plan; no model download, provider runtime, or idle GPU.'
+      : 'Kornia refinement runtime plan; no model download or provider runtime.',
   }
   const executionInput = input.executionInput
   if (executionInput.mode !== 'local_dev' || executionInput.enableModelMaskExecution !== true) {
@@ -49,20 +57,23 @@ export async function runKorniaMaskRefinement(input: {
         maskPath,
         '--output-json',
         outputJsonPath,
+        ...(allowCpuTensorRuntime ? ['--allow-cpu'] : []),
       ],
       outputJsonPath,
       timeoutMs: executionInput.timeoutMs,
       runtimeBackend: executionInput.runtimeExecutionBackend,
       containerImage: executionInput.runtimeContainerImage,
       containerPlatform: executionInput.runtimeContainerPlatform,
-      containerGpu: executionInput.runtimeContainerGpu,
+      containerGpu: allowCpuTensorRuntime
+        ? false
+        : executionInput.runtimeContainerGpu,
       containerBindMounts: buildAiGraphicsRuntimeContainerBindMounts({
         readOnlyPaths: [sourcePath],
         readWritePaths: [executionInput.outputDirectory],
       }),
       proofExpectation: {
         expectedToolId: 'kornia',
-        requireCuda: true,
+        requireCuda: !allowCpuTensorRuntime,
         requireNoModelDownload: true,
         requireNoProviderRuntime: true,
         requireNoPublicArtifact: true,
@@ -72,7 +83,13 @@ export async function runKorniaMaskRefinement(input: {
     return {
       status: 'completed',
       tool: 'kornia',
-      commandPlan: { ...commandPlan, executes: true, summary: 'Kornia local runtime script executed bounded CUDA tensor/image operations on a private source frame.' },
+      commandPlan: {
+        ...commandPlan,
+        executes: true,
+        summary: allowCpuTensorRuntime
+          ? 'Kornia local runtime script executed bounded CPU tensor/image operations on a private source frame.'
+          : 'Kornia local runtime script executed bounded CUDA tensor/image operations on a private source frame.',
+      },
       outputJsonPath: runtimeResult.outputJsonPath,
       outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
       outputJsonSha256: runtimeResult.outputJsonSha256,
@@ -96,7 +113,11 @@ export async function runKorniaMaskRefinement(input: {
           metadata: { tool: 'kornia', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes, outputJsonSha256: runtimeResult.outputJsonSha256 },
         }),
       ],
-      warnings: ['Kornia executed bounded tensor/image operations only; no model inference or download was performed.'],
+      warnings: [
+        allowCpuTensorRuntime
+          ? 'Kornia executed bounded CPU tensor/image operations only; no model inference, model download, provider call, or idle GPU runtime was performed.'
+          : 'Kornia executed bounded tensor/image operations only; no model inference or download was performed.',
+      ],
     }
   } catch (error) {
     return {

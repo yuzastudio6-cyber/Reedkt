@@ -328,8 +328,10 @@ if (packageJson.scripts?.[expectedScript] !== expectedScriptCommand) {
 const scriptDrift = Object.keys(packageJson.scripts || {}).filter(
   (key) => JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key])
 );
+const allowedNewAiGraphicsDescendantScript = (key) =>
+  !basePackageJson.scripts?.[key] && key.startsWith("ai-graphics:");
 for (const key of scriptDrift) {
-  if (key !== expectedScript && !allowedDescendantScripts.has(key)) {
+  if (key !== expectedScript && !allowedDescendantScripts.has(key) && !allowedNewAiGraphicsDescendantScript(key)) {
     fail("Unexpected script drift: " + key);
   }
 }

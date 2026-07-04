@@ -178,6 +178,15 @@ function safeManifestString(key: string, value: unknown): string | undefined {
   return value
 }
 
+function safeManifestBoolean(key: string, value: unknown): boolean | undefined {
+  if (value === undefined || value === null) return undefined
+  assert(
+    typeof value === 'boolean',
+    `runtime input manifest field ${key} must be a boolean`,
+  )
+  return value
+}
+
 function manifestStringForTool(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   manifest: RuntimeInputManifest | undefined,
@@ -185,6 +194,15 @@ function manifestStringForTool(
 ): string | undefined {
   const toolRecord = manifestToolRecord(toolId, manifest)
   return safeManifestString(key, toolRecord[key] ?? manifest?.[key])
+}
+
+function manifestBooleanForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  manifest: RuntimeInputManifest | undefined,
+  key: string,
+): boolean | undefined {
+  const toolRecord = manifestToolRecord(toolId, manifest)
+  return safeManifestBoolean(key, toolRecord[key] ?? manifest?.[key])
 }
 
 function ensureParentDirectory(filePath: string): void {
@@ -247,7 +265,12 @@ function gpuModelSourceImageRequired(toolId: string): boolean {
 }
 
 function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
-  const keys = ['outputDirectory', 'nativeCudaRuntime']
+  const korniaCpuTensorRuntime =
+    toolId === 'kornia' && hasFlag('--allow-cpu-tensor-runtime')
+  const keys = [
+    'outputDirectory',
+    korniaCpuTensorRuntime ? 'pythonCpuTensorRuntime' : 'nativeCudaRuntime',
+  ]
   if (gpuModelSourceImageRequired(toolId)) keys.push('sourceImageLocalPath')
   if (toolId === 'sam2') keys.push('sam2CheckpointLocalPath')
   if (toolId === 'birefnet') keys.push('birefnetModelLocalPath')
@@ -294,7 +317,9 @@ function gpuModelCurrentBlockingPrerequisiteKey(
     return 'runtimeContainerImage'
   }
   if (blockingReasonCode.includes('python_package')) {
-    return 'pythonPackageRuntime'
+    return hasFlag('--allow-cpu-tensor-runtime')
+      ? 'pythonCpuTensorRuntime'
+      : 'pythonPackageRuntime'
   }
   if (blockingReasonCode.includes('python_runtime')) {
     return 'pythonRuntime'
@@ -323,8 +348,12 @@ function gpuModelPrivateInputPlaceholders(toolId: string): string[] {
 }
 
 function gpuModelBlockedPrerequisites(toolId: string): string[] {
+  const korniaCpuTensorRuntime =
+    toolId === 'kornia' && hasFlag('--allow-cpu-tensor-runtime')
   const prerequisites = [
-    'approved native CUDA-capable host or approved linux/amd64 Docker GPU runtime',
+    korniaCpuTensorRuntime
+      ? 'approved local Python CPU tensor runtime with torch, PIL, numpy, and kornia'
+      : 'approved native CUDA-capable host or approved linux/amd64 Docker GPU runtime',
     'proof-local GPU worker container image built locally',
     'private output directory under .local-artifacts/',
     'no public artifact, signed URL, provider call, model download, beta unlock, or production unlock',
@@ -399,6 +428,12 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
     '--runtime-input-manifest requires --attempt-gpu-runtime',
   )
   const manifest = readRuntimeInputManifest(manifestPath)
+  const allowCpuTensorRuntime =
+    toolId === 'kornia' &&
+    (
+      hasFlag('--allow-cpu-tensor-runtime') ||
+      manifestBooleanForTool(toolId, manifest, 'allowCpuTensorRuntime') === true
+    )
   const outputDirectory =
     stringArg('--gpu-output-dir') ??
     manifestStringForTool(toolId, manifest, 'outputDirectory')
@@ -436,11 +471,15 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
     ? 'host_python'
     : 'docker_container'
   payload.mode = 'local_dev'
+  if (allowCpuTensorRuntime) {
+    payload.allowCpuTensorRuntime = true
+  }
   payload.runtimeExecutionBackend = runtimeBackend
   payload.outputDirectory = outputDirectory
   payload.timeoutMs = Number(stringArg('--timeout-ms') ?? '30000')
   if (runtimeBackend === 'docker_container') {
-    payload.runtimeContainerGpu = !hasFlag('--no-runtime-container-gpu')
+    payload.runtimeContainerGpu =
+      allowCpuTensorRuntime ? false : !hasFlag('--no-runtime-container-gpu')
     payload.runtimeContainerImage =
       stringArg('--runtime-container-image') ??
       canonicalGpuModelRuntimeContainerImage
@@ -813,6 +852,7 @@ async function buildReport() {
       resultOut: resultOutPath() ?? null,
       runtimeInputManifest: runtimeInputManifestPath() ?? null,
       runtimeInputManifestUsed: Boolean(runtimeInputManifestPath()),
+      allowCpuTensorRuntimeRequested: hasFlag('--allow-cpu-tensor-runtime'),
       unsafeRoutePayloadTest: unsafeRoutePayloadTestKind() ?? null,
       strictExitCodeRequested: hasFlag('--strict-exit-code'),
       requireOutputHash: hasFlag('--require-output-hash'),

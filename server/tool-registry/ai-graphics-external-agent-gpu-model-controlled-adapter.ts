@@ -143,6 +143,13 @@ function runtimeContainerGpu(payload: Record<string, unknown>): boolean {
   return payload.runtimeContainerGpu !== false
 }
 
+function allowKorniaCpuTensorRuntime(
+  toolId: AiGraphicsCanonicalToolId | string,
+  payload: Record<string, unknown>,
+): boolean {
+  return toolId === 'kornia' && optionalBoolean(payload, 'allowCpuTensorRuntime')
+}
+
 function runtimeContainerImage(payload: Record<string, unknown>): string | undefined {
   return optionalString(payload, 'runtimeContainerImage') ??
     optionalString(payload, 'containerImage')
@@ -209,6 +216,7 @@ function hasScopedLocalRuntimeInputs(
 
 function runtimePreflightPython(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  payload: Record<string, unknown>,
 ): Record<string, unknown> | null {
   const modules = runtimePythonModulesByTool[toolId]
   const pythonBin = process.env.AI_GRAPHICS_PYTHON_BIN ?? process.env.PYTHON_BIN ?? 'python3'
@@ -218,7 +226,8 @@ import json
 import sys
 
 tool_id = sys.argv[1]
-modules = sys.argv[2:]
+allow_cpu_tensor_runtime = sys.argv[2] == "true"
+modules = sys.argv[3:]
 missing = [module for module in modules if importlib.util.find_spec(module) is None]
 cuda_available = False
 cuda_provider_available = False
@@ -234,10 +243,17 @@ print(json.dumps({
     "missingModules": missing,
     "cudaAvailable": cuda_available,
     "cudaProviderAvailable": cuda_provider_available,
+    "allowCpuTensorRuntime": allow_cpu_tensor_runtime,
 }))
 `
   try {
-    return JSON.parse(execFileSync(pythonBin, ['-c', code, toolId, ...modules], {
+    return JSON.parse(execFileSync(pythonBin, [
+      '-c',
+      code,
+      toolId,
+      allowKorniaCpuTensorRuntime(toolId, payload) ? 'true' : 'false',
+      ...modules,
+    ], {
       encoding: 'utf8',
       env: {
         ...process.env,
@@ -268,6 +284,7 @@ function runtimePrerequisiteBlock(
     return null
   }
   if (!hasScopedLocalRuntimeInputs(request.toolId, payload)) return null
+  const korniaCpuTensorRuntime = allowKorniaCpuTensorRuntime(request.toolId, payload)
 
   if (runtimeExecutionBackend(payload) === 'docker_container') {
     const image = runtimeContainerImage(payload)
@@ -300,7 +317,7 @@ function runtimePrerequisiteBlock(
         ],
       }
     }
-    if (!runtimeContainerGpu(payload)) {
+    if (!korniaCpuTensorRuntime && !runtimeContainerGpu(payload)) {
       return {
         executionInputMode: 'local_dev',
         result: {
@@ -374,8 +391,7 @@ function runtimePrerequisiteBlock(
           'run',
           '--rm',
           ...(platform ? ['--platform', platform] : []),
-          '--gpus',
-          'all',
+          ...(!korniaCpuTensorRuntime ? ['--gpus', 'all'] : []),
           '--entrypoint',
           'true',
           image,
@@ -396,10 +412,19 @@ function runtimePrerequisiteBlock(
           commandPlan: {
             tool: request.toolId,
             command: 'docker',
-            args: ['run', '--rm', '--gpus', 'all', '--entrypoint', 'true', image],
+            args: [
+              'run',
+              '--rm',
+              ...(!korniaCpuTensorRuntime ? ['--gpus', 'all'] : []),
+              '--entrypoint',
+              'true',
+              image,
+            ],
             executes: false,
             summary:
-              'GPU/model Docker runtime prerequisite blocked execution because Docker could not attach a GPU.',
+              korniaCpuTensorRuntime
+                ? 'Kornia CPU tensor Docker runtime prerequisite blocked execution because Docker could not start the runtime image.'
+                : 'GPU/model Docker runtime prerequisite blocked execution because Docker could not attach a GPU.',
           },
           skipReason: {
             code: 'gpu_model_runtime_container_gpu_unavailable',
@@ -421,7 +446,7 @@ function runtimePrerequisiteBlock(
   const privateInputBlock = privateLocalRuntimeInputBlock(request.toolId, payload)
   if (privateInputBlock) return privateInputBlock
 
-  const preflight = runtimePreflightPython(request.toolId)
+  const preflight = runtimePreflightPython(request.toolId, payload)
   const missingModules = Array.isArray(preflight?.missingModules)
     ? preflight.missingModules.filter((module): module is string => typeof module === 'string')
     : []
@@ -490,7 +515,10 @@ function runtimePrerequisiteBlock(
     }
   }
 
-  if (!cudaAvailable || (request.toolId === 'rembg' && !cudaProviderAvailable)) {
+  if (
+    !korniaCpuTensorRuntime &&
+    (!cudaAvailable || (request.toolId === 'rembg' && !cudaProviderAvailable))
+  ) {
     return {
       executionInputMode: 'local_dev',
       result: {
@@ -766,6 +794,7 @@ function maskInput(
     runtimeContainerImage: runtimeContainerImage(payload),
     runtimeContainerPlatform: runtimeContainerPlatform(payload),
     runtimeContainerGpu: runtimeContainerGpu(payload),
+    allowCpuTensorRuntime: allowKorniaCpuTensorRuntime(request.toolId, payload),
     timeoutMs: optionalNumber(payload, 'timeoutMs'),
   }
 }
@@ -992,6 +1021,9 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
 
   const localRuntimeExecutionPerformed =
     runtimeOutput.localRuntimeExecutionPerformed === true
+  const gpuRuntimeUsedForScopedControlledToolCall =
+    localRuntimeExecutionPerformed &&
+    !allowKorniaCpuTensorRuntime(request.toolId, payload)
   const skipped = (
     runtimeOutput.result as { status?: unknown } | undefined
   )?.status === 'skipped'
@@ -1043,8 +1075,9 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
     workerExecutionApprovedNow: false,
     toolExecutionApprovedNow: localRuntimeExecutionPerformed,
     browserWebglCanvasRuntimeApprovedNow: false,
-    gpuRuntimeApprovedForScopedControlledToolCall: localRuntimeExecutionPerformed,
-    gpuRuntimeShouldStartNow: localRuntimeExecutionPerformed,
+    gpuRuntimeApprovedForScopedControlledToolCall:
+      gpuRuntimeUsedForScopedControlledToolCall,
+    gpuRuntimeShouldStartNow: gpuRuntimeUsedForScopedControlledToolCall,
     providerRuntimeApprovedNow: false,
     publicArtifactCreated: false,
     signedUrlCreated: false,

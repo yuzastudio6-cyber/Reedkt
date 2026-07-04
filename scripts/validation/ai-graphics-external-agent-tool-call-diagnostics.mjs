@@ -571,6 +571,21 @@ function writeLargePrivatePlaceholderFile(filePath) {
   fs.writeFileSync(absolute(filePath), Buffer.alloc(1024 * 1024 + 8, 1))
 }
 
+function writeSafetensorsPlaceholder(filePath) {
+  fs.mkdirSync(path.dirname(absolute(filePath)), { recursive: true })
+  const header = Buffer.from(JSON.stringify({
+    __metadata__: {
+      diagnostic: 'external-agent-tool-call-private-model-root-preflight',
+    },
+  }))
+  const payload = Buffer.alloc(1024 * 1024 + 8, 2)
+  const buffer = Buffer.alloc(8 + header.length + payload.length)
+  buffer.writeBigUInt64LE(BigInt(header.length), 0)
+  header.copy(buffer, 8)
+  payload.copy(buffer, 8 + header.length)
+  fs.writeFileSync(absolute(filePath), buffer)
+}
+
 function privateInputPreflightPaths() {
   const rootDir =
     '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/private-input-preflight'
@@ -586,6 +601,18 @@ function privateInputPreflightPaths() {
   }
 }
 
+function privateModelRootToolCallPaths() {
+  const rootDir =
+    '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/private-model-root'
+  return {
+    rootDir,
+    privateModelRoot: `${rootDir}/model-root`,
+    sourceImage: `${rootDir}/inputs/private-approved-frame.ppm`,
+    rembgModel: `${rootDir}/model-root/rembg/isnet-general-use.onnx`,
+    birefnetModel: `${rootDir}/model-root/birefnet/model.safetensors`,
+  }
+}
+
 function ensurePrivateInputPreflightPlaceholders() {
   const paths = privateInputPreflightPaths()
   writePrivateProofPpm(paths.sourceImage)
@@ -598,6 +625,14 @@ function ensurePrivateInputPreflightPlaceholders() {
   ]) {
     writePrivatePlaceholderFile(filePath)
   }
+  return paths
+}
+
+function ensurePrivateModelRootToolCallPlaceholders() {
+  const paths = privateModelRootToolCallPaths()
+  writePrivateProofPpm(paths.sourceImage)
+  writeLargePrivatePlaceholderFile(paths.rembgModel)
+  writeSafetensorsPlaceholder(paths.birefnetModel)
   return paths
 }
 
@@ -775,6 +810,11 @@ for (const phrase of [
   '--private-input-preflight-only',
   '--allow-cpu-tensor-runtime',
   'readRuntimeInputManifest',
+  'resolveRuntimeInputManifestPathForTool',
+  'ai-graphics:external-agent-gpu-model-runtime-input-manifest',
+  '--private-model-root',
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
+  'runtimeInputManifestMaterializedFromPrivateRoot',
   'manifestBooleanForTool',
   'manifestStringForTool',
   'gpuModelScopedToolCallManifestCommand',
@@ -1040,6 +1080,91 @@ const privateInputPreflightReports = privateInputPreflightTools.map((toolId) => 
 })
 if (privateInputPreflightReports.length !== 5) {
   fail(`private_input_preflight_report_count_mismatch:${privateInputPreflightReports.length}`)
+}
+
+const privateModelRootPaths = ensurePrivateModelRootToolCallPlaceholders()
+const rembgPrivateModelRootPreflight = runToolCall([
+  '--tool rembg',
+  '--attempt-gpu-runtime',
+  '--runtime-backend docker_container',
+  `--runtime-container-image ${gpuModelRuntimeContainerImage('rembg')}`,
+  '--runtime-container-platform linux/amd64',
+  '--allow-cpu-model-runtime',
+  '--no-runtime-container-gpu',
+  '--private-input-preflight-only',
+  '--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/private-model-root/output/rembg',
+  `--source-image ${privateModelRootPaths.sourceImage}`,
+  `--private-model-root ${privateModelRootPaths.privateModelRoot}`,
+].join(' '))
+checkPrivateInputPreflightCall(
+  'live_rembg_private_model_root_preflight',
+  rembgPrivateModelRootPreflight,
+  'rembg',
+)
+if (
+  rembgPrivateModelRootPreflight.agentCommandContract
+    ?.privateModelRootProvided !== true
+) {
+  fail('rembg_private_model_root_contract_flag_missing')
+}
+if (
+  rembgPrivateModelRootPreflight.agentCommandContract
+    ?.runtimeInputManifestMaterializedFromPrivateRoot !== true
+) {
+  fail('rembg_private_model_root_materialization_flag_missing')
+}
+if (
+  rembgPrivateModelRootPreflight.agentCommandContract
+    ?.runtimeInputManifestMaterializerDecision !==
+    'ai_graphics_external_agent_gpu_model_runtime_input_manifest_materialized_local_only'
+) {
+  fail('rembg_private_model_root_materializer_decision_mismatch')
+}
+if (
+  rembgPrivateModelRootPreflight.agentCommandContract
+    ?.runtimeInputManifestMaterializerStatus !==
+    'runtime_input_manifest_ready_for_scoped_private_execution'
+) {
+  fail('rembg_private_model_root_materializer_status_mismatch')
+}
+const rembgPrivateRootManifest =
+  rembgPrivateModelRootPreflight.agentCommandContract?.runtimeInputManifest
+if (
+  !String(rembgPrivateRootManifest ?? '').endsWith('/runtime-inputs.json') ||
+  !fs.existsSync(absolute(rembgPrivateRootManifest))
+) {
+  fail('rembg_private_model_root_manifest_not_written')
+}
+if (
+  rembgPrivateModelRootPreflight.request?.payload?.runtimeInputManifestUsed !== true
+) {
+  fail('rembg_private_model_root_payload_manifest_used_not_true')
+}
+if (
+  rembgPrivateModelRootPreflight.request?.payload?.rembgModelLocalPath !==
+  privateModelRootPaths.rembgModel
+) {
+  fail('rembg_private_model_root_model_path_mismatch')
+}
+if (
+  !/^[a-f0-9]{64}$/.test(String(
+    rembgPrivateModelRootPreflight.request?.payload?.modelWeightChecksumSha256 ?? '',
+  ))
+) {
+  fail('rembg_private_model_root_checksum_missing')
+}
+if (
+  rembgPrivateModelRootPreflight.request?.payload
+    ?.modelWeightChecksumEvidenceRef !==
+    'private://reeditpro/ai-graphics/checksum-evidence/rembg.json'
+) {
+  fail('rembg_private_model_root_checksum_evidence_ref_mismatch')
+}
+if (
+  rembgPrivateModelRootPreflight.request?.payload?.allowCpuModelRuntime !== true ||
+  rembgPrivateModelRootPreflight.request?.payload?.runtimeContainerGpu !== false
+) {
+  fail('rembg_private_model_root_cpu_model_runtime_flags_missing')
 }
 
 const rembgTinyModelRuntimeAttempt = runToolCall([

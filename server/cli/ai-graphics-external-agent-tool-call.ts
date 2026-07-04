@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import { once } from 'node:events'
+import childProcess from 'node:child_process'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import path from 'node:path'
@@ -84,6 +85,10 @@ const gpuModelRuntimeContainerTargets: Record<
 }
 const gpuModelPrivateInputPreflightAcceptedBlockingReason =
   'gpu_model_private_inputs_accepted_runtime_proof_not_requested'
+const runtimeInputManifestScript =
+  'ai-graphics:external-agent-gpu-model-runtime-input-manifest'
+const privateModelRootEnvVar =
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
 const allowedCapabilityIds = [
   'chart_overlay',
   'data_visualization',
@@ -144,6 +149,16 @@ const runtimeInputManifestToolRecordFields = new Set([
 const supportedRuntimeInputManifestTools = new Set<string>(
   AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS,
 )
+const privateModelRootMaterializerTools = new Set<string>([
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+])
+
+let materializedRuntimeInputManifestPath: string | undefined
+let materializedRuntimeInputManifestReport: Record<string, any> | null = null
 
 function hasFlag(flag: string): boolean {
   return process.argv.includes(flag)
@@ -222,12 +237,106 @@ function resultOutPath(): string | undefined {
 
 function runtimeInputManifestPath(): string | undefined {
   const value = stringArg('--runtime-input-manifest')
-  if (!value) return undefined
+  if (!value) return materializedRuntimeInputManifestPath
   assert(
     isLocalArtifactPath(value),
     '--runtime-input-manifest must stay under .local-artifacts/',
   )
   return value
+}
+
+function privateModelRootValue(): string | undefined {
+  return stringArg('--private-model-root') ??
+    process.env[privateModelRootEnvVar]
+}
+
+function runJsonScript(scriptName: string, args: string[]): Record<string, any> {
+  const output = childProcess.execFileSync('npm', [
+    'run',
+    '--silent',
+    scriptName,
+    '--',
+    ...args,
+  ], {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    maxBuffer: 80 * 1024 * 1024,
+    env: {
+      ...process.env,
+      DEVELOPER_DIR:
+        process.env.DEVELOPER_DIR ?? '/Library/Developer/CommandLineTools',
+    },
+  })
+  return JSON.parse(output) as Record<string, any>
+}
+
+function pushIfValue(args: string[], flag: string, value: string | undefined): void {
+  if (value) args.push(flag, value)
+}
+
+function resolveRuntimeInputManifestPathForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  input: {
+    attemptGpuRuntime: boolean
+    outputDirectory?: string
+    sourceImageLocalPath?: string
+  },
+): string | undefined {
+  const explicitManifestPath = stringArg('--runtime-input-manifest')
+  if (explicitManifestPath) return runtimeInputManifestPath()
+  if (materializedRuntimeInputManifestPath) {
+    return materializedRuntimeInputManifestPath
+  }
+  const privateModelRoot = privateModelRootValue()
+  if (!privateModelRoot) return undefined
+  if (!privateModelRootMaterializerTools.has(toolId)) return undefined
+  assert(
+    input.attemptGpuRuntime,
+    '--private-model-root requires --attempt-gpu-runtime',
+  )
+  assert(
+    input.outputDirectory,
+    '--private-model-root requires --gpu-output-dir',
+  )
+  assert(
+    input.sourceImageLocalPath,
+    '--private-model-root requires --source-image',
+  )
+  assert(
+    isLocalArtifactPath(input.outputDirectory),
+    '--gpu-output-dir must stay under .local-artifacts/',
+  )
+  const manifestOut = path.join(input.outputDirectory, 'runtime-inputs.json')
+  const args = [
+    '--tool',
+    toolId,
+    '--source-image',
+    input.sourceImageLocalPath,
+    '--private-model-root',
+    privateModelRoot,
+    '--output-dir',
+    input.outputDirectory,
+    '--manifest-out',
+    manifestOut,
+    '--force',
+  ]
+  if (hasFlag('--private-input-preflight-only')) {
+    args.push('--private-input-preflight-only')
+  }
+  if (gpuModelAllowsCpuModelRuntime(toolId) && hasFlag('--allow-cpu-model-runtime')) {
+    args.push('--allow-cpu-model-runtime')
+  }
+  pushIfValue(args, '--runtime-container-image', stringArg('--runtime-container-image'))
+  pushIfValue(
+    args,
+    '--runtime-container-platform',
+    stringArg('--runtime-container-platform'),
+  )
+  materializedRuntimeInputManifestReport =
+    runJsonScript(runtimeInputManifestScript, args)
+  materializedRuntimeInputManifestPath = manifestOut
+  return materializedRuntimeInputManifestPath
 }
 
 function readRuntimeInputManifest(
@@ -721,7 +830,13 @@ function gpuModelScopedToolCallManifestCommand(toolId: string): string {
 
 function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId) {
   const attemptGpuRuntime = hasFlag('--attempt-gpu-runtime')
-  const manifestPath = runtimeInputManifestPath()
+  const explicitOutputDirectory = stringArg('--gpu-output-dir')
+  const explicitSourceImageLocalPath = stringArg('--source-image')
+  const manifestPath = resolveRuntimeInputManifestPathForTool(toolId, {
+    attemptGpuRuntime,
+    outputDirectory: explicitOutputDirectory,
+    sourceImageLocalPath: explicitSourceImageLocalPath,
+  })
   assert(
     !manifestPath || attemptGpuRuntime,
     '--runtime-input-manifest requires --attempt-gpu-runtime',
@@ -750,7 +865,7 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
       manifestBooleanForTool(toolId, manifest, 'allowCpuModelRuntime') === true
     )
   const outputDirectory =
-    stringArg('--gpu-output-dir') ??
+    explicitOutputDirectory ??
     manifestStringForTool(toolId, manifest, 'outputDirectory')
   if (attemptGpuRuntime) {
     assert(outputDirectory, '--attempt-gpu-runtime requires --gpu-output-dir')
@@ -780,7 +895,7 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
   if (!attemptGpuRuntime) return payload
 
   const sourceImageLocalPath =
-    stringArg('--source-image') ??
+    explicitSourceImageLocalPath ??
     manifestStringForTool(toolId, manifest, 'sourceImageLocalPath')
   assertPrivateLocalInputPath('sourceImageLocalPath', sourceImageLocalPath)
   const runtimeBackend = stringArg('--runtime-backend') === 'host_python'
@@ -1198,6 +1313,13 @@ async function buildReport() {
       resultOut: resultOutPath() ?? null,
       runtimeInputManifest: runtimeInputManifestPath() ?? null,
       runtimeInputManifestUsed: Boolean(runtimeInputManifestPath()),
+      privateModelRootProvided: Boolean(privateModelRootValue()),
+      runtimeInputManifestMaterializedFromPrivateRoot:
+        Boolean(materializedRuntimeInputManifestPath),
+      runtimeInputManifestMaterializerDecision:
+        materializedRuntimeInputManifestReport?.decision ?? null,
+      runtimeInputManifestMaterializerStatus:
+        materializedRuntimeInputManifestReport?.status ?? null,
       privateInputPreflightOnlyRequested: hasFlag('--private-input-preflight-only'),
       allowCpuTensorRuntimeRequested: hasFlag('--allow-cpu-tensor-runtime'),
       allowCpuFoundationRuntimeRequested: hasFlag('--allow-cpu-foundation-runtime'),

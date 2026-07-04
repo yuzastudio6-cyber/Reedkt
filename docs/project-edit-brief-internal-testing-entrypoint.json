@@ -1,0 +1,53 @@
+{
+  "id": "project-edit-brief-internal-testing-entrypoint",
+  "decision": "project_edit_brief_internal_testing_entrypoint_passed_ready_for_repeated_internal_testing",
+  "route": "/internal-testing",
+  "source": {
+    "projectId": "mock-project-edit-chat-foundation",
+    "editSessionId": "edit-session-youtube-wide",
+    "scenarioRegistry": "src/lib/internal-testing-scenarios.ts"
+  },
+  "connectedRoutes": [
+    "/projects/mock-project-edit-chat-foundation",
+    "/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/chat",
+    "/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief"
+  ],
+  "features": [
+    "scenario_readiness_summary",
+    "high_signal_edit_brief_launch_links",
+    "testing_discipline_checklist",
+    "browser_local_feedback_records",
+    "manual_feedback_json_export"
+  ],
+  "blockedScope": {
+    "upload": false,
+    "fileBytesRead": false,
+    "providerOrModelCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "creditReservationOrSpend": false,
+    "supabaseReadWrite": false,
+    "storageSignedUrls": false,
+    "sqlOrMigration": false,
+    "externalBeta": false,
+    "realUserMediaBeta": false,
+    "paidProduction": false,
+    "productReady": false
+  },
+  "validation": {
+    "required": [
+      "smoke:project-edit-brief-internal-testing-entrypoint",
+      "smoke:project-edit-brief-internal-testing-completion-audit",
+      "smoke:project-edit-brief-internal-testing-review-pr-readiness",
+      "smoke:project-edit-brief-internal-testing-readback-qa",
+      "smoke:project-edit-brief-e2e",
+      "smoke:project-edit-brief-production-readiness-gates",
+      "smoke:beta-readiness",
+      "typecheck:server",
+      "build",
+      "git diff --check",
+      "git diff --cached --check"
+    ]
+  }
+}

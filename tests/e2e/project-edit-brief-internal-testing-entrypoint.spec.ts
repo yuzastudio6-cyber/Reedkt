@@ -1,0 +1,50 @@
+import { expect, test } from '@playwright/test'
+import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
+import { gotoRoute } from './helpers/routes'
+
+test.describe('Project Edit Brief internal testing entrypoint', () => {
+  test('opens the internal testing console and launches the Edit Brief route safely', async ({ page }) => {
+    await setViewport(page, 1440)
+    await gotoRoute(page, '/internal-testing')
+
+    await expect(page.getByTestId('internal-testing-page')).toBeVisible()
+    await expect(page.getByTestId('internal-testing-status-card')).toContainText('Repeated internal testing is wired')
+    await expect(page.getByTestId('internal-testing-boundary-card')).toContainText('No runtime side effects')
+    await expect(page.getByTestId('internal-testing-boundary-list')).toContainText('No provider')
+    await expect(page.getByTestId('internal-testing-boundary-list')).toContainText('No worker')
+    await expect(page.getByTestId('internal-testing-boundary-list')).toContainText('No credits')
+    await expect(page.getByTestId('internal-testing-scenario-summary')).toContainText('mock local')
+    await expect(page.getByTestId('internal-testing-scenarios')).toContainText('Edit Brief')
+    const editBriefStart = page.getByTestId('internal-testing-start-edit-brief')
+    await expect(editBriefStart).toContainText('Edit Brief')
+
+    await editBriefStart.getByRole('link', { name: /^Open$/ }).click()
+    await expect(page).toHaveURL(/\/projects\/mock-project-edit-chat-foundation\/edits\/edit-session-youtube-wide\/brief$/)
+    await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
+    await expect(page.getByTestId('project-edit-brief-boundary')).toContainText('mock/local')
+    await expect(page.getByTestId('generation-progress-card')).toHaveCount(0)
+    await expect(page.getByTestId('preview-ready-card')).toHaveCount(0)
+    await expect(page.getByText(/credit reserved|render started|provider call made|upload started/i)).toHaveCount(0)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('records browser-local feedback and exposes JSON export', async ({ page }) => {
+    await setViewport(page, 1280)
+    await gotoRoute(page, '/internal-testing')
+
+    await expect(page.getByTestId('internal-testing-feedback-form')).toBeVisible()
+    await page.getByLabel('Result').selectOption('needs_review')
+    await page.getByPlaceholder('What did you verify, what failed, or what should the next PR fix?').fill('Route loaded and no runtime work started.')
+    await page.getByRole('button', { name: /Save local note/i }).click()
+
+    await expect(page.getByText('Feedback saved in this browser only')).toBeVisible()
+    await expect(page.getByTestId('internal-testing-feedback-list')).toContainText('Route loaded and no runtime work started.')
+    await expect(page.getByTestId('internal-testing-feedback-export')).toContainText('Route loaded and no runtime work started.')
+    await expect(page.getByTestId('internal-testing-feedback-export')).toContainText('providerCalls')
+
+    await page.getByRole('button', { name: /Clear local notes/i }).click()
+    await expect(page.getByText('Local feedback cleared from this browser.')).toBeVisible()
+    await expect(page.getByTestId('internal-testing-feedback-list')).toContainText('No feedback saved')
+    await expectNoHorizontalOverflow(page)
+  })
+})

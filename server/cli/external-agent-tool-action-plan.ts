@@ -47,9 +47,9 @@ function actionForTool(toolId: string) {
         'npm run external-agent-tool-blockers:preflight',
       ],
       externalManualBlocker:
-        'B-roll 10ZB proved the no-idle L4 payload/install path with cleanup verified. 11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers model import target and 11B added the no-inference model import/load runner. Current live preflight shows local model cache and private wheelhouse are ready, but private GCS Wan model-cache staging is blocked: the direct local upload stalled on a large shard and the 11C private URL-list Storage Transfer test failed with HTTP 403.',
+        'B-roll 10ZB proved the no-idle L4 payload/install path with cleanup verified. 11A selected the Wan-AI/Wan2.1-T2V-1.3B-Diffusers model import target and 11B added the no-inference model import/load runner. Current live preflight shows local model cache and private wheelhouse are ready, but private GCS Wan model-cache staging is blocked: the direct local upload stalled on a large shard and the 11C private URL-list Storage Transfer test failed with HTTP 403. 11D selected a no-GPU cloud-side cache staging runner as the next approved strategy.',
       afterBlockerClears:
-        'run AI-VIDEO-BROLL-GEN-11D-CACHE-STAGING-STRATEGY-FIX before retrying private cache preparation or the bounded 11B no-idle L4 model import/load proof',
+        'run AI-VIDEO-BROLL-GEN-11E-CLOUD-SIDE-CACHE-STAGING-RUNNER before retrying private cache preparation or the bounded 11B no-idle L4 model import/load proof',
     }
   }
 

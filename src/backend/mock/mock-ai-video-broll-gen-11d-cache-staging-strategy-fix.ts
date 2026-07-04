@@ -1,0 +1,80 @@
+export const AI_VIDEO_BROLL_GEN_11E_CLOUD_SIDE_CACHE_STAGING_RUNNER_PROMPT =
+  'AI-VIDEO-BROLL-GEN-11E-CLOUD-SIDE-CACHE-STAGING-RUNNER: implement no-GPU Wan private cache staging runner, no inference/no generated video' as const
+
+export const AI_VIDEO_BROLL_GEN_11D_CACHE_STAGING_STRATEGY_FIX = {
+  decision: 'ai_video_broll_gen_11d_cache_staging_strategy_selected_cloud_side_no_gpu_transfer_harness',
+  mode: 'cache_staging_strategy_fix_only',
+  workstream: 'AI_VIDEO_BROLL_GENERATION',
+  modelRepository: 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers',
+  sourceCommit: '0fad780a534b6463e45facd96134c9f345acfa5b',
+  targetPrivateBucket: 'reeditpro-staging-reeditpro-model-cache',
+  targetPrivatePrefix:
+    'proof-payloads/ai-video-broll/11b/model-cache-by-commit/Wan-AI__Wan2.1-T2V-1.3B-Diffusers/0fad780a534b6463e45facd96134c9f345acfa5b',
+  blockers: {
+    directLocalUpload: 'stalled_on_large_shard_no_ready_marker',
+    privateGcsUrlList: 'storage_transfer_http_403_reading_private_tsv',
+    temporaryPublicUrlList: 'rejected_public_access_prevention_enforced_and_public_model_cache_blocked',
+    signedUrlList: 'rejected_requires_token_creator_permission_and_signed_url_exception',
+  },
+  selectedStrategy: {
+    id: 'cloud_side_no_gpu_transfer_harness',
+    selected: true,
+    reason:
+      'Avoids local large-shard upload stalls, avoids public objects, avoids signed URL source-of-truth risk, and avoids GPU transfer cost.',
+    futureRunnerRequired: true,
+    cloudRunJobCreatedNow: false,
+    gpuRequired: false,
+    modelInferenceAllowed: false,
+    generatedVideoAllowed: false,
+    generatedAssetsAllowed: false,
+  },
+  rejectedStrategies: [
+    'repeat_direct_local_large_shard_upload',
+    'private_gcs_https_url_list_retry_without_new_strategy',
+    'temporary_public_url_list_object',
+    'signed_url_list_object',
+    'gpu_vm_as_transfer_host',
+    'runtime_auto_download',
+  ],
+  futureHarnessRequirements: [
+    'explicit_confirmation_env_required',
+    'no_default_execution',
+    'short_lived_no_gpu_cloud_task',
+    'approved_private_gcs_prefix_only',
+    'stable_pinned_hugging_face_resolve_urls_only',
+    'one_file_at_a_time_transfer_or_stream',
+    'ready_marker_after_count_and_byte_match_only',
+    'prompt_scoped_job_cleanup_required',
+    'no_signed_url_or_secret_log_output',
+    'no_model_import_load_or_inference',
+  ],
+  runtimeSideEffects: {
+    cloudSideNoGpuTransferHarnessSelected: true,
+    directLocalUploadRetrySelected: false,
+    privateGcsUrlListRetrySelected: false,
+    temporaryPublicUrlListSelected: false,
+    signedUrlListSelected: false,
+    gpuTransferSelected: false,
+    runtimeAutoDownloadSelected: false,
+    cloudRunJobCreated: false,
+    dockerRun: false,
+    computeVmCreated: false,
+    storageTransferJobCreated: false,
+    modelImportRun: false,
+    modelLoadRun: false,
+    modelInferenceRun: false,
+    generatedVideoCreated: false,
+    generatedAssetsCreated: false,
+    supabaseTouched: false,
+    sqlExecuted: false,
+    workersDispatched: false,
+    creditMutationCreated: false,
+    betaUnlocked: false,
+    productionUnlocked: false,
+    generatedLocalFixturePassedClaimed: false,
+  },
+  nextPrompt: AI_VIDEO_BROLL_GEN_11E_CLOUD_SIDE_CACHE_STAGING_RUNNER_PROMPT,
+} as const
+
+export type AiVideoBrollGen11dCacheStagingStrategyFix =
+  typeof AI_VIDEO_BROLL_GEN_11D_CACHE_STAGING_STRATEGY_FIX

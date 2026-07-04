@@ -42,9 +42,15 @@ const NEXT_COMMAND_SCRIPT = 'server/cli/external-agent-tool-next-command.ts'
 
 const runtimeSideEffectKeys = [
   'runtimeRunNow',
+  'gcpReadOnlyCommandsExecuted',
+  'gcpMutatingCommandsExecuted',
+  'computeVmCreateAttempted',
   'modelInferenceRun',
   'modelImportRun',
   'computeVmCreated',
+  'computeVmDeleted',
+  'cleanupRun',
+  'cleanupVerified',
   'cloudRunJobExecuted',
   'cloudRunServiceMutated',
   'providerCallsMade',
@@ -72,10 +78,23 @@ const runtimeSideEffectKeys = [
 ] as const
 
 const runtimeSideEffectAliases: Record<(typeof runtimeSideEffectKeys)[number], string[]> = {
-  runtimeRunNow: ['runtimeRunNow', 'boundedRetryPromptExecuted', 'inferenceRun', 'runnerExecuted'],
+  runtimeRunNow: [
+    'runtimeRunNow',
+    'boundedRetryPromptExecuted',
+    'inferenceRun',
+    'runnerExecuted',
+    'gcpMutatingCommandsExecuted',
+    'computeVmCreateAttempted',
+  ],
+  gcpReadOnlyCommandsExecuted: ['gcpReadOnlyCommandsExecuted'],
+  gcpMutatingCommandsExecuted: ['gcpMutatingCommandsExecuted'],
+  computeVmCreateAttempted: ['computeVmCreateAttempted'],
   modelInferenceRun: ['modelInferenceRun', 'inferenceRun', 'runsModelInference'],
   modelImportRun: ['modelImportRun', 'modelLoadRun', 'vllmEngineInitialized'],
   computeVmCreated: ['computeVmCreated', 'vmCreated', 'proofVmCreated'],
+  computeVmDeleted: ['computeVmDeleted'],
+  cleanupRun: ['cleanupRun', 'cleanupAttempted'],
+  cleanupVerified: ['cleanupVerified'],
   cloudRunJobExecuted: ['cloudRunJobExecuted', 'cpuCallerJobExecuted'],
   cloudRunServiceMutated: ['cloudRunServiceMutated', 'temporaryFixtureInferenceServiceRevisionDeployed'],
   providerCallsMade: ['providerCallsMade'],
@@ -931,7 +950,9 @@ function runtimeSideEffectSnapshot(json: JsonRecord | undefined): Record<string,
   return Object.fromEntries(
     runtimeSideEffectKeys.map((key) => [
       key,
-      runtimeSideEffectAliases[key].some((alias) => booleanAtAnyDepth(json, alias)),
+      key === 'cleanupVerified'
+        ? runtimeSideEffectAliases[key].some((alias) => booleanInRuntimeSideEffectsAtAnyDepth(json, alias))
+        : runtimeSideEffectAliases[key].some((alias) => booleanAtAnyDepth(json, alias)),
     ]),
   )
 }
@@ -946,6 +967,25 @@ function booleanAtAnyDepth(value: unknown, key: string): boolean {
 
   for (const nestedValue of Object.values(value as JsonRecord)) {
     if (booleanAtAnyDepth(nestedValue, key)) return true
+  }
+
+  return false
+}
+
+function booleanInRuntimeSideEffectsAtAnyDepth(value: unknown, key: string): boolean {
+  if (!value || typeof value !== 'object') return false
+  const record = value as JsonRecord
+  const runtimeSideEffects = record.runtimeSideEffects
+  if (
+    runtimeSideEffects &&
+    typeof runtimeSideEffects === 'object' &&
+    (runtimeSideEffects as JsonRecord)[key] === true
+  ) {
+    return true
+  }
+
+  for (const nestedValue of Object.values(record)) {
+    if (booleanInRuntimeSideEffectsAtAnyDepth(nestedValue, key)) return true
   }
 
   return false

@@ -80,6 +80,8 @@ for (const required of [
   'ai_video_broll_gen_11h_fix_inference_proof_static_fix_ready_no_execution',
   'does not create a VM',
   'Change the future proof VM from `g2-standard-4` to `g2-standard-8`',
+  'Route the immediate retry to `northamerica-northeast2-b`',
+  '`ZONE_RESOURCE_POOL_EXHAUSTED_WITH_DETAILS`',
   'REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_START',
   'REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_OK',
   'REEDITPRO_BROLL_11H_WAN_PIPELINE_CPU_OFFLOAD_OK',
@@ -109,6 +111,8 @@ for (const required of [
   'REEDITPRO_BROLL_11H_WAN_PIPELINE_CPU_OFFLOAD_OK',
   'REEDITPRO_BROLL_11H_LATENT_INFERENCE_CANARY_START',
   'WAN_LATENT_CANARY_TIMEOUT_MS',
+  "const TARGET_ZONE = 'northamerica-northeast2-b'",
+  'sourceContractTargetZone: SOURCE_CONTRACT_TARGET_ZONE',
   'GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV',
   "const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'",
   "const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'",
@@ -136,6 +140,9 @@ assert.equal(staticReport.mode, 'ai_video_broll_gen_11h_l4_inference_proof_runne
 assert.equal(staticReport.computeVmCreated, false)
 assert.equal(staticReport.generatedVideoCreated, false)
 assert.equal(staticReport.generatedAssetsCreated, false)
+assert.equal(staticReport.targetRegion, 'northamerica-northeast2')
+assert.equal(staticReport.targetZone, 'northamerica-northeast2-b')
+assert.equal(staticReport.sourceContractTargetZone, 'northamerica-northeast2-a')
 assertAllFalse(staticReport.runtimeSideEffects as Record<string, unknown>)
 const staticAccountSelection = staticReport.accountSelection as Record<string, unknown>
 assert.equal(staticAccountSelection.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
@@ -166,6 +173,11 @@ assert.equal(spec.decision, 'ai_video_broll_gen_11h_fix_inference_proof_static_f
 assert.equal(spec.selectedGpu, 'nvidia_l4')
 assert.equal(spec.sourcePayloadInstallMachineType, 'g2-standard-4')
 assert.equal(spec.retryMachineType, 'g2-standard-8')
+assert.equal(spec.targetZone, 'northamerica-northeast2-b')
+assert.equal(
+  spec.targetZoneRationale.includes('ZONE_RESOURCE_POOL_EXHAUSTED_WITH_DETAILS'),
+  true,
+)
 assert.equal(spec.fixActions.increaseHostMemorySameGpu, true)
 assert.equal(spec.fixActions.addPipelineLoadMarkersBeforeInference, true)
 assert.equal(spec.fixActions.parsePipelineLoadMarkerWithoutRequiringCanarySuccess, true)

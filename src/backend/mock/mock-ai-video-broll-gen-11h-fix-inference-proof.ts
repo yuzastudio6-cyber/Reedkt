@@ -14,7 +14,9 @@ export const AI_VIDEO_BROLL_GEN_11H_FIX_INFERENCE_PROOF = {
   sourcePayloadInstallMachineType: 'g2-standard-4',
   retryMachineType: 'g2-standard-8',
   targetRegion: 'northamerica-northeast2',
-  targetZone: 'northamerica-northeast2-a',
+  targetZone: 'northamerica-northeast2-b',
+  targetZoneRationale:
+    'The first external-agent 11H retry reached GCP create preflight but northamerica-northeast2-a returned ZONE_RESOURCE_POOL_EXHAUSTED_WITH_DETAILS and suggested northamerica-northeast2-b capacity.',
   proofVmName: 'reeditpro-ai-broll-wan-l4-proof',
   fixActions: {
     keepSameGpuFamily: true,

@@ -33,6 +33,9 @@ type RunnerSummary = {
   summaryPath: string
   nextPrompt: string
   accountSelection: ReturnType<typeof accountSelectionOutput>
+  targetRegion: string
+  targetZone: string
+  sourceContractTargetZone: string
   blockers: string[]
   phaseResults: PhaseResult[]
   preflightPassed: boolean
@@ -78,7 +81,8 @@ const DEFAULT_SUMMARY_PATH = path.join('.tmp', 'ai-video-broll-gen-11h-inference
 const PROJECT_ID = CONTRACT.projectId
 const PROOF_VM_NAME = CONTRACT.proofVmName
 const TARGET_REGION = CONTRACT.targetRegion
-const TARGET_ZONE = CONTRACT.targetZone
+const TARGET_ZONE = 'northamerica-northeast2-b'
+const SOURCE_CONTRACT_TARGET_ZONE = CONTRACT.targetZone
 const SOURCE_PAYLOAD_INSTALL_MACHINE_TYPE = CONTRACT.machineType
 const MACHINE_TYPE = 'g2-standard-8'
 const ACCELERATOR = 'nvidia-l4'
@@ -1457,6 +1461,9 @@ function baseSummary(summaryPath: string, status: RunnerSummary['status']): Runn
     summaryPath,
     nextPrompt: status === 'passed' ? NEXT_PROMPT_IF_PASSED : NEXT_PROMPT_IF_FAILED,
     accountSelection: accountSelectionOutput(),
+    targetRegion: TARGET_REGION,
+    targetZone: TARGET_ZONE,
+    sourceContractTargetZone: SOURCE_CONTRACT_TARGET_ZONE,
     blockers: [],
     phaseResults: [],
     preflightPassed: false,

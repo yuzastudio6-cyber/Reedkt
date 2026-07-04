@@ -11,6 +11,7 @@ This fix is static and no-execution. It does not create a VM, run a GPU, call Su
 - Keep the selected GPU family: `nvidia_l4`.
 - Keep no-idle lifecycle rules: prompt-scoped VM only, no public IP, boot disk auto-delete, delete before completion, and cleanup verification.
 - Change the future proof VM from `g2-standard-4` to `g2-standard-8` for the same one-L4 GPU with more host CPU/RAM.
+- Route the immediate retry to `northamerica-northeast2-b` because the external-agent attempt in `northamerica-northeast2-a` reached VM creation but returned `ZONE_RESOURCE_POOL_EXHAUSTED_WITH_DETAILS` and GCP reported `northamerica-northeast2-b` capacity.
 - Preserve `g2-standard-4` as the source payload/install proof machine type, not as the inference canary machine type.
 - Add pipeline-load markers before inference:
   - `REEDITPRO_BROLL_11H_WAN_PIPELINE_LOAD_START`

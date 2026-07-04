@@ -32,6 +32,9 @@ Route: `/api/ai-graphics/external-agent/tool-call`
 - `status`: `none_required_tool_executed`
 - `requiredPrivateInputKeys`: `none`
 - `blockedRuntimePrerequisites`: `none`
+- `currentBlockingPrerequisiteKey`: `null`
+- `currentBlockingReasonCode`: `null`
+- `remainingPrivateInputKeys`: `none`
 - `nextExactGpuHostPreflightCommand`: `null`
 - `nextExactGpuContainerBuildCommand`: `null`
 - `nextExactScopedToolCallCommand`: `null`

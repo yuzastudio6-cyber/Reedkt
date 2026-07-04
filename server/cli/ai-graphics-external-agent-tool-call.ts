@@ -202,6 +202,52 @@ function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
   return keys
 }
 
+function gpuModelCurrentBlockingPrerequisiteKey(
+  blockingReasonCode: string | null | undefined,
+): string | null {
+  if (!blockingReasonCode) return null
+  if (blockingReasonCode.includes('output_directory_missing')) {
+    return 'outputDirectory'
+  }
+  if (blockingReasonCode.includes('source_frame_missing')) {
+    return 'sourceImageLocalPath'
+  }
+  if (blockingReasonCode.includes('sam2_checkpoint_missing')) {
+    return 'sam2CheckpointLocalPath'
+  }
+  if (blockingReasonCode.includes('birefnet_model_missing')) {
+    return 'birefnetModelLocalPath'
+  }
+  if (blockingReasonCode.includes('real_esrgan_model_missing')) {
+    return 'realEsrganModelLocalPath'
+  }
+  if (blockingReasonCode.includes('rembg_model_missing')) {
+    return 'rembgModelLocalPath'
+  }
+  if (blockingReasonCode.includes('transparent_background_checkpoint_missing')) {
+    return 'transparentBackgroundCheckpointLocalPath'
+  }
+  if (
+    blockingReasonCode.includes('cuda') ||
+    blockingReasonCode.includes('container_gpu')
+  ) {
+    return 'nativeCudaRuntime'
+  }
+  if (blockingReasonCode.includes('container_image')) {
+    return 'runtimeContainerImage'
+  }
+  if (blockingReasonCode.includes('python_package')) {
+    return 'pythonPackageRuntime'
+  }
+  if (blockingReasonCode.includes('python_runtime')) {
+    return 'pythonRuntime'
+  }
+  if (blockingReasonCode.includes('disabled_or_not_local_dev')) {
+    return 'attemptGpuRuntime'
+  }
+  return null
+}
+
 function gpuModelPrivateInputPlaceholders(toolId: string): string[] {
   const placeholders: string[] = []
   if (gpuModelSourceImageRequired(toolId)) {
@@ -426,12 +472,18 @@ function nextActionForReport(input: {
   executable: boolean
   blockedWithReason: boolean
   failedWithDiagnostics: boolean
+  blockingReasonCode?: string | null
+  normalizedCurrentBlockingPrerequisiteKey?: string | null
+  normalizedRemainingPrivateInputKeys?: string[]
 }) {
   if (input.executable) {
     return {
       status: 'none_required_tool_executed',
       requiredPrivateInputKeys: [],
       blockedRuntimePrerequisites: [],
+      currentBlockingPrerequisiteKey: null,
+      currentBlockingReasonCode: null,
+      remainingPrivateInputKeys: [],
       nextExactGpuHostPreflightCommand: null,
       nextExactGpuContainerBuildCommand: null,
       nextExactScopedToolCallCommand: null,
@@ -439,10 +491,21 @@ function nextActionForReport(input: {
     }
   }
   if (input.group === 'gpu_model' && input.blockedWithReason) {
+    const requiredPrivateInputKeys = gpuModelRequiredPrivateInputKeys(input.toolId)
+    const currentBlockingPrerequisiteKey =
+      input.normalizedCurrentBlockingPrerequisiteKey ??
+      gpuModelCurrentBlockingPrerequisiteKey(input.blockingReasonCode)
     return {
       status: 'blocked_until_scoped_private_gpu_runtime_proof',
-      requiredPrivateInputKeys: gpuModelRequiredPrivateInputKeys(input.toolId),
+      requiredPrivateInputKeys,
       blockedRuntimePrerequisites: gpuModelBlockedPrerequisites(input.toolId),
+      currentBlockingPrerequisiteKey,
+      currentBlockingReasonCode: input.blockingReasonCode ?? null,
+      remainingPrivateInputKeys:
+        input.normalizedRemainingPrivateInputKeys ??
+        (currentBlockingPrerequisiteKey
+          ? requiredPrivateInputKeys.filter((key) => key !== currentBlockingPrerequisiteKey)
+          : requiredPrivateInputKeys),
       nextExactGpuHostPreflightCommand: gpuModelHostPreflightCommand(),
       nextExactGpuContainerBuildCommand: gpuModelContainerBuildCommand(),
       nextExactScopedToolCallCommand: gpuModelScopedToolCallCommand(input.toolId),
@@ -454,6 +517,9 @@ function nextActionForReport(input: {
       status: 'inspect_failure_diagnostics_before_retry',
       requiredPrivateInputKeys: [],
       blockedRuntimePrerequisites: [],
+      currentBlockingPrerequisiteKey: null,
+      currentBlockingReasonCode: input.blockingReasonCode ?? null,
+      remainingPrivateInputKeys: [],
       nextExactGpuHostPreflightCommand: null,
       nextExactGpuContainerBuildCommand: null,
       nextExactScopedToolCallCommand: null,
@@ -464,6 +530,9 @@ function nextActionForReport(input: {
     status: 'unknown_result_requires_route_diagnostic',
     requiredPrivateInputKeys: [],
     blockedRuntimePrerequisites: [],
+    currentBlockingPrerequisiteKey: null,
+    currentBlockingReasonCode: input.blockingReasonCode ?? null,
+    remainingPrivateInputKeys: [],
     nextExactGpuHostPreflightCommand: null,
     nextExactGpuContainerBuildCommand: null,
     nextExactScopedToolCallCommand: null,
@@ -668,6 +737,13 @@ async function buildReport() {
       executable,
       blockedWithReason,
       failedWithDiagnostics,
+      blockingReasonCode: data.blockingReasonCode ?? null,
+      normalizedCurrentBlockingPrerequisiteKey:
+        normalized?.currentBlockingPrerequisiteKey ?? null,
+      normalizedRemainingPrivateInputKeys:
+        Array.isArray(normalized?.remainingPrivateInputKeys)
+          ? normalized.remainingPrivateInputKeys
+          : undefined,
     }),
     booleans: {
       externalAgentSingleToolCallPerformed: true,
@@ -795,6 +871,9 @@ Route: \`${report.routePath}\`
 - \`status\`: \`${report.nextAction.status}\`
 - \`requiredPrivateInputKeys\`: \`${report.nextAction.requiredPrivateInputKeys.join(', ') || 'none'}\`
 - \`blockedRuntimePrerequisites\`: \`${report.nextAction.blockedRuntimePrerequisites.join(' | ') || 'none'}\`
+- \`currentBlockingPrerequisiteKey\`: \`${report.nextAction.currentBlockingPrerequisiteKey}\`
+- \`currentBlockingReasonCode\`: \`${report.nextAction.currentBlockingReasonCode}\`
+- \`remainingPrivateInputKeys\`: \`${report.nextAction.remainingPrivateInputKeys.join(', ') || 'none'}\`
 - \`nextExactGpuHostPreflightCommand\`: \`${report.nextAction.nextExactGpuHostPreflightCommand}\`
 - \`nextExactGpuContainerBuildCommand\`: \`${report.nextAction.nextExactGpuContainerBuildCommand}\`
 - \`nextExactScopedToolCallCommand\`: \`${report.nextAction.nextExactScopedToolCallCommand}\`

@@ -283,6 +283,9 @@ interface AiGraphicsExternalAgentToolCallResultInput {
   nextExternalAgentRouteRetryCommand?: string | null
   requiredPrivateInputKeys?: string[]
   blockedRuntimePrerequisites?: string[]
+  currentBlockingPrerequisiteKey?: string | null
+  currentBlockingReasonCode?: string | null
+  remainingPrivateInputKeys?: string[]
   gpuRuntimeStartPolicy?: string | null
 }
 
@@ -333,6 +336,10 @@ export function buildAiGraphicsExternalAgentToolCallResult(
       input.nextExternalAgentRouteRetryCommand ?? null,
     requiredPrivateInputKeys: input.requiredPrivateInputKeys ?? [],
     blockedRuntimePrerequisites: input.blockedRuntimePrerequisites ?? [],
+    currentBlockingPrerequisiteKey:
+      input.currentBlockingPrerequisiteKey ?? null,
+    currentBlockingReasonCode: input.currentBlockingReasonCode ?? null,
+    remainingPrivateInputKeys: input.remainingPrivateInputKeys ?? [],
     gpuRuntimeStartPolicy: input.gpuRuntimeStartPolicy ?? null,
   }
 }
@@ -429,6 +436,52 @@ function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
   ].filter(Boolean)
 }
 
+function gpuModelCurrentBlockingPrerequisiteKey(
+  blockingReasonCode: string | null | undefined,
+): string | null {
+  if (!blockingReasonCode) return null
+  if (blockingReasonCode.includes('output_directory_missing')) {
+    return 'outputDirectory'
+  }
+  if (blockingReasonCode.includes('source_frame_missing')) {
+    return 'sourceImageLocalPath'
+  }
+  if (blockingReasonCode.includes('sam2_checkpoint_missing')) {
+    return 'sam2CheckpointLocalPath'
+  }
+  if (blockingReasonCode.includes('birefnet_model_missing')) {
+    return 'birefnetModelLocalPath'
+  }
+  if (blockingReasonCode.includes('real_esrgan_model_missing')) {
+    return 'realEsrganModelLocalPath'
+  }
+  if (blockingReasonCode.includes('rembg_model_missing')) {
+    return 'rembgModelLocalPath'
+  }
+  if (blockingReasonCode.includes('transparent_background_checkpoint_missing')) {
+    return 'transparentBackgroundCheckpointLocalPath'
+  }
+  if (
+    blockingReasonCode.includes('cuda') ||
+    blockingReasonCode.includes('container_gpu')
+  ) {
+    return 'nativeCudaRuntime'
+  }
+  if (blockingReasonCode.includes('container_image')) {
+    return 'runtimeContainerImage'
+  }
+  if (blockingReasonCode.includes('python_package')) {
+    return 'pythonPackageRuntime'
+  }
+  if (blockingReasonCode.includes('python_runtime')) {
+    return 'pythonRuntime'
+  }
+  if (blockingReasonCode.includes('disabled_or_not_local_dev')) {
+    return 'attemptGpuRuntime'
+  }
+  return null
+}
+
 function gpuModelBlockedRuntimePrerequisites(toolId: string): string[] {
   return [
     'private output directory under .local-artifacts/ai-graphics',
@@ -447,7 +500,14 @@ function gpuModelBlockedRuntimePrerequisites(toolId: string): string[] {
 function gpuModelExternalAgentProofFields(input: {
   toolId: string
   executionPassed: boolean
+  blockingReasonCode?: string | null
 }) {
+  const currentBlockingPrerequisiteKey = input.executionPassed
+    ? null
+    : gpuModelCurrentBlockingPrerequisiteKey(input.blockingReasonCode)
+  const requiredPrivateInputKeys = input.executionPassed
+    ? []
+    : gpuModelRequiredPrivateInputKeys(input.toolId)
   return {
     nextExternalAgentCommandKind: input.executionPassed
       ? null
@@ -461,12 +521,17 @@ function gpuModelExternalAgentProofFields(input: {
     nextExternalAgentRouteRetryCommand: input.executionPassed
       ? null
       : exactGpuModelScopedRouteProofCommand(input.toolId),
-    requiredPrivateInputKeys: input.executionPassed
-      ? []
-      : gpuModelRequiredPrivateInputKeys(input.toolId),
+    requiredPrivateInputKeys,
     blockedRuntimePrerequisites: input.executionPassed
       ? []
       : gpuModelBlockedRuntimePrerequisites(input.toolId),
+    currentBlockingPrerequisiteKey,
+    currentBlockingReasonCode: input.executionPassed
+      ? null
+      : input.blockingReasonCode ?? null,
+    remainingPrivateInputKeys: currentBlockingPrerequisiteKey
+      ? requiredPrivateInputKeys.filter((key) => key !== currentBlockingPrerequisiteKey)
+      : requiredPrivateInputKeys,
     gpuRuntimeStartPolicy: input.executionPassed
       ? 'gpu_started_only_for_completed_scoped_tool_call'
       : 'on_demand_only_for_scoped_active_tool_call',
@@ -2475,6 +2540,7 @@ export function createAiGraphicsExternalBetaToolCallRoutes(
       const gpuModelProofFields = gpuModelExternalAgentProofFields({
         toolId: body.toolId,
         executionPassed: gpuModelExecutionPassed,
+        blockingReasonCode: execution.blockingReasonCode,
       })
       sendRouteOk(response, {
         routeDecision:

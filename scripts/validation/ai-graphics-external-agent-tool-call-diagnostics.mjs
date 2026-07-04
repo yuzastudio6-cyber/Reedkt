@@ -202,6 +202,14 @@ function checkExecutableCall(label, report, expectedToolId, expectedGroup) {
 }
 
 function checkGpuBlockedCall(label, report, expectedBlockingReason) {
+  const expectedCurrentBlockingPrerequisite =
+    expectedBlockingReason === 'kornia_disabled_or_not_local_dev'
+      ? 'attemptGpuRuntime'
+      : 'sourceImageLocalPath'
+  const expectedRemainingPrivateInputKeys =
+    expectedCurrentBlockingPrerequisite === 'sourceImageLocalPath'
+      ? ['outputDirectory', 'nativeCudaRuntime']
+      : ['outputDirectory', 'nativeCudaRuntime', 'sourceImageLocalPath']
   if (report.decision !== decision) fail(`${label}_decision_mismatch`)
   if (report.status !== 'external_agent_single_tool_call_blocked_with_reason') {
     fail(`${label}_status_mismatch:${report.status}`)
@@ -277,6 +285,27 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
       fail(`${label}_required_private_input_missing:${key}`)
     }
   }
+  if (
+    normalized.currentBlockingPrerequisiteKey !==
+    expectedCurrentBlockingPrerequisite
+  ) {
+    fail(`${label}_current_blocking_prerequisite_mismatch:${normalized.currentBlockingPrerequisiteKey}`)
+  }
+  if (normalized.currentBlockingReasonCode !== expectedBlockingReason) {
+    fail(`${label}_current_blocking_reason_mismatch:${normalized.currentBlockingReasonCode}`)
+  }
+  for (const key of expectedRemainingPrivateInputKeys) {
+    if (!Array.isArray(normalized.remainingPrivateInputKeys) ||
+      !normalized.remainingPrivateInputKeys.includes(key)) {
+      fail(`${label}_remaining_private_input_missing:${key}`)
+    }
+  }
+  if (
+    expectedCurrentBlockingPrerequisite === 'sourceImageLocalPath' &&
+    normalized.remainingPrivateInputKeys?.includes('sourceImageLocalPath')
+  ) {
+    fail(`${label}_remaining_private_input_still_contains_current_blocker`)
+  }
   for (const fragment of [
     'native CUDA-capable host',
     'private approved source image',
@@ -304,6 +333,27 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
     'on_demand_only_for_scoped_active_tool_call'
   ) {
     fail(`${label}_next_action_gpu_policy_mismatch`)
+  }
+  if (
+    nextAction.currentBlockingPrerequisiteKey !==
+    expectedCurrentBlockingPrerequisite
+  ) {
+    fail(`${label}_next_action_current_blocking_prerequisite_mismatch:${nextAction.currentBlockingPrerequisiteKey}`)
+  }
+  if (nextAction.currentBlockingReasonCode !== expectedBlockingReason) {
+    fail(`${label}_next_action_current_blocking_reason_mismatch:${nextAction.currentBlockingReasonCode}`)
+  }
+  for (const key of expectedRemainingPrivateInputKeys) {
+    if (!Array.isArray(nextAction.remainingPrivateInputKeys) ||
+      !nextAction.remainingPrivateInputKeys.includes(key)) {
+      fail(`${label}_next_action_remaining_private_input_missing:${key}`)
+    }
+  }
+  if (
+    expectedCurrentBlockingPrerequisite === 'sourceImageLocalPath' &&
+    nextAction.remainingPrivateInputKeys?.includes('sourceImageLocalPath')
+  ) {
+    fail(`${label}_next_action_remaining_private_input_still_contains_current_blocker`)
   }
   for (const key of [
     'outputDirectory',
@@ -497,6 +547,7 @@ for (const phrase of [
   'assertPrivateLocalInputPath',
   'assertNoSignedUrlOrRawUrl',
   'gpuModelRequiredPrivateInputKeys',
+  'gpuModelCurrentBlockingPrerequisiteKey',
   'blocked_until_scoped_private_gpu_runtime_proof',
   'nextExactScopedToolCallCommand',
   '--unsafe-route-payload-test',
@@ -511,6 +562,8 @@ for (const phrase of [
   'controlled_gpu_model_route_failed_with_diagnostics_payload_boundary',
   'gpuModelPayloadLocalPathFields',
   'gpuModelPayloadForbiddenTrueFields',
+  'currentBlockingPrerequisiteKey',
+  'remainingPrivateInputKeys',
   'assertNoSignedUrlOrRawUrl',
   'assertNoPathTraversal',
   'outputDirectory must stay under .local-artifacts/',

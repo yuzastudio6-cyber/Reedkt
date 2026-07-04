@@ -140,6 +140,52 @@ function gpuModelMinimumPrivateRuntimeInputKeys(toolId: string): string[] {
   return keys
 }
 
+function gpuModelCurrentBlockingPrerequisiteKey(
+  blockingReasonCode: string | null | undefined,
+): string | null {
+  if (!blockingReasonCode) return null
+  if (blockingReasonCode.includes('output_directory_missing')) {
+    return 'outputDirectory'
+  }
+  if (blockingReasonCode.includes('source_frame_missing')) {
+    return 'sourceImageLocalPath'
+  }
+  if (blockingReasonCode.includes('sam2_checkpoint_missing')) {
+    return 'sam2CheckpointLocalPath'
+  }
+  if (blockingReasonCode.includes('birefnet_model_missing')) {
+    return 'birefnetModelLocalPath'
+  }
+  if (blockingReasonCode.includes('real_esrgan_model_missing')) {
+    return 'realEsrganModelLocalPath'
+  }
+  if (blockingReasonCode.includes('rembg_model_missing')) {
+    return 'rembgModelLocalPath'
+  }
+  if (blockingReasonCode.includes('transparent_background_checkpoint_missing')) {
+    return 'transparentBackgroundCheckpointLocalPath'
+  }
+  if (
+    blockingReasonCode.includes('cuda') ||
+    blockingReasonCode.includes('container_gpu')
+  ) {
+    return 'nativeCudaRuntime'
+  }
+  if (blockingReasonCode.includes('container_image')) {
+    return 'runtimeContainerImage'
+  }
+  if (blockingReasonCode.includes('python_package')) {
+    return 'pythonPackageRuntime'
+  }
+  if (blockingReasonCode.includes('python_runtime')) {
+    return 'pythonRuntime'
+  }
+  if (blockingReasonCode.includes('disabled_or_not_local_dev')) {
+    return 'attemptGpuRuntime'
+  }
+  return null
+}
+
 function gpuModelHostRuntimeFlags(toolId: string): string[] {
   const flags = [
     `--tool ${toolId}`,
@@ -404,6 +450,20 @@ function buildToolRows(
             : 'local runtime not attempted',
         ].join('; ')
       : null
+    const currentBlockingPrerequisiteKey = group === 'gpu_model' && !executionPassed
+      ? gpuModelCurrentBlockingPrerequisiteKey(gpuRow?.skipReasonCode)
+      : null
+    const minimumPrivateRuntimeInputKeys = group === 'gpu_model'
+      ? gpuModelMinimumPrivateRuntimeInputKeys(toolId)
+      : []
+    const remainingPrivateRuntimeInputKeys =
+      group === 'gpu_model' && !executionPassed
+        ? currentBlockingPrerequisiteKey
+          ? minimumPrivateRuntimeInputKeys.filter(
+              (key) => key !== currentBlockingPrerequisiteKey,
+            )
+          : minimumPrivateRuntimeInputKeys
+        : []
 
     return {
       toolId,
@@ -460,9 +520,12 @@ function buildToolRows(
           ? 'docker_container'
           : 'host_python_or_docker_container'
         : null,
-      minimumPrivateRuntimeInputKeys: group === 'gpu_model'
-        ? gpuModelMinimumPrivateRuntimeInputKeys(toolId)
-        : [],
+      currentBlockingPrerequisiteKey,
+      currentBlockingReasonCode: group === 'gpu_model' && !executionPassed
+        ? gpuRow?.skipReasonCode ?? null
+        : null,
+      remainingPrivateRuntimeInputKeys,
+      minimumPrivateRuntimeInputKeys,
       minimumHostRuntimeFlags: group === 'gpu_model'
         ? gpuModelHostRuntimeFlags(toolId)
         : [],
@@ -952,7 +1015,7 @@ function buildReport() {
 function makeMarkdown(report: ReturnType<typeof buildReport>): string {
   const rows = report.toolReadinessRows
     .map((row) => (
-      `| \`${row.toolId}\` | \`${row.group}\` | \`${row.installReadinessState}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | ${row.controlledWorkerRouteEvidenceAccepted} | \`${row.minimumPrivateRuntimeInputKeys.length ? row.minimumPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.blockingPrerequisite ?? 'none'}\` |`
+      `| \`${row.toolId}\` | \`${row.group}\` | \`${row.installReadinessState}\` | \`${row.readinessState}\` | ${row.callable} | ${row.executable} | ${row.controlledWorkerRouteEvidenceAccepted} | \`${row.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${row.remainingPrivateRuntimeInputKeys.length ? row.remainingPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.minimumPrivateRuntimeInputKeys.length ? row.minimumPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.blockingPrerequisite ?? 'none'}\` |`
     ))
     .join('\n')
 
@@ -974,8 +1037,8 @@ ${Object.entries(report.executionScope).map(([key, value]) => `- \`${key}\`: ${A
 
 ## Tool Rows
 
-| Tool | Group | Install/runtime state | Readiness state | Callable | Executable | Worker-route evidence accepted | Minimum private runtime inputs | Blocking prerequisite |
-| --- | --- | --- | --- | ---: | ---: | ---: | --- | --- |
+| Tool | Group | Install/runtime state | Readiness state | Callable | Executable | Worker-route evidence accepted | Current blocker | Remaining private runtime inputs | Minimum private runtime inputs | Blocking prerequisite |
+| --- | --- | --- | --- | ---: | ---: | ---: | --- | --- | --- | --- |
 ${rows}
 
 ## Counts

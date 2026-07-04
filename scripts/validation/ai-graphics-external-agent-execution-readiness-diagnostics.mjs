@@ -282,6 +282,19 @@ function expectedMinimumPrivateRuntimeInputKeys(toolId) {
   return keys
 }
 
+function expectedCurrentBlockingPrerequisiteKey(toolId) {
+  return {
+    torch_torchvision: 'outputDirectory',
+    transformers: 'outputDirectory',
+    sam2: 'sam2CheckpointLocalPath',
+    birefnet: 'birefnetModelLocalPath',
+    real_esrgan: 'realEsrganModelLocalPath',
+    kornia: 'sourceImageLocalPath',
+    rembg: 'rembgModelLocalPath',
+    transparent_background: 'transparentBackgroundCheckpointLocalPath',
+  }[toolId] ?? null
+}
+
 function expectedHostRuntimeFlags(toolId) {
   const flags = [`--tool ${toolId}`, '--output-dir']
   if (gpuModelRequiresSourceImage(toolId)) flags.push('--source-image')
@@ -564,6 +577,24 @@ function checkReport(label, report) {
       const expectedInputKeys = expectedMinimumPrivateRuntimeInputKeys(toolId)
       if (!arrayMatches(row.minimumPrivateRuntimeInputKeys, expectedInputKeys)) {
         fail(`${label}_${toolId}_minimum_input_keys_mismatch:${JSON.stringify(row.minimumPrivateRuntimeInputKeys)}`)
+      }
+      const expectedCurrentBlocker =
+        expectedCurrentBlockingPrerequisiteKey(toolId)
+      if (row.currentBlockingPrerequisiteKey !== expectedCurrentBlocker) {
+        fail(`${label}_${toolId}_current_blocker_mismatch:${row.currentBlockingPrerequisiteKey}`)
+      }
+      if (typeof row.currentBlockingReasonCode !== 'string' ||
+        row.currentBlockingReasonCode.length === 0) {
+        fail(`${label}_${toolId}_missing_current_blocking_reason_code`)
+      }
+      const expectedRemainingInputKeys = expectedInputKeys.filter(
+        (key) => key !== expectedCurrentBlocker,
+      )
+      if (!arrayMatches(row.remainingPrivateRuntimeInputKeys, expectedRemainingInputKeys)) {
+        fail(`${label}_${toolId}_remaining_input_keys_mismatch:${JSON.stringify(row.remainingPrivateRuntimeInputKeys)}`)
+      }
+      if (row.remainingPrivateRuntimeInputKeys?.includes(expectedCurrentBlocker)) {
+        fail(`${label}_${toolId}_remaining_inputs_include_current_blocker`)
       }
       for (const flag of expectedHostRuntimeFlags(toolId)) {
         if (!String(row.nextExactHostPythonCommand ?? '').includes(flag)) {

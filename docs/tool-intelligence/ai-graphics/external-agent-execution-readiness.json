@@ -188,6 +188,11 @@
       "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: foundation_runtime_output_directory_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
+      "currentBlockingPrerequisiteKey": "outputDirectory",
+      "currentBlockingReasonCode": "foundation_runtime_output_directory_missing",
+      "remainingPrivateRuntimeInputKeys": [
+        "nativeCudaRuntime"
+      ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime"
@@ -267,6 +272,11 @@
       "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: foundation_runtime_output_directory_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
+      "currentBlockingPrerequisiteKey": "outputDirectory",
+      "currentBlockingReasonCode": "foundation_runtime_output_directory_missing",
+      "remainingPrivateRuntimeInputKeys": [
+        "nativeCudaRuntime"
+      ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime"
@@ -347,6 +357,13 @@
       "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; sam2CheckpointLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: sam2_checkpoint_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
+      "currentBlockingPrerequisiteKey": "sam2CheckpointLocalPath",
+      "currentBlockingReasonCode": "sam2_checkpoint_missing",
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime",
+        "sourceImageLocalPath"
+      ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
@@ -433,6 +450,13 @@
       "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; birefnetModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: birefnet_model_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
+      "currentBlockingPrerequisiteKey": "birefnetModelLocalPath",
+      "currentBlockingReasonCode": "birefnet_model_missing",
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime",
+        "sourceImageLocalPath"
+      ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
@@ -518,6 +542,13 @@
       "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; realEsrganModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: real_esrgan_model_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
+      "currentBlockingPrerequisiteKey": "realEsrganModelLocalPath",
+      "currentBlockingReasonCode": "real_esrgan_model_missing",
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime",
+        "sourceImageLocalPath"
+      ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
@@ -604,6 +635,12 @@
       "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing",
       "recommendedGpuProofBackend": "docker_container",
+      "currentBlockingPrerequisiteKey": "sourceImageLocalPath",
+      "currentBlockingReasonCode": "kornia_source_frame_missing",
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime"
+      ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
@@ -686,6 +723,13 @@
       "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; rembgModelLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: rembg_model_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
+      "currentBlockingPrerequisiteKey": "rembgModelLocalPath",
+      "currentBlockingReasonCode": "rembg_model_missing",
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime",
+        "sourceImageLocalPath"
+      ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
@@ -771,6 +815,13 @@
       "controlledWorkerRouteGpuBlocked": true,
       "blockingPrerequisite": "approved native CUDA host; outputDirectory; sourceImageLocalPath; transparentBackgroundCheckpointLocalPath; nativeCudaRuntime; reviewed private proof refs; adapter skip reason: transparent_background_checkpoint_missing",
       "recommendedGpuProofBackend": "host_python_or_docker_container",
+      "currentBlockingPrerequisiteKey": "transparentBackgroundCheckpointLocalPath",
+      "currentBlockingReasonCode": "transparent_background_checkpoint_missing",
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime",
+        "sourceImageLocalPath"
+      ],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime",
@@ -857,6 +908,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],
@@ -926,6 +980,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],
@@ -994,6 +1051,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],
@@ -1062,6 +1122,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],
@@ -1131,6 +1194,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],
@@ -1199,6 +1265,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],
@@ -1267,6 +1336,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],
@@ -1336,6 +1408,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],
@@ -1405,6 +1480,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],
@@ -1474,6 +1552,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],
@@ -1543,6 +1624,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],
@@ -1612,6 +1696,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],
@@ -1681,6 +1768,9 @@
       "controlledWorkerRouteGpuBlocked": false,
       "blockingPrerequisite": null,
       "recommendedGpuProofBackend": null,
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [],
       "minimumHostRuntimeFlags": [],
       "minimumControlledRouteFlags": [],

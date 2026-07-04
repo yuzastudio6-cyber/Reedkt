@@ -22,6 +22,19 @@ const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.md'
 const canonicalGpuWorkerProofImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
+const runtimeContainerImageByTool: Record<
+  AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  string
+> = {
+  torch_torchvision: canonicalGpuWorkerProofImage,
+  transformers: canonicalGpuWorkerProofImage,
+  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+  real_esrgan: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+  kornia: canonicalGpuWorkerProofImage,
+  rembg: canonicalGpuWorkerProofImage,
+  transparent_background: canonicalGpuWorkerProofImage,
+}
 
 type HarnessArgs = {
   attemptLocalRuntime: boolean
@@ -761,7 +774,7 @@ function exactRuntimeAttemptCommand(
     ...(options.container
       ? [
           '--runtime-backend docker_container',
-          `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+          `--runtime-container-image ${runtimeContainerImageByTool[toolId]}`,
           '--runtime-container-platform linux/amd64',
         ]
       : []),
@@ -1127,7 +1140,7 @@ async function buildReport(args: HarnessArgs) {
       privateRuntimeInputManifestAttemptCommand:
         'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json',
       privateContainerRuntimeAttemptCommand:
-        `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image ${canonicalGpuWorkerProofImage} --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>`,
+        'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image <tool-specific-proof-image> --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>',
       privateRuntimeAttemptCommandsByTool:
         exactRuntimeAttemptCommandsByTool({ container: false }),
       privateContainerRuntimeAttemptCommandsByTool:

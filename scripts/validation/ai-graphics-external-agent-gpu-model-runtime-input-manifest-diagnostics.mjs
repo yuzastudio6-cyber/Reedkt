@@ -17,6 +17,13 @@ const decision =
 const runRoot =
   '.local-artifacts/ai-graphics/gpu-model-runtime-input-manifest-materializer/diagnostic'
 const canonicalRuntimeImage = 'reeditpro/ai-graphics-gpu-worker:proof-local'
+const runtimeImageByTool = {
+  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+  real_esrgan: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+  rembg: canonicalRuntimeImage,
+  transparent_background: canonicalRuntimeImage,
+}
 
 const toolContracts = {
   sam2: {
@@ -165,7 +172,7 @@ function materializeManifest(toolId, contract) {
     `--manifest-out ${manifestOut}`,
     `--model-weight-manifest-id ${contract.manifestId}`,
     `--model-weight-checksum-evidence-ref ${contract.evidenceRef}`,
-    `--runtime-container-image ${canonicalRuntimeImage}`,
+    `--runtime-container-image ${runtimeImageByTool[toolId]}`,
     '--runtime-container-platform linux/amd64',
     '--force',
   ].join(' '))

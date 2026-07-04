@@ -22,6 +22,48 @@ const canonicalGpuWorkerProofImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
 const canonicalGpuWorkerProofImageBuildCommand =
   `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${canonicalGpuWorkerProofImage} .`
+const gpuModelRuntimeContainerTargets = {
+  torch_torchvision: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  transformers: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  sam2: {
+    image: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+    dockerfile: 'docker/prod/sam2-runtime/Dockerfile',
+    profile: 'sam2',
+  },
+  birefnet: {
+    image: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+    dockerfile: 'docker/prod/birefnet-runtime/Dockerfile',
+    profile: 'birefnet',
+  },
+  real_esrgan: {
+    image: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+    dockerfile: 'docker/prod/real-esrgan-runtime/Dockerfile',
+    profile: 'real_esrgan',
+  },
+  kornia: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  rembg: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  transparent_background: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+}
 
 const cpuStaticTools = [
   'd3',
@@ -628,6 +670,20 @@ function expectedControlledRouteFlags(toolId) {
   return flags
 }
 
+function expectedRuntimeContainerTarget(toolId) {
+  return gpuModelRuntimeContainerTargets[toolId] ?? gpuModelRuntimeContainerTargets.torch_torchvision
+}
+
+function expectedRuntimeContainerBuildCommand(toolId) {
+  const target = expectedRuntimeContainerTarget(toolId)
+  return [
+    'docker buildx build --platform linux/amd64 --target ai_graphics_install_proof',
+    `-f ${target.dockerfile}`,
+    `-t ${target.image}`,
+    '.',
+  ].join(' ')
+}
+
 function arrayMatches(actual, expected) {
   return Array.isArray(actual) &&
     actual.length === expected.length &&
@@ -968,10 +1024,11 @@ function checkReport(label, report) {
       if (!String(row.nextExactContainerCommand ?? '').includes('--result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json')) {
         fail(`${label}_${toolId}_container_command_missing_result_out`)
       }
-      if (!String(row.nextExactContainerCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
-        fail(`${label}_${toolId}_gpu_container_command_not_canonical_image`)
+      const runtimeContainerTarget = expectedRuntimeContainerTarget(toolId)
+      if (!String(row.nextExactContainerCommand ?? '').includes(runtimeContainerTarget.image)) {
+        fail(`${label}_${toolId}_gpu_container_command_not_tool_specific_image`)
       }
-      if (row.nextExactContainerBuildCommand !== canonicalGpuWorkerProofImageBuildCommand) {
+      if (row.nextExactContainerBuildCommand !== expectedRuntimeContainerBuildCommand(toolId)) {
         fail(`${label}_${toolId}_gpu_container_build_command_mismatch`)
       }
       if (!String(row.nextExactHostPythonCommand ?? '').includes('--attempt-local-runtime')) {
@@ -1045,7 +1102,7 @@ function checkReport(label, report) {
           `--manifest-out ${manifestPath}`,
           '--model-weight-manifest-id <reviewed-private-model-weight-manifest-id>',
           `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
-          '--runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local',
+          `--runtime-container-image ${runtimeContainerTarget.image}`,
           '--runtime-container-platform linux/amd64',
         ]) {
           if (!manifestCommand.includes(fragment)) {
@@ -1171,7 +1228,13 @@ function checkReport(label, report) {
       const retryStep = unlockPlan.find(
         (step) => step.action === 'retry_controlled_route_with_accepted_private_proof',
       )
-      if (prepareStep?.buildCommand !== canonicalGpuWorkerProofImageBuildCommand) {
+      if (prepareStep?.runtimeContainerImage !== runtimeContainerTarget.image) {
+        fail(`${label}_${toolId}_unlock_plan_runtime_container_image_mismatch`)
+      }
+      if (prepareStep?.runtimeContainerProfile !== runtimeContainerTarget.profile) {
+        fail(`${label}_${toolId}_unlock_plan_runtime_container_profile_mismatch`)
+      }
+      if (prepareStep?.buildCommand !== expectedRuntimeContainerBuildCommand(toolId)) {
         fail(`${label}_${toolId}_unlock_plan_build_command_mismatch`)
       }
       if (prepareStep?.gpuStartsDuringBuild !== false ||
@@ -1181,8 +1244,8 @@ function checkReport(label, report) {
       if (!String(runtimeProofStep?.hostPythonCommand ?? '').includes(`--tool ${toolId}`)) {
         fail(`${label}_${toolId}_unlock_plan_host_command_not_tool_scoped`)
       }
-      if (!String(runtimeProofStep?.containerCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
-        fail(`${label}_${toolId}_unlock_plan_container_command_not_canonical_image`)
+      if (!String(runtimeProofStep?.containerCommand ?? '').includes(runtimeContainerTarget.image)) {
+        fail(`${label}_${toolId}_unlock_plan_container_command_not_tool_specific_image`)
       }
       if (toolId === 'kornia' &&
         !String(runtimeProofStep?.containerCommand ?? '').includes('--allow-cpu-tensor-runtime')) {

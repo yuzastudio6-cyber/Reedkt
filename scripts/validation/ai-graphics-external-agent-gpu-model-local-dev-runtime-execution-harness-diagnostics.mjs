@@ -49,6 +49,17 @@ const toolSpecificFlagByTool = {
   transparent_background: '--transparent-background-checkpoint',
 }
 
+const runtimeContainerImageByTool = {
+  torch_torchvision: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+  transformers: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+  real_esrgan: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+  kornia: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+  rembg: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+  transparent_background: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+}
+
 const expectedCounts = {
   totalAiGraphicsTools: 21,
   gpuModelToolsCovered: 8,
@@ -688,8 +699,8 @@ if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').incl
 if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('--runtime-container-image')) {
   fail('missing_private_container_runtime_image_command')
 }
-if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
-  fail('private_container_runtime_command_not_canonical_image')
+if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('<tool-specific-proof-image>')) {
+  fail('private_container_runtime_command_not_tool_specific_image_placeholder')
 }
 if (!String(report.interfaces?.privateContainerRuntimeAttemptCommand ?? '').includes('--runtime-container-platform')) {
   fail('missing_private_container_runtime_platform_command')
@@ -756,8 +767,8 @@ for (const tool of tools) {
   if (!containerCommand.includes('--runtime-backend docker_container')) {
     fail(`container_runtime_command_missing_backend:${tool}`)
   }
-  if (!containerCommand.includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
-    fail(`container_runtime_command_missing_canonical_image:${tool}`)
+  if (!containerCommand.includes(runtimeContainerImageByTool[tool])) {
+    fail(`container_runtime_command_missing_tool_specific_image:${tool}`)
   }
   const requiresSource = sourceImageRequiredTools.has(tool)
   if (requiresSource && !hostCommand.includes('--source-image <private-approved-frame.png>')) {

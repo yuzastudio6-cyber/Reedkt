@@ -24,8 +24,52 @@ const gpuModelInstallBuildTargetsPath =
   'docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json'
 const canonicalGpuWorkerProofImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
-const canonicalGpuWorkerProofImageBuildCommand =
-  `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${canonicalGpuWorkerProofImage} .`
+const gpuModelRuntimeContainerTargets: Record<string, {
+  image: string
+  dockerfile: string
+  profile: string
+}> = {
+  torch_torchvision: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  transformers: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  sam2: {
+    image: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+    dockerfile: 'docker/prod/sam2-runtime/Dockerfile',
+    profile: 'sam2',
+  },
+  birefnet: {
+    image: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+    dockerfile: 'docker/prod/birefnet-runtime/Dockerfile',
+    profile: 'birefnet',
+  },
+  real_esrgan: {
+    image: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+    dockerfile: 'docker/prod/real-esrgan-runtime/Dockerfile',
+    profile: 'real_esrgan',
+  },
+  kornia: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  rembg: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+  transparent_background: {
+    image: canonicalGpuWorkerProofImage,
+    dockerfile: 'docker/prod/gpu-worker/Dockerfile',
+    profile: 'gpu_worker_ai_graphics',
+  },
+}
 const gpuModelRuntimeInputManifestPath =
   '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json'
 const gpuModelRuntimeInputManifestOutputDir =
@@ -304,7 +348,7 @@ function gpuModelControlledRouteFlags(toolId: string): string[] {
     `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`
   const flags = [
     `--scoped-gpu-tool ${toolId}`,
-    `--scoped-gpu-runtime-container-image ${canonicalGpuWorkerProofImage}`,
+    `--scoped-gpu-runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
     '--scoped-gpu-runtime-container-platform linux/amd64',
     `--scoped-gpu-output-dir ${outputDir}`,
   ]
@@ -348,14 +392,28 @@ function containerGpuCommand(toolId: string): string {
     'npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness --',
     '--attempt-local-runtime',
     '--runtime-backend docker_container',
-    `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
     ...gpuModelHostRuntimeFlags(toolId),
   ].join(' ')
 }
 
-function containerGpuImageBuildCommand(): string {
-  return canonicalGpuWorkerProofImageBuildCommand
+function gpuModelRuntimeContainerTarget(toolId: string) {
+  return gpuModelRuntimeContainerTargets[toolId] ?? gpuModelRuntimeContainerTargets.torch_torchvision
+}
+
+function gpuModelRuntimeContainerImage(toolId: string): string {
+  return gpuModelRuntimeContainerTarget(toolId).image
+}
+
+function containerGpuImageBuildCommand(toolId: string): string {
+  const target = gpuModelRuntimeContainerTarget(toolId)
+  return [
+    'docker buildx build --platform linux/amd64 --target ai_graphics_install_proof',
+    `-f ${target.dockerfile}`,
+    `-t ${target.image}`,
+    '.',
+  ].join(' ')
 }
 
 function controlledRouteGpuCommand(toolId: string): string {
@@ -406,7 +464,7 @@ function gpuModelRuntimeInputManifestMaterializerCommand(
     `--manifest-out ${gpuModelRuntimeInputManifestPath}`,
     '--model-weight-manifest-id <reviewed-private-model-weight-manifest-id>',
     `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
-    `--runtime-container-image ${canonicalGpuWorkerProofImage}`,
+    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
   ].join(' ')
 }
@@ -531,7 +589,9 @@ function gpuModelExecutionUnlockPlan(input: {
         ? 'host_python_or_docker_container_cpu_foundation'
         : 'native_cuda_host_or_cuda_container',
       runtimePolicy: gpuModelRuntimeBackendDescription(toolId),
-      buildCommand: containerGpuImageBuildCommand(),
+      runtimeContainerImage: gpuModelRuntimeContainerImage(toolId),
+      runtimeContainerProfile: gpuModelRuntimeContainerTarget(toolId).profile,
+      buildCommand: containerGpuImageBuildCommand(toolId),
       gpuStartsDuringBuild: false,
       gpuStartsIdle: false,
     },
@@ -970,7 +1030,7 @@ function buildToolRows(
         ? containerGpuCommand(toolId)
         : null,
       nextExactContainerBuildCommand: group === 'gpu_model'
-        ? containerGpuImageBuildCommand()
+        ? containerGpuImageBuildCommand(toolId)
         : null,
       nextExactControlledRouteCommand: group === 'gpu_model'
         ? controlledRouteGpuCommand(toolId)
@@ -1521,7 +1581,7 @@ function buildReport() {
         'Kornia is the narrowest GPU/model execution unlock candidate because it uses the real controlled adapter, can prove local CPU tensor execution with a private approved frame and output directory, and does not require a model-weight manifest.',
       recommendedBackend: 'docker_container',
       canonicalProofImage: canonicalGpuWorkerProofImage,
-      nextExactContainerBuildCommand: containerGpuImageBuildCommand(),
+      nextExactContainerBuildCommand: containerGpuImageBuildCommand('kornia'),
       nextExactCommand: containerGpuCommand('kornia'),
       nextExactControlledRouteCommand: controlledRouteGpuCommand('kornia'),
       nextExactProofRefBridgeCommand: proofRefBridgeCommand(),

@@ -33,6 +33,13 @@ const decision =
   'ai_graphics_external_agent_gpu_model_runtime_input_manifest_materialized_local_only'
 const canonicalGpuModelRuntimeContainerImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
+const runtimeContainerImageByTool: Record<ModelWeightToolId, string> = {
+  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+  real_esrgan: 'reeditpro/ai-graphics-real-esrgan-runtime:proof-local',
+  rembg: canonicalGpuModelRuntimeContainerImage,
+  transparent_background: canonicalGpuModelRuntimeContainerImage,
+}
 const modelWeightTools: readonly ModelWeightToolId[] = [
   'sam2',
   'birefnet',
@@ -301,7 +308,7 @@ function main(): void {
     stringArg('--model-weight-checksum-evidence-ref') ??
     `private://reeditpro/ai-graphics/checksum-evidence/${typedToolId}.json`
   const runtimeContainerImage =
-    stringArg('--runtime-container-image') ?? canonicalGpuModelRuntimeContainerImage
+    stringArg('--runtime-container-image') ?? runtimeContainerImageByTool[typedToolId]
   const runtimeContainerPlatform = stringArg('--runtime-container-platform') ?? 'linux/amd64'
   const force = hasFlag('--force')
   const privateInputPreflightOnly = hasFlag('--private-input-preflight-only')

@@ -33,7 +33,7 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
     nextActionIfBlocked:
       'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight',
     nextActionIfPermissionOrResourceBlocked:
-      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select a local gcloud account with Cloud Run read access to project reeditpro and Qwen worker resources, then rerun npm run external-agent-tool-blockers:preflight',
+      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select a local gcloud account with Cloud Run read access to project reeditpro and Qwen worker resources, then rerun npm run external-agent-tool-blockers:preflight -- --account-index <account-index>',
     nextActionIfCleared:
       'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-REFRESH-VERIFY: record refreshed read-only gcloud auth/service/job readiness, no inference/no mutation',
   },
@@ -52,7 +52,7 @@ export const EXTERNAL_AGENT_TOOL_BLOCKER_PREFLIGHT = {
     nextActionIfBlocked:
       'AI-VIDEO-BROLL-GEN-9J-GPU-GLOBAL-QUOTA-USER: request GPUS_ALL_REGIONS quota increase to 1 in Google Cloud Console, no repo changes',
     nextActionIfPermissionBlocked:
-      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select a local gcloud account with Compute quota read access to project reeditpro, then rerun npm run external-agent-tool-blockers:preflight',
+      'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select a local gcloud account with Compute quota read access to project reeditpro, then rerun npm run external-agent-tool-blockers:preflight -- --account-index <account-index>',
     nextActionIfCleared:
       'AI-VIDEO-BROLL-GEN-11H-RETRY-INFERENCE-PROOF: rerun bounded Wan latent inference proof with 11H fix, no generated video',
   },

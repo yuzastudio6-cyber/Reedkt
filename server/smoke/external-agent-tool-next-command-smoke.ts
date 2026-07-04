@@ -18,7 +18,7 @@ const QWEN_RESULT_REVIEW_PROMPT =
 const QWEN_AUTH_NEXT_PROMPT =
   'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: refresh the active local gcloud account/configuration used by this shell, then rerun npm run external-agent-tool-blockers:preflight'
 const QWEN_READ_ACCESS_NEXT_PROMPT =
-  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select a local gcloud account with Cloud Run read access to project reeditpro and Qwen worker resources, then rerun npm run external-agent-tool-blockers:preflight'
+  'QWEN2_5_VL_STACK_TOOL_58DQ-AUTH-USER: select a local gcloud account with Cloud Run read access to project reeditpro and Qwen worker resources, then rerun npm run external-agent-tool-blockers:preflight -- --account-index <account-index>'
 
 function read(relativePath: string): string {
   return readFileSync(path.join(ROOT, relativePath), 'utf8')

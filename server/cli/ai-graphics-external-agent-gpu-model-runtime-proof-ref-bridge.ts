@@ -66,6 +66,12 @@ interface LocalProofHarnessRow {
   errorMessage?: string | null
 }
 
+interface LocalProofOutputEvidence {
+  privateOutputJsonPathExists: boolean
+  privateOutputJsonAccepted: boolean
+  privateOutputJsonRejectionReason: string | null
+}
+
 interface BridgeRow {
   toolId: GpuModelToolId
   capabilityId: string
@@ -107,6 +113,8 @@ interface BridgeRow {
     productionReadyNow: boolean
     privateOutputJsonPath: string | null
     privateOutputJsonPathExists: boolean
+    privateOutputJsonAccepted: boolean
+    privateOutputJsonRejectionReason: string | null
     skipReasonCode: string | null
     errorMessage: string | null
   }
@@ -190,12 +198,173 @@ function localProofOutputExists(row: LocalProofHarnessRow | undefined): boolean 
   return fs.existsSync(asBridgePath(row.outputJsonPath))
 }
 
+function nestedValue(
+  value: unknown,
+  pathSegments: string[],
+): unknown {
+  let current = value
+  for (const segment of pathSegments) {
+    if (!current || typeof current !== 'object' || Array.isArray(current)) {
+      return undefined
+    }
+    current = (current as JsonRecord)[segment]
+  }
+  return current
+}
+
+function anyTruthyFlag(value: unknown, flags: Set<string>): boolean {
+  if (!value || typeof value !== 'object') return false
+  if (Array.isArray(value)) return value.some((item) => anyTruthyFlag(item, flags))
+  return Object.entries(value as JsonRecord).some(([key, child]) => {
+    if (flags.has(key) && child === true) return true
+    return anyTruthyFlag(child, flags)
+  })
+}
+
+function anyUnsafeUrl(value: unknown): boolean {
+  if (typeof value === 'string') return /^https?:\/\//i.test(value)
+  if (!value || typeof value !== 'object') return false
+  if (Array.isArray(value)) return value.some(anyUnsafeUrl)
+  return Object.values(value as JsonRecord).some(anyUnsafeUrl)
+}
+
+function outputToolMatches(
+  toolId: GpuModelToolId,
+  outputJson: JsonRecord,
+): boolean {
+  const topToolId = outputJson.toolId
+  const runtimeToolId = nestedValue(outputJson, ['runtime', 'toolId'])
+  if (topToolId === toolId || runtimeToolId === toolId) return true
+  if (
+    toolId === 'sam2' &&
+    nestedValue(outputJson, ['runtime', 'modelId']) === 'sam2.1_hiera_tiny' &&
+    outputJson.privateSourceFrame &&
+    outputJson.masks
+  ) {
+    return true
+  }
+  if (toolId === 'birefnet' && outputJson.fixture && outputJson.mask) {
+    return true
+  }
+  if (
+    toolId === 'real_esrgan' &&
+    nestedValue(outputJson, ['runtime', 'modelName']) === 'RealESRGAN_x4plus' &&
+    outputJson.enhanced
+  ) {
+    return true
+  }
+  return false
+}
+
+function outputHasGpuEvidence(
+  toolId: GpuModelToolId,
+  outputJson: JsonRecord,
+): boolean {
+  if (toolId === 'rembg') {
+    return outputJson.cudaExecutionProviderAvailable === true
+  }
+  return (
+    outputJson.cudaAvailable === true ||
+    nestedValue(outputJson, ['runtime', 'cudaAvailable']) === true
+  )
+}
+
+function localProofOutputEvidence(
+  toolId: GpuModelToolId,
+  row: LocalProofHarnessRow | undefined,
+): LocalProofOutputEvidence {
+  const privateOutputJsonPathExists = localProofOutputExists(row)
+  if (!privateOutputJsonPathExists || !row?.outputJsonPath) {
+    return {
+      privateOutputJsonPathExists,
+      privateOutputJsonAccepted: false,
+      privateOutputJsonRejectionReason: 'private_output_json_path_missing',
+    }
+  }
+
+  let outputJson: JsonRecord
+  try {
+    outputJson = readJson(asBridgePath(row.outputJsonPath))
+  } catch (error) {
+    return {
+      privateOutputJsonPathExists,
+      privateOutputJsonAccepted: false,
+      privateOutputJsonRejectionReason:
+        error instanceof Error
+          ? `private_output_json_unreadable:${error.message}`
+          : 'private_output_json_unreadable',
+    }
+  }
+
+  const unsafeTruthyFlags = new Set([
+    'privateLocalProofFixture',
+    'dry_run_passed',
+    'generated_local_fixture_passed',
+    'providerRuntimePerformed',
+    'modelDownloadedExternally',
+    'externalModelDownloadAttempted',
+    'publicArtifactCreated',
+    'signedUrlCreated',
+    'runtimeReadyNow',
+    'externalBetaReadyNow',
+    'productionReadyNow',
+  ])
+  if (anyTruthyFlag(outputJson, unsafeTruthyFlags)) {
+    return {
+      privateOutputJsonPathExists,
+      privateOutputJsonAccepted: false,
+      privateOutputJsonRejectionReason:
+        'private_output_json_contains_forbidden_success_or_runtime_flag',
+    }
+  }
+  if (anyUnsafeUrl(outputJson)) {
+    return {
+      privateOutputJsonPathExists,
+      privateOutputJsonAccepted: false,
+      privateOutputJsonRejectionReason:
+        'private_output_json_contains_public_url',
+    }
+  }
+  if (outputJson.ok !== true) {
+    return {
+      privateOutputJsonPathExists,
+      privateOutputJsonAccepted: false,
+      privateOutputJsonRejectionReason:
+        'private_output_json_missing_ok_true',
+    }
+  }
+  if (!outputToolMatches(toolId, outputJson)) {
+    return {
+      privateOutputJsonPathExists,
+      privateOutputJsonAccepted: false,
+      privateOutputJsonRejectionReason:
+        'private_output_json_tool_identity_mismatch',
+    }
+  }
+  if (!outputHasGpuEvidence(toolId, outputJson)) {
+    return {
+      privateOutputJsonPathExists,
+      privateOutputJsonAccepted: false,
+      privateOutputJsonRejectionReason:
+        'private_output_json_missing_cuda_runtime_evidence',
+    }
+  }
+
+  return {
+    privateOutputJsonPathExists,
+    privateOutputJsonAccepted: true,
+    privateOutputJsonRejectionReason: null,
+  }
+}
+
 function buildBridgeRow(
   proofRefRow: ProofRefCallerRow,
   localProofRow?: LocalProofHarnessRow,
 ): BridgeRow {
   const localRuntimeProofResultProvided = Boolean(localProofRow)
-  const privateOutputJsonPathExists = localProofOutputExists(localProofRow)
+  const outputEvidence = localProofOutputEvidence(proofRefRow.toolId, localProofRow)
+  const privateOutputJsonPathExists =
+    outputEvidence.privateOutputJsonPathExists
   const localProofEvidenceObserved = {
     adapterStatus: localProofRow?.adapterStatus ?? null,
     executionState: localProofRow?.executionState ?? null,
@@ -211,6 +380,9 @@ function buildBridgeRow(
     productionReadyNow: localProofRow?.productionReadyNow === true,
     privateOutputJsonPath: localProofRow?.outputJsonPath ?? null,
     privateOutputJsonPathExists,
+    privateOutputJsonAccepted: outputEvidence.privateOutputJsonAccepted,
+    privateOutputJsonRejectionReason:
+      outputEvidence.privateOutputJsonRejectionReason,
     skipReasonCode: localProofRow?.skipReasonCode ?? null,
     errorMessage: localProofRow?.errorMessage ?? null,
   }
@@ -226,7 +398,8 @@ function buildBridgeRow(
     !localProofEvidenceObserved.runtimeReadyNow &&
     !localProofEvidenceObserved.externalBetaReadyNow &&
     !localProofEvidenceObserved.productionReadyNow &&
-    privateOutputJsonPathExists
+    privateOutputJsonPathExists &&
+    localProofEvidenceObserved.privateOutputJsonAccepted
 
   const proofRefBridgeStatus: BridgeRow['proofRefBridgeStatus'] =
     localRuntimeProofAccepted
@@ -243,7 +416,10 @@ function buildBridgeRow(
     ? 'No private local-dev runtime proof result was supplied. Run the scoped harness on a CUDA host with private inputs first.'
     : !localProofEvidenceObserved.localRuntimeExecutionPerformed
     ? `Private local proof for ${proofRefRow.toolId} did not execute; blocker: ${localProofEvidenceObserved.skipReasonCode ?? localProofEvidenceObserved.errorMessage ?? 'unknown'}`
-    : 'Private local proof executed but did not expose an existing private output JSON path or safe false runtime/public readiness booleans.'
+    : `Private local proof executed but was not accepted by the proof bridge: ${
+        localProofEvidenceObserved.privateOutputJsonRejectionReason ??
+        'missing existing private output JSON path or safe false runtime/public readiness booleans'
+      }.`
 
   return {
     toolId: proofRefRow.toolId,

@@ -787,68 +787,84 @@ const liveWithPrivateProof = execFileJson('npm', [
   '--local-runtime-proof-result',
   scopedKorniaProofPath,
 ])
-if (liveWithPrivateProof.status !== privateProofStatus) {
-  fail(`private_proof_status_mismatch:${liveWithPrivateProof.status}`)
+if (liveWithPrivateProof.status !== status) {
+  fail(`synthetic_private_proof_status_mismatch:${liveWithPrivateProof.status}`)
 }
-if (liveWithPrivateProof.counts?.agentExecutableTools !== 14) {
-  fail(`private_proof_executable_count_mismatch:${liveWithPrivateProof.counts?.agentExecutableTools}`)
+if (liveWithPrivateProof.counts?.agentExecutableTools !== 13) {
+  fail(`synthetic_private_proof_executable_count_mismatch:${liveWithPrivateProof.counts?.agentExecutableTools}`)
 }
-if (liveWithPrivateProof.counts?.gpuToolsWithValidRuntimeProof !== 1) {
-  fail('private_proof_gpu_valid_count_not_one')
+if (liveWithPrivateProof.counts?.gpuToolsWithValidRuntimeProof !== 0) {
+  fail('synthetic_private_proof_gpu_valid_count_not_zero')
 }
-if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeAcceptedTools !== 1) {
-  fail('private_proof_bridge_accepted_count_not_one')
+if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeAcceptedTools !== 0) {
+  fail('synthetic_private_proof_bridge_accepted_count_not_zero')
 }
-if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeBlockedTools !== 7) {
-  fail('private_proof_bridge_blocked_count_not_seven')
+if (liveWithPrivateProof.counts?.gpuModelProofRefBridgeBlockedTools !== 8) {
+  fail('synthetic_private_proof_bridge_blocked_count_not_eight')
 }
 if (liveWithPrivateProof.counts?.blockedWithReasonTools !== 7) {
-  fail('private_proof_blocked_count_not_seven')
+  fail('synthetic_private_proof_blocked_count_not_seven')
+}
+if (liveWithPrivateProof.counts?.failedWithDiagnosticsTools !== 1) {
+  fail('synthetic_private_proof_failed_count_not_one')
 }
 if (liveWithPrivateProof.counts?.gpuRuntimeShouldStartNowTools !== 0) {
-  fail('private_proof_readiness_started_gpu')
+  fail('synthetic_private_proof_readiness_started_gpu')
 }
 if (liveWithPrivateProof.booleans?.privateLocalRuntimeProofResultSupplied !== true) {
-  fail('private_proof_result_not_marked_supplied')
+  fail('synthetic_private_proof_result_not_marked_supplied')
 }
-if (liveWithPrivateProof.booleans?.agentCanExecuteGpuModelToolsNow !== true) {
-  fail('private_proof_gpu_tools_not_marked_executable')
+if (liveWithPrivateProof.booleans?.agentCanExecuteGpuModelToolsNow !== false) {
+  fail('synthetic_private_proof_gpu_tools_marked_executable')
 }
-if (liveWithPrivateProof.booleans?.toolExecutionApprovedForGpuModelToolsNow !== true) {
-  fail('private_proof_gpu_tool_execution_not_marked_approved')
+if (liveWithPrivateProof.booleans?.toolExecutionApprovedForGpuModelToolsNow !== false) {
+  fail('synthetic_private_proof_gpu_tool_execution_marked_approved')
 }
 if (liveWithPrivateProof.booleans?.agentCanExecuteAll21ToolsNow !== false) {
-  fail('private_proof_claims_all21_executable')
+  fail('synthetic_private_proof_claims_all21_executable')
 }
 if (liveWithPrivateProof.booleans?.gpuRuntimeShouldStartNow !== false) {
-  fail('private_proof_idle_gpu_start_claim')
+  fail('synthetic_private_proof_idle_gpu_start_claim')
 }
 const privateProofRows = Array.isArray(liveWithPrivateProof.toolReadinessRows)
   ? liveWithPrivateProof.toolReadinessRows
   : []
 const privateProofKornia = privateProofRows.find((row) => row.toolId === 'kornia')
 if (!privateProofKornia) {
-  fail('private_proof_missing_kornia_row')
+  fail('synthetic_private_proof_missing_kornia_row')
 } else {
-  if (privateProofKornia.readinessState !== 'executable') {
-    fail(`private_proof_kornia_not_executable:${privateProofKornia.readinessState}`)
+  if (privateProofKornia.readinessState !== 'failed_with_diagnostics') {
+    fail(`synthetic_private_proof_kornia_not_failed:${privateProofKornia.readinessState}`)
   }
-  if (privateProofKornia.executable !== true) {
-    fail('private_proof_kornia_executable_false')
+  if (privateProofKornia.executable !== false) {
+    fail('synthetic_private_proof_kornia_executable_true')
   }
-  if (privateProofKornia.routeSubmissionReadyWithAcceptedPrivateProof !== true) {
-    fail('private_proof_kornia_route_submission_not_ready')
+  if (privateProofKornia.routeSubmissionReadyWithAcceptedPrivateProof !== false) {
+    fail('synthetic_private_proof_kornia_route_submission_ready')
+  }
+  if (
+    privateProofKornia.proofRefBridgeStatus !==
+    'blocked_private_local_runtime_output_missing'
+  ) {
+    fail(`synthetic_private_proof_kornia_bridge_status:${privateProofKornia.proofRefBridgeStatus}`)
+  }
+  if (
+    !String(privateProofKornia.blockingPrerequisite ?? '').includes(
+      'proof bridge status: blocked_private_local_runtime_output_missing',
+    )
+  ) {
+    fail('synthetic_private_proof_kornia_missing_bridge_blocker')
   }
   if (privateProofKornia.gpuRuntimeShouldStartNow !== false) {
-    fail('private_proof_kornia_idle_gpu_start_claim')
+    fail('synthetic_private_proof_kornia_idle_gpu_start_claim')
   }
   if (privateProofKornia.sourceGpuRuntimeShouldStartDuringScopedProof !== true) {
-    fail('private_proof_kornia_scoped_gpu_start_not_recorded')
+    fail('synthetic_private_proof_kornia_scoped_gpu_start_not_recorded')
   }
 }
 for (const row of privateProofRows.filter((item) => gpuModelTools.includes(item.toolId) && item.toolId !== 'kornia')) {
   if (row.readinessState !== 'blocked_with_reason') {
-    fail(`private_proof_unexpected_non_kornia_gpu_state:${row.toolId}:${row.readinessState}`)
+    fail(`synthetic_private_proof_unexpected_non_kornia_gpu_state:${row.toolId}:${row.readinessState}`)
   }
 }
 const liveHost = JSON.parse(exec(`npm run --silent ${runScriptName} -- --detect-host`))

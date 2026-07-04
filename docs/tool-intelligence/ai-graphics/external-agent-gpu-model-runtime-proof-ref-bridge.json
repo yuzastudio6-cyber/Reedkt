@@ -102,6 +102,8 @@
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonAccepted": false,
+        "privateOutputJsonRejectionReason": "private_output_json_path_missing",
         "skipReasonCode": null,
         "errorMessage": null
       },
@@ -150,6 +152,8 @@
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonAccepted": false,
+        "privateOutputJsonRejectionReason": "private_output_json_path_missing",
         "skipReasonCode": null,
         "errorMessage": null
       },
@@ -199,6 +203,8 @@
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonAccepted": false,
+        "privateOutputJsonRejectionReason": "private_output_json_path_missing",
         "skipReasonCode": null,
         "errorMessage": null
       },
@@ -248,6 +254,8 @@
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonAccepted": false,
+        "privateOutputJsonRejectionReason": "private_output_json_path_missing",
         "skipReasonCode": null,
         "errorMessage": null
       },
@@ -297,6 +305,8 @@
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonAccepted": false,
+        "privateOutputJsonRejectionReason": "private_output_json_path_missing",
         "skipReasonCode": null,
         "errorMessage": null
       },
@@ -345,6 +355,8 @@
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonAccepted": false,
+        "privateOutputJsonRejectionReason": "private_output_json_path_missing",
         "skipReasonCode": null,
         "errorMessage": null
       },
@@ -394,6 +406,8 @@
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonAccepted": false,
+        "privateOutputJsonRejectionReason": "private_output_json_path_missing",
         "skipReasonCode": null,
         "errorMessage": null
       },
@@ -443,6 +457,8 @@
         "productionReadyNow": false,
         "privateOutputJsonPath": null,
         "privateOutputJsonPathExists": false,
+        "privateOutputJsonAccepted": false,
+        "privateOutputJsonRejectionReason": "private_output_json_path_missing",
         "skipReasonCode": null,
         "errorMessage": null
       },

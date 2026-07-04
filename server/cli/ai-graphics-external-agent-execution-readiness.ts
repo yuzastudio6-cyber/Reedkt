@@ -323,6 +323,8 @@ function buildToolRows(
     const adapterReachable = routeCallable
     const gpuAdapterStatus = String(gpuRow?.adapterStatus ?? '')
     const gpuRuntimeSucceeded = gpuRow?.localRuntimeExecutionPerformed === true
+    const routeSubmissionAccepted =
+      bridgeRow?.routeSubmissionReadyWithAcceptedPrivateProof === true
     const gpuRuntimeFailed =
       gpuAdapterStatus === 'controlled_gpu_model_adapter_failed_before_output'
     const executionAttempted =
@@ -332,7 +334,8 @@ function buildToolRows(
     const executionPassed =
       group === 'gpu_model'
         ? gpuRuntimeSucceeded &&
-          gpuRow?.toolExecutionApprovedNow === true
+          gpuRow?.toolExecutionApprovedNow === true &&
+          routeSubmissionAccepted
         : routeRow.controlledAdapterExecutedNow === true &&
           routeRow.localPackageExecutionPerformed === true &&
           typeof routeRow.outputSha256 === 'string' &&
@@ -360,6 +363,8 @@ function buildToolRows(
             ? `adapter skip reason: ${gpuRow.skipReasonCode}`
             : gpuRow?.errorMessage
             ? `adapter error: ${gpuRow.errorMessage}`
+            : gpuRuntimeSucceeded && !routeSubmissionAccepted
+            ? `proof bridge status: ${bridgeRow?.proofRefBridgeStatus ?? 'missing'}`
             : 'local runtime not attempted',
         ].join('; ')
       : null
@@ -419,7 +424,7 @@ function buildToolRows(
         ? bridgeRow?.proofRefBridgeStatus ?? null
         : null,
       routeSubmissionReadyWithAcceptedPrivateProof: group === 'gpu_model'
-        ? bridgeRow?.routeSubmissionReadyWithAcceptedPrivateProof === true
+        ? routeSubmissionAccepted
         : false,
       routeStatus: routeRow.routeStatus ?? null,
       adapterStatus: group === 'gpu_model'

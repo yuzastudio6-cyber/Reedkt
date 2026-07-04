@@ -508,36 +508,58 @@ const scopedBridge = execFileJson('npm', [
   '--local-runtime-proof-result',
   scopedKorniaProofPath,
 ])
-if (scopedBridge.status !== 'gpu_model_runtime_proof_ref_bridge_accepts_private_local_runtime_proof_for_scoped_route_submission') {
-  fail(`scoped_bridge_status_mismatch:${scopedBridge.status}`)
+if (scopedBridge.status !== 'gpu_model_runtime_proof_ref_bridge_blocked_until_private_local_runtime_proof_is_supplied') {
+  fail(`synthetic_scoped_bridge_status_mismatch:${scopedBridge.status}`)
 }
 if (scopedBridge.counts?.privateLocalRuntimeProofResultSuppliedTools !== 1) {
-  fail('scoped_bridge_supplied_count_not_one')
+  fail('synthetic_scoped_bridge_supplied_count_not_one')
 }
-if (scopedBridge.counts?.acceptedPrivateLocalRuntimeProofTools !== 1) {
-  fail('scoped_bridge_accepted_count_not_one')
+if (scopedBridge.counts?.acceptedPrivateLocalRuntimeProofTools !== 0) {
+  fail('synthetic_scoped_bridge_accepted_count_not_zero')
 }
-if (scopedBridge.counts?.routeSubmissionReadyWithAcceptedPrivateProofTools !== 1) {
-  fail('scoped_bridge_route_ready_count_not_one')
+if (scopedBridge.counts?.routeSubmissionReadyWithAcceptedPrivateProofTools !== 0) {
+  fail('synthetic_scoped_bridge_route_ready_count_not_zero')
 }
 if (scopedBridge.counts?.blockedMissingPrivateLocalRuntimeProofResultTools !== 7) {
-  fail('scoped_bridge_remaining_blocked_count_not_seven')
+  fail('synthetic_scoped_bridge_remaining_blocked_count_not_seven')
+}
+if (scopedBridge.counts?.blockedPrivateLocalRuntimeOutputMissingTools !== 1) {
+  fail('synthetic_scoped_bridge_output_missing_count_not_one')
 }
 const scopedBridgeRows = Array.isArray(scopedBridge.gpuModelRuntimeProofRefBridgeRows)
   ? scopedBridge.gpuModelRuntimeProofRefBridgeRows
   : []
 const scopedKorniaRow = scopedBridgeRows.find((row) => row.toolId === 'kornia')
 if (!scopedKorniaRow) {
-  fail('scoped_bridge_missing_kornia_row')
+  fail('synthetic_scoped_bridge_missing_kornia_row')
 } else {
-  if (scopedKorniaRow.localRuntimeProofAccepted !== true) {
-    fail('scoped_bridge_kornia_not_accepted')
+  if (scopedKorniaRow.localRuntimeProofAccepted !== false) {
+    fail('synthetic_scoped_bridge_kornia_accepted')
   }
-  if (scopedKorniaRow.routeSubmissionReadyWithAcceptedPrivateProof !== true) {
-    fail('scoped_bridge_kornia_route_not_ready')
+  if (scopedKorniaRow.routeSubmissionReadyWithAcceptedPrivateProof !== false) {
+    fail('synthetic_scoped_bridge_kornia_route_ready')
+  }
+  if (
+    scopedKorniaRow.proofRefBridgeStatus !==
+    'blocked_private_local_runtime_output_missing'
+  ) {
+    fail(`synthetic_scoped_bridge_kornia_status:${scopedKorniaRow.proofRefBridgeStatus}`)
+  }
+  if (
+    scopedKorniaRow.localProofEvidenceObserved
+      ?.privateOutputJsonAccepted !== false
+  ) {
+    fail('synthetic_scoped_bridge_kornia_output_json_accepted')
+  }
+  if (
+    scopedKorniaRow.localProofEvidenceObserved
+      ?.privateOutputJsonRejectionReason !==
+    'private_output_json_contains_forbidden_success_or_runtime_flag'
+  ) {
+    fail(`synthetic_scoped_bridge_kornia_output_rejection:${scopedKorniaRow.localProofEvidenceObserved?.privateOutputJsonRejectionReason}`)
   }
   if (scopedKorniaRow.gpuRuntimeShouldStartNow !== false) {
-    fail('scoped_bridge_kornia_started_gpu')
+    fail('synthetic_scoped_bridge_kornia_started_gpu')
   }
 }
 for (const row of scopedBridgeRows.filter((item) => item.toolId !== 'kornia')) {

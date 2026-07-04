@@ -299,11 +299,21 @@ for (const [label, actions] of brollSurfaceActions) {
   assertBrollManualActions(actions, `${label}.broll`)
 }
 
-assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, true)
+assert.equal(actionPlan.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(actionPlan.readyForAnyExternalAgentRuntimeExecutionNow, false)
+assert.equal(actionPlan.staticReadyForAnyExternalAgentExecutionGateNow, true)
+assert.deepEqual(actionPlan.readyToolIds, [])
+assert.deepEqual(actionPlan.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(actionPlan.executionNowBlockedByLivePreflight, true)
 assert.equal(actionPlan.runtimeGatesAllFalse, true)
 assertAllRuntimeFlagsFalse(actionPlan.runtimeSideEffects, 'actionPlan.runtimeSideEffects')
 
-assert.equal(readiness.readyForAnyExternalAgentExecutionNow, true)
+assert.equal(readiness.readyForAnyExternalAgentExecutionNow, false)
+assert.equal(readiness.readyForAnyExternalAgentRuntimeExecutionNow, false)
+assert.equal(readiness.staticReadyForAnyExternalAgentExecutionGateNow, true)
+assert.deepEqual(readiness.readyToolIds, [])
+assert.deepEqual(readiness.staticReadyToolIds, ['qwen2_5_vl_7b_instruct'])
+assert.equal(readiness.executionNowBlockedByLivePreflight, true)
 assert.equal(readiness.runtimeGatesAllFalse, true)
 for (const readinessFlag of [
   'cloudRunTouched',

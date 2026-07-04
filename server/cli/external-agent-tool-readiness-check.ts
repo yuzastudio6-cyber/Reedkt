@@ -67,7 +67,7 @@ function main() {
   const rollup = EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP
   const evidence = checkEvidence()
   const missingEvidence = evidence.filter((item) => !item.present)
-  const readyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
+  const staticReadyTools = rollup.tools.filter((tool) => tool.readyForExternalAgentExecutionNow)
   const explicitToolGateReadyTools = rollup.tools.filter(
     (tool) =>
       String(tool.status) === 'ready_for_explicit_tool_gate' ||
@@ -103,10 +103,14 @@ function main() {
     sqlExecuted: false,
     modelInferenceRun: false,
     generatedAssetsCreated: false,
-    readyForAnyExternalAgentExecutionNow: readyTools.length > 0,
-    readyToolIds: readyTools.map((tool) => tool.toolId),
+    readyForAnyExternalAgentExecutionNow: false,
+    readyForAnyExternalAgentRuntimeExecutionNow: false,
+    staticReadyForAnyExternalAgentExecutionGateNow: staticReadyTools.length > 0,
+    readyToolIds: [],
+    staticReadyToolIds: staticReadyTools.map((tool) => tool.toolId),
     staticExplicitToolGateReadyToolIds: explicitToolGateReadyTools.map((tool) => tool.toolId),
     livePreflightRequiredBeforeRuntime: explicitToolGateReadyTools.length > 0,
+    executionNowBlockedByLivePreflight: explicitToolGateReadyTools.length > 0,
     blockedToolCount: blockedTools.length,
     retryReadyAfterBlockerClearsToolIds: retryReadyAfterBlockerClears.map((tool) => tool.toolId),
     noIdleLifecycleGateToolIds: noIdleLifecycleGateTools.map((tool) => tool.toolId),

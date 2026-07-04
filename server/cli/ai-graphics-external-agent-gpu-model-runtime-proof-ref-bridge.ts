@@ -157,11 +157,11 @@ const privateOutputContractByTool: Record<GpuModelToolId, {
     ],
   },
   transparent_background: {
-    acceptedRuntimeEvidence: 'native_cuda_transparent_background_checkpoint_cutout',
+    acceptedRuntimeEvidence: 'native_cuda_or_explicit_cpu_model_transparent_background_checkpoint_cutout',
     requiredPrivateOutputFields: [
       'toolId=transparent_background',
-      'cudaAvailable=true',
-      'deviceName',
+      'native proof: cudaAvailable=true and deviceName',
+      'CPU model proof: cudaAvailable=false, runtime.runtimeDevice=cpu, runtime.cpuModelRuntimeAllowed=true',
       'runtime.mode',
       'runtime.checkpointPath',
       'input.path',

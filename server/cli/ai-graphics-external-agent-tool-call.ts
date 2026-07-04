@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { once } from 'node:events'
 import childProcess from 'node:child_process'
-import type { Server } from 'node:http'
+import { request as httpRequest, type Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import path from 'node:path'
 import { createReeditProApiApp } from '../app'
@@ -1234,23 +1234,57 @@ function requestForTool(): AiGraphicsExternalBetaToolCallRequest {
   return request
 }
 
-async function postToolCall(baseUrl: string, request: AiGraphicsExternalBetaToolCallRequest) {
-  const response = await fetch(`${baseUrl}${AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH}`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-request-id': request.traceId,
-    },
-    body: JSON.stringify(request),
+function toolCallHttpTimeoutMs(request: AiGraphicsExternalBetaToolCallRequest): number {
+  const payload = asRecord(request.payload)
+  const runtimeTimeoutMs =
+    typeof payload.timeoutMs === 'number' && Number.isFinite(payload.timeoutMs)
+      ? payload.timeoutMs
+      : Number(stringArg('--timeout-ms') ?? '30000')
+  return Math.max(runtimeTimeoutMs + 180_000, 180_000)
+}
+
+async function postToolCall(
+  baseUrl: string,
+  request: AiGraphicsExternalBetaToolCallRequest,
+) {
+  const endpoint = new URL(AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH, baseUrl)
+  const requestBody = JSON.stringify(request)
+  const timeoutMs = toolCallHttpTimeoutMs(request)
+  const { statusCode, text } = await new Promise<{
+    statusCode: number
+    text: string
+  }>((resolve, reject) => {
+    const req = httpRequest(endpoint, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'content-length': Buffer.byteLength(requestBody),
+        'x-request-id': request.traceId,
+      },
+      timeout: timeoutMs,
+    }, (res) => {
+      const chunks: Buffer[] = []
+      res.on('data', (chunk: Buffer) => chunks.push(chunk))
+      res.on('end', () => {
+        resolve({
+          statusCode: res.statusCode ?? 0,
+          text: Buffer.concat(chunks).toString('utf8'),
+        })
+      })
+    })
+    req.on('timeout', () => {
+      req.destroy(new Error(`external agent tool-call HTTP timeout after ${timeoutMs}ms`))
+    })
+    req.on('error', reject)
+    req.end(requestBody)
   })
-  const text = await response.text()
   let body: Record<string, any> | null = null
   try {
     body = JSON.parse(text) as Record<string, any>
   } catch {
     body = null
   }
-  return { statusCode: response.status, body, rawBody: text }
+  return { statusCode, body, rawBody: text }
 }
 
 function asRecord(value: unknown): Record<string, unknown> {

@@ -1,8 +1,12 @@
+import { createHash } from 'node:crypto'
 import { existsSync } from 'node:fs'
+import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import {
+  assertAiGraphicsRuntimeProofOutput,
   buildAiGraphicsRuntimeContainerBindMounts,
   runAiGraphicsPythonRuntimeScript,
+  type AiGraphicsRuntimeScriptResult,
 } from '../ai-graphics-runtime-script-runner'
 import { buildMaskArtifactRecord } from './mask-artifact-writer'
 import type { MaskExecutionInput, MaskTaskPlan, MaskToolCommandPlan, MaskToolExecutionResult } from './mask-execution-types'
@@ -141,6 +145,61 @@ export async function runTransparentBackgroundFallback(input: {
       warnings: ['transparent-background executed against a private local source frame with a local checkpoint; quality/production approval remains separate.'],
     }
   } catch (error) {
+    const acceptedRecoveredResult = await readAcceptedTransparentBackgroundRuntimeOutput({
+      outputJsonPath,
+      maskPath,
+      cutoutPath,
+      allowCpuModelRuntime,
+    })
+    if (acceptedRecoveredResult) {
+      return {
+        status: 'completed',
+        tool: 'transparent_background',
+        commandPlan: {
+          ...commandPlan,
+          executes: true,
+          summary: allowCpuModelRuntime
+            ? 'transparent-background local CPU model runtime script produced accepted private proof output with approved local checkpoint and private source frame; the adapter recovered the proof after a nonzero runtime exit.'
+            : 'transparent-background local CUDA runtime script produced accepted private proof output with approved local checkpoint and private source frame; the adapter recovered the proof after a nonzero runtime exit.',
+        },
+        outputJsonPath: acceptedRecoveredResult.outputJsonPath,
+        outputJsonSizeBytes: acceptedRecoveredResult.outputJsonSizeBytes,
+        outputJsonSha256: acceptedRecoveredResult.outputJsonSha256,
+        artifacts: [
+          buildMaskArtifactRecord({
+            workspaceId: executionInput.workspaceId,
+            projectId: executionInput.projectId,
+            mediaAssetId: executionInput.mediaAssetId,
+            artifactType: 'mask_image',
+            fileName: 'transparent-background-mask.png',
+            sourceOfTruth: true,
+            metadata: { tool: 'transparent_background', runtimeExecuted: true },
+          }),
+          buildMaskArtifactRecord({
+            workspaceId: executionInput.workspaceId,
+            projectId: executionInput.projectId,
+            mediaAssetId: executionInput.mediaAssetId,
+            artifactType: 'rgba_cutout',
+            fileName: 'transparent-background-cutout.png',
+            sourceOfTruth: true,
+            metadata: { tool: 'transparent_background', runtimeExecuted: true },
+          }),
+          buildMaskArtifactRecord({
+            workspaceId: executionInput.workspaceId,
+            projectId: executionInput.projectId,
+            mediaAssetId: executionInput.mediaAssetId,
+            artifactType: 'qa_report',
+            fileName: 'transparent-background-runtime-result.json',
+            sourceOfTruth: true,
+            metadata: { tool: 'transparent_background', runtimeExecuted: true, outputJsonSizeBytes: acceptedRecoveredResult.outputJsonSizeBytes, outputJsonSha256: acceptedRecoveredResult.outputJsonSha256 },
+          }),
+        ],
+        warnings: [
+          'transparent-background produced accepted private proof output before the runtime process returned a nonzero result; execution remains local-only and production approval remains separate.',
+          error instanceof Error ? `Recovered runtime proof after error: ${error.message}` : 'Recovered runtime proof after nonzero runtime result.',
+        ],
+      }
+    }
     return {
       status: 'failed',
       tool: 'transparent_background',
@@ -148,5 +207,43 @@ export async function runTransparentBackgroundFallback(input: {
       errorMessage: error instanceof Error ? error.message : String(error),
       warnings: ['transparent-background runtime script failed before producing accepted local proof output.'],
     }
+  }
+}
+
+async function readAcceptedTransparentBackgroundRuntimeOutput(input: {
+  outputJsonPath: string
+  maskPath: string
+  cutoutPath: string
+  allowCpuModelRuntime: boolean
+}): Promise<AiGraphicsRuntimeScriptResult | null> {
+  try {
+    const [rawOutput, outputStat, maskStat, cutoutStat] = await Promise.all([
+      readFile(input.outputJsonPath, 'utf8'),
+      stat(input.outputJsonPath),
+      stat(input.maskPath),
+      stat(input.cutoutPath),
+    ])
+    if (!maskStat.isFile() || maskStat.size <= 0) return null
+    if (!cutoutStat.isFile() || cutoutStat.size <= 0) return null
+    const outputJson = JSON.parse(rawOutput)
+    assertAiGraphicsRuntimeProofOutput(outputJson, {
+      expectedToolId: 'transparent_background',
+      requireCuda: input.allowCpuModelRuntime ? false : true,
+      requireCpuModelRuntime: input.allowCpuModelRuntime,
+      requireNoModelDownload: true,
+      requireNoProviderRuntime: true,
+      requireNoPublicArtifact: true,
+      requireNoSignedUrl: true,
+    })
+    return {
+      outputJson,
+      outputJsonPath: input.outputJsonPath,
+      outputJsonSizeBytes: outputStat.size,
+      outputJsonSha256: createHash('sha256').update(rawOutput).digest('hex'),
+      stdout: '',
+      stderr: '',
+    }
+  } catch {
+    return null
   }
 }

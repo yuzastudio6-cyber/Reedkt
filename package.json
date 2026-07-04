@@ -91,6 +91,8 @@
     "ai-graphics:external-agent-controlled-route-require-go:diagnostics": "node scripts/validation/ai-graphics-external-agent-controlled-route-require-go-diagnostics.mjs",
     "ai-graphics:external-agent-controlled-route-caller": "tsx server/cli/ai-graphics-external-agent-controlled-route-caller.ts",
     "ai-graphics:external-agent-controlled-route-caller:diagnostics": "node scripts/validation/ai-graphics-external-agent-controlled-route-caller-diagnostics.mjs",
+    "ai-graphics:external-agent-tool-call": "tsx server/cli/ai-graphics-external-agent-tool-call.ts",
+    "ai-graphics:external-agent-tool-call:diagnostics": "node scripts/validation/ai-graphics-external-agent-tool-call-diagnostics.mjs",
     "ai-graphics:external-agent-gpu-model-proof-ref-route-caller": "tsx server/cli/ai-graphics-external-agent-gpu-model-proof-ref-route-caller.ts",
     "ai-graphics:external-agent-gpu-model-proof-ref-route-caller:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-proof-ref-route-caller-diagnostics.mjs",
     "ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge": "tsx server/cli/ai-graphics-external-agent-gpu-model-runtime-proof-ref-bridge.ts",

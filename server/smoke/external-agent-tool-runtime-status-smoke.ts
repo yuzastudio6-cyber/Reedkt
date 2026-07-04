@@ -170,9 +170,16 @@ assert.equal(
 )
 assert.equal(staticStatus.accountSelectionGuidance.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
 assert.equal(staticStatus.accountSelectionGuidance.overrideEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT')
+assert.equal(staticStatus.accountSelectionGuidance.cliAccountIndexFlag, '--account-index <account-index>')
+assert.equal(
+  staticStatus.accountSelectionGuidance.cliGcloudAccountIndexFlagAlias,
+  '--gcloud-account-index <account-index>',
+)
+assert.equal(staticStatus.accountSelectionGuidance.cliAccountIndexProvided, false)
+assert.equal(staticStatus.accountSelectionGuidance.cliAccountIndexValid, false)
 assert.equal(
   staticStatus.accountSelectionGuidance.indexedRuntimeStatusCommand,
-  'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-runtime-status',
+  'npm run external-agent-tool-runtime-status -- --account-index <account-index>',
 )
 assert.equal(
   staticStatus.accountSelectionGuidance.indexedPreflightCommand,
@@ -183,6 +190,21 @@ assert.equal(staticStatus.accountSelectionGuidance.printsAccountValue, false)
 assert.equal(staticStatus.accountSelectionGuidance.tokenStdoutSuppressed, true)
 assert.equal(staticStatus.accountSelectionGuidance.liveAccountDiagnosticsRun, false)
 assert.equal(staticStatus.tools.length, 4)
+
+const indexedStaticStatus = runStatus(['--static-only', '--account-index', '2'])
+assert.equal(indexedStaticStatus.ok, true)
+assert.equal(indexedStaticStatus.accountSelectionGuidance.cliAccountIndexProvided, true)
+assert.equal(indexedStaticStatus.accountSelectionGuidance.cliAccountIndex, 2)
+assert.equal(indexedStaticStatus.accountSelectionGuidance.cliAccountIndexValid, true)
+assert.equal(indexedStaticStatus.accountSelectionGuidance.cliAccountIndexMapsToChildEnv, true)
+assert.equal(indexedStaticStatus.accountSelectionGuidance.printsAccountValue, false)
+assert.equal(indexedStaticStatus.accountSelectionGuidance.mutatesLocalGcloudConfig, false)
+
+const invalidIndexedStaticStatus = runStatus(['--static-only', '--account-index', 'nope'])
+assert.equal(invalidIndexedStaticStatus.ok, true)
+assert.equal(invalidIndexedStaticStatus.accountSelectionGuidance.cliAccountIndexProvided, true)
+assert.equal(invalidIndexedStaticStatus.accountSelectionGuidance.cliAccountIndexValid, false)
+assert.equal(invalidIndexedStaticStatus.accountSelectionGuidance.cliAccountIndexMapsToChildEnv, false)
 
 const staticToolsById = new Map(staticStatus.tools.map((tool: { toolId: string }) => [tool.toolId, tool]))
 for (const tool of staticStatus.tools as Array<{

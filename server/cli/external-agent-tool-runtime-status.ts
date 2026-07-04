@@ -4,6 +4,9 @@ import { EXTERNAL_AGENT_TOOL_EXECUTION_READINESS_ROLLUP } from '../../src/backen
 
 type JsonRecord = Record<string, unknown>
 
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
+const GCLOUD_ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
+
 const TOOL_COMMANDS: Record<
   string,
   {
@@ -42,10 +45,56 @@ const TOOL_COMMANDS: Record<
   },
 }
 
-function runJson(id: string, command: string, args: string[]) {
+function readArgValue(names: string[]): string | undefined {
+  for (const name of names) {
+    const equalsPrefix = `${name}=`
+    const equalsMatch = process.argv.find((arg) => arg.startsWith(equalsPrefix))
+    if (equalsMatch) return equalsMatch.slice(equalsPrefix.length).trim()
+
+    const index = process.argv.indexOf(name)
+    if (index >= 0) {
+      const next = process.argv[index + 1]?.trim()
+      if (next && !next.startsWith('--')) return next
+    }
+  }
+
+  return undefined
+}
+
+function resolveAccountIndexOverride(): {
+  cliAccountIndexProvided: boolean
+  cliAccountIndex?: number
+  cliAccountIndexValid: boolean
+  childEnv: NodeJS.ProcessEnv
+} {
+  const rawIndex = readArgValue(['--account-index', '--gcloud-account-index'])
+  if (!rawIndex) {
+    return {
+      cliAccountIndexProvided: false,
+      cliAccountIndexValid: false,
+      childEnv: process.env,
+    }
+  }
+
+  const parsedIndex = Number(rawIndex)
+  const cliAccountIndexValid = Number.isInteger(parsedIndex) && parsedIndex > 0
+  return {
+    cliAccountIndexProvided: true,
+    cliAccountIndex: Number.isFinite(parsedIndex) ? parsedIndex : undefined,
+    cliAccountIndexValid,
+    childEnv: cliAccountIndexValid
+      ? {
+          ...process.env,
+          [GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]: String(parsedIndex),
+        }
+      : process.env,
+  }
+}
+
+function runJson(id: string, command: string, args: string[], childEnv: NodeJS.ProcessEnv) {
   const result = spawnSync(command, args, {
     cwd: process.cwd(),
-    env: process.env,
+    env: childEnv,
     encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 24,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -100,30 +149,43 @@ function nestedNumber(document: JsonRecord | undefined, keys: string[]): number 
 
 function main() {
   const staticOnly = process.argv.includes('--static-only')
+  const accountIndexOverride = resolveAccountIndexOverride()
   const liveChecksRun = !staticOnly
-  const readiness = runJson('static_readiness', 'npx', [
-    'tsx',
-    'server/cli/external-agent-tool-readiness-check.ts',
-  ])
-  const gcpRepairPlan = runJson('gcp_access_repair_plan', 'npx', [
-    'tsx',
-    'server/cli/external-agent-gcp-access-repair-plan.ts',
-  ])
+  const readiness = runJson(
+    'static_readiness',
+    'npx',
+    ['tsx', 'server/cli/external-agent-tool-readiness-check.ts'],
+    accountIndexOverride.childEnv,
+  )
+  const gcpRepairPlan = runJson(
+    'gcp_access_repair_plan',
+    'npx',
+    ['tsx', 'server/cli/external-agent-gcp-access-repair-plan.ts'],
+    accountIndexOverride.childEnv,
+  )
   const accountAccessDiagnostic = liveChecksRun
-    ? runJson('gcloud_account_access_diagnostic', 'npx', [
-        'tsx',
-        'server/cli/external-agent-gcloud-account-access-diagnostic.ts',
-      ])
+    ? runJson(
+        'gcloud_account_access_diagnostic',
+        'npx',
+        ['tsx', 'server/cli/external-agent-gcloud-account-access-diagnostic.ts'],
+        accountIndexOverride.childEnv,
+      )
     : undefined
   const liveGate = liveChecksRun
-    ? runJson('live_execution_gate', 'npx', [
-        'tsx',
-        'server/cli/external-agent-tool-execution-gate.ts',
-        '--live',
-      ])
+    ? runJson(
+        'live_execution_gate',
+        'npx',
+        ['tsx', 'server/cli/external-agent-tool-execution-gate.ts', '--live'],
+        accountIndexOverride.childEnv,
+      )
     : undefined
   const nextCommand = liveChecksRun
-    ? runJson('live_next_command', 'npx', ['tsx', 'server/cli/external-agent-tool-next-command.ts'])
+    ? runJson(
+        'live_next_command',
+        'npx',
+        ['tsx', 'server/cli/external-agent-tool-next-command.ts'],
+        accountIndexOverride.childEnv,
+      )
     : undefined
 
   const liveGateJson = liveGate?.json
@@ -324,10 +386,17 @@ function main() {
     },
     accountSelectionGuidance: {
       diagnosticCommand: 'npm run external-agent-gcloud-account-access:diagnostic',
-      overrideIndexEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX',
-      overrideEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT',
+      overrideIndexEnv: GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV,
+      overrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
+      cliAccountIndexFlag: '--account-index <account-index>',
+      cliGcloudAccountIndexFlagAlias: '--gcloud-account-index <account-index>',
+      cliAccountIndexProvided: accountIndexOverride.cliAccountIndexProvided,
+      cliAccountIndex: accountIndexOverride.cliAccountIndex,
+      cliAccountIndexValid: accountIndexOverride.cliAccountIndexValid,
+      cliAccountIndexMapsToChildEnv:
+        accountIndexOverride.cliAccountIndexProvided && accountIndexOverride.cliAccountIndexValid,
       indexedRuntimeStatusCommand:
-        'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-runtime-status',
+        'npm run external-agent-tool-runtime-status -- --account-index <account-index>',
       indexedPreflightCommand:
         'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX=<account-index> npm run external-agent-tool-blockers:preflight',
       indexedAccessVerifyCommand:

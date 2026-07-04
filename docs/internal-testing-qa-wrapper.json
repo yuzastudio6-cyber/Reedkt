@@ -13,6 +13,7 @@
     "smoke:internal-testing-approval-credit-gates",
     "smoke:internal-testing-credit-lifecycle-readiness",
     "smoke:internal-testing-repeated-local-operator-harness",
+    "smoke:internal-testing-auth-project-access-readiness",
     "smoke:beta-readiness"
   ],
   "playwrightSpecs": [
@@ -32,6 +33,8 @@
     "walletMutation": false,
     "ledgerWrites": false,
     "stripe": false,
+    "publicSupabaseAuthReadOnlyIfConfigured": true,
+    "profileWorkspaceBootstrapWrites": false,
     "supabaseReadWrite": false,
     "storageSignedUrls": false,
     "sqlOrMigration": false,

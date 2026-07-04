@@ -42,6 +42,12 @@ The `repeated-local-operator-harness` scenario is classified as `mock_local` bec
 
 This harness is evidence for disciplined repeated local testing only. It does not authorize live backend calls, tool execution, media processing, real billing, Supabase persistence, external beta, paid production, or product-ready behavior.
 
+## Auth Project Access Readiness
+
+The `auth-project-access-readiness` scenario is classified as `mock_local` because the internal testing route now checks frontend-safe Supabase Auth status and browser session state before authenticated testing graduates. The check is read-only and keeps the mock project/session route family visible for repeated local testing.
+
+This readiness panel does not run profile/workspace bootstrap, read or write Supabase project/profile/workspace tables, create Storage objects, issue signed URLs, mutate credits, dispatch workers, process media, render/export, or mark the product ready.
+
 ## Boundaries
 
 - No upload or file-byte read.
@@ -52,7 +58,8 @@ This harness is evidence for disciplined repeated local testing only. It does no
 - No credit reservation or spend.
 - No credit spend, ledger write, Stripe call, or silent billing.
 - No live wallet mutation, release/refund mutation, or production billing lifecycle.
-- No live Supabase read/write, Storage, signed URL, SQL, or migration.
+- No Supabase Data API read/write, Storage, signed URL, SQL, migration, profile/workspace bootstrap write, or service-role action.
+- Public Supabase Auth may be checked read-only only when frontend-safe public env values are configured.
 - No external beta, real-user-media beta, paid production, or product-ready claim.
 
 ## Validation
@@ -65,6 +72,7 @@ Required validation:
 - `npm run smoke:internal-testing-approval-credit-gates`
 - `npm run smoke:internal-testing-credit-lifecycle-readiness`
 - `npm run smoke:internal-testing-repeated-local-operator-harness`
+- `npm run smoke:internal-testing-auth-project-access-readiness`
 - `npm run qa:internal-testing`
 - `npm run smoke:project-edit-brief-internal-testing-review-pr-readiness`
 - `npm run smoke:project-edit-brief-internal-testing-readback-qa`
@@ -78,4 +86,4 @@ Required validation:
 
 ## Next
 
-Use `/internal-testing` for repeated internal QA and source-truth feedback capture. The next real product milestones remain authenticated project/session access, real planner integration into approved snapshots, transactional credit reservation/spend/release/refund persistence, and explicit runtime/persistence gates.
+Use `/internal-testing` for repeated internal QA and source-truth feedback capture. The next real product milestones remain durable authenticated project/session membership, real planner integration into approved snapshots, transactional credit reservation/spend/release/refund persistence, and explicit runtime/persistence gates.

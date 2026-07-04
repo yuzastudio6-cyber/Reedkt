@@ -1,10 +1,24 @@
-import { useMemo, useState } from 'react'
-import { ArrowRight, CheckCircle2, ClipboardCheck, Download, ExternalLink, ShieldCheck, Trash2 } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  ArrowRight,
+  CheckCircle2,
+  ClipboardCheck,
+  Download,
+  ExternalLink,
+  RefreshCw,
+  ShieldCheck,
+  Trash2,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import {
+  readInternalTestingAuthProjectAccessReadiness,
+  type InternalTestingAuthProjectAccessReadiness,
+  type InternalTestingAuthProjectAccessStatus,
+} from '../lib/internal-testing-auth-project-access-readiness'
 import { internalTestingScenarios, type InternalTestingScenarioStatus } from '../lib/internal-testing-scenarios'
 import {
   createProjectEditSessionBriefPath,
@@ -92,6 +106,13 @@ function getStatusAccent(status: InternalTestingScenarioStatus) {
   return 'muted'
 }
 
+function getAuthReadinessAccent(status?: InternalTestingAuthProjectAccessStatus) {
+  if (status === 'signed_in_auth_only') return 'success'
+  if (status === 'signed_out') return 'cyan'
+  if (status === 'error') return 'warning'
+  return 'muted'
+}
+
 function getScenarioHighlights() {
   const prioritizedIds = new Set([
     'project-home-edit-chat-cards',
@@ -108,6 +129,7 @@ function getScenarioHighlights() {
     'approval-credit-gate-readiness',
     'credit-lifecycle-readiness',
     'repeated-local-operator-harness',
+    'auth-project-access-readiness',
     'feedback-export',
   ])
 
@@ -120,6 +142,8 @@ export function InternalTestingPage() {
   const [result, setResult] = useState<FeedbackRecord['result']>('passed')
   const [note, setNote] = useState('')
   const [message, setMessage] = useState('')
+  const [authReadiness, setAuthReadiness] = useState<InternalTestingAuthProjectAccessReadiness | null>(null)
+  const [authReadinessLoading, setAuthReadinessLoading] = useState(false)
 
   const statusCounts = useMemo(() => {
     return internalTestingScenarios.reduce<Record<InternalTestingScenarioStatus, number>>(
@@ -146,11 +170,32 @@ export function InternalTestingPage() {
         creditSpend: false,
         supabaseWrites: false,
       },
+      authProjectAccessReadiness: authReadiness
+        ? {
+            status: authReadiness.status,
+            configured: authReadiness.configured,
+            projectId: authReadiness.projectId,
+            editSessionId: authReadiness.editSessionId,
+            source: authReadiness.source,
+            blockedScope: authReadiness.blockedScope,
+          }
+        : null,
       records,
     },
     null,
     2,
   )
+
+  const refreshAuthReadiness = useCallback(async () => {
+    setAuthReadinessLoading(true)
+    const nextReadiness = await readInternalTestingAuthProjectAccessReadiness()
+    setAuthReadiness(nextReadiness)
+    setAuthReadinessLoading(false)
+  }, [])
+
+  useEffect(() => {
+    void refreshAuthReadiness()
+  }, [refreshAuthReadiness])
 
   function saveFeedback() {
     const cleanNote = note.trim()
@@ -421,6 +466,75 @@ export function InternalTestingPage() {
                 {item}
               </Badge>
             ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-auth-project-access-readiness">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Auth and project access</span>
+            <h2>Sign-in state can be checked before project/session testing graduates</h2>
+          </div>
+          <p>
+            Internal testing now includes a read-only Auth readiness check for the browser session and the mock project/session routes. It does not
+            run profile or workspace bootstrap, read or write project rows, create Storage objects, spend credits, dispatch workers, or mark the
+            product ready.
+          </p>
+          <div className="internal-testing-auth-grid">
+            <article>
+              <div className="internal-testing-card-heading">
+                <Badge accent={getAuthReadinessAccent(authReadiness?.status)}>
+                  {authReadiness?.status ? authReadiness.status.replace(/_/g, ' ') : 'checking'}
+                </Badge>
+                <Button disabled={authReadinessLoading} icon={RefreshCw} onClick={refreshAuthReadiness} size="sm" variant="secondary">
+                  Refresh
+                </Button>
+              </div>
+              <strong data-testid="internal-testing-auth-status">
+                {authReadinessLoading
+                  ? 'Checking auth state'
+                  : authReadiness?.message ?? 'Auth readiness has not been checked yet.'}
+              </strong>
+              <span>
+                {authReadiness?.userEmail
+                  ? `Signed in as ${authReadiness.userEmail}`
+                  : authReadiness?.configured
+                    ? 'No signed-in browser user is required for mock route checks.'
+                    : 'Public Supabase Auth env is not configured in this local run.'}
+              </span>
+            </article>
+            <article data-testid="internal-testing-auth-project-routes">
+              <Badge accent="cyan">Mock project/session</Badge>
+              <dl className="internal-testing-rc-status-list">
+                <div>
+                  <dt>Project</dt>
+                  <dd>{authReadiness?.projectId ?? PROJECT_ID}</dd>
+                </div>
+                <div>
+                  <dt>Edit session</dt>
+                  <dd>{authReadiness?.editSessionId ?? EDIT_SESSION_ID}</dd>
+                </div>
+              </dl>
+              <div className="internal-testing-auth-routes">
+                {[
+                  ['Project home', authReadiness?.routes.projectHome ?? createProjectHomePath(PROJECT_ID)],
+                  ['Edit Chat', authReadiness?.routes.editChat ?? createProjectEditSessionChatPath(PROJECT_ID, EDIT_SESSION_ID)],
+                  ['Edit Brief', authReadiness?.routes.editBrief ?? createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID)],
+                ].map(([label, route]) => (
+                  <Link className="internal-testing-route-link" key={route} to={route}>
+                    {label}
+                    <ExternalLink aria-hidden="true" size={15} />
+                  </Link>
+                ))}
+              </div>
+            </article>
+            <article data-testid="internal-testing-auth-boundaries">
+              <Badge accent="warning">Still gated</Badge>
+              <ul>
+                <li>No service-role, profile/workspace bootstrap writes, table reads/writes, Storage, SQL, or migrations.</li>
+                <li>No provider/model calls, worker dispatch, media processing, render/export, credit spend, or product-ready claim.</li>
+                <li>Durable project membership and backend persistence remain separate release gates.</li>
+              </ul>
+            </article>
           </div>
         </section>
 

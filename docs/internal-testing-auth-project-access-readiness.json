@@ -1,0 +1,58 @@
+{
+  "id": "internal-testing-auth-project-access-readiness",
+  "decision": "internal_testing_auth_project_access_readiness_passed_ready_for_authenticated_internal_testing_entrypoint",
+  "scenarioId": "auth-project-access-readiness",
+  "route": "/internal-testing",
+  "source": "frontend_anon_auth_readonly_and_mock_project_session",
+  "authReadiness": {
+    "publicAuthClientStatus": "read_only_if_configured",
+    "sessionUserStatus": "read_only_if_configured",
+    "profileWorkspaceBootstrap": "not_run",
+    "durableProjectMembership": "not_proven"
+  },
+  "mockProjectSession": {
+    "projectId": "mock-project-edit-chat-foundation",
+    "editSessionId": "edit-session-youtube-wide",
+    "projectHome": "/projects/mock-project-edit-chat-foundation",
+    "editChat": "/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/chat",
+    "editBrief": "/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief"
+  },
+  "acceptedEvidence": [
+    "src/lib/internal-testing-auth-project-access-readiness.ts",
+    "src/pages/InternalTestingPage.tsx",
+    "src/lib/internal-testing-scenarios.ts",
+    "server/smoke/internal-testing-auth-project-access-readiness-smoke.ts",
+    "tests/e2e/project-edit-brief-internal-testing-entrypoint.spec.ts"
+  ],
+  "blockedScope": {
+    "serviceRole": false,
+    "profileWorkspaceBootstrapWrites": false,
+    "supabaseDataReadWrite": false,
+    "storageSignedUrls": false,
+    "sqlOrMigration": false,
+    "providerOrModelCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "creditSpend": false,
+    "ledgerWrites": false,
+    "stripe": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "productReady": false
+  },
+  "validation": {
+    "required": [
+      "smoke:internal-testing-auth-project-access-readiness",
+      "smoke:internal-testing-qa-wrapper",
+      "qa:internal-testing",
+      "smoke:worker",
+      "smoke:prod-cost-controls",
+      "smoke:prod-runtime-contracts",
+      "typecheck:server",
+      "build",
+      "git diff --check",
+      "git diff --cached --check"
+    ]
+  }
+}

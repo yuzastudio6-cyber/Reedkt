@@ -108,6 +108,8 @@ for (const required of [
   CACHE_STAGING_CONFIRM_ENV,
   ACCOUNT_OVERRIDE_ENV,
   ACCOUNT_OVERRIDE_INDEX_ENV,
+  '--account-index',
+  '--gcloud-account-index',
   'CLOUDSDK_CORE_ACCOUNT: accountOverride',
   'brollAccessRepairHint',
   'external-agent-gcp-access:repair-plan',
@@ -190,6 +192,14 @@ assert.equal(staticReport.creditMutationCreated, false)
 assert.equal(staticReport.betaUnlocked, false)
 assert.equal(staticReport.productionUnlocked, false)
 assert.equal(staticReport.generatedLocalFixturePassedClaimed, false)
+
+const invalidCliIndexReport = runCli(['--account-index=0', '--json'])
+assert.equal(invalidCliIndexReport.mode, 'external_agent_broll_wan_execution_static_guard')
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideIndexProvided, true)
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideIndexSource, 'cli')
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideResolved, false)
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideResolutionFailure, 'invalid_account_index')
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideMutatesLocalConfig, false)
 
 const preflightOnly = runCli(['--preflight-only', '--json'])
 assert.equal(preflightOnly.mode, 'external_agent_broll_wan_execution_preflight_only_result')
@@ -395,6 +405,8 @@ function assertAccountOverride(report: Record<string, unknown>) {
   assert.equal(report.gcloudAccountOverrideEnv, ACCOUNT_OVERRIDE_ENV)
   assert.equal(typeof report.gcloudAccountOverrideProvided, 'boolean')
   assert.equal(report.gcloudAccountOverrideIndexEnv, ACCOUNT_OVERRIDE_INDEX_ENV)
+  assert.equal(report.gcloudAccountOverrideIndexCliFlag, '--account-index')
+  assert.equal(report.gcloudAccountOverrideIndexCliFlagAlias, '--gcloud-account-index')
   assert.equal(typeof report.gcloudAccountOverrideIndexProvided, 'boolean')
   assert.equal(typeof report.gcloudAccountOverrideResolved, 'boolean')
   assert.equal(report.gcloudAccountOverrideMutatesLocalConfig, false)

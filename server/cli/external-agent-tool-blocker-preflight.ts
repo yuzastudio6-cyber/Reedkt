@@ -45,11 +45,14 @@ const DOWNSTREAM_AUTH_REQUIRED_COMMAND_IDS = [
 ] as const
 const GCLOUD_ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
 const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
 
 type AccountSelection = {
   account?: string
   overrideProvided: boolean
   overrideIndexProvided: boolean
+  overrideIndexSource?: 'cli' | 'env'
   overrideIndex?: number
   overrideResolved: boolean
   resolutionFailure?: string
@@ -99,7 +102,10 @@ function resolveAccountSelection(): AccountSelection {
     return cachedAccountSelection
   }
 
-  const rawIndex = process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  const cliIndex = cliFlagValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG, GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  const envIndex = process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  const rawIndex = cliIndex ?? envIndex
+  const indexSource = cliIndex ? 'cli' : envIndex ? 'env' : undefined
   if (!rawIndex) {
     cachedAccountSelection = {
       overrideProvided: false,
@@ -114,6 +120,7 @@ function resolveAccountSelection(): AccountSelection {
     cachedAccountSelection = {
       overrideProvided: false,
       overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
       overrideIndex: Number.isFinite(accountIndex) ? accountIndex : undefined,
       overrideResolved: false,
       resolutionFailure: 'invalid_account_index',
@@ -131,6 +138,7 @@ function resolveAccountSelection(): AccountSelection {
     cachedAccountSelection = {
       overrideProvided: false,
       overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
       overrideIndex: accountIndex,
       overrideResolved: false,
       resolutionFailure: 'auth_list_failed',
@@ -145,6 +153,7 @@ function resolveAccountSelection(): AccountSelection {
       account,
       overrideProvided: false,
       overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
       overrideIndex: accountIndex,
       overrideResolved: Boolean(account),
       resolutionFailure: account ? undefined : 'account_index_not_found',
@@ -154,12 +163,25 @@ function resolveAccountSelection(): AccountSelection {
     cachedAccountSelection = {
       overrideProvided: false,
       overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
       overrideIndex: accountIndex,
       overrideResolved: false,
       resolutionFailure: 'auth_list_parse_failed',
     }
     return cachedAccountSelection
   }
+}
+
+function cliFlagValue(...flags: string[]): string | undefined {
+  for (const flag of flags) {
+    const equalsArg = process.argv.find((arg) => arg.startsWith(`${flag}=`))
+    if (equalsArg) return equalsArg.slice(flag.length + 1).trim()
+
+    const index = process.argv.indexOf(flag)
+    if (index >= 0) return process.argv[index + 1]?.trim()
+  }
+
+  return undefined
 }
 
 function childEnvFor(command: string): NodeJS.ProcessEnv {
@@ -178,7 +200,10 @@ function accountSelectionSummary() {
     overrideEnv: GCLOUD_ACCOUNT_OVERRIDE_ENV,
     overrideProvided: selection.overrideProvided,
     overrideIndexEnv: GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV,
+    overrideIndexCliFlag: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG,
+    overrideIndexCliFlagAlias: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS,
     overrideIndexProvided: selection.overrideIndexProvided,
+    overrideIndexSource: selection.overrideIndexSource,
     overrideIndex: selection.overrideIndex,
     overrideResolved: selection.overrideResolved,
     cloudSdkCoreAccountEnvProvided: Boolean(process.env.CLOUDSDK_CORE_ACCOUNT?.trim()),

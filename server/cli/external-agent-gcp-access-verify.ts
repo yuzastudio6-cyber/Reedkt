@@ -19,6 +19,8 @@ const TOKEN_LIKE_PATTERNS: Array<[string, RegExp]> = [
   ['jwt', /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g],
   ['email', /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi],
 ]
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
 
 function sanitize(value: string | undefined): string | undefined {
   if (!value) return undefined
@@ -57,7 +59,7 @@ function nestedNumber(document: JsonRecord | undefined, keys: string[]): number 
 function runScript(id: string, script: string): CommandResult {
   const result = spawnSync('npx', ['tsx', script], {
     cwd: process.cwd(),
-    env: process.env,
+    env: childEnv(),
     encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 12,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -78,6 +80,28 @@ function runScript(id: string, script: string): CommandResult {
     json,
     stderrSummary: sanitize(String(result.stderr ?? '')),
   }
+}
+
+function childEnv(): NodeJS.ProcessEnv {
+  const rawIndex = cliFlagValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG, GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  if (!rawIndex) return process.env
+
+  return {
+    ...process.env,
+    REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX: rawIndex,
+  }
+}
+
+function cliFlagValue(...flags: string[]): string | undefined {
+  for (const flag of flags) {
+    const equalsArg = process.argv.find((arg) => arg.startsWith(`${flag}=`))
+    if (equalsArg) return equalsArg.slice(flag.length + 1).trim()
+
+    const index = process.argv.indexOf(flag)
+    if (index >= 0) return process.argv[index + 1]?.trim()
+  }
+
+  return undefined
 }
 
 function main() {

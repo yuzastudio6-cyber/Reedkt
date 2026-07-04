@@ -161,6 +161,8 @@ export const EXTERNAL_AGENT_TOOL_NEXT_COMMAND = {
   accountSelection: {
     overrideEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT',
     overrideIndexEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX',
+    overrideIndexCliFlag: '--account-index',
+    overrideIndexCliFlagAlias: '--gcloud-account-index',
     mapsToCloudSdkCoreAccount: true,
     mutatesLocalGcloudConfig: false,
     printsAccountValue: false,

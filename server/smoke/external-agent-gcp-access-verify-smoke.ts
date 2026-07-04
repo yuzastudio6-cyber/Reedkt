@@ -77,6 +77,8 @@ assert.equal(spec.mode, 'read_only_external_agent_gcp_access_verify')
 assert.equal(spec.projectId, 'reeditpro')
 assert.deepEqual(spec.qwen.requiredReadPermissions, ['run.services.get', 'run.jobs.get'])
 assert.deepEqual(spec.broll.requiredReadPermissions, ['compute.projects.get', 'compute.regions.get'])
+assert.equal(spec.accountSelection.overrideIndexCliFlag, '--account-index')
+assert.equal(spec.accountSelection.overrideIndexCliFlagAlias, '--gcloud-account-index')
 assert.equal(spec.requiredRepairPlanCommand, 'npm run external-agent-gcp-access:repair-plan')
 assert.equal(spec.livePreflightCommand, 'npm run external-agent-tool-blockers:preflight')
 assert.equal(spec.liveNextCommand, 'npm run external-agent-tool-next-command')
@@ -95,6 +97,9 @@ for (const required of [
   'accountAccessDiagnostic',
   'wrapperMayBeCalledAfterConfirmation',
   'runtimeGatesAllFalse',
+  '--account-index',
+  '--gcloud-account-index',
+  'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX',
 ]) {
   assert.equal(source.includes(required), true, `Verifier missing ${required}`)
 }

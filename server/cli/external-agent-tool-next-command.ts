@@ -18,6 +18,8 @@ const TOKEN_LIKE_PATTERNS: Array<[string, RegExp]> = [
   ['jwt', /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g],
   ['email', /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi],
 ]
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
 
 function sanitize(value: string | undefined): string | undefined {
   if (!value) return undefined
@@ -34,6 +36,7 @@ function runProbe(id: string, script: string): ProbeResult {
   const result = spawnSync('npx', ['tsx', script], {
     encoding: 'utf8',
     maxBuffer: 1024 * 1024 * 6,
+    env: childEnv(),
     stdio: ['ignore', 'pipe', 'pipe'],
   })
   const stdout = String(result.stdout ?? '')
@@ -52,6 +55,28 @@ function runProbe(id: string, script: string): ProbeResult {
     json,
     stderrSummary: sanitize(String(result.stderr ?? '')),
   }
+}
+
+function childEnv(): NodeJS.ProcessEnv {
+  const rawIndex = cliFlagValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG, GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  if (!rawIndex) return process.env
+
+  return {
+    ...process.env,
+    [EXTERNAL_AGENT_TOOL_NEXT_COMMAND.accountSelection.overrideIndexEnv]: rawIndex,
+  }
+}
+
+function cliFlagValue(...flags: string[]): string | undefined {
+  for (const flag of flags) {
+    const equalsArg = process.argv.find((arg) => arg.startsWith(`${flag}=`))
+    if (equalsArg) return equalsArg.slice(flag.length + 1).trim()
+
+    const index = process.argv.indexOf(flag)
+    if (index >= 0) return process.argv[index + 1]?.trim()
+  }
+
+  return undefined
 }
 
 function nestedBoolean(document: Record<string, unknown> | undefined, keys: string[]): boolean {
@@ -198,13 +223,18 @@ function accountSelectionSummary(spec: typeof EXTERNAL_AGENT_TOOL_NEXT_COMMAND, 
     return liveSelection
   }
 
-  const rawIndex = process.env[spec.accountSelection.overrideIndexEnv]?.trim()
+  const cliIndex = cliFlagValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG, GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  const envIndex = process.env[spec.accountSelection.overrideIndexEnv]?.trim()
+  const rawIndex = cliIndex ?? envIndex
   const parsedIndex = rawIndex ? Number(rawIndex) : undefined
 
   return {
     ...spec.accountSelection,
+    overrideIndexCliFlag: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG,
+    overrideIndexCliFlagAlias: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS,
     overrideProvided: Boolean(process.env[spec.accountSelection.overrideEnv]?.trim()),
     overrideIndexProvided: Boolean(rawIndex),
+    overrideIndexSource: cliIndex ? 'cli' : envIndex ? 'env' : undefined,
     overrideIndex: Number.isInteger(parsedIndex) ? parsedIndex : undefined,
     overrideResolved: Boolean(process.env[spec.accountSelection.overrideEnv]?.trim()),
     cloudSdkCoreAccountEnvProvided: Boolean(process.env.CLOUDSDK_CORE_ACCOUNT?.trim()),

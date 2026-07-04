@@ -10,11 +10,14 @@ const NEXT_COMMAND_SCRIPT = 'server/cli/external-agent-tool-next-command.ts'
 const EXECUTION_GATE_SCRIPT = 'server/cli/external-agent-tool-execution-gate.ts'
 const GCLOUD_ACCOUNT_OVERRIDE_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT'
 const GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV = 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG = '--account-index'
+const GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS = '--gcloud-account-index'
 
 type AccountSelection = {
   account?: string
   overrideProvided: boolean
   overrideIndexProvided: boolean
+  overrideIndexSource?: 'cli' | 'env'
   overrideIndex?: number
   overrideResolved: boolean
   resolutionFailure?: string
@@ -336,7 +339,10 @@ function accountSelectionOutput() {
   return {
     gcloudAccountOverrideProvided: selection.overrideProvided,
     gcloudAccountOverrideIndexEnv: GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV,
+    gcloudAccountOverrideIndexCliFlag: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG,
+    gcloudAccountOverrideIndexCliFlagAlias: GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS,
     gcloudAccountOverrideIndexProvided: selection.overrideIndexProvided,
+    gcloudAccountOverrideIndexSource: selection.overrideIndexSource,
     gcloudAccountOverrideIndex: selection.overrideIndex,
     gcloudAccountOverrideResolved: selection.overrideResolved,
     gcloudAccountOverrideResolutionFailure: selection.resolutionFailure,
@@ -357,7 +363,10 @@ function resolveAccountSelection(): AccountSelection {
     return cachedAccountSelection
   }
 
-  const rawIndex = process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  const cliIndex = cliFlagValue(GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG, GCLOUD_ACCOUNT_OVERRIDE_INDEX_CLI_FLAG_ALIAS)
+  const envIndex = process.env[GCLOUD_ACCOUNT_OVERRIDE_INDEX_ENV]?.trim()
+  const rawIndex = cliIndex ?? envIndex
+  const indexSource = cliIndex ? 'cli' : envIndex ? 'env' : undefined
   if (!rawIndex) {
     cachedAccountSelection = {
       overrideProvided: false,
@@ -372,6 +381,7 @@ function resolveAccountSelection(): AccountSelection {
     cachedAccountSelection = {
       overrideProvided: false,
       overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
       overrideIndex: Number.isFinite(accountIndex) ? accountIndex : undefined,
       overrideResolved: false,
       resolutionFailure: 'invalid_account_index',
@@ -389,6 +399,7 @@ function resolveAccountSelection(): AccountSelection {
     cachedAccountSelection = {
       overrideProvided: false,
       overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
       overrideIndex: accountIndex,
       overrideResolved: false,
       resolutionFailure: 'auth_list_failed',
@@ -403,6 +414,7 @@ function resolveAccountSelection(): AccountSelection {
       account,
       overrideProvided: false,
       overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
       overrideIndex: accountIndex,
       overrideResolved: Boolean(account),
       resolutionFailure: account ? undefined : 'account_index_not_found',
@@ -412,12 +424,25 @@ function resolveAccountSelection(): AccountSelection {
     cachedAccountSelection = {
       overrideProvided: false,
       overrideIndexProvided: true,
+      overrideIndexSource: indexSource,
       overrideIndex: accountIndex,
       overrideResolved: false,
       resolutionFailure: 'auth_list_parse_failed',
     }
     return cachedAccountSelection
   }
+}
+
+function cliFlagValue(...flags: string[]): string | undefined {
+  for (const flag of flags) {
+    const equalsArg = process.argv.find((arg) => arg.startsWith(`${flag}=`))
+    if (equalsArg) return equalsArg.slice(flag.length + 1).trim()
+
+    const index = process.argv.indexOf(flag)
+    if (index >= 0) return process.argv[index + 1]?.trim()
+  }
+
+  return undefined
 }
 
 function parseJsonOutput(output: string): JsonRecord | undefined {

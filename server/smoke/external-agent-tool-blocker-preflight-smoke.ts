@@ -75,6 +75,8 @@ assert.equal(spec.mode, 'read_only_external_agent_tool_blocker_preflight')
 assert.equal(spec.projectId, 'reeditpro')
 assert.equal(spec.accountSelection.overrideEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT')
 assert.equal(spec.accountSelection.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
+assert.equal(spec.accountSelection.overrideIndexCliFlag, '--account-index')
+assert.equal(spec.accountSelection.overrideIndexCliFlagAlias, '--gcloud-account-index')
 assert.equal(spec.accountSelection.mapsToCloudSdkCoreAccount, true)
 assert.equal(spec.accountSelection.mutatesLocalGcloudConfig, false)
 assert.equal(spec.accountSelection.printsAccountValue, false)
@@ -147,6 +149,8 @@ assert.equal(
   true,
   'CLI must support a redacted account-index override env var',
 )
+assert.equal(cliSource.includes('--account-index'), true, 'CLI must support account-index flag')
+assert.equal(cliSource.includes('--gcloud-account-index'), true, 'CLI must support gcloud account-index flag alias')
 assert.equal(
   cliSource.includes('CLOUDSDK_CORE_ACCOUNT: accountOverride'),
   true,

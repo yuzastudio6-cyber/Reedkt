@@ -20,6 +20,8 @@ export const EXTERNAL_AGENT_GCP_ACCESS_REPAIR_PLAN = {
   accountSelection: {
     overrideEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT',
     overrideIndexEnv: 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX',
+    overrideIndexCliFlag: '--account-index',
+    overrideIndexCliFlagAlias: '--gcloud-account-index',
     usesCloudSdkCoreAccountForChildCommandsOnly: true,
     mutatesLocalGcloudConfig: false,
     printsAccountValue: false,

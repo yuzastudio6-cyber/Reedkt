@@ -86,6 +86,8 @@ assert.equal(spec.dryRunPassedClaimed, false)
 assert.equal(spec.generatedLocalFixturePassedClaimed, false)
 assert.equal(spec.accountSelection.overrideEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT')
 assert.equal(spec.accountSelection.overrideIndexEnv, 'REEDITPRO_EXTERNAL_AGENT_GCLOUD_ACCOUNT_INDEX')
+assert.equal(spec.accountSelection.overrideIndexCliFlag, '--account-index')
+assert.equal(spec.accountSelection.overrideIndexCliFlagAlias, '--gcloud-account-index')
 assert.equal(spec.accountSelection.mapsToCloudSdkCoreAccount, true)
 assert.equal(spec.accountSelection.mutatesLocalGcloudConfig, false)
 assert.equal(spec.accountSelection.printsAccountValue, false)
@@ -238,6 +240,9 @@ for (const probe of spec.allowedProbeScripts) {
 const cliSource = read(CLI_PATH)
 assert.equal(cliSource.includes('spawnSync'), true)
 assert.equal(cliSource.includes('spec.accountSelection.overrideEnv'), true)
+assert.equal(cliSource.includes('--account-index'), true)
+assert.equal(cliSource.includes('--gcloud-account-index'), true)
+assert.equal(cliSource.includes('accountSelection.overrideIndexEnv'), true)
 assert.equal(cliSource.includes('whenGcpReadAccessRepairRequired'), true)
 for (const forbidden of [
   'gcloud ',

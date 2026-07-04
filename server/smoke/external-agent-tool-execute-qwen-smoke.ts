@@ -101,6 +101,8 @@ for (const required of [
   'qwenExternalAgentExecutionCommand',
   ACCOUNT_OVERRIDE_ENV,
   ACCOUNT_OVERRIDE_INDEX_ENV,
+  '--account-index',
+  '--gcloud-account-index',
   'CLOUDSDK_CORE_ACCOUNT: accountOverride',
   'qwenAccessRepairHint',
   'external-agent-gcp-access:repair-plan',
@@ -127,6 +129,8 @@ assert.equal(staticReport.confirmationEnvRequiredValue, 'true')
 assert.equal(staticReport.gcloudAccountOverrideEnv, ACCOUNT_OVERRIDE_ENV)
 assert.equal(typeof staticReport.gcloudAccountOverrideProvided, 'boolean')
 assert.equal(staticReport.gcloudAccountOverrideIndexEnv, ACCOUNT_OVERRIDE_INDEX_ENV)
+assert.equal(staticReport.gcloudAccountOverrideIndexCliFlag, '--account-index')
+assert.equal(staticReport.gcloudAccountOverrideIndexCliFlagAlias, '--gcloud-account-index')
 assert.equal(typeof staticReport.gcloudAccountOverrideIndexProvided, 'boolean')
 assert.equal(typeof staticReport.gcloudAccountOverrideResolved, 'boolean')
 assert.equal(staticReport.gcloudAccountOverrideMutatesLocalConfig, false)
@@ -149,6 +153,14 @@ assert.equal(staticReport.creditMutationCreated, false)
 assert.equal(staticReport.betaUnlocked, false)
 assert.equal(staticReport.productionUnlocked, false)
 assert.equal(staticReport.generatedLocalFixturePassedClaimed, false)
+
+const invalidCliIndexReport = runCli(['--account-index=0', '--json'])
+assert.equal(invalidCliIndexReport.mode, 'external_agent_qwen_execution_static_guard')
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideIndexProvided, true)
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideIndexSource, 'cli')
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideResolved, false)
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideResolutionFailure, 'invalid_account_index')
+assert.equal(invalidCliIndexReport.gcloudAccountOverrideMutatesLocalConfig, false)
 
 const preflightOnly = runCli(['--preflight-only', '--json'])
 assert.equal(preflightOnly.mode, 'external_agent_qwen_execution_preflight_only_result')

@@ -174,6 +174,8 @@ assert.equal(approvedModel.stages.find((stage) => stage.id === 'approved_snapsho
 
 const preview: ProjectSourceVideoLocalEditPreviewResult = {
   status: 'preview_ready',
+  editPlanId: approvedPlan.planId,
+  creditEstimateId: `${approvedPlan.planId}-credit-estimate`,
   approvedPlanSnapshotId: 'approved-snapshot-1',
   creditApprovalId: 'credit-approval-1',
   creditReservationId: 'credit-reservation-1',
@@ -183,6 +185,7 @@ const preview: ProjectSourceVideoLocalEditPreviewResult = {
   approvedSnapshotCreated: true,
   mockCreditApprovalCreated: true,
   mockCreditReservationCreated: true,
+  localPlanApproved: true,
   workerJobCreated: true,
   mediaProcessingStarted: true,
   renderJobCreated: true,
@@ -233,7 +236,14 @@ const previewCard = read('src/components/projects/brief/ProjectEditBriefLocalPre
 assert.match(previewCard, /planApproved/)
 assert.match(previewCard, /Approve plan first/)
 assert.match(previewCard, /onPreviewReady/)
+assert.match(previewCard, /approvedLocalPlan/)
 assert.doesNotMatch(previewCard, /product-ready/i)
+
+const previewClient = read('src/lib/project-source-video-local-edit-preview-smoke.ts')
+assert.match(previewClient, /approvedLocalPlan/)
+assert.match(previewClient, /visibleLocalPlanApproved/)
+assert.match(previewClient, /Local edit preview requires the visible local edit plan/)
+assert.doesNotMatch(previewClient, /const editPlanId = `edit-plan-\\$\\{input\\.editSessionId\\}-local-preview`/)
 
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
 assert.equal(

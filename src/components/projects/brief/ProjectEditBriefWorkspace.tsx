@@ -272,6 +272,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
             <p data-testid="project-edit-brief-status">{statusMessage}</p>
           </Card>
           <ProjectEditBriefLocalPreviewSmokeCard
+            approvedLocalPlan={planApprovalModel.approved ? planApprovalModel : undefined}
             config={localPreviewConfig}
             editSessionId={editSessionId}
             onPreviewReady={(result) => {

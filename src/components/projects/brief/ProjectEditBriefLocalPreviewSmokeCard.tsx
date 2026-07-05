@@ -6,6 +6,7 @@ import { Card } from '../../Card'
 import {
   runProjectSourceVideoLocalEditPreviewSmoke,
 } from '../../../lib/project-source-video-local-edit-preview-smoke'
+import type { ProjectEditPlanApprovalModel } from '../../../lib/project-edit-plan-approval'
 import type {
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoLocalEditPreviewConfig,
@@ -14,6 +15,7 @@ import type {
 } from '../../../types/project-source-video'
 
 type ProjectEditBriefLocalPreviewSmokeCardProps = {
+  approvedLocalPlan?: ProjectEditPlanApprovalModel
   config: ProjectSourceVideoLocalEditPreviewConfig
   editSessionId: string
   onPreviewReady?: (result: ProjectSourceVideoLocalEditPreviewResult) => void
@@ -48,6 +50,7 @@ function formatBytes(value: number | undefined): string {
 }
 
 export function ProjectEditBriefLocalPreviewSmokeCard({
+  approvedLocalPlan,
   config,
   editSessionId,
   onPreviewReady,
@@ -75,7 +78,7 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
   const disabled = !config.available || !sourceVideoUploadResult || !planApproved || status === 'running'
 
   async function runPreviewSmoke() {
-    if (!config.available || !config.apiBaseUrl || !sourceVideoUploadResult || !planApproved) return
+    if (!config.available || !config.apiBaseUrl || !sourceVideoUploadResult || !planApproved || !approvedLocalPlan?.approved) return
     const currentSourceKey = sourceVideoUploadResult.storageObjectRecordId
     setRunState({ sourceKey: currentSourceKey, status: 'running' })
     try {
@@ -84,6 +87,7 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
         editSessionId,
         projectId,
         workspaceId: config.workspaceId,
+        approvedLocalPlan,
         sourceVideoUploadResult,
         sourceVideoDurationSeconds,
         sourceVideoAspectRatio,
@@ -132,6 +136,7 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
         {result ? (
           <>
             <span><strong>Preview object</strong>{result.outputBucketName}/{result.outputObjectPath}</span>
+            <span><strong>Approved plan</strong>{result.editPlanId}</span>
             <span><strong>Duration</strong>{formatSeconds(result.durationSeconds)}</span>
             <span><strong>Size</strong>{formatBytes(result.sizeBytes)}</span>
             <span><strong>Main brain</strong>{result.qwenMainBrainLabel} identity recorded, no live call</span>

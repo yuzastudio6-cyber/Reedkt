@@ -3,6 +3,7 @@ import {
   REEDITPRO_QWEN_MAIN_BRAIN_LABEL,
   createReeditProQwenMainBrainSummary,
 } from '../types/qwen-main-brain'
+import type { ProjectEditPlanApprovalModel } from './project-edit-plan-approval'
 import type {
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoLocalEditPreviewConfig,
@@ -73,6 +74,7 @@ export interface RunProjectSourceVideoLocalEditPreviewSmokeInput {
   editSessionId: string
   projectId: string
   workspaceId: string
+  approvedLocalPlan: Pick<ProjectEditPlanApprovalModel, 'approved' | 'creditEstimate' | 'planId' | 'steps' | 'summary' | 'title'>
   sourceVideoUploadResult: ProjectSourceVideoBackendUploadResult
   sourceVideoDurationSeconds?: number
   sourceVideoAspectRatio?: string
@@ -191,8 +193,11 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
 ): Promise<ProjectSourceVideoLocalEditPreviewResult> {
   const fetchImpl = input.fetchImpl ?? fetch
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
-  const editPlanId = `edit-plan-${input.editSessionId}-local-preview`
-  const creditEstimateId = `credit-estimate-${input.editSessionId}-local-preview`
+  if (!input.approvedLocalPlan.approved) {
+    throw new Error('Local edit preview requires the visible local edit plan and credit estimate to be approved first.')
+  }
+  const editPlanId = input.approvedLocalPlan.planId
+  const creditEstimateId = `${input.approvedLocalPlan.planId}-credit-estimate`
   const source = input.sourceVideoUploadResult
 
   if (!source.mediaAssetId) {
@@ -234,6 +239,17 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
 
   const snapshotJson = {
     mode: 'internal_local_edit_preview_smoke',
+    approvedLocalPlan: {
+      planId: input.approvedLocalPlan.planId,
+      title: input.approvedLocalPlan.title,
+      summary: input.approvedLocalPlan.summary,
+      steps: input.approvedLocalPlan.steps.map((step) => ({
+        label: step.label,
+        summary: step.summary,
+      })),
+      creditEstimate: input.approvedLocalPlan.creditEstimate,
+      approved: true,
+    },
     qwenMainBrain: {
       label: REEDITPRO_QWEN_MAIN_BRAIN_LABEL,
       summary: createReeditProQwenMainBrainSummary(),
@@ -253,6 +269,7 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
     },
     gates: {
       backendLocalUpload: true,
+      visibleLocalPlanApproved: true,
       creditEstimateApproved: true,
       creditReservationCreated: true,
       approvedSnapshotCreated: true,
@@ -343,6 +360,8 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
 
   return {
     status: 'preview_ready',
+    editPlanId,
+    creditEstimateId,
     approvedPlanSnapshotId: approvedSnapshot.id,
     creditApprovalId: creditApproval.id,
     creditReservationId: creditReservation.id,
@@ -359,6 +378,7 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
     approvedSnapshotCreated: true,
     mockCreditApprovalCreated: true,
     mockCreditReservationCreated: true,
+    localPlanApproved: true,
     workerJobCreated: true,
     mediaProcessingStarted: true,
     renderJobCreated: true,

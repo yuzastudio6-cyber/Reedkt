@@ -95,6 +95,8 @@ export interface ProjectSourceVideoBackendUploadResult {
 
 export interface ProjectSourceVideoLocalEditPreviewResult {
   status: 'preview_ready'
+  editPlanId: string
+  creditEstimateId: string
   approvedPlanSnapshotId: string
   creditApprovalId: string
   creditReservationId: string
@@ -111,6 +113,7 @@ export interface ProjectSourceVideoLocalEditPreviewResult {
   approvedSnapshotCreated: true
   mockCreditApprovalCreated: true
   mockCreditReservationCreated: true
+  localPlanApproved: true
   workerJobCreated: true
   mediaProcessingStarted: true
   renderJobCreated: true

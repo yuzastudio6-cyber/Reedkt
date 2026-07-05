@@ -53,6 +53,48 @@ export interface ProjectEditPlanApprovalModel {
   warnings: string[]
 }
 
+export type ProjectEditPlanApprovedLocalPlan = Pick<ProjectEditPlanApprovalModel, 'approved' | 'creditEstimate' | 'planId' | 'steps' | 'summary' | 'title'>
+
+export interface ProjectEditPlanBackendLocalRecord {
+  id: string
+  editPlanId: string
+  creditEstimateId: string
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  approvedByUserId?: string
+  approvedAt: string
+  status: 'approved'
+  approvedLocalPlan: ProjectEditPlanApprovedLocalPlan
+  source: {
+    storageObjectRecordId: string
+    mediaAssetId?: string
+    bucketName: string
+    objectPath: string
+    fileName: string
+    mimeType: string
+    sizeBytes: number
+    checksumSha256?: string
+  }
+  backendLocalPlanStored: true
+  readbackVerified?: true
+  providerCallMade: false
+  workerJobCreated: false
+  renderJobCreated: false
+  creditReservedOrSpent: false
+  supabaseWriteMade: false
+  gcsWriteMade: false
+  productReady: false
+  mockOnly: true
+  warnings: string[]
+}
+
+export interface ProjectEditPlanBackendApprovalResult {
+  localEditPlan: ProjectEditPlanBackendLocalRecord
+  readback?: ProjectEditPlanBackendLocalRecord
+  warnings: string[]
+}
+
 function safeSegment(value: string): string {
   return value
     .trim()

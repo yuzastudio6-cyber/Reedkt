@@ -6,7 +6,7 @@ import { Card } from '../../Card'
 import {
   runProjectSourceVideoLocalEditPreviewSmoke,
 } from '../../../lib/project-source-video-local-edit-preview-smoke'
-import type { ProjectEditPlanApprovalModel } from '../../../lib/project-edit-plan-approval'
+import type { ProjectEditPlanApprovedLocalPlan } from '../../../lib/project-edit-plan-approval'
 import type {
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoLocalEditPreviewConfig,
@@ -15,7 +15,7 @@ import type {
 } from '../../../types/project-source-video'
 
 type ProjectEditBriefLocalPreviewSmokeCardProps = {
-  approvedLocalPlan?: ProjectEditPlanApprovalModel
+  approvedLocalPlan?: ProjectEditPlanApprovedLocalPlan
   config: ProjectSourceVideoLocalEditPreviewConfig
   editSessionId: string
   onPreviewReady?: (result: ProjectSourceVideoLocalEditPreviewResult) => void

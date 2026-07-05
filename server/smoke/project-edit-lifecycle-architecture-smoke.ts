@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { loadRuntimeEnv } from '../config/env'
+import { createProjectEditPlanService } from '../services/project-edit-plan-service'
+import type { ServiceContext } from '../types'
 import { buildProjectEditPlanApprovalModel } from '../../src/lib/project-edit-plan-approval'
 import { buildProjectEditLifecycleModel } from '../../src/lib/project-edit-lifecycle'
 import type {
@@ -30,8 +33,12 @@ const requiredFiles = [
   'src/components/projects/brief/ProjectEditBriefWorkspace.tsx',
   'src/components/projects/brief/ProjectEditBriefSourceVideoPicker.tsx',
   'src/components/projects/brief/ProjectEditBriefLocalPreviewSmokeCard.tsx',
+  'src/lib/project-edit-plan-backend-local.ts',
   'src/lib/project-source-video-backend-upload.ts',
   'src/lib/project-source-video-local-edit-preview-smoke.ts',
+  'server/routes/project-edit-plan-routes.ts',
+  'server/services/project-edit-plan-service.ts',
+  'server/validation/project-edit-plan-schemas.ts',
   'server/smoke/project-edit-lifecycle-architecture-smoke.ts',
 ]
 
@@ -157,6 +164,65 @@ assert.equal(approvedPlan.approved, true)
 assert.equal(approvedPlan.status, 'approved')
 assert.equal(approvedPlan.blockers.includes('plan_credit_approval_required'), false)
 
+const mockServiceContext: ServiceContext = {
+  env: loadRuntimeEnv({
+    ...process.env,
+    API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
+    E2E_RUNTIME_MODE: 'mock',
+    LOCAL_STORAGE_ROOT: '.reeditpro-local-storage-smoke',
+    NODE_ENV: 'test',
+    STORAGE_MODE: 'local',
+  }),
+  clients: {
+    admin: null,
+    public: null,
+  },
+  requestId: 'project-edit-lifecycle-architecture-smoke',
+  auth: {
+    email: 'internal-tester@reeditpro.local',
+    isMockUser: true,
+    userId: 'internal-tester',
+  },
+}
+
+const planService = createProjectEditPlanService(mockServiceContext)
+const backendPlan = await planService.createApprovedLocalEditPlan({
+  creditEstimate: approvedPlan.creditEstimate,
+  editSessionId: 'edit-session-youtube-wide',
+  planId: approvedPlan.planId,
+  projectId: 'mock-project-edit-chat-foundation',
+  source: {
+    bucketName: uploaded.bucketName,
+    checksumSha256: uploaded.checksumSha256,
+    fileName: uploaded.fileName,
+    mediaAssetId: uploaded.mediaAssetId,
+    mimeType: uploaded.mimeType,
+    objectPath: uploaded.objectPath,
+    sizeBytes: uploaded.sizeBytes,
+    storageObjectRecordId: uploaded.storageObjectRecordId,
+  },
+  steps: approvedPlan.steps,
+  summary: approvedPlan.summary,
+  title: approvedPlan.title,
+  workspaceId: 'mock-workspace',
+})
+assert.equal(backendPlan.localEditPlan.editPlanId, approvedPlan.planId)
+assert.equal(backendPlan.localEditPlan.creditEstimateId, `${approvedPlan.planId}-credit-estimate`)
+assert.equal(backendPlan.localEditPlan.backendLocalPlanStored, true)
+assert.equal(backendPlan.localEditPlan.readbackVerified, true)
+assert.equal(backendPlan.localEditPlan.approvedLocalPlan.approved, true)
+assert.equal(backendPlan.localEditPlan.providerCallMade, false)
+assert.equal(backendPlan.localEditPlan.workerJobCreated, false)
+assert.equal(backendPlan.localEditPlan.renderJobCreated, false)
+assert.equal(backendPlan.localEditPlan.creditReservedOrSpent, false)
+assert.equal(backendPlan.localEditPlan.supabaseWriteMade, false)
+assert.equal(backendPlan.localEditPlan.gcsWriteMade, false)
+assert.equal(backendPlan.localEditPlan.productReady, false)
+
+const backendPlanReadback = await planService.getApprovedLocalEditPlan(approvedPlan.planId, 'mock-workspace')
+assert.equal(backendPlanReadback.localEditPlan.editPlanId, backendPlan.localEditPlan.editPlanId)
+assert.equal(backendPlanReadback.localEditPlan.readbackVerified, true)
+
 const approvedModel = buildProjectEditLifecycleModel({
   backendUploadAvailable: true,
   backendUploadResult: uploaded,
@@ -174,8 +240,8 @@ assert.equal(approvedModel.stages.find((stage) => stage.id === 'approved_snapsho
 
 const preview: ProjectSourceVideoLocalEditPreviewResult = {
   status: 'preview_ready',
-  editPlanId: approvedPlan.planId,
-  creditEstimateId: `${approvedPlan.planId}-credit-estimate`,
+  editPlanId: backendPlanReadback.localEditPlan.editPlanId,
+  creditEstimateId: backendPlanReadback.localEditPlan.creditEstimateId,
   approvedPlanSnapshotId: 'approved-snapshot-1',
   creditApprovalId: 'credit-approval-1',
   creditReservationId: 'credit-reservation-1',
@@ -225,8 +291,11 @@ for (const phrase of [
   'ProjectEditLifecycleStatusCard',
   'buildProjectEditPlanApprovalModel',
   'buildProjectEditLifecycleModel',
+  'approveProjectEditPlanBackendLocal',
   'createProjectSourceVideoBackendUploadConfig',
   'createProjectSourceVideoLocalEditPreviewConfig',
+  'backendApprovedLocalPlan',
+  'readbackVerified',
 ]) {
   assert.match(workspace, new RegExp(phrase))
 }
@@ -244,6 +313,24 @@ assert.match(previewClient, /approvedLocalPlan/)
 assert.match(previewClient, /visibleLocalPlanApproved/)
 assert.match(previewClient, /Local edit preview requires the visible local edit plan/)
 assert.doesNotMatch(previewClient, /const editPlanId = `edit-plan-\\$\\{input\\.editSessionId\\}-local-preview`/)
+
+const planClient = read('src/lib/project-edit-plan-backend-local.ts')
+assert.match(planClient, /local-edit-plans/)
+assert.match(planClient, /readbackVerified/)
+assert.match(planClient, /backendLocalPlanStored/)
+assert.doesNotMatch(planClient, /service_role|signedUrl|Stripe|production ready:\s*true/i)
+
+const planRoute = read('server/routes/project-edit-plan-routes.ts')
+assert.match(planRoute, /requireAuth/)
+assert.match(planRoute, /requireIdempotency/)
+assert.match(planRoute, /createApprovedLocalEditPlan/)
+assert.match(planRoute, /getApprovedLocalEditPlan/)
+
+const planServiceSource = read('server/services/project-edit-plan-service.ts')
+assert.match(planServiceSource, /MOCK_ONLY/)
+assert.match(planServiceSource, /backendLocalPlanStored/)
+assert.match(planServiceSource, /readbackVerified/)
+assert.match(planServiceSource, /PLAN_NOT_APPROVED/)
 
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
 assert.equal(

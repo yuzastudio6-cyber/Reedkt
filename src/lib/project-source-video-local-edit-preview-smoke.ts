@@ -3,7 +3,7 @@ import {
   REEDITPRO_QWEN_MAIN_BRAIN_LABEL,
   createReeditProQwenMainBrainSummary,
 } from '../types/qwen-main-brain'
-import type { ProjectEditPlanApprovalModel } from './project-edit-plan-approval'
+import type { ProjectEditPlanApprovedLocalPlan } from './project-edit-plan-approval'
 import type {
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoLocalEditPreviewConfig,
@@ -74,7 +74,7 @@ export interface RunProjectSourceVideoLocalEditPreviewSmokeInput {
   editSessionId: string
   projectId: string
   workspaceId: string
-  approvedLocalPlan: Pick<ProjectEditPlanApprovalModel, 'approved' | 'creditEstimate' | 'planId' | 'steps' | 'summary' | 'title'>
+  approvedLocalPlan: ProjectEditPlanApprovedLocalPlan
   sourceVideoUploadResult: ProjectSourceVideoBackendUploadResult
   sourceVideoDurationSeconds?: number
   sourceVideoAspectRatio?: string

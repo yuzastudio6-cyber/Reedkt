@@ -1,10 +1,13 @@
-import { CheckCircle2, ClipboardCheck } from 'lucide-react'
+import { CheckCircle2, ClipboardCheck, LoaderCircle } from 'lucide-react'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
 import { Card } from '../Card'
 import type { ProjectEditPlanApprovalModel } from '../../lib/project-edit-plan-approval'
 
 type ProjectEditPlanApprovalCardProps = {
+  approvalError?: string
+  approvalStatus?: 'idle' | 'approving' | 'approved' | 'failed'
+  backendRecordId?: string
   model: ProjectEditPlanApprovalModel
   onApprove: () => void
 }
@@ -13,7 +16,16 @@ function statusLabel(status: ProjectEditPlanApprovalModel['status']): string {
   return status.replace(/_/g, ' ')
 }
 
-export function ProjectEditPlanApprovalCard({ model, onApprove }: ProjectEditPlanApprovalCardProps) {
+export function ProjectEditPlanApprovalCard({
+  approvalError,
+  approvalStatus = 'idle',
+  backendRecordId,
+  model,
+  onApprove,
+}: ProjectEditPlanApprovalCardProps) {
+  const approving = approvalStatus === 'approving'
+  const approved = model.approved && approvalStatus === 'approved'
+
   return (
     <Card className="project-edit-plan-approval-card" data-testid="project-edit-plan-approval-card">
       <div className="project-edit-plan-approval-card__header">
@@ -66,18 +78,29 @@ export function ProjectEditPlanApprovalCard({ model, onApprove }: ProjectEditPla
 
       <Button
         data-testid="project-edit-plan-approve-button"
-        disabled={!model.canApprove || model.approved}
-        icon={CheckCircle2}
+        disabled={!model.canApprove || approved || approving}
+        icon={approving ? LoaderCircle : CheckCircle2}
         onClick={onApprove}
         size="sm"
         type="button"
-        variant={model.approved ? 'secondary' : 'primary'}
+        variant={approved ? 'secondary' : 'primary'}
       >
-        {model.approved ? 'Local plan approved' : 'Approve local test plan'}
+        {approving ? 'Approving plan' : approved ? 'Local plan approved' : 'Approve local test plan'}
       </Button>
 
+      {backendRecordId ? (
+        <p className="project-edit-plan-approval-card__backend" data-testid="project-edit-plan-backend-record">
+          Backend-local plan record: {backendRecordId}
+        </p>
+      ) : null}
+      {approvalError ? (
+        <p className="project-edit-plan-approval-card__error" data-testid="project-edit-plan-approval-error">
+          {approvalError}
+        </p>
+      ) : null}
+
       <p className="project-edit-brief-muted">
-        Approval unlocks only the internal preview smoke path. It does not start production export, live providers, Supabase writes, or paid billing.
+        Approval writes and reads back a backend-local plan record. It unlocks only the internal preview smoke path and does not start production export, live providers, Supabase writes, or paid billing.
       </p>
     </Card>
   )

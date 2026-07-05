@@ -471,6 +471,34 @@ try {
   assert.equal(resetHomeDetail?.readinessLabel, 'Brief saved')
   assert.match(resetHomeDetail?.artifactSummaryLines.join('\n') ?? '', /No preview or export artifact/)
 
+  const setupResetCheckpoint = await recordProjectEditSessionLifecycleCheckpointBackendLocal({
+    apiBaseUrl,
+    editSessionId,
+    workspaceId,
+    checkpointKind: 'setup_reset',
+    status: 'draft',
+    approvalStatus: 'not_requested',
+    metadata: {
+      resetReason: 'source_cleared',
+      noMediaProcessingStarted: true,
+      noProviderCallMade: true,
+      noRenderStarted: true,
+      noCreditReservedOrSpent: true,
+      productReady: false,
+    },
+    getAccessToken: async () => undefined,
+  })
+  assert.equal(setupResetCheckpoint.editSession.status, 'draft')
+  assert.equal(setupResetCheckpoint.editSession.approvalStatus, 'not_requested')
+  assert.deepEqual(setupResetCheckpoint.editSession.sourceMediaAssetIds, [])
+  assert.equal(setupResetCheckpoint.editSession.previewCount, 0)
+  assert.equal(setupResetCheckpoint.editSession.versionCount, 0)
+  assert.equal(setupResetCheckpoint.editSession.metadata?.backendLocalSourceUpload, undefined)
+  assert.equal(setupResetCheckpoint.editSession.metadata?.backendLocalBrief, undefined)
+  assert.equal(setupResetCheckpoint.editSession.metadata?.backendLocalPlan, undefined)
+  assert.equal(setupResetCheckpoint.editSession.metadata?.backendLocalFinalExport, undefined)
+  assert.equal(createProjectEditSessionHomeCardViewModelFromRecord(setupResetCheckpoint.editSession).progressLabel, 'Setup needed')
+
   const restoredPlanModel = buildProjectEditPlanApprovalModel({
     approved: true,
     backendUploadResult: restoredUpload,

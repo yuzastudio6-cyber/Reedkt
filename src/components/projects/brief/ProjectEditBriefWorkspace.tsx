@@ -261,40 +261,7 @@ export function ProjectEditBriefWorkspace({
     }
   }, [backendApprovedLocalPlan, backendLocalEditSession, backendSavedBrief, backendUploadResult, editSessionId, projectId, sourceVideo])
 
-  function handleVideoSelected(file?: File) {
-    if (!file) return
-    try {
-      const nextPreview = createProjectSourceVideoLocalPreviewFromFile(file)
-      revokeProjectSourceVideoLocalPreview(sourceVideo)
-      setSourceFile(file)
-      setSourceVideo(nextPreview)
-      setBackendUploadResult(undefined)
-      setBackendUploadError(undefined)
-      setLocalPreviewResult(undefined)
-      setLocalFinalExportResult(undefined)
-      setPlanApproved(false)
-      setPlanApprovalStatus('idle')
-      setPlanApprovalError(undefined)
-      setBackendApprovedLocalPlan(undefined)
-      setPreviewReviewResult(undefined)
-      setProfessionalQAResult(undefined)
-      setBackendUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
-      setPlayheadSeconds(0)
-      setPlaying(false)
-      setBriefSaved(false)
-      setBackendSavedBrief(undefined)
-      setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
-      setBriefSaveError(briefConfig.available ? undefined : briefConfig.message)
-      setStatusMessage('Source video selected for this edit. Nothing has been uploaded or processed yet.')
-    } catch {
-      setStatusMessage('Choose a video file for this edit.')
-    }
-  }
-
-  function clearVideo() {
-    revokeProjectSourceVideoLocalPreview(sourceVideo)
-    setSourceFile(undefined)
-    setSourceVideo(undefined)
+  function resetLocalEditProgress(message: string) {
     setBackendUploadResult(undefined)
     setBackendUploadError(undefined)
     setLocalPreviewResult(undefined)
@@ -312,7 +279,50 @@ export function ProjectEditBriefWorkspace({
     setBackendSavedBrief(undefined)
     setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
     setBriefSaveError(briefConfig.available ? undefined : briefConfig.message)
-    setStatusMessage('Source video cleared from this edit.')
+    setStatusMessage(message)
+  }
+
+  function persistSetupReset(reason: 'source_selected' | 'source_cleared') {
+    void recordLifecycleCheckpoint({
+      checkpointKind: 'setup_reset',
+      status: 'draft',
+      approvalStatus: 'not_requested',
+      metadata: {
+        resetReason: reason,
+        resetAt: new Date().toISOString(),
+        noMediaProcessingStarted: true,
+        noProviderCallMade: true,
+        noRenderStarted: true,
+        noCreditReservedOrSpent: true,
+        productReady: false,
+      },
+    }).catch((caught) => {
+      setStatusMessage(caught instanceof Error
+        ? `Edit reset locally, but backend-local lifecycle reset failed safely: ${caught.message}`
+        : 'Edit reset locally, but backend-local lifecycle reset failed safely.')
+    })
+  }
+
+  function handleVideoSelected(file?: File) {
+    if (!file) return
+    try {
+      const nextPreview = createProjectSourceVideoLocalPreviewFromFile(file)
+      revokeProjectSourceVideoLocalPreview(sourceVideo)
+      setSourceFile(file)
+      setSourceVideo(nextPreview)
+      resetLocalEditProgress('Source video selected for this edit. Previous preview, QA, and export evidence were reset.')
+      persistSetupReset('source_selected')
+    } catch {
+      setStatusMessage('Choose a video file for this edit.')
+    }
+  }
+
+  function clearVideo() {
+    revokeProjectSourceVideoLocalPreview(sourceVideo)
+    setSourceFile(undefined)
+    setSourceVideo(undefined)
+    resetLocalEditProgress('Source video cleared from this edit. Previous preview, QA, and export evidence were reset.')
+    persistSetupReset('source_cleared')
   }
 
   function handleMetadataLoaded(metadata: ProjectSourceVideoMetadataUpdate) {

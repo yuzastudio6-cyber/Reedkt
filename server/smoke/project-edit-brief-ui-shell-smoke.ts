@@ -76,7 +76,9 @@ assert.match(indexCss, /project-edit-brief\.css/)
 
 const chatPage = read('src/pages/EditorPage.tsx')
 assert.match(chatPage, /ProjectEditBriefWorkspace/)
-assert.match(chatPage, /routeSection === 'brief'/)
+assert.match(chatPage, /data-route-section="workspace"/)
+assert.doesNotMatch(chatPage, /ProjectEditSessionRouteTabs/)
+assert.doesNotMatch(chatPage, /ProjectEditSessionChatInput/)
 
 const uiAdapter = read('src/lib/project-edit-brief-ui-adapter.ts')
 assert.doesNotMatch(uiAdapter, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockProjectEditBriefRepository/)

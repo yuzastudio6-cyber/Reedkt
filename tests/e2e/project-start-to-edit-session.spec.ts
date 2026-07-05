@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import { gotoRoute } from './helpers/routes'
 
-test.describe('Project start to Edit Chat flow', () => {
+test.describe('Project start to edit workspace flow', () => {
   test('keeps the retired editor route out of app navigation', async ({ page }) => {
     await setViewport(page, 1440)
 
@@ -36,6 +36,17 @@ test.describe('Project start to Edit Chat flow', () => {
     await expect(page.getByText(/Start with a video category|Local video review comes in Brief|Create mock Edit Chat/i)).toHaveCount(0)
 
     await expect(page.getByText(/provider call made|worker created|render started|credit reserved|upload started|file bytes read/i)).toHaveCount(0)
+    await expectNoHorizontalOverflow(page)
+  })
+
+  test('routes edit aliases into the clean edit workspace', async ({ page }) => {
+    await setViewport(page, 1440)
+    await gotoRoute(page, '/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/chat')
+
+    await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
+    await expect(page.getByTestId('edit-session-route-tabs')).toHaveCount(0)
+    await expect(page.getByTestId('edit-session-chat-input')).toHaveCount(0)
+    await expect(page.getByText(/Upload the source video for this edit/i)).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
 })

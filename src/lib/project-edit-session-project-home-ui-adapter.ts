@@ -130,8 +130,8 @@ export function createProjectHomeTitle(projectId: string): string {
 
 export function createNewEditSessionPlaceholderModel(): NewEditSessionPlaceholderModel {
   return {
-    title: 'New Edit creates mock Edit Chats',
-    body: 'Use + New Edit to create a browser-session Edit Chat, then open the mock/local persistent chat workspace.',
+    title: 'Create a new edit',
+    body: 'Use + New Edit to create a browser-session edit, then open the clean edit workspace.',
     nextMilestone: 'RP-EDITSESSION-08',
     mockOnly: true,
   }
@@ -255,7 +255,7 @@ export function createProjectEditSessionHomeDetailViewModel(
       ? `${latestRevision.summary} Approval reset: ${latestRevision.resetsApproval ? 'yes' : 'no'}.`
       : 'No revisions requested.',
     eventSummary: latestEvent ? `${statusLabel(latestEvent.eventType)}: ${latestEvent.summary}` : 'No event records yet.',
-    openChatLabel: 'Open Edit Chat',
+    openChatLabel: 'Open edit',
     openChatRoute: createProjectEditSessionPath(bundle.session.projectId, bundle.session.id),
     warnings: summary.warnings ?? [],
     mockOnly: true,
@@ -304,7 +304,7 @@ export function createProjectEditSessionHomeDetailViewModelFromRecord(
     versionSummary: 'No versions yet.',
     revisionSummary: 'No revisions requested.',
     eventSummary: 'Backend-local edit session list/readback only.',
-    openChatLabel: 'Open edit brief',
+    openChatLabel: 'Open edit',
     openChatRoute: createProjectEditSessionBriefPath(session.projectId, session.id),
     warnings: [
       'Opening the edit does not start tools, rendering, credits, Supabase/GCS writes, beta, or production work.',
@@ -321,8 +321,8 @@ export async function loadProjectEditSessionProjectHomeModel(
   return {
     projectId,
     projectTitle: createProjectHomeTitle(projectId),
-    projectContext: 'Project Home for mock/local Edit Chats. Project remains the workspace container.',
-    mockLabel: 'Mock/local only',
+    projectContext: 'Project Home for clean edit workspaces. Project remains the workspace container.',
+    mockLabel: 'Internal testing only',
     cardModels: cardModels.map(createProjectEditSessionHomeCardViewModel),
     summary,
   }

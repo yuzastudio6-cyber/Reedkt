@@ -61,7 +61,7 @@ export type NewEditSessionCreateResult = {
 }
 
 export const NEW_EDIT_SESSION_DEFAULT_FORM: NewEditSessionFormState = {
-  name: 'Untitled Edit Chat',
+  name: 'Untitled edit',
   aspectRatio: '9:16',
   platformTarget: 'instagram_reel',
   selectedEditLevel: 'premium',
@@ -125,7 +125,7 @@ export const NEW_EDIT_SESSION_PREFERENCE_OPTIONS: Array<{
     id: 'lifestyle_travel_vlog',
     label: 'DNA-backed mock preference',
     handle: '@lifestyle-travel-vlog',
-    description: 'Apply the DNA-backed mock preference to this Edit Chat.',
+    description: 'Apply the DNA-backed mock preference to this edit.',
   },
   {
     id: 'legacy_clean_edit',
@@ -159,7 +159,7 @@ export function validateNewEditSessionForm(
   form: NewEditSessionFormState,
 ): NewEditSessionCreateValidationResult {
   const errors: string[] = []
-  if (!form.name.trim()) errors.push('Edit Chat name is required.')
+  if (!form.name.trim()) errors.push('Edit name is required.')
   if (!NEW_EDIT_SESSION_ASPECT_OPTIONS.some((option) => option.id === form.aspectRatio && !option.disabled)) {
     errors.push('Choose a supported aspect ratio.')
   }
@@ -252,7 +252,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
       safety: PROJECT_EDIT_SESSION_API_CLIENT_SAFETY,
     },
   })
-  responseSummaries.push(responseSummary(createResponse, 'Create Edit Chat'))
+  responseSummaries.push(responseSummary(createResponse, 'Create edit'))
 
   let session = dataRecord<{ session?: ProjectEditSessionRecord }>(createResponse)?.session
   if (!createResponse.ok || !session) {
@@ -262,7 +262,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
       responseSummaries,
       warnings: [
         ...warnings,
-        createResponse.error?.message ?? 'Mock Edit Chat creation failed without production side effects.',
+        createResponse.error?.message ?? 'Mock edit creation failed without production side effects.',
       ],
       safety: PROJECT_EDIT_SESSION_API_CLIENT_SAFETY,
       mockOnly: true,
@@ -322,7 +322,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     editSessionId: session.id,
     role: 'system',
     kind: 'system_note',
-    text: 'This Edit Chat was created in mock/local mode. The persistent chat workspace can save messages and safe session state without starting runtime execution.',
+    text: 'This edit was created in mock/local mode. The edit workspace can save setup, brief, preview, and safe session state without starting runtime execution.',
     metadata: {
       rpMilestone: 'RP-EDITSESSION-06',
       noFullChatRouteOpened: true,
@@ -342,7 +342,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     projectId: input.projectId,
     editSessionId: session.id,
     layer: 'session_memory',
-    summary: 'Mock/local Edit Chat created from Project Home for the persistent chat workspace.',
+    summary: 'Mock/local edit created from Project Home for the edit workspace.',
     facts: [
       `Aspect ratio: ${input.form.aspectRatio}`,
       `Platform target: ${input.form.platformTarget}`,
@@ -371,7 +371,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     editSessionId: session.id,
     kind: 'created',
     messageId: initialMessage?.id,
-    summary: 'Created mock/local Edit Chat from Project Home.',
+    summary: 'Created mock/local edit from Project Home.',
     state: {
       name: session.name,
       aspectRatio: session.aspectRatio,
@@ -396,7 +396,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     projectId: input.projectId,
     editSessionId: session.id,
     eventType: 'edit_chat_created',
-    summary: 'Edit Chat created from Project Home + New Edit in mock/local mode.',
+    summary: 'Edit created from Project Home + New Edit in mock/local mode.',
     metadata: {
       rpMilestone: 'RP-EDITSESSION-06',
       fullChatRouteImplemented: false,
@@ -413,7 +413,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
   const bundleResponse = await client.bundle.get<{
     bundle: ProjectEditSessionBundleRecord
   }>(session.id)
-  responseSummaries.push(responseSummary(bundleResponse, 'Load created Edit Chat bundle'))
+  responseSummaries.push(responseSummary(bundleResponse, 'Load created edit bundle'))
   const bundle = dataRecord<{ bundle?: ProjectEditSessionBundleRecord }>(bundleResponse)?.bundle
   if (!bundleResponse.ok) warnings.push(bundleResponse.error?.message ?? 'Created bundle could not be loaded.')
 

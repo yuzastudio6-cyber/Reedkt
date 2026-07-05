@@ -21,13 +21,13 @@ Every report must preserve: no secret values printed, no frontend secrets, no di
 
 If beta config is absent, `smoke:qwen-secret-manager-runtime` reports a safe blocked state. That is expected unless the owner intentionally sets beta runtime gates for a backend-only environment.
 
-Boundary phrase: Qwen 3.7 beta is backend-only, uses Secret Manager, keeps deterministic fallback, no render, no workers, no credits, and production ready: false.
+Boundary phrase: Qwen 3.7 Max beta is backend-only, uses Secret Manager, keeps deterministic fallback, no render, no workers, no credits, and production ready: false.
 
 ## RP-QWENVL-BETA-01 Visual Context Checks
 
 Add `npm run smoke:qwen25vl-runtime`, `npm run smoke:project-edit-brief-visual-context`, `node scripts/qwen25vl-beta-doctor.mjs`, and `tests/e2e/project-edit-brief-visual-context.spec.ts` for the Qwen2.5-VL visual-context beta path. These checks verify dedicated Qwen2.5-VL config, sampled-frame boundaries, deterministic fallback, fake beta mode, structured visual response validation, marker metadata summary persistence, and no raw frame persistence.
 
-Qwen 3.7 remains the Marker Chat reasoning brain. The visual-context beta must not send raw video/audio or sampled frame payloads into Qwen 3.7 prompts; it only displays visual availability/fallback status in this milestone.
+Qwen 3.7 Max remains the Marker Chat reasoning brain. The visual-context beta must not send raw video/audio or sampled frame payloads into Qwen 3.7 Max prompts; it only displays visual availability/fallback status in this milestone.
 
 ## RP-MEDIA-01 Test Boundary
 

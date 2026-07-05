@@ -152,11 +152,11 @@ export interface QwenRuntimeBoundaryOrchestratorResult {
   validation: QwenRuntimeBoundaryValidationResult
   summary: string
   warnings: string[]
-  nextStep: 'RP-QWEN-02 - Backend Qwen 3.7 Adapter'
+  nextStep: 'RP-QWEN-02 - Backend Qwen 3.7 Max Adapter'
 }
 
 export const REEDITPRO_QWEN_RUNTIME_BOUNDARY_RULE =
-  'Qwen 3.7 is ReEditPro backend-only reasoning brain; browser code must never receive provider secrets or call Qwen directly.'
+  'Qwen 3.7 Max is ReEditPro backend-only reasoning brain; browser code must never receive provider secrets or call Qwen directly.'
 
 export const REEDITPRO_QWEN_SECRET_MANAGER_NO_VALUE_RULE =
   'RP-QWEN-01 may define secret references and disabled resolver boundaries, but must not inspect, access, print, or log Secret Manager values.'

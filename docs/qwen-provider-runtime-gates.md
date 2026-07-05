@@ -1,10 +1,10 @@
 # Qwen Provider Runtime Gates
 
-RP-QWEN-01 defines the Qwen 3.7 provider runtime gate model while keeping provider calls disabled.
+RP-QWEN-01 defines the Qwen 3.7 Max provider runtime gate model while keeping provider calls disabled.
 
 Boundary statement: symbolic secret references only, disabled resolver only, backend-only, no gcloud, no secret value access, no secret value printed, no provider call, no Qwen call, no Marker Chat runtime change, fake transport first by default.
 
-Verification phrase: Qwen 3.7 remains behind symbolic secret references, a disabled resolver, backend-only access, no gcloud command, no secret value access, no provider call, no Qwen call, no Marker Chat runtime change, and fake transport first.
+Verification phrase: Qwen 3.7 Max remains behind symbolic secret references, a disabled resolver, backend-only access, no gcloud command, no secret value access, no provider call, no Qwen call, no Marker Chat runtime change, and fake transport first.
 
 ## Required Gates
 

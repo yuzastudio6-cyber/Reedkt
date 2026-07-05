@@ -8,6 +8,7 @@ import {
   loadProjectEditBriefMarkerChatPanelForUI,
   sendProjectEditBriefMarkerChatMessageViaApi,
 } from '../../../lib/project-edit-brief-marker-chat-ui-adapter'
+import { REEDITPRO_QWEN_MAIN_BRAIN_LABEL } from '../../../types/qwen-main-brain'
 import type { ProjectEditBriefMarkerChatPanelModel } from '../../../types/project-edit-brief-marker-chat'
 import type { ProjectEditBriefVisualContext } from '../../../types/project-edit-brief-visual-context'
 import { Badge } from '../../Badge'
@@ -82,15 +83,16 @@ export function ProjectEditBriefMarkerChatPanel({
         messageText: message,
       }, client)
       setMessage('')
-      const nextStatus = result?.ok
-        ? result.runtimeSource === 'qwen_live'
-          ? 'Qwen 3.7 understood this marker.'
-            : result.runtimeSource === 'deterministic_fallback'
-              ? result.fallbackReason === 'browser_mock_transport'
-              ? 'Local fallback: Marker Chat saved scoped message and deterministic intent.'
-              : 'Qwen was unavailable; ReEditPro used the local intent fallback.'
-            : 'Local fallback: Marker Chat saved scoped message and deterministic intent.'
-        : 'Marker Chat message was blocked safely.'
+      let nextStatus = 'Marker Chat message was blocked safely.'
+      if (result?.ok && result.runtimeSource === 'qwen_live') {
+        nextStatus = `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} understood this marker.`
+      } else if (result?.ok && result.runtimeSource === 'deterministic_fallback') {
+        nextStatus = result.fallbackReason === 'browser_mock_transport'
+          ? 'Local fallback: Marker Chat saved scoped message and deterministic intent.'
+          : `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} was unavailable; ReEditPro used the local intent fallback.`
+      } else if (result?.ok) {
+        nextStatus = 'Local fallback: Marker Chat saved scoped message and deterministic intent.'
+      }
       await reload(nextStatus)
       onApplied?.(nextStatus)
     } finally {

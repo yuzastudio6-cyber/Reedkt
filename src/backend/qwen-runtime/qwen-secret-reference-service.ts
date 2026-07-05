@@ -1,4 +1,8 @@
-import type { QwenSecretReference } from '../../types'
+import {
+  REEDITPRO_QWEN_MAIN_BRAIN_LABEL,
+  REEDITPRO_QWEN_MAIN_BRAIN_PROVIDER_NAME,
+  type QwenSecretReference,
+} from '../../types'
 import { ok, type ServiceResult } from '../service-result'
 
 export const QWEN_SYMBOLIC_SECRET_NAMES = [
@@ -18,7 +22,7 @@ const purposeBySymbolicName: Record<QwenSymbolicSecretName, QwenSecretReference[
 export function createQwenSecretReference(symbolicName: QwenSymbolicSecretName): QwenSecretReference {
   return {
     id: `qwen-secret-reference-${symbolicName.toLowerCase().replace(/_/g, '-')}`,
-    providerName: 'qwen_3_7',
+    providerName: REEDITPRO_QWEN_MAIN_BRAIN_PROVIDER_NAME,
     purpose: purposeBySymbolicName[symbolicName],
     referenceStatus: 'symbolic_reference_only',
     symbolicName,
@@ -38,7 +42,7 @@ export function listQwenRequiredSecretReferences(): QwenSecretReference[] {
 }
 
 export function createQwenSecretReferenceSummary(references: QwenSecretReference[]): string {
-  return `Qwen symbolic secret references: ${references.length}. Values accessed: false. Values printed: false. Frontend visible: false.`
+  return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} symbolic secret references: ${references.length}. Values accessed: false. Values printed: false. Frontend visible: false.`
 }
 
 export function validateQwenSecretReferenceIsSymbolicOnly(reference: QwenSecretReference): ServiceResult<{

@@ -1,8 +1,8 @@
 # Qwen Model Routing Audit
 
-RP-QWEN-00 audits how Qwen 3.7 is already represented in model routing. The source of truth is `src/backend/model-routing/model-role-registry.ts` plus the frontend-safe summaries in `src/lib/reeditpro-model-roles.ts`.
+RP-QWEN-00 audits how Qwen 3.7 Max is already represented in model routing. The source of truth is `src/backend/model-routing/model-role-registry.ts` plus the frontend-safe summaries in `src/lib/reeditpro-model-roles.ts`.
 
-Common audit boundary: Qwen 3.7, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
+Common audit boundary: Qwen 3.7 Max, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
 
 ## Existing Routing
 

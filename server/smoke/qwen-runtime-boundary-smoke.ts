@@ -25,6 +25,7 @@ import {
   validateQwenRuntimeReadiness,
   validateQwenSecretReferences,
 } from '../../src/backend'
+import { REEDITPRO_QWEN_MAIN_BRAIN_LABEL } from '../../src/types'
 
 const repoRoot = process.cwd()
 const requiredDocs = [
@@ -37,7 +38,7 @@ const requiredDocs = [
 ]
 
 const requiredPhrases = [
-  /Qwen 3\.7/i,
+  /Qwen 3\.7 Max/i,
   /symbolic secret/i,
   /disabled resolver/i,
   /backend-only/i,
@@ -52,6 +53,7 @@ const requiredPhrases = [
 const context = createQwenRuntimeBoundaryContext()
 assert.equal(context.gateStatus, 'blocked_owner_approval', 'Qwen runtime should default to owner approval block.')
 assert.equal(context.mockOnly, true, 'Qwen runtime context should be mock-only.')
+assert.match(createQwenRuntimeGateSummary(context), new RegExp(REEDITPRO_QWEN_MAIN_BRAIN_LABEL))
 assert.match(createQwenRuntimeGateSummary(context), /No provider call was made/i)
 
 const references = listQwenRequiredSecretReferences()

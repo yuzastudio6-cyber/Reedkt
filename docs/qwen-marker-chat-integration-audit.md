@@ -2,7 +2,7 @@
 
 RP-QWEN-00 audits where future Qwen support should plug into the existing Edit Brief Marker Chat flow. Current Marker Chat is deterministic mock/local.
 
-Common audit boundary: Qwen 3.7, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
+Common audit boundary: Qwen 3.7 Max, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
 
 ## Current Marker Chat Path
 
@@ -32,10 +32,10 @@ Qwen must still receive compact context, not raw video bytes. Do not include sec
 
 ## RP-VIDEOCTX-00R Qwen2.5-VL Context Update
 
-Future context-aware Marker Chat should consume Qwen2.5-VL visual summaries as compact text/structured metadata inside `ProjectEditBriefMarkerContextPackage`. Qwen2.5-VL is the visual/video understanding specialist; Qwen 3.7 remains the final Marker Chat reasoning brain.
+Future context-aware Marker Chat should consume Qwen2.5-VL visual summaries as compact text/structured metadata inside `ProjectEditBriefMarkerContextPackage`. Qwen2.5-VL is the visual/video understanding specialist; Qwen 3.7 Max remains the final Marker Chat reasoning brain.
 
-Do not send raw video bytes, raw audio bytes, sampled-frame payloads, secrets, provider headers, fetched URL contents, full project history, worker commands, or credentials to the Qwen 3.7 Marker Chat prompt. RP-VIDEOCTX-00R adds no runtime execution, no worker, no render, no credits, no media processing, no provider call, no Qwen2.5-VL call, no Qwen 3.7 call, and no DeepSeek call.
+Do not send raw video bytes, raw audio bytes, sampled-frame payloads, secrets, provider headers, fetched URL contents, full project history, worker commands, or credentials to the Qwen 3.7 Max Marker Chat prompt. RP-VIDEOCTX-00R adds no runtime execution, no worker, no render, no credits, no media processing, no provider call, no Qwen2.5-VL call, no Qwen 3.7 Max call, and no DeepSeek call.
 
 ## RP-MEDIA-01 Integration Note
 
-Project Edit Brief now has browser-local source video playback and timing metadata. Current Qwen Marker Chat integration is unchanged: Qwen 3.7 does not receive the local object URL, file bytes, browser file handle, or raw media. A future context package may pass compact timing/dimension summaries and Qwen2.5-VL visual summaries after storage/visual-adapter gates.
+Project Edit Brief now has browser-local source video playback and timing metadata. Current Qwen Marker Chat integration is unchanged: Qwen 3.7 Max does not receive the local object URL, file bytes, browser file handle, or raw media. A future context package may pass compact timing/dimension summaries and Qwen2.5-VL visual summaries after storage/visual-adapter gates.

@@ -1,7 +1,9 @@
-import type {
-  QwenRuntimeBoundaryContext,
-  QwenRuntimeGateStatus,
-  QwenRuntimeMode,
+import {
+  REEDITPRO_QWEN_MAIN_BRAIN_LABEL,
+  REEDITPRO_QWEN_MAIN_BRAIN_PROVIDER_NAME,
+  type QwenRuntimeBoundaryContext,
+  type QwenRuntimeGateStatus,
+  type QwenRuntimeMode,
 } from '../../types'
 import { fail, ok, type ServiceResult } from '../service-result'
 
@@ -37,7 +39,7 @@ export function createQwenRuntimeBoundaryContext(input: QwenRuntimeGateInput = {
     mode,
     gateStatus: classifyQwenRuntimeGateStatus(input),
     ownerApproval: input.ownerApproval ?? 'pending',
-    providerName: 'qwen_3_7',
+    providerName: REEDITPRO_QWEN_MAIN_BRAIN_PROVIDER_NAME,
     role: 'reasoning_brain',
     mockOnly: true,
     notes: [
@@ -49,7 +51,7 @@ export function createQwenRuntimeBoundaryContext(input: QwenRuntimeGateInput = {
 }
 
 export function createQwenRuntimeGateSummary(context: QwenRuntimeBoundaryContext): string {
-  return `Qwen 3.7 runtime gate: ${context.gateStatus}. Backend-only boundary is ${context.mode}; owner approval ${context.ownerApproval}. No provider call was made.`
+  return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} runtime gate: ${context.gateStatus}. Backend-only boundary is ${context.mode}; owner approval ${context.ownerApproval}. No provider call was made.`
 }
 
 export function assertQwenRuntimeProviderCallBlocked(context: QwenRuntimeBoundaryContext): ServiceResult<{

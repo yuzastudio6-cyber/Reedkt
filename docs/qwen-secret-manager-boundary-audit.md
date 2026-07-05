@@ -2,7 +2,7 @@
 
 RP-QWEN-00 audits the intended Secret Manager boundary for future Qwen runtime work. It does not inspect Secret Manager metadata or values.
 
-Common audit boundary: Qwen 3.7, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
+Common audit boundary: Qwen 3.7 Max, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
 
 ## Expected Future Boundary
 

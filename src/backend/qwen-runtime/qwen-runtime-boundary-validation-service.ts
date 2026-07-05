@@ -1,10 +1,11 @@
-import type {
-  QwenRuntimeBoundaryCheck,
-  QwenRuntimeBoundaryContext,
-  QwenRuntimeBoundaryValidationCheckResult,
-  QwenRuntimeBoundaryValidationResult,
-  QwenRuntimeReadiness,
-  QwenSecretReference,
+import {
+  REEDITPRO_QWEN_MAIN_BRAIN_PROVIDER_NAME,
+  type QwenRuntimeBoundaryCheck,
+  type QwenRuntimeBoundaryContext,
+  type QwenRuntimeBoundaryValidationCheckResult,
+  type QwenRuntimeBoundaryValidationResult,
+  type QwenRuntimeReadiness,
+  type QwenSecretReference,
 } from '../../types'
 
 function check(
@@ -34,7 +35,7 @@ function validationResult(checks: QwenRuntimeBoundaryValidationCheckResult[], wa
 
 export function validateQwenRuntimeBoundaryContext(context: QwenRuntimeBoundaryContext): QwenRuntimeBoundaryValidationResult {
   return validationResult([
-    check('server_only_import', context.providerName === 'qwen_3_7' && context.role === 'reasoning_brain', 'Qwen runtime context must remain server-only reasoning metadata.'),
+    check('server_only_import', context.providerName === REEDITPRO_QWEN_MAIN_BRAIN_PROVIDER_NAME && context.role === 'reasoning_brain', 'Qwen runtime context must remain server-only reasoning metadata.'),
     check('fallback_available', context.mockOnly, 'Qwen runtime boundary must preserve mock fallback.'),
     check('structured_validation_required', context.gateStatus !== 'ready_for_runtime_adapter_future', 'Structured validation remains required before future runtime calls.'),
   ], ['Context validation does not permit provider calls.'])

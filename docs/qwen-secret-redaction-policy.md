@@ -4,7 +4,7 @@ RP-QWEN-01 adds local redaction helpers for Qwen runtime boundary logs, errors, 
 
 Boundary statement: symbolic secret references only, disabled resolver only, backend-only, no gcloud, no secret value access, no secret value printed, no provider call, no Qwen call, no Marker Chat runtime change, fake transport first by default.
 
-Verification phrase: Qwen 3.7 remains behind symbolic secret references, a disabled resolver, backend-only access, no gcloud command, no secret value access, no provider call, no Qwen call, no Marker Chat runtime change, and fake transport first.
+Verification phrase: Qwen 3.7 Max remains behind symbolic secret references, a disabled resolver, backend-only access, no gcloud command, no secret value access, no provider call, no Qwen call, no Marker Chat runtime change, and fake transport first.
 
 ## Policy
 

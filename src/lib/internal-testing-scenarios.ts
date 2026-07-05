@@ -1569,7 +1569,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
       'Inspect the Marker Chat boundary card before sending a message.',
       'Confirm the runtime label says Local fallback active unless live beta route config is enabled.',
     ],
-    expectedResult: 'The default user path clearly shows Local fallback active; a live beta run must show Qwen beta route configured and pass the live doctor before real provider use.',
+    expectedResult: 'The default user path clearly shows Local fallback active; a live beta run must show Qwen 3.7 Max beta route configured and pass the live doctor before real provider use.',
     mockOnly: true,
     status: 'mock_local',
   },

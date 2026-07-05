@@ -2,7 +2,7 @@
 
 RP-QWEN-00 audits existing structured-output contracts and the missing schemas needed before Qwen can support Marker Chat or other reasoning flows.
 
-Common audit boundary: Qwen 3.7, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
+Common audit boundary: Qwen 3.7 Max, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
 
 ## Existing Structured Output
 

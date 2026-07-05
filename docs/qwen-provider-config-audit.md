@@ -2,7 +2,7 @@
 
 RP-QWEN-00 audits the provider-config layer for future Qwen runtime work. The source of truth is `src/backend/provider-config/*` and `src/types/provider-config.ts`.
 
-Common audit boundary: Qwen 3.7, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
+Common audit boundary: Qwen 3.7 Max, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
 
 ## Existing Provider Config
 

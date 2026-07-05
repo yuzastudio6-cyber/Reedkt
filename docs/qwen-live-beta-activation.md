@@ -1,6 +1,6 @@
 # Qwen Live Beta Activation
 
-RP-QWEN-BETA-02 adds a backend-only live beta path for Qwen 3.7 Marker Chat. Production ready: false.
+RP-QWEN-BETA-02 adds a backend-only live beta path for Qwen 3.7 Max Marker Chat. Production ready: false.
 
 Activation requires:
 - `REEDITPRO_QWEN_RUNTIME_MODE=beta_enabled`.
@@ -54,8 +54,8 @@ No Supabase command, migration, render, worker, media processing, upload, URL fe
 
 ## RP-MEDIA-01 Activation Boundary
 
-Browser-local source video preview does not alter live beta activation. Live Qwen Marker Chat still depends only on backend beta gates and must not receive source video object URLs, browser file handles, raw media bytes, uploaded media, worker commands, render/export payloads, or credit actions. Source video context remains future gated after durable media and Qwen2.5-VL adapter decisions.
+Browser-local source video preview does not alter live beta activation. Live Qwen 3.7 Max Marker Chat still depends only on backend beta gates and must not receive source video object URLs, browser file handles, raw media bytes, uploaded media, worker commands, render/export payloads, or credit actions. Source video context remains future gated after durable media and Qwen2.5-VL adapter decisions.
 
 ## Qwen2.5-VL Visual Context Beta
 
-RP-QWENVL-BETA-01 uses separate runtime gates and browser opt-in: `REEDITPRO_QWEN25VL_RUNTIME_MODE`, `QWEN25VL_API_KEY_SECRET`, `QWEN25VL_BASE_URL(_SECRET)`, `QWEN25VL_MODEL_ID(_SECRET)`, and `VITE_REEDITPRO_QWEN25VL_VISUAL_CONTEXT_LIVE`. This path is for marker visual context from sampled resized frames only. It does not change Qwen 3.7 Marker Chat activation and does not authorize full-video upload, raw frame persistence, workers, render/export, credits, Supabase CLI, or migrations.
+RP-QWENVL-BETA-01 uses separate runtime gates and browser opt-in: `REEDITPRO_QWEN25VL_RUNTIME_MODE`, `QWEN25VL_API_KEY_SECRET`, `QWEN25VL_BASE_URL(_SECRET)`, `QWEN25VL_MODEL_ID(_SECRET)`, and `VITE_REEDITPRO_QWEN25VL_VISUAL_CONTEXT_LIVE`. This path is for marker visual context from sampled resized frames only. It does not change Qwen 3.7 Max Marker Chat activation and does not authorize full-video upload, raw frame persistence, workers, render/export, credits, Supabase CLI, or migrations.

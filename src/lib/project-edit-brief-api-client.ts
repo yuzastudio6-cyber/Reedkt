@@ -58,6 +58,7 @@ import {
   createProjectEditBriefApiClientSummary,
 } from './project-edit-brief-api-client-summaries'
 import { recommendProjectEditBriefExportSettings } from './project-edit-brief-export-settings-rules'
+import { REEDITPRO_QWEN_MAIN_BRAIN_LABEL } from '../types/qwen-main-brain'
 
 type RequestRecord = Record<string, unknown>
 
@@ -279,8 +280,8 @@ function createLocalQwenMarkerChatReadinessSummary(): ProjectEditBriefQwenMarker
   return createQwenMarkerChatReadinessSummary({
     status: 'local_fallback_active',
     ready: false,
-    label: 'Qwen readiness: local fallback active',
-    summary: 'Backend live Qwen route is not configured for this browser session; Marker Chat uses deterministic local fallback with no provider call.',
+    label: `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} readiness: local fallback active`,
+    summary: `Backend live ${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} route is not configured for this browser session; Marker Chat uses deterministic local fallback with no provider call.`,
   })
 }
 
@@ -288,27 +289,27 @@ function createLiveQwenMarkerChatReadinessCheckingSummary(): ProjectEditBriefQwe
   return createQwenMarkerChatReadinessSummary({
     status: 'checking_backend_readiness',
     ready: false,
-    label: 'Qwen readiness: checking backend',
-    summary: 'The browser will ask the backend for a sanitized Qwen beta readiness report before live Marker Chat can claim readiness.',
+    label: `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} readiness: checking backend`,
+    summary: `The browser will ask the backend for a sanitized ${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta readiness report before live Marker Chat can claim readiness.`,
   })
 }
 
 function qwenReadinessLabel(status: string, ready: boolean): string {
-  if (ready) return 'Qwen beta ready'
-  if (status === 'blocked_runtime_disabled') return 'Qwen beta blocked: runtime disabled'
-  if (status === 'blocked_missing_project_config') return 'Qwen beta blocked: project config missing'
-  if (status === 'blocked_missing_secret_reference') return 'Qwen beta blocked: Secret Manager reference missing'
-  if (status === 'blocked_secret_access_denied') return 'Qwen beta blocked: Secret Manager access denied'
-  if (status === 'blocked_missing_endpoint') return 'Qwen beta blocked: endpoint missing'
-  if (status === 'blocked_missing_model_id') return 'Qwen beta blocked: model missing'
-  if (status === 'blocked_frontend_boundary') return 'Qwen beta blocked: frontend boundary'
-  if (status === 'failed_redaction_check') return 'Qwen beta blocked: redaction check failed'
-  return `Qwen beta blocked: ${status || 'unknown'}`
+  if (ready) return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta ready`
+  if (status === 'blocked_runtime_disabled') return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta blocked: runtime disabled`
+  if (status === 'blocked_missing_project_config') return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta blocked: project config missing`
+  if (status === 'blocked_missing_secret_reference') return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta blocked: Secret Manager reference missing`
+  if (status === 'blocked_secret_access_denied') return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta blocked: Secret Manager access denied`
+  if (status === 'blocked_missing_endpoint') return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta blocked: endpoint missing`
+  if (status === 'blocked_missing_model_id') return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta blocked: model missing`
+  if (status === 'blocked_frontend_boundary') return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta blocked: frontend boundary`
+  if (status === 'failed_redaction_check') return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta blocked: redaction check failed`
+  return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta blocked: ${status || 'unknown'}`
 }
 
 function qwenReadinessSummary(status: string, ready: boolean): string {
   return ready
-    ? 'Backend readiness gates are satisfied; live Marker Chat may call Qwen only through the server route and still uses strict structured validation.'
+    ? `Backend readiness gates are satisfied; live Marker Chat may call ${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} only through the server route and still uses strict structured validation.`
     : `Backend readiness returned ${status || 'unknown'}; Marker Chat should keep using local fallback until owner-approved beta config passes.`
 }
 
@@ -316,7 +317,7 @@ function createUnavailableQwenMarkerChatReadinessSummary(reason: string): Projec
   return createQwenMarkerChatReadinessSummary({
     status: 'readiness_endpoint_unavailable',
     ready: false,
-    label: 'Qwen beta readiness unavailable',
+    label: `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta readiness unavailable`,
     summary: `${reason} Marker Chat should keep using deterministic local fallback.`,
   })
 }
@@ -503,10 +504,10 @@ async function requestLiveQwenMarkerChat<TData = unknown>(
       ok: false,
       error: {
         code: 'QWEN_LIVE_MARKER_CHAT_BAD_RESPONSE',
-        message: 'Qwen beta Marker Chat server response was not JSON.',
+        message: `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta Marker Chat server response was not JSON.`,
         details: { safety: { ...FULL_SAFETY } },
       },
-      warnings: ['Live Qwen Marker Chat transport failed safely before exposing provider details.'],
+      warnings: [`Live ${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} Marker Chat transport failed safely before exposing provider details.`],
       mockOnly: true,
       ...NO_PRODUCTION_EFFECTS,
       respondedAt: nowIso(),
@@ -518,7 +519,7 @@ async function requestLiveQwenMarkerChat<TData = unknown>(
     ok: Boolean(payload.ok),
     data: payload.data,
     error: payload.error,
-    warnings: payload.warnings ?? ['Qwen beta Marker Chat server route returned a sanitized response.'],
+    warnings: payload.warnings ?? [`${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta Marker Chat server route returned a sanitized response.`],
     mockOnly: true,
     ...NO_PRODUCTION_EFFECTS,
     respondedAt: payload.respondedAt ?? nowIso(),
@@ -1279,16 +1280,16 @@ export function createProjectEditBriefApiClient(options: ReeditProApiClientOptio
   const qwenMarkerChatRuntime: ProjectEditBriefQwenMarkerChatRuntimeSummary = liveQwenMarkerChatConfigured
     ? {
       mode: 'backend_beta_route',
-      label: 'Qwen beta route configured',
+      label: `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta route configured`,
       liveConfigured: true,
-      summary: 'Marker Chat will request the backend-only Qwen beta route. Provider calls still depend on server runtime gates, Secret Manager, structured validation, and safe fallback.',
+      summary: `Marker Chat will request the backend-only ${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta route. Provider calls still depend on server runtime gates, Secret Manager, structured validation, and safe fallback.`,
       readiness: createLiveQwenMarkerChatReadinessCheckingSummary(),
     }
     : {
       mode: 'local_fallback',
       label: 'Local fallback active',
       liveConfigured: false,
-      summary: 'Marker Chat is using deterministic local intent capture. No Qwen provider call is attempted from this browser session.',
+      summary: `Marker Chat is using deterministic local intent capture. No ${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} provider call is attempted from this browser session.`,
       readiness: createLocalQwenMarkerChatReadinessSummary(),
     }
   const qwen25VLVisualContextRuntime: ProjectEditBriefQwen25VLVisualContextRuntimeSummary = liveQwen25VLVisualContextConfigured

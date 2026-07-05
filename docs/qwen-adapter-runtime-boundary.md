@@ -2,7 +2,7 @@
 
 Implementation date: 2026-06-18.
 
-Qwen 3.7 is the configured default for ReeditPro reasoning roles. RP-MODEL-03 adds only the backend skeleton and safety boundary for a future Qwen adapter.
+Qwen 3.7 Max is the configured default for ReeditPro reasoning roles. RP-MODEL-03 adds only the backend skeleton and safety boundary for a future Qwen adapter.
 
 ## Not Implemented
 

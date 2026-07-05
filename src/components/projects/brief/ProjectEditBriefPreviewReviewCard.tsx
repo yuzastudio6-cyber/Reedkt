@@ -4,6 +4,7 @@ import { Badge } from '../../Badge'
 import { Button } from '../../Button'
 import { Card } from '../../Card'
 import { createProjectSourceVideoPreviewReview } from '../../../lib/project-source-video-preview-review'
+import { previewReviewMatchesPreview } from '../../../lib/project-edit-evidence-lineage'
 import type {
   ProjectSourceVideoLocalEditPreviewConfig,
   ProjectSourceVideoLocalEditPreviewResult,
@@ -55,8 +56,21 @@ export function ProjectEditBriefPreviewReviewCard({
   }
 
   const disabled = !config.available || !previewResult || status === 'approving'
-  const visibleResult = reviewResult ?? previewReviewResult
-  const visibleStatus = visibleResult ? visibleResult.reviewStatus : status
+  const localResultMatchesPreview = previewReviewMatchesPreview({
+    previewResult,
+    previewReviewResult: reviewResult,
+  })
+  const restoredResultMatchesPreview = previewReviewMatchesPreview({
+    previewResult,
+    previewReviewResult,
+  })
+  const visibleResult = (localResultMatchesPreview ? reviewResult : undefined) ??
+    (restoredResultMatchesPreview ? previewReviewResult : undefined)
+  const visibleStatus = visibleResult
+    ? visibleResult.reviewStatus
+    : status === 'approving' || status === 'failed'
+      ? status
+      : 'not_reviewed'
 
   return (
     <Card className="project-edit-brief-preview-review" data-testid="project-edit-preview-review">

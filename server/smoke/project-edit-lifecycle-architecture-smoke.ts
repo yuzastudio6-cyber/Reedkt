@@ -8,6 +8,11 @@ import {
   buildProjectEditPlanApprovalModel,
   createProjectEditPlanBriefLineage,
 } from '../../src/lib/project-edit-plan-approval'
+import {
+  createProjectEditApprovedEvidenceKey,
+  previewResultMatchesApprovedEvidence,
+  previewReviewMatchesPreview,
+} from '../../src/lib/project-edit-evidence-lineage'
 import { buildProjectEditLifecycleModel } from '../../src/lib/project-edit-lifecycle'
 import type {
   ProjectSourceVideoBackendUploadResult,
@@ -317,6 +322,36 @@ const preview: ProjectSourceVideoLocalEditPreviewResult = {
   warnings: [],
 }
 
+const approvedEvidenceKey = createProjectEditApprovedEvidenceKey({
+  approvedLocalPlan: backendPlanReadback.localEditPlan.approvedLocalPlan,
+  sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
+})
+assert.ok(approvedEvidenceKey?.includes(backendPlanReadback.localEditPlan.editPlanId))
+assert.equal(previewResultMatchesApprovedEvidence({
+  approvedLocalPlan: backendPlanReadback.localEditPlan.approvedLocalPlan,
+  previewResult: preview,
+  sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
+}), true)
+assert.equal(previewResultMatchesApprovedEvidence({
+  approvedLocalPlan: {
+    ...backendPlanReadback.localEditPlan.approvedLocalPlan,
+    briefLineage: {
+      ...backendPlanReadback.localEditPlan.approvedLocalPlan.briefLineage,
+      briefFingerprint: 'brief-fnv1a-different-after-user-edit',
+    },
+  },
+  previewResult: preview,
+  sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
+}), false)
+assert.equal(previewResultMatchesApprovedEvidence({
+  approvedLocalPlan: backendPlanReadback.localEditPlan.approvedLocalPlan,
+  previewResult: {
+    ...preview,
+    editPlanId: 'stale-plan-after-rebrief',
+  },
+  sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
+}), false)
+
 const previewModel = buildProjectEditLifecycleModel({
   backendUploadAvailable: true,
   backendUploadResult: uploaded,
@@ -365,6 +400,42 @@ const reviewedModel = buildProjectEditLifecycleModel({
   projectId: 'mock-project-edit-chat-foundation',
 })
 assert.equal(reviewedModel.stages.find((stage) => stage.id === 'preview_review_required')?.status, 'complete')
+assert.equal(previewReviewMatchesPreview({
+  previewResult: preview,
+  previewReviewResult: {
+    id: 'preview-review-1',
+    renderId: 'render-1',
+    workspaceId: 'mock-workspace',
+    reviewStatus: 'approved',
+    finalExportStarted: false,
+    providerCallMade: false,
+    workerJobCreated: false,
+    renderJobCreated: false,
+    creditReservedOrSpent: false,
+    supabaseWriteMade: false,
+    gcsWriteMade: false,
+    productReady: false,
+    warnings: [],
+  },
+}), true)
+assert.equal(previewReviewMatchesPreview({
+  previewResult: preview,
+  previewReviewResult: {
+    id: 'preview-review-stale',
+    renderId: 'different-render-after-new-preview',
+    workspaceId: 'mock-workspace',
+    reviewStatus: 'approved',
+    finalExportStarted: false,
+    providerCallMade: false,
+    workerJobCreated: false,
+    renderJobCreated: false,
+    creditReservedOrSpent: false,
+    supabaseWriteMade: false,
+    gcsWriteMade: false,
+    productReady: false,
+    warnings: [],
+  },
+}), false)
 assert.equal(reviewedModel.blockers.includes('preview_review_required'), false)
 assert.equal(reviewedModel.productReady, false)
 assert.equal(reviewedModel.finalExportAllowed, false)
@@ -651,7 +722,10 @@ assert.match(previewCard, /Approve plan first/)
 assert.match(previewCard, /onPreviewReady/)
 assert.match(previewCard, /approvedLocalPlan/)
 assert.match(previewCard, /operationManifest/)
-assert.match(previewCard, /restoredResultMatchesSource/)
+assert.match(previewCard, /createProjectEditApprovedEvidenceKey/)
+assert.match(previewCard, /previewResultMatchesApprovedEvidence/)
+assert.match(previewCard, /runStateMatchesEvidence/)
+assert.match(previewCard, /evidenceKey/)
 assert.match(previewCard, /ProjectEditBriefArtifactReviewPlayer/)
 assert.match(previewCard, /approved plan steps applied/)
 assert.doesNotMatch(previewCard, /product-ready/i)
@@ -661,6 +735,8 @@ assert.match(previewReviewCard, /createProjectSourceVideoPreviewReview/)
 assert.match(previewReviewCard, /Approve preview/)
 assert.match(previewReviewCard, /Request changes/)
 assert.match(previewReviewCard, /previewReviewResult/)
+assert.match(previewReviewCard, /previewReviewMatchesPreview/)
+assert.match(previewReviewCard, /localResultMatchesPreview/)
 assert.match(previewReviewCard, /visibleResult/)
 assert.match(previewReviewCard, /Final export stays blocked/)
 assert.doesNotMatch(previewReviewCard, /product-ready/i)

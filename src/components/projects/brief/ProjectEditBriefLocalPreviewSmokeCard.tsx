@@ -7,6 +7,10 @@ import { ProjectEditBriefArtifactReviewPlayer } from './ProjectEditBriefArtifact
 import {
   runProjectSourceVideoLocalEditPreviewSmoke,
 } from '../../../lib/project-source-video-local-edit-preview-smoke'
+import {
+  createProjectEditApprovedEvidenceKey,
+  previewResultMatchesApprovedEvidence,
+} from '../../../lib/project-edit-evidence-lineage'
 import type { ProjectEditPlanApprovedLocalPlan } from '../../../lib/project-edit-plan-approval'
 import type {
   ProjectSourceVideoBackendUploadResult,
@@ -30,7 +34,7 @@ type ProjectEditBriefLocalPreviewSmokeCardProps = {
 }
 
 type LocalPreviewRunState = {
-  sourceKey?: string
+  evidenceKey?: string
   status: ProjectSourceVideoLocalEditPreviewStatus
   result?: ProjectSourceVideoLocalEditPreviewResult
   error?: string
@@ -66,8 +70,16 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
 }: ProjectEditBriefLocalPreviewSmokeCardProps) {
   const [runState, setRunState] = useState<LocalPreviewRunState | undefined>()
   const sourceKey = sourceVideoUploadResult?.storageObjectRecordId
-  const runStateMatchesSource = Boolean(sourceKey && runState?.sourceKey === sourceKey)
-  const restoredResultMatchesSource = Boolean(sourceKey && previewResult?.sourceStorageObjectRecordId === sourceKey)
+  const evidenceKey = createProjectEditApprovedEvidenceKey({
+    approvedLocalPlan,
+    sourceStorageObjectRecordId: sourceKey,
+  })
+  const runStateMatchesEvidence = Boolean(evidenceKey && runState?.evidenceKey === evidenceKey)
+  const restoredResultMatchesEvidence = previewResultMatchesApprovedEvidence({
+    approvedLocalPlan,
+    previewResult,
+    sourceStorageObjectRecordId: sourceKey,
+  })
   const fallbackStatus: ProjectSourceVideoLocalEditPreviewStatus = !config.available
     ? 'unavailable'
     : sourceVideoUploadResult
@@ -75,21 +87,20 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
         ? 'idle'
         : 'blocked'
       : 'waiting_for_upload'
-  const restoredResult = restoredResultMatchesSource ? previewResult : undefined
-  const result: ProjectSourceVideoLocalEditPreviewResult | undefined = runStateMatchesSource
+  const restoredResult = restoredResultMatchesEvidence ? previewResult : undefined
+  const result: ProjectSourceVideoLocalEditPreviewResult | undefined = runStateMatchesEvidence
     ? runState?.result ?? restoredResult
     : restoredResult
-  const status = runStateMatchesSource
+  const status = runStateMatchesEvidence
     ? runState?.status ?? result?.status ?? fallbackStatus
     : result?.status ?? fallbackStatus
-  const error = runStateMatchesSource ? runState?.error : undefined
+  const error = runStateMatchesEvidence ? runState?.error : undefined
 
   const disabled = !config.available || !sourceVideoUploadResult || !planApproved || status === 'running'
 
   async function runPreviewSmoke() {
-    if (!config.available || !config.apiBaseUrl || !sourceVideoUploadResult || !planApproved || !approvedLocalPlan?.approved) return
-    const currentSourceKey = sourceVideoUploadResult.storageObjectRecordId
-    setRunState({ sourceKey: currentSourceKey, status: 'running' })
+    if (!config.available || !config.apiBaseUrl || !sourceVideoUploadResult || !planApproved || !approvedLocalPlan?.approved || !evidenceKey) return
+    setRunState({ evidenceKey, status: 'running' })
     try {
       const previewResult = await runProjectSourceVideoLocalEditPreviewSmoke({
         apiBaseUrl: config.apiBaseUrl,
@@ -102,14 +113,14 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
         sourceVideoAspectRatio,
       })
       setRunState({
-        sourceKey: currentSourceKey,
+        evidenceKey,
         status: 'preview_ready',
         result: previewResult,
       })
       onPreviewReady?.(previewResult)
     } catch (caught) {
       setRunState({
-        sourceKey: currentSourceKey,
+        evidenceKey,
         status: 'failed',
         error: caught instanceof Error ? caught.message : 'Local edit preview failed safely.',
       })

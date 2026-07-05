@@ -191,7 +191,7 @@ function gpuModelRuntimeContainerBuildCommand(
 ): string {
   const target = gpuModelRuntimeContainerTarget(toolId)
   return [
-    'docker buildx build --platform linux/amd64',
+    'docker buildx build --load --platform linux/amd64',
     `--target ${target.target}`,
     `-f ${target.dockerfile}`,
     `-t ${target.image}`,

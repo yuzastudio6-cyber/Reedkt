@@ -526,6 +526,7 @@ function aiGraphicsGpuModelRuntimeContainerBuildCommand(toolId: string): string 
   const target = aiGraphicsGpuModelRuntimeContainerTarget(toolId)
   return [
     'docker buildx build',
+    '--load',
     '--platform linux/amd64',
     '--target ai_graphics_install_proof',
     `-f ${target.dockerfile}`,

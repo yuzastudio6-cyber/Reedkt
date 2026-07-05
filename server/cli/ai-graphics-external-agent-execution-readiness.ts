@@ -535,11 +535,20 @@ function practicalLocalProofImageProbeCommand(toolId: string): string | null {
 function containerGpuImageBuildCommand(toolId: string): string {
   const target = gpuModelRuntimeContainerTarget(toolId)
   return [
-    'docker buildx build --platform linux/amd64 --target ai_graphics_install_proof',
+    'docker buildx build --load --platform linux/amd64 --target ai_graphics_install_proof',
     `-f ${target.dockerfile}`,
     `-t ${target.image}`,
     '.',
   ].join(' ')
+}
+
+function remainingNativeCudaProofImageBuildCommands(): JsonRecord {
+  return Object.fromEntries(
+    remainingNativeCudaToolIds.map((toolId) => [
+      toolId,
+      containerGpuImageBuildCommand(toolId),
+    ]),
+  )
 }
 
 function controlledRouteGpuCommand(toolId: string): string {
@@ -971,6 +980,8 @@ function remainingNativeCudaClosure(
         remainingNativeCudaRuntimeInputManifestPrivateRootCommand(toolId),
       explicitModelPathManifestMaterializerCommand:
         remainingNativeCudaRuntimeInputManifestExplicitModelPathCommand(toolId),
+      proofImageBuildCommand:
+        containerGpuImageBuildCommand(toolId),
       nativeGpuProofSequenceCommand:
         remainingNativeCudaProofSequenceCommand(toolId),
       finalExternalAgentToolCallCommand:
@@ -1028,6 +1039,11 @@ function remainingNativeCudaClosure(
         attemptLocalRuntime: false,
       }),
     nativeCudaCloseoutScriptPath: nativeCudaCloseoutScriptOut,
+    proofImageBuildOptInEnvVar:
+      'REEDITPRO_AI_GRAPHICS_BUILD_NATIVE_CUDA_IMAGES',
+    proofImageBuildOptInValue: 'true',
+    proofImageBuildStartsGpuRuntime: false,
+    proofImageBuildCommands: remainingNativeCudaProofImageBuildCommands(),
     nativeCudaCloseoutDiagnosticCommand:
       'npm run --silent ai-graphics:external-agent-native-cuda-closeout:diagnostics',
     tools: toolEntries,
@@ -2978,6 +2994,8 @@ ${runtimeInputManifestRows}
 - Host preflight command: \`${report.remainingNativeCudaClosure.currentHostPreflightCommand}\`
 - Native CUDA script generator command: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutScriptGeneratorCommand}\`
 - Native CUDA generated script path: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutScriptPath}\`
+- Native CUDA proof image build opt-in: \`${report.remainingNativeCudaClosure.proofImageBuildOptInEnvVar}=${report.remainingNativeCudaClosure.proofImageBuildOptInValue}\`
+- Native CUDA proof image build starts GPU runtime: \`${report.remainingNativeCudaClosure.proofImageBuildStartsGpuRuntime}\`
 - Native CUDA closeout command: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutCommand}\`
 - Native CUDA strict closeout command: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutStrictCommand}\`
 - Native CUDA closeout diagnostic command: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutDiagnosticCommand}\`
@@ -2985,9 +3003,9 @@ ${runtimeInputManifestRows}
 - Private model root exists: \`${report.remainingNativeCudaClosure.privateModelRootInspection.rootExists}\`
 - All-21 closeout readiness command: \`${report.remainingNativeCudaClosure.all21CloseoutReadinessCommand}\`
 
-| Tool | Current state | Current blocker | Model field | Expected candidates | Model candidate present | Matching candidate | Private-root manifest command | Explicit-path manifest command | Native proof command | Final manifest tool call | Direct private-root tool call | Direct explicit-path tool call |
-| --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- | --- | --- | --- |
-${report.remainingNativeCudaClosure.tools.map((entry) => `| \`${entry.toolId}\` | \`${entry.currentReadinessState}\` | \`${entry.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${entry.modelField}\` | \`${entry.expectedPrivateRootCandidates.join(', ')}\` | ${entry.privateModelRootCandidatePresent} | \`${entry.privateModelRootMatchingCandidate ?? 'none'}\` | \`${entry.manifestMaterializerCommand}\` | \`${entry.explicitModelPathManifestMaterializerCommand}\` | \`${entry.nativeGpuProofSequenceCommand}\` | \`${entry.finalExternalAgentToolCallCommand}\` | \`${entry.directExternalAgentToolCallWithPrivateRootCommand}\` | \`${entry.directExternalAgentToolCallWithExplicitModelPathCommand}\` |`).join('\n')}
+| Tool | Current state | Current blocker | Model field | Expected candidates | Model candidate present | Matching candidate | Proof image build command | Private-root manifest command | Explicit-path manifest command | Native proof command | Final manifest tool call | Direct private-root tool call | Direct explicit-path tool call |
+| --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- | --- | --- | --- | --- |
+${report.remainingNativeCudaClosure.tools.map((entry) => `| \`${entry.toolId}\` | \`${entry.currentReadinessState}\` | \`${entry.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${entry.modelField}\` | \`${entry.expectedPrivateRootCandidates.join(', ')}\` | ${entry.privateModelRootCandidatePresent} | \`${entry.privateModelRootMatchingCandidate ?? 'none'}\` | \`${entry.proofImageBuildCommand}\` | \`${entry.manifestMaterializerCommand}\` | \`${entry.explicitModelPathManifestMaterializerCommand}\` | \`${entry.nativeGpuProofSequenceCommand}\` | \`${entry.finalExternalAgentToolCallCommand}\` | \`${entry.directExternalAgentToolCallWithPrivateRootCommand}\` | \`${entry.directExternalAgentToolCallWithExplicitModelPathCommand}\` |`).join('\n')}
 
 ## Counts
 

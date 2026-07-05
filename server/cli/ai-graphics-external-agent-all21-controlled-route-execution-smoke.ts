@@ -584,7 +584,14 @@ function assertPreferredGpuModelRetryCommand(
     return
   }
   assert(
-    command?.includes(`--scoped-gpu-tool ${toolId}`) === true,
+    command?.includes(`--scoped-gpu-tool ${toolId}`) === true ||
+      (
+        command?.includes('ai-graphics:external-agent-tool-call') === true &&
+        command.includes(`--tool ${toolId}`) &&
+        command.includes('--runtime-backend docker_container') &&
+        command.includes('--private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"') &&
+        command.includes('--model-weight-manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR"')
+      ),
     `${label} missing exact scoped route retry command`,
   )
 }

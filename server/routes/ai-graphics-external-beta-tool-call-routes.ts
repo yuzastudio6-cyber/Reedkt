@@ -1,4 +1,14 @@
 import { Router } from 'express'
+import { createHash } from 'node:crypto'
+import {
+  closeSync,
+  existsSync,
+  openSync,
+  readdirSync,
+  readFileSync,
+  readSync,
+  statSync,
+} from 'node:fs'
 import path from 'node:path'
 import { z } from 'zod'
 import { ApiError } from '../errors/api-error'
@@ -22,6 +32,10 @@ import {
   AI_GRAPHICS_CANONICAL_TOOL_IDS,
   getAiGraphicsToolCallReadiness,
 } from '../tool-registry/ai-graphics-tool-call-readiness'
+import {
+  buildAiGraphicsModelWeightManifestReviewPacket,
+  type AiGraphicsModelWeightManifestEvidenceRecord,
+} from '../tool-registry/ai-graphics-model-weight-manifest-readiness'
 import type { ServiceContext } from '../types'
 import { validateBody } from '../validation/common-schemas'
 import {
@@ -54,6 +68,8 @@ const configuredPrivateModelPathEnvByTool: Record<string, string | undefined> = 
   sam2: 'REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT',
   birefnet: 'REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL',
 }
+const privateModelManifestDirEnvVar =
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
 const privateSourceImageEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG =
@@ -685,6 +701,144 @@ function payloadBoolean(
   return payload?.[key] === true
 }
 
+function privateLocalPath(value: string): boolean {
+  return !/^[a-z][a-z0-9+.-]*:\/\//i.test(value) &&
+    !value.includes('\0') &&
+    !value.split(/[\\/]+/).includes('..')
+}
+
+type PrivateManifestInput = Partial<AiGraphicsModelWeightManifestEvidenceRecord>
+
+interface PrivateManifestEnvelope {
+  records?: PrivateManifestInput[]
+  manifests?: PrivateManifestInput[]
+}
+
+function privateManifestJsonFiles(directory: string): string[] {
+  if (!privateLocalPath(directory)) return []
+  try {
+    if (!existsSync(directory) || !statSync(directory).isDirectory()) return []
+    const files: string[] = []
+    for (const entry of readdirSync(directory).sort()) {
+      const entryPath = path.join(directory, entry)
+      const stats = statSync(entryPath)
+      if (stats.isDirectory()) {
+        files.push(...privateManifestJsonFiles(entryPath))
+      } else if (entry.endsWith('.json') && entry !== 'manifest-authoring-checklist.json') {
+        files.push(entryPath)
+      }
+    }
+    return files
+  } catch {
+    return []
+  }
+}
+
+function privateManifestRecordsFromJsonFile(filePath: string): PrivateManifestInput[] {
+  try {
+    const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as
+      | PrivateManifestInput
+      | PrivateManifestInput[]
+      | PrivateManifestEnvelope
+    if (Array.isArray(parsed)) return parsed
+    if (Array.isArray((parsed as PrivateManifestEnvelope).records)) {
+      return (parsed as PrivateManifestEnvelope).records ?? []
+    }
+    if (Array.isArray((parsed as PrivateManifestEnvelope).manifests)) {
+      return (parsed as PrivateManifestEnvelope).manifests ?? []
+    }
+    return [parsed as PrivateManifestInput]
+  } catch {
+    return []
+  }
+}
+
+function sha256LocalFile(filePath: string): string | null {
+  let fd: number | null = null
+  try {
+    fd = openSync(filePath, 'r')
+    const hash = createHash('sha256')
+    const buffer = Buffer.alloc(1024 * 1024)
+    while (true) {
+      const bytesRead = readSync(fd, buffer, 0, buffer.length, null)
+      if (bytesRead === 0) break
+      hash.update(buffer.subarray(0, bytesRead))
+    }
+    return hash.digest('hex')
+  } catch {
+    return null
+  } finally {
+    if (fd !== null) closeSync(fd)
+  }
+}
+
+function modelFilePathForConfiguredEvidence(
+  toolId: string,
+  payload?: Record<string, unknown> | null,
+): string | null {
+  if (toolId === 'sam2') {
+    return payloadString(payload, 'sam2CheckpointLocalPath') ??
+      configuredPrivateModelPathForTool(toolId) ??
+      null
+  }
+  if (toolId === 'birefnet') {
+    const modelDir =
+      payloadString(payload, 'birefnetModelLocalPath') ??
+      configuredPrivateModelPathForTool(toolId)
+    return modelDir ? path.join(modelDir, 'model.safetensors') : null
+  }
+  if (toolId === 'real_esrgan') {
+    return payloadString(payload, 'realEsrganModelLocalPath') ?? null
+  }
+  if (toolId === 'rembg') {
+    return payloadString(payload, 'rembgModelLocalPath') ?? null
+  }
+  if (toolId === 'transparent_background') {
+    return payloadString(payload, 'transparentBackgroundCheckpointLocalPath') ?? null
+  }
+  return null
+}
+
+function payloadHasExplicitModelWeightEvidence(
+  payload?: Record<string, unknown> | null,
+): boolean {
+  return Boolean(
+    payloadString(payload, 'modelWeightManifestId') &&
+      payloadString(payload, 'modelWeightChecksumSha256') &&
+      payloadString(payload, 'modelWeightChecksumEvidenceRef'),
+  )
+}
+
+function configuredPrivateModelWeightEvidenceAccepted(input: {
+  toolId: string
+  payload?: Record<string, unknown> | null
+}): boolean {
+  if (!aiGraphicsModelWeightManifestRequiredToolIds.has(input.toolId)) return false
+  const manifestDir = process.env[privateModelManifestDirEnvVar]
+  if (!manifestDir) return false
+  const modelFile = modelFilePathForConfiguredEvidence(input.toolId, input.payload)
+  if (!modelFile || !privateLocalPath(modelFile)) return false
+  const checksum = sha256LocalFile(modelFile)
+  if (!checksum) return false
+  const records = privateManifestJsonFiles(manifestDir).flatMap(
+    privateManifestRecordsFromJsonFile,
+  )
+  if (records.length === 0) return false
+  const packet = buildAiGraphicsModelWeightManifestReviewPacket(records)
+  const validation = packet.validationResults.find((result) =>
+    result.toolId === input.toolId)
+  const record = records.find((candidate) =>
+    candidate.toolId === input.toolId) as
+      | AiGraphicsModelWeightManifestEvidenceRecord
+      | undefined
+  return Boolean(
+    record &&
+      validation?.reviewAccepted === true &&
+      validation.eligibleForNativeGpuProofInput === true &&
+      checksum.toLowerCase() === record.checksumSha256.toLowerCase(),
+  )
+}
+
 function satisfiedGpuModelPrivateInputKeys(input: {
   toolId: string
   payload?: Record<string, unknown> | null
@@ -750,6 +904,18 @@ function satisfiedGpuModelPrivateInputKeys(input: {
     payloadString(input.payload, 'transparentBackgroundCheckpointLocalPath')
   ) {
     satisfied.add('transparentBackgroundCheckpointLocalPath')
+  }
+  if (
+    input.currentBlockingPrerequisiteKey !== 'modelWeightManifestEvidence' &&
+    (
+      payloadHasExplicitModelWeightEvidence(input.payload) ||
+      configuredPrivateModelWeightEvidenceAccepted({
+        toolId: input.toolId,
+        payload: input.payload,
+      })
+    )
+  ) {
+    satisfied.add('modelWeightManifestEvidence')
   }
   return satisfied
 }

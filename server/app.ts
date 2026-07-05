@@ -12,6 +12,7 @@ import { createHealthRoutes } from './routes/health-routes'
 import { createJobRoutes } from './routes/job-routes'
 import { createProjectRoutes } from './routes/project-routes'
 import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
+import { createQwenMarkerChatBetaRoutes } from './routes/qwen-marker-chat-beta-routes'
 import { createRenderRoutes } from './routes/render-routes'
 import { createUploadRoutes } from './routes/upload-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
@@ -46,6 +47,7 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(createWorkerRoutes())
   app.use(createRenderRoutes())
   app.use(createProviderGatewayRoutes())
+  app.use(createQwenMarkerChatBetaRoutes())
 
   app.use(errorHandlerMiddleware)
   return app

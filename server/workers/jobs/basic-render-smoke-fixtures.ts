@@ -45,10 +45,22 @@ export async function createBasicRenderSmokeFixture(context: ServiceContext): Pr
         projectId,
         renderJobId,
         sourceStorageObjectId,
-        approvedPlanSnapshotId,
-        creditReservationId,
-        strict: false,
+      approvedPlanSnapshotId,
+      creditReservationId,
+      strict: false,
+      editAssemblyPlan: {
+        planId: 'local-plan-render-smoke',
+        title: 'Local render smoke edit plan',
+        summary: 'Bounded internal render smoke plan for source review and clean assembly.',
+        steps: [
+          {
+            label: 'Clean assembly',
+            summary: 'Create a short internal preview artifact from the uploaded source.',
+          },
+        ],
+        sourceAspectRatio: '16:9',
       },
+    },
       jobId: renderJobId,
       idempotencyKey: 'basic-render-smoke-skipped',
       warnings: fixture.warnings,
@@ -64,6 +76,18 @@ export async function createBasicRenderSmokeFixture(context: ServiceContext): Pr
       approvedPlanSnapshotId,
       creditReservationId,
       strict: true,
+      editAssemblyPlan: {
+        planId: 'local-plan-render-smoke',
+        title: 'Local render smoke edit plan',
+        summary: 'Bounded internal render smoke plan for source review and clean assembly.',
+        steps: [
+          {
+            label: 'Clean assembly',
+            summary: 'Create a short internal preview artifact from the uploaded source.',
+          },
+        ],
+        sourceAspectRatio: '16:9',
+      },
       sourceStorageObject: {
         id: sourceStorageObjectId,
         mediaAssetId,

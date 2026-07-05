@@ -109,6 +109,26 @@ export interface ProjectSourceVideoBackendUploadResult {
   warnings: string[]
 }
 
+export type ProjectSourceVideoEditAssemblyMode = 'clean_internal_preview' | 'private_final_export'
+
+export interface ProjectSourceVideoEditAssemblyStep {
+  label: string
+  summary: string
+}
+
+export interface ProjectSourceVideoEditAssemblySummary {
+  planId: string
+  title: string
+  summary: string
+  steps: ProjectSourceVideoEditAssemblyStep[]
+  sourceDurationSeconds?: number
+  sourceAspectRatio?: string
+  mode: ProjectSourceVideoEditAssemblyMode
+  operationsApplied: string[]
+  planStepCount: number
+  productReady: false
+}
+
 export interface ProjectSourceVideoLocalEditPreviewResult {
   status: 'preview_ready'
   editPlanId: string
@@ -125,6 +145,7 @@ export interface ProjectSourceVideoLocalEditPreviewResult {
   durationSeconds?: number
   sizeBytes?: number
   checksumSha256?: string
+  editAssembly?: ProjectSourceVideoEditAssemblySummary
   qwenMainBrainLabel: string
   approvedSnapshotCreated: true
   mockCreditApprovalCreated: true
@@ -177,6 +198,7 @@ export interface ProjectSourceVideoLocalFinalExportResult {
   durationSeconds?: number
   sizeBytes?: number
   checksumSha256?: string
+  editAssembly?: ProjectSourceVideoEditAssemblySummary
   previewReviewId: string
   finalExportStarted: true
   publicDeliveryEnabled: false

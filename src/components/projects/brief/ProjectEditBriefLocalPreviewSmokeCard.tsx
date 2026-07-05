@@ -137,6 +137,7 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
           <>
             <span><strong>Preview object</strong>{result.outputBucketName}/{result.outputObjectPath}</span>
             <span><strong>Approved plan</strong>{result.editPlanId}</span>
+            {result.editAssembly ? <span><strong>Edit pass</strong>{result.editAssembly.planStepCount} approved plan steps applied</span> : null}
             <span><strong>Duration</strong>{formatSeconds(result.durationSeconds)}</span>
             <span><strong>Size</strong>{formatBytes(result.sizeBytes)}</span>
             <span><strong>Main brain</strong>{result.qwenMainBrainLabel} identity recorded, no live call</span>

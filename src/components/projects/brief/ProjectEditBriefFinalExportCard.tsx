@@ -94,6 +94,7 @@ export function ProjectEditBriefFinalExportCard({
         <div className="project-edit-brief-final-export__result" data-testid="project-edit-final-export-result">
           <strong>Export ready</strong>
           <span>{formatBytes(finalExportResult.sizeBytes)}</span>
+          {finalExportResult.editAssembly ? <span>{finalExportResult.editAssembly.planStepCount} approved plan steps carried into the export</span> : null}
           <span>{finalExportResult.outputObjectPath ?? 'Private object path recorded'}</span>
           <span>{finalExportResult.checksumSha256 ? `Checksum ${finalExportResult.checksumSha256.slice(0, 12)}` : 'Checksum pending'}</span>
         </div>

@@ -223,6 +223,10 @@ try {
   assert.equal(preview.previewOnly, true)
   assert.equal(preview.productReady, false)
   assert.ok(preview.outputObjectPath?.includes('/previews/'))
+  assert.equal(preview.editAssembly?.planId, approvedPlan.localEditPlan.editPlanId)
+  assert.equal(preview.editAssembly?.mode, 'clean_internal_preview')
+  assert.equal(preview.editAssembly?.planStepCount, approvedPlan.localEditPlan.approvedLocalPlan.steps.length)
+  assert.ok(preview.editAssembly?.operationsApplied.includes('clean_fade_handles_applied'))
 
   await recordProjectEditSessionLifecycleCheckpointBackendLocal({
     apiBaseUrl,
@@ -276,6 +280,9 @@ try {
   assert.equal(finalExport.publicDeliveryEnabled, false)
   assert.equal(finalExport.productReady, false)
   assert.ok(finalExport.outputObjectPath?.includes('/exports/'))
+  assert.equal(finalExport.editAssembly?.planId, approvedPlan.localEditPlan.editPlanId)
+  assert.equal(finalExport.editAssembly?.mode, 'private_final_export')
+  assert.ok(finalExport.editAssembly?.operationsApplied.includes('approved_preview_review_carried_forward'))
 
   await recordProjectEditSessionLifecycleCheckpointBackendLocal({
     apiBaseUrl,
@@ -325,6 +332,8 @@ try {
   assert.equal(restoredPreview?.status, 'preview_ready')
   assert.equal(restoredReview?.reviewStatus, 'approved')
   assert.equal(restoredFinalExport?.status, 'final_export_ready')
+  assert.equal(restoredPreview?.editAssembly?.planId, approvedPlan.localEditPlan.editPlanId)
+  assert.equal(restoredFinalExport?.editAssembly?.mode, 'private_final_export')
 
   const restoredBrief = await readProjectEditBriefBackendLocal({
     apiBaseUrl,
@@ -383,8 +392,10 @@ try {
     briefReadbackVerified: restoredBrief.editBrief.readbackVerified === true,
     planReadbackVerified: approvedPlan.localEditPlan.readbackVerified === true,
     previewStatus: preview.status,
+    previewAssemblyMode: preview.editAssembly?.mode,
     reviewStatus: review.reviewStatus,
     finalExportStatus: finalExport.status,
+    finalExportAssemblyMode: finalExport.editAssembly?.mode,
     restoredLifecycleStatus: finalSession.editSession.status,
     finalExportAllowed: lifecycle.finalExportAllowed,
     finalExportBlockers: lifecycle.finalExportReadiness.blockers,

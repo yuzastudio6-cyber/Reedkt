@@ -5,6 +5,7 @@ import type {
   ProjectEditPlanBackendLocalRecord,
 } from './project-edit-plan-approval'
 import type {
+  ProjectSourceVideoEditAssemblySummary,
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoLocalEditPreviewResult,
   ProjectSourceVideoLocalFinalExportResult,
@@ -43,6 +44,45 @@ function stringValue(value: unknown): string | undefined {
 
 function numberValue(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function editAssemblyValue(value: unknown): ProjectSourceVideoEditAssemblySummary | undefined {
+  const record = objectValue(value)
+  if (!record) return undefined
+  const planId = stringValue(record.planId)
+  const title = stringValue(record.title)
+  const summary = stringValue(record.summary)
+  const mode = stringValue(record.mode)
+  const rawSteps = Array.isArray(record.steps) ? record.steps : []
+  const steps = rawSteps
+    .map((step) => {
+      const stepRecord = objectValue(step)
+      const label = stringValue(stepRecord?.label)
+      const stepSummary = stringValue(stepRecord?.summary)
+      return label && stepSummary ? { label, summary: stepSummary } : undefined
+    })
+    .filter(Boolean) as ProjectSourceVideoEditAssemblySummary['steps']
+  const operationsApplied = Array.isArray(record.operationsApplied)
+    ? record.operationsApplied.filter((item): item is string => typeof item === 'string' && item.length > 0)
+    : []
+  const planStepCount = numberValue(record.planStepCount) ?? steps.length
+
+  if (!planId || !title || !summary || (mode !== 'clean_internal_preview' && mode !== 'private_final_export') || steps.length === 0) {
+    return undefined
+  }
+
+  return {
+    planId,
+    title,
+    summary,
+    steps,
+    sourceDurationSeconds: numberValue(record.sourceDurationSeconds),
+    sourceAspectRatio: stringValue(record.sourceAspectRatio),
+    mode,
+    operationsApplied,
+    planStepCount,
+    productReady: false,
+  }
 }
 
 export function createSourceUploadCheckpointMetadata(result: ProjectSourceVideoBackendUploadResult): Record<string, unknown> {
@@ -107,6 +147,7 @@ export function createPreviewReadyCheckpointMetadata(result: ProjectSourceVideoL
     durationSeconds: result.durationSeconds,
     sizeBytes: result.sizeBytes,
     checksumSha256: result.checksumSha256,
+    editAssembly: result.editAssembly,
     qwenMainBrainLabel: result.qwenMainBrainLabel,
     previewOnly: true,
     productReady: false,
@@ -140,6 +181,7 @@ export function createFinalExportReadyCheckpointMetadata(result: ProjectSourceVi
     durationSeconds: result.durationSeconds,
     sizeBytes: result.sizeBytes,
     checksumSha256: result.checksumSha256,
+    editAssembly: result.editAssembly,
     previewReviewId: result.previewReviewId,
     finalExportStarted: result.finalExportStarted,
     publicDeliveryEnabled: result.publicDeliveryEnabled,
@@ -221,6 +263,7 @@ export function restorePreviewResult(session: ProjectEditSessionRecord | undefin
     durationSeconds: numberValue(metadata.durationSeconds),
     sizeBytes: numberValue(metadata.sizeBytes),
     checksumSha256: stringValue(metadata.checksumSha256),
+    editAssembly: editAssemblyValue(metadata.editAssembly),
     qwenMainBrainLabel: stringValue(metadata.qwenMainBrainLabel) ?? 'ReEditPro Qwen main brain',
     approvedSnapshotCreated: true,
     mockCreditApprovalCreated: true,
@@ -300,6 +343,7 @@ export function restoreFinalExportResult(session: ProjectEditSessionRecord | und
     durationSeconds: numberValue(metadata.durationSeconds),
     sizeBytes: numberValue(metadata.sizeBytes),
     checksumSha256: stringValue(metadata.checksumSha256),
+    editAssembly: editAssemblyValue(metadata.editAssembly),
     previewReviewId,
     finalExportStarted: true,
     publicDeliveryEnabled: false,

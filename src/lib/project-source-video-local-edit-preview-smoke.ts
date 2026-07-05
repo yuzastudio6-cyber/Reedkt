@@ -5,6 +5,7 @@ import {
 } from '../types/qwen-main-brain'
 import type { ProjectEditPlanApprovedLocalPlan } from './project-edit-plan-approval'
 import type {
+  ProjectSourceVideoEditAssemblySummary,
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoLocalEditPreviewConfig,
   ProjectSourceVideoLocalEditPreviewResult,
@@ -66,6 +67,7 @@ interface BasicRenderSmokeOutput {
   durationSeconds?: number
   sizeBytes?: number
   checksumSha256?: string
+  editAssembly?: ProjectSourceVideoEditAssemblySummary
   warnings?: string[]
 }
 
@@ -154,6 +156,38 @@ function createHeaders(input: Record<string, string | undefined>): Headers {
   return headers
 }
 
+function createEditAssemblySummary(input: {
+  approvedLocalPlan: ProjectEditPlanApprovedLocalPlan
+  mode: ProjectSourceVideoEditAssemblySummary['mode']
+  sourceVideoDurationSeconds?: number
+  sourceVideoAspectRatio?: string
+}): ProjectSourceVideoEditAssemblySummary {
+  const operationsApplied = [
+    'approved_plan_snapshot_loaded',
+    'source_trim_bounded_for_internal_testing',
+    'frame_safe_mp4_assembly',
+    'clean_fade_handles_applied',
+    input.mode === 'private_final_export' ? 'approved_preview_review_carried_forward' : 'preview_review_pending',
+    ...input.approvedLocalPlan.steps.map((step) => `plan_step:${step.label}`),
+  ]
+
+  return {
+    planId: input.approvedLocalPlan.planId,
+    title: input.approvedLocalPlan.title,
+    summary: input.approvedLocalPlan.summary,
+    steps: input.approvedLocalPlan.steps.map((step) => ({
+      label: step.label,
+      summary: step.summary,
+    })),
+    sourceDurationSeconds: input.sourceVideoDurationSeconds,
+    sourceAspectRatio: input.sourceVideoAspectRatio,
+    mode: input.mode,
+    operationsApplied,
+    planStepCount: input.approvedLocalPlan.steps.length,
+    productReady: false,
+  }
+}
+
 async function parseEnvelope<TData>(response: Response): Promise<ApiEnvelope<TData>> {
   const payload = await response.json().catch(() => undefined)
   if (!payload || typeof payload !== 'object') {
@@ -199,6 +233,12 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
   const editPlanId = input.approvedLocalPlan.planId
   const creditEstimateId = `${input.approvedLocalPlan.planId}-credit-estimate`
   const source = input.sourceVideoUploadResult
+  const editAssembly = createEditAssemblySummary({
+    approvedLocalPlan: input.approvedLocalPlan,
+    mode: 'clean_internal_preview',
+    sourceVideoDurationSeconds: input.sourceVideoDurationSeconds,
+    sourceVideoAspectRatio: input.sourceVideoAspectRatio,
+  })
 
   if (!source.mediaAssetId) {
     throw new Error('Local edit preview requires a finalized media asset id from backend-local upload.')
@@ -255,6 +295,7 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
       summary: createReeditProQwenMainBrainSummary(),
       liveCallMade: false,
     },
+    editAssembly,
     sourceVideo: {
       storageObjectRecordId: source.storageObjectRecordId,
       mediaAssetId: source.mediaAssetId,
@@ -348,6 +389,7 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
       creditReservationId: creditReservation.id,
       workerInstanceId: 'local-edit-preview-smoke-worker',
       strict: true,
+      editAssemblyPlan: editAssembly,
     }),
   }))
   const smokeData = assertOk(smokeEnvelope, 'Local edit preview smoke failed.')
@@ -374,6 +416,7 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
     durationSeconds: renderSmoke.durationSeconds,
     sizeBytes: renderSmoke.sizeBytes,
     checksumSha256: renderSmoke.checksumSha256,
+    editAssembly: renderSmoke.editAssembly ?? editAssembly,
     qwenMainBrainLabel: REEDITPRO_QWEN_MAIN_BRAIN_LABEL,
     approvedSnapshotCreated: true,
     mockCreditApprovalCreated: true,

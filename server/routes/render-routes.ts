@@ -70,6 +70,7 @@ export function createRenderRoutes(): Router {
         sourceStorageObjectId: body.sourceStorageObjectId,
         storageObjectRecordId: body.sourceStorageObjectId,
         sourceStorageObject: body.sourceStorageObject,
+        editAssemblyPlan: body.editAssemblyPlan,
       },
     })
     sendOk(response, { result, renderSmoke: result.output }, result.warnings, result.status === 'blocked' ? 409 : 201)
@@ -93,6 +94,7 @@ export function createRenderRoutes(): Router {
       strict: body.strict,
       previewReviewId: body.previewReviewId,
       previewReviewStatus: body.previewReviewStatus,
+      editAssemblyPlan: body.editAssemblyPlan,
     })
     sendOk(response, { result, finalExportSmoke: result }, result.warnings, result.status === 'failed' ? 409 : result.status === 'skipped' ? 202 : 201)
   }))

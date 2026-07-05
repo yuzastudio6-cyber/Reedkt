@@ -68,6 +68,7 @@ if (!tools.ready) {
       sourceStorageObjectId: fixture.request.sourceStorageObjectId,
       storageObjectRecordId: fixture.request.sourceStorageObjectId,
       sourceStorageObject: fixture.request.sourceStorageObject,
+      editAssemblyPlan: fixture.request.editAssemblyPlan,
     },
   })
   const output = workerResult.output as BasicRenderSmokeResponse | undefined
@@ -76,6 +77,9 @@ if (!tools.ready) {
   assert(Boolean(output.outputObjectPath?.startsWith(`workspaces/${fixture.request.workspaceId}/projects/${fixture.request.projectId}/previews/`)), 'Output object path should be canonical.')
   assert(Boolean(output.checksumSha256), 'Preview checksum should exist.')
   assert(Boolean(output.qaReportId), 'QA report metadata should be created.')
+  assert(output.editAssembly?.planId === fixture.request.editAssemblyPlan?.planId, 'Preview should preserve the approved edit assembly plan.')
+  assert(Boolean(output.editAssembly?.operationsApplied.includes('clean_fade_handles_applied')), 'Preview should record deterministic clean assembly operations.')
+  assert(output.previewRender?.commandSummary.editAssemblyMode === 'clean_internal_preview', 'FFmpeg command summary should record the clean internal preview mode.')
   assert(!JSON.stringify(output).toLowerCase().includes('signed_url'), 'Canonical output must not include signed URL fields.')
   assert(!JSON.stringify(output).toLowerCase().includes('providerrequest'), 'Render smoke output must not include provider call fields.')
   assert(!Object.hasOwn(output.previewRender ?? {}, 'outputPath'), 'Preview render summary should not expose absolute output path.')

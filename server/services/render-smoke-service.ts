@@ -11,6 +11,9 @@ import { createMockId, mockWarning, nowIso, throwOnSupabaseError } from './servi
 import type {
   BasicFinalExportSmokeRequest,
   BasicFinalExportSmokeResponse,
+  BasicRenderSmokeEditAssemblyMode,
+  BasicRenderSmokeEditAssemblyPlan,
+  BasicRenderSmokeEditAssemblyResult,
   BasicRenderSmokeRequest,
   BasicRenderSmokeResponse,
   BasicRenderSmokeSourceObject,
@@ -18,6 +21,31 @@ import type {
 } from '../workers/jobs/basic-render-smoke-types'
 
 const BASIC_RENDER_REQUIRED_TOOLS: WorkerToolName[] = ['ffmpeg', 'ffprobe']
+
+function createEditAssemblyResult(
+  plan: BasicRenderSmokeEditAssemblyPlan | undefined,
+  mode: BasicRenderSmokeEditAssemblyMode,
+): BasicRenderSmokeEditAssemblyResult | undefined {
+  if (!plan) return undefined
+
+  const planStepCount = plan.steps.length
+  const operationsApplied = [
+    'approved_plan_snapshot_loaded',
+    'source_trim_bounded_for_internal_testing',
+    'frame_safe_mp4_assembly',
+    'clean_fade_handles_applied',
+    mode === 'private_final_export' ? 'approved_preview_review_carried_forward' : 'preview_review_pending',
+    ...plan.steps.map((step) => `plan_step:${step.label}`),
+  ]
+
+  return {
+    ...plan,
+    mode,
+    operationsApplied,
+    planStepCount,
+    productReady: false,
+  }
+}
 
 export async function createBasicRenderSmokeContext(context: ServiceContext, input: BasicRenderSmokeRequest) {
   return {
@@ -100,6 +128,7 @@ export async function runBasicRenderSmoke(
     ffprobeBin: context.env.ffprobeBin,
     timeoutMs: context.env.toolCheckTimeoutMs,
   })
+  const editAssembly = createEditAssemblyResult(input.editAssemblyPlan, 'clean_internal_preview')
   const renderId = createMockId('render')
   const previewBucketName = resolveBucketName(context.env, 'preview')
   const outputObjectPath = buildCanonicalObjectPath({
@@ -116,6 +145,12 @@ export async function runBasicRenderSmoke(
     timeoutMs: 45000,
     maxDurationSeconds: 3,
     audioMode: 'muted',
+    editAssembly: editAssembly
+      ? {
+          mode: editAssembly.mode,
+          operationsApplied: editAssembly.operationsApplied,
+        }
+      : undefined,
   })
   const previewStorageObject = await createPreviewStorageObjectFromRender(context, {
     workspaceId: input.workspaceId,
@@ -163,9 +198,11 @@ export async function runBasicRenderSmoke(
       checksumSha256: previewRender.checksumSha256,
       commandSummary: previewRender.commandSummary,
     },
+    editAssembly,
     warnings: [
       mockWarning('Basic render smoke'),
       ...qa.warnings,
+      ...(editAssembly ? ['Approved local edit assembly plan was recorded in the preview artifact metadata.'] : []),
     ],
   }
 }
@@ -220,6 +257,7 @@ export async function runBasicFinalExportSmoke(
     ffprobeBin: context.env.ffprobeBin,
     timeoutMs: context.env.toolCheckTimeoutMs,
   })
+  const editAssembly = createEditAssemblyResult(input.editAssemblyPlan, 'private_final_export')
   const renderId = createMockId('render')
   const exportBucketName = resolveBucketName(context.env, 'export')
   const outputObjectPath = buildCanonicalObjectPath({
@@ -237,6 +275,12 @@ export async function runBasicFinalExportSmoke(
     timeoutMs: 90000,
     maxDurationSeconds,
     audioMode: 'copy_or_transcode',
+    editAssembly: editAssembly
+      ? {
+          mode: editAssembly.mode,
+          operationsApplied: editAssembly.operationsApplied,
+        }
+      : undefined,
   })
   const finalExportStorageObject = await createFinalExportStorageObjectFromRender(context, {
     workspaceId: input.workspaceId,
@@ -285,6 +329,7 @@ export async function runBasicFinalExportSmoke(
       checksumSha256: finalExportRender.checksumSha256,
       commandSummary: finalExportRender.commandSummary,
     },
+    editAssembly,
     previewReviewId: input.previewReviewId,
     finalExportStarted: true,
     publicDeliveryEnabled: false,
@@ -292,6 +337,7 @@ export async function runBasicFinalExportSmoke(
     warnings: [
       mockWarning('Basic final export smoke'),
       ...qa.warnings,
+      ...(editAssembly ? ['Approved local edit assembly plan was carried into the private final export metadata.'] : []),
       'Basic final export smoke created a private local export artifact only; no public delivery, signed URL, Supabase/GCS write, provider, external beta, production, or billing settlement ran.',
     ],
   }

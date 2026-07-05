@@ -3,6 +3,29 @@ import type { MediaProbeSummary } from '../../media/ffprobe'
 
 export type RenderSmokeStatus = 'preview_ready' | 'skipped' | 'failed'
 export type FinalExportSmokeStatus = 'final_export_ready' | 'skipped' | 'failed'
+export type BasicRenderSmokeEditAssemblyMode = 'clean_internal_preview' | 'private_final_export'
+
+export interface BasicRenderSmokeEditAssemblyStep {
+  label: string
+  summary: string
+}
+
+export interface BasicRenderSmokeEditAssemblyPlan {
+  planId: string
+  title: string
+  summary: string
+  steps: BasicRenderSmokeEditAssemblyStep[]
+  sourceDurationSeconds?: number
+  sourceAspectRatio?: string
+  mode?: BasicRenderSmokeEditAssemblyMode
+}
+
+export interface BasicRenderSmokeEditAssemblyResult extends BasicRenderSmokeEditAssemblyPlan {
+  mode: BasicRenderSmokeEditAssemblyMode
+  operationsApplied: string[]
+  planStepCount: number
+  productReady: false
+}
 
 export interface BasicRenderSmokeSourceObject {
   id: string
@@ -31,6 +54,7 @@ export interface BasicRenderSmokeRequest {
   creditReservationId: string
   workerInstanceId?: string
   strict?: boolean
+  editAssemblyPlan?: BasicRenderSmokeEditAssemblyPlan
 }
 
 export interface BasicFinalExportSmokeRequest extends BasicRenderSmokeRequest {
@@ -54,6 +78,7 @@ export interface BasicRenderSmokeResponse {
   checksumSha256?: string
   mediaProbe?: MediaProbeSummary
   previewRender?: Omit<BasicPreviewRenderOutput, 'outputPath'>
+  editAssembly?: BasicRenderSmokeEditAssemblyResult
   warnings: string[]
   error?: {
     code: string
@@ -77,6 +102,7 @@ export interface BasicFinalExportSmokeResponse {
   checksumSha256?: string
   mediaProbe?: MediaProbeSummary
   finalExportRender?: Omit<BasicPreviewRenderOutput, 'outputPath'>
+  editAssembly?: BasicRenderSmokeEditAssemblyResult
   previewReviewId?: string
   finalExportStarted: boolean
   publicDeliveryEnabled: false

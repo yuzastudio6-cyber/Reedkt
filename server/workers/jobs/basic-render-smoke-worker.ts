@@ -2,7 +2,13 @@ import { ApiError } from '../../errors/api-error'
 import { runBasicRenderSmoke } from '../../services/render-smoke-service'
 import type { ServiceContext } from '../../types'
 import type { WorkerJobRecord } from '../worker-job-loader'
-import type { BasicRenderSmokeRequest, BasicRenderSmokeResponse, BasicRenderSmokeSourceObject } from './basic-render-smoke-types'
+import type {
+  BasicRenderSmokeEditAssemblyPlan,
+  BasicRenderSmokeEditAssemblyStep,
+  BasicRenderSmokeRequest,
+  BasicRenderSmokeResponse,
+  BasicRenderSmokeSourceObject,
+} from './basic-render-smoke-types'
 
 export async function runBasicRenderSmokeWorker(
   context: ServiceContext,
@@ -39,6 +45,7 @@ function requestFromJob(job: WorkerJobRecord): BasicRenderSmokeRequest {
     approvedPlanSnapshotId: job.approvedPlanSnapshotId,
     creditReservationId: job.creditReservationId,
     strict: true,
+    editAssemblyPlan: editAssemblyPlanFromPayload(job.inputPayload),
   }
 }
 
@@ -59,6 +66,38 @@ function sourceStorageObjectFromPayload(payload: Record<string, unknown>): Basic
     mimeType: stringFromPayload(record, 'mimeType'),
     sizeBytes: numberFromPayload(record, 'sizeBytes'),
     checksumSha256: stringFromPayload(record, 'checksumSha256'),
+  }
+}
+
+function editAssemblyPlanFromPayload(payload: Record<string, unknown>): BasicRenderSmokeEditAssemblyPlan | undefined {
+  const value = payload.editAssemblyPlan
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  const record = value as Record<string, unknown>
+  const planId = stringFromPayload(record, 'planId')
+  const title = stringFromPayload(record, 'title')
+  const summary = stringFromPayload(record, 'summary')
+  const rawSteps = Array.isArray(record.steps) ? record.steps : []
+  const steps = rawSteps
+    .map((step): BasicRenderSmokeEditAssemblyStep | undefined => {
+      if (!step || typeof step !== 'object' || Array.isArray(step)) return undefined
+      const stepRecord = step as Record<string, unknown>
+      const label = stringFromPayload(stepRecord, 'label')
+      const stepSummary = stringFromPayload(stepRecord, 'summary')
+      if (!label || !stepSummary) return undefined
+      return { label, summary: stepSummary }
+    })
+    .filter(Boolean) as BasicRenderSmokeEditAssemblyStep[]
+
+  if (!planId || !title || !summary || steps.length === 0) return undefined
+
+  return {
+    planId,
+    title,
+    summary,
+    steps,
+    sourceDurationSeconds: numberFromPayload(record, 'sourceDurationSeconds'),
+    sourceAspectRatio: stringFromPayload(record, 'sourceAspectRatio'),
+    mode: stringFromPayload(record, 'mode') === 'private_final_export' ? 'private_final_export' : 'clean_internal_preview',
   }
 }
 

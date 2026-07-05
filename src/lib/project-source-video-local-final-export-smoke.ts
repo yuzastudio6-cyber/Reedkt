@@ -1,6 +1,7 @@
 import { getSupabaseClient } from '../backend/supabase/supabase-client'
 import type {
   ProjectSourceVideoBackendUploadResult,
+  ProjectSourceVideoEditAssemblySummary,
   ProjectSourceVideoLocalEditPreviewResult,
   ProjectSourceVideoLocalFinalExportResult,
   ProjectSourceVideoPreviewReviewResult,
@@ -44,6 +45,7 @@ interface BasicFinalExportSmokeOutput {
   durationSeconds?: number
   sizeBytes?: number
   checksumSha256?: string
+  editAssembly?: ProjectSourceVideoEditAssemblySummary
   previewReviewId?: string
   warnings?: string[]
 }
@@ -105,6 +107,23 @@ function assertOk<TData>(envelope: ApiEnvelope<TData>, fallback: string): TData 
   return envelope.data
 }
 
+function createPrivateFinalExportAssembly(
+  previewAssembly: ProjectSourceVideoEditAssemblySummary | undefined,
+): ProjectSourceVideoEditAssemblySummary | undefined {
+  if (!previewAssembly) return undefined
+  const operationsApplied = [
+    ...previewAssembly.operationsApplied.filter((operation) => operation !== 'preview_review_pending'),
+    'approved_preview_review_carried_forward',
+  ]
+
+  return {
+    ...previewAssembly,
+    mode: 'private_final_export',
+    operationsApplied: [...new Set(operationsApplied)],
+    productReady: false,
+  }
+}
+
 export async function runProjectSourceVideoLocalFinalExportSmoke(
   input: RunProjectSourceVideoLocalFinalExportSmokeInput,
 ): Promise<ProjectSourceVideoLocalFinalExportResult> {
@@ -121,6 +140,7 @@ export async function runProjectSourceVideoLocalFinalExportSmoke(
     'Content-Type': 'application/json',
     authorization: accessToken ? `Bearer ${accessToken}` : undefined,
   }
+  const editAssembly = createPrivateFinalExportAssembly(input.previewResult.editAssembly)
 
   const renderJob = assertOk(
     await parseEnvelope<RenderJobData>(await fetchImpl(joinUrl(input.apiBaseUrl, '/v1/render-jobs'), {
@@ -166,6 +186,7 @@ export async function runProjectSourceVideoLocalFinalExportSmoke(
       strict: true,
       previewReviewId: input.previewReviewResult.id,
       previewReviewStatus: 'approved',
+      editAssemblyPlan: editAssembly,
     }),
   }))
   const smokeData = assertOk(smokeEnvelope, 'Local final export smoke failed.')
@@ -191,6 +212,7 @@ export async function runProjectSourceVideoLocalFinalExportSmoke(
     durationSeconds: finalExportSmoke.durationSeconds,
     sizeBytes: finalExportSmoke.sizeBytes,
     checksumSha256: finalExportSmoke.checksumSha256,
+    editAssembly: finalExportSmoke.editAssembly ?? editAssembly,
     previewReviewId: input.previewReviewResult.id,
     finalExportStarted: true,
     publicDeliveryEnabled: false,

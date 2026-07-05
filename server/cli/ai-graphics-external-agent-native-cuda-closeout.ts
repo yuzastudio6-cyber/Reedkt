@@ -312,7 +312,7 @@ function manifestArgs(args: ParsedArgs, toolId: ToolId): string[] {
 
 function proofSequenceArgs(args: ParsedArgs, toolId: ToolId): string[] {
   const target = runtimeTargets[toolId]
-  return [
+  const proofArgs = [
     '--attempt-local-runtime',
     '--runtime-backend',
     'docker_container',
@@ -330,11 +330,13 @@ function proofSequenceArgs(args: ParsedArgs, toolId: ToolId): string[] {
     '--result-out',
     proofResultPath(args.outputRoot, toolId),
   ]
+  if (args.timeoutMs) proofArgs.push('--timeout-ms', String(args.timeoutMs))
+  return proofArgs
 }
 
 function finalToolCallArgs(args: ParsedArgs, toolId: ToolId): string[] {
   const target = runtimeTargets[toolId]
-  return [
+  const toolCallArgs = [
     '--tool',
     toolId,
     '--attempt-gpu-runtime',
@@ -354,6 +356,8 @@ function finalToolCallArgs(args: ParsedArgs, toolId: ToolId): string[] {
     '--result-out',
     finalToolCallResultPath(args.outputRoot, toolId),
   ]
+  if (args.timeoutMs) toolCallArgs.push('--timeout-ms', String(args.timeoutMs))
+  return toolCallArgs
 }
 
 function readinessArgs(args: ParsedArgs): string[] {
@@ -564,6 +568,9 @@ function buildReport(args: ParsedArgs): JsonRecord {
     toolProbe(args, toolId, currentHostBlockers, currentHostEligible))
   const executableTools = tools.filter((tool) => tool.executableNow)
   const allRequestedToolsExecutable = executableTools.length === tools.length
+  const allRemainingNativeCudaToolsCovered = tools.length === toolIds.length
+  const allRemainingNativeCudaToolsExecutable =
+    allRemainingNativeCudaToolsCovered && allRequestedToolsExecutable
   const readinessCommand = shellCommand(readinessScript, readinessArgs(args))
 
   return {
@@ -619,16 +626,19 @@ function buildReport(args: ParsedArgs): JsonRecord {
       sourceRuntimeInputManifestMaterializerReused: true,
       sourcePrivateProofSequenceReused: true,
       sourceExternalAgentToolCallReused: true,
-      allRemainingNativeCudaToolsCovered: tools.length === 2,
+      allRemainingNativeCudaToolsCovered,
       sam2Covered: args.requestedTools.includes('sam2'),
       birefnetCovered: args.requestedTools.includes('birefnet'),
       currentHostEligibleForNativeGpuProof: currentHostEligible,
       runtimeAttemptRequested: args.attemptLocalRuntime,
       runtimeAttemptPerformed: tools.some((tool) => tool.runtimeAttemptPerformed),
       acceptedNativeCudaProofForAllRequestedTools: allRequestedToolsExecutable,
+      acceptedNativeCudaProofForAllRemainingTools:
+        allRemainingNativeCudaToolsExecutable,
       agentCanSubmitControlledRequestsForRemainingTools: true,
-      agentCanExecuteRemainingNativeCudaToolsNow: allRequestedToolsExecutable,
-      agentCanExecuteAll21ToolsNow: allRequestedToolsExecutable,
+      agentCanExecuteRemainingNativeCudaToolsNow:
+        allRemainingNativeCudaToolsExecutable,
+      agentCanExecuteAll21ToolsNow: allRemainingNativeCudaToolsExecutable,
       gpuRuntimeOnDemandOnly: true,
       noIdleGpuRuntimeApproved: true,
       gpuRuntimeShouldStartNow: false,

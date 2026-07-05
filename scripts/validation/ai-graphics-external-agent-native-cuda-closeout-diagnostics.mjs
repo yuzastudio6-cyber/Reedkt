@@ -216,6 +216,8 @@ function validateFixtureReport(report) {
   assert(report.booleans?.runtimeAttemptRequested === false, 'fixture_runtime_attempt_requested')
   assert(report.booleans?.toolExecutionPerformed === false, 'fixture_tool_execution_performed')
   assert(report.booleans?.gpuRuntimePerformed === false, 'fixture_gpu_runtime_performed')
+  assert(report.booleans?.acceptedNativeCudaProofForAllRemainingTools === false, 'fixture_all_remaining_proof_not_false')
+  assert(report.booleans?.agentCanExecuteRemainingNativeCudaToolsNow === false, 'fixture_remaining_native_cuda_executable_not_false')
   for (const toolId of targetTools) {
     const row = report.tools?.find((tool) => tool.toolId === toolId)
     assert(row?.privateModelRootCandidatePresent === true, `fixture_model_candidate_missing:${toolId}`)
@@ -224,6 +226,19 @@ function validateFixtureReport(report) {
     assert(row?.runtimeAttemptAccepted === false, `fixture_runtime_attempt_accepted:${toolId}`)
     assert(String(row?.manifestMaterializerCommand ?? '').includes('--private-model-root'), `fixture_manifest_missing_private_root:${toolId}`)
   }
+}
+
+function validateScopedTimeoutReport(report) {
+  assert(report.status === runtimeBuckets[0], `scoped_timeout_report_not_blocked:${report.status}`)
+  assert(report.toolsCovered === 1, `scoped_timeout_tools_covered_unexpected:${report.toolsCovered}`)
+  assert(report.booleans?.allRemainingNativeCudaToolsCovered === false, 'scoped_timeout_all_remaining_covered_true')
+  assert(report.booleans?.acceptedNativeCudaProofForAllRequestedTools === false, 'scoped_timeout_all_requested_proof_true')
+  assert(report.booleans?.acceptedNativeCudaProofForAllRemainingTools === false, 'scoped_timeout_all_remaining_proof_true')
+  assert(report.booleans?.agentCanExecuteAll21ToolsNow === false, 'scoped_timeout_all21_true')
+  const row = report.tools?.find((tool) => tool.toolId === 'sam2')
+  assert(Boolean(row), 'scoped_timeout_missing_sam2_row')
+  assert(String(row?.nativeGpuProofSequenceCommand ?? '').includes('--timeout-ms 123456'), 'scoped_timeout_proof_sequence_missing_timeout')
+  assert(String(row?.finalExternalAgentToolCallCommand ?? '').includes('--timeout-ms 123456'), 'scoped_timeout_final_tool_call_missing_timeout')
 }
 
 function validateCommittedText() {
@@ -257,6 +272,14 @@ const fixtureReport = runNpmJson(runScriptName, [
   fixtures.outputRoot,
 ])
 validateFixtureReport(fixtureReport)
+
+const scopedTimeoutReport = runNpmJson(runScriptName, [
+  '--tool',
+  'sam2',
+  '--timeout-ms',
+  '123456',
+])
+validateScopedTimeoutReport(scopedTimeoutReport)
 
 const packageLockDiff = exec('git diff --name-only HEAD -- package-lock.json').trim()
 if (packageLockDiff) fail('package_lock_changed')

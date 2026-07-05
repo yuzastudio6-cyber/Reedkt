@@ -48,6 +48,12 @@ The `auth-project-access-readiness` scenario is classified as `mock_local` becau
 
 This readiness panel does not run profile/workspace bootstrap, read or write Supabase project/profile/workspace tables, create Storage objects, issue signed URLs, mutate credits, dispatch workers, process media, render/export, or mark the product ready.
 
+## Browser Auth Bootstrap Readiness
+
+The `browser-auth-bootstrap-readiness` scenario is classified as `mock_local` because the internal testing route now shows whether the signed-in tester's profile, workspace, and membership bootstrap is ready. It uses the same browser-safe Supabase anon-client bootstrap as `/sign-in`; when RLS blocks setup, it reports `backend_required` so the backend-only provisioning/readback workflows can finish the account setup.
+
+This readiness panel allows only signed-in profile/workspace bootstrap through the Supabase anon client when RLS permits it. It does not expose service-role keys, admin clients, password readback, project/session writes, Storage objects, signed URLs, SQL, migrations, worker dispatch, media processing, render/export, credit spend, external beta, paid production, or product-ready behavior.
+
 ## Auth Project Session Membership Policy
 
 The `auth-project-session-membership-policy` scenario is classified as `mock_local` because Project Home, Edit Chat, and Edit Brief now display a shared project/session access policy notice. Mock route access remains allowed for repeated local testing, while durable authenticated project/session access stays blocked until signed-in user, workspace membership, project membership, edit-session access, RLS policy, explicit Data API grant, and backend persistence evidence all exist.
@@ -118,8 +124,8 @@ This dry-run plan does not run Supabase, create an executable migration, add `su
 - No credit reservation or spend.
 - No credit spend, ledger write, Stripe call, or silent billing.
 - No live wallet mutation, release/refund mutation, or production billing lifecycle.
-- No Supabase Data API read/write, Storage, signed URL, SQL, migration, profile/workspace bootstrap write, or service-role action.
-- Public Supabase Auth may be checked read-only only when frontend-safe public env values are configured.
+- No project/session Supabase Data API read/write, Storage, signed URL, SQL, migration, backend/admin profile-workspace bootstrap write, or service-role action.
+- Public Supabase Auth may be checked when frontend-safe public env values are configured, and signed-in profile/workspace bootstrap may run only through the anon client when RLS permits it.
 - No external beta, real-user-media beta, paid production, or product-ready claim.
 
 ## Validation
@@ -133,6 +139,7 @@ Required validation:
 - `npm run smoke:internal-testing-credit-lifecycle-readiness`
 - `npm run smoke:internal-testing-repeated-local-operator-harness`
 - `npm run smoke:internal-testing-auth-project-access-readiness`
+- `npm run smoke:internal-testing-browser-auth-bootstrap-readiness`
 - `npm run smoke:internal-testing-auth-project-session-membership-policy`
 - `npm run smoke:internal-testing-durable-auth-project-session-backend-persistence-plan`
 - `npm run smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton`

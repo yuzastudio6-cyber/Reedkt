@@ -1,0 +1,55 @@
+{
+  "id": "internal-testing-browser-auth-bootstrap-readiness",
+  "decision": "internal_testing_browser_auth_bootstrap_readiness_passed_ready_for_manual_signed_in_browser_readback",
+  "scenarioId": "browser-auth-bootstrap-readiness",
+  "route": "/internal-testing",
+  "source": "frontend_anon_auth_bootstrap_readiness",
+  "allowedScope": {
+    "publicSupabaseAuth": true,
+    "signedInProfileWorkspaceBootstrapThroughRls": true,
+    "manualBackendProvisioningFallback": true
+  },
+  "acceptedEvidence": [
+    "src/hooks/useAuthBootstrap.ts",
+    "src/backend/auth/auth-bootstrap-orchestrator.ts",
+    "src/pages/SignInPage.tsx",
+    "src/pages/InternalTestingPage.tsx",
+    "src/lib/internal-testing-scenarios.ts",
+    "server/smoke/internal-testing-browser-auth-bootstrap-readiness-smoke.ts"
+  ],
+  "blockedScope": {
+    "serviceRole": false,
+    "adminClient": false,
+    "passwordReadback": false,
+    "projectSessionWrites": false,
+    "storageUploads": false,
+    "storageSignedUrls": false,
+    "sqlOrMigration": false,
+    "providerOrModelCalls": false,
+    "workerDispatch": false,
+    "mediaProcessing": false,
+    "renderOrExport": false,
+    "creditSpend": false,
+    "ledgerWrites": false,
+    "stripe": false,
+    "externalBeta": false,
+    "paidProduction": false,
+    "productReady": false
+  },
+  "manualNextStep": "MANUAL_TESTER_EMAIL_PROVISIONING_AND_BROWSER_SIGN_IN",
+  "validation": {
+    "required": [
+      "smoke:internal-testing-browser-auth-bootstrap-readiness",
+      "smoke:internal-testing-auth-project-access-readiness",
+      "smoke:internal-testing-qa-wrapper",
+      "qa:internal-testing",
+      "smoke:app-sign-in-entrypoint",
+      "check:frontend-boundary",
+      "smoke:supabase-command-safety",
+      "typecheck:server",
+      "build",
+      "git diff --check",
+      "git diff --cached --check"
+    ]
+  }
+}

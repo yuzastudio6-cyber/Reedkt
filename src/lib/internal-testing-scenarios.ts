@@ -201,6 +201,24 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'browser-auth-bootstrap-readiness',
+    title: 'Signed-in browser auth bootstrap readiness',
+    description: 'Verify a signed-in tester can see whether profile, workspace, and membership bootstrap is ready or backend provisioning is required.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing after signing in.',
+      'Read the Signed-in bootstrap panel.',
+      'Refresh the profile/workspace bootstrap readiness check.',
+      'Confirm ready state shows the signed-in email and workspace when RLS permits browser-safe bootstrap.',
+      'Confirm backend-required or missing workspace state points to the manual provisioning and readback workflows.',
+      'Confirm no service-role key, admin client, project/session write, Storage, SQL, worker, media, credit, or product-ready gate opens.',
+    ],
+    expectedResult:
+      'Internal testers can see profile/workspace readiness after sign-in while browser code remains anon-client only and backend provisioning handles RLS-blocked setup.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'auth-project-session-membership-policy',
     title: 'Authenticated project/session membership policy',
     description: 'Verify Project Home, Edit Chat, and Edit Brief expose the durable access evidence contract without enabling Supabase writes.',

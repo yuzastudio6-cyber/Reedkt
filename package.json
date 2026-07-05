@@ -144,6 +144,7 @@
     "internal-testing:verify-auth-readback": "tsx server/cli/verify-internal-tester-auth-readback.ts",
     "smoke:internal-tester-sign-in-auth-readback": "tsx server/smoke/internal-tester-sign-in-auth-readback-smoke.ts",
     "smoke:internal-testing-auth-project-access-readiness": "tsx server/smoke/internal-testing-auth-project-access-readiness-smoke.ts",
+    "smoke:internal-testing-browser-auth-bootstrap-readiness": "tsx server/smoke/internal-testing-browser-auth-bootstrap-readiness-smoke.ts",
     "smoke:internal-testing-auth-project-session-membership-policy": "tsx server/smoke/internal-testing-auth-project-session-membership-policy-smoke.ts",
     "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan": "tsx server/smoke/internal-testing-durable-auth-project-session-backend-persistence-plan-smoke.ts",
     "smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton": "tsx server/smoke/internal-testing-mock-safe-durable-project-session-backend-skeleton-smoke.ts",

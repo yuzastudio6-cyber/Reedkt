@@ -6,6 +6,20 @@ import { Card } from '../components/Card'
 import { MediaCard, ProjectCard } from '../components/ProjectCard'
 import { SearchInput } from '../components/SearchInput'
 import { mediaAssets, projects } from '../data/mockData'
+import {
+  createProjectEditSessionBriefPath,
+  createProjectHomePath,
+} from '../lib/project-edit-session-navigation'
+import {
+  MOCK_PROJECT_HOME_PROJECT_ID,
+} from '../lib/project-edit-session-project-home-ui-adapter'
+
+const MOCK_SOURCE_VIDEO_EDIT_SESSION_ID = 'edit-session-youtube-wide'
+const mockProjectHomePath = createProjectHomePath(MOCK_PROJECT_HOME_PROJECT_ID)
+const mockSourceVideoBriefPath = createProjectEditSessionBriefPath(
+  MOCK_PROJECT_HOME_PROJECT_ID,
+  MOCK_SOURCE_VIDEO_EDIT_SESSION_ID,
+)
 
 export function ProjectsPage() {
   const tabs = ['All', 'Draft', 'Planning', 'In review', 'Exported']
@@ -47,16 +61,23 @@ export function ProjectsPage() {
       </section>
 
       <section className="projects-support-grid">
-        <Card className="upload-placeholder-card">
+        <Card className="upload-placeholder-card" data-testid="projects-source-video-test-card">
           <UploadCloud size={26} />
-          <h2>Upload placeholder</h2>
-          <p>Real upload storage is not connected. Start a mock project, then use Project Home, Edit Chat, and Brief for internal testing.</p>
-          <Button to="/projects/new" variant="primary">
+          <h2>Source video test</h2>
+          <p>
+            Use Edit Brief to select a browser-local source video, review playback metadata, add markers, and inspect Qwen 3.7 Max readiness
+            without starting generation.
+          </p>
+          <Button to={mockSourceVideoBriefPath} variant="primary">
+            Open source video Brief
+          </Button>
+          <Button to="/projects/new" variant="secondary">
             Create project and chat
           </Button>
-          <Button to="/projects/mock-project-edit-chat-foundation" variant="secondary">
+          <Button to={mockProjectHomePath} variant="secondary">
             Open Project Home
           </Button>
+          <Badge accent="cyan">Local preview only</Badge>
         </Card>
         <Card className="storage-widget-card">
           <h2>Storage placeholder</h2>

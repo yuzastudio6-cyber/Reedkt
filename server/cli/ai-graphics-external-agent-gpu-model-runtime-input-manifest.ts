@@ -642,14 +642,47 @@ function main(): void {
   }, null, 2))
 }
 
+function failureToolId(): ModelWeightToolId | null {
+  try {
+    const value = stringArg('--tool')
+    return modelWeightTools.includes(value as ModelWeightToolId)
+      ? value as ModelWeightToolId
+      : null
+  } catch {
+    return null
+  }
+}
+
+function expectedPrivateModelRuntimeFiles(
+  toolId: ModelWeightToolId | null,
+): string[] {
+  if (!toolId) return []
+  const contract = modelRuntimePathContracts[toolId]
+  if (contract.requiredDirectoryFiles?.length) {
+    return contract.requiredDirectoryFiles
+  }
+  return modelRootPathCandidatesByTool[toolId]
+}
+
 try {
   main()
 } catch (error) {
+  const toolId = failureToolId()
   console.error(JSON.stringify({
     ok: false,
     decision,
     status: 'runtime_input_manifest_blocked_with_reason',
+    toolId,
     errorMessage: error instanceof Error ? error.message : String(error),
+    privateModelRootEnvVar,
+    privateModelManifestDirEnvVar,
+    expectedPrivateModelRootCandidates: toolId
+      ? modelRootPathCandidatesByTool[toolId]
+      : [],
+    expectedPrivateModelRuntimeFiles: expectedPrivateModelRuntimeFiles(toolId),
+    nextPrivateModelRootAction: toolId
+      ? `Place the reviewed private ${modelRuntimePathContracts[toolId].modelLabel} under one of expectedPrivateModelRootCandidates inside $${privateModelRootEnvVar}, provide reviewed manifests in $${privateModelManifestDirEnvVar}, then retry the scoped external-agent tool call.`
+      : `Provide --tool plus reviewed private model files under $${privateModelRootEnvVar} and reviewed manifests in $${privateModelManifestDirEnvVar}.`,
     booleans: {
       localOnly: true,
       runtimeInputManifestWritten: false,

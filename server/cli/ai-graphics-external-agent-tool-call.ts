@@ -1623,6 +1623,27 @@ async function buildReport() {
         materializedRuntimeInputManifestReport?.decision ?? null,
       runtimeInputManifestMaterializerStatus:
         materializedRuntimeInputManifestReport?.status ?? null,
+      runtimeInputManifestMaterializerErrorMessage:
+        materializedRuntimeInputManifestReport?.errorMessage ?? null,
+      runtimeInputManifestMaterializerExpectedPrivateModelRootCandidates:
+        Array.isArray(
+          materializedRuntimeInputManifestReport
+            ?.expectedPrivateModelRootCandidates,
+        )
+          ? materializedRuntimeInputManifestReport
+            .expectedPrivateModelRootCandidates
+          : [],
+      runtimeInputManifestMaterializerExpectedPrivateModelRuntimeFiles:
+        Array.isArray(
+          materializedRuntimeInputManifestReport
+            ?.expectedPrivateModelRuntimeFiles,
+        )
+          ? materializedRuntimeInputManifestReport
+            .expectedPrivateModelRuntimeFiles
+          : [],
+      runtimeInputManifestMaterializerNextPrivateModelRootAction:
+        materializedRuntimeInputManifestReport?.nextPrivateModelRootAction ??
+        null,
       privateInputPreflightOnlyRequested: hasFlag('--private-input-preflight-only'),
       allowCpuTensorRuntimeRequested: hasFlag('--allow-cpu-tensor-runtime'),
       allowCpuFoundationRuntimeRequested: hasFlag('--allow-cpu-foundation-runtime'),

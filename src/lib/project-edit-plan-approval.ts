@@ -12,6 +12,45 @@ export interface ProjectEditPlanApprovalStep {
   summary: string
 }
 
+export type ProjectEditPlanSegmentRole = 'hook' | 'context' | 'main_body' | 'ending'
+
+export type ProjectEditPlanOperationType =
+  | 'trim'
+  | 'cut'
+  | 'caption'
+  | 'color_grade'
+  | 'audio_cleanup'
+  | 'transition'
+  | 'qa_check'
+
+export interface ProjectEditPlanSegmentOperation {
+  id: string
+  segmentRole: ProjectEditPlanSegmentRole
+  operationType: ProjectEditPlanOperationType
+  label: string
+  instruction: string
+  sourceRangeLabel: string
+  finalRangeLabel: string
+  qaChecks: string[]
+  workerReady: false
+  productReady: false
+}
+
+export interface ProjectEditPlanOperationManifest {
+  version: 'project-edit-operation-manifest-v1'
+  sourceFileName: string
+  sourceDurationSeconds?: number
+  sourceAspectRatio?: string
+  professionalBaseline: 'clean_professional'
+  sourceOrderPolicy: 'preserve_source_order_until_user_approves_reorder'
+  mediaIntelligenceStatus: 'not_analyzed_backend_local_only'
+  operations: ProjectEditPlanSegmentOperation[]
+  requiredQaChecks: string[]
+  workerExecutionReady: false
+  productReady: false
+  warnings: string[]
+}
+
 export interface ProjectEditPlanCreditEstimate {
   lowCredits: number
   expectedCredits: number
@@ -47,13 +86,14 @@ export interface ProjectEditPlanApprovalModel {
   projectId: string
   sourceSummary: string
   status: ProjectEditPlanApprovalStatus
+  operationManifest: ProjectEditPlanOperationManifest
   steps: ProjectEditPlanApprovalStep[]
   summary: string
   title: string
   warnings: string[]
 }
 
-export type ProjectEditPlanApprovedLocalPlan = Pick<ProjectEditPlanApprovalModel, 'approved' | 'creditEstimate' | 'planId' | 'steps' | 'summary' | 'title'>
+export type ProjectEditPlanApprovedLocalPlan = Pick<ProjectEditPlanApprovalModel, 'approved' | 'creditEstimate' | 'operationManifest' | 'planId' | 'steps' | 'summary' | 'title'>
 
 export interface ProjectEditPlanBackendLocalRecord {
   id: string
@@ -102,6 +142,125 @@ function safeSegment(value: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '')
     .slice(0, 64) || 'local'
+}
+
+function rangeLabel(startSeconds: number, endSeconds: number): string {
+  const safeStart = Math.max(0, Math.floor(startSeconds))
+  const safeEnd = Math.max(safeStart + 1, Math.ceil(endSeconds))
+  return `${safeStart}s-${safeEnd}s`
+}
+
+function createOperationManifest(input: ProjectEditPlanApprovalInput): ProjectEditPlanOperationManifest {
+  const sourceFileName = input.sourceFileName ?? input.backendUploadResult?.fileName ?? 'source video'
+  const durationSeconds = Math.max(1, Math.min(Math.ceil(input.sourceDurationSeconds ?? 60), 600))
+  const hookEnd = Math.min(6, Math.max(3, Math.round(durationSeconds * 0.15)))
+  const endingStart = Math.max(hookEnd + 1, durationSeconds - Math.min(6, Math.max(3, Math.round(durationSeconds * 0.12))))
+  const fullRange = rangeLabel(0, durationSeconds)
+
+  const operations: ProjectEditPlanSegmentOperation[] = [
+    {
+      id: 'op-hook-source-order-trim',
+      segmentRole: 'hook',
+      operationType: 'trim',
+      label: 'Opening trim',
+      instruction: 'Keep the strongest opening beat in source order and trim only obvious dead air that does not change meaning.',
+      sourceRangeLabel: rangeLabel(0, hookEnd),
+      finalRangeLabel: rangeLabel(0, hookEnd),
+      qaChecks: ['meaning_preserved', 'source_order_visible', 'no_random_hook_added'],
+      workerReady: false,
+      productReady: false,
+    },
+    {
+      id: 'op-body-clean-cuts',
+      segmentRole: 'main_body',
+      operationType: 'cut',
+      label: 'Clean pacing cuts',
+      instruction: 'Use clean cuts and phrase-safe pacing cleanup across the source; do not remove context needed to understand the speaker.',
+      sourceRangeLabel: fullRange,
+      finalRangeLabel: fullRange,
+      qaChecks: ['speech_clarity_preserved', 'no_misleading_cut', 'brief_followed'],
+      workerReady: false,
+      productReady: false,
+    },
+    {
+      id: 'op-readable-captions',
+      segmentRole: 'main_body',
+      operationType: 'caption',
+      label: 'Readable captions',
+      instruction: 'Prepare clean readable captions with safe placement and no face/product obstruction.',
+      sourceRangeLabel: fullRange,
+      finalRangeLabel: fullRange,
+      qaChecks: ['caption_readability', 'caption_safe_zone', 'caption_timing_pending_worker'],
+      workerReady: false,
+      productReady: false,
+    },
+    {
+      id: 'op-natural-color',
+      segmentRole: 'main_body',
+      operationType: 'color_grade',
+      label: 'Clean natural color',
+      instruction: 'Plan a natural correction pass that keeps skin, products, and source footage believable.',
+      sourceRangeLabel: fullRange,
+      finalRangeLabel: fullRange,
+      qaChecks: ['color_grade_matches_clean_professional', 'no_overprocessed_look'],
+      workerReady: false,
+      productReady: false,
+    },
+    {
+      id: 'op-voice-first-audio',
+      segmentRole: 'main_body',
+      operationType: 'audio_cleanup',
+      label: 'Voice-first audio',
+      instruction: 'Plan basic voice leveling and cleanup while keeping music and effects secondary to speech clarity.',
+      sourceRangeLabel: fullRange,
+      finalRangeLabel: fullRange,
+      qaChecks: ['voice_clear', 'music_ducking_if_used', 'no_sfx_over_speech'],
+      workerReady: false,
+      productReady: false,
+    },
+    {
+      id: 'op-ending-handoff',
+      segmentRole: 'ending',
+      operationType: 'transition',
+      label: 'Ending handoff',
+      instruction: 'Use simple motivated transition handling at the end; avoid random effects or unapproved generated visuals.',
+      sourceRangeLabel: rangeLabel(endingStart, durationSeconds),
+      finalRangeLabel: rangeLabel(endingStart, durationSeconds),
+      qaChecks: ['transition_motivated', 'no_random_effects', 'final_context_preserved'],
+      workerReady: false,
+      productReady: false,
+    },
+    {
+      id: 'op-professional-qa',
+      segmentRole: 'context',
+      operationType: 'qa_check',
+      label: 'Professional QA',
+      instruction: 'Check the preview against the saved brief, source order, approval snapshot, captions, audio, color, and private artifact boundaries before export.',
+      sourceRangeLabel: fullRange,
+      finalRangeLabel: fullRange,
+      qaChecks: ['approved_snapshot_used', 'credit_gate_recorded', 'private_artifact_only', 'product_ready_false'],
+      workerReady: false,
+      productReady: false,
+    },
+  ]
+
+  return {
+    version: 'project-edit-operation-manifest-v1',
+    sourceFileName,
+    sourceDurationSeconds: input.sourceDurationSeconds,
+    sourceAspectRatio: input.sourceAspectRatio,
+    professionalBaseline: 'clean_professional',
+    sourceOrderPolicy: 'preserve_source_order_until_user_approves_reorder',
+    mediaIntelligenceStatus: 'not_analyzed_backend_local_only',
+    operations,
+    requiredQaChecks: [...new Set(operations.flatMap((operation) => operation.qaChecks))],
+    workerExecutionReady: false,
+    productReady: false,
+    warnings: [
+      'Operation manifest is backend-local planning evidence only; transcript/media intelligence and production workers remain separate gates.',
+      'Workers must execute an approved snapshot and must not reinterpret raw chat.',
+    ],
+  }
 }
 
 export function estimateLocalEditPlanCredits(durationSeconds?: number): ProjectEditPlanCreditEstimate {
@@ -164,6 +323,7 @@ export function buildProjectEditPlanApprovalModel(input: ProjectEditPlanApproval
     projectId: input.projectId,
     sourceSummary,
     status,
+    operationManifest: createOperationManifest(input),
     steps: [
       {
         label: 'Source review',

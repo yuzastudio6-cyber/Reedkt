@@ -68,6 +68,12 @@ function editAssemblyValue(value: unknown): ProjectSourceVideoEditAssemblySummar
   const operationsApplied = Array.isArray(record.operationsApplied)
     ? record.operationsApplied.filter((item): item is string => typeof item === 'string' && item.length > 0)
     : []
+  const professionalOperationLabels = Array.isArray(record.professionalOperationLabels)
+    ? record.professionalOperationLabels.filter((item): item is string => typeof item === 'string' && item.length > 0)
+    : undefined
+  const requiredQaChecks = Array.isArray(record.requiredQaChecks)
+    ? record.requiredQaChecks.filter((item): item is string => typeof item === 'string' && item.length > 0)
+    : undefined
   const planStepCount = numberValue(record.planStepCount) ?? steps.length
 
   if (!planId || !title || !summary || (mode !== 'clean_internal_preview' && mode !== 'private_final_export') || steps.length === 0) {
@@ -83,6 +89,9 @@ function editAssemblyValue(value: unknown): ProjectSourceVideoEditAssemblySummar
     sourceAspectRatio: stringValue(record.sourceAspectRatio),
     mode,
     operationsApplied,
+    professionalOperationCount: numberValue(record.professionalOperationCount),
+    professionalOperationLabels,
+    requiredQaChecks,
     planStepCount,
     productReady: false,
   }
@@ -438,6 +447,7 @@ export function createRestoredApprovedLocalPlan(input: {
     approvedLocalPlan: {
       approved: true,
       creditEstimate: input.approvedPlan.creditEstimate,
+      operationManifest: input.approvedPlan.operationManifest,
       planId: input.approvedPlan.planId,
       steps: input.approvedPlan.steps,
       summary: input.approvedPlan.summary,

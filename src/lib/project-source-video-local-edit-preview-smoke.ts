@@ -168,6 +168,7 @@ function createEditAssemblySummary(input: {
     'frame_safe_mp4_assembly',
     'clean_fade_handles_applied',
     input.mode === 'private_final_export' ? 'approved_preview_review_carried_forward' : 'preview_review_pending',
+    ...input.approvedLocalPlan.operationManifest.operations.map((operation) => `professional_operation:${operation.operationType}:${operation.segmentRole}`),
     ...input.approvedLocalPlan.steps.map((step) => `plan_step:${step.label}`),
   ]
 
@@ -183,6 +184,9 @@ function createEditAssemblySummary(input: {
     sourceAspectRatio: input.sourceVideoAspectRatio,
     mode: input.mode,
     operationsApplied,
+    professionalOperationCount: input.approvedLocalPlan.operationManifest.operations.length,
+    professionalOperationLabels: input.approvedLocalPlan.operationManifest.operations.map((operation) => operation.label),
+    requiredQaChecks: input.approvedLocalPlan.operationManifest.requiredQaChecks,
     planStepCount: input.approvedLocalPlan.steps.length,
     productReady: false,
   }
@@ -287,6 +291,7 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
         label: step.label,
         summary: step.summary,
       })),
+      operationManifest: input.approvedLocalPlan.operationManifest,
       creditEstimate: input.approvedLocalPlan.creditEstimate,
       approved: true,
     },

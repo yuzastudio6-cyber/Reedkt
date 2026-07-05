@@ -98,6 +98,9 @@ function editAssemblyPlanFromPayload(payload: Record<string, unknown>): BasicRen
     sourceDurationSeconds: numberFromPayload(record, 'sourceDurationSeconds'),
     sourceAspectRatio: stringFromPayload(record, 'sourceAspectRatio'),
     mode: stringFromPayload(record, 'mode') === 'private_final_export' ? 'private_final_export' : 'clean_internal_preview',
+    professionalOperationCount: numberFromPayload(record, 'professionalOperationCount'),
+    professionalOperationLabels: stringArrayFromPayload(record, 'professionalOperationLabels'),
+    requiredQaChecks: stringArrayFromPayload(record, 'requiredQaChecks'),
   }
 }
 
@@ -109,4 +112,11 @@ function stringFromPayload(payload: Record<string, unknown>, key: string): strin
 function numberFromPayload(payload: Record<string, unknown>, key: string): number | undefined {
   const value = payload[key]
   return typeof value === 'number' ? value : undefined
+}
+
+function stringArrayFromPayload(payload: Record<string, unknown>, key: string): string[] | undefined {
+  const value = payload[key]
+  if (!Array.isArray(value)) return undefined
+  const strings = value.filter((item): item is string => typeof item === 'string' && item.length > 0)
+  return strings.length > 0 ? strings : undefined
 }

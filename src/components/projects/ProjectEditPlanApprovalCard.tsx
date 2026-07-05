@@ -53,6 +53,15 @@ export function ProjectEditPlanApprovalCard({
         ))}
       </ol>
 
+      <div className="project-edit-plan-approval-card__operations" data-testid="project-edit-plan-operation-manifest">
+        <span>
+          <strong>{model.operationManifest.operations.length}</strong>
+          approved edit operations
+        </span>
+        <span>{model.operationManifest.professionalBaseline.replace(/_/g, ' ')}</span>
+        <span>{model.operationManifest.sourceOrderPolicy.replace(/_/g, ' ')}</span>
+      </div>
+
       <div className="project-edit-plan-approval-card__estimate" data-testid="project-edit-plan-credit-estimate">
         <span>
           <strong>{model.creditEstimate.lowCredits}</strong>

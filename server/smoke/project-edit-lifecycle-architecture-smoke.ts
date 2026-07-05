@@ -219,6 +219,7 @@ const backendPlan = await planService.createApprovedLocalEditPlan({
     sizeBytes: uploaded.sizeBytes,
     storageObjectRecordId: uploaded.storageObjectRecordId,
   },
+  operationManifest: approvedPlan.operationManifest,
   steps: approvedPlan.steps,
   summary: approvedPlan.summary,
   title: approvedPlan.title,
@@ -229,6 +230,12 @@ assert.equal(backendPlan.localEditPlan.creditEstimateId, `${approvedPlan.planId}
 assert.equal(backendPlan.localEditPlan.backendLocalPlanStored, true)
 assert.equal(backendPlan.localEditPlan.readbackVerified, true)
 assert.equal(backendPlan.localEditPlan.approvedLocalPlan.approved, true)
+assert.equal(backendPlan.localEditPlan.approvedLocalPlan.operationManifest.version, 'project-edit-operation-manifest-v1')
+assert.equal(backendPlan.localEditPlan.approvedLocalPlan.operationManifest.operations.length, approvedPlan.operationManifest.operations.length)
+assert.equal(backendPlan.localEditPlan.approvedLocalPlan.operationManifest.productReady, false)
+assert.equal(backendPlan.localEditPlan.approvedLocalPlan.operationManifest.workerExecutionReady, false)
+assert.ok(backendPlan.localEditPlan.approvedLocalPlan.operationManifest.requiredQaChecks.includes('caption_readability'))
+assert.ok(backendPlan.localEditPlan.approvedLocalPlan.operationManifest.requiredQaChecks.includes('approved_snapshot_used'))
 assert.equal(backendPlan.localEditPlan.providerCallMade, false)
 assert.equal(backendPlan.localEditPlan.workerJobCreated, false)
 assert.equal(backendPlan.localEditPlan.renderJobCreated, false)
@@ -240,6 +247,7 @@ assert.equal(backendPlan.localEditPlan.productReady, false)
 const backendPlanReadback = await planService.getApprovedLocalEditPlan(approvedPlan.planId, 'mock-workspace')
 assert.equal(backendPlanReadback.localEditPlan.editPlanId, backendPlan.localEditPlan.editPlanId)
 assert.equal(backendPlanReadback.localEditPlan.readbackVerified, true)
+assert.equal(backendPlanReadback.localEditPlan.approvedLocalPlan.operationManifest.operations[0]?.id, 'op-hook-source-order-trim')
 
 const approvedModel = buildProjectEditLifecycleModel({
   backendUploadAvailable: true,
@@ -598,6 +606,7 @@ assert.match(previewCard, /planApproved/)
 assert.match(previewCard, /Approve plan first/)
 assert.match(previewCard, /onPreviewReady/)
 assert.match(previewCard, /approvedLocalPlan/)
+assert.match(previewCard, /operationManifest/)
 assert.match(previewCard, /ProjectEditBriefArtifactReviewPlayer/)
 assert.match(previewCard, /approved plan steps applied/)
 assert.doesNotMatch(previewCard, /product-ready/i)
@@ -652,6 +661,9 @@ assert.match(lifecycleCard, /model.finalExportReadiness.summary/)
 
 const previewClient = read('src/lib/project-source-video-local-edit-preview-smoke.ts')
 assert.match(previewClient, /approvedLocalPlan/)
+assert.match(previewClient, /professionalOperationCount/)
+assert.match(previewClient, /professionalOperationLabels/)
+assert.match(previewClient, /requiredQaChecks/)
 assert.match(previewClient, /visibleLocalPlanApproved/)
 assert.match(previewClient, /Local edit preview requires the visible local edit plan/)
 assert.match(previewClient, /editAssemblyPlan: editAssembly/)
@@ -677,6 +689,7 @@ assert.doesNotMatch(previewReviewClient, /service_role|signedUrl|Stripe|producti
 
 const planClient = read('src/lib/project-edit-plan-backend-local.ts')
 assert.match(planClient, /local-edit-plans/)
+assert.match(planClient, /operationManifest/)
 assert.match(planClient, /readbackVerified/)
 assert.match(planClient, /backendLocalPlanStored/)
 assert.doesNotMatch(planClient, /service_role|signedUrl|Stripe|production ready:\s*true/i)
@@ -689,6 +702,7 @@ assert.match(planRoute, /getApprovedLocalEditPlan/)
 
 const planServiceSource = read('server/services/project-edit-plan-service.ts')
 assert.match(planServiceSource, /MOCK_ONLY/)
+assert.match(planServiceSource, /sanitizeOperationManifest/)
 assert.match(planServiceSource, /backendLocalPlanStored/)
 assert.match(planServiceSource, /readbackVerified/)
 assert.match(planServiceSource, /PLAN_NOT_APPROVED/)
@@ -708,6 +722,7 @@ assert.match(renderSmokeService, /publicDeliveryEnabled: false/)
 const renderSchemas = read('server/validation/render-schemas.ts')
 assert.match(renderSchemas, /basicRenderSmokeFinalExportSchema/)
 assert.match(renderSchemas, /previewReviewStatus: z.literal\('approved'\)/)
+assert.match(renderSchemas, /professionalOperationCount/)
 
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
 assert.equal(

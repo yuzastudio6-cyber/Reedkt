@@ -220,6 +220,28 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.project-edit-plan-approval-card__operations {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.project-edit-plan-approval-card__operations span {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-secondary);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+  padding: 9px 10px;
+}
+
+.project-edit-plan-approval-card__operations strong {
+  color: var(--rp-text-primary);
+  display: block;
+  font-size: 1rem;
+}
+
 .project-edit-plan-approval-card__estimate span {
   background: rgba(0, 229, 255, 0.08);
   border: 1px solid rgba(0, 229, 255, 0.22);

@@ -6,6 +6,34 @@ const localEditPlanStepSchema = z.object({
   summary: z.string().min(1).max(800),
 })
 
+const localEditPlanSegmentOperationSchema = z.object({
+  id: idSchema,
+  segmentRole: z.enum(['hook', 'context', 'main_body', 'ending']),
+  operationType: z.enum(['trim', 'cut', 'caption', 'color_grade', 'audio_cleanup', 'transition', 'qa_check']),
+  label: z.string().min(1).max(160),
+  instruction: z.string().min(1).max(1200),
+  sourceRangeLabel: z.string().min(1).max(80),
+  finalRangeLabel: z.string().min(1).max(80),
+  qaChecks: z.array(z.string().min(1).max(100)).min(1).max(12),
+  workerReady: z.literal(false),
+  productReady: z.literal(false),
+})
+
+const localEditPlanOperationManifestSchema = z.object({
+  version: z.literal('project-edit-operation-manifest-v1'),
+  sourceFileName: z.string().min(1).max(240),
+  sourceDurationSeconds: z.number().positive().max(24 * 60 * 60).optional(),
+  sourceAspectRatio: z.string().min(1).max(32).optional(),
+  professionalBaseline: z.literal('clean_professional'),
+  sourceOrderPolicy: z.literal('preserve_source_order_until_user_approves_reorder'),
+  mediaIntelligenceStatus: z.literal('not_analyzed_backend_local_only'),
+  operations: z.array(localEditPlanSegmentOperationSchema).min(4).max(24),
+  requiredQaChecks: z.array(z.string().min(1).max(100)).min(1).max(40),
+  workerExecutionReady: z.literal(false),
+  productReady: z.literal(false),
+  warnings: z.array(z.string().min(1).max(500)).max(12),
+})
+
 const localEditPlanCreditEstimateSchema = z.object({
   lowCredits: z.number().int().nonnegative(),
   expectedCredits: z.number().int().nonnegative(),
@@ -33,6 +61,7 @@ export const createApprovedLocalEditPlanSchema = z.object({
   title: z.string().min(1).max(160),
   summary: z.string().min(1).max(4000),
   steps: z.array(localEditPlanStepSchema).min(1).max(12),
+  operationManifest: localEditPlanOperationManifestSchema,
   creditEstimate: localEditPlanCreditEstimateSchema,
   source: localEditPlanSourceSchema,
 })

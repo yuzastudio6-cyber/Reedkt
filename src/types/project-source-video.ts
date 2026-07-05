@@ -143,6 +143,9 @@ export interface ProjectSourceVideoEditAssemblySummary {
   sourceAspectRatio?: string
   mode: ProjectSourceVideoEditAssemblyMode
   operationsApplied: string[]
+  professionalOperationCount?: number
+  professionalOperationLabels?: string[]
+  requiredQaChecks?: string[]
   planStepCount: number
   productReady: false
 }

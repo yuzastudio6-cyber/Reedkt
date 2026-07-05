@@ -39,6 +39,9 @@ export const basicRenderSmokeEditAssemblyPlanSchema = z.object({
   sourceDurationSeconds: z.number().positive().max(24 * 60 * 60).optional(),
   sourceAspectRatio: z.string().min(1).max(32).optional(),
   mode: z.enum(['clean_internal_preview', 'private_final_export']).optional(),
+  professionalOperationCount: z.number().int().nonnegative().optional(),
+  professionalOperationLabels: z.array(z.string().min(1).max(160)).max(24).optional(),
+  requiredQaChecks: z.array(z.string().min(1).max(100)).max(40).optional(),
 })
 
 export const basicRenderSmokePreviewSchema = z.object({

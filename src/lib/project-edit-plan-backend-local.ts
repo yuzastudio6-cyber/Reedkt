@@ -105,6 +105,7 @@ export async function approveProjectEditPlanBackendLocal(
       title: input.approvedLocalPlan.title,
       summary: input.approvedLocalPlan.summary,
       steps: input.approvedLocalPlan.steps,
+      operationManifest: input.approvedLocalPlan.operationManifest,
       creditEstimate: input.approvedLocalPlan.creditEstimate,
       source: {
         storageObjectRecordId: input.sourceVideoUploadResult.storageObjectRecordId,

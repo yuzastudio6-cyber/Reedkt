@@ -7,6 +7,34 @@ interface LocalEditPlanStepInput {
   summary: string
 }
 
+interface LocalEditPlanSegmentOperationInput {
+  id: string
+  segmentRole: 'hook' | 'context' | 'main_body' | 'ending'
+  operationType: 'trim' | 'cut' | 'caption' | 'color_grade' | 'audio_cleanup' | 'transition' | 'qa_check'
+  label: string
+  instruction: string
+  sourceRangeLabel: string
+  finalRangeLabel: string
+  qaChecks: string[]
+  workerReady: false
+  productReady: false
+}
+
+interface LocalEditPlanOperationManifestInput {
+  version: 'project-edit-operation-manifest-v1'
+  sourceFileName: string
+  sourceDurationSeconds?: number
+  sourceAspectRatio?: string
+  professionalBaseline: 'clean_professional'
+  sourceOrderPolicy: 'preserve_source_order_until_user_approves_reorder'
+  mediaIntelligenceStatus: 'not_analyzed_backend_local_only'
+  operations: LocalEditPlanSegmentOperationInput[]
+  requiredQaChecks: string[]
+  workerExecutionReady: false
+  productReady: false
+  warnings: string[]
+}
+
 interface LocalEditPlanCreditEstimateInput {
   lowCredits: number
   expectedCredits: number
@@ -34,6 +62,7 @@ interface CreateApprovedLocalEditPlanInput {
   title: string
   summary: string
   steps: LocalEditPlanStepInput[]
+  operationManifest: LocalEditPlanOperationManifestInput
   creditEstimate: LocalEditPlanCreditEstimateInput
   source: LocalEditPlanSourceInput
 }
@@ -53,6 +82,7 @@ export interface ApprovedLocalEditPlanRecord {
     creditEstimate: LocalEditPlanCreditEstimateInput
     planId: string
     steps: LocalEditPlanStepInput[]
+    operationManifest: LocalEditPlanOperationManifestInput
     summary: string
     title: string
   }
@@ -111,6 +141,7 @@ export function createProjectEditPlanService(context: ServiceContext) {
         approvedLocalPlan: {
           approved: true,
           creditEstimate: input.creditEstimate,
+          operationManifest: sanitizeOperationManifest(input.operationManifest),
           planId: input.planId,
           steps: input.steps.map((step) => sanitizePlanStep(step)),
           summary: sanitizePlanText(input.summary),
@@ -177,6 +208,17 @@ function assertSafePlanText(input: CreateApprovedLocalEditPlanInput): void {
     input.source.objectPath,
     input.source.fileName,
     ...input.steps.flatMap((step) => [step.label, step.summary]),
+    input.operationManifest.sourceFileName,
+    ...input.operationManifest.operations.flatMap((operation) => [
+      operation.id,
+      operation.label,
+      operation.instruction,
+      operation.sourceRangeLabel,
+      operation.finalRangeLabel,
+      ...operation.qaChecks,
+    ]),
+    ...input.operationManifest.requiredQaChecks,
+    ...input.operationManifest.warnings,
   ].find((value) => /service.?role|api.?key|secret|signed.?url|token|sk-[a-z0-9_-]+/i.test(value))
 
   if (unsafeText) {
@@ -188,6 +230,28 @@ function sanitizePlanStep(step: LocalEditPlanStepInput): LocalEditPlanStepInput 
   return {
     label: sanitizePlanText(step.label),
     summary: sanitizePlanText(step.summary),
+  }
+}
+
+function sanitizeOperationManifest(manifest: LocalEditPlanOperationManifestInput): LocalEditPlanOperationManifestInput {
+  return {
+    ...manifest,
+    sourceFileName: sanitizePlanText(manifest.sourceFileName),
+    operations: manifest.operations.map((operation) => ({
+      ...operation,
+      id: sanitizePlanText(operation.id),
+      label: sanitizePlanText(operation.label),
+      instruction: sanitizePlanText(operation.instruction),
+      sourceRangeLabel: sanitizePlanText(operation.sourceRangeLabel),
+      finalRangeLabel: sanitizePlanText(operation.finalRangeLabel),
+      qaChecks: operation.qaChecks.map(sanitizePlanText),
+      workerReady: false,
+      productReady: false,
+    })),
+    requiredQaChecks: manifest.requiredQaChecks.map(sanitizePlanText),
+    workerExecutionReady: false,
+    productReady: false,
+    warnings: manifest.warnings.map(sanitizePlanText),
   }
 }
 

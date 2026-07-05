@@ -199,6 +199,9 @@ try {
   })
   assert.equal(plan.canApprove, true)
   assert.equal(plan.approved, true)
+  assert.equal(plan.operationManifest.version, 'project-edit-operation-manifest-v1')
+  assert.ok(plan.operationManifest.operations.length >= 7)
+  assert.ok(plan.operationManifest.requiredQaChecks.includes('approved_snapshot_used'))
 
   const approvedPlan = await approveProjectEditPlanBackendLocal({
     apiBaseUrl,
@@ -211,6 +214,8 @@ try {
   })
   assert.equal(approvedPlan.localEditPlan.readbackVerified, true)
   assert.equal(approvedPlan.localEditPlan.productReady, false)
+  assert.equal(approvedPlan.localEditPlan.approvedLocalPlan.operationManifest.operations.length, plan.operationManifest.operations.length)
+  assert.equal(approvedPlan.localEditPlan.approvedLocalPlan.operationManifest.workerExecutionReady, false)
 
   await recordProjectEditSessionLifecycleCheckpointBackendLocal({
     apiBaseUrl,
@@ -243,6 +248,9 @@ try {
   assert.equal(preview.editAssembly?.planId, approvedPlan.localEditPlan.editPlanId)
   assert.equal(preview.editAssembly?.mode, 'clean_internal_preview')
   assert.equal(preview.editAssembly?.planStepCount, approvedPlan.localEditPlan.approvedLocalPlan.steps.length)
+  assert.equal(preview.editAssembly?.professionalOperationCount, approvedPlan.localEditPlan.approvedLocalPlan.operationManifest.operations.length)
+  assert.ok(preview.editAssembly?.professionalOperationLabels?.includes('Readable captions'))
+  assert.ok(preview.editAssembly?.requiredQaChecks?.includes('caption_readability'))
   assert.ok(preview.editAssembly?.operationsApplied.includes('clean_fade_handles_applied'))
   const previewReviewBytes = await assertPrivateReviewArtifact({
     apiBaseUrl,
@@ -316,6 +324,8 @@ try {
   assert.ok(finalExport.outputObjectPath?.includes('/exports/'))
   assert.equal(finalExport.editAssembly?.planId, approvedPlan.localEditPlan.editPlanId)
   assert.equal(finalExport.editAssembly?.mode, 'private_final_export')
+  assert.equal(finalExport.editAssembly?.professionalOperationCount, approvedPlan.localEditPlan.approvedLocalPlan.operationManifest.operations.length)
+  assert.ok(finalExport.editAssembly?.requiredQaChecks?.includes('approved_snapshot_used'))
   assert.ok(finalExport.editAssembly?.operationsApplied.includes('approved_preview_review_carried_forward'))
   assert.equal(finalExport.professionalQA?.status, 'passed')
   const finalExportReviewBytes = await assertPrivateReviewArtifact({

@@ -18,6 +18,9 @@ export interface BasicRenderSmokeEditAssemblyPlan {
   sourceDurationSeconds?: number
   sourceAspectRatio?: string
   mode?: BasicRenderSmokeEditAssemblyMode
+  professionalOperationCount?: number
+  professionalOperationLabels?: string[]
+  requiredQaChecks?: string[]
 }
 
 export interface BasicRenderSmokeEditAssemblyResult extends BasicRenderSmokeEditAssemblyPlan {

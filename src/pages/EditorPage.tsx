@@ -38,13 +38,6 @@ export function EditorPage() {
       const nextBundle = await loadProjectEditSessionChatBundleForUI({ projectId, editSessionId: editSessionId ?? '', client: apiClient })
       if (cancelled) return
 
-      if (nextBundle.header) {
-        setBackendLocalHeader(nextBundle.header)
-        setBackendLocalEditSession(undefined)
-        setStatusMessage('Edit loaded.')
-        return
-      }
-
       if (backendLocalConfig.available && backendLocalConfig.apiBaseUrl) {
         try {
           const readback = await readProjectEditSessionBackendLocal({
@@ -60,6 +53,13 @@ export function EditorPage() {
         } catch {
           // Fall through to the not-found copy below.
         }
+      }
+
+      if (nextBundle.header) {
+        setBackendLocalHeader(nextBundle.header)
+        setBackendLocalEditSession(undefined)
+        setStatusMessage('Edit loaded.')
+        return
       }
 
       setBackendLocalHeader(undefined)

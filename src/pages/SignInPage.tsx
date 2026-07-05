@@ -207,7 +207,11 @@ export function SignInPage() {
           )}
 
           {internalTestingMockAuthEnabled && (
-            <div className="auth-entry-notice auth-entry-notice-info" role="status">
+            <div
+              className="auth-entry-notice auth-entry-notice-info"
+              data-testid="auth-local-testing-session-notice"
+              role="status"
+            >
               <strong>Local app session is enabled</strong>
               <p>
                 `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true` lets this form create a browser-local testing session when Supabase env is
@@ -278,7 +282,13 @@ export function SignInPage() {
               />
             </label>
 
-            <Button disabled={submitDisabled} icon={mode === 'sign_in' ? ArrowRight : UserPlus} type="submit" variant="primary">
+            <Button
+              data-testid="auth-submit-button"
+              disabled={submitDisabled}
+              icon={mode === 'sign_in' ? ArrowRight : UserPlus}
+              type="submit"
+              variant="primary"
+            >
               {submitting ? 'Checking session' : mode === 'sign_in' ? 'Sign in' : 'Create account'}
             </Button>
           </form>

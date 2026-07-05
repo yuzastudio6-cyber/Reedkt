@@ -64,10 +64,10 @@ test.describe('Project source video backend-local upload against real local API'
 
     if (process.env.PLAYWRIGHT_INTERNAL_TEST_AUTH === 'true') {
       await gotoRoute(page, `/sign-in?redirect=${encodeURIComponent(briefPath)}`)
-      await expect(page.getByText('Internal testing auth is enabled')).toBeVisible()
+      await expect(page.getByTestId('auth-local-testing-session-notice')).toContainText('Local app session is enabled')
       await page.getByLabel('Email').fill('source.upload.tester@reeditpro.local')
       await page.getByLabel('Password').fill('reeditpro-testing')
-      await page.getByRole('button', { name: /Sign in and open testing/i }).click()
+      await page.getByTestId('auth-submit-button').click()
       await expect(page).toHaveURL(new RegExp(`${briefPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`))
     } else {
       await gotoRoute(page, briefPath)
@@ -92,9 +92,9 @@ test.describe('Project source video backend-local upload against real local API'
     const fixtureStat = await stat(fixturePath)
     expect(objectStat.size).toBe(fixtureStat.size)
 
-    await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Approve the local edit plan and credit estimate')
+    await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('local edit plan and credit estimate')
     await page.getByRole('button', { name: /Save brief/i }).click()
-    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Brief saved locally')
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Brief saved and read back')
     await expect(page.getByTestId('project-edit-plan-credit-estimate')).toContainText('expected')
     await page.getByRole('button', { name: /Approve local test plan/i }).click()
     await expect(page.getByTestId('project-edit-brief-status')).toContainText('Local edit plan and credit estimate approved')

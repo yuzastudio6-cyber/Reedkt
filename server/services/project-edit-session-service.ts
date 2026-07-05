@@ -5,6 +5,7 @@ import type {
   ProjectEditSessionLifecycleCheckpointRequest,
 } from '../validation/project-edit-session-schemas'
 import type { ProjectEditSessionRecord } from '../../src/types/project-edit-session'
+import { MOCK_PROJECT_EDIT_SESSION_FIXTURE_BUNDLE } from '../../src/lib/mock-project-edit-sessions'
 import { createMockId, getRequiredAuthUserId, mockWarning, nowIso, sanitizeJson } from './service-helpers'
 
 type CreateProjectEditSessionInput = CreateProjectEditSessionRequest & {
@@ -28,6 +29,64 @@ export type BackendLocalProjectEditSessionRecord = ProjectEditSessionRecord & {
 const mockEditSessions = new Map<string, BackendLocalProjectEditSessionRecord>()
 const mockEditSessionIdempotency = new Map<string, string>()
 const mockEditSessionLifecycleIdempotency = new Map<string, string>()
+
+function createSeededBackendLocalEditSession(
+  session: ProjectEditSessionRecord,
+  workspaceId: string,
+  ownerUserId: string,
+): BackendLocalProjectEditSessionRecord {
+  return {
+    ...session,
+    workspaceId,
+    ownerUserId,
+    metadata: {
+      ...(session.metadata ?? {}),
+      backendLocalSeededFixture: true,
+      outputFrameConfirmed: true,
+      outputFrameConfirmationSource: 'seeded_internal_testing_fixture',
+      confirmedAspectRatio: session.aspectRatio,
+      confirmedPlatformTarget: session.platformTarget,
+      noUploadStarted: true,
+      noPlanApproved: session.approvalStatus !== 'approved',
+      noToolExecutionStarted: true,
+      noRenderStarted: true,
+      noCreditReservedOrSpent: true,
+    },
+    backendLocalSessionStored: true,
+    readbackVerified: true,
+    providerCallMade: false,
+    workerJobCreated: false,
+    renderJobCreated: false,
+    creditReservedOrSpent: false,
+    supabaseWriteMade: false,
+    gcsWriteMade: false,
+    productReady: false,
+    mockOnly: true,
+  }
+}
+
+function ensureSeededBackendLocalEditSessions(workspaceId: string, ownerUserId: string): void {
+  for (const session of MOCK_PROJECT_EDIT_SESSION_FIXTURE_BUNDLE.sessions) {
+    const existing = mockEditSessions.get(session.id)
+    if (existing?.workspaceId === workspaceId) continue
+
+    mockEditSessions.set(session.id, createSeededBackendLocalEditSession(session, workspaceId, ownerUserId))
+  }
+}
+
+function ensureSeededBackendLocalEditSession(
+  editSessionId: string,
+  workspaceId: string,
+  ownerUserId: string,
+): void {
+  const existing = mockEditSessions.get(editSessionId)
+  if (existing?.workspaceId === workspaceId) return
+
+  const fixture = MOCK_PROJECT_EDIT_SESSION_FIXTURE_BUNDLE.sessions.find((session) => session.id === editSessionId)
+  if (!fixture) return
+
+  mockEditSessions.set(fixture.id, createSeededBackendLocalEditSession(fixture, workspaceId, ownerUserId))
+}
 
 export function createProjectEditSessionService(context: ServiceContext) {
   return {
@@ -126,6 +185,7 @@ export function createProjectEditSessionService(context: ServiceContext) {
         )
       }
 
+      ensureSeededBackendLocalEditSession(editSessionId, workspaceId, context.auth?.userId ?? 'mock-user-runtime')
       const existing = mockEditSessions.get(editSessionId)
       if (!existing || existing.workspaceId !== workspaceId) {
         throw new ApiError('PROJECT_NOT_FOUND', 'Backend-local edit session was not found for this workspace.', 404)
@@ -149,6 +209,7 @@ export function createProjectEditSessionService(context: ServiceContext) {
         )
       }
 
+      ensureSeededBackendLocalEditSessions(input.workspaceId, context.auth?.userId ?? 'mock-user-runtime')
       const editSessions = Array.from(mockEditSessions.values())
         .filter((session) => session.workspaceId === input.workspaceId && session.projectId === input.projectId)
         .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
@@ -192,7 +253,11 @@ export function createProjectEditSessionService(context: ServiceContext) {
         }
       }
 
-      const existing = mockEditSessions.get(input.editSessionId)
+      let existing = mockEditSessions.get(input.editSessionId)
+      if (!existing || existing.workspaceId !== input.workspaceId) {
+        ensureSeededBackendLocalEditSession(input.editSessionId, input.workspaceId, userId)
+        existing = mockEditSessions.get(input.editSessionId)
+      }
       if (!existing || existing.workspaceId !== input.workspaceId) {
         throw new ApiError('PROJECT_NOT_FOUND', 'Backend-local edit session was not found for this workspace.', 404)
       }

@@ -918,22 +918,6 @@ function gpuModelPrivateModelRootMaterializerFlags(toolId: string): string[] {
     : []
 }
 
-function gpuModelExactModelPathFlags(toolId: string): string[] {
-  if (toolId === 'sam2') {
-    return [
-      '--sam2-checkpoint <private-sam2-checkpoint.pt>',
-      `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
-    ]
-  }
-  if (toolId === 'birefnet') {
-    return [
-      `--birefnet-model ${birefNetModelDirectoryPlaceholder}`,
-      `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
-    ]
-  }
-  return gpuModelPrivateModelRootMaterializerFlags(toolId)
-}
-
 function gpuModelBlockedPrerequisites(toolId: string): string[] {
   const prerequisites = [
     gpuModelAllowsCpuTensorRuntime(toolId)
@@ -1024,7 +1008,7 @@ function gpuModelScopedToolCallCommand(toolId: string): string {
           ...(gpuModelSourceImageRequired(toolId)
             ? ['--source-image <private-approved-frame.png>']
             : []),
-          ...gpuModelExactModelPathFlags(toolId),
+          ...gpuModelPrivateModelRootMaterializerFlags(toolId),
         ]
       : gpuModelPrivateInputPlaceholders(toolId)),
     preferredCpuRuntimeFlag,

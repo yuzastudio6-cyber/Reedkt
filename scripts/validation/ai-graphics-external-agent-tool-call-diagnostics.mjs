@@ -783,11 +783,11 @@ function checkPrivateInputPreflightCall(label, report, expectedToolId) {
   }
   if (expectedToolId === 'sam2') {
     const command = String(report.nextAction?.nextExactScopedToolCallCommand ?? '')
-    if (!command.includes('--sam2-checkpoint <private-sam2-checkpoint.pt>')) {
-      fail(`${label}_next_action_missing_sam2_explicit_checkpoint`)
+    if (!command.includes('--private-model-root')) {
+      fail(`${label}_next_action_missing_sam2_private_model_root`)
     }
-    if (command.includes('--private-model-root')) {
-      fail(`${label}_next_action_unexpected_sam2_private_model_root`)
+    if (command.includes('--sam2-checkpoint <private-sam2-checkpoint.pt>')) {
+      fail(`${label}_next_action_unexpected_sam2_explicit_checkpoint`)
     }
   }
   if (expectedToolId === 'birefnet' &&
@@ -796,11 +796,11 @@ function checkPrivateInputPreflightCall(label, report, expectedToolId) {
   }
   if (expectedToolId === 'birefnet') {
     const command = String(report.nextAction?.nextExactScopedToolCallCommand ?? '')
-    if (!command.includes(`--birefnet-model ${birefNetModelDirectoryPlaceholder}`)) {
-      fail(`${label}_next_action_missing_birefnet_explicit_model`)
+    if (!command.includes('--private-model-root')) {
+      fail(`${label}_next_action_missing_birefnet_private_model_root`)
     }
-    if (command.includes('--private-model-root')) {
-      fail(`${label}_next_action_unexpected_birefnet_private_model_root`)
+    if (command.includes(`--birefnet-model ${birefNetModelDirectoryPlaceholder}`)) {
+      fail(`${label}_next_action_unexpected_birefnet_explicit_model`)
     }
   }
   if (expectedToolId === 'real_esrgan' &&
@@ -884,7 +884,7 @@ for (const phrase of [
   'runtimeInputManifestMaterializedFromExplicitModelPath',
   'nextExactModelWeightManifestReviewCommand',
   'runtimeInputManifestMaterializedFromPrivateRoot',
-  'gpuModelExactModelPathFlags',
+  'gpuModelPrivateModelRootMaterializerFlags',
   'manifestBooleanForTool',
   'manifestStringForTool',
   'gpuModelScopedToolCallManifestCommand',

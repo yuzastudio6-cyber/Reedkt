@@ -446,7 +446,7 @@ try {
     backendUploadStatus: restoredUpload ? 'uploaded' : 'failed',
     briefSaved: restoredBrief.editBrief.readbackVerified === true,
     editSessionId,
-    hasLocalSourceVideo: true,
+    hasLocalSourceVideo: Boolean(restoredUpload),
     localFinalExportResult: restoredFinalExport,
     localPreviewResult: restoredPreview,
     planApproved: Boolean(restoredPlan?.localEditPlan.readbackVerified),

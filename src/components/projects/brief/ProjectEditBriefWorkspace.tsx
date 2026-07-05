@@ -124,15 +124,16 @@ export function ProjectEditBriefWorkspace({
   }, [])
 
   const sourceSummary = useMemo(() => createProjectSourceVideoMetadataSummary(sourceVideo), [sourceVideo])
+  const sourceEvidenceAvailable = Boolean(sourceVideo || backendUploadResult)
   const videoShell = useMemo<ProjectEditBriefVideoShellModel>(() => ({
     durationSeconds: sourceVideo?.durationSeconds ?? 60,
     currentTimeSeconds: playheadSeconds,
     currentTimeLabel: formatProjectSourceVideoDuration(playheadSeconds),
     durationLabel: formatProjectSourceVideoDuration(sourceVideo?.durationSeconds),
     aspectLabel: sourceVideo?.inferredAspectRatio ?? 'Metadata pending',
-    title: sourceVideo?.fileName ?? 'Source video',
+    title: sourceVideo?.fileName ?? backendUploadResult?.fileName ?? 'Source video',
     mockPosterLabel: 'Select a source video',
-  }), [playheadSeconds, sourceVideo])
+  }), [backendUploadResult, playheadSeconds, sourceVideo])
   const planApprovalModel = useMemo(() => buildProjectEditPlanApprovalModel({
     approved: planApproved,
     backendUploadResult,
@@ -142,7 +143,7 @@ export function ProjectEditBriefWorkspace({
     projectId,
     sourceAspectRatio: sourceVideo?.inferredAspectRatio,
     sourceDurationSeconds: sourceVideo?.durationSeconds,
-    sourceFileName: sourceVideo?.fileName,
+    sourceFileName: sourceVideo?.fileName ?? backendUploadResult?.fileName,
   }), [backendSavedBrief, backendUploadResult, briefSaved, briefText, editSessionId, planApproved, projectId, sourceVideo])
   const lifecycle = useMemo(() => buildProjectEditLifecycleModel({
     backendUploadAvailable: backendUploadConfig.available,
@@ -150,7 +151,7 @@ export function ProjectEditBriefWorkspace({
     backendUploadStatus,
     briefSaved: Boolean(backendSavedBrief?.readbackVerified) && briefSaved,
     editSessionId,
-    hasLocalSourceVideo: Boolean(sourceVideo),
+    hasLocalSourceVideo: sourceEvidenceAvailable,
     localFinalExportResult,
     localPreviewResult,
     planApproved: planApprovalModel.approved,
@@ -164,7 +165,7 @@ export function ProjectEditBriefWorkspace({
       finalRenderWorkerReady: Boolean(localFinalExportResult),
       exportDeliveryPolicyReady: Boolean(localFinalExportResult),
     },
-  }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localFinalExportResult, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, previewReviewResult, professionalQAResult, projectId, sourceVideo])
+  }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localFinalExportResult, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, previewReviewResult, professionalQAResult, projectId, sourceEvidenceAvailable])
 
   useEffect(() => {
     let cancelled = false
@@ -240,7 +241,7 @@ export function ProjectEditBriefWorkspace({
         projectId,
         sourceAspectRatio: sourceVideo?.inferredAspectRatio,
         sourceDurationSeconds: sourceVideo?.durationSeconds,
-        sourceFileName: sourceVideo?.fileName,
+        sourceFileName: sourceVideo?.fileName ?? backendUploadResult.fileName,
       })
       const restoredPlan = createRestoredApprovedLocalPlan({
         approvedPlan: restoredPlanModel,

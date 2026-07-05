@@ -213,7 +213,7 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
       'source_video_selected',
       'Source video selected',
       input.hasLocalSourceVideo ? 'complete' : 'ready',
-      input.hasLocalSourceVideo ? 'A browser-local source video is attached to this edit.' : 'Choose the source video that belongs to this edit.',
+      input.hasLocalSourceVideo ? 'A source video record is attached to this edit.' : 'Choose the source video that belongs to this edit.',
     ),
     stage(
       'backend_upload_configured',
@@ -292,7 +292,7 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
     projectId: input.projectId,
     stages,
     nextAction: !input.hasLocalSourceVideo
-      ? 'Select the source video for this edit.'
+      ? 'Select or restore the source video for this edit.'
       : !backendUploaded
         ? 'Upload the selected source through the backend-local upload gate.'
         : !input.briefSaved

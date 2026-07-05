@@ -589,6 +589,7 @@ for (const phrase of [
   'backendApprovedLocalPlan',
   'previewReviewResult',
   'professionalQAResult',
+  'sourceEvidenceAvailable',
   'createProfessionalQACheckpointMetadata',
   'restoreProfessionalQAResult',
   'professional_qa_checked',
@@ -655,6 +656,7 @@ assert.match(lifecycleModelSource, /ProjectEditFinalExportReadiness/)
 assert.match(lifecycleModelSource, /buildFinalExportReadiness/)
 assert.match(lifecycleModelSource, /professionalQaPassed/)
 assert.match(lifecycleModelSource, /localFinalExportReady/)
+assert.match(lifecycleModelSource, /A source video record is attached to this edit/)
 assert.doesNotMatch(lifecycleModelSource, /finalExportAllowed: false/)
 assert.doesNotMatch(lifecycleModelSource, /productReady: false/)
 

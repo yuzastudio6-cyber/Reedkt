@@ -639,6 +639,33 @@ function remainingNativeCudaRuntimeInputManifestPrivateRootCommand(
   ].join(' ')
 }
 
+function remainingNativeCudaExplicitModelPathPlaceholder(
+  toolId: RemainingNativeCudaToolId,
+): string {
+  return toolId === 'sam2'
+    ? '<private-sam2-checkpoint.pt>'
+    : '<private-birefnet-model-dir-containing-model.safetensors>'
+}
+
+function remainingNativeCudaRuntimeInputManifestExplicitModelPathCommand(
+  toolId: RemainingNativeCudaToolId,
+): string {
+  const expectation = remainingNativeCudaModelExpectation(toolId)
+  return [
+    'npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest --',
+    `--tool ${toolId}`,
+    `--source-image ${gpuModelRuntimeInputManifestSourceImage}`,
+    `${expectation.modelFlag} ${remainingNativeCudaExplicitModelPathPlaceholder(toolId)}`,
+    `--output-dir ${remainingNativeCudaOutputDir(toolId)}`,
+    `--manifest-out ${remainingNativeCudaRuntimeInputManifestPath(toolId)}`,
+    `--model-weight-manifest-id ${toolId}_private_manifest_review_v1`,
+    `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
+    `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
+    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    '--runtime-container-platform linux/amd64',
+  ].join(' ')
+}
+
 function remainingNativeCudaProofSequenceCommand(
   toolId: RemainingNativeCudaToolId,
 ): string {
@@ -671,6 +698,50 @@ function remainingNativeCudaFinalToolCallCommand(
     `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
     `--runtime-input-manifest ${remainingNativeCudaRuntimeInputManifestPath(toolId)}`,
+  ].join(' ')
+}
+
+function remainingNativeCudaDirectToolCallPrivateRootCommand(
+  toolId: RemainingNativeCudaToolId,
+): string {
+  return [
+    'npm run --silent ai-graphics:external-agent-tool-call --',
+    `--tool ${toolId}`,
+    '--attempt-gpu-runtime',
+    '--expect-state executable',
+    '--require-output-hash',
+    '--require-private-only-boundary',
+    '--strict-exit-code',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    '--runtime-container-platform linux/amd64',
+    `--gpu-output-dir ${remainingNativeCudaOutputDir(toolId)}`,
+    `--source-image ${gpuModelRuntimeInputManifestSourceImage}`,
+    `--private-model-root "$${privateModelRootEnvVar}"`,
+    `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
+  ].join(' ')
+}
+
+function remainingNativeCudaDirectToolCallExplicitModelPathCommand(
+  toolId: RemainingNativeCudaToolId,
+): string {
+  const expectation = remainingNativeCudaModelExpectation(toolId)
+  return [
+    'npm run --silent ai-graphics:external-agent-tool-call --',
+    `--tool ${toolId}`,
+    '--attempt-gpu-runtime',
+    '--expect-state executable',
+    '--require-output-hash',
+    '--require-private-only-boundary',
+    '--strict-exit-code',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    '--runtime-container-platform linux/amd64',
+    `--gpu-output-dir ${remainingNativeCudaOutputDir(toolId)}`,
+    `--source-image ${gpuModelRuntimeInputManifestSourceImage}`,
+    `${expectation.modelFlag} ${remainingNativeCudaExplicitModelPathPlaceholder(toolId)}`,
+    `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
+    '--materialize-runtime-input-manifest',
   ].join(' ')
 }
 
@@ -893,10 +964,16 @@ function remainingNativeCudaClosure(
         modelProbe?.matchingCandidate ?? null,
       manifestMaterializerCommand:
         remainingNativeCudaRuntimeInputManifestPrivateRootCommand(toolId),
+      explicitModelPathManifestMaterializerCommand:
+        remainingNativeCudaRuntimeInputManifestExplicitModelPathCommand(toolId),
       nativeGpuProofSequenceCommand:
         remainingNativeCudaProofSequenceCommand(toolId),
       finalExternalAgentToolCallCommand:
         remainingNativeCudaFinalToolCallCommand(toolId),
+      directExternalAgentToolCallWithPrivateRootCommand:
+        remainingNativeCudaDirectToolCallPrivateRootCommand(toolId),
+      directExternalAgentToolCallWithExplicitModelPathCommand:
+        remainingNativeCudaDirectToolCallExplicitModelPathCommand(toolId),
       readinessRecheckCommand:
         remainingNativeCudaReadinessRecheckCommand(toolId),
       requiredHost:
@@ -2903,9 +2980,9 @@ ${runtimeInputManifestRows}
 - Private model root exists: \`${report.remainingNativeCudaClosure.privateModelRootInspection.rootExists}\`
 - All-21 closeout readiness command: \`${report.remainingNativeCudaClosure.all21CloseoutReadinessCommand}\`
 
-| Tool | Current state | Current blocker | Model field | Expected candidates | Model candidate present | Matching candidate | Manifest command | Native proof command | Final tool call |
-| --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- |
-${report.remainingNativeCudaClosure.tools.map((entry) => `| \`${entry.toolId}\` | \`${entry.currentReadinessState}\` | \`${entry.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${entry.modelField}\` | \`${entry.expectedPrivateRootCandidates.join(', ')}\` | ${entry.privateModelRootCandidatePresent} | \`${entry.privateModelRootMatchingCandidate ?? 'none'}\` | \`${entry.manifestMaterializerCommand}\` | \`${entry.nativeGpuProofSequenceCommand}\` | \`${entry.finalExternalAgentToolCallCommand}\` |`).join('\n')}
+| Tool | Current state | Current blocker | Model field | Expected candidates | Model candidate present | Matching candidate | Private-root manifest command | Explicit-path manifest command | Native proof command | Final manifest tool call | Direct private-root tool call | Direct explicit-path tool call |
+| --- | --- | --- | --- | --- | ---: | --- | --- | --- | --- | --- | --- | --- |
+${report.remainingNativeCudaClosure.tools.map((entry) => `| \`${entry.toolId}\` | \`${entry.currentReadinessState}\` | \`${entry.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${entry.modelField}\` | \`${entry.expectedPrivateRootCandidates.join(', ')}\` | ${entry.privateModelRootCandidatePresent} | \`${entry.privateModelRootMatchingCandidate ?? 'none'}\` | \`${entry.manifestMaterializerCommand}\` | \`${entry.explicitModelPathManifestMaterializerCommand}\` | \`${entry.nativeGpuProofSequenceCommand}\` | \`${entry.finalExternalAgentToolCallCommand}\` | \`${entry.directExternalAgentToolCallWithPrivateRootCommand}\` | \`${entry.directExternalAgentToolCallWithExplicitModelPathCommand}\` |`).join('\n')}
 
 ## Counts
 

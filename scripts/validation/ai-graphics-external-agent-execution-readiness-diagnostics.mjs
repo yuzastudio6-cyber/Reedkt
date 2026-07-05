@@ -1601,8 +1601,11 @@ function checkReport(label, report, expectedStatus = status) {
       const expectedImage = expectedRuntimeContainerTarget(toolId).image
       for (const [field, scriptName] of [
         ['manifestMaterializerCommand', 'ai-graphics:external-agent-gpu-model-runtime-input-manifest'],
+        ['explicitModelPathManifestMaterializerCommand', 'ai-graphics:external-agent-gpu-model-runtime-input-manifest'],
         ['nativeGpuProofSequenceCommand', 'ai-graphics:external-agent-gpu-model-private-proof-sequence'],
         ['finalExternalAgentToolCallCommand', 'ai-graphics:external-agent-tool-call'],
+        ['directExternalAgentToolCallWithPrivateRootCommand', 'ai-graphics:external-agent-tool-call'],
+        ['directExternalAgentToolCallWithExplicitModelPathCommand', 'ai-graphics:external-agent-tool-call'],
         ['readinessRecheckCommand', 'ai-graphics:external-agent-execution-readiness'],
       ]) {
         if (!String(entry[field] ?? '').includes(scriptName)) {
@@ -1611,6 +1614,48 @@ function checkReport(label, report, expectedStatus = status) {
       }
       if (!String(entry.manifestMaterializerCommand ?? '').includes('--private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"')) {
         fail(`${label}_remaining_native_cuda_${toolId}_manifest_missing_private_root`)
+      }
+      const explicitManifestCommand =
+        String(entry.explicitModelPathManifestMaterializerCommand ?? '')
+      const explicitToolCallCommand =
+        String(entry.directExternalAgentToolCallWithExplicitModelPathCommand ?? '')
+      const privateRootToolCallCommand =
+        String(entry.directExternalAgentToolCallWithPrivateRootCommand ?? '')
+      const expectedExplicitFlag = toolId === 'sam2'
+        ? '--sam2-checkpoint <private-sam2-checkpoint.pt>'
+        : '--birefnet-model <private-birefnet-model-dir-containing-model.safetensors>'
+      if (!explicitManifestCommand.includes(expectedExplicitFlag)) {
+        fail(`${label}_remaining_native_cuda_${toolId}_explicit_manifest_missing_model_flag`)
+      }
+      if (explicitManifestCommand.includes('--private-model-root')) {
+        fail(`${label}_remaining_native_cuda_${toolId}_explicit_manifest_unexpected_private_root`)
+      }
+      if (!explicitManifestCommand.includes('--model-weight-manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR"')) {
+        fail(`${label}_remaining_native_cuda_${toolId}_explicit_manifest_missing_manifest_dir`)
+      }
+      if (!privateRootToolCallCommand.includes('--private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"')) {
+        fail(`${label}_remaining_native_cuda_${toolId}_direct_private_root_call_missing_private_root`)
+      }
+      if (!privateRootToolCallCommand.includes('--model-weight-manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR"')) {
+        fail(`${label}_remaining_native_cuda_${toolId}_direct_private_root_call_missing_manifest_dir`)
+      }
+      if (!privateRootToolCallCommand.includes('--gpu-output-dir')) {
+        fail(`${label}_remaining_native_cuda_${toolId}_direct_private_root_call_missing_output_dir`)
+      }
+      if (!explicitToolCallCommand.includes(expectedExplicitFlag)) {
+        fail(`${label}_remaining_native_cuda_${toolId}_direct_explicit_call_missing_model_flag`)
+      }
+      if (!explicitToolCallCommand.includes('--materialize-runtime-input-manifest')) {
+        fail(`${label}_remaining_native_cuda_${toolId}_direct_explicit_call_missing_materialization_flag`)
+      }
+      if (explicitToolCallCommand.includes('--private-model-root')) {
+        fail(`${label}_remaining_native_cuda_${toolId}_direct_explicit_call_unexpected_private_root`)
+      }
+      if (!explicitToolCallCommand.includes('--require-private-only-boundary')) {
+        fail(`${label}_remaining_native_cuda_${toolId}_direct_explicit_call_missing_private_boundary`)
+      }
+      if (!explicitToolCallCommand.includes(expectedImage)) {
+        fail(`${label}_remaining_native_cuda_${toolId}_direct_explicit_call_missing_image`)
       }
       if (!String(entry.nativeGpuProofSequenceCommand ?? '').includes('--require-host-eligible')) {
         fail(`${label}_remaining_native_cuda_${toolId}_proof_missing_host_gate`)
@@ -3028,6 +3073,9 @@ for (const phrase of [
   'nextExactCurrentHostPreflightCommand',
   'remainingNativeCudaClosure',
   'remainingNativeCudaRuntimeInputManifestPrivateRootCommand',
+  'remainingNativeCudaRuntimeInputManifestExplicitModelPathCommand',
+  'remainingNativeCudaDirectToolCallExplicitModelPathCommand',
+  '--materialize-runtime-input-manifest',
   'nativeCudaCloseoutScript',
   'remainingNativeCudaCloseoutCommand',
   'nativeCudaCloseoutProofPathsFromRoot',

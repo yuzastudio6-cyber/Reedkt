@@ -25,6 +25,7 @@ const proofSequenceScript =
   'ai-graphics:external-agent-gpu-model-private-proof-sequence'
 const toolCallScript = 'ai-graphics:external-agent-tool-call'
 const readinessScript = 'ai-graphics:external-agent-execution-readiness'
+const nativeCudaCloseoutResultRootFlag = '--native-cuda-closeout-result-root'
 const defaultCpuSafeGpuModelRouteProofPacket =
   '.local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-safe-gpu-model-route-proof.json'
 const defaultCpuModelGpuModelRouteProofPacket =
@@ -538,6 +539,15 @@ function finalToolCallArgs(args: ParsedArgs, toolId: ToolId): string[] {
 }
 
 function readinessArgs(args: ParsedArgs): string[] {
+  const requestedNativeCudaProofArgs = allRemainingNativeCudaToolsRequested(args)
+    ? [
+        nativeCudaCloseoutResultRootFlag,
+        args.outputRoot,
+      ]
+    : args.requestedTools.flatMap((toolId) => [
+        '--local-runtime-proof-result',
+        proofResultPath(args.outputRoot, toolId),
+      ])
   return [
     ...(args.cpuSafeGpuModelRouteProofPacket
       ? [
@@ -555,11 +565,12 @@ function readinessArgs(args: ParsedArgs): string[] {
       '--local-runtime-proof-result',
       file,
     ]),
-    ...args.requestedTools.flatMap((toolId) => [
-      '--local-runtime-proof-result',
-      proofResultPath(args.outputRoot, toolId),
-    ]),
+    ...requestedNativeCudaProofArgs,
   ]
+}
+
+function allRemainingNativeCudaToolsRequested(args: ParsedArgs): boolean {
+  return toolIds.every((toolId) => args.requestedTools.includes(toolId))
 }
 
 function writeNativeCudaCloseoutScript(
@@ -603,6 +614,16 @@ function writeNativeCudaCloseoutScript(
     closeoutTokens.push('--timeout-ms', String(args.timeoutMs))
   }
 
+  const requestedNativeCudaReadinessTokens: ScriptToken[] =
+    allRemainingNativeCudaToolsRequested(args)
+      ? [
+          nativeCudaCloseoutResultRootFlag,
+          { raw: '"$OUTPUT_ROOT"' },
+        ]
+      : args.requestedTools.flatMap((toolId): ScriptToken[] => [
+          '--local-runtime-proof-result',
+          { raw: `"$OUTPUT_ROOT/${toolId}/harness-result.json"` },
+        ])
   const readinessTokens: ScriptToken[] = [
     'npm',
     'run',
@@ -625,10 +646,7 @@ function writeNativeCudaCloseoutScript(
       '--local-runtime-proof-result',
       file,
     ]),
-    ...args.requestedTools.flatMap((toolId): ScriptToken[] => [
-      '--local-runtime-proof-result',
-      { raw: `"$OUTPUT_ROOT/${toolId}/harness-result.json"` },
-    ]),
+    ...requestedNativeCudaReadinessTokens,
   ]
 
   const contents = [

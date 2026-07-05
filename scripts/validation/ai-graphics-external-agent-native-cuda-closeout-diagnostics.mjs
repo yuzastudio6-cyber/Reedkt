@@ -304,8 +304,8 @@ function validateFixtureReport(report) {
   assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('ai-graphics:external-agent-execution-readiness'), 'fixture_closeout_script_missing_readiness_recheck')
   assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('--cpu-safe-gpu-model-route-proof-packet'), 'fixture_closeout_script_missing_cpu_safe_readiness_ref')
   assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('--cpu-model-gpu-model-route-proof-packet'), 'fixture_closeout_script_missing_cpu_model_readiness_ref')
-  assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('sam2/harness-result.json'), 'fixture_closeout_script_missing_sam2_readiness_ref')
-  assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('birefnet/harness-result.json'), 'fixture_closeout_script_missing_birefnet_readiness_ref')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('--native-cuda-closeout-result-root'), 'fixture_closeout_script_missing_result_root_readiness_ref')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('"$OUTPUT_ROOT"'), 'fixture_closeout_script_missing_output_root_readiness_ref')
   const generatedScriptPath = report.nativeCudaCloseoutLocalOnlyScript?.path
   assert(typeof generatedScriptPath === 'string', 'fixture_closeout_script_path_missing')
   if (typeof generatedScriptPath === 'string') {
@@ -329,8 +329,8 @@ function validateFixtureReport(report) {
     assert(generatedScriptText.includes('Accepted CPU-safe GPU/model route proof packet file is missing'), 'fixture_closeout_script_missing_cpu_safe_packet_error')
     assert(generatedScriptText.includes('Accepted CPU-model GPU/model route proof packet file is missing'), 'fixture_closeout_script_missing_cpu_model_packet_error')
     assert(generatedScriptText.includes('ai-graphics:external-agent-execution-readiness'), 'fixture_closeout_script_missing_readiness_command')
-    assert(generatedScriptText.includes('sam2/harness-result.json'), 'fixture_closeout_script_missing_sam2_harness_ref')
-    assert(generatedScriptText.includes('birefnet/harness-result.json'), 'fixture_closeout_script_missing_birefnet_harness_ref')
+    assert(generatedScriptText.includes('--native-cuda-closeout-result-root'), 'fixture_closeout_script_missing_result_root_flag')
+    assert(generatedScriptText.includes('"$OUTPUT_ROOT"'), 'fixture_closeout_script_missing_output_root_result_ref')
   }
   for (const toolId of targetTools) {
     const row = report.tools?.find((tool) => tool.toolId === toolId)

@@ -427,6 +427,12 @@ function checkReport(label, report) {
     if (hostCommand.includes('--runtime-backend docker_container')) {
       fail(`${label}_host_private_proof_sequence_unexpected_container_backend:${tool}`)
     }
+    if (!hostCommand.includes('--runtime-backend host_python')) {
+      fail(`${label}_host_private_proof_sequence_missing_host_python_backend:${tool}`)
+    }
+    if (!hostManifestCommand.includes('--runtime-backend host_python')) {
+      fail(`${label}_host_private_manifest_proof_sequence_missing_host_python_backend:${tool}`)
+    }
     for (const runtimeTarget of Object.values(runtimeContainerTargetByTool)) {
       if (hostCommand.includes(runtimeTarget.image)) {
         fail(`${label}_host_private_proof_sequence_unexpected_container_image:${tool}:${runtimeTarget.image}`)

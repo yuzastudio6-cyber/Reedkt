@@ -1000,13 +1000,13 @@ function sequenceCommandForTool(
           `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]
-      : []),
+      : ['--runtime-backend host_python']),
     ...(toolId === 'kornia' && !options.container
-      ? ['--runtime-backend host_python', '--allow-cpu-tensor-runtime']
+      ? ['--allow-cpu-tensor-runtime']
       : []),
     ...((toolId === 'torch_torchvision' || toolId === 'transformers') &&
     !options.container
-      ? ['--runtime-backend host_python', '--allow-cpu-foundation-runtime']
+      ? ['--allow-cpu-foundation-runtime']
       : []),
     ...(gpuModelAllowsCpuModelRuntime(toolId)
       ? ['--allow-cpu-model-runtime', '--no-runtime-container-gpu']
@@ -1033,13 +1033,13 @@ function sequenceManifestCommandForTool(
           `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]
-      : []),
+      : ['--runtime-backend host_python']),
     ...(toolId === 'kornia' && !options.container
-      ? ['--runtime-backend host_python', '--allow-cpu-tensor-runtime']
+      ? ['--allow-cpu-tensor-runtime']
       : []),
     ...((toolId === 'torch_torchvision' || toolId === 'transformers') &&
     !options.container
-      ? ['--runtime-backend host_python', '--allow-cpu-foundation-runtime']
+      ? ['--allow-cpu-foundation-runtime']
       : []),
     ...(gpuModelAllowsCpuModelRuntime(toolId)
       ? ['--allow-cpu-model-runtime', '--no-runtime-container-gpu']

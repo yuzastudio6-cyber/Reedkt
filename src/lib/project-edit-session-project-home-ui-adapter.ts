@@ -313,6 +313,7 @@ function createBackendLocalReadiness(session: ProjectEditSessionRecord): {
 function backendLocalCheckpointStage(checkpointKind: string | undefined, status: ProjectEditSessionStatus): number {
   if (checkpointKind === 'setup_reset') return 0
   if (checkpointKind === 'source_uploaded') return 1
+  if (checkpointKind === 'brief_draft_changed') return status === 'setup_ready' ? 1 : 0
   if (checkpointKind === 'brief_saved') return 2
   if (checkpointKind === 'plan_approved') return 3
   if (checkpointKind === 'preview_ready') return 4

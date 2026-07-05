@@ -40,6 +40,7 @@ import type {
 } from '../../../lib/project-edit-plan-approval'
 import {
   createBriefSavedCheckpointMetadata,
+  createBriefDraftChangedCheckpointMetadata,
   createFinalExportReadyCheckpointMetadata,
   createPlanApprovedCheckpointMetadata,
   createProfessionalQACheckpointMetadata,
@@ -114,6 +115,7 @@ export function ProjectEditBriefWorkspace({
   const [professionalQAResult, setProfessionalQAResult] = useState<ProjectSourceVideoProfessionalQAResult | undefined>()
   const [statusMessage, setStatusMessage] = useState('Ready for source video and brief notes.')
   const sourceVideoRef = useRef<ProjectSourceVideoLocalPreview | undefined>(undefined)
+  const briefDraftResetPersistedRef = useRef(false)
 
   useEffect(() => {
     sourceVideoRef.current = sourceVideo
@@ -262,6 +264,7 @@ export function ProjectEditBriefWorkspace({
   }, [backendApprovedLocalPlan, backendLocalEditSession, backendSavedBrief, backendUploadResult, editSessionId, projectId, sourceVideo])
 
   function resetLocalEditProgress(message: string) {
+    briefDraftResetPersistedRef.current = false
     setBackendUploadResult(undefined)
     setBackendUploadError(undefined)
     setLocalPreviewResult(undefined)
@@ -430,6 +433,7 @@ export function ProjectEditBriefWorkspace({
       setBackendSavedBrief(result.readback)
       setBriefSaved(true)
       setBriefSaveStatus('saved')
+      briefDraftResetPersistedRef.current = false
       setStatusMessage('Brief saved and read back from the backend-local brief gate.')
     } catch (caught) {
       setBackendSavedBrief(undefined)
@@ -449,6 +453,15 @@ export function ProjectEditBriefWorkspace({
   }
 
   function updateBriefText(value: string) {
+    const shouldPersistBriefDraftReset = !briefDraftResetPersistedRef.current && Boolean(
+      backendSavedBrief ||
+      backendApprovedLocalPlan ||
+      localPreviewResult ||
+      previewReviewResult ||
+      professionalQAResult ||
+      localFinalExportResult
+    )
+    const previousBrief = backendSavedBrief
     setBriefText(value)
     setBriefSaved(false)
     setBackendSavedBrief(undefined)
@@ -462,6 +475,23 @@ export function ProjectEditBriefWorkspace({
     setBackendApprovedLocalPlan(undefined)
     setPreviewReviewResult(undefined)
     setProfessionalQAResult(undefined)
+    if (shouldPersistBriefDraftReset) {
+      briefDraftResetPersistedRef.current = true
+      void recordLifecycleCheckpoint({
+        checkpointKind: 'brief_draft_changed',
+        status: backendUploadResult ? 'setup_ready' : 'draft',
+        approvalStatus: 'not_requested',
+        sourceMediaAssetId: backendUploadResult?.mediaAssetId,
+        metadata: createBriefDraftChangedCheckpointMetadata({
+          previousBrief,
+          sourceVideoUploadResult: backendUploadResult,
+        }),
+      }).catch((caught) => {
+        setStatusMessage(caught instanceof Error
+          ? `Brief changed locally, but backend-local stale evidence reset failed safely: ${caught.message}`
+          : 'Brief changed locally, but backend-local stale evidence reset failed safely.')
+      })
+    }
   }
 
   async function approveLocalPlan() {

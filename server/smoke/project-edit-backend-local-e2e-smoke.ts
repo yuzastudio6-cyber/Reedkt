@@ -15,6 +15,7 @@ import {
   recordProjectEditSessionLifecycleCheckpointBackendLocal,
 } from '../../src/lib/project-edit-session-backend-local'
 import {
+  createBriefDraftChangedCheckpointMetadata,
   createBriefSavedCheckpointMetadata,
   createFinalExportReadyCheckpointMetadata,
   createPlanApprovedCheckpointMetadata,
@@ -468,6 +469,50 @@ try {
     workspaceId,
     getAccessToken: async () => undefined,
   })
+
+  const briefDraftChangedCheckpoint = await recordProjectEditSessionLifecycleCheckpointBackendLocal({
+    apiBaseUrl,
+    editSessionId,
+    workspaceId,
+    checkpointKind: 'brief_draft_changed',
+    status: 'setup_ready',
+    approvalStatus: 'not_requested',
+    sourceMediaAssetId: upload.mediaAssetId,
+    metadata: createBriefDraftChangedCheckpointMetadata({
+      previousBrief: restoredBrief.editBrief,
+      sourceVideoUploadResult: upload,
+    }),
+    getAccessToken: async () => undefined,
+  })
+  assert.equal(briefDraftChangedCheckpoint.editSession.status, 'setup_ready')
+  assert.equal(briefDraftChangedCheckpoint.editSession.approvalStatus, 'not_requested')
+  assert.deepEqual(briefDraftChangedCheckpoint.editSession.sourceMediaAssetIds, [upload.mediaAssetId])
+  assert.equal(briefDraftChangedCheckpoint.editSession.previewCount, 0)
+  assert.equal(briefDraftChangedCheckpoint.editSession.versionCount, 0)
+  assert.equal(briefDraftChangedCheckpoint.editSession.latestPreviewId, undefined)
+  assert.equal(briefDraftChangedCheckpoint.editSession.latestPreviewUrl, undefined)
+  assert.equal(briefDraftChangedCheckpoint.editSession.latestSnapshotId, undefined)
+  assert.ok(briefDraftChangedCheckpoint.editSession.metadata?.backendLocalSourceUpload)
+  assert.equal(briefDraftChangedCheckpoint.editSession.metadata?.backendLocalBrief, undefined)
+  assert.equal(briefDraftChangedCheckpoint.editSession.metadata?.backendLocalPlan, undefined)
+  assert.equal(briefDraftChangedCheckpoint.editSession.metadata?.backendLocalPreview, undefined)
+  assert.equal(briefDraftChangedCheckpoint.editSession.metadata?.backendLocalPreviewReview, undefined)
+  assert.equal(briefDraftChangedCheckpoint.editSession.metadata?.backendLocalProfessionalQA, undefined)
+  assert.equal(briefDraftChangedCheckpoint.editSession.metadata?.backendLocalFinalExport, undefined)
+  assert.equal(restoreBackendUploadResult(briefDraftChangedCheckpoint.editSession)?.storageObjectRecordId, upload.storageObjectRecordId)
+  assert.equal(restorePreviewResult(briefDraftChangedCheckpoint.editSession), undefined)
+  assert.equal(restorePreviewReviewResult(briefDraftChangedCheckpoint.editSession), undefined)
+  assert.equal(restoreProfessionalQAResult(briefDraftChangedCheckpoint.editSession), undefined)
+  assert.equal(restoreFinalExportResult(briefDraftChangedCheckpoint.editSession), undefined)
+  const draftChangedHomeCard = createProjectEditSessionHomeCardViewModelFromRecord(briefDraftChangedCheckpoint.editSession)
+  const draftChangedHomeDetail = createProjectEditSessionHomeDetailViewModelFromRecord(briefDraftChangedCheckpoint.editSession)
+  assert.equal(draftChangedHomeCard.progressLabel, 'Source attached')
+  assert.equal(draftChangedHomeCard.latestPreviewLabel, 'No preview yet')
+  assert.equal(draftChangedHomeCard.progressItems.find((item) => item.id === 'source_attached')?.complete, true)
+  assert.equal(draftChangedHomeCard.progressItems.find((item) => item.id === 'brief_saved')?.complete, false)
+  assert.equal(draftChangedHomeCard.progressItems.find((item) => item.id === 'private_export_ready')?.complete, false)
+  assert.equal(draftChangedHomeDetail?.readinessLabel, 'Source attached')
+  assert.match(draftChangedHomeDetail?.artifactSummaryLines.join('\n') ?? '', /No preview or export artifact/)
 
   const revisedBriefCheckpoint = await recordProjectEditSessionLifecycleCheckpointBackendLocal({
     apiBaseUrl,

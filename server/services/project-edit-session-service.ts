@@ -311,7 +311,7 @@ function backendLocalCheckpointApprovalStatus(
   checkpointKind: ProjectEditSessionLifecycleCheckpointRequest['checkpointKind'],
   existing: ProjectEditSessionRecord['approvalStatus'],
 ): ProjectEditSessionRecord['approvalStatus'] {
-  if (checkpointKind === 'source_uploaded' || checkpointKind === 'setup_reset') return 'not_requested'
+  if (checkpointKind === 'source_uploaded' || checkpointKind === 'brief_draft_changed' || checkpointKind === 'setup_reset') return 'not_requested'
   if (checkpointKind === 'brief_saved') return 'requested'
   if (checkpointKind === 'plan_approved' || checkpointKind === 'preview_ready' || checkpointKind === 'preview_reviewed' || checkpointKind === 'professional_qa_checked' || checkpointKind === 'final_export_ready') {
     return existing === 'not_requested' ? 'approved' : existing
@@ -351,6 +351,25 @@ function backendLocalCheckpointResetPolicy(
   }
 
   if (checkpointKind === 'source_uploaded') {
+    return {
+      clearLatestPreview: true,
+      clearLatestSnapshot: true,
+      clearMetadataKeys: [
+        'backendLocalBrief',
+        'backendLocalPlan',
+        'backendLocalPreview',
+        'backendLocalPreviewReview',
+        'backendLocalProfessionalQA',
+        'backendLocalFinalExport',
+      ],
+      clearPlan: true,
+      clearPreviews: true,
+      clearSourceMedia: false,
+      clearVersions: true,
+    }
+  }
+
+  if (checkpointKind === 'brief_draft_changed') {
     return {
       clearLatestPreview: true,
       clearLatestSnapshot: true,
@@ -449,6 +468,7 @@ function backendLocalCheckpointMetadataKey(
   checkpointKind: ProjectEditSessionLifecycleCheckpointRequest['checkpointKind'],
 ): string {
   if (checkpointKind === 'source_uploaded') return 'backendLocalSourceUpload'
+  if (checkpointKind === 'brief_draft_changed') return 'backendLocalBriefDraftChanged'
   if (checkpointKind === 'brief_saved') return 'backendLocalBrief'
   if (checkpointKind === 'plan_approved') return 'backendLocalPlan'
   if (checkpointKind === 'preview_ready') return 'backendLocalPreview'

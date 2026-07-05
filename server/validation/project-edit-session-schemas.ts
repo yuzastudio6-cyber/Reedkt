@@ -52,6 +52,7 @@ export const projectEditSessionLifecycleCheckpointSchema = z.object({
   status: projectEditSessionStatusSchema,
   checkpointKind: z.enum([
     'source_uploaded',
+    'brief_draft_changed',
     'brief_saved',
     'plan_approved',
     'preview_ready',

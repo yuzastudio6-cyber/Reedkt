@@ -50,6 +50,7 @@ interface ProjectEditSessionLifecycleCheckpointData {
 
 export type ProjectEditSessionLifecycleCheckpointKind =
   | 'source_uploaded'
+  | 'brief_draft_changed'
   | 'brief_saved'
   | 'plan_approved'
   | 'preview_ready'

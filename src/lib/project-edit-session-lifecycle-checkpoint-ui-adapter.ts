@@ -208,6 +208,28 @@ export function createBriefSavedCheckpointMetadata(input: {
   }
 }
 
+export function createBriefDraftChangedCheckpointMetadata(input: {
+  previousBrief?: ProjectEditBriefBackendLocalRecord
+  sourceVideoUploadResult?: ProjectSourceVideoBackendUploadResult
+}): Record<string, unknown> {
+  return {
+    resetReason: 'brief_changed',
+    previousBriefId: input.previousBrief?.id,
+    previousBriefRevisionNumber: input.previousBrief?.revisionNumber,
+    preservedSourceStorageObjectRecordId: input.sourceVideoUploadResult?.storageObjectRecordId,
+    preservedSourceMediaAssetId: input.sourceVideoUploadResult?.mediaAssetId,
+    changedAt: new Date().toISOString(),
+    backendLocalBriefDraftChanged: true,
+    downstreamPlanPreviewQaExportCleared: true,
+    sourceUploadPreserved: Boolean(input.sourceVideoUploadResult),
+    noMediaProcessingStarted: true,
+    noProviderCallMade: true,
+    noRenderStarted: true,
+    noCreditReservedOrSpent: true,
+    productReady: false,
+  }
+}
+
 export function createPlanApprovedCheckpointMetadata(result: ProjectEditPlanBackendApprovalResult): Record<string, unknown> {
   return {
     editPlanId: result.localEditPlan.editPlanId,

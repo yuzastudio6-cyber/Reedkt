@@ -2940,6 +2940,12 @@ export function createAiGraphicsExternalBetaToolCallRoutes(
           : 'controlled_gpu_model_route_blocked_with_reason',
         externalAgentExecutionState: gpuModelExecutionState,
         blockingReasonCode: execution.blockingReasonCode,
+        currentBlockingPrerequisiteKey:
+          gpuModelProofFields.currentBlockingPrerequisiteKey,
+        currentBlockingReasonCode:
+          gpuModelProofFields.currentBlockingReasonCode,
+        requiredPrivateInputKeys: gpuModelProofFields.requiredPrivateInputKeys,
+        remainingPrivateInputKeys: gpuModelProofFields.remainingPrivateInputKeys,
         failureDiagnostics: execution.failureDiagnostics,
         externalAgentToolCallResult: buildAiGraphicsExternalAgentToolCallResult({
           requestId: body.requestId,

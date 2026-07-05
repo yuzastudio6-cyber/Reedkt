@@ -1577,6 +1577,10 @@ async function buildReport() {
       routeStatus: data.routeStatus ?? null,
       externalAgentExecutionState: data.externalAgentExecutionState ?? null,
       blockingReasonCode: data.blockingReasonCode ?? null,
+      routeCurrentBlockingPrerequisiteKey:
+        data.currentBlockingPrerequisiteKey ?? null,
+      routeCurrentBlockingReasonCode:
+        data.currentBlockingReasonCode ?? data.blockingReasonCode ?? null,
       currentBlockingPrerequisiteKey:
         normalized?.currentBlockingPrerequisiteKey ?? null,
       currentBlockingReasonCode:

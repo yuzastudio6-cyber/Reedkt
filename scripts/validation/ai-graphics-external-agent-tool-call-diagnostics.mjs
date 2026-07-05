@@ -1214,6 +1214,14 @@ if (
   )
 }
 if (
+  incompleteBirefNetReport.response?.routeCurrentBlockingPrerequisiteKey !==
+    'birefnetModelLocalPath'
+) {
+  fail(
+    `birefnet_incomplete_directory_route_key_unexpected:${incompleteBirefNetReport.response?.routeCurrentBlockingPrerequisiteKey}`,
+  )
+}
+if (
   incompleteBirefNetReport.response?.externalAgentToolCallResult
     ?.localGpuModelRuntimeExecutionPerformed !== false
 ) {

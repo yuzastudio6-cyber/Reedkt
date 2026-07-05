@@ -84,9 +84,6 @@ export function DashboardPage() {
             <p className="feed-item">Personal plan: $10/week software access.</p>
             <p className="feed-item">Weekly bonus credits: 100. Purchased credits: 0.</p>
             <p className="feed-item">Credits are deducted only after approval in production.</p>
-            <Button to="/wallet" variant="secondary">
-              Open wallet
-            </Button>
           </Card>
 
           <Card>

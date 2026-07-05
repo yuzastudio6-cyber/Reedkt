@@ -27,6 +27,22 @@ test.describe('Edit Preferences route entrypoint', () => {
     await expectNoHorizontalOverflow(page)
   })
 
+  test('keeps retired old shell routes out of the app sidebar surface', async ({ page }) => {
+    await setViewport(page, 1440)
+
+    await gotoRoute(page, '/wallet')
+    await expect(page).toHaveURL(/\/dashboard$/)
+    await expect(page.getByRole('navigation', { name: /desktop app navigation/i }).getByRole('link')).toHaveCount(3)
+
+    await gotoRoute(page, '/brand-kit')
+    await expect(page).toHaveURL(/\/edit-preferences$/)
+    await expect(page.getByRole('navigation', { name: /desktop app navigation/i }).getByRole('link')).toHaveCount(3)
+
+    await gotoRoute(page, '/exports')
+    await expect(page).toHaveURL(/\/projects$/)
+    await expect(page.getByRole('navigation', { name: /desktop app navigation/i }).getByRole('link')).toHaveCount(3)
+  })
+
   test('creates a browser-local draft without fetching media or starting runtime work', async ({ page }) => {
     await setViewport(page, 1280)
     await gotoRoute(page, '/edit-preferences')

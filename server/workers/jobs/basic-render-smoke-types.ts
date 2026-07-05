@@ -16,6 +16,15 @@ export interface BasicRenderSmokeBriefLineage {
   briefFingerprint: string
 }
 
+export interface BasicRenderSmokeOutputFrame {
+  aspectRatio: string
+  platformTarget: string
+  width: number
+  height: number
+  confirmed: true
+  source: string
+}
+
 export interface BasicRenderSmokeEditAssemblyPlan {
   planId: string
   briefLineage: BasicRenderSmokeBriefLineage
@@ -24,6 +33,7 @@ export interface BasicRenderSmokeEditAssemblyPlan {
   steps: BasicRenderSmokeEditAssemblyStep[]
   sourceDurationSeconds?: number
   sourceAspectRatio?: string
+  outputFrame?: BasicRenderSmokeOutputFrame
   mode?: BasicRenderSmokeEditAssemblyMode
   professionalOperationCount?: number
   professionalOperationLabels?: string[]

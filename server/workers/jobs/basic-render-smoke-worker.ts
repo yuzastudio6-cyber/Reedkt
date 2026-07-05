@@ -7,6 +7,7 @@ import type {
   BasicRenderSmokeEditAssemblyStep,
   BasicRenderSmokeRequest,
   BasicRenderSmokeResponse,
+  BasicRenderSmokeOutputFrame,
   BasicRenderSmokeSourceObject,
 } from './basic-render-smoke-types'
 
@@ -108,10 +109,31 @@ function editAssemblyPlanFromPayload(payload: Record<string, unknown>): BasicRen
     steps,
     sourceDurationSeconds: numberFromPayload(record, 'sourceDurationSeconds'),
     sourceAspectRatio: stringFromPayload(record, 'sourceAspectRatio'),
+    outputFrame: outputFrameFromPayload(record),
     mode: stringFromPayload(record, 'mode') === 'private_final_export' ? 'private_final_export' : 'clean_internal_preview',
     professionalOperationCount: numberFromPayload(record, 'professionalOperationCount'),
     professionalOperationLabels: stringArrayFromPayload(record, 'professionalOperationLabels'),
     requiredQaChecks: stringArrayFromPayload(record, 'requiredQaChecks'),
+  }
+}
+
+function outputFrameFromPayload(payload: Record<string, unknown>): BasicRenderSmokeOutputFrame | undefined {
+  const value = payload.outputFrame
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  const record = value as Record<string, unknown>
+  const aspectRatio = stringFromPayload(record, 'aspectRatio')
+  const platformTarget = stringFromPayload(record, 'platformTarget')
+  const width = numberFromPayload(record, 'width')
+  const height = numberFromPayload(record, 'height')
+  const source = stringFromPayload(record, 'source')
+  if (!aspectRatio || !platformTarget || !width || !height || !source || record.confirmed !== true) return undefined
+  return {
+    aspectRatio,
+    platformTarget,
+    width,
+    height,
+    confirmed: true,
+    source,
   }
 }
 

@@ -19,11 +19,33 @@ const localEditPlanSegmentOperationSchema = z.object({
   productReady: z.literal(false),
 })
 
+const localEditPlanOutputFrameSchema = z.object({
+  aspectRatio: z.enum(['9:16', '16:9', '1:1', '4:5', 'custom']),
+  platformTarget: z.enum([
+    'tiktok_reel',
+    'instagram_reel',
+    'instagram_feed',
+    'youtube_shorts',
+    'youtube_standard',
+    'linkedin',
+    'website',
+    'podcast_clip',
+    'ad_creative',
+    'internal_review',
+    'custom',
+  ]),
+  width: z.number().int().positive().max(8192),
+  height: z.number().int().positive().max(8192),
+  confirmed: z.literal(true),
+  source: z.enum(['new_edit_create_form', 'edit_session_metadata']),
+})
+
 const localEditPlanOperationManifestSchema = z.object({
   version: z.literal('project-edit-operation-manifest-v1'),
   sourceFileName: z.string().min(1).max(240),
   sourceDurationSeconds: z.number().positive().max(24 * 60 * 60).optional(),
   sourceAspectRatio: z.string().min(1).max(32).optional(),
+  outputFrame: localEditPlanOutputFrameSchema.optional(),
   professionalBaseline: z.literal('clean_professional'),
   sourceOrderPolicy: z.literal('preserve_source_order_until_user_approves_reorder'),
   mediaIntelligenceStatus: z.literal('not_analyzed_backend_local_only'),

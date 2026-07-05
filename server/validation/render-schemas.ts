@@ -37,6 +37,15 @@ const basicRenderSmokeBriefLineageSchema = z.object({
   briefFingerprint: z.string().min(1).max(120),
 })
 
+const basicRenderSmokeOutputFrameSchema = z.object({
+  aspectRatio: z.string().min(1).max(32),
+  platformTarget: z.string().min(1).max(80),
+  width: z.number().int().positive().max(8192),
+  height: z.number().int().positive().max(8192),
+  confirmed: z.literal(true),
+  source: z.string().min(1).max(80),
+})
+
 export const basicRenderSmokeEditAssemblyPlanSchema = z.object({
   planId: idSchema,
   briefLineage: basicRenderSmokeBriefLineageSchema,
@@ -45,6 +54,7 @@ export const basicRenderSmokeEditAssemblyPlanSchema = z.object({
   steps: z.array(basicRenderSmokeEditAssemblyStepSchema).min(1).max(12),
   sourceDurationSeconds: z.number().positive().max(24 * 60 * 60).optional(),
   sourceAspectRatio: z.string().min(1).max(32).optional(),
+  outputFrame: basicRenderSmokeOutputFrameSchema.optional(),
   mode: z.enum(['clean_internal_preview', 'private_final_export']).optional(),
   professionalOperationCount: z.number().int().nonnegative().optional(),
   professionalOperationLabels: z.array(z.string().min(1).max(160)).max(24).optional(),

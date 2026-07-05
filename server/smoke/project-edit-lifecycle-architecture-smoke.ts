@@ -126,6 +126,10 @@ const planBeforeBrief = buildProjectEditPlanApprovalModel({
   briefSaved: false,
   briefText: '',
   editSessionId: 'edit-session-youtube-wide',
+  outputAspectRatio: '16:9',
+  outputFrameConfirmed: true,
+  outputFrameConfirmationSource: 'new_edit_create_form',
+  outputPlatformTarget: 'youtube_standard',
   projectId: 'mock-project-edit-chat-foundation',
   sourceDurationSeconds: 76,
   sourceFileName: 'source.mp4',
@@ -142,6 +146,10 @@ const readyPlan = buildProjectEditPlanApprovalModel({
   briefSaved: true,
   briefText: 'Clean pacing and readable captions.',
   editSessionId: 'edit-session-youtube-wide',
+  outputAspectRatio: '16:9',
+  outputFrameConfirmed: true,
+  outputFrameConfirmationSource: 'new_edit_create_form',
+  outputPlatformTarget: 'youtube_standard',
   projectId: 'mock-project-edit-chat-foundation',
   sourceAspectRatio: '16:9',
   sourceDurationSeconds: 76,
@@ -154,6 +162,29 @@ assert.ok(readyPlan.blockers.includes('plan_credit_approval_required'))
 assert.ok(readyPlan.creditEstimate.lowCredits <= readyPlan.creditEstimate.expectedCredits)
 assert.ok(readyPlan.creditEstimate.expectedCredits <= readyPlan.creditEstimate.highCredits)
 assert.equal(readyPlan.creditEstimate.serviceFeeIncluded, false)
+assert.deepEqual(readyPlan.operationManifest.outputFrame, {
+  aspectRatio: '16:9',
+  platformTarget: 'youtube_standard',
+  width: 960,
+  height: 540,
+  confirmed: true,
+  source: 'new_edit_create_form',
+})
+
+const unconfirmedFramePlan = buildProjectEditPlanApprovalModel({
+  approved: true,
+  backendUploadResult: uploaded,
+  briefSaved: true,
+  briefText: 'Clean pacing and readable captions.',
+  editSessionId: 'edit-session-youtube-wide',
+  projectId: 'mock-project-edit-chat-foundation',
+  sourceAspectRatio: '16:9',
+  sourceDurationSeconds: 76,
+  sourceFileName: 'source.mp4',
+})
+assert.equal(unconfirmedFramePlan.canApprove, false)
+assert.equal(unconfirmedFramePlan.approved, false)
+assert.ok(unconfirmedFramePlan.blockers.includes('confirmed_output_frame_required'))
 
 const uploadedModel = buildProjectEditLifecycleModel({
   backendUploadAvailable: true,
@@ -184,6 +215,10 @@ const approvedPlan = buildProjectEditPlanApprovalModel({
   briefSaved: true,
   briefText: 'Clean pacing and readable captions.',
   editSessionId: 'edit-session-youtube-wide',
+  outputAspectRatio: '16:9',
+  outputFrameConfirmed: true,
+  outputFrameConfirmationSource: 'new_edit_create_form',
+  outputPlatformTarget: 'youtube_standard',
   projectId: 'mock-project-edit-chat-foundation',
   sourceAspectRatio: '16:9',
   sourceDurationSeconds: 76,
@@ -299,6 +334,7 @@ const preview: ProjectSourceVideoLocalEditPreviewResult = {
     title: backendPlanReadback.localEditPlan.approvedLocalPlan.title,
     summary: backendPlanReadback.localEditPlan.approvedLocalPlan.summary,
     steps: backendPlanReadback.localEditPlan.approvedLocalPlan.steps,
+    outputFrame: backendPlanReadback.localEditPlan.approvedLocalPlan.operationManifest.outputFrame,
     mode: 'clean_internal_preview',
     operationsApplied: ['approved_plan_snapshot_loaded', 'preview_review_pending'],
     professionalOperationCount: backendPlanReadback.localEditPlan.approvedLocalPlan.operationManifest.operations.length,
@@ -351,6 +387,26 @@ assert.equal(previewResultMatchesApprovedEvidence({
   previewResult: {
     ...preview,
     editPlanId: 'stale-plan-after-rebrief',
+  },
+  sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
+}), false)
+assert.equal(previewResultMatchesApprovedEvidence({
+  approvedLocalPlan: backendPlanReadback.localEditPlan.approvedLocalPlan,
+  previewResult: {
+    ...preview,
+    editAssembly: preview.editAssembly
+      ? {
+          ...preview.editAssembly,
+          outputFrame: {
+            aspectRatio: '9:16',
+            platformTarget: 'instagram_reel',
+            width: 540,
+            height: 960,
+            confirmed: true,
+            source: 'new_edit_create_form',
+          },
+        }
+      : undefined,
   },
   sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
 }), false)
@@ -562,6 +618,9 @@ assert.equal(qaReadyModel.finalExportReadiness.blockers.includes('professional_q
 assert.equal(qaReadyModel.finalExportReadiness.blockers.includes('required_assets_ready'), false)
 assert.ok(qaReadyModel.finalExportReadiness.blockers.includes('artifact_manifest_ready'))
 
+const previewEditAssembly = preview.editAssembly
+assert.ok(previewEditAssembly)
+
 const localFinalExport: ProjectSourceVideoLocalFinalExportResult = {
   status: 'final_export_ready',
   editPlanId: backendPlanReadback.localEditPlan.editPlanId,
@@ -573,6 +632,17 @@ const localFinalExport: ProjectSourceVideoLocalFinalExportResult = {
   sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
   finalExportStorageObjectId: 'storage-object-final-export-1',
   qaReportId: 'qa-report-final-export-1',
+  editAssembly: {
+    ...previewEditAssembly,
+    mode: 'private_final_export',
+    operationsApplied: [
+      'approved_plan_snapshot_loaded',
+      'approved_preview_review_carried_forward',
+      'professional_qa_passed',
+      'private_final_export_ready',
+    ],
+    productReady: false,
+  },
   outputBucketName: 'final-exports',
   outputObjectPath: 'workspaces/mock-workspace/projects/mock-project-edit-chat-foundation/exports/internal-final-export.mp4',
   durationSeconds: 6,

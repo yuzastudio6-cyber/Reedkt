@@ -1,4 +1,8 @@
 import type { ProjectSourceVideoBackendUploadResult } from '../types/project-source-video'
+import type {
+  ProjectEditSessionAspectRatio,
+  ProjectEditSessionPlatformTarget,
+} from '../types/project-edit-session'
 
 export type ProjectEditPlanApprovalStatus =
   | 'waiting_for_source'
@@ -41,6 +45,7 @@ export interface ProjectEditPlanOperationManifest {
   sourceFileName: string
   sourceDurationSeconds?: number
   sourceAspectRatio?: string
+  outputFrame?: ProjectEditPlanOutputFrame
   professionalBaseline: 'clean_professional'
   sourceOrderPolicy: 'preserve_source_order_until_user_approves_reorder'
   mediaIntelligenceStatus: 'not_analyzed_backend_local_only'
@@ -65,12 +70,25 @@ export interface ProjectEditPlanBriefLineage {
   briefFingerprint: string
 }
 
+export interface ProjectEditPlanOutputFrame {
+  aspectRatio: ProjectEditSessionAspectRatio
+  platformTarget: ProjectEditSessionPlatformTarget
+  width: number
+  height: number
+  confirmed: true
+  source: 'new_edit_create_form' | 'edit_session_metadata'
+}
+
 export interface ProjectEditPlanApprovalInput {
   approved: boolean
   backendUploadResult?: ProjectSourceVideoBackendUploadResult
   briefSaved: boolean
   briefText: string
   editSessionId: string
+  outputAspectRatio?: ProjectEditSessionAspectRatio
+  outputFrameConfirmed?: boolean
+  outputFrameConfirmationSource?: ProjectEditPlanOutputFrame['source']
+  outputPlatformTarget?: ProjectEditSessionPlatformTarget
   projectId: string
   sourceAspectRatio?: string
   sourceDurationSeconds?: number
@@ -177,9 +195,34 @@ function rangeLabel(startSeconds: number, endSeconds: number): string {
   return `${safeStart}s-${safeEnd}s`
 }
 
+export function getProjectEditPlanOutputFrameDimensions(aspectRatio: ProjectEditSessionAspectRatio | undefined): {
+  width: number
+  height: number
+} | undefined {
+  if (aspectRatio === '9:16') return { width: 540, height: 960 }
+  if (aspectRatio === '16:9') return { width: 960, height: 540 }
+  if (aspectRatio === '1:1') return { width: 720, height: 720 }
+  if (aspectRatio === '4:5') return { width: 720, height: 900 }
+  return undefined
+}
+
+function resolveConfirmedOutputFrame(input: ProjectEditPlanApprovalInput): ProjectEditPlanOutputFrame | undefined {
+  const dimensions = getProjectEditPlanOutputFrameDimensions(input.outputAspectRatio)
+  if (!input.outputFrameConfirmed || !input.outputAspectRatio || !input.outputPlatformTarget || !dimensions) return undefined
+  return {
+    aspectRatio: input.outputAspectRatio,
+    platformTarget: input.outputPlatformTarget,
+    width: dimensions.width,
+    height: dimensions.height,
+    confirmed: true,
+    source: input.outputFrameConfirmationSource ?? 'edit_session_metadata',
+  }
+}
+
 function createOperationManifest(input: ProjectEditPlanApprovalInput): ProjectEditPlanOperationManifest {
   const sourceFileName = input.sourceFileName ?? input.backendUploadResult?.fileName ?? 'source video'
   const durationSeconds = Math.max(1, Math.min(Math.ceil(input.sourceDurationSeconds ?? 60), 600))
+  const outputFrame = resolveConfirmedOutputFrame(input)
   const hookEnd = Math.min(6, Math.max(3, Math.round(durationSeconds * 0.15)))
   const endingStart = Math.max(hookEnd + 1, durationSeconds - Math.min(6, Math.max(3, Math.round(durationSeconds * 0.12))))
   const fullRange = rangeLabel(0, durationSeconds)
@@ -276,6 +319,7 @@ function createOperationManifest(input: ProjectEditPlanApprovalInput): ProjectEd
     sourceFileName,
     sourceDurationSeconds: input.sourceDurationSeconds,
     sourceAspectRatio: input.sourceAspectRatio,
+    outputFrame,
     professionalBaseline: 'clean_professional',
     sourceOrderPolicy: 'preserve_source_order_until_user_approves_reorder',
     mediaIntelligenceStatus: 'not_analyzed_backend_local_only',
@@ -286,6 +330,7 @@ function createOperationManifest(input: ProjectEditPlanApprovalInput): ProjectEd
     warnings: [
       'Operation manifest is backend-local planning evidence only; transcript/media intelligence and production workers remain separate gates.',
       'Workers must execute an approved snapshot and must not reinterpret raw chat.',
+      ...(outputFrame ? [`Confirmed output frame is ${outputFrame.aspectRatio} ${outputFrame.width}x${outputFrame.height} for ${outputFrame.platformTarget.replace(/_/g, ' ')}.`] : ['Output frame confirmation is required before approval or render smoke.']),
     ],
   }
 }
@@ -308,7 +353,8 @@ export function buildProjectEditPlanApprovalModel(input: ProjectEditPlanApproval
   const backendUploaded = input.backendUploadResult?.status === 'uploaded'
   const hasBrief = input.briefSaved && input.briefText.trim().length > 0
   const hasSource = Boolean(input.sourceFileName || input.backendUploadResult?.fileName)
-  const canApprove = hasSource && backendUploaded && hasBrief
+  const outputFrame = resolveConfirmedOutputFrame(input)
+  const canApprove = hasSource && backendUploaded && hasBrief && Boolean(outputFrame)
   const approved = canApprove && input.approved
 
   const status: ProjectEditPlanApprovalStatus = approved
@@ -325,12 +371,14 @@ export function buildProjectEditPlanApprovalModel(input: ProjectEditPlanApproval
     hasSource ? undefined : 'source_video_required',
     backendUploaded ? undefined : 'backend_local_upload_required',
     hasBrief ? undefined : 'brief_save_required',
+    outputFrame ? undefined : 'confirmed_output_frame_required',
     approved ? undefined : 'plan_credit_approval_required',
   ].filter(Boolean) as string[]
 
   const sourceName = input.sourceFileName ?? input.backendUploadResult?.fileName ?? 'source video'
   const sourceSummary = [
     sourceName,
+    outputFrame ? `${outputFrame.aspectRatio} ${outputFrame.platformTarget.replace(/_/g, ' ')} output` : undefined,
     input.sourceAspectRatio ? `${input.sourceAspectRatio} frame` : undefined,
     input.sourceDurationSeconds ? `${Math.round(input.sourceDurationSeconds)}s source` : undefined,
   ].filter(Boolean).join(' · ')

@@ -133,6 +133,7 @@ export function ProjectEditBriefWorkspace({
 
   const sourceSummary = useMemo(() => createProjectSourceVideoMetadataSummary(sourceVideo), [sourceVideo])
   const sourceEvidenceAvailable = Boolean(sourceVideo || backendUploadResult)
+  const outputFrameConfirmed = backendLocalEditSession?.metadata?.outputFrameConfirmed === true
   const videoShell = useMemo<ProjectEditBriefVideoShellModel>(() => ({
     durationSeconds: sourceVideo?.durationSeconds ?? 60,
     currentTimeSeconds: playheadSeconds,
@@ -148,11 +149,15 @@ export function ProjectEditBriefWorkspace({
     briefSaved: Boolean(backendSavedBrief?.readbackVerified) && briefSaved,
     briefText: backendSavedBrief?.briefText ?? briefText,
     editSessionId,
+    outputAspectRatio: backendLocalEditSession?.aspectRatio,
+    outputFrameConfirmed,
+    outputFrameConfirmationSource: 'edit_session_metadata',
+    outputPlatformTarget: backendLocalEditSession?.platformTarget,
     projectId,
     sourceAspectRatio: sourceVideo?.inferredAspectRatio,
     sourceDurationSeconds: sourceVideo?.durationSeconds,
     sourceFileName: sourceVideo?.fileName ?? backendUploadResult?.fileName,
-  }), [backendSavedBrief, backendUploadResult, briefSaved, briefText, editSessionId, planApproved, projectId, sourceVideo])
+  }), [backendLocalEditSession, backendSavedBrief, backendUploadResult, briefSaved, briefText, editSessionId, outputFrameConfirmed, planApproved, projectId, sourceVideo])
   const currentPreviewResult = useMemo(() => previewResultMatchesApprovedEvidence({
     approvedLocalPlan: backendApprovedLocalPlan?.localEditPlan.approvedLocalPlan,
     previewResult: localPreviewResult,
@@ -268,6 +273,10 @@ export function ProjectEditBriefWorkspace({
         briefSaved: true,
         briefText: backendSavedBrief.briefText,
         editSessionId,
+        outputAspectRatio: backendLocalEditSession.aspectRatio,
+        outputFrameConfirmed: backendLocalEditSession.metadata?.outputFrameConfirmed === true,
+        outputFrameConfirmationSource: 'edit_session_metadata',
+        outputPlatformTarget: backendLocalEditSession.platformTarget,
         projectId,
         sourceAspectRatio: sourceVideo?.inferredAspectRatio,
         sourceDurationSeconds: sourceVideo?.durationSeconds,

@@ -34,6 +34,7 @@ function createEditAssemblyResult(
     'approved_plan_snapshot_loaded',
     'source_trim_bounded_for_internal_testing',
     'frame_safe_mp4_assembly',
+    ...(plan.outputFrame ? [`confirmed_output_frame:${plan.outputFrame.aspectRatio}:${plan.outputFrame.width}x${plan.outputFrame.height}`] : []),
     'clean_fade_handles_applied',
     mode === 'private_final_export' ? 'approved_preview_review_carried_forward' : 'preview_review_pending',
     ...plan.steps.map((step) => `plan_step:${step.label}`),
@@ -145,6 +146,8 @@ export async function runBasicRenderSmoke(
     ffmpegBin: context.env.ffmpegBin,
     timeoutMs: 45000,
     maxDurationSeconds: 3,
+    targetWidth: editAssembly?.outputFrame?.width,
+    targetHeight: editAssembly?.outputFrame?.height,
     audioMode: 'muted',
     editAssembly: editAssembly
       ? {
@@ -275,6 +278,8 @@ export async function runBasicFinalExportSmoke(
     ffmpegBin: context.env.ffmpegBin,
     timeoutMs: 90000,
     maxDurationSeconds,
+    targetWidth: editAssembly?.outputFrame?.width,
+    targetHeight: editAssembly?.outputFrame?.height,
     audioMode: 'copy_or_transcode',
     editAssembly: editAssembly
       ? {

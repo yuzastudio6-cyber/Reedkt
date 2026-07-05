@@ -3,6 +3,7 @@ import type {
   ProjectSourceVideoBriefLineage,
   ProjectSourceVideoLocalFinalExportResult,
   ProjectSourceVideoLocalEditPreviewResult,
+  ProjectSourceVideoOutputFrame,
   ProjectSourceVideoPreviewReviewResult,
   ProjectSourceVideoProfessionalQAResult,
 } from '../types/project-source-video'
@@ -17,6 +18,22 @@ function briefLineageMatches(
     left.briefId === right.briefId &&
     left.revisionNumber === right.revisionNumber &&
     left.briefFingerprint === right.briefFingerprint,
+  )
+}
+
+function outputFrameMatches(
+  left: ProjectSourceVideoOutputFrame | undefined,
+  right: ProjectSourceVideoOutputFrame | undefined,
+): boolean {
+  return Boolean(
+    left &&
+    right &&
+    left.confirmed === true &&
+    right.confirmed === true &&
+    left.aspectRatio === right.aspectRatio &&
+    left.platformTarget === right.platformTarget &&
+    left.width === right.width &&
+    left.height === right.height,
   )
 }
 
@@ -48,7 +65,8 @@ export function previewResultMatchesApprovedEvidence(input: {
     previewResult.editPlanId === approvedLocalPlan.planId &&
     previewResult.briefLineage.briefId === approvedLocalPlan.briefLineage.briefId &&
     previewResult.briefLineage.revisionNumber === approvedLocalPlan.briefLineage.revisionNumber &&
-    previewResult.briefLineage.briefFingerprint === approvedLocalPlan.briefLineage.briefFingerprint
+    previewResult.briefLineage.briefFingerprint === approvedLocalPlan.briefLineage.briefFingerprint &&
+    outputFrameMatches(previewResult.editAssembly?.outputFrame, approvedLocalPlan.operationManifest.outputFrame)
   )
 }
 
@@ -114,6 +132,7 @@ export function finalExportMatchesCurrentEvidence(input: {
     finalExportResult.sourceStorageObjectRecordId === previewResult.sourceStorageObjectRecordId &&
     finalExportResult.sourceStorageObjectRecordId === sourceStorageObjectRecordId &&
     finalExportResult.professionalQA?.id === professionalQAResult.id &&
-    briefLineageMatches(finalExportResult.briefLineage, previewResult.briefLineage),
+    briefLineageMatches(finalExportResult.briefLineage, previewResult.briefLineage) &&
+    outputFrameMatches(finalExportResult.editAssembly?.outputFrame, previewResult.editAssembly?.outputFrame),
   )
 }

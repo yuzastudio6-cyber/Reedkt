@@ -137,6 +137,15 @@ export interface ProjectSourceVideoEditAssemblyStep {
   summary: string
 }
 
+export interface ProjectSourceVideoOutputFrame {
+  aspectRatio: string
+  platformTarget: string
+  width: number
+  height: number
+  confirmed: true
+  source: string
+}
+
 export interface ProjectSourceVideoEditAssemblySummary {
   planId: string
   briefLineage: ProjectSourceVideoBriefLineage
@@ -145,6 +154,7 @@ export interface ProjectSourceVideoEditAssemblySummary {
   steps: ProjectSourceVideoEditAssemblyStep[]
   sourceDurationSeconds?: number
   sourceAspectRatio?: string
+  outputFrame?: ProjectSourceVideoOutputFrame
   mode: ProjectSourceVideoEditAssemblyMode
   operationsApplied: string[]
   professionalOperationCount?: number

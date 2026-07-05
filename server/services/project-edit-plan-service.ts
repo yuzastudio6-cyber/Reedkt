@@ -20,11 +20,32 @@ interface LocalEditPlanSegmentOperationInput {
   productReady: false
 }
 
+interface LocalEditPlanOutputFrameInput {
+  aspectRatio: '9:16' | '16:9' | '1:1' | '4:5' | 'custom'
+  platformTarget:
+    | 'tiktok_reel'
+    | 'instagram_reel'
+    | 'instagram_feed'
+    | 'youtube_shorts'
+    | 'youtube_standard'
+    | 'linkedin'
+    | 'website'
+    | 'podcast_clip'
+    | 'ad_creative'
+    | 'internal_review'
+    | 'custom'
+  width: number
+  height: number
+  confirmed: true
+  source: 'new_edit_create_form' | 'edit_session_metadata'
+}
+
 interface LocalEditPlanOperationManifestInput {
   version: 'project-edit-operation-manifest-v1'
   sourceFileName: string
   sourceDurationSeconds?: number
   sourceAspectRatio?: string
+  outputFrame?: LocalEditPlanOutputFrameInput
   professionalBaseline: 'clean_professional'
   sourceOrderPolicy: 'preserve_source_order_until_user_approves_reorder'
   mediaIntelligenceStatus: 'not_analyzed_backend_local_only'
@@ -258,6 +279,14 @@ function sanitizeOperationManifest(manifest: LocalEditPlanOperationManifestInput
   return {
     ...manifest,
     sourceFileName: sanitizePlanText(manifest.sourceFileName),
+    outputFrame: manifest.outputFrame
+      ? {
+          ...manifest.outputFrame,
+          width: Math.max(1, Math.floor(manifest.outputFrame.width)),
+          height: Math.max(1, Math.floor(manifest.outputFrame.height)),
+          confirmed: true,
+        }
+      : undefined,
     operations: manifest.operations.map((operation) => ({
       ...operation,
       id: sanitizePlanText(operation.id),

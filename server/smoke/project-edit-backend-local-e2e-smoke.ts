@@ -5,6 +5,8 @@ import { createServer } from 'node:http'
 import path from 'node:path'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
+import { probeMediaFile } from '../media/ffprobe'
+import { resolveLocalStorageObjectPath } from '../media/local-media-paths'
 import { createSyntheticMp4Fixture } from '../media/test-media-fixture'
 import { checkBasicRenderSmokeTools } from '../services/render-smoke-service'
 import { createProjectBackendLocal } from '../../src/lib/project-backend-local'
@@ -68,6 +70,25 @@ async function assertPrivateReviewArtifact(input: {
   return bytes.byteLength
 }
 
+async function assertPrivateArtifactFrame(input: {
+  bucketName?: string
+  height: number
+  label: string
+  objectPath?: string
+  width: number
+}) {
+  assert.ok(input.bucketName, `${input.label} bucket should be present`)
+  assert.ok(input.objectPath, `${input.label} object path should be present`)
+  const artifactPath = resolveLocalStorageObjectPath(localStorageRoot, input.bucketName, input.objectPath)
+  const probe = await probeMediaFile(artifactPath, {
+    ffprobeBin: env.ffprobeBin,
+    timeoutMs: env.toolCheckTimeoutMs,
+  })
+  assert.equal(probe.width, input.width, `${input.label} should use the confirmed output frame width`)
+  assert.equal(probe.height, input.height, `${input.label} should use the confirmed output frame height`)
+  return probe
+}
+
 const workspaceId = 'mock-workspace'
 const localStorageRoot = '.reeditpro-local-storage-backend-local-e2e-smoke'
 
@@ -112,9 +133,9 @@ try {
 
   const editForm = {
     ...createDefaultNewEditSessionFormState(),
-    aspectRatio: '16:9' as const,
+    aspectRatio: '9:16' as const,
     name: 'Backend-local E2E smoke edit',
-    platformTarget: 'youtube_standard' as const,
+    platformTarget: 'instagram_reel' as const,
     selectedEditLevel: 'premium' as const,
   }
   const createdEdit = await createProjectEditSessionBackendLocalFromNewEditForm({
@@ -199,6 +220,10 @@ try {
     briefSaved: true,
     briefText: brief.readback.briefText,
     editSessionId,
+    outputAspectRatio: editForm.aspectRatio,
+    outputFrameConfirmed: createdEdit.session?.metadata?.outputFrameConfirmed === true,
+    outputFrameConfirmationSource: 'new_edit_create_form',
+    outputPlatformTarget: editForm.platformTarget,
     projectId: project.project.id,
     sourceAspectRatio: '16:9',
     sourceDurationSeconds: fixture.durationSeconds,
@@ -207,6 +232,14 @@ try {
   assert.equal(plan.canApprove, true)
   assert.equal(plan.approved, true)
   assert.equal(plan.operationManifest.version, 'project-edit-operation-manifest-v1')
+  assert.deepEqual(plan.operationManifest.outputFrame, {
+    aspectRatio: editForm.aspectRatio,
+    platformTarget: editForm.platformTarget,
+    width: 540,
+    height: 960,
+    confirmed: true,
+    source: 'new_edit_create_form',
+  })
   assert.ok(plan.operationManifest.operations.length >= 7)
   assert.ok(plan.operationManifest.requiredQaChecks.includes('approved_snapshot_used'))
 
@@ -260,14 +293,23 @@ try {
   assert.equal(preview.editAssembly?.mode, 'clean_internal_preview')
   assert.equal(preview.editAssembly?.planStepCount, approvedPlan.localEditPlan.approvedLocalPlan.steps.length)
   assert.equal(preview.editAssembly?.professionalOperationCount, approvedPlan.localEditPlan.approvedLocalPlan.operationManifest.operations.length)
+  assert.deepEqual(preview.editAssembly?.outputFrame, approvedPlan.localEditPlan.approvedLocalPlan.operationManifest.outputFrame)
   assert.ok(preview.editAssembly?.professionalOperationLabels?.includes('Readable captions'))
   assert.ok(preview.editAssembly?.requiredQaChecks?.includes('caption_readability'))
+  assert.ok(preview.editAssembly?.operationsApplied.includes('confirmed_output_frame:9:16:540x960'))
   assert.ok(preview.editAssembly?.operationsApplied.includes('clean_fade_handles_applied'))
   const previewReviewBytes = await assertPrivateReviewArtifact({
     apiBaseUrl,
     label: 'Preview',
     storageObjectRecordId: preview.previewStorageObjectId,
     workspaceId,
+  })
+  await assertPrivateArtifactFrame({
+    bucketName: preview.outputBucketName,
+    height: 960,
+    label: 'Preview',
+    objectPath: preview.outputObjectPath,
+    width: 540,
   })
 
   await recordProjectEditSessionLifecycleCheckpointBackendLocal({
@@ -418,7 +460,9 @@ try {
   assert.equal(finalExport.editAssembly?.mode, 'private_final_export')
   assert.deepEqual(finalExport.briefLineage, preview.briefLineage)
   assert.equal(finalExport.editAssembly?.professionalOperationCount, approvedPlan.localEditPlan.approvedLocalPlan.operationManifest.operations.length)
+  assert.deepEqual(finalExport.editAssembly?.outputFrame, approvedPlan.localEditPlan.approvedLocalPlan.operationManifest.outputFrame)
   assert.ok(finalExport.editAssembly?.requiredQaChecks?.includes('approved_snapshot_used'))
+  assert.ok(finalExport.editAssembly?.operationsApplied.includes('confirmed_output_frame:9:16:540x960'))
   assert.ok(finalExport.editAssembly?.operationsApplied.includes('approved_preview_review_carried_forward'))
   assert.equal(finalExport.professionalQA?.status, 'passed')
   const finalExportReviewBytes = await assertPrivateReviewArtifact({
@@ -426,6 +470,13 @@ try {
     label: 'Final export',
     storageObjectRecordId: finalExport.finalExportStorageObjectId,
     workspaceId,
+  })
+  await assertPrivateArtifactFrame({
+    bucketName: finalExport.outputBucketName,
+    height: 960,
+    label: 'Final export',
+    objectPath: finalExport.outputObjectPath,
+    width: 540,
   })
 
   await recordProjectEditSessionLifecycleCheckpointBackendLocal({
@@ -613,6 +664,10 @@ try {
     briefSaved: true,
     briefText: restoredBrief.editBrief.briefText,
     editSessionId,
+    outputAspectRatio: finalSession.editSession.aspectRatio,
+    outputFrameConfirmed: finalSession.editSession.metadata?.outputFrameConfirmed === true,
+    outputFrameConfirmationSource: 'edit_session_metadata',
+    outputPlatformTarget: finalSession.editSession.platformTarget,
     projectId: project.project.id,
     sourceAspectRatio: '16:9',
     sourceDurationSeconds: fixture.durationSeconds,

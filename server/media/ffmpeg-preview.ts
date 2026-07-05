@@ -40,6 +40,8 @@ export interface BasicPreviewRenderOutput {
     videoCodec: string
     audioMode: PreviewAudioMode
     filters: string[]
+    targetWidth?: number
+    targetHeight?: number
     editAssemblyMode?: 'clean_internal_preview' | 'private_final_export'
     editOperations: string[]
   }
@@ -106,6 +108,8 @@ export async function createBasicPreview(
       videoCodec,
       audioMode,
       filters,
+      targetWidth: options.targetWidth,
+      targetHeight: options.targetHeight,
       editAssemblyMode: options.editAssembly?.mode,
       editOperations: options.editAssembly?.operationsApplied ?? ['bounded_trim', 'frame_safe_mp4_output'],
     },
@@ -127,6 +131,9 @@ function buildFilters(options: BasicPreviewRenderOptions): string[] {
 
 function buildScaleFilter(width: number | undefined, height: number | undefined): string | undefined {
   if (!width && !height) return undefined
+  if (width && height) {
+    return `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2,setsar=1`
+  }
   return `scale=${width ?? -2}:${height ?? -2}`
 }
 

@@ -64,6 +64,25 @@ function briefLineageValue(value: unknown): ProjectSourceVideoBriefLineage | und
   }
 }
 
+function outputFrameValue(value: unknown): ProjectSourceVideoEditAssemblySummary['outputFrame'] | undefined {
+  const record = objectValue(value)
+  if (!record) return undefined
+  const aspectRatio = stringValue(record.aspectRatio)
+  const platformTarget = stringValue(record.platformTarget)
+  const width = numberValue(record.width)
+  const height = numberValue(record.height)
+  const source = stringValue(record.source)
+  if (!aspectRatio || !platformTarget || !width || !height || !source || record.confirmed !== true) return undefined
+  return {
+    aspectRatio,
+    platformTarget,
+    width,
+    height,
+    confirmed: true,
+    source,
+  }
+}
+
 function editAssemblyValue(value: unknown): ProjectSourceVideoEditAssemblySummary | undefined {
   const record = objectValue(value)
   if (!record) return undefined
@@ -104,6 +123,7 @@ function editAssemblyValue(value: unknown): ProjectSourceVideoEditAssemblySummar
     steps,
     sourceDurationSeconds: numberValue(record.sourceDurationSeconds),
     sourceAspectRatio: stringValue(record.sourceAspectRatio),
+    outputFrame: outputFrameValue(record.outputFrame),
     mode,
     operationsApplied,
     professionalOperationCount: numberValue(record.professionalOperationCount),

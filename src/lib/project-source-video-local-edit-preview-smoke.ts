@@ -166,6 +166,9 @@ function createEditAssemblySummary(input: {
     'approved_plan_snapshot_loaded',
     'source_trim_bounded_for_internal_testing',
     'frame_safe_mp4_assembly',
+    ...(input.approvedLocalPlan.operationManifest.outputFrame
+      ? [`confirmed_output_frame:${input.approvedLocalPlan.operationManifest.outputFrame.aspectRatio}:${input.approvedLocalPlan.operationManifest.outputFrame.width}x${input.approvedLocalPlan.operationManifest.outputFrame.height}`]
+      : []),
     'clean_fade_handles_applied',
     input.mode === 'private_final_export' ? 'approved_preview_review_carried_forward' : 'preview_review_pending',
     ...input.approvedLocalPlan.operationManifest.operations.map((operation) => `professional_operation:${operation.operationType}:${operation.segmentRole}`),
@@ -183,6 +186,7 @@ function createEditAssemblySummary(input: {
     })),
     sourceDurationSeconds: input.sourceVideoDurationSeconds,
     sourceAspectRatio: input.sourceVideoAspectRatio,
+    outputFrame: input.approvedLocalPlan.operationManifest.outputFrame,
     mode: input.mode,
     operationsApplied,
     professionalOperationCount: input.approvedLocalPlan.operationManifest.operations.length,

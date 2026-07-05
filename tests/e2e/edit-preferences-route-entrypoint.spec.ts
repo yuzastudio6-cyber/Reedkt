@@ -3,9 +3,9 @@ import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import { gotoRoute } from './helpers/routes'
 
 test.describe('Edit Preferences route entrypoint', () => {
-  test('opens the mock/local preference library and shows seeded options safely', async ({ page }) => {
+  test('opens the clean Preferences page safely', async ({ page }) => {
     await setViewport(page, 1440)
-    await gotoRoute(page, '/edit-preferences')
+    await gotoRoute(page, '/preferences')
 
     const sidebarNav = page.getByRole('navigation', { name: /desktop app navigation/i })
     await expect(sidebarNav.getByRole('link')).toHaveCount(3)
@@ -15,14 +15,10 @@ test.describe('Edit Preferences route entrypoint', () => {
     await expect(sidebarNav).not.toContainText(/Projects|AI Editor|Media Library|Templates|Team|Analytics|Exports|Brand Kit|Settings/i)
     await expect(page.locator('.sidebar')).not.toContainText(/credits available|storage used|Creator workspace|Tommy/i)
     await expect(page.getByRole('button', { name: /open wallet/i })).toHaveCount(0)
-    await expect(page.getByTestId('edit-preferences-page')).toBeVisible()
-    await expect(page.getByTestId('edit-preference-summary-strip')).toContainText('Product-ready')
-    await expect(page.getByTestId('edit-preference-summary-strip')).toContainText('0')
-    await expect(page.getByTestId('edit-preference-toolbar')).toContainText('providerCalls: false')
-    await expect(page.getByTestId('edit-preference-toolbar')).toContainText('supabaseWrites: false')
-    await expect(page.getByTestId('edit-preference-card-list')).toContainText('@lifestyle-travel-vlog')
-    await expect(page.getByTestId('edit-preference-detail-panel')).toContainText('Do not copy')
-    await expect(page.getByTestId('edit-preference-detail-panel')).toContainText('No fetch')
+    await expect(page.getByTestId('preferences-clean-shell')).toBeVisible()
+    await expect(page.getByTestId('preferences-clean-shell')).toContainText('Edit defaults')
+    await expect(page.getByTestId('preferences-clean-shell')).toContainText('Privacy')
+    await expect(page.getByTestId('preferences-clean-shell')).toContainText('Save preference')
     await expect(page.getByText(/provider call made|worker created|render started|credit reserved|upload started/i)).toHaveCount(0)
     await expectNoHorizontalOverflow(page)
   })
@@ -35,7 +31,7 @@ test.describe('Edit Preferences route entrypoint', () => {
     await expect(page.getByRole('navigation', { name: /desktop app navigation/i }).getByRole('link')).toHaveCount(3)
 
     await gotoRoute(page, '/brand-kit')
-    await expect(page).toHaveURL(/\/edit-preferences$/)
+    await expect(page).toHaveURL(/\/preferences$/)
     await expect(page.getByRole('navigation', { name: /desktop app navigation/i }).getByRole('link')).toHaveCount(3)
 
     await gotoRoute(page, '/exports')
@@ -43,23 +39,12 @@ test.describe('Edit Preferences route entrypoint', () => {
     await expect(page.getByRole('navigation', { name: /desktop app navigation/i }).getByRole('link')).toHaveCount(3)
   })
 
-  test('creates a browser-local draft without fetching media or starting runtime work', async ({ page }) => {
+  test('keeps legacy edit preferences route as a redirect', async ({ page }) => {
     await setViewport(page, 1280)
     await gotoRoute(page, '/edit-preferences')
 
-    await expect(page.getByTestId('edit-preference-create-flow')).toBeVisible()
-    await page.getByText('Reference label or URL text').click()
-    await page.getByLabel('Preference name').fill('Warm founder lesson')
-    await page.getByLabel('Tags').fill('founder, warm, lesson')
-    await page.getByLabel('Direction').fill('Keep the speaker natural, use clean captions, and adapt reference pacing without copying any shots.')
-    await page.getByRole('button', { name: /Save browser-local draft/i }).click()
-
-    await expect(page.getByTestId('edit-preference-status-note')).toContainText('@warm-founder-lesson created in browser-local storage only')
-    await expect(page.getByTestId('edit-preference-card-list')).toContainText('@warm-founder-lesson')
-    await expect(page.getByTestId('edit-preference-detail-panel')).toContainText('Reference label/URL text was recorded without fetching the URL')
-    await expect(page.getByTestId('edit-preference-detail-panel')).toContainText('Review before use')
-    await expect(page.getByTestId('edit-preference-detail-panel')).toContainText('Qwen')
-    await expect(page.getByTestId('edit-preference-detail-panel')).toContainText('Supabase persistence')
+    await expect(page).toHaveURL(/\/preferences$/)
+    await expect(page.getByTestId('preferences-clean-shell')).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
 })

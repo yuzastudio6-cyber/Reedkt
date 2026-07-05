@@ -27,7 +27,7 @@ import {
   getProjectEditSessionRouteSectionFromPath,
 } from '../lib/project-edit-session-route-models'
 
-export function ProjectEditSessionChatPage() {
+export function EditorPage() {
   const params = useParams<{ projectId: string; editSessionId: string }>()
   const location = useLocation()
   const projectId = params.projectId ?? MOCK_PROJECT_HOME_PROJECT_ID

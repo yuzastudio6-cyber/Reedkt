@@ -20,7 +20,7 @@ function assertFile(path: string) {
 const requiredFiles = [
   'src/pages/InternalTestingPage.tsx',
   'src/lib/internal-testing-scenarios.ts',
-  'src/pages/EditPreferencesPage.tsx',
+  'src/pages/PreferencesPage.tsx',
   'docs/project-edit-brief-internal-testing-entrypoint.md',
   'docs/project-edit-brief-internal-testing-entrypoint.json',
   'docs/edit-preferences-route-entrypoint.md',

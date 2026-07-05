@@ -60,9 +60,9 @@ assert.equal(createProjectEditSessionBriefPath(projectId, emptySessionId), `${cr
 assert.equal(getProjectEditSessionRouteSectionFromPath(`/projects/${projectId}/edits/${emptySessionId}/brief`), 'brief')
 
 const tabs = createProjectEditSessionRouteTabs({ projectId, editSessionId: emptySessionId, activeSection: 'brief' })
-assert.equal(tabs.length, 6)
+assert.equal(tabs.length, 3)
 assert.equal(tabs.find((tab) => tab.section === 'brief')?.active, true)
-assert.equal(tabs.find((tab) => tab.section === 'brief')?.badge, 'Optional')
+assert.equal(tabs.find((tab) => tab.section === 'brief')?.badge, 'Upload')
 
 const navigationTypes = read('src/types/project-edit-session-navigation.ts')
 assert.match(navigationTypes, /'brief'/)
@@ -74,7 +74,7 @@ assert.match(app, /\/projects\/:projectId\/edits\/:editSessionId\/brief/)
 const indexCss = read('src/index.css')
 assert.match(indexCss, /project-edit-brief\.css/)
 
-const chatPage = read('src/pages/ProjectEditSessionChatPage.tsx')
+const chatPage = read('src/pages/EditorPage.tsx')
 assert.match(chatPage, /ProjectEditBriefWorkspace/)
 assert.match(chatPage, /routeSection === 'brief'/)
 
@@ -91,7 +91,12 @@ briefComponentFiles.forEach((path) => {
   assert.doesNotMatch(source, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/, `${path} should not import backend code`)
   const hasDisabledFilePlaceholder = /type="file"/.test(source) && /disabled/.test(source)
   const isLocalSourceVideoPicker = path.endsWith('ProjectEditBriefSourceVideoPicker.tsx')
-  assert.equal(/type="file"/.test(source) && !hasDisabledFilePlaceholder && !isLocalSourceVideoPicker, false, `${path} should not add active file upload UI`)
+  const isCleanLocalBriefWorkspace = path.endsWith('ProjectEditBriefWorkspace.tsx') && /URL\.createObjectURL/.test(source) && /Nothing has been uploaded or processed yet/.test(source)
+  assert.equal(
+    /type="file"/.test(source) && !hasDisabledFilePlaceholder && !isLocalSourceVideoPicker && !isCleanLocalBriefWorkspace,
+    false,
+    `${path} should not add backend upload UI or active runtime media execution`,
+  )
   assert.doesNotMatch(source, /appendMarkerMessage|addMarkerAttachment|renderJob|creditReserved/, `${path} should stay browser-safe and free of future runtime surfaces`)
 })
 

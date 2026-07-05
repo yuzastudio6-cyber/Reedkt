@@ -32,7 +32,7 @@ const preferenceSections = [
   },
 ]
 
-export function EditPreferencesPage() {
+export function PreferencesPage() {
   return (
     <AppShell
       description="Set the editing defaults ReEditPro should remember before each project and edit."

@@ -18,7 +18,7 @@ function assertFile(path: string) {
 }
 
 const requiredFiles = [
-  'src/pages/EditPreferencesPage.tsx',
+  'src/pages/PreferencesPage.tsx',
   'src/styles/preferences.css',
   'docs/edit-preferences-route-entrypoint.md',
   'docs/edit-preferences-route-entrypoint.json',
@@ -28,11 +28,12 @@ const requiredFiles = [
 requiredFiles.forEach(assertFile)
 
 const app = read('src/App.tsx')
-assert.match(app, /EditPreferencesPage/)
+assert.match(app, /PreferencesPage/)
+assert.match(app, /path="\/preferences"/)
 assert.match(app, /path="\/edit-preferences"/)
 assert.doesNotMatch(app, /WalletPage|BrandKitPage|ExportQueuePage/)
 assert.match(app, /path="\/wallet"\s+element=\{<Navigate to="\/dashboard" replace \/>\}/)
-assert.match(app, /path="\/brand-kit"\s+element=\{<Navigate to="\/edit-preferences" replace \/>\}/)
+assert.match(app, /path="\/brand-kit"\s+element=\{<Navigate to="\/preferences" replace \/>\}/)
 assert.match(app, /path="\/exports"\s+element=\{<Navigate to="\/projects" replace \/>\}/)
 
 const nav = read('src/data/mockData.ts')
@@ -46,7 +47,7 @@ assert.match(appNavSource, /label: 'Project'/)
 assert.match(appNavSource, /Preferences/)
 assert.match(appNavSource, /\/dashboard/)
 assert.match(appNavSource, /\/projects/)
-assert.match(appNavSource, /\/edit-preferences/)
+assert.match(appNavSource, /\/preferences/)
 assert.deepEqual([...appNavSource.matchAll(/label: '([^']+)'/g)].map((match) => match[1]), ['Home', 'Project', 'Preferences'])
 assert.doesNotMatch(nav, /disabled\?: boolean/)
 for (const staleSidebarItem of ['Projects', 'AI Editor', 'Media Library', 'Templates', 'Team', 'Analytics', 'Exports', 'Brand Kit', 'Settings', 'Wallet', 'Upload']) {
@@ -67,13 +68,11 @@ assert.match(design, /old broad sidebar list is retired/i)
 assert.match(design, /Navigation \| Home, Project, Preferences/)
 assert.doesNotMatch(design, /Primary desktop sidebar:\s+1\. Home\s+2\. Projects\s+3\. AI Editor/)
 
-const page = read('src/pages/EditPreferencesPage.tsx')
-assert.match(page, /listProjectEditSessionPreferenceOptionsForUI/)
-assert.match(page, /DRAFT_STORAGE_KEY/)
-assert.match(page, /no upload/i)
-assert.match(page, /no provider/i)
-assert.match(page, /no Supabase/i)
-assert.match(page, /No fetch/)
+const page = read('src/pages/PreferencesPage.tsx')
+assert.match(page, /PreferencesPage/)
+assert.match(page, /Edit defaults/)
+assert.match(page, /Privacy/)
+assert.match(page, /Save preference/)
 assert.doesNotMatch(page, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/)
 assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|service_role|signedUrl/i)
 
@@ -83,8 +82,9 @@ assert.doesNotMatch(dashboardPage, /to="\/wallet"|Open wallet/)
 const docs = read('docs/edit-preferences-route-entrypoint.md')
 for (const phrase of [
   'mock/local',
+  '/preferences',
   '/edit-preferences',
-  'browser-safe UI adapter',
+  'clean mock/local Preferences page',
   'Home, Project, and Preferences',
   'No upload',
   'No reference URL fetch',
@@ -106,11 +106,11 @@ const docJson = JSON.parse(read('docs/edit-preferences-route-entrypoint.json')) 
   validation?: { required?: string[] }
 }
 assert.equal(docJson.decision, 'edit_preferences_route_entrypoint_passed_mock_local_ready_for_internal_testing')
-assert.equal(docJson.route, '/edit-preferences')
+assert.equal(docJson.route, '/preferences')
 assert.deepEqual(docJson.sidebarNavigation?.allowed, ['Home', 'Project', 'Preferences'])
 assert.deepEqual(docJson.sidebarNavigation?.retiredStandaloneRoutes, {
   '/wallet': '/dashboard',
-  '/brand-kit': '/edit-preferences',
+  '/brand-kit': '/preferences',
   '/exports': '/projects',
 })
 assert.equal(docJson.blockedScope?.productReady, false)
@@ -136,7 +136,7 @@ assert.ok(options.every((option) => option.mockOnly))
 console.log(JSON.stringify({
   ok: true,
   milestone: 'RP-PREF-ROUTE-01',
-  route: '/edit-preferences',
+  route: '/preferences',
   options: options.length,
   dnaBacked: options.filter((option) => option.hasDNA).length,
   productReady: false,

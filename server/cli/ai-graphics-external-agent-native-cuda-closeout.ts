@@ -668,6 +668,57 @@ function readinessResultHandoff(args: ParsedArgs): JsonRecord {
   }
 }
 
+function nativeCudaCloseoutScriptPrivateInputChecks(args: ParsedArgs): string[] {
+  const lines = [
+    'if [[ ! -d "$PRIVATE_MODEL_ROOT" ]]; then',
+    '  echo "Private model root is missing or is not a directory: $PRIVATE_MODEL_ROOT" >&2',
+    '  exit 2',
+    'fi',
+    'if [[ ! -f "$PRIVATE_SOURCE_IMAGE" ]]; then',
+    '  echo "Private approved source image file is missing: $PRIVATE_SOURCE_IMAGE" >&2',
+    '  exit 2',
+    'fi',
+  ]
+
+  if (args.requestedTools.includes('sam2')) {
+    lines.push(
+      'SAM2_CHECKPOINT_FOUND=0',
+      `for candidate in ${runtimeTargets.sam2.candidates
+        .map((candidate) => `"${`$PRIVATE_MODEL_ROOT/${candidate}`}"`)
+        .join(' ')}; do`,
+      '  if [[ -f "$candidate" ]]; then',
+      '    SAM2_CHECKPOINT_FOUND=1',
+      '    break',
+      '  fi',
+      'done',
+      'if [[ "$SAM2_CHECKPOINT_FOUND" != "1" ]]; then',
+      `  echo "Private SAM2 checkpoint not found under $PRIVATE_MODEL_ROOT; expected one of: ${runtimeTargets.sam2.candidates.join(', ')}" >&2`,
+      '  exit 2',
+      'fi',
+    )
+  }
+
+  if (args.requestedTools.includes('birefnet')) {
+    lines.push(
+      'BIREFNET_MODEL_FOUND=0',
+      `for candidate in ${runtimeTargets.birefnet.candidates
+        .map((candidate) => `"${`$PRIVATE_MODEL_ROOT/${candidate}`}"`)
+        .join(' ')}; do`,
+      '  if [[ -d "$candidate" && -f "$candidate/model.safetensors" && -f "$candidate/config.json" && -f "$candidate/BiRefNet_config.py" && -f "$candidate/birefnet.py" ]]; then',
+      '    BIREFNET_MODEL_FOUND=1',
+      '    break',
+      '  fi',
+      'done',
+      'if [[ "$BIREFNET_MODEL_FOUND" != "1" ]]; then',
+      `  echo "Private BiRefNet model directory not found under $PRIVATE_MODEL_ROOT; expected one candidate containing: ${requiredBirefNetRuntimeFiles.join(', ')}" >&2`,
+      '  exit 2',
+      'fi',
+    )
+  }
+
+  return lines
+}
+
 function writeNativeCudaCloseoutScript(
   args: ParsedArgs,
   scriptOut: string,
@@ -796,6 +847,7 @@ function writeNativeCudaCloseoutScript(
     `  echo "Set ${privateModelManifestDirEnvVar} to reviewed private model-weight manifests." >&2`,
     '  exit 2',
     'fi',
+    ...nativeCudaCloseoutScriptPrivateInputChecks(args),
     '',
     bashCommand([
       'npm',
@@ -858,6 +910,14 @@ function writeNativeCudaCloseoutScript(
     cpuModelGpuModelRouteProofPacket:
       args.cpuModelGpuModelRouteProofPacket ?? null,
     readinessResultHandoff: readinessResultHandoff(args),
+    privateInputPreflightChecks: {
+      privateModelRootDirectoryRequired: true,
+      privateSourceImageFileRequired: true,
+      sam2CheckpointCandidateRequired: args.requestedTools.includes('sam2'),
+      birefnetModelDirectoryRequired:
+        args.requestedTools.includes('birefnet'),
+      birefnetRequiredFiles: requiredBirefNetRuntimeFiles,
+    },
     expectedProofResults: args.requestedTools.map((toolId) =>
       path.join(args.outputRoot, toolId, 'harness-result.json')),
   }

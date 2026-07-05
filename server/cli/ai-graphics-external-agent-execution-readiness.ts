@@ -78,6 +78,8 @@ const gpuModelRuntimeInputManifestSourceImage =
   '<private-approved-frame.png>'
 const privateModelRootEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
+const privateModelManifestDirEnvVar =
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
 const defaultPrivateModelRoot =
   '.local-artifacts/ai-graphics/private-model-cache'
 const nativeCudaCloseoutScript =
@@ -684,6 +686,7 @@ function remainingNativeCudaCloseoutCommand(options: {
     `npm run --silent ${nativeCudaCloseoutScript} --`,
     '--detect-host',
     '--private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
+    `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
     `--source-image ${sourceImageArg}`,
     `--output-root ${nativeCudaCloseoutOutputRoot}`,
     ...remainingNativeCudaExistingProofArgs(options.existingProofResults),

@@ -9,12 +9,16 @@ const blockedStatus =
 const acceptedStatus =
   'native_cuda_closeout_accepted_for_remaining_two_tools'
 const privateModelRootEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
+const privateModelManifestDirEnvVar =
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
 const defaultPrivateModelRoot =
   '.local-artifacts/ai-graphics/private-model-cache'
 const defaultOutputRoot =
   '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout'
 const runtimeContainerPlatform = 'linux/amd64'
 const hostPreflightScript = 'ai-graphics:gpu-runtime-proof-local-preflight'
+const modelWeightManifestReviewScript =
+  'ai-graphics:model-weight-manifest-review:validate'
 const manifestScript =
   'ai-graphics:external-agent-gpu-model-runtime-input-manifest'
 const proofSequenceScript =
@@ -48,6 +52,7 @@ type ParsedArgs = {
   attemptLocalRuntime: boolean
   strictExitCode: boolean
   privateModelRoot: string
+  modelWeightManifestDir?: string
   outputRoot: string
   sourceImage?: string
   existingProofResults: string[]
@@ -63,6 +68,9 @@ type ToolProbe = {
   privateModelRootCandidatePresent: boolean
   privateModelRootMatchingCandidate: string | null
   privateModelRootBlocker: string | null
+  modelWeightManifestDirProvided: boolean
+  modelWeightManifestReviewAccepted: boolean
+  modelWeightManifestReviewBlocker: string | null
   sourceImageProvided: boolean
   sourceImageExists: boolean
   callableNow: true
@@ -73,6 +81,7 @@ type ToolProbe = {
   runtimeInputManifestPath: string
   proofResultPath: string
   finalExternalAgentToolCallResultPath: string
+  modelWeightManifestReviewCommand: string
   manifestMaterializerCommand: string
   nativeGpuProofSequenceCommand: string
   finalExternalAgentToolCallCommand: string
@@ -80,6 +89,7 @@ type ToolProbe = {
   runtimeAttemptAccepted: boolean
   runtimeAttemptFailure: string | null
   reports: {
+    modelWeightManifestReview: JsonRecord | null
     manifest: JsonRecord | null
     proofSequence: JsonRecord | null
     readiness: JsonRecord | null
@@ -167,6 +177,9 @@ function parseArgs(): ParsedArgs {
       stringFlag('--private-model-root') ??
       process.env[privateModelRootEnvVar] ??
       defaultPrivateModelRoot,
+    modelWeightManifestDir:
+      stringFlag('--model-weight-manifest-dir') ??
+      process.env[privateModelManifestDirEnvVar],
     outputRoot: stringFlag('--output-root') ?? defaultOutputRoot,
     sourceImage: stringFlag('--source-image'),
     existingProofResults: stringFlags('--existing-proof-result'),
@@ -302,6 +315,116 @@ function sourceImageExists(sourceImage: string | undefined): boolean {
   return fs.existsSync(sourceImage) && fs.statSync(sourceImage).isFile()
 }
 
+function modelWeightManifestReviewArgs(
+  args: ParsedArgs,
+): string[] {
+  return [
+    '--manifest-dir',
+    args.modelWeightManifestDir ?? '<reviewed-private-model-weight-manifests>',
+    '--allow-partial',
+  ]
+}
+
+function modelWeightManifestReviewCommand(args: ParsedArgs): string {
+  return shellCommand(modelWeightManifestReviewScript, modelWeightManifestReviewArgs(args))
+}
+
+function manifestReviewErrorFromResult(result: JsonRecord | undefined): string {
+  const errors = result?.errors
+  if (Array.isArray(errors) && errors.length > 0) {
+    return errors.filter((entry): entry is string => typeof entry === 'string').join('; ')
+  }
+  return 'reviewed private model-weight manifest was not accepted for native GPU proof input'
+}
+
+function evaluateModelWeightManifestReview(args: ParsedArgs): {
+  report: JsonRecord | null
+  acceptedToolIds: Set<ToolId>
+  blockerByToolId: Record<ToolId, string | null>
+  failure: string | null
+} {
+  const initialBlockers = Object.fromEntries(toolIds.map((toolId) => [
+    toolId,
+    null,
+  ])) as Record<ToolId, string | null>
+  const acceptedToolIds = new Set<ToolId>()
+  if (!args.modelWeightManifestDir) {
+    return {
+      report: null,
+      acceptedToolIds,
+      blockerByToolId: Object.fromEntries(toolIds.map((toolId) => [
+        toolId,
+        `reviewed private model-weight manifest directory is required; pass --model-weight-manifest-dir or set ${privateModelManifestDirEnvVar}`,
+      ])) as Record<ToolId, string | null>,
+      failure: null,
+    }
+  }
+
+  try {
+    assertLocalPath('--model-weight-manifest-dir', args.modelWeightManifestDir)
+    if (!fs.existsSync(args.modelWeightManifestDir)) {
+      return {
+        report: null,
+        acceptedToolIds,
+        blockerByToolId: Object.fromEntries(toolIds.map((toolId) => [
+          toolId,
+          `reviewed private model-weight manifest directory does not exist: ${args.modelWeightManifestDir}`,
+        ])) as Record<ToolId, string | null>,
+        failure: null,
+      }
+    }
+    if (!fs.statSync(args.modelWeightManifestDir).isDirectory()) {
+      return {
+        report: null,
+        acceptedToolIds,
+        blockerByToolId: Object.fromEntries(toolIds.map((toolId) => [
+          toolId,
+          `reviewed private model-weight manifest path is not a directory: ${args.modelWeightManifestDir}`,
+        ])) as Record<ToolId, string | null>,
+        failure: null,
+      }
+    }
+
+    const report = runNpmJson(
+      modelWeightManifestReviewScript,
+      modelWeightManifestReviewArgs(args),
+      args.timeoutMs,
+    )
+    const validationResults = Array.isArray(report.validationResults)
+      ? report.validationResults.filter((entry): entry is JsonRecord =>
+          entry !== null && typeof entry === 'object')
+      : []
+    const blockerByToolId = { ...initialBlockers }
+    for (const toolId of toolIds) {
+      const result = validationResults.find((entry) => entry.toolId === toolId)
+      if (
+        result?.reviewAccepted === true &&
+        result?.eligibleForNativeGpuProofInput === true
+      ) {
+        acceptedToolIds.add(toolId)
+      } else {
+        blockerByToolId[toolId] = manifestReviewErrorFromResult(result)
+      }
+    }
+    return {
+      report,
+      acceptedToolIds,
+      blockerByToolId,
+      failure: null,
+    }
+  } catch (error) {
+    return {
+      report: null,
+      acceptedToolIds,
+      blockerByToolId: Object.fromEntries(toolIds.map((toolId) => [
+        toolId,
+        `reviewed private model-weight manifest validation failed: ${formatCaughtError(error)}`,
+      ])) as Record<ToolId, string | null>,
+      failure: formatCaughtError(error),
+    }
+  }
+}
+
 function outputDirectoryForTool(outputRoot: string, toolId: ToolId): string {
   return path.join(outputRoot, toolId)
 }
@@ -426,6 +549,8 @@ function writeNativeCudaCloseoutScript(
     '--strict-exit-code',
     '--private-model-root',
     { raw: '"$PRIVATE_MODEL_ROOT"' },
+    '--model-weight-manifest-dir',
+    { raw: '"$PRIVATE_MODEL_MANIFEST_DIR"' },
     '--source-image',
     { raw: '"$PRIVATE_SOURCE_IMAGE"' },
     '--output-root',
@@ -468,6 +593,7 @@ function writeNativeCudaCloseoutScript(
     '# Do not commit .local-artifacts outputs, model weights, source media, or proof artifacts.',
     'export DEVELOPER_DIR="${DEVELOPER_DIR:-/Library/Developer/CommandLineTools}"',
     `PRIVATE_MODEL_ROOT="\${${privateModelRootEnvVar}:-}"`,
+    `PRIVATE_MODEL_MANIFEST_DIR="\${${privateModelManifestDirEnvVar}:-}"`,
     'PRIVATE_SOURCE_IMAGE="${REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE:-}"',
     'OUTPUT_ROOT="${REEDITPRO_AI_GRAPHICS_NATIVE_CUDA_CLOSEOUT_OUTPUT_ROOT:-}"',
     'if [[ -z "$PRIVATE_MODEL_ROOT" ]]; then',
@@ -476,6 +602,9 @@ function writeNativeCudaCloseoutScript(
     'if [[ -z "$PRIVATE_SOURCE_IMAGE" ]]; then',
     `  PRIVATE_SOURCE_IMAGE=${shellQuote(args.sourceImage ?? '')}`,
     'fi',
+    'if [[ -z "$PRIVATE_MODEL_MANIFEST_DIR" ]]; then',
+    `  PRIVATE_MODEL_MANIFEST_DIR=${shellQuote(args.modelWeightManifestDir ?? '')}`,
+    'fi',
     'if [[ -z "$OUTPUT_ROOT" ]]; then',
     `  OUTPUT_ROOT=${shellQuote(args.outputRoot)}`,
     'fi',
@@ -483,6 +612,21 @@ function writeNativeCudaCloseoutScript(
     '  echo "Set REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE to an approved private local frame." >&2',
     '  exit 2',
     'fi',
+    'if [[ -z "$PRIVATE_MODEL_MANIFEST_DIR" ]]; then',
+    `  echo "Set ${privateModelManifestDirEnvVar} to reviewed private model-weight manifests." >&2`,
+    '  exit 2',
+    'fi',
+    '',
+    bashCommand([
+      'npm',
+      'run',
+      '--silent',
+      modelWeightManifestReviewScript,
+      '--',
+      '--manifest-dir',
+      { raw: '"$PRIVATE_MODEL_MANIFEST_DIR"' },
+      '--allow-partial',
+    ]),
     '',
     bashCommand([
       'npm',
@@ -516,6 +660,16 @@ function writeNativeCudaCloseoutScript(
       '--',
       '--detect-host',
       '--require-host-eligible',
+    ]),
+    modelWeightManifestReviewCommand: bashCommand([
+      'npm',
+      'run',
+      '--silent',
+      modelWeightManifestReviewScript,
+      '--',
+      '--manifest-dir',
+      { raw: '"$PRIVATE_MODEL_MANIFEST_DIR"' },
+      '--allow-partial',
     ]),
     nativeCudaCloseoutCommand: bashContinuation(closeoutTokens),
     all21ReadinessRecheckCommand: bashContinuation(readinessTokens),
@@ -634,15 +788,21 @@ function toolProbe(
   toolId: ToolId,
   currentHostBlockers: string[],
   currentHostEligible: boolean,
+  modelManifestReview: ReturnType<typeof evaluateModelWeightManifestReview>,
 ): ToolProbe {
   const target = runtimeTargets[toolId]
   const candidate = modelCandidateForTool(toolId, args.privateModelRoot)
   const hasSourceImage = sourceImageExists(args.sourceImage)
+  const modelWeightManifestReviewAccepted =
+    modelManifestReview.acceptedToolIds.has(toolId)
+  const modelWeightManifestReviewBlocker =
+    modelManifestReview.blockerByToolId[toolId]
   const blockingPrerequisites = [
     !currentHostEligible
       ? `native CUDA host not eligible: ${currentHostBlockers.join('; ') || 'run --detect-host on the execution host'}`
       : null,
     !candidate.present ? candidate.blocker : null,
+    !modelWeightManifestReviewAccepted ? modelWeightManifestReviewBlocker : null,
     !hasSourceImage
       ? '--source-image must point to a private approved local frame'
       : null,
@@ -651,6 +811,7 @@ function toolProbe(
     args.attemptLocalRuntime &&
     currentHostEligible &&
     candidate.present &&
+    modelWeightManifestReviewAccepted &&
     hasSourceImage
   const attempt = canAttempt
     ? attemptToolCloseout(args, toolId)
@@ -675,6 +836,9 @@ function toolProbe(
     privateModelRootCandidatePresent: candidate.present,
     privateModelRootMatchingCandidate: candidate.matchingCandidate,
     privateModelRootBlocker: candidate.blocker,
+    modelWeightManifestDirProvided: Boolean(args.modelWeightManifestDir),
+    modelWeightManifestReviewAccepted,
+    modelWeightManifestReviewBlocker,
     sourceImageProvided: Boolean(args.sourceImage),
     sourceImageExists: hasSourceImage,
     callableNow: true,
@@ -685,6 +849,7 @@ function toolProbe(
     runtimeInputManifestPath: runtimeInputManifestPath(args.outputRoot, toolId),
     proofResultPath: proofResultPath(args.outputRoot, toolId),
     finalExternalAgentToolCallResultPath: finalToolCallResultPath(args.outputRoot, toolId),
+    modelWeightManifestReviewCommand: modelWeightManifestReviewCommand(args),
     manifestMaterializerCommand: shellCommand(manifestScript, manifestArgs(args, toolId)),
     nativeGpuProofSequenceCommand: shellCommand(
       proofSequenceScript,
@@ -698,6 +863,7 @@ function toolProbe(
     runtimeAttemptAccepted: attempt.accepted,
     runtimeAttemptFailure: attempt.failure,
     reports: {
+      modelWeightManifestReview: modelManifestReview.report,
       manifest: attempt.manifest,
       proofSequence: attempt.proofSequence,
       readiness: attempt.readiness,
@@ -710,14 +876,24 @@ function buildReport(args: ParsedArgs): JsonRecord {
   assertLocalArtifactPath('--output-root', args.outputRoot)
   if (args.scriptOut) assertLocalArtifactPath('--script-out', args.scriptOut)
   if (args.sourceImage) assertLocalPath('--source-image', args.sourceImage)
+  if (args.modelWeightManifestDir) {
+    assertLocalPath('--model-weight-manifest-dir', args.modelWeightManifestDir)
+  }
   for (const proofResult of args.existingProofResults) {
     assertLocalPath('--existing-proof-result', proofResult)
   }
   const preflight = hostPreflight(args.detectHost)
   const currentHostBlockers = hostBlockers(preflight)
   const currentHostEligible = args.detectHost ? hostEligible(preflight) : false
+  const modelManifestReview = evaluateModelWeightManifestReview(args)
   const tools = args.requestedTools.map((toolId) =>
-    toolProbe(args, toolId, currentHostBlockers, currentHostEligible))
+    toolProbe(
+      args,
+      toolId,
+      currentHostBlockers,
+      currentHostEligible,
+      modelManifestReview,
+    ))
   const executableTools = tools.filter((tool) => tool.executableNow)
   const allRequestedToolsExecutable = executableTools.length === tools.length
   const allRemainingNativeCudaToolsCovered = tools.length === toolIds.length
@@ -752,6 +928,8 @@ function buildReport(args: ParsedArgs): JsonRecord {
     inputs: {
       privateModelRoot: args.privateModelRoot,
       privateModelRootEnvVar,
+      modelWeightManifestDir: args.modelWeightManifestDir ?? null,
+      modelWeightManifestDirEnvVar: privateModelManifestDirEnvVar,
       sourceImage: args.sourceImage ?? null,
       outputRoot: args.outputRoot,
       existingProofResults: args.existingProofResults,
@@ -766,15 +944,28 @@ function buildReport(args: ParsedArgs): JsonRecord {
       command:
         `npm run --silent ${hostPreflightScript} -- --detect-host --require-host-eligible`,
     },
+    modelWeightManifestReview: {
+      requested: Boolean(args.modelWeightManifestDir),
+      manifestDir: args.modelWeightManifestDir ?? null,
+      command: modelWeightManifestReviewCommand(args),
+      acceptedRequestedTools: args.requestedTools.filter((toolId) =>
+        modelManifestReview.acceptedToolIds.has(toolId)),
+      blockedRequestedTools: args.requestedTools.filter((toolId) =>
+        !modelManifestReview.acceptedToolIds.has(toolId)),
+      failure: modelManifestReview.failure,
+      report: modelManifestReview.report,
+    },
     tools,
     all21ReadinessRecheckCommand: readinessCommand,
     closeoutSequence: {
       step1: 'Place private SAM2 and BiRefNet model weights under the private model root or pass --private-model-root.',
-      step2: 'Pass --source-image with an approved private local frame.',
-      step3: 'Run on native linux/amd64 with Docker NVIDIA runtime and nvidia-smi visible.',
-      step4:
-        'Run this command with --detect-host --attempt-local-runtime --strict-exit-code.',
+      step2:
+        `Pass --model-weight-manifest-dir or set ${privateModelManifestDirEnvVar} with accepted private SAM2/BiRefNet manifest records.`,
+      step3: 'Pass --source-image with an approved private local frame.',
+      step4: 'Run on native linux/amd64 with Docker NVIDIA runtime and nvidia-smi visible.',
       step5:
+        'Run this command with --detect-host --attempt-local-runtime --strict-exit-code.',
+      step6:
         'Rerun all-21 readiness with existing proof refs plus the new SAM2 and BiRefNet harness-result.json files.',
     },
     booleans: {
@@ -782,9 +973,15 @@ function buildReport(args: ParsedArgs): JsonRecord {
       sourceRuntimeInputManifestMaterializerReused: true,
       sourcePrivateProofSequenceReused: true,
       sourceExternalAgentToolCallReused: true,
+      sourceModelWeightManifestReviewValidatorReused: true,
       allRemainingNativeCudaToolsCovered,
       sam2Covered: args.requestedTools.includes('sam2'),
       birefnetCovered: args.requestedTools.includes('birefnet'),
+      reviewedPrivateManifestDirProvided:
+        Boolean(args.modelWeightManifestDir),
+      reviewedPrivateManifestAcceptedForAllRequestedTools:
+        args.requestedTools.every((toolId) =>
+          modelManifestReview.acceptedToolIds.has(toolId)),
       currentHostEligibleForNativeGpuProof: currentHostEligible,
       runtimeAttemptRequested: args.attemptLocalRuntime,
       runtimeAttemptPerformed: tools.some((tool) => tool.runtimeAttemptPerformed),

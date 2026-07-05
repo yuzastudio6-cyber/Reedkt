@@ -44,6 +44,44 @@ const requiredBirefNetRuntimeFiles = [
   'BiRefNet_config.py',
   'birefnet.py',
 ]
+const manifestRecordByTool = {
+  sam2: {
+    manifestId: 'diagnostic_sam2_private_manifest_review_v1',
+    toolId: 'sam2',
+    templateId: 'sam2_checkpoint',
+    sourceCandidateId: 'facebook_sam2_1_hiera_tiny_existing_staging_evidence',
+    privateArtifactRef: 'private://diagnostic/ai-graphics/model-weights/sam2',
+    checksumSha256: '45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2',
+    checksumEvidenceRef: 'private://diagnostic/ai-graphics/checksum-evidence/sam2',
+    sourceLicenseRef: 'private://diagnostic/ai-graphics/license-review/sam2',
+    modelCardRef: 'private://diagnostic/ai-graphics/model-card/sam2',
+    checksumEvidenceReviewed: true,
+    commercialUseReviewed: true,
+    redistributionReviewed: true,
+    qualityReviewed: true,
+    securityReviewed: true,
+    provenanceReviewed: true,
+    approvedForInternalBeta: true,
+  },
+  birefnet: {
+    manifestId: 'diagnostic_birefnet_private_manifest_review_v1',
+    toolId: 'birefnet',
+    templateId: 'birefnet_model',
+    sourceCandidateId: 'zhengpeng7_birefnet_official_weights_review_candidate',
+    privateArtifactRef: 'private://diagnostic/ai-graphics/model-weights/birefnet',
+    checksumSha256: '1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7',
+    checksumEvidenceRef: 'private://diagnostic/ai-graphics/checksum-evidence/birefnet',
+    sourceLicenseRef: 'private://diagnostic/ai-graphics/license-review/birefnet',
+    modelCardRef: 'private://diagnostic/ai-graphics/model-card/birefnet',
+    checksumEvidenceReviewed: true,
+    commercialUseReviewed: true,
+    redistributionReviewed: true,
+    qualityReviewed: true,
+    securityReviewed: true,
+    provenanceReviewed: true,
+    approvedForInternalBeta: true,
+  },
+}
 const forbiddenTextPatterns = [
   /dry_run_passed/i,
   /generated_local_fixture_passed/i,
@@ -170,8 +208,11 @@ function makeDiagnosticFixtures() {
     '.local-artifacts/ai-graphics/native-cuda-closeout-diagnostic',
   )
   const modelRoot = path.join(fixtureRoot, 'private-model-root')
+  const modelManifestDir = path.join(fixtureRoot, 'model-weight-manifests')
   const sourceImage = path.join(fixtureRoot, 'private-approved-frame.ppm')
   fs.mkdirSync(modelRoot, { recursive: true })
+  fs.mkdirSync(path.join(modelManifestDir, 'sam2'), { recursive: true })
+  fs.mkdirSync(path.join(modelManifestDir, 'birefnet'), { recursive: true })
   fs.writeFileSync(
     path.join(modelRoot, 'sam2.1_hiera_tiny.pt'),
     Buffer.alloc(1024 * 1024 + 1, 1),
@@ -186,9 +227,18 @@ function makeDiagnosticFixtures() {
     Buffer.concat([headerPrefix, safetensorsHeader, Buffer.alloc(1024 * 1024 + 1, 2)]),
   )
   writeBirefNetSupportFiles(birefnetRoot)
+  fs.writeFileSync(
+    path.join(modelManifestDir, 'sam2', 'model_tree_manifest.json'),
+    JSON.stringify(manifestRecordByTool.sam2, null, 2),
+  )
+  fs.writeFileSync(
+    path.join(modelManifestDir, 'birefnet', 'model_tree_manifest.json'),
+    JSON.stringify(manifestRecordByTool.birefnet, null, 2),
+  )
   fs.writeFileSync(sourceImage, 'P3\n1 1\n255\n255 255 255\n')
   return {
     modelRoot: path.relative(root, modelRoot),
+    modelManifestDir: path.relative(root, modelManifestDir),
     sourceImage: path.relative(root, sourceImage),
     outputRoot:
       '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout-diagnostic',
@@ -225,6 +275,9 @@ function validateDefaultReport(report) {
     assert(String(row?.nativeGpuProofSequenceCommand ?? '').includes('--require-accepted-proof'), `missing_accepted_proof_gate_command:${toolId}`)
     assert(String(row?.finalExternalAgentToolCallCommand ?? '').includes('--strict-exit-code'), `missing_strict_tool_call:${toolId}`)
     assert(String(row?.finalExternalAgentToolCallCommand ?? '').includes('--require-private-only-boundary'), `missing_private_boundary:${toolId}`)
+    assert(row?.modelWeightManifestDirProvided === false, `default_manifest_dir_unexpected:${toolId}`)
+    assert(row?.modelWeightManifestReviewAccepted === false, `default_manifest_review_accepted:${toolId}`)
+    assert(String(row?.modelWeightManifestReviewBlocker ?? '').includes('model-weight manifest directory is required'), `default_manifest_review_blocker_missing:${toolId}`)
   }
 }
 
@@ -240,9 +293,12 @@ function validateFixtureReport(report) {
   assert(report.nativeCudaCloseoutLocalOnlyScript?.written === true, 'fixture_closeout_script_written_not_true')
   assert(report.nativeCudaCloseoutLocalOnlyScript?.localOnly === true, 'fixture_closeout_script_not_local_only')
   assert(report.nativeCudaCloseoutLocalOnlyScript?.hostPreflightCommand?.includes('--require-host-eligible'), 'fixture_closeout_script_missing_host_preflight')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.modelWeightManifestReviewCommand?.includes('ai-graphics:model-weight-manifest-review:validate'), 'fixture_closeout_script_missing_manifest_review')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.modelWeightManifestReviewCommand?.includes('--allow-partial'), 'fixture_closeout_script_missing_manifest_allow_partial')
   assert(report.nativeCudaCloseoutLocalOnlyScript?.nativeCudaCloseoutCommand?.includes('--attempt-local-runtime'), 'fixture_closeout_script_missing_runtime_attempt')
   assert(report.nativeCudaCloseoutLocalOnlyScript?.nativeCudaCloseoutCommand?.includes('--strict-exit-code'), 'fixture_closeout_script_missing_strict_exit')
   assert(report.nativeCudaCloseoutLocalOnlyScript?.nativeCudaCloseoutCommand?.includes('--existing-proof-result'), 'fixture_closeout_script_missing_existing_proof_refs')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.nativeCudaCloseoutCommand?.includes('--model-weight-manifest-dir'), 'fixture_closeout_script_missing_manifest_dir_arg')
   assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('ai-graphics:external-agent-execution-readiness'), 'fixture_closeout_script_missing_readiness_recheck')
   assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('sam2/harness-result.json'), 'fixture_closeout_script_missing_sam2_readiness_ref')
   assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('birefnet/harness-result.json'), 'fixture_closeout_script_missing_birefnet_readiness_ref')
@@ -253,6 +309,9 @@ function validateFixtureReport(report) {
     assert(generatedScriptText.startsWith('#!/usr/bin/env bash'), 'fixture_closeout_script_missing_shebang')
     assert(generatedScriptText.includes('set -euo pipefail'), 'fixture_closeout_script_missing_strict_shell')
     assert(generatedScriptText.includes('GPU work is on-demand only'), 'fixture_closeout_script_missing_on_demand_policy')
+    assert(generatedScriptText.includes('PRIVATE_MODEL_MANIFEST_DIR'), 'fixture_closeout_script_missing_manifest_dir_env')
+    assert(generatedScriptText.includes('ai-graphics:model-weight-manifest-review:validate'), 'fixture_closeout_script_missing_manifest_review_command')
+    assert(generatedScriptText.includes('--allow-partial'), 'fixture_closeout_script_missing_manifest_allow_partial_flag')
     assert(generatedScriptText.includes('ai-graphics:gpu-runtime-proof-local-preflight'), 'fixture_closeout_script_missing_host_preflight_script')
     assert(generatedScriptText.includes('--require-host-eligible'), 'fixture_closeout_script_missing_require_host_eligible')
     assert(generatedScriptText.includes('ai-graphics:external-agent-native-cuda-closeout'), 'fixture_closeout_script_missing_closeout_command')
@@ -266,6 +325,9 @@ function validateFixtureReport(report) {
   for (const toolId of targetTools) {
     const row = report.tools?.find((tool) => tool.toolId === toolId)
     assert(row?.privateModelRootCandidatePresent === true, `fixture_model_candidate_missing:${toolId}`)
+    assert(row?.modelWeightManifestDirProvided === true, `fixture_manifest_dir_missing:${toolId}`)
+    assert(row?.modelWeightManifestReviewAccepted === true, `fixture_manifest_review_not_accepted:${toolId}`)
+    assert(row?.modelWeightManifestReviewBlocker === null, `fixture_manifest_review_blocker_unexpected:${toolId}:${row?.modelWeightManifestReviewBlocker}`)
     assert(row?.sourceImageExists === true, `fixture_source_image_missing:${toolId}`)
     assert(row?.runtimeAttemptPerformed === false, `fixture_runtime_attempt_performed:${toolId}`)
     assert(row?.runtimeAttemptAccepted === false, `fixture_runtime_attempt_accepted:${toolId}`)
@@ -299,6 +361,9 @@ function validateCommittedText() {
   assert(text.includes('--require-host-eligible'), 'require_host_eligible_missing_from_cli')
   assert(text.includes('--require-accepted-proof'), 'require_accepted_proof_missing_from_cli')
   assert(text.includes('--require-private-only-boundary'), 'private_boundary_missing_from_cli')
+  assert(text.includes('ai-graphics:model-weight-manifest-review:validate'), 'manifest_review_validator_missing_from_cli')
+  assert(text.includes('REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'), 'manifest_dir_env_missing_from_cli')
+  assert(text.includes('--model-weight-manifest-dir'), 'manifest_dir_flag_missing_from_cli')
   assert(text.includes('--script-out'), 'script_out_missing_from_cli')
   assert(text.includes('writeNativeCudaCloseoutScript'), 'script_writer_missing_from_cli')
   assert(text.includes('ai-graphics:gpu-runtime-proof-local-preflight'), 'host_preflight_script_missing_from_cli')
@@ -314,6 +379,8 @@ const fixtures = makeDiagnosticFixtures()
 const fixtureReport = runNpmJson(runScriptName, [
   '--private-model-root',
   fixtures.modelRoot,
+  '--model-weight-manifest-dir',
+  fixtures.modelManifestDir,
   '--source-image',
   fixtures.sourceImage,
   '--output-root',

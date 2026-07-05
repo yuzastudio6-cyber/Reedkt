@@ -383,7 +383,15 @@ function validateFixtureReport(report) {
     assert(row?.sourceImageBlocker === null, `fixture_source_image_blocker_unexpected:${toolId}:${row?.sourceImageBlocker}`)
     assert(row?.runtimeAttemptPerformed === false, `fixture_runtime_attempt_performed:${toolId}`)
     assert(row?.runtimeAttemptAccepted === false, `fixture_runtime_attempt_accepted:${toolId}`)
-    assert(String(row?.manifestMaterializerCommand ?? '').includes('--private-model-root'), `fixture_manifest_missing_private_root:${toolId}`)
+    const command = String(row?.manifestMaterializerCommand ?? '')
+    assert(command.includes('--model-weight-manifest-dir'), `fixture_manifest_missing_manifest_dir:${toolId}`)
+    if (toolId === 'sam2') {
+      assert(command.includes('--sam2-checkpoint'), 'fixture_manifest_missing_sam2_flag')
+      assert(command.includes('sam2.1_hiera_tiny.pt'), 'fixture_manifest_missing_sam2_path')
+    } else {
+      assert(command.includes('--birefnet-model'), 'fixture_manifest_missing_birefnet_flag')
+      assert(command.includes('ZhengPeng7/BiRefNet'), 'fixture_manifest_missing_birefnet_path')
+    }
   }
 }
 

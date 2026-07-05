@@ -30,6 +30,10 @@ const buildNativeCudaProofImagesEnvVar =
   'REEDITPRO_AI_GRAPHICS_BUILD_NATIVE_CUDA_IMAGES'
 const defaultPrivateModelRoot =
   '.local-artifacts/ai-graphics/private-model-cache'
+const defaultPrivateModelManifestDir =
+  '.local-artifacts/ai-graphics/model-weight-manifests'
+const defaultPrivateChecksumEvidenceDir =
+  '.local-artifacts/ai-graphics/model-weight-checksum-evidence'
 const defaultOutputRoot =
   '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout'
 const runtimeContainerPlatform = 'linux/amd64'
@@ -893,6 +897,39 @@ function nativeCudaModelRestoreCommands(): JsonRecord {
   }
 }
 
+function nativeCudaModelManifestCommands(): JsonRecord {
+  return {
+    privateModelManifestDirEnvVar,
+    defaultPrivateModelManifestDir,
+    defaultPrivateChecksumEvidenceDir,
+    manifestDirectoryAutoDiscoveredWhenPresent: true,
+    manifestAuthoringCommand:
+      'npm run --silent ai-graphics:model-weight-manifest-authoring -- ' +
+      `--evidence-dir ${shellQuote(defaultPrivateChecksumEvidenceDir)} ` +
+      `--out-dir ${shellQuote(defaultPrivateModelManifestDir)} --allow-partial`,
+    manifestReviewCommand:
+      'npm run --silent ai-graphics:model-weight-manifest-review:validate -- ' +
+      `--manifest-dir ${shellQuote(defaultPrivateModelManifestDir)} --allow-partial`,
+    localOnlyRuntimeUse: true,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+  }
+}
+
+function nativeCudaCloseoutScriptModelManifestDefaults(args: ParsedArgs): string[] {
+  return [
+    'if [[ -z "$PRIVATE_MODEL_MANIFEST_DIR" ]]; then',
+    `  PRIVATE_MODEL_MANIFEST_DIR=${shellQuote(args.modelWeightManifestDir ?? '')}`,
+    'fi',
+    'if [[ -z "$PRIVATE_MODEL_MANIFEST_DIR" ]]; then',
+    `  DEFAULT_PRIVATE_MODEL_MANIFEST_DIR=${shellQuote(defaultPrivateModelManifestDir)}`,
+    '  if [[ -d "$DEFAULT_PRIVATE_MODEL_MANIFEST_DIR" ]]; then',
+    '    PRIVATE_MODEL_MANIFEST_DIR="$DEFAULT_PRIVATE_MODEL_MANIFEST_DIR"',
+    '  fi',
+    'fi',
+  ]
+}
+
 function nativeCudaProofImageBuildCommand(toolId: ToolId): string {
   const target = runtimeTargets[toolId]
   return [
@@ -1069,9 +1106,7 @@ function writeNativeCudaCloseoutScript(
     'if [[ -z "$BIREFNET_MODEL" ]]; then',
     `  BIREFNET_MODEL=${shellQuote(args.birefnetModelLocalPath ?? '')}`,
     'fi',
-    'if [[ -z "$PRIVATE_MODEL_MANIFEST_DIR" ]]; then',
-    `  PRIVATE_MODEL_MANIFEST_DIR=${shellQuote(args.modelWeightManifestDir ?? '')}`,
-    'fi',
+    ...nativeCudaCloseoutScriptModelManifestDefaults(args),
     ...nativeCudaCloseoutScriptApprovedModelRestore(args),
     ...nativeCudaCloseoutScriptApprovedActivationDefaults(args),
     ...nativeCudaCloseoutScriptProofImageBuild(args),
@@ -1161,6 +1196,7 @@ function writeNativeCudaCloseoutScript(
       '--allow-partial',
     ]),
     modelRestoreCommands: nativeCudaModelRestoreCommands(),
+    modelManifestCommands: nativeCudaModelManifestCommands(),
     proofImageBuildCommands: nativeCudaProofImageBuildCommands(args),
     nativeCudaCloseoutCommand: bashContinuation(closeoutTokens),
     all21ReadinessRecheckCommand: bashContinuation(readinessTokens),
@@ -1505,6 +1541,7 @@ function buildReport(args: ParsedArgs): JsonRecord {
     },
     tools,
     modelRestoreCommands: nativeCudaModelRestoreCommands(),
+    modelManifestCommands: nativeCudaModelManifestCommands(),
     proofImageBuildCommands: nativeCudaProofImageBuildCommands(args),
     all21ReadinessRecheckCommand: readinessCommand,
     closeoutSequence: {
@@ -1513,7 +1550,7 @@ function buildReport(args: ParsedArgs): JsonRecord {
       step2:
         `Optionally build local proof images with ${buildNativeCudaProofImagesEnvVar}=true in the generated script.`,
       step3:
-        `Pass --model-weight-manifest-dir or set ${privateModelManifestDirEnvVar} with accepted private SAM2/BiRefNet manifest records.`,
+        `Pass --model-weight-manifest-dir, set ${privateModelManifestDirEnvVar}, or place accepted private SAM2/BiRefNet manifest records under ${defaultPrivateModelManifestDir}.`,
       step4: 'Pass --source-image with an approved private local frame.',
       step5: 'Run on native linux/amd64 with Docker NVIDIA runtime and nvidia-smi visible.',
       step6:

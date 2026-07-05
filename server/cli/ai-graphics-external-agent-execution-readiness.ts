@@ -16,6 +16,8 @@ const defaultStatus =
   'external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof'
 const privateProofStatus =
   'external_agent_call_ready_for_all21_runtime_execution_ready_for19_plus_private_gpu_model_proof_subset'
+const all21PrivateProofStatus =
+  'external_agent_call_ready_for_all21_runtime_execution_ready_for_all21_with_accepted_private_gpu_model_proof'
 const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.json'
 const outputMdPath =
@@ -2457,7 +2459,7 @@ function buildReport() {
             'Run with the canonical proof image available, approved local Python CPU tensor runtime packages, and a private approved source frame mounted locally.',
         }
   const nextExactAction =
-    executableTools.length === 21
+    proofInclusiveExecutableToolCount === 21
       ? 'All 21 AI graphics tools have accepted controlled external-agent execution proof. Keep production/beta/public-artifact gates closed until the separate launch gates approve them.'
       : privateRuntimeProofSupplied &&
         nativeCudaClosure.remainingToolCount > 0
@@ -2470,13 +2472,15 @@ function buildReport() {
     schemaVersion:
       '2026-07-03.ai-graphics.external-agent-execution-readiness',
     decision,
-    status: gpuExecutableTools.length > 0 ||
+    status: proofInclusiveExecutableToolCount === 21
+      ? all21PrivateProofStatus
+      : gpuExecutableTools.length > 0 ||
       cpuSafeGpuModelRouteProofSummary.accepted ||
       cpuModelGpuModelRouteProofSummary.accepted
       ? privateProofStatus
       : defaultStatus,
     summary:
-      `Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed bounded runtime work and returned structured private output evidence. The 13 non-GPU tools execute through controlled CPU/static or browser/runtime adapters and are also proven through the mock worker-claim-to-canonical-route smoke. ${acceptedProofSubsetGpuToolIds.length} GPU/model tools have accepted controlled-route proof in the current packet: ${acceptedProofSubsetGpuToolIds.join(', ') || 'none'}. Remaining GPU/model tools stay blocked or failed-with-diagnostics until their scoped private runtime proof succeeds. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.`,
+      `Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed bounded runtime work and returned structured private output evidence. The 13 non-GPU tools execute through controlled CPU/static or browser/runtime adapters and are also proven through the mock worker-claim-to-canonical-route smoke. ${acceptedProofSubsetGpuToolIds.length} GPU/model tools have accepted controlled-route proof in the current packet: ${acceptedProofSubsetGpuToolIds.join(', ') || 'none'}. ${proofInclusiveGpuModelBlockedToolCount === 0 ? 'No GPU/model tools remain blocked in the supplied proof packet.' : 'Remaining GPU/model tools stay blocked or failed-with-diagnostics until their scoped private runtime proof succeeds.'} Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.`,
     stateDefinitions: {
       callable:
         'The external agent can submit the controlled private route request.',

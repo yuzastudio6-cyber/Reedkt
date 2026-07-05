@@ -954,6 +954,8 @@ export interface AiGraphicsExternalAgentExecutionReadinessPacket {
   status:
     | 'external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof'
     | 'external_agent_call_ready_for_all21_runtime_execution_ready_for13_plus_private_gpu_model_proof_subset'
+    | 'external_agent_call_ready_for_all21_runtime_execution_ready_for19_plus_private_gpu_model_proof_subset'
+    | 'external_agent_call_ready_for_all21_runtime_execution_ready_for_all21_with_accepted_private_gpu_model_proof'
   counts?: {
     totalToolsCovered?: number
     agentCallableTools?: number

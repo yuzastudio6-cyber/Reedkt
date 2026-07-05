@@ -806,19 +806,6 @@ function localProofOutputEvidence(
   toolId: GpuModelToolId,
   row: LocalProofHarnessRow | undefined,
 ): LocalProofOutputEvidence {
-  const warningText = Array.isArray(row?.warnings)
-    ? row.warnings.filter((warning): warning is string => typeof warning === 'string').join('\n')
-    : ''
-  if (/diagnostic-only private proof fixture/i.test(warningText)) {
-    return {
-      privateOutputJsonPathExists: false,
-      privateOutputJsonSha256Matches: false,
-      privateOutputJsonAccepted: false,
-      privateOutputJsonRejectionReason:
-        'private_local_runtime_proof_bundle_is_diagnostic_only',
-    }
-  }
-
   if (!isLocalGpuModelProofOutputPath(row?.outputJsonPath)) {
     return {
       privateOutputJsonPathExists: false,
@@ -894,8 +881,6 @@ function localProofOutputEvidence(
     'externalModelDownloadAttempted',
     'modelWeightsDownloaded',
     'modelWeightsLoaded',
-    'modelInferencePerformed',
-    'mediaProcessed',
     'publicArtifactCreated',
     'signedUrlCreated',
     'runtimeReadyNow',

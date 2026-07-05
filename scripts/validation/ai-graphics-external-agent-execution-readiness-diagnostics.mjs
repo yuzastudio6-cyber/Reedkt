@@ -11,6 +11,8 @@ const status =
   'external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof'
 const privateProofStatus =
   'external_agent_call_ready_for_all21_runtime_execution_ready_for19_plus_private_gpu_model_proof_subset'
+const all21PrivateProofStatus =
+  'external_agent_call_ready_for_all21_runtime_execution_ready_for_all21_with_accepted_private_gpu_model_proof'
 const runScriptName = 'ai-graphics:external-agent-execution-readiness'
 const runScriptCommand =
   'tsx server/cli/ai-graphics-external-agent-execution-readiness.ts'

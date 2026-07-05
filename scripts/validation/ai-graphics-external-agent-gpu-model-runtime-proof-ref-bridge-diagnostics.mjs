@@ -495,11 +495,14 @@ function createScopedPrivateProofFixture(caseDef) {
     path.join(fixtureRoot, `diagnostic-${caseDef.toolId}-private-proof-`),
   )
   const outputJsonPath = path.join(tempDir, `${caseDef.toolId}-runtime-result.json`)
-  const outputJson = privateOutputJsonForTool(
-    caseDef.toolId,
-    tempDir,
-    caseDef.proofMode,
-  )
+  const outputJson = {
+    ...privateOutputJsonForTool(
+      caseDef.toolId,
+      tempDir,
+      caseDef.proofMode,
+    ),
+    privateLocalProofFixture: true,
+  }
   fs.writeFileSync(outputJsonPath, `${JSON.stringify(outputJson, null, 2)}\n`)
   const outputJsonSha256 = createHash('sha256')
     .update(fs.readFileSync(outputJsonPath))
@@ -795,7 +798,7 @@ for (const phrase of [
   'private_output_json_sha256_missing',
   'private_output_json_sha256_mismatch',
   'private_output_json_outside_local_artifacts_gpu_model_runtime_namespace',
-  'private_local_runtime_proof_bundle_is_diagnostic_only',
+  'privateLocalProofFixture',
   'requiresPrivateOutputJsonSha256Match',
   'requiresPrivateOutputJsonUnderLocalArtifactsGpuModelRuntime',
   'sha256File',
@@ -904,7 +907,7 @@ for (const caseDef of scopedProofFixtureCases) {
     if (
       scopedRow.localProofEvidenceObserved
         ?.privateOutputJsonRejectionReason !==
-      'private_local_runtime_proof_bundle_is_diagnostic_only'
+      'private_output_json_contains_forbidden_success_or_runtime_flag'
     ) {
       fail(`diagnostic_only_scoped_bridge_output_rejection:${caseDef.toolId}:${scopedRow.localProofEvidenceObserved?.privateOutputJsonRejectionReason}`)
     }

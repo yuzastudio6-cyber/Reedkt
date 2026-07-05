@@ -98,6 +98,12 @@ const startCards = [
     detail: 'Test markers, Marker Chat, metadata-only attachments, export settings, QA, and plan hints.',
     route: createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID),
   },
+  {
+    id: 'source-video',
+    title: 'Source video test',
+    detail: 'Open Brief and use the Primary source video picker for local preview, timeline sync, optional backend-local upload, and QA.',
+    route: createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID),
+  },
 ]
 
 const checklist = [
@@ -168,9 +174,18 @@ function getScenarioHighlights() {
     'project-home-edit-chat-cards',
     'project-home-new-edit-placeholder',
     'edit-brief-shell-route-tab',
+    'source-video-local-primary-select',
+    'source-video-local-preview-appears',
+    'source-video-timeline-syncs',
+    'source-video-marker-current-time',
+    'source-video-export-dimensions',
+    'source-video-local-preview-boundary',
     'edit-brief-shell-no-runtime-effects',
     'edit-brief-marker-add-at-playhead',
     'edit-brief-marker-chat-send',
+    'edit-brief-marker-chat-qwen-readiness',
+    'edit-brief-visual-context-local-source-required',
+    'edit-brief-visual-context-analyze-fallback',
     'edit-brief-attachments-add-broll',
     'edit-brief-export-settings-save',
     'edit-brief-qa-run-brief',
@@ -193,7 +208,7 @@ function getScenarioHighlights() {
     'feedback-export',
   ])
 
-  return internalTestingScenarios.filter((scenario) => prioritizedIds.has(scenario.id)).slice(0, 24)
+  return internalTestingScenarios.filter((scenario) => prioritizedIds.has(scenario.id)).slice(0, 40)
 }
 
 export function InternalTestingPage() {
@@ -344,11 +359,12 @@ export function InternalTestingPage() {
             </div>
             <h2>Testing does not start production work</h2>
             <p>
-              This page opens browser-safe internal testing flows only. Signed-in profile/workspace bootstrap may use the anon Supabase client when
-              RLS allows it; project/session data, uploads, providers, workers, render/export, and credits stay blocked.
+              This page opens browser-safe internal testing flows only. Source videos can be selected as browser-local previews, and the
+              backend-local upload button becomes available only when an internal API URL and upload gate are configured. Production media
+              processing, providers, workers, render/export, and credits stay blocked.
             </p>
             <div className="internal-testing-pill-row" data-testid="internal-testing-boundary-list">
-              {['No upload', 'No provider', 'No worker', 'No render', 'No credits', 'No project write'].map((item) => (
+              {['Local preview ready', 'Backend upload gated', 'No provider', 'No worker', 'No render', 'No credits'].map((item) => (
                 <Badge accent="muted" key={item}>
                   {item}
                 </Badge>
@@ -377,7 +393,7 @@ export function InternalTestingPage() {
 
         <section className="internal-testing-hero" aria-label="Start points">
           {startCards.map((card) => (
-            <Card className="internal-testing-start-card" data-testid={`internal-testing-start-${card.id}`} key={card.route}>
+            <Card className="internal-testing-start-card" data-testid={`internal-testing-start-${card.id}`} key={card.id}>
               <div className="internal-testing-card-heading">
                 <h3>{card.title}</h3>
                 <Badge accent="cyan">Mock route</Badge>
@@ -394,6 +410,46 @@ export function InternalTestingPage() {
               </div>
             </Card>
           ))}
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-source-video-flow">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Source video test path</span>
+            <h2>Use Brief as the current upload-to-edit testing surface</h2>
+          </div>
+          <p>
+            For internal testing, the reliable path is: sign in, open the mock project, open Edit Brief, select a local source video,
+            confirm timeline metadata, add a marker, inspect the Qwen 3.7 Max Marker Chat readiness label, run visual-context fallback or
+            beta checks, then run Brief QA and plan hints. This proves the editing workflow shape without starting real generation.
+          </p>
+          <div className="internal-testing-limit-grid">
+            <article>
+              <Badge accent="success">Ready for repeated testing</Badge>
+              <ul>
+                <li>Browser-local source video preview and timeline sync.</li>
+                <li>Marker creation from the current video playhead.</li>
+                <li>Export setting recommendations from browser metadata.</li>
+                <li>Qwen 3.7 Max Marker Chat readiness visibility with deterministic fallback by default.</li>
+              </ul>
+            </article>
+            <article>
+              <Badge accent="cyan">Backend-local upload gate</Badge>
+              <ul>
+                <li>Requires <code>VITE_REEDITPRO_API_BASE_URL</code> and <code>VITE_REEDITPRO_SOURCE_VIDEO_BACKEND_UPLOAD=true</code>.</li>
+                <li>Records canonical upload-intent/storage metadata only in the internal backend-local lane.</li>
+                <li>Does not start FFmpeg, FFprobe, workers, providers, render/export, credit spend, external beta, or production use.</li>
+              </ul>
+            </article>
+          </div>
+          <div className="internal-testing-start-actions">
+            <Button icon={ArrowRight} to={createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID)} variant="primary">
+              Open source video Brief test
+            </Button>
+            <Link className="internal-testing-route-link" to={createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID)}>
+              {createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID)}
+              <ExternalLink aria-hidden="true" size={15} />
+            </Link>
+          </div>
         </section>
 
         <section className="internal-testing-limitations" data-testid="internal-testing-preference-video-limits">

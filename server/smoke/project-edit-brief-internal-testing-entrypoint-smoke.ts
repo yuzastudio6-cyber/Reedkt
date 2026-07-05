@@ -83,7 +83,11 @@ const page = read('src/pages/InternalTestingPage.tsx')
 assert.match(page, /internalTestingScenarios/)
 assert.match(page, /FEEDBACK_STORAGE_KEY/)
 assert.match(page, /browser-local feedback/i)
-assert.match(page, /No upload/)
+assert.match(page, /Local preview ready/)
+assert.match(page, /Backend upload gated/)
+assert.match(page, /Source video test path/)
+assert.match(page, /Browser-local source video preview/)
+assert.match(page, /VITE_REEDITPRO_SOURCE_VIDEO_BACKEND_UPLOAD=true/)
 assert.match(page, /No provider/)
 assert.match(page, /No worker/)
 assert.match(page, /No render/)
@@ -242,7 +246,9 @@ const docs = read('docs/project-edit-brief-internal-testing-entrypoint.md')
 for (const phrase of [
   'production-shaped',
   '/internal-testing',
-  'No upload',
+  'Source Video Testing Path',
+  'Browser-local source video preview',
+  'Backend-local source video upload',
   'No provider/model call',
   'No worker dispatch',
   'No render/export',
@@ -312,6 +318,9 @@ assert.ok(docJson.features?.includes('durable_project_session_supabase_schema_rl
 assert.ok(docJson.features?.includes('durable_project_session_supabase_migration_sql_draft'))
 assert.ok(docJson.features?.includes('durable_project_session_supabase_migration_review'))
 assert.ok(docJson.features?.includes('durable_project_session_supabase_local_migration_dry_run_plan'))
+assert.ok(docJson.features?.includes('source_video_testing_path'))
+assert.ok(docJson.features?.includes('browser_local_source_video_preview'))
+assert.ok(docJson.features?.includes('backend_local_source_video_upload_gate'))
 assert.equal(docJson.scenarioStatus?.['approval-credit-gate-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['credit-lifecycle-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['repeated-local-operator-harness'], 'mock_local')

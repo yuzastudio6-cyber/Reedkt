@@ -6,7 +6,7 @@
 
 ## Summary
 
-RP-EDITBRIEF-23 adds the missing `/internal-testing` app route as a production-shaped mock/internal testing console. The route uses the existing `internalTestingScenarios` registry, links to the Project Home, Edit Chat, and Edit Brief session paths, summarizes scenario readiness, and records browser-local feedback that can be exported as JSON for follow-up PRs.
+RP-EDITBRIEF-23 adds the missing `/internal-testing` app route as a production-shaped mock/internal testing console. The route uses the existing `internalTestingScenarios` registry, links to the Project Home, Edit Chat, Edit Brief, and source-video Brief test paths, summarizes scenario readiness, and records browser-local feedback that can be exported as JSON for follow-up PRs.
 
 This is not a shortcut or throwaway testing surface. It keeps the same project/session and route seams that later release work can graduate through evidence, owner approval, persistence, and runtime gates.
 
@@ -23,6 +23,12 @@ This is not a shortcut or throwaway testing surface. It keeps the same project/s
 The formerly blocked `preference-video-mock-only-limits` scenario is now classified as `mock_local` because the internal testing route exposes an explicit Preference Video limits panel and `/edit-preferences` is mounted as a browser-safe mock/local preference library.
 
 This closeout only proves that internal testers can see and verify the boundaries. It does not authorize reference upload, URL fetch, real media analysis, Qwen/DeepSeek/provider calls, workers, render/export, credit movement, Supabase persistence, external beta, paid production, or product-ready behavior.
+
+## Source Video Testing Path
+
+The internal testing route now exposes a first-class source-video test path that sends testers to the Edit Brief source video picker. Browser-local source video preview, playback timeline sync, source-time marker creation, local metadata capture, export setting recommendations from browser metadata, Qwen 3.7 Max Marker Chat readiness labels, and visual-context fallback checks are allowed for repeated internal testing.
+
+Backend-local source video upload is a separate internal gate. The upload control is shown only when `VITE_REEDITPRO_API_BASE_URL` is configured and `VITE_REEDITPRO_SOURCE_VIDEO_BACKEND_UPLOAD=true`; it records canonical source-video metadata for backend-local testing only. It does not authorize FFmpeg/FFprobe, providers, workers, render/export, credit movement, external beta, paid production, or product-ready behavior.
 
 ## Approval And Credit Gate Readiness
 
@@ -116,7 +122,9 @@ This dry-run plan does not run Supabase, create an executable migration, add `su
 
 ## Boundaries
 
-- No upload or file-byte read.
+- Browser-local source video preview and metadata capture are allowed.
+- Backend-local source video upload is gated by explicit internal environment configuration.
+- No unapproved upload or backend file-byte read outside the backend-local source-video upload gate.
 - No provider/model call.
 - No worker dispatch.
 - No media processing.

@@ -40,12 +40,14 @@ import type {
 } from '../../../lib/project-edit-plan-approval'
 import {
   createBriefSavedCheckpointMetadata,
+  createFinalExportReadyCheckpointMetadata,
   createPlanApprovedCheckpointMetadata,
   createPreviewReadyCheckpointMetadata,
   createPreviewReviewedCheckpointMetadata,
   createRestoredApprovedLocalPlan,
   createSourceUploadCheckpointMetadata,
   restoreBackendUploadResult,
+  restoreFinalExportResult,
   restorePreviewResult,
   restorePreviewReviewResult,
 } from '../../../lib/project-edit-session-lifecycle-checkpoint-ui-adapter'
@@ -53,6 +55,7 @@ import type {
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoBackendUploadStatus,
   ProjectSourceVideoLocalEditPreviewResult,
+  ProjectSourceVideoLocalFinalExportResult,
   ProjectSourceVideoLocalPreview,
   ProjectSourceVideoMetadataUpdate,
   ProjectSourceVideoPreviewReviewResult,
@@ -63,6 +66,7 @@ import type {
   ProjectEditSessionStatus,
 } from '../../../types/project-edit-session'
 import { ProjectEditBriefLocalPreviewSmokeCard } from './ProjectEditBriefLocalPreviewSmokeCard'
+import { ProjectEditBriefFinalExportCard } from './ProjectEditBriefFinalExportCard'
 import { ProjectEditBriefPreviewReviewCard } from './ProjectEditBriefPreviewReviewCard'
 import { ProjectEditBriefSourceVideoPicker } from './ProjectEditBriefSourceVideoPicker'
 import { ProjectEditBriefSourceVideoSummary } from './ProjectEditBriefSourceVideoSummary'
@@ -90,6 +94,7 @@ export function ProjectEditBriefWorkspace({
   const [backendUploadResult, setBackendUploadResult] = useState<ProjectSourceVideoBackendUploadResult | undefined>()
   const [backendUploadError, setBackendUploadError] = useState<string | undefined>()
   const [localPreviewResult, setLocalPreviewResult] = useState<ProjectSourceVideoLocalEditPreviewResult | undefined>()
+  const [localFinalExportResult, setLocalFinalExportResult] = useState<ProjectSourceVideoLocalFinalExportResult | undefined>()
   const [playing, setPlaying] = useState(false)
   const [playheadSeconds, setPlayheadSeconds] = useState(0)
   const [briefText, setBriefText] = useState('Clean pacing, readable captions, natural sound, and no flashy transitions unless the edit asks for it.')
@@ -141,12 +146,13 @@ export function ProjectEditBriefWorkspace({
     briefSaved: Boolean(backendSavedBrief?.readbackVerified) && briefSaved,
     editSessionId,
     hasLocalSourceVideo: Boolean(sourceVideo),
+    localFinalExportResult,
     localPreviewResult,
     planApproved: planApprovalModel.approved,
     planReady: planApprovalModel.canApprove || planApprovalModel.approved,
     previewReviewResult,
     projectId,
-  }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, previewReviewResult, projectId, sourceVideo])
+  }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localFinalExportResult, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, previewReviewResult, projectId, sourceVideo])
 
   useEffect(() => {
     let cancelled = false
@@ -157,6 +163,7 @@ export function ProjectEditBriefWorkspace({
       const restoredUpload = restoreBackendUploadResult(backendLocalEditSession)
       const restoredPreview = restorePreviewResult(backendLocalEditSession)
       const restoredReview = restorePreviewReviewResult(backendLocalEditSession)
+      const restoredFinalExport = restoreFinalExportResult(backendLocalEditSession)
 
       if (restoredUpload) {
         setBackendUploadResult(restoredUpload)
@@ -164,7 +171,8 @@ export function ProjectEditBriefWorkspace({
       }
       if (restoredPreview) setLocalPreviewResult(restoredPreview)
       if (restoredReview) setPreviewReviewResult(restoredReview)
-      if (restoredUpload || restoredPreview || restoredReview) {
+      if (restoredFinalExport) setLocalFinalExportResult(restoredFinalExport)
+      if (restoredUpload || restoredPreview || restoredReview || restoredFinalExport) {
         setStatusMessage('Backend-local edit progress restored from the edit-session lifecycle checkpoints.')
       }
     })
@@ -245,6 +253,7 @@ export function ProjectEditBriefWorkspace({
       setBackendUploadResult(undefined)
       setBackendUploadError(undefined)
       setLocalPreviewResult(undefined)
+      setLocalFinalExportResult(undefined)
       setPlanApproved(false)
       setPlanApprovalStatus('idle')
       setPlanApprovalError(undefined)
@@ -270,6 +279,7 @@ export function ProjectEditBriefWorkspace({
     setBackendUploadResult(undefined)
     setBackendUploadError(undefined)
     setLocalPreviewResult(undefined)
+    setLocalFinalExportResult(undefined)
     setPlanApproved(false)
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
@@ -322,6 +332,7 @@ export function ProjectEditBriefWorkspace({
     setBackendUploadStatus('uploading')
     setBackendUploadError(undefined)
     setLocalPreviewResult(undefined)
+    setLocalFinalExportResult(undefined)
     setPlanApproved(false)
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
@@ -397,6 +408,7 @@ export function ProjectEditBriefWorkspace({
       setStatusMessage('Backend-local brief save failed safely. Plan approval remains blocked.')
     }
     setLocalPreviewResult(undefined)
+    setLocalFinalExportResult(undefined)
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
     setBackendApprovedLocalPlan(undefined)
@@ -411,6 +423,7 @@ export function ProjectEditBriefWorkspace({
     setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
     setBriefSaveError(briefConfig.available ? undefined : briefConfig.message)
     setLocalPreviewResult(undefined)
+    setLocalFinalExportResult(undefined)
     setPlanApproved(false)
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
@@ -429,6 +442,7 @@ export function ProjectEditBriefWorkspace({
     setPlanApprovalStatus('approving')
     setPlanApprovalError(undefined)
     setLocalPreviewResult(undefined)
+    setLocalFinalExportResult(undefined)
     try {
       const result = await approveProjectEditPlanBackendLocal({
         apiBaseUrl: backendUploadConfig.apiBaseUrl,
@@ -448,6 +462,7 @@ export function ProjectEditBriefWorkspace({
       })
       setBackendApprovedLocalPlan(result)
       setPreviewReviewResult(undefined)
+      setLocalFinalExportResult(undefined)
       setPlanApproved(true)
       setPlanApprovalStatus('approved')
       setStatusMessage('Local edit plan and credit estimate approved and read back from the backend-local plan gate.')
@@ -558,6 +573,7 @@ export function ProjectEditBriefWorkspace({
             onPreviewReady={(result) => {
               setLocalPreviewResult(result)
               setPreviewReviewResult(undefined)
+              setLocalFinalExportResult(undefined)
               void recordLifecycleCheckpoint({
                 checkpointKind: 'preview_ready',
                 status: 'preview_ready',
@@ -586,6 +602,7 @@ export function ProjectEditBriefWorkspace({
             config={localPreviewConfig}
             onReviewRecorded={(result) => {
               setPreviewReviewResult(result)
+              setLocalFinalExportResult(undefined)
               void recordLifecycleCheckpoint({
                 checkpointKind: 'preview_reviewed',
                 status: result.reviewStatus === 'approved' ? 'preview_ready' : 'revision_requested',
@@ -602,6 +619,36 @@ export function ProjectEditBriefWorkspace({
                 : 'Preview changes requested and recorded. Update the brief or plan before another preview.')
             }}
             previewResult={localPreviewResult}
+          />
+          <ProjectEditBriefFinalExportCard
+            apiBaseUrl={localPreviewConfig.apiBaseUrl ?? backendUploadConfig.apiBaseUrl ?? briefConfig.apiBaseUrl}
+            editPlanId={backendApprovedLocalPlan?.localEditPlan.editPlanId ?? planApprovalModel.planId}
+            finalExportResult={localFinalExportResult}
+            onFinalExportReady={(result) => {
+              setLocalFinalExportResult(result)
+              void recordLifecycleCheckpoint({
+                checkpointKind: 'final_export_ready',
+                status: 'final_export_ready',
+                approvalStatus: 'approved',
+                sourceMediaAssetId: backendUploadResult?.mediaAssetId,
+                latestSnapshotId: result.approvedPlanSnapshotId,
+                latestPreviewId: result.renderId,
+                latestPreviewUrl: result.outputObjectPath
+                  ? `${result.outputBucketName ?? 'export'}/${result.outputObjectPath}`
+                  : undefined,
+                metadata: createFinalExportReadyCheckpointMetadata(result),
+              }).catch((caught) => {
+                setStatusMessage(caught instanceof Error
+                  ? `Private export ready, but lifecycle checkpoint failed safely: ${caught.message}`
+                  : 'Private export ready, but lifecycle checkpoint failed safely.')
+              })
+            }}
+            onStatusMessage={setStatusMessage}
+            previewResult={localPreviewResult}
+            previewReviewResult={previewReviewResult}
+            projectId={projectId}
+            sourceVideoUploadResult={backendUploadResult}
+            workspaceId={backendUploadConfig.workspaceId}
           />
           <Card className="clean-edit-brief__status-card">
             <span className="section-eyebrow">Architecture boundary</span>

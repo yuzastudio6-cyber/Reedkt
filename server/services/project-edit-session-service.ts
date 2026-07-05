@@ -295,5 +295,6 @@ function backendLocalCheckpointMetadataKey(
   if (checkpointKind === 'plan_approved') return 'backendLocalPlan'
   if (checkpointKind === 'preview_ready') return 'backendLocalPreview'
   if (checkpointKind === 'preview_reviewed') return 'backendLocalPreviewReview'
+  if (checkpointKind === 'final_export_ready') return 'backendLocalFinalExport'
   return 'backendLocalSetupReset'
 }

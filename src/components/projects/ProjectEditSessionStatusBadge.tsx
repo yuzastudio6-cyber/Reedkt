@@ -8,7 +8,7 @@ type ProjectEditSessionStatusBadgeProps = {
 }
 
 function statusAccent(status?: ProjectEditSessionStatus): Accent | 'muted' {
-  if (status === 'approved' || status === 'preview_ready') return 'success'
+  if (status === 'approved' || status === 'preview_ready' || status === 'final_export_ready') return 'success'
   if (status === 'needs_review' || status === 'revision_requested') return 'warning'
   if (status === 'awaiting_approval') return 'cyan'
   if (status === 'setup_ready') return 'blue'

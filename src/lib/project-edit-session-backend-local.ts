@@ -53,6 +53,7 @@ export type ProjectEditSessionLifecycleCheckpointKind =
   | 'plan_approved'
   | 'preview_ready'
   | 'preview_reviewed'
+  | 'final_export_ready'
   | 'setup_reset'
 
 export interface ProjectEditSessionBackendLocalConfig {

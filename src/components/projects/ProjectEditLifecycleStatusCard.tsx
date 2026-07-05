@@ -28,8 +28,8 @@ export function ProjectEditLifecycleStatusCard({ model }: ProjectEditLifecycleSt
           <h3>What can happen next</h3>
           <p>{model.nextAction}</p>
         </div>
-        <Badge accent={model.productReady ? 'success' : 'cyan'}>
-          {model.productReady ? 'Product ready' : 'Testing gated'}
+        <Badge accent={model.productReady || model.finalExportAllowed ? 'success' : 'cyan'}>
+          {model.productReady ? 'Product ready' : model.finalExportAllowed ? 'Private export ready' : 'Testing gated'}
         </Badge>
       </div>
 

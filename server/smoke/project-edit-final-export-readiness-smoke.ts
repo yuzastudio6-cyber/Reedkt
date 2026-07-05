@@ -200,9 +200,29 @@ const finalLifecycle = buildProjectEditLifecycleModel({
   projectId: renderInput.projectId,
 })
 assert.equal(finalLifecycle.finalExportAllowed, true)
-assert.equal(finalLifecycle.productReady, true)
+assert.equal(finalLifecycle.productReady, false)
 assert.equal(finalLifecycle.toolExecutionAllowed, true)
 assert.equal(finalLifecycle.finalExportReadiness.blockers.length, 0)
+
+const productReadyLifecycle = buildProjectEditLifecycleModel({
+  backendUploadAvailable: true,
+  backendUploadResult: uploaded,
+  backendUploadStatus: 'uploaded',
+  briefSaved: true,
+  editSessionId: 'edit-session-final-export-readiness',
+  finalExportEvidence: deliveryEvidence.finalExportEvidence,
+  hasLocalSourceVideo: true,
+  localPreviewResult: preview,
+  planApproved: true,
+  planReady: true,
+  previewReviewResult: review,
+  productReleaseEvidence: {
+    productReadyApproved: true,
+  },
+  projectId: renderInput.projectId,
+})
+assert.equal(productReadyLifecycle.finalExportAllowed, true)
+assert.equal(productReadyLifecycle.productReady, true)
 
 const adapterSource = read('src/lib/project-edit-final-export-readiness.ts')
 assert.match(adapterSource, /final_delivery/)

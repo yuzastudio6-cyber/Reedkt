@@ -7,6 +7,7 @@ import type {
 import type {
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoLocalEditPreviewResult,
+  ProjectSourceVideoLocalFinalExportResult,
   ProjectSourceVideoPreviewReviewResult,
 } from '../types/project-source-video'
 import type {
@@ -120,6 +121,28 @@ export function createPreviewReviewedCheckpointMetadata(result: ProjectSourceVid
     reviewStatus: result.reviewStatus,
     notes: result.notes,
     finalExportStarted: false,
+    productReady: false,
+  }
+}
+
+export function createFinalExportReadyCheckpointMetadata(result: ProjectSourceVideoLocalFinalExportResult): Record<string, unknown> {
+  return {
+    editPlanId: result.editPlanId,
+    approvedPlanSnapshotId: result.approvedPlanSnapshotId,
+    creditReservationId: result.creditReservationId,
+    renderJobId: result.renderJobId,
+    renderId: result.renderId,
+    sourceStorageObjectRecordId: result.sourceStorageObjectRecordId,
+    finalExportStorageObjectId: result.finalExportStorageObjectId,
+    qaReportId: result.qaReportId,
+    outputBucketName: result.outputBucketName,
+    outputObjectPath: result.outputObjectPath,
+    durationSeconds: result.durationSeconds,
+    sizeBytes: result.sizeBytes,
+    checksumSha256: result.checksumSha256,
+    previewReviewId: result.previewReviewId,
+    finalExportStarted: result.finalExportStarted,
+    publicDeliveryEnabled: result.publicDeliveryEnabled,
     productReady: false,
   }
 }
@@ -244,6 +267,48 @@ export function restorePreviewReviewResult(session: ProjectEditSessionRecord | u
     gcsWriteMade: false,
     productReady: false,
     warnings: ['Restored preview review metadata from the edit-session checkpoint.'],
+  }
+}
+
+export function restoreFinalExportResult(session: ProjectEditSessionRecord | undefined): ProjectSourceVideoLocalFinalExportResult | undefined {
+  const checkpoint = checkpointValue(session, 'backendLocalFinalExport')
+  const metadata = objectValue(checkpoint?.metadata)
+  if (!metadata) return undefined
+
+  const editPlanId = stringValue(metadata.editPlanId)
+  const approvedPlanSnapshotId = stringValue(metadata.approvedPlanSnapshotId) ?? checkpoint?.latestSnapshotId
+  const creditReservationId = stringValue(metadata.creditReservationId)
+  const renderJobId = stringValue(metadata.renderJobId)
+  const sourceStorageObjectRecordId = stringValue(metadata.sourceStorageObjectRecordId)
+  const previewReviewId = stringValue(metadata.previewReviewId)
+  if (!editPlanId || !approvedPlanSnapshotId || !creditReservationId || !renderJobId || !sourceStorageObjectRecordId || !previewReviewId) {
+    return undefined
+  }
+
+  return {
+    status: 'final_export_ready',
+    editPlanId,
+    approvedPlanSnapshotId,
+    creditReservationId,
+    renderJobId,
+    renderId: stringValue(metadata.renderId),
+    sourceStorageObjectRecordId,
+    finalExportStorageObjectId: stringValue(metadata.finalExportStorageObjectId),
+    qaReportId: stringValue(metadata.qaReportId),
+    outputBucketName: stringValue(metadata.outputBucketName),
+    outputObjectPath: stringValue(metadata.outputObjectPath),
+    durationSeconds: numberValue(metadata.durationSeconds),
+    sizeBytes: numberValue(metadata.sizeBytes),
+    checksumSha256: stringValue(metadata.checksumSha256),
+    previewReviewId,
+    finalExportStarted: true,
+    publicDeliveryEnabled: false,
+    providerCallMade: false,
+    qwenCallMade: false,
+    supabaseWriteMade: false,
+    gcsWriteMade: false,
+    productReady: false,
+    warnings: ['Restored private backend-local final export metadata from the edit-session checkpoint.'],
   }
 }
 

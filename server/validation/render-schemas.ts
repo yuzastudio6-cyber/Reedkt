@@ -36,3 +36,8 @@ export const basicRenderSmokePreviewSchema = z.object({
   workerInstanceId: z.string().optional(),
   strict: z.boolean().optional(),
 })
+
+export const basicRenderSmokeFinalExportSchema = basicRenderSmokePreviewSchema.extend({
+  previewReviewId: idSchema,
+  previewReviewStatus: z.literal('approved'),
+})

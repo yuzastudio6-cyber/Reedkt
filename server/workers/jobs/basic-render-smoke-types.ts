@@ -2,6 +2,7 @@ import type { BasicPreviewRenderOutput } from '../../media/ffmpeg-preview'
 import type { MediaProbeSummary } from '../../media/ffprobe'
 
 export type RenderSmokeStatus = 'preview_ready' | 'skipped' | 'failed'
+export type FinalExportSmokeStatus = 'final_export_ready' | 'skipped' | 'failed'
 
 export interface BasicRenderSmokeSourceObject {
   id: string
@@ -32,6 +33,11 @@ export interface BasicRenderSmokeRequest {
   strict?: boolean
 }
 
+export interface BasicFinalExportSmokeRequest extends BasicRenderSmokeRequest {
+  previewReviewId: string
+  previewReviewStatus: 'approved'
+}
+
 export interface BasicRenderSmokeResponse {
   ok: boolean
   status: RenderSmokeStatus
@@ -48,6 +54,33 @@ export interface BasicRenderSmokeResponse {
   checksumSha256?: string
   mediaProbe?: MediaProbeSummary
   previewRender?: Omit<BasicPreviewRenderOutput, 'outputPath'>
+  warnings: string[]
+  error?: {
+    code: string
+    message: string
+  }
+}
+
+export interface BasicFinalExportSmokeResponse {
+  ok: boolean
+  status: FinalExportSmokeStatus
+  renderId?: string
+  renderJobId: string
+  sourceMediaAssetId?: string
+  sourceStorageObjectId?: string
+  finalExportStorageObjectId?: string
+  qaReportId?: string
+  outputBucketName?: string
+  outputObjectPath?: string
+  durationSeconds?: number
+  sizeBytes?: number
+  checksumSha256?: string
+  mediaProbe?: MediaProbeSummary
+  finalExportRender?: Omit<BasicPreviewRenderOutput, 'outputPath'>
+  previewReviewId?: string
+  finalExportStarted: boolean
+  publicDeliveryEnabled: false
+  productReady: false
   warnings: string[]
   error?: {
     code: string

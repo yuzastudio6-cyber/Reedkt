@@ -54,6 +54,15 @@ export type ProjectSourceVideoPreviewReviewStatus =
   | 'changes_requested'
   | 'failed'
 
+export type ProjectSourceVideoLocalFinalExportStatus =
+  | 'unavailable'
+  | 'waiting_for_preview_review'
+  | 'idle'
+  | 'running'
+  | 'final_export_ready'
+  | 'blocked'
+  | 'failed'
+
 export interface ProjectSourceVideoBackendUploadConfig {
   available: boolean
   apiBaseUrl?: string
@@ -147,6 +156,32 @@ export interface ProjectSourceVideoPreviewReviewResult {
   workerJobCreated: false
   renderJobCreated: false
   creditReservedOrSpent: false
+  supabaseWriteMade: false
+  gcsWriteMade: false
+  productReady: false
+  warnings: string[]
+}
+
+export interface ProjectSourceVideoLocalFinalExportResult {
+  status: 'final_export_ready'
+  editPlanId: string
+  approvedPlanSnapshotId: string
+  creditReservationId: string
+  renderJobId: string
+  renderId?: string
+  sourceStorageObjectRecordId: string
+  finalExportStorageObjectId?: string
+  qaReportId?: string
+  outputBucketName?: string
+  outputObjectPath?: string
+  durationSeconds?: number
+  sizeBytes?: number
+  checksumSha256?: string
+  previewReviewId: string
+  finalExportStarted: true
+  publicDeliveryEnabled: false
+  providerCallMade: false
+  qwenCallMade: false
   supabaseWriteMade: false
   gcsWriteMade: false
   productReady: false

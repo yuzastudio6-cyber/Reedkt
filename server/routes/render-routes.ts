@@ -1,10 +1,10 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
-import { checkBasicRenderSmokeTools, createSkippedBasicRenderSmokeResult } from '../services/render-smoke-service'
+import { checkBasicRenderSmokeTools, createSkippedBasicRenderSmokeResult, runBasicFinalExportSmoke } from '../services/render-smoke-service'
 import { createRenderService } from '../services/render-service'
 import { runWorkerClaimRunner } from '../workers/worker-claim-runner'
-import { basicRenderSmokePreviewSchema, createRenderJobSchema, previewReviewSchema } from '../validation/render-schemas'
+import { basicRenderSmokeFinalExportSchema, basicRenderSmokePreviewSchema, createRenderJobSchema, previewReviewSchema } from '../validation/render-schemas'
 import { validateBody } from '../validation/common-schemas'
 import { asyncRoute, getIdempotencyKey, getRouteParam, getServiceContext, sendOk } from './route-helpers'
 
@@ -73,6 +73,28 @@ export function createRenderRoutes(): Router {
       },
     })
     sendOk(response, { result, renderSmoke: result.output }, result.warnings, result.status === 'blocked' ? 409 : 201)
+  }))
+
+  router.post('/v1/render-jobs/:renderJobId/basic-smoke-final-export', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(basicRenderSmokeFinalExportSchema, request.body)
+    const context = getServiceContext(request)
+    const renderJobId = getRouteParam(request, 'renderJobId')
+    const workspaceId = body.workspaceId ?? 'workspace-mock'
+    const projectId = body.projectId ?? 'project-mock'
+    const result = await runBasicFinalExportSmoke(context, {
+      workspaceId,
+      projectId,
+      renderJobId,
+      sourceStorageObjectId: body.sourceStorageObjectId,
+      sourceStorageObject: body.sourceStorageObject,
+      approvedPlanSnapshotId: body.approvedPlanSnapshotId,
+      creditReservationId: body.creditReservationId,
+      workerInstanceId: body.workerInstanceId,
+      strict: body.strict,
+      previewReviewId: body.previewReviewId,
+      previewReviewStatus: body.previewReviewStatus,
+    })
+    sendOk(response, { result, finalExportSmoke: result }, result.warnings, result.status === 'failed' ? 409 : result.status === 'skipped' ? 202 : 201)
   }))
 
   return router

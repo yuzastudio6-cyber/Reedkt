@@ -16,12 +16,14 @@ import {
 } from '../../src/lib/project-edit-session-backend-local'
 import {
   createBriefSavedCheckpointMetadata,
+  createFinalExportReadyCheckpointMetadata,
   createPlanApprovedCheckpointMetadata,
   createPreviewReadyCheckpointMetadata,
   createPreviewReviewedCheckpointMetadata,
   createRestoredApprovedLocalPlan,
   createSourceUploadCheckpointMetadata,
   restoreBackendUploadResult,
+  restoreFinalExportResult,
   restorePreviewResult,
   restorePreviewReviewResult,
 } from '../../src/lib/project-edit-session-lifecycle-checkpoint-ui-adapter'
@@ -35,6 +37,7 @@ import { buildProjectEditPlanApprovalModel } from '../../src/lib/project-edit-pl
 import { buildProjectEditLifecycleModel } from '../../src/lib/project-edit-lifecycle'
 import { uploadProjectSourceVideoToBackend } from '../../src/lib/project-source-video-backend-upload'
 import { runProjectSourceVideoLocalEditPreviewSmoke } from '../../src/lib/project-source-video-local-edit-preview-smoke'
+import { runProjectSourceVideoLocalFinalExportSmoke } from '../../src/lib/project-source-video-local-final-export-smoke'
 import { createProjectSourceVideoPreviewReview } from '../../src/lib/project-source-video-preview-review'
 
 function localUrl(port: number): string {
@@ -258,13 +261,44 @@ try {
     getAccessToken: async () => undefined,
   })
 
+  const finalExport = await runProjectSourceVideoLocalFinalExportSmoke({
+    apiBaseUrl,
+    editPlanId: approvedPlan.localEditPlan.editPlanId,
+    projectId: project.project.id,
+    workspaceId,
+    previewResult: preview,
+    previewReviewResult: review,
+    sourceVideoUploadResult: upload,
+    getAccessToken: async () => undefined,
+  })
+  assert.equal(finalExport.status, 'final_export_ready')
+  assert.equal(finalExport.finalExportStarted, true)
+  assert.equal(finalExport.publicDeliveryEnabled, false)
+  assert.equal(finalExport.productReady, false)
+  assert.ok(finalExport.outputObjectPath?.includes('/exports/'))
+
+  await recordProjectEditSessionLifecycleCheckpointBackendLocal({
+    apiBaseUrl,
+    editSessionId,
+    workspaceId,
+    checkpointKind: 'final_export_ready',
+    status: 'final_export_ready',
+    approvalStatus: 'approved',
+    sourceMediaAssetId: upload.mediaAssetId,
+    latestSnapshotId: finalExport.approvedPlanSnapshotId,
+    latestPreviewId: finalExport.renderId,
+    latestPreviewUrl: finalExport.outputObjectPath ? `${finalExport.outputBucketName ?? 'export'}/${finalExport.outputObjectPath}` : undefined,
+    metadata: createFinalExportReadyCheckpointMetadata(finalExport),
+    getAccessToken: async () => undefined,
+  })
+
   const finalSession = await readProjectEditSessionBackendLocal({
     apiBaseUrl,
     editSessionId,
     workspaceId,
     getAccessToken: async () => undefined,
   })
-  assert.equal(finalSession.editSession.status, 'preview_ready')
+  assert.equal(finalSession.editSession.status, 'final_export_ready')
   assert.equal(finalSession.editSession.approvalStatus, 'approved')
   assert.equal(finalSession.editSession.previewCount, 1)
   assert.equal(finalSession.editSession.productReady, false)
@@ -273,6 +307,7 @@ try {
   assert.ok(finalSession.editSession.metadata?.backendLocalPlan)
   assert.ok(finalSession.editSession.metadata?.backendLocalPreview)
   assert.ok(finalSession.editSession.metadata?.backendLocalPreviewReview)
+  assert.ok(finalSession.editSession.metadata?.backendLocalFinalExport)
 
   const listed = await listProjectEditSessionsBackendLocal({
     apiBaseUrl,
@@ -280,14 +315,16 @@ try {
     workspaceId,
     getAccessToken: async () => undefined,
   })
-  assert.equal(listed.editSessions.some((session) => session.id === editSessionId && session.status === 'preview_ready'), true)
+  assert.equal(listed.editSessions.some((session) => session.id === editSessionId && session.status === 'final_export_ready'), true)
 
   const restoredUpload = restoreBackendUploadResult(finalSession.editSession)
   const restoredPreview = restorePreviewResult(finalSession.editSession)
   const restoredReview = restorePreviewReviewResult(finalSession.editSession)
+  const restoredFinalExport = restoreFinalExportResult(finalSession.editSession)
   assert.equal(restoredUpload?.storageObjectRecordId, upload.storageObjectRecordId)
   assert.equal(restoredPreview?.status, 'preview_ready')
   assert.equal(restoredReview?.reviewStatus, 'approved')
+  assert.equal(restoredFinalExport?.status, 'final_export_ready')
 
   const restoredBrief = await readProjectEditBriefBackendLocal({
     apiBaseUrl,
@@ -323,6 +360,7 @@ try {
     briefSaved: restoredBrief.editBrief.readbackVerified === true,
     editSessionId,
     hasLocalSourceVideo: true,
+    localFinalExportResult: restoredFinalExport,
     localPreviewResult: restoredPreview,
     planApproved: Boolean(restoredPlan?.localEditPlan.readbackVerified),
     planReady: true,
@@ -330,15 +368,11 @@ try {
     projectId: project.project.id,
   })
   assert.equal(lifecycle.stages.find((stage) => stage.id === 'preview_review_required')?.status, 'complete')
-  assert.equal(lifecycle.finalExportAllowed, false)
+  assert.equal(lifecycle.finalExportAllowed, true)
   assert.equal(lifecycle.productReady, false)
-  assert.equal(lifecycle.toolExecutionAllowed, false)
-  assert.equal(lifecycle.finalExportReadiness.allowed, false)
-  assert.ok(lifecycle.finalExportReadiness.blockers.includes('professional_qa_passed'))
-  assert.ok(lifecycle.finalExportReadiness.blockers.includes('required_assets_ready'))
-  assert.ok(lifecycle.finalExportReadiness.blockers.includes('artifact_manifest_ready'))
-  assert.ok(lifecycle.finalExportReadiness.blockers.includes('final_render_worker_ready'))
-  assert.ok(lifecycle.finalExportReadiness.blockers.includes('export_delivery_policy_ready'))
+  assert.equal(lifecycle.toolExecutionAllowed, true)
+  assert.equal(lifecycle.finalExportReadiness.allowed, true)
+  assert.deepEqual(lifecycle.finalExportReadiness.blockers, [])
 
   console.log(JSON.stringify({
     ok: true,
@@ -350,6 +384,7 @@ try {
     planReadbackVerified: approvedPlan.localEditPlan.readbackVerified === true,
     previewStatus: preview.status,
     reviewStatus: review.reviewStatus,
+    finalExportStatus: finalExport.status,
     restoredLifecycleStatus: finalSession.editSession.status,
     finalExportAllowed: lifecycle.finalExportAllowed,
     finalExportBlockers: lifecycle.finalExportReadiness.blockers,

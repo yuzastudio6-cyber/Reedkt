@@ -35,6 +35,10 @@ interface ProjectEditSessionData {
   editSession: ProjectEditSessionBackendLocalRecord
 }
 
+interface ProjectEditSessionListData {
+  editSessions: ProjectEditSessionBackendLocalRecord[]
+}
+
 export interface ProjectEditSessionBackendLocalConfig {
   available: boolean
   apiBaseUrl?: string
@@ -249,6 +253,31 @@ export async function readProjectEditSessionBackendLocal(input: {
 
   return {
     editSession: assertOk(envelope, 'Edit session readback failed.').editSession,
+    warnings: envelope.warnings ?? [],
+  }
+}
+
+export async function listProjectEditSessionsBackendLocal(input: {
+  apiBaseUrl: string
+  projectId: string
+  workspaceId: string
+  fetchImpl?: typeof fetch
+  getAccessToken?: () => Promise<string | undefined>
+}): Promise<{ editSessions: ProjectEditSessionBackendLocalRecord[]; warnings: string[] }> {
+  const fetchImpl = input.fetchImpl ?? fetch
+  const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
+  const envelope = await parseEnvelope<ProjectEditSessionListData>(await fetchImpl(joinUrl(
+    input.apiBaseUrl,
+    `/v1/projects/${encodeURIComponent(input.projectId)}/edit-sessions?workspaceId=${encodeURIComponent(input.workspaceId)}`,
+  ), {
+    method: 'GET',
+    headers: createHeaders({
+      authorization: accessToken ? `Bearer ${accessToken}` : undefined,
+    }),
+  }))
+
+  return {
+    editSessions: assertOk(envelope, 'Edit session list readback failed.').editSessions,
     warnings: envelope.warnings ?? [],
   }
 }

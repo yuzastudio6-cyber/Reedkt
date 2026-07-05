@@ -20,6 +20,17 @@ export function createProjectEditSessionRoutes(): Router {
     sendOk(response, { editSession: result.editSession }, result.warnings, 201)
   }))
 
+  router.get('/v1/projects/:projectId/edit-sessions', requireAuth, asyncRoute(async (request, response) => {
+    const workspaceId = String(request.query.workspaceId ?? '')
+    if (!workspaceId) throw new ApiError('VALIDATION_FAILED', 'workspaceId query parameter is required.', 400)
+
+    const result = await createProjectEditSessionService(getServiceContext(request)).listProjectEditSessions({
+      projectId: getRouteParam(request, 'projectId'),
+      workspaceId,
+    })
+    sendOk(response, { editSessions: result.editSessions }, result.warnings)
+  }))
+
   router.get('/v1/edit-sessions/:editSessionId', requireAuth, asyncRoute(async (request, response) => {
     const workspaceId = String(request.query.workspaceId ?? '')
     if (!workspaceId) throw new ApiError('VALIDATION_FAILED', 'workspaceId query parameter is required.', 400)

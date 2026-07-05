@@ -1,4 +1,5 @@
 import type {
+  ProjectEditSessionRecord,
   ProjectEditSessionCardModel,
   ProjectEditSessionCardShape,
   ProjectEditSessionStatus,
@@ -17,7 +18,7 @@ import {
   createProjectEditSessionBundleClientSummary,
   createProjectEditSessionCardListSummary,
 } from './project-edit-session-api-client-summaries'
-import { createProjectEditSessionPath } from './project-edit-session-navigation'
+import { createProjectEditSessionBriefPath, createProjectEditSessionPath } from './project-edit-session-navigation'
 
 export const MOCK_PROJECT_HOME_PROJECT_ID = 'mock-project-edit-chat-foundation'
 
@@ -114,6 +115,14 @@ function shapeClassName(shape: ProjectEditSessionCardShape): string {
   return `project-edit-session-card--${shape}`
 }
 
+function cardShapeForAspectRatio(aspectRatio: ProjectEditSessionRecord['aspectRatio']): ProjectEditSessionCardShape {
+  if (aspectRatio === '9:16') return 'vertical'
+  if (aspectRatio === '16:9') return 'wide'
+  if (aspectRatio === '1:1') return 'square'
+  if (aspectRatio === '4:5') return 'social'
+  return 'custom'
+}
+
 export function createProjectHomeTitle(projectId: string): string {
   if (projectId === MOCK_PROJECT_HOME_PROJECT_ID) return 'ReEditPro Demo Project'
   return titleCase(projectId)
@@ -177,6 +186,31 @@ export function createProjectEditSessionHomeCardViewModel(
   }
 }
 
+export function createProjectEditSessionHomeCardViewModelFromRecord(
+  session: ProjectEditSessionRecord,
+): ProjectEditSessionHomeCardViewModel {
+  return createProjectEditSessionHomeCardViewModel({
+    id: session.id,
+    projectId: session.projectId,
+    name: session.name,
+    status: session.status,
+    aspectRatio: session.aspectRatio,
+    platformTarget: session.platformTarget,
+    thumbnailUrl: session.thumbnailUrl,
+    latestPreviewUrl: session.latestPreviewUrl,
+    selectedEditPreferenceHandle: session.selectedEditPreferenceHandle,
+    dnaStatusLabel: session.dnaStatusLabel,
+    dnaQAStatusLabel: session.dnaQAStatusLabel,
+    badges: ['Backend local', session.mockOnly ? 'Mock safe' : 'Persistent'],
+    messageCount: session.messageCount,
+    revisionCount: session.revisionCount,
+    versionCount: session.versionCount,
+    lastEditedAt: session.updatedAt,
+    cardShape: cardShapeForAspectRatio(session.aspectRatio),
+    mockOnly: true,
+  })
+}
+
 export function createProjectEditSessionHomeDetailViewModel(
   bundle: ProjectEditSessionBundleRecord | undefined,
 ): ProjectEditSessionHomeDetailViewModel | undefined {
@@ -224,6 +258,51 @@ export function createProjectEditSessionHomeDetailViewModel(
     openChatLabel: 'Open Edit Chat',
     openChatRoute: createProjectEditSessionPath(bundle.session.projectId, bundle.session.id),
     warnings: summary.warnings ?? [],
+    mockOnly: true,
+  }
+}
+
+export function createProjectEditSessionHomeDetailViewModelFromRecord(
+  session: ProjectEditSessionRecord | undefined,
+): ProjectEditSessionHomeDetailViewModel | undefined {
+  if (!session) return undefined
+
+  const metadata = session.metadata ?? {}
+  const sourceNotes = Array.isArray(metadata.sourceNotes) ? metadata.sourceNotes : []
+  const noUploadStarted = metadata.noUploadStarted === true
+  const noPlanApproved = metadata.noPlanApproved === true
+
+  return {
+    editSessionId: session.id,
+    title: session.name,
+    summaryLines: [
+      'Backend-local edit session read back from the project route.',
+      noUploadStarted
+        ? 'No source video has been uploaded for this edit yet.'
+        : 'Source/upload state is handled inside the edit brief workspace.',
+      noPlanApproved
+        ? 'No edit plan has been approved yet.'
+        : 'Plan state is handled by the edit brief approval gate.',
+    ],
+    latestStatus: statusLabel(session.status),
+    sourceCount: session.sourceMediaAssetIds.length,
+    selectedEditLevelLabel: editLevelLabel(session.selectedEditLevel),
+    selectedPreferenceSummary: session.selectedEditPreferenceHandle
+      ? `${session.selectedEditPreferenceHandle} selected; setup continues in the edit workspace.`
+      : 'No saved Edit Preference selected.',
+    sourceNotesSummary: sourceNotes.length
+      ? `${sourceNotes.length} metadata-only source note(s) captured.`
+      : 'No source notes yet.',
+    latestPreviewLabel: session.latestPreviewUrl ? 'Preview ready' : 'No preview yet.',
+    memorySummary: 'Backend-local edit session metadata only; memory layers are created later in the edit workspace.',
+    versionSummary: 'No versions yet.',
+    revisionSummary: 'No revisions requested.',
+    eventSummary: 'Backend-local edit session list/readback only.',
+    openChatLabel: 'Open edit brief',
+    openChatRoute: createProjectEditSessionBriefPath(session.projectId, session.id),
+    warnings: [
+      'Opening the edit does not start tools, rendering, credits, Supabase/GCS writes, beta, or production work.',
+    ],
     mockOnly: true,
   }
 }

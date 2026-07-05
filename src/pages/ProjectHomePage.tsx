@@ -9,10 +9,17 @@ import {
   createProjectBackendLocalConfig,
   readProjectBackendLocal,
 } from '../lib/project-backend-local'
-import { createProjectEditSessionBackendLocalConfig } from '../lib/project-edit-session-backend-local'
+import {
+  createProjectEditSessionBackendLocalConfig,
+  listProjectEditSessionsBackendLocal,
+  type ProjectEditSessionBackendLocalRecord,
+} from '../lib/project-edit-session-backend-local'
 import type { NewEditSessionCreateResult } from '../lib/project-edit-session-create-flow-ui-adapter'
 import {
   createProjectEditSessionProjectHomeClient,
+  createProjectEditSessionHomeCardViewModelFromRecord,
+  createProjectEditSessionHomeDetailViewModelFromRecord,
+  createProjectHomeTitle,
   loadProjectEditSessionHomeDetail,
   loadProjectEditSessionProjectHomeModel,
   MOCK_PROJECT_HOME_PROJECT_ID,
@@ -30,6 +37,7 @@ export function ProjectHomePage() {
   const editSessionConfig = useMemo(() => createProjectEditSessionBackendLocalConfig(import.meta.env), [])
   const apiClient = useMemo(() => createProjectEditSessionProjectHomeClient(projectId), [projectId])
   const [homeModel, setHomeModel] = useState<ProjectEditSessionProjectHomeModel | undefined>()
+  const [backendEditSessions, setBackendEditSessions] = useState<ProjectEditSessionBackendLocalRecord[]>([])
   const [projectTitleReadback, setProjectTitleReadback] = useState<{ projectId: string; title: string } | undefined>()
   const [selectedId, setSelectedId] = useState<string | undefined>()
   const [detail, setDetail] = useState<ProjectEditSessionHomeDetailViewModel | undefined>()
@@ -38,11 +46,51 @@ export function ProjectHomePage() {
   useEffect(() => {
     let cancelled = false
 
-    loadProjectEditSessionProjectHomeModel(projectId, apiClient).then((model) => {
+    async function loadHomeModel() {
+      if (editSessionConfig.available && editSessionConfig.apiBaseUrl) {
+        try {
+          const result = await listProjectEditSessionsBackendLocal({
+            apiBaseUrl: editSessionConfig.apiBaseUrl,
+            projectId,
+            workspaceId: editSessionConfig.workspaceId,
+          })
+          if (cancelled) return
+          setBackendEditSessions(result.editSessions)
+          const cardModels = result.editSessions.map(createProjectEditSessionHomeCardViewModelFromRecord)
+          setHomeModel({
+            projectId,
+            projectTitle: createProjectHomeTitle(projectId),
+            projectContext: 'Project Home for backend-local edits. Create an edit, upload source video, save the brief, approve the plan, preview, and review.',
+            mockLabel: 'Backend-local internal testing',
+            cardModels,
+            summary: {
+              count: cardModels.length,
+              dnaBackedCount: cardModels.filter((card) => card.dnaBadgeLabel === 'DNA applied').length,
+              legacyCount: cardModels.filter((card) => card.dnaBadgeLabel !== 'DNA applied').length,
+              cardShapes: Array.from(new Set(cardModels.map((card) => card.cardShape))),
+              summary: [
+                `${cardModels.length} backend-local edit session(s) read back for this project.`,
+                'Cards are backend-local UI projections; opening them does not start tools, rendering, credits, beta, or production work.',
+              ],
+            },
+          })
+          setDetail(undefined)
+          setSelectedId(cardModels[0]?.id)
+          return
+        } catch {
+          // Fall back to the existing mock model when the backend-local list cannot be read.
+        }
+      }
+
+      const model = await loadProjectEditSessionProjectHomeModel(projectId, apiClient)
       if (cancelled) return
+      setBackendEditSessions([])
       setHomeModel(model)
+      setDetail(undefined)
       setSelectedId(model.cardModels[0]?.id)
-    })
+    }
+
+    loadHomeModel()
 
     if (projectConfig.available && projectConfig.apiBaseUrl) {
       readProjectBackendLocal({
@@ -62,10 +110,11 @@ export function ProjectHomePage() {
     return () => {
       cancelled = true
     }
-  }, [apiClient, projectConfig.apiBaseUrl, projectConfig.available, projectId])
+  }, [apiClient, editSessionConfig.apiBaseUrl, editSessionConfig.available, editSessionConfig.workspaceId, projectConfig.apiBaseUrl, projectConfig.available, projectId])
 
   useEffect(() => {
     if (!selectedId) return
+    if (backendEditSessions.some((session) => session.id === selectedId)) return
 
     let cancelled = false
     loadProjectEditSessionHomeDetail(selectedId, apiClient).then((model) => {
@@ -76,11 +125,17 @@ export function ProjectHomePage() {
     return () => {
       cancelled = true
     }
-  }, [apiClient, selectedId])
+  }, [apiClient, backendEditSessions, selectedId])
 
   const cards = homeModel?.cardModels ?? []
   const selectedCard = cards.find((card) => card.id === selectedId)
-  const selectedDetail = detail?.editSessionId === selectedId ? detail : undefined
+  const backendSelectedDetail = useMemo(() => {
+    if (!selectedId) return undefined
+    return createProjectEditSessionHomeDetailViewModelFromRecord(
+      backendEditSessions.find((session) => session.id === selectedId),
+    )
+  }, [backendEditSessions, selectedId])
+  const selectedDetail = backendSelectedDetail ?? (detail?.editSessionId === selectedId ? detail : undefined)
   const detailLoading = Boolean(selectedId && !selectedDetail)
   const projectTitle = projectTitleReadback?.projectId === projectId
     ? projectTitleReadback.title

@@ -7,6 +7,7 @@ import { loadRuntimeEnv } from '../config/env'
 import {
   createProjectEditSessionBackendLocalConfig,
   createProjectEditSessionBackendLocalFromNewEditForm,
+  listProjectEditSessionsBackendLocal,
   readProjectEditSessionBackendLocal,
   type ProjectEditSessionBackendLocalRecord,
 } from '../../src/lib/project-edit-session-backend-local'
@@ -88,14 +89,26 @@ try {
   assert.equal(readback.editSession.id, session.id)
   assert.equal(readback.editSession.readbackVerified, true)
 
+  const listReadback = await listProjectEditSessionsBackendLocal({
+    apiBaseUrl,
+    projectId: 'project_backend_local_smoke',
+    workspaceId: 'mock-workspace',
+    getAccessToken: async () => undefined,
+  })
+  assert.equal(listReadback.editSessions.some((listedSession) => listedSession.id === session.id), true)
+  assert.equal(listReadback.editSessions.every((listedSession) => listedSession.projectId === 'project_backend_local_smoke'), true)
+  assert.equal(listReadback.editSessions.every((listedSession) => listedSession.workspaceId === 'mock-workspace'), true)
+
   const appSource = source('server/app.ts')
   assert.match(appSource, /createProjectEditSessionRoutes/)
 
   const routeSource = source('server/routes/project-edit-session-routes.ts')
   assert.match(routeSource, /\/v1\/projects\/:projectId\/edit-sessions/)
+  assert.match(routeSource, /listProjectEditSessions/)
   assert.match(routeSource, /requireIdempotency/)
 
   const serviceSource = source('server/services/project-edit-session-service.ts')
+  assert.match(serviceSource, /listProjectEditSessions/)
   assert.match(serviceSource, /backendLocalSessionStored/)
   assert.match(serviceSource, /providerCallMade: false/)
   assert.match(serviceSource, /productReady: false/)
@@ -107,8 +120,16 @@ try {
 
   const projectHomePage = source('src/pages/ProjectHomePage.tsx')
   assert.match(projectHomePage, /createProjectEditSessionBackendLocalConfig/)
+  assert.match(projectHomePage, /listProjectEditSessionsBackendLocal/)
+  assert.match(projectHomePage, /backendEditSessions/)
+  assert.match(projectHomePage, /createProjectEditSessionHomeCardViewModelFromRecord/)
+  assert.match(projectHomePage, /createProjectEditSessionHomeDetailViewModelFromRecord/)
   assert.match(projectHomePage, /backendLocalSessionCreated/)
   assert.match(projectHomePage, /\/brief/)
+
+  const projectHomeAdapterSource = source('src/lib/project-edit-session-project-home-ui-adapter.ts')
+  assert.match(projectHomeAdapterSource, /createProjectEditSessionHomeCardViewModelFromRecord/)
+  assert.match(projectHomeAdapterSource, /createProjectEditSessionHomeDetailViewModelFromRecord/)
 
   const editorPage = source('src/pages/EditorPage.tsx')
   assert.match(editorPage, /readProjectEditSessionBackendLocal/)
@@ -117,6 +138,7 @@ try {
 
   const clientSource = source('src/lib/project-edit-session-backend-local.ts')
   assert.match(clientSource, /\/v1\/edit-sessions/)
+  assert.match(clientSource, /listProjectEditSessionsBackendLocal/)
   assert.match(clientSource, /readback did not match/)
   assert.doesNotMatch(clientSource, /service_role|signedUrl|Stripe|production ready:\s*true/i)
 
@@ -125,6 +147,7 @@ try {
     smoke: 'project-edit-session-backend-local-route',
     editSessionId: session.id,
     projectId: session.projectId,
+    listReadbackVerified: true,
     openRoute: created.openRoute,
     productReady: session.productReady,
   }, null, 2))

@@ -135,6 +135,28 @@ export function createProjectEditSessionService(context: ServiceContext) {
         warnings: [mockWarning('Backend-local edit session readback')],
       }
     },
+
+    async listProjectEditSessions(input: { projectId: string; workspaceId: string }) {
+      if (context.clients.admin && !context.env.mockOnly) {
+        throw new ApiError(
+          'MOCK_ONLY',
+          'Backend-local edit session listing is mock-safe only until durable edit-session persistence is implemented.',
+          409,
+        )
+      }
+
+      const editSessions = Array.from(mockEditSessions.values())
+        .filter((session) => session.workspaceId === input.workspaceId && session.projectId === input.projectId)
+        .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+
+      return {
+        editSessions,
+        warnings: [
+          mockWarning('Backend-local edit session list'),
+          'Listing edit sessions does not upload media, approve plans, run tools, render, reserve credits, write Supabase/GCS, or unlock beta/production.',
+        ],
+      }
+    },
   }
 }
 

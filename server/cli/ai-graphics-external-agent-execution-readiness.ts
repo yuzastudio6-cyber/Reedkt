@@ -429,7 +429,7 @@ function gpuModelControlledRouteFlags(toolId: string): string[] {
     `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`
   const flags = [
     `--scoped-gpu-tool ${toolId}`,
-    `--scoped-gpu-runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    `--scoped-gpu-runtime-container-image ${gpuModelLocalProofOrRuntimeContainerImage(toolId)}`,
     '--scoped-gpu-runtime-container-platform linux/amd64',
     `--scoped-gpu-output-dir ${outputDir}`,
   ]
@@ -485,7 +485,10 @@ function containerGpuCommandForImage(toolId: string, image: string): string {
 }
 
 function containerGpuCommand(toolId: string): string {
-  return containerGpuCommandForImage(toolId, gpuModelRuntimeContainerImage(toolId))
+  return containerGpuCommandForImage(
+    toolId,
+    gpuModelLocalProofOrRuntimeContainerImage(toolId),
+  )
 }
 
 function gpuModelRuntimeContainerTarget(toolId: string) {
@@ -500,6 +503,11 @@ function gpuModelPracticalLocalProofContainerImage(toolId: string): string | nul
   return toolId === 'sam2' || toolId === 'birefnet'
     ? canonicalGpuWorkerProofImage
     : null
+}
+
+function gpuModelLocalProofOrRuntimeContainerImage(toolId: string): string {
+  return gpuModelPracticalLocalProofContainerImage(toolId) ??
+    gpuModelRuntimeContainerImage(toolId)
 }
 
 function practicalLocalProofContainerCommand(toolId: string): string | null {
@@ -542,11 +550,22 @@ function containerGpuImageBuildCommand(toolId: string): string {
   ].join(' ')
 }
 
+function localProofContainerImageBuildCommand(toolId: string): string {
+  const practicalImage = gpuModelPracticalLocalProofContainerImage(toolId)
+  if (!practicalImage) return containerGpuImageBuildCommand(toolId)
+  return [
+    'docker buildx build --load --platform linux/amd64 --target ai_graphics_install_proof',
+    '-f docker/prod/gpu-worker/Dockerfile',
+    `-t ${practicalImage}`,
+    '.',
+  ].join(' ')
+}
+
 function remainingNativeCudaProofImageBuildCommands(): JsonRecord {
   return Object.fromEntries(
     remainingNativeCudaToolIds.map((toolId) => [
       toolId,
-      containerGpuImageBuildCommand(toolId),
+      localProofContainerImageBuildCommand(toolId),
     ]),
   )
 }
@@ -648,7 +667,7 @@ function remainingNativeCudaRuntimeInputManifestPrivateRootCommand(
     `--manifest-out ${remainingNativeCudaRuntimeInputManifestPath(toolId)}`,
     `--model-weight-manifest-id ${toolId}_private_manifest_review_v1`,
     `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
-    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    `--runtime-container-image ${gpuModelLocalProofOrRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
   ].join(' ')
 }
@@ -675,7 +694,7 @@ function remainingNativeCudaRuntimeInputManifestExplicitModelPathCommand(
     `--model-weight-manifest-id ${toolId}_private_manifest_review_v1`,
     `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
     `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
-    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    `--runtime-container-image ${gpuModelLocalProofOrRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
   ].join(' ')
 }
@@ -687,7 +706,7 @@ function remainingNativeCudaProofSequenceCommand(
     'npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence --',
     '--attempt-local-runtime',
     '--runtime-backend docker_container',
-    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    `--runtime-container-image ${gpuModelLocalProofOrRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
     `--tool ${toolId}`,
     `--runtime-input-manifest ${remainingNativeCudaRuntimeInputManifestPath(toolId)}`,
@@ -709,7 +728,7 @@ function remainingNativeCudaFinalToolCallCommand(
     '--require-private-only-boundary',
     '--strict-exit-code',
     '--runtime-backend docker_container',
-    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    `--runtime-container-image ${gpuModelLocalProofOrRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
     `--runtime-input-manifest ${remainingNativeCudaRuntimeInputManifestPath(toolId)}`,
   ].join(' ')
@@ -727,7 +746,7 @@ function remainingNativeCudaDirectToolCallPrivateRootCommand(
     '--require-private-only-boundary',
     '--strict-exit-code',
     '--runtime-backend docker_container',
-    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    `--runtime-container-image ${gpuModelLocalProofOrRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
     `--gpu-output-dir ${remainingNativeCudaOutputDir(toolId)}`,
     `--source-image ${gpuModelRuntimeInputManifestSourceImage}`,
@@ -749,7 +768,7 @@ function remainingNativeCudaDirectToolCallExplicitModelPathCommand(
     '--require-private-only-boundary',
     '--strict-exit-code',
     '--runtime-backend docker_container',
-    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    `--runtime-container-image ${gpuModelLocalProofOrRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
     `--gpu-output-dir ${remainingNativeCudaOutputDir(toolId)}`,
     `--source-image ${gpuModelRuntimeInputManifestSourceImage}`,
@@ -981,7 +1000,7 @@ function remainingNativeCudaClosure(
       explicitModelPathManifestMaterializerCommand:
         remainingNativeCudaRuntimeInputManifestExplicitModelPathCommand(toolId),
       proofImageBuildCommand:
-        containerGpuImageBuildCommand(toolId),
+        localProofContainerImageBuildCommand(toolId),
       nativeGpuProofSequenceCommand:
         remainingNativeCudaProofSequenceCommand(toolId),
       finalExternalAgentToolCallCommand:
@@ -1076,7 +1095,7 @@ function gpuModelRuntimeInputManifestMaterializerCommand(
     `--manifest-out ${gpuModelRuntimeInputManifestPath}`,
     '--model-weight-manifest-id <reviewed-private-model-weight-manifest-id>',
     `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
-    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    `--runtime-container-image ${gpuModelLocalProofOrRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
     ...(gpuModelAllowsCpuModelRuntime(toolId) ? ['--allow-cpu-model-runtime'] : []),
   ].join(' ')
@@ -1095,7 +1114,7 @@ function gpuModelRuntimeInputManifestPrivateRootMaterializerCommand(
     `--manifest-out ${gpuModelRuntimeInputManifestPath}`,
     '--model-weight-manifest-id <reviewed-private-model-weight-manifest-id>',
     `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
-    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    `--runtime-container-image ${gpuModelLocalProofOrRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
     ...(gpuModelAllowsCpuModelRuntime(toolId) ? ['--allow-cpu-model-runtime'] : []),
   ].join(' ')
@@ -1316,7 +1335,7 @@ function gpuModelExecutionUnlockPlan(input: {
       runtimePolicy: gpuModelRuntimeBackendDescription(toolId),
       runtimeContainerImage: gpuModelRuntimeContainerImage(toolId),
       runtimeContainerProfile: gpuModelRuntimeContainerTarget(toolId).profile,
-      buildCommand: containerGpuImageBuildCommand(toolId),
+      buildCommand: localProofContainerImageBuildCommand(toolId),
       practicalLocalProofContainerImage:
         gpuModelPracticalLocalProofContainerImage(toolId),
       practicalLocalProofImageProbeCommand:
@@ -2002,7 +2021,7 @@ function buildToolRows(
         ? practicalLocalProofImageProbeCommand(toolId)
         : null,
       nextExactContainerBuildCommand: group === 'gpu_model'
-        ? containerGpuImageBuildCommand(toolId)
+        ? localProofContainerImageBuildCommand(toolId)
         : null,
       nextExactControlledRouteCommand: group === 'gpu_model'
         ? controlledRouteGpuCommand(toolId)

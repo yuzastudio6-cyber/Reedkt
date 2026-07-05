@@ -21,7 +21,7 @@ const diagnosticScriptCommand =
 const canonicalGpuWorkerProofImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
 const canonicalGpuWorkerProofImageBuildCommand =
-  `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${canonicalGpuWorkerProofImage} .`
+  `docker buildx build --load --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t ${canonicalGpuWorkerProofImage} .`
 const gpuModelRuntimeContainerTargets = {
   torch_torchvision: {
     image: canonicalGpuWorkerProofImage,
@@ -1141,8 +1141,8 @@ function expectedMinimumPrivateRuntimeInputKeys(toolId) {
 
 function expectedCurrentBlockingPrerequisiteKey(toolId) {
   return {
-    torch_torchvision: 'outputDirectory',
-    transformers: 'outputDirectory',
+    torch_torchvision: 'pythonCpuFoundationRuntime',
+    transformers: 'pythonCpuFoundationRuntime',
     sam2: 'sam2CheckpointLocalPath',
     birefnet: 'birefnetModelLocalPath',
     real_esrgan: 'realEsrganModelLocalPath',
@@ -1197,18 +1197,30 @@ function expectedRuntimeContainerTarget(toolId) {
 
 function expectedPracticalLocalProofContainerImage(toolId) {
   return toolId === 'sam2' || toolId === 'birefnet'
-    ? expectedRuntimeContainerTarget(toolId).image
+    ? canonicalGpuWorkerProofImage
     : null
+}
+
+function expectedLocalProofOrRuntimeContainerImage(toolId) {
+  return expectedPracticalLocalProofContainerImage(toolId) ??
+    expectedRuntimeContainerTarget(toolId).image
 }
 
 function expectedRuntimeContainerBuildCommand(toolId) {
   const target = expectedRuntimeContainerTarget(toolId)
   return [
-    'docker buildx build --platform linux/amd64 --target ai_graphics_install_proof',
+    'docker buildx build --load --platform linux/amd64 --target ai_graphics_install_proof',
     `-f ${target.dockerfile}`,
     `-t ${target.image}`,
     '.',
   ].join(' ')
+}
+
+function expectedLocalProofContainerBuildCommand(toolId) {
+  if (expectedPracticalLocalProofContainerImage(toolId)) {
+    return canonicalGpuWorkerProofImageBuildCommand
+  }
+  return expectedRuntimeContainerBuildCommand(toolId)
 }
 
 function arrayMatches(actual, expected) {
@@ -1598,7 +1610,7 @@ function checkReport(label, report, expectedStatus = status) {
       ) {
         fail(`${label}_remaining_native_cuda_checksum_mismatch:${toolId}`)
       }
-      const expectedImage = expectedRuntimeContainerTarget(toolId).image
+      const expectedImage = expectedLocalProofOrRuntimeContainerImage(toolId)
       for (const [field, scriptName] of [
         ['manifestMaterializerCommand', 'ai-graphics:external-agent-gpu-model-runtime-input-manifest'],
         ['explicitModelPathManifestMaterializerCommand', 'ai-graphics:external-agent-gpu-model-runtime-input-manifest'],
@@ -1862,10 +1874,12 @@ function checkReport(label, report, expectedStatus = status) {
         fail(`${label}_${toolId}_container_command_missing_result_out`)
       }
       const runtimeContainerTarget = expectedRuntimeContainerTarget(toolId)
-      if (!String(row.nextExactContainerCommand ?? '').includes(runtimeContainerTarget.image)) {
+      const expectedLocalProofOrRuntimeImage =
+        expectedLocalProofOrRuntimeContainerImage(toolId)
+      if (!String(row.nextExactContainerCommand ?? '').includes(expectedLocalProofOrRuntimeImage)) {
         fail(`${label}_${toolId}_gpu_container_command_not_tool_specific_image`)
       }
-      if (row.nextExactContainerBuildCommand !== expectedRuntimeContainerBuildCommand(toolId)) {
+      if (row.nextExactContainerBuildCommand !== expectedLocalProofContainerBuildCommand(toolId)) {
         fail(`${label}_${toolId}_gpu_container_build_command_mismatch`)
       }
       if (!String(row.nextExactHostPythonCommand ?? '').includes('--attempt-local-runtime')) {
@@ -1983,7 +1997,7 @@ function checkReport(label, report, expectedStatus = status) {
           `--manifest-out ${manifestPath}`,
           '--model-weight-manifest-id <reviewed-private-model-weight-manifest-id>',
           `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
-          `--runtime-container-image ${runtimeContainerTarget.image}`,
+          `--runtime-container-image ${expectedLocalProofOrRuntimeImage}`,
           '--runtime-container-platform linux/amd64',
         ]) {
           if (!manifestCommand.includes(fragment)) {
@@ -1999,7 +2013,7 @@ function checkReport(label, report, expectedStatus = status) {
           `--manifest-out ${manifestPath}`,
           '--model-weight-manifest-id <reviewed-private-model-weight-manifest-id>',
           `--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`,
-          `--runtime-container-image ${runtimeContainerTarget.image}`,
+          `--runtime-container-image ${expectedLocalProofOrRuntimeImage}`,
           '--runtime-container-platform linux/amd64',
         ]) {
           if (!privateRootManifestCommand.includes(fragment)) {
@@ -2152,7 +2166,7 @@ function checkReport(label, report, expectedStatus = status) {
         if (prepareStep?.runtimeContainerProfile !== runtimeContainerTarget.profile) {
           fail(`${label}_${toolId}_unlock_plan_runtime_container_profile_mismatch`)
         }
-        if (prepareStep?.buildCommand !== expectedRuntimeContainerBuildCommand(toolId)) {
+        if (prepareStep?.buildCommand !== expectedLocalProofContainerBuildCommand(toolId)) {
           fail(`${label}_${toolId}_unlock_plan_build_command_mismatch`)
         }
         if (practicalLocalProofImage) {
@@ -2192,7 +2206,7 @@ function checkReport(label, report, expectedStatus = status) {
         if (!String(runtimeProofStep?.hostPythonCommand ?? '').includes(`--tool ${toolId}`)) {
           fail(`${label}_${toolId}_unlock_plan_host_command_not_tool_scoped`)
         }
-        if (!String(runtimeProofStep?.containerCommand ?? '').includes(runtimeContainerTarget.image)) {
+        if (!String(runtimeProofStep?.containerCommand ?? '').includes(expectedLocalProofOrRuntimeImage)) {
           fail(`${label}_${toolId}_unlock_plan_container_command_not_tool_specific_image`)
         }
         if (practicalLocalProofImage) {

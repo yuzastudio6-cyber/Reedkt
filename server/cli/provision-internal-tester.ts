@@ -367,7 +367,6 @@ function workspaceInsertVariants(ownerId: string, workspaceName: string): Array<
 async function ensureWorkspace(
   client: SupabaseClient,
   userId: string,
-  profile: ProfileRow,
   workspaceName: string,
 ): Promise<{ workspace: WorkspaceRow; membership: WorkspaceMemberRow }> {
   const existing = await findExistingWorkspace(client, userId)
@@ -378,7 +377,7 @@ async function ensureWorkspace(
     }
   }
 
-  const ownerId = profileId(profile) ?? userId
+  const ownerId = userId
   let workspace: WorkspaceRow | undefined
   let lastError: { code?: string; message?: string } | undefined
 
@@ -520,7 +519,7 @@ async function main() {
     }
 
     const { profile, identityColumn } = await ensureProfile(client, user, displayName)
-    const { workspace, membership } = await ensureWorkspace(client, user.id, profile, workspaceName)
+    const { workspace, membership } = await ensureWorkspace(client, user.id, workspaceName)
 
     output({
       ok: true,

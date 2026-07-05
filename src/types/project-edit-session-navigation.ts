@@ -76,7 +76,7 @@ export const REEDITPRO_PROJECT_EDIT_SESSION_NAVIGATION_RULE =
   'Project Edit Session navigation may move between mock/local UI routes but must not start edit execution, rendering, workers, providers, model calls, credits, or remote persistence.'
 
 export const REEDITPRO_LEGACY_EDITOR_COMPATIBILITY_RULE =
-  'The legacy /editor route remains global/mock until explicit session-editor migration work is approved.'
+  'The retired /editor route redirects to /projects/new; user-facing navigation must use Project Home, Edit Chat, and Brief routes.'
 
 export const REEDITPRO_PROJECT_EDIT_SESSION_ROUTE_MODEL_RULE =
   'Session-specific editing routes use /projects/:projectId/edits/:editSessionId and must keep Project, ProjectEditSession, and Edit Preference as separate concepts.'

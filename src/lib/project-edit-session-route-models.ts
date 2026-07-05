@@ -70,7 +70,7 @@ export function createProjectEditSessionRouteModels(
     return {
       section,
       status: missingRequired ? 'blocked_missing_params' : statusFor(section),
-      label: section === 'project_home' ? 'Project Home' : section === 'legacy_editor' ? 'Legacy Editor' : titleCase(section),
+      label: section === 'project_home' ? 'Project Home' : section === 'legacy_editor' ? 'Retired Editor Alias' : titleCase(section),
       path: missingRequired ? '' : pathFor(section, projectId, editSessionId),
       requiresProjectId,
       requiresEditSessionId,
@@ -78,7 +78,7 @@ export function createProjectEditSessionRouteModels(
       warnings: missingRequired
         ? ['Missing route parameters; navigation is blocked safely.']
         : section === 'legacy_editor'
-          ? ['Legacy /editor remains global/mock and is not session-specific.']
+          ? ['Retired /editor redirects to Project start; use Project Home, Edit Chat, and Brief for testing.']
           : section === 'versions' || section === 'preview'
             ? ['This section is a mock history view; real render/export remains future gated.']
             : [],
@@ -150,6 +150,6 @@ export function createProjectEditSessionRouteSummary(section: ProjectEditSession
   if (section === 'versions') return 'Versions is a mock route slot for version history. Real rendering and export stay future gated.'
   if (section === 'preview') return 'Preview is a mock route slot for latest preview metadata. No render, media processing, or export starts.'
   if (section === 'details') return 'Details focuses session context, sources, memory, preference DNA, and boundary state.'
-  if (section === 'legacy_editor') return 'Legacy /editor remains global/mock and unchanged.'
+  if (section === 'legacy_editor') return 'Retired /editor redirects to Project start so testing stays in the Project/Edit Chat flow.'
   return 'Chat is the main persistent mock Edit Chat workspace.'
 }

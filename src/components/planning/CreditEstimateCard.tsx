@@ -68,12 +68,12 @@ export function CreditEstimateCard({ approved, estimate, onApprove, onRevise, on
           Revise plan
         </Button>
         {approved ? (
-          <Button icon={BadgeDollarSign} to="/editor" variant="secondary">
-            Open in AI Editor
+          <Button icon={BadgeDollarSign} to="/projects/mock-project-edit-chat-foundation" variant="secondary">
+            Open Project Home
           </Button>
         ) : (
           <Button disabled icon={BadgeDollarSign} variant="secondary">
-            Open in AI Editor
+            Open Project Home
           </Button>
         )}
         <Button icon={Save} onClick={onSaveDraft} variant="ghost">

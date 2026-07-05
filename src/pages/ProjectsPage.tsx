@@ -50,12 +50,12 @@ export function ProjectsPage() {
         <Card className="upload-placeholder-card">
           <UploadCloud size={26} />
           <h2>Upload placeholder</h2>
-          <p>Real upload storage is not connected. Start a mock project, then send clips in source order inside the AI chat editor.</p>
+          <p>Real upload storage is not connected. Start a mock project, then use Project Home, Edit Chat, and Brief for internal testing.</p>
           <Button to="/projects/new" variant="primary">
             Create project and chat
           </Button>
-          <Button to="/editor" variant="secondary">
-            Open AI chat editor
+          <Button to="/projects/mock-project-edit-chat-foundation" variant="secondary">
+            Open Project Home
           </Button>
         </Card>
         <Card className="storage-widget-card">

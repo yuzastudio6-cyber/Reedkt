@@ -16,7 +16,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     id: 'auto-professional-premium',
     title: 'Auto Professional Premium edit',
     description: 'Validate the default editor setup with Auto Professional, Premium level, setup cards, QA, approval, mock progress, and preview.',
-    route: '/editor',
+    route: '/projects/mock-project-edit-chat-foundation',
     steps: [
       'Open the editor.',
       'Confirm source order.',
@@ -33,7 +33,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     id: 'saved-luxury-real-estate',
     title: 'Saved preference: @luxury-real-estate-clean',
     description: 'Check that a saved real estate preference propagates through the editor setup package.',
-    route: '/editor',
+    route: '/projects/mock-project-edit-chat-foundation',
     steps: [
       'Open the editor.',
       'Confirm source order and edit level.',
@@ -49,7 +49,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     id: 'saved-faith-calm-teaching',
     title: 'Saved preference: @faith-calm-teaching',
     description: 'Validate calm teaching preference behavior with restrained pacing, voice-first audio, and readable captions.',
-    route: '/editor',
+    route: '/projects/mock-project-edit-chat-foundation',
     steps: [
       'Open the editor.',
       'Confirm source order and edit level.',
@@ -97,7 +97,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     id: 'revision-small-captions-no-real-motion',
     title: 'Revision: make captions smaller and remove Real Motion',
     description: 'Test revision learning, project-only application, and save-back prompt visibility.',
-    route: '/editor',
+    route: '/projects/mock-project-edit-chat-foundation',
     steps: [
       'Complete editor setup until preference-aware cards appear.',
       'Send: make captions smaller and remove Real Motion.',
@@ -111,7 +111,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     id: 'revision-no-fake-sounds',
     title: 'Revision: no fake sounds',
     description: 'Validate SFX safety signals and explicit no-fake-source-sound behavior.',
-    route: '/editor',
+    route: '/projects/mock-project-edit-chat-foundation',
     steps: [
       'Complete editor setup until preference-aware cards appear.',
       'Send: no fake sounds.',
@@ -125,7 +125,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     id: 'approval-gate-test',
     title: 'Approval gate test',
     description: 'Confirm that no mock generation progress or preview appears before plan and credit approval.',
-    route: '/editor',
+    route: '/projects/mock-project-edit-chat-foundation',
     steps: [
       'Complete editor setup.',
       'Stop at the plan review card.',
@@ -408,7 +408,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     id: 'mock-media-source-order',
     title: 'Mock media/source order layer',
     description: 'Verify source clips stay in order through mock media metadata and never trigger real upload or media processing.',
-    route: '/editor',
+    route: '/projects/mock-project-edit-chat-foundation',
     steps: [
       'Open the editor.',
       'Review source order.',
@@ -499,7 +499,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     id: 'preference-video-editor-dna-backed',
     title: 'DNA-backed editor selection',
     description: 'Select @lifestyle-travel-vlog in the editor and confirm the project setup applies Preference DNA before approval.',
-    route: '/editor',
+    route: '/projects/mock-project-edit-chat-foundation',
     steps: [
       'Open the editor.',
       'Confirm source order and edit level.',
@@ -515,7 +515,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     id: 'preference-video-dna-applied-card',
     title: 'Preference DNA applied card',
     description: 'Check the compact editor DNA applied card copy, QA status, do-not-copy state, and mock-only boundaries.',
-    route: '/editor',
+    route: '/projects/mock-project-edit-chat-foundation',
     steps: [
       'Run the DNA-backed saved preference setup.',
       'Read the Preference DNA applied card.',
@@ -529,7 +529,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     id: 'preference-video-legacy-fallback',
     title: 'Legacy preference fallback',
     description: 'Select a saved preference without Preference DNA and confirm the editor setup still works without a DNA card.',
-    route: '/editor',
+    route: '/projects/mock-project-edit-chat-foundation',
     steps: [
       'Open the editor.',
       'Choose saved preference mode.',
@@ -710,7 +710,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
       'Review the header and message history.',
       'Scan the source, memory, and version context panel.',
     ],
-    expectedResult: 'Messages, source context, memory, versions, previews, revisions, and events are visible without opening `/editor`.',
+    expectedResult: 'Messages, source context, memory, versions, previews, revisions, and events are visible without opening the retired `/editor` route.',
     mockOnly: true,
     status: 'mock_local',
   },
@@ -768,7 +768,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
       'Click Open Edit Chat.',
       'Use Back to project from the chat route.',
     ],
-    expectedResult: 'Navigation stays between Project Home and the mock Edit Chat route; `/editor` is not opened.',
+    expectedResult: 'Navigation stays between Project Home and the mock Edit Chat route; the retired `/editor` route is not opened.',
     mockOnly: true,
     status: 'mock_local',
   },
@@ -1063,15 +1063,15 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
   },
   {
     id: 'edit-chat-navigation-legacy-editor',
-    title: 'Edit Chat Navigation: legacy /editor',
-    description: 'Confirm the legacy /editor route remains global/mock and unchanged.',
-    route: '/editor',
+    title: 'Edit Chat Navigation: retired /editor redirect',
+    description: 'Confirm retired /editor traffic redirects into Project start instead of opening the old editor shell.',
+    route: '/projects/mock-project-edit-chat-foundation',
     steps: [
       'Open /editor.',
-      'Confirm the existing editor shell loads.',
-      'Confirm no ProjectEditSession route takeover occurs.',
+      'Confirm the app redirects to Project start.',
+      'Confirm no old editor shell opens.',
     ],
-    expectedResult: 'The legacy editor remains available and is not treated as a session-specific ProjectEditSession runtime.',
+    expectedResult: 'The retired /editor alias opens Project start and is not treated as a session-specific ProjectEditSession runtime.',
     mockOnly: true,
     status: 'mock_local',
   },
@@ -2086,7 +2086,7 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     id: 'preference-qa-card',
     title: 'Preference QA card check',
     description: 'Verify QA/compliance messaging in the editor setup package.',
-    route: '/editor',
+    route: '/projects/mock-project-edit-chat-foundation',
     steps: [
       'Complete editor setup.',
       'Scroll to Preference QA.',

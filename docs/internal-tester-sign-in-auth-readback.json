@@ -1,0 +1,62 @@
+{
+  "decision": "internal_tester_sign_in_auth_readback_gate_passed_ready_for_manual_readback_workflow",
+  "sourceRef": "codex/reeditpro-web-ui-shell",
+  "sourceSha": "d84af861f401513d6f699087463d059c90022619",
+  "workflow": ".github/workflows/internal-tester-sign-in-auth-readback.yml",
+  "cli": "server/cli/verify-internal-tester-auth-readback.ts",
+  "packageScripts": {
+    "readback": "internal-testing:verify-auth-readback",
+    "smoke": "smoke:internal-tester-sign-in-auth-readback"
+  },
+  "requiredConfirmation": {
+    "REEDITPRO_CONFIRM_INTERNAL_TESTER_AUTH_READBACK": "VERIFY_REEDITPRO_INTERNAL_TESTER_AUTH_READBACK"
+  },
+  "requiredSecrets": [
+    "STAGING_SUPABASE_URL",
+    "STAGING_SUPABASE_SERVICE_ROLE_KEY"
+  ],
+  "requiredInputs": [
+    "tester_email"
+  ],
+  "readbackTargets": [
+    "auth.users",
+    "profiles",
+    "workspaces",
+    "workspace_members"
+  ],
+  "supportedProfileIdentityColumns": [
+    "user_id",
+    "id"
+  ],
+  "authReadinessOutput": [
+    "emailHash",
+    "userId",
+    "authEmailConfirmed",
+    "authLastSignInAt",
+    "profileId",
+    "profileIdentityColumn",
+    "workspaceId",
+    "membershipId",
+    "membershipRole"
+  ],
+  "blockedScope": {
+    "frontendServiceRole": false,
+    "viteServiceRole": false,
+    "supabaseMigration": false,
+    "schemaMutation": false,
+    "dataMutation": false,
+    "storageSignedUrls": false,
+    "uploads": false,
+    "providerCalls": false,
+    "workerDispatch": false,
+    "toolExecution": false,
+    "mediaProcessing": false,
+    "renderExport": false,
+    "creditReservation": false,
+    "creditSpend": false,
+    "stripe": false,
+    "externalBeta": false,
+    "production": false
+  },
+  "nextGate": "MANUAL_BROWSER_SIGN_IN_AND_INTERNAL_TESTING_READBACK"
+}

@@ -1,0 +1,61 @@
+name: Internal Tester Sign-In Auth Readback
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_internal_tester_auth_readback:
+        description: "Type VERIFY_REEDITPRO_INTERNAL_TESTER_AUTH_READBACK to read staging tester auth/profile/workspace state"
+        required: true
+        type: string
+      tester_email:
+        description: "Internal tester email address to verify"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: internal-tester-sign-in-auth-readback
+  cancel-in-progress: false
+
+jobs:
+  verify-internal-tester-readback:
+    name: Verify staging tester auth/profile/workspace readback
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      REEDITPRO_CONFIRM_INTERNAL_TESTER_AUTH_READBACK: ${{ inputs.confirm_internal_tester_auth_readback }}
+      SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+      INTERNAL_TESTER_EMAIL: ${{ inputs.tester_email }}
+    steps:
+      - name: Fail closed unless staging tester readback is explicitly approved
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${REEDITPRO_CONFIRM_INTERNAL_TESTER_AUTH_READBACK}" = "VERIFY_REEDITPRO_INTERNAL_TESTER_AUTH_READBACK"
+          test -n "${SUPABASE_URL}"
+          test -n "${SUPABASE_SERVICE_ROLE_KEY}"
+          if ! [[ "${INTERNAL_TESTER_EMAIL}" =~ ^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$ ]]; then
+            echo "::error::tester_email must be an email address."
+            exit 1
+          fi
+
+      - name: Checkout app source
+        uses: actions/checkout@v5
+        with:
+          ref: codex/reeditpro-web-ui-shell
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies for backend-only readback CLI
+        run: npm ci --no-audit --no-fund --progress=false
+
+      - name: Verify internal tester auth readback
+        run: npm run internal-testing:verify-auth-readback

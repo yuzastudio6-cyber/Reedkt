@@ -26,6 +26,8 @@ const sam2CheckpointEnvVar = 'REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT'
 const birefnetModelEnvVar = 'REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL'
 const restoreApprovedModelCacheEnvVar =
   'REEDITPRO_AI_GRAPHICS_RESTORE_APPROVED_MODEL_CACHE'
+const buildNativeCudaProofImagesEnvVar =
+  'REEDITPRO_AI_GRAPHICS_BUILD_NATIVE_CUDA_IMAGES'
 const defaultPrivateModelRoot =
   '.local-artifacts/ai-graphics/private-model-cache'
 const defaultOutputRoot =
@@ -59,6 +61,8 @@ const acceptedSam2CheckpointExtensions = new Set(['.pt', '.pth'])
 
 type RuntimeTarget = {
   image: string
+  dockerfile: string
+  buildTarget: string
   modelField: string
   modelFlag: string
   manifestId: string
@@ -132,6 +136,8 @@ type ToolProbe = {
 const runtimeTargets: Record<ToolId, RuntimeTarget> = {
   sam2: {
     image: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
+    dockerfile: 'docker/prod/sam2-runtime/Dockerfile',
+    buildTarget: 'ai_graphics_install_proof',
     modelField: 'sam2CheckpointLocalPath',
     modelFlag: '--sam2-checkpoint',
     manifestId: 'sam2_private_manifest_review_v1',
@@ -147,6 +153,8 @@ const runtimeTargets: Record<ToolId, RuntimeTarget> = {
   },
   birefnet: {
     image: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+    dockerfile: 'docker/prod/birefnet-runtime/Dockerfile',
+    buildTarget: 'ai_graphics_install_proof',
     modelField: 'birefnetModelLocalPath',
     modelFlag: '--birefnet-model',
     manifestId: 'birefnet_private_manifest_review_v1',
@@ -885,6 +893,55 @@ function nativeCudaModelRestoreCommands(): JsonRecord {
   }
 }
 
+function nativeCudaProofImageBuildCommand(toolId: ToolId): string {
+  const target = runtimeTargets[toolId]
+  return [
+    'docker',
+    'buildx',
+    'build',
+    '--load',
+    '--platform',
+    runtimeContainerPlatform,
+    '--target',
+    target.buildTarget,
+    '-f',
+    target.dockerfile,
+    '-t',
+    target.image,
+    '.',
+  ].map(shellQuote).join(' ')
+}
+
+function nativeCudaProofImageBuildCommands(args: ParsedArgs): JsonRecord {
+  const commands = Object.fromEntries(
+    args.requestedTools.map((toolId) => [
+      toolId,
+      nativeCudaProofImageBuildCommand(toolId),
+    ]),
+  )
+  return {
+    buildNativeCudaProofImagesEnvVar,
+    buildNativeCudaProofImagesOptInValue: 'true',
+    runtimeContainerPlatform,
+    dockerBuildUsesGpu: false,
+    dockerRunGpuRemainsOnDemandOnly: true,
+    commands,
+  }
+}
+
+function nativeCudaCloseoutScriptProofImageBuild(args: ParsedArgs): string[] {
+  const lines = [
+    `${buildNativeCudaProofImagesEnvVar}="\${${buildNativeCudaProofImagesEnvVar}:-false}"`,
+    `if [[ "$${buildNativeCudaProofImagesEnvVar}" == "true" ]]; then`,
+    '  echo "Building local native CUDA proof runtime images. Docker build does not start GPU runtime; GPU is used only by the scoped proof run later."',
+  ]
+  for (const toolId of args.requestedTools) {
+    lines.push(`  ${nativeCudaProofImageBuildCommand(toolId)}`)
+  }
+  lines.push('fi')
+  return lines
+}
+
 function nativeCudaCloseoutScriptApprovedModelRestore(args: ParsedArgs): string[] {
   const lines = [
     `${restoreApprovedModelCacheEnvVar}="\${${restoreApprovedModelCacheEnvVar}:-false}"`,
@@ -1017,6 +1074,7 @@ function writeNativeCudaCloseoutScript(
     'fi',
     ...nativeCudaCloseoutScriptApprovedModelRestore(args),
     ...nativeCudaCloseoutScriptApprovedActivationDefaults(args),
+    ...nativeCudaCloseoutScriptProofImageBuild(args),
     'if [[ -z "$OUTPUT_ROOT" ]]; then',
     `  OUTPUT_ROOT=${shellQuote(args.outputRoot)}`,
     'fi',
@@ -1103,6 +1161,7 @@ function writeNativeCudaCloseoutScript(
       '--allow-partial',
     ]),
     modelRestoreCommands: nativeCudaModelRestoreCommands(),
+    proofImageBuildCommands: nativeCudaProofImageBuildCommands(args),
     nativeCudaCloseoutCommand: bashContinuation(closeoutTokens),
     all21ReadinessRecheckCommand: bashContinuation(readinessTokens),
     cpuSafeGpuModelRouteProofPacket:
@@ -1446,18 +1505,30 @@ function buildReport(args: ParsedArgs): JsonRecord {
     },
     tools,
     modelRestoreCommands: nativeCudaModelRestoreCommands(),
+    proofImageBuildCommands: nativeCudaProofImageBuildCommands(args),
     all21ReadinessRecheckCommand: readinessCommand,
     closeoutSequence: {
       step1:
         `Restore the approved private model cache with ${restoreApprovedModelCacheEnvVar}=true in the generated script, place private SAM2 and BiRefNet model weights under the private model root, or pass --sam2-checkpoint/--birefnet-model with exact private local paths.`,
       step2:
+        `Optionally build local proof images with ${buildNativeCudaProofImagesEnvVar}=true in the generated script.`,
+      step3:
         `Pass --model-weight-manifest-dir or set ${privateModelManifestDirEnvVar} with accepted private SAM2/BiRefNet manifest records.`,
-      step3: 'Pass --source-image with an approved private local frame.',
-      step4: 'Run on native linux/amd64 with Docker NVIDIA runtime and nvidia-smi visible.',
-      step5:
-        'Run this command with --detect-host --attempt-local-runtime --strict-exit-code.',
+      step4: 'Pass --source-image with an approved private local frame.',
+      step5: 'Run on native linux/amd64 with Docker NVIDIA runtime and nvidia-smi visible.',
       step6:
+        'Run this command with --detect-host --attempt-local-runtime --strict-exit-code.',
+      step7:
         'Rerun all-21 readiness with the accepted CPU-safe and CPU-model GPU/model route proof packets plus the new SAM2 and BiRefNet harness-result.json files.',
+    },
+    runtimeImageBuildPolicy: {
+      optInEnvVar: buildNativeCudaProofImagesEnvVar,
+      optInValue: 'true',
+      buildsImagesOnly: true,
+      startsGpuRuntime: false,
+      gpuRuntimeOnDemandOnly: true,
+      requestedTools: args.requestedTools,
+      commands: nativeCudaProofImageBuildCommands(args),
     },
     booleans: {
       nativeCudaCloseoutRunnerReady: true,

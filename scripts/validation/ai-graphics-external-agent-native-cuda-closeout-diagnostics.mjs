@@ -241,12 +241,20 @@ function makeDiagnosticFixtures() {
   return {
     modelRoot: path.relative(root, modelRoot),
     modelManifestDir: path.relative(root, modelManifestDir),
+    sam2Checkpoint: path.relative(root, path.join(modelRoot, 'sam2.1_hiera_tiny.pt')),
+    birefnetModel: path.relative(root, birefnetRoot),
     sourceImage: path.relative(root, sourceImage),
     invalidSourceImage: path.relative(root, invalidSourceImage),
     outputRoot:
       '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout-diagnostic',
     scriptOut:
       '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout-diagnostic/run-native-cuda-closeout.sh',
+    explicitOutputRoot:
+      '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout-diagnostic-explicit',
+    explicitScriptOut:
+      '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout-diagnostic-explicit/run-native-cuda-closeout.sh',
+    missingModelRoot:
+      '.local-artifacts/ai-graphics/native-cuda-closeout-diagnostic/missing-private-model-root',
   }
 }
 
@@ -329,6 +337,10 @@ function validateFixtureReport(report) {
     assert(generatedScriptText.includes('set -euo pipefail'), 'fixture_closeout_script_missing_strict_shell')
     assert(generatedScriptText.includes('GPU work is on-demand only'), 'fixture_closeout_script_missing_on_demand_policy')
     assert(generatedScriptText.includes('PRIVATE_MODEL_MANIFEST_DIR'), 'fixture_closeout_script_missing_manifest_dir_env')
+    assert(generatedScriptText.includes('REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT'), 'fixture_closeout_script_missing_sam2_checkpoint_env')
+    assert(generatedScriptText.includes('REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL'), 'fixture_closeout_script_missing_birefnet_model_env')
+    assert(generatedScriptText.includes('MODEL_PATH_ARGS=()'), 'fixture_closeout_script_missing_model_path_args')
+    assert(generatedScriptText.includes('"${MODEL_PATH_ARGS[@]}"'), 'fixture_closeout_script_missing_model_path_arg_forwarding')
     assert(generatedScriptText.includes('ai-graphics:model-weight-manifest-review:validate'), 'fixture_closeout_script_missing_manifest_review_command')
     assert(generatedScriptText.includes('--allow-partial'), 'fixture_closeout_script_missing_manifest_allow_partial_flag')
     assert(generatedScriptText.includes('ai-graphics:gpu-runtime-proof-local-preflight'), 'fixture_closeout_script_missing_host_preflight_script')
@@ -346,8 +358,10 @@ function validateFixtureReport(report) {
     assert(generatedScriptText.includes('! -d "$PRIVATE_MODEL_ROOT"'), 'fixture_closeout_script_missing_model_root_directory_check')
     assert(generatedScriptText.includes('! -f "$PRIVATE_SOURCE_IMAGE"'), 'fixture_closeout_script_missing_source_image_file_check')
     assert(generatedScriptText.includes('SAM2_CHECKPOINT_FOUND=0'), 'fixture_closeout_script_missing_sam2_checkpoint_check')
+    assert(generatedScriptText.includes('Explicit private SAM2 checkpoint is missing or not a file'), 'fixture_closeout_script_missing_explicit_sam2_preflight')
     assert(generatedScriptText.includes('sam2.1_hiera_tiny.pt'), 'fixture_closeout_script_missing_sam2_candidate')
     assert(generatedScriptText.includes('BIREFNET_MODEL_FOUND=0'), 'fixture_closeout_script_missing_birefnet_model_check')
+    assert(generatedScriptText.includes('Explicit private BiRefNet model directory is missing required files'), 'fixture_closeout_script_missing_explicit_birefnet_preflight')
     assert(generatedScriptText.includes('model.safetensors'), 'fixture_closeout_script_missing_birefnet_safetensors_check')
     assert(generatedScriptText.includes('BiRefNet_config.py'), 'fixture_closeout_script_missing_birefnet_config_check')
     assert(generatedScriptText.includes('ai-graphics:external-agent-execution-readiness'), 'fixture_closeout_script_missing_readiness_command')
@@ -357,6 +371,9 @@ function validateFixtureReport(report) {
   for (const toolId of targetTools) {
     const row = report.tools?.find((tool) => tool.toolId === toolId)
     assert(row?.privateModelRootCandidatePresent === true, `fixture_model_candidate_missing:${toolId}`)
+    assert(row?.explicitModelPathProvided === false, `fixture_explicit_path_unexpected:${toolId}`)
+    assert(row?.explicitModelPathAccepted === false, `fixture_explicit_path_accepted:${toolId}`)
+    assert(row?.modelPathSource === 'private_model_root_candidate', `fixture_model_path_source_unexpected:${toolId}:${row?.modelPathSource}`)
     assert(row?.modelWeightManifestDirProvided === true, `fixture_manifest_dir_missing:${toolId}`)
     assert(row?.modelWeightManifestReviewAccepted === true, `fixture_manifest_review_not_accepted:${toolId}`)
     assert(row?.modelWeightManifestReviewBlocker === null, `fixture_manifest_review_blocker_unexpected:${toolId}:${row?.modelWeightManifestReviewBlocker}`)
@@ -367,6 +384,48 @@ function validateFixtureReport(report) {
     assert(row?.runtimeAttemptPerformed === false, `fixture_runtime_attempt_performed:${toolId}`)
     assert(row?.runtimeAttemptAccepted === false, `fixture_runtime_attempt_accepted:${toolId}`)
     assert(String(row?.manifestMaterializerCommand ?? '').includes('--private-model-root'), `fixture_manifest_missing_private_root:${toolId}`)
+  }
+}
+
+function validateExplicitModelPathReport(report) {
+  assert(report.status === runtimeBuckets[0], `explicit_report_not_blocked:${report.status}`)
+  assert(report.counts?.executableTools === 0, 'explicit_executable_without_host')
+  assert(report.booleans?.nativeCudaCloseoutLocalOnlyScriptGenerated === true, 'explicit_closeout_script_not_generated')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.privateInputPreflightChecks?.privateModelRootDirectoryRequired === false, 'explicit_model_root_still_required')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.privateInputPreflightChecks?.sam2ExplicitCheckpointPathProvided === true, 'explicit_sam2_metadata_missing')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.privateInputPreflightChecks?.birefnetExplicitModelPathProvided === true, 'explicit_birefnet_metadata_missing')
+  assert(report.inputs?.sam2CheckpointLocalPath?.endsWith('sam2.1_hiera_tiny.pt'), 'explicit_inputs_missing_sam2_checkpoint')
+  assert(report.inputs?.birefnetModelLocalPath?.endsWith('ZhengPeng7/BiRefNet'), 'explicit_inputs_missing_birefnet_model')
+  const generatedScriptPath = report.nativeCudaCloseoutLocalOnlyScript?.path
+  assert(typeof generatedScriptPath === 'string', 'explicit_closeout_script_path_missing')
+  if (typeof generatedScriptPath === 'string') {
+    const generatedScriptText = read(generatedScriptPath)
+    assert(generatedScriptText.includes('REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT'), 'explicit_script_missing_sam2_env')
+    assert(generatedScriptText.includes('REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL'), 'explicit_script_missing_birefnet_env')
+    assert(generatedScriptText.includes('SAM2_CHECKPOINT='), 'explicit_script_missing_sam2_assignment')
+    assert(generatedScriptText.includes('BIREFNET_MODEL='), 'explicit_script_missing_birefnet_assignment')
+    assert(generatedScriptText.includes('MODEL_PATH_ARGS+=(--sam2-checkpoint "$SAM2_CHECKPOINT")'), 'explicit_script_missing_sam2_arg_append')
+    assert(generatedScriptText.includes('MODEL_PATH_ARGS+=(--birefnet-model "$BIREFNET_MODEL")'), 'explicit_script_missing_birefnet_arg_append')
+    assert(generatedScriptText.includes('"${MODEL_PATH_ARGS[@]}"'), 'explicit_script_missing_model_arg_forwarding')
+  }
+  for (const toolId of targetTools) {
+    const row = report.tools?.find((tool) => tool.toolId === toolId)
+    assert(Boolean(row), `explicit_missing_tool_row:${toolId}`)
+    assert(row?.privateModelRootCandidatePresent === true, `explicit_model_candidate_missing:${toolId}`)
+    assert(row?.privateModelRootBlocker === null, `explicit_model_blocker_unexpected:${toolId}:${row?.privateModelRootBlocker}`)
+    assert(row?.explicitModelPathProvided === true, `explicit_path_not_recorded:${toolId}`)
+    assert(row?.explicitModelPathAccepted === true, `explicit_path_not_accepted:${toolId}`)
+    assert(row?.modelPathSource === 'explicit_path', `explicit_model_path_source_unexpected:${toolId}:${row?.modelPathSource}`)
+    assert(row?.modelWeightManifestReviewAccepted === true, `explicit_manifest_review_not_accepted:${toolId}`)
+    assert(row?.sourceImageAccepted === true, `explicit_source_not_accepted:${toolId}`)
+    const command = String(row?.manifestMaterializerCommand ?? '')
+    if (toolId === 'sam2') {
+      assert(command.includes('--sam2-checkpoint'), 'explicit_manifest_missing_sam2_flag')
+      assert(command.includes('sam2.1_hiera_tiny.pt'), 'explicit_manifest_missing_sam2_path')
+    } else {
+      assert(command.includes('--birefnet-model'), 'explicit_manifest_missing_birefnet_flag')
+      assert(command.includes('ZhengPeng7/BiRefNet'), 'explicit_manifest_missing_birefnet_path')
+    }
   }
 }
 
@@ -423,6 +482,11 @@ function validateCommittedText() {
   assert(text.includes('--require-private-only-boundary'), 'private_boundary_missing_from_cli')
   assert(text.includes('ai-graphics:model-weight-manifest-review:validate'), 'manifest_review_validator_missing_from_cli')
   assert(text.includes('REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'), 'manifest_dir_env_missing_from_cli')
+  assert(text.includes('REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT'), 'sam2_explicit_env_missing_from_cli')
+  assert(text.includes('REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL'), 'birefnet_explicit_env_missing_from_cli')
+  assert(text.includes('--sam2-checkpoint'), 'sam2_explicit_flag_missing_from_cli')
+  assert(text.includes('--birefnet-model'), 'birefnet_explicit_flag_missing_from_cli')
+  assert(text.includes('MODEL_PATH_ARGS'), 'model_path_arg_forwarding_missing_from_cli')
   assert(text.includes('--model-weight-manifest-dir'), 'manifest_dir_flag_missing_from_cli')
   assert(text.includes('--script-out'), 'script_out_missing_from_cli')
   assert(text.includes('writeNativeCudaCloseoutScript'), 'script_writer_missing_from_cli')
@@ -466,6 +530,30 @@ const fixtureReport = runNpmJson(runScriptName, [
 ])
 validateFixtureReport(fixtureReport)
 
+const explicitModelPathReport = runNpmJson(runScriptName, [
+  '--private-model-root',
+  fixtures.missingModelRoot,
+  '--model-weight-manifest-dir',
+  fixtures.modelManifestDir,
+  '--sam2-checkpoint',
+  fixtures.sam2Checkpoint,
+  '--birefnet-model',
+  fixtures.birefnetModel,
+  '--source-image',
+  fixtures.sourceImage,
+  '--output-root',
+  fixtures.explicitOutputRoot,
+  '--existing-proof-result',
+  '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/external-agent-execution-local-private-proof/run-placeholder/adapter-proof/harness-result.json',
+  '--cpu-safe-gpu-model-route-proof-packet',
+  '.local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-safe-gpu-model-route-proof.json',
+  '--cpu-model-gpu-model-route-proof-packet',
+  '.local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-model-gpu-model-route-proof-next.json',
+  '--script-out',
+  fixtures.explicitScriptOut,
+])
+validateExplicitModelPathReport(explicitModelPathReport)
+
 const invalidSourceReport = runNpmJson(runScriptName, [
   '--private-model-root',
   fixtures.modelRoot,
@@ -505,9 +593,11 @@ const result = {
   targetTools,
   defaultStatus: defaultReport.status,
   fixtureStatus: fixtureReport.status,
+  explicitModelPathStatus: explicitModelPathReport.status,
   invalidSourceStatus: invalidSourceReport.status,
   defaultCounts: defaultReport.counts,
   fixtureCounts: fixtureReport.counts,
+  explicitModelPathCounts: explicitModelPathReport.counts,
   invalidSourceCounts: invalidSourceReport.counts,
   packageLockUnchanged: packageLockDiff.length === 0,
   trackedLocalArtifacts: trackedLocalArtifacts.length === 0,

@@ -11,6 +11,8 @@ const acceptedStatus =
 const privateModelRootEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
 const privateModelManifestDirEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
+const sam2CheckpointEnvVar = 'REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT'
+const birefnetModelEnvVar = 'REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL'
 const defaultPrivateModelRoot =
   '.local-artifacts/ai-graphics/private-model-cache'
 const defaultOutputRoot =
@@ -43,6 +45,7 @@ const requiredBirefNetRuntimeFiles = [
 type RuntimeTarget = {
   image: string
   modelField: string
+  modelFlag: string
   manifestId: string
   checksumEvidenceRef: string
   candidates: string[]
@@ -58,6 +61,8 @@ type ParsedArgs = {
   strictExitCode: boolean
   privateModelRoot: string
   modelWeightManifestDir?: string
+  sam2CheckpointLocalPath?: string
+  birefnetModelLocalPath?: string
   outputRoot: string
   sourceImage?: string
   existingProofResults: string[]
@@ -75,6 +80,9 @@ type ToolProbe = {
   privateModelRootCandidatePresent: boolean
   privateModelRootMatchingCandidate: string | null
   privateModelRootBlocker: string | null
+  explicitModelPathProvided: boolean
+  explicitModelPathAccepted: boolean
+  modelPathSource: 'explicit_path' | 'private_model_root_candidate' | null
   modelWeightManifestDirProvided: boolean
   modelWeightManifestReviewAccepted: boolean
   modelWeightManifestReviewBlocker: string | null
@@ -110,6 +118,7 @@ const runtimeTargets: Record<ToolId, RuntimeTarget> = {
   sam2: {
     image: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
     modelField: 'sam2CheckpointLocalPath',
+    modelFlag: '--sam2-checkpoint',
     manifestId: 'sam2_private_manifest_review_v1',
     checksumEvidenceRef:
       'private://reeditpro/ai-graphics/checksum-evidence/sam2.json',
@@ -124,6 +133,7 @@ const runtimeTargets: Record<ToolId, RuntimeTarget> = {
   birefnet: {
     image: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
     modelField: 'birefnetModelLocalPath',
+    modelFlag: '--birefnet-model',
     manifestId: 'birefnet_private_manifest_review_v1',
     checksumEvidenceRef:
       'private://reeditpro/ai-graphics/checksum-evidence/birefnet.json',
@@ -190,6 +200,12 @@ function parseArgs(): ParsedArgs {
     modelWeightManifestDir:
       stringFlag('--model-weight-manifest-dir') ??
       process.env[privateModelManifestDirEnvVar],
+    sam2CheckpointLocalPath:
+      stringFlag('--sam2-checkpoint') ??
+      process.env[sam2CheckpointEnvVar],
+    birefnetModelLocalPath:
+      stringFlag('--birefnet-model') ??
+      process.env[birefnetModelEnvVar],
     outputRoot: stringFlag('--output-root') ?? defaultOutputRoot,
     sourceImage: stringFlag('--source-image'),
     existingProofResults: stringFlags('--existing-proof-result'),
@@ -250,22 +266,79 @@ function bashContinuation(tokens: ScriptToken[]): string {
   return tokens.map(scriptToken).join(' \\\n  ')
 }
 
+function explicitModelPathForTool(
+  args: Pick<ParsedArgs, 'sam2CheckpointLocalPath' | 'birefnetModelLocalPath'>,
+  toolId: ToolId,
+): string | undefined {
+  return toolId === 'sam2'
+    ? args.sam2CheckpointLocalPath
+    : args.birefnetModelLocalPath
+}
+
+function birefNetModelDirectoryAccepted(candidatePath: string): boolean {
+  return (
+    fs.existsSync(candidatePath) &&
+    fs.statSync(candidatePath).isDirectory() &&
+    requiredBirefNetRuntimeFiles.every((fileName) => {
+      const requiredFile = path.join(candidatePath, fileName)
+      return fs.existsSync(requiredFile) && fs.statSync(requiredFile).isFile()
+    })
+  )
+}
+
 function modelCandidateForTool(
   toolId: ToolId,
   privateModelRoot: string,
+  explicitModelPath: string | undefined,
 ): {
   present: boolean
   matchingCandidate: string | null
   blocker: string | null
+  source: 'explicit_path' | 'private_model_root_candidate' | null
 } {
   const target = runtimeTargets[toolId]
   try {
+    if (explicitModelPath) {
+      assertLocalPath(target.modelFlag, explicitModelPath)
+      if (target.candidateKind === 'file') {
+        if (fs.existsSync(explicitModelPath) && fs.statSync(explicitModelPath).isFile()) {
+          return {
+            present: true,
+            matchingCandidate: explicitModelPath,
+            blocker: null,
+            source: 'explicit_path',
+          }
+        }
+        return {
+          present: false,
+          matchingCandidate: null,
+          blocker: `${target.modelFlag} must point to an existing private local checkpoint file: ${explicitModelPath}`,
+          source: null,
+        }
+      }
+      if (birefNetModelDirectoryAccepted(explicitModelPath)) {
+        return {
+          present: true,
+          matchingCandidate: explicitModelPath,
+          blocker: null,
+          source: 'explicit_path',
+        }
+      }
+      return {
+        present: false,
+        matchingCandidate: null,
+        blocker:
+          `${target.modelFlag} must point to an existing private local BiRefNet model directory containing ${requiredBirefNetRuntimeFiles.join(', ')}: ${explicitModelPath}`,
+        source: null,
+      }
+    }
     assertLocalPath('--private-model-root', privateModelRoot)
     if (!fs.existsSync(privateModelRoot)) {
       return {
         present: false,
         matchingCandidate: null,
         blocker: `private model root does not exist: ${privateModelRoot}`,
+        source: null,
       }
     }
     if (!fs.statSync(privateModelRoot).isDirectory()) {
@@ -273,6 +346,7 @@ function modelCandidateForTool(
         present: false,
         matchingCandidate: null,
         blocker: `private model root is not a directory: ${privateModelRoot}`,
+        source: null,
       }
     }
     for (const candidate of target.candidates) {
@@ -283,26 +357,17 @@ function modelCandidateForTool(
             present: true,
             matchingCandidate: candidatePath,
             blocker: null,
+            source: 'private_model_root_candidate',
           }
         }
         continue
       }
-      const modelFile = path.join(candidatePath, 'model.safetensors')
-      const requiredFilesPresent = requiredBirefNetRuntimeFiles.every((fileName) => {
-        const requiredFile = path.join(candidatePath, fileName)
-        return fs.existsSync(requiredFile) && fs.statSync(requiredFile).isFile()
-      })
-      if (
-        fs.existsSync(candidatePath) &&
-        fs.statSync(candidatePath).isDirectory() &&
-        fs.existsSync(modelFile) &&
-        fs.statSync(modelFile).isFile() &&
-        requiredFilesPresent
-      ) {
+      if (birefNetModelDirectoryAccepted(candidatePath)) {
         return {
           present: true,
           matchingCandidate: candidatePath,
           blocker: null,
+          source: 'private_model_root_candidate',
         }
       }
     }
@@ -315,12 +380,14 @@ function modelCandidateForTool(
         (toolId === 'birefnet'
           ? `; BiRefNet candidates must include ${requiredBirefNetRuntimeFiles.join(', ')}`
           : ''),
+      source: null,
     }
   } catch (error) {
     return {
       present: false,
       matchingCandidate: null,
       blocker: error instanceof Error ? error.message : String(error),
+      source: null,
     }
   }
 }
@@ -538,6 +605,7 @@ function finalToolCallResultPath(outputRoot: string, toolId: ToolId): string {
 
 function manifestArgs(args: ParsedArgs, toolId: ToolId): string[] {
   const target = runtimeTargets[toolId]
+  const explicitModelPath = explicitModelPathForTool(args, toolId)
   const manifestArgs = [
     '--tool',
     toolId,
@@ -563,6 +631,9 @@ function manifestArgs(args: ParsedArgs, toolId: ToolId): string[] {
       '--model-weight-manifest-dir',
       args.modelWeightManifestDir,
     )
+  }
+  if (explicitModelPath) {
+    manifestArgs.push(target.modelFlag, explicitModelPath)
   }
   return manifestArgs
 }
@@ -670,48 +741,69 @@ function readinessResultHandoff(args: ParsedArgs): JsonRecord {
 
 function nativeCudaCloseoutScriptPrivateInputChecks(args: ParsedArgs): string[] {
   const lines = [
-    'if [[ ! -d "$PRIVATE_MODEL_ROOT" ]]; then',
-    '  echo "Private model root is missing or is not a directory: $PRIVATE_MODEL_ROOT" >&2',
-    '  exit 2',
-    'fi',
     'if [[ ! -f "$PRIVATE_SOURCE_IMAGE" ]]; then',
     '  echo "Private approved source image file is missing: $PRIVATE_SOURCE_IMAGE" >&2',
     '  exit 2',
     'fi',
+    'MODEL_PATH_ARGS=()',
   ]
 
   if (args.requestedTools.includes('sam2')) {
     lines.push(
-      'SAM2_CHECKPOINT_FOUND=0',
-      `for candidate in ${runtimeTargets.sam2.candidates
+      'if [[ -n "$SAM2_CHECKPOINT" ]]; then',
+      '  if [[ ! -f "$SAM2_CHECKPOINT" ]]; then',
+      '    echo "Explicit private SAM2 checkpoint is missing or not a file: $SAM2_CHECKPOINT" >&2',
+      '    exit 2',
+      '  fi',
+      '  MODEL_PATH_ARGS+=(--sam2-checkpoint "$SAM2_CHECKPOINT")',
+      'else',
+      '  if [[ -z "$PRIVATE_MODEL_ROOT" || ! -d "$PRIVATE_MODEL_ROOT" ]]; then',
+      '    echo "Private model root is missing or is not a directory: $PRIVATE_MODEL_ROOT" >&2',
+      '    exit 2',
+      '  fi',
+      '  SAM2_CHECKPOINT_FOUND=0',
+      `  for candidate in ${runtimeTargets.sam2.candidates
         .map((candidate) => `"${`$PRIVATE_MODEL_ROOT/${candidate}`}"`)
         .join(' ')}; do`,
-      '  if [[ -f "$candidate" ]]; then',
-      '    SAM2_CHECKPOINT_FOUND=1',
-      '    break',
+      '    if [[ -f "$candidate" ]]; then',
+      '      SAM2_CHECKPOINT_FOUND=1',
+      '      break',
+      '    fi',
+      '  done',
+      '  if [[ "$SAM2_CHECKPOINT_FOUND" != "1" ]]; then',
+      `    echo "Private SAM2 checkpoint not found under $PRIVATE_MODEL_ROOT; expected one of: ${runtimeTargets.sam2.candidates.join(', ')}" >&2`,
+      '    exit 2',
       '  fi',
-      'done',
-      'if [[ "$SAM2_CHECKPOINT_FOUND" != "1" ]]; then',
-      `  echo "Private SAM2 checkpoint not found under $PRIVATE_MODEL_ROOT; expected one of: ${runtimeTargets.sam2.candidates.join(', ')}" >&2`,
-      '  exit 2',
       'fi',
     )
   }
 
   if (args.requestedTools.includes('birefnet')) {
     lines.push(
-      'BIREFNET_MODEL_FOUND=0',
-      `for candidate in ${runtimeTargets.birefnet.candidates
+      'if [[ -n "$BIREFNET_MODEL" ]]; then',
+      '  if [[ ! -d "$BIREFNET_MODEL" || ! -f "$BIREFNET_MODEL/model.safetensors" || ! -f "$BIREFNET_MODEL/config.json" || ! -f "$BIREFNET_MODEL/BiRefNet_config.py" || ! -f "$BIREFNET_MODEL/birefnet.py" ]]; then',
+      `    echo "Explicit private BiRefNet model directory is missing required files (${requiredBirefNetRuntimeFiles.join(', ')}): $BIREFNET_MODEL" >&2`,
+      '    exit 2',
+      '  fi',
+      '  MODEL_PATH_ARGS+=(--birefnet-model "$BIREFNET_MODEL")',
+      'else',
+      '  if [[ -z "$PRIVATE_MODEL_ROOT" || ! -d "$PRIVATE_MODEL_ROOT" ]]; then',
+      '    echo "Private model root is missing or is not a directory: $PRIVATE_MODEL_ROOT" >&2',
+      '    exit 2',
+      '  fi',
+      '  BIREFNET_MODEL_FOUND=0',
+      `  for candidate in ${runtimeTargets.birefnet.candidates
         .map((candidate) => `"${`$PRIVATE_MODEL_ROOT/${candidate}`}"`)
         .join(' ')}; do`,
-      '  if [[ -d "$candidate" && -f "$candidate/model.safetensors" && -f "$candidate/config.json" && -f "$candidate/BiRefNet_config.py" && -f "$candidate/birefnet.py" ]]; then',
-      '    BIREFNET_MODEL_FOUND=1',
-      '    break',
+      '    if [[ -d "$candidate" && -f "$candidate/model.safetensors" && -f "$candidate/config.json" && -f "$candidate/BiRefNet_config.py" && -f "$candidate/birefnet.py" ]]; then',
+      '      BIREFNET_MODEL_FOUND=1',
+      '      break',
+      '    fi',
+      '  done',
+      '  if [[ "$BIREFNET_MODEL_FOUND" != "1" ]]; then',
+      `    echo "Private BiRefNet model directory not found under $PRIVATE_MODEL_ROOT; expected one candidate containing: ${requiredBirefNetRuntimeFiles.join(', ')}" >&2`,
+      '    exit 2',
       '  fi',
-      'done',
-      'if [[ "$BIREFNET_MODEL_FOUND" != "1" ]]; then',
-      `  echo "Private BiRefNet model directory not found under $PRIVATE_MODEL_ROOT; expected one candidate containing: ${requiredBirefNetRuntimeFiles.join(', ')}" >&2`,
-      '  exit 2',
       'fi',
     )
   }
@@ -741,6 +833,7 @@ function writeNativeCudaCloseoutScript(
     { raw: '"$PRIVATE_MODEL_MANIFEST_DIR"' },
     '--source-image',
     { raw: '"$PRIVATE_SOURCE_IMAGE"' },
+    { raw: '"${MODEL_PATH_ARGS[@]}"' },
     '--output-root',
     { raw: '"$OUTPUT_ROOT"' },
     '--cpu-safe-gpu-model-route-proof-packet',
@@ -805,6 +898,8 @@ function writeNativeCudaCloseoutScript(
     'export DEVELOPER_DIR="${DEVELOPER_DIR:-/Library/Developer/CommandLineTools}"',
     `PRIVATE_MODEL_ROOT="\${${privateModelRootEnvVar}:-}"`,
     `PRIVATE_MODEL_MANIFEST_DIR="\${${privateModelManifestDirEnvVar}:-}"`,
+    `SAM2_CHECKPOINT="\${${sam2CheckpointEnvVar}:-}"`,
+    `BIREFNET_MODEL="\${${birefnetModelEnvVar}:-}"`,
     'PRIVATE_SOURCE_IMAGE="${REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE:-}"',
     'OUTPUT_ROOT="${REEDITPRO_AI_GRAPHICS_NATIVE_CUDA_CLOSEOUT_OUTPUT_ROOT:-}"',
     'CPU_SAFE_GPU_MODEL_ROUTE_PROOF_PACKET="${REEDITPRO_AI_GRAPHICS_CPU_SAFE_GPU_MODEL_ROUTE_PROOF_PACKET:-}"',
@@ -814,6 +909,12 @@ function writeNativeCudaCloseoutScript(
     'fi',
     'if [[ -z "$PRIVATE_SOURCE_IMAGE" ]]; then',
     `  PRIVATE_SOURCE_IMAGE=${shellQuote(args.sourceImage ?? '')}`,
+    'fi',
+    'if [[ -z "$SAM2_CHECKPOINT" ]]; then',
+    `  SAM2_CHECKPOINT=${shellQuote(args.sam2CheckpointLocalPath ?? '')}`,
+    'fi',
+    'if [[ -z "$BIREFNET_MODEL" ]]; then',
+    `  BIREFNET_MODEL=${shellQuote(args.birefnetModelLocalPath ?? '')}`,
     'fi',
     'if [[ -z "$PRIVATE_MODEL_MANIFEST_DIR" ]]; then',
     `  PRIVATE_MODEL_MANIFEST_DIR=${shellQuote(args.modelWeightManifestDir ?? '')}`,
@@ -911,11 +1012,18 @@ function writeNativeCudaCloseoutScript(
       args.cpuModelGpuModelRouteProofPacket ?? null,
     readinessResultHandoff: readinessResultHandoff(args),
     privateInputPreflightChecks: {
-      privateModelRootDirectoryRequired: true,
+      privateModelRootDirectoryRequired: args.requestedTools.some((toolId) =>
+        !explicitModelPathForTool(args, toolId)),
       privateSourceImageFileRequired: true,
       sam2CheckpointCandidateRequired: args.requestedTools.includes('sam2'),
+      sam2ExplicitCheckpointEnvVar: sam2CheckpointEnvVar,
+      sam2ExplicitCheckpointPathProvided:
+        Boolean(args.sam2CheckpointLocalPath),
       birefnetModelDirectoryRequired:
         args.requestedTools.includes('birefnet'),
+      birefnetExplicitModelEnvVar: birefnetModelEnvVar,
+      birefnetExplicitModelPathProvided:
+        Boolean(args.birefnetModelLocalPath),
       birefnetRequiredFiles: requiredBirefNetRuntimeFiles,
     },
     expectedProofResults: args.requestedTools.map((toolId) =>
@@ -1036,7 +1144,12 @@ function toolProbe(
   modelManifestReview: ReturnType<typeof evaluateModelWeightManifestReview>,
 ): ToolProbe {
   const target = runtimeTargets[toolId]
-  const candidate = modelCandidateForTool(toolId, args.privateModelRoot)
+  const explicitModelPath = explicitModelPathForTool(args, toolId)
+  const candidate = modelCandidateForTool(
+    toolId,
+    args.privateModelRoot,
+    explicitModelPath,
+  )
   const sourceImage = sourceImageProbe(args.sourceImage)
   const modelWeightManifestReviewAccepted =
     modelManifestReview.acceptedToolIds.has(toolId)
@@ -1079,6 +1192,10 @@ function toolProbe(
     privateModelRootCandidatePresent: candidate.present,
     privateModelRootMatchingCandidate: candidate.matchingCandidate,
     privateModelRootBlocker: candidate.blocker,
+    explicitModelPathProvided: Boolean(explicitModelPath),
+    explicitModelPathAccepted:
+      Boolean(explicitModelPath) && candidate.present && candidate.source === 'explicit_path',
+    modelPathSource: candidate.source,
     modelWeightManifestDirProvided: Boolean(args.modelWeightManifestDir),
     modelWeightManifestReviewAccepted,
     modelWeightManifestReviewBlocker,
@@ -1122,6 +1239,12 @@ function buildReport(args: ParsedArgs): JsonRecord {
   assertLocalArtifactPath('--output-root', args.outputRoot)
   if (args.scriptOut) assertLocalArtifactPath('--script-out', args.scriptOut)
   if (args.sourceImage) assertLocalPath('--source-image', args.sourceImage)
+  if (args.sam2CheckpointLocalPath) {
+    assertLocalPath('--sam2-checkpoint', args.sam2CheckpointLocalPath)
+  }
+  if (args.birefnetModelLocalPath) {
+    assertLocalPath('--birefnet-model', args.birefnetModelLocalPath)
+  }
   if (args.modelWeightManifestDir) {
     assertLocalPath('--model-weight-manifest-dir', args.modelWeightManifestDir)
   }
@@ -1188,6 +1311,10 @@ function buildReport(args: ParsedArgs): JsonRecord {
       privateModelRootEnvVar,
       modelWeightManifestDir: args.modelWeightManifestDir ?? null,
       modelWeightManifestDirEnvVar: privateModelManifestDirEnvVar,
+      sam2CheckpointLocalPath: args.sam2CheckpointLocalPath ?? null,
+      sam2CheckpointEnvVar,
+      birefnetModelLocalPath: args.birefnetModelLocalPath ?? null,
+      birefnetModelEnvVar,
       sourceImage: args.sourceImage ?? null,
       outputRoot: args.outputRoot,
       existingProofResults: args.existingProofResults,
@@ -1221,7 +1348,8 @@ function buildReport(args: ParsedArgs): JsonRecord {
     tools,
     all21ReadinessRecheckCommand: readinessCommand,
     closeoutSequence: {
-      step1: 'Place private SAM2 and BiRefNet model weights under the private model root or pass --private-model-root.',
+      step1:
+        'Place private SAM2 and BiRefNet model weights under the private model root, or pass --sam2-checkpoint/--birefnet-model with exact private local paths.',
       step2:
         `Pass --model-weight-manifest-dir or set ${privateModelManifestDirEnvVar} with accepted private SAM2/BiRefNet manifest records.`,
       step3: 'Pass --source-image with an approved private local frame.',

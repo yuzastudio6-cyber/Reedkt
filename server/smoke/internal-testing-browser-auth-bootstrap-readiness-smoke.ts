@@ -99,6 +99,7 @@ assertText('src/backend/auth/workspace-bootstrap-service.ts', [
 ])
 assertText('server/cli/provision-internal-tester.ts', [
   'user_profiles',
+  'const ownerId = userId',
   'owner_user_id',
   'workspace_type',
   'internal_tester_backend_profile_workspace_provisioning_passed_ready_for_auth_readback',

@@ -733,7 +733,8 @@ function currentBlockingPrerequisiteKey(
   }
   if (
     blockingReasonCode.includes('source_frame_missing') ||
-    blockingReasonCode.includes('source_frame_invalid_path_kind')
+    blockingReasonCode.includes('source_frame_invalid_path_kind') ||
+    blockingReasonCode.includes('source_frame_invalid_image_type')
   ) {
     return 'sourceImageLocalPath'
   }
@@ -747,6 +748,7 @@ function currentBlockingPrerequisiteKey(
   }
   if (
     blockingReasonCode.includes('birefnet_model_missing') ||
+    blockingReasonCode.includes('birefnet_model_directory_missing_runtime_files') ||
     blockingReasonCode.includes('birefnet_model_invalid_path_kind') ||
     blockingReasonCode.includes('birefnet_model_invalid_safetensors_header') ||
     blockingReasonCode.includes('birefnet_model_too_small_for_runtime')

@@ -1,6 +1,11 @@
 import childProcess from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import {
+  hasReadableSafetensorsHeader,
+  minimumPrivateModelFileBytes,
+  probePrivateSourceImage,
+} from '../workers/masks/private-runtime-input-preflight'
 
 const decision =
   'ai_graphics_external_agent_native_cuda_closeout_prepared_for_remaining_two_tools'
@@ -41,6 +46,8 @@ const requiredBirefNetRuntimeFiles = [
   'BiRefNet_config.py',
   'birefnet.py',
 ]
+const minimumPrivateCheckpointBytes = minimumPrivateModelFileBytes
+const acceptedSam2CheckpointExtensions = new Set(['.pt', '.pth'])
 
 type RuntimeTarget = {
   image: string
@@ -275,14 +282,32 @@ function explicitModelPathForTool(
     : args.birefnetModelLocalPath
 }
 
-function birefNetModelDirectoryAccepted(candidatePath: string): boolean {
+function sam2CheckpointAccepted(candidatePath: string): boolean {
+  if (!fs.existsSync(candidatePath)) return false
+  const checkpointStats = fs.statSync(candidatePath)
   return (
-    fs.existsSync(candidatePath) &&
-    fs.statSync(candidatePath).isDirectory() &&
-    requiredBirefNetRuntimeFiles.every((fileName) => {
+    checkpointStats.isFile() &&
+    checkpointStats.size >= minimumPrivateCheckpointBytes &&
+    acceptedSam2CheckpointExtensions.has(path.extname(candidatePath).toLowerCase())
+  )
+}
+
+function birefNetModelDirectoryAccepted(candidatePath: string): boolean {
+  if (!fs.existsSync(candidatePath) || !fs.statSync(candidatePath).isDirectory()) {
+    return false
+  }
+  if (
+    !requiredBirefNetRuntimeFiles.every((fileName) => {
       const requiredFile = path.join(candidatePath, fileName)
       return fs.existsSync(requiredFile) && fs.statSync(requiredFile).isFile()
     })
+  ) {
+    return false
+  }
+  const modelFile = path.join(candidatePath, 'model.safetensors')
+  return (
+    fs.statSync(modelFile).size >= minimumPrivateModelFileBytes &&
+    hasReadableSafetensorsHeader(modelFile)
   )
 }
 
@@ -301,7 +326,7 @@ function modelCandidateForTool(
     if (explicitModelPath) {
       assertLocalPath(target.modelFlag, explicitModelPath)
       if (target.candidateKind === 'file') {
-        if (fs.existsSync(explicitModelPath) && fs.statSync(explicitModelPath).isFile()) {
+        if (sam2CheckpointAccepted(explicitModelPath)) {
           return {
             present: true,
             matchingCandidate: explicitModelPath,
@@ -312,7 +337,9 @@ function modelCandidateForTool(
         return {
           present: false,
           matchingCandidate: null,
-          blocker: `${target.modelFlag} must point to an existing private local checkpoint file: ${explicitModelPath}`,
+          blocker:
+            `${target.modelFlag} must point to an existing private local SAM2 checkpoint ` +
+            `(.pt/.pth, at least ${minimumPrivateCheckpointBytes} bytes): ${explicitModelPath}`,
           source: null,
         }
       }
@@ -352,7 +379,7 @@ function modelCandidateForTool(
     for (const candidate of target.candidates) {
       const candidatePath = path.join(privateModelRoot, candidate)
       if (target.candidateKind === 'file') {
-        if (fs.existsSync(candidatePath) && fs.statSync(candidatePath).isFile()) {
+        if (sam2CheckpointAccepted(candidatePath)) {
           return {
             present: true,
             matchingCandidate: candidatePath,
@@ -378,8 +405,8 @@ function modelCandidateForTool(
         `private model root did not contain ${target.modelField}; checked ` +
         target.candidates.join(', ') +
         (toolId === 'birefnet'
-          ? `; BiRefNet candidates must include ${requiredBirefNetRuntimeFiles.join(', ')}`
-          : ''),
+          ? `; BiRefNet candidates must include ${requiredBirefNetRuntimeFiles.join(', ')} with a readable model.safetensors header`
+          : `; SAM2 candidates must be .pt/.pth files at least ${minimumPrivateCheckpointBytes} bytes`),
       source: null,
     }
   } catch (error) {
@@ -408,62 +435,7 @@ function sourceImageProbe(sourceImage: string | undefined): {
   }
   try {
     assertLocalPath('--source-image', sourceImage)
-    if (!fs.existsSync(sourceImage)) {
-      return {
-        exists: false,
-        accepted: false,
-        fileType: null,
-        blocker: `private approved source image does not exist: ${sourceImage}`,
-      }
-    }
-    if (!fs.statSync(sourceImage).isFile()) {
-      return {
-        exists: false,
-        accepted: false,
-        fileType: null,
-        blocker: `private approved source image is not a file: ${sourceImage}`,
-      }
-    }
-    const header = fs.readFileSync(sourceImage, { encoding: null }).subarray(0, 16)
-    const asciiHeader = header.toString('ascii')
-    const png =
-      header.length >= 8 &&
-      header[0] === 0x89 &&
-      asciiHeader.slice(1, 4) === 'PNG'
-    const jpeg =
-      header.length >= 3 &&
-      header[0] === 0xff &&
-      header[1] === 0xd8 &&
-      header[2] === 0xff
-    const ppm = asciiHeader.startsWith('P3') || asciiHeader.startsWith('P6')
-    const webp =
-      asciiHeader.startsWith('RIFF') &&
-      header.length >= 12 &&
-      asciiHeader.slice(8, 12) === 'WEBP'
-    const fileType = png
-      ? 'png'
-      : jpeg
-      ? 'jpeg'
-      : ppm
-      ? 'ppm'
-      : webp
-      ? 'webp'
-      : null
-    if (!fileType) {
-      return {
-        exists: true,
-        accepted: false,
-        fileType: null,
-        blocker:
-          'private approved source image must be PNG, JPEG, WebP, or PPM before native CUDA proof starts',
-      }
-    }
-    return {
-      exists: true,
-      accepted: true,
-      fileType,
-      blocker: null,
-    }
+    return probePrivateSourceImage(sourceImage)
   } catch (error) {
     return {
       exists: false,

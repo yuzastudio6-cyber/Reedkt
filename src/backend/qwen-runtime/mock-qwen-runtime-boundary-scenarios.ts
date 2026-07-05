@@ -38,7 +38,7 @@ const scenarioTitles = [
   'Boundary validation blocks gcloud command true',
   'Boundary validation blocks provider call true',
   'Boundary validation blocks frontend visible true',
-  'Summary mentions Qwen 3.7',
+  'Summary mentions Qwen 3.7 Max',
   'Summary mentions backend-only',
   'Summary mentions owner approval pending',
   'Summary mentions RP-QWEN-02 next',

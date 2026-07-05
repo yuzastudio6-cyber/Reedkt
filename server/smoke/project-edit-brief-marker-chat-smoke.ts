@@ -19,6 +19,7 @@ import {
   validateProjectEditBriefMarkerChatRequestForBackend,
   createProjectEditBriefMarkerChatReadinessSummary,
 } from '../../src/backend'
+import { REEDITPRO_QWEN_MAIN_BRAIN_LABEL } from '../../src/types'
 
 const root = process.cwd()
 const projectId = 'mock-project-edit-chat-foundation'
@@ -132,6 +133,7 @@ const panel = await loadProjectEditBriefMarkerChatPanelForUI(markerId, client)
 assert.ok(panel, 'panel should load')
 assert.ok(panel.messages.length >= 3, 'panel should include marker-scoped messages')
 assert.ok(panel.intent, 'panel should include latest intent')
+assert.ok(panel.boundarySummary.includes(REEDITPRO_QWEN_MAIN_BRAIN_LABEL), 'panel should identify Qwen 3.7 Max as the backend reasoning brain')
 assertFalseFlags(panel, 'panel')
 assert.ok(createProjectEditBriefMarkerChatReadinessSummary().includes('mock/local'))
 

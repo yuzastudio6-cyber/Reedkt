@@ -1,10 +1,10 @@
 # Qwen Secret Manager Runtime Boundary
 
-RP-QWEN-01 prepares a server-only Secret Manager boundary for Qwen 3.7 without accessing real Secret Manager metadata or values. Qwen 3.7 remains ReEditPro's backend-only reasoning brain, but runtime execution is still disabled.
+RP-QWEN-01 prepares a server-only Secret Manager boundary for Qwen 3.7 Max without accessing real Secret Manager metadata or values. Qwen 3.7 Max remains ReEditPro's backend-only reasoning brain, but runtime execution is still disabled.
 
 Boundary statement: symbolic secret references only, disabled resolver only, backend-only, no gcloud, no secret value access, no secret value printed, no provider call, no Qwen call, no Marker Chat runtime change, fake transport first by default.
 
-Verification phrase: Qwen 3.7 remains behind symbolic secret references, a disabled resolver, backend-only access, no gcloud command, no secret value access, no provider call, no Qwen call, no Marker Chat runtime change, and fake transport first.
+Verification phrase: Qwen 3.7 Max remains behind symbolic secret references, a disabled resolver, backend-only access, no gcloud command, no secret value access, no provider call, no Qwen call, no Marker Chat runtime change, and fake transport first.
 
 ## Boundary
 

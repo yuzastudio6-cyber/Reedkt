@@ -1,8 +1,8 @@
 # Qwen Runtime Readiness Audit
 
-RP-QWEN-00 is a local/report-only audit of the future Qwen 3.7 runtime path. Qwen 3.7 is already represented as ReEditPro's main reasoning brain in model-role metadata, but real runtime execution is not enabled.
+RP-QWEN-00 is a local/report-only audit of the future Qwen 3.7 Max runtime path. Qwen 3.7 Max is already represented as ReEditPro's main reasoning brain in model-role metadata, but real runtime execution is not enabled.
 
-Common audit boundary: Qwen 3.7, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
+Common audit boundary: Qwen 3.7 Max, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
 
 ## Current Mock/Local Status
 

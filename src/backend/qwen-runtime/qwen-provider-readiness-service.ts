@@ -1,4 +1,9 @@
-import type { QwenProviderReadiness, QwenRuntimeBoundaryContext } from '../../types'
+import {
+  REEDITPRO_QWEN_MAIN_BRAIN_LABEL,
+  REEDITPRO_QWEN_MAIN_BRAIN_PROVIDER_NAME,
+  type QwenProviderReadiness,
+  type QwenRuntimeBoundaryContext,
+} from '../../types'
 import { checkProviderRuntimeReadiness } from '../provider-config/provider-runtime-readiness-service'
 import { ok, type ServiceResult } from '../service-result'
 
@@ -11,7 +16,7 @@ export function createQwenProviderReadiness(context?: QwenRuntimeBoundaryContext
   })
 
   return {
-    providerName: 'qwen_3_7',
+    providerName: REEDITPRO_QWEN_MAIN_BRAIN_PROVIDER_NAME,
     gateStatus: context?.gateStatus ?? 'blocked_owner_approval',
     providerCallStatus: 'blocked_by_gate',
     canCreateProviderClient: false,
@@ -31,7 +36,7 @@ export function createQwenProviderReadiness(context?: QwenRuntimeBoundaryContext
 }
 
 export function createQwenProviderReadinessSummary(readiness: QwenProviderReadiness): string {
-  return `Qwen provider readiness: ${readiness.gateStatus}; providerClientCreated false, providerCallMade false, fallback available true.`
+  return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} provider readiness: ${readiness.gateStatus}; providerClientCreated false, providerCallMade false, fallback available true.`
 }
 
 export function assertQwenProviderClientCreationBlocked(): ServiceResult<{

@@ -1,6 +1,6 @@
 # Qwen Live Provider Verification
 
-`npm run smoke:qwen-live-provider` performs one harmless backend-only Qwen 3.7 provider call when live beta config is ready.
+`npm run smoke:qwen-live-provider` performs one harmless backend-only Qwen 3.7 Max provider call when live beta config is ready.
 
 Required success evidence:
 - `runtimeSource: qwen_live`.

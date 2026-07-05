@@ -1,8 +1,8 @@
 # Qwen Backend Runtime Gates Audit
 
-RP-QWEN-00 audits the gates required before any Qwen 3.7 runtime call can be enabled.
+RP-QWEN-00 audits the gates required before any Qwen 3.7 Max runtime call can be enabled.
 
-Common audit boundary: Qwen 3.7, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
+Common audit boundary: Qwen 3.7 Max, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
 
 ## Required Gates
 

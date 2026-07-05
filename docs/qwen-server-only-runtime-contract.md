@@ -1,10 +1,10 @@
 # Qwen Server-Only Runtime Contract
 
-Qwen 3.7 runtime is backend-only. Browser code may display safe summaries but must never import the Qwen runtime boundary, receive secret values, or call Qwen directly.
+Qwen 3.7 Max runtime is backend-only. Browser code may display safe summaries but must never import the Qwen runtime boundary, receive secret values, or call Qwen directly.
 
 Boundary statement: symbolic secret references only, disabled resolver only, backend-only, no gcloud, no secret value access, no secret value printed, no provider call, no Qwen call, no Marker Chat runtime change, fake transport first by default.
 
-Verification phrase: Qwen 3.7 remains behind symbolic secret references, a disabled resolver, backend-only access, no gcloud command, no secret value access, no provider call, no Qwen call, no Marker Chat runtime change, and fake transport first.
+Verification phrase: Qwen 3.7 Max remains behind symbolic secret references, a disabled resolver, backend-only access, no gcloud command, no secret value access, no provider call, no Qwen call, no Marker Chat runtime change, and fake transport first.
 
 ## Contract
 

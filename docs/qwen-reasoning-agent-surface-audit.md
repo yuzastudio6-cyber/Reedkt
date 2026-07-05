@@ -1,8 +1,8 @@
 # Qwen Reasoning Agent Surface Audit
 
-RP-QWEN-00 audits the existing reasoning-agent surface for future Qwen 3.7 runtime integration. Current implementation is mock/local and backend-only.
+RP-QWEN-00 audits the existing reasoning-agent surface for future Qwen 3.7 Max runtime integration. Current implementation is mock/local and backend-only.
 
-Common audit boundary: Qwen 3.7, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
+Common audit boundary: Qwen 3.7 Max, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
 
 ## Existing Surface
 

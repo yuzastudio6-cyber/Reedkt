@@ -13,6 +13,7 @@ test.describe('Project Edit Brief Marker Chat', () => {
     await page.getByTestId('project-edit-brief-marker-pill-marker-calm-soundtrack').click()
     await expect(page.getByTestId('project-edit-brief-marker-chat-panel')).toBeVisible()
     await expect(page.getByTestId('project-edit-brief-marker-chat-boundary')).toContainText('Marker Chat is mock/local')
+    await expect(page.getByTestId('project-edit-brief-marker-chat-boundary')).toContainText('Qwen 3.7 Max')
     await expect(page.getByTestId('project-edit-brief-marker-chat-runtime')).toContainText('Local fallback active')
     await expect(page.getByTestId('project-edit-brief-marker-chat-readiness')).toContainText('local fallback active')
     await expect(page.getByTestId('project-edit-brief-marker-chat-readiness')).toContainText('no provider call')

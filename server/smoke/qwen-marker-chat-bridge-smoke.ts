@@ -7,6 +7,7 @@ import {
   runQwenMarkerChatBridge,
   validateQwenMarkerChatRuntimeRequest,
 } from '../../src/backend'
+import { REEDITPRO_QWEN_MAIN_BRAIN_LABEL } from '../../src/types'
 import { createMockDatabase } from '../../src/backend/mock/mock-database'
 import { createMockProjectEditBriefRepository } from '../../src/backend/repositories/mock-project-edit-brief-repository'
 
@@ -98,6 +99,7 @@ assert.equal(betaResult.authorizationHeaderLogged, false)
 assert.equal(betaResult.editPlanCreated, false)
 assert.equal(betaResult.plannerExecuted, false)
 assert.equal(betaResult.creditReservedOrSpent, false)
+assert.ok(betaResult.promptPackage.systemPrompt.includes(REEDITPRO_QWEN_MAIN_BRAIN_LABEL), 'Qwen prompt should identify Qwen 3.7 Max as the Marker Chat reasoning brain.')
 assert.equal(betaResult.intent?.action, 'add_broll')
 assert.equal(betaResult.confirmation?.confirmedByUser, false)
 assert.equal(betaResult.updatedMarker?.status, 'confirmed')

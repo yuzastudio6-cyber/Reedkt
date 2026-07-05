@@ -1,8 +1,8 @@
 # Qwen Safety Validation Fallback Audit
 
-RP-QWEN-00 audits the safety and fallback requirements for future Qwen 3.7 runtime work.
+RP-QWEN-00 audits the safety and fallback requirements for future Qwen 3.7 Max runtime work.
 
-Common audit boundary: Qwen 3.7, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
+Common audit boundary: Qwen 3.7 Max, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
 
 ## Required Safety Checks
 

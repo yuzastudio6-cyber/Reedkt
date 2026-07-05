@@ -1,12 +1,12 @@
 # Video Context Qwen2.5-VL Tool Selection
 
-Status: RP-VIDEOCTX-00R docs-only report. No runtime execution, no worker, no render, no credits, no media processing, no provider call, no Qwen2.5-VL call, no Qwen 3.7 call, no DeepSeek call, no upload, no file-byte read, no URL fetch, no Supabase command, no migration, no staging, no commit, and no cleanup are authorized.
+Status: RP-VIDEOCTX-00R docs-only report. No runtime execution, no worker, no render, no credits, no media processing, no provider call, no Qwen2.5-VL call, no Qwen 3.7 Max call, no DeepSeek call, no upload, no file-byte read, no URL fetch, no Supabase command, no migration, no staging, no commit, and no cleanup are authorized.
 
-RP-QWENVL-BETA-01 update: Qwen2.5-VL now has a backend-only beta marker visual-context route for sampled browser frames. The beta stores structured summary metadata only and still does not authorize full source-video upload, durable source understanding packages, workers, render/export, credits, Supabase CLI, migrations, DeepSeek, or Qwen 3.7 visual processing.
+RP-QWENVL-BETA-01 update: Qwen2.5-VL now has a backend-only beta marker visual-context route for sampled browser frames. The beta stores structured summary metadata only and still does not authorize full source-video upload, durable source understanding packages, workers, render/export, credits, Supabase CLI, migrations, DeepSeek, or Qwen 3.7 Max visual processing.
 
 ## Selection Decision
 
-Qwen2.5-VL-7B-Instruct is selected as the future visual/video understanding specialist for source video context. Qwen 3.7 remains the reasoning brain for Marker Chat, Edit Chat, planning explanation, QA explanation, and final marker intent decisions.
+Qwen2.5-VL-7B-Instruct is selected as the future visual/video understanding specialist for source video context. Qwen 3.7 Max remains the reasoning brain for Marker Chat, Edit Chat, planning explanation, QA explanation, and final marker intent decisions.
 
 This re-selection updates the RP-VIDEOCTX-00 routing decision. It does not authorize model runtime, provider runtime, media processing, worker execution, render/export, storage writes, or credit activity.
 

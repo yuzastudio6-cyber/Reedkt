@@ -1,8 +1,8 @@
 # Qwen Reuse vs New Build Plan
 
-RP-QWEN-00 identifies what should be reused for Qwen 3.7 runtime readiness and what must be built later.
+RP-QWEN-00 identifies what should be reused for Qwen 3.7 Max runtime readiness and what must be built later.
 
-Common audit boundary: Qwen 3.7, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
+Common audit boundary: Qwen 3.7 Max, Marker Chat, Secret Manager, backend-only, structured response, fallback, owner approval pending, no Qwen call, no provider call, no secret values inspected, no gcloud command, no runtime implementation.
 
 | Surface | Reuse | Wrap | Build New | Reason | Risk |
 | --- | --- | --- | --- | --- | --- |

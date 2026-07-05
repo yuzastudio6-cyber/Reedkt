@@ -7,6 +7,7 @@ import type {
   ProjectEditBriefMarkerRecord,
 } from '../types/project-edit-brief'
 import type { QwenMarkerChatBridgeResult } from '../types/qwen-marker-chat-runtime'
+import { REEDITPRO_QWEN_MAIN_BRAIN_LABEL } from '../types/qwen-main-brain'
 import type {
   ProjectEditBriefMarkerChatApplyResult,
   ProjectEditBriefMarkerChatPanelModel,
@@ -96,7 +97,7 @@ export function validateProjectEditBriefMarkerChatRequest(
 }
 
 export function createProjectEditBriefMarkerChatBoundarySummary(): string {
-  return 'Marker Chat is mock/local by default and scoped to this marker. It uses local deterministic intent unless approved beta mode calls Qwen 3.7 through the backend server route, never from browser code. No DeepSeek, embeddings, vector DB, media processing, render, Supabase, workers, or credits run.'
+  return `Marker Chat is mock/local by default and scoped to this marker. It uses local deterministic intent unless approved beta mode calls ${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} through the backend server route, never from browser code. No DeepSeek, embeddings, vector DB, media processing, render, Supabase, workers, or credits run.`
 }
 
 export function createProjectEditBriefMarkerChatNoticeModel() {
@@ -443,8 +444,8 @@ export async function sendProjectEditBriefMarkerChatMessageViaApi(
         extractionStatus: betaData.qwenRuntime.status === 'qwen_beta_completed' ? 'processed_confirmed' : 'processed_intent_draft',
         responseKind: betaData.qwenRuntime.status === 'qwen_beta_completed' ? 'mock_confirmation' : 'mock_boundary_notice',
         responseText: runtimeSource === 'qwen_live'
-          ? 'Qwen 3.7 understood this marker.'
-          : `Qwen was unavailable; ReEditPro used the local intent fallback${betaData.fallbackReason ? ` (${betaData.fallbackReason})` : ''}.`,
+          ? `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} understood this marker.`
+          : `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} was unavailable; ReEditPro used the local intent fallback${betaData.fallbackReason ? ` (${betaData.fallbackReason})` : ''}.`,
         markerStatusSuggestion: betaData.marker?.status ?? drawer.marker.status,
         blockingNeeds: [],
         plannerHints: [],
@@ -456,8 +457,8 @@ export async function sendProjectEditBriefMarkerChatMessageViaApi(
       warnings: [
         ...(betaData.qwenRuntime.warnings ?? []),
         runtimeSource === 'qwen_live'
-          ? 'Qwen 3.7 understood this marker through the backend-only beta route.'
-          : 'Qwen was unavailable; ReEditPro used the local intent fallback.',
+          ? `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} understood this marker through the backend-only beta route.`
+          : `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} was unavailable; ReEditPro used the local intent fallback.`,
         'Marker Chat beta runtime remained backend-only; browser code received structured metadata only.',
       ],
       mockOnly: true,

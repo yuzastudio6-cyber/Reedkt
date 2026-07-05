@@ -194,7 +194,7 @@ export interface QwenRuntimeAdapterScenario {
 }
 
 export const REEDITPRO_QWEN_BETA_RUNTIME_RULE =
-  'Qwen 3.7 beta runtime is backend-only and requires REEDITPRO_QWEN_RUNTIME_MODE=beta_enabled plus Secret Manager runtime config before any provider call.'
+  'Qwen 3.7 Max beta runtime is backend-only and requires REEDITPRO_QWEN_RUNTIME_MODE=beta_enabled plus Secret Manager runtime config before any provider call.'
 
 export const REEDITPRO_QWEN_BETA_SECRET_RULE =
   'Qwen beta runtime may resolve secrets server-side through Secret Manager only; secret values must never be logged, printed, committed, or sent to browser code.'

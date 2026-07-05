@@ -1,4 +1,10 @@
-import type { QwenRuntimeConfig, QwenRuntimeSafetyFlags, QwenRuntimeTransportProfile } from '../../types'
+import {
+  REEDITPRO_QWEN_MAIN_BRAIN_LABEL,
+  REEDITPRO_QWEN_MAIN_BRAIN_PROVIDER_NAME,
+  type QwenRuntimeConfig,
+  type QwenRuntimeSafetyFlags,
+  type QwenRuntimeTransportProfile,
+} from '../../types'
 
 export const QWEN_REASONING_API_KEY_SECRET = 'QWEN_REASONING_API_KEY_SECRET'
 export const QWEN_REASONING_BASE_URL_SECRET = 'QWEN_REASONING_BASE_URL_SECRET'
@@ -94,7 +100,7 @@ export function loadQwenRuntimeConfig(env: Record<string, string | undefined> = 
             : 'ready_for_secret_resolution'
 
   return {
-    providerName: 'qwen_3_7',
+    providerName: REEDITPRO_QWEN_MAIN_BRAIN_PROVIDER_NAME,
     role: 'reasoning_brain',
     runtimeMode,
     status,
@@ -119,5 +125,5 @@ export function isQwenRuntimeConfigReadyForProvider(config: QwenRuntimeConfig): 
 }
 
 export function createQwenRuntimeConfigSummary(config: QwenRuntimeConfig): string {
-  return `Qwen beta runtime ${config.status}; mode ${config.runtimeMode}; transport ${config.transportProfile}; provider calls require Secret Manager resolution and structured validation.`
+  return `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} beta runtime ${config.status}; mode ${config.runtimeMode}; transport ${config.transportProfile}; provider calls require Secret Manager resolution and structured validation.`
 }

@@ -1,8 +1,9 @@
-import type {
-  ProjectEditBriefMarkerDrawerModel,
-  ProjectEditSessionExportSettingsRecord,
-  QwenMarkerChatPromptPackage,
-  QwenMarkerChatRuntimeRequest,
+import {
+  REEDITPRO_QWEN_MAIN_BRAIN_LABEL,
+  type ProjectEditBriefMarkerDrawerModel,
+  type ProjectEditSessionExportSettingsRecord,
+  type QwenMarkerChatPromptPackage,
+  type QwenMarkerChatRuntimeRequest,
 } from '../../types'
 import { createQwenRuntimeSafetyFlags } from './qwen-runtime-config-service'
 
@@ -90,7 +91,7 @@ export function createQwenMarkerChatPromptPackage(input: {
     ? `${input.drawer.intent.action} ${input.drawer.intent.status} ${input.drawer.intent.instruction}`
     : 'none'
   const systemPrompt = [
-    'You are Qwen 3.7 acting as ReEditPro backend-only Marker Chat reasoning.',
+    `You are ${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} acting as ReEditPro backend-only Marker Chat reasoning.`,
     'Understand the marker-specific user message and return only valid JSON for QwenMarkerChatStructuredResponse.',
     'Return a single JSON object only. Do not wrap it in markdown, comments, prose, or code fences.',
     'Do not render video, run tools, fetch URLs, inspect files, start workers, spend credits, call DeepSeek, or create edit plans.',

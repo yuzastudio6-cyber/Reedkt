@@ -86,7 +86,7 @@ Edit Brief Marker Chat now has a backend-only beta Qwen bridge. This changes bet
 
 RP-VIDEOCTX-00 documents the future Source Video Understanding Package and Marker Context Package that should feed context-aware Marker Chat. It does not change Edit Brief runtime behavior. Future Edit Brief production planning should wait for `RP-MEDIA-01 - Primary Source Video Upload + Playable Brief Timeline Sync`, then context package types, repository/client, retrieval, and Qwen prompt integration.
 
-RP-VIDEOCTX-00R updates the planned tool split: Qwen2.5-VL is the future visual/video understanding specialist, Qwen 3.7 remains the Marker Chat reasoning brain, and DeepSeek remains coding/tool-code only. Future Edit Brief production planning should add `RP-QWENVL-01 - Qwen2.5-VL Runtime Boundary + Visual Adapter` after RP-MEDIA-01 and before context-aware Marker Chat runtime wiring.
+RP-VIDEOCTX-00R updates the planned tool split: Qwen2.5-VL is the future visual/video understanding specialist, Qwen 3.7 Max remains the Marker Chat reasoning brain, and DeepSeek remains coding/tool-code only. Future Edit Brief production planning should add `RP-QWENVL-01 - Qwen2.5-VL Runtime Boundary + Visual Adapter` after RP-MEDIA-01 and before context-aware Marker Chat runtime wiring.
 
 No runtime execution, no worker, no render, no credits, no media processing, no upload/file-byte read, no provider call, no Supabase command, and no migration are authorized by the video-context audit.
 
@@ -98,6 +98,6 @@ Production planning still needs durable storage/media asset records, source medi
 
 ## RP-QWENVL-BETA-01 Visual Context Update
 
-Project Edit Brief now has a beta marker Visual Context panel and backend-only Qwen2.5-VL route for sampled local-preview frames. This improves internal testing and visual-awareness readiness, but production planning still needs durable source media, owner-approved deployment mode, monitoring, persistence policy, context-aware Qwen 3.7 prompt integration, media worker boundaries, render/export gates, credit gates, privacy/security review, Supabase deployment gates, and owner production approval.
+Project Edit Brief now has a beta marker Visual Context panel and backend-only Qwen2.5-VL route for sampled local-preview frames. This improves internal testing and visual-awareness readiness, but production planning still needs durable source media, owner-approved deployment mode, monitoring, persistence policy, context-aware Qwen 3.7 Max prompt integration, media worker boundaries, render/export gates, credit gates, privacy/security review, Supabase deployment gates, and owner production approval.
 
-No full-video upload, raw frame persistence, backend file-byte read, media worker/tool runtime, render/export, credit action, Supabase CLI, migration, DeepSeek, Qwen 3.7 visual call, staging, commit, or cleanup is authorized by RP-QWENVL-BETA-01.
+No full-video upload, raw frame persistence, backend file-byte read, media worker/tool runtime, render/export, credit action, Supabase CLI, migration, DeepSeek, Qwen 3.7 Max visual call, staging, commit, or cleanup is authorized by RP-QWENVL-BETA-01.

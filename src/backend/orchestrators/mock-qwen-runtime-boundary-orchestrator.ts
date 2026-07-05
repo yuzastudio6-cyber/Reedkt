@@ -44,7 +44,7 @@ export function runMockQwenRuntimeBoundaryFlow(): QwenRuntimeBoundaryOrchestrato
       ...validation.warnings,
       'RP-QWEN-02 should use fake transport first unless owner explicitly approves real provider call gates.',
     ],
-    nextStep: 'RP-QWEN-02 - Backend Qwen 3.7 Adapter',
+    nextStep: 'RP-QWEN-02 - Backend Qwen 3.7 Max Adapter',
   }
 }
 

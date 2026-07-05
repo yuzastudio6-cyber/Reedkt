@@ -2,7 +2,7 @@
 
 RP-QWEN-BETA-01 is backend-only beta runtime infrastructure. It does not make Qwen available to frontend code and does not expose secrets to React, browser-safe adapters, or route clients.
 
-RP-QWENVL-BETA-01 adds a separate backend-only Qwen2.5-VL visual-context beta route. Qwen 3.7 still owns Marker Chat reasoning and does not process raw video/audio or sampled visual frames in this milestone.
+RP-QWENVL-BETA-01 adds a separate backend-only Qwen2.5-VL visual-context beta route. Qwen 3.7 Max still owns Marker Chat reasoning and does not process raw video/audio or sampled visual frames in this milestone.
 
 ## Allowed In Beta
 
@@ -26,7 +26,7 @@ RP-QWENVL-BETA-01 adds a separate backend-only Qwen2.5-VL visual-context beta ro
 
 Production ready: false. Owner beta approval is not production approval.
 
-Boundary phrase: Qwen 3.7 beta is backend-only, uses Secret Manager, keeps deterministic fallback, no render, no workers, no credits, and production ready: false.
+Boundary phrase: Qwen 3.7 Max beta is backend-only, uses Secret Manager, keeps deterministic fallback, no render, no workers, no credits, and production ready: false.
 
 Marker Chat boundary: the beta bridge is scoped to Edit Brief Marker Chat only and does not change the main Edit Chat stream.
 

@@ -1,6 +1,6 @@
 # Qwen Structured Marker Chat Response
 
-Qwen 3.7 Marker Chat beta responses must validate against `QwenMarkerChatStructuredResponse` before persistence.
+Qwen 3.7 Max Marker Chat beta responses must validate against `QwenMarkerChatStructuredResponse` before persistence.
 
 Required fields:
 
@@ -26,4 +26,4 @@ Allowed status values are `draft_intent`, `needs_clarification`, `needs_asset`, 
 
 Production ready: false. Structured response validation does not authorize planner execution, media processing, render, workers, Supabase writes, or credits.
 
-Boundary phrase: Qwen 3.7 beta is backend-only, uses Secret Manager, keeps deterministic fallback, no render, no workers, no credits, and production ready: false.
+Boundary phrase: Qwen 3.7 Max beta is backend-only, uses Secret Manager, keeps deterministic fallback, no render, no workers, no credits, and production ready: false.

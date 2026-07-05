@@ -113,7 +113,7 @@ export const REEDITPRO_PROVIDER_RUNTIME_REGISTRY: ProviderRuntimeDefinition[] = 
     providerId: 'qwen',
     runtimeKind: 'reasoning_model',
     displayName: 'Qwen reasoning runtime',
-    description: 'Future backend-only runtime for Qwen 3.7 reasoning roles.',
+    description: 'Future backend-only runtime for Qwen 3.7 Max reasoning roles.',
     requiredSecrets: ['QWEN_API_KEY'],
     optionalSecrets: ['QWEN_BASE_URL', 'QWEN_MODEL_ID'],
     runtimeGates: ['backend_runtime_required', 'provider_enabled_required', 'secret_present_required', 'rate_limit_required', 'manual_review_required'],

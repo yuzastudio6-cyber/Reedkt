@@ -1,14 +1,14 @@
 # Qwen Runtime Boundary Next Adapter
 
-RP-QWEN-01 prepares the boundary for a later backend Qwen 3.7 adapter. It does not implement the adapter.
+RP-QWEN-01 prepares the boundary for a later backend Qwen 3.7 Max adapter. It does not implement the adapter.
 
 Boundary statement: symbolic secret references only, disabled resolver only, backend-only, no gcloud, no secret value access, no secret value printed, no provider call, no Qwen call, no Marker Chat runtime change, fake transport first by default.
 
-Verification phrase: Qwen 3.7 remains behind symbolic secret references, a disabled resolver, backend-only access, no gcloud command, no secret value access, no provider call, no Qwen call, no Marker Chat runtime change, and fake transport first.
+Verification phrase: Qwen 3.7 Max remains behind symbolic secret references, a disabled resolver, backend-only access, no gcloud command, no secret value access, no provider call, no Qwen call, no Marker Chat runtime change, and fake transport first.
 
 ## Recommended Next Milestone
 
-Use `RP-QWEN-02 - Backend Qwen 3.7 Adapter` after owner review.
+Use `RP-QWEN-02 - Backend Qwen 3.7 Max Adapter` after owner review.
 
 ## Default Next Adapter Policy
 

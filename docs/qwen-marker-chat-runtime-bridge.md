@@ -1,6 +1,6 @@
 # Qwen Marker Chat Runtime Bridge
 
-The Marker Chat bridge connects the backend-only Qwen 3.7 beta runtime to existing Edit Brief Marker Chat records. It reuses existing marker messages, intents, confirmations, marker updates, drawer, export settings, and bundle seams.
+The Marker Chat bridge connects the backend-only Qwen 3.7 Max beta runtime to existing Edit Brief Marker Chat records. It reuses existing marker messages, intents, confirmations, marker updates, drawer, export settings, and bundle seams.
 
 ## Prompt Inputs
 
@@ -16,7 +16,7 @@ If Qwen is disabled, Secret Manager fails, provider transport fails, timeout occ
 
 No render, no workers, no credits, no planner execution, no edit plan creation. Production ready: false.
 
-Boundary phrase: Qwen 3.7 beta is backend-only, uses Secret Manager, keeps deterministic fallback, no render, no workers, no credits, and production ready: false.
+Boundary phrase: Qwen 3.7 Max beta is backend-only, uses Secret Manager, keeps deterministic fallback, no render, no workers, no credits, and production ready: false.
 
 ## RP-MEDIA-01 Runtime Boundary Note
 

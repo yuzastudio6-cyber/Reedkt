@@ -1,0 +1,91 @@
+name: Internal Tester Browser Sign-In Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_internal_tester_browser_sign_in:
+        description: "Type VERIFY_REEDITPRO_INTERNAL_TESTER_BROWSER_SIGN_IN to verify browser-safe tester sign-in"
+        required: true
+        type: string
+      tester_email:
+        description: "Internal tester email address to verify"
+        required: true
+        type: string
+      hosted_app_url:
+        description: "Hosted app base URL to verify before credential sign-in"
+        required: true
+        default: "https://yuzastudio6-cyber.github.io/Reedkt/"
+        type: string
+      require_hosted_supabase_config:
+        description: "Require the hosted sign-in page to show public Supabase env configured"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: internal-tester-browser-sign-in-verification
+  cancel-in-progress: false
+
+jobs:
+  verify-browser-sign-in:
+    name: Verify hosted route and browser-safe Supabase sign-in
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      REEDITPRO_CONFIRM_HOSTED_SIGN_IN_ROUTE_READINESS: VERIFY_REEDITPRO_HOSTED_SIGN_IN_ROUTE
+      REEDITPRO_HOSTED_APP_URL: ${{ inputs.hosted_app_url }}
+      REEDITPRO_EXPECT_HOSTED_SUPABASE_CONFIGURED: ${{ inputs.require_hosted_supabase_config && 'true' || 'false' }}
+      REEDITPRO_CONFIRM_INTERNAL_TESTER_BROWSER_SIGN_IN: ${{ inputs.confirm_internal_tester_browser_sign_in }}
+      SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      INTERNAL_TESTER_EMAIL: ${{ inputs.tester_email }}
+      INTERNAL_TESTER_PASSWORD: ${{ secrets.STAGING_INTERNAL_TESTER_PASSWORD }}
+    steps:
+      - name: Fail closed unless browser sign-in verification is explicitly approved
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${REEDITPRO_CONFIRM_INTERNAL_TESTER_BROWSER_SIGN_IN}" = "VERIFY_REEDITPRO_INTERNAL_TESTER_BROWSER_SIGN_IN"
+          test "${REEDITPRO_CONFIRM_HOSTED_SIGN_IN_ROUTE_READINESS}" = "VERIFY_REEDITPRO_HOSTED_SIGN_IN_ROUTE"
+          test -n "${SUPABASE_URL}"
+          test -n "${SUPABASE_ANON_KEY}"
+          if [ -z "${INTERNAL_TESTER_PASSWORD}" ]; then
+            echo "::error::Add GitHub secret STAGING_INTERNAL_TESTER_PASSWORD before running browser sign-in verification."
+            exit 1
+          fi
+          if ! [[ "${INTERNAL_TESTER_EMAIL}" =~ ^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$ ]]; then
+            echo "::error::tester_email must be an email address."
+            exit 1
+          fi
+          case "${REEDITPRO_HOSTED_APP_URL}" in
+            https://yuzastudio6-cyber.github.io/Reedkt/|https://yuzastudio6-cyber.github.io/Reedkt|https://app.reeditpro.com/|https://app.reeditpro.com) ;;
+            http://127.0.0.1:*|http://localhost:*) ;;
+            *)
+              echo "::error::hosted_app_url must target the approved Pages URL or configured app.reeditpro.com host."
+              exit 1
+              ;;
+          esac
+
+      - name: Checkout app source
+        uses: actions/checkout@v5
+        with:
+          ref: codex/reeditpro-web-ui-shell
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies for browser-safe verification CLIs
+        run: npm ci --no-audit --no-fund --progress=false
+
+      - name: Verify hosted sign-in route readiness
+        run: npm run internal-testing:verify-hosted-sign-in-route
+
+      - name: Verify internal tester browser-safe Supabase sign-in
+        run: npm run internal-testing:verify-browser-sign-in

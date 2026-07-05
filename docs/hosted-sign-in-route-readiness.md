@@ -64,6 +64,8 @@ npm run internal-testing:verify-browser-sign-in
 
 The browser sign-in verifier proves the public anon Supabase email/password path returns a session. The hosted route verifier proves the deployed page itself is reachable and shaped correctly.
 
+For the safest hosted path, dispatch `.github/workflows/internal-tester-browser-sign-in-verification.yml` after adding the `STAGING_INTERNAL_TESTER_PASSWORD` repository secret. That workflow combines hosted route verification and browser-safe Supabase sign-in without exposing credentials in shell history or repo files.
+
 ## Boundaries
 
 - Browser route readiness only.

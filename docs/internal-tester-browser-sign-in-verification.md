@@ -23,6 +23,16 @@ npm run internal-testing:verify-browser-sign-in
 
 `SUPABASE_URL` and `SUPABASE_ANON_KEY` are accepted as backend/operator aliases for the same public browser-safe values. Do not pass a service-role key; this verifier does not use service-role access.
 
+## GitHub Actions
+
+Preferred hosted verification path:
+
+1. Add repository secret `STAGING_INTERNAL_TESTER_PASSWORD`.
+2. Confirm `STAGING_SUPABASE_URL` and `STAGING_SUPABASE_ANON_KEY` are present.
+3. Run `.github/workflows/internal-tester-browser-sign-in-verification.yml`.
+
+The workflow first runs `npm run internal-testing:verify-hosted-sign-in-route` against the deployed app URL, then runs `npm run internal-testing:verify-browser-sign-in` with the tester email input and password secret. It does not use service-role access, does not print the password or tokens, does not write Supabase data, and does not run upload/media/tool/provider/Qwen/render/credit/production behavior.
+
 ## Output
 
 The CLI emits sanitized JSON:

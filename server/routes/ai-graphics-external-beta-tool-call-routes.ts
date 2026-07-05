@@ -422,29 +422,6 @@ function gpuModelRequiresSourceImage(toolId: string): boolean {
   return !['torch_torchvision', 'transformers'].includes(toolId)
 }
 
-function gpuModelScopedRuntimeProofFlags(toolId: string): string[] {
-  return [
-    gpuModelRequiresSourceImage(toolId)
-      ? '--scoped-gpu-source-image <private-approved-frame.png>'
-      : '',
-    toolId === 'sam2'
-      ? '--scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt>'
-      : '',
-    toolId === 'birefnet'
-      ? `--scoped-gpu-birefnet-model ${birefNetModelDirectoryPlaceholder}`
-      : '',
-    toolId === 'real_esrgan'
-      ? '--scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth>'
-      : '',
-    toolId === 'rembg'
-      ? '--scoped-gpu-rembg-model <private-rembg-model.onnx>'
-      : '',
-    toolId === 'transparent_background'
-      ? '--scoped-gpu-transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
-      : '',
-  ].filter(Boolean)
-}
-
 function gpuModelSingleToolRuntimeProofFlags(toolId: string): string[] {
   return [
     gpuModelRequiresSourceImage(toolId)
@@ -579,12 +556,18 @@ function exactGpuModelScopedRouteProofCommand(
     ].join(' ')
   }
   return [
-    'npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke --',
-    `--scoped-gpu-tool ${toolId}`,
-    `--scoped-gpu-runtime-container-image ${aiGraphicsGpuModelRuntimeContainerImage(toolId)}`,
-    '--scoped-gpu-runtime-container-platform linux/amd64',
-    `--scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
-    ...gpuModelScopedRuntimeProofFlags(toolId),
+    'npm run --silent ai-graphics:external-agent-tool-call --',
+    `--tool ${toolId}`,
+    '--attempt-gpu-runtime',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${aiGraphicsGpuModelRuntimeContainerImage(toolId)}`,
+    '--runtime-container-platform linux/amd64',
+    `--gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
+    ...gpuModelSingleToolRuntimeProofFlags(toolId),
+    '--expect-state executable',
+    '--require-output-hash',
+    '--require-private-only-boundary',
+    '--strict-exit-code',
   ].join(' ')
 }
 

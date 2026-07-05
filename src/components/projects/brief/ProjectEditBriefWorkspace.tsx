@@ -42,12 +42,14 @@ import {
   createBriefSavedCheckpointMetadata,
   createFinalExportReadyCheckpointMetadata,
   createPlanApprovedCheckpointMetadata,
+  createProfessionalQACheckpointMetadata,
   createPreviewReadyCheckpointMetadata,
   createPreviewReviewedCheckpointMetadata,
   createRestoredApprovedLocalPlan,
   createSourceUploadCheckpointMetadata,
   restoreBackendUploadResult,
   restoreFinalExportResult,
+  restoreProfessionalQAResult,
   restorePreviewResult,
   restorePreviewReviewResult,
 } from '../../../lib/project-edit-session-lifecycle-checkpoint-ui-adapter'
@@ -173,6 +175,7 @@ export function ProjectEditBriefWorkspace({
       const restoredUpload = restoreBackendUploadResult(backendLocalEditSession)
       const restoredPreview = restorePreviewResult(backendLocalEditSession)
       const restoredReview = restorePreviewReviewResult(backendLocalEditSession)
+      const restoredProfessionalQA = restoreProfessionalQAResult(backendLocalEditSession)
       const restoredFinalExport = restoreFinalExportResult(backendLocalEditSession)
 
       if (restoredUpload) {
@@ -181,11 +184,12 @@ export function ProjectEditBriefWorkspace({
       }
       if (restoredPreview) setLocalPreviewResult(restoredPreview)
       if (restoredReview) setPreviewReviewResult(restoredReview)
+      if (restoredProfessionalQA) setProfessionalQAResult(restoredProfessionalQA)
       if (restoredFinalExport) {
         setLocalFinalExportResult(restoredFinalExport)
-        setProfessionalQAResult(restoredFinalExport.professionalQA)
+        setProfessionalQAResult(restoredFinalExport.professionalQA ?? restoredProfessionalQA)
       }
-      if (restoredUpload || restoredPreview || restoredReview || restoredFinalExport) {
+      if (restoredUpload || restoredPreview || restoredReview || restoredProfessionalQA || restoredFinalExport) {
         setStatusMessage('Backend-local edit progress restored from the edit-session lifecycle checkpoints.')
       }
     })
@@ -647,6 +651,18 @@ export function ProjectEditBriefWorkspace({
             onQARecorded={(result) => {
               setProfessionalQAResult(result)
               setLocalFinalExportResult(undefined)
+              void recordLifecycleCheckpoint({
+                checkpointKind: 'professional_qa_checked',
+                status: 'preview_ready',
+                approvalStatus: 'approved',
+                latestSnapshotId: result.approvedPlanSnapshotId,
+                latestPreviewId: result.renderId,
+                metadata: createProfessionalQACheckpointMetadata(result),
+              }).catch((caught) => {
+                setStatusMessage(caught instanceof Error
+                  ? `Professional QA recorded, but lifecycle checkpoint failed safely: ${caught.message}`
+                  : 'Professional QA recorded, but lifecycle checkpoint failed safely.')
+              })
               setStatusMessage(result.status === 'passed'
                 ? 'Professional QA checkpoint passed. Private export is available for internal review.'
                 : 'Professional QA checkpoint is blocked. Resolve the listed readiness items before export.')

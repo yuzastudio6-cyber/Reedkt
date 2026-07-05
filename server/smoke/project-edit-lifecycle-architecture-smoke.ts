@@ -589,6 +589,9 @@ for (const phrase of [
   'backendApprovedLocalPlan',
   'previewReviewResult',
   'professionalQAResult',
+  'createProfessionalQACheckpointMetadata',
+  'restoreProfessionalQAResult',
+  'professional_qa_checked',
   'readbackVerified',
 ]) {
   assert.match(workspace, new RegExp(phrase))
@@ -679,6 +682,11 @@ assert.match(finalExportClient, /productReady: false/)
 assert.match(finalExportClient, /private_final_export/)
 assert.match(finalExportClient, /editAssemblyPlan: editAssembly/)
 assert.doesNotMatch(finalExportClient, /service_role|signedUrl|Stripe|production ready:\s*true/i)
+
+const lifecycleCheckpointAdapter = read('src/lib/project-edit-session-lifecycle-checkpoint-ui-adapter.ts')
+assert.match(lifecycleCheckpointAdapter, /createProfessionalQACheckpointMetadata/)
+assert.match(lifecycleCheckpointAdapter, /restoreProfessionalQAResult/)
+assert.match(lifecycleCheckpointAdapter, /backendLocalProfessionalQA/)
 
 const previewReviewClient = read('src/lib/project-source-video-preview-review.ts')
 assert.match(previewReviewClient, /preview-review/)

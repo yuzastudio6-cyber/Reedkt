@@ -56,6 +56,7 @@ export const projectEditSessionLifecycleCheckpointSchema = z.object({
     'plan_approved',
     'preview_ready',
     'preview_reviewed',
+    'professional_qa_checked',
     'final_export_ready',
     'setup_reset',
   ]),

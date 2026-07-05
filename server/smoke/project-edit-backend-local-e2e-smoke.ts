@@ -18,12 +18,14 @@ import {
   createBriefSavedCheckpointMetadata,
   createFinalExportReadyCheckpointMetadata,
   createPlanApprovedCheckpointMetadata,
+  createProfessionalQACheckpointMetadata,
   createPreviewReadyCheckpointMetadata,
   createPreviewReviewedCheckpointMetadata,
   createRestoredApprovedLocalPlan,
   createSourceUploadCheckpointMetadata,
   restoreBackendUploadResult,
   restoreFinalExportResult,
+  restoreProfessionalQAResult,
   restorePreviewResult,
   restorePreviewReviewResult,
 } from '../../src/lib/project-edit-session-lifecycle-checkpoint-ui-adapter'
@@ -306,6 +308,29 @@ try {
   assert.equal(professionalQA.productReady, false)
   assert.deepEqual(professionalQA.blockers, [])
 
+  await recordProjectEditSessionLifecycleCheckpointBackendLocal({
+    apiBaseUrl,
+    editSessionId,
+    workspaceId,
+    checkpointKind: 'professional_qa_checked',
+    status: 'preview_ready',
+    approvalStatus: 'approved',
+    latestSnapshotId: professionalQA.approvedPlanSnapshotId,
+    latestPreviewId: professionalQA.renderId,
+    metadata: createProfessionalQACheckpointMetadata(professionalQA),
+    getAccessToken: async () => undefined,
+  })
+  const qaSession = await readProjectEditSessionBackendLocal({
+    apiBaseUrl,
+    editSessionId,
+    workspaceId,
+    getAccessToken: async () => undefined,
+  })
+  const restoredProfessionalQA = restoreProfessionalQAResult(qaSession.editSession)
+  assert.equal(restoredProfessionalQA?.status, 'passed')
+  assert.equal(restoredProfessionalQA?.previewReviewId, review.id)
+  assert.equal(restoredProfessionalQA?.productReady, false)
+
   const finalExport = await runProjectSourceVideoLocalFinalExportSmoke({
     apiBaseUrl,
     editPlanId: approvedPlan.localEditPlan.editPlanId,
@@ -378,10 +403,12 @@ try {
   const restoredUpload = restoreBackendUploadResult(finalSession.editSession)
   const restoredPreview = restorePreviewResult(finalSession.editSession)
   const restoredReview = restorePreviewReviewResult(finalSession.editSession)
+  const restoredStandaloneQA = restoreProfessionalQAResult(finalSession.editSession)
   const restoredFinalExport = restoreFinalExportResult(finalSession.editSession)
   assert.equal(restoredUpload?.storageObjectRecordId, upload.storageObjectRecordId)
   assert.equal(restoredPreview?.status, 'preview_ready')
   assert.equal(restoredReview?.reviewStatus, 'approved')
+  assert.equal(restoredStandaloneQA?.status, 'passed')
   assert.equal(restoredFinalExport?.status, 'final_export_ready')
   assert.equal(restoredPreview?.editAssembly?.planId, approvedPlan.localEditPlan.editPlanId)
   assert.equal(restoredFinalExport?.editAssembly?.mode, 'private_final_export')

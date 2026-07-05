@@ -234,6 +234,25 @@ export function createPreviewReviewedCheckpointMetadata(result: ProjectSourceVid
   }
 }
 
+export function createProfessionalQACheckpointMetadata(result: ProjectSourceVideoProfessionalQAResult): Record<string, unknown> {
+  return {
+    professionalQAId: result.id,
+    workspaceId: result.workspaceId,
+    editPlanId: result.editPlanId,
+    renderId: result.renderId,
+    approvedPlanSnapshotId: result.approvedPlanSnapshotId,
+    creditReservationId: result.creditReservationId,
+    previewReviewId: result.previewReviewId,
+    status: result.status,
+    createdAt: result.createdAt,
+    checks: result.checks,
+    blockers: result.blockers,
+    finalExportStarted: false,
+    publicDeliveryEnabled: false,
+    productReady: false,
+  }
+}
+
 export function createFinalExportReadyCheckpointMetadata(result: ProjectSourceVideoLocalFinalExportResult): Record<string, unknown> {
   return {
     editPlanId: result.editPlanId,
@@ -380,6 +399,18 @@ export function restorePreviewReviewResult(session: ProjectEditSessionRecord | u
     productReady: false,
     warnings: ['Restored preview review metadata from the edit-session checkpoint.'],
   }
+}
+
+export function restoreProfessionalQAResult(session: ProjectEditSessionRecord | undefined): ProjectSourceVideoProfessionalQAResult | undefined {
+  const checkpoint = checkpointValue(session, 'backendLocalProfessionalQA')
+  const metadata = objectValue(checkpoint?.metadata)
+  if (!metadata) return undefined
+
+  return professionalQAValue({
+    ...metadata,
+    id: stringValue(metadata.professionalQAId),
+    createdAt: stringValue(metadata.createdAt) ?? checkpoint?.recordedAt,
+  })
 }
 
 export function restoreFinalExportResult(session: ProjectEditSessionRecord | undefined): ProjectSourceVideoLocalFinalExportResult | undefined {

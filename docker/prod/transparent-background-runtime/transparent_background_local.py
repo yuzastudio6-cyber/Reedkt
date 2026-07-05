@@ -17,6 +17,28 @@ def block_network() -> None:
     socket.socket = BlockedSocket
 
 
+def configure_cpu_proof_base_size(mode: str, output_path: Path, base_size: int) -> None:
+    if base_size <= 0:
+        return
+
+    import transparent_background
+    import yaml
+
+    config_root = output_path.parent / "transparent-background-config"
+    config_home = config_root / ".transparent-background"
+    config_home.mkdir(parents=True, exist_ok=True)
+    source_config = Path(transparent_background.__file__).parent / "config.yaml"
+    config = yaml.safe_load(source_config.read_text(encoding="utf-8"))
+    if mode not in config:
+        raise RuntimeError(f"Unsupported transparent-background mode for CPU proof: {mode}")
+    config[mode]["base_size"] = [base_size, base_size]
+    (config_home / "config.yaml").write_text(
+        yaml.safe_dump(config, sort_keys=False),
+        encoding="utf-8",
+    )
+    os.environ["TRANSPARENT_BACKGROUND_FILE_PATH"] = str(config_root)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint-path", required=True)
@@ -26,6 +48,7 @@ def main() -> None:
     parser.add_argument("--mask-path", required=True)
     parser.add_argument("--output-json", required=True)
     parser.add_argument("--allow-cpu-model-runtime", action="store_true")
+    parser.add_argument("--cpu-proof-base-size", type=int, default=64)
     args = parser.parse_args()
 
     os.environ["MODEL_DOWNLOADS_ENABLED"] = "false"
@@ -51,6 +74,8 @@ def main() -> None:
     cutout_path = Path(args.cutout_path)
     mask_path = Path(args.mask_path)
     output_path = Path(args.output_json)
+    if args.allow_cpu_model_runtime:
+        configure_cpu_proof_base_size(args.mode, output_path, args.cpu_proof_base_size)
     image = Image.open(input_path).convert("RGB")
     remover = Remover(mode=args.mode, jit=False, device=runtime_device, ckpt=str(checkpoint_path))
     cutout = remover.process(image, type="rgba")
@@ -75,6 +100,7 @@ def main() -> None:
         "signedUrlCreated": False,
         "runtime": {
             "mode": args.mode,
+            "cpuProofBaseSize": args.cpu_proof_base_size if args.allow_cpu_model_runtime else None,
             "checkpointPath": str(checkpoint_path),
             "runtimeDevice": output_runtime_device,
             "cpuModelRuntimeAllowed": bool(args.allow_cpu_model_runtime),

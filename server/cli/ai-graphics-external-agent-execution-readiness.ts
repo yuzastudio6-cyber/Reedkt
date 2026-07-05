@@ -33,13 +33,21 @@ const cpuSafeGpuModelRouteProofOutputRoot =
   '.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-safe-diagnostic'
 const cpuSafeGpuModelRouteProofSourceImage =
   '.local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame.ppm'
-const cpuModelGpuModelRouteProofToolIds = ['rembg'] as const
+const cpuModelGpuModelRouteProofToolIds = [
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+] as const
 const cpuModelGpuModelRouteProofOutputRoot =
   '.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-model-diagnostic'
 const cpuModelGpuModelRouteProofSourceImage =
   '.local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame-96.ppm'
+const cpuModelGpuModelRouteProofRealEsrganModel =
+  '.local-artifacts/ai-graphics/private-model-cache/real-esrgan/RealESRGAN_x4plus.pth'
 const cpuModelGpuModelRouteProofRembgModel =
   '.local-artifacts/ai-graphics/private-model-cache/rembg/u2netp.onnx'
+const cpuModelGpuModelRouteProofTransparentBackgroundCheckpoint =
+  '.local-artifacts/ai-graphics/private-model-cache/transparent-background/ckpt_fast.pth'
 const gpuModelRuntimeContainerTargets: Record<string, {
   image: string
   dockerfile: string
@@ -1034,8 +1042,7 @@ function cpuModelGpuModelRouteProofArgs(): string[] {
     '--',
     '--scoped-gpu-tool',
     cpuModelGpuModelRouteProofToolIds.join(','),
-    '--scoped-gpu-runtime-container-image',
-    canonicalGpuWorkerProofImage,
+    '--scoped-gpu-use-tool-specific-runtime-images',
     '--scoped-gpu-runtime-container-platform',
     'linux/amd64',
     '--scoped-gpu-timeout-ms',
@@ -1045,8 +1052,16 @@ function cpuModelGpuModelRouteProofArgs(): string[] {
     cpuModelGpuModelRouteProofOutputRoot,
     '--scoped-gpu-source-image',
     cpuModelGpuModelRouteProofSourceImage,
+    '--scoped-gpu-real-esrgan-model',
+    cpuModelGpuModelRouteProofRealEsrganModel,
+    '--scoped-gpu-real-esrgan-sample-size',
+    '16',
     '--scoped-gpu-rembg-model',
     cpuModelGpuModelRouteProofRembgModel,
+    '--scoped-gpu-transparent-background-checkpoint',
+    cpuModelGpuModelRouteProofTransparentBackgroundCheckpoint,
+    '--scoped-gpu-transparent-background-mode',
+    'fast',
   ]
 }
 
@@ -1400,7 +1415,7 @@ function summarizeCpuModelGpuModelRouteProof(
     attempted: proof !== null,
     accepted,
     status: accepted
-      ? 'cpu_model_gpu_model_route_proof_executed_for_1_tool_17_total_controlled_route_tools_executable'
+      ? 'cpu_model_gpu_model_route_proof_executed_for_3_tools_19_total_controlled_route_tools_executable'
       : proof
       ? 'cpu_model_gpu_model_route_proof_attempted_but_not_accepted'
       : 'cpu_model_gpu_model_route_proof_not_attempted',
@@ -1408,7 +1423,10 @@ function summarizeCpuModelGpuModelRouteProof(
     proofOutputRoot: cpuModelGpuModelRouteProofOutputRoot,
     proofSourceImage: cpuModelGpuModelRouteProofSourceImage,
     proofModelInputs: {
+      realEsrganModelLocalPath: cpuModelGpuModelRouteProofRealEsrganModel,
       rembgModelLocalPath: cpuModelGpuModelRouteProofRembgModel,
+      transparentBackgroundCheckpointLocalPath:
+        cpuModelGpuModelRouteProofTransparentBackgroundCheckpoint,
     },
     expectedToolIds,
     attemptedToolIds: attempts
@@ -1425,10 +1443,7 @@ function summarizeCpuModelGpuModelRouteProof(
         : nonGpuExecutableToolCount + priorGpuExecutableToolIds.length,
     remainingGpuModelBlockedToolIds,
     remainingGpuModelBlockedTools: remainingGpuModelBlockedToolIds.length,
-    rejectedAsTooSlowOrStillBlockedToolIds: [
-      'real_esrgan',
-      'transparent_background',
-    ],
+    rejectedAsTooSlowOrStillBlockedToolIds: [],
     gpuRuntimeShouldStartNow: false,
     gpuRuntimeStartsIdle: false,
     publicArtifactCreated: false,
@@ -2131,7 +2146,7 @@ function buildReport() {
   const privateRuntimeProofSupplied =
     suppliedPrivateLocalRuntimeProofs.length > 0
   const nextGpuModelUnlockCandidate =
-    privateRuntimeProofSupplied &&
+    (privateRuntimeProofSupplied || cpuModelGpuModelRouteProofSummary.accepted) &&
     nativeCudaClosure.remainingToolCount > 0
       ? {
           toolIds: nativeCudaClosure.remainingToolIds,
@@ -2181,7 +2196,7 @@ function buildReport() {
         nativeCudaClosure.remainingToolCount > 0
       ? 'Private proof now covers the accepted GPU/model subset. Run the next scoped proof only for tools with real accepted private runtime evidence; GPU must start only during active scoped tool calls.'
       : cpuModelGpuModelRouteProofSummary.accepted
-      ? 'Controlled route proof now covers 17/21 tools: 13 non-GPU tools, CPU foundation/tensor proof for torch_torchvision, transformers, and kornia, plus rembg CPU-model proof. Keep real_esrgan and transparent_background blocked on this host until their CPU/GPU runtime performance proof completes, and keep sam2/birefnet blocked until native CUDA proof exists.'
+      ? 'Controlled route proof now covers 19/21 tools: 13 non-GPU tools, CPU foundation/tensor proof for torch_torchvision, transformers, and kornia, plus Real-ESRGAN, rembg, and transparent-background CPU-model proof. Keep sam2/birefnet blocked until native CUDA proof exists.'
       : 'First target kornia with the container local-dev CPU tensor command. After kornia returns structured private local output, feed that private harness result into the GPU/model runtime proof-ref bridge, then repeat per GPU/model tool with reviewed model/checkpoint paths where required.'
 
   return {
@@ -2194,7 +2209,7 @@ function buildReport() {
       ? privateProofStatus
       : defaultStatus,
     summary:
-      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools now carry explicit install-proof linkage from gpu-model-install-build-targets: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to torch/torchvision and transformers, CPU tensor proof applies to kornia, accepted CPU-model route proof currently applies to rembg only; Real-ESRGAN and transparent-background remain blocked on this host until bounded runtime proof completes or a proper CUDA/runtime target is used. Native CUDA remains required for SAM2 and BiRefNet. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
+      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools now carry explicit install-proof linkage from gpu-model-install-build-targets: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to torch/torchvision and transformers, CPU tensor proof applies to kornia, accepted CPU-model route proof currently applies to Real-ESRGAN, rembg, and transparent-background. Native CUDA remains required for SAM2 and BiRefNet. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
     stateDefinitions: {
       callable:
         'The external agent can submit the controlled private route request.',
@@ -2472,9 +2487,9 @@ function buildReport() {
         cpuModelGpuModelRouteProofSummary.accepted,
       agentCanExecuteCpuModelGpuModelRouteProofToolsNow:
         cpuModelGpuModelRouteProofSummary.accepted,
-      agentCanExecute17ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow:
+      agentCanExecute19ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow:
         cpuModelGpuModelRouteProofSummary
-          .agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof === 17,
+          .agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof === 19,
       strictCallableExecutableBlockedFailedContractCreated: true,
       capabilityMismatchFailureProbeAccepted:
         routeSmoke.booleans?.capabilityMismatchFailureProbeAccepted === true,
@@ -2554,6 +2569,42 @@ function makeMarkdown(report: ReturnType<typeof buildReport>): string {
       `| \`${row.toolId}\` | \`${row.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${row.nextExactRuntimeInputManifestPath}\` | \`${row.nextExactRuntimeInputManifestMaterializerCommand}\` | \`${row.nextExactRuntimeInputManifestScopedToolCallCommand}\` |`
     ))
     .join('\n')
+  const unlockCandidate = report.fastestGpuModelUnlockCandidate as JsonRecord
+  const unlockCandidateToolLabel = Array.isArray(unlockCandidate.toolIds)
+    ? unlockCandidate.toolIds.join(', ')
+    : unlockCandidate.toolId ?? 'none'
+  const unlockCandidateRecommendedBackend =
+    unlockCandidate.recommendedBackend ?? 'native_cuda_closeout'
+  const unlockCandidateCanonicalProofImage =
+    unlockCandidate.canonicalProofImage ?? 'see native CUDA closeout commands'
+  const unlockCandidateBuildCommand =
+    unlockCandidate.nextExactContainerBuildCommand ??
+    unlockCandidate.nativeCudaCloseoutScriptGeneratorCommand ??
+    'none'
+  const unlockCandidateDirectCommand =
+    unlockCandidate.nextExactCommand ??
+    unlockCandidate.nativeCudaCloseoutCommand ??
+    'none'
+  const unlockCandidateRouteCommand =
+    unlockCandidate.nextExactControlledRouteCommand ??
+    unlockCandidate.nativeCudaCloseoutStrictCommand ??
+    'none'
+  const unlockCandidateBridgeCommand =
+    unlockCandidate.nextExactProofRefBridgeCommand ??
+    unlockCandidate.all21CloseoutReadinessCommand ??
+    'none'
+  const unlockCandidateReadinessCommand =
+    unlockCandidate.nextExactReadinessWithPrivateProofCommand ??
+    unlockCandidate.all21CloseoutReadinessCommand ??
+    'none'
+  const unlockCandidateHostPreflightCommand =
+    unlockCandidate.nextExactCurrentHostPreflightCommand ??
+    report.remainingNativeCudaClosure.currentHostPreflightCommand ??
+    'none'
+  const unlockCandidateExpectedBlocker =
+    unlockCandidate.expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached ??
+    unlockCandidate.remainsBlockedUntil ??
+    'none'
 
   return `# AI Graphics External Agent Execution Readiness
 
@@ -2561,7 +2612,7 @@ Decision: \`${report.decision}\`
 
 Status: \`${report.status}\`
 
-This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools now carry explicit install-proof linkage from \`gpu-model-install-build-targets\`: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to \`torch_torchvision\` and \`transformers\`, CPU tensor proof applies to \`kornia\`, accepted CPU-model route proof currently applies to \`rembg\` only; \`real_esrgan\` and \`transparent_background\` remain blocked on this host until bounded runtime proof completes or a proper CUDA/runtime target is used. Native CUDA remains required for \`sam2\` and \`birefnet\`. The mounted route also proves a capability-mismatch request returns \`failed_with_diagnostics\` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
+This is the strict all-21 external-agent readiness report. It separates \`callable\` from \`executable\`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools now carry explicit install-proof linkage from \`gpu-model-install-build-targets\`: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to \`torch_torchvision\` and \`transformers\`, CPU tensor proof applies to \`kornia\`, accepted CPU-model route proof currently applies to \`real_esrgan\`, \`rembg\`, and \`transparent_background\`. Native CUDA remains required for \`sam2\` and \`birefnet\`. The mounted route also proves a capability-mismatch request returns \`failed_with_diagnostics\` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
 
 ## State Definitions
 
@@ -2610,7 +2661,7 @@ ${report.cpuSafeGpuModelRouteProof.proofRows.map((row) => `| \`${row.toolId}\` |
 - Proof command: \`${report.cpuModelGpuModelRouteProof.proofCommand}\`
 - Proof output root: \`${report.cpuModelGpuModelRouteProof.proofOutputRoot}\`
 - Proof source image: \`${report.cpuModelGpuModelRouteProof.proofSourceImage}\`
-- Guard: this proof accepts only \`rembg\` because it produced structured private output through the mounted controlled route with CPU model runtime and GPU idle. \`real_esrgan\` and \`transparent_background\` remain blocked on this host until their runtime-performance proof completes or a proper native/GPU runtime target is used.
+- Guard: this proof accepts \`real_esrgan\`, \`rembg\`, and \`transparent_background\` because they produced structured private output through the mounted controlled route with CPU model runtime and GPU idle after the active scoped call completed. The remaining GPU/model blockers are native-CUDA tools.
 
 | Tool | State | Output kind | Output hash | Local GPU/model runtime performed | GPU starts now | Adapter executed |
 | --- | --- | --- | --- | ---: | ---: | ---: |
@@ -2656,17 +2707,17 @@ ${Object.entries(report.counts).map(([key, value]) => `- \`${key}\`: ${value}`).
 
 ## Fastest GPU/Model Unlock Candidate
 
-- Tool: \`${report.fastestGpuModelUnlockCandidate.toolId}\`
-- Recommended backend: \`${report.fastestGpuModelUnlockCandidate.recommendedBackend}\`
-- Canonical proof image: \`${report.fastestGpuModelUnlockCandidate.canonicalProofImage}\`
-- Reason: ${report.fastestGpuModelUnlockCandidate.reason}
-- Expected current-host blocker without attached NVIDIA GPU: \`${report.fastestGpuModelUnlockCandidate.expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached}\`
-- Build proof-local image if missing: \`${report.fastestGpuModelUnlockCandidate.nextExactContainerBuildCommand}\`
-- Next direct harness command: \`${report.fastestGpuModelUnlockCandidate.nextExactCommand}\`
-- Next controlled route command: \`${report.fastestGpuModelUnlockCandidate.nextExactControlledRouteCommand}\`
-- Next proof-ref bridge command: \`${report.fastestGpuModelUnlockCandidate.nextExactProofRefBridgeCommand}\`
-- Next direct readiness command with private proof: \`${report.fastestGpuModelUnlockCandidate.nextExactReadinessWithPrivateProofCommand}\`
-- Next current-host preflight command: \`${report.fastestGpuModelUnlockCandidate.nextExactCurrentHostPreflightCommand}\`
+- Tool: \`${unlockCandidateToolLabel}\`
+- Recommended backend: \`${unlockCandidateRecommendedBackend}\`
+- Canonical proof image: \`${unlockCandidateCanonicalProofImage}\`
+- Reason: ${unlockCandidate.reason}
+- Expected current-host blocker without attached NVIDIA GPU: \`${unlockCandidateExpectedBlocker}\`
+- Build proof-local image if missing: \`${unlockCandidateBuildCommand}\`
+- Next direct harness command: \`${unlockCandidateDirectCommand}\`
+- Next controlled route command: \`${unlockCandidateRouteCommand}\`
+- Next proof-ref bridge command: \`${unlockCandidateBridgeCommand}\`
+- Next direct readiness command with private proof: \`${unlockCandidateReadinessCommand}\`
+- Next current-host preflight command: \`${unlockCandidateHostPreflightCommand}\`
 
 ## Failure Diagnostics Guard
 

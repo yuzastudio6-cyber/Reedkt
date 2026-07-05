@@ -173,6 +173,7 @@ interface ScopedGpuModelLocalDevRouteAttemptOptions {
   sam2CheckpointLocalPath?: string
   birefnetModelLocalPath?: string
   realEsrganModelLocalPath?: string
+  realEsrganProofSampleSize?: number
   rembgModelLocalPath?: string
   transparentBackgroundCheckpointLocalPath?: string
   transparentBackgroundMode?: 'base' | 'fast' | 'base-nightly'
@@ -758,6 +759,9 @@ function scopedGpuModelCommand(
     inputRefs.realEsrganModelLocalPath
       ? `--scoped-gpu-real-esrgan-model ${inputRefs.realEsrganModelLocalPath}`
       : '',
+    toolId === 'real_esrgan' && options.realEsrganProofSampleSize
+      ? `--scoped-gpu-real-esrgan-sample-size ${options.realEsrganProofSampleSize}`
+      : '',
     inputRefs.rembgModelLocalPath
       ? `--scoped-gpu-rembg-model ${inputRefs.rembgModelLocalPath}`
       : '',
@@ -833,6 +837,9 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
   }
   if (allowCpuModelRuntime) {
     payload.allowCpuModelRuntime = true
+  }
+  if (toolId === 'real_esrgan' && options.realEsrganProofSampleSize) {
+    payload.realEsrganProofSampleSize = options.realEsrganProofSampleSize
   }
   if (toolId === 'transparent_background' && options.transparentBackgroundMode) {
     payload.transparentBackgroundMode = options.transparentBackgroundMode
@@ -1753,6 +1760,8 @@ async function main() {
     sam2CheckpointLocalPath: stringArg('--scoped-gpu-sam2-checkpoint'),
     birefnetModelLocalPath: stringArg('--scoped-gpu-birefnet-model'),
     realEsrganModelLocalPath: stringArg('--scoped-gpu-real-esrgan-model'),
+    realEsrganProofSampleSize:
+      numberArg('--scoped-gpu-real-esrgan-sample-size'),
     rembgModelLocalPath: stringArg('--scoped-gpu-rembg-model'),
     transparentBackgroundCheckpointLocalPath:
       stringArg('--scoped-gpu-transparent-background-checkpoint'),

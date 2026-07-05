@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_agent_execution_readiness_all21_evaluated_with_g
 
 Status: `external_agent_call_ready_for_all21_runtime_execution_ready_for13_plus_private_gpu_model_proof_subset`
 
-This is the strict all-21 external-agent readiness report. It separates `callable` from `executable`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools now carry explicit install-proof linkage from `gpu-model-install-build-targets`: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to `torch_torchvision` and `transformers`, CPU tensor proof applies to `kornia`, accepted CPU-model route proof currently applies to `rembg` only; `real_esrgan` and `transparent_background` remain blocked on this host until bounded runtime proof completes or a proper CUDA/runtime target is used. Native CUDA remains required for `sam2` and `birefnet`. The mounted route also proves a capability-mismatch request returns `failed_with_diagnostics` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
+This is the strict all-21 external-agent readiness report. It separates `callable` from `executable`: all 21 tools can receive controlled private requests, 13 tools execute controlled local adapters now, and those 13 are also proven through the mock worker-claim-to-canonical-route smoke. The eight GPU/model tools now carry explicit install-proof linkage from `gpu-model-install-build-targets`: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to `torch_torchvision` and `transformers`, CPU tensor proof applies to `kornia`, accepted CPU-model route proof currently applies to `real_esrgan`, `rembg`, and `transparent_background`. Native CUDA remains required for `sam2` and `birefnet`. The mounted route also proves a capability-mismatch request returns `failed_with_diagnostics` without invoking an adapter. GPU runtime is on-demand only and does not start idle.
 
 ## State Definitions
 
@@ -29,10 +29,10 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - `currentHostGpuProofBlockers`: none
 - `currentHostGpuProofPreflightCommand`: npm run --silent ai-graphics:external-agent-execution-readiness -- --detect-host
 - `agentCanExecuteGpuModelProofSubsetNow`: true
-- `agentExecutableToolCountWithAcceptedProofNow`: 17
-- `agentExecutableGpuModelProofSubsetToolCountNow`: 4
-- `gpuModelBlockedToolCountWithAcceptedProofNow`: 4
-- `acceptedProofSubsetGpuToolIds`: torch_torchvision; transformers; kornia; rembg
+- `agentExecutableToolCountWithAcceptedProofNow`: 19
+- `agentExecutableGpuModelProofSubsetToolCountNow`: 6
+- `gpuModelBlockedToolCountWithAcceptedProofNow`: 2
+- `acceptedProofSubsetGpuToolIds`: torch_torchvision; transformers; kornia; real_esrgan; rembg; transparent_background
 
 ## Install Proof Linkage
 
@@ -63,23 +63,25 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 
 ## CPU-Model GPU/Model Controlled Route Proof
 
-- Status: `cpu_model_gpu_model_route_proof_executed_for_1_tool_17_total_controlled_route_tools_executable`
+- Status: `cpu_model_gpu_model_route_proof_executed_for_3_tools_19_total_controlled_route_tools_executable`
 - Attempted: `true`
 - Accepted: `true`
-- Expected tools: `rembg`
-- Executed tools: `rembg`
-- Combined GPU/model proof tools: `torch_torchvision, transformers, kornia, rembg`
-- Executable tool count with CPU-safe plus CPU-model local proof: `17`
-- Remaining GPU/model blocked tools: `sam2, birefnet, real_esrgan, transparent_background`
-- Tools investigated but still blocked on this host: `real_esrgan, transparent_background`
-- Proof command: `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool rembg --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-timeout-ms 120000 --scoped-gpu-allow-cpu-model-runtime --scoped-gpu-output-root .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-model-diagnostic --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame-96.ppm --scoped-gpu-rembg-model .local-artifacts/ai-graphics/private-model-cache/rembg/u2netp.onnx`
+- Expected tools: `real_esrgan, rembg, transparent_background`
+- Executed tools: `real_esrgan, rembg, transparent_background`
+- Combined GPU/model proof tools: `torch_torchvision, transformers, kornia, real_esrgan, rembg, transparent_background`
+- Executable tool count with CPU-safe plus CPU-model local proof: `19`
+- Remaining GPU/model blocked tools: `sam2, birefnet`
+- Tools investigated but still blocked on this host: `none`
+- Proof command: `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan,rembg,transparent_background --scoped-gpu-use-tool-specific-runtime-images --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-timeout-ms 120000 --scoped-gpu-allow-cpu-model-runtime --scoped-gpu-output-root .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-model-diagnostic --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame-96.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/private-model-cache/real-esrgan/RealESRGAN_x4plus.pth --scoped-gpu-real-esrgan-sample-size 16 --scoped-gpu-rembg-model .local-artifacts/ai-graphics/private-model-cache/rembg/u2netp.onnx --scoped-gpu-transparent-background-checkpoint .local-artifacts/ai-graphics/private-model-cache/transparent-background/ckpt_fast.pth --scoped-gpu-transparent-background-mode fast`
 - Proof output root: `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-model-diagnostic`
 - Proof source image: `.local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame-96.ppm`
-- Guard: this proof accepts only `rembg` because it produced structured private output through the mounted controlled route with CPU model runtime and GPU idle. `real_esrgan` and `transparent_background` remain blocked on this host until their runtime-performance proof completes or a proper native/GPU runtime target is used.
+- Guard: this proof accepts `real_esrgan`, `rembg`, and `transparent_background` because they produced structured private output through the mounted controlled route with CPU model runtime and GPU idle after the active scoped call completed. The remaining GPU/model blockers are native-CUDA tools.
 
 | Tool | State | Output kind | Output hash | Local GPU/model runtime performed | GPU starts now | Adapter executed |
 | --- | --- | --- | --- | ---: | ---: | ---: |
+| `real_esrgan` | `executable` | `gpu_model_runtime_json` | `8885f8b61a696092e0d694469d9e131cb11373505fa3a608083e2f438939f334` | true | false | true |
 | `rembg` | `executable` | `gpu_model_runtime_json` | `d545a21d0d8d61dcef679caff0fa4884f9aadc9f45e7127c6e384474b864d448` | true | false | true |
+| `transparent_background` | `executable` | `gpu_model_runtime_json` | `6f2af25b10763dc0127372dc17b8d64e3d987b75e5f02e7374a10f428a9838af` | true | false | true |
 
 ## Tool Rows
 
@@ -179,24 +181,24 @@ These commands are local-only preparation steps for the five GPU/model tools tha
 - `cpuSafeGpuModelRouteProofExecutableTools`: 3
 - `agentExecutableToolsWithCpuSafeGpuModelRouteProof`: 16
 - `remainingGpuModelBlockedToolsAfterCpuSafeGpuModelRouteProof`: 5
-- `cpuModelGpuModelRouteProofAttemptedTools`: 1
-- `cpuModelGpuModelRouteProofExecutableTools`: 1
-- `agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof`: 17
-- `remainingGpuModelBlockedToolsAfterCpuSafeAndCpuModelGpuModelRouteProof`: 4
+- `cpuModelGpuModelRouteProofAttemptedTools`: 3
+- `cpuModelGpuModelRouteProofExecutableTools`: 3
+- `agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof`: 19
+- `remainingGpuModelBlockedToolsAfterCpuSafeAndCpuModelGpuModelRouteProof`: 2
 
 ## Fastest GPU/Model Unlock Candidate
 
-- Tool: `kornia`
-- Recommended backend: `docker_container`
-- Canonical proof image: `reeditpro/ai-graphics-gpu-worker:proof-local`
-- Reason: Kornia is the narrowest GPU/model execution unlock candidate because it uses the real controlled adapter, can prove local CPU tensor execution with a private approved frame and output directory, and does not require a model-weight manifest.
-- Expected current-host blocker without attached NVIDIA GPU: `gpu_model_python_package_missing`
-- Build proof-local image if missing: `docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .`
-- Next direct harness command: `npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-tensor-runtime --source-image <private-approved-frame.png>`
-- Next controlled route command: `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia --scoped-gpu-allow-cpu-tensor-runtime --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/kornia/private-approved-frame.ppm`
-- Next proof-ref bridge command: `npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json`
-- Next direct readiness command with private proof: `npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json`
-- Next current-host preflight command: `npm run --silent ai-graphics:external-agent-execution-readiness -- --detect-host`
+- Tool: `sam2, birefnet`
+- Recommended backend: `docker_container_native_cuda`
+- Canonical proof image: `see native CUDA closeout commands`
+- Reason: Accepted private local runtime proof already covers the CPU foundation, CPU tensor, and CPU model GPU/model tools. The remaining unlock path is native CUDA proof for SAM2 and BiRefNet with reviewed private model/source inputs.
+- Expected current-host blocker without attached NVIDIA GPU: `Run the native CUDA closeout on a linux/amd64 host with Docker NVIDIA runtime, nvidia-smi, CUDA-visible proof containers, reviewed private SAM2/BiRefNet model inputs, and the accepted existing proof refs.`
+- Build proof-local image if missing: `npm run --silent ai-graphics:external-agent-native-cuda-closeout -- --detect-host --private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT" --model-weight-manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR" --source-image <private-approved-frame.png> --output-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout --existing-proof-result <accepted-proof-for-torch_torchvision-transformers-kornia.json> --existing-proof-result <accepted-proof-for-real_esrgan.json> --existing-proof-result <accepted-proof-for-rembg.json> --existing-proof-result <accepted-proof-for-transparent_background.json> --script-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/run-native-cuda-closeout.sh`
+- Next direct harness command: `npm run --silent ai-graphics:external-agent-native-cuda-closeout -- --detect-host --private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT" --model-weight-manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR" --source-image <private-approved-frame.png> --output-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout --existing-proof-result <accepted-proof-for-torch_torchvision-transformers-kornia.json> --existing-proof-result <accepted-proof-for-real_esrgan.json> --existing-proof-result <accepted-proof-for-rembg.json> --existing-proof-result <accepted-proof-for-transparent_background.json> --attempt-local-runtime`
+- Next controlled route command: `npm run --silent ai-graphics:external-agent-native-cuda-closeout -- --detect-host --private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT" --model-weight-manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR" --source-image <private-approved-frame.png> --output-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout --existing-proof-result <accepted-proof-for-torch_torchvision-transformers-kornia.json> --existing-proof-result <accepted-proof-for-real_esrgan.json> --existing-proof-result <accepted-proof-for-rembg.json> --existing-proof-result <accepted-proof-for-transparent_background.json> --attempt-local-runtime --strict-exit-code`
+- Next proof-ref bridge command: `npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result <accepted-proof-for-torch_torchvision-or-foundation-bundle.json> --local-runtime-proof-result <accepted-proof-for-real_esrgan.json> --local-runtime-proof-result <accepted-proof-for-rembg.json> --local-runtime-proof-result <accepted-proof-for-transparent_background.json> --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/sam2/harness-result.json --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/birefnet/harness-result.json`
+- Next direct readiness command with private proof: `npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result <accepted-proof-for-torch_torchvision-or-foundation-bundle.json> --local-runtime-proof-result <accepted-proof-for-real_esrgan.json> --local-runtime-proof-result <accepted-proof-for-rembg.json> --local-runtime-proof-result <accepted-proof-for-transparent_background.json> --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/sam2/harness-result.json --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/birefnet/harness-result.json`
+- Next current-host preflight command: `npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible`
 
 ## Failure Diagnostics Guard
 
@@ -238,7 +240,7 @@ These commands are local-only preparation steps for the five GPU/model tools tha
 - `cpuModelGpuModelRouteProofAttempted`: true
 - `cpuModelGpuModelRouteProofAccepted`: true
 - `agentCanExecuteCpuModelGpuModelRouteProofToolsNow`: true
-- `agentCanExecute17ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow`: true
+- `agentCanExecute19ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow`: true
 - `strictCallableExecutableBlockedFailedContractCreated`: true
 - `capabilityMismatchFailureProbeAccepted`: true
 - `gpuRuntimeOnDemandOnly`: true
@@ -286,4 +288,4 @@ These commands are local-only preparation steps for the five GPU/model tools tha
 
 ## Next Action
 
-Controlled route proof now covers 17/21 tools: 13 non-GPU tools, CPU foundation/tensor proof for torch_torchvision, transformers, and kornia, plus rembg CPU-model proof. Keep real_esrgan and transparent_background blocked on this host until their CPU/GPU runtime performance proof completes, and keep sam2/birefnet blocked until native CUDA proof exists.
+Controlled route proof now covers 19/21 tools: 13 non-GPU tools, CPU foundation/tensor proof for torch_torchvision, transformers, and kornia, plus Real-ESRGAN, rembg, and transparent-background CPU-model proof. Keep sam2/birefnet blocked until native CUDA proof exists.

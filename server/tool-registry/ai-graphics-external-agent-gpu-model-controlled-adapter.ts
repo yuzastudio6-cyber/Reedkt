@@ -1594,6 +1594,8 @@ function enhancementInput(
       'external agent controlled on-demand Real-ESRGAN runtime request',
     sampleOnly: true,
     sampleCount: 1,
+    realEsrganProofSampleSize:
+      optionalNumber(payload, 'realEsrganProofSampleSize'),
     modelWeightManifestIds: request.modelWeightManifestRef
       ? [request.modelWeightManifestRef]
       : undefined,

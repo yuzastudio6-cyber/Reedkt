@@ -76,6 +76,8 @@ export async function runRealEsrganEnhancement(input: {
         enhancedPath,
         '--output-json',
         outputJsonPath,
+        '--sample-size',
+        String(executionInput.realEsrganProofSampleSize ?? 64),
         ...(allowCpuModelRuntime ? ['--allow-cpu-model-runtime'] : []),
       ],
       outputJsonPath,

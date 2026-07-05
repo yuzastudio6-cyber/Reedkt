@@ -59,15 +59,17 @@ def generate_fixture(path: Path) -> Image.Image:
     return image
 
 
-def choose_center_crop(image: Image.Image) -> tuple[Image.Image, dict]:
+def choose_center_crop(image: Image.Image, sample_size: int) -> tuple[Image.Image, dict]:
+    if sample_size < 16 or sample_size > 64:
+        raise RuntimeError("Real-ESRGAN bounded proof sample size must be between 16 and 64 pixels.")
     width, height = image.size
-    side = min(64, width, height)
-    if side < 64:
-        raise RuntimeError("Source frame is too small for the minimum 64x64 bounded proof sample crop.")
+    side = min(sample_size, width, height)
+    if side < sample_size:
+        raise RuntimeError(f"Source frame is too small for the requested {sample_size}x{sample_size} bounded proof sample crop.")
     x = (width - side) // 2
     y = (height - side) // 2
     crop = image.crop((x, y, x + side, y + side))
-    reason = "Centered 64x64 bounded proof crop from the approved private representative frame."
+    reason = f"Centered {side}x{side} bounded proof crop from the approved private representative frame."
     return crop, {
         "x": int(x),
         "y": int(y),
@@ -107,6 +109,7 @@ def main() -> None:
     parser.add_argument("--enhanced-path", required=True)
     parser.add_argument("--output-json", required=True)
     parser.add_argument("--allow-cpu-model-runtime", action="store_true")
+    parser.add_argument("--sample-size", type=int, default=64)
     args = parser.parse_args()
 
     os.environ["MODEL_DOWNLOADS_ENABLED"] = "false"
@@ -140,7 +143,7 @@ def main() -> None:
         source_path = Path(args.input_image_path)
         sample_path = Path(args.sample_path)
         source_image = Image.open(source_path).convert("RGB")
-        sample_image, crop = choose_center_crop(source_image)
+        sample_image, crop = choose_center_crop(source_image, int(args.sample_size))
         sample_path.parent.mkdir(parents=True, exist_ok=True)
         sample_image.save(sample_path)
         output_bgr = enhance_rgb_image(model_path, sample_image, use_cuda)

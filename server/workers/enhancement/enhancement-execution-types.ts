@@ -58,6 +58,7 @@ export interface EnhancementExecutionInput {
   sampleOnly?: boolean
   selectedClipRanges?: EnhancementClipRange[]
   sampleCount?: number
+  realEsrganProofSampleSize?: number
   modelWeightManifestIds?: string[]
   realEsrganModelLocalPath?: string
   modeNotes?: string[]

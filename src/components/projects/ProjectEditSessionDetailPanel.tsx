@@ -17,9 +17,9 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
   if (!card) {
     return (
       <Card className="project-edit-session-detail-panel" data-testid="project-edit-session-detail-panel">
-        <span className="section-eyebrow">Edit Chat detail</span>
-        <h2>Select an Edit Chat</h2>
-        <p>Choose a card to inspect mock setup, memory, versions, sources, revisions, and preview status.</p>
+        <span className="section-eyebrow">Edit detail</span>
+        <h2>Select an edit</h2>
+        <p>Choose an edit to inspect setup, source notes, versions, revisions, and preview status.</p>
       </Card>
     )
   }
@@ -28,11 +28,10 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
     <Card className="project-edit-session-detail-panel" data-testid="project-edit-session-detail-panel">
       <div className="project-edit-session-detail-panel__heading">
         <div>
-          <span className="section-eyebrow">Selected Edit Chat</span>
+          <span className="section-eyebrow">Selected edit</span>
           <h2>{card.name}</h2>
           <p>{card.frameLabel}</p>
         </div>
-        <Badge accent="cyan">Mock only</Badge>
       </div>
 
       <div className="project-edit-session-detail-panel__badges">
@@ -41,7 +40,7 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
         <Badge>{card.statusLabel}</Badge>
       </div>
 
-      {loading ? <p>Loading mock Edit Chat summary...</p> : null}
+      {loading ? <p>Loading edit summary...</p> : null}
 
       {detail ? (
         <>
@@ -80,7 +79,7 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
               <dd>{detail.selectedEditLevelLabel}</dd>
             </div>
             <div>
-              <dt>Edit Preference</dt>
+              <dt>Preference</dt>
               <dd>{detail.selectedPreferenceSummary}</dd>
             </div>
             <div>
@@ -109,7 +108,7 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
       ) : null}
 
       <Button disabled={!detail} icon={ArrowRight} to={detail?.openChatRoute} variant="secondary">
-        Open Edit Chat
+        Open edit
       </Button>
     </Card>
   )

@@ -4,7 +4,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 const CreateProjectPage = lazy(() => import('./pages/CreateProjectPage').then((module) => ({ default: module.CreateProjectPage })))
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
 const EditPreferencesPage = lazy(() => import('./pages/EditPreferencesPage').then((module) => ({ default: module.EditPreferencesPage })))
-const InternalTestingPage = lazy(() => import('./pages/InternalTestingPage').then((module) => ({ default: module.InternalTestingPage })))
 const LandingPage = lazy(() => import('./pages/LandingPage').then((module) => ({ default: module.LandingPage })))
 const PricingPage = lazy(() => import('./pages/PricingPage').then((module) => ({ default: module.PricingPage })))
 const ProjectHomePage = lazy(() => import('./pages/ProjectHomePage').then((module) => ({ default: module.ProjectHomePage })))
@@ -45,12 +44,14 @@ export default function App() {
         <Route path="/projects/:projectId/edits/:editSessionId/preview" element={<ProjectEditSessionChatPage />} />
         <Route path="/projects/:projectId/edits/:editSessionId/details" element={<ProjectEditSessionChatPage />} />
         <Route path="/editor" element={<Navigate to="/projects/new" replace />} />
-        <Route path="/edit-preferences" element={<EditPreferencesPage />} />
+        <Route path="/preferences" element={<EditPreferencesPage />} />
+        <Route path="/edit-preferences" element={<Navigate to="/preferences" replace />} />
+        <Route path="/settings" element={<Navigate to="/preferences" replace />} />
         <Route path="/wallet" element={<Navigate to="/dashboard" replace />} />
         <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/brand-kit" element={<Navigate to="/edit-preferences" replace />} />
+        <Route path="/brand-kit" element={<Navigate to="/preferences" replace />} />
         <Route path="/exports" element={<Navigate to="/projects" replace />} />
-        <Route path="/internal-testing" element={<InternalTestingPage />} />
+        <Route path="/internal-testing" element={<Navigate to="/dashboard" replace />} />
         <Route path="/app" element={<Navigate to="/dashboard" replace />} />
         <Route path="/create" element={<Navigate to="/projects/new" replace />} />
         <Route path="/upload" element={<Navigate to="/projects/new" replace />} />

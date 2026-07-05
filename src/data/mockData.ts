@@ -23,7 +23,7 @@ import {
 
 export type Accent = 'blue' | 'cyan' | 'violet' | 'purple' | 'success' | 'warning' | 'danger' | 'info'
 
-export const appSidebarNavLabels = ['Home', 'Project', 'Preferences'] as const
+export const appSidebarNavLabels = ['Home', 'Projects', 'Preferences'] as const
 
 export type AppSidebarNavLabel = typeof appSidebarNavLabels[number]
 
@@ -101,8 +101,8 @@ export type ExportItem = {
 
 export const appNav = [
   { label: 'Home', to: '/dashboard', icon: Home },
-  { label: 'Project', to: '/projects', icon: FolderKanban },
-  { label: 'Preferences', to: '/edit-preferences', icon: ListChecks },
+  { label: 'Projects', to: '/projects', icon: FolderKanban },
+  { label: 'Preferences', to: '/preferences', icon: ListChecks },
 ] satisfies readonly NavItem[]
 
 export const marketingLinks = [
@@ -124,34 +124,34 @@ export const projects: Project[] = [
   {
     title: 'Founder story launch cut',
     format: '16:9 master + Shorts',
-    status: 'Generating Stroke Motion',
+    status: 'Needs review',
     progress: 72,
     updated: 'Updated 12 min ago',
     owner: 'Ari',
-    summary: 'Hook tightened, captions applied, and Real Motion proof overlays queued for preview.',
-    tags: ['Stroke Motion', 'Real Motion', 'Review'],
+    summary: 'Hook tightened, captions prepared, and a preview pass is ready for review.',
+    tags: ['Story edit', 'Captions', 'Review'],
     accent: 'cyan',
   },
   {
     title: 'Course module: pricing psychology',
     format: '9:16 social lesson',
-    status: 'VisualExplain ready',
+    status: 'Plan ready',
     progress: 88,
     updated: 'Updated 38 min ago',
     owner: 'Mika',
-    summary: 'Three-card framework synced to transcript phrases with clean educational overlays.',
-    tags: ['VisualExplain', 'Captions', 'Education'],
+    summary: 'Teaching structure, caption style, and supporting visuals are ready to approve.',
+    tags: ['Education', 'Captions', 'Plan'],
     accent: 'violet',
   },
   {
     title: 'Product demo proof reel',
     format: '1:1 product cut',
-    status: 'SoundSync timing review',
+    status: 'Timing review',
     progress: 64,
     updated: 'Updated 1 hr ago',
     owner: 'Theo',
-    summary: 'Real object overlays stay inside the speaker video while beat markers guide transitions.',
-    tags: ['Real Motion', 'SoundSync', 'Demo'],
+    summary: 'Product moments, pacing, audio emphasis, and transition timing are being reviewed.',
+    tags: ['Demo', 'Timing', 'Review'],
     accent: 'blue',
   },
 ]

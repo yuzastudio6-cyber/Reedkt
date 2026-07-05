@@ -47,7 +47,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </span>
         </div>
         <Button size="sm" to="/projects/mock-project-edit-chat-foundation" variant="secondary">
-          Open Project Home
+          Open project
         </Button>
       </div>
     </Card>

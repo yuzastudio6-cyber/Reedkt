@@ -2,20 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { Card } from '../components/Card'
-import { ProjectEditSessionAccessPolicyNotice } from '../components/projects/ProjectEditSessionAccessPolicyNotice'
-import { ProjectEditSessionBoundaryNotice } from '../components/projects/ProjectEditSessionBoundaryNotice'
 import { ProjectEditSessionBreadcrumbs } from '../components/projects/ProjectEditSessionBreadcrumbs'
 import { ProjectEditSessionChatHeader } from '../components/projects/ProjectEditSessionChatHeader'
 import { ProjectEditSessionChatInput } from '../components/projects/ProjectEditSessionChatInput'
 import { ProjectEditSessionContextPanel } from '../components/projects/ProjectEditSessionContextPanel'
 import { ProjectEditSessionMessageList } from '../components/projects/ProjectEditSessionMessageList'
 import { ProjectEditBriefWorkspace } from '../components/projects/brief/ProjectEditBriefWorkspace'
-import { ProjectEditSessionRouteBoundaryNotice } from '../components/projects/ProjectEditSessionRouteBoundaryNotice'
 import { ProjectEditSessionRouteSectionHeader } from '../components/projects/ProjectEditSessionRouteSectionHeader'
 import { ProjectEditSessionRouteTabs } from '../components/projects/ProjectEditSessionRouteTabs'
 import {
   appendProjectEditSessionChatTurnViaApi,
-  createProjectEditSessionChatBoundarySummary,
   loadProjectEditSessionChatBundleForUI,
   type ProjectEditSessionChatBundleForUI,
 } from '../lib/project-edit-session-chat-ui-adapter'
@@ -24,7 +20,6 @@ import {
   createProjectEditSessionProjectHomeClient,
   MOCK_PROJECT_HOME_PROJECT_ID,
 } from '../lib/project-edit-session-project-home-ui-adapter'
-import { createProjectEditSessionNavigationBoundary } from '../lib/project-edit-session-navigation'
 import {
   createProjectEditSessionBreadcrumbs,
   createProjectEditSessionRouteSummary,
@@ -39,12 +34,10 @@ export function ProjectEditSessionChatPage() {
   const editSessionId = params.editSessionId
   const routeSection = useMemo(() => getProjectEditSessionRouteSectionFromPath(location.pathname), [location.pathname])
   const apiClient = useMemo(() => createProjectEditSessionProjectHomeClient(projectId), [projectId])
-  const boundary = useMemo(() => createProjectEditSessionChatBoundarySummary(), [])
-  const navigationBoundary = useMemo(() => createProjectEditSessionNavigationBoundary(), [])
   const [bundleModel, setBundleModel] = useState<ProjectEditSessionChatBundleForUI | undefined>()
   const [messageText, setMessageText] = useState('')
   const [busy, setBusy] = useState(false)
-  const [statusMessage, setStatusMessage] = useState('Loading mock Edit Chat history.')
+  const [statusMessage, setStatusMessage] = useState('Loading edit history.')
   const [memoryUpdateNotice, setMemoryUpdateNotice] = useState<ProjectEditSessionMemoryUpdateNoticeModel | undefined>()
 
   async function refreshBundle(nextStatus?: string) {
@@ -55,7 +48,7 @@ export function ProjectEditSessionChatPage() {
       client: apiClient,
     })
     setBundleModel(nextBundle)
-    setStatusMessage(nextStatus ?? (nextBundle.bundle ? 'Mock Edit Chat loaded.' : 'Mock Edit Chat could not be found.'))
+    setStatusMessage(nextStatus ?? (nextBundle.bundle ? 'Edit loaded.' : 'Edit could not be found.'))
   }
 
   useEffect(() => {
@@ -67,7 +60,7 @@ export function ProjectEditSessionChatPage() {
     loadProjectEditSessionChatBundleForUI({ projectId, editSessionId, client: apiClient }).then((nextBundle) => {
       if (cancelled) return
       setBundleModel(nextBundle)
-      setStatusMessage(nextBundle.bundle ? 'Mock Edit Chat loaded.' : 'Mock Edit Chat could not be found.')
+      setStatusMessage(nextBundle.bundle ? 'Edit loaded.' : 'Edit could not be found.')
     })
 
     return () => {
@@ -79,7 +72,7 @@ export function ProjectEditSessionChatPage() {
     const text = messageText.trim()
     if (!text || !editSessionId || busy) return
     setBusy(true)
-    setStatusMessage('Saving mock Edit Chat message...')
+    setStatusMessage('Saving message...')
     try {
       const result = await appendProjectEditSessionChatTurnViaApi({
         projectId,
@@ -90,10 +83,10 @@ export function ProjectEditSessionChatPage() {
       setMessageText('')
       setMemoryUpdateNotice(result.memoryUpdateNotice)
       await refreshBundle(result.revisionDetected
-        ? 'Mock revision and structured memory captured. Approval remains reset until a future planning milestone.'
-        : 'Mock message, assistant response, and structured memory saved.')
+        ? 'Revision note saved. Approval will refresh before work starts.'
+        : 'Message saved.')
     } catch {
-      setStatusMessage('Mock message save failed safely without production side effects.')
+      setStatusMessage('Message could not be saved. Try again.')
     } finally {
       setBusy(false)
     }
@@ -102,7 +95,8 @@ export function ProjectEditSessionChatPage() {
   const header = bundleModel?.header
   const context = bundleModel?.context
   const messages = bundleModel?.messages ?? []
-  const displayedStatusMessage = editSessionId ? statusMessage : 'Missing Edit Chat id.'
+  const displayedStatusMessage = editSessionId ? statusMessage : 'Missing edit id.'
+  const isBriefSection = routeSection === 'brief'
   const breadcrumbs = useMemo(() => createProjectEditSessionBreadcrumbs({
     editSessionId,
     editSessionTitle: header?.title,
@@ -118,36 +112,35 @@ export function ProjectEditSessionChatPage() {
 
   return (
     <AppShell
-      description="Open a mock/local persistent Edit Chat without starting generation, render, workers, providers, Supabase, or credits."
-      eyebrow="Project Edit Session"
-      title="Edit Chat"
+      description="Upload video, write the brief, chat through the edit plan, review approvals, and preview the result inside this edit."
+      eyebrow="Edit"
+      primaryAction={false}
+      title="Edit workspace"
     >
       <section
         className={`project-edit-session-chat-page project-edit-session-chat-page--${routeSection}`}
         data-route-section={routeSection}
         data-testid="edit-session-chat-page"
       >
-        <ProjectEditSessionBreadcrumbs items={breadcrumbs} />
-        <ProjectEditSessionRouteTabs tabs={routeTabs} />
-        <ProjectEditSessionAccessPolicyNotice editSessionId={editSessionId} projectId={projectId} />
-        <ProjectEditSessionRouteSectionHeader section={routeSection} summary={routeSummary} />
-        <ProjectEditSessionRouteBoundaryNotice boundary={navigationBoundary} />
-        {header ? <ProjectEditSessionChatHeader header={header} /> : null}
+        {!isBriefSection ? <ProjectEditSessionBreadcrumbs items={breadcrumbs} /> : null}
+        {!isBriefSection ? <ProjectEditSessionRouteTabs tabs={routeTabs} /> : null}
+        {!isBriefSection ? <ProjectEditSessionRouteSectionHeader section={routeSection} summary={routeSummary} /> : null}
+        {header && !isBriefSection ? <ProjectEditSessionChatHeader header={header} /> : null}
         {!header ? (
           <Card className="project-edit-session-chat-missing" data-testid="edit-session-chat-missing">
-            <span className="section-eyebrow">Edit Chat unavailable</span>
-            <h1>Mock Edit Chat not found</h1>
+            <span className="section-eyebrow">Edit unavailable</span>
+            <h1>Edit not found</h1>
             <p>{displayedStatusMessage}</p>
           </Card>
         ) : null}
 
-        <ProjectEditSessionBoundaryNotice boundary={bundleModel?.boundary ?? boundary} />
+        {!isBriefSection ? (
+          <div className="project-edit-session-chat-page__status project-edit-session-chat-page__status--quiet" data-testid="edit-session-chat-status" role="status">
+            {displayedStatusMessage}
+          </div>
+        ) : null}
 
-        <div className="project-edit-session-chat-page__status" data-testid="edit-session-chat-status" role="status">
-          {displayedStatusMessage}
-        </div>
-
-        {header && routeSection === 'brief' ? (
+        {header && isBriefSection ? (
           <ProjectEditBriefWorkspace
             editSessionId={editSessionId ?? ''}
             editSessionTitle={header.title}

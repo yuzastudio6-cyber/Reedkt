@@ -58,7 +58,7 @@ export function NewEditSessionCreatePanel({
     setSubmitting(false)
 
     if (!result.ok || !result.session) {
-      setError(result.warnings[0] ?? 'The mock Edit Chat could not be created.')
+      setError(result.warnings[0] ?? 'The edit could not be created.')
       return
     }
 
@@ -76,14 +76,12 @@ export function NewEditSessionCreatePanel({
       <form onSubmit={handleSubmit}>
         <div className="new-edit-session-create-panel__header">
           <div>
-            <span className="section-eyebrow">New Edit Chat</span>
-            <h2>Create mock Edit Chat</h2>
-            <p>Create a persistent mock/local editing workspace, then open the Edit Chat route explicitly.</p>
+            <span className="section-eyebrow">New edit</span>
+            <h2>Create edit</h2>
+            <p>Create an edit workspace for this video. Upload and brief work happen after the edit is created.</p>
           </div>
           <div className="new-edit-session-create-panel__badges">
-            <Badge accent="cyan">Mock/local only</Badge>
-            <Badge>No upload</Badge>
-            <Badge>No credits</Badge>
+            <Badge accent="cyan">Inside project</Badge>
           </div>
           <Button icon={X} onClick={onCancel} type="button" variant="ghost">
             Cancel
@@ -92,11 +90,11 @@ export function NewEditSessionCreatePanel({
 
         <div className="new-edit-session-form-grid">
           <label className="new-edit-session-field new-edit-session-field--full">
-            <span>Edit Chat name</span>
+            <span>Edit name</span>
             <input
               data-testid="new-edit-name-input"
               onChange={(event) => updateForm({ name: event.target.value })}
-              placeholder="Untitled Edit Chat"
+              placeholder="Untitled edit"
               type="text"
               value={form.name}
             />
@@ -135,15 +133,15 @@ export function NewEditSessionCreatePanel({
         {lastResult?.ok && lastResult.session ? (
           <div className="new-edit-session-success" data-testid="new-edit-success-message">
             <CheckCircle2 aria-hidden="true" size={18} />
-            <span>{lastResult.session.name} was created. Open the mock Edit Chat workspace when ready.</span>
+            <span>{lastResult.session.name} was created. Open the edit workspace when ready.</span>
             <Button to={`/projects/${projectId}/edits/${lastResult.session.id}`} variant="secondary">
-              Open Edit Chat
+              Open edit
             </Button>
           </div>
         ) : null}
 
         <div className="new-edit-session-create-panel__footer">
-          <p>Creation uses the browser-safe mock API client. Progress, preview, rendering, workers, uploads, and credits stay off.</p>
+          <p>Creating an edit does not start planning, tool execution, rendering, or credits. Those happen later after the edit is ready and approved.</p>
           <div className="new-edit-session-create-panel__actions">
             {lastResult?.ok ? (
               <Button onClick={handleResetForAnother} type="button" variant="secondary">
@@ -157,7 +155,7 @@ export function NewEditSessionCreatePanel({
                   <span>Creating...</span>
                 </>
               ) : (
-                'Create mock Edit Chat'
+                'Create edit'
               )}
             </Button>
           </div>

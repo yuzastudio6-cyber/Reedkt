@@ -2,16 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { NewEditSessionCreatePanel } from '../components/projects/NewEditSessionCreatePanel'
-import { ProjectEditSessionAccessPolicyNotice } from '../components/projects/ProjectEditSessionAccessPolicyNotice'
 import { ProjectEditSessionCardGrid } from '../components/projects/ProjectEditSessionCardGrid'
 import { ProjectEditSessionDetailPanel } from '../components/projects/ProjectEditSessionDetailPanel'
 import { ProjectHomeHeader } from '../components/projects/ProjectHomeHeader'
-import { NewEditSessionPlaceholder } from '../components/projects/NewEditSessionPlaceholder'
 import type { NewEditSessionCreateResult } from '../lib/project-edit-session-create-flow-ui-adapter'
-import { createProjectEditSessionPath } from '../lib/project-edit-session-navigation'
 import {
   createProjectEditSessionProjectHomeClient,
-  createNewEditSessionPlaceholderModel,
   loadProjectEditSessionHomeDetail,
   loadProjectEditSessionProjectHomeModel,
   MOCK_PROJECT_HOME_PROJECT_ID,
@@ -25,12 +21,10 @@ export function ProjectHomePage() {
   const location = useLocation()
   const projectId = params.projectId ?? MOCK_PROJECT_HOME_PROJECT_ID
   const apiClient = useMemo(() => createProjectEditSessionProjectHomeClient(projectId), [projectId])
-  const placeholderModel = useMemo(() => createNewEditSessionPlaceholderModel(), [])
   const [homeModel, setHomeModel] = useState<ProjectEditSessionProjectHomeModel | undefined>()
   const [selectedId, setSelectedId] = useState<string | undefined>()
   const [detail, setDetail] = useState<ProjectEditSessionHomeDetailViewModel | undefined>()
   const [createPanelOpen, setCreatePanelOpen] = useState(() => new URLSearchParams(location.search).get('newEdit') === '1')
-  const [lastCreateResult, setLastCreateResult] = useState<NewEditSessionCreateResult | undefined>()
 
   useEffect(() => {
     let cancelled = false
@@ -39,7 +33,6 @@ export function ProjectHomePage() {
       if (cancelled) return
       setHomeModel(model)
       setSelectedId(model.cardModels[0]?.id)
-      setLastCreateResult(undefined)
     })
 
     return () => {
@@ -77,7 +70,6 @@ export function ProjectHomePage() {
   }
 
   async function handleNewEditCreated(result: NewEditSessionCreateResult) {
-    setLastCreateResult(result)
     if (!result.session) return
 
     const refreshedModel = await loadProjectEditSessionProjectHomeModel(projectId, apiClient)
@@ -89,27 +81,17 @@ export function ProjectHomePage() {
 
   return (
     <AppShell
-      description="Review mock/local persistent Edit Chats for a project without starting editor routing, generation, rendering, or credits."
-      eyebrow="Project Edit Sessions"
-      title="Project Home"
+      description="Create edits inside this project, then open an edit to upload video, write the brief, review the plan, and preview results."
+      eyebrow="Project"
+      primaryAction={false}
+      title="Project"
     >
       <section className="project-edit-session-home" data-testid="project-edit-session-home">
         <ProjectHomeHeader
           cardCount={cards.length}
-          context={homeModel?.projectContext ?? 'Loading mock Project Edit Session cards.'}
+          context="Create an edit for each video you want ReEditPro to work on."
           onNewEditClick={handleNewEditClick}
-          projectId={projectId}
           projectTitle={homeModel?.projectTitle ?? 'Project Home'}
-        />
-
-        <ProjectEditSessionAccessPolicyNotice projectId={projectId} />
-
-        <NewEditSessionPlaceholder
-          lastCreatedName={lastCreateResult?.session?.name}
-          lastCreatedRoute={lastCreateResult?.session ? createProjectEditSessionPath(projectId, lastCreateResult.session.id) : undefined}
-          model={placeholderModel}
-          onToggle={handleNewEditClick}
-          visible={createPanelOpen}
         />
 
         <NewEditSessionCreatePanel
@@ -121,11 +103,11 @@ export function ProjectHomePage() {
         />
 
         <div className="project-edit-session-home__layout">
-          <section aria-label="Edit Chat cards" className="project-edit-session-home__cards">
+          <section aria-label="Edit cards" className="project-edit-session-home__cards">
             <div className="project-edit-session-section-heading">
-              <span className="section-eyebrow">Edit Chats</span>
-              <h2>Persistent editing conversations</h2>
-              <p>Cards are fixture-backed mock API client projections. Selecting a card updates this page; Open Edit Chat enters the mock workspace.</p>
+              <span className="section-eyebrow">Edits</span>
+              <h2>Edits in this project</h2>
+              <p>Select an edit to review its setup, or open it to continue with upload, brief, chat, preview, and review.</p>
             </div>
             <ProjectEditSessionCardGrid cards={cards} onSelect={handleSelect} selectedId={selectedId} />
           </section>

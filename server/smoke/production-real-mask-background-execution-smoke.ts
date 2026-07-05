@@ -26,7 +26,7 @@ import {
   validateTextBehindSubjectPolicy,
 } from '../workers/text-behind-subject'
 import { runMaskCompositionPipeline } from '../workers/mask-composition'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
@@ -127,8 +127,35 @@ try {
   }
   const birefnet = await runBiRefNetMask({ executionInput: localDevInput, taskPlan: imagePlan })
   check(birefnet.status === 'skipped' && birefnet.skipReason?.code === 'birefnet_model_missing', 'BiRefNet runner must skip gracefully if unavailable/unapproved/no model.')
+  const incompleteBirefnetDir = path.join(tempRoot, 'incomplete-birefnet')
+  await mkdir(incompleteBirefnetDir, { recursive: true })
+  await writeFile(path.join(incompleteBirefnetDir, 'model.safetensors'), 'not a real model\n')
+  const incompleteBirefnet = await runBiRefNetMask({
+    executionInput: { ...localDevInput, birefnetModelLocalPath: incompleteBirefnetDir },
+    taskPlan: imagePlan,
+  })
+  check(
+    incompleteBirefnet.status === 'skipped' &&
+      incompleteBirefnet.skipReason?.code === 'birefnet_model_directory_missing_runtime_files',
+    'BiRefNet runner must block incomplete private model directories before runtime startup.',
+  )
   const sam2 = await runSam2Tracking({ executionInput: { ...localDevInput, maskIntent: 'background_removal_video' }, taskPlan: videoPlan })
   check(sam2.status === 'skipped' && sam2.skipReason?.code === 'sam2_checkpoint_missing', 'SAM2 runner must skip gracefully if unavailable/unapproved/no checkpoint.')
+  const tinySam2Checkpoint = path.join(tempRoot, 'tiny-sam2-checkpoint.pt')
+  await writeFile(tinySam2Checkpoint, 'not a real checkpoint\n')
+  const tinySam2 = await runSam2Tracking({
+    executionInput: {
+      ...localDevInput,
+      maskIntent: 'background_removal_video',
+      sam2CheckpointLocalPath: tinySam2Checkpoint,
+    },
+    taskPlan: videoPlan,
+  })
+  check(
+    tinySam2.status === 'skipped' &&
+      tinySam2.skipReason?.code === 'sam2_checkpoint_too_small_for_runtime',
+    'SAM2 runner must block implausible private checkpoints before runtime startup.',
+  )
   const transparent = await runTransparentBackgroundFallback({ executionInput: localDevInput, taskPlan: imagePlan })
   check(transparent.status === 'skipped', 'transparent-background adapter must skip gracefully if unavailable.')
   const rembg = await runRembgFallback({ executionInput: localDevInput, taskPlan: imagePlan })

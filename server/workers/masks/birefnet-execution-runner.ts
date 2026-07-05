@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, statSync } from 'node:fs'
 import path from 'node:path'
 import {
   buildAiGraphicsRuntimeContainerBindMounts,
@@ -6,6 +6,13 @@ import {
 } from '../ai-graphics-runtime-script-runner'
 import { buildMaskArtifactRecord } from './mask-artifact-writer'
 import type { MaskExecutionInput, MaskTaskPlan, MaskToolCommandPlan, MaskToolExecutionResult } from './mask-execution-types'
+
+const requiredBirefNetRuntimeFiles = [
+  'model.safetensors',
+  'config.json',
+  'BiRefNet_config.py',
+  'birefnet.py',
+]
 
 export function buildBiRefNetCommandPlan(input: {
   executionInput: MaskExecutionInput
@@ -40,6 +47,29 @@ export async function runBiRefNetMask(input: {
   }
   if (!executionInput.birefnetModelLocalPath || !existsSync(executionInput.birefnetModelLocalPath)) {
     return { status: 'skipped', tool: 'birefnet', commandPlan, skipReason: { code: 'birefnet_model_missing', message: 'BiRefNet model/checkpoint is not available locally; no download attempted.', tool: 'birefnet' }, warnings: [] }
+  }
+  const modelStats = statSync(executionInput.birefnetModelLocalPath)
+  const missingRuntimeFiles = modelStats.isDirectory()
+    ? requiredBirefNetRuntimeFiles.filter((fileName) => {
+        const filePath = path.join(executionInput.birefnetModelLocalPath as string, fileName)
+        return !existsSync(filePath) || !statSync(filePath).isFile()
+      })
+    : requiredBirefNetRuntimeFiles
+  if (!modelStats.isDirectory() || missingRuntimeFiles.length > 0) {
+    return {
+      status: 'skipped',
+      tool: 'birefnet',
+      commandPlan,
+      skipReason: {
+        code: 'birefnet_model_directory_missing_runtime_files',
+        message:
+          'BiRefNet local runtime proof requires the reviewed private model directory containing ' +
+          `${requiredBirefNetRuntimeFiles.join(', ')}. Missing: ${missingRuntimeFiles.join(', ') || 'model directory'}. ` +
+          'No network fetch or model download is allowed.',
+        tool: 'birefnet',
+      },
+      warnings: ['BiRefNet runtime did not start because the private model directory failed local sanity checks.'],
+    }
   }
   const sourcePath = executionInput.sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]
   if (!sourcePath || !existsSync(sourcePath)) {

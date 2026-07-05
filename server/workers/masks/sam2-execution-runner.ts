@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, statSync } from 'node:fs'
 import path from 'node:path'
 import {
   buildAiGraphicsRuntimeContainerBindMounts,
@@ -6,6 +6,9 @@ import {
 } from '../ai-graphics-runtime-script-runner'
 import { buildMaskArtifactRecord } from './mask-artifact-writer'
 import type { MaskExecutionInput, MaskTaskPlan, MaskToolCommandPlan, MaskToolExecutionResult } from './mask-execution-types'
+
+const minimumPrivateCheckpointBytes = 1024 * 1024
+const acceptedSam2CheckpointExtensions = new Set(['.pt', '.pth'])
 
 export function buildSam2CommandPlan(input: {
   executionInput: MaskExecutionInput
@@ -42,6 +45,26 @@ export async function runSam2Tracking(input: {
   }
   if (!executionInput.sam2CheckpointLocalPath || !existsSync(executionInput.sam2CheckpointLocalPath)) {
     return { status: 'skipped', tool: 'sam2', commandPlan, skipReason: { code: 'sam2_checkpoint_missing', message: 'SAM2 checkpoint is not available locally; no download attempted.', tool: 'sam2' }, warnings: [] }
+  }
+  const checkpointStats = statSync(executionInput.sam2CheckpointLocalPath)
+  const checkpointExtension = path.extname(executionInput.sam2CheckpointLocalPath).toLowerCase()
+  if (
+    !checkpointStats.isFile() ||
+    checkpointStats.size < minimumPrivateCheckpointBytes ||
+    !acceptedSam2CheckpointExtensions.has(checkpointExtension)
+  ) {
+    return {
+      status: 'skipped',
+      tool: 'sam2',
+      commandPlan,
+      skipReason: {
+        code: 'sam2_checkpoint_too_small_for_runtime',
+        message:
+          'SAM2 checkpoint must be a reviewed private .pt/.pth file with plausible model size before CUDA runtime starts.',
+        tool: 'sam2',
+      },
+      warnings: ['SAM2 runtime did not start because the private checkpoint failed local sanity checks.'],
+    }
   }
   const sourcePath = executionInput.sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]
   if (!sourcePath || !existsSync(sourcePath)) {

@@ -199,11 +199,19 @@ export function createProjectEditSessionService(context: ServiceContext) {
 
       const now = nowIso()
       const checkpointMetadata = sanitizeJson(input.metadata ?? {})
+      const resetPolicy = backendLocalCheckpointResetPolicy(input.checkpointKind)
+      const nextApprovalStatus = input.approvalStatus ?? backendLocalCheckpointApprovalStatus(input.checkpointKind, existing.approvalStatus)
+      const nextMetadata = {
+        ...(existing.metadata ?? {}),
+      }
+      for (const key of resetPolicy.clearMetadataKeys) {
+        delete nextMetadata[key]
+      }
       const checkpoint = {
         checkpointKind: input.checkpointKind,
         recordedAt: now,
         status: input.status,
-        approvalStatus: input.approvalStatus ?? existing.approvalStatus,
+        approvalStatus: nextApprovalStatus,
         sourceMediaAssetId: input.sourceMediaAssetId,
         latestSnapshotId: input.latestSnapshotId,
         latestPreviewId: input.latestPreviewId,
@@ -219,20 +227,32 @@ export function createProjectEditSessionService(context: ServiceContext) {
       const updated: BackendLocalProjectEditSessionRecord = {
         ...existing,
         status: input.status,
-        approvalStatus: input.approvalStatus ?? existing.approvalStatus,
-        latestSnapshotId: input.latestSnapshotId ?? existing.latestSnapshotId,
-        latestPreviewId: input.latestPreviewId ?? existing.latestPreviewId,
-        latestPreviewUrl: input.latestPreviewUrl ?? existing.latestPreviewUrl,
-        sourceMediaAssetIds: addUnique(existing.sourceMediaAssetIds, input.sourceMediaAssetId),
+        approvalStatus: nextApprovalStatus,
+        latestSnapshotId: input.latestSnapshotId ?? (resetPolicy.clearLatestSnapshot ? undefined : existing.latestSnapshotId),
+        latestPreviewId: input.latestPreviewId ?? (resetPolicy.clearLatestPreview ? undefined : existing.latestPreviewId),
+        latestPreviewUrl: input.latestPreviewUrl ?? (resetPolicy.clearLatestPreview ? undefined : existing.latestPreviewUrl),
+        sourceMediaAssetIds: input.checkpointKind === 'source_uploaded' && input.sourceMediaAssetId
+          ? [input.sourceMediaAssetId]
+          : resetPolicy.clearSourceMedia ? [] : addUnique(existing.sourceMediaAssetIds, input.sourceMediaAssetId),
         revisionCount: input.status === 'revision_requested' ? existing.revisionCount + 1 : existing.revisionCount,
-        versionCount: input.checkpointKind === 'plan_approved' ? Math.max(existing.versionCount, 1) : existing.versionCount,
-        previewCount: input.checkpointKind === 'preview_ready' ? Math.max(existing.previewCount + 1, 1) : existing.previewCount,
+        versionCount: resetPolicy.clearVersions
+          ? 0
+          : input.checkpointKind === 'plan_approved' ? Math.max(existing.versionCount, 1) : existing.versionCount,
+        previewCount: resetPolicy.clearPreviews
+          ? 0
+          : input.checkpointKind === 'preview_ready' ? Math.max(existing.previewCount + 1, 1) : existing.previewCount,
         updatedAt: now,
         lastOpenedAt: now,
         metadata: {
-          ...(existing.metadata ?? {}),
-          noUploadStarted: input.checkpointKind === 'source_uploaded' ? false : existing.metadata?.noUploadStarted,
-          noPlanApproved: input.checkpointKind === 'plan_approved' ? false : existing.metadata?.noPlanApproved,
+          ...nextMetadata,
+          noUploadStarted: input.checkpointKind === 'source_uploaded'
+            ? false
+            : input.checkpointKind === 'setup_reset' ? true : existing.metadata?.noUploadStarted,
+          noPlanApproved: input.checkpointKind === 'plan_approved'
+            ? false
+            : resetPolicy.clearPlan ? true : existing.metadata?.noPlanApproved,
+          noRenderStarted: resetPolicy.clearPreviews ? true : existing.metadata?.noRenderStarted,
+          noCreditReservedOrSpent: resetPolicy.clearPlan ? true : existing.metadata?.noCreditReservedOrSpent,
           [checkpointKey]: checkpoint,
           latestBackendLocalCheckpoint: checkpoint,
         },
@@ -285,6 +305,144 @@ function assertSafeLifecycleCheckpointInput(input: ProjectEditSessionLifecycleCh
 function addUnique(values: string[], value: string | undefined): string[] {
   if (!value || values.includes(value)) return values
   return [...values, value]
+}
+
+function backendLocalCheckpointApprovalStatus(
+  checkpointKind: ProjectEditSessionLifecycleCheckpointRequest['checkpointKind'],
+  existing: ProjectEditSessionRecord['approvalStatus'],
+): ProjectEditSessionRecord['approvalStatus'] {
+  if (checkpointKind === 'source_uploaded' || checkpointKind === 'setup_reset') return 'not_requested'
+  if (checkpointKind === 'brief_saved') return 'requested'
+  if (checkpointKind === 'plan_approved' || checkpointKind === 'preview_ready' || checkpointKind === 'preview_reviewed' || checkpointKind === 'professional_qa_checked' || checkpointKind === 'final_export_ready') {
+    return existing === 'not_requested' ? 'approved' : existing
+  }
+  return existing
+}
+
+function backendLocalCheckpointResetPolicy(
+  checkpointKind: ProjectEditSessionLifecycleCheckpointRequest['checkpointKind'],
+): {
+  clearLatestPreview: boolean
+  clearLatestSnapshot: boolean
+  clearMetadataKeys: string[]
+  clearPlan: boolean
+  clearPreviews: boolean
+  clearSourceMedia: boolean
+  clearVersions: boolean
+} {
+  if (checkpointKind === 'setup_reset') {
+    return {
+      clearLatestPreview: true,
+      clearLatestSnapshot: true,
+      clearMetadataKeys: [
+        'backendLocalSourceUpload',
+        'backendLocalBrief',
+        'backendLocalPlan',
+        'backendLocalPreview',
+        'backendLocalPreviewReview',
+        'backendLocalProfessionalQA',
+        'backendLocalFinalExport',
+      ],
+      clearPlan: true,
+      clearPreviews: true,
+      clearSourceMedia: true,
+      clearVersions: true,
+    }
+  }
+
+  if (checkpointKind === 'source_uploaded') {
+    return {
+      clearLatestPreview: true,
+      clearLatestSnapshot: true,
+      clearMetadataKeys: [
+        'backendLocalBrief',
+        'backendLocalPlan',
+        'backendLocalPreview',
+        'backendLocalPreviewReview',
+        'backendLocalProfessionalQA',
+        'backendLocalFinalExport',
+      ],
+      clearPlan: true,
+      clearPreviews: true,
+      clearSourceMedia: false,
+      clearVersions: true,
+    }
+  }
+
+  if (checkpointKind === 'brief_saved') {
+    return {
+      clearLatestPreview: true,
+      clearLatestSnapshot: true,
+      clearMetadataKeys: [
+        'backendLocalPlan',
+        'backendLocalPreview',
+        'backendLocalPreviewReview',
+        'backendLocalProfessionalQA',
+        'backendLocalFinalExport',
+      ],
+      clearPlan: true,
+      clearPreviews: true,
+      clearSourceMedia: false,
+      clearVersions: true,
+    }
+  }
+
+  if (checkpointKind === 'plan_approved') {
+    return {
+      clearLatestPreview: true,
+      clearLatestSnapshot: false,
+      clearMetadataKeys: [
+        'backendLocalPreview',
+        'backendLocalPreviewReview',
+        'backendLocalProfessionalQA',
+        'backendLocalFinalExport',
+      ],
+      clearPlan: false,
+      clearPreviews: true,
+      clearSourceMedia: false,
+      clearVersions: false,
+    }
+  }
+
+  if (checkpointKind === 'preview_ready') {
+    return {
+      clearLatestPreview: false,
+      clearLatestSnapshot: false,
+      clearMetadataKeys: [
+        'backendLocalPreviewReview',
+        'backendLocalProfessionalQA',
+        'backendLocalFinalExport',
+      ],
+      clearPlan: false,
+      clearPreviews: false,
+      clearSourceMedia: false,
+      clearVersions: false,
+    }
+  }
+
+  if (checkpointKind === 'preview_reviewed' || checkpointKind === 'professional_qa_checked') {
+    return {
+      clearLatestPreview: false,
+      clearLatestSnapshot: false,
+      clearMetadataKeys: checkpointKind === 'preview_reviewed'
+        ? ['backendLocalProfessionalQA', 'backendLocalFinalExport']
+        : ['backendLocalFinalExport'],
+      clearPlan: false,
+      clearPreviews: false,
+      clearSourceMedia: false,
+      clearVersions: false,
+    }
+  }
+
+  return {
+    clearLatestPreview: false,
+    clearLatestSnapshot: false,
+    clearMetadataKeys: [],
+    clearPlan: false,
+    clearPreviews: false,
+    clearSourceMedia: false,
+    clearVersions: false,
+  }
 }
 
 function backendLocalCheckpointMetadataKey(

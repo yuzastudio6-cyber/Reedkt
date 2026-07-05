@@ -433,6 +433,44 @@ try {
     workspaceId,
     getAccessToken: async () => undefined,
   })
+
+  const revisedBriefCheckpoint = await recordProjectEditSessionLifecycleCheckpointBackendLocal({
+    apiBaseUrl,
+    editSessionId,
+    workspaceId,
+    checkpointKind: 'brief_saved',
+    status: 'awaiting_approval',
+    sourceMediaAssetId: upload.mediaAssetId,
+    metadata: createBriefSavedCheckpointMetadata({
+      brief: restoredBrief.editBrief,
+      sourceVideoUploadResult: upload,
+    }),
+    getAccessToken: async () => undefined,
+  })
+  assert.equal(revisedBriefCheckpoint.editSession.status, 'awaiting_approval')
+  assert.equal(revisedBriefCheckpoint.editSession.approvalStatus, 'requested')
+  assert.equal(revisedBriefCheckpoint.editSession.previewCount, 0)
+  assert.equal(revisedBriefCheckpoint.editSession.versionCount, 0)
+  assert.equal(revisedBriefCheckpoint.editSession.latestPreviewId, undefined)
+  assert.equal(revisedBriefCheckpoint.editSession.latestPreviewUrl, undefined)
+  assert.equal(revisedBriefCheckpoint.editSession.latestSnapshotId, undefined)
+  assert.equal(revisedBriefCheckpoint.editSession.metadata?.backendLocalPlan, undefined)
+  assert.equal(revisedBriefCheckpoint.editSession.metadata?.backendLocalPreview, undefined)
+  assert.equal(revisedBriefCheckpoint.editSession.metadata?.backendLocalPreviewReview, undefined)
+  assert.equal(revisedBriefCheckpoint.editSession.metadata?.backendLocalProfessionalQA, undefined)
+  assert.equal(revisedBriefCheckpoint.editSession.metadata?.backendLocalFinalExport, undefined)
+  assert.equal(restorePreviewResult(revisedBriefCheckpoint.editSession), undefined)
+  assert.equal(restorePreviewReviewResult(revisedBriefCheckpoint.editSession), undefined)
+  assert.equal(restoreProfessionalQAResult(revisedBriefCheckpoint.editSession), undefined)
+  assert.equal(restoreFinalExportResult(revisedBriefCheckpoint.editSession), undefined)
+  const resetHomeCard = createProjectEditSessionHomeCardViewModelFromRecord(revisedBriefCheckpoint.editSession)
+  const resetHomeDetail = createProjectEditSessionHomeDetailViewModelFromRecord(revisedBriefCheckpoint.editSession)
+  assert.equal(resetHomeCard.progressLabel, 'Brief saved')
+  assert.equal(resetHomeCard.latestPreviewLabel, 'No preview yet')
+  assert.equal(resetHomeCard.progressItems.find((item) => item.id === 'private_export_ready')?.complete, false)
+  assert.equal(resetHomeDetail?.readinessLabel, 'Brief saved')
+  assert.match(resetHomeDetail?.artifactSummaryLines.join('\n') ?? '', /No preview or export artifact/)
+
   const restoredPlanModel = buildProjectEditPlanApprovalModel({
     approved: true,
     backendUploadResult: restoredUpload,

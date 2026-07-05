@@ -162,10 +162,12 @@ function createBackendLocalReadiness(session: ProjectEditSessionRecord): {
   const sourceUpload = objectValue(metadata.backendLocalSourceUpload)
   const brief = objectValue(metadata.backendLocalBrief)
   const plan = objectValue(metadata.backendLocalPlan)
-  const preview = restorePreviewResult(session)
-  const previewReview = restorePreviewReviewResult(session)
-  const professionalQA = restoreProfessionalQAResult(session)
-  const finalExport = restoreFinalExportResult(session)
+  const latestCheckpoint = objectValue(metadata.latestBackendLocalCheckpoint)
+  const checkpointStage = backendLocalCheckpointStage(stringValue(latestCheckpoint?.checkpointKind), session.status)
+  const preview = checkpointStage >= 4 ? restorePreviewResult(session) : undefined
+  const previewReview = checkpointStage >= 5 ? restorePreviewReviewResult(session) : undefined
+  const professionalQA = checkpointStage >= 6 ? restoreProfessionalQAResult(session) : undefined
+  const finalExport = checkpointStage >= 7 ? restoreFinalExportResult(session) : undefined
   const sourceReady = Boolean(sourceUpload)
   const briefReady = Boolean(brief)
   const planApproved = Boolean(plan) && session.approvalStatus === 'approved'
@@ -306,6 +308,23 @@ function createBackendLocalReadiness(session: ProjectEditSessionRecord): {
     progressItems,
     progressLabel: 'Setup needed',
   }
+}
+
+function backendLocalCheckpointStage(checkpointKind: string | undefined, status: ProjectEditSessionStatus): number {
+  if (checkpointKind === 'setup_reset') return 0
+  if (checkpointKind === 'source_uploaded') return 1
+  if (checkpointKind === 'brief_saved') return 2
+  if (checkpointKind === 'plan_approved') return 3
+  if (checkpointKind === 'preview_ready') return 4
+  if (checkpointKind === 'preview_reviewed') return 5
+  if (checkpointKind === 'professional_qa_checked') return 6
+  if (checkpointKind === 'final_export_ready') return 7
+  if (status === 'final_export_ready') return 7
+  if (status === 'preview_ready') return 4
+  if (status === 'approved') return 3
+  if (status === 'awaiting_approval') return 2
+  if (status === 'setup_ready') return 1
+  return 0
 }
 
 export function createProjectHomeTitle(projectId: string): string {

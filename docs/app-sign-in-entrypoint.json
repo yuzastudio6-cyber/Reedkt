@@ -3,7 +3,9 @@
   "route": "/sign-in",
   "defaultRedirect": "/internal-testing",
   "frontendAuthMode": "supabase_anon_client_only",
+  "internalTestingAuthMode": "browser_local_mock_session_when_explicitly_enabled",
   "allowedPublicEnv": ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],
+  "allowedInternalTestingEnv": ["VITE_REEDITPRO_INTERNAL_TEST_AUTH"],
   "blockedScope": {
     "serviceRole": false,
     "supabaseMigration": false,

@@ -32,6 +32,7 @@ const requiredFiles = [
   'docs/app-sign-in-entrypoint.md',
   'docs/app-sign-in-entrypoint.json',
   'server/smoke/app-sign-in-entrypoint-smoke.ts',
+  'tests/e2e/app-sign-in-internal-testing-mock.spec.ts',
 ]
 
 requiredFiles.forEach(assertFile)
@@ -50,10 +51,13 @@ const signInPage = read('src/pages/SignInPage.tsx')
 assertMentions('src/pages/SignInPage.tsx', [
   'signInWithEmailPassword',
   'signUpWithEmailPassword',
+  'isInternalTestingMockAuthEnabled',
   'useAuthBootstrap',
+  'VITE_REEDITPRO_INTERNAL_TEST_AUTH',
   'VITE_SUPABASE_URL',
   'VITE_SUPABASE_ANON_KEY',
   '/internal-testing',
+  'browser-local testing session',
   'No service-role secrets',
   'No tool execution on sign-in',
 ])
@@ -65,11 +69,32 @@ assert.doesNotMatch(
 assert.doesNotMatch(signInPage, /\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\(|fetch\s*\(/i)
 assert.doesNotMatch(signInPage, /runWorker|dispatchWorker|reserveCredits|spendCredits|renderExport|startRender/i)
 
+assertMentions('src/backend/auth/auth-client-service.ts', [
+  'VITE_REEDITPRO_INTERNAL_TEST_AUTH',
+  'reeditpro:internal-testing-auth-session:v1',
+  'No Supabase request was made.',
+  'No Supabase sign-up request was made.',
+  'No Supabase sign-out request was made.',
+])
+
+assertMentions('src/backend/auth/auth-bootstrap-orchestrator.ts', [
+  'getInternalTestingMockAuthSession',
+  'Use internal testing sign-in to create a browser-local mock session.',
+])
+
+assertMentions('scripts/dev/internal-testing-local-upload-runner.mjs', [
+  'VITE_REEDITPRO_INTERNAL_TEST_AUTH',
+  '/sign-in',
+  'browser-local mock sign-in',
+])
+
 const doc = JSON.parse(read('docs/app-sign-in-entrypoint.json')) as {
   decision?: string
   route?: string
   defaultRedirect?: string
   frontendAuthMode?: string
+  internalTestingAuthMode?: string
+  allowedInternalTestingEnv?: string[]
   blockedScope?: Record<string, boolean>
 }
 
@@ -77,6 +102,8 @@ assert.equal(doc.decision, 'app_sign_in_entrypoint_passed_ready_for_internal_tes
 assert.equal(doc.route, '/sign-in')
 assert.equal(doc.defaultRedirect, '/internal-testing')
 assert.equal(doc.frontendAuthMode, 'supabase_anon_client_only')
+assert.equal(doc.internalTestingAuthMode, 'browser_local_mock_session_when_explicitly_enabled')
+assert.deepEqual(doc.allowedInternalTestingEnv, ['VITE_REEDITPRO_INTERNAL_TEST_AUTH'])
 
 for (const [scope, value] of Object.entries(doc.blockedScope ?? {})) {
   assert.equal(value, false, `${scope} should remain false`)

@@ -12,12 +12,15 @@ This entrypoint adds the app-side target for the public launchpad Sign in button
 - default post-auth destination: `/internal-testing`
 - frontend auth mode: Supabase anon client only
 - allowed env keys: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+- internal testing env key: `VITE_REEDITPRO_INTERNAL_TEST_AUTH`
 
 ## Boundary
 
 The route does not add service-role credentials, Supabase migrations, backend table mutations, storage signing, provider calls, worker dispatch, media processing, rendering, credit reservation, credit spend, Stripe, external beta, or production activation.
 
 If Supabase public env values are absent, the page shows a configuration blocker and remains safe. If Supabase email/password auth is configured, the page can sign in or create an internal tester account and then open the internal testing entrypoint.
+
+For repeatable local testing only, `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true` lets the page create a browser-local mock auth session and continue to `/internal-testing` without contacting Supabase. This mode is used by `npm run dev:internal-testing:local-upload` so an operator can test sign-in, source upload, and the preview-only local edit smoke in one loop.
 
 ## Next Gate
 

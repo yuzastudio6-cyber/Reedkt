@@ -61,7 +61,18 @@ test.describe('Project source video backend-local upload against real local API'
     expect(health.data?.runtime?.mockOnly).toBe(true)
 
     await setViewport(page, 1440)
-    await gotoRoute(page, briefPath)
+
+    if (process.env.PLAYWRIGHT_INTERNAL_TEST_AUTH === 'true') {
+      await gotoRoute(page, `/sign-in?redirect=${encodeURIComponent(briefPath)}`)
+      await expect(page.getByText('Internal testing auth is enabled')).toBeVisible()
+      await page.getByLabel('Email').fill('source.upload.tester@reeditpro.local')
+      await page.getByLabel('Password').fill('reeditpro-testing')
+      await page.getByRole('button', { name: /Sign in and open testing/i }).click()
+      await expect(page).toHaveURL(new RegExp(`${briefPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`))
+    } else {
+      await gotoRoute(page, briefPath)
+    }
+
     await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('idle')
 
     await page.getByTestId('project-source-video-file-input').setInputFiles(fixturePath)

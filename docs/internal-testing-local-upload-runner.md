@@ -8,15 +8,17 @@ npm run dev:internal-testing:local-upload
 
 Open:
 
+- Sign in: `http://127.0.0.1:5179/sign-in`
 - Projects: `http://127.0.0.1:5179/projects`
 - Edit Brief source-video test: `http://127.0.0.1:5179/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief`
 - API health: `http://127.0.0.1:9781/health`
 
-On the Edit Brief route, select a source video, click `Upload for testing`, then click `Run local edit preview`.
+Start at the Sign-in route, enter any valid internal-testing email format plus an 8+ character password, and submit. In this runner only, `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true` creates a browser-local mock auth session and opens `/internal-testing`. From there, open the Edit Brief route, select a source video, click `Upload for testing`, then click `Run local edit preview`.
 
 ## What It Enables
 
 - Browser-local source video selection.
+- Browser-local mock sign-in for repeated internal testing. It does not send credentials to Supabase or create backend auth records.
 - Backend-local upload through the upload-intent, local-object PUT, and finalize endpoints.
 - Backend-local storage metadata and canonical bucket/object metadata displayed in the Edit Brief UI.
 - A preview-only local edit smoke path that creates mock credit approval/reservation records, creates a mock approved snapshot, claims a local worker, and writes a canonical preview object when local media tools are available.
@@ -25,7 +27,7 @@ On the Edit Brief route, select a source video, click `Upload for testing`, then
 
 ## What It Does Not Enable
 
-The runner does not start provider calls, live Qwen calls, external beta, production, final export, Supabase writes, GCS writes, Stripe, or product-ready flows. The optional local edit preview smoke does run a preview-only local worker against backend-local test media after a mock approved snapshot and mock credit reservation exist.
+The runner does not start provider calls, live Qwen calls, external beta, production, final export, Supabase auth writes, Supabase data writes, GCS writes, Stripe, or product-ready flows. The optional local edit preview smoke does run a preview-only local worker against backend-local test media after a mock approved snapshot and mock credit reservation exist.
 
 Qwen 3.7 Max remains the named main-brain reasoning identity in the Brief UI and diagnostics, but this local runner does not call Qwen. It proves the source video can move from browser selection to backend-local canonical upload metadata and then through a gated local preview smoke for internal testing.
 
@@ -41,6 +43,7 @@ In another terminal, run:
 
 ```bash
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:5179 \
+PLAYWRIGHT_INTERNAL_TEST_AUTH=true \
 PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_REAL_API=true \
 PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_API_BASE_URL=http://127.0.0.1:9781 \
 PLAYWRIGHT_LOCAL_UPLOAD_STORAGE_ROOT=.reeditpro-local-upload-storage-playwright \

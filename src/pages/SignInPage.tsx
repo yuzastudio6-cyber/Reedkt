@@ -5,7 +5,11 @@ import { AuthBootstrapStatusCard } from '../components/auth/AuthBootstrapStatusC
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
-import { signInWithEmailPassword, signUpWithEmailPassword } from '../backend/auth/auth-client-service'
+import {
+  isInternalTestingMockAuthEnabled,
+  signInWithEmailPassword,
+  signUpWithEmailPassword,
+} from '../backend/auth/auth-client-service'
 import { useAuthBootstrap } from '../hooks/useAuthBootstrap'
 
 type AuthFormMode = 'sign_in' | 'sign_up'
@@ -47,6 +51,7 @@ export function SignInPage() {
   const [searchParams] = useSearchParams()
   const redirectTo = useMemo(() => sanitizeRedirect(searchParams.get('redirect')), [searchParams])
   const auth = useAuthBootstrap()
+  const internalTestingMockAuthEnabled = isInternalTestingMockAuthEnabled()
   const [mode, setMode] = useState<AuthFormMode>('sign_in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -105,10 +110,10 @@ export function SignInPage() {
 
     const bootstrap = await auth.refresh()
 
-    if (result.session) {
+    if (result.session || (result.mode === 'mock' && result.status === 'ready')) {
       setNotice({
         tone: 'success',
-        title: 'Signed in',
+        title: result.mode === 'mock' ? 'Local testing sign-in ready' : 'Signed in',
         detail: bootstrap.ok
           ? 'Your ReEditPro session and workspace context are ready.'
           : `${bootstrap.message} You can still continue to the internal testing entrypoint for read-only checks.`,
@@ -202,6 +207,17 @@ export function SignInPage() {
             </div>
           )}
 
+          {internalTestingMockAuthEnabled && (
+            <div className="auth-entry-notice auth-entry-notice-info" role="status">
+              <strong>Internal testing auth is enabled</strong>
+              <p>
+                `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true` lets this form create a browser-local testing session when Supabase env is
+                absent. It does not send credentials to Supabase, create backend records, run tools, upload media, reserve credits,
+                or call providers.
+              </p>
+            </div>
+          )}
+
           {notice && (
             <div className={`auth-entry-notice auth-entry-notice-${notice.tone}`} role="status">
               <strong>{notice.title}</strong>
@@ -277,6 +293,7 @@ export function SignInPage() {
           <AuthBootstrapStatusCard
             configured={auth.configured}
             loading={auth.loading}
+            mode={auth.mode}
             onRefresh={handleRefresh}
             onSignOut={handleSignOut}
             status={auth.status}

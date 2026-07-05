@@ -737,7 +737,8 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   }
   if (
     blockingReasonCode.includes('source_frame_missing') ||
-    blockingReasonCode.includes('source_frame_invalid_path_kind')
+    blockingReasonCode.includes('source_frame_invalid_path_kind') ||
+    blockingReasonCode.includes('source_frame_invalid_image_type')
   ) {
     return 'sourceImageLocalPath'
   }

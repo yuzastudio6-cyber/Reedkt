@@ -26,6 +26,7 @@ import {
   validateTextBehindSubjectPolicy,
 } from '../workers/text-behind-subject'
 import { runMaskCompositionPipeline } from '../workers/mask-composition'
+import { minimumPrivateModelFileBytes } from '../workers/masks/private-runtime-input-preflight'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
@@ -139,6 +140,45 @@ try {
       incompleteBirefnet.skipReason?.code === 'birefnet_model_directory_missing_runtime_files',
     'BiRefNet runner must block incomplete private model directories before runtime startup.',
   )
+  const validSourceFrame = path.join(tempRoot, 'private-approved-frame.ppm')
+  await writeFile(validSourceFrame, 'P3\n1 1\n255\n255 255 255\n')
+  const invalidSourceFrame = path.join(tempRoot, 'not-an-image.txt')
+  await writeFile(invalidSourceFrame, 'diagnostic text file; not an image\n')
+  const invalidHeaderBirefnetDir = path.join(tempRoot, 'invalid-header-birefnet')
+  await writeBirefNetSupportFiles(invalidHeaderBirefnetDir)
+  await writeFile(
+    path.join(invalidHeaderBirefnetDir, 'model.safetensors'),
+    Buffer.alloc(minimumPrivateModelFileBytes + 8, 1),
+  )
+  const invalidHeaderBirefnet = await runBiRefNetMask({
+    executionInput: {
+      ...localDevInput,
+      sourceImageLocalPath: validSourceFrame,
+      birefnetModelLocalPath: invalidHeaderBirefnetDir,
+    },
+    taskPlan: imagePlan,
+  })
+  check(
+    invalidHeaderBirefnet.status === 'skipped' &&
+      invalidHeaderBirefnet.skipReason?.code === 'birefnet_model_invalid_safetensors_header',
+    'BiRefNet runner must block invalid safetensors headers before runtime startup.',
+  )
+  const validHeaderBirefnetDir = path.join(tempRoot, 'valid-header-birefnet')
+  await writeBirefNetSupportFiles(validHeaderBirefnetDir)
+  await writeSafetensorsPlaceholder(path.join(validHeaderBirefnetDir, 'model.safetensors'))
+  const invalidSourceBirefnet = await runBiRefNetMask({
+    executionInput: {
+      ...localDevInput,
+      sourceImageLocalPath: invalidSourceFrame,
+      birefnetModelLocalPath: validHeaderBirefnetDir,
+    },
+    taskPlan: imagePlan,
+  })
+  check(
+    invalidSourceBirefnet.status === 'skipped' &&
+      invalidSourceBirefnet.skipReason?.code === 'birefnet_source_frame_invalid_image_type',
+    'BiRefNet runner must block invalid source frames before runtime startup.',
+  )
   const sam2 = await runSam2Tracking({ executionInput: { ...localDevInput, maskIntent: 'background_removal_video' }, taskPlan: videoPlan })
   check(sam2.status === 'skipped' && sam2.skipReason?.code === 'sam2_checkpoint_missing', 'SAM2 runner must skip gracefully if unavailable/unapproved/no checkpoint.')
   const tinySam2Checkpoint = path.join(tempRoot, 'tiny-sam2-checkpoint.pt')
@@ -155,6 +195,22 @@ try {
     tinySam2.status === 'skipped' &&
       tinySam2.skipReason?.code === 'sam2_checkpoint_too_small_for_runtime',
     'SAM2 runner must block implausible private checkpoints before runtime startup.',
+  )
+  const plausibleSam2Checkpoint = path.join(tempRoot, 'plausible-sam2-checkpoint.pt')
+  await writeFile(plausibleSam2Checkpoint, Buffer.alloc(minimumPrivateModelFileBytes + 8, 1))
+  const invalidSourceSam2 = await runSam2Tracking({
+    executionInput: {
+      ...localDevInput,
+      maskIntent: 'background_removal_video',
+      sourceImageLocalPath: invalidSourceFrame,
+      sam2CheckpointLocalPath: plausibleSam2Checkpoint,
+    },
+    taskPlan: videoPlan,
+  })
+  check(
+    invalidSourceSam2.status === 'skipped' &&
+      invalidSourceSam2.skipReason?.code === 'sam2_source_frame_invalid_image_type',
+    'SAM2 runner must block invalid source frames before runtime startup.',
   )
   const transparent = await runTransparentBackgroundFallback({ executionInput: localDevInput, taskPlan: imagePlan })
   check(transparent.status === 'skipped', 'transparent-background adapter must skip gracefully if unavailable.')
@@ -325,4 +381,28 @@ function buildPayload(
   }
   payload.idempotencyKey = buildWorkerIdempotencyKey(payload)
   return payload
+}
+
+async function writeBirefNetSupportFiles(modelDir: string): Promise<void> {
+  await mkdir(modelDir, { recursive: true })
+  for (const fileName of ['config.json', 'BiRefNet_config.py', 'birefnet.py']) {
+    await writeFile(
+      path.join(modelDir, fileName),
+      `diagnostic local-only ${fileName}; not a real BiRefNet runtime file\n`,
+    )
+  }
+}
+
+async function writeSafetensorsPlaceholder(filePath: string): Promise<void> {
+  const header = Buffer.from(JSON.stringify({
+    __metadata__: {
+      diagnostic: 'production-real-mask-background-execution-smoke',
+    },
+  }))
+  const payload = Buffer.alloc(minimumPrivateModelFileBytes + 8, 2)
+  const buffer = Buffer.alloc(8 + header.length + payload.length)
+  buffer.writeBigUInt64LE(BigInt(header.length), 0)
+  header.copy(buffer, 8)
+  payload.copy(buffer, 8 + header.length)
+  await writeFile(filePath, buffer)
 }

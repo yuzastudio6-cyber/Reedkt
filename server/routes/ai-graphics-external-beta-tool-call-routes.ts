@@ -684,7 +684,10 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   if (blockingReasonCode.includes('output_directory_missing')) {
     return 'outputDirectory'
   }
-  if (blockingReasonCode.includes('source_frame_missing')) {
+  if (
+    blockingReasonCode.includes('source_frame_missing') ||
+    blockingReasonCode.includes('source_frame_invalid_image_type')
+  ) {
     return 'sourceImageLocalPath'
   }
   if (

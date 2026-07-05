@@ -1229,6 +1229,56 @@ if (
 }
 
 const privateModelRootPaths = ensurePrivateModelRootToolCallPlaceholders()
+const invalidPrivateSourceImage =
+  `${privateModelRootPaths.rootDir}/inputs/not-an-image.txt`
+fs.mkdirSync(path.dirname(absolute(invalidPrivateSourceImage)), { recursive: true })
+fs.writeFileSync(
+  absolute(invalidPrivateSourceImage),
+  'diagnostic local-only text file; not an image\n',
+)
+for (const [toolId, modelFlag, modelPath] of [
+  ['sam2', '--sam2-checkpoint', privateModelRootPaths.sam2Checkpoint],
+  ['birefnet', '--birefnet-model', path.dirname(privateModelRootPaths.birefnetModel)],
+]) {
+  const invalidSourceReport = runToolCall([
+    `--tool ${toolId}`,
+    '--attempt-gpu-runtime',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    '--runtime-container-platform linux/amd64',
+    `--gpu-output-dir ${privateModelRootPaths.rootDir}/outputs/${toolId}-invalid-source`,
+    `--source-image ${invalidPrivateSourceImage}`,
+    `${modelFlag} ${modelPath}`,
+  ].join(' '))
+  if (
+    invalidSourceReport.response?.externalAgentExecutionState !==
+      'blocked_with_reason'
+  ) {
+    fail(`${toolId}_invalid_source_not_structured_block`)
+  }
+  if (
+    invalidSourceReport.response?.blockingReasonCode !==
+      `${toolId}_source_frame_invalid_image_type`
+  ) {
+    fail(
+      `${toolId}_invalid_source_reason_unexpected:${invalidSourceReport.response?.blockingReasonCode}`,
+    )
+  }
+  if (
+    invalidSourceReport.response?.currentBlockingPrerequisiteKey !==
+      'sourceImageLocalPath'
+  ) {
+    fail(
+      `${toolId}_invalid_source_key_unexpected:${invalidSourceReport.response?.currentBlockingPrerequisiteKey}`,
+    )
+  }
+  if (
+    invalidSourceReport.response?.externalAgentToolCallResult
+      ?.localGpuModelRuntimeExecutionPerformed !== false
+  ) {
+    fail(`${toolId}_invalid_source_started_runtime`)
+  }
+}
 const privateModelRootExpectedModelPaths = {
   sam2: {
     payloadField: 'sam2CheckpointLocalPath',

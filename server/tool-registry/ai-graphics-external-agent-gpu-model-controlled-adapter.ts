@@ -13,6 +13,7 @@ import { runKorniaMaskRefinement } from '../workers/masks/kornia-mask-refinement
 import { runRembgFallback } from '../workers/masks/rembg-adapter'
 import { runSam2Tracking } from '../workers/masks/sam2-execution-runner'
 import { runTransparentBackgroundFallback } from '../workers/masks/transparent-background-adapter'
+import { probePrivateSourceImage } from '../workers/masks/private-runtime-input-preflight'
 import type {
   MaskExecutionInput,
   MaskIntent,
@@ -488,6 +489,8 @@ function runtimePrerequisiteBlock(
     }
     const privateInputBlock = privateLocalRuntimeInputBlock(request.toolId, payload)
     if (privateInputBlock) return privateInputBlock
+    const privateSourceImageBlock = privateSourceImageContentBlock(request.toolId, payload)
+    if (privateSourceImageBlock) return privateSourceImageBlock
     if (privateInputPreflightOnly(payload)) {
       return skippedPrerequisiteBlock({
         toolId: request.toolId,
@@ -726,6 +729,8 @@ function runtimePrerequisiteBlock(
 
   const privateInputBlock = privateLocalRuntimeInputBlock(request.toolId, payload)
   if (privateInputBlock) return privateInputBlock
+  const privateSourceImageBlock = privateSourceImageContentBlock(request.toolId, payload)
+  if (privateSourceImageBlock) return privateSourceImageBlock
   if (privateInputPreflightOnly(payload)) {
     return skippedPrerequisiteBlock({
       toolId: request.toolId,
@@ -1329,6 +1334,32 @@ function missingLocalPathBlock(input: {
       'GPU/model local-dev execution prerequisite blocked before Docker/GPU startup because a required private local runtime input was missing.',
     warning:
       'GPU/model runtime did not start because a required private local input path was missing.',
+  })
+}
+
+function privateSourceImageContentBlock(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  payload: Record<string, unknown>,
+): Record<string, unknown> | null {
+  if (toolId === 'torch_torchvision' || toolId === 'transformers') return null
+  const sourceFrame =
+    optionalString(payload, 'sourceImageLocalPath') ??
+    optionalString(payload, 'representativeFrameLocalPath')
+  const sourceProbe = probePrivateSourceImage(sourceFrame)
+  if (!sourceFrame || !sourceProbe.exists || sourceProbe.accepted) return null
+
+  return skippedPrerequisiteBlock({
+    toolId,
+    code: `${toolId}_source_frame_invalid_image_type`,
+    message:
+      sourceProbe.blocker ??
+      'Private source image/frame must be PNG, JPEG, WebP, or PPM before GPU/model runtime starts.',
+    summary:
+      'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because the supplied private source frame was not an accepted image type.',
+    warning:
+      'GPU/model runtime did not start because the supplied private source frame failed image sanity checks.',
+    errorMessage:
+      'Private source image/frame is not accepted for controlled GPU/model runtime proof.',
   })
 }
 

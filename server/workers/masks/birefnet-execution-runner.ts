@@ -6,6 +6,11 @@ import {
 } from '../ai-graphics-runtime-script-runner'
 import { buildMaskArtifactRecord } from './mask-artifact-writer'
 import type { MaskExecutionInput, MaskTaskPlan, MaskToolCommandPlan, MaskToolExecutionResult } from './mask-execution-types'
+import {
+  hasReadableSafetensorsHeader,
+  minimumPrivateModelFileBytes,
+  probePrivateSourceImage,
+} from './private-runtime-input-preflight'
 
 const requiredBirefNetRuntimeFiles = [
   'model.safetensors',
@@ -71,9 +76,56 @@ export async function runBiRefNetMask(input: {
       warnings: ['BiRefNet runtime did not start because the private model directory failed local sanity checks.'],
     }
   }
+  const modelFilePath = path.join(executionInput.birefnetModelLocalPath, 'model.safetensors')
+  const modelFileStats = statSync(modelFilePath)
+  if (modelFileStats.size < minimumPrivateModelFileBytes) {
+    return {
+      status: 'skipped',
+      tool: 'birefnet',
+      commandPlan,
+      skipReason: {
+        code: 'birefnet_model_too_small_for_runtime',
+        message:
+          `BiRefNet model.safetensors is too small (${modelFileStats.size} bytes) for accepted private runtime proof; ` +
+          `expected at least ${minimumPrivateModelFileBytes} bytes before CUDA runtime starts.`,
+        tool: 'birefnet',
+      },
+      warnings: ['BiRefNet runtime did not start because the private model file looked like a placeholder.'],
+    }
+  }
+  if (!hasReadableSafetensorsHeader(modelFilePath)) {
+    return {
+      status: 'skipped',
+      tool: 'birefnet',
+      commandPlan,
+      skipReason: {
+        code: 'birefnet_model_invalid_safetensors_header',
+        message:
+          'BiRefNet model.safetensors must contain a readable safetensors header before CUDA runtime starts.',
+        tool: 'birefnet',
+      },
+      warnings: ['BiRefNet runtime did not start because the private model file failed safetensors header checks.'],
+    }
+  }
   const sourcePath = executionInput.sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]
-  if (!sourcePath || !existsSync(sourcePath)) {
+  const sourceProbe = probePrivateSourceImage(sourcePath)
+  if (!sourcePath || !sourceProbe.exists) {
     return { status: 'skipped', tool: 'birefnet', commandPlan, skipReason: { code: 'birefnet_source_frame_missing', message: 'Safe local source image or representative frame is missing.', tool: 'birefnet' }, warnings: [] }
+  }
+  if (!sourceProbe.accepted) {
+    return {
+      status: 'skipped',
+      tool: 'birefnet',
+      commandPlan,
+      skipReason: {
+        code: 'birefnet_source_frame_invalid_image_type',
+        message:
+          sourceProbe.blocker ??
+          'BiRefNet private source image/frame must be PNG, JPEG, WebP, or PPM before CUDA runtime starts.',
+        tool: 'birefnet',
+      },
+      warnings: ['BiRefNet runtime did not start because the private source frame failed image sanity checks.'],
+    }
   }
   if (!executionInput.outputDirectory) {
     return { status: 'skipped', tool: 'birefnet', commandPlan, skipReason: { code: 'birefnet_output_directory_missing', message: 'BiRefNet execution requires a private local worker output directory.', tool: 'birefnet' }, warnings: [] }

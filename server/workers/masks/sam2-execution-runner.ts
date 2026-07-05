@@ -6,6 +6,7 @@ import {
 } from '../ai-graphics-runtime-script-runner'
 import { buildMaskArtifactRecord } from './mask-artifact-writer'
 import type { MaskExecutionInput, MaskTaskPlan, MaskToolCommandPlan, MaskToolExecutionResult } from './mask-execution-types'
+import { probePrivateSourceImage } from './private-runtime-input-preflight'
 
 const minimumPrivateCheckpointBytes = 1024 * 1024
 const acceptedSam2CheckpointExtensions = new Set(['.pt', '.pth'])
@@ -67,8 +68,24 @@ export async function runSam2Tracking(input: {
     }
   }
   const sourcePath = executionInput.sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]
-  if (!sourcePath || !existsSync(sourcePath)) {
+  const sourceProbe = probePrivateSourceImage(sourcePath)
+  if (!sourcePath || !sourceProbe.exists) {
     return { status: 'skipped', tool: 'sam2', commandPlan, skipReason: { code: 'sam2_source_frame_missing', message: 'Safe local source image or representative frame is missing.', tool: 'sam2' }, warnings: [] }
+  }
+  if (!sourceProbe.accepted) {
+    return {
+      status: 'skipped',
+      tool: 'sam2',
+      commandPlan,
+      skipReason: {
+        code: 'sam2_source_frame_invalid_image_type',
+        message:
+          sourceProbe.blocker ??
+          'SAM2 private source image/frame must be PNG, JPEG, WebP, or PPM before CUDA runtime starts.',
+        tool: 'sam2',
+      },
+      warnings: ['SAM2 runtime did not start because the private source frame failed image sanity checks.'],
+    }
   }
   if (!executionInput.outputDirectory) {
     return { status: 'skipped', tool: 'sam2', commandPlan, skipReason: { code: 'sam2_output_directory_missing', message: 'SAM2 execution requires a private local worker output directory.', tool: 'sam2' }, warnings: [] }

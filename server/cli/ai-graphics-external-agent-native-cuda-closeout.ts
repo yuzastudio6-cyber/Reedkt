@@ -25,6 +25,10 @@ const proofSequenceScript =
   'ai-graphics:external-agent-gpu-model-private-proof-sequence'
 const toolCallScript = 'ai-graphics:external-agent-tool-call'
 const readinessScript = 'ai-graphics:external-agent-execution-readiness'
+const defaultCpuSafeGpuModelRouteProofPacket =
+  '.local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-safe-gpu-model-route-proof.json'
+const defaultCpuModelGpuModelRouteProofPacket =
+  '.local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-model-gpu-model-route-proof-next.json'
 
 const toolIds = ['sam2', 'birefnet'] as const
 type ToolId = typeof toolIds[number]
@@ -56,6 +60,8 @@ type ParsedArgs = {
   outputRoot: string
   sourceImage?: string
   existingProofResults: string[]
+  cpuSafeGpuModelRouteProofPacket?: string
+  cpuModelGpuModelRouteProofPacket?: string
   scriptOut?: string
   timeoutMs?: number
 }
@@ -183,6 +189,12 @@ function parseArgs(): ParsedArgs {
     outputRoot: stringFlag('--output-root') ?? defaultOutputRoot,
     sourceImage: stringFlag('--source-image'),
     existingProofResults: stringFlags('--existing-proof-result'),
+    cpuSafeGpuModelRouteProofPacket:
+      stringFlag('--cpu-safe-gpu-model-route-proof-packet') ??
+      defaultCpuSafeGpuModelRouteProofPacket,
+    cpuModelGpuModelRouteProofPacket:
+      stringFlag('--cpu-model-gpu-model-route-proof-packet') ??
+      defaultCpuModelGpuModelRouteProofPacket,
     scriptOut: stringFlag('--script-out'),
     timeoutMs,
   }
@@ -527,6 +539,18 @@ function finalToolCallArgs(args: ParsedArgs, toolId: ToolId): string[] {
 
 function readinessArgs(args: ParsedArgs): string[] {
   return [
+    ...(args.cpuSafeGpuModelRouteProofPacket
+      ? [
+          '--cpu-safe-gpu-model-route-proof-packet',
+          args.cpuSafeGpuModelRouteProofPacket,
+        ]
+      : []),
+    ...(args.cpuModelGpuModelRouteProofPacket
+      ? [
+          '--cpu-model-gpu-model-route-proof-packet',
+          args.cpuModelGpuModelRouteProofPacket,
+        ]
+      : []),
     ...args.existingProofResults.flatMap((file) => [
       '--local-runtime-proof-result',
       file,
@@ -562,6 +586,10 @@ function writeNativeCudaCloseoutScript(
     { raw: '"$PRIVATE_SOURCE_IMAGE"' },
     '--output-root',
     { raw: '"$OUTPUT_ROOT"' },
+    '--cpu-safe-gpu-model-route-proof-packet',
+    { raw: '"$CPU_SAFE_GPU_MODEL_ROUTE_PROOF_PACKET"' },
+    '--cpu-model-gpu-model-route-proof-packet',
+    { raw: '"$CPU_MODEL_GPU_MODEL_ROUTE_PROOF_PACKET"' },
     ...args.requestedTools.flatMap((toolId): ScriptToken[] => [
       '--tool',
       toolId,
@@ -581,6 +609,18 @@ function writeNativeCudaCloseoutScript(
     '--silent',
     readinessScript,
     '--',
+    ...(args.cpuSafeGpuModelRouteProofPacket
+      ? [
+          '--cpu-safe-gpu-model-route-proof-packet',
+          { raw: '"$CPU_SAFE_GPU_MODEL_ROUTE_PROOF_PACKET"' },
+        ]
+      : []),
+    ...(args.cpuModelGpuModelRouteProofPacket
+      ? [
+          '--cpu-model-gpu-model-route-proof-packet',
+          { raw: '"$CPU_MODEL_GPU_MODEL_ROUTE_PROOF_PACKET"' },
+        ]
+      : []),
     ...args.existingProofResults.flatMap((file): ScriptToken[] => [
       '--local-runtime-proof-result',
       file,
@@ -603,6 +643,8 @@ function writeNativeCudaCloseoutScript(
     `PRIVATE_MODEL_MANIFEST_DIR="\${${privateModelManifestDirEnvVar}:-}"`,
     'PRIVATE_SOURCE_IMAGE="${REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE:-}"',
     'OUTPUT_ROOT="${REEDITPRO_AI_GRAPHICS_NATIVE_CUDA_CLOSEOUT_OUTPUT_ROOT:-}"',
+    'CPU_SAFE_GPU_MODEL_ROUTE_PROOF_PACKET="${REEDITPRO_AI_GRAPHICS_CPU_SAFE_GPU_MODEL_ROUTE_PROOF_PACKET:-}"',
+    'CPU_MODEL_GPU_MODEL_ROUTE_PROOF_PACKET="${REEDITPRO_AI_GRAPHICS_CPU_MODEL_GPU_MODEL_ROUTE_PROOF_PACKET:-}"',
     'if [[ -z "$PRIVATE_MODEL_ROOT" ]]; then',
     `  PRIVATE_MODEL_ROOT=${shellQuote(args.privateModelRoot)}`,
     'fi',
@@ -615,8 +657,18 @@ function writeNativeCudaCloseoutScript(
     'if [[ -z "$OUTPUT_ROOT" ]]; then',
     `  OUTPUT_ROOT=${shellQuote(args.outputRoot)}`,
     'fi',
+    'if [[ -z "$CPU_SAFE_GPU_MODEL_ROUTE_PROOF_PACKET" ]]; then',
+    `  CPU_SAFE_GPU_MODEL_ROUTE_PROOF_PACKET=${shellQuote(args.cpuSafeGpuModelRouteProofPacket ?? '')}`,
+    'fi',
+    'if [[ -z "$CPU_MODEL_GPU_MODEL_ROUTE_PROOF_PACKET" ]]; then',
+    `  CPU_MODEL_GPU_MODEL_ROUTE_PROOF_PACKET=${shellQuote(args.cpuModelGpuModelRouteProofPacket ?? '')}`,
+    'fi',
     'if [[ -z "$PRIVATE_SOURCE_IMAGE" ]]; then',
     '  echo "Set REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE to an approved private local frame." >&2',
+    '  exit 2',
+    'fi',
+    'if [[ -z "$CPU_SAFE_GPU_MODEL_ROUTE_PROOF_PACKET" || -z "$CPU_MODEL_GPU_MODEL_ROUTE_PROOF_PACKET" ]]; then',
+    '  echo "Set accepted CPU-safe and CPU-model GPU/model route proof packet paths before the native CUDA closeout." >&2',
     '  exit 2',
     'fi',
     'if [[ -z "$PRIVATE_MODEL_MANIFEST_DIR" ]]; then',
@@ -680,6 +732,10 @@ function writeNativeCudaCloseoutScript(
     ]),
     nativeCudaCloseoutCommand: bashContinuation(closeoutTokens),
     all21ReadinessRecheckCommand: bashContinuation(readinessTokens),
+    cpuSafeGpuModelRouteProofPacket:
+      args.cpuSafeGpuModelRouteProofPacket ?? null,
+    cpuModelGpuModelRouteProofPacket:
+      args.cpuModelGpuModelRouteProofPacket ?? null,
     expectedProofResults: args.requestedTools.map((toolId) =>
       path.join(args.outputRoot, toolId, 'harness-result.json')),
   }
@@ -889,6 +945,18 @@ function buildReport(args: ParsedArgs): JsonRecord {
   for (const proofResult of args.existingProofResults) {
     assertLocalPath('--existing-proof-result', proofResult)
   }
+  if (args.cpuSafeGpuModelRouteProofPacket) {
+    assertLocalPath(
+      '--cpu-safe-gpu-model-route-proof-packet',
+      args.cpuSafeGpuModelRouteProofPacket,
+    )
+  }
+  if (args.cpuModelGpuModelRouteProofPacket) {
+    assertLocalPath(
+      '--cpu-model-gpu-model-route-proof-packet',
+      args.cpuModelGpuModelRouteProofPacket,
+    )
+  }
   const preflight = hostPreflight(args.detectHost)
   const currentHostBlockers = hostBlockers(preflight)
   const currentHostEligible = args.detectHost ? hostEligible(preflight) : false
@@ -940,6 +1008,10 @@ function buildReport(args: ParsedArgs): JsonRecord {
       sourceImage: args.sourceImage ?? null,
       outputRoot: args.outputRoot,
       existingProofResults: args.existingProofResults,
+      cpuSafeGpuModelRouteProofPacket:
+        args.cpuSafeGpuModelRouteProofPacket ?? null,
+      cpuModelGpuModelRouteProofPacket:
+        args.cpuModelGpuModelRouteProofPacket ?? null,
       localOnly: true,
     },
     nativeCudaCloseoutLocalOnlyScript: scriptReport,
@@ -973,7 +1045,7 @@ function buildReport(args: ParsedArgs): JsonRecord {
       step5:
         'Run this command with --detect-host --attempt-local-runtime --strict-exit-code.',
       step6:
-        'Rerun all-21 readiness with existing proof refs plus the new SAM2 and BiRefNet harness-result.json files.',
+        'Rerun all-21 readiness with the accepted CPU-safe and CPU-model GPU/model route proof packets plus the new SAM2 and BiRefNet harness-result.json files.',
     },
     booleans: {
       nativeCudaCloseoutRunnerReady: true,

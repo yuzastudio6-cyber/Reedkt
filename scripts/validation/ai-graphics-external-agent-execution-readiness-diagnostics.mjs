@@ -1429,15 +1429,24 @@ function checkReport(label, report, expectedStatus = status) {
       !String(closure.nativeCudaCloseoutCommand ?? '').includes(
         'ai-graphics:external-agent-native-cuda-closeout',
       ) ||
-      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
-        '--attempt-local-runtime',
-      ) ||
-      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
-        '--existing-proof-result <accepted-proof-for-transparent_background.json>',
-      ) ||
-      String(closure.nativeCudaCloseoutCommand ?? '').includes(
-        '--strict-exit-code',
-      )
+	      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+	        '--attempt-local-runtime',
+	      ) ||
+	      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+	        '--cpu-safe-gpu-model-route-proof-packet',
+	      ) ||
+	      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+	        'cpu-safe-gpu-model-route-proof.json',
+	      ) ||
+	      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+	        '--cpu-model-gpu-model-route-proof-packet',
+	      ) ||
+	      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+	        'cpu-model-gpu-model-route-proof-next.json',
+	      ) ||
+	      String(closure.nativeCudaCloseoutCommand ?? '').includes(
+	        '--strict-exit-code',
+	      )
     ) {
       fail(`${label}_remaining_native_cuda_missing_closeout_command`)
     }
@@ -1477,12 +1486,24 @@ function checkReport(label, report, expectedStatus = status) {
       fail(`${label}_remaining_native_cuda_missing_closeout_diagnostic_command`)
     }
     if (
-      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
-        'ai-graphics:external-agent-execution-readiness',
-      ) ||
-      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
-        'native-cuda-closeout/sam2/harness-result.json',
-      ) ||
+	      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+	        'ai-graphics:external-agent-execution-readiness',
+	      ) ||
+	      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+	        '--cpu-safe-gpu-model-route-proof-packet',
+	      ) ||
+	      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+	        'cpu-safe-gpu-model-route-proof.json',
+	      ) ||
+	      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+	        '--cpu-model-gpu-model-route-proof-packet',
+	      ) ||
+	      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+	        'cpu-model-gpu-model-route-proof-next.json',
+	      ) ||
+	      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+	        'native-cuda-closeout/sam2/harness-result.json',
+	      ) ||
       !String(closure.all21CloseoutReadinessCommand ?? '').includes(
         'native-cuda-closeout/birefnet/harness-result.json',
       )
@@ -2695,9 +2716,9 @@ const cpuModelGpuModelRouteProofPacketPath = path.join(
   root,
   '.local-artifacts',
   'ai-graphics',
-  'external-agent-execution-readiness',
-  'cpu-model-gpu-model-route-proof.json',
-)
+	  'external-agent-execution-readiness',
+	  'cpu-model-gpu-model-route-proof-next.json',
+	)
 fs.mkdirSync(path.dirname(cpuModelGpuModelRouteProofPacketPath), {
   recursive: true,
 })

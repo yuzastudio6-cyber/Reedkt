@@ -33,6 +33,8 @@ const cpuSafeGpuModelRouteProofOutputRoot =
   '.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-safe-diagnostic'
 const cpuSafeGpuModelRouteProofSourceImage =
   '.local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame.ppm'
+const cpuSafeGpuModelRouteProofPacketPath =
+  '.local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-safe-gpu-model-route-proof.json'
 const cpuModelGpuModelRouteProofToolIds = [
   'real_esrgan',
   'rembg',
@@ -48,6 +50,8 @@ const cpuModelGpuModelRouteProofRembgModel =
   '.local-artifacts/ai-graphics/private-model-cache/rembg/u2netp.onnx'
 const cpuModelGpuModelRouteProofTransparentBackgroundCheckpoint =
   '.local-artifacts/ai-graphics/private-model-cache/transparent-background/ckpt_fast.pth'
+const cpuModelGpuModelRouteProofPacketPath =
+  '.local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-model-gpu-model-route-proof-next.json'
 const gpuModelRuntimeContainerTargets: Record<string, {
   image: string
   dockerfile: string
@@ -692,10 +696,7 @@ function remainingNativeCudaExistingProofArgs(
       shellQuote(proofResult),
     ])
   }
-  return [
-    '--existing-proof-result <accepted-proof-for-torch_torchvision-transformers-kornia.json>',
-    '--existing-proof-result <accepted-proof-for-transparent_background.json>',
-  ]
+  return []
 }
 
 function remainingNativeCudaCloseoutCommand(options: {
@@ -715,6 +716,8 @@ function remainingNativeCudaCloseoutCommand(options: {
     `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
     `--source-image ${sourceImageArg}`,
     `--output-root ${nativeCudaCloseoutOutputRoot}`,
+    `--cpu-safe-gpu-model-route-proof-packet ${cpuSafeGpuModelRouteProofPacketPath}`,
+    `--cpu-model-gpu-model-route-proof-packet ${cpuModelGpuModelRouteProofPacketPath}`,
     ...remainingNativeCudaExistingProofArgs(options.existingProofResults),
   ]
   if (options.scriptOut) command.push(`--script-out ${nativeCudaCloseoutScriptOut}`)
@@ -731,14 +734,11 @@ function remainingNativeCudaAll21CloseoutReadinessCommand(
         '--local-runtime-proof-result',
         shellQuote(proofResult),
       ])
-    : [
-        '--local-runtime-proof-result <accepted-proof-for-torch_torchvision-or-foundation-bundle.json>',
-        '--local-runtime-proof-result <accepted-proof-for-transparent_background.json>',
-        '--local-runtime-proof-result <accepted-proof-for-real_esrgan-after-runtime-fix.json>',
-        '--local-runtime-proof-result <accepted-proof-for-rembg-after-runtime-fix.json>',
-      ]
+    : []
   return [
     'npm run --silent ai-graphics:external-agent-execution-readiness --',
+    `--cpu-safe-gpu-model-route-proof-packet ${cpuSafeGpuModelRouteProofPacketPath}`,
+    `--cpu-model-gpu-model-route-proof-packet ${cpuModelGpuModelRouteProofPacketPath}`,
     ...existingProofArgs,
     `--local-runtime-proof-result ${nativeCudaCloseoutOutputRoot}/sam2/harness-result.json`,
     `--local-runtime-proof-result ${nativeCudaCloseoutOutputRoot}/birefnet/harness-result.json`,

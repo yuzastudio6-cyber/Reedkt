@@ -210,6 +210,7 @@ function makeDiagnosticFixtures() {
   const modelRoot = path.join(fixtureRoot, 'private-model-root')
   const modelManifestDir = path.join(fixtureRoot, 'model-weight-manifests')
   const sourceImage = path.join(fixtureRoot, 'private-approved-frame.ppm')
+  const invalidSourceImage = path.join(fixtureRoot, 'not-an-image.txt')
   fs.mkdirSync(modelRoot, { recursive: true })
   fs.mkdirSync(path.join(modelManifestDir, 'sam2'), { recursive: true })
   fs.mkdirSync(path.join(modelManifestDir, 'birefnet'), { recursive: true })
@@ -236,10 +237,12 @@ function makeDiagnosticFixtures() {
     JSON.stringify(manifestRecordByTool.birefnet, null, 2),
   )
   fs.writeFileSync(sourceImage, 'P3\n1 1\n255\n255 255 255\n')
+  fs.writeFileSync(invalidSourceImage, 'diagnostic local-only text file; not an image\n')
   return {
     modelRoot: path.relative(root, modelRoot),
     modelManifestDir: path.relative(root, modelManifestDir),
     sourceImage: path.relative(root, sourceImage),
+    invalidSourceImage: path.relative(root, invalidSourceImage),
     outputRoot:
       '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout-diagnostic',
     scriptOut:
@@ -347,9 +350,29 @@ function validateFixtureReport(report) {
     assert(row?.modelWeightManifestReviewAccepted === true, `fixture_manifest_review_not_accepted:${toolId}`)
     assert(row?.modelWeightManifestReviewBlocker === null, `fixture_manifest_review_blocker_unexpected:${toolId}:${row?.modelWeightManifestReviewBlocker}`)
     assert(row?.sourceImageExists === true, `fixture_source_image_missing:${toolId}`)
+    assert(row?.sourceImageAccepted === true, `fixture_source_image_not_accepted:${toolId}`)
+    assert(row?.sourceImageFileType === 'ppm', `fixture_source_image_type_unexpected:${toolId}:${row?.sourceImageFileType}`)
+    assert(row?.sourceImageBlocker === null, `fixture_source_image_blocker_unexpected:${toolId}:${row?.sourceImageBlocker}`)
     assert(row?.runtimeAttemptPerformed === false, `fixture_runtime_attempt_performed:${toolId}`)
     assert(row?.runtimeAttemptAccepted === false, `fixture_runtime_attempt_accepted:${toolId}`)
     assert(String(row?.manifestMaterializerCommand ?? '').includes('--private-model-root'), `fixture_manifest_missing_private_root:${toolId}`)
+  }
+}
+
+function validateInvalidSourceReport(report) {
+  assert(report.status === runtimeBuckets[0], `invalid_source_report_not_blocked:${report.status}`)
+  assert(report.counts?.runtimeAttemptsPerformed === 0, 'invalid_source_attempt_performed')
+  assert(report.booleans?.runtimeAttemptRequested === true, 'invalid_source_runtime_attempt_not_requested')
+  assert(report.booleans?.runtimeAttemptPerformed === false, 'invalid_source_runtime_attempt_performed')
+  assert(report.booleans?.gpuRuntimePerformed === false, 'invalid_source_gpu_runtime_performed')
+  for (const toolId of targetTools) {
+    const row = report.tools?.find((tool) => tool.toolId === toolId)
+    assert(Boolean(row), `invalid_source_missing_tool_row:${toolId}`)
+    assert(row?.sourceImageExists === true, `invalid_source_file_missing:${toolId}`)
+    assert(row?.sourceImageAccepted === false, `invalid_source_accepted:${toolId}`)
+    assert(String(row?.sourceImageBlocker ?? '').includes('must be PNG, JPEG, WebP, or PPM'), `invalid_source_blocker_missing:${toolId}:${row?.sourceImageBlocker}`)
+    assert(row?.runtimeAttemptPerformed === false, `invalid_source_tool_runtime_attempted:${toolId}`)
+    assert(row?.executionState === 'blocked_with_reason', `invalid_source_tool_state_unexpected:${toolId}:${row?.executionState}`)
   }
 }
 
@@ -432,6 +455,19 @@ const fixtureReport = runNpmJson(runScriptName, [
 ])
 validateFixtureReport(fixtureReport)
 
+const invalidSourceReport = runNpmJson(runScriptName, [
+  '--private-model-root',
+  fixtures.modelRoot,
+  '--model-weight-manifest-dir',
+  fixtures.modelManifestDir,
+  '--source-image',
+  fixtures.invalidSourceImage,
+  '--output-root',
+  fixtures.outputRoot,
+  '--attempt-local-runtime',
+])
+validateInvalidSourceReport(invalidSourceReport)
+
 const scopedTimeoutReport = runNpmJson(runScriptName, [
   '--tool',
   'sam2',
@@ -458,8 +494,10 @@ const result = {
   targetTools,
   defaultStatus: defaultReport.status,
   fixtureStatus: fixtureReport.status,
+  invalidSourceStatus: invalidSourceReport.status,
   defaultCounts: defaultReport.counts,
   fixtureCounts: fixtureReport.counts,
+  invalidSourceCounts: invalidSourceReport.counts,
   packageLockUnchanged: packageLockDiff.length === 0,
   trackedLocalArtifacts: trackedLocalArtifacts.length === 0,
   failures,

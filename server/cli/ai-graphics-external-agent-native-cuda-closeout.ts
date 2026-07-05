@@ -80,6 +80,9 @@ type ToolProbe = {
   modelWeightManifestReviewBlocker: string | null
   sourceImageProvided: boolean
   sourceImageExists: boolean
+  sourceImageAccepted: boolean
+  sourceImageFileType: string | null
+  sourceImageBlocker: string | null
   callableNow: true
   executableNow: boolean
   executionState: 'executable' | 'blocked_with_reason' | 'failed_with_diagnostics'
@@ -322,10 +325,86 @@ function modelCandidateForTool(
   }
 }
 
-function sourceImageExists(sourceImage: string | undefined): boolean {
-  if (!sourceImage) return false
-  assertLocalPath('--source-image', sourceImage)
-  return fs.existsSync(sourceImage) && fs.statSync(sourceImage).isFile()
+function sourceImageProbe(sourceImage: string | undefined): {
+  exists: boolean
+  accepted: boolean
+  fileType: string | null
+  blocker: string | null
+} {
+  if (!sourceImage) {
+    return {
+      exists: false,
+      accepted: false,
+      fileType: null,
+      blocker: '--source-image must point to a private approved local frame',
+    }
+  }
+  try {
+    assertLocalPath('--source-image', sourceImage)
+    if (!fs.existsSync(sourceImage)) {
+      return {
+        exists: false,
+        accepted: false,
+        fileType: null,
+        blocker: `private approved source image does not exist: ${sourceImage}`,
+      }
+    }
+    if (!fs.statSync(sourceImage).isFile()) {
+      return {
+        exists: false,
+        accepted: false,
+        fileType: null,
+        blocker: `private approved source image is not a file: ${sourceImage}`,
+      }
+    }
+    const header = fs.readFileSync(sourceImage, { encoding: null }).subarray(0, 16)
+    const asciiHeader = header.toString('ascii')
+    const png =
+      header.length >= 8 &&
+      header[0] === 0x89 &&
+      asciiHeader.slice(1, 4) === 'PNG'
+    const jpeg =
+      header.length >= 3 &&
+      header[0] === 0xff &&
+      header[1] === 0xd8 &&
+      header[2] === 0xff
+    const ppm = asciiHeader.startsWith('P3') || asciiHeader.startsWith('P6')
+    const webp =
+      asciiHeader.startsWith('RIFF') &&
+      header.length >= 12 &&
+      asciiHeader.slice(8, 12) === 'WEBP'
+    const fileType = png
+      ? 'png'
+      : jpeg
+      ? 'jpeg'
+      : ppm
+      ? 'ppm'
+      : webp
+      ? 'webp'
+      : null
+    if (!fileType) {
+      return {
+        exists: true,
+        accepted: false,
+        fileType: null,
+        blocker:
+          'private approved source image must be PNG, JPEG, WebP, or PPM before native CUDA proof starts',
+      }
+    }
+    return {
+      exists: true,
+      accepted: true,
+      fileType,
+      blocker: null,
+    }
+  } catch (error) {
+    return {
+      exists: false,
+      accepted: false,
+      fileType: null,
+      blocker: error instanceof Error ? error.message : String(error),
+    }
+  }
 }
 
 function modelWeightManifestReviewArgs(
@@ -898,7 +977,7 @@ function toolProbe(
 ): ToolProbe {
   const target = runtimeTargets[toolId]
   const candidate = modelCandidateForTool(toolId, args.privateModelRoot)
-  const hasSourceImage = sourceImageExists(args.sourceImage)
+  const sourceImage = sourceImageProbe(args.sourceImage)
   const modelWeightManifestReviewAccepted =
     modelManifestReview.acceptedToolIds.has(toolId)
   const modelWeightManifestReviewBlocker =
@@ -909,16 +988,14 @@ function toolProbe(
       : null,
     !candidate.present ? candidate.blocker : null,
     !modelWeightManifestReviewAccepted ? modelWeightManifestReviewBlocker : null,
-    !hasSourceImage
-      ? '--source-image must point to a private approved local frame'
-      : null,
+    !sourceImage.accepted ? sourceImage.blocker : null,
   ].filter((entry): entry is string => Boolean(entry))
   const canAttempt =
     args.attemptLocalRuntime &&
     currentHostEligible &&
     candidate.present &&
     modelWeightManifestReviewAccepted &&
-    hasSourceImage
+    sourceImage.accepted
   const attempt = canAttempt
     ? attemptToolCloseout(args, toolId)
     : {
@@ -946,7 +1023,10 @@ function toolProbe(
     modelWeightManifestReviewAccepted,
     modelWeightManifestReviewBlocker,
     sourceImageProvided: Boolean(args.sourceImage),
-    sourceImageExists: hasSourceImage,
+    sourceImageExists: sourceImage.exists,
+    sourceImageAccepted: sourceImage.accepted,
+    sourceImageFileType: sourceImage.fileType,
+    sourceImageBlocker: sourceImage.blocker,
     callableNow: true,
     executableNow: attempt.accepted,
     executionState,

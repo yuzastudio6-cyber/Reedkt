@@ -14,6 +14,7 @@ The route is production-shaped for internal testing, not a shortcut. It keeps Ed
 
 - Route: `/edit-preferences`
 - Navigation: sidebar Preferences item.
+- Sidebar rule: the primary sidebar navigation is intentionally limited to Home, Projects, and Preferences. Editor, upload, export, brand, wallet, and other app surfaces remain reachable through contextual project/home actions instead of persistent sidebar clutter.
 - Source options: `listProjectEditSessionPreferenceOptionsForUI`.
 - Default project/session context: `mock-project-edit-chat-foundation` / `edit-session-youtube-wide`.
 - Draft storage: browser `localStorage` only.
@@ -41,3 +42,5 @@ The route is production-shaped for internal testing, not a shortcut. It keeps Ed
 ## Next
 
 Use `/edit-preferences` during internal testing to inspect and draft reusable style direction. Later milestones can connect authenticated preference persistence and owner-reviewed Preference DNA, but this route does not enable those release gates by itself.
+
+Keep Preferences in the clean sidebar. Do not restore the older broad sidebar list unless a later product decision explicitly expands primary navigation.

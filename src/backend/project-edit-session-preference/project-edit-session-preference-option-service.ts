@@ -50,7 +50,8 @@ export function createNoPreferenceOption(): ProjectEditSessionPreferenceOption {
   }
 }
 
-export function listProjectEditSessionPreferenceOptions(_db: MockDatabase): ProjectEditSessionPreferenceOption[] {
+export function listProjectEditSessionPreferenceOptions(db?: MockDatabase): ProjectEditSessionPreferenceOption[] {
+  void db
   const byHandle = new Map<string, ProjectEditSessionPreferenceOption>()
   for (const option of [createNoPreferenceOption(), createDNABackedMockPreferenceOption(), createLegacyNoDNAPreferenceOption()]) {
     byHandle.set(option.handle ?? option.id, option)
@@ -62,7 +63,8 @@ export function findProjectEditSessionPreferenceOption(
   db: MockDatabase,
   optionIdOrHandle: string | undefined,
 ): ProjectEditSessionPreferenceOption {
-  const options = listProjectEditSessionPreferenceOptions(db)
+  void db
+  const options = listProjectEditSessionPreferenceOptions()
   if (!optionIdOrHandle || optionIdOrHandle === NO_EDIT_PREFERENCE_OPTION_ID) return createNoPreferenceOption()
   return options.find((option) => option.id === optionIdOrHandle || option.handle === optionIdOrHandle)
     ?? (optionIdOrHandle === LEGACY_EDIT_PREFERENCE_HANDLE ? createLegacyNoDNAPreferenceOption() : createNoPreferenceOption())

@@ -3,7 +3,6 @@ import {
   AudioLines,
   BarChart3,
   Boxes,
-  BriefcaseBusiness,
   Captions,
   CheckCircle2,
   Clapperboard,
@@ -12,19 +11,14 @@ import {
   Gauge,
   Home,
   Image,
-  Library,
   Layers3,
-  LayoutTemplate,
   ListChecks,
   MessageSquareText,
   Move3D,
   Palette,
   PlaySquare,
-  Settings,
   Sparkles,
   UploadCloud,
-  UsersRound,
-  WandSparkles,
 } from 'lucide-react'
 
 export type Accent = 'blue' | 'cyan' | 'violet' | 'purple' | 'success' | 'warning' | 'danger' | 'info'
@@ -105,15 +99,7 @@ export type ExportItem = {
 export const appNav: NavItem[] = [
   { label: 'Home', to: '/dashboard', icon: Home },
   { label: 'Projects', to: '/projects', icon: FolderKanban },
-  { label: 'AI Editor', to: '/editor', icon: WandSparkles },
   { label: 'Preferences', to: '/edit-preferences', icon: ListChecks },
-  { label: 'Media Library', to: '/projects#media-library', icon: Library },
-  { label: 'Templates', to: '/dashboard', icon: LayoutTemplate, disabled: true },
-  { label: 'Team', to: '/dashboard', icon: UsersRound, disabled: true },
-  { label: 'Analytics', to: '/dashboard', icon: BarChart3, disabled: true },
-  { label: 'Exports', to: '/exports', icon: CloudUpload },
-  { label: 'Brand Kit', to: '/brand-kit', icon: BriefcaseBusiness },
-  { label: 'Settings', to: '/dashboard', icon: Settings, disabled: true },
 ]
 
 export const marketingLinks = [

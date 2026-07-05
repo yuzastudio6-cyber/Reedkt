@@ -32,8 +32,16 @@ assert.match(app, /EditPreferencesPage/)
 assert.match(app, /path="\/edit-preferences"/)
 
 const nav = read('src/data/mockData.ts')
-assert.match(nav, /Preferences/)
-assert.match(nav, /\/edit-preferences/)
+const appNavSource = nav.match(/export const appNav: NavItem\[\] = \[[\s\S]*?\n\]/)?.[0] ?? ''
+assert.match(appNavSource, /Home/)
+assert.match(appNavSource, /Projects/)
+assert.match(appNavSource, /Preferences/)
+assert.match(appNavSource, /\/dashboard/)
+assert.match(appNavSource, /\/projects/)
+assert.match(appNavSource, /\/edit-preferences/)
+for (const staleSidebarItem of ['AI Editor', 'Media Library', 'Templates', 'Team', 'Analytics', 'Exports', 'Brand Kit', 'Settings']) {
+  assert.doesNotMatch(appNavSource, new RegExp(staleSidebarItem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${staleSidebarItem} should not be in the primary sidebar nav`)
+}
 
 const page = read('src/pages/EditPreferencesPage.tsx')
 assert.match(page, /listProjectEditSessionPreferenceOptionsForUI/)

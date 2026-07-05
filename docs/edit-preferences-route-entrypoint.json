@@ -14,8 +14,27 @@
     "browser_local_draft_creator",
     "do_not_copy_policy_visibility",
     "mock_local_boundary_summary",
-    "sidebar_navigation"
+    "sidebar_navigation",
+    "minimal_sidebar_home_projects_preferences_only"
   ],
+  "sidebarNavigation": {
+    "allowed": [
+      "Home",
+      "Projects",
+      "Preferences"
+    ],
+    "removedFromPrimarySidebar": [
+      "AI Editor",
+      "Media Library",
+      "Templates",
+      "Team",
+      "Analytics",
+      "Exports",
+      "Brand Kit",
+      "Settings"
+    ],
+    "context": "Other app routes remain available through contextual project/home actions, not persistent primary sidebar items."
+  },
   "blockedScope": {
     "upload": false,
     "fileBytesRead": false,

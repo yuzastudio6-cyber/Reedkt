@@ -30,10 +30,18 @@ When custom app DNS is ready, the same workflow can be run with base path `/`, a
 
 `https://app.reeditpro.com/sign-in`
 
+Until `app.reeditpro.com` DNS is configured, use the GitHub Pages URL above for internal testing. After deployment, verify the hosted route before asking testers to sign in:
+
+```bash
+REEDITPRO_CONFIRM_HOSTED_SIGN_IN_ROUTE_READINESS=VERIFY_REEDITPRO_HOSTED_SIGN_IN_ROUTE \
+REEDITPRO_HOSTED_APP_URL=https://yuzastudio6-cyber.github.io/Reedkt/ \
+npm run internal-testing:verify-hosted-sign-in-route
+```
+
 ## Boundaries
 
 This readiness step does not deploy backend APIs, run tools, dispatch workers, process media, write Supabase data, sign storage URLs, reserve or spend credits, call providers, enable external beta, or enable production. It only deploys the static frontend shell with browser-safe public Supabase auth configuration.
 
 ## Next Gate
 
-`APP_INTERNAL_TESTING_PAGES_DEPLOY_WORKFLOW_RUN_AND_AUTH_READBACK`
+`HOSTED_SIGN_IN_ROUTE_READINESS_AND_AUTH_READBACK`

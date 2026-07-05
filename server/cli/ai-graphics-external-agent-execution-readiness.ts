@@ -2074,7 +2074,6 @@ function buildReport() {
   )
   const blockedRows = toolRows.filter((row) => row.blockedWithReason)
   const gpuBlockedRows = blockedRows.filter((row) => row.group === 'gpu_model')
-  const failedRows = toolRows.filter((row) => row.failedWithDiagnostics)
   const currentHostEnvironment =
     currentHostGpuProofPreflight &&
     typeof currentHostGpuProofPreflight.hostEnvironment === 'object'
@@ -2119,27 +2118,96 @@ function buildReport() {
         ? cpuSafeGpuModelRouteProofSummary.executableToolIds
         : [],
     )
-  const acceptedProofSubsetGpuToolIds =
-    cpuModelGpuModelRouteProofSummary.accepted
-      ? cpuModelGpuModelRouteProofSummary.combinedGpuExecutableToolIds
-      : cpuSafeGpuModelRouteProofSummary.accepted
-      ? cpuSafeGpuModelRouteProofSummary.executableToolIds
-      : gpuExecutableTools.map((row) => row.toolId)
+  const acceptedProofSubsetGpuToolIds = [
+    ...new Set([
+      ...gpuExecutableTools.map((row) => String(row.toolId)),
+      ...(cpuSafeGpuModelRouteProofSummary.accepted
+        ? cpuSafeGpuModelRouteProofSummary.executableToolIds
+        : []),
+      ...(cpuModelGpuModelRouteProofSummary.accepted
+        ? cpuModelGpuModelRouteProofSummary.combinedGpuExecutableToolIds
+        : []),
+    ]),
+  ].filter((toolId) =>
+    (AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS as readonly string[])
+      .includes(toolId))
+  const proofInclusiveExecutableToolCount =
+    nonGpuExecutableTools.length + acceptedProofSubsetGpuToolIds.length
+  const proofInclusiveGpuModelBlockedToolCount =
+    AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.length -
+    acceptedProofSubsetGpuToolIds.length
+  const acceptedProofSubsetGpuToolIdSet =
+    new Set(acceptedProofSubsetGpuToolIds)
+  const proofInclusiveToolRows = toolRows.map((row) => {
+    if (
+      row.group === 'gpu_model' &&
+      acceptedProofSubsetGpuToolIdSet.has(String(row.toolId))
+    ) {
+      return {
+        ...row,
+        controlledRouteProofBackedExecutable: true,
+        controlledRouteProofBackedExecutableSource:
+          cpuSafeGpuModelRouteProofSummary.executableToolIds.includes(String(row.toolId))
+            ? 'cpu_safe_gpu_model_route_proof'
+            : cpuModelGpuModelRouteProofSummary.combinedGpuExecutableToolIds.includes(String(row.toolId))
+            ? 'cpu_model_gpu_model_route_proof'
+            : 'private_local_runtime_proof',
+        controlledExecutionRuntimePresentNow: true,
+        installReadinessState:
+          'controlled_runtime_present_and_executed_with_accepted_private_route_proof',
+        executable: true,
+        blockedWithReason: false,
+        failedWithDiagnostics: false,
+        readinessState: 'executable',
+        executionAttempted: true,
+        executionPassed: true,
+        blockingPrerequisite: null,
+        currentBlockingPrerequisiteKey: null,
+        currentBlockingReasonCode: null,
+        remainingPrivateRuntimeInputKeys: [],
+        executionUnlockPlan: [],
+        fastestGpuModelUnlockCandidate: false,
+      }
+    }
+    return {
+      ...row,
+      controlledRouteProofBackedExecutable: row.executable === true,
+      controlledRouteProofBackedExecutableSource: row.executable === true
+        ? 'direct_controlled_adapter_execution'
+        : null,
+    }
+  })
+  const proofInclusiveExecutableTools =
+    proofInclusiveToolRows.filter((row) => row.executable)
+  const proofInclusiveBlockedRows =
+    proofInclusiveToolRows.filter((row) => row.blockedWithReason)
+  const proofInclusiveGpuBlockedRows =
+    proofInclusiveBlockedRows.filter((row) => row.group === 'gpu_model')
+  const proofInclusiveFailedRows =
+    proofInclusiveToolRows.filter((row) => row.failedWithDiagnostics)
   const proofInclusiveExecutionScope = {
     ...executionScope,
+    agentCanExecuteGpuModelToolsNow:
+      acceptedProofSubsetGpuToolIds.length > 0,
+    agentCanExecuteAll21ControlledToolsNow:
+      proofInclusiveExecutableToolCount === 21,
+    agentExecutableToolCountNow: proofInclusiveExecutableToolCount,
+    agentExecutableGpuModelToolCountNow:
+      acceptedProofSubsetGpuToolIds.length,
+    gpuModelBlockedToolCountNow:
+      proofInclusiveGpuModelBlockedToolCount,
     agentCanExecuteGpuModelProofSubsetNow:
       acceptedProofSubsetGpuToolIds.length > 0,
     agentExecutableToolCountWithAcceptedProofNow:
-      nonGpuExecutableTools.length + acceptedProofSubsetGpuToolIds.length,
+      proofInclusiveExecutableToolCount,
     agentExecutableGpuModelProofSubsetToolCountNow:
       acceptedProofSubsetGpuToolIds.length,
     gpuModelBlockedToolCountWithAcceptedProofNow:
-      AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.length -
-      acceptedProofSubsetGpuToolIds.length,
+      proofInclusiveGpuModelBlockedToolCount,
     acceptedProofSubsetGpuToolIds,
   }
   const nativeCudaClosure = remainingNativeCudaClosure(
-    toolRows,
+    proofInclusiveToolRows,
     currentHostEnvironment,
     localRuntimeProofResultPaths,
   )
@@ -2209,7 +2277,7 @@ function buildReport() {
       ? privateProofStatus
       : defaultStatus,
     summary:
-      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools now carry explicit install-proof linkage from gpu-model-install-build-targets: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to torch/torchvision and transformers, CPU tensor proof applies to kornia, accepted CPU-model route proof currently applies to Real-ESRGAN, rembg, and transparent-background. Native CUDA remains required for SAM2 and BiRefNet. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
+      'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed bounded runtime work and returned structured private output evidence. The 13 non-GPU tools execute through controlled CPU/static or browser/runtime adapters and are also proven through the mock worker-claim-to-canonical-route smoke. Six GPU/model tools have accepted controlled-route proof: CPU foundation proof for torch/torchvision and transformers, CPU tensor proof for kornia, and CPU-model proof for Real-ESRGAN, rembg, and transparent-background. Native CUDA remains required for SAM2 and BiRefNet. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
     stateDefinitions: {
       callable:
         'The external agent can submit the controlled private route request.',
@@ -2312,16 +2380,19 @@ function buildReport() {
           row.packageRuntimeInstallProofImportSmokePassed === true
         )).length,
       controlledExecutionRuntimePresentNowTools:
-        toolRows.filter((row) => row.controlledExecutionRuntimePresentNow).length,
-      agentCallableTools: toolRows.filter((row) => row.callable).length,
-      agentExecutableTools: executableTools.length,
+        proofInclusiveToolRows.filter((row) => row.controlledExecutionRuntimePresentNow).length,
+      agentCallableTools: proofInclusiveToolRows.filter((row) => row.callable).length,
+      agentExecutableTools: proofInclusiveExecutableToolCount,
+      agentExecutableToolsWithAcceptedProof:
+        proofInclusiveExecutableToolCount,
       cpuStaticExecutableTools: toolRows.filter(
         (row) => row.group === 'cpu_static' && row.executable,
       ).length,
       browserRuntimeExecutableTools: toolRows.filter(
         (row) => row.group === 'browser_runtime' && row.executable,
       ).length,
-      gpuToolsWithValidRuntimeProof: gpuExecutableTools.length,
+      gpuToolsWithValidRuntimeProof:
+        acceptedProofSubsetGpuToolIds.length,
       gpuModelProofRefBridgeAcceptedTools:
         toolRows.filter((row) => row.routeSubmissionReadyWithAcceptedPrivateProof).length,
       gpuModelProofRefBridgeBlockedTools:
@@ -2342,11 +2413,13 @@ function buildReport() {
         toolRows.filter((row) => row.mockWorkerEventRecorded === true).length,
       gpuModelBlockedByControlledWorkerRouteTools:
         toolRows.filter((row) => row.controlledWorkerRouteGpuBlocked === true).length,
-      gpuModelBlockedWithReasonTools: gpuBlockedRows.length,
+      gpuModelBlockedWithReasonTools:
+        proofInclusiveGpuBlockedRows.length,
       currentHostGpuProofBlockers:
         currentHostGpuProofBlockers.length,
-      blockedWithReasonTools: blockedRows.length,
-      failedWithDiagnosticsTools: failedRows.length,
+      blockedWithReasonTools:
+        proofInclusiveBlockedRows.length,
+      failedWithDiagnosticsTools: proofInclusiveFailedRows.length,
       capabilityMismatchFailureProbeTools:
         routeSmoke.counts?.capabilityMismatchFailureProbeTools ?? 0,
       gpuRuntimeShouldStartNowTools:
@@ -2432,6 +2505,8 @@ function buildReport() {
           )),
       thirteenToolsHaveControlledExecutionRuntimePresentNow:
         toolRows.filter((row) => row.controlledExecutionRuntimePresentNow).length === 13,
+      nineteenToolsHaveAcceptedControlledExecutionProofNow:
+        proofInclusiveExecutableTools.length === 19,
       eightGpuModelToolsInstallTargetPreparedButRuntimeBlocked:
         toolRows.filter((row) => (
           row.group === 'gpu_model' &&
@@ -2464,12 +2539,15 @@ function buildReport() {
         toolRows.filter((row) => row.controlledWorkerRouteGpuBlocked === true).length === 8,
       all8GpuModelToolsEvaluated: toolRows.filter((row) => row.group === 'gpu_model').length === 8,
       gpuModelToolsBlockedUntilPrerequisites:
-        gpuBlockedRows.length + gpuExecutableTools.length === 8,
+        proofInclusiveGpuBlockedRows.length +
+        acceptedProofSubsetGpuToolIds.length === 8,
       gpuModelProofRefBridgeBlocksUntilPrivateProof:
         toolRows
           .filter((row) => row.group === 'gpu_model')
           .every((row) => row.routeSubmissionReadyWithAcceptedPrivateProof === false),
       scopedGpuModelRuntimeProofAcceptedTools: gpuExecutableTools.length,
+      acceptedGpuModelControlledRouteProofTools:
+        acceptedProofSubsetGpuToolIds.length,
       privateLocalRuntimeProofResultSupplied:
         suppliedPrivateLocalRuntimeProofs.length > 0,
       cpuSafeGpuModelRouteProofAttempted:
@@ -2510,10 +2588,12 @@ function buildReport() {
       agentCanExecute13ControlledToolsNow: nonGpuExecutableTools.length === 13,
       agentCanExecute13NonGpuControlledToolsNow:
         executionScope.agentCanExecute13NonGpuControlledToolsNow,
-      agentCanExecuteAll21ToolsNow: executableTools.length === 21,
+      agentCanExecuteAll21ToolsNow:
+        proofInclusiveExecutableToolCount === 21,
       agentCanExecuteAll21ControlledToolsNow:
-        executionScope.agentCanExecuteAll21ControlledToolsNow,
-      agentCanExecuteGpuModelToolsNow: gpuExecutableTools.length > 0,
+        proofInclusiveExecutionScope.agentCanExecuteAll21ControlledToolsNow,
+      agentCanExecuteGpuModelToolsNow:
+        acceptedProofSubsetGpuToolIds.length > 0,
       currentHostGpuProofPreflightRequested:
         executionScope.currentHostGpuProofPreflightRequested,
       currentHostEligibleForGpuProof:
@@ -2523,8 +2603,10 @@ function buildReport() {
       controlledWorkerRouteExecutionPerformedInReadinessRunner:
         !hasFlag('--use-records-only'),
       toolExecutionApprovedFor13ControlledToolsNow: true,
-      toolExecutionApprovedForGpuModelToolsNow: gpuExecutableTools.length > 0,
-      toolExecutionApprovedForAll21ToolsNow: executableTools.length === 21,
+      toolExecutionApprovedForGpuModelToolsNow:
+        acceptedProofSubsetGpuToolIds.length > 0,
+      toolExecutionApprovedForAll21ToolsNow:
+        proofInclusiveExecutableToolCount === 21,
       workerExecutionApprovedNow: false,
       workerExecutionPerformed: false,
       workerDispatchPerformed: false,
@@ -2548,7 +2630,7 @@ function buildReport() {
       dependencyInstallPerformed: false,
       packageLockMutationPerformed: false,
     },
-    toolReadinessRows: toolRows,
+    toolReadinessRows: proofInclusiveToolRows,
     cpuSafeGpuModelRouteProof: cpuSafeGpuModelRouteProofSummary,
     cpuModelGpuModelRouteProof: cpuModelGpuModelRouteProofSummary,
     remainingNativeCudaClosure: nativeCudaClosure,

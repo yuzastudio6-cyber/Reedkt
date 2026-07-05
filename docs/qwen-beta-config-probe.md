@@ -38,7 +38,7 @@ gh workflow run qwen-beta-config-probe.yml \
 
 ## Expected Use
 
-If `Qwen Live Beta Verification` fails at `unlock:qwen-beta:strict`, run this probe. Then set the missing repository variables:
+If `Qwen Live Beta Verification` fails at `unlock:qwen-beta:strict`, run this probe. When required `QWEN_REASONING_*` variables are missing, the probe completes successfully as a diagnostic report even if Secret Manager list permission is unavailable, because the variable layer is already the first blocker. Then set the missing repository variables:
 
 - `QWEN_REASONING_API_KEY_SECRET`
 - `QWEN_REASONING_BASE_URL` or `QWEN_REASONING_BASE_URL_SECRET`

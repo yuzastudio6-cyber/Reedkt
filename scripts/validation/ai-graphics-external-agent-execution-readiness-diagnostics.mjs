@@ -1415,6 +1415,9 @@ function checkReport(label, report, expectedStatus = status) {
     if (closure.remainingToolCount !== 2) {
       fail(`${label}_remaining_native_cuda_count_mismatch:${closure.remainingToolCount}`)
     }
+    if (closure.currentHostPreflightRequested !== false) {
+      fail(`${label}_remaining_native_cuda_default_host_preflight_unexpected`)
+    }
     if (
       !String(closure.currentHostPreflightCommand ?? '').includes(
         'ai-graphics:gpu-runtime-proof-local-preflight',
@@ -1429,21 +1432,21 @@ function checkReport(label, report, expectedStatus = status) {
       !String(closure.nativeCudaCloseoutCommand ?? '').includes(
         'ai-graphics:external-agent-native-cuda-closeout',
       ) ||
-	      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
-	        '--attempt-local-runtime',
-	      ) ||
-	      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
-	        '--cpu-safe-gpu-model-route-proof-packet',
-	      ) ||
-	      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
-	        'cpu-safe-gpu-model-route-proof.json',
-	      ) ||
-	      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
-	        '--cpu-model-gpu-model-route-proof-packet',
-	      ) ||
-	      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
-	        'cpu-model-gpu-model-route-proof-next.json',
-	      ) ||
+      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+        '--attempt-local-runtime',
+      ) ||
+      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+        '--cpu-safe-gpu-model-route-proof-packet',
+      ) ||
+      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+        'cpu-safe-gpu-model-route-proof.json',
+      ) ||
+      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+        '--cpu-model-gpu-model-route-proof-packet',
+      ) ||
+      !String(closure.nativeCudaCloseoutCommand ?? '').includes(
+        'cpu-model-gpu-model-route-proof-next.json',
+      ) ||
 	      String(closure.nativeCudaCloseoutCommand ?? '').includes(
 	        '--strict-exit-code',
 	      )
@@ -1486,24 +1489,24 @@ function checkReport(label, report, expectedStatus = status) {
       fail(`${label}_remaining_native_cuda_missing_closeout_diagnostic_command`)
     }
     if (
-	      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
-	        'ai-graphics:external-agent-execution-readiness',
-	      ) ||
-	      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
-	        '--cpu-safe-gpu-model-route-proof-packet',
-	      ) ||
-	      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
-	        'cpu-safe-gpu-model-route-proof.json',
-	      ) ||
-	      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
-	        '--cpu-model-gpu-model-route-proof-packet',
-	      ) ||
-	      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
-	        'cpu-model-gpu-model-route-proof-next.json',
-	      ) ||
-	      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
-	        'native-cuda-closeout/sam2/harness-result.json',
-	      ) ||
+      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+        'ai-graphics:external-agent-execution-readiness',
+      ) ||
+      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+        '--cpu-safe-gpu-model-route-proof-packet',
+      ) ||
+      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+        'cpu-safe-gpu-model-route-proof.json',
+      ) ||
+      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+        '--cpu-model-gpu-model-route-proof-packet',
+      ) ||
+      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+        'cpu-model-gpu-model-route-proof-next.json',
+      ) ||
+      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+        'native-cuda-closeout/sam2/harness-result.json',
+      ) ||
       !String(closure.all21CloseoutReadinessCommand ?? '').includes(
         'native-cuda-closeout/birefnet/harness-result.json',
       )
@@ -2852,6 +2855,9 @@ if (liveHost.executionScope?.currentHostGpuProofPreflightRequested !== true) {
 }
 if (liveHost.booleans?.currentHostGpuProofPreflightRequested !== true) {
   fail('live_host_boolean_preflight_not_requested')
+}
+if (liveHost.remainingNativeCudaClosure?.currentHostPreflightRequested !== true) {
+  fail('live_host_remaining_native_cuda_preflight_not_requested')
 }
 if (liveHost.sourceEvidence?.currentHostGpuProofPreflight?.accepted !== true) {
   fail('live_host_preflight_source_not_accepted')

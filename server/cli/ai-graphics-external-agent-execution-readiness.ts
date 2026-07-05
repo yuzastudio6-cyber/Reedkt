@@ -871,6 +871,7 @@ function remainingNativeCudaClosure(
       .map((entry) => entry.toolId),
     remainingToolCount: toolEntries.filter((entry) => entry.executable !== true).length,
     privateModelRootInspection,
+    currentHostPreflightRequested: currentHostEnvironment !== null,
     currentHostEligibleForNativeGpuProof:
       currentHostEnvironment?.hostEligibleForNativeGpuProof === true,
     currentHostBlockers: Array.isArray(currentHostEnvironment?.blockers)
@@ -2266,7 +2267,7 @@ function buildReport() {
             nativeCudaClosure.currentHostEligibleForNativeGpuProof,
           currentHostBlockers: nativeCudaClosure.currentHostBlockers,
           remainsBlockedUntil:
-            'Run the native CUDA closeout on a linux/amd64 host with Docker NVIDIA runtime, nvidia-smi, CUDA-visible proof containers, reviewed private SAM2/BiRefNet model inputs, and the accepted existing proof refs.',
+            'Run the native CUDA closeout on a linux/amd64 host with Docker NVIDIA runtime, nvidia-smi, CUDA-visible proof containers, reviewed private SAM2/BiRefNet model inputs, and the accepted CPU-safe and CPU-model GPU/model route proof packets.',
         }
       : {
           toolId: 'kornia',
@@ -2735,6 +2736,10 @@ function makeMarkdown(report: ReturnType<typeof buildReport>): string {
   const cpuModelProofSummarySentence = cpuModelAcceptedTools.length > 0
     ? `accepted CPU-model route proof currently applies to ${inlineToolIds(cpuModelAcceptedTools)}. The CPU-model tools still blocked after investigation are ${inlineToolIds(cpuModelStillBlockedTools)}.`
     : `CPU-model route proof has not accepted any of ${inlineToolIds(report.cpuModelGpuModelRouteProof.expectedToolIds)} yet.`
+  const nativeCudaHostBlockersLabel =
+    report.remainingNativeCudaClosure.currentHostPreflightRequested === true
+      ? report.remainingNativeCudaClosure.currentHostBlockers.join('; ') || 'none'
+      : 'not_checked_run_host_preflight_command'
 
   return `# AI Graphics External Agent Execution Readiness
 
@@ -2815,8 +2820,9 @@ ${runtimeInputManifestRows}
 
 - Status: \`${report.remainingNativeCudaClosure.status}\`
 - Remaining native CUDA tools: \`${report.remainingNativeCudaClosure.remainingToolIds.join(', ') || 'none'}\`
+- Current host preflight requested: \`${report.remainingNativeCudaClosure.currentHostPreflightRequested}\`
 - Current host eligible for native GPU proof: \`${report.remainingNativeCudaClosure.currentHostEligibleForNativeGpuProof}\`
-- Current host blockers: \`${report.remainingNativeCudaClosure.currentHostBlockers.join('; ') || 'none'}\`
+- Current host blockers: \`${nativeCudaHostBlockersLabel}\`
 - Host preflight command: \`${report.remainingNativeCudaClosure.currentHostPreflightCommand}\`
 - Native CUDA script generator command: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutScriptGeneratorCommand}\`
 - Native CUDA generated script path: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutScriptPath}\`

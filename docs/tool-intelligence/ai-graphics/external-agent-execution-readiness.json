@@ -2932,6 +2932,7 @@
         }
       ]
     },
+    "currentHostPreflightRequested": false,
     "currentHostEligibleForNativeGpuProof": false,
     "currentHostBlockers": [],
     "currentHostPreflightCommand": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible",
@@ -3037,7 +3038,7 @@
     "nativeCudaCloseoutDiagnosticCommand": "npm run --silent ai-graphics:external-agent-native-cuda-closeout:diagnostics",
     "currentHostEligibleForNativeGpuProof": false,
     "currentHostBlockers": [],
-    "remainsBlockedUntil": "Run the native CUDA closeout on a linux/amd64 host with Docker NVIDIA runtime, nvidia-smi, CUDA-visible proof containers, reviewed private SAM2/BiRefNet model inputs, and the accepted existing proof refs."
+    "remainsBlockedUntil": "Run the native CUDA closeout on a linux/amd64 host with Docker NVIDIA runtime, nvidia-smi, CUDA-visible proof containers, reviewed private SAM2/BiRefNet model inputs, and the accepted CPU-safe and CPU-model GPU/model route proof packets."
   },
   "nextExactAction": "Controlled route proof now covers 19/21 tools: 13 non-GPU tools plus the accepted GPU/model proof subset (torch_torchvision, transformers, kornia, real_esrgan, rembg, transparent_background). Keep the remaining GPU/model tools blocked until their scoped private runtime proof succeeds."
 }

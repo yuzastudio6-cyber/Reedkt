@@ -33,6 +33,15 @@ function isUsablePassword(value: string): boolean {
   return value.length >= 8
 }
 
+function buildSignUpEmailRedirectTo(redirectTo: string): string | undefined {
+  if (typeof window === 'undefined') return undefined
+
+  const basePath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.replace(/\/$/, '')
+  const url = new URL(`${basePath}/sign-in`, window.location.origin)
+  url.searchParams.set('redirect', sanitizeRedirect(redirectTo))
+  return url.toString()
+}
+
 export function SignInPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -77,7 +86,12 @@ export function SignInPage() {
     const result =
       mode === 'sign_in'
         ? await signInWithEmailPassword(nextEmail, password)
-        : await signUpWithEmailPassword(nextEmail, password, displayName.trim() || undefined)
+        : await signUpWithEmailPassword(
+            nextEmail,
+            password,
+            displayName.trim() || undefined,
+            buildSignUpEmailRedirectTo(redirectTo),
+          )
 
     if (!result.ok) {
       setNotice({
@@ -104,10 +118,15 @@ export function SignInPage() {
     }
 
     setNotice({
-      tone: 'info',
-      title: 'Check your email',
-      detail: result.message,
+      tone: result.emailConfirmationRequired ? 'warning' : 'info',
+      title: result.emailConfirmationRequired ? 'Tester provisioning required' : 'Session pending',
+      detail: result.emailConfirmationRequired
+        ? 'This Supabase project did not return an active session. For internal testing, ask an owner to run the backend tester provisioning workflow, then use Sign in. Do not wait on email confirmation as the blocking path.'
+        : result.message,
     })
+    if (result.emailConfirmationRequired) {
+      setMode('sign_in')
+    }
     setSubmitting(false)
   }
 

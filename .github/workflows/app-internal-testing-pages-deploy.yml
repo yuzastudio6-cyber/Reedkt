@@ -93,15 +93,13 @@ jobs:
           VITE_REEDITPRO_APP_DEPLOYMENT: github_pages_internal_testing
         run: npm run build -- --base="${{ inputs.vite_base_path }}"
 
-      - name: Add SPA route fallbacks
+      - name: Add SPA fallback
         shell: bash
         run: |
           set -euo pipefail
+          # GitHub Pages serves the Vite app from 404.html for deep links.
+          # Explicit route directories made Pages deployment reject the artifact.
           cp dist/index.html dist/404.html
-          for route in sign-in internal-testing dashboard projects edit-preferences; do
-            mkdir -p "dist/${route}"
-            cp dist/index.html "dist/${route}/index.html"
-          done
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5

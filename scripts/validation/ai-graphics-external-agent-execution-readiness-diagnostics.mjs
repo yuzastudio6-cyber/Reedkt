@@ -1091,6 +1091,7 @@ function expectedHostRuntimeFlags(toolId) {
   if (toolId === 'rembg') flags.push('--rembg-model')
   if (toolId === 'transparent_background') {
     flags.push('--transparent-background-checkpoint')
+    flags.push('--transparent-background-mode fast')
   }
   return flags
 }
@@ -1113,6 +1114,7 @@ function expectedControlledRouteFlags(toolId) {
   if (toolId === 'rembg') flags.push('--scoped-gpu-rembg-model')
   if (toolId === 'transparent_background') {
     flags.push('--scoped-gpu-transparent-background-checkpoint')
+    flags.push('--scoped-gpu-transparent-background-mode fast')
   }
   return flags
 }

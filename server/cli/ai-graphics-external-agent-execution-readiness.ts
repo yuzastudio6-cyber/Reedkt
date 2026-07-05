@@ -20,6 +20,8 @@ const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.json'
 const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.md'
+const birefNetModelDirectoryPlaceholder =
+  '<private-birefnet-model-dir-containing-model.safetensors>'
 const gpuModelInstallBuildTargetsPath =
   'docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json'
 const canonicalGpuWorkerProofImage =
@@ -408,7 +410,9 @@ function gpuModelHostRuntimeFlags(toolId: string): string[] {
     flags.push('--source-image <private-approved-frame.png>')
   }
   if (toolId === 'sam2') flags.push('--sam2-checkpoint <private-sam2-checkpoint.pt>')
-  if (toolId === 'birefnet') flags.push('--birefnet-model <private-birefnet-model>')
+  if (toolId === 'birefnet') {
+    flags.push(`--birefnet-model ${birefNetModelDirectoryPlaceholder}`)
+  }
   if (toolId === 'real_esrgan') {
     flags.push('--real-esrgan-model <private-real-esrgan-model.pth>')
   }
@@ -644,7 +648,7 @@ function remainingNativeCudaExplicitModelPathPlaceholder(
 ): string {
   return toolId === 'sam2'
     ? '<private-sam2-checkpoint.pt>'
-    : '<private-birefnet-model-dir-containing-model.safetensors>'
+    : birefNetModelDirectoryPlaceholder
 }
 
 function remainingNativeCudaRuntimeInputManifestExplicitModelPathCommand(

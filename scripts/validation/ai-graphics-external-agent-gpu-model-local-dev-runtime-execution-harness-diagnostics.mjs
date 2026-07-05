@@ -3,6 +3,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const root = process.cwd()
+const birefNetModelDirectoryPlaceholder =
+  '<private-birefnet-model-dir-containing-model.safetensors>'
 const decision =
   'ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_prepared_with_runtime_blocks'
 const status =
@@ -903,6 +905,15 @@ for (const tool of tools) {
   }
   if (requiredToolSpecificFlag && !containerCommand.includes(requiredToolSpecificFlag)) {
     fail(`container_runtime_command_missing_tool_specific_flag:${tool}`)
+  }
+  if (tool === 'birefnet') {
+    const exactBirefNetFlag = `--birefnet-model ${birefNetModelDirectoryPlaceholder}`
+    if (!hostCommand.includes(exactBirefNetFlag)) {
+      fail('birefnet_host_runtime_command_missing_exact_model_directory_placeholder')
+    }
+    if (!containerCommand.includes(exactBirefNetFlag)) {
+      fail('birefnet_container_runtime_command_missing_exact_model_directory_placeholder')
+    }
   }
   if (['sam2', 'birefnet', 'real_esrgan', 'rembg', 'transparent_background'].includes(tool)) {
     if (!hostCommand.includes('--runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>')) {

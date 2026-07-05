@@ -3,6 +3,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const root = process.cwd()
+const birefNetModelDirectoryPlaceholder =
+  '<private-birefnet-model-dir-containing-model.safetensors>'
 const decision = 'ai_graphics_external_agent_single_tool_call_ready'
 const runScriptName = 'ai-graphics:external-agent-tool-call'
 const runScriptCommand =
@@ -794,7 +796,7 @@ function checkPrivateInputPreflightCall(label, report, expectedToolId) {
   }
   if (expectedToolId === 'birefnet') {
     const command = String(report.nextAction?.nextExactScopedToolCallCommand ?? '')
-    if (!command.includes('--birefnet-model <private-birefnet-model>')) {
+    if (!command.includes(`--birefnet-model ${birefNetModelDirectoryPlaceholder}`)) {
       fail(`${label}_next_action_missing_birefnet_explicit_model`)
     }
     if (command.includes('--private-model-root')) {

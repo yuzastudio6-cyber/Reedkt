@@ -32,6 +32,8 @@ const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-single-tool-call.json'
 const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-agent-single-tool-call.md'
+const birefNetModelDirectoryPlaceholder =
+  '<private-birefnet-model-dir-containing-model.safetensors>'
 const canonicalGpuWorkerRuntimeContainerImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
 const gpuModelRuntimeContainerTargets: Record<
@@ -816,7 +818,9 @@ function gpuModelPrivateInputPlaceholders(toolId: string): string[] {
     placeholders.push('--source-image <private-approved-frame.png>')
   }
   if (toolId === 'sam2') placeholders.push('--sam2-checkpoint <private-sam2-checkpoint.pt>')
-  if (toolId === 'birefnet') placeholders.push('--birefnet-model <private-birefnet-model>')
+  if (toolId === 'birefnet') {
+    placeholders.push(`--birefnet-model ${birefNetModelDirectoryPlaceholder}`)
+  }
   if (toolId === 'real_esrgan') {
     placeholders.push('--real-esrgan-model <private-real-esrgan-model.pth>')
   }
@@ -845,7 +849,7 @@ function gpuModelExactModelPathFlags(toolId: string): string[] {
   }
   if (toolId === 'birefnet') {
     return [
-      '--birefnet-model <private-birefnet-model>',
+      `--birefnet-model ${birefNetModelDirectoryPlaceholder}`,
       `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
     ]
   }

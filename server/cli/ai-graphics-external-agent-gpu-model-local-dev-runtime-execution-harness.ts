@@ -20,6 +20,8 @@ const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json'
 const outputMdPath =
   'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.md'
+const birefNetModelDirectoryPlaceholder =
+  '<private-birefnet-model-dir-containing-model.safetensors>'
 const canonicalGpuWorkerProofImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
 const runtimeContainerImageByTool: Record<
@@ -839,7 +841,7 @@ function exactRuntimeAttemptCommand(
       ? '--sam2-checkpoint <private-sam2-checkpoint.pt>'
       : '',
     toolId === 'birefnet'
-      ? '--birefnet-model <private-birefnet-model>'
+      ? `--birefnet-model ${birefNetModelDirectoryPlaceholder}`
       : '',
     toolId === 'real_esrgan'
       ? '--real-esrgan-model <private-real-esrgan-model.pth>'

@@ -15,6 +15,8 @@ const diagnosticScriptName =
   'ai-graphics:external-agent-gpu-model-private-proof-sequence:diagnostics'
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-gpu-model-private-proof-sequence-diagnostics.mjs'
+const birefNetModelDirectoryPlaceholder =
+  '<private-birefnet-model-dir-containing-model.safetensors>'
 
 const gpuModelTools = [
   'torch_torchvision',
@@ -38,7 +40,7 @@ const sourceImageRequiredTools = new Set([
 
 const toolSpecificPrivateProofFlagByTool = {
   sam2: '--sam2-checkpoint <private-sam2-checkpoint.pt>',
-  birefnet: '--birefnet-model <private-birefnet-model>',
+  birefnet: `--birefnet-model ${birefNetModelDirectoryPlaceholder}`,
   real_esrgan: '--real-esrgan-model <private-real-esrgan-model.pth>',
   rembg: '--rembg-model <private-rembg-model.onnx>',
   transparent_background:

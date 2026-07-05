@@ -42,6 +42,9 @@ export const AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH =
 export const AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_READINESS_ROUTE_PATH =
   '/api/ai-graphics/external-agent/tool-call/readiness'
 
+const birefNetModelDirectoryPlaceholder =
+  '<private-birefnet-model-dir-containing-model.safetensors>'
+
 export const AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG =
   'AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED'
 
@@ -407,7 +410,7 @@ function gpuModelScopedRuntimeProofFlags(toolId: string): string[] {
       ? '--scoped-gpu-sam2-checkpoint <private-sam2-checkpoint.pt>'
       : '',
     toolId === 'birefnet'
-      ? '--scoped-gpu-birefnet-model <private-birefnet-model>'
+      ? `--scoped-gpu-birefnet-model ${birefNetModelDirectoryPlaceholder}`
       : '',
     toolId === 'real_esrgan'
       ? '--scoped-gpu-real-esrgan-model <private-real-esrgan-model.pth>'
@@ -430,7 +433,7 @@ function gpuModelSingleToolRuntimeProofFlags(toolId: string): string[] {
       ? '--sam2-checkpoint <private-sam2-checkpoint.pt>'
       : '',
     toolId === 'birefnet'
-      ? '--birefnet-model <private-birefnet-model>'
+      ? `--birefnet-model ${birefNetModelDirectoryPlaceholder}`
       : '',
     toolId === 'real_esrgan'
       ? '--real-esrgan-model <private-real-esrgan-model.pth>'
@@ -570,7 +573,7 @@ function gpuModelPrivateProofSequenceFlags(toolId: string): string[] {
       ? '--sam2-checkpoint <private-sam2-checkpoint.pt>'
       : '',
     toolId === 'birefnet'
-      ? '--birefnet-model <private-birefnet-model>'
+      ? `--birefnet-model ${birefNetModelDirectoryPlaceholder}`
       : '',
     toolId === 'real_esrgan'
       ? '--real-esrgan-model <private-real-esrgan-model.pth>'

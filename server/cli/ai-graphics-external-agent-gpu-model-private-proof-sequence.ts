@@ -28,6 +28,8 @@ const hostPreflightScript =
   'ai-graphics:gpu-runtime-proof-local-preflight'
 const externalAgentToolCallScript =
   'ai-graphics:external-agent-tool-call'
+const birefNetModelDirectoryPlaceholder =
+  '<private-birefnet-model-dir-containing-model.safetensors>'
 const gpuModelRuntimeContainerTargets: Record<
   AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   { image: string; dockerfile: string; target: string }
@@ -660,7 +662,7 @@ function finalExternalAgentToolCallCommandArgs(input: SequenceArgs): string[] {
     !manifestCanProvidePrivateInputs &&
     !input.birefnetModelLocalPath
   ) {
-    args.push('--birefnet-model', '<private-birefnet-model>')
+    args.push('--birefnet-model', birefNetModelDirectoryPlaceholder)
   }
   if (
     input.toolId === 'real_esrgan' &&
@@ -835,7 +837,7 @@ function privateProofSequenceInputFlags(
     flags.push('--sam2-checkpoint <private-sam2-checkpoint.pt>')
   }
   if (toolId === 'birefnet') {
-    flags.push('--birefnet-model <private-birefnet-model>')
+    flags.push(`--birefnet-model ${birefNetModelDirectoryPlaceholder}`)
   }
   if (toolId === 'real_esrgan') {
     flags.push('--real-esrgan-model <private-real-esrgan-model.pth>')

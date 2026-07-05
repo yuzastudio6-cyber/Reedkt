@@ -49,6 +49,12 @@ const privateCpuModelProofTimeoutEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_CPU_MODEL_PROOF_TIMEOUT_MS'
 const defaultPrivateCpuModelProofTimeoutMs = 180_000
 const privateProofFrameSize = 96
+const requiredBirefNetRuntimeFiles = [
+  'model.safetensors',
+  'config.json',
+  'BiRefNet_config.py',
+  'birefnet.py',
+]
 
 const failures = []
 
@@ -280,6 +286,15 @@ function writePrivatePpm(filePath) {
 function writeRuntimeInputManifest(filePath, input) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true })
   fs.writeFileSync(filePath, `${JSON.stringify(input, null, 2)}\n`, 'utf8')
+}
+
+function writeBirefNetSupportFiles(modelDir) {
+  for (const fileName of requiredBirefNetRuntimeFiles.filter((entry) => entry !== 'model.safetensors')) {
+    fs.writeFileSync(
+      path.join(modelDir, fileName),
+      `diagnostic local-only ${fileName}; not a real BiRefNet runtime file\n`,
+    )
+  }
 }
 
 function assertFalse(value, label) {
@@ -600,6 +615,7 @@ for (const filePath of [
     'utf8',
   )
 }
+writeBirefNetSupportFiles(placeholderModelPaths.birefnet)
 writeRuntimeInputManifest(manifestPath, {
   outputDirectory: relativeLocalPath(adapterDir),
   runtimeContainerImage: proofImage,

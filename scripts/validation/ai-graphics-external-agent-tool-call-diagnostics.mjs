@@ -46,6 +46,12 @@ const privateInputPreflightTools = [
   'rembg',
   'transparent_background',
 ]
+const requiredBirefNetRuntimeFiles = [
+  'model.safetensors',
+  'config.json',
+  'BiRefNet_config.py',
+  'birefnet.py',
+]
 
 function cpuModelRuntimeTool(toolId) {
   return toolId === 'real_esrgan' ||
@@ -588,6 +594,16 @@ function writeSafetensorsPlaceholder(filePath) {
   fs.writeFileSync(absolute(filePath), buffer)
 }
 
+function writeBirefNetSupportFiles(modelDir) {
+  for (const fileName of requiredBirefNetRuntimeFiles.filter((entry) => entry !== 'model.safetensors')) {
+    fs.mkdirSync(path.dirname(absolute(`${modelDir}/${fileName}`)), { recursive: true })
+    fs.writeFileSync(
+      absolute(`${modelDir}/${fileName}`),
+      `diagnostic local-only ${fileName}; not a real BiRefNet runtime file\n`,
+    )
+  }
+}
+
 function privateInputPreflightPaths() {
   const rootDir =
     '.local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/private-input-preflight'
@@ -631,6 +647,7 @@ function ensurePrivateInputPreflightPlaceholders() {
   ]) {
     writePrivatePlaceholderFile(filePath)
   }
+  writeBirefNetSupportFiles(paths.birefnetModel)
   return paths
 }
 
@@ -640,6 +657,7 @@ function ensurePrivateModelRootToolCallPlaceholders() {
   writeLargePrivatePlaceholderFile(paths.sam2Checkpoint)
   writeLargePrivatePlaceholderFile(paths.rembgModel)
   writeSafetensorsPlaceholder(paths.birefnetModel)
+  writeBirefNetSupportFiles(path.dirname(paths.birefnetModel))
   writeLargePrivatePlaceholderFile(paths.realEsrganModel)
   writeLargePrivatePlaceholderFile(paths.transparentBackgroundCheckpoint)
   return paths
@@ -1128,6 +1146,40 @@ const privateInputPreflightReports = privateInputPreflightTools.map((toolId) => 
 })
 if (privateInputPreflightReports.length !== 5) {
   fail(`private_input_preflight_report_count_mismatch:${privateInputPreflightReports.length}`)
+}
+const incompleteBirefNetDir =
+  `${privatePreflightPaths.rootDir}/models/birefnet-incomplete`
+writePrivatePlaceholderFile(`${incompleteBirefNetDir}/model.safetensors`)
+const incompleteBirefNetReport = runToolCall([
+  '--tool birefnet',
+  '--attempt-gpu-runtime',
+  '--runtime-backend docker_container',
+  `--runtime-container-image ${gpuModelRuntimeContainerImage('birefnet')}`,
+  '--runtime-container-platform linux/amd64',
+  '--private-input-preflight-only',
+  `--gpu-output-dir ${privatePreflightPaths.rootDir}/outputs/birefnet-incomplete`,
+  `--source-image ${privatePreflightPaths.sourceImage}`,
+  `--birefnet-model ${incompleteBirefNetDir}`,
+].join(' '))
+if (
+  incompleteBirefNetReport.response?.externalAgentExecutionState !==
+    'blocked_with_reason'
+) {
+  fail('birefnet_incomplete_directory_not_structured_block')
+}
+if (
+  incompleteBirefNetReport.response?.blockingReasonCode !==
+    'birefnet_model_invalid_path_kind'
+) {
+  fail(
+    `birefnet_incomplete_directory_reason_unexpected:${incompleteBirefNetReport.response?.blockingReasonCode}`,
+  )
+}
+if (
+  incompleteBirefNetReport.response?.externalAgentToolCallResult
+    ?.localGpuModelRuntimeExecutionPerformed !== false
+) {
+  fail('birefnet_incomplete_directory_started_runtime')
 }
 
 const privateModelRootPaths = ensurePrivateModelRootToolCallPlaceholders()

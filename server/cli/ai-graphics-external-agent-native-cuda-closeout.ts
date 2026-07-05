@@ -24,6 +24,12 @@ const readinessScript = 'ai-graphics:external-agent-execution-readiness'
 
 const toolIds = ['sam2', 'birefnet'] as const
 type ToolId = typeof toolIds[number]
+const requiredBirefNetRuntimeFiles = [
+  'model.safetensors',
+  'config.json',
+  'BiRefNet_config.py',
+  'birefnet.py',
+]
 
 type RuntimeTarget = {
   image: string
@@ -232,11 +238,16 @@ function modelCandidateForTool(
         continue
       }
       const modelFile = path.join(candidatePath, 'model.safetensors')
+      const requiredFilesPresent = requiredBirefNetRuntimeFiles.every((fileName) => {
+        const requiredFile = path.join(candidatePath, fileName)
+        return fs.existsSync(requiredFile) && fs.statSync(requiredFile).isFile()
+      })
       if (
         fs.existsSync(candidatePath) &&
         fs.statSync(candidatePath).isDirectory() &&
         fs.existsSync(modelFile) &&
-        fs.statSync(modelFile).isFile()
+        fs.statSync(modelFile).isFile() &&
+        requiredFilesPresent
       ) {
         return {
           present: true,
@@ -250,7 +261,10 @@ function modelCandidateForTool(
       matchingCandidate: null,
       blocker:
         `private model root did not contain ${target.modelField}; checked ` +
-        target.candidates.join(', '),
+        target.candidates.join(', ') +
+        (toolId === 'birefnet'
+          ? `; BiRefNet candidates must include ${requiredBirefNetRuntimeFiles.join(', ')}`
+          : ''),
     }
   } catch (error) {
     return {

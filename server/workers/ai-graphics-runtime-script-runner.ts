@@ -1,4 +1,4 @@
-import { execFile } from 'node:child_process'
+import { execFile, spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { existsSync, statSync } from 'node:fs'
 import { mkdir, readFile, stat } from 'node:fs/promises'
@@ -6,6 +6,7 @@ import path from 'node:path'
 import { promisify } from 'node:util'
 
 const execFileAsync = promisify(execFile)
+const dockerContainerNamePrefix = 'reeditpro-ai-graphics-runtime'
 
 export interface AiGraphicsRuntimeScriptResult {
   outputJson: unknown
@@ -297,7 +298,9 @@ async function runPythonRuntimeInDockerContainer(
   }
   assertSafeRuntimeValue(image, 'containerImage')
   const cwd = process.cwd()
+  const containerName = runtimeContainerName()
   const dockerArgs = ['run', '--rm']
+  dockerArgs.push('--name', containerName)
   if (input.containerPlatform) {
     assertSafeRuntimeValue(input.containerPlatform, 'containerPlatform')
     dockerArgs.push('--platform', input.containerPlatform)
@@ -316,12 +319,144 @@ async function runPythonRuntimeInDockerContainer(
     dockerArgs.push('-v', `${mount.hostPath}:${mount.containerPath}:${mount.mode}`)
   }
   dockerArgs.push('-w', cwd, '--entrypoint', 'python3', image, scriptPath, ...input.args)
-  return execFileAsync('docker', dockerArgs, {
+  return execFileWithRuntimeTimeout('docker', dockerArgs, {
     cwd,
     timeout: input.timeoutMs ?? 15 * 60 * 1000,
     windowsHide: true,
     maxBuffer: 32 * 1024 * 1024,
     env: runtimeEnv(input.extraEnv),
+    onTimeout: () => {
+      try {
+        execFile('docker', ['rm', '-f', containerName], {
+          cwd,
+          windowsHide: true,
+          env: runtimeEnv(input.extraEnv),
+        }, () => undefined)
+      } catch {
+        // Best-effort cleanup; the original timeout error is more useful.
+      }
+    },
+  })
+}
+
+function runtimeContainerName(): string {
+  return [
+    dockerContainerNamePrefix,
+    String(process.pid),
+    String(Date.now()),
+    Math.random().toString(16).slice(2),
+  ].join('-').replace(/[^a-zA-Z0-9_.-]/g, '-').slice(0, 120)
+}
+
+function execFileWithRuntimeTimeout(
+  command: string,
+  args: string[],
+  options: {
+    cwd: string
+    timeout: number
+    windowsHide: boolean
+    maxBuffer: number
+    env: NodeJS.ProcessEnv
+    onTimeout?: () => void
+  },
+): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd: options.cwd,
+      env: options.env,
+      windowsHide: options.windowsHide,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    const stdoutChunks: Buffer[] = []
+    const stderrChunks: Buffer[] = []
+    let stdoutBytes = 0
+    let stderrBytes = 0
+    let settled = false
+    let timedOut = false
+    let sigkillTimer: NodeJS.Timeout | null = null
+
+    const cleanup = () => {
+      if (timer) clearTimeout(timer)
+      if (sigkillTimer) clearTimeout(sigkillTimer)
+    }
+    const fail = (error: Error) => {
+      if (settled) return
+      settled = true
+      cleanup()
+      reject(error)
+    }
+    const append = (
+      chunks: Buffer[],
+      currentBytes: number,
+      chunk: Buffer,
+      label: 'stdout' | 'stderr',
+    ): number => {
+      const nextBytes = currentBytes + chunk.length
+      if (nextBytes > options.maxBuffer) {
+        child.kill('SIGTERM')
+        fail(new Error(`${command} ${label} exceeded maxBuffer`))
+        return currentBytes
+      }
+      chunks.push(chunk)
+      return nextBytes
+    }
+
+    const timer = setTimeout(() => {
+      timedOut = true
+      options.onTimeout?.()
+      child.kill('SIGTERM')
+      sigkillTimer = setTimeout(() => {
+        if (!settled) child.kill('SIGKILL')
+      }, 2_000)
+    }, options.timeout)
+
+    child.stdout?.on('data', (chunk: Buffer) => {
+      stdoutBytes = append(stdoutChunks, stdoutBytes, chunk, 'stdout')
+    })
+    child.stderr?.on('data', (chunk: Buffer) => {
+      stderrBytes = append(stderrChunks, stderrBytes, chunk, 'stderr')
+    })
+    child.on('error', fail)
+    child.on('close', (code, signal) => {
+      if (settled) return
+      settled = true
+      cleanup()
+      const stdout = Buffer.concat(stdoutChunks).toString('utf8')
+      const stderr = Buffer.concat(stderrChunks).toString('utf8')
+      if (timedOut) {
+        const error = new Error(
+          `${command} timed out after ${options.timeout}ms`,
+        ) as Error & {
+          code?: string
+          signal?: NodeJS.Signals | null
+          stdout?: string
+          stderr?: string
+        }
+        error.code = 'ETIMEDOUT'
+        error.signal = signal
+        error.stdout = stdout
+        error.stderr = stderr
+        reject(error)
+        return
+      }
+      if (code !== 0) {
+        const error = new Error(
+          `${command} exited with code ${code ?? 'null'}`,
+        ) as Error & {
+          code?: number | null
+          signal?: NodeJS.Signals | null
+          stdout?: string
+          stderr?: string
+        }
+        error.code = code
+        error.signal = signal
+        error.stdout = stdout
+        error.stderr = stderr
+        reject(error)
+        return
+      }
+      resolve({ stdout, stderr })
+    })
   })
 }
 

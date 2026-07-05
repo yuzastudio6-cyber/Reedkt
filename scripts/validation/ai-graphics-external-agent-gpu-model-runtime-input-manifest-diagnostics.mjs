@@ -72,6 +72,12 @@ const expectedPostEvidenceBlockers = new Set([
   'gpu_model_runtime_container_image_unavailable',
   'gpu_model_runtime_container_gpu_unavailable',
 ])
+const requiredBirefNetRuntimeFiles = [
+  'model.safetensors',
+  'config.json',
+  'BiRefNet_config.py',
+  'birefnet.py',
+]
 
 const failures = []
 
@@ -163,6 +169,16 @@ function writeSafetensorsPlaceholder(filePath) {
   length.writeBigUInt64LE(BigInt(header.length), 0)
   const padding = Buffer.alloc(1024 * 1024 + 32, 3)
   fs.writeFileSync(absolute(filePath), Buffer.concat([length, header, padding]))
+}
+
+function writeBirefNetSupportFiles(modelDir) {
+  for (const fileName of requiredBirefNetRuntimeFiles.filter((entry) => entry !== 'model.safetensors')) {
+    fs.mkdirSync(path.dirname(absolute(`${modelDir}/${fileName}`)), { recursive: true })
+    fs.writeFileSync(
+      absolute(`${modelDir}/${fileName}`),
+      `diagnostic local-only ${fileName}; not a real BiRefNet runtime file\n`,
+    )
+  }
 }
 
 function materializeManifest(toolId, contract, runtimeImage = runtimeImageByTool[toolId]) {
@@ -268,12 +284,35 @@ fs.rmSync(absolute(runRoot), { recursive: true, force: true })
 writePrivateSourceFrame(`${runRoot}/inputs/private-approved-frame.ppm`)
 writeLargePrivatePlaceholder(toolContracts.sam2.modelPath, 1)
 writeSafetensorsPlaceholder(toolContracts.birefnet.checksumFile)
+writeBirefNetSupportFiles(path.dirname(toolContracts.birefnet.checksumFile))
 writeLargePrivatePlaceholder(toolContracts.real_esrgan.modelPath, 4)
 writeLargePrivatePlaceholder(toolContracts.rembg.modelPath, 5)
 writeLargePrivatePlaceholder(toolContracts.transparent_background.modelPath, 6)
 const privateModelRootPath = `${runRoot}/private-model-root`
 writeLargePrivatePlaceholder(`${privateModelRootPath}/sam2/sam2.1_hiera_tiny.pt`, 7)
 writeSafetensorsPlaceholder(`${privateModelRootPath}/birefnet/model.safetensors`)
+writeBirefNetSupportFiles(`${privateModelRootPath}/birefnet`)
+const incompleteBirefNetDir = `${runRoot}/models/birefnet-incomplete`
+writeSafetensorsPlaceholder(`${incompleteBirefNetDir}/model.safetensors`)
+const incompleteBirefNetManifest = spawn([
+  `npm run --silent ${runScriptName} --`,
+  '--tool birefnet',
+  `--source-image ${runRoot}/inputs/private-approved-frame.ppm`,
+  `--birefnet-model ${incompleteBirefNetDir}`,
+  `--output-dir ${runRoot}/outputs/birefnet-incomplete`,
+  `--manifest-out ${runRoot}/runtime-inputs/birefnet-incomplete.json`,
+  '--model-weight-manifest-id birefnet_private_manifest_review_v1',
+  '--model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/birefnet.json',
+  '--runtime-container-platform linux/amd64',
+  '--private-input-preflight-only',
+  '--force',
+].join(' '))
+if (incompleteBirefNetManifest.status === 0) {
+  fail('birefnet_incomplete_directory_materialized')
+}
+if (!incompleteBirefNetManifest.stderr.includes('missing required runtime file')) {
+  fail('birefnet_incomplete_directory_missing_error_unexpected')
+}
 const aliasPrivateModelRootPath = `${runRoot}/alias-private-model-root`
 writeLargePrivatePlaceholder(`${aliasPrivateModelRootPath}/rembg/u2netp.onnx`, 8)
 writeLargePrivatePlaceholder(

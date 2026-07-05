@@ -226,6 +226,12 @@ const runtimePythonModulesByTool: Record<
 
 const minimumPrivateModelFileBytes = 1024 * 1024
 const maximumSafetensorsHeaderBytes = 1024 * 1024
+const requiredBirefNetRuntimeFiles = [
+  'model.safetensors',
+  'config.json',
+  'BiRefNet_config.py',
+  'birefnet.py',
+]
 const modelWeightEvidenceRequiredTools =
   new Set<AiGraphicsExternalAgentGpuModelControlledAdapterToolId>([
     'sam2',
@@ -901,13 +907,16 @@ function privateLocalPathMatchesExpectation(
   if (expectation === 'directory') return pathStat.isDirectory()
   if (expectation === 'birefnet_model_directory') {
     if (!pathStat.isDirectory()) return false
-    const modelFilePath = `${pathValue}/model.safetensors`
-    if (!existsSync(modelFilePath)) return false
-    try {
-      return statSync(modelFilePath).isFile()
-    } catch {
-      return false
+    for (const requiredFile of requiredBirefNetRuntimeFiles) {
+      const requiredFilePath = path.join(pathValue, requiredFile)
+      if (!existsSync(requiredFilePath)) return false
+      try {
+        if (!statSync(requiredFilePath).isFile()) return false
+      } catch {
+        return false
+      }
     }
+    return true
   }
   return false
 }
@@ -916,9 +925,41 @@ function privateLocalPathExpectationLabel(
   expectation: PrivateLocalPathExpectation,
 ): string {
   if (expectation === 'birefnet_model_directory') {
-    return 'a directory containing model.safetensors'
+    return `a directory containing ${requiredBirefNetRuntimeFiles.join(', ')}`
   }
   return `a ${expectation}`
+}
+
+function birefnetRuntimeDirectorySupportBlock(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  payload: Record<string, unknown>,
+): Record<string, unknown> | null {
+  if (toolId !== 'birefnet') return null
+  const modelDir = optionalString(payload, 'birefnetModelLocalPath')
+  if (!modelDir) return null
+  const missingFiles = requiredBirefNetRuntimeFiles.filter((requiredFile) => {
+    const filePath = path.join(modelDir, requiredFile)
+    try {
+      return !existsSync(filePath) || !statSync(filePath).isFile()
+    } catch {
+      return true
+    }
+  })
+  if (missingFiles.length === 0) return null
+  return skippedPrerequisiteBlock({
+    toolId,
+    code: 'birefnet_model_directory_missing_runtime_files',
+    message:
+      'BiRefNet local runtime proof requires the reviewed private Hugging Face model directory, ' +
+      `including ${requiredBirefNetRuntimeFiles.join(', ')}. Missing: ${missingFiles.join(', ')}. ` +
+      'No network fetch, model download, or public fallback is allowed.',
+    summary:
+      'GPU/model local-dev execution prerequisite blocked before Docker/GPU/Python startup because the private BiRefNet model directory was incomplete for trust_remote_code local loading.',
+    warning:
+      'GPU/model runtime did not start because the supplied private BiRefNet model directory was missing required local runtime files.',
+    errorMessage:
+      'BiRefNet private model directory is incomplete for controlled GPU/model runtime proof.',
+  })
 }
 
 function modelFilePathForRuntimeContentCheck(
@@ -1071,6 +1112,8 @@ function privateModelRuntimeContentBlock(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   payload: Record<string, unknown>,
 ): Record<string, unknown> | null {
+  const supportBlock = birefnetRuntimeDirectorySupportBlock(toolId, payload)
+  if (supportBlock) return supportBlock
   const modelFile = modelFilePathForRuntimeContentCheck(toolId, payload)
   if (!modelFile || !modelFile.pathValue) return null
   const fileNameBlock = invalidModelFileNameOrExtensionBlock({

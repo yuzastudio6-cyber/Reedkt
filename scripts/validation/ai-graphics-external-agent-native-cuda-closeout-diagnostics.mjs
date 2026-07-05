@@ -38,6 +38,12 @@ const forbiddenOutputTrueBooleans = [
   'externalBetaReadyNow',
   'productionReadyNow',
 ]
+const requiredBirefNetRuntimeFiles = [
+  'model.safetensors',
+  'config.json',
+  'BiRefNet_config.py',
+  'birefnet.py',
+]
 const forbiddenTextPatterns = [
   /dry_run_passed/i,
   /generated_local_fixture_passed/i,
@@ -150,6 +156,15 @@ function validatePackageSections(packageJson) {
   }
 }
 
+function writeBirefNetSupportFiles(modelDir) {
+  for (const fileName of requiredBirefNetRuntimeFiles.filter((entry) => entry !== 'model.safetensors')) {
+    fs.writeFileSync(
+      path.join(modelDir, fileName),
+      `diagnostic local-only ${fileName}; not a real BiRefNet runtime file\n`,
+    )
+  }
+}
+
 function makeDiagnosticFixtures() {
   const fixtureRoot = absolute(
     '.local-artifacts/ai-graphics/native-cuda-closeout-diagnostic',
@@ -170,6 +185,7 @@ function makeDiagnosticFixtures() {
     path.join(birefnetRoot, 'model.safetensors'),
     Buffer.concat([headerPrefix, safetensorsHeader, Buffer.alloc(1024 * 1024 + 1, 2)]),
   )
+  writeBirefNetSupportFiles(birefnetRoot)
   fs.writeFileSync(sourceImage, 'P3\n1 1\n255\n255 255 255\n')
   return {
     modelRoot: path.relative(root, modelRoot),

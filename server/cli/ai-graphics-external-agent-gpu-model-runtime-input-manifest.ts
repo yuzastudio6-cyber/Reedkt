@@ -24,6 +24,7 @@ interface ModelRuntimePathContract {
   modelLabel: string
   modelPathExpectation: 'file' | 'birefnet_model_directory'
   modelFileForChecksum: (value: string) => string
+  requiredDirectoryFiles?: string[]
   expectedExtensions?: string[]
   expectedFileName?: string
   requiresSafetensorsHeader?: boolean
@@ -50,6 +51,12 @@ const modelWeightTools: readonly ModelWeightToolId[] = [
 const minimumPrivateModelFileBytes = 1024 * 1024
 const maximumSafetensorsHeaderBytes = 1024 * 1024
 const privateModelRootEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
+const requiredBirefNetRuntimeFiles = [
+  'model.safetensors',
+  'config.json',
+  'BiRefNet_config.py',
+  'birefnet.py',
+]
 const modelRootPathCandidatesByTool: Record<ModelWeightToolId, string[]> = {
   sam2: [
     'sam2.1_hiera_tiny.pt',
@@ -83,6 +90,7 @@ const modelRuntimePathContracts: Record<ModelWeightToolId, ModelRuntimePathContr
     modelLabel: 'BiRefNet model.safetensors',
     modelPathExpectation: 'birefnet_model_directory',
     modelFileForChecksum: (value) => path.join(value, 'model.safetensors'),
+    requiredDirectoryFiles: requiredBirefNetRuntimeFiles,
     expectedFileName: 'model.safetensors',
     requiresSafetensorsHeader: true,
   },
@@ -279,7 +287,20 @@ function assertModelPathContract(contract: ModelRuntimePathContract, modelPath: 
     throw new Error(`${contract.modelLabel} must be a file`)
   }
   if (contract.modelPathExpectation === 'birefnet_model_directory' && !stats.isDirectory()) {
-    throw new Error(`${contract.modelLabel} path must be a directory containing model.safetensors`)
+    throw new Error(
+      `${contract.modelLabel} path must be a directory containing ` +
+      requiredBirefNetRuntimeFiles.join(', '),
+    )
+  }
+  for (const requiredFile of contract.requiredDirectoryFiles ?? []) {
+    const requiredFilePath = path.join(modelPath, requiredFile)
+    if (!existsSync(requiredFilePath) || !statSync(requiredFilePath).isFile()) {
+      throw new Error(
+        `${contract.modelLabel} directory is missing required runtime file ` +
+        `${requiredFile}; AutoModelForImageSegmentation local loading uses ` +
+        'the reviewed private model directory and no network fetch is allowed',
+      )
+    }
   }
   const modelFile = contract.modelFileForChecksum(modelPath)
   if (!existsSync(modelFile) || !statSync(modelFile).isFile()) {

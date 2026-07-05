@@ -753,6 +753,7 @@ function gpuModelCurrentBlockingPrerequisiteKey(
     blockingReasonCode.includes('birefnet_model_missing') ||
     blockingReasonCode.includes('birefnet_model_invalid_path_kind') ||
     blockingReasonCode.includes('birefnet_model_invalid_safetensors_header') ||
+    blockingReasonCode.includes('birefnet_model_directory_missing_runtime_files') ||
     blockingReasonCode.includes('birefnet_model_too_small_for_runtime')
   ) {
     return 'birefnetModelLocalPath'
@@ -873,7 +874,11 @@ function gpuModelBlockedPrerequisites(toolId: string): string[] {
     prerequisites.push('private approved source image/frame on local disk')
   }
   if (toolId === 'sam2') prerequisites.push('private SAM2 checkpoint path')
-  if (toolId === 'birefnet') prerequisites.push('private BiRefNet model path')
+  if (toolId === 'birefnet') {
+    prerequisites.push(
+      'private BiRefNet model directory containing model.safetensors, config.json, BiRefNet_config.py, and birefnet.py',
+    )
+  }
   if (toolId === 'real_esrgan') prerequisites.push('private Real-ESRGAN model path')
   if (toolId === 'rembg') prerequisites.push('private rembg model path')
   if (toolId === 'transparent_background') {
@@ -1572,6 +1577,10 @@ async function buildReport() {
       routeStatus: data.routeStatus ?? null,
       externalAgentExecutionState: data.externalAgentExecutionState ?? null,
       blockingReasonCode: data.blockingReasonCode ?? null,
+      currentBlockingPrerequisiteKey:
+        normalized?.currentBlockingPrerequisiteKey ?? null,
+      currentBlockingReasonCode:
+        normalized?.currentBlockingReasonCode ?? data.blockingReasonCode ?? null,
       failureDiagnostics: data.failureDiagnostics ?? null,
       externalAgentToolCallResult: normalized,
       outputKind: outputSummary.outputKind,

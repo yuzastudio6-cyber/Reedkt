@@ -700,7 +700,8 @@ function gpuModelCurrentBlockingPrerequisiteKey(
   if (
     blockingReasonCode.includes('birefnet_model_missing') ||
     blockingReasonCode.includes('birefnet_model_invalid_path_kind') ||
-    blockingReasonCode.includes('birefnet_model_invalid_safetensors_header')
+    blockingReasonCode.includes('birefnet_model_invalid_safetensors_header') ||
+    blockingReasonCode.includes('birefnet_model_directory_missing_runtime_files')
   ) {
     return 'birefnetModelLocalPath'
   }

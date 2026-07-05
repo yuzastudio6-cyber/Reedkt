@@ -1206,6 +1206,14 @@ if (
   )
 }
 if (
+  incompleteBirefNetReport.response?.currentBlockingPrerequisiteKey !==
+    'birefnetModelLocalPath'
+) {
+  fail(
+    `birefnet_incomplete_directory_key_unexpected:${incompleteBirefNetReport.response?.currentBlockingPrerequisiteKey}`,
+  )
+}
+if (
   incompleteBirefNetReport.response?.externalAgentToolCallResult
     ?.localGpuModelRuntimeExecutionPerformed !== false
 ) {

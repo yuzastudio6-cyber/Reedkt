@@ -7,6 +7,13 @@ test.describe('Edit Preferences route entrypoint', () => {
     await setViewport(page, 1440)
     await gotoRoute(page, '/edit-preferences')
 
+    const sidebarNav = page.getByRole('navigation', { name: /desktop app navigation/i })
+    await expect(sidebarNav.getByRole('link')).toHaveCount(3)
+    await expect(sidebarNav.getByRole('link', { name: /^Home$/ })).toBeVisible()
+    await expect(sidebarNav.getByRole('link', { name: /^Projects$/ })).toBeVisible()
+    await expect(sidebarNav.getByRole('link', { name: /^Preferences$/ })).toBeVisible()
+    await expect(sidebarNav).not.toContainText(/AI Editor|Media Library|Templates|Team|Analytics|Exports|Brand Kit|Settings/i)
+    await expect(page.getByRole('button', { name: /open wallet/i })).toHaveCount(0)
     await expect(page.getByTestId('edit-preferences-page')).toBeVisible()
     await expect(page.getByTestId('edit-preference-summary-strip')).toContainText('Product-ready')
     await expect(page.getByTestId('edit-preference-summary-strip')).toContainText('0')

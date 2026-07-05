@@ -93,9 +93,6 @@ export function AppShell({ children, description, eyebrow, mode = 'standard', pr
                 <span style={{ width: '68%' }} />
               </div>
               <p>68% storage used across active projects.</p>
-              <Button size="sm" to="/wallet" variant="secondary">
-                Open wallet
-              </Button>
             </div>
             <div className="sidebar-profile">
               <span>

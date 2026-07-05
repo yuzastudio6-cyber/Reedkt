@@ -43,17 +43,36 @@ runtime. It requires:
 - at least one visible CUDA device
 - CUDA compute capability at or above `8.9` for the approved NVIDIA L4 target
 - a tiny CUDA tensor probe
-- optional reviewed model manifest checks via `--require-model-weight-manifests`
+- reviewed model manifest checks via `--require-model-weight-manifests`
 
 The script refuses side-effect flags for model downloads, provider execution,
 real media input, public artifacts, signed URLs, Tool Route execution, Worker
 execution, Supabase mutation, and GCS upload.
 
+When model manifests are required, the script now validates the
+`model_tree_manifest.json` content for exact `toolId`/`templateId`, non-empty
+private artifact, checksum evidence, and provenance refs, a 64-character
+`checksumSha256`, all review booleans set to true including
+`checksumEvidenceReviewed`, no public or signed URL artifact/evidence refs, and
+no claims that model weights, inference, media, routes, workers, public
+artifacts, or signed URLs already executed.
+
+When reviewed source-catalog checksum guidance exists, the manifest
+`checksumSha256` must match that guidance exactly before the manifest can feed
+native GPU proof. This currently applies to `sam2`, `birefnet`, and
+`real_esrgan`; `rembg` and `transparent_background` remain blocked until their
+private artifact checksum evidence is owner-reviewed.
+
 It does not download model weights, load checkpoints, process media, call
 providers, execute Product Tool Routes, execute Workers, create signed URLs,
 create public artifacts, unlock beta, or unlock production.
 
-## Image Placement
+## Image Probe Placement
+
+This earlier gate prepares four image-level probe placements. Current downstream
+native GPU proof uses six on-demand proof profiles because `rembg` and
+`transparent_background` are validated as separate shared-worker proof profiles
+even though they use the same GPU worker image.
 
 The runtime readiness probe is copied into these images:
 
@@ -118,6 +137,23 @@ docker run --rm --gpus all \
   --require-model-weight-manifests
 ```
 
+## GPU Runtime Activation Policy
+
+The runtime gate requires exact native GPU targets for the eight GPU/model tools:
+
+- `torch_torchvision`, `transformers`, `kornia`, `rembg`, and
+  `transparent_background`: `native_linux_amd64_nvidia_l4_gpu_worker`
+- `sam2`: `native_linux_amd64_nvidia_l4_sam2_runtime`
+- `birefnet`: `native_linux_amd64_nvidia_l4_birefnet_runtime`
+- `real_esrgan`: `native_linux_amd64_nvidia_l4_real_esrgan_runtime`
+
+GPU runtime is on-demand only. The readiness commands use ephemeral
+`docker run --rm --gpus all` containers and do not approve always-on GPU
+workers. GPU work may start only for an approved proof command or a future
+approved Worker/Tool Route handoff, then must release after that command or job
+finishes. CPU fallback is not allowed for these heavy/model tools when GPU
+runtime proof or execution is required.
+
 ## Current State
 
 Local host: `darwin_arm64`.
@@ -139,8 +175,8 @@ outside an approved native NVIDIA proof lane.
 
 - Native `linux/amd64` NVIDIA runtime proof has not run here.
 - `docker run --gpus all` has not passed here.
-- Reviewed `model_tree_manifest.json` files have not been mounted for the model
-  tools.
+- Reviewed and schema-valid `model_tree_manifest.json` files have not been
+  mounted for the model tools.
 - Model weights have not been downloaded, loaded, or executed.
 - SAM2 optional CUDA post-processing extension runtime behavior remains pending
   because install-proof uses `SAM2_BUILD_CUDA=0`.
@@ -155,8 +191,14 @@ outside an approved native NVIDIA proof lane.
 - `gpuModelRuntimeReadinessGatePrepared=true`
 - `all8GpuModelToolsCoveredByRuntimeGate=true`
 - `all4GpuRuntimeProfilesHaveRuntimeProbe=true`
+- `all6NativeGpuProofProfilesCoveredByCommandPlan=true`
 - `nativeNvidiaRuntimeRequired=true`
 - `explicitRuntimeProofOptInRequired=true`
+- `gpuRuntimeTargetsExact=true`
+- `gpuRuntimeOnDemandOnly=true`
+- `noIdleGpuRuntimeApproved=true`
+- `startsOnlyForApprovedWorkerOrToolCall=true`
+- `cpuFallbackAllowedForHeavyTools=false`
 - `modelWeightManifestGatePrepared=true`
 - `agentCanSelectForPlanning=true`
 - `agentCanExecuteToolsNow=false`
@@ -177,7 +219,10 @@ outside an approved native NVIDIA proof lane.
 
 ## Next Proof
 
-Run the four runtime readiness commands on an approved native NVIDIA builder
-with reviewed private model manifests mounted. After that, a separate approved
-lane must prove model loading and minimal private fixtures before agent/tool
-execution or beta readiness can be reconsidered.
+Run the four image-level runtime readiness commands on an approved native
+NVIDIA builder with reviewed, schema-valid private model manifests mounted.
+Then run and validate the six current native GPU proof profiles:
+`gpu_worker_ai_graphics`, `sam2`, `birefnet`, `real_esrgan`, `rembg`, and
+`transparent_background`. A separate approved lane must still prove model
+loading and minimal private fixtures before agent/tool execution or beta
+readiness can be reconsidered.

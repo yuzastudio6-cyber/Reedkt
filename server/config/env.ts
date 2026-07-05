@@ -33,6 +33,15 @@ export interface RuntimeEnv {
   workerInstanceId: string
   workerHeartbeatIntervalSeconds: number
   workerClaimLeaseSeconds: number
+  aiGraphicsExternalAgentToolCallRouteMountEnabled: boolean
+  aiGraphicsExternalBetaToolCallRouteMountEnabled: boolean
+  aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled: boolean
+  aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled: boolean
+  aiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionEnabled: boolean
+  aiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionEnabled: boolean
+  aiGraphicsExternalBetaToolCallRouteGpuModelControlledExecutionEnabled: boolean
+  aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled: boolean
+  aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled: boolean
   strictToolReadiness: boolean
   toolCheckTimeoutMs: number
   ffmpegBin: string
@@ -76,6 +85,15 @@ const envSchema = z.object({
   WORKER_INSTANCE_ID: z.string().default('local-worker-1'),
   WORKER_HEARTBEAT_INTERVAL_SECONDS: z.coerce.number().int().positive().max(3600).default(30),
   WORKER_CLAIM_LEASE_SECONDS: z.coerce.number().int().positive().max(86400).default(300),
+  AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED: z.string().optional(),
+  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED: z.string().optional(),
+  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED: z.string().optional(),
+  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED: z.string().optional(),
+  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED: z.string().optional(),
+  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED: z.string().optional(),
+  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED: z.string().optional(),
+  AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_CONTROLLED_TOOL_CALL_ROUTE_ENABLED: z.string().optional(),
+  AI_GRAPHICS_EXTERNAL_BETA_BROWSER_RUNTIME_CONTROLLED_TOOL_CALL_ROUTE_ENABLED: z.string().optional(),
   STRICT_TOOL_READINESS: z.string().optional(),
   TOOL_CHECK_TIMEOUT_MS: z.coerce.number().int().positive().max(120000).default(10000),
   FFMPEG_BIN: z.string().default('ffmpeg'),
@@ -145,6 +163,24 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     workerInstanceId: parsed.WORKER_INSTANCE_ID,
     workerHeartbeatIntervalSeconds: parsed.WORKER_HEARTBEAT_INTERVAL_SECONDS,
     workerClaimLeaseSeconds: parsed.WORKER_CLAIM_LEASE_SECONDS,
+    aiGraphicsExternalAgentToolCallRouteMountEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED),
+    aiGraphicsExternalBetaToolCallRouteMountEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED),
+    aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED),
+    aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED),
+    aiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_BROWSER_RUNTIME_CONTROLLED_EXECUTION_ENABLED),
+    aiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_RUNTIME_ADMISSION_ENABLED),
+    aiGraphicsExternalBetaToolCallRouteGpuModelControlledExecutionEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_GPU_MODEL_CONTROLLED_EXECUTION_ENABLED),
+    aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_CPU_STATIC_CONTROLLED_TOOL_CALL_ROUTE_ENABLED),
+    aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled:
+      parseBoolean(parsed.AI_GRAPHICS_EXTERNAL_BETA_BROWSER_RUNTIME_CONTROLLED_TOOL_CALL_ROUTE_ENABLED),
     strictToolReadiness: parseBoolean(parsed.STRICT_TOOL_READINESS),
     toolCheckTimeoutMs: parsed.TOOL_CHECK_TIMEOUT_MS,
     ffmpegBin: parsed.FFMPEG_BIN,
@@ -203,6 +239,24 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
       workerInstanceIdConfigured: Boolean(env.workerInstanceId),
       heartbeatIntervalSeconds: env.workerHeartbeatIntervalSeconds,
       claimLeaseSeconds: env.workerClaimLeaseSeconds,
+      aiGraphicsExternalAgentToolCallRouteMountEnabled:
+        env.aiGraphicsExternalAgentToolCallRouteMountEnabled,
+      aiGraphicsExternalBetaToolCallRouteMountEnabled:
+        env.aiGraphicsExternalBetaToolCallRouteMountEnabled,
+      aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled:
+        env.aiGraphicsExternalBetaToolCallRouteMockQueueAdmissionEnabled,
+      aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled:
+        env.aiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionEnabled,
+      aiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionEnabled:
+        env.aiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionEnabled,
+      aiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionEnabled:
+        env.aiGraphicsExternalBetaToolCallRouteGpuModelRuntimeAdmissionEnabled,
+      aiGraphicsExternalBetaToolCallRouteGpuModelControlledExecutionEnabled:
+        env.aiGraphicsExternalBetaToolCallRouteGpuModelControlledExecutionEnabled,
+      aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled:
+        env.aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled,
+      aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled:
+        env.aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled,
       strictToolReadiness: env.strictToolReadiness,
       toolCheckTimeoutMs: env.toolCheckTimeoutMs,
       ffmpegBinConfigured: Boolean(env.ffmpegBin),

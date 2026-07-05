@@ -61,6 +61,20 @@ PROFILES: dict[str, list[tuple[str, str]]] = {
         ("basicsr", "basicsr"),
         ("realesrgan", "realesrgan"),
     ],
+    "rembg": [
+        ("torch", "torch"),
+        ("numpy", "numpy"),
+        ("PIL", "PIL"),
+        ("cv2", "cv2"),
+        ("rembg", "rembg"),
+    ],
+    "transparent_background": [
+        ("torch", "torch"),
+        ("torchvision", "torchvision"),
+        ("numpy", "numpy"),
+        ("PIL", "PIL"),
+        ("transparent_background", "transparent_background"),
+    ],
 }
 
 

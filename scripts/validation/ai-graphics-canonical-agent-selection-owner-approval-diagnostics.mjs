@@ -9,6 +9,7 @@ const expectedDecision = "ai_graphics_canonical_agent_selection_owner_approved_w
 const expectedScript = "ai-graphics:canonical-agent-selection:owner-approval-diagnostics";
 const expectedScriptCommand = "node scripts/validation/ai-graphics-canonical-agent-selection-owner-approval-diagnostics.mjs";
 const allowedDescendantScripts = new Set([
+  "ai-graphics:model-weight-manifest-readiness:diagnostics",
   "ai-graphics:cpu-static-execution-proof:phase0-owner-diagnostics",
   "ai-graphics:cpu-static-execution-proof:phase0",
   "ai-graphics:cpu-static-execution-proof:phase0-diagnostics",
@@ -32,9 +33,11 @@ const allowedDescendantScripts = new Set([
   "ai-graphics:canonical-agent-selection:canonicalization-diagnostics",
   "ai-graphics:canonical-agent-selection:canonicalization-qa-diagnostics",
   "ai-graphics:canonical-agent-selection:canonicalization-owner-diagnostics",
-  "ai-graphics:canonical-agent-selection:owner-approval-qa-diagnostics",,
+  "ai-graphics:canonical-agent-selection:owner-approval-qa-diagnostics",
   "ai-graphics:21-tool-runtime-install-readiness:diagnostics",
+  "ai-graphics:21-tool-proper-install-audit:diagnostics",
   "ai-graphics:gpu-import-readiness:diagnostics",
+  "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics",
   "ai-graphics:node-runtime-proof",
   "ai-graphics:node-runtime-proof:diagnostics",
   "ai-graphics:gpu-worker-install-proof:diagnostics",
@@ -42,7 +45,13 @@ const allowedDescendantScripts = new Set([
   "ai-graphics:browser-runtime-proof:diagnostics",
   "ai-graphics:satori-font-runtime-proof",
   "ai-graphics:satori-font-runtime-proof:diagnostics",
-  "ai-graphics:gpu-model-install-build-targets:diagnostics"
+  "ai-graphics:gpu-model-install-build-targets:diagnostics",
+  "ai-graphics:tool-call-readiness:diagnostics",
+  "ai-graphics:tool-call-handoff:diagnostics",
+  "ai-graphics:tool-call-plan-evaluator:diagnostics",
+  "ai-graphics:beta-readiness-gate:diagnostics",
+  "ai-graphics:tool-route-readiness:diagnostics",
+  "ai-graphics:worker-handoff-readiness:diagnostics"
 ]);
 const failures = [];
 const fail = (message) => failures.push(message);

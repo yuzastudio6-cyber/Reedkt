@@ -63,6 +63,9 @@ async function runProof() {
   const packageLock = readJson("package-lock.json");
   const nodeProof = readJson("docs/tool-intelligence/ai-graphics/node-runtime-proof.json");
   const gpuInstallProof = readJson("docs/tool-intelligence/ai-graphics/gpu-worker-install-proof.json");
+  const existingProof = fs.existsSync(outJson)
+    ? JSON.parse(fs.readFileSync(outJson, "utf8"))
+    : null;
 
   const packageVersions = {
     echarts: packageLock.packages["node_modules/echarts"]?.version,
@@ -275,6 +278,7 @@ async function runProof() {
       mergeStateStatus: "CLEAN",
       headSha: "8eaa8eb0a1a4a04bde91bc1ee4044ea1c5f0dc56",
     },
+    ...(existingProof?.proofPr ? { proofPr: existingProof.proofPr } : {}),
     sourceProofs: {
       nodeRuntimeProofDecision: nodeProof.decision,
       gpuWorkerInstallProofDecision: gpuInstallProof.decision,
@@ -341,7 +345,12 @@ rendered media, screenshots, SVG files, public artifacts, or signed URLs.
 
 ## Source
 
-- PR #783: [AI graphics GPU worker install proof](https://github.com/yuzastudio6-cyber/Reedkt/pull/783), open/draft/CLEAN at \`${proof.sourcePr.headSha}\`.
+- PR #783: [AI graphics GPU worker install proof](https://github.com/yuzastudio6-cyber/Reedkt/pull/783), open/draft/CLEAN at \`${proof.sourcePr.headSha}\`.${proof.proofPr ? `
+
+## Draft PR
+
+- PR #${proof.proofPr.number}: [AI graphics browser runtime proof](${proof.proofPr.url}), open/draft/${proof.proofPr.mergeStateStatus} at creation head \`${proof.proofPr.headShaAtPrCreation}\`.
+- Check rollup at creation: empty.` : ""}
 
 ## Tool Results
 

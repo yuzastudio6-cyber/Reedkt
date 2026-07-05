@@ -13,6 +13,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--work-dir", required=True)
     parser.add_argument("--checkpoint-path", required=True)
+    parser.add_argument("--source-image-path", required=True)
     parser.add_argument("--output-json", required=True)
     args = parser.parse_args()
 
@@ -22,6 +23,8 @@ def main():
         raise RuntimeError("PROVIDER_EXECUTION_ENABLED=false is required.")
     if os.environ.get("REAL_MEDIA_INPUT_ENABLED") != "false":
         raise RuntimeError("REAL_MEDIA_INPUT_ENABLED=false is required.")
+    if os.environ.get("APPROVED_PRIVATE_SOURCE_FRAME_ENABLED") != "true":
+        raise RuntimeError("APPROVED_PRIVATE_SOURCE_FRAME_ENABLED=true is required.")
 
     work_dir = Path(args.work_dir)
     png_dir = work_dir / "frames_png"
@@ -31,7 +34,11 @@ def main():
     for directory in [png_dir, jpg_dir, mask_dir, overlay_dir]:
         directory.mkdir(parents=True, exist_ok=True)
 
-    frame_paths, jpeg_paths = create_fixture_frames(png_dir, jpg_dir)
+    source_image_path = Path(args.source_image_path)
+    if not source_image_path.exists():
+        raise RuntimeError(f"Missing approved private source image path: {source_image_path}")
+
+    frame_paths, jpeg_paths = create_source_frame_sequence(source_image_path, png_dir, jpg_dir)
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is required for Phase 35C SAM2 runtime verification.")
     device_name = torch.cuda.get_device_name(0)
@@ -95,9 +102,11 @@ def main():
 
     output = {
         "ok": True,
+        "toolId": "sam2",
         "cudaAvailable": True,
         "deviceName": device_name,
-        "fixture": {
+        "privateSourceFrame": {
+            "sourceImagePath": str(source_image_path),
             "width": 512,
             "height": 512,
             "frameCount": 5,
@@ -119,27 +128,30 @@ def main():
             "modelId": "sam2.1_hiera_tiny",
             "configName": "configs/sam2.1/sam2.1_hiera_t.yaml",
             "externalModelDownloadAttempted": False,
+            "modelDownloadedExternally": False,
+            "providerRuntimePerformed": False,
+            "publicArtifactCreated": False,
+            "signedUrlCreated": False,
+            "privateSourceFrameUsed": True,
             "realMediaUsed": False,
+            "broadRealMediaInputEnabled": False,
         },
-        "warnings": ["Generated synthetic fixture only; real-video temporal QA is not claimed."],
+        "warnings": [
+            "Approved private source frame only; broad real-media input and full-video temporal QA are not claimed.",
+        ],
     }
     Path(args.output_json).write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
 
 
-def create_fixture_frames(png_dir: Path, jpg_dir: Path):
+def create_source_frame_sequence(source_image_path: Path, png_dir: Path, jpg_dir: Path):
     frame_paths = []
     jpeg_paths = []
+    base = Image.open(source_image_path).convert("RGB").resize((512, 512))
     for index in range(5):
-        image = Image.new("RGB", (512, 512), (236, 241, 244))
+        image = base.copy()
         draw = ImageDraw.Draw(image)
-        for x in range(0, 512, 64):
-            draw.line([(x, 0), (x, 512)], fill=(218, 224, 229), width=1)
-        for y in range(0, 512, 64):
-            draw.line([(0, y), (512, y)], fill=(218, 224, 229), width=1)
-        offset = index * 18
-        box = [168 + offset, 176 + index * 6, 336 + offset, 344 + index * 6]
-        draw.rounded_rectangle(box, radius=34, fill=(43, 107, 181), outline=(18, 62, 118), width=5)
-        draw.ellipse([box[0] + 48, box[1] + 42, box[0] + 120, box[1] + 114], fill=(82, 177, 132))
+        draw.rectangle([0, 0, 511, 511], outline=(18, 62, 118), width=2)
+        draw.text((12, 12), f"private proof frame {index}", fill=(18, 62, 118))
         png_path = png_dir / f"frame-{index:03d}.png"
         jpg_path = jpg_dir / f"{index}.jpg"
         image.save(png_path)

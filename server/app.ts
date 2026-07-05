@@ -6,6 +6,12 @@ import { createSupabasePublicClient } from './supabase/public-client'
 import { requestIdMiddleware } from './middleware/request-id'
 import { errorHandlerMiddleware } from './middleware/error-handler'
 import { createApprovalRoutes } from './routes/approval-routes'
+import { createAiGraphicsExternalBetaBrowserRuntimeControlledToolCallRoutes } from './routes/ai-graphics-external-beta-browser-runtime-controlled-tool-call-routes'
+import { createAiGraphicsExternalBetaCpuStaticControlledToolCallRoutes } from './routes/ai-graphics-external-beta-cpu-static-controlled-tool-call-routes'
+import {
+  createAiGraphicsExternalAgentToolCallRoutes,
+  createAiGraphicsExternalBetaToolCallRoutes,
+} from './routes/ai-graphics-external-beta-tool-call-routes'
 import { createChatRoutes } from './routes/chat-routes'
 import { createCreditRoutes } from './routes/credit-routes'
 import { createHealthRoutes } from './routes/health-routes'
@@ -48,6 +54,18 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(createRenderRoutes())
   app.use(createProviderGatewayRoutes())
   app.use(createWebSearchRoutes())
+  if (env.aiGraphicsExternalAgentToolCallRouteMountEnabled) {
+    app.use(createAiGraphicsExternalAgentToolCallRoutes())
+  }
+  if (env.aiGraphicsExternalBetaToolCallRouteMountEnabled) {
+    app.use(createAiGraphicsExternalBetaToolCallRoutes())
+  }
+  if (env.aiGraphicsExternalBetaCpuStaticControlledToolCallRouteEnabled) {
+    app.use(createAiGraphicsExternalBetaCpuStaticControlledToolCallRoutes())
+  }
+  if (env.aiGraphicsExternalBetaBrowserRuntimeControlledToolCallRouteEnabled) {
+    app.use(createAiGraphicsExternalBetaBrowserRuntimeControlledToolCallRoutes())
+  }
 
   app.use(errorHandlerMiddleware)
   return app

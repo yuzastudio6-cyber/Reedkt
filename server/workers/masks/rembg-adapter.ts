@@ -1,3 +1,10 @@
+import { existsSync } from 'node:fs'
+import path from 'node:path'
+import {
+  buildAiGraphicsRuntimeContainerBindMounts,
+  runAiGraphicsPythonRuntimeScript,
+} from '../ai-graphics-runtime-script-runner'
+import { buildMaskArtifactRecord } from './mask-artifact-writer'
 import type { MaskExecutionInput, MaskTaskPlan, MaskToolCommandPlan, MaskToolExecutionResult } from './mask-execution-types'
 
 export function buildRembgCommandPlan(input: {
@@ -19,11 +26,126 @@ export async function runRembgFallback(input: {
   taskPlan: MaskTaskPlan
 }): Promise<MaskToolExecutionResult> {
   const commandPlan = buildRembgCommandPlan(input)
-  return {
-    status: 'skipped',
-    tool: 'rembg',
-    commandPlan,
-    skipReason: { code: 'rembg_unavailable_or_unenabled', message: 'rembg fallback is skip-safe and not executed in M15C by default.', tool: 'rembg' },
-    warnings: ['rembg model weights remain separate from package license review.'],
+  const executionInput = input.executionInput
+  if (executionInput.mode !== 'local_dev' || executionInput.enableModelMaskExecution !== true) {
+    return {
+      status: 'skipped',
+      tool: 'rembg',
+      commandPlan,
+      skipReason: { code: 'rembg_disabled_or_not_local_dev', message: 'rembg runs only in explicit local-dev model execution.', tool: 'rembg' },
+      warnings: ['rembg model weights remain separate from package license review.'],
+    }
+  }
+  if (!executionInput.rembgModelLocalPath || !existsSync(executionInput.rembgModelLocalPath)) {
+    return { status: 'skipped', tool: 'rembg', commandPlan, skipReason: { code: 'rembg_model_missing', message: 'Approved local rembg ONNX model is missing; no download attempted.', tool: 'rembg' }, warnings: [] }
+  }
+  const sourcePath = executionInput.sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]
+  if (!sourcePath || !existsSync(sourcePath)) {
+    return { status: 'skipped', tool: 'rembg', commandPlan, skipReason: { code: 'rembg_source_frame_missing', message: 'Safe local source image or representative frame is missing.', tool: 'rembg' }, warnings: [] }
+  }
+  if (!executionInput.outputDirectory) {
+    return { status: 'skipped', tool: 'rembg', commandPlan, skipReason: { code: 'rembg_output_directory_missing', message: 'rembg execution requires a private local worker output directory.', tool: 'rembg' }, warnings: [] }
+  }
+
+  const runtimeDir = path.join(executionInput.outputDirectory, 'rembg-runtime')
+  const maskPath = path.join(runtimeDir, 'rembg-mask.png')
+  const cutoutPath = path.join(runtimeDir, 'rembg-cutout.png')
+  const outputJsonPath = path.join(runtimeDir, 'rembg-runtime-result.json')
+  const allowCpuModelRuntime = executionInput.allowCpuModelRuntime === true
+
+  try {
+    const runtimeResult = await runAiGraphicsPythonRuntimeScript({
+      scriptRelativePath: 'docker/prod/rembg-runtime/rembg_local.py',
+      args: [
+        '--model-path',
+        executionInput.rembgModelLocalPath,
+        ...(executionInput.rembgModelName ? ['--model-name', executionInput.rembgModelName] : []),
+        '--input-image-path',
+        sourcePath,
+        '--cutout-path',
+        cutoutPath,
+        '--mask-path',
+        maskPath,
+        '--output-json',
+        outputJsonPath,
+        ...(allowCpuModelRuntime ? ['--allow-cpu-model-runtime'] : []),
+      ],
+      outputJsonPath,
+      timeoutMs: executionInput.timeoutMs,
+      runtimeBackend: executionInput.runtimeExecutionBackend,
+      containerImage: executionInput.runtimeContainerImage,
+      containerPlatform: executionInput.runtimeContainerPlatform,
+      containerGpu: allowCpuModelRuntime
+        ? false
+        : executionInput.runtimeContainerGpu,
+      containerBindMounts: buildAiGraphicsRuntimeContainerBindMounts({
+        readOnlyPaths: [
+          sourcePath,
+          executionInput.rembgModelLocalPath,
+        ],
+        readWritePaths: [executionInput.outputDirectory],
+      }),
+      proofExpectation: {
+        expectedToolId: 'rembg',
+        requireCudaExecutionProvider: allowCpuModelRuntime ? false : true,
+        requireCpuModelRuntime: allowCpuModelRuntime,
+        requireNoModelDownload: true,
+        requireNoProviderRuntime: true,
+        requireNoPublicArtifact: true,
+        requireNoSignedUrl: true,
+      },
+    })
+    return {
+      status: 'completed',
+      tool: 'rembg',
+      commandPlan: {
+        ...commandPlan,
+        executes: true,
+        summary: allowCpuModelRuntime
+          ? 'rembg local CPU ONNX runtime script executed with approved local ONNX model and private source frame; no model download and no GPU attachment.'
+          : 'rembg local runtime script executed with approved local ONNX model and private source frame; no model download.',
+      },
+      outputJsonPath: runtimeResult.outputJsonPath,
+      outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes,
+      outputJsonSha256: runtimeResult.outputJsonSha256,
+      artifacts: [
+        buildMaskArtifactRecord({
+          workspaceId: executionInput.workspaceId,
+          projectId: executionInput.projectId,
+          mediaAssetId: executionInput.mediaAssetId,
+          artifactType: 'mask_image',
+          fileName: 'rembg-mask.png',
+          sourceOfTruth: true,
+          metadata: { tool: 'rembg', runtimeExecuted: true },
+        }),
+        buildMaskArtifactRecord({
+          workspaceId: executionInput.workspaceId,
+          projectId: executionInput.projectId,
+          mediaAssetId: executionInput.mediaAssetId,
+          artifactType: 'rgba_cutout',
+          fileName: 'rembg-cutout.png',
+          sourceOfTruth: true,
+          metadata: { tool: 'rembg', runtimeExecuted: true },
+        }),
+        buildMaskArtifactRecord({
+          workspaceId: executionInput.workspaceId,
+          projectId: executionInput.projectId,
+          mediaAssetId: executionInput.mediaAssetId,
+          artifactType: 'qa_report',
+          fileName: 'rembg-runtime-result.json',
+          sourceOfTruth: true,
+          metadata: { tool: 'rembg', runtimeExecuted: true, outputJsonSizeBytes: runtimeResult.outputJsonSizeBytes, outputJsonSha256: runtimeResult.outputJsonSha256 },
+        }),
+      ],
+      warnings: ['rembg executed against a private local source frame with a local model cache; quality/production approval remains separate.'],
+    }
+  } catch (error) {
+    return {
+      status: 'failed',
+      tool: 'rembg',
+      commandPlan,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      warnings: ['rembg runtime script failed before producing accepted local proof output.'],
+    }
   }
 }

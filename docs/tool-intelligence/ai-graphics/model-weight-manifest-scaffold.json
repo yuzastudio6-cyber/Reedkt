@@ -1,0 +1,449 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.model-weight-manifest-scaffold",
+  "decision": "ai_graphics_model_weight_manifest_scaffold_prepared_for_local_private_records",
+  "status": "prepared_template_only_not_reviewed",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "pullRequest": {
+    "number": 862,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/862",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "latestObservedHeadSha": "0127d477cd8bbaeda2f753fcb734a620327b9697",
+    "latestObservedCheckRollup": []
+  },
+  "sourceEvidence": {
+    "manifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
+    "modelWeightSourceCatalog": "docs/tool-intelligence/ai-graphics/model-weight-source-catalog.json",
+    "gpuRuntimeProofCommandPlan": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json",
+    "gpuRuntimeReadinessGate": "docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json",
+    "properInstallAudit": "docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json"
+  },
+  "contractSurface": {
+    "serverModule": "server/tool-registry/ai-graphics-model-weight-manifest-scaffold.ts",
+    "serverExport": "server/tool-registry/index.ts",
+    "cli": "server/cli/ai-graphics-model-weight-manifest-scaffold.ts",
+    "packageScript": "ai-graphics:model-weight-manifest-scaffold",
+    "diagnostic": "scripts/validation/ai-graphics-model-weight-manifest-scaffold-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:model-weight-manifest-scaffold:diagnostics"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "modelWeightManifestRequiredTools": 5,
+    "scaffoldTemplatesPrepared": 5,
+    "sourceCandidateGuidanceRecords": 5,
+    "manifestAuthoringChecklistItems": 5,
+    "privateArtifactRefsLogged": 0,
+    "manifestRecordsApprovedNow": 0,
+    "nativeGpuProofInputEligibleNow": 0,
+    "runtimeReadyNow": 0,
+    "internalBetaReadyNow": 0,
+    "productionReadyNow": 0
+  },
+  "modelWeightManifestRequiredTools": [
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "scaffoldFiles": [
+    {
+      "toolId": "sam2",
+      "templateId": "sam2_checkpoint",
+      "relativeFilePath": "sam2/model_tree_manifest.json",
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/sam2/model_tree_manifest.json",
+      "sourceCandidateGuidance": {
+        "candidateId": "facebook_sam2_1_hiera_tiny_existing_staging_evidence",
+        "candidateStatus": "internal_evidence_verified_private_manifest_required",
+        "reviewStatus": "limited_staging_evidence_exists_manifest_review_required",
+        "upstreamSourceName": "facebookresearch/sam2",
+        "upstreamSourceUrl": "https://github.com/facebookresearch/sam2",
+        "artifactFileName": "sam2.1_hiera_tiny.pt",
+        "modelIdOrName": "sam2.1_hiera_tiny",
+        "suggestedPrivateManifestChecksumSha256": "45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2",
+        "suggestedPrivateManifestChecksumSource": "existing_internal_aggregate_sha256",
+        "checksumStillMustMatchReviewedPrivateArtifact": true,
+        "privateManifestAuthoringStatus": "ready_from_existing_internal_evidence_after_private_ref_authoring"
+      }
+    },
+    {
+      "toolId": "birefnet",
+      "templateId": "birefnet_model",
+      "relativeFilePath": "birefnet/model_tree_manifest.json",
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/birefnet/model_tree_manifest.json",
+      "sourceCandidateGuidance": {
+        "candidateId": "zhengpeng7_birefnet_official_weights_review_candidate",
+        "candidateStatus": "internal_evidence_verified_private_manifest_required",
+        "reviewStatus": "limited_staging_evidence_exists_manifest_review_required",
+        "upstreamSourceName": "ZhengPeng7/BiRefNet",
+        "upstreamSourceUrl": "https://huggingface.co/ZhengPeng7/BiRefNet",
+        "sourceCodeUrl": "https://github.com/ZhengPeng7/BiRefNet",
+        "modelIdOrName": "ZhengPeng7/BiRefNet",
+        "suggestedPrivateManifestChecksumSha256": "1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7",
+        "suggestedPrivateManifestChecksumSource": "existing_internal_aggregate_sha256",
+        "checksumStillMustMatchReviewedPrivateArtifact": true,
+        "privateManifestAuthoringStatus": "ready_from_existing_internal_evidence_after_private_ref_authoring"
+      }
+    },
+    {
+      "toolId": "real_esrgan",
+      "templateId": "real_esrgan_model",
+      "relativeFilePath": "real-esrgan/model_tree_manifest.json",
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/real-esrgan/model_tree_manifest.json",
+      "sourceCandidateGuidance": {
+        "candidateId": "xinntao_real_esrgan_x4plus",
+        "candidateStatus": "internal_evidence_verified_private_manifest_required",
+        "reviewStatus": "limited_staging_evidence_exists_manifest_review_required",
+        "upstreamSourceName": "xinntao/Real-ESRGAN",
+        "upstreamSourceUrl": "https://github.com/xinntao/Real-ESRGAN",
+        "artifactSourceUrl": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth",
+        "artifactFileName": "RealESRGAN_x4plus.pth",
+        "modelIdOrName": "RealESRGAN_x4plus",
+        "suggestedPrivateManifestChecksumSha256": "4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1",
+        "suggestedPrivateManifestChecksumSource": "existing_internal_file_sha256",
+        "checksumStillMustMatchReviewedPrivateArtifact": true,
+        "privateManifestAuthoringStatus": "ready_from_existing_internal_evidence_after_private_ref_authoring"
+      }
+    },
+    {
+      "toolId": "rembg",
+      "templateId": "rembg_model",
+      "relativeFilePath": "rembg/model_tree_manifest.json",
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/rembg/model_tree_manifest.json",
+      "sourceCandidateGuidance": {
+        "candidateId": "danielgatis_rembg_isnet_general_use_review_candidate",
+        "candidateStatus": "source_identified_review_required",
+        "reviewStatus": "requires_manual_source_license_checksum_and_quality_review",
+        "upstreamSourceName": "danielgatis/rembg",
+        "upstreamSourceUrl": "https://github.com/danielgatis/rembg",
+        "sourceCodeUrl": "https://github.com/xuebinqin/DIS",
+        "artifactSourceUrl": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx",
+        "artifactFileName": "isnet-general-use.onnx",
+        "modelIdOrName": "isnet-general-use",
+        "suggestedPrivateManifestChecksumSource": "requires_private_artifact_sha256",
+        "checksumStillMustMatchReviewedPrivateArtifact": true,
+        "privateManifestAuthoringStatus": "blocked_until_source_review_accepts_selected_candidate"
+      }
+    },
+    {
+      "toolId": "transparent_background",
+      "templateId": "transparent_background_model",
+      "relativeFilePath": "transparent-background/model_tree_manifest.json",
+      "expectedRuntimePath": "/opt/reeditpro/model-weights/transparent-background/model_tree_manifest.json",
+      "sourceCandidateGuidance": {
+        "candidateId": "plemeri_transparent_background_base_ckpt_review_candidate",
+        "candidateStatus": "source_identified_review_required",
+        "reviewStatus": "requires_manual_source_license_checksum_and_quality_review",
+        "upstreamSourceName": "plemeri/transparent-background",
+        "upstreamSourceUrl": "https://github.com/plemeri/transparent-background",
+        "sourceCodeUrl": "https://github.com/plemeri/InSPyReNet",
+        "artifactSourceUrl": "https://github.com/plemeri/transparent-background/releases/download/1.2.12/ckpt_base.pth",
+        "artifactFileName": "ckpt_base.pth",
+        "modelIdOrName": "transparent-background base mode ckpt_base.pth",
+        "upstreamArtifactChecksumMd5": "d692e3dd5fa1b9658949d452bebf1cda",
+        "suggestedPrivateManifestChecksumSource": "requires_private_artifact_sha256",
+        "checksumStillMustMatchReviewedPrivateArtifact": true,
+        "privateManifestAuthoringStatus": "blocked_until_source_review_accepts_selected_candidate"
+      }
+    }
+  ],
+  "authoringChecklist": [
+    {
+      "toolId": "sam2",
+      "candidateId": "facebook_sam2_1_hiera_tiny_existing_staging_evidence",
+      "authoringReadiness": "ready_from_existing_internal_evidence_after_private_ref_authoring",
+      "localOnlyManifestPath": ".local-artifacts/ai-graphics/model-weight-manifests/sam2/model_tree_manifest.json",
+      "expectedRuntimeManifestPath": "/opt/reeditpro/model-weights/sam2/model_tree_manifest.json",
+      "acceptedPrivateArtifactRefNamespaces": [
+        "private://",
+        "reeditpro-private://",
+        "reeditpro-private-artifact-ref-"
+      ],
+      "requiredManifestFields": [
+        "manifestId",
+        "toolId",
+        "templateId",
+        "sourceCandidateId",
+        "privateArtifactRef",
+        "checksumSha256",
+        "checksumEvidenceRef",
+        "sourceLicenseRef",
+        "modelCardRef",
+        "checksumEvidenceReviewed",
+        "commercialUseReviewed",
+        "redistributionReviewed",
+        "qualityReviewed",
+        "securityReviewed",
+        "provenanceReviewed",
+        "approvedForInternalBeta"
+      ],
+      "requiredReviewBooleans": [
+        "checksumEvidenceReviewed",
+        "commercialUseReviewed",
+        "redistributionReviewed",
+        "qualityReviewed",
+        "securityReviewed",
+        "provenanceReviewed",
+        "approvedForInternalBeta"
+      ],
+      "sourceEvidenceRefs": [
+        "server/activation/sam2-model-download/approved-sam2-model-download-evidence.ts",
+        "server/activation/sam2-runtime/sam2-runtime-policy.ts",
+        "server/activation/sam2-runtime/approved-sam2-runtime-evidence.ts"
+      ],
+      "suggestedPrivateManifestChecksumSha256": "45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2",
+      "suggestedPrivateManifestChecksumSource": "existing_internal_aggregate_sha256",
+      "checksumStillMustMatchReviewedPrivateArtifact": true,
+      "validationCommands": [
+        "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
+        "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
+      ],
+      "localOnly": true,
+      "committedManifestApproved": false,
+      "nextAction": "Convert existing SAM2.1 tiny staging evidence into a reviewed private manifest using a private:// or reeditpro-private:// artifact ref, then rerun native L4 proof for AI graphics."
+    },
+    {
+      "toolId": "birefnet",
+      "candidateId": "zhengpeng7_birefnet_official_weights_review_candidate",
+      "authoringReadiness": "ready_from_existing_internal_evidence_after_private_ref_authoring",
+      "localOnlyManifestPath": ".local-artifacts/ai-graphics/model-weight-manifests/birefnet/model_tree_manifest.json",
+      "expectedRuntimeManifestPath": "/opt/reeditpro/model-weights/birefnet/model_tree_manifest.json",
+      "acceptedPrivateArtifactRefNamespaces": [
+        "private://",
+        "reeditpro-private://",
+        "reeditpro-private-artifact-ref-"
+      ],
+      "requiredManifestFields": [
+        "manifestId",
+        "toolId",
+        "templateId",
+        "sourceCandidateId",
+        "privateArtifactRef",
+        "checksumSha256",
+        "checksumEvidenceRef",
+        "sourceLicenseRef",
+        "modelCardRef",
+        "checksumEvidenceReviewed",
+        "commercialUseReviewed",
+        "redistributionReviewed",
+        "qualityReviewed",
+        "securityReviewed",
+        "provenanceReviewed",
+        "approvedForInternalBeta"
+      ],
+      "requiredReviewBooleans": [
+        "checksumEvidenceReviewed",
+        "commercialUseReviewed",
+        "redistributionReviewed",
+        "qualityReviewed",
+        "securityReviewed",
+        "provenanceReviewed",
+        "approvedForInternalBeta"
+      ],
+      "sourceEvidenceRefs": [
+        "server/activation/mask-model-approval/mask-model-candidate-registry.ts",
+        "server/activation/mask-model-approval/mask-model-license-evidence.ts",
+        "server/activation/mask-model-download/approved-mask-model-download-evidence.ts"
+      ],
+      "suggestedPrivateManifestChecksumSha256": "1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7",
+      "suggestedPrivateManifestChecksumSource": "existing_internal_aggregate_sha256",
+      "checksumStillMustMatchReviewedPrivateArtifact": true,
+      "validationCommands": [
+        "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
+        "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
+      ],
+      "localOnly": true,
+      "committedManifestApproved": false,
+      "nextAction": "Convert existing Phase 33 BiRefNet staging evidence into a reviewed private manifest using a private:// or reeditpro-private:// artifact ref, then run native L4 proof for AI graphics."
+    },
+    {
+      "toolId": "real_esrgan",
+      "candidateId": "xinntao_real_esrgan_x4plus",
+      "authoringReadiness": "ready_from_existing_internal_evidence_after_private_ref_authoring",
+      "localOnlyManifestPath": ".local-artifacts/ai-graphics/model-weight-manifests/real-esrgan/model_tree_manifest.json",
+      "expectedRuntimeManifestPath": "/opt/reeditpro/model-weights/real-esrgan/model_tree_manifest.json",
+      "acceptedPrivateArtifactRefNamespaces": [
+        "private://",
+        "reeditpro-private://",
+        "reeditpro-private-artifact-ref-"
+      ],
+      "requiredManifestFields": [
+        "manifestId",
+        "toolId",
+        "templateId",
+        "sourceCandidateId",
+        "privateArtifactRef",
+        "checksumSha256",
+        "checksumEvidenceRef",
+        "sourceLicenseRef",
+        "modelCardRef",
+        "checksumEvidenceReviewed",
+        "commercialUseReviewed",
+        "redistributionReviewed",
+        "qualityReviewed",
+        "securityReviewed",
+        "provenanceReviewed",
+        "approvedForInternalBeta"
+      ],
+      "requiredReviewBooleans": [
+        "checksumEvidenceReviewed",
+        "commercialUseReviewed",
+        "redistributionReviewed",
+        "qualityReviewed",
+        "securityReviewed",
+        "provenanceReviewed",
+        "approvedForInternalBeta"
+      ],
+      "sourceEvidenceRefs": [
+        "server/activation/enhancement-model-approval/enhancement-model-candidate-registry.ts",
+        "server/activation/enhancement-model-approval/enhancement-model-license-evidence.ts",
+        "server/activation/enhancement-model-download/approved-enhancement-model-download-evidence.ts"
+      ],
+      "suggestedPrivateManifestChecksumSha256": "4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1",
+      "suggestedPrivateManifestChecksumSource": "existing_internal_file_sha256",
+      "checksumStillMustMatchReviewedPrivateArtifact": true,
+      "validationCommands": [
+        "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
+        "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
+      ],
+      "localOnly": true,
+      "committedManifestApproved": false,
+      "nextAction": "Create reviewed private RealESRGAN_x4plus manifest with checksum, source/license evidence, model-card/provenance evidence, quality/security review, and then run native L4 proof."
+    },
+    {
+      "toolId": "rembg",
+      "candidateId": "danielgatis_rembg_isnet_general_use_review_candidate",
+      "authoringReadiness": "blocked_until_source_review_accepts_selected_candidate",
+      "localOnlyManifestPath": ".local-artifacts/ai-graphics/model-weight-manifests/rembg/model_tree_manifest.json",
+      "expectedRuntimeManifestPath": "/opt/reeditpro/model-weights/rembg/model_tree_manifest.json",
+      "acceptedPrivateArtifactRefNamespaces": [
+        "private://",
+        "reeditpro-private://",
+        "reeditpro-private-artifact-ref-"
+      ],
+      "requiredManifestFields": [
+        "manifestId",
+        "toolId",
+        "templateId",
+        "sourceCandidateId",
+        "privateArtifactRef",
+        "checksumSha256",
+        "checksumEvidenceRef",
+        "sourceLicenseRef",
+        "modelCardRef",
+        "checksumEvidenceReviewed",
+        "commercialUseReviewed",
+        "redistributionReviewed",
+        "qualityReviewed",
+        "securityReviewed",
+        "provenanceReviewed",
+        "approvedForInternalBeta"
+      ],
+      "requiredReviewBooleans": [
+        "checksumEvidenceReviewed",
+        "commercialUseReviewed",
+        "redistributionReviewed",
+        "qualityReviewed",
+        "securityReviewed",
+        "provenanceReviewed",
+        "approvedForInternalBeta"
+      ],
+      "sourceEvidenceRefs": [],
+      "suggestedPrivateManifestChecksumSource": "requires_private_artifact_sha256",
+      "checksumStillMustMatchReviewedPrivateArtifact": true,
+      "validationCommands": [
+        "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
+        "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
+      ],
+      "localOnly": true,
+      "committedManifestApproved": false,
+      "nextAction": "Review DIS/rembg isnet-general-use license and provenance, checksum the private isnet-general-use.onnx artifact tree, record the U2NET_HOME cache layout, create a private manifest, and then run native L4 proof."
+    },
+    {
+      "toolId": "transparent_background",
+      "candidateId": "plemeri_transparent_background_base_ckpt_review_candidate",
+      "authoringReadiness": "blocked_until_source_review_accepts_selected_candidate",
+      "localOnlyManifestPath": ".local-artifacts/ai-graphics/model-weight-manifests/transparent-background/model_tree_manifest.json",
+      "expectedRuntimeManifestPath": "/opt/reeditpro/model-weights/transparent-background/model_tree_manifest.json",
+      "acceptedPrivateArtifactRefNamespaces": [
+        "private://",
+        "reeditpro-private://",
+        "reeditpro-private-artifact-ref-"
+      ],
+      "requiredManifestFields": [
+        "manifestId",
+        "toolId",
+        "templateId",
+        "sourceCandidateId",
+        "privateArtifactRef",
+        "checksumSha256",
+        "checksumEvidenceRef",
+        "sourceLicenseRef",
+        "modelCardRef",
+        "checksumEvidenceReviewed",
+        "commercialUseReviewed",
+        "redistributionReviewed",
+        "qualityReviewed",
+        "securityReviewed",
+        "provenanceReviewed",
+        "approvedForInternalBeta"
+      ],
+      "requiredReviewBooleans": [
+        "checksumEvidenceReviewed",
+        "commercialUseReviewed",
+        "redistributionReviewed",
+        "qualityReviewed",
+        "securityReviewed",
+        "provenanceReviewed",
+        "approvedForInternalBeta"
+      ],
+      "sourceEvidenceRefs": [],
+      "suggestedPrivateManifestChecksumSource": "requires_private_artifact_sha256",
+      "checksumStillMustMatchReviewedPrivateArtifact": true,
+      "validationCommands": [
+        "npm run --silent ai-graphics:model-weight-manifest-review:validate -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\"",
+        "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\""
+      ],
+      "localOnly": true,
+      "committedManifestApproved": false,
+      "nextAction": "Review transparent-background/InSPyReNet license and provenance, verify ckpt_base.pth against the upstream MD5 before private manifest approval, record quality/security evidence, and then run native L4 proof."
+    }
+  ],
+  "booleans": {
+    "modelWeightManifestScaffoldPrepared": true,
+    "all5ModelWeightToolsCovered": true,
+    "runtimeMountLayoutPrepared": true,
+    "manifestAuthoringChecklistPrepared": true,
+    "templatesInvalidUntilOwnerReviewed": true,
+    "privateArtifactRefsNotLogged": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "modelWeightManifestsApprovedNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
+  "nextWork": [
+    "Run the scaffold command to create local-only manifest templates and authoring checklists under .local-artifacts.",
+    "Replace placeholders with reviewed private artifact refs, source/license evidence, model-card refs, checksums, and owner-review booleans.",
+    "Run the manifest validator and GPU runtime proof command-plan before any native GPU proof lane."
+  ]
+}

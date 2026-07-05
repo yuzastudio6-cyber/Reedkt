@@ -75,6 +75,10 @@ export interface MaskExecutionInput {
   modelLocalPaths?: string[]
   birefnetModelLocalPath?: string
   sam2CheckpointLocalPath?: string
+  rembgModelLocalPath?: string
+  rembgModelName?: string
+  transparentBackgroundCheckpointLocalPath?: string
+  transparentBackgroundMode?: 'base' | 'fast' | 'base-nightly'
   maskConfidenceHint?: number
   motionRequiresTracking?: boolean
   frameSamplingMaxFrames?: number
@@ -84,6 +88,12 @@ export interface MaskExecutionInput {
   enableMaskPreview?: boolean
   allowModelDownload?: boolean
   allowFinalRender?: boolean
+  runtimeExecutionBackend?: 'host_python' | 'docker_container'
+  runtimeContainerImage?: string
+  runtimeContainerPlatform?: string
+  runtimeContainerGpu?: boolean
+  allowCpuTensorRuntime?: boolean
+  allowCpuModelRuntime?: boolean
   timeoutMs?: number
   readinessReport?: { overallStatus?: string; blockers?: unknown[]; blockerSummaries?: unknown[] }
   rawPrompt?: unknown
@@ -148,7 +158,7 @@ export interface MaskToolCommandPlan {
   command?: string
   args: string[]
   expectedOutputPath?: string
-  executes: false
+  executes: boolean
   summary: string
 }
 
@@ -164,6 +174,9 @@ export interface MaskToolExecutionResult {
   commandPlan?: MaskToolCommandPlan
   artifact?: ToolArtifact
   artifacts?: ToolArtifact[]
+  outputJsonPath?: string
+  outputJsonSizeBytes?: number
+  outputJsonSha256?: string
   skipReason?: MaskToolSkipReason
   warnings: string[]
   errorMessage?: string

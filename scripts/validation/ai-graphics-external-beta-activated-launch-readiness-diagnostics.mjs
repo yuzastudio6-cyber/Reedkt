@@ -1,0 +1,787 @@
+import childProcess from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
+
+const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
+const decision =
+  'ai_graphics_external_beta_activated_launch_readiness_approved_with_runtime_blocks'
+const acceptedStatus =
+  'external_beta_activated_launch_ready_for_controlled_on_demand_tool_calls'
+const launchDecision =
+  'ai_graphics_external_beta_launch_go_no_go_contract_prepared_with_runtime_blocks'
+const launchStatus = 'external_beta_launch_go_no_go_approved_runtime_still_blocked'
+const activationDecision =
+  'ai_graphics_external_beta_all_21_activation_rollup_approved_with_runtime_blocks'
+const activationStatus =
+  'external_beta_all_21_activation_rollup_accepted_runtime_on_demand'
+const runScriptName = 'ai-graphics:external-beta-activated-launch-readiness'
+const runScriptCommand =
+  'tsx server/cli/ai-graphics-external-beta-activated-launch-readiness.ts'
+const diagnosticScriptName =
+  'ai-graphics:external-beta-activated-launch-readiness:diagnostics'
+const diagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-beta-activated-launch-readiness-diagnostics.mjs'
+
+const tools = [
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+  'd3',
+  'echarts',
+  'vega_lite',
+  'vega',
+  'satori',
+  'svgdotjs_svg_js',
+  'viz_js',
+  'lottie_web',
+  'animejs',
+  'three_js',
+  'pixi_js',
+  'konva',
+  'babylonjs',
+]
+
+const gpuTools = new Set([
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+])
+
+const capabilityByTool = {
+  torch_torchvision: 'model_runtime_foundation',
+  transformers: 'model_runtime_foundation',
+  sam2: 'subject_segmentation',
+  birefnet: 'background_removal',
+  real_esrgan: 'upscaling',
+  kornia: 'tensor_image_ops',
+  rembg: 'background_removal',
+  transparent_background: 'background_removal',
+  d3: 'chart_overlay',
+  echarts: 'data_visualization',
+  vega_lite: 'chart_overlay',
+  vega: 'data_visualization',
+  satori: 'svg_graphics',
+  svgdotjs_svg_js: 'svg_graphics',
+  viz_js: 'diagram_graphics',
+  lottie_web: 'animation_overlay',
+  animejs: 'animation_overlay',
+  three_js: 'webgl_3d_scene',
+  pixi_js: 'canvas_scene',
+  konva: 'canvas_scene',
+  babylonjs: 'webgl_3d_scene',
+}
+
+const falseGateKeys = [
+  'agentCanExecuteToolsNow',
+  'directAgentToolExecutionApprovedNow',
+  'controlledExternalBetaToolCallGatewayReadyNow',
+  'controlledWorkerToolCallReadyNow',
+  'externalBetaCallableNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'backendQueueSubmissionApprovedNow',
+  'liveQueueWriteApprovedNow',
+  'privateArtifactWriteApprovedNow',
+  'workerLeaseCreationApprovedNow',
+  'workerDispatchApprovedNow',
+  'productionWorkerDispatchApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'internalBetaReadyNow',
+  'productionReadyNowGlobal',
+  'dependencyInstallPerformed',
+  'packageLockMutationPerformed',
+  'toolExecutionPerformed',
+  'workerExecutionPerformed',
+  'workerEnqueuePerformed',
+  'routeExecutionPerformed',
+  'backendQueueSubmissionPerformed',
+  'privateArtifactWritePerformed',
+  'serviceRoleQueueSmokePerformed',
+  'supabaseMutationPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformedByReadinessGate',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+  'gcsUploadPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+]
+
+const trueReadinessKeys = [
+  'externalBetaActivatedLaunchReadinessPrepared',
+  'sourceExternalBetaLaunchGoNoGoAccepted',
+  'sourceExternalBetaAll21ActivationRollupAccepted',
+  'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence',
+  'all21ExternalBetaActivatedLaunchReadyWithProvidedEvidence',
+  'all21ToolsCovered',
+  'all12CapabilitiesCovered',
+  'all8GpuToolsTargetGpuRuntime',
+  'gpuRuntimeOnDemandOnly',
+  'noIdleGpuRuntimeApproved',
+  'gpuStartsOnlyForApprovedWorkerOrToolCall',
+  'agentCanSelectForPlanning',
+]
+
+const requiredFiles = [
+  'server/tool-registry/ai-graphics-external-beta-activated-launch-readiness.ts',
+  'server/cli/ai-graphics-external-beta-activated-launch-readiness.ts',
+  'scripts/validation/ai-graphics-external-beta-activated-launch-readiness-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.md',
+  'docs/tool-intelligence/ai-graphics/external-beta-launch-go-no-go.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-all-21-activation-rollup.json',
+  'docs/production-beta-readiness-scorecard.md',
+  'package.json',
+  'server/tool-registry/index.ts',
+]
+
+const generatedArtifactPathPattern =
+  /(^|\/)(\.local-artifacts|generated|render|renders|canvas|webgl|public-artifacts)(\/|$)|\.(mp4|mov|webm|png|jpe?g|gif|webp)$/i
+
+const forbiddenDocPatterns = [
+  /agentCanExecuteToolsNow["`:\s=]+true/i,
+  /directAgentToolExecutionApprovedNow["`:\s=]+true/i,
+  /routeExecutionApprovedNow["`:\s=]+true/i,
+  /workerDispatchApprovedNow["`:\s=]+true/i,
+  /toolExecutionApprovedNow["`:\s=]+true/i,
+  /gpuRuntimePerformedByReadinessGate["`:\s=]+true/i,
+  /gpuRuntimeShouldStartNow["`:\s=]+true/i,
+  /productionReadyNow["`:\s=]+true/i,
+  /publicArtifactCreated["`:\s=]+true/i,
+  /signedUrlCreated["`:\s=]+true/i,
+  /dry_run_passed/i,
+  /generated_local_fixture_passed/i,
+]
+
+const failures = []
+
+function fail(message) {
+  failures.push(message)
+}
+
+function read(file) {
+  const filePath = path.join(process.cwd(), file)
+  if (!fs.existsSync(filePath)) {
+    fail(`missing_file:${file}`)
+    return ''
+  }
+  return fs.readFileSync(filePath, 'utf8')
+}
+
+function json(file) {
+  try {
+    return JSON.parse(read(file))
+  } catch (error) {
+    fail(`invalid_json:${file}:${error.message}`)
+    return {}
+  }
+}
+
+function git(args) {
+  return childProcess.execFileSync('git', args, {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+    maxBuffer: 32 * 1024 * 1024,
+  })
+}
+
+function npmJson(scriptName, args = []) {
+  const output = childProcess.execFileSync('npm', ['run', '--silent', scriptName, '--', ...args], {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+    maxBuffer: 32 * 1024 * 1024,
+  })
+  return JSON.parse(output)
+}
+
+function writeJson(file, value) {
+  fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
+  return file
+}
+
+function acceptedLaunchPacket() {
+  return {
+    decision: launchDecision,
+    sourceExternalBetaLaunchGapDecision:
+      'ai_graphics_external_beta_launch_gap_report_prepared_with_runtime_blocks',
+    sourceExternalBetaEvidenceAdmissionBundleDecision:
+      'ai_graphics_external_beta_evidence_admission_bundle_prepared_with_runtime_blocks',
+    sourceExternalBetaServiceRoleQueueSmokePreflightDecision:
+      'ai_graphics_external_beta_service_role_queue_smoke_preflight_prepared_with_runtime_blocks',
+    sourceExternalBetaServiceRoleQueueSmokeProofDecision:
+      'ai_graphics_external_beta_service_role_queue_smoke_proof_prepared_with_runtime_blocks',
+    sourceExternalBetaLaunchControlsDecision:
+      'ai_graphics_external_beta_launch_controls_approved_with_runtime_blocks',
+    status: launchStatus,
+    totalAiGraphicsTools: 21,
+    totalProductFacingCapabilities: 12,
+    gpuRuntimeTargetedTools: 8,
+    gpuRuntimeOnDemandOnly: true,
+    externalBetaLaunchCandidateToolsWithProvidedEvidence: 21,
+    externalBetaLaunchCandidateCapabilitiesWithProvidedEvidence: 12,
+    externalBetaLaunchGoNoGoApprovalRecordAccepted: true,
+    sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted: true,
+    externalBetaLaunchGoNoGoApprovedToolsWithProvidedEvidence: 21,
+    externalBetaReadyNowTools: 0,
+    productionReadyNowTools: 0,
+    sourceLaunchGapReport: {},
+    sourceEvidenceAdmissionBundle: {},
+    sourceServiceRoleQueueSmokePreflight: {},
+    sourceServiceRoleQueueSmokeProof: {},
+    sourceLaunchControls: {},
+    requiredLaunchApprovalRecord: {
+      required: true,
+      approverRole: 'AI_GRAPHICS_EXTERNAL_BETA_LAUNCH_OWNER',
+      launchRefRequired: true,
+      rolloutCohortRefRequired: true,
+      costConcurrencyCeilingRefRequired: true,
+      rollbackIncidentRunbookRefRequired: true,
+      privateArtifactRetentionSupportRefRequired: true,
+      approvesRuntimeNow: false,
+    },
+    allowedLaunchGoNoGoActions: [],
+    blockedRuntimeActions: [],
+    missingLaunchGoNoGoEvidence: [],
+    nextMilestones: [],
+    booleans: {
+      externalBetaLaunchGoNoGoContractPrepared: true,
+      sourceExternalBetaLaunchGapAccepted: true,
+      sourceExternalBetaLaunchGapRuntimeProofBridgeAccepted: true,
+      sourceExternalBetaEvidenceAdmissionBundleAccepted: true,
+      sourceExternalBetaServiceRoleQueueSmokePreflightAccepted: true,
+      sourceExternalBetaServiceRoleQueueSmokeProofAccepted: true,
+      sourceServiceRoleQueueSmokeAuthorizationAccepted: true,
+      sourceExternalBetaLaunchControlsAccepted: true,
+      externalBetaLaunchCandidateWithProvidedEvidence: true,
+      externalBetaLaunchGoNoGoApprovalRecordAccepted: true,
+      all21ToolsCovered: true,
+      all12CapabilitiesCovered: true,
+      all8GpuToolsTargetGpuRuntime: true,
+      gpuRuntimeOnDemandOnly: true,
+      all21ToolsExternalBetaLaunchGoNoGoApprovedWithProvidedEvidence: true,
+      agentCanSelectForPlanning: true,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      toolExecutionPerformed: false,
+      workerExecutionPerformed: false,
+      routeExecutionPerformed: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimePerformed: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      mediaProcessingPerformed: false,
+      supabaseMutationPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  }
+}
+
+function acceptedActivationRollupPacket() {
+  return {
+    decision: activationDecision,
+    sourceActivationGoNoGoDecision:
+      'ai_graphics_external_beta_activation_go_no_go_approved_with_runtime_blocks',
+    status: activationStatus,
+    rejectionReasons: [],
+    acceptedToolIds: tools,
+    missingToolIds: [],
+    duplicateToolIds: [],
+    externalBetaActivationGoNoGoAcceptedToolsWithProvidedEvidence: 21,
+    sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
+    externalBetaToolCallReadyNowTools: 21,
+    externalBetaReadyNowTools: 21,
+    runtimeReadyForOnDemandExternalBetaToolCallTools: 21,
+    productionReadyNowTools: 0,
+    totalAiGraphicsTools: 21,
+    totalProductFacingCapabilities: 12,
+    gpuRuntimeTargetedTools: 8,
+    gpuRuntimeShouldStartNow: false,
+    activatedTools: tools.map((toolId) => ({
+      toolId,
+      capabilityId: capabilityByTool[toolId],
+      routePath: '/api/ai-graphics/external-beta/tool-call',
+      routeId: `ai_graphics_external_beta_tool_route_${toolId}`,
+      gpuRuntimeTargetedTool: gpuTools.has(toolId),
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted: true,
+      externalBetaToolCallReadyNow: true,
+      runtimeReadyForOnDemandExternalBetaToolCall: true,
+      gpuRuntimeOnDemandOnly: true,
+      gpuRuntimeShouldStartNow: false,
+      productionReadyNow: false,
+    })),
+    policy: {
+      approvesAll21ExternalBetaToolCallReadinessMetadata: true,
+      directAgentExecutionStillBlocked: true,
+      runtimeStartsOnlyForAcceptedWorkerJob: true,
+      gpuRuntimeOnDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      noProductionUnlockByRollup: true,
+      noPublicArtifactsByRollup: true,
+      nextGateRequiresExternalBetaLaunchOwnerApproval: true,
+    },
+    booleans: {
+      externalBetaAll21ActivationRollupPrepared: true,
+      sourceActivationGoNoGoPacketsAcceptedWithProvidedEvidence: true,
+      sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence: true,
+      all21ActivationGoNoGoPacketsAcceptedWithProvidedEvidence: true,
+      all21ToolsCovered: true,
+      all12CapabilitiesCovered: true,
+      all8GpuToolsTargetGpuRuntime: true,
+      gpuRuntimeOnDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      gpuStartsOnlyForApprovedWorkerOrToolCall: true,
+      agentCanSelectForPlanning: true,
+      agentCanExecuteToolsNow: false,
+      directAgentToolExecutionApprovedNow: false,
+      controlledWorkerToolCallReadyNow: true,
+      externalBetaCallableNow: true,
+      externalBetaReadyNow: true,
+      productionReadyNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      workerQueueApprovedNow: false,
+      backendQueueSubmissionApprovedNow: false,
+      liveQueueWriteApprovedNow: false,
+      privateArtifactWriteApprovedNow: false,
+      workerLeaseCreationApprovedNow: false,
+      workerDispatchApprovedNow: false,
+      productionWorkerDispatchApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      gpuRuntimeShouldStartNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      productionReadyNowGlobal: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      toolExecutionPerformed: false,
+      workerExecutionPerformed: false,
+      workerEnqueuePerformed: false,
+      routeExecutionPerformed: false,
+      backendQueueSubmissionPerformed: false,
+      privateArtifactWritePerformed: false,
+      serviceRoleQueueSmokePerformed: false,
+      supabaseMutationPerformed: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimePerformedByActivationRollup: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      mediaProcessingPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  }
+}
+
+function runGate(options = {}) {
+  const launch = Object.prototype.hasOwnProperty.call(options, 'launch')
+    ? options.launch
+    : acceptedLaunchPacket()
+  const activation = Object.prototype.hasOwnProperty.call(options, 'activation')
+    ? options.activation
+    : acceptedActivationRollupPacket()
+  const tempDir = fs.mkdtempSync(path.join(process.cwd(), '.tmp-ai-graphics-activated-launch-'))
+  const args = []
+  if (launch) {
+    args.push('--external-beta-launch-go-no-go-packet', writeJson(path.join(tempDir, 'launch.json'), launch))
+  }
+  if (activation) {
+    args.push('--external-beta-all-21-activation-rollup-packet', writeJson(path.join(tempDir, 'activation.json'), activation))
+  }
+  const output = npmJson(runScriptName, args)
+  fs.rmSync(tempDir, { recursive: true, force: true })
+  return output
+}
+
+function requireEqual(actual, expected, label) {
+  if (actual !== expected) fail(`${label}:expected=${expected}:actual=${actual}`)
+}
+
+function requireTruthy(actual, label) {
+  if (actual !== true) fail(`${label}:expected=true:actual=${actual}`)
+}
+
+function requireFalse(actual, label) {
+  if (actual !== false) fail(`${label}:expected=false:actual=${actual}`)
+}
+
+function verifyFalseGates(packet, label) {
+  for (const key of falseGateKeys) {
+    if (packet.booleans?.[key] !== false) {
+      fail(`${label}:boolean_${key}_must_be_false`)
+    }
+  }
+}
+
+function verifyTrueReadiness(packet, label) {
+  for (const key of trueReadinessKeys) {
+    if (packet.booleans?.[key] !== true) {
+      fail(`${label}:boolean_${key}_must_be_true`)
+    }
+  }
+}
+
+function verifyPackageJson() {
+  const packageJson = json('package.json')
+  requireEqual(packageJson.scripts?.[runScriptName], runScriptCommand, 'package_run_script')
+  requireEqual(
+    packageJson.scripts?.[diagnosticScriptName],
+    diagnosticScriptCommand,
+    'package_diagnostic_script',
+  )
+
+  const currentPackage = JSON.parse(read('package.json'))
+  const basePackage = JSON.parse(git(['show', `${baseRef}:package.json`]))
+  for (const section of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
+    const current = JSON.stringify(currentPackage[section] ?? {}, null, 2)
+    const base = JSON.stringify(basePackage[section] ?? {}, null, 2)
+    if (current !== base) fail(`package_dependency_section_changed:${section}`)
+  }
+
+  const allowedPackageAdditions = [
+    `+    "${runScriptName}": "${runScriptCommand}",`,
+    `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+    '+    "ai-graphics:external-beta-controlled-on-demand-status-bridge": "tsx server/cli/ai-graphics-external-beta-controlled-on-demand-status-bridge.ts",',
+    '+    "ai-graphics:external-beta-controlled-on-demand-status-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-controlled-on-demand-status-bridge-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-api-route-handler-contract": "tsx server/cli/ai-graphics-external-beta-api-route-handler-contract.ts",',
+    '+    "ai-graphics:external-beta-api-route-handler-contract:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-handler-contract-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-api-route-handler-gateway-binding": "tsx server/cli/ai-graphics-external-beta-api-route-handler-gateway-binding.ts",',
+    '+    "ai-graphics:external-beta-api-route-handler-gateway-binding:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-handler-gateway-binding-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-api-route-handler-gateway-full-proof": "tsx server/cli/ai-graphics-external-beta-api-route-handler-gateway-full-proof.ts",',
+    '+    "ai-graphics:external-beta-api-route-handler-gateway-full-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-handler-gateway-full-proof-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-api-route-mount-readiness": "tsx server/cli/ai-graphics-external-beta-api-route-mount-readiness.ts",',
+    '+    "ai-graphics:external-beta-api-route-mount-readiness:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-mount-readiness-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-api-route-mount-implementation-review": "tsx server/cli/ai-graphics-external-beta-api-route-mount-implementation-review.ts",',
+    '+    "ai-graphics:external-beta-api-route-mount-implementation-review:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-mount-implementation-review-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-api-route-mount-implementation-qa": "tsx server/cli/ai-graphics-external-beta-api-route-mount-implementation-qa.ts",',
+    '+    "ai-graphics:external-beta-api-route-mount-implementation-qa:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-mount-implementation-qa-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-api-route-backend-adapter-contract": "tsx server/cli/ai-graphics-external-beta-api-route-backend-adapter-contract.ts",',
+    '+    "ai-graphics:external-beta-api-route-backend-adapter-contract:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-backend-adapter-contract-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-api-route-backend-adapter": "tsx server/cli/ai-graphics-external-beta-api-route-backend-adapter.ts",',
+    '+    "ai-graphics:external-beta-api-route-backend-adapter:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-backend-adapter-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-api-route-backend-adapter-smoke": "tsx server/cli/ai-graphics-external-beta-api-route-backend-adapter-smoke.ts",',
+    '+    "ai-graphics:external-beta-api-route-backend-adapter-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-backend-adapter-smoke-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-tool-call-handler-bridge": "tsx server/cli/ai-graphics-external-beta-tool-call-handler-bridge.ts",',
+    '+    "ai-graphics:external-beta-tool-call-handler-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-handler-bridge-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-route-to-queue-authorization-bridge": "tsx server/cli/ai-graphics-external-beta-route-to-queue-authorization-bridge.ts",',
+    '+    "ai-graphics:external-beta-route-to-queue-authorization-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-to-queue-authorization-bridge-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-route-to-live-enqueue-authorization-bridge": "tsx server/cli/ai-graphics-external-beta-route-to-live-enqueue-authorization-bridge.ts",',
+    '+    "ai-graphics:external-beta-route-to-live-enqueue-authorization-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-to-live-enqueue-authorization-bridge-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-authorization-bridge": "tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-authorization-bridge.ts",',
+    '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-authorization-bridge:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-authorization-bridge-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-preflight-run-gate": "tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate.ts",',
+    '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-preflight-run-gate:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-preflight-run-gate-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-runbook-authorization": "tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-runbook-authorization.ts",',
+  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-runbook-authorization:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-runbook-authorization-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-result-capture-contract": "tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-result-capture-contract.ts",',
+  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-result-capture-contract:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-result-capture-contract-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-operator-preflight": "tsx server/cli/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight.ts",',
+    '+    "ai-graphics:external-beta-route-bound-service-role-queue-smoke-operator-preflight:diagnostics": "node scripts/validation/ai-graphics-external-beta-route-bound-service-role-queue-smoke-operator-preflight-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-tool-call-route-mock-queue-admission-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-mock-queue-admission-smoke.ts",',
+    '+    "ai-graphics:external-beta-tool-call-route-mock-queue-admission-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-mock-queue-admission-smoke-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-mock-queue-worker-claim-smoke.ts",',
+    '+    "ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-mock-queue-worker-claim-smoke-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-tool-call-route-cpu-static-controlled-execution-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-cpu-static-controlled-execution-smoke.ts",',
+    '+    "ai-graphics:external-beta-tool-call-route-cpu-static-controlled-execution-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-cpu-static-controlled-execution-smoke-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-tool-call-route-browser-runtime-controlled-execution-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-browser-runtime-controlled-execution-smoke.ts",',
+    '+    "ai-graphics:external-beta-tool-call-route-browser-runtime-controlled-execution-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-browser-runtime-controlled-execution-smoke-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-tool-call-route-gpu-model-runtime-admission-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-gpu-model-runtime-admission-smoke.ts",',
+    '+    "ai-graphics:external-beta-tool-call-route-gpu-model-runtime-admission-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-gpu-model-runtime-admission-smoke-diagnostics.mjs",',
+    '+    "ai-graphics:external-beta-tool-call-route-readiness-probe-smoke": "tsx server/cli/ai-graphics-external-beta-tool-call-route-readiness-probe-smoke.ts",',
+    '+    "ai-graphics:external-beta-tool-call-route-readiness-probe-smoke:diagnostics": "node scripts/validation/ai-graphics-external-beta-tool-call-route-readiness-probe-smoke-diagnostics.mjs",',
+    '+    "ai-graphics:external-agent-controlled-route-require-go": "tsx server/cli/ai-graphics-external-agent-controlled-route-require-go.ts",',
+    '+    "ai-graphics:external-agent-controlled-route-require-go:diagnostics": "node scripts/validation/ai-graphics-external-agent-controlled-route-require-go-diagnostics.mjs",',
+    '+    "ai-graphics:external-agent-controlled-route-caller": "tsx server/cli/ai-graphics-external-agent-controlled-route-caller.ts",',
+    '+    "ai-graphics:external-agent-controlled-route-caller:diagnostics": "node scripts/validation/ai-graphics-external-agent-controlled-route-caller-diagnostics.mjs",',
+    '+    "ai-graphics:external-agent-gpu-model-proof-ref-route-caller": "tsx server/cli/ai-graphics-external-agent-gpu-model-proof-ref-route-caller.ts",',
+    '+    "ai-graphics:external-agent-gpu-model-proof-ref-route-caller:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-proof-ref-route-caller-diagnostics.mjs",',
+    '+    "ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge": "tsx server/cli/ai-graphics-external-agent-gpu-model-runtime-queue-service-bridge.ts",',
+    '+    "ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge:diagnostics": "node scripts/validation/ai-graphics-external-agent-gpu-model-runtime-queue-service-bridge-diagnostics.mjs",',
+    '+    "ai-graphics:production-launch-controls": "tsx server/cli/ai-graphics-production-launch-controls.ts",',
+    '+    "ai-graphics:production-launch-controls:diagnostics": "node scripts/validation/ai-graphics-production-launch-controls-diagnostics.mjs",',
+    '+    "ai-graphics:production-launch-go-no-go": "tsx server/cli/ai-graphics-production-launch-go-no-go.ts",',
+    '+    "ai-graphics:production-launch-go-no-go:diagnostics": "node scripts/validation/ai-graphics-production-launch-go-no-go-diagnostics.mjs",',
+    '+    "ai-graphics:production-traffic-cutover": "tsx server/cli/ai-graphics-production-traffic-cutover.ts",',
+    '+    "ai-graphics:production-traffic-cutover:diagnostics": "node scripts/validation/ai-graphics-production-traffic-cutover-diagnostics.mjs",',
+    '+    "ai-graphics:production-tool-call-gateway-handoff": "tsx server/cli/ai-graphics-production-tool-call-gateway-handoff.ts",',
+    '+    "ai-graphics:production-tool-call-gateway-handoff:diagnostics": "node scripts/validation/ai-graphics-production-tool-call-gateway-handoff-diagnostics.mjs",',
+    '+    "ai-graphics:production-worker-queue-admission": "tsx server/cli/ai-graphics-production-worker-queue-admission.ts",',
+    '+    "ai-graphics:production-worker-queue-admission:diagnostics": "node scripts/validation/ai-graphics-production-worker-queue-admission-diagnostics.mjs",',
+    '+    "ai-graphics:production-service-role-queue-transaction-dry-proof": "tsx server/cli/ai-graphics-production-service-role-queue-transaction-dry-proof.ts",',
+    '+    "ai-graphics:production-service-role-queue-transaction-dry-proof:diagnostics": "node scripts/validation/ai-graphics-production-service-role-queue-transaction-dry-proof-diagnostics.mjs",',
+    '+    "ai-graphics:production-controlled-dispatch-authorization-proof": "tsx server/cli/ai-graphics-production-controlled-dispatch-authorization-proof.ts",',
+    '+    "ai-graphics:production-controlled-dispatch-authorization-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-dispatch-authorization-proof-diagnostics.mjs",',
+    '+    "ai-graphics:production-controlled-worker-dispatch-smoke-proof": "tsx server/cli/ai-graphics-production-controlled-worker-dispatch-smoke-proof.ts",',
+    '+    "ai-graphics:production-controlled-worker-dispatch-smoke-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-worker-dispatch-smoke-proof-diagnostics.mjs",',
+  '+    "ai-graphics:production-controlled-worker-runtime-smoke-authorization": "tsx server/cli/ai-graphics-production-controlled-worker-runtime-smoke-authorization.ts",',
+  '+    "ai-graphics:production-controlled-worker-runtime-smoke-authorization:diagnostics": "node scripts/validation/ai-graphics-production-controlled-worker-runtime-smoke-authorization-diagnostics.mjs",',
+  '+    "ai-graphics:production-controlled-worker-runtime-smoke-proof": "tsx server/cli/ai-graphics-production-controlled-worker-runtime-smoke-proof.ts",',
+  '+    "ai-graphics:production-controlled-worker-runtime-smoke-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-worker-runtime-smoke-proof-diagnostics.mjs",',
+  '+    "ai-graphics:production-controlled-private-artifact-tool-route-handoff-proof": "tsx server/cli/ai-graphics-production-controlled-private-artifact-tool-route-handoff-proof.ts",',
+  '+    "ai-graphics:production-controlled-private-artifact-tool-route-handoff-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-private-artifact-tool-route-handoff-proof-diagnostics.mjs",',
+  '+    "ai-graphics:production-controlled-per-tool-callable-result-proof": "tsx server/cli/ai-graphics-production-controlled-per-tool-callable-result-proof.ts",',
+  '+    "ai-graphics:production-controlled-per-tool-callable-result-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-per-tool-callable-result-proof-diagnostics.mjs",',
+  '+    "ai-graphics:production-controlled-per-tool-traffic-enablement-proof": "tsx server/cli/ai-graphics-production-controlled-per-tool-traffic-enablement-proof.ts",',
+  '+    "ai-graphics:production-controlled-per-tool-traffic-enablement-proof:diagnostics": "node scripts/validation/ai-graphics-production-controlled-per-tool-traffic-enablement-proof-diagnostics.mjs",',
+    '+    "ai-graphics:production-launch-readiness-gap": "tsx server/cli/ai-graphics-production-launch-readiness-gap.ts",',
+    '+    "ai-graphics:production-launch-readiness-gap:diagnostics": "node scripts/validation/ai-graphics-production-launch-readiness-gap-diagnostics.mjs",',
+  ]
+  const packageDiffLines = git(['diff', '--', 'package.json'])
+    .split('\n')
+    .filter((line) => /^[+-]/.test(line) && !/^(\+\+\+|---)/.test(line))
+  for (const line of packageDiffLines) {
+    if (!allowedPackageAdditions.includes(line)) {
+      fail(`unexpected_package_json_diff:${line}`)
+    }
+  }
+}
+
+function verifyPackageLockUnchanged() {
+  const lockDiff = git(['diff', '--', 'package-lock.json'])
+  if (lockDiff.trim().length > 0) fail('package_lock_changed')
+}
+
+function verifyTrackedAndChangedPaths() {
+  const changed = git(['diff', '--name-only'])
+    .split('\n')
+    .filter(Boolean)
+  const untracked = git(['ls-files', '--others', '--exclude-standard'])
+    .split('\n')
+    .filter(Boolean)
+  for (const file of [...changed, ...untracked]) {
+    if (generatedArtifactPathPattern.test(file)) {
+      fail(`generated_or_artifact_path_changed:${file}`)
+    }
+  }
+}
+
+function verifyDocs() {
+  const docJson = json('docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json')
+  requireEqual(docJson.decision, decision, 'doc_json_decision')
+  requireEqual(docJson.status, acceptedStatus, 'doc_json_status')
+  requireEqual(docJson.scope?.totalAiGraphicsTools, 21, 'doc_json_tool_count')
+  requireEqual(docJson.scope?.productFacingCapabilities, 12, 'doc_json_capability_count')
+  requireEqual(docJson.scope?.gpuRuntimeTargetedTools, 8, 'doc_json_gpu_count')
+  requireEqual(
+    docJson.scope?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'doc_json_operator_preflight_count',
+  )
+  requireEqual(docJson.scope?.externalBetaActivatedLaunchReadyToolsWithProvidedEvidence, 21, 'doc_json_ready_count')
+  requireEqual(docJson.scope?.externalBetaToolCallReadyNowTools, 0, 'doc_json_tool_call_ready_count')
+  requireEqual(docJson.scope?.externalBetaReadyNowTools, 0, 'doc_json_external_beta_count')
+  requireEqual(docJson.scope?.runtimeReadyForOnDemandExternalBetaToolCallTools, 0, 'doc_json_runtime_ready_count')
+  requireEqual(docJson.scope?.productionReadyNowTools, 0, 'doc_json_production_count')
+  for (const key of trueReadinessKeys) {
+    requireTruthy(docJson.booleans?.[key], `doc_json_boolean_${key}`)
+  }
+  for (const key of falseGateKeys) {
+    requireFalse(docJson.booleans?.[key], `doc_json_boolean_${key}`)
+  }
+
+  const md = read('docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.md')
+  for (const required of [
+    decision,
+    'controlled on-demand external-beta tool calls',
+    '`sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence`: 21',
+    '`externalBetaToolCallReadyNowTools`: 0',
+    '`externalBetaReadyNowTools`: 0',
+    '`runtimeReadyForOnDemandExternalBetaToolCallTools`: 0',
+    'route-bound service-role queue smoke operator-preflight evidence',
+    '`agentCanExecuteToolsNow=false`',
+    '`gpuRuntimeShouldStartNow=false`',
+    '`productionReadyNow=false`',
+  ]) {
+    if (!md.includes(required)) fail(`activated_launch_md_missing:${required}`)
+  }
+
+  const scorecard = read('docs/production-beta-readiness-scorecard.md')
+  for (const required of [
+    'AI Graphics External-Beta Activated Launch Readiness',
+    decision,
+    'externalBetaReadyNowTools=0',
+    '`gpuRuntimeShouldStartNow` remains false',
+  ]) {
+    if (!scorecard.includes(required)) fail(`scorecard_missing:${required}`)
+  }
+
+  for (const file of [
+    'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.json',
+    'docs/tool-intelligence/ai-graphics/external-beta-activated-launch-readiness.md',
+    'docs/production-beta-readiness-scorecard.md',
+  ]) {
+    const content = read(file)
+    forbiddenDocPatterns.forEach((pattern) => {
+      if (pattern.test(content)) fail(`forbidden_claim:${file}:${pattern}`)
+    })
+  }
+}
+
+function verifySourceWiring() {
+  requiredFiles.forEach(read)
+  const registry = read('server/tool-registry/index.ts')
+  if (!registry.includes("export * from './ai-graphics-external-beta-activated-launch-readiness'")) {
+    fail('missing_registry_export')
+  }
+  const evaluator = read('server/tool-registry/ai-graphics-external-beta-activated-launch-readiness.ts')
+  for (const required of [
+    decision,
+    'controlled_external_beta_on_demand_tool_call_metadata',
+    'approvesControlledExternalBetaToolCallReadiness: true',
+    'directAgentExecutionStillBlocked: true',
+    'runtimeStartsOnlyForAcceptedWorkerJob: true',
+    'noProductionUnlockByReadinessGate: true',
+    'sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted',
+    'externalBetaReadyNow: false',
+    'gpuRuntimeShouldStartNow: false',
+    'productionReadyNow: false',
+  ]) {
+    if (!evaluator.includes(required)) fail(`evaluator_missing:${required}`)
+  }
+}
+
+function verifyCliBehavior() {
+  const missing = npmJson(runScriptName)
+  requireEqual(missing.status, 'missing_external_beta_launch_go_no_go', 'missing_cli_status')
+  requireFalse(missing.input?.directAgentToolExecutionPerformed, 'missing_cli_no_direct_agent')
+  requireFalse(missing.input?.routeExecutionPerformed, 'missing_cli_no_route')
+  requireFalse(missing.input?.workerDispatchPerformedByThisCommand, 'missing_cli_no_dispatch')
+  requireFalse(missing.input?.toolExecutionPerformed, 'missing_cli_no_tool')
+  requireFalse(missing.input?.gpuRuntimePerformedByThisCommand, 'missing_cli_no_gpu')
+
+  const rejectedLaunch = acceptedLaunchPacket()
+  rejectedLaunch.status = 'awaiting_external_beta_launch_go_no_go_approval'
+  const rejectedLaunchOutput = runGate({ launch: rejectedLaunch })
+  requireEqual(rejectedLaunchOutput.status, 'external_beta_launch_go_no_go_rejected', 'rejected_launch_status')
+  requireEqual(rejectedLaunchOutput.externalBetaReadyNowTools, 0, 'rejected_launch_external_beta_ready')
+  verifyFalseGates(rejectedLaunchOutput, 'rejected_launch')
+
+  const missingActivation = runGate({ activation: undefined })
+  requireEqual(missingActivation.status, 'missing_external_beta_all_21_activation_rollup', 'missing_activation_status')
+  requireEqual(missingActivation.externalBetaReadyNowTools, 0, 'missing_activation_external_beta_ready')
+  verifyFalseGates(missingActivation, 'missing_activation')
+
+  const rejectedActivation = acceptedActivationRollupPacket()
+  rejectedActivation.status = 'partial_external_beta_activation_go_no_go_packets'
+  const rejectedActivationOutput = runGate({ activation: rejectedActivation })
+  requireEqual(rejectedActivationOutput.status, 'external_beta_all_21_activation_rollup_rejected', 'rejected_activation_status')
+  requireEqual(rejectedActivationOutput.externalBetaReadyNowTools, 0, 'rejected_activation_external_beta_ready')
+  verifyFalseGates(rejectedActivationOutput, 'rejected_activation')
+
+  const accepted = runGate()
+  requireEqual(accepted.status, acceptedStatus, 'accepted_status')
+  requireTruthy(accepted.sourceExternalBetaLaunchGoNoGoAccepted, 'accepted_launch')
+  requireTruthy(accepted.sourceExternalBetaAll21ActivationRollupAccepted, 'accepted_activation')
+  requireEqual(
+    accepted.externalBetaActivatedLaunchReadyToolsWithProvidedEvidence,
+    21,
+    'accepted_ready_count',
+  )
+  requireEqual(accepted.externalBetaToolCallReadyNowTools, 0, 'accepted_tool_call_ready')
+  requireEqual(accepted.externalBetaReadyNowTools, 0, 'accepted_external_beta_ready')
+  requireEqual(accepted.runtimeReadyForOnDemandExternalBetaToolCallTools, 0, 'accepted_runtime_on_demand')
+  requireEqual(
+    accepted.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence,
+    21,
+    'accepted_operator_preflight_count',
+  )
+  requireEqual(accepted.productionReadyNowTools, 0, 'accepted_production_count')
+  requireEqual(accepted.readinessMode, 'controlled_external_beta_on_demand_tool_call_metadata', 'accepted_readiness_mode')
+  requireFalse(accepted.gpuRuntimeShouldStartNow, 'accepted_gpu_should_not_start')
+  verifyTrueReadiness(accepted, 'accepted')
+  verifyFalseGates(accepted, 'accepted')
+
+  const strippedActivation = acceptedActivationRollupPacket()
+  strippedActivation.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence = 20
+  strippedActivation.booleans.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence = false
+  strippedActivation.activatedTools[0].sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAccepted = false
+  const strippedActivationOutput = runGate({ activation: strippedActivation })
+  requireEqual(
+    strippedActivationOutput.status,
+    'external_beta_all_21_activation_rollup_rejected',
+    'stripped_activation_operator_preflight_status',
+  )
+  requireEqual(
+    strippedActivationOutput.externalBetaReadyNowTools,
+    0,
+    'stripped_activation_operator_preflight_external_beta_ready',
+  )
+  requireFalse(
+    strippedActivationOutput.booleans?.sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedWithProvidedEvidence,
+    'stripped_activation_operator_preflight_boolean',
+  )
+}
+
+verifyPackageJson()
+verifyPackageLockUnchanged()
+verifyTrackedAndChangedPaths()
+verifyDocs()
+verifySourceWiring()
+verifyCliBehavior()
+
+if (failures.length > 0) {
+  console.error(JSON.stringify({
+    ok: false,
+    decision,
+    status: 'ai_graphics_external_beta_activated_launch_readiness_diagnostics_failed',
+    failures,
+  }, null, 2))
+  process.exit(1)
+}
+
+console.log(JSON.stringify({
+  ok: true,
+  decision,
+  status: 'ai_graphics_external_beta_activated_launch_readiness_diagnostics_passed',
+  checkedFiles: requiredFiles.length,
+  totalAiGraphicsTools: 21,
+  gpuRuntimeTargetedTools: 8,
+  sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence: 21,
+  externalBetaActivatedLaunchReadyToolsWithProvidedEvidence: 21,
+  externalBetaToolCallReadyNowTools: 0,
+  externalBetaReadyNowTools: 0,
+  runtimeReadyForOnDemandExternalBetaToolCallTools: 0,
+  agentCanExecuteToolsNow: false,
+  gpuRuntimeShouldStartNow: false,
+  productionReadyNowTools: 0,
+}, null, 2))

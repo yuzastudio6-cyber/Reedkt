@@ -25,10 +25,28 @@ import { runEnhancementSlowMotionPipeline } from '../enhancement-slowmotion'
 import type { EnhancementSlowMotionExecutionMode } from '../enhancement-slowmotion'
 import type { EnhancementIntent } from '../enhancement'
 import type { SlowMotionInterpolationMode } from '../slow-motion'
+import { runAiGraphicsFoundationRuntimeCheck } from '../model-runtime-foundation'
+import type { AiGraphicsFoundationRuntimeInput, AiGraphicsFoundationRuntimeToolId } from '../model-runtime-foundation'
+import {
+  executeAiGraphicsExternalAgentGpuModelControlledAdapter,
+  isAiGraphicsExternalAgentGpuModelControlledAdapterTool,
+  type AiGraphicsExternalAgentGpuModelControlledAdapterRequest,
+} from '../../tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter'
 import { runFinalRenderExecutionPipeline } from '../final-render'
 import type { FinalRenderEngine, FinalRenderExecutionMode, FinalRenderMode } from '../final-render'
 
 export async function routeProductionWorkerJob(payload: ProductionWorkerJobPayload): Promise<ProductionWorkerRouteOutput> {
+  if (hasAiGraphicsToolCallHandoffRequest(payload)) {
+    return {
+      summary: 'AI graphics tool-call metadata handoff completed in planning-only mode.',
+      workerType: payload.workerType,
+      executionMode: payload.executionMode,
+      mockOnly: true,
+      futureHandler: aiGraphicsFutureHandler(payload.workerType),
+      aiGraphicsToolCallHandoffResult: buildAiGraphicsToolCallHandoffResult(payload),
+    }
+  }
+
   switch (payload.workerType) {
     case 'cpu_analysis_worker':
       if (hasMediaFoundationRequest(payload)) {
@@ -135,6 +153,33 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         futureHandler: 'cpu_analysis_worker_placeholder',
       }
     case 'gpu_ai_worker':
+      if (hasAiGraphicsGpuModelControlledAdapterRequest(payload)) {
+        const aiGraphicsGpuModelControlledAdapterResult =
+          await executeAiGraphicsExternalAgentGpuModelControlledAdapter(
+            buildAiGraphicsGpuModelControlledAdapterRequest(payload),
+          )
+        return {
+          summary: 'AI graphics GPU/model controlled adapter route completed in explicit aiGraphicsGpuModelControlledAdapter mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: true,
+          futureHandler: 'gpu_ai_worker_ai_graphics_gpu_model_controlled_adapter',
+          aiGraphicsGpuModelControlledAdapterResult,
+        }
+      }
+
+      if (hasAiGraphicsFoundationRuntimeRequest(payload)) {
+        const aiGraphicsFoundationRuntimeResult = await runAiGraphicsFoundationRuntimeCheck(buildAiGraphicsFoundationRuntimeInput(payload))
+        return {
+          summary: 'AI graphics GPU model-runtime foundation route completed in explicit aiGraphicsFoundationRuntime mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: true,
+          futureHandler: 'gpu_ai_worker_ai_graphics_model_runtime_foundation',
+          aiGraphicsFoundationRuntimeResult,
+        }
+      }
+
       if (hasEnhancementSlowMotionRequest(payload)) {
         const enhancementSlowMotionResult = await runEnhancementSlowMotionPipeline(buildEnhancementSlowMotionInput(payload))
         return {
@@ -419,6 +464,157 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         futureHandler: 'tool_readiness_worker_placeholder',
       }
   }
+}
+
+function hasAiGraphicsToolCallHandoffRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.aiGraphicsToolCallHandoff
+  if (!request || typeof request !== 'object' || Array.isArray(request)) return false
+  const mode = (request as Record<string, unknown>).mode
+  const planningOnly = (request as Record<string, unknown>).planningOnly
+  const canExecute = (request as Record<string, unknown>).agentCanExecuteToolsNow
+  return payload.executionMode === 'dry_run' && mode === 'metadata_dry_run' && planningOnly === true && canExecute === false
+}
+
+function aiGraphicsFutureHandler(workerType: ProductionWorkerJobPayload['workerType']): string {
+  if (workerType === 'gpu_ai_worker') return 'ai_graphics_gpu_model_tool_call_handoff'
+  if (workerType === 'render_worker') return 'ai_graphics_render_tool_call_handoff'
+  if (workerType === 'cpu_analysis_worker') return 'ai_graphics_cpu_static_tool_call_handoff'
+  if (workerType === 'qa_worker') return 'ai_graphics_qa_tool_call_handoff'
+  return 'ai_graphics_tool_readiness_handoff'
+}
+
+function buildAiGraphicsToolCallHandoffResult(payload: ProductionWorkerJobPayload) {
+  const request = payload.metadata?.aiGraphicsToolCallHandoff as Record<string, unknown>
+  return {
+    mode: 'metadata_dry_run',
+    canonicalToolId: request.canonicalToolId,
+    productionToolId: request.productionToolId,
+    runtimeTarget: request.runtimeTarget,
+    capabilityIds: Array.isArray(request.capabilityIds) ? request.capabilityIds : [],
+    workerType: payload.workerType,
+    requestedToolIds: payload.requestedToolIds,
+    requestedRecipeIds: payload.requestedRecipeIds,
+    storageReferenceIds: payload.storageReferenceIds,
+    planningOnly: true,
+    mockOnly: true,
+    agentCanExecuteToolsNow: false,
+    toolExecutionPerformed: false,
+    routeExecutionPerformed: false,
+    workerExecutionPerformed: false,
+    gpuRuntimePerformed: false,
+    browserWebglCanvasRuntimePerformed: false,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+  }
+}
+
+function hasAiGraphicsGpuModelControlledAdapterRequest(payload: ProductionWorkerJobPayload): boolean {
+  if (payload.workerType !== 'gpu_ai_worker') return false
+  const request = payload.metadata?.aiGraphicsGpuModelControlledAdapter
+  if (!request || typeof request !== 'object' || Array.isArray(request)) return false
+  const record = request as Record<string, unknown>
+  const toolId = stringValue(record.toolId)
+  return Boolean(toolId && isAiGraphicsExternalAgentGpuModelControlledAdapterTool(toolId))
+}
+
+function buildAiGraphicsGpuModelControlledAdapterRequest(
+  payload: ProductionWorkerJobPayload,
+): AiGraphicsExternalAgentGpuModelControlledAdapterRequest {
+  const request = payload.metadata?.aiGraphicsGpuModelControlledAdapter as Record<string, unknown>
+  const toolId = stringValue(request.toolId)
+  if (!toolId || !isAiGraphicsExternalAgentGpuModelControlledAdapterTool(toolId)) {
+    throw new Error(`Unsupported AI graphics GPU/model tool id: ${String(toolId)}`)
+  }
+  const requestPayload = request.payload && typeof request.payload === 'object' && !Array.isArray(request.payload)
+    ? request.payload as Record<string, unknown>
+    : {}
+
+  return {
+    workspaceId: payload.workspaceId,
+    requestId: stringValue(request.requestId) ?? payload.jobId,
+    toolId,
+    capabilityId:
+      stringValue(request.capabilityId) ??
+      aiGraphicsGpuModelDefaultCapability(toolId),
+    approvedPlanSnapshotId:
+      stringValue(request.approvedPlanSnapshotId) ??
+      payload.approvedSnapshotId,
+    creditReservationId:
+      stringValue(request.creditReservationId) ??
+      payload.creditReservationId ??
+      '',
+    privateArtifactManifestRef:
+      stringValue(request.privateArtifactManifestRef) ?? '',
+    toolRouteApprovalRef:
+      stringValue(request.toolRouteApprovalRef) ?? '',
+    workerApprovalRef:
+      stringValue(request.workerApprovalRef) ?? '',
+    runtimeEnqueueApprovalRef:
+      stringValue(request.runtimeEnqueueApprovalRef) ?? '',
+    ownerRuntimeApprovalRef:
+      stringValue(request.ownerRuntimeApprovalRef) ?? '',
+    nativeGpuRuntimeProofRef: stringValue(request.nativeGpuRuntimeProofRef),
+    modelWeightManifestRef: stringValue(request.modelWeightManifestRef),
+    externalBetaPerToolRuntimeProofRef:
+      stringValue(request.externalBetaPerToolRuntimeProofRef),
+    traceId:
+      stringValue(request.traceId) ??
+      payload.idempotencyKey,
+    payload: requestPayload,
+  }
+}
+
+function aiGraphicsGpuModelDefaultCapability(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterRequest['toolId'],
+): string {
+  if (toolId === 'sam2') return 'subject_segmentation'
+  if (toolId === 'birefnet' || toolId === 'rembg' || toolId === 'transparent_background') {
+    return 'background_removal'
+  }
+  if (toolId === 'real_esrgan') return 'upscaling'
+  if (toolId === 'kornia') return 'tensor_image_ops'
+  return 'model_runtime_foundation'
+}
+
+function hasAiGraphicsFoundationRuntimeRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.aiGraphicsFoundationRuntime
+  if (!request || typeof request !== 'object' || Array.isArray(request)) return false
+  const record = request as Record<string, unknown>
+  return isAiGraphicsFoundationRuntimeMode(record.mode) &&
+    isAiGraphicsFoundationRuntimeToolId(record.toolId)
+}
+
+function buildAiGraphicsFoundationRuntimeInput(
+  payload: ProductionWorkerJobPayload,
+): AiGraphicsFoundationRuntimeInput {
+  const request = payload.metadata?.aiGraphicsFoundationRuntime as Record<string, unknown>
+  return {
+    mode: request.mode as AiGraphicsFoundationRuntimeInput['mode'],
+    toolId: request.toolId as AiGraphicsFoundationRuntimeToolId,
+    workspaceId: payload.workspaceId,
+    projectId: payload.projectId,
+    approvedSnapshotId: payload.approvedSnapshotId,
+    outputDirectory: stringValue(request.outputDirectory),
+    enableFoundationRuntimeExecution:
+      request.enableFoundationRuntimeExecution === true,
+    timeoutMs: numberValue(request.timeoutMs),
+  }
+}
+
+function isAiGraphicsFoundationRuntimeMode(
+  value: unknown,
+): value is AiGraphicsFoundationRuntimeInput['mode'] {
+  return value === 'dry_run' ||
+    value === 'local_dev' ||
+    value === 'container_ready' ||
+    value === 'production_blocked' ||
+    value === 'production_ready'
+}
+
+function isAiGraphicsFoundationRuntimeToolId(
+  value: unknown,
+): value is AiGraphicsFoundationRuntimeToolId {
+  return value === 'torch_torchvision' || value === 'transformers'
 }
 
 function hasFinalRenderExecutionRequest(payload: ProductionWorkerJobPayload): boolean {

@@ -1,0 +1,528 @@
+import {
+  AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_DECISION,
+  buildAiGraphicsInternalBetaRuntimeEnqueueApproval,
+  type AiGraphicsInternalBetaRuntimeEnqueueApproval,
+  type AiGraphicsInternalBetaRuntimeEnqueueApprovalInput,
+  type AiGraphicsInternalBetaRuntimeEnqueueToolScope,
+} from './ai-graphics-internal-beta-runtime-enqueue-approval'
+import {
+  evaluateAiGraphicsOnDemandRuntimeAdmission,
+  type AiGraphicsGpuRuntimeStartupAuthorization,
+  type AiGraphicsRuntimeJobAdmissionDecision,
+} from './ai-graphics-on-demand-runtime-admission'
+import type {
+  AiGraphicsCapabilityId,
+  AiGraphicsCanonicalToolId,
+} from './ai-graphics-tool-call-readiness'
+import type { ProductionRegistryWorkerType, ProductionToolId } from './production-tool-types'
+
+export const AI_GRAPHICS_INTERNAL_BETA_QUEUE_ADMISSION_READINESS_DECISION =
+  'ai_graphics_internal_beta_queue_admission_readiness_contract_prepared_with_runtime_blocks'
+
+export type AiGraphicsInternalBetaQueueAdmissionReadinessStatus =
+  | 'missing_runtime_enqueue_scope_approval'
+  | 'missing_queue_admission_prerequisites'
+  | 'internal_beta_queue_admission_ready_runtime_still_blocked'
+
+export interface AiGraphicsInternalBetaQueueAdmissionReadinessInput
+  extends AiGraphicsInternalBetaRuntimeEnqueueApprovalInput {
+  sourceRuntimeEnqueueApprovalPacket?: AiGraphicsInternalBetaRuntimeEnqueueApproval
+  approvedPlanSnapshotId?: string
+  creditReservationId?: string
+  privateArtifactManifestRef?: string
+  artifactBoundaryApprovalRef?: string
+  toolRouteApprovalRef?: string
+  workerApprovalRef?: string
+  workerQueueTransportRef?: string
+  workerIdempotencyNamespace?: string
+  internalBetaRuntimeOwnerApprovalRef?: string
+  nodeRuntimeProofRef?: string
+  browserRuntimeProofRef?: string
+  satoriFontRuntimeProofRef?: string
+  nativeGpuRuntimeProofRef?: string
+  modelWeightManifestRef?: string
+}
+
+export interface AiGraphicsInternalBetaQueueAdmissionEvidence {
+  approvedPlanSnapshotId: string
+  creditReservationId: string
+  privateArtifactManifestRef: string
+  artifactBoundaryApprovalRef: string
+  toolRouteApprovalRef: string
+  workerApprovalRef: string
+  workerQueueTransportRef: string
+  workerIdempotencyNamespace: string
+  internalBetaRuntimeOwnerApprovalRef: string
+  nodeRuntimeProofRef: string
+  browserRuntimeProofRef: string
+  satoriFontRuntimeProofRef: string
+  nativeGpuRuntimeProofRef: string
+  modelWeightManifestRef: string
+}
+
+export interface AiGraphicsInternalBetaQueueAdmissionPacket {
+  toolId: AiGraphicsCanonicalToolId
+  productionToolId: ProductionToolId
+  workerType: ProductionRegistryWorkerType
+  runtimeTarget: string
+  capabilityIds: AiGraphicsCapabilityId[]
+  gpuRequiredForRuntime: boolean
+  sourceRuntimeEnqueueScopeApprovedWithProvidedEvidence: boolean
+  runtimeAdmissionDecision: AiGraphicsRuntimeJobAdmissionDecision
+  runtimeAdmissionReadyWithProvidedEvidence: boolean
+  gpuRuntimeStartupAuthorization: AiGraphicsGpuRuntimeStartupAuthorization
+  gpuRuntimeStartAllowedForAcceptedJob: boolean
+  gpuRuntimeShouldStartNow: false
+  missingRuntimeJobGates: string[]
+  missingRuntimeProofGates: string[]
+  queueAdmissionReadyWithProvidedEvidence: boolean
+  liveWorkerQueueApprovedNow: false
+  liveWorkerExecutionApprovedNow: false
+  toolExecutionApprovedNow: false
+  blockedRuntimeActions: string[]
+  nextRuntimeProofMilestone: string
+}
+
+export interface AiGraphicsInternalBetaQueueAdmissionReadiness {
+  decision: typeof AI_GRAPHICS_INTERNAL_BETA_QUEUE_ADMISSION_READINESS_DECISION
+  sourceRuntimeEnqueueApprovalDecision: typeof AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_DECISION
+  status: AiGraphicsInternalBetaQueueAdmissionReadinessStatus
+  totalAiGraphicsTools: 21
+  totalProductFacingCapabilities: 12
+  queueAdmissionPacketsPrepared: 21
+  queueAdmissionPacketsReadyWithProvidedEvidence: number
+  queueAdmissionCapabilitiesReadyWithProvidedEvidence: number
+  runtimeAdmissionPacketsReadyWithProvidedEvidence: number
+  gpuRuntimeStartAllowedForAcceptedJobTools: number
+  liveWorkerQueueApprovedNowTools: 0
+  liveWorkerExecutionApprovedNowTools: 0
+  sourceRuntimeEnqueueApproval: AiGraphicsInternalBetaRuntimeEnqueueApproval
+  sourceRuntimeEnqueueScopeAccepted: boolean
+  queueAdmissionPrerequisitesSatisfied: boolean
+  queueAdmissionEvidence: AiGraphicsInternalBetaQueueAdmissionEvidence
+  missingQueueAdmissionPrerequisites: string[]
+  requiredQueueAdmissionEvidence: string[]
+  allowedQueueAdmissionPreparationActions: string[]
+  blockedRuntimeActions: string[]
+  queueAdmissionPackets: AiGraphicsInternalBetaQueueAdmissionPacket[]
+  nextMilestones: string[]
+  booleans: {
+    internalBetaQueueAdmissionReadinessPrepared: true
+    sourceRuntimeEnqueueScopeAccepted: boolean
+    queueAdmissionPrerequisitesSatisfied: boolean
+    all21ToolsCovered: true
+    all12CapabilitiesCovered: true
+    all21QueueAdmissionPacketsPrepared: true
+    all21QueueAdmissionPacketsReadyWithProvidedEvidence: boolean
+    all21RuntimeAdmissionPacketsReadyWithProvidedEvidence: boolean
+    all12CapabilitiesReadyWithProvidedEvidence: boolean
+    approvedPlanSnapshotRefAccepted: boolean
+    creditReservationRefAccepted: boolean
+    privateArtifactManifestOnly: boolean
+    gpuHeavyToolsTargetGpuRuntime: boolean
+    gpuRuntimeTargetsExact: boolean
+    gpuRuntimeOnDemandOnly: true
+    onDemandRuntimeAdmissionApplied: boolean
+    gpuRuntimeStartAllowedOnlyForAcceptedJobs: boolean
+    gpuRuntimeShouldStartNow: false
+    agentCanSelectForPlanning: true
+    agentCanExecuteToolsNow: false
+    routeExecutionApprovedNow: false
+    workerExecutionApprovedNow: false
+    workerQueueApprovedNow: false
+    productionWorkerJobEnqueueApprovedNow: false
+    productionWorkerDispatchApprovedNow: false
+    productionWorkerRouteExecutionApprovedNow: false
+    toolExecutionApprovedNow: false
+    providerRuntimeApprovedNow: false
+    browserWebglCanvasRuntimeApprovedNow: false
+    gpuRuntimeApprovedNow: false
+    runtimeReadyNow: false
+    internalBetaReadyNow: false
+    externalBetaReadyNow: false
+    productionReadyNow: false
+    dependencyInstallPerformed: false
+    packageLockMutationPerformed: false
+    toolExecutionPerformed: false
+    workerExecutionPerformed: false
+    routeExecutionPerformed: false
+    productionWorkerDispatchPerformed: false
+    productionWorkerRouteExecutionPerformed: false
+    providerRuntimePerformed: false
+    browserWebglCanvasRuntimePerformed: false
+    gpuRuntimePerformed: false
+    modelWeightsDownloaded: false
+    modelWeightsLoaded: false
+    mediaProcessingPerformed: false
+    supabaseMutationPerformed: false
+    gcsUploadPerformed: false
+    publicArtifactCreated: false
+    signedUrlCreated: false
+  }
+}
+
+const requiredQueueAdmissionEvidence = [
+  'approvedPlanSnapshotId',
+  'creditReservationId',
+  'privateArtifactManifestRef',
+  'artifactBoundaryApprovalRef',
+  'toolRouteApprovalRef',
+  'workerApprovalRef',
+  'workerQueueTransportRef',
+  'workerIdempotencyNamespace',
+  'internalBetaRuntimeOwnerApprovalRef',
+  'nodeRuntimeProofRef',
+  'browserRuntimeProofRef',
+  'satoriFontRuntimeProofRef',
+  'nativeGpuRuntimeProofRef',
+  'modelWeightManifestRef',
+]
+
+const allowedQueueAdmissionPreparationActions = [
+  'bind all 21 AI graphics production tool IDs to approved snapshot and credit reservation evidence',
+  'bind each candidate to a private artifact manifest reference',
+  'bind Tool Route and Worker approval references without executing either surface',
+  'bind worker queue transport and idempotency namespace metadata without enqueueing work',
+  'run on-demand runtime admission for each future queue candidate without starting runtime',
+  'return queue-admission readiness and live runtime blockers per tool',
+]
+
+const blockedRuntimeActions = [
+  'live worker queue enqueue',
+  'production worker dispatch',
+  'production worker route execution',
+  'worker execution',
+  'tool execution',
+  'Tool Route execution',
+  'provider/model execution',
+  'browser/WebGL/canvas runtime execution',
+  'GPU/model runtime execution',
+  'model weight download or load',
+  'media processing',
+  'Supabase/GCS mutation',
+  'signed URL creation',
+  'public artifact creation',
+  'internal beta runtime unlock',
+  'external beta unlock',
+  'production unlock',
+]
+
+const nextMilestones = [
+  'Attach queue-admission readiness to a real backend queue adapter only after an owner runtime approval explicitly allows live enqueue.',
+  'Keep GPU/model tools on native NVIDIA L4 worker lanes and reject CPU fallback for heavy runtime paths.',
+  'Require private artifact manifests and approved plan snapshots for every queue candidate before live enqueue.',
+  'Run external beta and production launch approvals separately after internal beta runtime evidence exists.',
+]
+
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+} as const
+
+const productFacingCapabilities = [
+  'chart_overlay',
+  'data_visualization',
+  'svg_graphics',
+  'diagram_graphics',
+  'animation_overlay',
+  'canvas_scene',
+  'webgl_3d_scene',
+  'background_removal',
+  'subject_segmentation',
+  'upscaling',
+  'tensor_image_ops',
+  'model_runtime_foundation',
+] satisfies AiGraphicsCapabilityId[]
+
+function asString(value: string | undefined): string {
+  return value?.trim() ?? ''
+}
+
+function normalizeEvidence(
+  input: AiGraphicsInternalBetaQueueAdmissionReadinessInput,
+): AiGraphicsInternalBetaQueueAdmissionEvidence {
+  return {
+    approvedPlanSnapshotId: asString(input.approvedPlanSnapshotId),
+    creditReservationId: asString(input.creditReservationId),
+    privateArtifactManifestRef: asString(input.privateArtifactManifestRef),
+    artifactBoundaryApprovalRef: asString(input.artifactBoundaryApprovalRef),
+    toolRouteApprovalRef: asString(input.toolRouteApprovalRef),
+    workerApprovalRef: asString(input.workerApprovalRef),
+    workerQueueTransportRef: asString(input.workerQueueTransportRef),
+    workerIdempotencyNamespace: asString(input.workerIdempotencyNamespace),
+    internalBetaRuntimeOwnerApprovalRef: asString(input.internalBetaRuntimeOwnerApprovalRef),
+    nodeRuntimeProofRef: asString(input.nodeRuntimeProofRef),
+    browserRuntimeProofRef: asString(input.browserRuntimeProofRef),
+    satoriFontRuntimeProofRef: asString(input.satoriFontRuntimeProofRef),
+    nativeGpuRuntimeProofRef: asString(input.nativeGpuRuntimeProofRef),
+    modelWeightManifestRef: asString(input.modelWeightManifestRef),
+  }
+}
+
+function privateArtifactManifestOnly(ref: string): boolean {
+  if (!ref) return false
+  if (/^https?:\/\//i.test(ref)) return false
+  if (/^signed:\/\//i.test(ref)) return false
+  if (/^public:\/\//i.test(ref)) return false
+  if (/^gs:\/\//i.test(ref)) return false
+  return /^private:\/\//i.test(ref) || /^reeditpro-private:\/\//i.test(ref)
+}
+
+function isUuidRef(ref: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ref)
+}
+
+function approvedPlanSnapshotRefAccepted(ref: string): boolean {
+  return isUuidRef(ref) || /^approved_snapshot_[a-z0-9_]+$/i.test(ref)
+}
+
+function creditReservationRefAccepted(ref: string): boolean {
+  return isUuidRef(ref) || /^credit_reservation_[a-z0-9_]+$/i.test(ref)
+}
+
+function missingPrerequisites(
+  evidence: AiGraphicsInternalBetaQueueAdmissionEvidence,
+): string[] {
+  const missing = requiredQueueAdmissionEvidence.filter((key) => (
+    !evidence[key as keyof AiGraphicsInternalBetaQueueAdmissionEvidence]
+  ))
+
+  if (evidence.approvedPlanSnapshotId && !approvedPlanSnapshotRefAccepted(evidence.approvedPlanSnapshotId)) {
+    missing.push('approvedPlanSnapshotId must be a UUID or explicit approved_snapshot_* fixture ref')
+  }
+
+  if (evidence.creditReservationId && !creditReservationRefAccepted(evidence.creditReservationId)) {
+    missing.push('creditReservationId must be a UUID or explicit credit_reservation_* fixture ref')
+  }
+
+  if (evidence.privateArtifactManifestRef && !privateArtifactManifestOnly(evidence.privateArtifactManifestRef)) {
+    missing.push('privateArtifactManifestRef must use a private-only scheme')
+  }
+
+  return missing
+}
+
+function statusFromEvidence(input: {
+  sourceAccepted: boolean
+  queueAdmissionPrerequisitesSatisfied: boolean
+}): AiGraphicsInternalBetaQueueAdmissionReadinessStatus {
+  if (!input.sourceAccepted) return 'missing_runtime_enqueue_scope_approval'
+  if (!input.queueAdmissionPrerequisitesSatisfied) return 'missing_queue_admission_prerequisites'
+  return 'internal_beta_queue_admission_ready_runtime_still_blocked'
+}
+
+function toPacket(
+  scope: AiGraphicsInternalBetaRuntimeEnqueueToolScope,
+  readyWithProvidedEvidence: boolean,
+  evidence: AiGraphicsInternalBetaQueueAdmissionEvidence,
+  runtimeEnqueueApprovalRef: string | null,
+): AiGraphicsInternalBetaQueueAdmissionPacket {
+  const capabilityId = scope.capabilityIds.find((capability) => (
+    capability !== 'planning_metadata_only' && capability !== 'blocked_or_deferred'
+  )) ?? scope.capabilityIds[0]
+  const runtimeAdmission = evaluateAiGraphicsOnDemandRuntimeAdmission({
+    capabilityId,
+    requestedToolId: scope.toolId,
+    executionRequested: true,
+    approvedPlanSnapshotId: evidence.approvedPlanSnapshotId,
+    creditReservationId: evidence.creditReservationId,
+    artifactBoundaryApprovalRef: evidence.artifactBoundaryApprovalRef,
+    toolRouteApprovalRef: evidence.toolRouteApprovalRef,
+    workerApprovalRef: evidence.workerApprovalRef,
+    runtimeEnqueueApprovalRef: runtimeEnqueueApprovalRef ?? undefined,
+    ownerRuntimeApprovalRef: evidence.internalBetaRuntimeOwnerApprovalRef,
+    privateArtifactManifestRef: evidence.privateArtifactManifestRef,
+    nodeRuntimeProofRef: evidence.nodeRuntimeProofRef,
+    browserRuntimeProofRef: evidence.browserRuntimeProofRef,
+    satoriFontRuntimeProofRef: evidence.satoriFontRuntimeProofRef,
+    nativeGpuRuntimeProofRef: evidence.nativeGpuRuntimeProofRef,
+    modelWeightManifestRef: evidence.modelWeightManifestRef,
+  })
+  const runtimeAdmissionReadyWithProvidedEvidence =
+    runtimeAdmission.runtimeJobAdmissionReadyWithProvidedEvidence
+  return {
+    toolId: scope.toolId,
+    productionToolId: scope.productionToolId,
+    workerType: scope.workerType,
+    runtimeTarget: scope.runtimeTarget,
+    capabilityIds: [...scope.capabilityIds],
+    gpuRequiredForRuntime: scope.gpuRequiredForRuntime,
+    sourceRuntimeEnqueueScopeApprovedWithProvidedEvidence:
+      scope.enqueueScopeApprovedWithProvidedEvidence,
+    runtimeAdmissionDecision: runtimeAdmission.decision,
+    runtimeAdmissionReadyWithProvidedEvidence,
+    gpuRuntimeStartupAuthorization: runtimeAdmission.gpuRuntimeStartupAuthorization,
+    gpuRuntimeStartAllowedForAcceptedJob:
+      runtimeAdmission.gpuRuntimeStartAllowedForAcceptedJob,
+    gpuRuntimeShouldStartNow: false,
+    missingRuntimeJobGates: [...runtimeAdmission.missingRuntimeJobGates],
+    missingRuntimeProofGates: [...runtimeAdmission.missingRuntimeProofGates],
+    queueAdmissionReadyWithProvidedEvidence:
+      readyWithProvidedEvidence &&
+      scope.enqueueScopeApprovedWithProvidedEvidence &&
+      runtimeAdmissionReadyWithProvidedEvidence,
+    liveWorkerQueueApprovedNow: false,
+    liveWorkerExecutionApprovedNow: false,
+    toolExecutionApprovedNow: false,
+    blockedRuntimeActions,
+    nextRuntimeProofMilestone: scope.nextRuntimeProofMilestone,
+  }
+}
+
+function gpuRuntimeTargetsExact(
+  packets: AiGraphicsInternalBetaQueueAdmissionPacket[],
+): boolean {
+  return Object.entries(expectedGpuRuntimeTargets).every(([toolId, runtimeTarget]) => (
+    packets.some((packet) => (
+      packet.toolId === toolId &&
+      packet.workerType === 'gpu_ai_worker' &&
+      packet.runtimeTarget === runtimeTarget
+    ))
+  ))
+}
+
+export function buildAiGraphicsInternalBetaQueueAdmissionReadiness(
+  input: AiGraphicsInternalBetaQueueAdmissionReadinessInput = {},
+): AiGraphicsInternalBetaQueueAdmissionReadiness {
+  const sourceRuntimeEnqueueApproval =
+    input.sourceRuntimeEnqueueApprovalPacket ??
+    buildAiGraphicsInternalBetaRuntimeEnqueueApproval(input)
+  const sourceRuntimeEnqueueScopeAccepted =
+    sourceRuntimeEnqueueApproval.status ===
+      'internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked' &&
+    sourceRuntimeEnqueueApproval.booleans.all21RuntimeEnqueueScopesApprovedWithProvidedEvidence
+  const queueAdmissionEvidence = normalizeEvidence(input)
+  const missingQueueAdmissionPrerequisites = missingPrerequisites(queueAdmissionEvidence)
+  const queueAdmissionPrerequisitesSatisfied =
+    missingQueueAdmissionPrerequisites.length === 0
+  const status = statusFromEvidence({
+    sourceAccepted: sourceRuntimeEnqueueScopeAccepted,
+    queueAdmissionPrerequisitesSatisfied,
+  })
+  const readyWithProvidedEvidence =
+    status === 'internal_beta_queue_admission_ready_runtime_still_blocked'
+  const queueAdmissionPackets =
+    sourceRuntimeEnqueueApproval.toolScopes.map((scope) => toPacket(
+      scope,
+      readyWithProvidedEvidence,
+      queueAdmissionEvidence,
+      sourceRuntimeEnqueueApproval.runtimeEnqueueApprovalRecord.approvalRef,
+    ))
+  const queueAdmissionPacketsReadyWithProvidedEvidence =
+    queueAdmissionPackets.filter((packet) => packet.queueAdmissionReadyWithProvidedEvidence).length
+  const queueAdmissionCapabilitiesReadyWithProvidedEvidence =
+    productFacingCapabilities.filter((capabilityId) => (
+      queueAdmissionPackets.some((packet) => (
+        packet.queueAdmissionReadyWithProvidedEvidence &&
+        packet.capabilityIds.includes(capabilityId)
+      ))
+    )).length
+  const runtimeAdmissionPacketsReadyWithProvidedEvidence =
+    queueAdmissionPackets.filter((packet) => packet.runtimeAdmissionReadyWithProvidedEvidence).length
+  const gpuRuntimeStartAllowedForAcceptedJobTools =
+    queueAdmissionPackets.filter((packet) => packet.gpuRuntimeStartAllowedForAcceptedJob).length
+  const gpuRuntimeTargetedTools =
+    queueAdmissionPackets.filter((packet) => packet.gpuRequiredForRuntime).length
+  const gpuRuntimeTargetsExactForPackets = gpuRuntimeTargetsExact(queueAdmissionPackets)
+
+  return {
+    decision: AI_GRAPHICS_INTERNAL_BETA_QUEUE_ADMISSION_READINESS_DECISION,
+    sourceRuntimeEnqueueApprovalDecision:
+      AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_DECISION,
+    status,
+    totalAiGraphicsTools: 21,
+    totalProductFacingCapabilities: 12,
+    queueAdmissionPacketsPrepared: queueAdmissionPackets.length as 21,
+    queueAdmissionPacketsReadyWithProvidedEvidence,
+    queueAdmissionCapabilitiesReadyWithProvidedEvidence,
+    runtimeAdmissionPacketsReadyWithProvidedEvidence,
+    gpuRuntimeStartAllowedForAcceptedJobTools,
+    liveWorkerQueueApprovedNowTools: 0,
+    liveWorkerExecutionApprovedNowTools: 0,
+    sourceRuntimeEnqueueApproval,
+    sourceRuntimeEnqueueScopeAccepted,
+    queueAdmissionPrerequisitesSatisfied,
+    queueAdmissionEvidence,
+    missingQueueAdmissionPrerequisites,
+    requiredQueueAdmissionEvidence,
+    allowedQueueAdmissionPreparationActions,
+    blockedRuntimeActions,
+    queueAdmissionPackets,
+    nextMilestones,
+    booleans: {
+      internalBetaQueueAdmissionReadinessPrepared: true,
+      sourceRuntimeEnqueueScopeAccepted,
+      queueAdmissionPrerequisitesSatisfied,
+      all21ToolsCovered: true,
+      all12CapabilitiesCovered: true,
+      all21QueueAdmissionPacketsPrepared: true,
+      all21QueueAdmissionPacketsReadyWithProvidedEvidence:
+        queueAdmissionPacketsReadyWithProvidedEvidence === 21,
+      all21RuntimeAdmissionPacketsReadyWithProvidedEvidence:
+        runtimeAdmissionPacketsReadyWithProvidedEvidence === 21,
+      all12CapabilitiesReadyWithProvidedEvidence:
+        queueAdmissionCapabilitiesReadyWithProvidedEvidence === 12,
+      approvedPlanSnapshotRefAccepted:
+        approvedPlanSnapshotRefAccepted(queueAdmissionEvidence.approvedPlanSnapshotId),
+      creditReservationRefAccepted:
+        creditReservationRefAccepted(queueAdmissionEvidence.creditReservationId),
+      privateArtifactManifestOnly:
+        privateArtifactManifestOnly(queueAdmissionEvidence.privateArtifactManifestRef),
+      gpuHeavyToolsTargetGpuRuntime:
+        gpuRuntimeTargetedTools === 8 &&
+        sourceRuntimeEnqueueApproval.heavyToolsIncorrectlyTargetingCpu === 0,
+      gpuRuntimeTargetsExact: gpuRuntimeTargetsExactForPackets,
+      gpuRuntimeOnDemandOnly: true,
+      onDemandRuntimeAdmissionApplied:
+        queueAdmissionPackets.every((packet) => (
+          packet.runtimeAdmissionDecision === 'runtime_job_admission_ready_for_worker_enqueue' ||
+          packet.runtimeAdmissionDecision === 'runtime_job_blocked'
+        )),
+      gpuRuntimeStartAllowedOnlyForAcceptedJobs:
+        gpuRuntimeStartAllowedForAcceptedJobTools === gpuRuntimeTargetedTools &&
+        queueAdmissionPackets.every((packet) => (
+          packet.gpuRuntimeStartAllowedForAcceptedJob === packet.gpuRequiredForRuntime
+        )),
+      gpuRuntimeShouldStartNow: false,
+      agentCanSelectForPlanning: true,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      workerQueueApprovedNow: false,
+      productionWorkerJobEnqueueApprovedNow: false,
+      productionWorkerDispatchApprovedNow: false,
+      productionWorkerRouteExecutionApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      toolExecutionPerformed: false,
+      workerExecutionPerformed: false,
+      routeExecutionPerformed: false,
+      productionWorkerDispatchPerformed: false,
+      productionWorkerRouteExecutionPerformed: false,
+      providerRuntimePerformed: false,
+      browserWebglCanvasRuntimePerformed: false,
+      gpuRuntimePerformed: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      mediaProcessingPerformed: false,
+      supabaseMutationPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  }
+}

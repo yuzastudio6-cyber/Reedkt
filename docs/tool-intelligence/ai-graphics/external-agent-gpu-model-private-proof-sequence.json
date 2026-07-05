@@ -1,0 +1,321 @@
+{
+  "schemaVersion": "2026-07-03.ai-graphics.external-agent-gpu-model-private-proof-sequence",
+  "decision": "ai_graphics_external_agent_gpu_model_private_proof_sequence_prepared_with_runtime_blocks",
+  "status": "gpu_model_private_proof_sequence_ready_kornia_first_blocked_until_scoped_private_runtime_proof",
+  "summary": "Runs the scoped GPU/model private proof sequence for one tool: local-dev controlled adapter harness, SHA-checked proof-ref bridge, then all-21 external-agent readiness recomputation. The default committed record targets Kornia without runtime execution and stays blocked. Actual runtime execution requires --attempt-local-runtime plus private inputs and remains local-only; Kornia may use explicit CPU tensor runtime when local torch/PIL/numpy/kornia prerequisites exist.",
+  "requestedToolId": "kornia",
+  "fastestUnlockCandidate": "kornia",
+  "sourceEvidence": {
+    "gpuModelLocalDevRuntimeExecutionHarness": {
+      "decision": "ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_prepared_with_runtime_blocks",
+      "status": "local_dev_runtime_inputs_required_before_eight_gpu_model_tools_execute",
+      "accepted": true
+    },
+    "gpuModelRuntimeProofRefBridge": {
+      "decision": "ai_graphics_external_agent_gpu_model_runtime_proof_ref_bridge_prepared_with_runtime_blocks",
+      "status": "gpu_model_runtime_proof_ref_bridge_blocked_until_private_local_runtime_proof_is_supplied",
+      "accepted": true
+    },
+    "externalAgentExecutionReadiness": {
+      "decision": "ai_graphics_external_agent_execution_readiness_all21_evaluated_with_gpu_model_blocks",
+      "status": "external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof",
+      "accepted": true
+    },
+    "currentHostGpuProofPreflight": null
+  },
+  "interfaces": {
+    "packageScript": "ai-graphics:external-agent-gpu-model-private-proof-sequence",
+    "diagnosticScript": "ai-graphics:external-agent-gpu-model-private-proof-sequence:diagnostics",
+    "cli": "server/cli/ai-graphics-external-agent-gpu-model-private-proof-sequence.ts",
+    "diagnostic": "scripts/validation/ai-graphics-external-agent-gpu-model-private-proof-sequence-diagnostics.mjs",
+    "defaultCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence",
+    "writeRecordsCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --write-records",
+    "korniaFirstPrivateProofSequenceCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia> --source-image <private-approved-frame.png> --detect-host --require-host-eligible --require-accepted-proof",
+    "korniaFirstPrivateProofSequenceManifestCommand": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+    "privateContainerProofSequenceCommandsByTool": {
+      "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-torch_torchvision> --detect-host --require-host-eligible --require-accepted-proof",
+      "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transformers> --detect-host --require-host-eligible --require-accepted-proof",
+      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --detect-host --require-host-eligible --require-accepted-proof",
+      "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --detect-host --require-host-eligible --require-accepted-proof",
+      "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime --no-runtime-container-gpu --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan> --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --detect-host --require-host-eligible --require-accepted-proof",
+      "kornia": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia> --source-image <private-approved-frame.png> --detect-host --require-host-eligible --require-accepted-proof",
+      "rembg": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime --no-runtime-container-gpu --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg> --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --detect-host --require-host-eligible --require-accepted-proof",
+      "transparent_background": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime --no-runtime-container-gpu --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background> --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --detect-host --require-host-eligible --require-accepted-proof"
+    },
+    "privateHostProofSequenceCommandsByTool": {
+      "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-foundation-runtime --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-torch_torchvision> --detect-host --require-host-eligible --require-accepted-proof",
+      "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-foundation-runtime --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transformers> --detect-host --require-host-eligible --require-accepted-proof",
+      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2> --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --detect-host --require-host-eligible --require-accepted-proof",
+      "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet> --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --detect-host --require-host-eligible --require-accepted-proof",
+      "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-model-runtime --no-runtime-container-gpu --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan> --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --detect-host --require-host-eligible --require-accepted-proof",
+      "kornia": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-tensor-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia> --source-image <private-approved-frame.png> --detect-host --require-host-eligible --require-accepted-proof",
+      "rembg": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-model-runtime --no-runtime-container-gpu --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg> --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --detect-host --require-host-eligible --require-accepted-proof",
+      "transparent_background": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-model-runtime --no-runtime-container-gpu --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background> --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --detect-host --require-host-eligible --require-accepted-proof"
+    },
+    "privateContainerProofSequenceManifestCommandsByTool": {
+      "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool torch_torchvision --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-torch_torchvision>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transformers --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transformers>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --runtime-container-platform linux/amd64 --tool sam2 --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --runtime-container-platform linux/amd64 --tool birefnet --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime --no-runtime-container-gpu --tool real_esrgan --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "kornia": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "rembg": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime --no-runtime-container-gpu --tool rembg --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "transparent_background": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime --no-runtime-container-gpu --tool transparent_background --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof"
+    },
+    "privateHostProofSequenceManifestCommandsByTool": {
+      "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-foundation-runtime --tool torch_torchvision --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-torch_torchvision>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-foundation-runtime --tool transformers --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transformers>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --tool sam2 --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --tool birefnet --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-model-runtime --no-runtime-container-gpu --tool real_esrgan --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "kornia": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-tensor-runtime --tool kornia --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "rembg": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-model-runtime --no-runtime-container-gpu --tool rembg --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof",
+      "transparent_background": "npm run --silent ai-graphics:external-agent-gpu-model-private-proof-sequence -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-model-runtime --no-runtime-container-gpu --tool transparent_background --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background>/runtime-inputs.json --detect-host --require-host-eligible --require-accepted-proof"
+    },
+    "directHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --tool kornia --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64",
+    "defaultKorniaHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png>",
+    "defaultKorniaCpuTensorHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-tensor-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-kornia-cpu-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-kornia-cpu-run>/harness-result.json --source-image <private-approved-frame.png>",
+    "defaultTorchTorchvisionCpuFoundationHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-foundation-runtime --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-torch_torchvision-cpu-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-torch_torchvision-cpu-run>/harness-result.json",
+    "defaultTransformersCpuFoundationHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend host_python --allow-cpu-foundation-runtime --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-transformers-cpu-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-transformers-cpu-run>/harness-result.json",
+    "defaultRealEsrganCpuModelHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --no-runtime-container-gpu --allow-cpu-model-runtime --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-real_esrgan-cpu-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-real_esrgan-cpu-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+    "defaultRembgCpuModelHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --no-runtime-container-gpu --allow-cpu-model-runtime --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-rembg-cpu-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-rembg-cpu-run>/harness-result.json --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+    "defaultTransparentBackgroundCpuModelHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --no-runtime-container-gpu --allow-cpu-model-runtime --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-transparent_background-cpu-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-transparent_background-cpu-run>/harness-result.json --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+    "bridgeCommand": null,
+    "readinessCommand": null,
+    "finalExternalAgentSingleToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool kornia --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call/kornia --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png>",
+    "finalExternalAgentSingleToolCallOutputDirectory": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call/kornia",
+    "finalExternalAgentSingleToolCallResultPath": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call-result.json",
+    "finalExternalAgentSingleToolCallContainerCommandsByTool": {
+      "torch_torchvision": "npm run --silent ai-graphics:external-agent-tool-call -- --tool torch_torchvision --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-torch_torchvision>/external-agent-single-tool-call/torch_torchvision --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-torch_torchvision>/external-agent-single-tool-call-result.json",
+      "transformers": "npm run --silent ai-graphics:external-agent-tool-call -- --tool transformers --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transformers>/external-agent-single-tool-call/transformers --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transformers>/external-agent-single-tool-call-result.json",
+      "sam2": "npm run --silent ai-graphics:external-agent-tool-call -- --tool sam2 --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --runtime-container-platform linux/amd64 --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/external-agent-single-tool-call/sam2 --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\"",
+      "birefnet": "npm run --silent ai-graphics:external-agent-tool-call -- --tool birefnet --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --runtime-container-platform linux/amd64 --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/external-agent-single-tool-call/birefnet --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\"",
+      "real_esrgan": "npm run --silent ai-graphics:external-agent-tool-call -- --tool real_esrgan --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime --no-runtime-container-gpu --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan>/external-agent-single-tool-call/real_esrgan --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\"",
+      "kornia": "npm run --silent ai-graphics:external-agent-tool-call -- --tool kornia --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call/kornia --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png>",
+      "rembg": "npm run --silent ai-graphics:external-agent-tool-call -- --tool rembg --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime --no-runtime-container-gpu --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg>/external-agent-single-tool-call/rembg --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\"",
+      "transparent_background": "npm run --silent ai-graphics:external-agent-tool-call -- --tool transparent_background --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime --no-runtime-container-gpu --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background>/external-agent-single-tool-call/transparent_background --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\""
+    },
+    "finalExternalAgentSingleToolCallHostCommandsByTool": {
+      "torch_torchvision": "npm run --silent ai-graphics:external-agent-tool-call -- --tool torch_torchvision --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --allow-cpu-foundation-runtime --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-torch_torchvision>/external-agent-single-tool-call/torch_torchvision --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-torch_torchvision>/external-agent-single-tool-call-result.json",
+      "transformers": "npm run --silent ai-graphics:external-agent-tool-call -- --tool transformers --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --allow-cpu-foundation-runtime --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transformers>/external-agent-single-tool-call/transformers --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transformers>/external-agent-single-tool-call-result.json",
+      "sam2": "npm run --silent ai-graphics:external-agent-tool-call -- --tool sam2 --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/external-agent-single-tool-call/sam2 --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-sam2>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\"",
+      "birefnet": "npm run --silent ai-graphics:external-agent-tool-call -- --tool birefnet --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/external-agent-single-tool-call/birefnet --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-birefnet>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\"",
+      "real_esrgan": "npm run --silent ai-graphics:external-agent-tool-call -- --tool real_esrgan --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --allow-cpu-model-runtime --no-runtime-container-gpu --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan>/external-agent-single-tool-call/real_esrgan --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-real_esrgan>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\"",
+      "kornia": "npm run --silent ai-graphics:external-agent-tool-call -- --tool kornia --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --allow-cpu-tensor-runtime --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call/kornia --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-kornia>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png>",
+      "rembg": "npm run --silent ai-graphics:external-agent-tool-call -- --tool rembg --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --allow-cpu-model-runtime --no-runtime-container-gpu --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg>/external-agent-single-tool-call/rembg --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-rembg>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\"",
+      "transparent_background": "npm run --silent ai-graphics:external-agent-tool-call -- --tool transparent_background --attempt-gpu-runtime --expect-state executable --require-output-hash --require-private-only-boundary --strict-exit-code --runtime-backend host_python --allow-cpu-model-runtime --no-runtime-container-gpu --gpu-output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background>/external-agent-single-tool-call/transparent_background --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run-transparent_background>/external-agent-single-tool-call-result.json --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\""
+    },
+    "hostPreflightCommand": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host",
+    "canonicalGpuWorkerProofImage": "reeditpro/ai-graphics-gpu-worker:proof-local",
+    "canonicalGpuWorkerProofImageBuildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
+    "gpuModelRuntimeContainerTargets": {
+      "torch_torchvision": {
+        "image": "reeditpro/ai-graphics-gpu-worker:proof-local",
+        "dockerfile": "docker/prod/gpu-worker/Dockerfile",
+        "target": "ai_graphics_install_proof"
+      },
+      "transformers": {
+        "image": "reeditpro/ai-graphics-gpu-worker:proof-local",
+        "dockerfile": "docker/prod/gpu-worker/Dockerfile",
+        "target": "ai_graphics_install_proof"
+      },
+      "sam2": {
+        "image": "reeditpro/ai-graphics-sam2-runtime:proof-local",
+        "dockerfile": "docker/prod/sam2-runtime/Dockerfile",
+        "target": "ai_graphics_install_proof"
+      },
+      "birefnet": {
+        "image": "reeditpro/ai-graphics-birefnet-runtime:proof-local",
+        "dockerfile": "docker/prod/birefnet-runtime/Dockerfile",
+        "target": "ai_graphics_install_proof"
+      },
+      "real_esrgan": {
+        "image": "reeditpro/ai-graphics-real-esrgan-runtime:proof-local",
+        "dockerfile": "docker/prod/real-esrgan-runtime/Dockerfile",
+        "target": "ai_graphics_install_proof"
+      },
+      "kornia": {
+        "image": "reeditpro/ai-graphics-gpu-worker:proof-local",
+        "dockerfile": "docker/prod/gpu-worker/Dockerfile",
+        "target": "ai_graphics_install_proof"
+      },
+      "rembg": {
+        "image": "reeditpro/ai-graphics-gpu-worker:proof-local",
+        "dockerfile": "docker/prod/gpu-worker/Dockerfile",
+        "target": "ai_graphics_install_proof"
+      },
+      "transparent_background": {
+        "image": "reeditpro/ai-graphics-gpu-worker:proof-local",
+        "dockerfile": "docker/prod/gpu-worker/Dockerfile",
+        "target": "ai_graphics_install_proof"
+      }
+    },
+    "gpuModelRuntimeContainerBuildCommandsByTool": {
+      "torch_torchvision": "docker buildx build --load --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
+      "transformers": "docker buildx build --load --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
+      "sam2": "docker buildx build --load --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/sam2-runtime/Dockerfile -t reeditpro/ai-graphics-sam2-runtime:proof-local .",
+      "birefnet": "docker buildx build --load --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/birefnet-runtime/Dockerfile -t reeditpro/ai-graphics-birefnet-runtime:proof-local .",
+      "real_esrgan": "docker buildx build --load --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/real-esrgan-runtime/Dockerfile -t reeditpro/ai-graphics-real-esrgan-runtime:proof-local .",
+      "kornia": "docker buildx build --load --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
+      "rembg": "docker buildx build --load --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
+      "transparent_background": "docker buildx build --load --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local ."
+    }
+  },
+  "sequencePolicy": {
+    "scopedToolOnly": true,
+    "oneToolPerPrivateProofSequence": true,
+    "defaultTool": "kornia",
+    "allGpuModelToolsHaveExactPrivateProofSequenceCommand": true,
+    "allGpuModelToolsHaveExactContainerPrivateProofSequenceCommand": true,
+    "allGpuModelToolsHaveExactHostPrivateProofSequenceCommand": true,
+    "defaultToolReason": "Kornia requires one private approved frame and no private model/checkpoint file; it can use explicit CPU tensor runtime when torch/PIL/numpy/kornia are locally present, otherwise CUDA proof remains available.",
+    "explicitRuntimeAttemptRequired": true,
+    "privateInputsRequired": true,
+    "privateRuntimeInputManifestSupported": true,
+    "privateRuntimeInputManifestUsedNow": false,
+    "privateRuntimeInputManifestMaterializedNow": false,
+    "privateRuntimeInputManifestMaterializerStatus": null,
+    "korniaCpuTensorRuntimeRequested": false,
+    "foundationCpuRuntimeRequested": false,
+    "cpuModelRuntimeRequested": false,
+    "privateRuntimeInputManifestMustStayUnderLocalArtifacts": true,
+    "privateRuntimeInputManifestRejectedForWriteRecords": true,
+    "privateProofResultMustStayUnderLocalArtifacts": true,
+    "proofBridgeRequiresOutputJsonSha256Match": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuMayStartOnlyDuringScopedLocalRuntimeAttempt": false,
+    "noCpuFallbackForCudaOnlyGpuModelTools": true,
+    "cpuModelRuntimeAllowedForReviewedRealEsrganRembgAndTransparentBackgroundWhenExplicitlyRequested": true,
+    "cpuModelRuntimeDoesNotStartGpu": true,
+    "korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested": true,
+    "korniaCpuTensorRuntimeDoesNotStartGpu": true,
+    "foundationCpuRuntimeAllowedWhenExplicitlyRequested": true,
+    "foundationCpuRuntimeDoesNotStartGpu": true,
+    "noModelDownload": true,
+    "noProviderRuntime": true,
+    "noPublicArtifacts": true,
+    "noSignedUrls": true,
+    "noExternalBetaUnlock": true,
+    "noProductionUnlock": true,
+    "hostEligibilityGateSupported": true,
+    "hostEligibilityGateUsesRequestedProofMode": true,
+    "nativeGpuHostEligibilityRequired": true,
+    "cpuHostEligibilityCanSatisfyRequestedProof": false,
+    "requireHostEligibleFlagSupported": true,
+    "requireAcceptedProofFlagSupported": true,
+    "perToolPrivateProofSequenceCommandsPrepared": true,
+    "perToolContainerPrivateProofSequenceCommandsPrepared": true,
+    "perToolHostPrivateProofSequenceCommandsPrepared": true,
+    "finalExternalAgentSingleToolCallProofRunsAfterAcceptedPrivateProof": true,
+    "finalExternalAgentSingleToolCallRequiresExecutableState": true,
+    "allGpuModelToolsHaveExactFinalExternalAgentSingleToolCallCommand": true,
+    "allGpuModelToolsHaveExactContainerFinalExternalAgentSingleToolCallCommand": true,
+    "allGpuModelToolsHaveExactHostFinalExternalAgentSingleToolCallCommand": true
+  },
+  "counts": {
+    "requestedGpuModelTools": 1,
+    "localRuntimeExecutionPerformedTools": 0,
+    "toolExecutionApprovedNowTools": 0,
+    "acceptedPrivateProofTools": 0,
+    "routeSubmissionReadyWithAcceptedPrivateProofTools": 0,
+    "readinessAgentExecutableTools": 13,
+    "readinessGpuToolsWithValidRuntimeProof": 0,
+    "readinessBlockedWithReasonTools": 8,
+    "gpuRuntimeShouldStartNowTools": 0,
+    "publicArtifactCreatedTools": 0,
+    "signedUrlCreatedTools": 0,
+    "currentHostGpuProofBlockers": 0,
+    "currentRequestedProofHostBlockers": 0,
+    "finalExternalAgentSingleToolCallsExecuted": 0
+  },
+  "currentHostGpuProofPreflight": {
+    "requested": false,
+    "hostEligibleForNativeGpuProof": false,
+    "blockers": [],
+    "hostEnvironment": null
+  },
+  "currentHostProofPreflight": {
+    "requested": false,
+    "requestedProofMode": "native_gpu",
+    "nativeGpuHostEligibilityRequired": true,
+    "hostEligibleForNativeGpuProof": false,
+    "hostEligibleForRequestedProof": false,
+    "nativeGpuBlockers": [],
+    "requestedProofBlockers": [],
+    "hostEnvironment": null
+  },
+  "requestedToolResult": {
+    "harness": {
+      "adapterStatus": "controlled_gpu_model_adapter_invoked_runtime_skipped",
+      "executionState": "blocked_with_reason",
+      "localRuntimeExecutionPerformed": false,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeShouldStartNow": false,
+      "skipReasonCode": "kornia_source_frame_missing",
+      "errorMessage": null,
+      "outputJsonPath": null,
+      "outputJsonSha256": null
+    },
+    "bridge": {
+      "proofRefBridgeStatus": "blocked_missing_private_local_runtime_proof_result",
+      "routeSubmissionReadyWithAcceptedPrivateProof": false,
+      "localRuntimeProofAccepted": false,
+      "privateOutputJsonSha256Matches": false,
+      "privateOutputJsonRejectionReason": "private_output_json_outside_local_artifacts_gpu_model_runtime_namespace"
+    },
+    "readiness": {
+      "readinessState": "blocked_with_reason",
+      "executable": false,
+      "routeSubmissionReadyWithAcceptedPrivateProof": false,
+      "blockingPrerequisite": "approved local Python CPU tensor runtime; outputDirectory; pythonCpuTensorRuntime; sourceImageLocalPath; reviewed private proof refs; adapter skip reason: kornia_source_frame_missing"
+    },
+    "finalExternalAgentSingleToolCall": {
+      "status": "not_run_until_private_proof_is_accepted",
+      "executionState": null,
+      "executable": false,
+      "outputSource": null,
+      "outputSha256": null,
+      "outputJsonPath": null,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false
+    }
+  },
+  "booleans": {
+    "externalAgentGpuModelPrivateProofSequencePrepared": true,
+    "korniaFirstUnlockPathPrepared": true,
+    "scopedToolOnly": true,
+    "localRuntimeAttemptRequested": false,
+    "privateRuntimeInputManifestSupported": true,
+    "privateRuntimeInputManifestUsedNow": false,
+    "privateRuntimeInputManifestMaterializedNow": false,
+    "localRuntimeExecutedForRequestedTool": false,
+    "proofBridgeExecuted": true,
+    "readinessRecomputed": true,
+    "acceptedPrivateProofForRequestedTool": false,
+    "finalExternalAgentSingleToolCallAttempted": false,
+    "finalExternalAgentSingleToolCallExecutable": false,
+    "hostPreflightRequested": false,
+    "hostEligibleForNativeGpuProof": false,
+    "hostEligibleForRequestedProof": false,
+    "nativeGpuHostEligibilityRequired": true,
+    "requireHostEligible": false,
+    "requireAcceptedProof": false,
+    "agentCanExecute13NonGpuControlledToolsNow": true,
+    "agentCanExecuteGpuModelToolsNow": false,
+    "agentCanExecuteAll21ToolsNow": false,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuRuntimeShouldStartNow": false,
+    "gpuRuntimeStartedOnlyDuringScopedAttempt": true,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "providerRuntimePerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "runtimeReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false
+  },
+  "nextExactAction": "Run the Kornia-first private proof sequence with either explicit CPU tensor runtime on a host with torch/PIL/numpy/kornia or CUDA runtime on an approved native Linux/amd64 NVIDIA CUDA host."
+}

@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "2026-07-02.ai-graphics.external-beta-browser-runtime-controlled-tool-call-route-smoke",
+  "decision": "ai_graphics_external_beta_browser_runtime_controlled_tool_call_route_smoke_passed",
+  "status": "controlled_browser_runtime_route_smoke_passed_for_seven_tools",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "sourceProof": {
+    "path": "docs/tool-intelligence/ai-graphics/browser-runtime-proof.json",
+    "decision": "ai_graphics_browser_runtime_proof_completed_with_warnings",
+    "all7BrowserRuntimeToolsProofPassed": true
+  },
+  "route": {
+    "path": "/api/ai-graphics/external-beta/browser-runtime/controlled-tool-call",
+    "flag": "AI_GRAPHICS_EXTERNAL_BETA_BROWSER_RUNTIME_CONTROLLED_TOOL_CALL_ROUTE_ENABLED",
+    "disabledStatus": 404,
+    "enabledStatus": 200,
+    "mountedOnlyWhenFlagEnabled": true
+  },
+  "controlledBrowserRuntimeTools": [
+    "echarts",
+    "lottie_web",
+    "animejs",
+    "three_js",
+    "pixi_js",
+    "konva",
+    "babylonjs"
+  ],
+  "controlledCpuStaticToolsAlreadyCallable": [
+    "d3",
+    "vega_lite",
+    "vega",
+    "satori",
+    "svgdotjs_svg_js",
+    "viz_js"
+  ],
+  "remainingBlockedTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background"
+  ],
+  "counts": {
+    "all21ToolsInLane": 21,
+    "controlledBrowserRuntimeRouteCallableNowTools": 7,
+    "controlledCpuStaticRouteCallableNowTools": 6,
+    "scopedControlledToolsCallableNow": 13,
+    "remainingToolsStillBlockedForRuntime": 8,
+    "gpuRuntimeShouldStartNowTools": 0,
+    "publicArtifactCreatedTools": 0,
+    "signedUrlCreatedTools": 0
+  },
+  "toolStatuses": {
+    "echarts": "browser_svg_chart_runtime_controlled_route_passed",
+    "lottie_web": "browser_svg_animation_runtime_controlled_route_passed",
+    "animejs": "browser_dom_animation_runtime_controlled_route_passed",
+    "three_js": "browser_webgl_runtime_controlled_route_passed",
+    "pixi_js": "browser_canvas_webgl_runtime_controlled_route_passed",
+    "konva": "browser_canvas_runtime_controlled_route_passed",
+    "babylonjs": "browser_webgl_runtime_controlled_route_passed"
+  },
+  "requiredRequestRefs": [
+    "approvedPlanSnapshotId",
+    "creditReservationId",
+    "privateArtifactManifestRef",
+    "toolRouteApprovalRef",
+    "workerApprovalRef",
+    "browserRuntimeProofRef",
+    "traceId"
+  ],
+  "outputPolicy": {
+    "privateMetadataOnly": true,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "generatedMediaCommitted": false,
+    "screenshotsCommitted": false,
+    "renderExportPerformed": false
+  },
+  "booleans": {
+    "externalBetaBrowserRuntimeControlledToolCallRouteSmokePassed": true,
+    "externalAgentCanExecuteBrowserRuntimeControlledToolsNow": true,
+    "scopedBrowserRuntimePerformedNow": true,
+    "externalAgentCanExecuteCpuStaticControlledToolsNow": true,
+    "scopedControlledToolsCallableNow": 13,
+    "agentCanExecuteAll21ToolsNow": false,
+    "routeExecutionApprovedForBroadAll21RouteNow": false,
+    "workerExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "gpuRuntimeShouldStartNow": false,
+    "modelWeightsDownloaded": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false
+  }
+}

@@ -1,0 +1,776 @@
+{
+  "schemaVersion": "2026-07-03.ai-graphics.external-agent-gpu-model-local-dev-runtime-execution-harness",
+  "decision": "ai_graphics_external_agent_gpu_model_local_dev_runtime_execution_harness_prepared_with_runtime_blocks",
+  "status": "local_dev_runtime_inputs_required_before_eight_gpu_model_tools_execute",
+  "summary": "Exercises the real GPU/model controlled adapter in explicit local_dev mode for the eight GPU/model AI graphics tools. The committed/default record is prerequisite-check only, so it proves the guarded runtime branches and exact missing local inputs without starting GPU runtime, loading model weights, processing media, creating public artifacts, or unlocking external beta/production. Private runtime proof can be scoped with --tool so GPU/model execution starts only for the actively requested tool call.",
+  "sourceEvidence": {
+    "controlledAdapter": {
+      "path": "server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts",
+      "decision": "ai_graphics_external_agent_gpu_model_controlled_adapter_executable_eight_on_demand_with_runtime_blocks"
+    },
+    "controlledWorkerDispatchProof": {
+      "path": "docs/tool-intelligence/ai-graphics/external-agent-gpu-model-controlled-worker-dispatch-proof.json",
+      "decision": "ai_graphics_external_agent_gpu_model_controlled_worker_dispatch_proof_passed_with_runtime_blocks"
+    },
+    "nativeGpuRuntimeProofCommandPlan": {
+      "path": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json"
+    },
+    "nativeGpuRuntimeProofLocalPreflight": {
+      "path": "docs/tool-intelligence/ai-graphics/gpu-runtime-proof-local-preflight.json"
+    }
+  },
+  "interfaces": {
+    "packageScript": "ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness",
+    "diagnosticScript": "ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness:diagnostics",
+    "cli": "server/cli/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness.ts",
+    "diagnostic": "scripts/validation/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness-diagnostics.mjs",
+    "defaultCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness",
+    "committedRecordCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --write-records",
+    "privateLocalRuntimeAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>",
+    "korniaPrivateCpuTensorRuntimeAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool kornia --runtime-backend host_python --allow-cpu-tensor-runtime --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-kornia-cpu-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-kornia-cpu-run>/harness-result.json --source-image <private-approved-frame.png>",
+    "privateRuntimeInputManifestAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool <toolId> --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
+    "privateContainerRuntimeAttemptCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image <tool-specific-proof-image> --runtime-container-platform linux/amd64 --tool <toolId> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json <per-tool-private-input-flags>",
+    "privateRuntimeAttemptCommandsByTool": {
+      "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
+      "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
+      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+      "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model-dir-containing-model.safetensors> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+      "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json> --allow-cpu-model-runtime",
+      "kornia": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --allow-cpu-tensor-runtime",
+      "rembg": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json> --allow-cpu-model-runtime",
+      "transparent_background": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json> --allow-cpu-model-runtime"
+    },
+    "privateContainerRuntimeAttemptCommandsByTool": {
+      "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
+      "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
+      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+      "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model-dir-containing-model.safetensors> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+      "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json> --allow-cpu-model-runtime --no-runtime-container-gpu",
+      "kornia": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --allow-cpu-tensor-runtime",
+      "rembg": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json> --allow-cpu-model-runtime --no-runtime-container-gpu",
+      "transparent_background": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transparent_background --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --transparent-background-checkpoint <private-transparent-background-checkpoint.pth> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json> --allow-cpu-model-runtime --no-runtime-container-gpu"
+    },
+    "privateScopedRuntimeAttemptExamples": {
+      "kornia": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --allow-cpu-tensor-runtime",
+      "korniaContainer": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --allow-cpu-tensor-runtime",
+      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>"
+    }
+  },
+  "localRuntimePolicy": {
+    "runMode": "explicit_local_dev_only",
+    "requiresApprovedPrivateInputs": true,
+    "requiresNativeCudaHost": true,
+    "onDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "noCpuFallbackForCudaOnlyGpuModelTools": true,
+    "cpuModelRuntimeAllowedForReviewedRealEsrganRembgAndTransparentBackgroundWhenExplicitlyRequested": true,
+    "cpuModelRuntimeDoesNotStartGpu": true,
+    "korniaCpuTensorRuntimeAllowedWhenExplicitlyRequested": true,
+    "korniaCpuTensorRuntimeRequiresPrivateSourceFrame": true,
+    "korniaCpuTensorRuntimeDoesNotStartGpu": true,
+    "foundationCpuRuntimeAllowedWhenExplicitlyRequested": true,
+    "foundationCpuRuntimeDoesNotStartGpu": true,
+    "noModelDownload": true,
+    "noProviderRuntime": true,
+    "noPublicArtifacts": true,
+    "noSignedUrls": true,
+    "committedRecordsMustRemainSkipSafe": true,
+    "hostPythonBackendSupported": true,
+    "dockerContainerBackendSupported": true,
+    "dockerContainerBackendRequiresRuntimeImage": true,
+    "dockerContainerBackendRequiresScopedGpuAttachment": true,
+    "dockerContainerBackendUsesScopedRuntimeContainerNames": true,
+    "dockerContainerBackendRemovesTimedOutRuntimeContainers": true,
+    "dockerContainerPythonModulePreflightBeforeRuntime": true,
+    "dockerContainerCudaPreflightBeforeRuntime": true,
+    "privateInputPreflightBeforeGpuAttachment": true,
+    "missingPrivateInputsBlockBeforeGpuStartup": true,
+    "privateOutputDirectoryPreflightBeforeGpuStartup": true,
+    "directControlledAdapterOutputDirectoryPreflightBeforeRuntime": true,
+    "privateRuntimeInputPathKindPreflightBeforeGpuStartup": true,
+    "sourceFrameInputsMustBeFiles": true,
+    "fileBackedModelInputsMustBeFiles": true,
+    "birefnetModelInputMustBeDirectoryWithModelSafetensors": true,
+    "dockerContainerBackendAutoMountsPrivateRuntimePaths": true,
+    "dockerContainerBackendMountsRepositoryReadOnly": true,
+    "dockerContainerBackendMountsRuntimeScriptsReadOnly": true,
+    "dockerContainerBackendMountsProofOutputParentReadWrite": true,
+    "dockerContainerBackendMountsSourceAndModelPathsReadOnly": true,
+    "dockerContainerBackendMountsOutputPathsReadWrite": true,
+    "runtimeProofOutputValidatedBeforeCompleted": true,
+    "runtimeProofOutputMustDeclareOkTrue": true,
+    "runtimeProofOutputMustMatchExpectedToolId": true,
+    "runtimeProofOutputMustProveCudaOrCudaExecutionProvider": true,
+    "runtimeProofOutputMustMatchRequiredCudaDeviceName": true,
+    "runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime": true,
+    "runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime": true,
+    "runtimeProofOutputCanSkipCudaOnlyForExplicitCpuModelRuntime": true,
+    "runtimeProofOutputMustProveNoModelDownload": true,
+    "runtimeProofOutputMustProveNoProviderRuntime": true,
+    "runtimeProofOutputMustProveNoPublicArtifact": true,
+    "runtimeProofOutputMustProveNoSignedUrl": true,
+    "privateLocalProofResultWriteSupported": true,
+    "privateLocalProofResultWritePath": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
+    "privateLocalProofResultWrittenNow": false,
+    "privateRuntimeInputManifestSupported": true,
+    "privateRuntimeInputManifestOutputDirectoryMustStayUnderLocalArtifacts": true,
+    "privateRuntimeInputManifestPath": null,
+    "privateRuntimeInputManifestUsedNow": false,
+    "privateInputPreflightOnlySupported": true,
+    "privateInputPreflightOnlyUsedNow": false,
+    "privateInputPreflightStopsBeforeDockerGpuRuntime": true,
+    "privateInputPreflightStopsBeforePythonRuntime": true
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "requestedGpuModelTools": 8,
+    "gpuModelToolsCovered": 8,
+    "localDevAdapterBranchInvokedTools": 8,
+    "localDevPrerequisiteCheckOnlyTools": 8,
+    "localRuntimeExecutionPerformedTools": 0,
+    "toolExecutionApprovedNowTools": 0,
+    "gpuRuntimeApprovedForScopedControlledToolCallTools": 0,
+    "gpuRuntimeShouldStartNowTools": 0,
+    "privateLocalRuntimeInputsAcceptedBeforeRuntimeTools": 0,
+    "publicArtifactCreatedTools": 0,
+    "signedUrlCreatedTools": 0,
+    "runtimeReadyNowTools": 0,
+    "externalBetaReadyNowTools": 0,
+    "productionReadyNowTools": 0
+  },
+  "gpuModelLocalDevRuntimeExecutionHarnessRows": [
+    {
+      "toolId": "torch_torchvision",
+      "capabilityId": "model_runtime_foundation",
+      "adapterDecision": "ai_graphics_external_agent_gpu_model_controlled_adapter_executable_eight_on_demand_with_runtime_blocks",
+      "adapterStatus": "controlled_gpu_model_adapter_invoked_runtime_skipped",
+      "executionState": "blocked_with_reason",
+      "controlledAdapterExecutableNow": false,
+      "controlledAdapterInvokedNow": true,
+      "harnessMode": "local_dev_prerequisite_check_only",
+      "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": null,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedForScopedControlledToolCall": false,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false,
+      "runtimeReadyNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "skipReasonCode": "gpu_model_python_package_missing",
+      "currentBlockingPrerequisiteKey": "pythonPackageRuntime",
+      "currentBlockingReasonCode": "gpu_model_python_package_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime"
+      ],
+      "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
+      "allowCpuModelRuntime": false,
+      "privateInputPreflightOnly": false,
+      "errorMessage": null,
+      "outputJsonPath": null,
+      "outputJsonSha256": null,
+      "localInputRequirements": [
+        {
+          "key": "outputDirectory",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local worker output directory; must not be public artifact storage."
+        },
+        {
+          "key": "nativeCudaRuntime",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Approved local/native CUDA runtime; CPU fallback is intentionally not accepted."
+        }
+      ],
+      "warnings": [
+        "GPU/model runtime did not start because Python package prerequisites are missing.",
+        "GPU/model runtime is approved only for the scoped accepted tool call; idle GPU startup remains blocked."
+      ]
+    },
+    {
+      "toolId": "transformers",
+      "capabilityId": "model_runtime_foundation",
+      "adapterDecision": "ai_graphics_external_agent_gpu_model_controlled_adapter_executable_eight_on_demand_with_runtime_blocks",
+      "adapterStatus": "controlled_gpu_model_adapter_invoked_runtime_skipped",
+      "executionState": "blocked_with_reason",
+      "controlledAdapterExecutableNow": false,
+      "controlledAdapterInvokedNow": true,
+      "harnessMode": "local_dev_prerequisite_check_only",
+      "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": null,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedForScopedControlledToolCall": false,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false,
+      "runtimeReadyNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "skipReasonCode": "gpu_model_python_package_missing",
+      "currentBlockingPrerequisiteKey": "pythonPackageRuntime",
+      "currentBlockingReasonCode": "gpu_model_python_package_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime"
+      ],
+      "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
+      "allowCpuModelRuntime": false,
+      "privateInputPreflightOnly": false,
+      "errorMessage": null,
+      "outputJsonPath": null,
+      "outputJsonSha256": null,
+      "localInputRequirements": [
+        {
+          "key": "outputDirectory",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local worker output directory; must not be public artifact storage."
+        },
+        {
+          "key": "nativeCudaRuntime",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Approved local/native CUDA runtime; CPU fallback is intentionally not accepted."
+        }
+      ],
+      "warnings": [
+        "GPU/model runtime did not start because Python package prerequisites are missing.",
+        "GPU/model runtime is approved only for the scoped accepted tool call; idle GPU startup remains blocked."
+      ]
+    },
+    {
+      "toolId": "sam2",
+      "capabilityId": "subject_segmentation",
+      "adapterDecision": "ai_graphics_external_agent_gpu_model_controlled_adapter_executable_eight_on_demand_with_runtime_blocks",
+      "adapterStatus": "controlled_gpu_model_adapter_invoked_runtime_skipped",
+      "executionState": "blocked_with_reason",
+      "controlledAdapterExecutableNow": false,
+      "controlledAdapterInvokedNow": true,
+      "harnessMode": "local_dev_prerequisite_check_only",
+      "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedForScopedControlledToolCall": false,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false,
+      "runtimeReadyNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "skipReasonCode": "sam2_checkpoint_missing",
+      "currentBlockingPrerequisiteKey": "sam2CheckpointLocalPath",
+      "currentBlockingReasonCode": "sam2_checkpoint_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "sam2CheckpointLocalPath",
+        "modelWeightManifestEvidence",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "modelWeightManifestEvidence",
+        "nativeCudaRuntime"
+      ],
+      "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
+      "allowCpuModelRuntime": false,
+      "privateInputPreflightOnly": false,
+      "errorMessage": null,
+      "outputJsonPath": null,
+      "outputJsonSha256": null,
+      "localInputRequirements": [
+        {
+          "key": "outputDirectory",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local worker output directory; must not be public artifact storage."
+        },
+        {
+          "key": "sourceImageLocalPath",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local representative image/frame selected from an approved plan."
+        },
+        {
+          "key": "sam2CheckpointLocalPath",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private SAM2 checkpoint path; no download allowed."
+        },
+        {
+          "key": "modelWeightManifestEvidence",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private model-weight manifest id, SHA-256 checksum, and private checksum evidence reference for the supplied model/checkpoint."
+        },
+        {
+          "key": "nativeCudaRuntime",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Approved Linux/amd64 NVIDIA L4 CUDA runtime for one approved private source frame only; broad real-media/full-video execution is not accepted."
+        }
+      ],
+      "warnings": [
+        "GPU/model runtime did not start because explicit local-dev execution inputs were not provided.",
+        "GPU/model runtime is approved only for the scoped accepted tool call; idle GPU startup remains blocked."
+      ]
+    },
+    {
+      "toolId": "birefnet",
+      "capabilityId": "background_removal",
+      "adapterDecision": "ai_graphics_external_agent_gpu_model_controlled_adapter_executable_eight_on_demand_with_runtime_blocks",
+      "adapterStatus": "controlled_gpu_model_adapter_invoked_runtime_skipped",
+      "executionState": "blocked_with_reason",
+      "controlledAdapterExecutableNow": false,
+      "controlledAdapterInvokedNow": true,
+      "harnessMode": "local_dev_prerequisite_check_only",
+      "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedForScopedControlledToolCall": false,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false,
+      "runtimeReadyNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "skipReasonCode": "birefnet_model_missing",
+      "currentBlockingPrerequisiteKey": "birefnetModelLocalPath",
+      "currentBlockingReasonCode": "birefnet_model_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "birefnetModelLocalPath",
+        "modelWeightManifestEvidence",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "modelWeightManifestEvidence",
+        "nativeCudaRuntime"
+      ],
+      "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
+      "allowCpuModelRuntime": false,
+      "privateInputPreflightOnly": false,
+      "errorMessage": null,
+      "outputJsonPath": null,
+      "outputJsonSha256": null,
+      "localInputRequirements": [
+        {
+          "key": "outputDirectory",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local worker output directory; must not be public artifact storage."
+        },
+        {
+          "key": "sourceImageLocalPath",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local representative image/frame selected from an approved plan."
+        },
+        {
+          "key": "birefnetModelLocalPath",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private BiRefNet model/checkpoint path; no download allowed."
+        },
+        {
+          "key": "modelWeightManifestEvidence",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private model-weight manifest id, SHA-256 checksum, and private checksum evidence reference for the supplied model/checkpoint."
+        },
+        {
+          "key": "nativeCudaRuntime",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Approved Linux/amd64 NVIDIA L4 CUDA runtime for the scoped private BiRefNet worker call only."
+        }
+      ],
+      "warnings": [
+        "GPU/model runtime did not start because explicit local-dev execution inputs were not provided.",
+        "GPU/model runtime is approved only for the scoped accepted tool call; idle GPU startup remains blocked."
+      ]
+    },
+    {
+      "toolId": "real_esrgan",
+      "capabilityId": "upscaling",
+      "adapterDecision": "ai_graphics_external_agent_gpu_model_controlled_adapter_executable_eight_on_demand_with_runtime_blocks",
+      "adapterStatus": "controlled_gpu_model_adapter_invoked_runtime_skipped",
+      "executionState": "blocked_with_reason",
+      "controlledAdapterExecutableNow": false,
+      "controlledAdapterInvokedNow": true,
+      "harnessMode": "local_dev_prerequisite_check_only",
+      "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": null,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedForScopedControlledToolCall": false,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false,
+      "runtimeReadyNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "skipReasonCode": "real_esrgan_model_missing",
+      "currentBlockingPrerequisiteKey": "realEsrganModelLocalPath",
+      "currentBlockingReasonCode": "real_esrgan_model_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "realEsrganModelLocalPath",
+        "modelWeightManifestEvidence",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "modelWeightManifestEvidence",
+        "nativeCudaRuntime"
+      ],
+      "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
+      "allowCpuModelRuntime": false,
+      "privateInputPreflightOnly": false,
+      "errorMessage": null,
+      "outputJsonPath": null,
+      "outputJsonSha256": null,
+      "localInputRequirements": [
+        {
+          "key": "outputDirectory",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local worker output directory; must not be public artifact storage."
+        },
+        {
+          "key": "sourceImageLocalPath",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local representative image/frame selected from an approved plan."
+        },
+        {
+          "key": "realEsrganModelLocalPath",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private Real-ESRGAN model path; no download allowed."
+        },
+        {
+          "key": "modelWeightManifestEvidence",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private model-weight manifest id, SHA-256 checksum, and private checksum evidence reference for the supplied model/checkpoint."
+        },
+        {
+          "key": "nativeCudaRuntime",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Approved CUDA runtime for the scoped local worker call only."
+        }
+      ],
+      "warnings": [
+        "GPU/model runtime did not start because explicit local-dev execution inputs were not provided.",
+        "GPU/model runtime is approved only for the scoped accepted tool call; idle GPU startup remains blocked."
+      ]
+    },
+    {
+      "toolId": "kornia",
+      "capabilityId": "tensor_image_ops",
+      "adapterDecision": "ai_graphics_external_agent_gpu_model_controlled_adapter_executable_eight_on_demand_with_runtime_blocks",
+      "adapterStatus": "controlled_gpu_model_adapter_invoked_runtime_skipped",
+      "executionState": "blocked_with_reason",
+      "controlledAdapterExecutableNow": false,
+      "controlledAdapterInvokedNow": true,
+      "harnessMode": "local_dev_prerequisite_check_only",
+      "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": null,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedForScopedControlledToolCall": false,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false,
+      "runtimeReadyNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "skipReasonCode": "kornia_source_frame_missing",
+      "currentBlockingPrerequisiteKey": "sourceImageLocalPath",
+      "currentBlockingReasonCode": "kornia_source_frame_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "nativeCudaRuntime"
+      ],
+      "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
+      "allowCpuModelRuntime": false,
+      "privateInputPreflightOnly": false,
+      "errorMessage": null,
+      "outputJsonPath": null,
+      "outputJsonSha256": null,
+      "localInputRequirements": [
+        {
+          "key": "outputDirectory",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local worker output directory; must not be public artifact storage."
+        },
+        {
+          "key": "sourceImageLocalPath",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local representative image/frame selected from an approved plan."
+        },
+        {
+          "key": "nativeCudaRuntime",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Approved CUDA runtime for bounded tensor/image operations; no model weight required."
+        }
+      ],
+      "warnings": [
+        "GPU/model runtime did not start because explicit local-dev execution inputs were not provided.",
+        "GPU/model runtime is approved only for the scoped accepted tool call; idle GPU startup remains blocked."
+      ]
+    },
+    {
+      "toolId": "rembg",
+      "capabilityId": "background_removal",
+      "adapterDecision": "ai_graphics_external_agent_gpu_model_controlled_adapter_executable_eight_on_demand_with_runtime_blocks",
+      "adapterStatus": "controlled_gpu_model_adapter_invoked_runtime_skipped",
+      "executionState": "blocked_with_reason",
+      "controlledAdapterExecutableNow": false,
+      "controlledAdapterInvokedNow": true,
+      "harnessMode": "local_dev_prerequisite_check_only",
+      "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": null,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedForScopedControlledToolCall": false,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false,
+      "runtimeReadyNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "skipReasonCode": "rembg_model_missing",
+      "currentBlockingPrerequisiteKey": "rembgModelLocalPath",
+      "currentBlockingReasonCode": "rembg_model_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "rembgModelLocalPath",
+        "modelWeightManifestEvidence",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "modelWeightManifestEvidence",
+        "nativeCudaRuntime"
+      ],
+      "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
+      "allowCpuModelRuntime": false,
+      "privateInputPreflightOnly": false,
+      "errorMessage": null,
+      "outputJsonPath": null,
+      "outputJsonSha256": null,
+      "localInputRequirements": [
+        {
+          "key": "outputDirectory",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local worker output directory; must not be public artifact storage."
+        },
+        {
+          "key": "sourceImageLocalPath",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local representative image/frame selected from an approved plan."
+        },
+        {
+          "key": "rembgModelLocalPath",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private rembg ONNX model path; no download allowed."
+        },
+        {
+          "key": "modelWeightManifestEvidence",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private model-weight manifest id, SHA-256 checksum, and private checksum evidence reference for the supplied model/checkpoint."
+        },
+        {
+          "key": "nativeCudaRuntime",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Approved CUDA runtime for the scoped local worker call only."
+        }
+      ],
+      "warnings": [
+        "GPU/model runtime did not start because explicit local-dev execution inputs were not provided.",
+        "GPU/model runtime is approved only for the scoped accepted tool call; idle GPU startup remains blocked."
+      ]
+    },
+    {
+      "toolId": "transparent_background",
+      "capabilityId": "background_removal",
+      "adapterDecision": "ai_graphics_external_agent_gpu_model_controlled_adapter_executable_eight_on_demand_with_runtime_blocks",
+      "adapterStatus": "controlled_gpu_model_adapter_invoked_runtime_skipped",
+      "executionState": "blocked_with_reason",
+      "controlledAdapterExecutableNow": false,
+      "controlledAdapterInvokedNow": true,
+      "harnessMode": "local_dev_prerequisite_check_only",
+      "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": null,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedForScopedControlledToolCall": false,
+      "gpuRuntimeShouldStartNow": false,
+      "publicArtifactCreated": false,
+      "signedUrlCreated": false,
+      "runtimeReadyNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false,
+      "skipReasonCode": "transparent_background_checkpoint_missing",
+      "currentBlockingPrerequisiteKey": "transparentBackgroundCheckpointLocalPath",
+      "currentBlockingReasonCode": "transparent_background_checkpoint_missing",
+      "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
+      "minimumPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "transparentBackgroundCheckpointLocalPath",
+        "modelWeightManifestEvidence",
+        "nativeCudaRuntime"
+      ],
+      "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
+        "sourceImageLocalPath",
+        "modelWeightManifestEvidence",
+        "nativeCudaRuntime"
+      ],
+      "allowCpuTensorRuntime": false,
+      "allowCpuFoundationRuntime": false,
+      "allowCpuModelRuntime": false,
+      "privateInputPreflightOnly": false,
+      "errorMessage": null,
+      "outputJsonPath": null,
+      "outputJsonSha256": null,
+      "localInputRequirements": [
+        {
+          "key": "outputDirectory",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local worker output directory; must not be public artifact storage."
+        },
+        {
+          "key": "sourceImageLocalPath",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Private local representative image/frame selected from an approved plan."
+        },
+        {
+          "key": "transparentBackgroundCheckpointLocalPath",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private transparent-background checkpoint path; no download allowed."
+        },
+        {
+          "key": "modelWeightManifestEvidence",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Reviewed private model-weight manifest id, SHA-256 checksum, and private checksum evidence reference for the supplied model/checkpoint."
+        },
+        {
+          "key": "nativeCudaRuntime",
+          "requiredForDefaultHarness": false,
+          "requiredForActualExecution": true,
+          "description": "Approved CUDA runtime for the scoped local worker call only."
+        }
+      ],
+      "warnings": [
+        "GPU/model runtime did not start because explicit local-dev execution inputs were not provided.",
+        "GPU/model runtime is approved only for the scoped accepted tool call; idle GPU startup remains blocked."
+      ]
+    }
+  ],
+  "booleans": {
+    "externalAgentGpuModelLocalDevRuntimeExecutionHarnessPrepared": true,
+    "scopedGpuModelToolSelectionSupported": true,
+    "scopedGpuModelToolSelectionActive": false,
+    "controlledAdapterSourceAccepted": true,
+    "controlledWorkerDispatchProofAccepted": true,
+    "nativeGpuRuntimeProofCommandPlanAccepted": true,
+    "localDevAdapterBranchInvokedForAll8": true,
+    "all8GpuModelToolsCovered": true,
+    "exactLocalRuntimePrerequisitesDocumented": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuStartsOnlyForApprovedWorkerOrToolCall": true,
+    "committedRecordSkipSafe": true,
+    "privateLocalRuntimeAttemptRequested": false,
+    "privateLocalProofResultWriteSupported": true,
+    "privateLocalProofResultWrittenNow": false,
+    "privateRuntimeInputManifestSupported": true,
+    "privateRuntimeInputManifestOutputDirectoryMustStayUnderLocalArtifacts": true,
+    "privateRuntimeInputManifestUsedNow": false,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteGpuModelToolsNow": false,
+    "agentCanExecuteAll21ToolsNow": false,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "backendQueueSubmissionApprovedNow": false,
+    "liveQueueWriteApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "workerEnqueueApprovedNow": false,
+    "workerDispatchApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "gpuRuntimeShouldStartNow": false,
+    "runtimeReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "backendQueueSubmissionPerformed": false,
+    "liveQueueWritePerformed": false,
+    "workerEnqueuePerformed": false,
+    "workerDispatchPerformed": false,
+    "routeExecutionPerformed": false,
+    "providerRuntimePerformed": false,
+    "browserWebglCanvasRuntimePerformed": false,
+    "modelWeightsDownloaded": false,
+    "mediaProcessingPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  },
+  "nextMilestone": "Run this harness on an approved native CUDA host with reviewed private model paths and private approved source inputs, then feed accepted per-tool local runtime outputs into the external-agent GPU/model runtime gate."
+}

@@ -58,6 +58,7 @@ export interface EnhancementExecutionInput {
   sampleOnly?: boolean
   selectedClipRanges?: EnhancementClipRange[]
   sampleCount?: number
+  realEsrganProofSampleSize?: number
   modelWeightManifestIds?: string[]
   realEsrganModelLocalPath?: string
   modeNotes?: string[]
@@ -66,6 +67,11 @@ export interface EnhancementExecutionInput {
   allowModelDownload?: boolean
   allowFinalRender?: boolean
   ffmpegBin?: string
+  runtimeExecutionBackend?: 'host_python' | 'docker_container'
+  runtimeContainerImage?: string
+  runtimeContainerPlatform?: string
+  runtimeContainerGpu?: boolean
+  allowCpuModelRuntime?: boolean
   timeoutMs?: number
   readinessReport?: { overallStatus?: string; blockers?: unknown[]; blockerSummaries?: unknown[] }
   rawPrompt?: unknown
@@ -124,7 +130,7 @@ export interface EnhancementToolCommandPlan {
   command?: string
   args: string[]
   expectedOutputPath?: string
-  executes: false
+  executes: boolean
   summary: string
 }
 
@@ -140,6 +146,9 @@ export interface EnhancementToolExecutionResult {
   commandPlan?: EnhancementToolCommandPlan
   artifact?: ToolArtifact
   artifacts?: ToolArtifact[]
+  outputJsonPath?: string
+  outputJsonSizeBytes?: number
+  outputJsonSha256?: string
   skipReason?: EnhancementToolSkipReason
   warnings: string[]
   errorMessage?: string

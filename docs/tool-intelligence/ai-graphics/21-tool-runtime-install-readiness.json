@@ -29,8 +29,12 @@
     "nodeDeclaredAndLocked": 13,
     "gpuWorkerDeclared": 7,
     "modelPathViaTransformers": 1,
+    "jsRuntimeProofEvidenceAligned": 13,
+    "browserRuntimeProofToolsAligned": 7,
+    "satoriFontRuntimeProofAligned": 1,
     "runtimeBetaReadyNow": 0,
-    "remainingRuntimeProofRequired": 21
+    "remainingNativeGpuRuntimeProofRequired": 8,
+    "remainingToolRouteWorkerGateRequired": 21
   },
   "runtimeTargets": {
     "nodePackageLock": [
@@ -59,15 +63,32 @@
     ],
     "gpuAiWorkerModelPathViaTransformers": [
       "birefnet"
+    ],
+    "nodeRuntimeProofAccepted": [
+      "d3",
+      "vega_lite",
+      "vega",
+      "svgdotjs_svg_js",
+      "viz_js"
+    ],
+    "browserRuntimeProofAccepted": [
+      "echarts",
+      "lottie_web",
+      "animejs",
+      "three_js",
+      "pixi_js",
+      "konva",
+      "babylonjs"
+    ],
+    "satoriFontRuntimeProofAccepted": [
+      "satori"
     ]
   },
   "requiredGatesBeforeBeta": [
     "build_gpu_worker_image_with_ai_graphics_requirements",
     "run_gpu_worker_import_smoke_without_processing_user_media",
     "approve_private_model_weight_manifests_for_sam2_birefnet_real_esrgan_rembg_transparent_background",
-    "run_synthetic_or_approved_fixture_runtime_smokes_for_all_21_tools",
-    "prove_browser_canvas_webgl_runtime_for_echarts_lottie_web_animejs_three_js_pixi_js_konva_babylonjs",
-    "prove_satori_text_svg_layout_with_approved_font_fixture",
+    "consume_accepted_node_browser_and_satori_runtime_proof_packets_without_rerun_unless_evidence_drifts",
     "wire_tool_calling_handoff_to_approved_snapshot_and_worker_gates",
     "keep_route_worker_provider_storage_public_artifact_and_beta_gates_false_until_runtime_proof_passes"
   ],
@@ -78,6 +99,9 @@
     "sam2UsesPinnedGpuSourceInstall": true,
     "birefnetUsesTransformersModelPath": true,
     "heavyModelToolsTargetGpuWorker": true,
+    "all13JsGraphicsToolsHaveRuntimeProofEvidence": true,
+    "all7BrowserRuntimeProofToolsAccepted": true,
+    "satoriFontRuntimeProofAccepted": true,
     "coordinationDuplicateSearchCompleted": true,
     "agentCanSelectForPlanning": true,
     "agentCanExecuteToolsNow": false,
@@ -173,7 +197,7 @@
       "installTarget": "node_package_lock",
       "installEvidence": ["echarts@6.1.0"],
       "installStatus": "declared_and_locked",
-      "runtimeStatus": "pending_browser_chart_runtime_proof",
+      "runtimeStatus": "browser_svg_chart_runtime_proof_passed_but_not_agent_executable",
       "betaReady": false
     },
     {
@@ -197,7 +221,7 @@
       "installTarget": "node_package_lock",
       "installEvidence": ["satori@0.26.0"],
       "installStatus": "declared_and_locked",
-      "runtimeStatus": "blocked_pending_approved_font_fixture_for_text_svg_layout",
+      "runtimeStatus": "satori_font_fixture_svg_layout_proof_passed_but_not_agent_executable",
       "betaReady": false
     },
     {
@@ -221,7 +245,7 @@
       "installTarget": "node_package_lock",
       "installEvidence": ["lottie-web@5.13.0"],
       "installStatus": "declared_and_locked",
-      "runtimeStatus": "pending_animation_runtime_proof",
+      "runtimeStatus": "browser_svg_animation_runtime_proof_passed_but_not_agent_executable",
       "betaReady": false
     },
     {
@@ -229,7 +253,7 @@
       "installTarget": "node_package_lock",
       "installEvidence": ["animejs@4.4.1"],
       "installStatus": "declared_and_locked",
-      "runtimeStatus": "pending_animation_runtime_proof",
+      "runtimeStatus": "browser_dom_animation_runtime_proof_passed_but_not_agent_executable",
       "betaReady": false
     },
     {
@@ -237,7 +261,7 @@
       "installTarget": "node_package_lock",
       "installEvidence": ["three@0.184.0"],
       "installStatus": "declared_and_locked",
-      "runtimeStatus": "pending_browser_webgl_runtime_proof",
+      "runtimeStatus": "browser_webgl_runtime_proof_passed_but_not_agent_executable",
       "betaReady": false
     },
     {
@@ -245,7 +269,7 @@
       "installTarget": "node_package_lock",
       "installEvidence": ["pixi.js@8.19.0"],
       "installStatus": "declared_and_locked",
-      "runtimeStatus": "pending_browser_canvas_webgl_runtime_proof",
+      "runtimeStatus": "browser_canvas_webgl_runtime_proof_passed_but_not_agent_executable",
       "betaReady": false
     },
     {
@@ -253,7 +277,7 @@
       "installTarget": "node_package_lock",
       "installEvidence": ["konva@10.3.0"],
       "installStatus": "declared_and_locked",
-      "runtimeStatus": "pending_canvas_runtime_proof",
+      "runtimeStatus": "browser_canvas_runtime_proof_passed_but_not_agent_executable",
       "betaReady": false
     },
     {
@@ -261,7 +285,7 @@
       "installTarget": "node_package_lock",
       "installEvidence": ["babylonjs@9.12.0"],
       "installStatus": "declared_and_locked",
-      "runtimeStatus": "pending_browser_webgl_runtime_proof",
+      "runtimeStatus": "browser_webgl_runtime_proof_passed_but_not_agent_executable",
       "betaReady": false
     }
   ],
@@ -269,7 +293,7 @@
     "GPU worker image build proof for AI graphics requirements",
     "GPU worker import-smoke proof for torch/torchvision, transformers, SAM2, Kornia, rembg, transparent-background, Real-ESRGAN, and BiRefNet model-loader path",
     "approved private model-weight manifests for SAM2, BiRefNet, Real-ESRGAN, rembg, and transparent-background",
-    "browser/canvas/WebGL runtime sandbox proof for ECharts, Lottie, Anime.js, Three.js, PixiJS, Konva, and Babylon.js",
+    "consume accepted Node/browser/Satori runtime proof packets unless evidence drifts",
     "Tool Route and Worker handoff integration only after approved snapshot and credit gates"
   ]
 }

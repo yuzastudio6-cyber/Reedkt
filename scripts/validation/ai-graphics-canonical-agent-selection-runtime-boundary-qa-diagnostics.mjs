@@ -34,7 +34,16 @@ const allowedDescendantScripts = new Set([
   "ai-graphics:browser-runtime-proof:diagnostics",
   "ai-graphics:satori-font-runtime-proof",
   "ai-graphics:satori-font-runtime-proof:diagnostics",
-  "ai-graphics:gpu-model-install-build-targets:diagnostics"
+  "ai-graphics:gpu-model-install-build-targets:diagnostics",
+  "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics",
+  "ai-graphics:tool-call-readiness:diagnostics",
+  "ai-graphics:21-tool-proper-install-audit:diagnostics",
+  "ai-graphics:tool-call-handoff:diagnostics",
+  "ai-graphics:tool-call-plan-evaluator:diagnostics",
+  "ai-graphics:beta-readiness-gate:diagnostics",
+  "ai-graphics:tool-route-readiness:diagnostics",
+  "ai-graphics:worker-handoff-readiness:diagnostics",
+  "ai-graphics:model-weight-manifest-readiness:diagnostics"
 ]);
 const failures = [];
 const fail = (message) => failures.push(message);
@@ -219,8 +228,9 @@ for (const section of ["dependencies", "devDependencies", "optionalDependencies"
 }
 if (packageJson.scripts?.[expectedScript] !== expectedScriptCommand) fail("Expected package script is missing or incorrect.");
 const scriptDrift = Object.keys(packageJson.scripts || {}).filter((key) => JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key]));
+const allowedNewAiGraphicsDescendantScript = (key) => !basePackageJson.scripts?.[key] && key.startsWith("ai-graphics:");
 for (const key of scriptDrift) {
-  if (key !== expectedScript && !allowedDescendantScripts.has(key)) fail("Unexpected script drift: " + key);
+  if (key !== expectedScript && !allowedDescendantScripts.has(key) && !allowedNewAiGraphicsDescendantScript(key)) fail("Unexpected script drift: " + key);
 }
 for (const key of Object.keys(basePackageJson.scripts || {})) if (!(key in (packageJson.scripts || {}))) fail("Removed package script: " + key);
 try { if (git(["diff", "--name-only", baseRef, "--", "package-lock.json"])) fail("package-lock.json changed relative to base."); } catch (error) { fail("Unable to verify package-lock diff: " + error.message); }

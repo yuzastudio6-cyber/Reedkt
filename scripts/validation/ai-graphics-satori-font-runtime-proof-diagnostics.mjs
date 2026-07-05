@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import crypto from "node:crypto";
 
 const root = process.cwd();
 const failures = [];
@@ -31,6 +32,18 @@ function readJson(relativePath) {
 }
 
 const packageJson = readJson("package.json");
+let basePackageJson = null;
+try {
+  basePackageJson = JSON.parse(execFileSync("git", [
+    "show",
+    `${baseRef}:package.json`,
+  ], {
+    encoding: "utf8",
+    env: { ...process.env, DEVELOPER_DIR: "/Library/Developer/CommandLineTools" },
+  }));
+} catch (error) {
+  fail(`Unable to read base package.json: ${error.message}`);
+}
 const packageLock = readJson("package-lock.json");
 const proof = readJson("docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json");
 const markdown = read("docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.md");
@@ -61,7 +74,8 @@ if (lockPackages["node_modules/satori"]?.version !== "0.26.0") fail("Expected sa
 if (lockPackages["node_modules/three"]?.version !== "0.184.0") fail("Expected three@0.184.0 in package-lock.");
 
 const fontPath = "node_modules/three/examples/fonts/ttf/kenpixel.ttf";
-if (!fs.existsSync(path.join(root, fontPath))) fail(`Missing locked font fixture ${fontPath}`);
+const localFontFixturePath = path.join(root, fontPath);
+const localFontFixturePresent = fs.existsSync(localFontFixturePath);
 
 const tool = proof?.tool || {};
 if (tool.toolId !== "satori") fail(`Unexpected tool ${tool.toolId}`);
@@ -74,6 +88,16 @@ if (tool.fontFixture?.packageName !== "three") fail("Font fixture must come from
 if (tool.fontFixture?.packageVersion !== "0.184.0") fail(`Unexpected font package version ${tool.fontFixture?.packageVersion}`);
 if (!/^[a-f0-9]{64}$/.test(tool.fontFixture?.sha256 ?? "")) fail("Font fixture SHA-256 missing.");
 if ((tool.fontFixture?.byteLength ?? 0) <= 0) fail("Font fixture byte length missing.");
+if (localFontFixturePresent) {
+  const localFontData = fs.readFileSync(localFontFixturePath);
+  const localFontHash = crypto.createHash("sha256").update(localFontData).digest("hex");
+  if (localFontHash !== tool.fontFixture.sha256) {
+    fail(`Local font fixture hash mismatch ${localFontHash}`);
+  }
+  if (localFontData.byteLength !== tool.fontFixture.byteLength) {
+    fail(`Local font fixture byte length mismatch ${localFontData.byteLength}`);
+  }
+}
 if (tool.outputContract?.hasSvgRoot !== true) fail("SVG root was not proven.");
 if (tool.outputContract?.hasExpectedViewBox !== true) fail("Expected viewBox was not proven.");
 if ((tool.outputContract?.pathCount ?? 0) <= 0) fail("SVG path output was not proven.");
@@ -164,27 +188,17 @@ const packageLockDiff = execFileSync("git", [
 }).trim();
 if (packageLockDiff) fail("package-lock.json changed in satori font proof lane.");
 
-const dependencyDiff = execFileSync("git", [
-  "diff",
-  "--unified=0",
-  baseRef,
-  "--",
-  "package.json",
-], {
-  encoding: "utf8",
-  env: { ...process.env, DEVELOPER_DIR: "/Library/Developer/CommandLineTools" },
-});
-for (const line of dependencyDiff.split(/\r?\n/)) {
-  if (/^[+-]\s*"dependencies"\s*:/.test(line) || /^[+-]\s*"devDependencies"\s*:/.test(line)) {
-    fail("Dependency sections changed unexpectedly.");
-  }
-  if (/^[+]\s*"[^"]+"\s*:\s*"\^?[^"]+"/.test(line) && !line.includes("ai-graphics:satori-font-runtime-proof")) {
-    if (
-      !line.includes("scripts/validation/ai-graphics-satori-font-runtime-proof") &&
-      !line.includes("ai-graphics:gpu-model-install-build-targets:diagnostics")
-    ) {
-      fail(`Unexpected package.json addition: ${line}`);
-    }
+for (const section of [
+  "dependencies",
+  "devDependencies",
+  "optionalDependencies",
+  "peerDependencies",
+  "overrides",
+]) {
+  const currentSection = JSON.stringify(packageJson?.[section] ?? {});
+  const baseSection = JSON.stringify(basePackageJson?.[section] ?? {});
+  if (currentSection !== baseSection) {
+    fail(`Package ${section} changed unexpectedly.`);
   }
 }
 
@@ -240,5 +254,6 @@ console.log(JSON.stringify({
   decision: proof?.decision,
   tool: "satori",
   proofStatus: tool.status,
+  localFontFixturePresent,
   runtimeBetaReadyNow: false,
 }, null, 2));

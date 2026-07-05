@@ -48,6 +48,7 @@ export type JobType =
   | 'credit_reservation'
   | 'generation_orchestration'
   | 'generation'
+  | 'ai_graphics_tool_runtime'
   | 'stroke_motion_generation'
   | 'graphic_design_generation'
   | 'real_motion_generation'

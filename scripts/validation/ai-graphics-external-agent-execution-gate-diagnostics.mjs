@@ -1,0 +1,2703 @@
+import { execFileSync, spawnSync } from 'node:child_process'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
+const root = process.cwd()
+const runScriptName = 'ai-graphics:external-agent-execution-gate'
+const runScriptCommand = 'tsx server/cli/ai-graphics-external-agent-execution-gate.ts'
+const diagnosticScriptName = 'ai-graphics:external-agent-execution-gate:diagnostics'
+const diagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-external-agent-execution-gate-diagnostics.mjs'
+const evidenceSequenceCommand =
+  'npm run ai-graphics:external-agent-cpu-static-private-worker-non-production-evidence-sequence'
+const claimAndDispatchProofCommand =
+  'npm run ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof:diagnostics'
+const toolExecutionDryRunProofCommand =
+  'npm run ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof:diagnostics'
+const controlledToolExecutionProofCommand =
+  'npm run ai-graphics:external-agent-cpu-static-private-worker-controlled-tool-execution-proof:diagnostics'
+const routeReadinessProbeCommand =
+  'npm run ai-graphics:external-beta-tool-call-route-readiness-probe-smoke:diagnostics'
+const routeCpuStaticControlledExecutionSmokeCommand =
+  'npm run ai-graphics:external-beta-tool-call-route-cpu-static-controlled-execution-smoke:diagnostics'
+const routeBrowserRuntimeControlledExecutionSmokeCommand =
+  'npm run ai-graphics:external-beta-tool-call-route-browser-runtime-controlled-execution-smoke:diagnostics'
+const routeGpuModelRuntimeAdmissionSmokeCommand =
+  'npm run ai-graphics:external-beta-tool-call-route-gpu-model-runtime-admission-smoke:diagnostics'
+const routeGpuModelProofRefQueueAdmissionSmokeCommand =
+  'npm run ai-graphics:external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke:diagnostics'
+const gpuModelRuntimeQueueServiceBridgeCommand =
+  'npm run ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge:diagnostics'
+const gpuModelLocalDevRuntimeHarnessCommand =
+  'npm run ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness:diagnostics'
+const gpuModelServiceRoleQueueSmokeCommand =
+  'npm run ai-graphics:external-beta-gpu-model-service-role-queue-smoke:diagnostics'
+const routeMockQueueWorkerClaimSmokeCommand =
+  'npm run ai-graphics:external-beta-tool-call-route-mock-queue-worker-claim-smoke:diagnostics'
+const controlledWorkerRouteExecutionSmokeCommand =
+  'npm run ai-graphics:external-agent-controlled-worker-route-execution-smoke:diagnostics'
+const externalAgentToolAdapterAuthorizationCommand =
+  'npm run ai-graphics:external-agent-tool-adapter-authorization-proof:diagnostics'
+const liveAdapterQueueWriteProofCommand =
+  'npm run ai-graphics:external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof:diagnostics'
+const nativeGpuProofCollectionCommand =
+  'npm run ai-graphics:external-beta-native-gpu-proof-collection:diagnostics'
+const satoriFontProofCommand =
+  'npm run ai-graphics:satori-font-runtime-proof:diagnostics'
+const browserRuntimeProofCommand =
+  'npm run ai-graphics:browser-runtime-proof:diagnostics'
+const serviceRoleQueueWriteSmokeProofScriptName =
+  'ai-graphics:external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof'
+const workerClaimAndDispatchSmokeProofScriptName =
+  'ai-graphics:external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof'
+const toolExecutionDryRunProofScriptName =
+  'ai-graphics:external-agent-cpu-static-private-worker-tool-execution-dry-run-proof'
+const controlledWorkerRouteExecutionSmokeScriptName =
+  'ai-graphics:external-agent-controlled-worker-route-execution-smoke'
+const decision =
+  'ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings'
+const acceptedStatus =
+  'external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked'
+const legacyAcceptedStatus =
+  'external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked'
+
+const allTools = [
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+  'd3',
+  'echarts',
+  'vega_lite',
+  'vega',
+  'satori',
+  'svgdotjs_svg_js',
+  'viz_js',
+  'lottie_web',
+  'animejs',
+  'three_js',
+  'pixi_js',
+  'konva',
+  'babylonjs',
+]
+
+const gpuTools = new Set([
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+])
+
+const gpuScopedRuntimeProofReadyTools = new Set([
+  'torch_torchvision',
+  'transformers',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+])
+
+const gpuScopedRuntimeBlockedTools = new Set([
+  'sam2',
+  'birefnet',
+])
+
+const gpuModelWeightTools = new Set([
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+])
+
+const gpuNativeProofOnlyTools = new Set([
+  'torch_torchvision',
+  'transformers',
+  'kornia',
+])
+
+const browserRuntimeProofTools = new Set([
+  'echarts',
+  'lottie_web',
+  'animejs',
+  'three_js',
+  'pixi_js',
+  'konva',
+  'babylonjs',
+])
+
+const falseBooleanKeys = [
+  'rawChatExecutionAllowed',
+  'externalBetaCallableInstallReadyNow',
+  'apiRouteMountedNow',
+  'apiRouteExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'internalBetaReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'dependencyInstallPerformed',
+  'packageLockMutationPerformed',
+  'toolExecutionPerformed',
+  'workerExecutionPerformed',
+  'workerEnqueuePerformed',
+  'adapterInvocationAndWorkerEnqueueAdmissionRequiredBeforeExecution',
+  'sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted',
+  'allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokeProofsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidence',
+  'nonProductionServiceRoleQueueWriteSmokeCleanupVerifiedWithProvidedEvidence',
+  'workerClaimAndDispatchSmokeProofRequiredBeforeExecution',
+  'sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted',
+  'allFiveCpuStaticWorkerClaimAndDispatchSmokeProofsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticWorkerClaimsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence',
+  'toolExecutionDryRunProofRequiredBeforeExecution',
+  'sourceExternalAgentCpuStaticToolExecutionDryRunProofAccepted',
+  'allFiveCpuStaticToolExecutionDryRunProofsPreparedWithProvidedEvidence',
+  'allFiveCpuStaticDryToolExecutionContractsPrepared',
+  'controlledToolExecutionProofRequiredBeforeExecution',
+  'liveEvidenceSequenceExecutedNow',
+  'sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted',
+  'allFiveCpuStaticControlledToolExecutionProofsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticPhase0ExecutionEvidenceAccepted',
+  'satoriRemainsBlockedPendingApprovedFontFixture',
+  'globalAll21ExecutionAllowedNow',
+  'agentCanExecuteAll21ToolsNow',
+  'reviewedPrivateModelWeightManifestsAcceptedNow',
+  'routeExecutionPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformed',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+  'supabaseMutationPerformed',
+  'gcsUploadPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+]
+
+const trueBooleanKeys = [
+  'externalAgentExecutionGatePrepared',
+  'source21ToolProperInstallAuditAccepted',
+  'sourceExternalBetaCallableRequestAdmissionAccepted',
+  'sourceExternalBetaApiRouteMountReadinessAccepted',
+  'sourceExternalBetaControlledOnDemandStatusBridgeAccepted',
+  'sourceExternalAgentCpuStaticLiveAdapterQueueWriteProofAccepted',
+  'sourceExternalAgentCpuStaticExactExecutionAdmissionAccepted',
+  'sourceExternalAgentCpuStaticAdapterInvocationEnqueueAdmissionAccepted',
+  'sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted',
+  'sourceExternalAgentCpuStaticNonProductionEvidenceSequencePrepared',
+  'properInstallAuditAccepted',
+  'all21ToolsProperlyInstalledForPlannedSurface',
+  'installAuditSeparatesPlannedSurfaceFromRuntimeCallable',
+  'controlledOnDemandExternalBetaReadyWithProvidedEvidence',
+  'all21ToolsCovered',
+  'all12CapabilitiesCovered',
+  'all8GpuToolsTargetGpuRuntime',
+  'threeModelWeightToolsHaveExistingEvidenceForPrivateManifestAuthoring',
+  'twoModelWeightToolsRequireSourceChecksumReview',
+  'externalBetaCallableCandidatesWithProvidedEvidence',
+  'externalBetaCallableRequestAdmissionReadyWithProvidedEvidence',
+  'routeMountReadyWithProvidedEvidence',
+  'routeMountPreparedButNotMounted',
+  'externalAgentControlledRouteMountFeatureFlagReady',
+  'externalAgentControlledRouteMountedForScopedCallsNow',
+  'cpuStaticLiveAdapterQueueServiceProofAccepted',
+  'allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence',
+  'allFiveCpuStaticMockQueueServiceValidationsPassed',
+  'cpuStaticExactExecutionAdmissionAccepted',
+  'allFiveCpuStaticExactExecutionAdmissionsReady',
+  'allFiveCpuStaticExactRequestEnvelopesAccepted',
+  'allFiveCpuStaticApprovedPlanSnapshotsAccepted',
+  'allFiveCpuStaticPrivateArtifactManifestsAccepted',
+  'allFiveCpuStaticWorkerAcceptedRequestSchemasAccepted',
+  'allFiveCpuStaticExternalAgentExactRequestsAdmittedWithProvidedEvidence',
+  'cpuStaticAdapterInvocationEnqueueAdmissionAccepted',
+  'allFiveCpuStaticAdapterInvocationEnqueueAdmissionsReady',
+  'allFiveCpuStaticAdapterInvocationEnvelopesPrepared',
+  'allFiveCpuStaticWorkerEnqueuePayloadsPrepared',
+  'allFiveCpuStaticProductionWorkerJobPayloadsAccepted',
+  'allFiveCpuStaticExternalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidence',
+  'cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightAccepted',
+  'allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokePreflightsReady',
+  'allFiveCpuStaticExternalAgentNonProductionServiceRoleQueueWriteSmokePreflightsReadyWithProvidedEvidence',
+  'allFiveCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocks',
+  'nonProductionEvidenceSequenceKeepsRuntimeBlocks',
+  'sourceSatoriFontRuntimeProofAccepted',
+  'satoriFontRuntimeProofAcceptedWithProvidedEvidence',
+  'satoriFontBlockResolvedForLocalRuntimeProof',
+  'allSixCpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidence',
+  'fifteenNonCpuStaticToolsRemainDeferredToRuntimeLanes',
+  'nonProductionServiceRoleQueueWriteSmokeRequiredBeforeExecution',
+  'approvedPlanSnapshotRequired',
+  'creditReservationRequired',
+  'privateArtifactManifestRequired',
+  'structuredToolEnvelopeRequired',
+  'gpuRuntimeOnDemandOnly',
+  'noIdleGpuRuntimeApproved',
+  'gpuStartsOnlyForApprovedWorkerOrToolCall',
+  'agentCanSelectForPlanning',
+  'readyForScopedControlledRouteExecutionNow',
+  'scopedControlledRouteExecutionAllowedNow',
+  'agentCanExecuteScopedControlledRouteToolsNow',
+  'agentCanExecute13ControlledRouteToolsNow',
+  'sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted',
+  'sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted',
+  'sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted',
+  'sourceExternalAgentControlledWorkerRouteExecutionSmokeAccepted',
+  'sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted',
+  'sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted',
+  'externalAgentCanExecuteControlledRouteToolsNow',
+  'routeReadinessProbeAcceptedWithProvidedEvidence',
+  'agentCanExecuteControlledCpuStaticAndBrowserRuntimeRouteToolsNow',
+  'controlledCanonicalRouteExecutionSmokeAcceptedWithProvidedEvidence',
+  'thirteenControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence',
+  'sixCpuStaticControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence',
+  'sevenBrowserRuntimeControlledToolsExecutedViaCanonicalRouteWithProvidedEvidence',
+  'externalAgentControlledWorkerRouteExecutionSmokeAcceptedWithProvidedEvidence',
+  'thirteenControlledToolsExecutedViaClaimedWorkerRouteWithProvidedEvidence',
+  'externalAgentCanExecuteControlledWorkerRouteToolsNow',
+  'eightGpuModelToolsAdmissionFailClosedViaCanonicalRouteWithProvidedEvidence',
+  'all21MockQueueWorkerClaimSmokeAcceptedWithProvidedEvidence',
+  'all21RouteAdmittedMockJobsClaimedWithProvidedEvidence',
+  'mockQueueWorkerClaimSmokeKeepsLiveRuntimeBlocked',
+  'sourceExternalAgentToolAdapterAuthorizationAccepted',
+  'sourceExternalAgentExecutionReadinessAccepted',
+  'externalAgentToolAdapterAuthorizationAcceptedWithProvidedEvidence',
+  'all21ExternalAgentAdapterContractsAuthorizedWithRuntimeBlocks',
+  'all21ExternalAgentMappedProductionProfilesAccepted',
+  'sourceExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokeAccepted',
+  'sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted',
+  'allEightGpuModelProofRefQueueAdmissionsAcceptedWithProvidedEvidence',
+  'allEightGpuModelProofRefMockWorkerClaimsAcceptedWithProvidedEvidence',
+  'gpuModelProofRefQueueAdmissionKeepsGpuRuntimeIdle',
+  'gpuModelProofRefQueueAdmissionKeepsBroadExecutionBlocked',
+  'externalAgentGpuModelRuntimeQueueServiceBridgeAcceptedWithProvidedEvidence',
+  'allEightGpuModelRuntimeQueueServiceBridgeJobsAcceptedWithProvidedEvidence',
+  'allEightGpuModelRuntimeQueueServiceBridgeWorkerClaimsAcceptedWithProvidedEvidence',
+  'gpuModelRuntimeQueueBridgeKeepsGpuRuntimeIdle',
+  'gpuModelRuntimeQueueBridgeKeepsLiveExecutionBlocked',
+  'sourceExternalAgentGpuModelLocalDevRuntimeExecutionHarnessAccepted',
+  'gpuModelLocalDevRuntimeHarnessAcceptedWithProvidedEvidence',
+  'allEightGpuModelLocalDevAdapterBranchesInvokedWithProvidedEvidence',
+  'gpuModelLocalDevRuntimeHarnessKeepsGpuRuntimeIdle',
+  'gpuModelLocalDevRuntimeHarnessPrerequisitesDocumented',
+  'gpuModelUnblockPlanAcceptedWithProvidedEvidence',
+  'allEightGpuModelToolsHaveActionableUnblockPlan',
+  'fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof',
+  'threeFoundationGpuToolsRequireNativeGpuProofOnly',
+  'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
+  'agentCanExecuteGpuModelToolsNow',
+  'agentCanExecuteSomeGpuModelToolsNow',
+  'externalAgentCanInvokeAdapterNow',
+  'agentCanExecuteToolsNow',
+  'externalAgentExecutionAllowedNow',
+  'routeExecutionApprovedNow',
+  'toolExecutionApprovedNow',
+]
+
+const requiredFiles = [
+  'server/tool-registry/ai-graphics-external-agent-execution-gate.ts',
+  'server/tool-registry/ai-graphics-external-agent-gpu-model-controlled-adapter.ts',
+  'server/cli/ai-graphics-external-agent-execution-gate.ts',
+  'scripts/validation/ai-graphics-external-agent-execution-gate-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.md',
+  'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-evidence-sequence.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-tool-execution-dry-run-proof.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-controlled-tool-execution-proof.json',
+  'docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-readiness-probe-smoke.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-cpu-static-controlled-execution-smoke.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-browser-runtime-controlled-execution-smoke.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-gpu-model-runtime-admission-smoke.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-queue-service-bridge.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-mock-queue-worker-claim-smoke.json',
+  'docs/tool-intelligence/ai-graphics/external-agent-tool-adapter-authorization-proof.json',
+  'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+  'server/routes/ai-graphics-external-beta-tool-call-routes.ts',
+  'server/tool-registry/index.ts',
+  'package.json',
+]
+
+const failures = []
+
+function fail(message) {
+  failures.push(message)
+}
+
+function absolute(file) {
+  return path.join(root, file)
+}
+
+function read(file) {
+  if (!fs.existsSync(absolute(file))) {
+    fail(`missing_file:${file}`)
+    return ''
+  }
+  return fs.readFileSync(absolute(file), 'utf8')
+}
+
+function json(file) {
+  try {
+    return JSON.parse(read(file))
+  } catch (error) {
+    fail(`invalid_json:${file}:${error.message}`)
+    return {}
+  }
+}
+
+function git(args) {
+  return execFileSync('git', args, {
+    cwd: root,
+    encoding: 'utf8',
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  }).trim()
+}
+
+function runGate(args = []) {
+  const output = execFileSync('npm', ['run', '--silent', runScriptName, '--', ...args], {
+    cwd: root,
+    encoding: 'utf8',
+    maxBuffer: 20 * 1024 * 1024,
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  })
+  return JSON.parse(output)
+}
+
+function buildAcceptedServiceRoleQueueWriteSmokeProofPacket() {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reeditpro-ai-graphics-agent-gate-'))
+  const smokeResultPath = path.join(tempDir, 'accepted-service-role-queue-write-smoke-result.json')
+  const proofTools = ['d3', 'vega_lite', 'vega', 'svgdotjs_svg_js', 'viz_js']
+  fs.writeFileSync(smokeResultPath, `${JSON.stringify({
+    ok: true,
+    decision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_passed_with_cleanup',
+    status:
+      'non_production_service_role_queue_write_smoke_passed_with_cleanup_no_worker_dispatch_or_tool_execution',
+    queueName: 'ai_graphics_external_agent_cpu_static_private_worker_queue',
+    toolsSubmitted: 5,
+    toolsSubmittedIds: proofTools,
+    jobBatchId: 'job-batch-ai-graphics-cpu-static-queue-smoke-0001',
+    jobIds: [
+      'job-ai-graphics-cpu-static-queue-smoke-d3',
+      'job-ai-graphics-cpu-static-queue-smoke-vega-lite',
+      'job-ai-graphics-cpu-static-queue-smoke-vega',
+      'job-ai-graphics-cpu-static-queue-smoke-svgdotjs',
+      'job-ai-graphics-cpu-static-queue-smoke-viz-js',
+    ],
+    jobIdByToolId: {
+      d3: 'job-ai-graphics-cpu-static-queue-smoke-d3',
+      vega_lite: 'job-ai-graphics-cpu-static-queue-smoke-vega-lite',
+      vega: 'job-ai-graphics-cpu-static-queue-smoke-vega',
+      svgdotjs_svg_js: 'job-ai-graphics-cpu-static-queue-smoke-svgdotjs',
+      viz_js: 'job-ai-graphics-cpu-static-queue-smoke-viz-js',
+    },
+    idempotencyPrefix: 'ai_graphics_cpu_static_queue_write_smoke_0001',
+    queueRowsWritten: 5,
+    queueRowsCleanedUp: 5,
+    queueRowsPersistedAfterCleanup: 0,
+    workerClaimsCreated: 0,
+    workerDispatchesPerformed: 0,
+    workerExecutionsPerformed: 0,
+    toolExecutionsPerformed: 0,
+    serviceRoleBoundaryRef:
+      'private://ai-graphics/cpu-static/service-role-boundary/non-production-smoke',
+    privateEvidenceRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/evidence.json',
+    telemetryRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/telemetry.json',
+    cleanupProofRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/cleanup.json',
+    rollbackRef:
+      'private://ai-graphics/cpu-static/service-role-queue-write-smoke/rollback.md',
+    sourcePreflightDecision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_preflight_prepared_with_runtime_blocks',
+    sourcePreflightAccepted: true,
+    liveServiceRoleQueueWriteSmokeExecutedNow: true,
+    liveSupabaseQueueWritesNow: 5,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    gpuRuntimeShouldStartNow: false,
+    externalAgentExecutableNowTools: 0,
+    runtimeReadyNow: false,
+    externalBetaReadyNow: false,
+    productionReadyNow: false,
+  }, null, 2)}\n`)
+  const output = execFileSync(
+    'npm',
+    [
+      'run',
+      '--silent',
+      serviceRoleQueueWriteSmokeProofScriptName,
+      '--',
+      '--external-agent-cpu-static-service-role-queue-write-smoke-result',
+      smokeResultPath,
+      '--print-only',
+    ],
+    {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+    },
+  )
+  const proofPath = path.join(tempDir, 'accepted-service-role-queue-write-smoke-proof.json')
+  fs.writeFileSync(proofPath, output)
+  return proofPath
+}
+
+function buildAcceptedWorkerClaimAndDispatchSmokeProofPacket(sourceQueueProofPath) {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reeditpro-ai-graphics-agent-gate-claim-dispatch-'))
+  const smokeResultPath = path.join(tempDir, 'accepted-worker-claim-dispatch-smoke-result.json')
+  const proofTools = ['d3', 'vega_lite', 'vega', 'svgdotjs_svg_js', 'viz_js']
+  fs.writeFileSync(smokeResultPath, `${JSON.stringify({
+    ok: true,
+    decision:
+      'ai_graphics_external_agent_cpu_static_private_worker_claim_and_dispatch_smoke_passed_with_cleanup',
+    status:
+      'non_production_worker_claim_and_dispatch_smoke_passed_with_cleanup_no_tool_execution',
+    queueName: 'ai_graphics_external_agent_cpu_static_private_worker_queue',
+    toolsClaimed: 5,
+    toolsClaimedIds: proofTools,
+    jobBatchId: 'job-batch-ai-graphics-cpu-static-claim-dispatch-smoke-0001',
+    jobIds: [
+      'job-ai-graphics-cpu-static-claim-dispatch-d3',
+      'job-ai-graphics-cpu-static-claim-dispatch-vega-lite',
+      'job-ai-graphics-cpu-static-claim-dispatch-vega',
+      'job-ai-graphics-cpu-static-claim-dispatch-svgdotjs',
+      'job-ai-graphics-cpu-static-claim-dispatch-viz-js',
+    ],
+    jobIdByToolId: {
+      d3: 'job-ai-graphics-cpu-static-claim-dispatch-d3',
+      vega_lite: 'job-ai-graphics-cpu-static-claim-dispatch-vega-lite',
+      vega: 'job-ai-graphics-cpu-static-claim-dispatch-vega',
+      svgdotjs_svg_js: 'job-ai-graphics-cpu-static-claim-dispatch-svgdotjs',
+      viz_js: 'job-ai-graphics-cpu-static-claim-dispatch-viz-js',
+    },
+    idempotencyPrefix: 'ai_graphics_cpu_static_claim_dispatch_smoke_0001',
+    queueRowsRead: 5,
+    workerClaimsCreated: 5,
+    workerDispatchHandoffsCreated: 5,
+    workerDispatchLeasesReleased: 5,
+    workerExecutionsPerformed: 0,
+    toolExecutionsPerformed: 0,
+    queueRowsCleanedUp: 5,
+    queueRowsPersistedAfterCleanup: 0,
+    serviceRoleBoundaryRef:
+      'private://ai-graphics/cpu-static/service-role-boundary/non-production-claim-dispatch-smoke',
+    privateEvidenceRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/evidence.json',
+    telemetryRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/telemetry.json',
+    leaseAuditRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/lease-audit.json',
+    cleanupProofRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/cleanup.json',
+    rollbackRef:
+      'private://ai-graphics/cpu-static/worker-claim-dispatch-smoke/rollback.md',
+    sourceQueueWriteSmokeProofDecision:
+      'ai_graphics_external_agent_cpu_static_private_worker_non_production_service_role_queue_write_smoke_proof_validator_prepared_with_runtime_blocks',
+    sourceQueueWriteSmokeProofAccepted: true,
+    sourceQueueWriteSmokeJobBatchId: 'job-batch-ai-graphics-cpu-static-queue-smoke-0001',
+    sourceQueueWriteSmokeJobIds: [
+      'job-ai-graphics-cpu-static-queue-smoke-d3',
+      'job-ai-graphics-cpu-static-queue-smoke-vega-lite',
+      'job-ai-graphics-cpu-static-queue-smoke-vega',
+      'job-ai-graphics-cpu-static-queue-smoke-svgdotjs',
+      'job-ai-graphics-cpu-static-queue-smoke-viz-js',
+    ],
+    sourceQueueWriteSmokeIdempotencyPrefix: 'ai_graphics_cpu_static_queue_write_smoke_0001',
+    liveWorkerClaimAndDispatchSmokeExecutedNow: true,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    gpuRuntimeShouldStartNow: false,
+    externalAgentExecutableNowTools: 0,
+    runtimeReadyNow: false,
+    externalBetaReadyNow: false,
+    productionReadyNow: false,
+  }, null, 2)}\n`)
+  const output = execFileSync(
+    'npm',
+    [
+      'run',
+      '--silent',
+      workerClaimAndDispatchSmokeProofScriptName,
+      '--',
+      '--source-service-role-queue-write-smoke-proof-packet',
+      sourceQueueProofPath,
+      '--external-agent-cpu-static-worker-claim-and-dispatch-smoke-result',
+      smokeResultPath,
+      '--print-only',
+    ],
+    {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+    },
+  )
+  const proofPath = path.join(tempDir, 'accepted-worker-claim-dispatch-smoke-proof.json')
+  fs.writeFileSync(proofPath, output)
+  return proofPath
+}
+
+function buildAcceptedToolExecutionDryRunProofPacket(sourceClaimDispatchProofPath) {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reeditpro-ai-graphics-agent-gate-dry-run-'))
+  const output = execFileSync(
+    'npm',
+    [
+      'run',
+      '--silent',
+      toolExecutionDryRunProofScriptName,
+      '--',
+      '--source-worker-claim-and-dispatch-smoke-proof-packet',
+      sourceClaimDispatchProofPath,
+    ],
+    {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+    },
+  )
+  const proofPath = path.join(tempDir, 'accepted-tool-execution-dry-run-proof.json')
+  fs.writeFileSync(proofPath, output)
+  return proofPath
+}
+
+function buildAcceptedControlledToolExecutionProofPacket(sourceDryRunProofPath) {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reeditpro-ai-graphics-agent-gate-controlled-'))
+  const proofPath = path.join(tempDir, 'accepted-controlled-tool-execution-proof.json')
+  const evalSource = `
+    import fs from 'node:fs';
+    import { buildAiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExecutionProof } from './server/tool-registry/ai-graphics-external-agent-cpu-static-private-worker-controlled-tool-execution-proof.ts';
+    const dryRun = JSON.parse(fs.readFileSync(${JSON.stringify(sourceDryRunProofPath)}, 'utf8'));
+    const phase0 = JSON.parse(fs.readFileSync('docs/tool-intelligence/ai-graphics/cpu-static-execution-proof-phase-0.json', 'utf8'));
+    const report = buildAiGraphicsExternalAgentCpuStaticPrivateWorkerControlledToolExecutionProof({
+      sourceToolExecutionDryRunProofReport: dryRun,
+      sourcePhase0Report: phase0,
+    });
+    console.log(JSON.stringify(report, null, 2));
+  `
+  const output = execFileSync('npx', ['tsx', '-e', evalSource], {
+    cwd: root,
+    encoding: 'utf8',
+    maxBuffer: 20 * 1024 * 1024,
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  })
+  fs.writeFileSync(proofPath, output)
+  return proofPath
+}
+
+function runBlockedReadinessCases() {
+  const output = execFileSync(
+    'npx',
+    [
+      'tsx',
+      '-e',
+      [
+        "import { listAiGraphicsExternalBetaToolCallBlockedReadinessCases } from './server/routes/ai-graphics-external-beta-tool-call-routes.ts'",
+        'console.log(JSON.stringify(listAiGraphicsExternalBetaToolCallBlockedReadinessCases()))',
+      ].join('; '),
+    ],
+    {
+      cwd: root,
+      encoding: 'utf8',
+      maxBuffer: 20 * 1024 * 1024,
+      env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+    },
+  )
+  return JSON.parse(output)
+}
+
+function assertFalseBooleans(label, booleans) {
+  for (const key of falseBooleanKeys) {
+    if (booleans?.[key] !== false) {
+      fail(`${label}_${key}_not_false`)
+    }
+  }
+}
+
+function assertTrueBooleans(label, booleans) {
+  for (const key of trueBooleanKeys) {
+    if (booleans?.[key] !== true) {
+      fail(`${label}_${key}_not_true`)
+    }
+  }
+}
+
+function assertToolCoverage(label, tools) {
+  if (!Array.isArray(tools)) {
+    fail(`${label}_tools_not_array`)
+    return
+  }
+  if (tools.length !== 21) fail(`${label}_tool_count_not_21`)
+  for (const toolId of allTools) {
+    if (!tools.some((tool) => tool.toolId === toolId || tool === toolId)) {
+      fail(`${label}_missing_tool:${toolId}`)
+    }
+  }
+}
+
+function assertRuntimeRows(label, rows) {
+  if (!Array.isArray(rows)) {
+    fail(`${label}_rows_not_array`)
+    return
+  }
+  for (const row of rows) {
+    const gpuTool = gpuTools.has(row.toolId)
+    const gpuScopedRuntimeProofReady =
+      gpuScopedRuntimeProofReadyTools.has(row.toolId)
+    const gpuScopedRuntimeBlocked =
+      gpuScopedRuntimeBlockedTools.has(row.toolId)
+    if (gpuTool) {
+      if (gpuScopedRuntimeProofReady) {
+        if (row.executionAllowedNow !== true) {
+          fail(`${label}_${row.toolId}_gpu_execution_not_true_after_scoped_proof`)
+        }
+      } else if (row.executionAllowedNow !== false) {
+        fail(`${label}_${row.toolId}_gpu_execution_not_false`)
+      }
+    } else if (row.executionAllowedNow !== true) {
+      fail(`${label}_${row.toolId}_execution_not_true`)
+    }
+    if (row.properlyInstalledForPlannedSurface !== true) {
+      fail(`${label}_${row.toolId}_proper_install_not_true`)
+    }
+    if (row.externalBetaCallableInstallReadyNow !== false) {
+      fail(`${label}_${row.toolId}_external_beta_callable_install_not_false`)
+    }
+    if (row.runtimeReadyNow !== false) {
+      fail(`${label}_${row.toolId}_runtime_ready_not_false`)
+    }
+    if (!row.installSurface) {
+      fail(`${label}_${row.toolId}_install_surface_missing`)
+    }
+    if (row.gpuRuntimeShouldStartNow !== false) {
+      fail(`${label}_${row.toolId}_gpu_runtime_should_start_not_false`)
+    }
+    if (gpuTool) {
+      const expectedBlocker = gpuScopedRuntimeProofReady
+        ? 'external_agent_execution_gate_gpu_model_scoped_private_runtime_proof_ready'
+        : 'external_agent_execution_gate_gpu_model_runtime_proof_required'
+      if (row.currentBlocker !== expectedBlocker) {
+        fail(`${label}_${row.toolId}_gpu_runtime_proof_blocker_mismatch`)
+      }
+    } else if (row.currentBlocker !== 'external_agent_execution_gate_scoped_controlled_route_ready') {
+      fail(`${label}_${row.toolId}_scoped_route_blocker_mismatch`)
+    }
+    if (
+      (!gpuTool || gpuScopedRuntimeProofReady) &&
+      (!Array.isArray(row.requiredBeforeExecution) || row.requiredBeforeExecution.length !== 0)
+    ) {
+      fail(`${label}_${row.toolId}_required_before_execution_not_empty`)
+    }
+    if (gpuTool && row.gpuRequiredForRuntime !== true) {
+      fail(`${label}_${row.toolId}_gpu_required_not_true`)
+    }
+    if (!gpuTool && row.gpuRequiredForRuntime !== false) {
+      fail(`${label}_${row.toolId}_gpu_required_not_false`)
+    }
+    if (gpuTool) {
+      if (typeof row.gpuModelUnblockPlanStatus !== 'string') {
+        fail(`${label}_${row.toolId}_missing_gpu_unblock_plan`)
+      }
+      if (typeof row.nextExternalAgentAction !== 'string') {
+        fail(`${label}_${row.toolId}_missing_next_external_agent_action`)
+      }
+      if (row.nativeGpuRuntimeProofRequired !== true) {
+        fail(`${label}_${row.toolId}_native_gpu_proof_required_not_true`)
+      }
+      if (row.nativeGpuRuntimeProofAccepted !== false) {
+        fail(`${label}_${row.toolId}_native_gpu_proof_accepted_not_false`)
+      }
+      if (row.gpuModelProofRefQueueAdmissionStatus !==
+          'gpu_model_proof_ref_queue_admission_accepted_runtime_still_blocked') {
+        fail(`${label}_${row.toolId}_gpu_proof_ref_queue_admission_status_mismatch`)
+      }
+      if (row.gpuModelProofRefQueueAdmissionAcceptedWithProvidedEvidence !== true) {
+        fail(`${label}_${row.toolId}_gpu_proof_ref_queue_admission_not_true`)
+      }
+      if (row.gpuModelRuntimeJobAdmissionReadyWithProvidedProofRefs !== true) {
+        fail(`${label}_${row.toolId}_gpu_runtime_job_admission_with_refs_not_true`)
+      }
+      if (row.gpuModelProofRefMockWorkerClaimedWithProvidedEvidence !== true) {
+        fail(`${label}_${row.toolId}_gpu_mock_worker_claim_not_true`)
+      }
+      if (row.gpuRuntimeStartAllowedForAcceptedExternalBetaJobWithProofRefs !== true) {
+        fail(`${label}_${row.toolId}_gpu_start_allowed_with_refs_not_true`)
+      }
+      if (row.gpuModelRuntimeQueueServiceBridgeStatus !==
+          'gpu_model_runtime_queue_service_bridge_accepted_controlled_adapter_ready') {
+        fail(`${label}_${row.toolId}_gpu_runtime_queue_service_bridge_status_mismatch`)
+      }
+      if (row.gpuModelRuntimeQueueServiceBridgeAcceptedWithProvidedEvidence !== true) {
+        fail(`${label}_${row.toolId}_gpu_runtime_queue_service_bridge_not_true`)
+      }
+      if (row.gpuModelRuntimeQueueServiceBridgeMockJobAcceptedWithProvidedEvidence !== true) {
+        fail(`${label}_${row.toolId}_gpu_runtime_queue_service_bridge_job_not_true`)
+      }
+      if (row.gpuModelRuntimeQueueServiceBridgeMockWorkerClaimAcceptedWithProvidedEvidence !== true) {
+        fail(`${label}_${row.toolId}_gpu_runtime_queue_service_bridge_claim_not_true`)
+      }
+      if (row.gpuModelRuntimeQueueServiceBridgeKeepsGpuRuntimeIdle !== true) {
+        fail(`${label}_${row.toolId}_gpu_runtime_queue_service_bridge_idle_not_true`)
+      }
+      if (
+        gpuScopedRuntimeBlocked &&
+        (!Array.isArray(row.requiredBeforeExecution) ||
+          !row.requiredBeforeExecution.some((item) => /native L4 GPU runtime proof/.test(item)))
+      ) {
+        fail(`${label}_${row.toolId}_missing_native_gpu_requirement`)
+      }
+      if (gpuModelWeightTools.has(row.toolId)) {
+        if (row.modelWeightPrivateEvidenceRequired !== true) {
+          fail(`${label}_${row.toolId}_model_weight_private_evidence_required_not_true`)
+        }
+        if (row.modelWeightPrivateEvidenceAccepted !== false) {
+          fail(`${label}_${row.toolId}_model_weight_private_evidence_accepted_not_false`)
+        }
+        if (
+          row.gpuModelExternalBetaReadinessBlocker !==
+          (gpuScopedRuntimeProofReady
+            ? null
+            : 'private_model_weight_evidence_and_native_gpu_runtime_proof_pending')
+        ) {
+          fail(`${label}_${row.toolId}_model_weight_blocker_mismatch`)
+        }
+      }
+      if (gpuNativeProofOnlyTools.has(row.toolId)) {
+        if (row.modelWeightPrivateEvidenceRequired !== false) {
+          fail(`${label}_${row.toolId}_model_weight_private_evidence_required_not_false`)
+        }
+        if (row.modelWeightPrivateEvidenceAccepted !== false) {
+          fail(`${label}_${row.toolId}_model_weight_private_evidence_accepted_not_false`)
+        }
+        if (row.modelWeightExistingInternalEvidenceReadyForManifestAuthoring !== false) {
+          fail(`${label}_${row.toolId}_existing_evidence_manifest_authoring_not_false`)
+        }
+        if (row.modelWeightSourceReviewStillRequired !== false) {
+          fail(`${label}_${row.toolId}_source_review_still_required_not_false`)
+        }
+        if (
+          row.gpuModelExternalBetaReadinessBlocker !==
+          (gpuScopedRuntimeProofReady ? null : 'native_gpu_runtime_proof_pending')
+        ) {
+          fail(`${label}_${row.toolId}_native_gpu_blocker_mismatch`)
+        }
+      }
+    } else {
+      if (row.gpuModelExternalBetaReadinessBlocker !== null) {
+        fail(`${label}_${row.toolId}_unexpected_gpu_blocker`)
+      }
+      if (row.nativeGpuRuntimeProofRequired !== false) {
+        fail(`${label}_${row.toolId}_unexpected_native_gpu_proof_required`)
+      }
+      if (row.modelWeightPrivateEvidenceRequired !== false) {
+        fail(`${label}_${row.toolId}_unexpected_model_weight_evidence_required`)
+      }
+      if (row.gpuModelProofRefQueueAdmissionStatus !== null) {
+        fail(`${label}_${row.toolId}_unexpected_gpu_proof_ref_queue_status`)
+      }
+      if (row.gpuModelProofRefQueueAdmissionAcceptedWithProvidedEvidence !== false) {
+        fail(`${label}_${row.toolId}_unexpected_gpu_proof_ref_queue_admission`)
+      }
+      if (row.gpuModelRuntimeJobAdmissionReadyWithProvidedProofRefs !== false) {
+        fail(`${label}_${row.toolId}_unexpected_gpu_runtime_job_admission`)
+      }
+      if (row.gpuModelProofRefMockWorkerClaimedWithProvidedEvidence !== false) {
+        fail(`${label}_${row.toolId}_unexpected_gpu_mock_worker_claim`)
+      }
+      if (row.gpuRuntimeStartAllowedForAcceptedExternalBetaJobWithProofRefs !== false) {
+        fail(`${label}_${row.toolId}_unexpected_gpu_start_allowed_with_refs`)
+      }
+      if (row.gpuModelRuntimeQueueServiceBridgeStatus !== null) {
+        fail(`${label}_${row.toolId}_unexpected_gpu_runtime_queue_bridge_status`)
+      }
+      if (row.gpuModelRuntimeQueueServiceBridgeAcceptedWithProvidedEvidence !== false) {
+        fail(`${label}_${row.toolId}_unexpected_gpu_runtime_queue_bridge_accepted`)
+      }
+      if (row.gpuModelRuntimeQueueServiceBridgeMockJobAcceptedWithProvidedEvidence !== false) {
+        fail(`${label}_${row.toolId}_unexpected_gpu_runtime_queue_bridge_job`)
+      }
+      if (row.gpuModelRuntimeQueueServiceBridgeMockWorkerClaimAcceptedWithProvidedEvidence !== false) {
+        fail(`${label}_${row.toolId}_unexpected_gpu_runtime_queue_bridge_claim`)
+      }
+      if (row.gpuModelRuntimeQueueServiceBridgeKeepsGpuRuntimeIdle !== false) {
+        fail(`${label}_${row.toolId}_unexpected_gpu_runtime_queue_bridge_idle`)
+      }
+    }
+  }
+}
+
+for (const file of requiredFiles) read(file)
+
+const packageJson = json('package.json')
+if (packageJson.scripts?.[runScriptName] !== runScriptCommand) {
+  fail('package_run_script_mismatch')
+}
+if (packageJson.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
+  fail('package_diagnostic_script_mismatch')
+}
+if (
+  packageJson.scripts?.[serviceRoleQueueWriteSmokeProofScriptName] !==
+  'tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-proof.ts'
+) {
+  fail('service_role_queue_write_smoke_proof_script_mismatch')
+}
+if (
+  packageJson.scripts?.[workerClaimAndDispatchSmokeProofScriptName] !==
+  'tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-claim-and-dispatch-smoke-proof.ts'
+) {
+  fail('worker_claim_dispatch_smoke_proof_script_mismatch')
+}
+if (
+  packageJson.scripts?.[toolExecutionDryRunProofScriptName] !==
+  'tsx server/cli/ai-graphics-external-agent-cpu-static-private-worker-tool-execution-dry-run-proof.ts'
+) {
+  fail('tool_execution_dry_run_proof_script_mismatch')
+}
+if (
+  packageJson.scripts?.[controlledWorkerRouteExecutionSmokeScriptName] !==
+  'tsx server/cli/ai-graphics-external-agent-controlled-worker-route-execution-smoke.ts'
+) {
+  fail('controlled_worker_route_execution_smoke_script_mismatch')
+}
+if (
+  packageJson.scripts?.[`${controlledWorkerRouteExecutionSmokeScriptName}:diagnostics`] !==
+  'node scripts/validation/ai-graphics-external-agent-controlled-worker-route-execution-smoke-diagnostics.mjs'
+) {
+  fail('controlled_worker_route_execution_smoke_diagnostic_script_mismatch')
+}
+if (
+  packageJson.scripts?.['ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge'] !==
+  'tsx server/cli/ai-graphics-external-agent-gpu-model-runtime-queue-service-bridge.ts'
+) {
+  fail('gpu_model_runtime_queue_service_bridge_script_mismatch')
+}
+if (
+  packageJson.scripts?.['ai-graphics:external-agent-gpu-model-runtime-queue-service-bridge:diagnostics'] !==
+  'node scripts/validation/ai-graphics-external-agent-gpu-model-runtime-queue-service-bridge-diagnostics.mjs'
+) {
+  fail('gpu_model_runtime_queue_service_bridge_diagnostic_script_mismatch')
+}
+if (
+  packageJson.scripts?.['ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness'] !==
+  'tsx server/cli/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness.ts'
+) {
+  fail('gpu_model_local_dev_runtime_execution_harness_script_mismatch')
+}
+if (
+  packageJson.scripts?.['ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness:diagnostics'] !==
+  'node scripts/validation/ai-graphics-external-agent-gpu-model-local-dev-runtime-execution-harness-diagnostics.mjs'
+) {
+  fail('gpu_model_local_dev_runtime_execution_harness_diagnostic_script_mismatch')
+}
+
+const indexSource = read('server/tool-registry/index.ts')
+if (!indexSource.includes("export * from './ai-graphics-external-agent-execution-gate'")) {
+  fail('registry_export_missing')
+}
+
+const docs = json('docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json')
+const docsMd = read('docs/tool-intelligence/ai-graphics/external-agent-execution-gate.md')
+const routeSource = read('server/routes/ai-graphics-external-beta-tool-call-routes.ts')
+if (docs.decision !== decision) fail('docs_decision_mismatch')
+if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
+if (docs.counts?.totalAiGraphicsTools !== 21) fail('docs_total_tools_not_21')
+if (docs.counts?.totalProductFacingCapabilities !== 12) fail('docs_capability_count_not_12')
+if (docs.counts?.gpuRuntimeTargetedTools !== 8) fail('docs_gpu_tools_not_8')
+if (docs.counts?.properlyInstalledForPlannedSurfaceTools !== 21) {
+  fail('docs_properly_installed_for_planned_surface_not_21')
+}
+if (docs.counts?.runtimeProofPassedButToolCallBlockedTools !== 13) {
+  fail('docs_runtime_proof_passed_blocked_not_13')
+}
+if (docs.counts?.nativeGpuRuntimeProofPendingTools !== 8) {
+  fail('docs_native_gpu_runtime_proof_pending_not_8')
+}
+if (docs.counts?.modelWeightManifestPendingTools !== 5) {
+  fail('docs_model_weight_manifest_pending_not_5')
+}
+if (docs.counts?.modelWeightExistingEvidenceBackedManifestAuthoringReadyTools !== 3) {
+  fail('docs_model_weight_existing_evidence_manifest_authoring_ready_not_3')
+}
+if (docs.counts?.modelWeightSourceReviewBlockedTools !== 2) {
+  fail('docs_model_weight_source_review_blocked_not_2')
+}
+if (docs.counts?.reviewedPrivateModelWeightManifestAcceptedTools !== 0) {
+  fail('docs_reviewed_private_model_weight_manifest_accepted_not_0')
+}
+if (docs.counts?.gpuFoundationNativeProofOnlyTools !== 3) {
+  fail('docs_gpu_foundation_native_proof_only_not_3')
+}
+if (docs.counts?.externalBetaCallableInstallReadyNowTools !== 0) {
+  fail('docs_external_beta_callable_install_ready_not_0')
+}
+if (docs.counts?.controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence !== 21) {
+  fail('docs_controlled_on_demand_ready_not_21')
+}
+if (docs.counts?.controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence !== 21) {
+  fail('docs_controlled_on_demand_callable_not_21')
+}
+if (docs.counts?.controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence !== 21) {
+  fail('docs_controlled_on_demand_runtime_ready_not_21')
+}
+if (docs.counts?.cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTools !== 5) {
+  fail('docs_cpu_static_live_adapter_queue_write_proof_not_5')
+}
+if (docs.counts?.cpuStaticMockQueueServiceValidationPassedTools !== 5) {
+  fail('docs_cpu_static_mock_queue_service_validation_not_5')
+}
+if (docs.counts?.cpuStaticExactExecutionAdmissionReadyTools !== 5) {
+  fail('docs_cpu_static_exact_execution_admission_ready_not_5')
+}
+if (docs.counts?.cpuStaticExactRequestEnvelopeAcceptedTools !== 5) {
+  fail('docs_cpu_static_exact_request_envelope_not_5')
+}
+if (docs.counts?.cpuStaticApprovedPlanSnapshotAcceptedTools !== 5) {
+  fail('docs_cpu_static_approved_plan_snapshot_not_5')
+}
+if (docs.counts?.cpuStaticPrivateArtifactManifestAcceptedTools !== 5) {
+  fail('docs_cpu_static_private_artifact_manifest_not_5')
+}
+if (docs.counts?.cpuStaticWorkerAcceptedRequestSchemaAcceptedTools !== 5) {
+  fail('docs_cpu_static_worker_schema_not_5')
+}
+if (docs.counts?.externalAgentExactRequestAdmittedWithProvidedEvidenceTools !== 5) {
+  fail('docs_external_agent_exact_request_admitted_not_5')
+}
+if (docs.counts?.cpuStaticAdapterInvocationEnqueueAdmissionReadyTools !== 5) {
+  fail('docs_cpu_static_adapter_invocation_enqueue_admission_ready_not_5')
+}
+if (docs.counts?.cpuStaticAdapterInvocationEnvelopePreparedTools !== 5) {
+  fail('docs_cpu_static_adapter_invocation_envelope_prepared_not_5')
+}
+if (docs.counts?.cpuStaticWorkerEnqueuePayloadPreparedTools !== 5) {
+  fail('docs_cpu_static_worker_enqueue_payload_prepared_not_5')
+}
+if (docs.counts?.cpuStaticProductionWorkerJobPayloadAcceptedTools !== 5) {
+  fail('docs_cpu_static_production_worker_job_payload_not_5')
+}
+if (docs.counts?.externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools !== 5) {
+  fail('docs_external_agent_adapter_invocation_enqueue_admitted_not_5')
+}
+if (docs.counts?.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools !== 5) {
+  fail('docs_cpu_static_service_role_queue_write_smoke_preflight_ready_not_5')
+}
+if (docs.counts?.externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools !== 5) {
+  fail('docs_external_agent_service_role_queue_write_smoke_preflight_evidence_not_5')
+}
+if (docs.counts?.cpuStaticNonProductionEvidenceSequencePreparedTools !== 5) {
+  fail('docs_cpu_static_non_production_evidence_sequence_prepared_not_5')
+}
+if (docs.counts?.externalAgentCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocksTools !== 5) {
+  fail('docs_external_agent_non_production_evidence_sequence_prepared_not_5')
+}
+if (docs.counts?.cpuStaticNonProductionEvidenceSequenceExecutedNowTools !== 0) {
+  fail('docs_non_production_evidence_sequence_executed_now_not_0')
+}
+if (docs.counts?.cpuStaticNonProductionEvidenceSequenceLiveQueueWritesNow !== 0) {
+  fail('docs_non_production_evidence_sequence_live_queue_writes_not_0')
+}
+if (docs.counts?.cpuStaticNonProductionEvidenceSequenceLiveWorkerClaimsNow !== 0) {
+  fail('docs_non_production_evidence_sequence_live_worker_claims_not_0')
+}
+if (docs.counts?.cpuStaticNonProductionEvidenceSequenceLiveWorkerDispatchHandoffsNow !== 0) {
+  fail('docs_non_production_evidence_sequence_live_worker_dispatches_not_0')
+}
+if (docs.counts?.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_cpu_static_service_role_queue_write_smoke_proof_not_0')
+}
+if (docs.counts?.cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_cpu_static_service_role_queue_writes_accepted_not_0')
+}
+if (docs.counts?.nonProductionServiceRoleQueueRowsPersistedAfterCleanup !== 0) {
+  fail('docs_service_role_queue_rows_persisted_after_cleanup_not_0')
+}
+if (docs.counts?.cpuStaticSatoriBlockedPendingApprovedFontFixtureTools !== 0) {
+  fail('docs_cpu_static_satori_blocked_not_0')
+}
+if (docs.counts?.cpuStaticSatoriFontRuntimeProofAcceptedWithProvidedEvidenceTools !== 1) {
+  fail('docs_cpu_static_satori_font_runtime_proof_not_1')
+}
+if (docs.counts?.cpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidenceTools !== 6) {
+  fail('docs_cpu_static_local_runtime_proofs_not_6')
+}
+if (docs.counts?.cpuStaticNonCpuStaticDeferredTools !== 15) {
+  fail('docs_cpu_static_non_cpu_static_deferred_not_15')
+}
+if (docs.counts?.nonProductionServiceRoleQueueWriteSmokeRequiredTools !== 5) {
+  fail('docs_non_production_service_role_queue_smoke_required_not_5')
+}
+if (docs.counts?.nonProductionServiceRoleQueueWriteSmokeResultRequiredTools !== 5) {
+  fail('docs_non_production_service_role_queue_smoke_result_required_not_5')
+}
+if (docs.counts?.adapterInvocationAndWorkerEnqueueAdmissionRequiredTools !== 0) {
+  fail('docs_adapter_invocation_worker_enqueue_admission_required_not_0')
+}
+if (docs.counts?.workerClaimAndDispatchSmokeProofRequiredTools !== 0) {
+  fail('docs_worker_claim_dispatch_smoke_required_not_0')
+}
+if (docs.counts?.cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_worker_claim_dispatch_smoke_proof_not_0')
+}
+if (docs.counts?.cpuStaticWorkerClaimsAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_worker_claims_accepted_not_0')
+}
+if (docs.counts?.cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_worker_dispatch_handoffs_not_0')
+}
+if (docs.counts?.cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidenceTools !== 0) {
+  fail('docs_worker_dispatch_leases_not_0')
+}
+if (docs.counts?.toolExecutionDryRunProofRequiredTools !== 0) {
+  fail('docs_tool_execution_dry_run_required_not_0')
+}
+if (docs.counts?.cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidenceTools !== 0) {
+  fail('docs_tool_execution_dry_run_proof_prepared_not_0')
+}
+if (docs.counts?.cpuStaticDryToolExecutionContractsPreparedTools !== 0) {
+  fail('docs_dry_tool_execution_contracts_not_0')
+}
+if (docs.counts?.controlledToolExecutionProofRequiredTools !== 0) {
+  fail('docs_controlled_tool_execution_proof_required_not_0')
+}
+if (docs.counts?.cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('docs_controlled_tool_execution_proof_not_0')
+}
+if (docs.counts?.cpuStaticPhase0ExecutionEvidenceAcceptedTools !== 0) {
+  fail('docs_phase0_execution_evidence_not_0')
+}
+if (docs.counts?.disabledRouteBlockedDetailCasesWithProvidedEvidence !== 21) {
+  fail('docs_disabled_route_blocked_detail_cases_not_21')
+}
+if (docs.counts?.externalAgentExecutableNowTools !== 19) fail('docs_executable_now_not_19')
+if (docs.counts?.scopedControlledRouteExecutableNowTools !== 19) {
+  fail('docs_scoped_controlled_route_executable_not_19')
+}
+if (docs.counts?.scopedControlledRouteCpuStaticExecutableNowTools !== 6) {
+  fail('docs_scoped_controlled_route_cpu_static_executable_not_6')
+}
+if (docs.counts?.scopedControlledRouteBrowserRuntimeExecutableNowTools !== 7) {
+  fail('docs_scoped_controlled_route_browser_runtime_executable_not_7')
+}
+if (docs.counts?.scopedControlledRouteGpuModelBlockedTools !== 2) {
+  fail('docs_scoped_controlled_route_gpu_model_blocked_not_2')
+}
+if (docs.counts?.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 19) {
+  fail('docs_route_executable_with_readiness_probe_not_19')
+}
+if (docs.counts?.cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence !== 6) {
+  fail('docs_cpu_static_route_executable_with_readiness_probe_not_6')
+}
+if (docs.counts?.browserRuntimeControlledRouteExecutableNowToolsWithReadinessProbeEvidence !== 7) {
+  fail('docs_browser_route_executable_with_readiness_probe_not_7')
+}
+if (docs.counts?.controlledCanonicalRouteExecutedToolsWithProvidedEvidence !== 13) {
+  fail('docs_controlled_canonical_route_executed_not_13')
+}
+if (docs.counts?.cpuStaticControlledCanonicalRouteExecutedToolsWithProvidedEvidence !== 6) {
+  fail('docs_cpu_static_controlled_canonical_route_executed_not_6')
+}
+if (docs.counts?.browserRuntimeControlledCanonicalRouteExecutedToolsWithProvidedEvidence !== 7) {
+  fail('docs_browser_runtime_controlled_canonical_route_executed_not_7')
+}
+if (docs.counts?.localControlledPackageExecutionPerformedToolsWithProvidedEvidence !== 13) {
+  fail('docs_local_controlled_package_execution_not_13')
+}
+if (docs.counts?.controlledAdapterExecutedToolsWithProvidedEvidence !== 13) {
+  fail('docs_controlled_adapter_executed_not_13')
+}
+if (docs.counts?.controlledWorkerRouteExecutionSmokeAcceptedToolsWithProvidedEvidence !== 13) {
+  fail('docs_controlled_worker_route_smoke_accepted_not_13')
+}
+if (docs.counts?.externalAgentControlledWorkerRouteExecutableToolsWithProvidedEvidence !== 13) {
+  fail('docs_controlled_worker_route_executable_not_13')
+}
+if (docs.counts?.controlledWorkerRouteMockQueueInsertedJobsWithProvidedEvidence !== 13) {
+  fail('docs_controlled_worker_route_mock_queue_jobs_not_13')
+}
+if (docs.counts?.controlledWorkerRouteMockWorkerClaimsCreatedWithProvidedEvidence !== 13) {
+  fail('docs_controlled_worker_route_claims_not_13')
+}
+if (docs.counts?.controlledWorkerRouteMockWorkerEventsRecordedWithProvidedEvidence !== 13) {
+  fail('docs_controlled_worker_route_events_not_13')
+}
+if (docs.counts?.controlledWorkerRouteExecutionPerformedToolsWithProvidedEvidence !== 13) {
+  fail('docs_controlled_worker_route_executions_not_13')
+}
+if (docs.counts?.gpuModelRuntimeAdmissionEvaluatedToolsWithProvidedEvidence !== 8) {
+  fail('docs_gpu_model_runtime_admission_evaluated_not_8')
+}
+if (docs.counts?.gpuModelRuntimeAdmissionBlockedToolsWithProvidedEvidence !== 0) {
+  fail('docs_gpu_model_runtime_admission_blocked_not_0')
+}
+if (docs.counts?.gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProvidedEvidence !== 0) {
+  fail('docs_gpu_runtime_start_allowed_for_external_beta_job_not_0')
+}
+if (docs.counts?.gpuModelProofRefQueueAdmissionAcceptedToolsWithProvidedEvidence !== 8) {
+  fail('docs_gpu_proof_ref_queue_admission_accepted_not_8')
+}
+if (docs.counts?.gpuModelRuntimeAdmissionReadyWithProvidedProofRefsTools !== 8) {
+  fail('docs_gpu_runtime_admission_ready_with_refs_not_8')
+}
+if (docs.counts?.gpuModelProofRefNativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence !== 8) {
+  fail('docs_gpu_proof_ref_native_gpu_proof_not_8')
+}
+if (docs.counts?.gpuModelProofRefModelWeightManifestAcceptedToolsWithProvidedEvidence !== 5) {
+  fail('docs_gpu_proof_ref_model_weight_manifest_not_5')
+}
+if (docs.counts?.gpuModelProofRefMockQueueInsertedJobsWithProvidedEvidence !== 8) {
+  fail('docs_gpu_proof_ref_mock_queue_jobs_not_8')
+}
+if (docs.counts?.gpuModelProofRefMockWorkerClaimsCreatedWithProvidedEvidence !== 8) {
+  fail('docs_gpu_proof_ref_mock_worker_claims_not_8')
+}
+if (docs.counts?.gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProofRefEvidence !== 8) {
+  fail('docs_gpu_start_allowed_with_proof_refs_not_8')
+}
+if (docs.counts?.gpuModelProofRefQueueAdmissionGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('docs_gpu_proof_ref_queue_gpu_should_start_not_0')
+}
+if (docs.counts?.gpuModelProofRefQueueAdmissionToolExecutionPerformedToolsWithProvidedEvidence !== 0) {
+  fail('docs_gpu_proof_ref_queue_tool_execution_not_0')
+}
+if (docs.counts?.externalAgentGpuModelRuntimeQueueServiceBridgeAcceptedToolsWithProvidedEvidence !== 8) {
+  fail('docs_gpu_runtime_queue_service_bridge_accepted_not_8')
+}
+if (docs.counts?.externalAgentGpuModelRuntimeQueueServiceBridgeMockJobsWithProvidedEvidence !== 8) {
+  fail('docs_gpu_runtime_queue_service_bridge_jobs_not_8')
+}
+if (docs.counts?.externalAgentGpuModelRuntimeQueueServiceBridgeMockWorkerClaimsWithProvidedEvidence !== 8) {
+  fail('docs_gpu_runtime_queue_service_bridge_claims_not_8')
+}
+if (docs.counts?.externalAgentGpuModelRuntimeQueueServiceBridgeLiveQueueWritePerformedToolsWithProvidedEvidence !== 0) {
+  fail('docs_gpu_runtime_queue_service_bridge_live_queue_write_not_0')
+}
+if (docs.counts?.externalAgentGpuModelRuntimeQueueServiceBridgeWorkerDispatchPerformedToolsWithProvidedEvidence !== 0) {
+  fail('docs_gpu_runtime_queue_service_bridge_worker_dispatch_not_0')
+}
+if (docs.counts?.externalAgentGpuModelRuntimeQueueServiceBridgeToolExecutionPerformedToolsWithProvidedEvidence !== 0) {
+  fail('docs_gpu_runtime_queue_service_bridge_tool_execution_not_0')
+}
+if (docs.counts?.externalAgentGpuModelRuntimeQueueServiceBridgeGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('docs_gpu_runtime_queue_service_bridge_gpu_start_not_0')
+}
+if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessAcceptedToolsWithProvidedEvidence !== 8) {
+  fail('docs_gpu_model_local_dev_harness_accepted_not_8')
+}
+if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessAdapterBranchInvokedToolsWithProvidedEvidence !== 8) {
+  fail('docs_gpu_model_local_dev_harness_adapter_branch_not_8')
+}
+if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessPrerequisiteCheckOnlyToolsWithProvidedEvidence !== 8) {
+  fail('docs_gpu_model_local_dev_harness_prerequisite_check_not_8')
+}
+if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence !== 6) {
+  fail('docs_gpu_model_local_dev_harness_executed_not_6')
+}
+if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessToolExecutionApprovedNowToolsWithProvidedEvidence !== 6) {
+  fail('docs_gpu_model_local_dev_harness_tool_execution_approved_not_6')
+}
+if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('docs_gpu_model_local_dev_harness_gpu_start_not_0')
+}
+if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessPublicArtifactCreatedToolsWithProvidedEvidence !== 0) {
+  fail('docs_gpu_model_local_dev_harness_public_artifact_not_0')
+}
+if (docs.counts?.mockQueueWorkerClaimSmokeAcceptedToolsWithProvidedEvidence !== 21) {
+  fail('docs_mock_queue_worker_claim_smoke_accepted_not_21')
+}
+if (docs.counts?.mockQueueInsertedJobsWithProvidedEvidence !== 21) {
+  fail('docs_mock_queue_inserted_jobs_not_21')
+}
+if (docs.counts?.mockWorkerClaimsCreatedWithProvidedEvidence !== 21) {
+  fail('docs_mock_worker_claims_created_not_21')
+}
+if (docs.counts?.mockWorkerLeaseSecondsWithProvidedEvidence !== 900) {
+  fail('docs_mock_worker_lease_seconds_not_900')
+}
+if (docs.counts?.mockQueueWorkerClaimLiveQueueWritePerformedToolsWithProvidedEvidence !== 0) {
+  fail('docs_mock_queue_worker_claim_live_queue_write_not_0')
+}
+if (docs.counts?.mockQueueWorkerClaimWorkerDispatchPerformedToolsWithProvidedEvidence !== 0) {
+  fail('docs_mock_queue_worker_claim_worker_dispatch_not_0')
+}
+if (docs.counts?.mockQueueWorkerClaimToolExecutionPerformedToolsWithProvidedEvidence !== 0) {
+  fail('docs_mock_queue_worker_claim_tool_execution_not_0')
+}
+if (docs.counts?.mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('docs_mock_queue_worker_claim_gpu_runtime_start_not_0')
+}
+if (docs.counts?.externalAgentToolAdapterAuthorizationAcceptedToolsWithProvidedEvidence !== 21) {
+  fail('docs_tool_adapter_authorization_accepted_not_21')
+}
+if (docs.counts?.externalAgentAdapterContractsAuthorizedWithRuntimeBlocksTools !== 21) {
+  fail('docs_tool_adapter_contracts_authorized_not_21')
+}
+if (docs.counts?.externalAgentAdapterCpuStaticContractsWithProvidedEvidence !== 6) {
+  fail('docs_tool_adapter_cpu_static_contracts_not_6')
+}
+if (docs.counts?.externalAgentAdapterBrowserRuntimeContractsWithProvidedEvidence !== 7) {
+  fail('docs_tool_adapter_browser_contracts_not_7')
+}
+if (docs.counts?.externalAgentAdapterGpuModelContractsWithProvidedEvidence !== 8) {
+  fail('docs_tool_adapter_gpu_contracts_not_8')
+}
+if (docs.counts?.externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence !== 21) {
+  fail('docs_tool_adapter_mapped_profiles_not_21')
+}
+if (docs.counts?.externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence !== 0) {
+  fail('docs_tool_adapter_invoke_now_not_0')
+}
+if (docs.counts?.externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence !== 19) {
+  fail('docs_tool_adapter_invoke_now_with_controlled_gpu_not_19')
+}
+if (docs.counts?.externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('docs_tool_adapter_gpu_start_not_0')
+}
+if (docs.counts?.gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence !== 0) {
+  fail('docs_gpu_model_route_blocked_with_readiness_probe_not_0')
+}
+if (docs.counts?.gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence !== 8) {
+  fail('docs_gpu_model_route_fail_closed_with_readiness_probe_not_8')
+}
+if (docs.counts?.gpuModelRuntimeUnblockPlanExposedToolsWithReadinessProbeEvidence !== 8) {
+  fail('docs_gpu_model_unblock_plan_with_readiness_probe_not_8')
+}
+if (docs.counts?.gpuModelNativeGpuProofRequiredToolsWithReadinessProbeEvidence !== 8) {
+  fail('docs_gpu_model_native_gpu_proof_required_with_readiness_probe_not_8')
+}
+if (docs.counts?.gpuModelPrivateEvidenceAndNativeGpuProofRequiredToolsWithReadinessProbeEvidence !== 5) {
+  fail('docs_gpu_model_private_evidence_required_with_readiness_probe_not_5')
+}
+if (docs.counts?.gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence !== 3) {
+  fail('docs_gpu_model_native_gpu_proof_only_with_readiness_probe_not_3')
+}
+if (docs.counts?.gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence !== 6) {
+  fail('docs_gpu_model_ready_after_current_evidence_not_6')
+}
+if (docs.counts?.routeReadinessProbeGpuRuntimeShouldStartNowTools !== 0) {
+  fail('docs_route_readiness_probe_gpu_runtime_should_start_not_0')
+}
+if (docs.counts?.apiRouteMountReadyToolsWithProvidedEvidence !== 21) {
+  fail('docs_route_mount_ready_tools_not_21')
+}
+if (docs.counts?.externalAgentControlledRouteMountFeatureFlagReadyTools !== 21) {
+  fail('docs_controlled_route_mount_feature_flag_ready_tools_not_21')
+}
+if (docs.counts?.externalAgentControlledRouteMountRequiredForScopedCallTools !== 19) {
+  fail('docs_controlled_route_mount_required_scoped_call_tools_not_19')
+}
+if (docs.counts?.apiRouteMountedNowTools !== 0) {
+  fail('docs_route_mounted_now_tools_not_0')
+}
+assertToolCoverage('docs', docs.tools)
+assertRuntimeRows('docs', docs.tools)
+assertTrueBooleans('docs', docs.booleans)
+assertFalseBooleans('docs', docs.booleans)
+
+for (const phrase of [
+  'fail-closed',
+  '21',
+  'GPU startup as on-demand only',
+  'route-mount readiness evidence',
+  'proper-install audit',
+  'properlyInstalledForPlannedSurfaceTools: `21`',
+  'externalBetaCallableInstallReadyNowTools: `0`',
+  'controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence: `21`',
+  'cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTools: `5`',
+  'cpuStaticMockQueueServiceValidationPassedTools: `5`',
+  'cpuStaticExactExecutionAdmissionReadyTools: `5`',
+  'externalAgentExactRequestAdmittedWithProvidedEvidenceTools: `5`',
+  'scopedControlledRouteExecutableNowTools: `19`',
+  'scopedControlledRouteCpuStaticExecutableNowTools: `6`',
+  'scopedControlledRouteBrowserRuntimeExecutableNowTools: `7`',
+  'scopedControlledRouteGpuModelBlockedTools: `2`',
+  'modelWeightExistingEvidenceBackedManifestAuthoringReadyTools: `3`',
+  'modelWeightSourceReviewBlockedTools: `2`',
+  'reviewedPrivateModelWeightManifestAcceptedTools: `0`',
+  'gpuFoundationNativeProofOnlyTools: `3`',
+  'agentCanExecute13ControlledRouteToolsNow',
+  'agentCanExecuteAll21ToolsNow=false',
+  'CPU/static adapter/enqueue admission accepted: `true`',
+  'cpuStaticAdapterInvocationEnqueueAdmissionReadyTools: `5`',
+  'externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools: `5`',
+  'CPU/static service-role queue-write smoke preflight accepted: `true`',
+  'cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools: `5`',
+  'externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools: `5`',
+  'guarded CPU/static non-production evidence sequence',
+  'cpuStaticNonProductionEvidenceSequencePreparedTools: `5`',
+  'externalAgentCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocksTools: `5`',
+  'cpuStaticNonProductionEvidenceSequenceExecutedNowTools: `0`',
+  evidenceSequenceCommand,
+  'CPU/static saved service-role queue-write smoke proof accepted: `false`',
+  'cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools: `0`',
+  'cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools: `0`',
+  'nonProductionServiceRoleQueueRowsPersistedAfterCleanup: `0`',
+  'adapterInvocationAndWorkerEnqueueAdmissionRequiredTools: `0`',
+  'nonProductionServiceRoleQueueWriteSmokeResultRequiredTools: `5`',
+  'workerClaimAndDispatchSmokeProofRequiredTools: `0`',
+  'CPU/static worker claim/dispatch smoke proof accepted: `false`',
+  'cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools: `0`',
+  'Satori font runtime proof accepted: `true`',
+  'cpuStaticSatoriBlockedPendingApprovedFontFixtureTools: `0`',
+  'cpuStaticSatoriFontRuntimeProofAcceptedWithProvidedEvidenceTools: `1`',
+  'cpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidenceTools: `6`',
+  'toolExecutionDryRunProofRequiredTools: `0`',
+  'CPU/static tool execution dry-run proof accepted: `false`',
+  'cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidenceTools: `0`',
+  'controlledToolExecutionProofRequiredTools: `0`',
+  'CPU/static controlled tool execution proof accepted: `false`',
+  'cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidenceTools: `0`',
+  controlledToolExecutionProofCommand,
+  'native GPU proof collection',
+  nativeGpuProofCollectionCommand,
+  'Satori font runtime proof diagnostics',
+  satoriFontProofCommand,
+  'browser runtime proof diagnostics',
+  browserRuntimeProofCommand,
+  'nonProductionServiceRoleQueueWriteSmokeRequiredTools: `5`',
+  'Representative disabled route blocked-detail cases covered: `21`',
+  'Controlled route-executable tools with readiness-probe evidence: `19`',
+  'CPU/static controlled route-executable tools with readiness-probe evidence: `6`',
+  'Browser runtime controlled route-executable tools with readiness-probe evidence: `7`',
+  'GPU/model route-admission blocked tools with readiness-probe evidence: `0`',
+  'GPU/model unblock plans exposed with readiness-probe evidence: `8`',
+  'GPU/model native GPU proof required with readiness-probe evidence: `8`',
+  'GPU/model private evidence plus native GPU proof required with readiness-probe evidence: `5`',
+  'GPU/model native GPU proof-only required with readiness-probe evidence: `3`',
+  'GPU/model tools ready for execution after current evidence: `6`',
+  'Native GPU proof only: `torch_torchvision`, `transformers`, and `kornia`',
+  'Private model-weight evidence plus native GPU proof: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`',
+  'Existing internal evidence ready for private manifest authoring: `sam2`, `birefnet`, and `real_esrgan`',
+  'Source/checksum review still required before private manifest authoring: `rembg` and `transparent_background`',
+  'Reviewed private model-weight manifests accepted now: `0`',
+  'gpuModelExternalBetaReadinessBlocker',
+  'modelWeightPrivateEvidenceRequired',
+  'Route readiness probe evidence is accepted',
+  routeReadinessProbeCommand,
+  'Controlled canonical route execution smoke accepted: `true`',
+  'controlledCanonicalRouteExecutedToolsWithProvidedEvidence: `13`',
+  'cpuStaticControlledCanonicalRouteExecutedToolsWithProvidedEvidence: `6`',
+  'browserRuntimeControlledCanonicalRouteExecutedToolsWithProvidedEvidence: `7`',
+  'localControlledPackageExecutionPerformedToolsWithProvidedEvidence: `13`',
+  'controlledAdapterExecutedToolsWithProvidedEvidence: `13`',
+  'Controlled worker-route execution smoke accepted: `true`',
+  'controlledWorkerRouteExecutionSmokeAcceptedToolsWithProvidedEvidence: `13`',
+  'externalAgentControlledWorkerRouteExecutableToolsWithProvidedEvidence: `13`',
+  'controlledWorkerRouteMockQueueInsertedJobsWithProvidedEvidence: `13`',
+  'controlledWorkerRouteMockWorkerClaimsCreatedWithProvidedEvidence: `13`',
+  'controlledWorkerRouteMockWorkerEventsRecordedWithProvidedEvidence: `13`',
+  'controlledWorkerRouteExecutionPerformedToolsWithProvidedEvidence: `13`',
+  controlledWorkerRouteExecutionSmokeCommand,
+  'gpuModelRuntimeAdmissionEvaluatedToolsWithProvidedEvidence: `8`',
+  'gpuModelRuntimeAdmissionBlockedToolsWithProvidedEvidence: `0`',
+  'gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProvidedEvidence: `0`',
+  'GPU/model proof-ref queue admission accepted: `true`',
+  'gpuModelProofRefQueueAdmissionAcceptedToolsWithProvidedEvidence: `8`',
+  'gpuModelRuntimeAdmissionReadyWithProvidedProofRefsTools: `8`',
+  'gpuModelProofRefNativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence: `8`',
+  'gpuModelProofRefModelWeightManifestAcceptedToolsWithProvidedEvidence: `5`',
+  'gpuModelProofRefMockQueueInsertedJobsWithProvidedEvidence: `8`',
+  'gpuModelProofRefMockWorkerClaimsCreatedWithProvidedEvidence: `8`',
+  'gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProofRefEvidence: `8`',
+  'gpuModelProofRefQueueAdmissionGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`',
+  'gpuModelProofRefQueueAdmissionToolExecutionPerformedToolsWithProvidedEvidence: `0`',
+  routeGpuModelProofRefQueueAdmissionSmokeCommand,
+  'GPU/model runtime queue-service bridge accepted: `true`',
+  'externalAgentGpuModelRuntimeQueueServiceBridgeAcceptedToolsWithProvidedEvidence: `8`',
+  'externalAgentGpuModelRuntimeQueueServiceBridgeMockJobsWithProvidedEvidence: `8`',
+  'externalAgentGpuModelRuntimeQueueServiceBridgeMockWorkerClaimsWithProvidedEvidence: `8`',
+  'externalAgentGpuModelRuntimeQueueServiceBridgeLiveQueueWritePerformedToolsWithProvidedEvidence: `0`',
+  'externalAgentGpuModelRuntimeQueueServiceBridgeWorkerDispatchPerformedToolsWithProvidedEvidence: `0`',
+  'externalAgentGpuModelRuntimeQueueServiceBridgeToolExecutionPerformedToolsWithProvidedEvidence: `0`',
+  'externalAgentGpuModelRuntimeQueueServiceBridgeGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`',
+  gpuModelRuntimeQueueServiceBridgeCommand,
+  'GPU/model local-dev runtime harness accepted: `true`',
+  'externalAgentGpuModelLocalDevRuntimeHarnessAcceptedToolsWithProvidedEvidence: `8`',
+  'externalAgentGpuModelLocalDevRuntimeHarnessAdapterBranchInvokedToolsWithProvidedEvidence: `8`',
+  'externalAgentGpuModelLocalDevRuntimeHarnessPrerequisiteCheckOnlyToolsWithProvidedEvidence: `8`',
+  'externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence: `6`',
+  'externalAgentGpuModelLocalDevRuntimeHarnessGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`',
+  gpuModelLocalDevRuntimeHarnessCommand,
+  gpuModelServiceRoleQueueSmokeCommand,
+  'Mock queue worker-claim smoke accepted: `true`',
+  'mockQueueWorkerClaimSmokeAcceptedToolsWithProvidedEvidence: `21`',
+  'mockQueueInsertedJobsWithProvidedEvidence: `21`',
+  'mockWorkerClaimsCreatedWithProvidedEvidence: `21`',
+  'mockWorkerLeaseSecondsWithProvidedEvidence: `900`',
+  'mockQueueWorkerClaimLiveQueueWritePerformedToolsWithProvidedEvidence: `0`',
+  'mockQueueWorkerClaimWorkerDispatchPerformedToolsWithProvidedEvidence: `0`',
+  'mockQueueWorkerClaimToolExecutionPerformedToolsWithProvidedEvidence: `0`',
+  'mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`',
+  'External-agent tool-adapter authorization accepted: `true`',
+  'externalAgentToolAdapterAuthorizationAcceptedToolsWithProvidedEvidence: `21`',
+  'externalAgentAdapterContractsAuthorizedWithRuntimeBlocksTools: `21`',
+  'externalAgentAdapterCpuStaticContractsWithProvidedEvidence: `6`',
+  'externalAgentAdapterBrowserRuntimeContractsWithProvidedEvidence: `7`',
+  'externalAgentAdapterGpuModelContractsWithProvidedEvidence: `8`',
+  'externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence: `21`',
+  'externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence: `0`',
+  'externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence: `19`',
+  'externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`',
+  externalAgentToolAdapterAuthorizationCommand,
+  routeMockQueueWorkerClaimSmokeCommand,
+  routeCpuStaticControlledExecutionSmokeCommand,
+  routeBrowserRuntimeControlledExecutionSmokeCommand,
+  routeGpuModelRuntimeAdmissionSmokeCommand,
+  'CPU/static live-adapter queue-service proof accepted: `true`',
+  'CPU/static exact execution admission accepted: `true`',
+  'CPU/static adapter/enqueue admission accepted: `true`',
+  'checked-in packet has no saved smoke result yet',
+  'scoped controlled execution is available for 19 tools',
+  'runtime, beta, and production remain blocked',
+  'tool/capability-specific blocked details',
+  'apiRouteMountedNow=false',
+  'externalAgentControlledRouteMountFeatureFlagReady=true',
+  'externalAgentControlledRouteMountedForScopedCallsNow=true',
+  'exit code `2`',
+  'agentCanExecuteToolsNow=true',
+  'satoriRemainsBlockedPendingApprovedFontFixture=false',
+  'satoriFontRuntimeProofAcceptedWithProvidedEvidence=true',
+  'satoriFontBlockResolvedForLocalRuntimeProof=true',
+  'allSixCpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidence=true',
+  'gpuModelUnblockPlanAcceptedWithProvidedEvidence=true',
+  'gpuModelToolsReadyForExecutionAfterCurrentEvidence=true',
+]) {
+  if (!docsMd.includes(phrase)) fail(`docs_md_missing:${phrase}`)
+}
+
+for (const phrase of [
+  'evaluateAiGraphicsToolCallPlan',
+  'buildAiGraphicsExternalBetaToolCallBlockedDetails',
+  'listAiGraphicsExternalBetaToolCallBlockedReadinessCases',
+  'requestAcceptedForPlanningMetadata',
+  'planEvaluationDecision',
+  'requestedToolsAcceptedForPlanning',
+  'selectedPlanningTools',
+  'missingProofBeforeExecution',
+  'missingExecutionGates',
+  'gpuRuntimeStartAllowedForAcceptedExternalBetaJob',
+  'gpuRuntimeShouldStartNow: false',
+]) {
+  if (!routeSource.includes(phrase)) fail(`route_source_missing:${phrase}`)
+}
+
+const blockedReadinessCases = runBlockedReadinessCases()
+if (!Array.isArray(blockedReadinessCases)) {
+  fail('blocked_readiness_cases_not_array')
+} else {
+  if (blockedReadinessCases.length !== 21) {
+    fail(`blocked_readiness_cases_count_not_21:${blockedReadinessCases.length}`)
+  }
+  const seenTools = new Set()
+  let gpuStartAllowedCases = 0
+  for (const item of blockedReadinessCases) {
+    const request = item.request ?? {}
+    const details = item.blockedDetails ?? {}
+    seenTools.add(request.toolId)
+    if (details.requestAcceptedForPlanningMetadata !== true) {
+      fail(`blocked_case_not_planning_accepted:${request.toolId}`)
+    }
+    if (details.toolId !== request.toolId) {
+      fail(`blocked_case_tool_mismatch:${request.toolId}`)
+    }
+    if (details.capabilityId !== request.capabilityId) {
+      fail(`blocked_case_capability_mismatch:${request.toolId}`)
+    }
+    if (details.planEvaluationDecision !== 'execution_request_blocked') {
+      fail(`blocked_case_decision_not_blocked:${request.toolId}`)
+    }
+    if (!Array.isArray(details.selectedPlanningTools) ||
+        !details.selectedPlanningTools.some((tool) => tool.toolId === request.toolId)) {
+      fail(`blocked_case_missing_selected_tool:${request.toolId}`)
+    }
+    if (!Array.isArray(details.requestedToolsAcceptedForPlanning) ||
+        !details.requestedToolsAcceptedForPlanning.includes(request.toolId)) {
+      fail(`blocked_case_missing_accepted_tool:${request.toolId}`)
+    }
+    if (!Array.isArray(details.missingExecutionGates) ||
+        !details.missingExecutionGates.includes('Tool Route execution approval is required') ||
+        !details.missingExecutionGates.includes('Worker execution approval is required') ||
+        !details.missingExecutionGates.includes('runtime-specific proof must be complete before execution')) {
+      fail(`blocked_case_missing_execution_gates:${request.toolId}`)
+    }
+    if (!Array.isArray(details.missingProofBeforeExecution) ||
+        details.missingProofBeforeExecution.length === 0) {
+      fail(`blocked_case_missing_proof_empty:${request.toolId}`)
+    }
+    if (details.controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence !== 21) {
+      fail(`blocked_case_controlled_ready_not_21:${request.toolId}`)
+    }
+    if (details.controlledOnDemandWorkerPathReadyButDirectAgentExecutionBlocked !== true) {
+      fail(`blocked_case_direct_block_not_true:${request.toolId}`)
+    }
+    for (const key of [
+      'directAgentToolExecutionApprovedNow',
+      'routeExecutionApprovedNow',
+      'queueWriteApprovedNow',
+      'workerEnqueueApprovedNow',
+      'workerDispatchApprovedNow',
+      'toolExecutionApprovedNow',
+      'gpuRuntimeShouldStartNow',
+      'externalBetaReadyNow',
+      'productionReadyNow',
+    ]) {
+      if (details[key] !== false) {
+        fail(`blocked_case_${key}_not_false:${request.toolId}`)
+      }
+    }
+    const expectedGpuStartAllowed = gpuTools.has(request.toolId)
+    if (details.gpuRuntimeStartAllowedForAcceptedExternalBetaJob !== expectedGpuStartAllowed) {
+      fail(`blocked_case_gpu_start_allowed_mismatch:${request.toolId}`)
+    }
+    if (expectedGpuStartAllowed) gpuStartAllowedCases += 1
+  }
+  for (const toolId of allTools) {
+    if (!seenTools.has(toolId)) fail(`blocked_case_missing_tool:${toolId}`)
+  }
+  if (gpuStartAllowedCases !== 8) {
+    fail(`blocked_case_gpu_start_allowed_count_not_8:${gpuStartAllowedCases}`)
+  }
+}
+
+for (const forbidden of [
+  /"apiRouteMountedNow"\s*:\s*true/i,
+  /"apiRouteExecutionApprovedNow"\s*:\s*true/i,
+  /"workerExecutionApprovedNow"\s*:\s*true/i,
+  /"gpuRuntimeShouldStartNow"\s*:\s*true/i,
+  /"gpuRuntimePerformed"\s*:\s*true/i,
+  /"runtimeReadyNow"\s*:\s*true/i,
+  /"externalBetaReadyNow"\s*:\s*true/i,
+  /"productionReadyNow"\s*:\s*true/i,
+  /dry_run_passed/i,
+  /generated_local_fixture_passed/i,
+]) {
+  for (const file of [
+    'server/tool-registry/ai-graphics-external-agent-execution-gate.ts',
+    'server/cli/ai-graphics-external-agent-execution-gate.ts',
+    'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.json',
+    'docs/tool-intelligence/ai-graphics/external-agent-execution-gate.md',
+  ]) {
+    if (forbidden.test(read(file))) {
+      fail(`forbidden_claim:${file}:${forbidden}`)
+    }
+  }
+}
+
+const missingSourceReport = runGate()
+if (missingSourceReport.status !== 'missing_21_tool_proper_install_audit') {
+  fail('missing_source_status_mismatch')
+}
+if (missingSourceReport.executionAllowedNow !== false) fail('missing_source_execution_not_false')
+assertFalseBooleans('missing_source_report', missingSourceReport.booleans)
+
+const acceptedSourceReport = runGate([
+  '--proper-install-audit-packet',
+  'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
+  '--external-beta-callable-request-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
+  '--external-beta-api-route-mount-readiness-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
+  '--external-beta-controlled-on-demand-status-bridge-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
+  '--external-agent-cpu-static-exact-execution-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+  '--external-agent-cpu-static-adapter-invocation-enqueue-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
+  '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+  '--external-agent-cpu-static-non-production-evidence-sequence-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-evidence-sequence.json',
+  '--external-beta-tool-call-route-readiness-probe-smoke-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-readiness-probe-smoke.json',
+  '--external-beta-tool-call-route-cpu-static-controlled-execution-smoke-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-cpu-static-controlled-execution-smoke.json',
+  '--external-beta-tool-call-route-browser-runtime-controlled-execution-smoke-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-browser-runtime-controlled-execution-smoke.json',
+  '--external-agent-controlled-worker-route-execution-smoke-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json',
+  '--external-beta-tool-call-route-gpu-model-runtime-admission-smoke-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-gpu-model-runtime-admission-smoke.json',
+  '--external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-gpu-model-proof-ref-queue-admission-smoke.json',
+  '--external-agent-gpu-model-runtime-queue-service-bridge-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-runtime-queue-service-bridge.json',
+  '--external-agent-gpu-model-local-dev-runtime-execution-harness-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-gpu-model-local-dev-runtime-execution-harness.json',
+  '--external-beta-tool-call-route-mock-queue-worker-claim-smoke-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-tool-call-route-mock-queue-worker-claim-smoke.json',
+  '--external-agent-tool-adapter-authorization-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-tool-adapter-authorization-proof.json',
+  '--satori-font-runtime-proof-packet',
+  'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+  '--external-agent-execution-readiness-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.json',
+])
+if (acceptedSourceReport.decision !== decision) fail('accepted_report_decision_mismatch')
+if (acceptedSourceReport.status !== acceptedStatus) fail('accepted_report_status_mismatch')
+if (acceptedSourceReport.executionAllowedNow !== true) fail('accepted_report_execution_not_true')
+if (acceptedSourceReport.readyForAnyExternalAgentExecutionNow !== true) {
+  fail('accepted_report_ready_any_not_true')
+}
+if (acceptedSourceReport.readyForScopedControlledRouteExecutionNow !== true) {
+  fail('accepted_report_ready_scoped_controlled_route_not_true')
+}
+if (acceptedSourceReport.scopedControlledRouteExecutionAllowedNow !== true) {
+  fail('accepted_report_scoped_controlled_route_allowed_not_true')
+}
+if (acceptedSourceReport.globalAll21ExecutionAllowedNow !== false) {
+  fail('accepted_report_global_all21_execution_allowed_not_false')
+}
+if (acceptedSourceReport.externalBetaCallableCandidateToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_candidate_tools_not_21')
+}
+if (acceptedSourceReport.properlyInstalledForPlannedSurfaceTools !== 21) {
+  fail('accepted_report_proper_install_tools_not_21')
+}
+if (acceptedSourceReport.runtimeProofPassedButToolCallBlockedTools !== 13) {
+  fail('accepted_report_runtime_proof_passed_blocked_not_13')
+}
+if (acceptedSourceReport.nativeGpuRuntimeProofPendingTools !== 8) {
+  fail('accepted_report_native_gpu_pending_not_8')
+}
+if (acceptedSourceReport.modelWeightManifestPendingTools !== 5) {
+  fail('accepted_report_model_manifest_pending_not_5')
+}
+if (acceptedSourceReport.modelWeightExistingEvidenceBackedManifestAuthoringReadyTools !== 3) {
+  fail('accepted_report_model_weight_existing_evidence_manifest_authoring_ready_not_3')
+}
+if (acceptedSourceReport.modelWeightSourceReviewBlockedTools !== 2) {
+  fail('accepted_report_model_weight_source_review_blocked_not_2')
+}
+if (acceptedSourceReport.reviewedPrivateModelWeightManifestAcceptedTools !== 0) {
+  fail('accepted_report_reviewed_private_model_weight_manifest_accepted_not_0')
+}
+if (acceptedSourceReport.gpuFoundationNativeProofOnlyTools !== 3) {
+  fail('accepted_report_gpu_foundation_native_proof_only_not_3')
+}
+if (acceptedSourceReport.externalBetaCallableInstallReadyNowTools !== 0) {
+  fail('accepted_report_external_beta_callable_install_not_0')
+}
+if (acceptedSourceReport.controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_controlled_ready_tools_not_21')
+}
+if (acceptedSourceReport.controlledOnDemandExternalBetaCallableToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_controlled_callable_tools_not_21')
+}
+if (acceptedSourceReport.controlledOnDemandRuntimeReadyForToolCallToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_controlled_runtime_tools_not_21')
+}
+if (acceptedSourceReport.cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_report_cpu_static_live_adapter_queue_write_proof_not_5')
+}
+if (acceptedSourceReport.cpuStaticMockQueueServiceValidationPassedTools !== 5) {
+  fail('accepted_report_cpu_static_mock_queue_service_validation_not_5')
+}
+if (acceptedSourceReport.cpuStaticExactExecutionAdmissionReadyTools !== 5) {
+  fail('accepted_report_cpu_static_exact_execution_admission_ready_not_5')
+}
+if (acceptedSourceReport.cpuStaticExactRequestEnvelopeAcceptedTools !== 5) {
+  fail('accepted_report_cpu_static_exact_request_envelope_not_5')
+}
+if (acceptedSourceReport.cpuStaticApprovedPlanSnapshotAcceptedTools !== 5) {
+  fail('accepted_report_cpu_static_approved_plan_snapshot_not_5')
+}
+if (acceptedSourceReport.cpuStaticPrivateArtifactManifestAcceptedTools !== 5) {
+  fail('accepted_report_cpu_static_private_artifact_manifest_not_5')
+}
+if (acceptedSourceReport.cpuStaticWorkerAcceptedRequestSchemaAcceptedTools !== 5) {
+  fail('accepted_report_cpu_static_worker_schema_not_5')
+}
+if (acceptedSourceReport.externalAgentExactRequestAdmittedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_report_exact_request_admitted_not_5')
+}
+if (acceptedSourceReport.cpuStaticAdapterInvocationEnqueueAdmissionReadyTools !== 5) {
+  fail('accepted_report_adapter_invocation_enqueue_admission_ready_not_5')
+}
+if (acceptedSourceReport.cpuStaticAdapterInvocationEnvelopePreparedTools !== 5) {
+  fail('accepted_report_adapter_invocation_envelope_prepared_not_5')
+}
+if (acceptedSourceReport.cpuStaticWorkerEnqueuePayloadPreparedTools !== 5) {
+  fail('accepted_report_worker_enqueue_payload_prepared_not_5')
+}
+if (acceptedSourceReport.cpuStaticProductionWorkerJobPayloadAcceptedTools !== 5) {
+  fail('accepted_report_production_worker_job_payload_not_5')
+}
+if (acceptedSourceReport.externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_report_adapter_invocation_enqueue_admitted_not_5')
+}
+if (acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools !== 5) {
+  fail('accepted_report_service_role_queue_write_smoke_preflight_ready_not_5')
+}
+if (acceptedSourceReport.externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools !== 5) {
+  fail('accepted_report_service_role_queue_write_smoke_preflight_evidence_not_5')
+}
+if (acceptedSourceReport.sourceExternalAgentCpuStaticNonProductionEvidenceSequencePrepared !== true) {
+  fail('accepted_report_source_non_production_evidence_sequence_not_true')
+}
+if (acceptedSourceReport.cpuStaticNonProductionEvidenceSequencePreparedTools !== 5) {
+  fail('accepted_report_non_production_evidence_sequence_prepared_not_5')
+}
+if (acceptedSourceReport.externalAgentCpuStaticNonProductionEvidenceSequencePreparedWithRuntimeBlocksTools !== 5) {
+  fail('accepted_report_external_agent_non_production_evidence_sequence_prepared_not_5')
+}
+if (acceptedSourceReport.cpuStaticNonProductionEvidenceSequenceExecutedNowTools !== 0) {
+  fail('accepted_report_non_production_evidence_sequence_executed_now_not_0')
+}
+if (acceptedSourceReport.cpuStaticNonProductionEvidenceSequenceLiveQueueWritesNow !== 0) {
+  fail('accepted_report_non_production_evidence_sequence_live_queue_writes_not_0')
+}
+if (acceptedSourceReport.cpuStaticNonProductionEvidenceSequenceLiveWorkerClaimsNow !== 0) {
+  fail('accepted_report_non_production_evidence_sequence_live_worker_claims_not_0')
+}
+if (acceptedSourceReport.cpuStaticNonProductionEvidenceSequenceLiveWorkerDispatchHandoffsNow !== 0) {
+  fail('accepted_report_non_production_evidence_sequence_live_worker_dispatches_not_0')
+}
+if (acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_service_role_queue_write_smoke_proof_not_0')
+}
+if (acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_service_role_queue_writes_accepted_not_0')
+}
+if (acceptedSourceReport.nonProductionServiceRoleQueueRowsPersistedAfterCleanup !== 0) {
+  fail('accepted_report_service_role_queue_rows_persisted_after_cleanup_not_0')
+}
+if (acceptedSourceReport.sourceSatoriFontRuntimeProofAccepted !== true) {
+  fail('accepted_report_source_satori_font_proof_not_true')
+}
+if (acceptedSourceReport.cpuStaticSatoriBlockedPendingApprovedFontFixtureTools !== 0) {
+  fail('accepted_report_cpu_static_satori_blocked_not_0')
+}
+if (acceptedSourceReport.cpuStaticSatoriFontRuntimeProofAcceptedWithProvidedEvidenceTools !== 1) {
+  fail('accepted_report_cpu_static_satori_font_proof_not_1')
+}
+if (acceptedSourceReport.cpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidenceTools !== 6) {
+  fail('accepted_report_cpu_static_local_runtime_proofs_not_6')
+}
+if (acceptedSourceReport.cpuStaticNonCpuStaticDeferredTools !== 15) {
+  fail('accepted_report_cpu_static_non_cpu_static_deferred_not_15')
+}
+if (acceptedSourceReport.nonProductionServiceRoleQueueWriteSmokeRequiredTools !== 5) {
+  fail('accepted_report_non_production_service_role_queue_smoke_required_not_5')
+}
+if (acceptedSourceReport.nonProductionServiceRoleQueueWriteSmokeResultRequiredTools !== 5) {
+  fail('accepted_report_non_production_service_role_queue_smoke_result_required_not_5')
+}
+if (acceptedSourceReport.adapterInvocationAndWorkerEnqueueAdmissionRequiredTools !== 0) {
+  fail('accepted_report_adapter_invocation_worker_enqueue_admission_required_not_0')
+}
+if (acceptedSourceReport.workerClaimAndDispatchSmokeProofRequiredTools !== 0) {
+  fail('accepted_report_worker_claim_dispatch_smoke_required_not_0')
+}
+if (acceptedSourceReport.cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_worker_claim_dispatch_smoke_proof_not_0')
+}
+if (acceptedSourceReport.cpuStaticWorkerClaimsAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_worker_claims_accepted_not_0')
+}
+if (acceptedSourceReport.cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_worker_dispatch_handoffs_not_0')
+}
+if (acceptedSourceReport.cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_worker_dispatch_leases_not_0')
+}
+if (acceptedSourceReport.toolExecutionDryRunProofRequiredTools !== 0) {
+  fail('accepted_report_tool_execution_dry_run_required_not_0')
+}
+if (acceptedSourceReport.cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_tool_execution_dry_run_proof_prepared_not_0')
+}
+if (acceptedSourceReport.cpuStaticDryToolExecutionContractsPreparedTools !== 0) {
+  fail('accepted_report_dry_tool_execution_contracts_not_0')
+}
+if (acceptedSourceReport.controlledToolExecutionProofRequiredTools !== 0) {
+  fail('accepted_report_controlled_tool_execution_proof_required_not_0')
+}
+if (acceptedSourceReport.cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_report_controlled_tool_execution_proof_not_0')
+}
+if (acceptedSourceReport.cpuStaticPhase0ExecutionEvidenceAcceptedTools !== 0) {
+  fail('accepted_report_phase0_execution_evidence_not_0')
+}
+if (acceptedSourceReport.sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted !== true) {
+  fail('accepted_report_route_readiness_probe_source_not_true')
+}
+if (acceptedSourceReport.scopedControlledRouteExecutableNowTools !== 19) {
+  fail('accepted_report_scoped_controlled_route_executable_not_19')
+}
+if (acceptedSourceReport.scopedControlledRouteCpuStaticExecutableNowTools !== 6) {
+  fail('accepted_report_scoped_controlled_route_cpu_static_executable_not_6')
+}
+if (acceptedSourceReport.scopedControlledRouteBrowserRuntimeExecutableNowTools !== 7) {
+  fail('accepted_report_scoped_controlled_route_browser_runtime_executable_not_7')
+}
+if (acceptedSourceReport.scopedControlledRouteGpuModelBlockedTools !== 2) {
+  fail('accepted_report_scoped_controlled_route_gpu_model_blocked_not_2')
+}
+if (acceptedSourceReport.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 19) {
+  fail('accepted_report_route_executable_with_readiness_probe_not_19')
+}
+if (acceptedSourceReport.cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence !== 6) {
+  fail('accepted_report_cpu_static_route_executable_with_readiness_probe_not_6')
+}
+if (acceptedSourceReport.browserRuntimeControlledRouteExecutableNowToolsWithReadinessProbeEvidence !== 7) {
+  fail('accepted_report_browser_route_executable_with_readiness_probe_not_7')
+}
+if (
+  acceptedSourceReport.sourceExternalBetaToolCallRouteCpuStaticControlledExecutionSmokeAccepted !==
+  true
+) {
+  fail('accepted_report_cpu_static_route_execution_smoke_source_not_true')
+}
+if (
+  acceptedSourceReport.sourceExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokeAccepted !==
+  true
+) {
+  fail('accepted_report_browser_runtime_route_execution_smoke_source_not_true')
+}
+if (
+  acceptedSourceReport.sourceExternalBetaToolCallRouteGpuModelRuntimeAdmissionSmokeAccepted !==
+  true
+) {
+  fail('accepted_report_gpu_model_runtime_admission_smoke_source_not_true')
+}
+if (
+  acceptedSourceReport.sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted !==
+  true
+) {
+  fail('accepted_report_mock_queue_worker_claim_smoke_source_not_true')
+}
+if (acceptedSourceReport.controlledCanonicalRouteExecutedToolsWithProvidedEvidence !== 13) {
+  fail('accepted_report_controlled_canonical_route_executed_not_13')
+}
+if (acceptedSourceReport.cpuStaticControlledCanonicalRouteExecutedToolsWithProvidedEvidence !== 6) {
+  fail('accepted_report_cpu_static_controlled_canonical_route_executed_not_6')
+}
+if (acceptedSourceReport.browserRuntimeControlledCanonicalRouteExecutedToolsWithProvidedEvidence !== 7) {
+  fail('accepted_report_browser_runtime_controlled_canonical_route_executed_not_7')
+}
+if (acceptedSourceReport.localControlledPackageExecutionPerformedToolsWithProvidedEvidence !== 13) {
+  fail('accepted_report_local_controlled_package_execution_not_13')
+}
+if (acceptedSourceReport.controlledAdapterExecutedToolsWithProvidedEvidence !== 13) {
+  fail('accepted_report_controlled_adapter_executed_not_13')
+}
+if (acceptedSourceReport.gpuModelRuntimeAdmissionEvaluatedToolsWithProvidedEvidence !== 8) {
+  fail('accepted_report_gpu_model_runtime_admission_evaluated_not_8')
+}
+if (acceptedSourceReport.gpuModelRuntimeAdmissionBlockedToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_gpu_model_runtime_admission_blocked_not_0')
+}
+if (acceptedSourceReport.gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_gpu_runtime_start_allowed_for_external_beta_job_not_0')
+}
+if (
+  acceptedSourceReport.sourceExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokeAccepted !==
+  true
+) {
+  fail('accepted_report_gpu_proof_ref_queue_admission_source_not_true')
+}
+if (acceptedSourceReport.gpuModelProofRefQueueAdmissionAcceptedToolsWithProvidedEvidence !== 8) {
+  fail('accepted_report_gpu_proof_ref_queue_admission_accepted_not_8')
+}
+if (acceptedSourceReport.gpuModelRuntimeAdmissionReadyWithProvidedProofRefsTools !== 8) {
+  fail('accepted_report_gpu_runtime_admission_ready_with_refs_not_8')
+}
+if (acceptedSourceReport.gpuModelProofRefNativeGpuRuntimeProofAcceptedToolsWithProvidedEvidence !== 8) {
+  fail('accepted_report_gpu_proof_ref_native_gpu_proof_not_8')
+}
+if (acceptedSourceReport.gpuModelProofRefModelWeightManifestAcceptedToolsWithProvidedEvidence !== 5) {
+  fail('accepted_report_gpu_proof_ref_model_weight_manifest_not_5')
+}
+if (acceptedSourceReport.gpuModelProofRefMockQueueInsertedJobsWithProvidedEvidence !== 8) {
+  fail('accepted_report_gpu_proof_ref_mock_queue_jobs_not_8')
+}
+if (acceptedSourceReport.gpuModelProofRefMockWorkerClaimsCreatedWithProvidedEvidence !== 8) {
+  fail('accepted_report_gpu_proof_ref_mock_worker_claims_not_8')
+}
+if (acceptedSourceReport.gpuRuntimeStartAllowedForAcceptedExternalBetaJobToolsWithProofRefEvidence !== 8) {
+  fail('accepted_report_gpu_start_allowed_with_proof_refs_not_8')
+}
+if (acceptedSourceReport.gpuModelProofRefQueueAdmissionGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_gpu_proof_ref_queue_gpu_should_start_not_0')
+}
+if (acceptedSourceReport.gpuModelProofRefQueueAdmissionToolExecutionPerformedToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_gpu_proof_ref_queue_tool_execution_not_0')
+}
+if (
+  acceptedSourceReport.sourceExternalAgentGpuModelRuntimeQueueServiceBridgeAccepted !==
+  true
+) {
+  fail('accepted_report_gpu_runtime_queue_service_bridge_source_not_true')
+}
+if (acceptedSourceReport.externalAgentGpuModelRuntimeQueueServiceBridgeAcceptedToolsWithProvidedEvidence !== 8) {
+  fail('accepted_report_gpu_runtime_queue_service_bridge_accepted_not_8')
+}
+if (acceptedSourceReport.externalAgentGpuModelRuntimeQueueServiceBridgeMockJobsWithProvidedEvidence !== 8) {
+  fail('accepted_report_gpu_runtime_queue_service_bridge_jobs_not_8')
+}
+if (acceptedSourceReport.externalAgentGpuModelRuntimeQueueServiceBridgeMockWorkerClaimsWithProvidedEvidence !== 8) {
+  fail('accepted_report_gpu_runtime_queue_service_bridge_claims_not_8')
+}
+if (acceptedSourceReport.externalAgentGpuModelRuntimeQueueServiceBridgeLiveQueueWritePerformedToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_gpu_runtime_queue_service_bridge_live_queue_write_not_0')
+}
+if (acceptedSourceReport.externalAgentGpuModelRuntimeQueueServiceBridgeWorkerDispatchPerformedToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_gpu_runtime_queue_service_bridge_worker_dispatch_not_0')
+}
+if (acceptedSourceReport.externalAgentGpuModelRuntimeQueueServiceBridgeToolExecutionPerformedToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_gpu_runtime_queue_service_bridge_tool_execution_not_0')
+}
+if (acceptedSourceReport.externalAgentGpuModelRuntimeQueueServiceBridgeGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_gpu_runtime_queue_service_bridge_gpu_start_not_0')
+}
+if (
+  acceptedSourceReport.sourceExternalAgentGpuModelLocalDevRuntimeExecutionHarnessAccepted !==
+  true
+) {
+  fail('accepted_report_gpu_model_local_dev_harness_source_not_true')
+}
+if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessAcceptedToolsWithProvidedEvidence !== 8) {
+  fail('accepted_report_gpu_model_local_dev_harness_accepted_not_8')
+}
+if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessAdapterBranchInvokedToolsWithProvidedEvidence !== 8) {
+  fail('accepted_report_gpu_model_local_dev_harness_adapter_branch_not_8')
+}
+if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessPrerequisiteCheckOnlyToolsWithProvidedEvidence !== 8) {
+  fail('accepted_report_gpu_model_local_dev_harness_prerequisite_check_not_8')
+}
+if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence !== 6) {
+  fail('accepted_report_gpu_model_local_dev_harness_executed_not_6')
+}
+if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessToolExecutionApprovedNowToolsWithProvidedEvidence !== 6) {
+  fail('accepted_report_gpu_model_local_dev_harness_tool_execution_approved_not_6')
+}
+if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_gpu_model_local_dev_harness_gpu_start_not_0')
+}
+if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessPublicArtifactCreatedToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_gpu_model_local_dev_harness_public_artifact_not_0')
+}
+if (acceptedSourceReport.mockQueueWorkerClaimSmokeAcceptedToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_mock_queue_worker_claim_smoke_accepted_not_21')
+}
+if (acceptedSourceReport.mockQueueInsertedJobsWithProvidedEvidence !== 21) {
+  fail('accepted_report_mock_queue_inserted_jobs_not_21')
+}
+if (acceptedSourceReport.mockWorkerClaimsCreatedWithProvidedEvidence !== 21) {
+  fail('accepted_report_mock_worker_claims_created_not_21')
+}
+if (acceptedSourceReport.mockWorkerLeaseSecondsWithProvidedEvidence !== 900) {
+  fail('accepted_report_mock_worker_lease_seconds_not_900')
+}
+if (acceptedSourceReport.mockQueueWorkerClaimLiveQueueWritePerformedToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_mock_queue_worker_claim_live_queue_write_not_0')
+}
+if (acceptedSourceReport.mockQueueWorkerClaimWorkerDispatchPerformedToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_mock_queue_worker_claim_worker_dispatch_not_0')
+}
+if (acceptedSourceReport.mockQueueWorkerClaimToolExecutionPerformedToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_mock_queue_worker_claim_tool_execution_not_0')
+}
+if (acceptedSourceReport.mockQueueWorkerClaimGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_mock_queue_worker_claim_gpu_runtime_start_not_0')
+}
+if (acceptedSourceReport.sourceExternalAgentToolAdapterAuthorizationAccepted !== true) {
+  fail('accepted_report_tool_adapter_authorization_source_not_true')
+}
+if (acceptedSourceReport.externalAgentToolAdapterAuthorizationAcceptedToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_tool_adapter_authorization_not_21')
+}
+if (acceptedSourceReport.externalAgentAdapterContractsAuthorizedWithRuntimeBlocksTools !== 21) {
+  fail('accepted_report_tool_adapter_contracts_authorized_not_21')
+}
+if (acceptedSourceReport.externalAgentAdapterCpuStaticContractsWithProvidedEvidence !== 6) {
+  fail('accepted_report_tool_adapter_cpu_static_contracts_not_6')
+}
+if (acceptedSourceReport.externalAgentAdapterBrowserRuntimeContractsWithProvidedEvidence !== 7) {
+  fail('accepted_report_tool_adapter_browser_contracts_not_7')
+}
+if (acceptedSourceReport.externalAgentAdapterGpuModelContractsWithProvidedEvidence !== 8) {
+  fail('accepted_report_tool_adapter_gpu_contracts_not_8')
+}
+if (acceptedSourceReport.externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence !== 21) {
+  fail('accepted_report_tool_adapter_mapped_profiles_not_21')
+}
+if (acceptedSourceReport.externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_tool_adapter_invoke_now_not_0')
+}
+if (acceptedSourceReport.externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence !== 19) {
+  fail('accepted_report_tool_adapter_invoke_now_with_controlled_gpu_not_19')
+}
+if (acceptedSourceReport.externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
+  fail('accepted_report_tool_adapter_gpu_start_not_0')
+}
+if (acceptedSourceReport.gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence !== 0) {
+  fail('accepted_report_gpu_model_route_blocked_with_readiness_probe_not_0')
+}
+if (acceptedSourceReport.gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence !== 8) {
+  fail('accepted_report_gpu_model_route_fail_closed_with_readiness_probe_not_8')
+}
+if (acceptedSourceReport.gpuModelRuntimeUnblockPlanExposedToolsWithReadinessProbeEvidence !== 8) {
+  fail('accepted_report_gpu_model_unblock_plan_with_readiness_probe_not_8')
+}
+if (acceptedSourceReport.gpuModelNativeGpuProofRequiredToolsWithReadinessProbeEvidence !== 8) {
+  fail('accepted_report_gpu_model_native_gpu_proof_required_with_readiness_probe_not_8')
+}
+if (acceptedSourceReport.gpuModelPrivateEvidenceAndNativeGpuProofRequiredToolsWithReadinessProbeEvidence !== 5) {
+  fail('accepted_report_gpu_model_private_evidence_required_with_readiness_probe_not_5')
+}
+if (acceptedSourceReport.gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence !== 3) {
+  fail('accepted_report_gpu_model_native_gpu_proof_only_with_readiness_probe_not_3')
+}
+if (acceptedSourceReport.gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence !== 6) {
+  fail('accepted_report_gpu_model_ready_after_current_evidence_not_6')
+}
+if (acceptedSourceReport.routeReadinessProbeGpuRuntimeShouldStartNowTools !== 0) {
+  fail('accepted_report_route_readiness_probe_gpu_start_not_0')
+}
+if (acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence !== 1) {
+  fail('accepted_report_request_admission_tools_not_1')
+}
+if (acceptedSourceReport.apiRouteMountReadyToolsWithProvidedEvidence !== 21) {
+  fail('accepted_report_route_mount_ready_tools_not_21')
+}
+if (acceptedSourceReport.externalAgentControlledRouteMountFeatureFlagReadyTools !== 21) {
+  fail('accepted_report_controlled_route_mount_feature_flag_ready_tools_not_21')
+}
+if (acceptedSourceReport.externalAgentControlledRouteMountRequiredForScopedCallTools !== 19) {
+  fail('accepted_report_controlled_route_mount_required_scoped_call_tools_not_19')
+}
+if (acceptedSourceReport.apiRouteMountedNowTools !== 0) {
+  fail('accepted_report_route_mounted_now_tools_not_0')
+}
+assertToolCoverage('accepted_report', acceptedSourceReport.toolRows)
+assertRuntimeRows('accepted_report', acceptedSourceReport.toolRows)
+for (const row of acceptedSourceReport.toolRows.filter(
+  (tool) => tool.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReady === true,
+)) {
+  if (row.safeNextCommand !== evidenceSequenceCommand) {
+    fail(`accepted_report_${row.toolId}_safe_next_not_evidence_sequence`)
+  }
+}
+for (const row of acceptedSourceReport.toolRows.filter(
+  (tool) => gpuTools.has(tool.toolId),
+)) {
+  if (row.safeNextCommand !== gpuModelServiceRoleQueueSmokeCommand) {
+    fail(`accepted_report_${row.toolId}_safe_next_not_gpu_model_service_role_queue_smoke`)
+  }
+}
+const satoriRow = acceptedSourceReport.toolRows.find((tool) => tool.toolId === 'satori')
+if (satoriRow?.safeNextCommand !== liveAdapterQueueWriteProofCommand) {
+  fail('accepted_report_satori_safe_next_not_live_adapter_queue_write_proof')
+}
+if (satoriRow?.satoriFontRuntimeProofAcceptedWithProvidedEvidence !== true) {
+  fail('accepted_report_satori_font_runtime_proof_not_true')
+}
+if (satoriRow?.cpuStaticLocalRuntimeProofAcceptedWithProvidedEvidence !== true) {
+  fail('accepted_report_satori_local_runtime_proof_not_true')
+}
+for (const row of acceptedSourceReport.toolRows.filter(
+  (tool) => browserRuntimeProofTools.has(tool.toolId),
+)) {
+  if (row.safeNextCommand !== browserRuntimeProofCommand) {
+    fail(`accepted_report_${row.toolId}_safe_next_not_browser_runtime_proof`)
+  }
+}
+assertTrueBooleans('accepted_report', acceptedSourceReport.booleans)
+assertFalseBooleans('accepted_report', acceptedSourceReport.booleans)
+
+const acceptedSmokeProofPath = buildAcceptedServiceRoleQueueWriteSmokeProofPacket()
+const acceptedProofReport = runGate([
+  '--proper-install-audit-packet',
+  'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
+  '--external-beta-callable-request-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
+  '--external-beta-api-route-mount-readiness-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
+  '--external-beta-controlled-on-demand-status-bridge-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
+  '--external-agent-cpu-static-exact-execution-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+  '--external-agent-cpu-static-adapter-invocation-enqueue-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
+  '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-proof-packet',
+  acceptedSmokeProofPath,
+])
+if (acceptedProofReport.status !== legacyAcceptedStatus) {
+  fail('accepted_proof_report_status_mismatch')
+}
+if (acceptedProofReport.executionAllowedNow !== false) {
+  fail('accepted_proof_report_execution_not_false')
+}
+if (acceptedProofReport.sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted !== true) {
+  fail('accepted_proof_report_source_smoke_proof_not_true')
+}
+if (acceptedProofReport.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_proof_report_smoke_proof_tools_not_5')
+}
+if (acceptedProofReport.cpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_proof_report_queue_writes_not_5')
+}
+if (acceptedProofReport.nonProductionServiceRoleQueueRowsPersistedAfterCleanup !== 0) {
+  fail('accepted_proof_report_rows_persisted_not_0')
+}
+if (acceptedProofReport.nonProductionServiceRoleQueueWriteSmokeResultRequiredTools !== 0) {
+  fail('accepted_proof_report_smoke_result_required_not_0')
+}
+if (acceptedProofReport.workerClaimAndDispatchSmokeProofRequiredTools !== 5) {
+  fail('accepted_proof_report_worker_claim_dispatch_required_not_5')
+}
+if (acceptedProofReport.cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_proof_report_worker_claim_dispatch_smoke_proof_not_0')
+}
+if (acceptedProofReport.toolExecutionDryRunProofRequiredTools !== 0) {
+  fail('accepted_proof_report_tool_execution_dry_run_required_not_0')
+}
+if (acceptedProofReport.recommendedNextPrompt !== 'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_CLAIM_AND_DISPATCH_SMOKE_PROOF') {
+  fail('accepted_proof_report_next_prompt_mismatch')
+}
+for (const key of [
+  'sourceExternalAgentCpuStaticNonProductionServiceRoleQueueWriteSmokeProofAccepted',
+  'allFiveCpuStaticNonProductionServiceRoleQueueWriteSmokeProofsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticNonProductionServiceRoleQueueWritesAcceptedWithProvidedEvidence',
+  'nonProductionServiceRoleQueueWriteSmokeCleanupVerifiedWithProvidedEvidence',
+  'workerClaimAndDispatchSmokeProofRequiredBeforeExecution',
+]) {
+  if (acceptedProofReport.booleans?.[key] !== true) {
+    fail(`accepted_proof_report_${key}_not_true`)
+  }
+}
+for (const key of [
+  'agentCanExecuteToolsNow',
+  'externalAgentExecutionAllowedNow',
+  'apiRouteExecutionApprovedNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'supabaseMutationPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+]) {
+  if (acceptedProofReport.booleans?.[key] !== false) {
+    fail(`accepted_proof_report_${key}_not_false`)
+  }
+}
+const acceptedProofRows = acceptedProofReport.toolRows
+  ?.filter((row) => row.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidence)
+if (!Array.isArray(acceptedProofRows) || acceptedProofRows.length !== 5) {
+  fail('accepted_proof_report_rows_not_5')
+} else {
+  for (const row of acceptedProofRows) {
+    if (row.workerClaimAndDispatchSmokeProofRequired !== true) {
+      fail(`accepted_proof_report_${row.toolId}_worker_claim_dispatch_not_true`)
+    }
+    if (row.toolExecutionDryRunProofRequired !== false) {
+      fail(`accepted_proof_report_${row.toolId}_tool_execution_dry_run_not_false`)
+    }
+    if (!row.requiredBeforeExecution?.some((item) => item.includes('worker claim and dispatch smoke proof must pass next'))) {
+      fail(`accepted_proof_report_${row.toolId}_missing_worker_claim_dispatch_requirement`)
+    }
+    if (row.safeNextCommand !== claimAndDispatchProofCommand) {
+      fail(`accepted_proof_report_${row.toolId}_safe_next_not_claim_dispatch_proof`)
+    }
+    if (row.executionAllowedNow !== false || row.gpuRuntimeShouldStartNow !== false) {
+      fail(`accepted_proof_report_${row.toolId}_runtime_gate_not_false`)
+    }
+  }
+}
+
+const acceptedClaimDispatchProofPath =
+  buildAcceptedWorkerClaimAndDispatchSmokeProofPacket(acceptedSmokeProofPath)
+const acceptedClaimDispatchReport = runGate([
+  '--proper-install-audit-packet',
+  'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
+  '--external-beta-callable-request-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
+  '--external-beta-api-route-mount-readiness-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
+  '--external-beta-controlled-on-demand-status-bridge-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
+  '--external-agent-cpu-static-exact-execution-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+  '--external-agent-cpu-static-adapter-invocation-enqueue-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
+  '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-proof-packet',
+  acceptedSmokeProofPath,
+  '--external-agent-cpu-static-worker-claim-and-dispatch-smoke-proof-packet',
+  acceptedClaimDispatchProofPath,
+])
+if (acceptedClaimDispatchReport.status !== legacyAcceptedStatus) {
+  fail('accepted_claim_dispatch_report_status_mismatch')
+}
+if (acceptedClaimDispatchReport.executionAllowedNow !== false) {
+  fail('accepted_claim_dispatch_report_execution_not_false')
+}
+if (acceptedClaimDispatchReport.sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted !== true) {
+  fail('accepted_claim_dispatch_report_source_claim_dispatch_not_true')
+}
+if (acceptedClaimDispatchReport.cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_claim_dispatch_report_claim_dispatch_tools_not_5')
+}
+if (acceptedClaimDispatchReport.cpuStaticWorkerClaimsAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_claim_dispatch_report_worker_claims_not_5')
+}
+if (acceptedClaimDispatchReport.cpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_claim_dispatch_report_dispatch_handoffs_not_5')
+}
+if (acceptedClaimDispatchReport.cpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_claim_dispatch_report_leases_released_not_5')
+}
+if (acceptedClaimDispatchReport.workerClaimAndDispatchSmokeProofRequiredTools !== 0) {
+  fail('accepted_claim_dispatch_report_worker_claim_dispatch_required_not_0')
+}
+if (acceptedClaimDispatchReport.toolExecutionDryRunProofRequiredTools !== 5) {
+  fail('accepted_claim_dispatch_report_tool_execution_dry_run_required_not_5')
+}
+if (acceptedClaimDispatchReport.recommendedNextPrompt !== 'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_TOOL_EXECUTION_DRY_RUN_PROOF') {
+  fail('accepted_claim_dispatch_report_next_prompt_mismatch')
+}
+for (const key of [
+  'sourceExternalAgentCpuStaticWorkerClaimAndDispatchSmokeProofAccepted',
+  'allFiveCpuStaticWorkerClaimAndDispatchSmokeProofsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticWorkerClaimsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticWorkerDispatchHandoffsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticWorkerDispatchLeasesReleasedWithProvidedEvidence',
+  'toolExecutionDryRunProofRequiredBeforeExecution',
+]) {
+  if (acceptedClaimDispatchReport.booleans?.[key] !== true) {
+    fail(`accepted_claim_dispatch_report_${key}_not_true`)
+  }
+}
+for (const key of [
+  'agentCanExecuteToolsNow',
+  'externalAgentExecutionAllowedNow',
+  'apiRouteExecutionApprovedNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'supabaseMutationPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+]) {
+  if (acceptedClaimDispatchReport.booleans?.[key] !== false) {
+    fail(`accepted_claim_dispatch_report_${key}_not_false`)
+  }
+}
+const acceptedClaimDispatchRows = acceptedClaimDispatchReport.toolRows
+  ?.filter((row) => row.cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidence)
+if (!Array.isArray(acceptedClaimDispatchRows) || acceptedClaimDispatchRows.length !== 5) {
+  fail('accepted_claim_dispatch_report_rows_not_5')
+} else {
+  for (const row of acceptedClaimDispatchRows) {
+    if (row.workerClaimAndDispatchSmokeProofRequired !== false) {
+      fail(`accepted_claim_dispatch_report_${row.toolId}_worker_claim_dispatch_required_not_false`)
+    }
+    if (row.toolExecutionDryRunProofRequired !== true) {
+      fail(`accepted_claim_dispatch_report_${row.toolId}_tool_execution_dry_run_not_true`)
+    }
+    if (!row.requiredBeforeExecution?.some((item) => item.includes('tool execution dry-run proof must pass next'))) {
+      fail(`accepted_claim_dispatch_report_${row.toolId}_missing_tool_execution_dry_run_requirement`)
+    }
+    if (row.safeNextCommand !== toolExecutionDryRunProofCommand) {
+      fail(`accepted_claim_dispatch_report_${row.toolId}_safe_next_not_tool_execution_dry_run`)
+    }
+    if (row.executionAllowedNow !== false || row.gpuRuntimeShouldStartNow !== false) {
+      fail(`accepted_claim_dispatch_report_${row.toolId}_runtime_gate_not_false`)
+    }
+  }
+}
+
+const acceptedDryRunProofPath =
+  buildAcceptedToolExecutionDryRunProofPacket(acceptedClaimDispatchProofPath)
+const acceptedDryRunReport = runGate([
+  '--proper-install-audit-packet',
+  'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
+  '--external-beta-callable-request-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
+  '--external-beta-api-route-mount-readiness-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
+  '--external-beta-controlled-on-demand-status-bridge-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
+  '--external-agent-cpu-static-exact-execution-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+  '--external-agent-cpu-static-adapter-invocation-enqueue-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
+  '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-proof-packet',
+  acceptedSmokeProofPath,
+  '--external-agent-cpu-static-worker-claim-and-dispatch-smoke-proof-packet',
+  acceptedClaimDispatchProofPath,
+  '--external-agent-cpu-static-tool-execution-dry-run-proof-packet',
+  acceptedDryRunProofPath,
+])
+if (acceptedDryRunReport.status !== legacyAcceptedStatus) {
+  fail('accepted_dry_run_report_status_mismatch')
+}
+if (acceptedDryRunReport.executionAllowedNow !== false) {
+  fail('accepted_dry_run_report_execution_not_false')
+}
+if (acceptedDryRunReport.sourceExternalAgentCpuStaticToolExecutionDryRunProofAccepted !== true) {
+  fail('accepted_dry_run_report_source_dry_run_not_true')
+}
+if (acceptedDryRunReport.cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_dry_run_report_dry_run_proof_tools_not_5')
+}
+if (acceptedDryRunReport.cpuStaticDryToolExecutionContractsPreparedTools !== 5) {
+  fail('accepted_dry_run_report_dry_contracts_not_5')
+}
+if (acceptedDryRunReport.toolExecutionDryRunProofRequiredTools !== 0) {
+  fail('accepted_dry_run_report_tool_execution_dry_run_required_not_0')
+}
+if (acceptedDryRunReport.controlledToolExecutionProofRequiredTools !== 5) {
+  fail('accepted_dry_run_report_controlled_tool_execution_proof_required_not_5')
+}
+if (acceptedDryRunReport.cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidenceTools !== 0) {
+  fail('accepted_dry_run_report_controlled_proof_not_0')
+}
+if (acceptedDryRunReport.recommendedNextPrompt !== 'AI_GRAPHICS_EXTERNAL_AGENT_CPU_STATIC_PRIVATE_WORKER_CONTROLLED_TOOL_EXECUTION_PROOF') {
+  fail('accepted_dry_run_report_next_prompt_mismatch')
+}
+for (const key of [
+  'sourceExternalAgentCpuStaticToolExecutionDryRunProofAccepted',
+  'allFiveCpuStaticToolExecutionDryRunProofsPreparedWithProvidedEvidence',
+  'allFiveCpuStaticDryToolExecutionContractsPrepared',
+  'controlledToolExecutionProofRequiredBeforeExecution',
+]) {
+  if (acceptedDryRunReport.booleans?.[key] !== true) {
+    fail(`accepted_dry_run_report_${key}_not_true`)
+  }
+}
+for (const key of [
+  'agentCanExecuteToolsNow',
+  'externalAgentExecutionAllowedNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'toolExecutionApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+]) {
+  if (acceptedDryRunReport.booleans?.[key] !== false) {
+    fail(`accepted_dry_run_report_${key}_not_false`)
+  }
+}
+const acceptedDryRunRows = acceptedDryRunReport.toolRows
+  ?.filter((row) => row.cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidence)
+if (!Array.isArray(acceptedDryRunRows) || acceptedDryRunRows.length !== 5) {
+  fail('accepted_dry_run_report_rows_not_5')
+} else {
+  for (const row of acceptedDryRunRows) {
+    if (row.toolExecutionDryRunProofRequired !== false) {
+      fail(`accepted_dry_run_report_${row.toolId}_dry_run_required_not_false`)
+    }
+    if (row.controlledToolExecutionProofRequired !== true) {
+      fail(`accepted_dry_run_report_${row.toolId}_controlled_required_not_true`)
+    }
+    if (!row.requiredBeforeExecution?.some((item) => item.includes('controlled private tool execution proof must pass next'))) {
+      fail(`accepted_dry_run_report_${row.toolId}_missing_controlled_requirement`)
+    }
+    if (row.safeNextCommand !== controlledToolExecutionProofCommand) {
+      fail(`accepted_dry_run_report_${row.toolId}_safe_next_not_controlled_proof`)
+    }
+    if (row.executionAllowedNow !== false || row.gpuRuntimeShouldStartNow !== false) {
+      fail(`accepted_dry_run_report_${row.toolId}_runtime_gate_not_false`)
+    }
+  }
+}
+
+const acceptedControlledProofPath =
+  buildAcceptedControlledToolExecutionProofPacket(acceptedDryRunProofPath)
+const acceptedControlledReport = runGate([
+  '--proper-install-audit-packet',
+  'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
+  '--external-beta-callable-request-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
+  '--external-beta-api-route-mount-readiness-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
+  '--external-beta-controlled-on-demand-status-bridge-packet',
+  'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
+  '--external-agent-cpu-static-exact-execution-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+  '--external-agent-cpu-static-adapter-invocation-enqueue-admission-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
+  '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+  '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-proof-packet',
+  acceptedSmokeProofPath,
+  '--external-agent-cpu-static-worker-claim-and-dispatch-smoke-proof-packet',
+  acceptedClaimDispatchProofPath,
+  '--external-agent-cpu-static-tool-execution-dry-run-proof-packet',
+  acceptedDryRunProofPath,
+  '--external-agent-cpu-static-controlled-tool-execution-proof-packet',
+  acceptedControlledProofPath,
+])
+if (acceptedControlledReport.status !== legacyAcceptedStatus) {
+  fail('accepted_controlled_report_status_mismatch')
+}
+if (acceptedControlledReport.executionAllowedNow !== false) {
+  fail('accepted_controlled_report_execution_not_false')
+}
+if (acceptedControlledReport.sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted !== true) {
+  fail('accepted_controlled_report_source_controlled_not_true')
+}
+if (acceptedControlledReport.cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidenceTools !== 5) {
+  fail('accepted_controlled_report_controlled_proof_tools_not_5')
+}
+if (acceptedControlledReport.cpuStaticPhase0ExecutionEvidenceAcceptedTools !== 5) {
+  fail('accepted_controlled_report_phase0_evidence_tools_not_5')
+}
+if (acceptedControlledReport.controlledToolExecutionProofRequiredTools !== 0) {
+  fail('accepted_controlled_report_controlled_required_not_0')
+}
+if (acceptedControlledReport.recommendedNextPrompt !== 'AI_GRAPHICS_EXTERNAL_AGENT_EXECUTION_GATE_REQUIRE_GO_REVIEW') {
+  fail('accepted_controlled_report_next_prompt_mismatch')
+}
+for (const key of [
+  'sourceExternalAgentCpuStaticControlledToolExecutionProofAccepted',
+  'allFiveCpuStaticControlledToolExecutionProofsAcceptedWithProvidedEvidence',
+  'allFiveCpuStaticPhase0ExecutionEvidenceAccepted',
+]) {
+  if (acceptedControlledReport.booleans?.[key] !== true) {
+    fail(`accepted_controlled_report_${key}_not_true`)
+  }
+}
+for (const key of [
+  'agentCanExecuteToolsNow',
+  'externalAgentExecutionAllowedNow',
+  'apiRouteExecutionApprovedNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+]) {
+  if (acceptedControlledReport.booleans?.[key] !== false) {
+    fail(`accepted_controlled_report_${key}_not_false`)
+  }
+}
+const acceptedControlledRows = acceptedControlledReport.toolRows
+  ?.filter((row) => row.cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidence)
+if (!Array.isArray(acceptedControlledRows) || acceptedControlledRows.length !== 5) {
+  fail('accepted_controlled_report_rows_not_5')
+} else {
+  for (const row of acceptedControlledRows) {
+    if (row.controlledToolExecutionProofRequired !== false) {
+      fail(`accepted_controlled_report_${row.toolId}_controlled_required_not_false`)
+    }
+    if (!row.requiredBeforeExecution?.some((item) => item.includes('require-go authorization must be revalidated'))) {
+      fail(`accepted_controlled_report_${row.toolId}_missing_require_go_requirement`)
+    }
+    if (row.safeNextCommand !== 'npm run ai-graphics:external-agent-cpu-static-private-worker-exact-execution-admission:diagnostics') {
+      fail(`accepted_controlled_report_${row.toolId}_safe_next_not_exact_admission`)
+    }
+    if (row.executionAllowedNow !== false || row.gpuRuntimeShouldStartNow !== false) {
+      fail(`accepted_controlled_report_${row.toolId}_runtime_gate_not_false`)
+    }
+  }
+}
+
+const requireGo = spawnSync(
+  'npm',
+  [
+    'run',
+    '--silent',
+    runScriptName,
+    '--',
+    '--proper-install-audit-packet',
+    'docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json',
+    '--external-beta-callable-request-admission-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-callable-request-admission.json',
+    '--external-beta-api-route-mount-readiness-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-api-route-mount-readiness.json',
+    '--external-beta-controlled-on-demand-status-bridge-packet',
+    'docs/tool-intelligence/ai-graphics/external-beta-controlled-on-demand-status-bridge.json',
+    '--external-agent-cpu-static-exact-execution-admission-packet',
+    'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-exact-execution-admission.json',
+    '--external-agent-cpu-static-adapter-invocation-enqueue-admission-packet',
+    'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-adapter-invocation-enqueue-admission.json',
+    '--external-agent-cpu-static-live-adapter-queue-write-proof-packet',
+    'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-live-adapter-invocation-queue-write-proof.json',
+    '--external-agent-cpu-static-non-production-service-role-queue-write-smoke-preflight-packet',
+    'docs/tool-intelligence/ai-graphics/external-agent-cpu-static-private-worker-non-production-service-role-queue-write-smoke-preflight.json',
+    '--require-go',
+  ],
+  {
+    cwd: root,
+    encoding: 'utf8',
+    maxBuffer: 20 * 1024 * 1024,
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  },
+)
+if (requireGo.status !== 2) fail(`require_go_exit_not_2:${requireGo.status}`)
+const requireGoReport = JSON.parse(requireGo.stdout)
+if (requireGoReport.executionAllowedNow !== false) fail('require_go_execution_not_false')
+
+if (git(['diff', '--name-only', '--', 'package-lock.json'])) {
+  fail('package_lock_changed')
+}
+const stagedFiles = git(['diff', '--cached', '--name-only'])
+if (stagedFiles.split('\n').filter(Boolean).some((file) => file.startsWith('.local-artifacts/'))) {
+  fail('local_artifacts_staged')
+}
+const generatedPathPattern = /(^|\/)(generated|renders?|browser-output|canvas-output|webgl-output|public-artifacts?)(\/|$)/i
+if (stagedFiles.split('\n').filter(Boolean).some((file) => generatedPathPattern.test(file))) {
+  fail('generated_output_staged')
+}
+
+if (failures.length > 0) {
+  console.error(JSON.stringify({ ok: false, failures }, null, 2))
+  process.exit(1)
+}
+
+console.log(JSON.stringify({
+  ok: true,
+  decision,
+  status: acceptedSourceReport.status,
+  toolsCovered: acceptedSourceReport.totalAiGraphicsTools,
+  gpuRuntimeTargetedTools: acceptedSourceReport.gpuRuntimeTargetedTools,
+  externalBetaCallableCandidateToolsWithProvidedEvidence:
+    acceptedSourceReport.externalBetaCallableCandidateToolsWithProvidedEvidence,
+  properlyInstalledForPlannedSurfaceTools:
+    acceptedSourceReport.properlyInstalledForPlannedSurfaceTools,
+  externalBetaCallableInstallReadyNowTools:
+    acceptedSourceReport.externalBetaCallableInstallReadyNowTools,
+  controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence:
+    acceptedSourceReport.controlledOnDemandExternalBetaReadyToolsWithProvidedEvidence,
+  cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTools:
+    acceptedSourceReport.cpuStaticLiveAdapterQueueWriteProofPassedWithProvidedEvidenceTools,
+  cpuStaticMockQueueServiceValidationPassedTools:
+    acceptedSourceReport.cpuStaticMockQueueServiceValidationPassedTools,
+  cpuStaticExactExecutionAdmissionReadyTools:
+    acceptedSourceReport.cpuStaticExactExecutionAdmissionReadyTools,
+  externalAgentExactRequestAdmittedWithProvidedEvidenceTools:
+    acceptedSourceReport.externalAgentExactRequestAdmittedWithProvidedEvidenceTools,
+  cpuStaticAdapterInvocationEnqueueAdmissionReadyTools:
+    acceptedSourceReport.cpuStaticAdapterInvocationEnqueueAdmissionReadyTools,
+  externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools:
+    acceptedSourceReport.externalAgentAdapterInvocationEnqueueAdmittedWithProvidedEvidenceTools,
+  cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools:
+    acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWriteSmokePreflightReadyTools,
+  externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools:
+    acceptedSourceReport.externalAgentNonProductionServiceRoleQueueWriteSmokePreflightReadyWithProvidedEvidenceTools,
+  cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools:
+    acceptedSourceReport.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools,
+  acceptedProofFixtureQueueWriteSmokeProofTools:
+    acceptedProofReport.cpuStaticNonProductionServiceRoleQueueWriteSmokeProofAcceptedWithProvidedEvidenceTools,
+  acceptedProofFixtureWorkerClaimAndDispatchSmokeProofRequiredTools:
+    acceptedProofReport.workerClaimAndDispatchSmokeProofRequiredTools,
+  acceptedClaimDispatchFixtureWorkerClaimAndDispatchSmokeProofTools:
+    acceptedClaimDispatchReport.cpuStaticWorkerClaimAndDispatchSmokeProofAcceptedWithProvidedEvidenceTools,
+  acceptedClaimDispatchFixtureToolExecutionDryRunProofRequiredTools:
+    acceptedClaimDispatchReport.toolExecutionDryRunProofRequiredTools,
+  acceptedDryRunFixtureToolExecutionDryRunProofPreparedTools:
+    acceptedDryRunReport.cpuStaticToolExecutionDryRunProofPreparedWithProvidedEvidenceTools,
+  acceptedDryRunFixtureControlledToolExecutionProofRequiredTools:
+    acceptedDryRunReport.controlledToolExecutionProofRequiredTools,
+  acceptedControlledFixtureControlledToolExecutionProofAcceptedTools:
+    acceptedControlledReport.cpuStaticControlledToolExecutionProofAcceptedWithProvidedEvidenceTools,
+  acceptedControlledFixturePhase0ExecutionEvidenceAcceptedTools:
+    acceptedControlledReport.cpuStaticPhase0ExecutionEvidenceAcceptedTools,
+  nonProductionServiceRoleQueueWriteSmokeRequiredTools:
+    acceptedSourceReport.nonProductionServiceRoleQueueWriteSmokeRequiredTools,
+  nonProductionServiceRoleQueueWriteSmokeResultRequiredTools:
+    acceptedSourceReport.nonProductionServiceRoleQueueWriteSmokeResultRequiredTools,
+  adapterInvocationAndWorkerEnqueueAdmissionRequiredTools:
+    acceptedSourceReport.adapterInvocationAndWorkerEnqueueAdmissionRequiredTools,
+  externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence:
+    acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence,
+  apiRouteMountReadyToolsWithProvidedEvidence:
+    acceptedSourceReport.apiRouteMountReadyToolsWithProvidedEvidence,
+  externalAgentControlledRouteMountFeatureFlagReadyTools:
+    acceptedSourceReport.externalAgentControlledRouteMountFeatureFlagReadyTools,
+  externalAgentControlledRouteMountRequiredForScopedCallTools:
+    acceptedSourceReport.externalAgentControlledRouteMountRequiredForScopedCallTools,
+  apiRouteMountedNowTools: acceptedSourceReport.apiRouteMountedNowTools,
+  readyForScopedControlledRouteExecutionNow:
+    acceptedSourceReport.readyForScopedControlledRouteExecutionNow,
+  scopedControlledRouteExecutableNowTools:
+    acceptedSourceReport.scopedControlledRouteExecutableNowTools,
+  scopedControlledRouteCpuStaticExecutableNowTools:
+    acceptedSourceReport.scopedControlledRouteCpuStaticExecutableNowTools,
+  scopedControlledRouteBrowserRuntimeExecutableNowTools:
+    acceptedSourceReport.scopedControlledRouteBrowserRuntimeExecutableNowTools,
+  scopedControlledRouteGpuModelBlockedTools:
+    acceptedSourceReport.scopedControlledRouteGpuModelBlockedTools,
+  executionAllowedNow: acceptedSourceReport.executionAllowedNow,
+  requireGoBlockedExitCode: requireGo.status,
+  agentCanExecute13ControlledRouteToolsNow:
+    acceptedSourceReport.booleans.agentCanExecute13ControlledRouteToolsNow,
+  agentCanExecuteToolsNow: acceptedSourceReport.booleans.agentCanExecuteToolsNow,
+  gpuRuntimeShouldStartNow: acceptedSourceReport.booleans.gpuRuntimeShouldStartNow,
+  packageLockChanged: false,
+}, null, 2))

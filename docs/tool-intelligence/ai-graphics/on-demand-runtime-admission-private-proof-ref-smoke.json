@@ -1,0 +1,308 @@
+{
+  "schemaVersion": "2026-07-02.ai-graphics.on-demand-runtime-admission-private-proof-ref-smoke",
+  "decision": "ai_graphics_on_demand_runtime_admission_private_proof_ref_smoke_passed",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "sourcePacket": "docs/tool-intelligence/ai-graphics/on-demand-runtime-admission.json",
+  "sourceModule": "server/tool-registry/ai-graphics-on-demand-runtime-admission.ts",
+  "summary": "Executable smoke for the on-demand runtime admission proof-ref boundary. It proves the eight GPU/model tools reject public or non-private runtime proof references and accept only private proof refs for future worker-enqueue admission, while keeping GPU start, tool execution, route execution, beta, and production gates false.",
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "gpuModelToolsCovered": 8,
+    "rejectedPublicProofRefCases": 8,
+    "acceptedPrivateProofRefCases": 8,
+    "runtimeJobAdmissionReadyWithPrivateRefs": 8,
+    "publicProofRefsRejected": 8,
+    "gpuRuntimeStartedNow": 0,
+    "gpuRuntimePerformed": 0,
+    "agentExecutableNow": 0
+  },
+  "gpuModelTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background"
+  ],
+  "rejectedPublicProofRefCases": [
+    {
+      "toolId": "torch_torchvision",
+      "capabilityId": "model_runtime_foundation",
+      "modelWeightManifestRequired": false,
+      "decision": "runtime_job_blocked",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": false,
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "missingRuntimeProofGates": [
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped"
+      ]
+    },
+    {
+      "toolId": "transformers",
+      "capabilityId": "model_runtime_foundation",
+      "modelWeightManifestRequired": false,
+      "decision": "runtime_job_blocked",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": false,
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "missingRuntimeProofGates": [
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped"
+      ]
+    },
+    {
+      "toolId": "sam2",
+      "capabilityId": "subject_segmentation",
+      "modelWeightManifestRequired": true,
+      "decision": "runtime_job_blocked",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": false,
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "missingRuntimeProofGates": [
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "reviewed model-weight manifest reference is missing or not private-scoped"
+      ]
+    },
+    {
+      "toolId": "birefnet",
+      "capabilityId": "background_removal",
+      "modelWeightManifestRequired": true,
+      "decision": "runtime_job_blocked",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": false,
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "missingRuntimeProofGates": [
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "reviewed model-weight manifest reference is missing or not private-scoped"
+      ]
+    },
+    {
+      "toolId": "real_esrgan",
+      "capabilityId": "upscaling",
+      "modelWeightManifestRequired": true,
+      "decision": "runtime_job_blocked",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": false,
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "missingRuntimeProofGates": [
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "reviewed model-weight manifest reference is missing or not private-scoped"
+      ]
+    },
+    {
+      "toolId": "kornia",
+      "capabilityId": "tensor_image_ops",
+      "modelWeightManifestRequired": false,
+      "decision": "runtime_job_blocked",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": false,
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "missingRuntimeProofGates": [
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped"
+      ]
+    },
+    {
+      "toolId": "rembg",
+      "capabilityId": "background_removal",
+      "modelWeightManifestRequired": true,
+      "decision": "runtime_job_blocked",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": false,
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "missingRuntimeProofGates": [
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "reviewed model-weight manifest reference is missing or not private-scoped"
+      ]
+    },
+    {
+      "toolId": "transparent_background",
+      "capabilityId": "background_removal",
+      "modelWeightManifestRequired": true,
+      "decision": "runtime_job_blocked",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": false,
+      "gpuRuntimeStartAllowedForAcceptedJob": false,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "missingRuntimeProofGates": [
+        "native NVIDIA GPU runtime proof reference is missing or not private-scoped",
+        "reviewed model-weight manifest reference is missing or not private-scoped"
+      ]
+    }
+  ],
+  "acceptedPrivateProofRefCases": [
+    {
+      "toolId": "torch_torchvision",
+      "capabilityId": "model_runtime_foundation",
+      "modelWeightManifestRequired": false,
+      "decision": "runtime_job_admission_ready_for_worker_enqueue",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": true,
+      "gpuRuntimeStartupAuthorization": "on_demand_start_allowed_after_live_worker_enqueue",
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "transformers",
+      "capabilityId": "model_runtime_foundation",
+      "modelWeightManifestRequired": false,
+      "decision": "runtime_job_admission_ready_for_worker_enqueue",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": true,
+      "gpuRuntimeStartupAuthorization": "on_demand_start_allowed_after_live_worker_enqueue",
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "sam2",
+      "capabilityId": "subject_segmentation",
+      "modelWeightManifestRequired": true,
+      "decision": "runtime_job_admission_ready_for_worker_enqueue",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": true,
+      "gpuRuntimeStartupAuthorization": "on_demand_start_allowed_after_live_worker_enqueue",
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "birefnet",
+      "capabilityId": "background_removal",
+      "modelWeightManifestRequired": true,
+      "decision": "runtime_job_admission_ready_for_worker_enqueue",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": true,
+      "gpuRuntimeStartupAuthorization": "on_demand_start_allowed_after_live_worker_enqueue",
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "real_esrgan",
+      "capabilityId": "upscaling",
+      "modelWeightManifestRequired": true,
+      "decision": "runtime_job_admission_ready_for_worker_enqueue",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": true,
+      "gpuRuntimeStartupAuthorization": "on_demand_start_allowed_after_live_worker_enqueue",
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "kornia",
+      "capabilityId": "tensor_image_ops",
+      "modelWeightManifestRequired": false,
+      "decision": "runtime_job_admission_ready_for_worker_enqueue",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": true,
+      "gpuRuntimeStartupAuthorization": "on_demand_start_allowed_after_live_worker_enqueue",
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "rembg",
+      "capabilityId": "background_removal",
+      "modelWeightManifestRequired": true,
+      "decision": "runtime_job_admission_ready_for_worker_enqueue",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": true,
+      "gpuRuntimeStartupAuthorization": "on_demand_start_allowed_after_live_worker_enqueue",
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false
+    },
+    {
+      "toolId": "transparent_background",
+      "capabilityId": "background_removal",
+      "modelWeightManifestRequired": true,
+      "decision": "runtime_job_admission_ready_for_worker_enqueue",
+      "runtimeJobAdmissionReadyWithProvidedEvidence": true,
+      "gpuRuntimeStartupAuthorization": "on_demand_start_allowed_after_live_worker_enqueue",
+      "gpuRuntimeStartAllowedForAcceptedJob": true,
+      "gpuRuntimeShouldStartNow": false,
+      "gpuRuntimePerformed": false,
+      "agentCanExecuteToolsNow": false,
+      "routeExecutionApprovedNow": false,
+      "workerExecutionApprovedNow": false,
+      "toolExecutionApprovedNow": false,
+      "gpuRuntimeApprovedNow": false,
+      "externalBetaReadyNow": false,
+      "productionReadyNow": false
+    }
+  ],
+  "booleans": {
+    "privateProofRefSmokePassed": true,
+    "all8GpuModelToolsCovered": true,
+    "publicProofRefsRejected": true,
+    "privateProofRefsAcceptedForFutureWorkerEnqueue": true,
+    "agentCanSelectForPlanning": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "gpuStartsOnlyForApprovedWorkerOrToolCall": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "gpuRuntimeShouldStartNow": false,
+    "gpuRuntimePerformed": false,
+    "runtimeReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false
+  }
+}

@@ -9,6 +9,7 @@ const expectedDecision = "ai_graphics_tool_capability_study_canonical_agent_rout
 const expectedScript = "ai-graphics:tool-capability-study:canonical-routing-canonicalization-owner-approval-qa-diagnostics";
 const expectedScriptCommand = "node scripts/validation/ai-graphics-tool-capability-study-canonical-agent-routing-canonicalization-owner-approval-qa-diagnostics.mjs";
 const allowedDescendantScripts = new Set([
+  "ai-graphics:model-weight-manifest-readiness:diagnostics",
   "ai-graphics:cpu-static-execution-proof:phase0-owner-diagnostics",
   "ai-graphics:cpu-static-execution-proof:phase0",
   "ai-graphics:cpu-static-execution-proof:phase0-diagnostics",
@@ -46,7 +47,15 @@ const allowedDescendantScripts = new Set([
   "ai-graphics:browser-runtime-proof:diagnostics",
   "ai-graphics:satori-font-runtime-proof",
   "ai-graphics:satori-font-runtime-proof:diagnostics",
-  "ai-graphics:gpu-model-install-build-targets:diagnostics"
+  "ai-graphics:gpu-model-install-build-targets:diagnostics",
+  "ai-graphics:tool-call-readiness:diagnostics",
+  "ai-graphics:tool-call-handoff:diagnostics",
+  "ai-graphics:tool-call-plan-evaluator:diagnostics",
+  "ai-graphics:beta-readiness-gate:diagnostics",
+  "ai-graphics:tool-route-readiness:diagnostics",
+  "ai-graphics:worker-handoff-readiness:diagnostics",
+  "ai-graphics:21-tool-proper-install-audit:diagnostics",
+  "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics",
 ]);
 
 const failures = [];

@@ -1,0 +1,37 @@
+# AI Graphics External-Beta Activated Launch Readiness
+
+Decision: `ai_graphics_external_beta_activated_launch_readiness_approved_with_runtime_blocks`
+
+Status: `external_beta_activated_launch_ready_for_controlled_on_demand_tool_calls`
+
+This consumer requires two source packets:
+
+- accepted external-beta launch go/no-go evidence
+- accepted all-21 activation rollup evidence
+
+When both are accepted, all 21 AI graphics tools are covered by controlled on-demand external-beta tool-call evidence for controlled on-demand external-beta tool calls. Actual external-beta execution readiness remains false until live runtime gates pass.
+
+## Counts
+
+- `totalAiGraphicsTools`: 21
+- `gpuRuntimeTargetedTools`: 8
+- `sourceRouteBoundServiceRoleQueueSmokeOperatorPreflightAcceptedToolsWithProvidedEvidence`: 21
+- `externalBetaActivatedLaunchReadyToolsWithProvidedEvidence`: 21
+- `externalBetaToolCallReadyNowTools`: 0
+- `externalBetaReadyNowTools`: 0
+- `runtimeReadyForOnDemandExternalBetaToolCallTools`: 0
+- `productionReadyNowTools`: 0
+
+## Boundary
+
+- External beta readiness remains false; this packet only records controlled on-demand tool-call evidence.
+- All 21 tools must preserve route-bound service-role queue smoke operator-preflight evidence through the activation rollup.
+- Direct agent execution remains blocked: `agentCanExecuteToolsNow=false`.
+- Route, worker, tool, provider, browser/WebGL/canvas, and GPU execution are not performed by this readiness gate.
+- GPU/model runtime remains on-demand only: `gpuRuntimeShouldStartNow=false`.
+- Public artifacts and signed URLs remain blocked.
+- Production remains blocked: `productionReadyNow=false`.
+
+## Next Gap
+
+Production still requires a separate production launch approval and must not infer production readiness from this external-beta readiness consumer.

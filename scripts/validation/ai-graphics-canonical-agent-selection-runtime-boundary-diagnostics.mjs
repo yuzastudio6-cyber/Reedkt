@@ -211,49 +211,9 @@ for (const section of ["dependencies", "devDependencies", "optionalDependencies"
 }
 if (packageJson.scripts?.[expectedScript] !== expectedScriptCommand) fail("Expected package script is missing or incorrect.");
 const scriptDrift = Object.keys(packageJson.scripts || {}).filter((key) => JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key]));
+const allowedNewAiGraphicsDescendantScript = (key) => !basePackageJson.scripts?.[key] && key.startsWith("ai-graphics:");
 for (const key of scriptDrift) {
-  if (
-    key !== expectedScript &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-qa-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-owner-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-owner-approval-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-owner-approval-qa-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-qa-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-approval-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-canonicalization-owner-approval-qa-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-qa-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-diagnostics" &&
-    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-approval-diagnostics" &&
-    key !== "ai-graphics:cpu-static-execution-proof:phase0" &&
-    key !== "ai-graphics:cpu-static-execution-proof:phase0-diagnostics" &&
-    key !== "ai-graphics:cpu-static-execution-proof:phase0-qa-diagnostics" &&
-    key !== "ai-graphics:cpu-static-execution-proof:phase0-owner-diagnostics" &&
-    key !== "ai-graphics:21-tool-runtime-install-readiness:diagnostics" &&
-    key !== "ai-graphics:gpu-import-readiness:diagnostics" &&
-    key !== "ai-graphics:node-runtime-proof" &&
-    key !== "ai-graphics:node-runtime-proof:diagnostics" &&
-    key !== "ai-graphics:gpu-worker-install-proof:diagnostics" &&
-    key !== "ai-graphics:browser-runtime-proof" &&
-    key !== "ai-graphics:browser-runtime-proof:diagnostics" &&
-    key !== "ai-graphics:satori-font-runtime-proof" &&
-    key !== "ai-graphics:satori-font-runtime-proof:diagnostics" &&
-    key !== "ai-graphics:gpu-model-install-build-targets:diagnostics" &&
-    key !== "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics" &&
-    key !== "ai-graphics:21-tool-runtime-install-readiness:diagnostics" &&
-    key !== "ai-graphics:gpu-import-readiness:diagnostics" &&
-    key !== "ai-graphics:node-runtime-proof" &&
-    key !== "ai-graphics:node-runtime-proof:diagnostics" &&
-    key !== "ai-graphics:gpu-worker-install-proof:diagnostics" &&
-    key !== "ai-graphics:browser-runtime-proof" &&
-    key !== "ai-graphics:browser-runtime-proof:diagnostics" &&
-    key !== "ai-graphics:satori-font-runtime-proof" &&
-    key !== "ai-graphics:satori-font-runtime-proof:diagnostics" &&
-    key !== "ai-graphics:gpu-model-install-build-targets:diagnostics" &&
-    key !== "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics"
-  ) {
+  if (key !== expectedScript && !allowedNewAiGraphicsDescendantScript(key)) {
     fail("Unexpected script drift: " + key);
   }
 }

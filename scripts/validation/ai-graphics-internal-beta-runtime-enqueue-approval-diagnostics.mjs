@@ -1,0 +1,892 @@
+import { execFileSync } from 'node:child_process'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
+import { acceptedModelWeightManifestReviewPacket } from './ai-graphics-model-weight-fixture-packet.mjs'
+import { acceptedGpuRuntimeProofResultPacket } from './ai-graphics-gpu-runtime-fixture-packet.mjs'
+import { acceptedNativeGpuProofCollectionPacket } from './ai-graphics-native-gpu-proof-collection-fixture-packet.mjs'
+
+const baseRef = 'origin/codex/rp-ai-graphics-tool-call-readiness-contract'
+const runScriptName = 'ai-graphics:internal-beta-runtime-enqueue-approval'
+const runScriptCommand = 'tsx server/cli/ai-graphics-internal-beta-runtime-enqueue-approval.ts'
+const diagnosticScriptName = 'ai-graphics:internal-beta-runtime-enqueue-approval:diagnostics'
+const diagnosticScriptCommand =
+  'node scripts/validation/ai-graphics-internal-beta-runtime-enqueue-approval-diagnostics.mjs'
+
+const allTools = [
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+  'd3',
+  'echarts',
+  'vega_lite',
+  'vega',
+  'satori',
+  'svgdotjs_svg_js',
+  'viz_js',
+  'lottie_web',
+  'animejs',
+  'three_js',
+  'pixi_js',
+  'konva',
+  'babylonjs',
+]
+
+const gpuToolIds = new Set([
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+])
+
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+}
+
+const capabilities = [
+  'chart_overlay',
+  'data_visualization',
+  'svg_graphics',
+  'diagram_graphics',
+  'animation_overlay',
+  'canvas_scene',
+  'webgl_3d_scene',
+  'background_removal',
+  'subject_segmentation',
+  'upscaling',
+  'tensor_image_ops',
+  'model_runtime_foundation',
+]
+
+const falseGateKeys = [
+  'agentCanExecuteToolsNow',
+  'routeExecutionApprovedNow',
+  'workerExecutionApprovedNow',
+  'workerQueueApprovedNow',
+  'productionWorkerJobEnqueueApprovedNow',
+  'productionWorkerDispatchApprovedNow',
+  'productionWorkerRouteExecutionApprovedNow',
+  'toolExecutionApprovedNow',
+  'providerRuntimeApprovedNow',
+  'browserWebglCanvasRuntimeApprovedNow',
+  'gpuRuntimeApprovedNow',
+  'gpuRuntimeShouldStartNow',
+  'runtimeReadyNow',
+  'internalBetaReadyNow',
+  'externalBetaReadyNow',
+  'productionReadyNow',
+  'dependencyInstallPerformed',
+  'packageLockMutationPerformed',
+  'toolExecutionPerformed',
+  'workerExecutionPerformed',
+  'routeExecutionPerformed',
+  'productionWorkerDispatchPerformed',
+  'productionWorkerRouteExecutionPerformed',
+  'providerRuntimePerformed',
+  'browserWebglCanvasRuntimePerformed',
+  'gpuRuntimePerformed',
+  'modelWeightsDownloaded',
+  'modelWeightsLoaded',
+  'mediaProcessingPerformed',
+  'supabaseMutationPerformed',
+  'gcsUploadPerformed',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+]
+
+const failures = []
+
+function fail(message) {
+  failures.push(message)
+}
+
+function read(filePath) {
+  if (!fs.existsSync(filePath)) {
+    fail(`missing_file:${filePath}`)
+    return ''
+  }
+  return fs.readFileSync(filePath, 'utf8')
+}
+
+function json(filePath) {
+  try {
+    return JSON.parse(read(filePath))
+  } catch (error) {
+    fail(`invalid_json:${filePath}:${error.message}`)
+    return {}
+  }
+}
+
+function git(args) {
+  return execFileSync('git', args, {
+    encoding: 'utf8',
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  }).trim()
+}
+
+function runNpm(scriptName, args = []) {
+  return execFileSync('npm', ['run', '--silent', scriptName, '--', ...args], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, DEVELOPER_DIR: '/Library/Developer/CommandLineTools' },
+  })
+}
+
+function parseJsonOutput(output, label) {
+  try {
+    return JSON.parse(output)
+  } catch (error) {
+    fail(`invalid_json_output:${label}:${error.message}`)
+    return {}
+  }
+}
+
+function writeAcceptedEvidencePackets() {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-graphics-runtime-enqueue-approval-'))
+  const manifestPacketPath = path.join(root, 'model-weight-manifest-review-packet.json')
+  const gpuPacketPath = path.join(root, 'gpu-runtime-proof-result-packet.json')
+  const nativeGpuProofCollectionPacketPath = path.join(root, 'native-gpu-proof-collection-packet.json')
+  fs.writeFileSync(
+    manifestPacketPath,
+    `${JSON.stringify(acceptedModelWeightManifestReviewPacket(), null, 2)}\n`,
+    'utf8',
+  )
+  fs.writeFileSync(
+    gpuPacketPath,
+    `${JSON.stringify(acceptedGpuRuntimeProofResultPacket(), null, 2)}\n`,
+    'utf8',
+  )
+  fs.writeFileSync(
+    nativeGpuProofCollectionPacketPath,
+    `${JSON.stringify(acceptedNativeGpuProofCollectionPacket(), null, 2)}\n`,
+    'utf8',
+  )
+  return { manifestPacketPath, gpuPacketPath, nativeGpuProofCollectionPacketPath }
+}
+
+function writeJsonPacket(root, fileName, packet) {
+  const packetPath = path.join(root, fileName)
+  fs.writeFileSync(packetPath, `${JSON.stringify(packet, null, 2)}\n`, 'utf8')
+  return packetPath
+}
+
+function deepMerge(base, patch) {
+  const output = Array.isArray(base) ? [...base] : { ...base }
+  for (const [key, value] of Object.entries(patch ?? {})) {
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      base?.[key] &&
+      typeof base[key] === 'object' &&
+      !Array.isArray(base[key])
+    ) {
+      output[key] = deepMerge(base[key], value)
+    } else {
+      output[key] = value
+    }
+  }
+  return output
+}
+
+function deepClone(value) {
+  return JSON.parse(JSON.stringify(value))
+}
+
+function expectSourceOwnerPacketRejected(label, packetRoot, sourceOwnerApprovalPacket, mutatePacket) {
+  const packet = typeof mutatePacket === 'function'
+    ? mutatePacket(deepClone(sourceOwnerApprovalPacket))
+    : deepClone(sourceOwnerApprovalPacket)
+  const packetPath = writeJsonPacket(
+    packetRoot,
+    `bad-source-go-no-go-owner-approval-packet-${label}.json`,
+    packet,
+  )
+  let rejected = false
+  try {
+    runNpm(runScriptName, [
+      '--internal-beta-go-no-go-owner-approval-packet',
+      packetPath,
+      '--internal-beta-runtime-enqueue-approval-granted',
+      '--internal-beta-runtime-enqueue-approval-ref',
+      'AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_LOCAL_FIXTURE',
+    ])
+  } catch {
+    rejected = true
+  }
+  if (!rejected) fail(`bad_source_owner_packet_not_rejected:${label}`)
+}
+
+const requiredFiles = [
+  'server/tool-registry/ai-graphics-internal-beta-runtime-enqueue-approval.ts',
+  'server/cli/ai-graphics-internal-beta-runtime-enqueue-approval.ts',
+  'scripts/validation/ai-graphics-internal-beta-runtime-enqueue-approval-diagnostics.mjs',
+  'docs/tool-intelligence/ai-graphics/internal-beta-runtime-enqueue-approval.md',
+  'docs/tool-intelligence/ai-graphics/internal-beta-runtime-enqueue-approval.json',
+  'docs/tool-intelligence/ai-graphics/internal-beta-go-no-go-owner-approval.json',
+  'docs/production-beta-readiness-scorecard.md',
+]
+
+for (const file of requiredFiles) read(file)
+
+const pkg = json('package.json')
+const docs = json('docs/tool-intelligence/ai-graphics/internal-beta-runtime-enqueue-approval.json')
+const moduleSource = read('server/tool-registry/ai-graphics-internal-beta-runtime-enqueue-approval.ts')
+const cliSource = read('server/cli/ai-graphics-internal-beta-runtime-enqueue-approval.ts')
+const indexSource = read('server/tool-registry/index.ts')
+const markdown = read('docs/tool-intelligence/ai-graphics/internal-beta-runtime-enqueue-approval.md')
+const scorecard = read('docs/production-beta-readiness-scorecard.md')
+
+if (pkg.scripts?.[runScriptName] !== runScriptCommand) fail(`missing_package_script:${runScriptName}`)
+if (pkg.scripts?.[diagnosticScriptName] !== diagnosticScriptCommand) {
+  fail(`missing_package_script:${diagnosticScriptName}`)
+}
+if (!indexSource.includes("export * from './ai-graphics-internal-beta-runtime-enqueue-approval'")) {
+  fail('server_registry_index_does_not_export_internal_beta_runtime_enqueue_approval')
+}
+
+if (docs.decision !== 'ai_graphics_internal_beta_runtime_enqueue_approval_contract_prepared_with_runtime_blocks') {
+  fail(`unexpected_docs_decision:${docs.decision}`)
+}
+if (docs.status !== 'internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked') {
+  fail(`unexpected_docs_status:${docs.status}`)
+}
+if (docs.sourceDecision !== 'ai_graphics_internal_beta_go_no_go_owner_approved_with_runtime_blocks') {
+  fail(`unexpected_docs_source_decision:${docs.sourceDecision}`)
+}
+
+for (const status of [
+  'missing_owner_approval_evidence',
+  'awaiting_internal_beta_runtime_enqueue_approval',
+  'internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked',
+]) {
+  if (!moduleSource.includes(status)) fail(`module_missing_status:${status}`)
+}
+
+for (const tool of allTools) {
+  if (!docs.tools?.includes(tool)) fail(`docs_missing_tool:${tool}`)
+  if (!markdown.includes(`\`${tool}\``)) fail(`markdown_missing_tool:${tool}`)
+  if (!docs.toolScopes?.some((scope) => scope.toolId === tool)) fail(`docs_missing_tool_scope:${tool}`)
+}
+for (const capability of capabilities) {
+  if (!docs.capabilities?.includes(capability)) fail(`docs_missing_capability:${capability}`)
+  if (!markdown.includes(`\`${capability}\``)) fail(`markdown_missing_capability:${capability}`)
+}
+
+for (const [key, expected] of Object.entries({
+  totalAiGraphicsTools: 21,
+  totalProductFacingCapabilities: 12,
+  enqueueScopeCandidateToolsWithProvidedEvidence: 21,
+  enqueueScopeApprovedToolsWithProvidedEvidence: 21,
+  gpuRuntimeTargetedTools: 8,
+  gpuRuntimeStartAllowedForAcceptedJobTools: 8,
+  heavyToolsIncorrectlyTargetingCpu: 0,
+  liveWorkerQueueApprovedNowTools: 0,
+  liveWorkerExecutionApprovedNowTools: 0,
+  internalBetaReadyNowTools: 0,
+  externalBetaReadyNowTools: 0,
+  productionReadyNowTools: 0,
+})) {
+  if (docs.counts?.[key] !== expected) fail(`docs_count_mismatch:${key}:${docs.counts?.[key]}`)
+}
+
+for (const [key, expected] of Object.entries({
+  accepted: true,
+  approverRole: 'AI_TOOLS_CREATIVE_GRAPHICS_OWNER',
+  approvalRef: 'AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_PACKET',
+  approvesLiveQueueNow: false,
+  approvesRuntimeNow: false,
+})) {
+  if (docs.runtimeEnqueueApprovalRecord?.[key] !== expected) {
+    fail(`docs_enqueue_record_mismatch:${key}:${docs.runtimeEnqueueApprovalRecord?.[key]}`)
+  }
+}
+
+for (const [key, expected] of Object.entries({
+  acceptsLowLevelEvidenceFlags: true,
+  acceptsGoNoGoOwnerApprovalPacket: true,
+  sourceGoNoGoOwnerApprovalPacketRequired: true,
+  sourceGoNoGoOwnerApprovalPacketMustBeOwnerApproved: true,
+  sourceGoNoGoOwnerApprovalPacketMustCoverAll21Tools: true,
+  sourceGoNoGoOwnerApprovalPacketMustCoverAll12Capabilities: true,
+  sourceGoNoGoOwnerApprovalPacketMustPreserveEightGpuRuntimeTargets: true,
+  sourceGoNoGoOwnerApprovalPacketMustPreserveOnDemandGpuRuntimePolicy: true,
+  sourceGoNoGoOwnerApprovalPacketMustKeepNoIdleGpuRuntime: true,
+  sourceGoNoGoOwnerApprovalPacketMustBlockCpuFallbackForHeavyTools: true,
+  sourceGoNoGoOwnerApprovalPacketMustKeepRuntimeBetaAndProductionFalse: true,
+  runtimeEnqueueApprovalRequiredAfterSourcePacket: true,
+  runtimeUnlockPerformed: false,
+})) {
+  if (docs.sourceEvidencePolicy?.[key] !== expected) {
+    fail(`docs_source_evidence_policy_mismatch:${key}:${docs.sourceEvidencePolicy?.[key]}`)
+  }
+}
+if (!cliSource.includes('--internal-beta-go-no-go-owner-approval-packet')) {
+  fail('cli_missing_go_no_go_owner_approval_packet_flag')
+}
+if (!markdown.includes('--internal-beta-go-no-go-owner-approval-packet')) {
+  fail('markdown_missing_go_no_go_owner_approval_packet_flag')
+}
+if (!moduleSource.includes('sourceGoNoGoOwnerApprovalPacket')) {
+  fail('module_missing_source_owner_packet_input')
+}
+for (const [tool, runtimeTarget] of Object.entries(expectedGpuRuntimeTargets)) {
+  if (!cliSource.includes(tool)) fail(`cli_missing_expected_gpu_tool:${tool}`)
+  if (!cliSource.includes(runtimeTarget)) fail(`cli_missing_expected_gpu_runtime_target:${tool}`)
+}
+for (const phrase of [
+  'exactly eight GPU/model gate checks',
+  'exactly eight nested GPU/model source job payloads',
+  'on-demand-only GPU runtime',
+  'no idle GPU runtime approval',
+  'CPU fallback blocked for heavy/model tools',
+]) {
+  if (!markdown.includes(phrase)) fail(`markdown_missing_source_owner_gpu_policy:${phrase}`)
+}
+
+for (const action of [
+  'name productionToolId, workerType, runtimeTarget, and capability ids for each AI graphics tool',
+  'confirm internal beta enqueue scope candidates for all 21 tools with provided evidence',
+  'confirm eight heavy/model tools target GPU worker runtime lanes',
+  'record a future runtime-enqueue approval reference without enqueueing work',
+  'return live queue, execution, artifact, external beta, and production blockers',
+  'bind GPU runtime activation to on-demand approved worker or tool calls only',
+  'keep GPU startup false until a future accepted worker or tool-call job exists',
+]) {
+  if (!docs.allowedRuntimeEnqueueScopeActions?.includes(action)) fail(`docs_missing_allowed_action:${action}`)
+  if (!moduleSource.includes(action)) fail(`module_missing_allowed_action:${action}`)
+}
+
+for (const action of [
+  'live worker queue enqueue',
+  'idle or always-on GPU runtime',
+  'worker execution',
+  'Tool Route execution',
+  'production worker dispatch',
+  'browser/WebGL/canvas runtime execution',
+  'GPU/model runtime execution',
+  'model weight download or load',
+  'signed URL creation',
+  'public artifact creation',
+  'internal beta runtime unlock',
+  'external beta unlock',
+  'production unlock',
+]) {
+  if (!docs.blockedRuntimeActions?.includes(action)) fail(`docs_missing_blocked_action:${action}`)
+  if (!moduleSource.includes(action)) fail(`module_missing_blocked_action:${action}`)
+}
+
+for (const key of [
+  'internalBetaRuntimeEnqueueApprovalPrepared',
+  'sourceGoNoGoOwnerApprovalAccepted',
+  'internalBetaRuntimeEnqueueApprovalRecordAccepted',
+  'all21ToolsCovered',
+  'all12CapabilitiesCovered',
+  'all21RuntimeEnqueueScopesPrepared',
+  'all21RuntimeEnqueueScopesApprovedWithProvidedEvidence',
+  'gpuHeavyToolsTargetGpuRuntime',
+  'agentCanSelectForPlanning',
+]) {
+  if (docs.booleans?.[key] !== true) fail(`docs_true_boolean_not_true:${key}`)
+}
+for (const [key, expected] of Object.entries({
+  gpuRuntimeOnDemandOnly: true,
+  noIdleGpuRuntimeApproved: true,
+  gpuStartsOnlyForApprovedWorkerOrToolCall: true,
+  gpuRuntimeStartAllowedOnlyForAcceptedJobs: true,
+  gpuRuntimeShouldStartNow: false,
+  cpuFallbackAllowedForHeavyTools: false,
+})) {
+  if (docs.booleans?.[key] !== expected) fail(`docs_gpu_policy_boolean_mismatch:${key}:${docs.booleans?.[key]}`)
+}
+for (const [key, expected] of Object.entries({
+  onDemandOnly: true,
+  noIdleGpuRuntimeApproved: true,
+  startsOnlyForApprovedWorkerOrToolCall: true,
+  cpuFallbackAllowedForHeavyTools: false,
+})) {
+  if (docs.gpuRuntimeActivationPolicy?.[key] !== expected) {
+    fail(`docs_gpu_activation_policy_mismatch:${key}:${docs.gpuRuntimeActivationPolicy?.[key]}`)
+  }
+}
+for (const key of falseGateKeys) {
+  if (docs.booleans?.[key] !== false) fail(`docs_false_boolean_not_false:${key}`)
+}
+
+const defaultOutput = parseJsonOutput(runNpm(runScriptName), 'default_runtime_enqueue')
+if (defaultOutput.status !== 'missing_owner_approval_evidence') fail(`default_status:${defaultOutput.status}`)
+
+const { manifestPacketPath, gpuPacketPath, nativeGpuProofCollectionPacketPath } = writeAcceptedEvidencePackets()
+const commonArgs = [
+  '--use-committed-js-runtime-proofs',
+  '--all-technical-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--model-weight-manifest-review-packet',
+  manifestPacketPath,
+  '--gpu-runtime-proof-result-packet',
+  gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
+  '--owner-approval-granted',
+  '--owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--internal-beta-go-no-go-owner-approval-granted',
+  '--internal-beta-go-no-go-owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_GO_NO_GO_OWNER_APPROVAL_LOCAL_FIXTURE',
+]
+
+let awaitingExited = false
+let awaitingOutputText = ''
+try {
+  awaitingOutputText = runNpm(runScriptName, [
+    ...commonArgs,
+    '--require-internal-beta-runtime-enqueue-approved',
+  ])
+} catch (error) {
+  awaitingExited = true
+  awaitingOutputText = `${error.stdout || ''}${error.stderr || ''}`
+}
+const awaitingOutput = parseJsonOutput(awaitingOutputText, 'awaiting_runtime_enqueue')
+if (!awaitingExited) fail('awaiting_runtime_enqueue_require_did_not_fail')
+if (awaitingOutput.status !== 'awaiting_internal_beta_runtime_enqueue_approval') {
+  fail(`awaiting_status:${awaitingOutput.status}`)
+}
+
+const approvedArgs = [
+  ...commonArgs,
+  '--internal-beta-runtime-enqueue-approval-granted',
+  '--internal-beta-runtime-enqueue-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_LOCAL_FIXTURE',
+  '--require-internal-beta-runtime-enqueue-approved',
+]
+const approvedOutput = parseJsonOutput(runNpm(runScriptName, approvedArgs), 'approved_runtime_enqueue')
+if (approvedOutput.status !== 'internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked') {
+  fail(`approved_status:${approvedOutput.status}`)
+}
+if (approvedOutput.enqueueScopeApprovedToolsWithProvidedEvidence !== 21) fail('approved_scopes_not_21')
+if (approvedOutput.gpuRuntimeTargetedTools !== 8) fail('approved_gpu_targets_not_8')
+if (approvedOutput.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail('approved_gpu_start_allowed_for_accepted_job_not_8')
+}
+if (approvedOutput.heavyToolsIncorrectlyTargetingCpu !== 0) fail('approved_heavy_cpu_mismatch')
+if (!Array.isArray(approvedOutput.toolScopes) || approvedOutput.toolScopes.length !== 21) {
+  fail('approved_tool_scopes_not_21')
+}
+for (const tool of allTools) {
+  const scope = approvedOutput.toolScopes?.find((candidate) => candidate.toolId === tool)
+  if (!scope) fail(`approved_missing_tool_scope:${tool}`)
+  if (scope?.enqueueScopeApprovedWithProvidedEvidence !== true) fail(`approved_tool_scope_not_approved:${tool}`)
+  if (scope?.liveWorkerQueueApprovedNow !== false) fail(`approved_tool_live_queue_not_false:${tool}`)
+  if (scope?.liveWorkerExecutionApprovedNow !== false) fail(`approved_tool_live_execution_not_false:${tool}`)
+  if (!scope?.productionToolId || !scope?.workerType || !scope?.runtimeTarget) {
+    fail(`approved_tool_scope_missing_runtime_mapping:${tool}`)
+  }
+  if (gpuToolIds.has(tool)) {
+    if (scope?.runtimeActivationPolicy?.onDemandOnly !== true) fail(`approved_tool_gpu_not_on_demand:${tool}`)
+    if (scope?.runtimeActivationPolicy?.noIdleGpuRuntimeApproved !== true) fail(`approved_tool_idle_gpu_allowed:${tool}`)
+    if (scope?.runtimeActivationPolicy?.startsOnlyForApprovedWorkerOrToolCall !== true) {
+      fail(`approved_tool_gpu_start_policy_mismatch:${tool}`)
+    }
+    if (scope?.runtimeActivationPolicy?.cpuFallbackAllowedForHeavyTools !== false) {
+      fail(`approved_tool_cpu_fallback_allowed:${tool}`)
+    }
+    if (scope?.gpuRuntimeStartAllowedForAcceptedJob !== true) {
+      fail(`approved_tool_gpu_start_not_allowed_for_future_job:${tool}`)
+    }
+  } else if (scope?.runtimeActivationPolicy !== null) {
+    fail(`approved_non_gpu_tool_has_gpu_policy:${tool}`)
+  } else if (scope?.gpuRuntimeStartAllowedForAcceptedJob !== false) {
+    fail(`approved_non_gpu_tool_start_allowed:${tool}`)
+  }
+  if (scope?.gpuRuntimeShouldStartNow !== false) fail(`approved_tool_gpu_start_now:${tool}`)
+}
+
+const sourceOwnerApprovalPacket = parseJsonOutput(runNpm('ai-graphics:internal-beta-go-no-go-owner-approval', [
+  '--use-committed-js-runtime-proofs',
+  '--all-technical-gates-passed',
+  '--browser-canvas-webgl-sandbox-passed',
+  '--model-weight-manifest-review-packet',
+  manifestPacketPath,
+  '--gpu-runtime-proof-result-packet',
+  gpuPacketPath,
+  '--external-beta-native-gpu-proof-collection-packet',
+  nativeGpuProofCollectionPacketPath,
+  '--owner-approval-granted',
+  '--owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--internal-beta-go-no-go-owner-approval-granted',
+  '--internal-beta-go-no-go-owner-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_GO_NO_GO_OWNER_APPROVAL_LOCAL_FIXTURE',
+  '--require-internal-beta-go-no-go-owner-approved',
+]), 'source_owner_approval_packet')
+const packetRoot = path.dirname(manifestPacketPath)
+const sourceOwnerApprovalPacketPath = writeJsonPacket(
+  packetRoot,
+  'source-go-no-go-owner-approval-packet.json',
+  sourceOwnerApprovalPacket,
+)
+expectSourceOwnerPacketRejected('missing_tool_count', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { totalAiGraphicsTools: 20 }),
+)
+expectSourceOwnerPacketRejected('missing_capability_count', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { totalProductFacingCapabilities: 11 }),
+)
+expectSourceOwnerPacketRejected('runtime_true', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { booleans: { gpuRuntimeApprovedNow: true } }),
+)
+expectSourceOwnerPacketRejected('owner_record_false', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { booleans: { internalBetaGoNoGoOwnerApprovalRecordAccepted: false } }),
+)
+expectSourceOwnerPacketRejected('source_go_no_go_missing_tool_count', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { sourceGoNoGo: { totalAiGraphicsTools: 20 } }),
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_wrong_gpu_runtime_target_count',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => deepMerge(packet, { sourceGoNoGo: { sourceRollup: { gpuRuntimeTargetedTools: 7 } } }),
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_wrong_gpu_runtime_target_value',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => {
+    packet.sourceGoNoGo.sourceRollup.expectedGpuRuntimeTargets.sam2 = 'native_linux_amd64_cpu_worker'
+    return packet
+  },
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_wrong_gpu_gate_check_count',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => {
+    const gateCheck = packet.sourceGoNoGo.sourceRollup.productionWorkerGateReadiness.productionWorkerGateChecks.find(
+      (candidate) => candidate.toolId === 'sam2',
+    )
+    gateCheck.toolId = 'sam2_misclassified'
+    return packet
+  },
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_wrong_nested_gpu_payload_count',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => {
+    const payload =
+      packet.sourceGoNoGo.sourceRollup.productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+        (candidate) => candidate.sourceToolId === 'sam2',
+      )
+    payload.sourceToolId = 'sam2_misclassified'
+    return packet
+  },
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_gpu_runtime_on_demand_policy_removed',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => {
+    const payload =
+      packet.sourceGoNoGo.sourceRollup.productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+        (candidate) => candidate.sourceToolId === 'sam2',
+      )
+    payload.productionWorkerJobPayload.metadata.aiGraphicsRuntimeActivationPolicy.onDemandOnly = false
+    return packet
+  },
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_idle_gpu_runtime_approved',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => {
+    const payload =
+      packet.sourceGoNoGo.sourceRollup.productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+        (candidate) => candidate.sourceToolId === 'sam2',
+      )
+    payload.productionWorkerJobPayload.metadata.noIdleGpuRuntimeApproved = false
+    return packet
+  },
+)
+expectSourceOwnerPacketRejected(
+  'source_rollup_heavy_tool_cpu_fallback_allowed',
+  packetRoot,
+  sourceOwnerApprovalPacket,
+  (packet) => {
+    const payload =
+      packet.sourceGoNoGo.sourceRollup.productionWorkerGateReadiness.sourceProductionWorkerJobReadiness.productionWorkerJobPayloads.find(
+        (candidate) => candidate.sourceToolId === 'sam2',
+      )
+    payload.productionWorkerJobPayload.metadata.cpuFallbackAllowedForHeavyTools = true
+    return packet
+  },
+)
+expectSourceOwnerPacketRejected('production_worker_dispatch_approved_now', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { sourceGoNoGo: { sourceRollup: { booleans: { productionWorkerDispatchApprovedNow: true } } } }),
+)
+expectSourceOwnerPacketRejected('tool_execution_performed', packetRoot, sourceOwnerApprovalPacket, (packet) =>
+  deepMerge(packet, { sourceGoNoGo: { sourceRollup: { booleans: { toolExecutionPerformed: true } } } }),
+)
+let packetAwaitingExited = false
+let packetAwaitingText = ''
+try {
+  packetAwaitingText = runNpm(runScriptName, [
+    '--internal-beta-go-no-go-owner-approval-packet',
+    sourceOwnerApprovalPacketPath,
+    '--require-internal-beta-runtime-enqueue-approved',
+  ])
+} catch (error) {
+  packetAwaitingExited = true
+  packetAwaitingText = `${error.stdout || ''}${error.stderr || ''}`
+}
+const packetAwaitingOutput = parseJsonOutput(packetAwaitingText, 'packet_awaiting_runtime_enqueue')
+if (!packetAwaitingExited) fail('packet_awaiting_runtime_enqueue_require_did_not_fail')
+if (packetAwaitingOutput.input?.sourceEvidenceMode !== 'internal_beta_go_no_go_owner_approval_packet') {
+  fail('packet_awaiting_source_mode_not_reported')
+}
+if (packetAwaitingOutput.status !== 'awaiting_internal_beta_runtime_enqueue_approval') {
+  fail(`packet_awaiting_status:${packetAwaitingOutput.status}`)
+}
+if (
+  packetAwaitingOutput.sourceGoNoGoOwnerApproval?.status !==
+    'internal_beta_go_no_go_owner_approved_runtime_still_blocked'
+) {
+  fail(`packet_awaiting_source_status:${packetAwaitingOutput.sourceGoNoGoOwnerApproval?.status}`)
+}
+if (packetAwaitingOutput.booleans?.sourceGoNoGoOwnerApprovalAccepted !== true) {
+  fail('packet_awaiting_source_not_accepted')
+}
+if (packetAwaitingOutput.booleans?.internalBetaRuntimeEnqueueApprovalRecordAccepted !== false) {
+  fail('packet_awaiting_enqueue_approval_not_false')
+}
+
+const packetApprovedOutput = parseJsonOutput(runNpm(runScriptName, [
+  '--internal-beta-go-no-go-owner-approval-packet',
+  sourceOwnerApprovalPacketPath,
+  '--internal-beta-runtime-enqueue-approval-granted',
+  '--internal-beta-runtime-enqueue-approval-ref',
+  'AI_GRAPHICS_INTERNAL_BETA_RUNTIME_ENQUEUE_APPROVAL_LOCAL_FIXTURE',
+  '--require-internal-beta-runtime-enqueue-approved',
+]), 'packet_approved_runtime_enqueue')
+if (packetApprovedOutput.input?.sourceEvidenceMode !== 'internal_beta_go_no_go_owner_approval_packet') {
+  fail('packet_approved_source_mode_not_reported')
+}
+if (packetApprovedOutput.status !== 'internal_beta_runtime_enqueue_scope_approved_runtime_still_blocked') {
+  fail(`packet_approved_status:${packetApprovedOutput.status}`)
+}
+if (packetApprovedOutput.enqueueScopeApprovedToolsWithProvidedEvidence !== 21) {
+  fail('packet_approved_scopes_not_21')
+}
+if (packetApprovedOutput.gpuRuntimeTargetedTools !== 8) fail('packet_approved_gpu_targets_not_8')
+if (packetApprovedOutput.gpuRuntimeStartAllowedForAcceptedJobTools !== 8) {
+  fail('packet_approved_gpu_start_allowed_for_accepted_job_not_8')
+}
+if (packetApprovedOutput.booleans?.gpuRuntimeStartAllowedOnlyForAcceptedJobs !== true) {
+  fail('packet_approved_gpu_start_policy_not_limited_to_accepted_jobs')
+}
+if (packetApprovedOutput.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('packet_approved_gpu_start_now_not_false')
+}
+
+let liveQueueRequireExited = false
+try {
+  runNpm(runScriptName, [...approvedArgs, '--require-live-worker-queue'])
+} catch {
+  liveQueueRequireExited = true
+}
+if (!liveQueueRequireExited) fail('require_live_worker_queue_did_not_fail')
+
+for (const output of [
+  defaultOutput,
+  awaitingOutput,
+  approvedOutput,
+  packetAwaitingOutput,
+  packetApprovedOutput,
+]) {
+  for (const key of falseGateKeys) {
+    if (output.booleans?.[key] !== false && output.input?.[key] !== false) {
+      fail(`false_gate_not_false:${key}`)
+    }
+  }
+}
+
+if (!scorecard.includes('ai_graphics_internal_beta_runtime_enqueue_approval_contract_prepared_with_runtime_blocks')) {
+  fail('scorecard_missing_runtime_enqueue_decision')
+}
+if (!scorecard.includes('does not live-enqueue workers')) fail('scorecard_missing_live_enqueue_block')
+
+const forbiddenTruePatterns = [
+  /agentCanExecuteToolsNow["`:\s]+true/i,
+  /routeExecutionApprovedNow["`:\s]+true/i,
+  /workerExecutionApprovedNow["`:\s]+true/i,
+  /workerQueueApprovedNow["`:\s]+true/i,
+  /productionWorkerJobEnqueueApprovedNow["`:\s]+true/i,
+  /productionWorkerDispatchApprovedNow["`:\s]+true/i,
+  /productionWorkerRouteExecutionApprovedNow["`:\s]+true/i,
+  /toolExecutionApprovedNow["`:\s]+true/i,
+  /providerRuntimeApprovedNow["`:\s]+true/i,
+  /browserWebglCanvasRuntimeApprovedNow["`:\s]+true/i,
+  /gpuRuntimeApprovedNow["`:\s]+true/i,
+  /runtimeReadyNow["`:\s]+true/i,
+  /internalBetaReadyNow["`:\s]+true/i,
+  /externalBetaReadyNow["`:\s]+true/i,
+  /productionReadyNow["`:\s]+true/i,
+  /modelWeightsDownloaded["`:\s]+true/i,
+  /modelWeightsLoaded["`:\s]+true/i,
+  /toolExecutionPerformed["`:\s]+true/i,
+  /workerExecutionPerformed["`:\s]+true/i,
+  /routeExecutionPerformed["`:\s]+true/i,
+  /productionWorkerDispatchPerformed["`:\s]+true/i,
+  /productionWorkerRouteExecutionPerformed["`:\s]+true/i,
+  /gpuRuntimePerformed["`:\s]+true/i,
+  /browserWebglCanvasRuntimePerformed["`:\s]+true/i,
+  /publicArtifactCreated["`:\s]+true/i,
+  /signedUrlCreated["`:\s]+true/i,
+  /dry_run_passed/i,
+  /generated_local_fixture_passed/i,
+]
+const combinedText = [
+  'docs/tool-intelligence/ai-graphics/internal-beta-runtime-enqueue-approval.md',
+  'docs/tool-intelligence/ai-graphics/internal-beta-runtime-enqueue-approval.json',
+  'server/tool-registry/ai-graphics-internal-beta-runtime-enqueue-approval.ts',
+  'server/cli/ai-graphics-internal-beta-runtime-enqueue-approval.ts',
+  'docs/production-beta-readiness-scorecard.md',
+].map(read).join('\n')
+for (const pattern of forbiddenTruePatterns) {
+  if (pattern.test(combinedText)) fail(`forbidden_claim:${pattern}`)
+}
+
+const trackedLocalArtifacts = git(['ls-files', '.local-artifacts'])
+if (trackedLocalArtifacts) fail(`local_artifacts_tracked:${trackedLocalArtifacts}`)
+const stagedFiles = git(['diff', '--cached', '--name-only']).split('\n').filter(Boolean)
+if (stagedFiles.some((file) => file.startsWith('.local-artifacts/'))) fail('local_artifacts_staged')
+if (stagedFiles.some((file) => /\.(png|jpe?g|webp|gif|mp4|mov|webm)$/i.test(file))) {
+  fail('generated_media_staged')
+}
+if (git(['diff', '--name-only', '--', 'package-lock.json'])) fail('package_lock_changed')
+
+let basePackage = {}
+try {
+  basePackage = JSON.parse(git(['show', `${baseRef}:package.json`]))
+} catch {
+  basePackage = {}
+}
+for (const section of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
+  if (JSON.stringify(pkg[section] || {}) !== JSON.stringify(basePackage[section] || {})) {
+    fail(`package_dependency_section_changed:${section}`)
+  }
+}
+
+const packageDiff = git(['diff', '--unified=0', baseRef, '--', 'package.json'])
+const allowedPackageAdditions = new Set([
+  '+    "ai-graphics:external-beta-api-route-controlled-worker-runtime-proof": "tsx server/cli/ai-graphics-external-beta-api-route-controlled-worker-runtime-proof.ts",',
+  '+    "ai-graphics:external-beta-api-route-controlled-worker-runtime-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-controlled-worker-runtime-proof-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-api-route-worker-runtime-smoke-authorization": "tsx server/cli/ai-graphics-external-beta-api-route-worker-runtime-smoke-authorization.ts",',
+  '+    "ai-graphics:external-beta-api-route-worker-runtime-smoke-authorization:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-worker-runtime-smoke-authorization-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-api-route-worker-runtime-smoke-proof": "tsx server/cli/ai-graphics-external-beta-api-route-worker-runtime-smoke-proof.ts",',
+  '+    "ai-graphics:external-beta-api-route-worker-runtime-smoke-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-worker-runtime-smoke-proof-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-per-tool-callable-result-gate": "tsx server/cli/ai-graphics-external-beta-per-tool-callable-result-gate.ts",',
+  '+    "ai-graphics:external-beta-per-tool-callable-result-gate:diagnostics": "node scripts/validation/ai-graphics-external-beta-per-tool-callable-result-gate-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-per-tool-traffic-enablement-gate": "tsx server/cli/ai-graphics-external-beta-per-tool-traffic-enablement-gate.ts",',
+  '+    "ai-graphics:external-beta-per-tool-traffic-enablement-gate:diagnostics": "node scripts/validation/ai-graphics-external-beta-per-tool-traffic-enablement-gate-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-operator-traffic-switch-runtime-soak-authorization": "tsx server/cli/ai-graphics-external-beta-operator-traffic-switch-runtime-soak-authorization.ts",',
+  '+    "ai-graphics:external-beta-operator-traffic-switch-runtime-soak-authorization:diagnostics": "node scripts/validation/ai-graphics-external-beta-operator-traffic-switch-runtime-soak-authorization-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-controlled-traffic-runtime-soak-result": "tsx server/cli/ai-graphics-external-beta-controlled-traffic-runtime-soak-result.ts",',
+  '+    "ai-graphics:external-beta-controlled-traffic-runtime-soak-result:diagnostics": "node scripts/validation/ai-graphics-external-beta-controlled-traffic-runtime-soak-result-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-activation-go-no-go": "tsx server/cli/ai-graphics-external-beta-activation-go-no-go.ts",',
+  '+    "ai-graphics:external-beta-activation-go-no-go:diagnostics": "node scripts/validation/ai-graphics-external-beta-activation-go-no-go-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-all-21-activation-rollup": "tsx server/cli/ai-graphics-external-beta-all-21-activation-rollup.ts",',
+  '+    "ai-graphics:external-beta-all-21-activation-rollup:diagnostics": "node scripts/validation/ai-graphics-external-beta-all-21-activation-rollup-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-activated-launch-readiness": "tsx server/cli/ai-graphics-external-beta-activated-launch-readiness.ts",',
+  '+    "ai-graphics:external-beta-activated-launch-readiness:diagnostics": "node scripts/validation/ai-graphics-external-beta-activated-launch-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-api-route-worker-artifact-tool-route-admission": "tsx server/cli/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission.ts",',
+  '+    "ai-graphics:external-beta-api-route-worker-artifact-tool-route-admission:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-worker-artifact-tool-route-admission-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-api-route-worker-dispatch-handoff-proof": "tsx server/cli/ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof.ts",',
+  '+    "ai-graphics:external-beta-api-route-worker-dispatch-handoff-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-worker-dispatch-handoff-proof-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-api-route-queue-smoke-proof": "tsx server/cli/ai-graphics-external-beta-api-route-queue-smoke-proof.ts",',
+  '+    "ai-graphics:external-beta-api-route-queue-smoke-proof:diagnostics": "node scripts/validation/ai-graphics-external-beta-api-route-queue-smoke-proof-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-service-role-queue-smoke-authorization": "tsx server/cli/ai-graphics-external-beta-service-role-queue-smoke-authorization.ts",',
+  '+    "ai-graphics:external-beta-service-role-queue-smoke-authorization:diagnostics": "node scripts/validation/ai-graphics-external-beta-service-role-queue-smoke-authorization-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-live-enqueue-authorization": "tsx server/cli/ai-graphics-external-beta-live-enqueue-authorization.ts",',
+  '+    "ai-graphics:external-beta-live-enqueue-authorization:diagnostics": "node scripts/validation/ai-graphics-external-beta-live-enqueue-authorization-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-controlled-runtime-execution-approval": "tsx server/cli/ai-graphics-external-beta-controlled-runtime-execution-approval.ts",',
+  '+    "ai-graphics:external-beta-controlled-runtime-execution-approval:diagnostics": "node scripts/validation/ai-graphics-external-beta-controlled-runtime-execution-approval-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-candidate-evidence-assembly": "tsx server/cli/ai-graphics-external-beta-candidate-evidence-assembly.ts",',
+  '+    "ai-graphics:external-beta-candidate-evidence-assembly:diagnostics": "node scripts/validation/ai-graphics-external-beta-candidate-evidence-assembly-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-launch-controls": "tsx server/cli/ai-graphics-external-beta-launch-controls.ts",',
+  '+    "ai-graphics:external-beta-launch-controls:diagnostics": "node scripts/validation/ai-graphics-external-beta-launch-controls-diagnostics.mjs",',
+  `+    "ai-graphics:external-beta-native-gpu-proof-operator-scaffold": "node --experimental-strip-types server/cli/ai-graphics-external-beta-native-gpu-proof-operator-scaffold.ts",`,
+  `+    "ai-graphics:external-beta-native-gpu-proof-operator-scaffold:diagnostics": "node scripts/validation/ai-graphics-external-beta-native-gpu-proof-operator-scaffold-diagnostics.mjs",`,
+  `+    "ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold": "node --experimental-strip-types server/cli/ai-graphics-external-beta-native-gpu-proof-cloud-run-job-scaffold.ts",`,
+  `+    "ai-graphics:external-beta-native-gpu-proof-cloud-run-job-scaffold:diagnostics": "node scripts/validation/ai-graphics-external-beta-native-gpu-proof-cloud-run-job-scaffold-diagnostics.mjs",`,
+  `+    "ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector": "node --experimental-strip-types server/cli/ai-graphics-external-beta-native-gpu-proof-cloud-run-result-collector.ts",`,
+  `+    "ai-graphics:external-beta-native-gpu-proof-cloud-run-result-collector:diagnostics": "node scripts/validation/ai-graphics-external-beta-native-gpu-proof-cloud-run-result-collector-diagnostics.mjs",`,
+  `+    "ai-graphics:external-beta-native-gpu-proof-operator-handoff": "tsx server/cli/ai-graphics-external-beta-native-gpu-proof-operator-handoff.ts",`,
+  `+    "ai-graphics:external-beta-native-gpu-proof-operator-handoff:diagnostics": "node scripts/validation/ai-graphics-external-beta-native-gpu-proof-operator-handoff-diagnostics.mjs",`,
+  `+    "${runScriptName}": "${runScriptCommand}",`,
+  `+    "${diagnosticScriptName}": "${diagnosticScriptCommand}",`,
+  '+    "ai-graphics:on-demand-runtime-admission:diagnostics": "node scripts/validation/ai-graphics-on-demand-runtime-admission-diagnostics.mjs",',
+  '+    "ai-graphics:internal-beta-queue-admission-readiness": "tsx server/cli/ai-graphics-internal-beta-queue-admission-readiness.ts",',
+  '+    "ai-graphics:internal-beta-queue-admission-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-queue-admission-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:internal-beta-queue-adapter-readiness": "tsx server/cli/ai-graphics-internal-beta-queue-adapter-readiness.ts",',
+  '+    "ai-graphics:internal-beta-queue-adapter-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-queue-adapter-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:internal-beta-queue-dispatcher-readiness": "tsx server/cli/ai-graphics-internal-beta-queue-dispatcher-readiness.ts",',
+  '+    "ai-graphics:internal-beta-queue-dispatcher-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-queue-dispatcher-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:internal-beta-backend-queue-storage-readiness": "tsx server/cli/ai-graphics-internal-beta-backend-queue-storage-readiness.ts",',
+  '+    "ai-graphics:internal-beta-backend-queue-storage-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-backend-queue-storage-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:internal-beta-service-role-queue-transaction-readiness": "tsx server/cli/ai-graphics-internal-beta-service-role-queue-transaction-readiness.ts",',
+  '+    "ai-graphics:internal-beta-service-role-queue-transaction-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-service-role-queue-transaction-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:internal-beta-service-role-rpc-implementation-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-service-role-rpc-implementation-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:internal-beta-service-role-rpc-smoke-readiness": "tsx server/cli/ai-graphics-internal-beta-service-role-rpc-smoke-readiness.ts",',
+  '+    "ai-graphics:internal-beta-service-role-rpc-smoke-readiness:diagnostics": "node scripts/validation/ai-graphics-internal-beta-service-role-rpc-smoke-readiness-diagnostics.mjs",',
+  '+    "ai-graphics:external-beta-evidence-admission-bundle": "tsx server/cli/ai-graphics-external-beta-evidence-admission-bundle.ts",',
+  '+    "ai-graphics:external-beta-evidence-admission-bundle:diagnostics": "node scripts/validation/ai-graphics-external-beta-evidence-admission-bundle-diagnostics.mjs",',
+])
+for (const line of packageDiff.split('\n')) {
+  if (!line || line.startsWith('+++') || line.startsWith('---') || line.startsWith('@@')) continue
+  if (line.startsWith('+') && allowedPackageAdditions.has(line)) continue
+  if (line.startsWith('+') || line.startsWith('-')) fail(`unexpected_package_json_diff:${line}`)
+}
+
+if (failures.length) {
+  console.error(JSON.stringify({ status: 'failed', failures }, null, 2))
+  process.exit(1)
+}
+
+console.log(JSON.stringify({
+  status: 'passed',
+  decision: docs.decision,
+  docsStatus: docs.status,
+  defaultStatus: defaultOutput.status,
+  awaitingStatus: awaitingOutput.status,
+  approvedStatus: approvedOutput.status,
+  toolsCovered: allTools.length,
+  capabilitiesCovered: capabilities.length,
+  enqueueScopeApprovedToolsWithProvidedEvidence:
+    approvedOutput.enqueueScopeApprovedToolsWithProvidedEvidence,
+  gpuRuntimeTargetedTools: approvedOutput.gpuRuntimeTargetedTools,
+  gpuRuntimeStartAllowedForAcceptedJobTools:
+    approvedOutput.gpuRuntimeStartAllowedForAcceptedJobTools,
+  gpuRuntimeShouldStartNow: approvedOutput.booleans?.gpuRuntimeShouldStartNow,
+  agentCanExecuteToolsNow: approvedOutput.booleans?.agentCanExecuteToolsNow,
+  workerQueueApprovedNow: approvedOutput.booleans?.workerQueueApprovedNow,
+  runtimeReadyNow: approvedOutput.booleans?.runtimeReadyNow,
+  internalBetaReadyNow: approvedOutput.booleans?.internalBetaReadyNow,
+  externalBetaReadyNow: approvedOutput.booleans?.externalBetaReadyNow,
+  productionReadyNow: approvedOutput.booleans?.productionReadyNow,
+}, null, 2))

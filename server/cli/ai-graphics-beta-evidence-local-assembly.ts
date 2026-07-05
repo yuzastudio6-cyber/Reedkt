@@ -1,0 +1,350 @@
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { join, resolve } from 'node:path'
+import {
+  buildAiGraphicsBetaEvidenceLocalAssembly,
+  type AiGraphicsBetaEvidenceLocalAssemblyInput,
+} from '../tool-registry/ai-graphics-beta-evidence-local-assembly'
+import type {
+  AiGraphicsModelWeightManifestEvidenceRecord,
+} from '../tool-registry/ai-graphics-model-weight-manifest-readiness'
+import type {
+  AiGraphicsModelWeightChecksumEvidenceRecord,
+} from '../tool-registry/ai-graphics-model-weight-checksum-evidence'
+import type {
+  AiGraphicsModelWeightManifestReviewSupplementRecord,
+} from '../tool-registry/ai-graphics-model-weight-manifest-authoring'
+
+type ManifestInput = Partial<AiGraphicsModelWeightManifestEvidenceRecord>
+type ChecksumEvidenceInput = Partial<AiGraphicsModelWeightChecksumEvidenceRecord>
+type ManifestSupplementInput = Partial<AiGraphicsModelWeightManifestReviewSupplementRecord>
+
+interface ManifestEnvelope {
+  records?: ManifestInput[]
+  manifests?: ManifestInput[]
+}
+
+interface ChecksumEvidenceEnvelope {
+  records?: ChecksumEvidenceInput[]
+  checksumEvidence?: ChecksumEvidenceInput[]
+}
+
+interface ManifestSupplementEnvelope {
+  records?: ManifestSupplementInput[]
+  manifestSupplements?: ManifestSupplementInput[]
+  supplements?: ManifestSupplementInput[]
+}
+
+interface ProofResultEnvelope {
+  results?: unknown[]
+  profiles?: unknown[]
+}
+
+function hasFlag(flag: string): boolean {
+  return process.argv.includes(flag)
+}
+
+function valuesAfterFlag(flag: string): string[] {
+  const values: string[] = []
+  for (let index = 0; index < process.argv.length; index += 1) {
+    if (process.argv[index] === flag && process.argv[index + 1]) {
+      values.push(process.argv[index + 1])
+    }
+  }
+  return values
+}
+
+function valueAfterFlag(flag: string): string | undefined {
+  const index = process.argv.indexOf(flag)
+  return index >= 0 ? process.argv[index + 1] : undefined
+}
+
+function jsonFilesInDirectory(directory: string, label: string, ignoredFileNames: readonly string[] = []): string[] {
+  const resolvedDirectory = resolve(directory)
+  if (!existsSync(resolvedDirectory)) {
+    throw new Error(`${label} directory does not exist: ${directory}`)
+  }
+
+  const files: string[] = []
+  for (const entry of readdirSync(resolvedDirectory).sort()) {
+    const entryPath = join(resolvedDirectory, entry)
+    const stats = statSync(entryPath)
+    if (stats.isDirectory()) {
+      files.push(...jsonFilesInDirectory(entryPath, label, ignoredFileNames))
+    } else if (entry.endsWith('.json') && !ignoredFileNames.includes(entry)) {
+      files.push(entryPath)
+    }
+  }
+
+  return files
+}
+
+function readJsonPath(filePath: string): unknown {
+  const resolvedPath = resolve(filePath)
+  if (!existsSync(resolvedPath)) {
+    throw new Error(`Evidence file does not exist: ${filePath}`)
+  }
+
+  return JSON.parse(readFileSync(resolvedPath, 'utf8'))
+}
+
+function manifestRecordsFromJsonFile(filePath: string): ManifestInput[] {
+  const parsed = readJsonPath(filePath) as ManifestInput | ManifestInput[] | ManifestEnvelope
+  if (Array.isArray(parsed)) return parsed
+  if (Array.isArray((parsed as ManifestEnvelope).records)) return (parsed as ManifestEnvelope).records ?? []
+  if (Array.isArray((parsed as ManifestEnvelope).manifests)) return (parsed as ManifestEnvelope).manifests ?? []
+  return [parsed as ManifestInput]
+}
+
+function checksumEvidenceRecordsFromJsonFile(filePath: string): ChecksumEvidenceInput[] {
+  const parsed = readJsonPath(filePath) as ChecksumEvidenceInput | ChecksumEvidenceInput[] | ChecksumEvidenceEnvelope
+  if (Array.isArray(parsed)) return parsed
+  if (Array.isArray((parsed as ChecksumEvidenceEnvelope).records)) {
+    return (parsed as ChecksumEvidenceEnvelope).records ?? []
+  }
+  if (Array.isArray((parsed as ChecksumEvidenceEnvelope).checksumEvidence)) {
+    return (parsed as ChecksumEvidenceEnvelope).checksumEvidence ?? []
+  }
+  return [parsed as ChecksumEvidenceInput]
+}
+
+function manifestSupplementRecordsFromJsonFile(filePath: string): ManifestSupplementInput[] {
+  const parsed = readJsonPath(filePath) as
+    | ManifestSupplementInput
+    | ManifestSupplementInput[]
+    | ManifestSupplementEnvelope
+  if (Array.isArray(parsed)) return parsed
+  if (Array.isArray((parsed as ManifestSupplementEnvelope).records)) {
+    return (parsed as ManifestSupplementEnvelope).records ?? []
+  }
+  if (Array.isArray((parsed as ManifestSupplementEnvelope).manifestSupplements)) {
+    return (parsed as ManifestSupplementEnvelope).manifestSupplements ?? []
+  }
+  if (Array.isArray((parsed as ManifestSupplementEnvelope).supplements)) {
+    return (parsed as ManifestSupplementEnvelope).supplements ?? []
+  }
+  return [parsed as ManifestSupplementInput]
+}
+
+function proofResultsFromJsonFile(filePath: string): unknown[] {
+  const parsed = readJsonPath(filePath)
+  if (Array.isArray(parsed)) return parsed
+  if (typeof parsed === 'object' && parsed !== null) {
+    const envelope = parsed as ProofResultEnvelope
+    if (Array.isArray(envelope.results)) return envelope.results
+    if (Array.isArray(envelope.profiles)) return envelope.profiles
+  }
+  return [parsed]
+}
+
+function manifestFilesFromArgs(): string[] {
+  return [
+    ...valuesAfterFlag('--manifest'),
+    ...valuesAfterFlag('--manifest-file'),
+    ...valuesAfterFlag('--manifest-dir').flatMap((directory) =>
+      jsonFilesInDirectory(directory, 'Manifest', [
+        'checksum-evidence-authoring-checklist.json',
+        'manifest-authoring-checklist.json',
+        'manifest-supplement-authoring-checklist.json',
+      ])),
+  ]
+}
+
+function checksumEvidenceFilesFromArgs(): string[] {
+  return [
+    ...valuesAfterFlag('--checksum-evidence'),
+    ...valuesAfterFlag('--checksum-evidence-file'),
+    ...valuesAfterFlag('--checksum-evidence-dir').flatMap((directory) =>
+      jsonFilesInDirectory(directory, 'Checksum evidence', [
+        'checksum-evidence-authoring-checklist.json',
+        'manifest-authoring-checklist.json',
+        'manifest-supplement-authoring-checklist.json',
+      ])),
+  ]
+}
+
+function manifestSupplementFilesFromArgs(): string[] {
+  return [
+    ...valuesAfterFlag('--manifest-supplement'),
+    ...valuesAfterFlag('--manifest-supplement-file'),
+    ...valuesAfterFlag('--manifest-supplement-dir').flatMap((directory) =>
+      jsonFilesInDirectory(directory, 'Manifest supplement', [
+        'checksum-evidence-authoring-checklist.json',
+        'manifest-authoring-checklist.json',
+        'manifest-supplement-authoring-checklist.json',
+      ])),
+  ]
+}
+
+function resultFilesFromArgs(): string[] {
+  return [
+    ...valuesAfterFlag('--result'),
+    ...valuesAfterFlag('--result-file'),
+    ...valuesAfterFlag('--result-dir').flatMap((directory) =>
+      jsonFilesInDirectory(directory, 'Proof result')),
+  ]
+}
+
+function readOptionalJsonFile(flag: string): Record<string, unknown> | undefined {
+  const filePath = valueAfterFlag(flag)
+  if (!filePath) return undefined
+  const parsed = readJsonPath(filePath)
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new Error(`Evidence packet for ${flag} must be a JSON object: ${filePath}`)
+  }
+  return parsed as Record<string, unknown>
+}
+
+function readProofPacket(flag: string, committedPath: string): Record<string, unknown> | undefined {
+  const fromFlag = readOptionalJsonFile(flag)
+  if (fromFlag) return fromFlag
+  if (hasFlag('--use-committed-js-runtime-proofs')) {
+    return readJsonPath(committedPath) as Record<string, unknown>
+  }
+  return undefined
+}
+
+const manifestFiles = manifestFilesFromArgs()
+const checksumEvidenceFiles = checksumEvidenceFilesFromArgs()
+const manifestSupplementFiles = manifestSupplementFilesFromArgs()
+const resultFiles = resultFilesFromArgs()
+const allSharedGatesPassed = hasFlag('--all-shared-gates-passed')
+const allTechnicalGatesPassed = allSharedGatesPassed || hasFlag('--all-technical-gates-passed')
+const fullOutputRequested = hasFlag('--full-output')
+
+const input: AiGraphicsBetaEvidenceLocalAssemblyInput = {
+  manifestRecords: manifestFiles.flatMap(manifestRecordsFromJsonFile),
+  checksumEvidenceRecords: checksumEvidenceFiles.flatMap(checksumEvidenceRecordsFromJsonFile),
+  manifestSupplementRecords: manifestSupplementFiles.flatMap(manifestSupplementRecordsFromJsonFile),
+  gpuRuntimeProofResults: resultFiles.flatMap(proofResultsFromJsonFile),
+  approvedPlanSnapshotGatePassed: allTechnicalGatesPassed || hasFlag('--approved-plan-snapshot-gate-passed'),
+  creditReservationGatePassed: allTechnicalGatesPassed || hasFlag('--credit-reservation-gate-passed'),
+  artifactBoundaryGatePassed: allTechnicalGatesPassed || hasFlag('--artifact-boundary-gate-passed'),
+  toolRouteGatePassed: allTechnicalGatesPassed || hasFlag('--tool-route-gate-passed'),
+  workerGatePassed: allTechnicalGatesPassed || hasFlag('--worker-gate-passed'),
+  browserCanvasWebglSandboxPassed: hasFlag('--browser-canvas-webgl-sandbox-passed'),
+  internalBetaOwnerApprovalGranted: allSharedGatesPassed || hasFlag('--internal-beta-owner-approval-granted'),
+  sourceExternalBetaNativeGpuProofCollectionPacket:
+    readOptionalJsonFile('--external-beta-native-gpu-proof-collection-packet') as
+      AiGraphicsBetaEvidenceLocalAssemblyInput['sourceExternalBetaNativeGpuProofCollectionPacket'],
+  nodeRuntimeProofPacket: readProofPacket(
+    '--node-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/node-runtime-proof.json',
+  ),
+  browserRuntimeProofPacket: readProofPacket(
+    '--browser-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/browser-runtime-proof.json',
+  ),
+  satoriFontRuntimeProofPacket: readProofPacket(
+    '--satori-font-runtime-proof-packet',
+    'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+  ),
+}
+
+const assembly = buildAiGraphicsBetaEvidenceLocalAssembly(input)
+
+const inputSummary = {
+  validatorOnly: true,
+  localPrivateManifestFilesRead: manifestFiles.length,
+  localPrivateChecksumEvidenceFilesRead: checksumEvidenceFiles.length,
+  localPrivateManifestSupplementFilesRead: manifestSupplementFiles.length,
+  localGpuRuntimeProofResultFilesRead: resultFiles.length,
+  nativeGpuProofCollectionPacketRead: Boolean(valueAfterFlag('--external-beta-native-gpu-proof-collection-packet')),
+  committedJsRuntimeProofsRead: hasFlag('--use-committed-js-runtime-proofs'),
+  privateArtifactRefsLogged: 0,
+  dependencyInstallPerformed: false,
+  packageLockMutationPerformed: false,
+  toolExecutionPerformed: false,
+  workerExecutionPerformed: false,
+  routeExecutionPerformed: false,
+  providerRuntimePerformed: false,
+  browserWebglCanvasRuntimePerformed: false,
+  gpuRuntimePerformed: false,
+  modelWeightsDownloaded: false,
+  modelWeightsLoaded: false,
+  modelInferencePerformed: false,
+  mediaProcessingPerformed: false,
+  publicArtifactCreated: false,
+  signedUrlCreated: false,
+}
+
+const sanitizedSummary = {
+  decision: assembly.decision,
+  status: assembly.status,
+  outputMode: 'sanitized_summary',
+  sanitizedSummary: true,
+  fullEvidencePacketsIncluded: false,
+  totalAiGraphicsTools: assembly.totalAiGraphicsTools,
+  localEvidence: {
+    modelWeightManifestRequiredTools: assembly.modelWeightManifestRequiredTools,
+    nativeGpuRuntimeProfilesRequired: assembly.nativeGpuRuntimeProfilesRequired,
+    localManifestRecordsProvided: assembly.localManifestRecordsProvided,
+    localChecksumEvidenceRecordsProvided: assembly.localChecksumEvidenceRecordsProvided,
+    localManifestSupplementRecordsProvided: assembly.localManifestSupplementRecordsProvided,
+    localManifestRecordsAuthoredFromPrivateEvidence:
+      assembly.localManifestRecordsAuthoredFromPrivateEvidence,
+    manifestRecordsSource: assembly.manifestRecordsSource,
+    localGpuRuntimeProofResultsProvided: assembly.localGpuRuntimeProofResultsProvided,
+    missingLocalEvidence: assembly.missingLocalEvidence,
+  },
+  modelWeightManifestReview: {
+    manifestRecordsProvided: assembly.modelWeightManifestReviewPacket.manifestRecordsProvided,
+    schemaValidManifestRecords: assembly.modelWeightManifestReviewPacket.schemaValidManifestRecords,
+    reviewAcceptedManifestRecords: assembly.modelWeightManifestReviewPacket.reviewAcceptedManifestRecords,
+    nativeGpuProofInputEligibleRecords:
+      assembly.modelWeightManifestReviewPacket.nativeGpuProofInputEligibleRecords,
+    privateArtifactRefsLogged: assembly.modelWeightManifestReviewPacket.privateArtifactRefsLogged,
+    privateArtifactRefsNotLogged:
+      assembly.modelWeightManifestReviewPacket.booleans.privateArtifactRefsNotLogged,
+    publicOrSignedArtifactRefsRejected:
+      assembly.modelWeightManifestReviewPacket.booleans.publicOrSignedArtifactRefsRejected,
+  },
+  gpuRuntimeProof: {
+    status: assembly.gpuRuntimeProofResultPacket.status,
+    expectedGpuRuntimeTargets: assembly.expectedGpuRuntimeTargets,
+    gpuRuntimePolicy: assembly.gpuRuntimePolicy,
+    runtimeProfilesRequired: assembly.gpuRuntimeProofResultPacket.runtimeProfilesRequired,
+    runtimeProofResultsProvided: assembly.gpuRuntimeProofResultPacket.runtimeProofResultsProvided,
+    runtimeProofResultsAcceptedForOwnerReview:
+      assembly.gpuRuntimeProofResultPacket.runtimeProofResultsAcceptedForOwnerReview,
+    nativeGpuRuntimeProofResultsAccepted:
+      assembly.gpuRuntimeProofResultPacket.nativeGpuRuntimeProofResultsAccepted,
+    blockers: assembly.gpuRuntimeProofResultPacket.blockers,
+  },
+  betaEvidence: {
+    betaTestingReadyTools: assembly.betaEvidenceBundle.betaTestingReadyTools,
+    blockedTools: assembly.betaEvidenceBundle.blockedTools,
+    all21BetaEvidenceReady: assembly.betaEvidenceBundle.all21BetaEvidenceReady,
+    all21TechnicalEvidenceReadyBeforeOwnerApproval:
+      assembly.betaEvidenceBundle.all21TechnicalEvidenceReadyBeforeOwnerApproval,
+    missingEvidence: assembly.betaEvidenceBundle.missingEvidence,
+    missingTechnicalEvidenceBeforeOwnerApproval:
+      assembly.betaEvidenceBundle.missingTechnicalEvidenceBeforeOwnerApproval,
+    evidenceSources: assembly.betaEvidenceBundle.evidenceSources,
+    blockedToolIds: assembly.betaEvidenceBundle.tools
+      .filter((tool) => !tool.betaTestingReadyNow)
+      .map((tool) => tool.toolId),
+  },
+  booleans: assembly.booleans,
+  input: inputSummary,
+}
+
+const fullOutput = {
+  ...assembly,
+  input: {
+    ...inputSummary,
+    fullEvidencePacketsIncluded: true,
+  },
+}
+
+console.log(JSON.stringify(fullOutputRequested ? fullOutput : sanitizedSummary, null, 2))
+
+if (hasFlag('--require-all-21-beta-ready') && !assembly.betaEvidenceBundle.all21BetaEvidenceReady) {
+  process.exitCode = 2
+}
+
+if (
+  hasFlag('--require-ready-for-owner-gate') &&
+  !assembly.betaEvidenceBundle.all21TechnicalEvidenceReadyBeforeOwnerApproval
+) {
+  process.exitCode = 2
+}

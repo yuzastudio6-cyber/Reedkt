@@ -59,7 +59,16 @@ const allowedDescendantScripts = new Set([
   "ai-graphics:browser-runtime-proof:diagnostics",
   "ai-graphics:satori-font-runtime-proof",
   "ai-graphics:satori-font-runtime-proof:diagnostics",
-  "ai-graphics:gpu-model-install-build-targets:diagnostics"
+  "ai-graphics:gpu-model-install-build-targets:diagnostics",
+  "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics",
+  "ai-graphics:tool-call-readiness:diagnostics",
+  "ai-graphics:21-tool-proper-install-audit:diagnostics",
+  "ai-graphics:tool-call-handoff:diagnostics",
+  "ai-graphics:tool-call-plan-evaluator:diagnostics",
+  "ai-graphics:beta-readiness-gate:diagnostics",
+  "ai-graphics:tool-route-readiness:diagnostics",
+  "ai-graphics:worker-handoff-readiness:diagnostics",
+  "ai-graphics:model-weight-manifest-readiness:diagnostics"
 ]);
 
 const failures = [];

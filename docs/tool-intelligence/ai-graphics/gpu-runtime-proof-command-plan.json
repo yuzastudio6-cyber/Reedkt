@@ -1,0 +1,346 @@
+{
+  "schemaVersion": "2026-06-25.ai-graphics.gpu-runtime-proof-command-plan",
+  "decision": "ai_graphics_gpu_runtime_proof_command_plan_prepared_with_manifest_blocks",
+  "status": "prepared_with_manifest_blocks",
+  "branch": "codex/rp-ai-graphics-tool-call-readiness-contract",
+  "pullRequest": {
+    "number": 862,
+    "url": "https://github.com/yuzastudio6-cyber/Reedkt/pull/862",
+    "state": "OPEN",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "latestObservedHeadSha": "4a225b2c1a191e638abf4e065fe10b3bd0cb875c",
+    "latestObservedCheckRollup": []
+  },
+  "sourceEvidence": {
+    "modelWeightManifestReviewPacket": "docs/tool-intelligence/ai-graphics/model-weight-manifest-review-packet.json",
+    "modelWeightManifestReadinessContract": "docs/tool-intelligence/ai-graphics/model-weight-manifest-readiness-contract.json",
+    "gpuRuntimeReadinessGate": "docs/tool-intelligence/ai-graphics/gpu-model-runtime-readiness-gate.json",
+    "properInstallAudit": "docs/tool-intelligence/ai-graphics/21-tool-proper-install-audit.json",
+    "betaReadinessGate": "docs/tool-intelligence/ai-graphics/beta-readiness-gate.json"
+  },
+  "contractSurface": {
+    "serverModule": "server/tool-registry/ai-graphics-gpu-runtime-proof-command-plan.ts",
+    "serverExport": "server/tool-registry/index.ts",
+    "cli": "server/cli/ai-graphics-gpu-runtime-proof-command-plan.ts",
+    "packageScript": "ai-graphics:gpu-runtime-proof-command-plan",
+    "diagnostic": "scripts/validation/ai-graphics-gpu-runtime-proof-command-plan-diagnostics.mjs",
+    "diagnosticScript": "ai-graphics:gpu-runtime-proof-command-plan:diagnostics"
+  },
+  "counts": {
+    "totalAiGraphicsTools": 21,
+    "gpuRuntimeTargetedTools": 8,
+    "modelWeightManifestRequiredTools": 5,
+    "runtimeProfiles": 6,
+    "manifestRecordsProvided": 0,
+    "schemaValidManifestRecords": 0,
+    "reviewAcceptedManifestRecords": 0,
+    "nativeGpuProofInputEligibleRecords": 0,
+    "privateArtifactRefsLogged": 0,
+    "runtimeReadyNow": 0,
+    "internalBetaReadyNow": 0,
+    "productionReadyNow": 0
+  },
+  "gpuRuntimeTargetedTools": [
+    "torch_torchvision",
+    "transformers",
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "kornia",
+    "rembg",
+    "transparent_background"
+  ],
+  "expectedGpuRuntimeTargets": {
+    "torch_torchvision": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transformers": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "sam2": "native_linux_amd64_nvidia_l4_sam2_runtime",
+    "birefnet": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+    "real_esrgan": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+    "kornia": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "rembg": "native_linux_amd64_nvidia_l4_gpu_worker",
+    "transparent_background": "native_linux_amd64_nvidia_l4_gpu_worker"
+  },
+  "gpuRuntimePolicy": {
+    "onDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "proofContainerIsEphemeral": true,
+    "cpuFallbackAllowedForHeavyTools": false
+  },
+  "modelWeightManifestRequiredTools": [
+    "sam2",
+    "birefnet",
+    "real_esrgan",
+    "rembg",
+    "transparent_background"
+  ],
+  "nativeGpuProofInputStatus": "missing_private_manifests",
+  "requiredHostEnv": {
+    "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT": "local-only private model-weight root; value must not be committed or logged"
+  },
+  "localProofResultDirectory": ".local-artifacts/ai-graphics/gpu-runtime-proof-results",
+  "proofResultValidatorCommand": "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results",
+  "nativeRunnerScript": {
+    "scriptOutputPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh",
+    "generatorCommand": "npm run --silent ai-graphics:gpu-runtime-proof-command-plan -- --manifest-dir .local-artifacts/ai-graphics/model-weight-manifests --script-out .local-artifacts/ai-graphics/gpu-runtime-proof-results/run-native-gpu-proof.sh",
+    "requiredHostGateCommand": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible",
+    "resultValidationCommand": "npm run --silent ai-graphics:gpu-runtime-proof-result:validate -- --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results",
+    "finalPreflightCommand": "npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --result-dir .local-artifacts/ai-graphics/gpu-runtime-proof-results --require-ready-for-owner-review",
+    "localOnly": true,
+    "generatedScriptCommitted": false
+  },
+  "runtimeProfiles": [
+    {
+      "profileId": "gpu_worker_ai_graphics",
+      "tools": [
+        "torch_torchvision",
+        "transformers",
+        "sam2",
+        "real_esrgan",
+        "kornia",
+        "rembg",
+        "transparent_background"
+      ],
+      "dockerfile": "docker/prod/gpu-worker/Dockerfile",
+      "localProofImageTag": "reeditpro/ai-graphics-gpu-worker:proof-local",
+      "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
+      "requiresDockerGpuFlag": true,
+      "requiredHostEnv": [
+        "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"
+      ],
+      "requiresModelWeightManifests": [
+        "sam2",
+        "birefnet",
+        "real_esrgan",
+        "rembg",
+        "transparent_background"
+      ],
+      "requiredModelWeightDirEnv": "REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights",
+      "localProofResultPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/gpu_worker_ai_graphics.json",
+      "status": "planned_not_executed"
+    },
+    {
+      "profileId": "sam2",
+      "tools": [
+        "sam2",
+        "torch_torchvision"
+      ],
+      "dockerfile": "docker/prod/sam2-runtime/Dockerfile",
+      "localProofImageTag": "reeditpro/ai-graphics-sam2-runtime:proof-local",
+      "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/sam2-runtime/Dockerfile -t reeditpro/ai-graphics-sam2-runtime:proof-local .",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
+      "requiresDockerGpuFlag": true,
+      "requiredHostEnv": [
+        "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"
+      ],
+      "requiresModelWeightManifests": [
+        "sam2"
+      ],
+      "requiredModelWeightDirEnv": "REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights",
+      "localProofResultPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/sam2.json",
+      "status": "planned_not_executed"
+    },
+    {
+      "profileId": "birefnet",
+      "tools": [
+        "birefnet",
+        "transformers",
+        "kornia",
+        "torch_torchvision"
+      ],
+      "dockerfile": "docker/prod/birefnet-runtime/Dockerfile",
+      "localProofImageTag": "reeditpro/ai-graphics-birefnet-runtime:proof-local",
+      "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/birefnet-runtime/Dockerfile -t reeditpro/ai-graphics-birefnet-runtime:proof-local .",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
+      "requiresDockerGpuFlag": true,
+      "requiredHostEnv": [
+        "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"
+      ],
+      "requiresModelWeightManifests": [
+        "birefnet"
+      ],
+      "requiredModelWeightDirEnv": "REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights",
+      "localProofResultPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/birefnet.json",
+      "status": "planned_not_executed"
+    },
+    {
+      "profileId": "real_esrgan",
+      "tools": [
+        "real_esrgan",
+        "torch_torchvision"
+      ],
+      "dockerfile": "docker/prod/real-esrgan-runtime/Dockerfile",
+      "localProofImageTag": "reeditpro/ai-graphics-real-esrgan-runtime:proof-local",
+      "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/real-esrgan-runtime/Dockerfile -t reeditpro/ai-graphics-real-esrgan-runtime:proof-local .",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_real_esrgan_runtime",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
+      "requiresDockerGpuFlag": true,
+      "requiredHostEnv": [
+        "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"
+      ],
+      "requiresModelWeightManifests": [
+        "real_esrgan"
+      ],
+      "requiredModelWeightDirEnv": "REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights",
+      "localProofResultPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/real_esrgan.json",
+      "status": "planned_not_executed"
+    },
+    {
+      "profileId": "rembg",
+      "tools": [
+        "rembg"
+      ],
+      "dockerfile": "docker/prod/gpu-worker/Dockerfile",
+      "localProofImageTag": "reeditpro/ai-graphics-gpu-worker:proof-local",
+      "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
+      "requiresDockerGpuFlag": true,
+      "requiredHostEnv": [
+        "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"
+      ],
+      "requiresModelWeightManifests": [
+        "rembg"
+      ],
+      "requiredModelWeightDirEnv": "REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights",
+      "localProofResultPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/rembg.json",
+      "status": "planned_not_executed"
+    },
+    {
+      "profileId": "transparent_background",
+      "tools": [
+        "transparent_background"
+      ],
+      "dockerfile": "docker/prod/gpu-worker/Dockerfile",
+      "localProofImageTag": "reeditpro/ai-graphics-gpu-worker:proof-local",
+      "localProofBuildCommand": "docker build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
+      "runtimeTarget": "native_linux_amd64_nvidia_l4_gpu_worker",
+      "runtimeActivationPolicy": {
+        "onDemandOnly": true,
+        "noIdleGpuRuntimeApproved": true,
+        "startsOnlyForApprovedWorkerOrToolCall": true,
+        "proofContainerIsEphemeral": true,
+        "cpuFallbackAllowedForHeavyTools": false
+      },
+      "requiresDockerGpuFlag": true,
+      "requiredHostEnv": [
+        "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"
+      ],
+      "requiresModelWeightManifests": [
+        "transparent_background"
+      ],
+      "requiredModelWeightDirEnv": "REEDITPRO_MODEL_WEIGHT_DIR=/opt/reeditpro/model-weights",
+      "localProofResultPath": ".local-artifacts/ai-graphics/gpu-runtime-proof-results/transparent_background.json",
+      "status": "planned_not_executed"
+    }
+  ],
+  "modelManifestMounts": [
+    {
+      "toolId": "sam2",
+      "localMountEnv": "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT",
+      "containerManifestPath": "/opt/reeditpro/model-weights/sam2/model_tree_manifest.json"
+    },
+    {
+      "toolId": "birefnet",
+      "localMountEnv": "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT",
+      "containerManifestPath": "/opt/reeditpro/model-weights/birefnet/model_tree_manifest.json"
+    },
+    {
+      "toolId": "real_esrgan",
+      "localMountEnv": "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT",
+      "containerManifestPath": "/opt/reeditpro/model-weights/real-esrgan/model_tree_manifest.json"
+    },
+    {
+      "toolId": "rembg",
+      "localMountEnv": "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT",
+      "containerManifestPath": "/opt/reeditpro/model-weights/rembg/model_tree_manifest.json"
+    },
+    {
+      "toolId": "transparent_background",
+      "localMountEnv": "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT",
+      "containerManifestPath": "/opt/reeditpro/model-weights/transparent-background/model_tree_manifest.json"
+    }
+  ],
+  "booleans": {
+    "gpuRuntimeProofCommandPlanPrepared": true,
+    "sourceManifestReviewPacketAccepted": true,
+    "all8GpuRuntimeToolsCovered": true,
+    "all5ModelWeightManifestToolsCovered": true,
+    "gpuRuntimeTargetsExact": true,
+    "gpuRuntimeOnDemandOnly": true,
+    "noIdleGpuRuntimeApproved": true,
+    "startsOnlyForApprovedWorkerOrToolCall": true,
+    "cpuFallbackAllowedForHeavyTools": false,
+    "privateArtifactRefsNotLogged": true,
+    "dockerGpuFlagRequired": true,
+    "explicitRuntimeProofOptInRequired": true,
+    "modelWeightManifestMountsPlanned": true,
+    "nativeProofRunnerScriptGeneratorPrepared": true,
+    "nativeProofRunnerScriptGeneratedNow": false,
+    "nativeGpuRuntimeProofStillRequired": true,
+    "agentCanSelectForPlanning": true,
+    "agentCanExecuteToolsNow": false,
+    "routeExecutionApprovedNow": false,
+    "workerExecutionApprovedNow": false,
+    "toolExecutionApprovedNow": false,
+    "providerRuntimeApprovedNow": false,
+    "browserWebglCanvasRuntimeApprovedNow": false,
+    "gpuRuntimeApprovedNow": false,
+    "modelWeightsDownloaded": false,
+    "modelWeightsLoaded": false,
+    "modelInferencePerformed": false,
+    "mediaProcessingPerformed": false,
+    "runtimeReadyNow": false,
+    "internalBetaReadyNow": false,
+    "externalBetaReadyNow": false,
+    "productionReadyNow": false,
+    "dependencyInstallPerformed": false,
+    "packageLockMutationPerformed": false,
+    "supabaseMutationPerformed": false,
+    "gcsUploadPerformed": false,
+    "publicArtifactCreated": false,
+    "signedUrlCreated": false,
+    "all6RuntimeProfilesCovered": true
+  },
+  "nextWork": [
+    "Add reviewed private model-weight manifests for sam2, birefnet, real_esrgan, rembg, and transparent_background outside the public repository.",
+    "Run the command-plan CLI with --manifest-dir against local-only private manifest records and verify nativeGpuProofInputStatus is ready_for_native_gpu_runtime_probe_input.",
+    "Generate the local-only native proof runner script with --script-out and run it only after --detect-host --require-host-eligible passes on a native linux/amd64 NVIDIA host.",
+    "Run the generated docker --gpus all commands in an approved native linux/amd64 NVIDIA L4 runtime proof lane."
+  ]
+}

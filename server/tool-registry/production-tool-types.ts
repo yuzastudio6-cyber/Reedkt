@@ -17,6 +17,8 @@ export type ProductionToolId =
   | 'pyscenedetect'
   | 'opencv'
   | 'mediapipe'
+  | 'torch_torchvision'
+  | 'transformers'
   | 'kornia'
   | 'birefnet'
   | 'sam2'
@@ -45,6 +47,11 @@ export type ProductionToolId =
   | 'd3'
   | 'echarts'
   | 'vega_lite'
+  | 'vega'
+  | 'satori'
+  | 'svgdotjs_svg_js'
+  | 'viz_js'
+  | 'animejs'
   | 'deck_gl'
   | 'cesium_js'
   | 'konva'
@@ -68,6 +75,8 @@ export const PRODUCTION_TOOL_IDS = [
   'pyscenedetect',
   'opencv',
   'mediapipe',
+  'torch_torchvision',
+  'transformers',
   'kornia',
   'birefnet',
   'sam2',
@@ -96,6 +105,11 @@ export const PRODUCTION_TOOL_IDS = [
   'd3',
   'echarts',
   'vega_lite',
+  'vega',
+  'satori',
+  'svgdotjs_svg_js',
+  'viz_js',
+  'animejs',
   'deck_gl',
   'cesium_js',
   'konva',

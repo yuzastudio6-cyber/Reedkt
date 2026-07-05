@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
+const outputJsonPath = "docs/tool-intelligence/ai-graphics/node-runtime-proof.json";
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 const packageLock = JSON.parse(readFileSync("package-lock.json", "utf8"));
 const packageLockPackages = packageLock.packages || {};
@@ -33,6 +34,13 @@ const failures = [];
 const warnings = [];
 const tools = [];
 const browserBoundaryPattern = /\b(?:document|window|navigator|HTMLElement|HTMLCanvasElement|WebGLRenderingContext|canvas|DOM|localStorage)\b/i;
+const existingProof = (() => {
+  try {
+    return JSON.parse(readFileSync(outputJsonPath, "utf8"));
+  } catch {
+    return null;
+  }
+})();
 
 process.on("warning", (warning) => {
   warnings.push({ name: warning.name, message: warning.message });
@@ -329,6 +337,7 @@ const summary = {
     mergeStateStatus: "CLEAN",
     headSha: "589a704339fb3b06a101a7cd51504ea681a8c0eb",
   },
+  ...(existingProof?.proofPr ? { proofPr: existingProof.proofPr } : {}),
   proofScope: "node_import_api_and_in_memory_static_contracts_for_13_js_graphics_tools",
   tools,
   warnings,
@@ -378,7 +387,12 @@ This lane proves the 13 JavaScript AI graphics packages from the existing lockfi
 
 ## Source
 
-- PR #775: [AI graphics GPU import readiness](https://github.com/yuzastudio6-cyber/Reedkt/pull/775), open/draft/CLEAN at \`589a704339fb3b06a101a7cd51504ea681a8c0eb\`.
+- PR #775: [AI graphics GPU import readiness](https://github.com/yuzastudio6-cyber/Reedkt/pull/775), open/draft/CLEAN at \`589a704339fb3b06a101a7cd51504ea681a8c0eb\`.${existingProof?.proofPr ? `
+
+## Draft PR
+
+- PR #${existingProof.proofPr.number}: [AI graphics node runtime proof](${existingProof.proofPr.url}), open/draft/${existingProof.proofPr.mergeStateStatus} at creation head \`${existingProof.proofPr.headShaAtPrCreation}\`.
+- Check rollup at PR creation: empty.` : ""}
 
 ## Tool Results
 
@@ -404,7 +418,7 @@ ${rows}
 Satori still needs an approved deterministic font fixture before text SVG layout can be accepted. Browser/player/canvas/WebGL tools still need a browser sandbox proof before agent execution or beta readiness.
 `;
 
-writeFileSync("docs/tool-intelligence/ai-graphics/node-runtime-proof.json", `${JSON.stringify(summary, null, 2)}\n`);
+writeFileSync(outputJsonPath, `${JSON.stringify(summary, null, 2)}\n`);
 writeFileSync("docs/tool-intelligence/ai-graphics/node-runtime-proof.md", markdown);
 
 console.log(JSON.stringify({

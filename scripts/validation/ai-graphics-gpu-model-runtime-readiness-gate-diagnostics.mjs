@@ -41,6 +41,7 @@ const resultRecord = read("docs/prompt-ai-graphics-gpu-model-runtime-readiness-g
 const implementationPrompt = read("docs/implementation-prompts/prompt-ai-graphics-gpu-model-runtime-readiness-gate.md");
 const scorecard = read("docs/production-beta-readiness-scorecard.md");
 const sourceInstallProof = readJson("docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json");
+const commandPlan = readJson("docs/tool-intelligence/ai-graphics/gpu-runtime-proof-command-plan.json");
 const runtimeScript = read("docker/prod/ai-graphics-gpu-runtime-readiness.py");
 
 const expectedScript = "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics";
@@ -67,11 +68,37 @@ for (const key of [
   "requiresTorchCudaAvailable",
   "tinyCudaTensorProbe",
   "modelWeightManifestCheckAvailable",
+  "modelWeightManifestContentValidation",
 ]) {
   if (gate?.runtimeReadinessScript?.[key] !== true) fail(`Expected runtimeReadinessScript.${key}=true`);
 }
 if (gate?.runtimeReadinessScript?.minComputeCapability !== "8.9") {
   fail("Runtime readiness gate must require compute capability 8.9 for the L4 target.");
+}
+for (const field of [
+  "manifestId",
+  "toolId",
+  "templateId",
+  "privateArtifactRef",
+  "checksumSha256",
+  "sourceLicenseRef",
+  "modelCardRef",
+  "commercialUseReviewed",
+  "redistributionReviewed",
+  "qualityReviewed",
+  "securityReviewed",
+  "provenanceReviewed",
+  "approvedForInternalBeta",
+]) {
+  if (!gate?.runtimeReadinessScript?.modelWeightManifestRequiredFields?.includes(field)) {
+    fail(`Runtime readiness gate missing required manifest field ${field}`);
+  }
+}
+if (gate?.runtimeReadinessScript?.modelWeightManifestPublicUrlRejected !== true) {
+  fail("Runtime readiness gate must reject public or signed URL manifest artifact refs.");
+}
+if (gate?.runtimeReadinessScript?.modelWeightManifestForbiddenExecutionClaimsRejected !== true) {
+  fail("Runtime readiness gate must reject execution-completed manifest claims.");
 }
 for (const key of [
   "modelWeightsLoaded",
@@ -132,6 +159,31 @@ for (const [profileId, expected] of Object.entries(expectedProfiles)) {
   if (!dockerfile.includes(expected.copyToken)) fail(`${expected.dockerfile} missing runtime readiness script copy`);
 }
 
+const expectedNativeProofProfiles = [
+  "gpu_worker_ai_graphics",
+  "sam2",
+  "birefnet",
+  "real_esrgan",
+  "rembg",
+  "transparent_background",
+];
+if (gate?.runtimeProbeImageProfilesCount !== 4) fail("Runtime gate must distinguish four image-level probe placements.");
+if (gate?.nativeGpuProofProfilesRequiredLaterCount !== 6) fail("Runtime gate must cite six downstream native GPU proof profiles.");
+if (commandPlan?.counts?.runtimeProfiles !== 6) fail("Command plan must cover six native GPU proof profiles.");
+if (commandPlan?.booleans?.all6RuntimeProfilesCovered !== true) fail("Command plan must record all6RuntimeProfilesCovered=true.");
+if (!gateMarkdown.includes("six current native GPU proof profiles")) {
+  fail("Markdown must distinguish six downstream native GPU proof profiles from four image probe placements.");
+}
+for (const profileId of expectedNativeProofProfiles) {
+  if (!gate?.nativeGpuProofProfilesRequiredLater?.includes(profileId)) {
+    fail(`Runtime gate missing downstream native GPU proof profile ${profileId}`);
+  }
+  if (!commandPlan?.runtimeProfiles?.some((entry) => entry.profileId === profileId)) {
+    fail(`Command plan missing downstream native GPU proof profile ${profileId}`);
+  }
+  if (!gateMarkdown.includes(profileId)) fail(`Markdown missing downstream native GPU proof profile ${profileId}`);
+}
+
 const expectedTools = [
   "torch_torchvision",
   "transformers",
@@ -171,6 +223,25 @@ for (const token of [
   "GCS_UPLOAD_ENABLED",
   "--require-model-weight-manifests",
   "model_tree_manifest.json",
+  "REQUIRED_MODEL_MANIFEST_FIELDS",
+  "MODEL_MANIFEST_TEMPLATE_IDS",
+  "MODEL_MANIFEST_SOURCE_CANDIDATE_IDS",
+  "MODEL_MANIFEST_SUGGESTED_CHECKSUM_SHA256",
+  "MODEL_MANIFEST_CHECKSUM_EVIDENCE_STATUS",
+  "FORBIDDEN_MANIFEST_TRUE_FIELDS",
+  "SHA256_PATTERN",
+  "validate_model_manifest",
+  "validate_private_artifact_ref",
+  "blocked_model_manifest_validation_failed",
+  "validated_not_loaded",
+  "present_private_ref_not_logged",
+  "checksumEvidenceRef",
+  "checksumEvidenceReviewed",
+  "checksumEvidenceRefStatus",
+  "{field_name} must not be an HTTP(S) URL",
+  "{field_name} must use a reviewed private artifact ref namespace",
+  "checksumSha256 must be a 64-character hex SHA-256 digest",
+  "checksumSha256 must match reviewed source-catalog checksum",
   "\"modelWeightsLoaded\": False",
   "\"mediaProcessed\": False",
   "\"providerRuntimeUsed\": False",
@@ -184,6 +255,7 @@ for (const key of [
   "gpuModelRuntimeReadinessGatePrepared",
   "all8GpuModelToolsCoveredByRuntimeGate",
   "all4GpuRuntimeProfilesHaveRuntimeProbe",
+  "all6NativeGpuProofProfilesCoveredByCommandPlan",
   "nativeNvidiaRuntimeRequired",
   "explicitRuntimeProofOptInRequired",
   "modelWeightManifestGatePrepared",

@@ -1,0 +1,723 @@
+import type { AiGraphicsModelWeightManifestToolId } from './ai-graphics-model-weight-manifest-readiness'
+import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
+
+export const AI_GRAPHICS_GPU_RUNTIME_PROOF_RESULT_DECISION =
+  'ai_graphics_gpu_runtime_proof_result_packet_prepared_with_no_runtime_results'
+
+export type AiGraphicsGpuRuntimeProofProfileId =
+  | 'gpu_worker_ai_graphics'
+  | 'sam2'
+  | 'birefnet'
+  | 'real_esrgan'
+  | 'rembg'
+  | 'transparent_background'
+
+export type AiGraphicsGpuRuntimeProofAggregateStatus =
+  | 'missing_native_gpu_runtime_proof_results'
+  | 'partial_native_gpu_runtime_proof_results_accepted_not_beta_ready'
+  | 'invalid_native_gpu_runtime_proof_results'
+  | 'ready_for_owner_review_not_beta_ready'
+
+const gpuRuntimeTargetedTools = [
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'kornia',
+  'rembg',
+  'transparent_background',
+] as const satisfies readonly AiGraphicsCanonicalToolId[]
+
+const expectedGpuRuntimeTargets = {
+  torch_torchvision: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transformers: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  sam2: 'native_linux_amd64_nvidia_l4_sam2_runtime',
+  birefnet: 'native_linux_amd64_nvidia_l4_birefnet_runtime',
+  real_esrgan: 'native_linux_amd64_nvidia_l4_real_esrgan_runtime',
+  kornia: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  rembg: 'native_linux_amd64_nvidia_l4_gpu_worker',
+  transparent_background: 'native_linux_amd64_nvidia_l4_gpu_worker',
+} as const satisfies Record<(typeof gpuRuntimeTargetedTools)[number], string>
+
+export function listAiGraphicsExpectedGpuRuntimeTargets(): Record<(typeof gpuRuntimeTargetedTools)[number], string> {
+  return { ...expectedGpuRuntimeTargets }
+}
+
+export function aiGraphicsExpectedGpuRuntimeTargetForTool(
+  toolId: AiGraphicsCanonicalToolId,
+): string | null {
+  return expectedGpuRuntimeTargets[toolId as (typeof gpuRuntimeTargetedTools)[number]] ?? null
+}
+
+export interface AiGraphicsGpuRuntimeProofResultValidation {
+  profileId: AiGraphicsGpuRuntimeProofProfileId
+  resultProvided: boolean
+  acceptedForOwnerReview: boolean
+  proofMetadataAccepted: boolean
+  requiredImportsPresent: boolean
+  nvidiaSmiAccepted: boolean
+  cudaAccepted: boolean
+  modelManifestChecksAccepted: boolean
+  rawPrivateRefsNotLogged: boolean
+  runtimeSideEffectsBlocked: boolean
+  errors: string[]
+  warnings: string[]
+}
+
+export interface AiGraphicsGpuRuntimeProofResultPacket {
+  decision: typeof AI_GRAPHICS_GPU_RUNTIME_PROOF_RESULT_DECISION
+  status: AiGraphicsGpuRuntimeProofAggregateStatus
+  totalAiGraphicsTools: 21
+  gpuRuntimeTargetedTools: AiGraphicsCanonicalToolId[]
+  expectedGpuRuntimeTargets: Record<(typeof gpuRuntimeTargetedTools)[number], string>
+  gpuRuntimePolicy: {
+    onDemandOnly: true
+    noIdleGpuRuntimeApproved: true
+    startsOnlyForApprovedWorkerOrToolCall: true
+    proofContainerIsEphemeral: true
+    cpuFallbackAllowedForHeavyTools: false
+  }
+  modelWeightManifestRequiredTools: AiGraphicsModelWeightManifestToolId[]
+  runtimeProfilesRequired: AiGraphicsGpuRuntimeProofProfileId[]
+  allowPartialNativeGpuRuntimeProofResults: boolean
+  acceptedProfileIds: AiGraphicsGpuRuntimeProofProfileId[]
+  missingProfileIds: AiGraphicsGpuRuntimeProofProfileId[]
+  runtimeProofResultsProvided: number
+  runtimeProofResultsAcceptedForOwnerReview: number
+  nativeGpuRuntimeProofResultsAccepted: boolean
+  requiredProofChecks: string[]
+  validationResults: AiGraphicsGpuRuntimeProofResultValidation[]
+  blockers: string[]
+  booleans: {
+    gpuRuntimeProofResultValidatorPrepared: true
+    all8GpuRuntimeToolsCovered: true
+    all5ModelWeightManifestToolsCovered: true
+    all6RuntimeProfilesCovered: true
+    gpuRuntimeTargetsExact: true
+    gpuRuntimeOnDemandOnly: true
+    noIdleGpuRuntimeApproved: true
+    startsOnlyForApprovedWorkerOrToolCall: true
+    cpuFallbackAllowedForHeavyTools: false
+    privateArtifactRefNamespaceRequired: true
+    privateArtifactRefsNotLogged: true
+    sourceCatalogChecksumGuidanceEnforced: true
+    suggestedChecksumMismatchRejected: true
+    partialNativeGpuRuntimeProofResultsAcceptedForOwnerReview: boolean
+    nativeGpuRuntimeProofResultsAcceptedForOwnerReview: boolean
+    ownerReviewStillRequired: true
+    agentCanSelectForPlanning: true
+    agentCanExecuteToolsNow: false
+    routeExecutionApprovedNow: false
+    workerExecutionApprovedNow: false
+    toolExecutionApprovedNow: false
+    providerRuntimeApprovedNow: false
+    browserWebglCanvasRuntimeApprovedNow: false
+    gpuRuntimeApprovedNow: false
+    modelWeightsDownloaded: false
+    modelWeightsLoaded: false
+    modelInferencePerformed: false
+    mediaProcessingPerformed: false
+    runtimeReadyNow: false
+    internalBetaReadyNow: false
+    externalBetaReadyNow: false
+    productionReadyNow: false
+    dependencyInstallPerformed: false
+    packageLockMutationPerformed: false
+    supabaseMutationPerformed: false
+    gcsUploadPerformed: false
+    publicArtifactCreated: false
+    signedUrlCreated: false
+  }
+}
+
+export interface AiGraphicsGpuRuntimeProofResultOptions {
+  allowPartial?: boolean
+}
+
+const modelWeightManifestRequiredTools = [
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+] as const satisfies readonly AiGraphicsModelWeightManifestToolId[]
+
+const runtimeProfilesRequired = [
+  'gpu_worker_ai_graphics',
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+] as const satisfies readonly AiGraphicsGpuRuntimeProofProfileId[]
+
+export function listAiGraphicsGpuRuntimeProofRequiredProfiles(): readonly AiGraphicsGpuRuntimeProofProfileId[] {
+  return [...runtimeProfilesRequired]
+}
+
+const requiredImportsByProfile = {
+  gpu_worker_ai_graphics: [
+    'torch',
+    'torchvision',
+    'transformers',
+    'kornia',
+    'rembg',
+    'transparent_background',
+    'realesrgan',
+    'sam2',
+  ],
+  sam2: [
+    'torch',
+    'torchvision',
+    'numpy',
+    'PIL',
+    'cv2',
+    'hydra',
+    'iopath',
+    'sam2',
+  ],
+  birefnet: [
+    'torch',
+    'torchvision',
+    'transformers',
+    'safetensors',
+    'PIL',
+    'cv2',
+    'numpy',
+    'timm',
+    'kornia',
+    'einops',
+    'scipy',
+    'skimage',
+  ],
+  real_esrgan: [
+    'torch',
+    'torchvision',
+    'numpy',
+    'PIL',
+    'cv2',
+    'basicsr',
+    'realesrgan',
+  ],
+  rembg: [
+    'torch',
+    'numpy',
+    'PIL',
+    'cv2',
+    'rembg',
+  ],
+  transparent_background: [
+    'torch',
+    'torchvision',
+    'numpy',
+    'PIL',
+    'transparent_background',
+  ],
+} as const satisfies Record<AiGraphicsGpuRuntimeProofProfileId, readonly string[]>
+
+const requiredManifestToolsByProfile = {
+  gpu_worker_ai_graphics: modelWeightManifestRequiredTools,
+  sam2: ['sam2'],
+  birefnet: ['birefnet'],
+  real_esrgan: ['real_esrgan'],
+  rembg: ['rembg'],
+  transparent_background: ['transparent_background'],
+} as const satisfies Record<AiGraphicsGpuRuntimeProofProfileId, readonly AiGraphicsModelWeightManifestToolId[]>
+
+const templateIdByManifestTool = {
+  sam2: 'sam2_checkpoint',
+  birefnet: 'birefnet_model',
+  real_esrgan: 'real_esrgan_model',
+  rembg: 'rembg_model',
+  transparent_background: 'transparent_background_model',
+} as const satisfies Record<AiGraphicsModelWeightManifestToolId, string>
+
+const sourceCatalogChecksumSha256ByManifestTool = {
+  sam2: '45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2',
+  birefnet: '1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7',
+  real_esrgan: '4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1',
+  rembg: null,
+  transparent_background: null,
+} as const satisfies Record<AiGraphicsModelWeightManifestToolId, string | null>
+
+const sourceCatalogChecksumEvidenceStatusByManifestTool = {
+  sam2: 'accepted_from_existing_internal_evidence_private_manifest_still_required',
+  birefnet: 'accepted_from_existing_internal_evidence_private_manifest_still_required',
+  real_esrgan: 'release_asset_checksum_required_before_private_manifest',
+  rembg: 'checksum_required_before_private_manifest',
+  transparent_background: 'checksum_required_before_private_manifest',
+} as const satisfies Record<AiGraphicsModelWeightManifestToolId, string>
+
+const falseRuntimeFields = [
+  'modelWeightsLoaded',
+  'mediaProcessed',
+  'providerRuntimeUsed',
+  'toolRouteExecutionReadyNow',
+  'workerExecutionReadyNow',
+  'runtimeBetaReadyNow',
+  'publicArtifactCreated',
+  'signedUrlCreated',
+] as const
+
+const sha256Pattern = /^[a-fA-F0-9]{64}$/
+const requiredProbeName = 'reeditpro_ai_graphics_gpu_runtime_readiness'
+const requiredProbeVersion = '2026-06-26.native-gpu-proof-v1'
+
+const requiredProofChecks = [
+  'status_passed',
+  'approved_probe_metadata_present',
+  'approved_probe_name',
+  'approved_probe_version',
+  'native_linux_runtime_platform',
+  'native_x86_64_or_amd64_runtime_machine',
+  'no_duplicate_profile_result_records',
+  'exact_profile_id',
+  'nvidia_smi_available',
+  'cuda_available',
+  'cuda_device_count_at_least_1',
+  'cuda_capability_at_least_8_9',
+  'tiny_cuda_tensor_probe_passed',
+  'profile_imports_present',
+  'model_manifest_checks_validated_not_loaded',
+  'model_manifest_private_namespace_enforced',
+  'model_manifest_source_catalog_checksum_enforced',
+  'model_manifest_checksum_evidence_ref_validated',
+  'private_artifact_refs_not_logged',
+  'runtime_side_effect_fields_false',
+] as const
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function stringValue(value: unknown): string | null {
+  return typeof value === 'string' ? value : null
+}
+
+function numberValue(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+function booleanValue(value: unknown): boolean | null {
+  return typeof value === 'boolean' ? value : null
+}
+
+function parseCapability(value: unknown): [number, number] | null {
+  const raw = stringValue(value)
+  if (!raw) return null
+  const match = /^(\d+)\.(\d+)$/.exec(raw.trim())
+  if (!match) return null
+  return [Number(match[1]), Number(match[2])]
+}
+
+function capabilityMeetsMinimum(value: unknown, minimum: [number, number]): boolean {
+  const parsed = parseCapability(value)
+  if (!parsed) return false
+  return parsed[0] > minimum[0] || (parsed[0] === minimum[0] && parsed[1] >= minimum[1])
+}
+
+function detectForbiddenRawReferences(value: unknown, path = '$'): string[] {
+  const failures: string[] = []
+  if (Array.isArray(value)) {
+    value.forEach((entry, index) => {
+      failures.push(...detectForbiddenRawReferences(entry, `${path}[${index}]`))
+    })
+    return failures
+  }
+  if (isRecord(value)) {
+    for (const [key, entry] of Object.entries(value)) {
+      if (key === 'privateArtifactRef') {
+        failures.push(`${path}.${key}`)
+      }
+      failures.push(...detectForbiddenRawReferences(entry, `${path}.${key}`))
+    }
+    return failures
+  }
+  if (typeof value === 'string') {
+    const lower = value.toLowerCase()
+    if (
+      lower.includes('private://') ||
+      lower.includes('gs://') ||
+      lower.includes('http://') ||
+      lower.includes('https://') ||
+      lower.includes('x-goog-signature=') ||
+      lower.includes('x-amz-signature=') ||
+      lower.includes('signature=')
+    ) {
+      failures.push(path)
+    }
+  }
+  return failures
+}
+
+function profileFromInput(input: unknown): AiGraphicsGpuRuntimeProofProfileId | null {
+  if (!isRecord(input)) return null
+  const profile = stringValue(input.profile)
+  return runtimeProfilesRequired.includes(profile as AiGraphicsGpuRuntimeProofProfileId)
+    ? profile as AiGraphicsGpuRuntimeProofProfileId
+    : null
+}
+
+function validateProofMetadata(input: unknown, errors: string[]): boolean {
+  if (!isRecord(input) || !isRecord(input.proofMetadata)) {
+    errors.push('proofMetadata from the approved GPU runtime readiness probe is required.')
+    return false
+  }
+
+  const metadata = input.proofMetadata
+  let accepted = true
+  if (metadata.probeName !== requiredProbeName) {
+    errors.push(`proofMetadata.probeName must be ${requiredProbeName}.`)
+    accepted = false
+  }
+  if (metadata.probeVersion !== requiredProbeVersion) {
+    errors.push(`proofMetadata.probeVersion must be ${requiredProbeVersion}.`)
+    accepted = false
+  }
+  if (metadata.runtimePlatform !== 'linux') {
+    errors.push('proofMetadata.runtimePlatform must be linux.')
+    accepted = false
+  }
+  if (!['x86_64', 'amd64'].includes(String(metadata.runtimeMachine ?? '').toLowerCase())) {
+    errors.push('proofMetadata.runtimeMachine must be x86_64 or amd64.')
+    accepted = false
+  }
+  if (metadata.nativeGpuRuntimeProof !== true) {
+    errors.push('proofMetadata.nativeGpuRuntimeProof must be true.')
+    accepted = false
+  }
+
+  for (const field of [
+    'modelWeightsLoaded',
+    'modelInferencePerformed',
+    'mediaProcessingPerformed',
+    'providerRuntimePerformed',
+    'publicArtifactCreated',
+    'signedUrlCreated',
+  ]) {
+    if (metadata[field] !== false) {
+      errors.push(`proofMetadata.${field} must be false.`)
+      accepted = false
+    }
+  }
+
+  return accepted
+}
+
+function importLabels(input: unknown): Set<string> {
+  if (!isRecord(input) || !Array.isArray(input.imports)) return new Set()
+  return new Set(input.imports.flatMap((entry) => {
+    if (!isRecord(entry)) return []
+    const label = stringValue(entry.label)
+    const moduleName = stringValue(entry.module)
+    return [label, moduleName].filter((value): value is string => Boolean(value))
+  }))
+}
+
+function validateModelManifestChecks(
+  profileId: AiGraphicsGpuRuntimeProofProfileId,
+  input: unknown,
+  errors: string[],
+): boolean {
+  if (!isRecord(input) || !Array.isArray(input.modelManifestChecks)) {
+    errors.push('modelManifestChecks must be an array.')
+    return false
+  }
+
+  const checks = input.modelManifestChecks.filter(isRecord)
+  const checksByTool = new Map(checks.map((check) => [stringValue(check.toolId), check]))
+  let accepted = true
+
+  for (const toolId of requiredManifestToolsByProfile[profileId]) {
+    const check = checksByTool.get(toolId)
+    if (!check) {
+      errors.push(`Missing model manifest check for ${toolId}.`)
+      accepted = false
+      continue
+    }
+    if (check.status !== 'validated_not_loaded') {
+      errors.push(`${toolId} model manifest check must have status validated_not_loaded.`)
+      accepted = false
+    }
+    if (check.templateId !== templateIdByManifestTool[toolId]) {
+      errors.push(`${toolId} model manifest check templateId mismatch.`)
+      accepted = false
+    }
+    if (check.privateArtifactRefStatus !== 'present_private_ref_not_logged') {
+      errors.push(`${toolId} model manifest check must report present_private_ref_not_logged.`)
+      accepted = false
+    }
+    if (check.checksumEvidenceRefStatus !== 'present_private_ref_not_logged') {
+      errors.push(`${toolId} model manifest check checksumEvidenceRefStatus must report present_private_ref_not_logged.`)
+      accepted = false
+    }
+    if (!sha256Pattern.test(String(check.checksumSha256 ?? ''))) {
+      errors.push(`${toolId} model manifest check checksumSha256 must be a 64-character hex digest.`)
+      accepted = false
+    }
+    const expectedChecksum = sourceCatalogChecksumSha256ByManifestTool[toolId]
+    if (expectedChecksum && String(check.checksumSha256 ?? '').toLowerCase() !== expectedChecksum.toLowerCase()) {
+      errors.push(`${toolId} model manifest check checksumSha256 must match reviewed source-catalog checksum.`)
+      accepted = false
+    }
+    if (check.sourceCatalogSuggestedChecksumSha256 !== expectedChecksum) {
+      errors.push(`${toolId} model manifest check sourceCatalogSuggestedChecksumSha256 mismatch.`)
+      accepted = false
+    }
+    if (check.sourceCatalogChecksumEvidenceStatus !== sourceCatalogChecksumEvidenceStatusByManifestTool[toolId]) {
+      errors.push(`${toolId} model manifest check sourceCatalogChecksumEvidenceStatus mismatch.`)
+      accepted = false
+    }
+  }
+
+  return accepted
+}
+
+function validateProofResult(
+  profileId: AiGraphicsGpuRuntimeProofProfileId,
+  input: unknown | undefined,
+): AiGraphicsGpuRuntimeProofResultValidation {
+  const errors: string[] = []
+  const warnings: string[] = []
+
+  if (input === undefined) {
+    return {
+      profileId,
+      resultProvided: false,
+      acceptedForOwnerReview: false,
+      proofMetadataAccepted: false,
+      requiredImportsPresent: false,
+      nvidiaSmiAccepted: false,
+      cudaAccepted: false,
+      modelManifestChecksAccepted: false,
+      rawPrivateRefsNotLogged: true,
+      runtimeSideEffectsBlocked: false,
+      errors: ['Native GPU runtime proof result was not provided.'],
+      warnings,
+    }
+  }
+
+  if (!isRecord(input)) {
+    errors.push('Proof result must be a JSON object.')
+  } else {
+    const rawProfile = stringValue(input.profile)
+    if (rawProfile !== profileId) {
+      errors.push(`Proof result profile must be ${profileId}, got ${rawProfile ?? 'missing'}.`)
+    }
+    if (input.status !== 'passed') {
+      errors.push('Proof result status must be passed.')
+    }
+  }
+
+  const rawReferenceFailures = detectForbiddenRawReferences(input)
+  if (rawReferenceFailures.length) {
+    errors.push(`Proof result must not include raw private/public/signed artifact references: ${rawReferenceFailures.join(', ')}`)
+  }
+
+  const proofMetadataAccepted = validateProofMetadata(input, errors)
+  const labels = importLabels(input)
+  const missingImports = requiredImportsByProfile[profileId].filter((label) => !labels.has(label))
+  if (missingImports.length) {
+    errors.push(`Missing required imports for ${profileId}: ${missingImports.join(', ')}.`)
+  }
+
+  const nvidiaSmi = isRecord(input) ? input.nvidiaSmi : undefined
+  const nvidiaSmiAccepted = isRecord(nvidiaSmi) && nvidiaSmi.available === true
+  if (!nvidiaSmiAccepted) {
+    errors.push('nvidiaSmi.available must be true.')
+  }
+
+  const cuda = isRecord(input) ? input.cuda : undefined
+  const deviceCount = isRecord(cuda) ? numberValue(cuda.deviceCount) : null
+  const cudaAccepted = isRecord(cuda) &&
+    cuda.available === true &&
+    typeof deviceCount === 'number' &&
+    deviceCount >= 1 &&
+    cuda.tinyTensorProbePassed === true &&
+    capabilityMeetsMinimum(cuda.capability, [8, 9])
+  if (!cudaAccepted) {
+    errors.push('CUDA proof must include available=true, deviceCount>=1, capability>=8.9, and tinyTensorProbePassed=true.')
+  }
+
+  const modelManifestChecksAccepted = validateModelManifestChecks(profileId, input, errors)
+
+  let runtimeSideEffectsBlocked = true
+  if (isRecord(input)) {
+    for (const field of falseRuntimeFields) {
+      if (booleanValue(input[field]) !== false) {
+        errors.push(`${field} must be false.`)
+        runtimeSideEffectsBlocked = false
+      }
+    }
+  } else {
+    runtimeSideEffectsBlocked = false
+  }
+
+  return {
+    profileId,
+    resultProvided: true,
+    acceptedForOwnerReview: errors.length === 0,
+    proofMetadataAccepted,
+    requiredImportsPresent: missingImports.length === 0,
+    nvidiaSmiAccepted,
+    cudaAccepted,
+    modelManifestChecksAccepted,
+    rawPrivateRefsNotLogged: rawReferenceFailures.length === 0,
+    runtimeSideEffectsBlocked,
+    errors,
+    warnings,
+  }
+}
+
+function proofResultsByProfile(
+  results: readonly unknown[],
+): Record<AiGraphicsGpuRuntimeProofProfileId, unknown[]> {
+  const byProfile: Record<AiGraphicsGpuRuntimeProofProfileId, unknown[]> = {
+    gpu_worker_ai_graphics: [],
+    sam2: [],
+    birefnet: [],
+    real_esrgan: [],
+    rembg: [],
+    transparent_background: [],
+  }
+  for (const result of results) {
+    const profile = profileFromInput(result)
+    if (profile) {
+      byProfile[profile].push(result)
+    }
+  }
+  return byProfile
+}
+
+function validateProfileProofResults(
+  profileId: AiGraphicsGpuRuntimeProofProfileId,
+  proofResults: readonly unknown[],
+): AiGraphicsGpuRuntimeProofResultValidation {
+  const result = validateProofResult(profileId, proofResults[0])
+  return proofResults.length > 1
+    ? {
+        ...result,
+        acceptedForOwnerReview: false,
+        errors: [
+          ...result.errors,
+          `${profileId} has duplicate native GPU proof result records.`,
+        ],
+      }
+    : result
+}
+
+export function buildAiGraphicsGpuRuntimeProofResultPacket(
+  proofResults: readonly unknown[] = [],
+  options: AiGraphicsGpuRuntimeProofResultOptions = {},
+): AiGraphicsGpuRuntimeProofResultPacket {
+  const allowPartial = options.allowPartial === true
+  const byProfile = proofResultsByProfile(proofResults)
+  const validationResults = runtimeProfilesRequired.map((profileId) => (
+    validateProfileProofResults(profileId, byProfile[profileId])
+  ))
+  const acceptedProfileIds = validationResults
+    .filter((result) => result.acceptedForOwnerReview)
+    .map((result) => result.profileId)
+  const missingProfileIds = validationResults
+    .filter((result) => !result.resultProvided)
+    .map((result) => result.profileId)
+  const runtimeProofResultsProvided = validationResults.filter((result) => result.resultProvided).length
+  const runtimeProofResultsAcceptedForOwnerReview = validationResults.filter((result) => result.acceptedForOwnerReview).length
+  const partialNativeGpuRuntimeProofResultsAccepted =
+    allowPartial &&
+    runtimeProofResultsProvided > 0 &&
+    runtimeProofResultsProvided < runtimeProfilesRequired.length &&
+    runtimeProofResultsAcceptedForOwnerReview === runtimeProofResultsProvided
+  const nativeGpuRuntimeProofResultsAccepted =
+    runtimeProofResultsProvided === runtimeProfilesRequired.length &&
+    runtimeProofResultsAcceptedForOwnerReview === runtimeProfilesRequired.length
+
+  const status: AiGraphicsGpuRuntimeProofAggregateStatus = runtimeProofResultsProvided === 0
+    ? 'missing_native_gpu_runtime_proof_results'
+    : nativeGpuRuntimeProofResultsAccepted
+      ? 'ready_for_owner_review_not_beta_ready'
+      : partialNativeGpuRuntimeProofResultsAccepted
+        ? 'partial_native_gpu_runtime_proof_results_accepted_not_beta_ready'
+        : 'invalid_native_gpu_runtime_proof_results'
+
+  const blockers = [
+    status === 'missing_native_gpu_runtime_proof_results'
+      ? 'Native linux/amd64 NVIDIA L4 proof results have not been provided for the six required GPU runtime profiles.'
+      : undefined,
+    status === 'partial_native_gpu_runtime_proof_results_accepted_not_beta_ready'
+      ? `Accepted ${runtimeProofResultsAcceptedForOwnerReview} native GPU proof profile result(s); still missing ${missingProfileIds.join(', ')} before the all-profile gate can advance.`
+      : undefined,
+    status === 'invalid_native_gpu_runtime_proof_results'
+      ? 'One or more native GPU runtime proof results failed profile, CUDA, import, model-manifest, redaction, or false-gate validation.'
+      : undefined,
+    'Owner review, Tool Route, Worker, provider/model, artifact, beta, and production gates remain blocked even if native proof results are accepted.',
+  ].filter((entry): entry is string => Boolean(entry))
+
+  return {
+    decision: AI_GRAPHICS_GPU_RUNTIME_PROOF_RESULT_DECISION,
+    status,
+    totalAiGraphicsTools: 21,
+    gpuRuntimeTargetedTools: [...gpuRuntimeTargetedTools],
+    expectedGpuRuntimeTargets: listAiGraphicsExpectedGpuRuntimeTargets(),
+    gpuRuntimePolicy: {
+      onDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      startsOnlyForApprovedWorkerOrToolCall: true,
+      proofContainerIsEphemeral: true,
+      cpuFallbackAllowedForHeavyTools: false,
+    },
+    modelWeightManifestRequiredTools: [...modelWeightManifestRequiredTools],
+    runtimeProfilesRequired: [...runtimeProfilesRequired],
+    allowPartialNativeGpuRuntimeProofResults: allowPartial,
+    acceptedProfileIds,
+    missingProfileIds,
+    runtimeProofResultsProvided,
+    runtimeProofResultsAcceptedForOwnerReview,
+    nativeGpuRuntimeProofResultsAccepted,
+    requiredProofChecks: [...requiredProofChecks],
+    validationResults,
+    blockers,
+    booleans: {
+      gpuRuntimeProofResultValidatorPrepared: true,
+      all8GpuRuntimeToolsCovered: true,
+      all5ModelWeightManifestToolsCovered: true,
+      all6RuntimeProfilesCovered: true,
+      gpuRuntimeTargetsExact: true,
+      gpuRuntimeOnDemandOnly: true,
+      noIdleGpuRuntimeApproved: true,
+      startsOnlyForApprovedWorkerOrToolCall: true,
+      cpuFallbackAllowedForHeavyTools: false,
+      privateArtifactRefNamespaceRequired: true,
+      privateArtifactRefsNotLogged: true,
+      sourceCatalogChecksumGuidanceEnforced: true,
+      suggestedChecksumMismatchRejected: true,
+      partialNativeGpuRuntimeProofResultsAcceptedForOwnerReview:
+        partialNativeGpuRuntimeProofResultsAccepted,
+      nativeGpuRuntimeProofResultsAcceptedForOwnerReview: nativeGpuRuntimeProofResultsAccepted,
+      ownerReviewStillRequired: true,
+      agentCanSelectForPlanning: true,
+      agentCanExecuteToolsNow: false,
+      routeExecutionApprovedNow: false,
+      workerExecutionApprovedNow: false,
+      toolExecutionApprovedNow: false,
+      providerRuntimeApprovedNow: false,
+      browserWebglCanvasRuntimeApprovedNow: false,
+      gpuRuntimeApprovedNow: false,
+      modelWeightsDownloaded: false,
+      modelWeightsLoaded: false,
+      modelInferencePerformed: false,
+      mediaProcessingPerformed: false,
+      runtimeReadyNow: false,
+      internalBetaReadyNow: false,
+      externalBetaReadyNow: false,
+      productionReadyNow: false,
+      dependencyInstallPerformed: false,
+      packageLockMutationPerformed: false,
+      supabaseMutationPerformed: false,
+      gcsUploadPerformed: false,
+      publicArtifactCreated: false,
+      signedUrlCreated: false,
+    },
+  }
+}

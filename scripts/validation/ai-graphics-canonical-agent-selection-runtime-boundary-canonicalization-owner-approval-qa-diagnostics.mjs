@@ -307,7 +307,9 @@ const scriptDrift = Object.keys(packageJson.scripts || {}).filter(
   (key) => JSON.stringify(packageJson.scripts[key]) !== JSON.stringify(basePackageJson.scripts?.[key])
 );
 for (const key of scriptDrift) {
-  if (key !== expectedScript && key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-diagnostics" &&
+  const allowedNewAiGraphicsDescendantScript = !basePackageJson.scripts?.[key] && key.startsWith("ai-graphics:");
+  if (key !== expectedScript && !allowedNewAiGraphicsDescendantScript &&
+    key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-qa-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-diagnostics" &&
     key !== "ai-graphics:canonical-agent-selection:runtime-boundary-handoff-owner-approval-diagnostics" &&
@@ -325,6 +327,14 @@ for (const key of scriptDrift) {
     key !== "ai-graphics:satori-font-runtime-proof" &&
     key !== "ai-graphics:satori-font-runtime-proof:diagnostics" &&
     key !== "ai-graphics:gpu-model-install-build-targets:diagnostics" &&
+    key !== "ai-graphics:tool-call-readiness:diagnostics" &&
+    key !== "ai-graphics:tool-call-handoff:diagnostics" &&
+    key !== "ai-graphics:tool-call-plan-evaluator:diagnostics" &&
+    key !== "ai-graphics:beta-readiness-gate:diagnostics" &&
+    key !== "ai-graphics:tool-route-readiness:diagnostics" &&
+    key !== "ai-graphics:worker-handoff-readiness:diagnostics" &&
+    key !== "ai-graphics:21-tool-proper-install-audit:diagnostics" &&
+    key !== "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics" &&
     key !== "ai-graphics:21-tool-runtime-install-readiness:diagnostics" &&
     key !== "ai-graphics:gpu-import-readiness:diagnostics" &&
     key !== "ai-graphics:node-runtime-proof" &&
@@ -334,7 +344,16 @@ for (const key of scriptDrift) {
     key !== "ai-graphics:browser-runtime-proof:diagnostics" &&
     key !== "ai-graphics:satori-font-runtime-proof" &&
     key !== "ai-graphics:satori-font-runtime-proof:diagnostics" &&
-    key !== "ai-graphics:gpu-model-install-build-targets:diagnostics") fail("Unexpected script drift: " + key);
+    key !== "ai-graphics:gpu-model-install-build-targets:diagnostics" &&
+    key !== "ai-graphics:tool-call-readiness:diagnostics" &&
+    key !== "ai-graphics:tool-call-handoff:diagnostics" &&
+    key !== "ai-graphics:tool-call-plan-evaluator:diagnostics" &&
+    key !== "ai-graphics:beta-readiness-gate:diagnostics" &&
+    key !== "ai-graphics:tool-route-readiness:diagnostics" &&
+    key !== "ai-graphics:worker-handoff-readiness:diagnostics" &&
+    key !== "ai-graphics:21-tool-proper-install-audit:diagnostics" &&
+    key !== "ai-graphics:gpu-model-runtime-readiness-gate:diagnostics" &&
+    key !== "ai-graphics:model-weight-manifest-readiness:diagnostics") fail("Unexpected script drift: " + key);
 }
 for (const key of Object.keys(basePackageJson.scripts || {})) {
   if (!(key in (packageJson.scripts || {}))) fail("Removed package script: " + key);

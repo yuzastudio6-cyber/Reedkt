@@ -14,10 +14,7 @@ export const checkedRoutes = [
   { path: '/editor', label: 'editor' },
   { path: '/edit-preferences', label: 'edit-preferences' },
   { path: '/internal-testing', label: 'internal-testing' },
-  { path: '/wallet', label: 'wallet' },
   { path: '/pricing', label: 'pricing' },
-  { path: '/brand-kit', label: 'brand-kit' },
-  { path: '/exports', label: 'exports' },
 ] as const
 
 function resolveRoute(path: string) {

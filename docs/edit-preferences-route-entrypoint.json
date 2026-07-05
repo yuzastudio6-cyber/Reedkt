@@ -31,9 +31,16 @@
       "Analytics",
       "Exports",
       "Brand Kit",
-      "Settings"
+      "Settings",
+      "Wallet",
+      "Upload"
     ],
-    "context": "Other app routes remain available through contextual project/home actions, not persistent primary sidebar items."
+    "retiredStandaloneRoutes": {
+      "/wallet": "/dashboard",
+      "/brand-kit": "/edit-preferences",
+      "/exports": "/projects"
+    },
+    "context": "Contextual project and edit actions can open scoped workflows, but the persistent app sidebar remains Home, Project, and Preferences only."
   },
   "blockedScope": {
     "upload": false,

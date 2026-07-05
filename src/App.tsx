@@ -1,11 +1,9 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
-const BrandKitPage = lazy(() => import('./pages/BrandKitPage').then((module) => ({ default: module.BrandKitPage })))
 const CreateProjectPage = lazy(() => import('./pages/CreateProjectPage').then((module) => ({ default: module.CreateProjectPage })))
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
 const EditPreferencesPage = lazy(() => import('./pages/EditPreferencesPage').then((module) => ({ default: module.EditPreferencesPage })))
-const ExportQueuePage = lazy(() => import('./pages/ExportQueuePage').then((module) => ({ default: module.ExportQueuePage })))
 const InternalTestingPage = lazy(() => import('./pages/InternalTestingPage').then((module) => ({ default: module.InternalTestingPage })))
 const LandingPage = lazy(() => import('./pages/LandingPage').then((module) => ({ default: module.LandingPage })))
 const PricingPage = lazy(() => import('./pages/PricingPage').then((module) => ({ default: module.PricingPage })))
@@ -13,7 +11,6 @@ const ProjectHomePage = lazy(() => import('./pages/ProjectHomePage').then((modul
 const ProjectEditSessionChatPage = lazy(() => import('./pages/ProjectEditSessionChatPage').then((module) => ({ default: module.ProjectEditSessionChatPage })))
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage').then((module) => ({ default: module.ProjectsPage })))
 const SignInPage = lazy(() => import('./pages/SignInPage').then((module) => ({ default: module.SignInPage })))
-const WalletPage = lazy(() => import('./pages/WalletPage').then((module) => ({ default: module.WalletPage })))
 
 function RouteLoadingFallback() {
   return (
@@ -49,10 +46,10 @@ export default function App() {
         <Route path="/projects/:projectId/edits/:editSessionId/details" element={<ProjectEditSessionChatPage />} />
         <Route path="/editor" element={<Navigate to="/projects/new" replace />} />
         <Route path="/edit-preferences" element={<EditPreferencesPage />} />
-        <Route path="/wallet" element={<WalletPage />} />
+        <Route path="/wallet" element={<Navigate to="/dashboard" replace />} />
         <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/brand-kit" element={<BrandKitPage />} />
-        <Route path="/exports" element={<ExportQueuePage />} />
+        <Route path="/brand-kit" element={<Navigate to="/edit-preferences" replace />} />
+        <Route path="/exports" element={<Navigate to="/projects" replace />} />
         <Route path="/internal-testing" element={<InternalTestingPage />} />
         <Route path="/app" element={<Navigate to="/dashboard" replace />} />
         <Route path="/create" element={<Navigate to="/projects/new" replace />} />

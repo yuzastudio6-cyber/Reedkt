@@ -30,6 +30,10 @@ requiredFiles.forEach(assertFile)
 const app = read('src/App.tsx')
 assert.match(app, /EditPreferencesPage/)
 assert.match(app, /path="\/edit-preferences"/)
+assert.doesNotMatch(app, /WalletPage|BrandKitPage|ExportQueuePage/)
+assert.match(app, /path="\/wallet"\s+element=\{<Navigate to="\/dashboard" replace \/>\}/)
+assert.match(app, /path="\/brand-kit"\s+element=\{<Navigate to="\/edit-preferences" replace \/>\}/)
+assert.match(app, /path="\/exports"\s+element=\{<Navigate to="\/projects" replace \/>\}/)
 
 const nav = read('src/data/mockData.ts')
 const appNavSource = nav.match(/export const appNav: NavItem\[\] = \[[\s\S]*?\n\]/)?.[0]
@@ -73,6 +77,9 @@ assert.match(page, /No fetch/)
 assert.doesNotMatch(page, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/)
 assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|service_role|signedUrl/i)
 
+const dashboardPage = read('src/pages/DashboardPage.tsx')
+assert.doesNotMatch(dashboardPage, /to="\/wallet"|Open wallet/)
+
 const docs = read('docs/edit-preferences-route-entrypoint.md')
 for (const phrase of [
   'mock/local',
@@ -91,13 +98,21 @@ for (const phrase of [
 const docJson = JSON.parse(read('docs/edit-preferences-route-entrypoint.json')) as {
   decision?: string
   route?: string
-  sidebarNavigation?: { allowed?: string[] }
+  sidebarNavigation?: {
+    allowed?: string[]
+    retiredStandaloneRoutes?: Record<string, string>
+  }
   blockedScope?: Record<string, boolean>
   validation?: { required?: string[] }
 }
 assert.equal(docJson.decision, 'edit_preferences_route_entrypoint_passed_mock_local_ready_for_internal_testing')
 assert.equal(docJson.route, '/edit-preferences')
 assert.deepEqual(docJson.sidebarNavigation?.allowed, ['Home', 'Project', 'Preferences'])
+assert.deepEqual(docJson.sidebarNavigation?.retiredStandaloneRoutes, {
+  '/wallet': '/dashboard',
+  '/brand-kit': '/edit-preferences',
+  '/exports': '/projects',
+})
 assert.equal(docJson.blockedScope?.productReady, false)
 assert.equal(docJson.blockedScope?.supabaseReadWrite, false)
 assert.equal(docJson.blockedScope?.referenceUrlFetch, false)

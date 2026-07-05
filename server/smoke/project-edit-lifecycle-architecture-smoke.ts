@@ -27,6 +27,7 @@ function assertFile(path: string): void {
 
 const requiredFiles = [
   'src/lib/project-edit-lifecycle.ts',
+  'src/lib/project-edit-final-export-readiness.ts',
   'src/lib/project-edit-plan-approval.ts',
   'src/components/projects/ProjectEditLifecycleStatusCard.tsx',
   'src/components/projects/ProjectEditPlanApprovalCard.tsx',
@@ -43,6 +44,7 @@ const requiredFiles = [
   'server/services/project-edit-plan-service.ts',
   'server/validation/project-edit-plan-schemas.ts',
   'server/smoke/project-edit-lifecycle-architecture-smoke.ts',
+  'server/smoke/project-edit-final-export-readiness-smoke.ts',
 ]
 
 requiredFiles.forEach(assertFile)
@@ -459,6 +461,10 @@ const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<strin
 assert.equal(
   packageJson.scripts?.['smoke:project-edit-lifecycle-architecture'],
   'tsx server/smoke/project-edit-lifecycle-architecture-smoke.ts',
+)
+assert.equal(
+  packageJson.scripts?.['smoke:project-edit-final-export-readiness'],
+  'tsx server/smoke/project-edit-final-export-readiness-smoke.ts',
 )
 
 console.log(JSON.stringify({

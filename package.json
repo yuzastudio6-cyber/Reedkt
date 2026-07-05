@@ -120,6 +120,7 @@
     "smoke:project-create-backend-local-route": "tsx server/smoke/project-create-backend-local-route-smoke.ts",
     "smoke:project-edit-session-backend-local-route": "tsx server/smoke/project-edit-session-backend-local-route-smoke.ts",
     "smoke:project-edit-lifecycle-architecture": "tsx server/smoke/project-edit-lifecycle-architecture-smoke.ts",
+    "smoke:project-edit-final-export-readiness": "tsx server/smoke/project-edit-final-export-readiness-smoke.ts",
     "smoke:project-edit-brief-marker-flow": "tsx server/smoke/project-edit-brief-marker-flow-smoke.ts",
     "smoke:project-edit-brief-marker-chat": "tsx server/smoke/project-edit-brief-marker-chat-smoke.ts",
     "smoke:project-edit-brief-attachments": "tsx server/smoke/project-edit-brief-attachments-smoke.ts",

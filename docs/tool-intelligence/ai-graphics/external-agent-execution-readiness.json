@@ -1,8 +1,8 @@
 {
   "schemaVersion": "2026-07-03.ai-graphics.external-agent-execution-readiness",
   "decision": "ai_graphics_external_agent_execution_readiness_all21_evaluated_with_gpu_model_blocks",
-  "status": "external_agent_call_ready_for_all21_runtime_execution_ready_for13_plus_private_gpu_model_proof_subset",
-  "summary": "Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed bounded runtime work and returned structured private output evidence. The 13 non-GPU tools execute through controlled CPU/static or browser/runtime adapters and are also proven through the mock worker-claim-to-canonical-route smoke. 4 GPU/model tools have accepted controlled-route proof in the current packet: torch_torchvision, transformers, kornia, transparent_background. Remaining GPU/model tools stay blocked or failed-with-diagnostics until their scoped private runtime proof succeeds. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.",
+  "status": "external_agent_call_ready_for_all21_runtime_execution_ready_for19_plus_private_gpu_model_proof_subset",
+  "summary": "Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed bounded runtime work and returned structured private output evidence. The 13 non-GPU tools execute through controlled CPU/static or browser/runtime adapters and are also proven through the mock worker-claim-to-canonical-route smoke. 6 GPU/model tools have accepted controlled-route proof in the current packet: torch_torchvision, transformers, kornia, real_esrgan, rembg, transparent_background. Remaining GPU/model tools stay blocked or failed-with-diagnostics until their scoped private runtime proof succeeds. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.",
   "stateDefinitions": {
     "callable": "The external agent can submit the controlled private route request.",
     "executable": "The controlled adapter performed bounded runtime work and produced structured private output evidence.",
@@ -53,13 +53,13 @@
     },
     "cpuModelGpuModelRouteProof": {
       "accepted": true,
-      "status": "cpu_model_gpu_model_route_proof_partially_executed_for_1_tools_17_total_controlled_route_tools_executable",
-      "proofCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan,rembg,transparent_background --scoped-gpu-use-tool-specific-runtime-images --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-timeout-ms 30000 --scoped-gpu-allow-cpu-model-runtime --scoped-gpu-output-root .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-model-diagnostic --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame-96.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/private-model-cache/real-esrgan/RealESRGAN_x4plus.pth --scoped-gpu-real-esrgan-sample-size 16 --scoped-gpu-rembg-model .local-artifacts/ai-graphics/private-model-cache/rembg/u2netp.onnx --scoped-gpu-transparent-background-checkpoint .local-artifacts/ai-graphics/private-model-cache/transparent-background/ckpt_fast.pth --scoped-gpu-transparent-background-mode fast",
+      "status": "cpu_model_gpu_model_route_proof_executed_for_3_tools_19_total_controlled_route_tools_executable",
+      "proofCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan,rembg,transparent_background --scoped-gpu-use-tool-specific-runtime-images --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-timeout-ms 120000 --scoped-gpu-allow-cpu-model-runtime --scoped-gpu-output-root .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-model-diagnostic --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame-96.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/private-model-cache/real-esrgan/RealESRGAN_x4plus.pth --scoped-gpu-real-esrgan-sample-size 16 --scoped-gpu-rembg-model .local-artifacts/ai-graphics/private-model-cache/rembg/u2netp.onnx --scoped-gpu-transparent-background-checkpoint .local-artifacts/ai-graphics/private-model-cache/transparent-background/ckpt_fast.pth --scoped-gpu-transparent-background-mode fast",
       "sourceEvidence": {
         "decision": "ai_graphics_external_agent_all21_controlled_route_execution_smoke_passed",
         "status": "external_agent_all21_controlled_route_execution_passed_with_gpu_on_demand",
         "scopedGpuModelLocalDevRouteAttemptTools": 3,
-        "scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools": 1,
+        "scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools": 3,
         "scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools": 0
       }
     },
@@ -79,22 +79,24 @@
     "agentCanExecute13NonGpuControlledToolsNow": true,
     "agentCanExecuteGpuModelToolsNow": true,
     "agentCanExecuteAll21ControlledToolsNow": false,
-    "agentExecutableToolCountNow": 17,
+    "agentExecutableToolCountNow": 19,
     "agentExecutableNonGpuToolCountNow": 13,
-    "agentExecutableGpuModelToolCountNow": 4,
-    "gpuModelBlockedToolCountNow": 4,
+    "agentExecutableGpuModelToolCountNow": 6,
+    "gpuModelBlockedToolCountNow": 2,
     "currentHostGpuProofPreflightRequested": false,
     "currentHostEligibleForGpuProof": false,
     "currentHostGpuProofBlockers": [],
     "currentHostGpuProofPreflightCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --detect-host",
     "agentCanExecuteGpuModelProofSubsetNow": true,
-    "agentExecutableToolCountWithAcceptedProofNow": 17,
-    "agentExecutableGpuModelProofSubsetToolCountNow": 4,
-    "gpuModelBlockedToolCountWithAcceptedProofNow": 4,
+    "agentExecutableToolCountWithAcceptedProofNow": 19,
+    "agentExecutableGpuModelProofSubsetToolCountNow": 6,
+    "gpuModelBlockedToolCountWithAcceptedProofNow": 2,
     "acceptedProofSubsetGpuToolIds": [
       "torch_torchvision",
       "transformers",
       "kornia",
+      "real_esrgan",
+      "rembg",
       "transparent_background"
     ]
   },
@@ -104,13 +106,13 @@
     "packageRuntimeInstallProofPresentTools": 21,
     "gpuModelInstallProofTargetPreparedTools": 8,
     "gpuModelInstallProofImportSmokePassedTools": 8,
-    "controlledExecutionRuntimePresentNowTools": 17,
+    "controlledExecutionRuntimePresentNowTools": 19,
     "agentCallableTools": 21,
-    "agentExecutableTools": 17,
-    "agentExecutableToolsWithAcceptedProof": 17,
+    "agentExecutableTools": 19,
+    "agentExecutableToolsWithAcceptedProof": 19,
     "cpuStaticExecutableTools": 6,
     "browserRuntimeExecutableTools": 7,
-    "gpuToolsWithValidRuntimeProof": 4,
+    "gpuToolsWithValidRuntimeProof": 6,
     "gpuModelProofRefBridgeAcceptedTools": 0,
     "gpuModelProofRefBridgeBlockedTools": 8,
     "controlledWorkerRouteExecutableTools": 13,
@@ -118,9 +120,9 @@
     "mockWorkerClaimPerformedTools": 13,
     "mockWorkerEventRecordedTools": 13,
     "gpuModelBlockedByControlledWorkerRouteTools": 8,
-    "gpuModelBlockedWithReasonTools": 4,
+    "gpuModelBlockedWithReasonTools": 2,
     "currentHostGpuProofBlockers": 0,
-    "blockedWithReasonTools": 4,
+    "blockedWithReasonTools": 2,
     "failedWithDiagnosticsTools": 0,
     "capabilityMismatchFailureProbeTools": 1,
     "gpuRuntimeShouldStartNowTools": 0,
@@ -131,16 +133,16 @@
     "runtimeReadyNowTools": 0,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0,
-    "fastestGpuModelUnlockCandidateTools": 1,
+    "fastestGpuModelUnlockCandidateTools": 2,
     "privateLocalRuntimeProofResultSuppliedTools": 0,
     "cpuSafeGpuModelRouteProofAttemptedTools": 3,
     "cpuSafeGpuModelRouteProofExecutableTools": 3,
     "agentExecutableToolsWithCpuSafeGpuModelRouteProof": 16,
     "remainingGpuModelBlockedToolsAfterCpuSafeGpuModelRouteProof": 5,
     "cpuModelGpuModelRouteProofAttemptedTools": 3,
-    "cpuModelGpuModelRouteProofExecutableTools": 1,
-    "agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof": 17,
-    "remainingGpuModelBlockedToolsAfterCpuSafeAndCpuModelGpuModelRouteProof": 4
+    "cpuModelGpuModelRouteProofExecutableTools": 3,
+    "agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof": 19,
+    "remainingGpuModelBlockedToolsAfterCpuSafeAndCpuModelGpuModelRouteProof": 2
   },
   "booleans": {
     "externalAgentExecutionReadinessCompleted": true,
@@ -153,8 +155,8 @@
     "gpuModelInstallProofDidNotStartNativeGpu": true,
     "gpuModelInstallProofDidNotLoadModelsOrProcessMedia": true,
     "thirteenToolsHaveControlledExecutionRuntimePresentNow": true,
-    "seventeenToolsHaveAcceptedControlledExecutionProofNow": true,
-    "nineteenToolsHaveAcceptedControlledExecutionProofNow": false,
+    "seventeenToolsHaveAcceptedControlledExecutionProofNow": false,
+    "nineteenToolsHaveAcceptedControlledExecutionProofNow": true,
     "eightGpuModelToolsInstallTargetPreparedButRuntimeBlocked": true,
     "agentCanSubmitControlledToolRequests": true,
     "agentCallableToolsReady": true,
@@ -168,7 +170,7 @@
     "gpuModelToolsBlockedUntilPrerequisites": true,
     "gpuModelProofRefBridgeBlocksUntilPrivateProof": true,
     "scopedGpuModelRuntimeProofAcceptedTools": 0,
-    "acceptedGpuModelControlledRouteProofTools": 4,
+    "acceptedGpuModelControlledRouteProofTools": 6,
     "privateLocalRuntimeProofResultSupplied": false,
     "cpuSafeGpuModelRouteProofAttempted": true,
     "cpuSafeGpuModelRouteProofAccepted": true,
@@ -177,8 +179,8 @@
     "cpuModelGpuModelRouteProofAttempted": true,
     "cpuModelGpuModelRouteProofAccepted": true,
     "agentCanExecuteCpuModelGpuModelRouteProofToolsNow": true,
-    "agentCanExecute19ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow": false,
-    "agentCanExecute17ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow": true,
+    "agentCanExecute19ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow": true,
+    "agentCanExecute17ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow": false,
     "strictCallableExecutableBlockedFailedContractCreated": true,
     "capabilityMismatchFailureProbeAccepted": true,
     "gpuRuntimeOnDemandOnly": true,
@@ -917,19 +919,19 @@
       "packageRuntimeInstallProofPublicArtifactCreated": false,
       "packageRuntimeInstallProofSignedUrlCreated": false,
       "packageRuntimeInstallProofRuntimeProofStillRequired": true,
-      "controlledExecutionRuntimePresentNow": false,
-      "installReadinessState": "install_target_prepared_runtime_blocked_pending_cpu_model_private_inputs",
+      "controlledExecutionRuntimePresentNow": true,
+      "installReadinessState": "controlled_runtime_present_and_executed_with_accepted_private_route_proof",
       "primaryCapability": "upscaling",
       "group": "gpu_model",
       "callable": true,
-      "executable": false,
-      "blockedWithReason": true,
+      "executable": true,
+      "blockedWithReason": false,
       "failedWithDiagnostics": false,
-      "readinessState": "blocked_with_reason",
+      "readinessState": "executable",
       "routeCallable": true,
       "adapterReachable": true,
-      "executionAttempted": false,
-      "executionPassed": false,
+      "executionAttempted": true,
+      "executionPassed": true,
       "outputKind": null,
       "outputSha256": null,
       "controlledWorkerRouteEvidenceAccepted": true,
@@ -940,16 +942,11 @@
       "mockWorkerEventRecorded": false,
       "controlledWorkerRouteExecutedNow": false,
       "controlledWorkerRouteGpuBlocked": true,
-      "blockingPrerequisite": "approved local Python/Docker CPU model runtime; outputDirectory; pythonCpuModelRuntime; sourceImageLocalPath; realEsrganModelLocalPath; modelWeightManifestEvidence; reviewed private proof refs; adapter skip reason: real_esrgan_model_missing",
+      "blockingPrerequisite": null,
       "recommendedGpuProofBackend": "host_python_or_docker_container",
-      "currentBlockingPrerequisiteKey": "realEsrganModelLocalPath",
-      "currentBlockingReasonCode": "real_esrgan_model_missing",
-      "remainingPrivateRuntimeInputKeys": [
-        "outputDirectory",
-        "pythonCpuModelRuntime",
-        "sourceImageLocalPath",
-        "modelWeightManifestEvidence"
-      ],
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "pythonCpuModelRuntime",
@@ -988,86 +985,7 @@
       "nextExactRuntimeInputManifestScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool real_esrgan --attempt-gpu-runtime --runtime-backend docker_container --allow-cpu-model-runtime --no-runtime-container-gpu --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
       "nextExactRuntimeInputManifestHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool real_esrgan --allow-cpu-model-runtime --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "nextExactProofRefBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
-      "executionUnlockPlan": [
-        {
-          "step": 1,
-          "action": "resolve_current_blocker",
-          "currentBlockingPrerequisiteKey": "realEsrganModelLocalPath",
-          "currentBlockingReasonCode": "real_esrgan_model_missing",
-          "remainingPrivateRuntimeInputKeys": [
-            "outputDirectory",
-            "pythonCpuModelRuntime",
-            "sourceImageLocalPath",
-            "modelWeightManifestEvidence"
-          ],
-          "minimumPrivateRuntimeInputKeys": [
-            "outputDirectory",
-            "pythonCpuModelRuntime",
-            "sourceImageLocalPath",
-            "realEsrganModelLocalPath",
-            "modelWeightManifestEvidence"
-          ],
-          "note": "Resolve this prerequisite with private local inputs only; missing private model/source files are blockers, not success."
-        },
-        {
-          "step": 2,
-          "action": "materialize_model_weight_runtime_input_manifest",
-          "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool real_esrgan --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model-dir/RealESRGAN_x4plus.pth> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/real_esrgan.json --runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime",
-          "privateModelRootCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool real_esrgan --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/real_esrgan.json --runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime",
-          "privateModelRootEnvVar": "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT",
-          "manifestOut": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
-          "outputDirectory": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>",
-          "nextScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool real_esrgan --attempt-gpu-runtime --runtime-backend docker_container --allow-cpu-model-runtime --no-runtime-container-gpu --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
-          "nextHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool real_esrgan --allow-cpu-model-runtime --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
-          "requiresReviewedPrivateModelWeightManifest": true,
-          "checksumComputedFromPrivateModelFile": true,
-          "gpuStartsDuringManifestMaterialization": false,
-          "privateOutputOnly": true
-        },
-        {
-          "step": 3,
-          "action": "prepare_runtime_surface",
-          "preferredBackend": "docker_container_cpu_model",
-          "runtimePolicy": "Use the explicit CPU model runtime path with reviewed private model weights and private source input first; it does not attach GPU, download models, or create public outputs.",
-          "runtimeContainerImage": "reeditpro/ai-graphics-real-esrgan-runtime:proof-local",
-          "runtimeContainerProfile": "real_esrgan",
-          "buildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/real-esrgan-runtime/Dockerfile -t reeditpro/ai-graphics-real-esrgan-runtime:proof-local .",
-          "practicalLocalProofContainerImage": null,
-          "practicalLocalProofImageProbeCommand": null,
-          "practicalLocalProofContainerCommand": null,
-          "practicalLocalProofNote": null,
-          "gpuStartsDuringBuild": false,
-          "gpuStartsIdle": false
-        },
-        {
-          "step": 4,
-          "action": "run_scoped_private_local_runtime_proof",
-          "hostPythonCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-model-runtime --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth>",
-          "containerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --runtime-container-platform linux/amd64 --no-runtime-container-gpu --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-model-runtime --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth>",
-          "practicalLocalProofContainerCommand": null,
-          "startsGpuOnlyForThisToolCall": false,
-          "privateOutputOnly": true
-        },
-        {
-          "step": 5,
-          "action": "bridge_private_runtime_proof_ref",
-          "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
-          "requiresLocalOnlyResult": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json"
-        },
-        {
-          "step": 6,
-          "action": "recompute_external_agent_readiness_with_private_proof",
-          "command": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
-          "successCriteria": "Only this tool may move from blocked_with_reason to executable after structured private runtime output and proof-ref bridge acceptance."
-        },
-        {
-          "step": 7,
-          "action": "retry_controlled_route_with_accepted_private_proof",
-          "command": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan --scoped-gpu-runtime-container-image reeditpro/ai-graphics-real-esrgan-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan --scoped-gpu-allow-cpu-model-runtime --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-approved-frame.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/real_esrgan/private-real-esrgan-model.pth",
-          "productionStillBlocked": true,
-          "publicArtifactsStillBlocked": true
-        }
-      ],
+      "executionUnlockPlan": [],
       "proofRefBridgeStatus": "blocked_missing_private_local_runtime_proof_result",
       "routeSubmissionReadyWithAcceptedPrivateProof": false,
       "routeStatus": "controlled_gpu_model_route_blocked_with_reason",
@@ -1090,8 +1008,8 @@
         "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
         "gpuModelInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json"
       },
-      "controlledRouteProofBackedExecutable": false,
-      "controlledRouteProofBackedExecutableSource": null
+      "controlledRouteProofBackedExecutable": true,
+      "controlledRouteProofBackedExecutableSource": "cpu_model_gpu_model_route_proof"
     },
     {
       "toolId": "kornia",
@@ -1249,19 +1167,19 @@
       "packageRuntimeInstallProofPublicArtifactCreated": false,
       "packageRuntimeInstallProofSignedUrlCreated": false,
       "packageRuntimeInstallProofRuntimeProofStillRequired": true,
-      "controlledExecutionRuntimePresentNow": false,
-      "installReadinessState": "install_target_prepared_runtime_blocked_pending_cpu_model_private_inputs",
+      "controlledExecutionRuntimePresentNow": true,
+      "installReadinessState": "controlled_runtime_present_and_executed_with_accepted_private_route_proof",
       "primaryCapability": "background_removal",
       "group": "gpu_model",
       "callable": true,
-      "executable": false,
-      "blockedWithReason": true,
+      "executable": true,
+      "blockedWithReason": false,
       "failedWithDiagnostics": false,
-      "readinessState": "blocked_with_reason",
+      "readinessState": "executable",
       "routeCallable": true,
       "adapterReachable": true,
-      "executionAttempted": false,
-      "executionPassed": false,
+      "executionAttempted": true,
+      "executionPassed": true,
       "outputKind": null,
       "outputSha256": null,
       "controlledWorkerRouteEvidenceAccepted": true,
@@ -1272,16 +1190,11 @@
       "mockWorkerEventRecorded": false,
       "controlledWorkerRouteExecutedNow": false,
       "controlledWorkerRouteGpuBlocked": true,
-      "blockingPrerequisite": "approved local Python/Docker CPU model runtime; outputDirectory; pythonCpuModelRuntime; sourceImageLocalPath; rembgModelLocalPath; modelWeightManifestEvidence; reviewed private proof refs; adapter skip reason: rembg_model_missing",
+      "blockingPrerequisite": null,
       "recommendedGpuProofBackend": "host_python_or_docker_container",
-      "currentBlockingPrerequisiteKey": "rembgModelLocalPath",
-      "currentBlockingReasonCode": "rembg_model_missing",
-      "remainingPrivateRuntimeInputKeys": [
-        "outputDirectory",
-        "pythonCpuModelRuntime",
-        "sourceImageLocalPath",
-        "modelWeightManifestEvidence"
-      ],
+      "currentBlockingPrerequisiteKey": null,
+      "currentBlockingReasonCode": null,
+      "remainingPrivateRuntimeInputKeys": [],
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "pythonCpuModelRuntime",
@@ -1320,86 +1233,7 @@
       "nextExactRuntimeInputManifestScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool rembg --attempt-gpu-runtime --runtime-backend docker_container --allow-cpu-model-runtime --no-runtime-container-gpu --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
       "nextExactRuntimeInputManifestHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool rembg --allow-cpu-model-runtime --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
       "nextExactProofRefBridgeCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
-      "executionUnlockPlan": [
-        {
-          "step": 1,
-          "action": "resolve_current_blocker",
-          "currentBlockingPrerequisiteKey": "rembgModelLocalPath",
-          "currentBlockingReasonCode": "rembg_model_missing",
-          "remainingPrivateRuntimeInputKeys": [
-            "outputDirectory",
-            "pythonCpuModelRuntime",
-            "sourceImageLocalPath",
-            "modelWeightManifestEvidence"
-          ],
-          "minimumPrivateRuntimeInputKeys": [
-            "outputDirectory",
-            "pythonCpuModelRuntime",
-            "sourceImageLocalPath",
-            "rembgModelLocalPath",
-            "modelWeightManifestEvidence"
-          ],
-          "note": "Resolve this prerequisite with private local inputs only; missing private model/source files are blockers, not success."
-        },
-        {
-          "step": 2,
-          "action": "materialize_model_weight_runtime_input_manifest",
-          "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool rembg --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx> --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/rembg.json --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime",
-          "privateModelRootCommand": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-input-manifest -- --tool rembg --source-image <private-approved-frame.png> --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --manifest-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --model-weight-manifest-id <reviewed-private-model-weight-manifest-id> --model-weight-checksum-evidence-ref private://reeditpro/ai-graphics/checksum-evidence/rembg.json --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --allow-cpu-model-runtime",
-          "privateModelRootEnvVar": "REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT",
-          "manifestOut": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
-          "outputDirectory": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>",
-          "nextScopedToolCallCommand": "npm run --silent ai-graphics:external-agent-tool-call -- --tool rembg --attempt-gpu-runtime --runtime-backend docker_container --allow-cpu-model-runtime --no-runtime-container-gpu --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json",
-          "nextHarnessCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool rembg --allow-cpu-model-runtime --runtime-input-manifest .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/runtime-inputs.json --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
-          "requiresReviewedPrivateModelWeightManifest": true,
-          "checksumComputedFromPrivateModelFile": true,
-          "gpuStartsDuringManifestMaterialization": false,
-          "privateOutputOnly": true
-        },
-        {
-          "step": 3,
-          "action": "prepare_runtime_surface",
-          "preferredBackend": "docker_container_cpu_model",
-          "runtimePolicy": "Use the explicit CPU model runtime path with reviewed private model weights and private source input first; it does not attach GPU, download models, or create public outputs.",
-          "runtimeContainerImage": "reeditpro/ai-graphics-gpu-worker:proof-local",
-          "runtimeContainerProfile": "gpu_worker_ai_graphics",
-          "buildCommand": "docker buildx build --platform linux/amd64 --target ai_graphics_install_proof -f docker/prod/gpu-worker/Dockerfile -t reeditpro/ai-graphics-gpu-worker:proof-local .",
-          "practicalLocalProofContainerImage": null,
-          "practicalLocalProofImageProbeCommand": null,
-          "practicalLocalProofContainerCommand": null,
-          "practicalLocalProofNote": null,
-          "gpuStartsDuringBuild": false,
-          "gpuStartsIdle": false
-        },
-        {
-          "step": 4,
-          "action": "run_scoped_private_local_runtime_proof",
-          "hostPythonCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-model-runtime --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx>",
-          "containerCommand": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --no-runtime-container-gpu --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-model-runtime --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx>",
-          "practicalLocalProofContainerCommand": null,
-          "startsGpuOnlyForThisToolCall": false,
-          "privateOutputOnly": true
-        },
-        {
-          "step": 5,
-          "action": "bridge_private_runtime_proof_ref",
-          "command": "npm run --silent ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
-          "requiresLocalOnlyResult": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json"
-        },
-        {
-          "step": 6,
-          "action": "recompute_external_agent_readiness_with_private_proof",
-          "command": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json",
-          "successCriteria": "Only this tool may move from blocked_with_reason to executable after structured private runtime output and proof-ref bridge acceptance."
-        },
-        {
-          "step": 7,
-          "action": "retry_controlled_route_with_accepted_private_proof",
-          "command": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool rembg --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg --scoped-gpu-allow-cpu-model-runtime --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg/private-approved-frame.ppm --scoped-gpu-rembg-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/rembg/private-rembg-model.onnx",
-          "productionStillBlocked": true,
-          "publicArtifactsStillBlocked": true
-        }
-      ],
+      "executionUnlockPlan": [],
       "proofRefBridgeStatus": "blocked_missing_private_local_runtime_proof_result",
       "routeSubmissionReadyWithAcceptedPrivateProof": false,
       "routeStatus": "controlled_gpu_model_route_blocked_with_reason",
@@ -1422,8 +1256,8 @@
         "controlledWorkerRouteSmoke": "docs/tool-intelligence/ai-graphics/external-agent-controlled-worker-route-execution-smoke.json",
         "gpuModelInstallBuildTargets": "docs/tool-intelligence/ai-graphics/gpu-model-install-build-targets.json"
       },
-      "controlledRouteProofBackedExecutable": false,
-      "controlledRouteProofBackedExecutableSource": null
+      "controlledRouteProofBackedExecutable": true,
+      "controlledRouteProofBackedExecutableSource": "cpu_model_gpu_model_route_proof"
     },
     {
       "toolId": "transparent_background",
@@ -2980,8 +2814,8 @@
   "cpuModelGpuModelRouteProof": {
     "attempted": true,
     "accepted": true,
-    "status": "cpu_model_gpu_model_route_proof_partially_executed_for_1_tools_17_total_controlled_route_tools_executable",
-    "proofCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan,rembg,transparent_background --scoped-gpu-use-tool-specific-runtime-images --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-timeout-ms 30000 --scoped-gpu-allow-cpu-model-runtime --scoped-gpu-output-root .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-model-diagnostic --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame-96.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/private-model-cache/real-esrgan/RealESRGAN_x4plus.pth --scoped-gpu-real-esrgan-sample-size 16 --scoped-gpu-rembg-model .local-artifacts/ai-graphics/private-model-cache/rembg/u2netp.onnx --scoped-gpu-transparent-background-checkpoint .local-artifacts/ai-graphics/private-model-cache/transparent-background/ckpt_fast.pth --scoped-gpu-transparent-background-mode fast",
+    "status": "cpu_model_gpu_model_route_proof_executed_for_3_tools_19_total_controlled_route_tools_executable",
+    "proofCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan,rembg,transparent_background --scoped-gpu-use-tool-specific-runtime-images --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-timeout-ms 120000 --scoped-gpu-allow-cpu-model-runtime --scoped-gpu-output-root .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-model-diagnostic --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame-96.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/private-model-cache/real-esrgan/RealESRGAN_x4plus.pth --scoped-gpu-real-esrgan-sample-size 16 --scoped-gpu-rembg-model .local-artifacts/ai-graphics/private-model-cache/rembg/u2netp.onnx --scoped-gpu-transparent-background-checkpoint .local-artifacts/ai-graphics/private-model-cache/transparent-background/ckpt_fast.pth --scoped-gpu-transparent-background-mode fast",
     "proofOutputRoot": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-model-diagnostic",
     "proofSourceImage": ".local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame-96.ppm",
     "proofModelInputs": {
@@ -2999,11 +2833,13 @@
       "rembg",
       "transparent_background"
     ],
-    "allExpectedAccepted": false,
+    "allExpectedAccepted": true,
     "executableToolIds": [
+      "real_esrgan",
+      "rembg",
       "transparent_background"
     ],
-    "executableTools": 1,
+    "executableTools": 3,
     "priorGpuExecutableToolIds": [
       "torch_torchvision",
       "transformers",
@@ -3013,21 +2849,18 @@
       "torch_torchvision",
       "transformers",
       "kornia",
+      "real_esrgan",
+      "rembg",
       "transparent_background"
     ],
     "nonGpuExecutableTools": 13,
-    "agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof": 17,
+    "agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof": 19,
     "remainingGpuModelBlockedToolIds": [
       "sam2",
-      "birefnet",
-      "real_esrgan",
-      "rembg"
+      "birefnet"
     ],
-    "remainingGpuModelBlockedTools": 4,
-    "rejectedAsTooSlowOrStillBlockedToolIds": [
-      "real_esrgan",
-      "rembg"
-    ],
+    "remainingGpuModelBlockedTools": 2,
+    "rejectedAsTooSlowOrStillBlockedToolIds": [],
     "gpuRuntimeShouldStartNow": false,
     "gpuRuntimeStartsIdle": false,
     "publicArtifactCreated": false,
@@ -3036,6 +2869,24 @@
     "modelWeightsDownloaded": false,
     "modelWeightsLoaded": false,
     "proofRows": [
+      {
+        "toolId": "real_esrgan",
+        "externalAgentExecutionState": "executable",
+        "outputKind": "gpu_model_runtime_json",
+        "outputSha256": "8885f8b61a696092e0d694469d9e131cb11373505fa3a608083e2f438939f334",
+        "localGpuModelRuntimeExecutionPerformed": true,
+        "gpuRuntimeShouldStartNow": false,
+        "controlledAdapterExecutedNow": true
+      },
+      {
+        "toolId": "rembg",
+        "externalAgentExecutionState": "executable",
+        "outputKind": "gpu_model_runtime_json",
+        "outputSha256": "d545a21d0d8d61dcef679caff0fa4884f9aadc9f45e7127c6e384474b864d448",
+        "localGpuModelRuntimeExecutionPerformed": true,
+        "gpuRuntimeShouldStartNow": false,
+        "controlledAdapterExecutedNow": true
+      },
       {
         "toolId": "transparent_background",
         "externalAgentExecutionState": "executable",
@@ -3050,7 +2901,7 @@
       "decision": "ai_graphics_external_agent_all21_controlled_route_execution_smoke_passed",
       "status": "external_agent_all21_controlled_route_execution_passed_with_gpu_on_demand",
       "scopedGpuModelLocalDevRouteAttemptTools": 3,
-      "scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools": 1,
+      "scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools": 3,
       "scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools": 0
     }
   },
@@ -3173,17 +3024,20 @@
   },
   "fastestGpuModelUnlockCandidate": {
     "toolIds": [
-      "real_esrgan",
-      "rembg"
+      "sam2",
+      "birefnet"
     ],
-    "reason": "CPU-model controlled route proof is partially accepted. Transparent Background now executes, but Real-ESRGAN and rembg still return failed_with_diagnostics, so those two are the next fastest closeout before the native CUDA SAM2/BiRefNet lane.",
-    "recommendedBackend": "docker_container_cpu_model_runtime",
-    "canonicalProofImage": "reeditpro/ai-graphics-gpu-worker:proof-local",
-    "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan,rembg,transparent_background --scoped-gpu-use-tool-specific-runtime-images --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-timeout-ms 30000 --scoped-gpu-allow-cpu-model-runtime --scoped-gpu-output-root .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-model-diagnostic --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame-96.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/private-model-cache/real-esrgan/RealESRGAN_x4plus.pth --scoped-gpu-real-esrgan-sample-size 16 --scoped-gpu-rembg-model .local-artifacts/ai-graphics/private-model-cache/rembg/u2netp.onnx --scoped-gpu-transparent-background-checkpoint .local-artifacts/ai-graphics/private-model-cache/transparent-background/ckpt_fast.pth --scoped-gpu-transparent-background-mode fast",
-    "nextExactControlledRouteCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool real_esrgan,rembg,transparent_background --scoped-gpu-use-tool-specific-runtime-images --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-timeout-ms 30000 --scoped-gpu-allow-cpu-model-runtime --scoped-gpu-output-root .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-model-diagnostic --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame-96.ppm --scoped-gpu-real-esrgan-model .local-artifacts/ai-graphics/private-model-cache/real-esrgan/RealESRGAN_x4plus.pth --scoped-gpu-real-esrgan-sample-size 16 --scoped-gpu-rembg-model .local-artifacts/ai-graphics/private-model-cache/rembg/u2netp.onnx --scoped-gpu-transparent-background-checkpoint .local-artifacts/ai-graphics/private-model-cache/transparent-background/ckpt_fast.pth --scoped-gpu-transparent-background-mode fast",
-    "nextExactProofRefBridgeCommand": "Rerun external-agent execution readiness with accepted proof refs for real_esrgan and rembg after their scoped route failures are fixed.",
-    "nextExactReadinessWithPrivateProofCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --cpu-safe-gpu-model-route-proof-packet <accepted-cpu-safe-proof.json> --cpu-model-gpu-model-route-proof-packet <accepted-real-esrgan-rembg-transparent-background-proof.json> --write-records",
-    "remainsBlockedUntil": "Fix the Real-ESRGAN/rembg CPU-model route failure diagnostics and rerun the scoped private controlled route proof without starting idle GPU."
+    "reason": "Accepted private local runtime proof already covers the CPU foundation, CPU tensor, and CPU model GPU/model tools. The remaining unlock path is native CUDA proof for SAM2 and BiRefNet with reviewed private model/source inputs.",
+    "recommendedBackend": "docker_container_native_cuda",
+    "nativeCudaCloseoutCommand": "npm run --silent ai-graphics:external-agent-native-cuda-closeout -- --detect-host --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --source-image <private-approved-frame.png> --output-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout --existing-proof-result <accepted-proof-for-torch_torchvision-transformers-kornia.json> --existing-proof-result <accepted-proof-for-transparent_background.json> --attempt-local-runtime",
+    "nativeCudaCloseoutStrictCommand": "npm run --silent ai-graphics:external-agent-native-cuda-closeout -- --detect-host --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --source-image <private-approved-frame.png> --output-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout --existing-proof-result <accepted-proof-for-torch_torchvision-transformers-kornia.json> --existing-proof-result <accepted-proof-for-transparent_background.json> --attempt-local-runtime --strict-exit-code",
+    "nativeCudaCloseoutScriptGeneratorCommand": "npm run --silent ai-graphics:external-agent-native-cuda-closeout -- --detect-host --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --source-image <private-approved-frame.png> --output-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout --existing-proof-result <accepted-proof-for-torch_torchvision-transformers-kornia.json> --existing-proof-result <accepted-proof-for-transparent_background.json> --script-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/run-native-cuda-closeout.sh",
+    "nativeCudaCloseoutScriptPath": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/run-native-cuda-closeout.sh",
+    "all21CloseoutReadinessCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --local-runtime-proof-result <accepted-proof-for-torch_torchvision-or-foundation-bundle.json> --local-runtime-proof-result <accepted-proof-for-transparent_background.json> --local-runtime-proof-result <accepted-proof-for-real_esrgan-after-runtime-fix.json> --local-runtime-proof-result <accepted-proof-for-rembg-after-runtime-fix.json> --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/sam2/harness-result.json --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/birefnet/harness-result.json",
+    "nativeCudaCloseoutDiagnosticCommand": "npm run --silent ai-graphics:external-agent-native-cuda-closeout:diagnostics",
+    "currentHostEligibleForNativeGpuProof": false,
+    "currentHostBlockers": [],
+    "remainsBlockedUntil": "Run the native CUDA closeout on a linux/amd64 host with Docker NVIDIA runtime, nvidia-smi, CUDA-visible proof containers, reviewed private SAM2/BiRefNet model inputs, and the accepted existing proof refs."
   },
-  "nextExactAction": "Controlled route proof now covers 17/21 tools: 13 non-GPU tools plus the accepted GPU/model proof subset (torch_torchvision, transformers, kornia, transparent_background). Keep the remaining GPU/model tools blocked until their scoped private runtime proof succeeds."
+  "nextExactAction": "Controlled route proof now covers 19/21 tools: 13 non-GPU tools plus the accepted GPU/model proof subset (torch_torchvision, transformers, kornia, real_esrgan, rembg, transparent_background). Keep the remaining GPU/model tools blocked until their scoped private runtime proof succeeds."
 }

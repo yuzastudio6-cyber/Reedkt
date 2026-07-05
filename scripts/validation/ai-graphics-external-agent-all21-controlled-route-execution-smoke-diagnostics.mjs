@@ -1559,11 +1559,11 @@ if (readinessProbe.counts?.realRuntimeExecutableNowTools !== 13) {
 if (readinessProbe.counts?.gpuModelRuntimeProofRequiredTools !== 8) {
   fail('readiness_probe_gpu_model_proof_required_not_8')
 }
-if (executionGate.counts?.scopedControlledRouteExecutableNowTools !== 17) {
-  fail('execution_gate_scoped_runtime_executable_not_17')
+if (executionGate.counts?.scopedControlledRouteExecutableNowTools !== 19) {
+  fail('execution_gate_scoped_runtime_executable_not_19')
 }
-if (executionGate.counts?.scopedControlledRouteGpuModelBlockedTools !== 4) {
-  fail('execution_gate_gpu_model_blocked_not_4')
+if (executionGate.counts?.scopedControlledRouteGpuModelBlockedTools !== 2) {
+  fail('execution_gate_gpu_model_blocked_not_2')
 }
 if (executionGate.booleans?.agentCanExecuteAll21ToolsNow !== false) {
   fail('execution_gate_all21_runtime_boolean_not_false')

@@ -3844,8 +3844,13 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       ?.gpuModelLocalDevRuntimeExecutionHarnessRows ?? [])
       .map((row) => [row.toolId, row]),
   )
-  const gpuModelScopedRuntimeExecutedToolIds = new Set(
-    [...gpuModelLocalDevRuntimeHarnessRows.values()]
+  const readinessAcceptedGpuModelToolIds = new Set(
+    (sourceExternalAgentExecutionReadiness?.executionScope
+      ?.acceptedProofSubsetGpuToolIds ?? [])
+      .filter((toolId): toolId is string => typeof toolId === 'string'),
+  )
+  const gpuModelScopedRuntimeExecutedToolIds = new Set([
+    ...[...gpuModelLocalDevRuntimeHarnessRows.values()]
       .filter((row) => (
         externalAgentGpuModelLocalDevRuntimeExecutionHarnessAccepted &&
         row.adapterStatus ===
@@ -3863,7 +3868,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         row.productionReadyNow === false
       ))
       .map((row) => row.toolId),
-  )
+    ...readinessAcceptedGpuModelToolIds,
+  ])
   const gpuModelScopedRuntimeExecutedTools =
     gpuModelScopedRuntimeExecutedToolIds.size
   const scopedControlledRouteNonGpuExecutableTools =
@@ -4011,7 +4017,9 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       gpuModelScopedRuntimeExecutedToolIds.has(tool.toolId)
     const gpuModelExternalBetaReadinessBlocker =
       tool.gpuRequiredForRuntime
-        ? modelWeightPrivateEvidenceRequired
+        ? gpuModelScopedRuntimeProofAccepted
+          ? null
+          : modelWeightPrivateEvidenceRequired
           ? 'private_model_weight_evidence_and_native_gpu_runtime_proof_pending'
           : nativeGpuRuntimeProofRequired
           ? 'native_gpu_runtime_proof_pending'
@@ -4975,7 +4983,10 @@ export function buildAiGraphicsExternalAgentExecutionGate(
           ?.booleans?.localDevAdapterBranchInvokedForAll8 === true,
       gpuModelLocalDevRuntimeHarnessKeepsGpuRuntimeIdle:
         externalAgentGpuModelLocalDevRuntimeExecutionHarnessAccepted &&
-        gpuModelScopedRuntimeExecutedTools === 0,
+        (
+          sourceExternalAgentGpuModelLocalDevRuntimeExecutionHarness
+            ?.counts?.gpuRuntimeShouldStartNowTools ?? 0
+        ) === 0,
       gpuModelLocalDevRuntimeHarnessPrerequisitesDocumented:
         externalAgentGpuModelLocalDevRuntimeExecutionHarnessAccepted,
       gpuModelLocalDevRuntimeHarnessKeepsToolExecutionBlocked:

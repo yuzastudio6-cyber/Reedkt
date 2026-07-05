@@ -4,7 +4,7 @@ Decision: `ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_w
 
 Status: `external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked`
 
-This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/static and browser-runtime tools, keeps all 8 GPU/model tools blocked pending native GPU/model proof, and preserves GPU startup as on-demand only. It does not unlock runtime, beta, production, public artifacts, signed URLs, provider/model calls, or live worker execution.
+This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/static and browser-runtime tools plus 6 GPU/model proof-backed tools, keeps the remaining 2 GPU/model tools blocked pending native CUDA/model proof, and preserves GPU startup as on-demand only. It does not unlock runtime, beta, production, public artifacts, signed URLs, provider/model calls, or live worker execution.
 
 ## Counts
 
@@ -68,13 +68,13 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - controlledToolExecutionProofRequiredTools: `0`
 - externalBetaCallableCandidateToolsWithProvidedEvidence: `21`
 - externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence: `1`
-- externalAgentExecutableNowTools: `17`
-- scopedControlledRouteExecutableNowTools: `17`
+- externalAgentExecutableNowTools: `19`
+- scopedControlledRouteExecutableNowTools: `19`
 - scopedControlledRouteCpuStaticExecutableNowTools: `6`
 - scopedControlledRouteBrowserRuntimeExecutableNowTools: `7`
-- scopedControlledRouteGpuModelBlockedTools: `4`
+- scopedControlledRouteGpuModelBlockedTools: `2`
 - disabledRouteBlockedDetailCasesWithProvidedEvidence: `21`
-- externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence: `17`
+- externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence: `19`
 - cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence: `6`
 - browserRuntimeControlledRouteExecutableNowToolsWithReadinessProbeEvidence: `7`
 - controlledCanonicalRouteExecutedToolsWithProvidedEvidence: `13`
@@ -110,8 +110,8 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - externalAgentGpuModelLocalDevRuntimeHarnessAcceptedToolsWithProvidedEvidence: `8`
 - externalAgentGpuModelLocalDevRuntimeHarnessAdapterBranchInvokedToolsWithProvidedEvidence: `8`
 - externalAgentGpuModelLocalDevRuntimeHarnessPrerequisiteCheckOnlyToolsWithProvidedEvidence: `8`
-- externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence: `4`
-- externalAgentGpuModelLocalDevRuntimeHarnessToolExecutionApprovedNowToolsWithProvidedEvidence: `4`
+- externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence: `6`
+- externalAgentGpuModelLocalDevRuntimeHarnessToolExecutionApprovedNowToolsWithProvidedEvidence: `6`
 - externalAgentGpuModelLocalDevRuntimeHarnessGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
 - externalAgentGpuModelLocalDevRuntimeHarnessPublicArtifactCreatedToolsWithProvidedEvidence: `0`
 - mockQueueWorkerClaimSmokeAcceptedToolsWithProvidedEvidence: `21`
@@ -129,7 +129,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - externalAgentAdapterGpuModelContractsWithProvidedEvidence: `8`
 - externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence: `21`
 - externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence: `0`
-- externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence: `17`
+- externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence: `19`
 - externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
 - gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence: `0`
 - gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence: `8`
@@ -137,7 +137,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - gpuModelNativeGpuProofRequiredToolsWithReadinessProbeEvidence: `8`
 - gpuModelPrivateEvidenceAndNativeGpuProofRequiredToolsWithReadinessProbeEvidence: `5`
 - gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence: `3`
-- gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence: `4`
+- gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence: `6`
 - routeReadinessProbeGpuRuntimeShouldStartNowTools: `0`
 - apiRouteMountReadyToolsWithProvidedEvidence: `21`
 - apiRouteMountedNowTools: `0`
@@ -152,7 +152,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - CPU/static exact execution admission accepted: `true`
 - CPU/static adapter/enqueue admission accepted: `true`
 - checked-in packet has no saved smoke result yet
-- scoped controlled execution is available for 17 tools
+- scoped controlled execution is available for 19 tools
 - runtime, beta, and production remain blocked
 - tool/capability-specific blocked details remain available for denied runtime/beta/production paths.
 - apiRouteMountedNow=false
@@ -178,7 +178,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - Satori font runtime proof diagnostics
 - browser runtime proof diagnostics
 - Representative disabled route blocked-detail cases covered: `21`
-- Controlled route-executable tools with readiness-probe evidence: `17`
+- Controlled route-executable tools with readiness-probe evidence: `19`
 - CPU/static controlled route-executable tools with readiness-probe evidence: `6`
 - Browser runtime controlled route-executable tools with readiness-probe evidence: `7`
 - GPU/model route-admission blocked tools with readiness-probe evidence: `0`
@@ -186,7 +186,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - GPU/model native GPU proof required with readiness-probe evidence: `8`
 - GPU/model private evidence plus native GPU proof required with readiness-probe evidence: `5`
 - GPU/model native GPU proof-only required with readiness-probe evidence: `3`
-- GPU/model tools ready for execution after current evidence: `4`
+- GPU/model tools ready for execution after current evidence: `6`
 - Native GPU proof only: `torch_torchvision`, `transformers`, and `kornia`
 - Private model-weight evidence plus native GPU proof: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`
 - Existing internal evidence ready for private manifest authoring: `sam2`, `birefnet`, and `real_esrgan`
@@ -243,14 +243,14 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 
 ## Tool Rows
 
-- `torch_torchvision`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`native_gpu_runtime_proof_pending`
-- `transformers`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`native_gpu_runtime_proof_pending`
+- `torch_torchvision`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_scoped_private_runtime_proof_ready`, gpuModelExternalBetaReadinessBlocker=`null`
+- `transformers`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_scoped_private_runtime_proof_ready`, gpuModelExternalBetaReadinessBlocker=`null`
 - `sam2`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`private_model_weight_evidence_and_native_gpu_runtime_proof_pending`
 - `birefnet`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`private_model_weight_evidence_and_native_gpu_runtime_proof_pending`
-- `real_esrgan`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`private_model_weight_evidence_and_native_gpu_runtime_proof_pending`
-- `kornia`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`native_gpu_runtime_proof_pending`
-- `rembg`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`private_model_weight_evidence_and_native_gpu_runtime_proof_pending`
-- `transparent_background`: executionAllowedNow=`false`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_runtime_proof_required`, gpuModelExternalBetaReadinessBlocker=`private_model_weight_evidence_and_native_gpu_runtime_proof_pending`
+- `real_esrgan`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_scoped_private_runtime_proof_ready`, gpuModelExternalBetaReadinessBlocker=`null`
+- `kornia`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_scoped_private_runtime_proof_ready`, gpuModelExternalBetaReadinessBlocker=`null`
+- `rembg`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_scoped_private_runtime_proof_ready`, gpuModelExternalBetaReadinessBlocker=`null`
+- `transparent_background`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_gpu_model_scoped_private_runtime_proof_ready`, gpuModelExternalBetaReadinessBlocker=`null`
 - `d3`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_controlled_route_ready`, gpuModelExternalBetaReadinessBlocker=`null`
 - `echarts`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_controlled_route_ready`, gpuModelExternalBetaReadinessBlocker=`null`
 - `vega_lite`: executionAllowedNow=`true`, gpuRuntimeShouldStartNow=`false`, currentBlocker=`external_agent_execution_gate_scoped_controlled_route_ready`, gpuModelExternalBetaReadinessBlocker=`null`

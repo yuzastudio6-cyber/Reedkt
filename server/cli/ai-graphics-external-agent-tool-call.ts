@@ -145,9 +145,13 @@ const runtimeInputManifestBooleanFields = new Set([
   'privateInputPreflightOnly',
   'localRuntimeInputPreflightOnly',
 ])
+const runtimeInputManifestNumberFields = new Set([
+  'realEsrganProofSampleSize',
+])
 const runtimeInputManifestToolRecordFields = new Set([
   ...runtimeInputManifestStringFields,
   ...runtimeInputManifestBooleanFields,
+  ...runtimeInputManifestNumberFields,
 ])
 const transparentBackgroundModes = new Set(['base', 'fast', 'base-nightly'])
 const supportedRuntimeInputManifestTools = new Set<string>(
@@ -393,6 +397,10 @@ function validateRuntimeInputManifest(manifest: RuntimeInputManifest): void {
       safeManifestBoolean(key, value)
       continue
     }
+    if (runtimeInputManifestNumberFields.has(key)) {
+      safeManifestNumber(key, value)
+      continue
+    }
     throw new Error(`runtime input manifest contains unsupported field ${key}`)
   }
 }
@@ -421,8 +429,10 @@ function validateRuntimeInputManifestToolInputs(
       )
       if (runtimeInputManifestStringFields.has(field)) {
         safeManifestString(field, fieldValue)
-      } else {
+      } else if (runtimeInputManifestBooleanFields.has(field)) {
         safeManifestBoolean(field, fieldValue)
+      } else {
+        safeManifestNumber(field, fieldValue)
       }
     }
   }
@@ -502,6 +512,21 @@ function safeManifestBoolean(key: string, value: unknown): boolean | undefined {
   return value
 }
 
+function safeManifestNumber(key: string, value: unknown): number | undefined {
+  if (value === undefined || value === null) return undefined
+  assert(
+    typeof value === 'number' && Number.isFinite(value),
+    `runtime input manifest field ${key} must be a finite number`,
+  )
+  if (key === 'realEsrganProofSampleSize') {
+    assert(
+      Number.isInteger(value) && value >= 16 && value <= 64,
+      `runtime input manifest field ${key} must be an integer from 16 to 64`,
+    )
+  }
+  return value
+}
+
 function manifestStringForTool(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   manifest: RuntimeInputManifest | undefined,
@@ -518,6 +543,15 @@ function manifestBooleanForTool(
 ): boolean | undefined {
   const toolRecord = manifestToolRecord(toolId, manifest)
   return safeManifestBoolean(key, toolRecord[key] ?? manifest?.[key])
+}
+
+function manifestNumberForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  manifest: RuntimeInputManifest | undefined,
+  key: string,
+): number | undefined {
+  const toolRecord = manifestToolRecord(toolId, manifest)
+  return safeManifestNumber(key, toolRecord[key] ?? manifest?.[key])
 }
 
 function ensureParentDirectory(filePath: string): void {
@@ -1036,6 +1070,17 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
   if (toolId === 'sam2') payload.sam2CheckpointLocalPath = sam2CheckpointLocalPath
   if (toolId === 'birefnet') payload.birefnetModelLocalPath = birefnetModelLocalPath
   if (toolId === 'real_esrgan') payload.realEsrganModelLocalPath = realEsrganModelLocalPath
+  if (toolId === 'real_esrgan') {
+    const explicitRealEsrganProofSampleSize =
+      stringArg('--real-esrgan-sample-size')
+    const realEsrganProofSampleSize = explicitRealEsrganProofSampleSize
+      ? Number(explicitRealEsrganProofSampleSize)
+      : manifestNumberForTool(toolId, manifest, 'realEsrganProofSampleSize')
+    if (realEsrganProofSampleSize !== undefined) {
+      safeManifestNumber('realEsrganProofSampleSize', realEsrganProofSampleSize)
+      payload.realEsrganProofSampleSize = realEsrganProofSampleSize
+    }
+  }
   if (toolId === 'rembg') payload.rembgModelLocalPath = rembgModelLocalPath
   if (toolId === 'transparent_background') {
     payload.transparentBackgroundCheckpointLocalPath =

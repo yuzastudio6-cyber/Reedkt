@@ -146,6 +146,14 @@ function stringArg(flag: string): string | undefined {
   return value
 }
 
+function numberArg(flag: string): number | undefined {
+  const value = stringArg(flag)
+  if (value === undefined) return undefined
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) throw new Error(`${flag} must be a finite number`)
+  return parsed
+}
+
 function requiredStringArg(flag: string): string {
   const value = stringArg(flag)
   if (!value) throw new Error(`${flag} is required`)
@@ -437,6 +445,7 @@ function manifestRecordForTool(input: {
   runtimeContainerPlatform?: string
   privateInputPreflightOnly: boolean
   allowCpuModelRuntime: boolean
+  realEsrganProofSampleSize?: number
   transparentBackgroundMode?: string
 }): Record<string, unknown> {
   const contract = modelRuntimePathContracts[input.toolId]
@@ -451,6 +460,9 @@ function manifestRecordForTool(input: {
   if (input.runtimeContainerImage) record.runtimeContainerImage = input.runtimeContainerImage
   if (input.runtimeContainerPlatform) record.runtimeContainerPlatform = input.runtimeContainerPlatform
   if (input.allowCpuModelRuntime) record.allowCpuModelRuntime = true
+  if (input.toolId === 'real_esrgan' && input.realEsrganProofSampleSize) {
+    record.realEsrganProofSampleSize = input.realEsrganProofSampleSize
+  }
   if (input.toolId === 'transparent_background' && input.transparentBackgroundMode) {
     record.transparentBackgroundMode = input.transparentBackgroundMode
   }
@@ -498,6 +510,9 @@ function main(): void {
   const runtimeContainerPlatform = stringArg('--runtime-container-platform') ?? 'linux/amd64'
   const force = hasFlag('--force')
   const privateInputPreflightOnly = hasFlag('--private-input-preflight-only')
+  const realEsrganProofSampleSize = typedToolId === 'real_esrgan'
+    ? numberArg('--real-esrgan-sample-size') ?? 16
+    : undefined
   const transparentBackgroundMode =
     stringArg('--transparent-background-mode') ??
     inferredTransparentBackgroundMode(typedToolId, modelPath)
@@ -522,6 +537,14 @@ function main(): void {
     !['base', 'fast', 'base-nightly'].includes(transparentBackgroundMode)
   ) {
     throw new Error('--transparent-background-mode must be base, fast, or base-nightly')
+  }
+  if (
+    realEsrganProofSampleSize !== undefined &&
+    (!Number.isInteger(realEsrganProofSampleSize) ||
+      realEsrganProofSampleSize < 16 ||
+      realEsrganProofSampleSize > 64)
+  ) {
+    throw new Error('--real-esrgan-sample-size must be an integer from 16 to 64')
   }
   const checksumFile = assertModelPathContract(contract, modelPath)
   const computedModelWeightChecksumSha256 = sha256File(checksumFile)
@@ -558,6 +581,7 @@ function main(): void {
         runtimeContainerPlatform,
         privateInputPreflightOnly,
         allowCpuModelRuntime,
+        realEsrganProofSampleSize,
         transparentBackgroundMode,
       }),
     },

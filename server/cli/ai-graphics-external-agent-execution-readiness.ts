@@ -15,7 +15,7 @@ const decision =
 const defaultStatus =
   'external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof'
 const privateProofStatus =
-  'external_agent_call_ready_for_all21_runtime_execution_ready_for13_plus_private_gpu_model_proof_subset'
+  'external_agent_call_ready_for_all21_runtime_execution_ready_for19_plus_private_gpu_model_proof_subset'
 const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.json'
 const outputMdPath =
@@ -1046,7 +1046,7 @@ function cpuModelGpuModelRouteProofArgs(): string[] {
     '--scoped-gpu-runtime-container-platform',
     'linux/amd64',
     '--scoped-gpu-timeout-ms',
-    '30000',
+    '120000',
     '--scoped-gpu-allow-cpu-model-runtime',
     '--scoped-gpu-output-root',
     cpuModelGpuModelRouteProofOutputRoot,
@@ -2468,7 +2468,9 @@ function buildReport() {
       productionReadyNowTools:
         toolRows.filter((row) => row.productionReadyNow).length,
       fastestGpuModelUnlockCandidateTools:
-        toolRows.filter((row) => row.fastestGpuModelUnlockCandidate).length,
+        Array.isArray(nextGpuModelUnlockCandidate?.toolIds)
+          ? nextGpuModelUnlockCandidate.toolIds.length
+          : 0,
       privateLocalRuntimeProofResultSuppliedTools:
         suppliedPrivateLocalRuntimeProofs.reduce((total, proof) => (
           total + (
@@ -2785,7 +2787,7 @@ ${report.cpuSafeGpuModelRouteProof.proofRows.map((row) => `| \`${row.toolId}\` |
 - Combined GPU/model proof tools: \`${combinedAcceptedGpuProofTools.join(', ') || 'none'}\`
 - Executable tool count with CPU-safe plus CPU-model local proof: \`${report.cpuModelGpuModelRouteProof.agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof}\`
 - Remaining GPU/model blocked tools: \`${report.cpuModelGpuModelRouteProof.remainingGpuModelBlockedToolIds.join(', ') || 'none'}\`
-- Tools investigated but still blocked on this host: \`${report.cpuModelGpuModelRouteProof.rejectedAsTooSlowOrStillBlockedToolIds.join(', ') || 'none'}\`
+- Tools proven executable by this route proof: \`${report.cpuModelGpuModelRouteProof.executableToolIds.join(', ') || 'none'}\`
 - Proof command: \`${report.cpuModelGpuModelRouteProof.proofCommand}\`
 - Proof output root: \`${report.cpuModelGpuModelRouteProof.proofOutputRoot}\`
 - Proof source image: \`${report.cpuModelGpuModelRouteProof.proofSourceImage}\`

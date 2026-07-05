@@ -88,6 +88,7 @@ for (const phrase of [
   'STAGING_SUPABASE_URL',
   'STAGING_SUPABASE_ANON_KEY',
   'STAGING_INTERNAL_TESTER_PASSWORD',
+  'npx playwright install --with-deps chromium',
   'internal-testing:verify-hosted-sign-in-route',
   'internal-testing:verify-browser-sign-in',
 ]) {

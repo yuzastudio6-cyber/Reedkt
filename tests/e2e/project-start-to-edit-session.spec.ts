@@ -54,7 +54,7 @@ test.describe('Project start to Edit Chat flow', () => {
     await expect(page).toHaveURL(/\/projects\/mock-project-edit-chat-foundation\/edits\/[^/]+\/brief$/)
     await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
     await expect(page.getByTestId('project-edit-brief-boundary')).toContainText('Edit Brief is optional')
-    await expect(page.getByTestId('project-source-video-picker-boundary')).toContainText('Durable uploads and media workers arrive after storage/runtime gates')
+    await expect(page.getByTestId('project-source-video-picker-boundary')).toContainText('Backend-local upload records canonical bucket/object metadata only')
 
     await expect(page.getByText(/provider call made|worker created|render started|credit reserved|upload started|file bytes read/i)).toHaveCount(0)
     await expectNoHorizontalOverflow(page)

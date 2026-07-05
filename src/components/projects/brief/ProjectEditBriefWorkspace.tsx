@@ -21,11 +21,17 @@ import {
   revokeProjectSourceVideoLocalPreview,
 } from '../../../lib/project-source-video-local-preview'
 import {
+  createProjectSourceVideoBackendUploadConfig,
+  uploadProjectSourceVideoToBackend,
+} from '../../../lib/project-source-video-backend-upload'
+import {
   createProjectSourceVideoExportRecommendationInput,
   createProjectSourceVideoMetadataSummary,
   inferProjectSourceVideoAspectRatio,
 } from '../../../lib/project-source-video-metadata-mappers'
 import type {
+  ProjectSourceVideoBackendUploadResult,
+  ProjectSourceVideoBackendUploadStatus,
   ProjectSourceVideoLocalPreview,
   ProjectSourceVideoMetadataUpdate,
 } from '../../../types/project-source-video'
@@ -73,13 +79,22 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
       preserveMockSession: true,
     })
   }, [projectId])
+  const backendUploadConfig = useMemo(() => (
+    createProjectSourceVideoBackendUploadConfig(import.meta.env as Record<string, string | undefined>)
+  ), [])
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | undefined>()
   const [playheadSeconds, setPlayheadSeconds] = useState(0)
   const [autoSelectFirstMarker, setAutoSelectFirstMarker] = useState(true)
   const [drawerDraft, setDrawerDraft] = useState<ProjectEditBriefMarkerDraftForUI | undefined>()
   const [model, setModel] = useState<ProjectEditBriefWorkspaceModel | undefined>()
+  const [localSourceVideoFile, setLocalSourceVideoFile] = useState<File | undefined>()
   const [localSourceVideo, setLocalSourceVideo] = useState<ProjectSourceVideoLocalPreview | undefined>()
   const [sourceVideoError, setSourceVideoError] = useState<string | undefined>()
+  const [sourceVideoUploadResult, setSourceVideoUploadResult] = useState<ProjectSourceVideoBackendUploadResult | undefined>()
+  const [sourceVideoUploadStatus, setSourceVideoUploadStatus] = useState<ProjectSourceVideoBackendUploadStatus>(
+    backendUploadConfig.available ? 'idle' : 'unavailable',
+  )
+  const [sourceVideoUploadError, setSourceVideoUploadError] = useState<string | undefined>()
   const [sourceVideoPlaying, setSourceVideoPlaying] = useState(false)
   const [sourceVideoSeekRequest, setSourceVideoSeekRequest] = useState<{ requestId: number; seconds: number } | undefined>()
   const [sourceVideoElement, setSourceVideoElement] = useState<HTMLVideoElement | null>(null)
@@ -267,8 +282,12 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     }
     try {
       const preview = createProjectSourceVideoLocalPreviewFromFile(file)
+      setLocalSourceVideoFile(file)
       setLocalSourceVideo(preview)
       setSourceVideoError(undefined)
+      setSourceVideoUploadResult(undefined)
+      setSourceVideoUploadError(undefined)
+      setSourceVideoUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
       setSourceVideoPlaying(false)
       setSelectedMarkerId(undefined)
       setDrawerDraft(undefined)
@@ -287,13 +306,55 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
 
   function clearLocalSourceVideo() {
     revokeProjectSourceVideoLocalPreview(localSourceVideo)
+    setLocalSourceVideoFile(undefined)
     setLocalSourceVideo(undefined)
     setSourceVideoError(undefined)
+    setSourceVideoUploadResult(undefined)
+    setSourceVideoUploadError(undefined)
+    setSourceVideoUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
     setSourceVideoPlaying(false)
     setSourceVideoElement(null)
     setPlayheadSeconds(model?.timeline.playheadSeconds ?? 0)
     preserveStatusMessageRef.current = true
     setStatusMessage('Local source video cleared. Brief returned to mock timeline preview.')
+  }
+
+  async function uploadLocalSourceVideoToBackend() {
+    if (!localSourceVideoFile || !localSourceVideo) {
+      setSourceVideoUploadError('Select a local source video before backend upload.')
+      setSourceVideoUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
+      return
+    }
+
+    if (!backendUploadConfig.available || !backendUploadConfig.apiBaseUrl) {
+      setSourceVideoUploadError(backendUploadConfig.message)
+      setSourceVideoUploadStatus('unavailable')
+      return
+    }
+
+    setSourceVideoUploadStatus('uploading')
+    setSourceVideoUploadError(undefined)
+    preserveStatusMessageRef.current = true
+    setStatusMessage('Uploading source video to the internal backend-local upload lane.')
+    try {
+      const result = await uploadProjectSourceVideoToBackend({
+        apiBaseUrl: backendUploadConfig.apiBaseUrl,
+        editSessionId,
+        file: localSourceVideoFile,
+        projectId,
+        workspaceId: backendUploadConfig.workspaceId,
+      })
+      setSourceVideoUploadResult(result)
+      setSourceVideoUploadStatus('uploaded')
+      preserveStatusMessageRef.current = true
+      setStatusMessage('Source video uploaded to backend-local storage metadata. No media processing, workers, render, or credits started.')
+    } catch (error) {
+      setSourceVideoUploadResult(undefined)
+      setSourceVideoUploadStatus('failed')
+      setSourceVideoUploadError(error instanceof Error ? error.message : 'Backend-local upload failed safely.')
+      preserveStatusMessageRef.current = true
+      setStatusMessage('Backend-local source upload failed safely without media processing or runtime execution.')
+    }
   }
 
   function updateLocalSourceVideoMetadata(metadata: ProjectSourceVideoMetadataUpdate) {
@@ -408,10 +469,15 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
       <div className="project-edit-brief-workspace__layout">
         <main className="project-edit-brief-main" data-testid="project-edit-brief-main">
           <ProjectEditBriefSourceVideoPicker
+            backendUploadConfig={backendUploadConfig}
+            backendUploadError={sourceVideoUploadError}
+            backendUploadResult={sourceVideoUploadResult}
+            backendUploadStatus={sourceVideoUploadStatus}
             error={sourceVideoError}
             localPreview={localSourceVideo}
             onClear={clearLocalSourceVideo}
             onSelectFile={selectLocalSourceVideo}
+            onUploadToBackend={uploadLocalSourceVideoToBackend}
           />
           <ProjectEditBriefSourceVideoSummary localPreview={localSourceVideo} summary={sourceVideoSummary} />
           {displayVideo ? (

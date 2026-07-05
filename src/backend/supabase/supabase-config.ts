@@ -13,8 +13,13 @@ export interface SupabasePublicConfig {
   message: string
 }
 
+const SUPABASE_PUBLIC_ENV_READERS: Record<SupabasePublicEnvKey, () => string | undefined> = {
+  VITE_SUPABASE_URL: () => import.meta.env.VITE_SUPABASE_URL,
+  VITE_SUPABASE_ANON_KEY: () => import.meta.env.VITE_SUPABASE_ANON_KEY,
+}
+
 function readPublicEnv(key: SupabasePublicEnvKey): string | undefined {
-  const value = import.meta.env[key]
+  const value = SUPABASE_PUBLIC_ENV_READERS[key]()
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined
 }
 

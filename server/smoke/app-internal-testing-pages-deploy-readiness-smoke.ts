@@ -26,6 +26,7 @@ function assertMentions(path: string, phrases: string[]): void {
 const requiredFiles = [
   '.github/workflows/app-internal-testing-pages-deploy.yml',
   'src/main.tsx',
+  'src/backend/supabase/supabase-config.ts',
   'docs/app-internal-testing-pages-deploy-readiness.md',
   'docs/app-internal-testing-pages-deploy-readiness.json',
   'server/smoke/app-internal-testing-pages-deploy-readiness-smoke.ts',
@@ -40,6 +41,15 @@ assert.equal(
 )
 
 assertMentions('src/main.tsx', ['import.meta.env.BASE_URL', 'BrowserRouter basename={routerBaseName}'])
+assertMentions('src/backend/supabase/supabase-config.ts', [
+  'import.meta.env.VITE_SUPABASE_URL',
+  'import.meta.env.VITE_SUPABASE_ANON_KEY',
+])
+assert.doesNotMatch(
+  read('src/backend/supabase/supabase-config.ts'),
+  /import\.meta\.env\[[^\]]+\]/,
+  'Supabase public env values must use static Vite env access so Pages builds inline them.',
+)
 
 const workflow = read('.github/workflows/app-internal-testing-pages-deploy.yml')
 assertMentions('.github/workflows/app-internal-testing-pages-deploy.yml', [

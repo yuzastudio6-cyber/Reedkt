@@ -169,6 +169,7 @@ function createEditAssemblySummary(input: {
     ...(input.approvedLocalPlan.operationManifest.outputFrame
       ? [`confirmed_output_frame:${input.approvedLocalPlan.operationManifest.outputFrame.aspectRatio}:${input.approvedLocalPlan.operationManifest.outputFrame.width}x${input.approvedLocalPlan.operationManifest.outputFrame.height}`]
       : []),
+    'light_color_balance_applied',
     'clean_fade_handles_applied',
     input.mode === 'private_final_export' ? 'approved_preview_review_carried_forward' : 'preview_review_pending',
     ...input.approvedLocalPlan.operationManifest.operations.map((operation) => `professional_operation:${operation.operationType}:${operation.segmentRole}`),

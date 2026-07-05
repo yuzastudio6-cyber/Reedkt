@@ -297,6 +297,7 @@ try {
   assert.ok(preview.editAssembly?.professionalOperationLabels?.includes('Readable captions'))
   assert.ok(preview.editAssembly?.requiredQaChecks?.includes('caption_readability'))
   assert.ok(preview.editAssembly?.operationsApplied.includes('confirmed_output_frame:9:16:540x960'))
+  assert.ok(preview.editAssembly?.operationsApplied.includes('light_color_balance_applied'))
   assert.ok(preview.editAssembly?.operationsApplied.includes('clean_fade_handles_applied'))
   const previewReviewBytes = await assertPrivateReviewArtifact({
     apiBaseUrl,
@@ -463,6 +464,7 @@ try {
   assert.deepEqual(finalExport.editAssembly?.outputFrame, approvedPlan.localEditPlan.approvedLocalPlan.operationManifest.outputFrame)
   assert.ok(finalExport.editAssembly?.requiredQaChecks?.includes('approved_snapshot_used'))
   assert.ok(finalExport.editAssembly?.operationsApplied.includes('confirmed_output_frame:9:16:540x960'))
+  assert.ok(finalExport.editAssembly?.operationsApplied.includes('light_color_balance_applied'))
   assert.ok(finalExport.editAssembly?.operationsApplied.includes('approved_preview_review_carried_forward'))
   assert.equal(finalExport.professionalQA?.status, 'passed')
   const finalExportReviewBytes = await assertPrivateReviewArtifact({

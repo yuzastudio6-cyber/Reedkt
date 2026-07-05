@@ -11,6 +11,8 @@ const execFileAsync = promisify(execFile)
 
 export type PreviewAudioMode = 'copy_or_transcode' | 'muted' | 'preserve'
 
+const PROFESSIONAL_FINISH_FILTER = 'eq=contrast=1.04:saturation=1.06:brightness=0.01'
+
 export interface BasicPreviewRenderOptions {
   localStorageRoot: string
   ffmpegBin?: string
@@ -40,6 +42,7 @@ export interface BasicPreviewRenderOutput {
     videoCodec: string
     audioMode: PreviewAudioMode
     filters: string[]
+    professionalTreatment: string[]
     targetWidth?: number
     targetHeight?: number
     editAssemblyMode?: 'clean_internal_preview' | 'private_final_export'
@@ -108,6 +111,7 @@ export async function createBasicPreview(
       videoCodec,
       audioMode,
       filters,
+      professionalTreatment: buildProfessionalTreatment(options),
       targetWidth: options.targetWidth,
       targetHeight: options.targetHeight,
       editAssemblyMode: options.editAssembly?.mode,
@@ -122,11 +126,21 @@ function buildFilters(options: BasicPreviewRenderOptions): string[] {
   if (scaleFilter) filters.push(scaleFilter)
   if (options.fps) filters.push(`fps=${options.fps}`)
   if (options.editAssembly) {
+    filters.push(PROFESSIONAL_FINISH_FILTER)
     filters.push('fade=t=in:st=0:d=0.15')
     const fadeOutStart = Math.max(0.25, (options.maxDurationSeconds ?? 3) - 0.25)
     filters.push(`fade=t=out:st=${fadeOutStart.toFixed(2)}:d=0.2`)
   }
   return filters
+}
+
+function buildProfessionalTreatment(options: BasicPreviewRenderOptions): string[] {
+  if (!options.editAssembly) return []
+  return [
+    ...(options.targetWidth && options.targetHeight ? ['confirmed_frame_fit'] : []),
+    'light_color_balance',
+    'clean_fade_handles',
+  ]
 }
 
 function buildScaleFilter(width: number | undefined, height: number | undefined): string | undefined {

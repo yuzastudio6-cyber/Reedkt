@@ -35,6 +35,7 @@ function createEditAssemblyResult(
     'source_trim_bounded_for_internal_testing',
     'frame_safe_mp4_assembly',
     ...(plan.outputFrame ? [`confirmed_output_frame:${plan.outputFrame.aspectRatio}:${plan.outputFrame.width}x${plan.outputFrame.height}`] : []),
+    'light_color_balance_applied',
     'clean_fade_handles_applied',
     mode === 'private_final_export' ? 'approved_preview_review_carried_forward' : 'preview_review_pending',
     ...plan.steps.map((step) => `plan_step:${step.label}`),

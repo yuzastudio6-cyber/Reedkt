@@ -72,13 +72,23 @@ const modelRootPathCandidatesByTool: Record<ModelWeightToolId, string[]> = {
     'sam2/sam2-checkpoint.pt',
     'sam2/checkpoint.pt',
   ],
-  birefnet: ['birefnet', 'ZhengPeng7/BiRefNet', 'BiRefNet'],
+  birefnet: ['.', 'birefnet', 'ZhengPeng7/BiRefNet', 'BiRefNet'],
   real_esrgan: ['real-esrgan/RealESRGAN_x4plus.pth'],
   rembg: ['rembg/isnet-general-use.onnx', 'rembg/u2net.onnx', 'rembg/u2netp.onnx'],
   transparent_background: [
     'transparent-background/ckpt_base.pth',
     'transparent-background/ckpt_fast.pth',
   ],
+}
+const approvedActivationLocalModelRootCandidatesByTool: Record<
+  ModelWeightToolId,
+  string[]
+> = {
+  sam2: ['/tmp/reeditpro-sam2-model-download/sam2.1-hiera-tiny'],
+  birefnet: ['/tmp/reeditpro-mask-model-download/birefnet-main/snapshot'],
+  real_esrgan: [],
+  rembg: [],
+  transparent_background: [],
 }
 
 const modelRuntimePathContracts: Record<ModelWeightToolId, ModelRuntimePathContract> = {
@@ -179,35 +189,66 @@ function privateModelManifestDir(): string | undefined {
     process.env[privateModelManifestDirEnvVar]
 }
 
+function readableDirectory(value: string): boolean {
+  try {
+    return existsSync(value) && statSync(value).isDirectory()
+  } catch {
+    return false
+  }
+}
+
+function privateModelRootCandidates(
+  toolId: ModelWeightToolId,
+  rootValue: string | undefined,
+): string[] {
+  if (rootValue) return [rootValue]
+  return approvedActivationLocalModelRootCandidatesByTool[toolId].filter(
+    readableDirectory,
+  )
+}
+
+function modelRootCandidatePath(rootValue: string, relativePath: string): string {
+  return relativePath === '.' ? rootValue : path.join(rootValue, relativePath)
+}
+
 function modelPathFromPrivateRoot(
   toolId: ModelWeightToolId,
   contract: ModelRuntimePathContract,
   rootValue: string | undefined,
 ): string | undefined {
-  if (!rootValue) return undefined
-  assertLocalPath('--private-model-root', rootValue)
-  if (!existsSync(rootValue) || !statSync(rootValue).isDirectory()) {
-    throw new Error(
-      `--private-model-root/${privateModelRootEnvVar} must point to a readable private local directory`,
-    )
-  }
-  const candidates = modelRootPathCandidatesByTool[toolId].map((relativePath) =>
-    path.join(rootValue, relativePath))
-  const matchingCandidate = candidates.find((candidate) => {
-    try {
-      const modelFile = assertModelPathContract(contract, candidate)
-      return existsSync(modelFile)
-    } catch {
-      return false
+  const rootCandidates = privateModelRootCandidates(toolId, rootValue)
+  if (!rootCandidates.length) return undefined
+  const checkedCandidates: string[] = []
+  for (const rootCandidate of rootCandidates) {
+    assertLocalPath('--private-model-root', rootCandidate)
+    if (!readableDirectory(rootCandidate)) {
+      if (rootValue) {
+        throw new Error(
+          `--private-model-root/${privateModelRootEnvVar} must point to a readable private local directory`,
+        )
+      }
+      continue
     }
-  })
-  if (!matchingCandidate) {
+    const candidates = modelRootPathCandidatesByTool[toolId].map((relativePath) =>
+      modelRootCandidatePath(rootCandidate, relativePath))
+    checkedCandidates.push(...candidates)
+    const matchingCandidate = candidates.find((candidate) => {
+      try {
+        const modelFile = assertModelPathContract(contract, candidate)
+        return existsSync(modelFile)
+      } catch {
+        return false
+      }
+    })
+    if (matchingCandidate) return matchingCandidate
+  }
+  if (rootValue || checkedCandidates.length) {
     throw new Error(
       `${contract.modelFlag} was not supplied and the private model root did not contain ` +
-      `a valid ${contract.modelLabel}; checked ${candidates.join(', ')}`,
+      `a valid ${contract.modelLabel}; checked ${checkedCandidates.join(', ')}`,
     )
   }
-  return matchingCandidate
+  return undefined
 }
 
 function isLocalArtifactPath(filePath: string): boolean {
@@ -676,12 +717,15 @@ try {
     errorMessage: error instanceof Error ? error.message : String(error),
     privateModelRootEnvVar,
     privateModelManifestDirEnvVar,
+    approvedActivationLocalModelRootCandidates: toolId
+      ? approvedActivationLocalModelRootCandidatesByTool[toolId]
+      : [],
     expectedPrivateModelRootCandidates: toolId
       ? modelRootPathCandidatesByTool[toolId]
       : [],
     expectedPrivateModelRuntimeFiles: expectedPrivateModelRuntimeFiles(toolId),
     nextPrivateModelRootAction: toolId
-      ? `Place the reviewed private ${modelRuntimePathContracts[toolId].modelLabel} under one of expectedPrivateModelRootCandidates inside $${privateModelRootEnvVar}, provide reviewed manifests in $${privateModelManifestDirEnvVar}, then retry the scoped external-agent tool call.`
+      ? `Place the reviewed private ${modelRuntimePathContracts[toolId].modelLabel} under one of expectedPrivateModelRootCandidates inside $${privateModelRootEnvVar}, or restore the approved local activation cache path listed in approvedActivationLocalModelRootCandidates, provide reviewed manifests in $${privateModelManifestDirEnvVar}, then retry the scoped external-agent tool call.`
       : `Provide --tool plus reviewed private model files under $${privateModelRootEnvVar} and reviewed manifests in $${privateModelManifestDirEnvVar}.`,
     booleans: {
       localOnly: true,

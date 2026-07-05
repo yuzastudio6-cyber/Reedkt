@@ -405,6 +405,7 @@ function resolveRuntimeInputManifestPathForTool(
     runtimeInputManifestMaterializationRequested()
   if (
     !privateModelRoot &&
+    !explicitMaterializationRequested &&
     !(
       explicitPrivateModelPath &&
       (privateModelManifestDir || explicitMaterializationRequested)
@@ -1607,6 +1608,12 @@ async function buildReport() {
       privateModelRootProvided: Boolean(privateModelRootValue()),
       runtimeInputManifestMaterializedFromPrivateRoot:
         Boolean(materializedRuntimeInputManifestPath && privateModelRootValue()),
+      runtimeInputManifestMaterializedFromApprovedActivationLocalRoot:
+        Boolean(
+          materializedRuntimeInputManifestPath &&
+          !privateModelRootValue() &&
+          materializedRuntimeInputManifestReport?.ok === true,
+        ),
       explicitPrivateModelPathProvided:
         requestGpuToolId
           ? Boolean(explicitPrivateModelPathForTool(requestGpuToolId))
@@ -1625,6 +1632,14 @@ async function buildReport() {
         materializedRuntimeInputManifestReport?.status ?? null,
       runtimeInputManifestMaterializerErrorMessage:
         materializedRuntimeInputManifestReport?.errorMessage ?? null,
+      runtimeInputManifestMaterializerApprovedActivationLocalModelRootCandidates:
+        Array.isArray(
+          materializedRuntimeInputManifestReport
+            ?.approvedActivationLocalModelRootCandidates,
+        )
+          ? materializedRuntimeInputManifestReport
+            .approvedActivationLocalModelRootCandidates
+          : [],
       runtimeInputManifestMaterializerExpectedPrivateModelRootCandidates:
         Array.isArray(
           materializedRuntimeInputManifestReport

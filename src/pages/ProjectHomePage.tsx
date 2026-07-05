@@ -5,6 +5,10 @@ import { NewEditSessionCreatePanel } from '../components/projects/NewEditSession
 import { ProjectEditSessionCardGrid } from '../components/projects/ProjectEditSessionCardGrid'
 import { ProjectEditSessionDetailPanel } from '../components/projects/ProjectEditSessionDetailPanel'
 import { ProjectHomeHeader } from '../components/projects/ProjectHomeHeader'
+import {
+  createProjectBackendLocalConfig,
+  readProjectBackendLocal,
+} from '../lib/project-backend-local'
 import type { NewEditSessionCreateResult } from '../lib/project-edit-session-create-flow-ui-adapter'
 import {
   createProjectEditSessionProjectHomeClient,
@@ -20,8 +24,10 @@ export function ProjectHomePage() {
   const params = useParams<{ projectId: string }>()
   const location = useLocation()
   const projectId = params.projectId ?? MOCK_PROJECT_HOME_PROJECT_ID
+  const projectConfig = useMemo(() => createProjectBackendLocalConfig(import.meta.env), [])
   const apiClient = useMemo(() => createProjectEditSessionProjectHomeClient(projectId), [projectId])
   const [homeModel, setHomeModel] = useState<ProjectEditSessionProjectHomeModel | undefined>()
+  const [projectTitleReadback, setProjectTitleReadback] = useState<{ projectId: string; title: string } | undefined>()
   const [selectedId, setSelectedId] = useState<string | undefined>()
   const [detail, setDetail] = useState<ProjectEditSessionHomeDetailViewModel | undefined>()
   const [createPanelOpen, setCreatePanelOpen] = useState(() => new URLSearchParams(location.search).get('newEdit') === '1')
@@ -35,10 +41,25 @@ export function ProjectHomePage() {
       setSelectedId(model.cardModels[0]?.id)
     })
 
+    if (projectConfig.available && projectConfig.apiBaseUrl) {
+      readProjectBackendLocal({
+        apiBaseUrl: projectConfig.apiBaseUrl,
+        projectId,
+      }).then((result) => {
+        if (cancelled) return
+        setProjectTitleReadback({
+          projectId,
+          title: result.project.name,
+        })
+      }).catch(() => {
+        // Keep the deterministic local project title when backend-local readback is unavailable.
+      })
+    }
+
     return () => {
       cancelled = true
     }
-  }, [apiClient, projectId])
+  }, [apiClient, projectConfig.apiBaseUrl, projectConfig.available, projectId])
 
   useEffect(() => {
     if (!selectedId) return
@@ -58,6 +79,9 @@ export function ProjectHomePage() {
   const selectedCard = cards.find((card) => card.id === selectedId)
   const selectedDetail = detail?.editSessionId === selectedId ? detail : undefined
   const detailLoading = Boolean(selectedId && !selectedDetail)
+  const projectTitle = projectTitleReadback?.projectId === projectId
+    ? projectTitleReadback.title
+    : homeModel?.projectTitle
 
   function handleSelect(cardId: string) {
     if (cardId === selectedId) return
@@ -91,7 +115,7 @@ export function ProjectHomePage() {
           cardCount={cards.length}
           context="Create an edit for each video you want ReEditPro to work on."
           onNewEditClick={handleNewEditClick}
-          projectTitle={homeModel?.projectTitle ?? 'Project Home'}
+          projectTitle={projectTitle ?? 'Project Home'}
         />
 
         <NewEditSessionCreatePanel

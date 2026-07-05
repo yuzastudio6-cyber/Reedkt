@@ -4,6 +4,11 @@ import { Button } from '../../Button'
 import { Card } from '../../Card'
 import { ProjectEditPlanApprovalCard } from '../ProjectEditPlanApprovalCard'
 import { ProjectEditLifecycleStatusCard } from '../ProjectEditLifecycleStatusCard'
+import {
+  createProjectEditBriefBackendLocalConfig,
+  saveProjectEditBriefBackendLocal,
+  type ProjectEditBriefBackendLocalRecord,
+} from '../../../lib/project-edit-brief-backend-local'
 import { approveProjectEditPlanBackendLocal } from '../../../lib/project-edit-plan-backend-local'
 import { buildProjectEditPlanApprovalModel } from '../../../lib/project-edit-plan-approval'
 import { buildProjectEditLifecycleModel } from '../../../lib/project-edit-lifecycle'
@@ -49,6 +54,7 @@ type ProjectEditBriefWorkspaceProps = {
 }
 
 export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, projectId }: ProjectEditBriefWorkspaceProps) {
+  const briefConfig = useMemo(() => createProjectEditBriefBackendLocalConfig(import.meta.env), [])
   const backendUploadConfig = useMemo(() => createProjectSourceVideoBackendUploadConfig(import.meta.env), [])
   const localPreviewConfig = useMemo(() => createProjectSourceVideoLocalEditPreviewConfig(import.meta.env), [])
   const [sourceFile, setSourceFile] = useState<File | undefined>()
@@ -61,6 +67,9 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
   const [playheadSeconds, setPlayheadSeconds] = useState(0)
   const [briefText, setBriefText] = useState('Clean pacing, readable captions, natural sound, and no flashy transitions unless the edit asks for it.')
   const [briefSaved, setBriefSaved] = useState(false)
+  const [briefSaveStatus, setBriefSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>(briefConfig.available ? 'idle' : 'failed')
+  const [briefSaveError, setBriefSaveError] = useState<string | undefined>(briefConfig.available ? undefined : briefConfig.message)
+  const [backendSavedBrief, setBackendSavedBrief] = useState<ProjectEditBriefBackendLocalRecord | undefined>()
   const [planApproved, setPlanApproved] = useState(false)
   const [planApprovalStatus, setPlanApprovalStatus] = useState<'idle' | 'approving' | 'approved' | 'failed'>('idle')
   const [planApprovalError, setPlanApprovalError] = useState<string | undefined>()
@@ -90,19 +99,19 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
   const planApprovalModel = useMemo(() => buildProjectEditPlanApprovalModel({
     approved: planApproved,
     backendUploadResult,
-    briefSaved,
-    briefText,
+    briefSaved: Boolean(backendSavedBrief?.readbackVerified) && briefSaved,
+    briefText: backendSavedBrief?.briefText ?? briefText,
     editSessionId,
     projectId,
     sourceAspectRatio: sourceVideo?.inferredAspectRatio,
     sourceDurationSeconds: sourceVideo?.durationSeconds,
     sourceFileName: sourceVideo?.fileName,
-  }), [backendUploadResult, briefSaved, briefText, editSessionId, planApproved, projectId, sourceVideo])
+  }), [backendSavedBrief, backendUploadResult, briefSaved, briefText, editSessionId, planApproved, projectId, sourceVideo])
   const lifecycle = useMemo(() => buildProjectEditLifecycleModel({
     backendUploadAvailable: backendUploadConfig.available,
     backendUploadResult,
     backendUploadStatus,
-    briefSaved,
+    briefSaved: Boolean(backendSavedBrief?.readbackVerified) && briefSaved,
     editSessionId,
     hasLocalSourceVideo: Boolean(sourceVideo),
     localPreviewResult,
@@ -110,7 +119,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     planReady: planApprovalModel.canApprove || planApprovalModel.approved,
     previewReviewResult,
     projectId,
-  }), [backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, previewReviewResult, projectId, sourceVideo])
+  }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, previewReviewResult, projectId, sourceVideo])
 
   function handleVideoSelected(file?: File) {
     if (!file) return
@@ -131,6 +140,9 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
       setPlayheadSeconds(0)
       setPlaying(false)
       setBriefSaved(false)
+      setBackendSavedBrief(undefined)
+      setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
+      setBriefSaveError(briefConfig.available ? undefined : briefConfig.message)
       setStatusMessage('Source video selected for this edit. Nothing has been uploaded or processed yet.')
     } catch {
       setStatusMessage('Choose a video file for this edit.')
@@ -153,6 +165,9 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     setPlayheadSeconds(0)
     setPlaying(false)
     setBriefSaved(false)
+    setBackendSavedBrief(undefined)
+    setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
+    setBriefSaveError(briefConfig.available ? undefined : briefConfig.message)
     setStatusMessage('Source video cleared from this edit.')
   }
 
@@ -177,6 +192,10 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     setPlanApprovalError(undefined)
     setBackendApprovedLocalPlan(undefined)
     setPreviewReviewResult(undefined)
+    setBriefSaved(false)
+    setBackendSavedBrief(undefined)
+    setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
+    setBriefSaveError(briefConfig.available ? undefined : briefConfig.message)
     try {
       const result = await uploadProjectSourceVideoToBackend({
         apiBaseUrl: backendUploadConfig.apiBaseUrl,
@@ -195,8 +214,38 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     }
   }
 
-  function saveBrief() {
-    setBriefSaved(true)
+  async function saveBrief() {
+    if (!briefConfig.available || !briefConfig.apiBaseUrl) {
+      setBriefSaveStatus('failed')
+      setBriefSaveError(briefConfig.message)
+      setBriefSaved(false)
+      setStatusMessage('Backend-local brief save is not configured.')
+      return
+    }
+
+    setBriefSaveStatus('saving')
+    setBriefSaveError(undefined)
+    try {
+      const result = await saveProjectEditBriefBackendLocal({
+        apiBaseUrl: briefConfig.apiBaseUrl,
+        briefText,
+        editSessionId,
+        projectId,
+        sourceMediaAssetId: backendUploadResult?.mediaAssetId,
+        sourceStorageObjectRecordId: backendUploadResult?.storageObjectRecordId,
+        workspaceId: briefConfig.workspaceId,
+      })
+      setBackendSavedBrief(result.readback)
+      setBriefSaved(true)
+      setBriefSaveStatus('saved')
+      setStatusMessage('Brief saved and read back from the backend-local brief gate.')
+    } catch (caught) {
+      setBackendSavedBrief(undefined)
+      setBriefSaved(false)
+      setBriefSaveStatus('failed')
+      setBriefSaveError(caught instanceof Error ? caught.message : 'Backend-local brief save failed safely.')
+      setStatusMessage('Backend-local brief save failed safely. Plan approval remains blocked.')
+    }
     setLocalPreviewResult(undefined)
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
@@ -209,6 +258,9 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
   function updateBriefText(value: string) {
     setBriefText(value)
     setBriefSaved(false)
+    setBackendSavedBrief(undefined)
+    setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
+    setBriefSaveError(briefConfig.available ? undefined : briefConfig.message)
     setLocalPreviewResult(undefined)
     setPlanApproved(false)
     setPlanApprovalStatus('idle')
@@ -308,8 +360,13 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
               value={briefText}
             />
             <Button onClick={saveBrief} type="button" variant="primary">
-              Save brief
+              {briefSaveStatus === 'saving' ? 'Saving brief...' : 'Save brief'}
             </Button>
+            <p className="project-edit-brief-muted" data-testid="project-edit-brief-save-status">
+              {briefSaveStatus === 'saved' && backendSavedBrief
+                ? `Backend-local brief saved: ${backendSavedBrief.id}`
+                : briefSaveError ?? 'Saving the brief records the instruction before plan approval.'}
+            </p>
           </Card>
         </main>
 

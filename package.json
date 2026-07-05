@@ -115,6 +115,7 @@
     "smoke:project-edit-brief-api-client": "tsx server/smoke/project-edit-brief-api-client-smoke.ts",
     "smoke:project-edit-brief-route-client-qa-closure": "tsx server/smoke/project-edit-brief-route-client-qa-closure-smoke.ts",
     "smoke:project-edit-brief-ui-shell": "tsx server/smoke/project-edit-brief-ui-shell-smoke.ts",
+    "smoke:project-edit-brief-backend-local-route": "tsx server/smoke/project-edit-brief-backend-local-route-smoke.ts",
     "smoke:project-create-backend-local-route": "tsx server/smoke/project-create-backend-local-route-smoke.ts",
     "smoke:project-edit-session-backend-local-route": "tsx server/smoke/project-edit-session-backend-local-route-smoke.ts",
     "smoke:project-edit-lifecycle-architecture": "tsx server/smoke/project-edit-lifecycle-architecture-smoke.ts",

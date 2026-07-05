@@ -34,6 +34,7 @@ const requiredFiles = [
   'src/components/projects/brief/ProjectEditBriefSourceVideoPicker.tsx',
   'src/components/projects/brief/ProjectEditBriefLocalPreviewSmokeCard.tsx',
   'src/components/projects/brief/ProjectEditBriefPreviewReviewCard.tsx',
+  'src/lib/project-edit-brief-backend-local.ts',
   'src/lib/project-edit-plan-backend-local.ts',
   'src/lib/project-source-video-backend-upload.ts',
   'src/lib/project-source-video-local-edit-preview-smoke.ts',
@@ -322,6 +323,7 @@ assert.equal(reviewedModel.finalExportAllowed, false)
 const workspace = read('src/components/projects/brief/ProjectEditBriefWorkspace.tsx')
 for (const phrase of [
   'ProjectEditBriefSourceVideoPicker',
+  'saveProjectEditBriefBackendLocal',
   'uploadProjectSourceVideoToBackend',
   'ProjectEditPlanApprovalCard',
   'ProjectEditBriefLocalPreviewSmokeCard',
@@ -330,6 +332,8 @@ for (const phrase of [
   'buildProjectEditPlanApprovalModel',
   'buildProjectEditLifecycleModel',
   'approveProjectEditPlanBackendLocal',
+  'backendSavedBrief',
+  'project-edit-brief-save-status',
   'createProjectSourceVideoBackendUploadConfig',
   'createProjectSourceVideoLocalEditPreviewConfig',
   'backendApprovedLocalPlan',
@@ -339,6 +343,12 @@ for (const phrase of [
   assert.match(workspace, new RegExp(phrase))
 }
 assert.doesNotMatch(workspace, /service_role|signedUrl|gcloud|supabase db|Stripe|production ready:\s*true/i)
+
+const briefClient = read('src/lib/project-edit-brief-backend-local.ts')
+assert.match(briefClient, /local-brief/)
+assert.match(briefClient, /readback did not match/)
+assert.match(briefClient, /creditReservedOrSpent/)
+assert.doesNotMatch(briefClient, /service_role|signedUrl|Stripe|production ready:\s*true/i)
 
 const previewCard = read('src/components/projects/brief/ProjectEditBriefLocalPreviewSmokeCard.tsx')
 assert.match(previewCard, /planApproved/)

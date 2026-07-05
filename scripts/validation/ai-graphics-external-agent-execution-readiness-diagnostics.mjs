@@ -135,7 +135,7 @@ const remainingNativeCudaExpectedCandidates = {
     'sam2/sam2-checkpoint.pt',
     'sam2/checkpoint.pt',
   ],
-  birefnet: ['birefnet', 'ZhengPeng7/BiRefNet', 'BiRefNet'],
+  birefnet: ['.', 'birefnet', 'ZhengPeng7/BiRefNet', 'BiRefNet'],
 }
 const remainingNativeCudaExpectedChecksum = {
   sam2: '45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2',

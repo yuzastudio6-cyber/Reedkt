@@ -607,6 +607,7 @@ function remainingNativeCudaModelExpectation(toolId: RemainingNativeCudaToolId) 
     expectedReviewedChecksumSha256:
       '1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7',
     expectedPrivateRootCandidates: [
+      '.',
       'birefnet',
       'ZhengPeng7/BiRefNet',
       'BiRefNet',
@@ -881,7 +882,7 @@ function remainingNativeCudaCandidatePresent(
   root: string,
   candidate: string,
 ): boolean {
-  const candidatePath = path.join(root, candidate)
+  const candidatePath = candidate === '.' ? root : path.join(root, candidate)
   if (!fs.existsSync(candidatePath)) return false
   const stats = fs.statSync(candidatePath)
   if (toolId === 'sam2') return stats.isFile()

@@ -144,9 +144,13 @@ const runtimeTargets: Record<ToolId, RuntimeTarget> = {
     manifestId: 'birefnet_private_manifest_review_v1',
     checksumEvidenceRef:
       'private://reeditpro/ai-graphics/checksum-evidence/birefnet.json',
-    candidates: ['birefnet', 'ZhengPeng7/BiRefNet', 'BiRefNet'],
+    candidates: ['.', 'birefnet', 'ZhengPeng7/BiRefNet', 'BiRefNet'],
     candidateKind: 'birefnet_model_directory',
   },
+}
+const approvedActivationLocalModelRootCandidatesByTool: Record<ToolId, string[]> = {
+  sam2: ['/tmp/reeditpro-sam2-model-download/sam2.1-hiera-tiny'],
+  birefnet: ['/tmp/reeditpro-mask-model-download/birefnet-main/snapshot'],
 }
 
 function hasFlag(flag: string): boolean {
@@ -311,6 +315,31 @@ function birefNetModelDirectoryAccepted(candidatePath: string): boolean {
   )
 }
 
+function readableDirectory(value: string): boolean {
+  try {
+    return fs.existsSync(value) && fs.statSync(value).isDirectory()
+  } catch {
+    return false
+  }
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)]
+}
+
+function modelRootCandidates(toolId: ToolId, privateModelRoot: string): string[] {
+  return uniqueStrings([
+    privateModelRoot,
+    ...approvedActivationLocalModelRootCandidatesByTool[toolId].filter(
+      readableDirectory,
+    ),
+  ])
+}
+
+function modelCandidatePath(root: string, candidate: string): string {
+  return candidate === '.' ? root : path.join(root, candidate)
+}
+
 function modelCandidateForTool(
   toolId: ToolId,
   privateModelRoot: string,
@@ -359,27 +388,34 @@ function modelCandidateForTool(
         source: null,
       }
     }
-    assertLocalPath('--private-model-root', privateModelRoot)
-    if (!fs.existsSync(privateModelRoot)) {
-      return {
-        present: false,
-        matchingCandidate: null,
-        blocker: `private model root does not exist: ${privateModelRoot}`,
-        source: null,
+    const roots = modelRootCandidates(toolId, privateModelRoot)
+    const checkedCandidates: string[] = []
+    const rootBlockers: string[] = []
+    for (const root of roots) {
+      assertLocalPath('--private-model-root', root)
+      if (!fs.existsSync(root)) {
+        rootBlockers.push(`private model root does not exist: ${root}`)
+        continue
       }
-    }
-    if (!fs.statSync(privateModelRoot).isDirectory()) {
-      return {
-        present: false,
-        matchingCandidate: null,
-        blocker: `private model root is not a directory: ${privateModelRoot}`,
-        source: null,
+      if (!fs.statSync(root).isDirectory()) {
+        rootBlockers.push(`private model root is not a directory: ${root}`)
+        continue
       }
-    }
-    for (const candidate of target.candidates) {
-      const candidatePath = path.join(privateModelRoot, candidate)
-      if (target.candidateKind === 'file') {
-        if (sam2CheckpointAccepted(candidatePath)) {
+      for (const candidate of target.candidates) {
+        const candidatePath = modelCandidatePath(root, candidate)
+        checkedCandidates.push(candidatePath)
+        if (target.candidateKind === 'file') {
+          if (sam2CheckpointAccepted(candidatePath)) {
+            return {
+              present: true,
+              matchingCandidate: candidatePath,
+              blocker: null,
+              source: 'private_model_root_candidate',
+            }
+          }
+          continue
+        }
+        if (birefNetModelDirectoryAccepted(candidatePath)) {
           return {
             present: true,
             matchingCandidate: candidatePath,
@@ -387,15 +423,14 @@ function modelCandidateForTool(
             source: 'private_model_root_candidate',
           }
         }
-        continue
       }
-      if (birefNetModelDirectoryAccepted(candidatePath)) {
-        return {
-          present: true,
-          matchingCandidate: candidatePath,
-          blocker: null,
-          source: 'private_model_root_candidate',
-        }
+    }
+    if (rootBlockers.length && checkedCandidates.length === 0) {
+      return {
+        present: false,
+        matchingCandidate: null,
+        blocker: rootBlockers.join('; '),
+        source: null,
       }
     }
     return {
@@ -403,7 +438,7 @@ function modelCandidateForTool(
       matchingCandidate: null,
       blocker:
         `private model root did not contain ${target.modelField}; checked ` +
-        target.candidates.join(', ') +
+        (checkedCandidates.length ? checkedCandidates.join(', ') : target.candidates.join(', ')) +
         (toolId === 'birefnet'
           ? `; BiRefNet candidates must include ${requiredBirefNetRuntimeFiles.join(', ')} with a readable model.safetensors header`
           : `; SAM2 candidates must be .pt/.pth files at least ${minimumPrivateCheckpointBytes} bytes`),
@@ -417,6 +452,18 @@ function modelCandidateForTool(
       source: null,
     }
   }
+}
+
+function acceptedModelPathForTool(args: ParsedArgs, toolId: ToolId): string | undefined {
+  const explicitModelPath = explicitModelPathForTool(args, toolId)
+  const candidate = modelCandidateForTool(
+    toolId,
+    args.privateModelRoot,
+    explicitModelPath,
+  )
+  return candidate.present && candidate.matchingCandidate
+    ? candidate.matchingCandidate
+    : undefined
 }
 
 function sourceImageProbe(sourceImage: string | undefined): {
@@ -577,14 +624,12 @@ function finalToolCallResultPath(outputRoot: string, toolId: ToolId): string {
 
 function manifestArgs(args: ParsedArgs, toolId: ToolId): string[] {
   const target = runtimeTargets[toolId]
-  const explicitModelPath = explicitModelPathForTool(args, toolId)
+  const acceptedModelPath = acceptedModelPathForTool(args, toolId)
   const manifestArgs = [
     '--tool',
     toolId,
     '--source-image',
     args.sourceImage ?? '<private-approved-frame.png>',
-    '--private-model-root',
-    args.privateModelRoot,
     '--output-dir',
     outputDirectoryForTool(args.outputRoot, toolId),
     '--manifest-out',
@@ -598,14 +643,16 @@ function manifestArgs(args: ParsedArgs, toolId: ToolId): string[] {
     '--runtime-container-platform',
     runtimeContainerPlatform,
   ]
+  if (acceptedModelPath) {
+    manifestArgs.push(target.modelFlag, acceptedModelPath)
+  } else {
+    manifestArgs.push('--private-model-root', args.privateModelRoot)
+  }
   if (args.modelWeightManifestDir) {
     manifestArgs.push(
       '--model-weight-manifest-dir',
       args.modelWeightManifestDir,
     )
-  }
-  if (explicitModelPath) {
-    manifestArgs.push(target.modelFlag, explicitModelPath)
   }
   return manifestArgs
 }

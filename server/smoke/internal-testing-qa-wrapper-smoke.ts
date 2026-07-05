@@ -25,6 +25,7 @@ const requiredFiles = [
   'server/smoke/internal-testing-credit-lifecycle-readiness-smoke.ts',
   'server/smoke/internal-testing-repeated-local-operator-harness-smoke.ts',
   'server/smoke/internal-testing-auth-project-access-readiness-smoke.ts',
+  'server/smoke/internal-testing-browser-auth-bootstrap-readiness-smoke.ts',
   'server/smoke/internal-testing-auth-project-session-membership-policy-smoke.ts',
   'server/smoke/internal-testing-durable-auth-project-session-backend-persistence-plan-smoke.ts',
   'server/smoke/internal-testing-mock-safe-durable-project-session-backend-skeleton-smoke.ts',
@@ -43,6 +44,8 @@ const requiredFiles = [
   'docs/internal-testing-repeated-local-operator-harness.json',
   'docs/internal-testing-auth-project-access-readiness.md',
   'docs/internal-testing-auth-project-access-readiness.json',
+  'docs/internal-testing-browser-auth-bootstrap-readiness.md',
+  'docs/internal-testing-browser-auth-bootstrap-readiness.json',
   'docs/internal-testing-auth-project-session-membership-policy.md',
   'docs/internal-testing-auth-project-session-membership-policy.json',
   'docs/internal-testing-durable-auth-project-session-backend-persistence-plan.md',
@@ -84,6 +87,7 @@ for (const phrase of [
   'smoke:internal-testing-credit-lifecycle-readiness',
   'smoke:internal-testing-repeated-local-operator-harness',
   'smoke:internal-testing-auth-project-access-readiness',
+  'smoke:internal-testing-browser-auth-bootstrap-readiness',
   'smoke:internal-testing-auth-project-session-membership-policy',
   'smoke:internal-testing-durable-auth-project-session-backend-persistence-plan',
   'smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton',
@@ -112,6 +116,7 @@ for (const phrase of [
   'credit lifecycle',
   'operator harness',
   'Auth',
+  'signed-in browser auth bootstrap readiness',
   'Membership policy',
   'Backend persistence plan',
   'Mock-safe durable backend skeleton',
@@ -123,7 +128,7 @@ for (const phrase of [
   'Durable project/session Supabase migration review',
   'Durable project/session Supabase local migration dry-run plan',
   'No upload',
-  'No Supabase Data API',
+  'No project/session Data API',
   'fails fast',
   'external beta',
   'product-ready claim',
@@ -144,6 +149,7 @@ assert.ok(docJson.smokes?.includes('smoke:internal-testing-approval-credit-gates
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-credit-lifecycle-readiness'))
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-repeated-local-operator-harness'))
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-auth-project-access-readiness'))
+assert.ok(docJson.smokes?.includes('smoke:internal-testing-browser-auth-bootstrap-readiness'))
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-auth-project-session-membership-policy'))
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-durable-auth-project-session-backend-persistence-plan'))
 assert.ok(docJson.smokes?.includes('smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton'))

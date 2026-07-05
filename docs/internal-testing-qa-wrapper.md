@@ -8,7 +8,7 @@
 
 This milestone adds `npm run qa:internal-testing` as the single local command for repeated internal testing of the current production-shaped mock UI path.
 
-The wrapper runs the safe smoke checks for Edit Preferences, Preference Video limits, Project Edit Brief internal testing, Project Edit Brief mock E2E, approval and credit gate readiness, credit lifecycle readiness, the repeated local operator harness, Auth/project access readiness, Membership policy, Backend persistence plan, Mock-safe durable backend skeleton, Durable project/session route integration, Durable project/session readback QA, Durable project/session Supabase route contract plan, Durable project/session Supabase schema/RLS draft, Durable project/session Supabase migration SQL draft, Durable project/session Supabase migration review, Durable project/session Supabase local migration dry-run plan, and beta readiness. It then starts a local Vite server, runs focused Playwright checks for `/internal-testing` and `/edit-preferences`, and shuts the server down.
+The wrapper runs the safe smoke checks for Edit Preferences, Preference Video limits, Project Edit Brief internal testing, Project Edit Brief mock E2E, approval and credit gate readiness, credit lifecycle readiness, the repeated local operator harness, Auth/project access readiness, signed-in browser auth bootstrap readiness, Membership policy, Backend persistence plan, Mock-safe durable backend skeleton, Durable project/session route integration, Durable project/session readback QA, Durable project/session Supabase route contract plan, Durable project/session Supabase schema/RLS draft, Durable project/session Supabase migration SQL draft, Durable project/session Supabase migration review, Durable project/session Supabase local migration dry-run plan, and beta readiness. It then starts a local Vite server, runs focused Playwright checks for `/internal-testing` and `/edit-preferences`, and shuts the server down.
 
 ## Boundaries
 
@@ -17,8 +17,8 @@ The wrapper runs the safe smoke checks for Edit Preferences, Preference Video li
 - No Qwen, DeepSeek, provider, worker, render/export, or credit execution.
 - No credit spend, ledger write, Stripe call, or silent billing.
 - No live wallet mutation, release/refund mutation, or production billing lifecycle.
-- No Supabase Data API read/write, Storage, signed URL, SQL, migration, profile/workspace bootstrap write, or service-role action.
-- Public Supabase Auth may be checked read-only only when frontend-safe public env values are configured.
+- No project/session Data API read/write, Storage, signed URL, SQL, migration, backend/admin profile-workspace bootstrap write, or service-role action.
+- Public Supabase Auth may be checked when frontend-safe public env values are configured, and signed-in profile/workspace bootstrap may run only through the anon client when RLS permits it.
 - No external beta, real-user-media beta, paid production, or product-ready claim.
 
 The wrapper fails fast when explicit live/runtime enablement environment flags are set.
@@ -45,6 +45,7 @@ INTERNAL_TESTING_QA_PORT=4341 npm run qa:internal-testing
 - `npm run smoke:internal-testing-credit-lifecycle-readiness`
 - `npm run smoke:internal-testing-repeated-local-operator-harness`
 - `npm run smoke:internal-testing-auth-project-access-readiness`
+- `npm run smoke:internal-testing-browser-auth-bootstrap-readiness`
 - `npm run smoke:internal-testing-auth-project-session-membership-policy`
 - `npm run smoke:internal-testing-durable-auth-project-session-backend-persistence-plan`
 - `npm run smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton`

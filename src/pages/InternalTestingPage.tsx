@@ -14,6 +14,7 @@ import { AppShell } from '../components/AppShell'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { useAuthBootstrap } from '../hooks/useAuthBootstrap'
 import {
   readInternalTestingAuthProjectAccessReadiness,
   type InternalTestingAuthProjectAccessReadiness,
@@ -153,6 +154,15 @@ function getAuthReadinessAccent(status?: InternalTestingAuthProjectAccessStatus)
   return 'muted'
 }
 
+function getAuthBootstrapAccent(status?: string) {
+  if (status === 'ready') return 'success'
+  if (status === 'signed_out' || status === 'profile_missing' || status === 'workspace_missing' || status === 'membership_missing') {
+    return 'cyan'
+  }
+  if (status === 'error') return 'warning'
+  return 'muted'
+}
+
 function getScenarioHighlights() {
   const prioritizedIds = new Set([
     'project-home-edit-chat-cards',
@@ -187,6 +197,7 @@ function getScenarioHighlights() {
 }
 
 export function InternalTestingPage() {
+  const authBootstrap = useAuthBootstrap()
   const [records, setRecords] = useState<FeedbackRecord[]>(readFeedback)
   const [scenarioId, setScenarioId] = useState(getScenarioHighlights()[0]?.id ?? internalTestingScenarios[0]?.id ?? '')
   const [result, setResult] = useState<FeedbackRecord['result']>('passed')
@@ -205,13 +216,13 @@ export function InternalTestingPage() {
     )
   }, [])
 
-  const highlightedScenarios = useMemo(getScenarioHighlights, [])
-  const backendSkeleton = useMemo(getMockSafeDurableProjectSessionBackendSkeleton, [])
-  const supabaseRouteContractPlan = useMemo(getDurableProjectSessionSupabaseRouteContractPlan, [])
-  const supabaseSchemaRlsDraft = useMemo(getDurableProjectSessionSupabaseSchemaRlsDraft, [])
-  const supabaseMigrationSqlDraft = useMemo(getDurableProjectSessionSupabaseMigrationSqlDraft, [])
-  const supabaseMigrationReview = useMemo(getDurableProjectSessionSupabaseMigrationReview, [])
-  const supabaseLocalMigrationDryRunPlan = useMemo(getDurableProjectSessionSupabaseLocalMigrationDryRunPlan, [])
+  const highlightedScenarios = useMemo(() => getScenarioHighlights(), [])
+  const backendSkeleton = useMemo(() => getMockSafeDurableProjectSessionBackendSkeleton(), [])
+  const supabaseRouteContractPlan = useMemo(() => getDurableProjectSessionSupabaseRouteContractPlan(), [])
+  const supabaseSchemaRlsDraft = useMemo(() => getDurableProjectSessionSupabaseSchemaRlsDraft(), [])
+  const supabaseMigrationSqlDraft = useMemo(() => getDurableProjectSessionSupabaseMigrationSqlDraft(), [])
+  const supabaseMigrationReview = useMemo(() => getDurableProjectSessionSupabaseMigrationReview(), [])
+  const supabaseLocalMigrationDryRunPlan = useMemo(() => getDurableProjectSessionSupabaseLocalMigrationDryRunPlan(), [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -224,7 +235,8 @@ export function InternalTestingPage() {
         mediaProcessing: false,
         renderExport: false,
         creditSpend: false,
-        supabaseWrites: false,
+        supabaseProjectSessionWrites: false,
+        signedInProfileWorkspaceBootstrapMayWriteThroughRls: true,
       },
       authProjectAccessReadiness: authReadiness
         ? {
@@ -250,7 +262,11 @@ export function InternalTestingPage() {
   }, [])
 
   useEffect(() => {
-    void refreshAuthReadiness()
+    const timer = window.setTimeout(() => {
+      void refreshAuthReadiness()
+    }, 0)
+
+    return () => window.clearTimeout(timer)
   }, [refreshAuthReadiness])
 
   function saveFeedback() {
@@ -328,11 +344,11 @@ export function InternalTestingPage() {
             </div>
             <h2>Testing does not start production work</h2>
             <p>
-              This page opens browser-safe mock flows only. It does not upload files, call providers, dispatch workers, render/export, write
-              Supabase rows, or spend credits.
+              This page opens browser-safe internal testing flows only. Signed-in profile/workspace bootstrap may use the anon Supabase client when
+              RLS allows it; project/session data, uploads, providers, workers, render/export, and credits stay blocked.
             </p>
             <div className="internal-testing-pill-row" data-testid="internal-testing-boundary-list">
-              {['No upload', 'No provider', 'No worker', 'No render', 'No credits', 'No Supabase write'].map((item) => (
+              {['No upload', 'No provider', 'No worker', 'No render', 'No credits', 'No project write'].map((item) => (
                 <Badge accent="muted" key={item}>
                   {item}
                 </Badge>
@@ -592,6 +608,78 @@ export function InternalTestingPage() {
               </ul>
             </article>
           </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-auth-bootstrap-readiness">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Signed-in bootstrap</span>
+            <h2>Profile and workspace readiness is visible after sign-in</h2>
+          </div>
+          <p>
+            This check uses the same browser-safe auth bootstrap as the sign-in page. It can create or reuse the signed-in tester&apos;s profile,
+            workspace, and membership only through the Supabase anon client when RLS permits it. If RLS blocks the path, it reports
+            backend-required so the manual provisioning workflow can finish the setup.
+          </p>
+          <div className="internal-testing-auth-grid">
+            <article>
+              <div className="internal-testing-card-heading">
+                <Badge accent={getAuthBootstrapAccent(authBootstrap.status)}>
+                  {authBootstrap.status.replace(/_/g, ' ')}
+                </Badge>
+                <Button disabled={authBootstrap.loading} icon={RefreshCw} onClick={() => void authBootstrap.refresh()} size="sm" variant="secondary">
+                  Refresh
+                </Button>
+              </div>
+              <strong data-testid="internal-testing-auth-bootstrap-status">
+                {authBootstrap.loading
+                  ? 'Checking profile and workspace bootstrap'
+                  : authBootstrap.bootstrapResult?.message ?? 'Profile/workspace bootstrap has not returned yet.'}
+              </strong>
+              <span>
+                {authBootstrap.userContext?.email
+                  ? `Signed in as ${authBootstrap.userContext.email}`
+                  : authBootstrap.configured
+                    ? 'No signed-in tester is active in this browser session.'
+                    : 'Public Supabase Auth env is not configured in this app build.'}
+              </span>
+            </article>
+            <article data-testid="internal-testing-auth-bootstrap-readback">
+              <Badge accent="cyan">Readback</Badge>
+              <dl className="internal-testing-rc-status-list">
+                <div>
+                  <dt>Mode</dt>
+                  <dd>{authBootstrap.mode.replace(/_/g, ' ')}</dd>
+                </div>
+                <div>
+                  <dt>Next step</dt>
+                  <dd>{authBootstrap.nextStep?.replace(/_/g, ' ') ?? 'checking'}</dd>
+                </div>
+                <div>
+                  <dt>Workspace</dt>
+                  <dd>{authBootstrap.userContext?.currentWorkspaceId ?? authBootstrap.bootstrapResult?.workspaceResult?.workspaceId ?? 'not ready'}</dd>
+                </div>
+              </dl>
+            </article>
+            <article data-testid="internal-testing-auth-bootstrap-boundaries">
+              <Badge accent={authBootstrap.mode === 'backend_required' ? 'warning' : 'muted'}>
+                {authBootstrap.mode === 'backend_required' ? 'Backend provisioning needed' : 'Frontend-safe'}
+              </Badge>
+              <ul>
+                <li>No service-role key, admin client, password readback, signed URL, Storage upload, SQL, or migration in browser code.</li>
+                <li>No project/session writes, provider/model calls, worker dispatch, media processing, render/export, or credit spend.</li>
+                <li>Use the manual provisioning and readback workflows if this card reports backend-required or missing workspace state.</li>
+              </ul>
+            </article>
+          </div>
+          {authBootstrap.warnings.length > 0 ? (
+            <div className="internal-testing-pill-row" data-testid="internal-testing-auth-bootstrap-warnings">
+              {authBootstrap.warnings.map((warning) => (
+                <Badge accent="warning" key={warning}>
+                  {warning}
+                </Badge>
+              ))}
+            </div>
+          ) : null}
         </section>
 
         <section className="internal-testing-limitations" data-testid="internal-testing-auth-project-session-membership-policy">

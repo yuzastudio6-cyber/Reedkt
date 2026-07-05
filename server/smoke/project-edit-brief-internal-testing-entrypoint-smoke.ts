@@ -46,6 +46,8 @@ const requiredFiles = [
   'docs/project-edit-brief-internal-testing-entrypoint.json',
   'docs/internal-testing-auth-project-access-readiness.md',
   'docs/internal-testing-auth-project-access-readiness.json',
+  'docs/internal-testing-browser-auth-bootstrap-readiness.md',
+  'docs/internal-testing-browser-auth-bootstrap-readiness.json',
   'docs/internal-testing-auth-project-session-membership-policy.md',
   'docs/internal-testing-auth-project-session-membership-policy.json',
   'docs/internal-testing-durable-auth-project-session-backend-persistence-plan.md',
@@ -106,6 +108,10 @@ assert.match(page, /Auth and project access/)
 assert.match(page, /read-only Auth readiness check/)
 assert.match(page, /No service-role/)
 assert.match(page, /Durable project membership/)
+assert.match(page, /internal-testing-auth-bootstrap-readiness/)
+assert.match(page, /Signed-in bootstrap/)
+assert.match(page, /Profile and workspace readiness is visible after sign-in/)
+assert.match(page, /No project\/session writes/)
 assert.match(page, /internal-testing-auth-project-session-membership-policy/)
 assert.match(page, /Membership policy/)
 assert.match(page, /PROJECT_EDIT_SESSION_ACCESS_POLICY_REQUIRED_EVIDENCE/)
@@ -249,6 +255,8 @@ for (const phrase of [
   'repeated-local-operator-harness',
   'Auth Project Access Readiness',
   'auth-project-access-readiness',
+  'Browser Auth Bootstrap Readiness',
+  'browser-auth-bootstrap-readiness',
   'Auth Project Session Membership Policy',
   'auth-project-session-membership-policy',
   'Durable Auth Project Session Backend Persistence Plan',
@@ -269,7 +277,7 @@ for (const phrase of [
   'durable-project-session-supabase-migration-review',
   'Durable Project Session Supabase Local Migration Dry-Run Plan',
   'durable-project-session-supabase-local-migration-dry-run-plan',
-  'No Supabase Data API',
+  'No project/session Supabase Data API',
 ]) {
   assert.match(docs, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'))
 }
@@ -293,6 +301,7 @@ assert.ok(docJson.features?.includes('approval_credit_gate_readiness'))
 assert.ok(docJson.features?.includes('credit_lifecycle_readiness'))
 assert.ok(docJson.features?.includes('repeated_local_operator_harness'))
 assert.ok(docJson.features?.includes('auth_project_access_readiness'))
+assert.ok(docJson.features?.includes('browser_auth_bootstrap_readiness'))
 assert.ok(docJson.features?.includes('auth_project_session_membership_policy'))
 assert.ok(docJson.features?.includes('durable_auth_project_session_backend_persistence_plan'))
 assert.ok(docJson.features?.includes('mock_safe_durable_project_session_backend_skeleton'))
@@ -307,6 +316,7 @@ assert.equal(docJson.scenarioStatus?.['approval-credit-gate-readiness'], 'mock_l
 assert.equal(docJson.scenarioStatus?.['credit-lifecycle-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['repeated-local-operator-harness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['auth-project-access-readiness'], 'mock_local')
+assert.equal(docJson.scenarioStatus?.['browser-auth-bootstrap-readiness'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['auth-project-session-membership-policy'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['durable-auth-project-session-backend-persistence-plan'], 'mock_local')
 assert.equal(docJson.scenarioStatus?.['mock-safe-durable-project-session-backend-skeleton'], 'mock_local')
@@ -319,6 +329,8 @@ assert.equal(docJson.scenarioStatus?.['durable-project-session-supabase-migratio
 assert.equal(docJson.scenarioStatus?.['durable-project-session-supabase-local-migration-dry-run-plan'], 'mock_local')
 assert.equal(docJson.blockedScope?.productReady, false)
 assert.equal(docJson.blockedScope?.supabaseReadWrite, false)
+assert.equal(docJson.blockedScope?.signedInProfileWorkspaceBootstrapThroughRls, true)
+assert.equal(docJson.blockedScope?.backendAdminProfileWorkspaceBootstrapWrites, false)
 assert.equal(docJson.blockedScope?.workerDispatch, false)
 assert.equal(docJson.blockedScope?.creditSpend, false)
 assert.equal(docJson.blockedScope?.walletMutation, false)
@@ -327,6 +339,7 @@ assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-approva
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-credit-lifecycle-readiness'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-repeated-local-operator-harness'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-auth-project-access-readiness'))
+assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-browser-auth-bootstrap-readiness'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-auth-project-session-membership-policy'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-durable-auth-project-session-backend-persistence-plan'))
 assert.ok(docJson.validation?.required?.includes('smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton'))

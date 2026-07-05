@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Bell, ChevronDown, HardDrive, Sparkles } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
-import { appNav } from '../data/mockData'
+import { appNav, appSidebarNavLabels } from '../data/mockData'
 import { AppShellChatToolbarContext } from './AppShellChatToolbarContext'
 import { Badge } from './Badge'
 import { BrandLogo } from './BrandLogo'
@@ -18,6 +18,8 @@ type AppShellProps = {
 }
 
 const EDITOR_SIDEBAR_STORAGE_KEY = 'reeditpro:editor-sidebar-visible'
+const allowedSidebarLabels = new Set<string>(appSidebarNavLabels)
+const sidebarNav = appNav.filter((item) => allowedSidebarLabels.has(item.label))
 
 function getInitialEditorSidebarVisible() {
   if (typeof window === 'undefined') {
@@ -61,22 +63,16 @@ export function AppShell({ children, description, eyebrow, mode = 'standard', pr
     >
       <div className={`app-shell ${isChatMode ? 'app-shell-chat' : ''} ${isChatMode && !editorSidebarVisible ? 'sidebar-hidden' : ''}`.trim()}>
         {sidebarVisible && (
-          <aside className="sidebar">
+          <aside className="sidebar" data-testid="app-sidebar">
             <BrandLogo />
             <nav aria-label="Desktop app navigation">
-              {appNav.map((item) => {
+              {sidebarNav.map((item) => {
                 const [path, hash = ''] = item.to.split('#')
                 const isActive = hash
                   ? location.pathname === path && location.hash === `#${hash}`
                   : (location.pathname === path || (path === '/projects' && location.pathname.startsWith('/projects/'))) && !location.hash
 
-                return item.disabled ? (
-                  <button className="sidebar-link sidebar-link-disabled" disabled key={item.label} type="button">
-                    <item.icon aria-hidden="true" size={18} />
-                    <span>{item.label}</span>
-                    <small>Later</small>
-                  </button>
-                ) : (
+                return (
                   <Link className={`sidebar-link ${isActive ? 'active' : ''}`} key={item.to + item.label} to={item.to}>
                     <item.icon aria-hidden="true" size={18} />
                     <span>{item.label}</span>

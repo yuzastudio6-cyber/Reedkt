@@ -86,8 +86,14 @@ assert.match(page, /browser-local feedback/i)
 assert.match(page, /Local preview ready/)
 assert.match(page, /Backend upload gated/)
 assert.match(page, /Source video test path/)
+assert.match(page, /Signed local loop/)
+assert.match(page, /SIGN_IN_TO_EDIT_BRIEF_ROUTE/)
+assert.match(page, /VITE_REEDITPRO_INTERNAL_TEST_AUTH=true/)
 assert.match(page, /Browser-local source video preview/)
+assert.match(page, /Backend-local upload records canonical bucket\/object metadata only/)
+assert.match(page, /Run local edit preview creates mock approval\/reservation/)
 assert.match(page, /VITE_REEDITPRO_SOURCE_VIDEO_BACKEND_UPLOAD=true/)
+assert.match(page, /Sign in then open Brief/)
 assert.match(page, /No provider/)
 assert.match(page, /No worker/)
 assert.match(page, /No render/)
@@ -246,7 +252,11 @@ const docs = read('docs/project-edit-brief-internal-testing-entrypoint.md')
 for (const phrase of [
   'production-shaped',
   '/internal-testing',
+  '/sign-in?redirect=%2Fprojects%2Fmock-project-edit-chat-foundation%2Fedits%2Fedit-session-youtube-wide%2Fbrief',
   'Source Video Testing Path',
+  'signed source-video test path',
+  'VITE_REEDITPRO_INTERNAL_TEST_AUTH=true',
+  'Run local edit preview',
   'Browser-local source video preview',
   'Backend-local source video upload',
   'No provider/model call',
@@ -300,10 +310,14 @@ const docJson = JSON.parse(read('docs/project-edit-brief-internal-testing-entryp
 
 assert.equal(docJson.decision, 'project_edit_brief_internal_testing_entrypoint_passed_ready_for_repeated_internal_testing')
 assert.equal(docJson.route, '/internal-testing')
+assert.ok(docJson.connectedRoutes?.includes('/sign-in?redirect=%2Fprojects%2Fmock-project-edit-chat-foundation%2Fedits%2Fedit-session-youtube-wide%2Fbrief'))
 assert.ok(docJson.connectedRoutes?.includes(createProjectHomePath(projectId)))
 assert.ok(docJson.connectedRoutes?.includes(createProjectEditSessionChatPath(projectId, editSessionId)))
 assert.ok(docJson.connectedRoutes?.includes(createProjectEditSessionBriefPath(projectId, editSessionId)))
 assert.ok(docJson.features?.includes('approval_credit_gate_readiness'))
+assert.ok(docJson.features?.includes('signed_source_video_testing_path'))
+assert.ok(docJson.features?.includes('browser_local_internal_testing_sign_in_gate'))
+assert.ok(docJson.features?.includes('preview_only_local_edit_smoke_path'))
 assert.ok(docJson.features?.includes('credit_lifecycle_readiness'))
 assert.ok(docJson.features?.includes('repeated_local_operator_harness'))
 assert.ok(docJson.features?.includes('auth_project_access_readiness'))

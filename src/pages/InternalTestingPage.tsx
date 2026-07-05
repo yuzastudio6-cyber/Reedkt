@@ -70,6 +70,8 @@ type FeedbackRecord = {
 const FEEDBACK_STORAGE_KEY = 'reeditpro:internal-testing-feedback:v1'
 const PROJECT_ID = 'mock-project-edit-chat-foundation'
 const EDIT_SESSION_ID = 'edit-session-youtube-wide'
+const EDIT_BRIEF_ROUTE = createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID)
+const SIGN_IN_TO_EDIT_BRIEF_ROUTE = `/sign-in?redirect=${encodeURIComponent(EDIT_BRIEF_ROUTE)}`
 const DURABLE_PROJECT_SESSION_BACKEND_ROUTE_INTEGRATION_DECISION =
   'internal_testing_durable_project_session_backend_route_integration_passed_ready_for_readback_qa'
 const DURABLE_PROJECT_SESSION_BACKEND_ROUTE_INTEGRATION_NEXT_GATE =
@@ -96,13 +98,13 @@ const startCards = [
     id: 'edit-brief',
     title: 'Edit Brief',
     detail: 'Test markers, Marker Chat, metadata-only attachments, export settings, QA, and plan hints.',
-    route: createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID),
+    route: EDIT_BRIEF_ROUTE,
   },
   {
     id: 'source-video',
     title: 'Source video test',
     detail: 'Open Brief and use the Primary source video picker for local preview, timeline sync, optional backend-local upload, and QA.',
-    route: createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID),
+    route: EDIT_BRIEF_ROUTE,
   },
 ]
 
@@ -418,18 +420,34 @@ export function InternalTestingPage() {
             <h2>Use Brief as the current upload-to-edit testing surface</h2>
           </div>
           <p>
-            For internal testing, the reliable path is: sign in, open the mock project, open Edit Brief, select a local source video,
-            confirm timeline metadata, add a marker, inspect the Qwen 3.7 Max Marker Chat readiness label, run visual-context fallback or
-            beta checks, then run Brief QA and plan hints. This proves the editing workflow shape without starting real generation.
+            For internal testing, the reliable path is: start the local runner, sign in through the browser-local testing session, open
+            Edit Brief, select a local source video, upload it through the backend-local lane, then run the preview-only local edit smoke.
+            Qwen 3.7 Max stays the main-brain reasoning identity for Brief/Marker Chat evidence without receiving raw media or making a
+            live provider call in this loop.
           </p>
           <div className="internal-testing-limit-grid">
             <article>
-              <Badge accent="success">Ready for repeated testing</Badge>
+              <Badge accent="success">Signed local loop</Badge>
+              <ul>
+                <li><code>npm run dev:internal-testing:local-upload</code> enables the API, app, mock auth, backend-local upload, and preview smoke gates.</li>
+                <li><code>VITE_REEDITPRO_INTERNAL_TEST_AUTH=true</code> lets `/sign-in` create a browser-local testing session.</li>
+                <li>Use <code>{SIGN_IN_TO_EDIT_BRIEF_ROUTE}</code> to sign in and return directly to the Brief upload surface.</li>
+              </ul>
+            </article>
+            <article>
+              <Badge accent="cyan">Upload and preview proof</Badge>
               <ul>
                 <li>Browser-local source video preview and timeline sync.</li>
+                <li>Backend-local upload records canonical bucket/object metadata only.</li>
+                <li>Run local edit preview creates mock approval/reservation, approved snapshot, render job metadata, and preview object evidence.</li>
+              </ul>
+            </article>
+            <article>
+              <Badge accent="violet">Reasoning identity</Badge>
+              <ul>
                 <li>Marker creation from the current video playhead.</li>
                 <li>Export setting recommendations from browser metadata.</li>
-                <li>Qwen 3.7 Max Marker Chat readiness visibility with deterministic fallback by default.</li>
+                <li>Qwen 3.7 Max Marker Chat readiness visibility and local preview smoke identity recording.</li>
               </ul>
             </article>
             <article>
@@ -442,11 +460,18 @@ export function InternalTestingPage() {
             </article>
           </div>
           <div className="internal-testing-start-actions">
-            <Button icon={ArrowRight} to={createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID)} variant="primary">
-              Open source video Brief test
+            <Button icon={ArrowRight} to={SIGN_IN_TO_EDIT_BRIEF_ROUTE} variant="primary">
+              Sign in then open Brief
             </Button>
-            <Link className="internal-testing-route-link" to={createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID)}>
-              {createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID)}
+            <Button icon={ArrowRight} to={EDIT_BRIEF_ROUTE} variant="secondary">
+              Open Brief directly
+            </Button>
+            <Link className="internal-testing-route-link" to={EDIT_BRIEF_ROUTE}>
+              {EDIT_BRIEF_ROUTE}
+              <ExternalLink aria-hidden="true" size={15} />
+            </Link>
+            <Link className="internal-testing-route-link" to={SIGN_IN_TO_EDIT_BRIEF_ROUTE}>
+              {SIGN_IN_TO_EDIT_BRIEF_ROUTE}
               <ExternalLink aria-hidden="true" size={15} />
             </Link>
           </div>
@@ -646,7 +671,7 @@ export function InternalTestingPage() {
                 {[
                   ['Project home', authReadiness?.routes.projectHome ?? createProjectHomePath(PROJECT_ID)],
                   ['Edit Chat', authReadiness?.routes.editChat ?? createProjectEditSessionChatPath(PROJECT_ID, EDIT_SESSION_ID)],
-                  ['Edit Brief', authReadiness?.routes.editBrief ?? createProjectEditSessionBriefPath(PROJECT_ID, EDIT_SESSION_ID)],
+                  ['Edit Brief', authReadiness?.routes.editBrief ?? EDIT_BRIEF_ROUTE],
                 ].map(([label, route]) => (
                   <Link className="internal-testing-route-link" key={route} to={route}>
                     {label}

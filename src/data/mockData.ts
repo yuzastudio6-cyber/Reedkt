@@ -98,7 +98,7 @@ export type ExportItem = {
 
 export const appNav: NavItem[] = [
   { label: 'Home', to: '/dashboard', icon: Home },
-  { label: 'Projects', to: '/projects', icon: FolderKanban },
+  { label: 'Project', to: '/projects', icon: FolderKanban },
   { label: 'Preferences', to: '/edit-preferences', icon: ListChecks },
 ]
 

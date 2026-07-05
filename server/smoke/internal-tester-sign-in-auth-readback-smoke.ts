@@ -39,6 +39,10 @@ assert.equal(
   'tsx server/cli/verify-internal-tester-auth-readback.ts',
 )
 assert.equal(
+  packageJson.scripts?.['internal-testing:verify-browser-sign-in'],
+  'tsx server/cli/verify-internal-tester-browser-sign-in.ts',
+)
+assert.equal(
   packageJson.scripts?.['smoke:internal-tester-sign-in-auth-readback'],
   'tsx server/smoke/internal-tester-sign-in-auth-readback-smoke.ts',
 )
@@ -90,6 +94,7 @@ const doc = JSON.parse(read('docs/internal-tester-sign-in-auth-readback.json')) 
   decision?: string
   workflow?: string
   cli?: string
+  packageScripts?: Record<string, string>
   requiredConfirmation?: Record<string, string>
   readbackTargets?: string[]
   supportedProfileIdentityColumns?: string[]
@@ -111,7 +116,8 @@ assert.equal(
 assert.deepEqual(doc.readbackTargets, ['auth.users', 'profiles', 'workspaces', 'workspace_members'])
 assert.deepEqual(doc.supportedProfileIdentityColumns, ['user_id', 'id'])
 assert.ok(doc.authReadinessOutput?.includes('authEmailConfirmed'))
-assert.equal(doc.nextGate, 'MANUAL_BROWSER_SIGN_IN_AND_INTERNAL_TESTING_READBACK')
+assert.equal(doc.packageScripts?.browserSignIn, 'internal-testing:verify-browser-sign-in')
+assert.equal(doc.nextGate, 'INTERNAL_TESTER_BROWSER_SIGN_IN_VERIFICATION')
 
 for (const [scope, value] of Object.entries(doc.blockedScope ?? {})) {
   assert.equal(value, false, `${scope} should remain false`)

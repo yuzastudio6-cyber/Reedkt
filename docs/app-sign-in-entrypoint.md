@@ -22,6 +22,8 @@ If Supabase public env values are absent, the page shows a configuration blocker
 
 For repeatable local testing only, `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true` lets the page create a browser-local mock auth session and continue to `/internal-testing` without contacting Supabase. This mode is used by `npm run dev:internal-testing:local-upload` so an operator can test sign-in, source upload, and the preview-only local edit smoke in one loop.
 
+For hosted/internal tester auth, run `npm run internal-testing:verify-browser-sign-in` with `REEDITPRO_CONFIRM_INTERNAL_TESTER_BROWSER_SIGN_IN=VERIFY_REEDITPRO_INTERNAL_TESTER_BROWSER_SIGN_IN`, public Supabase URL/anon key, and the tester email/password. That browser-safe Supabase sign-in verifier proves the anon auth path can return a session without printing tokens or using service-role access.
+
 ## Next Gate
 
 `APP_SIGN_IN_ENTRYPOINT_DEPLOYMENT_AND_SUPABASE_ENV_CONFIGURATION`

@@ -333,6 +333,12 @@ try {
   assert.equal(lifecycle.finalExportAllowed, false)
   assert.equal(lifecycle.productReady, false)
   assert.equal(lifecycle.toolExecutionAllowed, false)
+  assert.equal(lifecycle.finalExportReadiness.allowed, false)
+  assert.ok(lifecycle.finalExportReadiness.blockers.includes('professional_qa_passed'))
+  assert.ok(lifecycle.finalExportReadiness.blockers.includes('required_assets_ready'))
+  assert.ok(lifecycle.finalExportReadiness.blockers.includes('artifact_manifest_ready'))
+  assert.ok(lifecycle.finalExportReadiness.blockers.includes('final_render_worker_ready'))
+  assert.ok(lifecycle.finalExportReadiness.blockers.includes('export_delivery_policy_ready'))
 
   console.log(JSON.stringify({
     ok: true,
@@ -346,6 +352,7 @@ try {
     reviewStatus: review.reviewStatus,
     restoredLifecycleStatus: finalSession.editSession.status,
     finalExportAllowed: lifecycle.finalExportAllowed,
+    finalExportBlockers: lifecycle.finalExportReadiness.blockers,
     productReady: lifecycle.productReady,
   }, null, 2))
 } finally {

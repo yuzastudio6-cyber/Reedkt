@@ -355,6 +355,43 @@
   padding: 7px 10px;
 }
 
+.project-edit-lifecycle-card__export-readiness {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 8px;
+  padding: 11px 12px;
+}
+
+.project-edit-lifecycle-card__export-readiness strong,
+.project-edit-lifecycle-card__export-readiness p {
+  margin: 0;
+}
+
+.project-edit-lifecycle-card__export-readiness p,
+.project-edit-lifecycle-card__export-readiness li {
+  color: var(--rp-text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.project-edit-lifecycle-card__export-readiness ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-edit-lifecycle-card__export-readiness li {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  padding: 5px 8px;
+}
+
 .project-edit-brief-workspace,
 .project-edit-brief-main,
 .project-edit-brief-side-panel,

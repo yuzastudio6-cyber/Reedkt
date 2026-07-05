@@ -60,6 +60,9 @@ const initial = buildProjectEditLifecycleModel({
 assert.equal(initial.productReady, false)
 assert.equal(initial.toolExecutionAllowed, false)
 assert.equal(initial.finalExportAllowed, false)
+assert.equal(initial.finalExportReadiness.allowed, false)
+assert.ok(initial.finalExportReadiness.blockers.includes('source_uploaded'))
+assert.ok(initial.finalExportReadiness.blockers.includes('professional_qa_passed'))
 assert.ok(initial.blockers.includes('source_video_required'))
 assert.ok(initial.blockers.includes('approved_plan_snapshot_required'))
 assert.ok(initial.blockers.includes('preview_review_required'))
@@ -151,7 +154,7 @@ assert.equal(uploadedModel.stages.find((stage) => stage.id === 'credit_approval_
 assert.equal(uploadedModel.stages.find((stage) => stage.id === 'internal_preview_ready')?.status, 'blocked')
 assert.ok(uploadedModel.blockers.includes('plan_credit_approval_required'))
 assert.equal(uploadedModel.stages.find((stage) => stage.id === 'final_export_blocked')?.status, 'blocked')
-assert.ok(uploadedModel.blockers.includes('professional_qa_and_final_export_required'))
+assert.ok(uploadedModel.blockers.includes('professional_qa_required'))
 
 const approvedPlan = buildProjectEditPlanApprovalModel({
   approved: true,
@@ -287,6 +290,8 @@ assert.equal(previewModel.stages.find((stage) => stage.id === 'preview_review_re
 assert.equal(previewModel.productReady, false)
 assert.equal(previewModel.toolExecutionAllowed, false)
 assert.equal(previewModel.finalExportAllowed, false)
+assert.ok(previewModel.finalExportReadiness.blockers.includes('preview_review_approved'))
+assert.ok(previewModel.finalExportReadiness.blockers.includes('professional_qa_passed'))
 
 const reviewedModel = buildProjectEditLifecycleModel({
   backendUploadAvailable: true,
@@ -319,6 +324,50 @@ assert.equal(reviewedModel.stages.find((stage) => stage.id === 'preview_review_r
 assert.equal(reviewedModel.blockers.includes('preview_review_required'), false)
 assert.equal(reviewedModel.productReady, false)
 assert.equal(reviewedModel.finalExportAllowed, false)
+assert.equal(reviewedModel.finalExportReadiness.allowed, false)
+assert.ok(reviewedModel.finalExportReadiness.blockers.includes('professional_qa_passed'))
+assert.ok(reviewedModel.finalExportReadiness.blockers.includes('required_assets_ready'))
+
+const finalExportReadyModel = buildProjectEditLifecycleModel({
+  backendUploadAvailable: true,
+  backendUploadResult: uploaded,
+  backendUploadStatus: 'uploaded',
+  briefSaved: true,
+  editSessionId: 'edit-session-youtube-wide',
+  finalExportEvidence: {
+    artifactManifestReady: true,
+    exportDeliveryPolicyReady: true,
+    finalRenderWorkerReady: true,
+    professionalQaPassed: true,
+    requiredAssetsReady: true,
+  },
+  hasLocalSourceVideo: true,
+  localPreviewResult: preview,
+  planApproved: true,
+  planReady: true,
+  previewReviewResult: {
+    id: 'preview-review-1',
+    renderId: 'render-1',
+    workspaceId: 'mock-workspace',
+    reviewStatus: 'approved',
+    finalExportStarted: false,
+    providerCallMade: false,
+    workerJobCreated: false,
+    renderJobCreated: false,
+    creditReservedOrSpent: false,
+    supabaseWriteMade: false,
+    gcsWriteMade: false,
+    productReady: false,
+    warnings: [],
+  },
+  projectId: 'mock-project-edit-chat-foundation',
+})
+assert.equal(finalExportReadyModel.finalExportReadiness.allowed, true)
+assert.equal(finalExportReadyModel.finalExportAllowed, true)
+assert.equal(finalExportReadyModel.productReady, true)
+assert.equal(finalExportReadyModel.toolExecutionAllowed, true)
+assert.equal(finalExportReadyModel.finalExportReadiness.blockers.length, 0)
+assert.equal(finalExportReadyModel.stages.find((stage) => stage.id === 'final_export_blocked')?.status, 'ready')
 
 const workspace = read('src/components/projects/brief/ProjectEditBriefWorkspace.tsx')
 for (const phrase of [
@@ -363,6 +412,17 @@ assert.match(previewReviewCard, /Approve preview/)
 assert.match(previewReviewCard, /Request changes/)
 assert.match(previewReviewCard, /Final export stays blocked/)
 assert.doesNotMatch(previewReviewCard, /product-ready/i)
+
+const lifecycleModelSource = read('src/lib/project-edit-lifecycle.ts')
+assert.match(lifecycleModelSource, /ProjectEditFinalExportReadiness/)
+assert.match(lifecycleModelSource, /buildFinalExportReadiness/)
+assert.match(lifecycleModelSource, /professionalQaPassed/)
+assert.doesNotMatch(lifecycleModelSource, /finalExportAllowed: false/)
+assert.doesNotMatch(lifecycleModelSource, /productReady: false/)
+
+const lifecycleCard = read('src/components/projects/ProjectEditLifecycleStatusCard.tsx')
+assert.match(lifecycleCard, /project-edit-final-export-readiness/)
+assert.match(lifecycleCard, /model.finalExportReadiness.summary/)
 
 const previewClient = read('src/lib/project-source-video-local-edit-preview-smoke.ts')
 assert.match(previewClient, /approvedLocalPlan/)
@@ -409,4 +469,5 @@ console.log(JSON.stringify({
   internalPreviewAllowed: uploadedModel.internalPreviewAllowed,
   productReady: previewModel.productReady,
   finalExportAllowed: previewModel.finalExportAllowed,
+  conditionalFinalExportCanPass: finalExportReadyModel.finalExportAllowed,
 }, null, 2))

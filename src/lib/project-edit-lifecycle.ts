@@ -21,6 +21,44 @@ export type ProjectEditLifecycleStageId =
 
 export type ProjectEditLifecycleStageStatus = 'complete' | 'ready' | 'blocked'
 
+export type ProjectEditFinalExportGateId =
+  | 'source_uploaded'
+  | 'brief_saved'
+  | 'plan_approved'
+  | 'approved_snapshot_created'
+  | 'credit_reservation_ready'
+  | 'preview_ready'
+  | 'preview_review_approved'
+  | 'professional_qa_passed'
+  | 'required_assets_ready'
+  | 'artifact_manifest_ready'
+  | 'final_render_worker_ready'
+  | 'export_delivery_policy_ready'
+
+export interface ProjectEditFinalExportGate {
+  id: ProjectEditFinalExportGateId
+  label: string
+  passed: boolean
+  blocker: string
+}
+
+export interface ProjectEditFinalExportEvidenceInput {
+  professionalQaPassed?: boolean
+  requiredAssetsReady?: boolean
+  artifactManifestReady?: boolean
+  finalRenderWorkerReady?: boolean
+  exportDeliveryPolicyReady?: boolean
+}
+
+export interface ProjectEditFinalExportReadiness {
+  allowed: boolean
+  productReady: boolean
+  status: 'ready_for_final_export' | 'blocked'
+  summary: string
+  blockers: ProjectEditFinalExportGateId[]
+  gates: ProjectEditFinalExportGate[]
+}
+
 export interface ProjectEditLifecycleStage {
   id: ProjectEditLifecycleStageId
   label: string
@@ -40,6 +78,7 @@ export interface ProjectEditLifecycleInput {
   planReady: boolean
   previewReviewResult?: ProjectSourceVideoPreviewReviewResult
   projectId: string
+  finalExportEvidence?: ProjectEditFinalExportEvidenceInput
 }
 
 export interface ProjectEditLifecycleModel {
@@ -51,8 +90,9 @@ export interface ProjectEditLifecycleModel {
   internalPreviewAllowed: boolean
   backendUploadAllowed: boolean
   toolExecutionAllowed: boolean
-  finalExportAllowed: false
-  productReady: false
+  finalExportAllowed: boolean
+  productReady: boolean
+  finalExportReadiness: ProjectEditFinalExportReadiness
 }
 
 function stage(
@@ -64,12 +104,71 @@ function stage(
   return { id, label, status, summary }
 }
 
+function gate(
+  id: ProjectEditFinalExportGateId,
+  label: string,
+  passed: boolean,
+  blocker: string,
+): ProjectEditFinalExportGate {
+  return { id, label, passed, blocker }
+}
+
+function buildFinalExportReadiness(input: {
+  backendUploaded: boolean
+  briefSaved: boolean
+  planApproved: boolean
+  internalPreviewReady: boolean
+  previewReviewedApproved: boolean
+  previewHasApprovedSnapshot: boolean
+  previewHasCreditReservation: boolean
+  evidence?: ProjectEditFinalExportEvidenceInput
+}): ProjectEditFinalExportReadiness {
+  const gates = [
+    gate('source_uploaded', 'Source uploaded', input.backendUploaded, 'backend_local_upload_required'),
+    gate('brief_saved', 'Brief saved', input.briefSaved, 'brief_save_required'),
+    gate('plan_approved', 'Plan and credit estimate approved', input.planApproved, 'plan_credit_approval_required'),
+    gate('approved_snapshot_created', 'Approved snapshot created', input.previewHasApprovedSnapshot, 'approved_plan_snapshot_required'),
+    gate('credit_reservation_ready', 'Credit reservation ready', input.previewHasCreditReservation, 'credit_reservation_required'),
+    gate('preview_ready', 'Preview ready', input.internalPreviewReady, 'preview_ready_required'),
+    gate('preview_review_approved', 'Preview approved by tester', input.previewReviewedApproved, 'preview_approval_required'),
+    gate('professional_qa_passed', 'Professional QA passed', input.evidence?.professionalQaPassed === true, 'professional_qa_required'),
+    gate('required_assets_ready', 'Required assets ready', input.evidence?.requiredAssetsReady === true, 'required_assets_required'),
+    gate('artifact_manifest_ready', 'Artifact manifest ready', input.evidence?.artifactManifestReady === true, 'artifact_manifest_required'),
+    gate('final_render_worker_ready', 'Final render worker ready', input.evidence?.finalRenderWorkerReady === true, 'final_render_worker_required'),
+    gate('export_delivery_policy_ready', 'Export delivery policy ready', input.evidence?.exportDeliveryPolicyReady === true, 'export_delivery_policy_required'),
+  ]
+  const blockers = gates.filter((item) => !item.passed).map((item) => item.id)
+  const allowed = blockers.length === 0
+
+  return {
+    allowed,
+    productReady: allowed,
+    status: allowed ? 'ready_for_final_export' : 'blocked',
+    summary: allowed
+      ? 'All final export evidence gates are present. The edit can move to final export execution.'
+      : 'Final export remains blocked until preview approval, professional QA, required assets, artifact manifest, final render worker, and delivery policy evidence are present.',
+    blockers,
+    gates,
+  }
+}
+
 export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput): ProjectEditLifecycleModel {
   const backendUploaded = input.backendUploadResult?.status === 'uploaded'
   const internalPreviewReady = input.localPreviewResult?.status === 'preview_ready'
-  const previewReviewed = input.previewReviewResult?.reviewStatus === 'approved' || input.previewReviewResult?.reviewStatus === 'changes_requested'
+  const previewReviewedApproved = input.previewReviewResult?.reviewStatus === 'approved'
+  const previewReviewed = previewReviewedApproved || input.previewReviewResult?.reviewStatus === 'changes_requested'
   const backendUploadAllowed = input.hasLocalSourceVideo && input.backendUploadAvailable && input.backendUploadStatus !== 'uploading'
   const internalPreviewAllowed = backendUploaded && input.briefSaved && input.planApproved
+  const finalExportReadiness = buildFinalExportReadiness({
+    backendUploaded,
+    briefSaved: input.briefSaved,
+    planApproved: input.planApproved,
+    internalPreviewReady,
+    previewReviewedApproved,
+    previewHasApprovedSnapshot: Boolean(input.localPreviewResult?.approvedPlanSnapshotId),
+    previewHasCreditReservation: Boolean(input.localPreviewResult?.creditReservationId),
+    evidence: input.finalExportEvidence,
+  })
 
   const blockers = [
     input.hasLocalSourceVideo ? undefined : 'source_video_required',
@@ -79,7 +178,9 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
     input.planApproved ? undefined : 'plan_credit_approval_required',
     internalPreviewReady ? undefined : 'approved_plan_snapshot_required',
     previewReviewed ? undefined : 'preview_review_required',
-    'professional_qa_and_final_export_required',
+    ...finalExportReadiness.gates
+      .filter((item) => !item.passed)
+      .map((item) => item.blocker),
   ].filter(Boolean) as string[]
 
   const stages: ProjectEditLifecycleStage[] = [
@@ -155,7 +256,12 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
         ? `Internal tester review recorded: ${input.previewReviewResult?.reviewStatus.replace(/_/g, ' ')}.`
         : 'Review the preview result before any final export or professional QA gate can proceed.',
     ),
-    stage('final_export_blocked', 'Final export', 'blocked', 'Final export stays blocked until professional QA, artifact readiness, and release gates pass.'),
+    stage(
+      'final_export_blocked',
+      'Final export',
+      finalExportReadiness.allowed ? 'ready' : 'blocked',
+      finalExportReadiness.summary,
+    ),
   ]
 
   return {
@@ -180,8 +286,9 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
     blockers,
     internalPreviewAllowed,
     backendUploadAllowed,
-    toolExecutionAllowed: false,
-    finalExportAllowed: false,
-    productReady: false,
+    toolExecutionAllowed: finalExportReadiness.allowed,
+    finalExportAllowed: finalExportReadiness.allowed,
+    productReady: finalExportReadiness.productReady,
+    finalExportReadiness,
   }
 }

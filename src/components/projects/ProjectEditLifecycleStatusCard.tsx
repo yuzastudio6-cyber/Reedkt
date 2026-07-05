@@ -55,6 +55,18 @@ export function ProjectEditLifecycleStatusCard({ model }: ProjectEditLifecycleSt
         <span>Tool execution allowed: {model.toolExecutionAllowed ? 'yes' : 'no'}</span>
         <span>Final export allowed: {model.finalExportAllowed ? 'yes' : 'no'}</span>
       </div>
+
+      <div className="project-edit-lifecycle-card__export-readiness" data-testid="project-edit-final-export-readiness">
+        <strong>Final export readiness</strong>
+        <p>{model.finalExportReadiness.summary}</p>
+        {model.finalExportReadiness.blockers.length > 0 ? (
+          <ul>
+            {model.finalExportReadiness.gates.filter((gate) => !gate.passed).slice(0, 4).map((gate) => (
+              <li key={gate.id}>{gate.label}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
     </Card>
   )
 }

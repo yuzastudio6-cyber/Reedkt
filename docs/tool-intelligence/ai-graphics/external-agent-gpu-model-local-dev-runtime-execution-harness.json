@@ -43,8 +43,8 @@
     "privateContainerRuntimeAttemptCommandsByTool": {
       "torch_torchvision": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool torch_torchvision --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
       "transformers": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool transformers --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --allow-cpu-foundation-runtime",
-      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-sam2-runtime:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
-      "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model-dir-containing-model.safetensors> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+      "sam2": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool sam2 --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --sam2-checkpoint <private-sam2-checkpoint.pt> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
+      "birefnet": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool birefnet --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --birefnet-model <private-birefnet-model-dir-containing-model.safetensors> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json>",
       "real_esrgan": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool real_esrgan --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --real-esrgan-model <private-real-esrgan-model.pth> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json> --allow-cpu-model-runtime --no-runtime-container-gpu",
       "kornia": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool kornia --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --allow-cpu-tensor-runtime",
       "rembg": "npm run --silent ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness -- --attempt-local-runtime --runtime-backend docker_container --runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --runtime-container-platform linux/amd64 --tool rembg --output-dir .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run> --result-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/<private-run>/harness-result.json --source-image <private-approved-frame.png> --rembg-model <private-rembg-model.onnx> --runtime-input-manifest <private-runtime-inputs-with-model-weight-evidence.json> --allow-cpu-model-runtime --no-runtime-container-gpu",
@@ -158,15 +158,16 @@
       "runtimeReadyNow": false,
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
-      "skipReasonCode": "foundation_runtime_output_directory_missing",
-      "currentBlockingPrerequisiteKey": "outputDirectory",
-      "currentBlockingReasonCode": "foundation_runtime_output_directory_missing",
+      "skipReasonCode": "gpu_model_python_package_missing",
+      "currentBlockingPrerequisiteKey": "pythonPackageRuntime",
+      "currentBlockingReasonCode": "gpu_model_python_package_missing",
       "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime"
       ],
       "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
@@ -191,7 +192,7 @@
         }
       ],
       "warnings": [
-        "GPU/model runtime did not start because explicit local-dev execution inputs were not provided.",
+        "GPU/model runtime did not start because Python package prerequisites are missing.",
         "GPU/model runtime is approved only for the scoped accepted tool call; idle GPU startup remains blocked."
       ]
     },
@@ -214,15 +215,16 @@
       "runtimeReadyNow": false,
       "externalBetaReadyNow": false,
       "productionReadyNow": false,
-      "skipReasonCode": "foundation_runtime_output_directory_missing",
-      "currentBlockingPrerequisiteKey": "outputDirectory",
-      "currentBlockingReasonCode": "foundation_runtime_output_directory_missing",
+      "skipReasonCode": "gpu_model_python_package_missing",
+      "currentBlockingPrerequisiteKey": "pythonPackageRuntime",
+      "currentBlockingReasonCode": "gpu_model_python_package_missing",
       "privateLocalRuntimeInputsAcceptedBeforeRuntime": false,
       "minimumPrivateRuntimeInputKeys": [
         "outputDirectory",
         "nativeCudaRuntime"
       ],
       "remainingPrivateRuntimeInputKeys": [
+        "outputDirectory",
         "nativeCudaRuntime"
       ],
       "allowCpuTensorRuntime": false,
@@ -247,7 +249,7 @@
         }
       ],
       "warnings": [
-        "GPU/model runtime did not start because explicit local-dev execution inputs were not provided.",
+        "GPU/model runtime did not start because Python package prerequisites are missing.",
         "GPU/model runtime is approved only for the scoped accepted tool call; idle GPU startup remains blocked."
       ]
     },

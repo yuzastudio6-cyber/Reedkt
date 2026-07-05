@@ -30,8 +30,8 @@ const runtimeContainerImageByTool: Record<
 > = {
   torch_torchvision: canonicalGpuWorkerProofImage,
   transformers: canonicalGpuWorkerProofImage,
-  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
-  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+  sam2: canonicalGpuWorkerProofImage,
+  birefnet: canonicalGpuWorkerProofImage,
   real_esrgan: canonicalGpuWorkerProofImage,
   kornia: canonicalGpuWorkerProofImage,
   rembg: canonicalGpuWorkerProofImage,

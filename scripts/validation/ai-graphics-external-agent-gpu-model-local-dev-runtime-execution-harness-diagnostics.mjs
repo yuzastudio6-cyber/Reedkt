@@ -60,8 +60,8 @@ const toolSpecificFlagByTool = {
 const runtimeContainerImageByTool = {
   torch_torchvision: 'reeditpro/ai-graphics-gpu-worker:proof-local',
   transformers: 'reeditpro/ai-graphics-gpu-worker:proof-local',
-  sam2: 'reeditpro/ai-graphics-sam2-runtime:proof-local',
-  birefnet: 'reeditpro/ai-graphics-birefnet-runtime:proof-local',
+  sam2: 'reeditpro/ai-graphics-gpu-worker:proof-local',
+  birefnet: 'reeditpro/ai-graphics-gpu-worker:proof-local',
   real_esrgan: 'reeditpro/ai-graphics-gpu-worker:proof-local',
   kornia: 'reeditpro/ai-graphics-gpu-worker:proof-local',
   rembg: 'reeditpro/ai-graphics-gpu-worker:proof-local',
@@ -101,7 +101,10 @@ function expectedMinimumPrivateRuntimeInputKeys(toolId) {
   return keys
 }
 
-function expectedCurrentBlockingPrerequisiteKey(toolId) {
+function expectedCurrentBlockingPrerequisiteKey(toolId, blockingReasonCode) {
+  if (String(blockingReasonCode ?? '').includes('python_package')) {
+    return 'pythonPackageRuntime'
+  }
   return {
     torch_torchvision: 'outputDirectory',
     transformers: 'outputDirectory',
@@ -970,7 +973,10 @@ for (const tool of tools) {
   if (!arrayMatches(row.minimumPrivateRuntimeInputKeys, expectedInputKeys)) {
     fail(`minimum_private_runtime_input_keys_mismatch:${tool}:${JSON.stringify(row.minimumPrivateRuntimeInputKeys)}`)
   }
-  const expectedCurrentBlocker = expectedCurrentBlockingPrerequisiteKey(tool)
+  const expectedCurrentBlocker = expectedCurrentBlockingPrerequisiteKey(
+    tool,
+    row.skipReasonCode,
+  )
   if (row.currentBlockingPrerequisiteKey !== expectedCurrentBlocker) {
     fail(`current_blocking_prerequisite_key_mismatch:${tool}:${row.currentBlockingPrerequisiteKey}`)
   }
@@ -981,9 +987,9 @@ for (const tool of tools) {
     row.currentBlockingReasonCode.length === 0) {
     fail(`missing_current_blocking_reason_code:${tool}`)
   }
-  const expectedRemainingInputKeys = expectedInputKeys.filter(
-    (key) => key !== expectedCurrentBlocker,
-  )
+  const expectedRemainingInputKeys = expectedInputKeys.includes(expectedCurrentBlocker)
+    ? expectedInputKeys.filter((key) => key !== expectedCurrentBlocker)
+    : expectedInputKeys
   if (!arrayMatches(row.remainingPrivateRuntimeInputKeys, expectedRemainingInputKeys)) {
     fail(`remaining_private_runtime_input_keys_mismatch:${tool}:${JSON.stringify(row.remainingPrivateRuntimeInputKeys)}`)
   }

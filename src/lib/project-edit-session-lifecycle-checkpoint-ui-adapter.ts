@@ -10,6 +10,9 @@ import type {
   ProjectSourceVideoLocalEditPreviewResult,
   ProjectSourceVideoLocalFinalExportResult,
   ProjectSourceVideoPreviewReviewResult,
+  ProjectSourceVideoProfessionalQACheck,
+  ProjectSourceVideoProfessionalQACheckId,
+  ProjectSourceVideoProfessionalQAResult,
 } from '../types/project-source-video'
 import type {
   ProjectEditSessionApprovalStatus,
@@ -82,6 +85,62 @@ function editAssemblyValue(value: unknown): ProjectSourceVideoEditAssemblySummar
     operationsApplied,
     planStepCount,
     productReady: false,
+  }
+}
+
+function professionalQAValue(value: unknown): ProjectSourceVideoProfessionalQAResult | undefined {
+  const record = objectValue(value)
+  if (!record) return undefined
+  const status = stringValue(record.status)
+  const blockers = Array.isArray(record.blockers)
+    ? record.blockers.filter((item): item is ProjectSourceVideoProfessionalQACheckId => typeof item === 'string')
+    : []
+  const checks = Array.isArray(record.checks)
+    ? record.checks.map((item) => {
+        const checkRecord = objectValue(item)
+        const id = stringValue(checkRecord?.id)
+        const label = stringValue(checkRecord?.label)
+        const blocker = stringValue(checkRecord?.blocker)
+        const passed = checkRecord?.passed === true
+        if (!id || !label || !blocker) return undefined
+        return { id, label, blocker, passed } as ProjectSourceVideoProfessionalQACheck
+      }).filter(Boolean) as ProjectSourceVideoProfessionalQACheck[]
+    : []
+  const id = stringValue(record.id)
+  const workspaceId = stringValue(record.workspaceId)
+  const editPlanId = stringValue(record.editPlanId)
+  const renderId = stringValue(record.renderId)
+  const approvedPlanSnapshotId = stringValue(record.approvedPlanSnapshotId)
+  const creditReservationId = stringValue(record.creditReservationId)
+  const previewReviewId = stringValue(record.previewReviewId)
+  const createdAt = stringValue(record.createdAt)
+  if (!id || !workspaceId || !editPlanId || !renderId || !approvedPlanSnapshotId || !creditReservationId || !previewReviewId || !createdAt || (status !== 'passed' && status !== 'blocked')) {
+    return undefined
+  }
+
+  return {
+    id,
+    workspaceId,
+    editPlanId,
+    renderId,
+    approvedPlanSnapshotId,
+    creditReservationId,
+    previewReviewId,
+    status,
+    createdAt,
+    checks,
+    blockers,
+    finalExportStarted: false,
+    publicDeliveryEnabled: false,
+    providerCallMade: false,
+    workerJobCreated: false,
+    renderJobCreated: false,
+    mediaProcessingStarted: false,
+    creditReservedOrSpent: false,
+    supabaseWriteMade: false,
+    gcsWriteMade: false,
+    productReady: false,
+    warnings: ['Restored professional QA checkpoint metadata from the edit-session checkpoint.'],
   }
 }
 
@@ -183,6 +242,7 @@ export function createFinalExportReadyCheckpointMetadata(result: ProjectSourceVi
     checksumSha256: result.checksumSha256,
     editAssembly: result.editAssembly,
     previewReviewId: result.previewReviewId,
+    professionalQA: result.professionalQA,
     finalExportStarted: result.finalExportStarted,
     publicDeliveryEnabled: result.publicDeliveryEnabled,
     productReady: false,
@@ -345,6 +405,7 @@ export function restoreFinalExportResult(session: ProjectEditSessionRecord | und
     checksumSha256: stringValue(metadata.checksumSha256),
     editAssembly: editAssemblyValue(metadata.editAssembly),
     previewReviewId,
+    professionalQA: professionalQAValue(metadata.professionalQA),
     finalExportStarted: true,
     publicDeliveryEnabled: false,
     providerCallMade: false,

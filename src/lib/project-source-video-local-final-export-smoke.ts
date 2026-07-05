@@ -5,7 +5,9 @@ import type {
   ProjectSourceVideoLocalEditPreviewResult,
   ProjectSourceVideoLocalFinalExportResult,
   ProjectSourceVideoPreviewReviewResult,
+  ProjectSourceVideoProfessionalQAResult,
 } from '../types/project-source-video'
+import { assertProjectSourceVideoProfessionalQAPassed } from './project-source-video-professional-qa'
 
 interface ApiEnvelope<TData> {
   ok?: boolean
@@ -57,6 +59,7 @@ export interface RunProjectSourceVideoLocalFinalExportSmokeInput {
   workspaceId: string
   previewResult: ProjectSourceVideoLocalEditPreviewResult
   previewReviewResult: ProjectSourceVideoPreviewReviewResult
+  professionalQAResult: ProjectSourceVideoProfessionalQAResult
   sourceVideoUploadResult: ProjectSourceVideoBackendUploadResult
   fetchImpl?: typeof fetch
   getAccessToken?: () => Promise<string | undefined>
@@ -130,6 +133,13 @@ export async function runProjectSourceVideoLocalFinalExportSmoke(
   if (input.previewReviewResult.reviewStatus !== 'approved') {
     throw new Error('Final export requires an approved preview review.')
   }
+  assertProjectSourceVideoProfessionalQAPassed(input.professionalQAResult)
+  if (input.professionalQAResult.previewReviewId !== input.previewReviewResult.id) {
+    throw new Error('Final export professional QA must reference the approved preview review.')
+  }
+  if (input.professionalQAResult.renderId !== input.previewResult.renderId) {
+    throw new Error('Final export professional QA must reference the preview render.')
+  }
   if (!input.sourceVideoUploadResult.mediaAssetId) {
     throw new Error('Final export requires a finalized media asset id from backend-local upload.')
   }
@@ -186,6 +196,8 @@ export async function runProjectSourceVideoLocalFinalExportSmoke(
       strict: true,
       previewReviewId: input.previewReviewResult.id,
       previewReviewStatus: 'approved',
+      professionalQAId: input.professionalQAResult.id,
+      professionalQAStatus: input.professionalQAResult.status,
       editAssemblyPlan: editAssembly,
     }),
   }))
@@ -214,6 +226,7 @@ export async function runProjectSourceVideoLocalFinalExportSmoke(
     checksumSha256: finalExportSmoke.checksumSha256,
     editAssembly: finalExportSmoke.editAssembly ?? editAssembly,
     previewReviewId: input.previewReviewResult.id,
+    professionalQA: input.professionalQAResult,
     finalExportStarted: true,
     publicDeliveryEnabled: false,
     providerCallMade: false,

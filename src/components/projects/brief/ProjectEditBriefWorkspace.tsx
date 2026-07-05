@@ -59,6 +59,7 @@ import type {
   ProjectSourceVideoLocalPreview,
   ProjectSourceVideoMetadataUpdate,
   ProjectSourceVideoPreviewReviewResult,
+  ProjectSourceVideoProfessionalQAResult,
 } from '../../../types/project-source-video'
 import type { ProjectEditBriefVideoShellModel } from '../../../lib/project-edit-brief-ui-adapter'
 import type {
@@ -68,6 +69,7 @@ import type {
 import { ProjectEditBriefLocalPreviewSmokeCard } from './ProjectEditBriefLocalPreviewSmokeCard'
 import { ProjectEditBriefFinalExportCard } from './ProjectEditBriefFinalExportCard'
 import { ProjectEditBriefPreviewReviewCard } from './ProjectEditBriefPreviewReviewCard'
+import { ProjectEditBriefProfessionalQACard } from './ProjectEditBriefProfessionalQACard'
 import { ProjectEditBriefSourceVideoPicker } from './ProjectEditBriefSourceVideoPicker'
 import { ProjectEditBriefSourceVideoSummary } from './ProjectEditBriefSourceVideoSummary'
 import { ProjectEditBriefVideoShell } from './ProjectEditBriefVideoShell'
@@ -107,6 +109,7 @@ export function ProjectEditBriefWorkspace({
   const [planApprovalError, setPlanApprovalError] = useState<string | undefined>()
   const [backendApprovedLocalPlan, setBackendApprovedLocalPlan] = useState<ProjectEditPlanBackendApprovalResult | undefined>()
   const [previewReviewResult, setPreviewReviewResult] = useState<ProjectSourceVideoPreviewReviewResult | undefined>()
+  const [professionalQAResult, setProfessionalQAResult] = useState<ProjectSourceVideoProfessionalQAResult | undefined>()
   const [statusMessage, setStatusMessage] = useState('Ready for source video and brief notes.')
   const sourceVideoRef = useRef<ProjectSourceVideoLocalPreview | undefined>(undefined)
 
@@ -152,7 +155,14 @@ export function ProjectEditBriefWorkspace({
     planReady: planApprovalModel.canApprove || planApprovalModel.approved,
     previewReviewResult,
     projectId,
-  }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localFinalExportResult, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, previewReviewResult, projectId, sourceVideo])
+    finalExportEvidence: {
+      professionalQaPassed: professionalQAResult?.status === 'passed',
+      requiredAssetsReady: professionalQAResult?.status === 'passed',
+      artifactManifestReady: Boolean(localFinalExportResult),
+      finalRenderWorkerReady: Boolean(localFinalExportResult),
+      exportDeliveryPolicyReady: Boolean(localFinalExportResult),
+    },
+  }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localFinalExportResult, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, previewReviewResult, professionalQAResult, projectId, sourceVideo])
 
   useEffect(() => {
     let cancelled = false
@@ -171,7 +181,10 @@ export function ProjectEditBriefWorkspace({
       }
       if (restoredPreview) setLocalPreviewResult(restoredPreview)
       if (restoredReview) setPreviewReviewResult(restoredReview)
-      if (restoredFinalExport) setLocalFinalExportResult(restoredFinalExport)
+      if (restoredFinalExport) {
+        setLocalFinalExportResult(restoredFinalExport)
+        setProfessionalQAResult(restoredFinalExport.professionalQA)
+      }
       if (restoredUpload || restoredPreview || restoredReview || restoredFinalExport) {
         setStatusMessage('Backend-local edit progress restored from the edit-session lifecycle checkpoints.')
       }
@@ -259,6 +272,7 @@ export function ProjectEditBriefWorkspace({
       setPlanApprovalError(undefined)
       setBackendApprovedLocalPlan(undefined)
       setPreviewReviewResult(undefined)
+      setProfessionalQAResult(undefined)
       setBackendUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
       setPlayheadSeconds(0)
       setPlaying(false)
@@ -285,6 +299,7 @@ export function ProjectEditBriefWorkspace({
     setPlanApprovalError(undefined)
     setBackendApprovedLocalPlan(undefined)
     setPreviewReviewResult(undefined)
+    setProfessionalQAResult(undefined)
     setBackendUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
     setPlayheadSeconds(0)
     setPlaying(false)
@@ -338,6 +353,7 @@ export function ProjectEditBriefWorkspace({
     setPlanApprovalError(undefined)
     setBackendApprovedLocalPlan(undefined)
     setPreviewReviewResult(undefined)
+    setProfessionalQAResult(undefined)
     setBriefSaved(false)
     setBackendSavedBrief(undefined)
     setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
@@ -413,6 +429,7 @@ export function ProjectEditBriefWorkspace({
     setPlanApprovalError(undefined)
     setBackendApprovedLocalPlan(undefined)
     setPreviewReviewResult(undefined)
+    setProfessionalQAResult(undefined)
     setPlanApproved(false)
   }
 
@@ -429,6 +446,7 @@ export function ProjectEditBriefWorkspace({
     setPlanApprovalError(undefined)
     setBackendApprovedLocalPlan(undefined)
     setPreviewReviewResult(undefined)
+    setProfessionalQAResult(undefined)
   }
 
   async function approveLocalPlan() {
@@ -443,6 +461,8 @@ export function ProjectEditBriefWorkspace({
     setPlanApprovalError(undefined)
     setLocalPreviewResult(undefined)
     setLocalFinalExportResult(undefined)
+    setPreviewReviewResult(undefined)
+    setProfessionalQAResult(undefined)
     try {
       const result = await approveProjectEditPlanBackendLocal({
         apiBaseUrl: backendUploadConfig.apiBaseUrl,
@@ -462,6 +482,7 @@ export function ProjectEditBriefWorkspace({
       })
       setBackendApprovedLocalPlan(result)
       setPreviewReviewResult(undefined)
+      setProfessionalQAResult(undefined)
       setLocalFinalExportResult(undefined)
       setPlanApproved(true)
       setPlanApprovalStatus('approved')
@@ -573,6 +594,7 @@ export function ProjectEditBriefWorkspace({
             onPreviewReady={(result) => {
               setLocalPreviewResult(result)
               setPreviewReviewResult(undefined)
+              setProfessionalQAResult(undefined)
               setLocalFinalExportResult(undefined)
               void recordLifecycleCheckpoint({
                 checkpointKind: 'preview_ready',
@@ -602,6 +624,7 @@ export function ProjectEditBriefWorkspace({
             config={localPreviewConfig}
             onReviewRecorded={(result) => {
               setPreviewReviewResult(result)
+              setProfessionalQAResult(undefined)
               setLocalFinalExportResult(undefined)
               void recordLifecycleCheckpoint({
                 checkpointKind: 'preview_reviewed',
@@ -619,6 +642,20 @@ export function ProjectEditBriefWorkspace({
                 : 'Preview changes requested and recorded. Update the brief or plan before another preview.')
             }}
             previewResult={localPreviewResult}
+          />
+          <ProjectEditBriefProfessionalQACard
+            onQARecorded={(result) => {
+              setProfessionalQAResult(result)
+              setLocalFinalExportResult(undefined)
+              setStatusMessage(result.status === 'passed'
+                ? 'Professional QA checkpoint passed. Private export is available for internal review.'
+                : 'Professional QA checkpoint is blocked. Resolve the listed readiness items before export.')
+            }}
+            previewResult={localPreviewResult}
+            previewReviewResult={previewReviewResult}
+            professionalQAResult={professionalQAResult}
+            sourceVideoUploadResult={backendUploadResult}
+            workspaceId={backendUploadConfig.workspaceId}
           />
           <ProjectEditBriefFinalExportCard
             apiBaseUrl={localPreviewConfig.apiBaseUrl ?? backendUploadConfig.apiBaseUrl ?? briefConfig.apiBaseUrl}
@@ -646,6 +683,7 @@ export function ProjectEditBriefWorkspace({
             onStatusMessage={setStatusMessage}
             previewResult={localPreviewResult}
             previewReviewResult={previewReviewResult}
+            professionalQAResult={professionalQAResult}
             projectId={projectId}
             sourceVideoUploadResult={backendUploadResult}
             workspaceId={backendUploadConfig.workspaceId}

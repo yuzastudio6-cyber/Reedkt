@@ -10,6 +10,7 @@ import type {
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoLocalEditPreviewResult,
   ProjectSourceVideoLocalFinalExportResult,
+  ProjectSourceVideoProfessionalQAResult,
 } from '../../src/types/project-source-video'
 
 const root = process.cwd()
@@ -336,6 +337,75 @@ assert.equal(reviewedModel.finalExportReadiness.allowed, false)
 assert.ok(reviewedModel.finalExportReadiness.blockers.includes('professional_qa_passed'))
 assert.ok(reviewedModel.finalExportReadiness.blockers.includes('required_assets_ready'))
 
+const professionalQA: ProjectSourceVideoProfessionalQAResult = {
+  id: 'professional-qa-render-1',
+  workspaceId: 'mock-workspace',
+  editPlanId: backendPlanReadback.localEditPlan.editPlanId,
+  renderId: 'render-1',
+  approvedPlanSnapshotId: preview.approvedPlanSnapshotId,
+  creditReservationId: preview.creditReservationId,
+  previewReviewId: 'preview-review-1',
+  status: 'passed',
+  createdAt: '2026-07-05T00:00:00.000Z',
+  checks: [
+    { id: 'source_uploaded', label: 'Source recorded', passed: true, blocker: 'backend_local_source_upload_required' },
+    { id: 'approved_snapshot_present', label: 'Approved snapshot present', passed: true, blocker: 'approved_plan_snapshot_required' },
+    { id: 'credit_reservation_present', label: 'Credit approval record present', passed: true, blocker: 'credit_reservation_required' },
+    { id: 'preview_ready', label: 'Preview ready', passed: true, blocker: 'preview_ready_required' },
+    { id: 'preview_review_approved', label: 'Preview approved', passed: true, blocker: 'preview_approval_required' },
+    { id: 'edit_assembly_ready', label: 'Approved plan carried into preview', passed: true, blocker: 'edit_assembly_required' },
+    { id: 'private_artifact_boundary', label: 'Private internal boundary intact', passed: true, blocker: 'private_artifact_boundary_required' },
+  ],
+  blockers: [],
+  finalExportStarted: false,
+  publicDeliveryEnabled: false,
+  providerCallMade: false,
+  workerJobCreated: false,
+  renderJobCreated: false,
+  mediaProcessingStarted: false,
+  creditReservedOrSpent: false,
+  supabaseWriteMade: false,
+  gcsWriteMade: false,
+  productReady: false,
+  warnings: [],
+}
+
+const qaReadyModel = buildProjectEditLifecycleModel({
+  backendUploadAvailable: true,
+  backendUploadResult: uploaded,
+  backendUploadStatus: 'uploaded',
+  briefSaved: true,
+  editSessionId: 'edit-session-youtube-wide',
+  finalExportEvidence: {
+    professionalQaPassed: professionalQA.status === 'passed',
+    requiredAssetsReady: professionalQA.status === 'passed',
+  },
+  hasLocalSourceVideo: true,
+  localPreviewResult: preview,
+  planApproved: true,
+  planReady: true,
+  previewReviewResult: {
+    id: 'preview-review-1',
+    renderId: 'render-1',
+    workspaceId: 'mock-workspace',
+    reviewStatus: 'approved',
+    finalExportStarted: false,
+    providerCallMade: false,
+    workerJobCreated: false,
+    renderJobCreated: false,
+    creditReservedOrSpent: false,
+    supabaseWriteMade: false,
+    gcsWriteMade: false,
+    productReady: false,
+    warnings: [],
+  },
+  projectId: 'mock-project-edit-chat-foundation',
+})
+assert.equal(qaReadyModel.finalExportReadiness.allowed, false)
+assert.equal(qaReadyModel.finalExportReadiness.blockers.includes('professional_qa_passed'), false)
+assert.equal(qaReadyModel.finalExportReadiness.blockers.includes('required_assets_ready'), false)
+assert.ok(qaReadyModel.finalExportReadiness.blockers.includes('artifact_manifest_ready'))
+
 const localFinalExport: ProjectSourceVideoLocalFinalExportResult = {
   status: 'final_export_ready',
   editPlanId: backendPlanReadback.localEditPlan.editPlanId,
@@ -352,6 +422,7 @@ const localFinalExport: ProjectSourceVideoLocalFinalExportResult = {
   sizeBytes: 2048,
   checksumSha256: 'abcdef1234567890',
   previewReviewId: 'preview-review-1',
+  professionalQA,
   finalExportStarted: true,
   publicDeliveryEnabled: false,
   providerCallMade: false,
@@ -389,6 +460,13 @@ const localFinalExportModel = buildProjectEditLifecycleModel({
     warnings: [],
   },
   projectId: 'mock-project-edit-chat-foundation',
+  finalExportEvidence: {
+    artifactManifestReady: true,
+    exportDeliveryPolicyReady: true,
+    finalRenderWorkerReady: true,
+    professionalQaPassed: localFinalExport.professionalQA?.status === 'passed',
+    requiredAssetsReady: localFinalExport.professionalQA?.status === 'passed',
+  },
 })
 assert.equal(localFinalExportModel.finalExportReadiness.allowed, true)
 assert.equal(localFinalExportModel.finalExportAllowed, true)
@@ -485,6 +563,7 @@ for (const phrase of [
   'ProjectEditPlanApprovalCard',
   'ProjectEditBriefLocalPreviewSmokeCard',
   'ProjectEditBriefPreviewReviewCard',
+  'ProjectEditBriefProfessionalQACard',
   'ProjectEditBriefFinalExportCard',
   'ProjectEditLifecycleStatusCard',
   'buildProjectEditPlanApprovalModel',
@@ -499,6 +578,7 @@ for (const phrase of [
   'createProjectSourceVideoLocalEditPreviewConfig',
   'backendApprovedLocalPlan',
   'previewReviewResult',
+  'professionalQAResult',
   'readbackVerified',
 ]) {
   assert.match(workspace, new RegExp(phrase))
@@ -530,9 +610,16 @@ const finalExportCard = read('src/components/projects/brief/ProjectEditBriefFina
 assert.match(finalExportCard, /runProjectSourceVideoLocalFinalExportSmoke/)
 assert.match(finalExportCard, /Create private export/)
 assert.match(finalExportCard, /previewReviewResult/)
+assert.match(finalExportCard, /professionalQAResult/)
 assert.match(finalExportCard, /public delivery/i)
 assert.match(finalExportCard, /approved plan steps carried into the export/)
 assert.doesNotMatch(finalExportCard, /signedUrl|production ready:\s*true/i)
+
+const professionalQACard = read('src/components/projects/brief/ProjectEditBriefProfessionalQACard.tsx')
+assert.match(professionalQACard, /createProjectSourceVideoProfessionalQA/)
+assert.match(professionalQACard, /Run QA check/)
+assert.match(professionalQACard, /no media or public delivery starts/i)
+assert.doesNotMatch(professionalQACard, /signedUrl|production ready:\s*true/i)
 
 const lifecycleModelSource = read('src/lib/project-edit-lifecycle.ts')
 assert.match(lifecycleModelSource, /ProjectEditFinalExportReadiness/)
@@ -557,6 +644,7 @@ assert.doesNotMatch(previewClient, /const editPlanId = `edit-plan-\\$\\{input\\.
 const finalExportClient = read('src/lib/project-source-video-local-final-export-smoke.ts')
 assert.match(finalExportClient, /basic-smoke-final-export/)
 assert.match(finalExportClient, /previewReviewStatus: 'approved'/)
+assert.match(finalExportClient, /assertProjectSourceVideoProfessionalQAPassed/)
 assert.match(finalExportClient, /publicDeliveryEnabled: false/)
 assert.match(finalExportClient, /productReady: false/)
 assert.match(finalExportClient, /private_final_export/)
@@ -623,5 +711,6 @@ console.log(JSON.stringify({
   productReady: previewModel.productReady,
   finalExportAllowed: previewModel.finalExportAllowed,
   conditionalFinalExportCanPass: finalExportReadyModel.finalExportAllowed,
+  qaReadyStillNeedsExportEvidence: qaReadyModel.finalExportAllowed,
   privateFinalExportCanPass: localFinalExportModel.finalExportAllowed,
 }, null, 2))

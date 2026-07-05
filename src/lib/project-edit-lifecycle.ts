@@ -137,8 +137,8 @@ function buildFinalExportReadiness(input: {
         artifactManifestReady: true,
         exportDeliveryPolicyReady: true,
         finalRenderWorkerReady: true,
-        professionalQaPassed: true,
-        requiredAssetsReady: true,
+        professionalQaPassed: input.evidence?.professionalQaPassed === true,
+        requiredAssetsReady: input.evidence?.requiredAssetsReady === true,
         ...(input.evidence ?? {}),
       }
     : input.evidence

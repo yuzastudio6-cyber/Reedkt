@@ -39,6 +39,7 @@ import { uploadProjectSourceVideoToBackend } from '../../src/lib/project-source-
 import { runProjectSourceVideoLocalEditPreviewSmoke } from '../../src/lib/project-source-video-local-edit-preview-smoke'
 import { runProjectSourceVideoLocalFinalExportSmoke } from '../../src/lib/project-source-video-local-final-export-smoke'
 import { createProjectSourceVideoPreviewReview } from '../../src/lib/project-source-video-preview-review'
+import { createProjectSourceVideoProfessionalQA } from '../../src/lib/project-source-video-professional-qa'
 
 function localUrl(port: number): string {
   return `http://127.0.0.1:${port}`
@@ -265,6 +266,16 @@ try {
     getAccessToken: async () => undefined,
   })
 
+  const professionalQA = createProjectSourceVideoProfessionalQA({
+    previewResult: preview,
+    previewReviewResult: review,
+    sourceVideoUploadResult: upload,
+    workspaceId,
+  })
+  assert.equal(professionalQA.status, 'passed')
+  assert.equal(professionalQA.productReady, false)
+  assert.deepEqual(professionalQA.blockers, [])
+
   const finalExport = await runProjectSourceVideoLocalFinalExportSmoke({
     apiBaseUrl,
     editPlanId: approvedPlan.localEditPlan.editPlanId,
@@ -272,6 +283,7 @@ try {
     workspaceId,
     previewResult: preview,
     previewReviewResult: review,
+    professionalQAResult: professionalQA,
     sourceVideoUploadResult: upload,
     getAccessToken: async () => undefined,
   })
@@ -283,6 +295,7 @@ try {
   assert.equal(finalExport.editAssembly?.planId, approvedPlan.localEditPlan.editPlanId)
   assert.equal(finalExport.editAssembly?.mode, 'private_final_export')
   assert.ok(finalExport.editAssembly?.operationsApplied.includes('approved_preview_review_carried_forward'))
+  assert.equal(finalExport.professionalQA?.status, 'passed')
 
   await recordProjectEditSessionLifecycleCheckpointBackendLocal({
     apiBaseUrl,
@@ -375,6 +388,13 @@ try {
     planReady: true,
     previewReviewResult: restoredReview,
     projectId: project.project.id,
+    finalExportEvidence: {
+      professionalQaPassed: restoredFinalExport?.professionalQA?.status === 'passed',
+      requiredAssetsReady: restoredFinalExport?.professionalQA?.status === 'passed',
+      artifactManifestReady: Boolean(restoredFinalExport),
+      finalRenderWorkerReady: Boolean(restoredFinalExport),
+      exportDeliveryPolicyReady: Boolean(restoredFinalExport),
+    },
   })
   assert.equal(lifecycle.stages.find((stage) => stage.id === 'preview_review_required')?.status, 'complete')
   assert.equal(lifecycle.finalExportAllowed, true)
@@ -394,6 +414,7 @@ try {
     previewStatus: preview.status,
     previewAssemblyMode: preview.editAssembly?.mode,
     reviewStatus: review.reviewStatus,
+    professionalQAStatus: professionalQA.status,
     finalExportStatus: finalExport.status,
     finalExportAssemblyMode: finalExport.editAssembly?.mode,
     restoredLifecycleStatus: finalSession.editSession.status,

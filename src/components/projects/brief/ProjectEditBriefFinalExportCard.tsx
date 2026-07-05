@@ -8,6 +8,7 @@ import type {
   ProjectSourceVideoLocalEditPreviewResult,
   ProjectSourceVideoLocalFinalExportResult,
   ProjectSourceVideoPreviewReviewResult,
+  ProjectSourceVideoProfessionalQAResult,
 } from '../../../types/project-source-video'
 
 type ProjectEditBriefFinalExportCardProps = {
@@ -18,6 +19,7 @@ type ProjectEditBriefFinalExportCardProps = {
   onStatusMessage?: (message: string) => void
   previewResult?: ProjectSourceVideoLocalEditPreviewResult
   previewReviewResult?: ProjectSourceVideoPreviewReviewResult
+  professionalQAResult?: ProjectSourceVideoProfessionalQAResult
   projectId: string
   sourceVideoUploadResult?: ProjectSourceVideoBackendUploadResult
   workspaceId: string
@@ -38,6 +40,7 @@ export function ProjectEditBriefFinalExportCard({
   onStatusMessage,
   previewResult,
   previewReviewResult,
+  professionalQAResult,
   projectId,
   sourceVideoUploadResult,
   workspaceId,
@@ -49,11 +52,12 @@ export function ProjectEditBriefFinalExportCard({
     editPlanId &&
     sourceVideoUploadResult &&
     previewResult?.status === 'preview_ready' &&
-    previewReviewResult?.reviewStatus === 'approved',
+    previewReviewResult?.reviewStatus === 'approved' &&
+    professionalQAResult?.status === 'passed',
   )
 
   async function runFinalExport() {
-    if (!apiBaseUrl || !editPlanId || !previewResult || !previewReviewResult || !sourceVideoUploadResult || running) return
+    if (!apiBaseUrl || !editPlanId || !previewResult || !previewReviewResult || !professionalQAResult || !sourceVideoUploadResult || running) return
     setRunning(true)
     setError(undefined)
     onStatusMessage?.('Creating private final export for internal testing.')
@@ -63,6 +67,7 @@ export function ProjectEditBriefFinalExportCard({
         editPlanId,
         previewResult,
         previewReviewResult,
+        professionalQAResult,
         projectId,
         sourceVideoUploadResult,
         workspaceId,
@@ -94,6 +99,7 @@ export function ProjectEditBriefFinalExportCard({
         <div className="project-edit-brief-final-export__result" data-testid="project-edit-final-export-result">
           <strong>Export ready</strong>
           <span>{formatBytes(finalExportResult.sizeBytes)}</span>
+          <span>{finalExportResult.professionalQA?.id ?? 'Professional QA checkpoint carried into export'}</span>
           {finalExportResult.editAssembly ? <span>{finalExportResult.editAssembly.planStepCount} approved plan steps carried into the export</span> : null}
           <span>{finalExportResult.outputObjectPath ?? 'Private object path recorded'}</span>
           <span>{finalExportResult.checksumSha256 ? `Checksum ${finalExportResult.checksumSha256.slice(0, 12)}` : 'Checksum pending'}</span>
@@ -108,7 +114,7 @@ export function ProjectEditBriefFinalExportCard({
 
       {!canRun ? (
         <p className="project-edit-brief-final-export__hint">
-          Save the brief, approve the plan, run the preview, and approve the preview before creating a private export.
+          Save the brief, approve the plan, run the preview, approve the preview, and pass QA before creating a private export.
         </p>
       ) : null}
     </Card>

@@ -54,6 +54,24 @@ export type ProjectSourceVideoPreviewReviewStatus =
   | 'changes_requested'
   | 'failed'
 
+export type ProjectSourceVideoProfessionalQAStatus = 'passed' | 'blocked'
+
+export type ProjectSourceVideoProfessionalQACheckId =
+  | 'source_uploaded'
+  | 'approved_snapshot_present'
+  | 'credit_reservation_present'
+  | 'preview_ready'
+  | 'preview_review_approved'
+  | 'edit_assembly_ready'
+  | 'private_artifact_boundary'
+
+export interface ProjectSourceVideoProfessionalQACheck {
+  id: ProjectSourceVideoProfessionalQACheckId
+  label: string
+  passed: boolean
+  blocker: string
+}
+
 export type ProjectSourceVideoLocalFinalExportStatus =
   | 'unavailable'
   | 'waiting_for_preview_review'
@@ -183,6 +201,31 @@ export interface ProjectSourceVideoPreviewReviewResult {
   warnings: string[]
 }
 
+export interface ProjectSourceVideoProfessionalQAResult {
+  id: string
+  workspaceId: string
+  editPlanId: string
+  renderId: string
+  approvedPlanSnapshotId: string
+  creditReservationId: string
+  previewReviewId: string
+  status: ProjectSourceVideoProfessionalQAStatus
+  createdAt: string
+  checks: ProjectSourceVideoProfessionalQACheck[]
+  blockers: ProjectSourceVideoProfessionalQACheckId[]
+  finalExportStarted: false
+  publicDeliveryEnabled: false
+  providerCallMade: false
+  workerJobCreated: false
+  renderJobCreated: false
+  mediaProcessingStarted: false
+  creditReservedOrSpent: false
+  supabaseWriteMade: false
+  gcsWriteMade: false
+  productReady: false
+  warnings: string[]
+}
+
 export interface ProjectSourceVideoLocalFinalExportResult {
   status: 'final_export_ready'
   editPlanId: string
@@ -200,6 +243,7 @@ export interface ProjectSourceVideoLocalFinalExportResult {
   checksumSha256?: string
   editAssembly?: ProjectSourceVideoEditAssemblySummary
   previewReviewId: string
+  professionalQA?: ProjectSourceVideoProfessionalQAResult
   finalExportStarted: true
   publicDeliveryEnabled: false
   providerCallMade: false

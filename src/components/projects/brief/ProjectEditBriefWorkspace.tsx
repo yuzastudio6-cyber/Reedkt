@@ -6,11 +6,13 @@ import { ProjectEditPlanApprovalCard } from '../ProjectEditPlanApprovalCard'
 import { ProjectEditLifecycleStatusCard } from '../ProjectEditLifecycleStatusCard'
 import {
   createProjectEditBriefBackendLocalConfig,
+  readProjectEditBriefBackendLocal,
   saveProjectEditBriefBackendLocal,
   type ProjectEditBriefBackendLocalRecord,
 } from '../../../lib/project-edit-brief-backend-local'
 import {
   recordProjectEditSessionLifecycleCheckpointBackendLocal,
+  type ProjectEditSessionBackendLocalRecord,
   type ProjectEditSessionLifecycleCheckpointKind,
 } from '../../../lib/project-edit-session-backend-local'
 import { approveProjectEditPlanBackendLocal } from '../../../lib/project-edit-plan-backend-local'
@@ -36,6 +38,17 @@ import type {
   ProjectEditPlanApprovalModel,
   ProjectEditPlanBackendApprovalResult,
 } from '../../../lib/project-edit-plan-approval'
+import {
+  createBriefSavedCheckpointMetadata,
+  createPlanApprovedCheckpointMetadata,
+  createPreviewReadyCheckpointMetadata,
+  createPreviewReviewedCheckpointMetadata,
+  createRestoredApprovedLocalPlan,
+  createSourceUploadCheckpointMetadata,
+  restoreBackendUploadResult,
+  restorePreviewResult,
+  restorePreviewReviewResult,
+} from '../../../lib/project-edit-session-lifecycle-checkpoint-ui-adapter'
 import type {
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoBackendUploadStatus,
@@ -45,7 +58,10 @@ import type {
   ProjectSourceVideoPreviewReviewResult,
 } from '../../../types/project-source-video'
 import type { ProjectEditBriefVideoShellModel } from '../../../lib/project-edit-brief-ui-adapter'
-import type { ProjectEditSessionApprovalStatus, ProjectEditSessionStatus } from '../../../types/project-edit-session'
+import type {
+  ProjectEditSessionApprovalStatus,
+  ProjectEditSessionStatus,
+} from '../../../types/project-edit-session'
 import { ProjectEditBriefLocalPreviewSmokeCard } from './ProjectEditBriefLocalPreviewSmokeCard'
 import { ProjectEditBriefPreviewReviewCard } from './ProjectEditBriefPreviewReviewCard'
 import { ProjectEditBriefSourceVideoPicker } from './ProjectEditBriefSourceVideoPicker'
@@ -53,12 +69,18 @@ import { ProjectEditBriefSourceVideoSummary } from './ProjectEditBriefSourceVide
 import { ProjectEditBriefVideoShell } from './ProjectEditBriefVideoShell'
 
 type ProjectEditBriefWorkspaceProps = {
+  backendLocalEditSession?: ProjectEditSessionBackendLocalRecord
   editSessionId: string
   editSessionTitle?: string
   projectId: string
 }
 
-export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, projectId }: ProjectEditBriefWorkspaceProps) {
+export function ProjectEditBriefWorkspace({
+  backendLocalEditSession,
+  editSessionId,
+  editSessionTitle,
+  projectId,
+}: ProjectEditBriefWorkspaceProps) {
   const briefConfig = useMemo(() => createProjectEditBriefBackendLocalConfig(import.meta.env), [])
   const backendUploadConfig = useMemo(() => createProjectSourceVideoBackendUploadConfig(import.meta.env), [])
   const localPreviewConfig = useMemo(() => createProjectSourceVideoLocalEditPreviewConfig(import.meta.env), [])
@@ -125,6 +147,93 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     previewReviewResult,
     projectId,
   }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, previewReviewResult, projectId, sourceVideo])
+
+  useEffect(() => {
+    let cancelled = false
+    if (!backendLocalEditSession) return
+
+    Promise.resolve().then(() => {
+      if (cancelled) return
+      const restoredUpload = restoreBackendUploadResult(backendLocalEditSession)
+      const restoredPreview = restorePreviewResult(backendLocalEditSession)
+      const restoredReview = restorePreviewReviewResult(backendLocalEditSession)
+
+      if (restoredUpload) {
+        setBackendUploadResult(restoredUpload)
+        setBackendUploadStatus('uploaded')
+      }
+      if (restoredPreview) setLocalPreviewResult(restoredPreview)
+      if (restoredReview) setPreviewReviewResult(restoredReview)
+      if (restoredUpload || restoredPreview || restoredReview) {
+        setStatusMessage('Backend-local edit progress restored from the edit-session lifecycle checkpoints.')
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [backendLocalEditSession])
+
+  useEffect(() => {
+    let cancelled = false
+    if (!briefConfig.available || !briefConfig.apiBaseUrl) return
+
+    readProjectEditBriefBackendLocal({
+      apiBaseUrl: briefConfig.apiBaseUrl,
+      editSessionId,
+      projectId,
+      workspaceId: briefConfig.workspaceId,
+    }).then((result) => {
+      if (cancelled) return
+      setBackendSavedBrief(result.editBrief)
+      setBriefText(result.editBrief.briefText)
+      setBriefSaved(true)
+      setBriefSaveStatus('saved')
+      setBriefSaveError(undefined)
+      setStatusMessage('Backend-local brief restored from saved readback.')
+    }).catch(() => {
+      // A new edit will not have a saved backend-local brief yet.
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [briefConfig.apiBaseUrl, briefConfig.available, briefConfig.workspaceId, editSessionId, projectId])
+
+  useEffect(() => {
+    let cancelled = false
+    if (!backendLocalEditSession || !backendUploadResult || !backendSavedBrief?.readbackVerified || backendApprovedLocalPlan) return
+
+    Promise.resolve().then(() => {
+      if (cancelled) return
+      const restoredPlanModel = buildProjectEditPlanApprovalModel({
+        approved: true,
+        backendUploadResult,
+        briefSaved: true,
+        briefText: backendSavedBrief.briefText,
+        editSessionId,
+        projectId,
+        sourceAspectRatio: sourceVideo?.inferredAspectRatio,
+        sourceDurationSeconds: sourceVideo?.durationSeconds,
+        sourceFileName: sourceVideo?.fileName,
+      })
+      const restoredPlan = createRestoredApprovedLocalPlan({
+        approvedPlan: restoredPlanModel,
+        sourceVideoUploadResult: backendUploadResult,
+        session: backendLocalEditSession,
+      })
+      if (!restoredPlan) return
+      setBackendApprovedLocalPlan(restoredPlan)
+      setPlanApproved(true)
+      setPlanApprovalStatus('approved')
+      setPlanApprovalError(undefined)
+      setStatusMessage('Backend-local approved plan restored from the edit-session lifecycle checkpoints.')
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [backendApprovedLocalPlan, backendLocalEditSession, backendSavedBrief, backendUploadResult, editSessionId, projectId, sourceVideo])
 
   function handleVideoSelected(file?: File) {
     if (!file) return
@@ -234,15 +343,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
         checkpointKind: 'source_uploaded',
         status: 'setup_ready',
         sourceMediaAssetId: result.mediaAssetId,
-        metadata: {
-          storageObjectRecordId: result.storageObjectRecordId,
-          fileName: result.fileName,
-          mimeType: result.mimeType,
-          sizeBytes: result.sizeBytes,
-          backendLocalUploadMade: true,
-          mediaProcessingStarted: false,
-          productReady: false,
-        },
+        metadata: createSourceUploadCheckpointMetadata(result),
       })
       setBackendUploadResult(result)
       setBackendUploadStatus('uploaded')
@@ -279,13 +380,10 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
         checkpointKind: 'brief_saved',
         status: 'awaiting_approval',
         sourceMediaAssetId: backendUploadResult?.mediaAssetId,
-        metadata: {
-          briefId: result.readback.id,
-          briefRevisionNumber: result.readback.revisionNumber,
-          sourceStorageObjectRecordId: backendUploadResult?.storageObjectRecordId,
-          backendLocalBriefStored: true,
-          productReady: false,
-        },
+        metadata: createBriefSavedCheckpointMetadata({
+          brief: result.readback,
+          sourceVideoUploadResult: backendUploadResult,
+        }),
       })
       setBackendSavedBrief(result.readback)
       setBriefSaved(true)
@@ -346,14 +444,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
         approvalStatus: 'approved',
         sourceMediaAssetId: backendUploadResult.mediaAssetId,
         latestSnapshotId: result.localEditPlan.id,
-        metadata: {
-          editPlanId: result.localEditPlan.editPlanId,
-          creditEstimateId: result.localEditPlan.creditEstimateId,
-          localEditPlanRecordId: result.localEditPlan.id,
-          backendLocalPlanStored: true,
-          providerCallMade: false,
-          productReady: false,
-        },
+        metadata: createPlanApprovedCheckpointMetadata(result),
       })
       setBackendApprovedLocalPlan(result)
       setPreviewReviewResult(undefined)
@@ -476,13 +567,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
                 latestPreviewUrl: result.outputObjectPath
                   ? `${result.outputBucketName ?? 'preview'}/${result.outputObjectPath}`
                   : undefined,
-                metadata: {
-                  renderId: result.renderId,
-                  previewStorageObjectId: result.previewStorageObjectId,
-                  checksumSha256: result.checksumSha256,
-                  previewOnly: true,
-                  productReady: false,
-                },
+                metadata: createPreviewReadyCheckpointMetadata(result),
               }).catch((caught) => {
                 setStatusMessage(caught instanceof Error
                   ? `Preview ready, but lifecycle checkpoint failed safely: ${caught.message}`
@@ -506,14 +591,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
                 status: result.reviewStatus === 'approved' ? 'preview_ready' : 'revision_requested',
                 approvalStatus: result.reviewStatus === 'approved' ? 'approved' : 'reset_after_revision',
                 latestPreviewId: result.renderId,
-                metadata: {
-                  previewReviewId: result.id,
-                  renderId: result.renderId,
-                  reviewStatus: result.reviewStatus,
-                  notes: result.notes,
-                  finalExportStarted: false,
-                  productReady: false,
-                },
+                metadata: createPreviewReviewedCheckpointMetadata(result),
               }).catch((caught) => {
                 setStatusMessage(caught instanceof Error
                   ? `Preview review recorded, but lifecycle checkpoint failed safely: ${caught.message}`

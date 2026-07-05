@@ -198,7 +198,24 @@ export function createProjectEditSessionService(context: ServiceContext) {
       }
 
       const now = nowIso()
-      const metadata = sanitizeJson(input.metadata ?? {})
+      const checkpointMetadata = sanitizeJson(input.metadata ?? {})
+      const checkpoint = {
+        checkpointKind: input.checkpointKind,
+        recordedAt: now,
+        status: input.status,
+        approvalStatus: input.approvalStatus ?? existing.approvalStatus,
+        sourceMediaAssetId: input.sourceMediaAssetId,
+        latestSnapshotId: input.latestSnapshotId,
+        latestPreviewId: input.latestPreviewId,
+        latestPreviewUrl: input.latestPreviewUrl,
+        metadata: checkpointMetadata,
+        noToolExecutionStarted: true,
+        noProviderCallMade: true,
+        noSupabaseWriteMade: true,
+        noGcsWriteMade: true,
+        productReady: false,
+      }
+      const checkpointKey = backendLocalCheckpointMetadataKey(input.checkpointKind)
       const updated: BackendLocalProjectEditSessionRecord = {
         ...existing,
         status: input.status,
@@ -216,22 +233,8 @@ export function createProjectEditSessionService(context: ServiceContext) {
           ...(existing.metadata ?? {}),
           noUploadStarted: input.checkpointKind === 'source_uploaded' ? false : existing.metadata?.noUploadStarted,
           noPlanApproved: input.checkpointKind === 'plan_approved' ? false : existing.metadata?.noPlanApproved,
-          latestBackendLocalCheckpoint: {
-            checkpointKind: input.checkpointKind,
-            recordedAt: now,
-            status: input.status,
-            approvalStatus: input.approvalStatus ?? existing.approvalStatus,
-            sourceMediaAssetId: input.sourceMediaAssetId,
-            latestSnapshotId: input.latestSnapshotId,
-            latestPreviewId: input.latestPreviewId,
-            latestPreviewUrl: input.latestPreviewUrl,
-            metadata,
-            noToolExecutionStarted: true,
-            noProviderCallMade: true,
-            noSupabaseWriteMade: true,
-            noGcsWriteMade: true,
-            productReady: false,
-          },
+          [checkpointKey]: checkpoint,
+          latestBackendLocalCheckpoint: checkpoint,
         },
         readbackVerified: true,
       }
@@ -282,4 +285,15 @@ function assertSafeLifecycleCheckpointInput(input: ProjectEditSessionLifecycleCh
 function addUnique(values: string[], value: string | undefined): string[] {
   if (!value || values.includes(value)) return values
   return [...values, value]
+}
+
+function backendLocalCheckpointMetadataKey(
+  checkpointKind: ProjectEditSessionLifecycleCheckpointRequest['checkpointKind'],
+): string {
+  if (checkpointKind === 'source_uploaded') return 'backendLocalSourceUpload'
+  if (checkpointKind === 'brief_saved') return 'backendLocalBrief'
+  if (checkpointKind === 'plan_approved') return 'backendLocalPlan'
+  if (checkpointKind === 'preview_ready') return 'backendLocalPreview'
+  if (checkpointKind === 'preview_reviewed') return 'backendLocalPreviewReview'
+  return 'backendLocalSetupReset'
 }

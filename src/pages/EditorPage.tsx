@@ -20,6 +20,7 @@ import {
 import {
   createProjectEditSessionBackendLocalConfig,
   readProjectEditSessionBackendLocal,
+  type ProjectEditSessionBackendLocalRecord,
 } from '../lib/project-edit-session-backend-local'
 import type { ProjectEditSessionMemoryUpdateNoticeModel } from '../lib/project-edit-session-memory-ui-adapter'
 import {
@@ -43,6 +44,7 @@ export function EditorPage() {
   const backendLocalConfig = useMemo(() => createProjectEditSessionBackendLocalConfig(import.meta.env), [])
   const [bundleModel, setBundleModel] = useState<ProjectEditSessionChatBundleForUI | undefined>()
   const [backendLocalHeader, setBackendLocalHeader] = useState<ProjectEditSessionChatHeaderModel | undefined>()
+  const [backendLocalEditSession, setBackendLocalEditSession] = useState<ProjectEditSessionBackendLocalRecord | undefined>()
   const [messageText, setMessageText] = useState('')
   const [busy, setBusy] = useState(false)
   const [statusMessage, setStatusMessage] = useState('Loading edit history.')
@@ -72,6 +74,7 @@ export function EditorPage() {
 
       if (nextBundle.header) {
         setBackendLocalHeader(undefined)
+        setBackendLocalEditSession(undefined)
         setStatusMessage('Edit loaded.')
         return
       }
@@ -84,6 +87,7 @@ export function EditorPage() {
             workspaceId: backendLocalConfig.workspaceId,
           })
           if (cancelled) return
+          setBackendLocalEditSession(readback.editSession)
           setBackendLocalHeader(createProjectEditSessionChatHeaderModelFromRecord(readback.editSession))
           setStatusMessage('Backend-local edit readback verified.')
           return
@@ -93,6 +97,7 @@ export function EditorPage() {
       }
 
       setBackendLocalHeader(undefined)
+      setBackendLocalEditSession(undefined)
       setStatusMessage('Edit could not be found.')
     }
 
@@ -177,6 +182,7 @@ export function EditorPage() {
 
         {header && isBriefSection ? (
           <ProjectEditBriefWorkspace
+            backendLocalEditSession={backendLocalEditSession}
             editSessionId={editSessionId ?? ''}
             editSessionTitle={header.title}
             projectId={projectId}

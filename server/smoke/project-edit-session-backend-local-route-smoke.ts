@@ -108,8 +108,16 @@ try {
     status: 'setup_ready',
     sourceMediaAssetId: 'media_asset_backend_local_smoke',
     metadata: {
+      uploadIntentId: 'upload_intent_backend_local_smoke',
       storageObjectRecordId: 'storage_object_backend_local_smoke',
+      mediaAssetId: 'media_asset_backend_local_smoke',
+      bucketName: 'source',
+      objectPath: 'mock-workspace/project_backend_local_smoke/source/backend-local-smoke.mp4',
       fileName: 'backend-local-smoke.mp4',
+      mimeType: 'video/mp4',
+      sizeBytes: 128,
+      checksumSha256: '0'.repeat(64),
+      uploadedAt: new Date(0).toISOString(),
       productReady: false,
     },
     getAccessToken: async () => undefined,
@@ -127,6 +135,8 @@ try {
   })
   assert.equal(lifecycleReadback.editSession.status, 'setup_ready')
   assert.equal(lifecycleReadback.editSession.sourceMediaAssetIds.includes('media_asset_backend_local_smoke'), true)
+  assert.ok(lifecycleReadback.editSession.metadata?.backendLocalSourceUpload)
+  assert.ok(lifecycleReadback.editSession.metadata?.latestBackendLocalCheckpoint)
 
   const lifecycleListReadback = await listProjectEditSessionsBackendLocal({
     apiBaseUrl,
@@ -152,6 +162,8 @@ try {
   assert.match(serviceSource, /listProjectEditSessions/)
   assert.match(serviceSource, /recordProjectEditSessionLifecycleCheckpoint/)
   assert.match(serviceSource, /latestBackendLocalCheckpoint/)
+  assert.match(serviceSource, /backendLocalSourceUpload/)
+  assert.match(serviceSource, /backendLocalPreviewReview/)
   assert.match(serviceSource, /backendLocalSessionStored/)
   assert.match(serviceSource, /providerCallMade: false/)
   assert.match(serviceSource, /productReady: false/)
@@ -177,6 +189,11 @@ try {
 
   const editBriefWorkspaceSource = source('src/components/projects/brief/ProjectEditBriefWorkspace.tsx')
   assert.match(editBriefWorkspaceSource, /recordProjectEditSessionLifecycleCheckpointBackendLocal/)
+  assert.match(editBriefWorkspaceSource, /readProjectEditBriefBackendLocal/)
+  assert.match(editBriefWorkspaceSource, /restoreBackendUploadResult/)
+  assert.match(editBriefWorkspaceSource, /restorePreviewResult/)
+  assert.match(editBriefWorkspaceSource, /restorePreviewReviewResult/)
+  assert.match(editBriefWorkspaceSource, /createRestoredApprovedLocalPlan/)
   assert.match(editBriefWorkspaceSource, /source_uploaded/)
   assert.match(editBriefWorkspaceSource, /brief_saved/)
   assert.match(editBriefWorkspaceSource, /plan_approved/)
@@ -185,6 +202,7 @@ try {
 
   const editorPage = source('src/pages/EditorPage.tsx')
   assert.match(editorPage, /readProjectEditSessionBackendLocal/)
+  assert.match(editorPage, /backendLocalEditSession/)
   assert.match(editorPage, /createProjectEditSessionChatHeaderModelFromRecord/)
   assert.match(editorPage, /Backend-local edit readback verified/)
 

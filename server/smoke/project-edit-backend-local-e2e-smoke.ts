@@ -346,6 +346,34 @@ try {
     /same source object/,
   )
 
+  const stalePreviewReview = {
+    ...review,
+    id: 'preview-review-stale-render',
+    renderId: `${review.renderId}-stale`,
+  }
+  const staleReviewQA = createProjectSourceVideoProfessionalQA({
+    previewResult: preview,
+    previewReviewResult: stalePreviewReview,
+    sourceVideoUploadResult: upload,
+    workspaceId,
+  })
+  assert.equal(staleReviewQA.status, 'blocked')
+  assert.ok(staleReviewQA.blockers.includes('preview_review_approved'))
+  await assert.rejects(
+    () => runProjectSourceVideoLocalFinalExportSmoke({
+      apiBaseUrl,
+      editPlanId: approvedPlan.localEditPlan.editPlanId,
+      projectId: project.project.id,
+      workspaceId,
+      previewResult: preview,
+      previewReviewResult: stalePreviewReview,
+      professionalQAResult: professionalQA,
+      sourceVideoUploadResult: upload,
+      getAccessToken: async () => undefined,
+    }),
+    /current preview render/,
+  )
+
   await recordProjectEditSessionLifecycleCheckpointBackendLocal({
     apiBaseUrl,
     editSessionId,

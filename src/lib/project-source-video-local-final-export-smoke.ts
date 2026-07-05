@@ -133,6 +133,9 @@ export async function runProjectSourceVideoLocalFinalExportSmoke(
   if (input.previewReviewResult.reviewStatus !== 'approved') {
     throw new Error('Final export requires an approved preview review.')
   }
+  if (input.previewReviewResult.renderId !== input.previewResult.renderId) {
+    throw new Error('Final export preview review must reference the current preview render.')
+  }
   assertProjectSourceVideoProfessionalQAPassed(input.professionalQAResult)
   if (input.professionalQAResult.previewReviewId !== input.previewReviewResult.id) {
     throw new Error('Final export professional QA must reference the approved preview review.')

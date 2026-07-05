@@ -203,6 +203,14 @@ function gpuModelRuntimeContainerImage(
   return gpuModelRuntimeContainerTarget(toolId).image
 }
 
+function gpuModelLocalProofContainerImage(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string {
+  return toolId === 'sam2' || toolId === 'birefnet'
+    ? canonicalGpuWorkerProofImage
+    : gpuModelRuntimeContainerImage(toolId)
+}
+
 function gpuModelRuntimeContainerBuildCommand(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 ): string {
@@ -555,7 +563,7 @@ function parseArgs(): SequenceArgs {
     stringFlag('--runtime-container-image') ??
     manifestRuntimeContainerImage ??
     (runtimeBackend === 'docker_container'
-      ? gpuModelRuntimeContainerImage(toolId)
+      ? gpuModelLocalProofContainerImage(toolId)
       : undefined)
   const runtimeContainerPlatform =
     stringFlag('--runtime-container-platform') ??
@@ -859,7 +867,7 @@ function finalExternalAgentToolCallCommandForTool(
     ...(options.container
       ? [
           '--runtime-backend docker_container',
-          `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+          `--runtime-container-image ${gpuModelLocalProofContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]
       : ['--runtime-backend host_python']),
@@ -997,7 +1005,7 @@ function sequenceCommandForTool(
     ...(options.container
       ? [
           '--runtime-backend docker_container',
-          `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+          `--runtime-container-image ${gpuModelLocalProofContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]
       : ['--runtime-backend host_python']),
@@ -1030,7 +1038,7 @@ function sequenceManifestCommandForTool(
     ...(options.container
       ? [
           '--runtime-backend docker_container',
-          `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+          `--runtime-container-image ${gpuModelLocalProofContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]
       : ['--runtime-backend host_python']),

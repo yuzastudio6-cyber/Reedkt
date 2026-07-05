@@ -522,6 +522,12 @@ function aiGraphicsGpuModelRuntimeContainerImage(toolId: string): string {
   return aiGraphicsGpuModelRuntimeContainerTarget(toolId).image
 }
 
+function aiGraphicsGpuModelLocalProofContainerImage(toolId: string): string {
+  return toolId === 'sam2' || toolId === 'birefnet'
+    ? AI_GRAPHICS_CANONICAL_GPU_WORKER_RUNTIME_CONTAINER_IMAGE
+    : aiGraphicsGpuModelRuntimeContainerImage(toolId)
+}
+
 function aiGraphicsGpuModelRuntimeContainerBuildCommand(toolId: string): string {
   const target = aiGraphicsGpuModelRuntimeContainerTarget(toolId)
   return [
@@ -558,7 +564,7 @@ function exactGpuModelScopedRouteProofCommand(
         : '--runtime-backend host_python',
       ...(isCpuModelRuntime
         ? [
-            `--runtime-container-image ${aiGraphicsGpuModelRuntimeContainerImage(toolId)}`,
+            `--runtime-container-image ${aiGraphicsGpuModelLocalProofContainerImage(toolId)}`,
             '--runtime-container-platform linux/amd64',
             '--no-runtime-container-gpu',
           ]
@@ -583,7 +589,7 @@ function exactGpuModelScopedRouteProofCommand(
     `--tool ${toolId}`,
     '--attempt-gpu-runtime',
     '--runtime-backend docker_container',
-    `--runtime-container-image ${aiGraphicsGpuModelRuntimeContainerImage(toolId)}`,
+    `--runtime-container-image ${aiGraphicsGpuModelLocalProofContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
     `--gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
     ...gpuModelSingleToolRuntimeProofFlags(toolId, {
@@ -653,14 +659,14 @@ function exactGpuModelPrivateProofSequenceCommand(
       : options?.allowCpuModelRuntime === true
       ? [
           '--runtime-backend docker_container',
-          `--runtime-container-image ${aiGraphicsGpuModelRuntimeContainerImage(toolId)}`,
+          `--runtime-container-image ${aiGraphicsGpuModelLocalProofContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
           '--allow-cpu-model-runtime',
           '--no-runtime-container-gpu',
         ]
       : [
           '--runtime-backend docker_container',
-          `--runtime-container-image ${aiGraphicsGpuModelRuntimeContainerImage(toolId)}`,
+          `--runtime-container-image ${aiGraphicsGpuModelLocalProofContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]),
     `--tool ${toolId}`,

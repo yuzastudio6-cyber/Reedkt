@@ -498,7 +498,7 @@ function gpuModelRuntimeContainerImage(toolId: string): string {
 
 function gpuModelPracticalLocalProofContainerImage(toolId: string): string | null {
   return toolId === 'sam2' || toolId === 'birefnet'
-    ? gpuModelRuntimeContainerImage(toolId)
+    ? canonicalGpuWorkerProofImage
     : null
 }
 

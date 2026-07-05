@@ -764,6 +764,12 @@ function gpuModelRuntimeContainerImage(toolId: string): string {
   return gpuModelRuntimeContainerTarget(toolId).image
 }
 
+function gpuModelLocalProofContainerImage(toolId: string): string {
+  return toolId === 'sam2' || toolId === 'birefnet'
+    ? canonicalGpuWorkerRuntimeContainerImage
+    : gpuModelRuntimeContainerImage(toolId)
+}
+
 function gpuModelRequiredPrivateInputKeys(toolId: string): string[] {
   const keys = [
     'outputDirectory',
@@ -1000,7 +1006,7 @@ function gpuModelScopedToolCallCommand(toolId: string): string {
     ...(cpuRuntimePreferred && !cpuModelRuntimePreferred
       ? []
       : [
-          `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+          `--runtime-container-image ${gpuModelLocalProofContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]),
     cpuModelRuntimePreferred ? '--no-runtime-container-gpu' : '',
@@ -1041,7 +1047,7 @@ function gpuModelScopedToolCallManifestCommand(toolId: string): string {
     ...(cpuRuntimePreferred && !cpuModelRuntimePreferred
       ? []
       : [
-          `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+          `--runtime-container-image ${gpuModelLocalProofContainerImage(toolId)}`,
           '--runtime-container-platform linux/amd64',
         ]),
     cpuModelRuntimePreferred ? '--no-runtime-container-gpu' : '',
@@ -1153,7 +1159,7 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
     payload.runtimeContainerImage =
       stringArg('--runtime-container-image') ??
       manifestStringForTool(toolId, manifest, 'runtimeContainerImage') ??
-      gpuModelRuntimeContainerImage(toolId)
+      gpuModelLocalProofContainerImage(toolId)
     payload.runtimeContainerPlatform =
       stringArg('--runtime-container-platform') ??
       manifestStringForTool(toolId, manifest, 'runtimeContainerPlatform') ??

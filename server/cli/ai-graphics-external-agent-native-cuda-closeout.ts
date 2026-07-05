@@ -446,7 +446,7 @@ function finalToolCallResultPath(outputRoot: string, toolId: ToolId): string {
 
 function manifestArgs(args: ParsedArgs, toolId: ToolId): string[] {
   const target = runtimeTargets[toolId]
-  return [
+  const manifestArgs = [
     '--tool',
     toolId,
     '--source-image',
@@ -466,6 +466,13 @@ function manifestArgs(args: ParsedArgs, toolId: ToolId): string[] {
     '--runtime-container-platform',
     runtimeContainerPlatform,
   ]
+  if (args.modelWeightManifestDir) {
+    manifestArgs.push(
+      '--model-weight-manifest-dir',
+      args.modelWeightManifestDir,
+    )
+  }
+  return manifestArgs
 }
 
 function proofSequenceArgs(args: ParsedArgs, toolId: ToolId): string[] {

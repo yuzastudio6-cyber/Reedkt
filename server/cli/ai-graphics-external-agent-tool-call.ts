@@ -89,6 +89,8 @@ const runtimeInputManifestScript =
   'ai-graphics:external-agent-gpu-model-runtime-input-manifest'
 const privateModelRootEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
+const privateModelManifestDirEnvVar =
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
 const allowedCapabilityIds = [
   'chart_overlay',
   'data_visualization',
@@ -252,6 +254,11 @@ function privateModelRootValue(): string | undefined {
     process.env[privateModelRootEnvVar]
 }
 
+function privateModelManifestDirValue(): string | undefined {
+  return stringArg('--model-weight-manifest-dir') ??
+    process.env[privateModelManifestDirEnvVar]
+}
+
 function runJsonScript(scriptName: string, args: string[]): Record<string, any> {
   const output = childProcess.execFileSync('npm', [
     'run',
@@ -293,6 +300,7 @@ function resolveRuntimeInputManifestPathForTool(
   const privateModelRoot = privateModelRootValue()
   if (!privateModelRoot) return undefined
   if (!privateModelRootMaterializerTools.has(toolId)) return undefined
+  const privateModelManifestDir = privateModelManifestDirValue()
   assert(
     input.attemptGpuRuntime,
     '--private-model-root requires --attempt-gpu-runtime',
@@ -344,6 +352,7 @@ function resolveRuntimeInputManifestPathForTool(
     '--runtime-container-platform',
     stringArg('--runtime-container-platform'),
   )
+  pushIfValue(args, '--model-weight-manifest-dir', privateModelManifestDir)
   materializedRuntimeInputManifestReport =
     runJsonScript(runtimeInputManifestScript, args)
   materializedRuntimeInputManifestPath = manifestOut
@@ -744,6 +753,15 @@ function gpuModelPrivateInputPlaceholders(toolId: string): string[] {
   return placeholders
 }
 
+function gpuModelPrivateModelRootMaterializerFlags(toolId: string): string[] {
+  return privateModelRootMaterializerTools.has(toolId)
+    ? [
+        `--private-model-root "$${privateModelRootEnvVar}"`,
+        `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
+      ]
+    : []
+}
+
 function gpuModelBlockedPrerequisites(toolId: string): string[] {
   const prerequisites = [
     gpuModelAllowsCpuTensorRuntime(toolId)
@@ -767,6 +785,11 @@ function gpuModelBlockedPrerequisites(toolId: string): string[] {
   if (toolId === 'transparent_background') {
     prerequisites.push('private transparent-background checkpoint path')
   }
+  if (privateModelRootMaterializerTools.has(toolId)) {
+    prerequisites.push(
+      `reviewed private model-weight manifest directory via ${privateModelManifestDirEnvVar}`,
+    )
+  }
   return prerequisites
 }
 
@@ -783,6 +806,15 @@ function gpuModelContainerBuildCommand(toolId: string): string {
     `-f ${target.dockerfile}`,
     `-t ${target.image}`,
     '.',
+  ].join(' ')
+}
+
+function gpuModelManifestReviewCommand(toolId: string): string | null {
+  if (!privateModelRootMaterializerTools.has(toolId)) return null
+  return [
+    'npm run --silent ai-graphics:model-weight-manifest-review:validate --',
+    `--manifest-dir "$${privateModelManifestDirEnvVar}"`,
+    '--allow-partial',
   ].join(' ')
 }
 
@@ -811,7 +843,14 @@ function gpuModelScopedToolCallCommand(toolId: string): string {
         ]),
     cpuModelRuntimePreferred ? '--no-runtime-container-gpu' : '',
     `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call/<private-run>/${toolId}`,
-    ...gpuModelPrivateInputPlaceholders(toolId),
+    ...(privateModelRootMaterializerTools.has(toolId)
+      ? [
+          ...(gpuModelSourceImageRequired(toolId)
+            ? ['--source-image <private-approved-frame.png>']
+            : []),
+          ...gpuModelPrivateModelRootMaterializerFlags(toolId),
+        ]
+      : gpuModelPrivateInputPlaceholders(toolId)),
     preferredCpuRuntimeFlag,
     '--expect-state executable',
     '--require-output-hash',
@@ -1114,6 +1153,7 @@ function nextActionForReport(input: {
       remainingPrivateInputKeys: [],
       nextExactGpuHostPreflightCommand: null,
       nextExactGpuContainerBuildCommand: null,
+      nextExactModelWeightManifestReviewCommand: null,
       nextExactScopedToolCallCommand: null,
       nextExactScopedToolCallManifestCommand: null,
       gpuRuntimeStartPolicy: 'gpu_runtime_not_started_for_completed_non_gpu_or_successful_scoped_call',
@@ -1140,6 +1180,8 @@ function nextActionForReport(input: {
           : requiredPrivateInputKeys),
       nextExactGpuHostPreflightCommand: gpuModelHostPreflightCommand(),
       nextExactGpuContainerBuildCommand: gpuModelContainerBuildCommand(input.toolId),
+      nextExactModelWeightManifestReviewCommand:
+        gpuModelManifestReviewCommand(input.toolId),
       nextExactScopedToolCallCommand: gpuModelScopedToolCallCommand(input.toolId),
       nextExactScopedToolCallManifestCommand:
         gpuModelScopedToolCallManifestCommand(input.toolId),
@@ -1156,6 +1198,7 @@ function nextActionForReport(input: {
       remainingPrivateInputKeys: [],
       nextExactGpuHostPreflightCommand: null,
       nextExactGpuContainerBuildCommand: null,
+      nextExactModelWeightManifestReviewCommand: null,
       nextExactScopedToolCallCommand: null,
       nextExactScopedToolCallManifestCommand: null,
       gpuRuntimeStartPolicy: 'do_not_start_gpu_for_failed_request',
@@ -1170,6 +1213,7 @@ function nextActionForReport(input: {
     remainingPrivateInputKeys: [],
     nextExactGpuHostPreflightCommand: null,
     nextExactGpuContainerBuildCommand: null,
+    nextExactModelWeightManifestReviewCommand: null,
     nextExactScopedToolCallCommand: null,
     nextExactScopedToolCallManifestCommand: null,
     gpuRuntimeStartPolicy: 'do_not_start_gpu_for_unknown_result',
@@ -1383,6 +1427,8 @@ async function buildReport() {
       privateModelRootProvided: Boolean(privateModelRootValue()),
       runtimeInputManifestMaterializedFromPrivateRoot:
         Boolean(materializedRuntimeInputManifestPath),
+      privateModelManifestDirProvided:
+        Boolean(privateModelManifestDirValue()),
       runtimeInputManifestMaterializerDecision:
         materializedRuntimeInputManifestReport?.decision ?? null,
       runtimeInputManifestMaterializerStatus:
@@ -1558,6 +1604,7 @@ Route: \`${report.routePath}\`
 - \`remainingPrivateInputKeys\`: \`${report.nextAction.remainingPrivateInputKeys.join(', ') || 'none'}\`
 - \`nextExactGpuHostPreflightCommand\`: \`${report.nextAction.nextExactGpuHostPreflightCommand}\`
 - \`nextExactGpuContainerBuildCommand\`: \`${report.nextAction.nextExactGpuContainerBuildCommand}\`
+- \`nextExactModelWeightManifestReviewCommand\`: \`${report.nextAction.nextExactModelWeightManifestReviewCommand}\`
 - \`nextExactScopedToolCallCommand\`: \`${report.nextAction.nextExactScopedToolCallCommand}\`
 - \`nextExactScopedToolCallManifestCommand\`: \`${report.nextAction.nextExactScopedToolCallManifestCommand}\`
 - \`gpuRuntimeStartPolicy\`: \`${report.nextAction.gpuRuntimeStartPolicy}\`

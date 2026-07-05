@@ -65,6 +65,55 @@ const toolContracts = {
   },
 }
 
+const reviewedManifestRecords = {
+  sam2: {
+    manifestId: 'sam2_private_manifest_review_v1',
+    toolId: 'sam2',
+    templateId: 'sam2_checkpoint',
+    sourceCandidateId: 'facebook_sam2_1_hiera_tiny_existing_staging_evidence',
+    privateArtifactRef:
+      'private://reeditpro/ai-graphics/model-weights/sam2/sam2.1_hiera_tiny.pt',
+    checksumSha256:
+      '45ad40cc297713cf822419c5b94a7025f80e96525fb2b9cb9b47a1bf4350c2b2',
+    checksumEvidenceRef:
+      'private://reeditpro/ai-graphics/checksum-evidence/sam2.json',
+    sourceLicenseRef:
+      'private://reeditpro/ai-graphics/license-review/sam2.json',
+    modelCardRef:
+      'private://reeditpro/ai-graphics/model-card/sam2.json',
+    checksumEvidenceReviewed: true,
+    commercialUseReviewed: true,
+    redistributionReviewed: true,
+    qualityReviewed: true,
+    securityReviewed: true,
+    provenanceReviewed: true,
+    approvedForInternalBeta: true,
+  },
+  birefnet: {
+    manifestId: 'birefnet_private_manifest_review_v1',
+    toolId: 'birefnet',
+    templateId: 'birefnet_model',
+    sourceCandidateId: 'zhengpeng7_birefnet_official_weights_review_candidate',
+    privateArtifactRef:
+      'private://reeditpro/ai-graphics/model-weights/birefnet/model.safetensors',
+    checksumSha256:
+      '1e4044aa39d94e3f9c07e2e73d7ff78883c4838e90d678bcb8f3fc075db811e7',
+    checksumEvidenceRef:
+      'private://reeditpro/ai-graphics/checksum-evidence/birefnet.json',
+    sourceLicenseRef:
+      'private://reeditpro/ai-graphics/license-review/birefnet.json',
+    modelCardRef:
+      'private://reeditpro/ai-graphics/model-card/birefnet.json',
+    checksumEvidenceReviewed: true,
+    commercialUseReviewed: true,
+    redistributionReviewed: true,
+    qualityReviewed: true,
+    securityReviewed: true,
+    provenanceReviewed: true,
+    approvedForInternalBeta: true,
+  },
+}
+
 const expectedPostEvidenceBlockers = new Set([
   'gpu_model_private_inputs_accepted_runtime_proof_not_requested',
   'gpu_model_native_cuda_runtime_missing',
@@ -181,6 +230,19 @@ function writeBirefNetSupportFiles(modelDir) {
   }
 }
 
+function writeReviewedManifestFixtures(manifestDir) {
+  fs.mkdirSync(absolute(`${manifestDir}/sam2`), { recursive: true })
+  fs.mkdirSync(absolute(`${manifestDir}/birefnet`), { recursive: true })
+  fs.writeFileSync(
+    absolute(`${manifestDir}/sam2/model_tree_manifest.json`),
+    `${JSON.stringify(reviewedManifestRecords.sam2, null, 2)}\n`,
+  )
+  fs.writeFileSync(
+    absolute(`${manifestDir}/birefnet/model_tree_manifest.json`),
+    `${JSON.stringify(reviewedManifestRecords.birefnet, null, 2)}\n`,
+  )
+}
+
 function materializeManifest(toolId, contract, runtimeImage = runtimeImageByTool[toolId]) {
   const manifestOut = `${runRoot}/runtime-inputs/${toolId}.json`
   const outputDir = `${runRoot}/outputs/${toolId}`
@@ -261,7 +323,11 @@ for (const phrase of [
   'modelWeightsDownloaded: false',
   'modelInferencePerformed: false',
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR',
   '--private-model-root',
+  '--model-weight-manifest-dir',
+  'reviewedManifestRecordForTool',
+  'checksumMatchedReviewedPrivateManifest',
   'modelRootPathCandidatesByTool',
   'rembg/u2netp.onnx',
   'transparent-background/ckpt_fast.pth',
@@ -289,6 +355,8 @@ writeLargePrivatePlaceholder(toolContracts.real_esrgan.modelPath, 4)
 writeLargePrivatePlaceholder(toolContracts.rembg.modelPath, 5)
 writeLargePrivatePlaceholder(toolContracts.transparent_background.modelPath, 6)
 const privateModelRootPath = `${runRoot}/private-model-root`
+const reviewedManifestDir = `${runRoot}/reviewed-model-weight-manifests`
+writeReviewedManifestFixtures(reviewedManifestDir)
 writeLargePrivatePlaceholder(`${privateModelRootPath}/sam2/sam2.1_hiera_tiny.pt`, 7)
 writeSafetensorsPlaceholder(`${privateModelRootPath}/birefnet/model.safetensors`)
 writeBirefNetSupportFiles(`${privateModelRootPath}/birefnet`)
@@ -312,6 +380,29 @@ if (incompleteBirefNetManifest.status === 0) {
 }
 if (!incompleteBirefNetManifest.stderr.includes('missing required runtime file')) {
   fail('birefnet_incomplete_directory_missing_error_unexpected')
+}
+
+const reviewedManifestChecksumMismatch = spawn([
+  `npm run --silent ${runScriptName} --`,
+  '--tool sam2',
+  `--source-image ${runRoot}/inputs/private-approved-frame.ppm`,
+  `--private-model-root ${privateModelRootPath}`,
+  `--model-weight-manifest-dir ${reviewedManifestDir}`,
+  `--output-dir ${runRoot}/outputs/sam2-reviewed-mismatch`,
+  `--manifest-out ${runRoot}/runtime-inputs/sam2-reviewed-mismatch.json`,
+  '--runtime-container-platform linux/amd64',
+  '--private-input-preflight-only',
+  '--force',
+].join(' '))
+if (reviewedManifestChecksumMismatch.status === 0) {
+  fail('reviewed_manifest_checksum_mismatch_unexpected_success')
+}
+if (
+  !reviewedManifestChecksumMismatch.stderr.includes(
+    'does not match the reviewed private model-weight manifest',
+  )
+) {
+  fail('reviewed_manifest_checksum_mismatch_missing_diagnostic')
 }
 const aliasPrivateModelRootPath = `${runRoot}/alias-private-model-root`
 writeLargePrivatePlaceholder(`${aliasPrivateModelRootPath}/rembg/u2netp.onnx`, 8)

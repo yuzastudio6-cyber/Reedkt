@@ -4,11 +4,17 @@ import {
   existsSync,
   mkdirSync,
   openSync,
+  readdirSync,
   readSync,
+  readFileSync,
   statSync,
   writeFileSync,
 } from 'node:fs'
 import path from 'node:path'
+import {
+  buildAiGraphicsModelWeightManifestReviewPacket,
+  type AiGraphicsModelWeightManifestEvidenceRecord,
+} from '../tool-registry/ai-graphics-model-weight-manifest-readiness'
 
 type ModelWeightToolId =
   | 'sam2'
@@ -51,6 +57,8 @@ const modelWeightTools: readonly ModelWeightToolId[] = [
 const minimumPrivateModelFileBytes = 1024 * 1024
 const maximumSafetensorsHeaderBytes = 1024 * 1024
 const privateModelRootEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
+const privateModelManifestDirEnvVar =
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
 const requiredBirefNetRuntimeFiles = [
   'model.safetensors',
   'config.json',
@@ -158,6 +166,11 @@ function privateModelRoot(): string | undefined {
   return stringArg('--private-model-root') ?? process.env[privateModelRootEnvVar]
 }
 
+function privateModelManifestDir(): string | undefined {
+  return stringArg('--model-weight-manifest-dir') ??
+    process.env[privateModelManifestDirEnvVar]
+}
+
 function modelPathFromPrivateRoot(
   toolId: ModelWeightToolId,
   contract: ModelRuntimePathContract,
@@ -225,6 +238,74 @@ function assertPrivateChecksumEvidenceRef(value: string): void {
   ) {
     throw new Error('--model-weight-checksum-evidence-ref must be a reviewed private:// checksum evidence ref')
   }
+}
+
+type ManifestInput = Partial<AiGraphicsModelWeightManifestEvidenceRecord>
+
+interface ManifestEnvelope {
+  records?: ManifestInput[]
+  manifests?: ManifestInput[]
+}
+
+function jsonFilesInDirectory(directory: string): string[] {
+  assertLocalPath('--model-weight-manifest-dir', directory)
+  if (!existsSync(directory)) {
+    throw new Error(`Reviewed private model-weight manifest directory does not exist: ${directory}`)
+  }
+  if (!statSync(directory).isDirectory()) {
+    throw new Error(`Reviewed private model-weight manifest path is not a directory: ${directory}`)
+  }
+  const files: string[] = []
+  for (const entry of readdirSync(directory).sort()) {
+    const entryPath = path.join(directory, entry)
+    const stats = statSync(entryPath)
+    if (stats.isDirectory()) {
+      files.push(...jsonFilesInDirectory(entryPath))
+    } else if (entry.endsWith('.json') && entry !== 'manifest-authoring-checklist.json') {
+      files.push(entryPath)
+    }
+  }
+  return files
+}
+
+function recordsFromJsonFile(filePath: string): ManifestInput[] {
+  const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as
+    | ManifestInput
+    | ManifestInput[]
+    | ManifestEnvelope
+  if (Array.isArray(parsed)) return parsed
+  if (Array.isArray((parsed as ManifestEnvelope).records)) {
+    return (parsed as ManifestEnvelope).records ?? []
+  }
+  if (Array.isArray((parsed as ManifestEnvelope).manifests)) {
+    return (parsed as ManifestEnvelope).manifests ?? []
+  }
+  return [parsed as ManifestInput]
+}
+
+function reviewedManifestRecordForTool(
+  toolId: ModelWeightToolId,
+  directory: string | undefined,
+): AiGraphicsModelWeightManifestEvidenceRecord | null {
+  if (!directory) return null
+  const records = jsonFilesInDirectory(directory).flatMap(recordsFromJsonFile)
+  const packet = buildAiGraphicsModelWeightManifestReviewPacket(records)
+  const validationResult = packet.validationResults.find((result) =>
+    result.toolId === toolId)
+  const record = records.find((candidate) =>
+    candidate.toolId === toolId) as AiGraphicsModelWeightManifestEvidenceRecord | undefined
+  if (
+    !record ||
+    validationResult?.reviewAccepted !== true ||
+    validationResult?.eligibleForNativeGpuProofInput !== true
+  ) {
+    const errors = validationResult?.errors?.join('; ') ??
+      `${toolId} reviewed private manifest record is missing`
+    throw new Error(
+      `Reviewed private model-weight manifest for ${toolId} was not accepted for native GPU proof input: ${errors}`,
+    )
+  }
+  return record
 }
 
 function sha256File(filePath: string): string {
@@ -389,6 +470,11 @@ function main(): void {
   const contract = modelRuntimePathContracts[typedToolId]
   const sourceImage = requiredStringArg('--source-image')
   const resolvedPrivateModelRoot = privateModelRoot()
+  const resolvedPrivateModelManifestDir = privateModelManifestDir()
+  const reviewedManifestRecord = reviewedManifestRecordForTool(
+    typedToolId,
+    resolvedPrivateModelManifestDir,
+  )
   const modelPath =
     stringArg(contract.modelFlag) ??
     modelPathFromPrivateRoot(typedToolId, contract, resolvedPrivateModelRoot)
@@ -400,9 +486,11 @@ function main(): void {
   const outputDirectory = requiredStringArg('--output-dir')
   const manifestOut = requiredStringArg('--manifest-out')
   const manifestId =
+    reviewedManifestRecord?.manifestId ??
     stringArg('--model-weight-manifest-id') ??
     `${typedToolId}_private_manifest_review_v1`
   const checksumEvidenceRef =
+    reviewedManifestRecord?.checksumEvidenceRef ??
     stringArg('--model-weight-checksum-evidence-ref') ??
     `private://reeditpro/ai-graphics/checksum-evidence/${typedToolId}.json`
   const runtimeContainerImage =
@@ -436,7 +524,19 @@ function main(): void {
     throw new Error('--transparent-background-mode must be base, fast, or base-nightly')
   }
   const checksumFile = assertModelPathContract(contract, modelPath)
-  const modelWeightChecksumSha256 = sha256File(checksumFile)
+  const computedModelWeightChecksumSha256 = sha256File(checksumFile)
+  if (
+    reviewedManifestRecord &&
+    computedModelWeightChecksumSha256.toLowerCase() !==
+      reviewedManifestRecord.checksumSha256.toLowerCase()
+  ) {
+    throw new Error(
+      `${contract.modelLabel} SHA-256 does not match the reviewed private model-weight manifest for ${typedToolId}; ` +
+      'do not start CUDA/GPU runtime until the private model file and reviewed manifest match exactly.',
+    )
+  }
+  const modelWeightChecksumSha256 =
+    reviewedManifestRecord?.checksumSha256 ?? computedModelWeightChecksumSha256
 
   if (existsSync(manifestOut) && !force) {
     throw new Error(`Refusing to overwrite existing manifest without --force: ${manifestOut}`)
@@ -475,9 +575,13 @@ function main(): void {
     modelWeightManifestId: manifestId,
     modelWeightChecksumSha256,
     modelWeightChecksumEvidenceRef: checksumEvidenceRef,
+    reviewedPrivateModelManifestDirProvided: Boolean(resolvedPrivateModelManifestDir),
+    reviewedPrivateModelManifestAcceptedForTool: Boolean(reviewedManifestRecord),
+    checksumMatchedReviewedPrivateManifest: Boolean(reviewedManifestRecord),
     checksumFileLocalPath: checksumFile,
     privateModelRootUsed: Boolean(resolvedPrivateModelRoot && !stringArg(contract.modelFlag)),
     privateModelRootEnvVar,
+    privateModelManifestDirEnvVar,
     runtimeContainerImage,
     runtimeContainerPlatform,
     allowCpuModelRuntime,

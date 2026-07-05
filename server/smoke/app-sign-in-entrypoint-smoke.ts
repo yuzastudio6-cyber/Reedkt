@@ -26,7 +26,6 @@ function assertMentions(path: string, phrases: string[]): void {
 const requiredFiles = [
   'src/pages/SignInPage.tsx',
   'src/App.tsx',
-  'src/components/MarketingNav.tsx',
   'src/styles/auth.css',
   'src/index.css',
   'docs/app-sign-in-entrypoint.md',
@@ -44,7 +43,7 @@ assert.equal(
 )
 
 assertMentions('src/App.tsx', ['SignInPage', 'path="/sign-in"', 'path="/auth"'])
-assertMentions('src/components/MarketingNav.tsx', ['to="/sign-in"', 'Sign In'])
+assertMentions('src/App.tsx', ['Navigate to="/dashboard"', 'Navigate to="/projects/new"'])
 assertMentions('src/index.css', ["./styles/auth.css"])
 
 const signInPage = read('src/pages/SignInPage.tsx')

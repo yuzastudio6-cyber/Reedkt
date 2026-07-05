@@ -15,7 +15,7 @@ import { applyQwenMarkerChatDeterministicFallback } from './qwen-runtime-fallbac
 import { createQwenMarkerChatBridgeSummary } from './qwen-runtime-summary-service'
 import { createQwenRuntimeUsageRecord } from './qwen-runtime-usage-service'
 import { validateQwenMarkerChatRuntimeRequest } from './qwen-runtime-validation-service'
-import { createQwenSecretResolutionPublicDiagnostic, resolveQwenSecretManagerValue } from './qwen-secret-manager-resolver'
+import { createQwenSecretResolutionPublicDiagnostic, resolveQwenDirectEnvSecretValue, resolveQwenSecretManagerValue } from './qwen-secret-manager-resolver'
 import { validateQwenMarkerChatStructuredResponse } from './qwen-structured-response-service'
 
 function createRequest(input: Omit<QwenMarkerChatRuntimeRequest, 'id' | 'createdAt' | 'runtimeMode'> & Partial<Pick<QwenMarkerChatRuntimeRequest, 'id' | 'createdAt' | 'runtimeMode'>>): QwenMarkerChatRuntimeRequest {
@@ -146,7 +146,8 @@ export async function runQwenMarkerChatBridge(input: {
   beforePersistProviderResponse?: (request: QwenMarkerChatRuntimeRequest) => boolean
 }): Promise<QwenMarkerChatBridgeResult> {
   const request = createRequest(input.request)
-  const config = loadQwenRuntimeConfig(input.env)
+  const env = input.env ?? process.env
+  const config = loadQwenRuntimeConfig(env)
   const requestValidation = validateQwenMarkerChatRuntimeRequest(request)
   if (!requestValidation.ok) return blockedValidation(request, config, requestValidation.errors)
 
@@ -215,30 +216,35 @@ export async function runQwenMarkerChatBridge(input: {
     return fallback(config.status)
   }
 
-  const apiKey = await resolveQwenSecretManagerValue({
-    symbolicName: 'QWEN_REASONING_API_KEY_SECRET',
-    referenceName: config.apiKeySecretReferenceName,
-    env: input.env,
-    client: input.secretClient,
-  })
+  const apiKey = config.apiKeyDirectEnvConfigured
+    ? resolveQwenDirectEnvSecretValue({
+        symbolicName: 'QWEN_REASONING_API_KEY',
+        value: env.QWEN_REASONING_API_KEY,
+      })
+    : await resolveQwenSecretManagerValue({
+        symbolicName: 'QWEN_REASONING_API_KEY_SECRET',
+        referenceName: config.apiKeySecretReferenceName,
+        env,
+        client: input.secretClient,
+      })
   const publicSecretDiagnostic = createQwenSecretResolutionPublicDiagnostic(apiKey)
   if (!apiKey.value) return fallback(publicSecretDiagnostic.status)
 
-  const baseUrl = input.env?.QWEN_REASONING_BASE_URL
+  const baseUrl = env.QWEN_REASONING_BASE_URL
     ?? (config.baseUrlSecretReferenceName
       ? (await resolveQwenSecretManagerValue({
           symbolicName: 'QWEN_REASONING_BASE_URL_SECRET',
           referenceName: config.baseUrlSecretReferenceName,
-          env: input.env,
+          env,
           client: input.secretClient,
         })).value
       : undefined)
-  const modelId = input.env?.QWEN_REASONING_MODEL_ID
+  const modelId = env.QWEN_REASONING_MODEL_ID
     ?? (config.modelIdSecretReferenceName
       ? (await resolveQwenSecretManagerValue({
           symbolicName: 'QWEN_REASONING_MODEL_ID_SECRET',
           referenceName: config.modelIdSecretReferenceName,
-          env: input.env,
+          env,
           client: input.secretClient,
         })).value
       : undefined)

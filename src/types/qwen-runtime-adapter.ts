@@ -95,6 +95,8 @@ export interface QwenRuntimeConfig {
   status: QwenRuntimeConfigStatus
   transportProfile: QwenRuntimeTransportProfile
   projectIdConfigured: boolean
+  apiKeyConfigured: boolean
+  apiKeyDirectEnvConfigured: boolean
   apiKeySecretReferenceName?: string
   baseUrlSecretReferenceName?: string
   modelIdSecretReferenceName?: string
@@ -194,10 +196,10 @@ export interface QwenRuntimeAdapterScenario {
 }
 
 export const REEDITPRO_QWEN_BETA_RUNTIME_RULE =
-  'Qwen 3.7 Max beta runtime is backend-only and requires REEDITPRO_QWEN_RUNTIME_MODE=beta_enabled plus Secret Manager runtime config before any provider call.'
+  'Qwen 3.7 Max beta runtime is backend-only and requires REEDITPRO_QWEN_RUNTIME_MODE=beta_enabled plus backend-only secret config before any provider call.'
 
 export const REEDITPRO_QWEN_BETA_SECRET_RULE =
-  'Qwen beta runtime may resolve secrets server-side through Secret Manager only; secret values must never be logged, printed, committed, or sent to browser code.'
+  'Qwen beta runtime may resolve secrets server-side through Secret Manager or a masked backend-only secret env; secret values must never be logged, printed, committed, or sent to browser code.'
 
 export const REEDITPRO_QWEN_BETA_NO_EXECUTION_RULE =
   'Qwen beta Marker Chat understands marker intent only; it must not render video, run workers, process media, create edit plans, or reserve/spend credits.'

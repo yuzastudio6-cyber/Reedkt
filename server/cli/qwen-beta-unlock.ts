@@ -14,6 +14,14 @@ function hasProject(env: NodeJS.ProcessEnv): boolean {
   return Boolean(clean(env.GOOGLE_CLOUD_PROJECT_ID) ?? clean(env.GCLOUD_PROJECT) ?? clean(env.GOOGLE_CLOUD_PROJECT))
 }
 
+function hasDirectApiKey(env: NodeJS.ProcessEnv): boolean {
+  return Boolean(clean(env.QWEN_REASONING_API_KEY))
+}
+
+function hasApiKey(env: NodeJS.ProcessEnv): boolean {
+  return hasDirectApiKey(env) || Boolean(clean(env.QWEN_REASONING_API_KEY_SECRET))
+}
+
 function hasBaseUrl(env: NodeJS.ProcessEnv): boolean {
   return Boolean(clean(env.QWEN_REASONING_BASE_URL) ?? clean(env.QWEN_REASONING_BASE_URL_SECRET))
 }
@@ -32,14 +40,14 @@ function gates(env: NodeJS.ProcessEnv): Gate[] {
     },
     {
       id: 'google_project',
-      ready: hasProject(env),
-      expected: 'GOOGLE_CLOUD_PROJECT_ID or GCLOUD_PROJECT configured server-side',
+      ready: hasProject(env) || hasDirectApiKey(env),
+      expected: 'GOOGLE_CLOUD_PROJECT_ID/GCLOUD_PROJECT for Secret Manager, or backend-only QWEN_REASONING_API_KEY secret env for testing',
       blockedStatus: 'blocked_missing_project_config',
     },
     {
       id: 'api_key_secret_reference',
-      ready: Boolean(clean(env.QWEN_REASONING_API_KEY_SECRET)),
-      expected: 'QWEN_REASONING_API_KEY_SECRET points at a Secret Manager secret id/resource',
+      ready: hasApiKey(env),
+      expected: 'QWEN_REASONING_API_KEY_SECRET points at Secret Manager, or QWEN_REASONING_API_KEY is supplied as a backend-only masked secret',
       blockedStatus: 'blocked_missing_secret_reference',
     },
     {
@@ -69,6 +77,7 @@ if (example) {
     'export REEDITPRO_QWEN_RUNTIME_MODE=beta_enabled',
     'export GOOGLE_CLOUD_PROJECT_ID=<google-cloud-project-id>',
     'export QWEN_REASONING_API_KEY_SECRET=<secret-manager-secret-id>',
+    '# Or for backend-only testing: export QWEN_REASONING_API_KEY=<masked-provider-key>',
     'export QWEN_REASONING_BASE_URL=<provider-base-url>',
     'export QWEN_REASONING_MODEL_ID=<qwen-model-id>',
     '# Optional:',

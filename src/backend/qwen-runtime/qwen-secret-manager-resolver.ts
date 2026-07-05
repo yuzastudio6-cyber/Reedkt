@@ -123,6 +123,34 @@ export async function resolveQwenSecretManagerValue(input: {
   }
 }
 
+export function resolveQwenDirectEnvSecretValue(input: {
+  symbolicName: string
+  value?: string
+}): QwenSecretResolutionInternalResult {
+  const value = clean(input.value)
+  if (!value) {
+    return {
+      ...diagnostic({
+        status: 'blocked_missing_secret_reference',
+        symbolicName: input.symbolicName,
+        referenceNameConfigured: false,
+        warning: `${input.symbolicName} is not configured.`,
+      }),
+    }
+  }
+
+  return {
+    ...diagnostic({
+      status: 'resolved_no_print',
+      symbolicName: input.symbolicName,
+      referenceNameConfigured: true,
+      valueAccessed: true,
+      value,
+    }),
+    value,
+  }
+}
+
 export function createQwenSecretResolutionPublicDiagnostic(result: QwenSecretResolutionInternalResult): QwenSecretResolutionDiagnostic {
   const publicResult = { ...result }
   delete publicResult.value

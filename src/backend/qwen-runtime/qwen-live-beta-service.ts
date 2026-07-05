@@ -12,7 +12,7 @@ import { createMockProjectEditBriefRepository } from '../repositories/mock-proje
 import type { ProjectEditBriefRepository } from '../repositories/project-edit-brief-repository'
 import { createQwenRuntimeSafetyFlags, loadQwenRuntimeConfig } from './qwen-runtime-config-service'
 import { runQwenMarkerChatBridge } from './qwen-marker-chat-bridge-service'
-import { createQwenSecretResolutionPublicDiagnostic, resolveQwenSecretManagerValue } from './qwen-secret-manager-resolver'
+import { createQwenSecretResolutionPublicDiagnostic, resolveQwenDirectEnvSecretValue, resolveQwenSecretManagerValue } from './qwen-secret-manager-resolver'
 import { redactQwenRuntimeLogPayload } from './qwen-secret-redaction-service'
 
 export const QWEN_LIVE_BETA_MARKER_CHAT_ROUTE_PATH = '/v1/project-edit-brief/marker-messages'
@@ -380,6 +380,8 @@ export async function createQwenLiveBetaDoctorReport(input: {
   const checks: Record<string, boolean> = {
     runtimeEnabled: config.runtimeMode === 'beta_enabled',
     googleProjectConfigured: config.projectIdConfigured,
+    apiKeyDirectEnvConfigured: config.apiKeyDirectEnvConfigured,
+    apiKeyConfigured: config.apiKeyConfigured,
     apiKeySecretReferenceConfigured: Boolean(config.apiKeySecretReferenceName),
     endpointConfigured: config.baseUrlConfigured,
     modelConfigured: config.modelIdConfigured,
@@ -388,7 +390,13 @@ export async function createQwenLiveBetaDoctorReport(input: {
   }
 
   let apiKeyDiagnostic
-  if (checks.runtimeEnabled && checks.googleProjectConfigured && checks.apiKeySecretReferenceConfigured) {
+  if (checks.runtimeEnabled && config.apiKeyDirectEnvConfigured) {
+    apiKeyDiagnostic = createQwenSecretResolutionPublicDiagnostic(resolveQwenDirectEnvSecretValue({
+      symbolicName: 'QWEN_REASONING_API_KEY',
+      value: env.QWEN_REASONING_API_KEY,
+    }))
+    checks.apiKeySecretResolvable = apiKeyDiagnostic.status === 'resolved_no_print'
+  } else if (checks.runtimeEnabled && checks.googleProjectConfigured && checks.apiKeySecretReferenceConfigured) {
     apiKeyDiagnostic = createQwenSecretResolutionPublicDiagnostic(await resolveQwenSecretManagerValue({
       symbolicName: 'QWEN_REASONING_API_KEY_SECRET',
       referenceName: config.apiKeySecretReferenceName,
@@ -400,8 +408,8 @@ export async function createQwenLiveBetaDoctorReport(input: {
   }
 
   if (!checks.runtimeEnabled) status = 'blocked_runtime_disabled'
-  else if (!checks.googleProjectConfigured) status = 'blocked_missing_project_config'
-  else if (!checks.apiKeySecretReferenceConfigured) status = 'blocked_missing_secret_reference'
+  else if (!checks.googleProjectConfigured && !config.apiKeyDirectEnvConfigured) status = 'blocked_missing_project_config'
+  else if (!checks.apiKeyConfigured) status = 'blocked_missing_secret_reference'
   else if (!checks.apiKeySecretResolvable) status = 'blocked_secret_access_denied'
   else if (!checks.endpointConfigured) status = 'blocked_missing_endpoint'
   else if (!checks.modelConfigured) status = 'blocked_missing_model_id'
@@ -420,6 +428,8 @@ export async function createQwenLiveBetaDoctorReport(input: {
       timeoutMs: config.timeoutMs,
       maxRetries: config.maxRetries,
       projectIdConfigured: config.projectIdConfigured,
+      apiKeyConfigured: config.apiKeyConfigured,
+      apiKeyDirectEnvConfigured: config.apiKeyDirectEnvConfigured,
       apiKeySecretReferenceConfigured: Boolean(config.apiKeySecretReferenceName),
       baseUrlConfigured: config.baseUrlConfigured,
       modelIdConfigured: config.modelIdConfigured,
@@ -462,6 +472,8 @@ export async function createQwenLiveBetaPublicReadinessReport(input: {
       timeoutMs: report.config.timeoutMs,
       maxRetries: report.config.maxRetries,
       projectIdConfigured: report.config.projectIdConfigured,
+      apiKeyConfigured: report.config.apiKeyConfigured,
+      apiKeyDirectEnvConfigured: report.config.apiKeyDirectEnvConfigured,
       apiKeySecretReferenceConfigured: report.config.apiKeySecretReferenceConfigured,
       baseUrlConfigured: report.config.baseUrlConfigured,
       modelIdConfigured: report.config.modelIdConfigured,

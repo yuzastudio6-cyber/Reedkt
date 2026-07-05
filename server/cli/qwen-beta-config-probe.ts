@@ -6,6 +6,7 @@ type VariableStatus = {
   key: string
   configured: boolean
   secretReference?: boolean
+  secretValue?: boolean
 }
 
 type SecretCandidate = {
@@ -84,6 +85,14 @@ function configured(key: string, secretReference = false): VariableStatus {
   }
 }
 
+function configuredSecretValue(key: string): VariableStatus {
+  return {
+    key,
+    configured: Boolean(clean(process.env[key])),
+    secretValue: true,
+  }
+}
+
 function normalizedSecretId(reference: string): string {
   return reference.split('/').filter(Boolean).at(-1) ?? reference
 }
@@ -133,6 +142,7 @@ function decide(input: {
   secretMetadataAvailable: boolean
   candidates: SecretCandidate[]
   exactReferenceCandidates: SecretCandidate[]
+  directApiKeyConfigured: boolean
 }): { decision: ProbeDecision; ok: boolean; readyForLiveVerification: boolean; nextStep: string } {
   if (input.missingRequiredVariables.length > 0) {
     return {
@@ -140,6 +150,15 @@ function decide(input: {
       ok: true,
       readyForLiveVerification: false,
       nextStep: 'Set the missing QWEN_REASONING_* GitHub variables to owner-approved Secret Manager refs or literal non-secret endpoint/model values, then rerun Qwen Live Beta Verification.',
+    }
+  }
+
+  if (input.directApiKeyConfigured) {
+    return {
+      decision: DECISIONS.ready,
+      ok: true,
+      readyForLiveVerification: true,
+      nextStep: 'Run Qwen Live Beta Verification. The API key is supplied as a backend-only masked secret env; this probe did not call Qwen or print the key.',
     }
   }
 
@@ -205,7 +224,8 @@ async function main() {
   }
 
   const googleProjectId = readEnv('GOOGLE_CLOUD_PROJECT_ID', 'GCLOUD_PROJECT', 'GOOGLE_CLOUD_PROJECT')
-  if (!googleProjectId) {
+  const directApiKeyConfigured = Boolean(clean(process.env.QWEN_REASONING_API_KEY))
+  if (!googleProjectId && !directApiKeyConfigured) {
     output({
       ok: false,
       readyForLiveVerification: false,
@@ -226,11 +246,12 @@ async function main() {
         renderJobCreated: false,
         creditReservedOrSpent: false,
       },
-      nextStep: 'Set GOOGLE_CLOUD_PROJECT_ID or GCLOUD_PROJECT before probing Secret Manager metadata.',
+      nextStep: 'Set GOOGLE_CLOUD_PROJECT_ID/GCLOUD_PROJECT for Secret Manager metadata, or use backend-only QWEN_REASONING_API_KEY for internal testing.',
     })
   }
 
   const variableStatus = [
+    configuredSecretValue('QWEN_REASONING_API_KEY'),
     configured('QWEN_REASONING_API_KEY_SECRET', true),
     configured('QWEN_REASONING_BASE_URL'),
     configured('QWEN_REASONING_BASE_URL_SECRET', true),
@@ -243,7 +264,9 @@ async function main() {
   ]
 
   const missingRequiredVariables = [
-    clean(process.env.QWEN_REASONING_API_KEY_SECRET) ? undefined : 'QWEN_REASONING_API_KEY_SECRET',
+    clean(process.env.QWEN_REASONING_API_KEY) || clean(process.env.QWEN_REASONING_API_KEY_SECRET)
+      ? undefined
+      : 'QWEN_REASONING_API_KEY_SECRET or backend-only QWEN_REASONING_API_KEY',
     clean(process.env.QWEN_REASONING_BASE_URL) || clean(process.env.QWEN_REASONING_BASE_URL_SECRET)
       ? undefined
       : 'QWEN_REASONING_BASE_URL or QWEN_REASONING_BASE_URL_SECRET',
@@ -254,7 +277,9 @@ async function main() {
 
   let secretMetadataAvailable: boolean
   let candidates: SecretCandidate[] = []
-  try {
+  if (!googleProjectId || directApiKeyConfigured) {
+    secretMetadataAvailable = false
+  } else try {
     const exactReferences = [
       clean(process.env.QWEN_REASONING_API_KEY_SECRET),
       clean(process.env.QWEN_REASONING_BASE_URL_SECRET),
@@ -272,13 +297,14 @@ async function main() {
     secretMetadataAvailable,
     candidates,
     exactReferenceCandidates,
+    directApiKeyConfigured,
   })
 
   output({
     ok: result.ok,
     readyForLiveVerification: result.readyForLiveVerification,
     decision: result.decision,
-    googleProjectConfigured: true,
+    googleProjectConfigured: Boolean(googleProjectId),
     googleProjectId,
     variableStatus,
     missingRequiredVariables,

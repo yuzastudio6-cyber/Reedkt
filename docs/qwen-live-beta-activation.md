@@ -5,7 +5,7 @@ RP-QWEN-BETA-02 adds a backend-only live beta path for Qwen 3.7 Max Marker Chat.
 Activation requires:
 - `REEDITPRO_QWEN_RUNTIME_MODE=beta_enabled`.
 - Google Cloud project config for Secret Manager.
-- `QWEN_REASONING_API_KEY_SECRET`.
+- `QWEN_REASONING_API_KEY_SECRET` for Secret Manager, or backend-only masked `QWEN_REASONING_API_KEY` for internal testing.
 - Qwen endpoint from backend config or Secret Manager, plus a backend model ID. Current owner-machine verification uses `qwen3.7-plus`.
 - `npm run doctor:qwen-beta` returning `ready_live_beta`.
 
@@ -17,7 +17,7 @@ Set these on the backend/server process only. Do not put API keys in frontend en
 | --- | --- | --- |
 | Runtime mode | `REEDITPRO_QWEN_RUNTIME_MODE=beta_enabled` | `blocked_runtime_disabled` |
 | Google project identity | `GOOGLE_CLOUD_PROJECT_ID`, `GCLOUD_PROJECT`, or `GOOGLE_CLOUD_PROJECT` | `blocked_missing_project_config` |
-| API key secret reference | `QWEN_REASONING_API_KEY_SECRET` as a secret id or `projects/<project>/secrets/<name>` reference | `blocked_missing_secret_reference` or `blocked_secret_access_denied` |
+| API key secret | Preferred: `QWEN_REASONING_API_KEY_SECRET` as a Secret Manager secret id or `projects/<project>/secrets/<name>` reference. Internal testing fallback: masked backend-only `QWEN_REASONING_API_KEY` GitHub/CI secret. | `blocked_missing_secret_reference` or `blocked_secret_access_denied` |
 | Provider base URL | backend config `QWEN_REASONING_BASE_URL` or Secret Manager reference `QWEN_REASONING_BASE_URL_SECRET` | `blocked_missing_endpoint` |
 | Provider model id | backend config `QWEN_REASONING_MODEL_ID` or Secret Manager reference `QWEN_REASONING_MODEL_ID_SECRET` | `blocked_missing_model_id` |
 | Transport profile | optional `QWEN_REASONING_TRANSPORT_PROFILE`, default `openai_chat_completions`; also supports `generic_json_post` | transport stays default when absent |
@@ -33,11 +33,11 @@ For browser live Marker Chat testing, the frontend must point at the backend bet
 
 ## Safe Unlock Order
 
-1. Configure backend runtime env and Secret Manager access outside the repo. Do not commit `.env` files or secret values.
+1. Configure backend runtime env and either Secret Manager access or a masked backend-only `QWEN_REASONING_API_KEY` secret outside the repo. Do not commit `.env` files or secret values.
 2. Run `npm run unlock:qwen-beta` to verify the local env presence checklist. This command does not call Qwen, Secret Manager, `gcloud`, Supabase, workers, render, or credits.
 3. Run `npm run unlock:qwen-beta:example` when you need placeholder export lines. Replace placeholders outside git-tracked files and never commit secrets.
 4. Run `npm run unlock:qwen-beta:strict` in CI or owner handoff scripts when missing gates should fail fast.
-5. If strict unlock fails on missing `QWEN_REASONING_*` variables, run `probe:qwen-beta-config` through the `Qwen Beta Config Probe` workflow. It lists matching Secret Manager metadata names only; it never reads secret payloads.
+5. If strict unlock fails on missing `QWEN_REASONING_*` variables, run `probe:qwen-beta-config` through the `Qwen Beta Config Probe` workflow. It checks masked direct-secret presence or lists matching Secret Manager metadata names only; it never reads Secret Manager payloads or prints provider keys.
 6. Run `npm run doctor:qwen-beta`.
 7. Continue only if the doctor returns `ready_live_beta`.
 8. Run `npm run smoke:qwen-live-provider`.

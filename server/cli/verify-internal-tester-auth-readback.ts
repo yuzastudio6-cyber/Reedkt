@@ -12,6 +12,7 @@ type ReadbackDecision =
   | 'internal_tester_sign_in_auth_readback_blocked_supabase_error'
 
 type ProfileIdentityColumn = 'user_id' | 'id'
+type ProfileTableName = 'profiles' | 'user_profiles'
 
 interface ReadbackResult {
   ok: boolean
@@ -42,8 +43,10 @@ interface ProfileRow {
 interface WorkspaceRow {
   id?: string
   owner_id?: string
+  owner_user_id?: string
   name?: string | null
   plan_type?: string | null
+  workspace_type?: string | null
 }
 
 interface WorkspaceMemberRow {
@@ -106,6 +109,24 @@ function isMissingColumnError(error: { code?: string; message?: string }, column
   )
 }
 
+function isSchemaFallbackError(error: { code?: string; message?: string }): boolean {
+  const message = error.message?.toLowerCase() ?? ''
+  return (
+    error.code === '42703'
+    || error.code === '42P01'
+    || error.code === 'PGRST200'
+    || error.code === 'PGRST204'
+    || error.code === 'PGRST205'
+    || message.includes('schema cache')
+    || message.includes('could not find')
+    || message.includes('does not exist')
+    || message.includes('column')
+    || message.includes('relationship')
+    || message.includes('owner_user_id')
+    || message.includes('owner_id')
+  )
+}
+
 function profileId(profile: ProfileRow): string | undefined {
   return clean(profile.id) ?? clean(profile.user_id)
 }
@@ -138,22 +159,29 @@ async function findUserByEmail(client: SupabaseClient, email: string): Promise<U
 async function findProfile(client: SupabaseClient, userId: string): Promise<{
   profile?: ProfileRow
   identityColumn?: ProfileIdentityColumn
+  tableName?: ProfileTableName
 }> {
-  for (const column of ['user_id', 'id'] satisfies ProfileIdentityColumn[]) {
-    const { data, error } = await client
-      .from('profiles')
-      .select('*')
-      .eq(column, userId)
-      .maybeSingle()
+  for (const tableName of ['profiles', 'user_profiles'] satisfies ProfileTableName[]) {
+    for (const column of ['user_id', 'id'] satisfies ProfileIdentityColumn[]) {
+      const { data, error } = await client
+        .from(tableName)
+        .select('*')
+        .eq(column, userId)
+        .maybeSingle()
 
-    if (!error) {
-      return {
-        profile: data as ProfileRow | null ?? undefined,
-        identityColumn: column,
+      if (!error) {
+        if (data) {
+          return {
+            profile: data as ProfileRow,
+            identityColumn: column,
+            tableName,
+          }
+        }
+        continue
       }
-    }
 
-    if (!isMissingColumnError(error, column)) throw error
+      if (!isSchemaFallbackError(error) && !isMissingColumnError(error, column)) throw error
+    }
   }
 
   return {}
@@ -163,11 +191,28 @@ async function findWorkspaceMembership(client: SupabaseClient, userId: string): 
   workspace?: WorkspaceRow
   membership?: WorkspaceMemberRow
 }> {
-  const { data, error } = await client
-    .from('workspace_members')
-    .select('id, workspace_id, user_id, role, workspaces(id, owner_id, name, plan_type)')
-    .eq('user_id', userId)
-    .limit(1)
+  const selects = [
+    'id, workspace_id, user_id, role, workspaces(id, owner_id, name, plan_type)',
+    'id, workspace_id, user_id, role, workspaces(id, owner_user_id, name, workspace_type)',
+    'id, workspace_id, user_id, role',
+  ]
+  let data: unknown[] | null = null
+  let error: { code?: string; message?: string } | null = null
+
+  for (const select of selects) {
+    const result = await client
+      .from('workspace_members')
+      .select(select)
+      .eq('user_id', userId)
+      .limit(1)
+
+    data = result.data as unknown[] | null
+    error = result.error
+
+    if (!error) break
+    if (isSchemaFallbackError(error)) continue
+    break
+  }
 
   if (error) throw error
 

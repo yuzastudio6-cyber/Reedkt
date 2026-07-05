@@ -19,8 +19,10 @@ interface ProfileRow {
 }
 
 type ProfileIdentityColumn = 'user_id' | 'id'
+type ProfileTableName = typeof TABLE_NAMES.profiles | typeof TABLE_NAMES.legacyUserProfiles
 
 const PROFILE_IDENTITY_COLUMNS: ProfileIdentityColumn[] = ['user_id', 'id']
+const PROFILE_TABLES: ProfileTableName[] = [TABLE_NAMES.profiles, TABLE_NAMES.legacyUserProfiles]
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -58,6 +60,17 @@ function isMissingColumnError(error: { code?: string; message?: string }, column
         || message.includes('could not find')
       )
     )
+  )
+}
+
+function isMissingRelationError(error: { code?: string; message?: string }): boolean {
+  const message = error.message?.toLowerCase() ?? ''
+  return (
+    error.code === '42P01'
+    || error.code === 'PGRST205'
+    || message.includes('could not find the table')
+    || message.includes('relation') && message.includes('does not exist')
+    || message.includes('schema cache') && message.includes('table')
   )
 }
 
@@ -108,6 +121,7 @@ function createUserContext(
 }
 
 async function findProfileByIdentityColumn(
+  tableName: ProfileTableName,
   column: ProfileIdentityColumn,
   userId: string,
 ): Promise<{ data: ProfileRow | null; error: { code?: string; message?: string } | null }> {
@@ -115,7 +129,7 @@ async function findProfileByIdentityColumn(
   if (!client) return { data: null, error: { message: 'Supabase is not configured.' } }
 
   const { data, error } = await client
-    .from(TABLE_NAMES.profiles)
+    .from(tableName)
     .select('*')
     .eq(column, userId)
     .maybeSingle()
@@ -126,7 +140,7 @@ async function findProfileByIdentityColumn(
   }
 }
 
-function profileInsertVariants(user: User): Array<Record<string, unknown>> {
+function profileInsertVariants(tableName: ProfileTableName, user: User): Array<Record<string, unknown>> {
   const baseProfile = {
     display_name: displayNameFromUser(user),
     avatar_url: avatarUrlFromUser(user),
@@ -134,6 +148,22 @@ function profileInsertVariants(user: User): Array<Record<string, unknown>> {
   const metadata = {
     bootstrap_source: 'supabase_frontend',
     email: user.email,
+  }
+
+  if (tableName === TABLE_NAMES.legacyUserProfiles) {
+    return [
+      {
+        id: user.id,
+        ...baseProfile,
+        email: user.email,
+        metadata,
+      },
+      {
+        id: user.id,
+        ...baseProfile,
+        email: user.email,
+      },
+    ]
   }
 
   return [
@@ -192,16 +222,22 @@ export async function getCurrentUserProfile(user?: User | null): Promise<UserPro
   let lastError: { code?: string; message?: string } | null = null
 
   for (const column of PROFILE_IDENTITY_COLUMNS) {
-    const result = await findProfileByIdentityColumn(column, currentUser.id)
-    profile = result.data
-    lastError = result.error
+    for (const tableName of PROFILE_TABLES) {
+      const result = await findProfileByIdentityColumn(tableName, column, currentUser.id)
+      profile = result.data
+      lastError = result.error
 
-    if (!lastError || profile) break
-    if (isBackendRequiredError(lastError)) break
-    if (!isMissingColumnError(lastError, column)) break
+      if (!lastError && profile) break
+      if (!lastError) continue
+      if (isBackendRequiredError(lastError)) break
+      if (isMissingRelationError(lastError) || isMissingColumnError(lastError, column)) continue
+      break
+    }
+
+    if (profile || (lastError && isBackendRequiredError(lastError))) break
   }
 
-  if (lastError) {
+  if (lastError && !isMissingRelationError(lastError)) {
     return {
       ok: false,
       status: 'error',
@@ -252,26 +288,33 @@ export async function createUserProfileIfMissing(user?: User | null): Promise<Us
   let profile: ProfileRow | null = null
   let lastError: { code?: string; message?: string } | null = null
 
-  for (const profileInsert of profileInsertVariants(currentUser)) {
-    const { data, error } = await client
-      .from(TABLE_NAMES.profiles)
-      .insert(profileInsert)
-      .select('*')
-      .single()
+  for (const tableName of PROFILE_TABLES) {
+    for (const profileInsert of profileInsertVariants(tableName, currentUser)) {
+      const { data, error } = await client
+        .from(tableName)
+        .insert(profileInsert)
+        .select('*')
+        .single()
 
-    profile = data as ProfileRow | null
-    lastError = error
+      profile = data as ProfileRow | null
+      lastError = error
 
-    if (!lastError && profile) break
-    if (lastError && isBackendRequiredError(lastError)) break
-    if (
-      lastError
-      && !isMissingColumnError(lastError, 'user_id')
-      && !isMissingColumnError(lastError, 'id')
-      && !isMissingColumnError(lastError, 'metadata_json')
-    ) {
-      break
+      if (!lastError && profile) break
+      if (lastError && isBackendRequiredError(lastError)) break
+      if (
+        lastError
+        && !isMissingRelationError(lastError)
+        && !isMissingColumnError(lastError, 'user_id')
+        && !isMissingColumnError(lastError, 'id')
+        && !isMissingColumnError(lastError, 'metadata_json')
+        && !isMissingColumnError(lastError, 'metadata')
+        && !isMissingColumnError(lastError, 'email')
+      ) {
+        continue
+      }
     }
+
+    if (profile || (lastError && isBackendRequiredError(lastError))) break
   }
 
   if (lastError || !profile) {
@@ -325,19 +368,24 @@ export async function updateUserProfileDisplayName(displayName: string): Promise
   let lastError: { code?: string; message?: string } | null = null
 
   for (const column of PROFILE_IDENTITY_COLUMNS) {
-    const { data, error } = await client
-      .from(TABLE_NAMES.profiles)
-      .update({ display_name: displayName })
-      .eq(column, currentUser.id)
-      .select('*')
-      .single()
+    for (const tableName of PROFILE_TABLES) {
+      const { data, error } = await client
+        .from(tableName)
+        .update({ display_name: displayName })
+        .eq(column, currentUser.id)
+        .select('*')
+        .single()
 
-    profile = data as ProfileRow | null
-    lastError = error
+      profile = data as ProfileRow | null
+      lastError = error
 
-    if (!lastError && profile) break
-    if (lastError && isBackendRequiredError(lastError)) break
-    if (lastError && !isMissingColumnError(lastError, column)) break
+      if (!lastError && profile) break
+      if (lastError && isBackendRequiredError(lastError)) break
+      if (lastError && (isMissingRelationError(lastError) || isMissingColumnError(lastError, column))) continue
+      break
+    }
+
+    if (profile || (lastError && isBackendRequiredError(lastError))) break
   }
 
   if (lastError || !profile) {

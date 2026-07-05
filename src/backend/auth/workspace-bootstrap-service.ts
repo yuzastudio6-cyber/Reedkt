@@ -7,9 +7,12 @@ import { TABLE_NAMES } from '../supabase/table-names'
 interface WorkspaceRow {
   id?: string
   owner_id?: string
+  owner_user_id?: string
   name?: string
   plan_type?: string
+  workspace_type?: string
   metadata_json?: Record<string, unknown> | null
+  metadata?: Record<string, unknown> | null
 }
 
 interface WorkspaceMemberRow {
@@ -68,6 +71,24 @@ function isBackendRequiredError(error: { code?: string; message?: string }): boo
     || message.includes('row-level security')
     || message.includes('permission denied')
     || message.includes('policy')
+  )
+}
+
+function isSchemaFallbackError(error: { code?: string; message?: string }): boolean {
+  const message = error.message?.toLowerCase() ?? ''
+  return (
+    error.code === '42703'
+    || error.code === '42P01'
+    || error.code === 'PGRST200'
+    || error.code === 'PGRST204'
+    || error.code === 'PGRST205'
+    || message.includes('schema cache')
+    || message.includes('could not find')
+    || message.includes('does not exist')
+    || message.includes('column')
+    || message.includes('relationship')
+    || message.includes('owner_user_id')
+    || message.includes('owner_id')
   )
 }
 
@@ -142,17 +163,35 @@ export async function getUserWorkspaces(user?: User | null): Promise<UserWorkspa
     }
   }
 
-  const { data, error } = await client
-    .from(TABLE_NAMES.workspaceMembers)
-    .select('id, workspace_id, user_id, role, workspaces(id, owner_id, name, plan_type, metadata_json)')
-    .eq('user_id', currentUser.id)
+  const workspaceMemberSelects = [
+    'id, workspace_id, user_id, role, workspaces(id, owner_id, name, plan_type, metadata_json)',
+    'id, workspace_id, user_id, role, workspaces(id, owner_user_id, name, workspace_type, metadata)',
+    'id, workspace_id, user_id, role',
+  ]
+  let data: unknown[] | null = null
+  let error: { code?: string; message?: string } | null = null
+
+  for (const select of workspaceMemberSelects) {
+    const result = await client
+      .from(TABLE_NAMES.workspaceMembers)
+      .select(select)
+      .eq('user_id', currentUser.id)
+
+    data = result.data as unknown[] | null
+    error = result.error
+
+    if (!error) break
+    if (isBackendRequiredError(error)) break
+    if (isSchemaFallbackError(error)) continue
+    break
+  }
 
   if (error) {
     return {
       ok: false,
       mode: isBackendRequiredError(error) ? 'backend_required' : 'supabase_frontend',
       workspaces: [],
-      message: error.message,
+      message: error.message ?? 'Workspace lookup failed.',
       warnings: isBackendRequiredError(error)
         ? ['RLS blocked workspace membership lookup; backend-mediated bootstrap may be required.']
         : ['Workspace lookup failed.'],
@@ -175,7 +214,7 @@ export async function getUserWorkspaces(user?: User | null): Promise<UserWorkspa
 
       if (member.id) summary.membershipId = member.id
       if (workspace?.name) summary.name = workspace.name
-      if (workspace?.owner_id) summary.ownerId = workspace.owner_id
+      if (workspace?.owner_id ?? workspace?.owner_user_id) summary.ownerId = workspace.owner_id ?? workspace.owner_user_id
 
       return [summary]
     })
@@ -243,18 +282,49 @@ export async function createDefaultWorkspaceIfMissing(user?: User | null): Promi
   const existing = await getCurrentWorkspace(currentUser)
   if (existing.ok) return existing
 
-  const { data, error } = await client
-    .from(TABLE_NAMES.workspaces)
-    .insert({
-      owner_id: currentUser.id,
-      name: defaultWorkspaceName(currentUser),
-      plan_type: 'free',
-      metadata_json: {
-        bootstrap_source: 'supabase_frontend',
+  const workspaceInserts: Array<{ insert: Record<string, unknown>; select: string }> = [
+    {
+      insert: {
+        owner_id: currentUser.id,
+        name: defaultWorkspaceName(currentUser),
+        plan_type: 'free',
+        metadata_json: {
+          bootstrap_source: 'supabase_frontend',
+        },
       },
-    })
-    .select('id, owner_id, name, plan_type, metadata_json')
-    .single()
+      select: 'id, owner_id, name, plan_type, metadata_json',
+    },
+    {
+      insert: {
+        owner_user_id: currentUser.id,
+        name: defaultWorkspaceName(currentUser),
+        workspace_type: 'personal',
+        metadata: {
+          bootstrap_source: 'supabase_frontend',
+        },
+      },
+      select: 'id, owner_user_id, name, workspace_type, metadata',
+    },
+  ]
+
+  let workspace: WorkspaceRow | null = null
+  let error: { code?: string; message?: string } | null = null
+
+  for (const variant of workspaceInserts) {
+    const result = await client
+      .from(TABLE_NAMES.workspaces)
+      .insert(variant.insert)
+      .select(variant.select)
+      .single()
+
+    workspace = result.data as WorkspaceRow | null
+    error = result.error
+
+    if (!error && workspace) break
+    if (error && isBackendRequiredError(error)) break
+    if (error && isSchemaFallbackError(error)) continue
+    break
+  }
 
   if (error) {
     const backendRequired = isBackendRequiredError(error)
@@ -263,17 +333,14 @@ export async function createDefaultWorkspaceIfMissing(user?: User | null): Promi
       mode: backendRequired ? 'backend_required' : 'supabase_frontend',
       message: backendRequired
         ? 'Workspace creation is blocked by RLS and needs a backend runtime.'
-        : error.message,
+        : error.message ?? 'Workspace creation failed.',
       warnings: backendRequired
         ? ['Backend workspace creation is required under the current RLS policy.']
         : ['Default workspace creation failed.'],
     }
   }
 
-  const workspace = data as WorkspaceRow
-  const workspaceId = workspace.id
-
-  if (!workspaceId) {
+  if (!workspace?.id) {
     return {
       ok: false,
       mode: 'supabase_frontend',
@@ -282,7 +349,7 @@ export async function createDefaultWorkspaceIfMissing(user?: User | null): Promi
     }
   }
 
-  return ensureWorkspaceMembership(workspaceId, 'owner', currentUser)
+  return ensureWorkspaceMembership(workspace.id, 'owner', currentUser)
 }
 
 export async function ensureDefaultWorkspace(user?: User | null): Promise<WorkspaceBootstrapResult> {
@@ -392,25 +459,53 @@ export async function setCurrentWorkspaceContext(
 
   writeStoredCurrentWorkspaceId(currentUser.id, workspaceId)
 
-  const { data: profileData, error: profileLookupError } = await client
-    .from(TABLE_NAMES.profiles)
-    .select('metadata_json')
-    .eq('user_id', currentUser.id)
-    .maybeSingle()
+  const profileUpdates = [
+    {
+      tableName: TABLE_NAMES.profiles,
+      identityColumn: 'user_id',
+      metadataColumn: 'metadata_json',
+    },
+    {
+      tableName: TABLE_NAMES.legacyUserProfiles,
+      identityColumn: 'id',
+      metadataColumn: 'metadata',
+    },
+  ]
 
-  const profileMetadata = profileLookupError
-    ? {}
-    : ((profileData as { metadata_json?: Record<string, unknown> | null } | null)?.metadata_json ?? {})
+  let error: { code?: string; message?: string } | null = null
 
-  const { error } = await client
-    .from(TABLE_NAMES.profiles)
-    .update({
-      metadata_json: {
-        ...profileMetadata,
-        current_workspace_id: workspaceId,
-      },
-    })
-    .eq('user_id', currentUser.id)
+  for (const update of profileUpdates) {
+    const { data: profileData, error: profileLookupError } = await client
+      .from(update.tableName)
+      .select(update.metadataColumn)
+      .eq(update.identityColumn, currentUser.id)
+      .maybeSingle()
+
+    if (profileLookupError && isSchemaFallbackError(profileLookupError)) {
+      error = profileLookupError
+      continue
+    }
+
+    const profileMetadata = profileLookupError
+      ? {}
+      : (((profileData as Record<string, Record<string, unknown> | null> | null)?.[update.metadataColumn]) ?? {})
+
+    const result = await client
+      .from(update.tableName)
+      .update({
+        [update.metadataColumn]: {
+          ...profileMetadata,
+          current_workspace_id: workspaceId,
+        },
+      })
+      .eq(update.identityColumn, currentUser.id)
+
+    error = result.error
+    if (!error) break
+    if (isBackendRequiredError(error)) break
+    if (isSchemaFallbackError(error)) continue
+    break
+  }
 
   if (error) {
     return {

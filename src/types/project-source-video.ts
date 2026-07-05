@@ -31,6 +31,50 @@ export interface ProjectSourceVideoLocalPreview extends ProjectSourceVideoSafety
   createdAt: string
 }
 
+export type ProjectSourceVideoBackendUploadStatus =
+  | 'unavailable'
+  | 'idle'
+  | 'uploading'
+  | 'uploaded'
+  | 'failed'
+
+export interface ProjectSourceVideoBackendUploadConfig {
+  available: boolean
+  apiBaseUrl?: string
+  workspaceId: string
+  mode: 'mock_backend_local' | 'unavailable'
+  message: string
+  warnings: string[]
+}
+
+export interface ProjectSourceVideoBackendUploadResult {
+  status: 'uploaded'
+  uploadIntentId: string
+  storageObjectRecordId: string
+  mediaAssetId?: string
+  bucketName: string
+  objectPath: string
+  fileName: string
+  mimeType: string
+  sizeBytes: number
+  checksumSha256?: string
+  uploadedAt: string
+  backendLocalUploadMade: true
+  browserFileBytesSent: true
+  fileBytesReadByBackend: true
+  storageWriteMade: true
+  supabaseWriteMade: false
+  gcsWriteMade: false
+  mediaProcessingStarted: false
+  workerJobCreated: false
+  providerCallMade: false
+  renderJobCreated: false
+  exportJobCreated: false
+  creditReservedOrSpent: false
+  productReady: false
+  warnings: string[]
+}
+
 export interface ProjectSourceVideoMetadataSummary {
   label: string
   durationLabel: string

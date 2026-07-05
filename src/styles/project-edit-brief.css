@@ -136,6 +136,29 @@
   position: absolute;
 }
 
+.project-edit-brief-source-video-picker__backend {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 4px;
+  grid-column: 1 / -1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 10px;
+}
+
+.project-edit-brief-source-video-picker__backend strong {
+  color: var(--rp-text-primary);
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
+.project-edit-brief-source-video-picker__backend span {
+  color: var(--rp-text-secondary);
+  font-size: 0.84rem;
+}
+
 .project-edit-brief-source-video-picker__error {
   color: var(--rp-danger);
   grid-column: 1 / -1;

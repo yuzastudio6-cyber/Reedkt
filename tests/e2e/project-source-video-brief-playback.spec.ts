@@ -78,7 +78,8 @@ test.describe('Project source video Brief playback', () => {
     await gotoRoute(page, briefPath)
 
     await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
-    await expect(page.getByTestId('project-source-video-picker')).toContainText('Local browser preview only')
+    await expect(page.getByTestId('project-source-video-picker')).toContainText('Local preview and internal upload')
+    await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('unavailable')
     await expect(page.locator('input[type="file"]:enabled')).toHaveCount(1)
 
     await page.getByTestId('project-source-video-file-input').setInputFiles({
@@ -88,6 +89,7 @@ test.describe('Project source video Brief playback', () => {
     })
 
     await expect(page.getByTestId('project-edit-brief-status')).toContainText('Local browser source video selected')
+    await expect(page.getByRole('button', { name: /Upload for testing/i })).toBeDisabled()
     await expect(page.getByTestId('project-source-video-local-mode')).toContainText('Local browser preview only')
     await expect(page.getByTestId('project-edit-brief-video-shell')).not.toContainText('Mock video shell only')
 

@@ -205,6 +205,40 @@
   font-weight: 750;
 }
 
+.project-edit-brief-playback-selector {
+  background: rgba(5, 9, 18, 0.58);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 4px;
+}
+
+.project-edit-brief-playback-selector button {
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--rp-radius-md) - 3px);
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  min-height: 36px;
+  padding: 8px 10px;
+}
+
+.project-edit-brief-playback-selector button[data-active='true'] {
+  background: rgba(0, 229, 255, 0.14);
+  color: var(--rp-text-primary);
+}
+
+.project-edit-brief-playback-selector button:disabled {
+  color: var(--rp-text-muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .clean-edit-brief__brief-card label {
   color: var(--rp-text-secondary);
   font-size: 0.86rem;

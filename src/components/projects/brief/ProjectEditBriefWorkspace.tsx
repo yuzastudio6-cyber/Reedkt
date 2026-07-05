@@ -30,6 +30,11 @@ import {
   uploadProjectSourceVideoToBackend,
 } from '../../../lib/project-source-video-backend-upload'
 import {
+  loadProjectSourceVideoLocalArtifactForReview,
+  revokeProjectSourceVideoLocalArtifactReviewObject,
+  type ProjectSourceVideoLocalArtifactReviewObject,
+} from '../../../lib/project-source-video-local-artifact-review'
+import {
   createProjectSourceVideoLocalEditPreviewConfig,
 } from '../../../lib/project-source-video-local-edit-preview-smoke'
 import {
@@ -97,6 +102,8 @@ type EditWorkspaceFlowStep = {
   status: 'complete' | 'current' | 'locked'
   summary: string
 }
+
+type MainPlaybackMode = 'source' | 'preview' | 'final_export'
 
 function buildEditWorkspaceFlowSteps(input: {
   sourceUploaded: boolean
@@ -177,6 +184,10 @@ export function ProjectEditBriefWorkspace({
   const [backendUploadError, setBackendUploadError] = useState<string | undefined>()
   const [localPreviewResult, setLocalPreviewResult] = useState<ProjectSourceVideoLocalEditPreviewResult | undefined>()
   const [localFinalExportResult, setLocalFinalExportResult] = useState<ProjectSourceVideoLocalFinalExportResult | undefined>()
+  const [mainPlaybackMode, setMainPlaybackMode] = useState<MainPlaybackMode>('source')
+  const [mainReviewArtifact, setMainReviewArtifact] = useState<ProjectSourceVideoLocalArtifactReviewObject | undefined>()
+  const [mainReviewArtifactLoading, setMainReviewArtifactLoading] = useState(false)
+  const [mainReviewArtifactError, setMainReviewArtifactError] = useState<string | undefined>()
   const [playing, setPlaying] = useState(false)
   const [playheadSeconds, setPlayheadSeconds] = useState(0)
   const [briefText, setBriefText] = useState('Clean pacing, readable captions, natural sound, and no flashy transitions unless the edit asks for it.')
@@ -201,6 +212,10 @@ export function ProjectEditBriefWorkspace({
   useEffect(() => () => {
     revokeProjectSourceVideoLocalPreview(sourceVideoRef.current)
   }, [])
+
+  useEffect(() => () => {
+    revokeProjectSourceVideoLocalArtifactReviewObject(mainReviewArtifact)
+  }, [mainReviewArtifact])
 
   const sourceSummary = useMemo(() => createProjectSourceVideoMetadataSummary(sourceVideo), [sourceVideo])
   const sourceEvidenceAvailable = Boolean(sourceVideo || backendUploadResult)
@@ -251,6 +266,49 @@ export function ProjectEditBriefWorkspace({
     professionalQAResult: currentProfessionalQAResult,
     sourceStorageObjectRecordId: backendUploadResult?.storageObjectRecordId,
   }) ? localFinalExportResult : undefined, [backendUploadResult, currentPreviewResult, currentPreviewReviewResult, currentProfessionalQAResult, localFinalExportResult])
+  const selectedMainReviewStorageObjectId = mainPlaybackMode === 'preview'
+    ? currentPreviewResult?.previewStorageObjectId
+    : mainPlaybackMode === 'final_export'
+      ? currentFinalExportResult?.finalExportStorageObjectId
+      : undefined
+  const selectedMainReviewArtifact = mainReviewArtifact?.storageObjectRecordId === selectedMainReviewStorageObjectId
+    ? mainReviewArtifact
+    : undefined
+  const primaryVideoShell = useMemo<ProjectEditBriefVideoShellModel>(() => {
+    if (mainPlaybackMode === 'preview' && currentPreviewResult) {
+      return {
+        durationSeconds: currentPreviewResult.durationSeconds ?? 0,
+        currentTimeSeconds: playheadSeconds,
+        currentTimeLabel: formatProjectSourceVideoDuration(playheadSeconds),
+        durationLabel: formatProjectSourceVideoDuration(currentPreviewResult.durationSeconds),
+        aspectLabel: currentPreviewResult.editAssembly?.outputFrame?.aspectRatio ?? 'Private preview',
+        title: 'Private preview',
+        mockPosterLabel: mainReviewArtifactLoading ? 'Loading private preview' : 'Private preview is ready to load',
+      }
+    }
+    if (mainPlaybackMode === 'final_export' && currentFinalExportResult) {
+      return {
+        durationSeconds: currentFinalExportResult.durationSeconds ?? 0,
+        currentTimeSeconds: playheadSeconds,
+        currentTimeLabel: formatProjectSourceVideoDuration(playheadSeconds),
+        durationLabel: formatProjectSourceVideoDuration(currentFinalExportResult.durationSeconds),
+        aspectLabel: currentFinalExportResult.editAssembly?.outputFrame?.aspectRatio ?? 'Private export',
+        title: 'Private final export',
+        mockPosterLabel: mainReviewArtifactLoading ? 'Loading private final export' : 'Private final export is ready to load',
+      }
+    }
+    return videoShell
+  }, [currentFinalExportResult, currentPreviewResult, mainPlaybackMode, mainReviewArtifactLoading, playheadSeconds, videoShell])
+  const primaryPlaybackNotice = mainPlaybackMode === 'source'
+    ? 'Source playback only. No generated output is shown.'
+    : mainPlaybackMode === 'preview'
+      ? 'Private preview playback. No public delivery or signed URL.'
+      : 'Private final export playback. No public delivery or signed URL.'
+  const primaryPlaybackLabel = mainPlaybackMode === 'preview'
+    ? 'Private preview'
+    : mainPlaybackMode === 'final_export'
+      ? 'Private final export'
+      : undefined
   const lifecycle = useMemo(() => buildProjectEditLifecycleModel({
     backendUploadAvailable: backendUploadConfig.available,
     backendUploadResult,
@@ -383,6 +441,10 @@ export function ProjectEditBriefWorkspace({
 
   function resetLocalEditProgress(message: string) {
     briefDraftResetPersistedRef.current = false
+    setMainPlaybackMode('source')
+    setMainReviewArtifact(undefined)
+    setMainReviewArtifactLoading(false)
+    setMainReviewArtifactError(undefined)
     setBackendUploadResult(undefined)
     setBackendUploadError(undefined)
     setLocalPreviewResult(undefined)
@@ -401,6 +463,52 @@ export function ProjectEditBriefWorkspace({
     setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
     setBriefSaveError(briefConfig.available ? undefined : briefConfig.message)
     setStatusMessage(message)
+  }
+
+  async function selectMainPlaybackMode(mode: MainPlaybackMode, storageObjectRecordId?: string) {
+    setMainPlaybackMode(mode)
+    setPlaying(false)
+    setPlayheadSeconds(0)
+    setMainReviewArtifactError(undefined)
+
+    if (mode === 'source') {
+      setMainReviewArtifact(undefined)
+      setMainReviewArtifactLoading(false)
+      return
+    }
+
+    const apiBaseUrl = localPreviewConfig.apiBaseUrl ?? backendUploadConfig.apiBaseUrl ?? briefConfig.apiBaseUrl
+    const targetStorageObjectRecordId = storageObjectRecordId ?? (
+      mode === 'preview'
+        ? currentPreviewResult?.previewStorageObjectId
+        : currentFinalExportResult?.finalExportStorageObjectId
+    )
+
+    if (!apiBaseUrl || !targetStorageObjectRecordId) {
+      setMainReviewArtifact(undefined)
+      setMainReviewArtifactLoading(false)
+      setMainReviewArtifactError(mode === 'preview'
+        ? 'Private preview is not ready for the main player yet.'
+        : 'Private final export is not ready for the main player yet.')
+      return
+    }
+
+    if (mainReviewArtifact?.storageObjectRecordId === targetStorageObjectRecordId) return
+
+    setMainReviewArtifactLoading(true)
+    try {
+      const artifact = await loadProjectSourceVideoLocalArtifactForReview({
+        apiBaseUrl,
+        storageObjectRecordId: targetStorageObjectRecordId,
+        workspaceId: backendUploadConfig.workspaceId,
+      })
+      setMainReviewArtifact(artifact)
+    } catch (caught) {
+      setMainReviewArtifact(undefined)
+      setMainReviewArtifactError(caught instanceof Error ? caught.message : 'Private artifact playback failed safely.')
+    } finally {
+      setMainReviewArtifactLoading(false)
+    }
   }
 
   function persistSetupReset(reason: 'source_selected' | 'source_cleared') {
@@ -711,14 +819,40 @@ export function ProjectEditBriefWorkspace({
               onSelectFile={handleVideoSelected}
               onUploadToBackend={uploadForTesting}
             />
+            <div className="project-edit-brief-playback-selector" data-testid="project-edit-main-playback-selector">
+              {[
+                { mode: 'source' as const, label: 'Source', disabled: !sourceVideo },
+                { mode: 'preview' as const, label: 'Preview', disabled: !currentPreviewResult?.previewStorageObjectId },
+                { mode: 'final_export' as const, label: 'Final', disabled: !currentFinalExportResult?.finalExportStorageObjectId },
+              ].map((item) => (
+                <button
+                  aria-pressed={mainPlaybackMode === item.mode}
+                  data-active={mainPlaybackMode === item.mode}
+                  disabled={item.disabled || mainReviewArtifactLoading}
+                  key={item.mode}
+                  onClick={() => void selectMainPlaybackMode(item.mode)}
+                  type="button"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
             <ProjectEditBriefVideoShell
-              localPreview={sourceVideo}
+              localPreview={mainPlaybackMode === 'source' ? sourceVideo : undefined}
               onMetadataLoaded={handleMetadataLoaded}
               onPlayStateChange={setPlaying}
               onTimeUpdate={setPlayheadSeconds}
+              playbackNotice={primaryPlaybackNotice}
               playing={playing}
-              video={videoShell}
+              reviewArtifact={selectedMainReviewArtifact}
+              reviewArtifactLabel={primaryPlaybackLabel}
+              video={primaryVideoShell}
             />
+            {mainReviewArtifactError ? (
+              <p className="project-edit-brief-source-video-picker__error" data-testid="project-edit-main-playback-error">
+                {mainReviewArtifactError}
+              </p>
+            ) : null}
             <ProjectEditBriefSourceVideoSummary localPreview={sourceVideo} summary={sourceSummary} />
           </Card>
 
@@ -781,6 +915,7 @@ export function ProjectEditBriefWorkspace({
               setPreviewReviewResult(undefined)
               setProfessionalQAResult(undefined)
               setLocalFinalExportResult(undefined)
+              void selectMainPlaybackMode('preview', result.previewStorageObjectId)
               void recordLifecycleCheckpoint({
                 checkpointKind: 'preview_ready',
                 status: 'preview_ready',
@@ -862,6 +997,7 @@ export function ProjectEditBriefWorkspace({
             finalExportResult={currentFinalExportResult}
             onFinalExportReady={(result) => {
               setLocalFinalExportResult(result)
+              void selectMainPlaybackMode('final_export', result.finalExportStorageObjectId)
               void recordLifecycleCheckpoint({
                 checkpointKind: 'final_export_ready',
                 status: 'final_export_ready',

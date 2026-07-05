@@ -5,6 +5,7 @@ type ProjectEditBriefVideoPlaybackControlsProps = {
   currentTimeLabel: string
   disabled?: boolean
   durationLabel: string
+  notice?: string
   onPlayPause: () => void
   playing: boolean
 }
@@ -13,6 +14,7 @@ export function ProjectEditBriefVideoPlaybackControls({
   currentTimeLabel,
   disabled = false,
   durationLabel,
+  notice = 'Browser playback only. No render/export started.',
   onPlayPause,
   playing,
 }: ProjectEditBriefVideoPlaybackControlsProps) {
@@ -29,7 +31,7 @@ export function ProjectEditBriefVideoPlaybackControls({
         {playing ? 'Pause' : 'Play'}
       </Button>
       <span data-testid="project-edit-brief-timecode">{currentTimeLabel} / {durationLabel}</span>
-      <span className="project-edit-brief-muted">Browser playback only. No render/export started.</span>
+      <span className="project-edit-brief-muted">{notice}</span>
     </div>
   )
 }

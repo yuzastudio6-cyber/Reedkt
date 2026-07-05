@@ -1716,6 +1716,57 @@ function buildReport() {
     currentHostGpuProofBlockers,
     currentHostGpuProofPreflightCommand: hostDetectionReadinessCommand(),
   }
+  const nativeCudaClosure = remainingNativeCudaClosure(
+    toolRows,
+    currentHostEnvironment,
+  )
+  const privateRuntimeProofSupplied =
+    suppliedPrivateLocalRuntimeProofs.length > 0
+  const nextGpuModelUnlockCandidate =
+    privateRuntimeProofSupplied &&
+    nativeCudaClosure.remainingToolCount > 0
+      ? {
+          toolIds: nativeCudaClosure.remainingToolIds,
+          reason:
+            'Accepted private local runtime proof already covers the CPU foundation, CPU tensor, and CPU model GPU/model tools. The remaining unlock path is native CUDA proof for SAM2 and BiRefNet with reviewed private model/source inputs.',
+          recommendedBackend: 'docker_container_native_cuda',
+          nativeCudaCloseoutCommand:
+            nativeCudaClosure.nativeCudaCloseoutCommand,
+          nativeCudaCloseoutStrictCommand:
+            nativeCudaClosure.nativeCudaCloseoutStrictCommand,
+          nativeCudaCloseoutDiagnosticCommand:
+            nativeCudaClosure.nativeCudaCloseoutDiagnosticCommand,
+          currentHostEligibleForNativeGpuProof:
+            nativeCudaClosure.currentHostEligibleForNativeGpuProof,
+          currentHostBlockers: nativeCudaClosure.currentHostBlockers,
+          remainsBlockedUntil:
+            'Run the native CUDA closeout on a linux/amd64 host with Docker NVIDIA runtime, nvidia-smi, CUDA-visible proof containers, reviewed private SAM2/BiRefNet model inputs, and the accepted existing proof refs.',
+        }
+      : {
+          toolId: 'kornia',
+          reason:
+            'Kornia is the narrowest GPU/model execution unlock candidate because it uses the real controlled adapter, can prove local CPU tensor execution with a private approved frame and output directory, and does not require a model-weight manifest.',
+          recommendedBackend: 'docker_container',
+          canonicalProofImage: canonicalGpuWorkerProofImage,
+          nextExactContainerBuildCommand: containerGpuImageBuildCommand('kornia'),
+          nextExactCommand: containerGpuCommand('kornia'),
+          nextExactControlledRouteCommand: controlledRouteGpuCommand('kornia'),
+          nextExactProofRefBridgeCommand: proofRefBridgeCommand(),
+          nextExactReadinessWithPrivateProofCommand:
+            directReadinessWithPrivateProofCommand(),
+          nextExactCurrentHostPreflightCommand: hostDetectionReadinessCommand(),
+          expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached:
+            'gpu_model_python_package_missing',
+          remainsBlockedUntil:
+            'Run with the canonical proof image available, approved local Python CPU tensor runtime packages, and a private approved source frame mounted locally.',
+        }
+  const nextExactAction =
+    executableTools.length === 21
+      ? 'All 21 AI graphics tools have accepted controlled external-agent execution proof. Keep production/beta/public-artifact gates closed until the separate launch gates approve them.'
+      : privateRuntimeProofSupplied &&
+        nativeCudaClosure.remainingToolCount > 0
+      ? 'Private proof now covers 19/21 tools. Run the native CUDA closeout for sam2 and birefnet with the accepted existing proof refs, reviewed private model/source inputs, and a linux/amd64 Docker NVIDIA host; GPU must start only during those scoped tool calls.'
+      : 'First target kornia with the container local-dev CPU tensor command. After kornia returns structured private local output, feed that private harness result into the GPU/model runtime proof-ref bridge, then repeat per GPU/model tool with reviewed model/checkpoint paths where required.'
 
   return {
     schemaVersion:
@@ -2015,28 +2066,9 @@ function buildReport() {
       packageLockMutationPerformed: false,
     },
     toolReadinessRows: toolRows,
-    remainingNativeCudaClosure:
-      remainingNativeCudaClosure(toolRows, currentHostEnvironment),
-    fastestGpuModelUnlockCandidate: {
-      toolId: 'kornia',
-      reason:
-        'Kornia is the narrowest GPU/model execution unlock candidate because it uses the real controlled adapter, can prove local CPU tensor execution with a private approved frame and output directory, and does not require a model-weight manifest.',
-      recommendedBackend: 'docker_container',
-      canonicalProofImage: canonicalGpuWorkerProofImage,
-      nextExactContainerBuildCommand: containerGpuImageBuildCommand('kornia'),
-      nextExactCommand: containerGpuCommand('kornia'),
-      nextExactControlledRouteCommand: controlledRouteGpuCommand('kornia'),
-      nextExactProofRefBridgeCommand: proofRefBridgeCommand(),
-      nextExactReadinessWithPrivateProofCommand:
-        directReadinessWithPrivateProofCommand(),
-      nextExactCurrentHostPreflightCommand: hostDetectionReadinessCommand(),
-      expectedCurrentHostBlockerWhenNoNvidiaGpuIsAttached:
-        'gpu_model_python_package_missing',
-      remainsBlockedUntil:
-        'Run with the canonical proof image available, approved local Python CPU tensor runtime packages, and a private approved source frame mounted locally.',
-    },
-    nextExactAction:
-      'First target kornia with the container local-dev CPU tensor command. After kornia returns structured private local output, feed that private harness result into the GPU/model runtime proof-ref bridge, then repeat per GPU/model tool with reviewed model/checkpoint paths where required.',
+    remainingNativeCudaClosure: nativeCudaClosure,
+    fastestGpuModelUnlockCandidate: nextGpuModelUnlockCandidate,
+    nextExactAction,
   }
 }
 

@@ -3184,7 +3184,8 @@ if (failures.length) {
 console.log(JSON.stringify({
   ok: true,
   decision,
-  status,
+  status: docs.status,
+  expectedStatus: docsExpectedStatus,
   totalToolsCovered: docs.counts.totalToolsCovered,
   agentCallableTools: docs.counts.agentCallableTools,
   agentExecutableTools: docs.counts.agentExecutableTools,

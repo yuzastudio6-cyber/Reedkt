@@ -23,11 +23,14 @@ import {
 
 export type Accent = 'blue' | 'cyan' | 'violet' | 'purple' | 'success' | 'warning' | 'danger' | 'info'
 
+export const appSidebarNavLabels = ['Home', 'Project', 'Preferences'] as const
+
+export type AppSidebarNavLabel = typeof appSidebarNavLabels[number]
+
 export type NavItem = {
-  label: string
+  label: AppSidebarNavLabel
   to: string
   icon: LucideIcon
-  disabled?: boolean
 }
 
 export type Project = {
@@ -96,11 +99,11 @@ export type ExportItem = {
   accent: Accent
 }
 
-export const appNav: NavItem[] = [
+export const appNav = [
   { label: 'Home', to: '/dashboard', icon: Home },
   { label: 'Project', to: '/projects', icon: FolderKanban },
   { label: 'Preferences', to: '/edit-preferences', icon: ListChecks },
-]
+] satisfies readonly NavItem[]
 
 export const marketingLinks = [
   { label: 'Product', href: '#product' },

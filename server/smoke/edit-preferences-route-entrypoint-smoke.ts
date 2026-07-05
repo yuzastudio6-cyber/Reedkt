@@ -32,16 +32,29 @@ assert.match(app, /EditPreferencesPage/)
 assert.match(app, /path="\/edit-preferences"/)
 
 const nav = read('src/data/mockData.ts')
-const appNavSource = nav.match(/export const appNav: NavItem\[\] = \[[\s\S]*?\n\]/)?.[0] ?? ''
+const appNavSource = nav.match(/export const appNav: NavItem\[\] = \[[\s\S]*?\n\]/)?.[0]
+  ?? nav.match(/export const appNav = \[[\s\S]*?\n\] satisfies readonly NavItem\[\]/)?.[0]
+  ?? ''
+const allowedLabelSource = nav.match(/export const appSidebarNavLabels = \[[\s\S]*?\] as const/)?.[0] ?? ''
+assert.match(allowedLabelSource, /\['Home', 'Project', 'Preferences'\] as const/)
 assert.match(appNavSource, /Home/)
 assert.match(appNavSource, /label: 'Project'/)
 assert.match(appNavSource, /Preferences/)
 assert.match(appNavSource, /\/dashboard/)
 assert.match(appNavSource, /\/projects/)
 assert.match(appNavSource, /\/edit-preferences/)
-for (const staleSidebarItem of ['Projects', 'AI Editor', 'Media Library', 'Templates', 'Team', 'Analytics', 'Exports', 'Brand Kit', 'Settings']) {
+assert.deepEqual([...appNavSource.matchAll(/label: '([^']+)'/g)].map((match) => match[1]), ['Home', 'Project', 'Preferences'])
+assert.doesNotMatch(nav, /disabled\?: boolean/)
+for (const staleSidebarItem of ['Projects', 'AI Editor', 'Media Library', 'Templates', 'Team', 'Analytics', 'Exports', 'Brand Kit', 'Settings', 'Wallet', 'Upload']) {
   assert.doesNotMatch(appNavSource, new RegExp(staleSidebarItem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${staleSidebarItem} should not be in the primary sidebar nav`)
 }
+
+const appShell = read('src/components/AppShell.tsx')
+assert.match(appShell, /data-testid="app-sidebar"/)
+assert.match(appShell, /sidebarNav\.map/)
+assert.doesNotMatch(appShell, /sidebar-link-disabled/)
+assert.doesNotMatch(appShell, /<small>Later<\/small>/)
+assert.doesNotMatch(appShell, /sidebar-widget|sidebar-profile/)
 
 const design = read('design.md')
 assert.match(design, /Current internal-testing desktop sidebar/)

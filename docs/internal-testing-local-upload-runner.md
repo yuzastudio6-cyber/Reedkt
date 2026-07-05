@@ -6,6 +6,14 @@ This runner starts the browser app and the API together for the safe source-vide
 npm run dev:internal-testing:local-upload
 ```
 
+For a one-command verification of the same path, run:
+
+```bash
+npm run test:internal-testing:local-upload-e2e
+```
+
+The verifier starts the API and app, requires local `ffmpeg` for the tiny synthetic Playwright fixture, signs in through browser-local internal testing auth, uploads through the real local API upload-intent endpoints, runs the preview-only local edit smoke, verifies Qwen 3.7 Max is recorded as the reasoning identity without a live call, then shuts the stack down and removes local test artifacts.
+
 Open:
 
 - Sign in: `http://127.0.0.1:5179/sign-in`

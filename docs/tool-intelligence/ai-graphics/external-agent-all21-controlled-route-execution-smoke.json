@@ -1849,11 +1849,11 @@
         "gpu_model_runtime_container_image_missing"
       ],
       "executableOnCudaHostWithPrivateInput": false,
-      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-approved-frame.ppm --scoped-gpu-birefnet-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-birefnet-model",
+      "nextExactCommand": "npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool birefnet --scoped-gpu-runtime-container-image reeditpro/ai-graphics-birefnet-runtime:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-approved-frame.ppm --scoped-gpu-birefnet-model .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/models/birefnet",
       "privateOutputDirectory": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet",
       "privateSourceImageLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-approved-frame.ppm",
       "privateRuntimeInputRefs": {
-        "birefnetModelLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/private-birefnet-model"
+        "birefnetModelLocalPath": ".local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/birefnet/models/birefnet"
       },
       "result": {
         "toolId": "birefnet",

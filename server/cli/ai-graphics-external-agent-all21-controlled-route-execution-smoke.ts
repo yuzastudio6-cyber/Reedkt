@@ -632,7 +632,7 @@ function scopedGpuModelPrivateRuntimeInputRefs(
     birefnet: {
       birefnetModelLocalPath:
         options.birefnetModelLocalPath ??
-        `${outputDirectory}/private-birefnet-model`,
+        `${outputDirectory}/models/birefnet`,
     },
     real_esrgan: {
       realEsrganModelLocalPath:

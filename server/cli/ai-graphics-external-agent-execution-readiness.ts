@@ -449,7 +449,7 @@ function gpuModelControlledRouteFlags(toolId: string): string[] {
     flags.push(`--scoped-gpu-sam2-checkpoint ${outputDir}/private-sam2-checkpoint.pt`)
   }
   if (toolId === 'birefnet') {
-    flags.push(`--scoped-gpu-birefnet-model ${outputDir}/private-birefnet-model`)
+    flags.push(`--scoped-gpu-birefnet-model ${outputDir}/models/birefnet`)
   }
   if (toolId === 'real_esrgan') {
     flags.push(`--scoped-gpu-real-esrgan-model ${outputDir}/private-real-esrgan-model.pth`)

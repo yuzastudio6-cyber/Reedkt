@@ -116,7 +116,11 @@ assertText('src/pages/SignInPage.tsx', [
   '/internal-testing',
   'No service-role secrets',
   'No tool execution on sign-in',
+  'buildSignUpEmailRedirectTo',
+  'Tester provisioning required',
+  'backend tester provisioning workflow',
 ])
+assert.doesNotMatch(read('src/pages/SignInPage.tsx'), /Check your email/)
 
 assertText('src/lib/internal-testing-scenarios.ts', [
   'browser-auth-bootstrap-readiness',

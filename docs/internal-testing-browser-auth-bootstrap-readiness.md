@@ -10,6 +10,8 @@ This milestone adds a signed-in bootstrap readiness panel to `/internal-testing`
 
 If RLS blocks profile or workspace setup, the panel reports `backend_required` so the backend-only manual provisioning and readback workflows can finish setup without exposing service-role keys to browser code.
 
+Browser self-sign-up is not the authoritative internal tester confirmation path. If Supabase creates a user without returning a session, `/sign-in` now treats that as `Tester provisioning required` and tells the tester to use the backend provisioning workflow instead of waiting on email confirmation delivery.
+
 ## Readiness Surface
 
 - The panel uses `useAuthBootstrap`, the same browser-safe hook used by `/sign-in`.

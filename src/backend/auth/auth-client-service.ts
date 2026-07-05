@@ -35,6 +35,7 @@ export interface SupabaseAuthActionResult {
   status: AuthBootstrapStatus
   user?: User | null
   session?: Session | null
+  emailConfirmationRequired?: boolean
   message: string
   warnings: string[]
 }
@@ -191,6 +192,7 @@ export async function signUpWithEmailPassword(
   email: string,
   password: string,
   displayName?: string,
+  emailRedirectTo?: string,
 ): Promise<SupabaseAuthActionResult> {
   const client = getSupabaseClient()
 
@@ -205,16 +207,27 @@ export async function signUpWithEmailPassword(
     }
   }
 
+  const options: {
+    data?: {
+      display_name: string
+    }
+    emailRedirectTo?: string
+  } = {}
+
+  if (displayName) {
+    options.data = {
+      display_name: displayName,
+    }
+  }
+
+  if (emailRedirectTo) {
+    options.emailRedirectTo = emailRedirectTo
+  }
+
   const { data, error } = await client.auth.signUp({
     email,
     password,
-    options: displayName
-      ? {
-          data: {
-            display_name: displayName,
-          },
-        }
-      : undefined,
+    options: Object.keys(options).length > 0 ? options : undefined,
   })
 
   if (error) {
@@ -230,13 +243,16 @@ export async function signUpWithEmailPassword(
   return {
     ok: true,
     mode: 'supabase_frontend',
-    status: data.user ? 'ready' : 'signed_out',
+    status: data.session ? 'ready' : 'signed_out',
     user: data.user,
     session: data.session,
+    emailConfirmationRequired: !data.session,
     message: data.session
       ? 'Signed up and received a Supabase session.'
-      : 'Sign-up created a user; email confirmation may be required before a session is active.',
-    warnings: data.session ? [] : ['Supabase may require email confirmation before bootstrap can continue.'],
+      : 'Sign-up created a user but did not return an active Supabase session. Internal testing should use backend-provisioned confirmed tester accounts instead of relying on email confirmation delivery.',
+    warnings: data.session
+      ? []
+      : ['Internal tester access requires owner/backend provisioning before browser sign-in can continue.'],
   }
 }
 

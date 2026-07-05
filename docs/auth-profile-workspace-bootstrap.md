@@ -71,7 +71,7 @@ Browser code must not:
 ## Gaps
 
 - Full auth pages are still not implemented.
-- No backend service-role API exists for profile/workspace creation when RLS blocks frontend writes.
+- A guarded backend-only GitHub Actions workflow now exists for staging internal tester profile/workspace provisioning when RLS blocks frontend writes. No always-on backend service-role API exists for this path yet.
 - No auth trigger exists for automatic profile creation.
 - No remote Supabase migration has been run or verified.
 - Storage/upload planning is partially fixed by RP-FIX-07, but real uploads and signed media delivery still require deployed storage policies and backend runtime support.

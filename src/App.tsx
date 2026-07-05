@@ -4,8 +4,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 const CreateProjectPage = lazy(() => import('./pages/CreateProjectPage').then((module) => ({ default: module.CreateProjectPage })))
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
 const EditorPage = lazy(() => import('./pages/EditorPage').then((module) => ({ default: module.EditorPage })))
-const LandingPage = lazy(() => import('./pages/LandingPage').then((module) => ({ default: module.LandingPage })))
-const PricingPage = lazy(() => import('./pages/PricingPage').then((module) => ({ default: module.PricingPage })))
 const ProjectHomePage = lazy(() => import('./pages/ProjectHomePage').then((module) => ({ default: module.ProjectHomePage })))
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage').then((module) => ({ default: module.ProjectsPage })))
 const PreferencesPage = lazy(() => import('./pages/PreferencesPage').then((module) => ({ default: module.PreferencesPage })))
@@ -29,7 +27,7 @@ export default function App() {
   return (
     <Suspense fallback={<RouteLoadingFallback />}>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/sign-in" element={<SignInPage />} />
         <Route path="/auth" element={<Navigate to="/sign-in" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -48,14 +46,14 @@ export default function App() {
         <Route path="/edit-preferences" element={<Navigate to="/preferences" replace />} />
         <Route path="/settings" element={<Navigate to="/preferences" replace />} />
         <Route path="/wallet" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/pricing" element={<Navigate to="/projects/new" replace />} />
         <Route path="/brand-kit" element={<Navigate to="/preferences" replace />} />
         <Route path="/exports" element={<Navigate to="/projects" replace />} />
         <Route path="/internal-testing" element={<Navigate to="/dashboard" replace />} />
         <Route path="/app" element={<Navigate to="/dashboard" replace />} />
         <Route path="/create" element={<Navigate to="/projects/new" replace />} />
         <Route path="/upload" element={<Navigate to="/projects/new" replace />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Suspense>
   )

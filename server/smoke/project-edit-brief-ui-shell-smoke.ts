@@ -70,6 +70,10 @@ assert.match(navigationTypes, /'open_brief_section'/)
 
 const app = read('src/App.tsx')
 assert.match(app, /\/projects\/:projectId\/edits\/:editSessionId\/brief/)
+assert.match(app, /path="\/" element={<Navigate to="\/dashboard" replace \/>}/)
+assert.match(app, /path="\/pricing" element={<Navigate to="\/projects\/new" replace \/>}/)
+assert.doesNotMatch(app, /LandingPage/)
+assert.doesNotMatch(app, /PricingPage/)
 
 const indexCss = read('src/index.css')
 assert.match(indexCss, /project-edit-brief\.css/)

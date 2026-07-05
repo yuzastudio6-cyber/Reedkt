@@ -348,6 +348,39 @@ function runJsonScript(scriptName: string, args: string[]): Record<string, any> 
   return JSON.parse(output) as Record<string, any>
 }
 
+function errorOutput(error: unknown): string {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'stderr' in error &&
+    typeof (error as { stderr?: unknown }).stderr === 'string'
+  ) {
+    return (error as { stderr: string }).stderr
+  }
+  if (error instanceof Error) return error.message
+  return String(error)
+}
+
+function materializerFailureReport(error: unknown): Record<string, any> {
+  const output = errorOutput(error).trim()
+  try {
+    const parsed = JSON.parse(output) as Record<string, any>
+    return {
+      ...parsed,
+      materializationFailureHandledAsStructuredBlock: true,
+    }
+  } catch {
+    return {
+      ok: false,
+      decision:
+        'ai_graphics_external_agent_gpu_model_runtime_input_manifest_materialized_local_only',
+      status: 'runtime_input_manifest_blocked_with_reason',
+      errorMessage: output,
+      materializationFailureHandledAsStructuredBlock: true,
+    }
+  }
+}
+
 function pushIfValue(args: string[], flag: string, value: string | undefined): void {
   if (value) args.push(flag, value)
 }
@@ -437,8 +470,13 @@ function resolveRuntimeInputManifestPathForTool(
     stringArg('--runtime-container-platform'),
   )
   pushIfValue(args, '--model-weight-manifest-dir', privateModelManifestDir)
-  materializedRuntimeInputManifestReport =
-    runJsonScript(runtimeInputManifestScript, args)
+  try {
+    materializedRuntimeInputManifestReport =
+      runJsonScript(runtimeInputManifestScript, args)
+  } catch (error) {
+    materializedRuntimeInputManifestReport = materializerFailureReport(error)
+    return undefined
+  }
   materializedRuntimeInputManifestPath = manifestOut
   return materializedRuntimeInputManifestPath
 }

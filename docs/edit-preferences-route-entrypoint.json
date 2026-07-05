@@ -15,12 +15,12 @@
     "do_not_copy_policy_visibility",
     "mock_local_boundary_summary",
     "sidebar_navigation",
-    "minimal_sidebar_home_projects_preferences_only"
+    "minimal_sidebar_home_project_preferences_only"
   ],
   "sidebarNavigation": {
     "allowed": [
       "Home",
-      "Projects",
+      "Project",
       "Preferences"
     ],
     "removedFromPrimarySidebar": [

@@ -182,20 +182,15 @@ Primary website navigation:
 
 ### 5.2 Desktop App Navigation
 
-Primary desktop sidebar:
+Current internal-testing desktop sidebar:
 
 1. Home
-2. Projects
-3. AI Editor
-4. Media Library
-5. Templates
-6. Team
-7. Analytics
-8. Exports
-9. Brand Kit
-10. Settings
+2. Project
+3. Preferences
 
-Optional lower sidebar widgets:
+The old broad sidebar list is retired for the current app shell. AI Editor, Media Library, Templates, Team, Analytics, Exports, Brand Kit, Settings, Wallet, and Upload must not appear as persistent primary sidebar options. Those surfaces can stay available through contextual project/home actions or direct guarded routes when a feature needs them.
+
+Optional lower sidebar widgets are disabled in the current internal-testing shell unless a later product decision explicitly restores them:
 
 - Upgrade plan
 - Storage usage
@@ -507,7 +502,7 @@ Icons should be:
 
 | Category | Examples |
 |---|---|
-| Navigation | Home, Projects, Editor, Team, Analytics, Exports, Settings |
+| Navigation | Home, Project, Preferences |
 | Editing | Cut, Trim, Split, Captions, Crop, Speed, Group, Animate |
 | AI | Sparkle, waveform, magic wand, chat bubble, automation |
 | Media | Video, audio, image, folder, cloud upload |

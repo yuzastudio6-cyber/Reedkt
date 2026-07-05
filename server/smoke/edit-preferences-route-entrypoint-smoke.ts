@@ -43,6 +43,13 @@ for (const staleSidebarItem of ['Projects', 'AI Editor', 'Media Library', 'Templ
   assert.doesNotMatch(appNavSource, new RegExp(staleSidebarItem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${staleSidebarItem} should not be in the primary sidebar nav`)
 }
 
+const design = read('design.md')
+assert.match(design, /Current internal-testing desktop sidebar/)
+assert.match(design, /1\. Home\s+2\. Project\s+3\. Preferences/)
+assert.match(design, /old broad sidebar list is retired/i)
+assert.match(design, /Navigation \| Home, Project, Preferences/)
+assert.doesNotMatch(design, /Primary desktop sidebar:\s+1\. Home\s+2\. Projects\s+3\. AI Editor/)
+
 const page = read('src/pages/EditPreferencesPage.tsx')
 assert.match(page, /listProjectEditSessionPreferenceOptionsForUI/)
 assert.match(page, /DRAFT_STORAGE_KEY/)
@@ -58,6 +65,7 @@ for (const phrase of [
   'mock/local',
   '/edit-preferences',
   'browser-safe UI adapter',
+  'Home, Project, and Preferences',
   'No upload',
   'No reference URL fetch',
   'No Qwen',
@@ -70,11 +78,13 @@ for (const phrase of [
 const docJson = JSON.parse(read('docs/edit-preferences-route-entrypoint.json')) as {
   decision?: string
   route?: string
+  sidebarNavigation?: { allowed?: string[] }
   blockedScope?: Record<string, boolean>
   validation?: { required?: string[] }
 }
 assert.equal(docJson.decision, 'edit_preferences_route_entrypoint_passed_mock_local_ready_for_internal_testing')
 assert.equal(docJson.route, '/edit-preferences')
+assert.deepEqual(docJson.sidebarNavigation?.allowed, ['Home', 'Project', 'Preferences'])
 assert.equal(docJson.blockedScope?.productReady, false)
 assert.equal(docJson.blockedScope?.supabaseReadWrite, false)
 assert.equal(docJson.blockedScope?.referenceUrlFetch, false)

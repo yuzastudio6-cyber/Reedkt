@@ -141,6 +141,8 @@
     "smoke:auth-profile-schema-compatibility": "tsx server/smoke/auth-profile-schema-compatibility-smoke.ts",
     "internal-testing:provision-tester": "tsx server/cli/provision-internal-tester.ts",
     "smoke:internal-tester-profile-workspace-provisioning": "tsx server/smoke/internal-tester-profile-workspace-provisioning-smoke.ts",
+    "internal-testing:verify-auth-readback": "tsx server/cli/verify-internal-tester-auth-readback.ts",
+    "smoke:internal-tester-sign-in-auth-readback": "tsx server/smoke/internal-tester-sign-in-auth-readback-smoke.ts",
     "smoke:internal-testing-auth-project-access-readiness": "tsx server/smoke/internal-testing-auth-project-access-readiness-smoke.ts",
     "smoke:internal-testing-auth-project-session-membership-policy": "tsx server/smoke/internal-testing-auth-project-session-membership-policy-smoke.ts",
     "smoke:internal-testing-durable-auth-project-session-backend-persistence-plan": "tsx server/smoke/internal-testing-durable-auth-project-session-backend-persistence-plan-smoke.ts",

@@ -1,16 +1,90 @@
 import { FolderPlus, Search } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { ProjectCard } from '../components/ProjectCard'
+import type { Project } from '../data/mockData'
 import { projects } from '../data/mockData'
+import {
+  createProjectBackendLocalConfig,
+  listProjectsBackendLocal,
+  type ProjectBackendLocalRecord,
+} from '../lib/project-backend-local'
 import { createProjectHomePath } from '../lib/project-edit-session-navigation'
 import { MOCK_PROJECT_HOME_PROJECT_ID } from '../lib/project-edit-session-project-home-ui-adapter'
 
 const currentProjectPath = createProjectHomePath(MOCK_PROJECT_HOME_PROJECT_ID)
 
+function formatProjectUpdated(project: ProjectBackendLocalRecord): string {
+  const value = project.updatedAt ?? project.createdAt
+  if (!value) return 'Created in this test session'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Created in this test session'
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
+}
+
+function projectCardFromBackendLocal(project: ProjectBackendLocalRecord): Project {
+  return {
+    id: project.id,
+    openPath: createProjectHomePath(project.id),
+    title: project.name,
+    format: 'Project workspace',
+    status: 'Ready for edits',
+    progress: 0,
+    updated: formatProjectUpdated(project),
+    owner: project.createdByUserId ? 'Signed-in tester' : 'Workspace',
+    summary: project.description ?? 'Create an edit inside this project, then upload video and write the edit brief.',
+    tags: ['Project', 'Edit setup', 'Internal test'],
+    accent: 'cyan',
+  }
+}
+
 export function ProjectsPage() {
+  const projectConfig = useMemo(() => createProjectBackendLocalConfig(import.meta.env), [])
+  const [backendProjects, setBackendProjects] = useState<Project[]>([])
+  const [loadingProjects, setLoadingProjects] = useState(projectConfig.available)
+  const [projectListStatus, setProjectListStatus] = useState(projectConfig.available
+    ? 'Loading backend-local projects.'
+    : 'Backend API URL is not configured, so sample projects are shown as an offline fallback.')
+
+  useEffect(() => {
+    if (!projectConfig.available || !projectConfig.apiBaseUrl) {
+      return
+    }
+
+    let cancelled = false
+    listProjectsBackendLocal({
+      apiBaseUrl: projectConfig.apiBaseUrl,
+      workspaceId: projectConfig.workspaceId,
+    }).then((result) => {
+      if (cancelled) return
+      setBackendProjects(result.projects.map(projectCardFromBackendLocal))
+      setProjectListStatus(result.projects.length > 0
+        ? 'Backend-local projects loaded.'
+        : 'No backend-local projects yet. Create a project to start.')
+    }).catch((error) => {
+      if (cancelled) return
+      setBackendProjects([])
+      setProjectListStatus(error instanceof Error ? error.message : 'Project list readback failed.')
+    }).finally(() => {
+      if (!cancelled) setLoadingProjects(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [projectConfig.apiBaseUrl, projectConfig.available, projectConfig.workspaceId])
+
+  const projectCards = projectConfig.available ? backendProjects : projects
+  const usingFallbackProjects = !projectConfig.available
+
   return (
     <AppShell
       description="Projects are the top-level container. Create a project first, then create edits inside it."
@@ -34,22 +108,36 @@ export function ProjectsPage() {
         <div className="projects-clean-toolbar">
           <span>
             <Search aria-hidden="true" size={17} />
-            Search comes after project persistence is connected.
+            {projectListStatus}
           </span>
-          <Badge>{projects.length} sample projects</Badge>
+          <Badge>{loadingProjects ? 'Loading' : `${projectCards.length} projects`}</Badge>
         </div>
-        <div className="project-grid">
-          {projects.map((project) => (
-            <ProjectCard key={project.title} project={project} />
-          ))}
-        </div>
+        {projectCards.length > 0 ? (
+          <div className="project-grid">
+            {projectCards.map((project) => (
+              <ProjectCard key={project.id ?? project.title} project={project} />
+            ))}
+          </div>
+        ) : (
+          <Card className="projects-clean-current" data-testid="projects-empty-state">
+            <h3>No projects yet</h3>
+            <p>Create a project first. Then ReEditPro will open that project so you can create an edit, upload video, write the brief, and approve the plan.</p>
+            <Button icon={FolderPlus} to="/projects/new" variant="primary">
+              Create project
+            </Button>
+          </Card>
+        )}
       </section>
 
       <Card className="projects-clean-current">
         <h3>Current project</h3>
-        <p>Open the current project to continue the project-to-edit-to-upload flow.</p>
+        <p>
+          {usingFallbackProjects
+            ? 'Open the sample current project only when the backend-local API is not configured.'
+            : 'Use the project cards above for backend-local project readback. The sample project remains available for offline UI checks.'}
+        </p>
         <Button to={currentProjectPath} variant="secondary">
-          Open current project
+          Open sample project
         </Button>
       </Card>
     </AppShell>

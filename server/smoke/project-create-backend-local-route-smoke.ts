@@ -7,6 +7,7 @@ import { loadRuntimeEnv } from '../config/env'
 import {
   createProjectBackendLocal,
   createProjectBackendLocalConfig,
+  listProjectsBackendLocal,
   readProjectBackendLocal,
 } from '../../src/lib/project-backend-local'
 
@@ -67,6 +68,13 @@ try {
   assert.equal(reread.project.id, created.project.id)
   assert.equal(reread.project.name, created.project.name)
 
+  const listed = await listProjectsBackendLocal({
+    apiBaseUrl,
+    workspaceId: 'mock-workspace',
+    getAccessToken: async () => undefined,
+  })
+  assert.ok(listed.projects.some((project) => project.id === created.project.id))
+
   const createPage = source('src/pages/CreateProjectPage.tsx')
   assert.match(createPage, /createProjectBackendLocal/)
   assert.match(createPage, /project-create-status/)
@@ -77,13 +85,20 @@ try {
   assert.match(projectHomePage, /readProjectBackendLocal/)
   assert.match(projectHomePage, /projectTitleReadback/)
 
+  const projectsPage = source('src/pages/ProjectsPage.tsx')
+  assert.match(projectsPage, /listProjectsBackendLocal/)
+  assert.match(projectsPage, /projects-empty-state/)
+  assert.match(projectsPage, /projectCardFromBackendLocal/)
+
   const projectClient = source('src/lib/project-backend-local.ts')
   assert.match(projectClient, /\/v1\/projects/)
+  assert.match(projectClient, /workspaceId=/)
   assert.match(projectClient, /readback did not match/)
   assert.doesNotMatch(projectClient, /service_role|signedUrl|Stripe|production ready:\s*true/i)
 
   const projectService = source('server/services/project-service.ts')
   assert.match(projectService, /mockProjects/)
+  assert.match(projectService, /listProjects/)
   assert.match(projectService, /providerCallMade: false/)
   assert.match(projectService, /productReady: false/)
 
@@ -93,6 +108,7 @@ try {
     projectId: created.project.id,
     projectName: created.project.name,
     readbackVerified: reread.project.id === created.project.id,
+    listReadbackVerified: listed.projects.some((project) => project.id === created.project.id),
     productReady: created.readback.productReady,
   }, null, 2))
 } finally {

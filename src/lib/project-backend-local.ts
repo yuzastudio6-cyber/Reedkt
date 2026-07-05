@@ -41,6 +41,10 @@ interface ProjectBackendLocalData {
   project: ProjectBackendLocalRecord
 }
 
+interface ProjectBackendLocalListData {
+  projects: ProjectBackendLocalRecord[]
+}
+
 export interface CreateProjectBackendLocalInput {
   apiBaseUrl: string
   description?: string
@@ -204,6 +208,29 @@ export async function readProjectBackendLocal(input: {
   }))
   return {
     project: assertOk(envelope, 'Project readback failed.').project,
+    warnings: envelope.warnings ?? [],
+  }
+}
+
+export async function listProjectsBackendLocal(input: {
+  apiBaseUrl: string
+  workspaceId: string
+  fetchImpl?: typeof fetch
+  getAccessToken?: () => Promise<string | undefined>
+}): Promise<{ projects: ProjectBackendLocalRecord[]; warnings: string[] }> {
+  const fetchImpl = input.fetchImpl ?? fetch
+  const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
+  const envelope = await parseEnvelope<ProjectBackendLocalListData>(await fetchImpl(joinUrl(
+    input.apiBaseUrl,
+    `/v1/projects?workspaceId=${encodeURIComponent(input.workspaceId)}`,
+  ), {
+    method: 'GET',
+    headers: createHeaders({
+      authorization: accessToken ? `Bearer ${accessToken}` : undefined,
+    }),
+  }))
+  return {
+    projects: assertOk(envelope, 'Project list readback failed.').projects,
     warnings: envelope.warnings ?? [],
   }
 }

@@ -34,6 +34,8 @@ export type NavItem = {
 }
 
 export type Project = {
+  id?: string
+  openPath?: string
   title: string
   format: string
   status: string

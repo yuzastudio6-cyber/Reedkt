@@ -114,5 +114,29 @@ export function createProjectService(context: ServiceContext) {
       if (!data) throw new ApiError('PROJECT_NOT_FOUND', 'Project was not found.', 404)
       return { project: data, warnings: [] }
     },
+
+    async listProjects(workspaceId: string) {
+      if (!context.clients.admin || context.env.mockOnly) {
+        const projects = Array.from(mockProjects.values())
+          .filter((project) => project.workspaceId === workspaceId)
+          .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+        return {
+          projects,
+          warnings: [
+            mockWarning('Project list'),
+            'Backend-local project listing reads mock-safe project records only; no tools, rendering, credits, Supabase writes, GCS, beta, or production work starts.',
+          ],
+        }
+      }
+
+      const { data, error } = await context.clients.admin
+        .from('projects')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .order('updated_at', { ascending: false })
+
+      throwOnSupabaseError(error)
+      return { projects: data ?? [], warnings: [] }
+    },
   }
 }

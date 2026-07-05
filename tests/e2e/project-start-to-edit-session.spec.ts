@@ -49,4 +49,23 @@ test.describe('Project start to edit workspace flow', () => {
     await expect(page.getByText(/Upload the source video for this edit/i)).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
+
+  test('requires an explicit output frame before creating an edit', async ({ page }) => {
+    await setViewport(page, 1440)
+    await gotoRoute(page, '/projects/mock-project-edit-chat-foundation')
+
+    await page.getByRole('button', { name: /\+ New edit/i }).click()
+    await expect(page.getByTestId('new-edit-session-create-panel')).toBeVisible()
+    await expect(page.getByTestId('new-edit-aspect-9:16')).toHaveAttribute('aria-pressed', 'false')
+    await expect(page.getByTestId('new-edit-platform-instagram_reel')).toHaveAttribute('aria-pressed', 'false')
+    await expect(page.getByText(/ReEditPro does not silently pick a final canvas/i)).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Create edit$/i })).toBeDisabled()
+
+    await page.getByTestId('new-edit-aspect-16:9').click()
+    await expect(page.getByRole('button', { name: /^Create edit$/i })).toBeDisabled()
+
+    await page.getByTestId('new-edit-platform-youtube_standard').click()
+    await expect(page.getByRole('button', { name: /^Create edit$/i })).toBeEnabled()
+    await expectNoHorizontalOverflow(page)
+  })
 })

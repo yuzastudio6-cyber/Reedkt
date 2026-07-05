@@ -9,6 +9,7 @@ import {
 import {
   createDefaultNewEditSessionFormState,
   createProjectEditSessionFromNewEditForm,
+  getConfirmedNewEditFrame,
   type NewEditSessionCreateResult,
   type NewEditSessionFormState,
 } from '../../lib/project-edit-session-create-flow-ui-adapter'
@@ -42,6 +43,8 @@ export function NewEditSessionCreatePanel({
   const [submitting, setSubmitting] = useState(false)
   const [lastResult, setLastResult] = useState<NewEditSessionCreateResult | undefined>()
   const [error, setError] = useState<string | undefined>()
+  const confirmedFrame = getConfirmedNewEditFrame(form)
+  const createDisabled = submitting || !confirmedFrame
 
   if (!open) return null
 
@@ -161,14 +164,18 @@ export function NewEditSessionCreatePanel({
         ) : null}
 
         <div className="new-edit-session-create-panel__footer">
-          <p>Creating an edit does not start planning, tool execution, rendering, or credits. Those happen later after the edit is ready and approved.</p>
+          <p>
+            {confirmedFrame
+              ? 'Creating an edit does not start planning, tool execution, rendering, or credits. Those happen later after the edit is ready and approved.'
+              : 'Choose the output frame and platform before creating this edit. ReEditPro does not silently pick a final canvas.'}
+          </p>
           <div className="new-edit-session-create-panel__actions">
             {lastResult?.ok ? (
               <Button onClick={handleResetForAnother} type="button" variant="secondary">
                 Create another
               </Button>
             ) : null}
-            <Button disabled={submitting} type="submit" variant="primary">
+            <Button disabled={createDisabled} type="submit" variant="primary">
               {submitting ? (
                 <>
                   <Loader2 aria-hidden="true" size={18} />

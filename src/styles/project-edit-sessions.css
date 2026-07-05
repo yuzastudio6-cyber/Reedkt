@@ -151,6 +151,12 @@
   padding: 0 6px;
 }
 
+.new-edit-session-choice-group__hint {
+  color: var(--rp-text-secondary);
+  font-size: 0.88rem;
+  margin: 0;
+}
+
 .new-edit-session-choice-grid {
   display: grid;
   gap: 10px;

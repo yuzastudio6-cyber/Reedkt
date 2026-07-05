@@ -60,7 +60,9 @@ try {
     apiBaseUrl,
     form: {
       ...createDefaultNewEditSessionFormState(),
+      aspectRatio: '16:9',
       name: 'Brief save smoke edit',
+      platformTarget: 'youtube_standard',
     },
     projectId: project.project.id,
     workspaceId: 'mock-workspace',

@@ -6,6 +6,7 @@ import type {
 } from '../types/project-edit-session'
 import { PROJECT_EDIT_SESSION_API_CLIENT_SAFETY } from './project-edit-session-api-client-summaries'
 import {
+  getConfirmedNewEditFrame,
   getNewEditSessionPreferenceHandle,
   validateNewEditSessionForm,
   type NewEditSessionCreateResult,
@@ -183,6 +184,17 @@ export async function createProjectEditSessionBackendLocalFromNewEditForm(
   const fetchImpl = input.fetchImpl ?? fetch
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const preferenceHandle = getNewEditSessionPreferenceHandle(input.form.preferenceChoiceId)
+  const confirmedFrame = getConfirmedNewEditFrame(input.form)
+  if (!confirmedFrame) {
+    return {
+      ok: false,
+      sourceRecords: [],
+      responseSummaries: [],
+      warnings: ['Choose and confirm the output frame and platform before creating the edit.'],
+      safety: PROJECT_EDIT_SESSION_API_CLIENT_SAFETY,
+      mockOnly: true,
+    }
+  }
   const sourceNotes = normalizedSourceNotes(input.form.sourceNotes)
   const commonHeaders = {
     'Content-Type': 'application/json',
@@ -201,8 +213,8 @@ export async function createProjectEditSessionBackendLocalFromNewEditForm(
     body: JSON.stringify({
       workspaceId: input.workspaceId,
       name: input.form.name.trim(),
-      aspectRatio: input.form.aspectRatio,
-      platformTarget: input.form.platformTarget,
+      aspectRatio: confirmedFrame.aspectRatio,
+      platformTarget: confirmedFrame.platformTarget,
       selectedEditLevel: input.form.selectedEditLevel,
       selectedEditPreferenceHandle: preferenceHandle,
       metadata: {
@@ -210,6 +222,10 @@ export async function createProjectEditSessionBackendLocalFromNewEditForm(
         rpMilestone: 'project-first-clean-ui',
         preferenceChoiceId: input.form.preferenceChoiceId,
         preferenceNote: input.form.preferenceNote.trim() || undefined,
+        outputFrameConfirmed: true,
+        outputFrameConfirmationSource: 'new_edit_create_form',
+        confirmedAspectRatio: confirmedFrame.aspectRatio,
+        confirmedPlatformTarget: confirmedFrame.platformTarget,
         sourceNotes,
         safety: PROJECT_EDIT_SESSION_API_CLIENT_SAFETY,
       },

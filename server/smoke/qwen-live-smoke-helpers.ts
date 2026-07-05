@@ -43,13 +43,45 @@ export function assertNoUnsafeQwenRuntimeEffects(input: {
   secretValuePrinted?: boolean
   secretSentToFrontend?: boolean
   authorizationHeaderLogged?: boolean
+  supabaseCommandRun?: boolean
+  supabaseReadMade?: boolean
+  supabaseWriteMade?: boolean
+  storageReadMade?: boolean
+  storageWriteMade?: boolean
+  signedUrlCreated?: boolean
+  fileBytesRead?: boolean
+  externalUrlFetched?: boolean
+  mediaProcessingStarted?: boolean
+  soundRuntimeInvoked?: boolean
   workerJobCreated?: boolean
+  generationRequestCreated?: boolean
   renderJobCreated?: boolean
   creditReservedOrSpent?: boolean
   editPlanCreated?: boolean
   plannerExecuted?: boolean
 }) {
-  const unsafe = Object.entries(input).filter(([, value]) => value === true).map(([key]) => key)
+  const unsafeFlagKeys = [
+    'secretValuePrinted',
+    'secretSentToFrontend',
+    'authorizationHeaderLogged',
+    'supabaseCommandRun',
+    'supabaseReadMade',
+    'supabaseWriteMade',
+    'storageReadMade',
+    'storageWriteMade',
+    'signedUrlCreated',
+    'fileBytesRead',
+    'externalUrlFetched',
+    'mediaProcessingStarted',
+    'soundRuntimeInvoked',
+    'workerJobCreated',
+    'generationRequestCreated',
+    'renderJobCreated',
+    'creditReservedOrSpent',
+    'editPlanCreated',
+    'plannerExecuted',
+  ] as const
+  const unsafe = unsafeFlagKeys.filter((key) => input[key] === true)
   if (unsafe.length) {
     throw new Error(`Unsafe Qwen live smoke effect detected: ${unsafe.join(', ')}`)
   }

@@ -590,6 +590,8 @@ for (const phrase of [
   'previewReviewResult',
   'professionalQAResult',
   'sourceEvidenceAvailable',
+  'previewResult={localPreviewResult}',
+  'previewReviewResult={previewReviewResult}',
   'createProfessionalQACheckpointMetadata',
   'restoreProfessionalQAResult',
   'professional_qa_checked',
@@ -611,6 +613,7 @@ assert.match(previewCard, /Approve plan first/)
 assert.match(previewCard, /onPreviewReady/)
 assert.match(previewCard, /approvedLocalPlan/)
 assert.match(previewCard, /operationManifest/)
+assert.match(previewCard, /restoredResultMatchesSource/)
 assert.match(previewCard, /ProjectEditBriefArtifactReviewPlayer/)
 assert.match(previewCard, /approved plan steps applied/)
 assert.doesNotMatch(previewCard, /product-ready/i)
@@ -619,6 +622,8 @@ const previewReviewCard = read('src/components/projects/brief/ProjectEditBriefPr
 assert.match(previewReviewCard, /createProjectSourceVideoPreviewReview/)
 assert.match(previewReviewCard, /Approve preview/)
 assert.match(previewReviewCard, /Request changes/)
+assert.match(previewReviewCard, /previewReviewResult/)
+assert.match(previewReviewCard, /visibleResult/)
 assert.match(previewReviewCard, /Final export stays blocked/)
 assert.doesNotMatch(previewReviewCard, /product-ready/i)
 

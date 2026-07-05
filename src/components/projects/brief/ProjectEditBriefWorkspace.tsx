@@ -620,6 +620,7 @@ export function ProjectEditBriefWorkspace({
             }}
             planApproved={Boolean(backendApprovedLocalPlan?.localEditPlan.readbackVerified)}
             planApprovalBlockedMessage="Approve and read back the local edit plan and credit estimate before running preview smoke."
+            previewResult={localPreviewResult}
             projectId={projectId}
             sourceVideoAspectRatio={sourceVideo?.inferredAspectRatio}
             sourceVideoDurationSeconds={sourceVideo?.durationSeconds}
@@ -647,6 +648,7 @@ export function ProjectEditBriefWorkspace({
                 : 'Preview changes requested and recorded. Update the brief or plan before another preview.')
             }}
             previewResult={localPreviewResult}
+            previewReviewResult={previewReviewResult}
           />
           <ProjectEditBriefProfessionalQACard
             onQARecorded={(result) => {

@@ -14,6 +14,7 @@ import type {
 type ProjectEditBriefPreviewReviewCardProps = {
   config: ProjectSourceVideoLocalEditPreviewConfig
   onReviewRecorded?: (result: ProjectSourceVideoPreviewReviewResult) => void
+  previewReviewResult?: ProjectSourceVideoPreviewReviewResult
   previewResult?: ProjectSourceVideoLocalEditPreviewResult
 }
 
@@ -24,6 +25,7 @@ function reviewStatusLabel(status: ProjectSourceVideoPreviewReviewStatus): strin
 export function ProjectEditBriefPreviewReviewCard({
   config,
   onReviewRecorded,
+  previewReviewResult,
   previewResult,
 }: ProjectEditBriefPreviewReviewCardProps) {
   const [notes, setNotes] = useState('')
@@ -53,7 +55,8 @@ export function ProjectEditBriefPreviewReviewCard({
   }
 
   const disabled = !config.available || !previewResult || status === 'approving'
-  const visibleStatus = reviewResult ? reviewResult.reviewStatus : status
+  const visibleResult = reviewResult ?? previewReviewResult
+  const visibleStatus = visibleResult ? visibleResult.reviewStatus : status
 
   return (
     <Card className="project-edit-brief-preview-review" data-testid="project-edit-preview-review">
@@ -98,11 +101,11 @@ export function ProjectEditBriefPreviewReviewCard({
           Request changes
         </Button>
       </div>
-      {reviewResult ? (
+      {visibleResult ? (
         <div className="project-edit-brief-local-preview-smoke__status" data-testid="project-edit-preview-review-status">
-          <span><strong>Review record</strong>{reviewResult.id}</span>
-          <span><strong>Render</strong>{reviewResult.renderId}</span>
-          <span><strong>Decision</strong>{reviewStatusLabel(reviewResult.reviewStatus)}</span>
+          <span><strong>Review record</strong>{visibleResult.id}</span>
+          <span><strong>Render</strong>{visibleResult.renderId}</span>
+          <span><strong>Decision</strong>{reviewStatusLabel(visibleResult.reviewStatus)}</span>
         </div>
       ) : (
         <p className="project-edit-brief-muted">

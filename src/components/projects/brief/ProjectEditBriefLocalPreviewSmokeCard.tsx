@@ -22,6 +22,7 @@ type ProjectEditBriefLocalPreviewSmokeCardProps = {
   onPreviewReady?: (result: ProjectSourceVideoLocalEditPreviewResult) => void
   planApproved?: boolean
   planApprovalBlockedMessage?: string
+  previewResult?: ProjectSourceVideoLocalEditPreviewResult
   projectId: string
   sourceVideoAspectRatio?: string
   sourceVideoDurationSeconds?: number
@@ -57,6 +58,7 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
   onPreviewReady,
   planApproved = false,
   planApprovalBlockedMessage = 'Approve the local edit plan and credit estimate before running this preview.',
+  previewResult,
   projectId,
   sourceVideoAspectRatio,
   sourceVideoDurationSeconds,
@@ -65,6 +67,7 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
   const [runState, setRunState] = useState<LocalPreviewRunState | undefined>()
   const sourceKey = sourceVideoUploadResult?.storageObjectRecordId
   const runStateMatchesSource = Boolean(sourceKey && runState?.sourceKey === sourceKey)
+  const restoredResultMatchesSource = Boolean(sourceKey && previewResult?.sourceStorageObjectRecordId === sourceKey)
   const fallbackStatus: ProjectSourceVideoLocalEditPreviewStatus = !config.available
     ? 'unavailable'
     : sourceVideoUploadResult
@@ -72,8 +75,13 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
         ? 'idle'
         : 'blocked'
       : 'waiting_for_upload'
-  const status = runStateMatchesSource ? runState?.status ?? fallbackStatus : fallbackStatus
-  const result: ProjectSourceVideoLocalEditPreviewResult | undefined = runStateMatchesSource ? runState?.result : undefined
+  const restoredResult = restoredResultMatchesSource ? previewResult : undefined
+  const result: ProjectSourceVideoLocalEditPreviewResult | undefined = runStateMatchesSource
+    ? runState?.result ?? restoredResult
+    : restoredResult
+  const status = runStateMatchesSource
+    ? runState?.status ?? result?.status ?? fallbackStatus
+    : result?.status ?? fallbackStatus
   const error = runStateMatchesSource ? runState?.error : undefined
 
   const disabled = !config.available || !sourceVideoUploadResult || !planApproved || status === 'running'

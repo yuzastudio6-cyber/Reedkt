@@ -55,6 +55,8 @@ export type NewEditSessionCreateResult = {
   responseSummaries: string[]
   warnings: string[]
   safety: typeof PROJECT_EDIT_SESSION_API_CLIENT_SAFETY
+  openRoute?: string
+  backendLocalSessionCreated?: true
   mockOnly: true
 }
 

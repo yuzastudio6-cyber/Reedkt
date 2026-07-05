@@ -238,10 +238,9 @@ export function createProjectEditSessionChatBoundarySummary(): ProjectEditSessio
   }
 }
 
-export function createProjectEditSessionChatHeaderModel(
-  bundle: ProjectEditSessionBundleRecord,
+export function createProjectEditSessionChatHeaderModelFromRecord(
+  session: ProjectEditSessionRecord,
 ): ProjectEditSessionChatHeaderModel {
-  const session = bundle.session
   return {
     editSessionId: session.id,
     projectId: session.projectId,
@@ -257,6 +256,12 @@ export function createProjectEditSessionChatHeaderModel(
     projectRoute: `/projects/${session.projectId}`,
     mockOnly: true,
   }
+}
+
+export function createProjectEditSessionChatHeaderModel(
+  bundle: ProjectEditSessionBundleRecord,
+): ProjectEditSessionChatHeaderModel {
+  return createProjectEditSessionChatHeaderModelFromRecord(bundle.session)
 }
 
 export function createProjectEditSessionMessageModels(

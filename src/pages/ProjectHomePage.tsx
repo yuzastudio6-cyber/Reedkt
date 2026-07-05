@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { NewEditSessionCreatePanel } from '../components/projects/NewEditSessionCreatePanel'
 import { ProjectEditSessionCardGrid } from '../components/projects/ProjectEditSessionCardGrid'
@@ -9,6 +9,7 @@ import {
   createProjectBackendLocalConfig,
   readProjectBackendLocal,
 } from '../lib/project-backend-local'
+import { createProjectEditSessionBackendLocalConfig } from '../lib/project-edit-session-backend-local'
 import type { NewEditSessionCreateResult } from '../lib/project-edit-session-create-flow-ui-adapter'
 import {
   createProjectEditSessionProjectHomeClient,
@@ -23,8 +24,10 @@ import {
 export function ProjectHomePage() {
   const params = useParams<{ projectId: string }>()
   const location = useLocation()
+  const navigate = useNavigate()
   const projectId = params.projectId ?? MOCK_PROJECT_HOME_PROJECT_ID
   const projectConfig = useMemo(() => createProjectBackendLocalConfig(import.meta.env), [])
+  const editSessionConfig = useMemo(() => createProjectEditSessionBackendLocalConfig(import.meta.env), [])
   const apiClient = useMemo(() => createProjectEditSessionProjectHomeClient(projectId), [projectId])
   const [homeModel, setHomeModel] = useState<ProjectEditSessionProjectHomeModel | undefined>()
   const [projectTitleReadback, setProjectTitleReadback] = useState<{ projectId: string; title: string } | undefined>()
@@ -96,6 +99,11 @@ export function ProjectHomePage() {
   async function handleNewEditCreated(result: NewEditSessionCreateResult) {
     if (!result.session) return
 
+    if (result.backendLocalSessionCreated) {
+      navigate(result.openRoute ?? `/projects/${projectId}/edits/${result.session.id}/brief`)
+      return
+    }
+
     const refreshedModel = await loadProjectEditSessionProjectHomeModel(projectId, apiClient)
     setHomeModel(refreshedModel)
     setSelectedId(result.session.id)
@@ -119,6 +127,7 @@ export function ProjectHomePage() {
         />
 
         <NewEditSessionCreatePanel
+          backendLocalConfig={editSessionConfig}
           client={apiClient}
           onCancel={() => setCreatePanelOpen(false)}
           onCreated={handleNewEditCreated}

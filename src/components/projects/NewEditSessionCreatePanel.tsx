@@ -3,6 +3,10 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { ProjectEditSessionApiClient } from '../../lib/project-edit-session-api-client'
 import {
+  createProjectEditSessionBackendLocalFromNewEditForm,
+  type ProjectEditSessionBackendLocalConfig,
+} from '../../lib/project-edit-session-backend-local'
+import {
   createDefaultNewEditSessionFormState,
   createProjectEditSessionFromNewEditForm,
   type NewEditSessionCreateResult,
@@ -18,6 +22,7 @@ import { NewEditSessionPreferencePicker } from './NewEditSessionPreferencePicker
 import { NewEditSessionSourceNotes } from './NewEditSessionSourceNotes'
 
 type NewEditSessionCreatePanelProps = {
+  backendLocalConfig?: ProjectEditSessionBackendLocalConfig
   client: ProjectEditSessionApiClient
   open: boolean
   projectId: string
@@ -26,6 +31,7 @@ type NewEditSessionCreatePanelProps = {
 }
 
 export function NewEditSessionCreatePanel({
+  backendLocalConfig,
   client,
   onCancel,
   onCreated,
@@ -49,11 +55,25 @@ export function NewEditSessionCreatePanel({
     setSubmitting(true)
     setError(undefined)
 
-    const result = await createProjectEditSessionFromNewEditForm({
-      projectId,
-      form,
-      client,
-    })
+    let result: NewEditSessionCreateResult
+    try {
+      result = backendLocalConfig?.available && backendLocalConfig.apiBaseUrl
+        ? await createProjectEditSessionBackendLocalFromNewEditForm({
+          apiBaseUrl: backendLocalConfig.apiBaseUrl,
+          form,
+          projectId,
+          workspaceId: backendLocalConfig.workspaceId,
+        })
+        : await createProjectEditSessionFromNewEditForm({
+          projectId,
+          form,
+          client,
+        })
+    } catch (createError) {
+      setSubmitting(false)
+      setError(createError instanceof Error ? createError.message : 'The edit could not be created.')
+      return
+    }
     setLastResult(result)
     setSubmitting(false)
 
@@ -134,7 +154,7 @@ export function NewEditSessionCreatePanel({
           <div className="new-edit-session-success" data-testid="new-edit-success-message">
             <CheckCircle2 aria-hidden="true" size={18} />
             <span>{lastResult.session.name} was created. Open the edit workspace when ready.</span>
-            <Button to={`/projects/${projectId}/edits/${lastResult.session.id}`} variant="secondary">
+            <Button to={lastResult.openRoute ?? `/projects/${projectId}/edits/${lastResult.session.id}`} variant="secondary">
               Open edit
             </Button>
           </div>

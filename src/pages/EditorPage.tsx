@@ -12,9 +12,15 @@ import { ProjectEditSessionRouteSectionHeader } from '../components/projects/Pro
 import { ProjectEditSessionRouteTabs } from '../components/projects/ProjectEditSessionRouteTabs'
 import {
   appendProjectEditSessionChatTurnViaApi,
+  createProjectEditSessionChatHeaderModelFromRecord,
   loadProjectEditSessionChatBundleForUI,
   type ProjectEditSessionChatBundleForUI,
+  type ProjectEditSessionChatHeaderModel,
 } from '../lib/project-edit-session-chat-ui-adapter'
+import {
+  createProjectEditSessionBackendLocalConfig,
+  readProjectEditSessionBackendLocal,
+} from '../lib/project-edit-session-backend-local'
 import type { ProjectEditSessionMemoryUpdateNoticeModel } from '../lib/project-edit-session-memory-ui-adapter'
 import {
   createProjectEditSessionProjectHomeClient,
@@ -34,7 +40,9 @@ export function EditorPage() {
   const editSessionId = params.editSessionId
   const routeSection = useMemo(() => getProjectEditSessionRouteSectionFromPath(location.pathname), [location.pathname])
   const apiClient = useMemo(() => createProjectEditSessionProjectHomeClient(projectId), [projectId])
+  const backendLocalConfig = useMemo(() => createProjectEditSessionBackendLocalConfig(import.meta.env), [])
   const [bundleModel, setBundleModel] = useState<ProjectEditSessionChatBundleForUI | undefined>()
+  const [backendLocalHeader, setBackendLocalHeader] = useState<ProjectEditSessionChatHeaderModel | undefined>()
   const [messageText, setMessageText] = useState('')
   const [busy, setBusy] = useState(false)
   const [statusMessage, setStatusMessage] = useState('Loading edit history.')
@@ -57,16 +65,43 @@ export function EditorPage() {
       return
     }
 
-    loadProjectEditSessionChatBundleForUI({ projectId, editSessionId, client: apiClient }).then((nextBundle) => {
+    async function loadEdit() {
+      const nextBundle = await loadProjectEditSessionChatBundleForUI({ projectId, editSessionId: editSessionId ?? '', client: apiClient })
       if (cancelled) return
       setBundleModel(nextBundle)
-      setStatusMessage(nextBundle.bundle ? 'Edit loaded.' : 'Edit could not be found.')
-    })
+
+      if (nextBundle.header) {
+        setBackendLocalHeader(undefined)
+        setStatusMessage('Edit loaded.')
+        return
+      }
+
+      if (backendLocalConfig.available && backendLocalConfig.apiBaseUrl) {
+        try {
+          const readback = await readProjectEditSessionBackendLocal({
+            apiBaseUrl: backendLocalConfig.apiBaseUrl,
+            editSessionId: editSessionId ?? '',
+            workspaceId: backendLocalConfig.workspaceId,
+          })
+          if (cancelled) return
+          setBackendLocalHeader(createProjectEditSessionChatHeaderModelFromRecord(readback.editSession))
+          setStatusMessage('Backend-local edit readback verified.')
+          return
+        } catch {
+          // Fall through to the not-found copy below.
+        }
+      }
+
+      setBackendLocalHeader(undefined)
+      setStatusMessage('Edit could not be found.')
+    }
+
+    loadEdit()
 
     return () => {
       cancelled = true
     }
-  }, [apiClient, editSessionId, projectId])
+  }, [apiClient, backendLocalConfig.apiBaseUrl, backendLocalConfig.available, backendLocalConfig.workspaceId, editSessionId, projectId])
 
   async function handleSubmit() {
     const text = messageText.trim()
@@ -92,7 +127,7 @@ export function EditorPage() {
     }
   }
 
-  const header = bundleModel?.header
+  const header = bundleModel?.header ?? backendLocalHeader
   const context = bundleModel?.context
   const messages = bundleModel?.messages ?? []
   const displayedStatusMessage = editSessionId ? statusMessage : 'Missing edit id.'

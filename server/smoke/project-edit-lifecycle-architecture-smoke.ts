@@ -36,12 +36,14 @@ const requiredFiles = [
   'src/components/projects/brief/ProjectEditBriefWorkspace.tsx',
   'src/components/projects/brief/ProjectEditBriefSourceVideoPicker.tsx',
   'src/components/projects/brief/ProjectEditBriefLocalPreviewSmokeCard.tsx',
+  'src/components/projects/brief/ProjectEditBriefArtifactReviewPlayer.tsx',
   'src/components/projects/brief/ProjectEditBriefPreviewReviewCard.tsx',
   'src/components/projects/brief/ProjectEditBriefFinalExportCard.tsx',
   'src/lib/project-edit-brief-backend-local.ts',
   'src/lib/project-edit-plan-backend-local.ts',
   'src/lib/project-source-video-backend-upload.ts',
   'src/lib/project-source-video-local-edit-preview-smoke.ts',
+  'src/lib/project-source-video-local-artifact-review.ts',
   'src/lib/project-source-video-local-final-export-smoke.ts',
   'src/lib/project-source-video-preview-review.ts',
   'server/routes/render-routes.ts',
@@ -596,6 +598,7 @@ assert.match(previewCard, /planApproved/)
 assert.match(previewCard, /Approve plan first/)
 assert.match(previewCard, /onPreviewReady/)
 assert.match(previewCard, /approvedLocalPlan/)
+assert.match(previewCard, /ProjectEditBriefArtifactReviewPlayer/)
 assert.match(previewCard, /approved plan steps applied/)
 assert.doesNotMatch(previewCard, /product-ready/i)
 
@@ -611,9 +614,23 @@ assert.match(finalExportCard, /runProjectSourceVideoLocalFinalExportSmoke/)
 assert.match(finalExportCard, /Create private export/)
 assert.match(finalExportCard, /previewReviewResult/)
 assert.match(finalExportCard, /professionalQAResult/)
+assert.match(finalExportCard, /ProjectEditBriefArtifactReviewPlayer/)
 assert.match(finalExportCard, /public delivery/i)
 assert.match(finalExportCard, /approved plan steps carried into the export/)
 assert.doesNotMatch(finalExportCard, /signedUrl|production ready:\s*true/i)
+
+const artifactReviewPlayer = read('src/components/projects/brief/ProjectEditBriefArtifactReviewPlayer.tsx')
+assert.match(artifactReviewPlayer, /loadProjectSourceVideoLocalArtifactForReview/)
+assert.match(artifactReviewPlayer, /revokeProjectSourceVideoLocalArtifactReviewObject/)
+assert.match(artifactReviewPlayer, /No signed URL, public delivery, provider call/)
+assert.doesNotMatch(artifactReviewPlayer, /signedUrlCreated:\s*true|production ready:\s*true/i)
+
+const artifactReviewClient = read('src/lib/project-source-video-local-artifact-review.ts')
+assert.match(artifactReviewClient, /\/v1\/storage-objects\/\$\{encodeURIComponent\(input\.storageObjectRecordId\)\}\/local-object/)
+assert.match(artifactReviewClient, /URL\.createObjectURL/)
+assert.match(artifactReviewClient, /signedUrlCreated: false/)
+assert.match(artifactReviewClient, /publicDeliveryEnabled: false/)
+assert.doesNotMatch(artifactReviewClient, /download-target|signed-url|production ready:\s*true/i)
 
 const professionalQACard = read('src/components/projects/brief/ProjectEditBriefProfessionalQACard.tsx')
 assert.match(professionalQACard, /createProjectSourceVideoProfessionalQA/)

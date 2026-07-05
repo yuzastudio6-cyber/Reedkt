@@ -8,6 +8,7 @@ import type { ServiceContext } from '../types'
 import { runToolReadinessChecks } from '../workers/tool-readiness-runner'
 import type { WorkerToolName } from '../workers/tool-readiness-types'
 import { createMockId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
+import { registerBackendLocalStorageObjectRecord } from './upload-service'
 import type {
   BasicFinalExportSmokeRequest,
   BasicFinalExportSmokeResponse,
@@ -370,8 +371,20 @@ export async function createPreviewStorageObjectFromRender(
   }
 
   if (!context.clients.admin || context.env.mockOnly) {
+    const id = createMockId('storage_object')
+    registerBackendLocalStorageObjectRecord({
+      id,
+      workspaceId: input.workspaceId,
+      projectId: input.projectId,
+      bucketName: input.bucketName,
+      objectPath: input.objectPath,
+      objectPurpose: 'preview',
+      mimeType: 'video/mp4',
+      sizeBytes: metadata.sizeBytes,
+      checksumSha256: metadata.checksumSha256,
+    })
     return {
-      id: createMockId('storage_object'),
+      id,
       bucketName: input.bucketName,
       objectPath: input.objectPath,
       sizeBytes: metadata.sizeBytes,
@@ -434,8 +447,20 @@ export async function createFinalExportStorageObjectFromRender(
   }
 
   if (!context.clients.admin || context.env.mockOnly) {
+    const id = createMockId('storage_object')
+    registerBackendLocalStorageObjectRecord({
+      id,
+      workspaceId: input.workspaceId,
+      projectId: input.projectId,
+      bucketName: input.bucketName,
+      objectPath: input.objectPath,
+      objectPurpose: 'export',
+      mimeType: 'video/mp4',
+      sizeBytes: metadata.sizeBytes,
+      checksumSha256: metadata.checksumSha256,
+    })
     return {
-      id: createMockId('storage_object'),
+      id,
       bucketName: input.bucketName,
       objectPath: input.objectPath,
       sizeBytes: metadata.sizeBytes,

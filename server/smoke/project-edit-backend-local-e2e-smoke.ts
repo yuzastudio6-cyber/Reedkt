@@ -45,6 +45,22 @@ function localUrl(port: number): string {
   return `http://127.0.0.1:${port}`
 }
 
+async function assertPrivateReviewArtifact(input: {
+  apiBaseUrl: string
+  label: string
+  storageObjectRecordId?: string
+  workspaceId: string
+}) {
+  assert.ok(input.storageObjectRecordId, `${input.label} storage object id should be present`)
+  const response = await fetch(`${input.apiBaseUrl}/v1/storage-objects/${encodeURIComponent(input.storageObjectRecordId)}/local-object?workspaceId=${encodeURIComponent(input.workspaceId)}`)
+  assert.equal(response.ok, true, `${input.label} artifact should be privately readable`)
+  assert.match(response.headers.get('content-type') ?? '', /video\/mp4/)
+  assert.equal(response.headers.get('x-reeditpro-storage-object-id'), input.storageObjectRecordId)
+  const bytes = await response.arrayBuffer()
+  assert.ok(bytes.byteLength > 0, `${input.label} artifact should not be empty`)
+  return bytes.byteLength
+}
+
 const workspaceId = 'mock-workspace'
 const localStorageRoot = '.reeditpro-local-storage-backend-local-e2e-smoke'
 
@@ -228,6 +244,12 @@ try {
   assert.equal(preview.editAssembly?.mode, 'clean_internal_preview')
   assert.equal(preview.editAssembly?.planStepCount, approvedPlan.localEditPlan.approvedLocalPlan.steps.length)
   assert.ok(preview.editAssembly?.operationsApplied.includes('clean_fade_handles_applied'))
+  const previewReviewBytes = await assertPrivateReviewArtifact({
+    apiBaseUrl,
+    label: 'Preview',
+    storageObjectRecordId: preview.previewStorageObjectId,
+    workspaceId,
+  })
 
   await recordProjectEditSessionLifecycleCheckpointBackendLocal({
     apiBaseUrl,
@@ -296,6 +318,12 @@ try {
   assert.equal(finalExport.editAssembly?.mode, 'private_final_export')
   assert.ok(finalExport.editAssembly?.operationsApplied.includes('approved_preview_review_carried_forward'))
   assert.equal(finalExport.professionalQA?.status, 'passed')
+  const finalExportReviewBytes = await assertPrivateReviewArtifact({
+    apiBaseUrl,
+    label: 'Final export',
+    storageObjectRecordId: finalExport.finalExportStorageObjectId,
+    workspaceId,
+  })
 
   await recordProjectEditSessionLifecycleCheckpointBackendLocal({
     apiBaseUrl,
@@ -417,6 +445,8 @@ try {
     professionalQAStatus: professionalQA.status,
     finalExportStatus: finalExport.status,
     finalExportAssemblyMode: finalExport.editAssembly?.mode,
+    previewReviewBytes,
+    finalExportReviewBytes,
     restoredLifecycleStatus: finalSession.editSession.status,
     finalExportAllowed: lifecycle.finalExportAllowed,
     finalExportBlockers: lifecycle.finalExportReadiness.blockers,

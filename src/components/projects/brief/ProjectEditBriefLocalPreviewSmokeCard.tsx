@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Badge } from '../../Badge'
 import { Button } from '../../Button'
 import { Card } from '../../Card'
+import { ProjectEditBriefArtifactReviewPlayer } from './ProjectEditBriefArtifactReviewPlayer'
 import {
   runProjectSourceVideoLocalEditPreviewSmoke,
 } from '../../../lib/project-source-video-local-edit-preview-smoke'
@@ -152,6 +153,15 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
           </span>
         )}
       </div>
+      {result ? (
+        <ProjectEditBriefArtifactReviewPlayer
+          apiBaseUrl={config.apiBaseUrl}
+          artifactLabel="Preview"
+          disabledMessage="Preview artifact is ready for private review."
+          storageObjectRecordId={result.previewStorageObjectId}
+          workspaceId={config.workspaceId}
+        />
+      ) : null}
       {error ? <p className="project-edit-brief-source-video-picker__error">{error}</p> : null}
       <p className="project-edit-brief-muted">
         Preview-only internal test path. No provider call, live Qwen call, external beta, production export, Supabase write, or GCS write is enabled.

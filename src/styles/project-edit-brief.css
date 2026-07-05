@@ -596,6 +596,7 @@
 
 .project-edit-brief-local-preview-smoke__status,
 .project-edit-brief-professional-qa__checks,
+.project-edit-brief-artifact-review,
 .project-edit-brief-final-export__result {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--rp-border-subtle);
@@ -605,6 +606,44 @@
   min-width: 0;
   overflow-wrap: anywhere;
   padding: 10px;
+}
+
+.project-edit-brief-artifact-review {
+  gap: 10px;
+}
+
+.project-edit-brief-artifact-review__header {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.project-edit-brief-artifact-review__header div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.project-edit-brief-artifact-review__header strong {
+  color: var(--rp-text-primary);
+  font-size: 0.84rem;
+}
+
+.project-edit-brief-artifact-review__header span {
+  color: var(--rp-text-secondary);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.project-edit-brief-artifact-review__video {
+  aspect-ratio: 16 / 9;
+  background: #020617;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--rp-radius-md);
+  object-fit: contain;
+  width: 100%;
 }
 
 .project-edit-brief-local-preview-smoke__status span,

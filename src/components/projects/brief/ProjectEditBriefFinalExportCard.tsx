@@ -2,6 +2,7 @@ import { Download, LockKeyhole } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../Button'
 import { Card } from '../../Card'
+import { ProjectEditBriefArtifactReviewPlayer } from './ProjectEditBriefArtifactReviewPlayer'
 import { runProjectSourceVideoLocalFinalExportSmoke } from '../../../lib/project-source-video-local-final-export-smoke'
 import type {
   ProjectSourceVideoBackendUploadResult,
@@ -104,6 +105,16 @@ export function ProjectEditBriefFinalExportCard({
           <span>{finalExportResult.outputObjectPath ?? 'Private object path recorded'}</span>
           <span>{finalExportResult.checksumSha256 ? `Checksum ${finalExportResult.checksumSha256.slice(0, 12)}` : 'Checksum pending'}</span>
         </div>
+      ) : null}
+
+      {finalExportResult ? (
+        <ProjectEditBriefArtifactReviewPlayer
+          apiBaseUrl={apiBaseUrl}
+          artifactLabel="Private export"
+          disabledMessage="Private export artifact is ready for review."
+          storageObjectRecordId={finalExportResult.finalExportStorageObjectId}
+          workspaceId={workspaceId}
+        />
       ) : null}
 
       {error ? <p className="project-edit-brief-final-export__error" role="alert">{error}</p> : null}

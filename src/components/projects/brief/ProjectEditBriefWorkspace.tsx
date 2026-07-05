@@ -25,6 +25,9 @@ import {
   uploadProjectSourceVideoToBackend,
 } from '../../../lib/project-source-video-backend-upload'
 import {
+  createProjectSourceVideoLocalEditPreviewConfig,
+} from '../../../lib/project-source-video-local-edit-preview-smoke'
+import {
   createProjectSourceVideoExportRecommendationInput,
   createProjectSourceVideoMetadataSummary,
   inferProjectSourceVideoAspectRatio,
@@ -45,6 +48,7 @@ import { ProjectEditBriefExportSettingsSummary } from './ProjectEditBriefExportS
 import { ProjectEditBriefHeader } from './ProjectEditBriefHeader'
 import { ProjectEditBriefMarkerDetailPanel } from './ProjectEditBriefMarkerDetailPanel'
 import { ProjectEditBriefMarkerDrawer } from './ProjectEditBriefMarkerDrawer'
+import { ProjectEditBriefLocalPreviewSmokeCard } from './ProjectEditBriefLocalPreviewSmokeCard'
 import { ProjectEditBriefPlanBridgePanel } from './ProjectEditBriefPlanBridgePanel'
 import { ProjectEditBriefQASummaryCard } from './ProjectEditBriefQASummaryCard'
 import { ProjectEditBriefSummaryPanel } from './ProjectEditBriefSummaryPanel'
@@ -81,6 +85,9 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
   }, [projectId])
   const backendUploadConfig = useMemo(() => (
     createProjectSourceVideoBackendUploadConfig(import.meta.env as Record<string, string | undefined>)
+  ), [])
+  const localEditPreviewConfig = useMemo(() => (
+    createProjectSourceVideoLocalEditPreviewConfig(import.meta.env as Record<string, string | undefined>)
   ), [])
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | undefined>()
   const [playheadSeconds, setPlayheadSeconds] = useState(0)
@@ -516,6 +523,14 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
             editSessionId={editSessionId}
             onPrepared={refreshAfterMarkerAction}
             projectId={projectId}
+          />
+          <ProjectEditBriefLocalPreviewSmokeCard
+            config={localEditPreviewConfig}
+            editSessionId={editSessionId}
+            projectId={projectId}
+            sourceVideoAspectRatio={localSourceVideo?.inferredAspectRatio}
+            sourceVideoDurationSeconds={localSourceVideo?.durationSeconds}
+            sourceVideoUploadResult={sourceVideoUploadResult}
           />
           {markerFormModel && drawerDraft ? (
             <ProjectEditBriefMarkerDrawer

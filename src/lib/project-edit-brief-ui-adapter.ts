@@ -212,8 +212,11 @@ function percent(value: number, durationSeconds: number): number {
 
 function createRulerTicks(durationSeconds: number): ProjectEditBriefTimelineUIModel['rulerTicks'] {
   const tickCount = 6
-  return Array.from({ length: tickCount }, (_, index) => {
-    const second = Math.round((durationSeconds / (tickCount - 1)) * index)
+  const seconds = Array.from({ length: tickCount }, (_, index) => (
+    Math.round((durationSeconds / (tickCount - 1)) * index)
+  )).filter((second, index, allSeconds) => allSeconds.indexOf(second) === index)
+
+  return seconds.map((second) => {
     return {
       second,
       label: formatProjectEditBriefTime(second),

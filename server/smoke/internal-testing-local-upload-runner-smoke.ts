@@ -20,6 +20,8 @@ const requiredFiles = [
   'scripts/dev/internal-testing-local-upload-runner.mjs',
   'server/smoke/internal-testing-local-upload-runner-smoke.ts',
   'tests/e2e/project-source-video-backend-upload-local-api.spec.ts',
+  'src/lib/project-source-video-local-edit-preview-smoke.ts',
+  'src/components/projects/brief/ProjectEditBriefLocalPreviewSmokeCard.tsx',
   'docs/internal-testing-local-upload-runner.md',
   'docs/project-edit-brief-internal-testing-runbook.md',
 ]
@@ -42,9 +44,11 @@ for (const phrase of [
   "STORAGE_MODE: 'local'",
   'LOCAL_STORAGE_ROOT',
   'VITE_REEDITPRO_SOURCE_VIDEO_BACKEND_UPLOAD',
+  'VITE_REEDITPRO_LOCAL_EDIT_PREVIEW_SMOKE',
   'VITE_REEDITPRO_API_BASE_URL',
   'Edit Brief source-video test',
-  'No Supabase writes, GCS writes, media workers, render, credits, beta, or production.',
+  'preview-only local edit smoke',
+  'No Supabase writes, GCS writes, provider calls, live Qwen calls, final export, external beta, or production.',
 ]) {
   assert.match(runner, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `runner should mention ${phrase}`)
 }
@@ -54,23 +58,54 @@ assert.doesNotMatch(runner, /gcloud|supabase db|supabase migration|docker build|
 const realApiSpec = read('tests/e2e/project-source-video-backend-upload-local-api.spec.ts')
 assert.match(realApiSpec, /PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_REAL_API/)
 assert.match(realApiSpec, /project-source-video-backend-upload-status/)
+assert.match(realApiSpec, /project-source-video-local-preview-smoke-status/)
 assert.match(realApiSpec, /Source video uploaded to backend-local storage metadata/)
-assert.match(realApiSpec, /media processing started\|worker job created\|render job created\|export job created\|credit reserved/)
+assert.match(realApiSpec, /Run local edit preview/)
+assert.match(realApiSpec, /provider call made:\\s\*true/)
+assert.match(realApiSpec, /live qwen call:\\s\*true/)
+assert.match(realApiSpec, /final export started/)
+assert.match(realApiSpec, /production ready:\\s\*true/)
 assert.doesNotMatch(realApiSpec, /page\.route\(/, 'Real local API spec must not intercept upload routes.')
+
+const previewClient = read('src/lib/project-source-video-local-edit-preview-smoke.ts')
+for (const phrase of [
+  '/approve',
+  '/reserve',
+  '/approved-snapshots',
+  '/render-jobs',
+  '/basic-smoke-preview',
+  'REEDITPRO_QWEN_MAIN_BRAIN_LABEL',
+  'providerCallMade: false',
+  'qwenCallMade: false',
+  'productReady: false',
+]) {
+  assert.match(previewClient, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `preview client should mention ${phrase}`)
+}
+
+const previewCard = read('src/components/projects/brief/ProjectEditBriefLocalPreviewSmokeCard.tsx')
+assert.match(previewCard, /project-source-video-local-preview-smoke-status/)
+assert.match(previewCard, /project-source-video-local-preview-smoke-button/)
+assert.match(previewCard, /Run local edit preview/)
+assert.match(previewCard, /Qwen/)
+assert.match(previewCard, /no live call/i)
+assert.doesNotMatch(previewCard, /product-ready/i)
 
 const runbook = read('docs/internal-testing-local-upload-runner.md')
 for (const phrase of [
   'npm run dev:internal-testing:local-upload',
   'http://127.0.0.1:5179/projects',
   'Upload for testing',
+  'Run local edit preview',
   'backend-local storage metadata',
-  'does not start media processing, workers, rendering, credits, external beta, or production',
+  'preview-only local edit smoke',
+  'does not start provider calls, live Qwen calls, external beta, production, final export',
 ]) {
   assert.match(runbook, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), `runbook should mention ${phrase}`)
 }
 
 const briefRunbook = read('docs/project-edit-brief-internal-testing-runbook.md')
 assert.match(briefRunbook, /backend-local source upload/i)
+assert.match(briefRunbook, /Run local edit preview/i)
 assert.match(briefRunbook, /Qwen 3\.7 Max/i)
 assert.doesNotMatch(briefRunbook, /No full-video upload/i)
 
@@ -80,6 +115,7 @@ console.log(JSON.stringify({
     'local_upload_runner_script_present',
     'local_upload_runner_scripts_registered',
     'real_local_api_playwright_spec_present_without_route_interception',
+    'local_edit_preview_smoke_gate_documented',
     'runbook_documents_local_upload_flow',
     'brief_runbook_updates_stale_no_upload_copy',
     'production_scope_not_enabled',

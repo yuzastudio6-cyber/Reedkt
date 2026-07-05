@@ -309,6 +309,34 @@ async function ensureProfile(client: SupabaseClient, user: User, displayName: st
   throw new Error(lastError?.message ?? 'Unable to create or read tester profile.')
 }
 
+async function ensureLegacyUserProfileIfPresent(
+  client: SupabaseClient,
+  user: User,
+  displayName: string,
+): Promise<void> {
+  const { data: existing, error: existingError } = await client
+    .from('user_profiles')
+    .select('id')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (!existingError && existing) return
+  if (existingError && isSchemaFallbackError(existingError)) return
+  if (existingError) throw existingError
+
+  for (const insert of profileInsertVariants('user_profiles', user, displayName)) {
+    const { error } = await client
+      .from('user_profiles')
+      .insert(insert)
+
+    if (!error || isConflictError(error)) return
+    if (isSchemaFallbackError(error) || isMissingColumnError(error, 'metadata') || isMissingColumnError(error, 'email')) {
+      continue
+    }
+    throw error
+  }
+}
+
 function workspaceFromMember(member: WorkspaceMemberRow): WorkspaceRow | undefined {
   return Array.isArray(member.workspaces) ? member.workspaces[0] : member.workspaces ?? undefined
 }
@@ -519,6 +547,7 @@ async function main() {
     }
 
     const { profile, identityColumn } = await ensureProfile(client, user, displayName)
+    await ensureLegacyUserProfileIfPresent(client, user, displayName)
     const { workspace, membership } = await ensureWorkspace(client, user.id, workspaceName)
 
     output({

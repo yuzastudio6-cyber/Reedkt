@@ -597,6 +597,15 @@ function exactGpuModelScopedRouteProofCommand(
 }
 
 function gpuModelPrivateProofSequenceFlags(toolId: string): string[] {
+  if (privateModelRootMaterializerToolIds.has(toolId)) {
+    return [
+      gpuModelRequiresSourceImage(toolId)
+        ? '--source-image <private-approved-frame.png>'
+        : '',
+      `--private-model-root "$${privateModelRootEnvVar}"`,
+      `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
+    ].filter(Boolean)
+  }
   return [
     gpuModelRequiresSourceImage(toolId)
       ? '--source-image <private-approved-frame.png>'

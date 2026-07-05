@@ -20,6 +20,8 @@ const canonicalGpuWorkerProofImage =
   'reeditpro/ai-graphics-gpu-worker:proof-local'
 const harnessScript =
   'ai-graphics:external-agent-gpu-model-local-dev-runtime-execution-harness'
+const runtimeInputManifestScript =
+  'ai-graphics:external-agent-gpu-model-runtime-input-manifest'
 const bridgeScript =
   'ai-graphics:external-agent-gpu-model-runtime-proof-ref-bridge'
 const readinessScript =
@@ -30,6 +32,10 @@ const externalAgentToolCallScript =
   'ai-graphics:external-agent-tool-call'
 const birefNetModelDirectoryPlaceholder =
   '<private-birefnet-model-dir-containing-model.safetensors>'
+const privateModelRootEnvVar =
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
+const privateModelManifestDirEnvVar =
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
 const gpuModelRuntimeContainerTargets: Record<
   AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   { image: string; dockerfile: string; target: string }
@@ -90,6 +96,10 @@ type SequenceArgs = {
   resultOut?: string
   runtimeInputManifestPath?: string
   runtimeInputManifest?: RuntimeInputManifest
+  runtimeInputManifestMaterializedNow: boolean
+  runtimeInputManifestMaterializerReport?: JsonRecord | null
+  privateModelRoot?: string
+  privateModelManifestDir?: string
   runtimeBackend?: 'host_python' | 'docker_container'
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
@@ -147,6 +157,13 @@ const runtimeInputManifestToolRecordFields = new Set([
   ...runtimeInputManifestBooleanFields,
 ])
 const transparentBackgroundModes = new Set(['base', 'fast', 'base-nightly'])
+const privateModelRootMaterializerTools = new Set<string>([
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+])
 
 const supportedRuntimeInputManifestTools = new Set<string>(
   AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS,
@@ -369,6 +386,58 @@ function manifestBooleanForTool(
   return safeManifestBoolean(key, toolRecord[key] ?? manifest?.[key])
 }
 
+function materializeRuntimeInputManifest(input: {
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId
+  outputDirectory: string
+  sourceImageLocalPath: string
+  privateModelRoot?: string
+  privateModelManifestDir?: string
+  sam2CheckpointLocalPath?: string
+  birefnetModelLocalPath?: string
+  realEsrganModelLocalPath?: string
+  rembgModelLocalPath?: string
+  transparentBackgroundCheckpointLocalPath?: string
+  transparentBackgroundMode?: string
+  runtimeContainerImage?: string
+  runtimeContainerPlatform?: string
+  allowCpuModelRuntime: boolean
+}): {
+  manifestPath: string
+  report: JsonRecord
+} {
+  const manifestPath = path.join(input.outputDirectory, 'runtime-inputs.json')
+  const args = [
+    '--tool',
+    input.toolId,
+    '--source-image',
+    input.sourceImageLocalPath,
+    '--output-dir',
+    input.outputDirectory,
+    '--manifest-out',
+    manifestPath,
+    '--force',
+  ]
+  pushIfValue(args, '--private-model-root', input.privateModelRoot)
+  pushIfValue(args, '--model-weight-manifest-dir', input.privateModelManifestDir)
+  pushIfValue(args, '--runtime-container-image', input.runtimeContainerImage)
+  pushIfValue(args, '--runtime-container-platform', input.runtimeContainerPlatform)
+  pushIfValue(args, '--sam2-checkpoint', input.sam2CheckpointLocalPath)
+  pushIfValue(args, '--birefnet-model', input.birefnetModelLocalPath)
+  pushIfValue(args, '--real-esrgan-model', input.realEsrganModelLocalPath)
+  pushIfValue(args, '--rembg-model', input.rembgModelLocalPath)
+  pushIfValue(
+    args,
+    '--transparent-background-checkpoint',
+    input.transparentBackgroundCheckpointLocalPath,
+  )
+  pushIfValue(args, '--transparent-background-mode', input.transparentBackgroundMode)
+  if (input.allowCpuModelRuntime) args.push('--allow-cpu-model-runtime')
+  return {
+    manifestPath,
+    report: runJsonScript(runtimeInputManifestScript, args),
+  }
+}
+
 function parseArgs(): SequenceArgs {
   const toolId = stringFlag('--tool') ?? 'kornia'
   if (!isGpuModelTool(toolId)) {
@@ -376,14 +445,71 @@ function parseArgs(): SequenceArgs {
   }
 
   const attemptLocalRuntime = hasFlag('--attempt-local-runtime')
-  const runtimeInputManifestPath = stringFlag('--runtime-input-manifest')
+  const privateModelRoot = stringFlag('--private-model-root')
+  const privateModelManifestDir = stringFlag('--model-weight-manifest-dir')
+  const outputDirectory = stringFlag('--output-dir')
+  const sourceImageLocalPath = stringFlag('--source-image')
+  const sam2CheckpointLocalPath = stringFlag('--sam2-checkpoint')
+  const birefnetModelLocalPath = stringFlag('--birefnet-model')
+  const realEsrganModelLocalPath = stringFlag('--real-esrgan-model')
+  const rembgModelLocalPath = stringFlag('--rembg-model')
+  const transparentBackgroundCheckpointLocalPath =
+    stringFlag('--transparent-background-checkpoint')
+  const transparentBackgroundModeArg = stringFlag('--transparent-background-mode')
+  let runtimeInputManifestPath = stringFlag('--runtime-input-manifest')
   if (runtimeInputManifestPath && !isLocalArtifactPath(runtimeInputManifestPath)) {
     throw new Error('--runtime-input-manifest must stay under .local-artifacts/')
+  }
+  const allowCpuModelRuntime =
+    gpuModelAllowsCpuModelRuntime(toolId) && hasFlag('--allow-cpu-model-runtime')
+  let runtimeInputManifestMaterializedNow = false
+  let runtimeInputManifestMaterializerReport: JsonRecord | null = null
+  const shouldMaterializeRuntimeInputManifest =
+    !runtimeInputManifestPath &&
+    attemptLocalRuntime &&
+    privateModelRootMaterializerTools.has(toolId) &&
+    Boolean(
+      privateModelRoot ||
+        privateModelManifestDir ||
+        sam2CheckpointLocalPath ||
+        birefnetModelLocalPath ||
+        realEsrganModelLocalPath ||
+        rembgModelLocalPath ||
+        transparentBackgroundCheckpointLocalPath,
+    )
+  if (shouldMaterializeRuntimeInputManifest) {
+    if (!outputDirectory) {
+      throw new Error('--private-model-root or private model path requires --output-dir')
+    }
+    if (!sourceImageLocalPath) {
+      throw new Error('--private-model-root or private model path requires --source-image')
+    }
+    if (!isLocalArtifactPath(outputDirectory)) {
+      throw new Error('--output-dir must stay under .local-artifacts/')
+    }
+    const materialized = materializeRuntimeInputManifest({
+      toolId,
+      outputDirectory,
+      sourceImageLocalPath,
+      privateModelRoot,
+      privateModelManifestDir,
+      sam2CheckpointLocalPath,
+      birefnetModelLocalPath,
+      realEsrganModelLocalPath,
+      rembgModelLocalPath,
+      transparentBackgroundCheckpointLocalPath,
+      transparentBackgroundMode: transparentBackgroundModeArg,
+      runtimeContainerImage: stringFlag('--runtime-container-image'),
+      runtimeContainerPlatform: stringFlag('--runtime-container-platform'),
+      allowCpuModelRuntime,
+    })
+    runtimeInputManifestPath = materialized.manifestPath
+    runtimeInputManifestMaterializedNow = true
+    runtimeInputManifestMaterializerReport = materialized.report
   }
   const runtimeInputManifest = runtimeInputManifestPath
     ? readRuntimeInputManifest(runtimeInputManifestPath)
     : undefined
-  const outputDirectory = stringFlag('--output-dir')
   const resolvedOutputDirectory =
     outputDirectory ??
     manifestStringForTool(toolId, runtimeInputManifest, 'outputDirectory')
@@ -404,10 +530,10 @@ function parseArgs(): SequenceArgs {
       hasFlag('--allow-cpu-foundation-runtime') ||
       manifestBooleanForTool(toolId, runtimeInputManifest, 'allowCpuFoundationRuntime') === true
     )
-  const allowCpuModelRuntime =
-    gpuModelAllowsCpuModelRuntime(toolId) &&
+  const effectiveAllowCpuModelRuntime =
+    allowCpuModelRuntime ||
     (
-      hasFlag('--allow-cpu-model-runtime') ||
+      gpuModelAllowsCpuModelRuntime(toolId) &&
       manifestBooleanForTool(toolId, runtimeInputManifest, 'allowCpuModelRuntime') === true
     )
   const requestedBackend = stringFlag('--runtime-backend')
@@ -484,21 +610,24 @@ function parseArgs(): SequenceArgs {
     resultOut,
     runtimeInputManifestPath,
     runtimeInputManifest,
+    runtimeInputManifestMaterializedNow,
+    runtimeInputManifestMaterializerReport,
+    privateModelRoot,
+    privateModelManifestDir,
     runtimeBackend,
     runtimeContainerImage,
     runtimeContainerPlatform,
     allowCpuTensorRuntime,
     allowCpuFoundationRuntime,
-    allowCpuModelRuntime,
-    sourceImageLocalPath: stringFlag('--source-image'),
-    sam2CheckpointLocalPath: stringFlag('--sam2-checkpoint'),
-    birefnetModelLocalPath: stringFlag('--birefnet-model'),
-    realEsrganModelLocalPath: stringFlag('--real-esrgan-model'),
-    rembgModelLocalPath: stringFlag('--rembg-model'),
-    transparentBackgroundCheckpointLocalPath:
-      stringFlag('--transparent-background-checkpoint'),
+    allowCpuModelRuntime: effectiveAllowCpuModelRuntime,
+    sourceImageLocalPath,
+    sam2CheckpointLocalPath,
+    birefnetModelLocalPath,
+    realEsrganModelLocalPath,
+    rembgModelLocalPath,
+    transparentBackgroundCheckpointLocalPath,
     transparentBackgroundMode:
-      stringFlag('--transparent-background-mode') ??
+      transparentBackgroundModeArg ??
       manifestStringForTool(toolId, runtimeInputManifest, 'transparentBackgroundMode'),
     timeoutMs: stringFlag('--timeout-ms'),
   }
@@ -833,6 +962,11 @@ function privateProofSequenceInputFlags(
   if (!['torch_torchvision', 'transformers'].includes(toolId)) {
     flags.push('--source-image <private-approved-frame.png>')
   }
+  if (privateModelRootMaterializerTools.has(toolId)) {
+    flags.push(`--private-model-root "$${privateModelRootEnvVar}"`)
+    flags.push(`--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`)
+    return flags
+  }
   if (toolId === 'sam2') {
     flags.push('--sam2-checkpoint <private-sam2-checkpoint.pt>')
   }
@@ -1135,6 +1269,10 @@ function buildReport(input: SequenceArgs) {
       privateInputsRequired: true,
       privateRuntimeInputManifestSupported: true,
       privateRuntimeInputManifestUsedNow: Boolean(input.runtimeInputManifestPath),
+      privateRuntimeInputManifestMaterializedNow:
+        input.runtimeInputManifestMaterializedNow,
+      privateRuntimeInputManifestMaterializerStatus:
+        input.runtimeInputManifestMaterializerReport?.status ?? null,
       korniaCpuTensorRuntimeRequested: input.allowCpuTensorRuntime,
       foundationCpuRuntimeRequested: input.allowCpuFoundationRuntime,
       cpuModelRuntimeRequested: input.allowCpuModelRuntime,
@@ -1297,6 +1435,8 @@ function buildReport(input: SequenceArgs) {
       localRuntimeAttemptRequested: input.attemptLocalRuntime,
       privateRuntimeInputManifestSupported: true,
       privateRuntimeInputManifestUsedNow: Boolean(input.runtimeInputManifestPath),
+      privateRuntimeInputManifestMaterializedNow:
+        input.runtimeInputManifestMaterializedNow,
       localRuntimeExecutedForRequestedTool: localRuntimeExecuted,
       proofBridgeExecuted: true,
       readinessRecomputed: true,

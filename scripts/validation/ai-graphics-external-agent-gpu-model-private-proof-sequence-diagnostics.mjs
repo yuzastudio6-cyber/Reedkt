@@ -90,6 +90,19 @@ const runtimeContainerTargetByTool = {
   },
 }
 
+const privateModelRootMaterializerTools = new Set([
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+])
+
+const privateModelRootRequiredFragments = [
+  '--private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
+  '--model-weight-manifest-dir "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR"',
+]
+
 const requiredFiles = [
   'server/cli/ai-graphics-external-agent-gpu-model-private-proof-sequence.ts',
   'scripts/validation/ai-graphics-external-agent-gpu-model-private-proof-sequence-diagnostics.mjs',
@@ -252,6 +265,8 @@ for (const phrase of [
   'transparentBackgroundMode',
   'transparentBackgroundModes',
   'manifestBooleanForTool',
+  'materializeRuntimeInputManifest',
+  'ai-graphics:external-agent-gpu-model-runtime-input-manifest',
   'readRuntimeInputManifest',
   'manifestStringForTool',
   '--expect-state',
@@ -374,7 +389,9 @@ function checkReport(label, report) {
     if (!finalHostCommand) fail(`${label}_missing_host_final_single_tool_call_command:${tool}`)
     if (!buildCommand) fail(`${label}_missing_runtime_container_build_command:${tool}`)
     for (const fragment of [
-      'docker buildx build --platform linux/amd64',
+      'docker buildx build',
+      '--load',
+      '--platform linux/amd64',
       `--target ${expectedRuntimeTarget.target}`,
       `-f ${expectedRuntimeTarget.dockerfile}`,
       `-t ${expectedRuntimeTarget.image}`,
@@ -525,17 +542,46 @@ function checkReport(label, report) {
       fail(`${label}_host_final_single_tool_call_unnecessary_source_image:${tool}`)
     }
     const toolSpecificFlag = toolSpecificPrivateProofFlagByTool[tool]
-    if (toolSpecificFlag && !command.includes(toolSpecificFlag)) {
-      fail(`${label}_container_private_proof_sequence_missing_tool_specific_flag:${tool}`)
-    }
-    if (toolSpecificFlag && !hostCommand.includes(toolSpecificFlag)) {
-      fail(`${label}_host_private_proof_sequence_missing_tool_specific_flag:${tool}`)
-    }
-    if (toolSpecificFlag && !finalContainerCommand.includes(toolSpecificFlag)) {
-      fail(`${label}_container_final_single_tool_call_missing_tool_specific_flag:${tool}`)
-    }
-    if (toolSpecificFlag && !finalHostCommand.includes(toolSpecificFlag)) {
-      fail(`${label}_host_final_single_tool_call_missing_tool_specific_flag:${tool}`)
+    if (privateModelRootMaterializerTools.has(tool)) {
+      for (const fragment of privateModelRootRequiredFragments) {
+        if (!command.includes(fragment)) {
+          fail(`${label}_container_private_proof_sequence_missing_private_model_root_fragment:${tool}:${fragment}`)
+        }
+        if (!hostCommand.includes(fragment)) {
+          fail(`${label}_host_private_proof_sequence_missing_private_model_root_fragment:${tool}:${fragment}`)
+        }
+        if (!finalContainerCommand.includes(fragment)) {
+          fail(`${label}_container_final_single_tool_call_missing_private_model_root_fragment:${tool}:${fragment}`)
+        }
+        if (!finalHostCommand.includes(fragment)) {
+          fail(`${label}_host_final_single_tool_call_missing_private_model_root_fragment:${tool}:${fragment}`)
+        }
+      }
+      if (toolSpecificFlag && command.includes(toolSpecificFlag)) {
+        fail(`${label}_container_private_proof_sequence_still_uses_manual_tool_specific_flag:${tool}`)
+      }
+      if (toolSpecificFlag && hostCommand.includes(toolSpecificFlag)) {
+        fail(`${label}_host_private_proof_sequence_still_uses_manual_tool_specific_flag:${tool}`)
+      }
+      if (toolSpecificFlag && finalContainerCommand.includes(toolSpecificFlag)) {
+        fail(`${label}_container_final_single_tool_call_still_uses_manual_tool_specific_flag:${tool}`)
+      }
+      if (toolSpecificFlag && finalHostCommand.includes(toolSpecificFlag)) {
+        fail(`${label}_host_final_single_tool_call_still_uses_manual_tool_specific_flag:${tool}`)
+      }
+    } else {
+      if (toolSpecificFlag && !command.includes(toolSpecificFlag)) {
+        fail(`${label}_container_private_proof_sequence_missing_tool_specific_flag:${tool}`)
+      }
+      if (toolSpecificFlag && !hostCommand.includes(toolSpecificFlag)) {
+        fail(`${label}_host_private_proof_sequence_missing_tool_specific_flag:${tool}`)
+      }
+      if (toolSpecificFlag && !finalContainerCommand.includes(toolSpecificFlag)) {
+        fail(`${label}_container_final_single_tool_call_missing_tool_specific_flag:${tool}`)
+      }
+      if (toolSpecificFlag && !finalHostCommand.includes(toolSpecificFlag)) {
+        fail(`${label}_host_final_single_tool_call_missing_tool_specific_flag:${tool}`)
+      }
     }
   }
   if (!String(report.interfaces?.defaultKorniaHarnessCommand ?? '').includes('reeditpro/ai-graphics-gpu-worker:proof-local')) {
@@ -634,6 +680,7 @@ function checkReport(label, report) {
   for (const key of [
     'localRuntimeAttemptRequested',
     'privateRuntimeInputManifestUsedNow',
+    'privateRuntimeInputManifestMaterializedNow',
     'localRuntimeExecutedForRequestedTool',
     'acceptedPrivateProofForRequestedTool',
     'finalExternalAgentSingleToolCallAttempted',

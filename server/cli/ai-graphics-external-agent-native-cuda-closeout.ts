@@ -830,6 +830,35 @@ function nativeCudaCloseoutScriptPrivateInputChecks(args: ParsedArgs): string[] 
   return lines
 }
 
+function nativeCudaCloseoutScriptApprovedActivationDefaults(
+  args: ParsedArgs,
+): string[] {
+  const lines: string[] = []
+  if (args.requestedTools.includes('sam2')) {
+    const sam2Root = approvedActivationLocalModelRootCandidatesByTool.sam2[0]
+    lines.push(
+      'if [[ -z "$SAM2_CHECKPOINT" ]]; then',
+      `  APPROVED_SAM2_CACHE_CHECKPOINT=${shellQuote(path.join(sam2Root, 'sam2.1_hiera_tiny.pt'))}`,
+      '  if [[ -f "$APPROVED_SAM2_CACHE_CHECKPOINT" ]]; then',
+      '    SAM2_CHECKPOINT="$APPROVED_SAM2_CACHE_CHECKPOINT"',
+      '  fi',
+      'fi',
+    )
+  }
+  if (args.requestedTools.includes('birefnet')) {
+    const birefnetRoot = approvedActivationLocalModelRootCandidatesByTool.birefnet[0]
+    lines.push(
+      'if [[ -z "$BIREFNET_MODEL" ]]; then',
+      `  APPROVED_BIREFNET_CACHE_MODEL=${shellQuote(birefnetRoot)}`,
+      '  if [[ -d "$APPROVED_BIREFNET_CACHE_MODEL" && -f "$APPROVED_BIREFNET_CACHE_MODEL/model.safetensors" && -f "$APPROVED_BIREFNET_CACHE_MODEL/config.json" && -f "$APPROVED_BIREFNET_CACHE_MODEL/BiRefNet_config.py" && -f "$APPROVED_BIREFNET_CACHE_MODEL/birefnet.py" ]]; then',
+      '    BIREFNET_MODEL="$APPROVED_BIREFNET_CACHE_MODEL"',
+      '  fi',
+      'fi',
+    )
+  }
+  return lines
+}
+
 function writeNativeCudaCloseoutScript(
   args: ParsedArgs,
   scriptOut: string,
@@ -938,6 +967,7 @@ function writeNativeCudaCloseoutScript(
     'if [[ -z "$PRIVATE_MODEL_MANIFEST_DIR" ]]; then',
     `  PRIVATE_MODEL_MANIFEST_DIR=${shellQuote(args.modelWeightManifestDir ?? '')}`,
     'fi',
+    ...nativeCudaCloseoutScriptApprovedActivationDefaults(args),
     'if [[ -z "$OUTPUT_ROOT" ]]; then',
     `  OUTPUT_ROOT=${shellQuote(args.outputRoot)}`,
     'fi',

@@ -405,6 +405,7 @@ export function getDefaultDataVizStyleForCategory(params: {
 
 export function getPreferredToolForVisualType(visualType: DataVizVisualType): DataVizToolPreference {
   if (visualType === 'area_chart' || visualType === 'funnel_chart' || visualType === 'gauge_chart') return 'echarts'
-  if (visualType === 'hierarchy_tree' || visualType === 'cause_effect_diagram') return 'd3'
+  if (visualType === 'hierarchy_tree' || visualType === 'cause_effect_diagram') return 'viz_js'
+  if (visualType === 'document_breakdown_card') return 'satori'
   return getDataVizVisualPreset(visualType).defaultToolPreference
 }

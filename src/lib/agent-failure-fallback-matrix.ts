@@ -272,7 +272,7 @@ export const agentFallbackActions: AgentFallbackAction[] = [
     actionType: 'switch_to_tool_generated_asset',
     label: 'Use controlled tool asset',
     description: 'Use an approved controlled tool output instead of generative video.',
-    allowedToolIds: ['maplibre', 'd3', 'echarts', 'playwright', 'sharp', 'ffmpeg', 'vapoursynth'],
+    allowedToolIds: ['maplibre', 'd3', 'echarts', 'vega', 'vega_lite', 'satori', 'svg_js', 'viz_js', 'playwright', 'sharp', 'ffmpeg', 'vapoursynth'],
     reason: 'Exact maps, charts, screenshots, masks, and processing should use tools/workers later, not AI video.',
   }),
   action({
@@ -288,7 +288,7 @@ export const agentFallbackActions: AgentFallbackAction[] = [
     actionType: 'switch_to_static_chart',
     label: 'Use static chart/card',
     description: 'Use a static chart, metric card, or table for failed chart animation.',
-    allowedToolIds: ['d3', 'echarts', 'vega_lite', 'remotion'],
+    allowedToolIds: ['d3', 'echarts', 'vega', 'vega_lite', 'satori', 'svg_js', 'viz_js', 'remotion'],
     reason: 'Exact data visuals should stay controlled.',
   }),
   action({

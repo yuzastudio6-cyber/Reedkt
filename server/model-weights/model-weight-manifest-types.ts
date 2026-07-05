@@ -7,6 +7,8 @@ export type GpuModelWeightTemplateId =
   | 'sam2_checkpoint'
   | 'deepfilternet_model'
   | 'demucs_model'
+  | 'torch_torchvision_model'
+  | 'transformers_model'
   | 'real_esrgan_model'
   | 'film_model'
   | 'paddleocr_model'

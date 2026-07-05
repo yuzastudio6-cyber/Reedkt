@@ -1,0 +1,128 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "viz_js",
+  "displayName": "Viz.js",
+  "aliases": [
+    "viz.js",
+    "viz_js"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "viz_js",
+    "reason": "Viz.js is now a first-class ProductionToolId for exact graph/diagram planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Graph diagrams",
+        "Dependency flows",
+        "Process visuals"
+      ],
+      "notFor": [
+        "Arbitrary DOT from untrusted input",
+        "Simple business charts"
+      ],
+      "inputArtifacts": [
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "chart_visual",
+        "image_asset",
+        "json_spec"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "d3",
+        "svg_js",
+        "remotion"
+      ],
+      "notes": [
+        "Viz.js is planning-only here; future execution must review Graphviz/wasm distribution and sanitize diagram specs."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Graph diagrams",
+    "Dependency flows",
+    "Process visuals",
+    "Exact node labels"
+  ],
+  "notFor": [
+    "Arbitrary DOT from untrusted input",
+    "Simple business charts",
+    "Final video composition by itself"
+  ],
+  "inputArtifacts": [
+    "json_data"
+  ],
+  "outputArtifacts": [
+    "chart_visual",
+    "image_asset",
+    "json_spec"
+  ],
+  "validators": [
+    "caption_safe_zone",
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "d3",
+    "svg_js",
+    "remotion"
+  ],
+  "resourceProfile": {
+    "workerType": "render_worker",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "render_pipeline"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "diagram spec injection",
+    "Graphviz distribution review missing",
+    "dense labels unreadable at target frame"
+  ],
+  "professionalEditingUses": [
+    "Process explainers",
+    "Dependency diagrams",
+    "State diagrams",
+    "Network visuals"
+  ],
+  "readinessNotes": [
+    "Planning adapter coverage only; no Viz.js or Graphviz execution is enabled by this card.",
+    "Future execution must use approved diagram specs and sanitize SVG/image outputs."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:viz_js:latency_pending",
+    "benchmark:viz_js:quality_pending",
+    "benchmark:viz_js:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:viz_js:selection_count",
+    "telemetry:viz_js:fallback_count",
+    "telemetry:viz_js:qa_gate_outcomes"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Viz.js is first-class registry metadata for graph diagram planning."
+    },
+    {
+      "evidenceType": "owner_ready_handoff",
+      "sourcePath": "docs/tool-calling/all-owner-stack-reconciliation-matrix.json",
+      "summary": "Prior owner seed row is reconciled from pending candidate to first-class planning adapter coverage."
+    }
+  ]
+}

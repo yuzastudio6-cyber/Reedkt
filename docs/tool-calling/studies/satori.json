@@ -1,0 +1,161 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "satori",
+  "displayName": "Satori",
+  "aliases": [
+    "satori"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "satori",
+    "reason": "Satori is now a first-class ProductionToolId for exact static graphic and SVG panel planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Exact text cards",
+        "Static social graphics",
+        "Structured SVG panels"
+      ],
+      "notFor": [
+        "Final video rendering by itself",
+        "Unlicensed font embedding"
+      ],
+      "inputArtifacts": [
+        "json_data",
+        "html",
+        "css",
+        "render_manifest"
+      ],
+      "outputArtifacts": [
+        "image_asset",
+        "json_spec"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "svg_js",
+        "remotion",
+        "sharp"
+      ],
+      "notes": [
+        "Satori is planning-only here; future rendering must use approved fonts, assets, and render-worker gates."
+      ]
+    },
+    {
+      "operationId": "thumbnail.generate",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Static thumbnail cards",
+        "Exact text/image graphic specs"
+      ],
+      "notFor": [
+        "Arbitrary HTML rendering from raw user input"
+      ],
+      "inputArtifacts": [
+        "json_data",
+        "html",
+        "css"
+      ],
+      "outputArtifacts": [
+        "image_asset",
+        "json_spec"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "sharp",
+        "svg_js"
+      ],
+      "notes": [
+        "Thumbnail support is adapter planning metadata only."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Exact text cards",
+    "Static social graphics",
+    "Structured SVG panels",
+    "Brand-safe image cards"
+  ],
+  "notFor": [
+    "Final video rendering by itself",
+    "Unlicensed font embedding",
+    "Arbitrary frontend execution"
+  ],
+  "inputArtifacts": [
+    "json_data",
+    "html",
+    "css",
+    "render_manifest"
+  ],
+  "outputArtifacts": [
+    "image_asset",
+    "json_spec"
+  ],
+  "validators": [
+    "caption_safe_zone",
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "svg_js",
+    "remotion",
+    "sharp"
+  ],
+  "resourceProfile": {
+    "workerType": "render_worker",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "render_pipeline"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "font provenance missing",
+    "text layout overflow",
+    "unsafe HTML or asset payload"
+  ],
+  "professionalEditingUses": [
+    "Quote cards",
+    "Title cards",
+    "Thumbnail graphics",
+    "Static evidence panels"
+  ],
+  "readinessNotes": [
+    "Planning adapter coverage only; no Satori render is enabled by this card.",
+    "Future execution must sanitize inputs and use approved font and asset provenance."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:satori:latency_pending",
+    "benchmark:satori:quality_pending",
+    "benchmark:satori:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:satori:selection_count",
+    "telemetry:satori:fallback_count",
+    "telemetry:satori:qa_gate_outcomes"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Satori is first-class registry metadata for static graphic planning."
+    },
+    {
+      "evidenceType": "owner_ready_handoff",
+      "sourcePath": "docs/tool-calling/all-owner-stack-reconciliation-matrix.json",
+      "summary": "Prior owner seed row is reconciled from pending candidate to first-class planning adapter coverage."
+    }
+  ]
+}

@@ -112,6 +112,27 @@ function unique<T extends string>(values: T[]) {
   return Array.from(new Set(values))
 }
 
+const controlledDataVizToolIds: OpenSourceToolId[] = ['d3', 'echarts', 'vega', 'vega_lite', 'satori', 'svg_js', 'viz_js']
+const visualQaAndImageToolIds: OpenSourceToolId[] = [
+  'opencv',
+  'kornia',
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'rembg',
+  'transparent_background',
+  'real_esrgan',
+]
+
+function isControlledDataVizTool(tool: OpenSourceToolId) {
+  return controlledDataVizToolIds.includes(tool)
+}
+
+function isVisualQaOrImageTool(tool: OpenSourceToolId) {
+  return visualQaAndImageToolIds.includes(tool)
+}
+
 function label(value: string | undefined) {
   return value?.replaceAll('_', ' ') ?? 'auto'
 }
@@ -276,7 +297,7 @@ function toolsForStrategy(strategyType: RenderStrategyType, hints: ToolStrategyH
   }
 
   if (hints.includes('chart_tool')) {
-    tools.push('d3', 'echarts', 'remotion')
+    tools.push(...controlledDataVizToolIds, 'remotion')
   }
 
   if (hints.includes('browser_capture_tool')) {
@@ -295,7 +316,7 @@ function toolsForStrategy(strategyType: RenderStrategyType, hints: ToolStrategyH
   }
 
   if (hints.includes('qa_vision_tool')) {
-    tools.push('opencv')
+    tools.push('opencv', 'kornia', 'torch_torchvision', 'transformers')
   }
 
   if (strategyType === 'open_source_tool_then_remotion' && tools.length === 0) {
@@ -428,10 +449,10 @@ function inputsForStrategy(strategyType: RenderStrategyType, tools: OpenSourceTo
   if (strategyType === 'ai_video_then_remotion') inputs.push('ai_video_clip')
   if (strategyType === 'hybrid_generation_then_remotion') inputs.push('generated_image', 'ai_video_clip')
   if (tools.some((tool) => tool === 'maplibre' || tool === 'turf')) inputs.push('geojson', 'json_data')
-  if (tools.some((tool) => tool === 'd3' || tool === 'echarts')) inputs.push('json_data')
+  if (tools.some(isControlledDataVizTool)) inputs.push('json_data')
   if (tools.includes('playwright')) inputs.push('url', 'html')
   if (tools.includes('ffmpeg')) inputs.push('source_video', 'audio')
-  if (tools.includes('opencv')) inputs.push('source_video', 'image')
+  if (tools.some(isVisualQaOrImageTool)) inputs.push('source_video', 'image')
 
   return unique(inputs)
 }
@@ -441,10 +462,10 @@ function outputsForStrategy(strategyType: RenderStrategyType, tools: OpenSourceT
 
   if (strategyType === 'gpt_image_then_remotion' || strategyType === 'hybrid_generation_then_remotion') outputs.push('image_asset')
   if (tools.some((tool) => tool === 'maplibre' || tool === 'turf')) outputs.push('map_visual', 'json_spec')
-  if (tools.some((tool) => tool === 'd3' || tool === 'echarts')) outputs.push('chart_visual', 'svg_visual', 'json_spec')
+  if (tools.some(isControlledDataVizTool)) outputs.push('chart_visual', 'svg_visual', 'json_spec')
   if (tools.includes('playwright')) outputs.push('screenshot_asset')
   if (tools.includes('ffmpeg')) outputs.push('processed_video', 'processed_audio')
-  if (strategyType === 'qa_tool_only' || tools.includes('opencv')) outputs.push('qa_report')
+  if (strategyType === 'qa_tool_only' || tools.some(isVisualQaOrImageTool)) outputs.push('qa_report')
   if (tools.includes('audioflux') || tools.includes('essentia')) outputs.push('timing_map')
 
   return unique(outputs)
@@ -564,7 +585,7 @@ function qaChecksForStrategy(params: {
     params.strategyType === 'ai_video_then_remotion' || params.strategyType === 'hybrid_generation_then_remotion'
       ? 'AI video is used only for organic or generative motion and remains an asset/clip.'
       : undefined,
-    params.tools.length ? `Open-source tools are planning-only: ${params.tools.map(label).join(', ')}.` : undefined,
+    params.tools.length ? 'Controlled tool specs are planning-only; no package install or execution runs in the frontend.' : undefined,
     params.depthItem ? 'Depth-aware strategy includes future mask-worker note and caption-above-all QA.' : undefined,
     params.input.editLevel === 'premium' ? 'Premium keeps Veo final fallback only.' : 'Basic/Pro cannot use Veo.',
     ...capabilityChecks,
@@ -592,8 +613,8 @@ function workerNotesForStrategy(params: {
     params.strategyType === 'open_source_tool_then_remotion'
       ? 'Open-source tool output is planned as a future asset/spec for Remotion, not executed in the frontend.'
       : undefined,
-    params.tools.some((tool) => tool === 'd3' || tool === 'echarts' || tool === 'vega_lite')
-      ? 'Chart/diagram layers expect future D3/ECharts/Vega-Lite-spec output and Remotion composes final placement.'
+    params.tools.some(isControlledDataVizTool)
+      ? 'Chart, diagram, and vector layers expect future controlled spec output; Remotion composes final placement.'
       : undefined,
     params.depthItem
       ? 'Future segmentation/mask worker required for any real depth-aware overlay; no masking is executed here.'
@@ -601,7 +622,7 @@ function workerNotesForStrategy(params: {
     params.depthItem?.maskStrategy === 'subject_plus_contact_object_mask'
       ? 'Preserve planned contact objects in front of the overlay when future masks are produced.'
       : undefined,
-    params.tools.length ? `Tool IDs are registry IDs only: ${params.tools.join(', ')}.` : undefined,
+    params.tools.length ? 'Detailed tool IDs stay internal registry metadata for future workers.' : undefined,
   ].filter(Boolean) as string[]
 }
 

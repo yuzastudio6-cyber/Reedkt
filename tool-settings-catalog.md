@@ -202,6 +202,79 @@ The Tool Settings Catalog defines the settings ReeditPro should understand when 
 - theme
 - responsiveSize
 
+## Vega / Vega-Lite Settings
+
+- dataSourceId
+- markType
+- encodingFields
+- transformPipeline
+- scalePolicy
+- axisPolicy
+- legendPolicy
+- tooltipPolicy
+- theme
+- chartWidth
+- chartHeight
+- labelDensity
+- sourceCitationPolicy
+
+## Satori / SVG.js / Viz.js Settings
+
+- graphicType
+- textBlocks
+- fontPolicy
+- svgWidth
+- svgHeight
+- safeZone
+- layoutGrid
+- nodeLinkLayout
+- arrowStyle
+- calloutStyle
+- backgroundPolicy
+- exportFormat
+- sanitizeSvgOutput
+
+## Lottie / Anime.js Settings
+
+- motionPreset
+- motionDurationFrames
+- easing
+- loopPolicy
+- timelineMarkers
+- cueAlignment
+- reducedMotionFallback
+- assetProvenance
+- renderLayerPolicy
+
+## Three.js / PixiJS / Konva / Babylon.js Settings
+
+- sceneType
+- cameraPath
+- lightingPreset
+- renderWidth
+- renderHeight
+- layerCompositionMode
+- interactionDisabledForRender
+- textureProvenance
+- geometryComplexity
+- particleDensity
+- safeZonePolicy
+
+## Torch / TorchVision / Transformers Settings
+
+- approvedModelSnapshotId
+- approvedCheckpointId
+- modelLicenseReviewId
+- devicePolicy
+- batchSize
+- maxFrameCount
+- inputResolution
+- preprocessingPolicy
+- outputManifestPolicy
+- noRemoteDownload
+- privateArtifactOnly
+- modelWeightApprovalRequired
+
 ## Playwright Settings
 
 - url

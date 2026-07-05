@@ -200,6 +200,47 @@ export const eChartsSettings: ToolSettingDefinition[] = [
   setting('responsiveSize', 'Responsive size', 'boolean', 'Whether chart should respond to panel size.'),
 ]
 
+export const vegaSettings: ToolSettingDefinition[] = [
+  setting('dataSourceId', 'Data source ID', 'string', 'Approved structured data source reference.'),
+  setting('markType', 'Mark type', 'select', 'Vega/Vega-Lite mark type.', false, { options: ['bar', 'line', 'area', 'point', 'arc', 'rule', 'text', 'custom'] }),
+  setting('encodingFields', 'Encoding fields', 'json', 'Field-to-visual encoding plan.'),
+  setting('transformPipeline', 'Transform pipeline', 'json', 'Approved data transform pipeline.'),
+  setting('scalePolicy', 'Scale policy', 'json', 'Scale and domain policy.'),
+  setting('axisPolicy', 'Axis policy', 'json', 'Axis and tick policy.'),
+  setting('legendPolicy', 'Legend policy', 'json', 'Legend placement and visibility policy.'),
+  setting('sourceCitationPolicy', 'Source citation policy', 'string', 'How source/data evidence is cited in the visual.'),
+]
+
+export const vectorGraphicSettings: ToolSettingDefinition[] = [
+  setting('graphicType', 'Graphic type', 'select', 'Static/vector graphic type.', false, { options: ['quote_card', 'callout', 'diagram', 'thumbnail', 'overlay', 'custom'] }),
+  setting('textBlocks', 'Text blocks', 'json', 'Structured text blocks and hierarchy.'),
+  setting('fontPolicy', 'Font policy', 'string', 'Approved font and fallback policy.'),
+  setting('safeZone', 'Safe zone', 'json', 'Caption/subject safe-zone constraints.'),
+  setting('layoutGrid', 'Layout grid', 'json', 'Grid and spacing plan.'),
+  setting('nodeLinkLayout', 'Node-link layout', 'json', 'Graph/node-link layout settings.'),
+  setting('sanitizeSvgOutput', 'Sanitize SVG output', 'boolean', 'Require sanitized SVG output before preview/export.', true, { defaultValue: true }),
+]
+
+export const motionHelperSettings: ToolSettingDefinition[] = [
+  setting('motionPreset', 'Motion preset', 'string', 'Planned motion preset.'),
+  setting('motionDurationFrames', 'Motion duration', 'number', 'Duration in frames.'),
+  setting('easing', 'Easing', 'string', 'Motion easing curve.'),
+  setting('timelineMarkers', 'Timeline markers', 'json', 'Timing markers connected to approved master timing.'),
+  setting('cueAlignment', 'Cue alignment', 'string', 'Speech/visual cue alignment policy.'),
+  setting('reducedMotionFallback', 'Reduced motion fallback', 'boolean', 'Whether a reduced-motion fallback is planned.'),
+]
+
+export const modelFrameworkSettings: ToolSettingDefinition[] = [
+  setting('approvedModelSnapshotId', 'Approved model snapshot ID', 'string', 'Approved local model snapshot reference.'),
+  setting('approvedCheckpointId', 'Approved checkpoint ID', 'string', 'Approved checkpoint reference.'),
+  setting('modelLicenseReviewId', 'Model license review ID', 'string', 'Model license review reference.'),
+  setting('devicePolicy', 'Device policy', 'select', 'Worker device policy.', false, { options: ['cpu_only', 'gpu_allowed', 'gpu_required'] }),
+  setting('maxFrameCount', 'Max frame count', 'number', 'Maximum frames for worker analysis.'),
+  setting('inputResolution', 'Input resolution', 'json', 'Bounded input resolution policy.'),
+  setting('noRemoteDownload', 'No remote download', 'boolean', 'Remote model downloads must be disabled.', true, { defaultValue: true }),
+  setting('privateArtifactOnly', 'Private artifact only', 'boolean', 'Inputs/outputs must use private artifact manifests.', true, { defaultValue: true }),
+]
+
 export const playwrightSettings: ToolSettingDefinition[] = [
   setting('url', 'URL', 'string', 'Approved capture URL.'),
   setting('viewportWidth', 'Viewport width', 'number', 'Browser viewport width.', false, { unit: 'px' }),
@@ -339,13 +380,13 @@ export const commonToolSettings: ToolSettingDefinition[] = [
 export const toolSettingsByCategory: Partial<Record<ToolCategory, ToolSettingDefinition[]>> = {
   audio_analysis: [...audioFluxSettings, ...signalsmithStretchSettings, ...audioAnalysisSettings],
   browser_capture: playwrightSettings,
-  charts_dataviz: [...d3Settings, ...eChartsSettings],
+  charts_dataviz: [...d3Settings, ...eChartsSettings, ...vegaSettings, ...vectorGraphicSettings],
   color_management: openColorIOSettings,
   image_processing: sharpLibvipsSettings,
   maps_geospatial: [...mapLibreSettings, ...turfSettings],
   renderer_compositor: remotionSettings,
   video_processing: [...ffmpegLgplSettings, ...vapourSynthSettings],
-  visual_analysis: openCVSettings,
+  visual_analysis: [...openCVSettings, ...modelFrameworkSettings],
 }
 
 export const toolPresets: ToolPreset[] = [

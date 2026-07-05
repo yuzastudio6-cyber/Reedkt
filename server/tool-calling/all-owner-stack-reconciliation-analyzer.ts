@@ -61,13 +61,19 @@ function arrayOrEmpty<T>(values: readonly T[] | undefined): readonly T[] {
 }
 
 const ownerLabelAliasesByToolId: Readonly<Record<string, readonly string[]>> = {
+  animejs: ['anime.js'],
   babylon_js: ['babylonjs'],
   hyperframe: ['hyperframe_render_handoff'],
   lottie: ['lottie_web'],
   pixijs: ['pixi_js'],
   playwright: ['playwright_chromium'],
   revideo: ['revideo_render_preview_alternative'],
+  svg_js: ['svg.js', 'svgdotjs', 'svgdotjs_svg_js'],
+  three_js: ['three'],
+  torch_torchvision: ['pytorch', 'torch', 'torchvision'],
+  transformers: ['huggingface_transformers'],
   vapoursynth: ['vapoursynth_frame_pipeline'],
+  viz_js: ['viz.js'],
 }
 
 function laneForCategory(category: ProductionToolCategory): AllOwnerToolLane {

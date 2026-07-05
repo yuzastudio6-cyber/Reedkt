@@ -67,6 +67,24 @@ function unique<T extends string>(values: T[]) {
   return Array.from(new Set(values))
 }
 
+const controlledDataVizToolIds: OpenSourceToolId[] = ['d3', 'echarts', 'vega', 'vega_lite', 'satori', 'svg_js', 'viz_js']
+const visualQaAndImageToolIds: OpenSourceToolId[] = [
+  'opencv',
+  'sharp',
+  'kornia',
+  'torch_torchvision',
+  'transformers',
+  'sam2',
+  'birefnet',
+  'rembg',
+  'transparent_background',
+  'real_esrgan',
+]
+
+function isControlledDataVizTool(toolId: OpenSourceToolId) {
+  return controlledDataVizToolIds.includes(toolId)
+}
+
 function label(value: string | undefined) {
   return value?.replaceAll('_', ' ') ?? 'auto'
 }
@@ -440,11 +458,11 @@ function definitionForChain(chainId: ToolChainId, input: PlannerInput, audioPipe
         chainId,
         purpose: 'chart_diagram',
         primaryToolId: 'd3',
-        toolIds: ['d3', 'echarts', 'remotion'],
-        fallbackToolIds: ['echarts', 'remotion'],
+        toolIds: [...controlledDataVizToolIds, 'remotion'],
+        fallbackToolIds: ['echarts', 'vega_lite', 'svg_js', 'remotion'],
         presetIds: ['money_flow_diagram'],
         whyNotAiVideo: 'Diagrams need exact labels, arrows, and data structure. AI video is less reliable for exact information.',
-        whyNotRemotionOnly: 'Remotion can place and animate the diagram, but D3/ECharts-style specs keep labels and data structure controlled.',
+        whyNotRemotionOnly: 'Remotion can place and animate the diagram, but controlled chart/vector specs keep labels and data structure reliable.',
         creditImpact: input.editLevel === 'basic' ? 'low' : 'medium',
         userFacingSummary: 'Chart/diagram planned as controlled data visual instead of generated video.',
       }
@@ -501,8 +519,8 @@ function definitionForChain(chainId: ToolChainId, input: PlannerInput, audioPipe
         chainId,
         purpose: 'visual_qa',
         primaryToolId: 'opencv',
-        toolIds: ['opencv', 'sharp'],
-        fallbackToolIds: ['sharp'],
+        toolIds: visualQaAndImageToolIds,
+        fallbackToolIds: ['sharp', 'opencv', 'rembg'],
         presetIds: ['foreground_safe_zone_qa', 'panel_background_match_qa'],
         whyNotAiVideo: 'Safe-zone, crop, blur, and panel-match QA should be measured rather than generated.',
         whyNotRemotionOnly: 'Remotion can enforce layout, but future QA tools check collisions and visual quality.',
@@ -555,7 +573,7 @@ function chainFromRenderItem(item: RenderStrategyPlanItem, adaptiveStrategy: Ada
     return 'map_route_chain'
   }
 
-  if (hints.includes('chart_tool') || item.selectedOpenSourceTools.some((tool) => tool === 'd3' || tool === 'echarts') || includesAny(text, ['chart', 'diagram', 'money', 'flow', 'account', 'timeline', 'data'])) {
+  if (hints.includes('chart_tool') || item.selectedOpenSourceTools.some(isControlledDataVizTool) || includesAny(text, ['chart', 'diagram', 'money', 'flow', 'account', 'timeline', 'data'])) {
     return 'chart_diagram_chain'
   }
 

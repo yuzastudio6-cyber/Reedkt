@@ -135,6 +135,8 @@ const expectedModelWeightTools: ProductionToolId[] = [
   'sam2',
   'transparent_background',
   'rembg',
+  'torch_torchvision',
+  'transformers',
   'deepfilternet',
   'demucs',
   'real_esrgan',

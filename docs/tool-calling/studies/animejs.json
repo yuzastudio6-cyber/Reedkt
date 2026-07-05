@@ -1,0 +1,158 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "animejs",
+  "displayName": "Anime.js",
+  "aliases": [
+    "anime.js",
+    "animejs"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "animejs",
+    "reason": "Anime.js is now a first-class ProductionToolId for lightweight vector and UI motion planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Lightweight vector motion",
+        "Data-graphic timing",
+        "Reusable motion specs"
+      ],
+      "notFor": [
+        "Final render orchestration",
+        "Random decorative motion"
+      ],
+      "inputArtifacts": [
+        "json_data",
+        "render_manifest"
+      ],
+      "outputArtifacts": [
+        "preview_video",
+        "json_spec",
+        "image_asset"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "lottie",
+        "pixijs",
+        "remotion"
+      ],
+      "notes": [
+        "Anime.js is planning-only here; Remotion remains the final composition owner."
+      ]
+    },
+    {
+      "operationId": "render.preview",
+      "supportLevel": "fallback",
+      "bestFor": [
+        "Motion preview specs",
+        "Micro-animation timing"
+      ],
+      "notFor": [
+        "Tool execution outside approved render-worker gates"
+      ],
+      "inputArtifacts": [
+        "json_data",
+        "render_manifest"
+      ],
+      "outputArtifacts": [
+        "json_spec",
+        "preview_video"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "lottie",
+        "remotion"
+      ],
+      "notes": [
+        "Preview support is adapter planning metadata only."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Lightweight vector motion",
+    "SVG/data-graphic timing",
+    "Micro-interaction style animation",
+    "Reusable motion specs"
+  ],
+  "notFor": [
+    "Final render orchestration",
+    "Realistic video generation",
+    "Random decorative motion"
+  ],
+  "inputArtifacts": [
+    "json_data",
+    "render_manifest"
+  ],
+  "outputArtifacts": [
+    "preview_video",
+    "json_spec",
+    "image_asset"
+  ],
+  "validators": [
+    "caption_safe_zone",
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "lottie",
+    "pixijs",
+    "remotion"
+  ],
+  "resourceProfile": {
+    "workerType": "render_worker",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "render_pipeline"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "low",
+    "commercialUseStatus": "allowed"
+  },
+  "knownFailureModes": [
+    "motion not tied to segment meaning",
+    "caption or subject collision",
+    "runtime differs from Remotion final timing"
+  ],
+  "professionalEditingUses": [
+    "Motion timing specs",
+    "Animated data/card elements",
+    "Subtle UI-style emphasis"
+  ],
+  "readinessNotes": [
+    "Planning adapter coverage only; no Anime.js execution is enabled by this card.",
+    "Future execution must be deterministic and reconciled through approved render-worker/Remotion timing."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:animejs:latency_pending",
+    "benchmark:animejs:quality_pending",
+    "benchmark:animejs:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:animejs:selection_count",
+    "telemetry:animejs:fallback_count",
+    "telemetry:animejs:qa_gate_outcomes"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Anime.js is first-class registry metadata for lightweight motion planning."
+    },
+    {
+      "evidenceType": "owner_ready_handoff",
+      "sourcePath": "docs/tool-calling/all-owner-stack-reconciliation-matrix.json",
+      "summary": "Prior owner seed row is reconciled from pending candidate to first-class planning adapter coverage."
+    }
+  ]
+}

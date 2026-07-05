@@ -98,8 +98,15 @@ const newlyCoveredFirstClassToolIds = [
   'three_js',
   'transparent_background',
   'turf',
+  'vega',
   'vapoursynth',
   'vega_lite',
+  'satori',
+  'svg_js',
+  'viz_js',
+  'animejs',
+  'torch_torchvision',
+  'transformers',
   'whisper_cpp',
 ]
 
@@ -164,7 +171,27 @@ check(!productionToolIds.has('graphicsmagick'), 'GraphicsMagick must not be a fi
 check(Boolean(graphicsMagickResolution), 'GraphicsMagick must be represented in runtime ID reconciliation.')
 check(graphicsMagickResolution?.status === 'pending_production_tool_registry_expansion', 'GraphicsMagick must remain pending production registry expansion.')
 check(graphicsMagickResolution?.selectableAsRuntimeTool === false, 'GraphicsMagick must remain non-selectable.')
-check(runtimeIdReconciliationResults.length === 13, 'Runtime ID alias table must include 13 aliases after Track B expansion.')
+
+const requiredRuntimeAliasTargets = new Map([
+  ['lottie_web', 'lottie'],
+  ['three', 'three_js'],
+  ['pixi_js', 'pixijs'],
+  ['babylonjs', 'babylon_js'],
+  ['svg.js', 'svg_js'],
+  ['svgdotjs_svg_js', 'svg_js'],
+  ['viz.js', 'viz_js'],
+  ['anime.js', 'animejs'],
+  ['torch', 'torch_torchvision'],
+  ['torchvision', 'torch_torchvision'],
+  ['huggingface_transformers', 'transformers'],
+])
+const missingRuntimeAliasTargets = [...requiredRuntimeAliasTargets]
+  .filter(([alias, expectedToolId]) => {
+    const result = runtimeIdReconciliationResults.find((candidate) => candidate.inputToolId === alias)
+    return result?.status !== 'alias_resolved_to_production_tool_id' || result.toolId !== expectedToolId
+  })
+  .map(([alias, expectedToolId]) => `${alias}->${expectedToolId}`)
+check(missingRuntimeAliasTargets.length === 0, `Runtime aliases missing or drifted: ${missingRuntimeAliasTargets.join(', ')}`)
 
 const requiredStudyCardFields = [
   'schema',

@@ -1,0 +1,171 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "transformers",
+  "displayName": "Transformers",
+  "aliases": [
+    "huggingface_transformers",
+    "transformers"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "transformers",
+    "reason": "Transformers is now a first-class ProductionToolId for approved model-framework planning."
+  },
+  "operations": [
+    {
+      "operationId": "mask.generate",
+      "supportLevel": "future",
+      "bestFor": [
+        "Approved segmentation model adapters",
+        "Model-framework routing metadata"
+      ],
+      "notFor": [
+        "Remote model downloads",
+        "Unreviewed checkpoints"
+      ],
+      "inputArtifacts": [
+        "image",
+        "video",
+        "frame_sequence"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "qa_report",
+        "json_spec",
+        "mask_image"
+      ],
+      "validators": [
+        "mask_subject_coverage",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "sam2",
+        "birefnet",
+        "torch_torchvision"
+      ],
+      "notes": [
+        "Transformers is planning-only here; model repositories and weights remain separately approved."
+      ]
+    },
+    {
+      "operationId": "video.enhance",
+      "supportLevel": "future",
+      "bestFor": [
+        "Approved enhancement model adapters",
+        "Visual model QA support"
+      ],
+      "notFor": [
+        "Unreviewed enhancement checkpoints",
+        "Provider replacement without model policy"
+      ],
+      "inputArtifacts": [
+        "image",
+        "video",
+        "frame_sequence"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "qa_report",
+        "json_spec"
+      ],
+      "validators": [
+        "enhancement_artifacts",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "torch_torchvision",
+        "kornia",
+        "opencv"
+      ],
+      "notes": [
+        "Enhancement support is framework metadata only until a specific approved model exists."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Approved model adapters",
+    "Visual analysis model substrate",
+    "Multimodal QA support",
+    "Structured feature extraction"
+  ],
+  "notFor": [
+    "Unreviewed Hugging Face downloads",
+    "Raw prompt execution",
+    "Provider replacement without model policy"
+  ],
+  "inputArtifacts": [
+    "image",
+    "video",
+    "frame_sequence",
+    "transcript",
+    "json_data"
+  ],
+  "outputArtifacts": [
+    "analysis_report",
+    "qa_report",
+    "json_spec",
+    "image_asset",
+    "mask_image"
+  ],
+  "validators": [
+    "render_asset_integrity",
+    "mask_subject_coverage",
+    "enhancement_artifacts"
+  ],
+  "fallbackToolIds": [
+    "torch_torchvision",
+    "kornia",
+    "opencv"
+  ],
+  "resourceProfile": {
+    "workerType": "gpu_ai_worker",
+    "gpuRequired": true,
+    "cpuAllowed": true,
+    "executionMode": "worker_recipe"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": true,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "model repository approval missing",
+    "tokenizer/checkpoint provenance missing",
+    "remote download attempted",
+    "GPU worker unavailable"
+  ],
+  "professionalEditingUses": [
+    "Approved multimodal model routing",
+    "Visual QA model substrate",
+    "Structured semantic feature extraction"
+  ],
+  "readinessNotes": [
+    "Planning adapter coverage only; no Transformers execution, remote download, tokenizer load, or model weight load is enabled by this card.",
+    "Future execution must use approved local model snapshots, approved plan snapshots, and private artifact IDs."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:transformers:latency_pending",
+    "benchmark:transformers:quality_pending",
+    "benchmark:transformers:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:transformers:selection_count",
+    "telemetry:transformers:fallback_count",
+    "telemetry:transformers:qa_gate_outcomes"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Transformers is first-class registry metadata for approved model-framework planning."
+    },
+    {
+      "evidenceType": "owner_ready_handoff",
+      "sourcePath": "docs/tool-calling/all-owner-stack-reconciliation-matrix.json",
+      "summary": "Prior owner seed row is reconciled from candidate-only to first-class planning adapter coverage while model weights remain gated."
+    }
+  ]
+}

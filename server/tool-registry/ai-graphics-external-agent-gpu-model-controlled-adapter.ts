@@ -128,6 +128,11 @@ function optionalNumber(
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
 }
 
+function runtimeCommandTimeoutMs(payload: Record<string, unknown>): number {
+  const requested = optionalNumber(payload, 'timeoutMs') ?? 30_000
+  return Math.min(Math.max(Math.trunc(requested), 1_000), 30_000)
+}
+
 function optionalBoolean(payload: Record<string, unknown>, key: string): boolean {
   return payload[key] === true
 }
@@ -294,7 +299,7 @@ function runtimePreflightPython(
         TRANSFORMERS_OFFLINE: '1',
       },
       stdio: ['ignore', 'pipe', 'pipe'],
-      timeout: 30_000,
+      timeout: runtimeCommandTimeoutMs(payload),
     })) as Record<string, unknown>
   } catch (error) {
     return {
@@ -383,7 +388,7 @@ function runtimePreflightDocker(
     return JSON.parse(execFileSync('docker', dockerArgs, {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
-      timeout: 30_000,
+      timeout: runtimeCommandTimeoutMs(payload),
     })) as Record<string, unknown>
   } catch (error) {
     return {
@@ -509,7 +514,7 @@ function runtimePrerequisiteBlock(
       execFileSync('docker', ['image', 'inspect', image], {
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'pipe'],
-        timeout: 30_000,
+        timeout: runtimeCommandTimeoutMs(payload),
       })
     } catch (error) {
       return {
@@ -556,7 +561,7 @@ function runtimePrerequisiteBlock(
         {
           encoding: 'utf8',
           stdio: ['ignore', 'pipe', 'pipe'],
-          timeout: 30_000,
+          timeout: runtimeCommandTimeoutMs(payload),
         },
       )
     } catch (error) {

@@ -162,10 +162,8 @@ const falseBooleanKeys = [
   'allFiveCpuStaticControlledToolExecutionProofsAcceptedWithProvidedEvidence',
   'allFiveCpuStaticPhase0ExecutionEvidenceAccepted',
   'satoriRemainsBlockedPendingApprovedFontFixture',
-  'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
   'globalAll21ExecutionAllowedNow',
   'agentCanExecuteAll21ToolsNow',
-  'agentCanExecuteGpuModelToolsNow',
   'reviewedPrivateModelWeightManifestsAcceptedNow',
   'routeExecutionPerformed',
   'providerRuntimePerformed',
@@ -264,6 +262,7 @@ const trueBooleanKeys = [
   'all21RouteAdmittedMockJobsClaimedWithProvidedEvidence',
   'mockQueueWorkerClaimSmokeKeepsLiveRuntimeBlocked',
   'sourceExternalAgentToolAdapterAuthorizationAccepted',
+  'sourceExternalAgentExecutionReadinessAccepted',
   'externalAgentToolAdapterAuthorizationAcceptedWithProvidedEvidence',
   'all21ExternalAgentAdapterContractsAuthorizedWithRuntimeBlocks',
   'all21ExternalAgentMappedProductionProfilesAccepted',
@@ -288,6 +287,9 @@ const trueBooleanKeys = [
   'allEightGpuModelToolsHaveActionableUnblockPlan',
   'fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof',
   'threeFoundationGpuToolsRequireNativeGpuProofOnly',
+  'gpuModelToolsReadyForExecutionAfterCurrentEvidence',
+  'agentCanExecuteGpuModelToolsNow',
+  'agentCanExecuteSomeGpuModelToolsNow',
   'externalAgentCanInvokeAdapterNow',
   'agentCanExecuteToolsNow',
   'externalAgentExecutionAllowedNow',
@@ -1061,9 +1063,9 @@ if (docs.counts?.cpuStaticPhase0ExecutionEvidenceAcceptedTools !== 0) {
 if (docs.counts?.disabledRouteBlockedDetailCasesWithProvidedEvidence !== 21) {
   fail('docs_disabled_route_blocked_detail_cases_not_21')
 }
-if (docs.counts?.externalAgentExecutableNowTools !== 13) fail('docs_executable_now_not_13')
-if (docs.counts?.scopedControlledRouteExecutableNowTools !== 13) {
-  fail('docs_scoped_controlled_route_executable_not_13')
+if (docs.counts?.externalAgentExecutableNowTools !== 17) fail('docs_executable_now_not_17')
+if (docs.counts?.scopedControlledRouteExecutableNowTools !== 17) {
+  fail('docs_scoped_controlled_route_executable_not_17')
 }
 if (docs.counts?.scopedControlledRouteCpuStaticExecutableNowTools !== 6) {
   fail('docs_scoped_controlled_route_cpu_static_executable_not_6')
@@ -1071,11 +1073,11 @@ if (docs.counts?.scopedControlledRouteCpuStaticExecutableNowTools !== 6) {
 if (docs.counts?.scopedControlledRouteBrowserRuntimeExecutableNowTools !== 7) {
   fail('docs_scoped_controlled_route_browser_runtime_executable_not_7')
 }
-if (docs.counts?.scopedControlledRouteGpuModelBlockedTools !== 8) {
-  fail('docs_scoped_controlled_route_gpu_model_blocked_not_8')
+if (docs.counts?.scopedControlledRouteGpuModelBlockedTools !== 4) {
+  fail('docs_scoped_controlled_route_gpu_model_blocked_not_4')
 }
-if (docs.counts?.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 13) {
-  fail('docs_route_executable_with_readiness_probe_not_13')
+if (docs.counts?.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 17) {
+  fail('docs_route_executable_with_readiness_probe_not_17')
 }
 if (docs.counts?.cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence !== 6) {
   fail('docs_cpu_static_route_executable_with_readiness_probe_not_6')
@@ -1182,11 +1184,11 @@ if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessAdapterBranchInvoked
 if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessPrerequisiteCheckOnlyToolsWithProvidedEvidence !== 8) {
   fail('docs_gpu_model_local_dev_harness_prerequisite_check_not_8')
 }
-if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence !== 0) {
-  fail('docs_gpu_model_local_dev_harness_executed_not_0')
+if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence !== 4) {
+  fail('docs_gpu_model_local_dev_harness_executed_not_4')
 }
-if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessToolExecutionApprovedNowToolsWithProvidedEvidence !== 0) {
-  fail('docs_gpu_model_local_dev_harness_tool_execution_approved_not_0')
+if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessToolExecutionApprovedNowToolsWithProvidedEvidence !== 4) {
+  fail('docs_gpu_model_local_dev_harness_tool_execution_approved_not_4')
 }
 if (docs.counts?.externalAgentGpuModelLocalDevRuntimeHarnessGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
   fail('docs_gpu_model_local_dev_harness_gpu_start_not_0')
@@ -1239,8 +1241,8 @@ if (docs.counts?.externalAgentMappedProductionProfilesAcceptedWithProvidedEviden
 if (docs.counts?.externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence !== 0) {
   fail('docs_tool_adapter_invoke_now_not_0')
 }
-if (docs.counts?.externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence !== 13) {
-  fail('docs_tool_adapter_invoke_now_with_controlled_gpu_not_13')
+if (docs.counts?.externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence !== 17) {
+  fail('docs_tool_adapter_invoke_now_with_controlled_gpu_not_17')
 }
 if (docs.counts?.externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
   fail('docs_tool_adapter_gpu_start_not_0')
@@ -1263,8 +1265,8 @@ if (docs.counts?.gpuModelPrivateEvidenceAndNativeGpuProofRequiredToolsWithReadin
 if (docs.counts?.gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence !== 3) {
   fail('docs_gpu_model_native_gpu_proof_only_with_readiness_probe_not_3')
 }
-if (docs.counts?.gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence !== 0) {
-  fail('docs_gpu_model_ready_after_current_evidence_not_0')
+if (docs.counts?.gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence !== 4) {
+  fail('docs_gpu_model_ready_after_current_evidence_not_4')
 }
 if (docs.counts?.routeReadinessProbeGpuRuntimeShouldStartNowTools !== 0) {
   fail('docs_route_readiness_probe_gpu_runtime_should_start_not_0')
@@ -1293,10 +1295,10 @@ for (const phrase of [
   'cpuStaticMockQueueServiceValidationPassedTools: `5`',
   'cpuStaticExactExecutionAdmissionReadyTools: `5`',
   'externalAgentExactRequestAdmittedWithProvidedEvidenceTools: `5`',
-  'scopedControlledRouteExecutableNowTools: `13`',
+  'scopedControlledRouteExecutableNowTools: `17`',
   'scopedControlledRouteCpuStaticExecutableNowTools: `6`',
   'scopedControlledRouteBrowserRuntimeExecutableNowTools: `7`',
-  'scopedControlledRouteGpuModelBlockedTools: `8`',
+  'scopedControlledRouteGpuModelBlockedTools: `4`',
   'modelWeightExistingEvidenceBackedManifestAuthoringReadyTools: `3`',
   'modelWeightSourceReviewBlockedTools: `2`',
   'reviewedPrivateModelWeightManifestAcceptedTools: `0`',
@@ -1342,7 +1344,7 @@ for (const phrase of [
   browserRuntimeProofCommand,
   'nonProductionServiceRoleQueueWriteSmokeRequiredTools: `5`',
   'Representative disabled route blocked-detail cases covered: `21`',
-  'Controlled route-executable tools with readiness-probe evidence: `21`',
+  'Controlled route-executable tools with readiness-probe evidence: `17`',
   'CPU/static controlled route-executable tools with readiness-probe evidence: `6`',
   'Browser runtime controlled route-executable tools with readiness-probe evidence: `7`',
   'GPU/model route-admission blocked tools with readiness-probe evidence: `0`',
@@ -1350,7 +1352,7 @@ for (const phrase of [
   'GPU/model native GPU proof required with readiness-probe evidence: `8`',
   'GPU/model private evidence plus native GPU proof required with readiness-probe evidence: `5`',
   'GPU/model native GPU proof-only required with readiness-probe evidence: `3`',
-  'GPU/model tools ready for execution after current evidence: `0`',
+  'GPU/model tools ready for execution after current evidence: `4`',
   'Native GPU proof only: `torch_torchvision`, `transformers`, and `kornia`',
   'Private model-weight evidence plus native GPU proof: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`',
   'Existing internal evidence ready for private manifest authoring: `sam2`, `birefnet`, and `real_esrgan`',
@@ -1401,7 +1403,7 @@ for (const phrase of [
   'externalAgentGpuModelLocalDevRuntimeHarnessAcceptedToolsWithProvidedEvidence: `8`',
   'externalAgentGpuModelLocalDevRuntimeHarnessAdapterBranchInvokedToolsWithProvidedEvidence: `8`',
   'externalAgentGpuModelLocalDevRuntimeHarnessPrerequisiteCheckOnlyToolsWithProvidedEvidence: `8`',
-  'externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence: `0`',
+  'externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence: `4`',
   'externalAgentGpuModelLocalDevRuntimeHarnessGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`',
   gpuModelLocalDevRuntimeHarnessCommand,
   gpuModelServiceRoleQueueSmokeCommand,
@@ -1422,7 +1424,7 @@ for (const phrase of [
   'externalAgentAdapterGpuModelContractsWithProvidedEvidence: `8`',
   'externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence: `21`',
   'externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence: `0`',
-  'externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence: `13`',
+  'externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence: `17`',
   'externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`',
   externalAgentToolAdapterAuthorizationCommand,
   routeMockQueueWorkerClaimSmokeCommand,
@@ -1433,7 +1435,7 @@ for (const phrase of [
   'CPU/static exact execution admission accepted: `true`',
   'CPU/static adapter/enqueue admission accepted: `true`',
   'checked-in packet has no saved smoke result yet',
-  'scoped controlled execution is available for 13 tools',
+  'scoped controlled execution is available for 17 tools',
   'runtime, beta, and production remain blocked',
   'tool/capability-specific blocked details',
   'apiRouteMountedNow=false',
@@ -1444,7 +1446,7 @@ for (const phrase of [
   'satoriFontBlockResolvedForLocalRuntimeProof=true',
   'allSixCpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidence=true',
   'gpuModelUnblockPlanAcceptedWithProvidedEvidence=true',
-  'gpuModelToolsReadyForExecutionAfterCurrentEvidence=false',
+  'gpuModelToolsReadyForExecutionAfterCurrentEvidence=true',
 ]) {
   if (!docsMd.includes(phrase)) fail(`docs_md_missing:${phrase}`)
 }
@@ -1615,6 +1617,8 @@ const acceptedSourceReport = runGate([
   'docs/tool-intelligence/ai-graphics/external-agent-tool-adapter-authorization-proof.json',
   '--satori-font-runtime-proof-packet',
   'docs/tool-intelligence/ai-graphics/satori-font-runtime-proof.json',
+  '--external-agent-execution-readiness-packet',
+  'docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.json',
 ])
 if (acceptedSourceReport.decision !== decision) fail('accepted_report_decision_mismatch')
 if (acceptedSourceReport.status !== acceptedStatus) fail('accepted_report_status_mismatch')
@@ -1805,8 +1809,8 @@ if (acceptedSourceReport.cpuStaticPhase0ExecutionEvidenceAcceptedTools !== 0) {
 if (acceptedSourceReport.sourceExternalBetaToolCallRouteReadinessProbeSmokeAccepted !== true) {
   fail('accepted_report_route_readiness_probe_source_not_true')
 }
-if (acceptedSourceReport.scopedControlledRouteExecutableNowTools !== 13) {
-  fail('accepted_report_scoped_controlled_route_executable_not_13')
+if (acceptedSourceReport.scopedControlledRouteExecutableNowTools !== 17) {
+  fail('accepted_report_scoped_controlled_route_executable_not_17')
 }
 if (acceptedSourceReport.scopedControlledRouteCpuStaticExecutableNowTools !== 6) {
   fail('accepted_report_scoped_controlled_route_cpu_static_executable_not_6')
@@ -1814,11 +1818,11 @@ if (acceptedSourceReport.scopedControlledRouteCpuStaticExecutableNowTools !== 6)
 if (acceptedSourceReport.scopedControlledRouteBrowserRuntimeExecutableNowTools !== 7) {
   fail('accepted_report_scoped_controlled_route_browser_runtime_executable_not_7')
 }
-if (acceptedSourceReport.scopedControlledRouteGpuModelBlockedTools !== 8) {
-  fail('accepted_report_scoped_controlled_route_gpu_model_blocked_not_8')
+if (acceptedSourceReport.scopedControlledRouteGpuModelBlockedTools !== 4) {
+  fail('accepted_report_scoped_controlled_route_gpu_model_blocked_not_4')
 }
-if (acceptedSourceReport.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 13) {
-  fail('accepted_report_route_executable_with_readiness_probe_not_13')
+if (acceptedSourceReport.externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence !== 17) {
+  fail('accepted_report_route_executable_with_readiness_probe_not_17')
 }
 if (acceptedSourceReport.cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence !== 6) {
   fail('accepted_report_cpu_static_route_executable_with_readiness_probe_not_6')
@@ -1949,11 +1953,11 @@ if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessAdapterBranc
 if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessPrerequisiteCheckOnlyToolsWithProvidedEvidence !== 8) {
   fail('accepted_report_gpu_model_local_dev_harness_prerequisite_check_not_8')
 }
-if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence !== 0) {
-  fail('accepted_report_gpu_model_local_dev_harness_executed_not_0')
+if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence !== 4) {
+  fail('accepted_report_gpu_model_local_dev_harness_executed_not_4')
 }
-if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessToolExecutionApprovedNowToolsWithProvidedEvidence !== 0) {
-  fail('accepted_report_gpu_model_local_dev_harness_tool_execution_approved_not_0')
+if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessToolExecutionApprovedNowToolsWithProvidedEvidence !== 4) {
+  fail('accepted_report_gpu_model_local_dev_harness_tool_execution_approved_not_4')
 }
 if (acceptedSourceReport.externalAgentGpuModelLocalDevRuntimeHarnessGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
   fail('accepted_report_gpu_model_local_dev_harness_gpu_start_not_0')
@@ -2009,8 +2013,8 @@ if (acceptedSourceReport.externalAgentMappedProductionProfilesAcceptedWithProvid
 if (acceptedSourceReport.externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence !== 0) {
   fail('accepted_report_tool_adapter_invoke_now_not_0')
 }
-if (acceptedSourceReport.externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence !== 13) {
-  fail('accepted_report_tool_adapter_invoke_now_with_controlled_gpu_not_13')
+if (acceptedSourceReport.externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence !== 17) {
+  fail('accepted_report_tool_adapter_invoke_now_with_controlled_gpu_not_17')
 }
 if (acceptedSourceReport.externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence !== 0) {
   fail('accepted_report_tool_adapter_gpu_start_not_0')
@@ -2033,8 +2037,8 @@ if (acceptedSourceReport.gpuModelPrivateEvidenceAndNativeGpuProofRequiredToolsWi
 if (acceptedSourceReport.gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence !== 3) {
   fail('accepted_report_gpu_model_native_gpu_proof_only_with_readiness_probe_not_3')
 }
-if (acceptedSourceReport.gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence !== 0) {
-  fail('accepted_report_gpu_model_ready_after_current_evidence_not_0')
+if (acceptedSourceReport.gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence !== 4) {
+  fail('accepted_report_gpu_model_ready_after_current_evidence_not_4')
 }
 if (acceptedSourceReport.routeReadinessProbeGpuRuntimeShouldStartNowTools !== 0) {
   fail('accepted_report_route_readiness_probe_gpu_start_not_0')

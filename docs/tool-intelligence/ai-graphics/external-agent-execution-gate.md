@@ -68,13 +68,13 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - controlledToolExecutionProofRequiredTools: `0`
 - externalBetaCallableCandidateToolsWithProvidedEvidence: `21`
 - externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence: `1`
-- externalAgentExecutableNowTools: `13`
-- scopedControlledRouteExecutableNowTools: `13`
+- externalAgentExecutableNowTools: `17`
+- scopedControlledRouteExecutableNowTools: `17`
 - scopedControlledRouteCpuStaticExecutableNowTools: `6`
 - scopedControlledRouteBrowserRuntimeExecutableNowTools: `7`
-- scopedControlledRouteGpuModelBlockedTools: `8`
+- scopedControlledRouteGpuModelBlockedTools: `4`
 - disabledRouteBlockedDetailCasesWithProvidedEvidence: `21`
-- externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence: `13`
+- externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence: `17`
 - cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence: `6`
 - browserRuntimeControlledRouteExecutableNowToolsWithReadinessProbeEvidence: `7`
 - controlledCanonicalRouteExecutedToolsWithProvidedEvidence: `13`
@@ -110,8 +110,8 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - externalAgentGpuModelLocalDevRuntimeHarnessAcceptedToolsWithProvidedEvidence: `8`
 - externalAgentGpuModelLocalDevRuntimeHarnessAdapterBranchInvokedToolsWithProvidedEvidence: `8`
 - externalAgentGpuModelLocalDevRuntimeHarnessPrerequisiteCheckOnlyToolsWithProvidedEvidence: `8`
-- externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence: `0`
-- externalAgentGpuModelLocalDevRuntimeHarnessToolExecutionApprovedNowToolsWithProvidedEvidence: `0`
+- externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence: `4`
+- externalAgentGpuModelLocalDevRuntimeHarnessToolExecutionApprovedNowToolsWithProvidedEvidence: `4`
 - externalAgentGpuModelLocalDevRuntimeHarnessGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
 - externalAgentGpuModelLocalDevRuntimeHarnessPublicArtifactCreatedToolsWithProvidedEvidence: `0`
 - mockQueueWorkerClaimSmokeAcceptedToolsWithProvidedEvidence: `21`
@@ -129,7 +129,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - externalAgentAdapterGpuModelContractsWithProvidedEvidence: `8`
 - externalAgentMappedProductionProfilesAcceptedWithProvidedEvidence: `21`
 - externalAgentCanInvokeAdapterNowToolsWithProvidedEvidence: `0`
-- externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence: `13`
+- externalAgentCanInvokeAdapterNowToolsWithControlledGpuEvidence: `17`
 - externalAgentToolAdapterGpuRuntimeShouldStartNowToolsWithProvidedEvidence: `0`
 - gpuModelRuntimeAdmissionBlockedToolsWithReadinessProbeEvidence: `0`
 - gpuModelRuntimeAdmissionEvaluatedFailClosedToolsWithReadinessProbeEvidence: `8`
@@ -137,7 +137,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - gpuModelNativeGpuProofRequiredToolsWithReadinessProbeEvidence: `8`
 - gpuModelPrivateEvidenceAndNativeGpuProofRequiredToolsWithReadinessProbeEvidence: `5`
 - gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence: `3`
-- gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence: `0`
+- gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence: `4`
 - routeReadinessProbeGpuRuntimeShouldStartNowTools: `0`
 - apiRouteMountReadyToolsWithProvidedEvidence: `21`
 - apiRouteMountedNowTools: `0`
@@ -152,7 +152,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - CPU/static exact execution admission accepted: `true`
 - CPU/static adapter/enqueue admission accepted: `true`
 - checked-in packet has no saved smoke result yet
-- scoped controlled execution is available for 13 tools
+- scoped controlled execution is available for 17 tools
 - runtime, beta, and production remain blocked
 - tool/capability-specific blocked details remain available for denied runtime/beta/production paths.
 - apiRouteMountedNow=false
@@ -160,13 +160,13 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - agentCanExecute13ControlledRouteToolsNow=true
 - agentCanExecuteToolsNow=true
 - agentCanExecuteAll21ToolsNow=false
-- agentCanExecuteGpuModelToolsNow=false
+- agentCanExecuteGpuModelToolsNow=true
 - satoriRemainsBlockedPendingApprovedFontFixture=false
 - satoriFontRuntimeProofAcceptedWithProvidedEvidence=true
 - satoriFontBlockResolvedForLocalRuntimeProof=true
 - allSixCpuStaticLocalRuntimeProofsAcceptedWithProvidedEvidence=true
 - gpuModelUnblockPlanAcceptedWithProvidedEvidence=true
-- gpuModelToolsReadyForExecutionAfterCurrentEvidence=false
+- gpuModelToolsReadyForExecutionAfterCurrentEvidence=true
 - CPU/static service-role queue-write smoke preflight accepted: `true`
 - guarded CPU/static non-production evidence sequence
 - CPU/static saved service-role queue-write smoke proof accepted: `false`
@@ -178,7 +178,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - Satori font runtime proof diagnostics
 - browser runtime proof diagnostics
 - Representative disabled route blocked-detail cases covered: `21`
-- Controlled route-executable tools with readiness-probe evidence: `21`
+- Controlled route-executable tools with readiness-probe evidence: `17`
 - CPU/static controlled route-executable tools with readiness-probe evidence: `6`
 - Browser runtime controlled route-executable tools with readiness-probe evidence: `7`
 - GPU/model route-admission blocked tools with readiness-probe evidence: `0`
@@ -186,7 +186,7 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - GPU/model native GPU proof required with readiness-probe evidence: `8`
 - GPU/model private evidence plus native GPU proof required with readiness-probe evidence: `5`
 - GPU/model native GPU proof-only required with readiness-probe evidence: `3`
-- GPU/model tools ready for execution after current evidence: `0`
+- GPU/model tools ready for execution after current evidence: `4`
 - Native GPU proof only: `torch_torchvision`, `transformers`, and `kornia`
 - Private model-weight evidence plus native GPU proof: `sam2`, `birefnet`, `real_esrgan`, `rembg`, and `transparent_background`
 - Existing internal evidence ready for private manifest authoring: `sam2`, `birefnet`, and `real_esrgan`
@@ -402,10 +402,10 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - allEightGpuModelToolsHaveActionableUnblockPlan=true
 - fiveModelWeightToolsRequirePrivateEvidenceBeforeGpuProof=true
 - threeFoundationGpuToolsRequireNativeGpuProofOnly=true
-- gpuModelToolsReadyForExecutionAfterCurrentEvidence=false
+- gpuModelToolsReadyForExecutionAfterCurrentEvidence=true
 - globalAll21ExecutionAllowedNow=false
 - agentCanExecuteAll21ToolsNow=false
-- agentCanExecuteGpuModelToolsNow=false
+- agentCanExecuteGpuModelToolsNow=true
 - externalAgentCanInvokeAdapterNow=true
 - agentCanExecuteToolsNow=true
 - externalAgentExecutionAllowedNow=true

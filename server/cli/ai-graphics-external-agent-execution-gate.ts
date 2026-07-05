@@ -3,6 +3,7 @@ import {
   buildAiGraphicsExternalAgentExecutionGate,
   type AiGraphics21ToolProperInstallAudit,
   type AiGraphicsExternalAgentExecutionGateInput,
+  type AiGraphicsExternalAgentExecutionReadinessPacket,
   type AiGraphicsExternalBetaToolCallRouteBrowserRuntimeControlledExecutionSmokePacket,
   type AiGraphicsExternalBetaToolCallRouteCpuStaticControlledExecutionSmokePacket,
   type AiGraphicsExternalBetaToolCallRouteGpuModelProofRefQueueAdmissionSmokePacket,
@@ -164,6 +165,10 @@ const input: AiGraphicsExternalAgentExecutionGateInput = {
     readJsonFile<Partial<AiGraphicsSatoriFontRuntimeProofReport>>(
       '--satori-font-runtime-proof-packet',
     ),
+  sourceExternalAgentExecutionReadinessPacket:
+    readJsonFile<Partial<AiGraphicsExternalAgentExecutionReadinessPacket>>(
+      '--external-agent-execution-readiness-packet',
+    ),
 }
 
 const gate = buildAiGraphicsExternalAgentExecutionGate(input)
@@ -222,6 +227,9 @@ console.log(JSON.stringify({
       Boolean(valueAfterFlag('--external-agent-tool-adapter-authorization-packet')),
     satoriFontRuntimeProofPacketRead:
       Boolean(valueAfterFlag('--satori-font-runtime-proof-packet')),
+    externalAgentExecutionReadinessPacketRead:
+      Boolean(valueAfterFlag('--external-agent-execution-readiness-packet')) ||
+      fs.existsSync('docs/tool-intelligence/ai-graphics/external-agent-execution-readiness.json'),
     dependencyInstallPerformed: false,
     packageLockMutationPerformed: false,
     toolExecutionPerformed: false,

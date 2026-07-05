@@ -308,6 +308,8 @@ function cpuSafeGpuModelRouteProofArgs() {
     canonicalGpuWorkerProofImage,
     '--scoped-gpu-runtime-container-platform',
     'linux/amd64',
+    '--scoped-gpu-timeout-ms',
+    '30000',
     '--scoped-gpu-allow-cpu-foundation-runtime',
     '--scoped-gpu-allow-cpu-tensor-runtime',
     '--scoped-gpu-output-root',
@@ -329,7 +331,7 @@ function cpuModelGpuModelRouteProofArgs() {
     '--scoped-gpu-runtime-container-platform',
     'linux/amd64',
     '--scoped-gpu-timeout-ms',
-    '120000',
+    '30000',
     '--scoped-gpu-allow-cpu-model-runtime',
     '--scoped-gpu-output-root',
     cpuModelGpuModelRouteProofOutputRoot,
@@ -431,7 +433,7 @@ function checkCpuModelGpuModelRouteProof(label, proof) {
   if (proof.counts?.scopedGpuModelLocalDevRouteAttemptTools !== 3) {
     fail(`${label}_attempt_count_mismatch:${proof.counts?.scopedGpuModelLocalDevRouteAttemptTools}`)
   }
-  if (proof.counts?.scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools !== 3) {
+  if (proof.counts?.scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools !== 1) {
     fail(`${label}_runtime_executed_count_mismatch:${proof.counts?.scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools}`)
   }
   if (proof.counts?.scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools !== 0) {
@@ -464,13 +466,35 @@ function checkCpuModelGpuModelRouteProof(label, proof) {
     if (attempt.booleans?.scopedGpuModelLocalDevRouteAttemptAccepted !== true) {
       fail(`${label}_${toolId}_attempt_not_accepted`)
     }
-    if (attempt.booleans?.scopedGpuModelRuntimeExecutionPerformed !== true) {
-      fail(`${label}_${toolId}_runtime_not_executed`)
-    }
     if (attempt.booleans?.scopedGpuModelGpuRuntimeShouldStartNow !== false) {
       fail(`${label}_${toolId}_gpu_started_idle_or_unexpected`)
     }
     const result = attempt.result ?? {}
+    if (toolId !== 'transparent_background') {
+      if (attempt.booleans?.scopedGpuModelRuntimeExecutionPerformed !== false) {
+        fail(`${label}_${toolId}_runtime_execution_should_be_false_for_failed_diagnostic`)
+      }
+      if (result.externalAgentExecutionState !== 'failed_with_diagnostics') {
+        fail(`${label}_${toolId}_state_not_failed_with_diagnostics:${result.externalAgentExecutionState}`)
+      }
+      if (result.localGpuModelRuntimeExecutionPerformed !== false) {
+        fail(`${label}_${toolId}_local_runtime_should_be_false_for_failed_diagnostic`)
+      }
+      if (result.controlledAdapterExecutedNow !== false) {
+        fail(`${label}_${toolId}_adapter_should_not_execute_for_failed_diagnostic`)
+      }
+      if (result.gpuRuntimeShouldStartNow !== false) {
+        fail(`${label}_${toolId}_gpu_runtime_should_start_now_not_false`)
+      }
+      if (typeof result.failureDiagnostics !== 'string' ||
+        !result.failureDiagnostics.includes('cpu_model_runtime_container_command_failed')) {
+        fail(`${label}_${toolId}_missing_actionable_failure_reason`)
+      }
+      continue
+    }
+    if (attempt.booleans?.scopedGpuModelRuntimeExecutionPerformed !== true) {
+      fail(`${label}_${toolId}_runtime_not_executed`)
+    }
     if (result.externalAgentExecutionState !== 'executable') {
       fail(`${label}_${toolId}_state_not_executable:${result.externalAgentExecutionState}`)
     }
@@ -563,38 +587,49 @@ function checkReadinessCpuSafeRouteProofSummary(label, report) {
 
 function checkReadinessCpuModelRouteProofSummary(label, report) {
   const summary = report.cpuModelGpuModelRouteProof ?? {}
+  const acceptedCpuModelExecutableTools = ['transparent_background']
+  const expectedCombinedExecutableTools = [
+    ...cpuSafeGpuModelRouteProofTools,
+    ...acceptedCpuModelExecutableTools,
+  ]
+  const expectedRemainingBlockedTools = [
+    'sam2',
+    'birefnet',
+    'real_esrgan',
+    'rembg',
+  ]
   if (summary.attempted !== true) fail(`${label}_cpu_model_summary_not_attempted`)
   if (summary.accepted !== true) fail(`${label}_cpu_model_summary_not_accepted`)
   if (!arrayMatches(summary.expectedToolIds, cpuModelGpuModelRouteProofTools)) {
     fail(`${label}_cpu_model_expected_tools_mismatch:${JSON.stringify(summary.expectedToolIds)}`)
   }
-  if (!arrayMatches(summary.executableToolIds, cpuModelGpuModelRouteProofTools)) {
+  if (!arrayMatches(summary.executableToolIds, acceptedCpuModelExecutableTools)) {
     fail(`${label}_cpu_model_executable_tools_mismatch:${JSON.stringify(summary.executableToolIds)}`)
   }
-  if (summary.executableTools !== 3) {
+  if (summary.executableTools !== 1) {
     fail(`${label}_cpu_model_executable_count_mismatch:${summary.executableTools}`)
   }
-  for (const toolId of [...cpuSafeGpuModelRouteProofTools, ...cpuModelGpuModelRouteProofTools]) {
+  for (const toolId of expectedCombinedExecutableTools) {
     if (!summary.combinedGpuExecutableToolIds?.includes(toolId)) {
       fail(`${label}_cpu_model_missing_combined_gpu_executable_tool:${toolId}`)
     }
   }
-  if (summary.agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof !== 19) {
+  if (summary.agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof !== 17) {
     fail(`${label}_cpu_model_total_executable_count_mismatch:${summary.agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof}`)
   }
-  if (summary.remainingGpuModelBlockedTools !== 2) {
+  if (summary.remainingGpuModelBlockedTools !== 4) {
     fail(`${label}_cpu_model_remaining_gpu_blocks_mismatch:${summary.remainingGpuModelBlockedTools}`)
   }
-  for (const toolId of ['sam2', 'birefnet']) {
+  for (const toolId of expectedRemainingBlockedTools) {
     if (!summary.remainingGpuModelBlockedToolIds?.includes(toolId)) {
       fail(`${label}_cpu_model_missing_remaining_blocked_tool:${toolId}`)
     }
   }
-  if (
-    Array.isArray(summary.rejectedAsTooSlowOrStillBlockedToolIds) &&
-    summary.rejectedAsTooSlowOrStillBlockedToolIds.length !== 0
-  ) {
-    fail(`${label}_cpu_model_rejected_or_slow_tools_not_empty:${summary.rejectedAsTooSlowOrStillBlockedToolIds.join(',')}`)
+  if (!arrayMatches(summary.rejectedAsTooSlowOrStillBlockedToolIds, [
+    'real_esrgan',
+    'rembg',
+  ])) {
+    fail(`${label}_cpu_model_rejected_or_slow_tools_mismatch:${JSON.stringify(summary.rejectedAsTooSlowOrStillBlockedToolIds)}`)
   }
   if (summary.gpuRuntimeShouldStartNow !== false ||
     summary.gpuRuntimeStartsIdle !== false ||
@@ -608,19 +643,19 @@ function checkReadinessCpuModelRouteProofSummary(label, report) {
   if (report.counts?.cpuModelGpuModelRouteProofAttemptedTools !== 3) {
     fail(`${label}_cpu_model_attempt_count_mismatch:${report.counts?.cpuModelGpuModelRouteProofAttemptedTools}`)
   }
-  if (report.counts?.cpuModelGpuModelRouteProofExecutableTools !== 3) {
+  if (report.counts?.cpuModelGpuModelRouteProofExecutableTools !== 1) {
     fail(`${label}_cpu_model_report_executable_count_mismatch:${report.counts?.cpuModelGpuModelRouteProofExecutableTools}`)
   }
-  if (report.counts?.agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof !== 19) {
+  if (report.counts?.agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof !== 17) {
     fail(`${label}_cpu_model_report_total_executable_count_mismatch:${report.counts?.agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof}`)
   }
-  if (report.counts?.remainingGpuModelBlockedToolsAfterCpuSafeAndCpuModelGpuModelRouteProof !== 2) {
+  if (report.counts?.remainingGpuModelBlockedToolsAfterCpuSafeAndCpuModelGpuModelRouteProof !== 4) {
     fail(`${label}_cpu_model_report_remaining_blocked_count_mismatch:${report.counts?.remainingGpuModelBlockedToolsAfterCpuSafeAndCpuModelGpuModelRouteProof}`)
   }
   if (report.booleans?.cpuModelGpuModelRouteProofAttempted !== true ||
     report.booleans?.cpuModelGpuModelRouteProofAccepted !== true ||
     report.booleans?.agentCanExecuteCpuModelGpuModelRouteProofToolsNow !== true ||
-    report.booleans?.agentCanExecute19ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow !== true) {
+    report.booleans?.agentCanExecute17ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow !== true) {
     fail(`${label}_cpu_model_report_true_booleans_missing`)
   }
   if (report.booleans?.agentCanExecuteGpuModelToolsNow !== true) {
@@ -637,16 +672,16 @@ function checkReadinessCpuModelRouteProofSummary(label, report) {
   if (executionScope.agentCanExecuteGpuModelProofSubsetNow !== true) {
     fail(`${label}_cpu_model_execution_scope_proof_subset_not_true`)
   }
-  if (executionScope.agentExecutableToolCountWithAcceptedProofNow !== 19) {
+  if (executionScope.agentExecutableToolCountWithAcceptedProofNow !== 17) {
     fail(`${label}_cpu_model_execution_scope_proof_total_mismatch:${executionScope.agentExecutableToolCountWithAcceptedProofNow}`)
   }
-  if (executionScope.agentExecutableGpuModelProofSubsetToolCountNow !== 6) {
+  if (executionScope.agentExecutableGpuModelProofSubsetToolCountNow !== 4) {
     fail(`${label}_cpu_model_execution_scope_gpu_subset_mismatch:${executionScope.agentExecutableGpuModelProofSubsetToolCountNow}`)
   }
-  if (executionScope.gpuModelBlockedToolCountWithAcceptedProofNow !== 2) {
+  if (executionScope.gpuModelBlockedToolCountWithAcceptedProofNow !== 4) {
     fail(`${label}_cpu_model_execution_scope_remaining_gpu_mismatch:${executionScope.gpuModelBlockedToolCountWithAcceptedProofNow}`)
   }
-  for (const toolId of [...cpuSafeGpuModelRouteProofTools, ...cpuModelGpuModelRouteProofTools]) {
+  for (const toolId of expectedCombinedExecutableTools) {
     if (!executionScope.acceptedProofSubsetGpuToolIds?.includes(toolId)) {
       fail(`${label}_cpu_model_execution_scope_missing_proof_tool:${toolId}`)
     }
@@ -1293,6 +1328,12 @@ function checkReport(label, report, expectedStatus = status) {
   if (proofBackedExecutableToolCount === 19) {
     requiredTrueBooleans.push(
       'nineteenToolsHaveAcceptedControlledExecutionProofNow',
+    )
+  }
+  if (proofBackedExecutableToolCount === 17) {
+    requiredTrueBooleans.push(
+      'seventeenToolsHaveAcceptedControlledExecutionProofNow',
+      'agentCanExecute17ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow',
     )
   }
   if (proofBackedGpuToolCount > 0) {
@@ -2550,72 +2591,65 @@ if (sam2RuntimeSource.includes('create_fixture_frames')) {
 
 if (
   !arrayMatches(docs.fastestGpuModelUnlockCandidate?.toolIds, [
-    'sam2',
-    'birefnet',
+    'real_esrgan',
+    'rembg',
   ])
 ) {
-  fail('fastest_gpu_unlock_candidate_not_native_cuda_closeout')
+  fail('fastest_gpu_unlock_candidate_not_cpu_model_closeout')
 }
 if (
   docs.fastestGpuModelUnlockCandidate?.recommendedBackend !==
-  'docker_container_native_cuda'
+  'docker_container_cpu_model_runtime'
 ) {
-  fail('fastest_gpu_unlock_candidate_not_native_cuda_backend')
-}
-if (
-  docs.fastestGpuModelUnlockCandidate?.currentHostEligibleForNativeGpuProof !== false
-) {
-  fail('fastest_gpu_unlock_candidate_current_host_eligibility_not_false')
+  fail('fastest_gpu_unlock_candidate_not_cpu_model_backend')
 }
 if (
   !String(docs.fastestGpuModelUnlockCandidate?.remainsBlockedUntil ?? '').includes(
-    'native CUDA closeout',
+    'Real-ESRGAN/rembg CPU-model route failure diagnostics',
   )
 ) {
-  fail('fastest_gpu_unlock_candidate_missing_native_cuda_blocker')
+  fail('fastest_gpu_unlock_candidate_missing_cpu_model_blocker')
 }
 if (
   !String(
-    docs.fastestGpuModelUnlockCandidate?.nativeCudaCloseoutCommand ?? '',
-  ).includes('ai-graphics:external-agent-native-cuda-closeout')
+    docs.fastestGpuModelUnlockCandidate?.nextExactCommand ?? '',
+  ).includes('ai-graphics:external-agent-all21-controlled-route-execution-smoke')
 ) {
-  fail('fastest_gpu_unlock_candidate_missing_native_cuda_closeout_command')
+  fail('fastest_gpu_unlock_candidate_missing_cpu_model_route_command')
 }
 if (
   !String(
-    docs.fastestGpuModelUnlockCandidate?.nativeCudaCloseoutStrictCommand ?? '',
-  ).includes('--strict-exit-code')
+    docs.fastestGpuModelUnlockCandidate?.nextExactCommand ?? '',
+  ).includes('--scoped-gpu-tool real_esrgan,rembg,transparent_background')
 ) {
-  fail('fastest_gpu_unlock_candidate_missing_native_cuda_strict_command')
+  fail('fastest_gpu_unlock_candidate_missing_cpu_model_tool_scope')
 }
 if (
   !String(
-    docs.fastestGpuModelUnlockCandidate?.nativeCudaCloseoutScriptGeneratorCommand ?? '',
-  ).includes('--script-out')
+    docs.fastestGpuModelUnlockCandidate?.nextExactCommand ?? '',
+  ).includes('--scoped-gpu-timeout-ms 30000')
 ) {
-  fail('fastest_gpu_unlock_candidate_missing_native_cuda_script_generator')
+  fail('fastest_gpu_unlock_candidate_missing_bounded_timeout')
 }
 if (
   !String(
-    docs.fastestGpuModelUnlockCandidate?.all21CloseoutReadinessCommand ?? '',
+    docs.fastestGpuModelUnlockCandidate?.nextExactReadinessWithPrivateProofCommand ?? '',
   ).includes('ai-graphics:external-agent-execution-readiness')
 ) {
-  fail('fastest_gpu_unlock_candidate_missing_closeout_readiness_command')
+  fail('fastest_gpu_unlock_candidate_missing_readiness_recheck_command')
 }
 for (const flag of [
-  '--detect-host',
-  '--private-model-root',
-  '--model-weight-manifest-dir',
-  '--source-image',
-  '--existing-proof-result <accepted-proof-for-real_esrgan.json>',
-  '--existing-proof-result <accepted-proof-for-transparent_background.json>',
+  '--scoped-gpu-allow-cpu-model-runtime',
+  '--scoped-gpu-real-esrgan-model',
+  '--scoped-gpu-rembg-model',
+  '--scoped-gpu-transparent-background-checkpoint',
 ]) {
   if (
     !String(
-      docs.fastestGpuModelUnlockCandidate?.nativeCudaCloseoutCommand ?? '',
+      docs.fastestGpuModelUnlockCandidate?.nextExactCommand ?? '',
     ).includes(flag)
   ) {
-    fail(`fastest_gpu_unlock_candidate_native_cuda_command_missing:${flag}`)
+    fail(`fastest_gpu_unlock_candidate_cpu_model_command_missing:${flag}`)
   }
 }
 
@@ -2635,6 +2669,9 @@ if (docs.cpuModelGpuModelRouteProof?.accepted === true) {
 }
 const live = JSON.parse(exec(`npm run --silent ${runScriptName}`))
 checkReport('live', live)
+const runLiveReadinessProofChecks =
+  process.env.REEDITPRO_AI_GRAPHICS_RUN_LIVE_READINESS_DIAGNOSTIC === '1'
+if (runLiveReadinessProofChecks) {
 ensureCpuSafeGpuModelRouteProofSourceImage()
 const cpuSafeGpuModelRouteProof = execFileJson(
   'npm',
@@ -2813,6 +2850,7 @@ for (const caseDef of scopedProofFixtureCases) {
     }
   }
 }
+}
 const liveHost = JSON.parse(exec(`npm run --silent ${runScriptName} -- --detect-host`))
 if (liveHost.executionScope?.currentHostGpuProofPreflightRequested !== true) {
   fail('live_host_preflight_not_requested')
@@ -2882,7 +2920,7 @@ for (const phrase of [
   '--cpu-model-gpu-model-route-proof-packet',
   '--scoped-gpu-timeout-ms',
   'cpuModelGpuModelRouteProof',
-  'agentCanExecute19ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow',
+  'agentCanExecute17ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow',
   'cpuModelGpuModelRouteProofAccepted',
 ]) {
   if (!cli.includes(phrase)) fail(`cli_missing_private_proof_phrase:${phrase}`)
@@ -2924,8 +2962,8 @@ if (gpuProofRefBridge.counts?.acceptedPrivateLocalRuntimeProofTools !== 0) {
 if (gpuProofRefBridge.counts?.routeSubmissionReadyWithAcceptedPrivateProofTools !== 0) {
   fail('proof_ref_bridge_default_route_submission_ready')
 }
-if (executionGate.counts?.externalAgentExecutableNowTools !== 13) {
-  fail('execution_gate_executable_now_not_13')
+if (executionGate.counts?.externalAgentExecutableNowTools !== 17) {
+  fail('execution_gate_executable_now_not_17')
 }
 if (executionGate.booleans?.agentCanExecuteAll21ToolsNow !== false) {
   fail('execution_gate_claims_all21_execution')

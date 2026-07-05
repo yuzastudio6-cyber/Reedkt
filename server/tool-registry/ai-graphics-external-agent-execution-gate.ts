@@ -945,6 +945,50 @@ export interface AiGraphicsExternalAgentExecutionGateInput {
     Partial<AiGraphicsExternalAgentToolAdapterAuthorizationReport>
   sourceSatoriFontRuntimeProofPacket?:
     Partial<AiGraphicsSatoriFontRuntimeProofReport>
+  sourceExternalAgentExecutionReadinessPacket?:
+    Partial<AiGraphicsExternalAgentExecutionReadinessPacket>
+}
+
+export interface AiGraphicsExternalAgentExecutionReadinessPacket {
+  decision: 'ai_graphics_external_agent_execution_readiness_all21_evaluated_with_gpu_model_blocks'
+  status:
+    | 'external_agent_call_ready_for_all21_runtime_execution_ready_for13_gpu_model_blocked_pending_private_proof'
+    | 'external_agent_call_ready_for_all21_runtime_execution_ready_for13_plus_private_gpu_model_proof_subset'
+  counts?: {
+    totalToolsCovered?: number
+    agentCallableTools?: number
+    agentExecutableTools?: number
+    agentExecutableToolsWithAcceptedProof?: number
+    gpuToolsWithValidRuntimeProof?: number
+    gpuModelBlockedWithReasonTools?: number
+    blockedWithReasonTools?: number
+    gpuRuntimeShouldStartNowTools?: number
+    publicArtifactCreatedTools?: number
+    signedUrlCreatedTools?: number
+  }
+  executionScope?: {
+    agentCanSubmitControlledRequestsForAll21?: boolean
+    agentCanExecuteAnyControlledToolNow?: boolean
+    agentCanExecuteGpuModelToolsNow?: boolean
+    agentCanExecuteAll21ControlledToolsNow?: boolean
+    agentExecutableToolCountNow?: number
+    agentExecutableGpuModelToolCountNow?: number
+    gpuModelBlockedToolCountNow?: number
+    acceptedProofSubsetGpuToolIds?: string[]
+  }
+  booleans?: {
+    externalAgentExecutionReadinessCompleted?: boolean
+    all21ToolsCovered?: boolean
+    agentCanExecuteToolsNow?: boolean
+    agentCanExecuteGpuModelToolsNow?: boolean
+    agentCanExecuteAll21ToolsNow?: boolean
+    gpuRuntimeShouldStartNow?: boolean
+    publicArtifactCreated?: boolean
+    signedUrlCreated?: boolean
+    runtimeReadyNow?: boolean
+    externalBetaReadyNow?: boolean
+    productionReadyNow?: boolean
+  }
 }
 
 export interface AiGraphicsSatoriFontRuntimeProofReport {
@@ -1322,6 +1366,7 @@ export interface AiGraphicsExternalAgentExecutionGate {
     sourceExternalBetaToolCallRouteMockQueueWorkerClaimSmokeAccepted: boolean
     sourceExternalAgentToolAdapterAuthorizationAccepted: boolean
     sourceSatoriFontRuntimeProofAccepted: boolean
+    sourceExternalAgentExecutionReadinessAccepted: boolean
     properInstallAuditAccepted: boolean
     all21ToolsProperlyInstalledForPlannedSurface: boolean
     installAuditSeparatesPlannedSurfaceFromRuntimeCallable: boolean
@@ -1436,6 +1481,8 @@ export interface AiGraphicsExternalAgentExecutionGate {
     globalAll21ExecutionAllowedNow: boolean
     agentCanExecuteAll21ToolsNow: boolean
     agentCanExecuteGpuModelToolsNow: boolean
+    agentCanExecuteAllGpuModelToolsNow: boolean
+    agentCanExecuteSomeGpuModelToolsNow: boolean
     externalAgentCanInvokeAdapterNow: boolean
     agentCanExecuteToolsNow: boolean
     externalAgentExecutionAllowedNow: boolean
@@ -3612,6 +3659,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     input.sourceExternalAgentToolAdapterAuthorizationPacket
   const sourceSatoriFontRuntimeProof =
     input.sourceSatoriFontRuntimeProofPacket
+  const sourceExternalAgentExecutionReadiness =
+    input.sourceExternalAgentExecutionReadinessPacket
   const installAccepted = sourceProperInstallAuditAccepted(sourceProperInstallAudit)
   const sourceAccepted = sourceAdmissionAccepted(sourceAdmission)
   const routeMountAccepted =
@@ -3696,6 +3745,20 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     )
   const satoriFontRuntimeProofAccepted =
     sourceSatoriFontRuntimeProofAccepted(sourceSatoriFontRuntimeProof)
+  const externalAgentExecutionReadinessAccepted =
+    sourceExternalAgentExecutionReadiness?.decision ===
+      'ai_graphics_external_agent_execution_readiness_all21_evaluated_with_gpu_model_blocks' &&
+    sourceExternalAgentExecutionReadiness.booleans
+      ?.externalAgentExecutionReadinessCompleted === true &&
+    sourceExternalAgentExecutionReadiness.booleans?.all21ToolsCovered === true &&
+    sourceExternalAgentExecutionReadiness.counts?.totalToolsCovered === 21 &&
+    sourceExternalAgentExecutionReadiness.counts?.agentCallableTools === 21 &&
+    sourceExternalAgentExecutionReadiness.booleans?.gpuRuntimeShouldStartNow === false &&
+    sourceExternalAgentExecutionReadiness.booleans?.publicArtifactCreated === false &&
+    sourceExternalAgentExecutionReadiness.booleans?.signedUrlCreated === false &&
+    sourceExternalAgentExecutionReadiness.booleans?.runtimeReadyNow === false &&
+    sourceExternalAgentExecutionReadiness.booleans?.externalBetaReadyNow === false &&
+    sourceExternalAgentExecutionReadiness.booleans?.productionReadyNow === false
   const controlledRouteExecutionSmokeAccepted =
     routeCpuStaticControlledExecutionSmokeAccepted &&
     routeBrowserRuntimeControlledExecutionSmokeAccepted &&
@@ -3805,12 +3868,33 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     gpuModelScopedRuntimeExecutedToolIds.size
   const scopedControlledRouteNonGpuExecutableTools =
     scopedControlledRouteReady ? 13 : 0
+  const readinessExecutableTools =
+    externalAgentExecutionReadinessAccepted
+      ? sourceExternalAgentExecutionReadiness?.counts?.agentExecutableTools ?? 0
+      : 0
+  const readinessGpuModelExecutableTools =
+    externalAgentExecutionReadinessAccepted
+      ? sourceExternalAgentExecutionReadiness?.counts?.gpuToolsWithValidRuntimeProof ?? 0
+      : 0
+  const proofBackedExternalAgentExecutableTools =
+    externalAgentExecutionReadinessAccepted &&
+    readinessExecutableTools >= scopedControlledRouteNonGpuExecutableTools
+      ? readinessExecutableTools
+      : scopedControlledRouteNonGpuExecutableTools +
+        gpuModelScopedRuntimeExecutedTools
+  const proofBackedGpuModelExecutableTools =
+    externalAgentExecutionReadinessAccepted &&
+    readinessGpuModelExecutableTools >= gpuModelScopedRuntimeExecutedTools
+      ? readinessGpuModelExecutableTools
+      : gpuModelScopedRuntimeExecutedTools
   const totalScopedControlledRouteExecutableTools =
-    scopedControlledRouteNonGpuExecutableTools + gpuModelScopedRuntimeExecutedTools
+    proofBackedExternalAgentExecutableTools
   const gpuModelScopedRuntimeBlockedTools =
-    scopedControlledRouteReady ? 8 - gpuModelScopedRuntimeExecutedTools : 0
+    scopedControlledRouteReady
+      ? 8 - proofBackedGpuModelExecutableTools
+      : 0
   const all21ScopedControlledRouteReady =
-    scopedControlledRouteReady && gpuModelScopedRuntimeExecutedTools === 8
+    scopedControlledRouteReady && totalScopedControlledRouteExecutableTools === 21
   const toolRows = tools.map((tool): AiGraphicsExternalAgentExecutionGateToolRow => {
     const installRow = installRows.get(tool.toolId)
     const routeReadinessProbeToolSummaryRow =
@@ -4497,9 +4581,9 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       gpuModelScopedRuntimeBlockedTools,
     disabledRouteBlockedDetailCasesWithProvidedEvidence:
       routeReadinessProbeAccepted ? 21 : 0,
-  externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence:
+    externalAgentRouteExecutableNowToolsWithReadinessProbeEvidence:
       routeReadinessProbeAccepted
-        ? 13 + gpuModelScopedRuntimeExecutedTools
+        ? totalScopedControlledRouteExecutableTools
         : 0,
     cpuStaticControlledRouteExecutableNowToolsWithReadinessProbeEvidence:
       routeReadinessProbeAccepted ? 6 : 0,
@@ -4586,9 +4670,9 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         )
         : 0,
     externalAgentGpuModelLocalDevRuntimeHarnessExecutedToolsWithProvidedEvidence:
-      gpuModelScopedRuntimeExecutedTools,
+      proofBackedGpuModelExecutableTools,
     externalAgentGpuModelLocalDevRuntimeHarnessToolExecutionApprovedNowToolsWithProvidedEvidence:
-      gpuModelScopedRuntimeExecutedTools,
+      proofBackedGpuModelExecutableTools,
     externalAgentGpuModelLocalDevRuntimeHarnessGpuRuntimeShouldStartNowToolsWithProvidedEvidence:
       externalAgentGpuModelLocalDevRuntimeExecutionHarnessAccepted
         ? (
@@ -4639,7 +4723,7 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     gpuModelNativeGpuProofOnlyRequiredToolsWithReadinessProbeEvidence:
       routeReadinessProbeAccepted ? 3 : 0,
     gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence:
-      gpuModelScopedRuntimeExecutedTools,
+      proofBackedGpuModelExecutableTools,
     routeReadinessProbeGpuRuntimeShouldStartNowTools: 0,
     apiRouteMountReadyToolsWithProvidedEvidence:
       routeMountAccepted ? 21 : 0,
@@ -4715,6 +4799,8 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         externalAgentToolAdapterAuthorizationAccepted,
       sourceSatoriFontRuntimeProofAccepted:
         satoriFontRuntimeProofAccepted,
+      sourceExternalAgentExecutionReadinessAccepted:
+        externalAgentExecutionReadinessAccepted,
       properInstallAuditAccepted: installAccepted,
       all21ToolsProperlyInstalledForPlannedSurface: installAccepted,
       installAuditSeparatesPlannedSurfaceFromRuntimeCallable: installAccepted,
@@ -4921,10 +5007,14 @@ export function buildAiGraphicsExternalAgentExecutionGate(
       threeFoundationGpuToolsRequireNativeGpuProofOnly:
         routeReadinessProbeAccepted,
       gpuModelToolsReadyForExecutionAfterCurrentEvidence:
-        gpuModelScopedRuntimeExecutedTools > 0,
+        proofBackedGpuModelExecutableTools > 0,
       globalAll21ExecutionAllowedNow: all21ScopedControlledRouteReady,
       agentCanExecuteAll21ToolsNow: all21ScopedControlledRouteReady,
-      agentCanExecuteGpuModelToolsNow: gpuModelScopedRuntimeExecutedTools > 0,
+      agentCanExecuteGpuModelToolsNow: proofBackedGpuModelExecutableTools > 0,
+      agentCanExecuteAllGpuModelToolsNow:
+        proofBackedGpuModelExecutableTools === 8,
+      agentCanExecuteSomeGpuModelToolsNow:
+        proofBackedGpuModelExecutableTools > 0,
       externalAgentCanInvokeAdapterNow:
         totalScopedControlledRouteExecutableTools > 0,
       agentCanExecuteToolsNow: totalScopedControlledRouteExecutableTools > 0,

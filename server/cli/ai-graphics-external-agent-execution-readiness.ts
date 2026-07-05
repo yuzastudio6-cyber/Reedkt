@@ -82,6 +82,10 @@ const defaultPrivateModelRoot =
   '.local-artifacts/ai-graphics/private-model-cache'
 const nativeCudaCloseoutScript =
   'ai-graphics:external-agent-native-cuda-closeout'
+const nativeCudaCloseoutOutputRoot =
+  '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout'
+const nativeCudaCloseoutScriptOut =
+  `${nativeCudaCloseoutOutputRoot}/run-native-cuda-closeout.sh`
 const remainingNativeCudaToolIds = ['sam2', 'birefnet'] as const
 type RemainingNativeCudaToolId = typeof remainingNativeCudaToolIds[number]
 
@@ -644,23 +648,72 @@ function remainingNativeCudaReadinessRecheckCommand(
   ].join(' ')
 }
 
-function remainingNativeCudaCloseoutCommand(options: {
-  strict: boolean
-}): string {
-  const command = [
-    `npm run --silent ${nativeCudaCloseoutScript} --`,
-    '--detect-host',
-    '--private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
-    '--source-image <private-approved-frame.png>',
-    '--output-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout',
+function shellQuote(value: string): string {
+  if (/^[A-Za-z0-9_./:@%+=,-]+$/.test(value)) return value
+  return `'${value.replace(/'/g, "'\\''")}'`
+}
+
+function remainingNativeCudaExistingProofArgs(
+  existingProofResults: string[] | undefined,
+): string[] {
+  if (existingProofResults && existingProofResults.length > 0) {
+    return existingProofResults.flatMap((proofResult) => [
+      '--existing-proof-result',
+      shellQuote(proofResult),
+    ])
+  }
+  return [
     '--existing-proof-result <accepted-proof-for-torch_torchvision-transformers-kornia.json>',
     '--existing-proof-result <accepted-proof-for-real_esrgan.json>',
     '--existing-proof-result <accepted-proof-for-rembg.json>',
     '--existing-proof-result <accepted-proof-for-transparent_background.json>',
-    '--attempt-local-runtime',
   ]
+}
+
+function remainingNativeCudaCloseoutCommand(options: {
+  strict: boolean
+  existingProofResults?: string[]
+  scriptOut?: boolean
+  attemptLocalRuntime?: boolean
+}): string {
+  const attemptLocalRuntime = options.attemptLocalRuntime ?? true
+  const sourceImageArg = options.existingProofResults?.length
+    ? '"$REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE"'
+    : '<private-approved-frame.png>'
+  const command = [
+    `npm run --silent ${nativeCudaCloseoutScript} --`,
+    '--detect-host',
+    '--private-model-root "$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT"',
+    `--source-image ${sourceImageArg}`,
+    `--output-root ${nativeCudaCloseoutOutputRoot}`,
+    ...remainingNativeCudaExistingProofArgs(options.existingProofResults),
+  ]
+  if (options.scriptOut) command.push(`--script-out ${nativeCudaCloseoutScriptOut}`)
+  if (attemptLocalRuntime) command.push('--attempt-local-runtime')
   if (options.strict) command.push('--strict-exit-code')
   return command.join(' ')
+}
+
+function remainingNativeCudaAll21CloseoutReadinessCommand(
+  existingProofResults: string[] | undefined,
+): string {
+  const existingProofArgs = existingProofResults && existingProofResults.length > 0
+    ? existingProofResults.flatMap((proofResult) => [
+        '--local-runtime-proof-result',
+        shellQuote(proofResult),
+      ])
+    : [
+        '--local-runtime-proof-result <accepted-proof-for-torch_torchvision-or-foundation-bundle.json>',
+        '--local-runtime-proof-result <accepted-proof-for-real_esrgan.json>',
+        '--local-runtime-proof-result <accepted-proof-for-rembg.json>',
+        '--local-runtime-proof-result <accepted-proof-for-transparent_background.json>',
+      ]
+  return [
+    'npm run --silent ai-graphics:external-agent-execution-readiness --',
+    ...existingProofArgs,
+    `--local-runtime-proof-result ${nativeCudaCloseoutOutputRoot}/sam2/harness-result.json`,
+    `--local-runtime-proof-result ${nativeCudaCloseoutOutputRoot}/birefnet/harness-result.json`,
+  ].join(' ')
 }
 
 function remainingNativeCudaModelRootForInspection(): string | null {
@@ -731,6 +784,7 @@ function inspectRemainingNativeCudaPrivateModelRoot() {
 function remainingNativeCudaClosure(
   toolRows: JsonRecord[],
   currentHostEnvironment: JsonRecord | null,
+  existingProofResults: string[] = [],
 ) {
   const privateModelRootInspection =
     inspectRemainingNativeCudaPrivateModelRoot()
@@ -796,22 +850,30 @@ function remainingNativeCudaClosure(
     currentHostPreflightCommand:
       'npm run --silent ai-graphics:gpu-runtime-proof-local-preflight -- --detect-host --require-host-eligible',
     nativeCudaCloseoutCommand:
-      remainingNativeCudaCloseoutCommand({ strict: false }),
+      remainingNativeCudaCloseoutCommand({
+        strict: false,
+        existingProofResults,
+        attemptLocalRuntime: true,
+      }),
     nativeCudaCloseoutStrictCommand:
-      remainingNativeCudaCloseoutCommand({ strict: true }),
+      remainingNativeCudaCloseoutCommand({
+        strict: true,
+        existingProofResults,
+        attemptLocalRuntime: true,
+      }),
+    nativeCudaCloseoutScriptGeneratorCommand:
+      remainingNativeCudaCloseoutCommand({
+        strict: false,
+        existingProofResults,
+        scriptOut: true,
+        attemptLocalRuntime: false,
+      }),
+    nativeCudaCloseoutScriptPath: nativeCudaCloseoutScriptOut,
     nativeCudaCloseoutDiagnosticCommand:
       'npm run --silent ai-graphics:external-agent-native-cuda-closeout:diagnostics',
     tools: toolEntries,
     all21CloseoutReadinessCommand:
-      [
-        'npm run --silent ai-graphics:external-agent-execution-readiness --',
-        '--local-runtime-proof-result <accepted-proof-for-torch_torchvision-or-foundation-bundle.json>',
-        '--local-runtime-proof-result <accepted-proof-for-real_esrgan.json>',
-        '--local-runtime-proof-result <accepted-proof-for-rembg.json>',
-        '--local-runtime-proof-result <accepted-proof-for-transparent_background.json>',
-        `--local-runtime-proof-result ${remainingNativeCudaOutputDir('sam2')}/harness-result.json`,
-        `--local-runtime-proof-result ${remainingNativeCudaOutputDir('birefnet')}/harness-result.json`,
-      ].join(' '),
+      remainingNativeCudaAll21CloseoutReadinessCommand(existingProofResults),
     noScopeExpansion: {
       dependencyInstallPerformed: false,
       packageLockMutationPerformed: false,
@@ -1719,6 +1781,7 @@ function buildReport() {
   const nativeCudaClosure = remainingNativeCudaClosure(
     toolRows,
     currentHostEnvironment,
+    localRuntimeProofResultPaths,
   )
   const privateRuntimeProofSupplied =
     suppliedPrivateLocalRuntimeProofs.length > 0
@@ -1734,6 +1797,12 @@ function buildReport() {
             nativeCudaClosure.nativeCudaCloseoutCommand,
           nativeCudaCloseoutStrictCommand:
             nativeCudaClosure.nativeCudaCloseoutStrictCommand,
+          nativeCudaCloseoutScriptGeneratorCommand:
+            nativeCudaClosure.nativeCudaCloseoutScriptGeneratorCommand,
+          nativeCudaCloseoutScriptPath:
+            nativeCudaClosure.nativeCudaCloseoutScriptPath,
+          all21CloseoutReadinessCommand:
+            nativeCudaClosure.all21CloseoutReadinessCommand,
           nativeCudaCloseoutDiagnosticCommand:
             nativeCudaClosure.nativeCudaCloseoutDiagnosticCommand,
           currentHostEligibleForNativeGpuProof:
@@ -2129,6 +2198,8 @@ ${runtimeInputManifestRows}
 - Current host eligible for native GPU proof: \`${report.remainingNativeCudaClosure.currentHostEligibleForNativeGpuProof}\`
 - Current host blockers: \`${report.remainingNativeCudaClosure.currentHostBlockers.join('; ') || 'none'}\`
 - Host preflight command: \`${report.remainingNativeCudaClosure.currentHostPreflightCommand}\`
+- Native CUDA script generator command: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutScriptGeneratorCommand}\`
+- Native CUDA generated script path: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutScriptPath}\`
 - Native CUDA closeout command: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutCommand}\`
 - Native CUDA strict closeout command: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutStrictCommand}\`
 - Native CUDA closeout diagnostic command: \`${report.remainingNativeCudaClosure.nativeCudaCloseoutDiagnosticCommand}\`

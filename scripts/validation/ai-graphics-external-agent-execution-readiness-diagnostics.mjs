@@ -983,6 +983,25 @@ function checkReport(label, report) {
       fail(`${label}_remaining_native_cuda_missing_closeout_command`)
     }
     if (
+      !String(closure.nativeCudaCloseoutScriptGeneratorCommand ?? '').includes(
+        'ai-graphics:external-agent-native-cuda-closeout',
+      ) ||
+      !String(closure.nativeCudaCloseoutScriptGeneratorCommand ?? '').includes(
+        '--script-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/run-native-cuda-closeout.sh',
+      ) ||
+      String(closure.nativeCudaCloseoutScriptGeneratorCommand ?? '').includes(
+        '--attempt-local-runtime',
+      )
+    ) {
+      fail(`${label}_remaining_native_cuda_missing_script_generator_command`)
+    }
+    if (
+      closure.nativeCudaCloseoutScriptPath !==
+      '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/run-native-cuda-closeout.sh'
+    ) {
+      fail(`${label}_remaining_native_cuda_script_path_mismatch:${closure.nativeCudaCloseoutScriptPath}`)
+    }
+    if (
       !String(closure.nativeCudaCloseoutStrictCommand ?? '').includes(
         'ai-graphics:external-agent-native-cuda-closeout',
       ) ||
@@ -1003,10 +1022,10 @@ function checkReport(label, report) {
         'ai-graphics:external-agent-execution-readiness',
       ) ||
       !String(closure.all21CloseoutReadinessCommand ?? '').includes(
-        '<private-run-sam2>/harness-result.json',
+        'native-cuda-closeout/sam2/harness-result.json',
       ) ||
       !String(closure.all21CloseoutReadinessCommand ?? '').includes(
-        '<private-run-birefnet>/harness-result.json',
+        'native-cuda-closeout/birefnet/harness-result.json',
       )
     ) {
       fail(`${label}_remaining_native_cuda_missing_all21_closeout_command`)

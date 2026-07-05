@@ -93,6 +93,12 @@ const privateModelRootEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
 const privateModelManifestDirEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
+const explicitPrivateModelEnvVarByTool: Partial<
+  Record<AiGraphicsExternalAgentGpuModelControlledAdapterToolId, string>
+> = {
+  sam2: 'REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT',
+  birefnet: 'REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL',
+}
 const allowedCapabilityIds = [
   'chart_overlay',
   'data_visualization',
@@ -282,7 +288,9 @@ function explicitPrivateModelPathForTool(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
 ): string | undefined {
   const flag = explicitPrivateModelFlagForTool(toolId)
-  return flag ? stringArg(flag) : undefined
+  const envVar = explicitPrivateModelEnvVarByTool[toolId]
+  return (flag ? stringArg(flag) : undefined) ??
+    (envVar ? process.env[envVar] : undefined)
 }
 
 function runtimeInputManifestMaterializationRequested(): boolean {
@@ -1101,10 +1109,10 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
     payload.representativeFrameLocalPath = sourceImageLocalPath
   }
   const sam2CheckpointLocalPath =
-    stringArg('--sam2-checkpoint') ??
+    (toolId === 'sam2' ? explicitPrivateModelPathForTool(toolId) : undefined) ??
     manifestStringForTool(toolId, manifest, 'sam2CheckpointLocalPath')
   const birefnetModelLocalPath =
-    stringArg('--birefnet-model') ??
+    (toolId === 'birefnet' ? explicitPrivateModelPathForTool(toolId) : undefined) ??
     manifestStringForTool(toolId, manifest, 'birefnetModelLocalPath')
   const realEsrganModelLocalPath =
     stringArg('--real-esrgan-model') ??

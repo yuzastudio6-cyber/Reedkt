@@ -12,21 +12,22 @@ Open:
 - Edit Brief source-video test: `http://127.0.0.1:5179/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief`
 - API health: `http://127.0.0.1:9781/health`
 
-On the Edit Brief route, select a source video and click `Upload for testing`.
+On the Edit Brief route, select a source video, click `Upload for testing`, then click `Run local edit preview`.
 
 ## What It Enables
 
 - Browser-local source video selection.
 - Backend-local upload through the upload-intent, local-object PUT, and finalize endpoints.
 - Backend-local storage metadata and canonical bucket/object metadata displayed in the Edit Brief UI.
+- A preview-only local edit smoke path that creates mock credit approval/reservation records, creates a mock approved snapshot, claims a local worker, and writes a canonical preview object when local media tools are available.
 - Mock auth for repeated internal testing.
 - Local filesystem storage under `.reeditpro-local-upload-storage-dev`.
 
 ## What It Does Not Enable
 
-The runner does not start media processing, workers, rendering, credits, external beta, or production. It does not write Supabase rows, create GCS objects, call providers, run Qwen, run tools, create signed URL source truth, or make the app product-ready.
+The runner does not start provider calls, live Qwen calls, external beta, production, final export, Supabase writes, GCS writes, Stripe, or product-ready flows. The optional local edit preview smoke does run a preview-only local worker against backend-local test media after a mock approved snapshot and mock credit reservation exist.
 
-Qwen 3.7 Max remains the named main-brain reasoning identity in the Brief UI and diagnostics, but this local upload runner does not call Qwen. It only proves the source video can move from browser selection to backend-local canonical upload metadata for internal testing.
+Qwen 3.7 Max remains the named main-brain reasoning identity in the Brief UI and diagnostics, but this local runner does not call Qwen. It proves the source video can move from browser selection to backend-local canonical upload metadata and then through a gated local preview smoke for internal testing.
 
 ## Optional Real Local API Playwright Check
 
@@ -46,4 +47,4 @@ PLAYWRIGHT_LOCAL_UPLOAD_STORAGE_ROOT=.reeditpro-local-upload-storage-playwright 
 npx playwright test tests/e2e/project-source-video-backend-upload-local-api.spec.ts
 ```
 
-The spec uses the real local API. It does not intercept upload routes. It asserts the source video reaches backend-local storage metadata and that no media worker, render, provider, credit, beta, or production signal appears.
+The spec uses the real local API. It does not intercept upload or preview routes. It asserts the source video reaches backend-local storage metadata, the local preview reaches preview-ready metadata, and no provider, live Qwen, final export, Supabase, GCS, beta, production, or product-ready signal appears.

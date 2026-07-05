@@ -4,6 +4,7 @@
 .project-edit-brief-summary-panel,
 .project-edit-brief-marker-detail,
 .project-edit-brief-export-summary,
+.project-edit-brief-local-preview-smoke,
 .project-edit-brief-source-video-picker,
 .project-edit-brief-source-video-summary,
 .project-edit-brief-empty-state {
@@ -168,6 +169,44 @@
 .project-edit-brief-source-video-summary__header {
   align-items: center;
   justify-content: space-between;
+}
+
+.project-edit-brief-local-preview-smoke {
+  padding: 14px;
+}
+
+.project-edit-brief-local-preview-smoke__header {
+  align-items: start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.project-edit-brief-local-preview-smoke__header h3 {
+  margin: 0;
+}
+
+.project-edit-brief-local-preview-smoke__status {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 10px;
+}
+
+.project-edit-brief-local-preview-smoke__status span {
+  color: var(--rp-text-secondary);
+  font-size: 0.84rem;
+}
+
+.project-edit-brief-local-preview-smoke__status strong {
+  color: var(--rp-text-primary);
+  display: block;
+  font-size: 0.78rem;
+  margin-bottom: 4px;
 }
 
 .project-edit-brief-source-video-summary__grid,

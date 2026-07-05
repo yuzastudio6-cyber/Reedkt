@@ -77,7 +77,7 @@ export function ProjectEditBriefSourceVideoPicker({
         </Button>
       </div>
       <p className="project-edit-brief-muted" data-testid="project-source-video-picker-boundary">
-        Timeline markers use browser playback time. Backend-local upload records canonical bucket/object metadata only; media workers remain blocked.
+        Timeline markers use browser playback time. Backend-local upload records canonical bucket/object metadata only; preview workers start only from the separate internal test control.
       </p>
       <div className="project-edit-brief-source-video-picker__backend" data-testid="project-source-video-backend-upload-status">
         <strong>{backendUploadStatus.replace(/_/g, ' ')}</strong>

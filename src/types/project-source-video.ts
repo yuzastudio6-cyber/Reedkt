@@ -38,11 +38,29 @@ export type ProjectSourceVideoBackendUploadStatus =
   | 'uploaded'
   | 'failed'
 
+export type ProjectSourceVideoLocalEditPreviewStatus =
+  | 'unavailable'
+  | 'waiting_for_upload'
+  | 'idle'
+  | 'running'
+  | 'preview_ready'
+  | 'blocked'
+  | 'failed'
+
 export interface ProjectSourceVideoBackendUploadConfig {
   available: boolean
   apiBaseUrl?: string
   workspaceId: string
   mode: 'mock_backend_local' | 'unavailable'
+  message: string
+  warnings: string[]
+}
+
+export interface ProjectSourceVideoLocalEditPreviewConfig {
+  available: boolean
+  apiBaseUrl?: string
+  workspaceId: string
+  mode: 'mock_local_preview_smoke' | 'unavailable'
   message: string
   warnings: string[]
 }
@@ -71,6 +89,37 @@ export interface ProjectSourceVideoBackendUploadResult {
   renderJobCreated: false
   exportJobCreated: false
   creditReservedOrSpent: false
+  productReady: false
+  warnings: string[]
+}
+
+export interface ProjectSourceVideoLocalEditPreviewResult {
+  status: 'preview_ready'
+  approvedPlanSnapshotId: string
+  creditApprovalId: string
+  creditReservationId: string
+  renderJobId: string
+  renderId?: string
+  sourceStorageObjectRecordId: string
+  previewStorageObjectId?: string
+  outputBucketName?: string
+  outputObjectPath?: string
+  durationSeconds?: number
+  sizeBytes?: number
+  checksumSha256?: string
+  qwenMainBrainLabel: string
+  approvedSnapshotCreated: true
+  mockCreditApprovalCreated: true
+  mockCreditReservationCreated: true
+  workerJobCreated: true
+  mediaProcessingStarted: true
+  renderJobCreated: true
+  previewOnly: true
+  providerCallMade: false
+  qwenCallMade: false
+  exportJobCreated: false
+  supabaseWriteMade: false
+  gcsWriteMade: false
   productReady: false
   warnings: string[]
 }

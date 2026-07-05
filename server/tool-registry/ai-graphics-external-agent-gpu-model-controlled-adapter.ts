@@ -44,6 +44,13 @@ export const AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS = 
 export type AiGraphicsExternalAgentGpuModelControlledAdapterToolId =
   (typeof AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS)[number]
 
+const configuredPrivateModelPathEnvByTool: Partial<
+  Record<AiGraphicsExternalAgentGpuModelControlledAdapterToolId, string>
+> = {
+  sam2: 'REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT',
+  birefnet: 'REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL',
+}
+
 export type AiGraphicsExternalAgentGpuModelControlledAdapterStatus =
   | 'controlled_gpu_model_adapter_invoked_runtime_skipped'
   | 'controlled_gpu_model_adapter_executed_private_output_ready'
@@ -119,6 +126,32 @@ function optionalString(
 ): string | undefined {
   const value = payload[key]
   return typeof value === 'string' && value.trim() ? value : undefined
+}
+
+function configuredPrivateModelPath(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string | undefined {
+  const envVar = configuredPrivateModelPathEnvByTool[toolId]
+  return envVar ? process.env[envVar] : undefined
+}
+
+function payloadWithConfiguredPrivateModelPath(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  if (toolId === 'sam2' && !optionalString(payload, 'sam2CheckpointLocalPath')) {
+    const configuredPath = configuredPrivateModelPath(toolId)
+    return configuredPath
+      ? { ...payload, sam2CheckpointLocalPath: configuredPath }
+      : payload
+  }
+  if (toolId === 'birefnet' && !optionalString(payload, 'birefnetModelLocalPath')) {
+    const configuredPath = configuredPrivateModelPath(toolId)
+    return configuredPath
+      ? { ...payload, birefnetModelLocalPath: configuredPath }
+      : payload
+  }
+  return payload
 }
 
 function optionalNumber(
@@ -1857,7 +1890,10 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
     }
   }
 
-  const payload = asObject(request.payload)
+  const payload = payloadWithConfiguredPrivateModelPath(
+    request.toolId,
+    asObject(request.payload),
+  )
   const prerequisiteBlock = runtimePrerequisiteBlock(request, payload)
   const runtimeOutput = prerequisiteBlock ?? (request.toolId === 'torch_torchvision' ||
       request.toolId === 'transformers'

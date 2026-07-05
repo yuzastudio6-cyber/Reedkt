@@ -32,7 +32,7 @@ Preferred hosted verification path:
 3. Confirm `STAGING_SUPABASE_URL` and `STAGING_SUPABASE_ANON_KEY` are present.
 4. Run `.github/workflows/internal-tester-browser-sign-in-verification.yml`.
 
-The workflow first runs `npm run internal-testing:verify-hosted-sign-in-route` against the deployed app URL, then runs `npm run internal-testing:verify-browser-sign-in` with the tester email input and password secret. It does not use service-role access, does not print the password or tokens, does not write Supabase data, and does not run upload/media/tool/provider/Qwen/render/credit/production behavior.
+The workflow installs Playwright Chromium on the ephemeral GitHub runner, first runs `npm run internal-testing:verify-hosted-sign-in-route` against the deployed app URL, then runs `npm run internal-testing:verify-browser-sign-in` with the tester email input and password secret. It does not use service-role access, does not print the password or tokens, does not write Supabase data, and does not run upload/media/tool/provider/Qwen/render/credit/production behavior.
 
 ## Output
 

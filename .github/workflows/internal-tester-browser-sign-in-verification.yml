@@ -84,6 +84,9 @@ jobs:
       - name: Install dependencies for browser-safe verification CLIs
         run: npm ci --no-audit --no-fund --progress=false
 
+      - name: Install Playwright Chromium for hosted route verification
+        run: npx playwright install --with-deps chromium
+
       - name: Verify hosted sign-in route readiness
         run: npm run internal-testing:verify-hosted-sign-in-route
 

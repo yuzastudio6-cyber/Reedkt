@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import {
+  applyProjectEditDefaultPreferenceToNewEditForm,
+  createDefaultProjectEditPreferenceSettings,
+  PROJECT_EDIT_DEFAULT_PREFERENCES_STORAGE_KEY,
+  readProjectEditDefaultPreferenceSettings,
+  saveProjectEditDefaultPreferenceSettings,
+} from '../../src/lib/project-edit-default-preferences'
+import { createDefaultNewEditSessionFormState } from '../../src/lib/project-edit-session-create-flow-ui-adapter'
 import { listProjectEditSessionPreferenceOptionsForUI } from '../../src/lib/project-edit-session-preference-ui-adapter'
 
 const root = process.cwd()
@@ -78,6 +86,9 @@ assert.match(page, /PreferencesPage/)
 assert.match(page, /Edit defaults/)
 assert.match(page, /Privacy/)
 assert.match(page, /Save preference/)
+assert.match(page, /preferences-default-edit-direction/)
+assert.match(page, /preferences-default-choice-grid/)
+assert.match(page, /preferences-new-edit-default-preview/)
 assert.doesNotMatch(page, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/)
 assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|service_role|signedUrl/i)
 
@@ -140,12 +151,38 @@ assert.ok(options.some((option) => option.handle === '@lifestyle-travel-vlog' &&
 assert.ok(options.some((option) => option.handle === '@legacy-clean-edit' && !option.hasDNA))
 assert.ok(options.every((option) => option.mockOnly))
 
+const memoryStorage = new Map<string, string>()
+const storage = {
+  getItem: (key: string) => memoryStorage.get(key) ?? null,
+  setItem: (key: string, value: string) => {
+    memoryStorage.set(key, value)
+  },
+}
+const defaultSettings = createDefaultProjectEditPreferenceSettings()
+assert.equal(defaultSettings.preferenceChoiceId, 'none')
+assert.equal(readProjectEditDefaultPreferenceSettings(storage).source, 'default')
+const savedSettings = saveProjectEditDefaultPreferenceSettings({
+  preferenceChoiceId: 'lifestyle_travel_vlog',
+  preferenceNote: 'Use calm pacing and natural audio for my tests.',
+  now: '2026-07-05T00:00:00.000Z',
+  storage,
+})
+assert.equal(savedSettings.source, 'preferences_page')
+assert.equal(savedSettings.preferenceChoiceId, 'lifestyle_travel_vlog')
+assert.equal(memoryStorage.has(PROJECT_EDIT_DEFAULT_PREFERENCES_STORAGE_KEY), true)
+const readSettings = readProjectEditDefaultPreferenceSettings(storage)
+assert.deepEqual(readSettings, savedSettings)
+const newEditForm = applyProjectEditDefaultPreferenceToNewEditForm(createDefaultNewEditSessionFormState(), readSettings)
+assert.equal(newEditForm.preferenceChoiceId, 'lifestyle_travel_vlog')
+assert.equal(newEditForm.preferenceNote, 'Use calm pacing and natural audio for my tests.')
+
 console.log(JSON.stringify({
   ok: true,
   milestone: 'RP-PREF-ROUTE-01',
   route: '/preferences',
   options: options.length,
   dnaBacked: options.filter((option) => option.hasDNA).length,
+  savedDefaultPreferenceAppliedToNewEdit: true,
   productReady: false,
   noRuntimeSideEffects: true,
 }, null, 2))

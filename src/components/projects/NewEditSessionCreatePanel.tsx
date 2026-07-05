@@ -7,6 +7,10 @@ import {
   type ProjectEditSessionBackendLocalConfig,
 } from '../../lib/project-edit-session-backend-local'
 import {
+  applyProjectEditDefaultPreferenceToNewEditForm,
+  readProjectEditDefaultPreferenceSettings,
+} from '../../lib/project-edit-default-preferences'
+import {
   createDefaultNewEditSessionFormState,
   createProjectEditSessionFromNewEditForm,
   getConfirmedNewEditFrame,
@@ -39,7 +43,14 @@ export function NewEditSessionCreatePanel({
   open,
   projectId,
 }: NewEditSessionCreatePanelProps) {
-  const [form, setForm] = useState<NewEditSessionFormState>(() => createDefaultNewEditSessionFormState())
+  function createInitialForm(): NewEditSessionFormState {
+    return applyProjectEditDefaultPreferenceToNewEditForm(
+      createDefaultNewEditSessionFormState(),
+      readProjectEditDefaultPreferenceSettings(),
+    )
+  }
+
+  const [form, setForm] = useState<NewEditSessionFormState>(() => createInitialForm())
   const [submitting, setSubmitting] = useState(false)
   const [lastResult, setLastResult] = useState<NewEditSessionCreateResult | undefined>()
   const [error, setError] = useState<string | undefined>()
@@ -89,7 +100,7 @@ export function NewEditSessionCreatePanel({
   }
 
   function handleResetForAnother() {
-    setForm(createDefaultNewEditSessionFormState())
+    setForm(createInitialForm())
     setLastResult(undefined)
     setError(undefined)
   }

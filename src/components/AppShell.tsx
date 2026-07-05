@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Bell, ChevronDown, HardDrive, Sparkles, UserRound, Zap } from 'lucide-react'
+import { Bell, ChevronDown, HardDrive, Sparkles } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { appNav } from '../data/mockData'
 import { AppShellChatToolbarContext } from './AppShellChatToolbarContext'
@@ -84,22 +84,6 @@ export function AppShell({ children, description, eyebrow, mode = 'standard', pr
                 )
               })}
             </nav>
-            <div className="sidebar-widget">
-              <span className="widget-kicker">
-                <Zap size={14} /> Personal
-              </span>
-              <strong>100 credits available</strong>
-              <div className="storage-bar" aria-label="Storage 68 percent used">
-                <span style={{ width: '68%' }} />
-              </div>
-              <p>68% storage used across active projects.</p>
-            </div>
-            <div className="sidebar-profile">
-              <span>
-                <UserRound size={16} /> Tommy
-              </span>
-              <small>Creator workspace</small>
-            </div>
           </aside>
         )}
         <main className={`app-main ${isChatMode ? 'app-main-chat' : ''}`.trim()}>

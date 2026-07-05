@@ -13,6 +13,7 @@ test.describe('Edit Preferences route entrypoint', () => {
     await expect(sidebarNav.getByRole('link', { name: /^Projects$/ })).toBeVisible()
     await expect(sidebarNav.getByRole('link', { name: /^Preferences$/ })).toBeVisible()
     await expect(sidebarNav).not.toContainText(/AI Editor|Media Library|Templates|Team|Analytics|Exports|Brand Kit|Settings/i)
+    await expect(page.locator('.sidebar')).not.toContainText(/credits available|storage used|Creator workspace|Tommy/i)
     await expect(page.getByRole('button', { name: /open wallet/i })).toHaveCount(0)
     await expect(page.getByTestId('edit-preferences-page')).toBeVisible()
     await expect(page.getByTestId('edit-preference-summary-strip')).toContainText('Product-ready')

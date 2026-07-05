@@ -33,6 +33,13 @@ const cpuSafeGpuModelRouteProofOutputRoot =
   '.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-safe-diagnostic'
 const cpuSafeGpuModelRouteProofSourceImage =
   '.local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame.ppm'
+const cpuModelGpuModelRouteProofToolIds = ['rembg'] as const
+const cpuModelGpuModelRouteProofOutputRoot =
+  '.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-model-diagnostic'
+const cpuModelGpuModelRouteProofSourceImage =
+  '.local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame-96.ppm'
+const cpuModelGpuModelRouteProofRembgModel =
+  '.local-artifacts/ai-graphics/private-model-cache/rembg/u2netp.onnx'
 const gpuModelRuntimeContainerTargets: Record<string, {
   image: string
   dockerfile: string
@@ -1015,6 +1022,44 @@ function sourceCpuSafeGpuModelRouteProof(): JsonRecord | null {
   return runJsonFileCommand('npm', cpuSafeGpuModelRouteProofArgs())
 }
 
+function cpuModelGpuModelRouteProofArgs(): string[] {
+  return [
+    'run',
+    '--silent',
+    'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
+    '--',
+    '--scoped-gpu-tool',
+    cpuModelGpuModelRouteProofToolIds.join(','),
+    '--scoped-gpu-runtime-container-image',
+    canonicalGpuWorkerProofImage,
+    '--scoped-gpu-runtime-container-platform',
+    'linux/amd64',
+    '--scoped-gpu-timeout-ms',
+    '120000',
+    '--scoped-gpu-allow-cpu-model-runtime',
+    '--scoped-gpu-output-root',
+    cpuModelGpuModelRouteProofOutputRoot,
+    '--scoped-gpu-source-image',
+    cpuModelGpuModelRouteProofSourceImage,
+    '--scoped-gpu-rembg-model',
+    cpuModelGpuModelRouteProofRembgModel,
+  ]
+}
+
+function cpuModelGpuModelRouteProofCommand(): string {
+  return [
+    'npm',
+    ...cpuModelGpuModelRouteProofArgs(),
+  ].join(' ')
+}
+
+function sourceCpuModelGpuModelRouteProof(): JsonRecord | null {
+  const packet = stringFlag('--cpu-model-gpu-model-route-proof-packet')
+  if (packet) return readJson(packet)
+  if (!hasFlag('--attempt-cpu-model-gpu-model-route-proof')) return null
+  return runJsonFileCommand('npm', cpuModelGpuModelRouteProofArgs())
+}
+
 function hostDetectionReadinessCommand(): string {
   return [
     'npm run --silent ai-graphics:external-agent-execution-readiness --',
@@ -1265,6 +1310,121 @@ function summarizeCpuSafeGpuModelRouteProof(
         : nonGpuExecutableToolCount,
     remainingGpuModelBlockedToolIds,
     remainingGpuModelBlockedTools: remainingGpuModelBlockedToolIds.length,
+    gpuRuntimeShouldStartNow: false,
+    gpuRuntimeStartsIdle: false,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+    providerRuntimePerformed: false,
+    modelWeightsDownloaded: false,
+    modelWeightsLoaded: false,
+    proofRows: executableAttempts.map((attempt: JsonRecord) => ({
+      toolId: attempt.requestedToolId,
+      externalAgentExecutionState:
+        attempt.result?.externalAgentExecutionState ?? null,
+      outputKind: attempt.result?.outputKind ?? null,
+      outputSha256: attempt.result?.outputSha256 ?? null,
+      localGpuModelRuntimeExecutionPerformed:
+        attempt.result?.localGpuModelRuntimeExecutionPerformed === true,
+      gpuRuntimeShouldStartNow:
+        attempt.result?.gpuRuntimeShouldStartNow === true,
+      controlledAdapterExecutedNow:
+        attempt.result?.controlledAdapterExecutedNow === true,
+    })),
+    sourceEvidence: proof
+      ? {
+          decision: proof.decision ?? null,
+          status: proof.status ?? null,
+          scopedGpuModelLocalDevRouteAttemptTools:
+            proof.counts?.scopedGpuModelLocalDevRouteAttemptTools ?? null,
+          scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools:
+            proof.counts?.scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools ?? null,
+          scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools:
+            proof.counts?.scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools ?? null,
+        }
+      : null,
+  }
+}
+
+function summarizeCpuModelGpuModelRouteProof(
+  proof: JsonRecord | null,
+  nonGpuExecutableToolCount: number,
+  priorGpuExecutableToolIds: string[],
+) {
+  const expectedToolIds: string[] = [...cpuModelGpuModelRouteProofToolIds]
+  const attempts = Array.isArray(proof?.scopedGpuModelLocalDevRouteAttempts)
+    ? proof.scopedGpuModelLocalDevRouteAttempts
+    : []
+  const executableAttempts = attempts.filter((attempt: JsonRecord) => {
+    const result = attempt.result ?? {}
+    return expectedToolIds.includes(String(attempt.requestedToolId)) &&
+      attempt.booleans?.scopedGpuModelLocalDevRouteAttemptAccepted === true &&
+      attempt.booleans?.scopedGpuModelRuntimeExecutionPerformed === true &&
+      attempt.booleans?.scopedGpuModelGpuRuntimeShouldStartNow === false &&
+      result.externalAgentExecutionState === 'executable' &&
+      result.localGpuModelRuntimeExecutionPerformed === true &&
+      result.controlledAdapterExecutedNow === true &&
+      result.gpuRuntimeShouldStartNow === false &&
+      typeof result.outputSha256 === 'string' &&
+      result.outputSha256.length === 64 &&
+      result.publicArtifactCreated === false &&
+      result.signedUrlCreated === false
+  })
+  const executableToolIds = executableAttempts
+    .map((attempt: JsonRecord) => String(attempt.requestedToolId))
+    .filter((toolId: string) => expectedToolIds.includes(toolId))
+  const executableToolIdSet = new Set([
+    ...priorGpuExecutableToolIds,
+    ...executableToolIds,
+  ])
+  const accepted =
+    proof !== null &&
+    proof.decision ===
+      'ai_graphics_external_agent_all21_controlled_route_execution_smoke_passed' &&
+    expectedToolIds.every((toolId) => executableToolIds.includes(toolId)) &&
+    proof.booleans?.gpuRuntimeShouldStartNow === false &&
+    proof.booleans?.publicArtifactCreated === false &&
+    proof.booleans?.signedUrlCreated === false &&
+    proof.booleans?.modelWeightsDownloaded === false &&
+    proof.booleans?.providerRuntimePerformed === false
+  const remainingGpuModelBlockedToolIds =
+    AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS
+      .filter((toolId) => !executableToolIdSet.has(toolId))
+  const totalExecutableToolCount =
+    nonGpuExecutableToolCount + executableToolIdSet.size
+
+  return {
+    attempted: proof !== null,
+    accepted,
+    status: accepted
+      ? 'cpu_model_gpu_model_route_proof_executed_for_1_tool_17_total_controlled_route_tools_executable'
+      : proof
+      ? 'cpu_model_gpu_model_route_proof_attempted_but_not_accepted'
+      : 'cpu_model_gpu_model_route_proof_not_attempted',
+    proofCommand: cpuModelGpuModelRouteProofCommand(),
+    proofOutputRoot: cpuModelGpuModelRouteProofOutputRoot,
+    proofSourceImage: cpuModelGpuModelRouteProofSourceImage,
+    proofModelInputs: {
+      rembgModelLocalPath: cpuModelGpuModelRouteProofRembgModel,
+    },
+    expectedToolIds,
+    attemptedToolIds: attempts
+      .map((attempt: JsonRecord) => String(attempt.requestedToolId))
+      .filter(Boolean),
+    executableToolIds,
+    executableTools: executableToolIds.length,
+    priorGpuExecutableToolIds,
+    combinedGpuExecutableToolIds: [...executableToolIdSet],
+    nonGpuExecutableTools: nonGpuExecutableToolCount,
+    agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof:
+      accepted
+        ? totalExecutableToolCount
+        : nonGpuExecutableToolCount + priorGpuExecutableToolIds.length,
+    remainingGpuModelBlockedToolIds,
+    remainingGpuModelBlockedTools: remainingGpuModelBlockedToolIds.length,
+    rejectedAsTooSlowOrStillBlockedToolIds: [
+      'real_esrgan',
+      'transparent_background',
+    ],
     gpuRuntimeShouldStartNow: false,
     gpuRuntimeStartsIdle: false,
     publicArtifactCreated: false,
@@ -1835,6 +1995,7 @@ function buildReport() {
     'npm run --silent ai-graphics:external-agent-controlled-worker-route-execution-smoke',
   )
   const cpuSafeGpuModelRouteProof = sourceCpuSafeGpuModelRouteProof()
+  const cpuModelGpuModelRouteProof = sourceCpuModelGpuModelRouteProof()
 
   assert(
     routeSmoke.decision ===
@@ -1931,6 +2092,33 @@ function buildReport() {
       cpuSafeGpuModelRouteProof,
       nonGpuExecutableTools.length,
     )
+  const cpuModelGpuModelRouteProofSummary =
+    summarizeCpuModelGpuModelRouteProof(
+      cpuModelGpuModelRouteProof,
+      nonGpuExecutableTools.length,
+      cpuSafeGpuModelRouteProofSummary.accepted
+        ? cpuSafeGpuModelRouteProofSummary.executableToolIds
+        : [],
+    )
+  const acceptedProofSubsetGpuToolIds =
+    cpuModelGpuModelRouteProofSummary.accepted
+      ? cpuModelGpuModelRouteProofSummary.combinedGpuExecutableToolIds
+      : cpuSafeGpuModelRouteProofSummary.accepted
+      ? cpuSafeGpuModelRouteProofSummary.executableToolIds
+      : gpuExecutableTools.map((row) => row.toolId)
+  const proofInclusiveExecutionScope = {
+    ...executionScope,
+    agentCanExecuteGpuModelProofSubsetNow:
+      acceptedProofSubsetGpuToolIds.length > 0,
+    agentExecutableToolCountWithAcceptedProofNow:
+      nonGpuExecutableTools.length + acceptedProofSubsetGpuToolIds.length,
+    agentExecutableGpuModelProofSubsetToolCountNow:
+      acceptedProofSubsetGpuToolIds.length,
+    gpuModelBlockedToolCountWithAcceptedProofNow:
+      AI_GRAPHICS_EXTERNAL_AGENT_GPU_MODEL_CONTROLLED_ADAPTER_TOOL_IDS.length -
+      acceptedProofSubsetGpuToolIds.length,
+    acceptedProofSubsetGpuToolIds,
+  }
   const nativeCudaClosure = remainingNativeCudaClosure(
     toolRows,
     currentHostEnvironment,
@@ -1987,14 +2175,20 @@ function buildReport() {
       ? 'All 21 AI graphics tools have accepted controlled external-agent execution proof. Keep production/beta/public-artifact gates closed until the separate launch gates approve them.'
       : privateRuntimeProofSupplied &&
         nativeCudaClosure.remainingToolCount > 0
-      ? 'Private proof now covers 19/21 tools. Run the native CUDA closeout for sam2 and birefnet with the accepted existing proof refs, reviewed private model/source inputs, and a linux/amd64 Docker NVIDIA host; GPU must start only during those scoped tool calls.'
+      ? 'Private proof now covers the accepted GPU/model subset. Run the next scoped proof only for tools with real accepted private runtime evidence; GPU must start only during active scoped tool calls.'
+      : cpuModelGpuModelRouteProofSummary.accepted
+      ? 'Controlled route proof now covers 17/21 tools: 13 non-GPU tools, CPU foundation/tensor proof for torch_torchvision, transformers, and kornia, plus rembg CPU-model proof. Keep real_esrgan and transparent_background blocked on this host until their CPU/GPU runtime performance proof completes, and keep sam2/birefnet blocked until native CUDA proof exists.'
       : 'First target kornia with the container local-dev CPU tensor command. After kornia returns structured private local output, feed that private harness result into the GPU/model runtime proof-ref bridge, then repeat per GPU/model tool with reviewed model/checkpoint paths where required.'
 
   return {
     schemaVersion:
       '2026-07-03.ai-graphics.external-agent-execution-readiness',
     decision,
-    status: gpuExecutableTools.length > 0 ? privateProofStatus : defaultStatus,
+    status: gpuExecutableTools.length > 0 ||
+      cpuSafeGpuModelRouteProofSummary.accepted ||
+      cpuModelGpuModelRouteProofSummary.accepted
+      ? privateProofStatus
+      : defaultStatus,
     summary:
       'Strict external-agent readiness report for all 21 AI graphics tools. Callable means the agent can submit a controlled private request. Executable means the controlled adapter actually performed runtime work and returned structured private output evidence, including the mock worker-claim-to-canonical-route smoke for the 13 non-GPU tools. GPU/model tools now carry explicit install-proof linkage from gpu-model-install-build-targets: their package/runtime images were proved at install/import-smoke level, while runtime execution still requires private proof refs and tool-specific inputs. CPU foundation proof applies to torch/torchvision and transformers, CPU tensor proof applies to kornia, explicit CPU model proof applies to Real-ESRGAN, rembg, and transparent-background when reviewed private model/input/checksum evidence is supplied, and native CUDA remains required for SAM2 and BiRefNet. Capability-mismatch calls fail closed with failed_with_diagnostics and do not invoke adapters.',
     stateDefinitions: {
@@ -2057,6 +2251,12 @@ function buildReport() {
         proofCommand: cpuSafeGpuModelRouteProofSummary.proofCommand,
         sourceEvidence: cpuSafeGpuModelRouteProofSummary.sourceEvidence,
       },
+      cpuModelGpuModelRouteProof: {
+        accepted: cpuModelGpuModelRouteProofSummary.accepted,
+        status: cpuModelGpuModelRouteProofSummary.status,
+        proofCommand: cpuModelGpuModelRouteProofSummary.proofCommand,
+        sourceEvidence: cpuModelGpuModelRouteProofSummary.sourceEvidence,
+      },
       gpuModelInstallBuildTargets: {
         decision: gpuInstallProof.decision,
         status: gpuInstallProof.status,
@@ -2075,7 +2275,7 @@ function buildReport() {
           }
         : null,
     },
-    executionScope,
+    executionScope: proofInclusiveExecutionScope,
     counts: {
       totalToolsCovered: toolRows.length,
       packageRuntimePresentForPlannedSurfaceTools:
@@ -2165,6 +2365,15 @@ function buildReport() {
           .agentExecutableToolsWithCpuSafeGpuModelRouteProof,
       remainingGpuModelBlockedToolsAfterCpuSafeGpuModelRouteProof:
         cpuSafeGpuModelRouteProofSummary.remainingGpuModelBlockedTools,
+      cpuModelGpuModelRouteProofAttemptedTools:
+        cpuModelGpuModelRouteProofSummary.attemptedToolIds.length,
+      cpuModelGpuModelRouteProofExecutableTools:
+        cpuModelGpuModelRouteProofSummary.executableTools,
+      agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof:
+        cpuModelGpuModelRouteProofSummary
+          .agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof,
+      remainingGpuModelBlockedToolsAfterCpuSafeAndCpuModelGpuModelRouteProof:
+        cpuModelGpuModelRouteProofSummary.remainingGpuModelBlockedTools,
     },
     booleans: {
       externalAgentExecutionReadinessCompleted: true,
@@ -2253,6 +2462,15 @@ function buildReport() {
       agentCanExecute16ControlledRouteToolsWithCpuSafeGpuModelRouteProofNow:
         cpuSafeGpuModelRouteProofSummary
           .agentExecutableToolsWithCpuSafeGpuModelRouteProof === 16,
+      cpuModelGpuModelRouteProofAttempted:
+        cpuModelGpuModelRouteProofSummary.attempted,
+      cpuModelGpuModelRouteProofAccepted:
+        cpuModelGpuModelRouteProofSummary.accepted,
+      agentCanExecuteCpuModelGpuModelRouteProofToolsNow:
+        cpuModelGpuModelRouteProofSummary.accepted,
+      agentCanExecute17ControlledRouteToolsWithCpuSafeAndCpuModelGpuModelRouteProofNow:
+        cpuModelGpuModelRouteProofSummary
+          .agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof === 17,
       strictCallableExecutableBlockedFailedContractCreated: true,
       capabilityMismatchFailureProbeAccepted:
         routeSmoke.booleans?.capabilityMismatchFailureProbeAccepted === true,
@@ -2313,6 +2531,7 @@ function buildReport() {
     },
     toolReadinessRows: toolRows,
     cpuSafeGpuModelRouteProof: cpuSafeGpuModelRouteProofSummary,
+    cpuModelGpuModelRouteProof: cpuModelGpuModelRouteProofSummary,
     remainingNativeCudaClosure: nativeCudaClosure,
     fastestGpuModelUnlockCandidate: nextGpuModelUnlockCandidate,
     nextExactAction,
@@ -2372,6 +2591,26 @@ ${Object.entries(report.executionScope).map(([key, value]) => `- \`${key}\`: ${A
 | Tool | State | Output kind | Output hash | Local GPU/model runtime performed | GPU starts now | Adapter executed |
 | --- | --- | --- | --- | ---: | ---: | ---: |
 ${report.cpuSafeGpuModelRouteProof.proofRows.map((row) => `| \`${row.toolId}\` | \`${row.externalAgentExecutionState}\` | \`${row.outputKind}\` | \`${row.outputSha256}\` | ${row.localGpuModelRuntimeExecutionPerformed} | ${row.gpuRuntimeShouldStartNow} | ${row.controlledAdapterExecutedNow} |`).join('\n') || '| `none` | `not_attempted` | `none` | `none` | false | false | false |'}
+
+## CPU-Model GPU/Model Controlled Route Proof
+
+- Status: \`${report.cpuModelGpuModelRouteProof.status}\`
+- Attempted: \`${report.cpuModelGpuModelRouteProof.attempted}\`
+- Accepted: \`${report.cpuModelGpuModelRouteProof.accepted}\`
+- Expected tools: \`${report.cpuModelGpuModelRouteProof.expectedToolIds.join(', ')}\`
+- Executed tools: \`${report.cpuModelGpuModelRouteProof.executableToolIds.join(', ') || 'none'}\`
+- Combined GPU/model proof tools: \`${report.cpuModelGpuModelRouteProof.combinedGpuExecutableToolIds.join(', ') || 'none'}\`
+- Executable tool count with CPU-safe plus CPU-model local proof: \`${report.cpuModelGpuModelRouteProof.agentExecutableToolsWithCpuSafeAndCpuModelGpuModelRouteProof}\`
+- Remaining GPU/model blocked tools: \`${report.cpuModelGpuModelRouteProof.remainingGpuModelBlockedToolIds.join(', ') || 'none'}\`
+- Tools investigated but still blocked on this host: \`${report.cpuModelGpuModelRouteProof.rejectedAsTooSlowOrStillBlockedToolIds.join(', ') || 'none'}\`
+- Proof command: \`${report.cpuModelGpuModelRouteProof.proofCommand}\`
+- Proof output root: \`${report.cpuModelGpuModelRouteProof.proofOutputRoot}\`
+- Proof source image: \`${report.cpuModelGpuModelRouteProof.proofSourceImage}\`
+- Guard: this proof accepts only \`rembg\` because it produced structured private output through the mounted controlled route with CPU model runtime and GPU idle. \`real_esrgan\` and \`transparent_background\` remain blocked on this host until their runtime-performance proof completes or a proper native/GPU runtime target is used.
+
+| Tool | State | Output kind | Output hash | Local GPU/model runtime performed | GPU starts now | Adapter executed |
+| --- | --- | --- | --- | ---: | ---: | ---: |
+${report.cpuModelGpuModelRouteProof.proofRows.map((row) => `| \`${row.toolId}\` | \`${row.externalAgentExecutionState}\` | \`${row.outputKind}\` | \`${row.outputSha256}\` | ${row.localGpuModelRuntimeExecutionPerformed} | ${row.gpuRuntimeShouldStartNow} | ${row.controlledAdapterExecutedNow} |`).join('\n') || '| `none` | `not_attempted` | `none` | `none` | false | false | false |'}
 
 ## Tool Rows
 

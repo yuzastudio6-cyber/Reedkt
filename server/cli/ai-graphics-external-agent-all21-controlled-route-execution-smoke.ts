@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import { createHash } from 'node:crypto'
 import { once } from 'node:events'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
@@ -159,6 +160,7 @@ interface ScopedGpuModelLocalDevRouteAttempt {
 interface ScopedGpuModelLocalDevRouteAttemptOptions {
   runtimeContainerImage?: string
   runtimeContainerPlatform?: string
+  timeoutMs?: number
   useToolSpecificRuntimeImages?: boolean
   privateInputPreflightOnly?: boolean
   allowCpuTensorRuntime?: boolean
@@ -258,6 +260,14 @@ function stringArg(name: string): string | undefined {
   return typeof value === 'string' && value.trim() && !value.startsWith('--')
     ? value
     : undefined
+}
+
+function numberArg(name: string): number | undefined {
+  const raw = stringArg(name)
+  if (!raw) return undefined
+  const value = Number(raw)
+  assert(Number.isFinite(value) && value > 0, `${name} must be a positive number`)
+  return value
 }
 
 function hasFlag(name: string): boolean {
@@ -627,6 +637,70 @@ function scopedGpuModelPrivateRuntimeInputRefs(
   return defaults[toolId] ?? {}
 }
 
+function scopedGpuModelRequiresModelWeightEvidence(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): boolean {
+  return toolId === 'sam2' ||
+    toolId === 'birefnet' ||
+    toolId === 'real_esrgan' ||
+    toolId === 'rembg' ||
+    toolId === 'transparent_background'
+}
+
+function scopedGpuModelPathForChecksum(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  inputRefs: Record<string, string>,
+): string | null {
+  if (toolId === 'sam2') return inputRefs.sam2CheckpointLocalPath ?? null
+  if (toolId === 'birefnet') {
+    return inputRefs.birefnetModelLocalPath
+      ? `${inputRefs.birefnetModelLocalPath}/model.safetensors`
+      : null
+  }
+  if (toolId === 'real_esrgan') return inputRefs.realEsrganModelLocalPath ?? null
+  if (toolId === 'rembg') return inputRefs.rembgModelLocalPath ?? null
+  if (toolId === 'transparent_background') {
+    return inputRefs.transparentBackgroundCheckpointLocalPath ?? null
+  }
+  return null
+}
+
+function sha256File(filePath: string): string | null {
+  let fd: number | null = null
+  try {
+    fd = fs.openSync(filePath, 'r')
+    const hash = createHash('sha256')
+    const buffer = Buffer.alloc(1024 * 1024)
+    while (true) {
+      const bytesRead = fs.readSync(fd, buffer, 0, buffer.length, null)
+      if (bytesRead === 0) break
+      hash.update(buffer.subarray(0, bytesRead))
+    }
+    return hash.digest('hex')
+  } catch {
+    return null
+  } finally {
+    if (fd !== null) fs.closeSync(fd)
+  }
+}
+
+function scopedGpuModelWeightEvidencePayload(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  inputRefs: Record<string, string>,
+): Record<string, string> {
+  if (!scopedGpuModelRequiresModelWeightEvidence(toolId)) return {}
+  const modelPath = scopedGpuModelPathForChecksum(toolId, inputRefs)
+  const checksum = modelPath ? sha256File(modelPath) : null
+  if (!checksum) return {}
+  return {
+    modelWeightManifestId:
+      `${toolId}_private_model_weight_manifest_controlled_route_smoke_v1`,
+    modelWeightChecksumSha256: checksum,
+    modelWeightChecksumEvidenceRef:
+      `private://reeditpro/ai-graphics/model-weight-checksum-evidence/${toolId}/controlled-route-smoke-v1`,
+  }
+}
+
 function scopedGpuModelCommand(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   options: ScopedGpuModelLocalDevRouteAttemptOptions,
@@ -644,6 +718,7 @@ function scopedGpuModelCommand(
     `--scoped-gpu-tool ${toolId}`,
     `--scoped-gpu-runtime-container-image ${options.runtimeContainerImage ?? gpuModelRuntimeContainerImage(toolId)}`,
     `--scoped-gpu-runtime-container-platform ${options.runtimeContainerPlatform ?? 'linux/amd64'}`,
+    options.timeoutMs ? `--scoped-gpu-timeout-ms ${options.timeoutMs}` : '',
     allowCpuTensorRuntime
       ? '--scoped-gpu-allow-cpu-tensor-runtime'
       : '',
@@ -692,6 +767,10 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
     toolId,
     options,
   )
+  const privateModelWeightEvidence = scopedGpuModelWeightEvidencePayload(
+    toolId,
+    privateRuntimeInputRefs,
+  )
   const allowCpuTensorRuntime = scopedGpuModelUsesCpuTensorRuntime(toolId, options)
   const allowCpuFoundationRuntime =
     scopedGpuModelUsesCpuFoundationRuntime(toolId, options)
@@ -712,7 +791,7 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
       allowCpuModelRuntime
     ),
     outputDirectory: privateOutputDirectory,
-    timeoutMs: 30_000,
+    timeoutMs: options.timeoutMs ?? 30_000,
     toolExecutionPerformed: false,
     gpuRuntimeShouldStartNow: false,
     modelWeightsDownloaded: false,
@@ -721,6 +800,7 @@ function scopedGpuModelLocalDevRouteAttemptRequest(
     publicArtifactCreated: false,
     signedUrlCreated: false,
     ...privateRuntimeInputRefs,
+    ...privateModelWeightEvidence,
   }
   if (options.privateInputPreflightOnly) {
     payload.privateInputPreflightOnly = true
@@ -1603,6 +1683,7 @@ async function main() {
     runtimeContainerImage: stringArg('--scoped-gpu-runtime-container-image'),
     runtimeContainerPlatform:
       stringArg('--scoped-gpu-runtime-container-platform'),
+    timeoutMs: numberArg('--scoped-gpu-timeout-ms'),
     useToolSpecificRuntimeImages:
       hasFlag('--scoped-gpu-use-tool-specific-runtime-images'),
     allowCpuTensorRuntime:

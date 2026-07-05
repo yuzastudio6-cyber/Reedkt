@@ -68,9 +68,18 @@ const configuredPrivateModelPathEnvByTool: Record<string, string | undefined> = 
   sam2: 'REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT',
   birefnet: 'REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL',
 }
+const privateModelRootEnvVar =
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
 const privateModelManifestDirEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
 const privateSourceImageEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE'
+const privateModelRootMaterializerToolIds = new Set<string>([
+  'sam2',
+  'birefnet',
+  'real_esrgan',
+  'rembg',
+  'transparent_background',
+])
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG =
   'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED'
@@ -422,24 +431,35 @@ function gpuModelRequiresSourceImage(toolId: string): boolean {
   return !['torch_torchvision', 'transformers'].includes(toolId)
 }
 
-function gpuModelSingleToolRuntimeProofFlags(toolId: string): string[] {
+function gpuModelSingleToolRuntimeProofFlags(
+  toolId: string,
+  options?: {
+    preferPrivateModelRoot?: boolean
+  },
+): string[] {
+  const shouldUsePrivateModelRoot =
+    options?.preferPrivateModelRoot === true &&
+    privateModelRootMaterializerToolIds.has(toolId)
   return [
     gpuModelRequiresSourceImage(toolId)
       ? '--source-image <private-approved-frame.png>'
       : '',
-    toolId === 'sam2'
+    shouldUsePrivateModelRoot
+      ? `--private-model-root "$${privateModelRootEnvVar}"`
+      : '',
+    !shouldUsePrivateModelRoot && toolId === 'sam2'
       ? '--sam2-checkpoint <private-sam2-checkpoint.pt>'
       : '',
-    toolId === 'birefnet'
+    !shouldUsePrivateModelRoot && toolId === 'birefnet'
       ? `--birefnet-model ${birefNetModelDirectoryPlaceholder}`
       : '',
-    toolId === 'real_esrgan'
+    !shouldUsePrivateModelRoot && toolId === 'real_esrgan'
       ? '--real-esrgan-model <private-real-esrgan-model.pth>'
       : '',
-    toolId === 'rembg'
+    !shouldUsePrivateModelRoot && toolId === 'rembg'
       ? '--rembg-model <private-rembg-model.onnx>'
       : '',
-    toolId === 'transparent_background'
+    !shouldUsePrivateModelRoot && toolId === 'transparent_background'
       ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
       : '',
     aiGraphicsModelWeightManifestRequiredToolIds.has(toolId)
@@ -548,7 +568,9 @@ function exactGpuModelScopedRouteProofCommand(
         ? '--allow-cpu-model-runtime'
         : '--allow-cpu-foundation-runtime',
       `--gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
-      ...gpuModelSingleToolRuntimeProofFlags(toolId),
+      ...gpuModelSingleToolRuntimeProofFlags(toolId, {
+        preferPrivateModelRoot: true,
+      }),
       '--expect-state executable',
       '--require-output-hash',
       '--require-private-only-boundary',
@@ -563,7 +585,9 @@ function exactGpuModelScopedRouteProofCommand(
     `--runtime-container-image ${aiGraphicsGpuModelRuntimeContainerImage(toolId)}`,
     '--runtime-container-platform linux/amd64',
     `--gpu-output-dir .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-smoke/${toolId}`,
-    ...gpuModelSingleToolRuntimeProofFlags(toolId),
+    ...gpuModelSingleToolRuntimeProofFlags(toolId, {
+      preferPrivateModelRoot: true,
+    }),
     '--expect-state executable',
     '--require-output-hash',
     '--require-private-only-boundary',

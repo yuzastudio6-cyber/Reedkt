@@ -573,6 +573,22 @@ function allRemainingNativeCudaToolsRequested(args: ParsedArgs): boolean {
   return toolIds.every((toolId) => args.requestedTools.includes(toolId))
 }
 
+function readinessResultHandoff(args: ParsedArgs): JsonRecord {
+  const usesResultRoot = allRemainingNativeCudaToolsRequested(args)
+  return {
+    mode: usesResultRoot
+      ? 'native_cuda_closeout_result_root'
+      : 'scoped_local_runtime_proof_results',
+    usesNativeCudaCloseoutResultRoot: usesResultRoot,
+    usesScopedLocalRuntimeProofResults: !usesResultRoot,
+    nativeCudaCloseoutResultRoot: usesResultRoot ? args.outputRoot : null,
+    requestedTools: args.requestedTools,
+    expectedProofResults: args.requestedTools.map((toolId) =>
+      proofResultPath(args.outputRoot, toolId)),
+    existingProofResults: args.existingProofResults,
+  }
+}
+
 function writeNativeCudaCloseoutScript(
   args: ParsedArgs,
   scriptOut: string,
@@ -762,6 +778,7 @@ function writeNativeCudaCloseoutScript(
       args.cpuSafeGpuModelRouteProofPacket ?? null,
     cpuModelGpuModelRouteProofPacket:
       args.cpuModelGpuModelRouteProofPacket ?? null,
+    readinessResultHandoff: readinessResultHandoff(args),
     expectedProofResults: args.requestedTools.map((toolId) =>
       path.join(args.outputRoot, toolId, 'harness-result.json')),
   }
@@ -1041,6 +1058,7 @@ function buildReport(args: ParsedArgs): JsonRecord {
       localOnly: true,
     },
     nativeCudaCloseoutLocalOnlyScript: scriptReport,
+    readinessResultHandoff: readinessResultHandoff(args),
     currentHostGpuProofPreflight: {
       requested: args.detectHost,
       hostEligibleForNativeGpuProof: currentHostEligible,
@@ -1080,6 +1098,10 @@ function buildReport(args: ParsedArgs): JsonRecord {
       sourceExternalAgentToolCallReused: true,
       sourceModelWeightManifestReviewValidatorReused: true,
       allRemainingNativeCudaToolsCovered,
+      readinessRecheckUsesNativeCudaCloseoutResultRoot:
+        allRemainingNativeCudaToolsRequested(args),
+      readinessRecheckUsesScopedLocalRuntimeProofResults:
+        !allRemainingNativeCudaToolsRequested(args),
       sam2Covered: args.requestedTools.includes('sam2'),
       birefnetCovered: args.requestedTools.includes('birefnet'),
       reviewedPrivateManifestDirProvided:

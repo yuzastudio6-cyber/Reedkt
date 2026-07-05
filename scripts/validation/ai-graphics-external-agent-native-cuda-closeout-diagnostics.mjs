@@ -262,6 +262,11 @@ function validateDefaultReport(report) {
   assert(report.booleans?.gpuRuntimeOnDemandOnly === true, 'gpu_not_on_demand')
   assert(report.booleans?.noIdleGpuRuntimeApproved === true, 'idle_gpu_allowed')
   assert(report.booleans?.gpuRuntimeShouldStartNow === false, 'gpu_runtime_should_start_default')
+  assert(report.booleans?.readinessRecheckUsesNativeCudaCloseoutResultRoot === true, 'default_readiness_result_root_not_used')
+  assert(report.booleans?.readinessRecheckUsesScopedLocalRuntimeProofResults === false, 'default_scoped_readiness_used')
+  assert(report.readinessResultHandoff?.mode === 'native_cuda_closeout_result_root', `default_readiness_handoff_mode_unexpected:${report.readinessResultHandoff?.mode}`)
+  assert(report.readinessResultHandoff?.usesNativeCudaCloseoutResultRoot === true, 'default_readiness_handoff_root_false')
+  assert(report.readinessResultHandoff?.nativeCudaCloseoutResultRoot === '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout', 'default_readiness_handoff_root_path_mismatch')
   for (const key of forbiddenOutputTrueBooleans) {
     assert(report.booleans?.[key] === false, `forbidden_boolean_true:${key}`)
   }
@@ -306,6 +311,9 @@ function validateFixtureReport(report) {
   assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('--cpu-model-gpu-model-route-proof-packet'), 'fixture_closeout_script_missing_cpu_model_readiness_ref')
   assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('--native-cuda-closeout-result-root'), 'fixture_closeout_script_missing_result_root_readiness_ref')
   assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('"$OUTPUT_ROOT"'), 'fixture_closeout_script_missing_output_root_readiness_ref')
+  assert(report.readinessResultHandoff?.mode === 'native_cuda_closeout_result_root', `fixture_readiness_handoff_mode_unexpected:${report.readinessResultHandoff?.mode}`)
+  assert(report.readinessResultHandoff?.usesNativeCudaCloseoutResultRoot === true, 'fixture_readiness_handoff_root_false')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.readinessResultHandoff?.mode === 'native_cuda_closeout_result_root', `fixture_script_readiness_handoff_mode_unexpected:${report.nativeCudaCloseoutLocalOnlyScript?.readinessResultHandoff?.mode}`)
   const generatedScriptPath = report.nativeCudaCloseoutLocalOnlyScript?.path
   assert(typeof generatedScriptPath === 'string', 'fixture_closeout_script_path_missing')
   if (typeof generatedScriptPath === 'string') {
@@ -352,6 +360,14 @@ function validateScopedTimeoutReport(report) {
   assert(report.booleans?.acceptedNativeCudaProofForAllRequestedTools === false, 'scoped_timeout_all_requested_proof_true')
   assert(report.booleans?.acceptedNativeCudaProofForAllRemainingTools === false, 'scoped_timeout_all_remaining_proof_true')
   assert(report.booleans?.agentCanExecuteAll21ToolsNow === false, 'scoped_timeout_all21_true')
+  assert(report.booleans?.readinessRecheckUsesNativeCudaCloseoutResultRoot === false, 'scoped_timeout_result_root_used')
+  assert(report.booleans?.readinessRecheckUsesScopedLocalRuntimeProofResults === true, 'scoped_timeout_scoped_readiness_not_used')
+  assert(report.readinessResultHandoff?.mode === 'scoped_local_runtime_proof_results', `scoped_timeout_readiness_handoff_mode_unexpected:${report.readinessResultHandoff?.mode}`)
+  assert(report.readinessResultHandoff?.usesScopedLocalRuntimeProofResults === true, 'scoped_timeout_scoped_handoff_false')
+  assert(report.readinessResultHandoff?.nativeCudaCloseoutResultRoot === null, 'scoped_timeout_result_root_not_null')
+  assert(String(report.all21ReadinessRecheckCommand ?? '').includes('--local-runtime-proof-result'), 'scoped_timeout_readiness_missing_local_proof_flag')
+  assert(String(report.all21ReadinessRecheckCommand ?? '').includes('sam2/harness-result.json'), 'scoped_timeout_readiness_missing_sam2_result')
+  assert(!String(report.all21ReadinessRecheckCommand ?? '').includes('--native-cuda-closeout-result-root'), 'scoped_timeout_readiness_unexpected_result_root')
   const row = report.tools?.find((tool) => tool.toolId === 'sam2')
   assert(Boolean(row), 'scoped_timeout_missing_sam2_row')
   assert(String(row?.nativeGpuProofSequenceCommand ?? '').includes('--timeout-ms 123456'), 'scoped_timeout_proof_sequence_missing_timeout')

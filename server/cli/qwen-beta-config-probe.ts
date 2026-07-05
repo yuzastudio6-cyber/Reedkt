@@ -134,21 +134,21 @@ function decide(input: {
   candidates: SecretCandidate[]
   exactReferenceCandidates: SecretCandidate[]
 }): { decision: ProbeDecision; ok: boolean; readyForLiveVerification: boolean; nextStep: string } {
-  if (!input.secretMetadataAvailable) {
-    return {
-      decision: DECISIONS.metadataUnavailable,
-      ok: false,
-      readyForLiveVerification: false,
-      nextStep: 'Fix GitHub Actions GCP authentication or Secret Manager list permission, then rerun the Qwen beta config probe.',
-    }
-  }
-
   if (input.missingRequiredVariables.length > 0) {
     return {
       decision: DECISIONS.missingVariables,
       ok: true,
       readyForLiveVerification: false,
       nextStep: 'Set the missing QWEN_REASONING_* GitHub variables to owner-approved Secret Manager refs or literal non-secret endpoint/model values, then rerun Qwen Live Beta Verification.',
+    }
+  }
+
+  if (!input.secretMetadataAvailable) {
+    return {
+      decision: DECISIONS.metadataUnavailable,
+      ok: false,
+      readyForLiveVerification: false,
+      nextStep: 'Fix GitHub Actions GCP authentication or Secret Manager list permission, then rerun the Qwen beta config probe.',
     }
   }
 

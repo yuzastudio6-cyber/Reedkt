@@ -30,6 +30,7 @@ export function createProjectSourceVideoProfessionalQA(
   const review = input.previewReviewResult
   const upload = input.sourceVideoUploadResult
   const renderId = preview?.renderId ?? review?.renderId ?? 'preview-render-missing'
+  const sourceStorageObjectRecordId = preview?.sourceStorageObjectRecordId ?? 'source-storage-missing'
   const checks = [
     check(
       'source_uploaded',
@@ -60,6 +61,12 @@ export function createProjectSourceVideoProfessionalQA(
       'Preview approved',
       review?.reviewStatus === 'approved' && review.renderId === renderId,
       'preview_approval_required',
+    ),
+    check(
+      'source_preview_match',
+      'Preview matches source',
+      Boolean(upload?.storageObjectRecordId && preview?.sourceStorageObjectRecordId && upload.storageObjectRecordId === preview.sourceStorageObjectRecordId),
+      'preview_source_identity_mismatch',
     ),
     check(
       'edit_assembly_ready',
@@ -93,6 +100,7 @@ export function createProjectSourceVideoProfessionalQA(
     approvedPlanSnapshotId: preview?.approvedPlanSnapshotId ?? 'approved-snapshot-missing',
     creditReservationId: preview?.creditReservationId ?? 'credit-reservation-missing',
     previewReviewId: review?.id ?? 'preview-review-missing',
+    sourceStorageObjectRecordId,
     status: blockers.length === 0 ? 'passed' : 'blocked',
     createdAt: new Date().toISOString(),
     checks,

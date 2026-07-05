@@ -309,8 +309,36 @@ try {
     workspaceId,
   })
   assert.equal(professionalQA.status, 'passed')
+  assert.equal(professionalQA.sourceStorageObjectRecordId, preview.sourceStorageObjectRecordId)
   assert.equal(professionalQA.productReady, false)
   assert.deepEqual(professionalQA.blockers, [])
+
+  const mismatchedSourceUpload = {
+    ...upload,
+    storageObjectRecordId: `${upload.storageObjectRecordId}-mismatch`,
+  }
+  const mismatchedQA = createProjectSourceVideoProfessionalQA({
+    previewResult: preview,
+    previewReviewResult: review,
+    sourceVideoUploadResult: mismatchedSourceUpload,
+    workspaceId,
+  })
+  assert.equal(mismatchedQA.status, 'blocked')
+  assert.ok(mismatchedQA.blockers.includes('source_preview_match'))
+  await assert.rejects(
+    () => runProjectSourceVideoLocalFinalExportSmoke({
+      apiBaseUrl,
+      editPlanId: approvedPlan.localEditPlan.editPlanId,
+      projectId: project.project.id,
+      workspaceId,
+      previewResult: preview,
+      previewReviewResult: review,
+      professionalQAResult: professionalQA,
+      sourceVideoUploadResult: mismatchedSourceUpload,
+      getAccessToken: async () => undefined,
+    }),
+    /same source object/,
+  )
 
   await recordProjectEditSessionLifecycleCheckpointBackendLocal({
     apiBaseUrl,
@@ -333,6 +361,7 @@ try {
   const restoredProfessionalQA = restoreProfessionalQAResult(qaSession.editSession)
   assert.equal(restoredProfessionalQA?.status, 'passed')
   assert.equal(restoredProfessionalQA?.previewReviewId, review.id)
+  assert.equal(restoredProfessionalQA?.sourceStorageObjectRecordId, upload.storageObjectRecordId)
   assert.equal(restoredProfessionalQA?.productReady, false)
 
   const finalExport = await runProjectSourceVideoLocalFinalExportSmoke({

@@ -355,6 +355,7 @@ const professionalQA: ProjectSourceVideoProfessionalQAResult = {
   approvedPlanSnapshotId: preview.approvedPlanSnapshotId,
   creditReservationId: preview.creditReservationId,
   previewReviewId: 'preview-review-1',
+  sourceStorageObjectRecordId: preview.sourceStorageObjectRecordId,
   status: 'passed',
   createdAt: '2026-07-05T00:00:00.000Z',
   checks: [
@@ -363,6 +364,7 @@ const professionalQA: ProjectSourceVideoProfessionalQAResult = {
     { id: 'credit_reservation_present', label: 'Credit approval record present', passed: true, blocker: 'credit_reservation_required' },
     { id: 'preview_ready', label: 'Preview ready', passed: true, blocker: 'preview_ready_required' },
     { id: 'preview_review_approved', label: 'Preview approved', passed: true, blocker: 'preview_approval_required' },
+    { id: 'source_preview_match', label: 'Preview matches source', passed: true, blocker: 'preview_source_identity_mismatch' },
     { id: 'edit_assembly_ready', label: 'Approved plan carried into preview', passed: true, blocker: 'edit_assembly_required' },
     { id: 'private_artifact_boundary', label: 'Private internal boundary intact', passed: true, blocker: 'private_artifact_boundary_required' },
   ],
@@ -692,6 +694,8 @@ assert.match(finalExportClient, /publicDeliveryEnabled: false/)
 assert.match(finalExportClient, /productReady: false/)
 assert.match(finalExportClient, /private_final_export/)
 assert.match(finalExportClient, /editAssemblyPlan: editAssembly/)
+assert.match(finalExportClient, /previewResult\.sourceStorageObjectRecordId/)
+assert.match(finalExportClient, /professionalQAResult\.sourceStorageObjectRecordId/)
 assert.doesNotMatch(finalExportClient, /service_role|signedUrl|Stripe|production ready:\s*true/i)
 
 const lifecycleCheckpointAdapter = read('src/lib/project-edit-session-lifecycle-checkpoint-ui-adapter.ts')

@@ -62,6 +62,7 @@ export type ProjectSourceVideoProfessionalQACheckId =
   | 'credit_reservation_present'
   | 'preview_ready'
   | 'preview_review_approved'
+  | 'source_preview_match'
   | 'edit_assembly_ready'
   | 'private_artifact_boundary'
 
@@ -212,6 +213,7 @@ export interface ProjectSourceVideoProfessionalQAResult {
   approvedPlanSnapshotId: string
   creditReservationId: string
   previewReviewId: string
+  sourceStorageObjectRecordId: string
   status: ProjectSourceVideoProfessionalQAStatus
   createdAt: string
   checks: ProjectSourceVideoProfessionalQACheck[]

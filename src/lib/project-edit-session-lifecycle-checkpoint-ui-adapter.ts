@@ -122,6 +122,7 @@ function professionalQAValue(value: unknown): ProjectSourceVideoProfessionalQARe
   const approvedPlanSnapshotId = stringValue(record.approvedPlanSnapshotId)
   const creditReservationId = stringValue(record.creditReservationId)
   const previewReviewId = stringValue(record.previewReviewId)
+  const sourceStorageObjectRecordId = stringValue(record.sourceStorageObjectRecordId) ?? 'source-storage-missing'
   const createdAt = stringValue(record.createdAt)
   if (!id || !workspaceId || !editPlanId || !renderId || !approvedPlanSnapshotId || !creditReservationId || !previewReviewId || !createdAt || (status !== 'passed' && status !== 'blocked')) {
     return undefined
@@ -135,6 +136,7 @@ function professionalQAValue(value: unknown): ProjectSourceVideoProfessionalQARe
     approvedPlanSnapshotId,
     creditReservationId,
     previewReviewId,
+    sourceStorageObjectRecordId,
     status,
     createdAt,
     checks,
@@ -243,6 +245,7 @@ export function createProfessionalQACheckpointMetadata(result: ProjectSourceVide
     approvedPlanSnapshotId: result.approvedPlanSnapshotId,
     creditReservationId: result.creditReservationId,
     previewReviewId: result.previewReviewId,
+    sourceStorageObjectRecordId: result.sourceStorageObjectRecordId,
     status: result.status,
     createdAt: result.createdAt,
     checks: result.checks,

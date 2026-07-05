@@ -140,6 +140,12 @@ export async function runProjectSourceVideoLocalFinalExportSmoke(
   if (input.professionalQAResult.renderId !== input.previewResult.renderId) {
     throw new Error('Final export professional QA must reference the preview render.')
   }
+  if (input.previewResult.sourceStorageObjectRecordId !== input.sourceVideoUploadResult.storageObjectRecordId) {
+    throw new Error('Final export preview must reference the same source object selected for export.')
+  }
+  if (input.professionalQAResult.sourceStorageObjectRecordId !== input.sourceVideoUploadResult.storageObjectRecordId) {
+    throw new Error('Final export professional QA must reference the same source object selected for export.')
+  }
   if (!input.sourceVideoUploadResult.mediaAssetId) {
     throw new Error('Final export requires a finalized media asset id from backend-local upload.')
   }

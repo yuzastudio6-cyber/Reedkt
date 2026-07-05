@@ -1332,6 +1332,8 @@ export interface AiGraphicsExternalAgentExecutionGate {
   gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence: number
   routeReadinessProbeGpuRuntimeShouldStartNowTools: 0
   apiRouteMountReadyToolsWithProvidedEvidence: 0 | 21
+  externalAgentControlledRouteMountFeatureFlagReadyTools: 0 | 21
+  externalAgentControlledRouteMountRequiredForScopedCallTools: number
   apiRouteMountedNowTools: 0
   externalBetaReadyNowTools: 0
   productionReadyNowTools: 0
@@ -1383,6 +1385,8 @@ export interface AiGraphicsExternalAgentExecutionGate {
     externalBetaCallableRequestAdmissionReadyWithProvidedEvidence: boolean
     routeMountReadyWithProvidedEvidence: boolean
     routeMountPreparedButNotMounted: boolean
+    externalAgentControlledRouteMountFeatureFlagReady: boolean
+    externalAgentControlledRouteMountedForScopedCallsNow: boolean
     cpuStaticLiveAdapterQueueServiceProofAccepted: boolean
     allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence: boolean
     allFiveCpuStaticMockQueueServiceValidationsPassed: boolean
@@ -4735,6 +4739,10 @@ export function buildAiGraphicsExternalAgentExecutionGate(
     routeReadinessProbeGpuRuntimeShouldStartNowTools: 0,
     apiRouteMountReadyToolsWithProvidedEvidence:
       routeMountAccepted ? 21 : 0,
+    externalAgentControlledRouteMountFeatureFlagReadyTools:
+      routeMountAccepted ? 21 : 0,
+    externalAgentControlledRouteMountRequiredForScopedCallTools:
+      totalScopedControlledRouteExecutableTools,
     apiRouteMountedNowTools: 0,
     externalBetaReadyNowTools: 0,
     productionReadyNowTools: 0,
@@ -4830,6 +4838,9 @@ export function buildAiGraphicsExternalAgentExecutionGate(
         requestAdmissionReadyTools >= 1,
       routeMountReadyWithProvidedEvidence: routeMountAccepted,
       routeMountPreparedButNotMounted: routeMountAccepted,
+      externalAgentControlledRouteMountFeatureFlagReady: routeMountAccepted,
+      externalAgentControlledRouteMountedForScopedCallsNow:
+        scopedControlledRouteReady,
       cpuStaticLiveAdapterQueueServiceProofAccepted:
         cpuStaticLiveAdapterQueueWriteProofAccepted,
       allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence:

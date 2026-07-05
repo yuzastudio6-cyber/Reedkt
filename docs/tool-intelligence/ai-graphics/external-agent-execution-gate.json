@@ -187,6 +187,8 @@
     "gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence": 6,
     "routeReadinessProbeGpuRuntimeShouldStartNowTools": 0,
     "apiRouteMountReadyToolsWithProvidedEvidence": 21,
+    "externalAgentControlledRouteMountFeatureFlagReadyTools": 21,
+    "externalAgentControlledRouteMountRequiredForScopedCallTools": 19,
     "apiRouteMountedNowTools": 0,
     "externalBetaReadyNowTools": 0,
     "productionReadyNowTools": 0
@@ -1853,6 +1855,8 @@
     "externalBetaCallableRequestAdmissionReadyWithProvidedEvidence": true,
     "routeMountReadyWithProvidedEvidence": true,
     "routeMountPreparedButNotMounted": true,
+    "externalAgentControlledRouteMountFeatureFlagReady": true,
+    "externalAgentControlledRouteMountedForScopedCallsNow": true,
     "cpuStaticLiveAdapterQueueServiceProofAccepted": true,
     "allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence": true,
     "allFiveCpuStaticMockQueueServiceValidationsPassed": true,

@@ -216,6 +216,8 @@ const trueBooleanKeys = [
   'externalBetaCallableRequestAdmissionReadyWithProvidedEvidence',
   'routeMountReadyWithProvidedEvidence',
   'routeMountPreparedButNotMounted',
+  'externalAgentControlledRouteMountFeatureFlagReady',
+  'externalAgentControlledRouteMountedForScopedCallsNow',
   'cpuStaticLiveAdapterQueueServiceProofAccepted',
   'allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence',
   'allFiveCpuStaticMockQueueServiceValidationsPassed',
@@ -1310,6 +1312,12 @@ if (docs.counts?.routeReadinessProbeGpuRuntimeShouldStartNowTools !== 0) {
 if (docs.counts?.apiRouteMountReadyToolsWithProvidedEvidence !== 21) {
   fail('docs_route_mount_ready_tools_not_21')
 }
+if (docs.counts?.externalAgentControlledRouteMountFeatureFlagReadyTools !== 21) {
+  fail('docs_controlled_route_mount_feature_flag_ready_tools_not_21')
+}
+if (docs.counts?.externalAgentControlledRouteMountRequiredForScopedCallTools !== 19) {
+  fail('docs_controlled_route_mount_required_scoped_call_tools_not_19')
+}
 if (docs.counts?.apiRouteMountedNowTools !== 0) {
   fail('docs_route_mounted_now_tools_not_0')
 }
@@ -1475,6 +1483,8 @@ for (const phrase of [
   'runtime, beta, and production remain blocked',
   'tool/capability-specific blocked details',
   'apiRouteMountedNow=false',
+  'externalAgentControlledRouteMountFeatureFlagReady=true',
+  'externalAgentControlledRouteMountedForScopedCallsNow=true',
   'exit code `2`',
   'agentCanExecuteToolsNow=true',
   'satoriRemainsBlockedPendingApprovedFontFixture=false',
@@ -2085,6 +2095,12 @@ if (acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvi
 if (acceptedSourceReport.apiRouteMountReadyToolsWithProvidedEvidence !== 21) {
   fail('accepted_report_route_mount_ready_tools_not_21')
 }
+if (acceptedSourceReport.externalAgentControlledRouteMountFeatureFlagReadyTools !== 21) {
+  fail('accepted_report_controlled_route_mount_feature_flag_ready_tools_not_21')
+}
+if (acceptedSourceReport.externalAgentControlledRouteMountRequiredForScopedCallTools !== 19) {
+  fail('accepted_report_controlled_route_mount_required_scoped_call_tools_not_19')
+}
 if (acceptedSourceReport.apiRouteMountedNowTools !== 0) {
   fail('accepted_report_route_mounted_now_tools_not_0')
 }
@@ -2662,6 +2678,10 @@ console.log(JSON.stringify({
     acceptedSourceReport.externalBetaCallableRequestAdmissionReadyToolsWithProvidedEvidence,
   apiRouteMountReadyToolsWithProvidedEvidence:
     acceptedSourceReport.apiRouteMountReadyToolsWithProvidedEvidence,
+  externalAgentControlledRouteMountFeatureFlagReadyTools:
+    acceptedSourceReport.externalAgentControlledRouteMountFeatureFlagReadyTools,
+  externalAgentControlledRouteMountRequiredForScopedCallTools:
+    acceptedSourceReport.externalAgentControlledRouteMountRequiredForScopedCallTools,
   apiRouteMountedNowTools: acceptedSourceReport.apiRouteMountedNowTools,
   readyForScopedControlledRouteExecutionNow:
     acceptedSourceReport.readyForScopedControlledRouteExecutionNow,

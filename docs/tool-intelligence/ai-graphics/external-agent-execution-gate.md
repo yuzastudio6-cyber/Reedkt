@@ -140,6 +140,8 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - gpuModelToolsReadyForExecutionAfterCurrentEvidenceWithReadinessProbeEvidence: `6`
 - routeReadinessProbeGpuRuntimeShouldStartNowTools: `0`
 - apiRouteMountReadyToolsWithProvidedEvidence: `21`
+- externalAgentControlledRouteMountFeatureFlagReadyTools: `21`
+- externalAgentControlledRouteMountRequiredForScopedCallTools: `19`
 - apiRouteMountedNowTools: `0`
 - externalBetaReadyNowTools: `0`
 - productionReadyNowTools: `0`
@@ -156,6 +158,8 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - runtime, beta, and production remain blocked
 - tool/capability-specific blocked details remain available for denied runtime/beta/production paths.
 - apiRouteMountedNow=false
+- externalAgentControlledRouteMountFeatureFlagReady=true
+- externalAgentControlledRouteMountedForScopedCallsNow=true
 - exit code `2` remains the blocked require-go exit for missing/incomplete source evidence.
 - agentCanExecute13ControlledRouteToolsNow=true
 - agentCanExecuteToolsNow=true
@@ -307,6 +311,8 @@ This packet is fail-closed. It accepts controlled-route evidence for 13 CPU/stat
 - externalBetaCallableRequestAdmissionReadyWithProvidedEvidence=true
 - routeMountReadyWithProvidedEvidence=true
 - routeMountPreparedButNotMounted=true
+- externalAgentControlledRouteMountFeatureFlagReady=true
+- externalAgentControlledRouteMountedForScopedCallsNow=true
 - cpuStaticLiveAdapterQueueServiceProofAccepted=true
 - allFiveCpuStaticLiveAdapterQueueWriteProofsPassedWithProvidedEvidence=true
 - allFiveCpuStaticMockQueueServiceValidationsPassed=true

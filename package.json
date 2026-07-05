@@ -96,6 +96,7 @@
     "unlock:qwen-beta": "tsx server/cli/qwen-beta-unlock.ts",
     "unlock:qwen-beta:strict": "tsx server/cli/qwen-beta-unlock.ts --strict",
     "unlock:qwen-beta:example": "tsx server/cli/qwen-beta-unlock.ts --example",
+    "probe:qwen-beta-config": "tsx server/cli/qwen-beta-config-probe.ts",
     "doctor:qwen-beta": "tsx server/cli/qwen-beta-doctor.ts",
     "doctor:qwen-beta:strict": "tsx server/cli/qwen-beta-doctor.ts --strict",
     "smoke:qwen-runtime-boundary": "tsx server/smoke/qwen-runtime-boundary-smoke.ts",

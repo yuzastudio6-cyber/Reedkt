@@ -37,12 +37,13 @@ For browser live Marker Chat testing, the frontend must point at the backend bet
 2. Run `npm run unlock:qwen-beta` to verify the local env presence checklist. This command does not call Qwen, Secret Manager, `gcloud`, Supabase, workers, render, or credits.
 3. Run `npm run unlock:qwen-beta:example` when you need placeholder export lines. Replace placeholders outside git-tracked files and never commit secrets.
 4. Run `npm run unlock:qwen-beta:strict` in CI or owner handoff scripts when missing gates should fail fast.
-5. Run `npm run doctor:qwen-beta`.
-6. Continue only if the doctor returns `ready_live_beta`.
-7. Run `npm run smoke:qwen-live-provider`.
-8. Run `npm run smoke:qwen-marker-chat-live`.
-9. On an owner machine with compatible Secret Manager refs, run `npm run smoke:qwen-live-owner-config` to verify doctor, provider, and Marker Chat route together without printing secret names or values.
-10. Run `PLAYWRIGHT_QWEN_LIVE=true PLAYWRIGHT_PORT=<fresh> npx playwright test tests/e2e/project-edit-brief-marker-chat-live.spec.ts` with the backend API server running and frontend live Marker Chat env set.
+5. If strict unlock fails on missing `QWEN_REASONING_*` variables, run `probe:qwen-beta-config` through the `Qwen Beta Config Probe` workflow. It lists matching Secret Manager metadata names only; it never reads secret payloads.
+6. Run `npm run doctor:qwen-beta`.
+7. Continue only if the doctor returns `ready_live_beta`.
+8. Run `npm run smoke:qwen-live-provider`.
+9. Run `npm run smoke:qwen-marker-chat-live`.
+10. On an owner machine with compatible Secret Manager refs, run `npm run smoke:qwen-live-owner-config` to verify doctor, provider, and Marker Chat route together without printing secret names or values.
+11. Run `PLAYWRIGHT_QWEN_LIVE=true PLAYWRIGHT_PORT=<fresh> npx playwright test tests/e2e/project-edit-brief-marker-chat-live.spec.ts` with the backend API server running and frontend live Marker Chat env set.
 
 Fallback success does not unlock live Qwen. Live success requires `providerCallMade: true`, `qwenCallMade: true`, `runtimeSource: qwen_live`, `fallbackUsed: false`, structured response validation, and no secret/frontend/provider payload leakage.
 

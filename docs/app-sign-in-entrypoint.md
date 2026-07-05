@@ -24,6 +24,8 @@ For repeatable local testing only, `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true` lets
 
 For hosted/internal tester auth, run `npm run internal-testing:verify-browser-sign-in` with `REEDITPRO_CONFIRM_INTERNAL_TESTER_BROWSER_SIGN_IN=VERIFY_REEDITPRO_INTERNAL_TESTER_BROWSER_SIGN_IN`, public Supabase URL/anon key, and the tester email/password. That browser-safe Supabase sign-in verifier proves the anon auth path can return a session without printing tokens or using service-role access.
 
+Before using real tester credentials in a hosted browser, run `npm run internal-testing:verify-hosted-sign-in-route` against the deployed app URL. That hosted sign-in route verifier proves `/sign-in?redirect=/internal-testing` is reachable, shows the expected safety surface, and hands off to `/internal-testing` without using credentials.
+
 ## Next Gate
 
 `APP_SIGN_IN_ENTRYPOINT_DEPLOYMENT_AND_SUPABASE_ENV_CONFIGURATION`

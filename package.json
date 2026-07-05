@@ -140,6 +140,8 @@
     "smoke:internal-testing-repeated-local-operator-harness": "tsx server/smoke/internal-testing-repeated-local-operator-harness-smoke.ts",
     "smoke:app-sign-in-entrypoint": "tsx server/smoke/app-sign-in-entrypoint-smoke.ts",
     "smoke:app-internal-testing-pages-deploy-readiness": "tsx server/smoke/app-internal-testing-pages-deploy-readiness-smoke.ts",
+    "internal-testing:verify-hosted-sign-in-route": "tsx server/cli/verify-hosted-sign-in-route-readiness.ts",
+    "smoke:hosted-sign-in-route-readiness": "tsx server/smoke/hosted-sign-in-route-readiness-smoke.ts",
     "smoke:auth-profile-schema-compatibility": "tsx server/smoke/auth-profile-schema-compatibility-smoke.ts",
     "internal-testing:provision-tester": "tsx server/cli/provision-internal-tester.ts",
     "smoke:internal-tester-profile-workspace-provisioning": "tsx server/smoke/internal-tester-profile-workspace-provisioning-smoke.ts",

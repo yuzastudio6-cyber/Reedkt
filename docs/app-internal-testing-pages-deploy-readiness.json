@@ -33,5 +33,5 @@
     "externalBeta": false,
     "production": false
   },
-  "nextGate": "APP_INTERNAL_TESTING_PAGES_DEPLOY_WORKFLOW_RUN_AND_AUTH_READBACK"
+  "nextGate": "HOSTED_SIGN_IN_ROUTE_READINESS_AND_AUTH_READBACK"
 }

@@ -1,0 +1,42 @@
+{
+  "decision": "hosted_sign_in_route_readiness_passed_ready_for_browser_sign_in_verification",
+  "command": "npm run internal-testing:verify-hosted-sign-in-route",
+  "requiredEnv": [
+    "REEDITPRO_CONFIRM_HOSTED_SIGN_IN_ROUTE_READINESS",
+    "REEDITPRO_HOSTED_APP_URL"
+  ],
+  "confirmationValue": "VERIFY_REEDITPRO_HOSTED_SIGN_IN_ROUTE",
+  "optionalEnv": [
+    "PLAYWRIGHT_HOSTED_APP_BASE_URL",
+    "PLAYWRIGHT_BASE_URL",
+    "REEDITPRO_EXPECT_HOSTED_SUPABASE_CONFIGURED"
+  ],
+  "defaultRecommendedUrl": "https://yuzastudio6-cyber.github.io/Reedkt/",
+  "route": "/sign-in?redirect=/internal-testing",
+  "checks": [
+    "hosted_page_reachable",
+    "sign_in_heading_visible",
+    "frontend_anon_auth_boundary_visible",
+    "no_service_role_boundary_visible",
+    "no_tool_execution_boundary_visible",
+    "internal_testing_handoff_visible",
+    "optional_supabase_public_env_configured"
+  ],
+  "blockedScope": {
+    "credentialsSubmitted": false,
+    "serviceRole": false,
+    "supabaseWrite": false,
+    "storageSignedUrls": false,
+    "providerCalls": false,
+    "workerDispatch": false,
+    "toolExecution": false,
+    "mediaProcessing": false,
+    "renderExport": false,
+    "creditReservation": false,
+    "creditSpend": false,
+    "stripe": false,
+    "externalBeta": false,
+    "production": false
+  },
+  "nextGate": "INTERNAL_TESTER_BROWSER_SIGN_IN_VERIFICATION"
+}

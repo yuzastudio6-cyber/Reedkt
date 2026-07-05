@@ -14,6 +14,12 @@ const diagnosticScriptName =
 const diagnosticScriptCommand =
   'node scripts/validation/ai-graphics-external-agent-mounted-blocked-route-smoke-diagnostics.mjs'
 const baseRef = 'origin/codex/rp-ai-graphics-gpu-model-runtime-readiness-gate'
+const expectedRoutePath = '/api/ai-graphics/external-agent/tool-call'
+const expectedRouteMountFlag =
+  'AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED'
+const staleBetaRoutePath = '/api/ai-graphics/external-beta/tool-call'
+const staleBetaRouteMountFlag =
+  'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED'
 
 const allTools = [
   'torch_torchvision',
@@ -365,6 +371,12 @@ const scorecard = read('docs/production-beta-readiness-scorecard.md')
 
 if (docs.decision !== decision) fail('docs_decision_mismatch')
 if (docs.status !== acceptedStatus) fail('docs_status_mismatch')
+if (docs.interfaces?.routePath !== expectedRoutePath) {
+  fail(`docs_route_path_mismatch:${docs.interfaces?.routePath}`)
+}
+if (docs.interfaces?.routeMountFlag !== expectedRouteMountFlag) {
+  fail(`docs_route_mount_flag_mismatch:${docs.interfaces?.routeMountFlag}`)
+}
 assertCounts('docs', docs)
 assertToolRows('docs', docs.tools)
 assertCapabilityRows('docs', docs.capabilities)
@@ -389,11 +401,20 @@ for (const phrase of [
   if (!docsMd.includes(phrase)) fail(`docs_md_missing:${phrase}`)
 }
 
+for (const [label, source] of [
+  ['docs_md', docsMd],
+  ['docs_json', JSON.stringify(docs)],
+  ['cli_source', cliSource],
+]) {
+  if (source.includes(staleBetaRoutePath)) fail(`${label}_stale_beta_route_path`)
+  if (source.includes(staleBetaRouteMountFlag)) fail(`${label}_stale_beta_mount_flag`)
+}
+
 for (const phrase of [
   'createReeditProApiApp',
   'loadRuntimeEnv',
-  'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH',
-  'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED',
+  'AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH',
+  'AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG',
   'listAiGraphicsExternalBetaToolCallBlockedReadinessCases',
   'buildAiGraphicsToolCallHandoffContract',
   'result.statusCode !== 409',
@@ -407,10 +428,13 @@ for (const phrase of [
 }
 
 if (!appSource.includes('env.aiGraphicsExternalBetaToolCallRouteMountEnabled')) {
-  fail('app_route_mount_flag_missing')
+  fail('app_beta_route_mount_flag_missing')
 }
-if (!envSource.includes('AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED')) {
-  fail('env_route_mount_flag_missing')
+if (!appSource.includes('env.aiGraphicsExternalAgentToolCallRouteMountEnabled')) {
+  fail('app_agent_route_mount_flag_missing')
+}
+if (!envSource.includes('AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED')) {
+  fail('env_agent_route_mount_flag_missing')
 }
 if (!routeSource.includes('TOOL_NOT_READY')) fail('route_tool_not_ready_missing')
 if (!routeSource.includes('buildAiGraphicsExternalBetaToolCallBlockedDetails')) {

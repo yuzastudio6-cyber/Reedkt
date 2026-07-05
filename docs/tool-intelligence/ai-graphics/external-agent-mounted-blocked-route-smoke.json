@@ -8,8 +8,8 @@
     "diagnosticScript": "ai-graphics:external-agent-mounted-blocked-route-smoke:diagnostics",
     "cli": "server/cli/ai-graphics-external-agent-mounted-blocked-route-smoke.ts",
     "diagnostic": "scripts/validation/ai-graphics-external-agent-mounted-blocked-route-smoke-diagnostics.mjs",
-    "routePath": "/api/ai-graphics/external-beta/tool-call",
-    "routeMountFlag": "AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED"
+    "routePath": "/api/ai-graphics/external-agent/tool-call",
+    "routeMountFlag": "AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED"
   },
   "counts": {
     "totalAiGraphicsTools": 21,

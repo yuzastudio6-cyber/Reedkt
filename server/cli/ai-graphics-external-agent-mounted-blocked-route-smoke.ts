@@ -5,7 +5,8 @@ import type { AddressInfo } from 'node:net'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
 import {
-  AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+  AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG,
+  AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH,
   type AiGraphicsExternalBetaToolCallRequest,
   listAiGraphicsExternalBetaToolCallBlockedReadinessCases,
 } from '../routes/ai-graphics-external-beta-tool-call-routes'
@@ -14,7 +15,7 @@ import { buildAiGraphicsToolCallHandoffContract } from '../tool-registry/ai-grap
 const decision =
   'ai_graphics_external_agent_mounted_blocked_route_smoke_passed_with_runtime_blocks'
 const status = 'mounted_route_returns_structured_tool_not_ready_for_all_21'
-const routeMountFlag = 'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED'
+const routeMountFlag = AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG
 const outputJsonPath =
   'docs/tool-intelligence/ai-graphics/external-agent-mounted-blocked-route-smoke.json'
 const outputMdPath =
@@ -102,7 +103,7 @@ async function withServer<T>(routeMounted: boolean, callback: (baseUrl: string) 
 }
 
 async function postToolCall(baseUrl: string, request: AiGraphicsExternalBetaToolCallRequest) {
-  const response = await fetch(`${baseUrl}${AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH}`, {
+  const response = await fetch(`${baseUrl}${AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH}`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -371,7 +372,7 @@ const report = {
     diagnosticScript: 'ai-graphics:external-agent-mounted-blocked-route-smoke:diagnostics',
     cli: 'server/cli/ai-graphics-external-agent-mounted-blocked-route-smoke.ts',
     diagnostic: 'scripts/validation/ai-graphics-external-agent-mounted-blocked-route-smoke-diagnostics.mjs',
-    routePath: AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH,
+    routePath: AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH,
     routeMountFlag,
   },
   counts: {
@@ -569,7 +570,7 @@ This packet proves the external-agent AI graphics tool-call route can be mounted
 
 ## Scope
 
-- Route path: \`${AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_PATH}\`
+- Route path: \`${AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_PATH}\`
 - Route mount flag: \`${routeMountFlag}\`
 - AI graphics tools covered: \`${packet.counts.totalAiGraphicsTools}\`
 - Product-facing capabilities covered: \`${packet.counts.totalProductFacingCapabilities}\`

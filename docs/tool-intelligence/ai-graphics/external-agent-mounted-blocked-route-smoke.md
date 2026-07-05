@@ -4,12 +4,12 @@ Decision: `ai_graphics_external_agent_mounted_blocked_route_smoke_passed_with_ru
 
 Status: `mounted_route_returns_structured_tool_not_ready_for_all_21`
 
-This packet proves the external-agent AI graphics tool-call route can be mounted locally behind `AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED=true` and still fail closed for every AI graphics tool and every product-facing capability. The smoke uses the real Express app and the source-controlled route, then verifies structured `409 TOOL_NOT_READY` envelopes. With the feature flag disabled, the same path remains unmounted and returns `404`.
+This packet proves the external-agent AI graphics tool-call route can be mounted locally behind `AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED=true` and still fail closed for every AI graphics tool and every product-facing capability. The smoke uses the real Express app and the source-controlled route, then verifies structured `409 TOOL_NOT_READY` envelopes. With the feature flag disabled, the same path remains unmounted and returns `404`.
 
 ## Scope
 
-- Route path: `/api/ai-graphics/external-beta/tool-call`
-- Route mount flag: `AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOUNT_ENABLED`
+- Route path: `/api/ai-graphics/external-agent/tool-call`
+- Route mount flag: `AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_ENABLED`
 - AI graphics tools covered: `21`
 - Product-facing capabilities covered: `12`
 - Per-tool smoke requests: `21`

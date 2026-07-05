@@ -121,8 +121,8 @@ export function DashboardPage() {
         <Button icon={UploadCloud} to="/projects/new" variant="primary">
           Create project and chat
         </Button>
-        <Button to="/editor" variant="secondary">
-          Open AI chat editor
+        <Button to="/projects/mock-project-edit-chat-foundation" variant="secondary">
+          Open Project Home
         </Button>
         <Button to="/projects" variant="secondary">
           Browse projects

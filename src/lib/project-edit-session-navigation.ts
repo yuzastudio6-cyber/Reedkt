@@ -37,7 +37,7 @@ export function createProjectEditSessionDetailsPath(projectId: string, editSessi
 }
 
 export function createLegacyEditorPath(): string {
-  return '/editor'
+  return '/projects/new'
 }
 
 export function createProjectEditSessionNavigationBoundary(): ProjectEditSessionNavigationBoundary {
@@ -54,7 +54,7 @@ export function createProjectEditSessionNavigationBoundary(): ProjectEditSession
       'Navigation changes route chrome only; it does not start edit execution.',
       'The Brief route is read-only in RP-EDITBRIEF-05; marker creation, Marker Chat, uploads, and export changes remain future work.',
       'Versions and Preview routes show mock history state only; real render/export remains future gated.',
-      'The legacy /editor route remains global/mock and is not session-specific in RP-EDITSESSION-11.',
+      'The retired /editor route redirects to Project start; session-specific testing uses Project Home, Edit Chat, and Brief.',
     ],
   }
 }

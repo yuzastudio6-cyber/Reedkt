@@ -165,8 +165,8 @@ export function EditPlanCard({ approved, onApprove, onRevise, onSaveDraft, plan 
             <h3>Plan approved. ReeditPro would now begin generation in production.</h3>
             <p>No real generation, backend job, payment, or credit deduction happens in this mock frontend.</p>
           </div>
-          <Button to="/editor" variant="primary">
-            Open in AI Editor
+          <Button to="/projects/mock-project-edit-chat-foundation" variant="primary">
+            Open Project Home
           </Button>
         </Card>
       )}

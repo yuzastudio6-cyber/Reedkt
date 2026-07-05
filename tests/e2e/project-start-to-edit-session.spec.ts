@@ -3,6 +3,24 @@ import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import { gotoRoute } from './helpers/routes'
 
 test.describe('Project start to Edit Chat flow', () => {
+  test('keeps the retired editor route out of app navigation', async ({ page }) => {
+    await setViewport(page, 1440)
+
+    await gotoRoute(page, '/dashboard')
+    await expect(page.locator('a[href="/editor"]')).toHaveCount(0)
+    await expect(page.getByRole('link', { name: /Open AI chat editor/i })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: /Open Project Home/i }).first()).toBeVisible()
+
+    await gotoRoute(page, '/projects')
+    await expect(page.locator('a[href="/editor"]')).toHaveCount(0)
+    await expect(page.getByRole('link', { name: /Open AI chat editor/i })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: /Open Project Home/i }).first()).toBeVisible()
+
+    await gotoRoute(page, '/editor')
+    await expect(page).toHaveURL(/\/projects\/new$/)
+    await expect(page.getByRole('heading', { name: /Start with a video category/i })).toBeVisible()
+  })
+
   test('routes category start into Project Home New Edit and then Brief without opening the legacy editor', async ({ page }) => {
     await setViewport(page, 1440)
     await gotoRoute(page, '/projects/new')

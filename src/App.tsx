@@ -4,7 +4,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 const BrandKitPage = lazy(() => import('./pages/BrandKitPage').then((module) => ({ default: module.BrandKitPage })))
 const CreateProjectPage = lazy(() => import('./pages/CreateProjectPage').then((module) => ({ default: module.CreateProjectPage })))
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
-const EditorPage = lazy(() => import('./pages/EditorPage').then((module) => ({ default: module.EditorPage })))
 const EditPreferencesPage = lazy(() => import('./pages/EditPreferencesPage').then((module) => ({ default: module.EditPreferencesPage })))
 const ExportQueuePage = lazy(() => import('./pages/ExportQueuePage').then((module) => ({ default: module.ExportQueuePage })))
 const InternalTestingPage = lazy(() => import('./pages/InternalTestingPage').then((module) => ({ default: module.InternalTestingPage })))
@@ -48,7 +47,7 @@ export default function App() {
         <Route path="/projects/:projectId/edits/:editSessionId/versions" element={<ProjectEditSessionChatPage />} />
         <Route path="/projects/:projectId/edits/:editSessionId/preview" element={<ProjectEditSessionChatPage />} />
         <Route path="/projects/:projectId/edits/:editSessionId/details" element={<ProjectEditSessionChatPage />} />
-        <Route path="/editor" element={<EditorPage />} />
+        <Route path="/editor" element={<Navigate to="/projects/new" replace />} />
         <Route path="/edit-preferences" element={<EditPreferencesPage />} />
         <Route path="/wallet" element={<WalletPage />} />
         <Route path="/pricing" element={<PricingPage />} />

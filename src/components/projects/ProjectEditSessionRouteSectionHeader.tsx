@@ -8,7 +8,7 @@ type ProjectEditSessionRouteSectionHeaderProps = {
 
 function labelFor(section: ProjectEditSessionRouteSection): string {
   if (section === 'project_home') return 'Project Home'
-  if (section === 'legacy_editor') return 'Legacy Editor'
+  if (section === 'legacy_editor') return 'Retired Editor Alias'
   return section.replace(/[-_]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 

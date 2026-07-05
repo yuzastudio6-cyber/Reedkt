@@ -7,7 +7,8 @@
 .clean-edit-brief__upload-card,
 .clean-edit-brief__brief-card,
 .clean-edit-brief__next-card,
-.clean-edit-brief__status-card {
+.clean-edit-brief__status-card,
+.project-edit-plan-approval-card {
   display: grid;
   gap: 14px;
   min-width: 0;
@@ -27,7 +28,8 @@
 .clean-edit-brief__next-card p,
 .clean-edit-brief__next-card li,
 .clean-edit-brief__status-card p,
-.clean-edit-brief__empty-preview span {
+.clean-edit-brief__empty-preview span,
+.project-edit-plan-approval-card p {
   color: var(--rp-text-secondary);
 }
 
@@ -166,6 +168,173 @@
   padding-left: 18px;
 }
 
+.project-edit-plan-approval-card__header {
+  align-items: start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.project-edit-plan-approval-card__header h3,
+.project-edit-plan-approval-card__summary {
+  margin: 0;
+}
+
+.project-edit-plan-approval-card__steps {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-edit-plan-approval-card__steps li {
+  align-items: start;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-secondary);
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.project-edit-plan-approval-card__steps svg {
+  color: var(--rp-brand-cyan);
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.project-edit-plan-approval-card__steps strong {
+  color: var(--rp-text-primary);
+  display: block;
+  font-size: 0.84rem;
+  margin-bottom: 3px;
+}
+
+.project-edit-plan-approval-card__estimate {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.project-edit-plan-approval-card__estimate span {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-secondary);
+  display: grid;
+  font-size: 0.78rem;
+  gap: 2px;
+  padding: 10px;
+}
+
+.project-edit-plan-approval-card__estimate strong {
+  color: var(--rp-text-primary);
+  font-size: 1.1rem;
+}
+
+.project-edit-plan-approval-card__blockers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-edit-plan-approval-card__blockers span {
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.28);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  font-size: 0.76rem;
+  padding: 6px 9px;
+}
+
+.project-edit-lifecycle-card {
+  display: grid;
+  gap: 14px;
+}
+
+.project-edit-lifecycle-card__header {
+  align-items: start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.project-edit-lifecycle-card__header h3,
+.project-edit-lifecycle-card__header p {
+  margin: 0;
+}
+
+.project-edit-lifecycle-card__header p {
+  color: var(--rp-text-secondary);
+}
+
+.project-edit-lifecycle-card__list {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-edit-lifecycle-card__stage {
+  align-items: start;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  padding: 10px;
+}
+
+.project-edit-lifecycle-card__stage--complete {
+  border-color: rgba(34, 197, 94, 0.28);
+}
+
+.project-edit-lifecycle-card__stage--ready {
+  border-color: rgba(0, 229, 255, 0.24);
+}
+
+.project-edit-lifecycle-card__stage svg {
+  color: var(--rp-brand-cyan);
+  margin-top: 2px;
+}
+
+.project-edit-lifecycle-card__stage strong {
+  display: block;
+  font-size: 0.82rem;
+  margin-bottom: 3px;
+}
+
+.project-edit-lifecycle-card__stage p {
+  color: var(--rp-text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.project-edit-lifecycle-card__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-edit-lifecycle-card__facts span {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  font-size: 0.76rem;
+  padding: 7px 10px;
+}
+
 .project-edit-brief-workspace,
 .project-edit-brief-main,
 .project-edit-brief-side-panel,
@@ -268,7 +437,7 @@
 
 .project-edit-brief-source-video-picker {
   align-items: start;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .project-edit-brief-source-video-picker h3,
@@ -278,7 +447,7 @@
 
 .project-edit-brief-source-video-picker__actions {
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .project-edit-brief-source-video-picker__input {

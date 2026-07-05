@@ -16,6 +16,9 @@ import type {
 type ProjectEditBriefLocalPreviewSmokeCardProps = {
   config: ProjectSourceVideoLocalEditPreviewConfig
   editSessionId: string
+  onPreviewReady?: (result: ProjectSourceVideoLocalEditPreviewResult) => void
+  planApproved?: boolean
+  planApprovalBlockedMessage?: string
   projectId: string
   sourceVideoAspectRatio?: string
   sourceVideoDurationSeconds?: number
@@ -47,6 +50,9 @@ function formatBytes(value: number | undefined): string {
 export function ProjectEditBriefLocalPreviewSmokeCard({
   config,
   editSessionId,
+  onPreviewReady,
+  planApproved = false,
+  planApprovalBlockedMessage = 'Approve the local edit plan and credit estimate before running this preview.',
   projectId,
   sourceVideoAspectRatio,
   sourceVideoDurationSeconds,
@@ -58,16 +64,18 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
   const fallbackStatus: ProjectSourceVideoLocalEditPreviewStatus = !config.available
     ? 'unavailable'
     : sourceVideoUploadResult
-      ? 'idle'
+      ? planApproved
+        ? 'idle'
+        : 'blocked'
       : 'waiting_for_upload'
   const status = runStateMatchesSource ? runState?.status ?? fallbackStatus : fallbackStatus
   const result: ProjectSourceVideoLocalEditPreviewResult | undefined = runStateMatchesSource ? runState?.result : undefined
   const error = runStateMatchesSource ? runState?.error : undefined
 
-  const disabled = !config.available || !sourceVideoUploadResult || status === 'running'
+  const disabled = !config.available || !sourceVideoUploadResult || !planApproved || status === 'running'
 
   async function runPreviewSmoke() {
-    if (!config.available || !config.apiBaseUrl || !sourceVideoUploadResult) return
+    if (!config.available || !config.apiBaseUrl || !sourceVideoUploadResult || !planApproved) return
     const currentSourceKey = sourceVideoUploadResult.storageObjectRecordId
     setRunState({ sourceKey: currentSourceKey, status: 'running' })
     try {
@@ -85,6 +93,7 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
         status: 'preview_ready',
         result: previewResult,
       })
+      onPreviewReady?.(previewResult)
     } catch (caught) {
       setRunState({
         sourceKey: currentSourceKey,
@@ -99,9 +108,9 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
       <div className="project-edit-brief-local-preview-smoke__header">
         <div>
           <span className="section-eyebrow">Local edit preview</span>
-          <h3>Approve and render a test preview</h3>
+          <h3>Render a test preview</h3>
           <p>
-            Runs the internal approved-snapshot, credit-reservation, worker, and preview gates against the uploaded local source.
+            Runs the internal approved-snapshot, credit-reservation, worker, and preview gates after local plan approval.
           </p>
         </div>
         <Badge accent={status === 'preview_ready' ? 'success' : status === 'failed' ? 'danger' : 'cyan'}>
@@ -117,7 +126,7 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
         type="button"
         variant="primary"
       >
-        {status === 'running' ? 'Creating preview' : 'Run local edit preview'}
+        {status === 'running' ? 'Creating preview' : planApproved ? 'Run local edit preview' : 'Approve plan first'}
       </Button>
       <div className="project-edit-brief-local-preview-smoke__status" data-testid="project-source-video-local-preview-smoke-status">
         {result ? (
@@ -128,7 +137,13 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
             <span><strong>Main brain</strong>{result.qwenMainBrainLabel} identity recorded, no live call</span>
           </>
         ) : (
-          <span>{sourceVideoUploadResult ? config.message : 'Upload the source video to backend-local storage before running this test preview.'}</span>
+          <span>
+            {sourceVideoUploadResult
+              ? planApproved
+                ? config.message
+                : planApprovalBlockedMessage
+              : 'Upload the source video to backend-local storage before running this test preview.'}
+          </span>
         )}
       </div>
       {error ? <p className="project-edit-brief-source-video-picker__error">{error}</p> : null}

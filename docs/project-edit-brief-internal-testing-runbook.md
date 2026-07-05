@@ -13,13 +13,14 @@ Edit Brief is optional. Chat remains default. Marker Chat is marker-scoped. Atta
 7. Select a local source video, open a saved marker, run Analyze Visual Context, and verify a structured visual summary or explicit Qwen2.5-VL fallback appears.
 8. For backend-local upload testing, run `npm run dev:internal-testing:local-upload`, open `/sign-in`, and sign in with a browser-local internal-testing session. This runner-only mock sign-in does not call Supabase or create backend auth records.
 9. Open the Brief route at the printed local URL, select a source video, click `Upload for testing`, and verify backend-local source upload status changes to uploaded with canonical bucket/object metadata.
-10. For local edit preview testing, click `Run local edit preview` and verify the preview-only local edit smoke reaches preview-ready metadata after mock credit approval/reservation and approved-snapshot gates.
-11. Confirm Marker Chat shows visual context available or fallback-used without sending raw frames to Qwen 3.7 Max prompts. Qwen 3.7 Max remains the main-brain reasoning identity for Brief planning/Marker Chat text reasoning, not raw video processing.
-12. Add a metadata-only B-roll attachment and confirm upload controls stay disabled.
-13. Review and save Export Settings as mock metadata.
-14. Run Brief QA and inspect findings/conflicts.
-15. Prepare Brief Plan Hints and inspect included/skipped counts plus application log.
-16. Return to Chat and confirm no provider/final export/production UI appears.
+10. Save the brief, click `Approve local test plan`, and verify the visible credit estimate gate is approved before preview.
+11. For local edit preview testing, click `Run local edit preview` and verify the preview-only local edit smoke reaches preview-ready metadata after mock credit approval/reservation and approved-snapshot gates.
+12. Confirm Marker Chat shows visual context available or fallback-used without sending raw frames to Qwen 3.7 Max prompts. Qwen 3.7 Max remains the main-brain reasoning identity for Brief planning/Marker Chat text reasoning, not raw video processing.
+13. Add a metadata-only B-roll attachment and confirm upload controls stay disabled.
+14. Review and save Export Settings as mock metadata.
+15. Run Brief QA and inspect findings/conflicts.
+16. Prepare Brief Plan Hints and inspect included/skipped counts plus application log.
+17. Return to Chat and confirm no provider/final export/production UI appears.
 
 ## Expected Outcome
 

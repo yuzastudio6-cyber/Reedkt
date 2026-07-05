@@ -92,6 +92,12 @@ test.describe('Project source video backend-local upload against real local API'
     const fixtureStat = await stat(fixturePath)
     expect(objectStat.size).toBe(fixtureStat.size)
 
+    await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Approve the local edit plan and credit estimate')
+    await page.getByRole('button', { name: /Save brief/i }).click()
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Brief saved locally')
+    await expect(page.getByTestId('project-edit-plan-credit-estimate')).toContainText('expected')
+    await page.getByRole('button', { name: /Approve local test plan/i }).click()
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Local edit plan and credit estimate approved')
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Local edit preview smoke is available')
     await page.getByRole('button', { name: /Run local edit preview/i }).click()
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Preview object', { timeout: 30_000 })

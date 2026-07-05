@@ -83,6 +83,7 @@ assert.match(realApiSpec, /PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_REAL_API/)
 assert.match(realApiSpec, /project-source-video-backend-upload-status/)
 assert.match(realApiSpec, /project-source-video-local-preview-smoke-status/)
 assert.match(realApiSpec, /Source video uploaded to backend-local storage metadata/)
+assert.match(realApiSpec, /Approve local test plan/)
 assert.match(realApiSpec, /Run local edit preview/)
 assert.match(realApiSpec, /provider call made:\\s\*true/)
 assert.match(realApiSpec, /live qwen call:\\s\*true/)
@@ -108,6 +109,8 @@ for (const phrase of [
 const previewCard = read('src/components/projects/brief/ProjectEditBriefLocalPreviewSmokeCard.tsx')
 assert.match(previewCard, /project-source-video-local-preview-smoke-status/)
 assert.match(previewCard, /project-source-video-local-preview-smoke-button/)
+assert.match(previewCard, /planApproved/)
+assert.match(previewCard, /Approve plan first/)
 assert.match(previewCard, /Run local edit preview/)
 assert.match(previewCard, /Qwen/)
 assert.match(previewCard, /no live call/i)
@@ -122,6 +125,7 @@ for (const phrase of [
   'browser-local mock auth session',
   'http://127.0.0.1:5179/projects',
   'Upload for testing',
+  'Approve local test plan',
   'Run local edit preview',
   'backend-local storage metadata',
   'preview-only local edit smoke',

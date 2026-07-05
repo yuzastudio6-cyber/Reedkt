@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { MessageSquareText } from 'lucide-react'
 import { Button } from '../../Button'
 import { Card } from '../../Card'
+import { ProjectEditPlanApprovalCard } from '../ProjectEditPlanApprovalCard'
 import { ProjectEditLifecycleStatusCard } from '../ProjectEditLifecycleStatusCard'
+import { buildProjectEditPlanApprovalModel } from '../../../lib/project-edit-plan-approval'
 import { buildProjectEditLifecycleModel } from '../../../lib/project-edit-lifecycle'
 import {
   createProjectSourceVideoBackendUploadConfig,
@@ -52,6 +54,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
   const [playheadSeconds, setPlayheadSeconds] = useState(0)
   const [briefText, setBriefText] = useState('Clean pacing, readable captions, natural sound, and no flashy transitions unless the edit asks for it.')
   const [briefSaved, setBriefSaved] = useState(false)
+  const [planApproved, setPlanApproved] = useState(false)
   const [statusMessage, setStatusMessage] = useState('Ready for source video and brief notes.')
   const sourceVideoRef = useRef<ProjectSourceVideoLocalPreview | undefined>(undefined)
 
@@ -73,6 +76,17 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     title: sourceVideo?.fileName ?? 'Source video',
     mockPosterLabel: 'Select a source video',
   }), [playheadSeconds, sourceVideo])
+  const planApprovalModel = useMemo(() => buildProjectEditPlanApprovalModel({
+    approved: planApproved,
+    backendUploadResult,
+    briefSaved,
+    briefText,
+    editSessionId,
+    projectId,
+    sourceAspectRatio: sourceVideo?.inferredAspectRatio,
+    sourceDurationSeconds: sourceVideo?.durationSeconds,
+    sourceFileName: sourceVideo?.fileName,
+  }), [backendUploadResult, briefSaved, briefText, editSessionId, planApproved, projectId, sourceVideo])
   const lifecycle = useMemo(() => buildProjectEditLifecycleModel({
     backendUploadAvailable: backendUploadConfig.available,
     backendUploadResult,
@@ -81,8 +95,10 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     editSessionId,
     hasLocalSourceVideo: Boolean(sourceVideo),
     localPreviewResult,
+    planApproved: planApprovalModel.approved,
+    planReady: planApprovalModel.canApprove || planApprovalModel.approved,
     projectId,
-  }), [backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localPreviewResult, projectId, sourceVideo])
+  }), [backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, projectId, sourceVideo])
 
   function handleVideoSelected(file?: File) {
     if (!file) return
@@ -94,6 +110,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
       setBackendUploadResult(undefined)
       setBackendUploadError(undefined)
       setLocalPreviewResult(undefined)
+      setPlanApproved(false)
       setBackendUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
       setPlayheadSeconds(0)
       setPlaying(false)
@@ -111,6 +128,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     setBackendUploadResult(undefined)
     setBackendUploadError(undefined)
     setLocalPreviewResult(undefined)
+    setPlanApproved(false)
     setBackendUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
     setPlayheadSeconds(0)
     setPlaying(false)
@@ -133,6 +151,8 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     if (!sourceFile || !backendUploadConfig.available || !backendUploadConfig.apiBaseUrl) return
     setBackendUploadStatus('uploading')
     setBackendUploadError(undefined)
+    setLocalPreviewResult(undefined)
+    setPlanApproved(false)
     try {
       const result = await uploadProjectSourceVideoToBackend({
         apiBaseUrl: backendUploadConfig.apiBaseUrl,
@@ -153,7 +173,22 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
 
   function saveBrief() {
     setBriefSaved(true)
+    setLocalPreviewResult(undefined)
     setStatusMessage('Brief saved locally for this edit workspace.')
+  }
+
+  function updateBriefText(value: string) {
+    setBriefText(value)
+    setBriefSaved(false)
+    setLocalPreviewResult(undefined)
+    setPlanApproved(false)
+  }
+
+  function approveLocalPlan() {
+    if (!planApprovalModel.canApprove) return
+    setPlanApproved(true)
+    setLocalPreviewResult(undefined)
+    setStatusMessage('Local edit plan and credit estimate approved for internal preview smoke only.')
   }
 
   return (
@@ -208,7 +243,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
             <label htmlFor="clean-edit-brief-text">Instructions</label>
             <textarea
               id="clean-edit-brief-text"
-              onChange={(event) => setBriefText(event.currentTarget.value)}
+              onChange={(event) => updateBriefText(event.currentTarget.value)}
               rows={6}
               value={briefText}
             />
@@ -221,16 +256,17 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
         <aside className="clean-edit-brief__side">
           <Card className="clean-edit-brief__next-card">
             <span className="section-eyebrow">Next</span>
-            <h3>Plan after upload</h3>
+            <h3>Approve the test plan</h3>
             <p>
-              The next production step is to analyze the selected source video, create the edit plan, show the credit estimate, and wait for approval before execution.
+              After upload and brief save, approve the local edit plan and credit estimate before any preview smoke can run.
             </p>
             <ul>
               <li>Video stays inside this edit workspace.</li>
-              <li>Planning and credits happen after the brief is ready.</li>
+              <li>Plan approval is explicit and reversible by changing the brief.</li>
               <li>Editing tools do not run from this UI screen.</li>
             </ul>
           </Card>
+          <ProjectEditPlanApprovalCard model={planApprovalModel} onApprove={approveLocalPlan} />
           <Card className="clean-edit-brief__status-card">
             <span className="section-eyebrow">Status</span>
             <p data-testid="project-edit-brief-status">{statusMessage}</p>
@@ -238,6 +274,12 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
           <ProjectEditBriefLocalPreviewSmokeCard
             config={localPreviewConfig}
             editSessionId={editSessionId}
+            onPreviewReady={(result) => {
+              setLocalPreviewResult(result)
+              setStatusMessage('Preview-only internal smoke completed. Final export and real tool execution remain blocked.')
+            }}
+            planApproved={planApprovalModel.approved}
+            planApprovalBlockedMessage="Approve the local edit plan and credit estimate before running preview smoke."
             projectId={projectId}
             sourceVideoAspectRatio={sourceVideo?.inferredAspectRatio}
             sourceVideoDurationSeconds={sourceVideo?.durationSeconds}

@@ -34,6 +34,8 @@ export interface ProjectEditLifecycleInput {
   editSessionId: string
   hasLocalSourceVideo: boolean
   localPreviewResult?: ProjectSourceVideoLocalEditPreviewResult
+  planApproved: boolean
+  planReady: boolean
   projectId: string
 }
 
@@ -63,15 +65,15 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
   const backendUploaded = input.backendUploadResult?.status === 'uploaded'
   const internalPreviewReady = input.localPreviewResult?.status === 'preview_ready'
   const backendUploadAllowed = input.hasLocalSourceVideo && input.backendUploadAvailable && input.backendUploadStatus !== 'uploading'
-  const internalPreviewAllowed = backendUploaded && input.briefSaved
+  const internalPreviewAllowed = backendUploaded && input.briefSaved && input.planApproved
 
   const blockers = [
     input.hasLocalSourceVideo ? undefined : 'source_video_required',
     backendUploaded ? undefined : 'backend_local_upload_required',
     input.briefSaved ? undefined : 'brief_save_required',
-    'edit_plan_generation_required',
-    'credit_estimate_and_approval_required',
-    'approved_plan_snapshot_required',
+    input.planReady ? undefined : 'edit_plan_required',
+    input.planApproved ? undefined : 'plan_credit_approval_required',
+    internalPreviewReady ? undefined : 'approved_plan_snapshot_required',
     'professional_qa_and_final_export_required',
   ].filter(Boolean) as string[]
 
@@ -108,16 +110,37 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
         ? 'The edit brief is saved locally for this edit workspace.'
         : 'Save the editing direction before planning or preview work starts.',
     ),
-    stage('edit_plan_required', 'Edit plan required', 'blocked', 'A professional edit plan still has to be generated from source, brief, timing, layout, and tool strategy.'),
-    stage('credit_approval_required', 'Credit approval required', 'blocked', 'The user must approve the edit plan and credit estimate before expensive work.'),
-    stage('approved_snapshot_required', 'Approved snapshot required', 'blocked', 'Workers must execute an approved immutable plan snapshot, not raw chat text.'),
+    stage(
+      'edit_plan_required',
+      'Edit plan required',
+      input.planReady ? 'complete' : backendUploaded && input.briefSaved ? 'ready' : 'blocked',
+      input.planReady
+        ? 'A local test edit plan and credit estimate are ready for this edit.'
+        : 'Create the edit plan from source, brief, timing, layout, and tool strategy before preview work starts.',
+    ),
+    stage(
+      'credit_approval_required',
+      'Credit approval required',
+      input.planApproved ? 'complete' : input.planReady ? 'ready' : 'blocked',
+      input.planApproved
+        ? 'The local test plan and credit estimate have been approved for internal preview smoke only.'
+        : 'The user must approve the edit plan and credit estimate before any preview or expensive work.',
+    ),
+    stage(
+      'approved_snapshot_required',
+      'Approved snapshot required',
+      internalPreviewReady ? 'complete' : input.planApproved ? 'ready' : 'blocked',
+      internalPreviewReady
+        ? 'The preview smoke created an approved local snapshot record for this test run.'
+        : 'Workers must execute an approved immutable plan snapshot, not raw chat text.',
+    ),
     stage(
       'internal_preview_ready',
       'Internal preview smoke',
       internalPreviewReady ? 'complete' : internalPreviewAllowed ? 'ready' : 'blocked',
       internalPreviewReady
         ? 'A preview-only internal smoke result exists for this local source.'
-        : 'Available only after backend-local upload and brief save; it does not approve production execution.',
+        : 'Available only after backend-local upload, brief save, and local plan approval; it does not approve production execution.',
     ),
     stage('final_export_blocked', 'Final export', 'blocked', 'Final export stays blocked until professional QA, artifact readiness, and release gates pass.'),
   ]
@@ -132,9 +155,13 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
         ? 'Upload the selected source through the backend-local upload gate.'
         : !input.briefSaved
           ? 'Save the edit brief.'
+          : !input.planReady
+            ? 'Review the local edit plan and credit estimate.'
+            : !input.planApproved
+              ? 'Approve the local edit plan and credit estimate before preview.'
           : internalPreviewReady
             ? 'Generate the real edit plan and credit estimate next.'
-            : 'Run the preview-only internal smoke or continue to planning.',
+            : 'Run the preview-only internal smoke.',
     blockers,
     internalPreviewAllowed,
     backendUploadAllowed,

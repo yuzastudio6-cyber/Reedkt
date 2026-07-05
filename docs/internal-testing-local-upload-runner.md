@@ -12,7 +12,7 @@ For a one-command verification of the same path, run:
 npm run test:internal-testing:local-upload-e2e
 ```
 
-The verifier starts the API and app, requires local `ffmpeg` for the tiny synthetic Playwright fixture, signs in through browser-local internal testing auth, uploads through the real local API upload-intent endpoints, runs the preview-only local edit smoke, verifies Qwen 3.7 Max is recorded as the reasoning identity without a live call, then shuts the stack down and removes local test artifacts.
+The verifier starts the API and app, requires local `ffmpeg` for the tiny synthetic Playwright fixture, signs in through browser-local internal testing auth, uploads through the real local API upload-intent endpoints, saves the brief, approves the local test plan and credit estimate, runs the preview-only local edit smoke, verifies Qwen 3.7 Max is recorded as the reasoning identity without a live call, then shuts the stack down and removes local test artifacts.
 
 Open:
 
@@ -21,7 +21,7 @@ Open:
 - Edit Brief source-video test: `http://127.0.0.1:5179/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief`
 - API health: `http://127.0.0.1:9781/health`
 
-Start at the Sign-in route, enter any valid internal-testing email format plus an 8+ character password, and submit. In this runner only, `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true` creates a browser-local mock auth session and opens `/internal-testing`. From there, open the Edit Brief route, select a source video, click `Upload for testing`, then click `Run local edit preview`.
+Start at the Sign-in route, enter any valid internal-testing email format plus an 8+ character password, and submit. In this runner only, `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true` creates a browser-local mock auth session and opens `/internal-testing`. From there, open the Edit Brief route, select a source video, click `Upload for testing`, save the brief, click `Approve local test plan`, then click `Run local edit preview`.
 
 ## What It Enables
 
@@ -29,6 +29,7 @@ Start at the Sign-in route, enter any valid internal-testing email format plus a
 - Browser-local mock sign-in for repeated internal testing. It does not send credentials to Supabase or create backend auth records.
 - Backend-local upload through the upload-intent, local-object PUT, and finalize endpoints.
 - Backend-local storage metadata and canonical bucket/object metadata displayed in the Edit Brief UI.
+- A visible local plan and credit estimate approval gate before preview smoke.
 - A preview-only local edit smoke path that creates mock credit approval/reservation records, creates a mock approved snapshot, claims a local worker, and writes a canonical preview object when local media tools are available.
 - Mock auth for repeated internal testing.
 - Local filesystem storage under `.reeditpro-local-upload-storage-dev`.
@@ -58,4 +59,4 @@ PLAYWRIGHT_LOCAL_UPLOAD_STORAGE_ROOT=.reeditpro-local-upload-storage-playwright 
 npx playwright test tests/e2e/project-source-video-backend-upload-local-api.spec.ts
 ```
 
-The spec uses the real local API. It does not intercept upload or preview routes. It asserts the source video reaches backend-local storage metadata, the local preview reaches preview-ready metadata, and no provider, live Qwen, final export, Supabase, GCS, beta, production, or product-ready signal appears.
+The spec uses the real local API. It does not intercept upload or preview routes. It asserts the source video reaches backend-local storage metadata, the local plan and credit estimate are approved before preview, the local preview reaches preview-ready metadata, and no provider, live Qwen, final export, Supabase, GCS, beta, production, or product-ready signal appears.

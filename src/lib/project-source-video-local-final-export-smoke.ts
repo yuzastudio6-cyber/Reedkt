@@ -146,6 +146,12 @@ export async function runProjectSourceVideoLocalFinalExportSmoke(
   if (input.professionalQAResult.sourceStorageObjectRecordId !== input.sourceVideoUploadResult.storageObjectRecordId) {
     throw new Error('Final export professional QA must reference the same source object selected for export.')
   }
+  if (input.professionalQAResult.briefLineage.briefFingerprint !== input.previewResult.briefLineage.briefFingerprint) {
+    throw new Error('Final export professional QA must reference the same approved brief lineage as the preview.')
+  }
+  if (input.previewResult.editAssembly?.briefLineage.briefFingerprint !== input.previewResult.briefLineage.briefFingerprint) {
+    throw new Error('Final export preview assembly must reference the approved brief lineage.')
+  }
   if (!input.sourceVideoUploadResult.mediaAssetId) {
     throw new Error('Final export requires a finalized media asset id from backend-local upload.')
   }
@@ -218,6 +224,7 @@ export async function runProjectSourceVideoLocalFinalExportSmoke(
   return {
     status: 'final_export_ready',
     editPlanId: input.editPlanId,
+    briefLineage: input.previewResult.briefLineage,
     approvedPlanSnapshotId: input.previewResult.approvedPlanSnapshotId,
     creditReservationId: input.previewResult.creditReservationId,
     renderJobId: renderJob.id,

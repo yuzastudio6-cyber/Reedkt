@@ -43,6 +43,12 @@ interface LocalEditPlanCreditEstimateInput {
   serviceFeeIncluded: false
 }
 
+interface LocalEditPlanBriefLineageInput {
+  briefId: string
+  revisionNumber: number
+  briefFingerprint: string
+}
+
 interface LocalEditPlanSourceInput {
   storageObjectRecordId: string
   mediaAssetId?: string
@@ -64,6 +70,7 @@ interface CreateApprovedLocalEditPlanInput {
   steps: LocalEditPlanStepInput[]
   operationManifest: LocalEditPlanOperationManifestInput
   creditEstimate: LocalEditPlanCreditEstimateInput
+  briefLineage: LocalEditPlanBriefLineageInput
   source: LocalEditPlanSourceInput
 }
 
@@ -83,9 +90,11 @@ export interface ApprovedLocalEditPlanRecord {
     planId: string
     steps: LocalEditPlanStepInput[]
     operationManifest: LocalEditPlanOperationManifestInput
+    briefLineage: LocalEditPlanBriefLineageInput
     summary: string
     title: string
   }
+  briefLineage: LocalEditPlanBriefLineageInput
   source: LocalEditPlanSourceInput
   backendLocalPlanStored: true
   readbackVerified?: true
@@ -141,12 +150,14 @@ export function createProjectEditPlanService(context: ServiceContext) {
         approvedLocalPlan: {
           approved: true,
           creditEstimate: input.creditEstimate,
+          briefLineage: sanitizeBriefLineage(input.briefLineage),
           operationManifest: sanitizeOperationManifest(input.operationManifest),
           planId: input.planId,
           steps: input.steps.map((step) => sanitizePlanStep(step)),
           summary: sanitizePlanText(input.summary),
           title: sanitizePlanText(input.title),
         },
+        briefLineage: sanitizeBriefLineage(input.briefLineage),
         source: {
           ...input.source,
           fileName: sanitizePlanText(input.source.fileName),
@@ -204,6 +215,8 @@ function assertSafePlanText(input: CreateApprovedLocalEditPlanInput): void {
     input.planId,
     input.title,
     input.summary,
+    input.briefLineage.briefId,
+    input.briefLineage.briefFingerprint,
     input.source.bucketName,
     input.source.objectPath,
     input.source.fileName,
@@ -223,6 +236,14 @@ function assertSafePlanText(input: CreateApprovedLocalEditPlanInput): void {
 
   if (unsafeText) {
     throw new ApiError('VALIDATION_FAILED', 'Approved local edit plan contains secret-like or signed URL text.', 400)
+  }
+}
+
+function sanitizeBriefLineage(briefLineage: LocalEditPlanBriefLineageInput): LocalEditPlanBriefLineageInput {
+  return {
+    briefId: sanitizePlanText(briefLineage.briefId),
+    revisionNumber: Math.max(1, Math.floor(briefLineage.revisionNumber || 1)),
+    briefFingerprint: sanitizePlanText(briefLineage.briefFingerprint),
   }
 }
 

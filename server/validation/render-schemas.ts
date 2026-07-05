@@ -31,8 +31,15 @@ const basicRenderSmokeEditAssemblyStepSchema = z.object({
   summary: z.string().min(1).max(600),
 })
 
+const basicRenderSmokeBriefLineageSchema = z.object({
+  briefId: idSchema,
+  revisionNumber: z.number().int().positive(),
+  briefFingerprint: z.string().min(1).max(120),
+})
+
 export const basicRenderSmokeEditAssemblyPlanSchema = z.object({
   planId: idSchema,
+  briefLineage: basicRenderSmokeBriefLineageSchema,
   title: z.string().min(1).max(180),
   summary: z.string().min(1).max(2000),
   steps: z.array(basicRenderSmokeEditAssemblyStepSchema).min(1).max(12),

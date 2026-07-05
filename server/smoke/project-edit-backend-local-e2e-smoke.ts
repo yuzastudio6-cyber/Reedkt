@@ -212,6 +212,7 @@ try {
   const approvedPlan = await approveProjectEditPlanBackendLocal({
     apiBaseUrl,
     approvedLocalPlan: plan,
+    editBrief: brief.readback,
     editSessionId,
     projectId: project.project.id,
     sourceVideoUploadResult: upload,
@@ -220,6 +221,8 @@ try {
   })
   assert.equal(approvedPlan.localEditPlan.readbackVerified, true)
   assert.equal(approvedPlan.localEditPlan.productReady, false)
+  assert.equal(approvedPlan.localEditPlan.briefLineage.briefId, brief.readback.id)
+  assert.equal(approvedPlan.localEditPlan.approvedLocalPlan.briefLineage.briefFingerprint, approvedPlan.localEditPlan.briefLineage.briefFingerprint)
   assert.equal(approvedPlan.localEditPlan.approvedLocalPlan.operationManifest.operations.length, plan.operationManifest.operations.length)
   assert.equal(approvedPlan.localEditPlan.approvedLocalPlan.operationManifest.workerExecutionReady, false)
 
@@ -248,6 +251,7 @@ try {
     getAccessToken: async () => undefined,
   })
   assert.equal(preview.status, 'preview_ready')
+  assert.deepEqual(preview.briefLineage, approvedPlan.localEditPlan.briefLineage)
   assert.equal(preview.previewOnly, true)
   assert.equal(preview.productReady, false)
   assert.ok(preview.outputObjectPath?.includes('/previews/'))
@@ -310,6 +314,7 @@ try {
   })
   assert.equal(professionalQA.status, 'passed')
   assert.equal(professionalQA.sourceStorageObjectRecordId, preview.sourceStorageObjectRecordId)
+  assert.deepEqual(professionalQA.briefLineage, preview.briefLineage)
   assert.equal(professionalQA.productReady, false)
   assert.deepEqual(professionalQA.blockers, [])
 
@@ -382,6 +387,7 @@ try {
   assert.ok(finalExport.outputObjectPath?.includes('/exports/'))
   assert.equal(finalExport.editAssembly?.planId, approvedPlan.localEditPlan.editPlanId)
   assert.equal(finalExport.editAssembly?.mode, 'private_final_export')
+  assert.deepEqual(finalExport.briefLineage, preview.briefLineage)
   assert.equal(finalExport.editAssembly?.professionalOperationCount, approvedPlan.localEditPlan.approvedLocalPlan.operationManifest.operations.length)
   assert.ok(finalExport.editAssembly?.requiredQaChecks?.includes('approved_snapshot_used'))
   assert.ok(finalExport.editAssembly?.operationsApplied.includes('approved_preview_review_carried_forward'))

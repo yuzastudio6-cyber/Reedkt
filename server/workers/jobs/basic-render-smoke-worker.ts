@@ -74,6 +74,12 @@ function editAssemblyPlanFromPayload(payload: Record<string, unknown>): BasicRen
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
   const record = value as Record<string, unknown>
   const planId = stringFromPayload(record, 'planId')
+  const briefLineageRecord = !record.briefLineage || typeof record.briefLineage !== 'object' || Array.isArray(record.briefLineage)
+    ? undefined
+    : record.briefLineage as Record<string, unknown>
+  const briefId = briefLineageRecord ? stringFromPayload(briefLineageRecord, 'briefId') : undefined
+  const briefRevisionNumber = briefLineageRecord ? numberFromPayload(briefLineageRecord, 'revisionNumber') : undefined
+  const briefFingerprint = briefLineageRecord ? stringFromPayload(briefLineageRecord, 'briefFingerprint') : undefined
   const title = stringFromPayload(record, 'title')
   const summary = stringFromPayload(record, 'summary')
   const rawSteps = Array.isArray(record.steps) ? record.steps : []
@@ -88,10 +94,15 @@ function editAssemblyPlanFromPayload(payload: Record<string, unknown>): BasicRen
     })
     .filter(Boolean) as BasicRenderSmokeEditAssemblyStep[]
 
-  if (!planId || !title || !summary || steps.length === 0) return undefined
+  if (!planId || !briefId || !briefRevisionNumber || !briefFingerprint || !title || !summary || steps.length === 0) return undefined
 
   return {
     planId,
+    briefLineage: {
+      briefId,
+      revisionNumber: briefRevisionNumber,
+      briefFingerprint,
+    },
     title,
     summary,
     steps,

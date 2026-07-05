@@ -465,7 +465,7 @@ export function ProjectEditBriefWorkspace({
   }
 
   async function approveLocalPlan() {
-    if (!planApprovalModel.canApprove || !backendUploadResult || !backendUploadConfig.apiBaseUrl) return
+    if (!planApprovalModel.canApprove || !backendUploadResult || !backendSavedBrief?.readbackVerified || !backendUploadConfig.apiBaseUrl) return
     const approvedPlanForBackend: ProjectEditPlanApprovalModel = {
       ...planApprovalModel,
       approved: true,
@@ -482,6 +482,7 @@ export function ProjectEditBriefWorkspace({
       const result = await approveProjectEditPlanBackendLocal({
         apiBaseUrl: backendUploadConfig.apiBaseUrl,
         approvedLocalPlan: approvedPlanForBackend,
+        editBrief: backendSavedBrief,
         editSessionId,
         projectId,
         sourceVideoUploadResult: backendUploadResult,

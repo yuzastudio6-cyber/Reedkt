@@ -31,6 +31,7 @@ export function createProjectSourceVideoProfessionalQA(
   const upload = input.sourceVideoUploadResult
   const renderId = preview?.renderId ?? review?.renderId ?? 'preview-render-missing'
   const sourceStorageObjectRecordId = preview?.sourceStorageObjectRecordId ?? 'source-storage-missing'
+  const briefLineage = preview?.briefLineage
   const checks = [
     check(
       'source_uploaded',
@@ -51,6 +52,12 @@ export function createProjectSourceVideoProfessionalQA(
       'credit_reservation_required',
     ),
     check(
+      'approved_brief_lineage_present',
+      'Approved brief lineage present',
+      Boolean(briefLineage?.briefId && briefLineage.briefFingerprint && briefLineage.revisionNumber > 0),
+      'approved_brief_lineage_required',
+    ),
+    check(
       'preview_ready',
       'Preview ready',
       preview?.status === 'preview_ready' && Boolean(preview.renderId),
@@ -67,6 +74,12 @@ export function createProjectSourceVideoProfessionalQA(
       'Preview matches source',
       Boolean(upload?.storageObjectRecordId && preview?.sourceStorageObjectRecordId && upload.storageObjectRecordId === preview.sourceStorageObjectRecordId),
       'preview_source_identity_mismatch',
+    ),
+    check(
+      'brief_preview_match',
+      'Preview carries approved brief',
+      Boolean(briefLineage && preview?.editAssembly?.briefLineage?.briefFingerprint === briefLineage.briefFingerprint),
+      'preview_brief_identity_mismatch',
     ),
     check(
       'edit_assembly_ready',
@@ -101,6 +114,11 @@ export function createProjectSourceVideoProfessionalQA(
     creditReservationId: preview?.creditReservationId ?? 'credit-reservation-missing',
     previewReviewId: review?.id ?? 'preview-review-missing',
     sourceStorageObjectRecordId,
+    briefLineage: briefLineage ?? {
+      briefId: 'brief-lineage-missing',
+      revisionNumber: 0,
+      briefFingerprint: 'brief-lineage-missing',
+    },
     status: blockers.length === 0 ? 'passed' : 'blocked',
     createdAt: new Date().toISOString(),
     checks,

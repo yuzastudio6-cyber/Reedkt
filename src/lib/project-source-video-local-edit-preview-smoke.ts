@@ -174,6 +174,7 @@ function createEditAssemblySummary(input: {
 
   return {
     planId: input.approvedLocalPlan.planId,
+    briefLineage: input.approvedLocalPlan.briefLineage,
     title: input.approvedLocalPlan.title,
     summary: input.approvedLocalPlan.summary,
     steps: input.approvedLocalPlan.steps.map((step) => ({
@@ -293,6 +294,7 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
       })),
       operationManifest: input.approvedLocalPlan.operationManifest,
       creditEstimate: input.approvedLocalPlan.creditEstimate,
+      briefLineage: input.approvedLocalPlan.briefLineage,
       approved: true,
     },
     qwenMainBrain: {
@@ -408,6 +410,7 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
   return {
     status: 'preview_ready',
     editPlanId,
+    briefLineage: input.approvedLocalPlan.briefLineage,
     creditEstimateId,
     approvedPlanSnapshotId: approvedSnapshot.id,
     creditApprovalId: creditApproval.id,

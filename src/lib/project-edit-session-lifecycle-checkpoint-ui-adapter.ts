@@ -7,6 +7,7 @@ import type {
 import type {
   ProjectSourceVideoEditAssemblySummary,
   ProjectSourceVideoBackendUploadResult,
+  ProjectSourceVideoBriefLineage,
   ProjectSourceVideoLocalEditPreviewResult,
   ProjectSourceVideoLocalFinalExportResult,
   ProjectSourceVideoPreviewReviewResult,
@@ -49,10 +50,25 @@ function numberValue(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
 }
 
+function briefLineageValue(value: unknown): ProjectSourceVideoBriefLineage | undefined {
+  const record = objectValue(value)
+  if (!record) return undefined
+  const briefId = stringValue(record.briefId)
+  const revisionNumber = numberValue(record.revisionNumber)
+  const briefFingerprint = stringValue(record.briefFingerprint)
+  if (!briefId || !revisionNumber || !briefFingerprint) return undefined
+  return {
+    briefId,
+    revisionNumber,
+    briefFingerprint,
+  }
+}
+
 function editAssemblyValue(value: unknown): ProjectSourceVideoEditAssemblySummary | undefined {
   const record = objectValue(value)
   if (!record) return undefined
   const planId = stringValue(record.planId)
+  const briefLineage = briefLineageValue(record.briefLineage)
   const title = stringValue(record.title)
   const summary = stringValue(record.summary)
   const mode = stringValue(record.mode)
@@ -76,12 +92,13 @@ function editAssemblyValue(value: unknown): ProjectSourceVideoEditAssemblySummar
     : undefined
   const planStepCount = numberValue(record.planStepCount) ?? steps.length
 
-  if (!planId || !title || !summary || (mode !== 'clean_internal_preview' && mode !== 'private_final_export') || steps.length === 0) {
+  if (!planId || !briefLineage || !title || !summary || (mode !== 'clean_internal_preview' && mode !== 'private_final_export') || steps.length === 0) {
     return undefined
   }
 
   return {
     planId,
+    briefLineage,
     title,
     summary,
     steps,
@@ -123,8 +140,9 @@ function professionalQAValue(value: unknown): ProjectSourceVideoProfessionalQARe
   const creditReservationId = stringValue(record.creditReservationId)
   const previewReviewId = stringValue(record.previewReviewId)
   const sourceStorageObjectRecordId = stringValue(record.sourceStorageObjectRecordId) ?? 'source-storage-missing'
+  const briefLineage = briefLineageValue(record.briefLineage)
   const createdAt = stringValue(record.createdAt)
-  if (!id || !workspaceId || !editPlanId || !renderId || !approvedPlanSnapshotId || !creditReservationId || !previewReviewId || !createdAt || (status !== 'passed' && status !== 'blocked')) {
+  if (!id || !workspaceId || !editPlanId || !renderId || !approvedPlanSnapshotId || !creditReservationId || !previewReviewId || !briefLineage || !createdAt || (status !== 'passed' && status !== 'blocked')) {
     return undefined
   }
 
@@ -137,6 +155,7 @@ function professionalQAValue(value: unknown): ProjectSourceVideoProfessionalQARe
     creditReservationId,
     previewReviewId,
     sourceStorageObjectRecordId,
+    briefLineage,
     status,
     createdAt,
     checks,
@@ -195,6 +214,7 @@ export function createPlanApprovedCheckpointMetadata(result: ProjectEditPlanBack
     creditEstimateId: result.localEditPlan.creditEstimateId,
     localEditPlanRecordId: result.localEditPlan.id,
     approvedAt: result.localEditPlan.approvedAt,
+    briefLineage: result.localEditPlan.briefLineage,
     backendLocalPlanStored: true,
     providerCallMade: false,
     productReady: false,
@@ -204,6 +224,7 @@ export function createPlanApprovedCheckpointMetadata(result: ProjectEditPlanBack
 export function createPreviewReadyCheckpointMetadata(result: ProjectSourceVideoLocalEditPreviewResult): Record<string, unknown> {
   return {
     editPlanId: result.editPlanId,
+    briefLineage: result.briefLineage,
     creditEstimateId: result.creditEstimateId,
     approvedPlanSnapshotId: result.approvedPlanSnapshotId,
     creditApprovalId: result.creditApprovalId,
@@ -246,6 +267,7 @@ export function createProfessionalQACheckpointMetadata(result: ProjectSourceVide
     creditReservationId: result.creditReservationId,
     previewReviewId: result.previewReviewId,
     sourceStorageObjectRecordId: result.sourceStorageObjectRecordId,
+    briefLineage: result.briefLineage,
     status: result.status,
     createdAt: result.createdAt,
     checks: result.checks,
@@ -259,6 +281,7 @@ export function createProfessionalQACheckpointMetadata(result: ProjectSourceVide
 export function createFinalExportReadyCheckpointMetadata(result: ProjectSourceVideoLocalFinalExportResult): Record<string, unknown> {
   return {
     editPlanId: result.editPlanId,
+    briefLineage: result.briefLineage,
     approvedPlanSnapshotId: result.approvedPlanSnapshotId,
     creditReservationId: result.creditReservationId,
     renderJobId: result.renderJobId,
@@ -334,13 +357,15 @@ export function restorePreviewResult(session: ProjectEditSessionRecord | undefin
   const creditReservationId = stringValue(metadata.creditReservationId)
   const renderJobId = stringValue(metadata.renderJobId)
   const sourceStorageObjectRecordId = stringValue(metadata.sourceStorageObjectRecordId)
-  if (!editPlanId || !creditEstimateId || !approvedPlanSnapshotId || !creditApprovalId || !creditReservationId || !renderJobId || !sourceStorageObjectRecordId) {
+  const briefLineage = briefLineageValue(metadata.briefLineage)
+  if (!editPlanId || !briefLineage || !creditEstimateId || !approvedPlanSnapshotId || !creditApprovalId || !creditReservationId || !renderJobId || !sourceStorageObjectRecordId) {
     return undefined
   }
 
   return {
     status: 'preview_ready',
     editPlanId,
+    briefLineage,
     creditEstimateId,
     approvedPlanSnapshotId,
     creditApprovalId,
@@ -427,13 +452,15 @@ export function restoreFinalExportResult(session: ProjectEditSessionRecord | und
   const renderJobId = stringValue(metadata.renderJobId)
   const sourceStorageObjectRecordId = stringValue(metadata.sourceStorageObjectRecordId)
   const previewReviewId = stringValue(metadata.previewReviewId)
-  if (!editPlanId || !approvedPlanSnapshotId || !creditReservationId || !renderJobId || !sourceStorageObjectRecordId || !previewReviewId) {
+  const briefLineage = briefLineageValue(metadata.briefLineage)
+  if (!editPlanId || !briefLineage || !approvedPlanSnapshotId || !creditReservationId || !renderJobId || !sourceStorageObjectRecordId || !previewReviewId) {
     return undefined
   }
 
   return {
     status: 'final_export_ready',
     editPlanId,
+    briefLineage,
     approvedPlanSnapshotId,
     creditReservationId,
     renderJobId,
@@ -468,6 +495,8 @@ export function createRestoredApprovedLocalPlan(input: {
   const checkpoint = checkpointValue(input.session, 'backendLocalPlan')
   const metadata = objectValue(checkpoint?.metadata)
   if (!metadata || !input.approvedPlan.approved) return undefined
+  const briefLineage = briefLineageValue(metadata.briefLineage)
+  if (!briefLineage) return undefined
 
   const record: ProjectEditPlanBackendLocalRecord = {
     id: stringValue(metadata.localEditPlanRecordId) ?? 'backend-local-restored-edit-plan',
@@ -480,6 +509,7 @@ export function createRestoredApprovedLocalPlan(input: {
     status: 'approved',
     approvedLocalPlan: {
       approved: true,
+      briefLineage,
       creditEstimate: input.approvedPlan.creditEstimate,
       operationManifest: input.approvedPlan.operationManifest,
       planId: input.approvedPlan.planId,
@@ -487,6 +517,7 @@ export function createRestoredApprovedLocalPlan(input: {
       summary: input.approvedPlan.summary,
       title: input.approvedPlan.title,
     },
+    briefLineage,
     source: {
       storageObjectRecordId: input.sourceVideoUploadResult.storageObjectRecordId,
       mediaAssetId: input.sourceVideoUploadResult.mediaAssetId,

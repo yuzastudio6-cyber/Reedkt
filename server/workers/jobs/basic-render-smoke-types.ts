@@ -10,8 +10,15 @@ export interface BasicRenderSmokeEditAssemblyStep {
   summary: string
 }
 
+export interface BasicRenderSmokeBriefLineage {
+  briefId: string
+  revisionNumber: number
+  briefFingerprint: string
+}
+
 export interface BasicRenderSmokeEditAssemblyPlan {
   planId: string
+  briefLineage: BasicRenderSmokeBriefLineage
   title: string
   summary: string
   steps: BasicRenderSmokeEditAssemblyStep[]

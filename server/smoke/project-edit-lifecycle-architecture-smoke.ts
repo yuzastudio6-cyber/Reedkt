@@ -4,7 +4,10 @@ import { join } from 'node:path'
 import { loadRuntimeEnv } from '../config/env'
 import { createProjectEditPlanService } from '../services/project-edit-plan-service'
 import type { ServiceContext } from '../types'
-import { buildProjectEditPlanApprovalModel } from '../../src/lib/project-edit-plan-approval'
+import {
+  buildProjectEditPlanApprovalModel,
+  createProjectEditPlanBriefLineage,
+} from '../../src/lib/project-edit-plan-approval'
 import { buildProjectEditLifecycleModel } from '../../src/lib/project-edit-lifecycle'
 import type {
   ProjectSourceVideoBackendUploadResult,
@@ -209,6 +212,11 @@ const backendPlan = await planService.createApprovedLocalEditPlan({
   editSessionId: 'edit-session-youtube-wide',
   planId: approvedPlan.planId,
   projectId: 'mock-project-edit-chat-foundation',
+  briefLineage: createProjectEditPlanBriefLineage({
+    briefId: 'backend-local-brief-youtube-wide',
+    briefText: approvedPlan.summary,
+    revisionNumber: 1,
+  }),
   source: {
     bucketName: uploaded.bucketName,
     checksumSha256: uploaded.checksumSha256,
@@ -230,6 +238,8 @@ assert.equal(backendPlan.localEditPlan.creditEstimateId, `${approvedPlan.planId}
 assert.equal(backendPlan.localEditPlan.backendLocalPlanStored, true)
 assert.equal(backendPlan.localEditPlan.readbackVerified, true)
 assert.equal(backendPlan.localEditPlan.approvedLocalPlan.approved, true)
+assert.equal(backendPlan.localEditPlan.briefLineage.briefId, 'backend-local-brief-youtube-wide')
+assert.equal(backendPlan.localEditPlan.approvedLocalPlan.briefLineage.briefFingerprint, backendPlan.localEditPlan.briefLineage.briefFingerprint)
 assert.equal(backendPlan.localEditPlan.approvedLocalPlan.operationManifest.version, 'project-edit-operation-manifest-v1')
 assert.equal(backendPlan.localEditPlan.approvedLocalPlan.operationManifest.operations.length, approvedPlan.operationManifest.operations.length)
 assert.equal(backendPlan.localEditPlan.approvedLocalPlan.operationManifest.productReady, false)
@@ -267,6 +277,7 @@ assert.equal(approvedModel.stages.find((stage) => stage.id === 'approved_snapsho
 const preview: ProjectSourceVideoLocalEditPreviewResult = {
   status: 'preview_ready',
   editPlanId: backendPlanReadback.localEditPlan.editPlanId,
+  briefLineage: backendPlanReadback.localEditPlan.briefLineage,
   creditEstimateId: backendPlanReadback.localEditPlan.creditEstimateId,
   approvedPlanSnapshotId: 'approved-snapshot-1',
   creditApprovalId: 'credit-approval-1',
@@ -274,6 +285,20 @@ const preview: ProjectSourceVideoLocalEditPreviewResult = {
   renderJobId: 'render-job-1',
   renderId: 'render-1',
   sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
+  editAssembly: {
+    planId: backendPlanReadback.localEditPlan.editPlanId,
+    briefLineage: backendPlanReadback.localEditPlan.briefLineage,
+    title: backendPlanReadback.localEditPlan.approvedLocalPlan.title,
+    summary: backendPlanReadback.localEditPlan.approvedLocalPlan.summary,
+    steps: backendPlanReadback.localEditPlan.approvedLocalPlan.steps,
+    mode: 'clean_internal_preview',
+    operationsApplied: ['approved_plan_snapshot_loaded', 'preview_review_pending'],
+    professionalOperationCount: backendPlanReadback.localEditPlan.approvedLocalPlan.operationManifest.operations.length,
+    professionalOperationLabels: backendPlanReadback.localEditPlan.approvedLocalPlan.operationManifest.operations.map((operation) => operation.label),
+    requiredQaChecks: backendPlanReadback.localEditPlan.approvedLocalPlan.operationManifest.requiredQaChecks,
+    planStepCount: backendPlanReadback.localEditPlan.approvedLocalPlan.steps.length,
+    productReady: false,
+  },
   qwenMainBrainLabel: 'Qwen 3.7 Max',
   approvedSnapshotCreated: true,
   mockCreditApprovalCreated: true,
@@ -356,15 +381,18 @@ const professionalQA: ProjectSourceVideoProfessionalQAResult = {
   creditReservationId: preview.creditReservationId,
   previewReviewId: 'preview-review-1',
   sourceStorageObjectRecordId: preview.sourceStorageObjectRecordId,
+  briefLineage: preview.briefLineage,
   status: 'passed',
   createdAt: '2026-07-05T00:00:00.000Z',
   checks: [
     { id: 'source_uploaded', label: 'Source recorded', passed: true, blocker: 'backend_local_source_upload_required' },
     { id: 'approved_snapshot_present', label: 'Approved snapshot present', passed: true, blocker: 'approved_plan_snapshot_required' },
     { id: 'credit_reservation_present', label: 'Credit approval record present', passed: true, blocker: 'credit_reservation_required' },
+    { id: 'approved_brief_lineage_present', label: 'Approved brief lineage present', passed: true, blocker: 'approved_brief_lineage_required' },
     { id: 'preview_ready', label: 'Preview ready', passed: true, blocker: 'preview_ready_required' },
     { id: 'preview_review_approved', label: 'Preview approved', passed: true, blocker: 'preview_approval_required' },
     { id: 'source_preview_match', label: 'Preview matches source', passed: true, blocker: 'preview_source_identity_mismatch' },
+    { id: 'brief_preview_match', label: 'Preview carries approved brief', passed: true, blocker: 'preview_brief_identity_mismatch' },
     { id: 'edit_assembly_ready', label: 'Approved plan carried into preview', passed: true, blocker: 'edit_assembly_required' },
     { id: 'private_artifact_boundary', label: 'Private internal boundary intact', passed: true, blocker: 'private_artifact_boundary_required' },
   ],
@@ -421,6 +449,7 @@ assert.ok(qaReadyModel.finalExportReadiness.blockers.includes('artifact_manifest
 const localFinalExport: ProjectSourceVideoLocalFinalExportResult = {
   status: 'final_export_ready',
   editPlanId: backendPlanReadback.localEditPlan.editPlanId,
+  briefLineage: backendPlanReadback.localEditPlan.briefLineage,
   approvedPlanSnapshotId: preview.approvedPlanSnapshotId,
   creditReservationId: preview.creditReservationId,
   renderJobId: 'render-job-final-export-1',
@@ -677,6 +706,7 @@ assert.match(lifecycleCard, /model.finalExportReadiness.summary/)
 
 const previewClient = read('src/lib/project-source-video-local-edit-preview-smoke.ts')
 assert.match(previewClient, /approvedLocalPlan/)
+assert.match(previewClient, /briefLineage: input\.approvedLocalPlan\.briefLineage/)
 assert.match(previewClient, /professionalOperationCount/)
 assert.match(previewClient, /professionalOperationLabels/)
 assert.match(previewClient, /requiredQaChecks/)
@@ -696,6 +726,7 @@ assert.match(finalExportClient, /private_final_export/)
 assert.match(finalExportClient, /editAssemblyPlan: editAssembly/)
 assert.match(finalExportClient, /previewResult\.sourceStorageObjectRecordId/)
 assert.match(finalExportClient, /professionalQAResult\.sourceStorageObjectRecordId/)
+assert.match(finalExportClient, /professionalQAResult\.briefLineage\.briefFingerprint/)
 assert.doesNotMatch(finalExportClient, /service_role|signedUrl|Stripe|production ready:\s*true/i)
 
 const lifecycleCheckpointAdapter = read('src/lib/project-edit-session-lifecycle-checkpoint-ui-adapter.ts')

@@ -60,9 +60,11 @@ export type ProjectSourceVideoProfessionalQACheckId =
   | 'source_uploaded'
   | 'approved_snapshot_present'
   | 'credit_reservation_present'
+  | 'approved_brief_lineage_present'
   | 'preview_ready'
   | 'preview_review_approved'
   | 'source_preview_match'
+  | 'brief_preview_match'
   | 'edit_assembly_ready'
   | 'private_artifact_boundary'
 
@@ -137,6 +139,7 @@ export interface ProjectSourceVideoEditAssemblyStep {
 
 export interface ProjectSourceVideoEditAssemblySummary {
   planId: string
+  briefLineage: ProjectSourceVideoBriefLineage
   title: string
   summary: string
   steps: ProjectSourceVideoEditAssemblyStep[]
@@ -151,9 +154,16 @@ export interface ProjectSourceVideoEditAssemblySummary {
   productReady: false
 }
 
+export interface ProjectSourceVideoBriefLineage {
+  briefId: string
+  revisionNumber: number
+  briefFingerprint: string
+}
+
 export interface ProjectSourceVideoLocalEditPreviewResult {
   status: 'preview_ready'
   editPlanId: string
+  briefLineage: ProjectSourceVideoBriefLineage
   creditEstimateId: string
   approvedPlanSnapshotId: string
   creditApprovalId: string
@@ -214,6 +224,7 @@ export interface ProjectSourceVideoProfessionalQAResult {
   creditReservationId: string
   previewReviewId: string
   sourceStorageObjectRecordId: string
+  briefLineage: ProjectSourceVideoBriefLineage
   status: ProjectSourceVideoProfessionalQAStatus
   createdAt: string
   checks: ProjectSourceVideoProfessionalQACheck[]
@@ -234,6 +245,7 @@ export interface ProjectSourceVideoProfessionalQAResult {
 export interface ProjectSourceVideoLocalFinalExportResult {
   status: 'final_export_ready'
   editPlanId: string
+  briefLineage: ProjectSourceVideoBriefLineage
   approvedPlanSnapshotId: string
   creditReservationId: string
   renderJobId: string

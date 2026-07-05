@@ -100,6 +100,11 @@ const uploaded: ProjectSourceVideoBackendUploadResult = {
 const preview: ProjectSourceVideoLocalEditPreviewResult = {
   status: 'preview_ready',
   editPlanId: 'edit-plan-final-export-readiness',
+  briefLineage: {
+    briefId: 'brief-final-export-readiness',
+    revisionNumber: 1,
+    briefFingerprint: 'brief-fnv1a-final-export-readiness',
+  },
   creditEstimateId: 'credit-estimate-final-export-readiness',
   approvedPlanSnapshotId: renderInput.approvedSnapshotId as string,
   creditApprovalId: 'credit-approval-final-export-readiness',

@@ -1,9 +1,11 @@
 import { getSupabaseClient } from '../backend/supabase/supabase-client'
-import type {
-  ProjectEditPlanApprovalModel,
-  ProjectEditPlanBackendApprovalResult,
-  ProjectEditPlanBackendLocalRecord,
+import {
+  createProjectEditPlanBriefLineage,
+  type ProjectEditPlanApprovalModel,
+  type ProjectEditPlanBackendApprovalResult,
+  type ProjectEditPlanBackendLocalRecord,
 } from './project-edit-plan-approval'
+import type { ProjectEditBriefBackendLocalRecord } from './project-edit-brief-backend-local'
 import type { ProjectSourceVideoBackendUploadResult } from '../types/project-source-video'
 
 interface ApiEnvelope<TData> {
@@ -23,6 +25,7 @@ interface LocalEditPlanData {
 export interface ApproveProjectEditPlanBackendLocalInput {
   apiBaseUrl: string
   approvedLocalPlan: ProjectEditPlanApprovalModel
+  editBrief: ProjectEditBriefBackendLocalRecord
   editSessionId: string
   projectId: string
   sourceVideoUploadResult: ProjectSourceVideoBackendUploadResult
@@ -82,6 +85,12 @@ export async function approveProjectEditPlanBackendLocal(
   if (!input.approvedLocalPlan.approved) {
     throw new Error('Backend-local edit plan approval requires an approved local plan model.')
   }
+  if (!input.editBrief.readbackVerified) {
+    throw new Error('Backend-local edit plan approval requires a saved and read-back edit brief.')
+  }
+  if (input.editBrief.sourceStorageObjectRecordId !== input.sourceVideoUploadResult.storageObjectRecordId) {
+    throw new Error('Backend-local edit plan approval requires the saved brief to reference the current source object.')
+  }
 
   const fetchImpl = input.fetchImpl ?? fetch
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
@@ -107,6 +116,11 @@ export async function approveProjectEditPlanBackendLocal(
       steps: input.approvedLocalPlan.steps,
       operationManifest: input.approvedLocalPlan.operationManifest,
       creditEstimate: input.approvedLocalPlan.creditEstimate,
+      briefLineage: createProjectEditPlanBriefLineage({
+        briefId: input.editBrief.id,
+        briefText: input.editBrief.briefText,
+        revisionNumber: input.editBrief.revisionNumber,
+      }),
       source: {
         storageObjectRecordId: input.sourceVideoUploadResult.storageObjectRecordId,
         mediaAssetId: input.sourceVideoUploadResult.mediaAssetId,

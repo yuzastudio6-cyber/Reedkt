@@ -44,6 +44,12 @@ const localEditPlanCreditEstimateSchema = z.object({
   message: 'Credit estimate must be ordered low <= expected <= high.',
 })
 
+const localEditPlanBriefLineageSchema = z.object({
+  briefId: idSchema,
+  revisionNumber: z.number().int().positive(),
+  briefFingerprint: z.string().min(1).max(120),
+})
+
 const localEditPlanSourceSchema = z.object({
   storageObjectRecordId: idSchema,
   mediaAssetId: idSchema.optional(),
@@ -63,5 +69,6 @@ export const createApprovedLocalEditPlanSchema = z.object({
   steps: z.array(localEditPlanStepSchema).min(1).max(12),
   operationManifest: localEditPlanOperationManifestSchema,
   creditEstimate: localEditPlanCreditEstimateSchema,
+  briefLineage: localEditPlanBriefLineageSchema,
   source: localEditPlanSourceSchema,
 })

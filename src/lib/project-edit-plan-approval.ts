@@ -59,6 +59,12 @@ export interface ProjectEditPlanCreditEstimate {
   serviceFeeIncluded: false
 }
 
+export interface ProjectEditPlanBriefLineage {
+  briefId: string
+  revisionNumber: number
+  briefFingerprint: string
+}
+
 export interface ProjectEditPlanApprovalInput {
   approved: boolean
   backendUploadResult?: ProjectSourceVideoBackendUploadResult
@@ -93,7 +99,9 @@ export interface ProjectEditPlanApprovalModel {
   warnings: string[]
 }
 
-export type ProjectEditPlanApprovedLocalPlan = Pick<ProjectEditPlanApprovalModel, 'approved' | 'creditEstimate' | 'operationManifest' | 'planId' | 'steps' | 'summary' | 'title'>
+export type ProjectEditPlanApprovedLocalPlan = Pick<ProjectEditPlanApprovalModel, 'approved' | 'creditEstimate' | 'operationManifest' | 'planId' | 'steps' | 'summary' | 'title'> & {
+  briefLineage: ProjectEditPlanBriefLineage
+}
 
 export interface ProjectEditPlanBackendLocalRecord {
   id: string
@@ -116,6 +124,7 @@ export interface ProjectEditPlanBackendLocalRecord {
     sizeBytes: number
     checksumSha256?: string
   }
+  briefLineage: ProjectEditPlanBriefLineage
   backendLocalPlanStored: true
   readbackVerified?: true
   providerCallMade: false
@@ -133,6 +142,24 @@ export interface ProjectEditPlanBackendApprovalResult {
   localEditPlan: ProjectEditPlanBackendLocalRecord
   readback?: ProjectEditPlanBackendLocalRecord
   warnings: string[]
+}
+
+export function createProjectEditPlanBriefLineage(input: {
+  briefId: string
+  briefText: string
+  revisionNumber: number
+}): ProjectEditPlanBriefLineage {
+  const normalized = input.briefText.trim().replace(/\s+/g, ' ')
+  let hash = 2166136261
+  for (let index = 0; index < normalized.length; index += 1) {
+    hash ^= normalized.charCodeAt(index)
+    hash = Math.imul(hash, 16777619) >>> 0
+  }
+  return {
+    briefId: input.briefId,
+    revisionNumber: Math.max(1, Math.floor(input.revisionNumber || 1)),
+    briefFingerprint: `brief-fnv1a-${hash.toString(16).padStart(8, '0')}-${normalized.length}`,
+  }
 }
 
 function safeSegment(value: string): string {

@@ -33,9 +33,11 @@ import type {
   ProjectSourceVideoLocalEditPreviewResult,
   ProjectSourceVideoLocalPreview,
   ProjectSourceVideoMetadataUpdate,
+  ProjectSourceVideoPreviewReviewResult,
 } from '../../../types/project-source-video'
 import type { ProjectEditBriefVideoShellModel } from '../../../lib/project-edit-brief-ui-adapter'
 import { ProjectEditBriefLocalPreviewSmokeCard } from './ProjectEditBriefLocalPreviewSmokeCard'
+import { ProjectEditBriefPreviewReviewCard } from './ProjectEditBriefPreviewReviewCard'
 import { ProjectEditBriefSourceVideoPicker } from './ProjectEditBriefSourceVideoPicker'
 import { ProjectEditBriefSourceVideoSummary } from './ProjectEditBriefSourceVideoSummary'
 import { ProjectEditBriefVideoShell } from './ProjectEditBriefVideoShell'
@@ -63,6 +65,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
   const [planApprovalStatus, setPlanApprovalStatus] = useState<'idle' | 'approving' | 'approved' | 'failed'>('idle')
   const [planApprovalError, setPlanApprovalError] = useState<string | undefined>()
   const [backendApprovedLocalPlan, setBackendApprovedLocalPlan] = useState<ProjectEditPlanBackendApprovalResult | undefined>()
+  const [previewReviewResult, setPreviewReviewResult] = useState<ProjectSourceVideoPreviewReviewResult | undefined>()
   const [statusMessage, setStatusMessage] = useState('Ready for source video and brief notes.')
   const sourceVideoRef = useRef<ProjectSourceVideoLocalPreview | undefined>(undefined)
 
@@ -105,8 +108,9 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     localPreviewResult,
     planApproved: planApprovalModel.approved,
     planReady: planApprovalModel.canApprove || planApprovalModel.approved,
+    previewReviewResult,
     projectId,
-  }), [backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, projectId, sourceVideo])
+  }), [backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, previewReviewResult, projectId, sourceVideo])
 
   function handleVideoSelected(file?: File) {
     if (!file) return
@@ -122,6 +126,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
       setPlanApprovalStatus('idle')
       setPlanApprovalError(undefined)
       setBackendApprovedLocalPlan(undefined)
+      setPreviewReviewResult(undefined)
       setBackendUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
       setPlayheadSeconds(0)
       setPlaying(false)
@@ -143,6 +148,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
     setBackendApprovedLocalPlan(undefined)
+    setPreviewReviewResult(undefined)
     setBackendUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
     setPlayheadSeconds(0)
     setPlaying(false)
@@ -170,6 +176,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
     setBackendApprovedLocalPlan(undefined)
+    setPreviewReviewResult(undefined)
     try {
       const result = await uploadProjectSourceVideoToBackend({
         apiBaseUrl: backendUploadConfig.apiBaseUrl,
@@ -194,6 +201,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
     setBackendApprovedLocalPlan(undefined)
+    setPreviewReviewResult(undefined)
     setPlanApproved(false)
     setStatusMessage('Brief saved locally for this edit workspace.')
   }
@@ -206,6 +214,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
     setBackendApprovedLocalPlan(undefined)
+    setPreviewReviewResult(undefined)
   }
 
   async function approveLocalPlan() {
@@ -229,6 +238,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
         workspaceId: backendUploadConfig.workspaceId,
       })
       setBackendApprovedLocalPlan(result)
+      setPreviewReviewResult(undefined)
       setPlanApproved(true)
       setPlanApprovalStatus('approved')
       setStatusMessage('Local edit plan and credit estimate approved and read back from the backend-local plan gate.')
@@ -333,6 +343,7 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
             editSessionId={editSessionId}
             onPreviewReady={(result) => {
               setLocalPreviewResult(result)
+              setPreviewReviewResult(undefined)
               setStatusMessage('Preview-only internal smoke completed. Final export and real tool execution remain blocked.')
             }}
             planApproved={Boolean(backendApprovedLocalPlan?.localEditPlan.readbackVerified)}
@@ -341,6 +352,16 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
             sourceVideoAspectRatio={sourceVideo?.inferredAspectRatio}
             sourceVideoDurationSeconds={sourceVideo?.durationSeconds}
             sourceVideoUploadResult={backendUploadResult}
+          />
+          <ProjectEditBriefPreviewReviewCard
+            config={localPreviewConfig}
+            onReviewRecorded={(result) => {
+              setPreviewReviewResult(result)
+              setStatusMessage(result.reviewStatus === 'approved'
+                ? 'Preview review approved and recorded. Professional QA and final export remain separate gates.'
+                : 'Preview changes requested and recorded. Update the brief or plan before another preview.')
+            }}
+            previewResult={localPreviewResult}
           />
           <Card className="clean-edit-brief__status-card">
             <span className="section-eyebrow">Architecture boundary</span>

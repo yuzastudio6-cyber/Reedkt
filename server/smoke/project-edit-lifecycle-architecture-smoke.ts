@@ -33,9 +33,11 @@ const requiredFiles = [
   'src/components/projects/brief/ProjectEditBriefWorkspace.tsx',
   'src/components/projects/brief/ProjectEditBriefSourceVideoPicker.tsx',
   'src/components/projects/brief/ProjectEditBriefLocalPreviewSmokeCard.tsx',
+  'src/components/projects/brief/ProjectEditBriefPreviewReviewCard.tsx',
   'src/lib/project-edit-plan-backend-local.ts',
   'src/lib/project-source-video-backend-upload.ts',
   'src/lib/project-source-video-local-edit-preview-smoke.ts',
+  'src/lib/project-source-video-preview-review.ts',
   'server/routes/project-edit-plan-routes.ts',
   'server/services/project-edit-plan-service.ts',
   'server/validation/project-edit-plan-schemas.ts',
@@ -59,6 +61,7 @@ assert.equal(initial.toolExecutionAllowed, false)
 assert.equal(initial.finalExportAllowed, false)
 assert.ok(initial.blockers.includes('source_video_required'))
 assert.ok(initial.blockers.includes('approved_plan_snapshot_required'))
+assert.ok(initial.blockers.includes('preview_review_required'))
 assert.ok(initial.blockers.includes('edit_plan_required'))
 assert.ok(initial.blockers.includes('plan_credit_approval_required'))
 assert.equal(initial.stages.find((stage) => stage.id === 'source_video_selected')?.status, 'ready')
@@ -246,6 +249,7 @@ const preview: ProjectSourceVideoLocalEditPreviewResult = {
   creditApprovalId: 'credit-approval-1',
   creditReservationId: 'credit-reservation-1',
   renderJobId: 'render-job-1',
+  renderId: 'render-1',
   sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
   qwenMainBrainLabel: 'Qwen 3.7 Max',
   approvedSnapshotCreated: true,
@@ -278,9 +282,42 @@ const previewModel = buildProjectEditLifecycleModel({
   projectId: 'mock-project-edit-chat-foundation',
 })
 assert.equal(previewModel.stages.find((stage) => stage.id === 'internal_preview_ready')?.status, 'complete')
+assert.equal(previewModel.stages.find((stage) => stage.id === 'preview_review_required')?.status, 'ready')
 assert.equal(previewModel.productReady, false)
 assert.equal(previewModel.toolExecutionAllowed, false)
 assert.equal(previewModel.finalExportAllowed, false)
+
+const reviewedModel = buildProjectEditLifecycleModel({
+  backendUploadAvailable: true,
+  backendUploadResult: uploaded,
+  backendUploadStatus: 'uploaded',
+  briefSaved: true,
+  editSessionId: 'edit-session-youtube-wide',
+  hasLocalSourceVideo: true,
+  localPreviewResult: preview,
+  planApproved: true,
+  planReady: true,
+  previewReviewResult: {
+    id: 'preview-review-1',
+    renderId: 'render-1',
+    workspaceId: 'mock-workspace',
+    reviewStatus: 'approved',
+    finalExportStarted: false,
+    providerCallMade: false,
+    workerJobCreated: false,
+    renderJobCreated: false,
+    creditReservedOrSpent: false,
+    supabaseWriteMade: false,
+    gcsWriteMade: false,
+    productReady: false,
+    warnings: [],
+  },
+  projectId: 'mock-project-edit-chat-foundation',
+})
+assert.equal(reviewedModel.stages.find((stage) => stage.id === 'preview_review_required')?.status, 'complete')
+assert.equal(reviewedModel.blockers.includes('preview_review_required'), false)
+assert.equal(reviewedModel.productReady, false)
+assert.equal(reviewedModel.finalExportAllowed, false)
 
 const workspace = read('src/components/projects/brief/ProjectEditBriefWorkspace.tsx')
 for (const phrase of [
@@ -288,6 +325,7 @@ for (const phrase of [
   'uploadProjectSourceVideoToBackend',
   'ProjectEditPlanApprovalCard',
   'ProjectEditBriefLocalPreviewSmokeCard',
+  'ProjectEditBriefPreviewReviewCard',
   'ProjectEditLifecycleStatusCard',
   'buildProjectEditPlanApprovalModel',
   'buildProjectEditLifecycleModel',
@@ -295,6 +333,7 @@ for (const phrase of [
   'createProjectSourceVideoBackendUploadConfig',
   'createProjectSourceVideoLocalEditPreviewConfig',
   'backendApprovedLocalPlan',
+  'previewReviewResult',
   'readbackVerified',
 ]) {
   assert.match(workspace, new RegExp(phrase))
@@ -308,11 +347,25 @@ assert.match(previewCard, /onPreviewReady/)
 assert.match(previewCard, /approvedLocalPlan/)
 assert.doesNotMatch(previewCard, /product-ready/i)
 
+const previewReviewCard = read('src/components/projects/brief/ProjectEditBriefPreviewReviewCard.tsx')
+assert.match(previewReviewCard, /createProjectSourceVideoPreviewReview/)
+assert.match(previewReviewCard, /Approve preview/)
+assert.match(previewReviewCard, /Request changes/)
+assert.match(previewReviewCard, /Final export stays blocked/)
+assert.doesNotMatch(previewReviewCard, /product-ready/i)
+
 const previewClient = read('src/lib/project-source-video-local-edit-preview-smoke.ts')
 assert.match(previewClient, /approvedLocalPlan/)
 assert.match(previewClient, /visibleLocalPlanApproved/)
 assert.match(previewClient, /Local edit preview requires the visible local edit plan/)
 assert.doesNotMatch(previewClient, /const editPlanId = `edit-plan-\\$\\{input\\.editSessionId\\}-local-preview`/)
+
+const previewReviewClient = read('src/lib/project-source-video-preview-review.ts')
+assert.match(previewReviewClient, /preview-review/)
+assert.match(previewReviewClient, /finalExportStarted: false/)
+assert.match(previewReviewClient, /providerCallMade: false/)
+assert.match(previewReviewClient, /productReady: false/)
+assert.doesNotMatch(previewReviewClient, /service_role|signedUrl|Stripe|production ready:\s*true/i)
 
 const planClient = read('src/lib/project-edit-plan-backend-local.ts')
 assert.match(planClient, /local-edit-plans/)

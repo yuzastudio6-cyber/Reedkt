@@ -47,6 +47,13 @@ export type ProjectSourceVideoLocalEditPreviewStatus =
   | 'blocked'
   | 'failed'
 
+export type ProjectSourceVideoPreviewReviewStatus =
+  | 'not_reviewed'
+  | 'approving'
+  | 'approved'
+  | 'changes_requested'
+  | 'failed'
+
 export interface ProjectSourceVideoBackendUploadConfig {
   available: boolean
   apiBaseUrl?: string
@@ -121,6 +128,25 @@ export interface ProjectSourceVideoLocalEditPreviewResult {
   providerCallMade: false
   qwenCallMade: false
   exportJobCreated: false
+  supabaseWriteMade: false
+  gcsWriteMade: false
+  productReady: false
+  warnings: string[]
+}
+
+export interface ProjectSourceVideoPreviewReviewResult {
+  id: string
+  renderId: string
+  workspaceId: string
+  reviewStatus: 'approved' | 'changes_requested'
+  notes?: string
+  createdAt?: string
+  mockOnly?: true
+  finalExportStarted: false
+  providerCallMade: false
+  workerJobCreated: false
+  renderJobCreated: false
+  creditReservedOrSpent: false
   supabaseWriteMade: false
   gcsWriteMade: false
   productReady: false

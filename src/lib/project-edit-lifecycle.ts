@@ -2,6 +2,7 @@ import type {
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoBackendUploadStatus,
   ProjectSourceVideoLocalEditPreviewResult,
+  ProjectSourceVideoPreviewReviewResult,
 } from '../types/project-source-video'
 
 export type ProjectEditLifecycleStageId =
@@ -15,6 +16,7 @@ export type ProjectEditLifecycleStageId =
   | 'credit_approval_required'
   | 'approved_snapshot_required'
   | 'internal_preview_ready'
+  | 'preview_review_required'
   | 'final_export_blocked'
 
 export type ProjectEditLifecycleStageStatus = 'complete' | 'ready' | 'blocked'
@@ -36,6 +38,7 @@ export interface ProjectEditLifecycleInput {
   localPreviewResult?: ProjectSourceVideoLocalEditPreviewResult
   planApproved: boolean
   planReady: boolean
+  previewReviewResult?: ProjectSourceVideoPreviewReviewResult
   projectId: string
 }
 
@@ -64,6 +67,7 @@ function stage(
 export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput): ProjectEditLifecycleModel {
   const backendUploaded = input.backendUploadResult?.status === 'uploaded'
   const internalPreviewReady = input.localPreviewResult?.status === 'preview_ready'
+  const previewReviewed = input.previewReviewResult?.reviewStatus === 'approved' || input.previewReviewResult?.reviewStatus === 'changes_requested'
   const backendUploadAllowed = input.hasLocalSourceVideo && input.backendUploadAvailable && input.backendUploadStatus !== 'uploading'
   const internalPreviewAllowed = backendUploaded && input.briefSaved && input.planApproved
 
@@ -74,6 +78,7 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
     input.planReady ? undefined : 'edit_plan_required',
     input.planApproved ? undefined : 'plan_credit_approval_required',
     internalPreviewReady ? undefined : 'approved_plan_snapshot_required',
+    previewReviewed ? undefined : 'preview_review_required',
     'professional_qa_and_final_export_required',
   ].filter(Boolean) as string[]
 
@@ -142,6 +147,14 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
         ? 'A preview-only internal smoke result exists for this local source.'
         : 'Available only after backend-local upload, brief save, and local plan approval; it does not approve production execution.',
     ),
+    stage(
+      'preview_review_required',
+      'Preview review',
+      previewReviewed ? 'complete' : internalPreviewReady ? 'ready' : 'blocked',
+      previewReviewed
+        ? `Internal tester review recorded: ${input.previewReviewResult?.reviewStatus.replace(/_/g, ' ')}.`
+        : 'Review the preview result before any final export or professional QA gate can proceed.',
+    ),
     stage('final_export_blocked', 'Final export', 'blocked', 'Final export stays blocked until professional QA, artifact readiness, and release gates pass.'),
   ]
 
@@ -159,9 +172,11 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
             ? 'Review the local edit plan and credit estimate.'
             : !input.planApproved
               ? 'Approve the local edit plan and credit estimate before preview.'
-          : internalPreviewReady
-            ? 'Generate the real edit plan and credit estimate next.'
-            : 'Run the preview-only internal smoke.',
+          : !internalPreviewReady
+            ? 'Run the preview-only internal smoke.'
+            : !previewReviewed
+              ? 'Review the preview and request changes or approve the result.'
+              : 'Continue to professional QA and final export implementation gates.',
     blockers,
     internalPreviewAllowed,
     backendUploadAllowed,

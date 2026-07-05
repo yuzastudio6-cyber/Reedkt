@@ -1,7 +1,37 @@
-import { useEffect, useId, useState } from 'react'
-import { CheckCircle2, FileVideo, MessageSquareText, UploadCloud } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { MessageSquareText } from 'lucide-react'
 import { Button } from '../../Button'
 import { Card } from '../../Card'
+import { ProjectEditLifecycleStatusCard } from '../ProjectEditLifecycleStatusCard'
+import { buildProjectEditLifecycleModel } from '../../../lib/project-edit-lifecycle'
+import {
+  createProjectSourceVideoBackendUploadConfig,
+  uploadProjectSourceVideoToBackend,
+} from '../../../lib/project-source-video-backend-upload'
+import {
+  createProjectSourceVideoLocalEditPreviewConfig,
+} from '../../../lib/project-source-video-local-edit-preview-smoke'
+import {
+  createProjectSourceVideoLocalPreviewFromFile,
+  revokeProjectSourceVideoLocalPreview,
+} from '../../../lib/project-source-video-local-preview'
+import {
+  createProjectSourceVideoMetadataSummary,
+  formatProjectSourceVideoDuration,
+  inferProjectSourceVideoAspectRatio,
+} from '../../../lib/project-source-video-metadata-mappers'
+import type {
+  ProjectSourceVideoBackendUploadResult,
+  ProjectSourceVideoBackendUploadStatus,
+  ProjectSourceVideoLocalEditPreviewResult,
+  ProjectSourceVideoLocalPreview,
+  ProjectSourceVideoMetadataUpdate,
+} from '../../../types/project-source-video'
+import type { ProjectEditBriefVideoShellModel } from '../../../lib/project-edit-brief-ui-adapter'
+import { ProjectEditBriefLocalPreviewSmokeCard } from './ProjectEditBriefLocalPreviewSmokeCard'
+import { ProjectEditBriefSourceVideoPicker } from './ProjectEditBriefSourceVideoPicker'
+import { ProjectEditBriefSourceVideoSummary } from './ProjectEditBriefSourceVideoSummary'
+import { ProjectEditBriefVideoShell } from './ProjectEditBriefVideoShell'
 
 type ProjectEditBriefWorkspaceProps = {
   editSessionId: string
@@ -9,54 +39,120 @@ type ProjectEditBriefWorkspaceProps = {
   projectId: string
 }
 
-type LocalSourceVideo = {
-  name: string
-  objectUrl: string
-  sizeLabel: string
-}
-
-function formatFileSize(bytes: number): string {
-  if (!Number.isFinite(bytes) || bytes <= 0) return 'Size unknown'
-  const megabytes = bytes / 1024 / 1024
-  if (megabytes < 1) return `${Math.max(1, Math.round(bytes / 1024))} KB`
-  return `${megabytes.toFixed(megabytes >= 10 ? 0 : 1)} MB`
-}
-
-export function ProjectEditBriefWorkspace({ editSessionTitle, projectId }: ProjectEditBriefWorkspaceProps) {
-  const fileInputId = useId()
-  const [sourceVideo, setSourceVideo] = useState<LocalSourceVideo | undefined>()
+export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, projectId }: ProjectEditBriefWorkspaceProps) {
+  const backendUploadConfig = useMemo(() => createProjectSourceVideoBackendUploadConfig(import.meta.env), [])
+  const localPreviewConfig = useMemo(() => createProjectSourceVideoLocalEditPreviewConfig(import.meta.env), [])
+  const [sourceFile, setSourceFile] = useState<File | undefined>()
+  const [sourceVideo, setSourceVideo] = useState<ProjectSourceVideoLocalPreview | undefined>()
+  const [backendUploadStatus, setBackendUploadStatus] = useState<ProjectSourceVideoBackendUploadStatus>(() => backendUploadConfig.available ? 'idle' : 'unavailable')
+  const [backendUploadResult, setBackendUploadResult] = useState<ProjectSourceVideoBackendUploadResult | undefined>()
+  const [backendUploadError, setBackendUploadError] = useState<string | undefined>()
+  const [localPreviewResult, setLocalPreviewResult] = useState<ProjectSourceVideoLocalEditPreviewResult | undefined>()
+  const [playing, setPlaying] = useState(false)
+  const [playheadSeconds, setPlayheadSeconds] = useState(0)
   const [briefText, setBriefText] = useState('Clean pacing, readable captions, natural sound, and no flashy transitions unless the edit asks for it.')
+  const [briefSaved, setBriefSaved] = useState(false)
   const [statusMessage, setStatusMessage] = useState('Ready for source video and brief notes.')
+  const sourceVideoRef = useRef<ProjectSourceVideoLocalPreview | undefined>(undefined)
 
   useEffect(() => {
-    return () => {
-      if (sourceVideo?.objectUrl) URL.revokeObjectURL(sourceVideo.objectUrl)
-    }
-  }, [sourceVideo?.objectUrl])
+    sourceVideoRef.current = sourceVideo
+  }, [sourceVideo])
+
+  useEffect(() => () => {
+    revokeProjectSourceVideoLocalPreview(sourceVideoRef.current)
+  }, [])
+
+  const sourceSummary = useMemo(() => createProjectSourceVideoMetadataSummary(sourceVideo), [sourceVideo])
+  const videoShell = useMemo<ProjectEditBriefVideoShellModel>(() => ({
+    durationSeconds: sourceVideo?.durationSeconds ?? 60,
+    currentTimeSeconds: playheadSeconds,
+    currentTimeLabel: formatProjectSourceVideoDuration(playheadSeconds),
+    durationLabel: formatProjectSourceVideoDuration(sourceVideo?.durationSeconds),
+    aspectLabel: sourceVideo?.inferredAspectRatio ?? 'Metadata pending',
+    title: sourceVideo?.fileName ?? 'Source video',
+    mockPosterLabel: 'Select a source video',
+  }), [playheadSeconds, sourceVideo])
+  const lifecycle = useMemo(() => buildProjectEditLifecycleModel({
+    backendUploadAvailable: backendUploadConfig.available,
+    backendUploadResult,
+    backendUploadStatus,
+    briefSaved,
+    editSessionId,
+    hasLocalSourceVideo: Boolean(sourceVideo),
+    localPreviewResult,
+    projectId,
+  }), [backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localPreviewResult, projectId, sourceVideo])
 
   function handleVideoSelected(file?: File) {
     if (!file) return
-    if (!file.type.startsWith('video/')) {
+    try {
+      const nextPreview = createProjectSourceVideoLocalPreviewFromFile(file)
+      revokeProjectSourceVideoLocalPreview(sourceVideo)
+      setSourceFile(file)
+      setSourceVideo(nextPreview)
+      setBackendUploadResult(undefined)
+      setBackendUploadError(undefined)
+      setLocalPreviewResult(undefined)
+      setBackendUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
+      setPlayheadSeconds(0)
+      setPlaying(false)
+      setBriefSaved(false)
+      setStatusMessage('Source video selected for this edit. Nothing has been uploaded or processed yet.')
+    } catch {
       setStatusMessage('Choose a video file for this edit.')
-      return
     }
-
-    if (sourceVideo?.objectUrl) URL.revokeObjectURL(sourceVideo.objectUrl)
-    setSourceVideo({
-      name: file.name,
-      objectUrl: URL.createObjectURL(file),
-      sizeLabel: formatFileSize(file.size),
-    })
-    setStatusMessage('Source video selected for this edit. Nothing has been uploaded or processed yet.')
   }
 
   function clearVideo() {
-    if (sourceVideo?.objectUrl) URL.revokeObjectURL(sourceVideo.objectUrl)
+    revokeProjectSourceVideoLocalPreview(sourceVideo)
+    setSourceFile(undefined)
     setSourceVideo(undefined)
+    setBackendUploadResult(undefined)
+    setBackendUploadError(undefined)
+    setLocalPreviewResult(undefined)
+    setBackendUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
+    setPlayheadSeconds(0)
+    setPlaying(false)
+    setBriefSaved(false)
     setStatusMessage('Source video cleared from this edit.')
   }
 
+  function handleMetadataLoaded(metadata: ProjectSourceVideoMetadataUpdate) {
+    setSourceVideo((current) => current
+      ? {
+          ...current,
+          ...metadata,
+          inferredAspectRatio: inferProjectSourceVideoAspectRatio(metadata),
+          metadataLoaded: true,
+        }
+      : current)
+  }
+
+  async function uploadForTesting() {
+    if (!sourceFile || !backendUploadConfig.available || !backendUploadConfig.apiBaseUrl) return
+    setBackendUploadStatus('uploading')
+    setBackendUploadError(undefined)
+    try {
+      const result = await uploadProjectSourceVideoToBackend({
+        apiBaseUrl: backendUploadConfig.apiBaseUrl,
+        editSessionId,
+        file: sourceFile,
+        projectId,
+        workspaceId: backendUploadConfig.workspaceId,
+      })
+      setBackendUploadResult(result)
+      setBackendUploadStatus('uploaded')
+      setStatusMessage('Source video uploaded to backend-local storage metadata. No media processing, provider call, render, export, or production work started.')
+    } catch (caught) {
+      setBackendUploadStatus('failed')
+      setBackendUploadError(caught instanceof Error ? caught.message : 'Backend-local upload failed safely.')
+      setStatusMessage('Backend-local upload failed safely. The browser-local preview remains available.')
+    }
+  }
+
   function saveBrief() {
+    setBriefSaved(true)
     setStatusMessage('Brief saved locally for this edit workspace.')
   }
 
@@ -75,54 +171,30 @@ export function ProjectEditBriefWorkspace({ editSessionTitle, projectId }: Proje
         </Button>
       </Card>
 
+      <ProjectEditLifecycleStatusCard model={lifecycle} />
+
       <div className="clean-edit-brief__layout">
         <main className="clean-edit-brief__main">
           <Card className="clean-edit-brief__upload-card">
-            <div className="clean-edit-brief__card-heading">
-              <UploadCloud aria-hidden="true" size={22} />
-              <div>
-                <h3>Source video</h3>
-                <p>Select the video that belongs to this edit.</p>
-              </div>
-            </div>
-
-            <div className={sourceVideo ? 'clean-edit-brief__preview clean-edit-brief__preview--ready' : 'clean-edit-brief__preview'}>
-              {sourceVideo ? (
-                <video controls src={sourceVideo.objectUrl} />
-              ) : (
-                <div className="clean-edit-brief__empty-preview">
-                  <FileVideo aria-hidden="true" size={34} />
-                  <strong>No source video selected</strong>
-                  <span>Choose a local video to preview it in this edit.</span>
-                </div>
-              )}
-            </div>
-
-            <div className="clean-edit-brief__upload-actions">
-              <input
-                accept="video/*"
-                id={fileInputId}
-                onChange={(event) => handleVideoSelected(event.currentTarget.files?.[0])}
-                type="file"
-              />
-              <label className="rp-button rp-button-primary rp-button-md clean-edit-brief__file-button" htmlFor={fileInputId}>
-                <UploadCloud aria-hidden="true" size={17} />
-                Choose video
-              </label>
-              {sourceVideo ? (
-                <Button onClick={clearVideo} type="button" variant="secondary">
-                  Remove
-                </Button>
-              ) : null}
-            </div>
-
-            {sourceVideo ? (
-              <div className="clean-edit-brief__file-summary">
-                <CheckCircle2 aria-hidden="true" size={17} />
-                <span>{sourceVideo.name}</span>
-                <span>{sourceVideo.sizeLabel}</span>
-              </div>
-            ) : null}
+            <ProjectEditBriefSourceVideoPicker
+              backendUploadConfig={backendUploadConfig}
+              backendUploadError={backendUploadError}
+              backendUploadResult={backendUploadResult}
+              backendUploadStatus={backendUploadStatus}
+              localPreview={sourceVideo}
+              onClear={clearVideo}
+              onSelectFile={handleVideoSelected}
+              onUploadToBackend={uploadForTesting}
+            />
+            <ProjectEditBriefVideoShell
+              localPreview={sourceVideo}
+              onMetadataLoaded={handleMetadataLoaded}
+              onPlayStateChange={setPlaying}
+              onTimeUpdate={setPlayheadSeconds}
+              playing={playing}
+              video={videoShell}
+            />
+            <ProjectEditBriefSourceVideoSummary localPreview={sourceVideo} summary={sourceSummary} />
           </Card>
 
           <Card className="clean-edit-brief__brief-card">
@@ -161,7 +233,21 @@ export function ProjectEditBriefWorkspace({ editSessionTitle, projectId }: Proje
           </Card>
           <Card className="clean-edit-brief__status-card">
             <span className="section-eyebrow">Status</span>
-            <p>{statusMessage}</p>
+            <p data-testid="project-edit-brief-status">{statusMessage}</p>
+          </Card>
+          <ProjectEditBriefLocalPreviewSmokeCard
+            config={localPreviewConfig}
+            editSessionId={editSessionId}
+            projectId={projectId}
+            sourceVideoAspectRatio={sourceVideo?.inferredAspectRatio}
+            sourceVideoDurationSeconds={sourceVideo?.durationSeconds}
+            sourceVideoUploadResult={backendUploadResult}
+          />
+          <Card className="clean-edit-brief__status-card">
+            <span className="section-eyebrow">Architecture boundary</span>
+            <p>
+              This edit can prove backend-local upload and preview-only internal smoke when explicitly enabled. Full professional editing still requires real plan generation, user approval, approved snapshot execution, QA, and final export gates.
+            </p>
           </Card>
         </aside>
       </div>

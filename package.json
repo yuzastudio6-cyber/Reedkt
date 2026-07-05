@@ -115,6 +115,7 @@
     "smoke:project-edit-brief-api-client": "tsx server/smoke/project-edit-brief-api-client-smoke.ts",
     "smoke:project-edit-brief-route-client-qa-closure": "tsx server/smoke/project-edit-brief-route-client-qa-closure-smoke.ts",
     "smoke:project-edit-brief-ui-shell": "tsx server/smoke/project-edit-brief-ui-shell-smoke.ts",
+    "smoke:project-edit-lifecycle-architecture": "tsx server/smoke/project-edit-lifecycle-architecture-smoke.ts",
     "smoke:project-edit-brief-marker-flow": "tsx server/smoke/project-edit-brief-marker-flow-smoke.ts",
     "smoke:project-edit-brief-marker-chat": "tsx server/smoke/project-edit-brief-marker-chat-smoke.ts",
     "smoke:project-edit-brief-attachments": "tsx server/smoke/project-edit-brief-attachments-smoke.ts",

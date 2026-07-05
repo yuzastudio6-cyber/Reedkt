@@ -21,7 +21,9 @@ const qwenBoundaryRoots = [
   'server/smoke/qwen-live-readiness-route-smoke.ts',
   'server/smoke/qwen-live-provider-smoke.ts',
   'server/smoke/qwen-marker-chat-live-smoke.ts',
-  'scripts/qwen-beta-doctor.mjs',
+  'server/smoke/qwen-live-owner-config-smoke.ts',
+  'server/cli/qwen-beta-doctor.ts',
+  'server/cli/qwen-beta-unlock.ts',
 ]
 
 async function collectFiles(rootPath) {

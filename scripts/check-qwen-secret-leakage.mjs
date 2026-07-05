@@ -6,6 +6,7 @@ const scanRoots = [
   'src/backend/qwen-runtime',
   'src/types',
   'server/smoke',
+  'server/cli',
   'server/routes',
   'scripts',
   'docs',
@@ -64,10 +65,10 @@ const files = allTextFiles.filter((path) => {
   if (rel.startsWith('src/backend/qwen-runtime/')) return true
   if (rel.startsWith('src/types/qwen-')) return true
   if (rel.startsWith('server/smoke/qwen-')) return true
+  if (rel.startsWith('server/cli/qwen-')) return true
   if (rel.startsWith('server/routes/qwen-')) return true
   if (rel.startsWith('docs/qwen-')) return true
   if (rel.startsWith('scripts/check-qwen-')) return true
-  if (rel === 'scripts/qwen-beta-doctor.mjs') return true
   return isFrontendFile(path) && /backend\/qwen-runtime|qwen-runtime/i.test(readFileSync(path, 'utf8').slice(0, 8000))
 })
 

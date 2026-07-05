@@ -101,6 +101,7 @@
     "runtimeProofOutputMustDeclareOkTrue": true,
     "runtimeProofOutputMustMatchExpectedToolId": true,
     "runtimeProofOutputMustProveCudaOrCudaExecutionProvider": true,
+    "runtimeProofOutputMustMatchRequiredCudaDeviceName": true,
     "runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime": true,
     "runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime": true,
     "runtimeProofOutputCanSkipCudaOnlyForExplicitCpuModelRuntime": true,
@@ -148,6 +149,7 @@
       "controlledAdapterInvokedNow": true,
       "harnessMode": "local_dev_prerequisite_check_only",
       "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": null,
       "toolExecutionApprovedNow": false,
       "gpuRuntimeApprovedForScopedControlledToolCall": false,
       "gpuRuntimeShouldStartNow": false,
@@ -203,6 +205,7 @@
       "controlledAdapterInvokedNow": true,
       "harnessMode": "local_dev_prerequisite_check_only",
       "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": null,
       "toolExecutionApprovedNow": false,
       "gpuRuntimeApprovedForScopedControlledToolCall": false,
       "gpuRuntimeShouldStartNow": false,
@@ -258,6 +261,7 @@
       "controlledAdapterInvokedNow": true,
       "harnessMode": "local_dev_prerequisite_check_only",
       "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": "native_linux_amd64_nvidia_l4_sam2_runtime",
       "toolExecutionApprovedNow": false,
       "gpuRuntimeApprovedForScopedControlledToolCall": false,
       "gpuRuntimeShouldStartNow": false,
@@ -319,7 +323,7 @@
           "key": "nativeCudaRuntime",
           "requiredForDefaultHarness": false,
           "requiredForActualExecution": true,
-          "description": "Approved CUDA runtime for one approved private source frame only; broad real-media/full-video execution is not accepted."
+          "description": "Approved Linux/amd64 NVIDIA L4 CUDA runtime for one approved private source frame only; broad real-media/full-video execution is not accepted."
         }
       ],
       "warnings": [
@@ -337,6 +341,7 @@
       "controlledAdapterInvokedNow": true,
       "harnessMode": "local_dev_prerequisite_check_only",
       "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": "native_linux_amd64_nvidia_l4_birefnet_runtime",
       "toolExecutionApprovedNow": false,
       "gpuRuntimeApprovedForScopedControlledToolCall": false,
       "gpuRuntimeShouldStartNow": false,
@@ -398,7 +403,7 @@
           "key": "nativeCudaRuntime",
           "requiredForDefaultHarness": false,
           "requiredForActualExecution": true,
-          "description": "Approved CUDA runtime for the scoped local worker call only."
+          "description": "Approved Linux/amd64 NVIDIA L4 CUDA runtime for the scoped private BiRefNet worker call only."
         }
       ],
       "warnings": [
@@ -416,6 +421,7 @@
       "controlledAdapterInvokedNow": true,
       "harnessMode": "local_dev_prerequisite_check_only",
       "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": null,
       "toolExecutionApprovedNow": false,
       "gpuRuntimeApprovedForScopedControlledToolCall": false,
       "gpuRuntimeShouldStartNow": false,
@@ -495,6 +501,7 @@
       "controlledAdapterInvokedNow": true,
       "harnessMode": "local_dev_prerequisite_check_only",
       "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": null,
       "toolExecutionApprovedNow": false,
       "gpuRuntimeApprovedForScopedControlledToolCall": false,
       "gpuRuntimeShouldStartNow": false,
@@ -558,6 +565,7 @@
       "controlledAdapterInvokedNow": true,
       "harnessMode": "local_dev_prerequisite_check_only",
       "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": null,
       "toolExecutionApprovedNow": false,
       "gpuRuntimeApprovedForScopedControlledToolCall": false,
       "gpuRuntimeShouldStartNow": false,
@@ -637,6 +645,7 @@
       "controlledAdapterInvokedNow": true,
       "harnessMode": "local_dev_prerequisite_check_only",
       "localRuntimeExecutionPerformed": false,
+      "nativeCudaRuntimeTarget": null,
       "toolExecutionApprovedNow": false,
       "gpuRuntimeApprovedForScopedControlledToolCall": false,
       "gpuRuntimeShouldStartNow": false,

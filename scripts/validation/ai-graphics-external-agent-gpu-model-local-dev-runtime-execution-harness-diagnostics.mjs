@@ -464,6 +464,7 @@ for (const requiredProofPolicy of [
   'runtimeProofOutputMustDeclareOkTrue',
   'runtimeProofOutputMustMatchExpectedToolId',
   'runtimeProofOutputMustProveCudaOrCudaExecutionProvider',
+  'runtimeProofOutputMustMatchRequiredCudaDeviceName',
   'runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime',
   'runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime',
   'runtimeProofOutputCanSkipCudaOnlyForExplicitCpuModelRuntime',
@@ -508,6 +509,8 @@ for (const requiredSnippet of [
   'containerBindMountPath cannot be the filesystem root',
   'AI graphics runtime proof output must include ok=true',
   'AI graphics runtime proof output toolId mismatch',
+  'requiredCudaDeviceNamePattern',
+  'AI graphics runtime proof output must prove CUDA device matches',
   'modelDownloadedExternally',
   'providerRuntimePerformed',
   'publicArtifactCreated',
@@ -740,6 +743,7 @@ for (const requiredSam2Token of [
   "sourceImageLocalPath ?? executionInput.representativeFrameLocalPaths?.[0]",
   'sam2_source_frame_missing',
   "'--source-image-path'",
+  "requiredCudaDeviceNamePattern: 'L4'",
   "APPROVED_PRIVATE_SOURCE_FRAME_ENABLED: 'true'",
   "REAL_MEDIA_INPUT_ENABLED: 'false'",
   'privateSourceFrameUsed: true',
@@ -767,6 +771,30 @@ for (const requiredSam2RuntimeToken of [
 if (sam2RuntimeSource.includes('create_fixture_frames')) {
   fail('sam2_runtime_still_uses_generated_fixture_frame_builder')
 }
+
+const birefnetRunnerSource = read('server/workers/masks/birefnet-execution-runner.ts')
+for (const requiredBirefnetRunnerToken of [
+  "requiredCudaDeviceNamePattern: 'L4'",
+  'requireCuda: true',
+  'requireNoModelDownload: true',
+]) {
+  if (!birefnetRunnerSource.includes(requiredBirefnetRunnerToken)) {
+    fail(`birefnet_runner_missing_l4_runtime_proof_token:${requiredBirefnetRunnerToken}`)
+  }
+}
+
+const birefnetRuntimeSource = read('docker/prod/birefnet-runtime/birefnet_local.py')
+for (const requiredBirefnetRuntimeToken of [
+  'device_name = torch.cuda.get_device_name(0)',
+  '"L4" not in device_name.upper()',
+  'NVIDIA L4 is required for controlled BiRefNet runtime verification',
+  '"deviceName": device_name',
+]) {
+  if (!birefnetRuntimeSource.includes(requiredBirefnetRuntimeToken)) {
+    fail(`birefnet_runtime_missing_l4_guard_token:${requiredBirefnetRuntimeToken}`)
+  }
+}
+
 if (!String(report.interfaces?.privateLocalRuntimeAttemptCommand ?? '').includes('--attempt-local-runtime')) {
   fail('missing_private_runtime_attempt_command')
 }
@@ -921,6 +949,12 @@ for (const tool of tools) {
   if (!row.localInputRequirements.some((entry) => entry.key === 'nativeCudaRuntime')) {
     fail(`missing_native_cuda_requirement:${tool}`)
   }
+  if (tool === 'sam2' && row.nativeCudaRuntimeTarget !== 'native_linux_amd64_nvidia_l4_sam2_runtime') {
+    fail(`sam2_native_cuda_runtime_target_mismatch:${row.nativeCudaRuntimeTarget}`)
+  }
+  if (tool === 'birefnet' && row.nativeCudaRuntimeTarget !== 'native_linux_amd64_nvidia_l4_birefnet_runtime') {
+    fail(`birefnet_native_cuda_runtime_target_mismatch:${row.nativeCudaRuntimeTarget}`)
+  }
   const expectedInputKeys = expectedMinimumPrivateRuntimeInputKeys(tool)
   if (!arrayMatches(row.minimumPrivateRuntimeInputKeys, expectedInputKeys)) {
     fail(`minimum_private_runtime_input_keys_mismatch:${tool}:${JSON.stringify(row.minimumPrivateRuntimeInputKeys)}`)
@@ -952,12 +986,23 @@ for (const tool of tools) {
     if (!String(nativeRequirement?.description ?? '').includes('one approved private source frame')) {
       fail('sam2_native_cuda_requirement_missing_private_source_frame_scope')
     }
+    if (!String(nativeRequirement?.description ?? '').includes('NVIDIA L4 CUDA')) {
+      fail('sam2_native_cuda_requirement_missing_l4_scope')
+    }
     if (
       row.localInputRequirements.some((entry) =>
         String(entry.description ?? '').includes('generated fixture'),
       )
     ) {
       fail('sam2_requirement_still_mentions_generated_fixture')
+    }
+  }
+  if (tool === 'birefnet') {
+    const nativeRequirement = row.localInputRequirements.find(
+      (entry) => entry.key === 'nativeCudaRuntime',
+    )
+    if (!String(nativeRequirement?.description ?? '').includes('NVIDIA L4 CUDA')) {
+      fail('birefnet_native_cuda_requirement_missing_l4_scope')
     }
   }
 }

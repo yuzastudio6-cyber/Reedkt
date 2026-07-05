@@ -547,6 +547,18 @@ function gpuModelRequiresSourceImage(
   return !['torch_torchvision', 'transformers'].includes(toolId)
 }
 
+function nativeCudaRuntimeTarget(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string | null {
+  if (toolId === 'sam2') {
+    return 'native_linux_amd64_nvidia_l4_sam2_runtime'
+  }
+  if (toolId === 'birefnet') {
+    return 'native_linux_amd64_nvidia_l4_birefnet_runtime'
+  }
+  return null
+}
+
 function localInputRequirements(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   options?: {
@@ -674,7 +686,9 @@ function localInputRequirements(
           requiredForDefaultHarness: false,
           requiredForActualExecution: true,
           description: toolId === 'sam2'
-            ? 'Approved CUDA runtime for one approved private source frame only; broad real-media/full-video execution is not accepted.'
+            ? 'Approved Linux/amd64 NVIDIA L4 CUDA runtime for one approved private source frame only; broad real-media/full-video execution is not accepted.'
+            : toolId === 'birefnet'
+            ? 'Approved Linux/amd64 NVIDIA L4 CUDA runtime for the scoped private BiRefNet worker call only.'
             : 'Approved CUDA runtime for the scoped local worker call only.',
         }
 
@@ -1110,6 +1124,7 @@ async function buildReport(args: HarnessArgs) {
         : 'local_dev_prerequisite_check_only',
       localRuntimeExecutionPerformed:
         result.localGpuModelRuntimeExecutionPerformed,
+      nativeCudaRuntimeTarget: nativeCudaRuntimeTarget(toolId),
       toolExecutionApprovedNow: result.toolExecutionApprovedNow,
       gpuRuntimeApprovedForScopedControlledToolCall:
         result.gpuRuntimeApprovedForScopedControlledToolCall,
@@ -1257,6 +1272,7 @@ async function buildReport(args: HarnessArgs) {
       runtimeProofOutputMustDeclareOkTrue: true,
       runtimeProofOutputMustMatchExpectedToolId: true,
       runtimeProofOutputMustProveCudaOrCudaExecutionProvider: true,
+      runtimeProofOutputMustMatchRequiredCudaDeviceName: true,
       runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime: true,
       runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime: true,
       runtimeProofOutputCanSkipCudaOnlyForExplicitCpuModelRuntime: true,
@@ -1367,7 +1383,7 @@ async function buildReport(args: HarnessArgs) {
 function makeMarkdown(report: Awaited<ReturnType<typeof buildReport>>): string {
   const rows = report.gpuModelLocalDevRuntimeExecutionHarnessRows
     .map((row) => (
-      `| \`${row.toolId}\` | \`${row.capabilityId}\` | \`${row.harnessMode}\` | \`${row.adapterStatus}\` | \`${row.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${row.currentBlockingReasonCode ?? 'none'}\` | \`${row.remainingPrivateRuntimeInputKeys.length ? row.remainingPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.errorMessage ?? 'none'}\` | ${row.localRuntimeExecutionPerformed} | ${row.toolExecutionApprovedNow} | ${row.gpuRuntimeShouldStartNow} |`
+      `| \`${row.toolId}\` | \`${row.capabilityId}\` | \`${row.harnessMode}\` | \`${row.adapterStatus}\` | \`${row.nativeCudaRuntimeTarget ?? 'none'}\` | \`${row.currentBlockingPrerequisiteKey ?? 'none'}\` | \`${row.currentBlockingReasonCode ?? 'none'}\` | \`${row.remainingPrivateRuntimeInputKeys.length ? row.remainingPrivateRuntimeInputKeys.join(', ') : 'none'}\` | \`${row.errorMessage ?? 'none'}\` | ${row.localRuntimeExecutionPerformed} | ${row.toolExecutionApprovedNow} | ${row.gpuRuntimeShouldStartNow} |`
     ))
     .join('\n')
 
@@ -1401,8 +1417,8 @@ When a scoped Docker runtime is requested, the adapter now starts with a bounded
 
 ## Tool rows
 
-| Tool | Capability | Harness mode | Adapter status | Current blocker | Blocking reason | Remaining private inputs | Error message | Local runtime executed | Tool execution approved | GPU starts now |
-| --- | --- | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: |
+| Tool | Capability | Harness mode | Adapter status | Native CUDA target | Current blocker | Blocking reason | Remaining private inputs | Error message | Local runtime executed | Tool execution approved | GPU starts now |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: |
 ${rows}
 
 ## Counts
@@ -1419,6 +1435,7 @@ ${Object.entries(report.booleans).map(([key, value]) => `- \`${key}\`: ${value}`
 - \`runtimeProofOutputMustDeclareOkTrue\`: ${report.localRuntimePolicy.runtimeProofOutputMustDeclareOkTrue}
 - \`runtimeProofOutputMustMatchExpectedToolId\`: ${report.localRuntimePolicy.runtimeProofOutputMustMatchExpectedToolId}
 - \`runtimeProofOutputMustProveCudaOrCudaExecutionProvider\`: ${report.localRuntimePolicy.runtimeProofOutputMustProveCudaOrCudaExecutionProvider}
+- \`runtimeProofOutputMustMatchRequiredCudaDeviceName\`: ${report.localRuntimePolicy.runtimeProofOutputMustMatchRequiredCudaDeviceName}
 - \`runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime\`: ${report.localRuntimePolicy.runtimeProofOutputCanSkipCudaOnlyForExplicitKorniaCpuTensorRuntime}
 - \`runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime\`: ${report.localRuntimePolicy.runtimeProofOutputCanSkipCudaOnlyForExplicitFoundationCpuRuntime}
 - \`runtimeProofOutputMustProveNoModelDownload\`: ${report.localRuntimePolicy.runtimeProofOutputMustProveNoModelDownload}

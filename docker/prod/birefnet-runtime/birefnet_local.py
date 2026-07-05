@@ -58,6 +58,9 @@ def main() -> None:
         raise RuntimeError("Approved local BiRefNet model.safetensors is missing.")
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is required for Phase 33C; no CPU fallback is allowed.")
+    device_name = torch.cuda.get_device_name(0)
+    if "L4" not in device_name.upper():
+        raise RuntimeError(f"NVIDIA L4 is required for controlled BiRefNet runtime verification; got {device_name}.")
 
     device = "cuda"
     fixture_path = Path(args.fixture_path)
@@ -105,7 +108,7 @@ def main() -> None:
         "ok": True,
         "toolId": "birefnet",
         "cudaAvailable": True,
-        "deviceName": torch.cuda.get_device_name(0),
+        "deviceName": device_name,
         "runtime": {
             "modelDownloadedExternally": False,
             "providerRuntimePerformed": False,

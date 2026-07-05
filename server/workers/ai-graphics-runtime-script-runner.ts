@@ -22,6 +22,7 @@ export type AiGraphicsPythonRuntimeBackend = 'host_python' | 'docker_container'
 export interface AiGraphicsRuntimeProofExpectation {
   expectedToolId: string
   requireCuda?: boolean
+  requiredCudaDeviceNamePattern?: string
   requireCudaExecutionProvider?: boolean
   requireCpuModelRuntime?: boolean
   requireNoModelDownload?: boolean
@@ -104,6 +105,22 @@ export function assertAiGraphicsRuntimeProofOutput(
     firstBooleanValue(outputJson, ['cudaAvailable']) !== true
   ) {
     throw new Error('AI graphics runtime proof output must prove cudaAvailable=true.')
+  }
+
+  if (expectation.requiredCudaDeviceNamePattern) {
+    const deviceName = firstStringValueDeep(outputJson, [
+      'deviceName',
+      'cudaDeviceName',
+      'gpuDeviceName',
+    ])
+    if (
+      typeof deviceName !== 'string' ||
+      !new RegExp(expectation.requiredCudaDeviceNamePattern, 'i').test(deviceName)
+    ) {
+      throw new Error(
+        `AI graphics runtime proof output must prove CUDA device matches ${expectation.requiredCudaDeviceNamePattern}; got ${deviceName ?? 'missing'}.`,
+      )
+    }
   }
 
   if (

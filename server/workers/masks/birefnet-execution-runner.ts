@@ -90,6 +90,7 @@ export async function runBiRefNetMask(input: {
       proofExpectation: {
         expectedToolId: 'birefnet',
         requireCuda: true,
+        requiredCudaDeviceNamePattern: 'L4',
         requireNoModelDownload: true,
         requireNoProviderRuntime: true,
         requireNoPublicArtifact: true,

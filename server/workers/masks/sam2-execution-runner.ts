@@ -82,6 +82,7 @@ export async function runSam2Tracking(input: {
       proofExpectation: {
         expectedToolId: 'sam2',
         requireCuda: true,
+        requiredCudaDeviceNamePattern: 'L4',
         requireNoModelDownload: true,
         requireNoProviderRuntime: true,
         requireNoPublicArtifact: true,

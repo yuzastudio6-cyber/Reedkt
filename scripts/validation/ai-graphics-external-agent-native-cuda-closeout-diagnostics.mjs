@@ -367,6 +367,16 @@ function validateCommittedText() {
   assert(text.includes('--script-out'), 'script_out_missing_from_cli')
   assert(text.includes('writeNativeCudaCloseoutScript'), 'script_writer_missing_from_cli')
   assert(text.includes('ai-graphics:gpu-runtime-proof-local-preflight'), 'host_preflight_script_missing_from_cli')
+
+  const runtimeText = [
+    read('server/workers/ai-graphics-runtime-script-runner.ts'),
+    read('server/workers/masks/sam2-execution-runner.ts'),
+    read('server/workers/masks/birefnet-execution-runner.ts'),
+    read('docker/prod/birefnet-runtime/birefnet_local.py'),
+  ].join('\n')
+  assert(runtimeText.includes('requiredCudaDeviceNamePattern'), 'l4_device_pattern_proof_missing_from_runtime_runner')
+  assert(runtimeText.includes("requiredCudaDeviceNamePattern: 'L4'"), 'l4_device_pattern_missing_from_native_tool_runners')
+  assert(runtimeText.includes('NVIDIA L4 is required for controlled BiRefNet runtime verification'), 'birefnet_l4_runtime_guard_missing')
 }
 
 validatePackageSections(json('package.json'))

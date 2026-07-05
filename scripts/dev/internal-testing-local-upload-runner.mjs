@@ -70,7 +70,7 @@ console.log(`Projects: ${appBaseUrl}/projects`)
 console.log(`Sign in: ${appBaseUrl}/sign-in`)
 console.log(`Edit Brief source-video test: ${appBaseUrl}${briefPath}`)
 console.log(`Local storage root: ${path.resolve(repoRoot, localStorageRoot)}`)
-console.log('Mode: browser-local mock sign-in + backend-local storage + preview-only local edit smoke. No Supabase writes, GCS writes, provider calls, live Qwen calls, final export, external beta, or production.')
+console.log('Mode: browser-local mock sign-in + backend-local storage + gated preview review, QA, and private export smoke. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.')
 
 spawnLogged('api', ['run', 'dev:api'], {
   NODE_ENV: 'development',

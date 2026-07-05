@@ -51,7 +51,7 @@ test.describe('Project source video backend-local upload against real local API'
     await rm(fixtureRoot, { force: true, recursive: true })
   })
 
-  test('uploads through backend upload-intent endpoints and creates a gated local preview smoke output', async ({ page }) => {
+  test('uploads through backend upload-intent endpoints and creates gated preview, QA, and private export outputs', async ({ page }) => {
     test.skip(!fixtureReady, fixtureSkipReason)
 
     const healthResponse = await fetch(`${apiBaseUrl}/health`)
@@ -105,5 +105,36 @@ test.describe('Project source video backend-local upload against real local API'
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('/previews/')
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Qwen 3.7 Max identity recorded, no live call')
     await expect(page.locator('body')).not.toContainText(/provider call made:\s*true|live qwen call:\s*true|final export started|production ready:\s*true/i)
+
+    await page.getByLabel('Review notes').fill('Internal preview approved for private export QA.')
+    await page.getByRole('button', { name: /Approve preview/i }).click()
+    await expect(page.getByTestId('project-edit-preview-review-status')).toContainText('Decision')
+    await expect(page.getByTestId('project-edit-preview-review-status')).toContainText('approved')
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Preview review approved and recorded')
+
+    await page.getByRole('button', { name: /Run QA check/i }).click()
+    await expect(page.getByTestId('project-edit-professional-qa-result')).toContainText('Preview approved')
+    await expect(page.getByTestId('project-edit-professional-qa-result')).toContainText('Private internal boundary intact')
+    await expect(page.getByTestId('project-edit-professional-qa-result')).not.toContainText(/blocked|required|mismatch/i)
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Professional QA checkpoint passed')
+
+    await page.getByRole('button', { name: /Create private export/i }).click()
+    await expect(page.getByTestId('project-edit-final-export-result')).toContainText('Export ready', { timeout: 30_000 })
+    await expect(page.getByTestId('project-edit-final-export-result')).toContainText('/exports/')
+    await expect(page.getByTestId('project-edit-final-export-result')).toContainText('Checksum')
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Private final export is ready for internal review')
+
+    const finalExportText = await page.getByTestId('project-edit-final-export-result').innerText()
+    const exportObjectPathMatch = finalExportText.match(/(exports)\/(workspaces\/mock-workspace\/projects\/mock-project-edit-chat-foundation\/exports\/[^\s]+)/)
+    expect(exportObjectPathMatch?.[1]).toBe('exports')
+    expect(exportObjectPathMatch?.[2]).toBeTruthy()
+    const exportStat = await stat(join(process.cwd(), localStorageRoot, exportObjectPathMatch?.[1] ?? 'missing', exportObjectPathMatch?.[2] ?? 'missing'))
+    expect(exportStat.size).toBeGreaterThan(0)
+
+    await expect(page.getByTestId('project-edit-main-playback-selector').getByRole('button', { name: 'Final' })).toBeEnabled()
+    await expect(page.getByTestId('project-source-video-local-mode')).toContainText('Private final export')
+    await page.getByTestId('project-edit-private-export-review-player').getByRole('button', { name: /Review/i }).click()
+    await expect(page.getByTestId('project-edit-private-artifact-video')).toBeVisible()
+    await expect(page.locator('body')).not.toContainText(/provider call made:\s*true|live qwen call:\s*true|production ready:\s*true|signed url (created|enabled|ready)|public delivery enabled:\s*true/i)
   })
 })

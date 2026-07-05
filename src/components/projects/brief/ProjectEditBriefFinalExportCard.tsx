@@ -114,7 +114,11 @@ export function ProjectEditBriefFinalExportCard({
           <span>{formatBytes(finalExportResult.sizeBytes)}</span>
           <span>{finalExportResult.professionalQA?.id ?? 'Professional QA checkpoint carried into export'}</span>
           {finalExportResult.editAssembly ? <span>{finalExportResult.editAssembly.planStepCount} approved plan steps carried into the export</span> : null}
-          <span>{finalExportResult.outputObjectPath ?? 'Private object path recorded'}</span>
+          <span>
+            {finalExportResult.outputObjectPath
+              ? `${finalExportResult.outputBucketName ?? 'exports'}/${finalExportResult.outputObjectPath}`
+              : 'Private object path recorded'}
+          </span>
           <span>{finalExportResult.checksumSha256 ? `Checksum ${finalExportResult.checksumSha256.slice(0, 12)}` : 'Checksum pending'}</span>
         </div>
       ) : null}

@@ -55,8 +55,8 @@ for (const phrase of [
   '/sign-in',
   'Edit Brief source-video test',
   'browser-local mock sign-in',
-  'preview-only local edit smoke',
-  'No Supabase writes, GCS writes, provider calls, live Qwen calls, final export, external beta, or production.',
+  'gated preview review, QA, and private export smoke',
+  'No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.',
 ]) {
   assert.match(runner, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `runner should mention ${phrase}`)
 }
@@ -71,7 +71,7 @@ for (const phrase of [
   'VITE_REEDITPRO_LOCAL_EDIT_PREVIEW_SMOKE',
   'project-source-video-backend-upload-local-api.spec.ts',
   'ffmpeg',
-  'browser-local mock sign-in + backend-local upload + preview-only local edit smoke',
+  'browser-local mock sign-in + backend-local upload + gated preview review, QA, and private export smoke',
   'Qwen 3.7 Max identity checks succeeded',
 ]) {
   assert.match(e2eRunner, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `E2E verifier should mention ${phrase}`)
@@ -85,6 +85,10 @@ assert.match(realApiSpec, /project-source-video-local-preview-smoke-status/)
 assert.match(realApiSpec, /Source video uploaded to backend-local storage metadata/)
 assert.match(realApiSpec, /Approve local test plan/)
 assert.match(realApiSpec, /Run local edit preview/)
+assert.match(realApiSpec, /Approve preview/)
+assert.match(realApiSpec, /Run QA check/)
+assert.match(realApiSpec, /Create private export/)
+assert.match(realApiSpec, /project-edit-private-export-review-player/)
 assert.match(realApiSpec, /provider call made:\\s\*true/)
 assert.match(realApiSpec, /live qwen call:\\s\*true/)
 assert.match(realApiSpec, /final export started/)
@@ -127,9 +131,12 @@ for (const phrase of [
   'Upload for testing',
   'Approve local test plan',
   'Run local edit preview',
+  'Approve preview',
+  'Run QA check',
+  'Create private export',
   'backend-local storage metadata',
-  'preview-only local edit smoke',
-  'does not start provider calls, live Qwen calls, external beta, production, final export',
+  'private export smoke',
+  'does not start provider calls, live Qwen calls, external beta, production, public delivery',
 ]) {
   assert.match(runbook, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), `runbook should mention ${phrase}`)
 }

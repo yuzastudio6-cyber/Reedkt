@@ -6,6 +6,12 @@ import {
   minimumPrivateModelFileBytes,
   probePrivateSourceImage,
 } from '../workers/masks/private-runtime-input-preflight'
+import {
+  SAM2_MODEL_DOWNLOAD_GCS_PATH,
+  SAM2_MODEL_DOWNLOAD_LOCAL_DIR,
+} from '../activation/sam2-model-download/sam2-model-download-policy'
+import { MASK_MODEL_DOWNLOAD_LOCAL_DIR } from '../activation/mask-model-download/mask-model-download-policy'
+import { BIREFNET_STAGING_PATH } from '../activation/mask-model-approval/mask-model-candidate-registry'
 
 const decision =
   'ai_graphics_external_agent_native_cuda_closeout_prepared_for_remaining_two_tools'
@@ -18,6 +24,8 @@ const privateModelManifestDirEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
 const sam2CheckpointEnvVar = 'REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT'
 const birefnetModelEnvVar = 'REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL'
+const restoreApprovedModelCacheEnvVar =
+  'REEDITPRO_AI_GRAPHICS_RESTORE_APPROVED_MODEL_CACHE'
 const defaultPrivateModelRoot =
   '.local-artifacts/ai-graphics/private-model-cache'
 const defaultOutputRoot =
@@ -149,8 +157,8 @@ const runtimeTargets: Record<ToolId, RuntimeTarget> = {
   },
 }
 const approvedActivationLocalModelRootCandidatesByTool: Record<ToolId, string[]> = {
-  sam2: ['/tmp/reeditpro-sam2-model-download/sam2.1-hiera-tiny'],
-  birefnet: ['/tmp/reeditpro-mask-model-download/birefnet-main/snapshot'],
+  sam2: [SAM2_MODEL_DOWNLOAD_LOCAL_DIR],
+  birefnet: [MASK_MODEL_DOWNLOAD_LOCAL_DIR],
 }
 
 function hasFlag(flag: string): boolean {
@@ -859,6 +867,46 @@ function nativeCudaCloseoutScriptApprovedActivationDefaults(
   return lines
 }
 
+function nativeCudaModelRestoreCommands(): JsonRecord {
+  return {
+    restoreApprovedModelCacheEnvVar,
+    restoreApprovedModelCacheOptInValue: 'true',
+    sam2ApprovedStagingRestoreCommand:
+      `mkdir -p ${shellQuote(SAM2_MODEL_DOWNLOAD_LOCAL_DIR)} && ` +
+      `gcloud storage rsync --recursive ${shellQuote(SAM2_MODEL_DOWNLOAD_GCS_PATH)} ${shellQuote(SAM2_MODEL_DOWNLOAD_LOCAL_DIR)}`,
+    birefnetApprovedStagingRestoreCommand:
+      `mkdir -p ${shellQuote(MASK_MODEL_DOWNLOAD_LOCAL_DIR)} && ` +
+      `gcloud storage rsync --recursive ${shellQuote(BIREFNET_STAGING_PATH)} ${shellQuote(MASK_MODEL_DOWNLOAD_LOCAL_DIR)}`,
+    sam2ApprovedLocalCacheDir: SAM2_MODEL_DOWNLOAD_LOCAL_DIR,
+    birefnetApprovedLocalCacheDir: MASK_MODEL_DOWNLOAD_LOCAL_DIR,
+    localOnlyRuntimeUse: true,
+    publicArtifactCreated: false,
+    signedUrlCreated: false,
+  }
+}
+
+function nativeCudaCloseoutScriptApprovedModelRestore(args: ParsedArgs): string[] {
+  const lines = [
+    `${restoreApprovedModelCacheEnvVar}="\${${restoreApprovedModelCacheEnvVar}:-false}"`,
+    `if [[ "$${restoreApprovedModelCacheEnvVar}" == "true" ]]; then`,
+    '  echo "Restoring approved private model cache for native CUDA closeout."',
+  ]
+  if (args.requestedTools.includes('sam2')) {
+    lines.push(
+      `  mkdir -p ${shellQuote(SAM2_MODEL_DOWNLOAD_LOCAL_DIR)}`,
+      `  gcloud storage rsync --recursive ${shellQuote(SAM2_MODEL_DOWNLOAD_GCS_PATH)} ${shellQuote(SAM2_MODEL_DOWNLOAD_LOCAL_DIR)}`,
+    )
+  }
+  if (args.requestedTools.includes('birefnet')) {
+    lines.push(
+      `  mkdir -p ${shellQuote(MASK_MODEL_DOWNLOAD_LOCAL_DIR)}`,
+      `  gcloud storage rsync --recursive ${shellQuote(BIREFNET_STAGING_PATH)} ${shellQuote(MASK_MODEL_DOWNLOAD_LOCAL_DIR)}`,
+    )
+  }
+  lines.push('fi')
+  return lines
+}
+
 function writeNativeCudaCloseoutScript(
   args: ParsedArgs,
   scriptOut: string,
@@ -967,6 +1015,7 @@ function writeNativeCudaCloseoutScript(
     'if [[ -z "$PRIVATE_MODEL_MANIFEST_DIR" ]]; then',
     `  PRIVATE_MODEL_MANIFEST_DIR=${shellQuote(args.modelWeightManifestDir ?? '')}`,
     'fi',
+    ...nativeCudaCloseoutScriptApprovedModelRestore(args),
     ...nativeCudaCloseoutScriptApprovedActivationDefaults(args),
     'if [[ -z "$OUTPUT_ROOT" ]]; then',
     `  OUTPUT_ROOT=${shellQuote(args.outputRoot)}`,
@@ -1053,6 +1102,7 @@ function writeNativeCudaCloseoutScript(
       { raw: '"$PRIVATE_MODEL_MANIFEST_DIR"' },
       '--allow-partial',
     ]),
+    modelRestoreCommands: nativeCudaModelRestoreCommands(),
     nativeCudaCloseoutCommand: bashContinuation(closeoutTokens),
     all21ReadinessRecheckCommand: bashContinuation(readinessTokens),
     cpuSafeGpuModelRouteProofPacket:
@@ -1395,10 +1445,11 @@ function buildReport(args: ParsedArgs): JsonRecord {
       report: modelManifestReview.report,
     },
     tools,
+    modelRestoreCommands: nativeCudaModelRestoreCommands(),
     all21ReadinessRecheckCommand: readinessCommand,
     closeoutSequence: {
       step1:
-        'Place private SAM2 and BiRefNet model weights under the private model root, or pass --sam2-checkpoint/--birefnet-model with exact private local paths.',
+        `Restore the approved private model cache with ${restoreApprovedModelCacheEnvVar}=true in the generated script, place private SAM2 and BiRefNet model weights under the private model root, or pass --sam2-checkpoint/--birefnet-model with exact private local paths.`,
       step2:
         `Pass --model-weight-manifest-dir or set ${privateModelManifestDirEnvVar} with accepted private SAM2/BiRefNet manifest records.`,
       step3: 'Pass --source-image with an approved private local frame.',

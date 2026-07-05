@@ -18,6 +18,7 @@ function assertFile(path: string): void {
 
 const requiredFiles = [
   'scripts/dev/internal-testing-local-upload-runner.mjs',
+  'scripts/dev/internal-testing-local-upload-e2e.mjs',
   'server/smoke/internal-testing-local-upload-runner-smoke.ts',
   'tests/e2e/project-source-video-backend-upload-local-api.spec.ts',
   'src/lib/project-source-video-local-edit-preview-smoke.ts',
@@ -32,6 +33,10 @@ const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<strin
 assert.equal(
   packageJson.scripts?.['dev:internal-testing:local-upload'],
   'node scripts/dev/internal-testing-local-upload-runner.mjs',
+)
+assert.equal(
+  packageJson.scripts?.['test:internal-testing:local-upload-e2e'],
+  'node scripts/dev/internal-testing-local-upload-e2e.mjs',
 )
 assert.equal(
   packageJson.scripts?.['smoke:internal-testing-local-upload-runner'],
@@ -57,6 +62,21 @@ for (const phrase of [
 }
 
 assert.doesNotMatch(runner, /gcloud|supabase db|supabase migration|docker build|worker:run|tools:check|smoke:prod-real|STRIPE_SECRET/i)
+
+const e2eRunner = read('scripts/dev/internal-testing-local-upload-e2e.mjs')
+for (const phrase of [
+  'PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_REAL_API',
+  'PLAYWRIGHT_INTERNAL_TEST_AUTH',
+  'VITE_REEDITPRO_INTERNAL_TEST_AUTH',
+  'VITE_REEDITPRO_LOCAL_EDIT_PREVIEW_SMOKE',
+  'project-source-video-backend-upload-local-api.spec.ts',
+  'ffmpeg',
+  'browser-local mock sign-in + backend-local upload + preview-only local edit smoke',
+  'Qwen 3.7 Max identity checks succeeded',
+]) {
+  assert.match(e2eRunner, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `E2E verifier should mention ${phrase}`)
+}
+assert.doesNotMatch(e2eRunner, /gcloud|supabase db|supabase migration|docker build|worker:run|tools:check|smoke:prod-real|STRIPE_SECRET/i)
 
 const realApiSpec = read('tests/e2e/project-source-video-backend-upload-local-api.spec.ts')
 assert.match(realApiSpec, /PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_REAL_API/)
@@ -96,6 +116,7 @@ assert.doesNotMatch(previewCard, /product-ready/i)
 const runbook = read('docs/internal-testing-local-upload-runner.md')
 for (const phrase of [
   'npm run dev:internal-testing:local-upload',
+  'npm run test:internal-testing:local-upload-e2e',
   'http://127.0.0.1:5179/sign-in',
   'VITE_REEDITPRO_INTERNAL_TEST_AUTH=true',
   'browser-local mock auth session',
@@ -120,6 +141,7 @@ console.log(JSON.stringify({
   ok: true,
   checks: [
     'local_upload_runner_script_present',
+    'one_command_local_upload_e2e_verifier_registered',
     'local_upload_runner_scripts_registered',
     'browser_local_mock_sign_in_enabled_for_runner',
     'real_local_api_playwright_spec_present_without_route_interception',

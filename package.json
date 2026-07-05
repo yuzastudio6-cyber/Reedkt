@@ -11,6 +11,7 @@
     "build:remotion-worker:mock": "npm run typecheck:server && vite build --config vite.remotion-worker.config.ts",
     "dev:api": "tsx server/index.ts",
     "dev:internal-testing:local-upload": "node scripts/dev/internal-testing-local-upload-runner.mjs",
+    "test:internal-testing:local-upload-e2e": "node scripts/dev/internal-testing-local-upload-e2e.mjs",
     "typecheck:api": "tsc -p tsconfig.server.json --noEmit",
     "build:api": "npm run typecheck:api",
     "smoke:api": "tsx server/smoke/backend-runtime-smoke.ts",

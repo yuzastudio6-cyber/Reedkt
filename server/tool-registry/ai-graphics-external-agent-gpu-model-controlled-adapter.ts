@@ -51,6 +51,7 @@ const configuredPrivateModelPathEnvByTool: Partial<
   birefnet: 'REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL',
 }
 const gpuModelOutputRootEnvVar = 'REEDITPRO_AI_GRAPHICS_GPU_MODEL_OUTPUT_ROOT'
+const privateSourceImageEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE'
 const defaultGpuModelOutputRoot =
   '.local-artifacts/ai-graphics/external-agent-gpu-model-controlled-adapter'
 
@@ -175,6 +176,19 @@ function payloadWithConfiguredRuntimeDefaults(
     nextPayload = {
       ...nextPayload,
       outputDirectory: defaultScopedOutputDirectory({ toolId, requestId }),
+    }
+  }
+  if (
+    toolId !== 'torch_torchvision' &&
+    toolId !== 'transformers' &&
+    !optionalString(nextPayload, 'sourceImageLocalPath') &&
+    !optionalString(nextPayload, 'representativeFrameLocalPath') &&
+    process.env[privateSourceImageEnvVar]
+  ) {
+    nextPayload = {
+      ...nextPayload,
+      sourceImageLocalPath: process.env[privateSourceImageEnvVar],
+      representativeFrameLocalPath: process.env[privateSourceImageEnvVar],
     }
   }
   if (toolId === 'sam2' && !optionalString(nextPayload, 'sam2CheckpointLocalPath')) {

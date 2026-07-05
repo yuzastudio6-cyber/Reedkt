@@ -257,7 +257,7 @@ function checkGpuBlockedCall(label, report, expectedBlockingReason) {
       : 'sourceImageLocalPath'
   const expectedRemainingPrivateInputKeys =
     expectedCurrentBlockingPrerequisite === 'sourceImageLocalPath'
-      ? ['outputDirectory', 'pythonCpuTensorRuntime']
+      ? ['pythonCpuTensorRuntime']
       : ['outputDirectory', 'pythonCpuTensorRuntime', 'sourceImageLocalPath']
   if (report.decision !== decision) fail(`${label}_decision_mismatch`)
   if (report.status !== 'external_agent_single_tool_call_blocked_with_reason') {

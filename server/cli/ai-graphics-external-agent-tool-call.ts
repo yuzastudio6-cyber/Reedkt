@@ -94,6 +94,7 @@ const privateModelRootEnvVar =
 const privateModelManifestDirEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
 const gpuModelOutputRootEnvVar = 'REEDITPRO_AI_GRAPHICS_GPU_MODEL_OUTPUT_ROOT'
+const privateSourceImageEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE'
 const defaultGpuModelOutputRoot =
   '.local-artifacts/ai-graphics/external-agent-single-tool-call'
 const explicitPrivateModelEnvVarByTool: Partial<
@@ -316,6 +317,10 @@ function defaultGpuRuntimeOutputDirectory(
     safeRuntimePathSegment(`external-agent-single-tool-call-${toolId}`),
     toolId,
   )
+}
+
+function privateSourceImageValue(): string | undefined {
+  return stringArg('--source-image') ?? process.env[privateSourceImageEnvVar]
 }
 
 function runtimeInputManifestMaterializationRequested(): boolean {
@@ -1032,7 +1037,7 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
   const defaultOutputDirectory = attemptGpuRuntime
     ? defaultGpuRuntimeOutputDirectory(toolId)
     : undefined
-  const explicitSourceImageLocalPath = stringArg('--source-image')
+  const explicitSourceImageLocalPath = privateSourceImageValue()
   const manifestPath = resolveRuntimeInputManifestPathForTool(toolId, {
     attemptGpuRuntime,
     outputDirectory: explicitOutputDirectory ?? defaultOutputDirectory,

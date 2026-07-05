@@ -50,6 +50,11 @@ export const AI_GRAPHICS_EXTERNAL_AGENT_TOOL_CALL_ROUTE_MOUNT_FLAG =
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_FLAG =
   'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_MOCK_QUEUE_ADMISSION_ENABLED'
+const configuredPrivateModelPathEnvByTool: Record<string, string | undefined> = {
+  sam2: 'REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT',
+  birefnet: 'REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL',
+}
+const privateSourceImageEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE'
 
 export const AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_FLAG =
   'AI_GRAPHICS_EXTERNAL_BETA_TOOL_CALL_ROUTE_CPU_STATIC_CONTROLLED_EXECUTION_ENABLED'
@@ -656,8 +661,97 @@ function gpuModelRequiredPrivateInputKeys(
     ['sam2', 'birefnet', 'real_esrgan', 'rembg', 'transparent_background']
       .includes(toolId)
       ? 'modelWeightManifestEvidence'
-      : '',
+    : '',
   ].filter(Boolean)
+}
+
+function payloadString(
+  payload: Record<string, unknown> | null | undefined,
+  key: string,
+): string | undefined {
+  const value = payload?.[key]
+  return typeof value === 'string' && value.trim() ? value : undefined
+}
+
+function configuredPrivateModelPathForTool(toolId: string): string | undefined {
+  const envVar = configuredPrivateModelPathEnvByTool[toolId]
+  return envVar ? process.env[envVar] : undefined
+}
+
+function payloadBoolean(
+  payload: Record<string, unknown> | null | undefined,
+  key: string,
+): boolean {
+  return payload?.[key] === true
+}
+
+function satisfiedGpuModelPrivateInputKeys(input: {
+  toolId: string
+  payload?: Record<string, unknown> | null
+  currentBlockingPrerequisiteKey: string | null
+}): Set<string> {
+  const satisfied = new Set<string>()
+  if (
+    input.currentBlockingPrerequisiteKey !== 'outputDirectory' &&
+    (
+      payloadString(input.payload, 'outputDirectory') ||
+      (
+        payloadString(input.payload, 'mode') === 'local_dev' &&
+        payloadBoolean(input.payload, 'enableGpuModelControlledExecution')
+      )
+    )
+  ) {
+    satisfied.add('outputDirectory')
+  }
+  if (
+    input.currentBlockingPrerequisiteKey !== 'sourceImageLocalPath' &&
+    (
+      payloadString(input.payload, 'sourceImageLocalPath') ||
+      payloadString(input.payload, 'representativeFrameLocalPath') ||
+      process.env[privateSourceImageEnvVar]
+    )
+  ) {
+    satisfied.add('sourceImageLocalPath')
+  }
+  if (
+    input.toolId === 'sam2' &&
+    input.currentBlockingPrerequisiteKey !== 'sam2CheckpointLocalPath' &&
+    (
+      payloadString(input.payload, 'sam2CheckpointLocalPath') ||
+      configuredPrivateModelPathForTool(input.toolId)
+    )
+  ) {
+    satisfied.add('sam2CheckpointLocalPath')
+  }
+  if (
+    input.toolId === 'birefnet' &&
+    input.currentBlockingPrerequisiteKey !== 'birefnetModelLocalPath' &&
+    (
+      payloadString(input.payload, 'birefnetModelLocalPath') ||
+      configuredPrivateModelPathForTool(input.toolId)
+    )
+  ) {
+    satisfied.add('birefnetModelLocalPath')
+  }
+  if (
+    input.currentBlockingPrerequisiteKey !== 'realEsrganModelLocalPath' &&
+    payloadString(input.payload, 'realEsrganModelLocalPath')
+  ) {
+    satisfied.add('realEsrganModelLocalPath')
+  }
+  if (
+    input.currentBlockingPrerequisiteKey !== 'rembgModelLocalPath' &&
+    payloadString(input.payload, 'rembgModelLocalPath')
+  ) {
+    satisfied.add('rembgModelLocalPath')
+  }
+  if (
+    input.currentBlockingPrerequisiteKey !== 'transparentBackgroundCheckpointLocalPath' &&
+    payloadString(input.payload, 'transparentBackgroundCheckpointLocalPath')
+  ) {
+    satisfied.add('transparentBackgroundCheckpointLocalPath')
+  }
+  return satisfied
 }
 
 function gpuModelCurrentBlockingPrerequisiteKey(
@@ -841,6 +935,18 @@ function gpuModelExternalAgentProofFields(input: {
         allowCpuFoundationRuntime,
         allowCpuModelRuntime,
       })
+  const satisfiedPrivateInputKeys = input.executionPassed
+    ? new Set<string>()
+    : satisfiedGpuModelPrivateInputKeys({
+        toolId: input.toolId,
+        payload: input.payload,
+        currentBlockingPrerequisiteKey,
+      })
+  const remainingPrivateInputKeys = currentBlockingPrerequisiteKey
+    ? requiredPrivateInputKeys.filter((key) =>
+        key !== currentBlockingPrerequisiteKey &&
+        !satisfiedPrivateInputKeys.has(key))
+    : requiredPrivateInputKeys.filter((key) => !satisfiedPrivateInputKeys.has(key))
   return {
     nextExternalAgentCommandKind: input.executionPassed
       ? null
@@ -874,9 +980,7 @@ function gpuModelExternalAgentProofFields(input: {
     currentBlockingReasonCode: input.executionPassed
       ? null
       : input.blockingReasonCode ?? null,
-    remainingPrivateInputKeys: currentBlockingPrerequisiteKey
-      ? requiredPrivateInputKeys.filter((key) => key !== currentBlockingPrerequisiteKey)
-      : requiredPrivateInputKeys,
+    remainingPrivateInputKeys,
     gpuRuntimeStartPolicy: input.executionPassed
       ? 'gpu_started_only_for_completed_scoped_tool_call'
       : 'on_demand_only_for_scoped_active_tool_call',

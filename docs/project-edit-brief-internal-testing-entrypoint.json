@@ -8,6 +8,7 @@
     "scenarioRegistry": "src/lib/internal-testing-scenarios.ts"
   },
   "connectedRoutes": [
+    "/sign-in?redirect=%2Fprojects%2Fmock-project-edit-chat-foundation%2Fedits%2Fedit-session-youtube-wide%2Fbrief",
     "/projects/mock-project-edit-chat-foundation",
     "/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/chat",
     "/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief",
@@ -16,9 +17,12 @@
   "features": [
     "scenario_readiness_summary",
     "high_signal_edit_brief_launch_links",
+    "signed_source_video_testing_path",
+    "browser_local_internal_testing_sign_in_gate",
     "source_video_testing_path",
     "browser_local_source_video_preview",
     "backend_local_source_video_upload_gate",
+    "preview_only_local_edit_smoke_path",
     "preference_video_mock_limits_closeout",
     "approval_credit_gate_readiness",
     "credit_lifecycle_readiness",

@@ -13,6 +13,7 @@ This is not a shortcut or throwaway testing surface. It keeps the same project/s
 ## Connected Routes
 
 - `/internal-testing`
+- `/sign-in?redirect=%2Fprojects%2Fmock-project-edit-chat-foundation%2Fedits%2Fedit-session-youtube-wide%2Fbrief`
 - `/projects/mock-project-edit-chat-foundation`
 - `/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/chat`
 - `/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief`
@@ -26,9 +27,11 @@ This closeout only proves that internal testers can see and verify the boundarie
 
 ## Source Video Testing Path
 
-The internal testing route now exposes a first-class source-video test path that sends testers to the Edit Brief source video picker. Browser-local source video preview, playback timeline sync, source-time marker creation, local metadata capture, export setting recommendations from browser metadata, Qwen 3.7 Max Marker Chat readiness labels, and visual-context fallback checks are allowed for repeated internal testing.
+The internal testing route now exposes a first-class signed source-video test path that sends testers through `/sign-in` and returns them to the Edit Brief source video picker. Browser-local source video preview, playback timeline sync, source-time marker creation, local metadata capture, export setting recommendations from browser metadata, Qwen 3.7 Max Marker Chat readiness labels, and visual-context fallback checks are allowed for repeated internal testing.
 
 Backend-local source video upload is a separate internal gate. The upload control is shown only when `VITE_REEDITPRO_API_BASE_URL` is configured and `VITE_REEDITPRO_SOURCE_VIDEO_BACKEND_UPLOAD=true`; it records canonical source-video metadata for backend-local testing only. It does not authorize FFmpeg/FFprobe, providers, workers, render/export, credit movement, external beta, paid production, or product-ready behavior.
+
+When the local runner sets `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true`, the source-video panel links to `/sign-in?redirect=%2Fprojects%2Fmock-project-edit-chat-foundation%2Fedits%2Fedit-session-youtube-wide%2Fbrief`. That route creates a browser-local mock auth session, returns to Brief, then allows backend-local upload and `Run local edit preview` to produce preview-only evidence after mock approval/reservation and approved-snapshot gates. This is internal testing only and does not contact Supabase Auth.
 
 ## Approval And Credit Gate Readiness
 
@@ -123,6 +126,7 @@ This dry-run plan does not run Supabase, create an executable migration, add `su
 ## Boundaries
 
 - Browser-local source video preview and metadata capture are allowed.
+- Browser-local internal testing sign-in is allowed only when `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true`.
 - Backend-local source video upload is gated by explicit internal environment configuration.
 - No unapproved upload or backend file-byte read outside the backend-local source-video upload gate.
 - No provider/model call.

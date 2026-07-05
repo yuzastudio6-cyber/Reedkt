@@ -10,6 +10,7 @@ type ProvisionDecision =
   | 'internal_tester_backend_profile_workspace_provisioning_blocked_supabase_error'
 
 type ProfileIdentityColumn = 'user_id' | 'id'
+type ProfileTableName = 'profiles' | 'user_profiles'
 
 interface ProvisionResult {
   ok: boolean
@@ -31,6 +32,7 @@ interface ProfileRow {
   user_id?: string
   display_name?: string | null
   avatar_url?: string | null
+  email?: string | null
   metadata_json?: Record<string, unknown> | null
   metadata?: Record<string, unknown> | null
   default_workspace_id?: string | null
@@ -39,9 +41,12 @@ interface ProfileRow {
 interface WorkspaceRow {
   id?: string
   owner_id?: string
+  owner_user_id?: string
   name?: string
   plan_type?: string
+  workspace_type?: string
   metadata_json?: Record<string, unknown> | null
+  metadata?: Record<string, unknown> | null
 }
 
 interface WorkspaceMemberRow {
@@ -120,6 +125,24 @@ function isMissingColumnError(error: { code?: string; message?: string }, column
   )
 }
 
+function isSchemaFallbackError(error: { code?: string; message?: string }): boolean {
+  const message = error.message?.toLowerCase() ?? ''
+  return (
+    error.code === '42703'
+    || error.code === '42P01'
+    || error.code === 'PGRST200'
+    || error.code === 'PGRST204'
+    || error.code === 'PGRST205'
+    || message.includes('schema cache')
+    || message.includes('could not find')
+    || message.includes('does not exist')
+    || message.includes('column')
+    || message.includes('relationship')
+    || message.includes('owner_user_id')
+    || message.includes('owner_id')
+  )
+}
+
 function isConflictError(error: { code?: string; message?: string }): boolean {
   const message = error.message?.toLowerCase() ?? ''
   return error.code === '23505' || message.includes('duplicate key') || message.includes('already exists')
@@ -171,28 +194,35 @@ async function inviteUserIfAllowed(
 async function findProfile(client: SupabaseClient, userId: string): Promise<{
   profile?: ProfileRow
   identityColumn?: ProfileIdentityColumn
+  tableName?: ProfileTableName
 }> {
-  for (const column of ['user_id', 'id'] satisfies ProfileIdentityColumn[]) {
-    const { data, error } = await client
-      .from('profiles')
-      .select('*')
-      .eq(column, userId)
-      .maybeSingle()
+  for (const tableName of ['profiles', 'user_profiles'] satisfies ProfileTableName[]) {
+    for (const column of ['user_id', 'id'] satisfies ProfileIdentityColumn[]) {
+      const { data, error } = await client
+        .from(tableName)
+        .select('*')
+        .eq(column, userId)
+        .maybeSingle()
 
-    if (!error) {
-      return {
-        profile: data as ProfileRow | null ?? undefined,
-        identityColumn: column,
+      if (!error) {
+        if (data) {
+          return {
+            profile: data as ProfileRow,
+            identityColumn: column,
+            tableName,
+          }
+        }
+        continue
       }
-    }
 
-    if (!isMissingColumnError(error, column)) throw error
+      if (!isSchemaFallbackError(error) && !isMissingColumnError(error, column)) throw error
+    }
   }
 
   return {}
 }
 
-function profileInsertVariants(user: User, displayName: string): Array<Record<string, unknown>> {
+function profileInsertVariants(tableName: ProfileTableName, user: User, displayName: string): Array<Record<string, unknown>> {
   const base = {
     display_name: displayName,
     avatar_url: clean(user.user_metadata?.avatar_url as string | undefined) ?? clean(user.user_metadata?.picture as string | undefined),
@@ -200,6 +230,13 @@ function profileInsertVariants(user: User, displayName: string): Array<Record<st
   const metadata = {
     bootstrap_source: 'backend_internal_testing_provisioning',
     email_hash: emailHash(user.email ?? user.id),
+  }
+
+  if (tableName === 'user_profiles') {
+    return [
+      { id: user.id, ...base, email: user.email, metadata },
+      { id: user.id, ...base, email: user.email },
+    ]
   }
 
   return [
@@ -213,49 +250,58 @@ function profileInsertVariants(user: User, displayName: string): Array<Record<st
 async function ensureProfile(client: SupabaseClient, user: User, displayName: string): Promise<{
   profile: ProfileRow
   identityColumn: ProfileIdentityColumn
+  tableName: ProfileTableName
 }> {
   const existing = await findProfile(client, user.id)
-  if (existing.profile && existing.identityColumn) {
+  if (existing.profile && existing.identityColumn && existing.tableName) {
     return {
       profile: existing.profile,
       identityColumn: existing.identityColumn,
+      tableName: existing.tableName,
     }
   }
 
   let lastError: { code?: string; message?: string } | undefined
 
-  for (const insert of profileInsertVariants(user, displayName)) {
-    const { data, error } = await client
-      .from('profiles')
-      .insert(insert)
-      .select('*')
-      .single()
+  for (const tableName of ['profiles', 'user_profiles'] satisfies ProfileTableName[]) {
+    for (const insert of profileInsertVariants(tableName, user, displayName)) {
+      const { data, error } = await client
+        .from(tableName)
+        .insert(insert)
+        .select('*')
+        .single()
 
-    if (!error && data) {
-      const profile = data as ProfileRow
-      return {
-        profile,
-        identityColumn: 'user_id' in insert ? 'user_id' : 'id',
-      }
-    }
-
-    if (error) {
-      lastError = error
-      if (isConflictError(error)) {
-        const refetched = await findProfile(client, user.id)
-        if (refetched.profile && refetched.identityColumn) {
-          return {
-            profile: refetched.profile,
-            identityColumn: refetched.identityColumn,
-          }
+      if (!error && data) {
+        const profile = data as ProfileRow
+        return {
+          profile,
+          identityColumn: 'user_id' in insert ? 'user_id' : 'id',
+          tableName,
         }
       }
-      if (
-        !isMissingColumnError(error, 'user_id')
-        && !isMissingColumnError(error, 'id')
-        && !isMissingColumnError(error, 'metadata_json')
-      ) {
-        break
+
+      if (error) {
+        lastError = error
+        if (isConflictError(error)) {
+          const refetched = await findProfile(client, user.id)
+          if (refetched.profile && refetched.identityColumn && refetched.tableName) {
+            return {
+              profile: refetched.profile,
+              identityColumn: refetched.identityColumn,
+              tableName: refetched.tableName,
+            }
+          }
+        }
+        if (
+          !isSchemaFallbackError(error)
+          && !isMissingColumnError(error, 'user_id')
+          && !isMissingColumnError(error, 'id')
+          && !isMissingColumnError(error, 'metadata_json')
+          && !isMissingColumnError(error, 'metadata')
+          && !isMissingColumnError(error, 'email')
+        ) {
+          continue
+        }
       }
     }
   }
@@ -271,11 +317,28 @@ async function findExistingWorkspace(client: SupabaseClient, userId: string): Pr
   workspace?: WorkspaceRow
   membership?: WorkspaceMemberRow
 }> {
-  const { data, error } = await client
-    .from('workspace_members')
-    .select('id, workspace_id, user_id, role, workspaces(id, owner_id, name, plan_type, metadata_json)')
-    .eq('user_id', userId)
-    .limit(1)
+  const selects = [
+    'id, workspace_id, user_id, role, workspaces(id, owner_id, name, plan_type, metadata_json)',
+    'id, workspace_id, user_id, role, workspaces(id, owner_user_id, name, workspace_type, metadata)',
+    'id, workspace_id, user_id, role',
+  ]
+  let data: unknown[] | null = null
+  let error: { code?: string; message?: string } | null = null
+
+  for (const select of selects) {
+    const result = await client
+      .from('workspace_members')
+      .select(select)
+      .eq('user_id', userId)
+      .limit(1)
+
+    data = result.data as unknown[] | null
+    error = result.error
+
+    if (!error) break
+    if (isSchemaFallbackError(error)) continue
+    break
+  }
 
   if (error) throw error
 
@@ -296,6 +359,8 @@ function workspaceInsertVariants(ownerId: string, workspaceName: string): Array<
     { owner_id: ownerId, name: workspaceName, plan_type: 'internal_testing' },
     { owner_id: ownerId, name: workspaceName, plan_type: 'free', metadata_json: metadata },
     { owner_id: ownerId, name: workspaceName, plan_type: 'free' },
+    { owner_user_id: ownerId, name: workspaceName, workspace_type: 'personal', metadata },
+    { owner_user_id: ownerId, name: workspaceName, workspace_type: 'personal' },
   ]
 }
 
@@ -318,10 +383,13 @@ async function ensureWorkspace(
   let lastError: { code?: string; message?: string } | undefined
 
   for (const insert of workspaceInsertVariants(ownerId, workspaceName)) {
+    const select = 'owner_user_id' in insert
+      ? 'id, owner_user_id, name, workspace_type, metadata'
+      : 'id, owner_id, name, plan_type, metadata_json'
     const { data, error } = await client
       .from('workspaces')
       .insert(insert)
-      .select('id, owner_id, name, plan_type, metadata_json')
+      .select(select)
       .single()
 
     if (!error && data) {
@@ -331,8 +399,14 @@ async function ensureWorkspace(
 
     if (error) {
       lastError = error
-      if (!isMissingColumnError(error, 'metadata_json') && !isMissingColumnError(error, 'plan_type')) {
-        break
+      if (
+        !isSchemaFallbackError(error)
+        && !isMissingColumnError(error, 'metadata_json')
+        && !isMissingColumnError(error, 'metadata')
+        && !isMissingColumnError(error, 'plan_type')
+        && !isMissingColumnError(error, 'workspace_type')
+      ) {
+        continue
       }
     }
   }

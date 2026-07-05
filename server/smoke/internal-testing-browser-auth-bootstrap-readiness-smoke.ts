@@ -32,6 +32,8 @@ const requiredFiles = [
   'src/pages/SignInPage.tsx',
   'src/pages/InternalTestingPage.tsx',
   'src/lib/internal-testing-scenarios.ts',
+  'server/cli/provision-internal-tester.ts',
+  'server/cli/verify-internal-tester-auth-readback.ts',
   'docs/internal-testing-browser-auth-bootstrap-readiness.md',
   'docs/internal-testing-browser-auth-bootstrap-readiness.json',
   'server/smoke/internal-testing-browser-auth-bootstrap-readiness-smoke.ts',
@@ -82,6 +84,31 @@ assertText('src/backend/auth/auth-bootstrap-orchestrator.ts', [
   'workspace_ready',
 ])
 assert.doesNotMatch(read('src/backend/auth/auth-bootstrap-orchestrator.ts'), /SUPABASE_SERVICE_ROLE_KEY|service_role|createSignedUrl/i)
+
+assertText('src/backend/auth/profile-bootstrap-service.ts', [
+  'PROFILE_TABLES',
+  'legacyUserProfiles',
+  'metadata_json',
+  'metadata',
+])
+assertText('src/backend/auth/workspace-bootstrap-service.ts', [
+  'owner_id',
+  'owner_user_id',
+  'plan_type',
+  'workspace_type',
+])
+assertText('server/cli/provision-internal-tester.ts', [
+  'user_profiles',
+  'owner_user_id',
+  'workspace_type',
+  'internal_tester_backend_profile_workspace_provisioning_passed_ready_for_auth_readback',
+])
+assertText('server/cli/verify-internal-tester-auth-readback.ts', [
+  'user_profiles',
+  'owner_user_id',
+  'workspace_type',
+  'internal_tester_sign_in_auth_readback_passed_ready_for_browser_sign_in_test',
+])
 
 assertText('src/pages/SignInPage.tsx', [
   'useAuthBootstrap',

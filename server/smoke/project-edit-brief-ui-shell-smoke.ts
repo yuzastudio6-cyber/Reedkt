@@ -80,6 +80,12 @@ assert.match(chatPage, /data-route-section="workspace"/)
 assert.doesNotMatch(chatPage, /ProjectEditSessionRouteTabs/)
 assert.doesNotMatch(chatPage, /ProjectEditSessionChatInput/)
 
+const workspaceSource = read('src/components/projects/brief/ProjectEditBriefWorkspace.tsx')
+assert.match(workspaceSource, /data-testid="project-edit-flow-summary"/)
+assert.match(workspaceSource, /Source/)
+assert.match(workspaceSource, /Brief/)
+assert.match(workspaceSource, /Private export/)
+
 const uiAdapter = read('src/lib/project-edit-brief-ui-adapter.ts')
 assert.doesNotMatch(uiAdapter, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockProjectEditBriefRepository/)
 assert.doesNotMatch(uiAdapter, /createProjectEditBriefMarkerViaApi|updateProjectEditBriefMarkerViaApi|confirmProjectEditBriefMarkerViaApi|appendProjectEditBriefMarkerMessageViaApi|addProjectEditBriefMarkerAttachmentViaApi|updateProjectEditSessionExportSettingsViaApi|recommendProjectEditSessionExportSettingsViaApi/)

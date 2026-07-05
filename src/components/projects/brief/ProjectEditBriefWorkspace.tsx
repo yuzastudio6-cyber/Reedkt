@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MessageSquareText } from 'lucide-react'
+import { Badge } from '../../Badge'
 import { Button } from '../../Button'
 import { Card } from '../../Card'
 import { ProjectEditPlanApprovalCard } from '../ProjectEditPlanApprovalCard'
@@ -88,6 +89,76 @@ type ProjectEditBriefWorkspaceProps = {
   editSessionId: string
   editSessionTitle?: string
   projectId: string
+}
+
+type EditWorkspaceFlowStep = {
+  id: 'source' | 'brief' | 'plan' | 'preview' | 'review' | 'quality' | 'export'
+  label: string
+  status: 'complete' | 'current' | 'locked'
+  summary: string
+}
+
+function buildEditWorkspaceFlowSteps(input: {
+  sourceUploaded: boolean
+  briefSaved: boolean
+  planApproved: boolean
+  previewReady: boolean
+  previewReviewed: boolean
+  qualityPassed: boolean
+  exportReady: boolean
+}): EditWorkspaceFlowStep[] {
+  const definitions: Array<Omit<EditWorkspaceFlowStep, 'status'> & { complete: boolean }> = [
+    {
+      id: 'source',
+      label: 'Source',
+      complete: input.sourceUploaded,
+      summary: input.sourceUploaded ? 'Video is attached to this edit.' : 'Upload the video for this edit.',
+    },
+    {
+      id: 'brief',
+      label: 'Brief',
+      complete: input.briefSaved,
+      summary: input.briefSaved ? 'Instructions are saved.' : 'Write and save what the edit should do.',
+    },
+    {
+      id: 'plan',
+      label: 'Plan',
+      complete: input.planApproved,
+      summary: input.planApproved ? 'Plan and credits are approved.' : 'Approve the plan before preview creation.',
+    },
+    {
+      id: 'preview',
+      label: 'Preview',
+      complete: input.previewReady,
+      summary: input.previewReady ? 'A private preview is ready.' : 'Create a private preview for review.',
+    },
+    {
+      id: 'review',
+      label: 'Review',
+      complete: input.previewReviewed,
+      summary: input.previewReviewed ? 'Preview review is approved.' : 'Approve the preview or request changes.',
+    },
+    {
+      id: 'quality',
+      label: 'Quality check',
+      complete: input.qualityPassed,
+      summary: input.qualityPassed ? 'Quality gate passed.' : 'Confirm the approved preview is ready to export.',
+    },
+    {
+      id: 'export',
+      label: 'Private export',
+      complete: input.exportReady,
+      summary: input.exportReady ? 'Private export is ready.' : 'Create the private final test export.',
+    },
+  ]
+  const firstIncompleteIndex = definitions.findIndex((step) => !step.complete)
+
+  return definitions.map((step, index) => ({
+    id: step.id,
+    label: step.label,
+    summary: step.summary,
+    status: step.complete ? 'complete' : index === firstIncompleteIndex ? 'current' : 'locked',
+  }))
 }
 
 export function ProjectEditBriefWorkspace({
@@ -201,6 +272,16 @@ export function ProjectEditBriefWorkspace({
       exportDeliveryPolicyReady: Boolean(currentFinalExportResult),
     },
   }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, currentFinalExportResult, currentPreviewResult, currentPreviewReviewResult, currentProfessionalQAResult, editSessionId, planApprovalModel.approved, planApprovalModel.canApprove, projectId, sourceEvidenceAvailable])
+  const editFlowSteps = useMemo(() => buildEditWorkspaceFlowSteps({
+    sourceUploaded: Boolean(backendUploadResult),
+    briefSaved: Boolean(backendSavedBrief?.readbackVerified) && briefSaved,
+    planApproved: Boolean(backendApprovedLocalPlan?.localEditPlan.readbackVerified),
+    previewReady: Boolean(currentPreviewResult),
+    previewReviewed: currentPreviewReviewResult?.reviewStatus === 'approved',
+    qualityPassed: currentProfessionalQAResult?.status === 'passed',
+    exportReady: Boolean(currentFinalExportResult),
+  }), [backendApprovedLocalPlan, backendSavedBrief, backendUploadResult, briefSaved, currentFinalExportResult, currentPreviewResult, currentPreviewReviewResult, currentProfessionalQAResult])
+  const currentFlowStep = editFlowSteps.find((step) => step.status === 'current') ?? editFlowSteps[editFlowSteps.length - 1]
 
   useEffect(() => {
     let cancelled = false
@@ -595,6 +676,27 @@ export function ProjectEditBriefWorkspace({
       </Card>
 
       <ProjectEditLifecycleStatusCard model={lifecycle} />
+
+      <Card className="clean-edit-brief__flow-card" data-testid="project-edit-flow-summary">
+        <div className="clean-edit-brief__flow-heading">
+          <div>
+            <span className="section-eyebrow">Edit flow</span>
+            <h3>{currentFlowStep?.status === 'complete' ? 'Private edit is ready for review' : `Continue with ${currentFlowStep?.label.toLowerCase()}`}</h3>
+            <p>{currentFlowStep?.summary}</p>
+          </div>
+          <Badge accent={currentFinalExportResult ? 'success' : 'cyan'}>
+            {currentFinalExportResult ? 'Export ready' : 'In progress'}
+          </Badge>
+        </div>
+        <ol className="clean-edit-brief__flow-steps">
+          {editFlowSteps.map((step) => (
+            <li data-state={step.status} key={step.id}>
+              <span>{step.label}</span>
+              <strong>{step.status === 'complete' ? 'Done' : step.status === 'current' ? 'Now' : 'Locked'}</strong>
+            </li>
+          ))}
+        </ol>
+      </Card>
 
       <div className="clean-edit-brief__layout">
         <main className="clean-edit-brief__main">

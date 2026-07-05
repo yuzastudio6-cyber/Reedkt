@@ -29,6 +29,10 @@ import {
   restorePreviewResult,
   restorePreviewReviewResult,
 } from '../../src/lib/project-edit-session-lifecycle-checkpoint-ui-adapter'
+import {
+  createProjectEditSessionHomeCardViewModelFromRecord,
+  createProjectEditSessionHomeDetailViewModelFromRecord,
+} from '../../src/lib/project-edit-session-project-home-ui-adapter'
 import { createDefaultNewEditSessionFormState } from '../../src/lib/project-edit-session-create-flow-ui-adapter'
 import {
   readProjectEditBriefBackendLocal,
@@ -412,6 +416,15 @@ try {
   assert.equal(restoredFinalExport?.status, 'final_export_ready')
   assert.equal(restoredPreview?.editAssembly?.planId, approvedPlan.localEditPlan.editPlanId)
   assert.equal(restoredFinalExport?.editAssembly?.mode, 'private_final_export')
+
+  const homeCard = createProjectEditSessionHomeCardViewModelFromRecord(finalSession.editSession)
+  const homeDetail = createProjectEditSessionHomeDetailViewModelFromRecord(finalSession.editSession)
+  assert.equal(homeCard.progressLabel, 'Private export ready')
+  assert.equal(homeCard.latestPreviewLabel, 'Private export ready')
+  assert.equal(homeCard.progressItems.every((item) => item.complete), true)
+  assert.equal(homeDetail?.readinessLabel, 'Private export ready')
+  assert.equal(homeDetail?.progressItems.every((item) => item.complete), true)
+  assert.match(homeDetail?.artifactSummaryLines.join('\n') ?? '', /Private final export is ready/)
 
   const restoredBrief = await readProjectEditBriefBackendLocal({
     apiBaseUrl,

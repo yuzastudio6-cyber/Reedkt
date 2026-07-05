@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, Film, Layers3, MessageSquareText } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Circle, Film, Layers3, MessageSquareText } from 'lucide-react'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
 import { Card } from '../Card'
@@ -37,6 +37,7 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
       <div className="project-edit-session-detail-panel__badges">
         <Badge accent="violet">{card.dnaBadgeLabel}</Badge>
         <Badge accent="cyan">{card.qaBadgeLabel}</Badge>
+        <Badge accent={card.progressAccent}>{card.progressLabel}</Badge>
         <Badge>{card.statusLabel}</Badge>
       </div>
 
@@ -65,10 +66,26 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
             ))}
           </div>
 
+          <div className="project-edit-session-detail-panel__progress" data-testid="project-edit-session-progress-summary">
+            <strong>Edit progress</strong>
+            <div>
+              {detail.progressItems.map((item) => (
+                <span className={item.complete ? 'is-complete' : ''} key={item.id} title={item.detail}>
+                  {item.complete ? <CheckCircle2 aria-hidden="true" size={15} /> : <Circle aria-hidden="true" size={15} />}
+                  {item.label}
+                </span>
+              ))}
+            </div>
+          </div>
+
           <dl className="project-edit-session-detail-panel__list">
             <div>
               <dt>Latest status</dt>
               <dd>{detail.latestStatus}</dd>
+            </div>
+            <div>
+              <dt>Readiness</dt>
+              <dd>{detail.readinessLabel}</dd>
             </div>
             <div>
               <dt>Latest preview</dt>
@@ -97,6 +114,10 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
             <div>
               <dt>Revision</dt>
               <dd>{detail.revisionSummary}</dd>
+            </div>
+            <div>
+              <dt>Private artifact</dt>
+              <dd>{detail.artifactSummaryLines[0]}</dd>
             </div>
           </dl>
 

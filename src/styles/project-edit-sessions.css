@@ -522,6 +522,7 @@
 }
 
 .project-edit-session-detail-panel__summary,
+.project-edit-session-detail-panel__progress,
 .project-edit-session-detail-panel__list {
   background: rgba(5, 7, 13, 0.34);
   border: 1px solid var(--rp-border-subtle);
@@ -530,6 +531,37 @@
   gap: 10px;
   margin: 0;
   padding: 12px;
+}
+
+.project-edit-session-detail-panel__progress strong {
+  color: var(--rp-text-primary);
+}
+
+.project-edit-session-detail-panel__progress div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.project-edit-session-detail-panel__progress span {
+  align-items: center;
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  gap: 6px;
+  min-width: 0;
+  padding: 7px 9px;
+}
+
+.project-edit-session-detail-panel__progress span.is-complete {
+  border-color: rgba(34, 197, 94, 0.28);
+  color: var(--rp-text-primary);
+}
+
+.project-edit-session-detail-panel__progress span.is-complete svg {
+  color: var(--rp-success);
 }
 
 .project-edit-session-detail-panel__list div {

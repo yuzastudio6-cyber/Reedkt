@@ -32,6 +32,7 @@ export function ProjectEditSessionCard({ card, onSelect, selected }: ProjectEdit
         <div className="project-edit-session-card__badges">
           <Badge accent={card.dnaBadgeLabel === 'DNA applied' ? 'violet' : 'muted'}>{card.dnaBadgeLabel}</Badge>
           <Badge accent="cyan">{card.qaBadgeLabel}</Badge>
+          <Badge accent={card.progressAccent}>{card.progressLabel}</Badge>
         </div>
 
         <p className="project-edit-session-card__preference">

@@ -18,6 +18,12 @@ import {
   createProjectEditSessionBundleClientSummary,
   createProjectEditSessionCardListSummary,
 } from './project-edit-session-api-client-summaries'
+import {
+  restoreFinalExportResult,
+  restorePreviewResult,
+  restorePreviewReviewResult,
+  restoreProfessionalQAResult,
+} from './project-edit-session-lifecycle-checkpoint-ui-adapter'
 import { createProjectEditSessionBriefPath, createProjectEditSessionPath } from './project-edit-session-navigation'
 
 export const MOCK_PROJECT_HOME_PROJECT_ID = 'mock-project-edit-chat-foundation'
@@ -37,12 +43,22 @@ export type ProjectEditSessionHomeCardViewModel = {
   dnaBadgeLabel: 'DNA applied' | 'Legacy no-DNA'
   qaBadgeLabel: string
   badgeLabels: string[]
+  progressLabel: string
+  progressAccent: 'muted' | 'cyan' | 'success' | 'warning'
+  progressItems: ProjectEditSessionHomeProgressItem[]
   messageCount: number
   revisionCount: number
   versionCount: number
   lastEditedLabel: string
   latestPreviewLabel: string
   mockOnly: true
+}
+
+export type ProjectEditSessionHomeProgressItem = {
+  id: string
+  label: string
+  complete: boolean
+  detail: string
 }
 
 export type ProjectEditSessionHomeDetailViewModel = {
@@ -55,6 +71,9 @@ export type ProjectEditSessionHomeDetailViewModel = {
   selectedPreferenceSummary: string
   sourceNotesSummary: string
   latestPreviewLabel: string
+  readinessLabel: string
+  progressItems: ProjectEditSessionHomeProgressItem[]
+  artifactSummaryLines: string[]
   memorySummary: string
   versionSummary: string
   revisionSummary: string
@@ -123,6 +142,172 @@ function cardShapeForAspectRatio(aspectRatio: ProjectEditSessionRecord['aspectRa
   return 'custom'
 }
 
+function objectValue(value: unknown): Record<string, unknown> | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  return value as Record<string, unknown>
+}
+
+function stringValue(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value : undefined
+}
+
+function createBackendLocalReadiness(session: ProjectEditSessionRecord): {
+  artifactSummaryLines: string[]
+  latestPreviewLabel: string
+  progressAccent: ProjectEditSessionHomeCardViewModel['progressAccent']
+  progressItems: ProjectEditSessionHomeProgressItem[]
+  progressLabel: string
+} {
+  const metadata = session.metadata ?? {}
+  const sourceUpload = objectValue(metadata.backendLocalSourceUpload)
+  const brief = objectValue(metadata.backendLocalBrief)
+  const plan = objectValue(metadata.backendLocalPlan)
+  const preview = restorePreviewResult(session)
+  const previewReview = restorePreviewReviewResult(session)
+  const professionalQA = restoreProfessionalQAResult(session)
+  const finalExport = restoreFinalExportResult(session)
+  const sourceReady = Boolean(sourceUpload)
+  const briefReady = Boolean(brief)
+  const planApproved = Boolean(plan) && session.approvalStatus === 'approved'
+  const previewReady = preview?.status === 'preview_ready' || session.status === 'preview_ready' || session.status === 'final_export_ready'
+  const previewReviewed = previewReview?.reviewStatus === 'approved'
+  const qaPassed = professionalQA?.status === 'passed' || finalExport?.professionalQA?.status === 'passed'
+  const finalExportReady = finalExport?.status === 'final_export_ready' || session.status === 'final_export_ready'
+
+  const progressItems: ProjectEditSessionHomeProgressItem[] = [
+    {
+      id: 'source_attached',
+      label: 'Source attached',
+      complete: sourceReady,
+      detail: sourceReady
+        ? `${stringValue(sourceUpload?.fileName) ?? 'Source video'} is attached to this edit.`
+        : 'Add a source video inside the edit workspace.',
+    },
+    {
+      id: 'brief_saved',
+      label: 'Brief saved',
+      complete: briefReady,
+      detail: briefReady ? 'The edit brief has been saved for this edit.' : 'Save the edit brief before plan approval.',
+    },
+    {
+      id: 'plan_approved',
+      label: 'Plan approved',
+      complete: planApproved,
+      detail: planApproved ? 'The local edit plan and credit estimate were approved.' : 'Approve the plan and credit estimate before preview.',
+    },
+    {
+      id: 'preview_reviewed',
+      label: 'Preview reviewed',
+      complete: previewReviewed,
+      detail: previewReviewed ? 'The internal preview was reviewed and accepted.' : previewReady ? 'Review the preview before QA.' : 'Create the internal preview first.',
+    },
+    {
+      id: 'qa_passed',
+      label: 'QA passed',
+      complete: qaPassed,
+      detail: qaPassed ? 'Professional QA passed for the reviewed preview.' : 'Run the professional QA check before final export.',
+    },
+    {
+      id: 'private_export_ready',
+      label: 'Private export ready',
+      complete: finalExportReady,
+      detail: finalExportReady ? 'A private final export is ready for internal review.' : 'Final export stays locked until preview review and QA pass.',
+    },
+  ]
+
+  const outputObjectPath = stringValue(finalExport?.outputObjectPath) ?? stringValue(preview?.outputObjectPath)
+  const checksum = stringValue(finalExport?.checksumSha256) ?? stringValue(preview?.checksumSha256)
+  const sizeBytes = typeof finalExport?.sizeBytes === 'number' ? finalExport.sizeBytes : preview?.sizeBytes
+  const artifactSummaryLines = [
+    finalExportReady
+      ? 'Private final export is ready for internal review; public delivery remains a separate approval gate.'
+      : previewReady
+        ? 'Internal preview evidence is available; final export remains gated.'
+        : 'No preview or export artifact has been recorded yet.',
+    outputObjectPath ? `Private artifact path: ${outputObjectPath}` : 'No private artifact path recorded yet.',
+    checksum ? `Checksum recorded: ${checksum.slice(0, 16)}...` : 'No checksum recorded yet.',
+    typeof sizeBytes === 'number' ? `Artifact size: ${new Intl.NumberFormat('en-US').format(sizeBytes)} bytes.` : 'No artifact size recorded yet.',
+  ]
+
+  if (finalExportReady) {
+    return {
+      artifactSummaryLines,
+      latestPreviewLabel: 'Private export ready',
+      progressAccent: 'success',
+      progressItems,
+      progressLabel: 'Private export ready',
+    }
+  }
+
+  if (qaPassed) {
+    return {
+      artifactSummaryLines,
+      latestPreviewLabel: 'Preview reviewed',
+      progressAccent: 'cyan',
+      progressItems,
+      progressLabel: 'QA passed',
+    }
+  }
+
+  if (previewReviewed) {
+    return {
+      artifactSummaryLines,
+      latestPreviewLabel: 'Preview reviewed',
+      progressAccent: 'cyan',
+      progressItems,
+      progressLabel: 'Preview reviewed',
+    }
+  }
+
+  if (previewReady) {
+    return {
+      artifactSummaryLines,
+      latestPreviewLabel: 'Preview ready',
+      progressAccent: 'cyan',
+      progressItems,
+      progressLabel: 'Preview ready',
+    }
+  }
+
+  if (planApproved) {
+    return {
+      artifactSummaryLines,
+      latestPreviewLabel: 'No preview yet',
+      progressAccent: 'warning',
+      progressItems,
+      progressLabel: 'Plan approved',
+    }
+  }
+
+  if (briefReady) {
+    return {
+      artifactSummaryLines,
+      latestPreviewLabel: 'No preview yet',
+      progressAccent: 'warning',
+      progressItems,
+      progressLabel: 'Brief saved',
+    }
+  }
+
+  if (sourceReady) {
+    return {
+      artifactSummaryLines,
+      latestPreviewLabel: 'No preview yet',
+      progressAccent: 'warning',
+      progressItems,
+      progressLabel: 'Source attached',
+    }
+  }
+
+  return {
+    artifactSummaryLines,
+    latestPreviewLabel: 'No preview yet',
+    progressAccent: 'muted',
+    progressItems,
+    progressLabel: 'Setup needed',
+  }
+}
+
 export function createProjectHomeTitle(projectId: string): string {
   if (projectId === MOCK_PROJECT_HOME_PROJECT_ID) return 'ReEditPro Demo Project'
   return titleCase(projectId)
@@ -178,6 +363,9 @@ export function createProjectEditSessionHomeCardViewModel(
       ...card.badges.map(statusLabel),
     ])),
     messageCount: card.messageCount,
+    progressAccent: latestPreviewLabel === 'Mock preview ready' ? 'cyan' : 'muted',
+    progressItems: [],
+    progressLabel: latestPreviewLabel === 'Mock preview ready' ? 'Preview ready' : 'Setup needed',
     revisionCount: card.revisionCount,
     versionCount: card.versionCount,
     lastEditedLabel: formatLastEdited(card.lastEditedAt),
@@ -189,7 +377,8 @@ export function createProjectEditSessionHomeCardViewModel(
 export function createProjectEditSessionHomeCardViewModelFromRecord(
   session: ProjectEditSessionRecord,
 ): ProjectEditSessionHomeCardViewModel {
-  return createProjectEditSessionHomeCardViewModel({
+  const readiness = createBackendLocalReadiness(session)
+  const card = createProjectEditSessionHomeCardViewModel({
     id: session.id,
     projectId: session.projectId,
     name: session.name,
@@ -209,6 +398,19 @@ export function createProjectEditSessionHomeCardViewModelFromRecord(
     cardShape: cardShapeForAspectRatio(session.aspectRatio),
     mockOnly: true,
   })
+
+  return {
+    ...card,
+    badgeLabels: Array.from(new Set([
+      ...card.badgeLabels,
+      readiness.progressLabel,
+      readiness.progressItems.every((item) => item.complete) ? 'Internal review ready' : 'Continue edit setup',
+    ])),
+    latestPreviewLabel: readiness.latestPreviewLabel,
+    progressAccent: readiness.progressAccent,
+    progressItems: readiness.progressItems,
+    progressLabel: readiness.progressLabel,
+  }
 }
 
 export function createProjectEditSessionHomeDetailViewModel(
@@ -247,6 +449,11 @@ export function createProjectEditSessionHomeDetailViewModel(
     latestPreviewLabel: latestPreview
       ? `${statusLabel(latestPreview.status)} (${latestPreview.aspectRatio})`
       : 'Preview placeholder only',
+    readinessLabel: latestPreview ? 'Preview ready' : 'Setup needed',
+    progressItems: [],
+    artifactSummaryLines: latestPreview
+      ? [`Preview artifact: ${latestPreview.previewUrl ?? 'mock preview record'}`]
+      : ['No preview or export artifact has been recorded yet.'],
     memorySummary,
     versionSummary: latestVersion
       ? `Latest version v${latestVersion.versionNumber}: ${statusLabel(latestVersion.status)}`
@@ -274,12 +481,16 @@ export function createProjectEditSessionHomeDetailViewModelFromRecord(
   const latestCheckpoint = typeof metadata.latestBackendLocalCheckpoint === 'object' && metadata.latestBackendLocalCheckpoint
     ? metadata.latestBackendLocalCheckpoint as { checkpointKind?: string; recordedAt?: string; status?: string }
     : undefined
+  const readiness = createBackendLocalReadiness(session)
 
   return {
     editSessionId: session.id,
     title: session.name,
     summaryLines: [
       'Backend-local edit session read back from the project route.',
+      readiness.progressItems.every((item) => item.complete)
+        ? 'This edit has source, brief, approval, preview review, QA, and private export evidence recorded.'
+        : `Current edit progress: ${readiness.progressLabel}.`,
       latestCheckpoint?.checkpointKind
         ? `Latest checkpoint: ${statusLabel(latestCheckpoint.checkpointKind)}${latestCheckpoint.recordedAt ? ` at ${formatLastEdited(latestCheckpoint.recordedAt)}` : ''}.`
         : 'No backend-local lifecycle checkpoint has been recorded yet.',
@@ -299,7 +510,10 @@ export function createProjectEditSessionHomeDetailViewModelFromRecord(
     sourceNotesSummary: sourceNotes.length
       ? `${sourceNotes.length} metadata-only source note(s) captured.`
       : 'No source notes yet.',
-    latestPreviewLabel: session.latestPreviewUrl ? 'Preview ready' : 'No preview yet.',
+    latestPreviewLabel: readiness.latestPreviewLabel,
+    readinessLabel: readiness.progressLabel,
+    progressItems: readiness.progressItems,
+    artifactSummaryLines: readiness.artifactSummaryLines,
     memorySummary: 'Backend-local edit session metadata only; memory layers are created later in the edit workspace.',
     versionSummary: 'No versions yet.',
     revisionSummary: 'No revisions requested.',

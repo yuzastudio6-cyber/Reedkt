@@ -8,6 +8,7 @@ import {
   createProjectEditSessionBackendLocalConfig,
   createProjectEditSessionBackendLocalFromNewEditForm,
   listProjectEditSessionsBackendLocal,
+  recordProjectEditSessionLifecycleCheckpointBackendLocal,
   readProjectEditSessionBackendLocal,
   type ProjectEditSessionBackendLocalRecord,
 } from '../../src/lib/project-edit-session-backend-local'
@@ -99,16 +100,58 @@ try {
   assert.equal(listReadback.editSessions.every((listedSession) => listedSession.projectId === 'project_backend_local_smoke'), true)
   assert.equal(listReadback.editSessions.every((listedSession) => listedSession.workspaceId === 'mock-workspace'), true)
 
+  const checkpoint = await recordProjectEditSessionLifecycleCheckpointBackendLocal({
+    apiBaseUrl,
+    editSessionId: session.id,
+    workspaceId: 'mock-workspace',
+    checkpointKind: 'source_uploaded',
+    status: 'setup_ready',
+    sourceMediaAssetId: 'media_asset_backend_local_smoke',
+    metadata: {
+      storageObjectRecordId: 'storage_object_backend_local_smoke',
+      fileName: 'backend-local-smoke.mp4',
+      productReady: false,
+    },
+    getAccessToken: async () => undefined,
+  })
+  assert.equal(checkpoint.editSession.id, session.id)
+  assert.equal(checkpoint.editSession.status, 'setup_ready')
+  assert.equal(checkpoint.editSession.sourceMediaAssetIds.includes('media_asset_backend_local_smoke'), true)
+  assert.equal(checkpoint.editSession.productReady, false)
+
+  const lifecycleReadback = await readProjectEditSessionBackendLocal({
+    apiBaseUrl,
+    editSessionId: session.id,
+    workspaceId: 'mock-workspace',
+    getAccessToken: async () => undefined,
+  })
+  assert.equal(lifecycleReadback.editSession.status, 'setup_ready')
+  assert.equal(lifecycleReadback.editSession.sourceMediaAssetIds.includes('media_asset_backend_local_smoke'), true)
+
+  const lifecycleListReadback = await listProjectEditSessionsBackendLocal({
+    apiBaseUrl,
+    projectId: 'project_backend_local_smoke',
+    workspaceId: 'mock-workspace',
+    getAccessToken: async () => undefined,
+  })
+  const listedUpdatedSession = lifecycleListReadback.editSessions.find((listedSession) => listedSession.id === session.id)
+  assert.equal(listedUpdatedSession?.status, 'setup_ready')
+  assert.equal(listedUpdatedSession?.sourceMediaAssetIds.includes('media_asset_backend_local_smoke'), true)
+
   const appSource = source('server/app.ts')
   assert.match(appSource, /createProjectEditSessionRoutes/)
 
   const routeSource = source('server/routes/project-edit-session-routes.ts')
   assert.match(routeSource, /\/v1\/projects\/:projectId\/edit-sessions/)
+  assert.match(routeSource, /\/v1\/edit-sessions\/:editSessionId\/lifecycle-checkpoints/)
   assert.match(routeSource, /listProjectEditSessions/)
+  assert.match(routeSource, /projectEditSessionLifecycleCheckpointSchema/)
   assert.match(routeSource, /requireIdempotency/)
 
   const serviceSource = source('server/services/project-edit-session-service.ts')
   assert.match(serviceSource, /listProjectEditSessions/)
+  assert.match(serviceSource, /recordProjectEditSessionLifecycleCheckpoint/)
+  assert.match(serviceSource, /latestBackendLocalCheckpoint/)
   assert.match(serviceSource, /backendLocalSessionStored/)
   assert.match(serviceSource, /providerCallMade: false/)
   assert.match(serviceSource, /productReady: false/)
@@ -130,6 +173,15 @@ try {
   const projectHomeAdapterSource = source('src/lib/project-edit-session-project-home-ui-adapter.ts')
   assert.match(projectHomeAdapterSource, /createProjectEditSessionHomeCardViewModelFromRecord/)
   assert.match(projectHomeAdapterSource, /createProjectEditSessionHomeDetailViewModelFromRecord/)
+  assert.match(projectHomeAdapterSource, /latestBackendLocalCheckpoint/)
+
+  const editBriefWorkspaceSource = source('src/components/projects/brief/ProjectEditBriefWorkspace.tsx')
+  assert.match(editBriefWorkspaceSource, /recordProjectEditSessionLifecycleCheckpointBackendLocal/)
+  assert.match(editBriefWorkspaceSource, /source_uploaded/)
+  assert.match(editBriefWorkspaceSource, /brief_saved/)
+  assert.match(editBriefWorkspaceSource, /plan_approved/)
+  assert.match(editBriefWorkspaceSource, /preview_ready/)
+  assert.match(editBriefWorkspaceSource, /preview_reviewed/)
 
   const editorPage = source('src/pages/EditorPage.tsx')
   assert.match(editorPage, /readProjectEditSessionBackendLocal/)
@@ -139,6 +191,8 @@ try {
   const clientSource = source('src/lib/project-edit-session-backend-local.ts')
   assert.match(clientSource, /\/v1\/edit-sessions/)
   assert.match(clientSource, /listProjectEditSessionsBackendLocal/)
+  assert.match(clientSource, /recordProjectEditSessionLifecycleCheckpointBackendLocal/)
+  assert.match(clientSource, /lifecycle-checkpoints/)
   assert.match(clientSource, /readback did not match/)
   assert.doesNotMatch(clientSource, /service_role|signedUrl|Stripe|production ready:\s*true/i)
 
@@ -148,6 +202,8 @@ try {
     editSessionId: session.id,
     projectId: session.projectId,
     listReadbackVerified: true,
+    lifecycleCheckpointReadbackVerified: true,
+    lifecycleStatus: lifecycleReadback.editSession.status,
     openRoute: created.openRoute,
     productReady: session.productReady,
   }, null, 2))

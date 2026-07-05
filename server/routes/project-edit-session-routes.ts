@@ -4,7 +4,10 @@ import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
 import { createProjectEditSessionService } from '../services/project-edit-session-service'
 import { validateBody } from '../validation/common-schemas'
-import { createProjectEditSessionSchema } from '../validation/project-edit-session-schemas'
+import {
+  createProjectEditSessionSchema,
+  projectEditSessionLifecycleCheckpointSchema,
+} from '../validation/project-edit-session-schemas'
 import { asyncRoute, getIdempotencyKey, getRouteParam, getServiceContext, sendOk } from './route-helpers'
 
 export function createProjectEditSessionRoutes(): Router {
@@ -40,6 +43,16 @@ export function createProjectEditSessionRoutes(): Router {
       workspaceId,
     )
     sendOk(response, { editSession: result.editSession }, result.warnings)
+  }))
+
+  router.post('/v1/edit-sessions/:editSessionId/lifecycle-checkpoints', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(projectEditSessionLifecycleCheckpointSchema, request.body)
+    const result = await createProjectEditSessionService(getServiceContext(request)).recordProjectEditSessionLifecycleCheckpoint({
+      ...body,
+      editSessionId: getRouteParam(request, 'editSessionId'),
+      idempotencyKey: getIdempotencyKey(request),
+    })
+    sendOk(response, { editSession: result.editSession }, result.warnings, 201)
   }))
 
   return router

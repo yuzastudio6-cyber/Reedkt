@@ -1,5 +1,9 @@
 import { getSupabaseClient } from '../backend/supabase/supabase-client'
-import type { ProjectEditSessionRecord } from '../types/project-edit-session'
+import type {
+  ProjectEditSessionApprovalStatus,
+  ProjectEditSessionRecord,
+  ProjectEditSessionStatus,
+} from '../types/project-edit-session'
 import { PROJECT_EDIT_SESSION_API_CLIENT_SAFETY } from './project-edit-session-api-client-summaries'
 import {
   getNewEditSessionPreferenceHandle,
@@ -38,6 +42,18 @@ interface ProjectEditSessionData {
 interface ProjectEditSessionListData {
   editSessions: ProjectEditSessionBackendLocalRecord[]
 }
+
+interface ProjectEditSessionLifecycleCheckpointData {
+  editSession: ProjectEditSessionBackendLocalRecord
+}
+
+export type ProjectEditSessionLifecycleCheckpointKind =
+  | 'source_uploaded'
+  | 'brief_saved'
+  | 'plan_approved'
+  | 'preview_ready'
+  | 'preview_reviewed'
+  | 'setup_reset'
 
 export interface ProjectEditSessionBackendLocalConfig {
   available: boolean
@@ -278,6 +294,52 @@ export async function listProjectEditSessionsBackendLocal(input: {
 
   return {
     editSessions: assertOk(envelope, 'Edit session list readback failed.').editSessions,
+    warnings: envelope.warnings ?? [],
+  }
+}
+
+export async function recordProjectEditSessionLifecycleCheckpointBackendLocal(input: {
+  apiBaseUrl: string
+  editSessionId: string
+  workspaceId: string
+  status: ProjectEditSessionStatus
+  checkpointKind: ProjectEditSessionLifecycleCheckpointKind
+  approvalStatus?: ProjectEditSessionApprovalStatus
+  sourceMediaAssetId?: string
+  latestSnapshotId?: string
+  latestPreviewId?: string
+  latestPreviewUrl?: string
+  metadata?: Record<string, unknown>
+  fetchImpl?: typeof fetch
+  getAccessToken?: () => Promise<string | undefined>
+}): Promise<{ editSession: ProjectEditSessionBackendLocalRecord; warnings: string[] }> {
+  const fetchImpl = input.fetchImpl ?? fetch
+  const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
+  const envelope = await parseEnvelope<ProjectEditSessionLifecycleCheckpointData>(await fetchImpl(joinUrl(
+    input.apiBaseUrl,
+    `/v1/edit-sessions/${encodeURIComponent(input.editSessionId)}/lifecycle-checkpoints`,
+  ), {
+    method: 'POST',
+    headers: createHeaders({
+      'Content-Type': 'application/json',
+      'idempotency-key': createIdempotencyKey(`edit-session-${input.checkpointKind}`),
+      authorization: accessToken ? `Bearer ${accessToken}` : undefined,
+    }),
+    body: JSON.stringify({
+      workspaceId: input.workspaceId,
+      status: input.status,
+      checkpointKind: input.checkpointKind,
+      approvalStatus: input.approvalStatus,
+      sourceMediaAssetId: input.sourceMediaAssetId,
+      latestSnapshotId: input.latestSnapshotId,
+      latestPreviewId: input.latestPreviewId,
+      latestPreviewUrl: input.latestPreviewUrl,
+      metadata: input.metadata,
+    }),
+  }))
+
+  return {
+    editSession: assertOk(envelope, 'Edit session lifecycle checkpoint failed.').editSession,
     warnings: envelope.warnings ?? [],
   }
 }

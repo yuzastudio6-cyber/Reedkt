@@ -271,12 +271,18 @@ export function createProjectEditSessionHomeDetailViewModelFromRecord(
   const sourceNotes = Array.isArray(metadata.sourceNotes) ? metadata.sourceNotes : []
   const noUploadStarted = metadata.noUploadStarted === true
   const noPlanApproved = metadata.noPlanApproved === true
+  const latestCheckpoint = typeof metadata.latestBackendLocalCheckpoint === 'object' && metadata.latestBackendLocalCheckpoint
+    ? metadata.latestBackendLocalCheckpoint as { checkpointKind?: string; recordedAt?: string; status?: string }
+    : undefined
 
   return {
     editSessionId: session.id,
     title: session.name,
     summaryLines: [
       'Backend-local edit session read back from the project route.',
+      latestCheckpoint?.checkpointKind
+        ? `Latest checkpoint: ${statusLabel(latestCheckpoint.checkpointKind)}${latestCheckpoint.recordedAt ? ` at ${formatLastEdited(latestCheckpoint.recordedAt)}` : ''}.`
+        : 'No backend-local lifecycle checkpoint has been recorded yet.',
       noUploadStarted
         ? 'No source video has been uploaded for this edit yet.'
         : 'Source/upload state is handled inside the edit brief workspace.',

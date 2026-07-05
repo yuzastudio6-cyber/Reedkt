@@ -9,6 +9,10 @@ import {
   saveProjectEditBriefBackendLocal,
   type ProjectEditBriefBackendLocalRecord,
 } from '../../../lib/project-edit-brief-backend-local'
+import {
+  recordProjectEditSessionLifecycleCheckpointBackendLocal,
+  type ProjectEditSessionLifecycleCheckpointKind,
+} from '../../../lib/project-edit-session-backend-local'
 import { approveProjectEditPlanBackendLocal } from '../../../lib/project-edit-plan-backend-local'
 import { buildProjectEditPlanApprovalModel } from '../../../lib/project-edit-plan-approval'
 import { buildProjectEditLifecycleModel } from '../../../lib/project-edit-lifecycle'
@@ -41,6 +45,7 @@ import type {
   ProjectSourceVideoPreviewReviewResult,
 } from '../../../types/project-source-video'
 import type { ProjectEditBriefVideoShellModel } from '../../../lib/project-edit-brief-ui-adapter'
+import type { ProjectEditSessionApprovalStatus, ProjectEditSessionStatus } from '../../../types/project-edit-session'
 import { ProjectEditBriefLocalPreviewSmokeCard } from './ProjectEditBriefLocalPreviewSmokeCard'
 import { ProjectEditBriefPreviewReviewCard } from './ProjectEditBriefPreviewReviewCard'
 import { ProjectEditBriefSourceVideoPicker } from './ProjectEditBriefSourceVideoPicker'
@@ -182,6 +187,27 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
       : current)
   }
 
+  async function recordLifecycleCheckpoint(input: {
+    checkpointKind: ProjectEditSessionLifecycleCheckpointKind
+    status: ProjectEditSessionStatus
+    approvalStatus?: ProjectEditSessionApprovalStatus
+    sourceMediaAssetId?: string
+    latestSnapshotId?: string
+    latestPreviewId?: string
+    latestPreviewUrl?: string
+    metadata?: Record<string, unknown>
+  }) {
+    const apiBaseUrl = backendUploadConfig.apiBaseUrl ?? briefConfig.apiBaseUrl ?? localPreviewConfig.apiBaseUrl
+    if (!apiBaseUrl) return undefined
+
+    return recordProjectEditSessionLifecycleCheckpointBackendLocal({
+      apiBaseUrl,
+      editSessionId,
+      workspaceId: backendUploadConfig.workspaceId,
+      ...input,
+    })
+  }
+
   async function uploadForTesting() {
     if (!sourceFile || !backendUploadConfig.available || !backendUploadConfig.apiBaseUrl) return
     setBackendUploadStatus('uploading')
@@ -203,6 +229,20 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
         file: sourceFile,
         projectId,
         workspaceId: backendUploadConfig.workspaceId,
+      })
+      await recordLifecycleCheckpoint({
+        checkpointKind: 'source_uploaded',
+        status: 'setup_ready',
+        sourceMediaAssetId: result.mediaAssetId,
+        metadata: {
+          storageObjectRecordId: result.storageObjectRecordId,
+          fileName: result.fileName,
+          mimeType: result.mimeType,
+          sizeBytes: result.sizeBytes,
+          backendLocalUploadMade: true,
+          mediaProcessingStarted: false,
+          productReady: false,
+        },
       })
       setBackendUploadResult(result)
       setBackendUploadStatus('uploaded')
@@ -235,6 +275,18 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
         sourceStorageObjectRecordId: backendUploadResult?.storageObjectRecordId,
         workspaceId: briefConfig.workspaceId,
       })
+      await recordLifecycleCheckpoint({
+        checkpointKind: 'brief_saved',
+        status: 'awaiting_approval',
+        sourceMediaAssetId: backendUploadResult?.mediaAssetId,
+        metadata: {
+          briefId: result.readback.id,
+          briefRevisionNumber: result.readback.revisionNumber,
+          sourceStorageObjectRecordId: backendUploadResult?.storageObjectRecordId,
+          backendLocalBriefStored: true,
+          productReady: false,
+        },
+      })
       setBackendSavedBrief(result.readback)
       setBriefSaved(true)
       setBriefSaveStatus('saved')
@@ -252,7 +304,6 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
     setBackendApprovedLocalPlan(undefined)
     setPreviewReviewResult(undefined)
     setPlanApproved(false)
-    setStatusMessage('Brief saved locally for this edit workspace.')
   }
 
   function updateBriefText(value: string) {
@@ -288,6 +339,21 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
         projectId,
         sourceVideoUploadResult: backendUploadResult,
         workspaceId: backendUploadConfig.workspaceId,
+      })
+      await recordLifecycleCheckpoint({
+        checkpointKind: 'plan_approved',
+        status: 'approved',
+        approvalStatus: 'approved',
+        sourceMediaAssetId: backendUploadResult.mediaAssetId,
+        latestSnapshotId: result.localEditPlan.id,
+        metadata: {
+          editPlanId: result.localEditPlan.editPlanId,
+          creditEstimateId: result.localEditPlan.creditEstimateId,
+          localEditPlanRecordId: result.localEditPlan.id,
+          backendLocalPlanStored: true,
+          providerCallMade: false,
+          productReady: false,
+        },
       })
       setBackendApprovedLocalPlan(result)
       setPreviewReviewResult(undefined)
@@ -401,6 +467,27 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
             onPreviewReady={(result) => {
               setLocalPreviewResult(result)
               setPreviewReviewResult(undefined)
+              void recordLifecycleCheckpoint({
+                checkpointKind: 'preview_ready',
+                status: 'preview_ready',
+                approvalStatus: 'approved',
+                latestSnapshotId: result.approvedPlanSnapshotId,
+                latestPreviewId: result.renderId,
+                latestPreviewUrl: result.outputObjectPath
+                  ? `${result.outputBucketName ?? 'preview'}/${result.outputObjectPath}`
+                  : undefined,
+                metadata: {
+                  renderId: result.renderId,
+                  previewStorageObjectId: result.previewStorageObjectId,
+                  checksumSha256: result.checksumSha256,
+                  previewOnly: true,
+                  productReady: false,
+                },
+              }).catch((caught) => {
+                setStatusMessage(caught instanceof Error
+                  ? `Preview ready, but lifecycle checkpoint failed safely: ${caught.message}`
+                  : 'Preview ready, but lifecycle checkpoint failed safely.')
+              })
               setStatusMessage('Preview-only internal smoke completed. Final export and real tool execution remain blocked.')
             }}
             planApproved={Boolean(backendApprovedLocalPlan?.localEditPlan.readbackVerified)}
@@ -414,6 +501,24 @@ export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, pro
             config={localPreviewConfig}
             onReviewRecorded={(result) => {
               setPreviewReviewResult(result)
+              void recordLifecycleCheckpoint({
+                checkpointKind: 'preview_reviewed',
+                status: result.reviewStatus === 'approved' ? 'preview_ready' : 'revision_requested',
+                approvalStatus: result.reviewStatus === 'approved' ? 'approved' : 'reset_after_revision',
+                latestPreviewId: result.renderId,
+                metadata: {
+                  previewReviewId: result.id,
+                  renderId: result.renderId,
+                  reviewStatus: result.reviewStatus,
+                  notes: result.notes,
+                  finalExportStarted: false,
+                  productReady: false,
+                },
+              }).catch((caught) => {
+                setStatusMessage(caught instanceof Error
+                  ? `Preview review recorded, but lifecycle checkpoint failed safely: ${caught.message}`
+                  : 'Preview review recorded, but lifecycle checkpoint failed safely.')
+              })
               setStatusMessage(result.reviewStatus === 'approved'
                 ? 'Preview review approved and recorded. Professional QA and final export remain separate gates.'
                 : 'Preview changes requested and recorded. Update the brief or plan before another preview.')

@@ -25,6 +25,46 @@ export const projectEditSessionEditLevelSchema = z.enum([
   'ultra_premium',
 ])
 
+export const projectEditSessionStatusSchema = z.enum([
+  'draft',
+  'setup_ready',
+  'awaiting_approval',
+  'approved',
+  'in_progress_mock',
+  'preview_ready',
+  'revision_requested',
+  'needs_review',
+  'rendered_future',
+  'archived',
+])
+
+export const projectEditSessionApprovalStatusSchema = z.enum([
+  'not_requested',
+  'requested',
+  'approved',
+  'rejected',
+  'reset_after_revision',
+])
+
+export const projectEditSessionLifecycleCheckpointSchema = z.object({
+  workspaceId: idSchema,
+  status: projectEditSessionStatusSchema,
+  checkpointKind: z.enum([
+    'source_uploaded',
+    'brief_saved',
+    'plan_approved',
+    'preview_ready',
+    'preview_reviewed',
+    'setup_reset',
+  ]),
+  approvalStatus: projectEditSessionApprovalStatusSchema.optional(),
+  sourceMediaAssetId: z.string().optional(),
+  latestSnapshotId: z.string().optional(),
+  latestPreviewId: z.string().optional(),
+  latestPreviewUrl: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+})
+
 export const createProjectEditSessionSchema = z.object({
   workspaceId: idSchema,
   name: z.string().min(1),
@@ -37,3 +77,4 @@ export const createProjectEditSessionSchema = z.object({
 })
 
 export type CreateProjectEditSessionRequest = z.infer<typeof createProjectEditSessionSchema>
+export type ProjectEditSessionLifecycleCheckpointRequest = z.infer<typeof projectEditSessionLifecycleCheckpointSchema>

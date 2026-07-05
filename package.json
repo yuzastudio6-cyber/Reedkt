@@ -96,6 +96,7 @@
     "smoke:qwen-runtime-boundary": "tsx server/smoke/qwen-runtime-boundary-smoke.ts",
     "check:qwen-runtime-boundary": "node scripts/check-qwen-runtime-boundary.mjs",
     "smoke:qwen-marker-chat-bridge": "tsx server/smoke/qwen-marker-chat-bridge-smoke.ts",
+    "smoke:qwen-marker-chat-beta-route": "tsx server/smoke/qwen-marker-chat-beta-route-smoke.ts",
     "smoke:edit-brief-surface-audit": "tsx server/smoke/edit-brief-surface-audit-smoke.ts",
     "smoke:edit-brief-architecture": "tsx server/smoke/edit-brief-architecture-smoke.ts",
     "smoke:project-edit-brief-types": "tsx server/smoke/project-edit-brief-types-smoke.ts",

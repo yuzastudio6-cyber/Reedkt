@@ -46,6 +46,7 @@ import type {
   ReeditProApiClientSafetySummary,
   ReeditProApiTransport,
 } from './reeditpro-api-client-types'
+import { getSupabaseClient } from '../backend/supabase/supabase-client'
 import { createMockProjectEditBriefFixtureBundle } from './mock-project-edit-briefs'
 import {
   createProjectEditBriefBundle,
@@ -243,6 +244,18 @@ function createRequestId(routeId: string) {
   return `${routeId}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`
 }
 
+async function getSupabaseAccessToken(): Promise<string | undefined> {
+  const client = getSupabaseClient()
+  if (!client) return undefined
+  const { data } = await client.auth.getSession()
+  return data.session?.access_token
+}
+
+async function createAuthHeaders(options: ReeditProApiClientOptions): Promise<Record<string, string>> {
+  const token = await (options.getAccessToken ?? getSupabaseAccessToken)()
+  return token ? { authorization: `Bearer ${token}` } : {}
+}
+
 function createMockId(prefix: string) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 }
@@ -396,10 +409,12 @@ async function requestLiveQwenMarkerChatReadiness(
   }
 
   try {
+    const authHeaders = await createAuthHeaders(options)
     const response = await fetch(`${baseUrl}${QWEN_LIVE_READINESS_PATH}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
+        ...authHeaders,
         ...(options.workspaceId ? { 'x-reeditpro-workspace-id': options.workspaceId } : {}),
       },
     })
@@ -475,12 +490,14 @@ async function requestLiveQwenMarkerChat<TData = unknown>(
 ): Promise<ReeditProApiResponseEnvelope<TData>> {
   const body = asRecord(envelope.payload)
   const baseUrl = liveApiBaseUrl(options)
+  const authHeaders = await createAuthHeaders(options)
   const response = await fetch(`${baseUrl}${QWEN_LIVE_MARKER_CHAT_PATH}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-request-id': envelope.requestId,
       'idempotency-key': stringValue(body, 'idempotencyKey', envelope.requestId),
+      ...authHeaders,
       ...(envelope.workspaceId ? { 'x-reeditpro-workspace-id': envelope.workspaceId } : {}),
     },
     body: JSON.stringify({

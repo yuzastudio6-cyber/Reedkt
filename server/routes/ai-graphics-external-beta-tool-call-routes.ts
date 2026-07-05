@@ -465,6 +465,9 @@ function gpuModelSingleToolRuntimeProofFlags(toolId: string): string[] {
     toolId === 'transparent_background'
       ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
       : '',
+    aiGraphicsModelWeightManifestRequiredToolIds.has(toolId)
+      ? `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`
+      : '',
   ].filter(Boolean)
 }
 
@@ -604,6 +607,9 @@ function gpuModelPrivateProofSequenceFlags(toolId: string): string[] {
       : '',
     toolId === 'transparent_background'
       ? '--transparent-background-checkpoint <private-transparent-background-checkpoint.pth>'
+      : '',
+    aiGraphicsModelWeightManifestRequiredToolIds.has(toolId)
+      ? `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`
       : '',
   ].filter(Boolean)
 }

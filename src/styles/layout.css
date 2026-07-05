@@ -146,30 +146,6 @@
   color: var(--rp-brand-cyan);
 }
 
-.sidebar-widget {
-  background: var(--rp-gradient-surface), rgba(11, 18, 32, 0.94);
-  border: 1px solid var(--rp-border-subtle);
-  border-radius: var(--rp-radius-lg);
-  display: grid;
-  gap: 10px;
-  margin-top: auto;
-  padding: 16px;
-}
-
-.widget-kicker {
-  align-items: center;
-  color: var(--rp-brand-cyan);
-  display: flex;
-  font-size: 0.78rem;
-  font-weight: 800;
-  gap: 6px;
-}
-
-.sidebar-widget p {
-  color: var(--rp-text-muted);
-  font-size: 0.84rem;
-}
-
 .app-main {
   background:
     linear-gradient(180deg, rgba(7, 17, 31, 0.96), rgba(15, 17, 23, 1)),
@@ -710,27 +686,6 @@
   font-size: 0.68rem;
   margin-left: auto;
   text-transform: uppercase;
-}
-
-.sidebar-profile {
-  background: rgba(21, 31, 50, 0.62);
-  border: 1px solid var(--rp-border-subtle);
-  border-radius: var(--rp-radius-md);
-  display: grid;
-  gap: 4px;
-  padding: 12px;
-}
-
-.sidebar-profile span {
-  align-items: center;
-  color: var(--rp-text-primary);
-  display: flex;
-  font-weight: 750;
-  gap: 8px;
-}
-
-.sidebar-profile small {
-  color: var(--rp-text-muted);
 }
 
 .planning-hero {

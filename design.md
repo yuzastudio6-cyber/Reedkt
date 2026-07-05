@@ -190,6 +190,15 @@ Current internal-testing desktop sidebar:
 
 The old broad sidebar list is retired for the current app shell. AI Editor, Media Library, Templates, Team, Analytics, Exports, Brand Kit, Settings, Wallet, and Upload must not appear as persistent primary sidebar options. Those surfaces can stay available through contextual project/home actions or direct guarded routes when a feature needs them.
 
+Current internal-testing app pages should stay intentionally small and project-first:
+
+1. `CreateProjectPage` creates the project container.
+2. `ProjectsPage` lists backend-local projects or a clear empty/setup state.
+3. `EditorPage` owns the edit workspace where upload, brief, approval, preview, and private export live.
+4. `PreferencesPage` stores broad reusable editing defaults.
+
+Do not show sample projects, fake current projects, video-category launcher cards, or legacy editor shortcuts as normal user choices in this clean app shell. Demo fixtures can remain in tests and guarded internal routes, but they must not look like real projects in the primary Home or Project pages.
+
 Optional lower sidebar widgets are disabled in the current internal-testing shell unless a later product decision explicitly restores them:
 
 - Upgrade plan

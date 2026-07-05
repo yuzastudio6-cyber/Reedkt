@@ -65,6 +65,11 @@ const design = read('design.md')
 assert.match(design, /Current internal-testing desktop sidebar/)
 assert.match(design, /1\. Home\s+2\. Project\s+3\. Preferences/)
 assert.match(design, /old broad sidebar list is retired/i)
+assert.match(design, /CreateProjectPage/)
+assert.match(design, /ProjectsPage/)
+assert.match(design, /EditorPage/)
+assert.match(design, /PreferencesPage/)
+assert.match(design, /Do not show sample projects/)
 assert.match(design, /Navigation \| Home, Project, Preferences/)
 assert.doesNotMatch(design, /Primary desktop sidebar:\s+1\. Home\s+2\. Projects\s+3\. AI Editor/)
 
@@ -78,6 +83,8 @@ assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|servi
 
 const dashboardPage = read('src/pages/DashboardPage.tsx')
 assert.doesNotMatch(dashboardPage, /to="\/wallet"|Open wallet/)
+assert.doesNotMatch(dashboardPage, /ProjectCard|projects\[0\]|MOCK_PROJECT_HOME_PROJECT_ID|featuredProjectPath/)
+assert.match(dashboardPage, /Continue from the clean project workspace/)
 
 const docs = read('docs/edit-preferences-route-entrypoint.md')
 for (const phrase of [

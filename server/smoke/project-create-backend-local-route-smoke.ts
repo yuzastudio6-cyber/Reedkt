@@ -89,6 +89,8 @@ try {
   assert.match(projectsPage, /listProjectsBackendLocal/)
   assert.match(projectsPage, /projects-empty-state/)
   assert.match(projectsPage, /projectCardFromBackendLocal/)
+  assert.match(projectsPage, /No sample project is shown as a real workspace/)
+  assert.doesNotMatch(projectsPage, /import\s+\{\s*projects\s*\}\s+from\s+'..\/data\/mockData'|Open sample project|MOCK_PROJECT_HOME_PROJECT_ID|currentProjectPath/)
 
   const projectClient = source('src/lib/project-backend-local.ts')
   assert.match(projectClient, /\/v1\/projects/)

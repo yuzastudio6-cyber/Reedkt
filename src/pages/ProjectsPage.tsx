@@ -6,16 +6,12 @@ import { Button } from '../components/Button'
 import { Card } from '../components/Card'
 import { ProjectCard } from '../components/ProjectCard'
 import type { Project } from '../data/mockData'
-import { projects } from '../data/mockData'
 import {
   createProjectBackendLocalConfig,
   listProjectsBackendLocal,
   type ProjectBackendLocalRecord,
 } from '../lib/project-backend-local'
 import { createProjectHomePath } from '../lib/project-edit-session-navigation'
-import { MOCK_PROJECT_HOME_PROJECT_ID } from '../lib/project-edit-session-project-home-ui-adapter'
-
-const currentProjectPath = createProjectHomePath(MOCK_PROJECT_HOME_PROJECT_ID)
 
 function formatProjectUpdated(project: ProjectBackendLocalRecord): string {
   const value = project.updatedAt ?? project.createdAt
@@ -52,7 +48,7 @@ export function ProjectsPage() {
   const [loadingProjects, setLoadingProjects] = useState(projectConfig.available)
   const [projectListStatus, setProjectListStatus] = useState(projectConfig.available
     ? 'Loading backend-local projects.'
-    : 'Backend API URL is not configured, so sample projects are shown as an offline fallback.')
+    : 'Backend API URL is not configured. Project readback is waiting for the local backend.')
 
   useEffect(() => {
     if (!projectConfig.available || !projectConfig.apiBaseUrl) {
@@ -82,8 +78,7 @@ export function ProjectsPage() {
     }
   }, [projectConfig.apiBaseUrl, projectConfig.available, projectConfig.workspaceId])
 
-  const projectCards = projectConfig.available ? backendProjects : projects
-  const usingFallbackProjects = !projectConfig.available
+  const projectCards = backendProjects
 
   return (
     <AppShell
@@ -121,25 +116,17 @@ export function ProjectsPage() {
         ) : (
           <Card className="projects-clean-current" data-testid="projects-empty-state">
             <h3>No projects yet</h3>
-            <p>Create a project first. Then ReEditPro will open that project so you can create an edit, upload video, write the brief, and approve the plan.</p>
+            <p>
+              {projectConfig.available
+                ? 'Create a project first. Then ReEditPro will open that project so you can create an edit, upload video, write the brief, and approve the plan.'
+                : 'Start the backend-local API to create and read projects here. No sample project is shown as a real workspace.'}
+            </p>
             <Button icon={FolderPlus} to="/projects/new" variant="primary">
               Create project
             </Button>
           </Card>
         )}
       </section>
-
-      <Card className="projects-clean-current">
-        <h3>Current project</h3>
-        <p>
-          {usingFallbackProjects
-            ? 'Open the sample current project only when the backend-local API is not configured.'
-            : 'Use the project cards above for backend-local project readback. The sample project remains available for offline UI checks.'}
-        </p>
-        <Button to={currentProjectPath} variant="secondary">
-          Open sample project
-        </Button>
-      </Card>
     </AppShell>
   )
 }

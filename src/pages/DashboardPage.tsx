@@ -1,14 +1,8 @@
-import { ArrowRight, FolderPlus, MessageSquareText, UploadCloud } from 'lucide-react'
+import { ArrowRight, FolderPlus, MessageSquareText, SlidersHorizontal, UploadCloud } from 'lucide-react'
 import { AppShell } from '../components/AppShell'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
-import { ProjectCard } from '../components/ProjectCard'
-import { projects } from '../data/mockData'
-import { createProjectHomePath } from '../lib/project-edit-session-navigation'
-import { MOCK_PROJECT_HOME_PROJECT_ID } from '../lib/project-edit-session-project-home-ui-adapter'
-
-const featuredProjectPath = createProjectHomePath(MOCK_PROJECT_HOME_PROJECT_ID)
 
 export function DashboardPage() {
   return (
@@ -52,18 +46,27 @@ export function DashboardPage() {
       <section className="home-current-project" data-testid="home-current-project">
         <div className="section-heading compact">
           <span className="section-eyebrow">Continue</span>
-          <h2>Open the current project or create a fresh one</h2>
+          <h2>Continue from the clean project workspace</h2>
         </div>
         <div className="home-current-layout">
-          <ProjectCard project={projects[0]} />
           <Card className="home-edit-entry-card">
             <UploadCloud aria-hidden="true" size={24} />
-            <h3>Use the edit workspace for upload</h3>
+            <h3>Open projects</h3>
             <p>
-              The upload and edit brief should happen after a project and edit exist. That keeps testing clean and avoids duplicate editor entry points.
+              Open a real project from backend-local readback, then create the edit and upload video inside that edit workspace.
             </p>
-            <Button icon={MessageSquareText} to={featuredProjectPath} variant="primary">
-              Open project
+            <Button icon={MessageSquareText} to="/projects" variant="primary">
+              View projects
+            </Button>
+          </Card>
+          <Card className="home-edit-entry-card">
+            <SlidersHorizontal aria-hidden="true" size={24} />
+            <h3>Set preferences</h3>
+            <p>
+              Keep edit defaults in one place so each new project starts clean, then refine details inside the edit brief.
+            </p>
+            <Button icon={ArrowRight} to="/preferences" variant="secondary">
+              Open preferences
             </Button>
           </Card>
         </div>

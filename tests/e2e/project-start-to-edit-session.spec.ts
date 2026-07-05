@@ -9,59 +9,31 @@ test.describe('Project start to Edit Chat flow', () => {
     await gotoRoute(page, '/dashboard')
     await expect(page.locator('a[href="/editor"]')).toHaveCount(0)
     await expect(page.getByRole('link', { name: /Open AI chat editor/i })).toHaveCount(0)
-    await expect(page.getByRole('link', { name: /Open Project Home/i }).first()).toBeVisible()
+    await expect(page.getByRole('link', { name: /Create project/i }).first()).toBeVisible()
+    await expect(page.getByTestId('home-current-project')).toContainText('Continue from the clean project workspace')
+    await expect(page.getByTestId('home-current-project')).not.toContainText('Founder story launch cut')
 
     await gotoRoute(page, '/projects')
     await expect(page.locator('a[href="/editor"]')).toHaveCount(0)
     await expect(page.getByRole('link', { name: /Open AI chat editor/i })).toHaveCount(0)
-    const sourceVideoCard = page.getByTestId('projects-source-video-test-card')
-    await expect(sourceVideoCard).toContainText('Source video test')
-    await expect(sourceVideoCard).toContainText('Qwen 3.7 Max readiness')
-    await expect(sourceVideoCard.getByRole('link', { name: /Open Project Home/i })).toBeVisible()
-    await expect(sourceVideoCard.getByRole('link', { name: /Open source video Brief/i })).toBeVisible()
-    await sourceVideoCard.getByRole('link', { name: /Open source video Brief/i }).click()
-    await expect(page).toHaveURL(/\/projects\/mock-project-edit-chat-foundation\/edits\/edit-session-youtube-wide\/brief$/)
-    await expect(page.getByTestId('project-source-video-picker')).toContainText('Primary source video')
+    await expect(page.getByTestId('projects-clean-header')).toContainText('Create or open a project')
+    await expect(page.getByTestId('projects-clean-list')).not.toContainText('Source video test')
+    await expect(page.getByRole('link', { name: /Open sample project/i })).toHaveCount(0)
 
     await gotoRoute(page, '/editor')
     await expect(page).toHaveURL(/\/projects\/new$/)
-    await expect(page.getByRole('heading', { name: /Start with a video category/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Start with the project/i })).toBeVisible()
   })
 
-  test('routes category start into Project Home New Edit and then Brief without opening the legacy editor', async ({ page }) => {
+  test('keeps project creation as the only clean start point before edit upload', async ({ page }) => {
     await setViewport(page, 1440)
     await gotoRoute(page, '/projects/new')
 
-    await expect(page.getByRole('heading', { name: /Start with a video category/i })).toBeVisible()
-    await expect(page.getByText(/Local video review comes in Brief/i)).toBeVisible()
-
-    await page.getByRole('link', { name: /Start Edit Chat/i }).first().click()
-    await expect(page).toHaveURL(/\/projects\/mock-project-edit-chat-foundation\?newEdit=1&category=/)
-    await expect(page).not.toHaveURL(/\/editor/)
-
-    await expect(page.getByTestId('project-edit-session-home')).toBeVisible()
-    await expect(page.getByTestId('new-edit-session-create-panel')).toBeVisible()
-    await expect(page.getByTestId('new-edit-session-create-panel')).toContainText('Mock/local only')
-    await expect(page.getByTestId('new-edit-session-create-panel')).toContainText('No upload')
-    await expect(page.getByTestId('new-edit-session-create-panel')).toContainText('No credits')
-
-    await page.getByTestId('new-edit-name-input').fill('Internal testing edit flow')
-    await page.getByTestId('new-edit-source-label-0').fill('Local test video')
-    await page.getByTestId('new-edit-source-notes-0').fill('Use the Brief tab to select a browser-local source video before planning.')
-    await page.getByRole('button', { name: /^Create mock Edit Chat$/i }).click()
-
-    await expect(page.getByTestId('new-edit-success-message')).toContainText('Internal testing edit flow was created')
-    await page.getByTestId('new-edit-success-message').getByRole('link', { name: /Open Edit Chat/i }).click()
-
-    await expect(page).toHaveURL(/\/projects\/mock-project-edit-chat-foundation\/edits\/[^/]+$/)
-    await expect(page.getByTestId('edit-session-chat-page')).toBeVisible()
-    await expect(page.getByTestId('edit-session-route-tab-brief')).toBeVisible()
-    await page.getByTestId('edit-session-route-tab-brief').click()
-
-    await expect(page).toHaveURL(/\/projects\/mock-project-edit-chat-foundation\/edits\/[^/]+\/brief$/)
-    await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
-    await expect(page.getByTestId('project-edit-brief-boundary')).toContainText('Edit Brief is optional')
-    await expect(page.getByTestId('project-source-video-picker-boundary')).toContainText('Backend-local upload records canonical bucket/object metadata only')
+    await expect(page.getByTestId('project-create-flow')).toContainText('Start with the project')
+    await expect(page.getByTestId('project-create-flow')).toContainText('Create an edit next')
+    await expect(page.getByTestId('project-create-flow')).toContainText('Upload inside the edit')
+    await expect(page.getByRole('link', { name: /Start Edit Chat/i })).toHaveCount(0)
+    await expect(page.getByText(/Start with a video category|Local video review comes in Brief|Create mock Edit Chat/i)).toHaveCount(0)
 
     await expect(page.getByText(/provider call made|worker created|render started|credit reserved|upload started|file bytes read/i)).toHaveCount(0)
     await expectNoHorizontalOverflow(page)

@@ -1235,6 +1235,8 @@ async function buildReport(args: HarnessArgs) {
       dockerContainerBackendSupported: true,
       dockerContainerBackendRequiresRuntimeImage: true,
       dockerContainerBackendRequiresScopedGpuAttachment: true,
+      dockerContainerBackendUsesScopedRuntimeContainerNames: true,
+      dockerContainerBackendRemovesTimedOutRuntimeContainers: true,
       dockerContainerPythonModulePreflightBeforeRuntime: true,
       dockerContainerCudaPreflightBeforeRuntime: true,
       privateInputPreflightBeforeGpuAttachment: true,

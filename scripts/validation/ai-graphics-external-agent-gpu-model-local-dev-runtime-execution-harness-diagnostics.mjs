@@ -407,6 +407,12 @@ if (report.localRuntimePolicy?.dockerContainerBackendRequiresRuntimeImage !== tr
 if (report.localRuntimePolicy?.dockerContainerBackendRequiresScopedGpuAttachment !== true) {
   fail('docker_container_scoped_gpu_attachment_not_required')
 }
+if (report.localRuntimePolicy?.dockerContainerBackendUsesScopedRuntimeContainerNames !== true) {
+  fail('docker_container_scoped_runtime_names_not_recorded')
+}
+if (report.localRuntimePolicy?.dockerContainerBackendRemovesTimedOutRuntimeContainers !== true) {
+  fail('docker_container_timeout_cleanup_not_recorded')
+}
 if (report.localRuntimePolicy?.dockerContainerPythonModulePreflightBeforeRuntime !== true) {
   fail('docker_container_python_module_preflight_not_recorded')
 }
@@ -1403,6 +1409,13 @@ for (const requiredSourceToken of [
   'runtimeContainerImage',
   'runtimeContainerGpu',
   'containerRuntimeEnv',
+  'dockerContainerNamePrefix',
+  '--name',
+  "'rm', '-f'",
+  'ETIMEDOUT',
+  'SIGKILL',
+  'dockerContainerBackendUsesScopedRuntimeContainerNames',
+  'dockerContainerBackendRemovesTimedOutRuntimeContainers',
   'gpu_model_runtime_container_image_missing',
   'gpu_model_runtime_container_image_unavailable',
   'gpu_model_runtime_container_gpu_not_requested',

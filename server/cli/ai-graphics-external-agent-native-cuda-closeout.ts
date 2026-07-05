@@ -51,6 +51,7 @@ type ParsedArgs = {
   outputRoot: string
   sourceImage?: string
   existingProofResults: string[]
+  scriptOut?: string
   timeoutMs?: number
 }
 
@@ -169,6 +170,7 @@ function parseArgs(): ParsedArgs {
     outputRoot: stringFlag('--output-root') ?? defaultOutputRoot,
     sourceImage: stringFlag('--source-image'),
     existingProofResults: stringFlags('--existing-proof-result'),
+    scriptOut: stringFlag('--script-out'),
     timeoutMs,
   }
 }
@@ -198,6 +200,25 @@ function assertLocalArtifactPath(label: string, value: string): void {
 
 function shellCommand(script: string, args: string[]): string {
   return ['npm run --silent', script, '--', ...args].join(' ')
+}
+
+function shellQuote(value: string): string {
+  if (/^[A-Za-z0-9_./:@%+=,-]+$/.test(value)) return value
+  return `'${value.replace(/'/g, "'\\''")}'`
+}
+
+type ScriptToken = string | { raw: string }
+
+function scriptToken(token: ScriptToken): string {
+  return typeof token === 'string' ? shellQuote(token) : token.raw
+}
+
+function bashCommand(tokens: ScriptToken[]): string {
+  return tokens.map(scriptToken).join(' ')
+}
+
+function bashContinuation(tokens: ScriptToken[]): string {
+  return tokens.map(scriptToken).join(' \\\n  ')
 }
 
 function modelCandidateForTool(
@@ -387,6 +408,122 @@ function readinessArgs(args: ParsedArgs): string[] {
   ]
 }
 
+function writeNativeCudaCloseoutScript(
+  args: ParsedArgs,
+  scriptOut: string,
+): JsonRecord {
+  assertLocalArtifactPath('--script-out', scriptOut)
+  const scriptDir = path.dirname(scriptOut)
+  fs.mkdirSync(scriptDir, { recursive: true })
+  const closeoutTokens: ScriptToken[] = [
+    'npm',
+    'run',
+    '--silent',
+    'ai-graphics:external-agent-native-cuda-closeout',
+    '--',
+    '--detect-host',
+    '--attempt-local-runtime',
+    '--strict-exit-code',
+    '--private-model-root',
+    { raw: '"$PRIVATE_MODEL_ROOT"' },
+    '--source-image',
+    { raw: '"$PRIVATE_SOURCE_IMAGE"' },
+    '--output-root',
+    { raw: '"$OUTPUT_ROOT"' },
+    ...args.requestedTools.flatMap((toolId): ScriptToken[] => [
+      '--tool',
+      toolId,
+    ]),
+    ...args.existingProofResults.flatMap((file): ScriptToken[] => [
+      '--existing-proof-result',
+      file,
+    ]),
+  ]
+  if (args.timeoutMs) {
+    closeoutTokens.push('--timeout-ms', String(args.timeoutMs))
+  }
+
+  const readinessTokens: ScriptToken[] = [
+    'npm',
+    'run',
+    '--silent',
+    readinessScript,
+    '--',
+    ...args.existingProofResults.flatMap((file): ScriptToken[] => [
+      '--local-runtime-proof-result',
+      file,
+    ]),
+    ...args.requestedTools.flatMap((toolId): ScriptToken[] => [
+      '--local-runtime-proof-result',
+      { raw: `"$OUTPUT_ROOT/${toolId}/harness-result.json"` },
+    ]),
+  ]
+
+  const contents = [
+    '#!/usr/bin/env bash',
+    'set -euo pipefail',
+    '',
+    '# Local-only native CUDA closeout for the remaining AI graphics tools.',
+    '# GPU work is on-demand only while this scoped script is running.',
+    '# Do not commit .local-artifacts outputs, model weights, source media, or proof artifacts.',
+    'export DEVELOPER_DIR="${DEVELOPER_DIR:-/Library/Developer/CommandLineTools}"',
+    `PRIVATE_MODEL_ROOT="\${${privateModelRootEnvVar}:-}"`,
+    'PRIVATE_SOURCE_IMAGE="${REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE:-}"',
+    'OUTPUT_ROOT="${REEDITPRO_AI_GRAPHICS_NATIVE_CUDA_CLOSEOUT_OUTPUT_ROOT:-}"',
+    'if [[ -z "$PRIVATE_MODEL_ROOT" ]]; then',
+    `  PRIVATE_MODEL_ROOT=${shellQuote(args.privateModelRoot)}`,
+    'fi',
+    'if [[ -z "$PRIVATE_SOURCE_IMAGE" ]]; then',
+    `  PRIVATE_SOURCE_IMAGE=${shellQuote(args.sourceImage ?? '')}`,
+    'fi',
+    'if [[ -z "$OUTPUT_ROOT" ]]; then',
+    `  OUTPUT_ROOT=${shellQuote(args.outputRoot)}`,
+    'fi',
+    'if [[ -z "$PRIVATE_SOURCE_IMAGE" ]]; then',
+    '  echo "Set REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE to an approved private local frame." >&2',
+    '  exit 2',
+    'fi',
+    '',
+    bashCommand([
+      'npm',
+      'run',
+      '--silent',
+      hostPreflightScript,
+      '--',
+      '--detect-host',
+      '--require-host-eligible',
+    ]),
+    '',
+    bashContinuation(closeoutTokens),
+    '',
+    bashContinuation(readinessTokens),
+    '',
+  ].join('\n')
+
+  fs.writeFileSync(scriptOut, contents)
+  fs.chmodSync(scriptOut, 0o700)
+
+  return {
+    path: scriptOut,
+    written: true,
+    localOnly: true,
+    executable: true,
+    hostPreflightCommand: bashCommand([
+      'npm',
+      'run',
+      '--silent',
+      hostPreflightScript,
+      '--',
+      '--detect-host',
+      '--require-host-eligible',
+    ]),
+    nativeCudaCloseoutCommand: bashContinuation(closeoutTokens),
+    all21ReadinessRecheckCommand: bashContinuation(readinessTokens),
+    expectedProofResults: args.requestedTools.map((toolId) =>
+      path.join(args.outputRoot, toolId, 'harness-result.json')),
+  }
+}
+
 function runNpmJson(
   script: string,
   args: string[],
@@ -571,6 +708,7 @@ function toolProbe(
 function buildReport(args: ParsedArgs): JsonRecord {
   assertLocalPath('--private-model-root', args.privateModelRoot)
   assertLocalArtifactPath('--output-root', args.outputRoot)
+  if (args.scriptOut) assertLocalArtifactPath('--script-out', args.scriptOut)
   if (args.sourceImage) assertLocalPath('--source-image', args.sourceImage)
   for (const proofResult of args.existingProofResults) {
     assertLocalPath('--existing-proof-result', proofResult)
@@ -586,6 +724,9 @@ function buildReport(args: ParsedArgs): JsonRecord {
   const allRemainingNativeCudaToolsExecutable =
     allRemainingNativeCudaToolsCovered && allRequestedToolsExecutable
   const readinessCommand = shellCommand(readinessScript, readinessArgs(args))
+  const scriptReport = args.scriptOut
+    ? writeNativeCudaCloseoutScript(args, args.scriptOut)
+    : null
 
   return {
     schemaVersion:
@@ -616,6 +757,7 @@ function buildReport(args: ParsedArgs): JsonRecord {
       existingProofResults: args.existingProofResults,
       localOnly: true,
     },
+    nativeCudaCloseoutLocalOnlyScript: scriptReport,
     currentHostGpuProofPreflight: {
       requested: args.detectHost,
       hostEligibleForNativeGpuProof: currentHostEligible,
@@ -649,6 +791,7 @@ function buildReport(args: ParsedArgs): JsonRecord {
       acceptedNativeCudaProofForAllRequestedTools: allRequestedToolsExecutable,
       acceptedNativeCudaProofForAllRemainingTools:
         allRemainingNativeCudaToolsExecutable,
+      nativeCudaCloseoutLocalOnlyScriptGenerated: scriptReport !== null,
       agentCanSubmitControlledRequestsForRemainingTools: true,
       agentCanExecuteRemainingNativeCudaToolsNow:
         allRemainingNativeCudaToolsExecutable,

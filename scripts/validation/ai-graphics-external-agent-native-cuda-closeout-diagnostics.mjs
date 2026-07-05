@@ -192,6 +192,8 @@ function makeDiagnosticFixtures() {
     sourceImage: path.relative(root, sourceImage),
     outputRoot:
       '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout-diagnostic',
+    scriptOut:
+      '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout-diagnostic/run-native-cuda-closeout.sh',
   }
 }
 
@@ -232,8 +234,35 @@ function validateFixtureReport(report) {
   assert(report.booleans?.runtimeAttemptRequested === false, 'fixture_runtime_attempt_requested')
   assert(report.booleans?.toolExecutionPerformed === false, 'fixture_tool_execution_performed')
   assert(report.booleans?.gpuRuntimePerformed === false, 'fixture_gpu_runtime_performed')
+  assert(report.booleans?.nativeCudaCloseoutLocalOnlyScriptGenerated === true, 'fixture_closeout_script_not_generated')
   assert(report.booleans?.acceptedNativeCudaProofForAllRemainingTools === false, 'fixture_all_remaining_proof_not_false')
   assert(report.booleans?.agentCanExecuteRemainingNativeCudaToolsNow === false, 'fixture_remaining_native_cuda_executable_not_false')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.written === true, 'fixture_closeout_script_written_not_true')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.localOnly === true, 'fixture_closeout_script_not_local_only')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.hostPreflightCommand?.includes('--require-host-eligible'), 'fixture_closeout_script_missing_host_preflight')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.nativeCudaCloseoutCommand?.includes('--attempt-local-runtime'), 'fixture_closeout_script_missing_runtime_attempt')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.nativeCudaCloseoutCommand?.includes('--strict-exit-code'), 'fixture_closeout_script_missing_strict_exit')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.nativeCudaCloseoutCommand?.includes('--existing-proof-result'), 'fixture_closeout_script_missing_existing_proof_refs')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('ai-graphics:external-agent-execution-readiness'), 'fixture_closeout_script_missing_readiness_recheck')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('sam2/harness-result.json'), 'fixture_closeout_script_missing_sam2_readiness_ref')
+  assert(report.nativeCudaCloseoutLocalOnlyScript?.all21ReadinessRecheckCommand?.includes('birefnet/harness-result.json'), 'fixture_closeout_script_missing_birefnet_readiness_ref')
+  const generatedScriptPath = report.nativeCudaCloseoutLocalOnlyScript?.path
+  assert(typeof generatedScriptPath === 'string', 'fixture_closeout_script_path_missing')
+  if (typeof generatedScriptPath === 'string') {
+    const generatedScriptText = read(generatedScriptPath)
+    assert(generatedScriptText.startsWith('#!/usr/bin/env bash'), 'fixture_closeout_script_missing_shebang')
+    assert(generatedScriptText.includes('set -euo pipefail'), 'fixture_closeout_script_missing_strict_shell')
+    assert(generatedScriptText.includes('GPU work is on-demand only'), 'fixture_closeout_script_missing_on_demand_policy')
+    assert(generatedScriptText.includes('ai-graphics:gpu-runtime-proof-local-preflight'), 'fixture_closeout_script_missing_host_preflight_script')
+    assert(generatedScriptText.includes('--require-host-eligible'), 'fixture_closeout_script_missing_require_host_eligible')
+    assert(generatedScriptText.includes('ai-graphics:external-agent-native-cuda-closeout'), 'fixture_closeout_script_missing_closeout_command')
+    assert(generatedScriptText.includes('--attempt-local-runtime'), 'fixture_closeout_script_missing_attempt_flag')
+    assert(generatedScriptText.includes('--strict-exit-code'), 'fixture_closeout_script_missing_strict_flag')
+    assert(generatedScriptText.includes('--existing-proof-result'), 'fixture_closeout_script_missing_existing_proof_flag')
+    assert(generatedScriptText.includes('ai-graphics:external-agent-execution-readiness'), 'fixture_closeout_script_missing_readiness_command')
+    assert(generatedScriptText.includes('sam2/harness-result.json'), 'fixture_closeout_script_missing_sam2_harness_ref')
+    assert(generatedScriptText.includes('birefnet/harness-result.json'), 'fixture_closeout_script_missing_birefnet_harness_ref')
+  }
   for (const toolId of targetTools) {
     const row = report.tools?.find((tool) => tool.toolId === toolId)
     assert(row?.privateModelRootCandidatePresent === true, `fixture_model_candidate_missing:${toolId}`)
@@ -270,6 +299,9 @@ function validateCommittedText() {
   assert(text.includes('--require-host-eligible'), 'require_host_eligible_missing_from_cli')
   assert(text.includes('--require-accepted-proof'), 'require_accepted_proof_missing_from_cli')
   assert(text.includes('--require-private-only-boundary'), 'private_boundary_missing_from_cli')
+  assert(text.includes('--script-out'), 'script_out_missing_from_cli')
+  assert(text.includes('writeNativeCudaCloseoutScript'), 'script_writer_missing_from_cli')
+  assert(text.includes('ai-graphics:gpu-runtime-proof-local-preflight'), 'host_preflight_script_missing_from_cli')
 }
 
 validatePackageSections(json('package.json'))
@@ -286,6 +318,10 @@ const fixtureReport = runNpmJson(runScriptName, [
   fixtures.sourceImage,
   '--output-root',
   fixtures.outputRoot,
+  '--existing-proof-result',
+  '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/external-agent-execution-local-private-proof/run-placeholder/adapter-proof/harness-result.json',
+  '--script-out',
+  fixtures.scriptOut,
 ])
 validateFixtureReport(fixtureReport)
 

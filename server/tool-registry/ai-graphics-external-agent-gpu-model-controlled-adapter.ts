@@ -1,8 +1,20 @@
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { closeSync, existsSync, openSync, readSync, statSync } from 'node:fs'
+import {
+  closeSync,
+  existsSync,
+  openSync,
+  readdirSync,
+  readFileSync,
+  readSync,
+  statSync,
+} from 'node:fs'
 import path from 'node:path'
 import type { AiGraphicsCanonicalToolId } from './ai-graphics-tool-call-readiness'
+import {
+  buildAiGraphicsModelWeightManifestReviewPacket,
+  type AiGraphicsModelWeightManifestEvidenceRecord,
+} from './ai-graphics-model-weight-manifest-readiness'
 import {
   runAiGraphicsFoundationRuntimeCheck,
   type AiGraphicsFoundationRuntimeToolId,
@@ -50,6 +62,8 @@ const configuredPrivateModelPathEnvByTool: Partial<
   sam2: 'REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT',
   birefnet: 'REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL',
 }
+const privateModelManifestDirEnvVar =
+  'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
 const gpuModelOutputRootEnvVar = 'REEDITPRO_AI_GRAPHICS_GPU_MODEL_OUTPUT_ROOT'
 const privateSourceImageEnvVar = 'REEDITPRO_AI_GRAPHICS_PRIVATE_SOURCE_IMAGE'
 const defaultGpuModelOutputRoot =
@@ -139,6 +153,111 @@ function configuredPrivateModelPath(
   return envVar ? process.env[envVar] : undefined
 }
 
+function isPrivateLocalPath(value: string): boolean {
+  return !/^[a-z][a-z0-9+.-]*:\/\//i.test(value) &&
+    !value.includes('\0') &&
+    !value.split(/[\\/]+/).includes('..')
+}
+
+type PrivateManifestInput = Partial<AiGraphicsModelWeightManifestEvidenceRecord>
+
+interface PrivateManifestEnvelope {
+  records?: PrivateManifestInput[]
+  manifests?: PrivateManifestInput[]
+}
+
+function privateManifestJsonFiles(directory: string): string[] {
+  if (!isPrivateLocalPath(directory)) return []
+  try {
+    if (!existsSync(directory) || !statSync(directory).isDirectory()) return []
+    const files: string[] = []
+    for (const entry of readdirSync(directory).sort()) {
+      const entryPath = path.join(directory, entry)
+      const stats = statSync(entryPath)
+      if (stats.isDirectory()) {
+        files.push(...privateManifestJsonFiles(entryPath))
+      } else if (entry.endsWith('.json') && entry !== 'manifest-authoring-checklist.json') {
+        files.push(entryPath)
+      }
+    }
+    return files
+  } catch {
+    return []
+  }
+}
+
+function privateManifestRecordsFromJsonFile(filePath: string): PrivateManifestInput[] {
+  try {
+    const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as
+      | PrivateManifestInput
+      | PrivateManifestInput[]
+      | PrivateManifestEnvelope
+    if (Array.isArray(parsed)) return parsed
+    if (Array.isArray((parsed as PrivateManifestEnvelope).records)) {
+      return (parsed as PrivateManifestEnvelope).records ?? []
+    }
+    if (Array.isArray((parsed as PrivateManifestEnvelope).manifests)) {
+      return (parsed as PrivateManifestEnvelope).manifests ?? []
+    }
+    return [parsed as PrivateManifestInput]
+  } catch {
+    return []
+  }
+}
+
+function acceptedConfiguredModelWeightManifestRecord(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): AiGraphicsModelWeightManifestEvidenceRecord | null {
+  if (!modelWeightEvidenceRequiredTools.has(toolId)) return null
+  const manifestDir = process.env[privateModelManifestDirEnvVar]
+  if (!manifestDir) return null
+  const records = privateManifestJsonFiles(manifestDir).flatMap(
+    privateManifestRecordsFromJsonFile,
+  )
+  if (records.length === 0) return null
+  const packet = buildAiGraphicsModelWeightManifestReviewPacket(records)
+  const validationResult = packet.validationResults.find((result) =>
+    result.toolId === toolId)
+  if (
+    validationResult?.reviewAccepted !== true ||
+    validationResult.eligibleForNativeGpuProofInput !== true
+  ) {
+    return null
+  }
+  return records.find((record) => record.toolId === toolId) as
+    | AiGraphicsModelWeightManifestEvidenceRecord
+    | undefined ?? null
+}
+
+function payloadWithConfiguredModelWeightEvidence(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  if (!modelWeightEvidenceRequiredTools.has(toolId)) return payload
+  if (
+    optionalString(payload, 'modelWeightManifestId') ||
+    optionalString(payload, 'modelWeightChecksumSha256') ||
+    optionalString(payload, 'modelWeightChecksumEvidenceRef')
+  ) {
+    return payload
+  }
+  const record = acceptedConfiguredModelWeightManifestRecord(toolId)
+  if (!record) return payload
+  const modelFile = modelFilePathForRuntimeContentCheck(toolId, payload)
+  if (!modelFile?.pathValue) return payload
+  const actualChecksumSha256 = sha256File(modelFile.pathValue)
+  if (!actualChecksumSha256) return payload
+  if (actualChecksumSha256.toLowerCase() !== record.checksumSha256.toLowerCase()) {
+    return payload
+  }
+  return {
+    ...payload,
+    modelWeightManifestId: record.manifestId,
+    modelWeightChecksumSha256: record.checksumSha256,
+    modelWeightChecksumEvidenceRef: record.checksumEvidenceRef,
+  }
+}
+
 function safeRuntimePathSegment(value: string): string {
   const sanitized = value.replace(/[^A-Za-z0-9._-]+/g, '_').slice(0, 96)
   return sanitized || 'request'
@@ -193,17 +312,17 @@ function payloadWithConfiguredRuntimeDefaults(
   }
   if (toolId === 'sam2' && !optionalString(nextPayload, 'sam2CheckpointLocalPath')) {
     const configuredPath = configuredPrivateModelPath(toolId)
-    return configuredPath
-      ? { ...nextPayload, sam2CheckpointLocalPath: configuredPath }
-      : nextPayload
+    if (configuredPath) {
+      nextPayload = { ...nextPayload, sam2CheckpointLocalPath: configuredPath }
+    }
   }
   if (toolId === 'birefnet' && !optionalString(nextPayload, 'birefnetModelLocalPath')) {
     const configuredPath = configuredPrivateModelPath(toolId)
-    return configuredPath
-      ? { ...nextPayload, birefnetModelLocalPath: configuredPath }
-      : nextPayload
+    if (configuredPath) {
+      nextPayload = { ...nextPayload, birefnetModelLocalPath: configuredPath }
+    }
   }
-  return nextPayload
+  return payloadWithConfiguredModelWeightEvidence(toolId, nextPayload)
 }
 
 function optionalNumber(

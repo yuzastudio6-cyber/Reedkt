@@ -3,6 +3,8 @@ import { AppShell } from '../components/AppShell'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
+import { createProjectHomePath } from '../lib/project-edit-session-navigation'
+import { MOCK_PROJECT_HOME_PROJECT_ID } from '../lib/project-edit-session-project-home-ui-adapter'
 import { launchEditingCategories } from '../lib/product-taxonomy'
 import type { EditingCategory } from '../types/reeditpro'
 
@@ -15,9 +17,13 @@ const categoryDescriptions: Partial<Record<EditingCategory, string>> = {
 }
 
 export function CreateProjectPage() {
+  function categoryStartPath(category: EditingCategory) {
+    return `${createProjectHomePath(MOCK_PROJECT_HOME_PROJECT_ID)}?newEdit=1&category=${encodeURIComponent(category)}`
+  }
+
   return (
     <AppShell
-      description="Pick a category, upload clips, and let ReeditPro ask the rest inside the AI chat editor."
+      description="Pick a category, create an Edit Chat, then use the Brief tab for browser-local source video review and planning notes."
       eyebrow="New project"
       primaryAction="Start in chat"
       title="Start with a video category"
@@ -27,9 +33,10 @@ export function CreateProjectPage() {
           <Card className="project-start-card">
             <div className="project-start-heading">
               <Badge accent="cyan">Chat-native upload</Badge>
-              <h2>Pick a category, then upload in chat</h2>
+              <h2>Pick a category, then create an Edit Chat</h2>
               <p>
-                Pick the type of video you're creating, upload clips, then ReeditPro will ask the rest inside chat.
+                Pick the type of video you're creating, then open the project-scoped Edit Chat setup. The Brief tab can load a local video
+                preview for internal testing without uploading or processing media.
               </p>
               <p>The category gives planning context. It does not force a visual system.</p>
             </div>
@@ -50,8 +57,8 @@ export function CreateProjectPage() {
                   <p>{categoryDescriptions[category.value] ?? 'Plan a professional edit from chat context.'}</p>
                 </div>
                 <small>{category.bestUseCases.slice(0, 5).join(' / ')}</small>
-                <Button icon={Plus} to={`/editor?category=${category.value}`} variant="primary">
-                  Upload / start
+                <Button icon={Plus} to={categoryStartPath(category.value)} variant="primary">
+                  Start Edit Chat
                 </Button>
               </article>
             ))}
@@ -61,8 +68,8 @@ export function CreateProjectPage() {
         <aside className="project-start-side">
           <Card>
             <UploadCloud size={24} />
-            <h3>Upload comes next</h3>
-            <p>Use the plus/upload button to enter the chat editor. This mock uses sample clips instead of a real uploader.</p>
+            <h3>Local video review comes in Brief</h3>
+            <p>Create an Edit Chat, open Brief, then select a local browser video preview. No upload, storage write, or media worker starts.</p>
           </Card>
           <Card>
             <MessageCircle size={24} />

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { NewEditSessionCreatePanel } from '../components/projects/NewEditSessionCreatePanel'
 import { ProjectEditSessionAccessPolicyNotice } from '../components/projects/ProjectEditSessionAccessPolicyNotice'
@@ -22,13 +22,14 @@ import {
 
 export function ProjectHomePage() {
   const params = useParams<{ projectId: string }>()
+  const location = useLocation()
   const projectId = params.projectId ?? MOCK_PROJECT_HOME_PROJECT_ID
   const apiClient = useMemo(() => createProjectEditSessionProjectHomeClient(projectId), [projectId])
   const placeholderModel = useMemo(() => createNewEditSessionPlaceholderModel(), [])
   const [homeModel, setHomeModel] = useState<ProjectEditSessionProjectHomeModel | undefined>()
   const [selectedId, setSelectedId] = useState<string | undefined>()
   const [detail, setDetail] = useState<ProjectEditSessionHomeDetailViewModel | undefined>()
-  const [createPanelOpen, setCreatePanelOpen] = useState(false)
+  const [createPanelOpen, setCreatePanelOpen] = useState(() => new URLSearchParams(location.search).get('newEdit') === '1')
   const [lastCreateResult, setLastCreateResult] = useState<NewEditSessionCreateResult | undefined>()
 
   useEffect(() => {

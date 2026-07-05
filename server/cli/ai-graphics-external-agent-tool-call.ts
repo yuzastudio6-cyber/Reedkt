@@ -263,6 +263,30 @@ function privateModelManifestDirValue(): string | undefined {
     process.env[privateModelManifestDirEnvVar]
 }
 
+function explicitPrivateModelFlagForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string | undefined {
+  if (toolId === 'sam2') return '--sam2-checkpoint'
+  if (toolId === 'birefnet') return '--birefnet-model'
+  if (toolId === 'real_esrgan') return '--real-esrgan-model'
+  if (toolId === 'rembg') return '--rembg-model'
+  if (toolId === 'transparent_background') {
+    return '--transparent-background-checkpoint'
+  }
+  return undefined
+}
+
+function explicitPrivateModelPathForTool(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string | undefined {
+  const flag = explicitPrivateModelFlagForTool(toolId)
+  return flag ? stringArg(flag) : undefined
+}
+
+function runtimeInputManifestMaterializationRequested(): boolean {
+  return hasFlag('--materialize-runtime-input-manifest')
+}
+
 function runJsonScript(scriptName: string, args: string[]): Record<string, any> {
   const output = childProcess.execFileSync('npm', [
     'run',
@@ -302,20 +326,31 @@ function resolveRuntimeInputManifestPathForTool(
     return materializedRuntimeInputManifestPath
   }
   const privateModelRoot = privateModelRootValue()
-  if (!privateModelRoot) return undefined
-  if (!privateModelRootMaterializerTools.has(toolId)) return undefined
+  const explicitPrivateModelPath = explicitPrivateModelPathForTool(toolId)
   const privateModelManifestDir = privateModelManifestDirValue()
+  const explicitMaterializationRequested =
+    runtimeInputManifestMaterializationRequested()
+  if (
+    !privateModelRoot &&
+    !(
+      explicitPrivateModelPath &&
+      (privateModelManifestDir || explicitMaterializationRequested)
+    )
+  ) {
+    return undefined
+  }
+  if (!privateModelRootMaterializerTools.has(toolId)) return undefined
   assert(
     input.attemptGpuRuntime,
-    '--private-model-root requires --attempt-gpu-runtime',
+    '--private-model-root or explicit private model path requires --attempt-gpu-runtime',
   )
   assert(
     input.outputDirectory,
-    '--private-model-root requires --gpu-output-dir',
+    '--private-model-root or explicit private model path requires --gpu-output-dir',
   )
   assert(
     input.sourceImageLocalPath,
-    '--private-model-root requires --source-image',
+    '--private-model-root or explicit private model path requires --source-image',
   )
   assert(
     isLocalArtifactPath(input.outputDirectory),
@@ -327,14 +362,19 @@ function resolveRuntimeInputManifestPathForTool(
     toolId,
     '--source-image',
     input.sourceImageLocalPath,
-    '--private-model-root',
-    privateModelRoot,
     '--output-dir',
     input.outputDirectory,
     '--manifest-out',
     manifestOut,
     '--force',
   ]
+  if (privateModelRoot) {
+    args.push('--private-model-root', privateModelRoot)
+  }
+  const explicitModelFlag = explicitPrivateModelFlagForTool(toolId)
+  if (explicitModelFlag && explicitPrivateModelPath) {
+    args.push(explicitModelFlag, explicitPrivateModelPath)
+  }
   if (hasFlag('--private-input-preflight-only')) {
     args.push('--private-input-preflight-only')
   }
@@ -796,6 +836,22 @@ function gpuModelPrivateModelRootMaterializerFlags(toolId: string): string[] {
     : []
 }
 
+function gpuModelExactModelPathFlags(toolId: string): string[] {
+  if (toolId === 'sam2') {
+    return [
+      '--sam2-checkpoint <private-sam2-checkpoint.pt>',
+      `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
+    ]
+  }
+  if (toolId === 'birefnet') {
+    return [
+      '--birefnet-model <private-birefnet-model>',
+      `--model-weight-manifest-dir "$${privateModelManifestDirEnvVar}"`,
+    ]
+  }
+  return gpuModelPrivateModelRootMaterializerFlags(toolId)
+}
+
 function gpuModelBlockedPrerequisites(toolId: string): string[] {
   const prerequisites = [
     gpuModelAllowsCpuTensorRuntime(toolId)
@@ -882,7 +938,7 @@ function gpuModelScopedToolCallCommand(toolId: string): string {
           ...(gpuModelSourceImageRequired(toolId)
             ? ['--source-image <private-approved-frame.png>']
             : []),
-          ...gpuModelPrivateModelRootMaterializerFlags(toolId),
+          ...gpuModelExactModelPathFlags(toolId),
         ]
       : gpuModelPrivateInputPlaceholders(toolId)),
     preferredCpuRuntimeFlag,
@@ -1428,6 +1484,9 @@ function outputSummaryFromAdapterResult(
 async function buildReport() {
   const request = requestForTool()
   const group = groupForTool(request.toolId)
+  const requestGpuToolId = isGpuModelTool(request.toolId)
+    ? request.toolId
+    : null
   const response = await withServer((baseUrl) => postToolCall(baseUrl, request))
   const data = response.body?.data ?? {}
   const normalized = data.externalAgentToolCallResult ?? null
@@ -1469,9 +1528,21 @@ async function buildReport() {
       resultOut: resultOutPath() ?? null,
       runtimeInputManifest: runtimeInputManifestPath() ?? null,
       runtimeInputManifestUsed: Boolean(runtimeInputManifestPath()),
+      runtimeInputManifestMaterializationRequested:
+        runtimeInputManifestMaterializationRequested(),
       privateModelRootProvided: Boolean(privateModelRootValue()),
       runtimeInputManifestMaterializedFromPrivateRoot:
-        Boolean(materializedRuntimeInputManifestPath),
+        Boolean(materializedRuntimeInputManifestPath && privateModelRootValue()),
+      explicitPrivateModelPathProvided:
+        requestGpuToolId
+          ? Boolean(explicitPrivateModelPathForTool(requestGpuToolId))
+          : false,
+      runtimeInputManifestMaterializedFromExplicitModelPath:
+        Boolean(
+          materializedRuntimeInputManifestPath &&
+          requestGpuToolId &&
+          explicitPrivateModelPathForTool(requestGpuToolId),
+        ),
       privateModelManifestDirProvided:
         Boolean(privateModelManifestDirValue()),
       runtimeInputManifestMaterializerDecision:

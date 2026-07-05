@@ -779,9 +779,27 @@ function checkPrivateInputPreflightCall(label, report, expectedToolId) {
     !normalized.requiredPrivateInputKeys.includes('sam2CheckpointLocalPath')) {
     fail(`${label}_sam2_checkpoint_not_required`)
   }
+  if (expectedToolId === 'sam2') {
+    const command = String(report.nextAction?.nextExactScopedToolCallCommand ?? '')
+    if (!command.includes('--sam2-checkpoint <private-sam2-checkpoint.pt>')) {
+      fail(`${label}_next_action_missing_sam2_explicit_checkpoint`)
+    }
+    if (command.includes('--private-model-root')) {
+      fail(`${label}_next_action_unexpected_sam2_private_model_root`)
+    }
+  }
   if (expectedToolId === 'birefnet' &&
     !normalized.requiredPrivateInputKeys.includes('birefnetModelLocalPath')) {
     fail(`${label}_birefnet_model_not_required`)
+  }
+  if (expectedToolId === 'birefnet') {
+    const command = String(report.nextAction?.nextExactScopedToolCallCommand ?? '')
+    if (!command.includes('--birefnet-model <private-birefnet-model>')) {
+      fail(`${label}_next_action_missing_birefnet_explicit_model`)
+    }
+    if (command.includes('--private-model-root')) {
+      fail(`${label}_next_action_unexpected_birefnet_private_model_root`)
+    }
   }
   if (expectedToolId === 'real_esrgan' &&
     !normalized.requiredPrivateInputKeys.includes('realEsrganModelLocalPath')) {
@@ -850,14 +868,21 @@ for (const phrase of [
   '--allow-cpu-tensor-runtime',
   'readRuntimeInputManifest',
   'resolveRuntimeInputManifestPathForTool',
+  'explicitPrivateModelPathForTool',
   'ai-graphics:external-agent-gpu-model-runtime-input-manifest',
   '--private-model-root',
+  '--sam2-checkpoint',
+  '--birefnet-model',
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT',
   '--model-weight-manifest-dir',
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR',
   'privateModelManifestDirProvided',
+  '--materialize-runtime-input-manifest',
+  'runtimeInputManifestMaterializationRequested',
+  'runtimeInputManifestMaterializedFromExplicitModelPath',
   'nextExactModelWeightManifestReviewCommand',
   'runtimeInputManifestMaterializedFromPrivateRoot',
+  'gpuModelExactModelPathFlags',
   'manifestBooleanForTool',
   'manifestStringForTool',
   'gpuModelScopedToolCallManifestCommand',
@@ -1298,6 +1323,111 @@ const privateModelRootPreflightReports = privateInputPreflightTools.map((toolId)
 })
 if (privateModelRootPreflightReports.length !== 5) {
   fail(`private_model_root_preflight_count_mismatch:${privateModelRootPreflightReports.length}`)
+}
+
+const exactPathExpectedModelPaths = {
+  sam2: {
+    flag: '--sam2-checkpoint',
+    payloadField: 'sam2CheckpointLocalPath',
+    localPath: privateModelRootPaths.sam2Checkpoint,
+  },
+  birefnet: {
+    flag: '--birefnet-model',
+    payloadField: 'birefnetModelLocalPath',
+    localPath: path.dirname(privateModelRootPaths.birefnetModel),
+  },
+}
+const exactPathPreflightReports = ['sam2', 'birefnet'].map((toolId) => {
+  const expected = exactPathExpectedModelPaths[toolId]
+  const report = runToolCall([
+    `--tool ${toolId}`,
+    '--attempt-gpu-runtime',
+    '--runtime-backend docker_container',
+    `--runtime-container-image ${gpuModelRuntimeContainerImage(toolId)}`,
+    '--runtime-container-platform linux/amd64',
+    '--private-input-preflight-only',
+    '--materialize-runtime-input-manifest',
+    `--gpu-output-dir .local-artifacts/ai-graphics/external-agent-single-tool-call-diagnostic/exact-model-path/output/${toolId}`,
+    `--source-image ${privateModelRootPaths.sourceImage}`,
+    `${expected.flag} ${expected.localPath}`,
+  ].join(' '))
+  checkPrivateInputPreflightCall(
+    `live_${toolId}_exact_model_path_preflight`,
+    report,
+    toolId,
+  )
+  if (report.agentCommandContract?.privateModelRootProvided !== false) {
+    fail(`${toolId}_exact_model_path_unexpected_private_model_root`)
+  }
+  if (report.agentCommandContract?.explicitPrivateModelPathProvided !== true) {
+    fail(`${toolId}_exact_model_path_contract_flag_missing`)
+  }
+  if (
+    report.agentCommandContract
+      ?.runtimeInputManifestMaterializationRequested !== true
+  ) {
+    fail(`${toolId}_exact_model_path_materialization_request_flag_missing`)
+  }
+  if (
+    report.agentCommandContract
+      ?.runtimeInputManifestMaterializedFromExplicitModelPath !== true
+  ) {
+    fail(`${toolId}_exact_model_path_materialization_flag_missing`)
+  }
+  if (
+    report.agentCommandContract
+      ?.runtimeInputManifestMaterializedFromPrivateRoot !== false
+  ) {
+    fail(`${toolId}_exact_model_path_private_root_materialization_unexpected`)
+  }
+  if (
+    report.agentCommandContract?.runtimeInputManifestMaterializerDecision !==
+      'ai_graphics_external_agent_gpu_model_runtime_input_manifest_materialized_local_only'
+  ) {
+    fail(`${toolId}_exact_model_path_materializer_decision_mismatch`)
+  }
+  if (
+    report.agentCommandContract?.runtimeInputManifestMaterializerStatus !==
+      'runtime_input_manifest_ready_for_scoped_private_execution'
+  ) {
+    fail(`${toolId}_exact_model_path_materializer_status_mismatch`)
+  }
+  const manifestPath = report.agentCommandContract?.runtimeInputManifest
+  if (
+    !String(manifestPath ?? '').endsWith('/runtime-inputs.json') ||
+    !fs.existsSync(absolute(manifestPath))
+  ) {
+    fail(`${toolId}_exact_model_path_manifest_not_written`)
+  }
+  if (report.request?.payload?.runtimeInputManifestUsed !== true) {
+    fail(`${toolId}_exact_model_path_payload_manifest_used_not_true`)
+  }
+  if (report.request?.payload?.[expected.payloadField] !== expected.localPath) {
+    fail(`${toolId}_exact_model_path_payload_model_path_mismatch`)
+  }
+  if (
+    !String(report.request?.payload?.modelWeightManifestId ?? '')
+      .includes(`${toolId}_private_manifest_review_v1`)
+  ) {
+    fail(`${toolId}_exact_model_path_manifest_id_mismatch`)
+  }
+  if (
+    !/^[a-f0-9]{64}$/.test(String(
+      report.request?.payload?.modelWeightChecksumSha256 ?? '',
+    ))
+  ) {
+    fail(`${toolId}_exact_model_path_checksum_missing`)
+  }
+  if (
+    report.request?.payload?.modelWeightChecksumEvidenceRef !==
+    `private://reeditpro/ai-graphics/checksum-evidence/${toolId}.json`
+  ) {
+    fail(`${toolId}_exact_model_path_checksum_evidence_ref_mismatch`)
+  }
+  return report
+})
+if (exactPathPreflightReports.length !== 2) {
+  fail(`exact_path_preflight_count_mismatch:${exactPathPreflightReports.length}`)
 }
 
 const rembgTinyModelRuntimeAttempt = runToolCall([
@@ -1792,6 +1922,12 @@ console.log(JSON.stringify({
   privateModelRootMaterializedTools:
     privateModelRootPreflightReports.filter((report) =>
       report.agentCommandContract?.runtimeInputManifestMaterializedFromPrivateRoot === true)
+      .length,
+  exactModelPathPreflightAcceptedBeforeRuntimeTools:
+    exactPathPreflightReports.length,
+  exactModelPathMaterializedTools:
+    exactPathPreflightReports.filter((report) =>
+      report.agentCommandContract?.runtimeInputManifestMaterializedFromExplicitModelPath === true)
       .length,
   tinyPrivateModelRuntimeProofBlockedBeforeGpu: true,
   tinyPrivateModelRuntimeProofBlockingReason:

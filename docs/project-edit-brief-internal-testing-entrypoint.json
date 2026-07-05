@@ -16,6 +16,9 @@
   "features": [
     "scenario_readiness_summary",
     "high_signal_edit_brief_launch_links",
+    "source_video_testing_path",
+    "browser_local_source_video_preview",
+    "backend_local_source_video_upload_gate",
     "preference_video_mock_limits_closeout",
     "approval_credit_gate_readiness",
     "credit_lifecycle_readiness",
@@ -57,6 +60,8 @@
   },
   "blockedScope": {
     "upload": false,
+    "browserLocalSourceVideoPreview": true,
+    "backendLocalSourceVideoUploadGated": true,
     "fileBytesRead": false,
     "providerOrModelCalls": false,
     "workerDispatch": false,

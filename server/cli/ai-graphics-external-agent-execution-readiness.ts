@@ -116,6 +116,7 @@ const nativeCudaCloseoutOutputRoot =
   '.local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout'
 const nativeCudaCloseoutScriptOut =
   `${nativeCudaCloseoutOutputRoot}/run-native-cuda-closeout.sh`
+const nativeCudaCloseoutResultRootFlag = '--native-cuda-closeout-result-root'
 const remainingNativeCudaToolIds = ['sam2', 'birefnet'] as const
 type RemainingNativeCudaToolId = typeof remainingNativeCudaToolIds[number]
 
@@ -740,9 +741,55 @@ function remainingNativeCudaAll21CloseoutReadinessCommand(
     `--cpu-safe-gpu-model-route-proof-packet ${cpuSafeGpuModelRouteProofPacketPath}`,
     `--cpu-model-gpu-model-route-proof-packet ${cpuModelGpuModelRouteProofPacketPath}`,
     ...existingProofArgs,
-    `--local-runtime-proof-result ${nativeCudaCloseoutOutputRoot}/sam2/harness-result.json`,
-    `--local-runtime-proof-result ${nativeCudaCloseoutOutputRoot}/birefnet/harness-result.json`,
+    `${nativeCudaCloseoutResultRootFlag} ${nativeCudaCloseoutOutputRoot}`,
   ].join(' ')
+}
+
+function assertLocalProofPath(flag: string, value: string) {
+  if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) {
+    throw new Error(`${flag} must be a local filesystem path, not a URL: ${value}`)
+  }
+  if (value.includes('\0')) {
+    throw new Error(`${flag} must not contain NUL bytes: ${value}`)
+  }
+  const normalized = path.normalize(value)
+  if (normalized.split(path.sep).includes('..')) {
+    throw new Error(`${flag} must not traverse parent directories: ${value}`)
+  }
+}
+
+function nativeCudaCloseoutProofPathsFromRoot(rootPath: string): string[] {
+  assertLocalProofPath(nativeCudaCloseoutResultRootFlag, rootPath)
+  return remainingNativeCudaToolIds.map((toolId) =>
+    path.join(rootPath, toolId, 'harness-result.json'))
+}
+
+function localRuntimeProofResultInputs() {
+  const explicitLocalRuntimeProofResultPaths =
+    stringFlags('--local-runtime-proof-result')
+  for (const proofPath of explicitLocalRuntimeProofResultPaths) {
+    assertLocalProofPath('--local-runtime-proof-result', proofPath)
+  }
+  const nativeCudaCloseoutResultRoots =
+    stringFlags(nativeCudaCloseoutResultRootFlag)
+  const nativeCudaCloseoutExpandedProofResultPaths =
+    nativeCudaCloseoutResultRoots.flatMap(nativeCudaCloseoutProofPathsFromRoot)
+  for (const proofPath of nativeCudaCloseoutExpandedProofResultPaths) {
+    if (!fs.existsSync(proofPath)) {
+      throw new Error(
+        `${nativeCudaCloseoutResultRootFlag} expected proof result file is missing: ${proofPath}`,
+      )
+    }
+  }
+  return {
+    explicitLocalRuntimeProofResultPaths,
+    nativeCudaCloseoutResultRoots,
+    nativeCudaCloseoutExpandedProofResultPaths,
+    localRuntimeProofResultPaths: [
+      ...explicitLocalRuntimeProofResultPaths,
+      ...nativeCudaCloseoutExpandedProofResultPaths,
+    ],
+  }
 }
 
 function remainingNativeCudaModelRootForInspection(): string | null {
@@ -1949,10 +1996,15 @@ function buildToolRows(
 }
 
 function buildReport() {
-  const localRuntimeProofResultPaths = stringFlags('--local-runtime-proof-result')
+  const {
+    explicitLocalRuntimeProofResultPaths,
+    nativeCudaCloseoutResultRoots,
+    nativeCudaCloseoutExpandedProofResultPaths,
+    localRuntimeProofResultPaths,
+  } = localRuntimeProofResultInputs()
   if (localRuntimeProofResultPaths.length > 0 && hasFlag('--write-records')) {
     throw new Error(
-      '--write-records cannot be combined with --local-runtime-proof-result; private proof results must stay local-only.',
+      '--write-records cannot be combined with --local-runtime-proof-result or --native-cuda-closeout-result-root; private proof results must stay local-only.',
     )
   }
   if (hasFlag('--write-records') && hasFlag('--detect-host')) {
@@ -2337,12 +2389,26 @@ function buildReport() {
       suppliedPrivateLocalRuntimeProofResults: suppliedPrivateLocalRuntimeProofs.length > 0
         ? suppliedPrivateLocalRuntimeProofs.map((proof, index) => ({
             path: localRuntimeProofResultPaths[index],
+            source:
+              nativeCudaCloseoutExpandedProofResultPaths.includes(
+                localRuntimeProofResultPaths[index],
+              )
+                ? 'native_cuda_closeout_result_root'
+                : 'explicit_local_runtime_proof_result',
             decision: proof.decision,
             status: proof.status,
             rows: Array.isArray(proof.gpuModelLocalDevRuntimeExecutionHarnessRows)
               ? proof.gpuModelLocalDevRuntimeExecutionHarnessRows.length
               : 0,
             mergedIntoReadinessRows: true,
+          }))
+        : null,
+      nativeCudaCloseoutResultRoots: nativeCudaCloseoutResultRoots.length > 0
+        ? nativeCudaCloseoutResultRoots.map((rootPath) => ({
+            rootPath,
+            expectedProofResultPaths:
+              nativeCudaCloseoutProofPathsFromRoot(rootPath),
+            expandedIntoLocalRuntimeProofResults: true,
           }))
         : null,
       externalAgentExecutionGate: {
@@ -2584,6 +2650,10 @@ function buildReport() {
         acceptedProofSubsetGpuToolIds.length,
       privateLocalRuntimeProofResultSupplied:
         suppliedPrivateLocalRuntimeProofs.length > 0,
+      nativeCudaCloseoutResultRootSupplied:
+        nativeCudaCloseoutResultRoots.length > 0,
+      explicitLocalRuntimeProofResultSupplied:
+        explicitLocalRuntimeProofResultPaths.length > 0,
       cpuSafeGpuModelRouteProofAttempted:
         cpuSafeGpuModelRouteProofSummary.attempted,
       cpuSafeGpuModelRouteProofAccepted:

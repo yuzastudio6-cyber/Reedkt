@@ -23,6 +23,7 @@
       "accepted": true
     },
     "suppliedPrivateLocalRuntimeProofResults": null,
+    "nativeCudaCloseoutResultRoots": null,
     "externalAgentExecutionGate": {
       "decision": "ai_graphics_external_agent_execution_gate_prepared_fail_closed_with_warnings",
       "status": "external_agent_execution_gate_controlled_route_ready_direct_global_execution_blocked",
@@ -172,6 +173,8 @@
     "scopedGpuModelRuntimeProofAcceptedTools": 0,
     "acceptedGpuModelControlledRouteProofTools": 6,
     "privateLocalRuntimeProofResultSupplied": false,
+    "nativeCudaCloseoutResultRootSupplied": false,
+    "explicitLocalRuntimeProofResultSupplied": false,
     "cpuSafeGpuModelRouteProofAttempted": true,
     "cpuSafeGpuModelRouteProofAccepted": true,
     "agentCanExecuteCpuSafeGpuModelRouteProofToolsNow": true,
@@ -3010,7 +3013,7 @@
         "gpuStartsOnlyDuringScopedToolCall": true
       }
     ],
-    "all21CloseoutReadinessCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --cpu-safe-gpu-model-route-proof-packet .local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-safe-gpu-model-route-proof.json --cpu-model-gpu-model-route-proof-packet .local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-model-gpu-model-route-proof-next.json --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/sam2/harness-result.json --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/birefnet/harness-result.json",
+    "all21CloseoutReadinessCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --cpu-safe-gpu-model-route-proof-packet .local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-safe-gpu-model-route-proof.json --cpu-model-gpu-model-route-proof-packet .local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-model-gpu-model-route-proof-next.json --native-cuda-closeout-result-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout",
     "noScopeExpansion": {
       "dependencyInstallPerformed": false,
       "packageLockMutationPerformed": false,
@@ -3034,7 +3037,7 @@
     "nativeCudaCloseoutStrictCommand": "npm run --silent ai-graphics:external-agent-native-cuda-closeout -- --detect-host --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --source-image <private-approved-frame.png> --output-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout --cpu-safe-gpu-model-route-proof-packet .local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-safe-gpu-model-route-proof.json --cpu-model-gpu-model-route-proof-packet .local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-model-gpu-model-route-proof-next.json --attempt-local-runtime --strict-exit-code",
     "nativeCudaCloseoutScriptGeneratorCommand": "npm run --silent ai-graphics:external-agent-native-cuda-closeout -- --detect-host --private-model-root \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT\" --model-weight-manifest-dir \"$REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR\" --source-image <private-approved-frame.png> --output-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout --cpu-safe-gpu-model-route-proof-packet .local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-safe-gpu-model-route-proof.json --cpu-model-gpu-model-route-proof-packet .local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-model-gpu-model-route-proof-next.json --script-out .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/run-native-cuda-closeout.sh",
     "nativeCudaCloseoutScriptPath": ".local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/run-native-cuda-closeout.sh",
-    "all21CloseoutReadinessCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --cpu-safe-gpu-model-route-proof-packet .local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-safe-gpu-model-route-proof.json --cpu-model-gpu-model-route-proof-packet .local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-model-gpu-model-route-proof-next.json --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/sam2/harness-result.json --local-runtime-proof-result .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout/birefnet/harness-result.json",
+    "all21CloseoutReadinessCommand": "npm run --silent ai-graphics:external-agent-execution-readiness -- --cpu-safe-gpu-model-route-proof-packet .local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-safe-gpu-model-route-proof.json --cpu-model-gpu-model-route-proof-packet .local-artifacts/ai-graphics/external-agent-execution-readiness/cpu-model-gpu-model-route-proof-next.json --native-cuda-closeout-result-root .local-artifacts/ai-graphics/gpu-model-local-dev-runtime/native-cuda-closeout",
     "nativeCudaCloseoutDiagnosticCommand": "npm run --silent ai-graphics:external-agent-native-cuda-closeout:diagnostics",
     "currentHostEligibleForNativeGpuProof": false,
     "currentHostBlockers": [],

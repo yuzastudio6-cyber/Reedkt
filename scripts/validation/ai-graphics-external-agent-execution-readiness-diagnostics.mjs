@@ -264,6 +264,29 @@ function execFileJson(command, args) {
   }))
 }
 
+function execFileFailure(command, args) {
+  try {
+    childProcess.execFileSync(command, args, {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      maxBuffer: 180 * 1024 * 1024,
+      env: {
+        ...process.env,
+        DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
+      },
+    })
+    fail(`expected_command_failure:${command}:${args.join(' ')}`)
+    return ''
+  } catch (error) {
+    return [
+      error.stdout?.toString?.() ?? '',
+      error.stderr?.toString?.() ?? '',
+      error.message ?? '',
+    ].join('\n')
+  }
+}
+
 function ensureCpuSafeGpuModelRouteProofSourceImage() {
   const absolutePath = absolute(cpuSafeGpuModelRouteProofSourceImage)
   fs.mkdirSync(path.dirname(absolutePath), { recursive: true })
@@ -978,6 +1001,28 @@ function createScopedPrivateProofFixture(caseDef) {
   return proofPath
 }
 
+function createNativeCudaCloseoutResultRootFixture() {
+  const fixtureRoot = path.join(
+    root,
+    '.local-artifacts',
+    'ai-graphics',
+    'gpu-model-local-dev-runtime',
+  )
+  fs.mkdirSync(fixtureRoot, { recursive: true })
+  const resultRoot = fs.mkdtempSync(
+    path.join(fixtureRoot, 'diagnostic-native-cuda-closeout-root-'),
+  )
+  for (const toolId of remainingNativeCudaTools) {
+    const caseDef = scopedProofFixtureCases.find((entry) => entry.toolId === toolId)
+    if (!caseDef) throw new Error(`Missing fixture case for ${toolId}`)
+    const proofPath = createScopedPrivateProofFixture(caseDef)
+    const targetPath = path.join(resultRoot, toolId, 'harness-result.json')
+    fs.mkdirSync(path.dirname(targetPath), { recursive: true })
+    fs.copyFileSync(proofPath, targetPath)
+  }
+  return resultRoot
+}
+
 function checkPackageJson() {
   const pkg = json('package.json')
   if (pkg.scripts?.[runScriptName] !== runScriptCommand) {
@@ -1488,27 +1533,29 @@ function checkReport(label, report, expectedStatus = status) {
     ) {
       fail(`${label}_remaining_native_cuda_missing_closeout_diagnostic_command`)
     }
+    const all21CloseoutReadinessCommand =
+      String(closure.all21CloseoutReadinessCommand ?? '')
     if (
-      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+      !all21CloseoutReadinessCommand.includes(
         'ai-graphics:external-agent-execution-readiness',
       ) ||
-      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+      !all21CloseoutReadinessCommand.includes(
         '--cpu-safe-gpu-model-route-proof-packet',
       ) ||
-      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+      !all21CloseoutReadinessCommand.includes(
         'cpu-safe-gpu-model-route-proof.json',
       ) ||
-      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+      !all21CloseoutReadinessCommand.includes(
         '--cpu-model-gpu-model-route-proof-packet',
       ) ||
-      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
+      !all21CloseoutReadinessCommand.includes(
         'cpu-model-gpu-model-route-proof-next.json',
       ) ||
-      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
-        'native-cuda-closeout/sam2/harness-result.json',
+      !all21CloseoutReadinessCommand.includes(
+        '--native-cuda-closeout-result-root',
       ) ||
-      !String(closure.all21CloseoutReadinessCommand ?? '').includes(
-        'native-cuda-closeout/birefnet/harness-result.json',
+      !all21CloseoutReadinessCommand.includes(
+        'gpu-model-local-dev-runtime/native-cuda-closeout',
       )
     ) {
       fail(`${label}_remaining_native_cuda_missing_all21_closeout_command`)
@@ -2667,6 +2714,78 @@ if (docs.cpuModelGpuModelRouteProof?.accepted === true) {
 }
 const live = JSON.parse(exec(`npm run --silent ${runScriptName}`))
 checkReport('live', live)
+const missingNativeCudaCloseoutRoot = path.join(
+  root,
+  '.local-artifacts',
+  'ai-graphics',
+  'gpu-model-local-dev-runtime',
+  'diagnostic-missing-native-cuda-closeout-root',
+)
+const missingRootOutput = execFileFailure('npm', [
+  'run',
+  '--silent',
+  runScriptName,
+  '--',
+  '--native-cuda-closeout-result-root',
+  missingNativeCudaCloseoutRoot,
+])
+if (!missingRootOutput.includes('--native-cuda-closeout-result-root expected proof result file is missing')) {
+  fail('missing_native_cuda_closeout_root_did_not_fail_closed')
+}
+const nativeCudaCloseoutResultRoot = createNativeCudaCloseoutResultRootFixture()
+const liveWithNativeCudaCloseoutRoot = execFileJson('npm', [
+  'run',
+  '--silent',
+  runScriptName,
+  '--',
+  '--native-cuda-closeout-result-root',
+  nativeCudaCloseoutResultRoot,
+])
+if (
+  liveWithNativeCudaCloseoutRoot.booleans?.nativeCudaCloseoutResultRootSupplied !== true
+) {
+  fail('native_cuda_closeout_root_not_marked_supplied')
+}
+if (
+  liveWithNativeCudaCloseoutRoot.booleans?.privateLocalRuntimeProofResultSupplied !== true
+) {
+  fail('native_cuda_closeout_root_private_proof_not_marked_supplied')
+}
+if (
+  liveWithNativeCudaCloseoutRoot.booleans?.explicitLocalRuntimeProofResultSupplied !== false
+) {
+  fail('native_cuda_closeout_root_marked_as_explicit_local_proof')
+}
+if (liveWithNativeCudaCloseoutRoot.booleans?.agentCanExecuteAll21ToolsNow !== false) {
+  fail('native_cuda_closeout_root_claimed_all21_executable')
+}
+if (liveWithNativeCudaCloseoutRoot.booleans?.gpuRuntimeShouldStartNow !== false) {
+  fail('native_cuda_closeout_root_started_idle_gpu')
+}
+const nativeCudaCloseoutSourceRoots =
+  liveWithNativeCudaCloseoutRoot.sourceEvidence?.nativeCudaCloseoutResultRoots
+if (!Array.isArray(nativeCudaCloseoutSourceRoots) || nativeCudaCloseoutSourceRoots.length !== 1) {
+  fail('native_cuda_closeout_root_source_evidence_missing')
+} else {
+  const expectedPaths =
+    nativeCudaCloseoutSourceRoots[0]?.expectedProofResultPaths ?? []
+  for (const toolId of remainingNativeCudaTools) {
+    if (!expectedPaths.some((entry) => String(entry).includes(`${toolId}/harness-result.json`))) {
+      fail(`native_cuda_closeout_root_missing_expected_path:${toolId}`)
+    }
+  }
+}
+const nativeCudaCloseoutSuppliedProofs =
+  liveWithNativeCudaCloseoutRoot.sourceEvidence?.suppliedPrivateLocalRuntimeProofResults
+if (
+  !Array.isArray(nativeCudaCloseoutSuppliedProofs) ||
+  nativeCudaCloseoutSuppliedProofs.length !== remainingNativeCudaTools.length ||
+  nativeCudaCloseoutSuppliedProofs.some((entry) => (
+    entry.source !== 'native_cuda_closeout_result_root'
+  ))
+) {
+  fail('native_cuda_closeout_root_supplied_proof_source_mismatch')
+}
 const runLiveReadinessProofChecks =
   process.env.REEDITPRO_AI_GRAPHICS_RUN_LIVE_READINESS_DIAGNOSTIC === '1'
 if (runLiveReadinessProofChecks) {
@@ -2886,7 +3005,9 @@ if (
 const cli = read('server/cli/ai-graphics-external-agent-execution-readiness.ts')
 for (const phrase of [
   '--local-runtime-proof-result',
-  '--write-records cannot be combined with --local-runtime-proof-result',
+  '--native-cuda-closeout-result-root',
+  '--write-records cannot be combined with --local-runtime-proof-result or --native-cuda-closeout-result-root',
+  'expected proof result file is missing',
   '--write-records cannot be combined with --detect-host',
   'hostDetectionReadinessCommand',
   'currentHostGpuProofPreflight',
@@ -2909,6 +3030,7 @@ for (const phrase of [
   'remainingNativeCudaRuntimeInputManifestPrivateRootCommand',
   'nativeCudaCloseoutScript',
   'remainingNativeCudaCloseoutCommand',
+  'nativeCudaCloseoutProofPathsFromRoot',
   'ai-graphics:external-agent-native-cuda-closeout',
   'ZhengPeng7/BiRefNet',
   'sam2.1_hiera_tiny.pt',

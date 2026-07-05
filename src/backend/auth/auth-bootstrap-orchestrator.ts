@@ -4,7 +4,13 @@ import type {
   WorkspaceBootstrapRole,
 } from '../../types/auth-bootstrap'
 import { MOCK_USER_ID, MOCK_WORKSPACE_ID } from '../mock/mock-service-data'
-import { getAuthClientStatus, getCurrentSupabaseSession, getCurrentSupabaseUser } from './auth-client-service'
+import {
+  getAuthClientStatus,
+  getCurrentSupabaseSession,
+  getCurrentSupabaseUser,
+  getInternalTestingMockAuthSession,
+  isInternalTestingMockAuthEnabled,
+} from './auth-client-service'
 import { ensureCurrentUserProfile } from './profile-bootstrap-service'
 import { ensureDefaultWorkspace } from './workspace-bootstrap-service'
 
@@ -14,6 +20,22 @@ function mergeWarnings(...groups: Array<string[] | undefined>): string[] {
 
 export async function runAuthBootstrapFlow(): Promise<AuthBootstrapFlowResult> {
   const status = getAuthClientStatus()
+
+  if (isInternalTestingMockAuthEnabled()) {
+    const session = getInternalTestingMockAuthSession()
+    if (session) {
+      return runMockAuthBootstrapFlow(session.email, session.displayName)
+    }
+
+    return {
+      ok: false,
+      status: 'signed_out',
+      mode: 'mock',
+      warnings: status.warnings,
+      nextStep: 'sign_in_required',
+      message: 'Use internal testing sign-in to create a browser-local mock session.',
+    }
+  }
 
   if (!status.configured) {
     return {
@@ -29,11 +51,13 @@ export async function runAuthBootstrapFlow(): Promise<AuthBootstrapFlowResult> {
   return runSupabaseAuthBootstrapFlow()
 }
 
-export async function runMockAuthBootstrapFlow(): Promise<AuthBootstrapFlowResult> {
+export async function runMockAuthBootstrapFlow(email = 'mock-user@reeditpro.local', displayName?: string): Promise<AuthBootstrapFlowResult> {
+  const resolvedDisplayName = displayName
+    ?? (email === 'mock-user@reeditpro.local' ? 'Mock ReeditPro User' : email)
   const userContext: AuthenticatedUserContext = {
     userId: MOCK_USER_ID,
-    email: 'mock-user@reeditpro.local',
-    displayName: 'Mock ReeditPro User',
+    email,
+    displayName: resolvedDisplayName,
     currentWorkspaceId: MOCK_WORKSPACE_ID,
     roles: ['owner'],
     bootstrapStatus: 'ready',

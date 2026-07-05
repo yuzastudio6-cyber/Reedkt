@@ -45,8 +45,11 @@ for (const phrase of [
   'LOCAL_STORAGE_ROOT',
   'VITE_REEDITPRO_SOURCE_VIDEO_BACKEND_UPLOAD',
   'VITE_REEDITPRO_LOCAL_EDIT_PREVIEW_SMOKE',
+  'VITE_REEDITPRO_INTERNAL_TEST_AUTH',
   'VITE_REEDITPRO_API_BASE_URL',
+  '/sign-in',
   'Edit Brief source-video test',
+  'browser-local mock sign-in',
   'preview-only local edit smoke',
   'No Supabase writes, GCS writes, provider calls, live Qwen calls, final export, external beta, or production.',
 ]) {
@@ -93,6 +96,9 @@ assert.doesNotMatch(previewCard, /product-ready/i)
 const runbook = read('docs/internal-testing-local-upload-runner.md')
 for (const phrase of [
   'npm run dev:internal-testing:local-upload',
+  'http://127.0.0.1:5179/sign-in',
+  'VITE_REEDITPRO_INTERNAL_TEST_AUTH=true',
+  'browser-local mock auth session',
   'http://127.0.0.1:5179/projects',
   'Upload for testing',
   'Run local edit preview',
@@ -105,6 +111,7 @@ for (const phrase of [
 
 const briefRunbook = read('docs/project-edit-brief-internal-testing-runbook.md')
 assert.match(briefRunbook, /backend-local source upload/i)
+assert.match(briefRunbook, /browser-local internal-testing session/i)
 assert.match(briefRunbook, /Run local edit preview/i)
 assert.match(briefRunbook, /Qwen 3\.7 Max/i)
 assert.doesNotMatch(briefRunbook, /No full-video upload/i)
@@ -114,6 +121,7 @@ console.log(JSON.stringify({
   checks: [
     'local_upload_runner_script_present',
     'local_upload_runner_scripts_registered',
+    'browser_local_mock_sign_in_enabled_for_runner',
     'real_local_api_playwright_spec_present_without_route_interception',
     'local_edit_preview_smoke_gate_documented',
     'runbook_documents_local_upload_flow',

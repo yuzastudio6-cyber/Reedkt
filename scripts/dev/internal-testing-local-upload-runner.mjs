@@ -67,9 +67,10 @@ process.on('SIGTERM', () => shutdown(0))
 console.log('Starting ReEditPro internal local upload test stack.')
 console.log(`API health: ${apiBaseUrl}/health`)
 console.log(`Projects: ${appBaseUrl}/projects`)
+console.log(`Sign in: ${appBaseUrl}/sign-in`)
 console.log(`Edit Brief source-video test: ${appBaseUrl}${briefPath}`)
 console.log(`Local storage root: ${path.resolve(repoRoot, localStorageRoot)}`)
-console.log('Mode: mock auth + backend-local storage + preview-only local edit smoke. No Supabase writes, GCS writes, provider calls, live Qwen calls, final export, external beta, or production.')
+console.log('Mode: browser-local mock sign-in + backend-local storage + preview-only local edit smoke. No Supabase writes, GCS writes, provider calls, live Qwen calls, final export, external beta, or production.')
 
 spawnLogged('api', ['run', 'dev:api'], {
   NODE_ENV: 'development',
@@ -91,6 +92,7 @@ spawnLogged('app', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(
   VITE_REEDITPRO_API_BASE_URL: apiBaseUrl,
   VITE_REEDITPRO_SOURCE_VIDEO_BACKEND_UPLOAD: 'true',
   VITE_REEDITPRO_LOCAL_EDIT_PREVIEW_SMOKE: 'true',
+  VITE_REEDITPRO_INTERNAL_TEST_AUTH: 'true',
   VITE_REEDITPRO_INTERNAL_TEST_WORKSPACE_ID: 'mock-workspace',
   VITE_REEDITPRO_API_MODE: 'mock',
 })

@@ -1,5 +1,5 @@
 import { LogOut, RefreshCw, ShieldCheck, UserCircle } from 'lucide-react'
-import type { AuthBootstrapStatus, AuthenticatedUserContext } from '../../types/auth-bootstrap'
+import type { AuthBootstrapMode, AuthBootstrapStatus, AuthenticatedUserContext } from '../../types/auth-bootstrap'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
 import { Card } from '../Card'
@@ -7,6 +7,7 @@ import { Card } from '../Card'
 type AuthBootstrapStatusCardProps = {
   loading?: boolean
   configured: boolean
+  mode?: AuthBootstrapMode
   status: AuthBootstrapStatus
   userContext?: AuthenticatedUserContext
   warnings?: string[]
@@ -35,6 +36,7 @@ function statusAccent(status: AuthBootstrapStatus): 'success' | 'warning' | 'dan
 export function AuthBootstrapStatusCard({
   configured,
   loading = false,
+  mode = 'supabase_frontend',
   onRefresh,
   onSignOut,
   status,
@@ -54,7 +56,9 @@ export function AuthBootstrapStatusCard({
       <div className="auth-bootstrap-status-grid">
         <span>
           <ShieldCheck aria-hidden="true" size={16} />
-          Supabase {configured ? 'configured' : 'not configured'}
+          {mode === 'mock'
+            ? configured ? 'Mock auth enabled' : 'Mock auth inactive'
+            : `Supabase ${configured ? 'configured' : 'not configured'}`}
         </span>
         <span>
           <UserCircle aria-hidden="true" size={16} />

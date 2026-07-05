@@ -1,0 +1,97 @@
+name: Internal Tester Profile Workspace Provisioning
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_internal_tester_provisioning:
+        description: "Type PROVISION_REEDITPRO_INTERNAL_TESTER to provision a staging tester"
+        required: true
+        type: string
+      allow_staging_writes:
+        description: "Required safety gate for profile/workspace staging writes"
+        required: true
+        default: false
+        type: boolean
+      tester_email:
+        description: "Internal tester email address to provision"
+        required: true
+        type: string
+      display_name:
+        description: "Optional display name"
+        required: false
+        type: string
+      workspace_name:
+        description: "Optional workspace name"
+        required: false
+        type: string
+      invite_if_missing:
+        description: "Invite the tester if no Supabase Auth user exists"
+        required: true
+        default: false
+        type: boolean
+      redirect_to:
+        description: "Safe sign-in redirect for invitations"
+        required: true
+        default: "https://yuzastudio6-cyber.github.io/Reedkt/sign-in"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: internal-tester-profile-workspace-provisioning
+  cancel-in-progress: false
+
+jobs:
+  provision-internal-tester:
+    name: Provision staging tester profile and workspace
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      REEDITPRO_CONFIRM_INTERNAL_TESTER_PROVISIONING: ${{ inputs.confirm_internal_tester_provisioning }}
+      REEDITPRO_CONFIRM_STAGING_SUPABASE_WRITES: ${{ inputs.allow_staging_writes && 'true' || 'false' }}
+      SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+      INTERNAL_TESTER_EMAIL: ${{ inputs.tester_email }}
+      INTERNAL_TESTER_DISPLAY_NAME: ${{ inputs.display_name }}
+      INTERNAL_TESTER_WORKSPACE_NAME: ${{ inputs.workspace_name }}
+      INTERNAL_TESTER_INVITE_IF_MISSING: ${{ inputs.invite_if_missing && 'true' || 'false' }}
+      INTERNAL_TESTER_REDIRECT_TO: ${{ inputs.redirect_to }}
+    steps:
+      - name: Fail closed unless staging tester provisioning is explicitly approved
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${REEDITPRO_CONFIRM_INTERNAL_TESTER_PROVISIONING}" = "PROVISION_REEDITPRO_INTERNAL_TESTER"
+          test "${REEDITPRO_CONFIRM_STAGING_SUPABASE_WRITES}" = "true"
+          test -n "${SUPABASE_URL}"
+          test -n "${SUPABASE_SERVICE_ROLE_KEY}"
+          case "${INTERNAL_TESTER_REDIRECT_TO}" in
+            https://yuzastudio6-cyber.github.io/*/sign-in|https://app.reeditpro.com/sign-in|https://app.reeditpro.com/*/sign-in) ;;
+            *)
+              echo "::error::redirect_to must target the approved sign-in routes."
+              exit 1
+              ;;
+          esac
+          if ! [[ "${INTERNAL_TESTER_EMAIL}" =~ ^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$ ]]; then
+            echo "::error::tester_email must be an email address."
+            exit 1
+          fi
+
+      - name: Checkout app source
+        uses: actions/checkout@v5
+        with:
+          ref: codex/reeditpro-web-ui-shell
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies for backend-only CLI
+        run: npm ci --no-audit --no-fund --progress=false
+
+      - name: Provision internal tester
+        run: npm run internal-testing:provision-tester

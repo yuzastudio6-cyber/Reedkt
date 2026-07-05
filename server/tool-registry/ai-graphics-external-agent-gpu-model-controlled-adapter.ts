@@ -906,17 +906,7 @@ function privateLocalPathMatchesExpectation(
   if (expectation === 'file') return pathStat.isFile()
   if (expectation === 'directory') return pathStat.isDirectory()
   if (expectation === 'birefnet_model_directory') {
-    if (!pathStat.isDirectory()) return false
-    for (const requiredFile of requiredBirefNetRuntimeFiles) {
-      const requiredFilePath = path.join(pathValue, requiredFile)
-      if (!existsSync(requiredFilePath)) return false
-      try {
-        if (!statSync(requiredFilePath).isFile()) return false
-      } catch {
-        return false
-      }
-    }
-    return true
+    return pathStat.isDirectory()
   }
   return false
 }

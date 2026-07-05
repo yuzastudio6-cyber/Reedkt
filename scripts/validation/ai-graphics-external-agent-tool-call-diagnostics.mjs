@@ -1160,7 +1160,6 @@ const incompleteBirefNetReport = runToolCall([
   '--runtime-backend docker_container',
   `--runtime-container-image ${gpuModelRuntimeContainerImage('birefnet')}`,
   '--runtime-container-platform linux/amd64',
-  '--private-input-preflight-only',
   `--gpu-output-dir ${privatePreflightPaths.rootDir}/outputs/birefnet-incomplete`,
   `--source-image ${privatePreflightPaths.sourceImage}`,
   `--birefnet-model ${incompleteBirefNetDir}`,
@@ -1173,7 +1172,7 @@ if (
 }
 if (
   incompleteBirefNetReport.response?.blockingReasonCode !==
-    'birefnet_model_invalid_path_kind'
+    'birefnet_model_directory_missing_runtime_files'
 ) {
   fail(
     `birefnet_incomplete_directory_reason_unexpected:${incompleteBirefNetReport.response?.blockingReasonCode}`,

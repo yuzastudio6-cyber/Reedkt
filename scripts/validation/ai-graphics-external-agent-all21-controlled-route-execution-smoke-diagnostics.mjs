@@ -1518,8 +1518,27 @@ for (const phrase of [
   'controlled_gpu_model_adapter_invoked_runtime_skipped',
   'allowModelDownload: false',
   'allowFinalRender: false',
+  'birefnet_model_directory',
+  'gpu_model_private_inputs_accepted_runtime_proof_not_requested',
+  'privateModelRuntimeContentBlock',
 ]) {
   if (!gpuAdapterSource.includes(phrase)) fail(`gpu_adapter_missing:${phrase}`)
+}
+if (
+  !/if \(expectation === 'birefnet_model_directory'\) \{\s*return pathStat\.isDirectory\(\)\s*\}/s.test(
+    gpuAdapterSource,
+  )
+) {
+  fail('gpu_adapter_birefnet_preflight_should_accept_directory_shape_before_runtime_content_check')
+}
+const dockerPreflightIndex = gpuAdapterSource.indexOf('if (privateInputPreflightOnly(payload))')
+const dockerContentCheckIndex = gpuAdapterSource.indexOf(
+  'const privateModelContentBlock = privateModelRuntimeContentBlock(',
+)
+if (dockerPreflightIndex === -1 || dockerContentCheckIndex === -1) {
+  fail('gpu_adapter_preflight_or_content_check_missing')
+} else if (dockerPreflightIndex > dockerContentCheckIndex) {
+  fail('gpu_adapter_private_input_preflight_must_run_before_model_content_check')
 }
 
 if (readinessProbe.counts?.externalAgentRouteCallableNowTools !== 21) {

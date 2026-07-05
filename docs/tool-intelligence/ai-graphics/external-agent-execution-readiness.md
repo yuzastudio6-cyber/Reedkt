@@ -36,6 +36,26 @@ This is the strict all-21 external-agent readiness report. It separates `callabl
 - Native GPU runtime still required before model execution: `true`
 - Guard: install/import-smoke proof is not runtime execution proof and does not start native GPU, load model weights, process media, create public artifacts, or sign URLs.
 
+## CPU-Safe GPU/Model Controlled Route Proof
+
+- Status: `cpu_safe_gpu_model_route_proof_executed_for_3_tools_16_total_controlled_route_tools_executable`
+- Attempted: `true`
+- Accepted: `true`
+- Expected tools: `torch_torchvision, transformers, kornia`
+- Executed tools: `torch_torchvision, transformers, kornia`
+- Executable tool count with this local proof: `16`
+- Remaining GPU/model blocked tools: `sam2, birefnet, real_esrgan, rembg, transparent_background`
+- Proof command: `npm run --silent ai-graphics:external-agent-all21-controlled-route-execution-smoke -- --scoped-gpu-tool torch_torchvision,transformers,kornia --scoped-gpu-runtime-container-image reeditpro/ai-graphics-gpu-worker:proof-local --scoped-gpu-runtime-container-platform linux/amd64 --scoped-gpu-allow-cpu-foundation-runtime --scoped-gpu-allow-cpu-tensor-runtime --scoped-gpu-output-root .local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-safe-diagnostic --scoped-gpu-source-image .local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame.ppm`
+- Proof output root: `.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-safe-diagnostic`
+- Proof source image: `.local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame.ppm`
+- Guard: this proof uses the scoped controlled external-agent route, keeps GPU idle for CPU-safe model tools, writes only local private artifacts, and does not approve the five remaining model tools.
+
+| Tool | State | Output kind | Output hash | Local GPU/model runtime performed | GPU starts now | Adapter executed |
+| --- | --- | --- | --- | ---: | ---: | ---: |
+| `torch_torchvision` | `executable` | `gpu_model_runtime_json` | `482dfe2900624db09aa980e13ab170c33ab9da2633b14e0fe6b935585ca90bdb` | true | false | true |
+| `transformers` | `executable` | `gpu_model_runtime_json` | `f9bfc70b8d7e86679703d2ef255e6e166616187d3a5e28eeaef0760c68f3e22f` | true | false | true |
+| `kornia` | `executable` | `gpu_model_runtime_json` | `acf3d68d835ffe3fbc5190108d919205b6343c3a2cfec3dd701bbf355e87b69e` | true | false | true |
+
 ## Tool Rows
 
 | Tool | Group | Install proof profile | Install proof present | Install/runtime state | Readiness state | Callable | Executable | Worker-route evidence accepted | Current blocker | Remaining private runtime inputs | Minimum private runtime inputs | Next exact command | Blocking prerequisite |
@@ -130,6 +150,10 @@ These commands are local-only preparation steps for the five GPU/model tools tha
 - `productionReadyNowTools`: 0
 - `fastestGpuModelUnlockCandidateTools`: 1
 - `privateLocalRuntimeProofResultSuppliedTools`: 0
+- `cpuSafeGpuModelRouteProofAttemptedTools`: 3
+- `cpuSafeGpuModelRouteProofExecutableTools`: 3
+- `agentExecutableToolsWithCpuSafeGpuModelRouteProof`: 16
+- `remainingGpuModelBlockedToolsAfterCpuSafeGpuModelRouteProof`: 5
 
 ## Fastest GPU/Model Unlock Candidate
 
@@ -178,6 +202,10 @@ These commands are local-only preparation steps for the five GPU/model tools tha
 - `gpuModelProofRefBridgeBlocksUntilPrivateProof`: true
 - `scopedGpuModelRuntimeProofAcceptedTools`: 0
 - `privateLocalRuntimeProofResultSupplied`: false
+- `cpuSafeGpuModelRouteProofAttempted`: true
+- `cpuSafeGpuModelRouteProofAccepted`: true
+- `agentCanExecuteCpuSafeGpuModelRouteProofToolsNow`: true
+- `agentCanExecute16ControlledRouteToolsWithCpuSafeGpuModelRouteProofNow`: true
 - `strictCallableExecutableBlockedFailedContractCreated`: true
 - `capabilityMismatchFailureProbeAccepted`: true
 - `gpuRuntimeOnDemandOnly`: true

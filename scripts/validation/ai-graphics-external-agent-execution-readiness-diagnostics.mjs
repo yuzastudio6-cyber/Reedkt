@@ -96,6 +96,15 @@ const gpuModelTools = [
 const gpuModelCpuFoundationTools = ['torch_torchvision', 'transformers']
 const gpuModelCpuTensorTools = ['kornia']
 const gpuModelCpuModelTools = ['real_esrgan', 'rembg', 'transparent_background']
+const cpuSafeGpuModelRouteProofTools = [
+  'torch_torchvision',
+  'transformers',
+  'kornia',
+]
+const cpuSafeGpuModelRouteProofOutputRoot =
+  '.local-artifacts/ai-graphics/gpu-model-route-runtime-attempt-cpu-safe-diagnostic'
+const cpuSafeGpuModelRouteProofSourceImage =
+  '.local-artifacts/ai-graphics/gpu-model-route-private-input-preflight-diagnostic/inputs/private-approved-frame.ppm'
 const gpuModelWeightManifestTools = [
   'sam2',
   'birefnet',
@@ -239,6 +248,176 @@ function execFileJson(command, args) {
       DEVELOPER_DIR: '/Library/Developer/CommandLineTools',
     },
   }))
+}
+
+function ensureCpuSafeGpuModelRouteProofSourceImage() {
+  const absolutePath = absolute(cpuSafeGpuModelRouteProofSourceImage)
+  fs.mkdirSync(path.dirname(absolutePath), { recursive: true })
+  if (!fs.existsSync(absolutePath)) {
+    fs.writeFileSync(
+      absolutePath,
+      'P3\n2 2\n255\n255 0 0 0 255 0 0 0 255 255 255 255\n',
+    )
+  }
+  return absolutePath
+}
+
+function cpuSafeGpuModelRouteProofArgs() {
+  return [
+    'run',
+    '--silent',
+    'ai-graphics:external-agent-all21-controlled-route-execution-smoke',
+    '--',
+    '--scoped-gpu-tool',
+    cpuSafeGpuModelRouteProofTools.join(','),
+    '--scoped-gpu-runtime-container-image',
+    canonicalGpuWorkerProofImage,
+    '--scoped-gpu-runtime-container-platform',
+    'linux/amd64',
+    '--scoped-gpu-allow-cpu-foundation-runtime',
+    '--scoped-gpu-allow-cpu-tensor-runtime',
+    '--scoped-gpu-output-root',
+    cpuSafeGpuModelRouteProofOutputRoot,
+    '--scoped-gpu-source-image',
+    cpuSafeGpuModelRouteProofSourceImage,
+  ]
+}
+
+function checkCpuSafeGpuModelRouteProof(label, proof) {
+  if (
+    proof.decision !==
+    'ai_graphics_external_agent_all21_controlled_route_execution_smoke_passed'
+  ) {
+    fail(`${label}_decision_mismatch:${proof.decision}`)
+  }
+  if (proof.counts?.scopedGpuModelLocalDevRouteAttemptTools !== 3) {
+    fail(`${label}_attempt_count_mismatch:${proof.counts?.scopedGpuModelLocalDevRouteAttemptTools}`)
+  }
+  if (proof.counts?.scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools !== 3) {
+    fail(`${label}_runtime_executed_count_mismatch:${proof.counts?.scopedGpuModelLocalDevRouteAttemptRuntimeExecutedTools}`)
+  }
+  if (proof.counts?.scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools !== 0) {
+    fail(`${label}_blocked_count_mismatch:${proof.counts?.scopedGpuModelLocalDevRouteAttemptBlockedWithReasonTools}`)
+  }
+  for (const key of [
+    'gpuRuntimeShouldStartNow',
+    'gpuRuntimePerformed',
+    'publicArtifactCreated',
+    'signedUrlCreated',
+    'providerRuntimePerformed',
+    'modelWeightsDownloaded',
+    'modelWeightsLoaded',
+    'modelInferencePerformed',
+    'externalBetaReadyNow',
+    'productionReadyNow',
+  ]) {
+    if (proof.booleans?.[key] !== false) {
+      fail(`${label}_${key}_not_false`)
+    }
+  }
+
+  const attempts = Array.isArray(proof.scopedGpuModelLocalDevRouteAttempts)
+    ? proof.scopedGpuModelLocalDevRouteAttempts
+    : []
+  for (const toolId of cpuSafeGpuModelRouteProofTools) {
+    const attempt = attempts.find((item) => item.requestedToolId === toolId)
+    if (!attempt) {
+      fail(`${label}_missing_attempt:${toolId}`)
+      continue
+    }
+    if (attempt.booleans?.scopedGpuModelLocalDevRouteAttemptAccepted !== true) {
+      fail(`${label}_${toolId}_attempt_not_accepted`)
+    }
+    if (attempt.booleans?.scopedGpuModelRuntimeExecutionPerformed !== true) {
+      fail(`${label}_${toolId}_runtime_not_executed`)
+    }
+    if (attempt.booleans?.scopedGpuModelGpuRuntimeShouldStartNow !== false) {
+      fail(`${label}_${toolId}_gpu_started_idle_or_unexpected`)
+    }
+    const result = attempt.result ?? {}
+    if (result.externalAgentExecutionState !== 'executable') {
+      fail(`${label}_${toolId}_state_not_executable:${result.externalAgentExecutionState}`)
+    }
+    if (result.localGpuModelRuntimeExecutionPerformed !== true) {
+      fail(`${label}_${toolId}_local_gpu_model_runtime_not_performed`)
+    }
+    if (result.controlledAdapterExecutedNow !== true) {
+      fail(`${label}_${toolId}_adapter_not_executed`)
+    }
+    if (result.gpuRuntimeShouldStartNow !== false) {
+      fail(`${label}_${toolId}_gpu_runtime_should_start_now_not_false`)
+    }
+    if (typeof result.outputSha256 !== 'string' || result.outputSha256.length !== 64) {
+      fail(`${label}_${toolId}_missing_output_hash`)
+    }
+    if (result.publicArtifactCreated !== false || result.signedUrlCreated !== false) {
+      fail(`${label}_${toolId}_public_output_not_blocked`)
+    }
+  }
+}
+
+function checkReadinessCpuSafeRouteProofSummary(label, report) {
+  const summary = report.cpuSafeGpuModelRouteProof ?? {}
+  if (summary.attempted !== true) fail(`${label}_cpu_safe_summary_not_attempted`)
+  if (summary.accepted !== true) fail(`${label}_cpu_safe_summary_not_accepted`)
+  if (!arrayMatches(summary.expectedToolIds, cpuSafeGpuModelRouteProofTools)) {
+    fail(`${label}_cpu_safe_expected_tools_mismatch:${JSON.stringify(summary.expectedToolIds)}`)
+  }
+  if (!arrayMatches(summary.executableToolIds, cpuSafeGpuModelRouteProofTools)) {
+    fail(`${label}_cpu_safe_executable_tools_mismatch:${JSON.stringify(summary.executableToolIds)}`)
+  }
+  if (summary.executableTools !== 3) {
+    fail(`${label}_cpu_safe_executable_count_mismatch:${summary.executableTools}`)
+  }
+  if (summary.agentExecutableToolsWithCpuSafeGpuModelRouteProof !== 16) {
+    fail(`${label}_cpu_safe_total_executable_count_mismatch:${summary.agentExecutableToolsWithCpuSafeGpuModelRouteProof}`)
+  }
+  if (summary.remainingGpuModelBlockedTools !== 5) {
+    fail(`${label}_cpu_safe_remaining_gpu_blocks_mismatch:${summary.remainingGpuModelBlockedTools}`)
+  }
+  for (const toolId of ['sam2', 'birefnet', 'real_esrgan', 'rembg', 'transparent_background']) {
+    if (!summary.remainingGpuModelBlockedToolIds?.includes(toolId)) {
+      fail(`${label}_cpu_safe_missing_remaining_blocked_tool:${toolId}`)
+    }
+  }
+  if (summary.gpuRuntimeShouldStartNow !== false ||
+    summary.gpuRuntimeStartsIdle !== false ||
+    summary.publicArtifactCreated !== false ||
+    summary.signedUrlCreated !== false ||
+    summary.providerRuntimePerformed !== false ||
+    summary.modelWeightsDownloaded !== false ||
+    summary.modelWeightsLoaded !== false) {
+    fail(`${label}_cpu_safe_boundary_boolean_mismatch`)
+  }
+  if (report.counts?.cpuSafeGpuModelRouteProofAttemptedTools !== 3) {
+    fail(`${label}_cpu_safe_attempt_count_mismatch:${report.counts?.cpuSafeGpuModelRouteProofAttemptedTools}`)
+  }
+  if (report.counts?.cpuSafeGpuModelRouteProofExecutableTools !== 3) {
+    fail(`${label}_cpu_safe_report_executable_count_mismatch:${report.counts?.cpuSafeGpuModelRouteProofExecutableTools}`)
+  }
+  if (report.counts?.agentExecutableToolsWithCpuSafeGpuModelRouteProof !== 16) {
+    fail(`${label}_cpu_safe_report_total_executable_count_mismatch:${report.counts?.agentExecutableToolsWithCpuSafeGpuModelRouteProof}`)
+  }
+  if (report.counts?.remainingGpuModelBlockedToolsAfterCpuSafeGpuModelRouteProof !== 5) {
+    fail(`${label}_cpu_safe_report_remaining_blocked_count_mismatch:${report.counts?.remainingGpuModelBlockedToolsAfterCpuSafeGpuModelRouteProof}`)
+  }
+  if (report.booleans?.cpuSafeGpuModelRouteProofAttempted !== true ||
+    report.booleans?.cpuSafeGpuModelRouteProofAccepted !== true ||
+    report.booleans?.agentCanExecuteCpuSafeGpuModelRouteProofToolsNow !== true ||
+    report.booleans?.agentCanExecute16ControlledRouteToolsWithCpuSafeGpuModelRouteProofNow !== true) {
+    fail(`${label}_cpu_safe_report_true_booleans_missing`)
+  }
+  if (report.booleans?.agentCanExecuteGpuModelToolsNow !== false ||
+    report.booleans?.agentCanExecuteAll21ToolsNow !== false ||
+    report.booleans?.gpuRuntimeShouldStartNow !== false ||
+    report.booleans?.runtimeReadyNow !== false ||
+    report.booleans?.externalBetaReadyNow !== false ||
+    report.booleans?.productionReadyNow !== false) {
+    fail(`${label}_cpu_safe_report_broad_gates_not_false`)
+  }
+  if (report.executionScope?.agentExecutableToolCountNow !== 13) {
+    fail(`${label}_cpu_safe_base_execution_scope_changed:${report.executionScope?.agentExecutableToolCountNow}`)
+  }
 }
 
 function privateOutputJsonForTool(toolId, tempDir) {
@@ -2147,6 +2326,42 @@ checkControlledWorkerRouteSmoke('controlled_worker_route_smoke', controlledWorke
 checkReport('docs', docs)
 const live = JSON.parse(exec(`npm run --silent ${runScriptName}`))
 checkReport('live', live)
+ensureCpuSafeGpuModelRouteProofSourceImage()
+const cpuSafeGpuModelRouteProof = execFileJson(
+  'npm',
+  cpuSafeGpuModelRouteProofArgs(),
+)
+checkCpuSafeGpuModelRouteProof(
+  'cpu_safe_gpu_model_route_proof',
+  cpuSafeGpuModelRouteProof,
+)
+const cpuSafeGpuModelRouteProofPacketPath = path.join(
+  root,
+  '.local-artifacts',
+  'ai-graphics',
+  'external-agent-execution-readiness',
+  'cpu-safe-gpu-model-route-proof.json',
+)
+fs.mkdirSync(path.dirname(cpuSafeGpuModelRouteProofPacketPath), {
+  recursive: true,
+})
+fs.writeFileSync(
+  cpuSafeGpuModelRouteProofPacketPath,
+  `${JSON.stringify(cpuSafeGpuModelRouteProof, null, 2)}\n`,
+)
+const liveWithCpuSafeRouteProof = execFileJson('npm', [
+  'run',
+  '--silent',
+  runScriptName,
+  '--',
+  '--cpu-safe-gpu-model-route-proof-packet',
+  cpuSafeGpuModelRouteProofPacketPath,
+])
+checkReport('live_cpu_safe_route_proof', liveWithCpuSafeRouteProof)
+checkReadinessCpuSafeRouteProofSummary(
+  'live_cpu_safe_route_proof',
+  liveWithCpuSafeRouteProof,
+)
 for (const caseDef of scopedProofFixtureCases) {
   const scopedProofPath = createScopedPrivateProofFixture(caseDef)
   const liveWithPrivateProof = execFileJson('npm', [
@@ -2303,6 +2518,11 @@ for (const phrase of [
   'ai-graphics:external-agent-native-cuda-closeout',
   'ZhengPeng7/BiRefNet',
   'sam2.1_hiera_tiny.pt',
+  '--attempt-cpu-safe-gpu-model-route-proof',
+  '--cpu-safe-gpu-model-route-proof-packet',
+  'cpuSafeGpuModelRouteProof',
+  'agentCanExecute16ControlledRouteToolsWithCpuSafeGpuModelRouteProofNow',
+  'cpuSafeGpuModelRouteProofAccepted',
 ]) {
   if (!cli.includes(phrase)) fail(`cli_missing_private_proof_phrase:${phrase}`)
 }
@@ -2382,6 +2602,9 @@ for (const phrase of [
   'install/import-smoke proof is not runtime execution proof',
   'Execution Scope',
   'Fastest GPU/Model Unlock Candidate',
+  'CPU-Safe GPU/Model Controlled Route Proof',
+  'Executable tool count with this local proof',
+  'Remaining GPU/model blocked tools',
   'Next controlled route command',
   'Next proof-ref bridge command',
   'Next direct readiness command with private proof',

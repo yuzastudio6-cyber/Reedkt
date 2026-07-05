@@ -1,8 +1,24 @@
 import type { ProjectEditPlanApprovedLocalPlan } from './project-edit-plan-approval'
 import type {
+  ProjectSourceVideoBriefLineage,
+  ProjectSourceVideoLocalFinalExportResult,
   ProjectSourceVideoLocalEditPreviewResult,
   ProjectSourceVideoPreviewReviewResult,
+  ProjectSourceVideoProfessionalQAResult,
 } from '../types/project-source-video'
+
+function briefLineageMatches(
+  left: ProjectSourceVideoBriefLineage | undefined,
+  right: ProjectSourceVideoBriefLineage | undefined,
+): boolean {
+  return Boolean(
+    left &&
+    right &&
+    left.briefId === right.briefId &&
+    left.revisionNumber === right.revisionNumber &&
+    left.briefFingerprint === right.briefFingerprint,
+  )
+}
 
 export function createProjectEditApprovedEvidenceKey(input: {
   approvedLocalPlan?: ProjectEditPlanApprovedLocalPlan
@@ -42,4 +58,62 @@ export function previewReviewMatchesPreview(input: {
 }): boolean {
   const { previewResult, previewReviewResult } = input
   return Boolean(previewResult?.renderId && previewReviewResult?.renderId === previewResult.renderId)
+}
+
+export function professionalQAMatchesCurrentEvidence(input: {
+  previewResult?: ProjectSourceVideoLocalEditPreviewResult
+  previewReviewResult?: ProjectSourceVideoPreviewReviewResult
+  professionalQAResult?: ProjectSourceVideoProfessionalQAResult
+  sourceStorageObjectRecordId?: string
+}): boolean {
+  const { previewResult, previewReviewResult, professionalQAResult, sourceStorageObjectRecordId } = input
+  return Boolean(
+    previewResult?.renderId &&
+    previewReviewResult?.id &&
+    professionalQAResult &&
+    previewReviewMatchesPreview({ previewResult, previewReviewResult }) &&
+    professionalQAResult.editPlanId === previewResult.editPlanId &&
+    professionalQAResult.renderId === previewResult.renderId &&
+    professionalQAResult.approvedPlanSnapshotId === previewResult.approvedPlanSnapshotId &&
+    professionalQAResult.creditReservationId === previewResult.creditReservationId &&
+    professionalQAResult.previewReviewId === previewReviewResult.id &&
+    professionalQAResult.sourceStorageObjectRecordId === previewResult.sourceStorageObjectRecordId &&
+    professionalQAResult.sourceStorageObjectRecordId === sourceStorageObjectRecordId &&
+    briefLineageMatches(professionalQAResult.briefLineage, previewResult.briefLineage),
+  )
+}
+
+export function finalExportMatchesCurrentEvidence(input: {
+  finalExportResult?: ProjectSourceVideoLocalFinalExportResult
+  previewResult?: ProjectSourceVideoLocalEditPreviewResult
+  previewReviewResult?: ProjectSourceVideoPreviewReviewResult
+  professionalQAResult?: ProjectSourceVideoProfessionalQAResult
+  sourceStorageObjectRecordId?: string
+}): boolean {
+  const {
+    finalExportResult,
+    previewResult,
+    previewReviewResult,
+    professionalQAResult,
+    sourceStorageObjectRecordId,
+  } = input
+
+  return Boolean(
+    finalExportResult?.status === 'final_export_ready' &&
+    professionalQAResult &&
+    professionalQAMatchesCurrentEvidence({
+      previewResult,
+      previewReviewResult,
+      professionalQAResult,
+      sourceStorageObjectRecordId,
+    }) &&
+    finalExportResult.editPlanId === previewResult?.editPlanId &&
+    finalExportResult.approvedPlanSnapshotId === previewResult.approvedPlanSnapshotId &&
+    finalExportResult.creditReservationId === previewResult.creditReservationId &&
+    finalExportResult.previewReviewId === previewReviewResult?.id &&
+    finalExportResult.sourceStorageObjectRecordId === previewResult.sourceStorageObjectRecordId &&
+    finalExportResult.sourceStorageObjectRecordId === sourceStorageObjectRecordId &&
+    finalExportResult.professionalQA?.id === professionalQAResult.id &&
+    briefLineageMatches(finalExportResult.briefLineage, previewResult.briefLineage),
+  )
 }

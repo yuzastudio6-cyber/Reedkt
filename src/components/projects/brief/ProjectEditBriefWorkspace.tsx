@@ -19,6 +19,12 @@ import { approveProjectEditPlanBackendLocal } from '../../../lib/project-edit-pl
 import { buildProjectEditPlanApprovalModel } from '../../../lib/project-edit-plan-approval'
 import { buildProjectEditLifecycleModel } from '../../../lib/project-edit-lifecycle'
 import {
+  finalExportMatchesCurrentEvidence,
+  previewResultMatchesApprovedEvidence,
+  previewReviewMatchesPreview,
+  professionalQAMatchesCurrentEvidence,
+} from '../../../lib/project-edit-evidence-lineage'
+import {
   createProjectSourceVideoBackendUploadConfig,
   uploadProjectSourceVideoToBackend,
 } from '../../../lib/project-source-video-backend-upload'
@@ -147,6 +153,28 @@ export function ProjectEditBriefWorkspace({
     sourceDurationSeconds: sourceVideo?.durationSeconds,
     sourceFileName: sourceVideo?.fileName ?? backendUploadResult?.fileName,
   }), [backendSavedBrief, backendUploadResult, briefSaved, briefText, editSessionId, planApproved, projectId, sourceVideo])
+  const currentPreviewResult = useMemo(() => previewResultMatchesApprovedEvidence({
+    approvedLocalPlan: backendApprovedLocalPlan?.localEditPlan.approvedLocalPlan,
+    previewResult: localPreviewResult,
+    sourceStorageObjectRecordId: backendUploadResult?.storageObjectRecordId,
+  }) ? localPreviewResult : undefined, [backendApprovedLocalPlan, backendUploadResult, localPreviewResult])
+  const currentPreviewReviewResult = useMemo(() => previewReviewMatchesPreview({
+    previewResult: currentPreviewResult,
+    previewReviewResult,
+  }) ? previewReviewResult : undefined, [currentPreviewResult, previewReviewResult])
+  const currentProfessionalQAResult = useMemo(() => professionalQAMatchesCurrentEvidence({
+    previewResult: currentPreviewResult,
+    previewReviewResult: currentPreviewReviewResult,
+    professionalQAResult,
+    sourceStorageObjectRecordId: backendUploadResult?.storageObjectRecordId,
+  }) ? professionalQAResult : undefined, [backendUploadResult, currentPreviewResult, currentPreviewReviewResult, professionalQAResult])
+  const currentFinalExportResult = useMemo(() => finalExportMatchesCurrentEvidence({
+    finalExportResult: localFinalExportResult,
+    previewResult: currentPreviewResult,
+    previewReviewResult: currentPreviewReviewResult,
+    professionalQAResult: currentProfessionalQAResult,
+    sourceStorageObjectRecordId: backendUploadResult?.storageObjectRecordId,
+  }) ? localFinalExportResult : undefined, [backendUploadResult, currentPreviewResult, currentPreviewReviewResult, currentProfessionalQAResult, localFinalExportResult])
   const lifecycle = useMemo(() => buildProjectEditLifecycleModel({
     backendUploadAvailable: backendUploadConfig.available,
     backendUploadResult,
@@ -154,20 +182,20 @@ export function ProjectEditBriefWorkspace({
     briefSaved: Boolean(backendSavedBrief?.readbackVerified) && briefSaved,
     editSessionId,
     hasLocalSourceVideo: sourceEvidenceAvailable,
-    localFinalExportResult,
-    localPreviewResult,
+    localFinalExportResult: currentFinalExportResult,
+    localPreviewResult: currentPreviewResult,
     planApproved: planApprovalModel.approved,
     planReady: planApprovalModel.canApprove || planApprovalModel.approved,
-    previewReviewResult,
+    previewReviewResult: currentPreviewReviewResult,
     projectId,
     finalExportEvidence: {
-      professionalQaPassed: professionalQAResult?.status === 'passed',
-      requiredAssetsReady: professionalQAResult?.status === 'passed',
-      artifactManifestReady: Boolean(localFinalExportResult),
-      finalRenderWorkerReady: Boolean(localFinalExportResult),
-      exportDeliveryPolicyReady: Boolean(localFinalExportResult),
+      professionalQaPassed: currentProfessionalQAResult?.status === 'passed',
+      requiredAssetsReady: currentProfessionalQAResult?.status === 'passed',
+      artifactManifestReady: Boolean(currentFinalExportResult),
+      finalRenderWorkerReady: Boolean(currentFinalExportResult),
+      exportDeliveryPolicyReady: Boolean(currentFinalExportResult),
     },
-  }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, editSessionId, localFinalExportResult, localPreviewResult, planApprovalModel.approved, planApprovalModel.canApprove, previewReviewResult, professionalQAResult, projectId, sourceEvidenceAvailable])
+  }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, currentFinalExportResult, currentPreviewResult, currentPreviewReviewResult, currentProfessionalQAResult, editSessionId, planApprovalModel.approved, planApprovalModel.canApprove, projectId, sourceEvidenceAvailable])
 
   useEffect(() => {
     let cancelled = false
@@ -661,7 +689,7 @@ export function ProjectEditBriefWorkspace({
             }}
             planApproved={Boolean(backendApprovedLocalPlan?.localEditPlan.readbackVerified)}
             planApprovalBlockedMessage="Approve and read back the local edit plan and credit estimate before running preview smoke."
-            previewResult={localPreviewResult}
+            previewResult={currentPreviewResult}
             projectId={projectId}
             sourceVideoAspectRatio={sourceVideo?.inferredAspectRatio}
             sourceVideoDurationSeconds={sourceVideo?.durationSeconds}
@@ -688,8 +716,8 @@ export function ProjectEditBriefWorkspace({
                 ? 'Preview review approved and recorded. Professional QA and final export remain separate gates.'
                 : 'Preview changes requested and recorded. Update the brief or plan before another preview.')
             }}
-            previewResult={localPreviewResult}
-            previewReviewResult={previewReviewResult}
+            previewResult={currentPreviewResult}
+            previewReviewResult={currentPreviewReviewResult}
           />
           <ProjectEditBriefProfessionalQACard
             onQARecorded={(result) => {
@@ -711,16 +739,16 @@ export function ProjectEditBriefWorkspace({
                 ? 'Professional QA checkpoint passed. Private export is available for internal review.'
                 : 'Professional QA checkpoint is blocked. Resolve the listed readiness items before export.')
             }}
-            previewResult={localPreviewResult}
-            previewReviewResult={previewReviewResult}
-            professionalQAResult={professionalQAResult}
+            previewResult={currentPreviewResult}
+            previewReviewResult={currentPreviewReviewResult}
+            professionalQAResult={currentProfessionalQAResult}
             sourceVideoUploadResult={backendUploadResult}
             workspaceId={backendUploadConfig.workspaceId}
           />
           <ProjectEditBriefFinalExportCard
             apiBaseUrl={localPreviewConfig.apiBaseUrl ?? backendUploadConfig.apiBaseUrl ?? briefConfig.apiBaseUrl}
             editPlanId={backendApprovedLocalPlan?.localEditPlan.editPlanId ?? planApprovalModel.planId}
-            finalExportResult={localFinalExportResult}
+            finalExportResult={currentFinalExportResult}
             onFinalExportReady={(result) => {
               setLocalFinalExportResult(result)
               void recordLifecycleCheckpoint({
@@ -741,9 +769,9 @@ export function ProjectEditBriefWorkspace({
               })
             }}
             onStatusMessage={setStatusMessage}
-            previewResult={localPreviewResult}
-            previewReviewResult={previewReviewResult}
-            professionalQAResult={professionalQAResult}
+            previewResult={currentPreviewResult}
+            previewReviewResult={currentPreviewReviewResult}
+            professionalQAResult={currentProfessionalQAResult}
             projectId={projectId}
             sourceVideoUploadResult={backendUploadResult}
             workspaceId={backendUploadConfig.workspaceId}

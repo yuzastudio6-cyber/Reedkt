@@ -3,6 +3,10 @@ import { useState } from 'react'
 import { Button } from '../../Button'
 import { Card } from '../../Card'
 import { ProjectEditBriefArtifactReviewPlayer } from './ProjectEditBriefArtifactReviewPlayer'
+import {
+  previewReviewMatchesPreview,
+  professionalQAMatchesCurrentEvidence,
+} from '../../../lib/project-edit-evidence-lineage'
 import { runProjectSourceVideoLocalFinalExportSmoke } from '../../../lib/project-source-video-local-final-export-smoke'
 import type {
   ProjectSourceVideoBackendUploadResult,
@@ -48,13 +52,21 @@ export function ProjectEditBriefFinalExportCard({
 }: ProjectEditBriefFinalExportCardProps) {
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | undefined>()
+  const sourceStorageObjectRecordId = sourceVideoUploadResult?.storageObjectRecordId
   const canRun = Boolean(
     apiBaseUrl &&
     editPlanId &&
-    sourceVideoUploadResult &&
+    sourceStorageObjectRecordId &&
     previewResult?.status === 'preview_ready' &&
     previewReviewResult?.reviewStatus === 'approved' &&
-    professionalQAResult?.status === 'passed',
+    professionalQAResult?.status === 'passed' &&
+    previewReviewMatchesPreview({ previewResult, previewReviewResult }) &&
+    professionalQAMatchesCurrentEvidence({
+      previewResult,
+      previewReviewResult,
+      professionalQAResult,
+      sourceStorageObjectRecordId,
+    }),
   )
 
   async function runFinalExport() {

@@ -2,6 +2,7 @@ import { AlertTriangle, ShieldCheck } from 'lucide-react'
 import { Badge } from '../../Badge'
 import { Button } from '../../Button'
 import { Card } from '../../Card'
+import { previewReviewMatchesPreview } from '../../../lib/project-edit-evidence-lineage'
 import { createProjectSourceVideoProfessionalQA } from '../../../lib/project-source-video-professional-qa'
 import type {
   ProjectSourceVideoBackendUploadResult,
@@ -27,7 +28,9 @@ export function ProjectEditBriefProfessionalQACard({
   sourceVideoUploadResult,
   workspaceId,
 }: ProjectEditBriefProfessionalQACardProps) {
-  const canRun = previewResult?.status === 'preview_ready' && previewReviewResult?.reviewStatus === 'approved'
+  const canRun = previewResult?.status === 'preview_ready' &&
+    previewReviewResult?.reviewStatus === 'approved' &&
+    previewReviewMatchesPreview({ previewResult, previewReviewResult })
   const visibleResult = professionalQAResult
 
   function runQA() {

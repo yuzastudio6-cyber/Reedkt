@@ -10,14 +10,17 @@ import {
 } from '../../src/lib/project-edit-plan-approval'
 import {
   createProjectEditApprovedEvidenceKey,
+  finalExportMatchesCurrentEvidence,
   previewResultMatchesApprovedEvidence,
   previewReviewMatchesPreview,
+  professionalQAMatchesCurrentEvidence,
 } from '../../src/lib/project-edit-evidence-lineage'
 import { buildProjectEditLifecycleModel } from '../../src/lib/project-edit-lifecycle'
 import type {
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoLocalEditPreviewResult,
   ProjectSourceVideoLocalFinalExportResult,
+  ProjectSourceVideoPreviewReviewResult,
   ProjectSourceVideoProfessionalQAResult,
 } from '../../src/types/project-source-video'
 
@@ -480,6 +483,48 @@ const professionalQA: ProjectSourceVideoProfessionalQAResult = {
   productReady: false,
   warnings: [],
 }
+const approvedPreviewReview: ProjectSourceVideoPreviewReviewResult = {
+  id: 'preview-review-1',
+  renderId: 'render-1',
+  workspaceId: 'mock-workspace',
+  reviewStatus: 'approved',
+  finalExportStarted: false,
+  providerCallMade: false,
+  workerJobCreated: false,
+  renderJobCreated: false,
+  creditReservedOrSpent: false,
+  supabaseWriteMade: false,
+  gcsWriteMade: false,
+  productReady: false,
+  warnings: [],
+}
+assert.equal(professionalQAMatchesCurrentEvidence({
+  previewResult: preview,
+  previewReviewResult: approvedPreviewReview,
+  professionalQAResult: professionalQA,
+  sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
+}), true)
+assert.equal(professionalQAMatchesCurrentEvidence({
+  previewResult: preview,
+  previewReviewResult: {
+    ...approvedPreviewReview,
+    renderId: 'different-render-after-new-preview',
+  },
+  professionalQAResult: professionalQA,
+  sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
+}), false)
+assert.equal(professionalQAMatchesCurrentEvidence({
+  previewResult: preview,
+  previewReviewResult: approvedPreviewReview,
+  professionalQAResult: {
+    ...professionalQA,
+    briefLineage: {
+      ...professionalQA.briefLineage,
+      briefFingerprint: 'brief-fnv1a-different-after-user-edit',
+    },
+  },
+  sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
+}), false)
 
 const qaReadyModel = buildProjectEditLifecycleModel({
   backendUploadAvailable: true,
@@ -544,6 +589,23 @@ const localFinalExport: ProjectSourceVideoLocalFinalExportResult = {
   productReady: false,
   warnings: [],
 }
+assert.equal(finalExportMatchesCurrentEvidence({
+  finalExportResult: localFinalExport,
+  previewResult: preview,
+  previewReviewResult: approvedPreviewReview,
+  professionalQAResult: professionalQA,
+  sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
+}), true)
+assert.equal(finalExportMatchesCurrentEvidence({
+  finalExportResult: {
+    ...localFinalExport,
+    previewReviewId: 'preview-review-stale-render',
+  },
+  previewResult: preview,
+  previewReviewResult: approvedPreviewReview,
+  professionalQAResult: professionalQA,
+  sourceStorageObjectRecordId: uploaded.storageObjectRecordId,
+}), false)
 
 const localFinalExportModel = buildProjectEditLifecycleModel({
   backendUploadAvailable: true,
@@ -692,6 +754,14 @@ for (const phrase of [
   'backendApprovedLocalPlan',
   'previewReviewResult',
   'professionalQAResult',
+  'previewResultMatchesApprovedEvidence',
+  'previewReviewMatchesPreview',
+  'professionalQAMatchesCurrentEvidence',
+  'finalExportMatchesCurrentEvidence',
+  'currentPreviewResult',
+  'currentPreviewReviewResult',
+  'currentProfessionalQAResult',
+  'currentFinalExportResult',
   'sourceEvidenceAvailable',
   'persistSetupReset',
   'setup_reset',
@@ -699,8 +769,10 @@ for (const phrase of [
   'source_selected',
   'source_cleared',
   'briefDraftResetPersistedRef',
-  'previewResult={localPreviewResult}',
-  'previewReviewResult={previewReviewResult}',
+  'previewResult={currentPreviewResult}',
+  'previewReviewResult={currentPreviewReviewResult}',
+  'professionalQAResult={currentProfessionalQAResult}',
+  'finalExportResult={currentFinalExportResult}',
   'createProfessionalQACheckpointMetadata',
   'restoreProfessionalQAResult',
   'professional_qa_checked',
@@ -743,6 +815,8 @@ assert.doesNotMatch(previewReviewCard, /product-ready/i)
 
 const finalExportCard = read('src/components/projects/brief/ProjectEditBriefFinalExportCard.tsx')
 assert.match(finalExportCard, /runProjectSourceVideoLocalFinalExportSmoke/)
+assert.match(finalExportCard, /previewReviewMatchesPreview/)
+assert.match(finalExportCard, /professionalQAMatchesCurrentEvidence/)
 assert.match(finalExportCard, /Create private export/)
 assert.match(finalExportCard, /previewReviewResult/)
 assert.match(finalExportCard, /professionalQAResult/)
@@ -766,6 +840,7 @@ assert.doesNotMatch(artifactReviewClient, /download-target|signed-url|production
 
 const professionalQACard = read('src/components/projects/brief/ProjectEditBriefProfessionalQACard.tsx')
 assert.match(professionalQACard, /createProjectSourceVideoProfessionalQA/)
+assert.match(professionalQACard, /previewReviewMatchesPreview/)
 assert.match(professionalQACard, /Run QA check/)
 assert.match(professionalQACard, /no media or public delivery starts/i)
 assert.doesNotMatch(professionalQACard, /signedUrl|production ready:\s*true/i)

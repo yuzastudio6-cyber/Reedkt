@@ -93,6 +93,9 @@ const privateModelRootEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_ROOT'
 const privateModelManifestDirEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_MODEL_WEIGHT_MANIFEST_DIR'
+const gpuModelOutputRootEnvVar = 'REEDITPRO_AI_GRAPHICS_GPU_MODEL_OUTPUT_ROOT'
+const defaultGpuModelOutputRoot =
+  '.local-artifacts/ai-graphics/external-agent-single-tool-call'
 const explicitPrivateModelEnvVarByTool: Partial<
   Record<AiGraphicsExternalAgentGpuModelControlledAdapterToolId, string>
 > = {
@@ -291,6 +294,28 @@ function explicitPrivateModelPathForTool(
   const envVar = explicitPrivateModelEnvVarByTool[toolId]
   return (flag ? stringArg(flag) : undefined) ??
     (envVar ? process.env[envVar] : undefined)
+}
+
+function safeRuntimePathSegment(value: string): string {
+  const sanitized = value.replace(/[^A-Za-z0-9._-]+/g, '_').slice(0, 96)
+  return sanitized || 'request'
+}
+
+function configuredGpuModelOutputRoot(): string {
+  const configured = process.env[gpuModelOutputRootEnvVar]
+  return configured && isLocalArtifactPath(configured)
+    ? configured
+    : defaultGpuModelOutputRoot
+}
+
+function defaultGpuRuntimeOutputDirectory(
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
+): string {
+  return path.join(
+    configuredGpuModelOutputRoot(),
+    safeRuntimePathSegment(`external-agent-single-tool-call-${toolId}`),
+    toolId,
+  )
 }
 
 function runtimeInputManifestMaterializationRequested(): boolean {
@@ -1004,10 +1029,13 @@ function gpuModelScopedToolCallManifestCommand(toolId: string): string {
 function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId) {
   const attemptGpuRuntime = hasFlag('--attempt-gpu-runtime')
   const explicitOutputDirectory = stringArg('--gpu-output-dir')
+  const defaultOutputDirectory = attemptGpuRuntime
+    ? defaultGpuRuntimeOutputDirectory(toolId)
+    : undefined
   const explicitSourceImageLocalPath = stringArg('--source-image')
   const manifestPath = resolveRuntimeInputManifestPathForTool(toolId, {
     attemptGpuRuntime,
-    outputDirectory: explicitOutputDirectory,
+    outputDirectory: explicitOutputDirectory ?? defaultOutputDirectory,
     sourceImageLocalPath: explicitSourceImageLocalPath,
   })
   assert(
@@ -1039,9 +1067,10 @@ function gpuRuntimePayload(toolId: AiGraphicsExternalAgentGpuModelControlledAdap
     )
   const outputDirectory =
     explicitOutputDirectory ??
-    manifestStringForTool(toolId, manifest, 'outputDirectory')
+    manifestStringForTool(toolId, manifest, 'outputDirectory') ??
+    defaultOutputDirectory
   if (attemptGpuRuntime) {
-    assert(outputDirectory, '--attempt-gpu-runtime requires --gpu-output-dir')
+    assert(outputDirectory, '--attempt-gpu-runtime requires a local output directory')
     assert(
       isLocalArtifactPath(outputDirectory),
       '--gpu-output-dir must stay under .local-artifacts/',

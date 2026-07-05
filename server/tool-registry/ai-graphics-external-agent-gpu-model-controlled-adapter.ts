@@ -50,6 +50,9 @@ const configuredPrivateModelPathEnvByTool: Partial<
   sam2: 'REEDITPRO_AI_GRAPHICS_SAM2_CHECKPOINT',
   birefnet: 'REEDITPRO_AI_GRAPHICS_BIREFNET_MODEL',
 }
+const gpuModelOutputRootEnvVar = 'REEDITPRO_AI_GRAPHICS_GPU_MODEL_OUTPUT_ROOT'
+const defaultGpuModelOutputRoot =
+  '.local-artifacts/ai-graphics/external-agent-gpu-model-controlled-adapter'
 
 export type AiGraphicsExternalAgentGpuModelControlledAdapterStatus =
   | 'controlled_gpu_model_adapter_invoked_runtime_skipped'
@@ -135,23 +138,58 @@ function configuredPrivateModelPath(
   return envVar ? process.env[envVar] : undefined
 }
 
-function payloadWithConfiguredPrivateModelPath(
+function safeRuntimePathSegment(value: string): string {
+  const sanitized = value.replace(/[^A-Za-z0-9._-]+/g, '_').slice(0, 96)
+  return sanitized || 'request'
+}
+
+function configuredGpuModelOutputRoot(): string {
+  const configured = process.env[gpuModelOutputRootEnvVar]
+  return configured && isLocalArtifactPath(configured)
+    ? configured
+    : defaultGpuModelOutputRoot
+}
+
+function defaultScopedOutputDirectory(input: {
+  toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId
+  requestId: string
+}): string {
+  return path.join(
+    configuredGpuModelOutputRoot(),
+    safeRuntimePathSegment(input.requestId),
+    input.toolId,
+  )
+}
+
+function payloadWithConfiguredRuntimeDefaults(
   toolId: AiGraphicsExternalAgentGpuModelControlledAdapterToolId,
   payload: Record<string, unknown>,
+  requestId: string,
 ): Record<string, unknown> {
-  if (toolId === 'sam2' && !optionalString(payload, 'sam2CheckpointLocalPath')) {
+  let nextPayload = payload
+  if (
+    optionalString(nextPayload, 'mode') === 'local_dev' &&
+    executionEnabled(nextPayload) &&
+    !optionalString(nextPayload, 'outputDirectory')
+  ) {
+    nextPayload = {
+      ...nextPayload,
+      outputDirectory: defaultScopedOutputDirectory({ toolId, requestId }),
+    }
+  }
+  if (toolId === 'sam2' && !optionalString(nextPayload, 'sam2CheckpointLocalPath')) {
     const configuredPath = configuredPrivateModelPath(toolId)
     return configuredPath
-      ? { ...payload, sam2CheckpointLocalPath: configuredPath }
-      : payload
+      ? { ...nextPayload, sam2CheckpointLocalPath: configuredPath }
+      : nextPayload
   }
-  if (toolId === 'birefnet' && !optionalString(payload, 'birefnetModelLocalPath')) {
+  if (toolId === 'birefnet' && !optionalString(nextPayload, 'birefnetModelLocalPath')) {
     const configuredPath = configuredPrivateModelPath(toolId)
     return configuredPath
-      ? { ...payload, birefnetModelLocalPath: configuredPath }
-      : payload
+      ? { ...nextPayload, birefnetModelLocalPath: configuredPath }
+      : nextPayload
   }
-  return payload
+  return nextPayload
 }
 
 function optionalNumber(
@@ -1890,9 +1928,10 @@ export async function executeAiGraphicsExternalAgentGpuModelControlledAdapter(
     }
   }
 
-  const payload = payloadWithConfiguredPrivateModelPath(
+  const payload = payloadWithConfiguredRuntimeDefaults(
     request.toolId,
     asObject(request.payload),
+    request.requestId,
   )
   const prerequisiteBlock = runtimePrerequisiteBlock(request, payload)
   const runtimeOutput = prerequisiteBlock ?? (request.toolId === 'torch_torchvision' ||

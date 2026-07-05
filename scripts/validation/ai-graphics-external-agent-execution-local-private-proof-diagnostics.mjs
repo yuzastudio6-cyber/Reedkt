@@ -48,6 +48,7 @@ const requirePrivateCpuModelProofEnvVar =
 const privateCpuModelProofTimeoutEnvVar =
   'REEDITPRO_AI_GRAPHICS_PRIVATE_CPU_MODEL_PROOF_TIMEOUT_MS'
 const defaultPrivateCpuModelProofTimeoutMs = 180_000
+const privateProofFrameSize = 96
 
 const failures = []
 
@@ -267,10 +268,10 @@ print(json.dumps({
 
 function writePrivatePpm(filePath) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true })
-  const lines = ['P3', '8 8', '255']
-  for (let y = 0; y < 8; y += 1) {
-    for (let x = 0; x < 8; x += 1) {
-      lines.push(`${x * 32} ${y * 32} ${(x + y) * 16}`)
+  const lines = ['P3', `${privateProofFrameSize} ${privateProofFrameSize}`, '255']
+  for (let y = 0; y < privateProofFrameSize; y += 1) {
+    for (let x = 0; x < privateProofFrameSize; x += 1) {
+      lines.push(`${(x * 7) % 256} ${(y * 5) % 256} ${((x + y) * 3) % 256}`)
     }
   }
   fs.writeFileSync(filePath, `${lines.join('\n')}\n`, 'utf8')
@@ -307,6 +308,8 @@ function optionalPrivateCpuModelRuntimeProof(input) {
       String(defaultPrivateCpuModelProofTimeoutMs),
     10,
   )
+  const privateCpuModelProofSequenceTimeoutMs =
+    privateCpuModelProofTimeoutMs * 3 + 120_000
   const requested = Boolean(privateModelRoot || privateSourceImage)
   const proofRoot = path.join(input.runRoot, 'private-cpu-model-runtime-proof')
   const records = []
@@ -448,7 +451,7 @@ function optionalPrivateCpuModelRuntimeProof(input) {
         '--timeout-ms',
         String(privateCpuModelProofTimeoutMs),
       ],
-      { timeout: privateCpuModelProofTimeoutMs + 60_000 },
+      { timeout: privateCpuModelProofSequenceTimeoutMs },
     )
     const sequenceJson = sequence.json ?? {}
     const sequenceTimedOut = attemptTimedOut(sequence)
@@ -476,6 +479,7 @@ function optionalPrivateCpuModelRuntimeProof(input) {
       acceptedPrivateProof:
         sequenceJson.booleans?.acceptedPrivateProofForRequestedTool === true,
       timeoutMs: privateCpuModelProofTimeoutMs,
+      sequenceTimeoutMs: privateCpuModelProofSequenceTimeoutMs,
       timedOut: sequenceTimedOut,
       timeoutCleanup,
       finalExternalAgentSingleToolCallExecutable:

@@ -62,7 +62,7 @@ test.describe('Project source video backend-local upload against real local API'
   })
 
   test.afterAll(async () => {
-    await rm(join(process.cwd(), localStorageRoot), { force: true, recursive: true })
+    // The local-upload runner owns the shared backend-local storage cleanup after all specs finish.
     await rm(fixtureRoot, { force: true, recursive: true })
   })
 

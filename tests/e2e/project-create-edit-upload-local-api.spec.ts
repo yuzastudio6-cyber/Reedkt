@@ -232,4 +232,95 @@ test.describe('Project creation to edit upload against real local API', () => {
     await expect(page.getByTestId('project-edit-plan-backend-record')).toContainText('Backend-local plan record')
     await expect(page.locator('body')).not.toContainText(/Optional direction saved and read back|provider call made:\s*true|live qwen call:\s*true|render job created:\s*true|worker job created:\s*true|credit reserved:\s*true|production ready:\s*true|signed url (created|enabled|ready)|public delivery enabled:\s*true/i)
   })
+
+  test('uploads video and completes private review and export from a project-created edit', async ({ page }) => {
+    test.setTimeout(240_000)
+    test.skip(!fixtureReady, fixtureSkipReason)
+
+    const healthResponse = await fetch(`${apiBaseUrl}/health`)
+    expect(healthResponse.ok).toBe(true)
+    const health = await healthResponse.json() as { data?: { runtime?: { mode?: string; mockOnly?: boolean } } }
+    expect(health.data?.runtime?.mode).toBe('local')
+    expect(health.data?.runtime?.mockOnly).toBe(true)
+
+    await setViewport(page, 1440)
+
+    if (process.env.PLAYWRIGHT_INTERNAL_TEST_AUTH === 'true') {
+      await gotoRoute(page, `/sign-in?redirect=${encodeURIComponent('/projects/new')}`)
+      await expect(page.getByTestId('auth-local-testing-session-notice')).toContainText('Local app session is enabled')
+      await page.getByLabel('Email').fill('source.upload.tester@reeditpro.local')
+      await page.getByLabel('Password').fill('reeditpro-testing')
+      await page.getByTestId('auth-submit-button').click()
+      await expect(page).toHaveURL(/\/projects\/new$/)
+    } else {
+      await gotoRoute(page, '/projects/new')
+    }
+
+    const projectName = `Private Export QA Project ${Date.now()}`
+    const editName = 'Private review browser QA edit'
+    const promptDirection = 'Cut this into a clean internal test edit with natural pacing, light product callouts, no captions, and no music.'
+
+    await page.getByTestId('project-create-name-input').fill(projectName)
+    await page.getByRole('button', { name: /^Create project$/i }).click()
+
+    await expect(page).toHaveURL(/\/projects\/[^/?]+\?newEdit=1$/)
+    await page.getByTestId('new-edit-name-input').fill(editName)
+    await page.getByTestId('new-edit-aspect-16:9').click()
+    await page.getByTestId('new-edit-platform-youtube_standard').click()
+    await page.getByRole('button', { name: /^Create edit$/i }).click()
+
+    await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^/]+\/brief$/)
+    await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
+    await expect(page.getByText(editName)).toBeVisible()
+
+    await page.getByTestId('project-source-video-file-input').setInputFiles(fixturePath)
+    await page.getByRole('button', { name: /Upload for testing/i }).click()
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Source video uploaded to backend-local storage metadata', {
+      timeout: 120_000,
+    })
+    await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('uploaded', { timeout: 120_000 })
+    await page.getByLabel('Instructions').fill(promptDirection)
+
+    await expect(page.getByTestId('project-edit-plan-approval-card')).toContainText(promptDirection)
+    await expect(page.getByTestId('project-edit-skill-activity-summary')).toContainText('chat prompt')
+    await page.getByRole('button', { name: /Approve local test plan/i }).click()
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Local edit plan and credit estimate approved')
+    await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Local edit preview smoke is available')
+
+    await page.getByRole('button', { name: /Run local edit preview/i }).click()
+    await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Preview object', { timeout: 30_000 })
+    await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Private review')
+    await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Review ranges')
+    await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Qwen 3.7 Max identity recorded, no live call')
+
+    await page.getByLabel('Review notes').fill('Project-created private preview approved for QA and private export.')
+    await page.getByRole('button', { name: /Approve preview/i }).click()
+    await expect(page.getByTestId('project-edit-preview-review-status')).toContainText('approved')
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Preview review approved and recorded')
+
+    await page.getByRole('button', { name: /Run QA check/i }).click()
+    await expect(page.getByTestId('project-edit-professional-qa-result')).toContainText('Preview approved')
+    await expect(page.getByTestId('project-edit-professional-qa-result')).toContainText('Private internal boundary intact')
+    await expect(page.getByTestId('project-edit-professional-qa-result')).not.toContainText(/blocked|required|mismatch/i)
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Professional QA checkpoint passed')
+
+    await page.getByRole('button', { name: /Create private export/i }).click()
+    await expect(page.getByTestId('project-edit-final-export-result')).toContainText('Export ready', { timeout: 30_000 })
+    await expect(page.getByTestId('project-edit-final-export-result')).toContainText('/exports/')
+    await expect(page.getByTestId('project-edit-final-export-result')).toContainText('Checksum')
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Private final export is ready for internal review')
+
+    const finalExportText = await page.getByTestId('project-edit-final-export-result').innerText()
+    const exportObjectPathMatch = finalExportText.match(/(exports)\/(workspaces\/mock-workspace\/projects\/[^/]+\/exports\/[^\s]+)/)
+    expect(exportObjectPathMatch?.[1]).toBe('exports')
+    expect(exportObjectPathMatch?.[2]).toBeTruthy()
+    const exportStat = await stat(join(process.cwd(), localStorageRoot, exportObjectPathMatch?.[1] ?? 'missing', exportObjectPathMatch?.[2] ?? 'missing'))
+    expect(exportStat.size).toBeGreaterThan(0)
+
+    await expect(page.getByTestId('project-edit-main-playback-selector').getByRole('button', { name: 'Final' })).toBeEnabled()
+    await expect(page.getByTestId('project-source-video-local-mode')).toContainText('Private final export')
+    await page.getByTestId('project-edit-private-export-review-player').getByRole('button', { name: /Review/i }).click()
+    await expect(page.getByTestId('project-edit-private-artifact-video')).toBeVisible()
+    await expect(page.locator('body')).not.toContainText(/Optional direction saved and read back|provider call made:\s*true|live qwen call:\s*true|render job created:\s*true|worker job created:\s*true|credit reserved:\s*true|production ready:\s*true|signed url (created|enabled|ready)|public delivery enabled:\s*true/i)
+  })
 })

@@ -10,6 +10,7 @@ import { createUploadService } from '../services/upload-service'
 import type { ServiceContext } from '../types'
 import { runMediaAnalysisFoundation } from '../workers/media'
 import { runSpeechCaptionExecutionPipeline } from '../workers/speech-caption'
+import { resolveFasterWhisperRuntimeReadiness } from '../workers/speech'
 import { buildWorkerIdempotencyKey, type ProductionWorkerJobPayload } from '../workers/production'
 import type { TranscriptSegment } from '../workers/speech'
 import { runChatNativeEditPlanningFlow } from '../../src/backend/orchestrators/chat-native-editor-orchestrator'
@@ -22,9 +23,21 @@ import { unwrapServiceResult } from '../../src/backend/service-result'
 const root = process.cwd()
 const fixturePath = resolve(process.env.REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_PATH?.trim() || join(homedir(), 'Documents/test video/internal testing.MP4'))
 const localStorageRoot = process.env.REEDITPRO_INTERNAL_TESTING_SPEECH_CAPTION_STORAGE_ROOT?.trim() || '.reeditpro-real-video-speech-caption-handoff-storage'
+const configuredLocalModelPath = process.env.REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_MODEL_PATH?.trim() || '/private/tmp/reeditpro-approved-local-models/faster-whisper-model'
+const configuredFasterWhisperCommand = process.env.REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_COMMAND?.trim() || undefined
+const configuredPythonCommand = process.env.REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_PYTHON_COMMAND?.trim() || undefined
 const rawFixtureFileName = basename(fixturePath)
 const uploadedFixtureFileName = rawFixtureFileName.replace(/[^a-zA-Z0-9._-]+/g, '-')
 const prompt = 'Create a clean professional social edit from this source video. Keep the pacing tight, preserve the meaning, add readable captions, lightly polish the audio, avoid clutter, and prepare a private review plan before any final export.'
+const localModelPathExists = existsSync(configuredLocalModelPath)
+const runtimeReadiness = resolveFasterWhisperRuntimeReadiness({
+  fasterWhisperCommand: configuredFasterWhisperCommand,
+  pythonCommand: configuredPythonCommand,
+})
+const realTranscriptionReady = localModelPathExists && runtimeReadiness.status === 'ready'
+const expectedRealTranscriptBlocker = localModelPathExists
+  ? runtimeReadiness.blockers[0]?.code ?? 'none'
+  : 'local_model_missing'
 
 assert.equal(existsSync(fixturePath), true, `Real-video speech/caption handoff fixture is missing: ${fixturePath}`)
 const fixtureStat = await stat(fixturePath)
@@ -209,7 +222,7 @@ try {
     sourceVideoLocalPath: sourceLocalPath,
     outputDirectory: speechOutputRoot,
     modelName: 'faster-whisper-local-model-required',
-    localModelPath: '/private/tmp/reeditpro-approved-local-models/faster-whisper-model',
+    localModelPath: configuredLocalModelPath,
     language: 'en',
     device: 'cpu',
     wordTimestamps: true,
@@ -217,6 +230,8 @@ try {
     timeoutMs: 120_000,
     enableRealTranscription: true,
     allowModelDownload: false,
+    fasterWhisperCommand: configuredFasterWhisperCommand,
+    pythonCommand: configuredPythonCommand,
     enableCaptionPreview: false,
     buildSpeech: true,
     buildCaptions: true,
@@ -228,9 +243,16 @@ try {
   })
 
   assert.equal(speechCaption.mode, 'local_dev')
-  assert.equal(speechCaption.status, 'skipped', 'Speech/caption handoff should report skipped while real model evidence is missing.')
+  if (realTranscriptionReady) {
+    assert.equal(speechCaption.status, 'completed', 'Speech/caption handoff should complete when approved local model/runtime evidence is present.')
+    assert.equal(speechCaption.skippedReasons.length, 0, 'Real transcript-ready handoff should not report skip reasons.')
+    assert.equal(speechCaption.transcript?.segments.some((segment) => segment.text.includes('placeholder')), false)
+  } else {
+    assert.equal(speechCaption.status, 'skipped', 'Speech/caption handoff should report skipped while real model/runtime evidence is missing.')
+    assert.equal(speechCaption.skippedReasons.some((reason) => reason.code === expectedRealTranscriptBlocker), true)
+    assert.equal(speechCaption.transcript?.segments[0]?.text.includes('placeholder'), true)
+  }
   assert.equal(speechCaption.modelWeightStatus, 'missing')
-  assert.equal(speechCaption.skippedReasons.some((reason) => reason.code === 'local_model_missing'), true)
   assert.equal(speechCaption.blocksFinalExport, true)
   assert.equal(speechCaption.blocksPreview, false)
   assert.ok(speechCaption.transcriptArtifacts.some((artifact) => artifact.artifactType === 'transcript_json'))
@@ -243,8 +265,9 @@ try {
   assert.ok(speechCaption.qaResults.some((gate) => gate.gateType === 'transcript_alignment'))
   assert.ok(speechCaption.updatedMediaAnalysisReport?.speechAnalysis.transcriptArtifactId)
   assert.equal(speechCaption.updatedMediaAnalysisReport?.status, 'partial')
-  assert.equal(speechCaption.transcript?.segments[0]?.text.includes('placeholder'), true)
-  assert.equal(speechCaption.warnings.some((warning) => warning.includes('model path is unavailable')), true)
+  if (!realTranscriptionReady && expectedRealTranscriptBlocker === 'local_model_missing') {
+    assert.equal(speechCaption.warnings.some((warning) => warning.includes('model path is unavailable')), true)
+  }
 
   const sanitized = JSON.stringify({
     transcriptArtifacts: speechCaption.transcriptArtifacts,
@@ -283,9 +306,13 @@ try {
       blocksPreview: gate.blocksPreview,
       blocksFinalExport: gate.blocksFinalExport,
     })),
-    realTranscriptAccepted: false,
-    realTranscriptBlocker: 'local_model_missing',
-    placeholderCaptionWiringOnly: true,
+    localModelPathConfigured: true,
+    localModelPathExists,
+    fasterWhisperRuntimeStatus: runtimeReadiness.status,
+    fasterWhisperRuntimeKind: runtimeReadiness.runtimeKind,
+    realTranscriptAccepted: realTranscriptionReady,
+    realTranscriptBlocker: realTranscriptionReady ? 'none' : expectedRealTranscriptBlocker,
+    placeholderCaptionWiringOnly: !realTranscriptionReady,
     productReady: false,
     acceptedAsFinalEdit: false,
     blockedScope: {

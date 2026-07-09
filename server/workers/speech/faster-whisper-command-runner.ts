@@ -12,6 +12,7 @@ import {
 import type { SpeechExecutionInput } from '../speech-caption/speech-caption-pipeline-types'
 import type { SpeechFoundationSkipReason } from './speech-worker-types'
 import { normalizeFasterWhisperExecutionResult, type ParsedFasterWhisperResult } from './faster-whisper-result-parser'
+import { resolveFasterWhisperRuntimeReadiness } from './faster-whisper-runtime-readiness'
 
 const execFileAsync = promisify(execFile)
 
@@ -117,6 +118,12 @@ export function buildFasterWhisperExecutionSkipReason(input: SpeechExecutionInpu
       tool: 'faster_whisper',
     }
   }
+
+  const runtimeReadiness = resolveFasterWhisperRuntimeReadiness({
+    fasterWhisperCommand: input.fasterWhisperCommand,
+    pythonCommand: input.pythonCommand,
+  })
+  if (runtimeReadiness.status === 'blocked') return runtimeReadiness.blockers[0]
 
   return undefined
 }

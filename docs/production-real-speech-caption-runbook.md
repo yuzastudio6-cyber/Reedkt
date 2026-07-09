@@ -9,3 +9,5 @@ Modes:
 - `production_ready`: remains blocked unless approved snapshot, execution plan, idempotency key, approved model-weight manifest, private storage refs, and readiness gates pass.
 
 To test with a local model, provide an existing local audio path, existing local model path, safe output directory, `enableRealTranscription=true`, and `allowModelDownload=false`. Do not run model downloads.
+
+Internal real-video testing uses `REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_MODEL_PATH` for the already-approved local model directory and optional `REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_COMMAND` or `REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_PYTHON_COMMAND` for the runtime command. If the model path or runtime command is missing, the smoke records `local_model_missing` or `faster_whisper_runtime_missing`, keeps placeholder caption wiring separate from source truth, and blocks final export.

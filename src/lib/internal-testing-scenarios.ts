@@ -1458,6 +1458,22 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'internal-testing-internal-tester-review-panel',
+    title: 'Internal tester review panel',
+    description: 'Confirm internal testers have a clean checklist and outcome options before the real-video acceptance preflight.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Internal tester review panel section.',
+      'Confirm review summary, private sections, boundary confirmation, local note capture, and real-video preflight preparation are represented.',
+      'Confirm accepted, needs revision, and blocked outcome options are visible.',
+      'Confirm the panel says real-video processing is not allowed in this gate and no public delivery or product-ready claim exists.',
+    ],
+    expectedResult: 'Internal testers can record a browser-local outcome and prepare the next real-video preflight while all runtime work stays blocked.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'edit-brief-shell-marker-selection',
     title: 'Edit Brief shell: marker selection',
     description: 'Select a marker pill and confirm the read-only marker detail panel updates.',

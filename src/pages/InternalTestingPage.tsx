@@ -29,6 +29,7 @@ import { getMockSafeDurableProjectSessionBackendSkeleton } from '../lib/project-
 import { getInternalTestingApprovedSnapshotRouteReviewUiModel } from '../lib/internal-testing-approved-snapshot-route-review-ui'
 import { getInternalTestingMockWorkerExecutionHarnessUiModel } from '../lib/internal-testing-mock-worker-execution-harness-ui'
 import { getInternalTestingPrivateReviewResultDryRunUiModel } from '../lib/internal-testing-private-review-result-dry-run-ui'
+import { getInternalTestingInternalTesterReviewPanelUiModel } from '../lib/internal-testing-internal-tester-review-panel-ui'
 import { getInternalTestingToolRoutingUiModel } from '../lib/internal-testing-tool-routing-ui'
 import { getInternalTestingMockWorkerQueueReviewUiModel } from '../lib/internal-testing-mock-worker-queue-review-ui'
 import { getInternalTestingWorkerClaimDryRunUiModel } from '../lib/internal-testing-worker-claim-dry-run-ui'
@@ -196,6 +197,7 @@ function getScenarioHighlights() {
     'internal-testing-worker-claim-dry-run',
     'internal-testing-mock-worker-execution-harness',
     'internal-testing-private-review-result-dry-run',
+    'internal-testing-internal-tester-review-panel',
     'edit-brief-shell-no-runtime-effects',
     'edit-brief-marker-add-at-playhead',
     'edit-brief-marker-chat-send',
@@ -261,6 +263,7 @@ export function InternalTestingPage() {
   const workerClaimDryRun = useMemo(() => getInternalTestingWorkerClaimDryRunUiModel(), [])
   const mockWorkerExecutionHarness = useMemo(() => getInternalTestingMockWorkerExecutionHarnessUiModel(), [])
   const privateReviewResultDryRun = useMemo(() => getInternalTestingPrivateReviewResultDryRunUiModel(), [])
+  const internalTesterReviewPanel = useMemo(() => getInternalTestingInternalTesterReviewPanelUiModel(), [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -722,6 +725,48 @@ export function InternalTestingPage() {
               'No signed URLs',
               'No public delivery',
               'No worker dispatch',
+              'No tool execution',
+              'No product-ready claim',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-internal-tester-review-panel">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Internal tester review panel</span>
+            <h2>Tester review is structured before the real-video preflight</h2>
+          </div>
+          <p>{internalTesterReviewPanel.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {internalTesterReviewPanel.checklist.map((item) => (
+              <article key={item.id}>
+                <Badge accent="success">Ready for tester review</Badge>
+                <h3>{item.label}</h3>
+                <p>{item.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-limit-grid" data-testid="internal-testing-internal-tester-review-panel-dispositions">
+            {internalTesterReviewPanel.dispositions.map((item) => (
+              <article key={item.id}>
+                <Badge accent={item.id === 'accepted-for-preflight' ? 'success' : 'warning'}>{item.label}</Badge>
+                <p>{item.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-internal-tester-review-panel-boundaries">
+            {[
+              internalTesterReviewPanel.nextGate.label,
+              'Browser-local feedback only',
+              'Private internal only',
+              'Metadata only',
+              'No real-video processing yet',
+              'No signed URLs',
+              'No public delivery',
               'No tool execution',
               'No product-ready claim',
             ].map((item) => (

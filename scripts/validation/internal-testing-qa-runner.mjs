@@ -36,6 +36,7 @@ const smokeCommands = [
   ['npm', ['run', 'smoke:internal-testing-worker-claim-dry-run']],
   ['npm', ['run', 'smoke:internal-testing-mock-worker-execution-harness']],
   ['npm', ['run', 'smoke:internal-testing-private-review-result-dry-run']],
+  ['npm', ['run', 'smoke:internal-testing-internal-tester-review-panel']],
   ['npm', ['run', 'smoke:internal-testing-auth-project-session-membership-policy']],
   ['npm', ['run', 'smoke:internal-testing-durable-auth-project-session-backend-persistence-plan']],
   ['npm', ['run', 'smoke:internal-testing-mock-safe-durable-project-session-backend-skeleton']],

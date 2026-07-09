@@ -62,6 +62,9 @@ export async function runSpeechCaptionExecutionPipeline(
       timeoutMs: input.timeoutMs ?? 60_000,
       enableRealTranscription: input.enableRealTranscription ?? false,
       allowModelDownload: input.allowModelDownload ?? false,
+      fasterWhisperCommand: input.fasterWhisperCommand,
+      pythonCommand: input.pythonCommand,
+      arbitraryArgs: input.arbitraryArgs,
       workerPayload: input.workerPayload,
       mockSegments: input.mockSegments,
     })

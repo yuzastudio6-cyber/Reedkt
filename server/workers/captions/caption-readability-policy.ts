@@ -37,9 +37,13 @@ export function scoreCaptionReadability(captions: CaptionSegment[]): CaptionPoli
       })
     }
   }
+  const blockingIssueCount = issues.filter((issue) => issue.severity === 'blocking').length
+  const warningFamilies = new Set(issues
+    .filter((issue) => issue.severity === 'warning')
+    .map((issue) => issue.code))
 
   return {
-    score: Math.max(0, 1 - issues.length * 0.12),
+    score: Math.max(0, 1 - blockingIssueCount * 0.24 - warningFamilies.size * 0.12),
     threshold: 0.78,
     issues,
     recommendations: issues.length > 0

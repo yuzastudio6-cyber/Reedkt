@@ -188,6 +188,17 @@ export interface ProjectSourceVideoLocalEditPreviewResult {
   sizeBytes?: number
   checksumSha256?: string
   editAssembly?: ProjectSourceVideoEditAssemblySummary
+  privateReviewPreview?: {
+    outputBucketName?: string
+    outputObjectPath?: string
+    durationSeconds?: number
+    plannedTargetDurationSeconds?: number
+    sizeBytes?: number
+    checksumSha256?: string
+    keepSegmentCount?: number
+    removeSegmentCount?: number
+    finalDeliveryBlocked: true
+  }
   qwenMainBrainLabel: string
   approvedSnapshotCreated: true
   mockCreditApprovalCreated: true

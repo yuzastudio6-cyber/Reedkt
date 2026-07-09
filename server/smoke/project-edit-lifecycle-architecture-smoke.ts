@@ -120,7 +120,7 @@ const uploaded: ProjectSourceVideoBackendUploadResult = {
   warnings: [],
 }
 
-const planBeforeBrief = buildProjectEditPlanApprovalModel({
+const planWithoutBrief = buildProjectEditPlanApprovalModel({
   approved: false,
   backendUploadResult: uploaded,
   briefSaved: false,
@@ -134,11 +134,17 @@ const planBeforeBrief = buildProjectEditPlanApprovalModel({
   sourceDurationSeconds: 76,
   sourceFileName: 'source.mp4',
 })
-assert.equal(planBeforeBrief.canApprove, false)
-assert.ok(planBeforeBrief.blockers.includes('brief_save_required'))
-assert.equal(planBeforeBrief.productReady, false)
-assert.equal(planBeforeBrief.providerCallMade, false)
-assert.equal(planBeforeBrief.creditReservedOrSpent, false)
+assert.equal(planWithoutBrief.canApprove, true)
+assert.equal(planWithoutBrief.status, 'ready_for_approval')
+assert.equal(planWithoutBrief.directionSource, 'default_professional_direction')
+assert.equal(planWithoutBrief.skillPlan.planningOnly, true)
+assert.equal(planWithoutBrief.skillPlan.exposesInternalToolNames, false)
+assert.equal(planWithoutBrief.skillPlan.productReady, false)
+assert.ok(planWithoutBrief.skillPlan.activities.some((activity) => activity.id === 'story_cleanup'))
+assert.equal(planWithoutBrief.blockers.includes('brief_save_required'), false)
+assert.equal(planWithoutBrief.productReady, false)
+assert.equal(planWithoutBrief.providerCallMade, false)
+assert.equal(planWithoutBrief.creditReservedOrSpent, false)
 
 const readyPlan = buildProjectEditPlanApprovalModel({
   approved: false,
@@ -158,6 +164,8 @@ const readyPlan = buildProjectEditPlanApprovalModel({
 assert.equal(readyPlan.canApprove, true)
 assert.equal(readyPlan.approved, false)
 assert.equal(readyPlan.status, 'ready_for_approval')
+assert.equal(readyPlan.directionSource, 'saved_edit_brief')
+assert.ok(readyPlan.skillPlan.selectedSkillKeys.includes('caption_design'))
 assert.ok(readyPlan.blockers.includes('plan_credit_approval_required'))
 assert.ok(readyPlan.creditEstimate.lowCredits <= readyPlan.creditEstimate.expectedCredits)
 assert.ok(readyPlan.creditEstimate.expectedCredits <= readyPlan.creditEstimate.highCredits)
@@ -190,7 +198,7 @@ const uploadedModel = buildProjectEditLifecycleModel({
   backendUploadAvailable: true,
   backendUploadResult: uploaded,
   backendUploadStatus: 'uploaded',
-  briefSaved: true,
+  briefSaved: false,
   editSessionId: 'edit-session-youtube-wide',
   hasLocalSourceVideo: true,
   planApproved: false,
@@ -201,11 +209,12 @@ assert.equal(uploadedModel.backendUploadAllowed, true)
 assert.equal(uploadedModel.internalPreviewAllowed, false)
 assert.equal(uploadedModel.toolExecutionAllowed, false)
 assert.equal(uploadedModel.stages.find((stage) => stage.id === 'backend_upload_completed')?.status, 'complete')
-assert.equal(uploadedModel.stages.find((stage) => stage.id === 'brief_saved')?.status, 'complete')
+assert.equal(uploadedModel.stages.find((stage) => stage.id === 'brief_saved')?.status, 'ready')
 assert.equal(uploadedModel.stages.find((stage) => stage.id === 'edit_plan_required')?.status, 'complete')
 assert.equal(uploadedModel.stages.find((stage) => stage.id === 'credit_approval_required')?.status, 'ready')
 assert.equal(uploadedModel.stages.find((stage) => stage.id === 'internal_preview_ready')?.status, 'blocked')
 assert.ok(uploadedModel.blockers.includes('plan_credit_approval_required'))
+assert.equal(uploadedModel.blockers.includes('brief_save_required'), false)
 assert.equal(uploadedModel.stages.find((stage) => stage.id === 'final_export_blocked')?.status, 'blocked')
 assert.ok(uploadedModel.blockers.includes('professional_qa_required'))
 
@@ -270,7 +279,9 @@ const backendPlan = await planService.createApprovedLocalEditPlan({
     sizeBytes: uploaded.sizeBytes,
     storageObjectRecordId: uploaded.storageObjectRecordId,
   },
+  directionSource: approvedPlan.directionSource,
   operationManifest: approvedPlan.operationManifest,
+  skillPlan: approvedPlan.skillPlan,
   steps: approvedPlan.steps,
   summary: approvedPlan.summary,
   title: approvedPlan.title,

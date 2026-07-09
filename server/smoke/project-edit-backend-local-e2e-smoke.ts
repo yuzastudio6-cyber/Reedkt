@@ -164,6 +164,61 @@ try {
   const fileBytes = await readFile(fixture.outputPath)
   const sourceFile = new File([fileBytes], 'backend-local-e2e-source.mp4', { type: 'video/mp4' })
 
+  const promptOnlyEdit = await createProjectEditSessionBackendLocalFromNewEditForm({
+    apiBaseUrl,
+    form: {
+      ...editForm,
+      name: 'Backend-local prompt-only edit',
+    },
+    projectId: project.project.id,
+    workspaceId,
+    getAccessToken: async () => undefined,
+  })
+  assert.equal(promptOnlyEdit.ok, true)
+  assert.ok(promptOnlyEdit.session)
+  const promptOnlyUpload = await uploadProjectSourceVideoToBackend({
+    apiBaseUrl,
+    editSessionId: promptOnlyEdit.session.id,
+    file: sourceFile,
+    projectId: project.project.id,
+    workspaceId,
+    getAccessToken: async () => undefined,
+  })
+  const promptOnlyPlan = buildProjectEditPlanApprovalModel({
+    approved: true,
+    backendUploadResult: promptOnlyUpload,
+    briefSaved: false,
+    briefText: '',
+    editSessionId: promptOnlyEdit.session.id,
+    outputAspectRatio: editForm.aspectRatio,
+    outputFrameConfirmed: promptOnlyEdit.session.metadata?.outputFrameConfirmed === true,
+    outputFrameConfirmationSource: 'new_edit_create_form',
+    outputPlatformTarget: editForm.platformTarget,
+    projectId: project.project.id,
+    sourceAspectRatio: '16:9',
+    sourceDurationSeconds: fixture.durationSeconds,
+    sourceFileName: sourceFile.name,
+  })
+  assert.equal(promptOnlyPlan.canApprove, true)
+  assert.equal(promptOnlyPlan.approved, true)
+  assert.equal(promptOnlyPlan.directionSource, 'default_professional_direction')
+  assert.equal(promptOnlyPlan.skillPlan.exposesInternalToolNames, false)
+  assert.ok(promptOnlyPlan.skillPlan.activities.some((activity) => activity.id === 'private_review_qa'))
+  const promptOnlyApprovedPlan = await approveProjectEditPlanBackendLocal({
+    apiBaseUrl,
+    approvedLocalPlan: promptOnlyPlan,
+    editSessionId: promptOnlyEdit.session.id,
+    projectId: project.project.id,
+    sourceVideoUploadResult: promptOnlyUpload,
+    workspaceId,
+    getAccessToken: async () => undefined,
+  })
+  assert.equal(promptOnlyApprovedPlan.localEditPlan.readbackVerified, true)
+  assert.equal(promptOnlyApprovedPlan.localEditPlan.approvedLocalPlan.directionSource, 'default_professional_direction')
+  assert.equal(promptOnlyApprovedPlan.localEditPlan.approvedLocalPlan.skillPlan.planningOnly, true)
+  assert.equal(promptOnlyApprovedPlan.localEditPlan.approvedLocalPlan.skillPlan.productReady, false)
+  assert.match(promptOnlyApprovedPlan.localEditPlan.briefLineage.briefId, /^plan-direction-/)
+
   const upload = await uploadProjectSourceVideoToBackend({
     apiBaseUrl,
     editSessionId,
@@ -626,10 +681,10 @@ try {
   assert.equal(restoreFinalExportResult(revisedBriefCheckpoint.editSession), undefined)
   const resetHomeCard = createProjectEditSessionHomeCardViewModelFromRecord(revisedBriefCheckpoint.editSession)
   const resetHomeDetail = createProjectEditSessionHomeDetailViewModelFromRecord(revisedBriefCheckpoint.editSession)
-  assert.equal(resetHomeCard.progressLabel, 'Brief saved')
+  assert.equal(resetHomeCard.progressLabel, 'Direction saved')
   assert.equal(resetHomeCard.latestPreviewLabel, 'No preview yet')
   assert.equal(resetHomeCard.progressItems.find((item) => item.id === 'private_export_ready')?.complete, false)
-  assert.equal(resetHomeDetail?.readinessLabel, 'Brief saved')
+  assert.equal(resetHomeDetail?.readinessLabel, 'Direction saved')
   assert.match(resetHomeDetail?.artifactSummaryLines.join('\n') ?? '', /No preview or export artifact/)
 
   const setupResetCheckpoint = await recordProjectEditSessionLifecycleCheckpointBackendLocal({

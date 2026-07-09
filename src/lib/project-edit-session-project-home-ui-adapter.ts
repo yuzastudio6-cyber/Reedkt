@@ -187,9 +187,9 @@ function createBackendLocalReadiness(session: ProjectEditSessionRecord): {
     },
     {
       id: 'brief_saved',
-      label: 'Brief saved',
+      label: 'Direction saved',
       complete: briefReady,
-      detail: briefReady ? 'The edit brief has been saved for this edit.' : 'Save the edit brief before plan approval.',
+      detail: briefReady ? 'Optional edit direction has been saved for this edit.' : 'Optional: save direction, or approve the plan with the default professional direction.',
     },
     {
       id: 'plan_approved',
@@ -287,7 +287,7 @@ function createBackendLocalReadiness(session: ProjectEditSessionRecord): {
       latestPreviewLabel: 'No preview yet',
       progressAccent: 'warning',
       progressItems,
-      progressLabel: 'Brief saved',
+      progressLabel: 'Direction saved',
     }
   }
 

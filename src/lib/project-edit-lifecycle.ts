@@ -24,7 +24,7 @@ export type ProjectEditLifecycleStageStatus = 'complete' | 'ready' | 'blocked'
 
 export type ProjectEditFinalExportGateId =
   | 'source_uploaded'
-  | 'brief_saved'
+  | 'plan_direction_recorded'
   | 'plan_approved'
   | 'approved_snapshot_created'
   | 'credit_reservation_ready'
@@ -122,7 +122,6 @@ function gate(
 
 function buildFinalExportReadiness(input: {
   backendUploaded: boolean
-  briefSaved: boolean
   planApproved: boolean
   internalPreviewReady: boolean
   localFinalExportReady: boolean
@@ -144,7 +143,7 @@ function buildFinalExportReadiness(input: {
     : input.evidence
   const gates = [
     gate('source_uploaded', 'Source uploaded', input.backendUploaded, 'backend_local_upload_required'),
-    gate('brief_saved', 'Brief saved', input.briefSaved, 'brief_save_required'),
+    gate('plan_direction_recorded', 'Plan direction recorded', input.planApproved, 'plan_direction_required'),
     gate('plan_approved', 'Plan and credit estimate approved', input.planApproved, 'plan_credit_approval_required'),
     gate('approved_snapshot_created', 'Approved snapshot created', input.previewHasApprovedSnapshot, 'approved_plan_snapshot_required'),
     gate('credit_reservation_ready', 'Credit reservation ready', input.previewHasCreditReservation, 'credit_reservation_required'),
@@ -179,10 +178,9 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
   const previewReviewedApproved = input.previewReviewResult?.reviewStatus === 'approved'
   const previewReviewed = previewReviewedApproved || input.previewReviewResult?.reviewStatus === 'changes_requested'
   const backendUploadAllowed = input.hasLocalSourceVideo && input.backendUploadAvailable && input.backendUploadStatus !== 'uploading'
-  const internalPreviewAllowed = backendUploaded && input.briefSaved && input.planApproved
+  const internalPreviewAllowed = backendUploaded && input.planApproved
   const finalExportReadiness = buildFinalExportReadiness({
     backendUploaded,
-    briefSaved: input.briefSaved,
     planApproved: input.planApproved,
     internalPreviewReady,
     localFinalExportReady,
@@ -196,7 +194,6 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
   const blockers = [
     input.hasLocalSourceVideo ? undefined : 'source_video_required',
     backendUploaded ? undefined : 'backend_local_upload_required',
-    input.briefSaved ? undefined : 'brief_save_required',
     input.planReady ? undefined : 'edit_plan_required',
     input.planApproved ? undefined : 'plan_credit_approval_required',
     internalPreviewReady ? undefined : 'approved_plan_snapshot_required',
@@ -233,19 +230,19 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
     ),
     stage(
       'brief_saved',
-      'Brief saved',
+      'Optional edit direction',
       input.briefSaved ? 'complete' : input.hasLocalSourceVideo ? 'ready' : 'blocked',
       input.briefSaved
         ? 'The edit brief is saved locally for this edit workspace.'
-        : 'Save the editing direction before planning or preview work starts.',
+        : 'Optional: add a brief or prompt. ReEditPro can also plan from the default professional direction.',
     ),
     stage(
       'edit_plan_required',
       'Edit plan required',
-      input.planReady ? 'complete' : backendUploaded && input.briefSaved ? 'ready' : 'blocked',
+      input.planReady ? 'complete' : backendUploaded ? 'ready' : 'blocked',
       input.planReady
         ? 'A local test edit plan and credit estimate are ready for this edit.'
-        : 'Create the edit plan from source, brief, timing, layout, and tool strategy before preview work starts.',
+        : 'Create the edit plan from source, prompt or optional brief, timing, layout, and tool strategy before preview work starts.',
     ),
     stage(
       'credit_approval_required',
@@ -269,7 +266,7 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
       internalPreviewReady ? 'complete' : internalPreviewAllowed ? 'ready' : 'blocked',
       internalPreviewReady
         ? 'A preview-only internal smoke result exists for this local source.'
-        : 'Available only after backend-local upload, brief save, and local plan approval; it does not approve production execution.',
+        : 'Available only after backend-local upload and local plan approval; it does not approve production execution.',
     ),
     stage(
       'preview_review_required',
@@ -295,9 +292,7 @@ export function buildProjectEditLifecycleModel(input: ProjectEditLifecycleInput)
       ? 'Select or restore the source video for this edit.'
       : !backendUploaded
         ? 'Upload the selected source through the backend-local upload gate.'
-        : !input.briefSaved
-          ? 'Save the edit brief.'
-          : !input.planReady
+        : !input.planReady
             ? 'Review the local edit plan and credit estimate.'
             : !input.planApproved
               ? 'Approve the local edit plan and credit estimate before preview.'

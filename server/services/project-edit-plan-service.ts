@@ -1,6 +1,10 @@
 import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import { createMockId, getRequiredAuthUserId, mockWarning, nowIso, sanitizeJson } from './service-helpers'
+import type {
+  ProjectEditPlanDirectionSource,
+  ProjectEditSkillPlanSummary,
+} from '../../src/lib/project-edit-skill-aware-plan'
 
 interface LocalEditPlanStepInput {
   label: string
@@ -90,6 +94,8 @@ interface CreateApprovedLocalEditPlanInput {
   summary: string
   steps: LocalEditPlanStepInput[]
   operationManifest: LocalEditPlanOperationManifestInput
+  directionSource: ProjectEditPlanDirectionSource
+  skillPlan: ProjectEditSkillPlanSummary
   creditEstimate: LocalEditPlanCreditEstimateInput
   briefLineage: LocalEditPlanBriefLineageInput
   source: LocalEditPlanSourceInput
@@ -111,6 +117,8 @@ export interface ApprovedLocalEditPlanRecord {
     planId: string
     steps: LocalEditPlanStepInput[]
     operationManifest: LocalEditPlanOperationManifestInput
+    directionSource: ProjectEditPlanDirectionSource
+    skillPlan: ProjectEditSkillPlanSummary
     briefLineage: LocalEditPlanBriefLineageInput
     summary: string
     title: string
@@ -172,6 +180,8 @@ export function createProjectEditPlanService(context: ServiceContext) {
           approved: true,
           creditEstimate: input.creditEstimate,
           briefLineage: sanitizeBriefLineage(input.briefLineage),
+          directionSource: input.directionSource,
+          skillPlan: sanitizeSkillPlan(input.skillPlan),
           operationManifest: sanitizeOperationManifest(input.operationManifest),
           planId: input.planId,
           steps: input.steps.map((step) => sanitizePlanStep(step)),
@@ -238,6 +248,17 @@ function assertSafePlanText(input: CreateApprovedLocalEditPlanInput): void {
     input.summary,
     input.briefLineage.briefId,
     input.briefLineage.briefFingerprint,
+    input.directionSource,
+    input.skillPlan.directionSummary,
+    ...input.skillPlan.activities.flatMap((activity) => [
+      activity.id,
+      activity.label,
+      activity.summary,
+      ...activity.skillKeys,
+    ]),
+    ...input.skillPlan.blockedSkillKeys,
+    ...input.skillPlan.selectedSkillKeys,
+    ...input.skillPlan.warnings,
     input.source.bucketName,
     input.source.objectPath,
     input.source.fileName,
@@ -257,6 +278,24 @@ function assertSafePlanText(input: CreateApprovedLocalEditPlanInput): void {
 
   if (unsafeText) {
     throw new ApiError('VALIDATION_FAILED', 'Approved local edit plan contains secret-like or signed URL text.', 400)
+  }
+}
+
+function sanitizeSkillPlan(skillPlan: ProjectEditSkillPlanSummary): ProjectEditSkillPlanSummary {
+  return {
+    ...skillPlan,
+    directionSummary: sanitizePlanText(skillPlan.directionSummary),
+    activities: skillPlan.activities.map((activity) => ({
+      ...activity,
+      label: sanitizePlanText(activity.label),
+      summary: sanitizePlanText(activity.summary),
+      executionMode: 'planning_only',
+      productReady: false,
+    })),
+    planningOnly: true,
+    exposesInternalToolNames: false,
+    productReady: false,
+    warnings: skillPlan.warnings.map(sanitizePlanText),
   }
 }
 

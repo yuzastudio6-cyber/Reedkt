@@ -63,6 +63,7 @@ const localModelPathExists = existsSync(localModelPath)
 const fasterWhisperRuntimeReady = runtimeReady()
 const transcriptReady = localModelPathExists && fasterWhisperRuntimeReady
 const transcriptBlockers = [
+  ...(!process.env.REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_MODEL_MANIFEST_PATH?.trim() ? ['manifest_path_missing'] : []),
   ...(!localModelPathExists ? ['local_model_missing'] : []),
   ...(!fasterWhisperRuntimeReady ? ['faster_whisper_runtime_missing'] : []),
 ]
@@ -72,6 +73,7 @@ console.log(`Fixture: ${fixturePath}`)
 console.log('Scope: one repeatable operator command for real-video upload, plan, approval, private preview, media foundation, speech/caption handoff, and smart-cut preview readiness. No model download, package install, provider call, live Qwen call, Supabase/GCS write, public delivery, final export, external beta, paid production, or product-ready claim.')
 
 const completed = []
+completed.push(await run('real-video-transcription-prerequisite-manifest', ['run', 'test:internal-testing:real-video-transcription-prerequisite-manifest']))
 completed.push(await run('real-video-transcription-readiness', ['run', 'test:internal-testing:real-video-transcription-readiness']))
 completed.push(await run('real-video-speech-caption-handoff', ['run', 'test:internal-testing:real-video-speech-caption-handoff']))
 completed.push(await run('real-video-smart-cut-preview-execution', ['run', 'test:internal-testing:real-video-smart-cut-preview-execution']))

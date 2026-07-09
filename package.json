@@ -197,6 +197,8 @@
     "test:internal-testing:real-video-media-foundation-acceptance": "node scripts/dev/internal-testing-real-video-media-foundation-acceptance.mjs",
     "smoke:internal-testing-real-video-transcription-readiness": "tsx server/smoke/internal-testing-real-video-transcription-readiness-smoke.ts",
     "test:internal-testing:real-video-transcription-readiness": "node scripts/dev/internal-testing-real-video-transcription-readiness.mjs",
+    "smoke:internal-testing-real-video-transcription-prerequisite-manifest": "tsx server/smoke/internal-testing-real-video-transcription-prerequisite-manifest-smoke.ts",
+    "test:internal-testing:real-video-transcription-prerequisite-manifest": "node scripts/dev/internal-testing-real-video-transcription-prerequisite-manifest.mjs",
     "test:internal-testing:real-video-end-to-end-readiness": "node scripts/dev/internal-testing-real-video-end-to-end-readiness.mjs",
     "smoke:internal-testing-real-video-speech-caption-handoff": "tsx server/smoke/internal-testing-real-video-speech-caption-handoff-smoke.ts",
     "test:internal-testing:real-video-speech-caption-handoff": "node scripts/dev/internal-testing-real-video-speech-caption-handoff.mjs",

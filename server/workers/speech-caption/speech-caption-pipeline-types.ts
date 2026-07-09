@@ -135,6 +135,9 @@ export interface SpeechCaptionExecutionPipelineInput {
   timeoutMs?: number
   enableRealTranscription?: boolean
   allowModelDownload?: boolean
+  fasterWhisperCommand?: string
+  pythonCommand?: string
+  arbitraryArgs?: string[]
   enableCaptionPreview?: boolean
   buildSpeech?: boolean
   buildCaptions?: boolean

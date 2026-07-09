@@ -9,6 +9,8 @@ import {
   sanitizePathForLog,
 } from '../media/media-path-safety'
 import { normalizeTranscriptSegments } from './transcript-segment-normalizer'
+import { buildFasterWhisperPythonRunnerScript } from './faster-whisper-python-runner-script'
+import { defaultFasterWhisperPythonCommand, resolveFasterWhisperRuntimeReadiness } from './faster-whisper-runtime-readiness'
 import type {
   FasterWhisperCommandPlan,
   FasterWhisperInput,
@@ -49,10 +51,10 @@ export function validateFasterWhisperInput(input: FasterWhisperInput): void {
 
 export function buildFasterWhisperCommand(input: FasterWhisperInput): FasterWhisperCommandPlan {
   validateFasterWhisperInput(input)
-  const command = input.fasterWhisperCommand ?? input.pythonCommand ?? 'python'
+  const command = input.fasterWhisperCommand ?? input.pythonCommand ?? defaultFasterWhisperPythonCommand()
   const args = input.fasterWhisperCommand
     ? buildCliArgs(input)
-    : ['-m', 'faster_whisper', ...buildCliArgs(input)]
+    : ['-c', buildFasterWhisperPythonRunnerScript(), ...buildCliArgs(input)]
 
   return {
     command,
@@ -179,6 +181,12 @@ export function buildFasterWhisperSkipReason(input: FasterWhisperInput): SpeechF
     const outputRoot = input.outputJsonPath.split(/[\\/]/).slice(0, -1).join('/') || '.'
     assertOutputPathInsideRoot(input.outputJsonPath, outputRoot)
   }
+
+  const runtimeReadiness = resolveFasterWhisperRuntimeReadiness({
+    fasterWhisperCommand: input.fasterWhisperCommand,
+    pythonCommand: input.pythonCommand,
+  })
+  if (runtimeReadiness.status === 'blocked') return runtimeReadiness.blockers[0]
 
   return undefined
 }

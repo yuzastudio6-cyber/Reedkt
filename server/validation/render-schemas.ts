@@ -36,3 +36,18 @@ export const basicRenderSmokePreviewSchema = z.object({
   workerInstanceId: z.string().optional(),
   strict: z.boolean().optional(),
 })
+
+export const smartCutPreviewSmokeSchema = z.object({
+  workspaceId: idSchema.optional(),
+  projectId: idSchema.optional(),
+  sourceStorageObjectId: idSchema,
+  sourceStorageObject: basicRenderSmokeSourceObjectSchema,
+  approvedPlanSnapshotId: idSchema,
+  creditReservationId: idSchema,
+  toolExecutionPlanId: idSchema.optional(),
+  workerInstanceId: z.string().optional(),
+  sourceVideoDurationSeconds: z.number().positive().optional(),
+  sourceVideoWidth: z.number().positive().optional(),
+  sourceVideoHeight: z.number().positive().optional(),
+  strict: z.boolean().optional(),
+})

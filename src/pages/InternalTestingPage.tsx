@@ -26,6 +26,15 @@ import {
   DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_TABLES,
 } from '../lib/project-edit-session-backend-persistence-plan'
 import { getMockSafeDurableProjectSessionBackendSkeleton } from '../lib/project-edit-session-backend-skeleton'
+import { getInternalTestingApprovedSnapshotRouteReviewUiModel } from '../lib/internal-testing-approved-snapshot-route-review-ui'
+import { getInternalTestingMockWorkerExecutionHarnessUiModel } from '../lib/internal-testing-mock-worker-execution-harness-ui'
+import { getInternalTestingPrivateReviewResultDryRunUiModel } from '../lib/internal-testing-private-review-result-dry-run-ui'
+import { getInternalTestingInternalTesterReviewPanelUiModel } from '../lib/internal-testing-internal-tester-review-panel-ui'
+import { getInternalTestingRealVideoAcceptancePreflightUiModel } from '../lib/internal-testing-real-video-acceptance-preflight-ui'
+import { getInternalTestingToolRoutingUiModel } from '../lib/internal-testing-tool-routing-ui'
+import { getInternalTestingMockWorkerQueueReviewUiModel } from '../lib/internal-testing-mock-worker-queue-review-ui'
+import { getInternalTestingWorkerClaimDryRunUiModel } from '../lib/internal-testing-worker-claim-dry-run-ui'
+import { getInternalTestingWorkerPayloadDryRunUiModel } from '../lib/internal-testing-worker-payload-dry-run-ui'
 import {
   DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_DECISION,
   DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_NEXT_GATE,
@@ -182,6 +191,15 @@ function getScenarioHighlights() {
     'source-video-marker-current-time',
     'source-video-export-dimensions',
     'source-video-local-preview-boundary',
+    'internal-testing-tool-routing-readiness',
+    'internal-testing-approved-snapshot-route-review',
+    'internal-testing-worker-payload-dry-run',
+    'internal-testing-mock-worker-queue-review',
+    'internal-testing-worker-claim-dry-run',
+    'internal-testing-mock-worker-execution-harness',
+    'internal-testing-private-review-result-dry-run',
+    'internal-testing-internal-tester-review-panel',
+    'internal-testing-real-video-acceptance-preflight',
     'edit-brief-shell-no-runtime-effects',
     'edit-brief-marker-add-at-playhead',
     'edit-brief-marker-chat-send',
@@ -240,6 +258,15 @@ export function InternalTestingPage() {
   const supabaseMigrationSqlDraft = useMemo(() => getDurableProjectSessionSupabaseMigrationSqlDraft(), [])
   const supabaseMigrationReview = useMemo(() => getDurableProjectSessionSupabaseMigrationReview(), [])
   const supabaseLocalMigrationDryRunPlan = useMemo(() => getDurableProjectSessionSupabaseLocalMigrationDryRunPlan(), [])
+  const toolRoutingReadiness = useMemo(() => getInternalTestingToolRoutingUiModel(), [])
+  const approvedSnapshotRouteReview = useMemo(() => getInternalTestingApprovedSnapshotRouteReviewUiModel(), [])
+  const workerPayloadDryRun = useMemo(() => getInternalTestingWorkerPayloadDryRunUiModel(), [])
+  const mockWorkerQueueReview = useMemo(() => getInternalTestingMockWorkerQueueReviewUiModel(), [])
+  const workerClaimDryRun = useMemo(() => getInternalTestingWorkerClaimDryRunUiModel(), [])
+  const mockWorkerExecutionHarness = useMemo(() => getInternalTestingMockWorkerExecutionHarnessUiModel(), [])
+  const privateReviewResultDryRun = useMemo(() => getInternalTestingPrivateReviewResultDryRunUiModel(), [])
+  const internalTesterReviewPanel = useMemo(() => getInternalTestingInternalTesterReviewPanelUiModel(), [])
+  const realVideoAcceptancePreflight = useMemo(() => getInternalTestingRealVideoAcceptancePreflightUiModel(), [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -474,6 +501,328 @@ export function InternalTestingPage() {
               {SIGN_IN_TO_EDIT_BRIEF_ROUTE}
               <ExternalLink aria-hidden="true" size={15} />
             </Link>
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-tool-routing-readiness">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Edit activity routing</span>
+            <h2>Private edit activities have approved-snapshot route metadata</h2>
+          </div>
+          <p>
+            Internal testing can explain the edit activities that become routable after upload, plan approval, credit reservation,
+            and private artifact references exist. The app keeps package and tool names hidden from the user-facing flow.
+          </p>
+          <div className="internal-testing-limit-grid">
+            {toolRoutingReadiness.activities.map((activity) => (
+              <article key={activity.id}>
+                <Badge accent="cyan">Route metadata</Badge>
+                <h3>{activity.label}</h3>
+                <p>{activity.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-tool-routing-boundaries">
+            {[
+              'Approved snapshot required',
+              'Private artifacts required',
+              'User-facing names hidden',
+              'No frontend execution',
+              'No provider calls',
+              'No worker dispatch',
+              'No credit spend',
+              'No public delivery',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-approved-snapshot-route-review">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Approved route review</span>
+            <h2>Worker payload dry-run stays behind approval and private-artifact gates</h2>
+          </div>
+          <p>{approvedSnapshotRouteReview.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {approvedSnapshotRouteReview.checks.map((check) => (
+              <article key={check.id}>
+                <Badge accent="success">Required gate</Badge>
+                <h3>{check.label}</h3>
+                <p>{check.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-approved-snapshot-route-review-boundaries">
+            {[
+              'Upload finalized',
+              'Approved snapshot',
+              'Credit reservation',
+              'Idempotency',
+              'Private artifacts',
+              'No worker dispatch',
+              'No media processing',
+              'No credit spend',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-worker-payload-dry-run">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Worker payload dry run</span>
+            <h2>Backend handoff shape can be reviewed before workers are dispatched</h2>
+          </div>
+          <p>{workerPayloadDryRun.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {workerPayloadDryRun.checks.map((check) => (
+              <article key={check.id}>
+                <Badge accent="cyan">Dry-run ready</Badge>
+                <h3>{check.label}</h3>
+                <p>{check.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-worker-payload-dry-run-boundaries">
+            {[
+              'Payload contract checked',
+              'Private references only',
+              'Idempotent keys',
+              'No worker dispatch',
+              'No tool execution',
+              'No media processing',
+              'No provider calls',
+              'No credit spend',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-mock-worker-queue-review">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Mock worker queue review</span>
+            <h2>Valid payloads can queue and replay before any worker claim</h2>
+          </div>
+          <p>{mockWorkerQueueReview.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {mockWorkerQueueReview.checks.map((check) => (
+              <article key={check.id}>
+                <Badge accent="success">Queue review</Badge>
+                <h3>{check.label}</h3>
+                <p>{check.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-mock-worker-queue-review-boundaries">
+            {[
+              'Mock queue only',
+              'Idempotent replay',
+              'Approved plan gate',
+              'Credit reservation gate',
+              'No worker claim',
+              'No worker dispatch',
+              'No tool execution',
+              'No media processing',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-worker-claim-dry-run">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Worker claim dry run</span>
+            <h2>Queued work can be leased once without starting execution</h2>
+          </div>
+          <p>{workerClaimDryRun.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {workerClaimDryRun.checks.map((check) => (
+              <article key={check.id}>
+                <Badge accent="cyan">Claim dry-run</Badge>
+                <h3>{check.label}</h3>
+                <p>{check.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-worker-claim-dry-run-boundaries">
+            {[
+              'Mock leases only',
+              'Queued jobs only',
+              'Duplicate claims blocked',
+              'Lease cleanup required',
+              'No worker dispatch',
+              'No worker execution',
+              'No tool execution',
+              'No media processing',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-mock-worker-execution-harness">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Mock worker execution harness</span>
+            <h2>Claimed work can create completion metadata without media work</h2>
+          </div>
+          <p>{mockWorkerExecutionHarness.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {mockWorkerExecutionHarness.checks.map((check) => (
+              <article key={check.id}>
+                <Badge accent="success">Metadata only</Badge>
+                <h3>{check.label}</h3>
+                <p>{check.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-mock-worker-execution-harness-boundaries">
+            {[
+              'Metadata only',
+              'Mock events only',
+              'Private manifest only',
+              'No worker dispatch',
+              'No real worker execution',
+              'No tool execution',
+              'No media processing',
+              'No generated media',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-private-review-result-dry-run">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Private review result dry run</span>
+            <h2>Internal testers can inspect a clean metadata result summary</h2>
+          </div>
+          <p>{privateReviewResultDryRun.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {privateReviewResultDryRun.sections.map((section) => (
+              <article key={section.id}>
+                <Badge accent="success">Ready for review</Badge>
+                <h3>{section.label}</h3>
+                <p>{section.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-private-review-result-dry-run-boundaries">
+            {[
+              'Private internal only',
+              'Metadata only',
+              'No edited media',
+              'No signed URLs',
+              'No public delivery',
+              'No worker dispatch',
+              'No tool execution',
+              'No product-ready claim',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-internal-tester-review-panel">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Internal tester review panel</span>
+            <h2>Tester review is structured before the real-video preflight</h2>
+          </div>
+          <p>{internalTesterReviewPanel.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {internalTesterReviewPanel.checklist.map((item) => (
+              <article key={item.id}>
+                <Badge accent="success">Ready for tester review</Badge>
+                <h3>{item.label}</h3>
+                <p>{item.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-limit-grid" data-testid="internal-testing-internal-tester-review-panel-dispositions">
+            {internalTesterReviewPanel.dispositions.map((item) => (
+              <article key={item.id}>
+                <Badge accent={item.id === 'accepted-for-preflight' ? 'success' : 'warning'}>{item.label}</Badge>
+                <p>{item.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-internal-tester-review-panel-boundaries">
+            {[
+              internalTesterReviewPanel.nextGate.label,
+              'Browser-local feedback only',
+              'Private internal only',
+              'Metadata only',
+              'No real-video processing yet',
+              'No signed URLs',
+              'No public delivery',
+              'No tool execution',
+              'No product-ready claim',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-real-video-acceptance-preflight">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Real-video acceptance preflight</span>
+            <h2>The internal testing video is ready for the backend-local upload gate</h2>
+          </div>
+          <p>{realVideoAcceptancePreflight.summary}</p>
+          <div className="internal-testing-limit-grid">
+            <article>
+              <Badge accent="success">{realVideoAcceptancePreflight.fixture.label}</Badge>
+              <h3>{realVideoAcceptancePreflight.fixture.displayPath}</h3>
+              <p>
+                This screen records the approved fixture path only. The local smoke verifies file metadata before the next upload acceptance
+                run.
+              </p>
+            </article>
+            {realVideoAcceptancePreflight.checks.map((item) => (
+              <article key={item.id}>
+                <Badge accent="success">Ready for local preflight</Badge>
+                <h3>{item.label}</h3>
+                <p>{item.summary}</p>
+              </article>
+            ))}
+            <article>
+              <Badge accent="warning">{realVideoAcceptancePreflight.nextGate.label}</Badge>
+              <h3>Next approved action</h3>
+              <p>{realVideoAcceptancePreflight.nextGate.summary}</p>
+            </article>
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-real-video-acceptance-preflight-boundaries">
+            {[
+              'Local fixture only',
+              'File metadata only',
+              'No upload started here',
+              'No file bytes read',
+              'No media decoding',
+              'No tool execution',
+              'No public delivery',
+              'No product-ready claim',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
           </div>
         </section>
 
@@ -1235,7 +1584,11 @@ export function InternalTestingPage() {
             <div className="internal-testing-form-grid">
               <label>
                 Scenario
-                <select value={scenarioId} onChange={(event) => setScenarioId(event.target.value)}>
+                <select
+                  data-testid="internal-testing-feedback-scenario-select"
+                  value={scenarioId}
+                  onChange={(event) => setScenarioId(event.target.value)}
+                >
                   {highlightedScenarios.map((scenario) => (
                     <option key={scenario.id} value={scenario.id}>
                       {scenario.title}
@@ -1245,7 +1598,11 @@ export function InternalTestingPage() {
               </label>
               <label>
                 Result
-                <select value={result} onChange={(event) => setResult(event.target.value as FeedbackRecord['result'])}>
+                <select
+                  data-testid="internal-testing-feedback-result-select"
+                  value={result}
+                  onChange={(event) => setResult(event.target.value as FeedbackRecord['result'])}
+                >
                   <option value="passed">Passed</option>
                   <option value="blocked">Blocked</option>
                   <option value="needs_review">Needs review</option>

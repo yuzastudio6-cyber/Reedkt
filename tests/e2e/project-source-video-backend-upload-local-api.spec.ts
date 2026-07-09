@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { execFileSync } from 'node:child_process'
 import { mkdir, rm, stat } from 'node:fs/promises'
-import { join } from 'node:path'
+import { basename, extname, join, resolve } from 'node:path'
 import { setViewport } from './helpers/layout'
 import { gotoRoute } from './helpers/routes'
 
@@ -9,7 +9,10 @@ const briefPath = '/projects/mock-project-edit-chat-foundation/edits/edit-sessio
 const apiBaseUrl = process.env.PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_API_BASE_URL ?? 'http://127.0.0.1:9781'
 const localStorageRoot = process.env.PLAYWRIGHT_LOCAL_UPLOAD_STORAGE_ROOT ?? '.reeditpro-local-upload-storage-playwright'
 const fixtureRoot = join(process.cwd(), 'test-results/project-source-video-real-local-api')
-const fixturePath = join(fixtureRoot, 'test-source-real-local-api.mp4')
+const externalFixturePath = process.env.PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_FIXTURE_PATH?.trim()
+const fixturePath = externalFixturePath ? resolve(externalFixturePath) : join(fixtureRoot, 'test-source-real-local-api.mp4')
+const fixtureFileName = basename(fixturePath)
+const uploadedFixtureFileName = fixtureFileName.replace(/[^a-zA-Z0-9._-]+/g, '-')
 
 let fixtureReady = false
 let fixtureSkipReason = 'FFmpeg fixture generation did not run.'
@@ -21,6 +24,18 @@ test.describe('Project source video backend-local upload against real local API'
   )
 
   test.beforeAll(async () => {
+    if (externalFixturePath) {
+      try {
+        const fixtureStat = await stat(fixturePath)
+        fixtureReady = fixtureStat.isFile() && fixtureStat.size > 0 && extname(fixturePath).toLowerCase() === '.mp4'
+        fixtureSkipReason = fixtureReady ? '' : 'External real-video fixture must be a non-empty MP4 file.'
+      } catch (caught) {
+        fixtureSkipReason = caught instanceof Error ? caught.message : 'External real-video fixture was not found.'
+        fixtureReady = false
+      }
+      return
+    }
+
     await mkdir(fixtureRoot, { recursive: true })
 
     try {
@@ -52,6 +67,7 @@ test.describe('Project source video backend-local upload against real local API'
   })
 
   test('uploads through backend upload-intent endpoints and creates a gated local preview smoke output', async ({ page }) => {
+    test.setTimeout(externalFixturePath ? 180_000 : 90_000)
     test.skip(!fixtureReady, fixtureSkipReason)
 
     const healthResponse = await fetch(`${apiBaseUrl}/health`)
@@ -78,10 +94,12 @@ test.describe('Project source video backend-local upload against real local API'
     await page.getByTestId('project-source-video-file-input').setInputFiles(fixturePath)
 
     await page.getByRole('button', { name: /Upload for testing/i }).click()
-    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Source video uploaded to backend-local storage metadata')
-    await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('uploaded')
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Source video uploaded to backend-local storage metadata', {
+      timeout: externalFixturePath ? 120_000 : 30_000,
+    })
+    await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('uploaded', { timeout: externalFixturePath ? 120_000 : 30_000 })
     await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('source-media/workspaces/mock-workspace/projects/mock-project-edit-chat-foundation/source-media/')
-    await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('test-source-real-local-api.mp4')
+    await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText(uploadedFixtureFileName)
     await expect(page.locator('body')).not.toContainText(/provider call made:\s*true|live qwen call:\s*true|final export started|production ready:\s*true/i)
 
     const statusText = await page.getByTestId('project-source-video-backend-upload-status').innerText()
@@ -97,6 +115,8 @@ test.describe('Project source video backend-local upload against real local API'
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Preview object', { timeout: 30_000 })
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText(/Preview object\s*(preview-media|previews)\//)
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('/previews/')
+    await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Private review')
+    await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Review ranges')
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Qwen 3.7 Max identity recorded, no live call')
     await expect(page.locator('body')).not.toContainText(/provider call made:\s*true|live qwen call:\s*true|final export started|production ready:\s*true/i)
   })

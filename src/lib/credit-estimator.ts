@@ -496,6 +496,11 @@ function dataVizPlanningCredits(input: PlannerInput, dataVizPlan?: DataVizPlan) 
   ).length
   const standardChartCount = dataVizPlan.items.filter((item) =>
     item.preferredTool === 'echarts' ||
+    item.preferredTool === 'vega' ||
+    item.preferredTool === 'vega_lite_future' ||
+    item.preferredTool === 'satori' ||
+    item.preferredTool === 'svg_js' ||
+    item.preferredTool === 'viz_js' ||
     item.visualType === 'process_step_diagram' ||
     item.visualType === 'timeline_diagram' ||
     item.visualType === 'feature_comparison',

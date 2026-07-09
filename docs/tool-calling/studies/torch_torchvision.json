@@ -1,0 +1,201 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "torch_torchvision",
+  "displayName": "Torch / TorchVision",
+  "aliases": [
+    "pytorch",
+    "torch",
+    "torch_torchvision",
+    "torchvision"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "torch_torchvision",
+    "reason": "Torch / TorchVision is now a first-class ProductionToolId for approved worker-side tensor vision substrate planning."
+  },
+  "operations": [
+    {
+      "operationId": "video.frame.sample",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Tensor frame preprocessing",
+        "Worker-side visual feature preparation"
+      ],
+      "notFor": [
+        "Unreviewed pretrained weights",
+        "Browser execution"
+      ],
+      "inputArtifacts": [
+        "video",
+        "frame_sequence",
+        "image"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "json_spec",
+        "image_asset"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "opencv",
+        "kornia"
+      ],
+      "notes": [
+        "Torch/TorchVision is planning-only here; actual tensor execution remains worker-gated."
+      ]
+    },
+    {
+      "operationId": "mask.refine",
+      "supportLevel": "fallback",
+      "bestFor": [
+        "Tensor mask preprocessing",
+        "Mask quality scoring support"
+      ],
+      "notFor": [
+        "Primary segmentation without approved model"
+      ],
+      "inputArtifacts": [
+        "image",
+        "frame_sequence",
+        "mask"
+      ],
+      "outputArtifacts": [
+        "qa_report",
+        "json_spec",
+        "mask_image"
+      ],
+      "validators": [
+        "mask_edge_quality"
+      ],
+      "fallbackToolIds": [
+        "kornia",
+        "opencv"
+      ],
+      "notes": [
+        "Mask support is framework substrate metadata only."
+      ]
+    },
+    {
+      "operationId": "video.enhance",
+      "supportLevel": "fallback",
+      "bestFor": [
+        "Approved enhancement model substrate",
+        "Quality metric preprocessing"
+      ],
+      "notFor": [
+        "Unreviewed enhancement checkpoints"
+      ],
+      "inputArtifacts": [
+        "image",
+        "video",
+        "frame_sequence"
+      ],
+      "outputArtifacts": [
+        "analysis_report",
+        "qa_report",
+        "json_spec"
+      ],
+      "validators": [
+        "enhancement_artifacts",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "kornia",
+        "opencv"
+      ],
+      "notes": [
+        "Enhancement support requires separately approved downstream model weights."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Tensor vision transforms",
+    "Visual QA feature extraction",
+    "Model-backed worker substrate",
+    "TorchVision preprocessing"
+  ],
+  "notFor": [
+    "Unreviewed pretrained weights",
+    "Browser execution",
+    "Standalone creative decisions"
+  ],
+  "inputArtifacts": [
+    "image",
+    "video",
+    "frame_sequence",
+    "mask"
+  ],
+  "outputArtifacts": [
+    "analysis_report",
+    "qa_report",
+    "json_spec",
+    "image_asset",
+    "mask_image"
+  ],
+  "validators": [
+    "render_asset_integrity",
+    "mask_edge_quality",
+    "enhancement_artifacts"
+  ],
+  "fallbackToolIds": [
+    "kornia",
+    "opencv"
+  ],
+  "resourceProfile": {
+    "workerType": "gpu_ai_worker",
+    "gpuRequired": true,
+    "cpuAllowed": true,
+    "executionMode": "worker_recipe"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": true,
+    "licenseRisk": "medium",
+    "commercialUseStatus": "allowed_with_review"
+  },
+  "knownFailureModes": [
+    "pretrained weight approval missing",
+    "GPU worker unavailable",
+    "package/runtime ABI drift"
+  ],
+  "professionalEditingUses": [
+    "Mask and image QA substrate",
+    "Approved vision model preprocessing",
+    "Visual feature extraction"
+  ],
+  "readinessNotes": [
+    "Planning adapter coverage only; no Torch/TorchVision execution or model weight loading is enabled by this card.",
+    "Future execution must use approved local package pins, approved model snapshots, approved plan snapshots, and private artifact IDs."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:torch_torchvision:latency_pending",
+    "benchmark:torch_torchvision:quality_pending",
+    "benchmark:torch_torchvision:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:torch_torchvision:selection_count",
+    "telemetry:torch_torchvision:fallback_count",
+    "telemetry:torch_torchvision:qa_gate_outcomes"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Torch / TorchVision is first-class registry metadata for worker-side tensor vision substrate planning."
+    },
+    {
+      "evidenceType": "repo_local_owner_or_install_evidence",
+      "sourcePath": "docker/prod/gpu-worker/requirements.gpu.txt",
+      "summary": "Torch and TorchVision are recorded in the GPU-worker requirement source path referenced by owner reconciliation."
+    },
+    {
+      "evidenceType": "repo_local_readiness_evidence",
+      "sourcePath": "server/workers/production-readiness/gpu-tool-python-import-checks.ts",
+      "summary": "GPU tool import checks are existing owner readiness evidence, not execution approval."
+    }
+  ]
+}

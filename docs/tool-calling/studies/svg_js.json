@@ -1,0 +1,160 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "svg_js",
+  "displayName": "SVG.js",
+  "aliases": [
+    "svg.js",
+    "svgdotjs",
+    "svgdotjs_svg_js",
+    "svg_js"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "svg_js",
+    "reason": "SVG.js is now a first-class ProductionToolId for structured vector overlay planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Exact SVG overlays",
+        "Labels and arrows",
+        "Vector callouts"
+      ],
+      "notFor": [
+        "Arbitrary user script",
+        "Final video rendering by itself"
+      ],
+      "inputArtifacts": [
+        "json_data",
+        "render_manifest"
+      ],
+      "outputArtifacts": [
+        "image_asset",
+        "json_spec",
+        "chart_visual"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "d3",
+        "satori",
+        "remotion"
+      ],
+      "notes": [
+        "SVG.js is planning-only here; future execution must sanitize SVG payloads."
+      ]
+    },
+    {
+      "operationId": "thumbnail.generate",
+      "supportLevel": "fallback",
+      "bestFor": [
+        "Static vector thumbnails",
+        "Simple card graphics"
+      ],
+      "notFor": [
+        "Untrusted SVG asset ingestion"
+      ],
+      "inputArtifacts": [
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "image_asset",
+        "json_spec"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "satori",
+        "sharp"
+      ],
+      "notes": [
+        "Thumbnail support is adapter planning metadata only."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Exact SVG overlays",
+    "Labels and arrows",
+    "Vector callouts",
+    "Simple data graphics"
+  ],
+  "notFor": [
+    "Arbitrary user script",
+    "Final video rendering by itself",
+    "Untrusted raw SVG ingestion"
+  ],
+  "inputArtifacts": [
+    "json_data",
+    "render_manifest"
+  ],
+  "outputArtifacts": [
+    "image_asset",
+    "json_spec",
+    "chart_visual"
+  ],
+  "validators": [
+    "caption_safe_zone",
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "d3",
+    "satori",
+    "remotion"
+  ],
+  "resourceProfile": {
+    "workerType": "render_worker",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "render_pipeline"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "low",
+    "commercialUseStatus": "allowed"
+  },
+  "knownFailureModes": [
+    "unsafe SVG payload",
+    "caption collision",
+    "layout overflow"
+  ],
+  "professionalEditingUses": [
+    "Arrows and callouts",
+    "Clean overlay shapes",
+    "Diagram labels",
+    "Vector evidence panels"
+  ],
+  "readinessNotes": [
+    "Planning adapter coverage only; no SVG execution is enabled by this card.",
+    "Future execution must use structured specs and sanitize any SVG output before preview or export."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:svg_js:latency_pending",
+    "benchmark:svg_js:quality_pending",
+    "benchmark:svg_js:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:svg_js:selection_count",
+    "telemetry:svg_js:fallback_count",
+    "telemetry:svg_js:qa_gate_outcomes"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "SVG.js is first-class registry metadata for vector overlay planning."
+    },
+    {
+      "evidenceType": "owner_ready_handoff",
+      "sourcePath": "docs/tool-calling/all-owner-stack-reconciliation-matrix.json",
+      "summary": "The prior svgdots owner seed identity is reconciled to svg_js first-class planning adapter coverage."
+    }
+  ]
+}

@@ -53,6 +53,12 @@ function unique<T extends string>(values: T[]) {
   return Array.from(new Set(values))
 }
 
+const controlledDataVizToolIds: OpenSourceToolId[] = ['d3', 'echarts', 'vega', 'vega_lite', 'satori', 'svg_js', 'viz_js']
+
+function isControlledDataVizTool(tool: OpenSourceToolId) {
+  return controlledDataVizToolIds.includes(tool)
+}
+
 function label(value: string | undefined) {
   return value?.replaceAll('_', ' ') ?? 'data visual'
 }
@@ -89,7 +95,7 @@ function hasDataVizSignal(params: CreateDataVizPlanParams) {
     Boolean(params.videoUnderstandingReport?.visualSupportOpportunities.some((opportunity) => opportunity.opportunityType === 'chart_or_diagram')) ||
     Boolean(params.adaptiveEditStrategyPlan?.segmentStrategies.some((strategy) => strategy.recommendedToolHints.includes('chart_tool'))) ||
     Boolean(params.toolStrategyPlan?.items.some((item) => item.chainId === 'chart_diagram_chain')) ||
-    Boolean(params.renderStrategyPlan?.items.some((item) => item.selectedOpenSourceTools.some((tool) => tool === 'd3' || tool === 'echarts' || tool === 'vega_lite')))
+    Boolean(params.renderStrategyPlan?.items.some((item) => item.selectedOpenSourceTools.some(isControlledDataVizTool)))
 }
 
 function assetText(asset: VisualAssetPlanItem) {
@@ -106,7 +112,7 @@ function dataVizAssets(params: CreateDataVizPlanParams) {
     asset.assetType === 'graphic_design_frame' ||
     asset.assetType === 'motion_design_scene' ||
     asset.toolStrategyItemIds?.some((id) => params.toolStrategyPlan?.items.find((item) => item.id === id)?.chainId === 'chart_diagram_chain') ||
-    asset.renderStrategyItemId && params.renderStrategyPlan?.items.find((item) => item.id === asset.renderStrategyItemId)?.selectedOpenSourceTools.some((tool) => tool === 'd3' || tool === 'echarts'),
+    asset.renderStrategyItemId && params.renderStrategyPlan?.items.find((item) => item.id === asset.renderStrategyItemId)?.selectedOpenSourceTools.some(isControlledDataVizTool),
   )
 
   if (filtered.length > 0) {
@@ -384,9 +390,13 @@ function layoutPlan(params: {
 }
 
 function toolIdsFor(preference: DataVizToolPreference): OpenSourceToolId[] {
-  if (preference === 'd3') return ['d3', 'remotion']
-  if (preference === 'echarts') return ['echarts', 'remotion']
-  if (preference === 'vega_lite_future') return ['vega_lite', 'remotion']
+  if (preference === 'd3') return ['d3', 'svg_js', 'remotion']
+  if (preference === 'echarts') return ['echarts', 'vega_lite', 'remotion']
+  if (preference === 'vega') return ['vega', 'vega_lite', 'remotion']
+  if (preference === 'vega_lite_future') return ['vega_lite', 'vega', 'remotion']
+  if (preference === 'satori') return ['satori', 'svg_js', 'remotion']
+  if (preference === 'svg_js') return ['svg_js', 'satori', 'remotion']
+  if (preference === 'viz_js') return ['viz_js', 'svg_js', 'remotion']
   if (preference === 'remotion_only' || preference === 'gpt_image_frame_only') return ['remotion']
   return ['d3', 'echarts', 'remotion']
 }

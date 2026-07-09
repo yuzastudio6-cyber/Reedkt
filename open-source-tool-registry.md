@@ -22,7 +22,7 @@ The frontend `OpenSourceToolId` union is not expanded with backend-heavy product
 
 Browser or React-compatible tools that can eventually be used inside Remotion compositions or preview components.
 
-Examples: D3, ECharts, MapLibre, Lottie, Three.js, PixiJS, Konva.
+Examples: D3, ECharts, Vega/Vega-Lite, Satori, SVG.js, Viz.js, Anime.js, MapLibre, Lottie, Three.js, PixiJS, Konva.
 
 ### worker_preprocess
 
@@ -84,6 +84,11 @@ Launch-core or launch worker candidate means the planner should know these tools
 - Turf
 - D3
 - ECharts
+- Vega / Vega-Lite
+- Satori
+- SVG.js
+- Viz.js
+- Anime.js
 - Playwright
 - OpenCV
 
@@ -91,11 +96,12 @@ Launch-core or launch worker candidate means the planner should know these tools
 
 - OpenColorIO
 - OpenImageIO
-- Vega-Lite
 - Lottie
 - Three.js
 - PixiJS
 - Konva
+- Torch / TorchVision
+- Transformers
 - librosa
 - whisper.cpp
 - deck.gl
@@ -171,6 +177,30 @@ Good for AI-friendly declarative chart specs, repeatable structured charts, and 
 
 Avoid treating it as launch-core execution until reviewed.
 
+### Vega
+
+Good for advanced declarative chart specs, source-linked visual grammar, and data graphics that need more control than Vega-Lite.
+
+Avoid using it to invent numbers or bypass source-data review.
+
+### Satori
+
+Good for exact static text cards, quote cards, thumbnails, and structured SVG/image panels.
+
+Avoid embedding unapproved fonts, user HTML, or arbitrary assets into a worker render.
+
+### SVG.js
+
+Good for exact vector overlays, arrows, labels, callouts, and simple diagram/card assets.
+
+Avoid raw untrusted SVG/script execution.
+
+### Viz.js
+
+Good for Graphviz-style node-link diagrams, dependency graphs, process flows, and exact labeled diagrams.
+
+Avoid arbitrary DOT input without sanitation and runtime distribution review.
+
 ### Playwright
 
 Good for website, app, and dashboard screenshots; browser capture; visual regression; UI QA.
@@ -182,6 +212,12 @@ Use only allowed user-provided pages, internal pages, or approved capture target
 Good for reusable vector animation packs, icons, checkmarks, status animations, and non-AI reusable motion.
 
 Avoid using it for one-off realistic video generation.
+
+### Anime.js
+
+Good for lightweight vector/data-graphic motion specs and micro-animation timing that Remotion can own later.
+
+Avoid random decorative motion or direct frontend execution outside approved render paths.
 
 ### Three.js
 
@@ -200,6 +236,18 @@ Avoid decorative effects that do not support the spoken meaning.
 Good for editable canvas graphics, future design-editor interactions, and 2D shapes/object manipulation.
 
 Avoid using it as the main final video renderer.
+
+### Torch / TorchVision
+
+Good for approved worker-side tensor vision preprocessing, visual QA substrate, and model-adapter support.
+
+Avoid unreviewed pretrained weights, browser execution, or arbitrary GPU jobs.
+
+### Transformers
+
+Good for approved model-framework routing and structured multimodal/visual feature extraction once model snapshots are separately approved.
+
+Avoid remote model downloads, raw prompt execution, or treating package approval as model-weight approval.
 
 ### AudioFlux
 

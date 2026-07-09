@@ -1134,7 +1134,11 @@ function dataVizControlledTools(plan: EditPlan) {
     item.toolIds.includes('remotion') &&
     (item.toolIds.includes('d3') ||
       item.toolIds.includes('echarts') ||
+      item.toolIds.includes('vega') ||
       item.toolIds.includes('vega_lite') ||
+      item.toolIds.includes('satori') ||
+      item.toolIds.includes('svg_js') ||
+      item.toolIds.includes('viz_js') ||
       item.preferredTool === 'remotion_only'),
   )
 }

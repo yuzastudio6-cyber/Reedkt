@@ -76,6 +76,71 @@ export const RUNTIME_TOOL_ID_ALIASES = [
     runtimeToolId: 'openimageio',
     reason: 'OpenImageIO already resolves to the first-class ProductionToolId on this base.',
   },
+  {
+    alias: 'lottie_web',
+    runtimeToolId: 'lottie',
+    reason: 'lottie-web is resolved to the first-class Lottie production tool identity.',
+  },
+  {
+    alias: 'three',
+    runtimeToolId: 'three_js',
+    reason: 'Three is resolved to the first-class Three.js production tool identity.',
+  },
+  {
+    alias: 'pixi_js',
+    runtimeToolId: 'pixijs',
+    reason: 'PixiJS is the first-class production tool identity for pixi_js package references.',
+  },
+  {
+    alias: 'babylonjs',
+    runtimeToolId: 'babylon_js',
+    reason: 'BabylonJS is resolved to the first-class Babylon.js production tool identity.',
+  },
+  {
+    alias: 'svg.js',
+    runtimeToolId: 'svg_js',
+    reason: 'SVG.js package references resolve to the first-class SVG.js production tool identity.',
+  },
+  {
+    alias: 'svgdotjs',
+    runtimeToolId: 'svg_js',
+    reason: '@svgdotjs/svg.js owner notation resolves to the first-class SVG.js production tool identity.',
+  },
+  {
+    alias: 'svgdotjs_svg_js',
+    runtimeToolId: 'svg_js',
+    reason: 'The prior all-owner matrix identity is now reconciled to the first-class SVG.js production tool identity.',
+  },
+  {
+    alias: 'viz.js',
+    runtimeToolId: 'viz_js',
+    reason: 'Viz.js package notation resolves to the first-class Viz.js production tool identity.',
+  },
+  {
+    alias: 'anime.js',
+    runtimeToolId: 'animejs',
+    reason: 'Anime.js package notation resolves to the first-class Anime.js production tool identity.',
+  },
+  {
+    alias: 'torch',
+    runtimeToolId: 'torch_torchvision',
+    reason: 'Torch is reconciled to the first-class Torch / TorchVision production tool substrate identity.',
+  },
+  {
+    alias: 'torchvision',
+    runtimeToolId: 'torch_torchvision',
+    reason: 'TorchVision is reconciled to the first-class Torch / TorchVision production tool substrate identity.',
+  },
+  {
+    alias: 'pytorch',
+    runtimeToolId: 'torch_torchvision',
+    reason: 'PyTorch package references resolve to the first-class Torch / TorchVision production tool substrate identity.',
+  },
+  {
+    alias: 'huggingface_transformers',
+    runtimeToolId: 'transformers',
+    reason: 'Hugging Face Transformers package references resolve to the first-class Transformers production tool substrate identity.',
+  },
 ] as const satisfies readonly RuntimeToolIdAliasDefinition[]
 
 const aliasByInput = new Map<string, RuntimeToolIdAliasDefinition>(

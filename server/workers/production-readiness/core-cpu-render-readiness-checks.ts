@@ -34,6 +34,8 @@ export const M10_EXCLUDED_GPU_MODEL_TOOL_IDS: ProductionToolId[] = [
   'sam2',
   'transparent_background',
   'rembg',
+  'torch_torchvision',
+  'transformers',
   'deepfilternet',
   'demucs',
   'real_esrgan',

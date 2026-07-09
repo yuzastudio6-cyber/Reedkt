@@ -48,10 +48,17 @@ export type ProductionToolId =
   | 'turf'
   | 'd3'
   | 'echarts'
+  | 'vega'
   | 'vega_lite'
+  | 'satori'
+  | 'svg_js'
+  | 'viz_js'
+  | 'animejs'
   | 'deck_gl'
   | 'cesium_js'
   | 'konva'
+  | 'torch_torchvision'
+  | 'transformers'
   | 'vapoursynth'
   | 'revideo'
 
@@ -103,10 +110,17 @@ export const PRODUCTION_TOOL_IDS = [
   'turf',
   'd3',
   'echarts',
+  'vega',
   'vega_lite',
+  'satori',
+  'svg_js',
+  'viz_js',
+  'animejs',
   'deck_gl',
   'cesium_js',
   'konva',
+  'torch_torchvision',
+  'transformers',
   'vapoursynth',
   'revideo',
 ] as const satisfies readonly ProductionToolId[]

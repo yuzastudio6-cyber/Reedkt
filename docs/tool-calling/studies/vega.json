@@ -1,0 +1,151 @@
+{
+  "schema": "reeditpro.toolCapabilityStudyCard.v1",
+  "toolId": "vega",
+  "displayName": "Vega",
+  "aliases": [
+    "vega"
+  ],
+  "runtimeResolution": {
+    "status": "first_class_production_tool_id",
+    "runtimeToolId": "vega",
+    "reason": "Vega is now a first-class ProductionToolId for exact declarative chart and data-graphic planning."
+  },
+  "operations": [
+    {
+      "operationId": "render.compose",
+      "supportLevel": "secondary",
+      "bestFor": [
+        "Advanced declarative chart specs",
+        "Composed data graphics",
+        "Source-linked visual grammar"
+      ],
+      "notFor": [
+        "AI-invented data",
+        "Random decorative visuals"
+      ],
+      "inputArtifacts": [
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "chart_visual",
+        "json_spec"
+      ],
+      "validators": [
+        "caption_safe_zone",
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "vega_lite",
+        "d3",
+        "echarts"
+      ],
+      "notes": [
+        "Vega is planning-only here; future execution must route through an approved render worker.",
+        "Use for exact source-linked data graphics when Vega-Lite is too constrained."
+      ]
+    },
+    {
+      "operationId": "thumbnail.generate",
+      "supportLevel": "fallback",
+      "bestFor": [
+        "Static chart card specs",
+        "Data-thumbnail planning"
+      ],
+      "notFor": [
+        "Arbitrary chart rendering without source data"
+      ],
+      "inputArtifacts": [
+        "json_data"
+      ],
+      "outputArtifacts": [
+        "chart_visual",
+        "json_spec"
+      ],
+      "validators": [
+        "render_asset_integrity"
+      ],
+      "fallbackToolIds": [
+        "d3",
+        "echarts"
+      ],
+      "notes": [
+        "Thumbnail support is adapter planning metadata only."
+      ]
+    }
+  ],
+  "bestFor": [
+    "Advanced declarative chart specs",
+    "Composed data graphics",
+    "Source-linked visual grammar"
+  ],
+  "notFor": [
+    "AI-invented data",
+    "Random decorative visuals"
+  ],
+  "inputArtifacts": [
+    "json_data"
+  ],
+  "outputArtifacts": [
+    "chart_visual",
+    "json_spec"
+  ],
+  "validators": [
+    "caption_safe_zone",
+    "render_asset_integrity"
+  ],
+  "fallbackToolIds": [
+    "vega_lite",
+    "d3",
+    "echarts"
+  ],
+  "resourceProfile": {
+    "workerType": "planning_only",
+    "gpuRequired": false,
+    "cpuAllowed": true,
+    "executionMode": "planning_metadata"
+  },
+  "qualityProfile": {
+    "productionStatus": "planned",
+    "adoptionStage": "planned",
+    "launchCore": false,
+    "modelWeightsRequired": false,
+    "licenseRisk": "low",
+    "commercialUseStatus": "allowed"
+  },
+  "knownFailureModes": [
+    "data source missing or unverified",
+    "chart labels collide with captions",
+    "planning assumptions diverge from approved render worker behavior"
+  ],
+  "professionalEditingUses": [
+    "Data-driven explainer cards",
+    "Detailed chart specs",
+    "Structured visual evidence"
+  ],
+  "readinessNotes": [
+    "Planning adapter coverage only; no chart rendering is enabled by this card.",
+    "Future execution must use approved snapshots, verified data, and existing render-worker routing."
+  ],
+  "benchmarkPlaceholders": [
+    "benchmark:vega:latency_pending",
+    "benchmark:vega:quality_pending",
+    "benchmark:vega:owner_readiness_pending"
+  ],
+  "telemetryPlaceholders": [
+    "telemetry:vega:selection_count",
+    "telemetry:vega:fallback_count",
+    "telemetry:vega:qa_gate_outcomes"
+  ],
+  "sourceEvidence": [
+    {
+      "evidenceType": "production_tool_registry_profile",
+      "sourcePath": "server/tool-registry/production-tool-profiles.ts",
+      "summary": "Vega is first-class registry metadata for declarative chart planning."
+    },
+    {
+      "evidenceType": "owner_ready_handoff",
+      "sourcePath": "docs/tool-calling/all-owner-stack-reconciliation-matrix.json",
+      "summary": "Prior owner seed row is reconciled from pending candidate to first-class planning adapter coverage."
+    }
+  ]
+}

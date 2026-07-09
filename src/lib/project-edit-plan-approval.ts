@@ -3,11 +3,16 @@ import type {
   ProjectEditSessionAspectRatio,
   ProjectEditSessionPlatformTarget,
 } from '../types/project-edit-session'
+import {
+  buildProjectEditSkillPlan,
+  resolveProjectEditPlanDirection,
+  type ProjectEditPlanDirectionSource,
+  type ProjectEditSkillPlanSummary,
+} from './project-edit-skill-aware-plan'
 
 export type ProjectEditPlanApprovalStatus =
   | 'waiting_for_source'
   | 'waiting_for_backend_upload'
-  | 'waiting_for_brief'
   | 'ready_for_approval'
   | 'approved'
 
@@ -111,13 +116,15 @@ export interface ProjectEditPlanApprovalModel {
   sourceSummary: string
   status: ProjectEditPlanApprovalStatus
   operationManifest: ProjectEditPlanOperationManifest
+  directionSource: ProjectEditPlanDirectionSource
+  skillPlan: ProjectEditSkillPlanSummary
   steps: ProjectEditPlanApprovalStep[]
   summary: string
   title: string
   warnings: string[]
 }
 
-export type ProjectEditPlanApprovedLocalPlan = Pick<ProjectEditPlanApprovalModel, 'approved' | 'creditEstimate' | 'operationManifest' | 'planId' | 'steps' | 'summary' | 'title'> & {
+export type ProjectEditPlanApprovedLocalPlan = Pick<ProjectEditPlanApprovalModel, 'approved' | 'creditEstimate' | 'directionSource' | 'operationManifest' | 'planId' | 'skillPlan' | 'steps' | 'summary' | 'title'> & {
   briefLineage: ProjectEditPlanBriefLineage
 }
 
@@ -248,7 +255,7 @@ function createOperationManifest(input: ProjectEditPlanApprovalInput): ProjectEd
       instruction: 'Use clean cuts and phrase-safe pacing cleanup across the source; do not remove context needed to understand the speaker.',
       sourceRangeLabel: fullRange,
       finalRangeLabel: fullRange,
-      qaChecks: ['speech_clarity_preserved', 'no_misleading_cut', 'brief_followed'],
+      qaChecks: ['speech_clarity_preserved', 'no_misleading_cut', 'plan_direction_followed'],
       workerReady: false,
       productReady: false,
     },
@@ -305,7 +312,7 @@ function createOperationManifest(input: ProjectEditPlanApprovalInput): ProjectEd
       segmentRole: 'context',
       operationType: 'qa_check',
       label: 'Professional QA',
-      instruction: 'Check the preview against the saved brief, source order, approval snapshot, captions, audio, color, and private artifact boundaries before export.',
+      instruction: 'Check the preview against the approved plan direction, source order, approval snapshot, captions, audio, color, and private artifact boundaries before export.',
       sourceRangeLabel: fullRange,
       finalRangeLabel: fullRange,
       qaChecks: ['approved_snapshot_used', 'credit_gate_recorded', 'private_artifact_only', 'product_ready_false'],
@@ -351,11 +358,19 @@ export function estimateLocalEditPlanCredits(durationSeconds?: number): ProjectE
 
 export function buildProjectEditPlanApprovalModel(input: ProjectEditPlanApprovalInput): ProjectEditPlanApprovalModel {
   const backendUploaded = input.backendUploadResult?.status === 'uploaded'
-  const hasBrief = input.briefSaved && input.briefText.trim().length > 0
   const hasSource = Boolean(input.sourceFileName || input.backendUploadResult?.fileName)
   const outputFrame = resolveConfirmedOutputFrame(input)
-  const canApprove = hasSource && backendUploaded && hasBrief && Boolean(outputFrame)
+  const canApprove = hasSource && backendUploaded && Boolean(outputFrame)
   const approved = canApprove && input.approved
+  const direction = resolveProjectEditPlanDirection({
+    briefSaved: input.briefSaved,
+    directionText: input.briefText,
+  })
+  const skillPlan = buildProjectEditSkillPlan({
+    briefSaved: input.briefSaved,
+    directionText: input.briefText,
+    sourceDurationSeconds: input.sourceDurationSeconds,
+  })
 
   const status: ProjectEditPlanApprovalStatus = approved
     ? 'approved'
@@ -363,14 +378,11 @@ export function buildProjectEditPlanApprovalModel(input: ProjectEditPlanApproval
       ? 'waiting_for_source'
       : !backendUploaded
         ? 'waiting_for_backend_upload'
-        : !hasBrief
-          ? 'waiting_for_brief'
-          : 'ready_for_approval'
+        : 'ready_for_approval'
 
   const blockers = [
     hasSource ? undefined : 'source_video_required',
     backendUploaded ? undefined : 'backend_local_upload_required',
-    hasBrief ? undefined : 'brief_save_required',
     outputFrame ? undefined : 'confirmed_output_frame_required',
     approved ? undefined : 'plan_credit_approval_required',
   ].filter(Boolean) as string[]
@@ -399,6 +411,8 @@ export function buildProjectEditPlanApprovalModel(input: ProjectEditPlanApproval
     sourceSummary,
     status,
     operationManifest: createOperationManifest(input),
+    directionSource: direction.source,
+    skillPlan,
     steps: [
       {
         label: 'Source review',
@@ -406,7 +420,7 @@ export function buildProjectEditPlanApprovalModel(input: ProjectEditPlanApproval
       },
       {
         label: 'Clean assembly',
-        summary: 'Build a professional first pass around pacing, meaning preservation, simple structure, and the saved brief.',
+        summary: 'Build a professional first pass around pacing, meaning preservation, simple structure, and the approved plan direction.',
       },
       {
         label: 'Caption and timing pass',
@@ -421,10 +435,13 @@ export function buildProjectEditPlanApprovalModel(input: ProjectEditPlanApproval
         summary: 'Unlock only the internal preview smoke path for local testing; final export stays blocked.',
       },
     ],
-    summary: input.briefText.trim() || 'No edit brief has been saved yet.',
+    summary: direction.text,
     title: 'Local test edit plan',
     warnings: [
       'Approving this local plan does not call providers, run production tools, write Supabase, or unlock final export.',
+      input.briefSaved
+        ? 'The saved edit brief is used as the approved plan direction.'
+        : 'Edit brief is optional; this plan can use the current prompt text or the default professional direction.',
       'The preview smoke remains internal and product-ready local OSS count stays 0.',
     ],
   }

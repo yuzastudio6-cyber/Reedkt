@@ -62,6 +62,21 @@ export function ProjectEditPlanApprovalCard({
         <span>{model.operationManifest.sourceOrderPolicy.replace(/_/g, ' ')}</span>
       </div>
 
+      <div className="project-edit-plan-approval-card__skills" data-testid="project-edit-skill-activity-summary">
+        <div>
+          <strong>Planned activity</strong>
+          <span>{model.skillPlan.directionSource.replace(/_/g, ' ')}</span>
+        </div>
+        <ul>
+          {model.skillPlan.activities.map((activity) => (
+            <li key={activity.id}>
+              <span>{activity.label}</span>
+              <small>{activity.summary}</small>
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <div className="project-edit-plan-approval-card__estimate" data-testid="project-edit-plan-credit-estimate">
         <span>
           <strong>{model.creditEstimate.lowCredits}</strong>

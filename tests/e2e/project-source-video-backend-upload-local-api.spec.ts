@@ -111,8 +111,8 @@ test.describe('Project source video backend-local upload against real local API'
     expect(objectStat.size).toBe(fixtureStat.size)
 
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('local edit plan and credit estimate')
-    await page.getByRole('button', { name: /Save brief/i }).click()
-    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Brief saved and read back')
+    await page.getByRole('button', { name: /Save optional direction/i }).click()
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Optional direction saved and read back')
     await expect(page.getByTestId('project-edit-plan-credit-estimate')).toContainText('expected')
     await page.getByRole('button', { name: /Approve local test plan/i }).click()
     await expect(page.getByTestId('project-edit-brief-status')).toContainText('Local edit plan and credit estimate approved')

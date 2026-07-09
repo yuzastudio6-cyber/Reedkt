@@ -90,6 +90,11 @@
   border-color: rgba(0, 229, 255, 0.34);
 }
 
+.clean-edit-brief__flow-steps li[data-state='optional'] {
+  background: rgba(167, 139, 250, 0.08);
+  border-color: rgba(167, 139, 250, 0.24);
+}
+
 .clean-edit-brief__flow-steps span {
   color: var(--rp-text-primary);
   font-size: 0.84rem;
@@ -105,6 +110,10 @@
 
 .clean-edit-brief__flow-steps li[data-state='current'] strong {
   color: var(--rp-brand-cyan);
+}
+
+.clean-edit-brief__flow-steps li[data-state='optional'] strong {
+  color: var(--rp-brand-violet);
 }
 
 .clean-edit-brief__layout {
@@ -336,6 +345,59 @@
   color: var(--rp-text-primary);
   display: block;
   font-size: 1rem;
+}
+
+.project-edit-plan-approval-card__skills {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.project-edit-plan-approval-card__skills > div {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.project-edit-plan-approval-card__skills strong {
+  color: var(--rp-text-primary);
+  font-size: 0.84rem;
+}
+
+.project-edit-plan-approval-card__skills span {
+  color: var(--rp-text-secondary);
+  font-size: 0.76rem;
+}
+
+.project-edit-plan-approval-card__skills ul {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-edit-plan-approval-card__skills li {
+  border-top: 1px solid var(--rp-border-subtle);
+  display: grid;
+  gap: 3px;
+  padding-top: 8px;
+}
+
+.project-edit-plan-approval-card__skills li span {
+  color: var(--rp-text-primary);
+  font-size: 0.8rem;
+  font-weight: 780;
+}
+
+.project-edit-plan-approval-card__skills small {
+  color: var(--rp-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
 }
 
 .project-edit-plan-approval-card__estimate span {

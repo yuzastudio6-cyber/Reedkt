@@ -25,7 +25,7 @@ interface LocalEditPlanData {
 export interface ApproveProjectEditPlanBackendLocalInput {
   apiBaseUrl: string
   approvedLocalPlan: ProjectEditPlanApprovalModel
-  editBrief: ProjectEditBriefBackendLocalRecord
+  editBrief?: ProjectEditBriefBackendLocalRecord
   editSessionId: string
   projectId: string
   sourceVideoUploadResult: ProjectSourceVideoBackendUploadResult
@@ -85,11 +85,13 @@ export async function approveProjectEditPlanBackendLocal(
   if (!input.approvedLocalPlan.approved) {
     throw new Error('Backend-local edit plan approval requires an approved local plan model.')
   }
-  if (!input.editBrief.readbackVerified) {
-    throw new Error('Backend-local edit plan approval requires a saved and read-back edit brief.')
-  }
-  if (input.editBrief.sourceStorageObjectRecordId !== input.sourceVideoUploadResult.storageObjectRecordId) {
-    throw new Error('Backend-local edit plan approval requires the saved brief to reference the current source object.')
+  if (input.editBrief) {
+    if (!input.editBrief.readbackVerified) {
+      throw new Error('Backend-local edit plan approval requires a saved and read-back edit brief when a brief is supplied.')
+    }
+    if (input.editBrief.sourceStorageObjectRecordId !== input.sourceVideoUploadResult.storageObjectRecordId) {
+      throw new Error('Backend-local edit plan approval requires the saved brief to reference the current source object.')
+    }
   }
 
   const fetchImpl = input.fetchImpl ?? fetch
@@ -115,12 +117,20 @@ export async function approveProjectEditPlanBackendLocal(
       summary: input.approvedLocalPlan.summary,
       steps: input.approvedLocalPlan.steps,
       operationManifest: input.approvedLocalPlan.operationManifest,
+      directionSource: input.approvedLocalPlan.directionSource,
+      skillPlan: input.approvedLocalPlan.skillPlan,
       creditEstimate: input.approvedLocalPlan.creditEstimate,
-      briefLineage: createProjectEditPlanBriefLineage({
-        briefId: input.editBrief.id,
-        briefText: input.editBrief.briefText,
-        revisionNumber: input.editBrief.revisionNumber,
-      }),
+      briefLineage: input.editBrief
+        ? createProjectEditPlanBriefLineage({
+            briefId: input.editBrief.id,
+            briefText: input.editBrief.briefText,
+            revisionNumber: input.editBrief.revisionNumber,
+          })
+        : createProjectEditPlanBriefLineage({
+            briefId: `plan-direction-${input.projectId}-${input.editSessionId}`,
+            briefText: input.approvedLocalPlan.summary,
+            revisionNumber: 1,
+          }),
       source: {
         storageObjectRecordId: input.sourceVideoUploadResult.storageObjectRecordId,
         mediaAssetId: input.sourceVideoUploadResult.mediaAssetId,

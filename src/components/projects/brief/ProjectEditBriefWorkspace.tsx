@@ -99,7 +99,7 @@ type ProjectEditBriefWorkspaceProps = {
 type EditWorkspaceFlowStep = {
   id: 'source' | 'brief' | 'plan' | 'preview' | 'review' | 'quality' | 'export'
   label: string
-  status: 'complete' | 'current' | 'locked'
+  status: 'complete' | 'current' | 'locked' | 'optional'
   summary: string
 }
 
@@ -114,57 +114,70 @@ function buildEditWorkspaceFlowSteps(input: {
   qualityPassed: boolean
   exportReady: boolean
 }): EditWorkspaceFlowStep[] {
-  const definitions: Array<Omit<EditWorkspaceFlowStep, 'status'> & { complete: boolean }> = [
+  const definitions: Array<Omit<EditWorkspaceFlowStep, 'status'> & { blocksNext: boolean; complete: boolean }> = [
     {
       id: 'source',
       label: 'Source',
+      blocksNext: true,
       complete: input.sourceUploaded,
       summary: input.sourceUploaded ? 'Video is attached to this edit.' : 'Upload the video for this edit.',
     },
     {
       id: 'brief',
-      label: 'Brief',
+      label: 'Direction',
+      blocksNext: false,
       complete: input.briefSaved,
-      summary: input.briefSaved ? 'Instructions are saved.' : 'Write and save what the edit should do.',
+      summary: input.briefSaved ? 'Optional direction is saved.' : 'Optional: add direction, or continue with a clean professional plan.',
     },
     {
       id: 'plan',
       label: 'Plan',
+      blocksNext: true,
       complete: input.planApproved,
       summary: input.planApproved ? 'Plan and credits are approved.' : 'Approve the plan before preview creation.',
     },
     {
       id: 'preview',
       label: 'Preview',
+      blocksNext: true,
       complete: input.previewReady,
       summary: input.previewReady ? 'A private preview is ready.' : 'Create a private preview for review.',
     },
     {
       id: 'review',
       label: 'Review',
+      blocksNext: true,
       complete: input.previewReviewed,
       summary: input.previewReviewed ? 'Preview review is approved.' : 'Approve the preview or request changes.',
     },
     {
       id: 'quality',
       label: 'Quality check',
+      blocksNext: true,
       complete: input.qualityPassed,
       summary: input.qualityPassed ? 'Quality gate passed.' : 'Confirm the approved preview is ready to export.',
     },
     {
       id: 'export',
       label: 'Private export',
+      blocksNext: true,
       complete: input.exportReady,
       summary: input.exportReady ? 'Private export is ready.' : 'Create the private final test export.',
     },
   ]
-  const firstIncompleteIndex = definitions.findIndex((step) => !step.complete)
+  const firstIncompleteIndex = definitions.findIndex((step) => !step.complete && step.blocksNext)
 
   return definitions.map((step, index) => ({
     id: step.id,
     label: step.label,
     summary: step.summary,
-    status: step.complete ? 'complete' : index === firstIncompleteIndex ? 'current' : 'locked',
+    status: step.complete
+      ? 'complete'
+      : !step.blocksNext && input.sourceUploaded
+        ? 'optional'
+        : index === firstIncompleteIndex
+          ? 'current'
+          : 'locked',
   }))
 }
 
@@ -190,7 +203,7 @@ export function ProjectEditBriefWorkspace({
   const [mainReviewArtifactError, setMainReviewArtifactError] = useState<string | undefined>()
   const [playing, setPlaying] = useState(false)
   const [playheadSeconds, setPlayheadSeconds] = useState(0)
-  const [briefText, setBriefText] = useState('Clean pacing, readable captions, natural sound, and no flashy transitions unless the edit asks for it.')
+  const [briefText, setBriefText] = useState('')
   const [briefSaved, setBriefSaved] = useState(false)
   const [briefSaveStatus, setBriefSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>(briefConfig.available ? 'idle' : 'failed')
   const [briefSaveError, setBriefSaveError] = useState<string | undefined>(briefConfig.available ? undefined : briefConfig.message)
@@ -402,15 +415,15 @@ export function ProjectEditBriefWorkspace({
 
   useEffect(() => {
     let cancelled = false
-    if (!backendLocalEditSession || !backendUploadResult || !backendSavedBrief?.readbackVerified || backendApprovedLocalPlan) return
+    if (!backendLocalEditSession || !backendUploadResult || backendApprovedLocalPlan) return
 
     Promise.resolve().then(() => {
       if (cancelled) return
       const restoredPlanModel = buildProjectEditPlanApprovalModel({
         approved: true,
         backendUploadResult,
-        briefSaved: true,
-        briefText: backendSavedBrief.briefText,
+        briefSaved: backendSavedBrief?.readbackVerified === true,
+        briefText: backendSavedBrief?.briefText ?? '',
         editSessionId,
         outputAspectRatio: backendLocalEditSession.aspectRatio,
         outputFrameConfirmed: backendLocalEditSession.metadata?.outputFrameConfirmed === true,
@@ -660,13 +673,13 @@ export function ProjectEditBriefWorkspace({
       setBriefSaved(true)
       setBriefSaveStatus('saved')
       briefDraftResetPersistedRef.current = false
-      setStatusMessage('Brief saved and read back from the backend-local brief gate.')
+      setStatusMessage('Optional direction saved and read back from the backend-local brief gate.')
     } catch (caught) {
       setBackendSavedBrief(undefined)
       setBriefSaved(false)
       setBriefSaveStatus('failed')
       setBriefSaveError(caught instanceof Error ? caught.message : 'Backend-local brief save failed safely.')
-      setStatusMessage('Backend-local brief save failed safely. Plan approval remains blocked.')
+      setStatusMessage('Backend-local direction save failed safely. You can still approve a plan from the current prompt or default professional direction.')
     }
     setLocalPreviewResult(undefined)
     setLocalFinalExportResult(undefined)
@@ -721,7 +734,7 @@ export function ProjectEditBriefWorkspace({
   }
 
   async function approveLocalPlan() {
-    if (!planApprovalModel.canApprove || !backendUploadResult || !backendSavedBrief?.readbackVerified || !backendUploadConfig.apiBaseUrl) return
+    if (!planApprovalModel.canApprove || !backendUploadResult || !backendUploadConfig.apiBaseUrl) return
     const approvedPlanForBackend: ProjectEditPlanApprovalModel = {
       ...planApprovalModel,
       approved: true,
@@ -738,7 +751,7 @@ export function ProjectEditBriefWorkspace({
       const result = await approveProjectEditPlanBackendLocal({
         apiBaseUrl: backendUploadConfig.apiBaseUrl,
         approvedLocalPlan: approvedPlanForBackend,
-        editBrief: backendSavedBrief,
+        editBrief: backendSavedBrief?.readbackVerified ? backendSavedBrief : undefined,
         editSessionId,
         projectId,
         sourceVideoUploadResult: backendUploadResult,
@@ -775,7 +788,7 @@ export function ProjectEditBriefWorkspace({
           <span className="section-eyebrow">Edit setup</span>
           <h2>{editSessionTitle ?? 'Untitled edit'}</h2>
           <p>
-            Upload the source video for this edit, write the brief, then continue to planning and approval when the backend execution lane is ready.
+            Upload the source video for this edit, add optional direction if useful, then approve a clean private test plan before preview work starts.
           </p>
         </div>
         <Button to={`/projects/${projectId}`} variant="secondary">
@@ -800,7 +813,7 @@ export function ProjectEditBriefWorkspace({
           {editFlowSteps.map((step) => (
             <li data-state={step.status} key={step.id}>
               <span>{step.label}</span>
-              <strong>{step.status === 'complete' ? 'Done' : step.status === 'current' ? 'Now' : 'Locked'}</strong>
+              <strong>{step.status === 'complete' ? 'Done' : step.status === 'current' ? 'Now' : step.status === 'optional' ? 'Optional' : 'Locked'}</strong>
             </li>
           ))}
         </ol>
@@ -861,23 +874,24 @@ export function ProjectEditBriefWorkspace({
               <MessageSquareText aria-hidden="true" size={22} />
               <div>
                 <h3>Edit brief</h3>
-                <p>Tell ReEditPro what this edit should feel like.</p>
+                <p>Optional. Use it when you want stronger direction than the default professional edit plan.</p>
               </div>
             </div>
             <label htmlFor="clean-edit-brief-text">Instructions</label>
             <textarea
               id="clean-edit-brief-text"
               onChange={(event) => updateBriefText(event.currentTarget.value)}
+              placeholder="Example: Make this a clean YouTube intro with readable captions, natural voice, and no flashy effects."
               rows={6}
               value={briefText}
             />
             <Button onClick={saveBrief} type="button" variant="primary">
-              {briefSaveStatus === 'saving' ? 'Saving brief...' : 'Save brief'}
+              {briefSaveStatus === 'saving' ? 'Saving direction...' : 'Save optional direction'}
             </Button>
             <p className="project-edit-brief-muted" data-testid="project-edit-brief-save-status">
               {briefSaveStatus === 'saved' && backendSavedBrief
-                ? `Backend-local brief saved: ${backendSavedBrief.id}`
-                : briefSaveError ?? 'Saving the brief records the instruction before plan approval.'}
+                ? `Backend-local direction saved: ${backendSavedBrief.id}`
+                : briefSaveError ?? 'You can approve a plan without saving this. If blank, ReEditPro uses the default clean professional direction.'}
             </p>
           </Card>
         </main>
@@ -887,11 +901,11 @@ export function ProjectEditBriefWorkspace({
             <span className="section-eyebrow">Next</span>
             <h3>Approve the test plan</h3>
             <p>
-              After upload and brief save, approve the local edit plan and credit estimate before any preview smoke can run.
+              After upload, approve the local edit plan and credit estimate before any preview smoke can run. Optional direction is included when present.
             </p>
             <ul>
               <li>Video stays inside this edit workspace.</li>
-              <li>Plan approval is explicit and reversible by changing the brief.</li>
+              <li>Plan approval is explicit and reversible by changing the direction.</li>
               <li>Editing tools do not run from this UI screen.</li>
             </ul>
           </Card>

@@ -46,7 +46,6 @@ import type {
   ReeditProApiClientSafetySummary,
   ReeditProApiTransport,
 } from './reeditpro-api-client-types'
-import { getSupabaseClient } from '../backend/supabase/supabase-client'
 import { createMockProjectEditBriefFixtureBundle } from './mock-project-edit-briefs'
 import {
   createProjectEditBriefBundle,
@@ -244,15 +243,8 @@ function createRequestId(routeId: string) {
   return `${routeId}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`
 }
 
-async function getSupabaseAccessToken(): Promise<string | undefined> {
-  const client = getSupabaseClient()
-  if (!client) return undefined
-  const { data } = await client.auth.getSession()
-  return data.session?.access_token
-}
-
 async function createAuthHeaders(options: ReeditProApiClientOptions): Promise<Record<string, string>> {
-  const token = await (options.getAccessToken ?? getSupabaseAccessToken)()
+  const token = await options.getAccessToken?.()
   return token ? { authorization: `Bearer ${token}` } : {}
 }
 

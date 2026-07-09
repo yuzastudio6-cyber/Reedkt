@@ -1,5 +1,8 @@
 import { z } from 'zod'
 import { idSchema } from './common-schemas'
+import type { CreativeSkillKey } from '../../src/types'
+
+const creativeSkillKeySchema = z.string().min(1).max(120).transform((value) => value as CreativeSkillKey)
 
 const localEditPlanStepSchema = z.object({
   label: z.string().min(1).max(120),
@@ -66,6 +69,37 @@ const localEditPlanCreditEstimateSchema = z.object({
   message: 'Credit estimate must be ordered low <= expected <= high.',
 })
 
+const localEditPlanSkillActivitySchema = z.object({
+  id: z.enum([
+    'story_cleanup',
+    'captions_readability',
+    'voice_polish',
+    'visual_clarity',
+    'motion_restraint',
+    'color_finish',
+    'private_review_qa',
+  ]),
+  label: z.string().min(1).max(120),
+  summary: z.string().min(1).max(800),
+  skillKeys: z.array(creativeSkillKeySchema).min(1).max(16),
+  approvalRequired: z.boolean(),
+  executionMode: z.literal('planning_only'),
+  productReady: z.literal(false),
+})
+
+const localEditPlanSkillPlanSchema = z.object({
+  version: z.literal('project-edit-skill-plan-v1'),
+  directionSource: z.enum(['saved_edit_brief', 'chat_prompt', 'default_professional_direction']),
+  directionSummary: z.string().min(1).max(4000),
+  activities: z.array(localEditPlanSkillActivitySchema).min(1).max(12),
+  selectedSkillKeys: z.array(creativeSkillKeySchema).min(1).max(80),
+  blockedSkillKeys: z.array(creativeSkillKeySchema).max(40),
+  planningOnly: z.literal(true),
+  exposesInternalToolNames: z.literal(false),
+  productReady: z.literal(false),
+  warnings: z.array(z.string().min(1).max(500)).max(12),
+})
+
 const localEditPlanBriefLineageSchema = z.object({
   briefId: idSchema,
   revisionNumber: z.number().int().positive(),
@@ -90,6 +124,8 @@ export const createApprovedLocalEditPlanSchema = z.object({
   summary: z.string().min(1).max(4000),
   steps: z.array(localEditPlanStepSchema).min(1).max(12),
   operationManifest: localEditPlanOperationManifestSchema,
+  directionSource: z.enum(['saved_edit_brief', 'chat_prompt', 'default_professional_direction']),
+  skillPlan: localEditPlanSkillPlanSchema,
   creditEstimate: localEditPlanCreditEstimateSchema,
   briefLineage: localEditPlanBriefLineageSchema,
   source: localEditPlanSourceSchema,

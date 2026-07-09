@@ -141,7 +141,7 @@ export function ProjectEditBriefFinalExportCard({
 
       {!canRun ? (
         <p className="project-edit-brief-final-export__hint">
-          Save the brief, approve the plan, run the preview, approve the preview, and pass QA before creating a private export.
+          Upload the source, approve the plan, run the preview, approve the preview, and pass QA before creating a private export.
         </p>
       ) : null}
     </Card>

@@ -14,6 +14,10 @@ const realVideoFixturePath = process.env.REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_P
 const fixtureRoot = path.join(repoRoot, 'test-results', 'project-source-video-real-local-api')
 const npmBin = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 const playwrightBin = path.join(repoRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'playwright.cmd' : 'playwright')
+const playwrightSpecs = [
+  'tests/e2e/project-source-video-backend-upload-local-api.spec.ts',
+  'tests/e2e/project-create-edit-upload-local-api.spec.ts',
+]
 const apiBaseUrl = `http://127.0.0.1:${apiPort}`
 const appBaseUrl = `http://127.0.0.1:${appPort}`
 
@@ -96,7 +100,7 @@ function runPlaywright() {
   return new Promise((resolve, reject) => {
     const child = spawn(playwrightBin, [
       'test',
-      'tests/e2e/project-source-video-backend-upload-local-api.spec.ts',
+      ...playwrightSpecs,
       '--reporter=line',
     ], {
       cwd: repoRoot,
@@ -160,7 +164,8 @@ async function main() {
   if (realVideoFixturePath) {
     console.log(`Real video fixture: ${realVideoFixturePath}`)
   }
-  console.log('Mode: browser-local mock sign-in + backend-local upload + gated preview review, QA, and private export smoke. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.')
+  console.log(`Specs: ${playwrightSpecs.join(', ')}`)
+  console.log('Mode: browser-local mock sign-in + backend-local upload + dynamic project/edit creation + gated preview review, QA, and private export smoke. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.')
 
   spawnServer('api', ['run', 'dev:api'], {
     NODE_ENV: 'development',
@@ -190,7 +195,7 @@ async function main() {
   await waitForHttp(`${apiBaseUrl}/health`, 'API')
   await waitForHttp(`${appBaseUrl}/sign-in`, 'App')
   await runPlaywright()
-  console.log('Local upload E2E verifier passed: sign-in, Edit Brief upload, local preview review, QA, private export smoke, and Qwen 3.7 Max identity checks succeeded.')
+  console.log('Local upload E2E verifier passed: sign-in, project creation, edit creation, Edit Brief upload, local preview review, QA, private export smoke, and Qwen 3.7 Max identity checks succeeded.')
 }
 
 try {

@@ -187,6 +187,8 @@
     "smoke:internal-testing-real-video-acceptance-preflight": "tsx server/smoke/internal-testing-real-video-acceptance-preflight-smoke.ts",
     "smoke:internal-testing-real-video-upload-acceptance-runner": "tsx server/smoke/internal-testing-real-video-upload-acceptance-runner-smoke.ts",
     "test:internal-testing:real-video-upload-acceptance": "node scripts/dev/internal-testing-real-video-upload-acceptance.mjs",
+    "smoke:internal-testing-real-video-prompt-plan-acceptance": "tsx server/smoke/internal-testing-real-video-prompt-plan-acceptance-smoke.ts",
+    "test:internal-testing:real-video-prompt-plan-acceptance": "node scripts/dev/internal-testing-real-video-prompt-plan-acceptance.mjs",
     "qa:internal-testing": "node scripts/validation/internal-testing-qa-runner.mjs",
     "generate:project-edit-brief-owner-evidence-draft": "tsx scripts/validation/project-edit-brief-owner-evidence-example-generator.ts --mode draft --stdout",
     "smoke:project-edit-brief-visual-context": "tsx server/smoke/project-edit-brief-visual-context-smoke.ts",

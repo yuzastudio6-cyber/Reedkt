@@ -69,6 +69,7 @@ function validatePaths(
     ['proxyLocalPath', input.proxyLocalPaths ?? []],
     ['captionLocalPath', input.captionLocalPaths ?? []],
     ['captionOverlayLocalPath', input.captionOverlayInputs?.map((item) => item.localPath) ?? []],
+    ['visualOverlayLocalPath', input.visualOverlayInputs?.map((item) => item.localPath) ?? []],
     ['audioLocalPath', input.audioLocalPaths ?? []],
     ['outputDirectory', input.outputDirectory ? [input.outputDirectory] : []],
   ] as const) {
@@ -101,15 +102,33 @@ function validatePaths(
     }
     for (const overlay of input.captionOverlayInputs ?? []) {
       if (!existsSync(overlay.localPath)) issues.push(blocking('caption_overlay_missing', 'A required private caption overlay is missing.'))
-      if (overlay.startSeconds < 0 || overlay.endSeconds <= overlay.startSeconds || overlay.endSeconds > input.durationSeconds + 0.05) {
-        issues.push(blocking('caption_overlay_timing_invalid', 'A caption overlay has an invalid approved timeline range.'))
-      }
-      if ((overlay.x !== undefined && overlay.x < 0) || (overlay.y !== undefined && overlay.y < 0)) {
-        issues.push(blocking('caption_overlay_position_invalid', 'Caption overlay positions must stay inside the approved frame.'))
-      }
+      validateTimedOverlay(input, overlay, 'caption', issues)
+    }
+    for (const overlay of input.visualOverlayInputs ?? []) {
+      if (!existsSync(overlay.localPath)) issues.push(blocking('visual_overlay_missing', 'A required private visual overlay is missing.'))
+      validateTimedOverlay(input, overlay, 'visual', issues)
     }
     if (input.enableCaptionBurnIn === true && (input.captionOverlayInputs?.length ?? 0) === 0 && (input.captionLocalPaths?.length ?? 0) === 0) {
       issues.push(blocking('caption_burnin_input_missing', 'Caption burn-in requires validated ASS or raster overlay inputs.'))
+    }
+  }
+}
+
+function validateTimedOverlay(
+  input: FinalRenderExecutionInput,
+  overlay: NonNullable<FinalRenderExecutionInput['visualOverlayInputs']>[number],
+  label: 'caption' | 'visual',
+  issues: RenderExecutionValidationResult['issues'],
+): void {
+  if (overlay.startSeconds < 0 || overlay.endSeconds <= overlay.startSeconds || overlay.endSeconds > input.durationSeconds + 0.05) {
+    issues.push(blocking(`${label}_overlay_timing_invalid`, `A ${label} overlay has an invalid approved timeline range.`))
+  }
+  if ((overlay.x !== undefined && overlay.x < 0) || (overlay.y !== undefined && overlay.y < 0)) {
+    issues.push(blocking(`${label}_overlay_position_invalid`, `${label} overlay positions must stay inside the approved frame.`))
+  }
+  for (const duration of [overlay.fadeInSeconds, overlay.fadeOutSeconds]) {
+    if (duration !== undefined && (duration <= 0 || duration > 1)) {
+      issues.push(blocking(`${label}_overlay_fade_invalid`, `${label} overlay fades must be greater than zero and no more than one second.`))
     }
   }
 }
@@ -122,6 +141,21 @@ function validateRenderSettings(
   if (input.fps < 1 || input.fps > 120) issues.push(blocking('invalid_fps', 'Render fps must be between 1 and 120.'))
   if (input.canvas.width <= 0 || input.canvas.height <= 0 || input.canvas.width > 4096 || input.canvas.height > 4096) {
     issues.push(blocking('invalid_canvas', 'Render canvas must be positive and no larger than 4096x4096 in M16A.'))
+  }
+  if (input.localDevRenderProfile?.audioFinish === 'clean_voice_denoised') {
+    const evidence = input.localDevRenderProfile.voiceCleanupEvidence
+    if (!evidence) {
+      issues.push(blocking('voice_cleanup_evidence_required', 'Measured voice cleanup evidence is required before spectral denoising.'))
+    } else {
+      if (evidence.naturalnessQaRequired !== true) issues.push(blocking('voice_naturalness_qa_required', 'Denoised voice must require naturalness QA.'))
+      if (evidence.speechToNoiseFloorDb < 0 || evidence.speechToNoiseFloorDb > 18) {
+        issues.push(blocking('voice_cleanup_not_justified', 'Spectral denoising is only allowed for measured low-margin voice recordings.'))
+      }
+      if (evidence.spectralNoiseReductionDb < 3 || evidence.spectralNoiseReductionDb > 12) {
+        issues.push(blocking('voice_cleanup_reduction_unsafe', 'Spectral noise reduction must stay within the approved conservative range.'))
+      }
+      if (evidence.evidenceNote.trim().length < 24) issues.push(blocking('voice_cleanup_evidence_note_required', 'Voice cleanup evidence requires an auditable rationale.'))
+    }
   }
 }
 

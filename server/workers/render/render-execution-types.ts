@@ -16,6 +16,25 @@ export type FinalRenderExecutionMode =
 export type FinalRenderEngine = 'remotion' | 'ffmpeg' | 'libass' | 'hybrid'
 export type FinalRenderMode = 'preview' | 'final_export' | 'command_plan_only'
 
+export interface TimedRasterOverlayInput {
+  localPath: string
+  startSeconds: number
+  endSeconds: number
+  x?: number
+  y?: number
+  fadeInSeconds?: number
+  fadeOutSeconds?: number
+}
+
+export interface VoiceCleanupEvidence {
+  measuredNoiseFloorDbfs: number
+  measuredSpeechRmsDbfs: number
+  speechToNoiseFloorDb: number
+  spectralNoiseReductionDb: number
+  naturalnessQaRequired: true
+  evidenceNote: string
+}
+
 export interface FinalRenderExecutionInput {
   mode: FinalRenderExecutionMode
   workspaceId: string
@@ -44,13 +63,8 @@ export interface FinalRenderExecutionInput {
   sourceLocalPaths?: string[]
   proxyLocalPaths?: string[]
   captionLocalPaths?: string[]
-  captionOverlayInputs?: Array<{
-    localPath: string
-    startSeconds: number
-    endSeconds: number
-    x?: number
-    y?: number
-  }>
+  captionOverlayInputs?: TimedRasterOverlayInput[]
+  visualOverlayInputs?: TimedRasterOverlayInput[]
   audioLocalPaths?: string[]
   outputDirectory?: string
   outputFileName?: string
@@ -68,8 +82,9 @@ export interface FinalRenderExecutionInput {
   ffprobeBin?: string
   localDevRenderProfile?: {
     visualFinish: 'none' | 'clean_natural' | 'premium_clean'
-    audioFinish: 'none' | 'clean_voice'
+    audioFinish: 'none' | 'clean_voice' | 'clean_voice_denoised'
     subtlePunchIns: boolean
+    voiceCleanupEvidence?: VoiceCleanupEvidence
   }
   allowRevideo?: boolean
   timeoutMs?: number

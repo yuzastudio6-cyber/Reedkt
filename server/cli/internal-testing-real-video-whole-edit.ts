@@ -14,17 +14,21 @@ import { approveEditPlan } from '../../src/backend/services/edit-plan-service'
 import { unwrapServiceResult } from '../../src/backend/service-result'
 import { loadRuntimeEnv } from '../config/env'
 import {
-  buildInternalTestingWholeEditCaptionCues,
-  buildInternalTestingWholeEditGate,
-  buildInternalTestingWholeEditSegments,
-  buildInternalTestingWholeEditTimeline,
-  buildInternalTestingWholeEditTranscript,
-  INTERNAL_TESTING_REAL_VIDEO_FPS,
-  INTERNAL_TESTING_REAL_VIDEO_OUTPUT_FILE,
-  INTERNAL_TESTING_REAL_VIDEO_SHA256,
-  internalTestingWholeEditDurationSeconds,
-} from '../internal-testing/real-video-whole-edit-spec'
-import { renderPrivateCaptionOverlays } from '../internal-testing/caption-overlay-renderer'
+  buildProfessionalCaptionTranscript,
+  buildProfessionalEditSegments,
+  buildProfessionalGate,
+  buildProfessionalGraphicCues,
+  buildProfessionalKineticCaptionCues,
+  buildProfessionalTimeline,
+  compileProfessionalRealVideoEditV2Plan,
+  PROFESSIONAL_REAL_VIDEO_V2_CAPTION_REFERENCE_SHA256,
+  PROFESSIONAL_REAL_VIDEO_V2_FPS,
+  PROFESSIONAL_REAL_VIDEO_V2_OUTPUT_FILE,
+  PROFESSIONAL_REAL_VIDEO_V2_SOURCE_SHA256,
+  professionalEditDurationSeconds,
+} from '../internal-testing/professional-real-video-edit-v2-spec'
+import { measureOutputLoudness, measureProfessionalAudioEvidence } from '../internal-testing/professional-audio-evidence'
+import { renderProfessionalGraphicOverlays, renderProfessionalKineticCaptionOverlays } from '../internal-testing/professional-overlay-renderer'
 import { resolveLocalStorageObjectPath } from '../media/local-media-paths'
 import { createUploadService } from '../services/upload-service'
 import type { ServiceContext } from '../types'
@@ -38,9 +42,13 @@ const sourcePath = resolve(
   process.env.REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_PATH?.trim() ||
     join(homedir(), 'Documents/test video/internal testing.MP4'),
 )
+const captionReferencePath = resolve(
+  process.env.REEDITPRO_INTERNAL_TESTING_CAPTION_REFERENCE_PATH?.trim() ||
+    '/private/tmp/reeditpro-caption-reference-instagram.mp4',
+)
 const outputRoot = resolve(
   process.env.REEDITPRO_INTERNAL_TESTING_WHOLE_EDIT_OUTPUT_ROOT?.trim() ||
-    join(homedir(), 'Documents/test video/ReEditPro final edits/internal-testing-reeditpro-final'),
+    join(homedir(), 'Documents/test video/ReEditPro final edits/reeditpro-professional-final-v2'),
 )
 const localModelPath = resolve(
   process.env.REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_MODEL_PATH?.trim() ||
@@ -55,30 +63,38 @@ const structuredIntent = {
   style: 'premium_clean',
   pacing: 'clean_tight',
   cleanup: 'balanced_cleanup',
-  captions: 'bold_social_captions',
-  audio: 'clean_voice',
+  captions: 'reference_informed_kinetic_captions',
+  audio: 'measured_clean_voice_denoised',
   aspectRatio: '9:16',
   canvas: { width: 1080, height: 1920 },
   mustFollow: [
     'Preserve the complete product story and feedback request.',
     'Remove repeated starts, abandoned phrases, and long dead spaces.',
     'Keep the speaker primary and avoid random b-roll or decorative effects.',
-    'Use readable face-safe captions and a restrained vertical social finish.',
+    'Adapt the supplied reference into fast rounded captions with selective orange emphasis without copying its media or branding.',
+    'Use only source-justified graphics and require voice naturalness QA after measured cleanup.',
   ],
 }
-const planningPrompt = 'Create a clean professional vertical social edit from this source video. Keep the product story intact, tighten repeated starts and pauses, add readable captions, lightly polish the voice and picture, avoid clutter, and prepare a private final review.'
+const planningPrompt = 'Create a professional high-retention vertical product-launch edit from the complete source. Preserve the speaker’s meaning, remove false starts and abandoned phrases, use the supplied caption reference as style guidance only, add restrained product graphics, clean the measured noisy voice conservatively, and prepare a private final review.'
 
 assert.equal(existsSync(sourcePath), true, `Internal testing source video is missing: ${sourcePath}`)
 assert.equal(extname(sourcePath).toLowerCase(), '.mp4', 'Internal testing whole-edit source must be an MP4.')
+assert.equal(existsSync(captionReferencePath), true, `Caption reference video is missing: ${captionReferencePath}`)
 assert.equal(existsSync(localModelPath), true, `Approved local faster-whisper model is missing: ${localModelPath}`)
 assert.equal(existsSync(pythonCommand), true, `Approved local faster-whisper runtime is missing: ${pythonCommand}`)
 
 const sourceBytes = await readFile(sourcePath)
 const sourceChecksumSha256 = createHash('sha256').update(sourceBytes).digest('hex')
+const captionReferenceChecksumSha256 = createHash('sha256').update(await readFile(captionReferencePath)).digest('hex')
 assert.equal(
   sourceChecksumSha256,
-  INTERNAL_TESTING_REAL_VIDEO_SHA256,
+  PROFESSIONAL_REAL_VIDEO_V2_SOURCE_SHA256,
   'Internal testing whole-edit fixture changed; source-specific trim and caption approval must be reviewed again.',
+)
+assert.equal(
+  captionReferenceChecksumSha256,
+  PROFESSIONAL_REAL_VIDEO_V2_CAPTION_REFERENCE_SHA256,
+  'Caption reference changed; the visual-language adaptation must be reviewed again.',
 )
 
 await rm(outputRoot, { recursive: true, force: true })
@@ -86,6 +102,7 @@ await mkdir(outputRoot, { recursive: true })
 const localStorageRoot = await mkdtemp(join(tmpdir(), 'reeditpro-whole-edit-storage-'))
 const mediaOutputRoot = await mkdtemp(join(tmpdir(), 'reeditpro-whole-edit-media-'))
 const speechOutputRoot = await mkdtemp(join(tmpdir(), 'reeditpro-whole-edit-speech-'))
+const finalQaSpeechOutputRoot = await mkdtemp(join(tmpdir(), 'reeditpro-professional-v2-final-qa-speech-'))
 
 try {
   const env = loadRuntimeEnv({
@@ -216,6 +233,9 @@ try {
   assert.ok((mediaFoundation.probe.durationSeconds ?? 0) >= 65, 'Whole-edit source duration is unexpectedly short.')
   assert.equal(mediaFoundation.audio?.status, 'created')
   assert.ok(mediaFoundation.audio.artifact?.localFilePath)
+  const audioEvidence = await measureProfessionalAudioEvidence({ sourcePath, ffmpegBin: env.ffmpegBin })
+  assert.ok(audioEvidence.sourceIntegratedLufs < -24, 'Measured source loudness does not match the reviewed quiet-source condition.')
+  assert.ok(audioEvidence.voiceCleanupEvidence.speechToNoiseFloorDb < 18, 'Measured source does not justify the approved conservative denoising path.')
 
   const speechToolExecutionPlanId = `tool-execution-${planningState.project.id}-whole-edit-speech`
   const speechWorkerPayload = buildWorkerPayload({
@@ -263,11 +283,22 @@ try {
     workerPayload: speechWorkerPayload,
   })
   assert.equal(speechCaption.status, 'completed', 'Real local transcription must complete before source-specific edit execution.')
-  assert.ok(speechCaption.transcript?.fullText.toLowerCase().includes('software'))
-  assert.ok(speechCaption.transcript?.fullText.toLowerCase().includes('customers'))
+  const sourceTranscript = speechCaption.transcript
+  if (!sourceTranscript) throw new Error('Real local transcription completed without a transcript record.')
+  assert.ok(sourceTranscript.fullText.toLowerCase().includes('software'))
+  assert.ok(sourceTranscript.fullText.toLowerCase().includes('customers'))
+
+  const professionalPlan = compileProfessionalRealVideoEditV2Plan({
+    sourceChecksumSha256,
+    captionReferenceChecksumSha256,
+    transcriptFullText: sourceTranscript.fullText,
+    voiceCleanupEvidence: audioEvidence.voiceCleanupEvidence,
+    sourceIntegratedLufs: audioEvidence.sourceIntegratedLufs,
+    sourceTruePeakDbfs: audioEvidence.sourceTruePeakDbfs,
+  })
 
   const renderToolExecutionPlanId = `tool-execution-${planningState.project.id}-whole-edit-render`
-  const curatedTranscript = buildInternalTestingWholeEditTranscript()
+  const curatedTranscript = buildProfessionalCaptionTranscript()
   const captionExecution = await runCaptionExecution({
     mode: 'local_dev',
     workspaceId: planningState.project.workspaceId,
@@ -297,14 +328,20 @@ try {
     const gate = captionExecution.qaResults.find((item) => item.gateType === gateType)
     assert.equal(gate?.status, 'passed', `Caption QA gate ${gateType} must pass before rendering.`)
   }
-  const captionOverlays = await renderPrivateCaptionOverlays({
-    cues: buildInternalTestingWholeEditCaptionCues(),
+  const captionOverlays = await renderProfessionalKineticCaptionOverlays({
+    cues: buildProfessionalKineticCaptionCues(),
     outputDirectory: outputRoot,
     outputCanvas: structuredIntent.canvas,
   })
-  assert.equal(captionOverlays.length, buildInternalTestingWholeEditCaptionCues().length)
+  assert.equal(captionOverlays.length, buildProfessionalKineticCaptionCues().length)
+  const visualOverlays = await renderProfessionalGraphicOverlays({
+    cues: buildProfessionalGraphicCues(),
+    outputDirectory: outputRoot,
+    outputCanvas: structuredIntent.canvas,
+  })
+  assert.equal(visualOverlays.length, buildProfessionalGraphicCues().length)
 
-  const timelineManifest = buildInternalTestingWholeEditTimeline({
+  const timelineManifest = buildProfessionalTimeline({
     workspaceId: planningState.project.workspaceId,
     projectId: planningState.project.id,
     editPlanId: planningState.editPlan.id,
@@ -313,7 +350,7 @@ try {
     sourceStorageObjectPath: finalizedUpload.storageObjectRecord.objectPath,
   })
   const upstreamQaResults: QualityGateResult[] = [
-    buildInternalTestingWholeEditGate({
+    buildProfessionalGate({
       gateType: 'cut_smoothness',
       workspaceId: planningState.project.workspaceId,
       projectId: planningState.project.id,
@@ -321,13 +358,37 @@ try {
       toolExecutionPlanId: renderToolExecutionPlanId,
       reason: 'Source ranges were reviewed against real transcript timing and preserve complete spoken thoughts.',
     }),
-    buildInternalTestingWholeEditGate({
+    buildProfessionalGate({
       gateType: 'transcript_alignment',
       workspaceId: planningState.project.workspaceId,
       projectId: planningState.project.id,
       mediaAssetId: finalizedUpload.mediaAsset.id,
       toolExecutionPlanId: renderToolExecutionPlanId,
       reason: 'Curated captions were reconciled against approved local transcription and the fixed source checksum.',
+    }),
+    buildProfessionalGate({
+      gateType: 'audio_loudness',
+      workspaceId: planningState.project.workspaceId,
+      projectId: planningState.project.id,
+      mediaAssetId: finalizedUpload.mediaAsset.id,
+      toolExecutionPlanId: renderToolExecutionPlanId,
+      reason: `Source loudness measured ${audioEvidence.sourceIntegratedLufs} LUFS and requires an approved -16 LUFS voice-first finish.`,
+    }),
+    buildProfessionalGate({
+      gateType: 'audio_naturalness',
+      workspaceId: planningState.project.workspaceId,
+      projectId: planningState.project.id,
+      mediaAssetId: finalizedUpload.mediaAsset.id,
+      toolExecutionPlanId: renderToolExecutionPlanId,
+      reason: `A conservative ${audioEvidence.voiceCleanupEvidence.spectralNoiseReductionDb} dB spectral reduction is justified by measured low-margin voice evidence and requires post-render transcription/listening review.`,
+    }),
+    buildProfessionalGate({
+      gateType: 'color_exposure',
+      workspaceId: planningState.project.workspaceId,
+      projectId: planningState.project.id,
+      mediaAssetId: finalizedUpload.mediaAsset.id,
+      toolExecutionPlanId: renderToolExecutionPlanId,
+      reason: 'The source contact sheet was reviewed for a restrained contrast/saturation finish with skin-tone protection.',
     }),
     ...captionExecution.qaResults.filter((gate) => gate.gateType !== 'transcript_alignment'),
   ]
@@ -343,8 +404,8 @@ try {
     renderEngine: 'ffmpeg',
     renderMode: 'final_export',
     canvas: { width: 1080, height: 1920, aspectRatio: '9:16', backgroundColor: '#000000' },
-    fps: INTERNAL_TESTING_REAL_VIDEO_FPS,
-    durationSeconds: internalTestingWholeEditDurationSeconds(),
+    fps: PROFESSIONAL_REAL_VIDEO_V2_FPS,
+    durationSeconds: professionalEditDurationSeconds(),
     layers: [],
     assets: timelineManifest.sourceReferences,
     captions: [{
@@ -355,7 +416,7 @@ try {
     }],
     audio: {
       sourceArtifactIds: [mediaFoundation.audio.artifact.artifactId],
-      mixSettings: { presetId: 'clean_voice', noMusic: true, noSfx: true },
+      mixSettings: { presetId: 'clean_voice_denoised', noMusic: true, noSfx: true },
       loudnessTarget: -16,
     },
     color: {
@@ -379,7 +440,7 @@ try {
     requestedToolIds: ['ffmpeg', 'libass'],
     requestedRecipeIds: ['final_export_recipe'],
     storageReferenceIds: [finalizedUpload.storageObjectRecord.id, captionAssArtifact.id],
-    requiredQualityGateTypes: ['cut_smoothness', 'transcript_alignment', 'caption_timing', 'caption_readability', 'caption_safe_zone'],
+    requiredQualityGateTypes: ['cut_smoothness', 'transcript_alignment', 'caption_timing', 'caption_readability', 'caption_safe_zone', 'audio_loudness', 'audio_naturalness', 'color_exposure'],
     renderMode: 'final_export',
   })
   const renderResult = await runFinalRenderExecutionPipeline({
@@ -401,12 +462,13 @@ try {
     audioArtifactIds: [mediaFoundation.audio.artifact.artifactId],
     qaGateResultIds: upstreamQaResults.map((gate) => gate.id),
     upstreamQaResults,
-    requiredUpstreamQaGateTypes: ['cut_smoothness', 'transcript_alignment', 'caption_timing', 'caption_readability', 'caption_safe_zone'],
+    requiredUpstreamQaGateTypes: ['cut_smoothness', 'transcript_alignment', 'caption_timing', 'caption_readability', 'caption_safe_zone', 'audio_loudness', 'audio_naturalness', 'color_exposure'],
     sourceLocalPaths: [sourceLocalPath],
     captionLocalPaths: [captionAssPath],
     captionOverlayInputs: captionOverlays,
+    visualOverlayInputs: visualOverlays,
     outputDirectory: outputRoot,
-    outputFileName: INTERNAL_TESTING_REAL_VIDEO_OUTPUT_FILE,
+    outputFileName: PROFESSIONAL_REAL_VIDEO_V2_OUTPUT_FILE,
     renderEngine: 'ffmpeg',
     renderMode: 'final_export',
     canvas: renderManifest.canvas,
@@ -421,8 +483,9 @@ try {
     ffprobeBin: env.ffprobeBin,
     localDevRenderProfile: {
       visualFinish: 'premium_clean',
-      audioFinish: 'clean_voice',
+      audioFinish: 'clean_voice_denoised',
       subtlePunchIns: true,
+      voiceCleanupEvidence: audioEvidence.voiceCleanupEvidence,
     },
     timeoutMs: 900_000,
   })
@@ -430,14 +493,82 @@ try {
   assert.equal(renderResult.finalDeliveryAllowed, true, 'Private final delivery QA must pass for the completed local artifact.')
   assert.equal(renderResult.blocksFinalExport, false)
   assert.ok(renderResult.outputLocalPath && existsSync(renderResult.outputLocalPath))
-  assert.equal(renderResult.outputLocalPath, join(outputRoot, INTERNAL_TESTING_REAL_VIDEO_OUTPUT_FILE))
+  assert.equal(renderResult.outputLocalPath, join(outputRoot, PROFESSIONAL_REAL_VIDEO_V2_OUTPUT_FILE))
   assert.equal(renderResult.outputProbe?.width, 1080)
   assert.equal(renderResult.outputProbe?.height, 1920)
   assert.ok((renderResult.outputProbe?.audioStreams.length ?? 0) > 0)
 
+  const finalOutputLoudness = await measureOutputLoudness({ sourcePath: renderResult.outputLocalPath, ffmpegBin: env.ffmpegBin })
+  assert.ok(finalOutputLoudness.integratedLufs >= -17 && finalOutputLoudness.integratedLufs <= -15, `Final voice loudness is outside the approved -16 LUFS target: ${finalOutputLoudness.integratedLufs}.`)
+  assert.ok(finalOutputLoudness.truePeakDbfs <= -1, `Final true peak is unsafe: ${finalOutputLoudness.truePeakDbfs} dBFS.`)
+
+  const finalQaToolExecutionPlanId = `tool-execution-${planningState.project.id}-professional-v2-final-transcript-qa`
+  const finalQaWorkerPayload = buildWorkerPayload({
+    jobId: `job-${planningState.project.id}-professional-v2-final-transcript-qa`,
+    planningState,
+    approvedSnapshotId: approvedPlan.id,
+    mediaAssetId: finalizedUpload.mediaAsset.id,
+    toolExecutionPlanId: finalQaToolExecutionPlanId,
+    creditReservationId: creditReservation.id,
+    workerType: 'gpu_ai_worker',
+    requestedToolIds: ['faster_whisper'],
+    requestedRecipeIds: ['final_transcript_naturalness_qa_recipe'],
+    storageReferenceIds: [renderResult.finalExportArtifact?.id ?? finalizedUpload.storageObjectRecord.id],
+    requiredQualityGateTypes: ['transcript_alignment', 'audio_naturalness'],
+  })
+  const finalSpeechQa = await runSpeechCaptionExecutionPipeline({
+    mode: 'local_dev',
+    workspaceId: planningState.project.workspaceId,
+    projectId: planningState.project.id,
+    mediaAssetId: finalizedUpload.mediaAsset.id,
+    approvedSnapshotId: approvedPlan.id,
+    toolExecutionPlanId: finalQaToolExecutionPlanId,
+    idempotencyKey: finalQaWorkerPayload.idempotencyKey,
+    sourceAudioArtifactId: renderResult.finalExportArtifact?.id ?? `final-export-${finalizedUpload.mediaAsset.id}`,
+    sourceAudioLocalPath: renderResult.outputLocalPath,
+    sourceVideoLocalPath: renderResult.outputLocalPath,
+    outputDirectory: finalQaSpeechOutputRoot,
+    modelWeightManifestId: 'faster_whisper_model',
+    modelName: 'faster-whisper-small-approved-local',
+    localModelPath,
+    language: 'en',
+    device: 'cpu',
+    computeType: 'int8',
+    wordTimestamps: true,
+    vadFilter: true,
+    beamSize: 5,
+    timeoutMs: 180_000,
+    enableRealTranscription: true,
+    allowModelDownload: false,
+    pythonCommand,
+    enableCaptionPreview: false,
+    buildSpeech: true,
+    buildCaptions: false,
+    workerPayload: finalQaWorkerPayload,
+  })
+  assert.equal(finalSpeechQa.status, 'completed', 'Independent final transcript QA must complete.')
+  const finalTranscript = finalSpeechQa.transcript?.fullText.toLowerCase() ?? ''
+  for (const signal of [
+    { meaning: 'software', acceptedPhrases: ['software'] },
+    { meaning: 'editing-service scale', acceptedPhrases: ['editing services', 'scale your services'] },
+    { meaning: 'customers', acceptedPhrases: ['customers', 'costumers'] },
+    { meaning: 'feedback', acceptedPhrases: ['feedback'] },
+    { meaning: 'bugs', acceptedPhrases: ['bugs'] },
+    { meaning: 'sign-off', acceptedPhrases: ['next time'] },
+  ]) {
+    assert.ok(
+      signal.acceptedPhrases.some((phrase) => finalTranscript.includes(phrase)),
+      `Final transcript QA lost required source meaning: ${signal.meaning}.`,
+    )
+  }
+  for (const falseStart of ['which he', 'give me and give us', 'i think she']) {
+    assert.equal(finalTranscript.includes(falseStart), false, `Final transcript QA retained an excluded false start: ${falseStart}.`)
+  }
+
   const finalStat = await stat(renderResult.outputLocalPath)
   const planRecord = {
-    decision: 'internal_testing_real_video_whole_edit_completed_ready_for_private_user_review',
+    ...professionalPlan,
+    decision: 'professional_real_video_edit_v2_completed_ready_for_private_user_review',
     source: {
       fileName: basename(sourcePath),
       checksumSha256: sourceChecksumSha256,
@@ -455,8 +586,8 @@ try {
       reservedCredits: creditReservation.reservedCredits,
     },
     structuredIntent,
-    segments: buildInternalTestingWholeEditSegments(),
-    finalDurationSeconds: internalTestingWholeEditDurationSeconds(),
+    segments: buildProfessionalEditSegments(),
+    finalDurationSeconds: professionalEditDurationSeconds(),
     outputFrame: renderManifest.canvas,
   }
   const artifactManifest = {
@@ -481,16 +612,26 @@ try {
     gcsWrites: false,
   }
   const qaReport = {
-    status: 'passed_technical_and_structured_intent_qa_pending_user_creative_review',
+    decision: planRecord.decision,
+    status: 'passed_source_aware_technical_qa_ready_for_private_user_creative_review',
     sourceChecksumMatched: true,
     realTranscriptionCompleted: true,
     transcriptModel: 'faster-whisper-small-approved-local',
     modelDownloadPerformed: false,
-    cutDecisionCount: buildInternalTestingWholeEditSegments().length,
+    cutDecisionCount: buildProfessionalEditSegments().length,
     captionCount: captionExecution.captionSegments.length,
     captionOverlayCount: captionOverlays.length,
+    visualOverlayCount: visualOverlays.length,
     captionQa: captionExecution.qaResults.map(summarizeGate),
     renderQa: renderResult.qaResults.map(summarizeGate),
+    sourceAudioEvidence: audioEvidence,
+    finalOutputLoudness,
+    finalTranscriptQa: {
+      status: finalSpeechQa.status,
+      requiredMeaningPreserved: true,
+      excludedFalseStartsAbsent: true,
+      transcriptText: finalSpeechQa.transcript?.fullText,
+    },
     outputProbe: renderResult.outputProbe,
     outputSizeBytes: finalStat.size,
     outputChecksumSha256: renderResult.finalExportArtifact?.checksum,
@@ -514,6 +655,9 @@ try {
     finalChecksumSha256: renderResult.finalExportArtifact?.checksum,
     captionCount: captionExecution.captionSegments.length,
     captionOverlayCount: captionOverlays.length,
+    visualOverlayCount: visualOverlays.length,
+    finalOutputLoudness,
+    finalTranscriptQaPassed: true,
     qaGateStatuses: renderResult.qaResults.map(summarizeGate),
     privateInternalReviewOnly: true,
     userCreativeReviewRequired: true,
@@ -522,6 +666,7 @@ try {
   await rm(localStorageRoot, { recursive: true, force: true })
   await rm(mediaOutputRoot, { recursive: true, force: true })
   await rm(speechOutputRoot, { recursive: true, force: true })
+  await rm(finalQaSpeechOutputRoot, { recursive: true, force: true })
 }
 
 function buildWorkerPayload(input: {

@@ -72,6 +72,11 @@ export function validateRenderExecutionPolicy(input: FinalRenderExecutionInput):
         blockingReasons.push(`upstream_qa_gate_not_passed:${gateType}`)
       }
     }
+    if (input.localDevRenderProfile?.audioFinish === 'clean_voice_denoised') {
+      for (const gateType of ['audio_loudness', 'audio_naturalness'] as const) {
+        if (!requiredGates.includes(gateType)) blockingReasons.push(`denoised_voice_requires_upstream_qa:${gateType}`)
+      }
+    }
   }
 
   if (input.mode === 'production_ready') {
@@ -118,6 +123,7 @@ function rejectUnsafeReferences(input: FinalRenderExecutionInput): void {
     ['proxyLocalPath', input.proxyLocalPaths ?? []],
     ['captionLocalPath', input.captionLocalPaths ?? []],
     ['captionOverlayLocalPath', input.captionOverlayInputs?.map((item) => item.localPath) ?? []],
+    ['visualOverlayLocalPath', input.visualOverlayInputs?.map((item) => item.localPath) ?? []],
     ['audioLocalPath', input.audioLocalPaths ?? []],
     ['outputDirectory', input.outputDirectory ? [input.outputDirectory] : []],
   ] as const

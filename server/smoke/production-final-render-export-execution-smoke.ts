@@ -121,6 +121,19 @@ try {
   check(ffmpegPlan.args.includes('-ar') && ffmpegPlan.args.includes('48000'), 'FFmpeg export audio must be locked to the professional 48 kHz video-delivery rate.')
   const externalMixPlan = buildFfmpegExportCommandPlan({ executionInput: { ...baseInput, audioLocalPaths: ['/private/approved-mix.wav'] }, executionManifest })
   check(externalMixPlan.args.includes('/private/approved-mix.wav') && externalMixPlan.args.join(' ').includes('[1:a:0]atrim'), 'FFmpeg export must preserve an explicitly approved external audio mix when one is provided.')
+  const denoisedPlan = buildFfmpegExportCommandPlan({
+    executionInput: {
+      ...baseInput,
+      localDevRenderProfile: {
+        visualFinish: 'premium_clean',
+        audioFinish: 'clean_voice_denoised',
+        subtlePunchIns: true,
+        voiceCleanupEvidence: measuredVoiceEvidence(),
+      },
+    },
+    executionManifest,
+  })
+  check(denoisedPlan.args.join(' ').includes('afftdn=nr=8:nf=-43.37:tn=1:gs=6'), 'Measured voice cleanup must compile to the allowlisted conservative spectral denoising filter.')
   check(libassPlan.executes === false && libassPlan.args.includes('-vf') && !libassPlan.args.includes('-filter_complex'), 'libass command builder must be allowlisted and non-executing.')
 
   const dryRun = await runFinalRenderExecutionPipeline(baseInput)
@@ -151,6 +164,7 @@ try {
   const fixtureSourcePath = path.join(tempRoot, 'whole-edit-source.mp4')
   const fixtureCaptionPath = path.join(tempRoot, 'whole-edit-captions.ass')
   const fixtureCaptionOverlayPath = path.join(tempRoot, 'whole-edit-caption-overlay.png')
+  const fixtureVisualOverlayPath = path.join(tempRoot, 'whole-edit-visual-overlay.png')
   await execFileAsync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-y',
     '-f', 'lavfi', '-i', 'color=c=0x26314d:s=320x568:r=30:d=2',
@@ -176,12 +190,19 @@ Dialogue: 0,0:00:00.10,0:00:01.30,Default,,0,0,0,,Whole edit fixture
     '-f', 'lavfi', '-i', 'color=c=0x111827@0.80:s=240x80:d=0.04',
     '-frames:v', '1', '-vf', 'format=rgba', fixtureCaptionOverlayPath,
   ])
+  await execFileAsync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-y',
+    '-f', 'lavfi', '-i', 'color=c=0x3b82f6@0.78:s=220x70:d=0.04',
+    '-frames:v', '1', '-vf', 'format=rgba', fixtureVisualOverlayPath,
+  ])
   const upstreamQaResults = [
     mockGate('cut_smoothness', 'passed', false),
     mockGate('transcript_alignment', 'passed', false),
     mockGate('caption_timing', 'passed', false),
     mockGate('caption_readability', 'passed', false),
     mockGate('caption_safe_zone', 'passed', false),
+    mockGate('audio_loudness', 'passed', false),
+    mockGate('audio_naturalness', 'passed', false),
   ]
   const localRenderPayload = {
     ...buildPayload('render_worker', { internalTestingGate: 'm16a_local_whole_edit_fixture' }),
@@ -232,6 +253,7 @@ Dialogue: 0,0:00:00.10,0:00:01.30,Default,,0,0,0,,Whole edit fixture
     sourceLocalPaths: [fixtureSourcePath],
     captionLocalPaths: [fixtureCaptionPath],
     captionOverlayInputs: [{ localPath: fixtureCaptionOverlayPath, startSeconds: 0.1, endSeconds: 1.3, x: 40, y: 420 }],
+    visualOverlayInputs: [{ localPath: fixtureVisualOverlayPath, startSeconds: 0.2, endSeconds: 1.1, x: 50, y: 40, fadeInSeconds: 0.08, fadeOutSeconds: 0.08 }],
     outputDirectory: tempRoot,
     outputFileName: 'whole-edit-final.mp4',
     renderEngine: 'ffmpeg',
@@ -242,7 +264,12 @@ Dialogue: 0,0:00:00.10,0:00:01.30,Default,,0,0,0,,Whole edit fixture
     enableLocalDevRender: true,
     enableCaptionBurnIn: true,
     sourceAudioRequired: true,
-    localDevRenderProfile: { visualFinish: 'clean_natural', audioFinish: 'clean_voice', subtlePunchIns: true },
+    localDevRenderProfile: {
+      visualFinish: 'clean_natural',
+      audioFinish: 'clean_voice_denoised',
+      subtlePunchIns: true,
+      voiceCleanupEvidence: measuredVoiceEvidence(),
+    },
     requiredUpstreamQaGateTypes: upstreamQaResults.map((gate) => gate.gateType),
     upstreamQaResults,
     timeoutMs: 120_000,
@@ -407,6 +434,8 @@ Dialogue: 0,0:00:00.10,0:00:01.30,Default,,0,0,0,,Whole edit fixture
       'manifest_asset_resolution',
       'allowlisted_command_plans',
       'approved_external_audio_mix',
+      'evidence_gated_spectral_voice_cleanup',
+      'timed_private_visual_overlays',
       'dry_run_pipeline',
       'local_dev_skip_safe',
       'private_render_artifacts',
@@ -424,6 +453,17 @@ Dialogue: 0,0:00:00.10,0:00:01.30,Default,,0,0,0,,Whole edit fixture
   }, null, 2))
 } finally {
   await rm(tempRoot, { recursive: true, force: true })
+}
+
+function measuredVoiceEvidence() {
+  return {
+    measuredNoiseFloorDbfs: -43.37,
+    measuredSpeechRmsDbfs: -34.91,
+    speechToNoiseFloorDb: 8.46,
+    spectralNoiseReductionDb: 8,
+    naturalnessQaRequired: true as const,
+    evidenceNote: 'A fixed room interval and a complete speech interval justify conservative cleanup with required naturalness QA.',
+  }
 }
 
 function mockGate(gateType: QualityGateType, status: 'passed' | 'blocked', blocking: boolean) {

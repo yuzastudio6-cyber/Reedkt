@@ -15,7 +15,9 @@ export function buildFfmpegExportCommandPlan(input: {
     : '[worker-temp-ffmpeg-output]'
   const sourcePath = executionInput.proxyLocalPaths?.[0] ?? executionInput.sourceLocalPaths?.[0] ?? '[private-video-input]'
   const externalAudioPath = executionInput.audioLocalPaths?.[0]
+  const visualOverlays = executionInput.visualOverlayInputs ?? []
   const captionOverlays = executionInput.enableCaptionBurnIn === true ? executionInput.captionOverlayInputs ?? [] : []
+  const rasterOverlays = [...visualOverlays, ...captionOverlays]
   const audioRequired = executionInput.sourceAudioRequired !== false
   const externalAudioInputIndex = externalAudioPath ? 1 : undefined
   const captionInputStartIndex = externalAudioPath ? 2 : 1
@@ -33,7 +35,7 @@ export function buildFfmpegExportCommandPlan(input: {
       '-i',
       sourcePath,
       ...(externalAudioPath ? ['-i', externalAudioPath] : []),
-      ...captionOverlays.flatMap((overlay) => [
+      ...rasterOverlays.flatMap((overlay) => [
         '-loop', '1',
         '-framerate', formatNumber(executionInput.fps),
         '-i', overlay.localPath,
@@ -71,6 +73,7 @@ export function buildFfmpegExportCommandPlan(input: {
       profile?.subtlePunchIns ? 'Subtle approved punch-ins are applied at edit boundaries.' : undefined,
       executionInput.enableCaptionBurnIn && (captionOverlays.length > 0 || executionInput.captionLocalPaths?.[0]) ? 'Validated private caption assets are burned into the assembled output.' : undefined,
       profile?.audioFinish === 'clean_voice' ? 'Voice-first cleanup and EBU-style loudness normalization are applied.' : undefined,
+      profile?.audioFinish === 'clean_voice_denoised' ? 'Measured, conservative spectral denoising and EBU-style loudness normalization are applied with naturalness QA.' : undefined,
     ].filter(Boolean).join(' '),
   }
 }
@@ -120,29 +123,40 @@ function buildFilterComplex(
     : undefined
   const videoFinish = buildVideoFinish(profile.visualFinish, manifest.durationSeconds)
   const captionPath = input.enableCaptionBurnIn === true ? input.captionLocalPaths?.[0] : undefined
-  const hasRasterOverlays = input.enableCaptionBurnIn === true && (input.captionOverlayInputs?.length ?? 0) > 0
+  const overlays = [
+    ...(input.visualOverlayInputs ?? []).map((overlay) => ({ ...overlay, kind: 'visual' as const })),
+    ...(input.enableCaptionBurnIn === true ? input.captionOverlayInputs ?? [] : []).map((overlay) => ({ ...overlay, kind: 'caption' as const })),
+  ]
+  const hasRasterOverlays = overlays.length > 0
   const baseVideoLabel = hasRasterOverlays ? 'video_finished' : 'video_out'
   const video = captionPath && !hasRasterOverlays
     ? `[video_concat]${videoFinish},subtitles=filename='${escapeFilterPath(captionPath)}'[video_out]`
     : `[video_concat]${videoFinish}[${baseVideoLabel}]`
-  const overlayFilters = buildCaptionOverlayFilters(input, baseVideoLabel, captionInputStartIndex)
+  const overlayFilters = buildRasterOverlayFilters(input, baseVideoLabel, captionInputStartIndex, overlays)
   const audio = audioRequired
-    ? `[${externalAudioInputIndex !== undefined ? 'audio_external' : 'audio_concat'}]${buildAudioFinish(profile.audioFinish, manifest.durationSeconds)}[audio_out]`
+    ? `[${externalAudioInputIndex !== undefined ? 'audio_external' : 'audio_concat'}]${buildAudioFinish(profile.audioFinish, manifest.durationSeconds, profile.voiceCleanupEvidence)}[audio_out]`
     : undefined
 
   return [...clipFilters, concat, externalAudio, video, ...overlayFilters, audio].filter(Boolean).join(';')
 }
 
-function buildCaptionOverlayFilters(input: FinalRenderExecutionInput, initialVideoLabel: string, inputStartIndex: number): string[] {
-  const overlays = input.enableCaptionBurnIn === true ? input.captionOverlayInputs ?? [] : []
+function buildRasterOverlayFilters(
+  input: FinalRenderExecutionInput,
+  initialVideoLabel: string,
+  inputStartIndex: number,
+  overlays: Array<NonNullable<FinalRenderExecutionInput['visualOverlayInputs']>[number] & { kind: 'visual' | 'caption' }>,
+): string[] {
   return overlays.flatMap((overlay, index) => {
-    const overlayLabel = `caption_overlay_${index}`
-    const previousVideoLabel = index === 0 ? initialVideoLabel : `video_caption_${index - 1}`
-    const outputVideoLabel = index === overlays.length - 1 ? 'video_out' : `video_caption_${index}`
+    const overlayLabel = `raster_overlay_${index}`
+    const previousVideoLabel = index === 0 ? initialVideoLabel : `video_overlay_${index - 1}`
+    const outputVideoLabel = index === overlays.length - 1 ? 'video_out' : `video_overlay_${index}`
     const x = overlay.x ?? Math.round(input.canvas.width * 0.09)
     const y = overlay.y ?? Math.round(input.canvas.height * 0.69)
+    const fadeIn = overlay.fadeInSeconds ?? (overlay.kind === 'caption' ? 0.04 : 0.12)
+    const fadeOut = overlay.fadeOutSeconds ?? (overlay.kind === 'caption' ? 0.04 : 0.12)
+    const fadeOutStart = Math.max(overlay.startSeconds, overlay.endSeconds - fadeOut)
     return [
-      `[${index + inputStartIndex}:v:0]format=rgba[${overlayLabel}]`,
+      `[${index + inputStartIndex}:v:0]format=rgba,fade=t=in:st=${formatNumber(overlay.startSeconds)}:d=${formatNumber(fadeIn)}:alpha=1,fade=t=out:st=${formatNumber(fadeOutStart)}:d=${formatNumber(fadeOut)}:alpha=1[${overlayLabel}]`,
       `[${previousVideoLabel}][${overlayLabel}]overlay=x=${x}:y=${y}:enable='between(t,${formatNumber(overlay.startSeconds)},${formatNumber(overlay.endSeconds)})':shortest=1[${outputVideoLabel}]`,
     ]
   })
@@ -163,11 +177,19 @@ function buildVideoFinish(
 function buildAudioFinish(
   preset: NonNullable<FinalRenderExecutionInput['localDevRenderProfile']>['audioFinish'],
   durationSeconds: number,
+  evidence?: NonNullable<FinalRenderExecutionInput['localDevRenderProfile']>['voiceCleanupEvidence'],
 ): string {
   const filters = []
   if (preset === 'clean_voice') {
     filters.push('highpass=f=80')
     filters.push('lowpass=f=16000')
+    filters.push('loudnorm=I=-16:LRA=7:TP=-1.5')
+  }
+  if (preset === 'clean_voice_denoised') {
+    if (!evidence) throw new Error('Measured voice cleanup evidence is required for clean_voice_denoised.')
+    filters.push('highpass=f=80')
+    filters.push('lowpass=f=16000')
+    filters.push(`afftdn=nr=${formatNumber(evidence.spectralNoiseReductionDb)}:nf=${formatNumber(evidence.measuredNoiseFloorDbfs)}:tn=1:gs=6`)
     filters.push('loudnorm=I=-16:LRA=7:TP=-1.5')
   }
   filters.push('afade=t=in:st=0:d=0.05')

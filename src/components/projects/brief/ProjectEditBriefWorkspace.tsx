@@ -18,6 +18,7 @@ import {
 } from '../../../lib/project-edit-session-backend-local'
 import { approveProjectEditPlanBackendLocal } from '../../../lib/project-edit-plan-backend-local'
 import { buildProjectEditPlanApprovalModel } from '../../../lib/project-edit-plan-approval'
+import { resolveProjectEditPlanDirection } from '../../../lib/project-edit-skill-aware-plan'
 import { buildProjectEditLifecycleModel } from '../../../lib/project-edit-lifecycle'
 import {
   finalExportMatchesCurrentEvidence,
@@ -651,9 +652,13 @@ export function ProjectEditBriefWorkspace({
     setBriefSaveStatus('saving')
     setBriefSaveError(undefined)
     try {
+      const directionToSave = resolveProjectEditPlanDirection({
+        briefSaved: false,
+        directionText: briefText,
+      }).text
       const result = await saveProjectEditBriefBackendLocal({
         apiBaseUrl: briefConfig.apiBaseUrl,
-        briefText,
+        briefText: directionToSave,
         editSessionId,
         projectId,
         sourceMediaAssetId: backendUploadResult?.mediaAssetId,
@@ -670,6 +675,7 @@ export function ProjectEditBriefWorkspace({
         }),
       })
       setBackendSavedBrief(result.readback)
+      setBriefText(result.readback.briefText)
       setBriefSaved(true)
       setBriefSaveStatus('saved')
       briefDraftResetPersistedRef.current = false

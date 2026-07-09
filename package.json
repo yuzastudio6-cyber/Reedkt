@@ -179,6 +179,7 @@
     "smoke:internal-testing-tool-routing-readiness": "tsx server/smoke/internal-testing-tool-routing-readiness-smoke.ts",
     "smoke:internal-testing-approved-snapshot-route-review": "tsx server/smoke/internal-testing-approved-snapshot-route-review-smoke.ts",
     "smoke:internal-testing-worker-payload-dry-run": "tsx server/smoke/internal-testing-worker-payload-dry-run-smoke.ts",
+    "smoke:internal-testing-mock-worker-queue-review": "tsx server/smoke/internal-testing-mock-worker-queue-review-smoke.ts",
     "qa:internal-testing": "node scripts/validation/internal-testing-qa-runner.mjs",
     "generate:project-edit-brief-owner-evidence-draft": "tsx scripts/validation/project-edit-brief-owner-evidence-example-generator.ts --mode draft --stdout",
     "smoke:project-edit-brief-visual-context": "tsx server/smoke/project-edit-brief-visual-context-smoke.ts",

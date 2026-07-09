@@ -1394,6 +1394,22 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'internal-testing-mock-worker-queue-review',
+    title: 'Mock worker queue review',
+    description: 'Confirm valid worker payloads can enter the mock queue and replay idempotently before any worker claim is allowed.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Mock worker queue review section.',
+      'Confirm approved-plan and credit-reservation gates are checked before queue items are marked queued.',
+      'Confirm repeated payload keys replay existing queue items instead of creating duplicate work.',
+      'Confirm the section does not claim worker leases, dispatch workers, execute tools, process media, spend credits, or unlock product readiness.',
+    ],
+    expectedResult: 'Internal testers can verify queue readiness and idempotent replay while worker claim, dispatch, tool execution, media processing, and credit spend stay disabled.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'edit-brief-shell-marker-selection',
     title: 'Edit Brief shell: marker selection',
     description: 'Select a marker pill and confirm the read-only marker detail panel updates.',

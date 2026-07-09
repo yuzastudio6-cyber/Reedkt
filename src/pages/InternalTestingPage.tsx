@@ -28,6 +28,7 @@ import {
 import { getMockSafeDurableProjectSessionBackendSkeleton } from '../lib/project-edit-session-backend-skeleton'
 import { getInternalTestingApprovedSnapshotRouteReviewUiModel } from '../lib/internal-testing-approved-snapshot-route-review-ui'
 import { getInternalTestingToolRoutingUiModel } from '../lib/internal-testing-tool-routing-ui'
+import { getInternalTestingMockWorkerQueueReviewUiModel } from '../lib/internal-testing-mock-worker-queue-review-ui'
 import { getInternalTestingWorkerPayloadDryRunUiModel } from '../lib/internal-testing-worker-payload-dry-run-ui'
 import {
   DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_DECISION,
@@ -188,6 +189,7 @@ function getScenarioHighlights() {
     'internal-testing-tool-routing-readiness',
     'internal-testing-approved-snapshot-route-review',
     'internal-testing-worker-payload-dry-run',
+    'internal-testing-mock-worker-queue-review',
     'edit-brief-shell-no-runtime-effects',
     'edit-brief-marker-add-at-playhead',
     'edit-brief-marker-chat-send',
@@ -249,6 +251,7 @@ export function InternalTestingPage() {
   const toolRoutingReadiness = useMemo(() => getInternalTestingToolRoutingUiModel(), [])
   const approvedSnapshotRouteReview = useMemo(() => getInternalTestingApprovedSnapshotRouteReviewUiModel(), [])
   const workerPayloadDryRun = useMemo(() => getInternalTestingWorkerPayloadDryRunUiModel(), [])
+  const mockWorkerQueueReview = useMemo(() => getInternalTestingMockWorkerQueueReviewUiModel(), [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -580,6 +583,39 @@ export function InternalTestingPage() {
               'No media processing',
               'No provider calls',
               'No credit spend',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-mock-worker-queue-review">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Mock worker queue review</span>
+            <h2>Valid payloads can queue and replay before any worker claim</h2>
+          </div>
+          <p>{mockWorkerQueueReview.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {mockWorkerQueueReview.checks.map((check) => (
+              <article key={check.id}>
+                <Badge accent="success">Queue review</Badge>
+                <h3>{check.label}</h3>
+                <p>{check.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-mock-worker-queue-review-boundaries">
+            {[
+              'Mock queue only',
+              'Idempotent replay',
+              'Approved plan gate',
+              'Credit reservation gate',
+              'No worker claim',
+              'No worker dispatch',
+              'No tool execution',
+              'No media processing',
             ].map((item) => (
               <Badge accent="muted" key={item}>
                 {item}

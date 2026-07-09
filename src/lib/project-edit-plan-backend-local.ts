@@ -34,6 +34,14 @@ export interface ApproveProjectEditPlanBackendLocalInput {
   getAccessToken?: () => Promise<string | undefined>
 }
 
+export interface ReadProjectEditPlanBackendLocalInput {
+  apiBaseUrl: string
+  editPlanId: string
+  workspaceId: string
+  fetchImpl?: typeof fetch
+  getAccessToken?: () => Promise<string | undefined>
+}
+
 function joinUrl(baseUrl: string, path: string): string {
   if (/^https?:\/\//i.test(path)) return path
   return `${baseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`
@@ -180,6 +188,42 @@ export async function approveProjectEditPlanBackendLocal(
       ...(createEnvelope.warnings ?? []),
       ...(readbackEnvelope.warnings ?? []),
       'Backend-local edit plan approval was read back before preview smoke; no provider, render, worker, Supabase, GCS, beta, or production work started.',
+    ],
+  }
+}
+
+export async function readProjectEditPlanBackendLocal(
+  input: ReadProjectEditPlanBackendLocalInput,
+): Promise<ProjectEditPlanBackendApprovalResult> {
+  const fetchImpl = input.fetchImpl ?? fetch
+  const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
+  const readbackEnvelope = await parseEnvelope<LocalEditPlanData>(await fetchImpl(joinUrl(
+    input.apiBaseUrl,
+    `/v1/local-edit-plans/${encodeURIComponent(input.editPlanId)}?workspaceId=${encodeURIComponent(input.workspaceId)}`,
+  ), {
+    method: 'GET',
+    headers: createHeaders({
+      authorization: accessToken ? `Bearer ${accessToken}` : undefined,
+    }),
+  }))
+  const readback = assertOk(readbackEnvelope, 'Backend-local edit plan readback failed.').localEditPlan
+
+  if (readback.editPlanId !== input.editPlanId || readback.workspaceId !== input.workspaceId || !readback.backendLocalPlanStored) {
+    throw new Error('Backend-local edit plan readback did not match the requested plan.')
+  }
+
+  return {
+    localEditPlan: {
+      ...readback,
+      readbackVerified: true,
+    },
+    readback: {
+      ...readback,
+      readbackVerified: true,
+    },
+    warnings: [
+      ...(readbackEnvelope.warnings ?? []),
+      'Backend-local edit plan was restored from the approved plan readback route; no provider, render, worker, Supabase, GCS, beta, or production work started.',
     ],
   }
 }

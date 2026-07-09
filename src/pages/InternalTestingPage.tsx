@@ -28,6 +28,7 @@ import {
 import { getMockSafeDurableProjectSessionBackendSkeleton } from '../lib/project-edit-session-backend-skeleton'
 import { getInternalTestingApprovedSnapshotRouteReviewUiModel } from '../lib/internal-testing-approved-snapshot-route-review-ui'
 import { getInternalTestingToolRoutingUiModel } from '../lib/internal-testing-tool-routing-ui'
+import { getInternalTestingWorkerPayloadDryRunUiModel } from '../lib/internal-testing-worker-payload-dry-run-ui'
 import {
   DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_DECISION,
   DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_NEXT_GATE,
@@ -186,6 +187,7 @@ function getScenarioHighlights() {
     'source-video-local-preview-boundary',
     'internal-testing-tool-routing-readiness',
     'internal-testing-approved-snapshot-route-review',
+    'internal-testing-worker-payload-dry-run',
     'edit-brief-shell-no-runtime-effects',
     'edit-brief-marker-add-at-playhead',
     'edit-brief-marker-chat-send',
@@ -246,6 +248,7 @@ export function InternalTestingPage() {
   const supabaseLocalMigrationDryRunPlan = useMemo(() => getDurableProjectSessionSupabaseLocalMigrationDryRunPlan(), [])
   const toolRoutingReadiness = useMemo(() => getInternalTestingToolRoutingUiModel(), [])
   const approvedSnapshotRouteReview = useMemo(() => getInternalTestingApprovedSnapshotRouteReviewUiModel(), [])
+  const workerPayloadDryRun = useMemo(() => getInternalTestingWorkerPayloadDryRunUiModel(), [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -543,6 +546,39 @@ export function InternalTestingPage() {
               'Private artifacts',
               'No worker dispatch',
               'No media processing',
+              'No credit spend',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-worker-payload-dry-run">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Worker payload dry run</span>
+            <h2>Backend handoff shape can be reviewed before workers are dispatched</h2>
+          </div>
+          <p>{workerPayloadDryRun.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {workerPayloadDryRun.checks.map((check) => (
+              <article key={check.id}>
+                <Badge accent="cyan">Dry-run ready</Badge>
+                <h3>{check.label}</h3>
+                <p>{check.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-worker-payload-dry-run-boundaries">
+            {[
+              'Payload contract checked',
+              'Private references only',
+              'Idempotent keys',
+              'No worker dispatch',
+              'No tool execution',
+              'No media processing',
+              'No provider calls',
               'No credit spend',
             ].map((item) => (
               <Badge accent="muted" key={item}>

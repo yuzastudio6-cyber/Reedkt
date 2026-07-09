@@ -1379,6 +1379,21 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'internal-testing-worker-payload-dry-run',
+    title: 'Worker payload dry run',
+    description: 'Confirm worker payload dry-run metadata validates against approved-snapshot backend contracts without dispatching workers.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Worker payload dry run section.',
+      'Confirm payload shape, private storage lineage, idempotent job keys, and no-dispatch boundaries are visible.',
+      'Confirm the section does not claim tool execution, media processing, provider calls, credit spend, public delivery, or product readiness.',
+    ],
+    expectedResult: 'Internal testers can see backend payload dry-run readiness before mock queue review while runtime execution remains disabled.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'edit-brief-shell-marker-selection',
     title: 'Edit Brief shell: marker selection',
     description: 'Select a marker pill and confirm the read-only marker detail panel updates.',

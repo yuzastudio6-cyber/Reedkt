@@ -113,6 +113,8 @@ test.describe('Project source video backend-local upload against real local API'
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Preview object', { timeout: 30_000 })
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText(/Preview object\s*(preview-media|previews)\//)
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('/previews/')
+    await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Private review')
+    await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Review ranges')
     await expect(page.getByTestId('project-source-video-local-preview-smoke-status')).toContainText('Qwen 3.7 Max identity recorded, no live call')
     await expect(page.locator('body')).not.toContainText(/provider call made:\s*true|live qwen call:\s*true|final export started|production ready:\s*true/i)
   })

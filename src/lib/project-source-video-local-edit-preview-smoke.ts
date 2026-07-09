@@ -68,6 +68,23 @@ interface BasicRenderSmokeOutput {
   warnings?: string[]
 }
 
+interface PrivateReviewPreviewData {
+  smartCutPreview?: {
+    status?: string
+    outputBucketName?: string
+    outputObjectPath?: string
+    durationSeconds?: number
+    plannedTargetDurationSeconds?: number
+    sizeBytes?: number
+    checksumSha256?: string
+    keepSegmentCount?: number
+    removeSegmentCount?: number
+    finalDeliveryBlocked?: boolean
+    productReady?: boolean
+    warnings?: string[]
+  }
+}
+
 export interface RunProjectSourceVideoLocalEditPreviewSmokeInput {
   apiBaseUrl: string
   editSessionId: string
@@ -341,6 +358,41 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
       : 'Local edit preview did not return preview-ready output.')
   }
 
+  const privateReviewEnvelope = await parseEnvelope<PrivateReviewPreviewData>(await fetchImpl(joinUrl(input.apiBaseUrl, `/v1/render-jobs/${encodeURIComponent(renderJob.id)}/private-review-preview`), {
+    method: 'POST',
+    headers: createHeaders({
+      ...commonHeaders,
+      'idempotency-key': createIdempotencyKey('local-preview-private-review'),
+    }),
+    body: JSON.stringify({
+      workspaceId: input.workspaceId,
+      projectId: input.projectId,
+      sourceStorageObjectId: source.storageObjectRecordId,
+      sourceStorageObject: {
+        id: source.storageObjectRecordId,
+        mediaAssetId: source.mediaAssetId,
+        bucketName: source.bucketName,
+        objectPath: source.objectPath,
+        mimeType: source.mimeType,
+        sizeBytes: source.sizeBytes,
+        checksumSha256: source.checksumSha256,
+      },
+      approvedPlanSnapshotId: approvedSnapshot.id,
+      creditReservationId: creditReservation.id,
+      toolExecutionPlanId: `tool-execution-${input.editSessionId}-private-review-preview`,
+      workerInstanceId: 'local-edit-private-review-preview-worker',
+      sourceVideoDurationSeconds: input.sourceVideoDurationSeconds,
+      strict: true,
+    }),
+  }))
+  const privateReviewData = assertOk(privateReviewEnvelope, 'Private review preview failed.')
+  const privateReviewPreview = privateReviewData.smartCutPreview
+  if (privateReviewPreview?.status !== 'preview_ready' || privateReviewPreview.finalDeliveryBlocked !== true || privateReviewPreview.productReady !== false) {
+    throw new Error(privateReviewPreview?.status
+      ? `Private review preview ended with status ${privateReviewPreview.status}.`
+      : 'Private review preview did not return preview-ready output.')
+  }
+
   return {
     status: 'preview_ready',
     approvedPlanSnapshotId: approvedSnapshot.id,
@@ -355,6 +407,17 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
     durationSeconds: renderSmoke.durationSeconds,
     sizeBytes: renderSmoke.sizeBytes,
     checksumSha256: renderSmoke.checksumSha256,
+    privateReviewPreview: {
+      outputBucketName: privateReviewPreview.outputBucketName,
+      outputObjectPath: privateReviewPreview.outputObjectPath,
+      durationSeconds: privateReviewPreview.durationSeconds,
+      plannedTargetDurationSeconds: privateReviewPreview.plannedTargetDurationSeconds,
+      sizeBytes: privateReviewPreview.sizeBytes,
+      checksumSha256: privateReviewPreview.checksumSha256,
+      keepSegmentCount: privateReviewPreview.keepSegmentCount,
+      removeSegmentCount: privateReviewPreview.removeSegmentCount,
+      finalDeliveryBlocked: true,
+    },
     qwenMainBrainLabel: REEDITPRO_QWEN_MAIN_BRAIN_LABEL,
     approvedSnapshotCreated: true,
     mockCreditApprovalCreated: true,
@@ -373,7 +436,9 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
       ...(smokeEnvelope.warnings ?? []),
       ...(smokeData.result?.warnings ?? []),
       ...(renderSmoke.warnings ?? []),
-      'Local edit preview created a mock approved snapshot and a preview-only local render artifact; no provider, Qwen, Supabase, GCS, external beta, or production path ran.',
+      ...(privateReviewEnvelope.warnings ?? []),
+      ...(privateReviewPreview.warnings ?? []),
+      'Local edit preview created a mock approved snapshot, preview-only local render artifact, and private review preview; no provider, Qwen, Supabase, GCS, external beta, or production path ran.',
     ],
   }
 }

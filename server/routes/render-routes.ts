@@ -3,8 +3,9 @@ import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
 import { checkBasicRenderSmokeTools, createSkippedBasicRenderSmokeResult } from '../services/render-smoke-service'
 import { createRenderService } from '../services/render-service'
+import { runSmartCutPreviewSmoke } from '../services/smart-cut-preview-service'
 import { runWorkerClaimRunner } from '../workers/worker-claim-runner'
-import { basicRenderSmokePreviewSchema, createRenderJobSchema, previewReviewSchema } from '../validation/render-schemas'
+import { basicRenderSmokePreviewSchema, createRenderJobSchema, previewReviewSchema, smartCutPreviewSmokeSchema } from '../validation/render-schemas'
 import { validateBody } from '../validation/common-schemas'
 import { asyncRoute, getIdempotencyKey, getRouteParam, getServiceContext, sendOk } from './route-helpers'
 
@@ -73,6 +74,30 @@ export function createRenderRoutes(): Router {
       },
     })
     sendOk(response, { result, renderSmoke: result.output }, result.warnings, result.status === 'blocked' ? 409 : 201)
+  }))
+
+  router.post('/v1/render-jobs/:renderJobId/private-review-preview', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(smartCutPreviewSmokeSchema, request.body)
+    const context = getServiceContext(request)
+    const renderJobId = getRouteParam(request, 'renderJobId')
+    const workspaceId = body.workspaceId ?? 'workspace-mock'
+    const projectId = body.projectId ?? 'project-mock'
+    const smartCutPreview = await runSmartCutPreviewSmoke(context, {
+      workspaceId,
+      projectId,
+      renderJobId,
+      sourceStorageObjectId: body.sourceStorageObjectId,
+      sourceStorageObject: body.sourceStorageObject,
+      approvedPlanSnapshotId: body.approvedPlanSnapshotId,
+      creditReservationId: body.creditReservationId,
+      toolExecutionPlanId: body.toolExecutionPlanId,
+      workerInstanceId: body.workerInstanceId,
+      sourceVideoDurationSeconds: body.sourceVideoDurationSeconds,
+      sourceVideoWidth: body.sourceVideoWidth,
+      sourceVideoHeight: body.sourceVideoHeight,
+      strict: body.strict,
+    })
+    sendOk(response, { smartCutPreview }, smartCutPreview.warnings, 201)
   }))
 
   return router

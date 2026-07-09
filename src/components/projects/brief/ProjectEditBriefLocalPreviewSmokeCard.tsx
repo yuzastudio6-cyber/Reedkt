@@ -125,6 +125,13 @@ export function ProjectEditBriefLocalPreviewSmokeCard({
             <span><strong>Preview object</strong>{result.outputBucketName}/{result.outputObjectPath}</span>
             <span><strong>Duration</strong>{formatSeconds(result.durationSeconds)}</span>
             <span><strong>Size</strong>{formatBytes(result.sizeBytes)}</span>
+            {result.privateReviewPreview ? (
+              <>
+                <span><strong>Private review</strong>{result.privateReviewPreview.outputBucketName}/{result.privateReviewPreview.outputObjectPath}</span>
+                <span><strong>Review duration</strong>{formatSeconds(result.privateReviewPreview.durationSeconds)}</span>
+                <span><strong>Review ranges</strong>{result.privateReviewPreview.keepSegmentCount ?? 0} kept, {result.privateReviewPreview.removeSegmentCount ?? 0} held back</span>
+              </>
+            ) : null}
             <span><strong>Main brain</strong>{result.qwenMainBrainLabel} identity recorded, no live call</span>
           </>
         ) : (

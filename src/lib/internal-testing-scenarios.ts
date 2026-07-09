@@ -1426,6 +1426,22 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'internal-testing-mock-worker-execution-harness',
+    title: 'Mock worker execution harness',
+    description: 'Confirm claimed mock work can produce completion metadata and job events without running real tools or media work.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Mock worker execution harness section.',
+      'Confirm mock start, progress, and completion records are created as metadata only.',
+      'Confirm claimed leases complete and no active work remains.',
+      'Confirm no worker dispatch, real worker execution, tool execution, media processing, generated media, public artifact, credit spend, or product-ready claim appears.',
+    ],
+    expectedResult: 'Internal testers can verify metadata-only completion before private review result dry-run while all real execution remains disabled.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'edit-brief-shell-marker-selection',
     title: 'Edit Brief shell: marker selection',
     description: 'Select a marker pill and confirm the read-only marker detail panel updates.',

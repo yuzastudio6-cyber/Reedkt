@@ -27,6 +27,7 @@ import {
 } from '../lib/project-edit-session-backend-persistence-plan'
 import { getMockSafeDurableProjectSessionBackendSkeleton } from '../lib/project-edit-session-backend-skeleton'
 import { getInternalTestingApprovedSnapshotRouteReviewUiModel } from '../lib/internal-testing-approved-snapshot-route-review-ui'
+import { getInternalTestingMockWorkerExecutionHarnessUiModel } from '../lib/internal-testing-mock-worker-execution-harness-ui'
 import { getInternalTestingToolRoutingUiModel } from '../lib/internal-testing-tool-routing-ui'
 import { getInternalTestingMockWorkerQueueReviewUiModel } from '../lib/internal-testing-mock-worker-queue-review-ui'
 import { getInternalTestingWorkerClaimDryRunUiModel } from '../lib/internal-testing-worker-claim-dry-run-ui'
@@ -192,6 +193,7 @@ function getScenarioHighlights() {
     'internal-testing-worker-payload-dry-run',
     'internal-testing-mock-worker-queue-review',
     'internal-testing-worker-claim-dry-run',
+    'internal-testing-mock-worker-execution-harness',
     'edit-brief-shell-no-runtime-effects',
     'edit-brief-marker-add-at-playhead',
     'edit-brief-marker-chat-send',
@@ -255,6 +257,7 @@ export function InternalTestingPage() {
   const workerPayloadDryRun = useMemo(() => getInternalTestingWorkerPayloadDryRunUiModel(), [])
   const mockWorkerQueueReview = useMemo(() => getInternalTestingMockWorkerQueueReviewUiModel(), [])
   const workerClaimDryRun = useMemo(() => getInternalTestingWorkerClaimDryRunUiModel(), [])
+  const mockWorkerExecutionHarness = useMemo(() => getInternalTestingMockWorkerExecutionHarnessUiModel(), [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -652,6 +655,39 @@ export function InternalTestingPage() {
               'No worker execution',
               'No tool execution',
               'No media processing',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-mock-worker-execution-harness">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Mock worker execution harness</span>
+            <h2>Claimed work can create completion metadata without media work</h2>
+          </div>
+          <p>{mockWorkerExecutionHarness.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {mockWorkerExecutionHarness.checks.map((check) => (
+              <article key={check.id}>
+                <Badge accent="success">Metadata only</Badge>
+                <h3>{check.label}</h3>
+                <p>{check.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-mock-worker-execution-harness-boundaries">
+            {[
+              'Metadata only',
+              'Mock events only',
+              'Private manifest only',
+              'No worker dispatch',
+              'No real worker execution',
+              'No tool execution',
+              'No media processing',
+              'No generated media',
             ].map((item) => (
               <Badge accent="muted" key={item}>
                 {item}

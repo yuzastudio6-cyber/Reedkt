@@ -263,6 +263,12 @@ export function createPlanApprovedCheckpointMetadata(result: ProjectEditPlanBack
   }
 }
 
+export function restoreBackendLocalApprovedPlanId(session?: ProjectEditSessionRecord): string | undefined {
+  const checkpoint = checkpointValue(session, 'backendLocalPlan')
+  const metadata = objectValue(checkpoint?.metadata)
+  return stringValue(metadata?.editPlanId)
+}
+
 export function createPreviewReadyCheckpointMetadata(result: ProjectSourceVideoLocalEditPreviewResult): Record<string, unknown> {
   return {
     editPlanId: result.editPlanId,

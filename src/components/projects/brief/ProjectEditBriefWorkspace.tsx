@@ -16,7 +16,10 @@ import {
   type ProjectEditSessionBackendLocalRecord,
   type ProjectEditSessionLifecycleCheckpointKind,
 } from '../../../lib/project-edit-session-backend-local'
-import { approveProjectEditPlanBackendLocal } from '../../../lib/project-edit-plan-backend-local'
+import {
+  approveProjectEditPlanBackendLocal,
+  readProjectEditPlanBackendLocal,
+} from '../../../lib/project-edit-plan-backend-local'
 import { buildProjectEditPlanApprovalModel } from '../../../lib/project-edit-plan-approval'
 import { resolveProjectEditPlanDirection } from '../../../lib/project-edit-skill-aware-plan'
 import { buildProjectEditLifecycleModel } from '../../../lib/project-edit-lifecycle'
@@ -61,6 +64,7 @@ import {
   createPreviewReviewedCheckpointMetadata,
   createRestoredApprovedLocalPlan,
   createSourceUploadCheckpointMetadata,
+  restoreBackendLocalApprovedPlanId,
   restoreBackendUploadResult,
   restoreFinalExportResult,
   restoreProfessionalQAResult,
@@ -258,6 +262,25 @@ export function ProjectEditBriefWorkspace({
     sourceDurationSeconds: sourceVideo?.durationSeconds,
     sourceFileName: sourceVideo?.fileName ?? backendUploadResult?.fileName,
   }), [backendLocalEditSession, backendSavedBrief, backendUploadResult, briefSaved, briefText, editSessionId, outputFrameConfirmed, planApproved, projectId, sourceVideo])
+  const visiblePlanApprovalModel = useMemo<ProjectEditPlanApprovalModel>(() => {
+    const approvedLocalPlan = backendApprovedLocalPlan?.localEditPlan.approvedLocalPlan
+    if (!approvedLocalPlan || !backendApprovedLocalPlan.localEditPlan.readbackVerified) return planApprovalModel
+    return {
+      ...planApprovalModel,
+      approved: true,
+      blockers: [],
+      canApprove: true,
+      creditEstimate: approvedLocalPlan.creditEstimate,
+      directionSource: approvedLocalPlan.directionSource,
+      operationManifest: approvedLocalPlan.operationManifest,
+      planId: approvedLocalPlan.planId,
+      skillPlan: approvedLocalPlan.skillPlan,
+      status: 'approved',
+      steps: approvedLocalPlan.steps,
+      summary: approvedLocalPlan.summary,
+      title: approvedLocalPlan.title,
+    }
+  }, [backendApprovedLocalPlan, planApprovalModel])
   const currentPreviewResult = useMemo(() => previewResultMatchesApprovedEvidence({
     approvedLocalPlan: backendApprovedLocalPlan?.localEditPlan.approvedLocalPlan,
     previewResult: localPreviewResult,
@@ -332,8 +355,8 @@ export function ProjectEditBriefWorkspace({
     hasLocalSourceVideo: sourceEvidenceAvailable,
     localFinalExportResult: currentFinalExportResult,
     localPreviewResult: currentPreviewResult,
-    planApproved: planApprovalModel.approved,
-    planReady: planApprovalModel.canApprove || planApprovalModel.approved,
+    planApproved: visiblePlanApprovalModel.approved,
+    planReady: visiblePlanApprovalModel.canApprove || visiblePlanApprovalModel.approved,
     previewReviewResult: currentPreviewReviewResult,
     projectId,
     finalExportEvidence: {
@@ -343,7 +366,7 @@ export function ProjectEditBriefWorkspace({
       finalRenderWorkerReady: Boolean(currentFinalExportResult),
       exportDeliveryPolicyReady: Boolean(currentFinalExportResult),
     },
-  }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, currentFinalExportResult, currentPreviewResult, currentPreviewReviewResult, currentProfessionalQAResult, editSessionId, planApprovalModel.approved, planApprovalModel.canApprove, projectId, sourceEvidenceAvailable])
+  }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, currentFinalExportResult, currentPreviewResult, currentPreviewReviewResult, currentProfessionalQAResult, editSessionId, projectId, sourceEvidenceAvailable, visiblePlanApprovalModel.approved, visiblePlanApprovalModel.canApprove])
   const editFlowSteps = useMemo(() => buildEditWorkspaceFlowSteps({
     sourceUploaded: Boolean(backendUploadResult),
     briefSaved: Boolean(backendSavedBrief?.readbackVerified) && briefSaved,
@@ -418,8 +441,30 @@ export function ProjectEditBriefWorkspace({
     let cancelled = false
     if (!backendLocalEditSession || !backendUploadResult || backendApprovedLocalPlan) return
 
-    Promise.resolve().then(() => {
+    Promise.resolve().then(async () => {
       if (cancelled) return
+      const restoredPlanId = restoreBackendLocalApprovedPlanId(backendLocalEditSession)
+      if (restoredPlanId && backendUploadConfig.apiBaseUrl) {
+        try {
+          const restoredApprovedPlan = await readProjectEditPlanBackendLocal({
+            apiBaseUrl: backendUploadConfig.apiBaseUrl,
+            editPlanId: restoredPlanId,
+            workspaceId: backendUploadConfig.workspaceId,
+          })
+          if (cancelled) return
+          if (restoredApprovedPlan.localEditPlan.source.storageObjectRecordId === backendUploadResult.storageObjectRecordId) {
+            setBackendApprovedLocalPlan(restoredApprovedPlan)
+            setPlanApproved(true)
+            setPlanApprovalStatus('approved')
+            setPlanApprovalError(undefined)
+            setStatusMessage('Backend-local approved plan restored from stored plan readback.')
+            return
+          }
+        } catch {
+          // Fall back to checkpoint-only restoration for older local sessions.
+        }
+      }
+
       const restoredPlanModel = buildProjectEditPlanApprovalModel({
         approved: true,
         backendUploadResult,
@@ -451,7 +496,7 @@ export function ProjectEditBriefWorkspace({
     return () => {
       cancelled = true
     }
-  }, [backendApprovedLocalPlan, backendLocalEditSession, backendSavedBrief, backendUploadResult, editSessionId, projectId, sourceVideo])
+  }, [backendApprovedLocalPlan, backendLocalEditSession, backendSavedBrief, backendUploadConfig.apiBaseUrl, backendUploadConfig.workspaceId, backendUploadResult, editSessionId, projectId, sourceVideo])
 
   function resetLocalEditProgress(message: string) {
     briefDraftResetPersistedRef.current = false
@@ -919,7 +964,7 @@ export function ProjectEditBriefWorkspace({
             approvalError={planApprovalError}
             approvalStatus={planApprovalStatus}
             backendRecordId={backendApprovedLocalPlan?.localEditPlan.id}
-            model={planApprovalModel}
+            model={visiblePlanApprovalModel}
             onApprove={approveLocalPlan}
           />
           <Card className="clean-edit-brief__status-card">

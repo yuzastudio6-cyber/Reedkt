@@ -1410,6 +1410,22 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'internal-testing-worker-claim-dry-run',
+    title: 'Worker claim dry run',
+    description: 'Confirm queued mock work can be claimed once, rejects duplicate active claims, and cleans up leases without executing work.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Worker claim dry run section.',
+      'Confirm only queued mock work with approved-plan and credit-reservation evidence can receive a dry-run lease.',
+      'Confirm duplicate active claims are blocked and claimed leases are released during cleanup.',
+      'Confirm no worker dispatch, worker execution, tool execution, media processing, provider calls, credit spend, or product-ready claim appears.',
+    ],
+    expectedResult: 'Internal testers can verify mock lease readiness before a mock execution harness while all real work remains disabled.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'edit-brief-shell-marker-selection',
     title: 'Edit Brief shell: marker selection',
     description: 'Select a marker pill and confirm the read-only marker detail panel updates.',

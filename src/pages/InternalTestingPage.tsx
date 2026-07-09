@@ -29,6 +29,7 @@ import { getMockSafeDurableProjectSessionBackendSkeleton } from '../lib/project-
 import { getInternalTestingApprovedSnapshotRouteReviewUiModel } from '../lib/internal-testing-approved-snapshot-route-review-ui'
 import { getInternalTestingToolRoutingUiModel } from '../lib/internal-testing-tool-routing-ui'
 import { getInternalTestingMockWorkerQueueReviewUiModel } from '../lib/internal-testing-mock-worker-queue-review-ui'
+import { getInternalTestingWorkerClaimDryRunUiModel } from '../lib/internal-testing-worker-claim-dry-run-ui'
 import { getInternalTestingWorkerPayloadDryRunUiModel } from '../lib/internal-testing-worker-payload-dry-run-ui'
 import {
   DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_DECISION,
@@ -190,6 +191,7 @@ function getScenarioHighlights() {
     'internal-testing-approved-snapshot-route-review',
     'internal-testing-worker-payload-dry-run',
     'internal-testing-mock-worker-queue-review',
+    'internal-testing-worker-claim-dry-run',
     'edit-brief-shell-no-runtime-effects',
     'edit-brief-marker-add-at-playhead',
     'edit-brief-marker-chat-send',
@@ -252,6 +254,7 @@ export function InternalTestingPage() {
   const approvedSnapshotRouteReview = useMemo(() => getInternalTestingApprovedSnapshotRouteReviewUiModel(), [])
   const workerPayloadDryRun = useMemo(() => getInternalTestingWorkerPayloadDryRunUiModel(), [])
   const mockWorkerQueueReview = useMemo(() => getInternalTestingMockWorkerQueueReviewUiModel(), [])
+  const workerClaimDryRun = useMemo(() => getInternalTestingWorkerClaimDryRunUiModel(), [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -614,6 +617,39 @@ export function InternalTestingPage() {
               'Credit reservation gate',
               'No worker claim',
               'No worker dispatch',
+              'No tool execution',
+              'No media processing',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-worker-claim-dry-run">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Worker claim dry run</span>
+            <h2>Queued work can be leased once without starting execution</h2>
+          </div>
+          <p>{workerClaimDryRun.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {workerClaimDryRun.checks.map((check) => (
+              <article key={check.id}>
+                <Badge accent="cyan">Claim dry-run</Badge>
+                <h3>{check.label}</h3>
+                <p>{check.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-worker-claim-dry-run-boundaries">
+            {[
+              'Mock leases only',
+              'Queued jobs only',
+              'Duplicate claims blocked',
+              'Lease cleanup required',
+              'No worker dispatch',
+              'No worker execution',
               'No tool execution',
               'No media processing',
             ].map((item) => (

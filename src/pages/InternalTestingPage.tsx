@@ -28,6 +28,7 @@ import {
 import { getMockSafeDurableProjectSessionBackendSkeleton } from '../lib/project-edit-session-backend-skeleton'
 import { getInternalTestingApprovedSnapshotRouteReviewUiModel } from '../lib/internal-testing-approved-snapshot-route-review-ui'
 import { getInternalTestingMockWorkerExecutionHarnessUiModel } from '../lib/internal-testing-mock-worker-execution-harness-ui'
+import { getInternalTestingPrivateReviewResultDryRunUiModel } from '../lib/internal-testing-private-review-result-dry-run-ui'
 import { getInternalTestingToolRoutingUiModel } from '../lib/internal-testing-tool-routing-ui'
 import { getInternalTestingMockWorkerQueueReviewUiModel } from '../lib/internal-testing-mock-worker-queue-review-ui'
 import { getInternalTestingWorkerClaimDryRunUiModel } from '../lib/internal-testing-worker-claim-dry-run-ui'
@@ -194,6 +195,7 @@ function getScenarioHighlights() {
     'internal-testing-mock-worker-queue-review',
     'internal-testing-worker-claim-dry-run',
     'internal-testing-mock-worker-execution-harness',
+    'internal-testing-private-review-result-dry-run',
     'edit-brief-shell-no-runtime-effects',
     'edit-brief-marker-add-at-playhead',
     'edit-brief-marker-chat-send',
@@ -258,6 +260,7 @@ export function InternalTestingPage() {
   const mockWorkerQueueReview = useMemo(() => getInternalTestingMockWorkerQueueReviewUiModel(), [])
   const workerClaimDryRun = useMemo(() => getInternalTestingWorkerClaimDryRunUiModel(), [])
   const mockWorkerExecutionHarness = useMemo(() => getInternalTestingMockWorkerExecutionHarnessUiModel(), [])
+  const privateReviewResultDryRun = useMemo(() => getInternalTestingPrivateReviewResultDryRunUiModel(), [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -688,6 +691,39 @@ export function InternalTestingPage() {
               'No tool execution',
               'No media processing',
               'No generated media',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-private-review-result-dry-run">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Private review result dry run</span>
+            <h2>Internal testers can inspect a clean metadata result summary</h2>
+          </div>
+          <p>{privateReviewResultDryRun.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {privateReviewResultDryRun.sections.map((section) => (
+              <article key={section.id}>
+                <Badge accent="success">Ready for review</Badge>
+                <h3>{section.label}</h3>
+                <p>{section.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-private-review-result-dry-run-boundaries">
+            {[
+              'Private internal only',
+              'Metadata only',
+              'No edited media',
+              'No signed URLs',
+              'No public delivery',
+              'No worker dispatch',
+              'No tool execution',
+              'No product-ready claim',
             ].map((item) => (
               <Badge accent="muted" key={item}>
                 {item}
@@ -1454,7 +1490,11 @@ export function InternalTestingPage() {
             <div className="internal-testing-form-grid">
               <label>
                 Scenario
-                <select value={scenarioId} onChange={(event) => setScenarioId(event.target.value)}>
+                <select
+                  data-testid="internal-testing-feedback-scenario-select"
+                  value={scenarioId}
+                  onChange={(event) => setScenarioId(event.target.value)}
+                >
                   {highlightedScenarios.map((scenario) => (
                     <option key={scenario.id} value={scenario.id}>
                       {scenario.title}
@@ -1464,7 +1504,11 @@ export function InternalTestingPage() {
               </label>
               <label>
                 Result
-                <select value={result} onChange={(event) => setResult(event.target.value as FeedbackRecord['result'])}>
+                <select
+                  data-testid="internal-testing-feedback-result-select"
+                  value={result}
+                  onChange={(event) => setResult(event.target.value as FeedbackRecord['result'])}
+                >
                   <option value="passed">Passed</option>
                   <option value="blocked">Blocked</option>
                   <option value="needs_review">Needs review</option>

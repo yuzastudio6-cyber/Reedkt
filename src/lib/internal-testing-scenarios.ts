@@ -1442,6 +1442,22 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'internal-testing-private-review-result-dry-run',
+    title: 'Private review result dry run',
+    description: 'Confirm metadata completions become a clean private tester review summary without exposing tool names or claiming edited media.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Private review result dry run section.',
+      'Confirm source preparation, speech and captions, story cleanup, audio polish, visual review, private review build, and delivery check appear as human-facing review sections.',
+      'Confirm the result says no edited media, export, public delivery, signed URL, credit spend, real worker execution, or product-ready claim exists.',
+      'Confirm no internal package or tool names appear in the result card.',
+    ],
+    expectedResult: 'Internal testers can inspect a private metadata-only result summary while real execution and public delivery stay blocked.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'edit-brief-shell-marker-selection',
     title: 'Edit Brief shell: marker selection',
     description: 'Select a marker pill and confirm the read-only marker detail panel updates.',

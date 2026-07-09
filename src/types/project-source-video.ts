@@ -47,6 +47,43 @@ export type ProjectSourceVideoLocalEditPreviewStatus =
   | 'blocked'
   | 'failed'
 
+export type ProjectSourceVideoPreviewReviewStatus =
+  | 'not_reviewed'
+  | 'approving'
+  | 'approved'
+  | 'changes_requested'
+  | 'failed'
+
+export type ProjectSourceVideoProfessionalQAStatus = 'passed' | 'blocked'
+
+export type ProjectSourceVideoProfessionalQACheckId =
+  | 'source_uploaded'
+  | 'approved_snapshot_present'
+  | 'credit_reservation_present'
+  | 'approved_brief_lineage_present'
+  | 'preview_ready'
+  | 'preview_review_approved'
+  | 'source_preview_match'
+  | 'brief_preview_match'
+  | 'edit_assembly_ready'
+  | 'private_artifact_boundary'
+
+export interface ProjectSourceVideoProfessionalQACheck {
+  id: ProjectSourceVideoProfessionalQACheckId
+  label: string
+  passed: boolean
+  blocker: string
+}
+
+export type ProjectSourceVideoLocalFinalExportStatus =
+  | 'unavailable'
+  | 'waiting_for_preview_review'
+  | 'idle'
+  | 'running'
+  | 'final_export_ready'
+  | 'blocked'
+  | 'failed'
+
 export interface ProjectSourceVideoBackendUploadConfig {
   available: boolean
   apiBaseUrl?: string
@@ -93,8 +130,51 @@ export interface ProjectSourceVideoBackendUploadResult {
   warnings: string[]
 }
 
+export type ProjectSourceVideoEditAssemblyMode = 'clean_internal_preview' | 'private_final_export'
+
+export interface ProjectSourceVideoEditAssemblyStep {
+  label: string
+  summary: string
+}
+
+export interface ProjectSourceVideoOutputFrame {
+  aspectRatio: string
+  platformTarget: string
+  width: number
+  height: number
+  confirmed: true
+  source: string
+}
+
+export interface ProjectSourceVideoEditAssemblySummary {
+  planId: string
+  briefLineage: ProjectSourceVideoBriefLineage
+  title: string
+  summary: string
+  steps: ProjectSourceVideoEditAssemblyStep[]
+  sourceDurationSeconds?: number
+  sourceAspectRatio?: string
+  outputFrame?: ProjectSourceVideoOutputFrame
+  mode: ProjectSourceVideoEditAssemblyMode
+  operationsApplied: string[]
+  professionalOperationCount?: number
+  professionalOperationLabels?: string[]
+  requiredQaChecks?: string[]
+  planStepCount: number
+  productReady: false
+}
+
+export interface ProjectSourceVideoBriefLineage {
+  briefId: string
+  revisionNumber: number
+  briefFingerprint: string
+}
+
 export interface ProjectSourceVideoLocalEditPreviewResult {
   status: 'preview_ready'
+  editPlanId: string
+  briefLineage: ProjectSourceVideoBriefLineage
+  creditEstimateId: string
   approvedPlanSnapshotId: string
   creditApprovalId: string
   creditReservationId: string
@@ -107,10 +187,23 @@ export interface ProjectSourceVideoLocalEditPreviewResult {
   durationSeconds?: number
   sizeBytes?: number
   checksumSha256?: string
+  editAssembly?: ProjectSourceVideoEditAssemblySummary
+  privateReviewPreview?: {
+    outputBucketName?: string
+    outputObjectPath?: string
+    durationSeconds?: number
+    plannedTargetDurationSeconds?: number
+    sizeBytes?: number
+    checksumSha256?: string
+    keepSegmentCount?: number
+    removeSegmentCount?: number
+    finalDeliveryBlocked: true
+  }
   qwenMainBrainLabel: string
   approvedSnapshotCreated: true
   mockCreditApprovalCreated: true
   mockCreditReservationCreated: true
+  localPlanApproved: true
   workerJobCreated: true
   mediaProcessingStarted: true
   renderJobCreated: true
@@ -118,6 +211,81 @@ export interface ProjectSourceVideoLocalEditPreviewResult {
   providerCallMade: false
   qwenCallMade: false
   exportJobCreated: false
+  supabaseWriteMade: false
+  gcsWriteMade: false
+  productReady: false
+  warnings: string[]
+}
+
+export interface ProjectSourceVideoPreviewReviewResult {
+  id: string
+  renderId: string
+  workspaceId: string
+  reviewStatus: 'approved' | 'changes_requested'
+  notes?: string
+  createdAt?: string
+  mockOnly?: true
+  finalExportStarted: false
+  providerCallMade: false
+  workerJobCreated: false
+  renderJobCreated: false
+  creditReservedOrSpent: false
+  supabaseWriteMade: false
+  gcsWriteMade: false
+  productReady: false
+  warnings: string[]
+}
+
+export interface ProjectSourceVideoProfessionalQAResult {
+  id: string
+  workspaceId: string
+  editPlanId: string
+  renderId: string
+  approvedPlanSnapshotId: string
+  creditReservationId: string
+  previewReviewId: string
+  sourceStorageObjectRecordId: string
+  briefLineage: ProjectSourceVideoBriefLineage
+  status: ProjectSourceVideoProfessionalQAStatus
+  createdAt: string
+  checks: ProjectSourceVideoProfessionalQACheck[]
+  blockers: ProjectSourceVideoProfessionalQACheckId[]
+  finalExportStarted: false
+  publicDeliveryEnabled: false
+  providerCallMade: false
+  workerJobCreated: false
+  renderJobCreated: false
+  mediaProcessingStarted: false
+  creditReservedOrSpent: false
+  supabaseWriteMade: false
+  gcsWriteMade: false
+  productReady: false
+  warnings: string[]
+}
+
+export interface ProjectSourceVideoLocalFinalExportResult {
+  status: 'final_export_ready'
+  editPlanId: string
+  briefLineage: ProjectSourceVideoBriefLineage
+  approvedPlanSnapshotId: string
+  creditReservationId: string
+  renderJobId: string
+  renderId?: string
+  sourceStorageObjectRecordId: string
+  finalExportStorageObjectId?: string
+  qaReportId?: string
+  outputBucketName?: string
+  outputObjectPath?: string
+  durationSeconds?: number
+  sizeBytes?: number
+  checksumSha256?: string
+  editAssembly?: ProjectSourceVideoEditAssemblySummary
+  previewReviewId: string
+  professionalQA?: ProjectSourceVideoProfessionalQAResult
+  finalExportStarted: true
+  publicDeliveryEnabled: false
+  providerCallMade: false
+  qwenCallMade: false
   supabaseWriteMade: false
   gcsWriteMade: false
   productReady: false

@@ -21,6 +21,23 @@ export function createProjectRoutes(): Router {
     sendOk(response, { project: result.project }, result.warnings, 201)
   }))
 
+  router.get('/v1/projects', requireAuth, asyncRoute(async (request, response) => {
+    const workspaceId = String(request.query.workspaceId ?? '')
+    if (!workspaceId) {
+      response.status(400).json({
+        ok: false,
+        error: {
+          code: 'VALIDATION_FAILED',
+          message: 'workspaceId query parameter is required.',
+        },
+      })
+      return
+    }
+
+    const result = await createProjectService(getServiceContext(request)).listProjects(workspaceId)
+    sendOk(response, { projects: result.projects }, result.warnings)
+  }))
+
   router.get('/v1/projects/:projectId', requireAuth, asyncRoute(async (request, response) => {
     const result = await createProjectService(getServiceContext(request)).getProject(getRouteParam(request, 'projectId'))
     sendOk(response, { project: result.project }, result.warnings)

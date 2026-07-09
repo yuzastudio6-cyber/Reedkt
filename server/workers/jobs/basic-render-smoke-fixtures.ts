@@ -48,6 +48,31 @@ export async function createBasicRenderSmokeFixture(context: ServiceContext): Pr
         approvedPlanSnapshotId,
         creditReservationId,
         strict: false,
+        editAssemblyPlan: {
+          planId: 'local-plan-render-smoke',
+          briefLineage: {
+            briefId: 'brief-render-smoke',
+            revisionNumber: 1,
+            briefFingerprint: 'brief-fnv1a-render-smoke',
+          },
+          title: 'Local render smoke edit plan',
+          summary: 'Bounded internal render smoke plan for source review and clean assembly.',
+          steps: [
+            {
+              label: 'Clean assembly',
+              summary: 'Create a short internal preview artifact from the uploaded source.',
+            },
+          ],
+          sourceAspectRatio: '16:9',
+          outputFrame: {
+            aspectRatio: '16:9',
+            platformTarget: 'youtube_standard',
+            width: 960,
+            height: 540,
+            confirmed: true,
+            source: 'new_edit_create_form',
+          },
+        },
       },
       jobId: renderJobId,
       idempotencyKey: 'basic-render-smoke-skipped',
@@ -64,6 +89,31 @@ export async function createBasicRenderSmokeFixture(context: ServiceContext): Pr
       approvedPlanSnapshotId,
       creditReservationId,
       strict: true,
+      editAssemblyPlan: {
+        planId: 'local-plan-render-smoke',
+        briefLineage: {
+          briefId: 'brief-render-smoke',
+          revisionNumber: 1,
+          briefFingerprint: 'brief-fnv1a-render-smoke',
+        },
+        title: 'Local render smoke edit plan',
+        summary: 'Bounded internal render smoke plan for source review and clean assembly.',
+        steps: [
+          {
+            label: 'Clean assembly',
+            summary: 'Create a short internal preview artifact from the uploaded source.',
+          },
+        ],
+        sourceAspectRatio: '16:9',
+        outputFrame: {
+          aspectRatio: '16:9',
+          platformTarget: 'youtube_standard',
+          width: 960,
+          height: 540,
+          confirmed: true,
+          source: 'new_edit_create_form',
+        },
+      },
       sourceStorageObject: {
         id: sourceStorageObjectId,
         mediaAssetId,

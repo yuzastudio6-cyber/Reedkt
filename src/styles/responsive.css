@@ -39,6 +39,8 @@
 
   .hero-section,
   .dashboard-grid,
+  .home-flow-shell,
+  .home-current-layout,
   .chat-first-editor-layout,
   .editor-secondary-row,
   .editor-layout,
@@ -61,6 +63,7 @@
   .feature-grid,
   .metric-grid,
   .media-grid,
+  .preferences-clean-grid,
   .signature-grid,
   .brand-field-grid,
   .credit-pack-grid,
@@ -90,12 +93,18 @@
   }
 
   .sidebar {
+    gap: 14px;
     height: auto;
+    padding: 18px 20px;
     position: static;
   }
 
   .sidebar nav {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sidebar-link {
+    justify-content: center;
   }
 
   .app-main {
@@ -122,6 +131,12 @@
   .metric-grid,
   .folder-grid,
   .project-grid,
+  .clean-edit-brief__flow-steps,
+  .clean-edit-brief__layout,
+  .home-flow-shell,
+  .home-current-layout,
+  .preferences-clean-grid,
+  .preferences-clean-choice-grid,
   .upload-grid,
   .pricing-grid,
   .wallet-grid,

@@ -1,18 +1,16 @@
 {
   "id": "edit-preferences-route-entrypoint",
   "decision": "edit_preferences_route_entrypoint_passed_mock_local_ready_for_internal_testing",
-  "route": "/edit-preferences",
+  "route": "/preferences",
+  "legacyRedirect": "/edit-preferences",
   "source": {
-    "adapter": "src/lib/project-edit-session-preference-ui-adapter.ts",
-    "page": "src/pages/EditPreferencesPage.tsx",
-    "defaultProjectId": "mock-project-edit-chat-foundation",
-    "defaultEditSessionId": "edit-session-youtube-wide"
+    "page": "src/pages/PreferencesPage.tsx",
+    "defaultProjectId": null,
+    "defaultEditSessionId": null
   },
   "features": [
-    "seeded_preference_library",
-    "preference_detail_panel",
-    "browser_local_draft_creator",
-    "do_not_copy_policy_visibility",
+    "clean_preference_groups",
+    "preference_note_field",
     "mock_local_boundary_summary",
     "sidebar_navigation",
     "minimal_sidebar_home_project_preferences_only"
@@ -37,7 +35,7 @@
     ],
     "retiredStandaloneRoutes": {
       "/wallet": "/dashboard",
-      "/brand-kit": "/edit-preferences",
+      "/brand-kit": "/preferences",
       "/exports": "/projects"
     },
     "context": "Contextual project and edit actions can open scoped workflows, but the persistent app sidebar remains Home, Project, and Preferences only."

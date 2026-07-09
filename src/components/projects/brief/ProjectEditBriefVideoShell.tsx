@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Video } from 'lucide-react'
 import type { ProjectEditBriefVideoShellModel } from '../../../lib/project-edit-brief-ui-adapter'
+import type { ProjectSourceVideoLocalArtifactReviewObject } from '../../../lib/project-source-video-local-artifact-review'
 import type {
   ProjectSourceVideoLocalPreview,
   ProjectSourceVideoMetadataUpdate,
@@ -14,6 +15,9 @@ type ProjectEditBriefVideoShellProps = {
   onTimeUpdate?: (seconds: number) => void
   onVideoElementReady?: (element?: HTMLVideoElement) => void
   playing?: boolean
+  playbackNotice?: string
+  reviewArtifact?: ProjectSourceVideoLocalArtifactReviewObject
+  reviewArtifactLabel?: string
   seekRequest?: { requestId: number; seconds: number }
   video: ProjectEditBriefVideoShellModel
 }
@@ -25,15 +29,20 @@ export function ProjectEditBriefVideoShell({
   onTimeUpdate,
   onVideoElementReady,
   playing = false,
+  playbackNotice,
+  reviewArtifact,
+  reviewArtifactLabel = 'Private review artifact',
   seekRequest,
   video,
 }: ProjectEditBriefVideoShellProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
+  const videoSource = reviewArtifact?.objectUrl ?? localPreview?.objectUrl
+  const isReviewArtifact = Boolean(reviewArtifact)
 
   useEffect(() => {
-    onVideoElementReady?.(localPreview ? videoRef.current ?? undefined : undefined)
+    onVideoElementReady?.(videoSource ? videoRef.current ?? undefined : undefined)
     return () => onVideoElementReady?.(undefined)
-  }, [localPreview, onVideoElementReady])
+  }, [onVideoElementReady, videoSource])
 
   useEffect(() => {
     const element = videoRef.current
@@ -66,7 +75,7 @@ export function ProjectEditBriefVideoShell({
 
   return (
     <section className="project-edit-brief-video-shell" data-testid="project-edit-brief-video-shell">
-      {localPreview ? (
+      {videoSource ? (
         <div className="project-edit-brief-video-shell__frame project-edit-brief-video-shell__frame--local">
           <video
             ref={videoRef}
@@ -74,22 +83,24 @@ export function ProjectEditBriefVideoShell({
             data-testid="project-source-video-local-player"
             playsInline
             preload="metadata"
-            src={localPreview.objectUrl}
+            src={videoSource}
             onEnded={() => onPlayStateChange?.(false)}
             onLoadedMetadata={(event) => {
               const element = event.currentTarget
-              onMetadataLoaded?.({
-                durationSeconds: Number.isFinite(element.duration) ? element.duration : undefined,
-                videoHeight: element.videoHeight || undefined,
-                videoWidth: element.videoWidth || undefined,
-              })
+              if (localPreview && !isReviewArtifact) {
+                onMetadataLoaded?.({
+                  durationSeconds: Number.isFinite(element.duration) ? element.duration : undefined,
+                  videoHeight: element.videoHeight || undefined,
+                  videoWidth: element.videoWidth || undefined,
+                })
+              }
             }}
             onPause={() => onPlayStateChange?.(false)}
             onPlay={() => onPlayStateChange?.(true)}
             onTimeUpdate={(event) => onTimeUpdate?.(event.currentTarget.currentTime)}
           />
           <div className="project-edit-brief-video-shell__local-badge" data-testid="project-source-video-local-mode">
-            Local browser preview only
+            {isReviewArtifact ? reviewArtifactLabel : 'Local browser source'}
           </div>
         </div>
       ) : (
@@ -103,10 +114,11 @@ export function ProjectEditBriefVideoShell({
       )}
       <ProjectEditBriefVideoPlaybackControls
         currentTimeLabel={video.currentTimeLabel}
-        disabled={!localPreview}
+        disabled={!videoSource}
         durationLabel={video.durationLabel}
+        notice={playbackNotice}
         onPlayPause={togglePlayback}
-        playing={Boolean(localPreview && playing)}
+        playing={Boolean(videoSource && playing)}
       />
     </section>
   )

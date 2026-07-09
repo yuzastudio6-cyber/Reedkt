@@ -525,7 +525,7 @@ export function createProjectEditSessionApiClient(
             projectId: projectIdFrom(body, options),
             workspaceId: optionalString(body, 'workspaceId') ?? options.workspaceId,
             ownerUserId: optionalString(body, 'ownerUserId') ?? options.userId,
-            name: stringValue(body, 'name', 'Untitled Edit Chat'),
+            name: stringValue(body, 'name', 'Untitled edit'),
             description: optionalString(body, 'description'),
             status: sessionStatus(body.status),
             aspectRatio: aspectRatio(body.aspectRatio),

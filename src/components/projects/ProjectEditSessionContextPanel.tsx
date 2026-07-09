@@ -30,8 +30,8 @@ export function ProjectEditSessionContextPanel({
   return (
     <Card className="project-edit-session-chat-context" data-testid="edit-session-context-panel">
       <div className="project-edit-session-chat-context__heading">
-        <span className="section-eyebrow">Session context</span>
-        <Badge accent="cyan">Mock repository</Badge>
+        <span className="section-eyebrow">Edit context</span>
+        <Badge accent="cyan">Current edit</Badge>
       </div>
       <div className="project-edit-session-chat-context__stats">
         <span>

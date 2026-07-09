@@ -8,7 +8,7 @@ type ProjectEditSessionRouteTabsProps = {
 
 export function ProjectEditSessionRouteTabs({ tabs }: ProjectEditSessionRouteTabsProps) {
   return (
-    <nav aria-label="Edit Chat route sections" className="project-edit-session-route-tabs" data-testid="edit-session-route-tabs">
+    <nav aria-label="Edit workspace sections" className="project-edit-session-route-tabs" data-testid="edit-session-route-tabs">
       {tabs.map((tab) => {
         const className = `project-edit-session-route-tab ${tab.active ? 'is-active' : ''} ${tab.disabled ? 'is-disabled' : ''}`.trim()
         const content = (

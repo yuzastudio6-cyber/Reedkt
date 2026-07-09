@@ -114,6 +114,37 @@ export function getMockMediaAsset(mediaAssetId: string): MediaAssetView | undefi
   return mockMediaAssets.get(mediaAssetId)
 }
 
+export function registerBackendLocalStorageObjectRecord(input: {
+  id: string
+  workspaceId: string
+  projectId?: string
+  bucketName: string
+  objectPath: string
+  objectPurpose: string
+  mimeType?: string
+  sizeBytes?: number
+  checksumSha256?: string
+}): StorageObjectView {
+  const now = nowIso()
+  const storageObjectRecord: StorageObjectView = {
+    id: input.id,
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    bucketName: input.bucketName,
+    objectPath: input.objectPath,
+    objectPurpose: input.objectPurpose,
+    mimeType: input.mimeType,
+    sizeBytes: input.sizeBytes,
+    checksumSha256: input.checksumSha256,
+    status: 'ready',
+    createdAt: now,
+    updatedAt: now,
+    mockOnly: true,
+  }
+  mockStorageObjects.set(storageObjectRecord.id, storageObjectRecord)
+  return storageObjectRecord
+}
+
 export function createUploadService(context: ServiceContext) {
   const storage = createStorageAdapter(context.env)
 

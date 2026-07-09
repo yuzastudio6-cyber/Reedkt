@@ -35,10 +35,10 @@ export function NewEditSessionPlaceholder({ lastCreatedName, lastCreatedRoute, m
       {lastCreatedName ? (
         <div className="new-edit-session-placeholder__panel new-edit-session-placeholder__panel--success" data-testid="new-edit-session-created-note">
           <ShieldCheck aria-hidden="true" size={18} />
-          <span>{lastCreatedName} was created in mock/local mode. Open the mock Edit Chat workspace when ready.</span>
+          <span>{lastCreatedName} was created in mock/local mode. Open the edit workspace when ready.</span>
           {lastCreatedRoute ? (
             <Button to={lastCreatedRoute} variant="secondary">
-              Open Edit Chat
+              Open edit
             </Button>
           ) : null}
         </div>

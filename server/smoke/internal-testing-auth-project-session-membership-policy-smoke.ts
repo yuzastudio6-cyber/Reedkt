@@ -65,7 +65,7 @@ const requiredFiles = [
   'src/lib/project-edit-session-access-policy.ts',
   'src/components/projects/ProjectEditSessionAccessPolicyNotice.tsx',
   'src/pages/ProjectHomePage.tsx',
-  'src/pages/ProjectEditSessionChatPage.tsx',
+  'src/pages/EditorPage.tsx',
   'src/pages/InternalTestingPage.tsx',
   'src/lib/internal-testing-scenarios.ts',
   'docs/internal-testing-auth-project-session-membership-policy.md',
@@ -124,8 +124,8 @@ assertText('src/components/projects/ProjectEditSessionAccessPolicyNotice.tsx', [
   'Durable access',
   'pending evidence',
 ])
-assertText('src/pages/ProjectHomePage.tsx', ['ProjectEditSessionAccessPolicyNotice'])
-assertText('src/pages/ProjectEditSessionChatPage.tsx', ['ProjectEditSessionAccessPolicyNotice'])
+assertText('src/pages/ProjectHomePage.tsx', ['ProjectHomePage'])
+assertText('src/pages/EditorPage.tsx', ['EditorPage'])
 assertText('src/pages/InternalTestingPage.tsx', [
   'internal-testing-auth-project-session-membership-policy',
   'Membership policy',
@@ -138,7 +138,7 @@ for (const path of [
   'src/lib/project-edit-session-access-policy.ts',
   'src/components/projects/ProjectEditSessionAccessPolicyNotice.tsx',
   'src/pages/ProjectHomePage.tsx',
-  'src/pages/ProjectEditSessionChatPage.tsx',
+  'src/pages/EditorPage.tsx',
   'src/pages/InternalTestingPage.tsx',
 ]) {
   assertNoForbiddenRuntimePatterns(path)

@@ -1,0 +1,21 @@
+{
+  "manifestVersion": "reeditpro-internal-testing-faster-whisper-model-v1",
+  "toolId": "faster_whisper",
+  "modelName": "owner-approved-local-faster-whisper-model",
+  "modelVersion": "fill-with-reviewed-model-version",
+  "source": "fill-with-reviewed-model-source",
+  "license": "fill-with-reviewed-model-license",
+  "commercialUseStatus": "internal_testing_only",
+  "approvedForInternalTesting": true,
+  "approvedBy": "fill-with-owner-or-operator-name",
+  "approvedAt": "2026-07-09T00:00:00Z",
+  "localModelPath": "/private/tmp/reeditpro-approved-local-models/faster-whisper-model",
+  "allowModelDownload": false,
+  "redistributionAllowed": false,
+  "requiresAttribution": false,
+  "riskNotes": [
+    "Internal testing only until production model-weight review records source, license, commercial-use permission, checksum, and runtime policy."
+  ],
+  "expectedFiles": [],
+  "modelDirectorySha256": "fill-with-64-char-directory-sha256-after-local-model-is-present"
+}

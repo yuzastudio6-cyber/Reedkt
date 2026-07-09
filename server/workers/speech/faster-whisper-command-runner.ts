@@ -12,6 +12,8 @@ import {
 import type { SpeechExecutionInput } from '../speech-caption/speech-caption-pipeline-types'
 import type { SpeechFoundationSkipReason } from './speech-worker-types'
 import { normalizeFasterWhisperExecutionResult, type ParsedFasterWhisperResult } from './faster-whisper-result-parser'
+import { buildFasterWhisperPythonRunnerScript } from './faster-whisper-python-runner-script'
+import { defaultFasterWhisperPythonCommand, resolveFasterWhisperRuntimeReadiness } from './faster-whisper-runtime-readiness'
 
 const execFileAsync = promisify(execFile)
 
@@ -36,10 +38,10 @@ export function buildFasterWhisperExecutionCommand(input: SpeechExecutionInput):
     path.join(input.outputDirectory as string, 'faster-whisper-output.json'),
     input.outputDirectory as string,
   )
-  const command = input.fasterWhisperCommand ?? input.pythonCommand ?? 'python'
+  const command = input.fasterWhisperCommand ?? input.pythonCommand ?? defaultFasterWhisperPythonCommand()
   const args = input.fasterWhisperCommand
     ? buildAllowlistedArgs(input, outputJsonPath)
-    : ['-m', 'faster_whisper', ...buildAllowlistedArgs(input, outputJsonPath)]
+    : ['-c', buildFasterWhisperPythonRunnerScript(), ...buildAllowlistedArgs(input, outputJsonPath)]
 
   return {
     command,
@@ -117,6 +119,12 @@ export function buildFasterWhisperExecutionSkipReason(input: SpeechExecutionInpu
       tool: 'faster_whisper',
     }
   }
+
+  const runtimeReadiness = resolveFasterWhisperRuntimeReadiness({
+    fasterWhisperCommand: input.fasterWhisperCommand,
+    pythonCommand: input.pythonCommand,
+  })
+  if (runtimeReadiness.status === 'blocked') return runtimeReadiness.blockers[0]
 
   return undefined
 }

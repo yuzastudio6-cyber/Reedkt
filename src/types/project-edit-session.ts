@@ -7,6 +7,7 @@ export type ProjectEditSessionStatus =
   | 'approved'
   | 'in_progress_mock'
   | 'preview_ready'
+  | 'final_export_ready'
   | 'revision_requested'
   | 'needs_review'
   | 'rendered_future'
@@ -91,6 +92,7 @@ export type ProjectEditSessionVersionStatus =
   | 'approved'
   | 'superseded'
   | 'preview_ready'
+  | 'final_export_ready'
   | 'rendered_future'
   | 'rejected'
 

@@ -68,6 +68,7 @@ if (!tools.ready) {
         sourceStorageObjectId: fixture.request.sourceStorageObjectId,
         storageObjectRecordId: fixture.request.sourceStorageObjectId,
         sourceStorageObject: fixture.request.sourceStorageObject,
+        editAssemblyPlan: fixture.request.editAssemblyPlan,
       },
     })
 

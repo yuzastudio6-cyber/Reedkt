@@ -10,6 +10,7 @@ const repoRoot = path.resolve(scriptDir, '..', '..')
 const apiPort = Number.parseInt(process.env.REEDITPRO_LOCAL_UPLOAD_API_PORT ?? '9781', 10)
 const appPort = Number.parseInt(process.env.REEDITPRO_LOCAL_UPLOAD_APP_PORT ?? '5179', 10)
 const localStorageRoot = process.env.REEDITPRO_LOCAL_UPLOAD_STORAGE_ROOT ?? '.reeditpro-local-upload-storage-playwright'
+const realVideoFixturePath = process.env.REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_PATH?.trim()
 const fixtureRoot = path.join(repoRoot, 'test-results', 'project-source-video-real-local-api')
 const npmBin = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 const playwrightBin = path.join(repoRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'playwright.cmd' : 'playwright')
@@ -106,6 +107,7 @@ function runPlaywright() {
         PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_REAL_API: 'true',
         PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_API_BASE_URL: apiBaseUrl,
         PLAYWRIGHT_LOCAL_UPLOAD_STORAGE_ROOT: localStorageRoot,
+        PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_FIXTURE_PATH: realVideoFixturePath,
       },
       stdio: 'inherit',
     })
@@ -141,7 +143,13 @@ async function main() {
   assertPort('REEDITPRO_LOCAL_UPLOAD_API_PORT', apiPort)
   assertPort('REEDITPRO_LOCAL_UPLOAD_APP_PORT', appPort)
   assertLocalPlaywright()
-  assertExecutable('ffmpeg', 'FFmpeg')
+  if (realVideoFixturePath) {
+    if (!existsSync(realVideoFixturePath)) {
+      throw new Error(`REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_PATH does not exist: ${realVideoFixturePath}`)
+    }
+  } else {
+    assertExecutable('ffmpeg', 'FFmpeg')
+  }
 
   await cleanupRuntimeArtifacts()
 
@@ -149,6 +157,9 @@ async function main() {
   console.log(`API health: ${apiBaseUrl}/health`)
   console.log(`App sign-in: ${appBaseUrl}/sign-in`)
   console.log(`Storage root: ${path.resolve(repoRoot, localStorageRoot)}`)
+  if (realVideoFixturePath) {
+    console.log(`Real video fixture: ${realVideoFixturePath}`)
+  }
   console.log('Mode: browser-local mock sign-in + backend-local upload + preview-only local edit smoke. No Supabase writes, GCS writes, provider calls, live Qwen calls, final export, external beta, or production.')
 
   spawnServer('api', ['run', 'dev:api'], {

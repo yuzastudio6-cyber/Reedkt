@@ -1349,6 +1349,21 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'internal-testing-tool-routing-readiness',
+    title: 'Edit activity routing readiness',
+    description: 'Confirm approved-snapshot route metadata is visible as human edit activities without exposing package names.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Edit activity routing section.',
+      'Confirm Source preparation, Speech and captions, Story cleanup, Audio polish, Visual review, Private review build, and Delivery check appear.',
+      'Confirm approved snapshot, private artifact, no frontend execution, no provider, no worker dispatch, no credit spend, and no public delivery boundaries stay visible.',
+    ],
+    expectedResult: 'Internal testers see user-safe edit activity routing readiness while tool/package names and real execution remain hidden behind backend gates.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'edit-brief-shell-marker-selection',
     title: 'Edit Brief shell: marker selection',
     description: 'Select a marker pill and confirm the read-only marker detail panel updates.',

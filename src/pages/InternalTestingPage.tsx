@@ -26,6 +26,7 @@ import {
   DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_TABLES,
 } from '../lib/project-edit-session-backend-persistence-plan'
 import { getMockSafeDurableProjectSessionBackendSkeleton } from '../lib/project-edit-session-backend-skeleton'
+import { getInternalTestingToolRoutingUiModel } from '../lib/internal-testing-tool-routing-ui'
 import {
   DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_DECISION,
   DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_NEXT_GATE,
@@ -182,6 +183,7 @@ function getScenarioHighlights() {
     'source-video-marker-current-time',
     'source-video-export-dimensions',
     'source-video-local-preview-boundary',
+    'internal-testing-tool-routing-readiness',
     'edit-brief-shell-no-runtime-effects',
     'edit-brief-marker-add-at-playhead',
     'edit-brief-marker-chat-send',
@@ -240,6 +242,7 @@ export function InternalTestingPage() {
   const supabaseMigrationSqlDraft = useMemo(() => getDurableProjectSessionSupabaseMigrationSqlDraft(), [])
   const supabaseMigrationReview = useMemo(() => getDurableProjectSessionSupabaseMigrationReview(), [])
   const supabaseLocalMigrationDryRunPlan = useMemo(() => getDurableProjectSessionSupabaseLocalMigrationDryRunPlan(), [])
+  const toolRoutingReadiness = useMemo(() => getInternalTestingToolRoutingUiModel(), [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -474,6 +477,42 @@ export function InternalTestingPage() {
               {SIGN_IN_TO_EDIT_BRIEF_ROUTE}
               <ExternalLink aria-hidden="true" size={15} />
             </Link>
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-tool-routing-readiness">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Edit activity routing</span>
+            <h2>Private edit activities have approved-snapshot route metadata</h2>
+          </div>
+          <p>
+            Internal testing can explain the edit activities that become routable after upload, plan approval, credit reservation,
+            and private artifact references exist. The app keeps package and tool names hidden from the user-facing flow.
+          </p>
+          <div className="internal-testing-limit-grid">
+            {toolRoutingReadiness.activities.map((activity) => (
+              <article key={activity.id}>
+                <Badge accent="cyan">Route metadata</Badge>
+                <h3>{activity.label}</h3>
+                <p>{activity.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-tool-routing-boundaries">
+            {[
+              'Approved snapshot required',
+              'Private artifacts required',
+              'User-facing names hidden',
+              'No frontend execution',
+              'No provider calls',
+              'No worker dispatch',
+              'No credit spend',
+              'No public delivery',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
           </div>
         </section>
 

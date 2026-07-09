@@ -176,6 +176,7 @@
     "smoke:internal-testing-durable-project-session-supabase-local-migration-dry-run-plan": "tsx server/smoke/internal-testing-durable-project-session-supabase-local-migration-dry-run-plan-smoke.ts",
     "smoke:internal-testing-qa-wrapper": "tsx server/smoke/internal-testing-qa-wrapper-smoke.ts",
     "smoke:internal-testing-local-upload-runner": "tsx server/smoke/internal-testing-local-upload-runner-smoke.ts",
+    "smoke:internal-testing-tool-routing-readiness": "tsx server/smoke/internal-testing-tool-routing-readiness-smoke.ts",
     "qa:internal-testing": "node scripts/validation/internal-testing-qa-runner.mjs",
     "generate:project-edit-brief-owner-evidence-draft": "tsx scripts/validation/project-edit-brief-owner-evidence-example-generator.ts --mode draft --stdout",
     "smoke:project-edit-brief-visual-context": "tsx server/smoke/project-edit-brief-visual-context-smoke.ts",

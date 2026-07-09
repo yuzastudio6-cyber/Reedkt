@@ -191,6 +191,8 @@
     "test:internal-testing:real-video-prompt-plan-acceptance": "node scripts/dev/internal-testing-real-video-prompt-plan-acceptance.mjs",
     "smoke:internal-testing-real-video-approved-preview-acceptance": "tsx server/smoke/internal-testing-real-video-approved-preview-acceptance-smoke.ts",
     "test:internal-testing:real-video-approved-preview-acceptance": "node scripts/dev/internal-testing-real-video-approved-preview-acceptance.mjs",
+    "smoke:internal-testing-real-video-local-preview-execution": "tsx server/smoke/internal-testing-real-video-local-preview-execution-smoke.ts",
+    "test:internal-testing:real-video-local-preview-execution": "node scripts/dev/internal-testing-real-video-local-preview-execution.mjs",
     "qa:internal-testing": "node scripts/validation/internal-testing-qa-runner.mjs",
     "generate:project-edit-brief-owner-evidence-draft": "tsx scripts/validation/project-edit-brief-owner-evidence-example-generator.ts --mode draft --stdout",
     "smoke:project-edit-brief-visual-context": "tsx server/smoke/project-edit-brief-visual-context-smoke.ts",

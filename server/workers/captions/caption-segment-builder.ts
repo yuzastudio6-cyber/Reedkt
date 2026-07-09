@@ -28,7 +28,7 @@ export function buildCaptionSegmentsFromWords(
     const candidateDuration = (candidate.at(-1)?.endSeconds ?? word.endSeconds) - (candidate[0]?.startSeconds ?? word.startSeconds)
     const sentenceBoundary = /[.!?]$/.test(word.word)
     const tooManyWords = candidate.length > maxWords
-    const tooLong = candidateText.length > maxCharactersPerLine * maxLines
+    const tooLong = hasCaptionLineRisk(candidateText, maxCharactersPerLine, maxLines)
     const tooLongDuration = candidateDuration > maxDuration
 
     if (chunk.length > 0 && (tooManyWords || tooLong || tooLongDuration)) {
@@ -91,7 +91,11 @@ function mergeVeryShortCaptions(
   for (const caption of captions) {
     const previous = merged[merged.length - 1]
     const duration = caption.endSeconds - caption.startSeconds
-    if (previous && duration < minDuration && caption.endSeconds - previous.startSeconds <= maxDuration) {
+    const mergedWords = previous ? [...previous.words, ...caption.words] : []
+    const mergedText = normalizeSpacing(mergedWords.map((word) => word.word).join(' '))
+    const mergeWouldStayReadable = previous &&
+      !hasCaptionLineRisk(mergedText, maxCharactersPerLine, maxLines)
+    if (previous && duration < minDuration && caption.endSeconds - previous.startSeconds <= maxDuration && mergeWouldStayReadable) {
       const words = [...previous.words, ...caption.words]
       merged[merged.length - 1] = buildCaption(words, merged.length - 1, options, maxCharactersPerLine, maxLines, minDuration)
     } else {
@@ -100,6 +104,11 @@ function mergeVeryShortCaptions(
   }
 
   return merged.map((caption, index) => ({ ...caption, captionId: `caption-${index + 1}` }))
+}
+
+function hasCaptionLineRisk(text: string, maxCharactersPerLine: number, maxLines: number): boolean {
+  const lines = splitCaptionLines(text, maxCharactersPerLine, maxLines)
+  return lines.length > maxLines || lines.some((line) => line.length > maxCharactersPerLine)
 }
 
 function splitCaptionLines(text: string, maxCharactersPerLine: number, maxLines: number): string[] {

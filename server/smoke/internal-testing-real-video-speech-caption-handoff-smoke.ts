@@ -306,6 +306,13 @@ try {
       blocksPreview: gate.blocksPreview,
       blocksFinalExport: gate.blocksFinalExport,
     })),
+    qaGateIssues: speechCaption.qaResults.flatMap((gate) => gate.issues.map((issue) => ({
+      gateType: gate.gateType,
+      status: gate.status,
+      code: issue.code,
+      severity: issue.severity,
+      blocksFinalExport: gate.blocksFinalExport,
+    }))),
     localModelPathConfigured: true,
     localModelPathExists,
     fasterWhisperRuntimeStatus: runtimeReadiness.status,

@@ -1474,6 +1474,22 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'internal-testing-real-video-acceptance-preflight',
+    title: 'Real-video acceptance preflight',
+    description: 'Confirm the requested internal testing MP4 is present for the next backend-local upload acceptance gate without processing it here.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Real-video acceptance preflight section.',
+      'Confirm the fixture path is Documents/test video/internal testing.MP4.',
+      'Confirm the page states file metadata only, no upload, no byte read, no media decoding, no tool execution, and no product-ready claim.',
+      'Run the local preflight smoke on the machine that has the fixture before the backend-local upload acceptance gate.',
+    ],
+    expectedResult: 'The exact local fixture is preflighted for backend-local upload acceptance while upload, media processing, public delivery, and production remain blocked.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'edit-brief-shell-marker-selection',
     title: 'Edit Brief shell: marker selection',
     description: 'Select a marker pill and confirm the read-only marker detail panel updates.',

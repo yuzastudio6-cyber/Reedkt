@@ -30,6 +30,7 @@ import { getInternalTestingApprovedSnapshotRouteReviewUiModel } from '../lib/int
 import { getInternalTestingMockWorkerExecutionHarnessUiModel } from '../lib/internal-testing-mock-worker-execution-harness-ui'
 import { getInternalTestingPrivateReviewResultDryRunUiModel } from '../lib/internal-testing-private-review-result-dry-run-ui'
 import { getInternalTestingInternalTesterReviewPanelUiModel } from '../lib/internal-testing-internal-tester-review-panel-ui'
+import { getInternalTestingRealVideoAcceptancePreflightUiModel } from '../lib/internal-testing-real-video-acceptance-preflight-ui'
 import { getInternalTestingToolRoutingUiModel } from '../lib/internal-testing-tool-routing-ui'
 import { getInternalTestingMockWorkerQueueReviewUiModel } from '../lib/internal-testing-mock-worker-queue-review-ui'
 import { getInternalTestingWorkerClaimDryRunUiModel } from '../lib/internal-testing-worker-claim-dry-run-ui'
@@ -198,6 +199,7 @@ function getScenarioHighlights() {
     'internal-testing-mock-worker-execution-harness',
     'internal-testing-private-review-result-dry-run',
     'internal-testing-internal-tester-review-panel',
+    'internal-testing-real-video-acceptance-preflight',
     'edit-brief-shell-no-runtime-effects',
     'edit-brief-marker-add-at-playhead',
     'edit-brief-marker-chat-send',
@@ -264,6 +266,7 @@ export function InternalTestingPage() {
   const mockWorkerExecutionHarness = useMemo(() => getInternalTestingMockWorkerExecutionHarnessUiModel(), [])
   const privateReviewResultDryRun = useMemo(() => getInternalTestingPrivateReviewResultDryRunUiModel(), [])
   const internalTesterReviewPanel = useMemo(() => getInternalTestingInternalTesterReviewPanelUiModel(), [])
+  const realVideoAcceptancePreflight = useMemo(() => getInternalTestingRealVideoAcceptancePreflightUiModel(), [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -768,6 +771,52 @@ export function InternalTestingPage() {
               'No signed URLs',
               'No public delivery',
               'No tool execution',
+              'No product-ready claim',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-real-video-acceptance-preflight">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Real-video acceptance preflight</span>
+            <h2>The internal testing video is ready for the backend-local upload gate</h2>
+          </div>
+          <p>{realVideoAcceptancePreflight.summary}</p>
+          <div className="internal-testing-limit-grid">
+            <article>
+              <Badge accent="success">{realVideoAcceptancePreflight.fixture.label}</Badge>
+              <h3>{realVideoAcceptancePreflight.fixture.displayPath}</h3>
+              <p>
+                This screen records the approved fixture path only. The local smoke verifies file metadata before the next upload acceptance
+                run.
+              </p>
+            </article>
+            {realVideoAcceptancePreflight.checks.map((item) => (
+              <article key={item.id}>
+                <Badge accent="success">Ready for local preflight</Badge>
+                <h3>{item.label}</h3>
+                <p>{item.summary}</p>
+              </article>
+            ))}
+            <article>
+              <Badge accent="warning">{realVideoAcceptancePreflight.nextGate.label}</Badge>
+              <h3>Next approved action</h3>
+              <p>{realVideoAcceptancePreflight.nextGate.summary}</p>
+            </article>
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-real-video-acceptance-preflight-boundaries">
+            {[
+              'Local fixture only',
+              'File metadata only',
+              'No upload started here',
+              'No file bytes read',
+              'No media decoding',
+              'No tool execution',
+              'No public delivery',
               'No product-ready claim',
             ].map((item) => (
               <Badge accent="muted" key={item}>

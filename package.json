@@ -184,6 +184,7 @@
     "smoke:internal-testing-mock-worker-execution-harness": "tsx server/smoke/internal-testing-mock-worker-execution-harness-smoke.ts",
     "smoke:internal-testing-private-review-result-dry-run": "tsx server/smoke/internal-testing-private-review-result-dry-run-smoke.ts",
     "smoke:internal-testing-internal-tester-review-panel": "tsx server/smoke/internal-testing-internal-tester-review-panel-smoke.ts",
+    "smoke:internal-testing-real-video-acceptance-preflight": "tsx server/smoke/internal-testing-real-video-acceptance-preflight-smoke.ts",
     "qa:internal-testing": "node scripts/validation/internal-testing-qa-runner.mjs",
     "generate:project-edit-brief-owner-evidence-draft": "tsx scripts/validation/project-edit-brief-owner-evidence-example-generator.ts --mode draft --stdout",
     "smoke:project-edit-brief-visual-context": "tsx server/smoke/project-edit-brief-visual-context-smoke.ts",

@@ -46,8 +46,8 @@ export function ProjectCard({ project }: ProjectCardProps) {
             <UserRound size={14} /> {project.owner}
           </span>
         </div>
-        <Button size="sm" to="/projects/mock-project-edit-chat-foundation" variant="secondary">
-          Open Project Home
+        <Button size="sm" to={project.openPath ?? '/projects/mock-project-edit-chat-foundation'} variant="secondary">
+          Open project
         </Button>
       </div>
     </Card>

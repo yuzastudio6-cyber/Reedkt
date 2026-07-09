@@ -1,7 +1,7 @@
 {
   "decision": "app_sign_in_entrypoint_passed_ready_for_internal_testing_auth_smoke",
   "route": "/sign-in",
-  "defaultRedirect": "/internal-testing",
+  "defaultRedirect": "/dashboard",
   "frontendAuthMode": "supabase_anon_client_only",
   "internalTestingAuthMode": "browser_local_mock_session_when_explicitly_enabled",
   "allowedPublicEnv": ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY"],

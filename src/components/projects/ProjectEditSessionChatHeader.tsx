@@ -14,11 +14,10 @@ export function ProjectEditSessionChatHeader({ header }: ProjectEditSessionChatH
         <Film size={28} />
       </div>
       <div className="project-edit-session-chat-header__copy">
-        <span className="section-eyebrow">Persistent Edit Chat</span>
+        <span className="section-eyebrow">Edit workspace</span>
         <h1>{header.title}</h1>
-        <p>{header.projectId}</p>
+        <p>Upload source video, guide the edit, approve the plan, and review the preview from this workspace.</p>
         <div className="project-edit-session-chat-header__badges">
-          <Badge accent="cyan">Mock/local Edit Chat</Badge>
           <Badge>{header.aspectRatioLabel}</Badge>
           <Badge>{header.platformLabel}</Badge>
           <Badge>{header.statusLabel}</Badge>

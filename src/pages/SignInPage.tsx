@@ -19,7 +19,7 @@ type AuthFormNotice = {
   detail: string
 }
 
-const DEFAULT_REDIRECT = '/internal-testing'
+const DEFAULT_REDIRECT = '/dashboard'
 
 function sanitizeRedirect(value: string | null): string {
   if (!value) return DEFAULT_REDIRECT
@@ -113,10 +113,10 @@ export function SignInPage() {
     if (result.session || (result.mode === 'mock' && result.status === 'ready')) {
       setNotice({
         tone: 'success',
-        title: result.mode === 'mock' ? 'Local testing sign-in ready' : 'Signed in',
+          title: result.mode === 'mock' ? 'Local session ready' : 'Signed in',
         detail: bootstrap.ok
           ? 'Your ReEditPro session and workspace context are ready.'
-          : `${bootstrap.message} You can still continue to the internal testing entrypoint for read-only checks.`,
+          : `${bootstrap.message} You can still continue to the app home for project checks.`,
       })
       navigate(redirectTo, { replace: true })
       return
@@ -126,7 +126,7 @@ export function SignInPage() {
       tone: result.emailConfirmationRequired ? 'warning' : 'info',
       title: result.emailConfirmationRequired ? 'Tester provisioning required' : 'Session pending',
       detail: result.emailConfirmationRequired
-        ? 'This Supabase project did not return an active session. For internal testing, ask an owner to run the backend tester provisioning workflow, then use Sign in. Do not wait on email confirmation as the blocking path.'
+        ? 'This Supabase project did not return an active session. Use a provisioned tester account, or enable email signups in Supabase Auth before creating accounts from this page.'
         : result.message,
     })
     if (result.emailConfirmationRequired) {
@@ -163,12 +163,11 @@ export function SignInPage() {
 
         <div className="auth-entry-copy">
           <Badge accent={configured ? 'cyan' : 'warning'}>
-            {configured ? 'Private testing sign-in' : 'Auth configuration required'}
+            {configured ? 'ReEditPro sign-in' : 'Auth configuration required'}
           </Badge>
           <h1 id="sign-in-title">Sign in to test the ReEditPro app.</h1>
           <p>
-            Use the approved internal tester email for the owned Supabase project. The landing page stays public;
-            this app route owns the session, project access checks, and internal testing entrypoint.
+            Sign in to open the ReEditPro app. The landing page stays public; this app route owns the session and project access checks.
           </p>
         </div>
 
@@ -208,8 +207,12 @@ export function SignInPage() {
           )}
 
           {internalTestingMockAuthEnabled && (
-            <div className="auth-entry-notice auth-entry-notice-info" role="status">
-              <strong>Internal testing auth is enabled</strong>
+            <div
+              className="auth-entry-notice auth-entry-notice-info"
+              data-testid="auth-local-testing-session-notice"
+              role="status"
+            >
+              <strong>Local app session is enabled</strong>
               <p>
                 `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true` lets this form create a browser-local testing session when Supabase env is
                 absent. It does not send credentials to Supabase, create backend records, run tools, upload media, reserve credits,
@@ -251,7 +254,7 @@ export function SignInPage() {
                 <input
                   autoComplete="name"
                   onChange={(event) => setDisplayName(event.target.value)}
-                  placeholder="Internal tester"
+                  placeholder="Your name"
                   type="text"
                   value={displayName}
                 />
@@ -279,8 +282,14 @@ export function SignInPage() {
               />
             </label>
 
-            <Button disabled={submitDisabled} icon={mode === 'sign_in' ? ArrowRight : UserPlus} type="submit" variant="primary">
-              {submitting ? 'Checking session' : mode === 'sign_in' ? 'Sign in and open testing' : 'Create account'}
+            <Button
+              data-testid="auth-submit-button"
+              disabled={submitDisabled}
+              icon={mode === 'sign_in' ? ArrowRight : UserPlus}
+              type="submit"
+              variant="primary"
+            >
+              {submitting ? 'Checking session' : mode === 'sign_in' ? 'Sign in' : 'Create account'}
             </Button>
           </form>
 
@@ -305,24 +314,23 @@ export function SignInPage() {
             <div className="plan-card-header">
               <div>
                 <p className="eyebrow">After sign-in</p>
-                <h3>Continue testing</h3>
+                <h3>Continue to ReEditPro</h3>
               </div>
               <Badge accent={signedIn ? 'success' : 'muted'}>{signedIn ? 'Session found' : 'Waiting'}</Badge>
             </div>
             <p>
-              The current safe destination is the internal testing entrypoint. It lets you verify project/session UI,
-              Edit Brief, approval gates, and readiness notes without live tool execution.
+              Open the clean project workspace, create a project, create an edit, and continue the upload/brief flow.
             </p>
             <div className="auth-entry-actions">
               <Button icon={RefreshCw} onClick={handleRefresh} variant="secondary">
                 Refresh session
               </Button>
               <Button icon={ArrowRight} to={redirectTo} variant="primary">
-                Open testing
+                Open app
               </Button>
             </div>
             <Link className="auth-entry-secondary-link" to="/dashboard">
-              Or open the mock dashboard
+              Or open Home
             </Link>
           </Card>
         </div>

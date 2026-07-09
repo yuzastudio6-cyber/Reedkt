@@ -101,6 +101,14 @@ function clearInternalTestingMockAuthSession(): void {
   window.dispatchEvent(new CustomEvent('reeditpro-internal-testing-auth-change'))
 }
 
+function explainAuthError(message: string): string {
+  if (/signups? not allowed/i.test(message)) {
+    return 'Account creation is disabled in Supabase Auth for this project. Sign in with a provisioned account, or enable email signups in the Supabase dashboard before using Create account.'
+  }
+
+  return message
+}
+
 function notConfiguredStatus(): AuthClientStatus {
   const status = getSupabaseClientStatus()
 
@@ -265,7 +273,7 @@ export async function signInWithEmailPassword(
       ok: false,
       mode: 'supabase_frontend',
       status: 'error',
-      message: error.message,
+      message: explainAuthError(error.message),
       warnings: ['Sign-in failed.'],
     }
   }
@@ -346,7 +354,7 @@ export async function signUpWithEmailPassword(
       ok: false,
       mode: 'supabase_frontend',
       status: 'error',
-      message: error.message,
+      message: explainAuthError(error.message),
       warnings: ['Sign-up failed.'],
     }
   }

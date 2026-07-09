@@ -13,14 +13,14 @@ export function ProjectEditSessionMessageList({ messages }: ProjectEditSessionMe
         <div className="project-edit-session-message-list__empty">
           <MessageSquareText aria-hidden="true" size={24} />
           <strong>No chat history yet</strong>
-          <p>Send a mock message to save it in the Project Edit Session repository seam.</p>
+          <p>Send a message to describe the edit or ask for a change.</p>
         </div>
       </section>
     )
   }
 
   return (
-    <section aria-label="Edit Chat message history" className="project-edit-session-message-list" data-testid="edit-session-message-list">
+    <section aria-label="Edit message history" className="project-edit-session-message-list" data-testid="edit-session-message-list">
       {messages.map((message) => (
         <ProjectEditSessionMessageBubble key={message.id} message={message} />
       ))}

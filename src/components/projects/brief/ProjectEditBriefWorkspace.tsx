@@ -1,594 +1,1034 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { MessageSquareText } from 'lucide-react'
+import { Badge } from '../../Badge'
+import { Button } from '../../Button'
 import { Card } from '../../Card'
+import { ProjectEditPlanApprovalCard } from '../ProjectEditPlanApprovalCard'
+import { ProjectEditLifecycleStatusCard } from '../ProjectEditLifecycleStatusCard'
 import {
-  archiveProjectEditBriefMarkerViaApi,
-  confirmProjectEditBriefMarkerViaApi,
-  createProjectEditBriefMarkerDraftForUI,
-  createProjectEditBriefMarkerFormModel,
-  saveProjectEditBriefMarkerViaApi,
-  updateProjectEditBriefMarkerViaApi,
-  type ProjectEditBriefMarkerDraftForUI,
-} from '../../../lib/project-edit-brief-marker-flow-ui-adapter'
+  createProjectEditBriefBackendLocalConfig,
+  readProjectEditBriefBackendLocal,
+  saveProjectEditBriefBackendLocal,
+  type ProjectEditBriefBackendLocalRecord,
+} from '../../../lib/project-edit-brief-backend-local'
 import {
-  createProjectEditBriefTimelineUIModel,
-  loadProjectEditBriefWorkspaceForUI,
-  PROJECT_EDIT_BRIEF_UI_BOUNDARY,
-  type ProjectEditBriefWorkspaceModel,
-} from '../../../lib/project-edit-brief-ui-adapter'
+  recordProjectEditSessionLifecycleCheckpointBackendLocal,
+  type ProjectEditSessionBackendLocalRecord,
+  type ProjectEditSessionLifecycleCheckpointKind,
+} from '../../../lib/project-edit-session-backend-local'
+import { approveProjectEditPlanBackendLocal } from '../../../lib/project-edit-plan-backend-local'
+import { buildProjectEditPlanApprovalModel } from '../../../lib/project-edit-plan-approval'
+import { buildProjectEditLifecycleModel } from '../../../lib/project-edit-lifecycle'
 import {
-  createProjectSourceVideoLocalPreviewFromFile,
-  isBrowserVideoMimeTypeAllowed,
-  revokeProjectSourceVideoLocalPreview,
-} from '../../../lib/project-source-video-local-preview'
+  finalExportMatchesCurrentEvidence,
+  previewResultMatchesApprovedEvidence,
+  previewReviewMatchesPreview,
+  professionalQAMatchesCurrentEvidence,
+} from '../../../lib/project-edit-evidence-lineage'
 import {
   createProjectSourceVideoBackendUploadConfig,
   uploadProjectSourceVideoToBackend,
 } from '../../../lib/project-source-video-backend-upload'
 import {
+  loadProjectSourceVideoLocalArtifactForReview,
+  revokeProjectSourceVideoLocalArtifactReviewObject,
+  type ProjectSourceVideoLocalArtifactReviewObject,
+} from '../../../lib/project-source-video-local-artifact-review'
+import {
   createProjectSourceVideoLocalEditPreviewConfig,
 } from '../../../lib/project-source-video-local-edit-preview-smoke'
 import {
-  createProjectSourceVideoExportRecommendationInput,
+  createProjectSourceVideoLocalPreviewFromFile,
+  revokeProjectSourceVideoLocalPreview,
+} from '../../../lib/project-source-video-local-preview'
+import {
   createProjectSourceVideoMetadataSummary,
+  formatProjectSourceVideoDuration,
   inferProjectSourceVideoAspectRatio,
 } from '../../../lib/project-source-video-metadata-mappers'
 import type {
+  ProjectEditPlanApprovalModel,
+  ProjectEditPlanBackendApprovalResult,
+} from '../../../lib/project-edit-plan-approval'
+import {
+  createBriefSavedCheckpointMetadata,
+  createBriefDraftChangedCheckpointMetadata,
+  createFinalExportReadyCheckpointMetadata,
+  createPlanApprovedCheckpointMetadata,
+  createProfessionalQACheckpointMetadata,
+  createPreviewReadyCheckpointMetadata,
+  createPreviewReviewedCheckpointMetadata,
+  createRestoredApprovedLocalPlan,
+  createSourceUploadCheckpointMetadata,
+  restoreBackendUploadResult,
+  restoreFinalExportResult,
+  restoreProfessionalQAResult,
+  restorePreviewResult,
+  restorePreviewReviewResult,
+} from '../../../lib/project-edit-session-lifecycle-checkpoint-ui-adapter'
+import type {
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoBackendUploadStatus,
+  ProjectSourceVideoLocalEditPreviewResult,
+  ProjectSourceVideoLocalFinalExportResult,
   ProjectSourceVideoLocalPreview,
   ProjectSourceVideoMetadataUpdate,
+  ProjectSourceVideoPreviewReviewResult,
+  ProjectSourceVideoProfessionalQAResult,
 } from '../../../types/project-source-video'
-import {
-  createDefaultMockProjectEditBriefApiClient,
-  createQwenLiveProjectEditBriefApiClient,
-} from '../../../lib/project-edit-brief-api-client'
-import { ProjectEditBriefBoundaryNotice } from './ProjectEditBriefBoundaryNotice'
-import { ProjectEditBriefEmptyState } from './ProjectEditBriefEmptyState'
-import { ProjectEditBriefExportSettingsSummary } from './ProjectEditBriefExportSettingsSummary'
-import { ProjectEditBriefHeader } from './ProjectEditBriefHeader'
-import { ProjectEditBriefMarkerDetailPanel } from './ProjectEditBriefMarkerDetailPanel'
-import { ProjectEditBriefMarkerDrawer } from './ProjectEditBriefMarkerDrawer'
+import type { ProjectEditBriefVideoShellModel } from '../../../lib/project-edit-brief-ui-adapter'
+import type {
+  ProjectEditSessionApprovalStatus,
+  ProjectEditSessionStatus,
+} from '../../../types/project-edit-session'
 import { ProjectEditBriefLocalPreviewSmokeCard } from './ProjectEditBriefLocalPreviewSmokeCard'
-import { ProjectEditBriefPlanBridgePanel } from './ProjectEditBriefPlanBridgePanel'
-import { ProjectEditBriefQASummaryCard } from './ProjectEditBriefQASummaryCard'
-import { ProjectEditBriefSummaryPanel } from './ProjectEditBriefSummaryPanel'
+import { ProjectEditBriefFinalExportCard } from './ProjectEditBriefFinalExportCard'
+import { ProjectEditBriefPreviewReviewCard } from './ProjectEditBriefPreviewReviewCard'
+import { ProjectEditBriefProfessionalQACard } from './ProjectEditBriefProfessionalQACard'
 import { ProjectEditBriefSourceVideoPicker } from './ProjectEditBriefSourceVideoPicker'
 import { ProjectEditBriefSourceVideoSummary } from './ProjectEditBriefSourceVideoSummary'
-import { ProjectEditBriefTimeline } from './ProjectEditBriefTimeline'
 import { ProjectEditBriefVideoShell } from './ProjectEditBriefVideoShell'
 
 type ProjectEditBriefWorkspaceProps = {
+  backendLocalEditSession?: ProjectEditSessionBackendLocalRecord
   editSessionId: string
   editSessionTitle?: string
   projectId: string
 }
 
-export function ProjectEditBriefWorkspace({ editSessionId, editSessionTitle, projectId }: ProjectEditBriefWorkspaceProps) {
-  const client = useMemo(() => {
-    const env = import.meta.env as Record<string, string | undefined>
-    const liveMarkerChat = env.VITE_REEDITPRO_QWEN_MARKER_CHAT_LIVE === 'true'
-    const liveQwen25VLVisualContext = env.VITE_REEDITPRO_QWEN25VL_VISUAL_CONTEXT_LIVE === 'true'
-    const apiBaseUrl = env.VITE_REEDITPRO_API_BASE_URL ?? env.VITE_API_BASE_URL
-    if ((liveMarkerChat || liveQwen25VLVisualContext) && apiBaseUrl) {
-      return createQwenLiveProjectEditBriefApiClient({
-        apiBaseUrl,
-        liveQwenMarkerChat: liveMarkerChat,
-        liveQwen25VLVisualContext,
-        projectId,
-        preserveMockSession: true,
-      })
-    }
-    return createDefaultMockProjectEditBriefApiClient({
-      projectId,
-      preserveMockSession: true,
-    })
-  }, [projectId])
-  const backendUploadConfig = useMemo(() => (
-    createProjectSourceVideoBackendUploadConfig(import.meta.env as Record<string, string | undefined>)
-  ), [])
-  const localEditPreviewConfig = useMemo(() => (
-    createProjectSourceVideoLocalEditPreviewConfig(import.meta.env as Record<string, string | undefined>)
-  ), [])
-  const [selectedMarkerId, setSelectedMarkerId] = useState<string | undefined>()
+type EditWorkspaceFlowStep = {
+  id: 'source' | 'brief' | 'plan' | 'preview' | 'review' | 'quality' | 'export'
+  label: string
+  status: 'complete' | 'current' | 'locked'
+  summary: string
+}
+
+type MainPlaybackMode = 'source' | 'preview' | 'final_export'
+
+function buildEditWorkspaceFlowSteps(input: {
+  sourceUploaded: boolean
+  briefSaved: boolean
+  planApproved: boolean
+  previewReady: boolean
+  previewReviewed: boolean
+  qualityPassed: boolean
+  exportReady: boolean
+}): EditWorkspaceFlowStep[] {
+  const definitions: Array<Omit<EditWorkspaceFlowStep, 'status'> & { complete: boolean }> = [
+    {
+      id: 'source',
+      label: 'Source',
+      complete: input.sourceUploaded,
+      summary: input.sourceUploaded ? 'Video is attached to this edit.' : 'Upload the video for this edit.',
+    },
+    {
+      id: 'brief',
+      label: 'Brief',
+      complete: input.briefSaved,
+      summary: input.briefSaved ? 'Instructions are saved.' : 'Write and save what the edit should do.',
+    },
+    {
+      id: 'plan',
+      label: 'Plan',
+      complete: input.planApproved,
+      summary: input.planApproved ? 'Plan and credits are approved.' : 'Approve the plan before preview creation.',
+    },
+    {
+      id: 'preview',
+      label: 'Preview',
+      complete: input.previewReady,
+      summary: input.previewReady ? 'A private preview is ready.' : 'Create a private preview for review.',
+    },
+    {
+      id: 'review',
+      label: 'Review',
+      complete: input.previewReviewed,
+      summary: input.previewReviewed ? 'Preview review is approved.' : 'Approve the preview or request changes.',
+    },
+    {
+      id: 'quality',
+      label: 'Quality check',
+      complete: input.qualityPassed,
+      summary: input.qualityPassed ? 'Quality gate passed.' : 'Confirm the approved preview is ready to export.',
+    },
+    {
+      id: 'export',
+      label: 'Private export',
+      complete: input.exportReady,
+      summary: input.exportReady ? 'Private export is ready.' : 'Create the private final test export.',
+    },
+  ]
+  const firstIncompleteIndex = definitions.findIndex((step) => !step.complete)
+
+  return definitions.map((step, index) => ({
+    id: step.id,
+    label: step.label,
+    summary: step.summary,
+    status: step.complete ? 'complete' : index === firstIncompleteIndex ? 'current' : 'locked',
+  }))
+}
+
+export function ProjectEditBriefWorkspace({
+  backendLocalEditSession,
+  editSessionId,
+  editSessionTitle,
+  projectId,
+}: ProjectEditBriefWorkspaceProps) {
+  const briefConfig = useMemo(() => createProjectEditBriefBackendLocalConfig(import.meta.env), [])
+  const backendUploadConfig = useMemo(() => createProjectSourceVideoBackendUploadConfig(import.meta.env), [])
+  const localPreviewConfig = useMemo(() => createProjectSourceVideoLocalEditPreviewConfig(import.meta.env), [])
+  const [sourceFile, setSourceFile] = useState<File | undefined>()
+  const [sourceVideo, setSourceVideo] = useState<ProjectSourceVideoLocalPreview | undefined>()
+  const [backendUploadStatus, setBackendUploadStatus] = useState<ProjectSourceVideoBackendUploadStatus>(() => backendUploadConfig.available ? 'idle' : 'unavailable')
+  const [backendUploadResult, setBackendUploadResult] = useState<ProjectSourceVideoBackendUploadResult | undefined>()
+  const [backendUploadError, setBackendUploadError] = useState<string | undefined>()
+  const [localPreviewResult, setLocalPreviewResult] = useState<ProjectSourceVideoLocalEditPreviewResult | undefined>()
+  const [localFinalExportResult, setLocalFinalExportResult] = useState<ProjectSourceVideoLocalFinalExportResult | undefined>()
+  const [mainPlaybackMode, setMainPlaybackMode] = useState<MainPlaybackMode>('source')
+  const [mainReviewArtifact, setMainReviewArtifact] = useState<ProjectSourceVideoLocalArtifactReviewObject | undefined>()
+  const [mainReviewArtifactLoading, setMainReviewArtifactLoading] = useState(false)
+  const [mainReviewArtifactError, setMainReviewArtifactError] = useState<string | undefined>()
+  const [playing, setPlaying] = useState(false)
   const [playheadSeconds, setPlayheadSeconds] = useState(0)
-  const [autoSelectFirstMarker, setAutoSelectFirstMarker] = useState(true)
-  const [drawerDraft, setDrawerDraft] = useState<ProjectEditBriefMarkerDraftForUI | undefined>()
-  const [model, setModel] = useState<ProjectEditBriefWorkspaceModel | undefined>()
-  const [localSourceVideoFile, setLocalSourceVideoFile] = useState<File | undefined>()
-  const [localSourceVideo, setLocalSourceVideo] = useState<ProjectSourceVideoLocalPreview | undefined>()
-  const [sourceVideoError, setSourceVideoError] = useState<string | undefined>()
-  const [sourceVideoUploadResult, setSourceVideoUploadResult] = useState<ProjectSourceVideoBackendUploadResult | undefined>()
-  const [sourceVideoUploadStatus, setSourceVideoUploadStatus] = useState<ProjectSourceVideoBackendUploadStatus>(
-    backendUploadConfig.available ? 'idle' : 'unavailable',
-  )
-  const [sourceVideoUploadError, setSourceVideoUploadError] = useState<string | undefined>()
-  const [sourceVideoPlaying, setSourceVideoPlaying] = useState(false)
-  const [sourceVideoSeekRequest, setSourceVideoSeekRequest] = useState<{ requestId: number; seconds: number } | undefined>()
-  const [sourceVideoElement, setSourceVideoElement] = useState<HTMLVideoElement | null>(null)
-  const [refreshIndex, setRefreshIndex] = useState(0)
-  const [isDrawerBusy, setIsDrawerBusy] = useState(false)
-  const [statusMessage, setStatusMessage] = useState('Loading mock Edit Brief shell.')
-  const preserveStatusMessageRef = useRef(false)
+  const [briefText, setBriefText] = useState('Clean pacing, readable captions, natural sound, and no flashy transitions unless the edit asks for it.')
+  const [briefSaved, setBriefSaved] = useState(false)
+  const [briefSaveStatus, setBriefSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>(briefConfig.available ? 'idle' : 'failed')
+  const [briefSaveError, setBriefSaveError] = useState<string | undefined>(briefConfig.available ? undefined : briefConfig.message)
+  const [backendSavedBrief, setBackendSavedBrief] = useState<ProjectEditBriefBackendLocalRecord | undefined>()
+  const [planApproved, setPlanApproved] = useState(false)
+  const [planApprovalStatus, setPlanApprovalStatus] = useState<'idle' | 'approving' | 'approved' | 'failed'>('idle')
+  const [planApprovalError, setPlanApprovalError] = useState<string | undefined>()
+  const [backendApprovedLocalPlan, setBackendApprovedLocalPlan] = useState<ProjectEditPlanBackendApprovalResult | undefined>()
+  const [previewReviewResult, setPreviewReviewResult] = useState<ProjectSourceVideoPreviewReviewResult | undefined>()
+  const [professionalQAResult, setProfessionalQAResult] = useState<ProjectSourceVideoProfessionalQAResult | undefined>()
+  const [statusMessage, setStatusMessage] = useState('Ready for source video and brief notes.')
+  const sourceVideoRef = useRef<ProjectSourceVideoLocalPreview | undefined>(undefined)
+  const briefDraftResetPersistedRef = useRef(false)
 
   useEffect(() => {
-    const objectUrl = localSourceVideo?.objectUrl
-    return () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    sourceVideoRef.current = sourceVideo
+  }, [sourceVideo])
+
+  useEffect(() => () => {
+    revokeProjectSourceVideoLocalPreview(sourceVideoRef.current)
+  }, [])
+
+  useEffect(() => () => {
+    revokeProjectSourceVideoLocalArtifactReviewObject(mainReviewArtifact)
+  }, [mainReviewArtifact])
+
+  const sourceSummary = useMemo(() => createProjectSourceVideoMetadataSummary(sourceVideo), [sourceVideo])
+  const sourceEvidenceAvailable = Boolean(sourceVideo || backendUploadResult)
+  const outputFrameConfirmed = backendLocalEditSession?.metadata?.outputFrameConfirmed === true
+  const videoShell = useMemo<ProjectEditBriefVideoShellModel>(() => ({
+    durationSeconds: sourceVideo?.durationSeconds ?? 60,
+    currentTimeSeconds: playheadSeconds,
+    currentTimeLabel: formatProjectSourceVideoDuration(playheadSeconds),
+    durationLabel: formatProjectSourceVideoDuration(sourceVideo?.durationSeconds),
+    aspectLabel: sourceVideo?.inferredAspectRatio ?? 'Metadata pending',
+    title: sourceVideo?.fileName ?? backendUploadResult?.fileName ?? 'Source video',
+    mockPosterLabel: 'Select a source video',
+  }), [backendUploadResult, playheadSeconds, sourceVideo])
+  const planApprovalModel = useMemo(() => buildProjectEditPlanApprovalModel({
+    approved: planApproved,
+    backendUploadResult,
+    briefSaved: Boolean(backendSavedBrief?.readbackVerified) && briefSaved,
+    briefText: backendSavedBrief?.briefText ?? briefText,
+    editSessionId,
+    outputAspectRatio: backendLocalEditSession?.aspectRatio,
+    outputFrameConfirmed,
+    outputFrameConfirmationSource: 'edit_session_metadata',
+    outputPlatformTarget: backendLocalEditSession?.platformTarget,
+    projectId,
+    sourceAspectRatio: sourceVideo?.inferredAspectRatio,
+    sourceDurationSeconds: sourceVideo?.durationSeconds,
+    sourceFileName: sourceVideo?.fileName ?? backendUploadResult?.fileName,
+  }), [backendLocalEditSession, backendSavedBrief, backendUploadResult, briefSaved, briefText, editSessionId, outputFrameConfirmed, planApproved, projectId, sourceVideo])
+  const currentPreviewResult = useMemo(() => previewResultMatchesApprovedEvidence({
+    approvedLocalPlan: backendApprovedLocalPlan?.localEditPlan.approvedLocalPlan,
+    previewResult: localPreviewResult,
+    sourceStorageObjectRecordId: backendUploadResult?.storageObjectRecordId,
+  }) ? localPreviewResult : undefined, [backendApprovedLocalPlan, backendUploadResult, localPreviewResult])
+  const currentPreviewReviewResult = useMemo(() => previewReviewMatchesPreview({
+    previewResult: currentPreviewResult,
+    previewReviewResult,
+  }) ? previewReviewResult : undefined, [currentPreviewResult, previewReviewResult])
+  const currentProfessionalQAResult = useMemo(() => professionalQAMatchesCurrentEvidence({
+    previewResult: currentPreviewResult,
+    previewReviewResult: currentPreviewReviewResult,
+    professionalQAResult,
+    sourceStorageObjectRecordId: backendUploadResult?.storageObjectRecordId,
+  }) ? professionalQAResult : undefined, [backendUploadResult, currentPreviewResult, currentPreviewReviewResult, professionalQAResult])
+  const currentFinalExportResult = useMemo(() => finalExportMatchesCurrentEvidence({
+    finalExportResult: localFinalExportResult,
+    previewResult: currentPreviewResult,
+    previewReviewResult: currentPreviewReviewResult,
+    professionalQAResult: currentProfessionalQAResult,
+    sourceStorageObjectRecordId: backendUploadResult?.storageObjectRecordId,
+  }) ? localFinalExportResult : undefined, [backendUploadResult, currentPreviewResult, currentPreviewReviewResult, currentProfessionalQAResult, localFinalExportResult])
+  const selectedMainReviewStorageObjectId = mainPlaybackMode === 'preview'
+    ? currentPreviewResult?.previewStorageObjectId
+    : mainPlaybackMode === 'final_export'
+      ? currentFinalExportResult?.finalExportStorageObjectId
+      : undefined
+  const selectedMainReviewArtifact = mainReviewArtifact?.storageObjectRecordId === selectedMainReviewStorageObjectId
+    ? mainReviewArtifact
+    : undefined
+  const primaryVideoShell = useMemo<ProjectEditBriefVideoShellModel>(() => {
+    if (mainPlaybackMode === 'preview' && currentPreviewResult) {
+      return {
+        durationSeconds: currentPreviewResult.durationSeconds ?? 0,
+        currentTimeSeconds: playheadSeconds,
+        currentTimeLabel: formatProjectSourceVideoDuration(playheadSeconds),
+        durationLabel: formatProjectSourceVideoDuration(currentPreviewResult.durationSeconds),
+        aspectLabel: currentPreviewResult.editAssembly?.outputFrame?.aspectRatio ?? 'Private preview',
+        title: 'Private preview',
+        mockPosterLabel: mainReviewArtifactLoading ? 'Loading private preview' : 'Private preview is ready to load',
+      }
     }
-  }, [localSourceVideo?.objectUrl])
+    if (mainPlaybackMode === 'final_export' && currentFinalExportResult) {
+      return {
+        durationSeconds: currentFinalExportResult.durationSeconds ?? 0,
+        currentTimeSeconds: playheadSeconds,
+        currentTimeLabel: formatProjectSourceVideoDuration(playheadSeconds),
+        durationLabel: formatProjectSourceVideoDuration(currentFinalExportResult.durationSeconds),
+        aspectLabel: currentFinalExportResult.editAssembly?.outputFrame?.aspectRatio ?? 'Private export',
+        title: 'Private final export',
+        mockPosterLabel: mainReviewArtifactLoading ? 'Loading private final export' : 'Private final export is ready to load',
+      }
+    }
+    return videoShell
+  }, [currentFinalExportResult, currentPreviewResult, mainPlaybackMode, mainReviewArtifactLoading, playheadSeconds, videoShell])
+  const primaryPlaybackNotice = mainPlaybackMode === 'source'
+    ? 'Source playback only. No generated output is shown.'
+    : mainPlaybackMode === 'preview'
+      ? 'Private preview playback. No public delivery or signed URL.'
+      : 'Private final export playback. No public delivery or signed URL.'
+  const primaryPlaybackLabel = mainPlaybackMode === 'preview'
+    ? 'Private preview'
+    : mainPlaybackMode === 'final_export'
+      ? 'Private final export'
+      : undefined
+  const lifecycle = useMemo(() => buildProjectEditLifecycleModel({
+    backendUploadAvailable: backendUploadConfig.available,
+    backendUploadResult,
+    backendUploadStatus,
+    briefSaved: Boolean(backendSavedBrief?.readbackVerified) && briefSaved,
+    editSessionId,
+    hasLocalSourceVideo: sourceEvidenceAvailable,
+    localFinalExportResult: currentFinalExportResult,
+    localPreviewResult: currentPreviewResult,
+    planApproved: planApprovalModel.approved,
+    planReady: planApprovalModel.canApprove || planApprovalModel.approved,
+    previewReviewResult: currentPreviewReviewResult,
+    projectId,
+    finalExportEvidence: {
+      professionalQaPassed: currentProfessionalQAResult?.status === 'passed',
+      requiredAssetsReady: currentProfessionalQAResult?.status === 'passed',
+      artifactManifestReady: Boolean(currentFinalExportResult),
+      finalRenderWorkerReady: Boolean(currentFinalExportResult),
+      exportDeliveryPolicyReady: Boolean(currentFinalExportResult),
+    },
+  }), [backendSavedBrief, backendUploadConfig.available, backendUploadResult, backendUploadStatus, briefSaved, currentFinalExportResult, currentPreviewResult, currentPreviewReviewResult, currentProfessionalQAResult, editSessionId, planApprovalModel.approved, planApprovalModel.canApprove, projectId, sourceEvidenceAvailable])
+  const editFlowSteps = useMemo(() => buildEditWorkspaceFlowSteps({
+    sourceUploaded: Boolean(backendUploadResult),
+    briefSaved: Boolean(backendSavedBrief?.readbackVerified) && briefSaved,
+    planApproved: Boolean(backendApprovedLocalPlan?.localEditPlan.readbackVerified),
+    previewReady: Boolean(currentPreviewResult),
+    previewReviewed: currentPreviewReviewResult?.reviewStatus === 'approved',
+    qualityPassed: currentProfessionalQAResult?.status === 'passed',
+    exportReady: Boolean(currentFinalExportResult),
+  }), [backendApprovedLocalPlan, backendSavedBrief, backendUploadResult, briefSaved, currentFinalExportResult, currentPreviewResult, currentPreviewReviewResult, currentProfessionalQAResult])
+  const currentFlowStep = editFlowSteps.find((step) => step.status === 'current') ?? editFlowSteps[editFlowSteps.length - 1]
 
   useEffect(() => {
     let cancelled = false
-    loadProjectEditBriefWorkspaceForUI({
-      autoSelectFirstMarker,
-      client,
-      editSessionId,
-      projectId,
-      selectedMarkerId,
-    }).then((nextModel) => {
+    if (!backendLocalEditSession) return
+
+    Promise.resolve().then(() => {
       if (cancelled) return
-      setModel(nextModel)
-      if (preserveStatusMessageRef.current) {
-        preserveStatusMessageRef.current = false
-      } else {
-        setStatusMessage((current) => (
-          current === 'Loading mock Edit Brief shell.'
-            ? nextModel.statusMessage
-            : current
-        ))
+      const restoredUpload = restoreBackendUploadResult(backendLocalEditSession)
+      const restoredPreview = restorePreviewResult(backendLocalEditSession)
+      const restoredReview = restorePreviewReviewResult(backendLocalEditSession)
+      const restoredProfessionalQA = restoreProfessionalQAResult(backendLocalEditSession)
+      const restoredFinalExport = restoreFinalExportResult(backendLocalEditSession)
+
+      if (restoredUpload) {
+        setBackendUploadResult(restoredUpload)
+        setBackendUploadStatus('uploaded')
       }
-      if (!selectedMarkerId && nextModel.timeline.selectedMarkerId) {
-        setSelectedMarkerId(nextModel.timeline.selectedMarkerId)
-        setPlayheadSeconds(nextModel.timeline.playheadSeconds)
+      if (restoredPreview) setLocalPreviewResult(restoredPreview)
+      if (restoredReview) setPreviewReviewResult(restoredReview)
+      if (restoredProfessionalQA) setProfessionalQAResult(restoredProfessionalQA)
+      if (restoredFinalExport) {
+        setLocalFinalExportResult(restoredFinalExport)
+        setProfessionalQAResult(restoredFinalExport.professionalQA ?? restoredProfessionalQA)
       }
-    }).catch(() => {
-      if (cancelled) return
-      setStatusMessage('Mock Edit Brief shell failed safely without production side effects.')
+      if (restoredUpload || restoredPreview || restoredReview || restoredProfessionalQA || restoredFinalExport) {
+        setStatusMessage('Backend-local edit progress restored from the edit-session lifecycle checkpoints.')
+      }
     })
+
     return () => {
       cancelled = true
     }
-  }, [autoSelectFirstMarker, client, editSessionId, projectId, refreshIndex, selectedMarkerId])
+  }, [backendLocalEditSession])
 
-  const selectedMarkerRecord = selectedMarkerId
-    ? model?.bundle?.markers.find((marker) => marker.id === selectedMarkerId)
-    : undefined
+  useEffect(() => {
+    let cancelled = false
+    if (!briefConfig.available || !briefConfig.apiBaseUrl) return
 
-  const sourceVideoSummary = useMemo(() => (
-    createProjectSourceVideoMetadataSummary(localSourceVideo)
-  ), [localSourceVideo])
-
-  const displayTimeline = useMemo(() => {
-    if (!model) return undefined
-    return createProjectEditBriefTimelineUIModel({
-      timelineMarkers: model.timeline.markers,
-      exportSettings: model.exportSettings?.record,
-      selectedMarkerId: model.timeline.selectedMarkerId,
-      playheadSeconds,
-      autoSelectFirstMarker: false,
-      durationSeconds: localSourceVideo?.durationSeconds,
-    })
-  }, [localSourceVideo?.durationSeconds, model, playheadSeconds])
-
-  const displayVideo = useMemo(() => {
-    if (!model || !displayTimeline) return undefined
-    return {
-      ...model.video,
-      durationSeconds: displayTimeline.durationSeconds,
-      currentTimeSeconds: displayTimeline.playheadSeconds,
-      currentTimeLabel: displayTimeline.playheadLabel,
-      durationLabel: displayTimeline.durationLabel,
-      aspectLabel: localSourceVideo?.inferredAspectRatio ?? model.video.aspectLabel,
-      mockPosterLabel: localSourceVideo ? 'Local browser preview' : model.video.mockPosterLabel,
-    }
-  }, [displayTimeline, localSourceVideo, model])
-
-  const sourceVideoExportRecommendationInput = useMemo(() => {
-    if (!localSourceVideo || !model?.exportSettings?.record) return undefined
-    return createProjectSourceVideoExportRecommendationInput({
-      projectId,
+    readProjectEditBriefBackendLocal({
+      apiBaseUrl: briefConfig.apiBaseUrl,
       editSessionId,
-      preview: localSourceVideo,
-      existingSettings: model.exportSettings.record,
+      projectId,
+      workspaceId: briefConfig.workspaceId,
+    }).then((result) => {
+      if (cancelled) return
+      setBackendSavedBrief(result.editBrief)
+      setBriefText(result.editBrief.briefText)
+      setBriefSaved(true)
+      setBriefSaveStatus('saved')
+      setBriefSaveError(undefined)
+      setStatusMessage('Backend-local brief restored from saved readback.')
+    }).catch(() => {
+      // A new edit will not have a saved backend-local brief yet.
     })
-  }, [editSessionId, localSourceVideo, model, projectId])
 
-  const handleVideoElementReady = useCallback((element?: HTMLVideoElement) => {
-    setSourceVideoElement(element ?? null)
-  }, [])
+    return () => {
+      cancelled = true
+    }
+  }, [briefConfig.apiBaseUrl, briefConfig.available, briefConfig.workspaceId, editSessionId, projectId])
 
-  const markerFormModel = drawerDraft ? createProjectEditBriefMarkerFormModel(drawerDraft) : undefined
-  const canAddMarker = Boolean(
-    model?.brief
-      && model.brief.status !== 'not_created'
-      && model.brief.status !== 'archived'
-      && model.brief.availability !== 'optional_not_opened',
-  )
-  const addMarkerDisabledReason = model?.brief
-    ? 'Open an active mock Brief before adding markers.'
-    : 'No mock Brief record is available for this Edit Chat.'
+  useEffect(() => {
+    let cancelled = false
+    if (!backendLocalEditSession || !backendUploadResult || !backendSavedBrief?.readbackVerified || backendApprovedLocalPlan) return
 
-  function refreshAfterMarkerAction(message: string) {
-    preserveStatusMessageRef.current = true
+    Promise.resolve().then(() => {
+      if (cancelled) return
+      const restoredPlanModel = buildProjectEditPlanApprovalModel({
+        approved: true,
+        backendUploadResult,
+        briefSaved: true,
+        briefText: backendSavedBrief.briefText,
+        editSessionId,
+        outputAspectRatio: backendLocalEditSession.aspectRatio,
+        outputFrameConfirmed: backendLocalEditSession.metadata?.outputFrameConfirmed === true,
+        outputFrameConfirmationSource: 'edit_session_metadata',
+        outputPlatformTarget: backendLocalEditSession.platformTarget,
+        projectId,
+        sourceAspectRatio: sourceVideo?.inferredAspectRatio,
+        sourceDurationSeconds: sourceVideo?.durationSeconds,
+        sourceFileName: sourceVideo?.fileName ?? backendUploadResult.fileName,
+      })
+      const restoredPlan = createRestoredApprovedLocalPlan({
+        approvedPlan: restoredPlanModel,
+        sourceVideoUploadResult: backendUploadResult,
+        session: backendLocalEditSession,
+      })
+      if (!restoredPlan) return
+      setBackendApprovedLocalPlan(restoredPlan)
+      setPlanApproved(true)
+      setPlanApprovalStatus('approved')
+      setPlanApprovalError(undefined)
+      setStatusMessage('Backend-local approved plan restored from the edit-session lifecycle checkpoints.')
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [backendApprovedLocalPlan, backendLocalEditSession, backendSavedBrief, backendUploadResult, editSessionId, projectId, sourceVideo])
+
+  function resetLocalEditProgress(message: string) {
+    briefDraftResetPersistedRef.current = false
+    setMainPlaybackMode('source')
+    setMainReviewArtifact(undefined)
+    setMainReviewArtifactLoading(false)
+    setMainReviewArtifactError(undefined)
+    setBackendUploadResult(undefined)
+    setBackendUploadError(undefined)
+    setLocalPreviewResult(undefined)
+    setLocalFinalExportResult(undefined)
+    setPlanApproved(false)
+    setPlanApprovalStatus('idle')
+    setPlanApprovalError(undefined)
+    setBackendApprovedLocalPlan(undefined)
+    setPreviewReviewResult(undefined)
+    setProfessionalQAResult(undefined)
+    setBackendUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
+    setPlayheadSeconds(0)
+    setPlaying(false)
+    setBriefSaved(false)
+    setBackendSavedBrief(undefined)
+    setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
+    setBriefSaveError(briefConfig.available ? undefined : briefConfig.message)
     setStatusMessage(message)
-    setRefreshIndex((current) => current + 1)
   }
 
-  async function refreshDrawerDraftFromMarker(markerId: string): Promise<void> {
-    const response = await client.markers.get<{ marker: NonNullable<typeof selectedMarkerRecord> }>(markerId)
-    const marker = response.data?.marker
-    if (!marker) return
-    setDrawerDraft(createProjectEditBriefMarkerDraftForUI({
-      briefId: marker.briefId,
-      editSessionId: marker.editSessionId,
-      marker,
-      projectId: marker.projectId,
-    }))
-  }
+  async function selectMainPlaybackMode(mode: MainPlaybackMode, storageObjectRecordId?: string) {
+    setMainPlaybackMode(mode)
+    setPlaying(false)
+    setPlayheadSeconds(0)
+    setMainReviewArtifactError(undefined)
 
-  function openAddMarkerDrawer() {
-    if (!model?.brief || !canAddMarker || !displayTimeline) {
-      setStatusMessage(addMarkerDisabledReason)
+    if (mode === 'source') {
+      setMainReviewArtifact(undefined)
+      setMainReviewArtifactLoading(false)
       return
     }
-    const draft = createProjectEditBriefMarkerDraftForUI({
-      briefId: model.brief.id,
-      editSessionId,
-      durationSeconds: displayTimeline.durationSeconds,
-      playheadSeconds: displayTimeline.playheadSeconds,
-      projectId,
-    })
-    setDrawerDraft(draft)
-    setSelectedMarkerId(undefined)
-    setAutoSelectFirstMarker(false)
-    preserveStatusMessageRef.current = true
-    setStatusMessage('Add Marker drawer opened in mock/local mode.')
-  }
 
-  function openEditMarkerDrawer(markerId: string) {
-    const marker = model?.bundle?.markers.find((candidate) => candidate.id === markerId)
-    const timelineMarker = model?.timeline.markers.find((candidate) => candidate.markerId === markerId)
-    setSelectedMarkerId(markerId)
-    setAutoSelectFirstMarker(false)
-    preserveStatusMessageRef.current = true
-    if (timelineMarker) setPlayheadSeconds(timelineMarker.startTimeSeconds)
-    if (!marker) {
-      setStatusMessage('Marker selected; drawer metadata is still loading safely.')
+    const apiBaseUrl = localPreviewConfig.apiBaseUrl ?? backendUploadConfig.apiBaseUrl ?? briefConfig.apiBaseUrl
+    const targetStorageObjectRecordId = storageObjectRecordId ?? (
+      mode === 'preview'
+        ? currentPreviewResult?.previewStorageObjectId
+        : currentFinalExportResult?.finalExportStorageObjectId
+    )
+
+    if (!apiBaseUrl || !targetStorageObjectRecordId) {
+      setMainReviewArtifact(undefined)
+      setMainReviewArtifactLoading(false)
+      setMainReviewArtifactError(mode === 'preview'
+        ? 'Private preview is not ready for the main player yet.'
+        : 'Private final export is not ready for the main player yet.')
       return
     }
-    setDrawerDraft(createProjectEditBriefMarkerDraftForUI({
-      briefId: marker.briefId,
-      editSessionId: marker.editSessionId,
-      marker,
-      projectId: marker.projectId,
-    }))
-    setStatusMessage('Edit Marker drawer opened in mock/local mode.')
-  }
 
-  function movePlayhead(seconds: number) {
-    const durationSeconds = displayTimeline?.durationSeconds ?? model?.timeline.durationSeconds ?? seconds
-    const nextSeconds = Math.max(0, Math.min(durationSeconds, seconds))
-    preserveStatusMessageRef.current = true
-    setPlayheadSeconds(nextSeconds)
-    if (localSourceVideo) {
-      setSourceVideoSeekRequest((current) => ({
-        requestId: (current?.requestId ?? 0) + 1,
-        seconds: nextSeconds,
-      }))
-    }
-    setSelectedMarkerId(undefined)
-    setDrawerDraft(undefined)
-    setAutoSelectFirstMarker(false)
-    setStatusMessage(`Playhead moved to ${Math.max(0, Math.round(nextSeconds))}s. No marker was created.`)
-  }
+    if (mainReviewArtifact?.storageObjectRecordId === targetStorageObjectRecordId) return
 
-  function selectLocalSourceVideo(file: File) {
-    if (!isBrowserVideoMimeTypeAllowed(file.type)) {
-      setSourceVideoError('Select a browser-supported video file. Nothing was uploaded or processed.')
-      return
-    }
+    setMainReviewArtifactLoading(true)
     try {
-      const preview = createProjectSourceVideoLocalPreviewFromFile(file)
-      setLocalSourceVideoFile(file)
-      setLocalSourceVideo(preview)
-      setSourceVideoError(undefined)
-      setSourceVideoUploadResult(undefined)
-      setSourceVideoUploadError(undefined)
-      setSourceVideoUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
-      setSourceVideoPlaying(false)
-      setSelectedMarkerId(undefined)
-      setDrawerDraft(undefined)
-      setAutoSelectFirstMarker(false)
-      setPlayheadSeconds(0)
-      setSourceVideoSeekRequest((current) => ({
-        requestId: (current?.requestId ?? 0) + 1,
-        seconds: 0,
-      }))
-      preserveStatusMessageRef.current = true
-      setStatusMessage('Local browser source video selected. No upload, processing, or storage write occurred.')
+      const artifact = await loadProjectSourceVideoLocalArtifactForReview({
+        apiBaseUrl,
+        storageObjectRecordId: targetStorageObjectRecordId,
+        workspaceId: backendUploadConfig.workspaceId,
+      })
+      setMainReviewArtifact(artifact)
+    } catch (caught) {
+      setMainReviewArtifact(undefined)
+      setMainReviewArtifactError(caught instanceof Error ? caught.message : 'Private artifact playback failed safely.')
+    } finally {
+      setMainReviewArtifactLoading(false)
+    }
+  }
+
+  function persistSetupReset(reason: 'source_selected' | 'source_cleared') {
+    void recordLifecycleCheckpoint({
+      checkpointKind: 'setup_reset',
+      status: 'draft',
+      approvalStatus: 'not_requested',
+      metadata: {
+        resetReason: reason,
+        resetAt: new Date().toISOString(),
+        noMediaProcessingStarted: true,
+        noProviderCallMade: true,
+        noRenderStarted: true,
+        noCreditReservedOrSpent: true,
+        productReady: false,
+      },
+    }).catch((caught) => {
+      setStatusMessage(caught instanceof Error
+        ? `Edit reset locally, but backend-local lifecycle reset failed safely: ${caught.message}`
+        : 'Edit reset locally, but backend-local lifecycle reset failed safely.')
+    })
+  }
+
+  function handleVideoSelected(file?: File) {
+    if (!file) return
+    try {
+      const nextPreview = createProjectSourceVideoLocalPreviewFromFile(file)
+      revokeProjectSourceVideoLocalPreview(sourceVideo)
+      setSourceFile(file)
+      setSourceVideo(nextPreview)
+      resetLocalEditProgress('Source video selected for this edit. Previous preview, QA, and export evidence were reset.')
+      persistSetupReset('source_selected')
     } catch {
-      setSourceVideoError('Local video preview could not be created safely. Nothing was uploaded or processed.')
+      setStatusMessage('Choose a video file for this edit.')
     }
   }
 
-  function clearLocalSourceVideo() {
-    revokeProjectSourceVideoLocalPreview(localSourceVideo)
-    setLocalSourceVideoFile(undefined)
-    setLocalSourceVideo(undefined)
-    setSourceVideoError(undefined)
-    setSourceVideoUploadResult(undefined)
-    setSourceVideoUploadError(undefined)
-    setSourceVideoUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
-    setSourceVideoPlaying(false)
-    setSourceVideoElement(null)
-    setPlayheadSeconds(model?.timeline.playheadSeconds ?? 0)
-    preserveStatusMessageRef.current = true
-    setStatusMessage('Local source video cleared. Brief returned to mock timeline preview.')
+  function clearVideo() {
+    revokeProjectSourceVideoLocalPreview(sourceVideo)
+    setSourceFile(undefined)
+    setSourceVideo(undefined)
+    resetLocalEditProgress('Source video cleared from this edit. Previous preview, QA, and export evidence were reset.')
+    persistSetupReset('source_cleared')
   }
 
-  async function uploadLocalSourceVideoToBackend() {
-    if (!localSourceVideoFile || !localSourceVideo) {
-      setSourceVideoUploadError('Select a local source video before backend upload.')
-      setSourceVideoUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
-      return
-    }
+  function handleMetadataLoaded(metadata: ProjectSourceVideoMetadataUpdate) {
+    setSourceVideo((current) => current
+      ? {
+          ...current,
+          ...metadata,
+          inferredAspectRatio: inferProjectSourceVideoAspectRatio(metadata),
+          metadataLoaded: true,
+        }
+      : current)
+  }
 
-    if (!backendUploadConfig.available || !backendUploadConfig.apiBaseUrl) {
-      setSourceVideoUploadError(backendUploadConfig.message)
-      setSourceVideoUploadStatus('unavailable')
-      return
-    }
+  async function recordLifecycleCheckpoint(input: {
+    checkpointKind: ProjectEditSessionLifecycleCheckpointKind
+    status: ProjectEditSessionStatus
+    approvalStatus?: ProjectEditSessionApprovalStatus
+    sourceMediaAssetId?: string
+    latestSnapshotId?: string
+    latestPreviewId?: string
+    latestPreviewUrl?: string
+    metadata?: Record<string, unknown>
+  }) {
+    const apiBaseUrl = backendUploadConfig.apiBaseUrl ?? briefConfig.apiBaseUrl ?? localPreviewConfig.apiBaseUrl
+    if (!apiBaseUrl) return undefined
 
-    setSourceVideoUploadStatus('uploading')
-    setSourceVideoUploadError(undefined)
-    preserveStatusMessageRef.current = true
-    setStatusMessage('Uploading source video to the internal backend-local upload lane.')
+    return recordProjectEditSessionLifecycleCheckpointBackendLocal({
+      apiBaseUrl,
+      editSessionId,
+      workspaceId: backendUploadConfig.workspaceId,
+      ...input,
+    })
+  }
+
+  async function uploadForTesting() {
+    if (!sourceFile || !backendUploadConfig.available || !backendUploadConfig.apiBaseUrl) return
+    setBackendUploadStatus('uploading')
+    setBackendUploadError(undefined)
+    setLocalPreviewResult(undefined)
+    setLocalFinalExportResult(undefined)
+    setPlanApproved(false)
+    setPlanApprovalStatus('idle')
+    setPlanApprovalError(undefined)
+    setBackendApprovedLocalPlan(undefined)
+    setPreviewReviewResult(undefined)
+    setProfessionalQAResult(undefined)
+    setBriefSaved(false)
+    setBackendSavedBrief(undefined)
+    setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
+    setBriefSaveError(briefConfig.available ? undefined : briefConfig.message)
     try {
       const result = await uploadProjectSourceVideoToBackend({
         apiBaseUrl: backendUploadConfig.apiBaseUrl,
         editSessionId,
-        file: localSourceVideoFile,
+        file: sourceFile,
         projectId,
         workspaceId: backendUploadConfig.workspaceId,
       })
-      setSourceVideoUploadResult(result)
-      setSourceVideoUploadStatus('uploaded')
-      preserveStatusMessageRef.current = true
-      setStatusMessage('Source video uploaded to backend-local storage metadata. No media processing, workers, render, or credits started.')
-    } catch (error) {
-      setSourceVideoUploadResult(undefined)
-      setSourceVideoUploadStatus('failed')
-      setSourceVideoUploadError(error instanceof Error ? error.message : 'Backend-local upload failed safely.')
-      preserveStatusMessageRef.current = true
-      setStatusMessage('Backend-local source upload failed safely without media processing or runtime execution.')
+      await recordLifecycleCheckpoint({
+        checkpointKind: 'source_uploaded',
+        status: 'setup_ready',
+        sourceMediaAssetId: result.mediaAssetId,
+        metadata: createSourceUploadCheckpointMetadata(result),
+      })
+      setBackendUploadResult(result)
+      setBackendUploadStatus('uploaded')
+      setStatusMessage('Source video uploaded to backend-local storage metadata. No media processing, provider call, render, export, or production work started.')
+    } catch (caught) {
+      setBackendUploadStatus('failed')
+      setBackendUploadError(caught instanceof Error ? caught.message : 'Backend-local upload failed safely.')
+      setStatusMessage('Backend-local upload failed safely. The browser-local preview remains available.')
     }
   }
 
-  function updateLocalSourceVideoMetadata(metadata: ProjectSourceVideoMetadataUpdate) {
-    setLocalSourceVideo((current) => {
-      if (!current) return current
-      const durationSeconds = metadata.durationSeconds ?? current.durationSeconds
-      const videoWidth = metadata.videoWidth ?? current.videoWidth
-      const videoHeight = metadata.videoHeight ?? current.videoHeight
-      return {
-        ...current,
-        durationSeconds,
-        videoWidth,
-        videoHeight,
-        inferredAspectRatio: inferProjectSourceVideoAspectRatio({ videoWidth, videoHeight }),
-        metadataLoaded: true,
-      }
-    })
-    if (typeof metadata.durationSeconds === 'number' && Number.isFinite(metadata.durationSeconds)) {
-      setPlayheadSeconds((current) => Math.max(0, Math.min(current, metadata.durationSeconds ?? current)))
+  async function saveBrief() {
+    if (!briefConfig.available || !briefConfig.apiBaseUrl) {
+      setBriefSaveStatus('failed')
+      setBriefSaveError(briefConfig.message)
+      setBriefSaved(false)
+      setStatusMessage('Backend-local brief save is not configured.')
+      return
     }
-    preserveStatusMessageRef.current = true
-    setStatusMessage('Browser video metadata loaded locally. Timeline duration and export recommendation can use it.')
-  }
 
-  async function saveDrawerMarker() {
-    if (!drawerDraft || !markerFormModel?.canSave) return
-    setIsDrawerBusy(true)
+    setBriefSaveStatus('saving')
+    setBriefSaveError(undefined)
     try {
-      const response = drawerDraft.markerId
-        ? await updateProjectEditBriefMarkerViaApi(drawerDraft, client)
-        : await saveProjectEditBriefMarkerViaApi(drawerDraft, client)
-      if (response.marker) {
-        setSelectedMarkerId(response.marker.id)
-        setAutoSelectFirstMarker(false)
-        setPlayheadSeconds(response.marker.startTimeSeconds)
-        setDrawerDraft(drawerDraft.markerId
-          ? createProjectEditBriefMarkerDraftForUI({
-            briefId: response.marker.briefId,
-            editSessionId: response.marker.editSessionId,
-            marker: response.marker,
-            projectId: response.marker.projectId,
-          })
-          : undefined)
-        refreshAfterMarkerAction(drawerDraft.markerId
-          ? 'Marker update saved in mock/local metadata.'
-          : 'Marker created in mock/local metadata.')
-      } else {
-        setStatusMessage('Marker save failed safely without production side effects.')
-      }
-    } finally {
-      setIsDrawerBusy(false)
+      const result = await saveProjectEditBriefBackendLocal({
+        apiBaseUrl: briefConfig.apiBaseUrl,
+        briefText,
+        editSessionId,
+        projectId,
+        sourceMediaAssetId: backendUploadResult?.mediaAssetId,
+        sourceStorageObjectRecordId: backendUploadResult?.storageObjectRecordId,
+        workspaceId: briefConfig.workspaceId,
+      })
+      await recordLifecycleCheckpoint({
+        checkpointKind: 'brief_saved',
+        status: 'awaiting_approval',
+        sourceMediaAssetId: backendUploadResult?.mediaAssetId,
+        metadata: createBriefSavedCheckpointMetadata({
+          brief: result.readback,
+          sourceVideoUploadResult: backendUploadResult,
+        }),
+      })
+      setBackendSavedBrief(result.readback)
+      setBriefSaved(true)
+      setBriefSaveStatus('saved')
+      briefDraftResetPersistedRef.current = false
+      setStatusMessage('Brief saved and read back from the backend-local brief gate.')
+    } catch (caught) {
+      setBackendSavedBrief(undefined)
+      setBriefSaved(false)
+      setBriefSaveStatus('failed')
+      setBriefSaveError(caught instanceof Error ? caught.message : 'Backend-local brief save failed safely.')
+      setStatusMessage('Backend-local brief save failed safely. Plan approval remains blocked.')
     }
+    setLocalPreviewResult(undefined)
+    setLocalFinalExportResult(undefined)
+    setPlanApprovalStatus('idle')
+    setPlanApprovalError(undefined)
+    setBackendApprovedLocalPlan(undefined)
+    setPreviewReviewResult(undefined)
+    setProfessionalQAResult(undefined)
+    setPlanApproved(false)
   }
 
-  async function confirmDrawerMarker() {
-    if (!drawerDraft?.markerId) return
-    setIsDrawerBusy(true)
-    try {
-      const response = await confirmProjectEditBriefMarkerViaApi(drawerDraft.markerId, drawerDraft.title, client)
-      if (response.marker) {
-        setSelectedMarkerId(response.marker.id)
-        setPlayheadSeconds(response.marker.startTimeSeconds)
-        setDrawerDraft(createProjectEditBriefMarkerDraftForUI({
-          briefId: response.marker.briefId,
-          editSessionId: response.marker.editSessionId,
-          marker: response.marker,
-          projectId: response.marker.projectId,
-        }))
-        refreshAfterMarkerAction('Marker confirmed in mock/local metadata.')
-      } else {
-        setStatusMessage('Marker confirmation failed safely without production side effects.')
-      }
-    } finally {
-      setIsDrawerBusy(false)
-    }
-  }
-
-  async function archiveDrawerMarker() {
-    if (!drawerDraft?.markerId) return
-    setIsDrawerBusy(true)
-    try {
-      await archiveProjectEditBriefMarkerViaApi(drawerDraft.markerId, client)
-      setDrawerDraft(undefined)
-      setSelectedMarkerId(undefined)
-      setAutoSelectFirstMarker(true)
-      refreshAfterMarkerAction('Marker archived in mock/local metadata and hidden from the active timeline.')
-    } finally {
-      setIsDrawerBusy(false)
-    }
-  }
-
-  if (!model) {
-    return (
-      <section className="project-edit-brief-workspace" data-testid="project-edit-brief-workspace">
-        <ProjectEditBriefBoundaryNotice boundary={PROJECT_EDIT_BRIEF_UI_BOUNDARY} />
-        <Card className="project-edit-brief-loading" data-testid="project-edit-brief-loading">
-          <span className="section-eyebrow">Edit Brief</span>
-          <h2>Loading mock Brief shell</h2>
-          <p>{statusMessage}</p>
-        </Card>
-      </section>
+  function updateBriefText(value: string) {
+    const shouldPersistBriefDraftReset = !briefDraftResetPersistedRef.current && Boolean(
+      backendSavedBrief ||
+      backendApprovedLocalPlan ||
+      localPreviewResult ||
+      previewReviewResult ||
+      professionalQAResult ||
+      localFinalExportResult
     )
+    const previousBrief = backendSavedBrief
+    setBriefText(value)
+    setBriefSaved(false)
+    setBackendSavedBrief(undefined)
+    setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
+    setBriefSaveError(briefConfig.available ? undefined : briefConfig.message)
+    setLocalPreviewResult(undefined)
+    setLocalFinalExportResult(undefined)
+    setPlanApproved(false)
+    setPlanApprovalStatus('idle')
+    setPlanApprovalError(undefined)
+    setBackendApprovedLocalPlan(undefined)
+    setPreviewReviewResult(undefined)
+    setProfessionalQAResult(undefined)
+    if (shouldPersistBriefDraftReset) {
+      briefDraftResetPersistedRef.current = true
+      void recordLifecycleCheckpoint({
+        checkpointKind: 'brief_draft_changed',
+        status: backendUploadResult ? 'setup_ready' : 'draft',
+        approvalStatus: 'not_requested',
+        sourceMediaAssetId: backendUploadResult?.mediaAssetId,
+        metadata: createBriefDraftChangedCheckpointMetadata({
+          previousBrief,
+          sourceVideoUploadResult: backendUploadResult,
+        }),
+      }).catch((caught) => {
+        setStatusMessage(caught instanceof Error
+          ? `Brief changed locally, but backend-local stale evidence reset failed safely: ${caught.message}`
+          : 'Brief changed locally, but backend-local stale evidence reset failed safely.')
+      })
+    }
+  }
+
+  async function approveLocalPlan() {
+    if (!planApprovalModel.canApprove || !backendUploadResult || !backendSavedBrief?.readbackVerified || !backendUploadConfig.apiBaseUrl) return
+    const approvedPlanForBackend: ProjectEditPlanApprovalModel = {
+      ...planApprovalModel,
+      approved: true,
+      blockers: planApprovalModel.blockers.filter((blocker) => blocker !== 'plan_credit_approval_required'),
+      status: 'approved',
+    }
+    setPlanApprovalStatus('approving')
+    setPlanApprovalError(undefined)
+    setLocalPreviewResult(undefined)
+    setLocalFinalExportResult(undefined)
+    setPreviewReviewResult(undefined)
+    setProfessionalQAResult(undefined)
+    try {
+      const result = await approveProjectEditPlanBackendLocal({
+        apiBaseUrl: backendUploadConfig.apiBaseUrl,
+        approvedLocalPlan: approvedPlanForBackend,
+        editBrief: backendSavedBrief,
+        editSessionId,
+        projectId,
+        sourceVideoUploadResult: backendUploadResult,
+        workspaceId: backendUploadConfig.workspaceId,
+      })
+      await recordLifecycleCheckpoint({
+        checkpointKind: 'plan_approved',
+        status: 'approved',
+        approvalStatus: 'approved',
+        sourceMediaAssetId: backendUploadResult.mediaAssetId,
+        latestSnapshotId: result.localEditPlan.id,
+        metadata: createPlanApprovedCheckpointMetadata(result),
+      })
+      setBackendApprovedLocalPlan(result)
+      setPreviewReviewResult(undefined)
+      setProfessionalQAResult(undefined)
+      setLocalFinalExportResult(undefined)
+      setPlanApproved(true)
+      setPlanApprovalStatus('approved')
+      setStatusMessage('Local edit plan and credit estimate approved and read back from the backend-local plan gate.')
+    } catch (caught) {
+      setPlanApproved(false)
+      setPlanApprovalStatus('failed')
+      setBackendApprovedLocalPlan(undefined)
+      setPlanApprovalError(caught instanceof Error ? caught.message : 'Backend-local plan approval failed safely.')
+      setStatusMessage('Backend-local plan approval failed safely. Preview remains blocked.')
+    }
   }
 
   return (
-    <section className="project-edit-brief-workspace" data-testid="project-edit-brief-workspace">
-      <ProjectEditBriefHeader editSessionTitle={editSessionTitle} model={model} />
-      <ProjectEditBriefBoundaryNotice boundary={model.boundary} />
-      <div className="project-edit-brief-status" data-testid="project-edit-brief-status" role="status">
-        {statusMessage}
-      </div>
-      <div className="project-edit-brief-workspace__layout">
-        <main className="project-edit-brief-main" data-testid="project-edit-brief-main">
-          <ProjectEditBriefSourceVideoPicker
-            backendUploadConfig={backendUploadConfig}
-            backendUploadError={sourceVideoUploadError}
-            backendUploadResult={sourceVideoUploadResult}
-            backendUploadStatus={sourceVideoUploadStatus}
-            error={sourceVideoError}
-            localPreview={localSourceVideo}
-            onClear={clearLocalSourceVideo}
-            onSelectFile={selectLocalSourceVideo}
-            onUploadToBackend={uploadLocalSourceVideoToBackend}
-          />
-          <ProjectEditBriefSourceVideoSummary localPreview={localSourceVideo} summary={sourceVideoSummary} />
-          {displayVideo ? (
+    <section className="clean-edit-brief" data-testid="project-edit-brief-workspace">
+      <Card className="clean-edit-brief__hero">
+        <div className="clean-edit-brief__hero-copy">
+          <span className="section-eyebrow">Edit setup</span>
+          <h2>{editSessionTitle ?? 'Untitled edit'}</h2>
+          <p>
+            Upload the source video for this edit, write the brief, then continue to planning and approval when the backend execution lane is ready.
+          </p>
+        </div>
+        <Button to={`/projects/${projectId}`} variant="secondary">
+          Back to project
+        </Button>
+      </Card>
+
+      <ProjectEditLifecycleStatusCard model={lifecycle} />
+
+      <Card className="clean-edit-brief__flow-card" data-testid="project-edit-flow-summary">
+        <div className="clean-edit-brief__flow-heading">
+          <div>
+            <span className="section-eyebrow">Edit flow</span>
+            <h3>{currentFlowStep?.status === 'complete' ? 'Private edit is ready for review' : `Continue with ${currentFlowStep?.label.toLowerCase()}`}</h3>
+            <p>{currentFlowStep?.summary}</p>
+          </div>
+          <Badge accent={currentFinalExportResult ? 'success' : 'cyan'}>
+            {currentFinalExportResult ? 'Export ready' : 'In progress'}
+          </Badge>
+        </div>
+        <ol className="clean-edit-brief__flow-steps">
+          {editFlowSteps.map((step) => (
+            <li data-state={step.status} key={step.id}>
+              <span>{step.label}</span>
+              <strong>{step.status === 'complete' ? 'Done' : step.status === 'current' ? 'Now' : 'Locked'}</strong>
+            </li>
+          ))}
+        </ol>
+      </Card>
+
+      <div className="clean-edit-brief__layout">
+        <main className="clean-edit-brief__main">
+          <Card className="clean-edit-brief__upload-card">
+            <ProjectEditBriefSourceVideoPicker
+              backendUploadConfig={backendUploadConfig}
+              backendUploadError={backendUploadError}
+              backendUploadResult={backendUploadResult}
+              backendUploadStatus={backendUploadStatus}
+              localPreview={sourceVideo}
+              onClear={clearVideo}
+              onSelectFile={handleVideoSelected}
+              onUploadToBackend={uploadForTesting}
+            />
+            <div className="project-edit-brief-playback-selector" data-testid="project-edit-main-playback-selector">
+              {[
+                { mode: 'source' as const, label: 'Source', disabled: !sourceVideo },
+                { mode: 'preview' as const, label: 'Preview', disabled: !currentPreviewResult?.previewStorageObjectId },
+                { mode: 'final_export' as const, label: 'Final', disabled: !currentFinalExportResult?.finalExportStorageObjectId },
+              ].map((item) => (
+                <button
+                  aria-pressed={mainPlaybackMode === item.mode}
+                  data-active={mainPlaybackMode === item.mode}
+                  disabled={item.disabled || mainReviewArtifactLoading}
+                  key={item.mode}
+                  onClick={() => void selectMainPlaybackMode(item.mode)}
+                  type="button"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
             <ProjectEditBriefVideoShell
-              localPreview={localSourceVideo}
-              onMetadataLoaded={updateLocalSourceVideoMetadata}
-              onPlayStateChange={setSourceVideoPlaying}
+              localPreview={mainPlaybackMode === 'source' ? sourceVideo : undefined}
+              onMetadataLoaded={handleMetadataLoaded}
+              onPlayStateChange={setPlaying}
               onTimeUpdate={setPlayheadSeconds}
-              onVideoElementReady={handleVideoElementReady}
-              playing={sourceVideoPlaying}
-              seekRequest={sourceVideoSeekRequest}
-              video={displayVideo}
+              playbackNotice={primaryPlaybackNotice}
+              playing={playing}
+              reviewArtifact={selectedMainReviewArtifact}
+              reviewArtifactLabel={primaryPlaybackLabel}
+              video={primaryVideoShell}
             />
-          ) : null}
-          <ProjectEditBriefTimeline
-            addMarkerDisabledReason={addMarkerDisabledReason}
-            canAddMarker={canAddMarker}
-            onAddMarker={openAddMarkerDrawer}
-            onMovePlayhead={movePlayhead}
-            onSelectMarker={openEditMarkerDrawer}
-            timeline={displayTimeline ?? model.timeline}
-            timelineEyebrow={localSourceVideo ? 'Source video timeline' : 'Mock timeline'}
-          />
-          {model.emptyState ? <ProjectEditBriefEmptyState emptyState={model.emptyState} /> : null}
+            {mainReviewArtifactError ? (
+              <p className="project-edit-brief-source-video-picker__error" data-testid="project-edit-main-playback-error">
+                {mainReviewArtifactError}
+              </p>
+            ) : null}
+            <ProjectEditBriefSourceVideoSummary localPreview={sourceVideo} summary={sourceSummary} />
+          </Card>
+
+          <Card className="clean-edit-brief__brief-card">
+            <div className="clean-edit-brief__card-heading">
+              <MessageSquareText aria-hidden="true" size={22} />
+              <div>
+                <h3>Edit brief</h3>
+                <p>Tell ReEditPro what this edit should feel like.</p>
+              </div>
+            </div>
+            <label htmlFor="clean-edit-brief-text">Instructions</label>
+            <textarea
+              id="clean-edit-brief-text"
+              onChange={(event) => updateBriefText(event.currentTarget.value)}
+              rows={6}
+              value={briefText}
+            />
+            <Button onClick={saveBrief} type="button" variant="primary">
+              {briefSaveStatus === 'saving' ? 'Saving brief...' : 'Save brief'}
+            </Button>
+            <p className="project-edit-brief-muted" data-testid="project-edit-brief-save-status">
+              {briefSaveStatus === 'saved' && backendSavedBrief
+                ? `Backend-local brief saved: ${backendSavedBrief.id}`
+                : briefSaveError ?? 'Saving the brief records the instruction before plan approval.'}
+            </p>
+          </Card>
         </main>
-        <aside className="project-edit-brief-side-panel" data-testid="project-edit-brief-side-panel">
-          <ProjectEditBriefSummaryPanel model={model} />
-          <ProjectEditBriefQASummaryCard
-            client={client}
-            editSessionId={editSessionId}
-            onRan={refreshAfterMarkerAction}
-            projectId={projectId}
+
+        <aside className="clean-edit-brief__side">
+          <Card className="clean-edit-brief__next-card">
+            <span className="section-eyebrow">Next</span>
+            <h3>Approve the test plan</h3>
+            <p>
+              After upload and brief save, approve the local edit plan and credit estimate before any preview smoke can run.
+            </p>
+            <ul>
+              <li>Video stays inside this edit workspace.</li>
+              <li>Plan approval is explicit and reversible by changing the brief.</li>
+              <li>Editing tools do not run from this UI screen.</li>
+            </ul>
+          </Card>
+          <ProjectEditPlanApprovalCard
+            approvalError={planApprovalError}
+            approvalStatus={planApprovalStatus}
+            backendRecordId={backendApprovedLocalPlan?.localEditPlan.id}
+            model={planApprovalModel}
+            onApprove={approveLocalPlan}
           />
-          <ProjectEditBriefPlanBridgePanel
-            client={client}
-            editSessionId={editSessionId}
-            onPrepared={refreshAfterMarkerAction}
-            projectId={projectId}
-          />
+          <Card className="clean-edit-brief__status-card">
+            <span className="section-eyebrow">Status</span>
+            <p data-testid="project-edit-brief-status">{statusMessage}</p>
+          </Card>
           <ProjectEditBriefLocalPreviewSmokeCard
-            config={localEditPreviewConfig}
+            approvedLocalPlan={backendApprovedLocalPlan?.localEditPlan.approvedLocalPlan}
+            config={localPreviewConfig}
             editSessionId={editSessionId}
+            onPreviewReady={(result) => {
+              setLocalPreviewResult(result)
+              setPreviewReviewResult(undefined)
+              setProfessionalQAResult(undefined)
+              setLocalFinalExportResult(undefined)
+              void selectMainPlaybackMode('preview', result.previewStorageObjectId)
+              void recordLifecycleCheckpoint({
+                checkpointKind: 'preview_ready',
+                status: 'preview_ready',
+                approvalStatus: 'approved',
+                latestSnapshotId: result.approvedPlanSnapshotId,
+                latestPreviewId: result.renderId,
+                latestPreviewUrl: result.outputObjectPath
+                  ? `${result.outputBucketName ?? 'preview'}/${result.outputObjectPath}`
+                  : undefined,
+                metadata: createPreviewReadyCheckpointMetadata(result),
+              }).catch((caught) => {
+                setStatusMessage(caught instanceof Error
+                  ? `Preview ready, but lifecycle checkpoint failed safely: ${caught.message}`
+                  : 'Preview ready, but lifecycle checkpoint failed safely.')
+              })
+              setStatusMessage('Preview-only internal smoke completed. Final export and real tool execution remain blocked.')
+            }}
+            planApproved={Boolean(backendApprovedLocalPlan?.localEditPlan.readbackVerified)}
+            planApprovalBlockedMessage="Approve and read back the local edit plan and credit estimate before running preview smoke."
+            previewResult={currentPreviewResult}
             projectId={projectId}
-            sourceVideoAspectRatio={localSourceVideo?.inferredAspectRatio}
-            sourceVideoDurationSeconds={localSourceVideo?.durationSeconds}
-            sourceVideoUploadResult={sourceVideoUploadResult}
+            sourceVideoAspectRatio={sourceVideo?.inferredAspectRatio}
+            sourceVideoDurationSeconds={sourceVideo?.durationSeconds}
+            sourceVideoUploadResult={backendUploadResult}
           />
-          {markerFormModel && drawerDraft ? (
-            <ProjectEditBriefMarkerDrawer
-              marker={drawerDraft.markerId && drawerDraft.markerId === selectedMarkerRecord?.id ? model.selectedMarker : undefined}
-              markerRecord={drawerDraft.markerId && drawerDraft.markerId === selectedMarkerRecord?.id ? selectedMarkerRecord : undefined}
-              form={markerFormModel}
-              busy={isDrawerBusy}
-              client={client}
-              onArchive={archiveDrawerMarker}
-              onAttachmentsChanged={async (message) => {
-                if (drawerDraft.markerId) {
-                  setSelectedMarkerId(drawerDraft.markerId)
-                  setAutoSelectFirstMarker(false)
-                  await refreshDrawerDraftFromMarker(drawerDraft.markerId)
-                }
-                refreshAfterMarkerAction(message)
-              }}
-              onClose={() => {
-                setDrawerDraft(undefined)
-                setStatusMessage('Marker drawer closed without saving.')
-              }}
-              onChange={setDrawerDraft}
-              onConfirm={confirmDrawerMarker}
-              onMarkerChatApplied={(message) => {
-                if (drawerDraft.markerId) {
-                  setSelectedMarkerId(drawerDraft.markerId)
-                  setAutoSelectFirstMarker(false)
-                }
-                refreshAfterMarkerAction(message)
-              }}
-              onMarkerQARan={(message) => {
-                if (drawerDraft.markerId) {
-                  setSelectedMarkerId(drawerDraft.markerId)
-                  setAutoSelectFirstMarker(false)
-                }
-                refreshAfterMarkerAction(message)
-              }}
-              onVisualContextUpdated={(message) => {
-                if (drawerDraft.markerId) {
-                  setSelectedMarkerId(drawerDraft.markerId)
-                  setAutoSelectFirstMarker(false)
-                }
-                refreshAfterMarkerAction(message)
-              }}
-              onSave={saveDrawerMarker}
-              sourceVideoDurationSeconds={localSourceVideo?.durationSeconds}
-              sourceVideoElement={sourceVideoElement}
-              sourceVideoLabel={localSourceVideo?.fileName}
-            />
-          ) : null}
-          <ProjectEditBriefMarkerDetailPanel marker={model.selectedMarker} />
-          <ProjectEditBriefExportSettingsSummary
-            client={client}
-            exportSettings={model.exportSettings}
-            onSaved={refreshAfterMarkerAction}
-            sourceVideoRecommendationInput={sourceVideoExportRecommendationInput}
-            sourceVideoSummary={localSourceVideo ? sourceVideoSummary : undefined}
+          <ProjectEditBriefPreviewReviewCard
+            config={localPreviewConfig}
+            onReviewRecorded={(result) => {
+              setPreviewReviewResult(result)
+              setProfessionalQAResult(undefined)
+              setLocalFinalExportResult(undefined)
+              void recordLifecycleCheckpoint({
+                checkpointKind: 'preview_reviewed',
+                status: result.reviewStatus === 'approved' ? 'preview_ready' : 'revision_requested',
+                approvalStatus: result.reviewStatus === 'approved' ? 'approved' : 'reset_after_revision',
+                latestPreviewId: result.renderId,
+                metadata: createPreviewReviewedCheckpointMetadata(result),
+              }).catch((caught) => {
+                setStatusMessage(caught instanceof Error
+                  ? `Preview review recorded, but lifecycle checkpoint failed safely: ${caught.message}`
+                  : 'Preview review recorded, but lifecycle checkpoint failed safely.')
+              })
+              setStatusMessage(result.reviewStatus === 'approved'
+                ? 'Preview review approved and recorded. Professional QA and final export remain separate gates.'
+                : 'Preview changes requested and recorded. Update the brief or plan before another preview.')
+            }}
+            previewResult={currentPreviewResult}
+            previewReviewResult={currentPreviewReviewResult}
           />
+          <ProjectEditBriefProfessionalQACard
+            onQARecorded={(result) => {
+              setProfessionalQAResult(result)
+              setLocalFinalExportResult(undefined)
+              void recordLifecycleCheckpoint({
+                checkpointKind: 'professional_qa_checked',
+                status: 'preview_ready',
+                approvalStatus: 'approved',
+                latestSnapshotId: result.approvedPlanSnapshotId,
+                latestPreviewId: result.renderId,
+                metadata: createProfessionalQACheckpointMetadata(result),
+              }).catch((caught) => {
+                setStatusMessage(caught instanceof Error
+                  ? `Professional QA recorded, but lifecycle checkpoint failed safely: ${caught.message}`
+                  : 'Professional QA recorded, but lifecycle checkpoint failed safely.')
+              })
+              setStatusMessage(result.status === 'passed'
+                ? 'Professional QA checkpoint passed. Private export is available for internal review.'
+                : 'Professional QA checkpoint is blocked. Resolve the listed readiness items before export.')
+            }}
+            previewResult={currentPreviewResult}
+            previewReviewResult={currentPreviewReviewResult}
+            professionalQAResult={currentProfessionalQAResult}
+            sourceVideoUploadResult={backendUploadResult}
+            workspaceId={backendUploadConfig.workspaceId}
+          />
+          <ProjectEditBriefFinalExportCard
+            apiBaseUrl={localPreviewConfig.apiBaseUrl ?? backendUploadConfig.apiBaseUrl ?? briefConfig.apiBaseUrl}
+            editPlanId={backendApprovedLocalPlan?.localEditPlan.editPlanId ?? planApprovalModel.planId}
+            finalExportResult={currentFinalExportResult}
+            onFinalExportReady={(result) => {
+              setLocalFinalExportResult(result)
+              void selectMainPlaybackMode('final_export', result.finalExportStorageObjectId)
+              void recordLifecycleCheckpoint({
+                checkpointKind: 'final_export_ready',
+                status: 'final_export_ready',
+                approvalStatus: 'approved',
+                sourceMediaAssetId: backendUploadResult?.mediaAssetId,
+                latestSnapshotId: result.approvedPlanSnapshotId,
+                latestPreviewId: result.renderId,
+                latestPreviewUrl: result.outputObjectPath
+                  ? `${result.outputBucketName ?? 'export'}/${result.outputObjectPath}`
+                  : undefined,
+                metadata: createFinalExportReadyCheckpointMetadata(result),
+              }).catch((caught) => {
+                setStatusMessage(caught instanceof Error
+                  ? `Private export ready, but lifecycle checkpoint failed safely: ${caught.message}`
+                  : 'Private export ready, but lifecycle checkpoint failed safely.')
+              })
+            }}
+            onStatusMessage={setStatusMessage}
+            previewResult={currentPreviewResult}
+            previewReviewResult={currentPreviewReviewResult}
+            professionalQAResult={currentProfessionalQAResult}
+            projectId={projectId}
+            sourceVideoUploadResult={backendUploadResult}
+            workspaceId={backendUploadConfig.workspaceId}
+          />
+          <Card className="clean-edit-brief__status-card">
+            <span className="section-eyebrow">Architecture boundary</span>
+            <p>
+              This edit can prove backend-local upload and preview-only internal smoke when explicitly enabled. Full professional editing still requires real plan generation, user approval, approved snapshot execution, QA, and final export gates.
+            </p>
+          </Card>
         </aside>
       </div>
     </section>

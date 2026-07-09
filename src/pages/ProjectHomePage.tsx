@@ -1,17 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AppShell } from '../components/AppShell'
 import { NewEditSessionCreatePanel } from '../components/projects/NewEditSessionCreatePanel'
-import { ProjectEditSessionAccessPolicyNotice } from '../components/projects/ProjectEditSessionAccessPolicyNotice'
 import { ProjectEditSessionCardGrid } from '../components/projects/ProjectEditSessionCardGrid'
 import { ProjectEditSessionDetailPanel } from '../components/projects/ProjectEditSessionDetailPanel'
 import { ProjectHomeHeader } from '../components/projects/ProjectHomeHeader'
-import { NewEditSessionPlaceholder } from '../components/projects/NewEditSessionPlaceholder'
+import {
+  createProjectBackendLocalConfig,
+  readProjectBackendLocal,
+} from '../lib/project-backend-local'
+import {
+  createProjectEditSessionBackendLocalConfig,
+  listProjectEditSessionsBackendLocal,
+  type ProjectEditSessionBackendLocalRecord,
+} from '../lib/project-edit-session-backend-local'
 import type { NewEditSessionCreateResult } from '../lib/project-edit-session-create-flow-ui-adapter'
-import { createProjectEditSessionPath } from '../lib/project-edit-session-navigation'
 import {
   createProjectEditSessionProjectHomeClient,
-  createNewEditSessionPlaceholderModel,
+  createProjectEditSessionHomeCardViewModelFromRecord,
+  createProjectEditSessionHomeDetailViewModelFromRecord,
+  createProjectHomeTitle,
   loadProjectEditSessionHomeDetail,
   loadProjectEditSessionProjectHomeModel,
   MOCK_PROJECT_HOME_PROJECT_ID,
@@ -23,32 +31,90 @@ import {
 export function ProjectHomePage() {
   const params = useParams<{ projectId: string }>()
   const location = useLocation()
+  const navigate = useNavigate()
   const projectId = params.projectId ?? MOCK_PROJECT_HOME_PROJECT_ID
+  const projectConfig = useMemo(() => createProjectBackendLocalConfig(import.meta.env), [])
+  const editSessionConfig = useMemo(() => createProjectEditSessionBackendLocalConfig(import.meta.env), [])
   const apiClient = useMemo(() => createProjectEditSessionProjectHomeClient(projectId), [projectId])
-  const placeholderModel = useMemo(() => createNewEditSessionPlaceholderModel(), [])
   const [homeModel, setHomeModel] = useState<ProjectEditSessionProjectHomeModel | undefined>()
+  const [backendEditSessions, setBackendEditSessions] = useState<ProjectEditSessionBackendLocalRecord[]>([])
+  const [projectTitleReadback, setProjectTitleReadback] = useState<{ projectId: string; title: string } | undefined>()
   const [selectedId, setSelectedId] = useState<string | undefined>()
   const [detail, setDetail] = useState<ProjectEditSessionHomeDetailViewModel | undefined>()
   const [createPanelOpen, setCreatePanelOpen] = useState(() => new URLSearchParams(location.search).get('newEdit') === '1')
-  const [lastCreateResult, setLastCreateResult] = useState<NewEditSessionCreateResult | undefined>()
 
   useEffect(() => {
     let cancelled = false
 
-    loadProjectEditSessionProjectHomeModel(projectId, apiClient).then((model) => {
+    async function loadHomeModel() {
+      if (editSessionConfig.available && editSessionConfig.apiBaseUrl) {
+        try {
+          const result = await listProjectEditSessionsBackendLocal({
+            apiBaseUrl: editSessionConfig.apiBaseUrl,
+            projectId,
+            workspaceId: editSessionConfig.workspaceId,
+          })
+          if (cancelled) return
+          setBackendEditSessions(result.editSessions)
+          const cardModels = result.editSessions.map(createProjectEditSessionHomeCardViewModelFromRecord)
+          setHomeModel({
+            projectId,
+            projectTitle: createProjectHomeTitle(projectId),
+            projectContext: 'Project Home for backend-local edits. Create an edit, upload source video, save the brief, approve the plan, preview, and review.',
+            mockLabel: 'Backend-local internal testing',
+            cardModels,
+            summary: {
+              count: cardModels.length,
+              dnaBackedCount: cardModels.filter((card) => card.dnaBadgeLabel === 'DNA applied').length,
+              legacyCount: cardModels.filter((card) => card.dnaBadgeLabel !== 'DNA applied').length,
+              cardShapes: Array.from(new Set(cardModels.map((card) => card.cardShape))),
+              summary: [
+                `${cardModels.length} backend-local edit session(s) read back for this project.`,
+                'Cards are backend-local UI projections; opening them does not start tools, rendering, credits, beta, or production work.',
+              ],
+            },
+          })
+          setDetail(undefined)
+          setSelectedId(cardModels[0]?.id)
+          return
+        } catch {
+          // Fall back to the existing mock model when the backend-local list cannot be read.
+        }
+      }
+
+      const model = await loadProjectEditSessionProjectHomeModel(projectId, apiClient)
       if (cancelled) return
+      setBackendEditSessions([])
       setHomeModel(model)
+      setDetail(undefined)
       setSelectedId(model.cardModels[0]?.id)
-      setLastCreateResult(undefined)
-    })
+    }
+
+    loadHomeModel()
+
+    if (projectConfig.available && projectConfig.apiBaseUrl) {
+      readProjectBackendLocal({
+        apiBaseUrl: projectConfig.apiBaseUrl,
+        projectId,
+      }).then((result) => {
+        if (cancelled) return
+        setProjectTitleReadback({
+          projectId,
+          title: result.project.name,
+        })
+      }).catch(() => {
+        // Keep the deterministic local project title when backend-local readback is unavailable.
+      })
+    }
 
     return () => {
       cancelled = true
     }
-  }, [apiClient, projectId])
+  }, [apiClient, editSessionConfig.apiBaseUrl, editSessionConfig.available, editSessionConfig.workspaceId, projectConfig.apiBaseUrl, projectConfig.available, projectId])
 
   useEffect(() => {
     if (!selectedId) return
+    if (backendEditSessions.some((session) => session.id === selectedId)) return
 
     let cancelled = false
     loadProjectEditSessionHomeDetail(selectedId, apiClient).then((model) => {
@@ -59,12 +125,21 @@ export function ProjectHomePage() {
     return () => {
       cancelled = true
     }
-  }, [apiClient, selectedId])
+  }, [apiClient, backendEditSessions, selectedId])
 
   const cards = homeModel?.cardModels ?? []
   const selectedCard = cards.find((card) => card.id === selectedId)
-  const selectedDetail = detail?.editSessionId === selectedId ? detail : undefined
+  const backendSelectedDetail = useMemo(() => {
+    if (!selectedId) return undefined
+    return createProjectEditSessionHomeDetailViewModelFromRecord(
+      backendEditSessions.find((session) => session.id === selectedId),
+    )
+  }, [backendEditSessions, selectedId])
+  const selectedDetail = backendSelectedDetail ?? (detail?.editSessionId === selectedId ? detail : undefined)
   const detailLoading = Boolean(selectedId && !selectedDetail)
+  const projectTitle = projectTitleReadback?.projectId === projectId
+    ? projectTitleReadback.title
+    : homeModel?.projectTitle
 
   function handleSelect(cardId: string) {
     if (cardId === selectedId) return
@@ -77,8 +152,12 @@ export function ProjectHomePage() {
   }
 
   async function handleNewEditCreated(result: NewEditSessionCreateResult) {
-    setLastCreateResult(result)
     if (!result.session) return
+
+    if (result.backendLocalSessionCreated) {
+      navigate(result.openRoute ?? `/projects/${projectId}/edits/${result.session.id}/brief`)
+      return
+    }
 
     const refreshedModel = await loadProjectEditSessionProjectHomeModel(projectId, apiClient)
     setHomeModel(refreshedModel)
@@ -89,30 +168,21 @@ export function ProjectHomePage() {
 
   return (
     <AppShell
-      description="Review mock/local persistent Edit Chats for a project without starting editor routing, generation, rendering, or credits."
-      eyebrow="Project Edit Sessions"
-      title="Project Home"
+      description="Create edits inside this project, then open an edit to upload video, write the brief, review the plan, and preview results."
+      eyebrow="Project"
+      primaryAction={false}
+      title="Project"
     >
       <section className="project-edit-session-home" data-testid="project-edit-session-home">
         <ProjectHomeHeader
           cardCount={cards.length}
-          context={homeModel?.projectContext ?? 'Loading mock Project Edit Session cards.'}
+          context="Create an edit for each video you want ReEditPro to work on."
           onNewEditClick={handleNewEditClick}
-          projectId={projectId}
-          projectTitle={homeModel?.projectTitle ?? 'Project Home'}
-        />
-
-        <ProjectEditSessionAccessPolicyNotice projectId={projectId} />
-
-        <NewEditSessionPlaceholder
-          lastCreatedName={lastCreateResult?.session?.name}
-          lastCreatedRoute={lastCreateResult?.session ? createProjectEditSessionPath(projectId, lastCreateResult.session.id) : undefined}
-          model={placeholderModel}
-          onToggle={handleNewEditClick}
-          visible={createPanelOpen}
+          projectTitle={projectTitle ?? 'Project Home'}
         />
 
         <NewEditSessionCreatePanel
+          backendLocalConfig={editSessionConfig}
           client={apiClient}
           onCancel={() => setCreatePanelOpen(false)}
           onCreated={handleNewEditCreated}
@@ -121,11 +191,11 @@ export function ProjectHomePage() {
         />
 
         <div className="project-edit-session-home__layout">
-          <section aria-label="Edit Chat cards" className="project-edit-session-home__cards">
+          <section aria-label="Edit cards" className="project-edit-session-home__cards">
             <div className="project-edit-session-section-heading">
-              <span className="section-eyebrow">Edit Chats</span>
-              <h2>Persistent editing conversations</h2>
-              <p>Cards are fixture-backed mock API client projections. Selecting a card updates this page; Open Edit Chat enters the mock workspace.</p>
+              <span className="section-eyebrow">Edits</span>
+              <h2>Edits in this project</h2>
+              <p>Select an edit to review its setup, or open it to continue with upload, brief, chat, preview, and review.</p>
             </div>
             <ProjectEditSessionCardGrid cards={cards} onSelect={handleSelect} selectedId={selectedId} />
           </section>

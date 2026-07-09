@@ -160,7 +160,7 @@ async function main() {
   if (realVideoFixturePath) {
     console.log(`Real video fixture: ${realVideoFixturePath}`)
   }
-  console.log('Mode: browser-local mock sign-in + backend-local upload + preview-only local edit smoke. No Supabase writes, GCS writes, provider calls, live Qwen calls, final export, external beta, or production.')
+  console.log('Mode: browser-local mock sign-in + backend-local upload + gated preview review, QA, and private export smoke. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.')
 
   spawnServer('api', ['run', 'dev:api'], {
     NODE_ENV: 'development',
@@ -190,7 +190,7 @@ async function main() {
   await waitForHttp(`${apiBaseUrl}/health`, 'API')
   await waitForHttp(`${appBaseUrl}/sign-in`, 'App')
   await runPlaywright()
-  console.log('Local upload E2E verifier passed: sign-in, Edit Brief upload, local preview smoke, and Qwen 3.7 Max identity checks succeeded.')
+  console.log('Local upload E2E verifier passed: sign-in, Edit Brief upload, local preview review, QA, private export smoke, and Qwen 3.7 Max identity checks succeeded.')
 }
 
 try {

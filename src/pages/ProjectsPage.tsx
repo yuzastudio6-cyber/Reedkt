@@ -1,119 +1,132 @@
-import { Filter, FolderPlus, Grid3X3, ListFilter, UploadCloud } from 'lucide-react'
+import { FolderPlus, Search } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
-import { MediaCard, ProjectCard } from '../components/ProjectCard'
-import { SearchInput } from '../components/SearchInput'
-import { mediaAssets, projects } from '../data/mockData'
+import { ProjectCard } from '../components/ProjectCard'
+import type { Project } from '../data/mockData'
 import {
-  createProjectEditSessionBriefPath,
-  createProjectHomePath,
-} from '../lib/project-edit-session-navigation'
-import {
-  MOCK_PROJECT_HOME_PROJECT_ID,
-} from '../lib/project-edit-session-project-home-ui-adapter'
+  createProjectBackendLocalConfig,
+  listProjectsBackendLocal,
+  type ProjectBackendLocalRecord,
+} from '../lib/project-backend-local'
+import { createProjectHomePath } from '../lib/project-edit-session-navigation'
 
-const MOCK_SOURCE_VIDEO_EDIT_SESSION_ID = 'edit-session-youtube-wide'
-const mockProjectHomePath = createProjectHomePath(MOCK_PROJECT_HOME_PROJECT_ID)
-const mockSourceVideoBriefPath = createProjectEditSessionBriefPath(
-  MOCK_PROJECT_HOME_PROJECT_ID,
-  MOCK_SOURCE_VIDEO_EDIT_SESSION_ID,
-)
+function formatProjectUpdated(project: ProjectBackendLocalRecord): string {
+  const value = project.updatedAt ?? project.createdAt
+  if (!value) return 'Created in this test session'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Created in this test session'
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
+}
+
+function projectCardFromBackendLocal(project: ProjectBackendLocalRecord): Project {
+  return {
+    id: project.id,
+    openPath: createProjectHomePath(project.id),
+    title: project.name,
+    format: 'Project workspace',
+    status: 'Ready for edits',
+    progress: 0,
+    updated: formatProjectUpdated(project),
+    owner: project.createdByUserId ? 'Signed-in tester' : 'Workspace',
+    summary: project.description ?? 'Create an edit inside this project, then upload video and write the edit brief.',
+    tags: ['Project', 'Edit setup', 'Internal test'],
+    accent: 'cyan',
+  }
+}
 
 export function ProjectsPage() {
-  const tabs = ['All', 'Draft', 'Planning', 'In review', 'Exported']
-  const filters = ['Video', 'Audio', 'Image', 'Shared', 'Credit estimate', 'Approved']
+  const projectConfig = useMemo(() => createProjectBackendLocalConfig(import.meta.env), [])
+  const [backendProjects, setBackendProjects] = useState<Project[]>([])
+  const [loadingProjects, setLoadingProjects] = useState(projectConfig.available)
+  const [projectListStatus, setProjectListStatus] = useState(projectConfig.available
+    ? 'Loading backend-local projects.'
+    : 'Backend API URL is not configured. Project readback is waiting for the local backend.')
+
+  useEffect(() => {
+    if (!projectConfig.available || !projectConfig.apiBaseUrl) {
+      return
+    }
+
+    let cancelled = false
+    listProjectsBackendLocal({
+      apiBaseUrl: projectConfig.apiBaseUrl,
+      workspaceId: projectConfig.workspaceId,
+    }).then((result) => {
+      if (cancelled) return
+      setBackendProjects(result.projects.map(projectCardFromBackendLocal))
+      setProjectListStatus(result.projects.length > 0
+        ? 'Backend-local projects loaded.'
+        : 'No backend-local projects yet. Create a project to start.')
+    }).catch((error) => {
+      if (cancelled) return
+      setBackendProjects([])
+      setProjectListStatus(error instanceof Error ? error.message : 'Project list readback failed.')
+    }).finally(() => {
+      if (!cancelled) setLoadingProjects(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [projectConfig.apiBaseUrl, projectConfig.available, projectConfig.workspaceId])
+
+  const projectCards = backendProjects
 
   return (
-    <AppShell description="Organize projects, source media, planning states, status filters, tags, and storage metadata." eyebrow="Projects and media" title="Projects">
-      <section className="toolbar-panel">
-        <div className="segmented-control" aria-label="Project status filters">
-          {tabs.map((tab, index) => (
-            <button className={index === 0 ? 'active' : ''} key={tab} type="button">
-              {tab}
-            </button>
-          ))}
-        </div>
-        <SearchInput placeholder="Search projects and assets" />
-        <Button icon={Filter} variant="secondary">
-          Filters
-        </Button>
-        <Button icon={UploadCloud} to="/projects/new" variant="primary">
-          Create project and chat
-        </Button>
-      </section>
-
-      <section className="folder-grid">
-        {['Launch videos', 'Course assets', 'Product demos'].map((folder) => (
-          <Card className="folder-card" key={folder}>
-            <FolderPlus size={22} />
-            <h3>{folder}</h3>
-            <p>Shared project folder with AI-ready assets and review notes.</p>
-          </Card>
-        ))}
-      </section>
-
-      <section className="project-grid">
-        {projects.map((project) => (
-          <ProjectCard key={project.title} project={project} />
-        ))}
-      </section>
-
-      <section className="projects-support-grid">
-        <Card className="upload-placeholder-card" data-testid="projects-source-video-test-card">
-          <UploadCloud size={26} />
-          <h2>Source video test</h2>
+    <AppShell
+      description="Projects are the top-level container. Create a project first, then create edits inside it."
+      eyebrow="Projects"
+      title="Projects"
+    >
+      <section className="projects-clean-header" data-testid="projects-clean-header">
+        <div>
+          <Badge accent="cyan">Clean workspace</Badge>
+          <h2>Create or open a project</h2>
           <p>
-            Use Edit Brief to select a browser-local source video, review playback metadata, add markers, and inspect Qwen 3.7 Max readiness
-            without starting generation.
+            Keep source clips, edit briefs, upload state, approvals, previews, and versions attached to one project instead of scattering them across the app.
           </p>
-          <Button to={mockSourceVideoBriefPath} variant="primary">
-            Open source video Brief
-          </Button>
-          <Button to="/projects/new" variant="secondary">
-            Create project and chat
-          </Button>
-          <Button to={mockProjectHomePath} variant="secondary">
-            Open Project Home
-          </Button>
-          <Badge accent="cyan">Local preview only</Badge>
-        </Card>
-        <Card className="storage-widget-card">
-          <h2>Storage placeholder</h2>
-          <p>68% of mock workspace storage used. Future storage must connect to the reeditpro Supabase project.</p>
-          <div className="storage-bar" aria-label="Storage 68 percent used">
-            <span style={{ width: '68%' }} />
-          </div>
-          <Badge accent="cyan">Frontend mock</Badge>
-        </Card>
+        </div>
+        <Button icon={FolderPlus} to="/projects/new" variant="primary">
+          Create project
+        </Button>
       </section>
 
-      <section className="media-library-section" id="media-library">
-        <div className="panel-heading">
-          <div>
-            <span className="section-eyebrow">Media library</span>
-            <h2>Assets ready for transcript, overlays, and exports</h2>
-          </div>
-          <div className="filter-chip-row">
-            <Grid3X3 size={17} />
-            <ListFilter size={17} />
-            {filters.slice(0, 4).map((filter) => (
-              <Badge key={filter}>{filter}</Badge>
+      <section className="projects-clean-list" data-testid="projects-clean-list">
+        <div className="projects-clean-toolbar">
+          <span>
+            <Search aria-hidden="true" size={17} />
+            {projectListStatus}
+          </span>
+          <Badge>{loadingProjects ? 'Loading' : `${projectCards.length} projects`}</Badge>
+        </div>
+        {projectCards.length > 0 ? (
+          <div className="project-grid">
+            {projectCards.map((project) => (
+              <ProjectCard key={project.id ?? project.title} project={project} />
             ))}
           </div>
-        </div>
-        <div className="media-grid">
-          {mediaAssets.map((asset) => (
-            <MediaCard asset={asset} key={asset.name} />
-          ))}
-        </div>
+        ) : (
+          <Card className="projects-clean-current" data-testid="projects-empty-state">
+            <h3>No projects yet</h3>
+            <p>
+              {projectConfig.available
+                ? 'Create a project first. Then ReEditPro will open that project so you can create an edit, upload video, write the brief, and approve the plan.'
+                : 'Start the backend-local API to create and read projects here. No sample project is shown as a real workspace.'}
+            </p>
+            <Button icon={FolderPlus} to="/projects/new" variant="primary">
+              Create project
+            </Button>
+          </Card>
+        )}
       </section>
-
-      <Card className="library-empty-state">
-        <h2>Empty state example</h2>
-        <p>No clips uploaded yet. Send clips in source order inside chat so ReeditPro can understand your raw story.</p>
-      </Card>
     </AppShell>
   )
 }

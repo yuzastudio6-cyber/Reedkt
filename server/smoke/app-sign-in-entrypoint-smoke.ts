@@ -26,7 +26,6 @@ function assertMentions(path: string, phrases: string[]): void {
 const requiredFiles = [
   'src/pages/SignInPage.tsx',
   'src/App.tsx',
-  'src/components/MarketingNav.tsx',
   'src/styles/auth.css',
   'src/index.css',
   'docs/app-sign-in-entrypoint.md',
@@ -44,7 +43,7 @@ assert.equal(
 )
 
 assertMentions('src/App.tsx', ['SignInPage', 'path="/sign-in"', 'path="/auth"'])
-assertMentions('src/components/MarketingNav.tsx', ['to="/sign-in"', 'Sign In'])
+assertMentions('src/App.tsx', ['Navigate to="/dashboard"', 'Navigate to="/projects/new"'])
 assertMentions('src/index.css', ["./styles/auth.css"])
 
 const signInPage = read('src/pages/SignInPage.tsx')
@@ -56,7 +55,7 @@ assertMentions('src/pages/SignInPage.tsx', [
   'VITE_REEDITPRO_INTERNAL_TEST_AUTH',
   'VITE_SUPABASE_URL',
   'VITE_SUPABASE_ANON_KEY',
-  '/internal-testing',
+  '/dashboard',
   'browser-local testing session',
   'No service-role secrets',
   'No tool execution on sign-in',
@@ -100,7 +99,7 @@ const doc = JSON.parse(read('docs/app-sign-in-entrypoint.json')) as {
 
 assert.equal(doc.decision, 'app_sign_in_entrypoint_passed_ready_for_internal_testing_auth_smoke')
 assert.equal(doc.route, '/sign-in')
-assert.equal(doc.defaultRedirect, '/internal-testing')
+assert.equal(doc.defaultRedirect, '/dashboard')
 assert.equal(doc.frontendAuthMode, 'supabase_anon_client_only')
 assert.equal(doc.internalTestingAuthMode, 'browser_local_mock_session_when_explicitly_enabled')
 assert.deepEqual(doc.allowedInternalTestingEnv, ['VITE_REEDITPRO_INTERNAL_TEST_AUTH'])

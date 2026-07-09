@@ -3,8 +3,17 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { ProjectEditSessionApiClient } from '../../lib/project-edit-session-api-client'
 import {
+  createProjectEditSessionBackendLocalFromNewEditForm,
+  type ProjectEditSessionBackendLocalConfig,
+} from '../../lib/project-edit-session-backend-local'
+import {
+  applyProjectEditDefaultPreferenceToNewEditForm,
+  readProjectEditDefaultPreferenceSettings,
+} from '../../lib/project-edit-default-preferences'
+import {
   createDefaultNewEditSessionFormState,
   createProjectEditSessionFromNewEditForm,
+  getConfirmedNewEditFrame,
   type NewEditSessionCreateResult,
   type NewEditSessionFormState,
 } from '../../lib/project-edit-session-create-flow-ui-adapter'
@@ -18,6 +27,7 @@ import { NewEditSessionPreferencePicker } from './NewEditSessionPreferencePicker
 import { NewEditSessionSourceNotes } from './NewEditSessionSourceNotes'
 
 type NewEditSessionCreatePanelProps = {
+  backendLocalConfig?: ProjectEditSessionBackendLocalConfig
   client: ProjectEditSessionApiClient
   open: boolean
   projectId: string
@@ -26,16 +36,26 @@ type NewEditSessionCreatePanelProps = {
 }
 
 export function NewEditSessionCreatePanel({
+  backendLocalConfig,
   client,
   onCancel,
   onCreated,
   open,
   projectId,
 }: NewEditSessionCreatePanelProps) {
-  const [form, setForm] = useState<NewEditSessionFormState>(() => createDefaultNewEditSessionFormState())
+  function createInitialForm(): NewEditSessionFormState {
+    return applyProjectEditDefaultPreferenceToNewEditForm(
+      createDefaultNewEditSessionFormState(),
+      readProjectEditDefaultPreferenceSettings(),
+    )
+  }
+
+  const [form, setForm] = useState<NewEditSessionFormState>(() => createInitialForm())
   const [submitting, setSubmitting] = useState(false)
   const [lastResult, setLastResult] = useState<NewEditSessionCreateResult | undefined>()
   const [error, setError] = useState<string | undefined>()
+  const confirmedFrame = getConfirmedNewEditFrame(form)
+  const createDisabled = submitting || !confirmedFrame
 
   if (!open) return null
 
@@ -49,16 +69,30 @@ export function NewEditSessionCreatePanel({
     setSubmitting(true)
     setError(undefined)
 
-    const result = await createProjectEditSessionFromNewEditForm({
-      projectId,
-      form,
-      client,
-    })
+    let result: NewEditSessionCreateResult
+    try {
+      result = backendLocalConfig?.available && backendLocalConfig.apiBaseUrl
+        ? await createProjectEditSessionBackendLocalFromNewEditForm({
+          apiBaseUrl: backendLocalConfig.apiBaseUrl,
+          form,
+          projectId,
+          workspaceId: backendLocalConfig.workspaceId,
+        })
+        : await createProjectEditSessionFromNewEditForm({
+          projectId,
+          form,
+          client,
+        })
+    } catch (createError) {
+      setSubmitting(false)
+      setError(createError instanceof Error ? createError.message : 'The edit could not be created.')
+      return
+    }
     setLastResult(result)
     setSubmitting(false)
 
     if (!result.ok || !result.session) {
-      setError(result.warnings[0] ?? 'The mock Edit Chat could not be created.')
+      setError(result.warnings[0] ?? 'The edit could not be created.')
       return
     }
 
@@ -66,7 +100,7 @@ export function NewEditSessionCreatePanel({
   }
 
   function handleResetForAnother() {
-    setForm(createDefaultNewEditSessionFormState())
+    setForm(createInitialForm())
     setLastResult(undefined)
     setError(undefined)
   }
@@ -76,14 +110,12 @@ export function NewEditSessionCreatePanel({
       <form onSubmit={handleSubmit}>
         <div className="new-edit-session-create-panel__header">
           <div>
-            <span className="section-eyebrow">New Edit Chat</span>
-            <h2>Create mock Edit Chat</h2>
-            <p>Create a persistent mock/local editing workspace, then open the Edit Chat route explicitly.</p>
+            <span className="section-eyebrow">New edit</span>
+            <h2>Create edit</h2>
+            <p>Create an edit workspace for this video. Upload and brief work happen after the edit is created.</p>
           </div>
           <div className="new-edit-session-create-panel__badges">
-            <Badge accent="cyan">Mock/local only</Badge>
-            <Badge>No upload</Badge>
-            <Badge>No credits</Badge>
+            <Badge accent="cyan">Inside project</Badge>
           </div>
           <Button icon={X} onClick={onCancel} type="button" variant="ghost">
             Cancel
@@ -92,11 +124,11 @@ export function NewEditSessionCreatePanel({
 
         <div className="new-edit-session-form-grid">
           <label className="new-edit-session-field new-edit-session-field--full">
-            <span>Edit Chat name</span>
+            <span>Edit name</span>
             <input
               data-testid="new-edit-name-input"
               onChange={(event) => updateForm({ name: event.target.value })}
-              placeholder="Untitled Edit Chat"
+              placeholder="Untitled edit"
               type="text"
               value={form.name}
             />
@@ -135,29 +167,33 @@ export function NewEditSessionCreatePanel({
         {lastResult?.ok && lastResult.session ? (
           <div className="new-edit-session-success" data-testid="new-edit-success-message">
             <CheckCircle2 aria-hidden="true" size={18} />
-            <span>{lastResult.session.name} was created. Open the mock Edit Chat workspace when ready.</span>
-            <Button to={`/projects/${projectId}/edits/${lastResult.session.id}`} variant="secondary">
-              Open Edit Chat
+            <span>{lastResult.session.name} was created. Open the edit workspace when ready.</span>
+            <Button to={lastResult.openRoute ?? `/projects/${projectId}/edits/${lastResult.session.id}`} variant="secondary">
+              Open edit
             </Button>
           </div>
         ) : null}
 
         <div className="new-edit-session-create-panel__footer">
-          <p>Creation uses the browser-safe mock API client. Progress, preview, rendering, workers, uploads, and credits stay off.</p>
+          <p>
+            {confirmedFrame
+              ? 'Creating an edit does not start planning, tool execution, rendering, or credits. Those happen later after the edit is ready and approved.'
+              : 'Choose the output frame and platform before creating this edit. ReEditPro does not silently pick a final canvas.'}
+          </p>
           <div className="new-edit-session-create-panel__actions">
             {lastResult?.ok ? (
               <Button onClick={handleResetForAnother} type="button" variant="secondary">
                 Create another
               </Button>
             ) : null}
-            <Button disabled={submitting} type="submit" variant="primary">
+            <Button disabled={createDisabled} type="submit" variant="primary">
               {submitting ? (
                 <>
                   <Loader2 aria-hidden="true" size={18} />
                   <span>Creating...</span>
                 </>
               ) : (
-                'Create mock Edit Chat'
+                'Create edit'
               )}
             </Button>
           </div>

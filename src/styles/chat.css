@@ -4700,12 +4700,36 @@
   padding: 20px;
 }
 
+.project-start-card form,
 .project-start-heading {
   display: grid;
+  gap: 16px;
 }
 
 .project-start-heading h2 {
   font-size: clamp(1.6rem, 2vw, 2.2rem);
+}
+
+.project-start-status {
+  background: rgba(15, 23, 42, 0.66);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-muted);
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+}
+
+.project-start-status p,
+.project-start-status span,
+.project-start-status strong {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.project-start-status strong {
+  color: #fecdd3;
 }
 
 .project-start-side {

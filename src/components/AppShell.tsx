@@ -1,12 +1,10 @@
 import { useState, type ReactNode } from 'react'
-import { Bell, ChevronDown, HardDrive, Sparkles } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { appNav, appSidebarNavLabels } from '../data/mockData'
 import { AppShellChatToolbarContext } from './AppShellChatToolbarContext'
-import { Badge } from './Badge'
 import { BrandLogo } from './BrandLogo'
-import { Button, IconButton } from './Button'
-import { SearchInput } from './SearchInput'
+import { Button } from './Button'
 
 type AppShellProps = {
   children: ReactNode
@@ -14,7 +12,8 @@ type AppShellProps = {
   mode?: 'standard' | 'chat'
   title: string
   description: string
-  primaryAction?: string
+  primaryAction?: string | false
+  primaryActionTo?: string
 }
 
 const EDITOR_SIDEBAR_STORAGE_KEY = 'reeditpro:editor-sidebar-visible'
@@ -33,7 +32,15 @@ function getInitialEditorSidebarVisible() {
   }
 }
 
-export function AppShell({ children, description, eyebrow, mode = 'standard', primaryAction = 'Create project and chat', title }: AppShellProps) {
+export function AppShell({
+  children,
+  description,
+  eyebrow,
+  mode = 'standard',
+  primaryAction = 'Create project',
+  primaryActionTo = '/projects/new',
+  title,
+}: AppShellProps) {
   const location = useLocation()
   const isChatMode = mode === 'chat'
   const [editorSidebarVisible, setEditorSidebarVisible] = useState(getInitialEditorSidebarVisible)
@@ -91,27 +98,15 @@ export function AppShell({ children, description, eyebrow, mode = 'standard', pr
                 <p>{description}</p>
               </div>
               <div className="topbar-actions">
-                <SearchInput placeholder="Search projects, clips, edits" />
-                <Badge accent="cyan">100 credits</Badge>
-                <Badge accent="violet">Personal</Badge>
-                <IconButton icon={Bell} label="Notifications" />
-                <Button icon={Sparkles} to="/projects/new" variant="primary">
-                  {primaryAction}
-                </Button>
-                <button className="profile-button" type="button">
-                  <span>TP</span>
-                  <ChevronDown aria-hidden="true" size={16} />
-                </button>
+                {primaryAction ? (
+                  <Button icon={Sparkles} to={primaryActionTo} variant="primary">
+                    {primaryAction}
+                  </Button>
+                ) : null}
               </div>
             </header>
           )}
           {children}
-          {!isChatMode && (
-            <div className="app-footer-note">
-              <HardDrive size={16} />
-              Frontend-only MVP with static data. Future backend work should connect to Supabase project reeditpro.
-            </div>
-          )}
         </main>
       </div>
     </AppShellChatToolbarContext.Provider>

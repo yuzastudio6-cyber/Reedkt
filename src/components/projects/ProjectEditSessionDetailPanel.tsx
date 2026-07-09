@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, Film, Layers3, MessageSquareText } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Circle, Film, Layers3, MessageSquareText } from 'lucide-react'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
 import { Card } from '../Card'
@@ -17,9 +17,9 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
   if (!card) {
     return (
       <Card className="project-edit-session-detail-panel" data-testid="project-edit-session-detail-panel">
-        <span className="section-eyebrow">Edit Chat detail</span>
-        <h2>Select an Edit Chat</h2>
-        <p>Choose a card to inspect mock setup, memory, versions, sources, revisions, and preview status.</p>
+        <span className="section-eyebrow">Edit detail</span>
+        <h2>Select an edit</h2>
+        <p>Choose an edit to inspect setup, source notes, versions, revisions, and preview status.</p>
       </Card>
     )
   }
@@ -28,20 +28,20 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
     <Card className="project-edit-session-detail-panel" data-testid="project-edit-session-detail-panel">
       <div className="project-edit-session-detail-panel__heading">
         <div>
-          <span className="section-eyebrow">Selected Edit Chat</span>
+          <span className="section-eyebrow">Selected edit</span>
           <h2>{card.name}</h2>
           <p>{card.frameLabel}</p>
         </div>
-        <Badge accent="cyan">Mock only</Badge>
       </div>
 
       <div className="project-edit-session-detail-panel__badges">
         <Badge accent="violet">{card.dnaBadgeLabel}</Badge>
         <Badge accent="cyan">{card.qaBadgeLabel}</Badge>
+        <Badge accent={card.progressAccent}>{card.progressLabel}</Badge>
         <Badge>{card.statusLabel}</Badge>
       </div>
 
-      {loading ? <p>Loading mock Edit Chat summary...</p> : null}
+      {loading ? <p>Loading edit summary...</p> : null}
 
       {detail ? (
         <>
@@ -66,10 +66,26 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
             ))}
           </div>
 
+          <div className="project-edit-session-detail-panel__progress" data-testid="project-edit-session-progress-summary">
+            <strong>Edit progress</strong>
+            <div>
+              {detail.progressItems.map((item) => (
+                <span className={item.complete ? 'is-complete' : ''} key={item.id} title={item.detail}>
+                  {item.complete ? <CheckCircle2 aria-hidden="true" size={15} /> : <Circle aria-hidden="true" size={15} />}
+                  {item.label}
+                </span>
+              ))}
+            </div>
+          </div>
+
           <dl className="project-edit-session-detail-panel__list">
             <div>
               <dt>Latest status</dt>
               <dd>{detail.latestStatus}</dd>
+            </div>
+            <div>
+              <dt>Readiness</dt>
+              <dd>{detail.readinessLabel}</dd>
             </div>
             <div>
               <dt>Latest preview</dt>
@@ -80,7 +96,7 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
               <dd>{detail.selectedEditLevelLabel}</dd>
             </div>
             <div>
-              <dt>Edit Preference</dt>
+              <dt>Preference</dt>
               <dd>{detail.selectedPreferenceSummary}</dd>
             </div>
             <div>
@@ -99,6 +115,10 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
               <dt>Revision</dt>
               <dd>{detail.revisionSummary}</dd>
             </div>
+            <div>
+              <dt>Private artifact</dt>
+              <dd>{detail.artifactSummaryLines[0]}</dd>
+            </div>
           </dl>
 
           <div className="project-edit-session-detail-panel__next" data-testid="project-edit-session-open-chat-note">
@@ -109,7 +129,7 @@ export function ProjectEditSessionDetailPanel({ card, detail, loading = false }:
       ) : null}
 
       <Button disabled={!detail} icon={ArrowRight} to={detail?.openChatRoute} variant="secondary">
-        Open Edit Chat
+        Open edit
       </Button>
     </Card>
   )

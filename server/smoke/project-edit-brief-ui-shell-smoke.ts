@@ -60,9 +60,9 @@ assert.equal(createProjectEditSessionBriefPath(projectId, emptySessionId), `${cr
 assert.equal(getProjectEditSessionRouteSectionFromPath(`/projects/${projectId}/edits/${emptySessionId}/brief`), 'brief')
 
 const tabs = createProjectEditSessionRouteTabs({ projectId, editSessionId: emptySessionId, activeSection: 'brief' })
-assert.equal(tabs.length, 6)
+assert.equal(tabs.length, 3)
 assert.equal(tabs.find((tab) => tab.section === 'brief')?.active, true)
-assert.equal(tabs.find((tab) => tab.section === 'brief')?.badge, 'Optional')
+assert.equal(tabs.find((tab) => tab.section === 'brief')?.badge, 'Upload')
 
 const navigationTypes = read('src/types/project-edit-session-navigation.ts')
 assert.match(navigationTypes, /'brief'/)
@@ -70,13 +70,35 @@ assert.match(navigationTypes, /'open_brief_section'/)
 
 const app = read('src/App.tsx')
 assert.match(app, /\/projects\/:projectId\/edits\/:editSessionId\/brief/)
+assert.match(app, /path="\/" element={<Navigate to="\/dashboard" replace \/>}/)
+assert.match(app, /path="\/pricing" element={<Navigate to="\/projects\/new" replace \/>}/)
+assert.doesNotMatch(app, /LandingPage/)
+assert.doesNotMatch(app, /PricingPage/)
 
 const indexCss = read('src/index.css')
 assert.match(indexCss, /project-edit-brief\.css/)
 
-const chatPage = read('src/pages/ProjectEditSessionChatPage.tsx')
+const chatPage = read('src/pages/EditorPage.tsx')
 assert.match(chatPage, /ProjectEditBriefWorkspace/)
-assert.match(chatPage, /routeSection === 'brief'/)
+assert.match(chatPage, /data-route-section="workspace"/)
+assert.doesNotMatch(chatPage, /ProjectEditSessionRouteTabs/)
+assert.doesNotMatch(chatPage, /ProjectEditSessionChatInput/)
+
+const workspaceSource = read('src/components/projects/brief/ProjectEditBriefWorkspace.tsx')
+assert.match(workspaceSource, /data-testid="project-edit-flow-summary"/)
+assert.match(workspaceSource, /data-testid="project-edit-main-playback-selector"/)
+assert.match(workspaceSource, /loadProjectSourceVideoLocalArtifactForReview/)
+assert.match(workspaceSource, /selectMainPlaybackMode/)
+assert.match(workspaceSource, /Source/)
+assert.match(workspaceSource, /Brief/)
+assert.match(workspaceSource, /Preview/)
+assert.match(workspaceSource, /Private export/)
+
+const videoShellSource = read('src/components/projects/brief/ProjectEditBriefVideoShell.tsx')
+assert.match(videoShellSource, /reviewArtifact/)
+assert.match(videoShellSource, /reviewArtifactLabel/)
+assert.match(videoShellSource, /Private review artifact/)
+assert.doesNotMatch(videoShellSource, /signedUrl|publicDeliveryEnabled:\s*true/i)
 
 const uiAdapter = read('src/lib/project-edit-brief-ui-adapter.ts')
 assert.doesNotMatch(uiAdapter, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockProjectEditBriefRepository/)
@@ -91,7 +113,12 @@ briefComponentFiles.forEach((path) => {
   assert.doesNotMatch(source, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/, `${path} should not import backend code`)
   const hasDisabledFilePlaceholder = /type="file"/.test(source) && /disabled/.test(source)
   const isLocalSourceVideoPicker = path.endsWith('ProjectEditBriefSourceVideoPicker.tsx')
-  assert.equal(/type="file"/.test(source) && !hasDisabledFilePlaceholder && !isLocalSourceVideoPicker, false, `${path} should not add active file upload UI`)
+  const isCleanLocalBriefWorkspace = path.endsWith('ProjectEditBriefWorkspace.tsx') && /URL\.createObjectURL/.test(source) && /Nothing has been uploaded or processed yet/.test(source)
+  assert.equal(
+    /type="file"/.test(source) && !hasDisabledFilePlaceholder && !isLocalSourceVideoPicker && !isCleanLocalBriefWorkspace,
+    false,
+    `${path} should not add backend upload UI or active runtime media execution`,
+  )
   assert.doesNotMatch(source, /appendMarkerMessage|addMarkerAttachment|renderJob|creditReserved/, `${path} should stay browser-safe and free of future runtime surfaces`)
 })
 

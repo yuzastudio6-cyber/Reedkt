@@ -210,7 +210,7 @@ const extraScenarios: Array<Omit<MockProjectEditBriefRepositoryScenario, 'mockOn
     title: 'Repository layer does not change UI routes.',
     operation: 'readiness',
     expectedStatus: 'ready_mock',
-    notes: ['ProjectEditSessionChatPage and ChatNativeEditor remain untouched.'],
+    notes: ['EditorPage and ChatNativeEditor remain untouched.'],
   },
   {
     id: 'project-edit-brief-repository-next-step',

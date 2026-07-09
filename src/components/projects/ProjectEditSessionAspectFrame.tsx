@@ -6,6 +6,8 @@ type ProjectEditSessionAspectFrameProps = {
 }
 
 export function ProjectEditSessionAspectFrame({ card }: ProjectEditSessionAspectFrameProps) {
+  const hasReviewOutput = /ready|reviewed/i.test(card.latestPreviewLabel)
+
   return (
     <div
       aria-label={`${card.name} ${card.frameLabel} ${card.latestPreviewLabel}`}
@@ -13,7 +15,7 @@ export function ProjectEditSessionAspectFrame({ card }: ProjectEditSessionAspect
       data-testid={`edit-session-aspect-${card.cardShape}`}
     >
       <div className="project-edit-session-aspect-frame__screen">
-        {card.latestPreviewLabel === 'Mock preview ready' ? <PlaySquare aria-hidden="true" size={24} /> : <Film aria-hidden="true" size={24} />}
+        {hasReviewOutput ? <PlaySquare aria-hidden="true" size={24} /> : <Film aria-hidden="true" size={24} />}
         <span>{card.aspectRatio}</span>
       </div>
       <small>{card.latestPreviewLabel}</small>

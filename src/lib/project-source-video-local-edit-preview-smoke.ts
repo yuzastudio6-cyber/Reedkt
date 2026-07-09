@@ -3,7 +3,9 @@ import {
   REEDITPRO_QWEN_MAIN_BRAIN_LABEL,
   createReeditProQwenMainBrainSummary,
 } from '../types/qwen-main-brain'
+import type { ProjectEditPlanApprovedLocalPlan } from './project-edit-plan-approval'
 import type {
+  ProjectSourceVideoEditAssemblySummary,
   ProjectSourceVideoBackendUploadResult,
   ProjectSourceVideoLocalEditPreviewConfig,
   ProjectSourceVideoLocalEditPreviewResult,
@@ -65,6 +67,7 @@ interface BasicRenderSmokeOutput {
   durationSeconds?: number
   sizeBytes?: number
   checksumSha256?: string
+  editAssembly?: ProjectSourceVideoEditAssemblySummary
   warnings?: string[]
 }
 
@@ -90,6 +93,7 @@ export interface RunProjectSourceVideoLocalEditPreviewSmokeInput {
   editSessionId: string
   projectId: string
   workspaceId: string
+  approvedLocalPlan: ProjectEditPlanApprovedLocalPlan
   sourceVideoUploadResult: ProjectSourceVideoBackendUploadResult
   sourceVideoDurationSeconds?: number
   sourceVideoAspectRatio?: string
@@ -169,6 +173,48 @@ function createHeaders(input: Record<string, string | undefined>): Headers {
   return headers
 }
 
+function createEditAssemblySummary(input: {
+  approvedLocalPlan: ProjectEditPlanApprovedLocalPlan
+  mode: ProjectSourceVideoEditAssemblySummary['mode']
+  sourceVideoDurationSeconds?: number
+  sourceVideoAspectRatio?: string
+}): ProjectSourceVideoEditAssemblySummary {
+  const operationsApplied = [
+    'approved_plan_snapshot_loaded',
+    'source_trim_bounded_for_internal_testing',
+    'frame_safe_mp4_assembly',
+    ...(input.approvedLocalPlan.operationManifest.outputFrame
+      ? [`confirmed_output_frame:${input.approvedLocalPlan.operationManifest.outputFrame.aspectRatio}:${input.approvedLocalPlan.operationManifest.outputFrame.width}x${input.approvedLocalPlan.operationManifest.outputFrame.height}`]
+      : []),
+    'light_color_balance_applied',
+    'clean_fade_handles_applied',
+    input.mode === 'private_final_export' ? 'approved_preview_review_carried_forward' : 'preview_review_pending',
+    ...input.approvedLocalPlan.operationManifest.operations.map((operation) => `professional_operation:${operation.operationType}:${operation.segmentRole}`),
+    ...input.approvedLocalPlan.steps.map((step) => `plan_step:${step.label}`),
+  ]
+
+  return {
+    planId: input.approvedLocalPlan.planId,
+    briefLineage: input.approvedLocalPlan.briefLineage,
+    title: input.approvedLocalPlan.title,
+    summary: input.approvedLocalPlan.summary,
+    steps: input.approvedLocalPlan.steps.map((step) => ({
+      label: step.label,
+      summary: step.summary,
+    })),
+    sourceDurationSeconds: input.sourceVideoDurationSeconds,
+    sourceAspectRatio: input.sourceVideoAspectRatio,
+    outputFrame: input.approvedLocalPlan.operationManifest.outputFrame,
+    mode: input.mode,
+    operationsApplied,
+    professionalOperationCount: input.approvedLocalPlan.operationManifest.operations.length,
+    professionalOperationLabels: input.approvedLocalPlan.operationManifest.operations.map((operation) => operation.label),
+    requiredQaChecks: input.approvedLocalPlan.operationManifest.requiredQaChecks,
+    planStepCount: input.approvedLocalPlan.steps.length,
+    productReady: false,
+  }
+}
+
 async function parseEnvelope<TData>(response: Response): Promise<ApiEnvelope<TData>> {
   const payload = await response.json().catch(() => undefined)
   if (!payload || typeof payload !== 'object') {
@@ -208,9 +254,18 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
 ): Promise<ProjectSourceVideoLocalEditPreviewResult> {
   const fetchImpl = input.fetchImpl ?? fetch
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
-  const editPlanId = `edit-plan-${input.editSessionId}-local-preview`
-  const creditEstimateId = `credit-estimate-${input.editSessionId}-local-preview`
+  if (!input.approvedLocalPlan.approved) {
+    throw new Error('Local edit preview requires the visible local edit plan and credit estimate to be approved first.')
+  }
+  const editPlanId = input.approvedLocalPlan.planId
+  const creditEstimateId = `${input.approvedLocalPlan.planId}-credit-estimate`
   const source = input.sourceVideoUploadResult
+  const editAssembly = createEditAssemblySummary({
+    approvedLocalPlan: input.approvedLocalPlan,
+    mode: 'clean_internal_preview',
+    sourceVideoDurationSeconds: input.sourceVideoDurationSeconds,
+    sourceVideoAspectRatio: input.sourceVideoAspectRatio,
+  })
 
   if (!source.mediaAssetId) {
     throw new Error('Local edit preview requires a finalized media asset id from backend-local upload.')
@@ -251,11 +306,25 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
 
   const snapshotJson = {
     mode: 'internal_local_edit_preview_smoke',
+    approvedLocalPlan: {
+      planId: input.approvedLocalPlan.planId,
+      title: input.approvedLocalPlan.title,
+      summary: input.approvedLocalPlan.summary,
+      steps: input.approvedLocalPlan.steps.map((step) => ({
+        label: step.label,
+        summary: step.summary,
+      })),
+      operationManifest: input.approvedLocalPlan.operationManifest,
+      creditEstimate: input.approvedLocalPlan.creditEstimate,
+      briefLineage: input.approvedLocalPlan.briefLineage,
+      approved: true,
+    },
     qwenMainBrain: {
       label: REEDITPRO_QWEN_MAIN_BRAIN_LABEL,
       summary: createReeditProQwenMainBrainSummary(),
       liveCallMade: false,
     },
+    editAssembly,
     sourceVideo: {
       storageObjectRecordId: source.storageObjectRecordId,
       mediaAssetId: source.mediaAssetId,
@@ -270,6 +339,7 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
     },
     gates: {
       backendLocalUpload: true,
+      visibleLocalPlanApproved: true,
       creditEstimateApproved: true,
       creditReservationCreated: true,
       approvedSnapshotCreated: true,
@@ -348,6 +418,7 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
       creditReservationId: creditReservation.id,
       workerInstanceId: 'local-edit-preview-smoke-worker',
       strict: true,
+      editAssemblyPlan: editAssembly,
     }),
   }))
   const smokeData = assertOk(smokeEnvelope, 'Local edit preview smoke failed.')
@@ -395,6 +466,9 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
 
   return {
     status: 'preview_ready',
+    editPlanId,
+    briefLineage: input.approvedLocalPlan.briefLineage,
+    creditEstimateId,
     approvedPlanSnapshotId: approvedSnapshot.id,
     creditApprovalId: creditApproval.id,
     creditReservationId: creditReservation.id,
@@ -407,6 +481,7 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
     durationSeconds: renderSmoke.durationSeconds,
     sizeBytes: renderSmoke.sizeBytes,
     checksumSha256: renderSmoke.checksumSha256,
+    editAssembly: renderSmoke.editAssembly ?? editAssembly,
     privateReviewPreview: {
       outputBucketName: privateReviewPreview.outputBucketName,
       outputObjectPath: privateReviewPreview.outputObjectPath,
@@ -422,6 +497,7 @@ export async function runProjectSourceVideoLocalEditPreviewSmoke(
     approvedSnapshotCreated: true,
     mockCreditApprovalCreated: true,
     mockCreditReservationCreated: true,
+    localPlanApproved: true,
     workerJobCreated: true,
     mediaProcessingStarted: true,
     renderJobCreated: true,

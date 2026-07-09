@@ -1,84 +1,109 @@
-import { MessageCircle, Plus, UploadCloud } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowRight, FolderPlus, Loader2, MessageSquareText, UploadCloud } from 'lucide-react'
 import { AppShell } from '../components/AppShell'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Card } from '../components/Card'
-import { createProjectHomePath } from '../lib/project-edit-session-navigation'
-import { MOCK_PROJECT_HOME_PROJECT_ID } from '../lib/project-edit-session-project-home-ui-adapter'
-import { launchEditingCategories } from '../lib/product-taxonomy'
-import type { EditingCategory } from '../types/reeditpro'
-
-const categoryDescriptions: Partial<Record<EditingCategory, string>> = {
-  storytelling: 'Signature narrative edits with Stroke Motion, still cards, character consistency, and story beats.',
-  lifestyle: 'Creator-style edits for day-in-life, travel, fitness, beauty, food, motivation, and casual stories.',
-  business_brand: 'Product, service, offer, SaaS, ecommerce, coaching, agency, and brand content.',
-  education_explainer: 'Graphic Design / VisualExplain for concepts, diagrams, steps, frameworks, and learning.',
-  documentary_case_study: 'Timeline, evidence, scam/fraud, investigation, case study, and what-happened videos.',
-}
+import {
+  createProjectBackendLocal,
+  createProjectBackendLocalConfig,
+} from '../lib/project-backend-local'
 
 export function CreateProjectPage() {
-  function categoryStartPath(category: EditingCategory) {
-    return `${createProjectHomePath(MOCK_PROJECT_HOME_PROJECT_ID)}?newEdit=1&category=${encodeURIComponent(category)}`
+  const navigate = useNavigate()
+  const projectConfig = createProjectBackendLocalConfig(import.meta.env)
+  const [projectName, setProjectName] = useState('Untitled ReEditPro project')
+  const [status, setStatus] = useState(projectConfig.message)
+  const [error, setError] = useState<string | undefined>()
+  const [creating, setCreating] = useState(false)
+
+  async function handleCreateProject(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!projectConfig.available || !projectConfig.apiBaseUrl || creating) return
+
+    setCreating(true)
+    setError(undefined)
+    setStatus('Creating project through the backend-local project gate...')
+
+    try {
+      const result = await createProjectBackendLocal({
+        apiBaseUrl: projectConfig.apiBaseUrl,
+        name: projectName,
+        workspaceId: projectConfig.workspaceId,
+      })
+      setStatus(`${result.readback.name} created and read back. Opening the project so you can create an edit.`)
+      navigate(`/projects/${encodeURIComponent(result.project.id)}?newEdit=1`)
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Project creation failed safely.')
+      setStatus('Project creation failed safely. No edit, upload, tools, render, billing, or production work started.')
+    } finally {
+      setCreating(false)
+    }
   }
 
   return (
     <AppShell
-      description="Pick a category, create an Edit Chat, then use the Brief tab for browser-local source video review and planning notes."
+      description="Name the project, then create an edit inside it. Upload happens inside the edit workspace."
       eyebrow="New project"
-      primaryAction="Start in chat"
-      title="Start with a video category"
+      primaryAction="Open projects"
+      primaryActionTo="/projects"
+      title="Create a project"
     >
-      <section className="project-start-shell category-first-shell">
-        <div className="category-entry-main">
-          <Card className="project-start-card">
+      <section className="project-start-shell project-start-shell-clean" data-testid="project-create-flow">
+        <Card className="project-start-card">
+          <form onSubmit={handleCreateProject}>
             <div className="project-start-heading">
-              <Badge accent="cyan">Chat-native upload</Badge>
-              <h2>Pick a category, then create an Edit Chat</h2>
+              <Badge accent="cyan">Step 1</Badge>
+              <h2>Start with the project</h2>
               <p>
-                Pick the type of video you're creating, then open the project-scoped Edit Chat setup. The Brief tab can load a local video
-                preview for internal testing without uploading or processing media.
+                A project is the container for every edit, source video, brief, preview, and version. Create the project first, then add the edit you want to work on.
               </p>
-              <p>The category gives planning context. It does not force a visual system.</p>
             </div>
 
             <label className="planning-field">
               <span>Project name</span>
-              <input defaultValue="Untitled ReeditPro edit" />
-              <small>Optional for this frontend mock. Real project creation is not wired yet.</small>
+              <input
+                data-testid="project-create-name-input"
+                onChange={(event) => {
+                  setProjectName(event.currentTarget.value)
+                  setError(undefined)
+                }}
+                value={projectName}
+              />
             </label>
-          </Card>
 
-          <div className="category-entry-grid">
-            {launchEditingCategories.map((category) => (
-              <article className="category-entry-card" key={category.value}>
-                <div>
-                  <span className="section-eyebrow">{category.label}</span>
-                  <h3>{category.label}</h3>
-                  <p>{categoryDescriptions[category.value] ?? 'Plan a professional edit from chat context.'}</p>
-                </div>
-                <small>{category.bestUseCases.slice(0, 5).join(' / ')}</small>
-                <Button icon={Plus} to={categoryStartPath(category.value)} variant="primary">
-                  Start Edit Chat
-                </Button>
-              </article>
-            ))}
-          </div>
-        </div>
+            <div className="project-start-status" data-testid="project-create-status" role="status">
+              <p>{status}</p>
+              {projectConfig.warnings.map((warning) => <span key={warning}>{warning}</span>)}
+              {error ? <strong>{error}</strong> : null}
+            </div>
+
+            <div className="project-start-actions">
+              <Button disabled={!projectConfig.available || creating || !projectName.trim()} icon={creating ? Loader2 : FolderPlus} type="submit" variant="primary">
+                {creating ? 'Creating project' : 'Create project'}
+              </Button>
+              <Button icon={ArrowRight} to="/projects" variant="secondary">
+                Back to projects
+              </Button>
+            </div>
+          </form>
+        </Card>
 
         <aside className="project-start-side">
           <Card>
-            <UploadCloud size={24} />
-            <h3>Local video review comes in Brief</h3>
-            <p>Create an Edit Chat, open Brief, then select a local browser video preview. No upload, storage write, or media worker starts.</p>
+            <MessageSquareText aria-hidden="true" size={24} />
+            <h3>Create an edit next</h3>
+            <p>Inside the project, create a named edit workspace for the specific video you want ReEditPro to make.</p>
           </Card>
           <Card>
-            <MessageCircle size={24} />
-            <h3>The chat is the editor</h3>
-            <p>Source order, format, edit level, visual preference, reference videos, plans, credits, approval, progress, and preview all happen inside chat.</p>
+            <UploadCloud aria-hidden="true" size={24} />
+            <h3>Upload inside the edit</h3>
+            <p>Source video belongs to the edit workspace so planning, brief notes, preview, and review stay together.</p>
           </Card>
           <Card>
-            <h3>Core rule</h3>
-            <p>Plan first. Approve credits. Then the AI edits in the background. This demo does not deduct real credits.</p>
+            <h3>Approval stays later</h3>
+            <p>Planning and credit approval remain separate from project creation. Creating a project should not start tools or generation.</p>
           </Card>
         </aside>
       </section>

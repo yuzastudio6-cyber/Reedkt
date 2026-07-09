@@ -30,8 +30,8 @@ export type NewEditSessionSourceNote = {
 
 export type NewEditSessionFormState = {
   name: string
-  aspectRatio: ProjectEditSessionAspectRatio
-  platformTarget: ProjectEditSessionPlatformTarget
+  aspectRatio?: ProjectEditSessionAspectRatio
+  platformTarget?: ProjectEditSessionPlatformTarget
   selectedEditLevel: UserFacingEditLevel
   preferenceChoiceId: NewEditSessionPreferenceChoiceId
   preferenceNote: string
@@ -55,13 +55,13 @@ export type NewEditSessionCreateResult = {
   responseSummaries: string[]
   warnings: string[]
   safety: typeof PROJECT_EDIT_SESSION_API_CLIENT_SAFETY
+  openRoute?: string
+  backendLocalSessionCreated?: true
   mockOnly: true
 }
 
 export const NEW_EDIT_SESSION_DEFAULT_FORM: NewEditSessionFormState = {
-  name: 'Untitled Edit Chat',
-  aspectRatio: '9:16',
-  platformTarget: 'instagram_reel',
+  name: 'Untitled edit',
   selectedEditLevel: 'premium',
   preferenceChoiceId: 'none',
   preferenceNote: '',
@@ -123,7 +123,7 @@ export const NEW_EDIT_SESSION_PREFERENCE_OPTIONS: Array<{
     id: 'lifestyle_travel_vlog',
     label: 'DNA-backed mock preference',
     handle: '@lifestyle-travel-vlog',
-    description: 'Apply the DNA-backed mock preference to this Edit Chat.',
+    description: 'Apply the DNA-backed mock preference to this edit.',
   },
   {
     id: 'legacy_clean_edit',
@@ -153,17 +153,27 @@ export function getNewEditSessionPreferenceHandle(
   return NEW_EDIT_SESSION_PREFERENCE_OPTIONS.find((option) => option.id === preferenceChoiceId)?.handle
 }
 
+export function getConfirmedNewEditFrame(form: NewEditSessionFormState): {
+  aspectRatio: ProjectEditSessionAspectRatio
+  platformTarget: ProjectEditSessionPlatformTarget
+} | undefined {
+  if (!form.aspectRatio || !form.platformTarget) return undefined
+  const aspectSupported = NEW_EDIT_SESSION_ASPECT_OPTIONS.some((option) => option.id === form.aspectRatio && !option.disabled)
+  const platformSupported = NEW_EDIT_SESSION_PLATFORM_OPTIONS.some((option) => option.id === form.platformTarget)
+  if (!aspectSupported || !platformSupported) return undefined
+  return {
+    aspectRatio: form.aspectRatio,
+    platformTarget: form.platformTarget,
+  }
+}
+
 export function validateNewEditSessionForm(
   form: NewEditSessionFormState,
 ): NewEditSessionCreateValidationResult {
   const errors: string[] = []
-  if (!form.name.trim()) errors.push('Edit Chat name is required.')
-  if (!NEW_EDIT_SESSION_ASPECT_OPTIONS.some((option) => option.id === form.aspectRatio && !option.disabled)) {
-    errors.push('Choose a supported aspect ratio.')
-  }
-  if (!NEW_EDIT_SESSION_PLATFORM_OPTIONS.some((option) => option.id === form.platformTarget)) {
-    errors.push('Choose a supported platform target.')
-  }
+  if (!form.name.trim()) errors.push('Edit name is required.')
+  const confirmedFrame = getConfirmedNewEditFrame(form)
+  if (!confirmedFrame) errors.push('Choose and confirm the output frame and platform before creating the edit.')
   if (!NEW_EDIT_SESSION_EDIT_LEVEL_OPTIONS.some((option) => option.id === form.selectedEditLevel)) {
     errors.push('Choose a supported edit level.')
   }
@@ -223,6 +233,17 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     projectId: input.projectId,
     preserveMockSession: true,
   })
+  const confirmedFrame = getConfirmedNewEditFrame(input.form)
+  if (!confirmedFrame) {
+    return {
+      ok: false,
+      sourceRecords: [],
+      responseSummaries,
+      warnings: ['Choose and confirm the output frame and platform before creating the edit.'],
+      safety: PROJECT_EDIT_SESSION_API_CLIENT_SAFETY,
+      mockOnly: true,
+    }
+  }
   const preferenceHandle = getNewEditSessionPreferenceHandle(input.form.preferenceChoiceId)
   const sourceNotes = normalizedSourceNotes(input.form.sourceNotes)
 
@@ -232,8 +253,8 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     projectId: input.projectId,
     name: input.form.name.trim() || NEW_EDIT_SESSION_DEFAULT_FORM.name,
     status: 'draft',
-    aspectRatio: input.form.aspectRatio,
-    platformTarget: input.form.platformTarget,
+    aspectRatio: confirmedFrame.aspectRatio,
+    platformTarget: confirmedFrame.platformTarget,
     selectedEditLevel: input.form.selectedEditLevel,
     selectedEditPreferenceHandle: preferenceHandle,
     metadata: {
@@ -242,6 +263,10 @@ export async function createProjectEditSessionFromNewEditForm(input: {
       preferenceChoiceId: input.form.preferenceChoiceId,
       preferenceNote: input.form.preferenceNote.trim() || undefined,
       preferenceApplicationDeferred: !preferenceHandle,
+      outputFrameConfirmed: true,
+      outputFrameConfirmationSource: 'new_edit_create_form',
+      confirmedAspectRatio: confirmedFrame.aspectRatio,
+      confirmedPlatformTarget: confirmedFrame.platformTarget,
       sourceNotes: sourceNotes.map((sourceNote) => ({
         label: sourceNote.label,
         notes: sourceNote.notes,
@@ -250,7 +275,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
       safety: PROJECT_EDIT_SESSION_API_CLIENT_SAFETY,
     },
   })
-  responseSummaries.push(responseSummary(createResponse, 'Create Edit Chat'))
+  responseSummaries.push(responseSummary(createResponse, 'Create edit'))
 
   let session = dataRecord<{ session?: ProjectEditSessionRecord }>(createResponse)?.session
   if (!createResponse.ok || !session) {
@@ -260,7 +285,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
       responseSummaries,
       warnings: [
         ...warnings,
-        createResponse.error?.message ?? 'Mock Edit Chat creation failed without production side effects.',
+        createResponse.error?.message ?? 'Mock edit creation failed without production side effects.',
       ],
       safety: PROJECT_EDIT_SESSION_API_CLIENT_SAFETY,
       mockOnly: true,
@@ -320,7 +345,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     editSessionId: session.id,
     role: 'system',
     kind: 'system_note',
-    text: 'This Edit Chat was created in mock/local mode. The persistent chat workspace can save messages and safe session state without starting runtime execution.',
+    text: 'This edit was created in mock/local mode. The edit workspace can save setup, brief, preview, and safe session state without starting runtime execution.',
     metadata: {
       rpMilestone: 'RP-EDITSESSION-06',
       noFullChatRouteOpened: true,
@@ -340,10 +365,10 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     projectId: input.projectId,
     editSessionId: session.id,
     layer: 'session_memory',
-    summary: 'Mock/local Edit Chat created from Project Home for the persistent chat workspace.',
+    summary: 'Mock/local edit created from Project Home for the edit workspace.',
     facts: [
-      `Aspect ratio: ${input.form.aspectRatio}`,
-      `Platform target: ${input.form.platformTarget}`,
+      `Confirmed aspect ratio: ${confirmedFrame.aspectRatio}`,
+      `Confirmed platform target: ${confirmedFrame.platformTarget}`,
       `Edit level: ${input.form.selectedEditLevel}`,
     ],
     preferences: preferenceHandle ? [`Selected Edit Preference handle: ${preferenceHandle}`] : [],
@@ -369,11 +394,12 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     editSessionId: session.id,
     kind: 'created',
     messageId: initialMessage?.id,
-    summary: 'Created mock/local Edit Chat from Project Home.',
+    summary: 'Created mock/local edit from Project Home.',
     state: {
       name: session.name,
       aspectRatio: session.aspectRatio,
       platformTarget: session.platformTarget,
+      outputFrameConfirmed: true,
       selectedEditLevel: session.selectedEditLevel,
       sourceNoteCount: sourceNotes.length,
       noProgressStarted: true,
@@ -394,7 +420,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     projectId: input.projectId,
     editSessionId: session.id,
     eventType: 'edit_chat_created',
-    summary: 'Edit Chat created from Project Home + New Edit in mock/local mode.',
+    summary: 'Edit created from Project Home + New Edit in mock/local mode.',
     metadata: {
       rpMilestone: 'RP-EDITSESSION-06',
       fullChatRouteImplemented: false,
@@ -411,7 +437,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
   const bundleResponse = await client.bundle.get<{
     bundle: ProjectEditSessionBundleRecord
   }>(session.id)
-  responseSummaries.push(responseSummary(bundleResponse, 'Load created Edit Chat bundle'))
+  responseSummaries.push(responseSummary(bundleResponse, 'Load created edit bundle'))
   const bundle = dataRecord<{ bundle?: ProjectEditSessionBundleRecord }>(bundleResponse)?.bundle
   if (!bundleResponse.ok) warnings.push(bundleResponse.error?.message ?? 'Created bundle could not be loaded.')
 

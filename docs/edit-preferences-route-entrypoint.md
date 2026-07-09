@@ -6,18 +6,19 @@
 
 ## Summary
 
-This milestone wires the previously referenced `/edit-preferences` route into the app as a mock/local Edit Preference library. It uses the existing Project Edit Session preference contracts and browser-safe UI adapter, shows seeded saved preference options, supports a browser-session draft creator, and links preferences back to Edit Chat as reusable planning metadata.
+This milestone wires the primary `/preferences` route into the app as a clean mock/local Preferences page. The older `/edit-preferences` URL remains a compatibility redirect so existing internal-testing links still land on the same page.
 
 The route is production-shaped for internal testing, not a shortcut. It keeps Edit Preference distinct from Project, Edit Chat, and Edit Brief, and it preserves the future path toward authenticated persistence and owner-approved runtime gates.
 
 ## Connected Scope
 
-- Route: `/edit-preferences`
+- Canonical route: `/preferences`
+- Legacy redirect: `/edit-preferences`
 - Navigation: sidebar Preferences item.
 - Sidebar rule: the primary sidebar navigation is intentionally limited to Home, Project, and Preferences. Editor, upload, export, brand, wallet, and other old shell surfaces must not appear as primary sidebar options; their old standalone routes redirect back into Home, Project, or Preferences.
-- Source options: `listProjectEditSessionPreferenceOptionsForUI`.
-- Default project/session context: `mock-project-edit-chat-foundation` / `edit-session-youtube-wide`.
-- Draft storage: browser `localStorage` only.
+- Source options: broad editing-default preference groups only.
+- Default project/session context: none.
+- Draft storage: not connected in this clean shell.
 
 ## Boundaries
 
@@ -41,6 +42,6 @@ The route is production-shaped for internal testing, not a shortcut. It keeps Ed
 
 ## Next
 
-Use `/edit-preferences` during internal testing to inspect and draft reusable style direction. Later milestones can connect authenticated preference persistence and owner-reviewed Preference DNA, but this route does not enable those release gates by itself.
+Use `/preferences` during internal testing to inspect broad reusable style direction. Later milestones can connect authenticated preference persistence and owner-reviewed Preference DNA, but this route does not enable those release gates by itself.
 
 Keep Preferences in the clean sidebar. Do not restore the older broad sidebar list or standalone old shell pages unless a later product decision explicitly expands primary navigation.

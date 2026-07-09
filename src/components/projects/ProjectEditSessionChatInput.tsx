@@ -23,14 +23,14 @@ export function ProjectEditSessionChatInput({
         onSubmit()
       }}
     >
-      <label htmlFor="edit-session-chat-message">Send mock Edit Chat message</label>
+      <label htmlFor="edit-session-chat-message">Message ReEditPro</label>
       <div className="project-edit-session-chat-input__row">
         <textarea
           data-testid="edit-session-chat-input"
           disabled={disabled}
           id="edit-session-chat-message"
           onChange={(event) => onChange(event.target.value)}
-          placeholder="Ask for a change, capture a revision, or leave a mock editing note..."
+          placeholder="Describe the edit, ask for a change, or add a note..."
           rows={3}
           value={value}
         />
@@ -38,7 +38,7 @@ export function ProjectEditSessionChatInput({
           Send
         </Button>
       </div>
-      <p>Mock only: sending saves messages and safe session records, not edit planning, preview, render, workers, providers, or credits.</p>
+      <p>Messages can update the edit brief. Expensive work still waits for plan and credit approval.</p>
     </form>
   )
 }

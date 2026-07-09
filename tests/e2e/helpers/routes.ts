@@ -12,7 +12,7 @@ export const checkedRoutes = [
   { path: '/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief', label: 'project-edit-brief-shell' },
   { path: '/projects/new', label: 'projects-new' },
   { path: '/editor', label: 'editor' },
-  { path: '/edit-preferences', label: 'edit-preferences' },
+  { path: '/preferences', label: 'preferences' },
   { path: '/internal-testing', label: 'internal-testing' },
   { path: '/pricing', label: 'pricing' },
 ] as const

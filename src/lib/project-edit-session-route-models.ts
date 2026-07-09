@@ -18,7 +18,7 @@ import {
   createProjectHomePath,
 } from './project-edit-session-navigation'
 
-const TAB_SECTIONS: ProjectEditSessionRouteSection[] = ['chat', 'brief', 'history', 'versions', 'preview', 'details']
+const TAB_SECTIONS: ProjectEditSessionRouteSection[] = ['chat', 'brief', 'preview']
 
 function titleCase(value: string): string {
   return value
@@ -70,7 +70,7 @@ export function createProjectEditSessionRouteModels(
     return {
       section,
       status: missingRequired ? 'blocked_missing_params' : statusFor(section),
-      label: section === 'project_home' ? 'Project Home' : section === 'legacy_editor' ? 'Retired Editor Alias' : titleCase(section),
+      label: section === 'project_home' ? 'Project' : section === 'legacy_editor' ? 'Retired editor alias' : titleCase(section),
       path: missingRequired ? '' : pathFor(section, projectId, editSessionId),
       requiresProjectId,
       requiresEditSessionId,
@@ -78,7 +78,7 @@ export function createProjectEditSessionRouteModels(
       warnings: missingRequired
         ? ['Missing route parameters; navigation is blocked safely.']
         : section === 'legacy_editor'
-          ? ['Retired /editor redirects to Project start; use Project Home, Edit Chat, and Brief for testing.']
+          ? ['Retired /editor redirects to Project start; use Project, Edit, and Brief for testing.']
           : section === 'versions' || section === 'preview'
             ? ['This section is a mock history view; real render/export remains future gated.']
             : [],
@@ -99,19 +99,19 @@ export function createProjectEditSessionBreadcrumbs(input: {
   const items: ProjectEditSessionBreadcrumbItem[] = [
     { label: 'Projects', path: '/projects', current: false, mockOnly: true },
     {
-      label: input.projectId ? `Project ${input.projectId}` : 'Project',
+      label: 'Project',
       path: projectPath,
       current: input.section === 'project_home',
       mockOnly: true,
     },
     {
-      label: 'Edit Chat',
+      label: 'Edit',
       path: editPath,
       current: false,
       mockOnly: true,
     },
     {
-      label: input.editSessionTitle ?? 'Mock Edit Chat',
+      label: input.editSessionTitle ?? 'Edit',
       path: editPath,
       current: false,
       mockOnly: true,
@@ -138,18 +138,18 @@ export function createProjectEditSessionRouteTabs(input: {
       path: disabled ? '' : pathFor(section, input.projectId, input.editSessionId),
       active: input.activeSection === section || (section === 'chat' && input.activeSection === 'project_home'),
       disabled,
-      badge: section === 'brief' ? 'Optional' : section === 'versions' || section === 'preview' ? 'Mock' : undefined,
+      badge: section === 'brief' ? 'Upload' : section === 'versions' || section === 'preview' ? 'Soon' : undefined,
       mockOnly: true,
     }
   })
 }
 
 export function createProjectEditSessionRouteSummary(section: ProjectEditSessionRouteSection): string {
-  if (section === 'brief') return 'Brief is an optional mock/local timeline instruction shell. Opening it does not create markers, upload assets, process media, render, or spend credits.'
+  if (section === 'brief') return 'Use Brief to upload or select source video, add instructions, mark moments, and prepare the edit before approval.'
   if (section === 'history') return 'History focuses existing snapshots, versions, previews, revisions, approval state, and events.'
-  if (section === 'versions') return 'Versions is a mock route slot for version history. Real rendering and export stay future gated.'
-  if (section === 'preview') return 'Preview is a mock route slot for latest preview metadata. No render, media processing, or export starts.'
+  if (section === 'versions') return 'Versions will show saved edit versions and comparisons as the edit evolves.'
+  if (section === 'preview') return 'Preview will show the latest generated preview and review actions.'
   if (section === 'details') return 'Details focuses session context, sources, memory, preference DNA, and boundary state.'
   if (section === 'legacy_editor') return 'Retired /editor redirects to Project start so testing stays in the Project/Edit Chat flow.'
-  return 'Chat is the main persistent mock Edit Chat workspace.'
+  return 'Chat is the main workspace for the edit plan, questions, approvals, progress, and review.'
 }

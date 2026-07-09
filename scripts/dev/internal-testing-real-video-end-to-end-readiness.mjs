@@ -10,7 +10,7 @@ const repoRoot = path.resolve(scriptDir, '..', '..')
 const fixturePath = path.resolve(process.env.REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_PATH?.trim() || path.join(homedir(), 'Documents/test video/internal testing.MP4'))
 const localModelPath = process.env.REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_MODEL_PATH?.trim() || '/private/tmp/reeditpro-approved-local-models/faster-whisper-model'
 const fasterWhisperCommand = process.env.REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_COMMAND?.trim()
-const pythonCommand = process.env.REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_PYTHON_COMMAND?.trim() || 'python'
+const pythonCommand = process.env.REEDITPRO_INTERNAL_TESTING_FASTER_WHISPER_PYTHON_COMMAND?.trim() || (process.platform === 'win32' ? 'python' : 'python3')
 const npmBin = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 
 if (!existsSync(fixturePath)) {
@@ -51,12 +51,11 @@ function runtimeReady() {
     return !result.error && (result.status === 0 || output.includes('usage') || output.includes('help'))
   }
 
-  const result = spawnSync(pythonCommand, ['-m', 'faster_whisper', '--help'], {
+  const result = spawnSync(pythonCommand, ['-c', 'from faster_whisper import WhisperModel'], {
     encoding: 'utf8',
     timeout: 5000,
   })
-  const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`.toLowerCase()
-  return !result.error && (result.status === 0 || output.includes('usage') || output.includes('help'))
+  return !result.error && result.status === 0
 }
 
 const localModelPathExists = existsSync(localModelPath)
@@ -99,7 +98,7 @@ console.log(JSON.stringify({
     : 'blocked_before_content_aware_final_edit',
   nextRequiredAction: transcriptReady
     ? 'rerun_real_video_speech_caption_handoff_to_accept_real_transcript_content'
-    : 'provide_approved_local_faster_whisper_model_path_and_runtime_command',
+    : 'provide_approved_local_faster_whisper_manifest_model_path_and_runtime_package_or_command',
   productReady: false,
   acceptedAsFinalEditedVideo: false,
   blockedScope: {

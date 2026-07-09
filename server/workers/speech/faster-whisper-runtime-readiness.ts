@@ -14,6 +14,10 @@ export interface FasterWhisperRuntimeReadinessResult {
   blockers: SpeechFoundationSkipReason[]
 }
 
+export function defaultFasterWhisperPythonCommand(): string {
+  return process.platform === 'win32' ? 'python' : 'python3'
+}
+
 export function resolveFasterWhisperRuntimeReadiness(
   input: FasterWhisperRuntimeReadinessInput = {},
 ): FasterWhisperRuntimeReadinessResult {
@@ -21,22 +25,20 @@ export function resolveFasterWhisperRuntimeReadiness(
     return checkCliRuntime(input.fasterWhisperCommand, input.timeoutMs)
   }
 
-  const pythonCommand = input.pythonCommand ?? 'python'
-  const result = spawnSync(pythonCommand, ['-m', 'faster_whisper', '--help'], {
+  const pythonCommand = input.pythonCommand ?? defaultFasterWhisperPythonCommand()
+  const result = spawnSync(pythonCommand, ['-c', 'from faster_whisper import WhisperModel'], {
     encoding: 'utf8',
     timeout: input.timeoutMs ?? 5_000,
   })
-  const combinedOutput = `${result.stdout ?? ''}\n${result.stderr ?? ''}`.toLowerCase()
-  const printedHelp = combinedOutput.includes('usage') || combinedOutput.includes('help')
 
-  if (result.error || (result.status !== 0 && !printedHelp)) {
+  if (result.error || result.status !== 0) {
     return {
       status: 'blocked',
       command: pythonCommand,
       runtimeKind: 'python_module',
       blockers: [{
         code: 'faster_whisper_runtime_missing',
-        message: 'Local-dev transcription skipped because the faster-whisper Python command path is unavailable. No package install or model download was attempted.',
+        message: 'Local-dev transcription skipped because the faster-whisper Python package API is unavailable. No package install or model download was attempted.',
         tool: 'faster_whisper',
       }],
     }

@@ -30,7 +30,7 @@ Readiness status is not license approval. FFmpeg remains LGPL-safe by policy and
 
 Milestone 7 adds faster-whisper, model-weight, caption file, and libass readiness awareness without installing packages or downloading models.
 
-Real `local_dev` transcription requires an already available faster-whisper command/module and an existing local model reference. Unknown, unreviewed, non-commercial, or missing model weights remain blocked for production readiness. Caption preview readiness checks FFmpeg/libass availability only for optional local-dev preview scaffolding; final export remains blocked until later render milestones.
+Real `local_dev` transcription requires an already available `faster_whisper.WhisperModel` Python package API or reviewed CLI override plus an existing local model reference. Unknown, unreviewed, non-commercial, or missing model weights remain blocked for production readiness. Caption preview readiness checks FFmpeg/libass availability only for optional local-dev preview scaffolding; final export remains blocked until later render milestones.
 
 ## Milestone 9 Audio Readiness Gate
 

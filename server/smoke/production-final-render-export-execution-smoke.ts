@@ -1,6 +1,9 @@
-import { mkdtemp, rm } from 'node:fs/promises'
+import { execFile } from 'node:child_process'
+import { existsSync } from 'node:fs'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
+import { promisify } from 'node:util'
 import {
   buildWorkerIdempotencyKey,
   runProductionWorkerRuntime,
@@ -24,6 +27,8 @@ import {
 import type { QualityGateType } from '../../src/backend/contracts/production-tool-runtime-contracts'
 import type { FinalRenderExecutionInput } from '../workers/final-render'
 
+const execFileAsync = promisify(execFile)
+
 function check(condition: boolean, message: string): void {
   if (!condition) throw new Error(message)
 }
@@ -44,6 +49,7 @@ const baseInput: FinalRenderExecutionInput = {
   projectId: 'project-m16a-smoke',
   mediaAssetId: 'media-m16a-smoke',
   approvedSnapshotId: 'approved-snapshot-m16a-smoke',
+  creditReservationId: 'credit-reservation-m16a-smoke',
   toolExecutionPlanId: 'tool-execution-m16a-smoke',
   idempotencyKey: 'idempotency-m16a-smoke',
   timelineManifestId: 'timeline-manifest-m16a-smoke',
@@ -111,7 +117,10 @@ try {
   const ffmpegPlan = buildFfmpegExportCommandPlan({ executionInput: baseInput, executionManifest })
   const libassPlan = buildLibassCaptionBurnInCommandPlan({ executionInput: baseInput, executionManifest })
   check(remotionPlan.executes === false && remotionPlan.args.includes('render') && !remotionPlan.args.includes('revideo'), 'Remotion command builder must be allowlisted and non-executing.')
-  check(ffmpegPlan.executes === false && ffmpegPlan.args.includes('-c:v') && !ffmpegPlan.args.includes('-filter_complex'), 'FFmpeg export command builder must be allowlisted and non-executing.')
+  check(ffmpegPlan.executes === false && ffmpegPlan.args.includes('-c:v') && ffmpegPlan.args.includes('-filter_complex'), 'FFmpeg export command builder must be allowlisted, timeline-aware, and non-executing in dry-run.')
+  check(ffmpegPlan.args.includes('-ar') && ffmpegPlan.args.includes('48000'), 'FFmpeg export audio must be locked to the professional 48 kHz video-delivery rate.')
+  const externalMixPlan = buildFfmpegExportCommandPlan({ executionInput: { ...baseInput, audioLocalPaths: ['/private/approved-mix.wav'] }, executionManifest })
+  check(externalMixPlan.args.includes('/private/approved-mix.wav') && externalMixPlan.args.join(' ').includes('[1:a:0]atrim'), 'FFmpeg export must preserve an explicitly approved external audio mix when one is provided.')
   check(libassPlan.executes === false && libassPlan.args.includes('-vf') && !libassPlan.args.includes('-filter_complex'), 'libass command builder must be allowlisted and non-executing.')
 
   const dryRun = await runFinalRenderExecutionPipeline(baseInput)
@@ -138,6 +147,174 @@ try {
   check(remotion.status === 'skipped', 'Remotion runner must skip gracefully if unavailable/disabled.')
   check(ffmpeg.status === 'skipped', 'FFmpeg runner must skip gracefully if unavailable/disabled.')
   check(libass.status === 'skipped', 'libass runner must skip gracefully if unavailable/disabled.')
+
+  const fixtureSourcePath = path.join(tempRoot, 'whole-edit-source.mp4')
+  const fixtureCaptionPath = path.join(tempRoot, 'whole-edit-captions.ass')
+  const fixtureCaptionOverlayPath = path.join(tempRoot, 'whole-edit-caption-overlay.png')
+  await execFileAsync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-y',
+    '-f', 'lavfi', '-i', 'color=c=0x26314d:s=320x568:r=30:d=2',
+    '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000:duration=2',
+    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac',
+    fixtureSourcePath,
+  ])
+  await writeFile(fixtureCaptionPath, `[Script Info]
+ScriptType: v4.00+
+PlayResX: 320
+PlayResY: 568
+
+[V4+ Styles]
+Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
+Style: Default,Arial,24,&H00FFFFFF,&H00FFFFFF,&H00000000,&H66000000,-1,0,0,0,100,100,0,0,1,2,1,2,24,24,60,1
+
+[Events]
+Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
+Dialogue: 0,0:00:00.10,0:00:01.30,Default,,0,0,0,,Whole edit fixture
+`, 'utf8')
+  await execFileAsync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-y',
+    '-f', 'lavfi', '-i', 'color=c=0x111827@0.80:s=240x80:d=0.04',
+    '-frames:v', '1', '-vf', 'format=rgba', fixtureCaptionOverlayPath,
+  ])
+  const upstreamQaResults = [
+    mockGate('cut_smoothness', 'passed', false),
+    mockGate('transcript_alignment', 'passed', false),
+    mockGate('caption_timing', 'passed', false),
+    mockGate('caption_readability', 'passed', false),
+    mockGate('caption_safe_zone', 'passed', false),
+  ]
+  const localRenderPayload = {
+    ...buildPayload('render_worker', { internalTestingGate: 'm16a_local_whole_edit_fixture' }),
+    executionMode: 'mock_safe' as const,
+    creditReservationId: baseInput.creditReservationId,
+    renderMode: 'final_export' as const,
+  }
+  const localRender = await runFinalRenderExecutionPipeline({
+    ...baseInput,
+    mode: 'local_dev',
+    workerPayload: localRenderPayload,
+    timelineManifestId: 'timeline-m16a-local-whole-edit',
+    timelineManifest: {
+      id: 'timeline-m16a-local-whole-edit',
+      workspaceId: baseInput.workspaceId,
+      projectId: baseInput.projectId,
+      editPlanId: 'edit-plan-m16a-local-whole-edit',
+      approvedSnapshotId: baseInput.approvedSnapshotId as string,
+      mediaAssetId: baseInput.mediaAssetId,
+      version: '1',
+      timelineFormat: 'reeditpro_timeline',
+      durationSeconds: 1.5,
+      clips: [
+        {
+          id: 'fixture-clip-1',
+          sourceMediaAssetId: baseInput.mediaAssetId,
+          sourceRange: { startSeconds: 0, endSeconds: 0.8 },
+          timelineRange: { startSeconds: 0, endSeconds: 0.8 },
+          trackId: 'video-1',
+        },
+        {
+          id: 'fixture-clip-2',
+          sourceMediaAssetId: baseInput.mediaAssetId,
+          sourceRange: { startSeconds: 1, endSeconds: 1.7 },
+          timelineRange: { startSeconds: 0.8, endSeconds: 1.5 },
+          trackId: 'video-1',
+        },
+      ],
+      audioLayers: [],
+      captionLayers: [],
+      overlayLayers: [],
+      maskLayers: [],
+      colorOperations: [],
+      renderNotes: ['Generated fixture validates source-range trims and private final render execution.'],
+      sourceReferences: [{ storageBucketPurpose: 'source_media', storageObjectPath: 'fixtures/m16a/whole-edit-source.mp4', sourceOfTruth: true }],
+      createdAt: new Date().toISOString(),
+    },
+    sourceLocalPaths: [fixtureSourcePath],
+    captionLocalPaths: [fixtureCaptionPath],
+    captionOverlayInputs: [{ localPath: fixtureCaptionOverlayPath, startSeconds: 0.1, endSeconds: 1.3, x: 40, y: 420 }],
+    outputDirectory: tempRoot,
+    outputFileName: 'whole-edit-final.mp4',
+    renderEngine: 'ffmpeg',
+    renderMode: 'final_export',
+    canvas: { width: 320, height: 568, aspectRatio: '40:71' },
+    fps: 30,
+    durationSeconds: 1.5,
+    enableLocalDevRender: true,
+    enableCaptionBurnIn: true,
+    sourceAudioRequired: true,
+    localDevRenderProfile: { visualFinish: 'clean_natural', audioFinish: 'clean_voice', subtlePunchIns: true },
+    requiredUpstreamQaGateTypes: upstreamQaResults.map((gate) => gate.gateType),
+    upstreamQaResults,
+    timeoutMs: 120_000,
+  })
+  check(localRender.status === 'completed', `Local whole-edit fixture render must complete: ${JSON.stringify({ warnings: localRender.warnings, skippedReasons: localRender.skippedReasons, qaResults: localRender.qaResults, commandPlans: localRender.commandPlans })}`)
+  check(localRender.finalDeliveryAllowed, 'Local whole-edit fixture must pass private final-delivery QA.')
+  check(Boolean(localRender.outputLocalPath && existsSync(localRender.outputLocalPath)), 'Local whole-edit fixture must create a real MP4 output.')
+  check(localRender.outputProbe?.durationSeconds !== undefined && Math.abs(localRender.outputProbe.durationSeconds - 1.5) <= 0.35, 'Local whole-edit fixture output duration must match the approved timeline.')
+  check(localRender.outputProbe?.width === 320 && localRender.outputProbe.height === 568, 'Local whole-edit fixture output must match the approved canvas.')
+
+  const invalidOutputPath = path.join(tempRoot, 'invalid-timeline-must-not-render.mp4')
+  const invalidTimelineRender = await runFinalRenderExecutionPipeline({
+    ...baseInput,
+    mode: 'local_dev',
+    workerPayload: localRenderPayload,
+    timelineManifestId: 'timeline-m16a-invalid-local-whole-edit',
+    timelineManifest: {
+      id: 'timeline-m16a-invalid-local-whole-edit',
+      workspaceId: baseInput.workspaceId,
+      projectId: baseInput.projectId,
+      editPlanId: 'edit-plan-m16a-invalid-local-whole-edit',
+      approvedSnapshotId: baseInput.approvedSnapshotId as string,
+      mediaAssetId: baseInput.mediaAssetId,
+      version: '1',
+      timelineFormat: 'reeditpro_timeline',
+      durationSeconds: 1.5,
+      clips: [
+        {
+          id: 'invalid-overlap-1',
+          sourceMediaAssetId: baseInput.mediaAssetId,
+          sourceRange: { startSeconds: 0, endSeconds: 1 },
+          timelineRange: { startSeconds: 0, endSeconds: 1 },
+          trackId: 'video-1',
+        },
+        {
+          id: 'invalid-overlap-2',
+          sourceMediaAssetId: baseInput.mediaAssetId,
+          sourceRange: { startSeconds: 1, endSeconds: 2 },
+          timelineRange: { startSeconds: 0.5, endSeconds: 1.5 },
+          trackId: 'video-1',
+        },
+      ],
+      audioLayers: [],
+      captionLayers: [],
+      overlayLayers: [],
+      maskLayers: [],
+      colorOperations: [],
+      renderNotes: ['Invalid generated fixture must fail before local command execution.'],
+      sourceReferences: [{ storageBucketPurpose: 'source_media', storageObjectPath: 'fixtures/m16a/whole-edit-source.mp4', sourceOfTruth: true }],
+      createdAt: new Date().toISOString(),
+    },
+    sourceLocalPaths: [fixtureSourcePath],
+    captionLocalPaths: [fixtureCaptionPath],
+    captionOverlayInputs: [{ localPath: fixtureCaptionOverlayPath, startSeconds: 0.1, endSeconds: 1.3, x: 40, y: 420 }],
+    outputDirectory: tempRoot,
+    outputFileName: path.basename(invalidOutputPath),
+    renderEngine: 'ffmpeg',
+    renderMode: 'final_export',
+    canvas: { width: 320, height: 568, aspectRatio: '40:71' },
+    fps: 30,
+    durationSeconds: 1.5,
+    enableLocalDevRender: true,
+    enableCaptionBurnIn: true,
+    sourceAudioRequired: true,
+    localDevRenderProfile: { visualFinish: 'clean_natural', audioFinish: 'clean_voice', subtlePunchIns: true },
+    requiredUpstreamQaGateTypes: upstreamQaResults.map((gate) => gate.gateType),
+    upstreamQaResults,
+  })
+  check(
+    invalidTimelineRender.status === 'blocked' && !existsSync(invalidOutputPath),
+    `Invalid render manifests must fail closed before any local media command executes: ${JSON.stringify({ status: invalidTimelineRender.status, outputExists: existsSync(invalidOutputPath), warnings: invalidTimelineRender.warnings, qaResults: invalidTimelineRender.qaResults })}`,
+  )
 
   const renderManifestArtifact = buildRenderArtifactRecord({
     workspaceId: baseInput.workspaceId,
@@ -179,6 +356,14 @@ try {
     outputArtifactIds: [finalExportArtifact.id],
   })
   check(passingDelivery.find((gate) => gate.gateType === 'final_delivery')?.status === 'passed', 'Final delivery QA must pass only with final_export artifact and passing gates.')
+  const unprobedLocalDelivery = buildExportDeliveryQAResults({
+    executionInput: { ...baseInput, mode: 'local_dev', enableLocalDevRender: true, renderMode: 'final_export' },
+    executionManifest: { ...executionManifest, renderMode: 'final_export', finalDeliveryCandidate: true },
+    finalExportArtifact,
+    upstreamQaResults: [mockGate('render_asset_integrity', 'passed', false)],
+    outputArtifactIds: [finalExportArtifact.id],
+  })
+  check(unprobedLocalDelivery.find((gate) => gate.gateType === 'final_delivery')?.status !== 'passed', 'Requested local execution must not pass final delivery without a real probed output.')
 
   const productionReady = await runFinalRenderExecutionPipeline({
     ...baseInput,
@@ -221,11 +406,14 @@ try {
       'validation_paths_settings_qa',
       'manifest_asset_resolution',
       'allowlisted_command_plans',
+      'approved_external_audio_mix',
       'dry_run_pipeline',
       'local_dev_skip_safe',
       'private_render_artifacts',
       'render_export_qa_gates',
       'final_delivery_rules',
+      'local_execution_requires_probed_output',
+      'invalid_manifest_blocks_before_execution',
       'production_blockers',
       'worker_route',
       'no_revideo_runtime',

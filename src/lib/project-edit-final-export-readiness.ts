@@ -2,7 +2,7 @@ import type { QualityGateResult } from '../backend/contracts/quality-gate-contra
 import type { ToolArtifact } from '../backend/contracts/tool-artifact-contracts'
 import type { ProjectEditFinalExportEvidenceInput } from './project-edit-lifecycle'
 
-type RenderExecutionStatus = 'dry_run' | 'partial' | 'container_ready' | 'blocked' | 'failed'
+type RenderExecutionStatus = 'dry_run' | 'partial' | 'completed' | 'container_ready' | 'blocked' | 'failed'
 
 export interface ProjectEditFinalRenderEvidenceInput {
   status: RenderExecutionStatus

@@ -16,6 +16,8 @@ export function buildRenderArtifactRecord(input: {
   contentType?: string
   sourceOfTruth?: boolean
   previewAllowed?: boolean
+  sizeBytes?: number
+  checksum?: string
   metadata?: Record<string, string | number | boolean | null>
 }): ToolArtifact {
   return buildMediaArtifactRecord({
@@ -36,6 +38,8 @@ export function buildRenderArtifactRecord(input: {
       input.fileName,
     ),
     contentType: input.contentType ?? contentType(input.artifactType),
+    sizeBytes: input.sizeBytes,
+    checksum: input.checksum,
     metadata: {
       milestone: 'production_runtime_m16a',
       privateUntilDeliveryPolicy: input.artifactType === 'final_export',

@@ -94,7 +94,9 @@ test.describe('Project source video backend-local upload against real local API'
     await page.getByTestId('project-source-video-file-input').setInputFiles(fixturePath)
 
     await page.getByRole('button', { name: /Upload for testing/i }).click()
-    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Source video uploaded to backend-local storage metadata')
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Source video uploaded to backend-local storage metadata', {
+      timeout: externalFixturePath ? 120_000 : 30_000,
+    })
     await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('uploaded', { timeout: externalFixturePath ? 120_000 : 30_000 })
     await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('source-media/workspaces/mock-workspace/projects/mock-project-edit-chat-foundation/source-media/')
     await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText(uploadedFixtureFileName)

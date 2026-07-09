@@ -20,10 +20,19 @@ export function buildRenderManifestExecution(input: FinalRenderExecutionInput): 
       ? timelineClips.map((clip) => ({
         clipId: clip.id,
         sourceArtifactId: clip.sourceMediaAssetId,
-        startSeconds: clip.timelineRange.startSeconds,
-        endSeconds: clip.timelineRange.endSeconds,
+        sourceStartSeconds: clip.sourceRange.startSeconds,
+        sourceEndSeconds: clip.sourceRange.endSeconds,
+        timelineStartSeconds: clip.timelineRange.startSeconds,
+        timelineEndSeconds: clip.timelineRange.endSeconds,
       }))
-      : [{ clipId: `${input.mediaAssetId}-full-range`, sourceArtifactId: input.sourceVideoArtifactIds?.[0] ?? input.proxyVideoArtifactIds?.[0], startSeconds: 0, endSeconds: input.durationSeconds }],
+      : [{
+        clipId: `${input.mediaAssetId}-full-range`,
+        sourceArtifactId: input.sourceVideoArtifactIds?.[0] ?? input.proxyVideoArtifactIds?.[0],
+        sourceStartSeconds: 0,
+        sourceEndSeconds: input.durationSeconds,
+        timelineStartSeconds: 0,
+        timelineEndSeconds: input.durationSeconds,
+      }],
     captions: captionIds.map((artifactId) => ({ artifactId, burnInRequired: input.enableCaptionBurnIn === true })),
     audio: audioIds.map((artifactId) => ({ artifactId, role: 'mix' as const })),
     overlays: renderLayers.filter((layer) => layer.layerType.includes('overlay') || layer.layerType.includes('text')).map((layer) => layer.id),

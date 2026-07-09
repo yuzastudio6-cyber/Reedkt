@@ -37,10 +37,12 @@ export async function runFinalRenderExecution(input: FinalRenderExecutionInput):
   }
   const commandPlans = buildRenderCommandPlans({ executionInput: input, executionManifest })
   const toolResults: RenderToolExecutionResult[] = []
-  for (const commandPlan of commandPlans) {
-    if (commandPlan.tool === 'remotion') toolResults.push(await runRemotionRender({ executionInput: input, executionManifest, commandPlan }))
-    if (commandPlan.tool === 'ffmpeg') toolResults.push(await runFfmpegExport({ executionInput: input, executionManifest, commandPlan }))
-    if (commandPlan.tool === 'libass') toolResults.push(await runLibassCaptionBurnIn({ executionInput: input, executionManifest, commandPlan }))
+  if (combinedValidation.valid) {
+    for (const commandPlan of commandPlans) {
+      if (commandPlan.tool === 'remotion') toolResults.push(await runRemotionRender({ executionInput: input, executionManifest, commandPlan }))
+      if (commandPlan.tool === 'ffmpeg') toolResults.push(await runFfmpegExport({ executionInput: input, executionManifest, commandPlan }))
+      if (commandPlan.tool === 'libass') toolResults.push(await runLibassCaptionBurnIn({ executionInput: input, executionManifest, commandPlan }))
+    }
   }
 
   const artifactMode = input.mode === 'local_dev' ? 'local_dev' : input.mode === 'container_ready' ? 'container_ready' : input.mode === 'production_ready' ? 'production_ready' : 'dry_run'
@@ -71,6 +73,7 @@ export async function runFinalRenderExecution(input: FinalRenderExecutionInput):
     }),
   ])
   const toolArtifacts = toolResults.flatMap((result) => result.artifact ? [result.artifact] : [])
+  const completedOutput = toolResults.find((result) => result.status === 'completed' && result.outputProbe)
   const renderArtifacts = [...plannedArtifacts.map((record) => record.artifact), ...toolArtifacts]
   const renderQaResults = buildRenderExecutionQAResults({
     executionInput: input,
@@ -83,6 +86,7 @@ export async function runFinalRenderExecution(input: FinalRenderExecutionInput):
     executionInput: input,
     executionManifest,
     finalExportArtifact,
+    outputProbe: completedOutput?.outputProbe,
     upstreamQaResults: [...(input.upstreamQaResults ?? []), ...renderQaResults],
     outputArtifactIds: renderArtifacts.map((artifact) => artifact.id),
   })
@@ -102,6 +106,7 @@ export async function runFinalRenderExecution(input: FinalRenderExecutionInput):
       ...policy.warnings,
       ...combinedValidation.issues.filter((issue) => issue.severity === 'warning').map((issue) => issue.message),
       ...toolResults.flatMap((result) => result.warnings),
+      ...toolResults.flatMap((result) => result.errorMessage ? [`${result.tool}: ${result.errorMessage}`] : []),
       'M16A final exports remain private until a later delivery/share policy.',
       ...(input.mode === 'production_ready' ? ['Production-ready final render/export remains blocked until readiness and QA gates pass.'] : []),
     ],

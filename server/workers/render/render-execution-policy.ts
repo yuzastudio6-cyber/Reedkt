@@ -48,6 +48,32 @@ export function validateRenderExecutionPolicy(input: FinalRenderExecutionInput):
     if (failedUpstream.length > 0) blockingReasons.push('blocking_upstream_qa_gates_present')
   }
 
+  if (input.mode === 'local_dev' && input.enableLocalDevRender === true) {
+    for (const [fieldName, value] of [
+      ['approvedSnapshotId', input.approvedSnapshotId],
+      ['creditReservationId', input.creditReservationId ?? input.workerPayload?.creditReservationId],
+      ['toolExecutionPlanId', input.toolExecutionPlanId],
+      ['idempotencyKey', input.idempotencyKey],
+      ['workerPayload', input.workerPayload],
+      ['outputDirectory', input.outputDirectory],
+    ] as const) {
+      if (!value) blockingReasons.push(`${fieldName}_required_for_local_dev_render`)
+    }
+    if ((input.sourceLocalPaths?.length ?? 0) + (input.proxyLocalPaths?.length ?? 0) === 0) {
+      blockingReasons.push('private_local_source_required_for_local_dev_render')
+    }
+    const requiredGates = input.requiredUpstreamQaGateTypes ?? []
+    if (requiredGates.length === 0) {
+      blockingReasons.push('required_upstream_qa_gate_types_required_for_local_dev_render')
+    }
+    for (const gateType of requiredGates) {
+      const matchingGate = (input.upstreamQaResults ?? []).find((gate) => gate.gateType === gateType)
+      if (!matchingGate || matchingGate.status !== 'passed' || matchingGate.blocking) {
+        blockingReasons.push(`upstream_qa_gate_not_passed:${gateType}`)
+      }
+    }
+  }
+
   if (input.mode === 'production_ready') {
     for (const [fieldName, value] of [
       ['approvedSnapshotId', input.approvedSnapshotId],
@@ -91,6 +117,7 @@ function rejectUnsafeReferences(input: FinalRenderExecutionInput): void {
     ['sourceLocalPath', input.sourceLocalPaths ?? []],
     ['proxyLocalPath', input.proxyLocalPaths ?? []],
     ['captionLocalPath', input.captionLocalPaths ?? []],
+    ['captionOverlayLocalPath', input.captionOverlayInputs?.map((item) => item.localPath) ?? []],
     ['audioLocalPath', input.audioLocalPaths ?? []],
     ['outputDirectory', input.outputDirectory ? [input.outputDirectory] : []],
   ] as const

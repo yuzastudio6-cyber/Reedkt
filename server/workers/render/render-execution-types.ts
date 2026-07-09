@@ -3,6 +3,7 @@ import type { ProductionStorageReference, ProductionToolIssue } from '../../../s
 import type { RenderCanvas, RenderExportSettings, RenderManifest } from '../../../src/backend/contracts/render-manifest-contracts'
 import type { TimelineManifest } from '../../../src/backend/contracts/timeline-manifest-contracts'
 import type { ToolArtifact } from '../../../src/backend/contracts/tool-artifact-contracts'
+import type { MediaProbeResult } from '../media/media-worker-types'
 import type { ProductionWorkerJobPayload } from '../production/production-worker-types'
 
 export type FinalRenderExecutionMode =
@@ -21,6 +22,7 @@ export interface FinalRenderExecutionInput {
   projectId: string
   mediaAssetId: string
   approvedSnapshotId?: string
+  creditReservationId?: string
   toolExecutionPlanId?: string
   idempotencyKey?: string
   workerPayload?: ProductionWorkerJobPayload
@@ -38,11 +40,20 @@ export interface FinalRenderExecutionInput {
   slowMotionArtifactIds?: string[]
   qaGateResultIds?: string[]
   upstreamQaResults?: QualityGateResult[]
+  requiredUpstreamQaGateTypes?: QualityGateResult['gateType'][]
   sourceLocalPaths?: string[]
   proxyLocalPaths?: string[]
   captionLocalPaths?: string[]
+  captionOverlayInputs?: Array<{
+    localPath: string
+    startSeconds: number
+    endSeconds: number
+    x?: number
+    y?: number
+  }>
   audioLocalPaths?: string[]
   outputDirectory?: string
+  outputFileName?: string
   renderEngine: FinalRenderEngine
   renderMode: FinalRenderMode
   canvas: RenderCanvas
@@ -52,6 +63,14 @@ export interface FinalRenderExecutionInput {
   enableLocalDevRender?: boolean
   enableRemotionLocalRender?: boolean
   enableCaptionBurnIn?: boolean
+  sourceAudioRequired?: boolean
+  ffmpegBin?: string
+  ffprobeBin?: string
+  localDevRenderProfile?: {
+    visualFinish: 'none' | 'clean_natural' | 'premium_clean'
+    audioFinish: 'none' | 'clean_voice'
+    subtlePunchIns: boolean
+  }
   allowRevideo?: boolean
   timeoutMs?: number
   readinessReport?: { overallStatus?: string; blockers?: unknown[]; blockerSummaries?: unknown[] }
@@ -85,7 +104,14 @@ export interface RenderExecutionManifest {
   approvedSnapshotId?: string
   timelineManifestId?: string
   renderManifestId?: string
-  clips: Array<{ clipId: string; sourceArtifactId?: string; startSeconds: number; endSeconds: number }>
+  clips: Array<{
+    clipId: string
+    sourceArtifactId?: string
+    sourceStartSeconds: number
+    sourceEndSeconds: number
+    timelineStartSeconds: number
+    timelineEndSeconds: number
+  }>
   captions: Array<{ artifactId: string; burnInRequired: boolean }>
   audio: Array<{ artifactId: string; role: 'mix' | 'stem' | 'source' }>
   overlays: string[]
@@ -123,7 +149,7 @@ export interface RenderCommandPlan {
   command: string
   args: string[]
   expectedOutputPath?: string
-  executes: false
+  executes: boolean
   renderMode: FinalRenderMode
   summary: string
 }
@@ -139,6 +165,8 @@ export interface RenderToolExecutionResult {
   tool: RenderCommandPlan['tool']
   commandPlan: RenderCommandPlan
   artifact?: ToolArtifact
+  outputLocalPath?: string
+  outputProbe?: MediaProbeResult
   skipReason?: RenderToolSkipReason
   warnings: string[]
   errorMessage?: string
@@ -146,12 +174,14 @@ export interface RenderToolExecutionResult {
 
 export interface FinalRenderExecutionResult {
   mode: FinalRenderExecutionMode
-  status: 'dry_run' | 'partial' | 'container_ready' | 'blocked' | 'failed'
+  status: 'dry_run' | 'partial' | 'completed' | 'container_ready' | 'blocked' | 'failed'
   executionManifest?: RenderExecutionManifest
   commandPlans: RenderCommandPlan[]
   renderArtifacts: ToolArtifact[]
   previewArtifact?: ToolArtifact
   finalExportArtifact?: ToolArtifact
+  outputLocalPath?: string
+  outputProbe?: MediaProbeResult
   qaResults: QualityGateResult[]
   skippedReasons: RenderToolSkipReason[]
   warnings: string[]

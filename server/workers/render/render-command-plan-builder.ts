@@ -8,13 +8,19 @@ export function buildRenderCommandPlans(input: {
   executionManifest: RenderExecutionManifest
 }): RenderCommandPlan[] {
   const plans: RenderCommandPlan[] = []
+  const ffmpegOwnsCaptionBurnIn = input.executionInput.enableCaptionBurnIn === true &&
+    (input.executionManifest.renderEngine === 'ffmpeg' || input.executionManifest.renderEngine === 'hybrid')
   if (input.executionManifest.renderEngine === 'remotion' || input.executionManifest.renderEngine === 'hybrid') {
     plans.push(buildRemotionRenderCommandPlan(input))
   }
   if (input.executionManifest.renderEngine === 'ffmpeg' || input.executionManifest.renderEngine === 'hybrid') {
     plans.push(buildFfmpegExportCommandPlan(input))
   }
-  if (input.executionManifest.renderEngine === 'libass' || input.executionManifest.renderEngine === 'hybrid' || input.executionInput.enableCaptionBurnIn === true) {
+  if (
+    input.executionManifest.renderEngine === 'libass' ||
+    (input.executionManifest.renderEngine === 'hybrid' && !ffmpegOwnsCaptionBurnIn) ||
+    (input.executionInput.enableCaptionBurnIn === true && !ffmpegOwnsCaptionBurnIn)
+  ) {
     plans.push(buildLibassCaptionBurnInCommandPlan(input))
   }
   if (plans.length === 0) plans.push(buildFfmpegExportCommandPlan(input))

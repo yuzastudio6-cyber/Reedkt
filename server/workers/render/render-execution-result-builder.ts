@@ -15,7 +15,11 @@ export function buildRenderExecutionResult(input: {
   const finalExportArtifact = input.renderArtifacts.find((artifact) => artifact.artifactType === 'final_export')
   const previewArtifact = input.renderArtifacts.find((artifact) => artifact.artifactType === 'preview_video')
   const finalDeliveryGate = input.qaResults.find((gate) => gate.gateType === 'final_delivery')
-  const finalDeliveryAllowed = finalDeliveryGate?.status === 'passed' && Boolean(finalExportArtifact)
+  const completedOutput = input.toolResults.find((result) => result.status === 'completed' && result.outputLocalPath)
+  const probedLocalOutputRequired = input.executionInput.mode === 'local_dev' && input.executionInput.enableLocalDevRender === true
+  const finalDeliveryAllowed = finalDeliveryGate?.status === 'passed' &&
+    Boolean(finalExportArtifact) &&
+    (!probedLocalOutputRequired || Boolean(completedOutput?.outputProbe))
   return {
     mode: input.executionInput.mode,
     status: input.blocked
@@ -24,12 +28,16 @@ export function buildRenderExecutionResult(input: {
         ? 'container_ready'
         : input.executionInput.mode === 'dry_run'
           ? 'dry_run'
-          : 'partial',
+          : finalDeliveryAllowed
+            ? 'completed'
+            : 'partial',
     executionManifest: input.executionManifest,
     commandPlans: input.commandPlans,
     renderArtifacts: input.renderArtifacts,
     previewArtifact,
     finalExportArtifact,
+    outputLocalPath: completedOutput?.outputLocalPath,
+    outputProbe: completedOutput?.outputProbe,
     qaResults: input.qaResults,
     skippedReasons: input.toolResults.flatMap((result) => result.skipReason ? [result.skipReason] : []),
     warnings: input.warnings,

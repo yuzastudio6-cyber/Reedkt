@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { assertNoPathTraversal, assertNoSignedUrlOrRawUrl, assertOutputPathInsideRoot, assertSourceNotOverwritten } from '../media/media-path-safety'
 import type { FinalRenderExecutionInput, RenderExecutionManifest, RenderExecutionValidationResult } from './render-execution-types'
@@ -39,6 +40,23 @@ export function validateRenderExecutionManifest(manifest: RenderExecutionManifes
   if (manifest.finalDeliveryCandidate && manifest.renderMode !== 'final_export') {
     issues.push(warning('final_delivery_not_export_mode', 'Final delivery can only be evaluated as passable during final_export mode.'))
   }
+  if (manifest.clips.length === 0) issues.push(blocking('timeline_clips_missing', 'Render execution requires at least one timeline clip.'))
+  let previousTimelineEnd = 0
+  for (const clip of [...manifest.clips].sort((left, right) => left.timelineStartSeconds - right.timelineStartSeconds)) {
+    if (clip.sourceStartSeconds < 0 || clip.sourceEndSeconds <= clip.sourceStartSeconds) {
+      issues.push(blocking('invalid_source_clip_range', `${clip.clipId} has an invalid source range.`))
+    }
+    if (clip.timelineStartSeconds < 0 || clip.timelineEndSeconds <= clip.timelineStartSeconds) {
+      issues.push(blocking('invalid_timeline_clip_range', `${clip.clipId} has an invalid timeline range.`))
+    }
+    if (clip.timelineStartSeconds + 0.04 < previousTimelineEnd) {
+      issues.push(blocking('overlapping_timeline_clips', `${clip.clipId} overlaps a previous timeline clip.`))
+    }
+    previousTimelineEnd = Math.max(previousTimelineEnd, clip.timelineEndSeconds)
+  }
+  if (manifest.clips.length > 0 && Math.abs(previousTimelineEnd - manifest.durationSeconds) > 0.12) {
+    issues.push(blocking('timeline_duration_mismatch', 'Timeline clip ranges do not resolve to the declared render duration.'))
+  }
   return { valid: !issues.some((issue) => issue.severity === 'blocking'), issues }
 }
 
@@ -50,6 +68,7 @@ function validatePaths(
     ['sourceLocalPath', input.sourceLocalPaths ?? []],
     ['proxyLocalPath', input.proxyLocalPaths ?? []],
     ['captionLocalPath', input.captionLocalPaths ?? []],
+    ['captionOverlayLocalPath', input.captionOverlayInputs?.map((item) => item.localPath) ?? []],
     ['audioLocalPath', input.audioLocalPaths ?? []],
     ['outputDirectory', input.outputDirectory ? [input.outputDirectory] : []],
   ] as const) {
@@ -66,11 +85,31 @@ function validatePaths(
   if (input.outputDirectory) {
     for (const sourcePath of [...(input.sourceLocalPaths ?? []), ...(input.proxyLocalPaths ?? []), ...(input.audioLocalPaths ?? [])]) {
       try {
-        const outputPath = assertOutputPathInsideRoot(path.join(input.outputDirectory, outputFileName(input.renderMode)), input.outputDirectory)
+        const outputPath = assertOutputPathInsideRoot(path.join(input.outputDirectory, input.outputFileName ?? outputFileName(input.renderMode)), input.outputDirectory)
         assertSourceNotOverwritten(sourcePath, outputPath)
       } catch {
         issues.push(blocking('source_overwrite_risk', 'Render/export outputs must not overwrite source/proxy/input assets.'))
       }
+    }
+  }
+  if (input.outputFileName && !/^[a-zA-Z0-9][a-zA-Z0-9._-]*\.mp4$/.test(input.outputFileName)) {
+    issues.push(blocking('unsafe_output_file_name', 'Render outputFileName must be a safe MP4 basename.'))
+  }
+  if (input.mode === 'local_dev' && input.enableLocalDevRender === true) {
+    for (const captionPath of input.captionLocalPaths ?? []) {
+      if (!existsSync(captionPath)) issues.push(blocking('caption_file_missing', 'A required private caption file is missing.'))
+    }
+    for (const overlay of input.captionOverlayInputs ?? []) {
+      if (!existsSync(overlay.localPath)) issues.push(blocking('caption_overlay_missing', 'A required private caption overlay is missing.'))
+      if (overlay.startSeconds < 0 || overlay.endSeconds <= overlay.startSeconds || overlay.endSeconds > input.durationSeconds + 0.05) {
+        issues.push(blocking('caption_overlay_timing_invalid', 'A caption overlay has an invalid approved timeline range.'))
+      }
+      if ((overlay.x !== undefined && overlay.x < 0) || (overlay.y !== undefined && overlay.y < 0)) {
+        issues.push(blocking('caption_overlay_position_invalid', 'Caption overlay positions must stay inside the approved frame.'))
+      }
+    }
+    if (input.enableCaptionBurnIn === true && (input.captionOverlayInputs?.length ?? 0) === 0 && (input.captionLocalPaths?.length ?? 0) === 0) {
+      issues.push(blocking('caption_burnin_input_missing', 'Caption burn-in requires validated ASS or raster overlay inputs.'))
     }
   }
 }

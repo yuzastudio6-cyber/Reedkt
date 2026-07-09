@@ -195,6 +195,8 @@
     "test:internal-testing:real-video-local-preview-execution": "node scripts/dev/internal-testing-real-video-local-preview-execution.mjs",
     "smoke:internal-testing-real-video-media-foundation-acceptance": "tsx server/smoke/internal-testing-real-video-media-foundation-acceptance-smoke.ts",
     "test:internal-testing:real-video-media-foundation-acceptance": "node scripts/dev/internal-testing-real-video-media-foundation-acceptance.mjs",
+    "smoke:internal-testing-real-video-speech-caption-handoff": "tsx server/smoke/internal-testing-real-video-speech-caption-handoff-smoke.ts",
+    "test:internal-testing:real-video-speech-caption-handoff": "node scripts/dev/internal-testing-real-video-speech-caption-handoff.mjs",
     "smoke:internal-testing-real-video-smart-cut-preview-execution": "tsx server/smoke/internal-testing-real-video-smart-cut-preview-execution-smoke.ts",
     "test:internal-testing:real-video-smart-cut-preview-execution": "node scripts/dev/internal-testing-real-video-smart-cut-preview-execution.mjs",
     "qa:internal-testing": "node scripts/validation/internal-testing-qa-runner.mjs",

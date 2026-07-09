@@ -26,6 +26,7 @@ import {
   DURABLE_AUTH_PROJECT_SESSION_BACKEND_PERSISTENCE_PLAN_TABLES,
 } from '../lib/project-edit-session-backend-persistence-plan'
 import { getMockSafeDurableProjectSessionBackendSkeleton } from '../lib/project-edit-session-backend-skeleton'
+import { getInternalTestingApprovedSnapshotRouteReviewUiModel } from '../lib/internal-testing-approved-snapshot-route-review-ui'
 import { getInternalTestingToolRoutingUiModel } from '../lib/internal-testing-tool-routing-ui'
 import {
   DURABLE_PROJECT_SESSION_SUPABASE_ROUTE_CONTRACT_PLAN_DECISION,
@@ -184,6 +185,7 @@ function getScenarioHighlights() {
     'source-video-export-dimensions',
     'source-video-local-preview-boundary',
     'internal-testing-tool-routing-readiness',
+    'internal-testing-approved-snapshot-route-review',
     'edit-brief-shell-no-runtime-effects',
     'edit-brief-marker-add-at-playhead',
     'edit-brief-marker-chat-send',
@@ -243,6 +245,7 @@ export function InternalTestingPage() {
   const supabaseMigrationReview = useMemo(() => getDurableProjectSessionSupabaseMigrationReview(), [])
   const supabaseLocalMigrationDryRunPlan = useMemo(() => getDurableProjectSessionSupabaseLocalMigrationDryRunPlan(), [])
   const toolRoutingReadiness = useMemo(() => getInternalTestingToolRoutingUiModel(), [])
+  const approvedSnapshotRouteReview = useMemo(() => getInternalTestingApprovedSnapshotRouteReviewUiModel(), [])
   const exportJson = JSON.stringify(
     {
       source: 'reeditpro-internal-testing-entrypoint',
@@ -508,6 +511,39 @@ export function InternalTestingPage() {
               'No worker dispatch',
               'No credit spend',
               'No public delivery',
+            ].map((item) => (
+              <Badge accent="muted" key={item}>
+                {item}
+              </Badge>
+            ))}
+          </div>
+        </section>
+
+        <section className="internal-testing-limitations" data-testid="internal-testing-approved-snapshot-route-review">
+          <div className="internal-testing-section-heading">
+            <span className="section-eyebrow">Approved route review</span>
+            <h2>Worker payload dry-run stays behind approval and private-artifact gates</h2>
+          </div>
+          <p>{approvedSnapshotRouteReview.summary}</p>
+          <div className="internal-testing-limit-grid">
+            {approvedSnapshotRouteReview.checks.map((check) => (
+              <article key={check.id}>
+                <Badge accent="success">Required gate</Badge>
+                <h3>{check.label}</h3>
+                <p>{check.summary}</p>
+              </article>
+            ))}
+          </div>
+          <div className="internal-testing-pill-row" data-testid="internal-testing-approved-snapshot-route-review-boundaries">
+            {[
+              'Upload finalized',
+              'Approved snapshot',
+              'Credit reservation',
+              'Idempotency',
+              'Private artifacts',
+              'No worker dispatch',
+              'No media processing',
+              'No credit spend',
             ].map((item) => (
               <Badge accent="muted" key={item}>
                 {item}

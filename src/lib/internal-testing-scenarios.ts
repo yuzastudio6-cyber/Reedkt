@@ -1364,6 +1364,21 @@ export const internalTestingScenarios: InternalTestingScenario[] = [
     status: 'mock_local',
   },
   {
+    id: 'internal-testing-approved-snapshot-route-review',
+    title: 'Approved snapshot route review',
+    description: 'Confirm approved-snapshot, credit, idempotency, and private artifact gates are represented before worker payload dry-run.',
+    route: '/internal-testing',
+    steps: [
+      'Open Internal Testing.',
+      'Read the Approved route review section.',
+      'Confirm upload finalization, approved snapshot, credit reservation, private artifacts, and idempotency are required.',
+      'Confirm the section does not claim worker dispatch, media processing, public delivery, credit spend, or product readiness.',
+    ],
+    expectedResult: 'Internal testers can see the next backend route-review gate without starting workers or exposing internal tool names.',
+    mockOnly: true,
+    status: 'mock_local',
+  },
+  {
     id: 'edit-brief-shell-marker-selection',
     title: 'Edit Brief shell: marker selection',
     description: 'Select a marker pill and confirm the read-only marker detail panel updates.',

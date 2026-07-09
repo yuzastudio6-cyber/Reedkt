@@ -106,4 +106,65 @@ test.describe('Project creation to edit upload against real local API', () => {
 
     await expect(page.locator('body')).not.toContainText(/provider call made:\s*true|live qwen call:\s*true|render job created:\s*true|worker job created:\s*true|credit reserved:\s*true|production ready:\s*true|signed url (created|enabled|ready)|public delivery enabled:\s*true/i)
   })
+
+  test('uploads video and approves a local plan without saving optional direction', async ({ page }) => {
+    test.setTimeout(180_000)
+    test.skip(!fixtureReady, fixtureSkipReason)
+
+    const healthResponse = await fetch(`${apiBaseUrl}/health`)
+    expect(healthResponse.ok).toBe(true)
+    const health = await healthResponse.json() as { data?: { runtime?: { mode?: string; mockOnly?: boolean } } }
+    expect(health.data?.runtime?.mode).toBe('local')
+    expect(health.data?.runtime?.mockOnly).toBe(true)
+
+    await setViewport(page, 1440)
+
+    if (process.env.PLAYWRIGHT_INTERNAL_TEST_AUTH === 'true') {
+      await gotoRoute(page, `/sign-in?redirect=${encodeURIComponent('/projects/new')}`)
+      await expect(page.getByTestId('auth-local-testing-session-notice')).toContainText('Local app session is enabled')
+      await page.getByLabel('Email').fill('source.upload.tester@reeditpro.local')
+      await page.getByLabel('Password').fill('reeditpro-testing')
+      await page.getByTestId('auth-submit-button').click()
+      await expect(page).toHaveURL(/\/projects\/new$/)
+    } else {
+      await gotoRoute(page, '/projects/new')
+    }
+
+    const projectName = `Brief Optional QA Project ${Date.now()}`
+    const editName = 'Prompt first browser QA edit'
+
+    await page.getByTestId('project-create-name-input').fill(projectName)
+    await page.getByRole('button', { name: /^Create project$/i }).click()
+
+    await expect(page).toHaveURL(/\/projects\/[^/?]+\?newEdit=1$/)
+    await expect(page.getByTestId('new-edit-session-create-panel')).toBeVisible()
+    await page.getByTestId('new-edit-name-input').fill(editName)
+    await page.getByTestId('new-edit-aspect-16:9').click()
+    await page.getByTestId('new-edit-platform-youtube_standard').click()
+    await page.getByRole('button', { name: /^Create edit$/i }).click()
+
+    await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^/]+\/brief$/)
+    await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
+    await expect(page.getByText(editName)).toBeVisible()
+
+    await page.getByTestId('project-source-video-file-input').setInputFiles(fixturePath)
+    await page.getByRole('button', { name: /Upload for testing/i }).click()
+
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Source video uploaded to backend-local storage metadata', {
+      timeout: 120_000,
+    })
+    await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('uploaded', { timeout: 120_000 })
+    await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText(uploadedFixtureFileName)
+    await expect(page.getByTestId('project-edit-skill-activity-summary')).toContainText('default professional direction')
+    await expect(page.getByTestId('project-edit-plan-credit-estimate')).toContainText('expected')
+
+    await page.getByRole('button', { name: /Approve local test plan/i }).click()
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Local edit plan and credit estimate approved')
+    await expect(page.getByTestId('project-edit-skill-activity-summary')).toContainText('default professional direction')
+    await expect(page.getByTestId('project-edit-skill-activity-summary')).toContainText('Story cleanup')
+    await expect(page.getByTestId('project-edit-skill-activity-summary')).toContainText('Private review checks')
+    await expect(page.getByTestId('project-edit-skill-activity-summary')).not.toContainText(/caption_design|professional_edit_qa|source_order_preservation/)
+    await expect(page.getByTestId('project-edit-plan-backend-record')).toContainText('Backend-local plan record')
+    await expect(page.locator('body')).not.toContainText(/Optional direction saved and read back|provider call made:\s*true|live qwen call:\s*true|render job created:\s*true|worker job created:\s*true|credit reserved:\s*true|production ready:\s*true|signed url (created|enabled|ready)|public delivery enabled:\s*true/i)
+  })
 })

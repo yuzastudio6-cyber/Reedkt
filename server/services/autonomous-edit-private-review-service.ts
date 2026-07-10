@@ -16,6 +16,7 @@ import { runFinalRenderExecutionPipeline } from '../workers/final-render'
 import { renderApprovedGraphicsMotionOverlays } from '../workers/graphics-motion'
 import { assertOutputPathInsideRoot } from '../workers/media/media-path-safety'
 import { buildWorkerIdempotencyKey, type ProductionWorkerJobPayload } from '../workers/production'
+import { createToolCostMeteringService, type ToolCostEstimate } from '../tool-cost-metering'
 import { getAutonomousPrivateExecutionEvidence } from './autonomous-edit-planning-service'
 import { createProjectEditPlanService, getActivatedAutonomousEditPlan } from './project-edit-plan-service'
 import { createUploadService } from './upload-service'
@@ -51,7 +52,10 @@ export interface AutonomousPrivateReviewExecutionRecord {
   progressPercent: number
   progress: AutonomousPrivateReviewProgressItem[]
   approvedPlanSnapshotId: string
+  creditEstimateId: string
   creditReservationId: string
+  estimatedHighCredits: number
+  toolCostEventIds: string[]
   previewStorageObjectRecordId?: string
   previewMediaAssetId?: string
   outputBucketName?: string
@@ -162,6 +166,27 @@ async function executePrivateReview(input: {
   const compilation = activation.executionCompilation
   const plan = compilation.plan
   const mediaAssetId = compilation.timelineManifest.mediaAssetId
+  const costMetering = createToolCostMeteringService(context)
+  const costEstimates = estimatePrivateReviewCosts({
+    costMetering,
+    durationSeconds: compilation.timelineManifest.durationSeconds,
+    width: plan.outputFrame.width,
+    height: plan.outputFrame.height,
+    fps: privateEvidence.mediaProbe.fps ?? 30,
+    approvedReservationRemainingCredits: activation.creditReservation.reservedCredits,
+  })
+  record.estimatedHighCredits = costEstimates.reduce((total, estimate) => total + estimate.highCredits, 0)
+  if (record.estimatedHighCredits > activation.creditReservation.reservedCredits) {
+    throw new ApiError(
+      'CREDITS_NOT_RESERVED',
+      'The approved private review reservation no longer covers the current high cost estimate.',
+      409,
+      {
+        estimatedHighCredits: record.estimatedHighCredits,
+        reservedCredits: activation.creditReservation.reservedCredits,
+      },
+    )
+  }
   const outputRoot = resolveExecutionOutputRoot(context.env.localStorageRoot, record.executionId)
   await mkdir(outputRoot, { recursive: true })
   try {
@@ -205,6 +230,8 @@ async function executePrivateReview(input: {
     }
 
     markStage(record, 'composing_visuals', 52)
+    const graphicsStartedAt = nowIso()
+    const graphicsStartedMs = Date.now()
     const visualOverlays = await renderApprovedGraphicsMotionOverlays({
       plan,
       timelineManifest: compilation.timelineManifest,
@@ -216,6 +243,33 @@ async function executePrivateReview(input: {
     if (visualOverlays.status !== 'completed') {
       throw new ApiError('VALIDATION_FAILED', 'Graphics, motion, or overlay layout QA blocked the private review.', 409, visualOverlays.qaFindings)
     }
+    const graphicsCostEvent = await costMetering.emitToolCostEvent({
+      workspaceId: record.workspaceId,
+      projectId: record.projectId,
+      editPlanId: record.planId,
+      jobId: `${record.executionId}:graphics`,
+      creditEstimateId: record.creditEstimateId,
+      creditReservationId: record.creditReservationId,
+      toolId: 'playwright',
+      toolName: 'Private graphics and motion compositor',
+      usageCategory: 'graphic_design',
+      providerType: 'deterministic_renderer',
+      qualityLevel: 'preview',
+      startedAt: graphicsStartedAt,
+      completedAt: nowIso(),
+      wallClockMs: Math.max(1, Date.now() - graphicsStartedMs),
+      inputVideoSeconds: compilation.timelineManifest.durationSeconds,
+      outputVideoSeconds: compilation.timelineManifest.durationSeconds,
+      renderDurationSeconds: compilation.timelineManifest.durationSeconds,
+      outputResolution: `${plan.outputFrame.width}x${plan.outputFrame.height}`,
+      outputFrameRate: privateEvidence.mediaProbe.fps ?? 30,
+      estimatedInternalCostCents: costEstimates[0].expectedInternalCostCents,
+      retryAttempt: 1,
+      failureCategory: 'none',
+      billableToUser: false,
+      metadata: privateReviewCostMetadata(record, 'graphics_motion_composition'),
+    }, `autonomous-private-review:${record.executionId}:graphics`)
+    record.toolCostEventIds.push(graphicsCostEvent.event.id)
     const visualGate = buildPassedGate({
       record,
       mediaAssetId,
@@ -228,6 +282,8 @@ async function executePrivateReview(input: {
     if (upstreamQa.some(isBlockingGate)) throw new ApiError('VALIDATION_FAILED', 'Blocking upstream QA prevents rendering.', 409)
 
     markStage(record, 'rendering_private_review', 70)
+    const renderStartedAt = nowIso()
+    const renderStartedMs = Date.now()
     const renderToolExecutionPlanId = `render-${record.executionId}`
     const renderPayload = buildRenderWorkerPayload({ record, mediaAssetId, renderToolExecutionPlanId, sourceStorageObjectId: plan.sourceEvidence.sourceStorageObjectRecordId, gateTypes: upstreamQa.map((gate) => gate.gateType) })
     const renderManifest = buildRenderManifest({ record, compilation, visualOverlayCount: visualOverlays.overlays.length, upstreamQa })
@@ -264,6 +320,34 @@ async function executePrivateReview(input: {
     if (renderResult.status !== 'completed' || !renderResult.finalDeliveryAllowed || !renderResult.outputLocalPath || !renderResult.outputProbe) {
       throw new ApiError('VALIDATION_FAILED', `Private review rendering failed QA: ${renderResult.warnings.join(' ')}`, 409)
     }
+    const renderCostEvent = await costMetering.emitToolCostEvent({
+      workspaceId: record.workspaceId,
+      projectId: record.projectId,
+      editPlanId: record.planId,
+      jobId: `${record.executionId}:render`,
+      renderJobId: record.executionId,
+      creditEstimateId: record.creditEstimateId,
+      creditReservationId: record.creditReservationId,
+      toolId: 'ffmpeg',
+      toolName: 'Private review renderer',
+      usageCategory: 'rendering',
+      providerType: 'deterministic_renderer',
+      qualityLevel: 'preview',
+      startedAt: renderStartedAt,
+      completedAt: nowIso(),
+      wallClockMs: Math.max(1, Date.now() - renderStartedMs),
+      inputVideoSeconds: compilation.timelineManifest.durationSeconds,
+      outputVideoSeconds: renderResult.outputProbe.durationSeconds,
+      renderDurationSeconds: renderResult.outputProbe.durationSeconds,
+      outputResolution: `${renderResult.outputProbe.width}x${renderResult.outputProbe.height}`,
+      outputFrameRate: renderResult.outputProbe.fps,
+      estimatedInternalCostCents: costEstimates[1].expectedInternalCostCents,
+      retryAttempt: 1,
+      failureCategory: 'none',
+      billableToUser: false,
+      metadata: privateReviewCostMetadata(record, 'private_review_render'),
+    }, `autonomous-private-review:${record.executionId}:render`)
+    record.toolCostEventIds.push(renderCostEvent.event.id)
 
     markStage(record, 'running_quality_checks', 88)
     const finalBytes = await readFile(renderResult.outputLocalPath)
@@ -279,6 +363,7 @@ async function executePrivateReview(input: {
         endSeconds: overlay.endSeconds, sourceEvidenceRefs: overlay.sourceEvidenceRefs, private: true,
       })),
       renderArtifactIds: renderResult.renderArtifacts.map((artifact) => artifact.id),
+      toolCostEventIds: record.toolCostEventIds,
       sourceImmutable: true, publicDeliveryAllowed: false, signedUrlsStoredAsSourceTruth: false,
     }, null, 2))
     const qaReport = Buffer.from(JSON.stringify({
@@ -293,6 +378,8 @@ async function executePrivateReview(input: {
       graphicsMotionQa: visualOverlays.qaFindings,
       gates: [...upstreamQa, ...renderResult.qaResults].map((gate) => ({ gateType: gate.gateType, status: gate.status, blocking: gate.blocking, score: gate.score })),
       outputProbe: renderResult.outputProbe,
+      toolCostEventIds: record.toolCostEventIds,
+      internalCostEvidenceOnly: true,
       userCreativeReviewRequired: true, productReady: false, publicDeliveryAllowed: false,
     }, null, 2))
     const uploadService = createUploadService(context)
@@ -344,10 +431,77 @@ function createQueuedRecord(activation: NonNullable<ReturnType<typeof getActivat
     executionId: createMockId('autonomous_private_review'), planId: activation.planId,
     workspaceId: activation.workspaceId, projectId: activation.projectId, editSessionId: activation.editSessionId,
     status: 'queued', currentStage: 'queued', progressPercent: 0, progress,
-    approvedPlanSnapshotId: activation.approvedPlanSnapshot.id, creditReservationId: activation.creditReservation.id,
+    approvedPlanSnapshotId: activation.approvedPlanSnapshot.id,
+    creditEstimateId: activation.creditApproval.creditEstimateId,
+    creditReservationId: activation.creditReservation.id,
+    estimatedHighCredits: 0,
+    toolCostEventIds: [],
     executedActivitySummary: [], privateArtifactsOnly: true, publicDeliveryAllowed: false,
     paidBillingMutationMade: false, productReady: false, startedAt: nowIso(),
     warnings: ['Execution is backend-local and produces private review artifacts only.'],
+  }
+}
+
+function estimatePrivateReviewCosts(input: {
+  costMetering: ReturnType<typeof createToolCostMeteringService>
+  durationSeconds: number
+  width: number
+  height: number
+  fps: number
+  approvedReservationRemainingCredits: number
+}): ToolCostEstimate[] {
+  const resolution = `${input.width}x${input.height}`
+  return [
+    input.costMetering.estimateToolCost({
+      toolId: 'playwright',
+      toolName: 'Private graphics and motion compositor',
+      usageCategory: 'graphic_design',
+      computeLevel: 'standard',
+      providerType: 'deterministic_renderer',
+      qualityLevel: 'preview',
+      inputVideoSeconds: input.durationSeconds,
+      outputVideoSeconds: input.durationSeconds,
+      renderDurationSeconds: input.durationSeconds,
+      estimatedRuntimeSeconds: Math.max(1, input.durationSeconds),
+      resolution,
+      frameRate: input.fps,
+      vcpuCount: 2,
+      memoryGiB: 2,
+      approvedReservationRemainingCredits: input.approvedReservationRemainingCredits,
+      assumptions: ['Private approved graphics and motion overlays only.'],
+    }).estimate,
+    input.costMetering.estimateToolCost({
+      toolId: 'ffmpeg',
+      toolName: 'Private review renderer',
+      usageCategory: 'rendering',
+      computeLevel: 'standard',
+      providerType: 'deterministic_renderer',
+      qualityLevel: 'preview',
+      inputVideoSeconds: input.durationSeconds,
+      outputVideoSeconds: input.durationSeconds,
+      renderDurationSeconds: input.durationSeconds,
+      estimatedRuntimeSeconds: Math.max(1, input.durationSeconds * 2),
+      resolution,
+      frameRate: input.fps,
+      vcpuCount: 2,
+      memoryGiB: 2,
+      approvedReservationRemainingCredits: input.approvedReservationRemainingCredits,
+      assumptions: ['Private approved timeline render and technical QA only.'],
+    }).estimate,
+  ]
+}
+
+function privateReviewCostMetadata(
+  record: AutonomousPrivateReviewExecutionRecord,
+  stage: 'graphics_motion_composition' | 'private_review_render',
+): Record<string, unknown> {
+  return {
+    stage,
+    approvedPlanSnapshotId: record.approvedPlanSnapshotId,
+    privateInternalReviewOnly: true,
+    publicDeliveryAllowed: false,
+    paidBillingMutationMade: false,
+    serviceFeeIncluded: false,
   }
 }
 

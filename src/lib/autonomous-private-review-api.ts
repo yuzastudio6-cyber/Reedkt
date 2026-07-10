@@ -18,7 +18,10 @@ export interface AutonomousPrivateReviewExecutionView {
   progressPercent: number
   progress: AutonomousPrivateReviewProgressView[]
   approvedPlanSnapshotId: string
+  creditEstimateId: string
   creditReservationId: string
+  estimatedHighCredits: number
+  toolCostEventIds: string[]
   previewStorageObjectRecordId?: string
   previewMediaAssetId?: string
   outputBucketName?: string

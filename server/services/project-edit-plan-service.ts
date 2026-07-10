@@ -22,6 +22,8 @@ import {
   compileAutonomousEditExecution,
   type AutonomousEditExecutionCompilation,
 } from './autonomous-edit-execution-compiler'
+import { createApprovedSnapshotService } from './approved-snapshot-service'
+import { createCreditGateService } from './credit-gate-service'
 
 interface LocalEditPlanStepInput {
   label: string
@@ -351,14 +353,75 @@ export function createProjectEditPlanService(context: ServiceContext) {
       }
 
       const now = nowIso()
-      const creditApprovalId = createMockId('credit_approval')
-      const creditReservationId = createMockId('credit_reservation')
-      const approvedSnapshotId = createMockId('approved_snapshot')
+      const creditService = createCreditGateService(context)
+      const creditApprovalResult = await creditService.approveCreditEstimate({
+        workspaceId: localPlan.workspaceId,
+        creditEstimateId: localPlan.creditEstimateId,
+      })
+      const creditApproval = normalizeCreditApproval(creditApprovalResult.creditApproval, {
+        approvedByUserId,
+        creditEstimateId: localPlan.creditEstimateId,
+        now,
+      })
+      const creditReservationResult = await creditService.reserveCredits({
+        workspaceId: localPlan.workspaceId,
+        projectId: localPlan.projectId,
+        editPlanId: localPlan.editPlanId,
+        creditEstimateId: localPlan.creditEstimateId,
+        creditApprovalId: creditApproval.id,
+        reservedCredits: localPlan.approvedLocalPlan.creditEstimate.highCredits,
+        idempotencyKey: `autonomous-edit:${localPlan.workspaceId}:${planId}:credit-reservation`,
+        metadata: {
+          autonomousEditPlan: true,
+          privateInternalReviewOnly: true,
+          publicDeliveryAllowed: false,
+        },
+      })
+      const creditReservation = normalizeCreditReservation(creditReservationResult.creditReservation, {
+        creditEstimateId: localPlan.creditEstimateId,
+        reservedCredits: localPlan.approvedLocalPlan.creditEstimate.highCredits,
+        now,
+      })
+      const provisionalSnapshotId = createMockId('approved_snapshot_pending')
+      const provisionalCompilation = compileAutonomousEditExecution({
+        approvedLocalPlan: localPlan,
+        approvedSnapshotId: provisionalSnapshotId,
+        creditApprovalId: creditApproval.id,
+        creditReservationId: creditReservation.id,
+        transcriptSegments: privateEvidence.transcriptSegments,
+        sourceStorageObjectPath: localPlan.source.objectPath,
+        fps: privateEvidence.mediaProbe.fps ?? 30,
+      })
+      const storedSnapshotResult = await createApprovedSnapshotService(context).createApprovedSnapshot({
+        workspaceId: localPlan.workspaceId,
+        projectId: localPlan.projectId,
+        chatSessionId: localPlan.editSessionId,
+        editPlanId: localPlan.editPlanId,
+        creditEstimateId: localPlan.creditEstimateId,
+        creditApprovalId: creditApproval.id,
+        creditReservationId: creditReservation.id,
+        approvedByUserId,
+        snapshotVersion: 1,
+        snapshotJson: provisionalCompilation.approvedSnapshotPayload as unknown as Record<string, unknown>,
+        planHash: hashJson(localPlan.approvedLocalPlan.autonomousPlanSnapshot),
+        creditHash: hashJson(localPlan.approvedLocalPlan.creditEstimate),
+        sourceSequenceHash: hashJson(localPlan.approvedLocalPlan.autonomousPlanSnapshot?.segments.map((segment) => ({
+          id: segment.id,
+          sourceStartSeconds: segment.sourceStartSeconds,
+          sourceEndSeconds: segment.sourceEndSeconds,
+        })) ?? []),
+        timingHash: hashJson({
+          fps: privateEvidence.mediaProbe.fps ?? 30,
+          timelineDurationSeconds: provisionalCompilation.timelineManifest.durationSeconds,
+          outputFrame: localPlan.approvedLocalPlan.autonomousPlanSnapshot?.outputFrame,
+        }),
+      })
+      const approvedSnapshotId = snapshotRecordId(storedSnapshotResult.approvedPlanSnapshot)
       const compilation = compileAutonomousEditExecution({
         approvedLocalPlan: localPlan,
         approvedSnapshotId,
-        creditApprovalId,
-        creditReservationId,
+        creditApprovalId: creditApproval.id,
+        creditReservationId: creditReservation.id,
         transcriptSegments: privateEvidence.transcriptSegments,
         sourceStorageObjectPath: localPlan.source.objectPath,
         fps: privateEvidence.mediaProbe.fps ?? 30,
@@ -371,8 +434,8 @@ export function createProjectEditPlanService(context: ServiceContext) {
         chatSessionId: localPlan.editSessionId,
         editPlanId: localPlan.editPlanId,
         creditEstimateId: localPlan.creditEstimateId,
-        creditApprovalId,
-        creditReservationId,
+        creditApprovalId: creditApproval.id,
+        creditReservationId: creditReservation.id,
         snapshotStatus: 'execution_ready',
         snapshotVersion: 1,
         snapshotHash,
@@ -400,20 +463,8 @@ export function createProjectEditPlanService(context: ServiceContext) {
         workspaceId: localPlan.workspaceId,
         projectId: localPlan.projectId,
         editSessionId: localPlan.editSessionId,
-        creditApproval: {
-          id: creditApprovalId,
-          creditEstimateId: localPlan.creditEstimateId,
-          status: 'approved',
-          approvedByUserId,
-          approvedAt: now,
-        },
-        creditReservation: {
-          id: creditReservationId,
-          creditEstimateId: localPlan.creditEstimateId,
-          status: 'reserved',
-          reservedCredits: localPlan.approvedLocalPlan.creditEstimate.highCredits,
-          createdAt: now,
-        },
+        creditApproval,
+        creditReservation,
         approvedPlanSnapshot,
         executionCompilation: compilation,
         userFacingWorkSummary: uniqueUserFacingWorkSummary(compilation),
@@ -426,12 +477,74 @@ export function createProjectEditPlanService(context: ServiceContext) {
       return {
         executionGate: toExecutionGateView(activation),
         warnings: [
-          'Approved estimate, bounded internal reservation, immutable snapshot, and private work graph were created together.',
+          ...creditApprovalResult.warnings,
+          ...creditReservationResult.warnings,
+          ...storedSnapshotResult.warnings,
+          'Approved estimate, idempotent bounded reservation, immutable snapshot, and private work graph were created through their backend services.',
           'No worker, render, public delivery, wallet spend, Stripe, or paid billing mutation started during activation.',
         ],
       }
     },
   }
+}
+
+function normalizeCreditApproval(
+  value: unknown,
+  fallback: { approvedByUserId: string; creditEstimateId: string; now: string },
+): ActivatedAutonomousEditPlanRecord['creditApproval'] {
+  const record = asRecord(value)
+  const id = stringField(record, 'id')
+  if (!id) throw new ApiError('CREDIT_ESTIMATE_NOT_APPROVED', 'Credit approval service did not return an approval ID.', 409)
+  return {
+    id,
+    creditEstimateId: stringField(record, 'creditEstimateId', 'credit_estimate_id') ?? fallback.creditEstimateId,
+    status: 'approved',
+    approvedByUserId: stringField(record, 'approvedByUserId', 'approved_by_user_id', 'approved_by') ?? fallback.approvedByUserId,
+    approvedAt: stringField(record, 'approvedAt', 'approved_at', 'createdAt', 'created_at') ?? fallback.now,
+  }
+}
+
+function normalizeCreditReservation(
+  value: unknown,
+  fallback: { creditEstimateId: string; reservedCredits: number; now: string },
+): ActivatedAutonomousEditPlanRecord['creditReservation'] {
+  const record = asRecord(value)
+  const id = stringField(record, 'id')
+  if (!id) throw new ApiError('CREDITS_NOT_RESERVED', 'Credit reservation service did not return a reservation ID.', 409)
+  return {
+    id,
+    creditEstimateId: stringField(record, 'creditEstimateId', 'credit_estimate_id') ?? fallback.creditEstimateId,
+    status: 'reserved',
+    reservedCredits: numberField(record, 'reservedCredits', 'reserved_credits') ?? fallback.reservedCredits,
+    createdAt: stringField(record, 'createdAt', 'created_at', 'reservedAt', 'reserved_at') ?? fallback.now,
+  }
+}
+
+function snapshotRecordId(value: unknown): string {
+  const id = stringField(asRecord(value), 'id')
+  if (!id) throw new ApiError('APPROVED_SNAPSHOT_REQUIRED', 'Approved snapshot service did not return a snapshot ID.', 409)
+  return id
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' ? value as Record<string, unknown> : {}
+}
+
+function stringField(record: Record<string, unknown>, ...keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = record[key]
+    if (typeof value === 'string' && value.trim()) return value
+  }
+  return undefined
+}
+
+function numberField(record: Record<string, unknown>, ...keys: string[]): number | undefined {
+  for (const key of keys) {
+    const value = record[key]
+    const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : Number.NaN
+    if (Number.isFinite(parsed)) return parsed
+  }
+  return undefined
 }
 
 function toExecutionGateView(activation: ActivatedAutonomousEditPlanRecord) {

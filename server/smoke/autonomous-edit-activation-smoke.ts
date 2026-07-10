@@ -12,6 +12,7 @@ import {
 } from '../services/autonomous-edit-private-review-service'
 import { createProjectEditPlanService } from '../services/project-edit-plan-service'
 import { createUploadService } from '../services/upload-service'
+import { createToolCostMeteringService } from '../tool-cost-metering'
 import type { ServiceContext } from '../types'
 import { buildAutonomousEditPlanApprovalModel } from '../../src/lib/autonomous-edit-plan-approval'
 import type { AutonomousEditPlanCandidate, ProjectSourceVideoBackendUploadResult } from '../../src/types'
@@ -401,6 +402,13 @@ try {
   assert.ok(completedReview?.qaReportStorageObjectRecordId)
   assert.equal(completedReview?.width, 540)
   assert.equal(completedReview?.height, 960)
+  assert.ok((completedReview?.estimatedHighCredits ?? Number.POSITIVE_INFINITY) <= activated.executionGate.reservedCredits)
+  assert.equal(completedReview?.toolCostEventIds.length, 2, 'private graphics and final render must each emit one idempotent cost event')
+  assert.equal(new Set(completedReview?.toolCostEventIds).size, 2)
+  const costSummary = await createToolCostMeteringService(context).getToolCostSummary({ workspaceId, projectId })
+  assert.equal(costSummary.summary.events.length, 2)
+  assert.equal(costSummary.summary.billableEventCount, 0, 'internal private review cost evidence must not charge the user')
+  assert.equal(costSummary.summary.nonBillableEventCount, 2)
   const canonicalPreview = await uploadService.createDownloadTarget(completedReview!.previewStorageObjectRecordId!, workspaceId)
   assert.match(canonicalPreview.downloadTarget.downloadUrl, /\/local-object/)
 
@@ -420,6 +428,7 @@ try {
       immutableSnapshotValidated: true,
       privateWorkGraphCompiled: true,
       privateReviewExecutionCompleted: true,
+      internalCostEventsRecordedWithoutCharge: true,
       approvedGraphicsMotionRendered: true,
       technicalQaPassedPendingUserReview: true,
       publicDeliveryBlocked: true,

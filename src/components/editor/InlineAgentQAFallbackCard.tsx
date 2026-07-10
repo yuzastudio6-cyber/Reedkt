@@ -1,4 +1,5 @@
 import { Badge } from '../Badge'
+import { toUserFacingToolCopy } from '../../lib/user-facing-tool-copy'
 import type { ChatPlanningCardDescriptor, EditPlan } from '../../types/reeditpro'
 import type {
   AgentFailureFallbackDecision,
@@ -14,7 +15,7 @@ type InlineAgentQAFallbackCardProps = {
 }
 
 function label(value: string) {
-  return value.replaceAll('_', ' ')
+  return toUserFacingToolCopy(value.replaceAll('_', ' '))
 }
 
 function GateCheckCard({ gate }: { gate: AgentQAGateCheck }) {
@@ -31,8 +32,8 @@ function GateCheckCard({ gate }: { gate: AgentQAGateCheck }) {
         <span><strong>Asset</strong>{gate.relatedAssetManifestItemId ?? 'none'}</span>
         <span><strong>Layer</strong>{gate.relatedRendererLayerId ?? 'none'}</span>
       </div>
-      <p>{gate.message}</p>
-      {gate.recommendation && <small>{gate.recommendation}</small>}
+      <p>{toUserFacingToolCopy(gate.message)}</p>
+      {gate.recommendation && <small>{toUserFacingToolCopy(gate.recommendation)}</small>}
     </article>
   )
 }
@@ -50,8 +51,8 @@ function FailureScenarioCard({ scenario }: { scenario: AgentFailureScenario }) {
         <span><strong>Blocks render</strong>{scenario.blocksFinalRender ? 'yes' : 'no'}</span>
         <span><strong>User review</strong>{scenario.requiresUserReviewByDefault ? 'yes' : 'no'}</span>
       </div>
-      <p>{scenario.description}</p>
-      <small>{scenario.likelyCauses.slice(0, 2).join(' ')}</small>
+      <p>{toUserFacingToolCopy(scenario.description)}</p>
+      <small>{toUserFacingToolCopy(scenario.likelyCauses.slice(0, 2).join(' '))}</small>
     </article>
   )
 }
@@ -60,7 +61,7 @@ function FallbackActionCard({ action }: { action: AgentFallbackAction }) {
   return (
     <article className="agent-fallback-action-item">
       <div className="compact-summary-row">
-        <strong>{action.label}</strong>
+        <strong>{toUserFacingToolCopy(action.label)}</strong>
         <span className="agent-fallback-action-badge">{label(action.actionType)}</span>
       </div>
       <div className="edit-work-item-meta">
@@ -71,10 +72,10 @@ function FallbackActionCard({ action }: { action: AgentFallbackAction }) {
         <span><strong>Approval</strong>{action.requiresNewApproval ? 'yes' : 'no'}</span>
         <span><strong>Credits</strong>{label(action.estimatedCreditImpact)}</span>
       </div>
-      <p>{action.description}</p>
-      <small>Models: {action.allowedProviderModels.join(', ') || 'none'}</small>
-      <small>Tools: {action.allowedToolIds.join(', ') || 'none'}</small>
-      <small>{action.reason}</small>
+      <p>{toUserFacingToolCopy(action.description)}</p>
+      <small>Generation handoffs: {action.allowedProviderModels.length || 'none'}</small>
+      <small>Controlled support paths: {action.allowedToolIds.length || 'none'}</small>
+      <small>{toUserFacingToolCopy(action.reason)}</small>
     </article>
   )
 }
@@ -92,11 +93,11 @@ function DecisionCard({ decision }: { decision: AgentFailureFallbackDecision }) 
         <span><strong>Work item</strong>{decision.relatedWorkItemId ?? 'none'}</span>
         <span><strong>Asset</strong>{decision.relatedAssetManifestItemId ?? 'none'}</span>
       </div>
-      <p>{decision.reason}</p>
-      <small>Selected: {decision.selectedFallbackActionIds.join(', ') || 'none'}</small>
-      <small>Blocked: {decision.blockedActionIds.slice(0, 6).join(', ') || 'none'}</small>
-      {decision.userReviewQuestion && <small>{decision.userReviewQuestion}</small>}
-      <small>{decision.creditImpactNote}</small>
+      <p>{toUserFacingToolCopy(decision.reason)}</p>
+      <small>Selected fallback paths: {decision.selectedFallbackActionIds.length || 'none'}</small>
+      <small>Blocked fallback paths: {decision.blockedActionIds.length || 'none'}</small>
+      {decision.userReviewQuestion && <small>{toUserFacingToolCopy(decision.userReviewQuestion)}</small>}
+      <small>{toUserFacingToolCopy(decision.creditImpactNote)}</small>
     </article>
   )
 }
@@ -196,7 +197,7 @@ export function InlineAgentQAFallbackCard({ descriptor, plan }: InlineAgentQAFal
       <div className="agent-no-real-execution-note">
         <strong>Limitations</strong>
         {fallbackPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{toUserFacingToolCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

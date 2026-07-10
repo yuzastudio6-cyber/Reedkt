@@ -280,7 +280,7 @@ function renderStrategySummary(plan: EditPlan) {
   const toolCount = renderStrategyPlan.openSourceToolsUsed.length
   const providerCount = renderStrategyPlan.providerModelsReferenced.length
 
-  return `${renderStrategyPlan.items.length} render item${renderStrategyPlan.items.length === 1 ? '' : 's'}; ${activeCounts || 'no active strategies'}; ${toolCount} tool${toolCount === 1 ? '' : 's'}, ${providerCount} provider model${providerCount === 1 ? '' : 's'} referenced.`
+  return `${renderStrategyPlan.items.length} render item${renderStrategyPlan.items.length === 1 ? '' : 's'}; ${activeCounts || 'no active strategies'}; ${toolCount} controlled edit support path${toolCount === 1 ? '' : 's'}, ${providerCount} model handoff${providerCount === 1 ? '' : 's'} referenced.`
 }
 
 function toolStrategySummary(plan: EditPlan) {
@@ -296,7 +296,23 @@ function toolStrategySummary(plan: EditPlan) {
     item.chainId === 'browser_capture_chain',
   ).length
 
-  return `${toolStrategyPlan.items.length} tool strateg${toolStrategyPlan.items.length === 1 ? 'y' : 'ies'}; ${toolStrategyPlan.chainIdsUsed.length} chain${toolStrategyPlan.chainIdsUsed.length === 1 ? '' : 's'}, ${exactChains} exact-work chain${exactChains === 1 ? '' : 's'} avoid AI video.`
+  return `${toolStrategyPlan.items.length} edit support strateg${toolStrategyPlan.items.length === 1 ? 'y' : 'ies'}; ${toolStrategyPlan.chainIdsUsed.length} controlled chain${toolStrategyPlan.chainIdsUsed.length === 1 ? '' : 's'}, ${exactChains} exact-work chain${exactChains === 1 ? '' : 's'} avoid AI video.`
+}
+
+function toolCallIntentSummary(plan: EditPlan) {
+  const toolCallIntentPlan = plan.toolCallIntentPlan
+
+  if (!toolCallIntentPlan) {
+    return 'Edit activity plan is not ready.'
+  }
+
+  const gatedCount =
+    toolCallIntentPlan.readinessCounts.blocked_by_owner_approval +
+    toolCallIntentPlan.readinessCounts.blocked_by_provider_lane +
+    toolCallIntentPlan.readinessCounts.blocked_by_storage_billing +
+    toolCallIntentPlan.readinessCounts.dry_run_only
+
+  return `${toolCallIntentPlan.intents.length} planned edit activit${toolCallIntentPlan.intents.length === 1 ? 'y' : 'ies'}; ${toolCallIntentPlan.readinessCounts.ready_for_backend_execution} ready after gates, ${gatedCount} gated or dry-run.`
 }
 
 function colorPipelineSummary(plan: EditPlan) {
@@ -433,6 +449,20 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
   const renderStrategyStatus = renderStrategyValidationStatus ?? (plan.renderStrategyPlan?.items.length ? 'ready' : 'not_started')
   const toolStrategyValidationStatus = validationCategoryStatus(validationReport, 'tool_strategy')
   const toolStrategyStatus = toolStrategyValidationStatus ?? (plan.toolStrategyPlan?.items.length ? 'ready' : 'not_started')
+  const toolCallIntentValidationStatus = validationCategoryStatus(validationReport, 'tool_call_intents')
+  const toolCallIntentGatedCount = plan.toolCallIntentPlan
+    ? plan.toolCallIntentPlan.readinessCounts.blocked_by_owner_approval +
+      plan.toolCallIntentPlan.readinessCounts.blocked_by_provider_lane +
+      plan.toolCallIntentPlan.readinessCounts.blocked_by_storage_billing +
+      plan.toolCallIntentPlan.readinessCounts.dry_run_only
+    : 0
+  const toolCallIntentStatus = toolCallIntentValidationStatus ?? (
+    !plan.toolCallIntentPlan
+      ? 'not_started'
+      : toolCallIntentGatedCount > 0
+        ? 'warning'
+        : 'ready'
+  )
   const colorPipelineValidationStatus = validationCategoryStatus(validationReport, 'color_pipeline')
   const colorPipelineStatus = colorPipelineValidationStatus ?? (plan.colorPipelinePlan ? 'ready' : 'not_started')
   const audioPipelineValidationStatus = validationCategoryStatus(validationReport, 'audio_pipeline')
@@ -723,6 +753,16 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       requiredBeforeApproval: false,
       summary: toolStrategySummary(plan),
       hiddenInCompactMode: true,
+    }),
+    descriptor({
+      id: 'tool_call_intents',
+      label: 'Planned edit work',
+      phase: 'credits_approval',
+      priority: 'user_summary',
+      status: toolCallIntentStatus,
+      defaultExpanded: true,
+      requiredBeforeApproval: false,
+      summary: toolCallIntentSummary(plan),
     }),
     descriptor({
       id: 'map_animation_plan',

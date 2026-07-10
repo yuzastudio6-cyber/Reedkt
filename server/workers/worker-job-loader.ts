@@ -9,6 +9,7 @@ export interface WorkerJobRecord {
   jobType: string
   status: string
   approvedPlanSnapshotId?: string
+  creditEstimateId?: string
   creditReservationId?: string
   inputPayload: Record<string, unknown>
   outputPayload?: Record<string, unknown>
@@ -22,6 +23,7 @@ export interface WorkerJobLoaderInput {
   projectId?: string
   jobType?: string
   approvedPlanSnapshotId?: string
+  creditEstimateId?: string
   creditReservationId?: string
   payloadJson?: Record<string, unknown>
 }
@@ -35,6 +37,7 @@ export async function loadWorkerJob(context: ServiceContext, input: WorkerJobLoa
       jobType: input.jobType ?? 'other',
       status: 'queued',
       approvedPlanSnapshotId: input.approvedPlanSnapshotId,
+      creditEstimateId: input.creditEstimateId,
       creditReservationId: input.creditReservationId,
       inputPayload: input.payloadJson ?? {},
       mockOnly: true,
@@ -57,6 +60,7 @@ export async function loadWorkerJob(context: ServiceContext, input: WorkerJobLoa
     jobType: String(data.job_type),
     status: String(data.status),
     approvedPlanSnapshotId: typeof data.approved_plan_snapshot_id === 'string' ? data.approved_plan_snapshot_id : undefined,
+    creditEstimateId: typeof data.credit_estimate_id === 'string' ? data.credit_estimate_id : undefined,
     creditReservationId: typeof data.credit_reservation_id === 'string' ? data.credit_reservation_id : undefined,
     inputPayload: isRecord(data.input_payload) ? data.input_payload : {},
     outputPayload: isRecord(data.output_payload) ? data.output_payload : undefined,

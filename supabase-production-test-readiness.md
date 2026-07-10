@@ -8,6 +8,8 @@ The active migration files now live in `supabase/migrations/` so they can be rev
 
 Local and staging testing must happen manually before production. Production deployment remains blocked until local tests, staging tests, RLS review, Supabase Security Advisor review, Supabase Performance Advisor review, backup/PITR decisions, and explicit approval are complete.
 
+Milestone 10 adds `npm run prod:readiness:supabase-persistence-evidence-collector` as a dry-run-first operator evidence check. It verifies non-secret production persistence attestations for migrations, explicit Data API grants, backend-only beta/production readiness packet access, service-role write/readback, authenticated RLS readback, backup/PITR approval, Security Advisor review, Performance Advisor review, and storage policies. Confirmed mode reuses the all-up production-readiness evidence route only when `REEDITPRO_PRODUCTION_SUPABASE_PERSISTENCE_CONFIRM_RECORD_EVIDENCE=true` is supplied and the complete paid-production packet can pass. It does not run migrations, connect to Supabase, run SQL, change grants, deploy, write data, enable beta, or activate production.
+
 ## Environment Flow
 
 1. Local Supabase testing comes first.

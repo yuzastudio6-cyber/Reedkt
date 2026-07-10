@@ -1,0 +1,326 @@
+import assert from 'node:assert/strict'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import {
+  buildProductionToolExecutionReadinessEvidencePreflight,
+  type ProductionToolExecutionReadinessEvidencePreflightEnv,
+} from '../cli/production-tool-execution-readiness-evidence-preflight'
+
+const tempRoot = mkdtempSync(join(tmpdir(), 'reeditpro-production-evidence-preflight-'))
+
+const passing = buildProductionToolExecutionReadinessEvidencePreflight(completeEnv())
+assert.equal(passing.ok, true, 'complete production evidence preflight should pass')
+assert.equal(passing.readyToEvaluateGate, true, 'complete production evidence should be ready for gate evaluation')
+assert.equal(passing.readyForPaidProduction, true, 'complete production evidence should pass paid-production gate')
+assert.equal(passing.gateStatus, 'ready_for_paid_production', 'complete production evidence should return ready status')
+assert.equal(passing.evidenceFile.loaded, false, 'env-only preflight should not report an evidence file')
+assert.equal(passing.secretLikeInputPaths.length, 0, 'complete fixture should not contain secret-like values')
+assert.equal(passing.missingConfiguration.length, 0, 'complete fixture should not miss configuration')
+assert.equal(passing.missingEvidence.length, 0, 'complete fixture should not miss evidence')
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED'),
+  'preflight should document explicit Supabase Data API grant evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY'),
+  'preflight should document production evidence reviewer variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID'),
+  'preflight should document Supabase evidence artifact variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_MIGRATION_DEPLOYED'),
+  'preflight should document production readiness evidence packet migration evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_SUPABASE_WALLET_SETTLEMENT_STATE_MIGRATION_DEPLOYED'),
+  'preflight should document wallet settlement state migration evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_BACKEND_ONLY_VERIFIED'),
+  'preflight should document backend-only production readiness evidence access variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_READBACK_VERIFIED'),
+  'preflight should document worker artifact manifest readback evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED'),
+  'preflight should document wallet refund evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_WALLET_BALANCE_BEFORE_AFTER_READBACK_VERIFIED'),
+  'preflight should document wallet balance before/after readback evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_SERVICE_ROLE_ONLY_VERIFIED'),
+  'preflight should document service-role-only settlement RPC evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCH_BLOCK_VERIFIED'),
+  'preflight should document deployed kill-switch blocking evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMIT_BLOCK_VERIFIED'),
+  'preflight should document deployed rate-limit blocking evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMIT_BLOCK_VERIFIED'),
+  'preflight should document deployed concurrency-limit blocking evidence variable',
+)
+assert.ok(
+  passing.requiredEnvironmentVariables.some((item) => item.name === 'REEDITPRO_PRODUCTION_OWNER_PAID_PRODUCTION_APPROVED'),
+  'preflight should document paid-production owner approval variable',
+)
+
+const missing = buildProductionToolExecutionReadinessEvidencePreflight({})
+assert.equal(missing.ok, false, 'missing production evidence should fail preflight')
+assert.equal(missing.readyForPaidProduction, false, 'missing evidence should not allow paid production')
+assert.ok(
+  missing.missingConfiguration.some((item) => item.includes('REEDITPRO_PRODUCTION_READINESS_SOURCE_ID')),
+  'missing report should name source id',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('tool_cost_events migration')),
+  'missing report should name Supabase migration deployment',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('wallet settlement state-update migration')),
+  'missing report should name wallet settlement state migration deployment',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('evidence artifact ID')),
+  'missing report should name evidence artifact provenance',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('wallet refund')),
+  'missing report should name wallet refund proof',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('wallet balance before/after readback')),
+  'missing report should name wallet balance before/after readback proof',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('kill-switch blocking behavior')),
+  'missing report should name kill-switch negative-control proof',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('rate-limit blocking behavior')),
+  'missing report should name rate-limit negative-control proof',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('concurrency-limit blocking behavior')),
+  'missing report should name concurrency-limit negative-control proof',
+)
+assert.ok(
+  missing.missingEvidence.some((item) => item.includes('paid production approval')),
+  'missing report should name paid-production approval',
+)
+
+const stagingOnly = buildProductionToolExecutionReadinessEvidencePreflight({
+  ...completeEnv(),
+  REEDITPRO_PRODUCTION_SUPABASE_ENVIRONMENT: 'staging',
+})
+assert.equal(stagingOnly.ok, false, 'staging-only evidence should not pass production preflight')
+assert.ok(
+  stagingOnly.missingEvidence.some((item) => item.includes('Evidence environment is not production')),
+  'staging-only evidence should name production environment gap',
+)
+
+const missingConfirmation = buildProductionToolExecutionReadinessEvidencePreflight({
+  ...completeEnv(),
+  REEDITPRO_PRODUCTION_READINESS_CONFIRM_EVIDENCE_REVIEW: 'false',
+})
+assert.equal(missingConfirmation.readyForPaidProduction, true, 'gate evidence can be complete while confirmation is missing')
+assert.equal(missingConfirmation.ok, false, 'missing explicit review confirmation should fail preflight ok')
+assert.ok(
+  missingConfirmation.missingConfiguration.some((item) => item.includes('CONFIRM_EVIDENCE_REVIEW')),
+  'missing confirmation should be named',
+)
+
+const secretLike = buildProductionToolExecutionReadinessEvidencePreflight({
+  ...completeEnv(),
+  REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_NOTES: 'operator accidentally pasted service_role_key',
+})
+assert.equal(secretLike.ok, false, 'secret-like notes should fail preflight')
+assert.ok(secretLike.secretLikeInputPaths.length > 0, 'secret-like note path should be reported')
+assert.equal(secretLike.readyForPaidProduction, false, 'secret-like notes should not evaluate as production-ready')
+
+const evidenceFilePath = writeEvidenceFile('complete-evidence.json', completeEnv())
+const fileOnly = buildProductionToolExecutionReadinessEvidencePreflight({
+  REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE: evidenceFilePath,
+})
+assert.equal(fileOnly.ok, true, 'complete evidence file should pass preflight without individual env vars')
+assert.equal(fileOnly.evidenceFile.loaded, true, 'complete evidence file should report loaded')
+assert.ok(fileOnly.evidenceFile.variableCount > 80, 'complete evidence file should expose expected evidence variable count')
+assert.equal(fileOnly.evidenceFile.errors.length, 0, 'complete evidence file should not report file errors')
+assert.equal(fileOnly.sourceId, 'production-readiness-evidence-preflight-smoke', 'file-only preflight should use source id from evidence file')
+
+const fileOverride = buildProductionToolExecutionReadinessEvidencePreflight({
+  REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE: evidenceFilePath,
+  REEDITPRO_PRODUCTION_READINESS_SOURCE_ID: 'production-readiness-evidence-preflight-smoke-env-override',
+})
+assert.equal(fileOverride.ok, true, 'env overrides on top of a complete evidence file should still pass')
+assert.equal(
+  fileOverride.sourceId,
+  'production-readiness-evidence-preflight-smoke-env-override',
+  'process env values should override evidence file values for operator reruns',
+)
+
+const unknownKeyFile = writeRawEvidenceFile('unknown-key-evidence.json', {
+  version: 'production-tool-execution-readiness-evidence-v1',
+  environment: {
+    ...completeEnv(),
+    REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN: 'do-not-allow-collector-config-in-evidence-file',
+  },
+})
+const unknownKey = buildProductionToolExecutionReadinessEvidencePreflight({
+  REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE: unknownKeyFile,
+})
+assert.equal(unknownKey.ok, false, 'evidence file with unsupported collector config should fail closed')
+assert.ok(
+  unknownKey.evidenceFile.errors.some((item) => item.includes('REEDITPRO_PRODUCTION_READINESS_BEARER_TOKEN')),
+  'unsupported evidence file key should be named',
+)
+
+const secretFile = writeEvidenceFile('secret-evidence.json', {
+  ...completeEnv(),
+  REEDITPRO_PRODUCTION_OWNER_NOTES: 'owner note accidentally included service_role_key',
+})
+const secretFromFile = buildProductionToolExecutionReadinessEvidencePreflight({
+  REEDITPRO_PRODUCTION_READINESS_EVIDENCE_FILE: secretFile,
+})
+assert.equal(secretFromFile.ok, false, 'secret-like evidence file value should fail preflight')
+assert.ok(secretFromFile.secretLikeInputPaths.length > 0, 'secret-like evidence file value should be reported through normal secret safety')
+
+console.log(JSON.stringify({
+  ok: true,
+  passingReady: passing.readyForPaidProduction,
+  requiredVariables: passing.requiredEnvironmentVariables.length,
+  missingBlockers: missing.missingEvidence.length,
+  stagingBlockers: stagingOnly.missingEvidence.length,
+  secretLikePaths: secretLike.secretLikeInputPaths.length,
+  fileEvidenceLoaded: fileOnly.evidenceFile.loaded,
+}, null, 2))
+
+rmSync(tempRoot, { force: true, recursive: true })
+
+function writeEvidenceFile(name: string, env: ProductionToolExecutionReadinessEvidencePreflightEnv): string {
+  return writeRawEvidenceFile(name, {
+    version: 'production-tool-execution-readiness-evidence-v1',
+    environment: env,
+  })
+}
+
+function writeRawEvidenceFile(name: string, payload: unknown): string {
+  const filePath = join(tempRoot, name)
+  writeFileSync(filePath, JSON.stringify(payload, null, 2))
+  return filePath
+}
+
+function completeEnv(): ProductionToolExecutionReadinessEvidencePreflightEnv {
+  const yes = 'true'
+  return {
+    REEDITPRO_PRODUCTION_READINESS_SOURCE_ID: 'production-readiness-evidence-preflight-smoke',
+    REEDITPRO_PRODUCTION_READINESS_SOURCE_SHA: 'fe57a1c3c937663e152ddc64c012df3f051365a8',
+    REEDITPRO_PRODUCTION_READINESS_WORKSPACE_ID: 'workspace-production-readiness-preflight-smoke',
+    REEDITPRO_PRODUCTION_READINESS_PROJECT_ID: 'project-production-readiness-preflight-smoke',
+    REEDITPRO_PRODUCTION_READINESS_CONFIRM_EVIDENCE_REVIEW: yes,
+    REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_BY: 'production-preflight-smoke-reviewer',
+    REEDITPRO_PRODUCTION_EVIDENCE_REVIEWED_AT: '2026-07-02T00:00:00.000Z',
+    REEDITPRO_PRODUCTION_SUPABASE_ENVIRONMENT: 'production',
+    REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:supabase',
+    REEDITPRO_PRODUCTION_SUPABASE_TOOL_COST_EVENTS_MIGRATION_DEPLOYED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_MIGRATION_DEPLOYED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_WALLET_SETTLEMENT_STATE_MIGRATION_DEPLOYED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_MIGRATION_DEPLOYED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_MIGRATION_DEPLOYED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_SERVICE_ROLE_ONLY_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_WORKER_ARTIFACT_MANIFEST_READBACK_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_SERVICE_ROLE_WRITE_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_RLS_READBACK_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_DATA_API_GRANTS_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_BETA_EVIDENCE_BACKEND_ONLY_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_PRODUCTION_EVIDENCE_BACKEND_ONLY_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_BACKUP_PITR_APPROVED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_SECURITY_ADVISOR_REVIEWED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_PERFORMANCE_ADVISOR_REVIEWED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_STORAGE_POLICIES_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_SUPABASE_EVIDENCE_NOTES: 'Supabase production persistence evidence reviewed.',
+    REEDITPRO_PRODUCTION_TOOL_COST_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:tool-cost-ledger',
+    REEDITPRO_PRODUCTION_TOOL_COST_EVENT_WRITE_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_TOOL_COST_LEDGER_APPEND_ONLY_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_TOOL_COST_IDEMPOTENT_REPLAY_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_TOOL_COST_SUMMARY_READBACK_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_TOOL_COST_LEDGER_NOTES: 'Tool cost ledger write and readback evidence reviewed.',
+    REEDITPRO_PRODUCTION_WALLET_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:wallet',
+    REEDITPRO_PRODUCTION_WALLET_RESERVATION_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_WALLET_SPEND_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_WALLET_RELEASE_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_WALLET_REFUND_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_WALLET_BALANCE_BEFORE_AFTER_READBACK_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_WALLET_SETTLEMENT_RPC_SERVICE_ROLE_ONLY_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_WALLET_IDEMPOTENT_REPLAY_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_WALLET_NO_SILENT_CHARGE_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_WALLET_NOTES: 'Wallet reserve spend release refund evidence reviewed.',
+    REEDITPRO_PRODUCTION_STRIPE_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:stripe',
+    REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_BILLING_OWNER_APPROVED: yes,
+    REEDITPRO_PRODUCTION_STRIPE_NO_TOOL_COST_SURFACE_CALLS: yes,
+    REEDITPRO_PRODUCTION_STRIPE_SERVICE_FEE_EXCLUDED: yes,
+    REEDITPRO_PRODUCTION_STRIPE_WEBHOOK_SEPARATED: yes,
+    REEDITPRO_PRODUCTION_STRIPE_BOUNDARY_NOTES: 'Stripe boundary owner approval reviewed.',
+    REEDITPRO_PRODUCTION_OBSERVABILITY_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:observability',
+    REEDITPRO_PRODUCTION_OBSERVABILITY_DASHBOARDS_DEPLOYED: yes,
+    REEDITPRO_PRODUCTION_OBSERVABILITY_ALERTS_DEPLOYED: yes,
+    REEDITPRO_PRODUCTION_OBSERVABILITY_ALERT_ROUTING_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OBSERVABILITY_BILLING_QA_MONITORING_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OBSERVABILITY_NOTES: 'Observability dashboard and alert evidence reviewed.',
+    REEDITPRO_PRODUCTION_OPERATIONS_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:operations',
+    REEDITPRO_PRODUCTION_OPERATIONS_ROLLBACK_APPROVED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCHES_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_KILL_SWITCH_BLOCK_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMITS_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_RATE_LIMIT_BLOCK_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMITS_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_CONCURRENCY_LIMIT_BLOCK_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_DEPLOYED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_SERVICE_ROLE_ONLY_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_ADMISSION_RPC_READBACK_VERIFIED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_INCIDENT_RUNBOOK_APPROVED: yes,
+    REEDITPRO_PRODUCTION_OPERATIONS_NOTES: 'Operations controls evidence reviewed.',
+    REEDITPRO_PRODUCTION_TOOLS_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:tools',
+    REEDITPRO_PRODUCTION_TOOLS_SOURCE_ID: 'production-readiness-evidence-preflight-smoke:tools',
+    REEDITPRO_PRODUCTION_TOOLS_SOURCE_SHA: 'fe57a1c3c937663e152ddc64c012df3f051365a8',
+    REEDITPRO_PRODUCTION_TOOLS_ALL_ACCEPTED: yes,
+    REEDITPRO_PRODUCTION_TOOLS_MODEL_LICENSE_APPROVED: yes,
+    REEDITPRO_PRODUCTION_TOOLS_NOTES: 'All production tools and model license evidence reviewed.',
+    REEDITPRO_PRODUCTION_HARD_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:hard-safety',
+    REEDITPRO_PRODUCTION_HARD_APPROVED_SNAPSHOT_REQUIRED: yes,
+    REEDITPRO_PRODUCTION_HARD_CREDIT_ESTIMATE_RESERVATION_REQUIRED: yes,
+    REEDITPRO_PRODUCTION_HARD_IDEMPOTENCY_REQUIRED: yes,
+    REEDITPRO_PRODUCTION_HARD_RAW_PROMPTS_REJECTED: yes,
+    REEDITPRO_PRODUCTION_HARD_SECRETS_REJECTED: yes,
+    REEDITPRO_PRODUCTION_HARD_TEMP_ACCESS_LINKS_REJECTED: yes,
+    REEDITPRO_PRODUCTION_HARD_FRONTEND_HEAVY_EXECUTION_BLOCKED: yes,
+    REEDITPRO_PRODUCTION_HARD_LICENSE_MODEL_REVIEW_REQUIRED: yes,
+    REEDITPRO_PRODUCTION_HARD_SILENT_BILLING_BLOCKED: yes,
+    REEDITPRO_PRODUCTION_HARD_NOTES: 'Hard safety invariant evidence reviewed.',
+    REEDITPRO_PRODUCTION_OWNER_EVIDENCE_ARTIFACT_ID: 'prod-preflight-artifact:owner-signoff',
+    REEDITPRO_PRODUCTION_OWNER_DEPLOYMENT_APPROVED: yes,
+    REEDITPRO_PRODUCTION_OWNER_SECURITY_APPROVED: yes,
+    REEDITPRO_PRODUCTION_OWNER_STORAGE_PRIVACY_APPROVED: yes,
+    REEDITPRO_PRODUCTION_OWNER_LEGAL_APPROVED: yes,
+    REEDITPRO_PRODUCTION_OWNER_SUPPORT_APPROVED: yes,
+    REEDITPRO_PRODUCTION_OWNER_BILLING_APPROVED: yes,
+    REEDITPRO_PRODUCTION_OWNER_OPERATIONS_APPROVED: yes,
+    REEDITPRO_PRODUCTION_OWNER_REAL_USER_MEDIA_BETA_APPROVED: yes,
+    REEDITPRO_PRODUCTION_OWNER_PRIVATE_MEDIA_APPROVAL: yes,
+    REEDITPRO_PRODUCTION_OWNER_ARTIFACT_PRIVACY_READY: yes,
+    REEDITPRO_PRODUCTION_OWNER_PAID_PRODUCTION_APPROVED: yes,
+    REEDITPRO_PRODUCTION_OWNER_FINAL_DELIVERY_SHARE_APPROVED: yes,
+    REEDITPRO_PRODUCTION_OWNER_NOTES: 'Final owner signoff evidence reviewed.',
+  }
+}

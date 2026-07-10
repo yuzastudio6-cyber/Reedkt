@@ -9,6 +9,7 @@ import type {
 import type { MockDatabase } from '../mock/mock-database'
 import { createMockId, findMockRecord, insertMockRecord, nowIso } from '../mock/mock-database'
 import { fail, ok, type ServiceResult } from '../service-result'
+import { createToolCallIntentPlan } from '../../lib/tool-call-intent-planner'
 
 export function createEditPlan(
   db: MockDatabase,
@@ -40,6 +41,7 @@ export function createEditPlan(
     professionalStandardRequired: true,
     goalSummary: intent.userGoalSummary,
     strategySummary: 'Professional clean edit plan with segment-level routing before generation.',
+    toolCallIntentPlan: createToolCallIntentPlan({ includeBaselineIntents: true }),
     hookPolicy: 'recommended',
     hookRecommendation: 'Use a contextual hook only if it improves clarity.',
     approvalStatus: 'pending',

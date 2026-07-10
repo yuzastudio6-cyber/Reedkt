@@ -9,9 +9,9 @@ Core readiness should report:
 - FFmpeg and ffprobe command availability with version output;
 - FFmpeg LGPL verification as pending manual review until proven;
 - libass subtitle support as passed only when safely inspectable;
-- Python import availability for PyAV, PySceneDetect, OpenCV headless, DuckDB, Polars, and OpenTimelineIO;
+- Python import availability for PyAV, PySceneDetect, OpenCV headless, DuckDB, Polars, OpenTimelineIO, OpenColorIO, and OpenImageIO;
 - Node package metadata availability for Sharp and Remotion when present;
-- optional OpenImageIO/OpenColorIO as missing or pending without blocking M10 smoke;
+- optional OpenImageIO/OpenColorIO runtime/media execution as still gated even when import readiness passes;
 - Revideo as evaluation-only and production-blocked.
 
 Readiness checks must not process media, run final render/export, download model

@@ -1,5 +1,6 @@
 import type { ToolReadinessCheckResult } from './tool-readiness-types'
 import type { BasicRenderSmokeResponse } from './jobs/basic-render-smoke-types'
+import type { ToolCostEstimate, ToolCostEvent } from '../tool-cost-metering'
 
 export interface WorkerGateCheckResult {
   gate: string
@@ -42,6 +43,8 @@ export interface WorkerExecutionResult {
   claim?: Record<string, unknown>
   gateChecks: WorkerGateCheckResult[]
   toolChecks: ToolReadinessCheckResult[]
+  toolCostEstimate?: ToolCostEstimate
+  toolCostEvent?: ToolCostEvent
   events: WorkerEventPayload[]
   output?: object | MediaProbeResult | BasicRenderSmokeResponse
   error?: {

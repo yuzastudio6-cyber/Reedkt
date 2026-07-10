@@ -151,6 +151,8 @@ export async function extractKeyframes(input: ExtractKeyframesInput): Promise<Me
       `fps=1/${frameIntervalSeconds}`,
       '-frames:v',
       String(maxFrameCount),
+      '-pix_fmt',
+      'yuvj420p',
       '-q:v',
       '3',
       pattern,
@@ -189,6 +191,8 @@ export async function extractRepresentativeFrames(
         '1',
         '-vf',
         "scale='min(768,iw)':-2",
+        '-pix_fmt',
+        'yuvj420p',
         '-q:v',
         '3',
         outputPath,
@@ -262,7 +266,8 @@ async function summarizeFrameOutputs(
 function buildRepresentativeSampleTimes(durationSeconds: number | undefined, maxFrameCount: number): number[] {
   const duration = Math.max(0.1, durationSeconds ?? 1)
   if (maxFrameCount === 1) return [0]
-  const lastTime = Math.max(0, duration - Math.min(0.1, duration / 20))
+  const endGuardSeconds = Math.max(0.1, Math.min(0.5, duration * 0.02))
+  const lastTime = Math.max(0, duration - endGuardSeconds)
   return Array.from({ length: maxFrameCount }, (_, index) => Number(
     ((lastTime * index) / (maxFrameCount - 1)).toFixed(3),
   ))

@@ -174,13 +174,13 @@ export function InlineAudioPipelineCard({ descriptor, plan }: InlineAudioPipelin
       </details>
 
       <details className="understanding-section">
-        <summary>Tool notes and limitations</summary>
+        <summary>Execution notes and limitations</summary>
         <div className="layout-mode-meta">
-          <span><strong>Tools</strong>{audioPipelinePlan.toolsPlanned.map(label).join(', ')}</span>
+          <span><strong>Controlled support</strong>{audioPipelinePlan.toolsPlanned.length} audio capability group{audioPipelinePlan.toolsPlanned.length === 1 ? '' : 's'} planned</span>
           <span><strong>Tier notes</strong>{audioPipelinePlan.tierNotes.join(' ')}</span>
           <span><strong>Limitations</strong>{audioPipelinePlan.limitations.join(' ')}</span>
         </div>
-        <p className="audio-tool-note">FFmpeg LGPL Configuration, AudioFlux, Signalsmith Stretch, librosa, whisper.cpp, and any future/evaluation Essentia or Rubber Band references are worker-planning responsibilities only. No tools execute in this demo.</p>
+        <p className="audio-tool-note">Audio analysis, stretch, cleanup, and caption-source support remain future-worker planning only in this demo. No audio processing runs from the chat UI.</p>
       </details>
     </InlinePlanCardShell>
   )

@@ -7,6 +7,7 @@ import { requestIdMiddleware } from './middleware/request-id'
 import { errorHandlerMiddleware } from './middleware/error-handler'
 import { createApprovalRoutes } from './routes/approval-routes'
 import { createAutonomousEditPlanningRoutes } from './routes/autonomous-edit-planning-routes'
+import { createBetaReadinessRoutes } from './routes/beta-readiness-routes'
 import { createChatRoutes } from './routes/chat-routes'
 import { createCreditRoutes } from './routes/credit-routes'
 import { createHealthRoutes } from './routes/health-routes'
@@ -18,6 +19,8 @@ import { createProjectRoutes } from './routes/project-routes'
 import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
 import { createQwenMarkerChatBetaRoutes } from './routes/qwen-marker-chat-beta-routes'
 import { createRenderRoutes } from './routes/render-routes'
+import { createToolCostRoutes } from './routes/tool-cost-routes'
+import { createToolExecutionGatewayRoutes } from './routes/tool-execution-gateway-routes'
 import { createUploadRoutes } from './routes/upload-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
 import type { RuntimeRequest, RuntimeState } from './types'
@@ -42,6 +45,7 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(requestIdMiddleware)
 
   app.use(createHealthRoutes())
+  app.use(createBetaReadinessRoutes())
   app.use(createProjectRoutes())
   app.use(createProjectEditSessionRoutes())
   app.use(createProjectEditBriefLocalRoutes())
@@ -54,6 +58,8 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
   app.use(createJobRoutes())
   app.use(createWorkerRoutes())
   app.use(createRenderRoutes())
+  app.use(createToolCostRoutes())
+  app.use(createToolExecutionGatewayRoutes())
   app.use(createProviderGatewayRoutes())
   app.use(createQwenMarkerChatBetaRoutes())
 

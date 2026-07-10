@@ -1,4 +1,5 @@
 import { demoScenarios } from '../../lib/demo-scenarios'
+import { toUserFacingToolCopy } from '../../lib/user-facing-tool-copy'
 import { Badge } from '../Badge'
 
 type InlineDemoScenarioSelectorProps = {
@@ -36,7 +37,7 @@ export function InlineDemoScenarioSelector({ onSelect, selectedScenarioId }: Inl
               type="button"
             >
               <span>{scenario.label}</span>
-              <small>{scenario.description}</small>
+              <small>{toUserFacingToolCopy(scenario.description)}</small>
               <em>{formatLabel(scenario.editingCategory)} / {scenario.editLevel}</em>
             </button>
           )

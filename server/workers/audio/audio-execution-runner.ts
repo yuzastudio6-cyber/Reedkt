@@ -102,7 +102,7 @@ export async function runAudioExecution(input: AudioExecutionInput): Promise<Aud
     ...cleanupResult.separatedStemArtifacts,
   ]
   const blockingQa = qaResults.some((gate) => gate.blocking)
-  const blocked = !combinedValidation.valid || blockingQa || input.mode === 'production_ready'
+  const blocked = !combinedValidation.valid || blockingQa
 
   return buildAudioExecutionResult({
     mode: input.mode,
@@ -126,7 +126,7 @@ export async function runAudioExecution(input: AudioExecutionInput): Promise<Aud
       ...executionPlan.warnings,
       ...cleanupResult.warnings,
       'Milestone 15A does not final mux/export audio or video.',
-      ...(input.mode === 'production_ready' ? ['Production-ready audio execution remains blocked until readiness/model-weight gates pass.'] : []),
+      ...(input.mode === 'production_ready' ? ['Production-ready audio metadata is bounded to analysis, loudness command metadata, SoundSync cue metadata, and QA artifacts; FFmpeg execution, model tools, cleaned audio, stems, final mux, and export remain blocked.'] : []),
     ],
     blocksPreview: combinedValidation.issues.some((issue) => issue.severity === 'blocking') || blockingQa,
     blocksFinalExport: true,

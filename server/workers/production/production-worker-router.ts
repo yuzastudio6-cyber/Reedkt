@@ -3,7 +3,7 @@ import { buildStorageArtifactReference, runMediaAnalysisFoundation } from '../me
 import type { MediaFoundationRunMode, MediaFoundationTask } from '../media'
 import { runSpeechFoundation } from '../speech'
 import type { SpeechFoundationRunMode } from '../speech'
-import { runCaptionFoundation } from '../captions'
+import { runCaptionExecution, runCaptionFoundation } from '../captions'
 import type { CaptionFileFormat, CaptionFoundationRunMode, CaptionStylePresetId } from '../captions'
 import { runSpeechCaptionExecutionPipeline } from '../speech-caption'
 import type { SpeechCaptionExecutionMode } from '../speech-caption'
@@ -27,54 +27,151 @@ import type { EnhancementIntent } from '../enhancement'
 import type { SlowMotionInterpolationMode } from '../slow-motion'
 import { runFinalRenderExecutionPipeline } from '../final-render'
 import type { FinalRenderEngine, FinalRenderExecutionMode, FinalRenderMode } from '../final-render'
+import { runCoreCpuRenderReadinessChecks } from '../production-readiness/core-cpu-render-readiness-checks'
+import { runTrackANativeValidation } from '../track-a-native'
 
 export async function routeProductionWorkerJob(payload: ProductionWorkerJobPayload): Promise<ProductionWorkerRouteOutput> {
   switch (payload.workerType) {
     case 'cpu_analysis_worker':
       if (hasMediaFoundationRequest(payload)) {
         const mediaFoundationResult = await runMediaAnalysisFoundation(buildMediaFoundationInput(payload))
+        const gatewayAdapterId = stringValue(payload.metadata?.gatewayAdapterId)
+        const realMediaProbeHandler = gatewayAdapterId === 'cpu_analysis_worker_media_probe' &&
+          mediaFoundationResult.mode === 'production_ready' &&
+          mediaFoundationResult.status !== 'blocked' &&
+          mediaFoundationResult.probe !== undefined
+        const realMediaAudioExtractHandler = gatewayAdapterId === 'cpu_analysis_worker_media_audio_extract' &&
+          mediaFoundationResult.mode === 'production_ready' &&
+          mediaFoundationResult.status !== 'blocked' &&
+          mediaFoundationResult.probe !== undefined &&
+          mediaFoundationResult.audio?.status === 'created'
+        const realMediaProxyHandler = gatewayAdapterId === 'cpu_analysis_worker_media_proxy' &&
+          mediaFoundationResult.mode === 'production_ready' &&
+          mediaFoundationResult.status !== 'blocked' &&
+          mediaFoundationResult.probe !== undefined &&
+          mediaFoundationResult.proxy?.status === 'created'
+        const realMediaKeyframesHandler = gatewayAdapterId === 'cpu_analysis_worker_media_keyframes' &&
+          mediaFoundationResult.mode === 'production_ready' &&
+          mediaFoundationResult.status !== 'blocked' &&
+          mediaFoundationResult.probe !== undefined &&
+          mediaFoundationResult.keyframes?.status === 'created' &&
+          mediaFoundationResult.keyframes.artifacts.length > 0
+        const realMediaRepresentativeFramesHandler = gatewayAdapterId === 'cpu_analysis_worker_media_representative_frames' &&
+          mediaFoundationResult.mode === 'production_ready' &&
+          mediaFoundationResult.status !== 'blocked' &&
+          mediaFoundationResult.probe !== undefined &&
+          mediaFoundationResult.representativeFrames?.status === 'created' &&
+          mediaFoundationResult.representativeFrames.artifacts.length > 0
+        const realMediaHandler = realMediaProbeHandler ||
+          realMediaAudioExtractHandler ||
+          realMediaProxyHandler ||
+          realMediaKeyframesHandler ||
+          realMediaRepresentativeFramesHandler
         return {
-          summary: 'Milestone 6 CPU media foundation route completed in explicit mediaFoundation mode.',
+          summary: realMediaRepresentativeFramesHandler
+            ? 'CPU media representative-frame production handler completed bounded ffprobe plus FFmpeg private representative-frame extraction.'
+            : realMediaKeyframesHandler
+            ? 'CPU media keyframe production handler completed bounded ffprobe plus FFmpeg private keyframe extraction.'
+            : realMediaProxyHandler
+            ? 'CPU media proxy production handler completed bounded ffprobe plus FFmpeg private proxy execution.'
+            : realMediaAudioExtractHandler
+            ? 'CPU media audio-extract production handler completed bounded ffprobe plus FFmpeg extracted-audio execution.'
+            : realMediaProbeHandler
+            ? 'CPU media probe production handler completed bounded ffprobe execution.'
+            : 'Milestone 6 CPU media foundation route completed in explicit mediaFoundation mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'cpu_analysis_worker_media_foundation',
+          mockOnly: !realMediaHandler,
+          realToolExecution: realMediaHandler,
+          futureHandler: realMediaRepresentativeFramesHandler
+            ? 'cpu_analysis_worker_media_representative_frames_production_handler'
+            : realMediaKeyframesHandler
+            ? 'cpu_analysis_worker_media_keyframes_production_handler'
+            : realMediaProxyHandler
+            ? 'cpu_analysis_worker_media_proxy_production_handler'
+            : realMediaAudioExtractHandler
+            ? 'cpu_analysis_worker_media_audio_extract_production_handler'
+            : realMediaProbeHandler
+            ? 'cpu_analysis_worker_media_probe_production_handler'
+            : 'cpu_analysis_worker_media_foundation',
           mediaFoundationResult,
         }
       }
 
       if (hasSmartCutTimelineExecutionRequest(payload)) {
         const smartCutTimelineExecutionResult = await runSmartCutTimelineExecutionPipeline(buildSmartCutTimelineExecutionInput(payload))
+        const realSmartCutTimelineHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'cpu_analysis_worker_smart_cut_timeline' &&
+          smartCutTimelineExecutionResult.mode === 'production_ready' &&
+          smartCutTimelineExecutionResult.status !== 'blocked' &&
+          smartCutTimelineExecutionResult.executionPlan !== undefined &&
+          smartCutTimelineExecutionResult.timelineManifest !== undefined &&
+          smartCutTimelineExecutionResult.otioManifest !== undefined &&
+          smartCutTimelineExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'timeline_manifest' && artifact.sourceOfTruth) &&
+          smartCutTimelineExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'opentimelineio_manifest' && artifact.sourceOfTruth)
         return {
-          summary: 'Milestone 14 CPU analysis worker smart cut/timeline execution route completed in explicit smartCutTimelineExecution mode.',
+          summary: realSmartCutTimelineHandler
+            ? 'CPU smart-cut/timeline production handler completed bounded approved timeline metadata, OTIO-style manifest, and QA report generation without final export.'
+            : 'Milestone 14 CPU analysis worker smart cut/timeline execution route completed in explicit smartCutTimelineExecution mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'cpu_analysis_worker_smart_cut_timeline_execution',
+          mockOnly: !realSmartCutTimelineHandler,
+          realToolExecution: realSmartCutTimelineHandler,
+          futureHandler: realSmartCutTimelineHandler
+            ? 'cpu_analysis_worker_smart_cut_timeline_production_handler'
+            : 'cpu_analysis_worker_smart_cut_timeline_execution',
           smartCutTimelineExecutionResult,
         }
       }
 
       if (hasAudioExecutionRequest(payload)) {
         const audioExecutionResult = await runAudioExecutionPipeline(buildAudioExecutionInput(payload))
+        const realAudioMetadataHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'cpu_analysis_worker_audio_metadata' &&
+          audioExecutionResult.mode === 'production_ready' &&
+          audioExecutionResult.status !== 'blocked' &&
+          audioExecutionResult.executionPlan !== undefined &&
+          audioExecutionResult.soundSyncArtifact !== undefined &&
+          audioExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'audio_analysis_json' && artifact.sourceOfTruth) &&
+          audioExecutionResult.qaResults.length > 0 &&
+          audioExecutionResult.cleanedAudioArtifact === undefined &&
+          audioExecutionResult.separatedStemArtifacts.length === 0 &&
+          audioExecutionResult.blocksFinalExport === true
         return {
-          summary: 'Milestone 15A CPU analysis worker audio execution route completed in explicit audioExecution mode.',
+          summary: realAudioMetadataHandler
+            ? 'CPU audio metadata production handler completed bounded audio analysis, loudness command metadata, SoundSync cue metadata, and QA report generation without cleanup, stems, final mux, or export.'
+            : 'Milestone 15A CPU analysis worker audio execution route completed in explicit audioExecution mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'cpu_analysis_worker_audio_execution',
+          mockOnly: !realAudioMetadataHandler,
+          realToolExecution: realAudioMetadataHandler,
+          futureHandler: realAudioMetadataHandler
+            ? 'cpu_analysis_worker_audio_metadata_production_handler'
+            : 'cpu_analysis_worker_audio_execution',
           audioExecutionResult,
         }
       }
 
       if (hasColorExecutionRequest(payload)) {
         const colorExecutionResult = await runColorExecutionPipeline(buildColorExecutionInput(payload))
+        const realColorMetadataHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'cpu_analysis_worker_color_metadata' &&
+          colorExecutionResult.mode === 'production_ready' &&
+          colorExecutionResult.status !== 'blocked' &&
+          colorExecutionResult.colorAnalysisSummary !== undefined &&
+          colorExecutionResult.colorGradeRecipeArtifact !== undefined &&
+          colorExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'color_analysis_json' && artifact.sourceOfTruth) &&
+          colorExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'color_grade_recipe' && artifact.sourceOfTruth) &&
+          colorExecutionResult.qaResults.length > 0 &&
+          colorExecutionResult.blocksFinalExport === true
         return {
-          summary: 'Milestone 15B CPU analysis worker color execution route completed in explicit colorExecution mode.',
+          summary: realColorMetadataHandler
+            ? 'CPU color metadata production handler completed bounded color analysis, grade recipe, and QA-report metadata without native transforms or final export.'
+            : 'Milestone 15B CPU analysis worker color execution route completed in explicit colorExecution mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'cpu_analysis_worker_color_execution',
+          mockOnly: !realColorMetadataHandler,
+          realToolExecution: realColorMetadataHandler,
+          futureHandler: realColorMetadataHandler
+            ? 'cpu_analysis_worker_color_metadata_production_handler'
+            : 'cpu_analysis_worker_color_execution',
           colorExecutionResult,
         }
       }
@@ -217,12 +314,30 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
     case 'render_worker':
       if (hasFinalRenderExecutionRequest(payload)) {
         const finalRenderExecutionResult = await runFinalRenderExecutionPipeline(buildFinalRenderExecutionInput(payload))
+        const realFinalRenderMetadataHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'render_worker_final_render_metadata' &&
+          finalRenderExecutionResult.mode === 'production_ready' &&
+          finalRenderExecutionResult.status !== 'blocked' &&
+          finalRenderExecutionResult.executionManifest !== undefined &&
+          finalRenderExecutionResult.executionManifest.renderMode === 'command_plan_only' &&
+          finalRenderExecutionResult.commandPlans.length >= 3 &&
+          finalRenderExecutionResult.commandPlans.every((plan) => plan.executes === false) &&
+          finalRenderExecutionResult.renderArtifacts.some((artifact) => artifact.artifactType === 'render_manifest' && artifact.sourceOfTruth) &&
+          finalRenderExecutionResult.qaResults.length > 0 &&
+          finalRenderExecutionResult.previewArtifact === undefined &&
+          finalRenderExecutionResult.finalExportArtifact === undefined &&
+          finalRenderExecutionResult.finalDeliveryAllowed === false &&
+          finalRenderExecutionResult.blocksFinalExport === true
         return {
-          summary: 'Milestone 16A render worker final render/export execution route completed in explicit finalRenderExecution mode.',
+          summary: realFinalRenderMetadataHandler
+            ? 'Render worker final-render metadata production handler completed bounded render manifest, non-executing command plans, and QA metadata without preview, export, or media execution.'
+            : 'Milestone 16A render worker final render/export execution route completed in explicit finalRenderExecution mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'render_worker_final_render_export_execution',
+          mockOnly: !realFinalRenderMetadataHandler,
+          realToolExecution: realFinalRenderMetadataHandler,
+          futureHandler: realFinalRenderMetadataHandler
+            ? 'render_worker_final_render_metadata_production_handler'
+            : 'render_worker_final_render_export_execution',
           finalRenderExecutionResult,
         }
       }
@@ -260,6 +375,32 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
           mockOnly: true,
           futureHandler: 'render_worker_smart_cut_timeline_preview_execution',
           smartCutTimelineExecutionResult,
+        }
+      }
+
+      if (hasCaptionMetadataExecutionRequest(payload)) {
+        const captionExecutionResult = await runCaptionExecution(buildCaptionMetadataExecutionInput(payload))
+        const realCaptionMetadataHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'render_worker_caption_metadata' &&
+          captionExecutionResult.mode === 'production_ready' &&
+          captionExecutionResult.status !== 'blocked' &&
+          captionExecutionResult.captionSegments.length > 0 &&
+          captionExecutionResult.captionFiles.length >= 3 &&
+          captionExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'caption_segments_json' && artifact.sourceOfTruth) &&
+          captionExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'qa_report' && artifact.sourceOfTruth) &&
+          captionExecutionResult.qaResults.length > 0 &&
+          captionExecutionResult.skippedReasons.length === 0
+        return {
+          summary: realCaptionMetadataHandler
+            ? 'Render worker caption metadata production handler completed bounded caption segmentation, private SRT/WebVTT/ASS artifact metadata, and caption QA without transcription, preview burn-in, or final export.'
+            : 'Milestone 13 render worker caption metadata route completed in explicit captionMetadata mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: !realCaptionMetadataHandler,
+          realToolExecution: realCaptionMetadataHandler,
+          futureHandler: realCaptionMetadataHandler
+            ? 'render_worker_caption_metadata_production_handler'
+            : 'render_worker_caption_metadata',
+          captionExecutionResult,
         }
       }
 
@@ -307,14 +448,58 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         futureHandler: 'render_worker_placeholder',
       }
     case 'qa_worker':
-      if (hasFinalRenderQARequest(payload)) {
-        const finalRenderExecutionResult = await runFinalRenderExecutionPipeline(buildFinalRenderExecutionInput(payload, { qaOnly: true }))
+      if (hasCaptionQaMetadataExecutionRequest(payload)) {
+        const captionExecutionResult = await runCaptionExecution(buildCaptionMetadataExecutionInput(payload))
+        const realCaptionQaMetadataHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'qa_worker_caption_metadata' &&
+          captionExecutionResult.mode === 'production_ready' &&
+          captionExecutionResult.status !== 'blocked' &&
+          captionExecutionResult.captionSegments.length > 0 &&
+          captionExecutionResult.captionFiles.length >= 3 &&
+          captionExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'caption_segments_json' && artifact.sourceOfTruth) &&
+          captionExecutionResult.artifacts.some((artifact) => artifact.artifactType === 'qa_report' && artifact.sourceOfTruth) &&
+          captionExecutionResult.qaResults.length > 0 &&
+          captionExecutionResult.skippedReasons.length === 0
         return {
-          summary: 'Milestone 16A QA worker final render/export QA route completed in explicit finalRenderQA mode.',
+          summary: realCaptionQaMetadataHandler
+            ? 'QA worker caption metadata production handler completed bounded caption readability, timing, safe-zone, and transcript-alignment QA from approved transcript timing without transcription, preview burn-in, or final export.'
+            : 'Milestone 13 QA worker caption metadata route completed in explicit captionMetadata mode.',
           workerType: payload.workerType,
           executionMode: payload.executionMode,
-          mockOnly: true,
-          futureHandler: 'qa_worker_final_render_export_qa',
+          mockOnly: !realCaptionQaMetadataHandler,
+          realToolExecution: realCaptionQaMetadataHandler,
+          futureHandler: realCaptionQaMetadataHandler
+            ? 'qa_worker_caption_metadata_production_handler'
+            : 'qa_worker_caption_metadata',
+          captionExecutionResult,
+        }
+      }
+
+      if (hasFinalRenderQARequest(payload)) {
+        const finalRenderExecutionResult = await runFinalRenderExecutionPipeline(buildFinalRenderExecutionInput(payload, { qaOnly: true }))
+        const realFinalRenderQaMetadataHandler = stringValue(payload.metadata?.gatewayAdapterId) === 'qa_worker_final_render_qa_metadata' &&
+          finalRenderExecutionResult.mode === 'production_ready' &&
+          finalRenderExecutionResult.status !== 'blocked' &&
+          finalRenderExecutionResult.executionManifest !== undefined &&
+          finalRenderExecutionResult.executionManifest.renderMode === 'command_plan_only' &&
+          finalRenderExecutionResult.commandPlans.length >= 3 &&
+          finalRenderExecutionResult.commandPlans.every((plan) => plan.executes === false) &&
+          finalRenderExecutionResult.renderArtifacts.some((artifact) => artifact.artifactType === 'render_manifest' && artifact.sourceOfTruth) &&
+          finalRenderExecutionResult.qaResults.length > 0 &&
+          finalRenderExecutionResult.previewArtifact === undefined &&
+          finalRenderExecutionResult.finalExportArtifact === undefined &&
+          finalRenderExecutionResult.finalDeliveryAllowed === false &&
+          finalRenderExecutionResult.blocksFinalExport === true
+        return {
+          summary: realFinalRenderQaMetadataHandler
+            ? 'QA worker final-render metadata production handler completed bounded render/export QA, delivery QA, and non-executing command-plan review without preview, export, or media execution.'
+            : 'Milestone 16A QA worker final render/export QA route completed in explicit finalRenderQA mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: !realFinalRenderQaMetadataHandler,
+          realToolExecution: realFinalRenderQaMetadataHandler,
+          futureHandler: realFinalRenderQaMetadataHandler
+            ? 'qa_worker_final_render_qa_metadata_production_handler'
+            : 'qa_worker_final_render_export_qa',
           finalRenderExecutionResult,
         }
       }
@@ -411,6 +596,46 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         futureHandler: 'qa_worker_placeholder',
       }
     case 'tool_readiness_worker':
+      if (hasTrackANativeValidationRequest(payload)) {
+        const trackANativeValidationResult = runTrackANativeValidation(buildTrackANativeValidationInput(payload))
+        const gatewayAdapterId = stringValue(payload.metadata?.gatewayAdapterId)
+        const realTrackANativeValidationHandler = payload.executionMode === 'production_ready' &&
+          trackANativeValidationResult.mode === 'production_ready' &&
+          trackANativeValidationResult.status === 'completed'
+        return {
+          summary: realTrackANativeValidationHandler
+            ? 'Track A native validation production handler completed bounded private metadata validation without running media tools.'
+            : 'Track A native validation worker completed in dry-run or blocked mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: !realTrackANativeValidationHandler,
+          realToolExecution: realTrackANativeValidationHandler,
+          futureHandler: realTrackANativeValidationHandler && gatewayAdapterId
+            ? `${gatewayAdapterId}_production_handler`
+            : 'tool_readiness_worker_track_a_native_validation',
+          trackANativeValidationResult,
+        }
+      }
+
+      if (hasToolReadinessCoreCheckRequest(payload)) {
+        const toolReadinessResult = runCoreCpuRenderReadinessChecks(buildToolReadinessCoreCheckInput(payload))
+        const realToolReadinessHandler = payload.executionMode === 'production_ready' &&
+          toolReadinessResult.realCheckMode
+        return {
+          summary: realToolReadinessHandler
+            ? 'Tool readiness production handler completed bounded core command/import/package readiness checks.'
+            : 'Tool readiness worker completed in dry-run core readiness mode.',
+          workerType: payload.workerType,
+          executionMode: payload.executionMode,
+          mockOnly: !realToolReadinessHandler,
+          realToolExecution: realToolReadinessHandler,
+          futureHandler: realToolReadinessHandler
+            ? 'tool_readiness_worker_core_checks_production_handler'
+            : 'tool_readiness_worker_core_checks',
+          toolReadinessResult,
+        }
+      }
+
       return {
         summary: 'Dry-run only: future tool readiness worker will check installed tool versions, imports, capabilities, and review status.',
         workerType: payload.workerType,
@@ -418,6 +643,55 @@ export async function routeProductionWorkerJob(payload: ProductionWorkerJobPaylo
         mockOnly: true,
         futureHandler: 'tool_readiness_worker_placeholder',
       }
+  }
+}
+
+function hasToolReadinessCoreCheckRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.toolReadiness
+  if (!request || typeof request !== 'object') return false
+  const mode = (request as Record<string, unknown>).mode
+  return mode === 'dry_run' || mode === 'production_ready'
+}
+
+function hasTrackANativeValidationRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.trackANativeValidation
+  if (!request || typeof request !== 'object') return false
+  const mode = (request as Record<string, unknown>).mode
+  const gatewayAdapterId = stringValue(payload.metadata?.gatewayAdapterId)
+  return (mode === 'dry_run' || mode === 'production_ready') &&
+    (
+      gatewayAdapterId === 'tool_readiness_worker_streamer_render_pipeline_support' ||
+      gatewayAdapterId === 'tool_readiness_worker_mkvtoolnix_container_validation' ||
+      gatewayAdapterId === 'tool_readiness_worker_gpac_mp4box_packaging_validation'
+    )
+}
+
+function buildTrackANativeValidationInput(payload: ProductionWorkerJobPayload) {
+  const request = payload.metadata?.trackANativeValidation as Record<string, unknown>
+  return {
+    workspaceId: payload.workspaceId,
+    projectId: payload.projectId,
+    mediaAssetId: payload.mediaAssetId,
+    jobId: payload.jobId,
+    approvedSnapshotId: payload.approvedSnapshotId,
+    toolExecutionPlanId: payload.toolExecutionPlanId,
+    idempotencyKey: payload.idempotencyKey,
+    requestedToolIds: payload.requestedToolIds,
+    storageReferenceIds: payload.storageReferenceIds,
+    request: {
+      ...request,
+      gatewayAdapterId: stringValue(payload.metadata?.gatewayAdapterId),
+    },
+  }
+}
+
+function buildToolReadinessCoreCheckInput(payload: ProductionWorkerJobPayload) {
+  const request = payload.metadata?.toolReadiness as Record<string, unknown>
+  return {
+    realCheckMode: payload.executionMode === 'production_ready' && request.mode === 'production_ready',
+    strict: booleanValue(request.strict),
+    timeoutMs: numberValue(request.timeoutMs),
+    maxBuffer: numberValue(request.maxBuffer),
   }
 }
 
@@ -1097,6 +1371,58 @@ function hasSpeechCaptionExecutionRequest(payload: ProductionWorkerJobPayload): 
   return isSpeechCaptionExecutionMode(mode)
 }
 
+function hasCaptionMetadataExecutionRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.speechCaptionExecution
+  if (!request || typeof request !== 'object') return false
+  const record = request as Record<string, unknown>
+  return stringValue(payload.metadata?.gatewayAdapterId) === 'render_worker_caption_metadata' &&
+    payload.workerType === 'render_worker' &&
+    record.mode === 'production_ready' &&
+    record.buildCaptions !== false
+}
+
+function hasCaptionQaMetadataExecutionRequest(payload: ProductionWorkerJobPayload): boolean {
+  const request = payload.metadata?.speechCaptionExecution
+  if (!request || typeof request !== 'object') return false
+  const record = request as Record<string, unknown>
+  return stringValue(payload.metadata?.gatewayAdapterId) === 'qa_worker_caption_metadata' &&
+    payload.workerType === 'qa_worker' &&
+    record.mode === 'production_ready' &&
+    record.buildCaptions !== false
+}
+
+function buildCaptionMetadataExecutionInput(payload: ProductionWorkerJobPayload) {
+  const request = payload.metadata?.speechCaptionExecution as Record<string, unknown>
+  const captionFormats = Array.isArray(request.captionFormats)
+    ? request.captionFormats.filter(isCaptionFileFormat)
+    : undefined
+
+  return {
+    mode: 'production_ready' as const,
+    workspaceId: payload.workspaceId,
+    projectId: payload.projectId,
+    mediaAssetId: payload.mediaAssetId ?? 'media-asset-not-set',
+    approvedSnapshotId: payload.approvedSnapshotId,
+    toolExecutionPlanId: payload.toolExecutionPlanId,
+    idempotencyKey: payload.idempotencyKey,
+    transcriptArtifactId: stringValue(request.transcriptArtifactId),
+    transcriptSegments: Array.isArray(request.transcriptSegments) ? request.transcriptSegments as never[] : undefined,
+    wordTimestampArtifactId: stringValue(request.wordTimestampArtifactId),
+    wordTimestamps: Array.isArray(request.wordTimestamps) ? request.wordTimestamps as never[] : undefined,
+    captionStyle: isCaptionStylePresetId(request.captionStyle) ? request.captionStyle : undefined,
+    platform: stringValue(request.platform),
+    aspectRatio: stringValue(request.aspectRatio),
+    safeZoneArtifactIds: Array.isArray(request.safeZoneArtifactIds) ? request.safeZoneArtifactIds.filter(isStringValue) : undefined,
+    ocrTextRegionArtifactIds: Array.isArray(request.ocrTextRegionArtifactIds) ? request.ocrTextRegionArtifactIds.filter(isStringValue) : undefined,
+    buildSrt: captionFormats ? captionFormats.includes('srt') : true,
+    buildWebVtt: captionFormats ? captionFormats.includes('webvtt') : true,
+    buildAss: captionFormats ? captionFormats.includes('ass') : true,
+    buildPreview: false,
+    enableCaptionPreview: false,
+    workerPayload: payload,
+  }
+}
+
 function buildSpeechCaptionExecutionInput(
   payload: ProductionWorkerJobPayload,
   options: { captionOnly?: boolean } = {},
@@ -1334,12 +1660,12 @@ function hasMediaFoundationRequest(payload: ProductionWorkerJobPayload): boolean
   const request = payload.metadata?.mediaFoundation
   if (!request || typeof request !== 'object') return false
   const mode = (request as Record<string, unknown>).mode
-  return mode === 'dry_run' || mode === 'local_dev'
+  return mode === 'dry_run' || mode === 'local_dev' || mode === 'production_ready'
 }
 
 function buildMediaFoundationInput(payload: ProductionWorkerJobPayload) {
   const request = payload.metadata?.mediaFoundation as Record<string, unknown>
-  const mode = request.mode as Extract<MediaFoundationRunMode, 'dry_run' | 'local_dev'>
+  const mode = request.mode as Extract<MediaFoundationRunMode, 'dry_run' | 'local_dev' | 'production_ready'>
   const sourceObjectPath = stringValue(request.sourceStorageObjectPath) ?? payload.storageReferenceIds[0] ?? 'source_media/not-set'
   const sourceLocalPath = stringValue(request.sourceLocalPath)
   const sourceStorageObjectId = stringValue(request.sourceStorageObjectId) ?? payload.storageReferenceIds[0] ?? 'source-storage-object-not-set'
@@ -1432,4 +1758,8 @@ function stringValue(value: unknown): string | undefined {
 
 function numberValue(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function booleanValue(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined
 }

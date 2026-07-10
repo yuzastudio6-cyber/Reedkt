@@ -49,6 +49,7 @@ export interface ProjectSourceVideoBackendUploadInput {
   file: File
   projectId: string
   workspaceId: string
+  uploadPurpose?: 'source_media' | 'reference_media'
   fetchImpl?: typeof fetch
   getAccessToken?: () => Promise<string | undefined>
 }
@@ -151,8 +152,10 @@ export async function uploadProjectSourceVideoToBackend(
 ): Promise<ProjectSourceVideoBackendUploadResult> {
   const fetchImpl = input.fetchImpl ?? fetch
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
-  const createIdempotencyKeyValue = createIdempotencyKey('source-video-upload-intent')
-  const finalizeIdempotencyKeyValue = createIdempotencyKey('source-video-upload-finalize')
+  const uploadPurpose = input.uploadPurpose ?? 'source_media'
+  const keyPrefix = uploadPurpose === 'reference_media' ? 'reference-video-upload' : 'source-video-upload'
+  const createIdempotencyKeyValue = createIdempotencyKey(`${keyPrefix}-intent`)
+  const finalizeIdempotencyKeyValue = createIdempotencyKey(`${keyPrefix}-finalize`)
 
   const createResponse = await fetchImpl(joinUrl(input.apiBaseUrl, `/v1/projects/${encodeURIComponent(input.projectId)}/upload-intents`), {
     method: 'POST',
@@ -164,7 +167,7 @@ export async function uploadProjectSourceVideoToBackend(
     body: JSON.stringify({
       workspaceId: input.workspaceId,
       chatSessionId: input.editSessionId,
-      uploadPurpose: 'source_media',
+      uploadPurpose,
       originalFileName: input.file.name,
       mimeType: input.file.type || 'video/mp4',
       expectedSizeBytes: input.file.size,
@@ -204,7 +207,7 @@ export async function uploadProjectSourceVideoToBackend(
   const finalized = assertOk(finalizedEnvelope, 'Upload finalization failed.')
   const warnings = [
     ...(finalizedEnvelope.warnings ?? []),
-    'Backend-local upload completed without media processing, provider calls, workers, renders, credits, Supabase writes, or GCS writes.',
+    `Backend-local ${uploadPurpose === 'reference_media' ? 'reference' : 'source'} upload completed without media processing, provider calls, workers, renders, credits, Supabase writes, or GCS writes.`,
   ]
 
   return {

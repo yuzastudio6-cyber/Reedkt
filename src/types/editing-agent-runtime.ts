@@ -88,12 +88,14 @@ export type EditAssetStorageProvider =
   | 'gcs'
   | 'supabase_storage'
   | 'provider_temp_url'
+  | 'local_private'
   | 'local_mock'
   | 'unknown'
 
 export type WorkGraphRunMode =
   | 'planning_only'
   | 'mock_execution_plan'
+  | 'bounded_private_execution'
   | 'future_worker_execution'
 
 export type AsyncCheckbackTrigger =

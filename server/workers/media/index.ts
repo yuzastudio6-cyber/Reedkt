@@ -1,5 +1,6 @@
 export * from './audio-extract-production-worker'
 export * from './ffmpeg-media-adapter'
+export * from './ffmpeg-edit-evidence-analyzer'
 export * from './ffprobe-media-adapter'
 export * from './keyframe-extract-production-worker'
 export * from './media-analysis-foundation-runner'

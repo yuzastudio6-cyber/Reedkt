@@ -83,6 +83,8 @@ export interface CaptionExecutionInput {
   wordTimestampArtifactId?: string
   wordTimestamps?: WordTimestampArtifactPayload | TranscriptWord[]
   captionStyle?: CaptionStylePresetId
+  maxWordsPerCue?: number
+  maxCaptionLines?: 1 | 2
   platform?: string
   aspectRatio?: string
   safeZoneArtifactIds?: string[]

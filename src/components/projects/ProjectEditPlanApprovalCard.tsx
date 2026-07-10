@@ -56,7 +56,7 @@ export function ProjectEditPlanApprovalCard({
       <div className="project-edit-plan-approval-card__operations" data-testid="project-edit-plan-operation-manifest">
         <span>
           <strong>{model.operationManifest.operations.length}</strong>
-          approved edit operations
+          planned edit operations
         </span>
         <span>{model.operationManifest.professionalBaseline.replace(/_/g, ' ')}</span>
         <span>{model.operationManifest.sourceOrderPolicy.replace(/_/g, ' ')}</span>
@@ -109,12 +109,12 @@ export function ProjectEditPlanApprovalCard({
         type="button"
         variant={approved ? 'secondary' : 'primary'}
       >
-        {approving ? 'Approving plan' : approved ? 'Local plan approved' : 'Approve local test plan'}
+        {approving ? 'Approving plan' : approved ? 'Plan approved' : 'Approve plan and estimate'}
       </Button>
 
       {backendRecordId ? (
         <p className="project-edit-plan-approval-card__backend" data-testid="project-edit-plan-backend-record">
-          Backend-local plan record: {backendRecordId}
+          Approved plan record: {backendRecordId}
         </p>
       ) : null}
       {approvalError ? (
@@ -124,7 +124,7 @@ export function ProjectEditPlanApprovalCard({
       ) : null}
 
       <p className="project-edit-brief-muted">
-        Approval writes and reads back a backend-local plan record. It unlocks only the internal preview smoke path and does not start production export, live providers, Supabase writes, or paid billing.
+        Approval records the exact source-aware plan and estimate. Editing still requires an immutable snapshot, reservation, private work graph, and execution readiness checks.
       </p>
     </Card>
   )

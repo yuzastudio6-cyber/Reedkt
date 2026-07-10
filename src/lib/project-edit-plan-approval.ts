@@ -1,4 +1,10 @@
-import type { ProjectSourceVideoBackendUploadResult } from '../types/project-source-video'
+import type {
+  AutonomousEditPlanDraft,
+  AutonomousEditOperationExecutionSpec,
+  AutonomousEditOperationId,
+  CreativeSkillKey,
+  ProjectSourceVideoBackendUploadResult,
+} from '../types'
 import type {
   ProjectEditSessionAspectRatio,
   ProjectEditSessionPlatformTarget,
@@ -13,6 +19,8 @@ import {
 export type ProjectEditPlanApprovalStatus =
   | 'waiting_for_source'
   | 'waiting_for_backend_upload'
+  | 'waiting_for_analysis'
+  | 'analyzing'
   | 'ready_for_approval'
   | 'approved'
 
@@ -21,15 +29,25 @@ export interface ProjectEditPlanApprovalStep {
   summary: string
 }
 
-export type ProjectEditPlanSegmentRole = 'hook' | 'context' | 'main_body' | 'ending'
+export type ProjectEditPlanSegmentRole =
+  | 'hook'
+  | 'setup'
+  | 'context'
+  | 'main_body'
+  | 'proof'
+  | 'transition'
+  | 'ending'
 
 export type ProjectEditPlanOperationType =
   | 'trim'
   | 'cut'
   | 'caption'
+  | 'graphics'
+  | 'broll'
   | 'color_grade'
   | 'audio_cleanup'
   | 'transition'
+  | 'render'
   | 'qa_check'
 
 export interface ProjectEditPlanSegmentOperation {
@@ -41,24 +59,49 @@ export interface ProjectEditPlanSegmentOperation {
   sourceRangeLabel: string
   finalRangeLabel: string
   qaChecks: string[]
+  operationId?: AutonomousEditOperationId
+  rationale?: string
+  skillKeys?: CreativeSkillKey[]
+  sourceEvidenceRefs?: string[]
+  sourceStartSeconds?: number
+  sourceEndSeconds?: number
+  executionSpec?: AutonomousEditOperationExecutionSpec
   workerReady: false
   productReady: false
 }
 
 export interface ProjectEditPlanOperationManifest {
-  version: 'project-edit-operation-manifest-v1'
+  version: 'project-edit-operation-manifest-v1' | 'project-edit-operation-manifest-v2'
   sourceFileName: string
   sourceDurationSeconds?: number
   sourceAspectRatio?: string
   outputFrame?: ProjectEditPlanOutputFrame
   professionalBaseline: 'clean_professional'
   sourceOrderPolicy: 'preserve_source_order_until_user_approves_reorder'
-  mediaIntelligenceStatus: 'not_analyzed_backend_local_only'
+  mediaIntelligenceStatus: 'not_analyzed_backend_local_only' | 'analyzed_private_source_evidence'
+  sourceEvidenceVersion?: 'autonomous-edit-source-evidence-v1'
+  sourceEvidenceArtifactIds?: string[]
   operations: ProjectEditPlanSegmentOperation[]
   requiredQaChecks: string[]
   workerExecutionReady: false
   productReady: false
   warnings: string[]
+}
+
+export interface ProjectEditPlanPlanningEvidence {
+  attemptId: string
+  autonomousPlanVersion: 'autonomous-edit-plan-v1'
+  sourceEvidenceVersion: 'autonomous-edit-source-evidence-v1'
+  plannerSource: 'qwen_live'
+  providerCallMade: boolean
+  qwenCallMade: boolean
+  mediaAnalysisRun: true
+  transcriptionRun: boolean
+  visualUnderstandingRun: true
+  deterministicCreativeFallbackUsed: false
+  rawPromptStored: false
+  privateArtifactIds: string[]
+  createdAt: string
 }
 
 export interface ProjectEditPlanCreditEstimate {
@@ -108,7 +151,7 @@ export interface ProjectEditPlanApprovalModel {
   editSessionId: string
   planId: string
   productReady: false
-  providerCallMade: false
+  providerCallMade: boolean
   renderJobCreated: false
   workerJobCreated: false
   creditReservedOrSpent: false
@@ -122,10 +165,13 @@ export interface ProjectEditPlanApprovalModel {
   summary: string
   title: string
   warnings: string[]
+  planningEvidence?: ProjectEditPlanPlanningEvidence
 }
 
 export type ProjectEditPlanApprovedLocalPlan = Pick<ProjectEditPlanApprovalModel, 'approved' | 'creditEstimate' | 'directionSource' | 'operationManifest' | 'planId' | 'skillPlan' | 'steps' | 'summary' | 'title'> & {
   briefLineage: ProjectEditPlanBriefLineage
+  planningEvidence?: ProjectEditPlanPlanningEvidence
+  autonomousPlanSnapshot?: AutonomousEditPlanDraft
 }
 
 export interface ProjectEditPlanBackendLocalRecord {
@@ -166,7 +212,26 @@ export interface ProjectEditPlanBackendLocalRecord {
 export interface ProjectEditPlanBackendApprovalResult {
   localEditPlan: ProjectEditPlanBackendLocalRecord
   readback?: ProjectEditPlanBackendLocalRecord
+  executionGate?: ProjectEditPlanExecutionGate
   warnings: string[]
+}
+
+export interface ProjectEditPlanExecutionGate {
+  status: 'execution_ready'
+  planId: string
+  creditEstimateId: string
+  creditApprovalId: string
+  creditReservationId: string
+  reservedCredits: number
+  approvedPlanSnapshotId: string
+  snapshotHash: string
+  workGraphId: string
+  timelineManifestId: string
+  userFacingWorkSummary: string[]
+  privateArtifactsOnly: true
+  publicDeliveryAllowed: false
+  paidBillingMutationMade: false
+  productReady: false
 }
 
 export function createProjectEditPlanBriefLineage(input: {

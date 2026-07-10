@@ -4,6 +4,7 @@ import {
   type ProjectEditPlanApprovalModel,
   type ProjectEditPlanBackendApprovalResult,
   type ProjectEditPlanBackendLocalRecord,
+  type ProjectEditPlanExecutionGate,
 } from './project-edit-plan-approval'
 import type { ProjectEditBriefBackendLocalRecord } from './project-edit-brief-backend-local'
 import type { ProjectSourceVideoBackendUploadResult } from '../types/project-source-video'
@@ -20,6 +21,11 @@ interface ApiEnvelope<TData> {
 
 interface LocalEditPlanData {
   localEditPlan: ProjectEditPlanBackendLocalRecord
+  executionGate?: ProjectEditPlanExecutionGate
+}
+
+interface ActivateLocalEditPlanData {
+  executionGate: ProjectEditPlanExecutionGate
 }
 
 export interface ApproveProjectEditPlanBackendLocalInput {
@@ -125,6 +131,7 @@ export async function approveProjectEditPlanBackendLocal(
       summary: input.approvedLocalPlan.summary,
       steps: input.approvedLocalPlan.steps,
       operationManifest: input.approvedLocalPlan.operationManifest,
+      planningEvidence: input.approvedLocalPlan.planningEvidence,
       directionSource: input.approvedLocalPlan.directionSource,
       skillPlan: input.approvedLocalPlan.skillPlan,
       creditEstimate: input.approvedLocalPlan.creditEstimate,
@@ -165,7 +172,8 @@ export async function approveProjectEditPlanBackendLocal(
       authorization: accessToken ? `Bearer ${accessToken}` : undefined,
     }),
   }))
-  const readback = assertOk(readbackEnvelope, 'Backend-local edit plan readback failed.').localEditPlan
+  const readbackData = assertOk(readbackEnvelope, 'Backend-local edit plan readback failed.')
+  const readback = readbackData.localEditPlan
 
   if (
     readback.editPlanId !== created.editPlanId ||
@@ -173,6 +181,24 @@ export async function approveProjectEditPlanBackendLocal(
     !readback.backendLocalPlanStored
   ) {
     throw new Error('Backend-local edit plan readback did not match the approved plan.')
+  }
+
+  let executionGate: ProjectEditPlanExecutionGate | undefined
+  let activationWarnings: string[] = []
+  if (readback.approvedLocalPlan.operationManifest.version === 'project-edit-operation-manifest-v2') {
+    const activationEnvelope = await parseEnvelope<ActivateLocalEditPlanData>(await fetchImpl(joinUrl(
+      input.apiBaseUrl,
+      `/v1/local-edit-plans/${encodeURIComponent(created.editPlanId)}/activate`,
+    ), {
+      method: 'POST',
+      headers: createHeaders({
+        ...commonHeaders,
+        'idempotency-key': createIdempotencyKey('autonomous-edit-plan-activation'),
+      }),
+      body: JSON.stringify({ workspaceId: input.workspaceId }),
+    }))
+    executionGate = assertOk(activationEnvelope, 'Evidence-backed plan activation failed.').executionGate
+    activationWarnings = activationEnvelope.warnings ?? []
   }
 
   return {
@@ -184,10 +210,14 @@ export async function approveProjectEditPlanBackendLocal(
       ...readback,
       readbackVerified: true,
     },
+    executionGate,
     warnings: [
       ...(createEnvelope.warnings ?? []),
       ...(readbackEnvelope.warnings ?? []),
-      'Backend-local edit plan approval was read back before preview smoke; no provider, render, worker, Supabase, GCS, beta, or production work started.',
+      ...activationWarnings,
+      executionGate
+        ? 'Evidence-backed approval created an estimate approval, bounded reservation, immutable snapshot, and private work graph without starting workers or rendering.'
+        : 'Compatibility plan approval was read back without activating execution.',
     ],
   }
 }
@@ -206,7 +236,8 @@ export async function readProjectEditPlanBackendLocal(
       authorization: accessToken ? `Bearer ${accessToken}` : undefined,
     }),
   }))
-  const readback = assertOk(readbackEnvelope, 'Backend-local edit plan readback failed.').localEditPlan
+  const readbackData = assertOk(readbackEnvelope, 'Backend-local edit plan readback failed.')
+  const readback = readbackData.localEditPlan
 
   if (readback.editPlanId !== input.editPlanId || readback.workspaceId !== input.workspaceId || !readback.backendLocalPlanStored) {
     throw new Error('Backend-local edit plan readback did not match the requested plan.')
@@ -221,6 +252,7 @@ export async function readProjectEditPlanBackendLocal(
       ...readback,
       readbackVerified: true,
     },
+    executionGate: readbackData.executionGate,
     warnings: [
       ...(readbackEnvelope.warnings ?? []),
       'Backend-local edit plan was restored from the approved plan readback route; no provider, render, worker, Supabase, GCS, beta, or production work started.',

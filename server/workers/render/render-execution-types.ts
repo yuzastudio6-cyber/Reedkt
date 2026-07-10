@@ -5,6 +5,7 @@ import type { TimelineManifest } from '../../../src/backend/contracts/timeline-m
 import type { ToolArtifact } from '../../../src/backend/contracts/tool-artifact-contracts'
 import type { MediaProbeResult } from '../media/media-worker-types'
 import type { ProductionWorkerJobPayload } from '../production/production-worker-types'
+import type { AutonomousAudioExecutionSpec, AutonomousColorExecutionSpec } from '../../../src/types/autonomous-edit-planning'
 
 export type FinalRenderExecutionMode =
   | 'dry_run'
@@ -50,6 +51,29 @@ export interface FinalRenderExecutionInput {
     endSeconds: number
     x?: number
     y?: number
+    width?: number
+    height?: number
+    animation?: {
+      enter: 'none' | 'fade' | 'fade_up' | 'slide_left' | 'slide_right' | 'phrase_fade_up' | 'keyword_pop' | 'word_pop'
+      exit: 'none' | 'fade' | 'fade_down'
+      enterDurationSeconds: number
+      exitDurationSeconds: number
+    }
+  }>
+  visualOverlayInputs?: Array<{
+    localPath: string
+    startSeconds: number
+    endSeconds: number
+    x: number
+    y: number
+    width: number
+    height: number
+    animation: {
+      enter: 'none' | 'fade' | 'fade_up' | 'slide_left' | 'slide_right' | 'phrase_fade_up' | 'keyword_pop' | 'word_pop'
+      exit: 'none' | 'fade' | 'fade_down'
+      enterDurationSeconds: number
+      exitDurationSeconds: number
+    }
   }>
   audioLocalPaths?: string[]
   outputDirectory?: string
@@ -63,6 +87,7 @@ export interface FinalRenderExecutionInput {
   enableLocalDevRender?: boolean
   enableRemotionLocalRender?: boolean
   enableCaptionBurnIn?: boolean
+  enableVisualOverlays?: boolean
   sourceAudioRequired?: boolean
   ffmpegBin?: string
   ffprobeBin?: string
@@ -71,6 +96,8 @@ export interface FinalRenderExecutionInput {
     audioFinish: 'none' | 'clean_voice'
     subtlePunchIns: boolean
   }
+  approvedAudioSpec?: AutonomousAudioExecutionSpec
+  approvedColorSpec?: AutonomousColorExecutionSpec
   allowRevideo?: boolean
   timeoutMs?: number
   readinessReport?: { overallStatus?: string; blockers?: unknown[]; blockerSummaries?: unknown[] }

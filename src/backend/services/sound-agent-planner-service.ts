@@ -1,7 +1,7 @@
 import type {
   PrivateAudioArtifactManifest,
-  SoundAgentEditSegmentInput,
   SoundAgentPlan,
+  SoundAgentEditSegmentInput,
   SoundAgentPlannerInput,
   SoundAgentPlannerResult,
   SoundAgentRequestedOutputMode,
@@ -683,7 +683,7 @@ function collectBlockedReasons(cues: SoundCuePlan[], gateResults: SoundExecution
 }
 
 export function buildTimingAwareSoundCueManifest(plan: SoundAgentPlan): TimingAwareSoundCueManifest {
-  const timingAnchors = unique(plan.cuePlans.map((cue) => cue.anchorType))
+  const timingAnchors: SoundTimingAnchor[] = unique(plan.cuePlans.map((cue): SoundTimingAnchor => cue.anchorType))
   return {
     cueManifestId: stableId('cue-manifest', plan.planId, plan.workspaceId, plan.projectId, plan.editPlanId),
     workspaceId: plan.workspaceId,

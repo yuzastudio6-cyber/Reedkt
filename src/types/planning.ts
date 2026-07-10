@@ -9,6 +9,7 @@ import type {
   TimeRange,
 } from './shared'
 import type { SignatureSystem, SignatureWorkerTarget } from './signature-systems'
+import type { ToolCallIntentPlan } from './tool-call-intents'
 
 export type EditComplexity =
   | 'basic_edit'
@@ -205,6 +206,7 @@ export interface EditPlanRecord {
   strategySummary: string
   hookPolicy: HookPolicy
   hookRecommendation: string
+  toolCallIntentPlan?: ToolCallIntentPlan
   creditEstimateId?: ID
   approvalStatus: ApprovalStatus
   approvedByUserId?: ID

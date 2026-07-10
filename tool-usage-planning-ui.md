@@ -12,6 +12,9 @@ Guided chat should stay concise:
 - Color cleanup planned.
 - Audio cleanup planned.
 - Remotion will compose the final layout.
+- Native render support planned.
+- Container validation planned.
+- Packaging validation planned.
 
 The UI should explain why a controlled tool is better than AI generation when exact maps, labels, screenshots, charts, captions, color, audio, or QA matter.
 
@@ -19,7 +22,7 @@ The UI should explain why a controlled tool is better than AI generation when ex
 
 Detailed/developer views can show tool IDs, chain IDs, settings, execution modes, presets, input/output types, fallback tools, QA checks, license notes, adoption stage, and worker notes.
 
-Guided mode should hide or collapse tool strategy details. Detailed mode should show tool chains and reasons with settings collapsed. Developer mode can expose settings, input/output, fallback, QA, and license notes.
+Guided mode should hide or collapse tool strategy details. Detailed mode should show tool chains and reasons with settings collapsed. Developer mode can expose settings, input/output, fallback, QA, and license notes. Guided mode should describe Track A native-container work as render support, container validation, or packaging validation rather than listing GStreamer, MKVToolNix, GPAC, or MP4Box by name.
 
 ## Planning-Only Rule
 

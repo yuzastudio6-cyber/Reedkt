@@ -48,10 +48,14 @@ export async function runCaptionExecution(input: CaptionExecutionInput): Promise
     ? buildCaptionSegmentsFromWords(words, {
       presetId: input.captionStyle,
       placement: placement.placement,
+      maxWordsPerCaption: input.maxWordsPerCue,
+      maxLines: input.maxCaptionLines,
     })
     : buildCaptionSegmentsFromTranscript(transcriptSegments, {
       presetId: input.captionStyle,
       placement: placement.placement,
+      maxWordsPerCaption: input.maxWordsPerCue,
+      maxLines: input.maxCaptionLines,
     })
   const formats = selectedFormats(input)
   const fileMode = input.mode === 'local_dev' ? 'local_dev' : 'dry_run'

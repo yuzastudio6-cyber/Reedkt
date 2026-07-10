@@ -129,6 +129,7 @@ export interface QwenProviderTransportRequest {
   baseUrl: string
   requestPath: string
   modelId: string
+  outputSchemaName?: string
   systemPrompt: string
   userPrompt: string
   timeoutMs: number

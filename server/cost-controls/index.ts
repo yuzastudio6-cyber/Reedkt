@@ -6,6 +6,7 @@ export * from './worker-concurrency-policy'
 export * from './rate-limit-policy'
 export * from './job-timeout-policy'
 export * from './kill-switch-policy'
+export * from './production-gateway-ops-controls'
 
 import { gpuCostPolicy } from './gpu-cost-policy'
 import { jobTimeoutPolicy } from './job-timeout-policy'

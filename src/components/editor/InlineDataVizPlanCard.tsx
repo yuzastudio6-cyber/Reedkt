@@ -4,6 +4,7 @@ import type {
   DataVizPlanItem,
   EditPlan,
 } from '../../types/reeditpro'
+import { toUserFacingToolCopy } from '../../lib/user-facing-tool-copy'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineDataVizPlanCardProps = {
@@ -32,14 +33,13 @@ function DataVizItem({ item }: { item: DataVizPlanItem }) {
       <div>
         <span className="section-eyebrow">{label(item.visualType)} / {label(item.creditImpact)}</span>
         <h4>{item.title}</h4>
-        <p>{item.purpose}</p>
+        <p>{toUserFacingToolCopy(item.purpose)}</p>
       </div>
 
       <div className="understanding-chip-row">
-        {item.toolIds.includes('d3') && <span className="dataviz-tool-badge">D3 planned</span>}
-        {item.toolIds.includes('echarts') && <span className="dataviz-tool-badge">ECharts planned</span>}
-        {item.toolIds.includes('vega_lite') && <span className="dataviz-tool-badge">Vega-Lite future</span>}
-        {item.toolIds.includes('remotion') && <span className="dataviz-tool-badge">Remotion composed</span>}
+        {item.toolIds.length > 0 && <span className="dataviz-tool-badge">Controlled chart build planned</span>}
+        {item.toolIds.includes('vega_lite') && <span className="dataviz-tool-badge">Future chart grammar candidate</span>}
+        {item.toolIds.includes('remotion') && <span className="dataviz-tool-badge">Renderer composed</span>}
         <span className="dataviz-no-render-note">No real chart render</span>
         {item.dataPlan.sourceNeeded && <span className="dataviz-source-needed-badge">Source needed</span>}
         {item.dataPlan.mockData && <span className="dataviz-mock-data-badge">Mock data</span>}
@@ -55,8 +55,8 @@ function DataVizItem({ item }: { item: DataVizPlanItem }) {
         <span><strong>Style</strong>{label(item.style.styleFamily)} / {item.style.labelDensity} labels</span>
         <span><strong>Animation</strong>{label(item.animation.animationType)} / {item.animation.durationMs}ms</span>
         <span><strong>Layout</strong>{label(item.layout.layoutMode)} / safe {item.layout.safeMargins}px</span>
-        <span><strong>Preferred tool</strong>{label(item.preferredTool)}</span>
-        <span><strong>Tools</strong>{item.toolIds.map(label).join(', ')}</span>
+        <span><strong>Preferred method</strong>controlled chart build</span>
+        <span><strong>Execution support</strong>{item.toolIds.length} capability group{item.toolIds.length === 1 ? '' : 's'} planned</span>
         <span><strong>Capabilities</strong>{item.remotionCapabilities.map(label).join(', ')}</span>
       </div>
 
@@ -66,7 +66,7 @@ function DataVizItem({ item }: { item: DataVizPlanItem }) {
         <span><strong>Max labels</strong>{item.layout.maxLabelCount ?? 'auto'}</span>
       </div>
 
-      <p className="dataviz-controlled-tool-note">{item.whyNotAiVideo}</p>
+      <p className="dataviz-controlled-tool-note">{toUserFacingToolCopy(item.whyNotAiVideo)}</p>
 
       <details className="understanding-section">
         <summary>Data nodes, fallback, QA, and worker notes</summary>
@@ -156,12 +156,12 @@ export function InlineDataVizPlanCard({ descriptor, plan }: InlineDataVizPlanCar
       <details className="understanding-section">
         <summary>Rules and limitations</summary>
         <div className="dataviz-animation-summary">
-          <span><strong>Rules</strong>{dataVizPlan.globalRules.join(' ')}</span>
-          <span><strong>QA</strong>{dataVizPlan.qaChecks.join(' ')}</span>
-          <span><strong>Limitations</strong>{dataVizPlan.limitations.join(' ')}</span>
-          <span><strong>Notes</strong>{dataVizPlan.notes.join(' ')}</span>
+          <span><strong>Rules</strong>{toUserFacingToolCopy(dataVizPlan.globalRules.join(' '))}</span>
+          <span><strong>QA</strong>{toUserFacingToolCopy(dataVizPlan.qaChecks.join(' '))}</span>
+          <span><strong>Limitations</strong>{toUserFacingToolCopy(dataVizPlan.limitations.join(' '))}</span>
+          <span><strong>Notes</strong>{toUserFacingToolCopy(dataVizPlan.notes.join(' '))}</span>
         </div>
-        <Badge accent="cyan">D3/ECharts/Remotion planning only</Badge>
+        <Badge accent="cyan">Controlled chart planning only</Badge>
       </details>
     </InlinePlanCardShell>
   )

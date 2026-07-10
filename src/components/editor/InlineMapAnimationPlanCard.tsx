@@ -4,6 +4,7 @@ import type {
   EditPlan,
   MapAnimationPlanItem,
 } from '../../types/reeditpro'
+import { toUserFacingToolCopy } from '../../lib/user-facing-tool-copy'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineMapAnimationPlanCardProps = {
@@ -35,13 +36,12 @@ function MapItem({ item }: { item: MapAnimationPlanItem }) {
       <div>
         <span className="section-eyebrow">{label(item.mapVisualType)} / {label(item.creditImpact)}</span>
         <h4>{item.title}</h4>
-        <p>{item.purpose}</p>
+        <p>{toUserFacingToolCopy(item.purpose)}</p>
       </div>
 
       <div className="understanding-chip-row">
-        {item.toolIds.includes('maplibre') && <span className="map-tool-badge">MapLibre planned</span>}
-        {item.toolIds.includes('turf') && <span className="map-tool-badge">Turf planned</span>}
-        {item.toolIds.includes('remotion') && <span className="map-tool-badge">Remotion composed</span>}
+        {item.toolIds.length > 0 && <span className="map-tool-badge">Controlled map build planned</span>}
+        {item.toolIds.includes('remotion') && <span className="map-tool-badge">Renderer composed</span>}
         <span className="map-no-render-note">No real map render</span>
         {item.locations.some((location) => location.sourceNeeded) && <span className="map-source-needed-badge">Location source needed</span>}
         {item.layout.foregroundMaskAware && <span className="map-confidence-badge">Map behind subject</span>}
@@ -54,8 +54,8 @@ function MapItem({ item }: { item: MapAnimationPlanItem }) {
         <span><strong>Style</strong>{label(item.style.styleFamily)} / {item.style.labelDensity} labels</span>
         <span><strong>Camera</strong>{label(item.camera.animationType)} / zoom {item.camera.zoom ?? 'auto'} / pitch {item.camera.pitch ?? 'auto'}</span>
         <span><strong>Layout</strong>{label(item.layout.layoutMode)} / safe {item.layout.safeMargins}px</span>
-        <span><strong>Tools</strong>{item.toolIds.map(label).join(', ')}</span>
-        <span><strong>Capabilities</strong>{item.remotionCapabilities.map(label).join(', ')}</span>
+        <span><strong>Build paths</strong>{item.toolIds.length ? `${item.toolIds.length} planned` : 'none'}</span>
+        <span><strong>Renderer capabilities</strong>{item.remotionCapabilities.length ? `${item.remotionCapabilities.length} planned` : 'none'}</span>
         <span><strong>SoundSync</strong>{item.soundSyncCueIds.join(', ') || 'none'}</span>
       </div>
 
@@ -66,21 +66,21 @@ function MapItem({ item }: { item: MapAnimationPlanItem }) {
         </div>
       )}
 
-      <p className="map-controlled-tool-note">{item.reason}</p>
+      <p className="map-controlled-tool-note">{toUserFacingToolCopy(item.reason)}</p>
 
       <details className="understanding-section">
         <summary>Fallback, QA, and worker notes</summary>
         <div className="map-layout-summary">
-          <span><strong>Fallback</strong>{item.fallbackStrategy.join(' ')}</span>
+          <span><strong>Fallback</strong>{toUserFacingToolCopy(item.fallbackStrategy.join(' '))}</span>
           <span><strong>Depth</strong>{label(item.layout.depthCompositingMode)} / {label(item.layout.maskStrategy)}</span>
           <span><strong>Label avoid zones</strong>{item.layout.labelAvoidZones.length}</span>
         </div>
         <ul>
           {item.qaChecks.slice(0, 5).map((qaCheck) => (
-            <li key={qaCheck}>{qaCheck}</li>
+            <li key={qaCheck}>{toUserFacingToolCopy(qaCheck)}</li>
           ))}
         </ul>
-        <p className="map-no-render-note">{item.workerNotes.join(' ')}</p>
+        <p className="map-no-render-note">{toUserFacingToolCopy(item.workerNotes.join(' '))}</p>
       </details>
     </article>
   )
@@ -102,7 +102,7 @@ export function InlineMapAnimationPlanCard({ descriptor, plan }: InlineMapAnimat
       compactSummary={(
         <div className="compact-summary-row">
           <span className="compact-summary-chip">{mapAnimationPlan.items.length} map items</span>
-          <span className="compact-summary-chip">{mapAnimationPlan.mapToolsPlanned.map(label).join(', ')}</span>
+          <span className="compact-summary-chip">{mapAnimationPlan.mapToolsPlanned.length} controlled build paths</span>
           <span className="compact-summary-chip">{sourceNeeded} source-needed</span>
           <span className="compact-summary-chip">planning only</span>
         </div>
@@ -123,14 +123,14 @@ export function InlineMapAnimationPlanCard({ descriptor, plan }: InlineMapAnimat
 
       <div className="understanding-chip-row">
         {mapAnimationPlan.mapToolsPlanned.map((toolId) => (
-          <span className="map-tool-badge" key={toolId}>{label(toolId)}</span>
+          <span className="map-tool-badge" key={toolId}>Controlled map build</span>
         ))}
         <span className="map-controlled-tool-note">Controlled tool, not AI video</span>
         <span className="map-no-render-note">No geocoding</span>
         <span className="map-no-render-note">No tile calls</span>
       </div>
 
-      <p>{mapAnimationPlan.summary}</p>
+      <p>{toUserFacingToolCopy(mapAnimationPlan.summary)}</p>
 
       <details className="understanding-section" open={descriptor?.status === 'warning' || descriptor?.status === 'blocking'}>
         <summary>Map plan items</summary>
@@ -144,12 +144,12 @@ export function InlineMapAnimationPlanCard({ descriptor, plan }: InlineMapAnimat
       <details className="understanding-section">
         <summary>Rules and limitations</summary>
         <div className="map-style-summary">
-          <span><strong>Rules</strong>{mapAnimationPlan.globalRules.join(' ')}</span>
-          <span><strong>QA</strong>{mapAnimationPlan.qaChecks.join(' ')}</span>
-          <span><strong>Limitations</strong>{mapAnimationPlan.limitations.join(' ')}</span>
-          <span><strong>Notes</strong>{mapAnimationPlan.notes.join(' ')}</span>
+          <span><strong>Rules</strong>{toUserFacingToolCopy(mapAnimationPlan.globalRules.join(' '))}</span>
+          <span><strong>QA</strong>{toUserFacingToolCopy(mapAnimationPlan.qaChecks.join(' '))}</span>
+          <span><strong>Limitations</strong>{toUserFacingToolCopy(mapAnimationPlan.limitations.join(' '))}</span>
+          <span><strong>Notes</strong>{toUserFacingToolCopy(mapAnimationPlan.notes.join(' '))}</span>
         </div>
-        <Badge accent="cyan">MapLibre/Turf/Remotion planning only</Badge>
+        <Badge accent="cyan">Controlled map planning only</Badge>
       </details>
     </InlinePlanCardShell>
   )

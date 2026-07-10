@@ -18,6 +18,7 @@ export function validateRenderExecutionInput(input: FinalRenderExecutionInput): 
 
   validatePaths(input, issues)
   validateRenderSettings(input, issues)
+  validateApprovedFinish(input, issues)
   validateExportSettings(input, issues)
 
   if (requiredAssetCount(input) === 0) issues.push(blocking('missing_required_assets', 'Final render requires at least one private source/proxy/timeline/render asset reference.'))
@@ -27,6 +28,26 @@ export function validateRenderExecutionInput(input: FinalRenderExecutionInput): 
   }
 
   return { valid: !issues.some((issue) => issue.severity === 'blocking'), issues }
+}
+
+function validateApprovedFinish(
+  input: FinalRenderExecutionInput,
+  issues: RenderExecutionValidationResult['issues'],
+): void {
+  const audio = input.approvedAudioSpec
+  if (audio) {
+    if (audio.targetLufs < -24 || audio.targetLufs > -10 || audio.truePeakDb < -6 || audio.truePeakDb > -0.1) {
+      issues.push(blocking('approved_audio_settings_invalid', 'Approved audio settings are outside the bounded execution range.'))
+    }
+    if (audio.evidenceBasis.length === 0) issues.push(blocking('approved_audio_evidence_missing', 'Approved audio settings require evidence lineage.'))
+  }
+  const color = input.approvedColorSpec
+  if (color) {
+    if (color.brightness < -0.08 || color.brightness > 0.08 || color.contrast < 0.85 || color.contrast > 1.2 || color.saturation < 0.8 || color.saturation > 1.25 || color.gamma < 0.8 || color.gamma > 1.2 || color.warmth < -0.08 || color.warmth > 0.08) {
+      issues.push(blocking('approved_color_settings_invalid', 'Approved color settings are outside the bounded execution range.'))
+    }
+    if (color.evidenceBasis.length === 0) issues.push(blocking('approved_color_evidence_missing', 'Approved color settings require evidence lineage.'))
+  }
 }
 
 export function validateRenderExecutionManifest(manifest: RenderExecutionManifest): RenderExecutionValidationResult {
@@ -69,6 +90,7 @@ function validatePaths(
     ['proxyLocalPath', input.proxyLocalPaths ?? []],
     ['captionLocalPath', input.captionLocalPaths ?? []],
     ['captionOverlayLocalPath', input.captionOverlayInputs?.map((item) => item.localPath) ?? []],
+    ['visualOverlayLocalPath', input.visualOverlayInputs?.map((item) => item.localPath) ?? []],
     ['audioLocalPath', input.audioLocalPaths ?? []],
     ['outputDirectory', input.outputDirectory ? [input.outputDirectory] : []],
   ] as const) {
@@ -107,6 +129,18 @@ function validatePaths(
       if ((overlay.x !== undefined && overlay.x < 0) || (overlay.y !== undefined && overlay.y < 0)) {
         issues.push(blocking('caption_overlay_position_invalid', 'Caption overlay positions must stay inside the approved frame.'))
       }
+    }
+    for (const overlay of input.visualOverlayInputs ?? []) {
+      if (!existsSync(overlay.localPath)) issues.push(blocking('visual_overlay_missing', 'A required private visual overlay is missing.'))
+      if (overlay.startSeconds < 0 || overlay.endSeconds <= overlay.startSeconds || overlay.endSeconds > input.durationSeconds + 0.05) {
+        issues.push(blocking('visual_overlay_timing_invalid', 'A visual overlay has an invalid approved timeline range.'))
+      }
+      if (overlay.x < 0 || overlay.y < 0 || overlay.x + overlay.width > input.canvas.width || overlay.y + overlay.height > input.canvas.height) {
+        issues.push(blocking('visual_overlay_position_invalid', 'Visual overlays must stay inside the approved frame.'))
+      }
+    }
+    if (input.enableVisualOverlays === true && (input.visualOverlayInputs?.length ?? 0) === 0) {
+      issues.push(blocking('visual_overlay_input_missing', 'Approved visual overlay execution requires validated private overlay inputs.'))
     }
     if (input.enableCaptionBurnIn === true && (input.captionOverlayInputs?.length ?? 0) === 0 && (input.captionLocalPaths?.length ?? 0) === 0) {
       issues.push(blocking('caption_burnin_input_missing', 'Caption burn-in requires validated ASS or raster overlay inputs.'))

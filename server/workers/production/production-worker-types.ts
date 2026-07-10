@@ -128,7 +128,8 @@ export interface ProductionWorkerRouteOutput {
   summary: string
   workerType: ProductionWorkerRuntimeType
   executionMode: ProductionWorkerExecutionMode
-  mockOnly: true
+  mockOnly: boolean
+  realToolExecution?: boolean
   futureHandler: string
   mediaFoundationResult?: unknown
   speechFoundationResult?: unknown
@@ -143,6 +144,9 @@ export interface ProductionWorkerRouteOutput {
   maskCompositionResult?: unknown
   enhancementSlowMotionResult?: unknown
   finalRenderExecutionResult?: unknown
+  captionExecutionResult?: unknown
+  toolReadinessResult?: unknown
+  trackANativeValidationResult?: unknown
 }
 
 export interface ProductionWorkerExecutionResult {

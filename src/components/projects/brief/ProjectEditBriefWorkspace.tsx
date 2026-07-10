@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { MessageSquareText } from 'lucide-react'
+import { AlertTriangle, LoaderCircle, MessageSquareText, Sparkles } from 'lucide-react'
 import { Badge } from '../../Badge'
 import { Button } from '../../Button'
 import { Card } from '../../Card'
@@ -21,6 +21,16 @@ import {
   readProjectEditPlanBackendLocal,
 } from '../../../lib/project-edit-plan-backend-local'
 import { buildProjectEditPlanApprovalModel } from '../../../lib/project-edit-plan-approval'
+import {
+  createProjectEditPlanBriefLineage,
+  getProjectEditPlanOutputFrameDimensions,
+} from '../../../lib/project-edit-plan-approval'
+import { createAutonomousEditPlan } from '../../../lib/autonomous-edit-planning-api'
+import { buildAutonomousEditPlanApprovalModel } from '../../../lib/autonomous-edit-plan-approval'
+import {
+  readAutonomousPrivateReview,
+  type AutonomousPrivateReviewExecutionView,
+} from '../../../lib/autonomous-private-review-api'
 import { resolveProjectEditPlanDirection } from '../../../lib/project-edit-skill-aware-plan'
 import { buildProjectEditLifecycleModel } from '../../../lib/project-edit-lifecycle'
 import {
@@ -81,6 +91,10 @@ import type {
   ProjectSourceVideoPreviewReviewResult,
   ProjectSourceVideoProfessionalQAResult,
 } from '../../../types/project-source-video'
+import type {
+  AutonomousEditPlanningAttempt,
+  AutonomousEditOutputFrame,
+} from '../../../types'
 import type { ProjectEditBriefVideoShellModel } from '../../../lib/project-edit-brief-ui-adapter'
 import type {
   ProjectEditSessionApprovalStatus,
@@ -93,6 +107,8 @@ import { ProjectEditBriefProfessionalQACard } from './ProjectEditBriefProfession
 import { ProjectEditBriefSourceVideoPicker } from './ProjectEditBriefSourceVideoPicker'
 import { ProjectEditBriefSourceVideoSummary } from './ProjectEditBriefSourceVideoSummary'
 import { ProjectEditBriefVideoShell } from './ProjectEditBriefVideoShell'
+import { ProjectEditAutonomousPrivateReviewCard } from './ProjectEditAutonomousPrivateReviewCard'
+import { ProjectEditReferenceVideoPicker } from './ProjectEditReferenceVideoPicker'
 
 type ProjectEditBriefWorkspaceProps = {
   backendLocalEditSession?: ProjectEditSessionBackendLocalRecord
@@ -102,7 +118,7 @@ type ProjectEditBriefWorkspaceProps = {
 }
 
 type EditWorkspaceFlowStep = {
-  id: 'source' | 'brief' | 'plan' | 'preview' | 'review' | 'quality' | 'export'
+  id: 'source' | 'brief' | 'plan' | 'edit' | 'preview' | 'review' | 'quality' | 'export'
   label: string
   status: 'complete' | 'current' | 'locked' | 'optional'
   summary: string
@@ -118,7 +134,23 @@ function buildEditWorkspaceFlowSteps(input: {
   previewReviewed: boolean
   qualityPassed: boolean
   exportReady: boolean
+  autonomousPipeline?: boolean
+  autonomousReviewReady?: boolean
 }): EditWorkspaceFlowStep[] {
+  if (input.autonomousPipeline) {
+    const compactDefinitions: Array<Omit<EditWorkspaceFlowStep, 'status'> & { blocksNext: boolean; complete: boolean }> = [
+      { id: 'source', label: 'Source', blocksNext: true, complete: input.sourceUploaded, summary: input.sourceUploaded ? 'Video is attached to this edit.' : 'Upload the video for this edit.' },
+      { id: 'brief', label: 'Direction', blocksNext: false, complete: input.briefSaved, summary: input.briefSaved ? 'Optional direction is saved.' : 'Optional: add more direction.' },
+      { id: 'plan', label: 'Plan', blocksNext: true, complete: input.planApproved, summary: input.planApproved ? 'Plan and estimate are approved.' : 'Review and approve the source-aware plan.' },
+      { id: 'edit', label: 'Edit', blocksNext: true, complete: input.autonomousReviewReady === true, summary: input.autonomousReviewReady ? 'The approved edit and technical checks are complete.' : 'Execute the approved private edit.' },
+      { id: 'review', label: 'Review', blocksNext: true, complete: false, summary: input.autonomousReviewReady ? 'Review the finished private edit.' : 'The private review appears after editing completes.' },
+    ]
+    const firstIncompleteIndex = compactDefinitions.findIndex((step) => !step.complete && step.blocksNext)
+    return compactDefinitions.map((step, index) => ({
+      id: step.id, label: step.label, summary: step.summary,
+      status: step.complete ? 'complete' : !step.blocksNext && input.sourceUploaded ? 'optional' : index === firstIncompleteIndex ? 'current' : 'locked',
+    }))
+  }
   const definitions: Array<Omit<EditWorkspaceFlowStep, 'status'> & { blocksNext: boolean; complete: boolean }> = [
     {
       id: 'source',
@@ -197,6 +229,11 @@ export function ProjectEditBriefWorkspace({
   const localPreviewConfig = useMemo(() => createProjectSourceVideoLocalEditPreviewConfig(import.meta.env), [])
   const [sourceFile, setSourceFile] = useState<File | undefined>()
   const [sourceVideo, setSourceVideo] = useState<ProjectSourceVideoLocalPreview | undefined>()
+  const [referenceFile, setReferenceFile] = useState<File | undefined>()
+  const [referenceVideo, setReferenceVideo] = useState<ProjectSourceVideoLocalPreview | undefined>()
+  const [referenceUploadStatus, setReferenceUploadStatus] = useState<ProjectSourceVideoBackendUploadStatus>(() => backendUploadConfig.available ? 'idle' : 'unavailable')
+  const [referenceUploadResult, setReferenceUploadResult] = useState<ProjectSourceVideoBackendUploadResult | undefined>()
+  const [referenceUploadError, setReferenceUploadError] = useState<string | undefined>()
   const [backendUploadStatus, setBackendUploadStatus] = useState<ProjectSourceVideoBackendUploadStatus>(() => backendUploadConfig.available ? 'idle' : 'unavailable')
   const [backendUploadResult, setBackendUploadResult] = useState<ProjectSourceVideoBackendUploadResult | undefined>()
   const [backendUploadError, setBackendUploadError] = useState<string | undefined>()
@@ -209,6 +246,10 @@ export function ProjectEditBriefWorkspace({
   const [playing, setPlaying] = useState(false)
   const [playheadSeconds, setPlayheadSeconds] = useState(0)
   const [briefText, setBriefText] = useState('')
+  const [editPrompt, setEditPrompt] = useState('')
+  const [planningAttempt, setPlanningAttempt] = useState<AutonomousEditPlanningAttempt | undefined>()
+  const [planningStatus, setPlanningStatus] = useState<'idle' | 'analyzing' | 'ready' | 'blocked' | 'failed'>('idle')
+  const [planningError, setPlanningError] = useState<string | undefined>()
   const [briefSaved, setBriefSaved] = useState(false)
   const [briefSaveStatus, setBriefSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>(briefConfig.available ? 'idle' : 'failed')
   const [briefSaveError, setBriefSaveError] = useState<string | undefined>(briefConfig.available ? undefined : briefConfig.message)
@@ -219,16 +260,24 @@ export function ProjectEditBriefWorkspace({
   const [backendApprovedLocalPlan, setBackendApprovedLocalPlan] = useState<ProjectEditPlanBackendApprovalResult | undefined>()
   const [previewReviewResult, setPreviewReviewResult] = useState<ProjectSourceVideoPreviewReviewResult | undefined>()
   const [professionalQAResult, setProfessionalQAResult] = useState<ProjectSourceVideoProfessionalQAResult | undefined>()
+  const [autonomousPrivateReview, setAutonomousPrivateReview] = useState<AutonomousPrivateReviewExecutionView | undefined>()
   const [statusMessage, setStatusMessage] = useState('Ready for source video and brief notes.')
   const sourceVideoRef = useRef<ProjectSourceVideoLocalPreview | undefined>(undefined)
+  const referenceVideoRef = useRef<ProjectSourceVideoLocalPreview | undefined>(undefined)
   const briefDraftResetPersistedRef = useRef(false)
+  const autonomousReviewCheckpointRef = useRef<string | undefined>(undefined)
 
   useEffect(() => {
     sourceVideoRef.current = sourceVideo
   }, [sourceVideo])
 
+  useEffect(() => {
+    referenceVideoRef.current = referenceVideo
+  }, [referenceVideo])
+
   useEffect(() => () => {
     revokeProjectSourceVideoLocalPreview(sourceVideoRef.current)
+    revokeProjectSourceVideoLocalPreview(referenceVideoRef.current)
   }, [])
 
   useEffect(() => () => {
@@ -247,7 +296,7 @@ export function ProjectEditBriefWorkspace({
     title: sourceVideo?.fileName ?? backendUploadResult?.fileName ?? 'Source video',
     mockPosterLabel: 'Select a source video',
   }), [backendUploadResult, playheadSeconds, sourceVideo])
-  const planApprovalModel = useMemo(() => buildProjectEditPlanApprovalModel({
+  const compatibilityPlanApprovalModel = useMemo(() => buildProjectEditPlanApprovalModel({
     approved: planApproved,
     backendUploadResult,
     briefSaved: Boolean(backendSavedBrief?.readbackVerified) && briefSaved,
@@ -262,6 +311,48 @@ export function ProjectEditBriefWorkspace({
     sourceDurationSeconds: sourceVideo?.durationSeconds,
     sourceFileName: sourceVideo?.fileName ?? backendUploadResult?.fileName,
   }), [backendLocalEditSession, backendSavedBrief, backendUploadResult, briefSaved, briefText, editSessionId, outputFrameConfirmed, planApproved, projectId, sourceVideo])
+  const autonomousOutputFrame = useMemo<AutonomousEditOutputFrame | undefined>(() => {
+    const aspectRatio = backendLocalEditSession?.aspectRatio
+    const platformTarget = backendLocalEditSession?.platformTarget
+    const dimensions = getProjectEditPlanOutputFrameDimensions(aspectRatio)
+    if (!outputFrameConfirmed || !aspectRatio || !platformTarget || !dimensions) return undefined
+    return {
+      aspectRatio,
+      platformTarget,
+      width: dimensions.width,
+      height: dimensions.height,
+      confirmed: true,
+    }
+  }, [backendLocalEditSession, outputFrameConfirmed])
+  const autonomousPlanApprovalModel = useMemo(() => {
+    if (!planningAttempt?.plan || !backendUploadResult) return undefined
+    return buildAutonomousEditPlanApprovalModel({
+      attemptId: planningAttempt.attemptId,
+      draft: planningAttempt.plan,
+      directionSource: backendSavedBrief?.readbackVerified ? 'saved_edit_brief' : 'chat_prompt',
+      sourceVideoUploadResult: backendUploadResult,
+    })
+  }, [backendSavedBrief, backendUploadResult, planningAttempt])
+  const planApprovalModel = useMemo<ProjectEditPlanApprovalModel>(() => {
+    if (autonomousPlanApprovalModel) return autonomousPlanApprovalModel
+    return {
+      ...compatibilityPlanApprovalModel,
+      approved: false,
+      canApprove: false,
+      status: planningStatus === 'analyzing' ? 'analyzing' : 'waiting_for_analysis',
+      blockers: planningStatus === 'blocked' || planningStatus === 'failed'
+        ? planningAttempt?.blockers.length
+          ? planningAttempt.blockers
+          : [planningError ?? 'source_aware_plan_required']
+        : ['source_aware_plan_required'],
+      title: 'Build the edit plan',
+      summary: 'ReEditPro must analyze this source and compile your direction into an evidence-backed plan before approval.',
+      steps: [],
+      warnings: [
+        'The generic compatibility plan is not approvable. Approval requires a source-aware autonomous plan.',
+      ],
+    }
+  }, [autonomousPlanApprovalModel, compatibilityPlanApprovalModel, planningAttempt, planningError, planningStatus])
   const visiblePlanApprovalModel = useMemo<ProjectEditPlanApprovalModel>(() => {
     const approvedLocalPlan = backendApprovedLocalPlan?.localEditPlan.approvedLocalPlan
     if (!approvedLocalPlan || !backendApprovedLocalPlan.localEditPlan.readbackVerified) return planApprovalModel
@@ -279,6 +370,7 @@ export function ProjectEditBriefWorkspace({
       steps: approvedLocalPlan.steps,
       summary: approvedLocalPlan.summary,
       title: approvedLocalPlan.title,
+      planningEvidence: approvedLocalPlan.planningEvidence,
     }
   }, [backendApprovedLocalPlan, planApprovalModel])
   const currentPreviewResult = useMemo(() => previewResultMatchesApprovedEvidence({
@@ -375,8 +467,11 @@ export function ProjectEditBriefWorkspace({
     previewReviewed: currentPreviewReviewResult?.reviewStatus === 'approved',
     qualityPassed: currentProfessionalQAResult?.status === 'passed',
     exportReady: Boolean(currentFinalExportResult),
-  }), [backendApprovedLocalPlan, backendSavedBrief, backendUploadResult, briefSaved, currentFinalExportResult, currentPreviewResult, currentPreviewReviewResult, currentProfessionalQAResult])
+    autonomousPipeline: Boolean(backendApprovedLocalPlan?.executionGate),
+    autonomousReviewReady: autonomousPrivateReview?.status === 'private_review_ready',
+  }), [autonomousPrivateReview, backendApprovedLocalPlan, backendSavedBrief, backendUploadResult, briefSaved, currentFinalExportResult, currentPreviewResult, currentPreviewReviewResult, currentProfessionalQAResult])
   const currentFlowStep = editFlowSteps.find((step) => step.status === 'current') ?? editFlowSteps[editFlowSteps.length - 1]
+  const referenceReadyForPlanning = !referenceVideo || Boolean(referenceUploadResult)
 
   useEffect(() => {
     let cancelled = false
@@ -498,8 +593,25 @@ export function ProjectEditBriefWorkspace({
     }
   }, [backendApprovedLocalPlan, backendLocalEditSession, backendSavedBrief, backendUploadConfig.apiBaseUrl, backendUploadConfig.workspaceId, backendUploadResult, editSessionId, projectId, sourceVideo])
 
+  useEffect(() => {
+    let cancelled = false
+    const gate = backendApprovedLocalPlan?.executionGate
+    if (!gate || !backendUploadConfig.apiBaseUrl || autonomousPrivateReview) return
+    readAutonomousPrivateReview({
+      apiBaseUrl: backendUploadConfig.apiBaseUrl,
+      planId: gate.planId,
+      workspaceId: backendUploadConfig.workspaceId,
+    }).then((execution) => {
+      if (!cancelled) setAutonomousPrivateReview(execution)
+    }).catch(() => {
+      // A newly approved plan has no execution record until the user starts the edit.
+    })
+    return () => { cancelled = true }
+  }, [autonomousPrivateReview, backendApprovedLocalPlan, backendUploadConfig.apiBaseUrl, backendUploadConfig.workspaceId])
+
   function resetLocalEditProgress(message: string) {
     briefDraftResetPersistedRef.current = false
+    autonomousReviewCheckpointRef.current = undefined
     setMainPlaybackMode('source')
     setMainReviewArtifact(undefined)
     setMainReviewArtifactLoading(false)
@@ -507,10 +619,14 @@ export function ProjectEditBriefWorkspace({
     setBackendUploadResult(undefined)
     setBackendUploadError(undefined)
     setLocalPreviewResult(undefined)
+    setAutonomousPrivateReview(undefined)
     setLocalFinalExportResult(undefined)
     setPlanApproved(false)
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
+    setPlanningAttempt(undefined)
+    setPlanningStatus('idle')
+    setPlanningError(undefined)
     setBackendApprovedLocalPlan(undefined)
     setPreviewReviewResult(undefined)
     setProfessionalQAResult(undefined)
@@ -624,6 +740,71 @@ export function ProjectEditBriefWorkspace({
       : current)
   }
 
+  function invalidateAutonomousPlan(message: string) {
+    setPlanningAttempt(undefined)
+    setPlanningStatus('idle')
+    setPlanningError(undefined)
+    setPlanApproved(false)
+    setPlanApprovalStatus('idle')
+    setPlanApprovalError(undefined)
+    setBackendApprovedLocalPlan(undefined)
+    setLocalPreviewResult(undefined)
+    setAutonomousPrivateReview(undefined)
+    setPreviewReviewResult(undefined)
+    setProfessionalQAResult(undefined)
+    setLocalFinalExportResult(undefined)
+    setStatusMessage(message)
+  }
+
+  function handleReferenceVideoSelected(file: File) {
+    try {
+      const preview = createProjectSourceVideoLocalPreviewFromFile(file)
+      revokeProjectSourceVideoLocalPreview(referenceVideo)
+      setReferenceFile(file)
+      setReferenceVideo(preview)
+      setReferenceUploadResult(undefined)
+      setReferenceUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
+      setReferenceUploadError(undefined)
+      invalidateAutonomousPlan('Style reference selected. Upload it privately before rebuilding the edit plan.')
+    } catch {
+      setReferenceUploadError('Choose a browser-supported reference video file.')
+    }
+  }
+
+  function clearReferenceVideo() {
+    revokeProjectSourceVideoLocalPreview(referenceVideo)
+    setReferenceFile(undefined)
+    setReferenceVideo(undefined)
+    setReferenceUploadResult(undefined)
+    setReferenceUploadStatus(backendUploadConfig.available ? 'idle' : 'unavailable')
+    setReferenceUploadError(undefined)
+    invalidateAutonomousPlan('Style reference removed. Rebuild the plan from the source and your direction.')
+  }
+
+  async function uploadReferenceForTesting() {
+    if (!referenceFile || !backendUploadConfig.available || !backendUploadConfig.apiBaseUrl) return
+    setReferenceUploadStatus('uploading')
+    setReferenceUploadError(undefined)
+    invalidateAutonomousPlan('Uploading the private style reference. No edit work has started.')
+    try {
+      const result = await uploadProjectSourceVideoToBackend({
+        apiBaseUrl: backendUploadConfig.apiBaseUrl,
+        editSessionId,
+        file: referenceFile,
+        projectId,
+        uploadPurpose: 'reference_media',
+        workspaceId: backendUploadConfig.workspaceId,
+      })
+      setReferenceUploadResult(result)
+      setReferenceUploadStatus('uploaded')
+      setStatusMessage('Private style reference is ready. ReEditPro will measure its editing language during planning and will not copy it.')
+    } catch (caught) {
+      setReferenceUploadStatus('failed')
+      setReferenceUploadError(caught instanceof Error ? caught.message : 'Private reference upload failed safely.')
+      setStatusMessage('Private reference upload failed safely. Remove it to plan without a reference, or try again.')
+    }
+  }
+
   async function recordLifecycleCheckpoint(input: {
     checkpointKind: ProjectEditSessionLifecycleCheckpointKind
     status: ProjectEditSessionStatus
@@ -650,10 +831,14 @@ export function ProjectEditBriefWorkspace({
     setBackendUploadStatus('uploading')
     setBackendUploadError(undefined)
     setLocalPreviewResult(undefined)
+    setAutonomousPrivateReview(undefined)
     setLocalFinalExportResult(undefined)
     setPlanApproved(false)
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
+    setPlanningAttempt(undefined)
+    setPlanningStatus('idle')
+    setPlanningError(undefined)
     setBackendApprovedLocalPlan(undefined)
     setPreviewReviewResult(undefined)
     setProfessionalQAResult(undefined)
@@ -733,6 +918,7 @@ export function ProjectEditBriefWorkspace({
       setStatusMessage('Backend-local direction save failed safely. You can still approve a plan from the current prompt or default professional direction.')
     }
     setLocalPreviewResult(undefined)
+    setAutonomousPrivateReview(undefined)
     setLocalFinalExportResult(undefined)
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
@@ -740,6 +926,9 @@ export function ProjectEditBriefWorkspace({
     setPreviewReviewResult(undefined)
     setProfessionalQAResult(undefined)
     setPlanApproved(false)
+    setPlanningAttempt(undefined)
+    setPlanningStatus('idle')
+    setPlanningError(undefined)
   }
 
   function updateBriefText(value: string) {
@@ -758,10 +947,14 @@ export function ProjectEditBriefWorkspace({
     setBriefSaveStatus(briefConfig.available ? 'idle' : 'failed')
     setBriefSaveError(briefConfig.available ? undefined : briefConfig.message)
     setLocalPreviewResult(undefined)
+    setAutonomousPrivateReview(undefined)
     setLocalFinalExportResult(undefined)
     setPlanApproved(false)
     setPlanApprovalStatus('idle')
     setPlanApprovalError(undefined)
+    setPlanningAttempt(undefined)
+    setPlanningStatus('idle')
+    setPlanningError(undefined)
     setBackendApprovedLocalPlan(undefined)
     setPreviewReviewResult(undefined)
     setProfessionalQAResult(undefined)
@@ -784,6 +977,74 @@ export function ProjectEditBriefWorkspace({
     }
   }
 
+  function updateEditPrompt(value: string) {
+    setEditPrompt(value)
+    invalidateAutonomousPlan('Edit request changed. Build a new source-aware plan before approval.')
+  }
+
+  async function buildSourceAwarePlan() {
+    if (!backendUploadResult || !backendUploadConfig.apiBaseUrl || !autonomousOutputFrame) return
+    if (!editPrompt.trim()) {
+      setPlanningStatus('blocked')
+      setPlanningError('Describe the edit you want before ReEditPro builds the plan.')
+      return
+    }
+    setPlanningStatus('analyzing')
+    setPlanningError(undefined)
+    setPlanningAttempt(undefined)
+    setPlanApproved(false)
+    setPlanApprovalStatus('idle')
+    setPlanApprovalError(undefined)
+    setBackendApprovedLocalPlan(undefined)
+    setLocalPreviewResult(undefined)
+    setAutonomousPrivateReview(undefined)
+    setPreviewReviewResult(undefined)
+    setProfessionalQAResult(undefined)
+    setLocalFinalExportResult(undefined)
+    setStatusMessage('Analyzing the private source and building an evidence-backed edit plan.')
+    try {
+      const savedBriefLineage = backendSavedBrief?.readbackVerified
+        ? createProjectEditPlanBriefLineage({
+            briefId: backendSavedBrief.id,
+            briefText: backendSavedBrief.briefText,
+            revisionNumber: backendSavedBrief.revisionNumber,
+          })
+        : undefined
+      const attempt = await createAutonomousEditPlan({
+        apiBaseUrl: backendUploadConfig.apiBaseUrl,
+        workspaceId: backendUploadConfig.workspaceId,
+        projectId,
+        editSessionId,
+        prompt: editPrompt,
+        outputFrame: autonomousOutputFrame,
+        sourceVideoUploadResult: backendUploadResult,
+        editBrief: backendSavedBrief?.readbackVerified && savedBriefLineage
+          ? {
+              briefId: backendSavedBrief.id,
+              revisionNumber: backendSavedBrief.revisionNumber,
+              briefFingerprint: savedBriefLineage.briefFingerprint,
+              summary: backendSavedBrief.briefText,
+            }
+          : undefined,
+        referenceVideoUploadResult: referenceUploadResult,
+      })
+      setPlanningAttempt(attempt)
+      if (attempt.status === 'completed' && attempt.plan?.status === 'ready_for_approval') {
+        setPlanningStatus('ready')
+        setStatusMessage('Source analysis and the professional edit plan are ready for your review.')
+      } else {
+        setPlanningStatus('blocked')
+        setPlanningError(attempt.blockers.join(' · ') || 'ReEditPro needs more source evidence before it can build a professional plan.')
+        setStatusMessage('Plan creation stopped safely because required evidence or configuration is missing.')
+      }
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Source-aware edit planning failed safely.'
+      setPlanningStatus('failed')
+      setPlanningError(message)
+      setStatusMessage(message)
+    }
+  }
+
   async function approveLocalPlan() {
     if (!planApprovalModel.canApprove || !backendUploadResult || !backendUploadConfig.apiBaseUrl) return
     const approvedPlanForBackend: ProjectEditPlanApprovalModel = {
@@ -795,6 +1056,7 @@ export function ProjectEditBriefWorkspace({
     setPlanApprovalStatus('approving')
     setPlanApprovalError(undefined)
     setLocalPreviewResult(undefined)
+    setAutonomousPrivateReview(undefined)
     setLocalFinalExportResult(undefined)
     setPreviewReviewResult(undefined)
     setProfessionalQAResult(undefined)
@@ -813,7 +1075,7 @@ export function ProjectEditBriefWorkspace({
         status: 'approved',
         approvalStatus: 'approved',
         sourceMediaAssetId: backendUploadResult.mediaAssetId,
-        latestSnapshotId: result.localEditPlan.id,
+        latestSnapshotId: result.executionGate?.approvedPlanSnapshotId ?? result.localEditPlan.id,
         metadata: createPlanApprovedCheckpointMetadata(result),
       })
       setBackendApprovedLocalPlan(result)
@@ -822,7 +1084,9 @@ export function ProjectEditBriefWorkspace({
       setLocalFinalExportResult(undefined)
       setPlanApproved(true)
       setPlanApprovalStatus('approved')
-      setStatusMessage('Local edit plan and credit estimate approved and read back from the backend-local plan gate.')
+      setStatusMessage(result.executionGate
+        ? 'Plan, estimate, reservation, immutable snapshot, and private work graph are ready. No edit worker has started yet.'
+        : 'Plan approval was recorded, but execution activation is not available for this compatibility plan.')
     } catch (caught) {
       setPlanApproved(false)
       setPlanApprovalStatus('failed')
@@ -832,6 +1096,38 @@ export function ProjectEditBriefWorkspace({
     }
   }
 
+  function handleAutonomousExecutionChange(execution: AutonomousPrivateReviewExecutionView) {
+    setAutonomousPrivateReview(execution)
+    if (execution.status !== 'private_review_ready' || autonomousReviewCheckpointRef.current === execution.executionId) return
+    autonomousReviewCheckpointRef.current = execution.executionId
+    void recordLifecycleCheckpoint({
+      checkpointKind: 'preview_ready',
+      status: 'preview_ready',
+      approvalStatus: 'approved',
+      sourceMediaAssetId: backendUploadResult?.mediaAssetId,
+      latestSnapshotId: execution.approvedPlanSnapshotId,
+      latestPreviewId: execution.executionId,
+      latestPreviewUrl: execution.outputObjectPath
+        ? `${execution.outputBucketName ?? 'preview'}/${execution.outputObjectPath}`
+        : undefined,
+      metadata: {
+        autonomousPrivateReviewExecutionId: execution.executionId,
+        previewStorageObjectRecordId: execution.previewStorageObjectRecordId,
+        artifactManifestStorageObjectRecordId: execution.artifactManifestStorageObjectRecordId,
+        qaReportStorageObjectRecordId: execution.qaReportStorageObjectRecordId,
+        technicalQaStatus: execution.qaSummary?.status,
+        userCreativeReviewRequired: true,
+        privateArtifactsOnly: true,
+        publicDeliveryAllowed: false,
+        productReady: false,
+      },
+    }).catch((caught) => {
+      setStatusMessage(caught instanceof Error
+        ? `Private review is ready, but lifecycle checkpoint failed safely: ${caught.message}`
+        : 'Private review is ready, but lifecycle checkpoint failed safely.')
+    })
+  }
+
   return (
     <section className="clean-edit-brief" data-testid="project-edit-brief-workspace">
       <Card className="clean-edit-brief__hero">
@@ -839,7 +1135,7 @@ export function ProjectEditBriefWorkspace({
           <span className="section-eyebrow">Edit setup</span>
           <h2>{editSessionTitle ?? 'Untitled edit'}</h2>
           <p>
-            Upload the source video for this edit, add optional direction if useful, then approve a clean private test plan before preview work starts.
+            Upload the source video, describe the result you want, and review the source-aware plan before any edit work begins.
           </p>
         </div>
         <Button to={`/projects/${projectId}`} variant="secondary">
@@ -920,6 +1216,67 @@ export function ProjectEditBriefWorkspace({
             <ProjectEditBriefSourceVideoSummary localPreview={sourceVideo} summary={sourceSummary} />
           </Card>
 
+          <Card className="clean-edit-brief__brief-card" data-testid="project-edit-autonomous-plan-composer">
+            <div className="clean-edit-brief__card-heading">
+              <Sparkles aria-hidden="true" size={22} />
+              <div>
+                <h3>What should this edit become?</h3>
+                <p>Describe the outcome. ReEditPro will analyze the uploaded source before proposing the plan.</p>
+              </div>
+            </div>
+            <label htmlFor="project-edit-prompt">Edit request</label>
+            <textarea
+              disabled={!backendUploadResult || planningStatus === 'analyzing'}
+              id="project-edit-prompt"
+              onChange={(event) => updateEditPrompt(event.currentTarget.value)}
+              placeholder="Example: Turn this into a sharp 45-second vertical story. Keep the speaker natural, emphasize the strongest ideas with polished captions and useful motion graphics, and finish with a clear takeaway."
+              rows={5}
+              value={editPrompt}
+            />
+            <ProjectEditReferenceVideoPicker
+              backendUploadConfig={backendUploadConfig}
+              backendUploadError={referenceUploadError}
+              backendUploadResult={referenceUploadResult}
+              backendUploadStatus={referenceUploadStatus}
+              localPreview={referenceVideo}
+              onClear={clearReferenceVideo}
+              onSelectFile={handleReferenceVideoSelected}
+              onUploadToBackend={uploadReferenceForTesting}
+            />
+            <Button
+              disabled={!backendUploadResult || !autonomousOutputFrame || !editPrompt.trim() || !referenceReadyForPlanning || planningStatus === 'analyzing'}
+              icon={planningStatus === 'analyzing' ? LoaderCircle : Sparkles}
+              onClick={() => void buildSourceAwarePlan()}
+              type="button"
+              variant="primary"
+            >
+              {planningStatus === 'analyzing' ? 'Analyzing source' : planningStatus === 'ready' ? 'Rebuild plan' : 'Analyze and build plan'}
+            </Button>
+            {!backendUploadResult ? (
+              <p className="project-edit-brief-muted">Upload and finalize the source video to unlock planning.</p>
+            ) : !autonomousOutputFrame ? (
+              <p className="project-edit-brief-muted">Confirm the output frame for this edit before planning.</p>
+            ) : !referenceReadyForPlanning ? (
+              <p className="project-edit-brief-muted">Upload the selected style reference, or remove it, before planning.</p>
+            ) : null}
+            {planningStatus === 'analyzing' ? (
+              <p className="project-edit-brief-muted" role="status">
+                Reading the source, transcript, visuals, and your direction. No edit work starts before approval.
+              </p>
+            ) : null}
+            {planningError ? (
+              <div className="project-edit-plan-approval-card__blockers" data-testid="project-edit-autonomous-plan-error">
+                <AlertTriangle aria-hidden="true" size={16} />
+                <span>{planningError.replace(/_/g, ' ')}</span>
+              </div>
+            ) : null}
+            {planningAttempt?.plan?.status === 'ready_for_approval' ? (
+              <p className="project-edit-brief-muted" data-testid="project-edit-autonomous-plan-ready">
+                Source-aware plan ready. Review the story, planned activity, and estimate before approval.
+              </p>
+            ) : null}
+          </Card>
+
           <Card className="clean-edit-brief__brief-card">
             <div className="clean-edit-brief__card-heading">
               <MessageSquareText aria-hidden="true" size={22} />
@@ -950,14 +1307,14 @@ export function ProjectEditBriefWorkspace({
         <aside className="clean-edit-brief__side">
           <Card className="clean-edit-brief__next-card">
             <span className="section-eyebrow">Next</span>
-            <h3>Approve the test plan</h3>
+            <h3>Review the edit plan</h3>
             <p>
-              After upload, approve the local edit plan and credit estimate before any preview smoke can run. Optional direction is included when present.
+              ReEditPro analyzes the uploaded video and your direction first. Approve only the resulting source-aware plan and estimate.
             </p>
             <ul>
               <li>Video stays inside this edit workspace.</li>
-              <li>Plan approval is explicit and reversible by changing the direction.</li>
-              <li>Editing tools do not run from this UI screen.</li>
+              <li>The Edit Brief is optional and supplements the request when saved.</li>
+              <li>Changing the request or brief invalidates the previous plan.</li>
             </ul>
           </Card>
           <ProjectEditPlanApprovalCard
@@ -971,6 +1328,17 @@ export function ProjectEditBriefWorkspace({
             <span className="section-eyebrow">Status</span>
             <p data-testid="project-edit-brief-status">{statusMessage}</p>
           </Card>
+          {backendApprovedLocalPlan?.executionGate ? (
+            <ProjectEditAutonomousPrivateReviewCard
+              apiBaseUrl={backendUploadConfig.apiBaseUrl}
+              execution={autonomousPrivateReview}
+              executionGate={backendApprovedLocalPlan.executionGate}
+              onExecutionChange={handleAutonomousExecutionChange}
+              onStatusMessage={setStatusMessage}
+              workspaceId={backendUploadConfig.workspaceId}
+            />
+          ) : (
+            <>
           <ProjectEditBriefLocalPreviewSmokeCard
             approvedLocalPlan={backendApprovedLocalPlan?.localEditPlan.approvedLocalPlan}
             config={localPreviewConfig}
@@ -1088,10 +1456,12 @@ export function ProjectEditBriefWorkspace({
             sourceVideoUploadResult={backendUploadResult}
             workspaceId={backendUploadConfig.workspaceId}
           />
+            </>
+          )}
           <Card className="clean-edit-brief__status-card">
             <span className="section-eyebrow">Architecture boundary</span>
             <p>
-              This edit can prove backend-local upload and preview-only internal smoke when explicitly enabled. Full professional editing still requires real plan generation, user approval, approved snapshot execution, QA, and final export gates.
+              Approved source-aware edits execute only in the backend and produce private review artifacts. Public delivery and paid production remain separate release gates.
             </p>
           </Card>
         </aside>

@@ -1,0 +1,254 @@
+name: ReEditPro Qwen Visual Runtime Internal Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type DEPLOY_PRIVATE_QWEN_VISUAL_RUNTIME"
+        required: true
+        type: string
+      source_ref:
+        description: "Exact source branch/ref containing the reviewed visual runtime"
+        required: true
+        type: string
+      source_sha:
+        description: "Exact 40-character commit SHA to deploy"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: reeditpro-qwen-visual-runtime-internal-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy private real-frame visual analysis runtime
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: staging
+    env:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID || vars.GCP_PROJECT_ID }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+      GCP_REGION: us-central1
+      QWEN_SERVICE_NAME: reeditpro-qwen2-5-vl-l4-worker
+
+    steps:
+      - name: Fail closed on scope or source mismatch
+        shell: bash
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          test "${CONFIRMATION}" = "DEPLOY_PRIVATE_QWEN_VISUAL_RUNTIME"
+          [[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+          [[ "${SOURCE_REF}" == codex/* ]]
+          test "${GCP_PROJECT_ID}" = "reeditpro"
+          test -n "${GCP_WORKLOAD_IDENTITY_PROVIDER}"
+          test -n "${GCP_SERVICE_ACCOUNT}"
+          test "${QWEN_SERVICE_NAME}" = "reeditpro-qwen2-5-vl-l4-worker"
+
+      - name: Checkout exact reviewed commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+
+      - name: Verify source and immutable commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor '${{ inputs.source_sha }}' HEAD
+          git checkout --detach '${{ inputs.source_sha }}'
+          test "$(git rev-parse HEAD)" = '${{ inputs.source_sha }}'
+          test -f docker/prod/qwen-visual-runtime/Dockerfile
+          test -f server/workers/qwen_visual_runtime/service.py
+          python3 -m py_compile server/workers/qwen_visual_runtime/service.py
+          git diff --exit-code -- package-lock.json .dockerignore docker/prod/qwen-visual-runtime/Dockerfile
+
+      - name: Authenticate to Google Cloud with OIDC
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+          cleanup_credentials: true
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Capture approved current service configuration
+        id: current
+        shell: bash
+        run: |
+          set -euo pipefail
+          service_json="$(mktemp)"
+          policy_json="$(mktemp)"
+          gcloud run services describe "${QWEN_SERVICE_NAME}" --project "${GCP_PROJECT_ID}" --region "${GCP_REGION}" --format=json > "${service_json}"
+          gcloud run services get-iam-policy "${QWEN_SERVICE_NAME}" --project "${GCP_PROJECT_ID}" --region "${GCP_REGION}" --format=json > "${policy_json}"
+          python3 - "${service_json}" "${policy_json}" "${GITHUB_OUTPUT}" <<'PY'
+          import json, sys
+          service = json.load(open(sys.argv[1], encoding='utf-8'))
+          policy = json.load(open(sys.argv[2], encoding='utf-8'))
+          output_path = sys.argv[3]
+          template = service.get('spec', {}).get('template', {})
+          spec = template.get('spec', {})
+          containers = spec.get('containers') or []
+          if len(containers) != 1:
+              raise SystemExit('Expected exactly one Qwen service container.')
+          container = containers[0]
+          image = container.get('image')
+          if not image:
+              raise SystemExit('Current approved Qwen image is missing.')
+          annotations = template.get('metadata', {}).get('annotations', {})
+          members = [member for binding in policy.get('bindings', []) for member in binding.get('members', [])]
+          checks = {
+              'private_iam': 'allUsers' not in members and 'allAuthenticatedUsers' not in members,
+              'private_ingress': service.get('metadata', {}).get('annotations', {}).get('run.googleapis.com/ingress') in {'internal', 'internal-and-cloud-load-balancing'},
+              'max_scale_one': annotations.get('autoscaling.knative.dev/maxScale') == '1',
+              'min_scale_zero': annotations.get('autoscaling.knative.dev/minScale', '0') == '0',
+              'model_mount_present': any((mount.get('mountPath') or '').startswith('/models') for mount in container.get('volumeMounts', [])),
+              'gpu_present': bool(container.get('resources', {}).get('limits', {}).get('nvidia.com/gpu')),
+          }
+          failed = [name for name, ok in checks.items() if not ok]
+          if failed:
+              raise SystemExit('Current Qwen service failed safety preflight: ' + ', '.join(failed))
+          repository = image.split('@', 1)[0]
+          if ':' in repository.rsplit('/', 1)[-1]:
+              repository = repository.rsplit(':', 1)[0]
+          with open(output_path, 'a', encoding='utf-8') as handle:
+              handle.write(f"old_image={image}\n")
+              handle.write(f"image_repository={repository}\n")
+              handle.write(f"old_revision={service.get('status', {}).get('latestReadyRevisionName', '')}\n")
+              handle.write(f"old_ingress={service.get('metadata', {}).get('annotations', {}).get('run.googleapis.com/ingress', 'internal')}\n")
+          print(json.dumps({'oldRevision': service.get('status', {}).get('latestReadyRevisionName'), 'safetyChecks': checks}, indent=2))
+          PY
+
+      - name: Build and push immutable visual runtime overlay
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image='${{ steps.current.outputs.image_repository }}:real-frame-${{ inputs.source_sha }}'
+          registry_host="${image%%/*}"
+          gcloud auth configure-docker "${registry_host}" --quiet
+          docker build \
+            --build-arg "QWEN_VISUAL_BASE_IMAGE=${{ steps.current.outputs.old_image }}" \
+            -f docker/prod/qwen-visual-runtime/Dockerfile \
+            -t "${image}" \
+            .
+          docker push "${image}"
+          echo "image=${image}" >> "${GITHUB_OUTPUT}"
+
+      - name: Deploy private real-frame revision
+        id: deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud run services update "${QWEN_SERVICE_NAME}" \
+            --project "${GCP_PROJECT_ID}" \
+            --region "${GCP_REGION}" \
+            --image '${{ steps.image.outputs.image }}' \
+            --update-env-vars 'QWEN_REAL_FRAME_ANALYSIS_ENABLED=true,QWEN_INFERENCE_ENABLED=true,QWEN_MODEL_CACHE_MOUNT=/models/qwen2.5-vl-7b-instruct' \
+            --max-instances 1 \
+            --min-instances 0 \
+            --ingress all \
+            --no-allow-unauthenticated \
+            --quiet
+
+      - name: Verify deployed revision and preserve private boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          service_json="$(mktemp)"
+          policy_json="$(mktemp)"
+          rollback() {
+            gcloud run services update "${QWEN_SERVICE_NAME}" \
+              --project "${GCP_PROJECT_ID}" --region "${GCP_REGION}" \
+              --image '${{ steps.current.outputs.old_image }}' \
+              --update-env-vars 'QWEN_REAL_FRAME_ANALYSIS_ENABLED=false,QWEN_INFERENCE_ENABLED=false' \
+              --max-instances 1 --min-instances 0 --ingress '${{ steps.current.outputs.old_ingress }}' --no-allow-unauthenticated --quiet || true
+          }
+          trap rollback ERR
+          gcloud run services describe "${QWEN_SERVICE_NAME}" --project "${GCP_PROJECT_ID}" --region "${GCP_REGION}" --format=json > "${service_json}"
+          gcloud run services get-iam-policy "${QWEN_SERVICE_NAME}" --project "${GCP_PROJECT_ID}" --region "${GCP_REGION}" --format=json > "${policy_json}"
+          python3 - "${service_json}" "${policy_json}" '${{ steps.image.outputs.image }}' '${{ steps.current.outputs.old_revision }}' <<'PY'
+          import json, sys
+          service = json.load(open(sys.argv[1], encoding='utf-8'))
+          policy = json.load(open(sys.argv[2], encoding='utf-8'))
+          expected_image, old_revision = sys.argv[3:]
+          template = service.get('spec', {}).get('template', {})
+          spec = template.get('spec', {})
+          container = (spec.get('containers') or [{}])[0]
+          env = {item.get('name'): item.get('value') for item in container.get('env', [])}
+          annotations = template.get('metadata', {}).get('annotations', {})
+          members = [member for binding in policy.get('bindings', []) for member in binding.get('members', [])]
+          latest = service.get('status', {}).get('latestReadyRevisionName')
+          checks = {
+              'revision_changed': bool(latest and latest != old_revision),
+              'image_exact': container.get('image') == expected_image,
+              'real_frame_gate': env.get('QWEN_REAL_FRAME_ANALYSIS_ENABLED') == 'true',
+              'inference_gate': env.get('QWEN_INFERENCE_ENABLED') == 'true',
+              'model_mount_env': env.get('QWEN_MODEL_CACHE_MOUNT') == '/models/qwen2.5-vl-7b-instruct',
+              'model_mount_present': any((mount.get('mountPath') or '').startswith('/models') for mount in container.get('volumeMounts', [])),
+              'gpu_present': bool(container.get('resources', {}).get('limits', {}).get('nvidia.com/gpu')),
+              'private_iam': 'allUsers' not in members and 'allAuthenticatedUsers' not in members,
+              'authenticated_internal_test_ingress': service.get('metadata', {}).get('annotations', {}).get('run.googleapis.com/ingress') == 'all',
+              'max_scale_one': annotations.get('autoscaling.knative.dev/maxScale') == '1',
+              'min_scale_zero': annotations.get('autoscaling.knative.dev/minScale', '0') == '0',
+          }
+          failed = [name for name, ok in checks.items() if not ok]
+          print(json.dumps({'latestReadyRevisionName': latest, 'checks': checks}, indent=2))
+          if failed:
+              raise SystemExit('Qwen visual deployment verification failed: ' + ', '.join(failed))
+          PY
+          trap - ERR
+
+      - name: Verify authenticated health contract without model inference
+        shell: bash
+        run: |
+          set -euo pipefail
+          rollback() {
+            gcloud run services update "${QWEN_SERVICE_NAME}" \
+              --project "${GCP_PROJECT_ID}" --region "${GCP_REGION}" \
+              --image '${{ steps.current.outputs.old_image }}' \
+              --update-env-vars 'QWEN_REAL_FRAME_ANALYSIS_ENABLED=false,QWEN_INFERENCE_ENABLED=false' \
+              --max-instances 1 --min-instances 0 --ingress '${{ steps.current.outputs.old_ingress }}' --no-allow-unauthenticated --quiet || true
+          }
+          trap rollback ERR
+          service_url="$(gcloud run services describe "${QWEN_SERVICE_NAME}" --project "${GCP_PROJECT_ID}" --region "${GCP_REGION}" --format='value(status.url)')"
+          test -n "${service_url}"
+          token="$(gcloud auth print-identity-token --audiences="${service_url}")"
+          response="$(mktemp)"
+          http_code="$(curl --silent --show-error --output "${response}" --write-out '%{http_code}' --header "Authorization: Bearer ${token}" "${service_url}/readyz")"
+          unset token
+          test "${http_code}" = "200"
+          python3 - "${response}" <<'PY'
+          import json, sys
+          payload = json.load(open(sys.argv[1], encoding='utf-8'))
+          expected = {
+              'ok': True,
+              'modelId': 'Qwen/Qwen2.5-VL-7B-Instruct',
+              'modelRevision': 'cc594898137f460bfe9f0759e9844b3ce807cfb5',
+              'modelAggregateSha256': '46f05ffcc6127a4caa9a3e8c11ddf298b9a5263c8680afe6b5d017ea91702c8b',
+              'realFrameAnalysisEnabled': True,
+              'modelInferenceEnabled': True,
+              'privateFramesOnly': True,
+              'rawPromptAllowed': False,
+              'generatedAssetsAllowed': False,
+              'publicArtifactsAllowed': False,
+              'signedUrlsAllowed': False,
+          }
+          failed = [key for key, value in expected.items() if payload.get(key) != value]
+          if failed:
+              raise SystemExit('Qwen visual health contract mismatch: ' + ', '.join(failed))
+          print(json.dumps({'ok': True, 'healthContractVerified': True, 'modelInferenceExecuted': False}, indent=2))
+          PY
+          trap - ERR

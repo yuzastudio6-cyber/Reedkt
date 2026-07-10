@@ -1,10 +1,29 @@
+import { createHash } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
+import type { ApprovedPlanSnapshotRecord } from '../../src/backend/cloud/approved-plan-snapshot-contracts'
+import { validateApprovedPlanSnapshotForWorker } from '../../src/backend/cloud/approved-plan-snapshot-contracts'
 import type { ServiceContext } from '../types'
 import { createMockId, getRequiredAuthUserId, mockWarning, nowIso, sanitizeJson } from './service-helpers'
 import type {
   ProjectEditPlanDirectionSource,
   ProjectEditSkillPlanSummary,
 } from '../../src/lib/project-edit-skill-aware-plan'
+import type {
+  AutonomousEditOperationId,
+  AutonomousEditOperationExecutionSpec,
+  AutonomousEditPlanDraft,
+  CreativeSkillKey,
+} from '../../src/types'
+import {
+  getAutonomousEditPlanningAttempt,
+  getAutonomousPrivateExecutionEvidence,
+} from './autonomous-edit-planning-service'
+import {
+  compileAutonomousEditExecution,
+  type AutonomousEditExecutionCompilation,
+} from './autonomous-edit-execution-compiler'
+import { createApprovedSnapshotService } from './approved-snapshot-service'
+import { createCreditGateService } from './credit-gate-service'
 
 interface LocalEditPlanStepInput {
   label: string
@@ -13,13 +32,20 @@ interface LocalEditPlanStepInput {
 
 interface LocalEditPlanSegmentOperationInput {
   id: string
-  segmentRole: 'hook' | 'context' | 'main_body' | 'ending'
-  operationType: 'trim' | 'cut' | 'caption' | 'color_grade' | 'audio_cleanup' | 'transition' | 'qa_check'
+  segmentRole: 'hook' | 'setup' | 'context' | 'main_body' | 'proof' | 'transition' | 'ending'
+  operationType: 'trim' | 'cut' | 'caption' | 'graphics' | 'broll' | 'color_grade' | 'audio_cleanup' | 'transition' | 'render' | 'qa_check'
   label: string
   instruction: string
   sourceRangeLabel: string
   finalRangeLabel: string
   qaChecks: string[]
+  operationId?: AutonomousEditOperationId
+  rationale?: string
+  skillKeys?: CreativeSkillKey[]
+  sourceEvidenceRefs?: string[]
+  sourceStartSeconds?: number
+  sourceEndSeconds?: number
+  executionSpec?: AutonomousEditOperationExecutionSpec
   workerReady: false
   productReady: false
 }
@@ -45,19 +71,37 @@ interface LocalEditPlanOutputFrameInput {
 }
 
 interface LocalEditPlanOperationManifestInput {
-  version: 'project-edit-operation-manifest-v1'
+  version: 'project-edit-operation-manifest-v1' | 'project-edit-operation-manifest-v2'
   sourceFileName: string
   sourceDurationSeconds?: number
   sourceAspectRatio?: string
   outputFrame?: LocalEditPlanOutputFrameInput
   professionalBaseline: 'clean_professional'
   sourceOrderPolicy: 'preserve_source_order_until_user_approves_reorder'
-  mediaIntelligenceStatus: 'not_analyzed_backend_local_only'
+  mediaIntelligenceStatus: 'not_analyzed_backend_local_only' | 'analyzed_private_source_evidence'
+  sourceEvidenceVersion?: 'autonomous-edit-source-evidence-v1'
+  sourceEvidenceArtifactIds?: string[]
   operations: LocalEditPlanSegmentOperationInput[]
   requiredQaChecks: string[]
   workerExecutionReady: false
   productReady: false
   warnings: string[]
+}
+
+interface LocalEditPlanPlanningEvidenceInput {
+  attemptId: string
+  autonomousPlanVersion: 'autonomous-edit-plan-v1'
+  sourceEvidenceVersion: 'autonomous-edit-source-evidence-v1'
+  plannerSource: 'qwen_live'
+  providerCallMade: boolean
+  qwenCallMade: boolean
+  mediaAnalysisRun: true
+  transcriptionRun: boolean
+  visualUnderstandingRun: true
+  deterministicCreativeFallbackUsed: false
+  rawPromptStored: false
+  privateArtifactIds: string[]
+  createdAt: string
 }
 
 interface LocalEditPlanCreditEstimateInput {
@@ -94,6 +138,7 @@ interface CreateApprovedLocalEditPlanInput {
   summary: string
   steps: LocalEditPlanStepInput[]
   operationManifest: LocalEditPlanOperationManifestInput
+  planningEvidence?: LocalEditPlanPlanningEvidenceInput
   directionSource: ProjectEditPlanDirectionSource
   skillPlan: ProjectEditSkillPlanSummary
   creditEstimate: LocalEditPlanCreditEstimateInput
@@ -117,6 +162,8 @@ export interface ApprovedLocalEditPlanRecord {
     planId: string
     steps: LocalEditPlanStepInput[]
     operationManifest: LocalEditPlanOperationManifestInput
+    planningEvidence?: LocalEditPlanPlanningEvidenceInput
+    autonomousPlanSnapshot?: AutonomousEditPlanDraft
     directionSource: ProjectEditPlanDirectionSource
     skillPlan: ProjectEditSkillPlanSummary
     briefLineage: LocalEditPlanBriefLineageInput
@@ -138,13 +185,49 @@ export interface ApprovedLocalEditPlanRecord {
   warnings: string[]
 }
 
+export interface ActivatedAutonomousEditPlanRecord {
+  planId: string
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  creditApproval: {
+    id: string
+    creditEstimateId: string
+    status: 'approved'
+    approvedByUserId: string
+    approvedAt: string
+  }
+  creditReservation: {
+    id: string
+    creditEstimateId: string
+    status: 'reserved'
+    reservedCredits: number
+    createdAt: string
+  }
+  approvedPlanSnapshot: ApprovedPlanSnapshotRecord
+  executionCompilation: AutonomousEditExecutionCompilation
+  userFacingWorkSummary: string[]
+  productReady: false
+  publicDeliveryAllowed: false
+  paidBillingMutationMade: false
+  createdAt: string
+}
+
 const mockApprovedLocalEditPlans = new Map<string, ApprovedLocalEditPlanRecord>()
+const activatedAutonomousPlans = new Map<string, ActivatedAutonomousEditPlanRecord>()
+
+export function getActivatedAutonomousEditPlan(
+  planId: string,
+): ActivatedAutonomousEditPlanRecord | undefined {
+  return activatedAutonomousPlans.get(planId)
+}
 
 export function createProjectEditPlanService(context: ServiceContext) {
   return {
     async createApprovedLocalEditPlan(input: CreateApprovedLocalEditPlanInput) {
       const approvedByUserId = getRequiredAuthUserId(context)
       assertSafePlanText(input)
+      const autonomousPlanSnapshot = assertCanonicalAutonomousPlan(input)
 
       if (context.clients.admin && !context.env.mockOnly) {
         throw new ApiError(
@@ -183,6 +266,8 @@ export function createProjectEditPlanService(context: ServiceContext) {
           directionSource: input.directionSource,
           skillPlan: sanitizeSkillPlan(input.skillPlan),
           operationManifest: sanitizeOperationManifest(input.operationManifest),
+          planningEvidence: input.planningEvidence ? sanitizePlanningEvidence(input.planningEvidence) : undefined,
+          autonomousPlanSnapshot,
           planId: input.planId,
           steps: input.steps.map((step) => sanitizePlanStep(step)),
           summary: sanitizePlanText(input.summary),
@@ -235,10 +320,371 @@ export function createProjectEditPlanService(context: ServiceContext) {
           ...record,
           readbackVerified: true,
         },
+        executionGate: activatedAutonomousPlans.has(planId)
+          ? toExecutionGateView(activatedAutonomousPlans.get(planId)!)
+          : undefined,
         warnings: [mockWarning('Approved local edit plan readback')],
       }
     },
+
+    async activateApprovedLocalEditPlan(planId: string, workspaceId: string) {
+      const approvedByUserId = getRequiredAuthUserId(context)
+      const existingActivation = activatedAutonomousPlans.get(planId)
+      if (existingActivation) {
+        if (existingActivation.workspaceId !== workspaceId) {
+          throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Activated edit plan does not belong to this workspace.', 403)
+        }
+        return {
+          executionGate: toExecutionGateView(existingActivation),
+          warnings: [mockWarning('Autonomous edit activation replay'), 'Existing immutable activation was returned without reserving twice.'],
+        }
+      }
+      const localPlan = mockApprovedLocalEditPlans.get(planId)
+      if (!localPlan || localPlan.workspaceId !== workspaceId) {
+        throw new ApiError('PLAN_NOT_APPROVED', 'Approved evidence-backed edit plan was not found for this workspace.', 404)
+      }
+      const planningEvidence = localPlan.approvedLocalPlan.planningEvidence
+      if (!planningEvidence || localPlan.approvedLocalPlan.operationManifest.version !== 'project-edit-operation-manifest-v2') {
+        throw new ApiError('PLAN_NOT_APPROVED', 'Only an evidence-backed autonomous plan can activate real private execution.', 409)
+      }
+      const privateEvidence = getAutonomousPrivateExecutionEvidence(planningEvidence.attemptId)
+      if (!privateEvidence) {
+        throw new ApiError('APPROVED_SNAPSHOT_REQUIRED', 'Private planning evidence is unavailable; rebuild the plan before execution.', 409)
+      }
+
+      const now = nowIso()
+      const creditService = createCreditGateService(context)
+      const creditApprovalResult = await creditService.approveCreditEstimate({
+        workspaceId: localPlan.workspaceId,
+        creditEstimateId: localPlan.creditEstimateId,
+      })
+      const creditApproval = normalizeCreditApproval(creditApprovalResult.creditApproval, {
+        approvedByUserId,
+        creditEstimateId: localPlan.creditEstimateId,
+        now,
+      })
+      const creditReservationResult = await creditService.reserveCredits({
+        workspaceId: localPlan.workspaceId,
+        projectId: localPlan.projectId,
+        editPlanId: localPlan.editPlanId,
+        creditEstimateId: localPlan.creditEstimateId,
+        creditApprovalId: creditApproval.id,
+        reservedCredits: localPlan.approvedLocalPlan.creditEstimate.highCredits,
+        idempotencyKey: `autonomous-edit:${localPlan.workspaceId}:${planId}:credit-reservation`,
+        metadata: {
+          autonomousEditPlan: true,
+          privateInternalReviewOnly: true,
+          publicDeliveryAllowed: false,
+        },
+      })
+      const creditReservation = normalizeCreditReservation(creditReservationResult.creditReservation, {
+        creditEstimateId: localPlan.creditEstimateId,
+        reservedCredits: localPlan.approvedLocalPlan.creditEstimate.highCredits,
+        now,
+      })
+      const provisionalSnapshotId = createMockId('approved_snapshot_pending')
+      const provisionalCompilation = compileAutonomousEditExecution({
+        approvedLocalPlan: localPlan,
+        approvedSnapshotId: provisionalSnapshotId,
+        creditApprovalId: creditApproval.id,
+        creditReservationId: creditReservation.id,
+        transcriptSegments: privateEvidence.transcriptSegments,
+        sourceStorageObjectPath: localPlan.source.objectPath,
+        fps: privateEvidence.mediaProbe.fps ?? 30,
+      })
+      const storedSnapshotResult = await createApprovedSnapshotService(context).createApprovedSnapshot({
+        workspaceId: localPlan.workspaceId,
+        projectId: localPlan.projectId,
+        chatSessionId: localPlan.editSessionId,
+        editPlanId: localPlan.editPlanId,
+        creditEstimateId: localPlan.creditEstimateId,
+        creditApprovalId: creditApproval.id,
+        creditReservationId: creditReservation.id,
+        approvedByUserId,
+        snapshotVersion: 1,
+        snapshotJson: provisionalCompilation.approvedSnapshotPayload as unknown as Record<string, unknown>,
+        planHash: hashJson(localPlan.approvedLocalPlan.autonomousPlanSnapshot),
+        creditHash: hashJson(localPlan.approvedLocalPlan.creditEstimate),
+        sourceSequenceHash: hashJson(localPlan.approvedLocalPlan.autonomousPlanSnapshot?.segments.map((segment) => ({
+          id: segment.id,
+          sourceStartSeconds: segment.sourceStartSeconds,
+          sourceEndSeconds: segment.sourceEndSeconds,
+        })) ?? []),
+        timingHash: hashJson({
+          fps: privateEvidence.mediaProbe.fps ?? 30,
+          timelineDurationSeconds: provisionalCompilation.timelineManifest.durationSeconds,
+          outputFrame: localPlan.approvedLocalPlan.autonomousPlanSnapshot?.outputFrame,
+        }),
+      })
+      const approvedSnapshotId = snapshotRecordId(storedSnapshotResult.approvedPlanSnapshot)
+      const compilation = compileAutonomousEditExecution({
+        approvedLocalPlan: localPlan,
+        approvedSnapshotId,
+        creditApprovalId: creditApproval.id,
+        creditReservationId: creditReservation.id,
+        transcriptSegments: privateEvidence.transcriptSegments,
+        sourceStorageObjectPath: localPlan.source.objectPath,
+        fps: privateEvidence.mediaProbe.fps ?? 30,
+      })
+      const snapshotHash = hashJson(compilation.approvedSnapshotPayload)
+      const approvedPlanSnapshot: ApprovedPlanSnapshotRecord = {
+        id: approvedSnapshotId,
+        workspaceId: localPlan.workspaceId,
+        projectId: localPlan.projectId,
+        chatSessionId: localPlan.editSessionId,
+        editPlanId: localPlan.editPlanId,
+        creditEstimateId: localPlan.creditEstimateId,
+        creditApprovalId: creditApproval.id,
+        creditReservationId: creditReservation.id,
+        snapshotStatus: 'execution_ready',
+        snapshotVersion: 1,
+        snapshotHash,
+        approvedByUserId,
+        approvedAt: localPlan.approvedAt,
+        executionReadyAt: now,
+        snapshotPayload: compilation.approvedSnapshotPayload,
+        createdAt: now,
+        updatedAt: now,
+        metadata: {
+          localInternalExecution: true,
+          privateArtifactsOnly: true,
+          publicDeliveryAllowed: false,
+          productReady: false,
+        },
+      }
+      const validation = validateApprovedPlanSnapshotForWorker(approvedPlanSnapshot, {
+        requiresCreditReservation: true,
+      })
+      if (!validation.ok) {
+        throw new ApiError('APPROVED_SNAPSHOT_REQUIRED', 'Compiled autonomous snapshot failed execution validation.', 409, validation)
+      }
+      const activation: ActivatedAutonomousEditPlanRecord = {
+        planId,
+        workspaceId: localPlan.workspaceId,
+        projectId: localPlan.projectId,
+        editSessionId: localPlan.editSessionId,
+        creditApproval,
+        creditReservation,
+        approvedPlanSnapshot,
+        executionCompilation: compilation,
+        userFacingWorkSummary: uniqueUserFacingWorkSummary(compilation),
+        productReady: false,
+        publicDeliveryAllowed: false,
+        paidBillingMutationMade: false,
+        createdAt: now,
+      }
+      activatedAutonomousPlans.set(planId, activation)
+      return {
+        executionGate: toExecutionGateView(activation),
+        warnings: [
+          ...creditApprovalResult.warnings,
+          ...creditReservationResult.warnings,
+          ...storedSnapshotResult.warnings,
+          'Approved estimate, idempotent bounded reservation, immutable snapshot, and private work graph were created through their backend services.',
+          'No worker, render, public delivery, wallet spend, Stripe, or paid billing mutation started during activation.',
+        ],
+      }
+    },
   }
+}
+
+function normalizeCreditApproval(
+  value: unknown,
+  fallback: { approvedByUserId: string; creditEstimateId: string; now: string },
+): ActivatedAutonomousEditPlanRecord['creditApproval'] {
+  const record = asRecord(value)
+  const id = stringField(record, 'id')
+  if (!id) throw new ApiError('CREDIT_ESTIMATE_NOT_APPROVED', 'Credit approval service did not return an approval ID.', 409)
+  return {
+    id,
+    creditEstimateId: stringField(record, 'creditEstimateId', 'credit_estimate_id') ?? fallback.creditEstimateId,
+    status: 'approved',
+    approvedByUserId: stringField(record, 'approvedByUserId', 'approved_by_user_id', 'approved_by') ?? fallback.approvedByUserId,
+    approvedAt: stringField(record, 'approvedAt', 'approved_at', 'createdAt', 'created_at') ?? fallback.now,
+  }
+}
+
+function normalizeCreditReservation(
+  value: unknown,
+  fallback: { creditEstimateId: string; reservedCredits: number; now: string },
+): ActivatedAutonomousEditPlanRecord['creditReservation'] {
+  const record = asRecord(value)
+  const id = stringField(record, 'id')
+  if (!id) throw new ApiError('CREDITS_NOT_RESERVED', 'Credit reservation service did not return a reservation ID.', 409)
+  return {
+    id,
+    creditEstimateId: stringField(record, 'creditEstimateId', 'credit_estimate_id') ?? fallback.creditEstimateId,
+    status: 'reserved',
+    reservedCredits: numberField(record, 'reservedCredits', 'reserved_credits') ?? fallback.reservedCredits,
+    createdAt: stringField(record, 'createdAt', 'created_at', 'reservedAt', 'reserved_at') ?? fallback.now,
+  }
+}
+
+function snapshotRecordId(value: unknown): string {
+  const id = stringField(asRecord(value), 'id')
+  if (!id) throw new ApiError('APPROVED_SNAPSHOT_REQUIRED', 'Approved snapshot service did not return a snapshot ID.', 409)
+  return id
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' ? value as Record<string, unknown> : {}
+}
+
+function stringField(record: Record<string, unknown>, ...keys: string[]): string | undefined {
+  for (const key of keys) {
+    const value = record[key]
+    if (typeof value === 'string' && value.trim()) return value
+  }
+  return undefined
+}
+
+function numberField(record: Record<string, unknown>, ...keys: string[]): number | undefined {
+  for (const key of keys) {
+    const value = record[key]
+    const parsed = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : Number.NaN
+    if (Number.isFinite(parsed)) return parsed
+  }
+  return undefined
+}
+
+function toExecutionGateView(activation: ActivatedAutonomousEditPlanRecord) {
+  return {
+    status: 'execution_ready' as const,
+    planId: activation.planId,
+    creditEstimateId: activation.creditApproval.creditEstimateId,
+    creditApprovalId: activation.creditApproval.id,
+    creditReservationId: activation.creditReservation.id,
+    reservedCredits: activation.creditReservation.reservedCredits,
+    approvedPlanSnapshotId: activation.approvedPlanSnapshot.id,
+    snapshotHash: activation.approvedPlanSnapshot.snapshotHash,
+    workGraphId: activation.executionCompilation.editingAgentExecutionPlan.id,
+    timelineManifestId: activation.executionCompilation.timelineManifest.id,
+    userFacingWorkSummary: activation.userFacingWorkSummary,
+    privateArtifactsOnly: true as const,
+    publicDeliveryAllowed: false as const,
+    paidBillingMutationMade: false as const,
+    productReady: false as const,
+  }
+}
+
+function uniqueUserFacingWorkSummary(compilation: AutonomousEditExecutionCompilation): string[] {
+  return [...new Set(compilation.editingAgentExecutionPlan.workItems
+    .filter((item) => item.workItemType !== 'validate_approved_snapshot')
+    .map((item) => item.label))]
+}
+
+function hashJson(value: unknown): string {
+  return createHash('sha256').update(stableJson(value)).digest('hex')
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, nested]) => nested !== undefined)
+      .sort(([left], [right]) => left.localeCompare(right))
+    return `{${entries.map(([key, nested]) => `${JSON.stringify(key)}:${stableJson(nested)}`).join(',')}}`
+  }
+  return JSON.stringify(value)
+}
+
+function assertCanonicalAutonomousPlan(
+  input: CreateApprovedLocalEditPlanInput,
+): AutonomousEditPlanDraft | undefined {
+  if (input.operationManifest.version === 'project-edit-operation-manifest-v1') return undefined
+  const evidence = input.planningEvidence
+  if (!evidence) {
+    throw new ApiError('VALIDATION_FAILED', 'Evidence-backed plan approval requires planning evidence.', 400)
+  }
+  const attempt = getAutonomousEditPlanningAttempt(evidence.attemptId)
+  const plan = attempt?.plan
+  if (!attempt || attempt.status !== 'completed' || !plan || plan.status !== 'ready_for_approval') {
+    throw new ApiError('PLAN_NOT_APPROVED', 'Canonical autonomous planning attempt is unavailable or not ready for approval.', 409)
+  }
+  const mismatches = [
+    attempt.workspaceId === input.workspaceId ? undefined : 'workspace',
+    attempt.projectId === input.projectId ? undefined : 'project',
+    attempt.editSessionId === input.editSessionId ? undefined : 'edit session',
+    plan.planId === input.planId ? undefined : 'plan ID',
+    plan.title === input.title ? undefined : 'title',
+    plan.summary === input.summary ? undefined : 'summary',
+    plan.sourceEvidence.sourceStorageObjectRecordId === input.source.storageObjectRecordId ? undefined : 'source object',
+    plan.runtime.plannerSource === evidence.plannerSource ? undefined : 'planner source',
+    plan.runtime.providerCallMade === evidence.providerCallMade ? undefined : 'provider evidence',
+    plan.runtime.qwenCallMade === evidence.qwenCallMade ? undefined : 'Qwen evidence',
+    plan.runtime.transcriptionRun === evidence.transcriptionRun ? undefined : 'transcription evidence',
+    plan.runtime.visualUnderstandingRun === evidence.visualUnderstandingRun ? undefined : 'visual evidence',
+    JSON.stringify(plan.outputFrame) === JSON.stringify(stripOutputFrameSource(input.operationManifest.outputFrame))
+      ? undefined
+      : 'output frame',
+  ].filter((value): value is string => Boolean(value))
+  if (!sameStringSet(plan.sourceEvidence.privateArtifactIds, evidence.privateArtifactIds)) {
+    mismatches.push('private artifact lineage')
+  }
+  if (!sameStringSet(plan.sourceEvidence.privateArtifactIds, input.operationManifest.sourceEvidenceArtifactIds ?? [])) {
+    mismatches.push('manifest source evidence')
+  }
+  if (!sameStringSet(plan.skillSelections.map((selection) => selection.skillKey), input.skillPlan.selectedSkillKeys)) {
+    mismatches.push('skill selection')
+  }
+  if (!sameStringMultiset(canonicalPlanOperationSignatures(plan), manifestOperationSignatures(input.operationManifest))) {
+    mismatches.push('operation manifest')
+  }
+  if (mismatches.length > 0) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      `Approved plan does not match the canonical autonomous planning attempt: ${mismatches.join(', ')}.`,
+      409,
+    )
+  }
+  return structuredClone(plan)
+}
+
+function stripOutputFrameSource(
+  frame: LocalEditPlanOperationManifestInput['outputFrame'],
+): AutonomousEditPlanDraft['outputFrame'] | undefined {
+  if (!frame) return undefined
+  return {
+    aspectRatio: frame.aspectRatio,
+    platformTarget: frame.platformTarget,
+    width: frame.width,
+    height: frame.height,
+    confirmed: true,
+  }
+}
+
+function canonicalPlanOperationSignatures(plan: AutonomousEditPlanDraft): string[] {
+  return plan.segments.flatMap((segment) => segment.operations.map((operation) => JSON.stringify({
+    operationId: operation.operationId,
+    instruction: operation.instruction,
+    rationale: operation.rationale,
+    skillKeys: [...operation.skillKeys].sort(),
+    sourceEvidenceRefs: [...operation.sourceEvidenceRefs].sort(),
+    sourceStartSeconds: segment.sourceStartSeconds,
+    sourceEndSeconds: segment.sourceEndSeconds,
+    executionSpec: operation.executionSpec,
+  })))
+}
+
+function manifestOperationSignatures(manifest: LocalEditPlanOperationManifestInput): string[] {
+  return manifest.operations.map((operation) => JSON.stringify({
+    operationId: operation.operationId,
+    instruction: operation.instruction,
+    rationale: operation.rationale,
+    skillKeys: [...(operation.skillKeys ?? [])].sort(),
+    sourceEvidenceRefs: [...(operation.sourceEvidenceRefs ?? [])].sort(),
+    sourceStartSeconds: operation.sourceStartSeconds,
+    sourceEndSeconds: operation.sourceEndSeconds,
+    executionSpec: operation.executionSpec,
+  }))
+}
+
+function sameStringSet(left: string[], right: string[]): boolean {
+  return JSON.stringify([...new Set(left)].sort()) === JSON.stringify([...new Set(right)].sort())
+}
+
+function sameStringMultiset(left: string[], right: string[]): boolean {
+  return JSON.stringify([...left].sort()) === JSON.stringify([...right].sort())
 }
 
 function assertSafePlanText(input: CreateApprovedLocalEditPlanInput): void {
@@ -271,9 +717,12 @@ function assertSafePlanText(input: CreateApprovedLocalEditPlanInput): void {
       operation.sourceRangeLabel,
       operation.finalRangeLabel,
       ...operation.qaChecks,
+      operation.executionSpec ? JSON.stringify(operation.executionSpec) : '',
     ]),
     ...input.operationManifest.requiredQaChecks,
     ...input.operationManifest.warnings,
+    input.planningEvidence?.attemptId ?? '',
+    ...(input.planningEvidence?.privateArtifactIds ?? []),
   ].find((value) => /service.?role|api.?key|secret|signed.?url|token|sk-[a-z0-9_-]+/i.test(value))
 
   if (unsafeText) {
@@ -318,6 +767,7 @@ function sanitizeOperationManifest(manifest: LocalEditPlanOperationManifestInput
   return {
     ...manifest,
     sourceFileName: sanitizePlanText(manifest.sourceFileName),
+    sourceEvidenceArtifactIds: manifest.sourceEvidenceArtifactIds?.map(sanitizePlanText),
     outputFrame: manifest.outputFrame
       ? {
           ...manifest.outputFrame,
@@ -334,6 +784,13 @@ function sanitizeOperationManifest(manifest: LocalEditPlanOperationManifestInput
       sourceRangeLabel: sanitizePlanText(operation.sourceRangeLabel),
       finalRangeLabel: sanitizePlanText(operation.finalRangeLabel),
       qaChecks: operation.qaChecks.map(sanitizePlanText),
+      operationId: operation.operationId,
+      rationale: operation.rationale ? sanitizePlanText(operation.rationale) : undefined,
+      skillKeys: operation.skillKeys ? [...operation.skillKeys] : undefined,
+      sourceEvidenceRefs: operation.sourceEvidenceRefs?.map(sanitizePlanText),
+      sourceStartSeconds: operation.sourceStartSeconds,
+      sourceEndSeconds: operation.sourceEndSeconds,
+      executionSpec: operation.executionSpec ? structuredClone(operation.executionSpec) : undefined,
       workerReady: false,
       productReady: false,
     })),
@@ -341,6 +798,16 @@ function sanitizeOperationManifest(manifest: LocalEditPlanOperationManifestInput
     workerExecutionReady: false,
     productReady: false,
     warnings: manifest.warnings.map(sanitizePlanText),
+  }
+}
+
+function sanitizePlanningEvidence(
+  evidence: LocalEditPlanPlanningEvidenceInput,
+): LocalEditPlanPlanningEvidenceInput {
+  return {
+    ...evidence,
+    attemptId: sanitizePlanText(evidence.attemptId),
+    privateArtifactIds: evidence.privateArtifactIds.map(sanitizePlanText),
   }
 }
 

@@ -88,7 +88,11 @@ These routes produce audio plans, artifacts, and QA gates only. They do not down
 
 ## Milestone 16A Final Render Export Route
 
-`render_worker` can route explicit `metadata.finalRenderExecution.mode` payloads to the final render/export pipeline for dry-run, local-dev, container-ready, and gated production modes. `qa_worker` can route explicit `metadata.finalRenderQA.mode` payloads for render/export/final-delivery QA. Default worker placeholder behavior remains unchanged, and existing smokes do not require FFmpeg, Remotion, libass, final cloud jobs, providers, or Revideo.
+`render_worker` can route explicit `metadata.finalRenderExecution.mode` payloads to the final render/export pipeline for dry-run, local-dev, container-ready, and gated production modes. The reviewed `render_worker_final_render_metadata` gateway adapter is limited to production-ready command-plan-only metadata: it can record private render manifests, non-executing Remotion/FFmpeg/libass command plans, render QA, and delivery QA while keeping preview creation, final export, final delivery, Revideo, providers, and public artifacts blocked. `qa_worker` can route explicit `metadata.finalRenderQA.mode` payloads for render/export/final-delivery QA, and the reviewed `qa_worker_final_render_qa_metadata` adapter applies the same command-plan-only boundary from the QA worker side without executing Remotion, FFmpeg, libass, preview, export, or delivery. Default worker placeholder behavior remains unchanged, and existing smokes do not require FFmpeg, Remotion, libass, final cloud jobs, providers, or Revideo.
+
+## Caption Metadata Production Handler
+
+`render_worker_caption_metadata` and `qa_worker_caption_metadata` are reviewed production-ready gateway adapters for private caption metadata and QA only. They consume approved transcript segments or word timestamps from `metadata.speechCaptionExecution`, build SRT, WebVTT, ASS, caption segment, and caption QA artifact records, and keep speech transcription, model downloads, local file writes, preview burn-in, final export, public delivery, and frontend execution blocked. The adapters scope requested tool accounting to `libass` because they prepare and validate the ASS/caption QA handoff for render, but they do not execute libass.
 
 ## Milestone 16B Full E2E Workflow Orchestrator
 

@@ -60,6 +60,7 @@ import { createMigrationDraftPlan } from './supabase-migration-drafts'
 import { createSupabaseProductionReadinessPlan } from './supabase-production-readiness'
 import { createTimingValidationPlan } from './timing-validation'
 import { getToolRegistrySummary } from './tool-registry'
+import { createToolCallIntentPlan } from './tool-call-intent-planner'
 import { createToolStrategyPlan } from './tool-strategy-planner'
 import {
   createSourceSequenceReviewState,
@@ -1995,6 +1996,11 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     trimReviewPlan,
     visualAssetPlan: visualAssetPlanWithPrompts,
   })
+  const baseToolCallIntentPlan = createToolCallIntentPlan({
+    creditEstimate: baseCreditEstimate,
+    includeBaselineIntents: true,
+    toolStrategyPlan,
+  })
   const basePlan: EditPlan = {
     goalSummary: compiledIntent.goalSummary,
     sourceSequenceMap,
@@ -2034,6 +2040,7 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     adaptiveEditStrategyPlan,
     toolRegistrySummary,
     toolStrategyPlan,
+    toolCallIntentPlan: baseToolCallIntentPlan,
     colorPipelinePlan,
     audioPipelinePlan,
     mapAnimationPlan,
@@ -2117,34 +2124,41 @@ export function createMockEditPlan(input: PlannerInput): EditPlan {
     videoUnderstandingReport,
     visualAssetPlan: visualAssetPlanWithPrompts,
   })
+  const finalCreditEstimate = createCreditEstimate(finalAnalysisInput, {
+    adaptiveEditStrategyPlan,
+    audioPipelinePlan,
+    captionVisualCueTimingPlan: finalCaptionVisualCueTimingPlan,
+    colorPipelinePlan,
+    dataVizPlan,
+    depthAwareOverlayPlan,
+    editingAgentExecutionPlan: editingAgentExecutionPlanWithAgentQA,
+    asyncAssetReconciliationPlan,
+    agentQAFallbackPlan,
+    mapAnimationPlan,
+    masterTimingPlan: finalMasterTimingPlan,
+    renderStrategyPlan,
+    rendererCompositionPlan: rendererCompositionPlanWithTimingValidation,
+    sourceCleanupPlan,
+    soundSyncTransitionTimingPlan: finalSoundSyncTransitionTimingPlan,
+    speakerVisualLayoutPlan,
+    timingValidationPlan,
+    toolStrategyPlan,
+    trimReviewPlan,
+    visualAssetPlan: visualAssetPlanWithPrompts,
+  })
+  const finalToolCallIntentPlan = createToolCallIntentPlan({
+    creditEstimate: finalCreditEstimate,
+    includeBaselineIntents: true,
+    toolStrategyPlan,
+  })
   const planWithExecution: EditPlan = {
     ...basePlan,
     editQAPlan: editQAPlanWithExecution,
     editingAgentExecutionPlan: editingAgentExecutionPlanWithAgentQA,
     asyncAssetReconciliationPlan,
     agentQAFallbackPlan,
-    creditEstimate: createCreditEstimate(finalAnalysisInput, {
-      adaptiveEditStrategyPlan,
-      audioPipelinePlan,
-      captionVisualCueTimingPlan: finalCaptionVisualCueTimingPlan,
-      colorPipelinePlan,
-      dataVizPlan,
-      depthAwareOverlayPlan,
-      editingAgentExecutionPlan: editingAgentExecutionPlanWithAgentQA,
-      asyncAssetReconciliationPlan,
-      agentQAFallbackPlan,
-      mapAnimationPlan,
-      masterTimingPlan: finalMasterTimingPlan,
-      renderStrategyPlan,
-      rendererCompositionPlan: rendererCompositionPlanWithTimingValidation,
-      sourceCleanupPlan,
-      soundSyncTransitionTimingPlan: finalSoundSyncTransitionTimingPlan,
-      speakerVisualLayoutPlan,
-      timingValidationPlan,
-      toolStrategyPlan,
-      trimReviewPlan,
-      visualAssetPlan: visualAssetPlanWithPrompts,
-    }),
+    creditEstimate: finalCreditEstimate,
+    toolCallIntentPlan: finalToolCallIntentPlan,
   }
 
   return {

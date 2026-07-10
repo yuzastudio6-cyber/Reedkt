@@ -26,6 +26,7 @@ const MIME_LIMITS: Record<string, { maxBytes: number; purposes?: UploadPurpose[]
   'image/png': { maxBytes: 50 * MB },
   'image/jpeg': { maxBytes: 50 * MB },
   'image/webp': { maxBytes: 50 * MB },
+  'application/json': { maxBytes: 25 * MB, purposes: ['qa_artifact', 'generated_asset', 'worker_temp'] },
   'application/octet-stream': { maxBytes: 5 * GB, purposes: ['worker_temp'] },
 }
 

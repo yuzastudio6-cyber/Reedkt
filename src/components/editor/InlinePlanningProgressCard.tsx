@@ -1,4 +1,5 @@
 import type { ChatPlanningDisplayMode, ChatPlanningPhaseSummary } from '../../types/reeditpro'
+import { toUserFacingToolCopy } from '../../lib/user-facing-tool-copy'
 
 type InlinePlanningProgressCardProps = {
   displayMode: ChatPlanningDisplayMode
@@ -50,7 +51,7 @@ export function InlinePlanningProgressCard({
           <article className={`planning-phase-item planning-phase-status-${phase.status}`} key={phase.phase}>
             <div>
               <strong>{phase.label}</strong>
-              <small>{phase.summary}</small>
+              <small>{toUserFacingToolCopy(phase.summary)}</small>
             </div>
             <span className="planning-phase-status">{formatStatus(phase.status)}</span>
             <em>{phase.completedCount}/{phase.totalCount}</em>

@@ -15,7 +15,7 @@ export function buildFfmpegExportCommandPlan(input: {
     : '[worker-temp-ffmpeg-output]'
   const sourcePath = executionInput.proxyLocalPaths?.[0] ?? executionInput.sourceLocalPaths?.[0] ?? '[private-video-input]'
   const externalAudioPath = executionInput.audioLocalPaths?.[0]
-  const captionOverlays = executionInput.enableCaptionBurnIn === true ? executionInput.captionOverlayInputs ?? [] : []
+  const rasterOverlays = collectRasterOverlays(executionInput)
   const audioRequired = executionInput.sourceAudioRequired !== false
   const externalAudioInputIndex = externalAudioPath ? 1 : undefined
   const captionInputStartIndex = externalAudioPath ? 2 : 1
@@ -33,7 +33,7 @@ export function buildFfmpegExportCommandPlan(input: {
       '-i',
       sourcePath,
       ...(externalAudioPath ? ['-i', externalAudioPath] : []),
-      ...captionOverlays.flatMap((overlay) => [
+      ...rasterOverlays.flatMap((overlay) => [
         '-loop', '1',
         '-framerate', formatNumber(executionInput.fps),
         '-i', overlay.localPath,
@@ -69,8 +69,11 @@ export function buildFfmpegExportCommandPlan(input: {
     summary: [
       'Allowlisted FFmpeg timeline assembly with source-range trims and deterministic output settings.',
       profile?.subtlePunchIns ? 'Subtle approved punch-ins are applied at edit boundaries.' : undefined,
-      executionInput.enableCaptionBurnIn && (captionOverlays.length > 0 || executionInput.captionLocalPaths?.[0]) ? 'Validated private caption assets are burned into the assembled output.' : undefined,
+      executionInput.enableCaptionBurnIn && ((executionInput.captionOverlayInputs?.length ?? 0) > 0 || executionInput.captionLocalPaths?.[0]) ? 'Validated private caption assets are burned into the assembled output.' : undefined,
+      executionInput.enableVisualOverlays && (executionInput.visualOverlayInputs?.length ?? 0) > 0 ? 'Approved source-backed graphics and motion overlays are composed into the private review.' : undefined,
       profile?.audioFinish === 'clean_voice' ? 'Voice-first cleanup and EBU-style loudness normalization are applied.' : undefined,
+      executionInput.approvedAudioSpec ? 'Measured approved audio parameters are applied.' : undefined,
+      executionInput.approvedColorSpec ? 'Measured approved color parameters are applied.' : undefined,
     ].filter(Boolean).join(' '),
   }
 }
@@ -118,43 +121,89 @@ function buildFilterComplex(
   const externalAudio = audioRequired && externalAudioInputIndex !== undefined
     ? `[${externalAudioInputIndex}:a:0]atrim=start=0:end=${formatNumber(manifest.durationSeconds)},asetpts=PTS-STARTPTS,aresample=48000[audio_external]`
     : undefined
-  const videoFinish = buildVideoFinish(profile.visualFinish, manifest.durationSeconds)
+  const videoFinish = buildVideoFinish(profile.visualFinish, manifest.durationSeconds, input.approvedColorSpec)
   const captionPath = input.enableCaptionBurnIn === true ? input.captionLocalPaths?.[0] : undefined
-  const hasRasterOverlays = input.enableCaptionBurnIn === true && (input.captionOverlayInputs?.length ?? 0) > 0
+  const hasRasterOverlays = collectRasterOverlays(input).length > 0
   const baseVideoLabel = hasRasterOverlays ? 'video_finished' : 'video_out'
   const video = captionPath && !hasRasterOverlays
     ? `[video_concat]${videoFinish},subtitles=filename='${escapeFilterPath(captionPath)}'[video_out]`
     : `[video_concat]${videoFinish}[${baseVideoLabel}]`
   const overlayFilters = buildCaptionOverlayFilters(input, baseVideoLabel, captionInputStartIndex)
   const audio = audioRequired
-    ? `[${externalAudioInputIndex !== undefined ? 'audio_external' : 'audio_concat'}]${buildAudioFinish(profile.audioFinish, manifest.durationSeconds)}[audio_out]`
+    ? `[${externalAudioInputIndex !== undefined ? 'audio_external' : 'audio_concat'}]${buildAudioFinish(profile.audioFinish, manifest.durationSeconds, input.approvedAudioSpec)}[audio_out]`
     : undefined
 
   return [...clipFilters, concat, externalAudio, video, ...overlayFilters, audio].filter(Boolean).join(';')
 }
 
 function buildCaptionOverlayFilters(input: FinalRenderExecutionInput, initialVideoLabel: string, inputStartIndex: number): string[] {
-  const overlays = input.enableCaptionBurnIn === true ? input.captionOverlayInputs ?? [] : []
+  const overlays = collectRasterOverlays(input)
   return overlays.flatMap((overlay, index) => {
     const overlayLabel = `caption_overlay_${index}`
     const previousVideoLabel = index === 0 ? initialVideoLabel : `video_caption_${index - 1}`
     const outputVideoLabel = index === overlays.length - 1 ? 'video_out' : `video_caption_${index}`
     const x = overlay.x ?? Math.round(input.canvas.width * 0.09)
     const y = overlay.y ?? Math.round(input.canvas.height * 0.69)
+    const duration = Math.max(0.08, overlay.endSeconds - overlay.startSeconds)
+    const enterDuration = Math.min(duration / 2, Math.max(0, overlay.animation?.enterDurationSeconds ?? 0))
+    const exitDuration = Math.min(duration / 2, Math.max(0, overlay.animation?.exitDurationSeconds ?? 0))
+    const enter = overlay.animation?.enter ?? 'none'
+    const exit = overlay.animation?.exit ?? 'none'
+    const overlayTransforms = [
+      `[${index + inputStartIndex}:v:0]trim=duration=${formatNumber(duration)}`,
+      'setpts=PTS-STARTPTS',
+      'format=rgba',
+      enter !== 'none' && enterDuration > 0 ? `fade=t=in:st=0:d=${formatNumber(enterDuration)}:alpha=1` : undefined,
+      exit !== 'none' && exitDuration > 0 ? `fade=t=out:st=${formatNumber(Math.max(0, duration - exitDuration))}:d=${formatNumber(exitDuration)}:alpha=1` : undefined,
+      `setpts=PTS-STARTPTS+${formatNumber(overlay.startSeconds)}/TB[${overlayLabel}]`,
+    ].filter(Boolean).join(',')
+    const xExpression = motionExpression({ base: x, startSeconds: overlay.startSeconds, duration: enterDuration, enter, axis: 'x' })
+    const yExpression = motionExpression({ base: y, startSeconds: overlay.startSeconds, duration: enterDuration, enter, axis: 'y' })
     return [
-      `[${index + inputStartIndex}:v:0]format=rgba[${overlayLabel}]`,
-      `[${previousVideoLabel}][${overlayLabel}]overlay=x=${x}:y=${y}:enable='between(t,${formatNumber(overlay.startSeconds)},${formatNumber(overlay.endSeconds)})':shortest=1[${outputVideoLabel}]`,
+      overlayTransforms,
+      `[${previousVideoLabel}][${overlayLabel}]overlay=x='${xExpression}':y='${yExpression}':enable='between(t,${formatNumber(overlay.startSeconds)},${formatNumber(overlay.endSeconds)})':eof_action=pass[${outputVideoLabel}]`,
     ]
   })
+}
+
+function collectRasterOverlays(input: FinalRenderExecutionInput) {
+  const captions = input.enableCaptionBurnIn === true ? input.captionOverlayInputs ?? [] : []
+  const graphics = input.enableVisualOverlays === true ? input.visualOverlayInputs ?? [] : []
+  return [...captions, ...graphics].sort((left, right) => left.startSeconds - right.startSeconds)
+}
+
+function motionExpression(input: {
+  base: number
+  startSeconds: number
+  duration: number
+  enter: NonNullable<NonNullable<FinalRenderExecutionInput['visualOverlayInputs']>[number]['animation']>['enter']
+  axis: 'x' | 'y'
+}): string {
+  if (input.duration <= 0) return String(input.base)
+  const progress = `max(0,min(1,(t-${formatNumber(input.startSeconds)})/${formatNumber(input.duration)}))`
+  if (input.axis === 'y' && (input.enter === 'fade_up' || input.enter === 'phrase_fade_up')) {
+    return `${input.base}+24*(1-${progress})`
+  }
+  if (input.axis === 'x' && input.enter === 'slide_left') return `${input.base}+42*(1-${progress})`
+  if (input.axis === 'x' && input.enter === 'slide_right') return `${input.base}-42*(1-${progress})`
+  return String(input.base)
 }
 
 function buildVideoFinish(
   preset: NonNullable<FinalRenderExecutionInput['localDevRenderProfile']>['visualFinish'],
   durationSeconds: number,
+  approvedSpec?: FinalRenderExecutionInput['approvedColorSpec'],
 ): string {
   const filters = []
-  if (preset === 'clean_natural') filters.push('eq=contrast=1.025:saturation=1.025:brightness=0.004')
-  if (preset === 'premium_clean') filters.push('eq=contrast=1.04:saturation=1.035:brightness=0.006')
+  if (approvedSpec) {
+    filters.push(`eq=contrast=${formatNumber(approvedSpec.contrast)}:saturation=${formatNumber(approvedSpec.saturation)}:brightness=${formatNumber(approvedSpec.brightness)}:gamma=${formatNumber(approvedSpec.gamma)}`)
+    if (Math.abs(approvedSpec.warmth) >= 0.001) {
+      filters.push(`colorbalance=rs=${formatNumber(approvedSpec.warmth)}:bs=${formatNumber(-approvedSpec.warmth)}`)
+    }
+  } else {
+    if (preset === 'clean_natural') filters.push('eq=contrast=1.025:saturation=1.025:brightness=0.004')
+    if (preset === 'premium_clean') filters.push('eq=contrast=1.04:saturation=1.035:brightness=0.006')
+  }
   filters.push('fade=t=in:st=0:d=0.12')
   filters.push(`fade=t=out:st=${formatNumber(Math.max(0, durationSeconds - 0.22))}:d=0.2`)
   return filters.join(',')
@@ -163,12 +212,18 @@ function buildVideoFinish(
 function buildAudioFinish(
   preset: NonNullable<FinalRenderExecutionInput['localDevRenderProfile']>['audioFinish'],
   durationSeconds: number,
+  approvedSpec?: FinalRenderExecutionInput['approvedAudioSpec'],
 ): string {
   const filters = []
-  if (preset === 'clean_voice') {
-    filters.push('highpass=f=80')
-    filters.push('lowpass=f=16000')
-    filters.push('loudnorm=I=-16:LRA=7:TP=-1.5')
+  if (approvedSpec) {
+    if (approvedSpec.denoise === 'light_fft') filters.push('afftdn=nr=8:nf=-45:tn=1')
+    if (approvedSpec.denoise === 'medium_fft') filters.push('afftdn=nr=12:nf=-38:tn=1')
+    if (approvedSpec.highpassHz > 0) filters.push(`highpass=f=${approvedSpec.highpassHz}`)
+    if (approvedSpec.lowpassHz > 0) filters.push(`lowpass=f=${approvedSpec.lowpassHz}`)
+    if (approvedSpec.voiceCompression === 'light') filters.push('acompressor=threshold=-18dB:ratio=2:attack=20:release=200')
+    if (approvedSpec.normalize) filters.push(`loudnorm=I=${formatNumber(approvedSpec.targetLufs)}:LRA=7:TP=${formatNumber(approvedSpec.truePeakDb)}`)
+  } else if (preset === 'clean_voice') {
+    filters.push('highpass=f=80', 'lowpass=f=16000', 'loudnorm=I=-16:LRA=7:TP=-1.5')
   }
   filters.push('afade=t=in:st=0:d=0.05')
   filters.push(`afade=t=out:st=${formatNumber(Math.max(0, durationSeconds - 0.18))}:d=0.16`)

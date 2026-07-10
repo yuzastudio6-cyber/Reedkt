@@ -151,6 +151,8 @@ export async function extractKeyframes(input: ExtractKeyframesInput): Promise<Me
       `fps=1/${frameIntervalSeconds}`,
       '-frames:v',
       String(maxFrameCount),
+      '-pix_fmt',
+      'yuvj420p',
       '-q:v',
       '3',
       pattern,
@@ -165,7 +167,7 @@ export async function extractRepresentativeFrames(
 ): Promise<MediaFoundationArtifactSummary[]> {
   const outputDirectory = assertOutputDirectory(input.outputDirectory, input.safeOutputRoot)
   await mkdir(outputDirectory, { recursive: true })
-  const maxFrameCount = Math.max(1, Math.min(input.maxFrameCount ?? 3, 5))
+  const maxFrameCount = Math.max(1, Math.min(input.maxFrameCount ?? 3, 8))
   const sampleTimes = buildRepresentativeSampleTimes(input.durationSeconds, maxFrameCount)
   const outputs: string[] = []
 
@@ -187,6 +189,10 @@ export async function extractRepresentativeFrames(
         input.sourceLocalPath,
         '-frames:v',
         '1',
+        '-vf',
+        "scale='min(768,iw)':-2",
+        '-pix_fmt',
+        'yuvj420p',
         '-q:v',
         '3',
         outputPath,
@@ -260,10 +266,9 @@ async function summarizeFrameOutputs(
 function buildRepresentativeSampleTimes(durationSeconds: number | undefined, maxFrameCount: number): number[] {
   const duration = Math.max(0.1, durationSeconds ?? 1)
   if (maxFrameCount === 1) return [0]
-  if (maxFrameCount === 2) return [0, Math.max(0, duration - 0.1)]
-  return [
-    0,
-    Number((duration / 2).toFixed(3)),
-    Math.max(0, Number((duration - 0.1).toFixed(3))),
-  ].slice(0, maxFrameCount)
+  const endGuardSeconds = Math.max(0.1, Math.min(0.5, duration * 0.02))
+  const lastTime = Math.max(0, duration - endGuardSeconds)
+  return Array.from({ length: maxFrameCount }, (_, index) => Number(
+    ((lastTime * index) / (maxFrameCount - 1)).toFixed(3),
+  ))
 }

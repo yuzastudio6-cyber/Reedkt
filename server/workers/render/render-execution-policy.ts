@@ -118,6 +118,7 @@ function rejectUnsafeReferences(input: FinalRenderExecutionInput): void {
     ['proxyLocalPath', input.proxyLocalPaths ?? []],
     ['captionLocalPath', input.captionLocalPaths ?? []],
     ['captionOverlayLocalPath', input.captionOverlayInputs?.map((item) => item.localPath) ?? []],
+    ['visualOverlayLocalPath', input.visualOverlayInputs?.map((item) => item.localPath) ?? []],
     ['audioLocalPath', input.audioLocalPaths ?? []],
     ['outputDirectory', input.outputDirectory ? [input.outputDirectory] : []],
   ] as const

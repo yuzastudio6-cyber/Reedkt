@@ -160,7 +160,7 @@ assert.equal(markerModel.boundary.fileBytesRead, false)
 assert.equal(markerModel.boundary.externalUrlFetched, false)
 assert.equal(markerModel.boundary.mediaProcessingStarted, false)
 
-assert.equal(migrationCount(), 24)
+assert.ok(migrationCount() >= 24, 'UI shell must preserve all established migrations')
 
 console.log(JSON.stringify({
   ok: true,

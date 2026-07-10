@@ -85,6 +85,7 @@ export type {
 export * from './creative-skill-workflow'
 export * from './creative-skill-qa'
 export * from './creative-skill-diagnostics'
+export * from './tool-call-intents'
 export type {
   CreditGateCheckInput,
   CreditGateCheckResult,
@@ -98,6 +99,7 @@ export * from './qwen-runtime-boundary'
 export * from './qwen-runtime-adapter'
 export * from './qwen-marker-chat-runtime'
 export * from './qwen-main-brain'
+export * from './autonomous-edit-planning'
 export * from './project-edit-session'
 export * from './project-edit-brief'
 export * from './project-edit-brief-visual-context'

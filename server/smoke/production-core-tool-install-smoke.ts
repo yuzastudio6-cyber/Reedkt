@@ -130,7 +130,8 @@ for (const expected of ['av', 'scenedetect', 'cv2', 'duckdb', 'polars', 'opentim
 const nodePackages = new Set(CORE_TOOL_NODE_PACKAGE_CHECKS.map((item) => item.packageName))
 check(nodePackages.has('sharp'), 'Node package checks must include Sharp metadata.')
 check(nodePackages.has('remotion'), 'Node package checks must include Remotion metadata.')
-check(nodePackages.has('hyperframe'), 'Node package checks must include Hyperframe metadata boundary.')
+const hyperframeNodeCheck = CORE_TOOL_NODE_PACKAGE_CHECKS.find((item) => item.toolId === 'hyperframe')
+check(hyperframeNodeCheck?.sourcePath === 'server/workers/timeline/hyperframe-timeline-bridge.ts', 'Node package checks must prove the internal Hyperframe bridge source boundary.')
 
 const revideoSpec = getProductionReadinessSpec('revideo')
 check(revideoSpec?.evaluationOnly === true, 'Revideo readiness must remain evaluation-only.')

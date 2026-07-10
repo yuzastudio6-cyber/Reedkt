@@ -32,7 +32,20 @@ export type ProductionToolId =
   | 'rnnoise'
   | 'demucs'
   | 'librosa'
+  | 'audioread'
+  | 'pydub'
+  | 'scipy'
+  | 'resampy'
+  | 'pyloudnorm'
   | 'audioflux'
+  | 'music21'
+  | 'pretty_midi'
+  | 'mido'
+  | 'noisereduce'
+  | 'pedalboard'
+  | 'mir_eval'
+  | 'pydub_effects'
+  | 'ebu_r128_pyloudnorm'
   | 'signalsmith_stretch'
   | 'soundtouch'
   | 'rubber_band'
@@ -59,6 +72,9 @@ export type ProductionToolId =
   | 'konva'
   | 'torch_torchvision'
   | 'transformers'
+  | 'gstreamer'
+  | 'mkvtoolnix'
+  | 'gpac_mp4box'
   | 'vapoursynth'
   | 'revideo'
 
@@ -94,7 +110,20 @@ export const PRODUCTION_TOOL_IDS = [
   'rnnoise',
   'demucs',
   'librosa',
+  'audioread',
+  'pydub',
+  'scipy',
+  'resampy',
+  'pyloudnorm',
   'audioflux',
+  'music21',
+  'pretty_midi',
+  'mido',
+  'noisereduce',
+  'pedalboard',
+  'mir_eval',
+  'pydub_effects',
+  'ebu_r128_pyloudnorm',
   'signalsmith_stretch',
   'soundtouch',
   'rubber_band',
@@ -121,6 +150,9 @@ export const PRODUCTION_TOOL_IDS = [
   'konva',
   'torch_torchvision',
   'transformers',
+  'gstreamer',
+  'mkvtoolnix',
+  'gpac_mp4box',
   'vapoursynth',
   'revideo',
 ] as const satisfies readonly ProductionToolId[]

@@ -17,6 +17,7 @@
 - Mock-only Node HTTP backend scaffold for future Cloud Run deployment with health, readiness, runtime status, route registry, and mock API transport endpoints.
 - Project-level SoundSync SFX workflow wiring in mock mode, including SFX Director planning, provider routes, prompt plans, credit gates, mock generation requests, mock jobs, mock worker runs, mock provider adapter output, trim/hit alignment, mix, QA, project asset decisions, and editor chat status.
 - SFX provider execution readiness reporting for future Mirelo SFX V1.5 and MMAudio V2 backend transport, including structured block reasons, Secret Manager reference checks, approval/credit/job checks, and safe next steps.
+- RP-BETA-INTEGRATION-37 owner approval packet and smoke for future remote Supabase and staging deployment review.
 
 ## Mock / Placeholder
 
@@ -33,6 +34,7 @@
 - Cloud Run API service plan, local runtime docs, deployment checklist, and backend Dockerfile scaffold.
 - Project SFX integration scenarios and chat panel showing Mirelo SFX V1.5, MMAudio V2, internal library, and no-SFX routes.
 - SFX provider readiness scenarios covering mock mode, disabled mode, frontend real-mode blocking, missing Secret Manager references, no-SFX routes, missing approval artifacts, and future transport readiness.
+- Remote Supabase and staging deployment approval packet. It records owner decisions, risks, validation, and rollback requirements without running remote commands.
 
 ## Not Implemented
 
@@ -47,3 +49,4 @@
 - Real provider integrations. Mirelo/MMAudio are wired into the project flow in mock mode and have readiness reporting only; live provider transport remains future backend work.
 - Rendering/export workers.
 - Remote Supabase migration or validation.
+- Staging deployment and remote migration application for RP-BETA-INTEGRATION-37.

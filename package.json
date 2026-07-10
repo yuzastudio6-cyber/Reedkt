@@ -15,6 +15,7 @@
     "typecheck:api": "tsc -p tsconfig.server.json --noEmit",
     "build:api": "npm run typecheck:api",
     "smoke:api": "tsx server/smoke/backend-runtime-smoke.ts",
+    "smoke:beta-integration-37": "tsx server/smoke/beta-integration-37-approval-packet-smoke.ts",
     "tool-calling:diagnostics": "node scripts/validation/tool-calling-brain-diagnostics.mjs",
     "tool-calling:refresh-gate": "node scripts/validation/tool-calling-refresh-gate.mjs",
     "tool-calling:adapter-contracts": "node scripts/validation/tool-calling-adapter-contracts-diagnostics.mjs",

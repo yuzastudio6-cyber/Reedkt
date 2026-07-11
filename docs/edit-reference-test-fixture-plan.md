@@ -1,6 +1,6 @@
 # Edit Reference Test Fixture Plan
 
-Status: `gate_5_fixtures_executed_through_target_application`
+Status: `gate_6_fixtures_executed_through_downstream_integration`
 
 Fixtures must test behavior, not only file presence. They must be deterministic, private, rights-safe, small, and explicit about whether they contain metadata, synthetic media, or previous approved-edit evidence.
 
@@ -80,23 +80,30 @@ Fixtures must test behavior, not only file presence. They must be deterministic,
 - One approved DNA applied to two different synthetic target edits: a voice-first tutorial and a silent lifestyle montage.
 - Expected: different pacing/audio/caption/application hints, same high-level DNA provenance, no direct copied timing/shots.
 
-### 13. Application Replacement And Removal
+### 13. Downstream Exact Connection
+
+- One prepared application for the canonical mock Project Edit Session.
+- Mismatched project/edit/context receipt variant.
+- Confirmed marker that overlaps a reusable DNA layer.
+- Expected: staged context remains inactive; mismatched receipt fails; exact receipt connects; session/Brief/Marker/Chat/Plan/QA share one bounded context; marker wins; no plan or production side effect.
+
+### 14. Application Replacement And Removal
 
 - Apply A, replace with B, clear.
 - Expected: monotonic application version, usage events, exact history, downstream invalidation, no approved-snapshot mutation.
 
-### 14. Privacy And DTO Redaction
+### 15. Privacy And DTO Redaction
 
 - Seed storage paths, signed URLs, auth headers, provider payload-like values, and raw-frame fields in internal negative fixtures.
 - Expected: reject or redact; browser response and logs contain none.
 
-### 15. Tenant Isolation
+### 16. Tenant Isolation
 
 - Two users/two workspaces with colliding display names and client message IDs.
 - Expected: scoped isolation and no cross-workspace replay/read/write.
 - Current Gate 1 proof: isolated private-local scopes; production RLS remains blocked.
 
-### 16. Persistence Corruption And Recovery
+### 17. Persistence Corruption And Recovery
 
 - Invalid JSON, checksum mismatch, wrong scope, duplicate IDs, unsupported record version, oversized aggregate, symlink/traversal path.
 - Expected: fail closed; no silent reset or data loss.
@@ -114,7 +121,7 @@ Focused Playwright begins at `/preferences` and proves:
 7. UI states remain truthful and no DNA/QA/provider/render/credit claim appears.
 8. Keyboard navigation, focus, 1024/1440/1920 layout, and overflow checks pass.
 
-Later Playwright fixtures extend this same canonical path for evidence, DNA, QA, approval, target application, replacement, removal, and downstream contexts.
+Later Playwright fixtures extend this same canonical path for evidence, DNA, QA, approval, target application, exact downstream connection, replacement, and removal.
 
 ## Fixture Storage Rules
 
@@ -146,4 +153,10 @@ The focused browser fixture runs quality review, expands review-required finding
 
 The focused browser fixture displays the approved target-ready handoff, loads a real prepared application in Applied Edits, reviews target-specific guidance, keeps internal fields out of visible copy, and verifies horizontal overflow safety.
 
-Application replacement/removal, downstream invalidation, remote RLS, live media study, and provider execution remain later-gate fixtures.
+## Gate 6 Executed Fixtures
+
+`server/smoke/edit-reference-downstream-integration-smoke.ts` executes the Downstream Exact Connection family through the authenticated Edit Reference API and canonical mock Project Edit Session client. It proves inactive staging, approval-reset behavior, mismatched-receipt rejection, exact backend connection, activation, session memory/history/snapshot persistence, Edit Brief synchronization, Marker Context and Marker Chat inclusion, Plan Hint precedence/holdback, QA, idempotent replay, repository recreation, privacy-safe DTOs, and all-false production side effects.
+
+`tests/e2e/edit-reference-downstream-integration.spec.ts` creates and approves a real Edit Reference, prepares its exact target application, completes the connection by user-facing name, confirms the output frame, verifies Edit Chat/Brief/Marker Chat/Plan Hints/QA, reloads the connected Brief, checks that application IDs/digests are not displayed, and validates 1440px and 375px horizontal-overflow safety.
+
+Application replacement/removal, downstream invalidation, remote RLS, live media study, and provider execution remain Gate 7 or later fixtures.

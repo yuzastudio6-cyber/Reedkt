@@ -1,6 +1,6 @@
 # Edit Reference Persistence Contract
 
-Status: `gate_5_backend_local_contract`
+Status: `gate_6_backend_local_contract`
 
 This contract defines one canonical persistence architecture for Edit Reference. Gate 1 implements its backend-local durable lane. Production database persistence remains fail-closed until the canonical Supabase chain, RLS, tenancy, and transaction evidence pass.
 
@@ -17,7 +17,7 @@ This contract defines one canonical persistence architecture for Edit Reference.
 - `PreferenceApplication`
 - `PreferenceUsageLog`
 
-Gate 1 fully persists references, study sessions, and study messages. Gate 2 adds evidence, assets, and skill runs. Gate 3 adds immutable Preference DNA candidates. Gate 4 adds exact-version QA results and approval snapshots. Gate 5 adds immutable target-context adaptation records with an explicit not-connected boundary. Production-database authority remains fail-closed.
+Gate 1 fully persists references, study sessions, and study messages. Gate 2 adds evidence, assets, and skill runs. Gate 3 adds immutable Preference DNA candidates. Gate 4 adds exact-version QA results and approval snapshots. Gate 5 adds immutable target-context adaptation records with an explicit not-connected boundary. Gate 6 adds the exact mock Project Edit Session receipt, deterministic downstream context, and connected lifecycle while reusing the existing mock Project Edit Session and Edit Brief repositories. Production-database authority remains fail-closed.
 
 ## Scope And Identity
 
@@ -171,6 +171,18 @@ approved DNA + exact target context
 
 The mutation binds the exact reference, study, DNA digest, approval, QA result, target project/edit, target-context digest, adapted decisions, hint groups, precedence policy, and do-not-copy rules. It increments reference revision for compare-and-swap concurrency, but does not mutate the target edit, approved plan, downstream contexts, study approval, or production state.
 
+Gate 6 connects that exact application through a recoverable two-authority backend-local sequence:
+
+```text
+prepared PreferenceApplication
+  -> stage inactive bounded context in canonical mock Project Edit Session
+  -> validate deterministic target-session receipt
+  -> connected PreferenceApplication with verified mock target identity
+  -> activate the exact bounded context in Project Edit Session and Edit Brief
+```
+
+The stage mutation may reset requested/approved mock approval and append session memory, history, and snapshot records. It cannot make the context active. The authenticated Edit Reference mutation validates reference revision, application digest, target identity, confirmed frame, platform, edit level, approval-reset behavior, application/context hashes, and receipt timestamps before storing the exact context and connection receipt atomically. Only that connected server record may be activated downstream. Activation remains planning context only and cannot mutate an approved plan or start production.
+
 ## Versioning And Concurrency
 
 - Aggregate revision increments once per committed mutation.
@@ -185,7 +197,7 @@ The mutation binds the exact reference, study, DNA digest, approval, QA result, 
 - Adding or correcting evidence after approval resets active study readiness without rewriting the approved historical artifact. A later approved version marks the prior approved lifecycle status `superseded` while retaining its content, QA result, and approval snapshot.
 - Evidence corrections append a new evidence record linked to the exact superseded record; the original remains durable and later orchestration uses only the active successor.
 - Application version is monotonic and replacement/clear events are retained.
-- Gate 5 permits one active prepared application per exact target project/edit. Replace/clear history and downstream invalidation are completed in Gate 7.
+- Gate 6 permits one connected application per exact target project/edit. Replace/clear history and downstream invalidation are completed in Gate 7.
 
 ## Idempotency
 
@@ -236,11 +248,11 @@ The production seam reports `blocked_by_migration_baseline` and performs no read
 - route-specific atomic idempotency transactions are missing;
 - live catalog/storage/security evidence is missing.
 
-Gates 1–5 add no SQL migration. Migration baseline/current remain 21.
+Gates 1–6 add no SQL migration. Migration baseline/current remain 21.
 
 ## Persistence Acceptance
 
-Gate 5 persistence passes only when the earlier gates remain passing and:
+Gate 6 persistence passes only when the earlier gates remain passing and:
 
 - create/list/get/update/reference and create/get/update-study operations read back from a recreated repository/service;
 - messages survive process/repository recreation and browser reload;
@@ -262,4 +274,10 @@ Gate 5 persistence passes only when the earlier gates remain passing and:
 - do-not-copy rules are always held back and target `avoid` directives outrank DNA;
 - the same DNA produces different guidance for voice-first and silent-visual targets;
 - application replay cannot duplicate records, and a second active application for the same target fails closed;
-- target edit, approved plan, downstream context, provider, media, worker, render, credit, and remote-persistence side effects remain false.
+- the staged Project Edit Session context remains inactive until the exact backend-local application connects;
+- mismatched project/edit/frame/platform/level/digest/context/approval receipts fail without mutation;
+- the connected application stores the recomputed bounded context and exact mock receipt and validates them on every read;
+- activation writes the same exact context into existing Project Edit Session and Edit Brief persistence without creating a second source of truth;
+- server/repository recreation and browser reload restore the exact connected context;
+- confirmed Edit Brief markers hold back matching DNA hints while retaining provenance;
+- approved-plan mutation, provider, media, worker, render, credit, and remote-persistence side effects remain false.

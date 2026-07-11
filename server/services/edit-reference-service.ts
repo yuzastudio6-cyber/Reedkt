@@ -4,6 +4,7 @@ import type { ServiceContext } from '../types'
 import type {
   ApproveEditReferenceDNAVersionRequest,
   AppendPreferenceStudyMessageRequest,
+  ConnectPreferenceApplicationRequest,
   CreatePreferenceApplicationRequest,
   CreatePreferenceEvidenceRequest,
   CreateEditReferenceRequest,
@@ -44,6 +45,7 @@ import { orchestratePreferenceEvidenceStudy } from '../edit-references/edit-refe
 import { synthesizeEditReferencePreferenceDNA } from '../edit-references/edit-reference-dna-synthesis'
 import { runEditReferenceDNAQA } from '../edit-references/edit-reference-dna-qa'
 import { createEditReferenceTargetApplication } from '../edit-references/edit-reference-target-adaptation'
+import { createPreferenceApplicationDownstreamContext } from '../../src/lib/edit-reference-downstream-context'
 
 const LOCAL_WARNING = 'Stored in the private backend-local Edit Reference repository. Production Supabase persistence remains blocked.'
 const FUTURE_RUNTIME_WARNING = 'No provider, model, file-byte, media, worker, generation, render, credit, or remote Supabase operation ran.'
@@ -71,6 +73,7 @@ export interface EditReferenceService {
   runPreferenceDNAQA(studyId: string, dnaVersionId: string, input: RunEditReferenceDNAQARequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   approvePreferenceDNA(studyId: string, dnaVersionId: string, input: ApproveEditReferenceDNAVersionRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   createPreferenceApplication(studyId: string, dnaVersionId: string, input: CreatePreferenceApplicationRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  connectPreferenceApplication(applicationId: string, input: ConnectPreferenceApplicationRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
 }
 
 export function createEditReferenceService(
@@ -652,6 +655,64 @@ export function createEditReferenceService(
       })
       return result(mutation.data, mutation.replayed)
     },
+
+    async connectPreferenceApplication(applicationId, input, idempotencyKey) {
+      const normalized = normalizeConnectPreferenceApplication(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_application.connect_mock_session',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ applicationId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const application = aggregate.applications.find((record) => record.id === applicationId)
+          if (!application) {
+            throw new ApiError('PREFERENCE_APPLICATION_NOT_FOUND', 'Preference Application was not found.', 404, { applicationId })
+          }
+          const reference = requireReference(aggregate, application.editReferenceId)
+          const study = requireStudy(aggregate, application.studySessionId)
+          assertRevision(reference.revision, normalized.expectedReferenceRevision, 'Edit Reference')
+          if (application.contentDigest !== normalized.expectedApplicationContentDigest) {
+            throw new ApiError('VERSION_CONFLICT', 'Preference Application changed since it was staged. Reload before connecting it.', 409)
+          }
+          if (application.status !== 'prepared' || application.targetIntegrationStatus !== 'not_connected') {
+            throw new ApiError('VERSION_CONFLICT', 'Only one unconnected prepared Preference Application can be connected.', 409)
+          }
+          const context = createPreferenceApplicationDownstreamContext(application, 'connected_mock')
+          assertTargetSessionReceipt(application, context.packageHash, normalized.targetSessionReceipt)
+          application.targetIdentityStatus = 'verified_mock_project_edit_session'
+          application.targetIntegrationStatus = 'connected'
+          application.targetEditMutationMade = true
+          application.downstreamContextWritten = true
+          application.downstreamContext = context
+          application.targetSessionReceipt = normalized.targetSessionReceipt
+          application.connectedAt = now
+          reference.revision += 1
+          reference.updatedAt = now
+          aggregate.messages.push({
+            id: `preference-study-message-${randomUUID()}`,
+            workspaceId: reference.workspaceId,
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            role: 'assistant',
+            content: `Target-adapted Preference DNA was connected mock-locally to “${application.targetContext.editName}.” Current instructions and confirmed Edit Brief markers remain higher priority; no production work started.`,
+            sequence: nextSequence(aggregate, study.id),
+            runtimeSource: 'deterministic_dna_application',
+            createdAt: now,
+          })
+          aggregate.usageLogs.push(usageLog(reference, 'applied', now))
+          addAuditEvent({
+            eventType: 'preference_application_connected_mock',
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            dnaVersionId: application.dnaVersionId,
+            dnaQaResultId: application.dnaQaResultId,
+            applicationId: application.id,
+          })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
   }
 }
 
@@ -1057,7 +1118,7 @@ function nextSequence(aggregate: EditReferenceAggregate, studyId: string): numbe
 
 function usageLog(
   reference: EditReferenceRecord,
-  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'dna_qa_completed' | 'dna_version_approved' | 'application_prepared' | 'updated' | 'archived',
+  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'dna_qa_completed' | 'dna_version_approved' | 'application_prepared' | 'updated' | 'archived' | 'applied',
   now: string,
 ) {
   return {
@@ -1353,6 +1414,71 @@ function normalizeCreatePreferenceApplication(input: CreatePreferenceApplication
     acknowledgeAdaptNotCopy: true,
     targetContext: normalizedTarget,
   }
+}
+
+function normalizeConnectPreferenceApplication(input: ConnectPreferenceApplicationRequest): ConnectPreferenceApplicationRequest {
+  const receipt = input.targetSessionReceipt
+  if (!receipt || typeof receipt !== 'object' || receipt.mockOnly !== true) {
+    throw new ApiError('VALIDATION_FAILED', 'A staged mock Project Edit Session receipt is required.', 400)
+  }
+  if (receipt.outputFrameConfirmed !== true) {
+    throw new ApiError('VALIDATION_FAILED', 'The staged target receipt must confirm the output frame.', 400)
+  }
+  if (receipt.receiptVersion !== 'edit-reference-project-session-receipt-v1') {
+    throw new ApiError('VALIDATION_FAILED', 'The target session receipt version is not supported.', 400)
+  }
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedReferenceRevision: requirePositiveInteger(input.expectedReferenceRevision, 'expectedReferenceRevision'),
+    expectedApplicationContentDigest: requireSha256(input.expectedApplicationContentDigest, 'expectedApplicationContentDigest'),
+    targetSessionReceipt: {
+      receiptVersion: receipt.receiptVersion,
+      projectId: requireText(receipt.projectId, 'targetSessionReceipt.projectId', 200),
+      editSessionId: requireText(receipt.editSessionId, 'targetSessionReceipt.editSessionId', 200),
+      sessionName: requireText(receipt.sessionName, 'targetSessionReceipt.sessionName', 160),
+      sessionUpdatedAt: requireISODate(receipt.sessionUpdatedAt, 'targetSessionReceipt.sessionUpdatedAt'),
+      aspectRatio: receipt.aspectRatio,
+      platformTarget: receipt.platformTarget,
+      selectedEditLevel: receipt.selectedEditLevel,
+      outputFrameConfirmed: true,
+      approvalStatusBefore: receipt.approvalStatusBefore,
+      approvalStatusAfter: receipt.approvalStatusAfter,
+      approvalResetRequired: receipt.approvalResetRequired === true,
+      stagedContextHash: requireText(receipt.stagedContextHash, 'targetSessionReceipt.stagedContextHash', 80),
+      stagedApplicationContentDigest: requireSha256(receipt.stagedApplicationContentDigest, 'targetSessionReceipt.stagedApplicationContentDigest'),
+      stagedAt: requireISODate(receipt.stagedAt, 'targetSessionReceipt.stagedAt'),
+      mockOnly: true,
+    },
+  }
+}
+
+function assertTargetSessionReceipt(
+  application: EditReferenceDetail['applications'][number],
+  expectedContextHash: string,
+  receipt: ConnectPreferenceApplicationRequest['targetSessionReceipt'],
+): void {
+  const validApprovalReset = receipt.approvalResetRequired
+    ? receipt.approvalStatusAfter === 'reset_after_revision'
+    : receipt.approvalStatusAfter === receipt.approvalStatusBefore
+  if (
+    receipt.projectId !== application.projectId
+    || receipt.editSessionId !== application.editSessionId
+    || receipt.aspectRatio !== application.targetContext.aspectRatio
+    || receipt.platformTarget !== application.targetContext.platformTarget
+    || receipt.selectedEditLevel !== application.targetContext.selectedEditLevel
+    || receipt.outputFrameConfirmed !== true
+    || receipt.stagedContextHash !== expectedContextHash
+    || receipt.stagedApplicationContentDigest !== application.contentDigest
+    || !validApprovalReset
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'The staged Project Edit Session receipt does not match this exact Preference Application.', 409)
+  }
+}
+
+function requireISODate(value: string, field: string): string {
+  const normalized = requireText(value, field, 80)
+  if (Number.isNaN(Date.parse(normalized))) throw new ApiError('VALIDATION_FAILED', `${field} must be an ISO date.`, 400)
+  return normalized
 }
 
 function requireWorkspaceId(value: string): string {

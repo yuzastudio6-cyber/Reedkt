@@ -37,7 +37,7 @@ test.describe('Edit Reference durable study session', () => {
     await expect(page.getByText('DNA not generated yet')).toBeVisible()
 
     await page.getByTestId('edit-preference-tab-applied-edits').click()
-    await expect(page.getByTestId('applied-edits-panel')).toContainText('0 applications')
+    await expect(page.getByTestId('applied-edits-panel')).not.toContainText(referenceName)
     await page.getByTestId('edit-preference-tab-safety-privacy').click()
     await expect(page.getByTestId('safety-privacy-panel')).toContainText('Creating or discussing a reference never starts production')
     await expect(page.getByTestId('safety-privacy-panel')).toContainText('never copied blindly')

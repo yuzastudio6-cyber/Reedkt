@@ -3,6 +3,7 @@ import { Badge } from '../../Badge'
 import type { ProjectEditBriefApiClient } from '../../../lib/project-edit-brief-api-client'
 import type { ProjectEditBriefMarkerDetailModel } from '../../../lib/project-edit-brief-ui-adapter'
 import type { ProjectEditBriefMarkerQAPanelModel } from '../../../types/project-edit-brief-qa'
+import type { PreferenceApplicationDownstreamContext } from '../../../types/edit-reference-integration'
 import {
   runProjectEditBriefMarkerQAViaApi,
 } from '../../../lib/project-edit-brief-qa-ui-adapter'
@@ -15,12 +16,14 @@ type ProjectEditBriefMarkerQAPanelProps = {
   client?: ProjectEditBriefApiClient
   marker?: ProjectEditBriefMarkerDetailModel
   onRan?: (message: string) => void
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }
 
 export function ProjectEditBriefMarkerQAPanel({
   client,
   marker,
   onRan,
+  preferenceApplicationContext,
 }: ProjectEditBriefMarkerQAPanelProps) {
   const [model, setModel] = useState<ProjectEditBriefMarkerQAPanelModel | undefined>()
   const [busy, setBusy] = useState(false)
@@ -30,7 +33,7 @@ export function ProjectEditBriefMarkerQAPanel({
     if (!marker) return
     setBusy(true)
     try {
-      const result = await runProjectEditBriefMarkerQAViaApi({ client, markerId: marker.markerId })
+      const result = await runProjectEditBriefMarkerQAViaApi({ client, markerId: marker.markerId, preferenceApplicationContext })
       if (result?.panelModel) {
         setModel(result.panelModel)
         const message = `Marker QA complete: ${result.panelModel.qaStatusLabel}. No planner, render, provider, worker, credit, media, or Supabase action started.`
@@ -76,6 +79,11 @@ export function ProjectEditBriefMarkerQAPanel({
             ))}
           </ul>
           <ProjectEditBriefConflictList conflicts={model.conflicts} />
+          {model.preferenceApplicationQA ? (
+            <p className="project-edit-brief-muted" data-testid="project-edit-brief-marker-preference-qa">
+              Edit Reference context: {model.preferenceApplicationQA.status}. {model.preferenceApplicationQA.findings.join(' ')}
+            </p>
+          ) : null}
           <p className="project-edit-brief-muted">{model.recommendedNextAction}</p>
           <ProjectEditBriefQABoundaryNotice summary={model.boundarySummary} />
         </>

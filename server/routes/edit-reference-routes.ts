@@ -124,6 +124,29 @@ const createPreferenceApplicationSchema = workspaceSchema.extend({
   acknowledgeAdaptNotCopy: z.literal(true),
   targetContext: targetContextSchema,
 }).strict()
+const targetSessionReceiptSchema = z.object({
+  receiptVersion: z.literal('edit-reference-project-session-receipt-v1'),
+  projectId: idSchema.max(200),
+  editSessionId: idSchema.max(200),
+  sessionName: z.string().trim().min(1).max(160),
+  sessionUpdatedAt: z.string().datetime(),
+  aspectRatio: z.enum(['9:16', '16:9', '1:1', '4:5']),
+  platformTarget: z.enum(['tiktok_reel', 'instagram_reel', 'instagram_feed', 'youtube_shorts', 'youtube_standard', 'linkedin', 'website', 'podcast_clip', 'ad_creative', 'internal_review', 'custom']),
+  selectedEditLevel: z.enum(['normal', 'premium', 'ultra_premium']),
+  outputFrameConfirmed: z.literal(true),
+  approvalStatusBefore: z.enum(['not_requested', 'requested', 'approved', 'rejected', 'reset_after_revision']),
+  approvalStatusAfter: z.enum(['not_requested', 'requested', 'approved', 'rejected', 'reset_after_revision']),
+  approvalResetRequired: z.boolean(),
+  stagedContextHash: z.string().trim().min(1).max(80),
+  stagedApplicationContentDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  stagedAt: z.string().datetime(),
+  mockOnly: z.literal(true),
+}).strict()
+const connectPreferenceApplicationSchema = workspaceSchema.extend({
+  expectedReferenceRevision: z.number().int().positive(),
+  expectedApplicationContentDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  targetSessionReceipt: targetSessionReceiptSchema,
+}).strict()
 
 export function createEditReferenceRoutes(): Router {
   const router = Router()
@@ -270,6 +293,16 @@ export function createEditReferenceRoutes(): Router {
       getDurableIdempotencyKey(request),
     )
     sendMutation(response, result, 201)
+  }))
+
+  router.post('/v1/edit-reference-applications/:applicationId/connect', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(connectPreferenceApplicationSchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).connectPreferenceApplication(
+      getRouteParam(request, 'applicationId'),
+      body,
+      getDurableIdempotencyKey(request),
+    )
+    sendMutation(response, result)
   }))
 
   return router

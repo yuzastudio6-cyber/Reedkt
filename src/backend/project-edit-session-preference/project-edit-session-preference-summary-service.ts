@@ -48,6 +48,8 @@ export function createProjectEditSessionPreferencePanelModel(
     requiresUserReview: plan?.status === 'dna_requires_user_review' || state.requiresUserReview,
     blockedReasons: Array.from(new Set(blockedReasons)),
     warnings: Array.from(new Set([...(state.warnings ?? []), ...(plan?.warnings ?? [])])),
+    integrationStatus: state.integrationStatus,
+    applicationContext: state.applicationContext,
     mockOnly: true,
   }
 }
@@ -73,7 +75,7 @@ export function createProjectEditSessionPreferenceDebugSummary(state: ProjectEdi
 
 export function createProjectEditSessionPreferenceBoundarySummary(): string[] {
   return [
-    'ProjectEditSession uses Edit Preference as reusable style metadata only.',
+    'ProjectEditSession uses exact target-adapted Edit Reference guidance as mock/local planning context only.',
     'No Qwen, DeepSeek, provider, worker, render, media processing, Supabase write, or credit action is enabled.',
     'Edit Preference library records are never mutated when applying or clearing a preference from an Edit Chat.',
   ]

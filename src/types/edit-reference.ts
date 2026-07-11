@@ -509,7 +509,7 @@ export interface PreferenceApplicationRecord {
     'approved_preference_dna',
   ]
   summary: string
-  targetIdentityStatus: 'caller_confirmed_unverified' | 'verified_project_edit_session'
+  targetIdentityStatus: 'caller_confirmed_unverified' | 'verified_mock_project_edit_session' | 'verified_project_edit_session'
   targetIntegrationStatus: 'not_connected' | 'connected' | 'invalidated'
   downstreamInvalidationStatus: 'not_required' | 'pending' | 'completed'
   replacesApplicationId?: string
@@ -519,6 +519,9 @@ export interface PreferenceApplicationRecord {
   targetEditMutationMade: boolean
   approvedPlanMutationMade: false
   downstreamContextWritten: boolean
+  downstreamContext?: import('./edit-reference-integration').PreferenceApplicationDownstreamContext
+  targetSessionReceipt?: import('./edit-reference-integration').PreferenceApplicationTargetSessionReceipt
+  connectedAt?: string
   providerCallMade: false
   modelCallMade: false
   fileBytesRead: false
@@ -715,6 +718,9 @@ export interface CreatePreferenceApplicationRequest {
   acknowledgeAdaptNotCopy: true
   targetContext: PreferenceApplicationTargetContextSnapshot
 }
+
+export type ConnectPreferenceApplicationRequest =
+  import('./edit-reference-integration').ConnectPreferenceApplicationRequest
 
 export interface EditReferenceApiSuccess<T> {
   ok: true

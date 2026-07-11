@@ -51,12 +51,20 @@ const workspaceId = (import.meta.env.VITE_REEDITPRO_EDIT_REFERENCE_WORKSPACE_ID 
 export function EditReferenceWorkspacePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const requestedTab = searchParams.get('tab')
+  const requestedReferenceId = searchParams.get('reference')?.trim() || undefined
   const activeTab: TabId = tabs.some((tab) => tab.id === requestedTab) ? requestedTab as TabId : 'edit-references'
 
   const setActiveTab = (tab: TabId) => {
     const next = new URLSearchParams(searchParams)
     if (tab === 'edit-references') next.delete('tab')
     else next.set('tab', tab)
+    setSearchParams(next, { replace: true })
+  }
+
+  const setSelectedReferenceId = (referenceId?: string) => {
+    const next = new URLSearchParams(searchParams)
+    if (referenceId) next.set('reference', referenceId)
+    else next.delete('reference')
     setSearchParams(next, { replace: true })
   }
 
@@ -111,7 +119,12 @@ export function EditReferenceWorkspacePage() {
           id={`edit-reference-panel-${activeTab}`}
           role="tabpanel"
         >
-          {activeTab === 'edit-references' && <EditReferencesTab />}
+          {activeTab === 'edit-references' && (
+            <EditReferencesTab
+              onReferenceSelected={setSelectedReferenceId}
+              preferredReferenceId={requestedReferenceId}
+            />
+          )}
           {activeTab === 'workspace-defaults' && (
             <section aria-label="Workspace Defaults" data-testid="workspace-defaults-panel">
               <div className="edit-reference-context-note">
@@ -132,7 +145,13 @@ export function EditReferenceWorkspacePage() {
   )
 }
 
-function EditReferencesTab() {
+function EditReferencesTab({
+  onReferenceSelected,
+  preferredReferenceId,
+}: {
+  onReferenceSelected: (referenceId?: string) => void
+  preferredReferenceId?: string
+}) {
   const [references, setReferences] = useState<EditReferenceListItem[]>([])
   const [detail, setDetail] = useState<EditReferenceDetail>()
   const [loading, setLoading] = useState(true)
@@ -141,7 +160,7 @@ function EditReferencesTab() {
   const [notice, setNotice] = useState<string>()
   const [showCreate, setShowCreate] = useState(false)
 
-  const loadList = useCallback(async (preferredReferenceId?: string) => {
+  const loadList = useCallback(async (referenceIdOverride?: string) => {
     setLoading(true)
     setError(undefined)
     const response = await api.list(workspaceId)
@@ -151,7 +170,8 @@ function EditReferencesTab() {
       return
     }
     setReferences(response.data.references)
-    const selectedId = preferredReferenceId
+    const selectedId = referenceIdOverride
+      ?? preferredReferenceId
       ?? detail?.reference.id
       ?? response.data.references.find((item) => item.reference.status === 'active')?.reference.id
       ?? response.data.references[0]?.reference.id
@@ -163,7 +183,7 @@ function EditReferencesTab() {
       setDetail(undefined)
     }
     setLoading(false)
-  }, [detail?.reference.id])
+  }, [detail?.reference.id, preferredReferenceId])
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => { void loadList() }, 0)
@@ -176,13 +196,17 @@ function EditReferencesTab() {
     setBusy(true)
     setError(undefined)
     const response = await api.get(workspaceId, referenceId)
-    if (response.ok) setDetail(response.data.detail)
+    if (response.ok) {
+      setDetail(response.data.detail)
+      onReferenceSelected(response.data.detail.reference.id)
+    }
     else setError(response.message)
     setBusy(false)
   }
 
   const handleCreated = async (created: EditReferenceDetail) => {
     setDetail(created)
+    onReferenceSelected(created.reference.id)
     setShowCreate(false)
     setNotice('Edit Reference and its first private Study Chat were saved.')
     await loadList(created.reference.id)

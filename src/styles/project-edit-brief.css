@@ -590,6 +590,62 @@
   min-width: 0;
 }
 
+.project-edit-brief-preference-application {
+  background:
+    linear-gradient(145deg, rgba(124, 58, 237, 0.09), rgba(6, 182, 212, 0.035)),
+    rgba(12, 16, 27, 0.72);
+  border-color: rgba(139, 92, 246, 0.25);
+  display: grid;
+  gap: 10px;
+}
+
+.project-edit-brief-preference-application__header,
+.project-edit-brief-preference-application__metrics,
+.project-edit-brief-preference-qa > div,
+.project-edit-brief-preference-plan-hints__header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.project-edit-brief-preference-application h3,
+.project-edit-brief-preference-application p,
+.project-edit-brief-preference-plan-hints h4,
+.project-edit-brief-preference-plan-hints p,
+.project-edit-brief-preference-qa p {
+  margin: 0;
+}
+
+.project-edit-brief-preference-application__metrics {
+  justify-content: flex-start;
+}
+
+.project-edit-brief-preference-application__metrics span {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.56);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 999px;
+  color: var(--rp-text-secondary);
+  display: inline-flex;
+  font-size: 0.76rem;
+  gap: 5px;
+  padding: 5px 8px;
+}
+
+.project-edit-brief-preference-application__priority,
+.project-edit-brief-preference-application__boundary {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.project-edit-brief-preference-application__boundary {
+  border-left: 2px solid rgba(6, 182, 212, 0.38);
+  padding-left: 9px;
+}
+
 .project-edit-brief-header,
 .project-edit-brief-boundary,
 .project-edit-brief-status,
@@ -1719,6 +1775,69 @@
   line-height: 1.45;
   margin: 0;
   padding: 10px;
+}
+
+.project-edit-brief-preference-qa,
+.project-edit-brief-preference-plan-hints {
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.project-edit-brief-preference-qa p,
+.project-edit-brief-preference-plan-hints p {
+  color: var(--rp-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.project-edit-brief-preference-plan-hints ul {
+  display: grid;
+  gap: 7px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.project-edit-brief-preference-plan-hints li {
+  background: rgba(15, 23, 42, 0.48);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+}
+
+.project-edit-brief-preference-plan-hints li span {
+  color: var(--rp-text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.42;
+}
+
+.project-edit-brief-preference-plan-hints li.is-held-back {
+  border-style: dashed;
+  opacity: 0.76;
+}
+
+.project-edit-brief-preference-plan-hints details {
+  border-top: 1px solid rgba(139, 92, 246, 0.16);
+  padding-top: 7px;
+}
+
+.project-edit-brief-preference-plan-hints summary {
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 650;
+  list-style-position: inside;
+}
+
+.project-edit-brief-preference-plan-hints details[open] summary {
+  color: var(--rp-text-primary);
+  margin-bottom: 7px;
 }
 
 .project-edit-brief-qa-finding-list {

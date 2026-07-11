@@ -1,6 +1,6 @@
 # Edit Reference UI Contract
 
-Status: `gate_3_ui_authority`
+Status: `gate_6_ui_authority`
 
 This contract governs the Edit Preferences route while preserving ReEditPro's chat-first, approval-first, desktop/web product laws. It does not authorize media analysis, providers, workers, rendering, credits, or production persistence.
 
@@ -114,9 +114,24 @@ The tab must preserve load, draft, save, conflict, retry, discard, and snapshot 
 
 ## Applied Edits
 
-With no durable records, the tab shows a truthful empty/not-yet-prepared state and never derives counts from mock handles or fabricated projects. Gate 5 lists exact target project/edit labels, exact approved DNA version, target context, adaptation and held-back counts, target-specific guidance, application state, timestamp, and the not-connected boundary. Gate 7 adds replacement/clear history and downstream invalidation state.
+With no durable records, the tab shows a truthful empty/not-yet-prepared state and never derives counts from mock handles or fabricated projects. Gate 5 lists exact target project/edit labels, exact approved DNA version, target context, adaptation and held-back counts, target-specific guidance, application state, timestamp, and the not-connected boundary. Gate 6 may update the same record to a verified mock target and connected planning-context state only after the exact Project Edit Session receipt is accepted. Gate 7 adds replacement/clear history and downstream invalidation state.
 
 `prepared` must not be rendered as if the target edit already changed. Until Gate 6 connects the record, the card states that the target edit, approved plan, and production state remain unchanged. Normal users see no IDs, digests, provider/worker terms, storage details, or internal gate labels.
+
+## Target Edit Integration
+
+Gate 6 adds one bounded Edit Reference connection surface inside the existing Project Edit Session preference region. It must:
+
+- list only approved Edit References, using user-facing names rather than IDs;
+- explain that ReEditPro adapts creative intelligence to the target instead of copying a reference shot list;
+- collect the current target direction and require explicit confirmation of the saved output frame;
+- distinguish prepared/inactive from connected/active context;
+- show adapted, held-back, and do-not-copy counts after connection;
+- state that current instructions and confirmed Edit Brief markers outrank reusable DNA;
+- retain loading, unavailable, retry, and recovery behavior;
+- never imply that a plan, provider, worker, render, media process, or credit action ran.
+
+The connected Edit Brief card repeats the exact Edit Reference name and bounded counts, not a second selector. Marker Context, Marker Chat, Plan Hints, and QA use progressive disclosure inside their existing surfaces. A connected reference must not create a new global navigation destination, settings page, or technical inspector.
 
 ## Safety & Privacy
 
@@ -134,6 +149,8 @@ This tab explains and, when data exists, reports:
 Normal users must not see secrets, service-role status, signed URLs, filesystem paths, raw provider responses, or internal credentials.
 
 ## Visual System
+
+Authority order is `design.md` and `design-system/`, then current ReEditPro UI/UX architecture, then UI UX Pro Max as supporting guidance only.
 
 - Deep-space foundation using existing tokens.
 - Bounded content, stable grid, and `minmax(0, 1fr)` for flexible columns.

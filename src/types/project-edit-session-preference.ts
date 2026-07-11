@@ -1,4 +1,8 @@
 import type { ProjectEditSessionMemoryLayer, ProjectEditSessionRecord } from './project-edit-session'
+import type {
+  PreferenceApplicationDownstreamContext,
+  PreferenceApplicationIntegrationStatus,
+} from './edit-reference-integration'
 
 export type ProjectEditSessionPreferenceApplicationStatus =
   | 'not_selected'
@@ -73,6 +77,8 @@ export interface ProjectEditSessionPreferenceState {
   requiresUserReview: boolean
   blockedReasons: string[]
   warnings: string[]
+  integrationStatus?: PreferenceApplicationIntegrationStatus
+  applicationContext?: PreferenceApplicationDownstreamContext
   mockOnly: boolean
 }
 
@@ -115,6 +121,8 @@ export interface ProjectEditSessionPreferencePanelModel {
   requiresUserReview: boolean
   blockedReasons: string[]
   warnings: string[]
+  integrationStatus?: PreferenceApplicationIntegrationStatus
+  applicationContext?: PreferenceApplicationDownstreamContext
   mockOnly: boolean
 }
 

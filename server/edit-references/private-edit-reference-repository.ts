@@ -3,6 +3,7 @@ import { constants } from 'node:fs'
 import { chmod, lstat, mkdir, open, rename, rm } from 'node:fs/promises'
 import { dirname, relative, resolve, sep } from 'node:path'
 import { EDIT_REFERENCE_DNA_QA_CHECK_IDS } from '../../src/types/edit-reference'
+import { createPreferenceApplicationDownstreamContext } from '../../src/lib/edit-reference-downstream-context'
 import { ApiError } from '../errors/api-error'
 import {
   EDIT_REFERENCE_APPLICATION_PRECEDENCE_POLICY,
@@ -396,7 +397,7 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
       || !sameStringArray(record.precedencePolicy, EDIT_REFERENCE_APPLICATION_PRECEDENCE_POLICY)
       || !record.summary
       || record.summary.length > 2_000
-      || !['caller_confirmed_unverified', 'verified_project_edit_session'].includes(record.targetIdentityStatus)
+      || !['caller_confirmed_unverified', 'verified_mock_project_edit_session', 'verified_project_edit_session'].includes(record.targetIdentityStatus)
       || !['not_connected', 'connected', 'invalidated'].includes(record.targetIntegrationStatus)
       || !['not_required', 'pending', 'completed'].includes(record.downstreamInvalidationStatus)
       || !/^[a-f0-9]{64}$/.test(record.contentDigest)
@@ -404,7 +405,7 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
       || (record.targetIntegrationStatus === 'not_connected' && (record.targetEditMutationMade !== false || record.downstreamContextWritten !== false))
       || (record.targetIntegrationStatus === 'connected' && (record.targetEditMutationMade !== true || record.downstreamContextWritten !== true))
       || (record.targetIntegrationStatus === 'not_connected' && record.targetIdentityStatus !== 'caller_confirmed_unverified')
-      || (record.targetIntegrationStatus === 'connected' && record.targetIdentityStatus !== 'verified_project_edit_session')
+      || (record.targetIntegrationStatus === 'connected' && !['verified_mock_project_edit_session', 'verified_project_edit_session'].includes(record.targetIdentityStatus))
       || record.providerCallMade !== false
       || record.modelCallMade !== false
       || record.fileBytesRead !== false
@@ -416,7 +417,36 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
       || record.creditReservedOrSpent !== false
       || !isISODate(record.createdAt)
       || (record.clearedAt !== undefined && !isISODate(record.clearedAt))
+      || (record.connectedAt !== undefined && !isISODate(record.connectedAt))
     ) throw invalidAggregate('application_contract_invalid')
+
+    if (record.targetIntegrationStatus === 'not_connected') {
+      if (record.downstreamContext || record.targetSessionReceipt || record.connectedAt) {
+        throw invalidAggregate('application_unconnected_context_invalid')
+      }
+    }
+    if (record.targetIntegrationStatus === 'connected') {
+      const expectedContext = createPreferenceApplicationDownstreamContext(record, 'connected_mock')
+      const receipt = record.targetSessionReceipt
+      if (
+        !record.downstreamContext
+        || JSON.stringify(record.downstreamContext) !== JSON.stringify(expectedContext)
+        || !receipt
+        || receipt.receiptVersion !== 'edit-reference-project-session-receipt-v1'
+        || receipt.projectId !== record.projectId
+        || receipt.editSessionId !== record.editSessionId
+        || receipt.aspectRatio !== record.targetContext.aspectRatio
+        || receipt.platformTarget !== record.targetContext.platformTarget
+        || receipt.selectedEditLevel !== record.targetContext.selectedEditLevel
+        || receipt.outputFrameConfirmed !== true
+        || receipt.stagedContextHash !== expectedContext.packageHash
+        || receipt.stagedApplicationContentDigest !== record.contentDigest
+        || receipt.mockOnly !== true
+        || !isISODate(receipt.sessionUpdatedAt)
+        || !isISODate(receipt.stagedAt)
+        || !record.connectedAt
+      ) throw invalidAggregate('application_connected_context_invalid')
+    }
 
     const sourceRules = new Map(dnaVersion.rules.map((rule) => [rule.id, rule]))
     const decisionIds = new Set<string>()

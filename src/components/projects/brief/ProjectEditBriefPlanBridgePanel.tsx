@@ -3,6 +3,7 @@ import { Badge } from '../../Badge'
 import { Card } from '../../Card'
 import type { ProjectEditBriefApiClient } from '../../../lib/project-edit-brief-api-client'
 import type { ProjectEditBriefPlanPanelModel } from '../../../types/project-edit-brief-plan'
+import type { PreferenceApplicationDownstreamContext } from '../../../types/edit-reference-integration'
 import {
   createProjectEditBriefPlanBoundarySummary,
   loadProjectEditBriefPlanPanelForUI,
@@ -20,6 +21,7 @@ type ProjectEditBriefPlanBridgePanelProps = {
   editSessionId: string
   onPrepared?: (message: string) => void
   projectId: string
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }
 
 export function ProjectEditBriefPlanBridgePanel({
@@ -27,6 +29,7 @@ export function ProjectEditBriefPlanBridgePanel({
   editSessionId,
   onPrepared,
   projectId,
+  preferenceApplicationContext,
 }: ProjectEditBriefPlanBridgePanelProps) {
   const [model, setModel] = useState<ProjectEditBriefPlanPanelModel | undefined>()
   const [status, setStatus] = useState('Plan Hints have not been prepared in this UI session.')
@@ -34,7 +37,7 @@ export function ProjectEditBriefPlanBridgePanel({
 
   useEffect(() => {
     let cancelled = false
-    loadProjectEditBriefPlanPanelForUI({ client, editSessionId, projectId }).then((loaded) => {
+    loadProjectEditBriefPlanPanelForUI({ client, editSessionId, projectId, preferenceApplicationContext }).then((loaded) => {
       if (cancelled) return
       setModel(loaded.panelModel)
     }).catch(() => {
@@ -43,12 +46,12 @@ export function ProjectEditBriefPlanBridgePanel({
     return () => {
       cancelled = true
     }
-  }, [client, editSessionId, projectId])
+  }, [client, editSessionId, preferenceApplicationContext, projectId])
 
   async function preparePlanHints() {
     setBusy(true)
     try {
-      const result = await prepareProjectEditBriefPlanHintsForUI({ client, editSessionId, projectId })
+      const result = await prepareProjectEditBriefPlanHintsForUI({ client, editSessionId, projectId, preferenceApplicationContext })
       if (result.panelModel) {
         setModel(result.panelModel)
         const message = `Prepared ${result.panelModel.eligibleMarkerCount} mock plan hint(s). No planner, render, provider, worker, credit, media, or Supabase action started.`
@@ -61,6 +64,9 @@ export function ProjectEditBriefPlanBridgePanel({
       setBusy(false)
     }
   }
+
+  const activePreferenceGuidance = model?.preferenceGuidance.filter((item) => item.status === 'active_hint') ?? []
+  const heldBackPreferenceGuidance = model?.preferenceGuidance.filter((item) => item.status !== 'active_hint') ?? []
 
   return (
     <Card className="project-edit-brief-plan-bridge" data-testid="project-edit-brief-plan-bridge">
@@ -87,6 +93,52 @@ export function ProjectEditBriefPlanBridgePanel({
             <div><dt>Priority policy</dt><dd>{model.priorityPolicySummary}</dd></div>
           </dl>
           <ProjectEditBriefPlanInstructionList instructions={model.instructions} />
+          {model.preferenceGuidance.length ? (
+            <section className="project-edit-brief-preference-plan-hints" data-testid="project-edit-brief-preference-plan-hints">
+              <div className="project-edit-brief-preference-plan-hints__header">
+                <div>
+                  <h4>Target-adapted Preference DNA</h4>
+                  <p>{activePreferenceGuidance.length} usable here · {heldBackPreferenceGuidance.length} protected by marker priority</p>
+                </div>
+                <Badge accent="violet">Lower priority</Badge>
+              </div>
+              <ul>
+                {activePreferenceGuidance.slice(0, 3).map((item) => (
+                  <li key={item.id}>
+                    <strong>{item.title}</strong>
+                    <span>{item.instruction}</span>
+                  </li>
+                ))}
+              </ul>
+              {activePreferenceGuidance.length > 3 ? (
+                <details>
+                  <summary>Review {activePreferenceGuidance.length - 3} more adapted hints</summary>
+                  <ul>
+                    {activePreferenceGuidance.slice(3).map((item) => (
+                      <li key={item.id}>
+                        <strong>{item.title}</strong>
+                        <span>{item.instruction}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
+              {heldBackPreferenceGuidance.length ? (
+                <details>
+                  <summary>Review {heldBackPreferenceGuidance.length} held-back hint{heldBackPreferenceGuidance.length === 1 ? '' : 's'}</summary>
+                  <ul>
+                    {heldBackPreferenceGuidance.map((item) => (
+                      <li className="is-held-back" key={item.id}>
+                        <strong>{item.title}</strong>
+                        <span>{item.reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
+              <p>{model.preferenceApplicationQA?.prioritySummary}</p>
+            </section>
+          ) : null}
           <ProjectEditBriefSkippedMarkerList skippedMarkers={model.skippedMarkers} />
           <ProjectEditBriefApplicationLogSummary summary={model.applicationLogSummary} />
           <ProjectEditBriefPlanBoundaryNotice summary={model.boundarySummary} />

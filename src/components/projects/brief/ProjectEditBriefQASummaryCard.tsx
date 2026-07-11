@@ -3,6 +3,7 @@ import { Badge } from '../../Badge'
 import { Card } from '../../Card'
 import type { ProjectEditBriefApiClient } from '../../../lib/project-edit-brief-api-client'
 import type { ProjectEditBriefQASummaryModel } from '../../../types/project-edit-brief-qa'
+import type { PreferenceApplicationDownstreamContext } from '../../../types/edit-reference-integration'
 import {
   createProjectEditBriefQASummaryModel,
   loadProjectEditBriefQAPackageForUI,
@@ -16,6 +17,7 @@ type ProjectEditBriefQASummaryCardProps = {
   editSessionId: string
   onRan?: (message: string) => void
   projectId: string
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }
 
 export function ProjectEditBriefQASummaryCard({
@@ -23,6 +25,7 @@ export function ProjectEditBriefQASummaryCard({
   editSessionId,
   onRan,
   projectId,
+  preferenceApplicationContext,
 }: ProjectEditBriefQASummaryCardProps) {
   const [model, setModel] = useState<ProjectEditBriefQASummaryModel | undefined>()
   const [status, setStatus] = useState('Marker QA has not run in this UI session.')
@@ -30,7 +33,7 @@ export function ProjectEditBriefQASummaryCard({
 
   useEffect(() => {
     let cancelled = false
-    loadProjectEditBriefQAPackageForUI({ client, editSessionId, projectId }).then((qaPackage) => {
+    loadProjectEditBriefQAPackageForUI({ client, editSessionId, projectId, preferenceApplicationContext }).then((qaPackage) => {
       if (cancelled || !qaPackage) return
       setModel(createProjectEditBriefQASummaryModel(qaPackage))
     }).catch(() => {
@@ -39,12 +42,12 @@ export function ProjectEditBriefQASummaryCard({
     return () => {
       cancelled = true
     }
-  }, [client, editSessionId, projectId])
+  }, [client, editSessionId, preferenceApplicationContext, projectId])
 
   async function runQA() {
     setBusy(true)
     try {
-      const result = await runProjectEditBriefQAViaApi({ client, editSessionId, projectId })
+      const result = await runProjectEditBriefQAViaApi({ client, editSessionId, projectId, preferenceApplicationContext })
       if (result.summaryModel) {
         setModel(result.summaryModel)
         const message = `Brief QA complete: ${result.summaryModel.readinessLabel}. No planner, render, provider, worker, credit, media, or Supabase action started.`
@@ -84,6 +87,18 @@ export function ProjectEditBriefQASummaryCard({
             <div><dt>Blocked</dt><dd>{model.blockedCount}</dd></div>
           </dl>
           <p>{model.readableSummary}</p>
+          {model.preferenceApplicationQA ? (
+            <section className="project-edit-brief-preference-qa" data-testid="project-edit-brief-preference-qa">
+              <div>
+                <strong>Target-adapted Preference DNA</strong>
+                <Badge accent={model.preferenceApplicationQA.status === 'blocked' ? 'danger' : model.preferenceApplicationQA.status === 'warning' ? 'warning' : 'success'}>
+                  {model.preferenceApplicationQA.status}
+                </Badge>
+              </div>
+              <p>{model.preferenceApplicationQA.findings.join(' ')}</p>
+              <p>{model.preferenceApplicationQA.prioritySummary}</p>
+            </section>
+          ) : null}
           <ProjectEditBriefQABoundaryNotice summary={model.boundarySummary} />
         </>
       ) : (

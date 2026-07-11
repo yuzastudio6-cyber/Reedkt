@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Badge } from '../Badge'
 import { Card } from '../Card'
 import type { ProjectEditSessionApiClient } from '../../lib/project-edit-session-api-client'
@@ -10,10 +10,21 @@ import {
   type ProjectEditSessionPreferencePanelForUI,
 } from '../../lib/project-edit-session-preference-ui-adapter'
 import type { ProjectEditSessionPreferenceOption } from '../../types/project-edit-session-preference'
+import type { ProjectEditSessionBundleRecord } from '../../types/project-edit-session-repository'
+import { createEditReferenceApiClient } from '../../lib/edit-reference-api-client'
+import {
+  connectPreferenceApplicationToProjectEditSession,
+  loadProjectEditSessionEditReferenceIntegration,
+  preparePreferenceApplicationForProjectEditSession,
+  type ProjectEditSessionEditReferenceIntegrationModel,
+} from '../../lib/project-edit-session-edit-reference-integration'
 import { ProjectEditSessionDNAStatusCard } from './ProjectEditSessionDNAStatusCard'
 import { ProjectEditSessionDoNotCopyRulesCard } from './ProjectEditSessionDoNotCopyRulesCard'
 import { ProjectEditSessionPreferencePicker } from './ProjectEditSessionPreferencePicker'
 import { ProjectEditSessionPreferenceStatusCard } from './ProjectEditSessionPreferenceStatusCard'
+import { ProjectEditSessionEditReferencePicker } from './ProjectEditSessionEditReferencePicker'
+
+const editReferenceClient = createEditReferenceApiClient()
 
 type ProjectEditSessionPreferencePanelProps = {
   client: ProjectEditSessionApiClient
@@ -31,24 +42,115 @@ export function ProjectEditSessionPreferencePanel({
   const [model, setModel] = useState<ProjectEditSessionPreferencePanelForUI | undefined>()
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState('Loading Edit Preference state.')
+  const [bundle, setBundle] = useState<ProjectEditSessionBundleRecord | undefined>()
+  const [integration, setIntegration] = useState<ProjectEditSessionEditReferenceIntegrationModel | undefined>()
+  const [selectedReferenceId, setSelectedReferenceId] = useState<string | undefined>()
+  const [currentUserInstruction, setCurrentUserInstruction] = useState('')
+  const [frameConfirmed, setFrameConfirmed] = useState(false)
 
-  async function loadPanel() {
-    const next = await loadProjectEditSessionPreferencePanelForUI({ client, editSessionId, projectId })
+  const loadPanel = useCallback(async () => {
+    const [next, bundleResponse] = await Promise.all([
+      loadProjectEditSessionPreferencePanelForUI({ client, editSessionId, projectId }),
+      client.bundle.get<{ bundle: ProjectEditSessionBundleRecord }>(editSessionId),
+    ])
     setModel(next)
-    setStatus(next.panelModel.selectedPreferenceHandle ? 'Selected Edit Preference loaded.' : 'No Edit Preference selected.')
-  }
+    let nextBundle = bundleResponse.data?.bundle
+    if (nextBundle) {
+      let nextIntegration = await loadProjectEditSessionEditReferenceIntegration({
+        editReferenceClient,
+        session: nextBundle.session,
+      })
+      if (nextIntegration.activeApplication && nextIntegration.sessionIntegrationStatus?.status !== 'connected_mock') {
+        const recovered = await client.preference.activateApplication({
+          editSessionId,
+          application: nextIntegration.activeApplication,
+        })
+        if (recovered.ok) {
+          const recoveredBundle = await client.bundle.get<{ bundle: ProjectEditSessionBundleRecord }>(editSessionId)
+          nextBundle = recoveredBundle.data?.bundle ?? nextBundle
+          nextIntegration = await loadProjectEditSessionEditReferenceIntegration({
+            editReferenceClient,
+            session: nextBundle.session,
+          })
+        }
+      }
+      const resolvedBundle = nextBundle
+      setBundle(resolvedBundle)
+      setIntegration(nextIntegration)
+      setSelectedReferenceId((current) => current ?? nextIntegration.approvedReferences[0]?.reference.id)
+      setCurrentUserInstruction((current) => current
+        || nextIntegration.stagedApplication?.targetContext.currentUserInstruction
+        || [...resolvedBundle.messages].reverse().find((message) => message.role === 'user')?.text
+        || resolvedBundle.session.description
+        || '')
+      setStatus(nextIntegration.sessionIntegrationStatus?.status === 'connected_mock'
+        ? 'Target-adapted Edit Reference guidance is connected mock-locally.'
+        : nextIntegration.stagedApplication
+          ? 'A target adaptation is prepared and ready to connect.'
+          : next.panelModel.selectedPreferenceHandle
+            ? 'Compatibility Edit Preference loaded.'
+            : 'No target-adapted Edit Reference is connected.')
+    } else {
+      setBundle(undefined)
+      setStatus('Mock Edit Chat could not be loaded for Edit Reference integration.')
+    }
+  }, [client, editSessionId, projectId])
 
   useEffect(() => {
     let cancelled = false
-    loadProjectEditSessionPreferencePanelForUI({ client, editSessionId, projectId }).then((next) => {
-      if (cancelled) return
-      setModel(next)
-      setStatus(next.panelModel.selectedPreferenceHandle ? 'Selected Edit Preference loaded.' : 'No Edit Preference selected.')
-    })
+    const timeoutId = window.setTimeout(() => {
+      void loadPanel().catch(() => {
+        if (cancelled) return
+        setStatus('Edit Reference integration failed safely without production side effects.')
+      })
+    }, 0)
     return () => {
       cancelled = true
+      window.clearTimeout(timeoutId)
     }
-  }, [client, editSessionId, projectId])
+  }, [loadPanel])
+
+  async function handleConnectEditReference() {
+    if (!bundle || busy || !frameConfirmed) return
+    setBusy(true)
+    setStatus('Preparing target-specific guidance for this Edit Chat...')
+    try {
+      let application = integration?.stagedApplication ?? integration?.activeApplication
+      let referenceRevision = 1
+      if (!application) {
+        if (!selectedReferenceId) throw new Error('Choose an approved Edit Reference first.')
+        const prepared = await preparePreferenceApplicationForProjectEditSession({
+          bundle,
+          currentUserInstruction,
+          editReferenceId: selectedReferenceId,
+          editReferenceClient,
+          outputFrameConfirmed: true,
+        })
+        if (!prepared.ok) throw new Error(prepared.message)
+        application = prepared.application
+        referenceRevision = prepared.detail.reference.revision
+      } else {
+        const detail = await editReferenceClient.get(application.workspaceId, application.editReferenceId)
+        if (!detail.ok) throw new Error(detail.message)
+        referenceRevision = detail.data.detail.reference.revision
+        application = detail.data.detail.applications.find((candidate) => candidate.id === application?.id) ?? application
+      }
+      const connected = await connectPreferenceApplicationToProjectEditSession({
+        application,
+        editReferenceClient,
+        outputFrameConfirmed: true,
+        projectEditSessionClient: client,
+        referenceRevision,
+      })
+      setStatus(connected.message)
+      await loadPanel()
+      await onPreferenceChanged(connected.message)
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : 'Edit Reference connection failed safely.')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function handleApply(option: ProjectEditSessionPreferenceOption) {
     setBusy(true)
@@ -95,12 +197,27 @@ export function ProjectEditSessionPreferencePanel({
       </p>
       {panel ? (
         <>
+          <ProjectEditSessionEditReferencePicker
+            activeContext={panel.integrationStatus === 'connected_mock' ? panel.applicationContext : undefined}
+            approvedReferences={integration?.approvedReferences ?? []}
+            backendAvailable={integration?.backendAvailable ?? editReferenceClient.available}
+            busy={busy}
+            currentUserInstruction={currentUserInstruction}
+            frameConfirmed={frameConfirmed}
+            onConnect={handleConnectEditReference}
+            onFrameConfirmedChange={setFrameConfirmed}
+            onInstructionChange={setCurrentUserInstruction}
+            onSelectReference={setSelectedReferenceId}
+            selectedReferenceId={selectedReferenceId}
+            stagedApplication={integration?.stagedApplication}
+            targetLabel={bundle ? `${bundle.session.aspectRatio} ${bundle.session.platformTarget.replaceAll('_', ' ')}` : 'this Edit Chat'}
+          />
           <ProjectEditSessionPreferenceStatusCard model={panel} />
           <ProjectEditSessionDNAStatusCard model={panel} />
           <ProjectEditSessionDoNotCopyRulesCard model={panel} />
           <ProjectEditSessionPreferencePicker
             busy={busy}
-            canClear={panel.canClearPreference}
+            canClear={panel.canClearPreference && !panel.applicationContext}
             onApply={handleApply}
             onClear={handleClear}
             options={model?.options ?? []}

@@ -3,6 +3,11 @@ import type {
   ProjectEditSessionPreferenceApplicationStatus,
   ProjectEditSessionPreferenceState,
 } from '../../types/project-edit-session-preference'
+import type {
+  PreferenceApplicationDownstreamContext,
+  PreferenceApplicationIntegrationStatus,
+} from '../../types/edit-reference-integration'
+import { readPreferenceApplicationIntegrationState } from '../../lib/edit-reference-downstream-context'
 
 function statusFromSession(session: ProjectEditSessionRecord | undefined): ProjectEditSessionPreferenceApplicationStatus {
   if (!session?.selectedEditPreferenceHandle && !session?.selectedEditPreferenceId) return 'not_selected'
@@ -28,6 +33,8 @@ export function createProjectEditSessionPreferenceState(input: {
   requiresUserReview?: boolean
   blockedReasons?: string[]
   warnings?: string[]
+  integrationStatus?: PreferenceApplicationIntegrationStatus
+  applicationContext?: PreferenceApplicationDownstreamContext
 }): ProjectEditSessionPreferenceState {
   return {
     id: `${input.editSessionId}-preference-state`,
@@ -45,11 +52,14 @@ export function createProjectEditSessionPreferenceState(input: {
     requiresUserReview: input.requiresUserReview ?? false,
     blockedReasons: input.blockedReasons ?? [],
     warnings: input.warnings ?? [],
+    integrationStatus: input.integrationStatus,
+    applicationContext: input.applicationContext,
     mockOnly: true,
   }
 }
 
 export function createPreferenceStateFromSession(session: ProjectEditSessionRecord): ProjectEditSessionPreferenceState {
+  const integrationState = readPreferenceApplicationIntegrationState(session)
   return createProjectEditSessionPreferenceState({
     projectId: session.projectId,
     editSessionId: session.id,
@@ -71,6 +81,8 @@ export function createPreferenceStateFromSession(session: ProjectEditSessionReco
     warnings: Array.isArray(session.metadata?.preferenceWarnings)
       ? session.metadata.preferenceWarnings.filter((item): item is string => typeof item === 'string')
       : [],
+    integrationStatus: integrationState?.status,
+    applicationContext: integrationState?.context,
   })
 }
 

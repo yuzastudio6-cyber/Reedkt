@@ -21,6 +21,11 @@ import type {
   ProjectEditBriefPlanValidationResult,
   ProjectEditBriefSkippedMarker,
 } from '../types/project-edit-brief-plan'
+import type { PreferenceApplicationDownstreamContext } from '../types/edit-reference-integration'
+import {
+  createPreferenceApplicationPlanGuidance,
+  createPreferenceApplicationQAContextSummary,
+} from './edit-reference-downstream-context'
 
 export const PROJECT_EDIT_BRIEF_PLAN_SAFETY_FLAGS: ProjectEditBriefPlanSafetyFlags = {
   plannerExecuted: false,
@@ -323,12 +328,26 @@ export function createProjectEditBriefPlannerInputPackage(input: {
   bundle: ProjectEditBriefBundleRecord
   exportSettings?: ProjectEditSessionExportSettingsRecord
   applicationLogSummary?: string
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }): ProjectEditBriefPlannerInputPackage {
   const { instructions, skippedMarkers, eligibleMarkers, skippedMarkerRecords } = createProjectEditBriefMarkerPlanInstructions({ bundle: input.bundle })
+  const preferenceGuidance = input.preferenceApplicationContext
+    ? createPreferenceApplicationPlanGuidance({ context: input.preferenceApplicationContext, markers: input.bundle.markers })
+    : []
+  const preferenceApplicationQA = input.preferenceApplicationContext
+    ? createPreferenceApplicationQAContextSummary({
+        context: input.preferenceApplicationContext,
+        projectId: input.bundle.brief.projectId,
+        editSessionId: input.bundle.brief.editSessionId,
+        markers: input.bundle.markers,
+      })
+    : undefined
   const warnings = Array.from(new Set([
     ...input.bundle.warnings,
     ...instructions.flatMap((instruction) => instruction.warnings),
     ...(input.exportSettings ? [] : ['No export settings metadata was available for the mock planner input package.']),
+    ...(preferenceApplicationQA?.status === 'warning' ? preferenceApplicationQA.findings : []),
+    ...(preferenceApplicationQA?.status === 'blocked' ? preferenceApplicationQA.findings : []),
   ]))
   const readinessStatus = classifyProjectEditBriefPlanReadiness({ instructions, skippedMarkers, warnings })
   const blockedCount = skippedMarkers.filter((marker) =>
@@ -350,6 +369,10 @@ export function createProjectEditBriefPlannerInputPackage(input: {
     warningCount: warnings.length,
     blockedCount,
     planInstructions: instructions,
+    preferenceGuidance,
+    preferenceApplicationQA,
+    preferenceApplicationId: input.preferenceApplicationContext?.applicationId,
+    preferenceApplicationContextHash: input.preferenceApplicationContext?.packageHash,
     skippedMarkers,
     priorityPolicy: PROJECT_EDIT_BRIEF_PLAN_PRIORITY_POLICY,
     qaSummary: createProjectEditBriefPlanQASummary(instructions, skippedMarkers),
@@ -368,7 +391,9 @@ export function createProjectEditBriefPlanApplicationLogSummary(pkg: ProjectEdit
   const skippedSummary = Object.entries(groupedSkipped)
     .map(([key, count]) => `${count} ${key.replace('skipped_', '').replaceAll('_', ' ')}`)
     .join(', ')
-  return `Prepared ${pkg.planInstructions.length} marker plan hint${pkg.planInstructions.length === 1 ? '' : 's'}. Skipped ${pkg.skippedMarkers.length} marker${pkg.skippedMarkers.length === 1 ? '' : 's'}${skippedSummary ? `: ${skippedSummary}.` : '.'}`
+  const activePreferenceHints = pkg.preferenceGuidance.filter((item) => item.status === 'active_hint').length
+  const heldBackPreferenceHints = pkg.preferenceGuidance.length - activePreferenceHints
+  return `Prepared ${pkg.planInstructions.length} marker plan hint${pkg.planInstructions.length === 1 ? '' : 's'} and ${activePreferenceHints} lower-priority target-adapted Preference DNA hint${activePreferenceHints === 1 ? '' : 's'}. Held back ${heldBackPreferenceHints} reusable hint${heldBackPreferenceHints === 1 ? '' : 's'} where confirmed markers had priority. Skipped ${pkg.skippedMarkers.length} marker${pkg.skippedMarkers.length === 1 ? '' : 's'}${skippedSummary ? `: ${skippedSummary}.` : '.'}`
 }
 
 export function createProjectEditBriefPlanApplicationResult(input: {
@@ -400,6 +425,10 @@ export function createProjectEditBriefPlanPanelModel(
     warningCount: pkg.warningCount,
     blockedCount: pkg.blockedCount,
     instructions: pkg.planInstructions,
+    preferenceGuidance: pkg.preferenceGuidance,
+    preferenceApplicationQA: pkg.preferenceApplicationQA,
+    preferenceApplicationId: pkg.preferenceApplicationId,
+    preferenceApplicationContextHash: pkg.preferenceApplicationContextHash,
     skippedMarkers: pkg.skippedMarkers,
     exportSettingsSummary: pkg.exportSettings
       ? `${pkg.exportSettings.deliveryPreset} ${pkg.exportSettings.resolution.width}x${pkg.exportSettings.resolution.height} at ${pkg.exportSettings.frameRate}fps`
@@ -435,6 +464,12 @@ export function validateProjectEditBriefPlannerInputPackage(
   for (const instruction of pkg.planInstructions) {
     const validation = validateProjectEditBriefMarkerPlanInstruction(instruction)
     blockedReasons.push(...validation.blockedReasons)
+  }
+  if (pkg.preferenceGuidance.length && (!pkg.preferenceApplicationId || !pkg.preferenceApplicationContextHash)) {
+    blockedReasons.push('Preference Application plan hints require exact application and context identity.')
+  }
+  if (pkg.preferenceApplicationQA?.status === 'blocked') {
+    blockedReasons.push(...pkg.preferenceApplicationQA.findings)
   }
   return createValidationResult(blockedReasons, pkg.warnings)
 }

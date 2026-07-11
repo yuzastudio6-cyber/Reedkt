@@ -4,6 +4,7 @@ import type {
   ProjectEditBriefPlanPanelModel,
   ProjectEditBriefPlannerInputPackage,
 } from '../types/project-edit-brief-plan'
+import type { PreferenceApplicationDownstreamContext } from '../types/edit-reference-integration'
 import {
   createDefaultMockProjectEditBriefApiClient,
   type ProjectEditBriefApiClient,
@@ -45,6 +46,7 @@ export async function loadProjectEditBriefPlanPanelForUI(input: {
   projectId: string
   editSessionId: string
   client?: ProjectEditBriefApiClient
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }): Promise<{
   package?: ProjectEditBriefPlannerInputPackage
   panelModel?: ProjectEditBriefPlanPanelModel
@@ -78,6 +80,7 @@ export async function loadProjectEditBriefPlanPanelForUI(input: {
     bundle: bundleResult.bundle,
     exportSettings: exportResult.exportSettings ?? bundleResult.bundle.exportSettings,
     applicationLogSummary: latestPlanLog?.summary,
+    preferenceApplicationContext: input.preferenceApplicationContext,
   })
   return {
     package: pkg,
@@ -98,7 +101,7 @@ export async function appendProjectEditBriefPlanApplicationLogViaApi(input: {
   mockOnly: true
 }> {
   const summary = createProjectEditBriefPlanApplicationLogSummary(input.package)
-  const id = `project-edit-brief-plan-log-${input.package.briefId}`
+  const id = `project-edit-brief-plan-log-${input.package.briefId}-${input.package.preferenceApplicationContextHash ?? 'no-reference'}`
   const existing = await listProjectEditBriefApplicationLogsViaApi(input.package.briefId, input.client)
   const existingLog = existing.applicationLogs.find((log) => log.id === id)
   if (existingLog) {
@@ -123,6 +126,11 @@ export async function appendProjectEditBriefPlanApplicationLogViaApi(input: {
       eligibleMarkerCount: input.package.eligibleMarkerCount,
       skippedMarkerCount: input.package.skippedMarkerCount,
       instructionIds: input.package.planInstructions.map((instruction) => instruction.id),
+      preferenceApplicationId: input.package.preferenceApplicationId,
+      preferenceApplicationContextHash: input.package.preferenceApplicationContextHash,
+      preferenceGuidanceIds: input.package.preferenceGuidance.map((item) => item.id),
+      preferenceGuidanceActiveCount: input.package.preferenceGuidance.filter((item) => item.status === 'active_hint').length,
+      preferenceGuidanceHeldBackCount: input.package.preferenceGuidance.filter((item) => item.status === 'held_back_by_confirmed_marker').length,
     },
   }, input.client)
   return {
@@ -137,6 +145,7 @@ export async function prepareProjectEditBriefPlanHintsForUI(input: {
   projectId: string
   editSessionId: string
   client?: ProjectEditBriefApiClient
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }): Promise<{
   result?: ProjectEditBriefPlanApplicationResult
   panelModel?: ProjectEditBriefPlanPanelModel

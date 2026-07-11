@@ -29,6 +29,10 @@
 }
 
 @media (max-width: 1180px) {
+  .edit-preview-rail {
+    display: none;
+  }
+
   .topbar {
     align-items: flex-start;
   }

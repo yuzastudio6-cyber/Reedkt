@@ -1,5 +1,7 @@
 # Repo Next Safe Staging Plan
 
+> Superseded staging plan. Do not use this document to select a source-of-truth checkout or stage current backend work. The reviewed MS-000H handoff rules are recorded in `docs/ms-000h-backend-handoff.md`.
+
 ## Decision Gate
 
 Do not stage additional implementation files until the owner confirms the source-of-truth path.

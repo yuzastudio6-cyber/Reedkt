@@ -1,5 +1,7 @@
 # Repo Merge Integrity Audit
 
+> Historical audit snapshot. Its path, branch, status-count, and staging recommendations describe the repository state at the time of RP-MERGE-AUDIT-00 and are no longer the active implementation authority. See `docs/ms-000h-backend-handoff.md` for the MS-000H checkout roles and reviewed backend cutoff.
+
 Status: `path_divergence_risk`
 
 This report is read-only audit output for RP-MERGE-AUDIT-00. It does not stage, commit, clean, delete, move, rename, stash, reset, merge, rebase, run Supabase CLI, call providers, run workers, render, export, or modify runtime behavior.

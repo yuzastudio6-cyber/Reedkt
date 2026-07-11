@@ -1,5 +1,7 @@
 # Repo Path Divergence Audit
 
+> Historical audit snapshot. The divergent paths and SHAs below remain preservation evidence, not the current implementation baseline. See `docs/ms-000h-backend-handoff.md` for the MS-000H authority decision.
+
 This report compares the primary path and historical path using read-only file and Git checks.
 
 ## Path Identity

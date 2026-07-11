@@ -8,6 +8,11 @@ import type {
   PreferenceSkillRunRecord,
   PreferenceStudySessionRecord,
 } from '../../src/types/edit-reference'
+import {
+  detectEditReferenceCopyRisks,
+  hasEditReferenceNegationNear,
+  type EditReferenceCopyRiskKind,
+} from './edit-reference-copy-safety'
 
 interface OrchestrationInput {
   workspaceId: string
@@ -24,18 +29,10 @@ export interface PreferenceEvidenceStudyOrchestrationResult {
   studyStatus: Extract<EditReferenceStudyLifecycleStatus, 'evidence_ready' | 'needs_clarification' | 'needs_user_review'>
   evidenceStatus: PreferenceEvidenceStatus
   uncoveredGoals: EditReferenceStudyGoal[]
-  copyRiskKinds: CopyRiskKind[]
+  copyRiskKinds: EditReferenceCopyRiskKind[]
   conflictKinds: EvidenceConflictKind[]
   assistantMessage: string
 }
-
-type CopyRiskKind =
-  | 'exact_shot_order'
-  | 'exact_timing'
-  | 'exact_graphic_layout'
-  | 'exact_music_or_sfx'
-  | 'creator_or_brand_identity'
-  | 'reference_as_project_footage'
 
 type EvidenceConflictKind = 'restrained_vs_rapid_pacing'
 
@@ -100,15 +97,6 @@ const GOAL_SKILLS: Record<EditReferenceStudyGoal, SkillDefinition[]> = {
     ['No render, generated code, media worker, or provider call ran.'],
   )],
 }
-
-const COPY_RISK_PATTERNS: Array<{ kind: CopyRiskKind; patterns: RegExp[] }> = [
-  { kind: 'exact_shot_order', patterns: [/\bshot[ -]?for[ -]?shot\b/i, /\b(?:same|exact) shot order\b/i, /\bcopy (?:the )?shots?\b/i] },
-  { kind: 'exact_timing', patterns: [/\b(?:same|exact) timecodes?\b/i, /\b(?:same|exact) timing\b/i, /\bmatch (?:the )?timing exactly\b/i] },
-  { kind: 'exact_graphic_layout', patterns: [/\b(?:same|exact) (?:ui |graphic )?layout\b/i, /\brecreate (?:the )?(?:ui |graphic )?layout\b/i, /\bcopy (?:the )?(?:ui |graphic )?layout\b/i] },
-  { kind: 'exact_music_or_sfx', patterns: [/\buse (?:the )?same song\b/i, /\b(?:same|exact) (?:music|sfx|sound effects?)\b/i, /\bcopy (?:the )?lyrics\b/i, /\buse (?:the )?same lyrics\b/i] },
-  { kind: 'creator_or_brand_identity', patterns: [/\b(?:same|copy|recreate) (?:creator|brand|logo|person|identity)\b/i, /\blook exactly like\b/i, /\bimitate (?:the )?creator\b/i] },
-  { kind: 'reference_as_project_footage', patterns: [/\buse (?:the )?reference (?:video )?as (?:project )?footage\b/i, /\breuse (?:the )?reference video\b/i, /\bput (?:the )?reference video in\b/i] },
-]
 
 export function orchestratePreferenceEvidenceStudy(input: OrchestrationInput): PreferenceEvidenceStudyOrchestrationResult {
   const orchestrationId = `preference-evidence-study-${randomUUID()}`
@@ -353,7 +341,7 @@ function createCopySafetyEvidence(
   orchestrationId: string,
   runId: string,
   sourceEvidence: PreferenceEvidenceRecord[],
-  risks: CopyRiskKind[],
+  risks: EditReferenceCopyRiskKind[],
 ): PreferenceEvidenceRecord {
   return createDerivedEvidence({
     input,
@@ -470,19 +458,10 @@ function createSkillRun(input: {
   }
 }
 
-function detectCopyRisks(evidence: PreferenceEvidenceRecord[]): CopyRiskKind[] {
-  const risks = new Set<CopyRiskKind>()
-  for (const record of evidence) {
-    if (record.transferability === 'do_not_copy') continue
-    const text = `${record.title} ${record.summary}`
-    for (const candidate of COPY_RISK_PATTERNS) {
-      for (const pattern of candidate.patterns) {
-        const match = pattern.exec(text)
-        if (match && !hasNegationNear(text, match.index)) risks.add(candidate.kind)
-      }
-    }
-  }
-  return [...risks]
+function detectCopyRisks(evidence: PreferenceEvidenceRecord[]): EditReferenceCopyRiskKind[] {
+  return detectEditReferenceCopyRisks(evidence
+    .filter((record) => record.transferability !== 'do_not_copy')
+    .map((record) => `${record.title} ${record.summary}`))
 }
 
 function detectEvidenceConflicts(evidence: PreferenceEvidenceRecord[]): EvidenceConflictKind[] {
@@ -497,14 +476,9 @@ function detectEvidenceConflicts(evidence: PreferenceEvidenceRecord[]): Evidence
 
 function containsUnnegated(text: string, pattern: RegExp): boolean {
   for (const match of text.matchAll(pattern)) {
-    if (match.index !== undefined && !hasNegationNear(text, match.index)) return true
+    if (match.index !== undefined && !hasEditReferenceNegationNear(text, match.index)) return true
   }
   return false
-}
-
-function hasNegationNear(text: string, matchIndex: number): boolean {
-  const prefix = text.slice(Math.max(0, matchIndex - 72), matchIndex).toLowerCase()
-  return /(?:do not|don't|never|avoid|without|must not|should not|cannot|can't|not)\b[^.!?]{0,60}$/.test(prefix)
 }
 
 function summarizeMetadata(records: PreferenceEvidenceRecord[]): string {
@@ -553,7 +527,7 @@ function blockedSkill(skillId: string, reason: string): SkillDefinition {
 function buildAssistantMessage(
   status: PreferenceEvidenceStudyOrchestrationResult['studyStatus'],
   uncoveredGoals: EditReferenceStudyGoal[],
-  copyRisks: CopyRiskKind[],
+  copyRisks: EditReferenceCopyRiskKind[],
   conflicts: EvidenceConflictKind[],
 ): string {
   if (status === 'needs_user_review') {
@@ -571,11 +545,11 @@ function buildAssistantMessage(
   return 'The evidence study is ready for your review. Results are based only on the direction and details you saved. No media was opened and no production began.'
 }
 
-function copyRiskLabel(kind: CopyRiskKind): string {
+function copyRiskLabel(kind: EditReferenceCopyRiskKind): string {
   return kind.replaceAll('_', ' ')
 }
 
-function copyRiskReason(kind: CopyRiskKind): string {
+function copyRiskReason(kind: EditReferenceCopyRiskKind): string {
   return `${copyRiskLabel(kind)} is reference-specific and cannot become a reusable editing instruction.`
 }
 

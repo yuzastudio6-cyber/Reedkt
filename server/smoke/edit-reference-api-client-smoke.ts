@@ -90,7 +90,29 @@ try {
   }, 'client-dna-001')
   assert(dna.ok)
   assert.equal(dna.data.detail.dnaVersions.length, 1)
-  assert.equal(dna.data.detail.nextAction, 'review_preference_dna')
+  assert.equal(dna.data.detail.nextAction, 'run_preference_dna_qa')
+  const dnaVersion = dna.data.detail.dnaVersions[0]
+  assert(dnaVersion)
+  const qa = await client.runPreferenceDNAQA(studyId, dnaVersion.id, {
+    workspaceId,
+    expectedStudyRevision: dna.data.detail.study.revision,
+    expectedDNAContentDigest: dnaVersion.contentDigest,
+  }, 'client-dna-qa-001')
+  assert(qa.ok)
+  const qaResult = qa.data.detail.dnaQaResults[0]
+  assert(qaResult)
+  assert.equal(qa.data.detail.nextAction, 'approve_preference_dna')
+  const approved = await client.approvePreferenceDNA(studyId, dnaVersion.id, {
+    workspaceId,
+    expectedStudyRevision: qa.data.detail.study.revision,
+    expectedDNAContentDigest: dnaVersion.contentDigest,
+    qaResultId: qaResult.id,
+    acknowledgeAdaptNotCopy: true,
+    acknowledgeQAReview: qaResult.status === 'requires_user_review',
+  }, 'client-dna-approve-001')
+  assert(approved.ok)
+  assert.equal(approved.data.detail.reference.dnaStatus, 'approved')
+  assert.equal(approved.data.detail.nextAction, 'prepare_target_application')
 
   const unavailable = createEditReferenceApiClient('')
   assert.equal(unavailable.available, false)
@@ -109,6 +131,15 @@ try {
   assert.equal(unavailableEvidence.ok, false)
   const unavailableDNA = await unavailable.synthesizePreferenceDNA(studyId, { workspaceId, expectedStudyRevision: 1 })
   assert.equal(unavailableDNA.ok, false)
+  const unavailableQA = await unavailable.runPreferenceDNAQA(studyId, 'dna-unavailable', {
+    workspaceId, expectedStudyRevision: 1, expectedDNAContentDigest: '0'.repeat(64),
+  })
+  assert.equal(unavailableQA.ok, false)
+  const unavailableApproval = await unavailable.approvePreferenceDNA(studyId, 'dna-unavailable', {
+    workspaceId, expectedStudyRevision: 1, expectedDNAContentDigest: '0'.repeat(64), qaResultId: 'qa-unavailable',
+    acknowledgeAdaptNotCopy: true, acknowledgeQAReview: false,
+  })
+  assert.equal(unavailableApproval.ok, false)
 
   console.log('edit_reference_api_client_passed')
 } finally {

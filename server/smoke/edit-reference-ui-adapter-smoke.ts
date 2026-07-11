@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { toEditReferenceInspectorView, toEditReferenceSavedCardView } from '../../src/lib/edit-reference-ui-adapter'
-import { EDIT_REFERENCE_GATE_1_SAFETY_FLAGS, type EditReferenceDetail, type EditReferenceListItem, type PreferenceDNAVersionRecord } from '../../src/types/edit-reference'
+import { EDIT_REFERENCE_GATE_1_SAFETY_FLAGS, type EditReferenceDetail, type EditReferenceListItem, type PreferenceDNAQAResultRecord, type PreferenceDNAVersionRecord } from '../../src/types/edit-reference'
 
 const now = '2026-07-11T12:00:00.000Z'
 const item: EditReferenceListItem = {
@@ -76,9 +76,44 @@ const dnaDetail: EditReferenceDetail = {
   reference: { ...detail.reference, dnaStatus: 'review_required' },
   study: { ...detail.study, status: 'dna_ready', dnaStatus: 'review_required' },
   dnaVersions: [dnaVersion],
-  nextAction: 'review_preference_dna',
+  nextAction: 'run_preference_dna_qa',
 }
 assert.equal(toEditReferenceInspectorView(dnaDetail).dnaStatus, 'Version 1 · review required')
-assert.equal(toEditReferenceInspectorView(dnaDetail).nextAction, 'Review Preference DNA')
+assert.equal(toEditReferenceInspectorView(dnaDetail).nextAction, 'Run Preference DNA QA')
+
+const qaResult: PreferenceDNAQAResultRecord = {
+  id: 'qa-ui-smoke', workspaceId: 'workspace-ui-smoke', editReferenceId: 'reference-ui-smoke', studySessionId: 'study-ui-smoke',
+  dnaVersionId: dnaVersion.id, dnaVersionNumber: 1, qaVersion: 'edit-reference-dna-qa-v1', runtimeSource: 'verified_mock',
+  status: 'requires_user_review', dnaContentDigest: dnaVersion.contentDigest, inputEvidenceDigest: dnaVersion.inputEvidenceDigest,
+  checks: [], blockingCheckIds: [], reviewCheckIds: ['confidence_threshold'], summary: 'Confidence requires review.', contentDigest: 'c'.repeat(64),
+  providerCallMade: false, modelCallMade: false, fileBytesRead: false, externalUrlFetched: false, mediaProcessingStarted: false,
+  workerJobCreated: false, generationRequestCreated: false, renderJobCreated: false, creditReservedOrSpent: false, createdAt: now,
+}
+const qaDetail: EditReferenceDetail = {
+  ...dnaDetail,
+  reference: { ...dnaDetail.reference, qaStatus: 'requires_user_review' },
+  study: { ...dnaDetail.study, status: 'needs_user_review', qaStatus: 'requires_user_review' },
+  dnaVersions: [{ ...dnaVersion, qaStatus: 'requires_user_review', qaResultId: qaResult.id }],
+  dnaQaResults: [qaResult],
+  nextAction: 'approve_preference_dna',
+}
+assert.equal(toEditReferenceInspectorView(qaDetail).qaStatus, 'QA review required')
+assert.equal(toEditReferenceInspectorView(qaDetail).nextAction, 'Approve Preference DNA')
+
+const approvedDetail: EditReferenceDetail = {
+  ...qaDetail,
+  reference: { ...qaDetail.reference, dnaStatus: 'approved' },
+  study: { ...qaDetail.study, status: 'approved', dnaStatus: 'approved' },
+  dnaVersions: [{
+    ...qaDetail.dnaVersions[0]!, status: 'approved', approval: {
+      id: 'approval-ui-smoke', qaResultId: qaResult.id, acknowledgedAdaptNotCopy: true, acknowledgedQAReview: true,
+      approvedBy: 'authenticated_user', approvedAt: now,
+    },
+  }],
+  nextAction: 'prepare_target_application',
+}
+assert.equal(toEditReferenceInspectorView(approvedDetail).dnaStatus, 'Version 1 · approved')
+assert.equal(toEditReferenceInspectorView(approvedDetail).qaStatus, 'Review acknowledged')
+assert.equal(toEditReferenceInspectorView(approvedDetail).nextAction, 'Ready for a target edit')
 
 console.log('edit_reference_ui_adapter_passed')

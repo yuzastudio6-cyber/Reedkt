@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import type {
+  ApproveEditReferenceDNAVersionRequest,
   AppendPreferenceStudyMessageRequest,
   CreatePreferenceEvidenceRequest,
   CreateEditReferenceRequest,
@@ -19,6 +20,7 @@ import type {
   PreferenceStudyData,
   PreferenceStudyMessageListData,
   PreferenceStudySessionRecord,
+  RunEditReferenceDNAQARequest,
   RunPreferenceEvidenceStudyRequest,
   SynthesizePreferenceDNARequest,
   UpdateEditReferenceRequest,
@@ -37,6 +39,7 @@ import {
 } from '../edit-references/private-edit-reference-repository'
 import { orchestratePreferenceEvidenceStudy } from '../edit-references/edit-reference-evidence-orchestrator'
 import { synthesizeEditReferencePreferenceDNA } from '../edit-references/edit-reference-dna-synthesis'
+import { runEditReferenceDNAQA } from '../edit-references/edit-reference-dna-qa'
 
 const LOCAL_WARNING = 'Stored in the private backend-local Edit Reference repository. Production Supabase persistence remains blocked.'
 const FUTURE_RUNTIME_WARNING = 'No provider, model, file-byte, media, worker, generation, render, credit, or remote Supabase operation ran.'
@@ -60,6 +63,8 @@ export interface EditReferenceService {
   addEvidence(studyId: string, input: CreatePreferenceEvidenceRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   runEvidenceStudy(studyId: string, input: RunPreferenceEvidenceStudyRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   synthesizePreferenceDNA(studyId: string, input: SynthesizePreferenceDNARequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  runPreferenceDNAQA(studyId: string, dnaVersionId: string, input: RunEditReferenceDNAQARequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  approvePreferenceDNA(studyId: string, dnaVersionId: string, input: ApproveEditReferenceDNAVersionRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
 }
 
 export function createEditReferenceService(
@@ -342,15 +347,18 @@ export function createEditReferenceService(
             && record.status !== 'superseded'
           ))) {
             dnaVersion.status = 'superseded'
+            dnaVersion.supersededAt = now
             invalidatedDNACandidate = true
           }
           study.status = 'ready_to_study'
           study.evidenceStatus = 'ready_to_study'
           study.dnaStatus = 'not_generated'
+          study.qaStatus = 'not_run'
           study.revision += 1
           study.updatedAt = now
           reference.evidenceStatus = 'ready_to_study'
           reference.dnaStatus = 'not_generated'
+          reference.qaStatus = 'not_run'
           reference.updatedAt = now
           aggregate.messages.push(evidenceSavedMessage(reference, study, evidence, now, nextSequence(aggregate, study.id)))
           aggregate.usageLogs.push(usageLog(reference, 'evidence_added', now))
@@ -427,19 +435,141 @@ export function createEditReferenceService(
             existingVersions: aggregate.dnaVersions.filter((record) => record.studySessionId === study.id),
             now,
           })
-          for (const previousVersion of aggregate.dnaVersions.filter((record) => record.studySessionId === study.id && record.status !== 'approved')) {
+          for (const previousVersion of aggregate.dnaVersions.filter((record) => (
+            record.studySessionId === study.id
+            && record.status !== 'approved'
+            && record.status !== 'superseded'
+          ))) {
             previousVersion.status = 'superseded'
+            previousVersion.supersededAt = now
           }
           aggregate.dnaVersions.push(dnaVersion)
           study.status = 'dna_ready'
           study.dnaStatus = 'review_required'
+          study.qaStatus = 'not_run'
           study.revision += 1
           study.updatedAt = now
           reference.dnaStatus = 'review_required'
+          reference.qaStatus = 'not_run'
           reference.updatedAt = now
           aggregate.messages.push(dnaSynthesisMessage(reference, study, dnaVersion, now, nextSequence(aggregate, study.id)))
           aggregate.usageLogs.push(usageLog(reference, 'dna_version_created', now))
           addAuditEvent({ eventType: 'preference_dna_version_created', editReferenceId: reference.id, studySessionId: study.id })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async runPreferenceDNAQA(studyId, dnaVersionId, input, idempotencyKey) {
+      const normalized = normalizeRunPreferenceDNAQA(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.dna.qa.run',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, dnaVersionId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          assertActiveStudy(reference, study)
+          assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+          const dnaVersion = requireDNAVersion(aggregate, dnaVersionId, study)
+          assertDNAContentDigest(dnaVersion.contentDigest, normalized.expectedDNAContentDigest)
+          if (dnaVersion.status !== 'review_required' || dnaVersion.qaStatus !== 'not_run') {
+            throw new ApiError('VALIDATION_FAILED', 'Quality review already ran or this DNA version is no longer the active review candidate.', 409)
+          }
+          if (aggregate.dnaQaResults.some((record) => record.dnaVersionId === dnaVersion.id)) {
+            throw new ApiError('VERSION_CONFLICT', 'This exact DNA version already has a quality-review result.', 409)
+          }
+          const qaResult = runEditReferenceDNAQA({
+            reference,
+            study,
+            dnaVersion,
+            evidence: aggregate.evidence.filter((record) => record.studySessionId === study.id),
+            now,
+          })
+          aggregate.dnaQaResults.push(qaResult)
+          dnaVersion.qaStatus = qaResult.status
+          dnaVersion.qaResultId = qaResult.id
+          study.qaStatus = qaResult.status
+          study.status = qaResult.status === 'blocked' ? 'qa_blocked' : 'needs_user_review'
+          study.revision += 1
+          study.updatedAt = now
+          reference.qaStatus = qaResult.status
+          reference.updatedAt = now
+          aggregate.messages.push(dnaQAMessage(reference, study, qaResult, now, nextSequence(aggregate, study.id)))
+          aggregate.usageLogs.push(usageLog(reference, 'dna_qa_completed', now))
+          addAuditEvent({
+            eventType: 'preference_dna_qa_completed',
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            dnaVersionId: dnaVersion.id,
+            dnaQaResultId: qaResult.id,
+          })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async approvePreferenceDNA(studyId, dnaVersionId, input, idempotencyKey) {
+      const normalized = normalizeApprovePreferenceDNA(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.dna.approve',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, dnaVersionId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          assertActiveStudy(reference, study)
+          assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+          const dnaVersion = requireDNAVersion(aggregate, dnaVersionId, study)
+          assertDNAContentDigest(dnaVersion.contentDigest, normalized.expectedDNAContentDigest)
+          const qaResult = requireDNAQAResult(aggregate, normalized.qaResultId, dnaVersion)
+          if (dnaVersion.status !== 'review_required' || dnaVersion.qaResultId !== qaResult.id) {
+            throw new ApiError('VALIDATION_FAILED', 'Only the active quality-reviewed DNA version can be approved.', 409)
+          }
+          if (qaResult.status === 'blocked' || qaResult.blockingCheckIds.length > 0) {
+            throw new ApiError('VALIDATION_FAILED', 'Blocking DNA quality findings must be corrected before approval.', 409)
+          }
+          if (qaResult.status === 'requires_user_review' && normalized.acknowledgeQAReview !== true) {
+            throw new ApiError('VALIDATION_FAILED', 'Review the quality warnings and acknowledge them before approval.', 409)
+          }
+          for (const previousApproved of aggregate.dnaVersions.filter((record) => (
+            record.studySessionId === study.id
+            && record.id !== dnaVersion.id
+            && record.status === 'approved'
+          ))) {
+            previousApproved.status = 'superseded'
+            previousApproved.supersededAt = now
+          }
+          dnaVersion.status = 'approved'
+          dnaVersion.approval = {
+            id: `preference-dna-approval-${randomUUID()}`,
+            qaResultId: qaResult.id,
+            acknowledgedAdaptNotCopy: true,
+            acknowledgedQAReview: normalized.acknowledgeQAReview,
+            approvedBy: 'authenticated_user',
+            approvedAt: now,
+          }
+          study.status = 'approved'
+          study.dnaStatus = 'approved'
+          study.qaStatus = qaResult.status
+          study.revision += 1
+          study.updatedAt = now
+          reference.dnaStatus = 'approved'
+          reference.qaStatus = qaResult.status
+          reference.updatedAt = now
+          aggregate.messages.push(dnaApprovalMessage(reference, study, dnaVersion, now, nextSequence(aggregate, study.id)))
+          aggregate.usageLogs.push(usageLog(reference, 'dna_version_approved', now))
+          addAuditEvent({
+            eventType: 'preference_dna_version_approved',
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            dnaVersionId: dnaVersion.id,
+            dnaQaResultId: qaResult.id,
+          })
           return detailData(aggregate, reference)
         },
       })
@@ -482,11 +612,20 @@ function nextActionForDetail(
 ): EditReferenceDetail['nextAction'] {
   if (reference.status === 'archived') return 'archived'
   if (study.status === 'evidence_ready') return 'generate_preference_dna'
+  const activeDNAVersion = reference.dnaStatus === 'not_generated'
+    ? undefined
+    : aggregate.dnaVersions
+      .filter((record) => record.studySessionId === study.id && record.status !== 'superseded')
+      .sort((left, right) => right.version - left.version)[0]
+  if (activeDNAVersion) {
+    if (activeDNAVersion.status === 'approved') return 'prepare_target_application'
+    if (activeDNAVersion.qaStatus === 'not_run') return 'run_preference_dna_qa'
+    if (activeDNAVersion.qaStatus === 'blocked') return 'correct_preference_dna'
+    return 'approve_preference_dna'
+  }
+  if (study.status === 'qa_blocked') return 'correct_preference_dna'
   if (study.status === 'needs_user_review') return 'review_study_findings'
   if (study.status === 'needs_clarification') return 'add_missing_evidence'
-  if (study.dnaStatus === 'review_required' && aggregate.dnaVersions.some((record) => record.studySessionId === study.id && record.status === 'review_required')) {
-    return 'review_preference_dna'
-  }
   const sourceEvidence = aggregate.evidence.filter((record) => record.studySessionId === study.id && record.sourceType !== 'derived_skill_evidence')
   if (sourceEvidence.length > 0) return 'run_evidence_study'
   return aggregate.messages.some((message) => message.studySessionId === study.id && message.role === 'user')
@@ -609,6 +748,51 @@ function dnaSynthesisMessage(
     content: `Preference DNA version ${dnaVersion.version} was prepared from ${dnaVersion.inputEvidenceRevisions.length} exact evidence records. It remains locked for quality review; nothing has been approved or applied.`,
     sequence,
     runtimeSource: 'deterministic_dna',
+    createdAt: now,
+  }
+}
+
+function dnaQAMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  qaResult: EditReferenceDetail['dnaQaResults'][number],
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  const next = qaResult.status === 'blocked'
+    ? 'Correct the evidence and create a new version before approval.'
+    : qaResult.status === 'requires_user_review'
+      ? 'Review and acknowledge the flagged limits before approving this exact version.'
+      : 'The exact version can now be reviewed for approval.'
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content: `${qaResult.summary} ${next} No edit was changed and no production work started.`,
+    sequence,
+    runtimeSource: 'deterministic_dna_qa',
+    createdAt: now,
+  }
+}
+
+function dnaApprovalMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  dnaVersion: EditReferenceDetail['dnaVersions'][number],
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content: `Preference DNA version ${dnaVersion.version} was approved with the quality review tied to this exact version. Approval saves reusable guidance only; it has not been applied to an edit and no production work started.`,
+    sequence,
+    runtimeSource: 'deterministic_dna_approval',
     createdAt: now,
   }
 }
@@ -776,7 +960,7 @@ function nextSequence(aggregate: EditReferenceAggregate, studyId: string): numbe
 
 function usageLog(
   reference: EditReferenceRecord,
-  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'updated' | 'archived',
+  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'dna_qa_completed' | 'dna_version_approved' | 'updated' | 'archived',
   now: string,
 ) {
   return {
@@ -798,6 +982,36 @@ function requireStudy(aggregate: EditReferenceAggregate, studyId: string): Prefe
   const study = aggregate.studies.find((candidate) => candidate.id === studyId)
   if (!study) throw studyNotFound(studyId)
   return study
+}
+
+function requireDNAVersion(
+  aggregate: EditReferenceAggregate,
+  dnaVersionId: string,
+  study: PreferenceStudySessionRecord,
+): EditReferenceDetail['dnaVersions'][number] {
+  const version = aggregate.dnaVersions.find((candidate) => candidate.id === dnaVersionId)
+  if (!version || version.studySessionId !== study.id || version.editReferenceId !== study.editReferenceId) {
+    throw new ApiError('VALIDATION_FAILED', 'Preference DNA version was not found in this study.', 404, { dnaVersionId })
+  }
+  return version
+}
+
+function requireDNAQAResult(
+  aggregate: EditReferenceAggregate,
+  qaResultId: string,
+  dnaVersion: EditReferenceDetail['dnaVersions'][number],
+): EditReferenceDetail['dnaQaResults'][number] {
+  const result = aggregate.dnaQaResults.find((candidate) => candidate.id === qaResultId)
+  if (!result || result.dnaVersionId !== dnaVersion.id) {
+    throw new ApiError('VALIDATION_FAILED', 'Quality-review result does not belong to this DNA version.', 409, { qaResultId })
+  }
+  return result
+}
+
+function assertDNAContentDigest(actual: string, expected: string): void {
+  if (actual !== expected) {
+    throw new ApiError('VERSION_CONFLICT', 'Preference DNA changed since it was reviewed. Reload before continuing.', 409, { expected, actual })
+  }
 }
 
 function assertActiveStudy(reference: EditReferenceRecord, study: PreferenceStudySessionRecord): void {
@@ -947,12 +1161,45 @@ function normalizeSynthesizePreferenceDNA(input: SynthesizePreferenceDNARequest)
   }
 }
 
+function normalizeRunPreferenceDNAQA(input: RunEditReferenceDNAQARequest): RunEditReferenceDNAQARequest {
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedStudyRevision: requirePositiveInteger(input.expectedStudyRevision, 'expectedStudyRevision'),
+    expectedDNAContentDigest: requireSha256(input.expectedDNAContentDigest, 'expectedDNAContentDigest'),
+  }
+}
+
+function normalizeApprovePreferenceDNA(input: ApproveEditReferenceDNAVersionRequest): ApproveEditReferenceDNAVersionRequest {
+  if (input.acknowledgeAdaptNotCopy !== true) {
+    throw new ApiError('VALIDATION_FAILED', 'Approval requires confirmation that the reference will be adapted, not copied.', 400)
+  }
+  if (typeof input.acknowledgeQAReview !== 'boolean') {
+    throw new ApiError('VALIDATION_FAILED', 'acknowledgeQAReview must be a boolean.', 400)
+  }
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedStudyRevision: requirePositiveInteger(input.expectedStudyRevision, 'expectedStudyRevision'),
+    expectedDNAContentDigest: requireSha256(input.expectedDNAContentDigest, 'expectedDNAContentDigest'),
+    qaResultId: requireText(input.qaResultId, 'qaResultId', 200),
+    acknowledgeAdaptNotCopy: true,
+    acknowledgeQAReview: input.acknowledgeQAReview,
+  }
+}
+
 function requireWorkspaceId(value: string): string {
   return requireText(value, 'workspaceId', 160)
 }
 
 function requireIdempotencyKey(value: string): string {
   return requireText(value, 'Idempotency-Key', 200)
+}
+
+function requireSha256(value: string, field: string): string {
+  const normalized = value?.trim().toLowerCase()
+  if (!/^[a-f0-9]{64}$/.test(normalized)) {
+    throw new ApiError('VALIDATION_FAILED', `${field} must be a SHA-256 digest.`, 400)
+  }
+  return normalized
 }
 
 function requirePositiveInteger(value: number, field: string): number {

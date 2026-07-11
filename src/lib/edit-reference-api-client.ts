@@ -1,4 +1,5 @@
 import type {
+  ApproveEditReferenceDNAVersionRequest,
   AppendPreferenceStudyMessageRequest,
   CreatePreferenceEvidenceRequest,
   CreateEditReferenceRequest,
@@ -9,6 +10,7 @@ import type {
   EditReferenceMessageData,
   PreferenceStudyData,
   PreferenceStudyMessageListData,
+  RunEditReferenceDNAQARequest,
   RunPreferenceEvidenceStudyRequest,
   SynthesizePreferenceDNARequest,
   UpdateEditReferenceRequest,
@@ -44,6 +46,8 @@ export interface EditReferenceApiClient {
   addEvidence(studyId: string, input: CreatePreferenceEvidenceRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
   runEvidenceStudy(studyId: string, input: RunPreferenceEvidenceStudyRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
   synthesizePreferenceDNA(studyId: string, input: SynthesizePreferenceDNARequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
+  runPreferenceDNAQA(studyId: string, dnaVersionId: string, input: RunEditReferenceDNAQARequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
+  approvePreferenceDNA(studyId: string, dnaVersionId: string, input: ApproveEditReferenceDNAVersionRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
 }
 
 export function createEditReferenceApiClient(
@@ -72,6 +76,8 @@ export function createEditReferenceApiClient(
       addEvidence: unavailable,
       runEvidenceStudy: unavailable,
       synthesizePreferenceDNA: unavailable,
+      runPreferenceDNAQA: unavailable,
+      approvePreferenceDNA: unavailable,
     }
   }
 
@@ -130,6 +136,8 @@ export function createEditReferenceApiClient(
     addEvidence: (studyId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/evidence`, 'POST', input, key),
     runEvidenceStudy: (studyId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/evidence-study`, 'POST', input, key),
     synthesizePreferenceDNA: (studyId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/preference-dna`, 'POST', input, key),
+    runPreferenceDNAQA: (studyId, dnaVersionId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/preference-dna/${encodeURIComponent(dnaVersionId)}/qa`, 'POST', input, key),
+    approvePreferenceDNA: (studyId, dnaVersionId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/preference-dna/${encodeURIComponent(dnaVersionId)}/approve`, 'POST', input, key),
   }
 }
 

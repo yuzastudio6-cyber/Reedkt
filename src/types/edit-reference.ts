@@ -52,7 +52,8 @@ export type PreferenceEvidenceTransferability = 'transferable' | 'non_transferab
 export type PreferenceEvidenceConfidenceBasis = 'user_asserted' | 'metadata_verified' | 'deterministic_derived' | 'blocked'
 export type PreferenceEvidenceMediaStudyStatus = 'not_applicable' | 'media_not_studied' | 'approved_edit_identity_not_verified'
 export type PreferenceEvidenceStatus = 'not_complete' | 'ready_to_study' | 'evidence_ready' | 'needs_clarification'
-export type EditReferenceDNAStatus = 'not_generated' | 'review_required'
+export type EditReferenceDNAStatus = 'not_generated' | 'review_required' | 'approved'
+export type EditReferenceDNAQAStatus = 'not_run' | 'passed' | 'blocked' | 'requires_user_review'
 
 export const EDIT_REFERENCE_STUDY_LIFECYCLE_STATUSES = [
   'draft',
@@ -73,7 +74,13 @@ export const EDIT_REFERENCE_STUDY_LIFECYCLE_STATUSES = [
 export type EditReferenceStudyLifecycleStatus = typeof EDIT_REFERENCE_STUDY_LIFECYCLE_STATUSES[number]
 export type EditReferenceStatus = 'active' | 'archived'
 export type PreferenceStudyMessageRole = 'user' | 'assistant' | 'system'
-export type PreferenceStudyMessageRuntimeSource = 'user_input' | 'deterministic_setup' | 'deterministic_evidence' | 'deterministic_dna'
+export type PreferenceStudyMessageRuntimeSource =
+  | 'user_input'
+  | 'deterministic_setup'
+  | 'deterministic_evidence'
+  | 'deterministic_dna'
+  | 'deterministic_dna_qa'
+  | 'deterministic_dna_approval'
 
 export interface EditReferenceSafetyFlags {
   providerCallMade: false
@@ -123,7 +130,7 @@ export interface EditReferenceRecord {
   runtimeSource: 'backend_local_private'
   evidenceStatus: PreferenceEvidenceStatus
   dnaStatus: EditReferenceDNAStatus
-  qaStatus: 'not_run'
+  qaStatus: EditReferenceDNAQAStatus
 }
 
 export interface PreferenceStudySessionRecord {
@@ -139,7 +146,7 @@ export interface PreferenceStudySessionRecord {
   runtimeSource: 'backend_local_private'
   evidenceStatus: PreferenceEvidenceStatus
   dnaStatus: EditReferenceDNAStatus
-  qaStatus: 'not_run'
+  qaStatus: EditReferenceDNAQAStatus
 }
 
 export interface PreferenceStudyMessageRecord {
@@ -263,7 +270,10 @@ export interface PreferenceDNAVersionRecord {
   overallConfidenceBand: PreferenceDNAConfidenceBand
   adaptedNotCopied: true
   doNotCopyRuleCount: number
-  qaStatus: 'not_run'
+  qaStatus: EditReferenceDNAQAStatus
+  qaResultId?: string
+  approval?: PreferenceDNAApprovalSnapshot
+  supersededAt?: string
   contentDigest: string
   providerCallMade: false
   modelCallMade: false
@@ -273,6 +283,15 @@ export interface PreferenceDNAVersionRecord {
   renderJobCreated: false
   creditReservedOrSpent: false
   createdAt: string
+}
+
+export interface PreferenceDNAApprovalSnapshot {
+  id: string
+  qaResultId: string
+  acknowledgedAdaptNotCopy: true
+  acknowledgedQAReview: boolean
+  approvedBy: 'authenticated_user'
+  approvedAt: string
 }
 
 export interface PreferenceDNALayerSnapshot {
@@ -313,9 +332,63 @@ export interface PreferenceDNAQAResultRecord {
   id: string
   workspaceId: string
   editReferenceId: string
+  studySessionId: string
   dnaVersionId: string
-  status: 'not_run' | 'passed' | 'blocked' | 'requires_user_review'
+  dnaVersionNumber: number
+  qaVersion: 'edit-reference-dna-qa-v1'
+  runtimeSource: 'verified_mock'
+  status: Exclude<EditReferenceDNAQAStatus, 'not_run'>
+  dnaContentDigest: string
+  inputEvidenceDigest: string
+  checks: EditReferenceDNAQACheckRecord[]
+  blockingCheckIds: EditReferenceDNAQACheckId[]
+  reviewCheckIds: EditReferenceDNAQACheckId[]
+  summary: string
+  contentDigest: string
+  providerCallMade: false
+  modelCallMade: false
+  fileBytesRead: false
+  externalUrlFetched: false
+  mediaProcessingStarted: false
+  workerJobCreated: false
+  generationRequestCreated: false
+  renderJobCreated: false
+  creditReservedOrSpent: false
   createdAt: string
+}
+
+export const EDIT_REFERENCE_DNA_QA_CHECK_IDS = [
+  'version_integrity',
+  'evidence_integrity',
+  'goal_layer_coverage',
+  'layer_evidence_coverage',
+  'confidence_threshold',
+  'conflict_review',
+  'transferability_consistency',
+  'do_not_copy_coverage',
+  'copy_risk',
+  'identity_source_safety',
+  'side_effect_safety',
+  'approval_readiness',
+] as const
+
+export type EditReferenceDNAQACheckId = typeof EDIT_REFERENCE_DNA_QA_CHECK_IDS[number]
+export type EditReferenceDNAQACheckStatus = 'passed' | 'blocked' | 'requires_user_review'
+export type EditReferenceDNAQASeverity = 'info' | 'medium' | 'high' | 'critical'
+
+export interface EditReferenceDNAQACheckRecord {
+  id: string
+  checkId: EditReferenceDNAQACheckId
+  status: EditReferenceDNAQACheckStatus
+  severity: EditReferenceDNAQASeverity
+  title: string
+  summary: string
+  recommendation: string
+  evidenceIds: string[]
+  layerIds: PreferenceDNALayerId[]
+  ruleIds: string[]
+  blocksApproval: boolean
+  requiresUserReview: boolean
 }
 
 export interface PreferenceApplicationRecord {
@@ -334,7 +407,7 @@ export interface PreferenceUsageLogRecord {
   id: string
   workspaceId: string
   editReferenceId: string
-  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'updated' | 'archived' | 'applied' | 'replaced' | 'cleared'
+  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'dna_qa_completed' | 'dna_version_approved' | 'updated' | 'archived' | 'applied' | 'replaced' | 'cleared'
   createdAt: string
 }
 
@@ -356,7 +429,19 @@ export interface EditReferenceDetail {
   dnaQaResults: PreferenceDNAQAResultRecord[]
   applications: PreferenceApplicationRecord[]
   usageLogs: PreferenceUsageLogRecord[]
-  nextAction: 'answer_setup_questions' | 'add_reference_evidence' | 'run_evidence_study' | 'review_study_findings' | 'add_missing_evidence' | 'generate_preference_dna' | 'review_preference_dna' | 'archived'
+  nextAction:
+    | 'answer_setup_questions'
+    | 'add_reference_evidence'
+    | 'run_evidence_study'
+    | 'review_study_findings'
+    | 'add_missing_evidence'
+    | 'generate_preference_dna'
+    | 'review_preference_dna'
+    | 'run_preference_dna_qa'
+    | 'correct_preference_dna'
+    | 'approve_preference_dna'
+    | 'prepare_target_application'
+    | 'archived'
   safety: EditReferenceSafetyFlags
 }
 
@@ -471,6 +556,21 @@ export interface RunPreferenceEvidenceStudyRequest {
 export interface SynthesizePreferenceDNARequest {
   workspaceId: string
   expectedStudyRevision: number
+}
+
+export interface RunEditReferenceDNAQARequest {
+  workspaceId: string
+  expectedStudyRevision: number
+  expectedDNAContentDigest: string
+}
+
+export interface ApproveEditReferenceDNAVersionRequest {
+  workspaceId: string
+  expectedStudyRevision: number
+  expectedDNAContentDigest: string
+  qaResultId: string
+  acknowledgeAdaptNotCopy: true
+  acknowledgeQAReview: boolean
 }
 
 export interface EditReferenceApiSuccess<T> {

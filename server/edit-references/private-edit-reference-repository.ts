@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { constants } from 'node:fs'
 import { chmod, lstat, mkdir, open, rename, rm } from 'node:fs/promises'
 import { dirname, relative, resolve, sep } from 'node:path'
+import { EDIT_REFERENCE_DNA_QA_CHECK_IDS } from '../../src/types/edit-reference'
 import { ApiError } from '../errors/api-error'
 import {
   EDIT_REFERENCE_AGGREGATE_VERSION,
@@ -25,6 +26,7 @@ const MAX_EVIDENCE_RECORDS = 5_000
 const MAX_ASSET_RECORDS = 2_000
 const MAX_SKILL_RUNS = 5_000
 const MAX_DNA_VERSIONS = 2_000
+const MAX_DNA_QA_RESULTS = 2_000
 const MAX_DNA_INPUTS_PER_VERSION = 128
 const MAX_DNA_RULES_PER_VERSION = 256
 const MAX_DNA_CONFLICTS_PER_VERSION = 128
@@ -222,6 +224,7 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
   if (aggregate.assets.length > MAX_ASSET_RECORDS) throw invalidAggregate('too_many_asset_records')
   if (aggregate.skillRuns.length > MAX_SKILL_RUNS) throw invalidAggregate('too_many_skill_runs')
   if (aggregate.dnaVersions.length > MAX_DNA_VERSIONS) throw invalidAggregate('too_many_dna_versions')
+  if (aggregate.dnaQaResults.length > MAX_DNA_QA_RESULTS) throw invalidAggregate('too_many_dna_qa_results')
   if (aggregate.auditEvents.length > MAX_AUDIT_EVENTS) throw invalidAggregate('too_many_audit_events')
   if (aggregate.idempotencyRecords.length > MAX_IDEMPOTENCY_RECORDS) throw invalidAggregate('too_many_idempotency_records')
 
@@ -269,7 +272,10 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
     assertWorkspace(message, scope.workspaceId)
     if (
       !['user', 'assistant', 'system'].includes(message.role)
-      || !['user_input', 'deterministic_setup', 'deterministic_evidence', 'deterministic_dna'].includes(message.runtimeSource)
+      || ![
+        'user_input', 'deterministic_setup', 'deterministic_evidence', 'deterministic_dna',
+        'deterministic_dna_qa', 'deterministic_dna_approval',
+      ].includes(message.runtimeSource)
       || !message.content
       || message.content.length > 8_000
       || !Number.isSafeInteger(message.sequence)
@@ -308,6 +314,8 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
     }
   }
   assertDNAVersions(aggregate, evidenceIds)
+  assertDNAQAResults(aggregate)
+  assertDNAApprovalLinks(aggregate)
   for (const record of aggregate.applications) {
     assertWorkspace(record, scope.workspaceId)
     if (!referenceIds.has(record.editReferenceId)) throw invalidAggregate('application_reference_missing')
@@ -350,7 +358,10 @@ function assertDNAVersions(aggregate: EditReferenceAggregate, evidenceIds: Set<s
       || record.adaptedNotCopied !== true
       || !Number.isSafeInteger(record.doNotCopyRuleCount)
       || record.doNotCopyRuleCount < 5
-      || record.qaStatus !== 'not_run'
+      || !['not_run', 'passed', 'blocked', 'requires_user_review'].includes(record.qaStatus)
+      || (record.qaStatus === 'not_run' && record.qaResultId !== undefined)
+      || (record.qaStatus !== 'not_run' && !record.qaResultId)
+      || (record.supersededAt !== undefined && !isISODate(record.supersededAt))
       || !/^[a-f0-9]{64}$/.test(record.contentDigest)
     ) throw invalidAggregate('dna_version_contract_invalid')
     const inputEvidenceIds = new Set(record.inputEvidenceRevisions.map((input) => input.evidenceId))
@@ -450,6 +461,148 @@ function assertDNAVersions(aggregate: EditReferenceAggregate, evidenceIds: Set<s
       adaptedNotCopied: record.adaptedNotCopied,
     }
     if (record.contentDigest !== sha256(stableStringify(immutableContent))) throw invalidAggregate('dna_content_digest_invalid')
+  }
+}
+
+function assertDNAQAResults(aggregate: EditReferenceAggregate): void {
+  const dnaVersions = new Map(aggregate.dnaVersions.map((record) => [record.id, record]))
+  const qaByVersion = new Set<string>()
+  for (const record of aggregate.dnaQaResults) {
+    assertWorkspace(record, aggregate.workspaceId)
+    const dnaVersion = dnaVersions.get(record.dnaVersionId)
+    if (!dnaVersion || dnaVersion.editReferenceId !== record.editReferenceId || dnaVersion.studySessionId !== record.studySessionId) {
+      throw invalidAggregate('dna_qa_version_link_invalid')
+    }
+    if (qaByVersion.has(record.dnaVersionId)) throw invalidAggregate('dna_qa_version_duplicate')
+    qaByVersion.add(record.dnaVersionId)
+    if (
+      record.dnaVersionNumber !== dnaVersion.version
+      || record.qaVersion !== 'edit-reference-dna-qa-v1'
+      || record.runtimeSource !== 'verified_mock'
+      || !['passed', 'blocked', 'requires_user_review'].includes(record.status)
+      || record.dnaContentDigest !== dnaVersion.contentDigest
+      || record.inputEvidenceDigest !== dnaVersion.inputEvidenceDigest
+      || !Array.isArray(record.checks)
+      || record.checks.length !== EDIT_REFERENCE_DNA_QA_CHECK_IDS.length
+      || !Array.isArray(record.blockingCheckIds)
+      || !Array.isArray(record.reviewCheckIds)
+      || !record.summary
+      || record.summary.length > 2_000
+      || !/^[a-f0-9]{64}$/.test(record.contentDigest)
+      || record.providerCallMade !== false
+      || record.modelCallMade !== false
+      || record.fileBytesRead !== false
+      || record.externalUrlFetched !== false
+      || record.mediaProcessingStarted !== false
+      || record.workerJobCreated !== false
+      || record.generationRequestCreated !== false
+      || record.renderJobCreated !== false
+      || record.creditReservedOrSpent !== false
+      || !isISODate(record.createdAt)
+    ) throw invalidAggregate('dna_qa_contract_invalid')
+
+    const inputEvidenceIds = new Set(dnaVersion.inputEvidenceRevisions.map((input) => input.evidenceId))
+    const ruleIds = new Set(dnaVersion.rules.map((rule) => rule.id))
+    const checkIds = new Set(record.checks.map((check) => check.checkId))
+    const checkRecordIds = new Set(record.checks.map((check) => check.id))
+    if (
+      checkIds.size !== record.checks.length
+      || checkRecordIds.size !== record.checks.length
+      || !sameStringSet([...checkIds], [...EDIT_REFERENCE_DNA_QA_CHECK_IDS])
+    ) throw invalidAggregate('dna_qa_check_identity_invalid')
+    for (const check of record.checks) {
+      const checkContent = {
+        checkId: check.checkId,
+        status: check.status,
+        severity: check.severity,
+        title: check.title,
+        summary: check.summary,
+        recommendation: check.recommendation,
+        evidenceIds: check.evidenceIds,
+        layerIds: check.layerIds,
+        ruleIds: check.ruleIds,
+        blocksApproval: check.blocksApproval,
+        requiresUserReview: check.requiresUserReview,
+      }
+      if (
+        !EDIT_REFERENCE_DNA_QA_CHECK_IDS.includes(check.checkId)
+        || !['passed', 'blocked', 'requires_user_review'].includes(check.status)
+        || !['info', 'medium', 'high', 'critical'].includes(check.severity)
+        || !check.title
+        || check.title.length > 240
+        || !check.summary
+        || check.summary.length > 2_000
+        || !check.recommendation
+        || check.recommendation.length > 2_000
+        || !Array.isArray(check.evidenceIds)
+        || new Set(check.evidenceIds).size !== check.evidenceIds.length
+        || check.evidenceIds.some((id) => !inputEvidenceIds.has(id))
+        || !Array.isArray(check.layerIds)
+        || new Set(check.layerIds).size !== check.layerIds.length
+        || check.layerIds.some((id) => !isPreferenceDNALayerId(id))
+        || !Array.isArray(check.ruleIds)
+        || new Set(check.ruleIds).size !== check.ruleIds.length
+        || check.ruleIds.some((id) => !ruleIds.has(id))
+        || check.blocksApproval !== (check.status === 'blocked')
+        || check.requiresUserReview !== (check.status !== 'passed')
+        || check.id !== stableId('edit-reference-dna-qa-check', checkContent)
+      ) throw invalidAggregate('dna_qa_check_contract_invalid')
+    }
+    const expectedBlockingIds = unique(record.checks.filter((check) => check.blocksApproval).map((check) => check.checkId))
+    const expectedReviewIds = unique(record.checks.filter((check) => check.requiresUserReview && !check.blocksApproval).map((check) => check.checkId))
+    const expectedStatus = expectedBlockingIds.length ? 'blocked' : expectedReviewIds.length ? 'requires_user_review' : 'passed'
+    if (
+      record.status !== expectedStatus
+      || new Set(record.blockingCheckIds).size !== record.blockingCheckIds.length
+      || new Set(record.reviewCheckIds).size !== record.reviewCheckIds.length
+      || !sameStringSet(record.blockingCheckIds, expectedBlockingIds)
+      || !sameStringSet(record.reviewCheckIds, expectedReviewIds)
+    ) throw invalidAggregate('dna_qa_decision_invalid')
+    const immutableContent = {
+      qaVersion: record.qaVersion,
+      dnaVersionId: record.dnaVersionId,
+      dnaVersionNumber: record.dnaVersionNumber,
+      dnaContentDigest: record.dnaContentDigest,
+      inputEvidenceDigest: record.inputEvidenceDigest,
+      checks: record.checks,
+      blockingCheckIds: record.blockingCheckIds,
+      reviewCheckIds: record.reviewCheckIds,
+      status: record.status,
+      summary: record.summary,
+    }
+    if (record.contentDigest !== sha256(stableStringify(immutableContent))) throw invalidAggregate('dna_qa_content_digest_invalid')
+  }
+}
+
+function assertDNAApprovalLinks(aggregate: EditReferenceAggregate): void {
+  const qaById = new Map(aggregate.dnaQaResults.map((record) => [record.id, record]))
+  const approvalIds = new Set<string>()
+  for (const version of aggregate.dnaVersions) {
+    const qaResult = version.qaResultId ? qaById.get(version.qaResultId) : undefined
+    if (version.qaStatus === 'not_run') {
+      if (qaResult) throw invalidAggregate('dna_unexpected_qa_link')
+    } else if (!qaResult || qaResult.dnaVersionId !== version.id || qaResult.status !== version.qaStatus) {
+      throw invalidAggregate('dna_qa_status_link_invalid')
+    }
+    if ((version.status === 'approved') !== Boolean(version.approval)) {
+      if (version.status !== 'superseded' || !version.approval) throw invalidAggregate('dna_approval_status_invalid')
+    }
+    if (!version.approval) continue
+    if (approvalIds.has(version.approval.id)) throw invalidAggregate('dna_approval_identity_duplicate')
+    approvalIds.add(version.approval.id)
+    const approvalQA = qaById.get(version.approval.qaResultId)
+    if (
+      !version.approval.id
+      || version.approval.qaResultId !== version.qaResultId
+      || version.approval.acknowledgedAdaptNotCopy !== true
+      || typeof version.approval.acknowledgedQAReview !== 'boolean'
+      || version.approval.approvedBy !== 'authenticated_user'
+      || !isISODate(version.approval.approvedAt)
+      || !approvalQA
+      || approvalQA.dnaVersionId !== version.id
+      || approvalQA.status === 'blocked'
+      || (approvalQA.status === 'requires_user_review' && version.approval.acknowledgedQAReview !== true)
+    ) throw invalidAggregate('dna_approval_contract_invalid')
   }
 }
 
@@ -725,6 +878,18 @@ function stableStringify(value: unknown): string {
 
 function sha256(value: string): string {
   return createHash('sha256').update(value).digest('hex')
+}
+
+function stableId(prefix: string, value: unknown): string {
+  return `${prefix}-${sha256(stableStringify(value)).slice(0, 32)}`
+}
+
+function unique<T>(values: T[]): T[] {
+  return [...new Set(values)]
+}
+
+function isISODate(value: unknown): value is string {
+  return typeof value === 'string' && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value
 }
 
 function clone<T>(value: T): T {

@@ -1,6 +1,6 @@
 # Edit Reference Skill Registry
 
-Status: `gate_3_registry_with_dna_synthesis`
+Status: `gate_4_registry_with_dna_qa_approval`
 
 This registry records capability truth, not product aspiration. A tool can back an Edit Reference skill only when an implemented adapter/service, typed input/output contract, proof, safe fallback, privacy boundary, and provenance policy exist.
 
@@ -139,7 +139,7 @@ Existing proof is reusable evidence; it does not mean an Edit Reference study ex
 - outputs: Transferability decisions, universal/specific do-not-copy rules, findings, blockers, and review requirements.
 - toolOrRuntime: Canonical Preference DNA QA services.
 - readinessStatus: `verified_mock`
-- proofCommand: `npm run smoke:preference-dna-qa`
+- proofCommand: `npm run smoke:preference-dna-qa && npm run smoke:edit-reference-dna-qa-approval`
 - fallback: Fail closed to user/manual review when confidence, evidence, identity, or rights are unclear.
 - sideEffects: None.
 - privacyPolicy: Do not reproduce reference assets or expose source/private identity in reusable rules.
@@ -228,3 +228,18 @@ Gate 3 executes `edit_reference.preference_dna.synthesis` through the canonical 
 - `edit_reference.preference_dna.qa` and `edit_reference.target_adaptation.application` do not run in Gate 3.
 
 Exact behavior proof: `npm run smoke:edit-reference-dna-synthesis`.
+
+## Gate 4 Execution Evidence
+
+Gate 4 executes `edit_reference.preference_dna.qa` through the canonical Edit Reference service with `verified_mock` runtime truth:
+
+- QA is bound to the exact Gate 3 DNA version, DNA content digest, and input-evidence digest.
+- Twelve stable checks cover integrity, selected-goal layers, evidence coverage, confidence, conflicts, transferability, mandatory copy boundaries, direct-copy risk, identity/source safety, false production side effects, and approval readiness.
+- Blocking results cannot be acknowledged or approved.
+- Non-blocking review limits require explicit user acknowledgement before exact-version approval.
+- Approval retains an immutable snapshot linked to the exact QA result and never applies the guidance to a target edit.
+- Corrected evidence creates a later independently reviewed version; prior DNA, QA, and approval history remains immutable.
+- Provider, model, file-byte, external fetch, media, worker, generation, render, credit, application, and remote Supabase side effects remain false.
+- `edit_reference.target_adaptation.application` does not run in Gate 4.
+
+Exact behavior proof: `npm run smoke:edit-reference-dna-qa-approval`.

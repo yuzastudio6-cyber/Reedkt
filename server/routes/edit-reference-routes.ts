@@ -83,6 +83,14 @@ const runEvidenceStudySchema = workspaceSchema.extend({
   expectedStudyRevision: z.number().int().positive(),
 }).strict()
 const synthesizePreferenceDNASchema = runEvidenceStudySchema
+const runPreferenceDNAQASchema = runEvidenceStudySchema.extend({
+  expectedDNAContentDigest: z.string().regex(/^[a-f0-9]{64}$/),
+}).strict()
+const approvePreferenceDNASchema = runPreferenceDNAQASchema.extend({
+  qaResultId: idSchema.max(200),
+  acknowledgeAdaptNotCopy: z.literal(true),
+  acknowledgeQAReview: z.boolean(),
+}).strict()
 
 export function createEditReferenceRoutes(): Router {
   const router = Router()
@@ -185,6 +193,28 @@ export function createEditReferenceRoutes(): Router {
     const body = validateBody(synthesizePreferenceDNASchema, request.body)
     const result = await createEditReferenceService(getServiceContext(request)).synthesizePreferenceDNA(
       getRouteParam(request, 'studyId'),
+      body,
+      getDurableIdempotencyKey(request),
+    )
+    sendMutation(response, result, 201)
+  }))
+
+  router.post('/v1/edit-reference-studies/:studyId/preference-dna/:dnaVersionId/qa', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(runPreferenceDNAQASchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).runPreferenceDNAQA(
+      getRouteParam(request, 'studyId'),
+      getRouteParam(request, 'dnaVersionId'),
+      body,
+      getDurableIdempotencyKey(request),
+    )
+    sendMutation(response, result, 201)
+  }))
+
+  router.post('/v1/edit-reference-studies/:studyId/preference-dna/:dnaVersionId/approve', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(approvePreferenceDNASchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).approvePreferenceDNA(
+      getRouteParam(request, 'studyId'),
+      getRouteParam(request, 'dnaVersionId'),
       body,
       getDurableIdempotencyKey(request),
     )

@@ -761,6 +761,179 @@
   margin-bottom: var(--rp-space-3);
 }
 
+.edit-reference-dna-review-action,
+.edit-reference-dna-resolution,
+.edit-reference-dna-approval {
+  align-items: center;
+  background: rgba(9, 15, 27, 0.64);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 10px;
+  display: grid;
+  gap: var(--rp-space-3);
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-dna-review-action > div,
+.edit-reference-dna-resolution > div {
+  align-items: center;
+  color: var(--rp-text-secondary);
+  display: flex;
+  font-size: 0.73rem;
+  gap: var(--rp-space-2);
+  line-height: 1.45;
+}
+
+.edit-reference-dna-resolution {
+  background: rgba(245, 158, 11, 0.07);
+  border-color: rgba(251, 191, 36, 0.24);
+}
+
+.edit-reference-dna-approval label {
+  align-items: flex-start;
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.73rem;
+  gap: var(--rp-space-2);
+  line-height: 1.5;
+}
+
+.edit-reference-dna-approval input {
+  accent-color: var(--rp-brand-cyan);
+  flex: 0 0 auto;
+  height: 18px;
+  margin-top: 1px;
+  width: 18px;
+}
+
+.edit-reference-dna-qa {
+  background: rgba(7, 13, 24, 0.74);
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  border-radius: 10px;
+  display: grid;
+  gap: var(--rp-space-3);
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-dna-qa.blocked {
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.edit-reference-dna-qa.requires_user_review {
+  border-color: rgba(251, 191, 36, 0.28);
+}
+
+.edit-reference-dna-qa > header {
+  display: grid;
+  gap: 5px;
+}
+
+.edit-reference-dna-qa > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.edit-reference-dna-qa > header span {
+  color: var(--rp-brand-cyan);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.edit-reference-dna-qa > header strong {
+  color: var(--rp-text-primary);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.edit-reference-dna-qa > header small {
+  color: var(--rp-text-muted);
+  font-size: 0.68rem;
+}
+
+.edit-reference-dna-qa-findings {
+  display: grid;
+  gap: var(--rp-space-2);
+}
+
+.edit-reference-dna-qa-findings article {
+  align-items: flex-start;
+  background: rgba(15, 23, 42, 0.76);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 9px;
+  color: var(--rp-text-secondary);
+  display: flex;
+  gap: var(--rp-space-2);
+  padding: 9px;
+}
+
+.edit-reference-dna-qa-findings article.blocked {
+  border-color: rgba(248, 113, 113, 0.26);
+}
+
+.edit-reference-dna-qa-findings article.requires_user_review {
+  border-color: rgba(251, 191, 36, 0.22);
+}
+
+.edit-reference-dna-qa-findings article > div {
+  display: grid;
+  gap: 4px;
+}
+
+.edit-reference-dna-qa-findings strong,
+.edit-reference-dna-qa details strong {
+  color: var(--rp-text-primary);
+  font-size: 0.73rem;
+}
+
+.edit-reference-dna-qa-findings p {
+  color: var(--rp-text-secondary);
+  font-size: 0.71rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.edit-reference-dna-qa-findings small {
+  color: var(--rp-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.edit-reference-dna-qa details {
+  border-top: 1px solid var(--rp-border-subtle);
+  padding-top: var(--rp-space-2);
+}
+
+.edit-reference-dna-qa summary {
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 750;
+  min-height: 44px;
+  padding: 12px 0;
+}
+
+.edit-reference-dna-qa details ul {
+  display: grid;
+  gap: var(--rp-space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.edit-reference-dna-qa details li {
+  display: grid;
+  gap: 2px;
+}
+
+.edit-reference-dna-qa details li span {
+  color: var(--rp-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
 .edit-reference-message-list {
   align-content: start;
   display: grid;
@@ -1052,11 +1225,21 @@
   }
 
   .edit-reference-dna-action,
-  .edit-reference-dna-metrics {
+  .edit-reference-dna-metrics,
+  .edit-reference-dna-review-action,
+  .edit-reference-dna-resolution,
+  .edit-reference-dna-approval {
     grid-template-columns: 1fr;
   }
 
   .edit-reference-dna-action .rp-button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .edit-reference-dna-review-action .rp-button,
+  .edit-reference-dna-resolution .rp-button,
+  .edit-reference-dna-approval .rp-button {
     justify-content: center;
     width: 100%;
   }

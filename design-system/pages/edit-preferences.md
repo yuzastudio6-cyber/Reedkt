@@ -1,6 +1,6 @@
 # Edit Preferences Override
 
-Status: `gate_3_dna_review_active`
+Status: `gate_4_dna_qa_approval_active`
 
 ## Job
 
@@ -17,6 +17,9 @@ Manage one Edit Preferences system across Edit References, workspace defaults, a
 - Latest findings remain visually subordinate to the conversation and explicitly separate from Preference DNA.
 - Evidence-ready studies show one focused Generate DNA action; after synthesis it becomes a compact, expandable Preference DNA review surface inside Study Chat.
 - DNA review prioritizes version, QA state, evidence-linked rules, confidence, conflicts, and do-not-copy boundaries without turning the center into a dashboard.
+- QA adds one focused review action, keeps non-passing findings visible, and collapses passed checks by default.
+- Approval is available only for the exact non-blocked QA-reviewed version after an explicit adapt-not-copy acknowledgement.
+- Approved state uses the success treatment and clearly remains separate from target application or production.
 - At narrower widths, regions stack in that priority order and tabs may scroll horizontally without creating page overflow.
 - Existing defaults remain available under Workspace Defaults; they are not presented as a competing product.
 
@@ -25,6 +28,8 @@ Manage one Edit Preferences system across Edit References, workspace defaults, a
 - User-facing copy always says `Edit Preferences`, `Edit Reference`, `Study Chat`, and `Preference DNA`.
 - Normal user copy does not expose gate numbers, mock/local status, database/provider details, adapters, workers, or runtime implementation language.
 - Evidence, DNA, quality review, approval, and application readiness remain truthful and visibly distinct.
+- Blocking QA cannot be acknowledged away; correction returns the user to the existing evidence flow.
+- Normal approval copy never exposes QA record IDs, digests, route names, or internal implementation labels.
 - Reference-specific marks, identity, exact layouts, and other copy-risk details never become transferable preference rules.
 - Creating a reference does not start analysis, production, or charging.
 - Saving video details never implies that a video was uploaded or studied.
@@ -50,5 +55,6 @@ Manage one Edit Preferences system across Edit References, workspace defaults, a
 - `server/smoke/edit-reference-ui-adapter-smoke.ts`
 - `server/smoke/edit-reference-evidence-study-smoke.ts`
 - `server/smoke/edit-reference-dna-synthesis-smoke.ts`
+- `server/smoke/edit-reference-dna-qa-approval-smoke.ts`
 - `src/components/preferences/EditReferenceWorkspacePage.tsx`
 - `src/styles/preferences.css`

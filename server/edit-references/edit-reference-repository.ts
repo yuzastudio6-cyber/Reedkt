@@ -35,6 +35,8 @@ export interface EditReferenceAuditEvent {
   actorUserId: string
   editReferenceId?: string
   studySessionId?: string
+  dnaVersionId?: string
+  dnaQaResultId?: string
   aggregateRevision: number
   createdAt: string
 }

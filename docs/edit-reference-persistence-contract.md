@@ -1,6 +1,6 @@
 # Edit Reference Persistence Contract
 
-Status: `gate_3_backend_local_contract`
+Status: `gate_4_backend_local_contract`
 
 This contract defines one canonical persistence architecture for Edit Reference. Gate 1 implements its backend-local durable lane. Production database persistence remains fail-closed until the canonical Supabase chain, RLS, tenancy, and transaction evidence pass.
 
@@ -17,7 +17,7 @@ This contract defines one canonical persistence architecture for Edit Reference.
 - `PreferenceApplication`
 - `PreferenceUsageLog`
 
-Gate 1 fully persists references, study sessions, and study messages. Gate 2 adds evidence, assets, and skill runs. Gate 3 adds immutable Preference DNA candidates. QA, application, and production-database authority remain later-gate seams without false runtime claims.
+Gate 1 fully persists references, study sessions, and study messages. Gate 2 adds evidence, assets, and skill runs. Gate 3 adds immutable Preference DNA candidates. Gate 4 adds exact-version QA results and approval snapshots. Application and production-database authority remain later-gate seams without false runtime claims.
 
 ## Scope And Identity
 
@@ -150,6 +150,18 @@ evidence_ready
 
 The mutation freezes exact evidence revisions and digests, appends mandatory do-not-copy rules, supersedes earlier non-approved candidates, updates reference/study DNA status, and writes chat/usage/audit records atomically. It does not transition to `qa_blocked`, `approved`, `applied`, or any production state.
 
+Gate 4 adds two server-owned transitions:
+
+```text
+dna_ready
+  -> qa_blocked | needs_user_review (append exact-version QA result)
+
+needs_user_review
+  -> approved (approve the exact non-blocked QA-reviewed DNA version)
+```
+
+The QA mutation binds one immutable result to the exact DNA content and evidence digests. Blocking checks cannot be overridden. A non-blocking review result requires explicit acknowledgement. Approval writes an immutable approval snapshot, retains prior version/QA/approval history, and starts no application or production action.
+
 ## Versioning And Concurrency
 
 - Aggregate revision increments once per committed mutation.
@@ -158,9 +170,10 @@ The mutation freezes exact evidence revisions and digests, appends mandatory do-
 - A stale expected revision returns conflict without mutation.
 - Created/updated timestamps are server-owned ISO timestamps.
 - Study messages are append-only in normal operation.
-- Approved DNA versions and QA decisions are immutable; later corrections create new versions.
+- Approved DNA versions, QA decisions, and approval snapshots are immutable; later corrections create new versions.
 - Gate 3 DNA candidates are content-immutable: evidence revision links, rules, layers, conflicts, confidence, and content digest cannot be edited in place. Only lifecycle status may later change under a named QA/approval transition.
 - Adding or correcting evidence immediately marks an active unapproved candidate `superseded`; it never deletes or rewrites that version, and the stale candidate cannot remain actionable.
+- Adding or correcting evidence after approval resets active study readiness without rewriting the approved historical artifact. A later approved version marks the prior approved lifecycle status `superseded` while retaining its content, QA result, and approval snapshot.
 - Evidence corrections append a new evidence record linked to the exact superseded record; the original remains durable and later orchestration uses only the active successor.
 - Application version is monotonic and replacement/clear events are retained.
 
@@ -213,11 +226,11 @@ The production seam reports `blocked_by_migration_baseline` and performs no read
 - route-specific atomic idempotency transactions are missing;
 - live catalog/storage/security evidence is missing.
 
-Gate 1 adds no SQL migration. Migration baseline/current remain 21.
+Gates 1–4 add no SQL migration. Migration baseline/current remain 21.
 
 ## Persistence Acceptance
 
-Gate 1 persistence passes only when:
+Gate 4 persistence passes only when the earlier gates remain passing and:
 
 - create/list/get/update/reference and create/get/update-study operations read back from a recreated repository/service;
 - messages survive process/repository recreation and browser reload;
@@ -227,3 +240,9 @@ Gate 1 persistence passes only when:
 - the storage file/directory modes and atomic replacement are verified;
 - no browser localStorage is used as canonical authority;
 - no production/Supabase claim is made.
+- one QA result is stored per exact DNA version and survives repository recreation;
+- QA checks, IDs, links, status derivation, and content digest validate on every read;
+- blocked QA cannot be approved, while review-only QA requires explicit acknowledgement;
+- approval is bound to the exact version/digest/QA result and survives reload;
+- corrected evidence produces a separately reviewed and approved later version without mutating prior history;
+- QA and approval emit no provider, media, worker, generation, render, credit, application, or remote-persistence side effect.

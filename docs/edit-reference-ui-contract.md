@@ -71,7 +71,19 @@ Every displayed value must come from backend data or a deterministic typed mappi
 - `DNA not generated yet`
 - `QA not run`
 
-When Gate 3 has an evidence-ready study, Study Chat may show one Generate DNA action with explicit not-approved/not-applied copy. After creation, the center may show a compact review surface with the exact version, layer/rule/copy-boundary counts, confidence, conflicts, and expandable evidence-linked rules. The do-not-copy layer may open by default. This is a review candidate, not an approval control; Gate 4 owns QA and approval.
+When an evidence-ready study exists, Study Chat may show one Generate DNA action with explicit not-approved/not-applied copy. After creation, the center shows a compact review surface with the exact version, layer/rule/copy-boundary counts, confidence, conflicts, and expandable evidence-linked rules. The do-not-copy layer may open by default.
+
+Gate 4 keeps QA and approval inside that same review surface:
+
+- one dominant `Run quality review` action before QA;
+- non-passing checks visible with a clear recommendation;
+- passed checks collapsed by default;
+- blocking checks paired with correction, never an override;
+- review-only findings paired with an exact-version acknowledgement;
+- one `Approve version` action after acknowledgement;
+- an approved state that explicitly says the guidance has not been applied to an edit and production has not started.
+
+Approval controls must never expose internal QA IDs, digests, route names, runtime labels, or gate numbers in normal copy. A new DNA or QA version resets the local acknowledgement because acknowledgement is scoped to one exact version/result pair.
 
 ## New Reference Flow
 

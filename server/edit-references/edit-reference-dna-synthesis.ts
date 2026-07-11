@@ -78,7 +78,7 @@ export function synthesizeEditReferencePreferenceDNA(input: SynthesisInput): Pre
   const inputEvidenceRevisions = synthesisEvidence
     .map((record) => ({ evidenceId: record.id, revision: record.revision }))
     .sort((left, right) => left.evidenceId.localeCompare(right.evidenceId))
-  const inputEvidenceDigest = sha256(stableStringify(inputEvidenceRevisions))
+  const inputEvidenceDigest = calculateEditReferenceDNAInputDigest(inputEvidenceRevisions)
   const version = input.existingVersions.reduce((maximum, record) => Math.max(maximum, record.version), 0) + 1
   const overallConfidence = roundConfidence(evidenceRules.reduce((total, rule) => total + rule.confidence, 0) / evidenceRules.length)
 
@@ -91,7 +91,7 @@ export function synthesizeEditReferencePreferenceDNA(input: SynthesisInput): Pre
     conflicts,
     overallConfidence,
     overallConfidenceBand: classifyPreferenceDNAConfidenceBand(overallConfidence),
-    adaptedNotCopied: true,
+    adaptedNotCopied: true as const,
   }
 
   return {
@@ -113,7 +113,7 @@ export function synthesizeEditReferencePreferenceDNA(input: SynthesisInput): Pre
     adaptedNotCopied: true,
     doNotCopyRuleCount: safetyRules.length,
     qaStatus: 'not_run',
-    contentDigest: sha256(stableStringify(immutableContent)),
+    contentDigest: calculateEditReferenceDNAContentDigest(immutableContent),
     providerCallMade: false,
     modelCallMade: false,
     mediaProcessingStarted: false,
@@ -123,6 +123,39 @@ export function synthesizeEditReferencePreferenceDNA(input: SynthesisInput): Pre
     creditReservedOrSpent: false,
     createdAt: input.now,
   }
+}
+
+export function calculateEditReferenceDNAInputDigest(
+  inputEvidenceRevisions: PreferenceDNAVersionRecord['inputEvidenceRevisions'],
+): string {
+  return sha256(stableStringify(inputEvidenceRevisions))
+}
+
+export function calculateEditReferenceDNAContentDigest(
+  version: Pick<
+    PreferenceDNAVersionRecord,
+    | 'synthesisVersion'
+    | 'inputEvidenceRevisions'
+    | 'inputEvidenceDigest'
+    | 'layers'
+    | 'rules'
+    | 'conflicts'
+    | 'overallConfidence'
+    | 'overallConfidenceBand'
+    | 'adaptedNotCopied'
+  >,
+): string {
+  return sha256(stableStringify({
+    synthesisVersion: version.synthesisVersion,
+    inputEvidenceRevisions: version.inputEvidenceRevisions,
+    inputEvidenceDigest: version.inputEvidenceDigest,
+    layers: version.layers,
+    rules: version.rules,
+    conflicts: version.conflicts,
+    overallConfidence: version.overallConfidence,
+    overallConfidenceBand: version.overallConfidenceBand,
+    adaptedNotCopied: version.adaptedNotCopied,
+  }))
 }
 
 function selectActiveSourceEvidence(evidence: PreferenceEvidenceRecord[]): PreferenceEvidenceRecord[] {

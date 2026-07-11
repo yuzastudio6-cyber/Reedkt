@@ -16,6 +16,7 @@ const requiredFiles = [
   'docs/edit-reference-gate-1-study-session-foundation.md',
   'docs/edit-reference-gate-2-evidence-study-orchestration.md',
   'docs/edit-reference-gate-3-versioned-dna-synthesis.md',
+  'docs/edit-reference-gate-4-dna-qa-approval.md',
   'design-system/MASTER.md',
   'design-system/pages/edit-preferences.md',
   'scripts/validation/edit-reference-goal-preflight.mjs',
@@ -113,7 +114,7 @@ for (const readiness of ['verified_live', 'verified_local', 'verified_mock', 'de
 assert.match(persistence, /Browser localStorage is not authority|Browser localStorage may hold transient/i)
 assert.match(persistence, /exact response snapshot/i)
 assert.match(persistence, /production repository seam/i)
-assert.match(persistence, /Gate 1 adds no SQL migration/i)
+assert.match(persistence, /Gates 1[–-]4 add no SQL migration/i)
 assert.match(designSystem, /UI UX Pro Max as a supporting accessibility and craft checklist/i)
 assert.match(designSystem, /Skip to main content/i)
 assert.match(designSystem, /at least 44px/i)
@@ -131,5 +132,6 @@ assert.equal(packageJson.scripts?.['smoke:edit-reference-study-session-foundatio
 assert.equal(packageJson.scripts?.['smoke:edit-reference-ui'], 'tsx server/smoke/edit-reference-ui-adapter-smoke.ts')
 assert.equal(packageJson.scripts?.['smoke:edit-reference-evidence-study'], 'tsx server/smoke/edit-reference-evidence-study-smoke.ts')
 assert.equal(packageJson.scripts?.['smoke:edit-reference-dna-synthesis'], 'tsx server/smoke/edit-reference-dna-synthesis-smoke.ts')
+assert.equal(packageJson.scripts?.['smoke:edit-reference-dna-qa-approval'], 'tsx server/smoke/edit-reference-dna-qa-approval-smoke.ts')
 
 console.log('edit_reference_goal_control_plane_passed')

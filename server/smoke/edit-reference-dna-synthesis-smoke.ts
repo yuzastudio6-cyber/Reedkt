@@ -58,7 +58,7 @@ try {
     assert.equal(synthesized.body.data.detail.study.status, 'dna_ready')
     assert.equal(synthesized.body.data.detail.study.dnaStatus, 'review_required')
     assert.equal(synthesized.body.data.detail.reference.dnaStatus, 'review_required')
-    assert.equal(synthesized.body.data.detail.nextAction, 'review_preference_dna')
+    assert.equal(synthesized.body.data.detail.nextAction, 'run_preference_dna_qa')
     assert.equal(synthesized.body.data.detail.dnaQaResults.length, 0)
     assert.equal(synthesized.body.data.detail.applications.length, 0)
     assert.equal(synthesized.body.data.detail.dnaVersions.length, 1)
@@ -172,7 +172,7 @@ try {
     assert.equal(loaded.body.data.detail.dnaVersions.length, 2)
     assert.equal(loaded.body.data.detail.dnaVersions.find((record) => record.version === 1)?.status, 'superseded')
     assert.equal(loaded.body.data.detail.dnaVersions.find((record) => record.version === 2)?.status, 'review_required')
-    assert.equal(loaded.body.data.detail.nextAction, 'review_preference_dna')
+    assert.equal(loaded.body.data.detail.nextAction, 'run_preference_dna_qa')
   } finally {
     await restarted.close()
   }

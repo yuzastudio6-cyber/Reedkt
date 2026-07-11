@@ -132,6 +132,12 @@ Later Playwright fixtures extend this same canonical path for evidence, DNA, QA,
 
 `server/smoke/edit-reference-dna-synthesis-smoke.ts` now executes DNA Versioning with premature-run rejection, exact evidence revision/digest linkage, deterministic rule/layer/content output, mandatory do-not-copy coverage, idempotent replay, unchanged-input rejection, correction-driven Version 2 creation, Version 1 immutable-content preservation, privacy inspection, restart persistence, and zero QA/application/provider/media/worker/render/credit side effects.
 
-The focused browser fixture now generates Version 1 from evidence-ready findings, reviews its layers/rules/copy boundaries, confirms QA has not run, reloads, and reads the same review-required version.
+The focused browser fixture generates Version 1 from evidence-ready findings and reviews its layers, rules, copy boundaries, confidence, conflicts, and exact QA state.
 
-DNA QA/approval, target adaptation, application replacement/removal, remote RLS, live media study, and provider execution remain later-gate fixtures.
+## Gate 4 Executed Fixtures
+
+`server/smoke/edit-reference-dna-qa-approval-smoke.ts` executes deterministic QA twice over identical immutable input, integrity/copy/safety/confidence blocker variants, exact-digest and cross-workspace API conflicts, one-result-per-version persistence, duplicate-run rejection, replay, review acknowledgement, Version 1 approval, corrected-evidence Version 2 approval, historical supersession, restart persistence, private-file inspection, all seven individual goal-to-layer policies, and zero production/application side effects.
+
+The focused browser fixture runs quality review, expands review-required findings, proves approval stays disabled before acknowledgement, approves Version 1, reloads it, corrects evidence without rewriting the approval, creates and independently approves Version 2, reloads the new active approval, and keeps the target-application boundary truthful.
+
+Target adaptation, application replacement/removal, remote RLS, live media study, and provider execution remain later-gate fixtures.

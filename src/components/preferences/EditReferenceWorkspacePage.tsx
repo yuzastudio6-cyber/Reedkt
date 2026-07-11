@@ -393,6 +393,7 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
 }) {
   const [message, setMessage] = useState('')
   const [showEvidenceForm, setShowEvidenceForm] = useState(false)
+  const [acknowledgedApprovalKey, setAcknowledgedApprovalKey] = useState('')
   const orderedMessages = useMemo(() => detail.messages.slice().sort((left, right) => left.sequence - right.sequence), [detail.messages])
   const sourceEvidence = useMemo(() => detail.evidence.filter((record) => record.sourceType !== 'derived_skill_evidence'), [detail.evidence])
   const supersededSourceIds = useMemo(() => new Set(sourceEvidence.map((record) => record.supersedesEvidenceId).filter(Boolean)), [sourceEvidence])
@@ -402,9 +403,16 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
     latestOrchestrationId && record.orchestrationId === latestOrchestrationId
   )), [detail.skillRuns, latestOrchestrationId])
   const blockedSkillRuns = useMemo(() => latestSkillRuns.filter((record) => record.status === 'blocked'), [latestSkillRuns])
-  const currentDNAVersion = useMemo(() => detail.dnaVersions
-    .filter((record) => record.status === 'review_required')
-    .sort((left, right) => right.version - left.version)[0], [detail.dnaVersions])
+  const currentDNAVersion = useMemo(() => detail.reference.dnaStatus === 'not_generated'
+    ? undefined
+    : detail.dnaVersions
+      .filter((record) => record.status !== 'superseded')
+      .sort((left, right) => right.version - left.version)[0], [detail.dnaVersions, detail.reference.dnaStatus])
+  const currentQAResult = useMemo(() => currentDNAVersion
+    ? detail.dnaQaResults.find((record) => record.id === currentDNAVersion.qaResultId)
+    : undefined, [currentDNAVersion, detail.dnaQaResults])
+  const approvalKey = currentDNAVersion && currentQAResult ? `${currentDNAVersion.id}:${currentQAResult.id}` : ''
+  const approvalAcknowledged = Boolean(approvalKey) && acknowledgedApprovalKey === approvalKey
   const findings = useMemo(() => detail.evidence.filter((record) => (
     record.sourceType === 'derived_skill_evidence'
     && (!latestOrchestrationId || record.orchestrationId === latestOrchestrationId)
@@ -447,6 +455,37 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
     const response = await api.synthesizePreferenceDNA(detail.study.id, {
       workspaceId,
       expectedStudyRevision: detail.study.revision,
+    })
+    if (response.ok) await onChanged(response.data.detail)
+    else setError(response.message)
+    setBusy(false)
+  }
+
+  const runPreferenceDNAQA = async () => {
+    if (!currentDNAVersion) return
+    setBusy(true)
+    setError(undefined)
+    const response = await api.runPreferenceDNAQA(detail.study.id, currentDNAVersion.id, {
+      workspaceId,
+      expectedStudyRevision: detail.study.revision,
+      expectedDNAContentDigest: currentDNAVersion.contentDigest,
+    })
+    if (response.ok) await onChanged(response.data.detail)
+    else setError(response.message)
+    setBusy(false)
+  }
+
+  const approvePreferenceDNA = async () => {
+    if (!currentDNAVersion || !currentQAResult || !approvalAcknowledged) return
+    setBusy(true)
+    setError(undefined)
+    const response = await api.approvePreferenceDNA(detail.study.id, currentDNAVersion.id, {
+      workspaceId,
+      expectedStudyRevision: detail.study.revision,
+      expectedDNAContentDigest: currentDNAVersion.contentDigest,
+      qaResultId: currentQAResult.id,
+      acknowledgeAdaptNotCopy: true,
+      acknowledgeQAReview: currentQAResult.status === 'requires_user_review',
     })
     if (response.ok) await onChanged(response.data.detail)
     else setError(response.message)
@@ -542,14 +581,35 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
             </Button>
           </div>
         )}
-        {currentDNAVersion && <PreferenceDNAReview version={currentDNAVersion} />}
+        {currentDNAVersion && (
+          <PreferenceDNAReview
+            approvalAcknowledged={approvalAcknowledged}
+            disabled={disabled}
+            onApprovalAcknowledged={(value) => setAcknowledgedApprovalKey(value ? approvalKey : '')}
+            onApprove={() => void approvePreferenceDNA()}
+            onCorrect={() => setShowEvidenceForm(true)}
+            onRunQA={() => void runPreferenceDNAQA()}
+            qaResult={currentQAResult}
+            version={currentDNAVersion}
+          />
+        )}
       </section>
       <div className="edit-reference-message-list" aria-live="polite">
         {orderedMessages.map((item) => (
           <article className={`edit-reference-message ${item.role}`} data-testid={`study-message-${item.role}`} key={item.id}>
             <span>{item.role === 'assistant' ? 'Study Director' : item.role}</span>
             <p>{item.content}</p>
-            <small>{item.runtimeSource === 'deterministic_setup' ? 'Study setup' : item.runtimeSource === 'deterministic_evidence' ? 'Evidence update' : item.runtimeSource === 'deterministic_dna' ? 'Preference DNA update' : 'Saved user direction'}</small>
+            <small>{item.runtimeSource === 'deterministic_setup'
+              ? 'Study setup'
+              : item.runtimeSource === 'deterministic_evidence'
+                ? 'Evidence update'
+                : item.runtimeSource === 'deterministic_dna'
+                  ? 'Preference DNA update'
+                  : item.runtimeSource === 'deterministic_dna_qa'
+                    ? 'Quality review update'
+                    : item.runtimeSource === 'deterministic_dna_approval'
+                      ? 'Approval update'
+                      : 'Saved user direction'}</small>
           </article>
         ))}
       </div>
@@ -738,15 +798,52 @@ function EvidenceModeButton({ active, icon: Icon, label, onClick }: { active: bo
   return <button aria-pressed={active} className={active ? 'active' : ''} onClick={onClick} type="button"><Icon aria-hidden="true" size={17} /><span>{label}</span></button>
 }
 
-function PreferenceDNAReview({ version }: { version: EditReferenceDetail['dnaVersions'][number] }) {
+function PreferenceDNAReview({
+  version,
+  qaResult,
+  disabled,
+  approvalAcknowledged,
+  onApprovalAcknowledged,
+  onRunQA,
+  onCorrect,
+  onApprove,
+}: {
+  version: EditReferenceDetail['dnaVersions'][number]
+  qaResult?: EditReferenceDetail['dnaQaResults'][number]
+  disabled: boolean
+  approvalAcknowledged: boolean
+  onApprovalAcknowledged: (value: boolean) => void
+  onRunQA: () => void
+  onCorrect: () => void
+  onApprove: () => void
+}) {
+  const heading = version.status === 'approved'
+    ? 'Approved reusable guidance'
+    : !qaResult
+      ? 'Ready for quality review'
+      : qaResult.status === 'blocked'
+        ? 'Blocked by quality review'
+        : qaResult.status === 'requires_user_review'
+          ? 'Quality limits need your review'
+          : 'Ready for approval'
   return (
     <section className="edit-reference-dna-review" data-testid="edit-reference-dna-review">
       <header>
         <div>
           <span>Preference DNA version {version.version}</span>
-          <strong>Ready for quality review</strong>
+          <strong>{heading}</strong>
         </div>
-        <Badge accent="muted">QA not run</Badge>
+        <Badge accent={version.status === 'approved'
+          ? 'success'
+          : qaResult?.status === 'passed'
+            ? 'success'
+            : qaResult?.status === 'blocked'
+              ? 'danger'
+              : qaResult?.status === 'requires_user_review'
+                ? 'warning'
+                : 'muted'}>
+          {version.status === 'approved' ? 'Approved' : qaResult ? qaResult.status.replaceAll('_', ' ') : 'QA not run'}
+        </Badge>
       </header>
       <div className="edit-reference-dna-metrics">
         <span><strong>{version.layers.length}</strong> layers</span>
@@ -776,7 +873,75 @@ function PreferenceDNAReview({ version }: { version: EditReferenceDetail['dnaVer
           )
         })}
       </div>
-      <div className="edit-reference-form-boundary"><ShieldCheck aria-hidden="true" size={16} /><span>This version is immutable and evidence-linked. Quality review and your approval are still required before it can guide an edit.</span></div>
+      {!qaResult && version.status === 'review_required' && (
+        <div className="edit-reference-dna-review-action">
+          <div><ShieldCheck aria-hidden="true" size={18} /><span>Check evidence coverage, confidence, conflicts, transferability, copy risk, identity/source safety, and side effects.</span></div>
+          <Button data-testid="run-edit-reference-dna-qa" disabled={disabled} icon={SearchCheck} onClick={onRunQA} size="sm" variant="primary">
+            {disabled ? 'Reviewing…' : 'Run quality review'}
+          </Button>
+        </div>
+      )}
+      {qaResult && <PreferenceDNAQAReview qaResult={qaResult} />}
+      {qaResult?.status === 'blocked' && version.status === 'review_required' && (
+        <div className="edit-reference-dna-resolution">
+          <div><CircleAlert aria-hidden="true" size={18} /><span>Blocking findings cannot be acknowledged away. Correct the evidence and create a new immutable version.</span></div>
+          <Button data-testid="correct-blocked-edit-reference-dna" disabled={disabled} icon={Plus} onClick={onCorrect} size="sm" variant="ghost">Correct evidence</Button>
+        </div>
+      )}
+      {qaResult && qaResult.status !== 'blocked' && version.status === 'review_required' && (
+        <div className="edit-reference-dna-approval" data-testid="edit-reference-dna-approval">
+          <label>
+            <input
+              checked={approvalAcknowledged}
+              data-testid="acknowledge-edit-reference-dna-approval"
+              disabled={disabled}
+              onChange={(event) => onApprovalAcknowledged(event.target.checked)}
+              type="checkbox"
+            />
+            <span>I reviewed this exact version and its quality findings. I will use it as adaptable guidance—not copy its shots, timing, media, identity, or layouts.</span>
+          </label>
+          <Button data-testid="approve-edit-reference-dna" disabled={disabled || !approvalAcknowledged} icon={FileCheck2} onClick={onApprove} size="sm" variant="primary">
+            {disabled ? 'Approving…' : `Approve version ${version.version}`}
+          </Button>
+        </div>
+      )}
+      <div className="edit-reference-form-boundary"><ShieldCheck aria-hidden="true" size={16} /><span>{version.status === 'approved'
+        ? 'This exact version is approved as reusable guidance. It has not been applied to a target edit and no production work has started.'
+        : 'This version is immutable and evidence-linked. Quality review and your explicit approval are required before it can guide an edit.'}</span></div>
+    </section>
+  )
+}
+
+function PreferenceDNAQAReview({ qaResult }: { qaResult: EditReferenceDetail['dnaQaResults'][number] }) {
+  const findings = qaResult.checks.filter((check) => check.status !== 'passed')
+  const passed = qaResult.checks.filter((check) => check.status === 'passed')
+  return (
+    <section className={`edit-reference-dna-qa ${qaResult.status}`} data-testid="edit-reference-dna-qa-review">
+      <header>
+        <div>
+          <span>Quality review</span>
+          <strong>{qaResult.summary}</strong>
+        </div>
+        <small>{qaResult.blockingCheckIds.length} blocking · {qaResult.reviewCheckIds.length} to review · {passed.length} passed</small>
+      </header>
+      {findings.length > 0 && (
+        <div className="edit-reference-dna-qa-findings">
+          {findings.map((check) => (
+            <article className={check.status} key={check.id}>
+              <CircleAlert aria-hidden="true" size={16} />
+              <div>
+                <strong>{check.title}</strong>
+                <p>{check.summary}</p>
+                <small>{check.recommendation}</small>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+      <details>
+        <summary>{passed.length} passed check{passed.length === 1 ? '' : 's'}</summary>
+        <ul>{passed.map((check) => <li key={check.id}><strong>{check.title}</strong><span>{check.summary}</span></li>)}</ul>
+      </details>
     </section>
   )
 }

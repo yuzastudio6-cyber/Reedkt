@@ -2,6 +2,13 @@
 
 Status: `security_review_rejected_not_executable`
 
+The reviewed recovery stack intentionally carries only this provenance
+manifest, verifier, and rejection documentation. The four rejected SQL draft
+files remain preserved in the MS-000R2 recovery evidence and are not ported
+into this integration baseline. `verify.mjs` therefore supports a
+manifest-only mode that proves the chain is rejected and inactive without
+reconstructing or treating those drafts as executable migration history.
+
 Drafts 003 and 004 are rejected for promotion. Their tenant-lineage and
 hashed-lease foundations are useful, but canonical plan/estimate/approval
 derivation, funded credit conservation, immutable approved work items,

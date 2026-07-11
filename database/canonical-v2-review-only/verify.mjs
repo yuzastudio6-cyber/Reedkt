@@ -3,6 +3,15 @@ import { readFile } from 'node:fs/promises'
 import { dirname, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+async function readOptionalTextFile(filePath) {
+  try {
+    return await readFile(filePath, 'utf8')
+  } catch (error) {
+    if (error && typeof error === 'object' && error.code === 'ENOENT') return undefined
+    throw error
+  }
+}
+
 const reviewRoot = dirname(fileURLToPath(import.meta.url))
 const repositoryRoot = resolve(reviewRoot, '..', '..')
 const reviewRelativePath = relative(repositoryRoot, reviewRoot)
@@ -18,14 +27,42 @@ assert.equal(
   'canonical v2 review files must stay outside active Supabase migration history',
 )
 
-const [identitySql, currentProductSql, approvalCreditSql, workerLeaseSql, manifestSource] = await Promise.all([
-  readFile(identitySqlPath, 'utf8'),
-  readFile(currentProductSqlPath, 'utf8'),
-  readFile(approvalCreditSqlPath, 'utf8'),
-  readFile(workerLeaseSqlPath, 'utf8'),
-  readFile(manifestPath, 'utf8'),
-])
+const manifestSource = await readFile(manifestPath, 'utf8')
 const manifest = JSON.parse(manifestSource)
+
+const draftSources = await Promise.all([
+  identitySqlPath,
+  currentProductSqlPath,
+  approvalCreditSqlPath,
+  workerLeaseSqlPath,
+].map(readOptionalTextFile))
+
+if (draftSources.every((source) => source === undefined)) {
+  assert.equal(manifest.status, 'security_review_rejected_not_executable')
+  assert.equal(manifest.securityReview?.promotionAllowed, false)
+  assert.deepEqual(manifest.securityReview?.rejectedDraftSequences, [3, 4])
+  assert.equal(manifest.activeMigrationHistory, false)
+  assert.equal(manifest.supabaseCliMigrationPath, false)
+  assert.equal(manifest.sourceBaselineStatus, 'blocked_by_parallel_foundations')
+  assert.deepEqual(manifest.orderedDrafts.map((draft) => draft.sequence), [1, 2, 3, 4])
+  console.log(JSON.stringify({
+    ok: true,
+    status: manifest.status,
+    promotionAllowed: false,
+    activeMigrationHistory: false,
+    sqlDraftsPresent: false,
+    verificationMode: 'manifest_only_preserved_provenance',
+    blocker: 'canonical_sql_drafts_intentionally_not_ported',
+  }, null, 2))
+  process.exit(0)
+}
+
+assert(
+  draftSources.every((source) => typeof source === 'string'),
+  'canonical v2 SQL drafts must be either all present for static review or all absent from the provenance-only stack',
+)
+
+const [identitySql, currentProductSql, approvalCreditSql, workerLeaseSql] = draftSources
 
 assert.equal(manifest.status, 'security_review_rejected_not_executable')
 assert.equal(manifest.securityReview?.promotionAllowed, false)

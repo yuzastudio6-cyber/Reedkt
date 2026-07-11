@@ -2,6 +2,14 @@ import type {
   ProductionToolId,
 } from '../tool-registry'
 
+export type DeferredExternalProbeToolId =
+  | 'mediainfo'
+  | 'exiftool'
+  | 'tesseract'
+  | 'imagemagick'
+
+export type ControlledLowRiskProbeToolId = ProductionToolId | DeferredExternalProbeToolId
+
 export type ControlledLowRiskProbeKind =
   | 'version_probe'
   | 'package_resolution_probe'
@@ -18,7 +26,7 @@ export type ControlledLowRiskProbeStatus =
 
 export interface ControlledLowRiskProbePolicy {
   probeId: string
-  toolId: ProductionToolId
+  toolId: ControlledLowRiskProbeToolId
   probeKind: ControlledLowRiskProbeKind
   executionMethod: ControlledLowRiskExecutionMethod
   executableName?: string
@@ -50,7 +58,7 @@ export interface ControlledLowRiskProbePolicy {
 export interface ControlledLowRiskProbeResult {
   probeRunId: string
   probeId: string
-  toolId: ProductionToolId
+  toolId: ControlledLowRiskProbeToolId
   probeKind: ControlledLowRiskProbeKind
   status: ControlledLowRiskProbeStatus
   startedAt: string

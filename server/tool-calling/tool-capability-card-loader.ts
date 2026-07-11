@@ -36,7 +36,7 @@ import type {
 export const TOOL_CAPABILITY_STUDY_CARD_SCHEMA = 'reeditpro.toolCapabilityStudyCard.v1'
 
 export const OPERATION_TOOL_SEEDS: Record<ToolCallingOperationId, readonly ProductionToolId[]> = {
-  'media.inspect': ['ffprobe', 'ffmpeg', 'pyav', 'opencv', 'mediainfo', 'exiftool'],
+  'media.inspect': ['ffprobe', 'ffmpeg', 'pyav', 'opencv', 'sharp'],
   'media.proxy.create': ['ffmpeg', 'pyav', 'vapoursynth'],
   'media.audio.extract': ['ffmpeg', 'pyav'],
   'video.scene.detect': ['pyscenedetect', 'opencv', 'ffmpeg'],
@@ -58,17 +58,17 @@ export const OPERATION_TOOL_SEEDS: Record<ToolCallingOperationId, readonly Produ
   'render.preview': ['remotion', 'hyperframe', 'ffmpeg', 'pixijs', 'three_js', 'lottie', 'animejs', 'satori', 'svg_js'],
   'render.compose': ['remotion', 'ffmpeg', 'libass', 'pixijs', 'three_js', 'lottie', 'd3', 'echarts', 'vega', 'vega_lite', 'satori', 'svg_js', 'viz_js', 'animejs', 'konva'],
   'export.mux': ['ffmpeg', 'libass', 'vapoursynth'],
-  'export.validate': ['ffprobe', 'ffmpeg', 'opentimelineio', 'mediainfo'],
+  'export.validate': ['ffprobe', 'ffmpeg', 'opentimelineio'],
   'mask.generate': ['birefnet', 'sam2', 'rembg', 'transparent_background', 'opencv', 'torch_torchvision', 'transformers'],
   'mask.refine': ['kornia', 'sam2', 'opencv', 'birefnet', 'torch_torchvision', 'transformers'],
   'background.remove': ['birefnet', 'sam2', 'rembg', 'transparent_background', 'opencv', 'kornia', 'torch_torchvision', 'transformers'],
-  'video.enhance': ['real_esrgan', 'sharp', 'ffmpeg', 'vapoursynth', 'imagemagick', 'torch_torchvision', 'transformers'],
+  'video.enhance': ['real_esrgan', 'sharp', 'ffmpeg', 'vapoursynth', 'torch_torchvision', 'transformers'],
   'video.slow_motion': ['film', 'ffmpeg', 'vapoursynth'],
-  'color.exposure.correct': ['opencolorio', 'ffmpeg', 'openimageio', 'opencv', 'imagemagick'],
+  'color.exposure.correct': ['opencolorio', 'ffmpeg', 'openimageio', 'opencv'],
   'color.shot_match': ['opencolorio', 'openimageio', 'opencv', 'ffmpeg'],
-  'ocr.detect_text': ['paddleocr', 'opencv', 'playwright', 'tesseract'],
-  'thumbnail.generate': ['sharp', 'pyav', 'ffmpeg', 'opencv', 'imagemagick', 'exiftool', 'satori', 'svg_js', 'd3', 'echarts', 'vega'],
-  'qa.final_delivery': ['ffprobe', 'ffmpeg', 'opentimelineio', 'remotion', 'duckdb', 'polars', 'mediainfo'],
+  'ocr.detect_text': ['paddleocr', 'opencv', 'playwright'],
+  'thumbnail.generate': ['sharp', 'pyav', 'ffmpeg', 'opencv', 'satori', 'svg_js', 'd3', 'echarts', 'vega'],
+  'qa.final_delivery': ['ffprobe', 'ffmpeg', 'opentimelineio', 'remotion', 'duckdb', 'polars'],
 }
 
 const STUDY_CARDS_DIRECTORY = new URL('../../docs/tool-calling/studies/', import.meta.url)

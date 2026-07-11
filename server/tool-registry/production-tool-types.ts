@@ -3,21 +3,20 @@ import type { QualityGateType } from '../../src/backend/contracts/production-too
 export type ProductionToolId =
   | 'ffmpeg'
   | 'ffprobe'
-  | 'mediainfo'
-  | 'exiftool'
   | 'pyav'
   | 'opentimelineio'
   | 'hyperframe'
+  | 'streamer_render_pipeline_support'
+  | 'mkvtoolnix_container_validation'
+  | 'gpac_mp4box_packaging_validation'
   | 'remotion'
   | 'libass'
   | 'sharp'
-  | 'imagemagick'
   | 'duckdb'
   | 'polars'
   | 'faster_whisper'
   | 'whisper_cpp'
   | 'paddleocr'
-  | 'tesseract'
   | 'pyscenedetect'
   | 'opencv'
   | 'mediapipe'
@@ -32,7 +31,20 @@ export type ProductionToolId =
   | 'rnnoise'
   | 'demucs'
   | 'librosa'
+  | 'audioread'
+  | 'pydub'
+  | 'scipy'
+  | 'resampy'
+  | 'pyloudnorm'
   | 'audioflux'
+  | 'music21'
+  | 'pretty_midi'
+  | 'mido'
+  | 'noisereduce'
+  | 'pedalboard'
+  | 'mir_eval'
+  | 'pydub_effects'
+  | 'ebu_r128_pyloudnorm'
   | 'signalsmith_stretch'
   | 'soundtouch'
   | 'rubber_band'
@@ -43,6 +55,9 @@ export type ProductionToolId =
   | 'three_js'
   | 'babylon_js'
   | 'lottie'
+  | 'animejs'
+  | 'satori'
+  | 'svg_js'
   | 'playwright'
   | 'maplibre'
   | 'turf'
@@ -50,10 +65,7 @@ export type ProductionToolId =
   | 'echarts'
   | 'vega'
   | 'vega_lite'
-  | 'satori'
-  | 'svg_js'
   | 'viz_js'
-  | 'animejs'
   | 'deck_gl'
   | 'cesium_js'
   | 'konva'
@@ -65,21 +77,20 @@ export type ProductionToolId =
 export const PRODUCTION_TOOL_IDS = [
   'ffmpeg',
   'ffprobe',
-  'mediainfo',
-  'exiftool',
   'pyav',
   'opentimelineio',
   'hyperframe',
+  'streamer_render_pipeline_support',
+  'mkvtoolnix_container_validation',
+  'gpac_mp4box_packaging_validation',
   'remotion',
   'libass',
   'sharp',
-  'imagemagick',
   'duckdb',
   'polars',
   'faster_whisper',
   'whisper_cpp',
   'paddleocr',
-  'tesseract',
   'pyscenedetect',
   'opencv',
   'mediapipe',
@@ -94,7 +105,20 @@ export const PRODUCTION_TOOL_IDS = [
   'rnnoise',
   'demucs',
   'librosa',
+  'audioread',
+  'pydub',
+  'scipy',
+  'resampy',
+  'pyloudnorm',
   'audioflux',
+  'music21',
+  'pretty_midi',
+  'mido',
+  'noisereduce',
+  'pedalboard',
+  'mir_eval',
+  'pydub_effects',
+  'ebu_r128_pyloudnorm',
   'signalsmith_stretch',
   'soundtouch',
   'rubber_band',
@@ -105,6 +129,9 @@ export const PRODUCTION_TOOL_IDS = [
   'three_js',
   'babylon_js',
   'lottie',
+  'animejs',
+  'satori',
+  'svg_js',
   'playwright',
   'maplibre',
   'turf',
@@ -112,10 +139,7 @@ export const PRODUCTION_TOOL_IDS = [
   'echarts',
   'vega',
   'vega_lite',
-  'satori',
-  'svg_js',
   'viz_js',
-  'animejs',
   'deck_gl',
   'cesium_js',
   'konva',
@@ -149,6 +173,7 @@ export type ProductionToolCategory =
   | 'image_processing'
   | 'audio_cleanup'
   | 'audio_analysis'
+  | 'music_midi'
   | 'music_separation'
   | 'enhancement'
   | 'frame_interpolation'

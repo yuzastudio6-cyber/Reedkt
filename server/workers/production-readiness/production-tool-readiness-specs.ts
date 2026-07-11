@@ -43,10 +43,21 @@ const pythonImports: Partial<Record<ProductionToolId, ProductionReadinessImportC
   deepfilternet: [{ packageName: 'deepfilternet', importName: 'df' }],
   demucs: [{ packageName: 'demucs', importName: 'demucs' }],
   librosa: [{ packageName: 'librosa', importName: 'librosa' }],
+  audioread: [{ packageName: 'audioread', importName: 'audioread' }],
+  pydub: [{ packageName: 'pydub', importName: 'pydub' }],
+  scipy: [{ packageName: 'scipy', importName: 'scipy' }],
+  resampy: [{ packageName: 'resampy', importName: 'resampy' }],
+  pyloudnorm: [{ packageName: 'pyloudnorm', importName: 'pyloudnorm' }],
   audioflux: [{ packageName: 'audioflux', importName: 'audioflux' }],
+  music21: [{ packageName: 'music21', importName: 'music21' }],
+  pretty_midi: [{ packageName: 'pretty_midi', importName: 'pretty_midi' }],
+  mido: [{ packageName: 'mido', importName: 'mido' }],
+  noisereduce: [{ packageName: 'noisereduce', importName: 'noisereduce' }],
+  pedalboard: [{ packageName: 'pedalboard', importName: 'pedalboard' }],
+  mir_eval: [{ packageName: 'mir_eval', importName: 'mir_eval' }],
+  pydub_effects: [{ packageName: 'pydub', importName: 'pydub.effects' }],
+  ebu_r128_pyloudnorm: [{ packageName: 'pyloudnorm', importName: 'pyloudnorm' }],
   essentia: [{ packageName: 'essentia', importName: 'essentia' }],
-  torch_torchvision: [{ packageName: 'torch', importName: 'torch' }, { packageName: 'torchvision', importName: 'torchvision' }],
-  transformers: [{ packageName: 'transformers', importName: 'transformers' }],
   real_esrgan: [{ packageName: 'real-esrgan', importName: 'realesrgan' }],
   film: [{ packageName: 'film', importName: 'film' }],
   vapoursynth: [{ packageName: 'vapoursynth', importName: 'vapoursynth' }],
@@ -62,6 +73,9 @@ const nodeImports: Partial<Record<ProductionToolId, ProductionReadinessImportChe
   three_js: [{ packageName: 'three', importName: 'three' }],
   babylon_js: [{ packageName: '@babylonjs/core', importName: '@babylonjs/core' }],
   lottie: [{ packageName: 'lottie-web', importName: 'lottie-web' }],
+  animejs: [{ packageName: 'animejs', importName: 'animejs' }],
+  satori: [{ packageName: 'satori', importName: 'satori' }],
+  svg_js: [{ packageName: '@svgdotjs/svg.js', importName: '@svgdotjs/svg.js' }],
   playwright: [{ packageName: 'playwright', importName: 'playwright' }],
   maplibre: [{ packageName: 'maplibre-gl', importName: 'maplibre-gl' }],
   turf: [{ packageName: '@turf/turf', importName: '@turf/turf' }],
@@ -69,14 +83,19 @@ const nodeImports: Partial<Record<ProductionToolId, ProductionReadinessImportChe
   echarts: [{ packageName: 'echarts', importName: 'echarts' }],
   vega: [{ packageName: 'vega', importName: 'vega' }],
   vega_lite: [{ packageName: 'vega-lite', importName: 'vega-lite' }],
-  satori: [{ packageName: 'satori', importName: 'satori' }],
-  svg_js: [{ packageName: '@svgdotjs/svg.js', importName: '@svgdotjs/svg.js' }],
-  viz_js: [{ packageName: 'viz.js', importName: 'viz.js' }],
-  animejs: [{ packageName: 'animejs', importName: 'animejs' }],
+  viz_js: [{ packageName: '@viz-js/viz', importName: '@viz-js/viz' }],
   deck_gl: [{ packageName: '@deck.gl/core', importName: '@deck.gl/core' }],
   cesium_js: [{ packageName: 'cesium', importName: 'cesium' }],
   konva: [{ packageName: 'konva', importName: 'konva' }],
   revideo: [{ packageName: 'revideo', importName: 'revideo' }],
+}
+
+const foundationPythonImports: Partial<Record<ProductionToolId, ProductionReadinessImportCheck[]>> = {
+  torch_torchvision: [
+    { packageName: 'torch', importName: 'torch' },
+    { packageName: 'torchvision', importName: 'torchvision' },
+  ],
+  transformers: [{ packageName: 'transformers', importName: 'transformers' }],
 }
 
 const modelWeightNames: Partial<Record<ProductionToolId, string[]>> = {
@@ -88,8 +107,6 @@ const modelWeightNames: Partial<Record<ProductionToolId, string[]>> = {
   sam2: ['SAM 2 checkpoint'],
   transparent_background: ['transparent-background checkpoint'],
   rembg: ['rembg ONNX model'],
-  torch_torchvision: ['TorchVision or downstream model checkpoint'],
-  transformers: ['Transformers model repository/checkpoint/tokenizer'],
   deepfilternet: ['DeepFilterNet model'],
   demucs: ['Demucs model'],
   real_esrgan: ['Real-ESRGAN model'],
@@ -114,11 +131,12 @@ const workerOverrides: Partial<Record<ProductionToolId, ProductionRegistryWorker
   three_js: ['render_worker'],
   babylon_js: ['render_worker'],
   lottie: ['render_worker'],
+  animejs: ['render_worker'],
   satori: ['render_worker'],
   svg_js: ['render_worker'],
-  viz_js: ['render_worker'],
-  animejs: ['render_worker'],
   playwright: ['cpu_analysis_worker'],
+  vega: ['render_worker'],
+  viz_js: ['render_worker'],
   torch_torchvision: ['gpu_ai_worker'],
   transformers: ['gpu_ai_worker'],
   vapoursynth: ['cpu_analysis_worker'],
@@ -145,6 +163,9 @@ const imageRoleOverrides: Partial<Record<ProductionToolId, ProductionContainerIm
   three_js: ['render_worker', 'tool_readiness_worker'],
   babylon_js: ['render_worker', 'tool_readiness_worker'],
   lottie: ['render_worker', 'tool_readiness_worker'],
+  animejs: ['render_worker', 'tool_readiness_worker'],
+  satori: ['render_worker', 'tool_readiness_worker'],
+  svg_js: ['render_worker', 'tool_readiness_worker'],
   playwright: ['cpu_worker', 'tool_readiness_worker'],
   maplibre: ['render_worker', 'tool_readiness_worker'],
   turf: ['render_worker', 'tool_readiness_worker'],
@@ -152,10 +173,7 @@ const imageRoleOverrides: Partial<Record<ProductionToolId, ProductionContainerIm
   echarts: ['render_worker', 'tool_readiness_worker'],
   vega: ['render_worker', 'tool_readiness_worker'],
   vega_lite: ['render_worker', 'tool_readiness_worker'],
-  satori: ['render_worker', 'tool_readiness_worker'],
-  svg_js: ['render_worker', 'tool_readiness_worker'],
   viz_js: ['render_worker', 'tool_readiness_worker'],
-  animejs: ['render_worker', 'tool_readiness_worker'],
   deck_gl: ['render_worker', 'tool_readiness_worker'],
   cesium_js: ['render_worker', 'tool_readiness_worker'],
   konva: ['render_worker', 'tool_readiness_worker'],
@@ -191,7 +209,7 @@ function checkModes(profile: ProductionToolProfile): ProductionReadinessCheckMod
   ])
 
   if (commandChecks[profile.toolId]?.length) modes.add('command_version')
-  if (pythonImports[profile.toolId]?.length) modes.add('python_import')
+  if ((pythonImports[profile.toolId]?.length ?? 0) + (foundationPythonImports[profile.toolId]?.length ?? 0) > 0) modes.add('python_import')
   if (nodeImports[profile.toolId]?.length) modes.add('node_import')
   if (modelWeightNames[profile.toolId]?.length) modes.add('model_weight_presence')
   if (profile.commercialUseStatus !== 'allowed') modes.add('manual_review_required')
@@ -219,7 +237,7 @@ function buildSpec(profile: ProductionToolProfile): ProductionToolReadinessSpec 
     productionRequired,
     gpuRequired: profile.gpuRequired,
     commandChecks: commandChecks[profile.toolId] ?? [],
-    pythonImportChecks: pythonImports[profile.toolId] ?? [],
+    pythonImportChecks: [...(pythonImports[profile.toolId] ?? []), ...(foundationPythonImports[profile.toolId] ?? [])],
     nodePackageChecks: nodeImports[profile.toolId] ?? [],
     modelWeightChecks: modelWeightChecks(profile.toolId),
     environmentChecks: profile.gpuRequired

@@ -38,6 +38,8 @@ Milestone 9 adds readiness awareness for DeepFilterNet, RNNoise, Demucs, SoundTo
 
 DeepFilterNet and Demucs require model-weight review before production use. SoundTouch and Signalsmith Stretch are tempo/pitch planning candidates only until future tool-readiness execution approves installed binaries and QA limits.
 
+Signalsmith Stretch now has a pinned source/build declaration in the CPU and tool-readiness worker Dockerfiles. It still requires image build evidence and container binary presence proof before any audio processing is allowed. The exact source details and remaining gates are tracked in `docs/production-signalsmith-stretch-source-resolution-plan.md`.
+
 ## Milestone 10 Core Install Readiness
 
 Milestone 10 adds optional real command/import checks for safe CPU/render tools while preserving dry-run as the default. Real check mode is limited to FFmpeg/ffprobe version checks, safe libass inspection, Python imports for CPU analysis packages, and Node package metadata checks for Sharp/Remotion/Hyperframe.

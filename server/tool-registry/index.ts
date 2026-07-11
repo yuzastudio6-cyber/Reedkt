@@ -19,6 +19,13 @@ export * from './tool-license-policy'
 export * from './model-weight-policy'
 export * from './tool-fallback-policy'
 export * from './tool-qa-policy'
+export * from './professional-tool-adapter-contracts'
+export * from './professional-tool-adapter-plan'
+export * from './professional-tool-adapter-source-truth'
+export * from './professional-tool-adapter-execution'
+export * from './professional-tool-adapter-registered-runners'
+export * from './professional-tool-adapter-private-media-runners'
+export * from './professional-tool-architecture-program'
 
 export function isProductionToolId(toolId: string): toolId is ProductionToolId {
   return PRODUCTION_TOOL_IDS.includes(toolId as ProductionToolId)

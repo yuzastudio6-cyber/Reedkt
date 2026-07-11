@@ -1,0 +1,2 @@
+scenedetect==0.7 \
+    --hash=sha256:ae0fa86fd7c723fa9b56517888c4a8b8ff5b6e6d0f1990a13d59fc11910ee7e1

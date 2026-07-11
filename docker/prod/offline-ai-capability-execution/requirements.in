@@ -1,0 +1,7 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+kornia==0.8.3
+music21==10.5.0
+torch==2.13.0+cpu
+torchvision==0.28.0+cpu
+transformers==5.13.0

@@ -1,5 +1,5 @@
-import { timelineTracks } from '../data/mockData'
-import type { TimelineTrack as TimelineTrackType } from '../data/mockData'
+import { timelineTracks } from '../data/productContent'
+import type { TimelineTrack as TimelineTrackType } from '../data/productContent'
 
 type TimelineTrackProps = {
   track: TimelineTrackType

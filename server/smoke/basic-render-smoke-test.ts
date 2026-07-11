@@ -1,8 +1,8 @@
 import { loadRuntimeEnv } from '../config/env'
+import { ApiError } from '../errors/api-error'
 import { checkBasicRenderSmokeTools, createSkippedBasicRenderSmokeResult } from '../services/render-smoke-service'
 import type { ServiceContext } from '../types'
 import { createBasicRenderSmokeFixture } from '../workers/jobs/basic-render-smoke-fixtures'
-import type { BasicRenderSmokeResponse } from '../workers/jobs/basic-render-smoke-types'
 import { runWorkerClaimRunner } from '../workers/worker-claim-runner'
 
 function assert(condition: boolean, message: string): asserts condition {
@@ -53,52 +53,43 @@ if (!tools.ready) {
 } else {
   const fixture = await createBasicRenderSmokeFixture(context)
   assert(Boolean(fixture.request.sourceStorageObject), 'Available tools should create a source media fixture.')
-  const workerResult = await runWorkerClaimRunner(context, {
-    jobId: fixture.jobId,
-    workspaceId: fixture.request.workspaceId,
-    projectId: fixture.request.projectId,
-    jobType: 'basic_render_smoke',
-    workerType: 'basic_render_smoke_worker',
-    workerInstanceId: env.workerInstanceId,
-    idempotencyKey: `${fixture.idempotencyKey}-test`,
-    approvedPlanSnapshotId: fixture.request.approvedPlanSnapshotId,
-    creditReservationId: fixture.request.creditReservationId,
-    storageObjectRecordId: fixture.request.sourceStorageObjectId,
-    payloadJson: {
-      sourceStorageObjectId: fixture.request.sourceStorageObjectId,
+  let blocked: ApiError | undefined
+  try {
+    await runWorkerClaimRunner(context, {
+      jobId: fixture.jobId,
+      workspaceId: fixture.request.workspaceId,
+      projectId: fixture.request.projectId,
+      jobType: 'basic_render_smoke',
+      workerType: 'basic_render_smoke_worker',
+      workerInstanceId: env.workerInstanceId,
+      idempotencyKey: `${fixture.idempotencyKey}-test`,
+      approvedPlanSnapshotId: fixture.request.approvedPlanSnapshotId,
+      creditReservationId: fixture.request.creditReservationId,
       storageObjectRecordId: fixture.request.sourceStorageObjectId,
-      sourceStorageObject: fixture.request.sourceStorageObject,
-      editAssemblyPlan: fixture.request.editAssemblyPlan,
-    },
-  })
-  const output = workerResult.output as BasicRenderSmokeResponse | undefined
-  assert(workerResult.status === 'completed', 'Basic render smoke worker should complete when tools are available.')
-  assert(output?.status === 'preview_ready', 'Basic render smoke should return preview_ready.')
-  assert(Boolean(output.outputObjectPath?.startsWith(`workspaces/${fixture.request.workspaceId}/projects/${fixture.request.projectId}/previews/`)), 'Output object path should be canonical.')
-  assert(Boolean(output.checksumSha256), 'Preview checksum should exist.')
-  assert(Boolean(output.qaReportId), 'QA report metadata should be created.')
-  assert(output.editAssembly?.planId === fixture.request.editAssemblyPlan?.planId, 'Preview should preserve the approved edit assembly plan.')
-  assert(Boolean(output.editAssembly?.operationsApplied.includes('clean_fade_handles_applied')), 'Preview should record deterministic clean assembly operations.')
-  assert(Boolean(output.editAssembly?.operationsApplied.includes('light_color_balance_applied')), 'Preview should record the professional finishing pass.')
-  assert(output.previewRender?.commandSummary.editAssemblyMode === 'clean_internal_preview', 'FFmpeg command summary should record the clean internal preview mode.')
-  assert(Boolean(output.previewRender?.commandSummary.professionalTreatment.includes('light_color_balance')), 'FFmpeg command summary should record light color balance treatment.')
-  assert(Boolean(output.previewRender?.commandSummary.filters.some((filter) => filter.startsWith('eq=contrast='))), 'Preview filter chain should include deterministic light color balance.')
-  assert(!JSON.stringify(output).toLowerCase().includes('signed_url'), 'Canonical output must not include signed URL fields.')
-  assert(!JSON.stringify(output).toLowerCase().includes('providerrequest'), 'Render smoke output must not include provider call fields.')
-  assert(!Object.hasOwn(output.previewRender ?? {}, 'outputPath'), 'Preview render summary should not expose absolute output path.')
+      payloadJson: {
+        sourceStorageObjectId: fixture.request.sourceStorageObjectId,
+        storageObjectRecordId: fixture.request.sourceStorageObjectId,
+        sourceStorageObject: fixture.request.sourceStorageObject,
+      },
+    })
+  } catch (error) {
+    if (error instanceof ApiError) blocked = error
+  }
+  assert(blocked?.code === 'TOOL_NOT_READY', 'Legacy caller-authored render authority must fail closed.')
+  assert(
+    (blocked.details as Record<string, unknown> | undefined)?.requiredGate ===
+      'canonical_authority_job_loader',
+    'Legacy render must identify the canonical authority loader replacement gate.',
+  )
 
   console.log(JSON.stringify({
     ok: true,
-    skipped: false,
+    skipped: true,
     checks: [
-      'preview_output_created',
-      'output_path_is_canonical',
-      'checksum_exists',
-      'qa_result_created',
-      'no_provider_calls_attempted',
-      'no_signed_url_canonical_output_created',
-      'approved_snapshot_credit_job_claim_gates_checked',
+      'legacy_caller_authored_render_authority_rejected',
+      'canonical_authority_job_loader_required',
+      'no_preview_or_export_side_effect',
     ],
-    renderSmoke: output,
+    requiredGate: 'canonical_authority_job_loader',
   }))
 }

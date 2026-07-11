@@ -1,25 +1,32 @@
 import { Router } from 'express'
+import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
+import { requireCanonicalWorkerRuntime } from '../middleware/canonical-worker-runtime'
 import { requireIdempotency } from '../middleware/idempotency'
 import { checkBasicRenderSmokeTools, createSkippedBasicRenderSmokeResult, runBasicFinalExportSmoke } from '../services/render-smoke-service'
+import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createRenderService } from '../services/render-service'
 import { runSmartCutPreviewSmoke } from '../services/smart-cut-preview-service'
 import { runWorkerClaimRunner } from '../workers/worker-claim-runner'
 import { basicRenderSmokeFinalExportSchema, basicRenderSmokePreviewSchema, createRenderJobSchema, previewReviewSchema, smartCutPreviewSmokeSchema } from '../validation/render-schemas'
-import { validateBody } from '../validation/common-schemas'
+import { idSchema, validateBody } from '../validation/common-schemas'
 import { asyncRoute, getIdempotencyKey, getRouteParam, getServiceContext, sendOk } from './route-helpers'
 
 export function createRenderRoutes(): Router {
   const router = Router()
 
-  router.post('/v1/render-jobs', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
-    const body = validateBody(createRenderJobSchema, request.body)
-    const result = await createRenderService(getServiceContext(request)).createRenderJob(body)
-    sendOk(response, { renderJob: result.renderJob }, result.warnings, 201)
+  router.post('/v1/render-jobs', requireAuth, requireInternalServiceAuth, asyncRoute(async () => {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'Render jobs must be derived from canonical approved work items, source assets, timing, QA, and funded reservation authority; caller IDs cannot queue rendering.',
+      503,
+      { requiredGate: 'canonical_render_job_derivation' },
+    )
   }))
 
   router.get('/v1/renders/:renderId', requireAuth, asyncRoute(async (request, response) => {
-    const result = await createRenderService(getServiceContext(request)).getRender(getRouteParam(request, 'renderId'))
+    const workspaceId = idSchema.parse(request.query.workspaceId)
+    const result = await createRenderService(getServiceContext(request)).getRender(getRouteParam(request, 'renderId'), workspaceId)
     sendOk(response, { render: result.render }, result.warnings)
   }))
 
@@ -32,7 +39,7 @@ export function createRenderRoutes(): Router {
     sendOk(response, { previewReview: result.previewReview }, result.warnings, 201)
   }))
 
-  router.post('/v1/render-jobs/:renderJobId/basic-smoke-preview', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+  router.post('/v1/render-jobs/:renderJobId/basic-smoke-preview', requireAuth, requireInternalServiceAuth, requireCanonicalWorkerRuntime, requireIdempotency, asyncRoute(async (request, response) => {
     const body = validateBody(basicRenderSmokePreviewSchema, request.body)
     const context = getServiceContext(request)
     const renderJobId = getRouteParam(request, 'renderJobId')

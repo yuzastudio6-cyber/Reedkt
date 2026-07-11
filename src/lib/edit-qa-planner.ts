@@ -339,11 +339,11 @@ function createSourceCleanupChecks(input: PlannerInput, sourceCleanupPlan?: Sour
       notes: sourceCleanupPlan.retakeGroups.map((group) => `${group.label}: ${group.reason}`).slice(0, 4),
     },
     {
-      id: 'qa-source-cleanup-mock-only',
+      id: 'qa-source-cleanup-execution-gate',
       category: 'source_cleanup',
-      label: 'Mock-only cleanup boundary',
-      check: 'Source cleanup must not imply real transcript, silence, audio/video, or media analysis.',
-      status: sourceCleanupPlan.limitations.some((limitation) => /no real transcript|no real silence|mock-only/i.test(limitation)) ? 'passed' : 'warning',
+      label: 'Cleanup execution gate',
+      check: 'Source cleanup must keep transcript, silence, audio/video, and media analysis behind approved backend gates.',
+      status: sourceCleanupPlan.limitations.some((limitation) => /backend-gated|planning pass|review-only/i.test(limitation)) ? 'passed' : 'warning',
       severity: 'blocking',
       fallbackActions,
       notes: sourceCleanupPlan.limitations,
@@ -399,11 +399,11 @@ function createTrimReviewChecks(input: PlannerInput, trimReviewPlan?: TrimReview
       notes: trimReviewPlan.approvalBlockReasons.length ? trimReviewPlan.approvalBlockReasons : ['Trim review is reviewable.'],
     },
     {
-      id: 'qa-trim-review-mock-only',
+      id: 'qa-trim-review-execution-gate',
       category: 'trim_review',
-      label: 'Mock-only trim review',
-      check: 'Trim review does not imply real transcript/media analysis.',
-      status: trimReviewPlan.limitations.some((limitation) => /no real transcript|no real semantic|no real media|mock-only/i.test(limitation)) ? 'passed' : 'warning',
+      label: 'Trim review execution gate',
+      check: 'Trim review keeps transcript, semantic, and media analysis behind approved backend gates.',
+      status: trimReviewPlan.limitations.some((limitation) => /backend-gated|review-only/i.test(limitation)) ? 'passed' : 'warning',
       severity: 'low',
       fallbackActions: fallbackActionsForLevel(input.editLevel),
       notes: trimReviewPlan.limitations,
@@ -619,11 +619,11 @@ function createAsyncAssetReconciliationChecks(
         .map((item) => `${item.assetManifestItemId}: fallback=${item.fallbackRequired}, review=${item.userReviewRequired}`),
     },
     {
-      id: 'qa-async-mock-only',
+      id: 'qa-async-execution-gate',
       category: 'async_asset_reconciliation',
-      label: 'No real checkback execution',
-      check: 'Async reconciliation must not imply real provider polling, webhooks, storage, worker events, or rendering.',
-      status: asyncAssetReconciliationPlan.limitations.some((limitation) => /no real provider webhook|no real.*polling|no real assets|no remotion render|mock-only/i.test(limitation))
+      label: 'Checkback execution gate',
+      check: 'Async reconciliation must keep provider polling, webhooks, storage, worker events, and rendering behind approved backend gates.',
+      status: asyncAssetReconciliationPlan.limitations.some((limitation) => /backend-gated|review-only|approved execution gates/i.test(limitation))
         ? 'passed'
         : 'warning',
       severity: 'medium',
@@ -756,11 +756,11 @@ function createAgentQAFallbackChecks(input: PlannerInput, agentQAFallbackPlan?: 
       notes: [`User review required count: ${agentQAFallbackPlan.userReviewRequiredCount}.`],
     },
     {
-      id: 'qa-agent-fallback-mock-only',
+      id: 'qa-agent-fallback-execution-gate',
       category: 'agent_qa_fallback',
-      label: 'No real fallback execution',
-      check: 'Agent QA/fallback planning must not imply real QA, retries, providers, workers, storage, rendering, or billing.',
-      status: agentQAFallbackPlan.limitations.some((limitation) => /mock qa|no real output|no real provider|no real.*fallback|no real.*render|no real.*billing/i.test(limitation))
+      label: 'Fallback execution gate',
+      check: 'Agent QA/fallback planning must keep QA, retries, providers, workers, storage, rendering, and billing behind approved backend gates.',
+      status: agentQAFallbackPlan.limitations.some((limitation) => /backend-gated|approved execution gates|billing/i.test(limitation))
         ? 'passed'
         : 'warning',
       severity: 'medium',
@@ -779,7 +779,7 @@ function createApprovalChecks(input: PlannerInput) {
       check: 'User must approve the edit plan before generation, editing, rendering, or provider work begins.',
       editLevel: input.editLevel,
       severity: 'blocking',
-      notes: ['This frontend demo starts no real editing.'],
+      notes: ['Editing execution remains gated until plan and credit approval are complete.'],
     }),
     createQAItem({
       id: 'qa-approval-credits',
@@ -788,7 +788,7 @@ function createApprovalChecks(input: PlannerInput) {
       check: 'User must approve the credit estimate before any future job start or credit reservation.',
       editLevel: input.editLevel,
       severity: 'blocking',
-      notes: ['No real credits are deducted in this milestone.'],
+      notes: ['Credit deduction remains disabled until approved billing gates exist.'],
     }),
   ]
 }
@@ -950,11 +950,11 @@ function createCaptionVisualCueTimingChecks(input: PlannerInput, captionVisualCu
       ],
     },
     {
-      id: 'qa-caption-visual-cue-mock-only',
+      id: 'qa-caption-visual-cue-execution-gate',
       category: 'caption_visual_cue_timing',
-      label: 'Mock-only timing boundary',
-      check: 'Caption/visual timing states no real transcript, audio, media, tool, provider, or render execution has happened.',
-      status: captionVisualCueTimingPlan.limitations.some((limitation) => /no real|mock-only|no speech-to-text/i.test(limitation)) ? 'passed' : 'warning',
+      label: 'Timing execution gate',
+      check: 'Caption/visual timing keeps transcript, audio, media, tool, provider, and render execution behind approved backend gates.',
+      status: captionVisualCueTimingPlan.limitations.some((limitation) => /backend-gated|review-only|approved backend execution/i.test(limitation)) ? 'passed' : 'warning',
       severity: 'medium',
       fallbackActions: fallbackActionsForLevel(input.editLevel),
       notes: captionVisualCueTimingPlan.limitations.slice(0, 3),
@@ -982,7 +982,7 @@ function createSoundSyncTransitionTimingChecks(input: PlannerInput, soundSyncTra
   const allSfxLinked = soundSyncTransitionTimingPlan.refinedSfxTimings.every((item) =>
     Boolean(item.linkedVisualCueTimingItemId || item.linkedTransitionTimingItemId) && item.reason.length > 0,
   )
-  const beatGridLimit = soundSyncTransitionTimingPlan.beatGridPlan.limitations.some((limitation) => /no real|mock|audioflux/i.test(limitation))
+  const beatGridLimit = soundSyncTransitionTimingPlan.beatGridPlan.limitations.some((limitation) => /backend-gated|review-only|audioflux/i.test(limitation))
 
   return [
     createQAItem({
@@ -1036,7 +1036,7 @@ function createSoundSyncTransitionTimingChecks(input: PlannerInput, soundSyncTra
     }),
     createQAItem({
       category: 'sound_sync',
-      check: 'Beat grid is mock-only and uses AudioFlux as future analysis metadata only.',
+      check: 'Beat grid is review-only and uses AudioFlux as future analysis metadata only.',
       editLevel: input.editLevel,
       id: 'qa-soundsync-audioflux-future-only',
       label: 'AudioFlux future-only',
@@ -1123,13 +1123,13 @@ function createTimingValidationChecks(input: PlannerInput, timingValidationPlan?
     },
     {
       category: 'timing_validation',
-      check: 'Timing validation remains mock-only and does not run real audio, transcript, media, tool, provider, or render analysis.',
+      check: 'Timing validation remains review-only and keeps audio, transcript, media, tool, provider, and render analysis behind approved backend gates.',
       fallbackActions: [],
-      id: 'qa-timing-validation-mock-only',
-      label: 'Mock-only timing validation',
+      id: 'qa-timing-validation-execution-gate',
+      label: 'Timing validation execution gate',
       notes: timingValidationPlan.limitations,
       severity: 'low',
-      status: timingValidationPlan.limitations.some((limitation) => /mock-only|no real|no .*audioflux|no .*render/i.test(limitation)) ? 'passed' : 'warning',
+      status: timingValidationPlan.limitations.some((limitation) => /backend-gated|review-only|audioflux|rendering/i.test(limitation)) ? 'passed' : 'warning',
     },
     {
       category: 'timing_validation',
@@ -1213,7 +1213,7 @@ function createRenderStrategyChecks(params: {
       id: 'qa-render-worker-notes',
       category: 'render_strategy',
       label: 'Worker strategies have notes',
-      check: 'Future worker preprocess/postprocess strategies should include notes and remain mock-only.',
+      check: 'Future worker preprocess/postprocess strategies should include notes and remain review-only until approved execution.',
       editLevel: input.editLevel,
       severity: workerItems.length ? 'high' : 'low',
       notes: workerItems.flatMap((item) => item.workerNotes.slice(0, 2)).slice(0, 6),
@@ -1466,7 +1466,7 @@ function createColorPipelineChecks(params: {
       check: 'Color pipeline must not imply real FFmpeg/OpenColorIO/OpenCV/Sharp execution, provider generation, rendering, or approval bypass.',
       editLevel: input.editLevel,
       severity: 'blocking',
-      status: text.includes('no real') && text.includes('mock') ? 'not_checked' : 'failed',
+      status: text.includes('backend-gated') && text.includes('review-only') ? 'not_checked' : 'failed',
       notes: colorPipelinePlan.limitations,
     }),
   ]
@@ -1589,7 +1589,7 @@ function createAudioPipelineChecks(params: {
       check: 'Audio pipeline must not imply real FFmpeg/AudioFlux/Signalsmith Stretch/Essentia/librosa/Rubber Band/whisper.cpp execution, provider generation, rendering, or approval bypass.',
       editLevel: input.editLevel,
       severity: 'blocking',
-      status: text.includes('no real') && text.includes('mock') && text.includes('approval') ? 'not_checked' : 'failed',
+      status: text.includes('backend-gated') && text.includes('review-only') && text.includes('approval') ? 'not_checked' : 'failed',
       notes: audioPipelinePlan.limitations,
     }),
     createQAItem({
@@ -1835,7 +1835,7 @@ function createDataVizChecks(params: {
       check: 'Dataviz plan must not imply real D3/ECharts/Vega-Lite execution, data verification, provider generation, rendering, or approval bypass.',
       editLevel: input.editLevel,
       severity: 'blocking',
-      status: text.includes('mock') && text.includes('no real') && text.includes('approval') && !text.includes('veo for chart') ? 'not_checked' : 'failed',
+      status: text.includes('backend-gated') && text.includes('review-only') && text.includes('approval') && !text.includes('veo for chart') ? 'not_checked' : 'failed',
       notes: dataVizPlan.limitations,
     }),
   ]
@@ -2241,10 +2241,10 @@ function createDepthAwareOverlayChecks(input: PlannerInput, depthAwareOverlayPla
       ].filter(Boolean) as string[],
     }),
     createQAItem({
-      id: 'qa-depth-mock-only',
+      id: 'qa-depth-execution-gate',
       category: 'render_composition',
-      label: 'Mock-only depth planning',
-      check: 'Frontend plan does not execute real masks, segmentation, tracking, OpenCV, background removal, or rendering.',
+      label: 'Depth execution gate',
+      check: 'Depth planning keeps masks, segmentation, tracking, OpenCV, background removal, and rendering behind approved backend gates.',
       editLevel: input.editLevel,
       severity: 'blocking',
       notes: depthAwareOverlayPlan.items.flatMap((item) => item.workerNotes.slice(0, 2)).slice(0, 5),
@@ -2482,10 +2482,10 @@ export function createEditQAPlan(params: {
     tierPolicyChecks,
     approvalChecks,
     notes: [
-      'This is a mock QA plan; no media has been inspected.',
+      'This is a review QA plan; media inspection remains backend-gated.',
       input.editLevel === 'premium' ? 'Premium keeps Veo Lite final fallback only.' : 'Basic/Pro QA fallback cannot use Veo.',
       'Workers must execute the approved plan version and request review for out-of-scope changes.',
-      'Master Timing is mock-only; no real transcript alignment, beat detection, AudioFlux, FFmpeg, Signalsmith Stretch, Remotion render, or media worker has run.',
+      'Master Timing is review-only; transcript alignment, beat detection, AudioFlux, FFmpeg, Signalsmith Stretch, rendering, and media workers remain backend-gated.',
     ],
   }
 }

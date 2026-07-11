@@ -1,7 +1,6 @@
-import { mkdir, writeFile } from 'node:fs/promises'
-import path from 'node:path'
 import { buildMediaArtifactRecord } from '../media/media-artifact-record-builder'
-import { assertOutputPathInsideRoot, safeJoinStoragePath } from '../media/media-path-safety'
+import { writePrivateTextFileAtomicWithinRoot } from '../../security/private-local-persistence'
+import { safeJoinStoragePath } from '../media/media-path-safety'
 import type { ToolArtifact } from '../../../src/backend/contracts/tool-artifact-contracts'
 
 export async function buildTimelineArtifact(input: {
@@ -46,9 +45,11 @@ export async function buildTimelineArtifact(input: {
   })
 
   if (input.mode === 'local_dev' && input.outputRoot) {
-    const localFilePath = assertOutputPathInsideRoot(path.join(input.outputRoot, input.fileName), input.outputRoot)
-    await mkdir(path.dirname(localFilePath), { recursive: true })
-    await writeFile(localFilePath, JSON.stringify(input.payload, null, 2), 'utf8')
+    const localFilePath = await writePrivateTextFileAtomicWithinRoot({
+      rootPath: input.outputRoot,
+      relativePath: input.fileName,
+      content: JSON.stringify(input.payload, null, 2),
+    })
     return { artifact, localFilePath }
   }
 

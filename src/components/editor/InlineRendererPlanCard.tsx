@@ -1,5 +1,6 @@
 import { Badge } from '../Badge'
 import type { ChatPlanningCardDescriptor, EditPlan, RendererLayerPlan } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { FrameLayoutPreview } from './FrameLayoutPreview'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
@@ -42,14 +43,14 @@ export function InlineRendererPlanCard({ descriptor, plan }: InlineRendererPlanC
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Frame + renderer plan"
-      helper="ReeditPro owns the final canvas. AI models generate assets and clips; Remotion places them into safe frame zones, captions, panels, and timeline layers."
+      helper="ReeditPro owns the final canvas. AI models generate assets and clips; the composition renderer places them into safe frame zones, captions, panels, and timeline layers."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Frame + renderer plan"
     >
       <div className="renderer-badge-row">
-        <Badge accent="cyan">Remotion planned</Badge>
-        <Badge accent="muted">Mock only</Badge>
+        <Badge accent="cyan">Composition planned</Badge>
+        <Badge accent="muted">Internal rehearsal</Badge>
         <Badge accent="warning">Approval required</Badge>
         <Badge accent={frameConfirmed ? 'success' : 'warning'}>{frameConfirmed ? 'Frame confirmed' : 'Draft until frame confirmed'}</Badge>
         <Badge accent="blue">Matching panel background</Badge>
@@ -58,17 +59,17 @@ export function InlineRendererPlanCard({ descriptor, plan }: InlineRendererPlanC
       <div className="renderer-plan-grid">
         <FrameLayoutPreview frameTemplate={rendererPlan.frameTemplate} />
         <div className="renderer-plan-summary">
-          <span><strong>Engine</strong>Remotion</span>
+          <span><strong>Engine</strong>Composition renderer</span>
           <span><strong>Aspect ratio</strong>{rendererPlan.frameTemplate.aspectRatio}</span>
           <span><strong>Canvas</strong>{rendererPlan.frameTemplate.canvasWidth}x{rendererPlan.frameTemplate.canvasHeight}</span>
           <span><strong>Frame gate</strong>{frameConfirmed ? 'Confirmed' : 'Needs confirmation'}</span>
           <span><strong>Source fit</strong>{framePlan?.sourceToOutputFramePlan?.fitMode.replaceAll('_', ' ') ?? 'Not planned'}</span>
           <span><strong>FPS</strong>{rendererPlan.fps}</span>
           <span><strong>Estimated duration</strong>{formatTime(rendererPlan.durationSeconds)}</span>
-          <span><strong>Timing source</strong>{rendererPlan.masterTimingPlanId ? 'Master Timing Plan' : 'Renderer mock timing'}</span>
+          <span><strong>Timing source</strong>{rendererPlan.masterTimingPlanId ? 'Master Timing Plan' : 'Internal renderer timing'}</span>
           <span><strong>Panel background</strong>{rendererPlan.panelBackgroundColor}</span>
           <span><strong>Approval</strong>{rendererPlan.approvalRequired ? 'Required' : 'Not required'}</span>
-          <span><strong>Render ready</strong>{rendererPlan.renderReady ? 'Ready' : 'False / mock only'}</span>
+          <span><strong>Render ready</strong>{rendererPlan.renderReady ? 'Ready' : 'Waiting for approval gates'}</span>
         </div>
       </div>
 
@@ -87,7 +88,7 @@ export function InlineRendererPlanCard({ descriptor, plan }: InlineRendererPlanC
             </div>
             <ul>
               {layer.notes.map((note) => (
-                <li key={note}>{note}</li>
+                <li key={note}>{hideInternalToolNamesInCopy(note)}</li>
               ))}
             </ul>
           </article>
@@ -96,7 +97,7 @@ export function InlineRendererPlanCard({ descriptor, plan }: InlineRendererPlanC
 
       <div className="renderer-notes">
         {rendererPlan.rendererNotes.map((note) => (
-          <span key={note}>{note}</span>
+          <span key={note}>{hideInternalToolNamesInCopy(note)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

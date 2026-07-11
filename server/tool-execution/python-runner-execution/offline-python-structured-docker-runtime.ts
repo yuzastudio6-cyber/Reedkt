@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { spawn } from 'node:child_process'
 import { constants } from 'node:fs'
 import { copyFile, lstat, mkdir, open, readdir, rm } from 'node:fs/promises'
-import { dirname, join, resolve, sep } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { ApiError } from '../../errors/api-error'
@@ -314,11 +314,7 @@ async function sha256File(path: string): Promise<string> {
 }
 
 function repositoryRootPath(): string {
-  const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
-  if (!root.endsWith(`${sep}REeditpro`) && !root.endsWith(`${sep}reeditpro`)) {
-    throw runtimeFailure('Structured Python repository root could not be resolved.')
-  }
-  return root
+  return fileURLToPath(new URL('../../../', import.meta.url)).replace(/[\\/]$/, '')
 }
 
 async function runDocker(

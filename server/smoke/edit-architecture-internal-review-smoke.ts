@@ -76,8 +76,8 @@ const steps: SmokeStep[] = [
   },
   {
     id: 'bounded_adapter_source_truth',
-    script: 'smoke:bounded-adapter-source-truth',
-    requiredFor: 'server source-truth checks, package probes, private adapter QA',
+    script: 'smoke:canonical-private-tool-dispatch',
+    requiredFor: 'canonical edit authority, server source-truth checks, private tool dispatch, package probes, and private adapter QA',
   },
   {
     id: 'edit_execution_routes',

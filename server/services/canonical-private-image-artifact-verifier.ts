@@ -29,14 +29,17 @@ export async function verifyCanonicalPrivateImageArtifact(input: {
   const isVerifiedNativeImagePipeline =
     run.runnerClass === 'offline_native_image_pipeline_execution_v1' &&
     run.toolIds.length === 1 && ['opencolorio', 'openimageio'].includes(run.toolIds[0] ?? '') && contentType === 'image/png'
+  const isVerifiedRembgImage =
+    run.runnerClass === 'offline_rembg_background_removal_execution_v1' &&
+    run.toolIds.length === 1 && run.toolIds[0] === 'rembg' && contentType === 'image/png'
   if (
     !['image/png', 'image/jpeg', 'image/webp'].includes(contentType) ||
     input.artifact.lineage.contentType !== contentType || input.artifact.lineage.assetRole === 'final' ||
     input.artifact.placeholder.isPlaceholder || input.artifact.storageIdentity.storageKind !== 'private_local_test' ||
     input.artifact.evidenceClass !== 'private_internal_test_attested' || input.artifact.liveRuntimeEligible !== false ||
     run.state !== 'actual_run_evidence_verified_v2' || !run.actualRunVerified || run.exitCode !== 0 ||
-    (!isVerifiedSharpImage && !isVerifiedLibassOverlay && !isVerifiedBrowserGraphic && !isVerifiedAiCapabilityImage && !isVerifiedNativeImagePipeline)
-  ) throw invalid('Private image is not an exact verified Sharp, libass, browser graphics, or AI capability artifact.')
+    (!isVerifiedSharpImage && !isVerifiedLibassOverlay && !isVerifiedBrowserGraphic && !isVerifiedAiCapabilityImage && !isVerifiedNativeImagePipeline && !isVerifiedRembgImage)
+  ) throw invalid('Private image is not an exact verified Sharp, libass, browser graphics, AI capability, native image, or rembg artifact.')
   const stored = await readCanonicalPrivateImageArtifact({
     localStorageRoot: input.localStorageRoot,
     privateObjectIdentityHash: input.artifact.storageIdentity.opaqueObjectIdentityHash,

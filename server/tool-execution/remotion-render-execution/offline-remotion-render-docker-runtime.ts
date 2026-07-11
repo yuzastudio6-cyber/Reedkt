@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { spawn } from 'node:child_process'
 import { constants } from 'node:fs'
 import { copyFile, lstat, mkdir, open, readdir, rm } from 'node:fs/promises'
-import { dirname, join, resolve, sep } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { ApiError } from '../../errors/api-error'
@@ -137,7 +137,7 @@ async function readBoundedBuffer(path: string, max: number) {
   try { const stat = await handle.stat(); if (!stat.isFile() || stat.size < 1 || stat.size > max) throw runtimeFailure('Remotion source file is invalid.'); return await handle.readFile() } finally { await handle.close() }
 }
 function sourceDirectory() { return join(repositoryRoot(), 'docker/prod/offline-remotion-render-execution') }
-function repositoryRoot() { const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..'); if (!root.endsWith(`${sep}REeditpro`) && !root.endsWith(`${sep}reeditpro`)) throw runtimeFailure('Repository root is invalid.'); return root }
+function repositoryRoot() { return fileURLToPath(new URL('../../../', import.meta.url)).replace(/[\\/]$/, '') }
 function runDocker(args: string[], options: { cwd?: string; input?: string; timeoutMs: number; maxBytes: number }): Promise<HostResult> {
   return new Promise((resolvePromise, reject) => {
     const child = spawn('docker', args, { cwd: options.cwd, env: { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin' }, stdio: ['pipe', 'pipe', 'pipe'] })

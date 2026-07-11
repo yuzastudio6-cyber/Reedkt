@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { spawn } from 'node:child_process'
 import { constants } from 'node:fs'
 import { open } from 'node:fs/promises'
-import { dirname, join, resolve, sep } from 'node:path'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { ApiError } from '../../errors/api-error'
@@ -82,7 +82,7 @@ async function inspectContainer(id: string) { const result = await docker(['insp
 async function hashes() { const output: Record<string, string> = {}; for (const name of SOURCE_FILES) output[name] = await shaFile(join(sourceDir(), name)); return output }
 async function shaFile(path: string) { const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW); try { const stat = await handle.stat(); if (!stat.isFile() || stat.size < 1 || stat.size > 1024 * 1024) throw unavailable('libass source hash target is invalid.'); return createHash('sha256').update(await handle.readFile()).digest('hex') } finally { await handle.close() } }
 function sourceDir() { return join(repositoryRoot(), 'docker/prod/offline-libass-caption-execution') }
-function repositoryRoot() { const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..'); if (!root.endsWith(`${sep}REeditpro`) && !root.endsWith(`${sep}reeditpro`)) throw unavailable('Repository root is invalid.'); return root }
+function repositoryRoot() { return fileURLToPath(new URL('../../../', import.meta.url)).replace(/[\\/]$/, '') }
 function docker(args: string[], input: Buffer | undefined, maxBytes: number): Promise<HostResult> { return new Promise((resolvePromise, reject) => { const child = spawn('docker', args, { env: { PATH: process.env.PATH ?? '' }, stdio: ['pipe', 'pipe', 'pipe'] }); const out: Buffer[] = [], err: Buffer[] = []; let total = 0, settled = false; const timer = setTimeout(() => { child.kill('SIGKILL'); if (!settled) { settled = true; reject(unavailable('Docker command timed out.')) } }, 30_000); const collect = (target: Buffer[]) => (chunk: Buffer) => { total += chunk.length; if (total > maxBytes) { child.kill('SIGKILL'); if (!settled) { settled = true; clearTimeout(timer); reject(unavailable('Docker output exceeded ceiling.')) } } else target.push(Buffer.from(chunk)) }; child.stdout.on('data', collect(out)); child.stderr.on('data', collect(err)); child.on('error', (cause) => { if (!settled) { settled = true; clearTimeout(timer); reject(new ApiError('TOOL_NOT_READY', 'Docker is unavailable.', 503, undefined, { cause })) } }); child.on('close', (code) => { if (!settled) { settled = true; clearTimeout(timer); resolvePromise({ exitCode: code ?? -1, stdout: Buffer.concat(out), stderr: Buffer.concat(err) }) } }); child.stdin.end(input) }) }
 function record(value: unknown): Record<string, unknown> { if (!value || typeof value !== 'object' || Array.isArray(value)) throw unavailable('Docker evidence object is invalid.'); return value as Record<string, unknown> }
 function stringArray(value: unknown): string[] { if (!Array.isArray(value) || value.some((v) => typeof v !== 'string')) throw unavailable('Docker evidence string array is invalid.'); return value }

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { spawn } from 'node:child_process'
 import { constants } from 'node:fs'
 import { copyFile, lstat, mkdir, open, readdir, rm } from 'node:fs/promises'
-import { dirname, join, resolve, sep } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { ApiError } from '../../errors/api-error'
@@ -44,7 +44,7 @@ async function sha256File(path: string) { return createHash('sha256').update(awa
 async function readBoundedFile(path: string, max: number) { return (await readBoundedBuffer(path, max)).toString('utf8') }
 async function readBoundedBuffer(path: string, max: number) { const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW); try { const stat = await handle.stat(); if (!stat.isFile() || stat.size < 1 || stat.size > max) throw failure('Native image pipeline source file is invalid.'); return await handle.readFile() } finally { await handle.close() } }
 function sourceDirectory() { return join(repositoryRoot(), 'docker/prod/offline-native-image-pipeline-execution') }
-function repositoryRoot() { const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..'); if (!root.endsWith(`${sep}REeditpro`) && !root.endsWith(`${sep}reeditpro`)) throw failure('Repository root is invalid.'); return root }
+function repositoryRoot() { return fileURLToPath(new URL('../../../', import.meta.url)).replace(/[\\/]$/, '') }
 function runDocker(args: string[], options: { cwd?: string; input?: string; timeoutMs: number; maxBytes: number }): Promise<HostResult> { return new Promise((resolvePromise, reject) => { const child = spawn('docker', args, { cwd: options.cwd, env: { PATH: process.env.PATH ?? '/usr/local/bin:/usr/bin:/bin' }, stdio: ['pipe', 'pipe', 'pipe'] }); const stdout: Buffer[] = []; const stderr: Buffer[] = []; let total = 0; let settled = false; const timer = setTimeout(() => { child.kill('SIGKILL'); if (!settled) { settled = true; reject(failure('Docker command exceeded timeout.')) } }, options.timeoutMs); const collect = (target: Buffer[]) => (chunk: Buffer) => { total += chunk.length; if (total > options.maxBytes) { child.kill('SIGKILL'); if (!settled) { settled = true; clearTimeout(timer); reject(failure('Docker output exceeded ceiling.')) } } else target.push(Buffer.from(chunk)) }; child.stdout.on('data', collect(stdout)); child.stderr.on('data', collect(stderr)); child.on('error', (cause) => { if (!settled) { settled = true; clearTimeout(timer); reject(failure('Docker runtime is unavailable.', cause)) } }); child.on('close', (code) => { if (!settled) { settled = true; clearTimeout(timer); resolvePromise({ exitCode: code ?? -1, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() }) } }); child.stdin.end(options.input ?? '') }) }
 function record(value: unknown): Record<string, unknown> { if (!value || typeof value !== 'object' || Array.isArray(value)) throw failure('Docker evidence contains an invalid object.'); return value as Record<string, unknown> }
 function array(value: unknown): unknown[] { if (!Array.isArray(value)) throw failure('Docker evidence contains an invalid array.'); return value }

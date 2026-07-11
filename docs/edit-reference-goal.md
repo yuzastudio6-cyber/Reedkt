@@ -1,6 +1,6 @@
 # Edit Reference End-to-End Goal
 
-Status: `in_progress`
+Status: `complete_backend_local`
 
 Authority date: 2026-07-11
 
@@ -102,9 +102,11 @@ They must never be mutated by this goal.
 | 4 | Preference DNA QA, correction, review, and approval | Complete — `f64aa2690f9b1865139b70061445f05fdce84615` |
 | 5 | Target-video adaptation and Preference Application | Complete — `17b67a871b061df2c7a4327d00a5d37f22512e22` |
 | 6 | Project Edit Session/Edit Brief/Marker Context/Marker Chat/Plan Hint/QA integration | Complete — `a09bc3da30de20a5bd80db8e0f89c55f74d3e27d` |
-| 7 | Reload, replace/remove, privacy, adaptation, regression, and readiness closure | In progress |
+| 7 | Reload, replace/remove, privacy, adaptation, regression, and readiness closure | Complete — `42d34cdc04179c6808a4c3f23286885daf116006` |
 
 Gate numbering after Gate 1 may be refined only by updating this document, the machine-readable status, and the verification log together. No refinement may weaken the definition of done.
+
+The seven-gate backend-local goal is complete. This classification proves the canonical user journey and its local backend/browser/persistence boundaries; it does not override the production blockers below or authorize any remote/provider/worker/render/credit action.
 
 ## Permanent Safety Boundaries
 

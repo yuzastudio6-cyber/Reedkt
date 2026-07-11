@@ -1,5 +1,7 @@
 # Edit Reference Definition Of Done
 
+Status: `fulfilled_backend_local`
+
 Edit Reference is not complete when types, mock labels, a profile card, or a local provider proof exists. It is complete only when the same canonical system demonstrates the full user journey and all evidence gates below.
 
 ## Required End-to-End User Journey
@@ -82,3 +84,9 @@ A tester must be able to:
 - Migration count and remote-mutation state are recorded after every gate.
 - The final worktree is clean and no push/PR occurs without explicit approval.
 - `productionReady` remains false until remote schema, RLS, tenancy, storage, service identity, provider, worker, observability, and release evidence pass.
+
+## Completion Evidence
+
+Gates 1–7 satisfy the required journey in the canonical backend-local system, including exact-version DNA approval, target-aware adaptation, downstream Project Edit Session/Edit Brief/Marker Chat/Plan Hint/QA use, reload, replacement, removal, immutable history, downstream invalidation, privacy, responsive browser behavior, and regression coverage. The implementation authority is recorded in `docs/edit-reference-gate-7-lifecycle-closure.md` and the append-only verification log.
+
+This does not satisfy the separate production-readiness conditions above. Production database/RLS/cross-device authority, live media/provider skills, distributed workers, observability, and release evidence remain blocked or unverified.

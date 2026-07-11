@@ -1,6 +1,6 @@
 # Edit Reference Persistence Contract
 
-Status: `gate_6_backend_local_contract`
+Status: `gate_7_backend_local_contract_complete`
 
 This contract defines one canonical persistence architecture for Edit Reference. Gate 1 implements its backend-local durable lane. Production database persistence remains fail-closed until the canonical Supabase chain, RLS, tenancy, and transaction evidence pass.
 
@@ -17,7 +17,7 @@ This contract defines one canonical persistence architecture for Edit Reference.
 - `PreferenceApplication`
 - `PreferenceUsageLog`
 
-Gate 1 fully persists references, study sessions, and study messages. Gate 2 adds evidence, assets, and skill runs. Gate 3 adds immutable Preference DNA candidates. Gate 4 adds exact-version QA results and approval snapshots. Gate 5 adds immutable target-context adaptation records with an explicit not-connected boundary. Gate 6 adds the exact mock Project Edit Session receipt, deterministic downstream context, and connected lifecycle while reusing the existing mock Project Edit Session and Edit Brief repositories. Production-database authority remains fail-closed.
+Gate 1 fully persists references, study sessions, and study messages. Gate 2 adds evidence, assets, and skill runs. Gate 3 adds immutable Preference DNA candidates. Gate 4 adds exact-version QA results and approval snapshots. Gate 5 adds immutable target-context adaptation records with an explicit not-connected boundary. Gate 6 adds the exact mock Project Edit Session receipt, deterministic downstream context, and connected lifecycle while reusing the existing mock Project Edit Session and Edit Brief repositories. Gate 7 closes replacement/removal, immutable lifecycle history, and downstream invalidation/replan behavior. Production-database authority remains fail-closed.
 
 ## Scope And Identity
 
@@ -183,6 +183,21 @@ prepared PreferenceApplication
 
 The stage mutation may reset requested/approved mock approval and append session memory, history, and snapshot records. It cannot make the context active. The authenticated Edit Reference mutation validates reference revision, application digest, target identity, confirmed frame, platform, edit level, approval-reset behavior, application/context hashes, and receipt timestamps before storing the exact context and connection receipt atomically. Only that connected server record may be activated downstream. Activation remains planning context only and cannot mutate an approved plan or start production.
 
+Gate 7 adds two exact lifecycle transitions:
+
+```text
+connected PreferenceApplication A
+  -> invalidate exact A context and reset requested/approved session approval
+  -> append prepared PreferenceApplication B at applicationVersion + 1
+  -> mark A replaced and link A <-> B immutably
+
+connected PreferenceApplication
+  -> invalidate exact context and reset requested/approved session approval
+  -> mark application cleared while retaining history
+```
+
+Both transitions require a deterministic downstream invalidation receipt that binds the exact workspace, project, edit session, application, context hash, reason, approval-reset result, and all-false production side-effect flags. Replacement additionally requires the exact replaced-reference revision and approved replacement DNA authority. The downstream session, Edit Brief, Marker/Plan/QA consumers stop using the old context and retain only bounded replan-required history. Recovery may restore only a currently connected server application; replaced or cleared context can never reactivate.
+
 ## Versioning And Concurrency
 
 - Aggregate revision increments once per committed mutation.
@@ -197,7 +212,7 @@ The stage mutation may reset requested/approved mock approval and append session
 - Adding or correcting evidence after approval resets active study readiness without rewriting the approved historical artifact. A later approved version marks the prior approved lifecycle status `superseded` while retaining its content, QA result, and approval snapshot.
 - Evidence corrections append a new evidence record linked to the exact superseded record; the original remains durable and later orchestration uses only the active successor.
 - Application version is monotonic and replacement/clear events are retained.
-- Gate 6 permits one connected application per exact target project/edit. Replace/clear history and downstream invalidation are completed in Gate 7.
+- One connected application is permitted per exact target project/edit. Gate 7 retains replaced/cleared records, monotonic application versions, exact invalidation receipts, and immutable previous/next links.
 
 ## Idempotency
 
@@ -248,11 +263,11 @@ The production seam reports `blocked_by_migration_baseline` and performs no read
 - route-specific atomic idempotency transactions are missing;
 - live catalog/storage/security evidence is missing.
 
-Gates 1–6 add no SQL migration. Migration baseline/current remain 21.
+Gates 1–7 add no SQL migration. Migration baseline/current remain 21.
 
 ## Persistence Acceptance
 
-Gate 6 persistence passes only when the earlier gates remain passing and:
+Gate 7 persistence passes only when the earlier gates remain passing and:
 
 - create/list/get/update/reference and create/get/update-study operations read back from a recreated repository/service;
 - messages survive process/repository recreation and browser reload;
@@ -280,4 +295,10 @@ Gate 6 persistence passes only when the earlier gates remain passing and:
 - activation writes the same exact context into existing Project Edit Session and Edit Brief persistence without creating a second source of truth;
 - server/repository recreation and browser reload restore the exact connected context;
 - confirmed Edit Brief markers hold back matching DNA hints while retaining provenance;
+- replacement invalidates the exact connected context before creating the monotonic next version and stores immutable bidirectional links;
+- removal marks the exact application cleared, retains usage/audit history, and cannot be repeated as a second successful mutation;
+- invalidation resets requested/approved Project Edit Session approval when required without rewriting an approved plan;
+- Edit Brief and Plan Hint consumers remove the active old context, retain bounded inactive history, and require replan;
+- idempotent replay cannot duplicate a replacement, clear, usage event, or application version;
+- repository recreation and browser reload never reactivate a replaced or cleared context;
 - approved-plan mutation, provider, media, worker, render, credit, and remote-persistence side effects remain false.

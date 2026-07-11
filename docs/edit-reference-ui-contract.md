@@ -1,6 +1,6 @@
 # Edit Reference UI Contract
 
-Status: `gate_6_ui_authority`
+Status: `gate_7_lifecycle_closure_authority`
 
 This contract governs the Edit Preferences route while preserving ReEditPro's chat-first, approval-first, desktop/web product laws. It does not authorize media analysis, providers, workers, rendering, credits, or production persistence.
 
@@ -114,7 +114,9 @@ The tab must preserve load, draft, save, conflict, retry, discard, and snapshot 
 
 ## Applied Edits
 
-With no durable records, the tab shows a truthful empty/not-yet-prepared state and never derives counts from mock handles or fabricated projects. Gate 5 lists exact target project/edit labels, exact approved DNA version, target context, adaptation and held-back counts, target-specific guidance, application state, timestamp, and the not-connected boundary. Gate 6 may update the same record to a verified mock target and connected planning-context state only after the exact Project Edit Session receipt is accepted. Gate 7 adds replacement/clear history and downstream invalidation state.
+With no durable records, the tab shows a truthful empty/not-yet-prepared state and never derives counts from mock handles or fabricated projects. Gate 5 lists exact target project/edit labels, exact approved DNA version, target context, adaptation and held-back counts, target-specific guidance, application state, timestamp, and the not-connected boundary. Gate 6 updates the same record to a verified mock target and connected planning-context state only after the exact Project Edit Session receipt is accepted. Gate 7 adds replacement/clear history and downstream invalidation state.
+
+Applied Edits renders lifecycle states as `Prepared`, `Connected`, `Replaced`, or `Removed`. Replaced and Removed are quiet historical states, not success states. When a record was replaced, the card may show the prior/next version relationship in plain language, but normal UI still omits internal IDs and digests.
 
 `prepared` must not be rendered as if the target edit already changed. Until Gate 6 connects the record, the card states that the target edit, approved plan, and production state remain unchanged. Normal users see no IDs, digests, provider/worker terms, storage details, or internal gate labels.
 
@@ -132,6 +134,18 @@ Gate 6 adds one bounded Edit Reference connection surface inside the existing Pr
 - never imply that a plan, provider, worker, render, media process, or credit action ran.
 
 The connected Edit Brief card repeats the exact Edit Reference name and bounded counts, not a second selector. Marker Context, Marker Chat, Plan Hints, and QA use progressive disclosure inside their existing surfaces. A connected reference must not create a new global navigation destination, settings page, or technical inspector.
+
+## Replacement And Removal
+
+Gate 7 keeps lifecycle controls inside the existing Project Edit Session preference region.
+
+- `Replace` opens a progressive replacement surface, lists only other approved Edit References, preserves the current target direction for review, and requires output-frame reconfirmation.
+- `Remove` opens a destructive confirmation that names the affected Edit Reference and explains that reusable guidance will be removed while historical application records remain.
+- Both actions show a pending state, disable duplicate submission, retain an actionable retry after failure, and use a live status message for completion or error feedback.
+- Replacement/removal resets requested or approved session approval when required, invalidates the exact downstream context, and marks affected Brief/Marker/Plan/QA material as requiring replan.
+- Invalidated context must never be silently reactivated during reload or recovery.
+- A replacement produces a monotonic next application version with immutable previous/next links; removal preserves the cleared application and usage history.
+- No lifecycle action mutates an approved plan, starts production, runs media/provider work, or charges credits.
 
 ## Safety & Privacy
 

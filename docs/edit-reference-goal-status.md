@@ -2,9 +2,9 @@
 
 Status date: 2026-07-11
 
-Overall status: `in_progress`
+Overall status: `complete_backend_local`
 
-Current gate: `gate_7`
+Current gate: `complete`
 
 Production ready: **No**
 
@@ -29,7 +29,7 @@ Production ready: **No**
 | Gate 4 — Preference DNA QA, correction, review, and approval | Complete | `f64aa2690f9b1865139b70061445f05fdce84615` | Exact-version deterministic QA, blocking/review decisions, copy-safety and integrity checks, explicit acknowledgement, immutable approval history, authenticated API/UI, responsive review, and reload proof passed |
 | Gate 5 — target-video adaptation and Preference Application | Complete | `17b67a871b061df2c7a4327d00a5d37f22512e22` | Exact approved-version authority, caller-confirmed target snapshots, deterministic two-target adaptation, precedence/copy safety, immutable applications, authenticated API/client/UI, responsive review, replay, privacy, and reload proof passed |
 | Gate 6 — downstream edit integration | Complete | `a09bc3da30de20a5bd80db8e0f89c55f74d3e27d` | Exact mock target verification, recoverable stage/connect/activate flow, bounded context, Project Edit Session/Brief/Marker Chat/Plan Hint/QA handoffs, precedence, persistence, responsive browser proof, and regression coverage passed |
-| Gate 7 — closure | In progress | Pending | Replace/remove, downstream invalidation, privacy/adaptation regression, final readiness evidence, and closure are next |
+| Gate 7 — closure | Complete | `42d34cdc04179c6808a4c3f23286885daf116006` | Exact replace/remove lifecycle, immutable version links, approval reset, downstream invalidation and replan state, retry/recovery, responsive UI, privacy scans, full regression, and final readiness classification passed |
 
 ## Current QA State
 
@@ -37,7 +37,7 @@ Production ready: **No**
 - Runtime QA: `passed_backend_local`
 - Persistence QA: `passed_backend_local`
 - Supabase production QA: blocked by the existing migration-baseline gate
-- Provider/media execution: not enabled; Gate 6 performed none
+- Provider/media execution: not enabled; Gates 1–7 performed none
 
 ## Current Truth
 
@@ -51,7 +51,8 @@ Production ready: **No**
 - Gate 4 implemented exact-version deterministic QA, twelve stable integrity/coverage/confidence/conflict/copy-safety checks, blocking and review decisions, explicit adapt-not-copy acknowledgement, immutable approval snapshots, correction-driven Version 2 approval, and responsive browser/API/reload behavior.
 - Gate 5 implemented exact approved-version target applications, caller-confirmed target snapshots, target-aware rule decisions, explicit precedence, direct-copy rejection, voice-first versus silent-visual adaptation, real Applied Edits records, and backend-local reload without changing a target edit or starting production.
 - Gate 6 implemented exact mock Project Edit Session target verification, inactive staging, authenticated connection, safe activation/recovery, bounded Edit Brief and Marker Chat context, lower-priority Plan Hints, confirmed-marker holdback, QA, reload, and responsive UI without approved-plan or production execution.
-- Replacement/removal with downstream invalidation, live providers/media, and production persistence remain unimplemented in the canonical Edit Reference runtime.
+- Gate 7 implemented exact replacement/removal, monotonic application versions, bidirectional history links, approval reset, downstream invalidation receipts, Edit Brief/Marker/Plan/QA replan state, safe retries, reload/recovery, and responsive lifecycle review without mutating approved history.
+- The required backend-local Edit Reference journey is complete. Live providers/media and production persistence remain intentionally unimplemented behind their named gates.
 
 ## Blockers Carried Forward
 
@@ -59,7 +60,10 @@ Production ready: **No**
 - Production database/RLS/cross-device persistence is unverified.
 - Live Edit Reference media-study skills still need capability-specific adapters, proof, and ephemeral-media privacy controls; Gate 2 uses truthful manual/metadata fallback only.
 - Connected target applications are verified only against the canonical mock Project Edit Session receipt; production database identity and cross-device authority remain unverified.
-- Gate 7 must prove replacement/removal history and invalidate or replan every affected downstream context without mutating approved plans in place.
 - Local tests cannot establish production readiness.
+
+## Completion Classification
+
+`complete_backend_local` means the canonical backend-local workflow, browser journey, persistence/reload behavior, replacement/removal lifecycle, privacy boundaries, and adaptation regressions are verified. It does not mean production database, cross-device tenancy, live media/provider execution, distributed workers, customer charging, or release infrastructure is ready.
 
 The machine-readable source is `docs/edit-reference-goal-status.json`.

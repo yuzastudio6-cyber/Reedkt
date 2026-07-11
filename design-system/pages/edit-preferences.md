@@ -1,6 +1,6 @@
 # Edit Preferences Override
 
-Status: `gate_4_dna_qa_approval_active`
+Status: `gate_7_lifecycle_closure_complete_backend_local`
 
 ## Job
 
@@ -20,6 +20,11 @@ Manage one Edit Preferences system across Edit References, workspace defaults, a
 - QA adds one focused review action, keeps non-passing findings visible, and collapses passed checks by default.
 - Approval is available only for the exact non-blocked QA-reviewed version after an explicit adapt-not-copy acknowledgement.
 - Approved state uses the success treatment and clearly remains separate from target application or production.
+- A connected target application exposes Replace and Remove only in its existing preference region; these actions do not create a second settings destination.
+- Replace uses progressive disclosure: choose an approved reference, review the current direction, and reconfirm the saved output frame before applying the change.
+- Remove requires explicit destructive confirmation and states that reusable guidance will be removed while immutable application history remains available.
+- Pending replacement/removal failures retain the selected operation and expose one safe retry path; invalidated context is never restored as active during recovery.
+- Applied Edits distinguishes Connected, Prepared, Replaced, and Removed with text and neutral historical styling rather than success color alone.
 - At narrower widths, regions stack in that priority order and tabs may scroll horizontally without creating page overflow.
 - Existing defaults remain available under Workspace Defaults; they are not presented as a competing product.
 
@@ -39,6 +44,7 @@ Manage one Edit Preferences system across Edit References, workspace defaults, a
 - Explicit Chat instruction outranks current-edit preference, which outranks saved default.
 - Internal diagnostics remain test/documentation evidence and stay absent from the normal page.
 - Async create, load, message, evidence, study, and archive actions expose loading, success, and error feedback.
+- Replace and Remove expose pending, success, retry, conflict, and replan-required feedback without pretending that production ran.
 - Every tab and action is keyboard reachable, focus-visible, semantically named, and at least 44px high.
 
 ## Required Responsive Evidence
@@ -56,5 +62,9 @@ Manage one Edit Preferences system across Edit References, workspace defaults, a
 - `server/smoke/edit-reference-evidence-study-smoke.ts`
 - `server/smoke/edit-reference-dna-synthesis-smoke.ts`
 - `server/smoke/edit-reference-dna-qa-approval-smoke.ts`
+- `server/smoke/edit-reference-target-application-smoke.ts`
+- `server/smoke/edit-reference-downstream-integration-smoke.ts`
+- `server/smoke/edit-reference-lifecycle-closure-smoke.ts`
+- `tests/e2e/edit-reference-lifecycle-closure.spec.ts`
 - `src/components/preferences/EditReferenceWorkspacePage.tsx`
 - `src/styles/preferences.css`

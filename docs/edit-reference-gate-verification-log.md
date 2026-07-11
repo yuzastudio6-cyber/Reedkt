@@ -524,3 +524,64 @@ exact prepared Preference Application
 - Supabase CLI/SQL/remote mutation: not performed.
 - Provider/media/worker/render/credit execution: not performed.
 - Production ready: false.
+
+## Gate 7 — Lifecycle And Goal Closure — 2026-07-11
+
+### Commit
+
+- Commit: `42d34cdc04179c6808a4c3f23286885daf116006`
+- Message: `Close Edit Reference lifecycle`
+- Files: 24
+- Migration count before/after: 21 / 21
+- Production ready: false
+
+### Implemented And Reviewed
+
+```text
+connected application A
+→ exact typed downstream invalidation and approval reset
+→ immutable A replacement history
+→ prepared monotonic application B with bidirectional links
+→ exact Gate 6 connection of B
+→ exact removal invalidation
+→ retained cleared history and replan-required downstream state
+→ reload/recovery without stale-context reactivation
+```
+
+- Replacement validates old and new Edit Reference/DNA/application authority, target identity, frame confirmation, invalidation receipt, and idempotency.
+- Removal validates the exact connected application and preserves immutable application, usage, audit, and downstream invalidation history.
+- Edit Brief, Marker Context/Chat, Plan Hints, and QA stop consuming invalidated context. Old hints are labelled inactive and require replan.
+- Requested/approved Project Edit Session approval resets when required; no approved plan is rewritten.
+- `design.md` and `design-system/` remained frontend authority, current ReEditPro UI/UX documents supplied product architecture, and UI UX Pro Max remained supporting guidance only.
+- Visual QA at 1440px and 375px caught and fixed a cramped two-column replacement selector and wrapped action. Historical states now use quiet neutral styling.
+- No SQL, lockfile, provider, model, media, worker, generation, render, export, credit, Supabase, push, or PR action occurred.
+
+### Verification Results
+
+| Command / check | Result | Evidence |
+| --- | --- | --- |
+| `npm run smoke:edit-reference-lifecycle-closure` | Pass | Receipt mismatch, approval reset, replacement, version/link integrity, connect B, tenant rejection, clear, replay, double-clear conflict, Brief clear, restart, usage, privacy, and false side effects |
+| Gate 0–6 Edit Reference smokes | Pass | Full prior canonical workflow preserved |
+| Project/Edit Brief/Marker regression groups | Pass | Session, API, UI, memory/history, Brief, Marker Context/Chat, Plan Hints, QA, and recovery preserved |
+| Preference/Edit Level regression groups | Pass | Edit Preference, Preference Video/DNA/QA/application, and all Edit Level smokes passed |
+| Focused lifecycle Playwright | Pass | Replacement/removal, frame reconfirmation, destructive confirmation, inactive old hints, replan, history, reload, targets, and responsiveness |
+| Full Chromium Playwright | Pass | 56/56 with five workers in 37.5 seconds |
+| App/server typechecks, ESLint, frontend boundary | Pass | No failures; 663 frontend files remained backend-runtime free |
+| Client/server builds | Pass | 2,562 client and 589 server modules transformed; existing large-chunk warning disclosed |
+| Qwen secret/runtime and production privacy checks | Pass | No secret, runtime-boundary, or production-privacy finding |
+| Goal control-plane/postgate | Pass | Canonical branch, ancestry, 21 migrations, no conflicts, complete backend-local status, and production-ready false |
+
+### Final Readiness
+
+- Seven-gate backend-local Edit Reference user journey: complete.
+- Replacement/removal, immutable history, downstream invalidation, replan state, reload, privacy, and adaptation regression: verified.
+- Production Supabase/RLS/cross-device authority: blocked by the existing canonical migration gate.
+- Live media/provider skills, distributed workers, production observability, and release evidence: not run.
+- Final classification: `complete_backend_local`.
+
+### Remote State
+
+- Push/PR/remote merge: not performed.
+- Supabase CLI/SQL/remote mutation: not performed.
+- Provider/media/worker/render/credit execution: not performed.
+- Production ready: false.

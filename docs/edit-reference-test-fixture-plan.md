@@ -1,6 +1,6 @@
 # Edit Reference Test Fixture Plan
 
-Status: `gate_6_fixtures_executed_through_downstream_integration`
+Status: `gate_7_fixtures_executed_through_lifecycle_closure`
 
 Fixtures must test behavior, not only file presence. They must be deterministic, private, rights-safe, small, and explicit about whether they contain metadata, synthetic media, or previous approved-edit evidence.
 
@@ -159,4 +159,10 @@ The focused browser fixture displays the approved target-ready handoff, loads a 
 
 `tests/e2e/edit-reference-downstream-integration.spec.ts` creates and approves a real Edit Reference, prepares its exact target application, completes the connection by user-facing name, confirms the output frame, verifies Edit Chat/Brief/Marker Chat/Plan Hints/QA, reloads the connected Brief, checks that application IDs/digests are not displayed, and validates 1440px and 375px horizontal-overflow safety.
 
-Application replacement/removal, downstream invalidation, remote RLS, live media study, and provider execution remain Gate 7 or later fixtures.
+## Gate 7 Executed Fixtures
+
+`server/smoke/edit-reference-lifecycle-closure-smoke.ts` executes Application Replacement And Removal through the authenticated API and canonical mock Project Edit Session. It proves a typed invalidation receipt, wrong-receipt rejection without mutation, requested/approved approval reset, replacement A-to-B with monotonic Version 2 and immutable bidirectional links, exact B connection, cross-workspace clear rejection, removal, idempotent replay, double-clear conflict, Edit Brief clearing, repository recreation, lifecycle usage events, privacy-safe persistence, and all-false production side effects.
+
+`tests/e2e/edit-reference-lifecycle-closure.spec.ts` proves the user-visible replacement and removal flow through approved references, progressive replacement disclosure, frame reconfirmation, destructive confirmation, recoverable status, inactive prior Plan Hints, replan-required Brief state, Applied Edits history, reload, 44px interaction targets, and desktop/375px overflow safety. The updated downstream fixture also proves that a removed application is not recovered as active.
+
+Remote RLS, live media study, provider execution, distributed workers, and production persistence remain separately blocked production fixtures. They are not required to classify the seven-gate backend-local journey as complete.

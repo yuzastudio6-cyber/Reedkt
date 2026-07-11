@@ -1,5 +1,17 @@
 # Supabase Migration Audit
 
+## 2026-07-10 Baseline Reconciliation Audit
+
+No SQL or Supabase CLI command was run. The executable folder contains 25 migration files and two incompatible foundational families (`20260513` and `20260518`). Later migrations depend on tables unique to both families, so the raw directory is blocked for reset, staging, and production use.
+
+Authoritative evidence:
+
+- `docs/supabase-migration-baseline-reconciliation.md`
+- `npm run audit:supabase-migration-baseline`
+- `npm run smoke:supabase-migration-baseline`
+
+Do not add durable Supabase Edit Preferences or run the raw migration directory until an isolated canonical chain reports `reproducible` and passes a clean local reset.
+
 ## RP-FIX-07 Local Audit
 
 Date: 2026-05-20
@@ -41,7 +53,7 @@ The new policies:
 
 ## Follow-Up
 
-Before deployment, run local/staging storage policy smoke tests and verify that old `<project_id>/...` paths and new workspace/project paths do not produce unintended access.
+Before deployment, run local/staging storage policy smoke tests and verify that legacy `<project_id>/...` paths are denied, `workspaces/{workspace_id}/projects/{project_id}/...` paths enforce exact workspace/project binding, and bucket size/MIME limits match the application validators.
 
 ## RP-FIX-11 Local Audit
 
@@ -53,6 +65,6 @@ RP-FIX-11 adds:
 
 - `migrations/202605200002_worker_leases_runtime_transport.sql`
 
-This local-only migration creates `worker_leases`, `backend_runtime_messages`, and `job_claim_attempts` for future backend/worker ownership and runtime message tracking. It keeps mutation grants service-role only, exposes only conservative authenticated select policies, and does not create broad frontend write access.
+This local-only migration creates `worker_leases`, `backend_runtime_messages`, and `job_claim_attempts` for future backend/worker ownership and runtime message tracking. The base tables are service-only because they contain lease tokens, raw runtime payloads, worker identity, and internal claim metadata; no authenticated browser access is granted.
 
 Before deployment, validate transaction-safe lease claiming, idempotency behavior, stale lease recovery, and RLS membership filters in local/staging Supabase.

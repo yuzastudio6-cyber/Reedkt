@@ -1,6 +1,8 @@
 ﻿# ReeditPro Migration Order
 
-Run migrations in timestamp order. This repository targets the Supabase project named `reeditpro`; do not use the Yuza Studio Supabase project and do not commit credentials.
+> **Blocked baseline:** Do not run this directory in timestamp order. The `20260513` and `20260518` foundations redefine incompatible tables, and later migrations depend on both. This file is a historical catalog until the canonical-chain work in `docs/supabase-migration-baseline-reconciliation.md` is complete.
+
+This repository targets the Supabase project named `reeditpro`; do not use the Yuza Studio Supabase project and do not commit credentials.
 
 ## 1. RP-DB-03 Core ReeditPro Tables
 
@@ -106,9 +108,9 @@ Run migrations in timestamp order. This repository targets the Supabase project 
 ## 12. RP-FIX-07 Storage Upload Pipeline Readiness
 
 - File: `migrations/202605200001_storage_upload_pipeline_readiness.sql`
-- Purpose: Adds local-only storage policy readiness for `workspace/{workspace_id}/project/{project_id}/...` paths while keeping active RP-DATA-04 bucket ids.
+- Purpose: Adds local-only storage policy readiness for `workspaces/{workspace_id}/projects/{project_id}/...` paths while keeping active RP-DATA-04 bucket ids.
 - Depends on: `202605180007_reeditpro_rls_policies.sql` helper functions and `202605180008_reeditpro_storage_buckets_policies.sql` bucket definitions.
-- Creates: conservative storage object policies for project member reads and project editor writes to `source-media` and `thumbnails` using workspace/project path parsing.
+- Creates: bounded storage object policies for project member reads and project editor writes to `source-media` and `thumbnails`, removes permissive legacy flat-path policies, verifies the path workspace matches the project's workspace, and applies bucket MIME/size limits.
 - Does not create: public buckets, anonymous access, profile/brand workspace-only policies, generated asset writes, preview/export writes, worker-temp writes, remote deployment, real uploads, provider calls, rendering, Stripe, Google Cloud resources, or mobile screens.
 - Notes: Profile/brand assets, generated outputs, previews, exports, QA artifacts, and worker-temp objects remain backend signed-upload or worker-runtime concerns until production policies are validated.
 
@@ -117,15 +119,50 @@ Run migrations in timestamp order. This repository targets the Supabase project 
 - File: `migrations/202605200002_worker_leases_runtime_transport.sql`
 - Purpose: Adds local-only readiness tables for worker leases, backend runtime messages, and job claim attempts.
 - Depends on: RP-DB-03 core workspaces/projects, RP-DB-07 jobs/job batches, and workspace RLS helpers.
-- Creates: `worker_leases`, `backend_runtime_messages`, `job_claim_attempts`, conservative select policies, indexes, and a partial unique active-lease index for one active lease per job.
+- Creates: service-only `worker_leases`, `backend_runtime_messages`, and `job_claim_attempts`, forced RLS, indexes, and a partial unique active-lease index for one active lease per job.
 - Does not create: deployed backend runtime, service-role handlers, Cloud Run, Pub/Sub, Supabase Edge Functions, provider calls, render workers, Stripe, real uploads, or remote migration execution.
-- Notes: Authenticated users can only select records scoped to their workspaces/projects. Insert/update/delete grants are service-role only for future backend workers.
+- Notes: Authenticated browser roles receive no base-table access because row-level membership cannot hide secret/internal columns such as lease tokens and runtime payloads. Future user-facing progress must use sanitized backend DTOs or a dedicated safe status view.
 
 ## 14. RP-E2E-READY-01 Runtime Database Foundation
 
 - File: `migrations/202605210001_e2e_runtime_readiness_tables.sql`
 - Purpose: Adds local/review-ready runtime tables for approved execution snapshots, API idempotency, upload intents, canonical storage records, signed URL audits, worker job claims, tool readiness checks, provider attempt tracking, and sanitized provider webhook summaries.
 - Depends on: RP-DB-03 core workspaces/projects/chat/media, RP-DB-04 edit plans, RP-DB-06 credits and reservations, RP-DB-07 jobs, RP-DB-09 generation requests/assets, RP-DB-10 render/QA records, RP-FIX-07 storage readiness policies, and RP-FIX-11 worker lease/runtime readiness.
-- Creates: extensions to `approved_plan_snapshots`, `api_idempotency_keys`, `upload_intents`, `storage_object_records`, `signed_url_events`, `worker_job_claims`, `tool_runtime_checks`, `provider_request_attempts`, `provider_webhook_events`, helper functions `can_create_approved_plan_snapshot`, `active_worker_claim_exists`, and `can_claim_worker_job`, plus RLS, indexes, uniqueness constraints, and updated-at triggers.
+- Creates: extensions to `approved_plan_snapshots`, service-only `api_idempotency_keys`, `upload_intents`, `storage_object_records`, `signed_url_events`, `worker_job_claims`, `tool_runtime_checks`, `provider_request_attempts`, `provider_webhook_events`, service-only helper functions `can_create_approved_plan_snapshot`, `active_worker_claim_exists`, and `can_claim_worker_job`, plus forced RLS, indexes, uniqueness constraints, and updated-at triggers.
 - Does not create: remote Supabase execution, deployed backend handlers, signed URL generation, Cloud Run workers, provider calls, render execution, Stripe, secret reads, real uploads, or production migration execution.
 - Notes: Workers must execute approved snapshots, not raw chat. Expensive work remains blocked until approved edit plan, approved credit estimate, credit reservation, idempotency, worker claim, storage, timing, and QA gates are implemented by future backend/service-role code.
+
+## 15. RP-FIX-12 Approved Snapshot Transaction + Immutability Hardening
+
+- File: `migrations/202605270001_approved_snapshot_transaction_and_immutability.sql`
+- Purpose: Hardens approved snapshot transaction creation, immutable snapshot fields, and backend readiness checks for approved plan snapshots.
+- Depends on: RP-DB-03 core workspaces/projects/chat/media, RP-DB-04 edit plans, RP-DB-06 credit estimates/approvals/reservations, and RP-E2E-READY-01 approved snapshot/idempotency readiness.
+- Creates: additional approved snapshot compatibility columns, immutability enforcement helpers/triggers, atomic approved snapshot creation RPC, and supporting indexes/checks.
+- Does not create: provider execution, workers, frontend Supabase wiring, render jobs, billing, storage credentials, or production deployment.
+
+## 16. Milestone 17 / RP-DB-11 Footage Prep + Source Understanding
+
+- File: `migrations/202605280001_rp_db_11_footage_prep_source_understanding.sql`
+- Purpose: Adds the production schema foundation for Footage Prep and Source Understanding before creative planning.
+- Depends on: RP-DB-03 core workspaces, projects, media assets, user profiles, workspace RLS helpers, and `public.set_updated_at()`.
+- Creates: `footage_prep_sessions`, `asset_analysis_reports`, `transcript_segments`, `transcript_words`, `scene_segments`, `silence_regions`, `retake_groups`, `retake_group_candidates`, `source_quality_flags`, `source_understanding_maps`, RLS policies, indexes, constraints, comments, and validation coverage.
+- Does not create: frontend Supabase wiring, API routes, workers, real transcription, real media analysis, real provider calls, Clean Assembly tables, Edit Brief/Edit Cue tables, Professional Integration tables, Edit Map tables, Revision/Export tables, render jobs, backend adapters, storage credentials, or secrets.
+- Notes: The earlier "RP-DB-11 Database QA + Mock Scenario" entry is a historical local QA artifact with no production migration file. This Milestone 17 entry is the additive production schema migration for Footage Prep and Source Understanding.
+
+## 17. Milestone 18 / RP-DB-12 Cleanup Plan + Clean Assembly
+
+- File: `migrations/202605280002_rp_db_12_cleanup_plan_clean_assembly.sql`
+- Purpose: Adds the production schema foundation for non-destructive Cleanup Plan, Clean Assembly, source time mapping, and cleanup review decisions before creative planning.
+- Depends on: RP-DB-03 core workspaces/projects/media, RP-DB-11 Footage Prep + Source Understanding tables, workspace RLS helpers, and `public.set_updated_at()`.
+- Creates: `cleanup_plans`, `cleanup_plan_items`, `clean_assemblies`, `source_time_mappings`, `clean_assembly_segments`, `cleanup_review_cards`, `cleanup_review_item_states`, `cleanup_review_operations`, RLS policies, indexes, constraints, comments, and validation coverage.
+- Does not create: frontend Supabase wiring, API routes, workers, real media cleanup, real transcription, real media analysis, real provider calls, Edit Brief/Edit Cue tables, Professional Integration tables, Edit Map tables, Revision/Export tables, render jobs, backend adapters, storage credentials, or secrets.
+- Notes: Raw uploaded media remains immutable. Source time mappings preserve relationships between raw source time, clean assembly time, and future final edit time.
+
+## 18. Milestone 19 / RP-DB-13 Edit Brief + Edit Cues
+
+- File: `migrations/202605280003_rp_db_13_edit_brief_edit_cues.sql`
+- Purpose: Adds the production schema foundation for optional Edit Brief direction and precise Edit Cues before AI planning.
+- Depends on: RP-DB-03 core chat/media/source sequence tables, RP-DB-04 edit plans/segments, RP-DB-12 Cleanup Plan + Clean Assembly tables, workspace RLS helpers, and `public.set_updated_at()`.
+- Creates: `edit_briefs`, `edit_brief_operations`, `edit_cues`, `edit_cue_operations`, `edit_cue_anchors`, `edit_cue_assets`, `edit_cue_remap_results`, `edit_cue_conflicts`, `edit_cue_conflict_operations`, `edit_cue_plan_mappings`, `edit_cue_chat_cards`, RLS policies, indexes, constraints, comments, and validation coverage.
+- Does not create: frontend Supabase wiring, API routes, workers, real planning, provider calls, media processing, Professional Integration tables, Edit Map tables, Revision/Export tables, render jobs, backend adapters, storage credentials, or secrets.
+- Notes: Edit Brief and Edit Cues are optional planning inputs. Cue records never go directly to render.

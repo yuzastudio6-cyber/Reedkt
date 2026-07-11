@@ -4,7 +4,19 @@ This repository targets the Supabase project named `reeditpro`.
 
 Do not use or reference the Yuza Studio Supabase project for this repo. Do not commit Supabase credentials, service role keys, API keys, `.env` secrets, provider credentials, or signed URLs.
 
-## Migration Order
+## Migration Baseline Blocker
+
+Do not run the raw `migrations/` directory. It currently contains incompatible `20260513` and `20260518` foundations plus later SQL that depends on both families. `create table if not exists` does not reconcile the conflicting columns.
+
+Run the non-mutating audit:
+
+```bash
+npm run audit:supabase-migration-baseline
+```
+
+The current expected result is `blocked_by_parallel_foundations`. See `docs/supabase-migration-baseline-reconciliation.md`. A new isolated canonical chain and clean local reset are required before staging, production, or durable Supabase Edit Preferences.
+
+## Historical Migration Catalog
 
 ### RP-DB-03: Core ReeditPro Tables
 
@@ -288,34 +300,6 @@ The migration uses safe direct foreign keys for core workspace/project/chat/edit
 
 This migration includes enum types, structured tables, indexes, updated-at triggers, RLS policies, comments, and local views. It does not connect to Supabase remotely, run remote migrations, call AI/provider APIs, integrate Lyria/Mirelo/MMAudio, render media, deploy Google Cloud, add secrets, integrate Stripe, or build frontend/mobile UI.
 
-### RP-AUDIO-01: SoundSync Music Intelligence Architecture
-
-RP-AUDIO-01 adds documentation-only architecture for SoundSync Music Intelligence, Reference Music DNA, Lyria Pro prompt planning, generated music asset strategy, SFX licensing, and the audio milestone roadmap.
-
-It creates no Supabase migration and does not connect to Supabase, call Lyria Pro or Google APIs, add provider secrets, deploy workers, upload media, render audio/video, integrate Stripe, or build mobile screens. Future RP-AUDIO migrations should follow the existing approval and credit gates before any music generation job can run.
-
-### RP-AUDIO-03: SoundSync Music Intelligence Tables
-
-`migrations/202605130009_soundsync_music_intelligence.sql` creates the SoundSync Music Intelligence database layer:
-
-- music context analyses
-- language/culture music contexts
-- music style taxonomy
-- reference music DNA
-- music cue sheets and per-scene cues
-- future Lyria Pro prompt plans and prompt segments
-- generated music track records
-- track analysis, music QA, and mix/ducking plans
-- library candidate records
-- audio license/provenance and usage records
-- bought/commissioned/ReeditPro-owned SFX library assets
-
-This migration supports professional music planning before generation. One edit can have one cue or many cues, language/culture-aware music is modeled without forcing stereotypes, and lyrics vs instrumental policy is stored per cue so important speech remains voice-first.
-
-Lyria Pro prompt plans are stored for future use, but this migration does not call Lyria Pro, Google APIs, workers, renderers, or any provider. Generated music starts as a project asset. Library promotion requires QA and provider terms/licensing review before reuse across users. SFX records support bought or commissioned sounds with provenance tracking.
-
-RP-AUDIO-03 does not connect to Supabase remotely, add secrets, deploy Google Cloud, generate music, render audio/video, integrate Stripe, build uploads, or build mobile screens.
-
 ## Source Clip Order
 
 Uploaded or sent clip order is stored as a source sequence. This is the order the user filmed the clips or believes they belong.
@@ -359,7 +343,7 @@ It keeps the active bucket ids from RP-DATA-04:
 - `qa-artifacts`
 - `worker-temp`
 
-It adds conservative storage object policies for `workspace/{workspace_id}/project/{project_id}/...` paths. Direct browser writes remain limited to source media and thumbnails for project editors. Generated assets, previews, exports, QA artifacts, worker temp files, profile assets, and brand assets should use backend workers or signed upload routes until production policies are validated.
+It replaces the legacy flat project-path policies with storage object policies for `workspaces/{workspace_id}/projects/{project_id}/...` paths. The path workspace must match the project's actual workspace. Direct browser writes remain limited to size/MIME-constrained source media and thumbnails for project editors. Generated assets, previews, exports, QA artifacts, worker temp files, profile assets, and brand assets should use backend workers or signed upload routes until production policies are validated.
 
 This migration has not been run locally, in staging, or in production.
 
@@ -373,7 +357,7 @@ It creates:
 - `backend_runtime_messages`
 - `job_claim_attempts`
 
-The migration is conservative: authenticated users can read records for workspaces/projects they belong to, while insert/update/delete are reserved for future service-role backend workers. It has not been run locally, in staging, or in production.
+The migration treats these as backend control-plane tables. `lease_token`, raw runtime payloads, worker identity, and claim metadata are not exposed to authenticated browser clients; all access is reserved for service-role backend workers. User-facing progress must come from sanitized backend DTOs or a later dedicated status view. It has not been run locally, in staging, or in production.
 
 ### RP-E2E-READY-01: Runtime Database Foundation
 
@@ -390,7 +374,7 @@ It extends the existing `approved_plan_snapshots` table and adds:
 - `provider_request_attempts`
 - `provider_webhook_events`
 
-The migration adds helper functions for approved snapshot readiness and worker claim safety, enables RLS on the new tables, and keeps privileged writes reserved for future service-role backend/worker paths. Canonical storage records store bucket and object path only; signed URL audit events do not store the signed URL.
+The migration adds service-only helper functions for approved snapshot readiness and worker claim safety, enables and forces RLS on the new tables, and reserves the runtime/idempotency/provider bases for service-role backend/worker paths. Canonical storage records store bucket and object path only; signed URL audit events do not store the signed URL. Browser-facing routes must return sanitized DTOs instead of raw runtime rows.
 
 This migration has not been run locally, in staging, or in production. It does not connect to Supabase remotely, generate signed URLs, deploy workers, call providers, install tools, render media, add secrets, add Stripe, or spend credits.
 

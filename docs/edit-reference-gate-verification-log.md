@@ -166,6 +166,7 @@ One parallel full-suite run exposed a detached locator in the pre-existing dashb
 - Supabase CLI/SQL/remote mutation: not performed.
 - Provider/media/worker/render/credit execution: not performed.
 - Production ready: false.
+
 ## Gate 2 — Evidence And Study Orchestration — 2026-07-11
 
 ### Commit
@@ -305,6 +306,81 @@ One unregistered historical `project-edit-session-preference-dna-smoke.ts` remai
 - Live provider/media/worker/render/credit execution: not run.
 - Production Supabase/RLS/cross-device authority: blocked by the existing canonical migration gate.
 - Next gate: Gate 4 — Preference DNA QA, correction, review, and approval.
+
+### Remote State
+
+- Push/PR/remote merge: not performed.
+- Supabase CLI/SQL/remote mutation: not performed.
+- Provider/media/worker/render/credit execution: not performed.
+- Production ready: false.
+
+## Gate 4 — Preference DNA QA And Approval — 2026-07-11
+
+### Commit
+
+- Commit: `f64aa2690f9b1865139b70061445f05fdce84615`
+- Message: `Add Edit Reference DNA QA and approval`
+- Files: 27
+- Migration count before/after: 21 / 21
+- Production ready: false
+
+### Implemented Vertical Slice
+
+```text
+immutable Preference DNA review candidate
+→ run twelve deterministic checks against exact DNA/evidence digests
+→ block integrity, coverage, copy, identity, or production-boundary failures
+→ expose non-blocking confidence/conflict limits for review
+→ require exact-version adapt-not-copy acknowledgement
+→ approve Version 1 without applying it
+→ correct evidence and independently review/approve Version 2
+→ retain immutable Version 1 DNA, QA, and approval history
+→ reload the same active approved version
+```
+
+Gate 4 evaluates the canonical Gate 3 `PreferenceDNAVersionRecord` rather than calling the older mock QA engine as a competing authority. Required layers come from the selected study goals plus universal transferable and do-not-copy layers. This preserves the established QA vocabulary while allowing a focused color-only, B-roll-only, or other scoped study to pass its real goal contract.
+
+### API, Persistence, Safety, And UI Evidence
+
+- Authenticated QA and approval routes require expected study revision, exact DNA version/content digest, exact QA link, strict request shapes, and durable idempotency.
+- One immutable QA result per version freezes twelve stable checks, decision/status, linked evidence/layer/rule IDs, exact content/evidence digests, a QA content digest, and false production side-effect flags.
+- Cross-workspace access, wrong digest, duplicate QA, changed replay input, blocked approval, and missing review acknowledgement fail without mutation.
+- The private aggregate validates check identity/uniqueness, digest and provenance links, status derivation, collection bounds, approval-to-QA identity, acknowledgement, approved/superseded lifecycle history, checksum, scope, and privacy on every read.
+- Corrected evidence after Version 1 approval resets active readiness without rewriting that historical approval. Version 2 receives independent QA/approval and then supersedes Version 1 lifecycle status while retaining Version 1 content, QA, approval, and timestamp.
+- Study Chat keeps one focused QA/approval sequence inside the existing DNA review. Non-passing findings stay visible, passed checks remain collapsed, blockers route to evidence correction, and approval remains disabled until acknowledgement.
+- Approved state uses success semantics and explicitly says the exact version has not been applied to a target edit and production has not started.
+- Design authority remained `design.md` -> `design-system/` -> current ReEditPro UI/UX documents -> UI UX Pro Max supporting guidance.
+- A stricter user-copy check caught provider/worker and digest language in expandable QA details during verification. The final UI keeps those facts in backend evidence and uses plain production-boundary copy instead.
+- Desktop and 375px viewport review/approved states passed screenshot inspection, interaction-target review, responsive stacking, page-width equality, no horizontal overflow, and zero console/page errors.
+
+### Verification Results
+
+| Command / check | Result | Evidence |
+| --- | --- | --- |
+| `npm run smoke:edit-reference-dna-qa-approval` | Pass | Determinism, twelve checks, blockers, cross-workspace rejection, duplicate rejection, replay, exact approval, Version 2, restart, privacy, all seven study-goal policies, and false side effects verified |
+| Gate 1–3 repository/API/client/UI/control-plane smokes | Pass | Existing canonical Edit Reference behavior preserved |
+| Preference Video Study/DNA/QA/application regressions | Pass | Imported compatibility/mock architecture remains unchanged and truthful |
+| `npm run smoke:project-edit-brief-marker-context` | Pass | Existing bounded downstream marker context remains intact |
+| `npm run smoke:lovable-dashboard-ui-alignment` | Pass | Route/navigation hierarchy preserved |
+| `npm run check:frontend-boundary` | Pass | 636 frontend files checked; no backend runtime imported into React |
+| App/server typechecks and lint | Pass | No TypeScript or ESLint failures |
+| `npm run build` | Pass | 2,555 client modules transformed; existing large-chunk warnings disclosed |
+| `npm run build:server` | Pass | 580 server modules transformed |
+| Focused Edit Reference Playwright | Pass | 5/5 tests, including QA, acknowledgement, Version 1/2 approval, correction, reload, and internal-copy exclusion |
+| Full deterministic Playwright | Pass | 53/53 Chromium tests passed in 1.4 minutes on the final code |
+| Desktop/mobile screenshot review | Pass | Review and approved states checked at 1440px and 375px with no overflow or console/page errors |
+| Staged secret/path scan | Pass | No credential patterns, environment files, AppleDouble, results, build output, migrations, lockfile, or binary files staged |
+| `npm run check:edit-reference-goal-postgate` | Pass | Canonical root/branch/ancestry, 21 migrations, conflicts, status, and production-ready false verified |
+
+### Readiness And Next Gate
+
+- Backend-local exact-version QA/approval persistence/reload: verified.
+- Deterministic integrity, selected-goal coverage, confidence, conflict, transferability, copy, identity/source, and production-boundary checks: verified mock.
+- Browser QA, acknowledgement, approval, correction, historical-version review, and responsive behavior: verified.
+- Target-video adaptation and Preference Application: not run.
+- Live provider/media/worker/render/credit execution: not run.
+- Production Supabase/RLS/cross-device authority: blocked by the existing canonical migration gate.
+- Next gate: Gate 5 — target-video adaptation and Preference Application.
 
 ### Remote State
 

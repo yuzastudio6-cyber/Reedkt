@@ -1,0 +1,494 @@
+import { createHash, randomUUID } from 'node:crypto'
+import { constants } from 'node:fs'
+import { chmod, lstat, mkdir, open, rename, rm } from 'node:fs/promises'
+import { dirname, relative, resolve, sep } from 'node:path'
+import { ApiError } from '../errors/api-error'
+import {
+  EDIT_REFERENCE_AGGREGATE_VERSION,
+  type EditReferenceAggregate,
+  type EditReferenceAuditEvent,
+  type EditReferenceMutationInput,
+  type EditReferenceMutationResult,
+  type EditReferenceRepository,
+  type EditReferenceRepositoryScope,
+} from './edit-reference-repository'
+
+const RECORD_VERSION = 'edit-reference-private-envelope-v1' as const
+const RECORD_SOURCE = 'edit_reference_private_repository' as const
+const DIRECTORY_MODE = 0o700
+const FILE_MODE = 0o600
+const MAX_AGGREGATE_BYTES = 8 * 1024 * 1024
+const MAX_REFERENCES = 200
+const MAX_STUDIES = 1_000
+const MAX_MESSAGES = 10_000
+const MAX_AUDIT_EVENTS = 2_000
+const MAX_IDEMPOTENCY_RECORDS = 512
+
+interface PersistedEnvelope {
+  recordVersion: typeof RECORD_VERSION
+  source: typeof RECORD_SOURCE
+  aggregate: EditReferenceAggregate
+  checksumSha256: string
+}
+
+const scopeLocks = new Map<string, Promise<void>>()
+
+export class PrivateEditReferenceRepository implements EditReferenceRepository {
+  readonly persistence = 'backend_local_private' as const
+
+  async read(scope: EditReferenceRepositoryScope): Promise<EditReferenceAggregate | undefined> {
+    return readAggregate(scope)
+  }
+
+  async mutate(input: EditReferenceMutationInput): Promise<EditReferenceMutationResult> {
+    return withScopeLock(input.scope, async () => {
+      const existing = await readAggregate(input.scope)
+      const aggregate = existing ? clone(existing) : createAggregate(input.scope)
+      const keyCollision = aggregate.idempotencyRecords.find((record) => record.key === input.idempotencyKey)
+      if (keyCollision) {
+        if (keyCollision.operation !== input.operation || keyCollision.requestHash !== input.requestHash) {
+          throw new ApiError(
+            'IDEMPOTENCY_CONFLICT',
+            'The idempotency key was already committed for a different Edit Reference request.',
+            409,
+            { operation: keyCollision.operation, committedRevision: keyCollision.committedRevision },
+          )
+        }
+        return { data: clone(keyCollision.responseSnapshot), replayed: true }
+      }
+      if (aggregate.idempotencyRecords.length >= MAX_IDEMPOTENCY_RECORDS) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'The private Edit Reference idempotency ledger reached its safe local bound.',
+          503,
+          { reason: 'idempotency_ledger_capacity_reached', maximumRecords: MAX_IDEMPOTENCY_RECORDS },
+        )
+      }
+
+      const nextRevision = aggregate.revision + 1
+      const now = new Date().toISOString()
+      const pendingAuditEvents: EditReferenceAuditEvent[] = []
+      const data = input.mutate({
+        now,
+        actorUserId: input.scope.ownerUserId,
+        aggregate,
+        addAuditEvent: (event) => pendingAuditEvents.push({
+          ...event,
+          id: `edit-reference-audit-${randomUUID()}`,
+          actorUserId: input.scope.ownerUserId,
+          aggregateRevision: nextRevision,
+          createdAt: now,
+        }),
+      })
+
+      aggregate.revision = nextRevision
+      aggregate.updatedAt = now
+      aggregate.auditEvents.push(...pendingAuditEvents)
+      aggregate.auditEvents = aggregate.auditEvents.slice(-MAX_AUDIT_EVENTS)
+      aggregate.idempotencyRecords.push({
+        operation: input.operation,
+        key: input.idempotencyKey,
+        requestHash: input.requestHash,
+        responseSnapshot: clone(data),
+        committedRevision: nextRevision,
+        completedAt: now,
+      })
+      assertAggregate(aggregate, input.scope)
+      await writeAggregate(input.scope, aggregate)
+      return { data: clone(data), replayed: false }
+    })
+  }
+}
+
+export function hashEditReferenceRequest(value: unknown): string {
+  return sha256(stableStringify(value))
+}
+
+export function editReferenceScopeHash(ownerUserId: string, workspaceId: string): string {
+  return sha256(`${ownerUserId}\u0000${workspaceId}`)
+}
+
+export function clearEditReferenceRepositoryProcessStateForSmoke(): void {
+  scopeLocks.clear()
+}
+
+function createAggregate(scope: EditReferenceRepositoryScope): EditReferenceAggregate {
+  const now = new Date().toISOString()
+  return {
+    schemaVersion: EDIT_REFERENCE_AGGREGATE_VERSION,
+    ownerUserId: scope.ownerUserId,
+    workspaceId: scope.workspaceId,
+    scopeHash: editReferenceScopeHash(scope.ownerUserId, scope.workspaceId),
+    revision: 0,
+    references: [],
+    studies: [],
+    messages: [],
+    evidence: [],
+    assets: [],
+    skillRuns: [],
+    dnaVersions: [],
+    dnaQaResults: [],
+    applications: [],
+    usageLogs: [],
+    auditEvents: [],
+    idempotencyRecords: [],
+    createdAt: now,
+    updatedAt: now,
+    privateInternalOnly: true,
+  }
+}
+
+async function readAggregate(scope: EditReferenceRepositoryScope): Promise<EditReferenceAggregate | undefined> {
+  const target = pathsFor(scope)
+  const bytes = await readPrivateFile(target.root, target.file)
+  if (!bytes) return undefined
+  if (bytes.byteLength > MAX_AGGREGATE_BYTES) throw invalidAggregate('aggregate_exceeds_byte_ceiling')
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(bytes.toString('utf8'))
+  } catch {
+    throw invalidAggregate('aggregate_is_not_valid_json')
+  }
+  if (!isRecord(parsed)) throw invalidAggregate('aggregate_envelope_is_not_an_object')
+  const envelope = parsed as Partial<PersistedEnvelope>
+  if (
+    envelope.recordVersion !== RECORD_VERSION
+    || envelope.source !== RECORD_SOURCE
+    || !isRecord(envelope.aggregate)
+    || typeof envelope.checksumSha256 !== 'string'
+  ) {
+    throw invalidAggregate('aggregate_envelope_is_invalid')
+  }
+  if (envelope.checksumSha256 !== sha256(stableStringify(envelope.aggregate))) {
+    throw invalidAggregate('aggregate_checksum_mismatch')
+  }
+  const aggregate = envelope.aggregate as unknown as EditReferenceAggregate
+  assertAggregate(aggregate, scope)
+  return clone(aggregate)
+}
+
+async function writeAggregate(scope: EditReferenceRepositoryScope, aggregate: EditReferenceAggregate): Promise<void> {
+  const target = pathsFor(scope)
+  const envelope: PersistedEnvelope = {
+    recordVersion: RECORD_VERSION,
+    source: RECORD_SOURCE,
+    aggregate,
+    checksumSha256: sha256(stableStringify(aggregate)),
+  }
+  const content = `${JSON.stringify(envelope, null, 2)}\n`
+  if (Buffer.byteLength(content) > MAX_AGGREGATE_BYTES) throw invalidAggregate('aggregate_exceeds_byte_ceiling')
+  await writePrivateFileAtomic(target.root, target.file, content)
+}
+
+function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReferenceRepositoryScope): void {
+  if (!isRecord(aggregate)) throw invalidAggregate('aggregate_is_not_an_object')
+  if (
+    aggregate.schemaVersion !== EDIT_REFERENCE_AGGREGATE_VERSION
+    || aggregate.ownerUserId !== scope.ownerUserId
+    || aggregate.workspaceId !== scope.workspaceId
+    || aggregate.scopeHash !== editReferenceScopeHash(scope.ownerUserId, scope.workspaceId)
+    || aggregate.privateInternalOnly !== true
+    || !Number.isSafeInteger(aggregate.revision)
+    || aggregate.revision < 0
+  ) throw invalidAggregate('aggregate_identity_is_invalid')
+
+  const arrays = [
+    aggregate.references,
+    aggregate.studies,
+    aggregate.messages,
+    aggregate.evidence,
+    aggregate.assets,
+    aggregate.skillRuns,
+    aggregate.dnaVersions,
+    aggregate.dnaQaResults,
+    aggregate.applications,
+    aggregate.usageLogs,
+    aggregate.auditEvents,
+    aggregate.idempotencyRecords,
+  ]
+  if (arrays.some((value) => !Array.isArray(value))) throw invalidAggregate('aggregate_collection_is_invalid')
+  if (aggregate.references.length > MAX_REFERENCES) throw invalidAggregate('too_many_references')
+  if (aggregate.studies.length > MAX_STUDIES) throw invalidAggregate('too_many_studies')
+  if (aggregate.messages.length > MAX_MESSAGES) throw invalidAggregate('too_many_messages')
+  if (aggregate.auditEvents.length > MAX_AUDIT_EVENTS) throw invalidAggregate('too_many_audit_events')
+  if (aggregate.idempotencyRecords.length > MAX_IDEMPOTENCY_RECORDS) throw invalidAggregate('too_many_idempotency_records')
+
+  assertUniqueIds(aggregate.references, 'reference')
+  assertUniqueIds(aggregate.studies, 'study')
+  assertUniqueIds(aggregate.messages, 'message')
+  assertUniqueIds(aggregate.evidence, 'evidence')
+  assertUniqueIds(aggregate.assets, 'asset')
+  assertUniqueIds(aggregate.skillRuns, 'skill_run')
+  assertUniqueIds(aggregate.dnaVersions, 'dna_version')
+  assertUniqueIds(aggregate.dnaQaResults, 'dna_qa')
+  assertUniqueIds(aggregate.applications, 'application')
+  assertUniqueIds(aggregate.usageLogs, 'usage_log')
+  assertUniqueIds(aggregate.auditEvents, 'audit_event')
+  const idempotencyKeys = new Set<string>()
+  for (const record of aggregate.idempotencyRecords) {
+    if (
+      !isRecord(record)
+      || typeof record.key !== 'string'
+      || !record.key
+      || typeof record.operation !== 'string'
+      || typeof record.requestHash !== 'string'
+      || !isRecord(record.responseSnapshot)
+    ) throw invalidAggregate('idempotency_record_invalid')
+    if (idempotencyKeys.has(record.key)) throw invalidAggregate('idempotency_key_duplicate')
+    idempotencyKeys.add(record.key)
+  }
+
+  const referenceIds = new Set(aggregate.references.map((record) => record.id))
+  const studyIds = new Set(aggregate.studies.map((record) => record.id))
+  for (const reference of aggregate.references) {
+    assertWorkspace(reference, scope.workspaceId)
+    if (!reference.name || reference.name.length > 120 || !['active', 'archived'].includes(reference.status)) {
+      throw invalidAggregate('reference_contract_invalid')
+    }
+    if (!studyIds.has(reference.currentStudyId)) throw invalidAggregate('reference_current_study_missing')
+  }
+  for (const study of aggregate.studies) {
+    assertWorkspace(study, scope.workspaceId)
+    if (!study.title || study.title.length > 160 || !isStudyStatus(study.status)) throw invalidAggregate('study_contract_invalid')
+    if (!referenceIds.has(study.editReferenceId)) throw invalidAggregate('study_reference_missing')
+  }
+  const messageSequences = new Set<string>()
+  for (const message of aggregate.messages) {
+    assertWorkspace(message, scope.workspaceId)
+    if (
+      !['user', 'assistant', 'system'].includes(message.role)
+      || !['user_input', 'deterministic_setup'].includes(message.runtimeSource)
+      || !message.content
+      || message.content.length > 8_000
+      || !Number.isSafeInteger(message.sequence)
+      || message.sequence < 1
+    ) throw invalidAggregate('message_contract_invalid')
+    const sequenceKey = `${message.studySessionId}:${message.sequence}`
+    if (messageSequences.has(sequenceKey)) throw invalidAggregate('message_sequence_duplicate')
+    messageSequences.add(sequenceKey)
+    if (!referenceIds.has(message.editReferenceId) || !studyIds.has(message.studySessionId)) {
+      throw invalidAggregate('message_link_is_invalid')
+    }
+  }
+  for (const collection of [aggregate.evidence, aggregate.assets, aggregate.skillRuns]) {
+    for (const record of collection) {
+      assertWorkspace(record, scope.workspaceId)
+      if (!referenceIds.has(record.editReferenceId) || !studyIds.has(record.studySessionId)) {
+        throw invalidAggregate('future_artifact_link_is_invalid')
+      }
+    }
+  }
+  for (const record of aggregate.dnaVersions) {
+    assertWorkspace(record, scope.workspaceId)
+    if (!referenceIds.has(record.editReferenceId) || !studyIds.has(record.studySessionId)) {
+      throw invalidAggregate('dna_link_is_invalid')
+    }
+  }
+  for (const record of aggregate.applications) {
+    assertWorkspace(record, scope.workspaceId)
+    if (!referenceIds.has(record.editReferenceId)) throw invalidAggregate('application_reference_missing')
+  }
+  for (const record of aggregate.usageLogs) {
+    assertWorkspace(record, scope.workspaceId)
+    if (!referenceIds.has(record.editReferenceId)) throw invalidAggregate('usage_reference_missing')
+  }
+  if (findForbiddenPersistenceKey(aggregate)) throw invalidAggregate('forbidden_private_payload_field')
+}
+
+function assertWorkspace(value: unknown, workspaceId: string): void {
+  if (!isRecord(value) || value.workspaceId !== workspaceId) throw invalidAggregate('workspace_scope_mismatch')
+}
+
+function assertUniqueIds(values: unknown[], label: string): void {
+  const ids = new Set<string>()
+  for (const value of values) {
+    if (!isRecord(value) || typeof value.id !== 'string' || !value.id) throw invalidAggregate(`${label}_id_invalid`)
+    if (ids.has(value.id)) throw invalidAggregate(`${label}_id_duplicate`)
+    ids.add(value.id)
+  }
+}
+
+function findForbiddenPersistenceKey(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(findForbiddenPersistenceKey)
+  if (!isRecord(value)) return false
+  for (const [key, child] of Object.entries(value)) {
+    const normalized = key.toLowerCase().replace(/[^a-z0-9]/g, '')
+    if (['rawframes', 'rawproviderpayload', 'signedurl', 'apikey', 'servicerolekey', 'accesstoken'].includes(normalized)) {
+      return true
+    }
+    if (findForbiddenPersistenceKey(child)) return true
+  }
+  return false
+}
+
+async function withScopeLock<T>(scope: EditReferenceRepositoryScope, operation: () => Promise<T>): Promise<T> {
+  const key = editReferenceScopeHash(scope.ownerUserId, scope.workspaceId)
+  const previous = scopeLocks.get(key) ?? Promise.resolve()
+  let release!: () => void
+  const current = new Promise<void>((resolvePromise) => { release = resolvePromise })
+  const queued = previous.then(() => current)
+  scopeLocks.set(key, queued)
+  await previous
+  try {
+    return await operation()
+  } finally {
+    release()
+    if (scopeLocks.get(key) === queued) scopeLocks.delete(key)
+  }
+}
+
+function pathsFor(scope: EditReferenceRepositoryScope): { root: string; file: string } {
+  const root = resolve(scope.localStorageRoot)
+  const hash = editReferenceScopeHash(scope.ownerUserId, scope.workspaceId)
+  return { root, file: resolve(root, 'edit-reference-private', 'scopes', hash, 'aggregate.json') }
+}
+
+async function readPrivateFile(root: string, file: string): Promise<Buffer | undefined> {
+  assertInside(root, file)
+  if (!await validateExistingDirectoryChain(root, dirname(file), true)) return undefined
+  let handle: Awaited<ReturnType<typeof open>> | undefined
+  try {
+    handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW)
+  } catch (error) {
+    if (isNodeError(error, 'ENOENT')) return undefined
+    throw error
+  }
+  try {
+    const stat = await handle.stat()
+    if (!stat.isFile() || stat.size > MAX_AGGREGATE_BYTES) throw unsafePath('private_file_is_not_safe')
+    await handle.chmod(FILE_MODE)
+    return await handle.readFile()
+  } finally {
+    await handle.close()
+  }
+}
+
+async function writePrivateFileAtomic(root: string, file: string, content: string): Promise<void> {
+  assertInside(root, file)
+  await ensurePrivateDirectoryChain(root, dirname(file))
+  await assertSafeTarget(file)
+  const temporary = `${file}.tmp-${process.pid}-${randomUUID()}`
+  let handle: Awaited<ReturnType<typeof open>> | undefined
+  try {
+    handle = await open(
+      temporary,
+      constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW,
+      FILE_MODE,
+    )
+    await handle.writeFile(content)
+    await handle.chmod(FILE_MODE)
+    await handle.sync()
+    await handle.close()
+    handle = undefined
+    await validateExistingDirectoryChain(root, dirname(file), false)
+    await assertSafeTarget(file)
+    await rename(temporary, file)
+    await chmod(file, FILE_MODE)
+    const directory = await open(dirname(file), constants.O_RDONLY)
+    try { await directory.sync() } finally { await directory.close() }
+  } finally {
+    await handle?.close().catch(() => undefined)
+    await rm(temporary, { force: true }).catch(() => undefined)
+  }
+}
+
+async function ensurePrivateDirectoryChain(root: string, directory: string): Promise<void> {
+  assertInside(root, directory)
+  await mkdir(root, { recursive: true, mode: DIRECTORY_MODE })
+  await assertDirectory(root)
+  let cursor = root
+  for (const part of relative(root, directory).split(sep).filter(Boolean)) {
+    cursor = resolve(cursor, part)
+    try {
+      await mkdir(cursor, { mode: DIRECTORY_MODE })
+    } catch (error) {
+      if (!isNodeError(error, 'EEXIST')) throw error
+    }
+    await assertDirectory(cursor)
+  }
+}
+
+async function assertDirectory(path: string): Promise<void> {
+  const stat = await lstat(path)
+  if (stat.isSymbolicLink() || !stat.isDirectory()) throw unsafePath('private_directory_chain_is_not_safe')
+  await chmod(path, DIRECTORY_MODE)
+}
+
+async function validateExistingDirectoryChain(root: string, directory: string, allowMissing: boolean): Promise<boolean> {
+  assertInside(root, directory)
+  const relativePath = relative(root, directory)
+  const paths = [root]
+  let cursor = root
+  for (const part of relativePath.split(sep).filter(Boolean)) {
+    cursor = resolve(cursor, part)
+    paths.push(cursor)
+  }
+  for (const path of paths) {
+    let stat: Awaited<ReturnType<typeof lstat>>
+    try { stat = await lstat(path) } catch (error) {
+      if (allowMissing && isNodeError(error, 'ENOENT')) return false
+      throw error
+    }
+    if (stat.isSymbolicLink() || !stat.isDirectory()) throw unsafePath('private_directory_chain_is_not_safe')
+    await chmod(path, DIRECTORY_MODE)
+  }
+  return true
+}
+
+async function assertSafeTarget(file: string): Promise<void> {
+  try {
+    const stat = await lstat(file)
+    if (stat.isSymbolicLink() || !stat.isFile()) throw unsafePath('private_target_is_not_regular')
+  } catch (error) {
+    if (isNodeError(error, 'ENOENT')) return
+    throw error
+  }
+}
+
+function assertInside(root: string, target: string): void {
+  const normalizedRoot = resolve(root)
+  const normalizedTarget = resolve(target)
+  if (normalizedTarget !== normalizedRoot && !normalizedTarget.startsWith(`${normalizedRoot}${sep}`)) {
+    throw unsafePath('private_path_escapes_root')
+  }
+}
+
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`
+  if (isRecord(value)) {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`
+  }
+  return JSON.stringify(value)
+}
+
+function sha256(value: string): string {
+  return createHash('sha256').update(value).digest('hex')
+}
+
+function clone<T>(value: T): T {
+  return structuredClone(value)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+function isNodeError(error: unknown, code: string): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === code
+}
+
+function isStudyStatus(value: unknown): boolean {
+  return [
+    'draft', 'collecting_evidence', 'ready_to_study', 'studying', 'needs_clarification', 'evidence_ready',
+    'dna_ready', 'qa_blocked', 'needs_user_review', 'approved', 'applied', 'archived', 'failed',
+  ].includes(String(value))
+}
+
+function invalidAggregate(reason: string): ApiError {
+  return new ApiError('INTERNAL_ERROR', 'Private Edit Reference persistence failed integrity validation.', 500, { reason })
+}
+
+function unsafePath(reason: string): ApiError {
+  return new ApiError('LOCAL_STORAGE_REQUIRED', 'Private Edit Reference persistence path is unsafe.', 500, { reason })
+}

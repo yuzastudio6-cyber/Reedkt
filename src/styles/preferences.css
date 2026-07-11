@@ -1,5 +1,588 @@
 /* RP-PREF-06 mock Edit Preference sidebar library. */
 
+/* RP-GOAL-EDITREFERENCE Gate 1 — durable backend-local study workspace. */
+
+.edit-reference-workspace {
+  display: grid;
+  gap: var(--rp-space-5);
+  margin-top: var(--rp-space-6);
+  min-width: 0;
+}
+
+.edit-reference-tabs {
+  align-items: center;
+  background: rgba(9, 15, 27, 0.9);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  display: flex;
+  gap: var(--rp-space-1);
+  overflow-x: auto;
+  padding: var(--rp-space-2);
+}
+
+.edit-reference-tabs button {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  min-height: 44px;
+  padding: 0 var(--rp-space-4);
+}
+
+.edit-reference-tabs button:hover,
+.edit-reference-tabs button.active {
+  background: rgba(37, 99, 255, 0.16);
+  border-color: rgba(0, 229, 255, 0.28);
+  color: var(--rp-text-primary);
+}
+
+.edit-reference-tabs button.active {
+  box-shadow: inset 0 -2px 0 var(--rp-brand-cyan);
+}
+
+.edit-reference-tab-panel {
+  display: grid;
+  gap: var(--rp-space-4);
+  min-width: 0;
+}
+
+.edit-reference-gate-banner {
+  align-items: start;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(124, 58, 237, 0.2), transparent 38%),
+    linear-gradient(145deg, rgba(15, 24, 43, 0.98), rgba(8, 15, 28, 0.94));
+  border: 1px solid rgba(74, 222, 255, 0.24);
+  border-radius: var(--rp-radius-lg);
+  display: grid;
+  gap: var(--rp-space-5);
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
+  padding: var(--rp-space-5);
+}
+
+.edit-reference-gate-banner h2 {
+  font-size: clamp(1.35rem, 2vw, 1.85rem);
+  margin: var(--rp-space-1) 0 var(--rp-space-2);
+}
+
+.edit-reference-gate-banner p,
+.edit-reference-context-note p,
+.edit-reference-static-panel > p {
+  color: var(--rp-text-secondary);
+  margin: 0;
+  max-width: 780px;
+}
+
+.edit-reference-banner-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rp-space-2);
+  justify-content: flex-end;
+}
+
+.edit-reference-alert,
+.edit-reference-context-note {
+  align-items: flex-start;
+  background: rgba(0, 229, 255, 0.07);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-secondary);
+  display: flex;
+  gap: var(--rp-space-3);
+  padding: var(--rp-space-3) var(--rp-space-4);
+}
+
+.edit-reference-context-note {
+  margin-bottom: var(--rp-space-4);
+}
+
+.edit-reference-context-note strong {
+  color: var(--rp-text-primary);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.edit-reference-alert.error {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(248, 113, 113, 0.3);
+  color: #fecaca;
+}
+
+.edit-reference-alert.success {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(74, 222, 128, 0.26);
+  color: #bbf7d0;
+}
+
+.edit-reference-create-card {
+  background: rgba(11, 18, 32, 0.96);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: var(--rp-radius-lg);
+  display: grid;
+  gap: var(--rp-space-4);
+  padding: var(--rp-space-5);
+}
+
+.edit-reference-create-card h3 {
+  margin: var(--rp-space-1) 0 0;
+}
+
+.edit-reference-create-card > label,
+.edit-reference-create-card fieldset {
+  border: 0;
+  display: grid;
+  gap: var(--rp-space-2);
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.edit-reference-create-card > label > span,
+.edit-reference-create-card legend {
+  color: var(--rp-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.edit-reference-create-card input[type='text'],
+.edit-reference-create-card > label input,
+.edit-reference-create-card textarea,
+.edit-reference-chat-composer textarea {
+  background: rgba(4, 9, 18, 0.78);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-primary);
+  font: inherit;
+  outline: none;
+  padding: var(--rp-space-3);
+  resize: vertical;
+  width: 100%;
+}
+
+.edit-reference-create-card input:focus,
+.edit-reference-create-card textarea:focus,
+.edit-reference-chat-composer textarea:focus {
+  border-color: var(--rp-brand-cyan);
+  box-shadow: var(--rp-shadow-cyan);
+}
+
+.edit-reference-goal-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rp-space-2);
+}
+
+.edit-reference-goal-picker label {
+  align-items: center;
+  background: rgba(21, 31, 50, 0.72);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-pill);
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 750;
+  gap: var(--rp-space-2);
+  min-height: 44px;
+  padding: 8px 12px;
+  text-transform: capitalize;
+}
+
+.edit-reference-goal-picker label:has(input:checked) {
+  background: rgba(37, 99, 255, 0.16);
+  border-color: rgba(0, 229, 255, 0.35);
+  color: var(--rp-text-primary);
+}
+
+.edit-reference-form-actions {
+  display: flex;
+  gap: var(--rp-space-2);
+  justify-content: flex-end;
+}
+
+.edit-reference-three-panel {
+  display: grid;
+  gap: var(--rp-space-3);
+  grid-template-columns: minmax(210px, 0.8fr) minmax(360px, 1.75fr) minmax(230px, 0.9fr);
+  min-height: 610px;
+  min-width: 0;
+}
+
+.edit-reference-saved-panel,
+.edit-reference-chat-panel,
+.edit-reference-inspector {
+  background: rgba(9, 15, 27, 0.9);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.edit-reference-saved-panel,
+.edit-reference-inspector {
+  align-content: start;
+  display: grid;
+  gap: var(--rp-space-3);
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-panel-heading {
+  align-items: center;
+  border-bottom: 1px solid var(--rp-border-subtle);
+  display: flex;
+  justify-content: space-between;
+  min-width: 0;
+  padding: var(--rp-space-2) var(--rp-space-1) var(--rp-space-3);
+}
+
+.edit-reference-panel-heading > div {
+  display: grid;
+  gap: 2px;
+}
+
+.edit-reference-panel-heading span,
+.edit-reference-chat-shell header span,
+.edit-reference-inspector-section > span {
+  color: var(--rp-text-muted);
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.edit-reference-panel-heading button {
+  align-items: center;
+  background: rgba(21, 31, 50, 0.76);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 9px;
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.edit-reference-saved-card {
+  background: rgba(15, 24, 40, 0.72);
+  border: 1px solid transparent;
+  border-radius: var(--rp-radius-md);
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 5px;
+  padding: var(--rp-space-3);
+  text-align: left;
+  width: 100%;
+}
+
+.edit-reference-saved-card:hover,
+.edit-reference-saved-card.active {
+  background: rgba(37, 99, 255, 0.12);
+  border-color: rgba(0, 229, 255, 0.28);
+}
+
+.edit-reference-saved-card span {
+  color: #8beef8;
+  font-size: 0.75rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.edit-reference-saved-card small {
+  color: var(--rp-text-secondary);
+  line-height: 1.35;
+  text-transform: capitalize;
+}
+
+.edit-reference-saved-card time {
+  color: var(--rp-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.edit-reference-chat-panel,
+.edit-reference-chat-shell {
+  display: grid;
+  min-height: 0;
+}
+
+.edit-reference-chat-shell {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+}
+
+.edit-reference-chat-shell header {
+  align-items: center;
+  border-bottom: 1px solid var(--rp-border-subtle);
+  display: flex;
+  gap: var(--rp-space-3);
+  justify-content: space-between;
+  padding: var(--rp-space-4);
+}
+
+.edit-reference-chat-shell h3 {
+  font-size: 1rem;
+  margin: 3px 0 0;
+}
+
+.edit-reference-message-list {
+  align-content: start;
+  display: grid;
+  gap: var(--rp-space-3);
+  min-height: 300px;
+  overflow-y: auto;
+  padding: var(--rp-space-4);
+}
+
+.edit-reference-message {
+  background: rgba(18, 28, 47, 0.82);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 15px 15px 15px 5px;
+  display: grid;
+  gap: var(--rp-space-2);
+  max-width: 88%;
+  padding: var(--rp-space-3) var(--rp-space-4);
+}
+
+.edit-reference-message.user {
+  background: rgba(37, 99, 255, 0.14);
+  border-color: rgba(94, 234, 255, 0.22);
+  border-radius: 15px 15px 5px 15px;
+  justify-self: end;
+}
+
+.edit-reference-message.system {
+  background: rgba(124, 58, 237, 0.07);
+  border-style: dashed;
+  max-width: 100%;
+}
+
+.edit-reference-message span {
+  color: #a7f4fb;
+  font-size: 0.75rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.edit-reference-message p {
+  color: var(--rp-text-primary);
+  line-height: 1.55;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.edit-reference-message small {
+  color: var(--rp-text-muted);
+  font-size: 0.75rem;
+}
+
+.edit-reference-chat-composer {
+  align-items: end;
+  background: rgba(4, 9, 18, 0.68);
+  border-top: 1px solid var(--rp-border-subtle);
+  display: grid;
+  gap: var(--rp-space-3);
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: var(--rp-space-4);
+}
+
+.edit-reference-chat-composer textarea {
+  min-height: 82px;
+}
+
+.edit-reference-inspector-state {
+  align-items: flex-start;
+  background: rgba(15, 24, 40, 0.66);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-muted);
+  display: flex;
+  gap: var(--rp-space-3);
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-inspector-state div {
+  display: grid;
+  gap: 3px;
+}
+
+.edit-reference-inspector-state span {
+  color: var(--rp-text-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.edit-reference-inspector-state strong {
+  color: var(--rp-text-secondary);
+  font-size: 0.83rem;
+  line-height: 1.35;
+}
+
+.edit-reference-inspector-section {
+  display: grid;
+  gap: var(--rp-space-2);
+  padding: var(--rp-space-2) 0;
+}
+
+.edit-reference-goal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.edit-reference-goal-chips small {
+  background: rgba(37, 99, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  border-radius: var(--rp-radius-pill);
+  color: var(--rp-text-secondary);
+  padding: 5px 8px;
+  text-transform: capitalize;
+}
+
+.edit-reference-safety-mini {
+  align-items: flex-start;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(74, 222, 128, 0.18);
+  border-radius: var(--rp-radius-md);
+  color: #a7f3d0;
+  display: flex;
+  gap: var(--rp-space-2);
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-safety-mini p {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.edit-reference-placeholder {
+  align-content: center;
+  color: var(--rp-text-muted);
+  display: grid;
+  gap: var(--rp-space-2);
+  justify-items: center;
+  min-height: 160px;
+  padding: var(--rp-space-5);
+  text-align: center;
+}
+
+.edit-reference-placeholder p {
+  line-height: 1.5;
+  margin: 0;
+}
+
+.edit-reference-static-panel {
+  align-content: center;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(37, 99, 255, 0.12), transparent 42%),
+    rgba(9, 15, 27, 0.88);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  display: grid;
+  gap: var(--rp-space-3);
+  justify-items: center;
+  min-height: 440px;
+  padding: var(--rp-space-6);
+  text-align: center;
+}
+
+.edit-reference-static-panel h2 {
+  margin: 0;
+}
+
+.edit-reference-static-panel.safety > div {
+  display: grid;
+  gap: var(--rp-space-2);
+  max-width: 780px;
+  text-align: left;
+}
+
+.edit-reference-static-panel.safety p {
+  align-items: flex-start;
+  background: rgba(15, 24, 40, 0.7);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-secondary);
+  display: flex;
+  gap: var(--rp-space-2);
+  margin: 0;
+  padding: var(--rp-space-3);
+}
+
+@media (max-width: 1180px) {
+  .edit-reference-three-panel {
+    grid-template-columns: minmax(190px, 0.7fr) minmax(360px, 1.5fr);
+  }
+
+  .edit-reference-inspector {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .edit-reference-inspector .edit-reference-panel-heading,
+  .edit-reference-inspector .edit-reference-inspector-section,
+  .edit-reference-inspector .edit-reference-safety-mini,
+  .edit-reference-inspector > .rp-button {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 780px) {
+  .edit-reference-gate-banner,
+  .edit-reference-three-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-reference-banner-actions {
+    justify-content: flex-start;
+  }
+
+  .edit-reference-three-panel {
+    min-height: 0;
+  }
+
+  .edit-reference-saved-panel {
+    max-height: 360px;
+    overflow-y: auto;
+  }
+
+  .edit-reference-chat-shell {
+    min-height: 620px;
+  }
+
+  .edit-reference-chat-shell header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .edit-reference-inspector {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .edit-reference-chat-composer {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-reference-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .edit-reference-form-actions .rp-button {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
 .edit-preference-sidebar-entry small,
 .sidebar-link:not(.sidebar-link-disabled) small {
   background: rgba(0, 229, 255, 0.1);

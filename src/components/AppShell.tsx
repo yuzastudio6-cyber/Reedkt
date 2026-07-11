@@ -69,6 +69,9 @@ export function AppShell({
       }}
     >
       <div className={`app-shell ${isChatMode ? 'app-shell-chat' : ''} ${isChatMode && !editorSidebarVisible ? 'sidebar-hidden' : ''}`.trim()}>
+        <a className="skip-link" data-testid="skip-to-main-content" href="#app-main-content">
+          Skip to main content
+        </a>
         {sidebarVisible && (
           <aside className="sidebar" data-testid="app-sidebar">
             <BrandLogo />
@@ -89,7 +92,7 @@ export function AppShell({
             </nav>
           </aside>
         )}
-        <main className={`app-main ${isChatMode ? 'app-main-chat' : ''}`.trim()}>
+        <main className={`app-main ${isChatMode ? 'app-main-chat' : ''}`.trim()} id="app-main-content" tabIndex={-1}>
           {!isChatMode && (
             <header className="topbar">
               <div className="topbar-copy">

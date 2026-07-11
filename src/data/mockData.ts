@@ -23,7 +23,7 @@ import {
 
 export type Accent = 'blue' | 'cyan' | 'violet' | 'purple' | 'success' | 'warning' | 'danger' | 'info'
 
-export const appSidebarNavLabels = ['Home', 'Project', 'Preferences'] as const
+export const appSidebarNavLabels = ['Home', 'Project', 'Edit Preferences'] as const
 
 export type AppSidebarNavLabel = typeof appSidebarNavLabels[number]
 
@@ -104,7 +104,7 @@ export type ExportItem = {
 export const appNav = [
   { label: 'Home', to: '/dashboard', icon: Home },
   { label: 'Project', to: '/projects', icon: FolderKanban },
-  { label: 'Preferences', to: '/preferences', icon: ListChecks },
+  { label: 'Edit Preferences', to: '/preferences', icon: ListChecks },
 ] satisfies readonly NavItem[]
 
 export const marketingLinks = [

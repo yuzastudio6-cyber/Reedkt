@@ -1,0 +1,131 @@
+import { Router, type Request, type Response } from 'express'
+import { z } from 'zod'
+import { ApiError } from '../errors/api-error'
+import { requireAuth } from '../middleware/auth'
+import { createEditReferenceService, type EditReferenceServiceResult } from '../services/edit-reference-service'
+import { EDIT_REFERENCE_STUDY_GOALS, EDIT_REFERENCE_STUDY_LIFECYCLE_STATUSES } from '../../src/types/edit-reference'
+import { idSchema, validateBody } from '../validation/common-schemas'
+import { asyncRoute, getRouteParam, getServiceContext, sendOk } from './route-helpers'
+
+const workspaceSchema = z.object({ workspaceId: idSchema.max(160) })
+const createReferenceSchema = workspaceSchema.extend({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(2_000).optional(),
+  initialGoals: z.array(z.enum(EDIT_REFERENCE_STUDY_GOALS)).min(1).max(EDIT_REFERENCE_STUDY_GOALS.length),
+}).strict()
+const updateReferenceSchema = workspaceSchema.extend({
+  expectedReferenceRevision: z.number().int().positive(),
+  name: z.string().trim().min(1).max(120).optional(),
+  description: z.string().trim().max(2_000).optional(),
+  status: z.literal('archived').optional(),
+}).strict().refine((body) => body.name !== undefined || body.description !== undefined || body.status !== undefined, {
+  message: 'At least one Edit Reference field must be updated.',
+})
+const createStudySchema = workspaceSchema.extend({
+  expectedReferenceRevision: z.number().int().positive(),
+  title: z.string().trim().min(1).max(160),
+}).strict()
+const updateStudySchema = workspaceSchema.extend({
+  expectedStudyRevision: z.number().int().positive(),
+  title: z.string().trim().min(1).max(160).optional(),
+  status: z.enum(EDIT_REFERENCE_STUDY_LIFECYCLE_STATUSES).optional(),
+}).strict().refine((body) => body.title !== undefined || body.status !== undefined, {
+  message: 'At least one Preference Study field must be updated.',
+})
+const appendMessageSchema = workspaceSchema.extend({
+  expectedStudyRevision: z.number().int().positive(),
+  clientMessageId: z.string().trim().min(1).max(160),
+  content: z.string().trim().min(1).max(8_000),
+}).strict()
+
+export function createEditReferenceRoutes(): Router {
+  const router = Router()
+
+  router.get('/v1/edit-references', requireAuth, asyncRoute(async (request, response) => {
+    const query = workspaceSchema.safeParse(request.query)
+    if (!query.success) throw new ApiError('VALIDATION_FAILED', 'workspaceId query parameter is required.', 400, query.error.flatten())
+    const result = await createEditReferenceService(getServiceContext(request)).listReferences(query.data.workspaceId)
+    sendOk(response, result.data, result.warnings)
+  }))
+
+  router.post('/v1/edit-references', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(createReferenceSchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).createReference(body, getDurableIdempotencyKey(request))
+    sendMutation(response, result, 201)
+  }))
+
+  router.get('/v1/edit-references/:referenceId', requireAuth, asyncRoute(async (request, response) => {
+    const query = workspaceSchema.safeParse(request.query)
+    if (!query.success) throw new ApiError('VALIDATION_FAILED', 'workspaceId query parameter is required.', 400, query.error.flatten())
+    const result = await createEditReferenceService(getServiceContext(request)).getReference(query.data.workspaceId, getRouteParam(request, 'referenceId'))
+    sendOk(response, result.data, result.warnings)
+  }))
+
+  router.patch('/v1/edit-references/:referenceId', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(updateReferenceSchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).updateReference(
+      getRouteParam(request, 'referenceId'),
+      body,
+      getDurableIdempotencyKey(request),
+    )
+    sendMutation(response, result)
+  }))
+
+  router.post('/v1/edit-references/:referenceId/studies', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(createStudySchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).createStudy(
+      getRouteParam(request, 'referenceId'),
+      body,
+      getDurableIdempotencyKey(request),
+    )
+    sendMutation(response, result, 201)
+  }))
+
+  router.patch('/v1/edit-reference-studies/:studyId', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(updateStudySchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).updateStudy(
+      getRouteParam(request, 'studyId'),
+      body,
+      getDurableIdempotencyKey(request),
+    )
+    sendMutation(response, result)
+  }))
+
+  router.get('/v1/edit-reference-studies/:studyId', requireAuth, asyncRoute(async (request, response) => {
+    const query = workspaceSchema.safeParse(request.query)
+    if (!query.success) throw new ApiError('VALIDATION_FAILED', 'workspaceId query parameter is required.', 400, query.error.flatten())
+    const result = await createEditReferenceService(getServiceContext(request)).getStudy(query.data.workspaceId, getRouteParam(request, 'studyId'))
+    sendOk(response, result.data, result.warnings)
+  }))
+
+  router.get('/v1/edit-reference-studies/:studyId/messages', requireAuth, asyncRoute(async (request, response) => {
+    const query = workspaceSchema.safeParse(request.query)
+    if (!query.success) throw new ApiError('VALIDATION_FAILED', 'workspaceId query parameter is required.', 400, query.error.flatten())
+    const result = await createEditReferenceService(getServiceContext(request)).listStudyMessages(query.data.workspaceId, getRouteParam(request, 'studyId'))
+    sendOk(response, result.data, result.warnings)
+  }))
+
+  router.post('/v1/edit-reference-studies/:studyId/messages', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(appendMessageSchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).appendMessage(
+      getRouteParam(request, 'studyId'),
+      body,
+      getDurableIdempotencyKey(request),
+    )
+    sendMutation(response, result, 201)
+  }))
+
+  return router
+}
+
+function getDurableIdempotencyKey(request: Request): string {
+  const value = request.header('idempotency-key')?.trim()
+  if (!value) throw new ApiError('IDEMPOTENCY_KEY_REQUIRED', 'Idempotency-Key header is required.', 400)
+  if (value.length > 200) throw new ApiError('VALIDATION_FAILED', 'Idempotency-Key is too long.', 400)
+  return value
+}
+
+function sendMutation<T>(response: Response, result: EditReferenceServiceResult<T>, status = 200): void {
+  response.setHeader('Idempotency-Replayed', result.replayed ? 'true' : 'false')
+  sendOk(response, result.data, result.warnings, status)
+}

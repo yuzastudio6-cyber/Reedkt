@@ -13,6 +13,9 @@ const requiredFiles = [
   'docs/edit-reference-test-fixture-plan.md',
   'docs/edit-reference-persistence-contract.md',
   'docs/edit-reference-gate-verification-log.md',
+  'docs/edit-reference-gate-1-study-session-foundation.md',
+  'design-system/MASTER.md',
+  'design-system/pages/edit-preferences.md',
   'scripts/validation/edit-reference-goal-preflight.mjs',
   'scripts/validation/edit-reference-goal-postgate.mjs',
 ]
@@ -29,6 +32,8 @@ const definition = read('docs/edit-reference-definition-of-done.md')
 const ui = read('docs/edit-reference-ui-contract.md')
 const skills = read('docs/edit-reference-skill-registry.md')
 const persistence = read('docs/edit-reference-persistence-contract.md')
+const designSystem = read('design-system/MASTER.md')
+const editPreferencesDesign = read('design-system/pages/edit-preferences.md')
 
 assert.equal(status.goal, 'edit_reference_end_to_end')
 assert.equal(status.status, 'in_progress')
@@ -107,9 +112,20 @@ assert.match(persistence, /Browser localStorage is not authority|Browser localSt
 assert.match(persistence, /exact response snapshot/i)
 assert.match(persistence, /production repository seam/i)
 assert.match(persistence, /Gate 1 adds no SQL migration/i)
+assert.match(designSystem, /UI UX Pro Max as a supporting accessibility and craft checklist/i)
+assert.match(designSystem, /Skip to main content/i)
+assert.match(designSystem, /at least 44px/i)
+assert.match(editPreferencesDesign, /Normal user copy does not expose/i)
+assert.match(editPreferencesDesign, /mock\/local status/i)
+assert.match(editPreferencesDesign, /375px/i)
 
 assert.equal(packageJson.scripts?.['check:edit-reference-goal-preflight'], 'node scripts/validation/edit-reference-goal-preflight.mjs')
 assert.equal(packageJson.scripts?.['check:edit-reference-goal-postgate'], 'node scripts/validation/edit-reference-goal-postgate.mjs')
 assert.equal(packageJson.scripts?.['smoke:edit-reference-goal-control-plane'], 'tsx server/smoke/edit-reference-goal-control-plane-smoke.ts')
+assert.equal(packageJson.scripts?.['smoke:edit-reference-repository'], 'tsx server/smoke/edit-reference-repository-smoke.ts')
+assert.equal(packageJson.scripts?.['smoke:edit-reference-api-routes'], 'tsx server/smoke/edit-reference-study-session-foundation-smoke.ts')
+assert.equal(packageJson.scripts?.['smoke:edit-reference-api-client'], 'tsx server/smoke/edit-reference-api-client-smoke.ts')
+assert.equal(packageJson.scripts?.['smoke:edit-reference-study-session-foundation'], 'tsx server/smoke/edit-reference-study-session-foundation-smoke.ts')
+assert.equal(packageJson.scripts?.['smoke:edit-reference-ui'], 'tsx server/smoke/edit-reference-ui-adapter-smoke.ts')
 
 console.log('edit_reference_goal_control_plane_passed')

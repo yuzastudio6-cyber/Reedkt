@@ -123,16 +123,13 @@ Allowed states:
 Gate 1 permits only transitions it can truthfully support, including:
 
 ```text
-draft -> collecting_evidence
-collecting_evidence -> ready_to_study
-ready_to_study -> collecting_evidence | studying
-studying -> needs_clarification | evidence_ready | failed
-needs_clarification -> collecting_evidence | ready_to_study | studying | failed
-evidence_ready -> collecting_evidence | studying
-any non-archived lifecycle state -> archived
+draft -> collecting_evidence | archived
+collecting_evidence -> ready_to_study | needs_clarification | archived
+ready_to_study -> collecting_evidence | needs_clarification | archived
+needs_clarification -> collecting_evidence | ready_to_study | archived
 ```
 
-Gate 1 must not transition to `dna_ready`, `qa_blocked`, `needs_user_review`, `approved`, or `applied` because DNA/QA/application have not run. Later gates expand the transition map with tests.
+Gate 1 does not transition to `studying`, `evidence_ready`, `dna_ready`, `qa_blocked`, `needs_user_review`, `approved`, `applied`, or `failed` because no study skill, evidence-completion, DNA, QA, or application runtime has run. Later gates expand the transition map with tests.
 
 ## Versioning And Concurrency
 
@@ -169,7 +166,7 @@ Rules:
 
 - Safe ID charset and length.
 - Reference name 1–120 characters.
-- Description at most 1,000 characters.
+- Description at most 2,000 characters.
 - Study title 1–160 characters.
 - Message content 1–8,000 characters.
 - Initial goals come from the approved typed list and are unique/bounded.

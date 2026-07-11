@@ -27,7 +27,7 @@ Tab identity must be URL-addressable or otherwise reload-stable without creating
 
 ## Edit References Layout
 
-At wide desktop widths, use a bounded three-panel technical workspace.
+At wide desktop widths, use a bounded three-panel creative workspace.
 
 ### Left — Saved Edit References
 
@@ -129,11 +129,12 @@ Normal users must not see secrets, service-role status, signed URLs, filesystem 
 
 ## Responsive Behavior
 
-- Validate at 1024, 1280, 1440, 1728, and 1920 pixels.
+- Validate responsive behavior at 375, 768/780, 1024, 1280, 1440, 1728, and 1920 pixels as the route matures.
 - The three-panel workspace may collapse to two panels and then a single ordered column before content becomes cramped.
 - Preserve desktop/web information architecture; responsive web is not a native mobile redesign.
 - Long names, messages, filenames, URLs, status text, and warnings wrap or truncate intentionally.
 - No global overflow clipping may hide layout defects.
+- Horizontal tab scrolling must stay inside the tab region and never create page-level overflow.
 
 ## Accessibility
 
@@ -145,6 +146,7 @@ Normal users must not see secrets, service-role status, signed URLs, filesystem 
 - Focus remains visible and clear of sticky composer/chrome.
 - Per-message live regions only for new status/error events; the full thread is not a live region.
 - Reduced motion disables nonessential transitions.
+- The shared signed-in shell exposes a keyboard-first Skip to main content link.
 
 ## State Vocabulary
 
@@ -174,3 +176,5 @@ Transport, authorization, parse, tenancy, or repository errors must never appear
 - Say fallback when a fallback ran.
 - Say metadata only when media was not actually studied.
 - Never imply upload, analysis, provider, worker, render, export, plan approval, or credit activity from navigation or Study Chat.
+- Normal user copy must not expose gate numbers, mock/local implementation labels, database products, providers, adapters, worker names, or route internals.
+- Private testing limitations must be explained in plain language: what is saved, what has not started, and what still requires review or approval.

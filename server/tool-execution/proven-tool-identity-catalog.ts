@@ -19,7 +19,7 @@ import { OFFLINE_AUDIOFLUX_ANALYSIS_PACKAGE_IDENTITIES } from './audioflux-analy
 import { OFFLINE_REMBG_BACKGROUND_REMOVAL_PACKAGE_IDENTITIES } from './rembg-background-removal-execution/offline-rembg-background-removal-protocol'
 
 export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v1' as const
-export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-11.17' as const
+export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-11.18' as const
 
 export type ToolVerificationState =
   | 'canonical_e2e_verified'
@@ -147,6 +147,7 @@ const CANONICAL_E2E_EVIDENCE_KEYS: Partial<Record<ProductionToolId, string>> = {
   gpac_mp4box_packaging_validation: 'gpac_mp4box_packaging_validation_exact_json_canonical_lifecycle_verified',
   vapoursynth: 'vapoursynth_exact_json_canonical_lifecycle_verified',
   audioflux: 'audioflux_exact_json_canonical_lifecycle_verified',
+  rembg: 'rembg_exact_png_canonical_lifecycle_verified',
 }
 
 const OUTPUT_CONTENT_TYPES: Partial<Record<ProductionToolId, readonly string[]>> = {

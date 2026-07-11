@@ -102,25 +102,33 @@ The runner class is `offline_vapoursynth_frame_pipeline_execution_v1`; its evide
 
 The runner class is `offline_audioflux_analysis_execution_v1`; its evidence command is `npm run smoke:offline-audioflux-analysis-execution`. The official source is compiled with pinned Clang/OpenMP packages because the published `py3-none-any` Linux wheel contains an x86-64-only native library. The proven image is ARM64-only and executes an approved server-owned deterministic audio fixture with zero network, a read-only root filesystem, non-root identity, dropped capabilities, bounded resources, exact request fields, checksum-protected authority, and attestation records. Arbitrary caller audio remains rejected. AudioFlux also passes the canonical approved-snapshot lifecycle in `npm run smoke:canonical-private-tool-dispatch`, covering funded reservation, lease fence, one-use dispatch, create-only private JSON persistence, semantic BFT/flux/energy QA, reconciliation, exact replay, and downstream lease-time byte verification.
 
+### rembg background-removal identity package
+
+| Canonical tool ID | Stable identity | Exact operation | Pinned package/model | Verified artifact |
+| --- | --- | --- | --- | --- |
+| `rembg` | `reeditpro.tool.rembg.v1` | `tool.rembg.remove_image_background.v1` | rembg `2.0.76`, ONNX Runtime `1.27.0`, U2NetP SHA-256 `309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8` | deterministic 128×128 RGBA PNG, SHA-256 `668366803056dc51a75cafc5ad2be9363146fa22a1ed5cba481815944759fd45` |
+
+The runner class is `offline_rembg_background_removal_execution_v1`; its evidence command is `npm run smoke:offline-rembg-background-removal-execution`. The runtime preloads the exact U2NetP checkpoint, disables runtime model downloads, accepts no caller path, URL, bytes, model, command, or environment, and runs CPU-only under zero-network, read-only, non-root confinement with bounded resources. The canonical lifecycle evidence command is `npm run smoke:canonical-private-tool-dispatch`, which proves approved-snapshot and work-item binding, funded reservation, lease fencing, one-use dispatch, private create-only PNG persistence, semantic alpha-separation QA, reconciliation, exact replay, and downstream lease-time byte verification. Arbitrary approved user-image ingestion, x86_64 parity, distributed workers, production dependency/security/license review, deployment, external beta, and product promotion remain separate gates.
+
 ## Current evidence snapshot
 
-Evidence revision `2026-07-11.16` records:
+Evidence revision `2026-07-11.18` records:
 
 - 72 total registry profiles with stable identities.
 - 61 callable candidates.
 - 11 intentionally non-executable profiles.
-- 51 confined-runner verified tools.
-- 48 exact canonical end-to-end verified tools.
-- 10 callable candidates that remain declared but do not yet have confined-runner proof.
+- 52 confined-runner verified tools.
+- 49 exact canonical end-to-end verified tools.
+- 9 callable candidates that remain declared but do not yet have confined-runner proof.
 - 0 product-, external-beta-, or production-ready tools; those promotions require separate deployment evidence.
 
-The remaining 13 callable candidates that have not reached canonical E2E stay visible in the same report. Their blocker lists identify the exact missing proof class per tool, including reviewed model/checkpoint manifests and offline caches for model-backed tools and exact fixture/artifact QA for other package-backed tools. A candidate is never promoted from declaration or import availability alone.
+The remaining 12 callable candidates that have not reached canonical E2E stay visible in the same report. Their blocker lists identify the exact missing proof class per tool, including reviewed model/checkpoint manifests and offline caches for model-backed tools and exact fixture/artifact QA for other package-backed tools. A candidate is never promoted from declaration or import availability alone.
 
-The 48 exact canonical end-to-end identities are:
+The 49 exact canonical end-to-end identities are:
 
 ```text
 d3, echarts, vega_lite, vega, satori, svg_js, viz_js, lottie, animejs, three_js,
-pixijs, konva, babylon_js, kornia, librosa, audioread, pydub, scipy, resampy,
+pixijs, konva, babylon_js, rembg, kornia, librosa, audioread, pydub, scipy, resampy,
 pyloudnorm, audioflux, music21, pretty_midi, mido, noisereduce, pedalboard, mir_eval,
 pydub_effects, ebu_r128_pyloudnorm, rnnoise, playwright, pyscenedetect,
 opencolorio, openimageio, mkvtoolnix_container_validation,
@@ -128,7 +136,7 @@ gpac_mp4box_packaging_validation, ffmpeg, ffprobe, pyav, opentimelineio, remotio
 sharp, duckdb, polars, opencv, signalsmith_stretch, vapoursynth
 ```
 
-`confinedRunnerVerifiedCount` includes tools that have also reached canonical E2E; it is not a count of runner-only tools. At this revision the three runner-only identities are `torch_torchvision`, `transformers`, and `streamer_render_pipeline_support`; all three are readiness probes rather than edit operations. AudioFlux, OpenColorIO, OpenImageIO, RNNoise, Signalsmith Stretch, MKVToolNix, and GPAC/MP4Box now have approved-snapshot work items, funded reservations, lease fences, one-use dispatch, exact pinned execution, create-only private artifact persistence, semantic QA, reconciliation, idempotent replay, and downstream lease verification using approved server-owned deterministic fixtures. They still require arbitrary user-source, dependency/security/license review, distributed-worker, deployment, and product-promotion evidence. Public delivery, settlement, billing, external beta, and production rendering remain separate blocked gates.
+`confinedRunnerVerifiedCount` includes tools that have also reached canonical E2E; it is not a count of runner-only tools. At this revision the three runner-only identities are `torch_torchvision`, `transformers`, and `streamer_render_pipeline_support`; all three are readiness probes rather than edit operations. AudioFlux, rembg, OpenColorIO, OpenImageIO, RNNoise, Signalsmith Stretch, MKVToolNix, and GPAC/MP4Box now have approved-snapshot work items, funded reservations, lease fences, one-use dispatch, exact pinned execution, create-only private artifact persistence, semantic QA, reconciliation, idempotent replay, and downstream lease verification using approved server-owned deterministic fixtures. They still require arbitrary user-source, dependency/security/license review, distributed-worker, deployment, and product-promotion evidence. Public delivery, settlement, billing, external beta, and production rendering remain separate blocked gates.
 
 ## Promotion rule
 

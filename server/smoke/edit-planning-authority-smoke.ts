@@ -726,7 +726,7 @@ try {
   const provenToolIdentitySummary = asRecord(toolEvidenceEnvelope.data?.provenToolIdentitySummary)
   assert.equal(provenToolIdentitySummary.totalRegistryProfiles, 72)
   assert.equal(provenToolIdentitySummary.callableCandidateCount, 61)
-  assert.equal(provenToolIdentitySummary.canonicalEndToEndVerifiedCount, 48)
+  assert.equal(provenToolIdentitySummary.canonicalEndToEndVerifiedCount, 49)
   assert.equal(toolEvidenceEnvelope.data?.provenToolIdentityCatalog?.length, 72)
 
   const callerAuthoredReadiness = await fetch(

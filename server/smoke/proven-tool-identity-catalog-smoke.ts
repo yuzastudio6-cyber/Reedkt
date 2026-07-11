@@ -21,7 +21,7 @@ assert.equal(summary.totalRegistryProfiles, 72)
 assert.equal(summary.callableCandidateCount, 61)
 assert.equal(summary.intentionallyNonExecutableCount, 11)
 assert.equal(summary.confinedRunnerVerifiedCount, 52)
-assert.equal(summary.canonicalEndToEndVerifiedCount, 48)
+assert.equal(summary.canonicalEndToEndVerifiedCount, 49)
 assert.equal(new Set(catalog.map((record) => record.stableToolIdentity)).size, 72)
 assert.equal(new Set(catalog.map((record) => record.identityHash)).size, 72)
 assert.equal(new Set(catalog.map((record) => record.proofHash)).size, 72)
@@ -90,7 +90,7 @@ for (const record of catalog) {
 
 assert.deepEqual(summary.canonicalEndToEndVerifiedToolIds, [
   'd3', 'echarts', 'vega_lite', 'vega', 'satori', 'svg_js', 'viz_js', 'lottie',
-  'animejs', 'three_js', 'pixijs', 'konva', 'babylon_js', 'kornia', 'librosa',
+  'animejs', 'three_js', 'pixijs', 'konva', 'babylon_js', 'rembg', 'kornia', 'librosa',
   'audioread', 'pydub', 'scipy', 'resampy', 'pyloudnorm', 'audioflux', 'music21', 'pretty_midi', 'mido',
   'noisereduce', 'pedalboard',
   'mir_eval', 'pydub_effects', 'ebu_r128_pyloudnorm', 'rnnoise', 'playwright', 'pyscenedetect',
@@ -104,9 +104,10 @@ assert.deepEqual(summary.canonicalEndToEndVerifiedToolIds, [
 assert.equal(getToolIdentityRecord('audioflux').verificationState, 'canonical_e2e_verified')
 assert.equal(getToolIdentityRecord('audioflux').runtime.runnerClass, 'offline_audioflux_analysis_execution_v1')
 assert.equal(getToolIdentityRecord('audioflux').evidence.canonicalEvidenceKey, 'audioflux_exact_json_canonical_lifecycle_verified')
-assert.equal(getToolIdentityRecord('rembg').verificationState, 'confined_runner_verified')
+assert.equal(getToolIdentityRecord('rembg').verificationState, 'canonical_e2e_verified')
 assert.equal(getToolIdentityRecord('rembg').runtime.runnerClass, 'offline_rembg_background_removal_execution_v1')
 assert.equal(getToolIdentityRecord('rembg').artifactContract.verifiedOutputContentTypes[0], 'image/png')
+assert.equal(getToolIdentityRecord('rembg').evidence.canonicalEvidenceKey, 'rembg_exact_png_canonical_lifecycle_verified')
 
 console.log(JSON.stringify({
   ok: true,

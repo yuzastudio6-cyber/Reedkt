@@ -77,6 +77,14 @@ No test was excluded, weakened, or marked skipped to obtain the final pass. Asse
 
 Known non-blocking build debt: the client build still reports chunks above 500 kB, including the imported revision-learning and edit-level-estimates chunks. Gate 0 does not classify this as production readiness.
 
+### Gate 0 Commit
+
+- Commit: `96ea3ef290c2b6b603655ea579713026f1f783f4`
+- Message: `Establish Edit Reference goal control plane`
+- Files: 49
+- Final classification: complete locally; production ready remains false
+- Next gate: Gate 1 — durable backend-local Edit Reference and Preference Study Chat vertical slice
+
 ### Remote State
 
 - Push: not performed.

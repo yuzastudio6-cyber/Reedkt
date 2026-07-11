@@ -4,7 +4,7 @@ Status date: 2026-07-11
 
 Overall status: `in_progress`
 
-Current gate: `gate_0`
+Current gate: `gate_1`
 
 Production ready: **No**
 
@@ -22,8 +22,8 @@ Production ready: **No**
 
 | Gate | Status | Commit | Evidence |
 | --- | --- | --- | --- |
-| Gate 0 — control plane and reconciliation | In progress | Pending | Architecture/read-only source audit complete; implementation and verification pending |
-| Gate 1 — durable study-session vertical slice | Not started | — | — |
+| Gate 0 — control plane and reconciliation | Complete | `96ea3ef290c2b6b603655ea579713026f1f783f4` | Full static matrix, focused imported-system smokes, client/server builds, and post-gate audit passed |
+| Gate 1 — durable study-session vertical slice | In progress | Pending | Backend-local authority, API/client/UI, persistence/reload, and focused browser proof pending |
 | Gate 2 — evidence and study skills | Not started | — | — |
 | Later gates | Not started | — | Defined in the goal and definition of done |
 
@@ -41,7 +41,7 @@ Production ready: **No**
 - The canonical `/preferences` UI is currently an in-memory mock profile library and is not durable authority.
 - The read-only current repository contains a stronger private-local Preference Intelligence backend proof. It is not present in the canonical target and remains historical-only until reviewed concepts are adapted.
 - Existing mock DNA handles and labels remain compatibility data, not approved DNA identity.
-- No Edit Reference runtime feature has been implemented by Gate 0.
+- Gate 0 implemented control-plane contracts and repaired fail-closed integration seams only; the Edit Reference runtime feature begins in Gate 1.
 
 ## Blockers Carried Forward
 

@@ -155,7 +155,7 @@ try {
     expectedSizeBytes: sourceBytes.length,
     checksumSha256: sourceChecksumSha256,
   })
-  await uploadService.uploadLocalObject(upload.uploadIntent.id, sourceBytes, 'video/mp4')
+  await uploadService.uploadLocalObject(upload.uploadIntent.id, planningState.project.workspaceId, sourceBytes, 'video/mp4')
   const finalizedUpload = await uploadService.finalizeUploadIntent({
     workspaceId: planningState.project.workspaceId,
     uploadIntentId: upload.uploadIntent.id,

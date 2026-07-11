@@ -50,7 +50,13 @@ function diagnostic(input: {
 }
 
 async function createSecretManagerClient(): Promise<SecretManagerClientLike> {
-  const mod = await import('@google-cloud/secret-manager')
+  // Keep Secret Manager optional in this recovery baseline. A computed module
+  // identifier preserves the backend-only runtime boundary without making an
+  // unavailable production SDK a compile-time or browser dependency.
+  const moduleName = '@google-cloud/secret-manager'
+  const mod = await import(moduleName) as {
+    SecretManagerServiceClient: new () => SecretManagerClientLike
+  }
   return new mod.SecretManagerServiceClient()
 }
 

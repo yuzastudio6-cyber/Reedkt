@@ -8,7 +8,7 @@ import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createRenderService } from '../services/render-service'
 import { runSmartCutPreviewSmoke } from '../services/smart-cut-preview-service'
 import { runWorkerClaimRunner } from '../workers/worker-claim-runner'
-import { basicRenderSmokeFinalExportSchema, basicRenderSmokePreviewSchema, createRenderJobSchema, previewReviewSchema, smartCutPreviewSmokeSchema } from '../validation/render-schemas'
+import { basicRenderSmokeFinalExportSchema, basicRenderSmokePreviewSchema, previewReviewSchema, smartCutPreviewSmokeSchema } from '../validation/render-schemas'
 import { idSchema, validateBody } from '../validation/common-schemas'
 import { asyncRoute, getIdempotencyKey, getRouteParam, getServiceContext, sendOk } from './route-helpers'
 

@@ -10,6 +10,7 @@ import { assertPathInsideRoot } from './local-media-paths'
 const execFileAsync = promisify(execFile)
 const APPROVED_BROWSER_CAPTURE_PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
 const MAX_APPROVED_BROWSER_CAPTURE_BYTES = 8 * 1024 * 1024
+const PROFESSIONAL_FINISH_FILTER = 'eq=contrast=1.04:saturation=1.06:brightness=0.01'
 
 export type PreviewAudioMode = 'copy_or_transcode' | 'muted' | 'preserve'
 export type PreviewFitMode = 'contain' | 'stretch'
@@ -28,6 +29,10 @@ export interface BasicPreviewRenderOptions {
   backgroundColor?: string
   videoCodec?: string
   audioMode?: PreviewAudioMode
+  editAssembly?: {
+    mode: 'clean_internal_preview' | 'private_final_export'
+    operationsApplied: string[]
+  }
 }
 
 export interface BasicPreviewRenderOutput {
@@ -44,6 +49,11 @@ export interface BasicPreviewRenderOutput {
     audioSource: 'source_audio' | 'generated_silence' | 'none'
     fitMode: PreviewFitMode
     filters: string[]
+    professionalTreatment: string[]
+    targetWidth?: number
+    targetHeight?: number
+    editAssemblyMode?: 'clean_internal_preview' | 'private_final_export'
+    editOperations: string[]
   }
 }
 
@@ -229,6 +239,11 @@ export async function createBasicPreview(
       audioSource,
       fitMode,
       filters,
+      professionalTreatment: buildProfessionalTreatment(options),
+      targetWidth: options.targetWidth,
+      targetHeight: options.targetHeight,
+      editAssemblyMode: options.editAssembly?.mode,
+      editOperations: options.editAssembly?.operationsApplied ?? ['bounded_trim', 'frame_safe_mp4_output'],
     },
   }
 }
@@ -1094,8 +1109,23 @@ function buildFilters(options: BasicPreviewRenderOptions): string[] {
   const scaleFilter = buildScaleFilter(options)
   if (scaleFilter) filters.push(scaleFilter)
   if (options.fps) filters.push(`fps=${options.fps}`)
+  if (options.editAssembly) {
+    filters.push(PROFESSIONAL_FINISH_FILTER)
+    filters.push('fade=t=in:st=0:d=0.15')
+    const fadeOutStart = Math.max(0.25, (options.maxDurationSeconds ?? 3) - 0.25)
+    filters.push(`fade=t=out:st=${fadeOutStart.toFixed(2)}:d=0.2`)
+  }
   filters.push('setsar=1')
   return filters
+}
+
+function buildProfessionalTreatment(options: BasicPreviewRenderOptions): string[] {
+  if (!options.editAssembly) return []
+  return [
+    ...(options.targetWidth && options.targetHeight ? ['confirmed_frame_fit'] : []),
+    'light_color_balance',
+    'clean_fade_handles',
+  ]
 }
 
 function buildScaleFilter(options: BasicPreviewRenderOptions): string | undefined {

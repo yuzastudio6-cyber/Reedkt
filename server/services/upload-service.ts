@@ -167,6 +167,12 @@ type UserStorageAccessPurpose =
   | 'qa_review'
   | 'export_delivery'
 
+const backendLocalStorageObjects = new Map<string, StorageObjectView>()
+
+function backendLocalStorageObjectKey(workspaceId: string, storageObjectRecordId: string): string {
+  return `${workspaceId}\u0000${storageObjectRecordId}`
+}
+
 export function registerBackendLocalStorageObjectRecord(input: {
   id: string
   workspaceId: string
@@ -194,7 +200,10 @@ export function registerBackendLocalStorageObjectRecord(input: {
     updatedAt: now,
     mockOnly: true,
   }
-  mockStorageObjects.set(storageObjectRecord.id, storageObjectRecord)
+  backendLocalStorageObjects.set(
+    backendLocalStorageObjectKey(storageObjectRecord.workspaceId, storageObjectRecord.id),
+    storageObjectRecord,
+  )
   return storageObjectRecord
 }
 
@@ -1049,6 +1058,10 @@ async function loadStorageObjectRecord(
   workspaceId: string,
 ): Promise<StorageObjectView> {
   if (usesLocalUploadPersistence(context)) {
+    const registeredObject = backendLocalStorageObjects.get(
+      backendLocalStorageObjectKey(workspaceId, storageObjectRecordId),
+    )
+    if (registeredObject) return registeredObject
     const storageObject = await loadPrivateStorageObjectAuthority(
       privateUploadMediaAuthorityScope(context, workspaceId),
       storageObjectRecordId,

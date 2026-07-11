@@ -7,6 +7,13 @@ import {
 
 export interface EvaluateBetaGoNoGoOptions extends BetaLaunchGateEvidence {
   checklist?: BetaReadinessChecklistItem[]
+  privateMediaApproved?: boolean
+  artifactPrivacyEvidenceApproved?: boolean
+  noHardLaunchBlockers?: boolean
+  rawPromptSafetyPassed?: boolean
+  secretSafetyPassed?: boolean
+  approvedSnapshotPolicyApproved?: boolean
+  creditReservationPolicyApproved?: boolean
 }
 
 export function evaluateBetaGoNoGo(options: EvaluateBetaGoNoGoOptions = {}): BetaGoNoGoDecision {
@@ -15,20 +22,20 @@ export function evaluateBetaGoNoGo(options: EvaluateBetaGoNoGoOptions = {}): Bet
     safetyDocsExist: options.safetyDocsExist ?? true,
     costDocsExist: options.costDocsExist ?? true,
     productionReadinessBlocked: options.productionReadinessBlocked ?? true,
-    approvedPlanSnapshotGatePresent: options.approvedPlanSnapshotGatePresent ?? true,
+    approvedPlanSnapshotGatePresent: options.approvedPlanSnapshotGatePresent ?? options.approvedSnapshotPolicyApproved ?? true,
     creditEstimateGatePresent: options.creditEstimateGatePresent ?? true,
-    creditReservationGatePresent: options.creditReservationGatePresent ?? true,
+    creditReservationGatePresent: options.creditReservationGatePresent ?? options.creditReservationPolicyApproved ?? true,
     idempotencyGatePresent: options.idempotencyGatePresent ?? true,
-    rawPromptStorageBlocked: options.rawPromptStorageBlocked ?? true,
-    secretScrubbingEnabled: options.secretScrubbingEnabled ?? true,
+    rawPromptStorageBlocked: options.rawPromptStorageBlocked ?? options.rawPromptSafetyPassed ?? true,
+    secretScrubbingEnabled: options.secretScrubbingEnabled ?? options.secretSafetyPassed ?? true,
     signedUrlSourceTruthBlocked: options.signedUrlSourceTruthBlocked ?? true,
     licenseModelWeightReviewApproved: options.licenseModelWeightReviewApproved ?? false,
     deploymentApproved: options.deploymentApproved,
     securityApproved: options.securityApproved,
     storageApproved: options.storageApproved,
     modelLicensesApproved: options.modelLicensesApproved,
-    privateMediaApproval: options.privateMediaApproval,
-    artifactPrivacyEvidence: options.artifactPrivacyEvidence,
+    privateMediaApproval: options.privateMediaApproval ?? options.privateMediaApproved,
+    artifactPrivacyEvidence: options.artifactPrivacyEvidence ?? options.artifactPrivacyEvidenceApproved,
     productionDeploymentApproved: options.productionDeploymentApproved,
     billingLedgerPersistenceApproved: options.billingLedgerPersistenceApproved,
     costControlsApproved: options.costControlsApproved,

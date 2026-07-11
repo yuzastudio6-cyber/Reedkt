@@ -95,14 +95,14 @@ const steps: SmokeStep[] = [
     requiredFor: 'private MP4 and manifest fetch client safety',
   },
   {
-    id: 'private_internal_upload_e2e',
-    script: 'smoke:private-internal-edit-upload-e2e',
-    requiredFor: 'uploaded private media to professional private review output',
+    id: 'private_source_media_authority',
+    script: 'smoke:private-source-media-authority',
+    requiredFor: 'immutable private source media, restart-safe upload idempotency, and tenant isolation',
   },
   {
-    id: 'supabase_auth_internal_execution',
-    script: 'smoke:supabase-auth-internal-test-execution',
-    requiredFor: 'Supabase bearer auth shape without Supabase admin writes',
+    id: 'canonical_execution_readiness',
+    script: 'smoke:canonical-execution-readiness',
+    requiredFor: 'canonical approved authority and fail-closed execution readiness',
   },
   {
     id: 'gcs_source_processing_staging',
@@ -110,19 +110,14 @@ const steps: SmokeStep[] = [
     requiredFor: 'cloud-storage-shaped source staging without signed URLs',
   },
   {
-    id: 'gcs_private_internal_test_run_route',
-    script: 'smoke:gcs-private-internal-test-run-route',
-    requiredFor: 'GCS-shaped source asset through private internal test run',
+    id: 'canonical_worker_lease_verification',
+    script: 'smoke:canonical-worker-lease-verification',
+    requiredFor: 'canonical worker lease identity, dependencies, fencing, and replay verification',
   },
   {
-    id: 'gcs_upload_to_private_internal_edit',
-    script: 'smoke:gcs-upload-to-private-internal-edit-route',
-    requiredFor: 'GCS-shaped upload finalize to private internal review',
-  },
-  {
-    id: 'browser_full_stack_private_review',
-    script: 'smoke:editor-full-stack-private-review',
-    requiredFor: 'browser project/create/upload/plan/approve/private review/download/revision/recovery',
+    id: 'private_canonical_worker_sandbox',
+    script: 'smoke:private-canonical-worker-sandbox',
+    requiredFor: 'confined private canonical worker runtime without production promotion',
   },
   {
     id: 'playwright_editor_flow',
@@ -150,9 +145,9 @@ const steps: SmokeStep[] = [
     requiredFor: 'requirement-level evidence coverage for upload, approval, private render, QA, browser review, revision, and recovery',
   },
   {
-    id: 'edit_architecture_e2e',
-    script: 'smoke:edit-architecture-e2e',
-    requiredFor: 'compiled intent, execution graph, asset manifest, private final render, QA, download',
+    id: 'legacy_execution_routes_fail_closed',
+    script: 'smoke:edit-execution-security-boundary',
+    requiredFor: 'legacy caller-authored execution routes remain disabled after canonical authority cutover',
   },
 ]
 
@@ -188,8 +183,8 @@ console.log(JSON.stringify({
     'Professional adapter contracts and source-truth gates are checked before private review integration.',
     'Prompt-first professional skill planning works without requiring an Edit Brief while preserving model-role boundaries.',
     'User-facing planning copy hides adapter, provider, model-role, backend, and source-truth implementation names.',
-    'The browser path creates a private internal review MP4, verifies its manifest, supports revision, and recovers accepted edits.',
-    'The Playwright editor flow verifies the real UI upload, planning, approval, private review, and blocked failure path.',
+    'Canonical private source and worker boundaries preserve tenant identity, immutable inputs, lease fencing, and fail-closed execution.',
+    'The Playwright editor flow verifies the current UI upload, planning, approval, review, and blocked failure path.',
     'Expanded and keyboard Playwright flows verify advanced planning details, composer behavior, soundflow disclosures, and hidden internal implementation names.',
     'Route viewport QA verifies the clean app shell, legacy route redirects, and the Home/Projects/Preferences-only sidebar.',
     'The completion audit verifies the suite still covers every required internal edit architecture proof surface.',

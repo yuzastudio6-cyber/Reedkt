@@ -350,8 +350,9 @@ function buildContract(seedInput: ContractSeed): ProfessionalToolAdapterContract
   }
 
   const qaPolicy = getToolQAPolicy(seedInput.canonicalToolId)
-  const requiresModelWeightApproval = profile.modelWeightPolicy.required
   const baseModes = seedInput.modes ?? ['dry_run', 'bounded_execution']
+  const readinessOnly = baseModes.length === 1 && baseModes[0] === 'readiness_check'
+  const requiresModelWeightApproval = profile.modelWeightPolicy.required && !readinessOnly
   const modes = requiresModelWeightApproval
     ? Array.from(new Set([...baseModes, 'blocked_until_model_weight_ready' as const]))
     : baseModes

@@ -210,8 +210,12 @@ function groupIdsForRequestedToolName(requestedToolName: string): ProfessionalTo
 }
 
 function stageForContract(contract: ProfessionalToolAdapterContract): ProfessionalToolProgramStage {
+  if (
+    contract.modes.includes('readiness_check') &&
+    !contract.modes.includes('dry_run') &&
+    !contract.modes.includes('bounded_execution')
+  ) return 'readiness_check_only'
   if (contract.requiresModelWeightApproval) return 'model_backed_adapter_ready_requires_owner_manifest_evidence'
-  if (contract.modes.length === 1 && contract.modes[0] === 'readiness_check') return 'readiness_check_only'
   return 'bounded_adapter_contract_ready'
 }
 

@@ -106,7 +106,7 @@ for (const record of safeLocalReport.records) {
 assert.equal(safeLocalReport.summary.productionReadyTools.length, 0)
 assert.equal(safeLocalReport.summary.authorityExternalBetaReadyTools.length, 0)
 assert.equal(safeLocalReport.summary.blockedTools.length, 72)
-assert.equal(safeLocalReport.summary.modelWeightApprovalRequiredTools.length, 12)
+assert.equal(safeLocalReport.summary.modelWeightApprovalRequiredTools.length, 14)
 assert.ok(safeLocalReport.summary.catalogExternalBetaFlaggedTools.length > 0)
 assert.equal(safeLocalReport.credentialsRead, false)
 assert.equal(safeLocalReport.networkCallsMade, false)

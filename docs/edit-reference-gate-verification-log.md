@@ -388,3 +388,78 @@ Gate 4 evaluates the canonical Gate 3 `PreferenceDNAVersionRecord` rather than c
 - Supabase CLI/SQL/remote mutation: not performed.
 - Provider/media/worker/render/credit execution: not performed.
 - Production ready: false.
+
+## Gate 5 — Target Adaptation And Preference Application — 2026-07-11
+
+### Commit
+
+- Commit: `17b67a871b061df2c7a4327d00a5d37f22512e22`
+- Message: `Add target-aware Preference Applications`
+- Files: 21
+- Migration count before/after: 21 / 21
+- Production ready: false
+
+### Implemented Vertical Slice
+
+```text
+exact approved Preference DNA version
+→ validate exact DNA digest, approval, non-blocked QA, frame, and adapt-not-copy acknowledgement
+→ snapshot caller-confirmed target project/edit identity and bounded target context
+→ reject direct-copy target instructions
+→ adapt every transferable DNA rule to target source, story, platform, frame, level, and budget
+→ keep context-only material as context and block every do-not-copy rule from transfer
+→ persist immutable target decisions, hint groups, precedence, and content digests
+→ expose real prepared records in Applied Edits without claiming target integration
+→ reload the same two target-specific applications
+```
+
+Gate 5 uses the canonical approved Gate 4 DNA version as its only source authority. The same DNA produces different guidance for a voice-first 16:9 tutorial and a silent 9:16 lifestyle montage. Current target directives concretely override reusable caption/music/SFX/structure preferences, while safety, platform, tier, frame, credit/cost policy, and approved constraints remain higher priority.
+
+### API, Persistence, Safety, And UI Evidence
+
+- Authenticated list/create routes use exact workspace, study, DNA, reference revision, DNA digest, and durable idempotency boundaries.
+- Unapproved DNA, wrong digests, unconfirmed frames, cross-workspace calls, direct-copy target instructions, duplicate target ownership, and stale authority fail without mutation.
+- Each application freezes exact DNA version/digest, QA/approval links, target-context digest, one decision per DNA rule, hint groups, universal copy boundaries, precedence, and its own content digest.
+- The private aggregate validates target/version uniqueness, complete rule/hint coverage, immutable hashes, scope, bounds, lifecycle, and all no-production flags on every read.
+- Target identifiers are recorded but explicitly remain `caller_confirmed_unverified` until Gate 6 resolves them against canonical Project Edit Session authority.
+- Applied Edits now has truthful loading, empty, error, and real-record states. Cards show target names/context, adapted/held-back counts, collapsed target-specific guidance, protected boundaries, timestamp, and the unchanged-edit boundary without IDs or hashes.
+- Approved DNA keeps one clear handoff back to Projects; Study Chat remains the primary workflow.
+- Design authority remained `design.md` -> `design-system/` -> current ReEditPro UI/UX documents -> UI UX Pro Max supporting guidance.
+- Desktop 1440px and mobile 375px screenshots showed exact viewport width, responsive card/metric stacking, no page-level horizontal overflow, and zero console/page errors.
+
+### Verification Results
+
+| Command / check | Result | Evidence |
+| --- | --- | --- |
+| `npm run smoke:edit-reference-target-application` | Pass | Premature rejection, exact authority, frame/copy/tenant conflicts, target pair, precedence, replay, duplicate target rejection, privacy, restart, list API, and false side effects verified |
+| Gate 1–4 repository/API/client/UI/control-plane smokes | Pass | Earlier canonical behavior preserved |
+| Preference Video Study/DNA/QA/application regressions | Pass | Imported compatibility/mock architecture remains unchanged and truthful |
+| `npm run smoke:project-edit-brief-marker-context` | Pass | Existing bounded downstream marker context remains intact |
+| `npm run smoke:lovable-dashboard-ui-alignment` | Pass | Route/navigation hierarchy passed after removing a redundant Playwright pre-scroll race; visibility/enabled/click assertions remain intact |
+| `npm run check:frontend-boundary` | Pass | 636 frontend files checked; React imports no server runtime |
+| Server typecheck and lint | Pass | No TypeScript or ESLint failures |
+| `npm run build` | Pass | 2,555 client modules transformed; existing large-chunk warnings disclosed |
+| `npm run build:server` | Pass | 580 server modules transformed |
+| Focused Edit Reference Playwright | Pass | 5/5 tests, including target-ready handoff, real application card, guidance/boundary review, reload, responsive targets, and copy exclusion |
+| Full Chromium Playwright | Pass | 53/53 tests passed in 27.1 seconds on the final Gate 5 behavior |
+| Desktop/mobile screenshot review | Pass | Applied Edits checked at 1440px and 375px with no overflow or console/page errors |
+| Staged secret/path scan | Pass | No credentials, environment files, AppleDouble, results, build output, migrations, lockfile, or restricted runtime files staged |
+| Migration count | Pass | 21 before and after; no SQL or remote database action |
+
+### Readiness And Next Gate
+
+- Backend-local target adaptation/application persistence/reload: verified.
+- Deterministic two-target adaptation, precedence, and direct-copy safety: verified mock.
+- Browser application history/review and responsive behavior: verified.
+- Canonical target identity and downstream edit-context integration: not connected.
+- Replacement/removal and downstream invalidation history: pending Gate 7.
+- Live provider/media/worker/render/credit execution: not run.
+- Production Supabase/RLS/cross-device authority: blocked by the existing canonical migration gate.
+- Next gate: Gate 6 — Project Edit Session, Edit Brief, Marker Context, Marker Chat, Plan Hint, and QA integration.
+
+### Remote State
+
+- Push/PR/remote merge: not performed.
+- Supabase CLI/SQL/remote mutation: not performed.
+- Provider/media/worker/render/credit execution: not performed.
+- Production ready: false.

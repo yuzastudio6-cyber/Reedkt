@@ -31,19 +31,19 @@ export function InlineMusicCreditEstimateCard({
       <div className="music-score-grid">
         <span><strong>Music cue count</strong>{estimate.cueCount}</span>
         <span><strong>Generated cues</strong>{estimate.generatedCueCount}</span>
-        <span><strong>Lyria prompt planning</strong>{estimate.planningCredits} credits</span>
-        <span><strong>Generated music cues</strong>{estimate.generationCredits} credits</span>
+        <span><strong>Prompt planning</strong>{estimate.planningCredits} credits</span>
+        <span><strong>Music cues</strong>{estimate.generationCredits} credits</span>
         <span><strong>QA / mix planning</strong>{estimate.qaMixCredits} credits</span>
         <span><strong>Render support</strong>{estimate.renderSupportCredits} credits</span>
         <span><strong>Available credits</strong>{estimate.availableCredits}</span>
         <span><strong>Approval required</strong>Yes</span>
       </div>
-      <p className="music-muted-note">Music generation starts only after approval. This mock demo does not spend real credits.</p>
+      <p className="music-muted-note">Music starts only after approval. This internal test flow does not spend credits.</p>
       <div className="inline-card-actions">
         <Button disabled={approved} onClick={onApprove} variant="primary">
           {approved ? 'Music credits approved' : 'Approve music credits'}
         </Button>
-        <Button disabled={approved} onClick={onLowerCost} variant="secondary">Lower music cost</Button>
+        <Button disabled={approved} onClick={onLowerCost} variant="secondary">Lower cost</Button>
         <Button disabled={approved} onClick={onDialogueBedOnly} variant="ghost">Generate only dialogue bed</Button>
         <Button disabled={approved} onClick={onSkipMusic} variant="ghost">Skip music</Button>
       </div>

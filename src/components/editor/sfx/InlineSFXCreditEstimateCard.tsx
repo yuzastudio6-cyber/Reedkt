@@ -33,21 +33,21 @@ export function InlineSFXCreditEstimateCard({
 
       <div className="sfx-score-grid">
         <span><strong>SFX events</strong>{estimate.eventCount}</span>
-        <span><strong>Library searches</strong>{estimate.librarySearchCount}</span>
-        <span><strong>MMAudio draft</strong>{estimate.mmaudioDraftCount}</span>
-        <span><strong>Mirelo production</strong>{estimate.mireloProductionCount}</span>
+        <span><strong>Library checks</strong>{estimate.librarySearchCount}</span>
+        <span><strong>Draft sound options</strong>{estimate.mmaudioDraftCount}</span>
+        <span><strong>Final-polish options</strong>{estimate.mireloProductionCount}</span>
         <span><strong>Timing / trim</strong>{estimate.timingTrimCredits} credits</span>
         <span><strong>Mix / QA</strong>{estimate.mixQACredits} credits</span>
         <span><strong>Approval required</strong>{estimate.approvalRequired ? 'Yes' : 'No'}</span>
       </div>
 
-      <p className="sfx-muted-note">SFX generation starts only after approval. This mock demo does not spend real credits.</p>
+      <p className="sfx-muted-note">SFX starts only after approval. This internal test flow does not spend credits.</p>
 
       <div className="inline-card-actions">
         <Button disabled={approved} onClick={onApprove} variant="primary">{approved ? 'SFX credits approved' : 'Approve SFX credits'}</Button>
-        <Button disabled={approved} onClick={onLowerCost} variant="secondary">Lower SFX cost</Button>
+        <Button disabled={approved} onClick={onLowerCost} variant="secondary">Lower cost</Button>
         <Button disabled={approved} onClick={onInternalLibraryOnly} variant="ghost">Use internal library only</Button>
-        <Button disabled={approved} onClick={onMMAudioDraftOnly} variant="ghost">Use MMAudio draft only</Button>
+        <Button disabled={approved} onClick={onMMAudioDraftOnly} variant="ghost">Use draft route only</Button>
         <Button disabled={approved} onClick={onSkipSFX} variant="ghost">Skip SFX</Button>
       </div>
     </section>

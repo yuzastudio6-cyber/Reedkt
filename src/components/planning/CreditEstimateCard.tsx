@@ -58,7 +58,7 @@ export function CreditEstimateCard({ approved, estimate, onApprove, onRevise, on
         </article>
       </div>
 
-      <p className="credit-note">Credits are deducted only after approval. Failed ReeditPro generation should be refundable later. No real credits are deducted in this mock flow.</p>
+      <p className="credit-note">Credits are deducted only after approval. Failed ReeditPro generation should be refundable later. This internal test flow does not deduct credits.</p>
 
       <div className="approval-actions">
         <Button disabled={approved} icon={CheckCircle2} onClick={onApprove} variant="primary">

@@ -3,6 +3,7 @@ import { buildProductionWorkflowFallbackSummary } from '../e2e/production-workfl
 import { buildProductionWorkflowFixture } from '../e2e/production-workflow/production-workflow-fixture-builder'
 import { buildProductionWorkflowQASummary } from '../e2e/production-workflow/production-workflow-qa-summary-builder'
 import { buildProductionWorkflowReadinessSummary } from '../e2e/production-workflow/production-workflow-readiness-gate'
+import { buildProductionReadinessReport } from '../workers/readiness-validation'
 import { runProductionWorkerRuntime } from '../workers/production'
 import type { QualityGateResult } from '../../src/backend/contracts/quality-gate-contracts'
 
@@ -15,6 +16,23 @@ const productionReport = await runProductionWorkflowScenario({ scenario: blocked
 check(productionReport.status === 'blocked', 'production_ready workflow must be blocked when readiness/model/manual blockers remain.')
 check(!productionReport.productionReadyAllowed, 'production_ready workflow must not be allowed with current blockers.')
 check(productionReport.readinessSummary.modelWeightBlockerCount > 0 || productionReport.readinessSummary.blockerCount > 0, 'Readiness/model blockers must be summarized.')
+
+const cleanReadinessReport = {
+  ...buildProductionReadinessReport({ includeCommandPlans: false }),
+  overallStatus: 'passed' as const,
+  blockerSummaries: [],
+  warnings: [],
+}
+const productionReadySummary = buildProductionWorkflowReadinessSummary({
+  mode: 'production_ready',
+  report: cleanReadinessReport,
+  revideoRequested: false,
+  signedUrlDetected: false,
+  rawPromptDetected: false,
+  upstreamBlockingQa: false,
+})
+check(productionReadySummary.productionReadyAllowed, 'production_ready workflow should be allowed when readiness and safety gates pass.')
+check(productionReadySummary.blockerCount === 0, 'production_ready clean evidence path must not carry blocker debt.')
 
 const revideoSummary = buildProductionWorkflowReadinessSummary({ mode: 'production_ready', revideoRequested: true })
 check(!revideoSummary.productionReadyAllowed && revideoSummary.warnings.some((warning) => warning.includes('Revideo')), 'production_ready workflow must block Revideo requests.')
@@ -74,6 +92,7 @@ console.log(JSON.stringify({
   ok: true,
   checks: [
     'production_ready_readiness_blocked',
+    'production_ready_evidence_gate_allows_clean_report',
     'revideo_blocked',
     'signed_url_blocked',
     'raw_prompt_blocked',

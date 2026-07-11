@@ -1,6 +1,14 @@
 import type { SupabaseProductionReadinessCheck, SupabaseProductionReadinessPlan } from '../types/supabase-production-readiness'
 
 export const activeSupabaseMigrationFiles = [
+  'supabase/migrations/202605130001_core_reeditpro_tables.sql',
+  'supabase/migrations/202605130002_intent_edit_planning_tables.sql',
+  'supabase/migrations/202605130003_professional_edit_quality_engine.sql',
+  'supabase/migrations/202605130004_credit_ledger_approval_gate.sql',
+  'supabase/migrations/202605130005_job_orchestration_agent_runs.sql',
+  'supabase/migrations/202605130006_stroke_motion_data_model.sql',
+  'supabase/migrations/202605130007_generation_providers_generated_assets.sql',
+  'supabase/migrations/202605130008_render_preview_export_revision_qa.sql',
   'supabase/migrations/202605180001_reeditpro_core_workspace_projects.sql',
   'supabase/migrations/202605180002_reeditpro_media_source_sequence.sql',
   'supabase/migrations/202605180003_reeditpro_intent_plan_versions.sql',
@@ -9,6 +17,15 @@ export const activeSupabaseMigrationFiles = [
   'supabase/migrations/202605180006_reeditpro_qa_exports_audit.sql',
   'supabase/migrations/202605180007_reeditpro_rls_policies.sql',
   'supabase/migrations/202605180008_reeditpro_storage_buckets_policies.sql',
+  'supabase/migrations/202605190001_sfx_director_tables.sql',
+  'supabase/migrations/202605190002_storytiming_master_tables.sql',
+  'supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql',
+  'supabase/migrations/202605200002_worker_leases_runtime_transport.sql',
+  'supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql',
+  'supabase/migrations/202605270001_approved_snapshot_transaction_and_immutability.sql',
+  'supabase/migrations/202605280001_rp_db_11_footage_prep_source_understanding.sql',
+  'supabase/migrations/202605280002_rp_db_12_cleanup_plan_clean_assembly.sql',
+  'supabase/migrations/202605280003_rp_db_13_edit_brief_edit_cues.sql',
 ] as const
 
 export const manualSupabaseTestFiles = [
@@ -27,10 +44,26 @@ export function createSupabaseProductionReadinessPlan(): SupabaseProductionReadi
     check({
       id: 'supabase-readiness-active-migrations-listed',
       label: 'Active migrations listed',
-      passed: activeSupabaseMigrationFiles.length === 8,
+      passed: activeSupabaseMigrationFiles.length === 25,
       severity: 'warning',
-      message: 'The RP-DATA-04 active Supabase migration files are listed for manual local/staging testing.',
-      recommendation: 'Review every 20260518 migration before running Supabase CLI commands.',
+      message: 'All SQL files currently visible to the Supabase migration directory are listed, including both foundational families and later additions.',
+      recommendation: 'Keep this list synchronized with the executable folder and do not describe only the eight 20260518 files as the active chain.',
+    }),
+    check({
+      id: 'supabase-readiness-migration-baseline-reproducible',
+      label: 'Migration baseline reproducible',
+      passed: false,
+      severity: 'blocking',
+      message: 'The 20260513 and 20260518 foundations redefine incompatible tables, while later migrations depend on tables unique to both families.',
+      recommendation: 'Do not run the raw migration directory. Build and validate one isolated canonical chain before local reset, staging, durable Preferences, or production claims.',
+    }),
+    check({
+      id: 'supabase-readiness-static-security-clear',
+      label: 'Static Supabase security review clear',
+      passed: false,
+      severity: 'blocking',
+      message: 'The ordered migration-source audit remains blocked by foundation conflicts, identity drift, unsafe legacy SECURITY DEFINER functions, and missing structural workspace/project bindings.',
+      recommendation: 'Promote only an isolated canonical chain that passes the static gate, then prove it with local/staging RLS tests and live catalog review.',
     }),
     check({
       id: 'supabase-readiness-rls-migration-listed',
@@ -109,8 +142,8 @@ export function createSupabaseProductionReadinessPlan(): SupabaseProductionReadi
       label: 'Local testing required',
       passed: true,
       severity: 'warning',
-      message: 'The plan is intentionally local_testing_required, not production ready.',
-      recommendation: 'Run local Supabase tests before staging.',
+      message: 'Local testing remains required after—not before—the migration baseline is reconciled.',
+      recommendation: 'First produce a reproducible canonical chain, then run a clean local reset and the reviewed SQL checks.',
     }),
     check({
       id: 'supabase-readiness-advisors-required',
@@ -132,14 +165,17 @@ export function createSupabaseProductionReadinessPlan(): SupabaseProductionReadi
 
   return {
     id: 'supabase-production-readiness-rp-data-04',
-    status: 'local_testing_required',
-    summary: 'Active Supabase migration files are prepared for local/staging testing. Production remains blocked until manual tests, RLS/storage review, Supabase advisor checks, backups, and approval are complete.',
+    status: 'production_blocked',
+    migrationBaselineStatus: 'blocked_by_parallel_foundations',
+    securitySourceStatus: 'blocked_by_security_findings',
+    summary: 'The executable migration folder is not a reproducible schema source: two incompatible foundations coexist and later migrations depend on both. Raw local reset, staging push, durable Supabase Preferences, and production remain blocked until a canonical chain is built and tested.',
     activeMigrationFiles: [...activeSupabaseMigrationFiles],
     manualTestFiles: [...manualSupabaseTestFiles],
     checks,
     localTestingSteps: [
-      'Review every 20260518 migration file before running Supabase CLI commands.',
-      'Run local Supabase migration testing manually.',
+      'Do not run the raw supabase/migrations directory while the baseline audit is blocked.',
+      'Choose the current identity/workspace/project contract and build an isolated canonical migration chain without rewriting applied history.',
+      'Run a clean local reset only after the canonical chain passes static dependency review.',
       'Run the database/test-sql smoke-test checklists with environment-specific auth fixtures.',
       'Inspect RLS policies, storage buckets, triggers, and indexes.',
       'Generate database types later only after local schema is accepted.',
@@ -152,6 +188,8 @@ export function createSupabaseProductionReadinessPlan(): SupabaseProductionReadi
       'Run Supabase Security Advisor and Performance Advisor.',
     ],
     productionBlockers: [
+      'The migration baseline is not reproducible because the 20260513 and 20260518 foundations overlap incompatibly and later migrations depend on both.',
+      'The static Supabase security audit is blocked by unresolved identity, function-security, and structural tenant-binding findings.',
       'Local Supabase testing has not been run.',
       'Staging Supabase testing has not been run.',
       'Supabase Security Advisor has not been reviewed.',
@@ -160,7 +198,10 @@ export function createSupabaseProductionReadinessPlan(): SupabaseProductionReadi
       'No production migration approval has been recorded.',
     ],
     nextSteps: [
-      'Run local Supabase tests manually in a future step.',
+      'Create and review one isolated canonical migration chain for the current product.',
+      'Run the executable migration-baseline audit and require reproducible status before any Supabase CLI apply/reset command.',
+      'Run npm run audit:supabase-security and require an isolated canonical chain with no blocking source findings.',
+      'Run local Supabase tests manually only after baseline reconciliation.',
       'Fix any RLS/storage/index issues found locally.',
       'Test against staging with realistic workspace users.',
       'Approve production migration only after local/staging and advisor checks pass.',
@@ -169,6 +210,8 @@ export function createSupabaseProductionReadinessPlan(): SupabaseProductionReadi
       'Codex did not run SQL.',
       'Codex did not connect Supabase.',
       'No Supabase client or backend route was implemented.',
+      'The current raw migration directory must not be treated as reset-safe or deployable.',
+      'Static source review does not verify the deployed Supabase catalog or Security Advisor state.',
       'No storage operation, provider call, worker execution, rendering, or billing logic was implemented.',
       'This is not a legal or security certification.',
     ],

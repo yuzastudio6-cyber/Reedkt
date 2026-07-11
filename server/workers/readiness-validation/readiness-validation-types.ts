@@ -127,6 +127,56 @@ export interface ReadinessCommandPlan {
   doesNotRun: string[]
 }
 
+export type ProductionReadinessActionStageId =
+  | 'launch_core_container_readiness'
+  | 'model_weight_license_mount_approval'
+  | 'optional_adapter_promotion'
+  | 'evaluation_future_scope_decision'
+  | 'deployment_billing_release_evidence'
+
+export type ProductionReadinessActionStageStatus =
+  | 'passed'
+  | 'blocked'
+  | 'pending_evidence'
+
+export interface ProductionReadinessActionStage {
+  id: ProductionReadinessActionStageId
+  status: ProductionReadinessActionStageStatus
+  title: string
+  summary: string
+  toolIds: ProductionToolId[]
+  adapterContractToolIds: ProductionToolId[]
+  productionReadinessMissingToolIds: ProductionToolId[]
+  sourceDeclarationToolIds: ProductionToolId[]
+  sourceDeclarationMissingToolIds: ProductionToolId[]
+  sourceDeclarationEvidence: ProductionReadinessSourceDeclarationEvidence[]
+  blockerCount: number
+  requiredEvidence: string[]
+  nextActions: string[]
+  safetyBoundary: string
+  transitionSummary: string
+}
+
+export type ProductionReadinessSourceDeclarationKind =
+  | 'dockerfile'
+  | 'python_requirements'
+  | 'node_package_manifest'
+  | 'internal_integration_boundary'
+
+export interface ProductionReadinessSourceDeclarationEvidence {
+  toolId: ProductionToolId
+  sources: string[]
+  evidenceKinds: ProductionReadinessSourceDeclarationKind[]
+  runtimeProofRequired: true
+  productReady: false
+}
+
+export interface ProductionReadinessActionPlan {
+  status: 'production_ready' | 'blocked_by_evidence_gates'
+  currentSafeStage: 'internal_testing' | 'external_beta' | 'paid_production'
+  stages: ProductionReadinessActionStage[]
+}
+
 export interface ProductionReadinessReport {
   id: string
   createdAt: string
@@ -140,6 +190,7 @@ export interface ProductionReadinessReport {
   blockerSummaries: ProductionReadinessBlockerSummary[]
   commandPlans: ReadinessCommandPlan[]
   warnings: string[]
+  actionPlan: ProductionReadinessActionPlan
   nextActions: string[]
 }
 

@@ -33,11 +33,16 @@ export function summarizeProductionReadinessReport(report: ProductionReadinessRe
   const blockerLines = report.blockerSummaries
     .slice(0, 12)
     .map((blocker) => `- [${blocker.severity}] ${blocker.message}`)
+  const actionPlanLines = report.actionPlan.stages.map((stage) => (
+    `- ${stage.title}: ${stage.status}, tools=${stage.toolIds.length}, sourceDeclared=${stage.sourceDeclarationToolIds.length}, adapterContracts=${stage.adapterContractToolIds.length}, productionMissing=${stage.productionReadinessMissingToolIds.length}, blockers=${stage.blockerCount}`
+  ))
 
   return [
     `Production readiness report: ${report.id}`,
     `Mode: ${report.mode}`,
     `Overall status: ${report.overallStatus}`,
+    `Current safe stage: ${report.actionPlan.currentSafeStage}`,
+    `Action plan status: ${report.actionPlan.status}`,
     `Workers: ${report.workerSummaries.length}`,
     `Tools: ${report.toolSummaries.length}`,
     `Images: ${report.imageSummaries.length}`,
@@ -55,6 +60,9 @@ export function summarizeProductionReadinessReport(report: ProductionReadinessRe
     '',
     'Top blockers:',
     ...(blockerLines.length > 0 ? blockerLines : ['- none']),
+    '',
+    'Action plan:',
+    ...actionPlanLines,
     '',
     'Next actions:',
     ...report.nextActions.map((action) => `- ${action}`),

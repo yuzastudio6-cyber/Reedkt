@@ -22,6 +22,7 @@ import {
   buildMusicDuckingPlan,
   buildRNNoiseSkipReason,
   buildSfxDensityPlan,
+  buildSignalsmithStretchCommand,
   buildSignalsmithStretchSkipReason,
   buildSkipReason as buildSoundTouchSkipReason,
   buildSoundSyncCuePlan,
@@ -184,6 +185,14 @@ try {
   check(buildDemucsSkipReason({ runMode: 'local_dev', timeoutMs: 1000 })?.code === 'demucs_not_enabled', 'Demucs adapter must skip gracefully if unavailable/no model.')
   check(buildSoundTouchSkipReason({ runMode: 'local_dev', timeoutMs: 1000 })?.code === 'soundtouch_not_enabled', 'SoundTouch adapter must skip gracefully if unavailable.')
   check(buildSignalsmithStretchSkipReason({ runMode: 'local_dev', timeoutMs: 1000 })?.code === 'signalsmith_stretch_not_enabled', 'Signalsmith adapter must skip gracefully if unavailable.')
+  const signalsmithCommand = buildSignalsmithStretchCommand({ runMode: 'dry_run', timeoutMs: 1000, tempoRatio: 1.08, pitchSemitones: -2 })
+  check(
+    signalsmithCommand.command === 'signalsmith-stretch' &&
+      signalsmithCommand.args.includes('--time=1.08') &&
+      signalsmithCommand.args.includes('--semitones=-2') &&
+      !signalsmithCommand.args.some((arg) => arg.startsWith('-tempo=') || arg.startsWith('-pitch=')),
+    'Signalsmith command planning must use the Signalsmith CLI shape, not SoundTouch flags.',
+  )
 
   const dryRun = await runAudioFoundation({
     mode: 'dry_run',

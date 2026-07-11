@@ -50,12 +50,5 @@ export function assertProductionWorkflowReadiness(input: {
   rawPromptDetected?: boolean
   upstreamBlockingQa?: boolean
 }): ProductionWorkflowReadinessSummary {
-  const summary = buildProductionWorkflowReadinessSummary(input)
-  if (input.mode === 'production_ready' && !summary.productionReadyAllowed) {
-    return {
-      ...summary,
-      productionReadyAllowed: false,
-    }
-  }
-  return summary
+  return buildProductionWorkflowReadinessSummary(input)
 }

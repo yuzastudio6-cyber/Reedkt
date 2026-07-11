@@ -1,9 +1,11 @@
+import { existsSync, readFileSync } from 'node:fs'
 import {
   getProductionToolProfile,
   listProductionToolProfiles,
   type ProductionRegistryWorkerType,
   type ProductionToolId,
 } from '../../tool-registry'
+import { resolveProfessionalToolAdapterContract } from '../../tool-registry/professional-tool-adapter-contracts'
 import {
   getProductionReadinessSpec,
   runCoreCpuRenderReadinessChecks,
@@ -28,6 +30,10 @@ import type {
   ReadinessImageSummary,
   ReadinessLicenseSummary,
   ReadinessModelWeightSummary,
+  ProductionReadinessActionPlan,
+  ProductionReadinessActionStage,
+  ProductionReadinessSourceDeclarationEvidence,
+  ProductionReadinessSourceDeclarationKind,
   ReadinessToolSummary,
   ReadinessValidationStatus,
   ReadinessWorkerSummary,
@@ -382,6 +388,344 @@ function overallStatus(blockers: ProductionReadinessBlockerSummary[], warnings: 
   return 'passed'
 }
 
+function uniqueToolIds(toolIds: ProductionToolId[]): ProductionToolId[] {
+  return [...new Set(toolIds)]
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)]
+}
+
+function adapterContractToolIds(toolIds: ProductionToolId[]): ProductionToolId[] {
+  return uniqueToolIds(toolIds.filter((toolId) => Boolean(resolveProfessionalToolAdapterContract(toolId))))
+}
+
+function missingProductionToolIds(toolIds: ProductionToolId[], toolSummaries: ReadinessToolSummary[]): ProductionToolId[] {
+  const summaryByToolId = new Map(toolSummaries.map((tool) => [tool.toolId, tool.status]))
+  return uniqueToolIds(toolIds.filter((toolId) => summaryByToolId.get(toolId) !== 'passed'))
+}
+
+type StaticDeclarationFile = {
+  path: string
+  kind: ProductionReadinessSourceDeclarationKind
+  text: string
+  packageNames?: Set<string>
+}
+
+const sourceDeclarationFilePaths: Array<Omit<StaticDeclarationFile, 'text' | 'packageNames'>> = [
+  { path: 'package.json', kind: 'node_package_manifest' },
+  { path: 'docker/prod/cpu-worker/Dockerfile', kind: 'dockerfile' },
+  { path: 'docker/prod/render-worker/Dockerfile', kind: 'dockerfile' },
+  { path: 'docker/prod/qa-worker/Dockerfile', kind: 'dockerfile' },
+  { path: 'docker/prod/tool-readiness-worker/Dockerfile', kind: 'dockerfile' },
+  { path: 'docker/prod/gpu-worker/Dockerfile', kind: 'dockerfile' },
+  { path: 'docker/prod/cpu-worker/requirements.cpu.txt', kind: 'python_requirements' },
+  { path: 'docker/prod/render-worker/requirements.render.txt', kind: 'python_requirements' },
+  { path: 'docker/prod/qa-worker/requirements.qa.txt', kind: 'python_requirements' },
+  { path: 'docker/prod/tool-readiness-worker/requirements.readiness.txt', kind: 'python_requirements' },
+  { path: 'docker/prod/gpu-worker/requirements.gpu.txt', kind: 'python_requirements' },
+  { path: 'server/workers/timeline/hyperframe-timeline-bridge.ts', kind: 'internal_integration_boundary' },
+  { path: 'server/workers/timeline/timeline-worker-types.ts', kind: 'internal_integration_boundary' },
+]
+
+function normalizePackageName(value: string): string {
+  return value.trim().toLowerCase()
+}
+
+function stripCommentLines(text: string): string {
+  return text.split(/\r?\n/)
+    .filter((line) => !line.trim().startsWith('#'))
+    .join('\n')
+}
+
+function parseRequirementPackageNames(text: string): Set<string> {
+  const names = text.split(/\r?\n/)
+    .map((line) => line.replace(/#.*/, '').trim())
+    .filter(Boolean)
+    .map((line) => line.split(/[<>=~!;\s]|\[/, 1)[0])
+    .filter(Boolean)
+    .map(normalizePackageName)
+
+  return new Set(names)
+}
+
+function parsePackageJsonNames(text: string): Set<string> {
+  try {
+    const parsed = JSON.parse(text) as {
+      dependencies?: Record<string, string>
+      devDependencies?: Record<string, string>
+      optionalDependencies?: Record<string, string>
+    }
+    return new Set([
+      ...Object.keys(parsed.dependencies ?? {}),
+      ...Object.keys(parsed.devDependencies ?? {}),
+      ...Object.keys(parsed.optionalDependencies ?? {}),
+    ].map(normalizePackageName))
+  } catch {
+    return new Set()
+  }
+}
+
+function readStaticDeclarationFiles(): StaticDeclarationFile[] {
+  return sourceDeclarationFilePaths.flatMap((file) => {
+    if (!existsSync(file.path)) return []
+    const rawText = readFileSync(file.path, 'utf8')
+    const text = file.kind === 'dockerfile' ? stripCommentLines(rawText) : rawText
+    const packageNames = file.kind === 'python_requirements'
+      ? parseRequirementPackageNames(rawText)
+      : file.kind === 'node_package_manifest'
+        ? parsePackageJsonNames(rawText)
+        : undefined
+
+    return [{ ...file, text: text.toLowerCase(), packageNames }]
+  })
+}
+
+function sourceDeclarationPatterns(toolId: ProductionToolId): string[] {
+  const spec = getProductionReadinessSpec(toolId)
+  const patterns = [
+    ...(spec?.commandChecks.map((check) => check.command) ?? []),
+    ...(spec?.pythonImportChecks.map((check) => check.packageName) ?? []),
+    ...(spec?.nodePackageChecks.map((check) => check.packageName) ?? []),
+  ]
+  const aliases: Partial<Record<ProductionToolId, string[]>> = {
+    ffprobe: ['ffmpeg'],
+    hyperframe: ['hyperframe'],
+    libass: ['libass9', 'libass-dev', 'libass'],
+    sharp: ['sharp', 'libvips42', 'libvips-dev'],
+    pydub_effects: ['pydub'],
+    ebu_r128_pyloudnorm: ['pyloudnorm'],
+    signalsmith_stretch: ['signalsmith-stretch', 'signalsmith_stretch'],
+  }
+
+  return uniqueStrings([...patterns, ...(aliases[toolId] ?? [])])
+    .map((pattern) => normalizePackageName(String(pattern)))
+    .filter(Boolean)
+}
+
+function buildSourceDeclarationEvidence(toolIds: ProductionToolId[]): ProductionReadinessSourceDeclarationEvidence[] {
+  const files = readStaticDeclarationFiles()
+
+  return uniqueToolIds(toolIds).flatMap((toolId) => {
+    const patterns = sourceDeclarationPatterns(toolId)
+    const matchedFiles = files.filter((file) => patterns.some((pattern) => {
+      if (file.packageNames?.has(pattern)) return true
+      return file.text.includes(pattern)
+    }))
+
+    if (matchedFiles.length === 0) return []
+
+    return [{
+      toolId,
+      sources: [...new Set(matchedFiles.map((file) => file.path))],
+      evidenceKinds: [...new Set(matchedFiles.map((file) => file.kind))],
+      runtimeProofRequired: true,
+      productReady: false,
+    }]
+  })
+}
+
+function declaredSourceToolIds(toolIds: ProductionToolId[]): ProductionToolId[] {
+  return buildSourceDeclarationEvidence(toolIds).map((evidence) => evidence.toolId)
+}
+
+function missingSourceDeclarationToolIds(toolIds: ProductionToolId[]): ProductionToolId[] {
+  const declared = new Set(declaredSourceToolIds(toolIds))
+  return uniqueToolIds(toolIds.filter((toolId) => !declared.has(toolId)))
+}
+
+function stageStatus(toolIds: ProductionToolId[], blockerCount: number): ProductionReadinessActionStage['status'] {
+  if (toolIds.length === 0 && blockerCount === 0) return 'passed'
+  return blockerCount > 0 || toolIds.length > 0 ? 'blocked' : 'pending_evidence'
+}
+
+function transitionSummary(toolIds: ProductionToolId[], toolSummaries: ReadinessToolSummary[]): string {
+  const adapterToolIds = adapterContractToolIds(toolIds)
+  const missingToolIds = missingProductionToolIds(toolIds, toolSummaries)
+  const declaredToolIds = declaredSourceToolIds(toolIds)
+  if (adapterToolIds.length === 0) {
+    return `${declaredToolIds.length} tool(s) in this lane have static source declarations, ${missingToolIds.length} need production evidence, and none are currently represented by backend bounded adapter contracts.`
+  }
+  return `${adapterToolIds.length} tool(s) in this lane already have backend bounded adapter contracts and ${declaredToolIds.length} have static source declarations, but ${missingToolIds.length} still need runtime/container readiness evidence before external beta or production.`
+}
+
+function buildActionPlan(
+  reportStatus: ProductionReadinessOverallStatus,
+  toolSummaries: ReadinessToolSummary[],
+  blockerSummaries: ProductionReadinessBlockerSummary[],
+  modelWeightSummaries: ReadinessModelWeightSummary[],
+  licenseSummaries: ReadinessLicenseSummary[],
+): ProductionReadinessActionPlan {
+  const launchCoreTools = uniqueToolIds(toolSummaries
+    .filter((tool) => tool.requiredForProduction && tool.status !== 'passed')
+    .map((tool) => tool.toolId))
+  const modelWeightTools = uniqueToolIds([
+    ...toolSummaries.filter((tool) => tool.modelWeightsRequired && tool.status !== 'passed').map((tool) => tool.toolId),
+    ...modelWeightSummaries.filter((summary) => summary.blocksProduction).map((summary) => summary.toolId),
+  ])
+  const optionalAdapterTools = uniqueToolIds(toolSummaries
+    .filter((tool) => !tool.requiredForProduction && !tool.modelWeightsRequired && !tool.evaluationOnly)
+    .filter((tool) => ['not_installed', 'needs_license_review', 'source_install_review_required', 'pending_manual_review'].includes(tool.status))
+    .map((tool) => tool.toolId))
+  const evaluationFutureTools = uniqueToolIds(toolSummaries
+    .filter((tool) => ['evaluation_only', 'future_only'].includes(tool.status))
+    .map((tool) => tool.toolId))
+
+  const blockerCountFor = (toolIds: ProductionToolId[]) => blockerSummaries
+    .filter((blocker) => blocker.toolId && toolIds.includes(blocker.toolId as ProductionToolId))
+    .filter((blocker) => blocker.severity === 'hard_blocker')
+    .length
+
+  const launchCoreBlockerCount = blockerCountFor(launchCoreTools)
+  const modelWeightBlockerCount = blockerCountFor(modelWeightTools) +
+    modelWeightSummaries.filter((summary) => summary.blocksProduction).length
+  const optionalAdapterBlockerCount = blockerCountFor(optionalAdapterTools)
+  const evaluationFutureBlockerCount = blockerCountFor(evaluationFutureTools)
+  const manualLicenseCount = licenseSummaries.filter((summary) => summary.manualReviewRequired && summary.status !== 'passed').length
+  const launchCoreSourceMissing = missingSourceDeclarationToolIds(launchCoreTools)
+
+  const stages: ProductionReadinessActionStage[] = [
+    {
+      id: 'launch_core_container_readiness',
+      status: stageStatus(launchCoreTools, launchCoreBlockerCount),
+      title: 'Launch-core container readiness',
+      summary: launchCoreTools.length > 0
+        ? `${launchCoreTools.length} launch-core tools still need production container readiness evidence.`
+        : 'Launch-core tools have production readiness evidence.',
+      toolIds: launchCoreTools,
+      adapterContractToolIds: adapterContractToolIds(launchCoreTools),
+      productionReadinessMissingToolIds: missingProductionToolIds(launchCoreTools, toolSummaries),
+      sourceDeclarationToolIds: declaredSourceToolIds(launchCoreTools),
+      sourceDeclarationMissingToolIds: launchCoreSourceMissing,
+      sourceDeclarationEvidence: buildSourceDeclarationEvidence(launchCoreTools),
+      blockerCount: launchCoreBlockerCount,
+      requiredEvidence: [
+        'Production image build for each affected worker image.',
+        'Container readiness checks for required binaries/packages with no media processing.',
+        'Manual license review where the package has production licensing obligations.',
+      ],
+      nextActions: [
+        ...(launchCoreSourceMissing.length > 0
+          ? [`Resolve approved source declarations before runtime proof for: ${launchCoreSourceMissing.join(', ')}.`]
+          : []),
+        'Run the approved container readiness command plan for CPU, render, QA, GPU, and tool-readiness images.',
+        'Record exact package versions, image tags, and license notes before promoting any worker.',
+      ],
+      safetyBoundary: 'Does not authorize provider calls, user media processing, public delivery, billing, beta, or production traffic.',
+      transitionSummary: transitionSummary(launchCoreTools, toolSummaries),
+    },
+    {
+      id: 'model_weight_license_mount_approval',
+      status: stageStatus(modelWeightTools, modelWeightBlockerCount),
+      title: 'Model-weight, license, and mount approval',
+      summary: modelWeightTools.length > 0
+        ? `${modelWeightTools.length} model-backed tools need approved model/license/mount evidence.`
+        : 'Model-backed tools have approved model/license/mount evidence.',
+      toolIds: modelWeightTools,
+      adapterContractToolIds: adapterContractToolIds(modelWeightTools),
+      productionReadinessMissingToolIds: missingProductionToolIds(modelWeightTools, toolSummaries),
+      sourceDeclarationToolIds: declaredSourceToolIds(modelWeightTools),
+      sourceDeclarationMissingToolIds: missingSourceDeclarationToolIds(modelWeightTools),
+      sourceDeclarationEvidence: buildSourceDeclarationEvidence(modelWeightTools),
+      blockerCount: modelWeightBlockerCount,
+      requiredEvidence: [
+        'Approved commercial-use model-weight manifest.',
+        'Private storage or image mount path with checksum/version metadata.',
+        'Runtime check proving model discovery without downloads or public artifacts.',
+      ],
+      nextActions: [
+        'Review each model-backed tool separately before production promotion.',
+        'Keep evaluation-only tools excluded unless a later owner decision changes their status.',
+      ],
+      safetyBoundary: 'Does not authorize model downloads, public model artifacts, or production inference.',
+      transitionSummary: transitionSummary(modelWeightTools, toolSummaries),
+    },
+    {
+      id: 'optional_adapter_promotion',
+      status: optionalAdapterTools.length > 0 || optionalAdapterBlockerCount > 0 ? 'pending_evidence' : 'passed',
+      title: 'Optional adapter promotion',
+      summary: optionalAdapterTools.length > 0
+        ? `${optionalAdapterTools.length} optional/non-core adapters are not production-promoted yet.`
+        : 'No optional adapter promotion is blocking the core production path.',
+      toolIds: optionalAdapterTools,
+      adapterContractToolIds: adapterContractToolIds(optionalAdapterTools),
+      productionReadinessMissingToolIds: missingProductionToolIds(optionalAdapterTools, toolSummaries),
+      sourceDeclarationToolIds: declaredSourceToolIds(optionalAdapterTools),
+      sourceDeclarationMissingToolIds: missingSourceDeclarationToolIds(optionalAdapterTools),
+      sourceDeclarationEvidence: buildSourceDeclarationEvidence(optionalAdapterTools),
+      blockerCount: optionalAdapterBlockerCount,
+      requiredEvidence: [
+        'Adapter package/runtime proof in the intended worker image.',
+        'Private artifact manifest proof for adapter output.',
+        'QA handoff proof that hides internal tool names from user-facing UI.',
+      ],
+      nextActions: [
+        'Promote optional adapters only when a product workflow actually needs them.',
+        'Keep product-ready counts at zero until private QA and owner approval exist.',
+      ],
+      safetyBoundary: 'Optional adapter promotion must remain backend-gated and private-artifact-only.',
+      transitionSummary: transitionSummary(optionalAdapterTools, toolSummaries),
+    },
+    {
+      id: 'evaluation_future_scope_decision',
+      status: evaluationFutureTools.length > 0 || evaluationFutureBlockerCount > 0 ? 'pending_evidence' : 'passed',
+      title: 'Evaluation-only and future scope decision',
+      summary: evaluationFutureTools.length > 0
+        ? `${evaluationFutureTools.length} tools are future-only or evaluation-only and need an explicit scope decision.`
+        : 'No evaluation-only or future-only tools remain in the production path.',
+      toolIds: evaluationFutureTools,
+      adapterContractToolIds: adapterContractToolIds(evaluationFutureTools),
+      productionReadinessMissingToolIds: missingProductionToolIds(evaluationFutureTools, toolSummaries),
+      sourceDeclarationToolIds: declaredSourceToolIds(evaluationFutureTools),
+      sourceDeclarationMissingToolIds: missingSourceDeclarationToolIds(evaluationFutureTools),
+      sourceDeclarationEvidence: buildSourceDeclarationEvidence(evaluationFutureTools),
+      blockerCount: evaluationFutureBlockerCount,
+      requiredEvidence: [
+        'Owner decision to keep excluded, replace, or promote through a separate approval lane.',
+        'License/source review before any evaluation-only tool can become production eligible.',
+      ],
+      nextActions: [
+        'Do not unblock future/evaluation tools by default.',
+        'Prefer replacement or exclusion until a clean owner-approved source path exists.',
+      ],
+      safetyBoundary: 'Future/evaluation tools remain out of production execution until a separate owner gate passes.',
+      transitionSummary: transitionSummary(evaluationFutureTools, toolSummaries),
+    },
+    {
+      id: 'deployment_billing_release_evidence',
+      status: reportStatus === 'passed' && manualLicenseCount === 0 ? 'pending_evidence' : 'blocked',
+      title: 'Deployment, billing, and release evidence',
+      summary: reportStatus === 'passed'
+        ? 'Tool readiness can move to deployment, billing, observability, legal, and release evidence review.'
+        : 'Deployment, billing, and release review waits until tool readiness blockers are resolved.',
+      toolIds: [],
+      adapterContractToolIds: [],
+      productionReadinessMissingToolIds: [],
+      sourceDeclarationToolIds: [],
+      sourceDeclarationMissingToolIds: [],
+      sourceDeclarationEvidence: [],
+      blockerCount: reportStatus === 'passed' ? 0 : blockerSummaries.filter((blocker) => blocker.severity === 'hard_blocker').length,
+      requiredEvidence: [
+        'Deployment approval and environment readback.',
+        'Persistent billing/ledger approval with no silent charging.',
+        'Incident runbook, observability, storage/privacy, security, and legal approval.',
+      ],
+      nextActions: [
+        'Keep internal testing separate from external beta and paid production readiness.',
+        'Allow launch-stage graduation only through evidence-gated readiness inputs.',
+      ],
+      safetyBoundary: 'No external beta, paid production, public delivery, or billing mutation is authorized by static readiness.',
+      transitionSummary: 'Deployment and billing evidence waits until tool readiness, model/license, and adapter promotion gates are complete.',
+    },
+  ]
+
+  return {
+    status: stages.every((stage) => stage.status === 'passed') ? 'production_ready' : 'blocked_by_evidence_gates',
+    currentSafeStage: 'internal_testing',
+    stages,
+  }
+}
+
 export function buildProductionReadinessReport(
   options: BuildProductionReadinessReportOptions = {},
 ): ProductionReadinessReport {
@@ -395,12 +739,13 @@ export function buildProductionReadinessReport(
   const warnings = dedupeBlockers(blockerSummaries)
     .filter((blocker) => blocker.severity === 'warning')
     .map((blocker) => blocker.message)
+  const reportStatus = overallStatus(blockerSummaries, warnings)
 
   return {
     id: `prod-readiness-${mode}-${new Date().toISOString()}`,
     createdAt: new Date().toISOString(),
     mode,
-    overallStatus: overallStatus(blockerSummaries, warnings),
+    overallStatus: reportStatus,
     workerSummaries,
     toolSummaries,
     imageSummaries,
@@ -409,6 +754,7 @@ export function buildProductionReadinessReport(
     blockerSummaries,
     commandPlans: options.includeCommandPlans === false ? [] : buildReadinessCommandPlans(),
     warnings,
+    actionPlan: buildActionPlan(reportStatus, toolSummaries, blockerSummaries, modelWeightSummaries, licenseSummaries),
     nextActions: [
       'Review hard blockers before enabling production execution.',
       'Run static readiness before any human-built container readiness checks.',

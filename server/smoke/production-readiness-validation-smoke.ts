@@ -41,7 +41,9 @@ const requiredFiles = [
   'server/workers/readiness-validation/container-readiness-command-builder.ts',
   'server/workers/readiness-validation/index.ts',
   'server/cli/production-readiness-summary.ts',
+  'server/cli/production-readiness-action-plan.ts',
   'server/cli/production-readiness-command-plan.ts',
+  'docs/production-signalsmith-stretch-source-resolution-plan.md',
 ]
 
 for (const file of requiredFiles) {
@@ -56,6 +58,106 @@ check(dryRunReport.mode === 'dry_run', 'Dry-run readiness report must use dry_ru
 check(staticReport.workerSummaries.length === 6, 'Readiness report must contain all six worker summaries.')
 check(staticReport.imageSummaries.length === 6, 'Readiness report must contain all six image summaries.')
 check(staticReport.toolSummaries.length > 0, 'Readiness report must contain tool summaries.')
+check(staticReport.actionPlan.status === 'blocked_by_evidence_gates', 'Static readiness must expose blocked evidence-gate action plan status.')
+check(staticReport.actionPlan.currentSafeStage === 'internal_testing', 'Static readiness must keep current safe stage at internal_testing.')
+check(staticReport.actionPlan.stages.length === 5, 'Static readiness action plan must expose the five release evidence lanes.')
+check(
+  staticReport.actionPlan.stages.some((stage) => stage.id === 'launch_core_container_readiness' && stage.toolIds.length > 0 && stage.status === 'blocked'),
+  'Action plan must identify launch-core container readiness as the first blocked production lane.',
+)
+check(
+  staticReport.actionPlan.stages.some((stage) => stage.id === 'model_weight_license_mount_approval' && stage.toolIds.length > 0 && stage.status === 'blocked'),
+  'Action plan must identify model-weight/license/mount approval as a blocked production lane.',
+)
+check(
+  staticReport.actionPlan.stages.some((stage) => stage.id === 'deployment_billing_release_evidence' && stage.status === 'blocked'),
+  'Action plan must keep deployment/billing/release evidence blocked until tool readiness passes.',
+)
+check(
+  staticReport.actionPlan.stages.every((stage) => /not authorize|remain|No external|Does not authorize/i.test(stage.safetyBoundary)),
+  'Every action-plan stage must carry a no-scope safety boundary.',
+)
+
+const launchCoreStage = staticReport.actionPlan.stages.find((stage) => stage.id === 'launch_core_container_readiness')
+check(Boolean(launchCoreStage), 'Action plan must include launch-core container readiness stage.')
+check(
+  Boolean(
+    launchCoreStage?.adapterContractToolIds.includes('librosa') &&
+      launchCoreStage?.adapterContractToolIds.includes('pyloudnorm') &&
+      launchCoreStage?.productionReadinessMissingToolIds.includes('librosa'),
+  ),
+  'Launch-core action plan must distinguish internally contracted audio adapters from missing production container evidence.',
+)
+check(
+  Boolean(
+      launchCoreStage?.sourceDeclarationToolIds.includes('ffmpeg') &&
+      launchCoreStage?.sourceDeclarationToolIds.includes('libass') &&
+      launchCoreStage?.sourceDeclarationToolIds.includes('librosa') &&
+      launchCoreStage?.sourceDeclarationToolIds.includes('hyperframe') &&
+      launchCoreStage?.sourceDeclarationToolIds.includes('signalsmith_stretch') &&
+      !launchCoreStage?.sourceDeclarationMissingToolIds.includes('hyperframe') &&
+      !launchCoreStage?.sourceDeclarationMissingToolIds.includes('signalsmith_stretch') &&
+      launchCoreStage?.productionReadinessMissingToolIds.includes('signalsmith_stretch'),
+  ),
+  'Launch-core action plan must distinguish static package declarations, internal integration-boundary declarations, and missing production runtime proof.',
+)
+check(
+  Boolean(
+    launchCoreStage?.sourceDeclarationMissingToolIds.length === 0 &&
+      !launchCoreStage?.nextActions.some((action) => action.includes('Resolve approved source declarations')),
+  ),
+  'Launch-core action plan must clear source-resolution actions once all launch-core tools are source-declared.',
+)
+check(
+  Boolean(
+    launchCoreStage?.sourceDeclarationEvidence.some((evidence) =>
+      evidence.toolId === 'signalsmith_stretch' &&
+      evidence.evidenceKinds.includes('dockerfile') &&
+      evidence.sources.includes('docker/prod/cpu-worker/Dockerfile') &&
+      evidence.sources.includes('docker/prod/tool-readiness-worker/Dockerfile') &&
+      evidence.runtimeProofRequired === true &&
+      evidence.productReady === false
+    ),
+  ),
+  'Signalsmith source declaration must come from worker Dockerfiles and must still require runtime proof.',
+)
+check(
+  Boolean(
+    launchCoreStage?.sourceDeclarationEvidence.some((evidence) =>
+      evidence.toolId === 'hyperframe' &&
+      evidence.evidenceKinds.includes('internal_integration_boundary') &&
+      evidence.runtimeProofRequired === true &&
+      evidence.productReady === false
+    ),
+  ),
+  'Hyperframe source declaration must come from internal metadata-boundary code and must not mark runtime/product readiness.',
+)
+check(
+  Boolean(launchCoreStage?.sourceDeclarationEvidence.every((evidence) =>
+    evidence.runtimeProofRequired === true && evidence.productReady === false
+  )),
+  'Source declaration evidence must never mark launch-core tools product-ready.',
+)
+
+const optionalAdapterStage = staticReport.actionPlan.stages.find((stage) => stage.id === 'optional_adapter_promotion')
+check(Boolean(optionalAdapterStage), 'Action plan must include optional adapter promotion stage.')
+check(
+  Boolean(
+    optionalAdapterStage?.adapterContractToolIds.includes('d3') &&
+      optionalAdapterStage?.adapterContractToolIds.includes('gpac_mp4box_packaging_validation') &&
+      optionalAdapterStage?.productionReadinessMissingToolIds.includes('d3'),
+  ),
+  'Optional adapter action plan must distinguish adapter contracts from production promotion evidence.',
+)
+check(
+  Boolean(
+    optionalAdapterStage?.sourceDeclarationToolIds.includes('d3') &&
+      optionalAdapterStage?.sourceDeclarationToolIds.includes('kornia') &&
+      optionalAdapterStage?.sourceDeclarationMissingToolIds.includes('gpac_mp4box_packaging_validation') &&
+      optionalAdapterStage?.sourceDeclarationMissingToolIds.includes('mkvtoolnix_container_validation'),
+  ),
+  'Optional adapter action plan must distinguish declared visual/model packages from undeclared packaging tools.',
+)
 
 const requiredWorkers: ProductionRegistryWorkerType[] = [
   'api_service',
@@ -191,6 +293,7 @@ for (const script of scripts) {
 const packageJson = requireRead('package.json')
 check(packageJson.includes('smoke:prod-readiness-validation'), 'package.json must expose smoke:prod-readiness-validation.')
 check(packageJson.includes('prod:readiness:summary'), 'package.json must expose prod:readiness:summary.')
+check(packageJson.includes('prod:readiness:action-plan'), 'package.json must expose prod:readiness:action-plan.')
 check(packageJson.includes('prod:readiness:command-plan'), 'package.json must expose prod:readiness:command-plan.')
 check(!/"[^"]*":\s*"[^"]*scripts\/docker\/prod\/0[1-7][^"]*"/.test(packageJson), 'npm scripts must not auto-build or auto-push production images.')
 check(!/"[^"]*":\s*"[^"]*docker build[^"]*docker\/prod[^"]*"/.test(packageJson), 'npm scripts must not auto-build production Docker images.')
@@ -207,6 +310,18 @@ console.log(JSON.stringify({
   tools: staticReport.toolSummaries.length,
   modelWeightSummaries: staticReport.modelWeightSummaries.length,
   hardBlockers: staticReport.blockerSummaries.filter((blocker) => blocker.severity === 'hard_blocker').length,
+  actionPlanStatus: staticReport.actionPlan.status,
+  currentSafeStage: staticReport.actionPlan.currentSafeStage,
+  actionPlanStages: staticReport.actionPlan.stages.map((stage) => ({
+    id: stage.id,
+    status: stage.status,
+    toolCount: stage.toolIds.length,
+    sourceDeclarationToolCount: stage.sourceDeclarationToolIds.length,
+    sourceDeclarationMissingToolCount: stage.sourceDeclarationMissingToolIds.length,
+    adapterContractToolCount: stage.adapterContractToolIds.length,
+    productionReadinessMissingToolCount: stage.productionReadinessMissingToolIds.length,
+    blockerCount: stage.blockerCount,
+  })),
   commandPlans: staticReport.commandPlans.map((plan) => plan.id),
   scripts: scripts.length,
   dockerRequired: false,

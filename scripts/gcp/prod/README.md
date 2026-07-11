@@ -23,3 +23,17 @@ These scripts are human-run templates for Milestone 3. Codex must not run them, 
 9. `.example.sh` Cloud Run service/job templates in later deployment milestones
 
 Milestone 3 does not deploy Cloud Run, build images, run media tools, call providers, create real secret values, or process customer media.
+
+## API canary boundary
+
+The API deployment template is a private canary, not a browser-ready public
+release. It keeps Cloud Run IAM enabled, restricts ingress, pins all Secret
+Manager environment references to reviewed numeric versions, disables worker
+execution, and keeps GCS disabled until bucket IAM and signed-storage evidence
+exist. A direct browser cannot use a Supabase bearer token as Cloud Run IAM
+credentials; public frontend ingress requires a separately reviewed gateway or
+load-balancer design.
+
+Only the API image has a verified Cloud Build command. Worker image commands
+remain omitted until each worker has a dedicated entrypoint and container
+smoke; the API artifact must never be relabeled as a worker image.

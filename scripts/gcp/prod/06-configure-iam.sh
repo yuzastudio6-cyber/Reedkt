@@ -53,7 +53,11 @@ done
 
 grant_project_role "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/run.invoker
 
-for secret_name in SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY PROVIDER_GATEWAY_SHARED_SECRET WORKER_WEBHOOK_SECRET STRIPE_SECRET_KEY; do
+for secret_name in \
+  "${REEDITPRO_SECRET_PREFIX}-supabase-url" \
+  "${REEDITPRO_SECRET_PREFIX}-supabase-anon-key" \
+  "${REEDITPRO_SECRET_PREFIX}-supabase-service-role-key" \
+  "${REEDITPRO_SECRET_PREFIX}-api-internal-service-token"; do
   grant_secret_access "${secret_name}" "${REEDITPRO_API_SERVICE_ACCOUNT}"
 done
 

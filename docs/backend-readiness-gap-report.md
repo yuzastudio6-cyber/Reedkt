@@ -7,11 +7,12 @@
 | Auth/profile/workspace bootstrap missing | Partially fixed | Frontend-safe bootstrap exists. Backend/admin fallback still needed for RLS-blocked creation. |
 | Backend runtime missing | Partially fixed | API route contracts, registry, mock router, and frontend client exist. No deployed Cloud Run/API route/Edge Function runtime exists. |
 | Storage/upload runtime missing | Partially fixed | Upload validation, bucket mapping, path planning, mock metadata, source order flows, and local policy readiness exist. Real uploads still need deployed buckets/RLS and likely signed backend routes. |
-| Credit runtime missing | Partially fixed | Mock-safe estimates, approval gates, reservations, spend/release/refund skeletons, and generation/render/provider gate checks exist. Real transactional ledger execution remains backend-required. |
+| Credit runtime missing | Partially fixed | Mock-safe estimates, approval gates, reservations, spend/release/refund skeletons, generation/render/provider gate checks, and RP-CREDITPOLICY-01 policy constants exist. Real transactional ledger execution, live billing, Stripe, settlement, and export lock enforcement remain backend-required. |
 | Worker/job queue runtime missing | Partially fixed | Mock queue items, job gates, dependency chains, dispatch placeholders, events, retry/recovery, scenarios, and route handlers exist. Real cloud/backend queue and worker dispatch remain open. |
 | Backend runtime transport and worker leasing missing | Partially fixed | Mock runtime envelopes, transport placeholders, lease claim/heartbeat/renew/release/complete/fail/cancel, stale recovery, idempotency helpers, route handlers, and a local lease migration exist. Real backend/cloud lease enforcement remains open. |
 | Production backend runtime not chosen or scaffolded | Partially fixed | Cloud Run API service is selected and a mock-only Node HTTP scaffold exists with health/readiness/runtime/routes/mock endpoints. No deployment, Secret Manager, service-role handlers, providers, Stripe, workers, or render execution exists. |
 | Provider integrations missing | Partially reduced | Project SFX now reaches mock Mirelo/MMAudio/internal-library routing and includes readiness reporting for future real SFX transport. Real AI, Lyria, Mirelo, MMAudio, Stripe, and rendering calls are still not added. |
+| Edit Level runtime architecture missing | Evidence-gated mock router layers added | RP-EDITLEVEL-02 adds type contracts and deterministic fixtures; RP-EDITLEVEL-03 adds mock repository/API/client; RP-EDITLEVEL-04 adds visible mock/local UI cards and recommendation; RP-EDITLEVEL-05 adds mock/local level-aware tool capability routing; RP-EDITLEVEL-06 adds mock/local source video understanding routing; RP-EDITLEVEL-07 adds mock/local Qwen planning profile policy; RP-EDITLEVEL-08 adds mock/local QA gate policy; RP-EDITLEVEL-09 adds mock/local estimate policy. Runtime migration, production persistence, workers, and real execution now graduate through explicit Edit Level production readiness evidence gates rather than a permanent blanket block. |
 | Supabase production validation missing | Open | No remote migration, local Supabase test, staging test, or advisor review was run. |
 
 ## RP-FIX-06 Result
@@ -29,6 +30,12 @@ The backend API boundary foundation is safe and mock-friendly. It defines route 
 ## RP-FIX-09 Result
 
 The credit runtime foundation is safe and mock-friendly. It defines the approval/reservation gate before expensive work and can demonstrate allowed/blocked/spend/refund flows locally. It does not implement Stripe, production purchases, transactional backend ledger mutation, provider calls, worker execution, or rendering.
+
+## RP-CREDITPOLICY-01 Result
+
+Credit policy is now locked for external beta as policy/types/docs/constants only. The repo documents and exports 1 credit = $0.10, 100 credits = $10, product edit-level service fee floors and percentages, no-silent-recovery overage rules, revised estimate/export-lock copy, and tool-owner cost metering with `serviceFeeIncluded = false`.
+
+This adds no live billing, no Stripe, no Supabase migration, no wallet mutation, no provider call, no render/export charging, no reservation/spend execution, and no production settlement.
 
 ## RP-FIX-10 Result
 
@@ -53,3 +60,49 @@ Real Mirelo/MMAudio execution remains disabled. Provider keys, Secret Manager, C
 Real SFX provider execution readiness is partially fixed. The repo now has a backend-only readiness service, readiness scenarios, a mock readiness orchestrator, and the `sfx.providerReadiness.check` route. The readiness output explains runtime blocks, provider mode, missing Secret Manager reference names, approval/credit/request/job gaps, source-footage approval requirements, storage/provenance requirements, warnings, and safe next steps.
 
 This is readiness-only. Real Mirelo/MMAudio transport, Secret Manager value resolution, Cloud Run workers, Supabase writes, storage uploads, real audio generation, Stripe, and rendering remain future backend work.
+
+## RP-EDITLEVEL-00 Result
+
+Edit Level beta planning is audited only. The repo still uses the existing `basic | pro | premium` runtime values, while the audit documents the future Normal/Premium/Ultra Premium product contract, missing legacy docs, reuse/new-build decisions, Qwen 3.7 and Qwen2.5-VL routing expectations, and blocker/product-value decisions. No runtime implementation, backend route, migration, provider call, worker, render/export, or credit operation was added.
+
+## RP-EDITLEVEL-01 Result
+
+Edit Level beta architecture is documented only. The repo now has a product contract, future `EditLevelProfile` architecture, legacy basic/pro/premium compatibility, level-aware Qwen/tool/source/Edit Brief/Edit Preference/QA/estimate/fallback/UI/backend architecture, integration map, internal testing plan, and RP-EDITLEVEL-02 next types/fixtures plan. No runtime type implementation, repository, API route, UI behavior, migration, provider/model call, media worker, render/export, progress, or credit operation was added.
+
+## RP-EDITLEVEL-07 Result
+
+Level-aware Qwen planning profile policy is mock/local only. The repo now has typed Qwen planning dimensions, deterministic Normal/Premium/Ultra Premium packages, browser-safe summaries, backend mock services/contracts/scenarios/orchestrator, visible Qwen planning UI summaries, docs, smoke, and focused Playwright coverage.
+
+This adds no Qwen call, no Qwen2.5-VL call, no DeepSeek call, no provider call, no real planner execution, no edit plan creation, no worker, no render/export, no Supabase migration or read/write, no file-byte read, no external fetch, and no credit reservation/spend.
+
+## RP-EDITLEVEL-08 Result
+
+Level-aware QA gate policy is mock/local only. The repo now has public QA gate types, exactly 30 deterministic gates, Normal/Premium/Ultra Premium strictness packages, browser-safe summaries, backend mock services/contracts/scenarios/orchestrator, visible QA gate UI summaries, docs, smoke, and focused Playwright coverage.
+
+This adds no QA tool execution, no Qwen call, no Qwen2.5-VL call, no DeepSeek call, no provider call, no real planner execution, no edit plan creation, no media worker, no render/export, no Supabase migration or read/write, no file-byte read, no external fetch, and no credit reservation/spend.
+
+## RP-EDITLEVEL-09 Result
+
+Level-aware estimate policy is mock/local only. The repo now has public estimate types, exactly 15 deterministic estimate items, Normal/Premium/Ultra Premium time ranges, multiplier-only credit estimate placeholders, future render/revision/variant budgets, degraded capability notices, browser-safe summaries, backend mock services/contracts/scenarios/orchestrator, visible estimate UI summaries, docs, smoke, and focused Playwright coverage.
+
+This adds no credit reservation, no credit spend, no credit record, no real planner execution, no edit plan creation, no provider/model call, no media worker, no progress, no render/export, no Supabase migration or read/write, no file-byte read, and no external fetch.
+
+## RP-EDITLEVEL-02 Result
+
+Edit Level beta type/profile fixtures are mock-safe only. The repo now has `EditLevelProfile` types, Normal/Premium/Ultra Premium fixtures, source-aware legacy basic/pro/premium compatibility mappers, summary and recommendation fixtures, request/response-only contracts, mock scenarios, an orchestrator, docs, and smoke coverage. No runtime behavior, repository, API route, UI behavior, migration, Supabase command, provider/model call, media worker, render/export, progress, or credit operation was added.
+
+## RP-EDITLEVEL-03 Result
+
+Edit Level beta repository/API/client access is mock-safe only. The repo now has repository types, MockDatabase collections, fixture-backed mock repository operations, a disabled Supabase skeleton, mock local planning-domain API route metadata/handlers, browser-safe client helpers, scenarios, orchestrators, docs, and smoke coverage. No runtime migration, visible UI behavior, production route, Supabase read/write, migration, provider/model call, media worker, render/export, progress, or credit operation was added.
+
+## RP-EDITLEVEL-04 Result
+
+Edit Level beta UI is visible but mock/local only. The repo now has Normal/Premium/Ultra Premium cards, deterministic recommendation display, mock selection save/update, selected summaries, estimate-only notices, boundary notices, docs, smoke coverage, and focused Playwright coverage. No runtime migration, live planner/tool routing, production route, Supabase read/write, migration, provider/model call, media worker, render/export, progress, or credit operation was added.
+
+## RP-EDITLEVEL-05 Result
+
+Edit Level beta tool capability routing is mock/local only. The repo now has public router types, deterministic capability packages, browser-safe summaries, backend mock services/contracts/scenarios/orchestrator, visible capability UI summaries, docs, smoke coverage, and focused Playwright coverage. No runtime migration, production route, Supabase read/write, migration, provider/model call, media worker, render/export, progress, or credit operation was added.
+
+## RP-EDITLEVEL-06 Result
+
+Edit Level beta source video understanding routing is mock/local only. The repo now has public source-understanding types, deterministic source context packages, marker context windows, future Qwen context policy, fallbacks, browser-safe summaries, backend mock services/contracts/scenarios/orchestrator, visible source-depth UI summaries, docs, smoke coverage, and focused Playwright coverage. No runtime migration, production route, Supabase read/write, migration, provider/model call, transcript/media/audio/graphic worker, render/export, progress, upload, external fetch, file-byte read, or credit operation was added.

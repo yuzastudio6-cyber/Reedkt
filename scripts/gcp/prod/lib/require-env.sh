@@ -14,6 +14,7 @@ require_gcp_foundation_env() {
   require_env GCP_ARTIFACT_REGION
   require_env GCP_BUCKET_LOCATION
   require_env REEDITPRO_ENV
+  require_env REEDITPRO_SECRET_PREFIX
   require_env REEDITPRO_API_SERVICE_ACCOUNT
   require_env REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT
   require_env REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT

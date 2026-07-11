@@ -9,5 +9,5 @@ console.log([
   `Real user media beta allowed: ${report.goNoGo.realUserMediaBetaAllowed}`,
   `Paid production allowed: ${report.goNoGo.paidProductionAllowed}`,
   `Scenarios: ${report.scenarioMatrix.length}`,
-  'Production/external beta remains blocked until human-run deployment, readiness, model/license, security, and cost approvals pass.',
+  'External beta and production graduate only when the evidence-driven deployment, readiness, model/license, security, storage, billing, observability, legal, and cost gates pass.',
 ].join('\n'))

@@ -78,6 +78,29 @@ const cpuRequirements = requireRead('docker/prod/cpu-worker/requirements.cpu.txt
 for (const expected of ['av', 'scenedetect', 'opencv-python-headless', 'duckdb', 'polars', 'opentimelineio']) {
   check(cpuRequirements.includes(expected), `CPU requirements must include ${expected}.`)
 }
+const audioAdapterPythonPackages = [
+  'librosa',
+  'audioread',
+  'pydub',
+  'scipy',
+  'resampy',
+  'pyloudnorm',
+  'audioflux',
+  'music21',
+  'pretty_midi',
+  'mido',
+  'noisereduce',
+  'pedalboard',
+  'mir_eval',
+]
+for (const expected of audioAdapterPythonPackages) {
+  check(cpuRequirements.includes(expected), `CPU requirements must include Track B audio adapter package ${expected}.`)
+}
+
+const readinessRequirements = requireRead('docker/prod/tool-readiness-worker/requirements.readiness.txt')
+for (const expected of audioAdapterPythonPackages) {
+  check(readinessRequirements.includes(expected), `Readiness requirements must include Track B audio adapter package ${expected}.`)
+}
 
 const qaRequirements = requireRead('docker/prod/qa-worker/requirements.qa.txt')
 for (const expected of ['opencv-python-headless', 'duckdb', 'polars', 'opentimelineio']) {
@@ -166,6 +189,7 @@ console.log(JSON.stringify({
   coreToolIds: M10_CORE_CPU_RENDER_TOOL_IDS.length,
   excludedGpuModelTools: M10_EXCLUDED_GPU_MODEL_TOOL_IDS.length,
   realCheckResults: realCore.results.length,
+  audioAdapterPythonPackages: audioAdapterPythonPackages.length,
   localStatuses: realCore.summary.statuses,
   ffmpegStatus: realCore.coreToolReadiness?.report.ffmpegStatus,
   ffprobeStatus: realCore.coreToolReadiness?.report.ffprobeStatus,

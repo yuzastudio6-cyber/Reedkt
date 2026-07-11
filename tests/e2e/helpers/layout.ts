@@ -296,12 +296,15 @@ export async function expectChatCardsFitUnderComposer(page: Page) {
     return
   }
 
-  const cardMetrics = await page.locator('.inline-chat-card').evaluateAll((cards) =>
+  const cardMetrics = await page.locator('[data-testid="editor-chat-canvas"] .inline-chat-card').evaluateAll((cards) =>
     cards.map((card) => {
       const rect = card.getBoundingClientRect()
+      const parent = card.parentElement
+      const parentDisplay = parent ? getComputedStyle(parent).display : ''
 
       return {
         className: card.className.toString(),
+        parentDisplay,
         width: rect.width,
         x: rect.x,
       }
@@ -313,8 +316,15 @@ export async function expectChatCardsFitUnderComposer(page: Page) {
   for (const card of cardMetrics) {
     const cardCenter = card.x + card.width / 2
     const composerCenter = composerBox.x + composerBox.width / 2
+    const cardRight = card.x + card.width
+    const composerRight = composerBox.x + composerBox.width
 
     expect(card.width, `${card.className} should be no wider than the composer rail`).toBeLessThanOrEqual(composerBox.width)
+    if (card.parentDisplay.includes('grid')) {
+      expect(card.x, `${card.className} grid child should stay inside the composer rail`).toBeGreaterThanOrEqual(composerBox.x - 1)
+      expect(cardRight, `${card.className} grid child should stay inside the composer rail`).toBeLessThanOrEqual(composerRight + 1)
+      continue
+    }
     expect(Math.abs(cardCenter - composerCenter), `${card.className} should align under the composer rail`).toBeLessThanOrEqual(96)
   }
 }

@@ -75,6 +75,11 @@ import {
 } from '../tool-execution/rembg-background-removal-execution/offline-rembg-background-removal-protocol'
 import { readPersistedOfflineRembgBackgroundRemovalRuntimeAuthority } from '../tool-execution/rembg-background-removal-execution/offline-rembg-background-removal-service'
 import {
+  OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_TOOL_IDS,
+  buildOfflineDeepFilterNetVoiceCleanupApprovedRequest,
+} from '../tool-execution/deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
+import { readPersistedOfflineDeepFilterNetVoiceCleanupRuntimeAuthority } from '../tool-execution/deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-service'
+import {
   createToolRuntimeEvidenceAuthority,
   verifyToolRuntimeEvidenceAuthority,
 } from '../tool-runtime-evidence/tool-runtime-evidence-authority'
@@ -945,6 +950,15 @@ function resolveAndVerifyToolContract(
         if (workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0) {
           throw new Error('Bounded rembg proof operations accept no caller source, model, or dependency bytes.')
         }
+      } else if ((OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_TOOL_IDS as readonly string[]).includes(spec.canonicalToolId)) {
+        buildOfflineDeepFilterNetVoiceCleanupApprovedRequest({
+          toolId: spec.canonicalToolId as (typeof OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_TOOL_IDS)[number],
+          operationId: body.operationId,
+          planningPayload: workItem.executionInput.structuredPayload,
+        })
+        if (workItem.sourceSequenceItemIds.length !== 0 || workItem.dependencyKeys.length !== 0) {
+          throw new Error('Bounded DeepFilterNet proof operations accept no caller audio, model, or dependency bytes.')
+        }
       } else if (isOfflinePythonMediaToolId(spec.canonicalToolId)) {
         validateOfflinePythonMediaPlanningPayload(
           spec.canonicalToolId,
@@ -1280,6 +1294,23 @@ async function resolvePrivateInternalRuntimeEvidence(
         rembgAuthority.readiness.productReady === false &&
         rembgAuthority.readiness.externalBetaReady === false &&
         rembgAuthority.readiness.productionReady === false,
+    }
+  }
+  const deepFilterNetAuthority = await readPersistedOfflineDeepFilterNetVoiceCleanupRuntimeAuthority()
+  if (deepFilterNetAuthority) {
+    const operationSupported = deepFilterNetAuthority.supportedOperations.some((candidate) =>
+      candidate.toolId === spec.canonicalToolId && candidate.operationId === spec.allowedOperationIds[0])
+    if (operationSupported) return {
+      authorityHash: deepFilterNetAuthority.authorityHash,
+      imageIdentityHash: deepFilterNetAuthority.image.imageIdentityHash,
+      ready:
+        deepFilterNetAuthority.readiness.privateInternalExecutionReady === true &&
+        deepFilterNetAuthority.readiness.exactStructuredPayloadOnly === true &&
+        deepFilterNetAuthority.readiness.canonicalDispatchMayReference === true &&
+        deepFilterNetAuthority.readiness.modelAndLicenseReviewStillRequiredForProduction === true &&
+        deepFilterNetAuthority.readiness.productReady === false &&
+        deepFilterNetAuthority.readiness.externalBetaReady === false &&
+        deepFilterNetAuthority.readiness.productionReady === false,
     }
   }
   const libassAuthority = await readPersistedOfflineLibassRuntimeAuthority()

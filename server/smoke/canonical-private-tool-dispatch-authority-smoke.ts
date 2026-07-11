@@ -33,6 +33,7 @@ import { createCanonicalPrivateContainerPackagingValidationExecutionService } fr
 import { createCanonicalPrivateVapourSynthFramePipelineExecutionService } from '../services/canonical-private-vapoursynth-frame-pipeline-execution-service'
 import { createCanonicalPrivateAudioFluxAnalysisExecutionService } from '../services/canonical-private-audioflux-analysis-execution-service'
 import { createCanonicalPrivateRembgBackgroundRemovalExecutionService } from '../services/canonical-private-rembg-background-removal-execution-service'
+import { createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService } from '../services/canonical-private-deepfilternet-voice-cleanup-execution-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
@@ -78,6 +79,7 @@ import { activatePrivateOfflineContainerPackagingValidationRuntime, prepareOffli
 import { activatePrivateOfflineVapourSynthFramePipelineRuntime, prepareOfflineVapourSynthFramePipelineDockerRuntime } from '../tool-execution/vapoursynth-frame-pipeline-execution'
 import { activatePrivateOfflineAudioFluxAnalysisRuntime, prepareOfflineAudioFluxAnalysisDockerRuntime } from '../tool-execution/audioflux-analysis-execution'
 import { activatePrivateOfflineRembgBackgroundRemovalRuntime, prepareOfflineRembgBackgroundRemovalDockerRuntime } from '../tool-execution/rembg-background-removal-execution'
+import { activatePrivateOfflineDeepFilterNetVoiceCleanupRuntime, prepareOfflineDeepFilterNetVoiceCleanupDockerRuntime } from '../tool-execution/deepfilternet-voice-cleanup-execution'
 import type { ServiceContext } from '../types'
 import {
   PRIVATE_EDIT_AUTHORITY_SCHEMA_VERSION,
@@ -222,6 +224,7 @@ const matrixToolIds = [
   'vapoursynth',
   'audioflux',
   'rembg',
+  'deepfilternet',
 ] as const
 type MatrixToolId = (typeof matrixToolIds)[number]
 const matrixOperationIds = Object.fromEntries(matrixToolIds.map((toolId) => {
@@ -650,6 +653,8 @@ const matrixRuns = matrixToolIds.map((toolId) => {
             ? 'audioflux' as const
           : toolId === 'rembg'
             ? 'rembg' as const
+          : toolId === 'deepfilternet'
+            ? 'deepfilternet' as const
         : 'python' as const,
     expectedContentType: ['echarts', 'vega_lite', 'vega', 'satori', 'svg_js', 'viz_js', 'animejs', 'three_js'].includes(toolId)
       ? 'image/svg+xml' as const
@@ -661,6 +666,8 @@ const matrixRuns = matrixToolIds.map((toolId) => {
         ? 'image/png' as const
       : toolId === 'rembg'
         ? 'image/png' as const
+      : toolId === 'deepfilternet'
+        ? 'audio/wav' as const
       : ['rnnoise', 'signalsmith_stretch'].includes(toolId)
         ? 'audio/wav' as const
       : ['mkvtoolnix_container_validation', 'gpac_mp4box_packaging_validation'].includes(toolId)
@@ -1709,6 +1716,8 @@ await prepareOfflineAudioFluxAnalysisDockerRuntime()
 await activatePrivateOfflineAudioFluxAnalysisRuntime()
 await prepareOfflineRembgBackgroundRemovalDockerRuntime()
 await activatePrivateOfflineRembgBackgroundRemovalRuntime()
+await prepareOfflineDeepFilterNetVoiceCleanupDockerRuntime()
+await activatePrivateOfflineDeepFilterNetVoiceCleanupRuntime()
 for (const matrixRun of matrixRuns) {
   const claim = (await leaseService.claim({
     workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -1984,6 +1993,67 @@ for (const matrixRun of matrixRuns) {
     assert.equal(replay.replay.artifactRecordReplayed, true)
     assert.equal(replay.replay.qaRecordReplayed, true)
     assert.equal(replay.replay.reconciliationReplayed, true)
+    coordinatedArtifactId = coordinated.result.artifactId
+    coordinatedSha256 = coordinated.result.sha256
+  } else if (matrixRun.runnerKind === 'deepfilternet') {
+    const executionInput = {
+      workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+      jobId: matrixRun.job.id, grantId: grant.grant.grantId,
+      purpose: 'execute_canonical_private_deepfilternet_voice_cleanup' as const,
+      idempotencyKey: `consume-${matrixRun.toolId}-matrix-root`,
+    }
+    const coordinated = await createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService(context).execute(executionInput, executionAuthority)
+    assert.equal(coordinated.tool.canonicalToolId, 'deepfilternet')
+    assert.equal(coordinated.tool.operationId, matrixRun.operationId)
+    assert.equal(coordinated.result.contentType, 'audio/wav')
+    assert.equal(coordinated.result.sha256, 'a359cf256f9f05294ee7f9701ec189385aed277020b2be5dfa83d229409e27a7')
+    assert.equal(coordinated.result.byteLength, 384_214)
+    assert.equal(coordinated.result.sampleRate, 48_000)
+    assert.equal(coordinated.result.channelCount, 1)
+    assert.equal(coordinated.result.frameCount, 192_085)
+    assert.equal(coordinated.result.inputSnrDb, 3.217773)
+    assert.equal(coordinated.result.outputSnrDb, 8.214627)
+    assert(coordinated.result.outputSnrDb > coordinated.result.inputSnrDb)
+    assert.equal(coordinated.result.meanAbsoluteDelta, 0.032997789)
+    assert.equal(coordinated.attemptCost.idempotencyStatus, 'inserted')
+    assert.equal(coordinated.attemptCost.evidence.boundary, 'internal_production_cost_only')
+    assert.equal(coordinated.attemptCost.evidence.evidenceClassification, 'provisional_local_metered')
+    assert.equal(coordinated.attemptCost.evidence.rateCardVersion, 'rp-ratecard-01-mock-safe')
+    assert.equal(coordinated.attemptCost.evidence.sourceKind, 'infrastructure_runtime')
+    assert.equal(coordinated.attemptCost.evidence.identity.executionAttemptId, coordinated.lease.executionAttemptId)
+    assert.equal(coordinated.attemptCost.evidence.identity.retryAttempt, 0)
+    assert.equal(coordinated.attemptCost.evidence.resourceUsage.vcpuCount, 4)
+    assert.equal(coordinated.attemptCost.evidence.resourceUsage.memoryGib, 4)
+    assert.equal(coordinated.attemptCost.evidence.resourceUsage.gpuCount, 0)
+    assert.equal(coordinated.attemptCost.evidence.resourceUsage.outputByteLength, 384_214)
+    assert(Number.isSafeInteger(coordinated.attemptCost.evidence.actualInternalCostMicros))
+    assert(coordinated.attemptCost.evidence.actualInternalCostMicros > 0)
+    assert.equal(coordinated.attemptCost.evidence.outcome.status, 'completed')
+    assert.equal(coordinated.attemptCost.evidence.outcome.failureCategory, 'none')
+    assert.equal(coordinated.attemptCost.evidence.persistence.privateLocalCreateOnly, true)
+    assert.equal(coordinated.attemptCost.evidence.persistence.databaseBacked, false)
+    assert.equal(coordinated.attemptCost.evidence.persistence.productionDurability, false)
+    assert.equal(coordinated.attemptCost.evidence.persistence.invoiceReconciled, false)
+    assertNoCommercialCostKeys(coordinated.attemptCost)
+    assert.equal(coordinated.runtime.modelCheckpointSha256, '23b92884f63ccf54bb026014604625ab231657b6480df65db4095c4c171e6003')
+    assert.equal(coordinated.tool.callerMediaAllowed, false)
+    assert.equal(coordinated.tool.callerModelAllowed, false)
+    assert.equal(coordinated.result.qaOutcome, 'passed')
+    assert.equal(coordinated.permissions.creditSpend, false)
+    assert.equal(coordinated.permissions.walletMutation, false)
+    assert.equal(coordinated.permissions.settlement, false)
+    const replay = await createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService(context).execute(executionInput, executionAuthority)
+    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
+    assert.equal(replay.result.sha256, coordinated.result.sha256)
+    assert.equal(replay.replay.dispatchConsumptionReplayed, true)
+    assert.equal(replay.replay.executionFenceBeginReplayed, true)
+    assert.equal(replay.replay.executionFenceCompleteReplayed, true)
+    assert.equal(replay.replay.artifactRecordReplayed, true)
+    assert.equal(replay.replay.qaRecordReplayed, true)
+    assert.equal(replay.replay.reconciliationReplayed, true)
+    assert.equal(replay.replay.attemptCostEvidenceReplayed, true)
+    assert.equal(replay.attemptCost.idempotencyStatus, 'duplicate_returned')
+    assert.deepEqual(replay.attemptCost.evidence, coordinated.attemptCost.evidence)
     coordinatedArtifactId = coordinated.result.artifactId
     coordinatedSha256 = coordinated.result.sha256
   } else {
@@ -2492,7 +2562,7 @@ clearPrivateCanonicalToolDispatchProcessStateForSmoke()
 await expectApiError(() => requireDispatchAggregate(), 'VALIDATION_FAILED')
 await writeFile(persistedPath, originalDispatchStoreText)
 clearPrivateCanonicalToolDispatchProcessStateForSmoke()
-assert.equal((await requireDispatchAggregate()).grants.length, 53)
+assert.equal((await requireDispatchAggregate()).grants.length, 54)
 
 await expectApiError(
   () => createCanonicalPrivateToolDispatchAuthorityService({
@@ -2591,6 +2661,7 @@ console.log(JSON.stringify({
     'vapoursynth_exact_json_canonical_lifecycle_verified',
     'audioflux_exact_json_canonical_lifecycle_verified',
     'rembg_exact_png_canonical_lifecycle_verified',
+    'deepfilternet_exact_wav_canonical_lifecycle_verified',
     'librosa_exact_json_canonical_lifecycle_verified',
     'remotion_private_preview_mp4_canonical_lifecycle_verified',
     'libass_caption_overlay_png_canonical_lifecycle_verified',
@@ -4249,7 +4320,17 @@ function createMatrixWorkItems(
     expectedOutputs: [{ outputKey: 'matrix-rembg-proof-report', artifactType: 'rembg_dependency_report', assetRole: 'qa', required: true, previewPlaceholderAllowed: false, contentType: 'application/json', segmentIds: ['segment-1'], timingIds: ['master-timing-plan'], rendererLayerIds: [] }],
     dependencyKeys: ['matrix-rembg-root'], approvedToolIds: [], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 1, attemptTimeoutSeconds: 120, scheduledDelaySeconds: 0, maximumCreditBudget: 1, required: true,
   }]
-  return [...nodeItems, ...browserItems, ...pythonItems, ...aiItems, ...nativeImageItems, ...nativeAudioItems, ...packagingItems, ...vapourSynthItems, ...audioFluxItems, ...rembgItems]
+  const deepFilterNetItems: CanonicalSmokeWorkItem[] = [{
+    workItemKey: 'matrix-deepfilternet-root', workItemType: 'custom', workerClass: 'audio_processing_worker',
+    executionInput: { operation: 'execute_deepfilternet_voice_cleanup_case', approvedToolOperationIds: [input.matrixOperationIds.deepfilternet], expectedOutputKeys: ['matrix-deepfilternet-artifact'], structuredPayload: { attenuationLimitDb: 12, cleanupProfileId: 'approved_gentle_voice_cleanup_v1', preserveNaturalVoice: true, postFilterEnabled: false } }, sourceSequenceItemIds: [], sourceCleanupDecisionIds: [],
+    expectedOutputs: [{ outputKey: 'matrix-deepfilternet-artifact', artifactType: 'controlled_deepfilternet_wav', assetRole: 'processed', required: true, previewPlaceholderAllowed: false, contentType: 'audio/wav', segmentIds: ['segment-1'], timingIds: ['master-timing-plan'], rendererLayerIds: [] }],
+    dependencyKeys: [], approvedToolIds: ['deepfilternet'], providerExecutionMode: 'none', fallbackPolicy: { onFailure: 'approved_rnnoise_or_ffmpeg_review_required' }, maxAttempts: 2, attemptTimeoutSeconds: 300, scheduledDelaySeconds: 0, maximumCreditBudget: 1, required: true,
+  }, {
+    workItemKey: 'matrix-deepfilternet-proof', workItemType: 'run_asset_qa', workerClass: 'qa_worker', executionInput: { operation: 'validate_deepfilternet_voice_cleanup_artifact' }, sourceSequenceItemIds: [], sourceCleanupDecisionIds: [],
+    expectedOutputs: [{ outputKey: 'matrix-deepfilternet-proof-report', artifactType: 'deepfilternet_dependency_report', assetRole: 'qa', required: true, previewPlaceholderAllowed: false, contentType: 'application/json', segmentIds: ['segment-1'], timingIds: ['master-timing-plan'], rendererLayerIds: [] }],
+    dependencyKeys: ['matrix-deepfilternet-root'], approvedToolIds: [], providerExecutionMode: 'none', fallbackPolicy: {}, maxAttempts: 1, attemptTimeoutSeconds: 120, scheduledDelaySeconds: 0, maximumCreditBudget: 1, required: true,
+  }]
+  return [...nodeItems, ...browserItems, ...pythonItems, ...aiItems, ...nativeImageItems, ...nativeAudioItems, ...packagingItems, ...vapourSynthItems, ...audioFluxItems, ...rembgItems, ...deepFilterNetItems]
 }
 
 async function requireEditAuthority(targetWorkspaceId: string) {
@@ -4292,6 +4373,33 @@ function dispatchAggregatePath(): string {
     sha256AuthorityValue({ ownerUserId: userId, workspaceId }),
     'aggregate.json',
   )
+}
+
+function assertNoCommercialCostKeys(value: unknown): void {
+  const keys: string[] = []
+  visitCostKeys(value, keys)
+  const forbidden = keys.filter((key) => {
+    const normalized = key.replace(/[^a-z0-9]/gi, '').toLowerCase()
+    return normalized.includes('customerprice') || normalized.includes('customercredit') ||
+      normalized.includes('servicefee') || normalized.includes('markup') ||
+      normalized.includes('margin') || normalized.includes('discount') ||
+      normalized.includes('wallet') || normalized.includes('settlement') ||
+      normalized.includes('billabletouser') || normalized.includes('toolcostcredit') ||
+      normalized === 'credits' || normalized === 'tax' || normalized.startsWith('tax')
+  })
+  assert.deepEqual(forbidden, [])
+}
+
+function visitCostKeys(value: unknown, keys: string[]): void {
+  if (!value || typeof value !== 'object') return
+  if (Array.isArray(value)) {
+    value.forEach((entry) => visitCostKeys(entry, keys))
+    return
+  }
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    keys.push(key)
+    visitCostKeys(entry, keys)
+  }
 }
 
 function requireSha256(value: string | undefined): string {

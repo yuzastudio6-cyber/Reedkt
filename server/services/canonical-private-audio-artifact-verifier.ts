@@ -15,6 +15,9 @@ export async function verifyCanonicalPrivateAudioArtifact(input: {
   const isVerifiedNativeAudio =
     run.runnerClass === 'offline_native_audio_processing_execution_v1' &&
     run.toolIds.length === 1 && ['rnnoise', 'signalsmith_stretch'].includes(run.toolIds[0] ?? '')
+  const isVerifiedDeepFilterNet =
+    run.runnerClass === 'offline_deepfilternet_voice_cleanup_execution_v1' &&
+    run.toolIds.length === 1 && run.toolIds[0] === 'deepfilternet'
   if (
     input.artifact.identity.expectedAssetId !== input.artifact.lineage.assetId ||
     input.artifact.lineage.contentType !== 'audio/wav' || input.artifact.content.contentType !== 'audio/wav' ||
@@ -22,8 +25,8 @@ export async function verifyCanonicalPrivateAudioArtifact(input: {
     input.artifact.storageIdentity.storageKind !== 'private_local_test' ||
     input.artifact.evidenceClass !== 'private_internal_test_attested' || input.artifact.liveRuntimeEligible !== false ||
     run.state !== 'actual_run_evidence_verified_v2' || !run.actualRunVerified || run.exitCode !== 0 ||
-    (!isVerifiedPythonAudio && !isVerifiedNativeAudio)
-  ) throw invalid('Private audio is not an exact verified bounded Python or native audio artifact.')
+    (!isVerifiedPythonAudio && !isVerifiedNativeAudio && !isVerifiedDeepFilterNet)
+  ) throw invalid('Private audio is not an exact verified bounded Python, native audio, or DeepFilterNet artifact.')
   const stored = await readCanonicalPrivateAudioArtifact({
     localStorageRoot: input.localStorageRoot,
     privateObjectIdentityHash: input.artifact.storageIdentity.opaqueObjectIdentityHash,
@@ -41,7 +44,7 @@ export async function verifyCanonicalPrivateAudioArtifact(input: {
       dispatchGrantId: run.dispatchGrantId, executionAttestationHash: run.executionAttestationHash,
     }),
     executionAttemptId: run.executionAttemptId,
-    runnerClass: run.runnerClass as 'offline_python_structured_execution_v1' | 'offline_native_audio_processing_execution_v1',
+    runnerClass: run.runnerClass as 'offline_python_structured_execution_v1' | 'offline_native_audio_processing_execution_v1' | 'offline_deepfilternet_voice_cleanup_execution_v1',
   }
 }
 function invalid(message: string): ApiError {

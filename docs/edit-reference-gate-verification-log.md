@@ -93,6 +93,7 @@ Known non-blocking build debt: the client build still reports chunks above 500 k
 - Provider/media/worker/render/credit execution: not performed by Gate 0.
 - Production ready: false.
 
+
 ## Gate 1 — Durable Study Session — 2026-07-11
 
 ### Commit
@@ -159,6 +160,77 @@ One parallel full-suite run exposed a detached locator in the pre-existing dashb
 - Provider/media/worker/render/credit execution: not performed.
 - Evidence records and study skills: next active Gate 2 scope.
 - Preference DNA, DNA QA, approval, application, and downstream planning: later gates only.
+
+### Remote State
+
+- Push/PR/remote merge: not performed.
+- Supabase CLI/SQL/remote mutation: not performed.
+- Provider/media/worker/render/credit execution: not performed.
+- Production ready: false.
+## Gate 2 — Evidence And Study Orchestration — 2026-07-11
+
+### Commit
+
+- Commit: `1af64c458a5621434c1ec4397b777910f6d5f3c6`
+- Message: `Add Edit Reference evidence study orchestration`
+- Files: 22
+- Migration count before/after: 21 / 21
+- Production ready: false
+
+### Implemented Vertical Slice
+
+```text
+/preferences
+→ open a durable Edit Reference study
+→ add a creative note, safe reference-video details, or exact approved-edit identity
+→ preserve source, rights, confidence, transferability, and provenance
+→ run the bounded evidence study
+→ persist evidence-linked skill runs and findings
+→ review missing analysis, copy risk, and conflicts
+→ correct a source without deleting history
+→ reload the same active evidence, history, skill runs, and findings
+```
+
+Gate 2 reuses the Preference Video Study taxonomy but does not call its placeholder evidence generator. Creative findings originate only from explicit user evidence; supplied duration/dimensions/audio details produce metadata-only output with `media_not_studied`; previous approved-edit identity remains closed until private snapshot authority exists.
+
+The study records runtime source, readiness-at-run, fallback, inputs, outputs, tools, warnings, blockers, and false side-effect flags for every skill run. Visual/story/caption/color/B-roll/audio/graphics findings are labelled manual fallback; speech/pause analysis remains blocked; metadata normalization is verified local/degraded; transferability and copy safety are deterministic verified-mock checks.
+
+Direct requests for exact shots/order, timing/timecodes, layouts, music/SFX/lyrics, creator/brand/logo/person identity, or reference-footage reuse fail closed to user review. Explicit “never copy” direction remains safe. Contradictory restrained-versus-rapid pacing is surfaced rather than silently resolved. A correction appends a linked successor and the prior source stays durable as superseded history.
+
+### API, Persistence, And UI Evidence
+
+- New authenticated evidence and evidence-study routes use expected study revisions and bounded idempotency keys.
+- Exact replay returns the committed response; changed replay input, stale revisions, unchanged re-study, invalid correction targets, and unknown privacy-sensitive fields fail without mutation.
+- The private aggregate validates evidence, metadata, assets, skill runs, provenance links, correction links, collection ceilings, scope, checksum, and forbidden payload fields on every read.
+- The `/preferences` Study Chat adds Creative note, Video details, and Approved edit evidence modes, an explicit Study evidence action, latest findings, copy-safety status, blocked-analysis explanations, and superseded correction history.
+- Design authority remained `design.md` -> `design-system/` -> current ReEditPro UI/UX documents -> UI UX Pro Max supporting guidance.
+- Visual QA recorded 1440/1440 desktop width, 375/375 mobile width, zero console errors, bounded desktop workspace height, responsive stacking, and no page-level horizontal overflow.
+- Preference DNA and QA remain visibly not generated/not run.
+
+### Verification Results
+
+| Command / check | Result | Evidence |
+| --- | --- | --- |
+| `npm run smoke:edit-reference-evidence-study` | Pass | Manual/metadata/approved-edit evidence, correction, all copy-risk families, conflict, privacy, tenancy, replay, restart, and false side effects verified |
+| Gate 1 repository/API/client/UI smokes | Pass | Existing durable study behavior preserved |
+| Preference Video Study/DNA/QA/application regressions | Pass | Imported compatibility/mock architecture unchanged and truthful |
+| `npm run smoke:lovable-dashboard-ui-alignment` | Pass | Route/navigation hierarchy preserved |
+| `npm run check:frontend-boundary` | Pass | 636 frontend files checked; no backend runtime imported into React |
+| App/server typechecks and lint | Pass | No TypeScript or ESLint failures |
+| `npm run build` | Pass | 2,555 modules transformed; existing large-chunk warnings disclosed |
+| Focused Edit Reference Playwright | Pass | 5/5 behavior tests passed |
+| Full deterministic Playwright | Pass | 53 tests announced; final status `passed`, zero failed tests |
+| Visual screenshot review | Pass | Desktop/mobile hierarchy, width, actions, and console checked |
+| Staged secret/path scan | Pass | No credentials, environment files, AppleDouble, results, build output, migrations, or lockfile staged |
+| `npm run check:edit-reference-goal-postgate` | Pass | Canonical root/branch/ancestry, migration count, conflicts, and production-ready false verified |
+
+### Readiness And Next Gate
+
+- Backend-local evidence/runtime/persistence/reload: verified.
+- Deterministic copy safety/conflict review: verified mock.
+- Live media, transcript, audio, visual, and provider study: not run.
+- Production Supabase/RLS/cross-device authority: blocked by the existing canonical migration gate.
+- Next gate: Gate 3 — versioned Preference DNA synthesis from exact evidence revisions.
 
 ### Remote State
 

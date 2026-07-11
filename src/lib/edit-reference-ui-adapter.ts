@@ -7,7 +7,7 @@ export interface EditReferenceSavedCardView {
   studyStatus: string
   latestActivityAt: string
   dnaStatus: string
-  appliedEditCount: number
+  applicationCount: number
   messageCount: number
 }
 
@@ -35,7 +35,7 @@ export function toEditReferenceSavedCardView(item: EditReferenceListItem): EditR
       : item.reference.dnaStatus === 'approved'
         ? 'DNA approved'
         : 'DNA review required',
-    appliedEditCount: item.applicationCount,
+    applicationCount: item.applicationCount,
     messageCount: item.messageCount,
   }
 }

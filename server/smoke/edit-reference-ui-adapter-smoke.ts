@@ -33,7 +33,7 @@ assert.deepEqual(toEditReferenceSavedCardView(item), {
   studyStatus: 'collecting evidence',
   latestActivityAt: now,
   dnaStatus: 'DNA not generated',
-  appliedEditCount: 0,
+  applicationCount: 0,
   messageCount: 2,
 })
 assert.deepEqual(toEditReferenceInspectorView(detail), {

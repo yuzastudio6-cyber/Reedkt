@@ -5,6 +5,11 @@ import { dirname, relative, resolve, sep } from 'node:path'
 import { EDIT_REFERENCE_DNA_QA_CHECK_IDS } from '../../src/types/edit-reference'
 import { ApiError } from '../errors/api-error'
 import {
+  EDIT_REFERENCE_APPLICATION_PRECEDENCE_POLICY,
+  calculatePreferenceApplicationContentDigest,
+  calculatePreferenceApplicationTargetContextDigest,
+} from './edit-reference-target-adaptation'
+import {
   EDIT_REFERENCE_AGGREGATE_VERSION,
   type EditReferenceAggregate,
   type EditReferenceAuditEvent,
@@ -27,6 +32,7 @@ const MAX_ASSET_RECORDS = 2_000
 const MAX_SKILL_RUNS = 5_000
 const MAX_DNA_VERSIONS = 2_000
 const MAX_DNA_QA_RESULTS = 2_000
+const MAX_APPLICATIONS = 2_000
 const MAX_DNA_INPUTS_PER_VERSION = 128
 const MAX_DNA_RULES_PER_VERSION = 256
 const MAX_DNA_CONFLICTS_PER_VERSION = 128
@@ -225,6 +231,7 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
   if (aggregate.skillRuns.length > MAX_SKILL_RUNS) throw invalidAggregate('too_many_skill_runs')
   if (aggregate.dnaVersions.length > MAX_DNA_VERSIONS) throw invalidAggregate('too_many_dna_versions')
   if (aggregate.dnaQaResults.length > MAX_DNA_QA_RESULTS) throw invalidAggregate('too_many_dna_qa_results')
+  if (aggregate.applications.length > MAX_APPLICATIONS) throw invalidAggregate('too_many_applications')
   if (aggregate.auditEvents.length > MAX_AUDIT_EVENTS) throw invalidAggregate('too_many_audit_events')
   if (aggregate.idempotencyRecords.length > MAX_IDEMPOTENCY_RECORDS) throw invalidAggregate('too_many_idempotency_records')
 
@@ -274,7 +281,7 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
       !['user', 'assistant', 'system'].includes(message.role)
       || ![
         'user_input', 'deterministic_setup', 'deterministic_evidence', 'deterministic_dna',
-        'deterministic_dna_qa', 'deterministic_dna_approval',
+        'deterministic_dna_qa', 'deterministic_dna_approval', 'deterministic_dna_application',
       ].includes(message.runtimeSource)
       || !message.content
       || message.content.length > 8_000
@@ -316,15 +323,215 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
   assertDNAVersions(aggregate, evidenceIds)
   assertDNAQAResults(aggregate)
   assertDNAApprovalLinks(aggregate)
-  for (const record of aggregate.applications) {
-    assertWorkspace(record, scope.workspaceId)
-    if (!referenceIds.has(record.editReferenceId)) throw invalidAggregate('application_reference_missing')
-  }
+  assertPreferenceApplications(aggregate)
   for (const record of aggregate.usageLogs) {
     assertWorkspace(record, scope.workspaceId)
     if (!referenceIds.has(record.editReferenceId)) throw invalidAggregate('usage_reference_missing')
   }
   if (findForbiddenPersistenceKey(aggregate)) throw invalidAggregate('forbidden_private_payload_field')
+}
+
+function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
+  const references = new Map(aggregate.references.map((record) => [record.id, record]))
+  const studies = new Map(aggregate.studies.map((record) => [record.id, record]))
+  const dnaVersions = new Map(aggregate.dnaVersions.map((record) => [record.id, record]))
+  const qaResults = new Map(aggregate.dnaQaResults.map((record) => [record.id, record]))
+  const activeTargetKeys = new Set<string>()
+  const versionKeys = new Set<string>()
+
+  for (const record of aggregate.applications) {
+    assertWorkspace(record, aggregate.workspaceId)
+    const reference = references.get(record.editReferenceId)
+    const study = studies.get(record.studySessionId)
+    const dnaVersion = dnaVersions.get(record.dnaVersionId)
+    const qaResult = qaResults.get(record.dnaQaResultId)
+    if (
+      !reference
+      || !study
+      || study.editReferenceId !== reference.id
+      || !dnaVersion
+      || dnaVersion.editReferenceId !== reference.id
+      || dnaVersion.studySessionId !== study.id
+      || !dnaVersion.approval
+      || dnaVersion.approval.id !== record.dnaApprovalId
+      || dnaVersion.contentDigest !== record.dnaContentDigest
+      || dnaVersion.version !== record.dnaVersionNumber
+      || !qaResult
+      || qaResult.dnaVersionId !== dnaVersion.id
+      || qaResult.id !== dnaVersion.qaResultId
+      || qaResult.status === 'blocked'
+    ) throw invalidAggregate('application_authority_link_invalid')
+
+    const targetKey = `${record.projectId}\u0000${record.editSessionId}`
+    const versionKey = `${targetKey}\u0000${record.version}`
+    if (versionKeys.has(versionKey)) throw invalidAggregate('application_target_version_duplicate')
+    versionKeys.add(versionKey)
+    if (record.status === 'prepared') {
+      if (activeTargetKeys.has(targetKey)) throw invalidAggregate('application_target_active_duplicate')
+      activeTargetKeys.add(targetKey)
+    }
+
+    if (
+      !record.editReferenceName
+      || record.editReferenceName.length > 120
+      || record.projectId !== record.targetContext.projectId
+      || record.editSessionId !== record.targetContext.editSessionId
+      || !Number.isSafeInteger(record.version)
+      || record.version < 1
+      || !['prepared', 'replaced', 'cleared'].includes(record.status)
+      || record.applicationVersion !== 'edit-reference-target-application-v1'
+      || record.runtimeSource !== 'verified_mock'
+      || !isApplicationTargetContext(record.targetContext)
+      || record.targetContextDigest !== calculatePreferenceApplicationTargetContextDigest(record.targetContext)
+      || !Array.isArray(record.decisions)
+      || record.decisions.length !== dnaVersion.rules.length
+      || record.decisions.length > MAX_DNA_RULES_PER_VERSION
+      || !Array.isArray(record.hintGroups)
+      || record.hintGroups.length < 1
+      || record.hintGroups.length > 18
+      || !Array.isArray(record.doNotCopyRules)
+      || record.doNotCopyRules.length < 1
+      || record.doNotCopyRules.length > MAX_DNA_RULES_PER_VERSION
+      || !sameStringArray(record.doNotCopyRules, dnaVersion.rules.filter((rule) => rule.kind === 'do_not_copy').map((rule) => rule.statement))
+      || !sameStringArray(record.precedencePolicy, EDIT_REFERENCE_APPLICATION_PRECEDENCE_POLICY)
+      || !record.summary
+      || record.summary.length > 2_000
+      || !['caller_confirmed_unverified', 'verified_project_edit_session'].includes(record.targetIdentityStatus)
+      || !['not_connected', 'connected', 'invalidated'].includes(record.targetIntegrationStatus)
+      || !['not_required', 'pending', 'completed'].includes(record.downstreamInvalidationStatus)
+      || !/^[a-f0-9]{64}$/.test(record.contentDigest)
+      || record.approvedPlanMutationMade !== false
+      || (record.targetIntegrationStatus === 'not_connected' && (record.targetEditMutationMade !== false || record.downstreamContextWritten !== false))
+      || (record.targetIntegrationStatus === 'connected' && (record.targetEditMutationMade !== true || record.downstreamContextWritten !== true))
+      || (record.targetIntegrationStatus === 'not_connected' && record.targetIdentityStatus !== 'caller_confirmed_unverified')
+      || (record.targetIntegrationStatus === 'connected' && record.targetIdentityStatus !== 'verified_project_edit_session')
+      || record.providerCallMade !== false
+      || record.modelCallMade !== false
+      || record.fileBytesRead !== false
+      || record.externalUrlFetched !== false
+      || record.mediaProcessingStarted !== false
+      || record.workerJobCreated !== false
+      || record.generationRequestCreated !== false
+      || record.renderJobCreated !== false
+      || record.creditReservedOrSpent !== false
+      || !isISODate(record.createdAt)
+      || (record.clearedAt !== undefined && !isISODate(record.clearedAt))
+    ) throw invalidAggregate('application_contract_invalid')
+
+    const sourceRules = new Map(dnaVersion.rules.map((rule) => [rule.id, rule]))
+    const decisionIds = new Set<string>()
+    const sourceRuleIds = new Set<string>()
+    for (const decision of record.decisions) {
+      const sourceRule = sourceRules.get(decision.sourceRuleId)
+      if (
+        !decision.id
+        || decisionIds.has(decision.id)
+        || sourceRuleIds.has(decision.sourceRuleId)
+        || !sourceRule
+        || sourceRule.layerId !== decision.layerId
+        || !['adapted', 'context_only', 'blocked_from_transfer'].includes(decision.decision)
+        || !EDIT_REFERENCE_APPLICATION_PRECEDENCE_POLICY.includes(decision.precedence)
+        || !decision.targetInstruction
+        || decision.targetInstruction.length > 8_000
+        || !decision.reason
+        || decision.reason.length > 2_000
+        || !Number.isFinite(decision.confidence)
+        || decision.confidence < 0
+        || decision.confidence > 1
+        || (sourceRule.kind === 'do_not_copy' && (
+          decision.decision !== 'blocked_from_transfer'
+          || decision.precedence !== 'safety_platform_tier_frame_credit_or_approved_constraint'
+        ))
+        || (sourceRule.kind === 'context_only' && decision.decision !== 'context_only')
+      ) throw invalidAggregate('application_decision_invalid')
+      decisionIds.add(decision.id)
+      sourceRuleIds.add(decision.sourceRuleId)
+    }
+    if (!sameStringSet([...sourceRuleIds], [...sourceRules.keys()])) throw invalidAggregate('application_rule_coverage_invalid')
+
+    const hintGroupIds = new Set<string>()
+    const groupedDecisionIds = new Set<string>()
+    const groupedSourceRuleIds = new Set<string>()
+    for (const group of record.hintGroups) {
+      if (
+        !group.id
+        || hintGroupIds.has(group.id)
+        || !isPreferenceDNALayerId(group.layerId)
+        || !group.title
+        || !group.summary
+        || !Array.isArray(group.decisionIds)
+        || group.decisionIds.length < 1
+        || group.decisionIds.some((id) => !decisionIds.has(id))
+        || !Array.isArray(group.sourceRuleIds)
+        || group.sourceRuleIds.length < 1
+        || group.sourceRuleIds.some((id) => !sourceRuleIds.has(id))
+        || group.decisionIds.some((id) => groupedDecisionIds.has(id))
+        || group.sourceRuleIds.some((id) => groupedSourceRuleIds.has(id))
+        || group.decisionIds.some((id) => record.decisions.find((decision) => decision.id === id)?.layerId !== group.layerId)
+      ) throw invalidAggregate('application_hint_group_invalid')
+      hintGroupIds.add(group.id)
+      group.decisionIds.forEach((id) => groupedDecisionIds.add(id))
+      group.sourceRuleIds.forEach((id) => groupedSourceRuleIds.add(id))
+    }
+    if (!sameStringSet([...groupedDecisionIds], [...decisionIds]) || !sameStringSet([...groupedSourceRuleIds], [...sourceRuleIds])) {
+      throw invalidAggregate('application_hint_group_coverage_invalid')
+    }
+
+    const immutableContent = {
+      applicationVersion: record.applicationVersion,
+      editReferenceId: record.editReferenceId,
+      dnaVersionId: record.dnaVersionId,
+      dnaVersionNumber: record.dnaVersionNumber,
+      dnaContentDigest: record.dnaContentDigest,
+      dnaApprovalId: record.dnaApprovalId,
+      dnaQaResultId: record.dnaQaResultId,
+      targetContext: record.targetContext,
+      targetContextDigest: record.targetContextDigest,
+      decisions: record.decisions,
+      hintGroups: record.hintGroups,
+      doNotCopyRules: record.doNotCopyRules,
+      precedencePolicy: record.precedencePolicy,
+      summary: record.summary,
+    }
+    if (record.contentDigest !== calculatePreferenceApplicationContentDigest(immutableContent)) {
+      throw invalidAggregate('application_content_digest_invalid')
+    }
+  }
+}
+
+function isApplicationTargetContext(value: EditReferenceAggregate['applications'][number]['targetContext']): boolean {
+  return Boolean(
+    value
+    && value.projectId
+    && value.projectId.length <= 200
+    && value.editSessionId
+    && value.editSessionId.length <= 200
+    && value.projectName
+    && value.projectName.length <= 160
+    && value.editName
+    && value.editName.length <= 160
+    && ['voice_first', 'mixed', 'silent_visual'].includes(value.sourceMode)
+    && ['tutorial', 'documentary', 'lifestyle_montage', 'talking_head', 'product_demo', 'custom'].includes(value.contentType)
+    && value.sourceSummary
+    && value.sourceSummary.length <= 2_000
+    && value.currentUserInstruction
+    && value.currentUserInstruction.length <= 4_000
+    && ['normal', 'premium', 'ultra_premium'].includes(value.selectedEditLevel)
+    && ['9:16', '16:9', '1:1', '4:5'].includes(value.aspectRatio)
+    && value.outputFrameConfirmed === true
+    && ['tiktok_reel', 'instagram_reel', 'instagram_feed', 'youtube_shorts', 'youtube_standard', 'linkedin', 'website', 'podcast_clip', 'ad_creative', 'internal_review', 'custom'].includes(value.platformTarget)
+    && value.storyRole
+    && value.storyRole.length <= 500
+    && ['efficient', 'balanced', 'cinematic'].includes(value.budgetPreference)
+    && value.directives
+    && ['adapt', 'required', 'avoid'].includes(value.directives.captions)
+    && ['adapt', 'required', 'avoid'].includes(value.directives.music)
+    && ['adapt', 'required', 'avoid'].includes(value.directives.sfx)
+    && ['adapt', 'preserve'].includes(value.directives.sourceOrder)
+    && Array.isArray(value.approvedConstraints)
+    && value.approvedConstraints.length <= 12
+    && value.approvedConstraints.every((constraint) => typeof constraint === 'string' && constraint.length > 0 && constraint.length <= 500)
+  )
 }
 
 function assertDNAVersions(aggregate: EditReferenceAggregate, evidenceIds: Set<string>): void {
@@ -613,6 +820,10 @@ function sameStringSet(left: string[], right: string[]): boolean {
     && rightSet.size === right.length
     && leftSet.size === rightSet.size
     && [...leftSet].every((value) => rightSet.has(value))
+}
+
+function sameStringArray(left: readonly string[], right: readonly string[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index])
 }
 
 function isPreferenceDNALayerId(value: unknown): boolean {

@@ -17,6 +17,7 @@ const requiredFiles = [
   'docs/edit-reference-gate-2-evidence-study-orchestration.md',
   'docs/edit-reference-gate-3-versioned-dna-synthesis.md',
   'docs/edit-reference-gate-4-dna-qa-approval.md',
+  'docs/edit-reference-gate-5-target-application.md',
   'design-system/MASTER.md',
   'design-system/pages/edit-preferences.md',
   'scripts/validation/edit-reference-goal-preflight.mjs',
@@ -38,6 +39,7 @@ const persistence = read('docs/edit-reference-persistence-contract.md')
 const designSystem = read('design-system/MASTER.md')
 const editPreferencesDesign = read('design-system/pages/edit-preferences.md')
 const gate4 = read('docs/edit-reference-gate-4-dna-qa-approval.md')
+const gate5 = read('docs/edit-reference-gate-5-target-application.md')
 
 assert.equal(status.goal, 'edit_reference_end_to_end')
 assert.equal(status.status, 'in_progress')
@@ -115,7 +117,7 @@ for (const readiness of ['verified_live', 'verified_local', 'verified_mock', 'de
 assert.match(persistence, /Browser localStorage is not authority|Browser localStorage may hold transient/i)
 assert.match(persistence, /exact response snapshot/i)
 assert.match(persistence, /production repository seam/i)
-assert.match(persistence, /Gates 1[–-]4 add no SQL migration/i)
+assert.match(persistence, /Gates 1[–-]5 add no SQL migration/i)
 assert.match(designSystem, /UI UX Pro Max as a supporting accessibility and craft checklist/i)
 assert.match(designSystem, /Skip to main content/i)
 assert.match(designSystem, /at least 44px/i)
@@ -125,6 +127,9 @@ assert.match(editPreferencesDesign, /375px/i)
 assert.match(gate4, /version-bound quality and approval path/i)
 assert.match(gate4, /blocker cannot be acknowledged away/i)
 assert.match(gate4, /not applied and production has not started/i)
+assert.match(gate5, /same approved DNA for/i)
+assert.match(gate5, /target edit, approved plan, downstream context, production state/i)
+assert.match(gate5, /UI UX Pro Max as subordinate critique guidance/i)
 
 assert.equal(packageJson.scripts?.['check:edit-reference-goal-preflight'], 'node scripts/validation/edit-reference-goal-preflight.mjs')
 assert.equal(packageJson.scripts?.['check:edit-reference-goal-postgate'], 'node scripts/validation/edit-reference-goal-postgate.mjs')
@@ -137,5 +142,6 @@ assert.equal(packageJson.scripts?.['smoke:edit-reference-ui'], 'tsx server/smoke
 assert.equal(packageJson.scripts?.['smoke:edit-reference-evidence-study'], 'tsx server/smoke/edit-reference-evidence-study-smoke.ts')
 assert.equal(packageJson.scripts?.['smoke:edit-reference-dna-synthesis'], 'tsx server/smoke/edit-reference-dna-synthesis-smoke.ts')
 assert.equal(packageJson.scripts?.['smoke:edit-reference-dna-qa-approval'], 'tsx server/smoke/edit-reference-dna-qa-approval-smoke.ts')
+assert.equal(packageJson.scripts?.['smoke:edit-reference-target-application'], 'tsx server/smoke/edit-reference-target-application-smoke.ts')
 
 console.log('edit_reference_goal_control_plane_passed')

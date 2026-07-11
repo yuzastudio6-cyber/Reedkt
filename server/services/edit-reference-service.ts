@@ -4,6 +4,7 @@ import type { ServiceContext } from '../types'
 import type {
   ApproveEditReferenceDNAVersionRequest,
   AppendPreferenceStudyMessageRequest,
+  CreatePreferenceApplicationRequest,
   CreatePreferenceEvidenceRequest,
   CreateEditReferenceRequest,
   CreatePreferenceStudyRequest,
@@ -13,6 +14,8 @@ import type {
   EditReferenceListItem,
   EditReferenceRecord,
   EditReferenceStudyGoal,
+  PreferenceApplicationListData,
+  PreferenceApplicationTargetContextSnapshot,
   PreferenceAssetRecord,
   PreferenceEvidenceMediaMetadata,
   PreferenceEvidenceRecord,
@@ -40,6 +43,7 @@ import {
 import { orchestratePreferenceEvidenceStudy } from '../edit-references/edit-reference-evidence-orchestrator'
 import { synthesizeEditReferencePreferenceDNA } from '../edit-references/edit-reference-dna-synthesis'
 import { runEditReferenceDNAQA } from '../edit-references/edit-reference-dna-qa'
+import { createEditReferenceTargetApplication } from '../edit-references/edit-reference-target-adaptation'
 
 const LOCAL_WARNING = 'Stored in the private backend-local Edit Reference repository. Production Supabase persistence remains blocked.'
 const FUTURE_RUNTIME_WARNING = 'No provider, model, file-byte, media, worker, generation, render, credit, or remote Supabase operation ran.'
@@ -52,6 +56,7 @@ export interface EditReferenceServiceResult<T> {
 
 export interface EditReferenceService {
   listReferences(workspaceId: string): Promise<EditReferenceServiceResult<EditReferenceListData>>
+  listApplications(workspaceId: string): Promise<EditReferenceServiceResult<PreferenceApplicationListData>>
   getReference(workspaceId: string, referenceId: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   getStudy(workspaceId: string, studyId: string): Promise<EditReferenceServiceResult<PreferenceStudyData>>
   listStudyMessages(workspaceId: string, studyId: string): Promise<EditReferenceServiceResult<PreferenceStudyMessageListData>>
@@ -65,6 +70,7 @@ export interface EditReferenceService {
   synthesizePreferenceDNA(studyId: string, input: SynthesizePreferenceDNARequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   runPreferenceDNAQA(studyId: string, dnaVersionId: string, input: RunEditReferenceDNAQARequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   approvePreferenceDNA(studyId: string, dnaVersionId: string, input: ApproveEditReferenceDNAVersionRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  createPreferenceApplication(studyId: string, dnaVersionId: string, input: CreatePreferenceApplicationRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
 }
 
 export function createEditReferenceService(
@@ -100,6 +106,18 @@ export function createEditReferenceService(
         : []
       return result({
         references,
+        persistence: 'backend_local_private',
+        productionPersistence: 'blocked_by_migration_baseline',
+        safety: EDIT_REFERENCE_SAFETY_FLAGS,
+      })
+    },
+
+    async listApplications(workspaceId) {
+      const aggregate = await repository.read(scope(workspaceId))
+      return result({
+        applications: aggregate
+          ? aggregate.applications.slice().sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+          : [],
         persistence: 'backend_local_private',
         productionPersistence: 'blocked_by_migration_baseline',
         safety: EDIT_REFERENCE_SAFETY_FLAGS,
@@ -575,6 +593,65 @@ export function createEditReferenceService(
       })
       return result(mutation.data, mutation.replayed)
     },
+
+    async createPreferenceApplication(studyId, dnaVersionId, input, idempotencyKey) {
+      const normalized = normalizeCreatePreferenceApplication(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.dna.application.create',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, dnaVersionId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          assertActiveStudy(reference, study)
+          assertRevision(reference.revision, normalized.expectedReferenceRevision, 'Edit Reference')
+          const dnaVersion = requireDNAVersion(aggregate, dnaVersionId, study)
+          assertDNAContentDigest(dnaVersion.contentDigest, normalized.expectedDNAContentDigest)
+          if (!dnaVersion.approval || !dnaVersion.qaResultId) {
+            throw new ApiError('VALIDATION_FAILED', 'Approve this exact Preference DNA version before preparing it for a target edit.', 409)
+          }
+          const qaResult = requireDNAQAResult(aggregate, dnaVersion.qaResultId, dnaVersion)
+          const existingTargetApplication = aggregate.applications.find((record) => (
+            record.projectId === normalized.targetContext.projectId
+            && record.editSessionId === normalized.targetContext.editSessionId
+            && record.status === 'prepared'
+          ))
+          if (existingTargetApplication) {
+            throw new ApiError(
+              'VERSION_CONFLICT',
+              'This target edit already has prepared Preference DNA. Replace or clear it from the target edit before preparing another version.',
+              409,
+              { applicationId: existingTargetApplication.id },
+            )
+          }
+          const application = createEditReferenceTargetApplication({
+            reference,
+            study,
+            dnaVersion,
+            qaResult,
+            targetContext: normalized.targetContext,
+            existingApplications: aggregate.applications,
+            now,
+          })
+          aggregate.applications.push(application)
+          reference.revision += 1
+          reference.updatedAt = now
+          aggregate.messages.push(targetApplicationMessage(reference, study, application, now, nextSequence(aggregate, study.id)))
+          aggregate.usageLogs.push(usageLog(reference, 'application_prepared', now))
+          addAuditEvent({
+            eventType: 'preference_application_prepared',
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            dnaVersionId: dnaVersion.id,
+            dnaQaResultId: qaResult.id,
+            applicationId: application.id,
+          })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
   }
 }
 
@@ -797,6 +874,26 @@ function dnaApprovalMessage(
   }
 }
 
+function targetApplicationMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  application: EditReferenceDetail['applications'][number],
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content: `${application.summary} The guidance is saved for review, but “${application.targetContext.editName}” has not changed and no production work started.`,
+    sequence,
+    runtimeSource: 'deterministic_dna_application',
+    createdAt: now,
+  }
+}
+
 function createEvidenceRecords(
   reference: EditReferenceRecord,
   study: PreferenceStudySessionRecord,
@@ -960,7 +1057,7 @@ function nextSequence(aggregate: EditReferenceAggregate, studyId: string): numbe
 
 function usageLog(
   reference: EditReferenceRecord,
-  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'dna_qa_completed' | 'dna_version_approved' | 'updated' | 'archived',
+  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'dna_qa_completed' | 'dna_version_approved' | 'application_prepared' | 'updated' | 'archived',
   now: string,
 ) {
   return {
@@ -1183,6 +1280,78 @@ function normalizeApprovePreferenceDNA(input: ApproveEditReferenceDNAVersionRequ
     qaResultId: requireText(input.qaResultId, 'qaResultId', 200),
     acknowledgeAdaptNotCopy: true,
     acknowledgeQAReview: input.acknowledgeQAReview,
+  }
+}
+
+function normalizeCreatePreferenceApplication(input: CreatePreferenceApplicationRequest): CreatePreferenceApplicationRequest {
+  if (input.acknowledgeAdaptNotCopy !== true) {
+    throw new ApiError('VALIDATION_FAILED', 'Target preparation requires confirmation that the reference will be adapted, not copied.', 400)
+  }
+  const target = input.targetContext
+  if (!target || typeof target !== 'object') {
+    throw new ApiError('VALIDATION_FAILED', 'A complete target-edit context is required.', 400)
+  }
+  if (target.outputFrameConfirmed !== true) {
+    throw new ApiError('VALIDATION_FAILED', 'Confirm the target output frame before preparing Preference DNA.', 409)
+  }
+  const sourceModes = new Set(['voice_first', 'mixed', 'silent_visual'])
+  const contentTypes = new Set(['tutorial', 'documentary', 'lifestyle_montage', 'talking_head', 'product_demo', 'custom'])
+  const editLevels = new Set(['normal', 'premium', 'ultra_premium'])
+  const aspectRatios = new Set(['9:16', '16:9', '1:1', '4:5'])
+  const platforms = new Set(['tiktok_reel', 'instagram_reel', 'instagram_feed', 'youtube_shorts', 'youtube_standard', 'linkedin', 'website', 'podcast_clip', 'ad_creative', 'internal_review', 'custom'])
+  const budgetPreferences = new Set(['efficient', 'balanced', 'cinematic'])
+  const directiveValues = new Set(['adapt', 'required', 'avoid'])
+  if (!sourceModes.has(target.sourceMode) || !contentTypes.has(target.contentType)) {
+    throw new ApiError('VALIDATION_FAILED', 'The target source mode or content type is not supported.', 400)
+  }
+  if (!editLevels.has(target.selectedEditLevel) || !aspectRatios.has(target.aspectRatio) || !platforms.has(target.platformTarget)) {
+    throw new ApiError('VALIDATION_FAILED', 'The target edit level, output frame, or platform is not supported.', 400)
+  }
+  if (!budgetPreferences.has(target.budgetPreference)) {
+    throw new ApiError('VALIDATION_FAILED', 'The target budget preference is not supported.', 400)
+  }
+  if (
+    !target.directives
+    || !directiveValues.has(target.directives.captions)
+    || !directiveValues.has(target.directives.music)
+    || !directiveValues.has(target.directives.sfx)
+    || !['adapt', 'preserve'].includes(target.directives.sourceOrder)
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'The target creative directives are incomplete.', 400)
+  }
+  if (!Array.isArray(target.approvedConstraints) || target.approvedConstraints.length > 12) {
+    throw new ApiError('VALIDATION_FAILED', 'Approved target constraints must be a bounded list.', 400)
+  }
+  const approvedConstraints = [...new Set(target.approvedConstraints.map((value) => requireText(value, 'approvedConstraint', 500)))]
+  const normalizedTarget: PreferenceApplicationTargetContextSnapshot = {
+    projectId: requireText(target.projectId, 'targetContext.projectId', 200),
+    editSessionId: requireText(target.editSessionId, 'targetContext.editSessionId', 200),
+    projectName: requireText(target.projectName, 'targetContext.projectName', 160),
+    editName: requireText(target.editName, 'targetContext.editName', 160),
+    sourceMode: target.sourceMode,
+    contentType: target.contentType,
+    sourceSummary: requireText(target.sourceSummary, 'targetContext.sourceSummary', 2_000),
+    currentUserInstruction: requireText(target.currentUserInstruction, 'targetContext.currentUserInstruction', 4_000),
+    selectedEditLevel: target.selectedEditLevel,
+    aspectRatio: target.aspectRatio,
+    outputFrameConfirmed: true,
+    platformTarget: target.platformTarget,
+    storyRole: requireText(target.storyRole, 'targetContext.storyRole', 500),
+    budgetPreference: target.budgetPreference,
+    directives: {
+      captions: target.directives.captions,
+      music: target.directives.music,
+      sfx: target.directives.sfx,
+      sourceOrder: target.directives.sourceOrder,
+    },
+    approvedConstraints,
+  }
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedReferenceRevision: requirePositiveInteger(input.expectedReferenceRevision, 'expectedReferenceRevision'),
+    expectedDNAContentDigest: requireSha256(input.expectedDNAContentDigest, 'expectedDNAContentDigest'),
+    acknowledgeAdaptNotCopy: true,
+    targetContext: normalizedTarget,
   }
 }
 

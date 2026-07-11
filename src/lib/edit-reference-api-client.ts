@@ -1,6 +1,7 @@
 import type {
   ApproveEditReferenceDNAVersionRequest,
   AppendPreferenceStudyMessageRequest,
+  CreatePreferenceApplicationRequest,
   CreatePreferenceEvidenceRequest,
   CreateEditReferenceRequest,
   CreatePreferenceStudyRequest,
@@ -8,6 +9,7 @@ import type {
   EditReferenceDetailData,
   EditReferenceListData,
   EditReferenceMessageData,
+  PreferenceApplicationListData,
   PreferenceStudyData,
   PreferenceStudyMessageListData,
   RunEditReferenceDNAQARequest,
@@ -35,6 +37,7 @@ interface ApiErrorEnvelope {
 export interface EditReferenceApiClient {
   available: boolean
   list(workspaceId: string): Promise<EditReferenceApiResult<EditReferenceListData>>
+  listApplications(workspaceId: string): Promise<EditReferenceApiResult<PreferenceApplicationListData>>
   get(workspaceId: string, referenceId: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
   getStudy(workspaceId: string, studyId: string): Promise<EditReferenceApiResult<PreferenceStudyData>>
   listStudyMessages(workspaceId: string, studyId: string): Promise<EditReferenceApiResult<PreferenceStudyMessageListData>>
@@ -48,6 +51,7 @@ export interface EditReferenceApiClient {
   synthesizePreferenceDNA(studyId: string, input: SynthesizePreferenceDNARequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
   runPreferenceDNAQA(studyId: string, dnaVersionId: string, input: RunEditReferenceDNAQARequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
   approvePreferenceDNA(studyId: string, dnaVersionId: string, input: ApproveEditReferenceDNAVersionRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
+  createPreferenceApplication(studyId: string, dnaVersionId: string, input: CreatePreferenceApplicationRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
 }
 
 export function createEditReferenceApiClient(
@@ -65,6 +69,7 @@ export function createEditReferenceApiClient(
     return {
       available: false,
       list: unavailable,
+      listApplications: unavailable,
       get: unavailable,
       getStudy: unavailable,
       listStudyMessages: unavailable,
@@ -78,6 +83,7 @@ export function createEditReferenceApiClient(
       synthesizePreferenceDNA: unavailable,
       runPreferenceDNAQA: unavailable,
       approvePreferenceDNA: unavailable,
+      createPreferenceApplication: unavailable,
     }
   }
 
@@ -125,6 +131,7 @@ export function createEditReferenceApiClient(
   return {
     available: true,
     list: (workspaceId) => request(`/v1/edit-references?${new URLSearchParams({ workspaceId })}`),
+    listApplications: (workspaceId) => request(`/v1/edit-reference-applications?${new URLSearchParams({ workspaceId })}`),
     get: (workspaceId, referenceId) => request(`/v1/edit-references/${encodeURIComponent(referenceId)}?${new URLSearchParams({ workspaceId })}`),
     getStudy: (workspaceId, studyId) => request(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}?${new URLSearchParams({ workspaceId })}`),
     listStudyMessages: (workspaceId, studyId) => request(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/messages?${new URLSearchParams({ workspaceId })}`),
@@ -138,6 +145,7 @@ export function createEditReferenceApiClient(
     synthesizePreferenceDNA: (studyId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/preference-dna`, 'POST', input, key),
     runPreferenceDNAQA: (studyId, dnaVersionId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/preference-dna/${encodeURIComponent(dnaVersionId)}/qa`, 'POST', input, key),
     approvePreferenceDNA: (studyId, dnaVersionId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/preference-dna/${encodeURIComponent(dnaVersionId)}/approve`, 'POST', input, key),
+    createPreferenceApplication: (studyId, dnaVersionId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/preference-dna/${encodeURIComponent(dnaVersionId)}/applications`, 'POST', input, key),
   }
 }
 

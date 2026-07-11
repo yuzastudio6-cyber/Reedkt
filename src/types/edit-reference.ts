@@ -1,4 +1,9 @@
 import type { PreferenceDNAConfidenceBand, PreferenceDNALayerId } from './preference-dna-builder'
+import type {
+  ProjectEditSessionAspectRatio,
+  ProjectEditSessionPlatformTarget,
+} from './project-edit-session'
+import type { UserFacingEditLevel } from './reeditpro'
 
 export const EDIT_REFERENCE_STUDY_GOALS = [
   'visual_language',
@@ -81,6 +86,7 @@ export type PreferenceStudyMessageRuntimeSource =
   | 'deterministic_dna'
   | 'deterministic_dna_qa'
   | 'deterministic_dna_approval'
+  | 'deterministic_dna_application'
 
 export interface EditReferenceSafetyFlags {
   providerCallMade: false
@@ -391,15 +397,137 @@ export interface EditReferenceDNAQACheckRecord {
   requiresUserReview: boolean
 }
 
+export const EDIT_REFERENCE_TARGET_SOURCE_MODES = [
+  'voice_first',
+  'mixed',
+  'silent_visual',
+] as const
+
+export type PreferenceApplicationTargetSourceMode = typeof EDIT_REFERENCE_TARGET_SOURCE_MODES[number]
+
+export const EDIT_REFERENCE_TARGET_CONTENT_TYPES = [
+  'tutorial',
+  'documentary',
+  'lifestyle_montage',
+  'talking_head',
+  'product_demo',
+  'custom',
+] as const
+
+export type PreferenceApplicationTargetContentType = typeof EDIT_REFERENCE_TARGET_CONTENT_TYPES[number]
+
+export const EDIT_REFERENCE_TARGET_BUDGET_PREFERENCES = [
+  'efficient',
+  'balanced',
+  'cinematic',
+] as const
+
+export type PreferenceApplicationTargetBudgetPreference = typeof EDIT_REFERENCE_TARGET_BUDGET_PREFERENCES[number]
+
+export const EDIT_REFERENCE_TARGET_DIRECTIVE_VALUES = ['adapt', 'required', 'avoid'] as const
+export type PreferenceApplicationTargetDirectiveValue = typeof EDIT_REFERENCE_TARGET_DIRECTIVE_VALUES[number]
+
+export interface PreferenceApplicationTargetDirectives {
+  captions: PreferenceApplicationTargetDirectiveValue
+  music: PreferenceApplicationTargetDirectiveValue
+  sfx: PreferenceApplicationTargetDirectiveValue
+  sourceOrder: 'adapt' | 'preserve'
+}
+
+export interface PreferenceApplicationTargetContextSnapshot {
+  projectId: string
+  editSessionId: string
+  projectName: string
+  editName: string
+  sourceMode: PreferenceApplicationTargetSourceMode
+  contentType: PreferenceApplicationTargetContentType
+  sourceSummary: string
+  currentUserInstruction: string
+  selectedEditLevel: UserFacingEditLevel
+  aspectRatio: Exclude<ProjectEditSessionAspectRatio, 'custom'>
+  outputFrameConfirmed: true
+  platformTarget: ProjectEditSessionPlatformTarget
+  storyRole: string
+  budgetPreference: PreferenceApplicationTargetBudgetPreference
+  directives: PreferenceApplicationTargetDirectives
+  approvedConstraints: string[]
+}
+
+export type PreferenceApplicationAdaptationDecision = 'adapted' | 'context_only' | 'blocked_from_transfer'
+export type PreferenceApplicationPrecedence =
+  | 'safety_platform_tier_frame_credit_or_approved_constraint'
+  | 'current_user_instruction'
+  | 'target_context'
+  | 'approved_preference_dna'
+
+export interface PreferenceApplicationAdaptedDecisionRecord {
+  id: string
+  sourceRuleId: string
+  layerId: PreferenceDNALayerId
+  decision: PreferenceApplicationAdaptationDecision
+  precedence: PreferenceApplicationPrecedence
+  targetInstruction: string
+  reason: string
+  confidence: number
+}
+
+export interface PreferenceApplicationHintGroupRecord {
+  id: string
+  layerId: PreferenceDNALayerId
+  title: string
+  summary: string
+  decisionIds: string[]
+  sourceRuleIds: string[]
+}
+
 export interface PreferenceApplicationRecord {
   id: string
   workspaceId: string
   editReferenceId: string
+  editReferenceName: string
+  studySessionId: string
   dnaVersionId: string
+  dnaVersionNumber: number
+  dnaContentDigest: string
+  dnaApprovalId: string
+  dnaQaResultId: string
   projectId: string
   editSessionId: string
   version: number
-  status: 'applied' | 'replaced' | 'cleared'
+  status: 'prepared' | 'replaced' | 'cleared'
+  applicationVersion: 'edit-reference-target-application-v1'
+  runtimeSource: 'verified_mock'
+  targetContext: PreferenceApplicationTargetContextSnapshot
+  targetContextDigest: string
+  decisions: PreferenceApplicationAdaptedDecisionRecord[]
+  hintGroups: PreferenceApplicationHintGroupRecord[]
+  doNotCopyRules: string[]
+  precedencePolicy: readonly [
+    'safety_platform_tier_frame_credit_or_approved_constraint',
+    'current_user_instruction',
+    'target_context',
+    'approved_preference_dna',
+  ]
+  summary: string
+  targetIdentityStatus: 'caller_confirmed_unverified' | 'verified_project_edit_session'
+  targetIntegrationStatus: 'not_connected' | 'connected' | 'invalidated'
+  downstreamInvalidationStatus: 'not_required' | 'pending' | 'completed'
+  replacesApplicationId?: string
+  replacedByApplicationId?: string
+  clearedAt?: string
+  contentDigest: string
+  targetEditMutationMade: boolean
+  approvedPlanMutationMade: false
+  downstreamContextWritten: boolean
+  providerCallMade: false
+  modelCallMade: false
+  fileBytesRead: false
+  externalUrlFetched: false
+  mediaProcessingStarted: false
+  workerJobCreated: false
+  generationRequestCreated: false
+  renderJobCreated: false
+  creditReservedOrSpent: false
   createdAt: string
 }
 
@@ -407,7 +535,7 @@ export interface PreferenceUsageLogRecord {
   id: string
   workspaceId: string
   editReferenceId: string
-  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'dna_qa_completed' | 'dna_version_approved' | 'updated' | 'archived' | 'applied' | 'replaced' | 'cleared'
+  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'dna_qa_completed' | 'dna_version_approved' | 'application_prepared' | 'updated' | 'archived' | 'applied' | 'replaced' | 'cleared'
   createdAt: string
 }
 
@@ -447,6 +575,13 @@ export interface EditReferenceDetail {
 
 export interface EditReferenceListData {
   references: EditReferenceListItem[]
+  persistence: 'backend_local_private'
+  productionPersistence: 'blocked_by_migration_baseline'
+  safety: EditReferenceSafetyFlags
+}
+
+export interface PreferenceApplicationListData {
+  applications: PreferenceApplicationRecord[]
   persistence: 'backend_local_private'
   productionPersistence: 'blocked_by_migration_baseline'
   safety: EditReferenceSafetyFlags
@@ -571,6 +706,14 @@ export interface ApproveEditReferenceDNAVersionRequest {
   qaResultId: string
   acknowledgeAdaptNotCopy: true
   acknowledgeQAReview: boolean
+}
+
+export interface CreatePreferenceApplicationRequest {
+  workspaceId: string
+  expectedReferenceRevision: number
+  expectedDNAContentDigest: string
+  acknowledgeAdaptNotCopy: true
+  targetContext: PreferenceApplicationTargetContextSnapshot
 }
 
 export interface EditReferenceApiSuccess<T> {

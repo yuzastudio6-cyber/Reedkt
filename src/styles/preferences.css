@@ -763,7 +763,8 @@
 
 .edit-reference-dna-review-action,
 .edit-reference-dna-resolution,
-.edit-reference-dna-approval {
+.edit-reference-dna-approval,
+.edit-reference-target-ready {
   align-items: center;
   background: rgba(9, 15, 27, 0.64);
   border: 1px solid var(--rp-border-subtle);
@@ -775,7 +776,8 @@
 }
 
 .edit-reference-dna-review-action > div,
-.edit-reference-dna-resolution > div {
+.edit-reference-dna-resolution > div,
+.edit-reference-target-ready > div {
   align-items: center;
   color: var(--rp-text-secondary);
   display: flex;
@@ -805,6 +807,11 @@
   height: 18px;
   margin-top: 1px;
   width: 18px;
+}
+
+.edit-reference-target-ready {
+  background: linear-gradient(135deg, rgba(37, 99, 255, 0.1), rgba(34, 211, 238, 0.05));
+  border-color: rgba(34, 211, 238, 0.24);
 }
 
 .edit-reference-dna-qa {
@@ -1127,6 +1134,200 @@
   padding: var(--rp-space-3);
 }
 
+.edit-reference-applications-panel {
+  background:
+    radial-gradient(circle at 84% -10%, rgba(37, 99, 255, 0.14), transparent 34%),
+    rgba(9, 15, 27, 0.88);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  display: grid;
+  gap: var(--rp-space-5);
+  min-width: 0;
+  padding: var(--rp-space-5);
+}
+
+.edit-reference-applications-panel > header {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--rp-space-4);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.edit-reference-applications-panel h2 {
+  font-size: 1.35rem;
+  margin: var(--rp-space-1) 0 var(--rp-space-2);
+}
+
+.edit-reference-applications-panel > header p {
+  color: var(--rp-text-secondary);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 760px;
+}
+
+.edit-reference-application-header-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--rp-space-2);
+}
+
+.edit-reference-application-list {
+  display: grid;
+  gap: var(--rp-space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.edit-reference-application-list > article {
+  background: linear-gradient(180deg, rgba(15, 24, 40, 0.86), rgba(9, 15, 27, 0.9));
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: var(--rp-space-3);
+  min-width: 0;
+  padding: var(--rp-space-4);
+}
+
+.edit-reference-application-list > article > header {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--rp-space-3);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.edit-reference-application-list > article > header > div {
+  min-width: 0;
+}
+
+.edit-reference-application-list > article > header span {
+  color: var(--rp-brand-cyan);
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.edit-reference-application-list h3 {
+  font-size: 1.05rem;
+  margin: 4px 0 2px;
+  overflow-wrap: anywhere;
+}
+
+.edit-reference-application-list > article > header p {
+  color: var(--rp-text-muted);
+  font-size: 0.76rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.edit-reference-application-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.edit-reference-application-context span {
+  background: rgba(34, 211, 238, 0.07);
+  border: 1px solid rgba(34, 211, 238, 0.16);
+  border-radius: var(--rp-radius-pill);
+  color: var(--rp-text-secondary);
+  font-size: 0.68rem;
+  padding: 4px 8px;
+}
+
+.edit-reference-application-summary {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.edit-reference-application-metrics {
+  display: grid;
+  gap: var(--rp-space-2);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.edit-reference-application-metrics span {
+  background: rgba(7, 13, 24, 0.66);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 9px;
+  color: var(--rp-text-muted);
+  display: grid;
+  font-size: 0.68rem;
+  gap: 2px;
+  padding: var(--rp-space-2);
+}
+
+.edit-reference-application-metrics strong {
+  color: var(--rp-text-primary);
+  font-size: 0.9rem;
+}
+
+.edit-reference-application-list details {
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.edit-reference-application-list summary {
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 800;
+  min-height: 44px;
+  padding: 12px;
+}
+
+.edit-reference-application-guidance {
+  border-top: 1px solid var(--rp-border-subtle);
+  display: grid;
+  gap: var(--rp-space-3);
+  max-height: 360px;
+  overflow-y: auto;
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-application-guidance section {
+  display: grid;
+  gap: 4px;
+}
+
+.edit-reference-application-guidance .edit-reference-application-boundaries {
+  background: rgba(251, 191, 36, 0.06);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 8px;
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-application-guidance strong {
+  color: var(--rp-text-primary);
+  font-size: 0.76rem;
+}
+
+.edit-reference-application-guidance small {
+  color: var(--rp-text-muted);
+  line-height: 1.45;
+}
+
+.edit-reference-application-guidance ul {
+  color: var(--rp-text-secondary);
+  display: grid;
+  font-size: 0.72rem;
+  gap: 5px;
+  line-height: 1.5;
+  margin: var(--rp-space-1) 0 0;
+  padding-left: 18px;
+}
+
+.edit-reference-application-list time {
+  color: var(--rp-text-muted);
+  font-size: 0.68rem;
+}
+
 @media (min-width: 1181px) {
   .edit-reference-three-panel {
     height: min(900px, 78vh);
@@ -1228,7 +1429,8 @@
   .edit-reference-dna-metrics,
   .edit-reference-dna-review-action,
   .edit-reference-dna-resolution,
-  .edit-reference-dna-approval {
+  .edit-reference-dna-approval,
+  .edit-reference-target-ready {
     grid-template-columns: 1fr;
   }
 
@@ -1239,7 +1441,8 @@
 
   .edit-reference-dna-review-action .rp-button,
   .edit-reference-dna-resolution .rp-button,
-  .edit-reference-dna-approval .rp-button {
+  .edit-reference-dna-approval .rp-button,
+  .edit-reference-target-ready .rp-button {
     justify-content: center;
     width: 100%;
   }
@@ -1260,6 +1463,32 @@
   .edit-reference-form-actions .rp-button {
     justify-content: center;
     width: 100%;
+  }
+
+  .edit-reference-applications-panel {
+    padding: var(--rp-space-4);
+  }
+
+  .edit-reference-applications-panel > header,
+  .edit-reference-application-list > article > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .edit-reference-application-header-actions {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .edit-reference-application-list,
+  .edit-reference-application-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 781px) and (max-width: 1180px) {
+  .edit-reference-application-list {
+    grid-template-columns: 1fr;
   }
 }
 

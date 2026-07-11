@@ -113,6 +113,36 @@ try {
   assert(approved.ok)
   assert.equal(approved.data.detail.reference.dnaStatus, 'approved')
   assert.equal(approved.data.detail.nextAction, 'prepare_target_application')
+  const application = await client.createPreferenceApplication(studyId, dnaVersion.id, {
+    workspaceId,
+    expectedReferenceRevision: approved.data.detail.reference.revision,
+    expectedDNAContentDigest: dnaVersion.contentDigest,
+    acknowledgeAdaptNotCopy: true,
+    targetContext: {
+      projectId: 'project-client-target',
+      editSessionId: 'edit-client-target',
+      projectName: 'Client target project',
+      editName: 'Client target edit',
+      sourceMode: 'voice_first',
+      contentType: 'tutorial',
+      sourceSummary: 'A voice-first tutorial source.',
+      currentUserInstruction: 'Keep the tutorial clear and preserve speech meaning.',
+      selectedEditLevel: 'normal',
+      aspectRatio: '16:9',
+      outputFrameConfirmed: true,
+      platformTarget: 'youtube_standard',
+      storyRole: 'Teach the workflow clearly',
+      budgetPreference: 'efficient',
+      directives: { captions: 'required', music: 'adapt', sfx: 'avoid', sourceOrder: 'preserve' },
+      approvedConstraints: ['Speech clarity outranks decorative timing.'],
+    },
+  }, 'client-dna-application-001')
+  assert(application.ok)
+  assert.equal(application.data.detail.applications.length, 1)
+  assert.equal(application.data.detail.applications[0]?.targetIntegrationStatus, 'not_connected')
+  const applications = await client.listApplications(workspaceId)
+  assert(applications.ok)
+  assert.equal(applications.data.applications.length, 1)
 
   const unavailable = createEditReferenceApiClient('')
   assert.equal(unavailable.available, false)
@@ -140,6 +170,22 @@ try {
     acknowledgeAdaptNotCopy: true, acknowledgeQAReview: false,
   })
   assert.equal(unavailableApproval.ok, false)
+  const unavailableApplications = await unavailable.listApplications(workspaceId)
+  assert.equal(unavailableApplications.ok, false)
+  const unavailableApplication = await unavailable.createPreferenceApplication(studyId, 'dna-unavailable', {
+    workspaceId,
+    expectedReferenceRevision: 1,
+    expectedDNAContentDigest: '0'.repeat(64),
+    acknowledgeAdaptNotCopy: true,
+    targetContext: {
+      projectId: 'project-unavailable', editSessionId: 'edit-unavailable', projectName: 'Unavailable', editName: 'Unavailable',
+      sourceMode: 'mixed', contentType: 'custom', sourceSummary: 'Unavailable target.', currentUserInstruction: 'Unavailable.',
+      selectedEditLevel: 'normal', aspectRatio: '16:9', outputFrameConfirmed: true, platformTarget: 'custom',
+      storyRole: 'Unavailable', budgetPreference: 'efficient',
+      directives: { captions: 'adapt', music: 'adapt', sfx: 'adapt', sourceOrder: 'adapt' }, approvedConstraints: [],
+    },
+  })
+  assert.equal(unavailableApplication.ok, false)
 
   console.log('edit_reference_api_client_passed')
 } finally {

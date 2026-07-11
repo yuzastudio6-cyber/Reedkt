@@ -1,6 +1,6 @@
 # Edit Reference Test Fixture Plan
 
-Status: `gate_3_fixtures_partially_executed`
+Status: `gate_5_fixtures_executed_through_target_application`
 
 Fixtures must test behavior, not only file presence. They must be deterministic, private, rights-safe, small, and explicit about whether they contain metadata, synthetic media, or previous approved-edit evidence.
 
@@ -140,4 +140,10 @@ The focused browser fixture generates Version 1 from evidence-ready findings and
 
 The focused browser fixture runs quality review, expands review-required findings, proves approval stays disabled before acknowledgement, approves Version 1, reloads it, corrects evidence without rewriting the approval, creates and independently approves Version 2, reloads the new active approval, and keeps the target-application boundary truthful.
 
-Target adaptation, application replacement/removal, remote RLS, live media study, and provider execution remain later-gate fixtures.
+## Gate 5 Executed Fixtures
+
+`server/smoke/edit-reference-target-application-smoke.ts` executes premature/unapproved rejection, exact version/digest/approval/QA authority, confirmed-frame enforcement, direct-copy target-instruction rejection, tenant isolation, idempotent replay, duplicate-target rejection, the Target Adaptation Pair, current-instruction precedence, universal copy-boundary retention, target-specific content digests, private persistence/reload, global application listing, and zero target-edit/plan/context/provider/media/worker/render/credit side effects.
+
+The focused browser fixture displays the approved target-ready handoff, loads a real prepared application in Applied Edits, reviews target-specific guidance, keeps internal fields out of visible copy, and verifies horizontal overflow safety.
+
+Application replacement/removal, downstream invalidation, remote RLS, live media study, and provider execution remain later-gate fixtures.

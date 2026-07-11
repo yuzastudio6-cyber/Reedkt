@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test'
 import { gotoRoute } from './helpers/routes'
 import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 
+const apiPort = Number(process.env.PLAYWRIGHT_API_PORT ?? 8877)
+const apiBaseUrl = `http://127.0.0.1:${apiPort}`
+
 test.describe('Edit Reference durable study session', () => {
   test('creates, chats, reloads, and keeps future gates truthful', async ({ page }) => {
     const referenceName = `Evidence-first documentary ${Date.now()}`
@@ -87,6 +90,7 @@ test.describe('Edit Reference durable study session', () => {
     await page.getByTestId('acknowledge-edit-reference-dna-approval').check()
     await page.getByTestId('approve-edit-reference-dna').click()
     await expect(page.getByTestId('edit-reference-dna-review')).toContainText('Approved reusable guidance')
+    await expect(page.getByTestId('edit-reference-target-ready')).toContainText('Choose this reference from a project edit')
     await expect(page.getByText('Version 1 · approved')).toBeVisible()
     await expect(page.getByText('Review acknowledged')).toBeVisible()
     await expect(page.getByText('Ready for a target edit')).toBeVisible()
@@ -121,6 +125,59 @@ test.describe('Edit Reference durable study session', () => {
     await expect(page.getByTestId('edit-reference-dna-review')).toContainText('Preference DNA version 2')
     await expect(page.getByText('Version 2 · approved')).toBeVisible()
     await expect(page.getByText('Ready for a target edit')).toBeVisible()
+
+    const workspaceForApi = await page.getByTestId('edit-preferences-page').getAttribute('data-workspace-id')
+    expect(workspaceForApi).toBeTruthy()
+    if (!workspaceForApi) throw new Error('Edit Reference workspace identity is missing from the test surface.')
+    const referencesResponse = await fetch(`${apiBaseUrl}/v1/edit-references?workspaceId=${encodeURIComponent(workspaceForApi)}`)
+    const referencesPayload = await referencesResponse.json() as { ok: true; data: { references: Array<{ reference: { id: string; name: string } }> } }
+    const reference = referencesPayload.data.references.find((item) => item.reference.name === referenceName)?.reference
+    expect(reference).toBeTruthy()
+    const detailResponse = await fetch(`${apiBaseUrl}/v1/edit-references/${reference!.id}?workspaceId=${encodeURIComponent(workspaceForApi)}`)
+    const detailPayload = await detailResponse.json() as { ok: true; data: { detail: import('../../src/types/edit-reference').EditReferenceDetail } }
+    const approvedDNA = detailPayload.data.detail.dnaVersions.find((record) => record.status === 'approved')
+    expect(approvedDNA).toBeTruthy()
+    const applicationResponse = await fetch(`${apiBaseUrl}/v1/edit-reference-studies/${detailPayload.data.detail.study.id}/preference-dna/${approvedDNA!.id}/applications`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'idempotency-key': `e2e-target-application-${Date.now()}` },
+      body: JSON.stringify({
+        workspaceId: workspaceForApi,
+        expectedReferenceRevision: detailPayload.data.detail.reference.revision,
+        expectedDNAContentDigest: approvedDNA!.contentDigest,
+        acknowledgeAdaptNotCopy: true,
+        targetContext: {
+          projectId: 'project-e2e-voice-tutorial',
+          editSessionId: `edit-e2e-voice-tutorial-${Date.now()}`,
+          projectName: 'Creator education series',
+          editName: 'Voice-first camera tutorial',
+          sourceMode: 'voice_first',
+          contentType: 'tutorial',
+          sourceSummary: 'A presenter explains a camera workflow with screen recordings and spoken steps.',
+          currentUserInstruction: 'Keep every spoken step clear, preserve source order, require captions, and avoid decorative sound effects.',
+          selectedEditLevel: 'normal',
+          aspectRatio: '16:9',
+          outputFrameConfirmed: true,
+          platformTarget: 'youtube_standard',
+          storyRole: 'Teach the workflow in the order it is demonstrated',
+          budgetPreference: 'efficient',
+          directives: { captions: 'required', music: 'adapt', sfx: 'avoid', sourceOrder: 'preserve' },
+          approvedConstraints: ['Speech clarity outranks beat alignment.', 'Do not remove required tutorial steps.'],
+        },
+      }),
+    })
+    expect(applicationResponse.ok).toBe(true)
+
+    await page.getByTestId('edit-preference-tab-applied-edits').click()
+    const applicationCard = page.getByTestId('preference-application-card').filter({ hasText: 'Voice-first camera tutorial' })
+    await expect(applicationCard).toContainText('Prepared')
+    await expect(applicationCard).toContainText('voice first')
+    await expect(applicationCard).toContainText('16:9')
+    await expect(applicationCard).toContainText('target edit, its approved plan, and production state have not changed')
+    await applicationCard.getByText('Review target-specific guidance').click()
+    await expect(applicationCard).toContainText(/speech meaning|spoken step/i)
+    await expect(applicationCard).toContainText('Protected boundaries')
+    await expect(page.getByTestId('applied-edits-panel')).not.toContainText(/content digest|target context digest|provider|worker|render job|credit action|Gate 5/i)
+    await expectNoHorizontalOverflow(page)
   })
 
   test('keeps the study workspace usable at the compact desktop breakpoint', async ({ page }) => {

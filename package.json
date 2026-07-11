@@ -79,6 +79,7 @@
     "smoke:edit-reference-evidence-study": "tsx server/smoke/edit-reference-evidence-study-smoke.ts",
     "smoke:edit-reference-dna-synthesis": "tsx server/smoke/edit-reference-dna-synthesis-smoke.ts",
     "smoke:edit-reference-dna-qa-approval": "tsx server/smoke/edit-reference-dna-qa-approval-smoke.ts",
+    "smoke:edit-reference-target-application": "tsx server/smoke/edit-reference-target-application-smoke.ts",
     "prod:readiness:summary": "tsx server/cli/production-readiness-summary.ts",
     "prod:readiness:command-plan": "tsx server/cli/production-readiness-command-plan.ts",
     "prod:e2e:summary": "tsx server/cli/production-e2e-workflow-summary.ts",

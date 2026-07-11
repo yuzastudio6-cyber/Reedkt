@@ -114,7 +114,9 @@ The tab must preserve load, draft, save, conflict, retry, discard, and snapshot 
 
 ## Applied Edits
 
-Until durable Preference Application records exist, the tab shows a truthful empty/not-yet-applied state. It must not derive counts from mock handles or fabricate projects. Later it lists exact target project/edit identity, applied DNA version, application state, source, timestamp, replacement/clear history, and downstream invalidation state.
+With no durable records, the tab shows a truthful empty/not-yet-prepared state and never derives counts from mock handles or fabricated projects. Gate 5 lists exact target project/edit labels, exact approved DNA version, target context, adaptation and held-back counts, target-specific guidance, application state, timestamp, and the not-connected boundary. Gate 7 adds replacement/clear history and downstream invalidation state.
+
+`prepared` must not be rendered as if the target edit already changed. Until Gate 6 connects the record, the card states that the target edit, approved plan, and production state remain unchanged. Normal users see no IDs, digests, provider/worker terms, storage details, or internal gate labels.
 
 ## Safety & Privacy
 

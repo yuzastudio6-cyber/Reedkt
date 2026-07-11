@@ -8,6 +8,10 @@ import {
   EDIT_REFERENCE_MEDIA_RIGHTS_BASES,
   EDIT_REFERENCE_STUDY_GOALS,
   EDIT_REFERENCE_STUDY_LIFECYCLE_STATUSES,
+  EDIT_REFERENCE_TARGET_BUDGET_PREFERENCES,
+  EDIT_REFERENCE_TARGET_CONTENT_TYPES,
+  EDIT_REFERENCE_TARGET_DIRECTIVE_VALUES,
+  EDIT_REFERENCE_TARGET_SOURCE_MODES,
 } from '../../src/types/edit-reference'
 import { idSchema, validateBody } from '../validation/common-schemas'
 import { asyncRoute, getRouteParam, getServiceContext, sendOk } from './route-helpers'
@@ -91,6 +95,35 @@ const approvePreferenceDNASchema = runPreferenceDNAQASchema.extend({
   acknowledgeAdaptNotCopy: z.literal(true),
   acknowledgeQAReview: z.boolean(),
 }).strict()
+const targetContextSchema = z.object({
+  projectId: idSchema.max(200),
+  editSessionId: idSchema.max(200),
+  projectName: z.string().trim().min(1).max(160),
+  editName: z.string().trim().min(1).max(160),
+  sourceMode: z.enum(EDIT_REFERENCE_TARGET_SOURCE_MODES),
+  contentType: z.enum(EDIT_REFERENCE_TARGET_CONTENT_TYPES),
+  sourceSummary: z.string().trim().min(1).max(2_000),
+  currentUserInstruction: z.string().trim().min(1).max(4_000),
+  selectedEditLevel: z.enum(['normal', 'premium', 'ultra_premium']),
+  aspectRatio: z.enum(['9:16', '16:9', '1:1', '4:5']),
+  outputFrameConfirmed: z.literal(true),
+  platformTarget: z.enum(['tiktok_reel', 'instagram_reel', 'instagram_feed', 'youtube_shorts', 'youtube_standard', 'linkedin', 'website', 'podcast_clip', 'ad_creative', 'internal_review', 'custom']),
+  storyRole: z.string().trim().min(1).max(500),
+  budgetPreference: z.enum(EDIT_REFERENCE_TARGET_BUDGET_PREFERENCES),
+  directives: z.object({
+    captions: z.enum(EDIT_REFERENCE_TARGET_DIRECTIVE_VALUES),
+    music: z.enum(EDIT_REFERENCE_TARGET_DIRECTIVE_VALUES),
+    sfx: z.enum(EDIT_REFERENCE_TARGET_DIRECTIVE_VALUES),
+    sourceOrder: z.enum(['adapt', 'preserve']),
+  }).strict(),
+  approvedConstraints: z.array(z.string().trim().min(1).max(500)).max(12),
+}).strict()
+const createPreferenceApplicationSchema = workspaceSchema.extend({
+  expectedReferenceRevision: z.number().int().positive(),
+  expectedDNAContentDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  acknowledgeAdaptNotCopy: z.literal(true),
+  targetContext: targetContextSchema,
+}).strict()
 
 export function createEditReferenceRoutes(): Router {
   const router = Router()
@@ -99,6 +132,13 @@ export function createEditReferenceRoutes(): Router {
     const query = workspaceSchema.safeParse(request.query)
     if (!query.success) throw new ApiError('VALIDATION_FAILED', 'workspaceId query parameter is required.', 400, query.error.flatten())
     const result = await createEditReferenceService(getServiceContext(request)).listReferences(query.data.workspaceId)
+    sendOk(response, result.data, result.warnings)
+  }))
+
+  router.get('/v1/edit-reference-applications', requireAuth, asyncRoute(async (request, response) => {
+    const query = workspaceSchema.safeParse(request.query)
+    if (!query.success) throw new ApiError('VALIDATION_FAILED', 'workspaceId query parameter is required.', 400, query.error.flatten())
+    const result = await createEditReferenceService(getServiceContext(request)).listApplications(query.data.workspaceId)
     sendOk(response, result.data, result.warnings)
   }))
 
@@ -213,6 +253,17 @@ export function createEditReferenceRoutes(): Router {
   router.post('/v1/edit-reference-studies/:studyId/preference-dna/:dnaVersionId/approve', requireAuth, asyncRoute(async (request, response) => {
     const body = validateBody(approvePreferenceDNASchema, request.body)
     const result = await createEditReferenceService(getServiceContext(request)).approvePreferenceDNA(
+      getRouteParam(request, 'studyId'),
+      getRouteParam(request, 'dnaVersionId'),
+      body,
+      getDurableIdempotencyKey(request),
+    )
+    sendMutation(response, result, 201)
+  }))
+
+  router.post('/v1/edit-reference-studies/:studyId/preference-dna/:dnaVersionId/applications', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(createPreferenceApplicationSchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).createPreferenceApplication(
       getRouteParam(request, 'studyId'),
       getRouteParam(request, 'dnaVersionId'),
       body,

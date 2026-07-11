@@ -24,6 +24,7 @@ import type {
   EditReferenceDetail,
   EditReferenceListItem,
   EditReferenceStudyGoal,
+  PreferenceApplicationRecord,
   PreferenceEvidenceCategory,
   PreferenceEvidenceTransferability,
 } from '../../types/edit-reference'
@@ -84,7 +85,7 @@ export function EditReferenceWorkspacePage() {
       primaryAction="Create project"
       title="Edit Preferences"
     >
-      <section className="edit-reference-workspace" data-edit-reference-workspace="true" data-testid="edit-preferences-page">
+      <section className="edit-reference-workspace" data-edit-reference-workspace="true" data-testid="edit-preferences-page" data-workspace-id={workspaceId}>
         <div className="edit-reference-tabs" role="tablist" aria-label="Edit Preferences workspace">
           {tabs.map((tab) => (
             <button
@@ -250,7 +251,7 @@ function EditReferencesTab() {
               <span>{view.referenceStatus}</span>
               <strong>{view.name}</strong>
               <small>{view.studyStatus} · {view.messageCount} messages</small>
-              <small>{view.dnaStatus} · {view.appliedEditCount} applied edits</small>
+              <small>{view.dnaStatus} · {view.applicationCount} target application{view.applicationCount === 1 ? '' : 's'}</small>
               <time dateTime={view.latestActivityAt}>Updated {new Date(view.latestActivityAt).toLocaleString()}</time>
             </button>
             )
@@ -905,6 +906,15 @@ function PreferenceDNAReview({
           </Button>
         </div>
       )}
+      {version.status === 'approved' && (
+        <div className="edit-reference-target-ready" data-testid="edit-reference-target-ready">
+          <div>
+            <FileCheck2 aria-hidden="true" size={18} />
+            <span>Choose this reference from a project edit to create target-specific guidance. The edit will stay unchanged until that guidance is connected and reviewed.</span>
+          </div>
+          <Button icon={FileVideo2} size="sm" to="/projects" variant="secondary">Choose a project edit</Button>
+        </div>
+      )}
       <div className="edit-reference-form-boundary"><ShieldCheck aria-hidden="true" size={16} /><span>{version.status === 'approved'
         ? 'This exact version is approved as reusable guidance. It has not been applied to a target edit and no production work has started.'
         : 'This version is immutable and evidence-linked. Quality review and your explicit approval are required before it can guide an edit.'}</span></div>
@@ -982,12 +992,127 @@ function PanelPlaceholder({ icon, label }: { icon?: React.ReactNode; label: stri
 }
 
 function AppliedEditsTab() {
+  const [applications, setApplications] = useState<PreferenceApplicationRecord[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string>()
+
+  const loadApplications = useCallback(async () => {
+    setLoading(true)
+    setError(undefined)
+    const response = await api.listApplications(workspaceId)
+    if (response.ok) setApplications(response.data.applications)
+    else setError(response.message)
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => { void loadApplications() }, 0)
+    return () => window.clearTimeout(timeoutId)
+  }, [loadApplications])
+
+  if (loading) {
+    return (
+      <section className="edit-reference-static-panel" data-testid="applied-edits-panel">
+        <RefreshCw aria-hidden="true" size={28} />
+        <h2>Loading target guidance…</h2>
+        <p>Checking the private application history for this workspace.</p>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section className="edit-reference-static-panel" data-testid="applied-edits-panel">
+        <CircleAlert aria-hidden="true" size={28} />
+        <h2>Target guidance is unavailable</h2>
+        <p>{error}</p>
+        <Button icon={RefreshCw} onClick={() => void loadApplications()} variant="secondary">Try again</Button>
+      </section>
+    )
+  }
+
+  if (applications.length === 0) {
+    return (
+      <section className="edit-reference-static-panel" data-testid="applied-edits-panel">
+        <FileCheck2 aria-hidden="true" size={28} />
+        <h2>No target guidance has been prepared</h2>
+        <p>Applications appear only after evidence review, Preference DNA quality checks, your approval, and adaptation to one exact target edit.</p>
+        <Badge accent="muted">0 applications</Badge>
+      </section>
+    )
+  }
+
   return (
-    <section className="edit-reference-static-panel" data-testid="applied-edits-panel">
-      <FileCheck2 aria-hidden="true" size={28} />
-      <h2>No approved Preference DNA has been applied</h2>
-      <p>Applications appear only after evidence review, Preference DNA quality checks, your approval, and adaptation to the target video.</p>
-      <Badge accent="muted">0 applications</Badge>
+    <section className="edit-reference-applications-panel" data-testid="applied-edits-panel">
+      <header>
+        <div>
+          <span className="section-eyebrow">Target guidance</span>
+          <h2>Prepared for specific edits</h2>
+          <p>Each record uses one exact approved DNA version and the target edit’s own source, intent, format, and constraints.</p>
+        </div>
+        <div className="edit-reference-application-header-actions">
+          <Badge accent="cyan">{applications.length} application{applications.length === 1 ? '' : 's'}</Badge>
+          <Button icon={RefreshCw} onClick={() => void loadApplications()} size="sm" variant="ghost">Refresh</Button>
+        </div>
+      </header>
+      <div className="edit-reference-application-list">
+        {applications.map((application) => {
+          const adaptedCount = application.decisions.filter((decision) => decision.decision === 'adapted').length
+          const heldBackCount = application.decisions.length - adaptedCount
+          return (
+            <article data-testid="preference-application-card" key={application.id}>
+              <header>
+                <div>
+                  <span>{application.editReferenceName} · DNA version {application.dnaVersionNumber}</span>
+                  <h3>{application.targetContext.editName}</h3>
+                  <p>{application.targetContext.projectName}</p>
+                </div>
+                <Badge accent={application.targetIntegrationStatus === 'connected' ? 'success' : 'muted'}>
+                  {application.targetIntegrationStatus === 'connected' ? 'Connected' : 'Prepared'}
+                </Badge>
+              </header>
+              <div className="edit-reference-application-context" aria-label="Target context">
+                <span>{application.targetContext.contentType.replaceAll('_', ' ')}</span>
+                <span>{application.targetContext.sourceMode.replaceAll('_', ' ')}</span>
+                <span>{application.targetContext.aspectRatio}</span>
+                <span>{application.targetContext.platformTarget.replaceAll('_', ' ')}</span>
+                <span>{application.targetContext.selectedEditLevel.replaceAll('_', ' ')}</span>
+              </div>
+              <p className="edit-reference-application-summary">{application.summary}</p>
+              <div className="edit-reference-application-metrics">
+                <span><strong>{adaptedCount}</strong> adapted</span>
+                <span><strong>{heldBackCount}</strong> held back</span>
+                <span><strong>{application.hintGroups.length}</strong> guidance areas</span>
+              </div>
+              <details>
+                <summary>Review target-specific guidance</summary>
+                <div className="edit-reference-application-guidance">
+                  {application.hintGroups.map((group) => {
+                    const decisions = application.decisions.filter((decision) => group.decisionIds.includes(decision.id))
+                    return (
+                      <section key={group.id}>
+                        <strong>{group.title}</strong>
+                        <small>{group.summary}</small>
+                        <ul>{decisions.filter((decision) => decision.decision === 'adapted').map((decision) => <li key={decision.id}>{decision.targetInstruction}</li>)}</ul>
+                      </section>
+                    )
+                  })}
+                  <section className="edit-reference-application-boundaries">
+                    <strong>Protected boundaries</strong>
+                    <small>These reference-specific details never transfer to the target edit.</small>
+                    <ul>{application.doNotCopyRules.map((rule) => <li key={rule}>{rule}</li>)}</ul>
+                  </section>
+                </div>
+              </details>
+              <div className="edit-reference-form-boundary">
+                <LockKeyhole aria-hidden="true" size={16} />
+                <span>This guidance is prepared for review. The target edit, its approved plan, and production state have not changed.</span>
+              </div>
+              <time dateTime={application.createdAt}>Prepared {new Date(application.createdAt).toLocaleString()}</time>
+            </article>
+          )
+        })}
+      </div>
     </section>
   )
 }

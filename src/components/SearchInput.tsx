@@ -1,16 +1,18 @@
 import { Command, Search } from 'lucide-react'
 
 type SearchInputProps = {
+  label?: string
   placeholder: string
 }
 
-export function SearchInput({ placeholder }: SearchInputProps) {
+export function SearchInput({ label = 'Search', placeholder }: SearchInputProps) {
   return (
     <label className="search-input">
+      <span className="sr-only">{label}</span>
       <Search aria-hidden="true" size={18} />
-      <input aria-label={placeholder} placeholder={placeholder} type="search" />
-      <span>
-        <Command size={13} /> K
+      <input placeholder={placeholder} type="search" />
+      <span aria-hidden="true">
+        <Command aria-hidden="true" size={13} /> K
       </span>
     </label>
   )

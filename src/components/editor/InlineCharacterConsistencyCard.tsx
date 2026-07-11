@@ -105,7 +105,7 @@ export function InlineCharacterConsistencyCard({ descriptor, plan }: InlineChara
         ))}
       </div>
 
-      {packs.length > 4 && <p className="inline-helper">+ {packs.length - 4} more character pack{packs.length - 4 === 1 ? '' : 's'} included in the mock plan.</p>}
+      {packs.length > 4 && <p className="inline-helper">+ {packs.length - 4} more character pack{packs.length - 4 === 1 ? '' : 's'} included in the review plan.</p>}
 
       <div className="renderer-notes">
         {characterPlan.globalRules.slice(0, 4).map((rule) => (

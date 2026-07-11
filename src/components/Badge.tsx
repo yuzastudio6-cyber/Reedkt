@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { Accent } from '../data/mockData'
+import type { Accent } from '../data/productContent'
 
 type BadgeProps = {
   children: ReactNode

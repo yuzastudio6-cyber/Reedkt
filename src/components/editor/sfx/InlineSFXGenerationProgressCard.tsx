@@ -17,12 +17,12 @@ export function InlineSFXGenerationProgressCard({
       <div className="inline-card-heading">
         <div>
           <span className="section-eyebrow">SFX progress</span>
-          <h3>{complete ? 'Mock SFX ready for QA review' : 'Planning SFX generation'}</h3>
+          <h3>{complete ? 'SFX ready for QA review' : 'Preparing SFX cues'}</h3>
         </div>
-        <Badge accent={complete ? 'success' : 'cyan'}>{complete ? 'Complete' : 'Mock progress'}</Badge>
+        <Badge accent={complete ? 'success' : 'cyan'}>{complete ? 'Complete' : 'Progress'}</Badge>
       </div>
       <AIProgressStepList activeIndex={activeIndex} steps={steps} />
-      <p className="sfx-muted-note">No real generation is happening. ReeditPro has not called Mirelo, MMAudio, Supabase, Google Cloud, or a renderer.</p>
+      <p className="sfx-muted-note">SFX preparation is waiting for approval; audio preparation, private storage writes, background jobs, and rendering remain disabled.</p>
     </section>
   )
 }

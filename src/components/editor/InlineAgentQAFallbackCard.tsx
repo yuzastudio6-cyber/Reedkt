@@ -6,6 +6,7 @@ import type {
   AgentFallbackAction,
   AgentQAGateCheck,
 } from '../../types/editing-agent-runtime'
+import { hideInternalToolNamesInCopy, userFacingActivityList } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineAgentQAFallbackCardProps = {
@@ -31,8 +32,8 @@ function GateCheckCard({ gate }: { gate: AgentQAGateCheck }) {
         <span><strong>Asset</strong>{gate.relatedAssetManifestItemId ?? 'none'}</span>
         <span><strong>Layer</strong>{gate.relatedRendererLayerId ?? 'none'}</span>
       </div>
-      <p>{gate.message}</p>
-      {gate.recommendation && <small>{gate.recommendation}</small>}
+      <p>{hideInternalToolNamesInCopy(gate.message)}</p>
+      {gate.recommendation && <small>{hideInternalToolNamesInCopy(gate.recommendation)}</small>}
     </article>
   )
 }
@@ -50,8 +51,8 @@ function FailureScenarioCard({ scenario }: { scenario: AgentFailureScenario }) {
         <span><strong>Blocks render</strong>{scenario.blocksFinalRender ? 'yes' : 'no'}</span>
         <span><strong>User review</strong>{scenario.requiresUserReviewByDefault ? 'yes' : 'no'}</span>
       </div>
-      <p>{scenario.description}</p>
-      <small>{scenario.likelyCauses.slice(0, 2).join(' ')}</small>
+      <p>{hideInternalToolNamesInCopy(scenario.description)}</p>
+      <small>{hideInternalToolNamesInCopy(scenario.likelyCauses.slice(0, 2).join(' '))}</small>
     </article>
   )
 }
@@ -71,10 +72,10 @@ function FallbackActionCard({ action }: { action: AgentFallbackAction }) {
         <span><strong>Approval</strong>{action.requiresNewApproval ? 'yes' : 'no'}</span>
         <span><strong>Credits</strong>{label(action.estimatedCreditImpact)}</span>
       </div>
-      <p>{action.description}</p>
-      <small>Models: {action.allowedProviderModels.join(', ') || 'none'}</small>
-      <small>Tools: {action.allowedToolIds.join(', ') || 'none'}</small>
-      <small>{action.reason}</small>
+      <p>{hideInternalToolNamesInCopy(action.description)}</p>
+      <small>Routes: {hideInternalToolNamesInCopy(action.allowedProviderModels.map(label).join(', ') || 'none')}</small>
+      <small>Activities: {userFacingActivityList(action.allowedToolIds, 'none')}</small>
+      <small>{hideInternalToolNamesInCopy(action.reason)}</small>
     </article>
   )
 }
@@ -92,11 +93,11 @@ function DecisionCard({ decision }: { decision: AgentFailureFallbackDecision }) 
         <span><strong>Work item</strong>{decision.relatedWorkItemId ?? 'none'}</span>
         <span><strong>Asset</strong>{decision.relatedAssetManifestItemId ?? 'none'}</span>
       </div>
-      <p>{decision.reason}</p>
+      <p>{hideInternalToolNamesInCopy(decision.reason)}</p>
       <small>Selected: {decision.selectedFallbackActionIds.join(', ') || 'none'}</small>
       <small>Blocked: {decision.blockedActionIds.slice(0, 6).join(', ') || 'none'}</small>
-      {decision.userReviewQuestion && <small>{decision.userReviewQuestion}</small>}
-      <small>{decision.creditImpactNote}</small>
+      {decision.userReviewQuestion && <small>{hideInternalToolNamesInCopy(decision.userReviewQuestion)}</small>}
+      <small>{hideInternalToolNamesInCopy(decision.creditImpactNote)}</small>
     </article>
   )
 }
@@ -121,7 +122,7 @@ export function InlineAgentQAFallbackCard({ descriptor, plan }: InlineAgentQAFal
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Execution safety"
-      helper="ReeditPro checks every work item, asset, merge, provider request, and render step through QA gates. If something fails, the agent uses approved fallback paths instead of losing context or stopping unrelated work."
+      helper="ReeditPro checks every work item, asset, merge, AI asset request, and render step through QA gates. If something fails, the agent uses approved fallback paths instead of losing context or stopping unrelated work."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Agent QA + fallback matrix"
@@ -135,8 +136,8 @@ export function InlineAgentQAFallbackCard({ descriptor, plan }: InlineAgentQAFal
         <Badge accent="violet">User review</Badge>
         <Badge accent="blue">Fallback allowed</Badge>
         <Badge accent="warning">Fallback blocked</Badge>
-        <Badge accent="muted">Basic/Pro no Veo</Badge>
-        <Badge accent="muted">Mock only</Badge>
+        <Badge accent="muted">Basic/Pro premium fallback locked</Badge>
+        <Badge accent="muted">Internal QA</Badge>
       </div>
 
       <div className="agent-qa-summary-grid">
@@ -154,7 +155,7 @@ export function InlineAgentQAFallbackCard({ descriptor, plan }: InlineAgentQAFal
       <div className={fallbackPlan.finalRenderBlocked ? 'agent-final-render-blocked-badge' : 'agent-independent-work-badge'}>
         {fallbackPlan.finalRenderBlocked
           ? 'Final render is blocked until required failures are resolved.'
-          : 'No required final-render failure is blocking in this mock plan.'}
+          : 'No required final-render failure is blocking in this review plan.'}
       </div>
 
       <div>
@@ -196,7 +197,7 @@ export function InlineAgentQAFallbackCard({ descriptor, plan }: InlineAgentQAFal
       <div className="agent-no-real-execution-note">
         <strong>Limitations</strong>
         {fallbackPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{hideInternalToolNamesInCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

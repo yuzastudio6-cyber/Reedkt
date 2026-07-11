@@ -82,13 +82,13 @@ export type SFXChatData = {
 }
 
 export const sfxProviderLabels: Record<SFXProvider, string> = {
-  mirelo_sfx_v1_5: 'Mirelo SFX V1.5 - production SFX',
-  mmaudio_v2: 'MMAudio V2 - draft/basic/pro fallback',
-  mmaudio_v: 'MMAudio V2 - legacy alias',
+  mirelo_sfx_v1_5: 'Production-quality sound route',
+  mmaudio_v2: 'Draft sound route',
+  mmaudio_v: 'Draft sound route',
   reeditpro_internal_library: 'Internal library - reusable approved sounds',
   no_sfx: 'No SFX - valid professional choice',
   manual_upload: 'Manual upload - user-provided sound',
-  unknown: 'Unknown provider',
+  unknown: 'Unknown route',
 }
 
 export function formatSFXLabel(value?: string | number | boolean) {
@@ -120,16 +120,16 @@ function uniqueLabels(values: string[]) {
 function createDirectorPlan(eventPlans: SFXEventPlanRecord[], providerRoutes: SFXProviderRouteRecord[]): SFXDirectorPlanView {
   return {
     defaultPolicy: 'Edit-layer SFX only by default',
-    sourceFootagePolicy: 'Source-footage SFX avoided unless full sound design, repair, silent B-roll, or Real Motion support is explicitly justified.',
+    sourceFootagePolicy: 'Source-action SFX stay off unless repair, silent B-roll, or premium motion support clearly needs them.',
     decisionStateSummary: `${eventPlans.filter((event) => event.decisionState === 'needed').length} needed, ${eventPlans.filter((event) => event.decisionState === 'optional').length} optional, ${eventPlans.filter((event) => event.decisionState === 'avoid').length} avoided`,
     recommendedTargetLayers: uniqueLabels(eventPlans.map((event) => event.targetLayer).filter((layer) => layer !== 'none')),
-    avoidedSourceActionSFX: ['Footsteps', 'Fake water everywhere', 'Doors', 'Crowd beds', 'Clothing movement'],
-    volumePhilosophy: 'Premium soft / subtle polish, voice-first, never loud by default',
+    avoidedSourceActionSFX: ['Footsteps', 'Unmotivated water ambience', 'Doors', 'Crowd beds', 'Clothing movement'],
+    volumePhilosophy: 'Soft, voice-first polish by default',
     providerStrategy: providerRoutes.some((route) => route.useInternalLibraryFirst)
-      ? 'Internal library first, MMAudio V2 draft fallback, Mirelo production for key moments, no SFX allowed'
-      : 'Provider route is planned, not executed',
-    creditApprovalRule: 'SFX generation starts only after plan and credit approval. This demo spends no real credits.',
-    nextStep: 'Create prompt previews, then timing, mix, QA, and project-only library decisions',
+      ? 'Internal library first, draft sound fallback, production-quality sound for key moments, no SFX allowed'
+      : 'Audio asset route is planned, not executed',
+    creditApprovalRule: 'SFX starts only after plan and credit approval.',
+    nextStep: 'Review prompts, timing, mix, QA, and library choices',
   }
 }
 
@@ -195,9 +195,9 @@ export function createSFXChatUiData(): SFXChatData {
     progressSteps: [
       'Reading SFX event plan',
       'Checking internal library',
-      'Preparing provider prompt',
+      'Preparing prompt',
       'Waiting for credit approval',
-      'Mock generating SFX',
+      'Preparing SFX cue',
       'Analyzing waveform',
       'Trimming best region',
       'Aligning hit point',

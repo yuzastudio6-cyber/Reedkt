@@ -1,6 +1,7 @@
 import { Badge } from '../Badge'
 import { visualAssetTypeDefinitions } from '../../lib/product-taxonomy'
 import { getStyleModeLabel } from '../../lib/style-modes'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import type { ChatPlanningCardDescriptor, EditLevel, EditPlan, ProviderModel, SignatureSystem, VisualAssetType } from '../../types/reeditpro'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
@@ -11,11 +12,11 @@ type InlineVisualAssetPlanCardProps = {
 }
 
 const signatureLabels: Record<SignatureSystem, string> = {
-  stroke_motion: 'Stroke Motion',
-  graphic_design: 'Graphic Design / VisualExplain',
-  real_motion: 'Real Motion',
-  sound_sync: 'SoundSync',
-  none: 'None',
+  stroke_motion: 'Story animation',
+  graphic_design: 'Visual explanation',
+  real_motion: 'Motion treatment',
+  sound_sync: 'Sound design',
+  none: 'Clean edit',
 }
 
 const signatureAccent: Record<SignatureSystem, 'blue' | 'cyan' | 'violet' | 'warning' | 'muted'> = {
@@ -34,14 +35,14 @@ function labelForAssetType(assetType: VisualAssetType) {
 
 function veoPolicyForLevel(editLevel: EditLevel) {
   if (editLevel === 'basic') {
-    return 'Veo locked for Basic'
+    return 'Premium video fallback locked for Basic'
   }
 
   if (editLevel === 'pro') {
-    return 'Veo locked for Pro'
+    return 'Premium video fallback locked for Pro'
   }
 
-  return 'Veo Lite available only as final fallback/rescue'
+  return 'Premium video fallback available only as final fallback/rescue'
 }
 
 function modelChipClass(model: ProviderModel) {
@@ -57,7 +58,7 @@ function modelChipClass(model: ProviderModel) {
 }
 
 function providerDisplayName(model: ProviderModel) {
-  return model.replaceAll('_', ' ')
+  return hideInternalToolNamesInCopy(model.replaceAll('_', ' '))
 }
 
 function isAiVideoModel(model: ProviderModel) {
@@ -70,18 +71,18 @@ function assetUsesAiVideoRoute(asset: NonNullable<EditPlan['visualAssetPlan']>[n
 
 function routeExplanation(model: ProviderModel) {
   if (model === 'gpt_image_2') {
-    return 'GPT-Image-2 creates image, card, keyframe, or designed-frame assets.'
+    return 'AI image preparation can create image, card, keyframe, or designed-frame assets.'
   }
 
   if (isAiVideoModel(model)) {
-    return 'This AI video model generates an asset/clip only, not the final full video.'
+    return 'AI video preparation can create an asset or clip only, not the final full video.'
   }
 
   if (model === 'remotion_editor_motion' || model === 'svg_lottie_renderer') {
-    return 'Controlled renderer/editor motion handles exact motion design and timing.'
+    return 'Controlled composition handles exact motion design and timing.'
   }
 
-  return 'No provider route is needed for this beat.'
+  return 'This beat can stay within the editor composition path.'
 }
 
 export function InlineVisualAssetPlanCard({ descriptor, editLevel, plan }: InlineVisualAssetPlanCardProps) {
@@ -104,7 +105,7 @@ export function InlineVisualAssetPlanCard({ descriptor, editLevel, plan }: Inlin
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Visual story plan"
-      helper="ReeditPro only animates beats where motion improves the story. Remotion places these assets into the final frame; provider models do not generate the full final canvas."
+      helper="ReeditPro only animates beats where motion improves the story. The composition renderer places these assets into the final frame; AI asset routes do not generate the full final canvas."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Visual story plan"
@@ -116,7 +117,7 @@ export function InlineVisualAssetPlanCard({ descriptor, editLevel, plan }: Inlin
       </div>
 
       {visualAssetPlan.length === 0 ? (
-        <p className="inline-helper">No extra visual assets are planned for this mock edit.</p>
+        <p className="inline-helper">No extra visual assets are planned for this local edit.</p>
       ) : (
         <div className="visual-asset-list">
           {visualAssetPlan.map((asset) => (
@@ -125,13 +126,13 @@ export function InlineVisualAssetPlanCard({ descriptor, editLevel, plan }: Inlin
                 <div>
                   <span className="section-eyebrow">{asset.narrativePhase}</span>
                   <h4>{asset.beatLabel}</h4>
-                  <p>{asset.storyPurpose}</p>
+                  <p>{hideInternalToolNamesInCopy(asset.storyPurpose)}</p>
                 </div>
                 <div className="visual-asset-badges">
                   <Badge accent={signatureAccent[asset.signatureSystem]}>{signatureLabels[asset.signatureSystem]}</Badge>
                   <span className="model-chip">{animationAssetTypes.includes(asset.assetType) ? 'Animation' : 'Still/card'}</span>
                   <span className="model-chip">{labelForAssetType(asset.assetType)}</span>
-                  <span className="model-chip">Placed by Remotion</span>
+                  <span className="model-chip">Placed by composition renderer</span>
                   <span className="model-chip">Panel background matched</span>
                   {asset.promptPlans && asset.promptPlans.length > 0 && <span className="model-chip">Prompt planned: {asset.promptPlans.length}</span>}
                   {asset.promptPlans && asset.promptPlans.length > 0 && <span className="model-chip">Matching panel background included</span>}
@@ -151,19 +152,19 @@ export function InlineVisualAssetPlanCard({ descriptor, editLevel, plan }: Inlin
 
               <div className="provider-route-row">
                 <div>
-                  <strong>Primary model</strong>
+                  <strong>Primary route</strong>
                   <span className={modelChipClass(asset.providerRoute.primaryModel)}>{providerDisplayName(asset.providerRoute.primaryModel)}</span>
                   <small>{routeExplanation(asset.providerRoute.primaryModel)}</small>
                 </div>
                 <div>
-                  <strong>Fallback models</strong>
+                  <strong>Fallback routes</strong>
                   <div className="visual-asset-badges">
                     {asset.providerRoute.fallbackModels.length > 0 ? (
                       asset.providerRoute.fallbackModels.map((model) => (
                         <span className={modelChipClass(model)} key={model}>{providerDisplayName(model)}</span>
                       ))
                     ) : (
-                      <span className="model-chip model-chip-locked">No fallback model</span>
+                      <span className="model-chip model-chip-locked">No fallback route</span>
                     )}
                   </div>
                 </div>
@@ -185,11 +186,11 @@ export function InlineVisualAssetPlanCard({ descriptor, editLevel, plan }: Inlin
               <div className="qa-check-list">
                 <strong>QA checks</strong>
                 {asset.qaChecks.map((check) => (
-                  <span key={check}>{check}</span>
+                  <span key={check}>{hideInternalToolNamesInCopy(check)}</span>
                 ))}
               </div>
 
-              <p className="inline-helper">{asset.reason}</p>
+              <p className="inline-helper">{hideInternalToolNamesInCopy(asset.reason)}</p>
             </article>
           ))}
         </div>

@@ -48,7 +48,7 @@ export function InlineSFXQACard({ qaReport, warningReport }: InlineSFXQACardProp
           </div>
         </details>
       ) : (
-        <p className="sfx-success">This SFX passed QA in the mock flow. It is subtle, timed, and safe for project preview.</p>
+        <p className="sfx-success">This SFX passed QA. It is subtle, timed, and safe for project preview.</p>
       )}
     </section>
   )

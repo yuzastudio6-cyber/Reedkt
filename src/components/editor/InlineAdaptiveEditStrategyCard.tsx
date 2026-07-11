@@ -3,6 +3,7 @@ import type {
   ChatPlanningCardDescriptor,
   EditPlan,
 } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineAdaptiveEditStrategyCardProps = {
@@ -23,8 +24,8 @@ function decisionBadge(decision: string) {
   if (decision.includes('map')) return 'Map'
   if (decision.includes('chart')) return 'Chart'
   if (decision.includes('screen')) return 'Screen capture'
-  if (decision.includes('stroke')) return 'Stroke Motion'
-  if (decision.includes('real')) return 'Real Motion'
+  if (decision.includes('stroke')) return 'Story animation'
+  if (decision.includes('real')) return 'Motion treatment'
   return label(decision)
 }
 
@@ -49,13 +50,13 @@ export function InlineAdaptiveEditStrategyCard({ descriptor, plan }: InlineAdapt
         <div className="compact-summary-row">
           <span className="compact-summary-chip">{strategyPlan.segmentStrategies.length} strategies</span>
           <span className="compact-summary-chip">{avoidGenerationCount} avoid generation</span>
-          <span className="compact-summary-chip">{controlledToolCount} controlled tool</span>
+          <span className="compact-summary-chip">{controlledToolCount} controlled activity</span>
           <span className="compact-summary-chip">{strategyPlan.visualStrategySummary.aiVideoSegments} AI-video eligible</span>
         </div>
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Adaptive strategy"
-      helper="ReeditPro does not use one template for every video. It chooses speaker focus, visuals, tools, pacing, and generation restraint based on your request and what the video needs."
+      helper="ReeditPro does not use one template for every video. It chooses speaker focus, visuals, controlled preparation, pacing, and generation restraint based on your request and what the video needs."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Adaptive edit strategy"
@@ -125,17 +126,17 @@ export function InlineAdaptiveEditStrategyCard({ descriptor, plan }: InlineAdapt
               </div>
               <div className="strategy-tool-hint-list">
                 {strategy.recommendedToolHints.slice(0, 5).map((hint) => (
-                  <span key={hint}>{label(hint)}</span>
+                  <span key={hint}>{label(hint).replace(/\btool\b/gi, 'activity')}</span>
                 ))}
               </div>
               <ul className="strategy-reason-list">
                 {strategy.reasons.slice(0, 3).map((reason) => (
-                  <li key={reason.id}>{reason.source.replaceAll('_', ' ')}: {reason.explanation}</li>
+                  <li key={reason.id}>{reason.source.replaceAll('_', ' ')}: {hideInternalToolNamesInCopy(reason.explanation)}</li>
                 ))}
               </ul>
               <ul className="strategy-fallback-list">
                 {strategy.fallbackStrategy.slice(0, 2).map((fallback) => (
-                  <li key={fallback}>{fallback}</li>
+                  <li key={fallback}>{hideInternalToolNamesInCopy(fallback)}</li>
                 ))}
               </ul>
             </article>
@@ -147,10 +148,10 @@ export function InlineAdaptiveEditStrategyCard({ descriptor, plan }: InlineAdapt
       <details className="understanding-section">
         <summary>Rules and QA</summary>
         <div className="layout-mode-meta">
-          <span><strong>Must follow</strong>{strategyPlan.globalMustFollowRules.join(' ')}</span>
-          <span><strong>Avoid</strong>{strategyPlan.globalAvoidRules.join(' ')}</span>
-          <span><strong>QA</strong>{strategyPlan.qaChecks.join(' ')}</span>
-          <span><strong>Limitations</strong>{strategyPlan.limitations.join(' ')}</span>
+          <span><strong>Must follow</strong>{hideInternalToolNamesInCopy(strategyPlan.globalMustFollowRules.join(' '))}</span>
+          <span><strong>Avoid</strong>{hideInternalToolNamesInCopy(strategyPlan.globalAvoidRules.join(' '))}</span>
+          <span><strong>QA</strong>{hideInternalToolNamesInCopy(strategyPlan.qaChecks.join(' '))}</span>
+          <span><strong>Limitations</strong>{hideInternalToolNamesInCopy(strategyPlan.limitations.join(' '))}</span>
         </div>
       </details>
     </InlinePlanCardShell>

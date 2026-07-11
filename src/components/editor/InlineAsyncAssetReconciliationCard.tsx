@@ -6,6 +6,7 @@ import type {
   AssetVersionReconciliation,
   AsyncCheckbackItem,
 } from '../../types/editing-agent-runtime'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineAsyncAssetReconciliationCardProps = {
@@ -28,13 +29,13 @@ function CheckbackItemCard({ item }: { item: AsyncCheckbackItem }) {
         <span><strong>Work item</strong>{item.workItemId}</span>
         <span><strong>Asset</strong>{item.assetManifestItemId ?? 'none'}</span>
         <span><strong>Idempotency</strong>{item.idempotencyKey}</span>
-        <span><strong>Provider request</strong>{item.providerRequestId ?? 'future only'}</span>
-        <span><strong>Worker job</strong>{item.workerJobId ?? 'future only'}</span>
+        <span><strong>AI asset request</strong>{item.providerRequestId ?? 'future only'}</span>
+        <span><strong>Processing job</strong>{item.workerJobId ?? 'future only'}</span>
       </div>
-      <p>{item.nextCheckReason}</p>
-      <small>Timeout: {item.timeoutPolicy}</small>
-      <small>Retry: {item.retryPolicy}</small>
-      <small>Fallback: {item.fallbackPolicy.slice(0, 2).join(' ') || 'none'}</small>
+      <p>{hideInternalToolNamesInCopy(item.nextCheckReason)}</p>
+      <small>Timeout: {hideInternalToolNamesInCopy(item.timeoutPolicy)}</small>
+      <small>Retry: {hideInternalToolNamesInCopy(item.retryPolicy)}</small>
+      <small>Fallback: {hideInternalToolNamesInCopy(item.fallbackPolicy.slice(0, 2).join(' ') || 'none')}</small>
       <small>Expected outputs: {item.expectedOutputIds.join(', ') || 'none'}</small>
     </article>
   )
@@ -55,8 +56,8 @@ function DependencyReadinessCard({ item }: { item: AssetDependencyReadiness }) {
         <span><strong>Work item</strong>{item.linkedWorkItemId ?? 'none'}</span>
         <span><strong>Asset</strong>{item.linkedAssetManifestItemId ?? 'none'}</span>
       </div>
-      <p>{item.reason}</p>
-      {item.fallbackIfMissing && <small>Fallback: {item.fallbackIfMissing}</small>}
+      <p>{hideInternalToolNamesInCopy(item.reason)}</p>
+      {item.fallbackIfMissing && <small>Fallback: {hideInternalToolNamesInCopy(item.fallbackIfMissing)}</small>}
     </article>
   )
 }
@@ -77,7 +78,7 @@ function MergePlanItemCard({ item }: { item: AssetMergePlanItem }) {
         <span><strong>Fallback</strong>{item.fallbackRequired ? 'yes' : 'no'}</span>
         <span><strong>User review</strong>{item.userReviewRequired ? 'yes' : 'no'}</span>
       </div>
-      <p>{item.reason}</p>
+      <p>{hideInternalToolNamesInCopy(item.reason)}</p>
       <small>Segments: {item.targetSegmentIds.join(', ') || 'none'}</small>
       <small>Timing: {item.targetTimingCueIds.join(', ') || 'none'}</small>
       <small>Layers: {item.targetRendererLayerIds.join(', ') || 'none'}</small>
@@ -98,7 +99,7 @@ function VersionCard({ item }: { item: AssetVersionReconciliation }) {
         <span><strong>Fallbacks</strong>{item.fallbackVersionIds.join(', ') || 'none'}</span>
         <span><strong>Replaces</strong>{item.replacedAssetIds.join(', ') || 'none'}</span>
       </div>
-      <p>{item.reason}</p>
+      <p>{hideInternalToolNamesInCopy(item.reason)}</p>
     </article>
   )
 }
@@ -123,22 +124,22 @@ export function InlineAsyncAssetReconciliationCard({ descriptor, plan }: InlineA
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Execution planning"
-      helper="ReeditPro tracks pending jobs, checks back later, merges ready assets into the correct segment/timing/layer, and prevents context loss. This is planning only; no providers or workers run in this demo."
+      helper="ReeditPro tracks pending jobs, checks back later, merges ready assets into the correct segment/timing/layer, and prevents context loss. AI asset and processing activity stays gated."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Async asset reconciliation"
     >
       <div className="renderer-badge-row">
         <Badge accent="cyan">Checkback planned</Badge>
-        <Badge accent="blue">Waiting provider</Badge>
-        <Badge accent="violet">Waiting worker</Badge>
+        <Badge accent="blue">Waiting AI asset</Badge>
+        <Badge accent="violet">Waiting on processing</Badge>
         <Badge accent="success">Ready to merge</Badge>
         <Badge accent="warning">Placeholder preview</Badge>
         <Badge accent="warning">Final render blocked</Badge>
         <Badge accent="blue">QA pending</Badge>
         <Badge accent="violet">Fallback required</Badge>
         <Badge accent="warning">User review required</Badge>
-        <Badge accent="muted">No real execution</Badge>
+        <Badge accent="muted">Backend execution gated</Badge>
       </div>
 
       <div className="async-reconciliation-summary-grid">
@@ -153,10 +154,10 @@ export function InlineAsyncAssetReconciliationCard({ descriptor, plan }: InlineA
       <div className="render-readiness-summary">
         <strong>Render readiness</strong>
         <span className={reconciliationPlan.finalRenderReadiness.ready ? 'placeholder-preview-badge' : 'final-render-blocked-badge'}>
-          Final: {reconciliationPlan.finalRenderReadiness.reason}
+          Final: {hideInternalToolNamesInCopy(reconciliationPlan.finalRenderReadiness.reason)}
         </span>
         <span className="placeholder-preview-badge">
-          Preview: {reconciliationPlan.previewRenderReadiness.reason}
+          Preview: {hideInternalToolNamesInCopy(reconciliationPlan.previewRenderReadiness.reason)}
         </span>
         <small>Missing required assets: {reconciliationPlan.finalRenderReadiness.missingRequiredAssetIds.join(', ') || 'none'}</small>
         <small>Placeholder assets: {reconciliationPlan.previewRenderReadiness.placeholderAssetIds.join(', ') || 'none'}</small>
@@ -208,7 +209,7 @@ export function InlineAsyncAssetReconciliationCard({ descriptor, plan }: InlineA
               <span>Ready: {checkpoint.readyToMergeAssetIds.join(', ') || 'none'}</span>
               <small>Waiting work: {checkpoint.waitingWorkItemIds.slice(0, 6).join(', ') || 'none'}</small>
               <small>Next checkbacks: {checkpoint.nextCheckbackIds.slice(0, 6).join(', ') || 'none'}</small>
-              <small>{checkpoint.nextActions.join(' ')}</small>
+              <small>{hideInternalToolNamesInCopy(checkpoint.nextActions.join(' '))}</small>
             </article>
           ))}
         </div>
@@ -217,7 +218,7 @@ export function InlineAsyncAssetReconciliationCard({ descriptor, plan }: InlineA
       <div className="no-real-checkback-note">
         <strong>Limitations</strong>
         {reconciliationPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{hideInternalToolNamesInCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

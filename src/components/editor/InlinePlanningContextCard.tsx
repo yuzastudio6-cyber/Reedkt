@@ -1,8 +1,29 @@
 import { Badge } from '../Badge'
 import { frameLayoutTemplates } from '../../lib/frame-layouts'
-import { editLevelDefinitions, launchEditingCategories } from '../../lib/product-taxonomy'
+import { launchEditingCategories } from '../../lib/product-taxonomy'
 import { getSourceSequenceModeLabel } from '../../lib/source-sequence'
 import { visualPreferenceOptions } from '../../lib/workflow-profiles'
+import {
+  createEditLevelSelectedSummaryModel,
+  mapLegacyRuntimeEditLevelToCanonical,
+} from '../../lib/edit-level-ui-adapter'
+import { createEditLevelToolCapabilitySummaryModel } from '../../lib/edit-level-tool-router-ui-adapter'
+import { createEditLevelSourceUnderstandingSummaryModel } from '../../lib/edit-level-source-understanding-ui-adapter'
+import { createEditLevelQwenPlanningSummaryModel } from '../../lib/edit-level-qwen-planning-ui-adapter'
+import {
+  createEditLevelQAGateSummaryModel,
+  createEditLevelQAReadinessCardModel,
+} from '../../lib/edit-level-qa-gates-ui-adapter'
+import { createEditLevelEstimateSummaryModel } from '../../lib/edit-level-estimates-ui-adapter'
+import {
+  EditLevelEstimateSummary,
+  EditLevelQAGateSummary,
+  EditLevelQAReadinessCard,
+  EditLevelQwenPlanningSummary,
+  EditLevelSelectedSummary,
+  EditLevelSourceUnderstandingSummary,
+  EditLevelToolCapabilitySummary,
+} from '../edit-level'
 import type {
   AspectRatio,
   ClipSource,
@@ -41,10 +62,6 @@ function labelForCategory(value: EditingCategory) {
   return launchEditingCategories.find((category) => category.value === value)?.label ?? value
 }
 
-function labelForLevel(value: EditLevel) {
-  return editLevelDefinitions.find((level) => level.value === value)?.label ?? value
-}
-
 function labelForFrame(value: FrameTemplateType) {
   return frameLayoutTemplates[value]?.animationZone.label ?? value.replaceAll('_', ' ')
 }
@@ -55,14 +72,14 @@ function labelForVisualPreference(value: VisualPreference) {
 
 function veoPolicyForLevel(value: EditLevel) {
   if (value === 'basic') {
-    return 'Veo locked for Basic'
+    return 'Premium video fallback locked for Basic'
   }
 
   if (value === 'pro') {
-    return 'Veo locked for Pro'
+    return 'Premium video fallback locked for Pro'
   }
 
-  return 'Veo Lite final fallback only'
+  return 'Premium video fallback only'
 }
 
 export function InlinePlanningContextCard({
@@ -79,6 +96,14 @@ export function InlinePlanningContextCard({
   visualPreference,
 }: InlinePlanningContextCardProps) {
   const veoPolicy = veoPolicyForLevel(editLevel)
+  const publicEditLevel = mapLegacyRuntimeEditLevelToCanonical(editLevel)
+  const selectedEditLevelSummary = createEditLevelSelectedSummaryModel(publicEditLevel)
+  const selectedToolCapabilitySummary = createEditLevelToolCapabilitySummaryModel(publicEditLevel)
+  const selectedSourceUnderstandingSummary = createEditLevelSourceUnderstandingSummaryModel(publicEditLevel)
+  const selectedQwenPlanningSummary = createEditLevelQwenPlanningSummaryModel(publicEditLevel)
+  const selectedQAGateSummary = createEditLevelQAGateSummaryModel(publicEditLevel)
+  const selectedQAReadiness = createEditLevelQAReadinessCardModel(publicEditLevel)
+  const selectedEstimateSummary = createEditLevelEstimateSummaryModel(publicEditLevel)
   const importantClipCount = clips.filter((clip) => clip.isImportant).length
   const optionalClipCount = clips.filter((clip) => clip.isOptional || clip.sourceRole === 'optional').length
 
@@ -110,8 +135,8 @@ export function InlinePlanningContextCard({
           <strong>{clips.length} total / {importantClipCount} important / {optionalClipCount} optional</strong>
         </div>
         <div>
-          <span>Level</span>
-          <strong>{labelForLevel(editLevel)} / {editLevelConfirmed ? 'confirmed' : 'pending'}</strong>
+          <span>Public Edit Level</span>
+          <strong>{selectedEditLevelSummary.displayName} / {editLevelConfirmed ? 'confirmed' : 'pending'}</strong>
         </div>
         <div>
           <span>Output frame</span>
@@ -126,7 +151,7 @@ export function InlinePlanningContextCard({
           <strong>{labelForVisualPreference(visualPreference)}</strong>
         </div>
         <div>
-          <span>Model rule</span>
+          <span>Video fallback rule</span>
           <strong>{veoPolicy}</strong>
         </div>
         <div>
@@ -134,8 +159,15 @@ export function InlinePlanningContextCard({
           <strong>AI video visuals use matching panel backgrounds by default.</strong>
         </div>
       </div>
+      <EditLevelSelectedSummary compact summary={selectedEditLevelSummary} />
+      <EditLevelToolCapabilitySummary compact summary={selectedToolCapabilitySummary} />
+      <EditLevelSourceUnderstandingSummary compact summary={selectedSourceUnderstandingSummary} />
+      <EditLevelQwenPlanningSummary compact summary={selectedQwenPlanningSummary} />
+      <EditLevelQAGateSummary compact summary={selectedQAGateSummary} />
+      <EditLevelQAReadinessCard readiness={selectedQAReadiness} />
+      <EditLevelEstimateSummary compact summary={selectedEstimateSummary} />
       <p className="inline-helper">
-        Category guides context. Edit level changes complexity and fallback depth. The frame system owns the final canvas.
+        Category guides context. Edit Level changes planned capability depth, source understanding, planning depth, QA strictness, and estimate depth; execution still waits for plan and credit approval.
       </p>
     </section>
   )

@@ -1,114 +1,103 @@
-import { useState, type ReactNode } from 'react'
-import { Sparkles } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { LogOut, Plus } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
-import { appNav, appSidebarNavLabels } from '../data/mockData'
-import { AppShellChatToolbarContext } from './AppShellChatToolbarContext'
+import { useAuthSession } from '../auth/useAuthSession'
+import { appNav } from '../data/productContent'
 import { BrandLogo } from './BrandLogo'
 import { Button } from './Button'
 
 type AppShellProps = {
   children: ReactNode
+  chrome?: 'standard' | 'editor'
   eyebrow?: string
-  mode?: 'standard' | 'chat'
   title: string
   description: string
   primaryAction?: string | false
-  primaryActionTo?: string
-}
-
-const EDITOR_SIDEBAR_STORAGE_KEY = 'reeditpro:editor-sidebar-visible'
-const allowedSidebarLabels = new Set<string>(appSidebarNavLabels)
-const sidebarNav = appNav.filter((item) => allowedSidebarLabels.has(item.label))
-
-function getInitialEditorSidebarVisible() {
-  if (typeof window === 'undefined') {
-    return true
-  }
-
-  try {
-    return window.localStorage.getItem(EDITOR_SIDEBAR_STORAGE_KEY) !== 'false'
-  } catch {
-    return true
-  }
 }
 
 export function AppShell({
   children,
+  chrome = 'standard',
   description,
   eyebrow,
-  mode = 'standard',
   primaryAction = 'Create project',
-  primaryActionTo = '/projects/new',
   title,
 }: AppShellProps) {
+  const auth = useAuthSession()
   const location = useLocation()
-  const isChatMode = mode === 'chat'
-  const [editorSidebarVisible, setEditorSidebarVisible] = useState(getInitialEditorSidebarVisible)
-  const sidebarVisible = !isChatMode || editorSidebarVisible
-
-  function toggleEditorSidebar() {
-    setEditorSidebarVisible((current) => {
-      const next = !current
-
-      try {
-        window.localStorage.setItem(EDITOR_SIDEBAR_STORAGE_KEY, String(next))
-      } catch {
-        // Keep the in-memory toggle working even if browser storage is unavailable.
-      }
-
-      return next
-    })
-  }
+  const showStandardChrome = chrome === 'standard'
+  const identityLabel = auth.identity?.displayName ?? auth.identity?.email ?? 'Signed-in user'
+  const identityDetail = auth.identity?.email ?? (auth.mode === 'local_test' ? 'Local test session' : 'Verified session')
 
   return (
-    <AppShellChatToolbarContext.Provider
-      value={{
-        sidebarToggleEnabled: isChatMode,
-        sidebarVisible: editorSidebarVisible,
-        toggleSidebar: toggleEditorSidebar,
-      }}
-    >
-      <div className={`app-shell ${isChatMode ? 'app-shell-chat' : ''} ${isChatMode && !editorSidebarVisible ? 'sidebar-hidden' : ''}`.trim()}>
-        {sidebarVisible && (
-          <aside className="sidebar" data-testid="app-sidebar">
-            <BrandLogo />
-            <nav aria-label="Desktop app navigation">
-              {sidebarNav.map((item) => {
-                const [path, hash = ''] = item.to.split('#')
-                const isActive = hash
-                  ? location.pathname === path && location.hash === `#${hash}`
-                  : (location.pathname === path || (path === '/projects' && location.pathname.startsWith('/projects/'))) && !location.hash
+    <div className={`app-shell app-shell-${chrome}`} data-testid="app-shell">
+      <aside className="sidebar" data-testid="app-sidebar">
+        <BrandLogo />
+        <nav aria-label="Desktop app navigation">
+          {appNav.map((item) => {
+            const [path, hash = ''] = item.to.split('#')
+            const isActive = hash
+              ? location.pathname === path && location.hash === `#${hash}`
+              : (location.pathname === path || (path === '/projects' && location.pathname.startsWith('/projects/'))) && !location.hash
 
-                return (
-                  <Link className={`sidebar-link ${isActive ? 'active' : ''}`} key={item.to + item.label} to={item.to}>
-                    <item.icon aria-hidden="true" size={18} />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
-            </nav>
-          </aside>
+            return item.disabled ? (
+              <button aria-disabled="true" className="sidebar-link sidebar-link-disabled" disabled key={item.label} type="button">
+                <item.icon aria-hidden="true" size={18} />
+                <span>{item.label}</span>
+                <small>Later</small>
+              </button>
+            ) : (
+              <Link aria-current={isActive ? 'page' : undefined} className={`sidebar-link ${isActive ? 'active' : ''}`} key={item.to + item.label} to={item.to}>
+                <item.icon aria-hidden="true" size={18} />
+                <span>{item.label}</span>
+              </Link>
+            )
+          })}
+        </nav>
+        <section aria-label="Current session" className="sidebar-auth" data-testid="app-session-identity">
+          <div className="sidebar-auth-identity">
+            <span aria-hidden="true" className="sidebar-auth-avatar">
+              {identityLabel.slice(0, 1).toUpperCase()}
+            </span>
+            <div>
+              <strong>{identityLabel}</strong>
+              <small>{identityDetail}</small>
+            </div>
+          </div>
+          <span className="sidebar-auth-mode">
+            {auth.mode === 'local_test' ? 'Test session' : 'Supabase session'}
+          </span>
+          <Button
+            className="sidebar-auth-signout"
+            data-unsaved-navigation="true"
+            icon={LogOut}
+            onClick={() => { void auth.signOut() }}
+            size="sm"
+            variant="ghost"
+          >
+            Sign out
+          </Button>
+        </section>
+      </aside>
+      <main className="app-main" data-testid="app-main">
+        {showStandardChrome && (
+          <header className="topbar">
+            <div className="topbar-copy">
+              {eyebrow && <span className="section-eyebrow">{eyebrow}</span>}
+              <h1>{title}</h1>
+              <p>{description}</p>
+            </div>
+            <div className="topbar-actions">
+              {primaryAction && (
+                <Button icon={Plus} to="/projects/new" variant="primary">
+                  {primaryAction}
+                </Button>
+              )}
+            </div>
+          </header>
         )}
-        <main className={`app-main ${isChatMode ? 'app-main-chat' : ''}`.trim()}>
-          {!isChatMode && (
-            <header className="topbar">
-              <div className="topbar-copy">
-                {eyebrow && <span className="section-eyebrow">{eyebrow}</span>}
-                <h1>{title}</h1>
-                <p>{description}</p>
-              </div>
-              <div className="topbar-actions">
-                {primaryAction ? (
-                  <Button icon={Sparkles} to={primaryActionTo} variant="primary">
-                    {primaryAction}
-                  </Button>
-                ) : null}
-              </div>
-            </header>
-          )}
-          {children}
-        </main>
-      </div>
-    </AppShellChatToolbarContext.Provider>
+        {children}
+      </main>
+    </div>
   )
 }

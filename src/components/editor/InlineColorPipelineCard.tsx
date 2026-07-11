@@ -4,6 +4,7 @@ import type {
   ColorOperationPlan,
   EditPlan,
 } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy, userFacingActivityLabel, userFacingActivityList } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineColorPipelineCardProps = {
@@ -16,7 +17,7 @@ function label(value: string | undefined) {
 }
 
 function operationSummary(operation: ColorOperationPlan) {
-  return `${label(operation.operation)} / ${label(operation.toolId)} / ${label(operation.status)}`
+  return `${label(operation.operation)} / ${userFacingActivityLabel(operation.toolId)} / ${label(operation.status)}`
 }
 
 function OperationList({ operations }: { operations: ColorOperationPlan[] }) {
@@ -25,7 +26,7 @@ function OperationList({ operations }: { operations: ColorOperationPlan[] }) {
       {operations.slice(0, 8).map((operation) => (
         <span className="color-operation-item" key={operation.id}>
           <strong>{operation.label}</strong>
-          {label(operation.toolId)} / {label(operation.intensity)}
+          {userFacingActivityLabel(operation.toolId)} / {label(operation.intensity)}
         </span>
       ))}
     </div>
@@ -64,7 +65,7 @@ export function InlineColorPipelineCard({ descriptor, plan }: InlineColorPipelin
         <span><strong>{label(colorPipelinePlan.colorGradeStyle)}</strong>grade style</span>
         <span><strong>{label(colorPipelinePlan.intensity)}</strong>intensity</span>
         <span><strong>{colorPipelinePlan.stages.length}</strong>stages</span>
-        <span><strong>{colorPipelinePlan.toolsPlanned.length}</strong>tools planned</span>
+        <span><strong>{colorPipelinePlan.toolsPlanned.length}</strong>readiness checks</span>
         <span><strong>{colorPipelinePlan.clipPlans.length}</strong>clip plans</span>
         <span><strong>{colorPipelinePlan.assetMatchPlans.length}</strong>asset matches</span>
       </div>
@@ -92,11 +93,11 @@ export function InlineColorPipelineCard({ descriptor, plan }: InlineColorPipelin
 
       <details className="understanding-section" open={descriptor?.status === 'warning' || descriptor?.status === 'blocking'}>
         <summary>Project color plan</summary>
-        <p>{colorPipelinePlan.summary}</p>
+        <p>{hideInternalToolNamesInCopy(colorPipelinePlan.summary)}</p>
         <OperationList operations={colorPipelinePlan.projectOperations} />
         <div className="color-qa-list">
           {colorPipelinePlan.qaChecks.slice(0, 6).map((qaCheck) => (
-            <span key={qaCheck}>{qaCheck}</span>
+            <span key={qaCheck}>{hideInternalToolNamesInCopy(qaCheck)}</span>
           ))}
         </div>
       </details>
@@ -120,7 +121,7 @@ export function InlineColorPipelineCard({ descriptor, plan }: InlineColorPipelin
               <OperationList operations={[...clipPlan.correctionOperations, ...clipPlan.lookOperations]} />
               <ul>
                 {clipPlan.shotMatchingNotes.slice(0, 2).map((note) => (
-                  <li key={note}>{note}</li>
+                  <li key={note}>{hideInternalToolNamesInCopy(note)}</li>
                 ))}
               </ul>
             </article>
@@ -139,13 +140,13 @@ export function InlineColorPipelineCard({ descriptor, plan }: InlineColorPipelin
                 <p>Match to {label(assetPlan.matchToColorGrade)}{assetPlan.matchPanelBackgroundColor ? ` with panel ${assetPlan.matchPanelBackgroundColor}` : ''}.</p>
               </div>
               <div className="understanding-chip-row">
-                {assetPlan.providerModel && <Badge accent="violet">{label(assetPlan.providerModel)}</Badge>}
+                {assetPlan.providerModel && <Badge accent="violet">{hideInternalToolNamesInCopy(label(assetPlan.providerModel))}</Badge>}
                 <span className="asset-match-badge">Panel background match</span>
               </div>
               <OperationList operations={assetPlan.operations} />
               <ul>
                 {assetPlan.qaChecks.slice(0, 3).map((qaCheck) => (
-                  <li key={qaCheck}>{qaCheck}</li>
+                  <li key={qaCheck}>{hideInternalToolNamesInCopy(qaCheck)}</li>
                 ))}
               </ul>
             </article>
@@ -154,14 +155,14 @@ export function InlineColorPipelineCard({ descriptor, plan }: InlineColorPipelin
       </details>
 
       <details className="understanding-section">
-        <summary>Tool notes and limitations</summary>
+        <summary>Backend activity notes and limitations</summary>
         <div className="layout-mode-meta">
-          <span><strong>Tools</strong>{colorPipelinePlan.toolsPlanned.map(label).join(', ')}</span>
-          <span><strong>Tier notes</strong>{colorPipelinePlan.tierNotes.join(' ')}</span>
-          <span><strong>Asset rules</strong>{colorPipelinePlan.generatedAssetRules.join(' ')}</span>
-          <span><strong>Limitations</strong>{colorPipelinePlan.limitations.join(' ')}</span>
+          <span><strong>Activities</strong>{userFacingActivityList(colorPipelinePlan.toolsPlanned)}</span>
+          <span><strong>Tier notes</strong>{hideInternalToolNamesInCopy(colorPipelinePlan.tierNotes.join(' '))}</span>
+          <span><strong>Asset rules</strong>{hideInternalToolNamesInCopy(colorPipelinePlan.generatedAssetRules.join(' '))}</span>
+          <span><strong>Limitations</strong>{hideInternalToolNamesInCopy(colorPipelinePlan.limitations.join(' '))}</span>
         </div>
-        <p className="color-tool-note">FFmpeg/OpenColorIO/OpenImageIO/OpenCV/Sharp are future-worker planning responsibilities only. No tools execute in this demo.</p>
+        <p className="color-tool-note">Color and image work stays out of the browser. This card plans the look, matching, and QA settings; full color processing waits for approved execution gates.</p>
       </details>
 
       <details className="understanding-section">

@@ -5,6 +5,7 @@ import type {
   TimingValidationCheck,
   TimingValidationStatus,
 } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineTimingValidationCardProps = {
@@ -42,8 +43,8 @@ function CheckList({ checks, title }: { checks: TimingValidationCheck[]; title: 
               <span className="timing-validation-status-badge">{statusLabel(check.status)}</span>
             </div>
             <span>{check.category.replaceAll('_', ' ')}</span>
-            <small>{check.message}</small>
-            {check.recommendation && <em>{check.recommendation}</em>}
+            <small>{hideInternalToolNamesInCopy(check.message)}</small>
+            {check.recommendation && <em>{hideInternalToolNamesInCopy(check.recommendation)}</em>}
             {check.relatedCueIds.length > 0 && <small>Related: {check.relatedCueIds.slice(0, 4).join(', ')}</small>}
           </article>
         ))}
@@ -78,7 +79,7 @@ export function InlineTimingValidationCard({ descriptor, plan }: InlineTimingVal
       )}
       defaultExpanded={shouldExpand}
       eyebrow="Approval QA"
-      helper="ReeditPro validates frame-accurate captions, visuals, transitions, SFX, ducking, AI clip placement, and Remotion layer timing before approval."
+      helper="ReeditPro validates frame-accurate captions, visuals, transitions, SFX, ducking, AI clip placement, and composition layer timing before approval."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Timing validation"
@@ -89,7 +90,7 @@ export function InlineTimingValidationCard({ descriptor, plan }: InlineTimingVal
         <Badge accent="cyan">Frame confirmed</Badge>
         <Badge accent="blue">Caption readable</Badge>
         <Badge accent="violet">Timing credits</Badge>
-        <Badge accent="muted">Mock validation</Badge>
+        <Badge accent="muted">Local validation</Badge>
       </div>
 
       <div className="timing-validation-summary-grid">
@@ -126,8 +127,8 @@ export function InlineTimingValidationCard({ descriptor, plan }: InlineTimingVal
                 <span className="timing-credit-impact-badge">{item.creditImpact}</span>
               </div>
               <span>{item.estimatedPlanningCredits} estimated timing credit(s)</span>
-              <small>{item.userFacingSummary}</small>
-              {item.developerNotes.slice(0, 2).map((note) => <small key={note}>{note}</small>)}
+              <small>{hideInternalToolNamesInCopy(item.userFacingSummary)}</small>
+              {item.developerNotes.slice(0, 2).map((note) => <small key={note}>{hideInternalToolNamesInCopy(note)}</small>)}
             </article>
           ))}
         </div>
@@ -140,8 +141,8 @@ export function InlineTimingValidationCard({ descriptor, plan }: InlineTimingVal
             <article className="timing-lower-cost-item" key={recommendation.id}>
               <strong>{recommendation.label}</strong>
               <span>Save about {recommendation.estimatedCreditSavings} credits</span>
-              <small>{recommendation.tradeoff}</small>
-              <small>{recommendation.whatChanges.join('; ')}</small>
+              <small>{hideInternalToolNamesInCopy(recommendation.tradeoff)}</small>
+              <small>{hideInternalToolNamesInCopy(recommendation.whatChanges.join('; '))}</small>
               <em>{recommendation.keepsProfessionalQuality ? 'Keeps professional quality' : 'Quality tradeoff'} / {recommendation.requiresNewApproval ? 'needs new approval' : 'no new approval'}</em>
             </article>
           )) : (
@@ -158,7 +159,7 @@ export function InlineTimingValidationCard({ descriptor, plan }: InlineTimingVal
         <div className="timing-validation-check-list">
           {timingValidationPlan.qaChecks.map((qaCheck) => (
             <article className="timing-validation-check-item" key={qaCheck}>
-              <strong>{qaCheck}</strong>
+              <strong>{hideInternalToolNamesInCopy(qaCheck)}</strong>
             </article>
           ))}
         </div>
@@ -166,7 +167,7 @@ export function InlineTimingValidationCard({ descriptor, plan }: InlineTimingVal
 
       <div className="timing-validation-mock-note">
         {timingValidationPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{hideInternalToolNamesInCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

@@ -14,9 +14,9 @@ const visualPreferenceDescriptions: Record<VisualPreference, string> = {
   let_ai_decide: 'Let ReeditPro choose visuals only where they improve the story.',
   keep_visuals_minimal: 'Keep the edit mostly footage, captions, and light editor motion.',
   balanced_visual_mix: 'Use a balanced mix of stills, cards, light motion, and selected animation.',
-  more_stroke_motion: 'Favor narrative Stroke Motion when story beats need action or emotion.',
-  more_graphic_design: 'Favor controlled cards, diagrams, labels, and VisualExplain frames.',
-  real_motion_if_useful: 'Allow credit-heavy Real Motion only where it clearly supports proof or product moments.',
+  more_stroke_motion: 'Favor story animation when a beat needs action, emotion, or explanation.',
+  more_graphic_design: 'Favor controlled cards, diagrams, labels, and clean explanation frames.',
+  real_motion_if_useful: 'Allow premium motion only where it clearly supports proof or product moments.',
   no_extra_visuals: 'Avoid extra visual systems unless the user later approves a change.',
 }
 
@@ -34,7 +34,8 @@ export function InlineVisualPreferenceCard({ confirmed = false, onConfirm, onSel
         Visual preference guides the plan, but ReeditPro still decides per segment whether a visual actually improves the edit.
       </p>
       <p className="inline-helper">
-        Stroke Motion = story/action/emotion. Graphic Design / VisualExplain = education/diagrams/lists/concepts. Real Motion = realistic object/product/proof moments, premium/credit-heavy.
+        Story animation supports emotion and action. Explanation graphics support lessons, diagrams, and labels.
+        Premium motion supports proof or product moments only when it is worth the credit cost.
       </p>
 
       <div className="visual-preference-choice-grid">

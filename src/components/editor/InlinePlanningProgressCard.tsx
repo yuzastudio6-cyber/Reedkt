@@ -26,7 +26,7 @@ export function InlinePlanningProgressCard({
       <div className="inline-card-heading">
         <div>
           <span className="section-eyebrow">Guided planning</span>
-          <h3>Planning progress</h3>
+          <h3>Planning details</h3>
         </div>
         <div className="chat-display-mode-toggle" aria-label="Planning detail level">
           {displayModes.map((mode) => (
@@ -43,7 +43,7 @@ export function InlinePlanningProgressCard({
         </div>
       </div>
 
-      <p className="inline-helper">ReeditPro plans the edit before spending credits.</p>
+      <p className="inline-helper">Plan first, approve credits, then prepare the edit.</p>
 
       <div className="planning-phase-list">
         {phaseSummaries.map((phase) => (

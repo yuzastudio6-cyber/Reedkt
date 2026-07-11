@@ -1,5 +1,6 @@
 import { Badge } from '../Badge'
 import { getLaunchCoreTools, getPreset, getToolProfile, getToolRegistrySummary } from '../../lib/tool-registry'
+import { hideInternalToolNamesInCopy, userFacingActivityLabel, userFacingActivityList } from '../../lib/tool-display-labels'
 import type { ChatPlanningCardDescriptor, EditPlan, OpenSourceToolId } from '../../types/reeditpro'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
@@ -43,6 +44,12 @@ function tierText(tier: { basic: boolean; pro: boolean; premium: boolean }) {
   ].filter(Boolean).join(' / ')
 }
 
+function statusText(value: string) {
+  return label(value)
+    .replace(/\btool\b/gi, 'activity')
+    .replace(/\bworker\b/gi, 'private processing')
+}
+
 export function InlineToolRegistryCard({ descriptor, plan }: InlineToolRegistryCardProps) {
   const summary = plan?.toolRegistrySummary ?? getToolRegistrySummary()
   const launchTools = keyLaunchToolIds
@@ -62,23 +69,23 @@ export function InlineToolRegistryCard({ descriptor, plan }: InlineToolRegistryC
       className="tool-registry-card"
       compactSummary={(
         <div className="compact-summary-row">
-          <span className="compact-summary-chip">{summary.launchCoreToolCount} launch core</span>
-          <span className="compact-summary-chip">{summary.plannedToolCount + summary.futureToolCount} planned/future</span>
+          <span className="compact-summary-chip">{summary.launchCoreToolCount} launch checks</span>
+          <span className="compact-summary-chip">{summary.plannedToolCount + summary.futureToolCount} roadmap checks</span>
           <span className="compact-summary-chip">{summary.needsLicenseReviewCount} license review</span>
           <span className="compact-summary-chip">planning only</span>
         </div>
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
-      eyebrow="Tool intelligence"
-      helper="ReeditPro can use controlled open-source tools for maps, charts, browser captures, color, audio, and QA instead of relying on generative AI for everything. This is a planning registry only; no tools run in this demo."
+      eyebrow="Editing activity planning"
+      helper="ReeditPro can prepare controlled editing activities for maps, data visuals, browser captures, color, audio, and QA instead of relying on generative AI for everything. This is readiness planning only; no heavy work starts from this page."
       priority={descriptor?.priority}
       status={descriptor?.status}
-      title="Tool registry"
+      title="Editing capability readiness"
     >
       <div className="tool-registry-summary-grid">
-        <span><strong>{summary.launchCoreToolCount}</strong>Launch-core tools</span>
-        <span><strong>{summary.plannedToolCount}</strong>Planned tools</span>
-        <span><strong>{summary.futureToolCount}</strong>Future/evaluate tools</span>
+        <span><strong>{summary.launchCoreToolCount}</strong>Launch checks</span>
+        <span><strong>{summary.plannedToolCount}</strong>Planned checks</span>
+        <span><strong>{summary.futureToolCount}</strong>Future checks</span>
         <span><strong>{summary.needsLicenseReviewCount}</strong>License review</span>
       </div>
 
@@ -89,32 +96,32 @@ export function InlineToolRegistryCard({ descriptor, plan }: InlineToolRegistryC
       </div>
 
       <div className="understanding-chip-row">
-        <span className="not-installed-badge">No packages installed</span>
-        <span className="not-installed-badge">No tool execution</span>
-        <span className="not-installed-badge">No backend worker yet</span>
-        <span className="not-installed-badge">Provider models separate</span>
+        <span className="not-installed-badge">Package checks pending</span>
+        <span className="not-installed-badge">No page-side processing</span>
+        <span className="not-installed-badge">Approval gate pending</span>
+        <span className="not-installed-badge">AI asset services separate</span>
       </div>
 
       <details className="understanding-section" open={descriptor?.status === 'warning' || descriptor?.status === 'blocking'}>
-        <summary>Key launch tools ({launchCoreCount})</summary>
+        <summary>Primary editing activities ({launchCoreCount})</summary>
         <div className="tool-profile-list">
           {launchTools.map((tool) => (
             <article className="tool-profile-item" key={tool.id}>
               <div>
                 <span className="section-eyebrow">{label(tool.category)}</span>
-                <h4>{tool.label}</h4>
-                <p>{tool.description}</p>
+                <h4>{userFacingActivityLabel(tool.id)}</h4>
+                <p>{hideInternalToolNamesInCopy(tool.description)}</p>
               </div>
               <div className="tool-profile-meta">
-                <span><strong>Execution</strong><em className="tool-execution-badge">{label(tool.executionMode)}</em></span>
-                <span><strong>Adoption</strong><em className="tool-adoption-badge">{label(tool.adoptionStage)}</em></span>
+                <span><strong>Mode</strong><em className="tool-execution-badge">{statusText(tool.executionMode)}</em></span>
+                <span><strong>Readiness</strong><em className="tool-adoption-badge">{statusText(tool.adoptionStage)}</em></span>
                 <span><strong>Tier</strong><em className="tool-tier-row">{tierText(tool.tierAvailability)}</em></span>
-                <span><strong>Best for</strong>{tool.bestFor.slice(0, 3).join(', ')}</span>
+                <span><strong>Best for</strong>{hideInternalToolNamesInCopy(tool.bestFor.slice(0, 3).join(', '))}</span>
               </div>
               <div className="understanding-chip-row">
-                <span className="not-installed-badge">not installed yet</span>
+                <span className="not-installed-badge">package check pending</span>
                 {tool.licenseNotes.slice(0, 1).map((note) => (
-                  <span className="license-review-note" key={note}>{note}</span>
+                  <span className="license-review-note" key={note}>{hideInternalToolNamesInCopy(note)}</span>
                 ))}
               </div>
             </article>
@@ -123,18 +130,16 @@ export function InlineToolRegistryCard({ descriptor, plan }: InlineToolRegistryC
       </details>
 
       <details className="understanding-section">
-        <summary>Common ReeditPro presets</summary>
+        <summary>Common edit recipes</summary>
         <div className="tool-preset-list">
           {presets.map((preset) => (
             <article className="tool-preset-item" key={preset.id}>
               <div>
                 <strong>{label(preset.id)}</strong>
-                <p>{preset.description}</p>
+                <p>{hideInternalToolNamesInCopy(preset.description)}</p>
               </div>
               <div className="understanding-chip-row">
-                {preset.toolIds.map((toolId) => (
-                  <Badge accent="cyan" key={toolId}>{label(toolId)}</Badge>
-                ))}
+                <Badge accent="cyan">{userFacingActivityList(preset.toolIds)}</Badge>
                 <Badge accent={preset.tierFit.basic ? 'success' : 'violet'}>
                   {tierText(preset.tierFit)}
                 </Badge>
@@ -145,10 +150,10 @@ export function InlineToolRegistryCard({ descriptor, plan }: InlineToolRegistryC
       </details>
 
       <details className="understanding-section">
-        <summary>Registry boundaries</summary>
+        <summary>Activity boundaries</summary>
         <div className="layout-mode-meta">
           {summary.notes.map((note) => (
-            <span key={note}><strong>Rule</strong>{note}</span>
+            <span key={note}><strong>Rule</strong>{hideInternalToolNamesInCopy(note)}</span>
           ))}
         </div>
       </details>

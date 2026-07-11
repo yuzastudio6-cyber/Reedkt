@@ -65,7 +65,7 @@ export function InlineSupabaseSchemaPlanCard({ plan }: InlineSupabaseSchemaPlanC
       )}
       defaultExpanded={false}
       eyebrow="Data bridge"
-      helper="This maps ReeditPro's approved planning system into future Supabase tables and storage buckets. No migrations are created in this demo."
+      helper="This maps ReeditPro's approved planning system into future Supabase tables and storage buckets. Migration execution remains gated."
       priority="developer_detail"
       status={schemaPlan.migrationReadinessStatus === 'blocked' ? 'blocking' : schemaPlan.migrationReadinessStatus === 'needs_review' ? 'warning' : 'ready'}
       title="Supabase schema bridge"

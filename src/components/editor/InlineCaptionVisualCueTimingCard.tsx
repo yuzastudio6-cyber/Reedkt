@@ -5,6 +5,7 @@ import type {
   EditPlan,
   TimingQaCheck,
 } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineCaptionVisualCueTimingCardProps = {
@@ -46,7 +47,7 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? (blocked || hasCollisionWarning)}
       eyebrow="StoryTiming"
-      helper="ReeditPro times captions and visuals to speech, meaning, readability, and SoundSync cues. This is mock timing only; no real transcript alignment has run."
+      helper="ReeditPro times captions and visuals to speech, meaning, readability, and sound cues. Transcript alignment remains approval-gated."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Caption + visual cue timing"
@@ -57,7 +58,7 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
         <Badge accent="blue">{timingPlan.captionPolicy.animationStyle.replaceAll('_', ' ')}</Badge>
         {hasCollisionWarning && <Badge accent="warning">Collision warning</Badge>}
         <Badge accent="violet">Speech first</Badge>
-        <Badge accent="muted">Mock only</Badge>
+        <Badge accent="muted">Internal timing</Badge>
       </div>
 
       <div className="timing-summary-grid">
@@ -90,7 +91,7 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
             <article className="caption-phrase-item" key={phrase.id}>
               <strong>{phrase.text}</strong>
               <span>{frameRange(phrase.timeRange.startFrame, phrase.timeRange.endFrame)} / {phrase.phraseRole.replaceAll('_', ' ')}</span>
-              <small>{phrase.words.length} mock word timing item(s), low confidence until transcript alignment.</small>
+              <small>{phrase.words.length} local word timing item(s), low confidence until transcript alignment.</small>
             </article>
           ))}
         </div>
@@ -139,8 +140,8 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
             <article className="caption-collision-item" key={collision.id}>
               <strong>{collision.label}</strong>
               <Badge accent={riskAccent(collision.risk)}>{collision.risk}</Badge>
-              <span>{collision.issue}</span>
-              <small>{collision.recommendation}</small>
+              <span>{hideInternalToolNamesInCopy(collision.issue)}</span>
+              <small>{hideInternalToolNamesInCopy(collision.recommendation)}</small>
             </article>
           )) : (
             <article className="caption-collision-item">
@@ -158,7 +159,7 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
             <article className="timing-cue-item" key={qaCheck.id}>
               <strong>{qaCheck.label}</strong>
               <Badge accent={riskAccent(qaCheck.riskLevel)}>{qaCheck.riskLevel}</Badge>
-              <small>{qaCheck.message}</small>
+              <small>{hideInternalToolNamesInCopy(qaCheck.message)}</small>
             </article>
           ))}
         </div>
@@ -166,7 +167,7 @@ export function InlineCaptionVisualCueTimingCard({ descriptor, plan }: InlineCap
 
       <div className="caption-visual-mock-note">
         {timingPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{hideInternalToolNamesInCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

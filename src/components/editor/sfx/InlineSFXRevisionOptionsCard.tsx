@@ -5,15 +5,15 @@ type InlineSFXRevisionOptionsCardProps = {
 }
 
 const revisionOptions = [
-  ['Make quieter', 'I will lower SFX volume in the mock plan and keep the speaker first.'],
-  ['Trim again', 'I marked this SFX for a mock trim/hit-alignment pass.'],
-  ['Regenerate', 'I marked this sound for mock regeneration. No provider is called.'],
-  ['Replace with library', 'I will prefer an approved internal library cue in the mock plan.'],
-  ['Use MMAudio draft', 'I will route this as a mock MMAudio draft/fallback cue.'],
-  ['Use Mirelo production', 'I will route key final-polish SFX to mock Mirelo production planning.'],
-  ['Remove SFX', 'I removed this SFX from the mock plan.'],
+  ['Make quieter', 'I will lower SFX volume and keep the speaker first.'],
+  ['Trim again', 'I marked this SFX for another trim and hit-alignment pass.'],
+  ['Regenerate', 'I marked this sound for regeneration planning. Audio preparation remains gated.'],
+  ['Replace with library', 'I will prefer an approved internal library cue.'],
+  ['Use draft route', 'I will route this as a draft/fallback cue.'],
+  ['Use production route', 'I will route key final-polish SFX to production-quality planning.'],
+  ['Remove SFX', 'I removed this SFX from the plan.'],
   ['Keep ambience only', 'I will preserve natural ambience and skip decorative SFX here.'],
-  ['Approve this SFX', 'This SFX is approved in the mock UI, pending the overall edit approval gate.'],
+  ['Approve this SFX', 'This SFX is approved for internal review, pending the overall edit approval gate.'],
   ['No source-footage sounds', 'I will keep source-footage SFX disabled unless you ask for full sound design.'],
 ] as const
 
@@ -23,7 +23,7 @@ export function InlineSFXRevisionOptionsCard({ onChoose }: InlineSFXRevisionOpti
       <div className="inline-card-heading">
         <div>
           <span className="section-eyebrow">SFX revisions</span>
-          <h3>Choose a mock SFX revision</h3>
+          <h3>Choose an SFX revision</h3>
         </div>
       </div>
       <div className="sfx-revision-grid">

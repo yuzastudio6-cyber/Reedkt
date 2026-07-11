@@ -1,3 +1,4 @@
+import { useRef, type ChangeEvent } from 'react'
 import { ArrowLeft, ArrowRight, CheckCircle2, HelpCircle, Play, Plus, Trash2 } from 'lucide-react'
 import { Badge } from '../Badge'
 import { Button, IconButton } from '../Button'
@@ -16,6 +17,7 @@ import type { ClipSource, ClipSourceRole, SourceSequenceMode } from '../../types
 type InlineSourceSequenceCardProps = {
   clips: ClipSource[]
   onAddClip: () => void
+  onAttachFiles?: (files: File[]) => void
   onConfirmOrder?: () => void
   onMoveClip: (id: string, direction: SourceSequenceMoveDirection) => void
   onRemoveClip: (id: string) => void
@@ -40,6 +42,7 @@ function roleToClipUpdates(role: ClipSourceRole): Partial<ClipSource> {
 export function InlineSourceSequenceCard({
   clips,
   onAddClip,
+  onAttachFiles,
   onConfirmOrder,
   onMoveClip,
   onRemoveClip,
@@ -48,18 +51,36 @@ export function InlineSourceSequenceCard({
   sourceOrderConfirmed = false,
   sourceSequenceMode = clips.length === 1 ? 'single_complete_video' : 'multi_clip_story_order',
 }: InlineSourceSequenceCardProps) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const warnings = getSourceOrderWarnings(clips, sourceOrderConfirmed)
   const singleVideo = clips.length === 1
   const confirmCopy = singleVideo ? 'Use this as the full source video' : 'Confirm source order'
 
+  function handleAddClip() {
+    if (onAttachFiles) {
+      fileInputRef.current?.click()
+      return
+    }
+
+    onAddClip()
+  }
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? [])
+    event.target.value = ''
+    if (files.length > 0 && onAttachFiles) {
+      onAttachFiles(files)
+    }
+  }
+
   return (
-    <section className="inline-chat-card source-sequence-card source-sequence-review source-sequence-review-card">
+    <section className="inline-chat-card source-sequence-card source-sequence-review source-sequence-review-card" data-testid="source-sequence-card">
       <div className="source-sequence-header">
         <div>
           <span className="section-eyebrow">Source sequence</span>
           <h3>Review source order</h3>
           <p className="inline-helper">
-            These clips are the source/story order. ReeditPro may suggest a stronger final edit order later, but it will show the plan before changing it.
+            I'll treat this order as source context, not the final edit order.
           </p>
         </div>
         <div className="source-sequence-header-badges">
@@ -70,11 +91,14 @@ export function InlineSourceSequenceCard({
         </div>
       </div>
 
-      <div className="source-sequence-mode-panel">
-        <div>
-          <strong>{getSourceSequenceModeLabel(sourceSequenceMode)}</strong>
-          <span>{getSourceSequenceModeHelper(sourceSequenceMode)}</span>
-        </div>
+      <details className="source-sequence-mode-panel">
+        <summary>
+          <span>
+            <strong>{getSourceSequenceModeLabel(sourceSequenceMode)}</strong>
+            <span>{getSourceSequenceModeHelper(sourceSequenceMode)}</span>
+          </span>
+          {onSetSourceSequenceMode && <em>Adjust</em>}
+        </summary>
         {onSetSourceSequenceMode && (
           <div className="source-sequence-mode-options" aria-label="Source sequence mode">
             {sourceSequenceModeOptions.map((mode) => (
@@ -89,7 +113,7 @@ export function InlineSourceSequenceCard({
             ))}
           </div>
         )}
-      </div>
+      </details>
 
       {warnings.length > 0 && (
         <div className="source-order-warning-list">
@@ -125,7 +149,7 @@ export function InlineSourceSequenceCard({
               <div className="source-clip-preview">
                 <Play size={18} />
                 <strong>{clip.previewLabel ?? 'Preview'}</strong>
-                <span>{clip.thumbnailHint ?? 'Mock preview'}</span>
+                <span>{clip.thumbnailHint ?? 'Preview frame'}</span>
               </div>
 
               <div className="source-clip-meta">
@@ -140,57 +164,61 @@ export function InlineSourceSequenceCard({
                   {clip.isOptional && <Badge accent="muted">Optional</Badge>}
                 </div>
 
-                <label>
-                  <span>Source role</span>
-                  <select
-                    className="source-clip-role-select"
-                    onChange={(event) => onUpdateClip(clip.id, roleToClipUpdates(event.target.value as ClipSourceRole))}
-                    value={role}
-                  >
-                    {clipSourceRoleOptions.map((roleOption) => (
-                      <option key={roleOption} value={roleOption}>
-                        {getClipRoleLabel(roleOption)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <div className="source-clip-field-grid">
+                  <label>
+                    <span>Source role</span>
+                    <select
+                      className="source-clip-role-select"
+                      onChange={(event) => onUpdateClip(clip.id, roleToClipUpdates(event.target.value as ClipSourceRole))}
+                      value={role}
+                    >
+                      {clipSourceRoleOptions.map((roleOption) => (
+                        <option key={roleOption} value={roleOption}>
+                          {getClipRoleLabel(roleOption)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-                <label>
-                  <span>Notes for ReeditPro</span>
-                  <textarea
-                    onChange={(event) => onUpdateClip(clip.id, { notes: event.target.value })}
-                    placeholder="Add source context, story note, or b-roll instruction"
-                    rows={2}
-                    value={clip.notes ?? ''}
-                  />
-                </label>
+                  <label>
+                    <span>Notes for ReeditPro</span>
+                    <textarea
+                      onChange={(event) => onUpdateClip(clip.id, { notes: event.target.value })}
+                      placeholder="Note for edit"
+                      rows={2}
+                      value={clip.notes ?? ''}
+                    />
+                  </label>
+                </div>
               </div>
 
               <div className="source-clip-controls">
-                <label>
-                  <input
-                    checked={Boolean(clip.isImportant)}
-                    onChange={(event) => onUpdateClip(clip.id, { isImportant: event.target.checked })}
-                    type="checkbox"
-                  />
-                  Important
-                </label>
-                <label>
-                  <input
-                    checked={Boolean(clip.isOptional)}
-                    onChange={(event) =>
-                      onUpdateClip(clip.id, {
-                        isOptional: event.target.checked,
-                        sourceRole: event.target.checked
-                          ? 'optional'
-                          : clip.sourceRole === 'optional'
-                            ? 'unknown'
-                            : clip.sourceRole,
-                      })}
-                    type="checkbox"
-                  />
-                  Optional
-                </label>
+                <div className="source-clip-flags" aria-label={`Clip flags for ${clip.fileName}`}>
+                  <label>
+                    <input
+                      checked={Boolean(clip.isImportant)}
+                      onChange={(event) => onUpdateClip(clip.id, { isImportant: event.target.checked })}
+                      type="checkbox"
+                    />
+                    <span>Important</span>
+                  </label>
+                  <label>
+                    <input
+                      checked={Boolean(clip.isOptional)}
+                      onChange={(event) =>
+                        onUpdateClip(clip.id, {
+                          isOptional: event.target.checked,
+                          sourceRole: event.target.checked
+                            ? 'optional'
+                            : clip.sourceRole === 'optional'
+                              ? 'unknown'
+                              : clip.sourceRole,
+                        })}
+                      type="checkbox"
+                    />
+                    <span>Optional</span>
+                  </label>
+                </div>
                 <div className="clip-order-controls">
                   <IconButton disabled={index === 0 || singleVideo} icon={ArrowLeft} label={`Move ${clip.fileName} earlier in source order`} onClick={() => onMoveClip(clip.id, 'left')} />
                   <IconButton disabled={index === clips.length - 1 || singleVideo} icon={ArrowRight} label={`Move ${clip.fileName} later in source order`} onClick={() => onMoveClip(clip.id, 'right')} />
@@ -204,16 +232,28 @@ export function InlineSourceSequenceCard({
 
       <div className="source-sequence-actions">
         <div className="source-sequence-add-block">
-          <button className="inline-add-clip" onClick={onAddClip} type="button">
+          {onAttachFiles && (
+            <input
+              accept="video/mp4,video/quicktime,video/webm,audio/wav,audio/mpeg,audio/mp3,image/png,image/jpeg,image/webp"
+              aria-hidden="true"
+              className="sr-only"
+              multiple
+              onChange={handleFileChange}
+              ref={fileInputRef}
+              tabIndex={-1}
+              type="file"
+            />
+          )}
+          <button className="inline-add-clip" onClick={handleAddClip} type="button">
             <Plus size={16} />
-            Add mock clip
+            Add clip
           </button>
-          <span>Real upload will be connected later.</span>
+          <span>{onAttachFiles ? 'Files are planned safely before upload/execution.' : 'Sample clip only.'}</span>
         </div>
         <div className="source-sequence-action-buttons">
           {onSetSourceSequenceMode && (
             <Button icon={HelpCircle} onClick={() => onSetSourceSequenceMode('unordered_clips_needs_ai_help')} variant="secondary">
-              Let AI suggest final structure later
+              Let AI suggest structure
             </Button>
           )}
           {onConfirmOrder && (

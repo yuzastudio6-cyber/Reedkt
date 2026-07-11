@@ -4,6 +4,7 @@ import type {
   ChatPlanningCardDescriptor,
   EditPlan,
 } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy, userFacingActivityLabel, userFacingActivityList } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineAudioPipelineCardProps = {
@@ -21,7 +22,7 @@ function OperationList({ operations }: { operations: AudioOperationPlan[] }) {
       {operations.slice(0, 8).map((operation) => (
         <span className="audio-operation-item" key={operation.id}>
           <strong>{operation.label}</strong>
-          {label(operation.toolId)} / {label(operation.status)}
+          {userFacingActivityLabel(operation.toolId)} / {label(operation.status)}
         </span>
       ))}
     </div>
@@ -51,18 +52,18 @@ export function InlineAudioPipelineCard({ descriptor, plan }: InlineAudioPipelin
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Professional audio planning"
-      helper="Every ReeditPro edit gets a professional audio plan. Basic gets clean voice and loudness; Pro and Premium add deeper SoundSync, ducking, SFX, and timing where useful."
+      helper="Every ReeditPro edit gets a professional audio plan. Basic gets clean voice and loudness; Pro and Premium add deeper music, ducking, sound effects, and timing where useful."
       priority={descriptor?.priority}
       status={descriptor?.status}
-      title="Audio + SoundSync"
+      title="Audio plan"
     >
       <div className="audio-summary-grid">
         <span><strong>{label(audioPipelinePlan.soundStyle)}</strong>sound style</span>
         <span><strong>{label(audioPipelinePlan.audioIntensity)}</strong>intensity</span>
         <span><strong>{audioPipelinePlan.stages.length}</strong>stages</span>
-        <span><strong>{audioPipelinePlan.toolsPlanned.length}</strong>tools planned</span>
+        <span><strong>{audioPipelinePlan.toolsPlanned.length}</strong>readiness checks</span>
         <span><strong>{audioPipelinePlan.clipPlans.length}</strong>clip plans</span>
-        <span><strong>{audioPipelinePlan.soundSyncCues.length}</strong>SoundSync cues</span>
+        <span><strong>{audioPipelinePlan.soundSyncCues.length}</strong>Sound cues</span>
         <span><strong>{label(audioPipelinePlan.musicBedPlan.policy)}</strong>music policy</span>
         <span><strong>{label(audioPipelinePlan.sfxPlan.policy)}</strong>SFX policy</span>
       </div>
@@ -86,11 +87,11 @@ export function InlineAudioPipelineCard({ descriptor, plan }: InlineAudioPipelin
 
       <details className="understanding-section" open={descriptor?.status === 'warning' || descriptor?.status === 'blocking'}>
         <summary>Project audio plan</summary>
-        <p>{audioPipelinePlan.summary}</p>
+        <p>{hideInternalToolNamesInCopy(audioPipelinePlan.summary)}</p>
         <OperationList operations={audioPipelinePlan.projectOperations} />
         <div className="audio-qa-list">
           {audioPipelinePlan.qaChecks.slice(0, 6).map((qaCheck) => (
-            <span key={qaCheck}>{qaCheck}</span>
+            <span key={qaCheck}>{hideInternalToolNamesInCopy(qaCheck)}</span>
           ))}
         </div>
       </details>
@@ -112,7 +113,7 @@ export function InlineAudioPipelineCard({ descriptor, plan }: InlineAudioPipelin
               <OperationList operations={[...clipPlan.cleanupOperations, ...clipPlan.loudnessOperations]} />
               <ul>
                 {[...clipPlan.musicAndDuckingNotes, ...clipPlan.sfxNotes].slice(0, 3).map((note) => (
-                  <li key={note}>{note}</li>
+                  <li key={note}>{hideInternalToolNamesInCopy(note)}</li>
                 ))}
               </ul>
             </article>
@@ -127,12 +128,12 @@ export function InlineAudioPipelineCard({ descriptor, plan }: InlineAudioPipelin
             <Badge accent="cyan">{label(audioPipelinePlan.musicBedPlan.policy)}</Badge>
             <span className="ducking-badge">{label(audioPipelinePlan.musicBedPlan.duckingStrength)} ducking</span>
           </div>
-          <p>{audioPipelinePlan.musicBedPlan.reason}</p>
+          <p>{hideInternalToolNamesInCopy(audioPipelinePlan.musicBedPlan.reason)}</p>
           <div className="layout-mode-meta">
             <span><strong>Energy</strong>{label(audioPipelinePlan.musicBedPlan.energy)}</span>
             <span><strong>Fade in/out</strong>{audioPipelinePlan.musicBedPlan.fadeInSeconds}s / {audioPipelinePlan.musicBedPlan.fadeOutSeconds}s</span>
-            <span><strong>Avoid</strong>{audioPipelinePlan.musicBedPlan.avoidRules.join(' ')}</span>
-            <span><strong>QA</strong>{audioPipelinePlan.musicBedPlan.qaChecks.join(' ')}</span>
+            <span><strong>Avoid</strong>{hideInternalToolNamesInCopy(audioPipelinePlan.musicBedPlan.avoidRules.join(' '))}</span>
+            <span><strong>QA</strong>{hideInternalToolNamesInCopy(audioPipelinePlan.musicBedPlan.qaChecks.join(' '))}</span>
           </div>
         </article>
       </details>
@@ -147,22 +148,22 @@ export function InlineAudioPipelineCard({ descriptor, plan }: InlineAudioPipelin
           </div>
           <div className="audio-qa-list">
             {audioPipelinePlan.sfxPlan.allowedSfxTypes.map((sfxType) => (
-              <span key={sfxType}>{sfxType}</span>
+              <span key={sfxType}>{hideInternalToolNamesInCopy(sfxType)}</span>
             ))}
           </div>
-          <p>{audioPipelinePlan.sfxPlan.cues.join(' ') || 'No SFX planned unless the user requests it later.'}</p>
+          <p>{hideInternalToolNamesInCopy(audioPipelinePlan.sfxPlan.cues.join(' ') || 'No SFX planned unless the user requests it later.')}</p>
         </article>
       </details>
 
       <details className="understanding-section">
-        <summary>SoundSync cues</summary>
+        <summary>Sound cues</summary>
         <div className="soundsync-cue-list">
           {cues.map((cue) => (
             <article className="soundsync-cue-item" key={cue.id}>
               <div>
                 <span className="section-eyebrow">{label(cue.cueType)} / {cue.timeSeconds}s</span>
                 <h4>{cue.linkedSegmentId ?? cue.linkedVisualAssetId ?? cue.id}</h4>
-                <p>{cue.reason}</p>
+                <p>{hideInternalToolNamesInCopy(cue.reason)}</p>
               </div>
               <div className="understanding-chip-row">
                 <span className="audio-intensity-badge">{label(cue.intensity)}</span>
@@ -174,13 +175,13 @@ export function InlineAudioPipelineCard({ descriptor, plan }: InlineAudioPipelin
       </details>
 
       <details className="understanding-section">
-        <summary>Tool notes and limitations</summary>
+        <summary>Backend activity notes and limitations</summary>
         <div className="layout-mode-meta">
-          <span><strong>Tools</strong>{audioPipelinePlan.toolsPlanned.map(label).join(', ')}</span>
-          <span><strong>Tier notes</strong>{audioPipelinePlan.tierNotes.join(' ')}</span>
-          <span><strong>Limitations</strong>{audioPipelinePlan.limitations.join(' ')}</span>
+          <span><strong>Activities</strong>{userFacingActivityList(audioPipelinePlan.toolsPlanned)}</span>
+          <span><strong>Tier notes</strong>{hideInternalToolNamesInCopy(audioPipelinePlan.tierNotes.join(' '))}</span>
+          <span><strong>Limitations</strong>{hideInternalToolNamesInCopy(audioPipelinePlan.limitations.join(' '))}</span>
         </div>
-        <p className="audio-tool-note">FFmpeg LGPL Configuration, AudioFlux, Signalsmith Stretch, librosa, whisper.cpp, and any future/evaluation Essentia or Rubber Band references are worker-planning responsibilities only. No tools execute in this demo.</p>
+        <p className="audio-tool-note">Audio work stays out of the browser. This card plans the mix, loudness, cleanup, and QA settings; full audio processing waits for approved execution gates.</p>
       </details>
     </InlinePlanCardShell>
   )

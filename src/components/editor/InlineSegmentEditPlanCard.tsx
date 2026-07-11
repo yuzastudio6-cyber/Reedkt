@@ -1,5 +1,6 @@
 import { Badge } from '../Badge'
 import type { ChatPlanningCardDescriptor, EditOperationPlan, EditPlan, SegmentEditPlan } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineSegmentEditPlanCardProps = {
@@ -43,14 +44,14 @@ export function InlineSegmentEditPlanCard({ descriptor, plan }: InlineSegmentEdi
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Segment operations"
-      helper="This is how ReeditPro turns the chat request into worker-ready editing instructions. Each segment includes cuts, captions, color, b-roll, sound, transitions, visuals, and QA."
+      helper="This is how ReeditPro turns the chat request into approved editing instructions. Each segment includes cuts, captions, color, b-roll, sound, transitions, visuals, and QA."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Segment edit operations"
     >
       <div className="qa-badge-row">
-        <Badge accent="cyan">Mock worker instructions</Badge>
-        <Badge accent="muted">Production workers execute approved versions later</Badge>
+        <Badge accent="cyan">Local test instructions</Badge>
+        <Badge accent="muted">Approved versions execute later</Badge>
       </div>
       <div className="segment-plan-list">
         {segmentPlans.map((segment) => {
@@ -63,7 +64,7 @@ export function InlineSegmentEditPlanCard({ descriptor, plan }: InlineSegmentEdi
                 <div>
                   <span className="section-eyebrow">Segment {segment.segmentOrder} / {formatLabel(segment.role)}</span>
                   <h4>{segment.label}</h4>
-                  <p>{segment.storyPurpose}</p>
+                  <p>{hideInternalToolNamesInCopy(segment.storyPurpose)}</p>
                 </div>
                 <Badge accent="muted">{formatTimeRange(segment)}</Badge>
               </div>
@@ -92,8 +93,8 @@ export function InlineSegmentEditPlanCard({ descriptor, plan }: InlineSegmentEdi
                       <strong>{operation.label}</strong>
                       <small>{operationSummary(operation)}</small>
                     </div>
-                    <p>{operation.instruction}</p>
-                    <small>{operation.reason}</small>
+                    <p>{hideInternalToolNamesInCopy(operation.instruction)}</p>
+                    <small>{hideInternalToolNamesInCopy(operation.reason)}</small>
                   </div>
                 ))}
                 {hiddenOperationCount > 0 && (

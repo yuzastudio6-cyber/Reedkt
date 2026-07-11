@@ -163,7 +163,7 @@ export function EditPlanCard({ approved, onApprove, onRevise, onSaveDraft, plan 
           <CheckCircle2 size={22} />
           <div>
             <h3>Plan approved. ReeditPro would now begin generation in production.</h3>
-            <p>No real generation, backend job, payment, or credit deduction happens in this mock frontend.</p>
+            <p>Generation, backend jobs, payment, and credit deduction remain gated until approved execution.</p>
           </div>
           <Button to="/projects/mock-project-edit-chat-foundation" variant="primary">
             Open Project Home

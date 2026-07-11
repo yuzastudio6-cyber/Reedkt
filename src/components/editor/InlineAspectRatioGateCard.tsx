@@ -18,7 +18,7 @@ const impactItems = [
   'speaker framing',
   'visual panels',
   'image/video prompts',
-  'Remotion composition',
+  'final composition',
   'export settings',
 ]
 
@@ -119,7 +119,7 @@ export function InlineAspectRatioGateCard({
 
       {confirmed ? (
         <p className="frame-confirmation-success">
-          Output frame confirmed. I’ll build all layouts, prompts, and render plans around this frame.
+          Output frame confirmed. I'll build all layouts, prompts, and render plans around this frame.
         </p>
       ) : (
         <p className="frame-confirmation-warning">

@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express'
+import type { RuntimeEnv } from '../config/env'
 import { ApiError } from '../errors/api-error'
 import type { RuntimeRequest } from '../types'
 
@@ -14,7 +15,7 @@ export async function requireAuth(request: Request, _response: Response, next: N
 
     const token = parseBearerToken(request.header('authorization'))
 
-    if (!token && env.allowMockWithoutSupabase) {
+    if (!token && isLocalMockAuthRequestAllowed(request, env)) {
       runtimeRequest.context = {
         ...(runtimeRequest.context ?? { requestId: 'request-unknown' }),
         auth: {
@@ -45,6 +46,7 @@ export async function requireAuth(request: Request, _response: Response, next: N
       auth: {
         userId: data.user.id,
         email: data.user.email,
+        accessToken: token,
         user: data.user,
         isMockUser: false,
       },
@@ -53,6 +55,32 @@ export async function requireAuth(request: Request, _response: Response, next: N
   } catch (error) {
     next(error)
   }
+}
+
+export function isLocalMockAuthRequestAllowed(request: Request, env: RuntimeEnv): boolean {
+  if (!env.allowMockWithoutSupabase) return false
+  if (env.nodeEnv === 'production') return false
+  if (env.mode !== 'local' && env.mode !== 'mock') return false
+
+  const remoteAddress = request.socket?.remoteAddress ?? request.ip
+  if (!isLoopbackHost(remoteAddress)) return false
+
+  const origin = request.header('origin')
+  if (!origin) return true
+
+  try {
+    return isLoopbackHost(new URL(origin).hostname)
+  } catch {
+    return false
+  }
+}
+
+function isLoopbackHost(value: string | undefined): boolean {
+  const normalized = value?.trim().toLowerCase().replace(/^\[|\]$/g, '')
+  return normalized === 'localhost' ||
+    normalized === '127.0.0.1' ||
+    normalized === '::1' ||
+    normalized === '::ffff:127.0.0.1'
 }
 
 function parseBearerToken(headerValue: string | undefined): string | undefined {

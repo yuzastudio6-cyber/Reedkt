@@ -109,6 +109,7 @@ function writeStoredCurrentWorkspaceId(userId: string, workspaceId: string): voi
 function notConfiguredWorkspaceResult(): WorkspaceBootstrapResult {
   return {
     ok: false,
+    status: 'not_configured',
     mode: 'mock',
     message: 'Supabase is not configured, so workspace bootstrap is inactive.',
     warnings: ['Add frontend-safe Supabase public env values before using live workspace bootstrap.'],
@@ -118,6 +119,7 @@ function notConfiguredWorkspaceResult(): WorkspaceBootstrapResult {
 function signedOutWorkspaceResult(): WorkspaceBootstrapResult {
   return {
     ok: false,
+    status: 'signed_out',
     mode: 'supabase_frontend',
     message: 'Sign in before creating or loading a workspace.',
     warnings: [],
@@ -239,6 +241,7 @@ export async function getCurrentWorkspace(user?: User | null): Promise<Workspace
   if (!workspacesResult.ok) {
     return {
       ok: false,
+      status: 'error',
       mode: workspacesResult.mode,
       message: workspacesResult.message,
       warnings: workspacesResult.warnings,
@@ -252,6 +255,7 @@ export async function getCurrentWorkspace(user?: User | null): Promise<Workspace
   if (!currentWorkspace) {
     return {
       ok: false,
+      status: 'membership_missing',
       mode: 'supabase_frontend',
       message: 'No current workspace is available.',
       warnings: [],
@@ -262,6 +266,7 @@ export async function getCurrentWorkspace(user?: User | null): Promise<Workspace
 
   return {
     ok: true,
+    status: 'ready',
     mode: 'supabase_frontend',
     workspaceId: currentWorkspace.workspaceId,
     membershipId: currentWorkspace.membershipId,

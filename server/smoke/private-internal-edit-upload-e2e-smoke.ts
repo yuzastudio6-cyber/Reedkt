@@ -335,6 +335,30 @@ try {
     },
     'private-upload-e2e-private-internal-test-run',
   )
+  if (privateInternalTestRunResponse.status === 503) {
+    assert.equal(privateInternalTestRunResponse.json.error?.code, 'TOOL_NOT_READY')
+    const details = privateInternalTestRunResponse.json.error?.details
+    assert.ok(details && typeof details === 'object')
+    assert.equal(
+      (details as Record<string, unknown>).requiredGate,
+      'canonical_execution_stage_adapters',
+    )
+    console.log(JSON.stringify({
+      ok: true,
+      status: 'blocked_by_canonical_execution_stage_adapters',
+      checks: [
+        'upload_intent_requires_owned_backend_project_record',
+        'source_video_uploaded_through_backend_local_upload_intent',
+        'finalized_upload_preserves_local_private_storage_provider',
+        'finalized_upload_includes_local_ffprobe_source_metadata',
+        'legacy_private_internal_execution_route_fails_closed',
+        'no_provider_render_delivery_billing_or_wallet_side_effect',
+      ],
+      skippedLegacyAssertions: true,
+      skippedReason: 'The legacy private internal execution route is intentionally disabled until canonical execution-stage adapters replace caller-authored snapshots and reservations.',
+      nextRequiredGate: 'canonical_execution_stage_adapters',
+    }))
+  } else {
   assert.equal(privateInternalTestRunResponse.status, 201, `Private internal test run should succeed: ${JSON.stringify(privateInternalTestRunResponse.json)}`)
   const internalTestRun = privateInternalTestRunResponse.json.data?.internalTestRun
   assert.ok(internalTestRun, 'Private internal upload run should return an internal test run.')
@@ -953,6 +977,7 @@ try {
     hydratedAudioPrivateManifestByteCount,
     nextRequiredGate: internalTestRun.nextRequiredGate,
   }))
+  }
 } finally {
   await new Promise<void>((resolve, reject) => {
     server.close((error) => (error ? reject(error) : resolve()))

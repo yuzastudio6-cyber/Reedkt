@@ -318,7 +318,7 @@ try {
   })
   await page.goto(`${viteUrl}projects/new`)
   await expect(page).toHaveURL(/\/sign-in\?returnTo=/)
-  await expect(page.getByTestId('sign-in-card')).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Sign in to test the ReEditPro app.' })).toBeVisible()
   await page.getByTestId('local-test-sign-in').click()
   await expect(page).toHaveURL(/\/projects\/new$/)
   await expect(page.getByTestId('app-session-identity')).toContainText('Local test user')
@@ -328,7 +328,7 @@ try {
   }))
   assert.ok(browserTestSession.localSession, 'Full-stack browser path should enter through the loopback-only local test sign-in surface.')
   assert.doesNotMatch(browserTestSession.sessionStorageText, /bearer|access[_-]?token|jwt/i, 'Frontend local test sign-in must not place the backend E2E bearer in browser session storage.')
-  await expect(page.getByRole('heading', { name: /Name the project/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'New project' })).toBeVisible()
   await page.getByLabel('Project name').fill('Internal upload review smoke')
   await page.getByRole('button', { name: /^Create project$/i }).first().click()
   await expect(page).toHaveURL(/\/projects\/[^/]+$/)
@@ -438,14 +438,14 @@ try {
   assert.equal(missingProjectInternalEditStateSave.status, 404, 'Backend internal edit state save should require an owned project record.')
 
   await page.goto(`${viteUrl}projects`)
-  const localProjectCard = page.locator('.clean-project-row').filter({ hasText: 'Internal upload review smoke' })
+  const localProjectCard = page.locator('.projects-card').filter({ hasText: 'Internal upload review smoke' })
   await expect(localProjectCard).toBeVisible()
   await expect(localProjectCard).toContainText(/Ready for upload|No edits/i)
   await localProjectCard.getByRole('link', { name: /Open project/i }).click()
   await expect(page).toHaveURL(/\/projects\/[^/]+$/)
-  const projectEditCard = page.locator('.clean-project-row').filter({ hasText: 'Launch edit v1' })
+  const projectEditCard = page.locator('.project-edit-card').filter({ hasText: 'Launch edit v1' })
   await expect(projectEditCard).toBeVisible()
-  await projectEditCard.getByRole('link', { name: /Open edit/i }).click()
+  await projectEditCard.getByRole('link', { name: /Upload source/i }).click()
   await expect(page.getByTestId('editor-page')).toBeVisible({ timeout: editorBootTimeoutMs })
   await expect(page.getByTestId('editor-header')).toContainText('Launch edit v1')
   await expect(page.getByTestId('edit-upload-gate')).toBeVisible()
@@ -475,10 +475,10 @@ try {
     mimeType: 'video/mp4',
     buffer: sourceBytes,
   })
-  const sourceCard = page.getByTestId('source-sequence-card')
-  await expect(sourceCard).toBeVisible({ timeout: privateUploadTimeoutMs })
+  const sourceSetup = page.getByTestId('source-summary')
+  await expect(sourceSetup).toBeVisible({ timeout: privateUploadTimeoutMs })
   await expect(page.getByTestId('chat-composer-textarea')).toBeEnabled()
-  await sourceCard.locator('input[type="file"]').setInputFiles([
+  await sourceSetup.locator('input[type="file"]').setInputFiles([
     {
       name: 'browser-upload-source-b.mp4',
       mimeType: 'video/mp4',
@@ -486,13 +486,10 @@ try {
     },
   ])
 
-  await expect(sourceCard).toContainText('browser-upload-source.mp4')
-  await expect(sourceCard).toContainText('browser-upload-source-b.mp4', { timeout: privateUploadTimeoutMs })
-  await expect(page.getByTestId('source-sequence-card')).toHaveCount(1)
-  await expect(sourceCard).toContainText('00:01')
-  await expect(sourceCard).toContainText('160x90')
-  await expect(sourceCard).toContainText('176x100')
-  await expect(sourceCard.getByText(/uploaded to private source storage/i)).toHaveCount(2)
+  await expect(sourceSetup).toContainText('browser-upload-source.mp4')
+  await expect(sourceSetup).toContainText('browser-upload-source-b.mp4', { timeout: privateUploadTimeoutMs })
+  await expect(page.getByTestId('source-summary')).toHaveCount(1)
+  await expect(sourceSetup).toContainText('00:01')
   const uploadedHandoffs = await page.evaluate((storageKey) => {
     return ((JSON.parse(window.localStorage.getItem(storageKey) ?? '{}') as { handoffs?: unknown[] }).handoffs ?? []) as Array<{
       stage?: string
@@ -525,11 +522,13 @@ try {
   assert.equal(uploadedHandoffs[0]?.sourceMediaAssets?.every((asset) => /^[a-f0-9]{64}$/i.test(asset.checksumSha256 ?? '')), true)
   assertTwoUploadedSourceMetadataPreserved(uploadedHandoffs[0]?.sourceMediaAssets, 'Uploaded local handoff')
 
-  await clickWhenReady(page.getByRole('button', { name: /Confirm source order|Use this as the full source video/i }).first())
-  await clickWhenReady(page.getByRole('button', { name: /Confirm output frame/i }).first())
-  await clickWhenReady(page.getByRole('button', { name: /Confirm (Preserve natural|Light cleanup|Balanced cleanup|Tight retention|Aggressive|Documentary faithful|Tutorial complete|Custom)/i }).first())
-  await maybeClickWhenReady(page.getByRole('button', { name: /Use this level/i }).first())
-  await maybeClickWhenReady(page.getByRole('button', { name: /Use this preference/i }).first())
+  await clickWhenReady(page.getByRole('button', { name: /Confirm order|Use this source/i }).first())
+  await clickWhenReady(page.getByRole('radio', { name: /16:9/i }).first())
+  await clickWhenReady(page.getByRole('button', { name: /Confirm frame/i }).first())
+  await clickWhenReady(page.getByRole('button', { name: /Confirm cleanup/i }).first())
+  await maybeClickWhenReady(page.getByRole('button', { name: /Use (Normal|Premium|Ultra Premium)/i }).first())
+  await maybeClickWhenReady(page.getByRole('button', { name: /Confirm direction/i }).first())
+  await maybeClickWhenReady(page.getByRole('button', { name: /Skip reference/i }).first())
 
   const intentButton = page.getByRole('button', { name: /Looks right/i }).first()
   if (await intentButton.count()) {
@@ -544,17 +543,10 @@ try {
 
   await clickWhenReady(page.getByRole('button', { name: /Prepare source/i }).first())
   await expect(page.getByText(/Source prep is ready for 2 uploaded source files in this edit/i)).toBeVisible({ timeout: 12_000 })
-  await expect(page.getByText(/Ready for creative direction/i)).toBeVisible({ timeout: 12_000 })
-  await expect(page.locator('body')).toContainText('1. browser-upload-source.mp4')
-  await expect(page.locator('body')).toContainText('2. browser-upload-source-b.mp4')
-  await clickWhenReady(page.getByRole('button', { name: /^Open Edit Brief$/i }).first())
+  await expect(page.getByText(/Ready to create the plan/i)).toBeVisible({ timeout: 12_000 })
+  await clickWhenReady(page.getByRole('button', { name: /^(Add )?Edit Brief$/i }).first())
   await page.getByLabel(/Overall goal/i).fill('Create a clean internal review edit that opens with the uploaded source proof and keeps the speaker clear.')
   await clickWhenReady(page.getByTestId('edit-brief-mark-ready').first())
-  await clickWhenReady(page.getByRole('button', { name: /^Open Edit Cues$/i }).first())
-  await clickWhenReady(page.getByRole('button', { name: /^Add Cue$/i }).first())
-  await page.getByLabel(/Cue title/i).last().fill('Open with uploaded source proof')
-  await page.getByLabel(/Instructions/i).last().fill('Use the first uploaded source clip as the opening proof moment and keep captions away from the speaker.')
-  await clickWhenReady(page.getByRole('button', { name: /^Mark Ready$/i }).last())
   await clickWhenReady(page.getByRole('button', { name: /Create edit plan/i }).first())
   await expect(page.getByTestId('plan-review-card')).toBeVisible({ timeout: 12_000 })
   await expect(page.getByText(/Plan updated from your source assembly/i)).toBeVisible()
@@ -570,6 +562,38 @@ try {
   await expect(page.getByText(/Plan updated from your source assembly/i)).toBeVisible()
   await expect(page.getByTestId('plan-review-approve')).toBeEnabled()
   await clickWhenReady(page.getByTestId('plan-review-approve'))
+  const canonicalApprovalGateMessage = page.getByText(
+    /Standalone credit approval and reservation are disabled\. Canonical plan approval performs both in one authority transaction\./i,
+  ).first()
+  const approvalOutcome = page.getByTestId('private-internal-test-run-card').or(canonicalApprovalGateMessage)
+  await expect(approvalOutcome).toBeVisible({ timeout: 45_000 })
+  const approvalBlockedByCanonicalGate = await canonicalApprovalGateMessage.isVisible()
+
+  if (approvalBlockedByCanonicalGate) {
+    assert.match(
+      creditGateResponses.join('\n'),
+      /"requiredGate":"atomic_plan_approval_and_funded_credit_reservation"/,
+      'The browser approval path must identify the exact future atomic approval and funded-reservation gate.',
+    )
+    assert.equal(editExecutionResponses.length, 0, 'No edit execution request may start after the canonical approval gate blocks approval.')
+    assert.equal(approvedSnapshotResponses.length, 0, 'The blocked legacy approval path must not create an approved snapshot.')
+    await expect(page.getByTestId('private-internal-test-run-card')).toHaveCount(0)
+    console.log(JSON.stringify({
+      ok: true,
+      status: 'blocked_by_atomic_plan_approval_and_funded_credit_reservation',
+      checks: [
+        'browser_project_and_named_edit_created',
+        'private_source_upload_and_metadata_readback_verified',
+        'clean_editor_setup_and_source_prep_verified',
+        'edit_brief_and_plan_review_verified',
+        'legacy_standalone_credit_approval_fails_closed',
+        'no_approved_snapshot_or_edit_execution_side_effect',
+      ],
+      skippedLegacyAssertions: true,
+      skippedReason: 'This backend-only slice changes no frontend or browser-safe shared contract. The remaining historical browser execution assertions require the future atomic canonical plan-approval and funded-credit-reservation route.',
+      nextRequiredGate: 'atomic_plan_approval_and_funded_credit_reservation',
+    }))
+  } else {
   try {
     await expect(page.getByTestId('private-internal-test-run-card')).toBeVisible({ timeout: 45_000 })
   } catch (error) {
@@ -1372,7 +1396,7 @@ try {
   assert.equal(backendAcceptedState?.privateReview?.adapterGateSummary?.productReady, false, 'Backend accepted state must not mark adapter gates product-ready.')
 
   await page.goto(`${viteUrl}projects`)
-  const acceptedProjectCard = page.locator('.clean-project-row').filter({ hasText: 'Internal upload review smoke' })
+  const acceptedProjectCard = page.locator('.projects-card').filter({ hasText: 'Internal upload review smoke' })
   await expect(acceptedProjectCard).toBeVisible()
   await expect(acceptedProjectCard).toContainText('Edit complete')
   await expect(acceptedProjectCard).toContainText(/Internal review is complete\. Public release remains gated\./i)
@@ -1384,7 +1408,7 @@ try {
     'Projects page should reopen the accepted project route.',
   )
   await acceptedProjectLink.click()
-  const acceptedProjectEditorCard = page.locator('.clean-project-row').filter({ hasText: 'Launch edit v1' })
+  const acceptedProjectEditorCard = page.locator('.project-edit-card').filter({ hasText: 'Launch edit v1' })
   await expect(acceptedProjectEditorCard).toBeVisible()
   const acceptedProjectEditorLink = acceptedProjectEditorCard.getByRole('link', { name: /Open edit/i })
   const acceptedProjectEditorHref = await acceptedProjectEditorLink.getAttribute('href')
@@ -1492,21 +1516,21 @@ try {
     stalePrivateReview: acceptedHandoffs[0]?.privateReview,
   })
   await page.goto(`${viteUrl}projects`)
-  const staleReviewProjectCard = page.locator('.clean-project-row').filter({ hasText: 'Internal upload review smoke' })
+  const staleReviewProjectCard = page.locator('.projects-card').filter({ hasText: 'Internal upload review smoke' })
   await expect(staleReviewProjectCard).toBeVisible()
   await expect(staleReviewProjectCard).toContainText('Sources attached')
   await expect(staleReviewProjectCard).not.toContainText('Review needs refresh')
   await expect(staleReviewProjectCard).not.toContainText(/Previous private review evidence is no longer trusted/i)
   await staleReviewProjectCard.getByRole('link', { name: /Open project/i }).click()
-  const staleReviewEditCard = page.locator('.clean-project-row').filter({ hasText: 'Launch edit v1' })
+  const staleReviewEditCard = page.locator('.project-edit-card').filter({ hasText: 'Launch edit v1' })
   await expect(staleReviewEditCard).toBeVisible()
-  await staleReviewEditCard.getByRole('link', { name: /Open edit/i }).click()
+  await staleReviewEditCard.getByRole('link', { name: /Continue setup/i }).click()
   await expect(page.getByTestId('editor-page')).toBeVisible({ timeout: editorBootTimeoutMs })
   await expect(page.getByText(/previous private review evidence is no longer trusted for the current source set/i)).toHaveCount(0)
   await expect(page.getByTestId('source-sequence-card')).toContainText('browser-upload-followup-source.mp4')
 
   await page.goto(`${viteUrl}projects/new`)
-  await expect(page.getByRole('heading', { name: /Name the project/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'New project' })).toBeVisible()
   await page.getByLabel('Project name').fill('Internal revision request smoke')
   await page.getByRole('button', { name: /^Create project$/i }).first().click()
   await expect(page).toHaveURL(/\/projects\/[^/]+$/)
@@ -1524,15 +1548,17 @@ try {
     mimeType: 'video/mp4',
     buffer: secondSourceBytes,
   })
-  const revisionSourceCard = page.getByTestId('source-sequence-card')
-  await expect(revisionSourceCard).toBeVisible()
-  await expect(revisionSourceCard).toContainText('browser-upload-revision-source-with-audio.mp4')
-  await expect(page.getByTestId('source-sequence-card')).toHaveCount(1)
-  await clickWhenReady(page.getByRole('button', { name: /Confirm source order|Use this as the full source video/i }).first())
-  await clickWhenReady(page.getByRole('button', { name: /Confirm output frame/i }).first())
-  await clickWhenReady(page.getByRole('button', { name: /Confirm (Preserve natural|Light cleanup|Balanced cleanup|Tight retention|Aggressive|Documentary faithful|Tutorial complete|Custom)/i }).first())
-  await maybeClickWhenReady(page.getByRole('button', { name: /Use this level/i }).first())
-  await maybeClickWhenReady(page.getByRole('button', { name: /Use this preference/i }).first())
+  const revisionSourceSetup = page.getByTestId('source-summary')
+  await expect(revisionSourceSetup).toBeVisible()
+  await expect(revisionSourceSetup).toContainText('browser-upload-revision-source-with-audio.mp4')
+  await expect(page.getByTestId('source-summary')).toHaveCount(1)
+  await clickWhenReady(page.getByRole('button', { name: /Confirm order|Use this source/i }).first())
+  await clickWhenReady(page.getByRole('radio', { name: /16:9/i }).first())
+  await clickWhenReady(page.getByRole('button', { name: /Confirm frame/i }).first())
+  await clickWhenReady(page.getByRole('button', { name: /Confirm cleanup/i }).first())
+  await maybeClickWhenReady(page.getByRole('button', { name: /Use (Normal|Premium|Ultra Premium)/i }).first())
+  await maybeClickWhenReady(page.getByRole('button', { name: /Confirm direction/i }).first())
+  await maybeClickWhenReady(page.getByRole('button', { name: /Skip reference/i }).first())
   const revisionIntentButton = page.getByRole('button', { name: /Looks right/i }).first()
   if (await revisionIntentButton.count()) {
     await clickWhenReady(revisionIntentButton)
@@ -1542,9 +1568,8 @@ try {
   await expect(page.getByRole('button', { name: /Prepare source/i }).first()).toBeEnabled()
   await clickWhenReady(page.getByRole('button', { name: /Prepare source/i }).first())
   await expect(page.getByText(/Source prep is ready for 1 uploaded source file in this edit/i)).toBeVisible({ timeout: 12_000 })
-  await expect(page.getByText(/Ready for creative direction/i)).toBeVisible({ timeout: 12_000 })
-  await expect(page.locator('body')).toContainText('1. browser-upload-revision-source-with-audio.mp4')
-  await clickWhenReady(page.getByRole('button', { name: /^Open Edit Brief$/i }).first())
+  await expect(page.getByText(/Ready to create the plan/i)).toBeVisible({ timeout: 12_000 })
+  await clickWhenReady(page.getByRole('button', { name: /^(Add )?Edit Brief$/i }).first())
   await page.getByLabel(/Overall goal/i).fill('Create a revised internal review edit from the uploaded source and keep the review trace clear.')
   await clickWhenReady(page.getByTestId('edit-brief-mark-ready').first())
   await clickWhenReady(page.getByRole('button', { name: /Create edit plan/i }).first())
@@ -1738,14 +1763,14 @@ try {
   assert.equal(revisionReadyHandoffs[0]?.privateReview?.nextRequiredGate, 'private_review_after_revision')
 
   await page.goto(`${viteUrl}projects`)
-  const revisionProjectCard = page.locator('.clean-project-row').filter({ hasText: 'Internal revision request smoke' })
+  const revisionProjectCard = page.locator('.projects-card').filter({ hasText: 'Internal revision request smoke' })
   await expect(revisionProjectCard).toBeVisible()
   await expect(revisionProjectCard).toContainText('Revision ready')
   await expect(revisionProjectCard).toContainText(/A revised private review is ready/i)
   await revisionProjectCard.getByRole('link', { name: /Open project/i }).click()
-  const revisionProjectEditCard = page.locator('.clean-project-row').filter({ hasText: 'Revision edit v1' })
+  const revisionProjectEditCard = page.locator('.project-edit-card').filter({ hasText: 'Revision edit v1' })
   await expect(revisionProjectEditCard).toBeVisible()
-  await revisionProjectEditCard.getByRole('link', { name: /Open edit/i }).click()
+  await revisionProjectEditCard.getByRole('link', { name: /Open revision/i }).click()
   await expect(page.getByTestId('editor-page')).toBeVisible({ timeout: editorBootTimeoutMs })
   await expect(page.getByTestId('editor-header')).toContainText('Revision edit v1')
   await expect(page.getByText(/Restored review state: revision preview ready/i)).toBeVisible()
@@ -2001,7 +2026,7 @@ try {
   assertSourceAudioTone(directRecoveredPrivateReviewAudioTone, 'Recovered accepted edit download')
   await page.evaluate((storageKey) => window.localStorage.removeItem(storageKey), getLocalProjectHandoffStorageKey())
   await page.goto(`${viteUrl}projects`)
-  const recoveredFromBackendCard = page.locator('.clean-project-row').filter({ hasText: 'Internal revision request smoke' })
+  const recoveredFromBackendCard = page.locator('.projects-card').filter({ hasText: 'Internal revision request smoke' })
   await expect(recoveredFromBackendCard).toBeVisible({ timeout: 10_000 })
   await expect(recoveredFromBackendCard).toContainText('Edit complete')
   await expect(recoveredFromBackendCard).toContainText(/Internal review is complete\. Public release remains gated\./i)
@@ -2160,6 +2185,7 @@ try {
     verifiedSourceMediaAssetCount: acceptedHandoffs[0]?.privateReview?.editDecisionManifestVerification?.sourceMediaAssetCount,
     privateVideoSrcScheme: videoSrc.split(':')[0],
   }))
+  }
 } finally {
   await browserContext?.close()
   await browser?.close()

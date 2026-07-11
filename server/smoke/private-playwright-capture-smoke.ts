@@ -135,7 +135,14 @@ try {
       creditReservationId,
       idempotencyKey: 'client-injected-playwright-capture-package',
     }),
-    (error: unknown) => error instanceof ApiError && error.code === 'APPROVED_SNAPSHOT_REQUIRED',
+    (error: unknown) => {
+      if (!(error instanceof ApiError) || error.code !== 'TOOL_NOT_READY') return false
+      const details = error.details
+      return Boolean(
+        details && typeof details === 'object' &&
+        (details as Record<string, unknown>).requiredGate === 'canonical_edit_authority_execution_package',
+      )
+    },
     'Client-supplied executable-looking capture snapshots must not package without server-owned approval state.',
   )
 

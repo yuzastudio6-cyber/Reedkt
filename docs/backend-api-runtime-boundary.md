@@ -13,7 +13,7 @@ Frontend chat/editor UI
 -> backend service, Supabase, worker, provider, or payment runtime
 ```
 
-The current RP-FIX-08 flow is:
+The local/mock fallback flow is:
 
 ```text
 Frontend or local caller
@@ -22,7 +22,7 @@ Frontend or local caller
 -> existing deterministic mock services
 ```
 
-`VITE_REEDITPRO_API_MODE` defaults to `mock`. `VITE_REEDITPRO_API_BASE_URL` is a safe placeholder for a future backend, but live HTTP transport remains intentionally gated.
+`VITE_REEDITPRO_API_MODE` defaults to `mock`. For internal testing against a deployed backend, set `VITE_REEDITPRO_API_MODE=frontend_safe` and `VITE_REEDITPRO_API_BASE_URL` to the reviewed API origin. In that mode the frontend-safe client may call reviewed `/v1` routes for projects, private upload intents, approved snapshots, credit approval/reservation metadata, internal edit state, and private internal review/download records. Backend-required routes still fail closed.
 
 ## Frontend-Safe Operations
 

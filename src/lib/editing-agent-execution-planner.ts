@@ -112,7 +112,7 @@ function expectedOutput(params: {
 function createWorkItem(params: CreateWorkItemParams): EditWorkItem {
   const pendingSnapshotNote = params.approvedPlanSnapshotId
     ? `Approved snapshot ${params.approvedPlanSnapshotId} is the execution source.`
-    : 'Approved snapshot ID is pending; this mock graph is frozen only after approval.'
+    : 'Approved snapshot ID is pending; this graph becomes execution-ready only after approval.'
 
   return {
     id: params.id,
@@ -163,8 +163,8 @@ function createManifestItem(params: CreateAssetParams): EditAssetManifestItem {
     qaNotes: ['Asset QA runs in future workers after the asset exists.'],
     metadata: params.metadata ?? {},
     notes: [
-      'Manifest entry is mock-only; no asset has been generated, stored, or uploaded.',
-      'Real storage happens later through approved backend/worker infrastructure.',
+      'Manifest entry is review-only; asset generation, storage, and upload remain backend-gated.',
+      'Storage happens through approved backend/worker infrastructure.',
       ...(params.notes ?? []),
     ],
   }
@@ -283,7 +283,7 @@ function createProviderWorkItems(params: {
       fallbackPolicy: prompt.tierPolicyNotes.length ? prompt.tierPolicyNotes : ['Use approved image fallback or request revision.'],
       checkbackPolicy: ['Future provider webhook or scheduled checkback updates this work item; frontend does not poll providers.'],
       qaChecks: ['Generated image must match prompt, frame background, safe margins, and approved visual purpose.'],
-      notes: ['No GPT-Image-2 call is made by this mock planner.'],
+      notes: ['GPT-Image-2 calls remain backend-gated.'],
     })
 
     workItems.push(workItem)
@@ -365,7 +365,7 @@ function createProviderWorkItems(params: {
       fallbackPolicy: prompt.tierPolicyNotes.length ? prompt.tierPolicyNotes : ['Use approved Wan/Hailuo fallback policy; Veo remains Premium final fallback only.'],
       checkbackPolicy: ['Future provider webhook or scheduled checkback updates this work item; frontend does not call provider APIs.'],
       qaChecks: ['Generated clip duration and background must match timing, frame, and renderer placement notes.'],
-      notes: ['No Wan, Hailuo, or Veo call is made by this mock planner.'],
+      notes: ['Wan, Hailuo, and Veo calls remain backend-gated.'],
     }))
 
     assets.push(createManifestItem({
@@ -440,7 +440,7 @@ function createControlledVisualWorkItems(params: {
       fallbackPolicy: controlledFallbackPolicy(config.item),
       checkbackPolicy: ['Future worker status events update this work item; no local tool execution runs here.'],
       qaChecks: config.item.qaChecks,
-      notes: ['No MapLibre, D3/ECharts, browser, mask, or media tool runs in this mock planner.'],
+      notes: ['MapLibre, D3/ECharts, browser, mask, and media tool execution remain backend-gated.'],
     }))
 
     assets.push(createManifestItem({
@@ -798,7 +798,7 @@ function createAssetQaWorkItems(params: {
       fallbackPolicy: ['If QA fails, use approved fallback relationship and create replacement manifest item.'],
       checkbackPolicy: ['QA worker posts structured result; no manual memory is used to remember asset state.'],
       qaChecks: ['Check asset exists, matches approved plan, preserves frame/layout/timing policy, and is safe to merge.'],
-      notes: ['No real QA tool or media inspection runs in this mock graph.'],
+      notes: ['QA tools and media inspection remain backend-gated.'],
     }))
 }
 
@@ -817,7 +817,7 @@ function createCheckpoints(workItems: EditWorkItem[], assetManifest: EditAssetMa
       readyToMergeAssetIds,
       currentFocus: 'Wait for approval and approved snapshot before execution.',
       nextActions: ['Freeze approved snapshot.', 'Activate ready work items from the graph.'],
-      notes: ['This checkpoint is mock-only and records no completed execution.'],
+      notes: ['This checkpoint is review-only and records no completed execution.'],
     },
     {
       id: 'checkpoint-source-cleanup-ready',
@@ -828,7 +828,7 @@ function createCheckpoints(workItems: EditWorkItem[], assetManifest: EditAssetMa
       readyToMergeAssetIds,
       currentFocus: 'Resolve source cleanup and trim review dependencies before trim execution.',
       nextActions: ['Use approved trim decisions only.', 'Keep risky retake/meaning items in user review.'],
-      notes: ['No real trimming or media analysis runs here.'],
+      notes: ['Trimming and media analysis remain backend-gated.'],
     },
     {
       id: 'checkpoint-timing-ready',
@@ -839,7 +839,7 @@ function createCheckpoints(workItems: EditWorkItem[], assetManifest: EditAssetMa
       readyToMergeAssetIds,
       currentFocus: 'Carry frame-accurate timing into renderer and QA work.',
       nextActions: ['Validate captions, visual cues, SoundSync, and final layer timing.'],
-      notes: ['Timing validation remains structured/mock-only.'],
+      notes: ['Timing validation remains structured and review-only.'],
     },
     {
       id: 'checkpoint-asset-generation-requested',
@@ -920,7 +920,7 @@ export function createEditingAgentExecutionPlan(params: {
       ],
       expectedOutputs: [expectedOutput({ id: 'work-prepare-source-trim-output', outputType: 'status_update', notes: ['Future worker receives approved trim decisions.'] })],
       qaChecks: params.plan.sourceCleanupPlan?.qaChecks ?? ['Trim decisions must have reasons and preserve meaning.'],
-      notes: ['No real trimming, FFmpeg, or VapourSynth execution runs here.'],
+      notes: ['Trimming, FFmpeg, and VapourSynth execution remain backend-gated.'],
     }),
     createWorkItem({
       id: 'work-select-retake',
@@ -986,7 +986,7 @@ export function createEditingAgentExecutionPlan(params: {
       approvedPlanSnapshotId: params.approvedPlanSnapshotId,
       priority: 'medium',
       canRunInParallel: true,
-      expectedOutputs: [expectedOutput({ id: 'work-prepare-soundsync-timing-output', outputType: 'status_update', notes: ['SoundSync timing remains speech-first and mock-only.'] })],
+      expectedOutputs: [expectedOutput({ id: 'work-prepare-soundsync-timing-output', outputType: 'status_update', notes: ['SoundSync timing remains speech-first and review-only until worker analysis exists.'] })],
       fallbackPolicy: ['If real AudioFlux analysis is unavailable, use phrase cuts and speech-first transition timing.'],
       checkbackPolicy: ['Future AudioFlux worker posts structured beat-grid status; frontend does not run audio analysis.'],
       qaChecks: params.plan.soundSyncTransitionTimingPlan?.qaChecks.map((item) => item.label) ?? ['Music beat alignment must not override speech clarity.'],
@@ -1027,7 +1027,7 @@ export function createEditingAgentExecutionPlan(params: {
       fallbackPolicy: ['If QA fails, use approved fallback policy or request user revision.'],
       checkbackPolicy: ['Future QA worker writes structured findings and unblocks final export only when passed.'],
       qaChecks: params.plan.editQAPlan?.globalChecks.map((item) => item.label) ?? ['Final QA must pass before export.'],
-      notes: ['No media QA tools execute in this mock graph.'],
+      notes: ['Media QA tool execution remains backend-gated.'],
     }),
   ]
 
@@ -1137,14 +1137,14 @@ export function createEditingAgentExecutionPlan(params: {
       'Provider models and open-source tools remain separate execution surfaces.',
     ],
     limitations: [
-      'Mock execution graph only.',
+      'Review-only execution graph.',
       'No workers executed.',
-      'No provider APIs called.',
-      'No tools, queues, storage writes, Remotion renders, or media processing run.',
+      'Provider APIs remain gated.',
+      'Tools, queues, storage writes, rendering, and media processing remain gated.',
       'Real execution requires approved snapshot and future backend/worker infrastructure.',
     ],
     notes: [
-      'The graph is a future-worker contract, not a runnable queue in this frontend demo.',
+      'The graph is a future-worker contract, not a runnable queue until approved backend gates pass.',
       'Asset manifest entries use local_mock storage to prevent context loss without writing assets.',
       'Checkback policies are structured notes for future provider webhooks, polling, or scheduled worker events.',
     ],

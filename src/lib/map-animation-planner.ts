@@ -525,7 +525,7 @@ function createMapItem(params: {
     ],
     workerNotes: [
       'Planning only: no MapLibre/Turf package is installed or executed.',
-      'No geocoding, tile API, Mapbox API, or real map rendering is run in this frontend demo.',
+      'Geocoding, tile APIs, Mapbox APIs, and map rendering remain backend-gated.',
       'Future workers must use approved plan snapshots and source-confirmed locations.',
       visualType === 'map_behind_subject_and_contact_object'
         ? 'Future mask/segmentation worker required for subject plus contact object preservation.'
@@ -595,11 +595,11 @@ export function createMapAnimationPlan(params: CreateMapAnimationPlanParams): Ma
       'Map does not cover face, product, captions, foreground subject, or contact object.',
       'Location confidence, claim status, and source-needed state are represented.',
       'Unknown/alleged locations use approximate or reported wording.',
-      'No real map render, geocoding, tile call, or map tool execution is implied.',
+      'Map rendering, geocoding, tile calls, and map tool execution remain backend-gated.',
     ],
     limitations: [
-      'Mock-only map plan; no geocoding or location verification has been run.',
-      'No MapLibre, Turf, deck.gl, CesiumJS, Mapbox, tile API, or map rendering executes in this frontend demo.',
+      'Review-only map plan; geocoding and location verification remain backend-gated.',
+      'MapLibre, Turf, deck.gl, CesiumJS, Mapbox, tile APIs, and map rendering require approved backend gates.',
       'Future worker/tool integration is required for actual MapLibre/Turf rendering.',
     ],
     notes: [

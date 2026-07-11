@@ -175,16 +175,25 @@ export function createMediaAssetStorageSummary(result: MediaAssetStorageRecordRe
 }
 
 function createMediaRecord(uploadPlan: UploadPlan): MediaAssetRecord {
+  const sourceMetadata = uploadPlan.sourceMetadata?.probeStatus === 'probed'
+    ? uploadPlan.sourceMetadata
+    : undefined
+
   return {
     id: `${uploadPlan.id}-media-record`,
     workspaceId: uploadPlan.workspaceId,
     projectId: uploadPlan.projectId,
     assetType: mapMediaAssetType(uploadPlan),
-    storageProvider: uploadPlan.mockOnly ? 'local_mock' : 'supabase_storage',
+    storageProvider: uploadPlan.storageProvider ?? (uploadPlan.mockOnly ? 'local_mock' : 'supabase_storage'),
     storagePath: uploadPlan.objectPath,
     fileName: uploadPlan.fileName,
     mimeType: uploadPlan.mimeType,
     byteSize: uploadPlan.fileSizeBytes,
+    durationSeconds: sourceMetadata?.durationSeconds,
+    width: sourceMetadata?.width,
+    height: sourceMetadata?.height,
+    checksum: uploadPlan.checksumSha256,
+    sourceMetadata: uploadPlan.sourceMetadata,
     status: 'draft',
     createdAt: MOCK_NOW,
     updatedAt: MOCK_NOW,

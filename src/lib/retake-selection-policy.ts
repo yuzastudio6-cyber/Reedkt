@@ -46,7 +46,7 @@ export const retakeSelectionStrategies: Record<RetakeSelectionStrategy, {
   },
   ask_user_review: {
     label: 'Ask user review',
-    description: 'Require user review because mock metadata cannot confidently choose.',
+    description: 'Require user review when available metadata cannot confidently choose.',
   },
   custom: {
     label: 'Custom',
@@ -122,7 +122,7 @@ export function inferRetakeGroupsFromSources(params: {
         userReviewRequired: alternates.length > 1,
         qaChecks: [
           'Retake group is metadata-inferred only.',
-          'No real transcript, semantic, visual, or audio comparison has run.',
+          'Transcript, semantic, visual, and audio comparison remain backend-gated.',
           'User review is required if confidence is low or context could change meaning.',
         ],
       }
@@ -212,7 +212,7 @@ export function scoreRetakeCandidateMock(params: {
     inferredTakeNumber: inferredTakeNumber(`${clip?.fileName ?? ''} ${clip?.notes ?? ''}`),
     quality,
     strengths: strengths.length ? strengths : ['Usable mock candidate based on current source cleanup plan.'],
-    weaknesses: weaknesses.length ? weaknesses : ['No real media comparison has run.'],
+    weaknesses: weaknesses.length ? weaknesses : ['Media comparison remains backend-gated.'],
     userMarkedImportant: Boolean(clip?.isImportant),
     userMarkedOptional: Boolean(clip?.isOptional),
     suggestedUse,
@@ -270,6 +270,6 @@ export function selectBestRetakeCandidateMock(params: {
     selectedUse: userReviewRequired ? 'user_review' : selected?.suggestedUse === 'move_to_broll' ? 'broll' : selected?.suggestedUse === 'use_as_proof' ? 'proof' : 'main_timeline',
     reason: selected
       ? `${retakeSelectionStrategies[params.strategy].label}: ${selected.candidateLabel} is the strongest mock candidate based on metadata.`
-      : 'No candidate could be selected from mock metadata.',
+      : 'No candidate could be selected from available metadata.',
   }
 }

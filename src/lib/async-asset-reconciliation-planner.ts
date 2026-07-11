@@ -105,7 +105,7 @@ function createCheckbackItem(params: {
           : trigger === 'worker_event'
             ? 'Future worker event updates the work item and asset manifest.'
             : 'Future scheduled checkback verifies whether pending work timed out or needs fallback.',
-    timeoutPolicy: 'No real timer runs in this mock. Future workers use provider/tool-specific timeout policy and then trigger fallback or review.',
+    timeoutPolicy: 'Timed checkbacks remain backend-gated. Future workers use provider/tool-specific timeout policy and then trigger fallback or review.',
     retryPolicy: params.workItem.maxRetries > 0
       ? `Retry up to ${params.workItem.maxRetries} time(s) using the same idempotency key and approved snapshot.`
       : 'No retry planned; request fallback or review if this work cannot complete.',
@@ -113,7 +113,7 @@ function createCheckbackItem(params: {
     expectedOutputIds: params.workItem.expectedOutputs.map((output) => output.id),
     qaChecks: params.workItem.qaChecks,
     notes: [
-      'Checkback is mock metadata only; no webhook, polling, provider request, or worker event is created.',
+      'Checkback is review metadata only; webhook, polling, provider request, and worker event creation remain backend-gated.',
       ...(params.workItem.checkbackPolicy ?? []),
     ],
   }
@@ -232,7 +232,7 @@ function createMergePlanItem(asset: EditAssetManifestItem): AssetMergePlanItem {
     userReviewRequired,
     reason:
       status === 'not_ready'
-        ? 'Asset is still mock-planned and cannot merge until a future worker marks it ready.'
+        ? 'Asset is still planned-only and cannot merge until an approved worker marks it ready.'
         : status === 'merged'
           ? 'Asset has a merged/passed status and can be treated as selected for downstream planning.'
           : fallbackRequired
@@ -242,7 +242,7 @@ function createMergePlanItem(asset: EditAssetManifestItem): AssetMergePlanItem {
               : 'Asset can be reconciled into its linked segment, timing cue, and renderer layer after QA.',
     qaChecks: asset.qaNotes.length ? asset.qaNotes : ['Asset must pass QA before final render.'],
     notes: [
-      'Merge plan is mock-only; no asset storage or renderer layer mutation is performed.',
+      'Merge plan is review-only; asset storage and renderer layer mutation remain backend-gated.',
       ...(asset.notes ?? []),
     ],
   }
@@ -312,7 +312,7 @@ function computeReadiness(params: {
       placeholderAssetIds,
       qaPendingAssetIds,
       reason: finalReady
-        ? 'Final render is mock-ready because required assets are merged, QA is clear, and an approved snapshot is available.'
+        ? 'Final render is readiness-qualified because required assets are merged, QA is clear, and an approved snapshot is available.'
         : [
             !snapshotReady ? 'Approved snapshot ID is pending.' : '',
             timingBlocked ? 'Timing validation blocks final render.' : '',
@@ -358,7 +358,7 @@ function createCheckpoints(params: {
       unblockedWorkItemIds,
       nextCheckbackIds: params.checkbackItems.map((item) => item.id).slice(0, 8),
       nextActions: ['Wait for future provider webhook, worker event, or user review.', 'Continue independent planning work where dependencies allow.'],
-      notes: ['No real webhook, polling, or worker event is scheduled in this mock.'],
+      notes: ['Webhook, polling, and worker event scheduling remain backend-gated.'],
     },
     {
       id: 'async-checkpoint-ready-asset-merge',
@@ -545,10 +545,10 @@ export function createAsyncAssetReconciliationPlan(params: {
       'Workers execute approved snapshots, not raw chat.',
     ],
     limitations: [
-      'Mock-only reconciliation.',
-      'No real provider webhook, polling, status check, or worker event runs.',
-      'No real assets are stored or inspected.',
-      'No Remotion render, backend queue, Supabase, Google Cloud, provider API, or media processing is implemented.',
+      'Review-only reconciliation.',
+      'Provider webhook, polling, status checks, and worker events remain backend-gated.',
+      'Asset storage and inspection remain backend-gated.',
+      'Rendering, backend queueing, storage writes, cloud jobs, provider APIs, and media processing require approved execution gates.',
       'Future backend/webhook/worker events are required for production checkback and merge.',
     ],
     qaChecks: [

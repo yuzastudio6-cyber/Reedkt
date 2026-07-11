@@ -5,26 +5,40 @@ import { createSupabaseAdminClient } from './supabase/admin-client'
 import { createSupabasePublicClient } from './supabase/public-client'
 import { requestIdMiddleware } from './middleware/request-id'
 import { errorHandlerMiddleware } from './middleware/error-handler'
+import { isExplicitLocalInternalTestRuntime } from './middleware/canonical-worker-runtime'
 import { createApprovalRoutes } from './routes/approval-routes'
 import { createChatRoutes } from './routes/chat-routes'
+import { createCreditDataRoutes } from './routes/credit-data-routes'
+import { createCreditEstimateRoutes } from './routes/credit-estimate-routes'
 import { createCreditRoutes } from './routes/credit-routes'
+import { createEditExecutionRoutes } from './routes/edit-execution-routes'
+import { createEditBriefAuthorityRoutes } from './routes/edit-brief-authority-routes'
+import { createEditPlanningAuthorityRoutes } from './routes/edit-planning-authority-routes'
+import { createEditPreferenceRoutes } from './routes/edit-preference-routes'
+import { createExactEditPreferenceRoutes } from './routes/exact-edit-preference-routes'
 import { createHealthRoutes } from './routes/health-routes'
+import { createInternalEditStateRoutes } from './routes/internal-edit-state-routes'
 import { createJobRoutes } from './routes/job-routes'
-import { createProjectEditBriefLocalRoutes } from './routes/project-edit-brief-local-routes'
-import { createProjectEditPlanRoutes } from './routes/project-edit-plan-routes'
-import { createProjectEditSessionRoutes } from './routes/project-edit-session-routes'
 import { createProjectRoutes } from './routes/project-routes'
+import { createPreferenceIntelligenceRoutes } from './routes/preference-intelligence-routes'
 import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
-import { createQwenMarkerChatBetaRoutes } from './routes/qwen-marker-chat-beta-routes'
 import { createRenderRoutes } from './routes/render-routes'
+import { createToolCostRoutes } from './routes/tool-cost-routes'
 import { createUploadRoutes } from './routes/upload-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
-import type { RuntimeRequest, RuntimeState } from './types'
+import type { StorageAdapter } from './storage/storage-types'
+import type { RuntimeClients, RuntimeRequest, RuntimeState } from './types'
 
-export function createReeditProApiApp(env: RuntimeEnv): Express {
+export interface ReeditProApiAppOptions {
+  storageAdapter?: StorageAdapter
+  clients?: RuntimeClients
+}
+
+export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppOptions = {}): Express {
   const runtime: RuntimeState = {
     env,
-    clients: {
+    ...(options.storageAdapter ? { storageAdapter: options.storageAdapter } : {}),
+    clients: options.clients ?? {
       admin: createSupabaseAdminClient(env),
       public: createSupabasePublicClient(env),
     },
@@ -32,8 +46,24 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
 
   const app = express()
   app.disable('x-powered-by')
-  app.use(cors({ origin: true, credentials: true }))
-  app.use(express.json({ limit: '1mb' }))
+  app.use(cors({
+    origin: createCorsOriginPolicy(env),
+    credentials: false,
+    exposedHeaders: ['cache-control', 'content-disposition', 'content-length', 'content-type'],
+  }))
+  app.use((_request, response, next) => {
+    response.setHeader('x-content-type-options', 'nosniff')
+    response.setHeader('x-frame-options', 'DENY')
+    response.setHeader('referrer-policy', 'no-referrer')
+    response.setHeader('permissions-policy', 'camera=(), geolocation=(), microphone=()')
+    response.setHeader('cross-origin-resource-policy', 'same-site')
+    response.setHeader('cache-control', 'no-store')
+    if (env.nodeEnv === 'production') {
+      response.setHeader('strict-transport-security', 'max-age=31536000; includeSubDomains')
+    }
+    next()
+  })
+  app.use(express.json({ limit: env.jsonBodyLimit }))
   app.use((request, _response, next) => {
     ;(request as RuntimeRequest).runtime = runtime
     next()
@@ -42,19 +72,53 @@ export function createReeditProApiApp(env: RuntimeEnv): Express {
 
   app.use(createHealthRoutes())
   app.use(createProjectRoutes())
-  app.use(createProjectEditSessionRoutes())
-  app.use(createProjectEditBriefLocalRoutes())
-  app.use(createProjectEditPlanRoutes())
+  app.use(createEditPreferenceRoutes())
+  app.use(createExactEditPreferenceRoutes())
+  app.use(createPreferenceIntelligenceRoutes())
+  app.use(createEditBriefAuthorityRoutes())
+  app.use(createInternalEditStateRoutes())
   app.use(createChatRoutes())
   app.use(createUploadRoutes())
+  app.use(createEditPlanningAuthorityRoutes())
   app.use(createApprovalRoutes())
   app.use(createCreditRoutes())
+  app.use(createCreditDataRoutes())
+  app.use(createCreditEstimateRoutes())
+  app.use(createToolCostRoutes())
+  app.use(createEditExecutionRoutes({
+    includeInternalTestRoutes: isExplicitLocalInternalTestRuntime(env),
+  }))
   app.use(createJobRoutes())
   app.use(createWorkerRoutes())
   app.use(createRenderRoutes())
   app.use(createProviderGatewayRoutes())
-  app.use(createQwenMarkerChatBetaRoutes())
 
   app.use(errorHandlerMiddleware)
   return app
+}
+
+function createCorsOriginPolicy(env: RuntimeEnv) {
+  const configuredOrigins = new Set(env.allowedCorsOrigins)
+  const localOriginsAllowed = env.nodeEnv !== 'production' && (env.mode === 'local' || env.mode === 'mock')
+
+  return (origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) => {
+    if (!origin || configuredOrigins.has(origin)) {
+      callback(null, true)
+      return
+    }
+
+    if (localOriginsAllowed) {
+      try {
+        const hostname = new URL(origin).hostname
+        if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+          callback(null, true)
+          return
+        }
+      } catch {
+        // Invalid origins fail closed below.
+      }
+    }
+
+    callback(null, false)
+  }
 }

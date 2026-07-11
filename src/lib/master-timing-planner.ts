@@ -237,7 +237,7 @@ function createTranscriptTimingPlan(params: {
     lines,
     phraseBoundaryCueIds: lines.map((line) => `speech-cue-${line.id}`),
     emotionalPauseCueIds: lines.filter((line) => line.lineType === 'emotion').map((line) => `pause-cue-${line.id}`),
-    limitations: ['No real transcript alignment has run; these lines are deterministic mock timing from the edit plan.'],
+    limitations: ['Transcript alignment remains backend-gated; these lines are deterministic timing estimates from the edit plan.'],
     qaChecks: ['Speech timing must be verified by future transcript alignment before production execution.'],
   }
 }
@@ -562,7 +562,7 @@ function createRemotionLayerTimingItems(params: {
       timeRange: captionLayerRange,
       zIndex: 90,
       reason: 'Captions stay above visuals and masks.',
-      qaChecks: ['Captions above visual layers.', 'Caption timing derives from transcript mock timing.'],
+      qaChecks: ['Captions above visual layers.', 'Caption timing derives from transcript timing estimates.'],
     },
     ...params.transitionTimingItems.map<RemotionLayerTimingItem>((item, index) => ({
       id: `remotion-layer-${item.id}`,
@@ -608,7 +608,7 @@ function createTimingQaChecks(params: {
       'Confirm output frame before approval.',
     ),
     check('timing-qa-final-segments', 'Final segments have frame ranges', 'high', params.finalTimelineSegments.every((segment) => segment.finalRange.durationFrames >= 0), 'Every final segment has non-negative frame timing.'),
-    check('timing-qa-caption-readable', 'Caption readability timing', 'medium', params.captionTimingItems.every((item) => item.timeRange.durationFrames >= 30), 'Caption cues have readable mock duration.'),
+    check('timing-qa-caption-readable', 'Caption readability timing', 'medium', params.captionTimingItems.every((item) => item.timeRange.durationFrames >= 30), 'Caption cues have readable estimated duration.'),
     check('timing-qa-visual-read-time', 'Visual read time', 'medium', params.visualTimingItems.every((item) => item.timeRange.durationFrames >= item.revealFrames + item.exitFrames), 'Visual cues have reveal, hold, and exit timing.'),
     check('timing-qa-transitions', 'Transitions avoid negative ranges', 'medium', params.transitionTimingItems.every((item) => item.timeRange.durationFrames >= 0), 'Transition ranges are frame-safe.'),
     check('timing-qa-sfx-justified', 'SFX justified', 'medium', params.sfxTimingItems.every((item) => item.reason.toLowerCase().includes('justified') || item.reason.toLowerCase().includes('transition')), 'SFX cues are tied to visual or transition cues.'),
@@ -703,7 +703,7 @@ export function createMasterTimingPlan(params: CreateMasterTimingPlanParams): Ma
       priority: 'speech_clarity',
       snapMode: 'speech_boundary',
       linkedTranscriptLineId: item.linkedTranscriptLineId,
-      reason: 'Caption cue follows mock transcript line timing.',
+      reason: 'Caption cue follows estimated transcript line timing.',
       qaChecks: item.qaChecks,
     })),
     ...visualTimingItems.map((item) => createTimingCue({
@@ -727,7 +727,7 @@ export function createMasterTimingPlan(params: CreateMasterTimingPlanParams): Ma
       ? 'Timing is draft until the output frame is confirmed; approval remains blocked.'
       : trimReviewBlocked
         ? 'Timing is blocked until TrimReviewPlan resolves retake/meaning preservation review.'
-        : `Frame-accurate mock timing is planned at ${fps}fps with ${finalFrames} final frames.`,
+        : `Frame-accurate timing is planned at ${fps}fps with ${finalFrames} final frames.`,
     sourceCleanupPlanId: params.input.sourceCleanupPlan?.id,
     timingBase: {
       fps,
@@ -769,13 +769,13 @@ export function createMasterTimingPlan(params: CreateMasterTimingPlanParams): Ma
       'SFX must be justified and must not cover speech.',
       'Music ducking protects voice clarity.',
       'Provider clips are assets placed by Remotion, not final canvases.',
-      'No real transcript alignment, beat detection, audio analysis, rendering, provider call, or worker execution has run.',
+      'Transcript alignment, beat detection, audio analysis, rendering, provider calls, and worker execution remain backend-gated.',
     ],
     qaChecks,
     limitations: [
-      'No real transcript alignment has run.',
-      'No real beat detection or AudioFlux analysis has run.',
-      'No FFmpeg, Signalsmith Stretch, Remotion rendering, provider call, backend worker, or media processing has run.',
+      'Transcript alignment remains backend-gated.',
+      'Beat detection and AudioFlux analysis remain backend-gated.',
+      'FFmpeg, Signalsmith Stretch, rendering, provider calls, backend workers, and media processing require approved execution gates.',
       status === 'needs_frame_confirmation'
         ? 'Timing cannot be approved until the output frame is confirmed.'
         : 'Timing is ready as mock planning metadata, but production timing still needs future media/transcript/audio workers.',

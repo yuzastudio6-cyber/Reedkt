@@ -1,7 +1,10 @@
 import dotenv from 'dotenv'
 import { z } from 'zod'
 
-dotenv.config({ quiet: true })
+dotenv.config({
+  quiet: true,
+  path: process.env.REEDITPRO_DISABLE_DOTENV === 'true' ? [] : undefined,
+})
 
 export type E2ERuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
 export type StorageMode = 'local' | 'gcs_disabled' | 'gcs'
@@ -11,7 +14,11 @@ export interface RuntimeEnv {
   nodeEnv: string
   mode: E2ERuntimeMode
   apiPort: number
+  jsonBodyLimit: string
+  allowedCorsOrigins: string[]
+  internalServiceToken?: string
   allowMockWithoutSupabase: boolean
+  allowInternalTestExecutionWithSupabase: boolean
   storageMode: StorageMode
   localStorageRoot: string
   signedUrlTtlSeconds: number
@@ -39,6 +46,8 @@ export interface RuntimeEnv {
   ffprobeBin: string
   remotionBin: string
   pythonBin: string
+  toolAdapterPythonBin: string
+  toolAdapterPythonBinConfigured: boolean
   playwrightBin: string
   providerSecretReferenceNames: Record<string, string | undefined>
   hasSupabaseAdmin: boolean
@@ -48,11 +57,15 @@ export interface RuntimeEnv {
 }
 
 const envSchema = z.object({
-  NODE_ENV: z.string().default('development'),
-  API_PORT: z.coerce.number().int().positive().max(65535).default(8787),
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  API_PORT: z.coerce.number().int().positive().max(65535).optional(),
+  API_JSON_BODY_LIMIT: z.string().default('8mb'),
+  API_ALLOWED_CORS_ORIGINS: z.string().optional(),
+  REEDITPRO_INTERNAL_SERVICE_TOKEN: z.string().optional(),
   PORT: z.coerce.number().int().positive().max(65535).optional(),
   E2E_RUNTIME_MODE: z.enum(['local', 'mock', 'cloud_run', 'disabled']).default('local'),
   API_ALLOW_MOCK_WITHOUT_SUPABASE: z.string().optional(),
+  API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE: z.string().optional(),
   STORAGE_MODE: z.enum(['local', 'gcs_disabled', 'gcs']).default('local'),
   LOCAL_STORAGE_ROOT: z.string().default('.reeditpro-local-storage'),
   SIGNED_URL_TTL_SECONDS: z.coerce.number().int().positive().max(86400).default(900),
@@ -82,6 +95,7 @@ const envSchema = z.object({
   FFPROBE_BIN: z.string().default('ffprobe'),
   REMOTION_BIN: z.string().default('npx remotion'),
   PYTHON_BIN: z.string().default('python'),
+  TOOL_ADAPTER_PYTHON_BIN: z.string().optional(),
   PLAYWRIGHT_BIN: z.string().default('npx playwright'),
   GOOGLE_SECRET_OPENAI_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_WAN_API_KEY_NAME: z.string().optional(),
@@ -98,8 +112,12 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
   const supabaseAnonKey = clean(parsed.SUPABASE_ANON_KEY) ?? clean(parsed.VITE_SUPABASE_ANON_KEY)
   const supabaseServiceRoleKey = clean(parsed.SUPABASE_SERVICE_ROLE_KEY)
   const allowMockWithoutSupabase = parseBoolean(parsed.API_ALLOW_MOCK_WITHOUT_SUPABASE)
+  const allowedCorsOrigins = parseCorsOrigins(parsed.API_ALLOWED_CORS_ORIGINS)
+  const internalServiceToken = clean(parsed.REEDITPRO_INTERNAL_SERVICE_TOKEN)
+  const allowInternalTestExecutionWithSupabase = parseBoolean(parsed.API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE)
   const hasSupabaseAdmin = Boolean(supabaseUrl && supabaseServiceRoleKey)
   const hasSupabasePublic = Boolean(supabaseUrl && supabaseAnonKey)
+  const toolAdapterPythonBin = clean(parsed.TOOL_ADAPTER_PYTHON_BIN) ?? parsed.PYTHON_BIN
   const mockOnly = parsed.E2E_RUNTIME_MODE === 'mock' || parsed.E2E_RUNTIME_MODE === 'disabled' || !hasSupabaseAdmin
   const warnings: string[] = []
 
@@ -111,8 +129,22 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     warnings.push('API_ALLOW_MOCK_WITHOUT_SUPABASE is false; server startup should fail unless Supabase admin env is configured.')
   }
 
+  if (parsed.NODE_ENV === 'production' && allowedCorsOrigins.length === 0) {
+    warnings.push('API_ALLOWED_CORS_ORIGINS is empty; browser cross-origin API access will be denied in production.')
+  }
+
+  if (parsed.NODE_ENV === 'production' && !internalServiceToken) {
+    warnings.push('REEDITPRO_INTERNAL_SERVICE_TOKEN is missing; internal worker/provider routes cannot start securely.')
+  }
+
   if (hasSupabaseAdmin && parsed.E2E_RUNTIME_MODE === 'mock') {
     warnings.push('Supabase admin env is present, but E2E_RUNTIME_MODE=mock keeps runtime in mock-only mode.')
+  }
+
+  if (allowInternalTestExecutionWithSupabase) {
+    warnings.push(
+      'API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE is enabled; approved source-upload and edit-execution routes may use local/in-memory internal-test persistence while Supabase auth is configured.',
+    )
   }
 
   if (parsed.STORAGE_MODE === 'gcs' && !hasRequiredGcsBuckets(parsed)) {
@@ -123,7 +155,11 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     nodeEnv: parsed.NODE_ENV,
     mode: parsed.E2E_RUNTIME_MODE,
     apiPort: parsed.API_PORT ?? parsed.PORT ?? 8787,
+    jsonBodyLimit: clean(parsed.API_JSON_BODY_LIMIT) ?? '8mb',
+    allowedCorsOrigins,
+    internalServiceToken,
     allowMockWithoutSupabase,
+    allowInternalTestExecutionWithSupabase,
     storageMode: parsed.STORAGE_MODE,
     localStorageRoot: parsed.LOCAL_STORAGE_ROOT,
     signedUrlTtlSeconds: parsed.SIGNED_URL_TTL_SECONDS,
@@ -151,6 +187,8 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     ffprobeBin: parsed.FFPROBE_BIN,
     remotionBin: parsed.REMOTION_BIN,
     pythonBin: parsed.PYTHON_BIN,
+    toolAdapterPythonBin,
+    toolAdapterPythonBinConfigured: Boolean(clean(parsed.TOOL_ADAPTER_PYTHON_BIN)),
     playwrightBin: parsed.PLAYWRIGHT_BIN,
     providerSecretReferenceNames: {
       openai: clean(parsed.GOOGLE_SECRET_OPENAI_API_KEY_NAME),
@@ -169,8 +207,40 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
 }
 
 export function assertRuntimeCanStart(env: RuntimeEnv): void {
+  if (env.allowMockWithoutSupabase && (env.nodeEnv === 'production' || !['local', 'mock'].includes(env.mode))) {
+    throw new Error('API_ALLOW_MOCK_WITHOUT_SUPABASE is restricted to non-production local/mock runtimes.')
+  }
+
+  if (env.nodeEnv === 'production' && env.allowInternalTestExecutionWithSupabase) {
+    throw new Error('API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE is forbidden in production.')
+  }
+
+  if (env.nodeEnv === 'production' && (env.mode === 'local' || env.mode === 'mock')) {
+    throw new Error('Production E2E_RUNTIME_MODE must not use local or mock execution.')
+  }
+
+  if (env.nodeEnv === 'production' && (env.workerRuntimeMode === 'local' || env.workerRuntimeMode === 'mock')) {
+    throw new Error('Production WORKER_RUNTIME_MODE must not use local or mock execution.')
+  }
+
+  if (env.nodeEnv === 'production' && env.storageMode === 'local') {
+    throw new Error('Production STORAGE_MODE must not use local storage.')
+  }
+
   if (!env.hasSupabaseAdmin && !env.allowMockWithoutSupabase) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing. Set API_ALLOW_MOCK_WITHOUT_SUPABASE=true for explicit local mock mode.')
+  }
+
+  if (env.nodeEnv === 'production' && !env.hasSupabasePublic) {
+    throw new Error('SUPABASE_ANON_KEY is required for production bearer-token verification.')
+  }
+
+  if (env.nodeEnv === 'production' && env.allowedCorsOrigins.length === 0) {
+    throw new Error('API_ALLOWED_CORS_ORIGINS must contain at least one exact browser origin in production.')
+  }
+
+  if (env.nodeEnv === 'production' && !env.internalServiceToken) {
+    throw new Error('REEDITPRO_INTERNAL_SERVICE_TOKEN is required for production internal control-plane routes.')
   }
 }
 
@@ -179,7 +249,10 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
     nodeEnv: env.nodeEnv,
     mode: env.mode,
     apiPort: env.apiPort,
+    allowedCorsOriginCount: env.allowedCorsOrigins.length,
+    internalServiceAuthConfigured: Boolean(env.internalServiceToken),
     allowMockWithoutSupabase: env.allowMockWithoutSupabase,
+    allowInternalTestExecutionWithSupabase: env.allowInternalTestExecutionWithSupabase,
     storageMode: env.storageMode,
     localStorageRootConfigured: Boolean(env.localStorageRoot),
     signedUrlTtlSeconds: env.signedUrlTtlSeconds,
@@ -209,6 +282,7 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
       ffprobeBinConfigured: Boolean(env.ffprobeBin),
       remotionBinConfigured: Boolean(env.remotionBin),
       pythonBinConfigured: Boolean(env.pythonBin),
+      toolAdapterPythonBinConfigured: env.toolAdapterPythonBinConfigured,
       playwrightBinConfigured: Boolean(env.playwrightBin),
     },
     providerSecretReferenceNamesConfigured: Object.fromEntries(
@@ -226,6 +300,38 @@ function parseBoolean(value: string | undefined): boolean {
 function clean(value: string | undefined): string | undefined {
   const trimmed = value?.trim()
   return trimmed ? trimmed : undefined
+}
+
+function parseCorsOrigins(value: string | undefined): string[] {
+  const origins = Array.from(new Set(
+    (value ?? '')
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean),
+  ))
+
+  for (const origin of origins) {
+    let parsed: URL
+    try {
+      parsed = new URL(origin)
+    } catch {
+      throw new Error(`API_ALLOWED_CORS_ORIGINS contains an invalid origin: ${origin}`)
+    }
+
+    if (
+      !['http:', 'https:'].includes(parsed.protocol) ||
+      parsed.origin !== origin ||
+      parsed.username ||
+      parsed.password ||
+      parsed.pathname !== '/' ||
+      parsed.search ||
+      parsed.hash
+    ) {
+      throw new Error(`API_ALLOWED_CORS_ORIGINS must contain exact http(s) origins without paths, credentials, queries, or wildcards: ${origin}`)
+    }
+  }
+
+  return origins
 }
 
 function hasRequiredGcsBuckets(parsed: z.infer<typeof envSchema>): boolean {

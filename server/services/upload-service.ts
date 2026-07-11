@@ -1,11 +1,32 @@
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
+import { createReadStream, createWriteStream } from 'node:fs'
+import { mkdir, rm, stat } from 'node:fs/promises'
+import path from 'node:path'
 import type { Readable } from 'node:stream'
+import { pipeline } from 'node:stream/promises'
 import { ApiError } from '../errors/api-error'
+import { probeMediaFile } from '../media/ffprobe'
 import { createStorageAdapter, resolveBucketName } from '../storage/storage-adapter'
-import { buildCanonicalObjectPath } from '../storage/storage-paths'
-import { assertAllowedUpload } from '../storage/storage-validation'
-import type { ObjectMetadata, UploadPurpose, UploadTarget } from '../storage/storage-types'
+import { buildCanonicalObjectPath, normalizeStoragePath } from '../storage/storage-paths'
+import { assertAllowedUpload, assertLocalRawUploadByteLength } from '../storage/storage-validation'
+import type { ObjectMetadata, StorageAdapter, UploadPurpose, UploadTarget } from '../storage/storage-types'
 import type { ServiceContext } from '../types'
+import type {
+  PrivateMediaAssetAuthorityRecord,
+  PrivateStorageObjectAuthorityRecord,
+  PrivateUploadIntentAuthorityRecord,
+} from '../validation/private-upload-media-authority-schemas'
+import {
+  commitPrivateFinalizedUploadAuthority,
+  createPrivateUploadIntentAuthority,
+  loadPrivateFinalizedMediaAuthority,
+  loadPrivateStorageObjectAuthority,
+  loadPrivateUploadIntentAuthority,
+  privateUploadMediaAuthorityValueHash,
+  transitionPrivateUploadIntentAuthority,
+  type PrivateUploadMediaAuthorityScope,
+} from './private-upload-media-authority-store'
+import { createProjectService } from './project-service'
 import { getRequiredAuthUserId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
 
 interface CreateUploadIntentInput {
@@ -17,6 +38,7 @@ interface CreateUploadIntentInput {
   mimeType: string
   expectedSizeBytes?: number
   checksumSha256?: string
+  idempotencyKey?: string
 }
 
 interface FinalizeUploadIntentInput {
@@ -64,12 +86,19 @@ interface StorageObjectView {
   projectId?: string
   mediaAssetId?: string
   uploadIntentId?: string
+  uploadPurpose?: 'source_media' | 'reference_media'
+  storageProvider?: 'local_private' | 'google_cloud_storage'
   bucketName: string
   objectPath: string
   objectPurpose: string
   mimeType?: string
   sizeBytes?: number
   checksumSha256?: string
+  generation?: string
+  etag?: string
+  metageneration?: string
+  integrityVerified?: true
+  checksumSource?: 'server_computed_bytes'
   region?: string
   status: string
   createdAt: string
@@ -81,17 +110,42 @@ interface MediaAssetView {
   id: string
   workspaceId: string
   projectId: string
+  uploadIntentId?: string
+  storageObjectRecordId?: string
+  uploadPurpose?: 'source_media' | 'reference_media'
   assetType: string
   fileName: string
   mimeType: string
+  storageProvider?: string
   storageBucket: string
   storagePath: string
   sizeBytes?: number
   checksumSha256?: string
+  storageGeneration?: string
+  storageEtag?: string
+  storageMetageneration?: string
+  integrityVerified?: true
+  checksumSource?: 'server_computed_bytes'
+  sourceMetadata?: SourceMediaMetadataView
   status: string
   createdAt: string
   updatedAt: string
   mockOnly?: boolean
+}
+
+interface SourceMediaMetadataView {
+  probeStatus: 'probed' | 'unavailable'
+  source: 'local_ffprobe' | 'gcs_ffprobe'
+  durationSeconds?: number
+  width?: number
+  height?: number
+  videoCodec?: string
+  audioCodec?: string
+  formatName?: string
+  streamCount?: number
+  hasVideo: boolean
+  hasAudio: boolean
+  unavailableReason?: string
 }
 
 interface LocalObjectUploadView {
@@ -105,14 +159,13 @@ interface LocalObjectUploadView {
   temporaryMetadataOnly: boolean
 }
 
-const mockUploadIntents = new Map<string, UploadIntentView>()
-const mockStorageObjects = new Map<string, StorageObjectView>()
-const mockStorageObjectByUploadIntent = new Map<string, string>()
-const mockMediaAssets = new Map<string, MediaAssetView>()
-
-export function getMockMediaAsset(mediaAssetId: string): MediaAssetView | undefined {
-  return mockMediaAssets.get(mediaAssetId)
-}
+type UserStorageAccessPurpose =
+  | 'metadata'
+  | 'download'
+  | 'preview_review'
+  | 'thumbnail'
+  | 'qa_review'
+  | 'export_delivery'
 
 export function registerBackendLocalStorageObjectRecord(input: {
   id: string
@@ -146,11 +199,63 @@ export function registerBackendLocalStorageObjectRecord(input: {
 }
 
 export function createUploadService(context: ServiceContext) {
-  const storage = createStorageAdapter(context.env)
+  const storage = context.storageAdapter ?? createStorageAdapter(context.env)
 
   return {
+    async authorizeCreateUploadIntent(input: CreateUploadIntentInput) {
+      await assertUploadProjectOwnedByCurrentUser(context, input.projectId, input.workspaceId)
+      assertProductionUploadUsesDirectObjectStorage(context, storage)
+      assertUserInitiatedUploadPurpose(input.uploadPurpose)
+      assertAllowedUpload({
+        purpose: input.uploadPurpose,
+        mimeType: input.mimeType,
+        expectedSizeBytes: input.expectedSizeBytes,
+      })
+    },
+
+    async authorizeUploadIntentWrite(uploadIntentId: string, workspaceId: string) {
+      const uploadIntent = await loadUploadIntent(context, uploadIntentId, workspaceId)
+      await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, workspaceId)
+      assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
+    },
+
+    async authorizeLocalObjectUpload(
+      uploadIntentId: string,
+      workspaceId: string,
+      mimeType: string | undefined,
+      declaredContentLength: number,
+    ) {
+      assertLocalRawUploadRuntimeEnabled(context, storage)
+      assertLocalRawUploadByteLength(declaredContentLength)
+      const uploadIntent = await loadUploadIntent(context, uploadIntentId, workspaceId)
+      await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, workspaceId)
+      assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
+      assertLocalUploadRequestMatchesIntent(uploadIntent, mimeType, declaredContentLength)
+    },
+
+    async authorizeSignedUrlEvent(input: SignedUrlEventInput) {
+      await assertSignedUrlEventAccess(context, input)
+    },
+
+    async authorizeStorageObjectRead(
+      storageObjectRecordId: string,
+      workspaceId: string,
+      accessPurpose: string,
+    ) {
+      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId, workspaceId)
+      assertStorageObjectWorkspace(storageObjectRecord, workspaceId)
+      await assertStorageObjectAccessibleByCurrentUser(
+        context,
+        storageObjectRecord,
+        normalizeUserStorageAccessPurpose(accessPurpose),
+      )
+    },
+
     async createUploadIntent(input: CreateUploadIntentInput) {
       const userId = getRequiredAuthUserId(context)
+      await assertUploadProjectOwnedByCurrentUser(context, input.projectId, input.workspaceId)
+      assertProductionUploadUsesDirectObjectStorage(context, storage)
+      assertUserInitiatedUploadPurpose(input.uploadPurpose)
       assertAllowedUpload({
         purpose: input.uploadPurpose,
         mimeType: input.mimeType,
@@ -169,15 +274,18 @@ export function createUploadService(context: ServiceContext) {
         fileName: input.originalFileName,
       })
 
-      const uploadTarget = await storage.createUploadTarget({
+      let uploadTarget = await storage.createUploadTarget({
         uploadIntentId,
+        workspaceId: input.workspaceId,
+        projectId: input.projectId,
         bucketName: targetBucket,
         objectPath: targetPath,
         mimeType: input.mimeType,
+        checksumSha256: normalizeChecksumSha256(input.checksumSha256),
         expiresAt,
       })
 
-      if (!context.clients.admin || context.env.mockOnly) {
+      if (usesLocalUploadPersistence(context)) {
         const uploadIntent: UploadIntentView = {
           id: uploadIntentId,
           workspaceId: input.workspaceId,
@@ -197,18 +305,48 @@ export function createUploadService(context: ServiceContext) {
           updatedAt: now,
           mockOnly: true,
         }
-        mockUploadIntents.set(uploadIntent.id, uploadIntent)
+        const persistedUploadIntent = await createPrivateUploadIntentAuthority({
+          scope: privateUploadMediaAuthorityScope(context, input.workspaceId),
+          uploadIntent: toPrivateUploadIntentAuthorityRecord(uploadIntent),
+          idempotencyKey: input.idempotencyKey,
+          requestHash: input.idempotencyKey
+            ? privateUploadMediaAuthorityValueHash({
+                operation: 'create_upload_intent',
+                workspaceId: input.workspaceId,
+                projectId: input.projectId,
+                chatSessionId: input.chatSessionId,
+                uploadPurpose: input.uploadPurpose,
+                originalFileName: input.originalFileName,
+                mimeType: normalizeMimeType(input.mimeType),
+                expectedSizeBytes: input.expectedSizeBytes,
+                checksumSha256: normalizeChecksumSha256(input.checksumSha256),
+              })
+            : undefined,
+          now,
+        })
+        if (persistedUploadIntent.id !== uploadIntentId) {
+          uploadTarget = await storage.createUploadTarget({
+            uploadIntentId: persistedUploadIntent.id,
+            workspaceId: persistedUploadIntent.workspaceId,
+            projectId: persistedUploadIntent.projectId,
+            bucketName: persistedUploadIntent.targetBucket,
+            objectPath: persistedUploadIntent.targetPath,
+            mimeType: persistedUploadIntent.mimeType,
+            checksumSha256: persistedUploadIntent.checksumSha256,
+            expiresAt: persistedUploadIntent.expiresAt,
+          })
+        }
         const signedUrlEvent = await recordSignedUrlEvent(context, {
           workspaceId: input.workspaceId,
           projectId: input.projectId,
-          uploadIntentId,
+          uploadIntentId: persistedUploadIntent.id,
           urlPurpose: 'upload',
           expiresAt,
           metadataJson: uploadTargetMetadata(storage.mode, uploadTarget, targetBucket, targetPath),
         })
 
         return {
-          uploadIntent,
+          uploadIntent: persistedUploadIntent,
           uploadTarget,
           signedUrlEvent: signedUrlEvent.signedUrlEvent,
           warnings: [
@@ -218,7 +356,8 @@ export function createUploadService(context: ServiceContext) {
         }
       }
 
-      const { data, error } = await context.clients.admin
+      const adminClient = getRequiredUploadAdminClient(context)
+      const { data, error } = await adminClient
         .from('upload_intents')
         .insert({
           id: uploadIntentId,
@@ -256,29 +395,48 @@ export function createUploadService(context: ServiceContext) {
       }
     },
 
-    async uploadLocalObject(uploadIntentId: string, body: Buffer, mimeType?: string) {
-      if (storage.mode !== 'local') {
-        throw new ApiError('MOCK_ONLY', 'Local object upload route is available only when STORAGE_MODE=local.', 409)
+    async uploadLocalObject(
+      uploadIntentId: string,
+      workspaceId: string,
+      body: Buffer,
+      mimeType?: string,
+      declaredContentLength?: number,
+    ) {
+      assertLocalRawUploadRuntimeEnabled(context, storage)
+      assertLocalRawUploadByteLength(body.byteLength)
+      if (declaredContentLength !== undefined && body.byteLength !== declaredContentLength) {
+        throw new ApiError('VALIDATION_FAILED', 'Local raw upload body size does not match Content-Length.', 400, {
+          declaredContentLength,
+          actualSizeBytes: body.byteLength,
+        })
       }
-
-      const uploadIntent = await loadUploadIntent(context, uploadIntentId)
+      const uploadIntent = await loadUploadIntent(context, uploadIntentId, workspaceId)
+      await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, workspaceId)
+      assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
       if (uploadIntent.status === 'finalized') {
         throw new ApiError('UPLOAD_NOT_FINALIZED', 'Upload intent is already finalized.', 409)
       }
+      assertLocalUploadRequestMatchesIntent(uploadIntent, mimeType, body.byteLength)
+      const expectedMimeType = normalizeMimeType(uploadIntent.mimeType)
+      assertAllowedUpload({
+        purpose: uploadIntent.uploadPurpose,
+        mimeType: expectedMimeType,
+        expectedSizeBytes: body.byteLength,
+      })
 
       const metadata = await storage.putObject({
         bucketName: uploadIntent.targetBucket,
         objectPath: uploadIntent.targetPath,
         body,
-        mimeType: mimeType ?? uploadIntent.mimeType,
+        mimeType: expectedMimeType,
       })
 
-      await markUploadIntentUploaded(context, uploadIntentId)
+      await markUploadIntentUploaded(context, uploadIntentId, workspaceId)
       const localObjectUpload: LocalObjectUploadView = {
         uploadIntentId,
         bucketName: metadata.bucketName,
         objectPath: metadata.objectPath,
-        mimeType: mimeType ?? uploadIntent.mimeType,
+        mimeType: expectedMimeType,
         sizeBytes: metadata.sizeBytes,
         checksumSha256: metadata.checksumSha256,
         status: 'uploaded',
@@ -292,24 +450,97 @@ export function createUploadService(context: ServiceContext) {
     },
 
     async finalizeUploadIntent(input: FinalizeUploadIntentInput) {
-      const uploadIntent = await loadUploadIntent(context, input.uploadIntentId)
-      if (uploadIntent.workspaceId !== input.workspaceId) {
-        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload intent does not belong to the requested workspace.', 403)
-      }
+      const uploadIntent = await loadUploadIntent(context, input.uploadIntentId, input.workspaceId)
+      await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, input.workspaceId)
+      assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
 
       if (uploadIntent.status === 'finalized' && uploadIntent.mediaAssetId) {
-        return loadFinalizedUploadResult(uploadIntent)
+        return loadFinalizedUploadResult(context, uploadIntent)
       }
 
-      const metadata = await storage.verifyUploadedObject({
-        bucketName: uploadIntent.targetBucket,
-        objectPath: uploadIntent.targetPath,
-        expectedSizeBytes: input.sizeBytes ?? uploadIntent.expectedSizeBytes,
-        checksumSha256: input.checksumSha256 ?? uploadIntent.checksumSha256,
-      })
+      if (
+        uploadIntent.expectedSizeBytes !== undefined &&
+        input.sizeBytes !== undefined &&
+        input.sizeBytes !== uploadIntent.expectedSizeBytes
+      ) {
+        throw new ApiError('VALIDATION_FAILED', 'Finalized upload size cannot override the upload-intent size.', 400, {
+          uploadIntentId: uploadIntent.id,
+          expectedSizeBytes: uploadIntent.expectedSizeBytes,
+          suppliedSizeBytes: input.sizeBytes,
+        })
+      }
+      const intentChecksumSha256 = normalizeChecksumSha256(uploadIntent.checksumSha256)
+      const suppliedChecksumSha256 = normalizeChecksumSha256(input.checksumSha256)
+      if (intentChecksumSha256 && suppliedChecksumSha256 && intentChecksumSha256 !== suppliedChecksumSha256) {
+        throw new ApiError('VALIDATION_FAILED', 'Finalized upload checksum cannot override the upload-intent checksum.', 400, {
+          uploadIntentId: uploadIntent.id,
+        })
+      }
+      const expectedChecksumSha256 = intentChecksumSha256 ?? suppliedChecksumSha256
+      let verifiedMetadata: ObjectMetadata
+      try {
+        verifiedMetadata = await storage.verifyUploadedObject({
+          bucketName: uploadIntent.targetBucket,
+          objectPath: uploadIntent.targetPath,
+          expectedSizeBytes: uploadIntent.expectedSizeBytes ?? input.sizeBytes,
+          checksumSha256: expectedChecksumSha256,
+        })
+      } catch (error) {
+        await markUploadIntentFailed(context, uploadIntent.id, uploadIntent.workspaceId)
+        throw error
+      }
 
-      const mediaAsset = await createMediaAsset(context, uploadIntent, metadata)
-      const storageObjectRecord = await createStorageObjectRecord(context, uploadIntent, metadata, mediaAsset.id)
+      let metadata: ObjectMetadata
+      try {
+        metadata = requireCanonicalSourceChecksum(uploadIntent, verifiedMetadata, storage.mode)
+      } catch (error) {
+        await cleanupRejectedUploadedObject(storage, verifiedMetadata)
+        await markUploadIntentFailed(context, uploadIntent.id, uploadIntent.workspaceId)
+        throw error
+      }
+      assertAllowedUpload({
+        purpose: uploadIntent.uploadPurpose,
+        mimeType: uploadIntent.mimeType,
+        expectedSizeBytes: metadata.sizeBytes,
+      })
+      if (metadata.mimeType && normalizeMimeType(metadata.mimeType) !== normalizeMimeType(uploadIntent.mimeType)) {
+        await cleanupRejectedUploadedObject(storage, metadata)
+        await markUploadIntentFailed(context, uploadIntent.id, uploadIntent.workspaceId)
+        throw new ApiError('VALIDATION_FAILED', 'Uploaded object MIME type does not match the upload intent.', 400, {
+          uploadIntentId: uploadIntent.id,
+          expectedMimeType: normalizeMimeType(uploadIntent.mimeType),
+          actualMimeType: normalizeMimeType(metadata.mimeType),
+        })
+      }
+
+      const mediaAsset = await createMediaAsset(context, uploadIntent, metadata, storage)
+      const storageObjectRecord = await createStorageObjectRecord(context, uploadIntent, metadata, mediaAsset.id, storage)
+      if (usesLocalUploadPersistence(context)) {
+        const finalizedAt = nowIso()
+        const finalized = await commitPrivateFinalizedUploadAuthority({
+          scope: privateUploadMediaAuthorityScope(context, uploadIntent.workspaceId),
+          uploadIntentId: uploadIntent.id,
+          mediaAsset: toPrivateMediaAssetAuthorityRecord(
+            mediaAsset,
+            uploadIntent,
+            storageObjectRecord,
+            metadata,
+          ),
+          storageObject: toPrivateStorageObjectAuthorityRecord(
+            storageObjectRecord,
+            uploadIntent,
+            mediaAsset,
+            metadata,
+          ),
+          now: finalizedAt,
+        })
+        return {
+          uploadIntent: finalized.uploadIntent,
+          storageObjectRecord: finalized.storageObject,
+          mediaAsset: finalized.mediaAsset,
+          warnings: ['Upload finalized into restart-safe private source-media authority; no signed URL was stored.'],
+        }
+      }
       await finalizeUploadIntentRow(context, uploadIntent.id, mediaAsset.id)
 
       const finalizedIntent: UploadIntentView = {
@@ -319,8 +550,6 @@ export function createUploadService(context: ServiceContext) {
         mediaAssetId: mediaAsset.id,
         updatedAt: nowIso(),
       }
-      mockUploadIntents.set(finalizedIntent.id, finalizedIntent)
-
       return {
         uploadIntent: finalizedIntent,
         storageObjectRecord,
@@ -330,14 +559,14 @@ export function createUploadService(context: ServiceContext) {
     },
 
     async recordSignedUrlEvent(input: SignedUrlEventInput) {
+      await assertSignedUrlEventAccess(context, input)
       return recordSignedUrlEvent(context, input)
     },
 
     async getStorageObjectRecord(storageObjectRecordId: string, workspaceId: string) {
-      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId)
-      if (storageObjectRecord.workspaceId !== workspaceId) {
-        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object does not belong to the requested workspace.', 403)
-      }
+      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId, workspaceId)
+      assertStorageObjectWorkspace(storageObjectRecord, workspaceId)
+      await assertStorageObjectAccessibleByCurrentUser(context, storageObjectRecord, 'metadata')
 
       return {
         storageObjectRecord,
@@ -347,10 +576,10 @@ export function createUploadService(context: ServiceContext) {
     },
 
     async createDownloadTarget(storageObjectRecordId: string, workspaceId: string, urlPurpose = 'download') {
-      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId)
-      if (storageObjectRecord.workspaceId !== workspaceId) {
-        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object does not belong to the requested workspace.', 403)
-      }
+      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId, workspaceId)
+      assertStorageObjectWorkspace(storageObjectRecord, workspaceId)
+      const accessPurpose = normalizeUserStorageAccessPurpose(urlPurpose)
+      await assertStorageObjectAccessibleByCurrentUser(context, storageObjectRecord, accessPurpose)
 
       const expiresAt = new Date(Date.now() + context.env.signedUrlTtlSeconds * 1000).toISOString()
       const downloadTarget = await storage.createDownloadTarget({
@@ -359,6 +588,8 @@ export function createUploadService(context: ServiceContext) {
         objectPath: storageObjectRecord.objectPath,
         expiresAt,
         workspaceId,
+        generation: storageObjectRecord.generation,
+        etag: storageObjectRecord.etag,
       })
       const signedUrlEvent = await recordSignedUrlEvent(context, {
         workspaceId,
@@ -372,6 +603,8 @@ export function createUploadService(context: ServiceContext) {
           hasTemporaryTarget: Boolean(downloadTarget.downloadUrl),
           bucketName: storageObjectRecord.bucketName,
           objectPath: storageObjectRecord.objectPath,
+          generation: storageObjectRecord.generation,
+          etag: storageObjectRecord.etag,
         },
       })
 
@@ -382,6 +615,41 @@ export function createUploadService(context: ServiceContext) {
       }
     },
 
+    async getFinalizedSourceMediaAsset(
+      mediaAssetId: string,
+      workspaceId: string,
+      projectId: string,
+      expectedPurpose: 'source_media' | 'reference_media' = 'source_media',
+    ) {
+      await assertUploadProjectOwnedByCurrentUser(context, projectId, workspaceId)
+      if (!usesLocalUploadPersistence(context)) {
+        throw new ApiError(
+          'TOOL_NOT_READY',
+          'The private source-media authority loader is available only for explicit local/internal persistence.',
+          503,
+        )
+      }
+      const authority = await loadPrivateFinalizedMediaAuthority(
+        privateUploadMediaAuthorityScope(context, workspaceId),
+        mediaAssetId,
+      )
+      if (
+        !authority ||
+        authority.uploadIntent.projectId !== projectId ||
+        authority.uploadIntent.uploadPurpose !== expectedPurpose ||
+        authority.mediaAsset.projectId !== projectId ||
+        authority.storageObject.projectId !== projectId
+      ) {
+        throw new ApiError(
+          'UPLOAD_NOT_FINALIZED',
+          'Finalized source media was not found for the authenticated workspace, project, and purpose.',
+          409,
+          { mediaAssetId },
+        )
+      }
+      return authority
+    },
+
     async createLocalObjectStream(storageObjectRecordId: string, workspaceId: string): Promise<{
       stream: Readable
       storageObjectRecord: StorageObjectView
@@ -390,12 +658,21 @@ export function createUploadService(context: ServiceContext) {
         throw new ApiError('MOCK_ONLY', 'Local object reads are available only when STORAGE_MODE=local.', 409)
       }
 
-      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId)
-      if (storageObjectRecord.workspaceId !== workspaceId) {
-        throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object does not belong to the requested workspace.', 403)
-      }
+      const storageObjectRecord = await loadStorageObjectRecord(context, storageObjectRecordId, workspaceId)
+      assertStorageObjectWorkspace(storageObjectRecord, workspaceId)
+      await assertStorageObjectAccessibleByCurrentUser(context, storageObjectRecord, 'download')
 
-      const stream = await storage.createReadStream(storageObjectRecord.bucketName, storageObjectRecord.objectPath)
+      await storage.verifyUploadedObject({
+        bucketName: storageObjectRecord.bucketName,
+        objectPath: storageObjectRecord.objectPath,
+        expectedSizeBytes: storageObjectRecord.sizeBytes,
+        checksumSha256: normalizeChecksumSha256(storageObjectRecord.checksumSha256),
+      })
+      const stream = await storage.createReadStream(
+        storageObjectRecord.bucketName,
+        storageObjectRecord.objectPath,
+        { generation: storageObjectRecord.generation, etag: storageObjectRecord.etag },
+      )
       return { stream, storageObjectRecord }
     },
   }
@@ -411,13 +688,294 @@ function uploadTargetMetadata(
     targetType: storageMode === 'local' ? 'backend_local_put_route' : 'temporary_storage_target',
     uploadMethod: uploadTarget.uploadMethod,
     hasTemporaryTarget: Boolean(uploadTarget.uploadUrl),
+    createOnly: uploadTarget.createOnly,
     bucketName,
     objectPath,
   }
 }
 
+function normalizeChecksumSha256(value: string | undefined): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const normalized = value.trim().toLowerCase()
+  return /^[a-f0-9]{64}$/.test(normalized) ? normalized : undefined
+}
+
+function normalizeMimeType(value: string): string {
+  return value.trim().toLowerCase()
+}
+
+function assertProductionUploadUsesDirectObjectStorage(context: ServiceContext, storage: StorageAdapter): void {
+  if (context.env.nodeEnv === 'production' && storage.mode === 'local') {
+    throw new ApiError(
+      'MOCK_ONLY',
+      'Production media uploads require a signed/direct object-storage target; backend raw-body uploads are disabled.',
+      503,
+    )
+  }
+}
+
+function assertUserInitiatedUploadPurpose(purpose: UploadPurpose): void {
+  if (purpose !== 'source_media' && purpose !== 'reference_media') {
+    throw new ApiError(
+      'WORKSPACE_ACCESS_DENIED',
+      'This upload purpose is reserved for backend workers and explicit delivery workflows.',
+      403,
+    )
+  }
+}
+
+function assertLocalRawUploadRuntimeEnabled(context: ServiceContext, storage: StorageAdapter): void {
+  if (
+    context.env.nodeEnv === 'production' ||
+    (context.env.mode !== 'local' && context.env.mode !== 'mock') ||
+    storage.mode !== 'local'
+  ) {
+    throw new ApiError(
+      'MOCK_ONLY',
+      'Direct backend byte uploads are disabled for this runtime. Use the temporary signed/direct object-storage target returned by the upload-intent endpoint, then finalize the upload.',
+      409,
+    )
+  }
+}
+
+function assertLocalUploadRequestMatchesIntent(
+  uploadIntent: UploadIntentView,
+  mimeType: string | undefined,
+  sizeBytes: number,
+): void {
+  if (uploadIntent.status !== 'signed' && uploadIntent.status !== 'uploaded') {
+    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Upload intent is not open for local object writes.', 409)
+  }
+  const uploadedMimeType = normalizeMimeType(mimeType ?? '')
+  const expectedMimeType = normalizeMimeType(uploadIntent.mimeType)
+  if (!uploadedMimeType || uploadedMimeType !== expectedMimeType) {
+    throw new ApiError('VALIDATION_FAILED', 'Local object upload MIME type must match the upload intent.', 400, {
+      uploadIntentId: uploadIntent.id,
+      expectedMimeType,
+      uploadedMimeType,
+    })
+  }
+  if (uploadIntent.expectedSizeBytes !== undefined && sizeBytes !== uploadIntent.expectedSizeBytes) {
+    throw new ApiError('VALIDATION_FAILED', 'Local object upload size must match the upload intent.', 400, {
+      uploadIntentId: uploadIntent.id,
+      expectedSizeBytes: uploadIntent.expectedSizeBytes,
+      actualSizeBytes: sizeBytes,
+    })
+  }
+  assertLocalRawUploadByteLength(sizeBytes)
+  assertAllowedUpload({
+    purpose: uploadIntent.uploadPurpose,
+    mimeType: expectedMimeType,
+    expectedSizeBytes: sizeBytes,
+  })
+}
+
+function assertUploadIntentOwnedByCurrentUser(context: ServiceContext, uploadIntent: UploadIntentView): void {
+  const userId = getRequiredAuthUserId(context)
+  if (uploadIntent.requestedByUserId !== userId) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload intent does not belong to the authenticated user.', 403, {
+      uploadIntentId: uploadIntent.id,
+      workspaceId: uploadIntent.workspaceId,
+    })
+  }
+}
+
+async function assertUploadIntentAccessibleByCurrentUser(
+  context: ServiceContext,
+  uploadIntent: UploadIntentView,
+  workspaceId: string,
+): Promise<void> {
+  assertUploadIntentOwnedByCurrentUser(context, uploadIntent)
+  if (uploadIntent.workspaceId !== workspaceId) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload intent does not belong to the requested workspace.', 403)
+  }
+  await assertUploadProjectOwnedByCurrentUser(context, uploadIntent.projectId, uploadIntent.workspaceId)
+}
+
+async function assertStorageObjectAccessibleByCurrentUser(
+  context: ServiceContext,
+  storageObjectRecord: StorageObjectView,
+  accessPurpose: UserStorageAccessPurpose,
+): Promise<void> {
+  assertUserDeliveryBoundary(context, storageObjectRecord, accessPurpose)
+
+  let effectiveProjectId = storageObjectRecord.projectId
+  if (storageObjectRecord.uploadIntentId) {
+    const uploadIntent = await loadUploadIntent(
+      context,
+      storageObjectRecord.uploadIntentId,
+      storageObjectRecord.workspaceId,
+    )
+    await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, storageObjectRecord.workspaceId)
+    if (effectiveProjectId && effectiveProjectId !== uploadIntent.projectId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object project scope does not match its upload intent.', 403)
+    }
+    effectiveProjectId = effectiveProjectId ?? uploadIntent.projectId
+  }
+
+  if (!effectiveProjectId) {
+    throw new ApiError(
+      'WORKSPACE_ACCESS_DENIED',
+      'Storage object has no project-scoped user delivery boundary.',
+      403,
+      { storageObjectRecordId: storageObjectRecord.id },
+    )
+  }
+
+  await assertUploadProjectOwnedByCurrentUser(context, effectiveProjectId, storageObjectRecord.workspaceId)
+}
+
+function assertStorageObjectWorkspace(storageObjectRecord: StorageObjectView, workspaceId: string): void {
+  if (storageObjectRecord.workspaceId !== workspaceId) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Storage object does not belong to the requested workspace.', 403)
+  }
+}
+
+function assertUserDeliveryBoundary(
+  context: ServiceContext,
+  storageObjectRecord: StorageObjectView,
+  accessPurpose: UserStorageAccessPurpose,
+): void {
+  if (storageObjectRecord.status !== 'ready') {
+    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Storage object is not ready for user delivery.', 409)
+  }
+
+  const purpose = storageObjectRecord.objectPurpose
+  const isWorkerTempBucket = storageObjectRecord.bucketName === 'worker-temp' ||
+    Boolean(context.env.gcsWorkerTempBucket && storageObjectRecord.bucketName === context.env.gcsWorkerTempBucket)
+  const isProcessedMediaBucket = storageObjectRecord.bucketName === 'processed-media' ||
+    Boolean(context.env.gcsProcessedMediaBucket && storageObjectRecord.bucketName === context.env.gcsProcessedMediaBucket)
+  const isQaArtifactBucket = storageObjectRecord.bucketName === 'qa-artifacts' ||
+    Boolean(context.env.gcsQaArtifactsBucket && storageObjectRecord.bucketName === context.env.gcsQaArtifactsBucket)
+  if (purpose === 'worker_temp' || purpose === 'other' || isWorkerTempBucket) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Worker-only storage objects are not available through user delivery routes.', 403)
+  }
+  if ((purpose === 'processed_media' || isProcessedMediaBucket) && accessPurpose !== 'preview_review') {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Processed media requires an explicit preview-review delivery boundary.', 403)
+  }
+  if ((purpose === 'qa_artifact' || isQaArtifactBucket) && accessPurpose !== 'qa_review') {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'QA artifacts require an explicit QA-review delivery boundary.', 403)
+  }
+}
+
+function normalizeUserStorageAccessPurpose(value: string): UserStorageAccessPurpose {
+  if (
+    value === 'metadata' ||
+    value === 'download' ||
+    value === 'preview_review' ||
+    value === 'thumbnail' ||
+    value === 'qa_review' ||
+    value === 'export_delivery'
+  ) {
+    return value
+  }
+  throw new ApiError('WORKSPACE_ACCESS_DENIED', 'The requested storage delivery purpose is not available to user routes.', 403)
+}
+
+async function assertUploadProjectOwnedByCurrentUser(
+  context: ServiceContext,
+  projectId: string,
+  workspaceId: string,
+): Promise<void> {
+  const result = await createProjectService(context).getProject(projectId, workspaceId)
+  const projectWorkspaceId = getProjectWorkspaceId(result.project)
+  if (projectWorkspaceId !== workspaceId) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload project does not belong to the requested workspace.', 403, {
+      projectId,
+      workspaceId,
+      projectWorkspaceId,
+    })
+  }
+}
+
+function getProjectWorkspaceId(project: unknown): string | undefined {
+  if (!project || typeof project !== 'object') return undefined
+  const record = project as { workspaceId?: unknown; workspace_id?: unknown }
+  if (typeof record.workspaceId === 'string') return record.workspaceId
+  if (typeof record.workspace_id === 'string') return record.workspace_id
+  return undefined
+}
+
+async function assertSignedUrlEventAccess(context: ServiceContext, input: SignedUrlEventInput): Promise<void> {
+  if (input.uploadIntentId) {
+    const uploadIntent = await loadUploadIntent(context, input.uploadIntentId, input.workspaceId)
+    await assertUploadIntentAccessibleByCurrentUser(context, uploadIntent, input.workspaceId)
+    assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
+    if (input.urlPurpose !== 'upload') {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Upload-intent signed URL events must use the upload purpose.', 403)
+    }
+    if (input.projectId && input.projectId !== uploadIntent.projectId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event project does not match its upload intent.', 403)
+    }
+  }
+
+  if (input.storageObjectRecordId) {
+    const storageObjectRecord = await loadStorageObjectRecord(
+      context,
+      input.storageObjectRecordId,
+      input.workspaceId,
+    )
+    assertStorageObjectWorkspace(storageObjectRecord, input.workspaceId)
+    const accessPurpose = normalizeUserStorageAccessPurpose(input.urlPurpose)
+    await assertStorageObjectAccessibleByCurrentUser(context, storageObjectRecord, accessPurpose)
+    if (input.projectId && input.projectId !== storageObjectRecord.projectId) {
+      throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL event project does not match its storage object.', 403)
+    }
+  }
+
+  if (!input.uploadIntentId && !input.storageObjectRecordId) {
+    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Signed URL events require an authorized upload intent or storage object.', 403)
+  }
+}
+
+function usesLocalUploadPersistence(context: ServiceContext): boolean {
+  return !context.clients.admin || context.env.mockOnly || context.env.allowInternalTestExecutionWithSupabase
+}
+
+function getRequiredUploadAdminClient(context: ServiceContext): NonNullable<ServiceContext['clients']['admin']> {
+  const adminClient = context.clients.admin
+  if (!adminClient) {
+    throw new ApiError('INTERNAL_ERROR', 'Supabase admin client is unavailable for upload persistence.', 500)
+  }
+
+  return adminClient
+}
+
+function requireCanonicalSourceChecksum(
+  uploadIntent: UploadIntentView,
+  metadata: ObjectMetadata,
+  storageMode: StorageAdapter['mode'],
+): ObjectMetadata {
+  const checksumSha256 = normalizeChecksumSha256(metadata.checksumSha256)
+
+  if (
+    (uploadIntent.uploadPurpose === 'source_media' || uploadIntent.uploadPurpose === 'reference_media') &&
+    (!checksumSha256 || !metadata.integrityVerified || metadata.checksumSource !== 'server_computed_bytes')
+  ) {
+    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Uploaded source media is missing server-computed SHA-256 byte evidence.', 409, {
+      uploadIntentId: uploadIntent.id,
+      uploadPurpose: uploadIntent.uploadPurpose,
+      bucketName: metadata.bucketName,
+      objectPath: metadata.objectPath,
+    })
+  }
+
+  if (storageMode === 'gcs' && (!metadata.generation || !metadata.etag)) {
+    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Uploaded GCS source media is missing generation-bound object identity.', 409, {
+      uploadIntentId: uploadIntent.id,
+      bucketName: metadata.bucketName,
+      objectPath: metadata.objectPath,
+    })
+  }
+
+  return {
+    ...metadata,
+    checksumSha256: checksumSha256 ?? metadata.checksumSha256,
+  }
+}
+
 async function recordSignedUrlEvent(context: ServiceContext, input: SignedUrlEventInput) {
-  if (!context.clients.admin || context.env.mockOnly) {
+  if (usesLocalUploadPersistence(context)) {
     return {
       signedUrlEvent: {
         id: randomUUID(),
@@ -436,7 +994,8 @@ async function recordSignedUrlEvent(context: ServiceContext, input: SignedUrlEve
     }
   }
 
-  const { data, error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { data, error } = await adminClient
     .from('signed_url_events')
     .insert({
       workspace_id: input.workspaceId,
@@ -455,18 +1014,28 @@ async function recordSignedUrlEvent(context: ServiceContext, input: SignedUrlEve
   return { signedUrlEvent: mapSignedUrlEvent(data), warnings: ['Signed URL event metadata recorded without the URL value.'] }
 }
 
-async function loadUploadIntent(context: ServiceContext, uploadIntentId: string): Promise<UploadIntentView> {
-  const mockIntent = mockUploadIntents.get(uploadIntentId)
-  if (mockIntent) return mockIntent
-
-  if (!context.clients.admin || context.env.mockOnly) {
-    throw new ApiError('UPLOAD_INTENT_NOT_FOUND', 'Upload intent was not found in local/mock state.', 404)
+async function loadUploadIntent(
+  context: ServiceContext,
+  uploadIntentId: string,
+  workspaceId: string,
+): Promise<UploadIntentView> {
+  if (usesLocalUploadPersistence(context)) {
+    const uploadIntent = await loadPrivateUploadIntentAuthority(
+      privateUploadMediaAuthorityScope(context, workspaceId),
+      uploadIntentId,
+    )
+    if (!uploadIntent) {
+      throw new ApiError('UPLOAD_INTENT_NOT_FOUND', 'Upload intent was not found in private local authority.', 404)
+    }
+    return uploadIntent
   }
 
-  const { data, error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { data, error } = await adminClient
     .from('upload_intents')
     .select('*')
     .eq('id', uploadIntentId)
+    .eq('workspace_id', workspaceId)
     .single()
 
   throwOnSupabaseError(error, 'UPLOAD_INTENT_NOT_FOUND')
@@ -474,33 +1043,77 @@ async function loadUploadIntent(context: ServiceContext, uploadIntentId: string)
   return mapUploadIntent(data)
 }
 
-async function loadStorageObjectRecord(context: ServiceContext, storageObjectRecordId: string): Promise<StorageObjectView> {
-  const mockRecord = mockStorageObjects.get(storageObjectRecordId)
-  if (mockRecord) return mockRecord
-
-  if (!context.clients.admin || context.env.mockOnly) {
-    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Storage object record was not found in local/mock state.', 404)
+async function loadStorageObjectRecord(
+  context: ServiceContext,
+  storageObjectRecordId: string,
+  workspaceId: string,
+): Promise<StorageObjectView> {
+  if (usesLocalUploadPersistence(context)) {
+    const storageObject = await loadPrivateStorageObjectAuthority(
+      privateUploadMediaAuthorityScope(context, workspaceId),
+      storageObjectRecordId,
+    )
+    if (!storageObject) {
+      throw new ApiError('UPLOAD_NOT_FINALIZED', 'Storage object record was not found in private local authority.', 404)
+    }
+    return storageObject
   }
 
-  const { data, error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { data, error } = await adminClient
     .from('storage_object_records')
     .select('*')
     .eq('id', storageObjectRecordId)
+    .eq('workspace_id', workspaceId)
     .single()
 
   throwOnSupabaseError(error, 'UPLOAD_NOT_FINALIZED')
   if (!data) throw new ApiError('UPLOAD_NOT_FINALIZED', 'Storage object record was not found.', 404)
-  return mapStorageObjectRecord(data)
+  return enrichStorageObjectIdentity(context, mapStorageObjectRecord(data))
 }
 
-async function markUploadIntentUploaded(context: ServiceContext, uploadIntentId: string): Promise<void> {
-  const mockIntent = mockUploadIntents.get(uploadIntentId)
-  if (mockIntent) {
-    mockUploadIntents.set(uploadIntentId, { ...mockIntent, status: 'uploaded', updatedAt: nowIso() })
+async function enrichStorageObjectIdentity(
+  context: ServiceContext,
+  storageObjectRecord: StorageObjectView,
+): Promise<StorageObjectView> {
+  if ((storageObjectRecord.generation && storageObjectRecord.etag) || !storageObjectRecord.mediaAssetId) {
+    return storageObjectRecord
   }
 
-  if (context.clients.admin && !context.env.mockOnly) {
-    const { error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { data, error } = await adminClient
+    .from('media_assets')
+    .select('metadata')
+    .eq('id', storageObjectRecord.mediaAssetId)
+    .maybeSingle()
+
+  throwOnSupabaseError(error)
+  const row = unknownRecord(data)
+  const metadata = unknownRecord(row?.metadata)
+  const identity = unknownRecord(metadata?.storageObjectIdentity)
+  return {
+    ...storageObjectRecord,
+    generation: maybeString(identity?.generation),
+    etag: maybeString(identity?.etag),
+    metageneration: maybeString(identity?.metageneration),
+  }
+}
+
+async function markUploadIntentUploaded(
+  context: ServiceContext,
+  uploadIntentId: string,
+  workspaceId: string,
+): Promise<void> {
+  if (usesLocalUploadPersistence(context)) {
+    await transitionPrivateUploadIntentAuthority({
+      scope: privateUploadMediaAuthorityScope(context, workspaceId),
+      uploadIntentId,
+      nextStatus: 'uploaded',
+      now: nowIso(),
+    })
+  } else {
+    const adminClient = getRequiredUploadAdminClient(context)
+    const { error } = await adminClient
       .from('upload_intents')
       .update({ status: 'uploaded', updated_at: nowIso() })
       .eq('id', uploadIntentId)
@@ -509,36 +1122,79 @@ async function markUploadIntentUploaded(context: ServiceContext, uploadIntentId:
   }
 }
 
+async function markUploadIntentFailed(
+  context: ServiceContext,
+  uploadIntentId: string,
+  workspaceId: string,
+): Promise<void> {
+  if (usesLocalUploadPersistence(context)) {
+    await transitionPrivateUploadIntentAuthority({
+      scope: privateUploadMediaAuthorityScope(context, workspaceId),
+      uploadIntentId,
+      nextStatus: 'failed',
+      now: nowIso(),
+    })
+  } else {
+    const adminClient = getRequiredUploadAdminClient(context)
+    const { error } = await adminClient
+      .from('upload_intents')
+      .update({ status: 'failed', updated_at: nowIso() })
+      .eq('id', uploadIntentId)
+
+    throwOnSupabaseError(error)
+  }
+}
+
+async function cleanupRejectedUploadedObject(storage: StorageAdapter, metadata: ObjectMetadata): Promise<void> {
+  if (!metadata.generation || !metadata.etag) return
+  await storage.deleteObject(
+    metadata.bucketName,
+    metadata.objectPath,
+    { generation: metadata.generation, etag: metadata.etag },
+  )
+}
+
 async function createMediaAsset(
   context: ServiceContext,
   uploadIntent: UploadIntentView,
   metadata: ObjectMetadata,
+  storage: StorageAdapter,
 ): Promise<MediaAssetView> {
   const now = nowIso()
   const mediaAssetId = randomUUID()
+  const sourceMetadata = await probeSourceMediaMetadata(context, uploadIntent, metadata, storage)
   const mediaAsset: MediaAssetView = {
     id: mediaAssetId,
     workspaceId: uploadIntent.workspaceId,
     projectId: uploadIntent.projectId,
+    uploadIntentId: uploadIntent.id,
+    uploadPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
     assetType: mediaAssetTypeForUpload(uploadIntent),
     fileName: uploadIntent.originalFileName,
     mimeType: uploadIntent.mimeType,
+    storageProvider: storage.mode === 'gcs' ? 'google_cloud_storage' : 'local_private',
     storageBucket: metadata.bucketName,
     storagePath: metadata.objectPath,
     sizeBytes: metadata.sizeBytes,
     checksumSha256: metadata.checksumSha256,
+    storageGeneration: metadata.generation,
+    storageEtag: metadata.etag,
+    storageMetageneration: metadata.metageneration,
+    integrityVerified: metadata.integrityVerified ? true : undefined,
+    checksumSource: metadata.checksumSource === 'server_computed_bytes' ? 'server_computed_bytes' : undefined,
+    sourceMetadata,
     status: 'uploaded',
     createdAt: now,
     updatedAt: now,
-    mockOnly: !context.clients.admin || context.env.mockOnly,
+    mockOnly: usesLocalUploadPersistence(context),
   }
 
-  if (!context.clients.admin || context.env.mockOnly) {
-    mockMediaAssets.set(mediaAsset.id, mediaAsset)
+  if (usesLocalUploadPersistence(context)) {
     return mediaAsset
   }
 
-  const { data, error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { data, error } = await adminClient
     .from('media_assets')
     .insert({
       id: mediaAssetId,
@@ -550,7 +1206,7 @@ async function createMediaAsset(
       file_name: uploadIntent.originalFileName,
       display_name: uploadIntent.originalFileName,
       mime_type: uploadIntent.mimeType,
-      storage_provider: context.env.storageMode === 'local' ? 'local_private_storage' : 'gcs',
+      storage_provider: storage.mode === 'gcs' ? 'gcs' : 'local_private_storage',
       storage_bucket: metadata.bucketName,
       storage_path: metadata.objectPath,
       public_url: null,
@@ -559,7 +1215,13 @@ async function createMediaAsset(
       checksum: metadata.checksumSha256,
       metadata: {
         uploadIntentId: uploadIntent.id,
-        storageMode: context.env.storageMode,
+        storageMode: storage.mode,
+        storageObjectIdentity: {
+          generation: metadata.generation,
+          etag: metadata.etag,
+          metageneration: metadata.metageneration,
+        },
+        sourceMediaMetadata: sourceMetadata,
       },
     })
     .select('*')
@@ -574,13 +1236,8 @@ async function createStorageObjectRecord(
   uploadIntent: UploadIntentView,
   metadata: ObjectMetadata,
   mediaAssetId: string,
+  storage: StorageAdapter,
 ): Promise<StorageObjectView> {
-  const existingId = mockStorageObjectByUploadIntent.get(uploadIntent.id)
-  if (existingId) {
-    const existing = mockStorageObjects.get(existingId)
-    if (existing) return existing
-  }
-
   const now = nowIso()
   const storageObjectRecord: StorageObjectView = {
     id: randomUUID(),
@@ -588,26 +1245,32 @@ async function createStorageObjectRecord(
     projectId: uploadIntent.projectId,
     mediaAssetId,
     uploadIntentId: uploadIntent.id,
+    uploadPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
+    storageProvider: storage.mode === 'gcs' ? 'google_cloud_storage' : 'local_private',
     bucketName: metadata.bucketName,
     objectPath: metadata.objectPath,
     objectPurpose: toDatabaseStoragePurpose(uploadIntent.uploadPurpose),
     mimeType: uploadIntent.mimeType,
     sizeBytes: metadata.sizeBytes,
     checksumSha256: metadata.checksumSha256,
+    generation: metadata.generation,
+    etag: metadata.etag,
+    metageneration: metadata.metageneration,
+    integrityVerified: metadata.integrityVerified ? true : undefined,
+    checksumSource: metadata.checksumSource === 'server_computed_bytes' ? 'server_computed_bytes' : undefined,
     region: context.env.gcsDefaultRegion,
     status: 'ready',
     createdAt: now,
     updatedAt: now,
-    mockOnly: !context.clients.admin || context.env.mockOnly,
+    mockOnly: usesLocalUploadPersistence(context),
   }
 
-  if (!context.clients.admin || context.env.mockOnly) {
-    mockStorageObjects.set(storageObjectRecord.id, storageObjectRecord)
-    mockStorageObjectByUploadIntent.set(uploadIntent.id, storageObjectRecord.id)
+  if (usesLocalUploadPersistence(context)) {
     return storageObjectRecord
   }
 
-  const { data, error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { data, error } = await adminClient
     .from('storage_object_records')
     .upsert({
       id: storageObjectRecord.id,
@@ -628,13 +1291,19 @@ async function createStorageObjectRecord(
     .single()
 
   throwOnSupabaseError(error)
-  return mapStorageObjectRecord(data)
+  return {
+    ...mapStorageObjectRecord(data),
+    generation: metadata.generation,
+    etag: metadata.etag,
+    metageneration: metadata.metageneration,
+  }
 }
 
 async function finalizeUploadIntentRow(context: ServiceContext, uploadIntentId: string, mediaAssetId: string): Promise<void> {
-  if (!context.clients.admin || context.env.mockOnly) return
+  if (usesLocalUploadPersistence(context)) return
 
-  const { error } = await context.clients.admin
+  const adminClient = getRequiredUploadAdminClient(context)
+  const { error } = await adminClient
     .from('upload_intents')
     .update({
       status: 'finalized',
@@ -646,19 +1315,50 @@ async function finalizeUploadIntentRow(context: ServiceContext, uploadIntentId: 
   throwOnSupabaseError(error)
 }
 
-function loadFinalizedUploadResult(uploadIntent: UploadIntentView) {
-  const storageObjectId = mockStorageObjectByUploadIntent.get(uploadIntent.id)
-  const storageObjectRecord = storageObjectId ? mockStorageObjects.get(storageObjectId) : undefined
-  const mediaAsset = uploadIntent.mediaAssetId ? mockMediaAssets.get(uploadIntent.mediaAssetId) : undefined
-
-  if (!storageObjectRecord || !mediaAsset) {
+async function loadFinalizedUploadResult(context: ServiceContext, uploadIntent: UploadIntentView) {
+  if (!uploadIntent.mediaAssetId) {
     throw new ApiError('UPLOAD_NOT_FINALIZED', 'Finalized upload metadata is incomplete.', 409)
   }
+  if (usesLocalUploadPersistence(context)) {
+    const finalized = await loadPrivateFinalizedMediaAuthority(
+      privateUploadMediaAuthorityScope(context, uploadIntent.workspaceId),
+      uploadIntent.mediaAssetId,
+    )
+    if (!finalized || finalized.uploadIntent.id !== uploadIntent.id) {
+      throw new ApiError('UPLOAD_NOT_FINALIZED', 'Finalized private upload authority is incomplete.', 409)
+    }
+    return {
+      uploadIntent: finalized.uploadIntent,
+      storageObjectRecord: finalized.storageObject,
+      mediaAsset: finalized.mediaAsset,
+      warnings: ['Upload was already finalized; returning restart-safe private authority metadata.'],
+    }
+  }
 
+  const adminClient = getRequiredUploadAdminClient(context)
+  const [{ data: storageRow, error: storageError }, { data: mediaRow, error: mediaError }] = await Promise.all([
+    adminClient
+      .from('storage_object_records')
+      .select('*')
+      .eq('upload_intent_id', uploadIntent.id)
+      .eq('workspace_id', uploadIntent.workspaceId)
+      .single(),
+    adminClient
+      .from('media_assets')
+      .select('*')
+      .eq('id', uploadIntent.mediaAssetId)
+      .eq('workspace_id', uploadIntent.workspaceId)
+      .single(),
+  ])
+  throwOnSupabaseError(storageError, 'UPLOAD_NOT_FINALIZED')
+  throwOnSupabaseError(mediaError, 'UPLOAD_NOT_FINALIZED')
+  if (!storageRow || !mediaRow) {
+    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Finalized upload metadata is incomplete.', 409)
+  }
   return {
     uploadIntent,
-    storageObjectRecord,
-    mediaAsset,
+    storageObjectRecord: await enrichStorageObjectIdentity(context, mapStorageObjectRecord(storageRow)),
+    mediaAsset: mapMediaAsset(mediaRow),
     warnings: ['Upload was already finalized; returning existing canonical metadata.'],
   }
 }
@@ -699,6 +1399,9 @@ function mapStorageObjectRecord(row: Record<string, unknown>): StorageObjectView
     mimeType: maybeString(row.mime_type),
     sizeBytes: maybeNumber(row.size_bytes),
     checksumSha256: maybeString(row.checksum_sha256),
+    generation: maybeString(row.generation),
+    etag: maybeString(row.etag),
+    metageneration: maybeString(row.metageneration),
     region: maybeString(row.region),
     status: String(row.status),
     createdAt: String(row.created_at),
@@ -707,6 +1410,7 @@ function mapStorageObjectRecord(row: Record<string, unknown>): StorageObjectView
 }
 
 function mapMediaAsset(row: Record<string, unknown>): MediaAssetView {
+  const rowMetadata = unknownRecord(row.metadata)
   return {
     id: String(row.id),
     workspaceId: String(row.workspace_id),
@@ -714,14 +1418,186 @@ function mapMediaAsset(row: Record<string, unknown>): MediaAssetView {
     assetType: String(row.asset_type),
     fileName: String(row.file_name),
     mimeType: String(row.mime_type),
+    storageProvider: mapDatabaseMediaStorageProvider(maybeString(row.storage_provider)),
     storageBucket: String(row.storage_bucket),
     storagePath: String(row.storage_path),
     sizeBytes: maybeNumber(row.file_size_bytes),
     checksumSha256: maybeString(row.checksum),
+    storageGeneration: maybeString(unknownRecord(rowMetadata?.storageObjectIdentity)?.generation),
+    storageEtag: maybeString(unknownRecord(rowMetadata?.storageObjectIdentity)?.etag),
+    sourceMetadata: sourceMediaMetadataFromUnknown(rowMetadata?.sourceMediaMetadata),
     status: String(row.processing_status),
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
   }
+}
+
+async function probeSourceMediaMetadata(
+  context: ServiceContext,
+  uploadIntent: UploadIntentView,
+  metadata: ObjectMetadata,
+  storage: StorageAdapter,
+): Promise<SourceMediaMetadataView | undefined> {
+  if (uploadIntent.uploadPurpose !== 'source_media' && uploadIntent.uploadPurpose !== 'reference_media') return undefined
+  if (!uploadIntent.mimeType.startsWith('video/') && !uploadIntent.mimeType.startsWith('audio/')) return undefined
+
+  let inputPath: string | undefined
+  let cleanupRoot: string | undefined
+  const source: SourceMediaMetadataView['source'] = storage.mode === 'gcs' ? 'gcs_ffprobe' : 'local_ffprobe'
+
+  try {
+    if (storage.mode === 'local') {
+      inputPath = localStorageObjectPath(context.env.localStorageRoot, metadata.bucketName, metadata.objectPath)
+    } else if (storage.mode === 'gcs') {
+      const staged = await stageGcsSourceForProbe(context, uploadIntent, metadata, storage)
+      inputPath = staged.inputPath
+      cleanupRoot = staged.cleanupRoot
+    } else {
+      return undefined
+    }
+
+    const probe = await probeMediaFile(inputPath, { timeoutMs: 10000 })
+    const streamTypes = probe.rawSummary.streamTypes
+    return {
+      probeStatus: 'probed',
+      source,
+      durationSeconds: roundOptionalSeconds(probe.durationSeconds),
+      width: positiveIntegerOrUndefined(probe.width),
+      height: positiveIntegerOrUndefined(probe.height),
+      videoCodec: probe.videoCodec,
+      audioCodec: probe.audioCodec,
+      formatName: probe.formatName,
+      streamCount: probe.streamCount,
+      hasVideo: streamTypes.includes('video'),
+      hasAudio: streamTypes.includes('audio'),
+    }
+  } catch (error) {
+    return {
+      probeStatus: 'unavailable',
+      source,
+      hasVideo: uploadIntent.mimeType.startsWith('video/'),
+      hasAudio: uploadIntent.mimeType.startsWith('audio/'),
+      unavailableReason: error instanceof Error ? error.message.slice(0, 240) : 'Backend FFprobe media metadata was unavailable.',
+    }
+  } finally {
+    if (cleanupRoot) {
+      await rm(cleanupRoot, { force: true, recursive: true }).catch(() => undefined)
+    }
+  }
+}
+
+async function stageGcsSourceForProbe(
+  context: ServiceContext,
+  uploadIntent: UploadIntentView,
+  metadata: ObjectMetadata,
+  storage: StorageAdapter,
+): Promise<{ inputPath: string; cleanupRoot: string }> {
+  const cleanupRoot = localStorageObjectPath(
+    context.env.localStorageRoot,
+    'upload-probes',
+    path.join(
+      normalizeStoragePath(uploadIntent.workspaceId),
+      normalizeStoragePath(uploadIntent.projectId),
+      normalizeStoragePath(uploadIntent.id),
+    ),
+  )
+  const inputPath = localStorageObjectPath(
+    context.env.localStorageRoot,
+    'upload-probes',
+    path.join(
+      normalizeStoragePath(uploadIntent.workspaceId),
+      normalizeStoragePath(uploadIntent.projectId),
+      normalizeStoragePath(uploadIntent.id),
+      normalizeStoragePath(uploadIntent.originalFileName),
+    ),
+  )
+
+  await mkdir(path.dirname(inputPath), { recursive: true })
+  const readStream = await storage.createReadStream(
+    metadata.bucketName,
+    metadata.objectPath,
+    { generation: metadata.generation, etag: metadata.etag },
+  )
+  await pipeline(readStream, createWriteStream(inputPath))
+
+  const stagedStat = await stat(inputPath)
+  if (stagedStat.size !== metadata.sizeBytes) {
+    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Staged GCS source media size does not match finalized object metadata.', 409, {
+      uploadIntentId: uploadIntent.id,
+      expectedSizeBytes: metadata.sizeBytes,
+      actualSizeBytes: stagedStat.size,
+    })
+  }
+
+  const expectedChecksumSha256 = normalizeChecksumSha256(metadata.checksumSha256)
+  if (expectedChecksumSha256) {
+    const stagedChecksumSha256 = await hashFileSha256(inputPath)
+    if (stagedChecksumSha256 !== expectedChecksumSha256) {
+      throw new ApiError('UPLOAD_NOT_FINALIZED', 'Staged GCS source media checksum does not match finalized object metadata.', 409, {
+        uploadIntentId: uploadIntent.id,
+        expectedChecksumSha256,
+        actualChecksumSha256: stagedChecksumSha256,
+      })
+    }
+  }
+
+  return { inputPath, cleanupRoot }
+}
+
+async function hashFileSha256(filePath: string): Promise<string> {
+  const hash = createHash('sha256')
+  for await (const chunk of createReadStream(filePath)) {
+    hash.update(chunk)
+  }
+  return hash.digest('hex')
+}
+
+function localStorageObjectPath(localStorageRoot: string, bucketName: string, objectPath: string): string {
+  const absoluteRoot = path.resolve(localStorageRoot)
+  const absolutePath = path.resolve(
+    absoluteRoot,
+    normalizeStoragePath(bucketName),
+    normalizeStoragePath(objectPath),
+  )
+  if (!absolutePath.startsWith(absoluteRoot + path.sep)) {
+    throw new ApiError('VALIDATION_FAILED', 'Storage path escapes local storage root.', 400)
+  }
+  return absolutePath
+}
+
+function sourceMediaMetadataFromUnknown(value: unknown): SourceMediaMetadataView | undefined {
+  const record = unknownRecord(value)
+  if (!record) return undefined
+  const probeStatus = record.probeStatus === 'probed' ? 'probed' : record.probeStatus === 'unavailable' ? 'unavailable' : undefined
+  if (!probeStatus) return undefined
+  return {
+    probeStatus,
+    source: record.source === 'gcs_ffprobe' ? 'gcs_ffprobe' : 'local_ffprobe',
+    durationSeconds: maybeNumber(record.durationSeconds),
+    width: maybeNumber(record.width),
+    height: maybeNumber(record.height),
+    videoCodec: maybeString(record.videoCodec),
+    audioCodec: maybeString(record.audioCodec),
+    formatName: maybeString(record.formatName),
+    streamCount: maybeNumber(record.streamCount),
+    hasVideo: Boolean(record.hasVideo),
+    hasAudio: Boolean(record.hasAudio),
+    unavailableReason: maybeString(record.unavailableReason),
+  }
+}
+
+function roundOptionalSeconds(value: number | undefined): number | undefined {
+  return Number.isFinite(value) && value !== undefined ? Number(value.toFixed(3)) : undefined
+}
+
+function positiveIntegerOrUndefined(value: number | undefined): number | undefined {
+  return Number.isFinite(value) && value !== undefined && value > 0 ? Math.round(value) : undefined
+}
+
+function mapDatabaseMediaStorageProvider(storageProvider?: string): string | undefined {
+  if (storageProvider === 'local_private_storage') return 'local_private'
+  if (storageProvider === 'gcs') return 'google_cloud_storage'
+  return storageProvider
 }
 
 function mapSignedUrlEvent(row: Record<string, unknown>): Record<string, unknown> {
@@ -795,6 +1671,149 @@ function isUploadPurpose(value: string): value is UploadPurpose {
   ].includes(value)
 }
 
+function privateUploadMediaAuthorityScope(
+  context: ServiceContext,
+  workspaceId: string,
+): PrivateUploadMediaAuthorityScope {
+  return {
+    localStorageRoot: context.env.localStorageRoot,
+    ownerUserId: getRequiredAuthUserId(context),
+    workspaceId,
+  }
+}
+
+function toPrivateUploadIntentAuthorityRecord(
+  uploadIntent: UploadIntentView,
+): PrivateUploadIntentAuthorityRecord {
+  if (uploadIntent.uploadPurpose !== 'source_media' && uploadIntent.uploadPurpose !== 'reference_media') {
+    throw new ApiError('VALIDATION_FAILED', 'Private upload authority supports source/reference media only.', 400)
+  }
+  if (
+    uploadIntent.status !== 'signed' &&
+    uploadIntent.status !== 'uploaded' &&
+    uploadIntent.status !== 'failed' &&
+    uploadIntent.status !== 'finalized'
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'Private upload intent status is unsupported.', 409)
+  }
+  return {
+    id: uploadIntent.id,
+    workspaceId: uploadIntent.workspaceId,
+    projectId: uploadIntent.projectId,
+    chatSessionId: uploadIntent.chatSessionId,
+    requestedByUserId: uploadIntent.requestedByUserId,
+    uploadPurpose: uploadIntent.uploadPurpose,
+    targetBucket: uploadIntent.targetBucket,
+    targetPath: uploadIntent.targetPath,
+    originalFileName: uploadIntent.originalFileName,
+    mimeType: normalizeMimeType(uploadIntent.mimeType),
+    expectedSizeBytes: uploadIntent.expectedSizeBytes,
+    checksumSha256: normalizeChecksumSha256(uploadIntent.checksumSha256),
+    status: uploadIntent.status,
+    expiresAt: uploadIntent.expiresAt,
+    finalizedAt: uploadIntent.finalizedAt,
+    mediaAssetId: uploadIntent.mediaAssetId,
+    createdAt: uploadIntent.createdAt,
+    updatedAt: uploadIntent.updatedAt,
+    mockOnly: true,
+  }
+}
+
+function toPrivateMediaAssetAuthorityRecord(
+  mediaAsset: MediaAssetView,
+  uploadIntent: UploadIntentView,
+  storageObject: StorageObjectView,
+  metadata: ObjectMetadata,
+): PrivateMediaAssetAuthorityRecord {
+  const integrity = requirePrivateFinalizedIntegrity(metadata)
+  const storageProvider = mediaAsset.storageProvider === 'google_cloud_storage'
+    ? 'google_cloud_storage' as const
+    : 'local_private' as const
+  return {
+    id: mediaAsset.id,
+    workspaceId: uploadIntent.workspaceId,
+    projectId: uploadIntent.projectId,
+    uploadIntentId: uploadIntent.id,
+    storageObjectRecordId: storageObject.id,
+    uploadPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
+    assetType: mediaAsset.assetType,
+    fileName: mediaAsset.fileName,
+    mimeType: normalizeMimeType(mediaAsset.mimeType),
+    storageProvider,
+    storageBucket: mediaAsset.storageBucket,
+    storagePath: mediaAsset.storagePath,
+    sizeBytes: integrity.sizeBytes,
+    checksumSha256: integrity.checksumSha256,
+    storageGeneration: metadata.generation,
+    storageEtag: metadata.etag,
+    storageMetageneration: metadata.metageneration,
+    integrityVerified: true,
+    checksumSource: 'server_computed_bytes',
+    sourceMetadata: mediaAsset.sourceMetadata,
+    status: 'uploaded',
+    createdAt: mediaAsset.createdAt,
+    updatedAt: mediaAsset.updatedAt,
+    mockOnly: true,
+  }
+}
+
+function toPrivateStorageObjectAuthorityRecord(
+  storageObject: StorageObjectView,
+  uploadIntent: UploadIntentView,
+  mediaAsset: MediaAssetView,
+  metadata: ObjectMetadata,
+): PrivateStorageObjectAuthorityRecord {
+  const integrity = requirePrivateFinalizedIntegrity(metadata)
+  return {
+    id: storageObject.id,
+    workspaceId: uploadIntent.workspaceId,
+    projectId: uploadIntent.projectId,
+    mediaAssetId: mediaAsset.id,
+    uploadIntentId: uploadIntent.id,
+    uploadPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
+    storageProvider: mediaAsset.storageProvider === 'google_cloud_storage'
+      ? 'google_cloud_storage'
+      : 'local_private',
+    bucketName: storageObject.bucketName,
+    objectPath: storageObject.objectPath,
+    objectPurpose: uploadIntent.uploadPurpose === 'reference_media' ? 'reference_media' : 'source_media',
+    mimeType: normalizeMimeType(uploadIntent.mimeType),
+    sizeBytes: integrity.sizeBytes,
+    checksumSha256: integrity.checksumSha256,
+    generation: metadata.generation,
+    etag: metadata.etag,
+    metageneration: metadata.metageneration,
+    integrityVerified: true,
+    checksumSource: 'server_computed_bytes',
+    region: storageObject.region,
+    status: 'ready',
+    createdAt: storageObject.createdAt,
+    updatedAt: storageObject.updatedAt,
+    mockOnly: true,
+  }
+}
+
+function requirePrivateFinalizedIntegrity(metadata: ObjectMetadata): {
+  sizeBytes: number
+  checksumSha256: string
+} {
+  const checksumSha256 = normalizeChecksumSha256(metadata.checksumSha256)
+  if (
+    !Number.isInteger(metadata.sizeBytes) ||
+    metadata.sizeBytes <= 0 ||
+    !checksumSha256 ||
+    metadata.integrityVerified !== true ||
+    metadata.checksumSource !== 'server_computed_bytes'
+  ) {
+    throw new ApiError(
+      'UPLOAD_NOT_FINALIZED',
+      'Finalized private source media requires positive size and server-computed SHA-256 byte evidence.',
+      409,
+    )
+  }
+  return { sizeBytes: metadata.sizeBytes, checksumSha256 }
+}
+
 function maybeString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined
 }
@@ -803,4 +1822,10 @@ function maybeNumber(value: unknown): number | undefined {
   if (typeof value === 'number') return value
   if (typeof value === 'string' && value !== '') return Number(value)
   return undefined
+}
+
+function unknownRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined
 }

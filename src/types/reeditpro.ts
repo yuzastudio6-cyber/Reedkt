@@ -3,6 +3,7 @@ import type { MigrationDraftPlan } from './supabase-migration-drafts'
 import type { MigrationReviewPlan } from './supabase-rls-hardening'
 import type { SupabaseProductionReadinessPlan } from './supabase-production-readiness'
 import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan, EditingAgentExecutionPlan } from './editing-agent-runtime'
+import type { ProfessionalSkillPlan } from './professional-skills'
 
 export type SignatureSystem =
   | 'stroke_motion'
@@ -13,7 +14,18 @@ export type SignatureSystem =
 
 export type EditLevel = 'basic' | 'pro' | 'premium'
 
-export type UserFacingEditLevel = EditLevel | 'normal' | 'ultra_premium'
+export type EditPreferenceFieldKey =
+  | 'editLevel'
+  | 'workflowType'
+  | 'cleanupPreference'
+  | 'visualPreference'
+  | 'moodStyle'
+  | 'creditPreference'
+  | 'targetPlatform'
+
+export type EditPreferencePersistenceSource =
+  | 'browser_local_edit_preferences'
+  | 'authenticated_private_internal_backend'
 
 export type EditingCategory =
   | 'storytelling'
@@ -21,7 +33,6 @@ export type EditingCategory =
   | 'business_brand'
   | 'education_explainer'
   | 'documentary_case_study'
-  | VideoWorkflowType
 
 export type HookPolicy = 'required' | 'recommended' | 'optional' | 'not_needed' | 'avoid'
 
@@ -55,13 +66,6 @@ export type TargetPlatform =
 export type AspectRatio = '9:16' | '16:9' | '1:1' | '4:5' | '4:3' | 'let_ai_decide'
 
 export type FrameTemplateType =
-  | 'vertical_story_frame'
-  | 'horizontal_wide_frame'
-  | 'square_social_frame'
-  | 'browser_card'
-  | 'evidence_board'
-  | 'product_callout'
-  | 'custom_frame'
   | 'vertical_talking_head_lower_panel'
   | 'vertical_full_panel'
   | 'youtube_side_panel'
@@ -148,7 +152,6 @@ export interface AspectRatioFramePlan {
   globalRules: string[]
   qaChecks: string[]
   notes: string[]
-  toolChainIds?: ToolChainId[]
 }
 
 export type SpeakerPresenceMode =
@@ -167,9 +170,6 @@ export type VisualDominanceMode =
   | 'full_takeover'
 
 export type SpeakerVisualLayoutMode =
-  | 'full_visual_takeover'
-  | 'product_feature_callout'
-  | 'browser_card_inside_evidence_board'
   | 'full_speaker'
   | 'voiceover_visual_takeover'
   | 'picture_in_picture_speaker'
@@ -310,27 +310,40 @@ export type OpenSourceToolId =
   | 'echarts'
   | 'vega'
   | 'vega_lite'
-  | 'satori'
-  | 'svg_js'
   | 'viz_js'
   | 'playwright'
   | 'lottie'
   | 'animejs'
+  | 'satori'
+  | 'svg_js'
   | 'three_js'
   | 'babylon_js'
   | 'pixijs'
   | 'konva'
-  | 'sam2'
-  | 'birefnet'
-  | 'rembg'
-  | 'transparent_background'
-  | 'real_esrgan'
   | 'kornia'
+  | 'birefnet'
+  | 'sam2'
+  | 'transparent_background'
+  | 'rembg'
+  | 'real_esrgan'
   | 'torch_torchvision'
   | 'transformers'
   | 'audioflux'
+  | 'audioread'
+  | 'pydub'
+  | 'scipy'
+  | 'resampy'
+  | 'pyloudnorm'
   | 'essentia'
   | 'librosa'
+  | 'music21'
+  | 'pretty_midi'
+  | 'mido'
+  | 'noisereduce'
+  | 'pedalboard'
+  | 'mir_eval'
+  | 'pydub_effects'
+  | 'ebu_r128_pyloudnorm'
   | 'whisper_cpp'
   | 'deck_gl'
   | 'cesium_js'
@@ -487,8 +500,6 @@ export interface ToolRegistrySummary {
 }
 
 export type ToolChainId =
-  | 'uploaded_screenshot_chain'
-  | 'mock_browser_frame_chain'
   | 'remotion_layout_chain'
   | 'map_route_chain'
   | 'chart_diagram_chain'
@@ -604,8 +615,6 @@ export interface ToolStrategyPlan {
   globalRules: string[]
   qaChecks: string[]
   notes: string[]
-  strategyIds?: string[]
-  toolChainIds?: ToolChainId[]
 }
 
 export type RenderStrategyType =
@@ -642,10 +651,6 @@ export type RemotionCapabilityId =
   | 'map_layer_placement'
   | 'chart_layer_placement'
   | 'screen_capture_placement'
-  | 'browser_frame_overlay'
-  | 'zoom_pan_highlight'
-  | 'caption_safe_composition'
-  | 'split_screen_comparison'
   | 'ai_video_panel_placement'
   | 'transition_layer'
   | 'background_panel'
@@ -725,7 +730,6 @@ export interface RenderStrategyPlan {
   globalRules: string[]
   qaChecks: string[]
   notes: string[]
-  strategyIds?: string[]
 }
 
 export type VisualQualityIssue =
@@ -815,269 +819,6 @@ export type VisualPreference =
 
 export type CreditPreference = 'low_credit_cost' | 'balanced' | 'premium_best_result' | 'let_ai_estimate'
 
-export type ReferenceVideoMode =
-  | 'no_reference'
-  | 'user_pasted_link'
-  | 'user_uploaded_reference'
-  | 'mock_reference'
-  | 'reference_skipped'
-
-export type ReferenceAdaptationFocus =
-  | 'overall_style'
-  | 'opening_style'
-  | 'pacing'
-  | 'caption_style'
-  | 'transition_style'
-  | 'music_sound'
-  | 'visual_effects'
-  | 'b_roll'
-  | 'color_mood'
-  | 'signature_system_usage'
-  | 'ignore_reference'
-
-export interface ReferenceDNA {
-  id: string
-  mode: ReferenceVideoMode
-  referenceUrl?: string
-  referenceLabel?: string
-  topic: string
-  openingStyle: string
-  hookStyle: string
-  pacing: string
-  cutRhythm: string
-  captionStyle: string
-  captionDensity: string
-  transitionStyle: string
-  musicIntro: string
-  soundSyncStyle: string
-  visualEffectStyle: string
-  brollStyle: string
-  colorGradeMood: string
-  signatureSystemUsage: string[]
-  frameLayoutHints: string[]
-  moodTone: string
-  whatWorks: string[]
-  adaptationRules: string[]
-  doNotCopyRules: string[]
-  userOverrides: string[]
-  focus: ReferenceAdaptationFocus[]
-  confidence: 'low' | 'medium' | 'high'
-  sourceLimitations: string[]
-}
-
-export interface ReferenceVideoPlan {
-  mode: ReferenceVideoMode
-  referenceUrl?: string
-  referenceProvided: boolean
-  referenceDNA?: ReferenceDNA
-  skipped: boolean
-  userNotes: string[]
-  requiredBeforeApproval: boolean
-  status: 'not_started' | 'attached' | 'analyzed_mock' | 'skipped' | 'needs_review'
-}
-
-export type BrowserVisualType =
-  | 'website_screenshot'
-  | 'landing_page_capture'
-  | 'product_page_capture'
-  | 'ecommerce_page_capture'
-  | 'saas_dashboard_capture'
-  | 'app_screen_capture'
-  | 'article_capture'
-  | 'evidence_page_capture'
-  | 'browser_mockup_frame'
-  | 'before_after_website_comparison'
-  | 'tutorial_screen_step'
-  | 'scroll_sequence'
-  | 'selector_focus'
-  | 'ui_highlight_zoom'
-  | 'webpage_timeline_card'
-  | 'dashboard_metric_card'
-  | 'custom_browser_visual'
-
-export type BrowserCaptureMode =
-  | 'static_screenshot'
-  | 'element_screenshot'
-  | 'full_page_screenshot'
-  | 'viewport_capture'
-  | 'scroll_sequence'
-  | 'step_sequence'
-  | 'before_after_capture'
-  | 'mock_browser_frame'
-  | 'uploaded_screenshot_only'
-  | 'future_authenticated_capture'
-
-export type BrowserSourceType =
-  | 'user_provided_url'
-  | 'uploaded_screenshot'
-  | 'uploaded_screen_recording'
-  | 'internal_mock'
-  | 'script_reference'
-  | 'unknown'
-
-export type BrowserCapturePermissionStatus =
-  | 'authorized'
-  | 'user_provided'
-  | 'needs_confirmation'
-  | 'not_allowed'
-  | 'unknown'
-  | 'mock_only'
-
-export type BrowserPrivacyRisk = 'none' | 'low' | 'medium' | 'high' | 'unknown'
-
-export type BrowserEvidenceStatus =
-  | 'not_evidence'
-  | 'source_provided'
-  | 'reported_source'
-  | 'claimed_source'
-  | 'mock_example'
-  | 'unknown'
-
-export type BrowserStyleFamily =
-  | 'clean_product_demo'
-  | 'saas_dashboard_premium'
-  | 'documentary_evidence_page'
-  | 'education_screen_tutorial'
-  | 'ecommerce_product_focus'
-  | 'social_browser_card'
-  | 'comparison_before_after'
-  | 'neutral_article_capture'
-  | 'dark_mode_dashboard'
-  | 'custom'
-
-export interface BrowserSourcePlan {
-  id: string
-  sourceType: BrowserSourceType
-  url?: string
-  label: string
-  permissionStatus: BrowserCapturePermissionStatus
-  evidenceStatus: BrowserEvidenceStatus
-  sourceNeeded: boolean
-  sourceLabel?: string
-  safeWording: string
-  mockOnly: boolean
-  notes: string[]
-}
-
-export interface BrowserCaptureSettingsPlan {
-  captureMode: BrowserCaptureMode
-  viewportWidth: number
-  viewportHeight: number
-  deviceScaleFactor: number
-  fullPage: boolean
-  selector?: string
-  clipRectangle?: RectZone
-  imageFormat: 'png' | 'jpeg' | 'webp'
-  imageQuality?: number
-  waitTimeMs: number
-  waitForSelector?: string
-  scrollPosition?: number
-  captureSequence?: string[]
-  notes: string[]
-}
-
-export interface BrowserFrameStylePlan {
-  styleFamily: BrowserStyleFamily
-  showAddressBar: boolean
-  showTabs: boolean
-  showCursor: boolean
-  theme: 'light' | 'dark' | 'auto'
-  cornerRadius: number
-  shadowStyle: string
-  borderStyle: string
-  toolbarColor?: string
-  pageBackgroundColor?: string
-  notes: string[]
-}
-
-export interface BrowserHighlightPlan {
-  highlightSelector?: string
-  highlightZone?: RectZone
-  highlightColor: string
-  highlightStyle: 'outline' | 'glow' | 'spotlight' | 'zoom' | 'arrow' | 'callout' | 'none'
-  zoomTarget?: RectZone
-  zoomScale?: number
-  panDirection?: 'none' | 'up' | 'down' | 'left' | 'right'
-  scrollAnimationDurationMs?: number
-  stepRevealTimingMs?: number
-  cursorMotion: boolean
-  clickPulse: boolean
-  annotationStyle: string
-  calloutLabel?: string
-  notes: string[]
-}
-
-export interface BrowserRedactionPlan {
-  redactionNeeded: boolean
-  privacyRisk: BrowserPrivacyRisk
-  redactionTargets: string[]
-  redactionStyle: 'blur' | 'block' | 'crop' | 'none'
-  blurStrength?: number
-  blockColor?: string
-  userConfirmationRequired: boolean
-  qaChecks: string[]
-  notes: string[]
-}
-
-export interface BrowserLayoutPlan {
-  layoutMode: SpeakerVisualLayoutMode
-  frameTemplateType: FrameTemplateType
-  browserZone?: RectZone
-  speakerZone?: RectZone
-  captionSafeZone?: RectZone
-  safeMargins: number
-  panelBackgroundColor: string
-  labelAvoidZones: RectZone[]
-  fullTakeoverMode: boolean
-  pictureInPictureSpeaker: boolean
-  notes: string[]
-}
-
-export interface BrowserCapturePlanItem {
-  id: string
-  segmentId?: string
-  assetPlanItemId?: string
-  visualAssetPlanItemId?: string
-  speakerVisualLayoutItemId?: string
-  renderStrategyItemId?: string
-  toolStrategyItemId?: string
-  browserVisualType: BrowserVisualType
-  title: string
-  purpose: string
-  source: BrowserSourcePlan
-  capture: BrowserCaptureSettingsPlan
-  frameStyle: BrowserFrameStylePlan
-  highlight: BrowserHighlightPlan
-  redaction: BrowserRedactionPlan
-  layout: BrowserLayoutPlan
-  toolChain: ToolChainId
-  toolIds: OpenSourceToolId[]
-  remotionCapabilities: RemotionCapabilityId[]
-  creditImpact: 'none' | 'low' | 'medium' | 'high' | 'premium'
-  tierAllowed: {
-    basic: boolean
-    pro: boolean
-    premium: boolean
-  }
-  reason: string
-  whyNotAiVideo: string
-  fallbackStrategy: string[]
-  qaChecks: string[]
-  workerNotes: string[]
-}
-
-export interface BrowserCapturePlan {
-  id: string
-  active: boolean
-  summary: string
-  items: BrowserCapturePlanItem[]
-  browserToolsPlanned: OpenSourceToolId[]
-  globalRules: string[]
-  qaChecks: string[]
-  limitations: string[]
-  notes: string[]
-}
-
 export type SourceSequenceMode =
   | 'single_complete_video'
   | 'multi_clip_story_order'
@@ -1131,7 +872,6 @@ export type PacingStyleId =
   | 'comedy_timing'
   | 'emotional_pause'
   | 'custom'
-  | (string & {})
 
 export type CutIntensity =
   | 'minimal'
@@ -1149,7 +889,6 @@ export type TransitionFamilyId =
   | 'documentary_evidence_transitions'
   | 'stroke_motion_transitions'
   | 'custom'
-  | (string & {})
 
 export type ColorGradeStyleId =
   | 'clean_natural'
@@ -1179,7 +918,6 @@ export type CaptionStyleId =
   | 'minimal_accessibility_captions'
   | 'caption_icon_callout'
   | 'custom'
-  | (string & {})
 
 export type BrollPolicyId =
   | 'none'
@@ -1205,7 +943,6 @@ export type SoundStyleId =
   | 'luxury_soft'
   | 'high_retention_impact'
   | 'custom'
-  | (string & {})
 
 export type EditingOperationType =
   | 'cut'
@@ -1238,13 +975,8 @@ export interface ProfessionalEditingDirective {
   soundStyle: SoundStyleId
   mustFollowRules: string[]
   avoidRules: string[]
-  customDirectives: Array<CustomEditingDirective | string>
+  customDirectives: CustomEditingDirective[]
   qaChecks: string[]
-  editLevel?: EditLevel
-  visualDensity?: string
-  signatureSystemGuidance?: string[]
-  tierModelRules?: string[]
-  approvalRequired?: boolean
 }
 
 export interface CustomEditingDirective {
@@ -1345,16 +1077,36 @@ export interface CompiledEditingIntent {
   requirements: CompiledIntentRequirement[]
   mustFollowRules: string[]
   avoidRules: string[]
-  customDirectives: Array<CustomEditingDirective | string>
+  customDirectives: CustomEditingDirective[]
   clarifyingQuestions: ClarifyingQuestion[]
   lockedTierConstraints: LockedTierConstraint[]
   confidence: IntentConfidence
   qaImplications: string[]
   compilerNotes: string[]
-  explicitInstructions?: string[]
-  referencePreferences?: string[]
-  userOverrides?: string[]
-  clarifyingNotes?: string[]
+  instructionHistory?: string[]
+}
+
+export interface PlanningInputTrace {
+  fingerprint: string
+  instructionCount: number
+  instructionHistory: string[]
+  effectiveEditPreferences?: {
+    editLevel: EditLevel
+    workflowType: VideoWorkflowType
+    cleanupPreference?: CleanupPreference
+    visualPreference: VisualPreference
+    moodStyle: MoodStyle
+    creditPreference: CreditPreference
+    targetPlatform: TargetPlatform
+  }
+  preferenceApplication?: {
+    applied: boolean
+    appliedAt?: string
+    snapshotId: string
+    source: EditPreferencePersistenceSource
+    currentEditOverrideKeys?: EditPreferenceFieldKey[]
+    currentEditRevision?: number
+  }
 }
 
 export type VisualAssetType =
@@ -1725,7 +1477,6 @@ export interface AudioPipelinePlan {
   qaChecks: string[]
   limitations: string[]
   status: AudioPipelineStatus
-  notes?: string[]
 }
 
 export type MapVisualType =
@@ -1960,11 +1711,7 @@ export type DataVizStyleFamily =
 export type DataVizToolPreference =
   | 'd3'
   | 'echarts'
-  | 'vega'
   | 'vega_lite_future'
-  | 'satori'
-  | 'svg_js'
-  | 'viz_js'
   | 'remotion_only'
   | 'gpt_image_frame_only'
   | 'custom'
@@ -2207,7 +1954,6 @@ export interface SpeakerVisualLayoutPlan {
   globalRules: string[]
   qaChecks: string[]
   notes: string[]
-  preferredLayoutMode?: SpeakerVisualLayoutMode
 }
 
 export interface ForegroundObjectPlan {
@@ -2473,8 +2219,6 @@ export interface AdaptiveEditStrategyPlan {
   creditStrategyNotes: string[]
   qaChecks: string[]
   limitations: string[]
-  toolHints?: string[]
-  visualOpportunities?: string[]
 }
 
 export interface VideoUnderstandingReport {
@@ -2487,7 +2231,6 @@ export interface VideoUnderstandingReport {
   visualUnderstanding: VisualUnderstandingReport
   audioUnderstanding: AudioUnderstandingReport
   visualSupportOpportunities: VisualSupportOpportunity[]
-  opportunities?: string[]
   suggestedStrategy: AdaptiveEditStrategy
   adaptiveStrategyPlan?: AdaptiveEditStrategyPlan
   confidence: VideoUnderstandingConfidence
@@ -3060,8 +2803,6 @@ export interface TimingCue {
   linkedBeatId?: string
   linkedSoundSyncCueId?: string
   reason: string
-  title?: string
-  visualType?: string
   qaChecks: string[]
   notes: string[]
 }
@@ -4146,9 +3887,6 @@ export interface VisualAssetPlanItem {
   visualTimingItemId?: string
   providerRoute: ProviderRoute
   reason: string
-  title?: string
-  visualType?: string
-  notes?: string[]
   qaChecks: string[]
   creditImpact: 'none' | 'low' | 'medium' | 'high' | 'premium'
   speakerVisualLayoutItemId?: string
@@ -4357,8 +4095,29 @@ export interface PlanningSystemAuditReport {
   limitations: string[]
 }
 
+export interface PlanningContextTrace {
+  source: 'planning_context'
+  planningContextId: string
+  status: 'draft' | 'ready' | 'needs_review' | 'blocked'
+  editBriefReady: boolean
+  editBriefOptional?: true
+  editBriefDirectionCount: number
+  cueUsageCount: number
+  readyCueUsageCount: number
+  blockedCueUsageCount: number
+  unresolvedConflictCount: number
+  sourceAssetCount: number
+  mustUseAssetCount: number
+  avoidAssetCount: number
+  selectedSkillCount?: number
+  selectedSkillFamilies?: string[]
+}
+
 export interface EditPlan {
   goalSummary: string
+  planningInputTrace?: PlanningInputTrace
+  planningContextTrace?: PlanningContextTrace
+  professionalSkillPlan?: ProfessionalSkillPlan
   sourceSequenceMap: SourceSequenceMapItem[]
   sourceSequenceReview?: SourceSequenceReviewState
   sourceCleanupPlan?: SourceCleanupPlan
@@ -4380,8 +4139,6 @@ export interface EditPlan {
     visualStyle: string
     adaptationRule: string
   }
-  referenceVideoPlan?: ReferenceVideoPlan
-  browserCapturePlan?: BrowserCapturePlan
   signatureRoutes: SignatureRoute[]
   videoUnderstandingReport?: VideoUnderstandingReport
   adaptiveEditStrategy?: AdaptiveEditStrategy
@@ -4406,13 +4163,6 @@ export interface EditPlan {
   professionalEditingDirective?: ProfessionalEditingDirective
   segmentEditPlans?: SegmentEditPlan[]
   editQAPlan?: EditQAPlan
-  qaChecks?: string[]
-  plannerValidation?: {
-    passed: boolean
-    checks: string[]
-    warnings: string[]
-  }
-  providerPromptGuidance?: string[]
   providerPromptPlans?: ProviderPromptPlan[]
   characterConsistencyPlan?: CharacterConsistencyPlan
   documentaryFactSafetyPlan?: DocumentaryFactSafetyPlan
@@ -4446,10 +4196,14 @@ export interface PlannerInput {
   moodStyle: MoodStyle
   visualPreference: VisualPreference
   referenceUrl: string
-  referenceVideoMode?: ReferenceVideoMode
-  referenceAdaptationFocus?: ReferenceAdaptationFocus[]
-  referenceNotes?: string[]
   customInstructions: string
+  userInstructionHistory?: string[]
+  preferenceDefaultsApplied?: boolean
+  preferenceSnapshotId?: string
+  preferenceSnapshotAppliedAt?: string
+  preferencePersistenceSource?: EditPreferencePersistenceSource
+  currentEditPreferenceOverrideKeys?: EditPreferenceFieldKey[]
+  currentEditPreferenceRevision?: number
   creditPreference: CreditPreference
   clips: ClipSource[]
   sourceSequenceMode?: SourceSequenceMode

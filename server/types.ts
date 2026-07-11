@@ -1,10 +1,12 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import type { Request } from 'express'
 import type { RuntimeEnv } from './config/env'
+import type { StorageAdapter } from './storage/storage-types'
 
 export interface AuthContext {
   userId: string
   email?: string
+  accessToken?: string
   isMockUser: boolean
   user?: User
 }
@@ -30,6 +32,7 @@ export interface RuntimeClients {
 export interface RuntimeState {
   env: RuntimeEnv
   clients: RuntimeClients
+  storageAdapter?: StorageAdapter
 }
 
 export type RuntimeRequest = Request & {
@@ -49,4 +52,5 @@ export interface ServiceContext {
   clients: RuntimeClients
   requestId: string
   auth?: AuthContext
+  storageAdapter?: StorageAdapter
 }

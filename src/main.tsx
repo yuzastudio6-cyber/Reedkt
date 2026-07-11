@@ -1,15 +1,23 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { AuthSessionProvider } from './auth/AuthSessionContext'
 import './index.css'
 import App from './App.tsx'
 
-const routerBaseName = import.meta.env.BASE_URL === '/' ? undefined : import.meta.env.BASE_URL.replace(/\/$/, '')
+const router = createBrowserRouter([
+  {
+    path: '*',
+    element: (
+      <AuthSessionProvider>
+        <App />
+      </AuthSessionProvider>
+    ),
+  },
+])
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter basename={routerBaseName}>
-      <App />
-    </BrowserRouter>
+    <RouterProvider router={router} />
   </StrictMode>,
 )

@@ -23,11 +23,12 @@ export function getServiceContext(request: Request): ServiceContext {
     clients: runtimeRequest.runtime.clients,
     requestId: runtimeRequest.context?.requestId ?? 'request-unknown',
     auth: runtimeRequest.context?.auth,
+    storageAdapter: runtimeRequest.runtime.storageAdapter,
   }
 }
 
 export function getIdempotencyKey(request: Request): string {
-  const key = (request as RuntimeRequest).context?.idempotency?.key
+  const key = (request as RuntimeRequest).context?.idempotency?.key ?? request.header('idempotency-key')?.trim()
   if (!key) throw new ApiError('IDEMPOTENCY_KEY_REQUIRED', 'Idempotency-Key header is required.', 400)
   return key
 }

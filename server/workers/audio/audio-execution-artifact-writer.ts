@@ -1,7 +1,5 @@
-import { mkdir, writeFile } from 'node:fs/promises'
-import path from 'node:path'
 import { buildAudioArtifactRecord } from './audio-artifact-builder'
-import { assertOutputPathInsideRoot } from '../media/media-path-safety'
+import { writePrivateTextFileAtomicWithinRoot } from '../../security/private-local-persistence'
 import type { ToolArtifact } from '../../../src/backend/contracts/tool-artifact-contracts'
 import type { AudioExecutionMode } from './audio-execution-types'
 
@@ -42,9 +40,11 @@ export async function buildAudioExecutionArtifact(input: {
 }): Promise<{ artifact: ToolArtifact; localFilePath?: string }> {
   const artifact = buildAudioExecutionArtifactRecord(input)
   if (input.mode === 'local_dev' && input.outputDirectory && input.payload !== undefined && input.contentType !== 'audio/wav') {
-    const localFilePath = assertOutputPathInsideRoot(path.join(input.outputDirectory, input.fileName), input.outputDirectory)
-    await mkdir(path.dirname(localFilePath), { recursive: true })
-    await writeFile(localFilePath, JSON.stringify(input.payload, null, 2), 'utf8')
+    const localFilePath = await writePrivateTextFileAtomicWithinRoot({
+      rootPath: input.outputDirectory,
+      relativePath: input.fileName,
+      content: JSON.stringify(input.payload, null, 2),
+    })
     return { artifact, localFilePath }
   }
   return { artifact }

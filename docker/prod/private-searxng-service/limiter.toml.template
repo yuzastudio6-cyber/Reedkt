@@ -1,0 +1,2 @@
+# Phase 49F keeps SearXNG private/authenticated and does not expose public use.
+# Limiter is disabled in settings.yml for this bounded private validation service.

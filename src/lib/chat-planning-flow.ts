@@ -1047,7 +1047,7 @@ export function getChatPlanningCards(params: GetChatPlanningCardsParams): ChatPl
       status: previewReady ? 'complete' : 'not_started',
       defaultExpanded: previewReady,
       requiredBeforeApproval: false,
-      summary: previewReady ? 'Mock preview is ready.' : 'Preview appears after approved mock progress completes.',
+      summary: previewReady ? 'Private review is ready.' : 'Preview appears after approved internal progress completes.',
     }),
   ]
 }

@@ -390,15 +390,15 @@ function soundSyncChecks(params: CreateTimingValidationPlanParams): TimingValida
       relatedCueIds: plan.refinedSfxTimings.map((sfx) => sfx.id),
     }),
     check({
-      id: 'timing-validation-audioflux-mock-only',
+      id: 'timing-validation-audioflux-execution-gate',
       category: 'beat_alignment',
       label: 'AudioFlux is planned, not executed',
       passed: plan.beatGridPlan.status === 'not_needed' ||
         (plan.beatGridPlan.analysisToolPlanned.includes('audioflux') &&
-          plan.beatGridPlan.limitations.some((limitation) => /no real|mock|audioflux/i.test(limitation))),
+          plan.beatGridPlan.limitations.some((limitation) => /backend-gated|review-only|audioflux/i.test(limitation))),
       failedStatus: 'blocking',
       message: 'Beat grid planning must represent AudioFlux as a future analysis tool and must not imply real audio analysis.',
-      recommendation: 'Keep the beat grid as mock/future worker metadata.',
+      recommendation: 'Keep the beat grid as review metadata until worker results exist.',
       relatedCueIds: plan.beatGridPlan.beatItems.map((beat) => beat.id),
     }),
   ]
@@ -628,9 +628,9 @@ export function createTimingValidationPlan(params: CreateTimingValidationPlanPar
     ...providerRendererChecks(params, timingBaseBlocked),
     ...tierComplexityChecks(params, complexity, profile),
     check({
-      id: 'timing-validation-mock-only-boundary',
+      id: 'timing-validation-execution-gate',
       category: 'worker_readiness',
-      label: 'Timing validation is mock-only',
+      label: 'Timing validation execution gate',
       passed: true,
       message: 'Timing validation checks structured plans only; it does not run AudioFlux, FFmpeg, transcript alignment, Remotion, or media inspection.',
       recommendation: 'Future workers can verify real media timing after approved snapshots exist.',
@@ -655,8 +655,8 @@ export function createTimingValidationPlan(params: CreateTimingValidationPlanPar
     summary: approvalBlocked
       ? 'Timing validation found approval-blocking issues. Resolve timing/frame validation before approval.'
       : overallStatus === 'warning'
-        ? 'Timing validation is reviewable with warnings. Mock limitations remain visible before approval.'
-        : 'Timing validation passed for this mock plan.',
+        ? 'Timing validation is reviewable with warnings. Execution gates remain visible before approval.'
+        : 'Timing validation passed for this review plan.',
     overallStatus,
     items: [
       groupItem({
@@ -679,7 +679,7 @@ export function createTimingValidationPlan(params: CreateTimingValidationPlanPar
         lowerCostRecommendations: lowerCostRecommendations.filter((item) =>
           ['simpler_caption_animation', 'reduce_emphasis_words', 'reduce_visual_cue_density', 'use_static_card', 'convert_animation_to_still'].includes(item.actionType),
         ),
-        developerNotes: ['Caption readability and safe-zone collisions are heuristic mock checks only.'],
+        developerNotes: ['Caption readability and safe-zone collisions are heuristic review checks.'],
       }),
       groupItem({
         id: 'timing-validation-item-soundsync',
@@ -728,9 +728,9 @@ export function createTimingValidationPlan(params: CreateTimingValidationPlanPar
       'Master/Caption/SoundSync timing plans are frozen in approved snapshots.',
     ],
     limitations: [
-      'Mock-only timing validation.',
-      'No real transcript alignment has run.',
-      'No real AudioFlux, FFmpeg, Signalsmith Stretch, audio analysis, media processing, or Remotion rendering has run.',
+      'Review-only timing validation.',
+      'Transcript alignment remains backend-gated.',
+      'AudioFlux, FFmpeg, Signalsmith Stretch, audio analysis, media processing, and rendering remain backend-gated.',
       'Future workers are required for production timing verification.',
     ],
     notes: [

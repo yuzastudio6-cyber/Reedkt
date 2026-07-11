@@ -2,7 +2,13 @@
 
 ## Local Testing Checklist
 
-These commands are for a developer to run later. Codex must not run them in this milestone.
+These commands are for a developer to run later. Do not run them against the raw migration directory while the baseline audit is blocked.
+
+Precondition:
+
+- `npm run audit:supabase-migration-baseline` reports `reproducible`.
+- The reviewed canonical chain is isolated from historical parallel migrations.
+- The target is a disposable local database, not staging or production.
 
 - `supabase start`
 - `supabase db reset`
@@ -14,6 +20,8 @@ These commands are for a developer to run later. Codex must not run them in this
 - Generate database types later if desired.
 
 Local tests should verify that approved snapshots, audit records, and credit ledger records cannot be mutated by normal users.
+
+Current result: precondition not met. The raw folder reports `blocked_by_parallel_foundations`, so the Supabase commands above remain blocked.
 
 ## Staging Checklist
 

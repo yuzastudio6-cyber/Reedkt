@@ -1,0 +1,13 @@
+aac
+flac
+h264
+hevc
+image2
+lavfi
+matroska,webm
+mov,mp4,m4a,3gp,3g2,mj2
+mp3
+mpegts
+nut
+ogg
+wav

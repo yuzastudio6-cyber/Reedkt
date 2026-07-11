@@ -365,8 +365,8 @@ function createQaChecks(params: {
       passedMock: params.status !== 'blocked',
       message: params.status === 'needs_audioflux_analysis'
         ? 'AudioFlux analysis is planned for future workers and has not run.'
-        : 'No real audio analysis is implied by this mock plan.',
-      recommendation: 'Keep beat grid confidence mock-only until future AudioFlux worker results exist.',
+        : 'Audio analysis remains planning-only until approved worker results exist.',
+      recommendation: 'Keep beat grid confidence review-only until future AudioFlux worker results exist.',
       linkedTransitionTimingItemIds: [],
       linkedSfxTimingItemIds: [],
       linkedDuckingTimingItemIds: [],
@@ -416,7 +416,7 @@ export function createSoundSyncTransitionTimingPlan(params: CreateSoundSyncTrans
       }),
       limitations: [
         'Blocked because MasterTimingPlan is missing.',
-        'No real audio analysis, AudioFlux, FFmpeg, Signalsmith Stretch, SFX generation, media processing, providers, or rendering ran.',
+        'Audio analysis, AudioFlux, FFmpeg, Signalsmith Stretch, SFX generation, media processing, providers, and rendering remain gated until approved backend execution.',
       ],
       notes: [],
     }
@@ -452,6 +452,7 @@ export function createSoundSyncTransitionTimingPlan(params: CreateSoundSyncTrans
         captionVisualCueTimingPlan: params.captionVisualCueTimingPlan,
         index,
         input: params.input,
+        maxEndFrame: params.masterTimingPlan!.timingBase.totalFrames,
         speechLine,
       }))
     : []
@@ -500,8 +501,8 @@ export function createSoundSyncTransitionTimingPlan(params: CreateSoundSyncTrans
     ],
     qaChecks,
     limitations: [
-      'Mock-only SoundSync + Transition Timing; no real AudioFlux analysis has run.',
-      'No real beat detection, onset detection, BPM detection, audio analysis, SFX generation, FFmpeg, Signalsmith Stretch, media processing, provider calls, backend, Supabase, or rendering is executed.',
+      'Review-only SoundSync + transition timing; AudioFlux analysis remains backend-gated.',
+      'Beat detection, onset detection, BPM detection, audio analysis, SFX generation, FFmpeg, Signalsmith Stretch, media processing, provider calls, backend jobs, storage writes, and rendering require approved execution gates.',
       'AudioFlux is the future beat/rhythm analysis candidate; Essentia is not the launch default.',
       'Signalsmith Stretch is stretch/pitch-only; Rubber Band is not the launch default.',
       params.captionVisualCueTimingPlan

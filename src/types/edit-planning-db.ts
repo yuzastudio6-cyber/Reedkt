@@ -60,6 +60,7 @@ import type {
   PacingStyleId,
 } from './reeditpro'
 import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan, EditingAgentExecutionPlan } from './editing-agent-runtime'
+import type { ProfessionalSkillPlan } from './professional-skills'
 import type { SupabaseSchemaPlan } from './supabase-schema-plan'
 import type { MigrationDraftPlan } from './supabase-migration-drafts'
 import type { MigrationReviewPlan } from './supabase-rls-hardening'
@@ -119,6 +120,8 @@ export interface EditIntentSnapshotRecord {
   source_chat_message_ids_json: string[]
   editing_category: EditingCategory
   edit_level: EditLevel
+  workflow_type?: import('./reeditpro').VideoWorkflowType
+  cleanup_preference?: import('./reeditpro').CleanupPreference
   target_platform: TargetPlatform
   aspect_ratio: AspectRatio
   frame_template_type?: FrameTemplateType
@@ -151,6 +154,8 @@ export interface EditSettingsSnapshotRecord {
   intent_snapshot_id: string
   editing_category: EditingCategory
   edit_level: EditLevel
+  workflow_type?: import('./reeditpro').VideoWorkflowType
+  cleanup_preference?: import('./reeditpro').CleanupPreference
   target_platform: TargetPlatform
   aspect_ratio: AspectRatio
   frame_template_type?: FrameTemplateType
@@ -158,6 +163,14 @@ export interface EditSettingsSnapshotRecord {
   mood_style: string
   credit_preference: CreditPreference
   source_order_confirmed: boolean
+  planning_input_fingerprint?: string
+  planning_instruction_count?: number
+  preference_defaults_applied?: boolean
+  preference_snapshot_id?: string
+  preference_snapshot_applied_at?: string
+  preference_persistence_source?: import('./reeditpro').EditPreferencePersistenceSource
+  current_edit_preference_override_keys?: import('./reeditpro').EditPreferenceFieldKey[]
+  current_edit_preference_revision?: number
   reference_video_url?: string
   status: RecordStatus
   created_at: TimestampString
@@ -199,6 +212,14 @@ export interface SourceSequenceItemRecord {
   confirmed_order?: number
   user_confirmed: boolean
   notes?: string
+  approved_media_asset_id?: string
+  approved_source_checksum_sha256?: string
+  approved_storage_provider?: 'local_private' | 'google_cloud_storage' | 'supabase_storage'
+  approved_storage_bucket?: string
+  approved_storage_path?: string
+  approved_file_name?: string
+  approved_mime_type?: string
+  approved_byte_size?: number
   created_at: TimestampString
   updated_at: TimestampString
 }
@@ -570,6 +591,8 @@ export interface ApprovedPlanSnapshot {
   creditEstimateId: string
   approvedAt: TimestampString
   approvedBy: string
+  editBriefSnapshot?: import('./planning-context').PlanningBriefInput
+  planningInputTrace?: import('./reeditpro').PlanningInputTrace
   compiledIntent?: CompiledEditingIntent
   professionalEditingDirective?: ProfessionalEditingDirective
   settingsSnapshot: Partial<EditSettingsSnapshotRecord>
@@ -592,6 +615,7 @@ export interface ApprovedPlanSnapshot {
   videoUnderstandingReport?: VideoUnderstandingReport
   adaptiveEditStrategy?: AdaptiveEditStrategy
   adaptiveEditStrategyPlan?: AdaptiveEditStrategyPlan
+  professionalSkillPlan?: ProfessionalSkillPlan
   toolRegistrySummary?: ToolRegistrySummary
   toolStrategyPlan?: ToolStrategyPlan
   renderStrategyPlan?: RenderStrategyPlan

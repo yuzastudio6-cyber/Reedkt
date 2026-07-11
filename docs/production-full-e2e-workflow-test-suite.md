@@ -10,4 +10,4 @@ The E2E orchestrator validates stage ordering, artifact handoff, QA aggregation,
 
 M17 consumes E2E dry-run results for beta readiness. Internal dry-run testing may be allowed only when the E2E suite passes and safety/cost/security docs exist.
 
-External beta, real user media beta, and paid production remain blocked until human-run deployment, readiness, model/license, security, cost, storage, and legal approvals pass.
+External beta, real user media beta, and paid production become allowed only when human-run deployment, readiness, model/license, security, cost, storage, billing, observability, and legal approval gates pass.

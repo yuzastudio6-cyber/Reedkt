@@ -520,7 +520,7 @@ function createItem(params: {
     ],
     workerNotes: [
       `Preferred tool: ${label(preferredTool)}; tools planned only: ${toolIds.map(label).join(', ')}.`,
-      'No D3, ECharts, Vega-Lite, Remotion render, or data processing runs in this frontend mock.',
+      'D3, ECharts, Vega-Lite, rendering, and data processing remain backend-gated.',
       'Future chart workers must use approved data/source snapshot, not raw chat.',
     ],
   }
@@ -578,7 +578,7 @@ export function createDataVizPlan(params: CreateDataVizPlanParams): DataVizPlan 
       'No chart/dataviz tool execution occurs before approval.',
     ],
     limitations: [
-      'Mock-only chart/diagram plan; no D3/ECharts/Vega-Lite rendering has been run.',
+      'Review-only chart/diagram plan; D3/ECharts/Vega-Lite rendering remains backend-gated.',
       'No external data verification or real chart data processing has been run.',
       'Future worker/tool integration is required for actual chart rendering.',
       'No backend, provider, Remotion render, or export job is implemented here.',

@@ -333,7 +333,7 @@ function createOperation(params: {
     status: statusForTool(toolId),
     qaChecks: [
       `${operationLabels[params.operation]} matches user intent and tier.`,
-      'Planning-only; no real audio processing runs in frontend.',
+      'Planning-only; audio processing remains backend-gated.',
     ],
     workerNotes: [
       toolId === 'signalsmith_stretch'
@@ -591,7 +591,7 @@ export function createAudioPipelinePlan(params: CreateAudioPipelinePlanParams): 
 
   return {
     id: `audio-pipeline-${params.input.editingCategory}-${params.input.editLevel}`,
-    summary: `${preset.label} audio pipeline planned with ${clipAudioPlans.length} clip plan${clipAudioPlans.length === 1 ? '' : 's'}, ${cues.length} SoundSync cue${cues.length === 1 ? '' : 's'}, and no real audio processing in this frontend mock.`,
+    summary: `${preset.label} audio pipeline planned with ${clipAudioPlans.length} clip plan${clipAudioPlans.length === 1 ? '' : 's'} and ${cues.length} SoundSync cue${cues.length === 1 ? '' : 's'}; audio processing remains backend-gated.`,
     soundStyle,
     audioIntensity: preset.audioIntensityDefault,
     stages: stagesForPlan(params.input, musicBedPlan, sfxPlan, strategy),
@@ -615,10 +615,10 @@ export function createAudioPipelinePlan(params: CreateAudioPipelinePlanParams): 
       'Music does not overpower voice.',
       'SFX are justified by story, transition, reveal, or emotion.',
       'SoundSync cues support captions, cuts, visuals, and transitions.',
-      'No real audio processing or analysis runs in this frontend mock.',
+      'Audio processing and analysis remain backend-gated.',
     ],
     limitations: [
-      'Mock-only audio pipeline plan; no real audio analysis has run.',
+      'Review-only audio pipeline plan; audio analysis remains backend-gated.',
       'No FFmpeg, AudioFlux, Signalsmith Stretch, Essentia, librosa, Rubber Band, whisper.cpp, transcription, beat detection, music generation, SFX generation, rendering, or export is executed.',
       'Future workers must use approved plan snapshots after user approval and credit reservation.',
       ...(tools.includes('signalsmith_stretch') ? ['Signalsmith Stretch is a worker-only launch candidate and needs audio quality benchmarks before production use.'] : []),

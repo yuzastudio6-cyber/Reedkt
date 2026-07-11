@@ -18,6 +18,7 @@ import type {
   TargetPlatform,
 } from '../types/reeditpro'
 import { createCustomEditingDirective, getDefaultProfessionalEditingDirective } from './professional-editing-ontology'
+import { normalizeOrderedUserInstructions } from './planning-input-safety'
 
 type CompileEditingIntentParams = {
   userMessages: string[]
@@ -41,10 +42,6 @@ type KeywordMatch<T extends string> = {
   value: T
   keywords: string[]
   requirement: string
-}
-
-function normalizeMessage(messages: string[]) {
-  return messages.join(' ').trim().toLowerCase()
 }
 
 function hasAny(text: string, keywords: string[]) {
@@ -211,17 +208,17 @@ function applyPlatform(text: string, input: PlannerInput, accumulator: IntentAcc
 }
 
 function applyEditLevel(text: string, input: PlannerInput, accumulator: IntentAccumulator) {
-  if (text.includes('premium') || text.includes('best possible')) {
+  if (hasAny(text, ['ultra premium', 'highest edit level', 'best possible edit', 'premium best result'])) {
     addRequirement(accumulator, 'preference', 'Premium or best-result language detected.', 'editLevel')
     return 'premium'
   }
 
-  if (/\bpro\b/.test(text)) {
+  if (hasAny(text, ['premium edit level', 'pro edit level', 'switch to pro', 'use pro'])) {
     addRequirement(accumulator, 'preference', 'Pro edit level requested.', 'editLevel')
     return 'pro'
   }
 
-  if (text.includes('basic')) {
+  if (hasAny(text, ['normal edit level', 'basic edit level', 'switch to basic', 'use basic'])) {
     addRequirement(accumulator, 'preference', 'Basic edit level requested.', 'editLevel')
     return 'basic'
   }
@@ -563,7 +560,9 @@ function confidenceFor(accumulator: IntentAccumulator) {
 }
 
 export function compileEditingIntent(params: CompileEditingIntentParams): CompiledEditingIntent {
-  const text = normalizeMessage(params.userMessages)
+  const instructionHistory = normalizeOrderedUserInstructions(params.userMessages)
+  const normalizedMessages = instructionHistory.map((message) => message.toLowerCase())
+  const text = normalizedMessages.join(' ')
   const accumulator: IntentAccumulator = {
     avoidRules: [],
     clarifyingQuestions: [],
@@ -572,12 +571,36 @@ export function compileEditingIntent(params: CompileEditingIntentParams): Compil
     mustFollowRules: [],
     requirements: [],
   }
-  const editingCategory = applyCategory(text, params.currentInput, accumulator)
-  const editLevel = applyEditLevel(text, params.currentInput, accumulator)
-  const platformSettings = applyPlatform(text, params.currentInput, accumulator)
-  const visualPreference = applyVisualPreference(text, params.currentInput, accumulator)
-  const moodStyle = applyMood(text, params.currentInput)
-  const creditPreference = applyCreditPreference(text, params.currentInput, accumulator)
+  let resolvedInput = params.currentInput
+
+  for (const message of normalizedMessages) {
+    const editingCategory = applyCategory(message, resolvedInput, accumulator)
+    const editLevel = applyEditLevel(message, resolvedInput, accumulator)
+    const platformSettings = applyPlatform(message, resolvedInput, accumulator)
+    const visualPreference = applyVisualPreference(message, resolvedInput, accumulator)
+    const moodStyle = applyMood(message, resolvedInput)
+    const creditPreference = applyCreditPreference(message, resolvedInput, accumulator)
+    resolvedInput = {
+      ...resolvedInput,
+      editingCategory,
+      editLevel,
+      ...platformSettings,
+      visualPreference,
+      moodStyle,
+      creditPreference,
+    }
+  }
+
+  const editingCategory = resolvedInput.editingCategory
+  const editLevel = resolvedInput.editLevel
+  const platformSettings = {
+    aspectRatio: resolvedInput.aspectRatio,
+    frameTemplateType: resolvedInput.frameTemplateType ?? getFrameForAspectRatio(resolvedInput.aspectRatio),
+    targetPlatform: resolvedInput.targetPlatform,
+  }
+  const visualPreference = resolvedInput.visualPreference
+  const moodStyle = resolvedInput.moodStyle
+  const creditPreference = resolvedInput.creditPreference
   const professionalEditingDirective: MutableDirective = {
     ...getDefaultProfessionalEditingDirective({
       editLevel,
@@ -588,10 +611,12 @@ export function compileEditingIntent(params: CompileEditingIntentParams): Compil
     }),
   }
 
-  applyDirectiveOverrides(text, professionalEditingDirective, accumulator)
-  applyTransitionOverrides(text, professionalEditingDirective, accumulator)
-  applyCustomDirectives(text, professionalEditingDirective, accumulator)
-  applyModelSignals(text, editLevel, accumulator)
+  for (const message of normalizedMessages) {
+    applyDirectiveOverrides(message, professionalEditingDirective, accumulator)
+    applyTransitionOverrides(message, professionalEditingDirective, accumulator)
+    applyCustomDirectives(message, professionalEditingDirective, accumulator)
+    applyModelSignals(message, editLevel, accumulator)
+  }
 
   for (const rule of accumulator.mustFollowRules) {
     addUnique(professionalEditingDirective.mustFollowRules, rule)
@@ -647,6 +672,7 @@ export function compileEditingIntent(params: CompileEditingIntentParams): Compil
     professionalEditingDirective,
     qaImplications,
     requirements: accumulator.requirements,
+    instructionHistory,
     resolvedSettings: {
       aspectRatio: platformSettings.aspectRatio,
       creditPreference,

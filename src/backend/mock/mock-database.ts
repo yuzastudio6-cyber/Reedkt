@@ -109,6 +109,11 @@ import type {
   RuntimeIdempotencyRecord,
   WorkerLeaseClaimAttemptRecord,
   WorkerLeaseRecord,
+  EditLevelApplicationLogRecord,
+  EditLevelProfileCatalogRecord,
+  EditLevelReadinessRecord,
+  EditLevelRecommendationRecord,
+  EditLevelSelectionRecord,
 } from '../../types'
 import type { ExportRecord } from '../../types/review-render-export'
 import type { RecommendedEditStructureRecord } from '../../types/planning'
@@ -270,6 +275,11 @@ export interface MockDatabase {
   revisionRequests: RevisionRequestRecord[]
   revisionRequestItems: RevisionRequestItemRecord[]
   exports: ExportRecord[]
+  editLevelProfileCatalog: EditLevelProfileCatalogRecord[]
+  editLevelSelections: EditLevelSelectionRecord[]
+  editLevelRecommendations: EditLevelRecommendationRecord[]
+  editLevelReadiness: EditLevelReadinessRecord[]
+  editLevelApplicationLogs: EditLevelApplicationLogRecord[]
 }
 
 export type MockCollectionName = keyof MockDatabase
@@ -424,6 +434,11 @@ export function createMockDatabase(): MockDatabase {
     revisionRequests: [],
     revisionRequestItems: [],
     exports: [],
+    editLevelProfileCatalog: [],
+    editLevelSelections: [],
+    editLevelRecommendations: [],
+    editLevelReadiness: [],
+    editLevelApplicationLogs: [],
   }
 }
 

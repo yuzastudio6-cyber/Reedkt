@@ -263,7 +263,7 @@ export const demoScenarios: DemoScenario[] = [
   {
     id: 'layout_pro_map_behind_subject',
     label: 'Layout Pro - Map behind subject',
-    description: 'A Pro layout scenario that tests map/card behind a speaker plus pole/contact-object preservation without real masking.',
+    description: 'A Pro layout scenario that tests map/card behind a speaker plus pole/contact-object preservation with masking gated.',
     editingCategory: 'lifestyle',
     editLevel: 'pro',
     targetPlatform: 'youtube',
@@ -338,7 +338,7 @@ export const demoScenarios: DemoScenario[] = [
     expectedSafetyNotes: [
       'Contact object preservation',
       'Captions above all',
-      'No real masking in frontend',
+      'Masking remains backend-gated',
       'Face protected',
       'Future mask worker required',
     ],

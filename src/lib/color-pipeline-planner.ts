@@ -239,7 +239,7 @@ function createOperation(params: {
     status: statusForTool(toolId),
     qaChecks: [
       `${operationLabels[params.operation]} matches ${label(params.colorGradeStyle)} plan.`,
-      'Planning only; no real color processing is executed in the frontend.',
+      'Color processing remains backend-gated until approved execution.',
     ],
     workerNotes: [
       toolId === 'remotion_preview' || toolId === 'planning_only'
@@ -411,7 +411,7 @@ function assetMatchPlans(params: {
         qaChecks: [
           `${aiVideoAsset ? 'AI video' : 'Generated asset'} color matches ${label(params.colorGradeStyle)}.`,
           'Panel background match is planned; transparent AI-video background is not the default.',
-          'No real color QA is executed in this frontend mock.',
+          'Color QA remains backend-gated until approved execution.',
         ],
         notes: [
           aiVideoAsset
@@ -477,7 +477,7 @@ export function createColorPipelinePlan(params: CreateColorPipelinePlanParams): 
 
   return {
     id: `color-pipeline-${params.input.editingCategory}-${params.input.editLevel}`,
-    summary: `${label(colorGradeStyle)} color pipeline planned with ${clipColorPlans.length} clip plan${clipColorPlans.length === 1 ? '' : 's'} and ${assetPlans.length} asset match plan${assetPlans.length === 1 ? '' : 's'}; no real color processing runs in this frontend mock.`,
+    summary: `${label(colorGradeStyle)} color pipeline planned with ${clipColorPlans.length} clip plan${clipColorPlans.length === 1 ? '' : 's'} and ${assetPlans.length} asset match plan${assetPlans.length === 1 ? '' : 's'}; color processing remains backend-gated until approved execution.`,
     colorGradeStyle,
     intensity,
     stages: stagesForPlan(params.input.editLevel, assetPlans.length > 0, hasAiVideoAssets),
@@ -508,9 +508,9 @@ export function createColorPipelinePlan(params: CreateColorPipelinePlanParams): 
       'Color pipeline stays deterministic and planning-only.',
     ],
     limitations: [
-      'Mock-only color pipeline plan.',
-      'No real media, color, histogram, skin tone, or lighting analysis has run.',
-      'No FFmpeg, OpenColorIO, OpenImageIO, OpenCV, Sharp, Remotion rendering, backend worker, or provider call is executed.',
+      'Review-only color pipeline plan.',
+      'Media, color, histogram, skin tone, and lighting analysis remain backend-gated.',
+      'FFmpeg, OpenColorIO, OpenImageIO, OpenCV, Sharp, rendering, backend workers, and provider calls require approved execution gates.',
       'Future workers must execute only approved plan snapshots after plan and credit approval.',
     ],
     status: 'planned',

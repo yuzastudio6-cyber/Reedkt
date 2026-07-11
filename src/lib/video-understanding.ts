@@ -549,7 +549,7 @@ function visualReport(
       : [],
     colorLightingIssues: colorIssues.length > 0 ? colorIssues : ['none'],
     notes: [
-      'No real scene, object, face, or mask analysis has been run.',
+      'Scene, object, face, and mask analysis remain backend-gated.',
       'Visual understanding is deterministic mock planning only.',
     ],
   }
@@ -577,7 +577,7 @@ function audioReport(input: PlannerInput, text: string): AudioUnderstandingRepor
     ],
     audioIssues: issues,
     notes: [
-      'Audio understanding is mock-only and does not inspect waveform, transcript, or loudness.',
+      'Audio understanding is review-only until waveform, transcript, and loudness inspection are approved.',
       'Future workers should replace this with real voice, silence, music, and noise analysis.',
     ],
   }
@@ -640,7 +640,7 @@ function clipUnderstanding(
         ? ['Planned contact-object cue from metadata; future worker must detect/confirm before masking.']
         : [],
       aiNotes: [
-        'Mock-only clip understanding; no real media analysis was run.',
+        'Review-only clip understanding; media analysis remains backend-gated.',
       ],
     }
   })
@@ -693,7 +693,7 @@ export function createMockVideoUnderstandingReport({
     suggestedStrategy,
     confidence,
     limitations: [
-      'Mock-only report; no real media analysis has been run.',
+      'Review-only report; media analysis remains backend-gated.',
       'Future workers should replace mock analysis with transcript, visual, and audio analysis.',
     ],
     qaConcerns: [
@@ -705,7 +705,7 @@ export function createMockVideoUnderstandingReport({
     ],
     notes: [
       'Video understanding is advisory and must not override explicit user instructions.',
-      'This report is deterministic frontend mock planning only.',
+      'This report is deterministic planning metadata.',
     ],
   }
 }

@@ -1,9 +1,86 @@
 export * from './shared'
 export * from './accounts'
 export * from './credits'
+export * from './credit-policy'
 export * from './projects-chat'
 export * from './media'
 export * from './planning'
+export * from './production-workflow'
+export type {
+  AssetUsageRole,
+  BoundingBox,
+  ConfidenceScored,
+  ID as WorkflowID,
+  MediaKind,
+  OptionalTimeRange,
+  PlatformAspectRatio,
+  PriorityLevel,
+  ProjectScopedRecord,
+  SafeZone,
+  SourceMediaRef,
+  SourceTimeMapping,
+  TimeRange as WorkflowTimeRange,
+  TimestampedRecord,
+  TimingFlexibility,
+  TranscriptWordRef,
+  UserEditableNote,
+} from './workflow-common'
+export * from './footage-prep'
+export * from './clean-assembly'
+export * from './cleanup-review'
+export * from './source-library'
+export type {
+  CaptionPreference,
+  EditBrief,
+  EditBriefStatus,
+  EditBriefSummary,
+  MusicPreference,
+  PacingPreference,
+  TargetPlatform as EditBriefTargetPlatform,
+} from './edit-brief'
+export * from './edit-brief-state'
+export * from './edit-cue'
+export * from './edit-cue-state'
+export * from './edit-cue-conflict'
+export * from './planning-context'
+export * from './professional-skills'
+export * from './professional-integration'
+export * from './professional-integration-state'
+export * from './professional-qa'
+export * from './generation-readiness'
+export * from './edit-map'
+export * from './edit-map-state'
+export type {
+  MockRevisionJob,
+  MockRevisionJobStatus,
+  MockRevisionJobStep,
+  MockRevisionJobStepKey,
+  MockRevisionJobStepStatus,
+  RevisionAffectedTarget,
+  RevisionApproval,
+  RevisionApprovalStatus,
+  RevisionCostPolicy,
+  RevisionCreditEstimate,
+  RevisionCreditLineItem,
+  RevisionExecutionMode,
+  RevisionOperationClassification,
+  RevisionOperationImpact,
+  RevisionRequest,
+  RevisionRequestStatus as RevisionWorkflowRequestStatus,
+  RevisionVersionRecord,
+  RevisionWorkflowState,
+} from './revision-workflow'
+export * from './export-workflow'
+export * from './workflow-activity'
+export * from './edit-level'
+export * from './edit-level-repository'
+export * from './model-role-routing'
+export * from './bounded-adapter-source-truth'
+export * from './edit-level-tool-router'
+export * from './edit-level-source-understanding'
+export * from './edit-level-qwen-planning'
+export * from './edit-level-qa-gates'
+export * from './edit-level-estimates'
 export * from './edit-quality'
 export * from './signature-systems'
 export * from './stroke-motion'

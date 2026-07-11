@@ -1,7 +1,6 @@
-import { mkdir, writeFile } from 'node:fs/promises'
-import path from 'node:path'
 import { buildMediaArtifactRecord } from '../media/media-artifact-record-builder'
-import { assertOutputPathInsideRoot, safeJoinStoragePath } from '../media/media-path-safety'
+import { writePrivateTextFileAtomicWithinRoot } from '../../security/private-local-persistence'
+import { safeJoinStoragePath } from '../media/media-path-safety'
 import type { ToolArtifact } from '../../../src/backend/contracts/tool-artifact-contracts'
 import type { EnhancementExecutionMode } from './enhancement-execution-types'
 
@@ -65,9 +64,11 @@ export async function buildEnhancementArtifact(input: {
 }): Promise<{ artifact: ToolArtifact; localFilePath?: string }> {
   const artifact = buildEnhancementArtifactRecord(input)
   if (input.mode === 'local_dev' && input.outputDirectory && input.payload !== undefined && input.artifactType === 'qa_report') {
-    const localFilePath = assertOutputPathInsideRoot(path.join(input.outputDirectory, input.fileName), input.outputDirectory)
-    await mkdir(path.dirname(localFilePath), { recursive: true })
-    await writeFile(localFilePath, JSON.stringify(input.payload, null, 2), 'utf8')
+    const localFilePath = await writePrivateTextFileAtomicWithinRoot({
+      rootPath: input.outputDirectory,
+      relativePath: input.fileName,
+      content: JSON.stringify(input.payload, null, 2),
+    })
     return { artifact, localFilePath }
   }
   return { artifact }

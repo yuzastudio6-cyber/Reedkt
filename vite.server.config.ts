@@ -2,7 +2,10 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   build: {
-    ssr: 'src/server/server.ts',
+    // `server/index.ts` is the hardened Express API entrypoint. The older
+    // `src/server/server.ts` runtime is a local mock scaffold and must never be
+    // emitted as the production Cloud Run artifact.
+    ssr: 'server/index.ts',
     outDir: 'dist-server',
     emptyOutDir: true,
     target: 'node22',
@@ -15,6 +18,5 @@ export default defineConfig({
   },
   ssr: {
     target: 'node',
-    noExternal: true,
   },
 })

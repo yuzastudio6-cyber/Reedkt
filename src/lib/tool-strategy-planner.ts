@@ -62,27 +62,59 @@ type ChainDefinition = {
 }
 
 const providerModelIds = ['gpt_image_2', 'wan_2_2_kf2v_flash', 'wan_2_6_i2v_flash', 'hailuo_2_3_fast', 'hailuo_02', 'veo_3_1_lite'] as const
-
-function unique<T extends string>(values: T[]) {
-  return Array.from(new Set(values))
-}
-
-const controlledDataVizToolIds: OpenSourceToolId[] = ['d3', 'echarts', 'vega', 'vega_lite', 'satori', 'svg_js', 'viz_js']
-const visualQaAndImageToolIds: OpenSourceToolId[] = [
-  'opencv',
-  'sharp',
+const chartDiagramAdapterToolIds = [
+  'd3',
+  'echarts',
+  'vega_lite',
+  'vega',
+  'viz_js',
+  'satori',
+  'svg_js',
+] satisfies OpenSourceToolId[]
+const motionGraphicAdapterToolIds = [
+  'lottie',
+  'animejs',
+  'pixijs',
+  'konva',
+] satisfies OpenSourceToolId[]
+const threeDimensionalAdapterToolIds = [
+  'three_js',
+  'babylon_js',
+] satisfies OpenSourceToolId[]
+const visionFoundationAdapterToolIds = [
   'kornia',
   'torch_torchvision',
   'transformers',
+] satisfies OpenSourceToolId[]
+const modelBackedVisualAdapterToolIds = [
   'sam2',
   'birefnet',
   'rembg',
   'transparent_background',
   'real_esrgan',
-]
+] satisfies OpenSourceToolId[]
+const boundedAudioAdapterToolIds = [
+  'librosa',
+  'audioread',
+  'pydub',
+  'scipy',
+  'resampy',
+  'pyloudnorm',
+  'audioflux',
+  'noisereduce',
+  'pedalboard',
+  'mir_eval',
+  'pydub_effects',
+  'ebu_r128_pyloudnorm',
+] satisfies OpenSourceToolId[]
+const musicStructureAdapterToolIds = [
+  'music21',
+  'pretty_midi',
+  'mido',
+] satisfies OpenSourceToolId[]
 
-function isControlledDataVizTool(toolId: OpenSourceToolId) {
-  return controlledDataVizToolIds.includes(toolId)
+function unique<T extends string>(values: T[]) {
+  return Array.from(new Set(values))
 }
 
 function label(value: string | undefined) {
@@ -91,6 +123,23 @@ function label(value: string | undefined) {
 
 function includesAny(text: string, terms: string[]) {
   return terms.some((term) => text.includes(term))
+}
+
+function needsModelBackedVisualAdapters(input: PlannerInput) {
+  return includesAny(input.customInstructions.toLowerCase(), [
+    'background removal',
+    'remove background',
+    'cutout',
+    'foreground',
+    'mask',
+    'segmentation',
+    'segment subject',
+    'subject behind',
+    'text behind',
+    'upscale',
+    'enhance',
+    'super resolution',
+  ])
 }
 
 function allPlanningText(params: CreateToolStrategyPlanParams) {
@@ -320,6 +369,9 @@ function browserSettings(input: PlannerInput): ToolSettingValue[] {
   const isSquare = input.aspectRatio === '1:1'
 
   return [
+    defaultSetting('captureSourceKind', 'unresolved_approved_capture_source', 'planner', 'Execution remains blocked until a server-owned approved capture source is frozen.'),
+    defaultSetting('captureTemplateId', 'reeditpro_private_capture_card_v1', 'planner'),
+    defaultSetting('captureAuthorizationConfirmed', false, 'user_request', 'The user must explicitly authorize the exact capture source before approval.'),
     defaultSetting('url', 'approved user-provided or internal URL only', 'user_request'),
     defaultSetting('viewportWidth', isVertical ? 390 : isSquare ? 1080 : 1440, 'planner'),
     defaultSetting('viewportHeight', isVertical ? 844 : isSquare ? 1080 : 900, 'planner'),
@@ -458,11 +510,11 @@ function definitionForChain(chainId: ToolChainId, input: PlannerInput, audioPipe
         chainId,
         purpose: 'chart_diagram',
         primaryToolId: 'd3',
-        toolIds: [...controlledDataVizToolIds, 'remotion'],
-        fallbackToolIds: ['echarts', 'vega_lite', 'svg_js', 'remotion'],
+        toolIds: [...chartDiagramAdapterToolIds, 'remotion'],
+        fallbackToolIds: ['echarts', 'satori', 'remotion'],
         presetIds: ['money_flow_diagram'],
         whyNotAiVideo: 'Diagrams need exact labels, arrows, and data structure. AI video is less reliable for exact information.',
-        whyNotRemotionOnly: 'Remotion can place and animate the diagram, but controlled chart/vector specs keep labels and data structure reliable.',
+        whyNotRemotionOnly: 'Remotion can place and animate the diagram, but D3/ECharts-style specs keep labels and data structure controlled.',
         creditImpact: input.editLevel === 'basic' ? 'low' : 'medium',
         userFacingSummary: 'Chart/diagram planned as controlled data visual instead of generated video.',
       }
@@ -494,11 +546,16 @@ function definitionForChain(chainId: ToolChainId, input: PlannerInput, audioPipe
     case 'audio_pipeline_chain':
       {
         const needsStretch = audioPipelinePlan?.toolsPlanned.includes('signalsmith_stretch') ?? false
-        const toolIds: OpenSourceToolId[] = input.editLevel === 'basic'
-          ? ['ffmpeg']
-          : needsStretch
-            ? ['ffmpeg', 'audioflux', 'signalsmith_stretch']
-            : ['ffmpeg', 'audioflux']
+        const includeMusicStructure = input.editLevel !== 'basic' &&
+          (audioPipelinePlan?.musicBedPlan.policy !== 'none' ||
+            audioPipelinePlan?.beatSyncPlan.strategy !== 'none' ||
+            input.customInstructions.toLowerCase().includes('music'))
+        const toolIds: OpenSourceToolId[] = unique([
+          'ffmpeg',
+          ...boundedAudioAdapterToolIds,
+          ...(includeMusicStructure ? musicStructureAdapterToolIds : []),
+          ...(needsStretch ? ['signalsmith_stretch' as const] : []),
+        ])
 
         return {
           chainId,
@@ -519,8 +576,8 @@ function definitionForChain(chainId: ToolChainId, input: PlannerInput, audioPipe
         chainId,
         purpose: 'visual_qa',
         primaryToolId: 'opencv',
-        toolIds: visualQaAndImageToolIds,
-        fallbackToolIds: ['sharp', 'opencv', 'rembg'],
+        toolIds: ['opencv', 'sharp', ...visionFoundationAdapterToolIds],
+        fallbackToolIds: ['sharp'],
         presetIds: ['foreground_safe_zone_qa', 'panel_background_match_qa'],
         whyNotAiVideo: 'Safe-zone, crop, blur, and panel-match QA should be measured rather than generated.',
         whyNotRemotionOnly: 'Remotion can enforce layout, but future QA tools check collisions and visual quality.',
@@ -528,15 +585,28 @@ function definitionForChain(chainId: ToolChainId, input: PlannerInput, audioPipe
         userFacingSummary: 'Visual QA planned for face/object safe zones, captions, and panel matching.',
       }
     case 'ai_animation_asset_chain':
-      return {
-        chainId,
-        purpose: 'ai_asset_generation_support',
-        primaryToolId: 'remotion',
-        toolIds: ['remotion'],
-        fallbackToolIds: ['remotion'],
-        presetIds: ['premium_lower_panel'],
-        creditImpact: input.editLevel === 'premium' ? 'high' : 'medium',
-        userFacingSummary: 'AI animation is treated as an asset; Remotion composes it into the final canvas.',
+      {
+        const toolIds: OpenSourceToolId[] = unique([
+          'remotion',
+          'satori',
+          'svg_js',
+          ...motionGraphicAdapterToolIds,
+          ...threeDimensionalAdapterToolIds,
+          ...visionFoundationAdapterToolIds,
+          ...(needsModelBackedVisualAdapters(input) ? modelBackedVisualAdapterToolIds : []),
+        ])
+        return {
+          chainId,
+          purpose: 'ai_asset_generation_support',
+          primaryToolId: 'remotion',
+          toolIds,
+          fallbackToolIds: ['remotion', 'satori', 'svg_js'],
+          presetIds: ['premium_lower_panel'],
+          creditImpact: input.editLevel === 'premium' ? 'high' : 'medium',
+          userFacingSummary: needsModelBackedVisualAdapters(input)
+            ? 'AI visual assets are treated as bounded private assets with mask/enhancement support only after backend approval.'
+            : 'AI visual assets are treated as bounded private assets; controlled graphics and motion support feed final composition.',
+        }
       }
     case 'premium_rescue_chain':
       return {
@@ -573,7 +643,7 @@ function chainFromRenderItem(item: RenderStrategyPlanItem, adaptiveStrategy: Ada
     return 'map_route_chain'
   }
 
-  if (hints.includes('chart_tool') || item.selectedOpenSourceTools.some(isControlledDataVizTool) || includesAny(text, ['chart', 'diagram', 'money', 'flow', 'account', 'timeline', 'data'])) {
+  if (hints.includes('chart_tool') || item.selectedOpenSourceTools.some((tool) => tool === 'd3' || tool === 'echarts') || includesAny(text, ['chart', 'diagram', 'money', 'flow', 'account', 'timeline', 'data'])) {
     return 'chart_diagram_chain'
   }
 
@@ -622,7 +692,7 @@ function stepForTool(params: {
     reason,
     qaChecks: [
       ...(profile?.qaChecks.slice(0, 3) ?? []),
-      'Planning only; no package is installed and no tool is executed in this frontend demo.',
+      'Planning only; package installation and tool execution require approved backend gates.',
     ],
     workerNotes: [
       profile?.executionMode === 'inside_remotion'
@@ -657,7 +727,7 @@ function createToolStrategyItem(params: {
     purpose: definition.purpose,
     reason: toolId === 'remotion'
       ? 'Remotion owns final canvas, timing, layers, and placement.'
-      : `${label(toolId)} is planned because ${definition.userFacingSummary}`,
+      : `This backend activity is planned because ${definition.userFacingSummary}`,
     settings: toolIndex === 0 ? settings : settings.filter((setting) => ['planningOnly', 'requiresApproval', 'panelBackgroundColor', 'captionSafeZone'].includes(setting.settingId)),
     status,
     toolId,
@@ -739,12 +809,27 @@ function hasVisualQaNeed(params: CreateToolStrategyPlanParams) {
     allPlanningText(params).includes('caption safe')
 }
 
-function planLevelItems(params: CreateToolStrategyPlanParams, startingIndex: number) {
+function hasVisualAssetSupportNeed(params: CreateToolStrategyPlanParams) {
+  const text = allPlanningText(params).toLowerCase()
+  return needsModelBackedVisualAdapters(params.input) ||
+    Boolean(params.visualAssetPlan?.some((asset) =>
+      asset.assetType === 'animated_scene' ||
+      asset.assetType === 'real_motion_scene' ||
+      asset.providerRoute.primaryModel === 'svg_lottie_renderer' ||
+      asset.providerRoute.primaryModel === 'gpt_image_2',
+    )) ||
+    includesAny(text, ['3d', 'motion graphic', 'animated card', 'cutout', 'background removal', 'mask', 'segmentation', 'upscale', 'enhance'])
+}
+
+function planLevelItems(params: CreateToolStrategyPlanParams, startingIndex: number, existingItems: ToolStrategyPlanItem[] = []) {
   const items: ToolStrategyPlanItem[] = []
   const chains: ToolChainId[] = []
 
   if (hasColorNeed(params)) chains.push('color_pipeline_chain')
   if (hasAudioNeed(params)) chains.push('audio_pipeline_chain')
+  if (hasVisualAssetSupportNeed(params) && !existingItems.some((item) => item.chainId === 'ai_animation_asset_chain')) {
+    chains.push('ai_animation_asset_chain')
+  }
   if (hasVisualQaNeed(params)) chains.push('visual_qa_chain')
 
   chains.forEach((chainId, index) => {
@@ -813,7 +898,7 @@ export function createToolStrategyPlan(params: CreateToolStrategyPlanParams): To
           }),
           ...items,
         ]),
-    ...planLevelItems(params, items.length + 1),
+    ...planLevelItems(params, items.length + 1, items),
   ]
   const toolIdsUsed = unique(withPlanLevelItems.flatMap((item) => item.selectedToolIds))
   const chainIdsUsed = unique(withPlanLevelItems.map((item) => item.chainId))
@@ -848,7 +933,7 @@ export function createToolStrategyPlan(params: CreateToolStrategyPlanParams): To
       params.input.aspectRatioFramePlan?.status === 'confirmed'
         ? `Tool planning uses confirmed output frame ${params.input.aspectRatioFramePlan.selectedAspectRatio}.`
         : 'Tool planning remains draft until the output frame is confirmed.',
-      'No packages are installed and no tools are executed in this frontend demo.',
+      'Package installation and tool execution require approved backend gates.',
       'Tool execution in future workers requires approved plan snapshots and credit approval.',
       params.input.editLevel === 'premium' ? 'Premium may reference Veo only as final fallback/rescue.' : 'Basic/Pro cannot use Veo.',
     ],

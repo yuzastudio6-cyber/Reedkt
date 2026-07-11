@@ -77,6 +77,7 @@ export interface ApiRequestEnvelope<TBody = unknown> {
   body?: TBody
   params?: Record<string, string>
   query?: Record<string, string>
+  idempotencyKey?: string
 }
 
 export interface ApiResponseEnvelope<TData = unknown> {

@@ -25,7 +25,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 
 - `$10/week` software access.
 - Includes 100 weekly bonus Reedit Credits.
-- 100 credits = `$5` retail credit value.
+- 1 credit = `$0.10`; 100 credits = `$10` retail credit value.
 - User can buy more credits.
 - Intended for solo creators and personal content workflows.
 
@@ -42,6 +42,8 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 Subscription is software access. Edit Credits pay for AI generation, rendering, and editing usage.
 
 Credits should be estimated before generation and deducted only after approval. The UI must not imply unlimited AI editing for either subscription plan.
+
+RP-CREDITPOLICY-01 supersedes older `100 credits = $5` notes. Credits also cover ReEditPro's service/edit fee on top of actual billable tool costs. Tool owners report actual internal tool cost only and must not include the ReEditPro service/edit fee inside tool cost events.
 
 Real Motion is premium and credit-heavy because it requires stronger visual analysis, object planning, overlay placement, animation generation, and review safety.
 

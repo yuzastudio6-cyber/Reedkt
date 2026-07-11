@@ -192,7 +192,7 @@ function action(params: {
     affectsCredits: params.affectsCredits ?? false,
     estimatedCreditImpact: params.estimatedCreditImpact ?? 'none',
     reason: params.reason,
-    qaChecks: params.qaChecks ?? ['Fallback must remain inside approved snapshot policy.', 'No real fallback execution runs in frontend mock.'],
+    qaChecks: params.qaChecks ?? ['Fallback must remain inside approved snapshot policy.', 'Fallback execution remains backend-gated.'],
   }
 }
 
@@ -375,7 +375,7 @@ export const agentFallbackActions: AgentFallbackAction[] = [
     requiresUserReview: true,
     affectsCredits: true,
     estimatedCreditImpact: 'medium',
-    reason: 'No real billing occurs in this milestone.',
+    reason: 'Billing remains disabled in this milestone.',
   }),
   action({
     id: 'fallback-custom',
@@ -478,8 +478,8 @@ export function createFallbackDecision(params: {
       ? 'Fallback changes approved cost, model route, visual route, meaning, or final output scope.'
       : undefined,
     creditImpactNote: params.actions.some((actionItem) => actionItem.affectsCredits)
-      ? 'Fallback may affect future fallback allowance or credit estimate; no real credits are deducted in this mock.'
-      : 'No material credit impact is expected for this mock fallback path.',
+      ? 'Fallback may affect future fallback allowance or credit estimate; credits remain disabled for this planning path.'
+      : 'No material credit impact is expected for this planning fallback path.',
     continueIndependentWork,
     finalRenderBlocked,
     reason: finalRenderBlocked
@@ -490,7 +490,7 @@ export function createFallbackDecision(params: {
     qaChecks: [
       'Fallback must stay inside approved plan constraints.',
       'Basic/Pro no Veo and Premium final-fallback-only Veo must be preserved.',
-      'No real fallback execution runs in frontend mock.',
+      'Fallback execution remains backend-gated.',
     ],
   }
 }

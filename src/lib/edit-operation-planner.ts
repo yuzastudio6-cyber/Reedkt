@@ -391,7 +391,7 @@ function qaItemsForSegment(segment: SegmentBase, editLevel: EditLevel): SegmentQ
       fallbackActions,
       notes: [
         ...(segment.trimDecisionItemIds?.map((id) => `Trim decision: ${id}.`) ?? ['No source cleanup decision linked yet.']),
-        'No real transcript/silence/media analysis is implied.',
+        'Transcript, silence, and media analysis remain backend-gated.',
       ],
     },
     {
@@ -733,13 +733,13 @@ export function createSegmentEditPlans(params: {
         ...(colorPipelinePlan
           ? [
               `Color pipeline planned at project/clip/asset level: ${colorPipelinePlan.colorGradeStyle.replaceAll('_', ' ')}.`,
-              'Segment grade must match project color pipeline; no real color processing runs in this mock.',
+              'Segment grade must match project color pipeline; color processing remains backend-gated.',
             ]
           : []),
         ...(audioPipelinePlan
           ? [
               `Audio pipeline planned at project/clip/timing level: ${audioPipelinePlan.soundStyle.replaceAll('_', ' ')}.`,
-              'Segment sound must match project audio pipeline; no real audio processing runs in this mock.',
+              'Segment sound must match project audio pipeline; audio processing remains backend-gated.',
             ]
           : []),
         ...(input.sourceCleanupPlan

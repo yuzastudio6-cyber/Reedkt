@@ -1,0 +1,513 @@
+/* Edit Level beta UI cards, recommendation, and mock/local boundary notices. */
+
+.edit-level-setup-section,
+.edit-level-inline-card {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.edit-level-setup-section {
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(9, 15, 27, 0.94)),
+    var(--rp-surface-card);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-lg);
+  box-shadow: var(--rp-shadow-card);
+  padding: 18px;
+}
+
+.edit-level-setup-heading {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.edit-level-setup-heading div {
+  display: grid;
+  gap: 6px;
+  max-width: 760px;
+  min-width: 0;
+}
+
+.edit-level-setup-heading h2 {
+  font-size: 1.18rem;
+  letter-spacing: 0;
+}
+
+.edit-level-setup-heading p,
+.edit-level-card-copy,
+.edit-level-card-footer small,
+.edit-level-selected-summary p,
+.edit-level-estimate-notice p,
+.edit-level-estimate-summary li,
+.edit-level-estimate-item-list li,
+.edit-level-credit-estimate-notice p,
+.edit-level-render-budget-notice p,
+.edit-level-revision-budget-notice p,
+.edit-level-estimate-boundary-notice p,
+.edit-level-estimate-boundary-notice li,
+.edit-level-boundary-notice li,
+.edit-level-recommendation-banner li,
+.edit-level-tool-depth-summary li,
+.edit-level-tool-capability-summary li,
+.edit-level-tool-capability-list li,
+.edit-level-tool-fallback-notice li,
+.edit-level-source-understanding-summary li,
+.edit-level-source-layer-list li,
+.edit-level-source-fallback-notice li,
+.edit-level-qwen-planning-summary li,
+.edit-level-qwen-dimension-list li,
+.edit-level-qwen-fallback-notice li,
+.edit-level-qwen-usage-notice p,
+.edit-level-qa-gate-summary li,
+.edit-level-qa-gate-list li,
+.edit-level-qa-fallback-notice li,
+.edit-level-qa-readiness-card p {
+  color: var(--rp-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.edit-level-card-group {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.edit-level-public-card {
+  background: rgba(15, 23, 42, 0.74);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-primary);
+  cursor: pointer;
+  display: grid;
+  gap: 10px;
+  min-height: 320px;
+  min-width: 0;
+  padding: 14px;
+  text-align: left;
+}
+
+.edit-level-public-card:hover,
+.edit-level-public-card:focus-visible {
+  border-color: rgba(0, 229, 255, 0.44);
+  outline: none;
+}
+
+.edit-level-public-card.is-selected {
+  background: rgba(14, 35, 52, 0.84);
+  border-color: rgba(16, 185, 129, 0.56);
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.22);
+}
+
+.edit-level-public-card.is-recommended:not(.is-selected) {
+  border-color: rgba(0, 229, 255, 0.36);
+}
+
+.edit-level-card-topline,
+.edit-level-card-promise,
+.edit-level-estimate-badges,
+.edit-level-banner-meta {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.edit-level-card-topline {
+  justify-content: space-between;
+}
+
+.edit-level-card-topline strong {
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.edit-level-card-badges {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.edit-level-card-promise {
+  color: var(--rp-text-primary);
+  font-weight: 800;
+}
+
+.edit-level-card-section,
+.edit-level-card-footer {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.edit-level-card-section small,
+.edit-level-card-footer small,
+.edit-level-depth-grid small,
+.edit-level-summary-grid small {
+  color: var(--rp-text-muted);
+  font-size: 0.75rem;
+  text-transform: none;
+}
+
+.edit-level-card-section ul,
+.edit-level-recommendation-banner ul,
+.edit-level-boundary-notice ul,
+.edit-level-tool-depth-summary ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.edit-level-recommendation-banner,
+.edit-level-selected-summary,
+.edit-level-tool-depth-summary,
+.edit-level-tool-capability-summary,
+.edit-level-tool-capability-list,
+.edit-level-tool-fallback-notice,
+.edit-level-source-understanding-summary,
+.edit-level-source-layer-list,
+.edit-level-marker-context-policy,
+.edit-level-source-fallback-notice,
+.edit-level-qwen-planning-summary,
+.edit-level-qwen-dimension-list,
+.edit-level-qwen-fallback-notice,
+.edit-level-qwen-usage-notice,
+.edit-level-qa-gate-summary,
+.edit-level-qa-gate-list,
+.edit-level-qa-fallback-notice,
+.edit-level-qa-readiness-card,
+.edit-level-estimate-notice,
+.edit-level-estimate-summary,
+.edit-level-estimate-item-list,
+.edit-level-credit-estimate-notice,
+.edit-level-render-budget-notice,
+.edit-level-revision-budget-notice,
+.edit-level-estimate-boundary-notice,
+.edit-level-boundary-notice {
+  background: rgba(10, 18, 32, 0.68);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+}
+
+.edit-level-recommendation-banner {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.edit-level-recommendation-banner svg {
+  color: var(--rp-brand-cyan);
+  margin-top: 3px;
+}
+
+.edit-level-recommendation-banner h3,
+.edit-level-selected-summary h3,
+.edit-level-tool-depth-summary h3,
+.edit-level-tool-capability-summary h3,
+.edit-level-tool-fallback-notice h3,
+.edit-level-source-understanding-summary h3,
+.edit-level-marker-context-policy h3,
+.edit-level-source-fallback-notice h3,
+.edit-level-qwen-planning-summary h3,
+.edit-level-qwen-fallback-notice h3,
+.edit-level-qwen-usage-notice h3,
+.edit-level-qa-gate-summary h3,
+.edit-level-qa-fallback-notice h3,
+.edit-level-qa-readiness-card h3,
+.edit-level-estimate-notice h3,
+.edit-level-estimate-summary h3,
+.edit-level-credit-estimate-notice h3,
+.edit-level-render-budget-notice h3,
+.edit-level-revision-budget-notice h3,
+.edit-level-estimate-boundary-notice h3,
+.edit-level-boundary-notice h3 {
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.edit-level-selected-summary.is-compact {
+  background: rgba(13, 22, 37, 0.56);
+}
+
+.edit-level-tool-capability-summary.is-compact {
+  background: rgba(13, 22, 37, 0.56);
+}
+
+.edit-level-source-understanding-summary.is-compact,
+.edit-level-marker-context-policy.is-compact,
+.edit-level-qwen-planning-summary.is-compact,
+.edit-level-qa-gate-summary.is-compact,
+.edit-level-estimate-summary.is-compact {
+  background: rgba(13, 22, 37, 0.56);
+}
+
+.edit-level-summary-grid,
+.edit-level-depth-grid,
+.edit-level-capability-grid,
+.edit-level-source-grid,
+.edit-level-qwen-grid,
+.edit-level-qa-grid,
+.edit-level-estimate-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.edit-level-summary-grid span,
+.edit-level-depth-grid span,
+.edit-level-capability-grid span,
+.edit-level-source-grid span,
+.edit-level-qwen-grid span,
+.edit-level-qa-grid span,
+.edit-level-estimate-grid span {
+  background: rgba(21, 31, 50, 0.56);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.edit-level-summary-grid strong,
+.edit-level-depth-grid strong,
+.edit-level-capability-grid strong,
+.edit-level-source-grid strong,
+.edit-level-qwen-grid strong,
+.edit-level-qa-grid strong,
+.edit-level-estimate-grid strong {
+  color: var(--rp-text-primary);
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
+}
+
+.edit-level-capability-grid small,
+.edit-level-source-grid small,
+.edit-level-tool-capability-list small,
+.edit-level-source-layer-list small,
+.edit-level-qwen-grid small,
+.edit-level-qwen-dimension-list small,
+.edit-level-qa-grid small,
+.edit-level-qa-gate-list small,
+.edit-level-estimate-grid small,
+.edit-level-estimate-item-list small {
+  color: var(--rp-text-muted);
+  font-size: 0.75rem;
+}
+
+.edit-level-tool-capability-summary ul,
+.edit-level-tool-fallback-notice ul,
+.edit-level-source-understanding-summary ul,
+.edit-level-source-fallback-notice ul,
+.edit-level-qwen-planning-summary ul,
+.edit-level-qwen-fallback-notice ul,
+.edit-level-qa-gate-summary ul,
+.edit-level-qa-fallback-notice ul,
+.edit-level-estimate-summary ul,
+.edit-level-estimate-boundary-notice ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.edit-level-tool-capability-list summary,
+.edit-level-source-layer-list summary,
+.edit-level-qwen-dimension-list summary,
+.edit-level-qa-gate-list summary,
+.edit-level-estimate-item-list summary {
+  color: var(--rp-text-primary);
+  cursor: pointer;
+  font-weight: 800;
+  list-style-position: inside;
+}
+
+.edit-level-tool-capability-groups,
+.edit-level-source-layer-groups,
+.edit-level-qwen-dimension-groups,
+.edit-level-qa-gate-groups,
+.edit-level-estimate-item-groups {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.edit-level-tool-capability-groups section,
+.edit-level-source-layer-groups section,
+.edit-level-qwen-dimension-groups section,
+.edit-level-qa-gate-groups section,
+.edit-level-estimate-item-groups section {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.edit-level-tool-capability-groups h4,
+.edit-level-source-layer-groups h4,
+.edit-level-qwen-dimension-groups h4,
+.edit-level-qa-gate-groups h4,
+.edit-level-estimate-item-groups h4 {
+  font-size: 0.88rem;
+  letter-spacing: 0;
+}
+
+.edit-level-tool-capability-groups ul,
+.edit-level-source-layer-groups ul,
+.edit-level-qwen-dimension-groups ul,
+.edit-level-qa-gate-groups ul,
+.edit-level-estimate-item-groups ul {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.edit-level-tool-capability-groups li,
+.edit-level-source-layer-groups li,
+.edit-level-qwen-dimension-groups li,
+.edit-level-qa-gate-groups li,
+.edit-level-estimate-item-groups li {
+  align-items: flex-start;
+  background: rgba(21, 31, 50, 0.42);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
+  padding: 10px;
+}
+
+.edit-level-tool-capability-groups li > span:first-child,
+.edit-level-source-layer-groups li > span:first-child,
+.edit-level-qwen-dimension-groups li > span:first-child,
+.edit-level-qa-gate-groups li > span:first-child,
+.edit-level-estimate-item-groups li > span:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.edit-level-tool-badge-set,
+.edit-level-source-badge-set,
+.edit-level-qa-badge-set,
+.edit-level-estimate-badge-set {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.edit-level-source-badge-set em,
+.edit-level-estimate-badge-set em {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.16);
+  border-radius: var(--rp-radius-pill);
+  color: var(--rp-text-secondary);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.1;
+  padding: 5px 7px;
+}
+
+.edit-level-qwen-dimension-list summary span,
+.edit-level-qwen-dimension-groups li,
+.edit-level-qa-gate-list summary span,
+.edit-level-qa-gate-groups li,
+.edit-level-estimate-item-list summary span,
+.edit-level-estimate-item-groups li {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.edit-level-qwen-badge-set {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.edit-level-qa-badge-set {
+  justify-content: flex-end;
+}
+
+.edit-level-qwen-badge-set span {
+  background: rgba(21, 31, 50, 0.68);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  color: var(--rp-text-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  padding: 6px 8px;
+}
+
+.edit-level-estimate-notice,
+.edit-level-credit-estimate-notice,
+.edit-level-render-budget-notice,
+.edit-level-revision-budget-notice {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.edit-level-estimate-badges {
+  align-content: start;
+  justify-content: flex-end;
+}
+
+@media (max-width: 1180px) {
+  .edit-level-card-group,
+  .edit-level-summary-grid,
+  .edit-level-depth-grid,
+  .edit-level-capability-grid,
+  .edit-level-source-grid,
+  .edit-level-qwen-grid,
+  .edit-level-qa-grid,
+  .edit-level-estimate-grid,
+  .edit-level-tool-capability-groups,
+  .edit-level-source-layer-groups,
+  .edit-level-qwen-dimension-groups,
+  .edit-level-qa-gate-groups,
+  .edit-level-estimate-item-groups,
+  .edit-level-tool-capability-groups li,
+  .edit-level-source-layer-groups li,
+  .edit-level-qwen-dimension-groups li,
+  .edit-level-qa-gate-groups li,
+  .edit-level-estimate-item-groups li {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-level-public-card {
+    min-height: auto;
+  }
+
+  .edit-level-estimate-notice,
+  .edit-level-credit-estimate-notice,
+  .edit-level-render-budget-notice,
+  .edit-level-revision-budget-notice,
+  .edit-level-recommendation-banner {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-level-estimate-badges {
+    justify-content: flex-start;
+  }
+}

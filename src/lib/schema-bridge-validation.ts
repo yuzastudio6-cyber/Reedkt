@@ -97,7 +97,7 @@ export function validateSupabaseSchemaPlan(
       label: 'Full edit plan JSONB planned',
       passed: hasJsonb(editPlanVersions, 'full_plan_json'),
       severity: 'error',
-      message: 'edit_plan_versions must store full_plan_json for the complete mock plan.',
+      message: 'edit_plan_versions must store full_plan_json for the complete review plan.',
     }),
     check({
       id: 'schema-credit-estimate-json',
@@ -158,7 +158,7 @@ export function validateSupabaseSchemaPlan(
     check({
       id: 'schema-no-migration-files-created',
       label: 'No active Supabase migrations in schema bridge',
-      passed: plan.nonGoals.some((goal) => goal.toLowerCase().includes('no real supabase migrations')),
+      passed: plan.nonGoals.some((goal) => goal.toLowerCase().includes('no active supabase migrations')),
       severity: 'blocking',
       message: 'The schema bridge must remain planning-only and must not create active Supabase migrations.',
     }),

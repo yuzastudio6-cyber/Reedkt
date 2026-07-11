@@ -1,9 +1,11 @@
 import { createHash } from 'node:crypto'
-import { createReadStream } from 'node:fs'
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
-import path from 'node:path'
 import { Readable } from 'node:stream'
 import { ApiError } from '../errors/api-error'
+import {
+  createPrivateReadStreamWithinRoot,
+  readPrivateFileIfExistsWithinRoot,
+  writePrivateFileCreateOnlyWithinRoot,
+} from '../security/private-local-persistence'
 import { normalizeStoragePath } from './storage-paths'
 import type { DownloadTarget, ObjectMetadata, PutObjectInput, StorageAdapter, UploadTarget, VerifyObjectInput } from './storage-types'
 
@@ -17,14 +19,20 @@ export class LocalStorageAdapter implements StorageAdapter {
 
   async createUploadTarget(input: {
     uploadIntentId: string
+    workspaceId?: string
+    projectId?: string
     bucketName: string
     objectPath: string
     mimeType: string
+    checksumSha256?: string
     expiresAt: string
   }): Promise<UploadTarget> {
+    const workspaceQuery = input.workspaceId
+      ? `?workspaceId=${encodeURIComponent(input.workspaceId)}`
+      : ''
     return {
       uploadMethod: 'PUT',
-      uploadUrl: `/v1/upload-intents/${input.uploadIntentId}/local-object`,
+      uploadUrl: `/v1/upload-intents/${input.uploadIntentId}/local-object${workspaceQuery}`,
       uploadHeaders: {
         'content-type': input.mimeType,
       },
@@ -32,13 +40,16 @@ export class LocalStorageAdapter implements StorageAdapter {
       bucketName: input.bucketName,
       objectPath: input.objectPath,
       temporary: true,
+      createOnly: true,
     }
   }
 
   async putObject(input: PutObjectInput): Promise<ObjectMetadata> {
-    const absolutePath = this.resolvePath(input.bucketName, input.objectPath)
-    await mkdir(path.dirname(absolutePath), { recursive: true })
-    await writeFile(absolutePath, input.body)
+    await writePrivateFileCreateOnlyWithinRoot({
+      rootPath: this.rootDir,
+      relativePath: this.relativeObjectPath(input.bucketName, input.objectPath),
+      content: input.body,
+    })
     return this.metadataFromBuffer(input.bucketName, input.objectPath, input.body, input.mimeType)
   }
 
@@ -81,20 +92,22 @@ export class LocalStorageAdapter implements StorageAdapter {
   }
 
   async getObjectMetadata(bucketName: string, objectPath: string): Promise<ObjectMetadata> {
-    const absolutePath = this.resolvePath(bucketName, objectPath)
-    try {
-      const fileStat = await stat(absolutePath)
-      const buffer = await readFile(absolutePath)
-      return this.metadataFromBuffer(bucketName, objectPath, buffer, undefined, fileStat.size)
-    } catch {
+    const buffer = await readPrivateFileIfExistsWithinRoot({
+      rootPath: this.rootDir,
+      relativePath: this.relativeObjectPath(bucketName, objectPath),
+    })
+    if (!buffer) {
       return {
         bucketName,
         objectPath,
         sizeBytes: 0,
         checksumSha256: '',
         exists: false,
+        integrityVerified: false,
+        checksumSource: 'unavailable',
       }
     }
+    return this.metadataFromBuffer(bucketName, objectPath, buffer)
   }
 
   async createReadStreamForObject(bucketName: string, objectPath: string): Promise<Readable> {
@@ -102,7 +115,10 @@ export class LocalStorageAdapter implements StorageAdapter {
     if (!metadata.exists) {
       throw new ApiError('UPLOAD_NOT_FINALIZED', 'Local storage object was not found.', 404)
     }
-    return createReadStream(this.resolvePath(bucketName, objectPath))
+    return createPrivateReadStreamWithinRoot({
+      rootPath: this.rootDir,
+      relativePath: this.relativeObjectPath(bucketName, objectPath),
+    })
   }
 
   async createReadStream(bucketName: string, objectPath: string): Promise<Readable> {
@@ -116,17 +132,13 @@ export class LocalStorageAdapter implements StorageAdapter {
     }
   }
 
-  private resolvePath(bucketName: string, objectPath: string): string {
+  private relativeObjectPath(bucketName: string, objectPath: string): string {
     const safeBucket = normalizeStoragePath(bucketName)
     const safeObjectPath = normalizeStoragePath(objectPath)
-    const absoluteRoot = path.resolve(this.rootDir)
-    const absolutePath = path.resolve(absoluteRoot, safeBucket, safeObjectPath)
-
-    if (!absolutePath.startsWith(absoluteRoot + path.sep)) {
-      throw new ApiError('VALIDATION_FAILED', 'Storage path escapes local storage root.', 400)
+    if (!safeBucket || !safeObjectPath) {
+      throw new ApiError('VALIDATION_FAILED', 'Local storage bucket and object path are required.', 400)
     }
-
-    return absolutePath
+    return `${safeBucket}/${safeObjectPath}`
   }
 
   private metadataFromBuffer(
@@ -143,6 +155,8 @@ export class LocalStorageAdapter implements StorageAdapter {
       checksumSha256: createHash('sha256').update(buffer).digest('hex'),
       mimeType,
       exists: true,
+      integrityVerified: true,
+      checksumSource: 'server_computed_bytes',
     }
   }
 }

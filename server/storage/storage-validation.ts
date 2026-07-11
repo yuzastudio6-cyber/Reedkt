@@ -4,6 +4,11 @@ import type { UploadPurpose } from './storage-types'
 const GB = 1024 * 1024 * 1024
 const MB = 1024 * 1024
 
+// This cap applies only to the non-production Express raw-body compatibility
+// route. Large media must use a signed/direct object-storage upload target so
+// the API process never buffers multi-gigabyte bodies in memory.
+export const LOCAL_RAW_UPLOAD_MAX_BYTES = 16 * MB
+
 export const UPLOAD_PURPOSES: UploadPurpose[] = [
   'source_media',
   'reference_media',
@@ -56,4 +61,19 @@ export function assertAllowedUpload(input: {
 
 export function maxUploadBytesForMime(mimeType: string): number | undefined {
   return MIME_LIMITS[mimeType]?.maxBytes
+}
+
+export function assertLocalRawUploadByteLength(byteLength: number): void {
+  if (!Number.isSafeInteger(byteLength) || byteLength <= 0) {
+    throw new ApiError('VALIDATION_FAILED', 'Local raw upload Content-Length must be a positive integer.', 411)
+  }
+
+  if (byteLength > LOCAL_RAW_UPLOAD_MAX_BYTES) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Local raw upload exceeds the bounded development-route limit. Use the signed/direct object-storage upload target for larger media.',
+      413,
+      { maxBytes: LOCAL_RAW_UPLOAD_MAX_BYTES },
+    )
+  }
 }

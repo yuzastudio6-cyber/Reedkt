@@ -19,8 +19,18 @@ const SAFE_RUNTIME_MODES: BackendRuntimeMode[] = [
   'worker',
 ]
 
+type RuntimeEnvRecord = Record<string, string | undefined>
+
+type RuntimeGlobal = typeof globalThis & {
+  process?: {
+    env?: RuntimeEnvRecord
+  }
+}
+
 function getViteEnvValue(key: string): string | undefined {
-  const env = import.meta.env as Record<string, string | undefined>
+  const viteEnv = (import.meta as ImportMeta & { env?: RuntimeEnvRecord }).env
+  const processEnv = (globalThis as RuntimeGlobal).process?.env
+  const env = viteEnv ?? processEnv ?? {}
   const value = env[key]?.trim()
   return value && value.length > 0 ? value : undefined
 }
@@ -63,7 +73,7 @@ export function getBackendRuntimeWarnings(): string[] {
     return ['No public API base URL is configured; live backend transport is disabled.']
   }
 
-  return ['Backend API base URL is configured, but RP-FIX-08 keeps real transport behind a future implementation gate.']
+  return ['Backend API base URL is configured; reviewed frontend-safe /v1 routes may use HTTP transport while backend-required routes stay gated.']
 }
 
 export function getBackendRuntimeStatus(): BackendRuntimeStatus {
@@ -79,7 +89,7 @@ export function getBackendRuntimeStatus(): BackendRuntimeStatus {
     mockOnly,
     message: mockOnly
       ? 'Backend API is running in mock-safe mode.'
-      : 'Backend API public base URL is configured for a future transport layer.',
+      : 'Backend API public base URL is configured for reviewed frontend-safe HTTP transport.',
     warnings: getBackendRuntimeWarnings(),
   }
 }

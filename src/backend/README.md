@@ -1,6 +1,6 @@
 # ReeditPro Backend Skeleton
 
-This folder is a mock-only service skeleton for the future ReeditPro backend. It maps the current TypeScript records and Supabase migration model into local services, API contracts, and orchestrators without connecting to Supabase, AI providers, Stripe, Google Cloud, storage, or render workers.
+This folder is the local/backend service skeleton for ReeditPro. It maps the current TypeScript records and Supabase migration model into services, API contracts, and orchestrators. Local/default execution stays non-production; Supabase, AI providers, Stripe, Google Cloud, storage, and render workers can only be enabled by explicit backend evidence gates.
 
 The important rule is preserved here: generation and rendering are blocked until an edit plan is approved, a credit estimate is approved, and credits are reserved.
 

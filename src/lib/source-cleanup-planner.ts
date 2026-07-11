@@ -152,7 +152,7 @@ function chooseDecision(params: {
         ? 'User-marked important clip is preserved unless the user explicitly reviews a cut.'
         : keepReasons.includes('proof_or_evidence')
           ? 'Proof/evidence context should be preserved to avoid changing meaning.'
-          : 'Required tutorial/product/story context is kept in the mock cleanup plan.',
+          : 'Required tutorial/product/story context is kept in the cleanup plan.',
     }
   }
 
@@ -270,7 +270,7 @@ function applyRetakeGroups(decisions: TrimDecisionItem[], input: PlannerInput) {
         qaChecks: [
           'Retake selection is based on metadata only.',
           'User can review alternate takes before approval.',
-          'No real transcript, visual, or audio comparison has run.',
+          'Transcript, visual, and audio comparison remain backend-gated.',
         ],
       }
     })
@@ -303,8 +303,8 @@ export function createSourceCleanupPlan(params: CreateSourceCleanupPlanParams): 
         durationSeconds,
         fps,
         notes: [
-          'Mock full-clip source range; no real trim/silence detection has run.',
-          params.masterTimingPlan ? 'Frames use the current MasterTimingPlan fps.' : 'Frames use 30fps as mock planning fallback only.',
+          'Full-clip source range is estimated; trim and silence detection remain backend-gated.',
+          params.masterTimingPlan ? 'Frames use the current MasterTimingPlan fps.' : 'Frames use 30fps as the planning fallback.',
         ],
       }),
       decision: choice.decision,
@@ -319,7 +319,7 @@ export function createSourceCleanupPlan(params: CreateSourceCleanupPlanParams): 
       linkedTimingCueIds: [`source-trim-cue-${clip.id}`],
       qaChecks: [
         ...getCleanupQaChecks(effectivePreference),
-        choice.affectedMeaningRisk ? 'Meaning-sensitive clip must not be removed without review.' : 'Meaning risk is low in mock planning.',
+        choice.affectedMeaningRisk ? 'Meaning-sensitive clip must not be removed without review.' : 'Meaning risk is low in this cleanup plan.',
       ],
       notes: [
         `Cleanup profile: ${profile.label}.`,
@@ -342,7 +342,7 @@ export function createSourceCleanupPlan(params: CreateSourceCleanupPlanParams): 
       finalUse: effectivePreference === 'aggressive_cleanup' || effectivePreference === 'tight_retention_cleanup' ? 'removed' : 'alt_take',
       cutReasons: Array.from(new Set([...decision.cutReasons, 'repeated_take'])),
       userReviewRequired: decision.userReviewRequired || effectivePreference === 'aggressive_cleanup',
-      reason: 'Alternate take is de-prioritized by mock retake grouping; user review remains available before approval.',
+      reason: 'Alternate take is de-prioritized by retake grouping; user review remains available before approval.',
     } satisfies TrimDecisionItem
   })
   const preservedRanges = decisionsWithRetakes.filter((decision) =>
@@ -392,15 +392,15 @@ export function createSourceCleanupPlan(params: CreateSourceCleanupPlanParams): 
     ],
     qaChecks: [
       ...getCleanupQaChecks(effectivePreference),
-      `${decisionsWithRetakes.length} trim/select decision(s) have mock source ranges and reasons.`,
+      `${decisionsWithRetakes.length} trim/select decision(s) have estimated source ranges and reasons.`,
       retakeGroups.length ? `${retakeGroups.length} retake group(s) inferred from metadata only.` : 'No retake groups inferred from clip metadata.',
       confirmed ? 'Cleanup preference is confirmed.' : 'Approval remains locked until cleanup preference is confirmed.',
     ],
     limitations: [
-      'Mock-only cleanup plan.',
-      'No real transcript analysis has run.',
-      'No real silence detection has run.',
-      'No real video/audio/image/frame analysis has run.',
+      'Review-only cleanup plan.',
+      'Transcript analysis remains backend-gated.',
+      'Silence detection remains backend-gated.',
+      'Video, audio, image, and frame analysis remain backend-gated.',
       'No FFmpeg, VapourSynth, AudioFlux, Signalsmith Stretch, Remotion rendering, provider call, backend, or worker execution has run.',
       'Future transcript/media workers are required for exact trim execution.',
     ],
@@ -408,7 +408,7 @@ export function createSourceCleanupPlan(params: CreateSourceCleanupPlanParams): 
       recommendation.reason,
       `Selected/effective cleanup profile for planning: ${profile.label}.`,
       confirmed
-        ? 'User confirmed cleanup style for this mock planning pass.'
+        ? 'User confirmed cleanup style for this planning pass.'
         : 'Recommendation is not confirmation; user must confirm cleanup style before approval.',
     ],
   }

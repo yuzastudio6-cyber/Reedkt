@@ -231,7 +231,7 @@ export const supabaseMvpTablePlans: SupabaseTablePlan[] = [
   table({
     name: 'edit_plan_versions',
     group: 'plan_version',
-    purpose: 'Versions full edit plans and stores the complete mock plan as JSONB.',
+    purpose: 'Versions full edit plans and stores the complete review plan as JSONB.',
     columns: ['id', 'project_id', 'edit_session_id', 'intent_snapshot_id', 'version', 'status', 'goal_summary', 'plan_summary_json', 'full_plan_json', 'credit_estimate_id', 'approval_required', 'approved_at', 'approved_by', 'superseded_by_plan_version_id', 'created_at', 'updated_at'],
     jsonbFields: ['plan_summary_json', 'full_plan_json'],
     statusValues: statusValues.plan,
@@ -449,7 +449,7 @@ export function createSupabaseSchemaPlan(): SupabaseSchemaPlan {
       'Storage privacy, signed URL, retention, and deletion policy review.',
     ],
     nonGoals: [
-      'No real Supabase migrations are created.',
+      'No active Supabase migrations are created.',
       'No Supabase client or remote connection is added.',
       'No database tables, storage buckets, jobs, or backend routes are created.',
       'No SQL is run.',

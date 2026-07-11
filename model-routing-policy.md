@@ -1,5 +1,15 @@
 # Model Routing Policy
 
+## Edit Agent Model Roles
+
+ReEditPro separates user-facing edit reasoning, source/video understanding, and technical implementation support. These are model-role boundaries, not permission to call providers from the frontend.
+
+- Main edit planning and user-intent reasoning: Qwen 3.7 Max through `qwen_3_7_main_edit_agent`.
+- Source/video visual understanding: Qwen2.5-VL through `qwen2_5_vl_visual_understanding`.
+- Coding, adapter, tool-code, and Remotion draft support: DeepSeek V4 Pro through `deepseek_v4_tool_code_agent`.
+
+Qwen 3.7 Max is the only main edit-planning/user-reasoning role. Qwen2.5-VL must not create the canonical edit plan by itself. DeepSeek V4 Pro must not reason with the user or replace the main edit planner. All three roles remain backend/provider-gated and mock-disabled until the approved backend gates exist.
+
 ## Launch Router
 
 ReeditPro's launch router separates still/keyframe generation from animation/video generation.

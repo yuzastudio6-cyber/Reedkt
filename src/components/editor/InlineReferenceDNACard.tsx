@@ -2,6 +2,13 @@ import { Link2, Paperclip, SkipForward } from 'lucide-react'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
 import type { ReferenceAdaptationFocus, ReferenceDNA, ReferenceVideoPlan } from '../../types/reeditpro'
+import { referenceDNAItems } from './chatNativeData'
+
+type ReferenceFocusOption = {
+  id: string
+  label: string
+  helper: string
+}
 
 type InlineReferenceDNACardProps = {
   referenceVideoPlan?: ReferenceVideoPlan
@@ -10,7 +17,20 @@ type InlineReferenceDNACardProps = {
   onAttachReference?: () => void
   onSkipReference?: () => void
   onFocusChange?: (focus: ReferenceAdaptationFocus[]) => void
+  focusOptions?: ReferenceFocusOption[]
+  onToggleFocusOption?: (id: string) => void
+  referenceAttached?: boolean
+  referenceSkipped?: boolean
+  selectedFocusOptions?: string[]
+  showControls?: boolean
 }
+
+const defaultReferenceFocusOptions: ReferenceFocusOption[] = [
+  { id: 'pacing', label: 'Pacing', helper: 'Rhythm, holds, and cut energy.' },
+  { id: 'caption_style', label: 'Caption style', helper: 'Text density, emphasis, and readability.' },
+  { id: 'visual_language', label: 'Visual language', helper: 'Color, framing, overlays, and graphic restraint.' },
+  { id: 'sound_feel', label: 'Sound feel', helper: 'Music mood, transitions, and SFX taste.' },
+]
 
 const focusOptions: { value: ReferenceAdaptationFocus; label: string }[] = [
   { value: 'overall_style', label: 'Overall style' },
@@ -123,13 +143,98 @@ function ReferenceDNADetails({ dna }: { dna: ReferenceDNA }) {
 }
 
 export function InlineReferenceDNACard({
+  focusOptions: legacyFocusOptions = defaultReferenceFocusOptions,
   onAttachReference,
   onFocusChange,
   onReferenceUrlChange,
   onSkipReference,
+  onToggleFocusOption,
+  referenceAttached = false,
+  referenceSkipped = false,
   referenceUrl = '',
   referenceVideoPlan,
+  selectedFocusOptions = [],
+  showControls = false,
 }: InlineReferenceDNACardProps) {
+  if (showControls) {
+    const statusLabel = referenceAttached ? 'Reference attached' : referenceSkipped ? 'Skipped' : 'Optional'
+
+    return (
+      <section className="inline-chat-card reference-dna-card" data-testid="reference-card">
+        <div className="inline-card-heading">
+          <div>
+            <span className="section-eyebrow">Reference DNA</span>
+            <h3>Style studied, not copied</h3>
+          </div>
+          <Badge accent={referenceAttached ? 'violet' : referenceSkipped ? 'muted' : 'cyan'}>{statusLabel}</Badge>
+        </div>
+
+        <p className="inline-helper">Paste a reference if you want me to study pacing, captions, or style.</p>
+
+        <div className="reference-control-panel">
+          <label className="reference-url-field">
+            <span>Reference URL</span>
+            <input
+              onChange={(event) => onReferenceUrlChange?.(event.target.value)}
+              placeholder="Paste a public reference link"
+              type="url"
+              value={referenceUrl}
+            />
+          </label>
+
+          <div className="reference-focus-group" aria-label="Reference focus options">
+            {legacyFocusOptions.map((option) => {
+              const selected = selectedFocusOptions.includes(option.id)
+              return (
+                <button
+                  aria-pressed={selected}
+                  className={`reference-focus-chip ${selected ? 'reference-focus-chip-selected' : ''}`.trim()}
+                  key={option.id}
+                  onClick={() => onToggleFocusOption?.(option.id)}
+                  type="button"
+                >
+                  <strong>{option.label}</strong>
+                  <span>{option.helper}</span>
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="reference-action-row">
+            <Button onClick={onAttachReference} size="sm" variant={referenceAttached ? 'secondary' : 'primary'}>
+              {referenceAttached ? 'Reference attached' : 'Use reference'}
+            </Button>
+            <Button aria-label="Skip reference" onClick={onSkipReference} size="sm" variant="ghost">Skip</Button>
+          </div>
+
+          {referenceSkipped && (
+            <p className="reference-state-note">Reference skipped. I'll plan from your clips and edit direction.</p>
+          )}
+        </div>
+
+        {referenceAttached && (
+          <>
+            <div className="reference-url-preview">
+              <span>Current reference</span>
+              <strong>{referenceUrl || 'Sample reference URL'}</strong>
+            </div>
+            <details className="reference-dna-details">
+              <summary>Style cues I'll study</summary>
+              <div className="reference-dna-grid">
+                {referenceDNAItems.map((item) => (
+                  <div key={item.label}>
+                    <strong>{item.label}</strong>
+                    <span>{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          </>
+        )}
+      </section>
+    )
+  }
+
   const dna = referenceVideoPlan?.referenceDNA
   const activeFocus = dna?.focus ?? (referenceVideoPlan?.skipped ? ['ignore_reference'] : ['overall_style'])
   const status = referenceVideoPlan?.skipped

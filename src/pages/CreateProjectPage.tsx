@@ -12,14 +12,6 @@ import {
 import { launchEditingCategories } from '../lib/product-taxonomy'
 import type { EditingCategory } from '../types/reeditpro'
 
-const categoryDescriptions: Record<EditingCategory, string> = {
-  storytelling: 'Story, proof, personal, and case-based edits.',
-  lifestyle: 'Creator, travel, fitness, food, motivation, and casual videos.',
-  business_brand: 'Product, offer, SaaS, ecommerce, coaching, agency, and brand videos.',
-  education_explainer: 'Lessons, frameworks, tutorials, and step-by-step explainers.',
-  documentary_case_study: 'Timelines, evidence, investigations, and case-study videos.',
-}
-
 export function CreateProjectPage() {
   const navigate = useNavigate()
   const projectPersistenceScope = useProjectPersistenceScope()
@@ -153,7 +145,7 @@ export function CreateProjectPage() {
               <h3>{selectedCategory.label}</h3>
             </div>
           </div>
-          <p>{categoryDescriptions[selectedCategory.value]}</p>
+          <p>{selectedCategory.description}</p>
 
           <ol className="project-create-next-steps">
             <li><Check aria-hidden="true" size={15} /><span><strong>Create a named edit</strong><small>Keep versions and revisions attached to one deliverable.</small></span></li>

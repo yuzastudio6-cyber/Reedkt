@@ -99,12 +99,19 @@ const stagePresentation: Record<LocalInternalProjectHandoff['stage'], HomeStageP
   },
 }
 
-const categoryPresentation: Record<EditingCategory, { icon: LucideIcon; label: string }> = {
+const categoryPresentation: Partial<Record<EditingCategory, { icon: LucideIcon; label: string }>> = {
   storytelling: { icon: BookOpenText, label: 'Storytelling' },
   lifestyle: { icon: Camera, label: 'Lifestyle' },
   business_brand: { icon: BriefcaseBusiness, label: 'Business / Brand' },
   education_explainer: { icon: GraduationCap, label: 'Education / Explainer' },
   documentary_case_study: { icon: FileSearch, label: 'Documentary / Case Study' },
+}
+
+function resolveCategoryPresentation(category: EditingCategory): { icon: LucideIcon; label: string } {
+  return categoryPresentation[category] ?? {
+    icon: BookOpenText,
+    label: category.split('_').map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`).join(' '),
+  }
 }
 
 const attentionStages = new Set<LocalInternalProjectHandoff['stage']>([
@@ -221,7 +228,7 @@ function HomeReturningState({
   recentEdits: LocalInternalProjectHandoff[]
 }) {
   const latestStage = stagePresentation[latestEdit.stage]
-  const category = categoryPresentation[latestEdit.category]
+  const category = resolveCategoryPresentation(latestEdit.category)
   const CategoryIcon = category.icon
 
   return (
@@ -390,7 +397,7 @@ function HomeAttentionItem({ handoff }: { handoff: LocalInternalProjectHandoff }
 
 function HomeRecentEdit({ handoff }: { handoff: LocalInternalProjectHandoff }) {
   const presentation = stagePresentation[handoff.stage]
-  const category = categoryPresentation[handoff.category]
+  const category = resolveCategoryPresentation(handoff.category)
   const CategoryIcon = category.icon
 
   return (

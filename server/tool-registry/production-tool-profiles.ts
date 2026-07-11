@@ -531,6 +531,9 @@ export const productionToolProfiles: ProductionToolProfile[] = [
     fallbackToolIds: ['opencv'],
     license: 'BSD-style PyTorch/TorchVision working assumption; CUDA/runtime packaging review required.',
     ...reviewPermissive,
+    modelWeightPolicy: needsModelWeightReview([
+      'PyTorch and TorchVision package approval does not approve any model checkpoint loaded through this runtime.',
+    ]),
     runtimeNotes: [
       'Foundation runtime only; user-facing edit tools must route through approved mask/enhancement adapters.',
       'No model weights are approved by this package/runtime profile.',
@@ -554,6 +557,9 @@ export const productionToolProfiles: ProductionToolProfile[] = [
     fallbackToolIds: ['torch_torchvision'],
     license: 'Apache-2.0 working assumption; model licenses and checkpoints are separately reviewed.',
     ...reviewPermissive,
+    modelWeightPolicy: needsModelWeightReview([
+      'Every Transformers model, tokenizer, and checkpoint must be approved independently before paid production use.',
+    ]),
     runtimeNotes: [
       'Package/runtime foundation only; every model weight remains separately gated.',
       'Adapters must disable downloads unless a later approved source/weight lane authorizes exact assets.',

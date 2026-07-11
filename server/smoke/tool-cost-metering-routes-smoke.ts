@@ -13,22 +13,7 @@ type JsonResponse = {
 }
 
 const workspaceId = 'workspace-tool-cost-route-smoke'
-const projectId = 'project-tool-cost-route-smoke'
-const commonBody = {
-  toolId: 'opentimelineio',
-  workspaceId,
-  projectId,
-  jobId: 'tool-cost-route-job',
-  approvedPlanSnapshotId: 'approved-tool-cost-route-smoke',
-  creditEstimateId: 'estimate-tool-cost-route-smoke',
-  creditReservationId: 'reservation-tool-cost-route-smoke',
-  productEditLevel: 'normal',
-  toolComputeLevel: 'standard',
-  qualityLevel: 'economy',
-  approvedReservationRemainingCredits: 100,
-  idempotencyKey: 'estimate-tool-cost-route-smoke',
-  metadata: { smoke: 'tool-cost-metering-routes' },
-} as const
+const otherWorkspaceId = 'workspace-tool-cost-route-other'
 
 const mockServer = createServer(createReeditProApiApp(loadRuntimeEnv({
   NODE_ENV: 'test',
@@ -40,6 +25,9 @@ const mockServer = createServer(createReeditProApiApp(loadRuntimeEnv({
 await listen(mockServer)
 try {
   const baseUrl = `http://127.0.0.1:${addressPort(mockServer)}`
+  const projectId = await createProject(baseUrl, workspaceId, 'Tool cost route smoke project')
+  const otherProjectId = await createProject(baseUrl, otherWorkspaceId, 'Other workspace tool cost smoke project')
+  const commonBody = buildCommonBody(projectId, workspaceId)
 
   const estimate = await postJson(`${baseUrl}/v1/tool-costs/estimate`, commonBody)
   assert.equal(estimate.status, 200, JSON.stringify(estimate.json))
@@ -100,21 +88,20 @@ try {
     commonBody,
     canonicalEventIdempotencyKey,
   )
-  assert.equal(duplicate.status, 200, JSON.stringify(duplicate.json))
-  assert.equal(read(duplicate.json, ['data', 'idempotencyStatus']), 'duplicate_returned')
+  assert.equal(duplicate.status, 201, JSON.stringify(duplicate.json))
+  assert.equal(duplicate.replayed, true, 'The route idempotency authority must replay the completed response.')
+  assert.equal(read(duplicate.json, ['data', 'idempotencyStatus']), 'inserted')
   assert.equal(read(duplicate.json, ['data', 'event', 'id']), eventId)
 
   const otherWorkspaceEvent = await postJson(
     `${baseUrl}/v1/tool-costs/events`,
     {
-      ...commonBody,
-      workspaceId: 'workspace-tool-cost-route-other',
+      ...buildCommonBody(otherProjectId, otherWorkspaceId),
       jobId: 'tool-cost-route-other-workspace-job',
       idempotencyKey: 'estimate-tool-cost-route-other-workspace',
     },
     buildToolCostEventIdempotencyKey({
-      ...commonBody,
-      workspaceId: 'workspace-tool-cost-route-other',
+      ...buildCommonBody(otherProjectId, otherWorkspaceId),
       jobId: 'tool-cost-route-other-workspace-job',
     }),
   )
@@ -177,7 +164,7 @@ try {
   const baseUrl = `http://127.0.0.1:${addressPort(nonMockServer)}`
   const blocked = await postJson(
     `${baseUrl}/v1/tool-costs/events`,
-    commonBody,
+    buildCommonBody('project-tool-cost-route-non-mock', workspaceId),
     'tool-cost-route-non-mock-blocked',
   )
   assert.equal(blocked.status, 501, JSON.stringify(blocked.json))
@@ -192,6 +179,36 @@ try {
 }
 
 console.log('tool-cost-metering-routes-smoke passed')
+
+function buildCommonBody(projectId: string, scopedWorkspaceId: string) {
+  return {
+    toolId: 'opentimelineio',
+    workspaceId: scopedWorkspaceId,
+    projectId,
+    jobId: 'tool-cost-route-job',
+    approvedPlanSnapshotId: 'approved-tool-cost-route-smoke',
+    creditEstimateId: 'estimate-tool-cost-route-smoke',
+    creditReservationId: 'reservation-tool-cost-route-smoke',
+    productEditLevel: 'normal',
+    toolComputeLevel: 'standard',
+    qualityLevel: 'economy',
+    approvedReservationRemainingCredits: 100,
+    idempotencyKey: 'estimate-tool-cost-route-smoke',
+    metadata: { smoke: 'tool-cost-metering-routes' },
+  } as const
+}
+
+async function createProject(baseUrl: string, scopedWorkspaceId: string, name: string): Promise<string> {
+  const result = await postJson(
+    `${baseUrl}/v1/projects`,
+    { workspaceId: scopedWorkspaceId, name },
+    `project-create:${scopedWorkspaceId}:${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+  )
+  assert.equal(result.status, 201, JSON.stringify(result.json))
+  const projectId = read(result.json, ['data', 'project', 'id'])
+  assert.equal(typeof projectId, 'string', 'Project create route must return a durable project identity.')
+  return projectId as string
+}
 
 function listen(server: Server): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -212,7 +229,11 @@ function addressPort(server: Server): number {
   return address.port
 }
 
-async function postJson(url: string, body: unknown, idempotencyKey?: string): Promise<{ status: number; json: JsonResponse }> {
+async function postJson(url: string, body: unknown, idempotencyKey?: string): Promise<{
+  status: number
+  json: JsonResponse
+  replayed: boolean
+}> {
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -221,7 +242,11 @@ async function postJson(url: string, body: unknown, idempotencyKey?: string): Pr
     },
     body: JSON.stringify(body),
   })
-  return { status: response.status, json: await response.json() as JsonResponse }
+  return {
+    status: response.status,
+    json: await response.json() as JsonResponse,
+    replayed: response.headers.get('idempotency-replayed') === 'true',
+  }
 }
 
 async function getJson(url: string): Promise<{ status: number; json: JsonResponse }> {

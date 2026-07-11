@@ -96,8 +96,8 @@ They must never be mutated by this goal.
 | Gate | Outcome | Current authority |
 | --- | --- | --- |
 | 0 | Goal control plane, source-truth reconciliation, UI/skill/persistence/test contracts | Complete — `96ea3ef290c2b6b603655ea579713026f1f783f4` |
-| 1 | Durable backend-local Edit Reference and Study Chat vertical slice | In progress |
-| 2 | Evidence and Preference Video Study skill orchestration | Pending |
+| 1 | Durable backend-local Edit Reference and Study Chat vertical slice | Complete — `a46519df7255d360f34bfe1a85d65491d83179f6` |
+| 2 | Evidence and Preference Video Study skill orchestration | In progress |
 | 3 | Versioned Preference DNA synthesis | Pending |
 | 4 | Preference DNA QA, correction, review, and approval | Pending |
 | 5 | Target-video adaptation and Preference Application | Pending |

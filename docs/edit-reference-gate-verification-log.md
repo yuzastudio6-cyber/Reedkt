@@ -92,3 +92,77 @@ Known non-blocking build debt: the client build still reports chunks above 500 k
 - Supabase CLI/SQL/remote mutation: not performed.
 - Provider/media/worker/render/credit execution: not performed by Gate 0.
 - Production ready: false.
+
+## Gate 1 — Durable Study Session — 2026-07-11
+
+### Commit
+
+- Commit: `a46519df7255d360f34bfe1a85d65491d83179f6`
+- Message: `Add Edit Reference study-session foundation`
+- Files: 56
+- Migration count before/after: 21 / 21
+- Production ready: false
+
+### Implemented Vertical Slice
+
+```text
+/preferences
+→ Edit References
+→ create private Edit Reference and first Study Chat
+→ save user direction with server-owned setup/acknowledgement messages
+→ reload
+→ read the same reference, study, and ordered messages
+```
+
+The route is backed by one authenticated canonical repository boundary. Local/private mode uses checksummed, size-bounded, symlink-resistant, atomic aggregate persistence scoped by a SHA-256 user/workspace key. The production repository seam fails closed while the canonical Supabase migration and RLS baseline remains blocked.
+
+Every mutation requires an idempotency key, stores the exact response snapshot, validates expected revisions, and records append-only usage/audit events. Browser clients cannot choose assistant/system roles. Empty reads create no persistence file. No raw frames, raw provider payloads, signed URLs, credentials, file bytes, media output, generation, worker, render, credit, or remote Supabase state is stored or executed.
+
+### UI And Design Evidence
+
+- `design.md` and the new `design-system/` authority are binding; UI UX Pro Max is recorded as supporting guidance only.
+- The normal Edit Preferences experience contains no gate-number, mock/local, database, provider, adapter, worker, or runtime implementation copy.
+- Shared skip navigation, visible focus, semantic tabs, Left/Right/Home/End tab keys, live loading/error/status behavior, required-field copy, and state-aware async actions are implemented.
+- Compact buttons, icon actions, tabs, and composer actions have at least a 44px target.
+- In-app browser visual QA covered empty, create, populated, desktop, compact desktop, and 375px states.
+- 375px proof showed no page-level horizontal overflow; tab overflow remains confined to the tab strip.
+- Visual QA recorded zero browser console errors and reset its temporary viewport.
+
+### Verification Results
+
+| Command / check | Result | Evidence |
+| --- | --- | --- |
+| `npm run lint` | Pass | No ESLint failures |
+| `npm run typecheck:server` | Pass | Server TypeScript clean |
+| `npm run check:frontend-boundary` | Pass | 636 frontend files checked |
+| `npm run build` | Pass | 2,555 modules transformed; existing large-chunk warnings disclosed |
+| `npm run smoke:edit-reference-goal-control-plane` | Pass | Goal, design, persistence, status, and script contracts verified |
+| `npm run smoke:edit-reference-repository` | Pass | Checksum, privacy, atomicity, bounds, symlink, idempotency, and concurrency behavior verified |
+| `npm run smoke:edit-reference-api-routes` | Pass | Auth, tenancy scope, validation, lifecycle, revision, replay, reload, and fail-closed production seam verified |
+| `npm run smoke:edit-reference-api-client` | Pass | Typed browser-safe request/response boundary verified |
+| `npm run smoke:edit-reference-ui` | Pass | Truthful saved-card and inspector mappings verified |
+| `npm run smoke:lovable-dashboard-ui-alignment` | Pass | Navigation and compatibility library remain connected |
+| Focused preference browser suite | Pass | 19 tests passed after user-copy hardening |
+| `npx playwright test --workers=1` | Pass | 52/52 Chromium tests passed deterministically in 1.3 minutes |
+| In-app browser visual QA | Pass | Desktop and 375px layout, interaction targets, no overflow, zero console errors |
+| Staged secret/path scan | Pass | No credential pattern, AppleDouble, environment, build, result, migration, or lockfile path staged |
+| `npm run check:edit-reference-goal-postgate` | Pass | Canonical root/branch, ancestry, 21 migrations, conflicts, status, and production-ready false verified |
+
+One parallel full-suite run exposed a detached locator in the pre-existing dashboard route test. The test was narrowed to the stable scoped Open Edit control and then passed alone and in the deterministic 52-test run. No product behavior or assertion coverage was removed.
+
+### Readiness And Next Gate
+
+- Backend-local runtime: verified.
+- Backend-local persistence/reload: verified.
+- Browser UI and responsive behavior: verified.
+- Production Supabase/RLS/cross-device authority: blocked by the existing canonical migration gate.
+- Provider/media/worker/render/credit execution: not performed.
+- Evidence records and study skills: next active Gate 2 scope.
+- Preference DNA, DNA QA, approval, application, and downstream planning: later gates only.
+
+### Remote State
+
+- Push/PR/remote merge: not performed.
+- Supabase CLI/SQL/remote mutation: not performed.
+- Provider/media/worker/render/credit execution: not performed.
+- Production ready: false.

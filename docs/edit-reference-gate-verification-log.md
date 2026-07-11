@@ -93,7 +93,6 @@ Known non-blocking build debt: the client build still reports chunks above 500 k
 - Provider/media/worker/render/credit execution: not performed by Gate 0.
 - Production ready: false.
 
-
 ## Gate 1 — Durable Study Session — 2026-07-11
 
 ### Commit
@@ -231,6 +230,81 @@ Direct requests for exact shots/order, timing/timecodes, layouts, music/SFX/lyri
 - Live media, transcript, audio, visual, and provider study: not run.
 - Production Supabase/RLS/cross-device authority: blocked by the existing canonical migration gate.
 - Next gate: Gate 3 — versioned Preference DNA synthesis from exact evidence revisions.
+
+### Remote State
+
+- Push/PR/remote merge: not performed.
+- Supabase CLI/SQL/remote mutation: not performed.
+- Provider/media/worker/render/credit execution: not performed.
+- Production ready: false.
+
+## Gate 3 — Versioned Preference DNA Synthesis — 2026-07-11
+
+### Commit
+
+- Commit: `b01b48866ea40f188e40509145bf5e311390b5f7`
+- Message: `Add versioned Edit Reference Preference DNA synthesis`
+- Files: 23
+- Migration count before/after: 21 / 21
+- Production ready: false
+
+### Implemented Vertical Slice
+
+```text
+evidence-ready Edit Reference study
+→ validate latest copy-safety evidence
+→ freeze active source and latest derived evidence revisions
+→ synthesize deterministic evidence-linked rules and layers
+→ append mandatory adapt-not-copy boundaries
+→ persist an immutable review-required DNA candidate
+→ review exact layers, rules, conflicts, confidence, and QA state
+→ correct evidence and invalidate the stale candidate
+→ synthesize Version 2 without changing Version 1 content
+→ reload the same active version
+```
+
+Gate 3 uses the canonical Edit Reference service as the sole version authority. It reuses the established layer, confidence, and safety vocabularies but does not call the older mock builder as a competing engine. Identical immutable input produces identical evidence/input/content digests, rules, and layers. Version identity remains unique, while corrected evidence produces a new version and preserves the prior content digest.
+
+### API, Persistence, And UI Evidence
+
+- The authenticated `POST /v1/edit-reference-studies/:studyId/preference-dna` route requires expected study revision and a durable idempotency key.
+- Synthesis fails before evidence readiness, copy-safety completion, active evidence, or a transferable rule; unchanged reruns do not create duplicate versions.
+- Repository read validation binds every rule, layer, and conflict to the exact version input evidence set and checks IDs, bounds, layer/rule coverage, mandatory copy boundaries, side-effect flags, and SHA-256 digests.
+- Adding or correcting evidence atomically supersedes an active unapproved candidate and records an audit event; stale DNA disappears from the active review surface but remains immutable history.
+- Study Chat shows one Generate DNA action only when evidence is ready and one compact review surface only for the active review candidate.
+- The review surface shows exact version, QA-not-run state, layers, evidence-linked rules, copy boundaries, evidence confidence, conflicts, and an explicit not-approved/not-applied boundary.
+- Design authority remained `design.md` -> `design-system/` -> current ReEditPro UI/UX documents -> UI UX Pro Max supporting guidance.
+- Visual QA recorded 1440/1440 and 375/375 width equality, zero console/page errors, responsive stacking, readable hierarchy, and no page-level horizontal overflow.
+
+### Verification Results
+
+| Command / check | Result | Evidence |
+| --- | --- | --- |
+| `npm run smoke:edit-reference-dna-synthesis` | Pass | Preconditions, deterministic output, exact evidence links/digests, immutable versions, correction, replay, privacy, restart, audit, and false side effects verified |
+| Gate 1/2 repository, session, evidence, API-client, UI, and control-plane smokes | Pass | Existing canonical Edit Reference behavior preserved |
+| Preference Video Study/DNA/QA/application regressions | Pass | Imported compatibility/mock architecture unchanged and truthful |
+| `npm run smoke:project-edit-brief-marker-context` | Pass | Existing bounded downstream marker context remains intact |
+| `npm run smoke:lovable-dashboard-ui-alignment` | Pass | Route/navigation hierarchy preserved |
+| `npm run check:frontend-boundary` | Pass | 636 frontend files checked; no backend runtime imported into React |
+| App/server typechecks and lint | Pass | No TypeScript or ESLint failures |
+| `npm run build` | Pass | 2,555 modules transformed; existing large-chunk warnings disclosed |
+| Focused Edit Reference Playwright | Pass | 5/5 tests, including Version 1 supersession and Version 2 reload |
+| Full deterministic Playwright | Pass | 53/53 Chromium tests passed in 1.4 minutes |
+| Desktop/mobile screenshot review | Pass | DNA review hierarchy, 1440px/375px width, internal scrolling, responsive controls, and zero console errors checked |
+| Staged secret/path scan | Pass | No credentials, environment files, AppleDouble, results, build output, migrations, lockfile, or binary files staged |
+| `npm run check:edit-reference-goal-postgate` | Pass | Canonical root/branch/ancestry, 21 migrations, conflicts, status, and production-ready false verified |
+
+One unregistered historical `project-edit-session-preference-dna-smoke.ts` remains tied to a different 26-migration lineage and fails its obsolete count assertion against this accepted 21-migration canonical branch. It was not weakened or used as Gate 3 evidence. The skill registry was corrected to reference the registered Preference DNA application and marker-context proofs; Gate 6 remains responsible for canonical downstream integration.
+
+### Readiness And Next Gate
+
+- Backend-local DNA synthesis/version persistence/reload: verified.
+- Deterministic evidence linking and copy boundaries: verified mock.
+- Browser DNA creation/review and correction-driven supersession: verified.
+- DNA QA, correction decisions, user approval, and target application: not run.
+- Live provider/media/worker/render/credit execution: not run.
+- Production Supabase/RLS/cross-device authority: blocked by the existing canonical migration gate.
+- Next gate: Gate 4 — Preference DNA QA, correction, review, and approval.
 
 ### Remote State
 

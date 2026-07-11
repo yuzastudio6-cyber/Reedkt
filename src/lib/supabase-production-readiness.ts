@@ -9,6 +9,7 @@ export const activeSupabaseMigrationFiles = [
   'supabase/migrations/202605130006_stroke_motion_data_model.sql',
   'supabase/migrations/202605130007_generation_providers_generated_assets.sql',
   'supabase/migrations/202605130008_render_preview_export_revision_qa.sql',
+  'supabase/migrations/202605130009_soundsync_music_intelligence.sql',
   'supabase/migrations/202605180001_reeditpro_core_workspace_projects.sql',
   'supabase/migrations/202605180002_reeditpro_media_source_sequence.sql',
   'supabase/migrations/202605180003_reeditpro_intent_plan_versions.sql',
@@ -22,10 +23,8 @@ export const activeSupabaseMigrationFiles = [
   'supabase/migrations/202605200001_storage_upload_pipeline_readiness.sql',
   'supabase/migrations/202605200002_worker_leases_runtime_transport.sql',
   'supabase/migrations/202605210001_e2e_runtime_readiness_tables.sql',
-  'supabase/migrations/202605270001_approved_snapshot_transaction_and_immutability.sql',
-  'supabase/migrations/202605280001_rp_db_11_footage_prep_source_understanding.sql',
-  'supabase/migrations/202605280002_rp_db_12_cleanup_plan_clean_assembly.sql',
-  'supabase/migrations/202605280003_rp_db_13_edit_brief_edit_cues.sql',
+  'supabase/migrations/202606250001_creative_skill_catalog_foundation.sql',
+  'supabase/migrations/202606250002_creative_skill_catalog_canonical_seed.sql',
 ] as const
 
 export const manualSupabaseTestFiles = [
@@ -44,7 +43,7 @@ export function createSupabaseProductionReadinessPlan(): SupabaseProductionReadi
     check({
       id: 'supabase-readiness-active-migrations-listed',
       label: 'Active migrations listed',
-      passed: activeSupabaseMigrationFiles.length === 25,
+      passed: activeSupabaseMigrationFiles.length === 24,
       severity: 'warning',
       message: 'All SQL files currently visible to the Supabase migration directory are listed, including both foundational families and later additions.',
       recommendation: 'Keep this list synchronized with the executable folder and do not describe only the eight 20260518 files as the active chain.',

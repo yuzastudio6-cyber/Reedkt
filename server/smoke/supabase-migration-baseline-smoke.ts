@@ -57,7 +57,7 @@ const pinnedRemoteDefaultMigrationCount = 24
 assert.equal(repositoryReport.status, 'blocked_by_parallel_foundations')
 assert.equal(repositoryReport.safeToRunRawMigrationDirectory, false)
 assert.equal(repositoryReport.migrationFileCount, pinnedRemoteDefaultMigrationCount)
-assert(repositoryReport.legacyFoundationFiles.length === 8)
+assert(repositoryReport.legacyFoundationFiles.length === 9)
 assert(repositoryReport.rpData04FoundationFiles.length === 8)
 assert(repositoryReport.incompatibleOverlappingTables.includes('projects'))
 assert(repositoryReport.incompatibleOverlappingTables.includes('workspace_members'))

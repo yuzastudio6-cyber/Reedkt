@@ -129,9 +129,10 @@ export function PreferencesPage() {
               <textarea
                 data-testid="preferences-default-note"
                 onChange={(event) => {
+                  const preferenceNote = event.currentTarget.value
                   setSettings((current) => ({
                     ...current,
-                    preferenceNote: event.currentTarget.value,
+                    preferenceNote,
                   }))
                   setStatus('Unsaved preference change.')
                 }}

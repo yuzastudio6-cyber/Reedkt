@@ -1240,7 +1240,9 @@
 }
 
 .source-sequence-card,
-.plan-review-approval-card {
+.plan-review-approval-card,
+.clean-plan-review {
+  justify-self: center;
   width: min(var(--rp-chat-card-wide-max), calc(100% - var(--rp-space-8)));
 }
 

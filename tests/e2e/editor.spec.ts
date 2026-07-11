@@ -97,24 +97,14 @@ test.describe('editor mocked browser flow', () => {
     await expect(page.getByRole('heading', { level: 1, name: /Projects/i })).toBeVisible()
   })
 
-  test('shows a clean internal testing connection readback in preferences', async ({ page }) => {
-    await gotoRoute(page, '/preferences?internalTesting=1')
+  test('shows the clean saved-direction preferences surface for the local session', async ({ page }) => {
+    await gotoRoute(page, '/preferences')
 
-    const readinessCard = page.getByTestId('internal-testing-readiness-card')
-    await expect(readinessCard).toBeHidden()
-    await page.getByTestId('internal-testing-details-summary').click()
-    await expect(readinessCard).toBeVisible()
-    await expect(readinessCard).toContainText(/Testing connection/i)
-    await expect(readinessCard).toContainText(/Supabase sign-in/i)
-    await expect(readinessCard).toContainText(/API connection/i)
-    await expect(readinessCard).toContainText(/Project and upload routes/i)
-    await expect(readinessCard).toContainText(/Safety gates/i)
-    await expect(readinessCard).toContainText(/Session check/i)
-    await expect(readinessCard).toContainText(/A local test session is active/i)
-    await expect(readinessCard).toContainText(/Live backend check/i)
-    await expect(readinessCard).toContainText(/Connection check is waiting for setup/i)
-    await expect(readinessCard).toContainText(/Public sharing, billing, and heavy execution stay off/i)
-    await expect(readinessCard).not.toContainText(/service[-_ ]?role|signed URL|production ready|VITE_|SUPABASE_/i)
+    const preferences = page.getByTestId('preferences-clean-shell')
+    await expect(preferences).toBeVisible()
+    await expect(preferences).toContainText(/Keep preferences simple and reusable/i)
+    await expect(page.getByTestId('preferences-default-edit-direction')).toBeVisible()
+    await expect(preferences).not.toContainText(/service[-_ ]?role|signed URL|production ready|VITE_|SUPABASE_/i)
     await expectNoHorizontalOverflow(page)
   })
 
@@ -220,75 +210,20 @@ test.describe('editor mocked browser flow', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('saves edit preferences and seeds a new project edit from them', async ({ page }) => {
+  test('saves and reloads the default edit direction', async ({ page }) => {
     await gotoRoute(page, '/preferences')
-    await expect(page.getByTestId('edit-preferences-form')).toBeVisible()
-    await page.getByTestId('preference-edit-level').selectOption('basic')
-    await page.getByTestId('preference-workflow').selectOption('product_demo')
-    await page.getByTestId('preference-cleanup').selectOption('light_cleanup')
-    await page.getByTestId('preference-visual-direction').selectOption('no_extra_visuals')
-    await page.getByTestId('preference-mood').selectOption('educational')
-    await page.getByTestId('preference-credit-posture').selectOption('low_credit_cost')
-    await page.getByTestId('preference-preferred-destination').selectOption('youtube')
-    await clickWhenReady(page.getByRole('button', { name: /^Save defaults$/i }))
-    await expect(page.getByText(/Edit Preferences saved for this signed-in test workspace/i)).toBeVisible()
+    const note = `Natural pacing and restrained motion ${Date.now()}`
+    await page.getByTestId('preferences-default-choice-lifestyle_travel_vlog').click()
+    await page.getByTestId('preferences-default-note').fill(note)
+    await clickWhenReady(page.getByRole('button', { name: /^Save preference$/i }))
+    await expect(page.getByTestId('preferences-save-status')).toContainText(/Default preference saved/i)
+    await expect(page.getByTestId('preferences-new-edit-default-preview')).toContainText('@lifestyle-travel-vlog')
 
-    await gotoRoute(page, '/projects/new')
-    const projectName = `E2E preferences ${Date.now()}`
-    const editName = 'Preference seeded edit'
-    await page.getByLabel(/Project name/i).fill(projectName)
-    await clickWhenReady(page.getByRole('button', { name: /^Create project$/i }).first())
-    await expect(page).toHaveURL(/\/projects\/[^/]+$/)
-    await expect(page.getByText(/Normal \/ Light cleanup \/ No extra visuals/i)).toBeVisible()
-
-    await clickWhenReady(page.getByRole('button', { name: /^New edit$/i }).first())
-    await page.getByLabel(/Edit name/i).fill(editName)
-    await clickWhenReady(page.getByRole('button', { name: /^Create edit$/i }).first())
-    await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^?]+\?/)
-    await expect(page.getByTestId('editor-page')).toBeVisible()
-
-    const savedEditSetup = (await readE2EHandoffs(page)).find((handoff) => handoff.editName === editName)?.setup
-
-    expect(savedEditSetup).toMatchObject({
-      editLevel: 'basic',
-      editLevelConfirmed: true,
-      workflowType: 'product_demo',
-      cleanupPreference: 'light_cleanup',
-      cleanupPreferenceConfirmed: true,
-      visualPreference: 'no_extra_visuals',
-      visualPreferenceConfirmed: true,
-      moodStyle: 'educational',
-      creditPreference: 'low_credit_cost',
-      targetPlatform: 'youtube',
-      preferenceDefaultsApplied: true,
-    })
-
-    await expect(page.getByTestId('edit-upload-gate')).toBeVisible()
-    await uploadEditorGateSourceVideo(page, 'preference-seeded-source.mp4')
-    await createPlanFromUploadedEditorSources(page)
-    await expect(page.getByTestId('plan-review-card')).toBeVisible()
-
-    await clickWhenReady(page.getByRole('button', { name: /^Revise setup$/i }).first())
-    await expect(page.getByTestId('plan-review-card')).toHaveCount(0)
-    await expect(page.getByTestId('editor-stage')).toHaveAttribute('data-editor-stage', 'frame')
-    await expect(page.getByRole('button', { name: /Confirm frame/i })).toBeVisible()
-
-    const invalidatedEditSetup = (await readE2EHandoffs(page)).find((handoff) => handoff.editName === editName)
-
-    expect(invalidatedEditSetup).toMatchObject({
-      stage: 'source_uploaded',
-      setup: {
-        aspectRatioConfirmed: false,
-        cleanupPreferenceConfirmed: false,
-        editLevelConfirmed: false,
-        visualPreferenceConfirmed: false,
-      },
-    })
-    expect(invalidatedEditSetup?.approvedSnapshotId).toBeUndefined()
-    expect(invalidatedEditSetup?.privateReview).toBeUndefined()
+    await gotoRoute(page, '/projects')
+    await gotoRoute(page, '/preferences')
+    await expect(page.getByTestId('preferences-default-choice-lifestyle_travel_vlog')).toHaveAttribute('aria-pressed', 'true')
+    await expect(page.getByTestId('preferences-default-note')).toHaveValue(note)
     await expectNoHorizontalOverflow(page)
-    await expectFloatingComposerAligned(page)
-    await expectCompactComposerSurface(page)
   })
 
   test('sends a revision message without starting generation', async ({ page }) => {

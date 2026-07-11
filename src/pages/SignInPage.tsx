@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { ArrowRight, CheckCircle2, LockKeyhole, RefreshCw, ShieldCheck, UserPlus } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useAuthSession } from '../auth/useAuthSession'
 import { AuthBootstrapStatusCard } from '../components/auth/AuthBootstrapStatusCard'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
@@ -49,7 +50,11 @@ function buildSignUpEmailRedirectTo(redirectTo: string): string | undefined {
 export function SignInPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const redirectTo = useMemo(() => sanitizeRedirect(searchParams.get('redirect')), [searchParams])
+  const redirectTo = useMemo(
+    () => sanitizeRedirect(searchParams.get('returnTo') ?? searchParams.get('redirect')),
+    [searchParams],
+  )
+  const sessionAuth = useAuthSession()
   const auth = useAuthBootstrap()
   const internalTestingMockAuthEnabled = isInternalTestingMockAuthEnabled()
   const [mode, setMode] = useState<AuthFormMode>('sign_in')
@@ -59,9 +64,24 @@ export function SignInPage() {
   const [submitting, setSubmitting] = useState(false)
   const [notice, setNotice] = useState<AuthFormNotice | null>(null)
 
-  const configured = auth.configured
+  const localTestMode = sessionAuth.mode === 'local_test' && sessionAuth.config.available
+  const configured = auth.configured || localTestMode
   const signedIn = auth.status !== 'not_configured' && auth.status !== 'signed_out' && Boolean(auth.userContext)
   const submitDisabled = submitting || !configured || !isUsableEmail(email.trim()) || !isUsablePassword(password)
+
+  async function handleLocalTestSignIn() {
+    setSubmitting(true)
+    setNotice(null)
+    const result = await sessionAuth.signInLocalTest()
+    setSubmitting(false)
+
+    if (!result.ok) {
+      setNotice({ tone: 'error', title: 'Local session unavailable', detail: result.message })
+      return
+    }
+
+    navigate(redirectTo, { replace: true })
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -218,6 +238,22 @@ export function SignInPage() {
                 absent. It does not send credentials to Supabase, create backend records, run tools, upload media, reserve credits,
                 or call providers.
               </p>
+            </div>
+          )}
+
+          {localTestMode && sessionAuth.status !== 'signed_in' && (
+            <div className="auth-entry-notice auth-entry-notice-info" role="status">
+              <strong>Local browser test session</strong>
+              <p>This loopback-only session opens the app without creating credentials, backend records, provider work, or charges.</p>
+              <Button
+                data-testid="local-test-sign-in"
+                disabled={submitting}
+                onClick={handleLocalTestSignIn}
+                type="button"
+                variant="secondary"
+              >
+                {submitting ? 'Starting local session' : 'Continue with local test session'}
+              </Button>
             </div>
           )}
 

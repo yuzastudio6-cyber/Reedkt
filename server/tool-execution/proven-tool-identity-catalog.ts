@@ -20,7 +20,7 @@ import { OFFLINE_REMBG_BACKGROUND_REMOVAL_PACKAGE_IDENTITIES } from './rembg-bac
 import { OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY } from './deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
 
 export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v1' as const
-export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-11.19' as const
+export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-11.20' as const
 
 export type ToolVerificationState =
   | 'canonical_e2e_verified'
@@ -150,6 +150,7 @@ const CANONICAL_E2E_EVIDENCE_KEYS: Partial<Record<ProductionToolId, string>> = {
   vapoursynth: 'vapoursynth_exact_json_canonical_lifecycle_verified',
   audioflux: 'audioflux_exact_json_canonical_lifecycle_verified',
   rembg: 'rembg_exact_png_canonical_lifecycle_verified',
+  deepfilternet: 'deepfilternet_exact_wav_canonical_lifecycle_verified',
 }
 
 const OUTPUT_CONTENT_TYPES: Partial<Record<ProductionToolId, readonly string[]>> = {

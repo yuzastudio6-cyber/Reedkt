@@ -21,7 +21,7 @@ assert.equal(summary.totalRegistryProfiles, 72)
 assert.equal(summary.callableCandidateCount, 61)
 assert.equal(summary.intentionallyNonExecutableCount, 11)
 assert.equal(summary.confinedRunnerVerifiedCount, 53)
-assert.equal(summary.canonicalEndToEndVerifiedCount, 49)
+assert.equal(summary.canonicalEndToEndVerifiedCount, 50)
 assert.equal(new Set(catalog.map((record) => record.stableToolIdentity)).size, 72)
 assert.equal(new Set(catalog.map((record) => record.identityHash)).size, 72)
 assert.equal(new Set(catalog.map((record) => record.proofHash)).size, 72)
@@ -93,7 +93,7 @@ assert.deepEqual(summary.canonicalEndToEndVerifiedToolIds, [
   'animejs', 'three_js', 'pixijs', 'konva', 'babylon_js', 'rembg', 'kornia', 'librosa',
   'audioread', 'pydub', 'scipy', 'resampy', 'pyloudnorm', 'audioflux', 'music21', 'pretty_midi', 'mido',
   'noisereduce', 'pedalboard',
-  'mir_eval', 'pydub_effects', 'ebu_r128_pyloudnorm', 'rnnoise', 'playwright', 'pyscenedetect',
+  'mir_eval', 'pydub_effects', 'ebu_r128_pyloudnorm', 'rnnoise', 'deepfilternet', 'playwright', 'pyscenedetect',
   'opencolorio', 'openimageio', 'mkvtoolnix_container_validation',
   'gpac_mp4box_packaging_validation', 'ffmpeg',
   'ffprobe', 'pyav', 'opentimelineio', 'remotion', 'libass', 'sharp', 'duckdb', 'polars', 'opencv',
@@ -108,15 +108,15 @@ assert.equal(getToolIdentityRecord('rembg').verificationState, 'canonical_e2e_ve
 assert.equal(getToolIdentityRecord('rembg').runtime.runnerClass, 'offline_rembg_background_removal_execution_v1')
 assert.equal(getToolIdentityRecord('rembg').artifactContract.verifiedOutputContentTypes[0], 'image/png')
 assert.equal(getToolIdentityRecord('rembg').evidence.canonicalEvidenceKey, 'rembg_exact_png_canonical_lifecycle_verified')
-assert.equal(getToolIdentityRecord('deepfilternet').verificationState, 'confined_runner_verified')
+assert.equal(getToolIdentityRecord('deepfilternet').verificationState, 'canonical_e2e_verified')
 assert.equal(getToolIdentityRecord('deepfilternet').runtime.runnerClass, 'offline_deepfilternet_voice_cleanup_execution_v1')
 assert.equal(getToolIdentityRecord('deepfilternet').runtime.packageOrBinaryName, 'DeepFilterNet+DeepFilterLib')
 assert.equal(getToolIdentityRecord('deepfilternet').runtime.pinnedVersion, '0.5.6')
 assert.equal(getToolIdentityRecord('deepfilternet').artifactContract.verifiedOutputContentTypes[0], 'audio/wav')
 assert.equal(getToolIdentityRecord('deepfilternet').evidence.runnerSmokeCommand, 'npm run smoke:offline-deepfilternet-voice-cleanup-execution')
-assert.equal(getToolIdentityRecord('deepfilternet').evidence.canonicalEvidenceKey, null)
+assert.equal(getToolIdentityRecord('deepfilternet').evidence.canonicalEvidenceKey, 'deepfilternet_exact_wav_canonical_lifecycle_verified')
 assert.equal(getToolIdentityRecord('deepfilternet').readiness.privateInternalRunnerReady, true)
-assert.equal(getToolIdentityRecord('deepfilternet').readiness.privateInternalEndToEndReady, false)
+assert.equal(getToolIdentityRecord('deepfilternet').readiness.privateInternalEndToEndReady, true)
 assert.equal(getToolIdentityRecord('deepfilternet').readiness.productReady, false)
 
 console.log(JSON.stringify({

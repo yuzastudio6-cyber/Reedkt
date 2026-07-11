@@ -22,7 +22,7 @@ export function dispatchProviderGatewayRequest(
     }
   }
 
-  if (executionMode !== 'mock_only' && options.allowRealProviderCalls !== false) {
+  if (executionMode !== 'mock_only') {
     return {
       ok: false,
       errors: ['Real provider calls are blocked in RP-GCP-03. Use mock_only until the real provider milestone.'],

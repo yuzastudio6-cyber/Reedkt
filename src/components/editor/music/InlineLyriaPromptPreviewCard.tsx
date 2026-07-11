@@ -19,21 +19,21 @@ export function InlineLyriaPromptPreviewCard({ cue, onAction, promptPlan }: Inli
       className="music-inline-card music-prompt-preview-card"
       compactSummary={(
         <div className="compact-summary-row">
-          <span className="compact-summary-chip">Lyria Pro</span>
-          <span className="compact-summary-chip">lyria-3-pro-preview</span>
+          <span className="compact-summary-chip">Music asset route</span>
+          <span className="compact-summary-chip">Gated</span>
           <span className="compact-summary-chip">Prompt preview only</span>
         </div>
       )}
       defaultExpanded={false}
       eyebrow="Prompt preview"
-      helper="Prompt preview only. ReeditPro has not called Lyria or generated music yet."
+      helper="Prompt preview only. ReeditPro has not prepared or generated music yet."
       priority="developer_detail"
       status="ready"
       title={promptPlan.promptTitle ?? 'Lyria prompt preview'}
     >
       <div className="music-info-grid">
-        <span><strong>Provider</strong>Lyria Pro</span>
-        <span><strong>Model</strong>lyria-3-pro-preview</span>
+        <span><strong>Route</strong>Music asset preparation</span>
+        <span><strong>Status</strong>Gated until approval</span>
         <span><strong>Cue role</strong>{formatMusicLabel(cue.cueRole)}</span>
         <span><strong>Duration</strong>{getCueDurationLabel(cue)}</span>
         <span><strong>Instrumental only</strong>{instrumentalOnly ? 'Yes' : 'No'}</span>
@@ -57,12 +57,12 @@ export function InlineLyriaPromptPreviewCard({ cue, onAction, promptPlan }: Inli
           <Badge accent="warning" key={item}>No {item}</Badge>
         ))}
       </div>
-      <p className="music-muted-note">Validation warnings: no real provider call, no copied track names, no copied lyrics, no exact reference timing.</p>
+      <p className="music-muted-note">Safety checks: music preparation remains gated; copied track names, copied lyrics, and exact reference timing are blocked.</p>
       <div className="inline-card-actions">
-        <Button onClick={() => onAction('Mock prompt approved. Music generation still waits for credit approval.')} variant="primary">Approve prompt</Button>
-        <Button onClick={() => onAction('Updated mock preference: make this cue instrumental.')} variant="secondary">Make instrumental</Button>
-        <Button onClick={() => onAction('Updated mock preference: lyrics only in montage sections.')} variant="ghost">Allow lyrics in montage</Button>
-        <Button onClick={() => onAction('Updated mock preference: reduce culture styling and keep it broader.')} variant="ghost">Use less cultural style</Button>
+        <Button onClick={() => onAction('Prompt approved. Music generation still waits for credit approval.')} variant="primary">Approve prompt</Button>
+        <Button onClick={() => onAction('Updated preference: make this cue instrumental.')} variant="secondary">Make instrumental</Button>
+        <Button onClick={() => onAction('Updated preference: lyrics only in montage sections.')} variant="ghost">Allow lyrics in montage</Button>
+        <Button onClick={() => onAction('Updated preference: reduce culture styling and keep it broader.')} variant="ghost">Use less cultural style</Button>
       </div>
     </InlinePlanCardShell>
   )

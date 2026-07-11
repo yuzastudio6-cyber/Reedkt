@@ -7,6 +7,7 @@ import type {
   ProviderRoute,
 } from '../../cloud/provider-gateway-contracts'
 import type { GcsObjectLocation } from '../../cloud/gcs-storage-contracts'
+import type { ReEditProModelRoleId, ReEditProRequestedModelUse } from '../../../types/model-role-routing'
 
 export type ProviderGatewayExecutionMode = 'mock_only' | 'dry_run' | 'real_provider_blocked'
 
@@ -35,6 +36,11 @@ export interface ProviderSecretReference {
 
 export interface ProviderGatewayUsageEstimate {
   providerRoute: ProviderRoute
+  providerModel?: string
+  modelRoleId?: ReEditProModelRoleId
+  modelRoleProviderBoundary?: string
+  canonicalProviderModel?: string
+  requestedModelUse?: ReEditProRequestedModelUse
   generationType: ProviderGenerationType
   qualityLevel: ProviderQualityLevel
   estimatedProviderCostCents: number
@@ -57,6 +63,11 @@ export interface ProviderGatewayNormalizedResponse {
   generationRequestId: ID
   jobId: ID
   providerRoute: ProviderRoute
+  providerModel?: string
+  modelRoleId?: ReEditProModelRoleId
+  modelRoleProviderBoundary?: string
+  canonicalProviderModel?: string
+  requestedModelUse?: ReEditProRequestedModelUse
   status: ProviderGatewayStatus
   executionMode: ProviderGatewayExecutionMode
   errorCategory: ProviderGatewayErrorCategory

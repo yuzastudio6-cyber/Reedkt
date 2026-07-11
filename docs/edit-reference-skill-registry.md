@@ -1,6 +1,6 @@
 # Edit Reference Skill Registry
 
-Status: `gate_2_registry_with_executed_subset`
+Status: `gate_3_registry_with_dna_synthesis`
 
 This registry records capability truth, not product aspiration. A tool can back an Edit Reference skill only when an implemented adapter/service, typed input/output contract, proof, safe fallback, privacy boundary, and provenance policy exist.
 
@@ -154,7 +154,7 @@ Existing proof is reusable evidence; it does not mean an Edit Reference study ex
 - outputs: DNA layer records, rule candidates, conflicts, confidence, contract hints, and a new immutable version candidate.
 - toolOrRuntime: Canonical Preference DNA builder services with optional future Qwen reasoning bridge.
 - readinessStatus: `verified_mock`
-- proofCommand: `npm run smoke:preference-dna`
+- proofCommand: `npm run smoke:preference-dna && npm run smoke:edit-reference-dna-synthesis`
 - fallback: Do not create an approvable version when evidence or do-not-copy coverage is insufficient.
 - sideEffects: No provider, media, worker, render, credit, or remote persistence in current proof.
 - privacyPolicy: Persist structured evidence references and decisions, not raw provider payloads/frames.
@@ -184,7 +184,7 @@ Existing proof is reusable evidence; it does not mean an Edit Reference study ex
 - outputs: Target-specific application package, plan hints, QA conditions, downstream context summaries, and invalidation effects.
 - toolOrRuntime: Canonical mock Preference DNA application and Project Edit Session/Brief/Marker bridges.
 - readinessStatus: `verified_mock`
-- proofCommand: `npm run smoke:preference-dna-application && npm run smoke:project-edit-session-preference-dna && npm run smoke:project-edit-brief-marker-context`
+- proofCommand: `npm run smoke:preference-dna-application && npm run smoke:project-edit-brief-marker-context`
 - fallback: Legacy preference or no-reference route, explicitly labelled; blocked DNA never silently applies.
 - sideEffects: Metadata/hints only in current proof; no plan approval, provider, worker, render, or credit activity.
 - privacyPolicy: Downstream contexts exclude full study chat, raw media/frames, provider payloads, secrets, and unrelated project history.
@@ -214,3 +214,17 @@ Gate 2 does not change the capability readiness values above. It records per-stu
 - Preference DNA Synthesis, DNA QA, and Target Adaptation do not run in Gate 2.
 
 Exact behavior proof: `npm run smoke:edit-reference-evidence-study`.
+
+## Gate 3 Execution Evidence
+
+Gate 3 executes `edit_reference.preference_dna.synthesis` through the canonical Edit Reference service with `verified_mock` runtime truth:
+
+- Only an `evidence_ready` study with a completed copy-safety result can synthesize.
+- Active source evidence and the latest derived evidence are frozen by exact ID/revision and SHA-256 input digest.
+- Populated layer snapshots, evidence-linked rules, conflict snapshots, confidence, and at least five mandatory do-not-copy rules are persisted as one review-required version.
+- Identical immutable input produces identical rules, layers, and content digest.
+- Corrected evidence creates a later version without mutating the prior version's immutable content.
+- Provider, model, media, worker, generation, render, credit, and remote Supabase side effects remain false.
+- `edit_reference.preference_dna.qa` and `edit_reference.target_adaptation.application` do not run in Gate 3.
+
+Exact behavior proof: `npm run smoke:edit-reference-dna-synthesis`.

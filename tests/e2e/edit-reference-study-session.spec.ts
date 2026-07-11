@@ -19,7 +19,7 @@ test.describe('Edit Reference durable study session', () => {
     await expect(page.getByRole('heading', { name: `${referenceName} study` })).toBeVisible()
     await expect(page.getByText('Study evidence not complete')).toBeVisible()
     await expect(page.getByText('DNA not generated yet')).toBeVisible()
-    await expect(page.getByText('QA not run')).toBeVisible()
+    await expect(page.getByText('QA not run').first()).toBeVisible()
     await expect(page.getByText('Study setup').first()).toBeVisible()
 
     const direction = 'Keep location and evidence legible. Use tension through pacing, not through copying branded compositions.'
@@ -70,13 +70,38 @@ test.describe('Edit Reference durable study session', () => {
     await expect(page.getByTestId('edit-reference-study-findings')).toContainText('Saved evidence is framed as transferable editing judgment')
     await expect(page.getByText('evidence ready').first()).toBeVisible()
     await expect(page.getByText('DNA not generated yet')).toBeVisible()
-    await expect(page.getByText('QA not run')).toBeVisible()
+    await expect(page.getByText('QA not run').first()).toBeVisible()
+    await expect(page.getByTestId('edit-reference-dna-action')).toContainText('Evidence is ready for Preference DNA')
+    await page.getByTestId('generate-edit-reference-dna').click()
+    await expect(page.getByTestId('edit-reference-dna-review')).toContainText('Preference DNA version 1')
+    await expect(page.getByTestId('edit-reference-dna-review')).toContainText('evidence-linked rules')
+    await expect(page.getByTestId('edit-reference-dna-review')).toContainText('Do-not-copy Rules')
+    await expect(page.getByText('Version 1 · review required')).toBeVisible()
+    await expect(page.getByText('QA not run').first()).toBeVisible()
 
     await page.reload()
     await expect(page.getByRole('heading', { name: `${referenceName} study` })).toBeVisible()
     await expect(page.getByTestId('edit-reference-evidence-list')).toContainText('Measured documentary direction')
     await expect(page.getByTestId('edit-reference-study-findings')).toContainText('Latest study findings')
     await expect(page.getByText('Transferability checked')).toBeVisible()
+    await expect(page.getByTestId('edit-reference-dna-review')).toContainText('Preference DNA version 1')
+    await expect(page.getByText('Review Preference DNA')).toBeVisible()
+
+    await page.getByTestId('add-edit-reference-evidence').click()
+    await page.getByTestId('edit-reference-evidence-title').fill('Measured documentary direction v2')
+    await page.getByTestId('edit-reference-evidence-summary').fill('Use a more deliberate pace, original evidence compositions, and readable labels designed for the target edit.')
+    await page.getByTestId('edit-reference-evidence-correction').selectOption({ label: 'Measured documentary direction' })
+    await page.getByTestId('save-edit-reference-evidence').click()
+    await expect(page.getByTestId('edit-reference-dna-review')).toHaveCount(0)
+    await expect(page.getByText('Version 1 · superseded')).toBeVisible()
+    await page.getByTestId('run-edit-reference-evidence-study').click()
+    await expect(page.getByTestId('edit-reference-dna-action')).toBeVisible()
+    await page.getByTestId('generate-edit-reference-dna').click()
+    await expect(page.getByTestId('edit-reference-dna-review')).toContainText('Preference DNA version 2')
+
+    await page.reload()
+    await expect(page.getByTestId('edit-reference-dna-review')).toContainText('Preference DNA version 2')
+    await expect(page.getByText('Version 2 · review required')).toBeVisible()
   })
 
   test('keeps the study workspace usable at the compact desktop breakpoint', async ({ page }) => {

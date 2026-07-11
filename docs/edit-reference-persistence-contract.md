@@ -1,6 +1,6 @@
 # Edit Reference Persistence Contract
 
-Status: `gate_0_target_contract`
+Status: `gate_3_backend_local_contract`
 
 This contract defines one canonical persistence architecture for Edit Reference. Gate 1 implements its backend-local durable lane. Production database persistence remains fail-closed until the canonical Supabase chain, RLS, tenancy, and transaction evidence pass.
 
@@ -17,7 +17,7 @@ This contract defines one canonical persistence architecture for Edit Reference.
 - `PreferenceApplication`
 - `PreferenceUsageLog`
 
-Gate 1 fully persists references, study sessions, and study messages. The other collections exist as typed empty/future-safe records or repository seams without false runtime claims.
+Gate 1 fully persists references, study sessions, and study messages. Gate 2 adds evidence, assets, and skill runs. Gate 3 adds immutable Preference DNA candidates. QA, application, and production-database authority remain later-gate seams without false runtime claims.
 
 ## Scope And Identity
 
@@ -141,6 +141,15 @@ ready_to_study
 
 Gate 2 does not transition to `dna_ready`, `qa_blocked`, `approved`, `applied`, or production states. It records synchronous skill runs and a final evidence status atomically; it does not claim a queued worker or live media/model run.
 
+Gate 3 adds one server-owned transition:
+
+```text
+evidence_ready
+  -> dna_ready (append review-required DNA version)
+```
+
+The mutation freezes exact evidence revisions and digests, appends mandatory do-not-copy rules, supersedes earlier non-approved candidates, updates reference/study DNA status, and writes chat/usage/audit records atomically. It does not transition to `qa_blocked`, `approved`, `applied`, or any production state.
+
 ## Versioning And Concurrency
 
 - Aggregate revision increments once per committed mutation.
@@ -150,6 +159,8 @@ Gate 2 does not transition to `dna_ready`, `qa_blocked`, `approved`, `applied`, 
 - Created/updated timestamps are server-owned ISO timestamps.
 - Study messages are append-only in normal operation.
 - Approved DNA versions and QA decisions are immutable; later corrections create new versions.
+- Gate 3 DNA candidates are content-immutable: evidence revision links, rules, layers, conflicts, confidence, and content digest cannot be edited in place. Only lifecycle status may later change under a named QA/approval transition.
+- Adding or correcting evidence immediately marks an active unapproved candidate `superseded`; it never deletes or rewrites that version, and the stale candidate cannot remain actionable.
 - Evidence corrections append a new evidence record linked to the exact superseded record; the original remains durable and later orchestration uses only the active successor.
 - Application version is monotonic and replacement/clear events are retained.
 

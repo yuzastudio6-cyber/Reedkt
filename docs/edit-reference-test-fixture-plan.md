@@ -1,6 +1,6 @@
 # Edit Reference Test Fixture Plan
 
-Status: `gate_2_fixtures_partially_executed`
+Status: `gate_3_fixtures_partially_executed`
 
 Fixtures must test behavior, not only file presence. They must be deterministic, private, rights-safe, small, and explicit about whether they contain metadata, synthetic media, or previous approved-edit evidence.
 
@@ -128,4 +128,10 @@ Later Playwright fixtures extend this same canonical path for evidence, DNA, QA,
 
 `server/smoke/edit-reference-evidence-study-smoke.ts` now executes the Empty/Study foundation dependency plus Reference Video Metadata, Previous Approved Edit identity, Manual Evidence, all six Copy-Risk families, Conflicting Evidence, Low/Missing Evidence, correction history, Privacy/DTO redaction, tenant isolation, idempotency conflict/replay, and restart persistence behaviors.
 
-DNA versioning, target adaptation, application replacement/removal, remote RLS, live media study, and provider execution remain later-gate fixtures.
+## Gate 3 Executed Fixtures
+
+`server/smoke/edit-reference-dna-synthesis-smoke.ts` now executes DNA Versioning with premature-run rejection, exact evidence revision/digest linkage, deterministic rule/layer/content output, mandatory do-not-copy coverage, idempotent replay, unchanged-input rejection, correction-driven Version 2 creation, Version 1 immutable-content preservation, privacy inspection, restart persistence, and zero QA/application/provider/media/worker/render/credit side effects.
+
+The focused browser fixture now generates Version 1 from evidence-ready findings, reviews its layers/rules/copy boundaries, confirms QA has not run, reloads, and reads the same review-required version.
+
+DNA QA/approval, target adaptation, application replacement/removal, remote RLS, live media study, and provider execution remain later-gate fixtures.

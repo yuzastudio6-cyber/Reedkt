@@ -65,7 +65,7 @@ try {
     assert.equal(studied.status, 201)
     assert.equal(studied.body.data.detail.study.status, 'evidence_ready')
     assert.equal(studied.body.data.detail.study.evidenceStatus, 'evidence_ready')
-    assert.equal(studied.body.data.detail.nextAction, 'review_study_findings')
+    assert.equal(studied.body.data.detail.nextAction, 'generate_preference_dna')
     assert.equal(studied.body.data.detail.dnaVersions.length, 0)
     assert.equal(studied.body.data.detail.dnaQaResults.length, 0)
     assert(studied.body.data.detail.skillRuns.some((run) => run.skillId === 'edit_reference.transferability.copy_safety' && run.status === 'completed'))

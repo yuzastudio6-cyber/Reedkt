@@ -10,6 +10,7 @@ import type {
   PreferenceStudyData,
   PreferenceStudyMessageListData,
   RunPreferenceEvidenceStudyRequest,
+  SynthesizePreferenceDNARequest,
   UpdateEditReferenceRequest,
   UpdatePreferenceStudyRequest,
 } from '../types/edit-reference'
@@ -42,6 +43,7 @@ export interface EditReferenceApiClient {
   appendMessage(studyId: string, input: AppendPreferenceStudyMessageRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceMessageData>>
   addEvidence(studyId: string, input: CreatePreferenceEvidenceRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
   runEvidenceStudy(studyId: string, input: RunPreferenceEvidenceStudyRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
+  synthesizePreferenceDNA(studyId: string, input: SynthesizePreferenceDNARequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
 }
 
 export function createEditReferenceApiClient(
@@ -69,6 +71,7 @@ export function createEditReferenceApiClient(
       appendMessage: unavailable,
       addEvidence: unavailable,
       runEvidenceStudy: unavailable,
+      synthesizePreferenceDNA: unavailable,
     }
   }
 
@@ -126,6 +129,7 @@ export function createEditReferenceApiClient(
     appendMessage: (studyId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/messages`, 'POST', input, key),
     addEvidence: (studyId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/evidence`, 'POST', input, key),
     runEvidenceStudy: (studyId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/evidence-study`, 'POST', input, key),
+    synthesizePreferenceDNA: (studyId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/preference-dna`, 'POST', input, key),
   }
 }
 

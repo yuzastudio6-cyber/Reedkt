@@ -84,6 +84,14 @@ try {
   assert.equal(studied.data.detail.study.status, 'evidence_ready')
   assert(studied.data.detail.skillRuns.length > 0)
 
+  const dna = await client.synthesizePreferenceDNA(studyId, {
+    workspaceId,
+    expectedStudyRevision: studied.data.detail.study.revision,
+  }, 'client-dna-001')
+  assert(dna.ok)
+  assert.equal(dna.data.detail.dnaVersions.length, 1)
+  assert.equal(dna.data.detail.nextAction, 'review_preference_dna')
+
   const unavailable = createEditReferenceApiClient('')
   assert.equal(unavailable.available, false)
   const unavailableList = await unavailable.list(workspaceId)
@@ -99,6 +107,8 @@ try {
     intendedUse: 'transferable',
   })
   assert.equal(unavailableEvidence.ok, false)
+  const unavailableDNA = await unavailable.synthesizePreferenceDNA(studyId, { workspaceId, expectedStudyRevision: 1 })
+  assert.equal(unavailableDNA.ok, false)
 
   console.log('edit_reference_api_client_passed')
 } finally {

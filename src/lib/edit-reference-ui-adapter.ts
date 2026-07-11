@@ -30,7 +30,7 @@ export function toEditReferenceSavedCardView(item: EditReferenceListItem): EditR
     referenceStatus: label(item.reference.status),
     studyStatus: label(item.currentStudy.status),
     latestActivityAt: item.reference.updatedAt,
-    dnaStatus: item.reference.dnaStatus === 'not_generated' ? 'DNA not generated' : label(item.reference.dnaStatus),
+    dnaStatus: item.reference.dnaStatus === 'not_generated' ? 'DNA not generated' : 'DNA review required',
     appliedEditCount: item.applicationCount,
     messageCount: item.messageCount,
   }
@@ -46,6 +46,7 @@ export function toEditReferenceInspectorView(detail: EditReferenceDetail): EditR
   const latestRuns = latestOrchestrationId
     ? detail.skillRuns.filter((record) => record.orchestrationId === latestOrchestrationId)
     : []
+  const latestDNAVersion = detail.dnaVersions.slice().sort((left, right) => right.version - left.version)[0]
   return {
     studyStatus: label(detail.study.status),
     evidenceStatus: activeSourceEvidence.length === 0
@@ -61,7 +62,7 @@ export function toEditReferenceInspectorView(detail: EditReferenceDetail): EditR
       : copySafety
         ? 'Transferability checked'
         : 'Not checked yet',
-    dnaStatus: detail.dnaVersions.length === 0 ? 'DNA not generated yet' : `${detail.dnaVersions.length} DNA versions`,
+    dnaStatus: latestDNAVersion ? `Version ${latestDNAVersion.version} · ${label(latestDNAVersion.status)}` : 'DNA not generated yet',
     qaStatus: detail.dnaQaResults.length === 0 ? 'QA not run' : `${detail.dnaQaResults.length} QA results`,
     nextAction: detail.nextAction === 'answer_setup_questions'
       ? 'Answer the setup questions'
@@ -73,6 +74,10 @@ export function toEditReferenceInspectorView(detail: EditReferenceDetail): EditR
             ? 'Review study findings'
             : detail.nextAction === 'add_missing_evidence'
               ? 'Add missing evidence'
+              : detail.nextAction === 'generate_preference_dna'
+                ? 'Generate Preference DNA'
+                : detail.nextAction === 'review_preference_dna'
+                  ? 'Review Preference DNA'
         : 'Reference is archived',
   }
 }

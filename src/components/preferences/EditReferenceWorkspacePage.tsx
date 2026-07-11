@@ -402,6 +402,9 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
     latestOrchestrationId && record.orchestrationId === latestOrchestrationId
   )), [detail.skillRuns, latestOrchestrationId])
   const blockedSkillRuns = useMemo(() => latestSkillRuns.filter((record) => record.status === 'blocked'), [latestSkillRuns])
+  const currentDNAVersion = useMemo(() => detail.dnaVersions
+    .filter((record) => record.status === 'review_required')
+    .sort((left, right) => right.version - left.version)[0], [detail.dnaVersions])
   const findings = useMemo(() => detail.evidence.filter((record) => (
     record.sourceType === 'derived_skill_evidence'
     && (!latestOrchestrationId || record.orchestrationId === latestOrchestrationId)
@@ -430,6 +433,18 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
     setBusy(true)
     setError(undefined)
     const response = await api.runEvidenceStudy(detail.study.id, {
+      workspaceId,
+      expectedStudyRevision: detail.study.revision,
+    })
+    if (response.ok) await onChanged(response.data.detail)
+    else setError(response.message)
+    setBusy(false)
+  }
+
+  const synthesizePreferenceDNA = async () => {
+    setBusy(true)
+    setError(undefined)
+    const response = await api.synthesizePreferenceDNA(detail.study.id, {
       workspaceId,
       expectedStudyRevision: detail.study.revision,
     })
@@ -515,13 +530,26 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
             )}
           </div>
         )}
+        {!currentDNAVersion && detail.study.status === 'evidence_ready' && (
+          <div className="edit-reference-dna-action" data-testid="edit-reference-dna-action">
+            <BrainCircuit aria-hidden="true" size={20} />
+            <div>
+              <strong>Evidence is ready for Preference DNA</strong>
+              <p>Create an exact, evidence-linked version for quality review. Nothing will be approved or applied yet.</p>
+            </div>
+            <Button data-testid="generate-edit-reference-dna" disabled={disabled} icon={Sparkles} onClick={() => void synthesizePreferenceDNA()} size="sm" variant="primary">
+              {disabled ? 'Preparing…' : 'Generate DNA'}
+            </Button>
+          </div>
+        )}
+        {currentDNAVersion && <PreferenceDNAReview version={currentDNAVersion} />}
       </section>
       <div className="edit-reference-message-list" aria-live="polite">
         {orderedMessages.map((item) => (
           <article className={`edit-reference-message ${item.role}`} data-testid={`study-message-${item.role}`} key={item.id}>
             <span>{item.role === 'assistant' ? 'Study Director' : item.role}</span>
             <p>{item.content}</p>
-            <small>{item.runtimeSource === 'deterministic_setup' ? 'Study setup' : item.runtimeSource === 'deterministic_evidence' ? 'Evidence update' : 'Saved user direction'}</small>
+            <small>{item.runtimeSource === 'deterministic_setup' ? 'Study setup' : item.runtimeSource === 'deterministic_evidence' ? 'Evidence update' : item.runtimeSource === 'deterministic_dna' ? 'Preference DNA update' : 'Saved user direction'}</small>
           </article>
         ))}
       </div>
@@ -708,6 +736,49 @@ function EvidenceForm({ detail, disabled, onAdded, setBusy, setError }: {
 
 function EvidenceModeButton({ active, icon: Icon, label, onClick }: { active: boolean; icon: typeof ClipboardList; label: string; onClick: () => void }) {
   return <button aria-pressed={active} className={active ? 'active' : ''} onClick={onClick} type="button"><Icon aria-hidden="true" size={17} /><span>{label}</span></button>
+}
+
+function PreferenceDNAReview({ version }: { version: EditReferenceDetail['dnaVersions'][number] }) {
+  return (
+    <section className="edit-reference-dna-review" data-testid="edit-reference-dna-review">
+      <header>
+        <div>
+          <span>Preference DNA version {version.version}</span>
+          <strong>Ready for quality review</strong>
+        </div>
+        <Badge accent="muted">QA not run</Badge>
+      </header>
+      <div className="edit-reference-dna-metrics">
+        <span><strong>{version.layers.length}</strong> layers</span>
+        <span><strong>{version.rules.length}</strong> evidence-linked rules</span>
+        <span><strong>{version.doNotCopyRuleCount}</strong> copy boundaries</span>
+        <span><strong>{Math.round(version.overallConfidence * 100)}%</strong> evidence confidence</span>
+      </div>
+      {version.conflicts.length > 0 && (
+        <div className="edit-reference-dna-conflicts">
+          <strong>Review required</strong>
+          {version.conflicts.map((conflict) => <p key={conflict.id}>{conflict.title}: {conflict.summary}</p>)}
+        </div>
+      )}
+      <div className="edit-reference-dna-layers">
+        {version.layers.map((layer) => {
+          const rules = version.rules.filter((rule) => layer.ruleIds.includes(rule.id))
+          return (
+            <details key={layer.layerId} open={layer.layerId === 'do_not_copy_rules'}>
+              <summary>
+                <span>{layer.title}</span>
+                <small>{rules.length} rule{rules.length === 1 ? '' : 's'} · {Math.round(layer.confidence * 100)}%</small>
+              </summary>
+              <p>{layer.summary}</p>
+              <ul>{rules.map((rule) => <li key={rule.id}>{rule.statement}</li>)}</ul>
+              <small>{layer.evidenceIds.length} linked evidence record{layer.evidenceIds.length === 1 ? '' : 's'} · {layer.coverage.replaceAll('_', ' ')}</small>
+            </details>
+          )
+        })}
+      </div>
+      <div className="edit-reference-form-boundary"><ShieldCheck aria-hidden="true" size={16} /><span>This version is immutable and evidence-linked. Quality review and your approval are still required before it can guide an edit.</span></div>
+    </section>
+  )
 }
 
 function evidenceSourceLabel(sourceType: string): string {

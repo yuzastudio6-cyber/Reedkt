@@ -20,6 +20,7 @@ import type {
   PreferenceStudyMessageListData,
   PreferenceStudySessionRecord,
   RunPreferenceEvidenceStudyRequest,
+  SynthesizePreferenceDNARequest,
   UpdateEditReferenceRequest,
   UpdatePreferenceStudyRequest,
 } from '../../src/types/edit-reference'
@@ -35,6 +36,7 @@ import {
   PrivateEditReferenceRepository,
 } from '../edit-references/private-edit-reference-repository'
 import { orchestratePreferenceEvidenceStudy } from '../edit-references/edit-reference-evidence-orchestrator'
+import { synthesizeEditReferencePreferenceDNA } from '../edit-references/edit-reference-dna-synthesis'
 
 const LOCAL_WARNING = 'Stored in the private backend-local Edit Reference repository. Production Supabase persistence remains blocked.'
 const FUTURE_RUNTIME_WARNING = 'No provider, model, file-byte, media, worker, generation, render, credit, or remote Supabase operation ran.'
@@ -57,6 +59,7 @@ export interface EditReferenceService {
   appendMessage(studyId: string, input: AppendPreferenceStudyMessageRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData & { appendedMessageIds: string[] }>>
   addEvidence(studyId: string, input: CreatePreferenceEvidenceRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   runEvidenceStudy(studyId: string, input: RunPreferenceEvidenceStudyRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  synthesizePreferenceDNA(studyId: string, input: SynthesizePreferenceDNARequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
 }
 
 export function createEditReferenceService(
@@ -332,14 +335,28 @@ export function createEditReferenceService(
           const { evidence, asset } = createEvidenceRecords(reference, study, normalized, now)
           aggregate.evidence.push(evidence)
           if (asset) aggregate.assets.push(asset)
+          let invalidatedDNACandidate = false
+          for (const dnaVersion of aggregate.dnaVersions.filter((record) => (
+            record.studySessionId === study.id
+            && record.status !== 'approved'
+            && record.status !== 'superseded'
+          ))) {
+            dnaVersion.status = 'superseded'
+            invalidatedDNACandidate = true
+          }
           study.status = 'ready_to_study'
           study.evidenceStatus = 'ready_to_study'
+          study.dnaStatus = 'not_generated'
           study.revision += 1
           study.updatedAt = now
           reference.evidenceStatus = 'ready_to_study'
+          reference.dnaStatus = 'not_generated'
           reference.updatedAt = now
           aggregate.messages.push(evidenceSavedMessage(reference, study, evidence, now, nextSequence(aggregate, study.id)))
           aggregate.usageLogs.push(usageLog(reference, 'evidence_added', now))
+          if (invalidatedDNACandidate) {
+            addAuditEvent({ eventType: 'preference_dna_candidate_invalidated', editReferenceId: reference.id, studySessionId: study.id })
+          }
           addAuditEvent({ eventType: 'preference_evidence_added', editReferenceId: reference.id, studySessionId: study.id })
           return detailData(aggregate, reference)
         },
@@ -389,6 +406,45 @@ export function createEditReferenceService(
       })
       return result(mutation.data, mutation.replayed)
     },
+
+    async synthesizePreferenceDNA(studyId, input, idempotencyKey) {
+      const normalized = normalizeSynthesizePreferenceDNA(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.dna.synthesize',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          assertActiveStudy(reference, study)
+          assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+          const dnaVersion = synthesizeEditReferencePreferenceDNA({
+            reference,
+            study,
+            evidence: aggregate.evidence.filter((record) => record.studySessionId === study.id),
+            skillRuns: aggregate.skillRuns.filter((record) => record.studySessionId === study.id),
+            existingVersions: aggregate.dnaVersions.filter((record) => record.studySessionId === study.id),
+            now,
+          })
+          for (const previousVersion of aggregate.dnaVersions.filter((record) => record.studySessionId === study.id && record.status !== 'approved')) {
+            previousVersion.status = 'superseded'
+          }
+          aggregate.dnaVersions.push(dnaVersion)
+          study.status = 'dna_ready'
+          study.dnaStatus = 'review_required'
+          study.revision += 1
+          study.updatedAt = now
+          reference.dnaStatus = 'review_required'
+          reference.updatedAt = now
+          aggregate.messages.push(dnaSynthesisMessage(reference, study, dnaVersion, now, nextSequence(aggregate, study.id)))
+          aggregate.usageLogs.push(usageLog(reference, 'dna_version_created', now))
+          addAuditEvent({ eventType: 'preference_dna_version_created', editReferenceId: reference.id, studySessionId: study.id })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
   }
 }
 
@@ -425,8 +481,12 @@ function nextActionForDetail(
   study: PreferenceStudySessionRecord,
 ): EditReferenceDetail['nextAction'] {
   if (reference.status === 'archived') return 'archived'
-  if (study.status === 'evidence_ready' || study.status === 'needs_user_review') return 'review_study_findings'
+  if (study.status === 'evidence_ready') return 'generate_preference_dna'
+  if (study.status === 'needs_user_review') return 'review_study_findings'
   if (study.status === 'needs_clarification') return 'add_missing_evidence'
+  if (study.dnaStatus === 'review_required' && aggregate.dnaVersions.some((record) => record.studySessionId === study.id && record.status === 'review_required')) {
+    return 'review_preference_dna'
+  }
   const sourceEvidence = aggregate.evidence.filter((record) => record.studySessionId === study.id && record.sourceType !== 'derived_skill_evidence')
   if (sourceEvidence.length > 0) return 'run_evidence_study'
   return aggregate.messages.some((message) => message.studySessionId === study.id && message.role === 'user')
@@ -529,6 +589,26 @@ function studyResultMessage(
     content,
     sequence,
     runtimeSource: 'deterministic_evidence',
+    createdAt: now,
+  }
+}
+
+function dnaSynthesisMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  dnaVersion: EditReferenceDetail['dnaVersions'][number],
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content: `Preference DNA version ${dnaVersion.version} was prepared from ${dnaVersion.inputEvidenceRevisions.length} exact evidence records. It remains locked for quality review; nothing has been approved or applied.`,
+    sequence,
+    runtimeSource: 'deterministic_dna',
     createdAt: now,
   }
 }
@@ -696,7 +776,7 @@ function nextSequence(aggregate: EditReferenceAggregate, studyId: string): numbe
 
 function usageLog(
   reference: EditReferenceRecord,
-  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'updated' | 'archived',
+  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'updated' | 'archived',
   now: string,
 ) {
   return {
@@ -854,6 +934,13 @@ function normalizeCreateEvidence(input: CreatePreferenceEvidenceRequest): Create
 }
 
 function normalizeRunEvidenceStudy(input: RunPreferenceEvidenceStudyRequest): RunPreferenceEvidenceStudyRequest {
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedStudyRevision: requirePositiveInteger(input.expectedStudyRevision, 'expectedStudyRevision'),
+  }
+}
+
+function normalizeSynthesizePreferenceDNA(input: SynthesizePreferenceDNARequest): SynthesizePreferenceDNARequest {
   return {
     workspaceId: requireWorkspaceId(input.workspaceId),
     expectedStudyRevision: requirePositiveInteger(input.expectedStudyRevision, 'expectedStudyRevision'),

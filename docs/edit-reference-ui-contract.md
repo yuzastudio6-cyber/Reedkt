@@ -1,6 +1,6 @@
 # Edit Reference UI Contract
 
-Status: `gate_0_authority`
+Status: `gate_3_ui_authority`
 
 This contract governs the Edit Preferences route while preserving ReEditPro's chat-first, approval-first, desktop/web product laws. It does not authorize media analysis, providers, workers, rendering, credits, or production persistence.
 
@@ -70,6 +70,8 @@ Every displayed value must come from backend data or a deterministic typed mappi
 - `Study evidence not complete`
 - `DNA not generated yet`
 - `QA not run`
+
+When Gate 3 has an evidence-ready study, Study Chat may show one Generate DNA action with explicit not-approved/not-applied copy. After creation, the center may show a compact review surface with the exact version, layer/rule/copy-boundary counts, confidence, conflicts, and expandable evidence-linked rules. The do-not-copy layer may open by default. This is a review candidate, not an approval control; Gate 4 owns QA and approval.
 
 ## New Reference Flow
 

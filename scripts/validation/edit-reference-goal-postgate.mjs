@@ -19,6 +19,7 @@ const REQUIRED_FILES = [
   'docs/edit-reference-gate-verification-log.md',
   'docs/edit-reference-gate-1-study-session-foundation.md',
   'docs/edit-reference-gate-2-evidence-study-orchestration.md',
+  'docs/edit-reference-gate-3-versioned-dna-synthesis.md',
   'scripts/validation/edit-reference-goal-preflight.mjs',
   'scripts/validation/edit-reference-goal-postgate.mjs',
   'server/smoke/edit-reference-goal-control-plane-smoke.ts',

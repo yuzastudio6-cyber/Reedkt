@@ -82,6 +82,7 @@ const createEvidenceSchema = z.discriminatedUnion('sourceType', [
 const runEvidenceStudySchema = workspaceSchema.extend({
   expectedStudyRevision: z.number().int().positive(),
 }).strict()
+const synthesizePreferenceDNASchema = runEvidenceStudySchema
 
 export function createEditReferenceRoutes(): Router {
   const router = Router()
@@ -173,6 +174,16 @@ export function createEditReferenceRoutes(): Router {
   router.post('/v1/edit-reference-studies/:studyId/evidence-study', requireAuth, asyncRoute(async (request, response) => {
     const body = validateBody(runEvidenceStudySchema, request.body)
     const result = await createEditReferenceService(getServiceContext(request)).runEvidenceStudy(
+      getRouteParam(request, 'studyId'),
+      body,
+      getDurableIdempotencyKey(request),
+    )
+    sendMutation(response, result, 201)
+  }))
+
+  router.post('/v1/edit-reference-studies/:studyId/preference-dna', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(synthesizePreferenceDNASchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).synthesizePreferenceDNA(
       getRouteParam(request, 'studyId'),
       body,
       getDurableIdempotencyKey(request),

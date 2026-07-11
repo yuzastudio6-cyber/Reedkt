@@ -1,6 +1,6 @@
 # Edit Preferences Override
 
-Status: `gate_2_evidence_study_active`
+Status: `gate_3_dna_review_active`
 
 ## Job
 
@@ -15,6 +15,8 @@ Manage one Edit Preferences system across Edit References, workspace defaults, a
 - Evidence collection lives inside Study Chat as a compact task surface; it does not become a separate dashboard or media browser.
 - Evidence modes use plain user concepts: Creative note, Video details, and Approved edit.
 - Latest findings remain visually subordinate to the conversation and explicitly separate from Preference DNA.
+- Evidence-ready studies show one focused Generate DNA action; after synthesis it becomes a compact, expandable Preference DNA review surface inside Study Chat.
+- DNA review prioritizes version, QA state, evidence-linked rules, confidence, conflicts, and do-not-copy boundaries without turning the center into a dashboard.
 - At narrower widths, regions stack in that priority order and tabs may scroll horizontally without creating page overflow.
 - Existing defaults remain available under Workspace Defaults; they are not presented as a competing product.
 
@@ -47,5 +49,6 @@ Manage one Edit Preferences system across Edit References, workspace defaults, a
 - `tests/e2e/edit-reference-study-session.spec.ts`
 - `server/smoke/edit-reference-ui-adapter-smoke.ts`
 - `server/smoke/edit-reference-evidence-study-smoke.ts`
+- `server/smoke/edit-reference-dna-synthesis-smoke.ts`
 - `src/components/preferences/EditReferenceWorkspacePage.tsx`
 - `src/styles/preferences.css`

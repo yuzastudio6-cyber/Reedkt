@@ -253,7 +253,7 @@
 }
 
 .edit-reference-panel-heading span,
-.edit-reference-chat-shell header span,
+.edit-reference-chat-shell > header span,
 .edit-reference-inspector-section > span {
   color: var(--rp-text-muted);
   font-size: 0.75rem;
@@ -324,7 +324,7 @@
   height: 100%;
 }
 
-.edit-reference-chat-shell header {
+.edit-reference-chat-shell > header {
   align-items: center;
   border-bottom: 1px solid var(--rp-border-subtle);
   display: flex;
@@ -594,6 +594,173 @@
   font-weight: 800;
 }
 
+.edit-reference-dna-action {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(37, 99, 255, 0.12), rgba(124, 58, 237, 0.12));
+  border: 1px solid rgba(129, 140, 248, 0.28);
+  border-radius: var(--rp-radius-md);
+  color: #a5f3fc;
+  display: grid;
+  gap: var(--rp-space-3);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-dna-action > div {
+  display: grid;
+  gap: 3px;
+}
+
+.edit-reference-dna-action strong {
+  color: var(--rp-text-primary);
+  font-size: 0.84rem;
+}
+
+.edit-reference-dna-action p {
+  color: var(--rp-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.edit-reference-dna-review {
+  background: linear-gradient(145deg, rgba(15, 24, 43, 0.96), rgba(20, 15, 45, 0.9));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: var(--rp-space-3);
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-dna-review > header {
+  align-items: center;
+  display: flex;
+  gap: var(--rp-space-3);
+  justify-content: space-between;
+}
+
+.edit-reference-dna-review > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.edit-reference-dna-review > header span {
+  color: #c4b5fd;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.edit-reference-dna-review > header strong {
+  color: var(--rp-text-primary);
+  font-size: 0.9rem;
+}
+
+.edit-reference-dna-metrics {
+  display: grid;
+  gap: var(--rp-space-2);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.edit-reference-dna-metrics > span {
+  background: rgba(9, 15, 27, 0.58);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 10px;
+  color: var(--rp-text-muted);
+  display: grid;
+  font-size: 0.68rem;
+  gap: 2px;
+  padding: 8px;
+}
+
+.edit-reference-dna-metrics strong {
+  color: var(--rp-text-primary);
+  font-size: 0.84rem;
+}
+
+.edit-reference-dna-conflicts {
+  background: rgba(245, 158, 11, 0.07);
+  border: 1px solid rgba(251, 191, 36, 0.22);
+  border-radius: 10px;
+  display: grid;
+  gap: 6px;
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-dna-conflicts strong {
+  color: #fde68a;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+}
+
+.edit-reference-dna-conflicts p {
+  color: var(--rp-text-secondary);
+  font-size: 0.74rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.edit-reference-dna-layers {
+  display: grid;
+  gap: var(--rp-space-2);
+}
+
+.edit-reference-dna-layers details {
+  background: rgba(9, 15, 27, 0.6);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.edit-reference-dna-layers summary {
+  align-items: center;
+  color: var(--rp-text-primary);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 800;
+  gap: var(--rp-space-3);
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 8px var(--rp-space-3);
+}
+
+.edit-reference-dna-layers summary small,
+.edit-reference-dna-layers details > small {
+  color: var(--rp-text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.edit-reference-dna-layers details > p,
+.edit-reference-dna-layers details > ul,
+.edit-reference-dna-layers details > small {
+  margin-left: var(--rp-space-3);
+  margin-right: var(--rp-space-3);
+}
+
+.edit-reference-dna-layers details > p {
+  color: var(--rp-text-secondary);
+  font-size: 0.73rem;
+  line-height: 1.45;
+}
+
+.edit-reference-dna-layers details > ul {
+  color: var(--rp-text-secondary);
+  display: grid;
+  font-size: 0.73rem;
+  gap: 6px;
+  line-height: 1.45;
+  padding-left: 18px;
+}
+
+.edit-reference-dna-layers details > small {
+  display: block;
+  margin-bottom: var(--rp-space-3);
+}
+
 .edit-reference-message-list {
   align-content: start;
   display: grid;
@@ -860,7 +1027,7 @@
     min-height: 620px;
   }
 
-  .edit-reference-chat-shell header {
+  .edit-reference-chat-shell > header {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -882,6 +1049,16 @@
   .edit-reference-evidence-list,
   .edit-reference-findings > div:last-child {
     grid-template-columns: 1fr;
+  }
+
+  .edit-reference-dna-action,
+  .edit-reference-dna-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-reference-dna-action .rp-button {
+    justify-content: center;
+    width: 100%;
   }
 
   .edit-reference-inspector {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { toEditReferenceInspectorView, toEditReferenceSavedCardView } from '../../src/lib/edit-reference-ui-adapter'
-import { EDIT_REFERENCE_GATE_1_SAFETY_FLAGS, type EditReferenceDetail, type EditReferenceListItem } from '../../src/types/edit-reference'
+import { EDIT_REFERENCE_GATE_1_SAFETY_FLAGS, type EditReferenceDetail, type EditReferenceListItem, type PreferenceDNAVersionRecord } from '../../src/types/edit-reference'
 
 const now = '2026-07-11T12:00:00.000Z'
 const item: EditReferenceListItem = {
@@ -48,5 +48,37 @@ assert.deepEqual(toEditReferenceInspectorView(detail), {
   nextAction: 'Answer the setup questions',
 })
 assert.deepEqual(Object.values(detail.safety), Array(Object.keys(detail.safety).length).fill(false))
+
+const dnaVersion: PreferenceDNAVersionRecord = {
+  id: 'dna-ui-smoke', workspaceId: 'workspace-ui-smoke', editReferenceId: 'reference-ui-smoke', studySessionId: 'study-ui-smoke',
+  version: 1, status: 'review_required', synthesisVersion: 'edit-reference-dna-synthesis-v1', runtimeSource: 'verified_mock',
+  inputEvidenceRevisions: [{ evidenceId: 'evidence-ui-smoke', revision: 1 }], inputEvidenceDigest: 'a'.repeat(64),
+  layers: [{
+    layerId: 'transferable_rules', title: 'Transferable Rules', summary: 'Adapt measured pacing.', evidenceIds: ['evidence-ui-smoke'],
+    ruleIds: ['rule-ui-smoke'], confidence: 0.7, confidenceBand: 'high', transferability: 'transferable', coverage: 'covered',
+  }, {
+    layerId: 'do_not_copy_rules', title: 'Do Not Copy Rules', summary: 'Do not copy exact layouts.', evidenceIds: ['evidence-ui-smoke'],
+    ruleIds: ['rule-ui-safety'], confidence: 1, confidenceBand: 'high', transferability: 'do_not_copy', coverage: 'covered',
+  }],
+  rules: [{
+    id: 'rule-ui-smoke', layerId: 'transferable_rules', kind: 'must_follow', statement: 'Adapt measured pacing.',
+    evidenceIds: ['evidence-ui-smoke'], confidence: 0.7, transferability: 'transferable', source: 'evidence_synthesis', targetConditions: ['Adapt to target.'],
+  }, {
+    id: 'rule-ui-safety', layerId: 'do_not_copy_rules', kind: 'do_not_copy', statement: 'Do not copy exact layouts.',
+    evidenceIds: ['evidence-ui-smoke'], confidence: 1, transferability: 'do_not_copy', source: 'deterministic_safety_rule', targetConditions: ['Always enforce.'],
+  }],
+  conflicts: [], overallConfidence: 0.7, overallConfidenceBand: 'high', adaptedNotCopied: true, doNotCopyRuleCount: 1,
+  qaStatus: 'not_run', contentDigest: 'b'.repeat(64), providerCallMade: false, modelCallMade: false, mediaProcessingStarted: false,
+  workerJobCreated: false, generationRequestCreated: false, renderJobCreated: false, creditReservedOrSpent: false, createdAt: now,
+}
+const dnaDetail: EditReferenceDetail = {
+  ...detail,
+  reference: { ...detail.reference, dnaStatus: 'review_required' },
+  study: { ...detail.study, status: 'dna_ready', dnaStatus: 'review_required' },
+  dnaVersions: [dnaVersion],
+  nextAction: 'review_preference_dna',
+}
+assert.equal(toEditReferenceInspectorView(dnaDetail).dnaStatus, 'Version 1 · review required')
+assert.equal(toEditReferenceInspectorView(dnaDetail).nextAction, 'Review Preference DNA')
 
 console.log('edit_reference_ui_adapter_passed')

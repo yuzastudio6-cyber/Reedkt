@@ -24,6 +24,10 @@ const MAX_MESSAGES = 10_000
 const MAX_EVIDENCE_RECORDS = 5_000
 const MAX_ASSET_RECORDS = 2_000
 const MAX_SKILL_RUNS = 5_000
+const MAX_DNA_VERSIONS = 2_000
+const MAX_DNA_INPUTS_PER_VERSION = 128
+const MAX_DNA_RULES_PER_VERSION = 256
+const MAX_DNA_CONFLICTS_PER_VERSION = 128
 const MAX_AUDIT_EVENTS = 2_000
 const MAX_IDEMPOTENCY_RECORDS = 512
 
@@ -217,6 +221,7 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
   if (aggregate.evidence.length > MAX_EVIDENCE_RECORDS) throw invalidAggregate('too_many_evidence_records')
   if (aggregate.assets.length > MAX_ASSET_RECORDS) throw invalidAggregate('too_many_asset_records')
   if (aggregate.skillRuns.length > MAX_SKILL_RUNS) throw invalidAggregate('too_many_skill_runs')
+  if (aggregate.dnaVersions.length > MAX_DNA_VERSIONS) throw invalidAggregate('too_many_dna_versions')
   if (aggregate.auditEvents.length > MAX_AUDIT_EVENTS) throw invalidAggregate('too_many_audit_events')
   if (aggregate.idempotencyRecords.length > MAX_IDEMPOTENCY_RECORDS) throw invalidAggregate('too_many_idempotency_records')
 
@@ -264,7 +269,7 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
     assertWorkspace(message, scope.workspaceId)
     if (
       !['user', 'assistant', 'system'].includes(message.role)
-      || !['user_input', 'deterministic_setup', 'deterministic_evidence'].includes(message.runtimeSource)
+      || !['user_input', 'deterministic_setup', 'deterministic_evidence', 'deterministic_dna'].includes(message.runtimeSource)
       || !message.content
       || message.content.length > 8_000
       || !Number.isSafeInteger(message.sequence)
@@ -302,6 +307,7 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
       throw invalidAggregate('dna_link_is_invalid')
     }
   }
+  assertDNAVersions(aggregate, evidenceIds)
   for (const record of aggregate.applications) {
     assertWorkspace(record, scope.workspaceId)
     if (!referenceIds.has(record.editReferenceId)) throw invalidAggregate('application_reference_missing')
@@ -311,6 +317,158 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
     if (!referenceIds.has(record.editReferenceId)) throw invalidAggregate('usage_reference_missing')
   }
   if (findForbiddenPersistenceKey(aggregate)) throw invalidAggregate('forbidden_private_payload_field')
+}
+
+function assertDNAVersions(aggregate: EditReferenceAggregate, evidenceIds: Set<string>): void {
+  const versionKeys = new Set<string>()
+  for (const record of aggregate.dnaVersions) {
+    const versionKey = `${record.studySessionId}:${record.version}`
+    if (versionKeys.has(versionKey)) throw invalidAggregate('dna_version_number_duplicate')
+    versionKeys.add(versionKey)
+    if (
+      !Number.isSafeInteger(record.version)
+      || record.version < 1
+      || !['draft', 'review_required', 'approved', 'superseded'].includes(record.status)
+      || record.synthesisVersion !== 'edit-reference-dna-synthesis-v1'
+      || record.runtimeSource !== 'verified_mock'
+      || !Array.isArray(record.inputEvidenceRevisions)
+      || record.inputEvidenceRevisions.length < 1
+      || record.inputEvidenceRevisions.length > MAX_DNA_INPUTS_PER_VERSION
+      || !/^[a-f0-9]{64}$/.test(record.inputEvidenceDigest)
+      || !Array.isArray(record.layers)
+      || !Array.isArray(record.rules)
+      || !Array.isArray(record.conflicts)
+      || record.layers.length < 1
+      || record.layers.length > 18
+      || record.rules.length < 1
+      || record.rules.length > MAX_DNA_RULES_PER_VERSION
+      || record.conflicts.length > MAX_DNA_CONFLICTS_PER_VERSION
+      || !Number.isFinite(record.overallConfidence)
+      || record.overallConfidence < 0
+      || record.overallConfidence > 1
+      || !['low', 'medium', 'high', 'very_high'].includes(record.overallConfidenceBand)
+      || record.adaptedNotCopied !== true
+      || !Number.isSafeInteger(record.doNotCopyRuleCount)
+      || record.doNotCopyRuleCount < 5
+      || record.qaStatus !== 'not_run'
+      || !/^[a-f0-9]{64}$/.test(record.contentDigest)
+    ) throw invalidAggregate('dna_version_contract_invalid')
+    const inputEvidenceIds = new Set(record.inputEvidenceRevisions.map((input) => input.evidenceId))
+    if (inputEvidenceIds.size !== record.inputEvidenceRevisions.length) throw invalidAggregate('dna_input_evidence_duplicate')
+    const sortedInputRevisions = record.inputEvidenceRevisions.slice().sort((left, right) => left.evidenceId.localeCompare(right.evidenceId))
+    if (stableStringify(record.inputEvidenceRevisions) !== stableStringify(sortedInputRevisions)) {
+      throw invalidAggregate('dna_input_evidence_order_invalid')
+    }
+    for (const input of record.inputEvidenceRevisions) {
+      const evidence = aggregate.evidence.find((candidate) => candidate.id === input.evidenceId)
+      if (
+        !evidence
+        || evidence.editReferenceId !== record.editReferenceId
+        || evidence.studySessionId !== record.studySessionId
+        || evidence.revision !== input.revision
+      ) {
+        throw invalidAggregate('dna_input_evidence_revision_invalid')
+      }
+    }
+    if (record.inputEvidenceDigest !== sha256(stableStringify(record.inputEvidenceRevisions))) {
+      throw invalidAggregate('dna_input_evidence_digest_invalid')
+    }
+    const ruleIds = new Set(record.rules.map((rule) => rule.id))
+    if (ruleIds.size !== record.rules.length) throw invalidAggregate('dna_rule_id_duplicate')
+    if (!record.rules.some((rule) => rule.kind === 'must_follow')) throw invalidAggregate('dna_transferable_rule_missing')
+    for (const rule of record.rules) {
+      if (
+        !rule.id
+        || !isPreferenceDNALayerId(rule.layerId)
+        || !['must_follow', 'avoid', 'do_not_copy', 'context_only'].includes(rule.kind)
+        || !rule.statement
+        || rule.statement.length > 8_000
+        || !Array.isArray(rule.evidenceIds)
+        || rule.evidenceIds.length < 1
+        || rule.evidenceIds.some((id) => !evidenceIds.has(id) || !inputEvidenceIds.has(id))
+        || !Number.isFinite(rule.confidence)
+        || rule.confidence < 0
+        || rule.confidence > 1
+        || !['transferable', 'non_transferable', 'do_not_copy', 'requires_user_review', 'unknown'].includes(rule.transferability)
+        || !['evidence_synthesis', 'deterministic_safety_rule'].includes(rule.source)
+        || (rule.source === 'deterministic_safety_rule' && rule.kind !== 'do_not_copy')
+        || !Array.isArray(rule.targetConditions)
+        || rule.targetConditions.length < 1
+      ) throw invalidAggregate('dna_rule_contract_invalid')
+    }
+    const layerIds = new Set(record.layers.map((layer) => layer.layerId))
+    if (layerIds.size !== record.layers.length) throw invalidAggregate('dna_layer_id_duplicate')
+    for (const layer of record.layers) {
+      const expectedRules = record.rules.filter((rule) => rule.layerId === layer.layerId)
+      const expectedRuleIds = expectedRules.map((rule) => rule.id)
+      const expectedEvidenceIds = [...new Set(expectedRules.flatMap((rule) => rule.evidenceIds))]
+      if (
+        !isPreferenceDNALayerId(layer.layerId)
+        || !layer.title
+        || !layer.summary
+        || !Array.isArray(layer.evidenceIds)
+        || layer.evidenceIds.length < 1
+        || layer.evidenceIds.some((id) => !evidenceIds.has(id) || !inputEvidenceIds.has(id))
+        || !Array.isArray(layer.ruleIds)
+        || layer.ruleIds.length < 1
+        || layer.ruleIds.some((id) => !ruleIds.has(id))
+        || !sameStringSet(layer.ruleIds, expectedRuleIds)
+        || !sameStringSet(layer.evidenceIds, expectedEvidenceIds)
+        || !Number.isFinite(layer.confidence)
+        || layer.confidence < 0
+        || layer.confidence > 1
+        || !['low', 'medium', 'high', 'very_high'].includes(layer.confidenceBand)
+        || !['transferable', 'non_transferable', 'do_not_copy', 'requires_user_review', 'unknown'].includes(layer.transferability)
+        || !['covered', 'review_required'].includes(layer.coverage)
+      ) throw invalidAggregate('dna_layer_contract_invalid')
+    }
+    for (const conflict of record.conflicts) {
+      if (
+        !conflict.id
+        || !['review_required_evidence', 'non_transferable_evidence'].includes(conflict.kind)
+        || !conflict.title
+        || !conflict.summary
+        || !Array.isArray(conflict.evidenceIds)
+        || conflict.evidenceIds.length < 1
+        || conflict.evidenceIds.some((id) => !evidenceIds.has(id) || !inputEvidenceIds.has(id))
+        || !['medium', 'high'].includes(conflict.severity)
+        || conflict.requiresUserReview !== true
+      ) throw invalidAggregate('dna_conflict_contract_invalid')
+    }
+    if (record.rules.filter((rule) => rule.kind === 'do_not_copy').length !== record.doNotCopyRuleCount) {
+      throw invalidAggregate('dna_do_not_copy_count_invalid')
+    }
+    const immutableContent = {
+      synthesisVersion: record.synthesisVersion,
+      inputEvidenceRevisions: record.inputEvidenceRevisions,
+      inputEvidenceDigest: record.inputEvidenceDigest,
+      layers: record.layers,
+      rules: record.rules,
+      conflicts: record.conflicts,
+      overallConfidence: record.overallConfidence,
+      overallConfidenceBand: record.overallConfidenceBand,
+      adaptedNotCopied: record.adaptedNotCopied,
+    }
+    if (record.contentDigest !== sha256(stableStringify(immutableContent))) throw invalidAggregate('dna_content_digest_invalid')
+  }
+}
+
+function sameStringSet(left: string[], right: string[]): boolean {
+  const leftSet = new Set(left)
+  const rightSet = new Set(right)
+  return leftSet.size === left.length
+    && rightSet.size === right.length
+    && leftSet.size === rightSet.size
+    && [...leftSet].every((value) => rightSet.has(value))
+}
+
+function isPreferenceDNALayerId(value: unknown): boolean {
+  return [
+    'content_type', 'structure_story_flow', 'pacing_timing', 'speech_caption_behavior', 'visual_scene_language',
+    'music_soundsync', 'sfx_sound_design', 'graphic_design_visualexplain', 'ui_document_card_treatment',
+    'broll_shot_language', 'color_tone_space', 'signature_system_policy', 'edit_quality_preference',
+    'cost_compute_policy', 'transferable_rules', 'non_transferable_details', 'do_not_copy_rules', 'qa_confidence',
+  ].includes(String(value))
 }
 
 function assertEvidenceRecord(record: EditReferenceAggregate['evidence'][number], evidenceIds: Set<string>): void {

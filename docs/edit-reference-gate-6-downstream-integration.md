@@ -2,6 +2,8 @@
 
 Status: `verified_backend_local`
 
+Implementation commit: `a09bc3da30de20a5bd80db8e0f89c55f74d3e27d`
+
 Gate 6 connects one exact Gate 5 Preference Application to the canonical mock/local Project Edit Session and exposes its bounded, target-adapted guidance to Edit Chat, Edit Brief, Marker Context, Marker Chat, Plan Hints, and QA. It does not execute an edit or mutate an approved plan.
 
 ## Authority And Product Boundary

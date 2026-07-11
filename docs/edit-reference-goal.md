@@ -101,8 +101,8 @@ They must never be mutated by this goal.
 | 3 | Versioned Preference DNA synthesis | Complete — `b01b48866ea40f188e40509145bf5e311390b5f7` |
 | 4 | Preference DNA QA, correction, review, and approval | Complete — `f64aa2690f9b1865139b70061445f05fdce84615` |
 | 5 | Target-video adaptation and Preference Application | Complete — `17b67a871b061df2c7a4327d00a5d37f22512e22` |
-| 6 | Project Edit Session/Edit Brief/Marker Context/Marker Chat/Plan Hint/QA integration | In progress |
-| 7 | Reload, replace/remove, privacy, adaptation, regression, and readiness closure | Pending |
+| 6 | Project Edit Session/Edit Brief/Marker Context/Marker Chat/Plan Hint/QA integration | Complete — `a09bc3da30de20a5bd80db8e0f89c55f74d3e27d` |
+| 7 | Reload, replace/remove, privacy, adaptation, regression, and readiness closure | In progress |
 
 Gate numbering after Gate 1 may be refined only by updating this document, the machine-readable status, and the verification log together. No refinement may weaken the definition of done.
 

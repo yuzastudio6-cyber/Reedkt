@@ -463,3 +463,64 @@ Gate 5 uses the canonical approved Gate 4 DNA version as its only source authori
 - Supabase CLI/SQL/remote mutation: not performed.
 - Provider/media/worker/render/credit execution: not performed.
 - Production ready: false.
+
+## Gate 6 — Downstream Edit Integration — 2026-07-11
+
+### Commit
+
+- Commit: `a09bc3da30de20a5bd80db8e0f89c55f74d3e27d`
+- Message: `Connect Edit References to edit planning`
+- Files: 53
+- Migration count before/after: 21 / 21
+- Production ready: false
+
+### Implemented And Reviewed
+
+```text
+exact prepared Preference Application
+→ inactive Project Edit Session staging and approval reset when required
+→ exact target-session receipt validation
+→ authenticated backend-local connection
+→ safe activation/recovery in Edit Chat
+→ bounded Edit Brief, Marker Context, Marker Chat, Plan Hint, and QA handoffs
+→ confirmed-marker holdback above reusable DNA
+→ reload without approved-plan or production execution
+```
+
+- Exact workspace/reference/DNA/application/target/frame/platform/level/context identities and durable idempotency are enforced.
+- Mismatched receipts and tampered hashes/safety flags fail closed; staged context never reads as active.
+- Current instructions and confirmed or must-follow markers outrank target-adapted DNA. Held-back guidance retains provenance.
+- Normal UI exposes names, counts, boundaries, and priority—not application IDs or digests.
+- `design.md` and `design-system/` remained authoritative; UI UX Pro Max was supporting critique only.
+- Visual QA at 1440px and 375px passed. A dense Plan Hint wall was replaced with a three-item preview and accessible disclosures.
+- Parallel browser QA exposed and fixed reload selection drift by making the exact Edit Reference URL-stable.
+- No SQL, lockfile, provider, model, media, worker, generation, render, credit, Supabase, push, or PR action occurred.
+
+### Verification Results
+
+| Command / check | Result | Evidence |
+| --- | --- | --- |
+| `npm run smoke:edit-reference-downstream-integration` | Pass | Staging, approval reset, mismatch, connect, activate, tamper rejection, all consumers, holdback, replay, restart, and false side effects |
+| Gate 1–5 Edit Reference and compatibility smokes | Pass | Repository/API/client/UI/evidence/DNA/QA/application behavior preserved |
+| Project Edit Session and Edit Brief regression groups | Pass | Repository/routes/client/E2E/UI/memory/history/markers/chat/Plan Hints/QA preserved |
+| Preference DNA/Video, Edit Preference, and Edit Level groups | Pass | Existing compatibility behavior remained truthful |
+| App/server typechecks, ESLint, frontend boundary | Pass | No errors or warnings; 662 frontend files stayed server-runtime free |
+| Client/server builds | Pass | 2,562 client and 589 server modules transformed; existing chunk warning disclosed |
+| Focused Gate 6 Playwright | Pass | 2/2 desktop/reload/responsive tests |
+| Full Chromium Playwright | Pass | 55/55 with five workers in 31.6 seconds |
+| Qwen secret checks and staged scope scan | Pass | No secrets, lockfile, SQL, media, build output, or external action |
+| Goal preflight/control-plane/postgate | Pass | Canonical branch, ancestry, 21 migrations, no conflicts, production-ready false |
+
+### Readiness And Next Gate
+
+- Backend-local connection and every named downstream handoff: verified mock/local.
+- Replacement/removal and downstream invalidation: pending Gate 7.
+- Production Supabase/RLS/cross-device authority: blocked by the existing migration gate.
+- Next gate: Gate 7 — replacement/removal, invalidation, privacy/adaptation regression, and readiness closure.
+
+### Remote State
+
+- Push/PR/remote merge: not performed.
+- Supabase CLI/SQL/remote mutation: not performed.
+- Provider/media/worker/render/credit execution: not performed.
+- Production ready: false.

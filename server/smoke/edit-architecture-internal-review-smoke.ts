@@ -81,13 +81,13 @@ const steps: SmokeStep[] = [
   },
   {
     id: 'edit_execution_routes',
-    script: 'smoke:edit-execution-package-route',
-    requiredFor: 'backend execution package route chain through private internal download',
+    script: 'smoke:edit-execution-security-boundary',
+    requiredFor: 'canonical identity-only execution route schema and fail-closed caller-authored worker/render boundaries',
   },
   {
     id: 'edit_execution_client',
-    script: 'smoke:edit-execution-package-client',
-    requiredFor: 'frontend-safe client route chain and gate readback',
+    script: 'smoke:frontend-api-transport',
+    requiredFor: 'frontend-safe authenticated API transport and backend-only execution boundaries',
   },
   {
     id: 'private_download_client',

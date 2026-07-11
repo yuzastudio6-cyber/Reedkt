@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "goal": "edit_reference_end_to_end",
+  "status": "in_progress",
+  "currentGate": "gate_0",
+  "completedGates": [],
+  "blockedGates": [],
+  "latestCommit": null,
+  "startingCommit": "48540ee9b3d14c8345b0cedf11b6b449424324c3",
+  "canonicalWorktree": "/Volumes/backup/REeditpro-beta-integration-4",
+  "branch": "codex/beta-integration-reconcile",
+  "migrationBaseline": 21,
+  "migrationCurrent": 21,
+  "browserQa": "not_started",
+  "runtimeQa": "not_started",
+  "persistenceQa": "not_started",
+  "productionReady": false,
+  "remoteMutationAllowed": false,
+  "lastVerifiedDate": "2026-07-11"
+}

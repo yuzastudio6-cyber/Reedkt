@@ -17,9 +17,10 @@ import { OFFLINE_CONTAINER_PACKAGING_VALIDATION_PACKAGE_IDENTITIES } from './con
 import { OFFLINE_VAPOURSYNTH_FRAME_PIPELINE_PACKAGE_IDENTITIES } from './vapoursynth-frame-pipeline-execution/offline-vapoursynth-frame-pipeline-protocol'
 import { OFFLINE_AUDIOFLUX_ANALYSIS_PACKAGE_IDENTITIES } from './audioflux-analysis-execution/offline-audioflux-analysis-protocol'
 import { OFFLINE_REMBG_BACKGROUND_REMOVAL_PACKAGE_IDENTITIES } from './rembg-background-removal-execution/offline-rembg-background-removal-protocol'
+import { OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY } from './deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
 
 export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v1' as const
-export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-11.18' as const
+export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-11.19' as const
 
 export type ToolVerificationState =
   | 'canonical_e2e_verified'
@@ -42,6 +43,7 @@ export type ProvenToolRunnerClass =
   | 'offline_vapoursynth_frame_pipeline_execution_v1'
   | 'offline_audioflux_analysis_execution_v1'
   | 'offline_rembg_background_removal_execution_v1'
+  | 'offline_deepfilternet_voice_cleanup_execution_v1'
 
 export interface ProvenToolGateEvidence {
   exactOperationIdentityVerified: boolean
@@ -170,6 +172,7 @@ const OUTPUT_CONTENT_TYPES: Partial<Record<ProductionToolId, readonly string[]>>
   vapoursynth: ['application/json'],
   audioflux: ['application/json'],
   rembg: ['image/png'],
+  deepfilternet: ['audio/wav'],
 }
 
 const specs = listCompleteProfessionalToolOperationSpecs()
@@ -396,6 +399,14 @@ function runtimeIdentity(toolId: ProductionToolId): ProvenToolIdentityRecord['ru
       networkMode: 'none', frontendExecutionAllowed: false,
     }
   }
+  if (toolId === 'deepfilternet') {
+    return {
+      runnerClass: 'offline_deepfilternet_voice_cleanup_execution_v1',
+      packageOrBinaryName: `${OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY.packageName}+${OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY.nativePackageName}`,
+      pinnedVersion: OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY.version,
+      networkMode: 'none', frontendExecutionAllowed: false,
+    }
+  }
   return undefined
 }
 
@@ -438,6 +449,9 @@ function runnerSmokeCommand(runnerClass: ProvenToolRunnerClass): string {
   }
   if (runnerClass === 'offline_rembg_background_removal_execution_v1') {
     return 'npm run smoke:offline-rembg-background-removal-execution'
+  }
+  if (runnerClass === 'offline_deepfilternet_voice_cleanup_execution_v1') {
+    return 'npm run smoke:offline-deepfilternet-voice-cleanup-execution'
   }
   return 'npm run smoke:offline-node-structured-execution'
 }

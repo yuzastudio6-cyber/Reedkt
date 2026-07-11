@@ -63,6 +63,7 @@ const PRIVATE_INTERNAL_RUNNER_VERIFIED_TOOL_IDS = new Set<ProductionToolId>([
   'torch_torchvision',
   'transformers',
   'rembg',
+  'deepfilternet',
   'music21',
   'kornia',
   'opencolorio',

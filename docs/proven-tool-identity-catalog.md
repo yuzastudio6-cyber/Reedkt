@@ -110,16 +110,24 @@ The runner class is `offline_audioflux_analysis_execution_v1`; its evidence comm
 
 The runner class is `offline_rembg_background_removal_execution_v1`; its evidence command is `npm run smoke:offline-rembg-background-removal-execution`. The runtime preloads the exact U2NetP checkpoint, disables runtime model downloads, accepts no caller path, URL, bytes, model, command, or environment, and runs CPU-only under zero-network, read-only, non-root confinement with bounded resources. The canonical lifecycle evidence command is `npm run smoke:canonical-private-tool-dispatch`, which proves approved-snapshot and work-item binding, funded reservation, lease fencing, one-use dispatch, private create-only PNG persistence, semantic alpha-separation QA, reconciliation, exact replay, and downstream lease-time byte verification. Arbitrary approved user-image ingestion, x86_64 parity, distributed workers, production dependency/security/license review, deployment, external beta, and product promotion remain separate gates.
 
+### DeepFilterNet voice-cleanup identity package
+
+| Canonical tool ID | Stable identity | Exact operation | Pinned package/model | Verified artifact |
+| --- | --- | --- | --- | --- |
+| `deepfilternet` | `reeditpro.tool.deepfilternet.v1` | `tool.deepfilternet.enhance_voice.v1` | DeepFilterNet/DeepFilterLib `0.5.6`, Torch/Torchaudio `2.2.2`, DeepFilterNet3 checkpoint SHA-256 `23b92884f63ccf54bb026014604625ab231657b6480df65db4095c4c171e6003` | deterministic mono 48 kHz PCM WAV, SHA-256 `a359cf256f9f05294ee7f9701ec189385aed277020b2be5dfa83d229409e27a7` |
+
+The runner class is `offline_deepfilternet_voice_cleanup_execution_v1`; its evidence command is `npm run smoke:offline-deepfilternet-voice-cleanup-execution`. The hash-locked ARM64 image embeds the exact DeepFilterNet3 archive/config/checkpoint and a pinned eSpeak-generated server fixture during its controlled build, then permits no runtime download. The exact request fixes a gentle 12 dB attenuation ceiling, disables the post-filter, accepts no caller audio, paths, models, commands, arguments, or environment, and executes CPU-only with zero network, a read-only root filesystem, no mounts, a non-root user, dropped capabilities, bounded resources, checksum-protected authority, and attestations. Two independent runs produce byte-identical output and improve the approved noisy fixture from 3.217773 dB to 8.214627 dB SNR. This is confined-runner evidence only: approved-snapshot/work-item binding, funded reservation, lease fencing, create-only private artifact persistence, canonical QA/reconciliation, replay, downstream verification, arbitrary approved user-audio ingestion, x86_64 parity, distributed workers, deployment, external beta, and product promotion remain separate gates.
+
 ## Current evidence snapshot
 
-Evidence revision `2026-07-11.18` records:
+Evidence revision `2026-07-11.19` records:
 
 - 72 total registry profiles with stable identities.
 - 61 callable candidates.
 - 11 intentionally non-executable profiles.
-- 52 confined-runner verified tools.
+- 53 confined-runner verified tools.
 - 49 exact canonical end-to-end verified tools.
-- 9 callable candidates that remain declared but do not yet have confined-runner proof.
+- 8 callable candidates that remain declared but do not yet have confined-runner proof.
 - 0 product-, external-beta-, or production-ready tools; those promotions require separate deployment evidence.
 
 The remaining 12 callable candidates that have not reached canonical E2E stay visible in the same report. Their blocker lists identify the exact missing proof class per tool, including reviewed model/checkpoint manifests and offline caches for model-backed tools and exact fixture/artifact QA for other package-backed tools. A candidate is never promoted from declaration or import availability alone.
@@ -136,7 +144,7 @@ gpac_mp4box_packaging_validation, ffmpeg, ffprobe, pyav, opentimelineio, remotio
 sharp, duckdb, polars, opencv, signalsmith_stretch, vapoursynth
 ```
 
-`confinedRunnerVerifiedCount` includes tools that have also reached canonical E2E; it is not a count of runner-only tools. At this revision the three runner-only identities are `torch_torchvision`, `transformers`, and `streamer_render_pipeline_support`; all three are readiness probes rather than edit operations. AudioFlux, rembg, OpenColorIO, OpenImageIO, RNNoise, Signalsmith Stretch, MKVToolNix, and GPAC/MP4Box now have approved-snapshot work items, funded reservations, lease fences, one-use dispatch, exact pinned execution, create-only private artifact persistence, semantic QA, reconciliation, idempotent replay, and downstream lease verification using approved server-owned deterministic fixtures. They still require arbitrary user-source, dependency/security/license review, distributed-worker, deployment, and product-promotion evidence. Public delivery, settlement, billing, external beta, and production rendering remain separate blocked gates.
+`confinedRunnerVerifiedCount` includes tools that have also reached canonical E2E; it is not a count of runner-only tools. At this revision the four runner-only identities are `torch_torchvision`, `transformers`, `streamer_render_pipeline_support`, and `deepfilternet`. The first three are readiness probes. DeepFilterNet is an actual edit-operation proof but remains intentionally short of canonical E2E: it has not yet been bound to an approved snapshot, funded reservation, lease fence, private artifact reconciliation, idempotent replay, or downstream verification. AudioFlux, rembg, OpenColorIO, OpenImageIO, RNNoise, Signalsmith Stretch, MKVToolNix, and GPAC/MP4Box have those canonical lifecycle proofs using approved server-owned deterministic fixtures. All tools still require arbitrary user-source, dependency/security/license review, distributed-worker, deployment, and product-promotion evidence. Public delivery, settlement, billing, external beta, and production rendering remain separate blocked gates.
 
 ## Promotion rule
 

@@ -64,11 +64,41 @@ try {
   assert.equal(appended.data.appendedMessageIds.length, 2)
   assert.equal(appended.data.detail.messages.length, 4)
 
+  const evidence = await client.addEvidence(studyId, {
+    workspaceId,
+    expectedStudyRevision: appended.data.detail.study.revision,
+    sourceType: 'manual_user_evidence',
+    title: 'Readable caption direction',
+    category: 'all_goals',
+    summary: 'Use restrained, readable captions and original graphic layouts. Never copy exact wording or brand identity.',
+    intendedUse: 'transferable',
+  }, 'client-evidence-001')
+  assert(evidence.ok)
+  assert.equal(evidence.data.detail.nextAction, 'run_evidence_study')
+
+  const studied = await client.runEvidenceStudy(studyId, {
+    workspaceId,
+    expectedStudyRevision: evidence.data.detail.study.revision,
+  }, 'client-evidence-study-001')
+  assert(studied.ok)
+  assert.equal(studied.data.detail.study.status, 'evidence_ready')
+  assert(studied.data.detail.skillRuns.length > 0)
+
   const unavailable = createEditReferenceApiClient('')
   assert.equal(unavailable.available, false)
   const unavailableList = await unavailable.list(workspaceId)
   assert.equal(unavailableList.ok, false)
   if (!unavailableList.ok) assert.equal(unavailableList.code, 'EDIT_REFERENCE_BACKEND_UNAVAILABLE')
+  const unavailableEvidence = await unavailable.addEvidence(studyId, {
+    workspaceId,
+    expectedStudyRevision: 1,
+    sourceType: 'manual_user_evidence',
+    title: 'Unavailable',
+    category: 'all_goals',
+    summary: 'This request must remain unavailable.',
+    intendedUse: 'transferable',
+  })
+  assert.equal(unavailableEvidence.ok, false)
 
   console.log('edit_reference_api_client_passed')
 } finally {

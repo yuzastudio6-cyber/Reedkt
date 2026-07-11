@@ -3,6 +3,7 @@ import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import type {
   AppendPreferenceStudyMessageRequest,
+  CreatePreferenceEvidenceRequest,
   CreateEditReferenceRequest,
   CreatePreferenceStudyRequest,
   EditReferenceDetail,
@@ -11,14 +12,18 @@ import type {
   EditReferenceListItem,
   EditReferenceRecord,
   EditReferenceStudyGoal,
+  PreferenceAssetRecord,
+  PreferenceEvidenceMediaMetadata,
+  PreferenceEvidenceRecord,
   PreferenceStudyMessageRecord,
   PreferenceStudyData,
   PreferenceStudyMessageListData,
   PreferenceStudySessionRecord,
+  RunPreferenceEvidenceStudyRequest,
   UpdateEditReferenceRequest,
   UpdatePreferenceStudyRequest,
 } from '../../src/types/edit-reference'
-import { EDIT_REFERENCE_GATE_1_SAFETY_FLAGS } from '../../src/types/edit-reference'
+import { EDIT_REFERENCE_SAFETY_FLAGS } from '../../src/types/edit-reference'
 import type {
   EditReferenceAggregate,
   EditReferenceRepository,
@@ -29,6 +34,7 @@ import {
   hashEditReferenceRequest,
   PrivateEditReferenceRepository,
 } from '../edit-references/private-edit-reference-repository'
+import { orchestratePreferenceEvidenceStudy } from '../edit-references/edit-reference-evidence-orchestrator'
 
 const LOCAL_WARNING = 'Stored in the private backend-local Edit Reference repository. Production Supabase persistence remains blocked.'
 const FUTURE_RUNTIME_WARNING = 'No provider, model, file-byte, media, worker, generation, render, credit, or remote Supabase operation ran.'
@@ -49,6 +55,8 @@ export interface EditReferenceService {
   createStudy(referenceId: string, input: CreatePreferenceStudyRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   updateStudy(studyId: string, input: UpdatePreferenceStudyRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   appendMessage(studyId: string, input: AppendPreferenceStudyMessageRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData & { appendedMessageIds: string[] }>>
+  addEvidence(studyId: string, input: CreatePreferenceEvidenceRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  runEvidenceStudy(studyId: string, input: RunPreferenceEvidenceStudyRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
 }
 
 export function createEditReferenceService(
@@ -86,7 +94,7 @@ export function createEditReferenceService(
         references,
         persistence: 'backend_local_private',
         productionPersistence: 'blocked_by_migration_baseline',
-        safety: EDIT_REFERENCE_GATE_1_SAFETY_FLAGS,
+        safety: EDIT_REFERENCE_SAFETY_FLAGS,
       })
     },
 
@@ -104,7 +112,7 @@ export function createEditReferenceService(
         reference: requireReference(aggregate, study.editReferenceId),
         study,
         messages: studyMessages(aggregate, study.id),
-        safety: EDIT_REFERENCE_GATE_1_SAFETY_FLAGS,
+        safety: EDIT_REFERENCE_SAFETY_FLAGS,
       })
     },
 
@@ -112,7 +120,7 @@ export function createEditReferenceService(
       const aggregate = await repository.read(scope(workspaceId))
       if (!aggregate) throw studyNotFound(studyId)
       requireStudy(aggregate, studyId)
-      return result({ studyId, messages: studyMessages(aggregate, studyId), safety: EDIT_REFERENCE_GATE_1_SAFETY_FLAGS })
+      return result({ studyId, messages: studyMessages(aggregate, studyId), safety: EDIT_REFERENCE_SAFETY_FLAGS })
     },
 
     async createReference(input, idempotencyKey) {
@@ -203,6 +211,9 @@ export function createEditReferenceService(
           aggregate.studies.push(study)
           aggregate.messages.push(...setupMessages(reference, study, now))
           reference.currentStudyId = study.id
+          reference.evidenceStatus = 'not_complete'
+          reference.dnaStatus = 'not_generated'
+          reference.qaStatus = 'not_run'
           reference.revision += 1
           reference.updatedAt = now
           aggregate.usageLogs.push(usageLog(reference, 'study_created', now))
@@ -296,6 +307,88 @@ export function createEditReferenceService(
       }
       return result(mutation.data as EditReferenceDetailData & { appendedMessageIds: string[] }, mutation.replayed)
     },
+
+    async addEvidence(studyId, input, idempotencyKey) {
+      const normalized = normalizeCreateEvidence(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.evidence.add',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          assertActiveStudy(reference, study)
+          assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+          if (normalized.sourceType === 'manual_user_evidence' && normalized.supersedesEvidenceId) {
+            const superseded = aggregate.evidence.find((record) => record.id === normalized.supersedesEvidenceId)
+            if (!superseded || superseded.studySessionId !== study.id || superseded.sourceType !== 'manual_user_evidence') {
+              throw new ApiError('VALIDATION_FAILED', 'A correction must point to a saved creative note in this study.', 409)
+            }
+            if (aggregate.evidence.some((record) => record.supersedesEvidenceId === superseded.id)) {
+              throw new ApiError('VERSION_CONFLICT', 'That evidence already has a newer correction. Reload before saving.', 409)
+            }
+          }
+          const { evidence, asset } = createEvidenceRecords(reference, study, normalized, now)
+          aggregate.evidence.push(evidence)
+          if (asset) aggregate.assets.push(asset)
+          study.status = 'ready_to_study'
+          study.evidenceStatus = 'ready_to_study'
+          study.revision += 1
+          study.updatedAt = now
+          reference.evidenceStatus = 'ready_to_study'
+          reference.updatedAt = now
+          aggregate.messages.push(evidenceSavedMessage(reference, study, evidence, now, nextSequence(aggregate, study.id)))
+          aggregate.usageLogs.push(usageLog(reference, 'evidence_added', now))
+          addAuditEvent({ eventType: 'preference_evidence_added', editReferenceId: reference.id, studySessionId: study.id })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async runEvidenceStudy(studyId, input, idempotencyKey) {
+      const normalized = normalizeRunEvidenceStudy(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.evidence.run',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          assertActiveStudy(reference, study)
+          assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+          if (study.status !== 'ready_to_study') {
+            throw new ApiError('VALIDATION_FAILED', 'The saved evidence has already been reviewed. Add or correct evidence before running the study again.', 409)
+          }
+          const studyEvidence = aggregate.evidence.filter((record) => record.studySessionId === study.id)
+          if (!studyEvidence.some((record) => record.sourceType !== 'derived_skill_evidence')) {
+            throw new ApiError('PREFERENCE_EVIDENCE_REQUIRED', 'Add evidence before asking ReEditPro to study it.', 409)
+          }
+          const orchestration = orchestratePreferenceEvidenceStudy({
+            workspaceId: reference.workspaceId,
+            editReferenceId: reference.id,
+            study,
+            evidence: studyEvidence,
+            now,
+          })
+          aggregate.evidence.push(...orchestration.derivedEvidence)
+          aggregate.skillRuns.push(...orchestration.skillRuns)
+          study.status = orchestration.studyStatus
+          study.evidenceStatus = orchestration.evidenceStatus
+          study.revision += 1
+          study.updatedAt = now
+          reference.evidenceStatus = orchestration.evidenceStatus
+          reference.updatedAt = now
+          aggregate.messages.push(studyResultMessage(reference, study, orchestration.assistantMessage, now, nextSequence(aggregate, study.id)))
+          aggregate.usageLogs.push(usageLog(reference, 'evidence_study_completed', now))
+          addAuditEvent({ eventType: 'preference_evidence_study_completed', editReferenceId: reference.id, studySessionId: study.id })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
   }
 }
 
@@ -320,14 +413,25 @@ function detailData(aggregate: EditReferenceAggregate, reference: EditReferenceR
     dnaQaResults: aggregate.dnaQaResults.filter((record) => aggregate.dnaVersions.some((dna) => dna.id === record.dnaVersionId && dna.studySessionId === study.id)),
     applications: aggregate.applications.filter((record) => record.editReferenceId === reference.id),
     usageLogs: aggregate.usageLogs.filter((record) => record.editReferenceId === reference.id),
-    nextAction: reference.status === 'archived'
-      ? 'archived'
-      : aggregate.messages.some((message) => message.studySessionId === study.id && message.role === 'user')
-        ? 'add_reference_evidence'
-        : 'answer_setup_questions',
-    safety: EDIT_REFERENCE_GATE_1_SAFETY_FLAGS,
+    nextAction: nextActionForDetail(aggregate, reference, study),
+    safety: EDIT_REFERENCE_SAFETY_FLAGS,
   }
   return { detail, replayed: false }
+}
+
+function nextActionForDetail(
+  aggregate: EditReferenceAggregate,
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+): EditReferenceDetail['nextAction'] {
+  if (reference.status === 'archived') return 'archived'
+  if (study.status === 'evidence_ready' || study.status === 'needs_user_review') return 'review_study_findings'
+  if (study.status === 'needs_clarification') return 'add_missing_evidence'
+  const sourceEvidence = aggregate.evidence.filter((record) => record.studySessionId === study.id && record.sourceType !== 'derived_skill_evidence')
+  if (sourceEvidence.length > 0) return 'run_evidence_study'
+  return aggregate.messages.some((message) => message.studySessionId === study.id && message.role === 'user')
+    ? 'add_reference_evidence'
+    : 'answer_setup_questions'
 }
 
 function createStudyRecord(reference: EditReferenceRecord, id: string, title: string, now: string): PreferenceStudySessionRecord {
@@ -356,7 +460,7 @@ function setupMessages(reference: EditReferenceRecord, study: PreferenceStudySes
       editReferenceId: reference.id,
       studySessionId: study.id,
       role: 'system',
-      content: 'This study is ready for your creative direction. Reference media will be analyzed only after you add it as evidence.',
+      content: 'This study uses only evidence you deliberately add. Saving video details does not mean the video itself has been studied.',
       sequence: 1,
       runtimeSource: 'deterministic_setup',
       createdAt: now,
@@ -384,6 +488,204 @@ function deterministicAcknowledgement(reference: EditReferenceRecord): string {
   return `Your direction is saved for “${reference.name}.” Study evidence is not complete, so Preference DNA and quality review remain unavailable. Add reference evidence when you are ready to continue.`
 }
 
+function evidenceSavedMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  evidence: PreferenceEvidenceRecord,
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  const boundary = evidence.sourceType === 'reference_video_metadata'
+    ? ' Only the details you entered were saved; the video itself was not studied.'
+    : evidence.sourceType === 'previous_approved_edit_snapshot'
+      ? ' Its identity was recorded, but no project history, snapshot content, or media was opened.'
+      : ''
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content: `“${evidence.title}” was added to this study.${boundary} You can study the saved evidence now or add more context first.`,
+    sequence,
+    runtimeSource: 'deterministic_evidence',
+    createdAt: now,
+  }
+}
+
+function studyResultMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  content: string,
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content,
+    sequence,
+    runtimeSource: 'deterministic_evidence',
+    createdAt: now,
+  }
+}
+
+function createEvidenceRecords(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  input: CreatePreferenceEvidenceRequest,
+  now: string,
+): { evidence: PreferenceEvidenceRecord; asset?: PreferenceAssetRecord } {
+  const evidenceId = `preference-evidence-${randomUUID()}`
+  if (input.sourceType === 'manual_user_evidence') {
+    return {
+      evidence: {
+        id: evidenceId,
+        workspaceId: reference.workspaceId,
+        editReferenceId: reference.id,
+        studySessionId: study.id,
+        sourceType: input.sourceType,
+        ...(input.supersedesEvidenceId ? { supersedesEvidenceId: input.supersedesEvidenceId } : {}),
+        category: input.category,
+        title: input.title,
+        summary: input.summary,
+        revision: 1,
+        confidence: 0.65,
+        confidenceBasis: 'user_asserted',
+        transferability: input.intendedUse,
+        provenance: {
+          runtimeSource: 'user_input',
+          sourceEvidenceIds: input.supersedesEvidenceId ? [input.supersedesEvidenceId] : [],
+          mediaStudyStatus: 'not_applicable',
+          toolIds: [],
+          skillIds: [],
+          fallbackUsed: false,
+          notes: ['Saved as user-described evidence. No media or model analysis is implied.'],
+        },
+        createdAt: now,
+        updatedAt: now,
+      },
+    }
+  }
+
+  const privateAssetId = `preference-private-asset-${randomUUID()}`
+  if (input.sourceType === 'reference_video_metadata') {
+    const mediaMetadata = normalizeMediaMetadata(input)
+    const asset: PreferenceAssetRecord = {
+      id: `preference-asset-${randomUUID()}`,
+      workspaceId: reference.workspaceId,
+      editReferenceId: reference.id,
+      studySessionId: study.id,
+      privateAssetId,
+      assetKind: 'reference_video_metadata',
+      label: input.sourceLabel,
+      rightsBasis: input.rightsBasis,
+      mediaStudyStatus: 'media_not_studied',
+      mediaMetadata,
+      createdAt: now,
+    }
+    return {
+      asset,
+      evidence: {
+        id: evidenceId,
+        workspaceId: reference.workspaceId,
+        editReferenceId: reference.id,
+        studySessionId: study.id,
+        sourceType: input.sourceType,
+        category: 'media_structure',
+        title: input.title,
+        summary: `${input.sourceLabel} metadata was supplied for this study. The media itself has not been studied.`,
+        revision: 1,
+        confidence: 1,
+        confidenceBasis: 'metadata_verified',
+        transferability: 'requires_user_review',
+        mediaMetadata,
+        provenance: {
+          runtimeSource: 'user_input',
+          sourceEvidenceIds: [],
+          privateAssetId,
+          sourceLabel: input.sourceLabel,
+          rightsBasis: input.rightsBasis,
+          mediaStudyStatus: 'media_not_studied',
+          toolIds: [],
+          skillIds: [],
+          fallbackUsed: false,
+          notes: ['No URL, path, media bytes, frames, transcript, audio, or provider payload was accepted or persisted.'],
+        },
+        createdAt: now,
+        updatedAt: now,
+      },
+    }
+  }
+
+  const asset: PreferenceAssetRecord = {
+    id: `preference-asset-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    privateAssetId,
+    assetKind: 'previous_approved_edit_snapshot',
+    label: input.title,
+    rightsBasis: input.rightsBasis,
+    mediaStudyStatus: 'approved_edit_identity_not_verified',
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+    approvedSnapshotId: input.approvedSnapshotId,
+    createdAt: now,
+  }
+  return {
+    asset,
+    evidence: {
+      id: evidenceId,
+      workspaceId: reference.workspaceId,
+      editReferenceId: reference.id,
+      studySessionId: study.id,
+      sourceType: input.sourceType,
+      category: 'media_structure',
+      title: input.title,
+      summary: input.summary ?? 'A previous approved edit identity was supplied for future private study.',
+      revision: 1,
+      confidence: 0.5,
+      confidenceBasis: 'user_asserted',
+      transferability: 'requires_user_review',
+      provenance: {
+        runtimeSource: 'user_input',
+        sourceEvidenceIds: [],
+        privateAssetId,
+        projectId: input.projectId,
+        editSessionId: input.editSessionId,
+        approvedSnapshotId: input.approvedSnapshotId,
+        rightsBasis: input.rightsBasis,
+        mediaStudyStatus: 'approved_edit_identity_not_verified',
+        toolIds: [],
+        skillIds: [],
+        fallbackUsed: false,
+        notes: ['Exact identity was saved. No project history, approved snapshot content, preview, or media bytes were opened.'],
+      },
+      createdAt: now,
+      updatedAt: now,
+    },
+  }
+}
+
+function normalizeMediaMetadata(input: Extract<CreatePreferenceEvidenceRequest, { sourceType: 'reference_video_metadata' }>): PreferenceEvidenceMediaMetadata {
+  const width = input.width
+  const height = input.height
+  const orientation = width && height
+    ? width === height ? 'square' : width > height ? 'landscape' : 'portrait'
+    : 'unknown'
+  return {
+    ...(input.durationSeconds === undefined ? {} : { durationSeconds: input.durationSeconds }),
+    ...(width === undefined ? {} : { width }),
+    ...(height === undefined ? {} : { height }),
+    ...(input.hasAudio === undefined ? {} : { hasAudio: input.hasAudio }),
+    orientation,
+  }
+}
+
 function goalLabel(goal: EditReferenceStudyGoal): string {
   return goal.replaceAll('_', ' ')
 }
@@ -392,7 +694,11 @@ function nextSequence(aggregate: EditReferenceAggregate, studyId: string): numbe
   return aggregate.messages.reduce((maximum, message) => message.studySessionId === studyId ? Math.max(maximum, message.sequence) : maximum, 0) + 1
 }
 
-function usageLog(reference: EditReferenceRecord, eventType: 'created' | 'study_created' | 'message_appended' | 'updated' | 'archived', now: string) {
+function usageLog(
+  reference: EditReferenceRecord,
+  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'updated' | 'archived',
+  now: string,
+) {
   return {
     id: `preference-usage-${randomUUID()}`,
     workspaceId: reference.workspaceId,
@@ -412,6 +718,12 @@ function requireStudy(aggregate: EditReferenceAggregate, studyId: string): Prefe
   const study = aggregate.studies.find((candidate) => candidate.id === studyId)
   if (!study) throw studyNotFound(studyId)
   return study
+}
+
+function assertActiveStudy(reference: EditReferenceRecord, study: PreferenceStudySessionRecord): void {
+  if (reference.status === 'archived' || study.status === 'archived') {
+    throw new ApiError('VALIDATION_FAILED', 'Archived studies cannot accept or analyze evidence.', 409)
+  }
 }
 
 function studyMessages(aggregate: EditReferenceAggregate, studyId: string): PreferenceStudyMessageRecord[] {
@@ -498,12 +810,81 @@ function normalizeAppendMessage(input: AppendPreferenceStudyMessageRequest): App
   }
 }
 
+function normalizeCreateEvidence(input: CreatePreferenceEvidenceRequest): CreatePreferenceEvidenceRequest {
+  const workspaceId = requireWorkspaceId(input.workspaceId)
+  const expectedStudyRevision = requirePositiveInteger(input.expectedStudyRevision, 'expectedStudyRevision')
+  const title = requireText(input.title, 'title', 160)
+  if (input.sourceType === 'manual_user_evidence') {
+    return {
+      workspaceId,
+      expectedStudyRevision,
+      sourceType: input.sourceType,
+      title,
+      category: input.category,
+      summary: requireText(input.summary, 'summary', 4_000),
+      intendedUse: input.intendedUse,
+      ...(input.supersedesEvidenceId ? { supersedesEvidenceId: requireText(input.supersedesEvidenceId, 'supersedesEvidenceId', 200) } : {}),
+    }
+  }
+  if (input.sourceType === 'reference_video_metadata') {
+    return {
+      workspaceId,
+      expectedStudyRevision,
+      sourceType: input.sourceType,
+      title,
+      sourceLabel: requireText(input.sourceLabel, 'sourceLabel', 240),
+      rightsBasis: input.rightsBasis,
+      ...(input.durationSeconds === undefined ? {} : { durationSeconds: requireNonNegativeNumber(input.durationSeconds, 'durationSeconds', 86_400) }),
+      ...(input.width === undefined ? {} : { width: requirePositiveIntegerBounded(input.width, 'width', 16_384) }),
+      ...(input.height === undefined ? {} : { height: requirePositiveIntegerBounded(input.height, 'height', 16_384) }),
+      ...(input.hasAudio === undefined ? {} : { hasAudio: input.hasAudio }),
+    }
+  }
+  return {
+    workspaceId,
+    expectedStudyRevision,
+    sourceType: input.sourceType,
+    title,
+    projectId: requireText(input.projectId, 'projectId', 200),
+    editSessionId: requireText(input.editSessionId, 'editSessionId', 200),
+    approvedSnapshotId: requireText(input.approvedSnapshotId, 'approvedSnapshotId', 200),
+    ...(input.summary?.trim() ? { summary: requireText(input.summary, 'summary', 2_000) } : {}),
+    rightsBasis: 'workspace_approved_edit',
+  }
+}
+
+function normalizeRunEvidenceStudy(input: RunPreferenceEvidenceStudyRequest): RunPreferenceEvidenceStudyRequest {
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedStudyRevision: requirePositiveInteger(input.expectedStudyRevision, 'expectedStudyRevision'),
+  }
+}
+
 function requireWorkspaceId(value: string): string {
   return requireText(value, 'workspaceId', 160)
 }
 
 function requireIdempotencyKey(value: string): string {
   return requireText(value, 'Idempotency-Key', 200)
+}
+
+function requirePositiveInteger(value: number, field: string): number {
+  if (!Number.isSafeInteger(value) || value < 1) throw new ApiError('VALIDATION_FAILED', `${field} must be a positive integer.`, 400)
+  return value
+}
+
+function requirePositiveIntegerBounded(value: number, field: string, maximum: number): number {
+  if (!Number.isSafeInteger(value) || value < 1 || value > maximum) {
+    throw new ApiError('VALIDATION_FAILED', `${field} must be an integer between 1 and ${maximum}.`, 400)
+  }
+  return value
+}
+
+function requireNonNegativeNumber(value: number, field: string, maximum: number): number {
+  if (!Number.isFinite(value) || value < 0 || value > maximum) {
+    throw new ApiError('VALIDATION_FAILED', `${field} must be between 0 and ${maximum}.`, 400)
+  }
+  return value
 }
 
 function requireText(value: string, field: string, maximum: number): string {

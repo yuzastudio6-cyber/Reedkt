@@ -1,6 +1,6 @@
 # Edit Reference Skill Registry
 
-Status: `gate_0_registry`
+Status: `gate_2_registry_with_executed_subset`
 
 This registry records capability truth, not product aspiration. A tool can back an Edit Reference skill only when an implemented adapter/service, typed input/output contract, proof, safe fallback, privacy boundary, and provenance policy exist.
 
@@ -200,3 +200,17 @@ Existing proof is reusable evidence; it does not mean an Edit Reference study ex
 - `not_implemented` means no compliant adapter/service exists.
 
 Before any entry changes status, update its proof command, privacy/provenance policies, goal verification log, and behavior tests together.
+
+## Gate 2 Execution Evidence
+
+Gate 2 does not change the capability readiness values above. It records per-study execution truth separately:
+
+- Media Structure runs `verified_local` only for normalization of user-supplied metadata and remains `degraded`; `media_not_studied` is mandatory.
+- Visual Language and Story/Editorial use explicit deterministic fallback over user descriptions; their live provider adapters are not called.
+- Caption, Color, Audio/SFX, and Graphics/Motion use manual-evidence fallback with the registry's conservative constraints.
+- Speech/Pacing stays blocked without transcript/audio evidence.
+- Transferability/Do-Not-Copy runs the deterministic `verified_mock` safety classifier and fails closed on direct-copy requests.
+- A deterministic pacing-conflict pass creates a review-required finding instead of silently choosing.
+- Preference DNA Synthesis, DNA QA, and Target Adaptation do not run in Gate 2.
+
+Exact behavior proof: `npm run smoke:edit-reference-evidence-study`.

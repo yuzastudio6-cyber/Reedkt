@@ -129,7 +129,17 @@ ready_to_study -> collecting_evidence | needs_clarification | archived
 needs_clarification -> collecting_evidence | ready_to_study | archived
 ```
 
-Gate 1 does not transition to `studying`, `evidence_ready`, `dna_ready`, `qa_blocked`, `needs_user_review`, `approved`, `applied`, or `failed` because no study skill, evidence-completion, DNA, QA, or application runtime has run. Later gates expand the transition map with tests.
+Gate 2 expands the server-owned path for authenticated evidence mutations and deterministic study orchestration:
+
+```text
+collecting_evidence | needs_clarification | evidence_ready | needs_user_review
+  -> ready_to_study (new or corrected evidence)
+
+ready_to_study
+  -> evidence_ready | needs_clarification | needs_user_review (study orchestration)
+```
+
+Gate 2 does not transition to `dna_ready`, `qa_blocked`, `approved`, `applied`, or production states. It records synchronous skill runs and a final evidence status atomically; it does not claim a queued worker or live media/model run.
 
 ## Versioning And Concurrency
 
@@ -140,6 +150,7 @@ Gate 1 does not transition to `studying`, `evidence_ready`, `dna_ready`, `qa_blo
 - Created/updated timestamps are server-owned ISO timestamps.
 - Study messages are append-only in normal operation.
 - Approved DNA versions and QA decisions are immutable; later corrections create new versions.
+- Evidence corrections append a new evidence record linked to the exact superseded record; the original remains durable and later orchestration uses only the active successor.
 - Application version is monotonic and replacement/clear events are retained.
 
 ## Idempotency

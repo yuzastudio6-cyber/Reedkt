@@ -3,7 +3,12 @@ import { z } from 'zod'
 import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
 import { createEditReferenceService, type EditReferenceServiceResult } from '../services/edit-reference-service'
-import { EDIT_REFERENCE_STUDY_GOALS, EDIT_REFERENCE_STUDY_LIFECYCLE_STATUSES } from '../../src/types/edit-reference'
+import {
+  EDIT_REFERENCE_MANUAL_EVIDENCE_CATEGORIES,
+  EDIT_REFERENCE_MEDIA_RIGHTS_BASES,
+  EDIT_REFERENCE_STUDY_GOALS,
+  EDIT_REFERENCE_STUDY_LIFECYCLE_STATUSES,
+} from '../../src/types/edit-reference'
 import { idSchema, validateBody } from '../validation/common-schemas'
 import { asyncRoute, getRouteParam, getServiceContext, sendOk } from './route-helpers'
 
@@ -36,6 +41,46 @@ const appendMessageSchema = workspaceSchema.extend({
   expectedStudyRevision: z.number().int().positive(),
   clientMessageId: z.string().trim().min(1).max(160),
   content: z.string().trim().min(1).max(8_000),
+}).strict()
+const evidenceMutationFields = {
+  workspaceId: idSchema.max(160),
+  expectedStudyRevision: z.number().int().positive(),
+  title: z.string().trim().min(1).max(160),
+}
+const manualEvidenceSchema = z.object({
+  ...evidenceMutationFields,
+  sourceType: z.literal('manual_user_evidence'),
+  category: z.enum(EDIT_REFERENCE_MANUAL_EVIDENCE_CATEGORIES),
+  summary: z.string().trim().min(1).max(4_000),
+  intendedUse: z.enum(['transferable', 'non_transferable', 'do_not_copy', 'requires_user_review']),
+  supersedesEvidenceId: idSchema.max(200).optional(),
+}).strict()
+const referenceMetadataEvidenceSchema = z.object({
+  ...evidenceMutationFields,
+  sourceType: z.literal('reference_video_metadata'),
+  sourceLabel: z.string().trim().min(1).max(240),
+  rightsBasis: z.enum(EDIT_REFERENCE_MEDIA_RIGHTS_BASES),
+  durationSeconds: z.number().finite().min(0).max(86_400).optional(),
+  width: z.number().int().positive().max(16_384).optional(),
+  height: z.number().int().positive().max(16_384).optional(),
+  hasAudio: z.boolean().optional(),
+}).strict()
+const previousApprovedEditEvidenceSchema = z.object({
+  ...evidenceMutationFields,
+  sourceType: z.literal('previous_approved_edit_snapshot'),
+  projectId: idSchema.max(200),
+  editSessionId: idSchema.max(200),
+  approvedSnapshotId: idSchema.max(200),
+  summary: z.string().trim().max(2_000).optional(),
+  rightsBasis: z.literal('workspace_approved_edit'),
+}).strict()
+const createEvidenceSchema = z.discriminatedUnion('sourceType', [
+  manualEvidenceSchema,
+  referenceMetadataEvidenceSchema,
+  previousApprovedEditEvidenceSchema,
+])
+const runEvidenceStudySchema = workspaceSchema.extend({
+  expectedStudyRevision: z.number().int().positive(),
 }).strict()
 
 export function createEditReferenceRoutes(): Router {
@@ -108,6 +153,26 @@ export function createEditReferenceRoutes(): Router {
   router.post('/v1/edit-reference-studies/:studyId/messages', requireAuth, asyncRoute(async (request, response) => {
     const body = validateBody(appendMessageSchema, request.body)
     const result = await createEditReferenceService(getServiceContext(request)).appendMessage(
+      getRouteParam(request, 'studyId'),
+      body,
+      getDurableIdempotencyKey(request),
+    )
+    sendMutation(response, result, 201)
+  }))
+
+  router.post('/v1/edit-reference-studies/:studyId/evidence', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(createEvidenceSchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).addEvidence(
+      getRouteParam(request, 'studyId'),
+      body,
+      getDurableIdempotencyKey(request),
+    )
+    sendMutation(response, result, 201)
+  }))
+
+  router.post('/v1/edit-reference-studies/:studyId/evidence-study', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(runEvidenceStudySchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).runEvidenceStudy(
       getRouteParam(request, 'studyId'),
       body,
       getDurableIdempotencyKey(request),

@@ -1,6 +1,6 @@
 # Edit Reference Test Fixture Plan
 
-Status: `gate_0_test_plan`
+Status: `gate_2_fixtures_partially_executed`
 
 Fixtures must test behavior, not only file presence. They must be deterministic, private, rights-safe, small, and explicit about whether they contain metadata, synthetic media, or previous approved-edit evidence.
 
@@ -123,3 +123,9 @@ Later Playwright fixtures extend this same canonical path for evidence, DNA, QA,
 - Never commit secrets, signed URLs, service credentials, private user media, or raw provider responses.
 - Keep timestamps deterministic where the test does not exercise real time.
 - Every fixture declares runtime source, mock/local/live status, provenance, and expected side-effect flags.
+
+## Gate 2 Executed Fixtures
+
+`server/smoke/edit-reference-evidence-study-smoke.ts` now executes the Empty/Study foundation dependency plus Reference Video Metadata, Previous Approved Edit identity, Manual Evidence, all six Copy-Risk families, Conflicting Evidence, Low/Missing Evidence, correction history, Privacy/DTO redaction, tenant isolation, idempotency conflict/replay, and restart persistence behaviors.
+
+DNA versioning, target adaptation, application replacement/removal, remote RLS, live media study, and provider execution remain later-gate fixtures.

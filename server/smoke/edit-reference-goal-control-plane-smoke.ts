@@ -14,6 +14,7 @@ const requiredFiles = [
   'docs/edit-reference-persistence-contract.md',
   'docs/edit-reference-gate-verification-log.md',
   'docs/edit-reference-gate-1-study-session-foundation.md',
+  'docs/edit-reference-gate-2-evidence-study-orchestration.md',
   'design-system/MASTER.md',
   'design-system/pages/edit-preferences.md',
   'scripts/validation/edit-reference-goal-preflight.mjs',
@@ -127,5 +128,6 @@ assert.equal(packageJson.scripts?.['smoke:edit-reference-api-routes'], 'tsx serv
 assert.equal(packageJson.scripts?.['smoke:edit-reference-api-client'], 'tsx server/smoke/edit-reference-api-client-smoke.ts')
 assert.equal(packageJson.scripts?.['smoke:edit-reference-study-session-foundation'], 'tsx server/smoke/edit-reference-study-session-foundation-smoke.ts')
 assert.equal(packageJson.scripts?.['smoke:edit-reference-ui'], 'tsx server/smoke/edit-reference-ui-adapter-smoke.ts')
+assert.equal(packageJson.scripts?.['smoke:edit-reference-evidence-study'], 'tsx server/smoke/edit-reference-evidence-study-smoke.ts')
 
 console.log('edit_reference_goal_control_plane_passed')

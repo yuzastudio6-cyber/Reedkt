@@ -1,0 +1,584 @@
+import { randomUUID } from 'node:crypto'
+import type {
+  EditReferenceStudyGoal,
+  EditReferenceStudyLifecycleStatus,
+  PreferenceEvidenceCategory,
+  PreferenceEvidenceRecord,
+  PreferenceEvidenceStatus,
+  PreferenceSkillRunRecord,
+  PreferenceStudySessionRecord,
+} from '../../src/types/edit-reference'
+
+interface OrchestrationInput {
+  workspaceId: string
+  editReferenceId: string
+  study: PreferenceStudySessionRecord
+  evidence: PreferenceEvidenceRecord[]
+  now: string
+}
+
+export interface PreferenceEvidenceStudyOrchestrationResult {
+  orchestrationId: string
+  derivedEvidence: PreferenceEvidenceRecord[]
+  skillRuns: PreferenceSkillRunRecord[]
+  studyStatus: Extract<EditReferenceStudyLifecycleStatus, 'evidence_ready' | 'needs_clarification' | 'needs_user_review'>
+  evidenceStatus: PreferenceEvidenceStatus
+  uncoveredGoals: EditReferenceStudyGoal[]
+  copyRiskKinds: CopyRiskKind[]
+  conflictKinds: EvidenceConflictKind[]
+  assistantMessage: string
+}
+
+type CopyRiskKind =
+  | 'exact_shot_order'
+  | 'exact_timing'
+  | 'exact_graphic_layout'
+  | 'exact_music_or_sfx'
+  | 'creator_or_brand_identity'
+  | 'reference_as_project_footage'
+
+type EvidenceConflictKind = 'restrained_vs_rapid_pacing'
+
+interface SkillDefinition {
+  skillId: string
+  readinessAtRun: PreferenceSkillRunRecord['readinessAtRun']
+  runtimeSource: PreferenceSkillRunRecord['runtimeSource']
+  fallbackUsed: boolean
+  resultSummary: string
+  warnings: string[]
+  blockedReasons: string[]
+  toolIds: string[]
+}
+
+const GOAL_SKILLS: Record<EditReferenceStudyGoal, SkillDefinition[]> = {
+  visual_language: [fallbackSkill(
+    'edit_reference.visual_language.qwen_visual_analysis',
+    'verified_live',
+    'Saved the user-described visual language as evidence. No frames or video were analyzed.',
+    ['Live visual analysis was not invoked; this result is based only on saved user direction.'],
+  )],
+  story_and_pacing: [
+    fallbackSkill(
+      'edit_reference.story_editorial.qwen_reasoning',
+      'verified_live',
+      'Organized the user-described story and pacing choices without model reasoning or copied timing.',
+      ['Live story reasoning was not invoked; this result is based only on saved user direction.'],
+    ),
+    blockedSkill(
+      'edit_reference.speech_pacing.evidence',
+      'Speech and pause analysis needs an approved transcript or audio track, which was not available in this study.',
+    ),
+  ],
+  captions: [fallbackSkill(
+    'edit_reference.caption_design.evidence',
+    'verified_mock',
+    'Preserved the user-described caption choices as low-confidence manual evidence.',
+    ['No caption frames, wording, OCR, or transcript timing were analyzed.'],
+  )],
+  color: [fallbackSkill(
+    'edit_reference.color_treatment.evidence',
+    'verified_mock',
+    'Preserved broad user-described color principles without inventing a LUT or exact grade.',
+    ['No source frames or color-processing tool ran.'],
+  )],
+  b_roll: [fallbackSkill(
+    'edit_reference.visual_language.qwen_visual_analysis',
+    'verified_live',
+    'Preserved the user-described B-roll language without inferring real shots or scene boundaries.',
+    ['No frames, video bytes, shot detector, or visual model ran.'],
+  )],
+  audio_and_sfx: [fallbackSkill(
+    'edit_reference.audio_sound_design.evidence',
+    'verified_mock',
+    'Preserved the user-described music and sound-design intent as manual evidence.',
+    ['No audio analysis, generation, MMAudio, Lyria, or provider call ran.'],
+  )],
+  graphics: [fallbackSkill(
+    'edit_reference.graphics_motion.evidence',
+    'verified_mock',
+    'Preserved the user-described graphics and motion principles without recreating an exact layout.',
+    ['No render, generated code, media worker, or provider call ran.'],
+  )],
+}
+
+const COPY_RISK_PATTERNS: Array<{ kind: CopyRiskKind; patterns: RegExp[] }> = [
+  { kind: 'exact_shot_order', patterns: [/\bshot[ -]?for[ -]?shot\b/i, /\b(?:same|exact) shot order\b/i, /\bcopy (?:the )?shots?\b/i] },
+  { kind: 'exact_timing', patterns: [/\b(?:same|exact) timecodes?\b/i, /\b(?:same|exact) timing\b/i, /\bmatch (?:the )?timing exactly\b/i] },
+  { kind: 'exact_graphic_layout', patterns: [/\b(?:same|exact) (?:ui |graphic )?layout\b/i, /\brecreate (?:the )?(?:ui |graphic )?layout\b/i, /\bcopy (?:the )?(?:ui |graphic )?layout\b/i] },
+  { kind: 'exact_music_or_sfx', patterns: [/\buse (?:the )?same song\b/i, /\b(?:same|exact) (?:music|sfx|sound effects?)\b/i, /\bcopy (?:the )?lyrics\b/i, /\buse (?:the )?same lyrics\b/i] },
+  { kind: 'creator_or_brand_identity', patterns: [/\b(?:same|copy|recreate) (?:creator|brand|logo|person|identity)\b/i, /\blook exactly like\b/i, /\bimitate (?:the )?creator\b/i] },
+  { kind: 'reference_as_project_footage', patterns: [/\buse (?:the )?reference (?:video )?as (?:project )?footage\b/i, /\breuse (?:the )?reference video\b/i, /\bput (?:the )?reference video in\b/i] },
+]
+
+export function orchestratePreferenceEvidenceStudy(input: OrchestrationInput): PreferenceEvidenceStudyOrchestrationResult {
+  const orchestrationId = `preference-evidence-study-${randomUUID()}`
+  const allSourceEvidence = input.evidence.filter((record) => record.sourceType !== 'derived_skill_evidence')
+  const supersededEvidenceIds = new Set(allSourceEvidence.map((record) => record.supersedesEvidenceId).filter(Boolean))
+  const sourceEvidence = allSourceEvidence.filter((record) => !supersededEvidenceIds.has(record.id))
+  const manualEvidence = sourceEvidence.filter((record) => record.sourceType === 'manual_user_evidence')
+  const metadataEvidence = sourceEvidence.filter((record) => record.sourceType === 'reference_video_metadata')
+  const previousEditEvidence = sourceEvidence.filter((record) => record.sourceType === 'previous_approved_edit_snapshot')
+  const derivedEvidence: PreferenceEvidenceRecord[] = []
+  const skillRuns: PreferenceSkillRunRecord[] = []
+
+  if (metadataEvidence.length > 0) {
+    const runId = `preference-skill-run-${randomUUID()}`
+    const output = createDerivedEvidence({
+      input,
+      orchestrationId,
+      runId,
+      category: 'media_structure',
+      title: 'Reference media details',
+      summary: summarizeMetadata(metadataEvidence),
+      confidence: 1,
+      confidenceBasis: 'metadata_verified',
+      transferability: 'requires_user_review',
+      sourceEvidenceIds: metadataEvidence.map((record) => record.id),
+      runtimeSource: 'verified_local',
+      mediaStudyStatus: 'media_not_studied',
+      skillId: 'edit_reference.media_structure.metadata_map',
+      toolIds: ['metadata_normalizer'],
+      fallbackUsed: true,
+      notes: ['Only user-supplied duration, dimensions, audio presence, rights basis, and labels were normalized.'],
+    })
+    derivedEvidence.push(output)
+    skillRuns.push(createSkillRun({
+      input,
+      orchestrationId,
+      id: runId,
+      skillId: 'edit_reference.media_structure.metadata_map',
+      status: 'completed',
+      runtimeSource: 'verified_local',
+      readinessAtRun: 'degraded',
+      inputEvidenceIds: metadataEvidence.map((record) => record.id),
+      outputEvidenceIds: [output.id],
+      toolIds: ['metadata_normalizer'],
+      fallbackUsed: true,
+      resultSummary: 'Normalized safe reference metadata. The video itself was not studied.',
+      warnings: ['No scene, shot, visual, transcript, audio, or motion observation was inferred from metadata.'],
+      blockedReasons: [],
+    }))
+  }
+
+  if (previousEditEvidence.length > 0) {
+    const runId = `preference-skill-run-${randomUUID()}`
+    const output = createDerivedEvidence({
+      input,
+      orchestrationId,
+      runId,
+      category: 'media_structure',
+      title: 'Previous edit identity recorded',
+      summary: 'The approved edit identity is saved, but its private snapshot authority and content have not been opened or studied.',
+      confidence: 0,
+      confidenceBasis: 'blocked',
+      transferability: 'requires_user_review',
+      sourceEvidenceIds: previousEditEvidence.map((record) => record.id),
+      runtimeSource: 'blocked',
+      mediaStudyStatus: 'approved_edit_identity_not_verified',
+      skillId: 'edit_reference.media_structure.metadata_map',
+      toolIds: [],
+      fallbackUsed: true,
+      notes: ['No project history, approved snapshot payload, preview, or media bytes were read.'],
+    })
+    derivedEvidence.push(output)
+    skillRuns.push(createSkillRun({
+      input,
+      orchestrationId,
+      id: runId,
+      skillId: 'edit_reference.media_structure.metadata_map',
+      status: 'blocked',
+      runtimeSource: 'not_started',
+      readinessAtRun: 'degraded',
+      inputEvidenceIds: previousEditEvidence.map((record) => record.id),
+      outputEvidenceIds: [output.id],
+      toolIds: [],
+      fallbackUsed: true,
+      resultSummary: 'Recorded the exact approved-edit identity without opening its project history or private media.',
+      warnings: [],
+      blockedReasons: ['This study cannot open that approved edit yet. Its identity is saved, but its private content remains closed.'],
+    }))
+  }
+
+  for (const goal of input.study.initialGoals) {
+    const goalEvidence = manualEvidence.filter((record) => record.category === goal || record.category === 'all_goals')
+    if (goalEvidence.length === 0) continue
+    for (const definition of uniqueSkillDefinitions(GOAL_SKILLS[goal])) {
+      const runId = `preference-skill-run-${randomUUID()}`
+      const outputIds: string[] = []
+      if (definition.runtimeSource !== 'not_started') {
+        const output = createManualDerivedEvidence(input, orchestrationId, runId, goal, goalEvidence, definition)
+        derivedEvidence.push(output)
+        outputIds.push(output.id)
+      }
+      skillRuns.push(createSkillRun({
+        input,
+        orchestrationId,
+        id: runId,
+        skillId: definition.skillId,
+        status: definition.runtimeSource === 'not_started' ? 'blocked' : 'completed',
+        runtimeSource: definition.runtimeSource,
+        readinessAtRun: definition.readinessAtRun,
+        inputEvidenceIds: goalEvidence.map((record) => record.id),
+        outputEvidenceIds: outputIds,
+        toolIds: definition.toolIds,
+        fallbackUsed: definition.fallbackUsed,
+        resultSummary: definition.resultSummary,
+        warnings: definition.warnings,
+        blockedReasons: definition.blockedReasons,
+      }))
+    }
+  }
+
+  const copyRiskKinds = detectCopyRisks(sourceEvidence)
+  const copyRunId = `preference-skill-run-${randomUUID()}`
+  const copyEvidence = createCopySafetyEvidence(input, orchestrationId, copyRunId, sourceEvidence, copyRiskKinds)
+  derivedEvidence.push(copyEvidence)
+  skillRuns.push(createSkillRun({
+    input,
+    orchestrationId,
+    id: copyRunId,
+    skillId: 'edit_reference.transferability.copy_safety',
+    status: copyRiskKinds.length > 0 ? 'blocked' : 'completed',
+    runtimeSource: 'verified_mock',
+    readinessAtRun: 'verified_mock',
+    inputEvidenceIds: sourceEvidence.map((record) => record.id),
+    outputEvidenceIds: [copyEvidence.id],
+    toolIds: ['deterministic_copy_safety_classifier'],
+    fallbackUsed: false,
+    resultSummary: copyRiskKinds.length > 0
+      ? `Found ${copyRiskKinds.length} direct-copy request categor${copyRiskKinds.length === 1 ? 'y' : 'ies'} that require review.`
+      : 'No direct-copy request was detected in the saved evidence.',
+    warnings: copyRiskKinds.length > 0 ? ['Direct-copy requests are not transferable Preference DNA.'] : [],
+    blockedReasons: copyRiskKinds.map(copyRiskReason),
+  }))
+
+  const conflictKinds = detectEvidenceConflicts(manualEvidence)
+  if (conflictKinds.length > 0) {
+    const conflictRunId = `preference-skill-run-${randomUUID()}`
+    const conflictEvidence = createDerivedEvidence({
+      input,
+      orchestrationId,
+      runId: conflictRunId,
+      category: 'story_and_pacing',
+      title: 'Conflicting pacing direction',
+      summary: 'The saved evidence contains both restrained/measured pacing and rapid/high-energy pacing. ReEditPro will not silently choose between them.',
+      confidence: 1,
+      confidenceBasis: 'deterministic_derived',
+      transferability: 'requires_user_review',
+      sourceEvidenceIds: manualEvidence.map((record) => record.id),
+      runtimeSource: 'verified_mock',
+      mediaStudyStatus: 'not_applicable',
+      skillId: 'edit_reference.story_editorial.qwen_reasoning',
+      toolIds: ['deterministic_evidence_conflict_classifier'],
+      fallbackUsed: false,
+      notes: ['A user decision is required before these pacing directions can be synthesized.'],
+    })
+    derivedEvidence.push(conflictEvidence)
+    skillRuns.push(createSkillRun({
+      input,
+      orchestrationId,
+      id: conflictRunId,
+      skillId: 'edit_reference.story_editorial.qwen_reasoning',
+      status: 'blocked',
+      runtimeSource: 'verified_mock',
+      readinessAtRun: 'verified_mock',
+      inputEvidenceIds: manualEvidence.map((record) => record.id),
+      outputEvidenceIds: [conflictEvidence.id],
+      toolIds: ['deterministic_evidence_conflict_classifier'],
+      fallbackUsed: false,
+      resultSummary: 'Found conflicting pacing direction and deferred the decision to the user.',
+      warnings: ['Conflicting evidence must not be resolved silently.'],
+      blockedReasons: ['Choose whether restrained/measured or rapid/high-energy pacing should take priority.'],
+    }))
+  }
+
+  const uncoveredGoals = input.study.initialGoals.filter((goal) => !manualEvidence.some((record) => record.category === goal || record.category === 'all_goals'))
+  const studyStatus = copyRiskKinds.length > 0 || conflictKinds.length > 0
+    ? 'needs_user_review'
+    : uncoveredGoals.length > 0
+      ? 'needs_clarification'
+      : 'evidence_ready'
+  const evidenceStatus = studyStatus === 'evidence_ready' ? 'evidence_ready' : 'needs_clarification'
+
+  return {
+    orchestrationId,
+    derivedEvidence,
+    skillRuns,
+    studyStatus,
+    evidenceStatus,
+    uncoveredGoals,
+    copyRiskKinds,
+    conflictKinds,
+    assistantMessage: buildAssistantMessage(studyStatus, uncoveredGoals, copyRiskKinds, conflictKinds),
+  }
+}
+
+function createManualDerivedEvidence(
+  input: OrchestrationInput,
+  orchestrationId: string,
+  runId: string,
+  goal: EditReferenceStudyGoal,
+  records: PreferenceEvidenceRecord[],
+  definition: SkillDefinition,
+): PreferenceEvidenceRecord {
+  const transferability = records.some((record) => record.transferability === 'do_not_copy')
+    ? 'do_not_copy'
+    : records.some((record) => record.transferability === 'requires_user_review')
+      ? 'requires_user_review'
+      : records.some((record) => record.transferability === 'non_transferable')
+        ? 'non_transferable'
+        : 'transferable'
+  return createDerivedEvidence({
+    input,
+    orchestrationId,
+    runId,
+    category: goal,
+    title: `${goalLabel(goal)} evidence summary`,
+    summary: `User-described direction: ${records.map((record) => record.summary).join(' ')}`.slice(0, 4_000),
+    confidence: 0.55,
+    confidenceBasis: 'deterministic_derived',
+    transferability,
+    sourceEvidenceIds: records.map((record) => record.id),
+    runtimeSource: 'fallback',
+    mediaStudyStatus: 'not_applicable',
+    skillId: definition.skillId,
+    toolIds: definition.toolIds,
+    fallbackUsed: true,
+    notes: [...definition.warnings, 'This result summarizes user assertions; it is not a claim about unprocessed reference media.'],
+  })
+}
+
+function createCopySafetyEvidence(
+  input: OrchestrationInput,
+  orchestrationId: string,
+  runId: string,
+  sourceEvidence: PreferenceEvidenceRecord[],
+  risks: CopyRiskKind[],
+): PreferenceEvidenceRecord {
+  return createDerivedEvidence({
+    input,
+    orchestrationId,
+    runId,
+    category: 'copy_safety',
+    title: 'Transferability and copy-safety review',
+    summary: risks.length > 0
+      ? `Review required: ${risks.map(copyRiskLabel).join(', ')} cannot become reusable editing instructions.`
+      : 'Saved evidence is framed as transferable editing judgment rather than direct-copy instructions.',
+    confidence: 1,
+    confidenceBasis: 'deterministic_derived',
+    transferability: risks.length > 0 ? 'do_not_copy' : 'transferable',
+    sourceEvidenceIds: sourceEvidence.map((record) => record.id),
+    runtimeSource: 'verified_mock',
+    mediaStudyStatus: 'not_applicable',
+    skillId: 'edit_reference.transferability.copy_safety',
+    toolIds: ['deterministic_copy_safety_classifier'],
+    fallbackUsed: false,
+    notes: risks.length > 0
+      ? ['The flagged categories are preserved only as safety findings and must not be applied as style instructions.']
+      : ['Exact shots, timing, music, SFX, layouts, identity, and reference footage remain prohibited even when not requested.'],
+  })
+}
+
+function createDerivedEvidence(input: {
+  input: OrchestrationInput
+  orchestrationId: string
+  runId: string
+  category: PreferenceEvidenceCategory
+  title: string
+  summary: string
+  confidence: number
+  confidenceBasis: PreferenceEvidenceRecord['confidenceBasis']
+  transferability: PreferenceEvidenceRecord['transferability']
+  sourceEvidenceIds: string[]
+  runtimeSource: PreferenceEvidenceRecord['provenance']['runtimeSource']
+  mediaStudyStatus: PreferenceEvidenceRecord['provenance']['mediaStudyStatus']
+  skillId: string
+  toolIds: string[]
+  fallbackUsed: boolean
+  notes: string[]
+}): PreferenceEvidenceRecord {
+  return {
+    id: `preference-evidence-${randomUUID()}`,
+    workspaceId: input.input.workspaceId,
+    editReferenceId: input.input.editReferenceId,
+    studySessionId: input.input.study.id,
+    orchestrationId: input.orchestrationId,
+    sourceType: 'derived_skill_evidence',
+    category: input.category,
+    title: input.title,
+    summary: input.summary,
+    revision: 1,
+    confidence: input.confidence,
+    confidenceBasis: input.confidenceBasis,
+    transferability: input.transferability,
+    provenance: {
+      runtimeSource: input.runtimeSource,
+      sourceEvidenceIds: input.sourceEvidenceIds,
+      skillRunId: input.runId,
+      mediaStudyStatus: input.mediaStudyStatus,
+      toolIds: input.toolIds,
+      skillIds: [input.skillId],
+      fallbackUsed: input.fallbackUsed,
+      notes: input.notes,
+    },
+    createdAt: input.input.now,
+    updatedAt: input.input.now,
+  }
+}
+
+function createSkillRun(input: {
+  input: OrchestrationInput
+  orchestrationId: string
+  id: string
+  skillId: string
+  status: PreferenceSkillRunRecord['status']
+  runtimeSource: PreferenceSkillRunRecord['runtimeSource']
+  readinessAtRun: PreferenceSkillRunRecord['readinessAtRun']
+  inputEvidenceIds: string[]
+  outputEvidenceIds: string[]
+  toolIds: string[]
+  fallbackUsed: boolean
+  resultSummary: string
+  warnings: string[]
+  blockedReasons: string[]
+}): PreferenceSkillRunRecord {
+  return {
+    id: input.id,
+    workspaceId: input.input.workspaceId,
+    editReferenceId: input.input.editReferenceId,
+    studySessionId: input.input.study.id,
+    orchestrationId: input.orchestrationId,
+    skillId: input.skillId,
+    status: input.status,
+    runtimeSource: input.runtimeSource,
+    readinessAtRun: input.readinessAtRun,
+    inputEvidenceIds: input.inputEvidenceIds,
+    outputEvidenceIds: input.outputEvidenceIds,
+    toolIds: input.toolIds,
+    fallbackUsed: input.fallbackUsed,
+    resultSummary: input.resultSummary,
+    warnings: input.warnings,
+    blockedReasons: input.blockedReasons,
+    providerCallMade: false,
+    modelCallMade: false,
+    fileBytesRead: false,
+    externalUrlFetched: false,
+    mediaProcessingStarted: false,
+    workerJobCreated: false,
+    createdAt: input.input.now,
+    updatedAt: input.input.now,
+  }
+}
+
+function detectCopyRisks(evidence: PreferenceEvidenceRecord[]): CopyRiskKind[] {
+  const risks = new Set<CopyRiskKind>()
+  for (const record of evidence) {
+    if (record.transferability === 'do_not_copy') continue
+    const text = `${record.title} ${record.summary}`
+    for (const candidate of COPY_RISK_PATTERNS) {
+      for (const pattern of candidate.patterns) {
+        const match = pattern.exec(text)
+        if (match && !hasNegationNear(text, match.index)) risks.add(candidate.kind)
+      }
+    }
+  }
+  return [...risks]
+}
+
+function detectEvidenceConflicts(evidence: PreferenceEvidenceRecord[]): EvidenceConflictKind[] {
+  const text = evidence
+    .filter((record) => record.transferability !== 'do_not_copy' && record.transferability !== 'non_transferable')
+    .map((record) => `${record.title} ${record.summary}`)
+    .join(' ')
+  const restrained = containsUnnegated(text, /\b(?:slow|restrained|measured|deliberate) (?:pace|pacing|cuts?|rhythm)\b/ig)
+  const rapid = containsUnnegated(text, /\b(?:fast|rapid|quick|high-energy|energetic) (?:pace|pacing|cuts?|rhythm)\b/ig)
+  return restrained && rapid ? ['restrained_vs_rapid_pacing'] : []
+}
+
+function containsUnnegated(text: string, pattern: RegExp): boolean {
+  for (const match of text.matchAll(pattern)) {
+    if (match.index !== undefined && !hasNegationNear(text, match.index)) return true
+  }
+  return false
+}
+
+function hasNegationNear(text: string, matchIndex: number): boolean {
+  const prefix = text.slice(Math.max(0, matchIndex - 72), matchIndex).toLowerCase()
+  return /(?:do not|don't|never|avoid|without|must not|should not|cannot|can't|not)\b[^.!?]{0,60}$/.test(prefix)
+}
+
+function summarizeMetadata(records: PreferenceEvidenceRecord[]): string {
+  const summaries = records.map((record) => {
+    const metadata = record.mediaMetadata
+    if (!metadata) return record.title
+    const dimensions = metadata.width && metadata.height ? `${metadata.width}×${metadata.height}` : 'dimensions not provided'
+    const duration = metadata.durationSeconds === undefined ? 'duration not provided' : `${metadata.durationSeconds} seconds`
+    const audio = metadata.hasAudio === undefined ? 'audio presence not provided' : metadata.hasAudio ? 'audio present' : 'no audio indicated'
+    return `${record.title}: ${duration}, ${dimensions}, ${audio}`
+  })
+  return `${summaries.join('; ')}. Metadata only—the video itself was not studied.`
+}
+
+function uniqueSkillDefinitions(definitions: SkillDefinition[]): SkillDefinition[] {
+  const seen = new Set<string>()
+  return definitions.filter((definition) => {
+    if (seen.has(definition.skillId)) return false
+    seen.add(definition.skillId)
+    return true
+  })
+}
+
+function fallbackSkill(
+  skillId: string,
+  readinessAtRun: PreferenceSkillRunRecord['readinessAtRun'],
+  resultSummary: string,
+  warnings: string[],
+): SkillDefinition {
+  return { skillId, readinessAtRun, runtimeSource: 'fallback', fallbackUsed: true, resultSummary, warnings, blockedReasons: [], toolIds: [] }
+}
+
+function blockedSkill(skillId: string, reason: string): SkillDefinition {
+  return {
+    skillId,
+    readinessAtRun: 'blocked',
+    runtimeSource: 'not_started',
+    fallbackUsed: true,
+    resultSummary: 'This analysis was not run.',
+    warnings: [],
+    blockedReasons: [reason],
+    toolIds: [],
+  }
+}
+
+function buildAssistantMessage(
+  status: PreferenceEvidenceStudyOrchestrationResult['studyStatus'],
+  uncoveredGoals: EditReferenceStudyGoal[],
+  copyRisks: CopyRiskKind[],
+  conflicts: EvidenceConflictKind[],
+): string {
+  if (status === 'needs_user_review') {
+    if (conflicts.length > 0 && copyRisks.length === 0) {
+      return 'The evidence contains conflicting pacing direction. Choose whether restrained/measured or rapid/high-energy pacing should take priority before continuing.'
+    }
+    if (conflicts.length > 0) {
+      return `The evidence contains conflicting pacing direction and direct-copy requests involving ${copyRisks.map(copyRiskLabel).join(', ')}. Resolve both findings before continuing.`
+    }
+    return `The evidence review found direct-copy requests involving ${copyRisks.map(copyRiskLabel).join(', ')}. Those details are blocked from reusable Preference DNA. Revise or clarify the evidence before continuing.`
+  }
+  if (status === 'needs_clarification') {
+    return `The saved evidence was reviewed without opening media. Add clearer direction for ${uncoveredGoals.map(goalLabel).join(', ')} before Preference DNA can be prepared.`
+  }
+  return 'The evidence study is ready for your review. Results are based only on the direction and details you saved. No media was opened and no production began.'
+}
+
+function copyRiskLabel(kind: CopyRiskKind): string {
+  return kind.replaceAll('_', ' ')
+}
+
+function copyRiskReason(kind: CopyRiskKind): string {
+  return `${copyRiskLabel(kind)} is reference-specific and cannot become a reusable editing instruction.`
+}
+
+function goalLabel(goal: EditReferenceStudyGoal): string {
+  return goal.replaceAll('_', ' ')
+}

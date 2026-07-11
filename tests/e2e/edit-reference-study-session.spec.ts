@@ -48,6 +48,37 @@ test.describe('Edit Reference durable study session', () => {
     await expect(page.getByTestId('new-edit-preference-button')).toBeVisible()
   })
 
+  test('saves evidence, studies it truthfully, and restores findings after reload', async ({ page }) => {
+    const referenceName = `Evidence study ${Date.now()}`
+    await gotoRoute(page, '/preferences')
+    await page.getByTestId('new-edit-reference').click()
+    await page.getByTestId('edit-reference-name').fill(referenceName)
+    await page.getByTestId('edit-reference-description').fill('Preserve restrained editorial judgment without copying reference-specific details.')
+    await page.getByTestId('save-edit-reference').click()
+
+    await page.getByTestId('add-edit-reference-evidence').click()
+    await expect(page.getByTestId('edit-reference-evidence-form')).toBeVisible()
+    await page.getByTestId('edit-reference-evidence-title').fill('Measured documentary direction')
+    await page.getByTestId('edit-reference-evidence-summary').fill('Use measured pacing, clear evidence cards, readable captions, and original compositions. Never copy a logo, exact layout, or creator identity.')
+    await page.getByTestId('save-edit-reference-evidence').click()
+
+    await expect(page.getByTestId('edit-reference-evidence-list')).toContainText('Measured documentary direction')
+    await expect(page.getByText('Study the saved evidence', { exact: true })).toBeVisible()
+    await page.getByTestId('run-edit-reference-evidence-study').click()
+
+    await expect(page.getByTestId('edit-reference-study-findings')).toContainText('Latest study findings')
+    await expect(page.getByTestId('edit-reference-study-findings')).toContainText('Saved evidence is framed as transferable editing judgment')
+    await expect(page.getByText('evidence ready').first()).toBeVisible()
+    await expect(page.getByText('DNA not generated yet')).toBeVisible()
+    await expect(page.getByText('QA not run')).toBeVisible()
+
+    await page.reload()
+    await expect(page.getByRole('heading', { name: `${referenceName} study` })).toBeVisible()
+    await expect(page.getByTestId('edit-reference-evidence-list')).toContainText('Measured documentary direction')
+    await expect(page.getByTestId('edit-reference-study-findings')).toContainText('Latest study findings')
+    await expect(page.getByText('Transferability checked')).toBeVisible()
+  })
+
   test('keeps the study workspace usable at the compact desktop breakpoint', async ({ page }) => {
     await setViewport(page, 780, 900)
     await gotoRoute(page, '/preferences')

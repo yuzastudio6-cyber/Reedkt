@@ -3,24 +3,31 @@ import {
   Archive,
   BookOpen,
   BrainCircuit,
+  ClipboardList,
   CircleAlert,
   Database,
   FileCheck2,
+  FileVideo2,
+  History,
   LockKeyhole,
   MessageSquareText,
   Plus,
   RefreshCw,
+  SearchCheck,
   Send,
   ShieldCheck,
   Sparkles,
 } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import type {
+  CreatePreferenceEvidenceRequest,
   EditReferenceDetail,
   EditReferenceListItem,
   EditReferenceStudyGoal,
+  PreferenceEvidenceCategory,
+  PreferenceEvidenceTransferability,
 } from '../../types/edit-reference'
-import { EDIT_REFERENCE_STUDY_GOALS } from '../../types/edit-reference'
+import { EDIT_REFERENCE_MANUAL_EVIDENCE_CATEGORIES, EDIT_REFERENCE_STUDY_GOALS } from '../../types/edit-reference'
 import { createEditReferenceApiClient } from '../../lib/edit-reference-api-client'
 import { toEditReferenceInspectorView, toEditReferenceSavedCardView } from '../../lib/edit-reference-ui-adapter'
 import { AppShell } from '../AppShell'
@@ -352,6 +359,7 @@ function EditReferenceInspector({ busy, detail, onArchive }: {
       <InspectorState icon={BookOpen} label="Study status" value={view.studyStatus} />
       <InspectorState icon={BookOpen} label="Study evidence" value={view.evidenceStatus} />
       <InspectorState icon={Sparkles} label="Analysis status" value={view.skillStatus} />
+      <InspectorState icon={ShieldCheck} label="Copy safety" value={view.copySafetyStatus} />
       <InspectorState icon={Sparkles} label="Preference DNA" value={view.dnaStatus} />
       <InspectorState icon={ShieldCheck} label="Quality review" value={view.qaStatus} />
       <InspectorState icon={MessageSquareText} label="Next required action" value={view.nextAction} />
@@ -360,6 +368,10 @@ function EditReferenceInspector({ busy, detail, onArchive }: {
         <div className="edit-reference-goal-chips">
           {detail.reference.initialGoals.map((goal) => <small key={goal}>{goal.replaceAll('_', ' ')}</small>)}
         </div>
+      </div>
+      <div className="edit-reference-inspector-section">
+        <span>Evidence record</span>
+        <p className="edit-reference-inspector-copy">{view.sourceEvidenceCount} saved source{view.sourceEvidenceCount === 1 ? '' : 's'} · {view.findingCount} study finding{view.findingCount === 1 ? '' : 's'}</p>
       </div>
       <div className="edit-reference-safety-mini">
         <LockKeyhole aria-hidden="true" size={17} />
@@ -380,7 +392,21 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
   setError: (value: string | undefined) => void
 }) {
   const [message, setMessage] = useState('')
+  const [showEvidenceForm, setShowEvidenceForm] = useState(false)
   const orderedMessages = useMemo(() => detail.messages.slice().sort((left, right) => left.sequence - right.sequence), [detail.messages])
+  const sourceEvidence = useMemo(() => detail.evidence.filter((record) => record.sourceType !== 'derived_skill_evidence'), [detail.evidence])
+  const supersededSourceIds = useMemo(() => new Set(sourceEvidence.map((record) => record.supersedesEvidenceId).filter(Boolean)), [sourceEvidence])
+  const activeSourceEvidence = useMemo(() => sourceEvidence.filter((record) => !supersededSourceIds.has(record.id)), [sourceEvidence, supersededSourceIds])
+  const latestOrchestrationId = detail.skillRuns.at(-1)?.orchestrationId
+  const latestSkillRuns = useMemo(() => detail.skillRuns.filter((record) => (
+    latestOrchestrationId && record.orchestrationId === latestOrchestrationId
+  )), [detail.skillRuns, latestOrchestrationId])
+  const blockedSkillRuns = useMemo(() => latestSkillRuns.filter((record) => record.status === 'blocked'), [latestSkillRuns])
+  const findings = useMemo(() => detail.evidence.filter((record) => (
+    record.sourceType === 'derived_skill_evidence'
+    && (!latestOrchestrationId || record.orchestrationId === latestOrchestrationId)
+  )), [detail.evidence, latestOrchestrationId])
+  const studyRunReady = detail.study.status === 'ready_to_study'
 
   const send = async (event: FormEvent) => {
     event.preventDefault()
@@ -400,6 +426,18 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
     setBusy(false)
   }
 
+  const runEvidenceStudy = async () => {
+    setBusy(true)
+    setError(undefined)
+    const response = await api.runEvidenceStudy(detail.study.id, {
+      workspaceId,
+      expectedStudyRevision: detail.study.revision,
+    })
+    if (response.ok) await onChanged(response.data.detail)
+    else setError(response.message)
+    setBusy(false)
+  }
+
   return (
     <div className="edit-reference-chat-shell" data-testid="edit-reference-study-chat">
       <header>
@@ -409,12 +447,81 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
         </div>
         <Badge accent={detail.reference.status === 'active' ? 'cyan' : 'muted'}>{detail.study.status.replaceAll('_', ' ')}</Badge>
       </header>
+      <section className="edit-reference-evidence-workspace" aria-label="Study evidence">
+        <div className="edit-reference-evidence-toolbar">
+          <div>
+            <ClipboardList aria-hidden="true" size={18} />
+            <div>
+              <strong>{activeSourceEvidence.length ? `${activeSourceEvidence.length} active evidence source${activeSourceEvidence.length === 1 ? '' : 's'}` : 'Add evidence to begin the study'}</strong>
+              <span>Creative notes, safe video details, or an approved edit identity</span>
+            </div>
+          </div>
+          <div>
+            <Button data-testid="add-edit-reference-evidence" disabled={disabled || detail.reference.status === 'archived'} icon={Plus} onClick={() => setShowEvidenceForm((current) => !current)} size="sm" variant="ghost">
+              {showEvidenceForm ? 'Close' : 'Add evidence'}
+            </Button>
+            <Button data-testid="run-edit-reference-evidence-study" disabled={disabled || activeSourceEvidence.length === 0 || !studyRunReady || detail.reference.status === 'archived'} icon={SearchCheck} onClick={() => void runEvidenceStudy()} size="sm" variant="primary">
+              {disabled ? 'Studying…' : studyRunReady ? 'Study evidence' : 'Evidence reviewed'}
+            </Button>
+          </div>
+        </div>
+        {showEvidenceForm && (
+          <EvidenceForm
+            detail={detail}
+            disabled={disabled}
+            onAdded={async (next) => {
+              setShowEvidenceForm(false)
+              await onChanged(next)
+            }}
+            setBusy={setBusy}
+            setError={setError}
+          />
+        )}
+        {sourceEvidence.length > 0 && (
+          <div className="edit-reference-evidence-list" data-testid="edit-reference-evidence-list">
+            {sourceEvidence.map((record) => (
+              <article className={supersededSourceIds.has(record.id) ? 'superseded' : ''} key={record.id}>
+                <span>{record.supersedesEvidenceId ? 'Correction' : evidenceSourceLabel(record.sourceType)}</span>
+                <strong>{record.title}</strong>
+                <p>{record.summary}</p>
+                <small>{supersededSourceIds.has(record.id) ? 'Superseded by a correction' : `${record.category.replaceAll('_', ' ')} · ${record.provenance.mediaStudyStatus === 'media_not_studied' ? 'video not studied' : record.confidenceBasis.replaceAll('_', ' ')}`}</small>
+              </article>
+            ))}
+          </div>
+        )}
+        {findings.length > 0 && (
+          <div className="edit-reference-findings" data-testid="edit-reference-study-findings">
+            <div>
+              <SearchCheck aria-hidden="true" size={18} />
+              <strong>Latest study findings</strong>
+              <span>These findings are evidence summaries—not Preference DNA.</span>
+            </div>
+            <div>
+              {findings.map((record) => (
+                <article className={record.transferability === 'do_not_copy' ? 'risk' : ''} key={record.id}>
+                  <span>{record.category.replaceAll('_', ' ')}</span>
+                  <p>{record.summary}</p>
+                  <small>{evidenceRuntimeLabel(record.provenance.runtimeSource)}</small>
+                </article>
+              ))}
+            </div>
+            {blockedSkillRuns.length > 0 && (
+              <div className="edit-reference-study-limits">
+                <strong>Not analyzed</strong>
+                {blockedSkillRuns.map((run) => (
+                  <p key={run.id}><span>{skillRunLabel(run.skillId)}</span>{run.blockedReasons[0] ?? 'This part of the study is not available yet.'}</p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </section>
       <div className="edit-reference-message-list" aria-live="polite">
         {orderedMessages.map((item) => (
           <article className={`edit-reference-message ${item.role}`} data-testid={`study-message-${item.role}`} key={item.id}>
             <span>{item.role === 'assistant' ? 'Study Director' : item.role}</span>
             <p>{item.content}</p>
-            <small>{item.runtimeSource === 'deterministic_setup' ? 'Study setup' : 'Saved user direction'}</small>
+            <small>{item.runtimeSource === 'deterministic_setup' ? 'Study setup' : item.runtimeSource === 'deterministic_evidence' ? 'Evidence update' : 'Saved user direction'}</small>
           </article>
         ))}
       </div>
@@ -436,6 +543,193 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
       </form>
     </div>
   )
+}
+
+type EvidenceFormMode = 'manual_user_evidence' | 'reference_video_metadata' | 'previous_approved_edit_snapshot'
+
+function EvidenceForm({ detail, disabled, onAdded, setBusy, setError }: {
+  detail: EditReferenceDetail
+  disabled: boolean
+  onAdded: (detail: EditReferenceDetail) => Promise<void>
+  setBusy: (value: boolean) => void
+  setError: (value: string | undefined) => void
+}) {
+  const [mode, setMode] = useState<EvidenceFormMode>('manual_user_evidence')
+  const [title, setTitle] = useState('')
+  const [summary, setSummary] = useState('')
+  const [category, setCategory] = useState<Exclude<PreferenceEvidenceCategory, 'media_structure' | 'copy_safety'>>('all_goals')
+  const [intendedUse, setIntendedUse] = useState<Exclude<PreferenceEvidenceTransferability, 'unknown'>>('transferable')
+  const [supersedesEvidenceId, setSupersedesEvidenceId] = useState('')
+  const [sourceLabel, setSourceLabel] = useState('')
+  const [rightsBasis, setRightsBasis] = useState<'user_owned' | 'licensed_or_authorized' | 'reference_only'>('reference_only')
+  const [durationSeconds, setDurationSeconds] = useState('')
+  const [width, setWidth] = useState('')
+  const [height, setHeight] = useState('')
+  const [hasAudio, setHasAudio] = useState<'unknown' | 'yes' | 'no'>('unknown')
+  const [projectId, setProjectId] = useState('')
+  const [editSessionId, setEditSessionId] = useState('')
+  const [approvedSnapshotId, setApprovedSnapshotId] = useState('')
+  const correctedIds = new Set(detail.evidence.map((record) => record.supersedesEvidenceId).filter(Boolean))
+  const correctableEvidence = detail.evidence.filter((record) => record.sourceType === 'manual_user_evidence' && !correctedIds.has(record.id))
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault()
+    setBusy(true)
+    setError(undefined)
+    let input: CreatePreferenceEvidenceRequest
+    if (mode === 'manual_user_evidence') {
+      input = {
+        workspaceId,
+        expectedStudyRevision: detail.study.revision,
+        sourceType: mode,
+        title,
+        category,
+        summary,
+        intendedUse,
+        ...(supersedesEvidenceId ? { supersedesEvidenceId } : {}),
+      }
+    } else if (mode === 'reference_video_metadata') {
+      input = {
+        workspaceId,
+        expectedStudyRevision: detail.study.revision,
+        sourceType: mode,
+        title,
+        sourceLabel,
+        rightsBasis,
+        ...(durationSeconds ? { durationSeconds: Number(durationSeconds) } : {}),
+        ...(width ? { width: Number(width) } : {}),
+        ...(height ? { height: Number(height) } : {}),
+        ...(hasAudio === 'unknown' ? {} : { hasAudio: hasAudio === 'yes' }),
+      }
+    } else {
+      input = {
+        workspaceId,
+        expectedStudyRevision: detail.study.revision,
+        sourceType: mode,
+        title,
+        projectId,
+        editSessionId,
+        approvedSnapshotId,
+        ...(summary.trim() ? { summary } : {}),
+        rightsBasis: 'workspace_approved_edit',
+      }
+    }
+    const response = await api.addEvidence(detail.study.id, input)
+    if (response.ok) await onAdded(response.data.detail)
+    else setError(response.message)
+    setBusy(false)
+  }
+
+  const submitDisabled = disabled || !title.trim()
+    || (mode === 'manual_user_evidence' && !summary.trim())
+    || (mode === 'reference_video_metadata' && !sourceLabel.trim())
+    || (mode === 'previous_approved_edit_snapshot' && (!projectId.trim() || !editSessionId.trim() || !approvedSnapshotId.trim()))
+
+  return (
+    <form className="edit-reference-evidence-form" data-testid="edit-reference-evidence-form" onSubmit={submit}>
+      <div className="edit-reference-evidence-mode" aria-label="Evidence type">
+        <EvidenceModeButton active={mode === 'manual_user_evidence'} icon={ClipboardList} label="Creative note" onClick={() => setMode('manual_user_evidence')} />
+        <EvidenceModeButton active={mode === 'reference_video_metadata'} icon={FileVideo2} label="Video details" onClick={() => setMode('reference_video_metadata')} />
+        <EvidenceModeButton active={mode === 'previous_approved_edit_snapshot'} icon={History} label="Approved edit" onClick={() => setMode('previous_approved_edit_snapshot')} />
+      </div>
+      <label>
+        <span>Evidence title</span>
+        <input autoFocus data-testid="edit-reference-evidence-title" maxLength={160} onChange={(event) => setTitle(event.target.value)} placeholder="Give this evidence a clear name" required value={title} />
+      </label>
+      {mode === 'manual_user_evidence' && (
+        <>
+          <div className="edit-reference-evidence-grid">
+            <label>
+              <span>What does this describe?</span>
+              <select data-testid="edit-reference-evidence-category" onChange={(event) => setCategory(event.target.value as typeof category)} value={category}>
+                {EDIT_REFERENCE_MANUAL_EVIDENCE_CATEGORIES.map((value) => <option key={value} value={value}>{value.replaceAll('_', ' ')}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>How should it be treated?</span>
+              <select data-testid="edit-reference-evidence-intended-use" onChange={(event) => setIntendedUse(event.target.value as typeof intendedUse)} value={intendedUse}>
+                <option value="transferable">Transferable principle</option>
+                <option value="non_transferable">Reference-specific detail</option>
+                <option value="do_not_copy">Do not copy</option>
+                <option value="requires_user_review">Needs my review</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            <span>Your evidence</span>
+            <textarea data-testid="edit-reference-evidence-summary" maxLength={4_000} onChange={(event) => setSummary(event.target.value)} placeholder="Describe the choice, why it works, where it applies, and any boundaries…" required rows={4} value={summary} />
+          </label>
+          {correctableEvidence.length > 0 && (
+            <label>
+              <span>Correct an earlier creative note (optional)</span>
+              <select data-testid="edit-reference-evidence-correction" onChange={(event) => setSupersedesEvidenceId(event.target.value)} value={supersedesEvidenceId}>
+                <option value="">This is new evidence</option>
+                {correctableEvidence.map((record) => <option key={record.id} value={record.id}>{record.title}</option>)}
+              </select>
+            </label>
+          )}
+        </>
+      )}
+      {mode === 'reference_video_metadata' && (
+        <>
+          <div className="edit-reference-form-boundary"><LockKeyhole aria-hidden="true" size={16} /><span>This step saves only the details you enter. It does not upload, fetch, open, or analyze a video.</span></div>
+          <label>
+            <span>Reference label</span>
+            <input data-testid="edit-reference-video-label" maxLength={240} onChange={(event) => setSourceLabel(event.target.value)} placeholder="Example: 67-second editorial explainer" required value={sourceLabel} />
+          </label>
+          <div className="edit-reference-evidence-grid three">
+            <label><span>Duration (seconds)</span><input min="0" max="86400" onChange={(event) => setDurationSeconds(event.target.value)} type="number" value={durationSeconds} /></label>
+            <label><span>Width</span><input min="1" max="16384" onChange={(event) => setWidth(event.target.value)} type="number" value={width} /></label>
+            <label><span>Height</span><input min="1" max="16384" onChange={(event) => setHeight(event.target.value)} type="number" value={height} /></label>
+          </div>
+          <div className="edit-reference-evidence-grid">
+            <label><span>Rights basis</span><select onChange={(event) => setRightsBasis(event.target.value as typeof rightsBasis)} value={rightsBasis}><option value="reference_only">Reference only</option><option value="user_owned">I own it</option><option value="licensed_or_authorized">Licensed or authorized</option></select></label>
+            <label><span>Audio</span><select onChange={(event) => setHasAudio(event.target.value as typeof hasAudio)} value={hasAudio}><option value="unknown">Not specified</option><option value="yes">Audio present</option><option value="no">No audio</option></select></label>
+          </div>
+        </>
+      )}
+      {mode === 'previous_approved_edit_snapshot' && (
+        <>
+          <div className="edit-reference-form-boundary"><LockKeyhole aria-hidden="true" size={16} /><span>Only the exact approved-edit identity is recorded here. Project history and media stay closed until private snapshot authority is connected.</span></div>
+          <div className="edit-reference-evidence-grid three">
+            <label><span>Project ID</span><input data-testid="edit-reference-evidence-project-id" maxLength={200} onChange={(event) => setProjectId(event.target.value)} required value={projectId} /></label>
+            <label><span>Edit ID</span><input data-testid="edit-reference-evidence-edit-id" maxLength={200} onChange={(event) => setEditSessionId(event.target.value)} required value={editSessionId} /></label>
+            <label><span>Approved snapshot ID</span><input data-testid="edit-reference-evidence-snapshot-id" maxLength={200} onChange={(event) => setApprovedSnapshotId(event.target.value)} required value={approvedSnapshotId} /></label>
+          </div>
+          <label><span>Why this edit matters (optional)</span><textarea maxLength={2_000} onChange={(event) => setSummary(event.target.value)} rows={3} value={summary} /></label>
+        </>
+      )}
+      <div className="edit-reference-form-actions">
+        <Button data-testid="save-edit-reference-evidence" disabled={submitDisabled} icon={Plus} type="submit" variant="primary">{disabled ? 'Saving…' : 'Save evidence'}</Button>
+      </div>
+    </form>
+  )
+}
+
+function EvidenceModeButton({ active, icon: Icon, label, onClick }: { active: boolean; icon: typeof ClipboardList; label: string; onClick: () => void }) {
+  return <button aria-pressed={active} className={active ? 'active' : ''} onClick={onClick} type="button"><Icon aria-hidden="true" size={17} /><span>{label}</span></button>
+}
+
+function evidenceSourceLabel(sourceType: string): string {
+  if (sourceType === 'manual_user_evidence') return 'Creative note'
+  if (sourceType === 'reference_video_metadata') return 'Video details'
+  return 'Approved edit identity'
+}
+
+function evidenceRuntimeLabel(runtimeSource: string): string {
+  if (runtimeSource === 'verified_local') return 'Safe metadata check'
+  if (runtimeSource === 'verified_mock') return 'Deterministic safety check'
+  if (runtimeSource === 'fallback') return 'Based on your saved direction'
+  if (runtimeSource === 'blocked') return 'Analysis not available'
+  return runtimeSource.replaceAll('_', ' ')
+}
+
+function skillRunLabel(skillId: string): string {
+  if (skillId === 'edit_reference.speech_pacing.evidence') return 'Speech and pause analysis'
+  if (skillId === 'edit_reference.media_structure.metadata_map') return 'Approved edit access'
+  if (skillId === 'edit_reference.story_editorial.qwen_reasoning') return 'Story and pacing review'
+  if (skillId === 'edit_reference.transferability.copy_safety') return 'Copy-safety review'
+  return 'Evidence analysis'
 }
 
 function InspectorState({ icon: Icon, label, value }: { icon: typeof BookOpen; label: string; value: string }) {
@@ -467,6 +761,7 @@ function SafetyPrivacyTab() {
     'Reference style is adapted to the target video, never copied blindly.',
     'Only the reference details and creative direction you choose are saved during setup.',
     'Reference media is analyzed only after you deliberately add it as evidence.',
+    'Saving a label, duration, or frame size does not mean the video itself was studied.',
     'Creating or discussing a reference never starts production or changes your balance.',
     'You review and approve Preference DNA before it can guide an edit.',
   ]

@@ -1,6 +1,6 @@
 /* RP-PREF-06 mock Edit Preference sidebar library. */
 
-/* RP-GOAL-EDITREFERENCE Gate 1 — durable backend-local study workspace. */
+/* RP-GOAL-EDITREFERENCE Gate 1–2 — durable study workspace and evidence review. */
 
 .edit-reference-workspace {
   display: grid;
@@ -153,7 +153,10 @@
 .edit-reference-create-card input[type='text'],
 .edit-reference-create-card > label input,
 .edit-reference-create-card textarea,
-.edit-reference-chat-composer textarea {
+.edit-reference-chat-composer textarea,
+.edit-reference-evidence-form input,
+.edit-reference-evidence-form select,
+.edit-reference-evidence-form textarea {
   background: rgba(4, 9, 18, 0.78);
   border: 1px solid var(--rp-border-subtle);
   border-radius: var(--rp-radius-md);
@@ -167,7 +170,10 @@
 
 .edit-reference-create-card input:focus,
 .edit-reference-create-card textarea:focus,
-.edit-reference-chat-composer textarea:focus {
+.edit-reference-chat-composer textarea:focus,
+.edit-reference-evidence-form input:focus,
+.edit-reference-evidence-form select:focus,
+.edit-reference-evidence-form textarea:focus {
   border-color: var(--rp-brand-cyan);
   box-shadow: var(--rp-shadow-cyan);
 }
@@ -314,7 +320,7 @@
 }
 
 .edit-reference-chat-shell {
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   height: 100%;
 }
 
@@ -330,6 +336,262 @@
 .edit-reference-chat-shell h3 {
   font-size: 1rem;
   margin: 3px 0 0;
+}
+
+.edit-reference-evidence-workspace {
+  background: rgba(6, 12, 23, 0.72);
+  border-bottom: 1px solid var(--rp-border-subtle);
+  display: grid;
+  gap: var(--rp-space-3);
+  padding: var(--rp-space-3) var(--rp-space-4);
+}
+
+.edit-reference-evidence-toolbar,
+.edit-reference-evidence-toolbar > div {
+  align-items: center;
+  display: flex;
+  gap: var(--rp-space-2);
+}
+
+.edit-reference-evidence-toolbar {
+  justify-content: space-between;
+}
+
+.edit-reference-evidence-toolbar > div:first-child {
+  align-items: flex-start;
+  color: #8beef8;
+  min-width: 0;
+}
+
+.edit-reference-evidence-toolbar > div:first-child > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.edit-reference-evidence-toolbar > div:last-child .rp-button {
+  white-space: nowrap;
+}
+
+.edit-reference-evidence-toolbar strong {
+  color: var(--rp-text-primary);
+  font-size: 0.86rem;
+}
+
+.edit-reference-evidence-toolbar span {
+  color: var(--rp-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.edit-reference-evidence-form {
+  background: rgba(14, 23, 39, 0.9);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: var(--rp-space-3);
+  padding: var(--rp-space-4);
+}
+
+.edit-reference-evidence-form > label,
+.edit-reference-evidence-grid > label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.edit-reference-evidence-form label > span {
+  color: var(--rp-text-secondary);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.edit-reference-evidence-form select {
+  appearance: auto;
+  min-height: 44px;
+  text-transform: capitalize;
+}
+
+.edit-reference-evidence-form input {
+  min-height: 44px;
+}
+
+.edit-reference-evidence-form textarea {
+  min-height: 88px;
+}
+
+.edit-reference-evidence-mode {
+  display: grid;
+  gap: var(--rp-space-2);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.edit-reference-evidence-mode button {
+  align-items: center;
+  background: rgba(21, 31, 50, 0.7);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  color: var(--rp-text-secondary);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  gap: var(--rp-space-2);
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 10px;
+}
+
+.edit-reference-evidence-mode button:hover,
+.edit-reference-evidence-mode button.active {
+  background: rgba(37, 99, 255, 0.14);
+  border-color: rgba(0, 229, 255, 0.34);
+  color: var(--rp-text-primary);
+}
+
+.edit-reference-evidence-grid {
+  display: grid;
+  gap: var(--rp-space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.edit-reference-evidence-grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.edit-reference-form-boundary {
+  align-items: flex-start;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(74, 222, 128, 0.18);
+  border-radius: var(--rp-radius-md);
+  color: #a7f3d0;
+  display: flex;
+  font-size: 0.76rem;
+  gap: var(--rp-space-2);
+  line-height: 1.45;
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-evidence-list,
+.edit-reference-findings > div:last-child {
+  display: grid;
+  gap: var(--rp-space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.edit-reference-evidence-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.edit-reference-evidence-list article,
+.edit-reference-findings article {
+  background: rgba(15, 24, 40, 0.75);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-evidence-list article.superseded {
+  border-style: dashed;
+  opacity: 0.68;
+}
+
+.edit-reference-evidence-list article > span,
+.edit-reference-findings article > span {
+  color: #8beef8;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.edit-reference-evidence-list article > strong {
+  font-size: 0.82rem;
+}
+
+.edit-reference-evidence-list p,
+.edit-reference-findings p {
+  color: var(--rp-text-secondary);
+  font-size: 0.77rem;
+  line-height: 1.45;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.edit-reference-evidence-list small,
+.edit-reference-findings small {
+  color: var(--rp-text-muted);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+}
+
+.edit-reference-findings {
+  background: rgba(37, 99, 255, 0.06);
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: var(--rp-space-2);
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-findings > div:first-child {
+  align-items: center;
+  color: #8beef8;
+  display: grid;
+  gap: 3px var(--rp-space-2);
+  grid-template-columns: auto 1fr;
+}
+
+.edit-reference-findings > div:first-child svg {
+  grid-row: 1 / 3;
+}
+
+.edit-reference-findings > div:first-child strong {
+  color: var(--rp-text-primary);
+  font-size: 0.82rem;
+}
+
+.edit-reference-findings > div:first-child span {
+  color: var(--rp-text-muted);
+  font-size: 0.72rem;
+}
+
+.edit-reference-findings article.risk {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.edit-reference-study-limits {
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: var(--rp-radius-md);
+  display: grid;
+  gap: var(--rp-space-2);
+  padding: var(--rp-space-3);
+}
+
+.edit-reference-study-limits > strong {
+  color: #fde68a;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+}
+
+.edit-reference-study-limits p {
+  color: var(--rp-text-secondary);
+  display: grid;
+  font-size: 0.74rem;
+  gap: 3px;
+  margin: 0;
+}
+
+.edit-reference-study-limits p span {
+  color: var(--rp-text-primary);
+  font-weight: 800;
 }
 
 .edit-reference-message-list {
@@ -432,6 +694,13 @@
   padding: var(--rp-space-2) 0;
 }
 
+.edit-reference-inspector-copy {
+  color: var(--rp-text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
 .edit-reference-goal-chips {
   display: flex;
   flex-wrap: wrap;
@@ -518,6 +787,38 @@
   padding: var(--rp-space-3);
 }
 
+@media (min-width: 1181px) {
+  .edit-reference-three-panel {
+    height: min(900px, 78vh);
+  }
+
+  .edit-reference-evidence-workspace {
+    max-height: 430px;
+    overflow-y: auto;
+  }
+
+  .edit-reference-message-list {
+    min-height: 0;
+  }
+
+  .edit-reference-saved-panel,
+  .edit-reference-inspector {
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 1450px) {
+  .edit-reference-evidence-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .edit-reference-evidence-toolbar > div:last-child {
+    justify-content: flex-end;
+    width: 100%;
+  }
+}
+
 @media (max-width: 1180px) {
   .edit-reference-three-panel {
     grid-template-columns: minmax(190px, 0.7fr) minmax(360px, 1.5fr);
@@ -562,6 +863,25 @@
   .edit-reference-chat-shell header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .edit-reference-evidence-toolbar,
+  .edit-reference-evidence-toolbar > div:last-child {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .edit-reference-evidence-toolbar > div:last-child .rp-button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .edit-reference-evidence-mode,
+  .edit-reference-evidence-grid,
+  .edit-reference-evidence-grid.three,
+  .edit-reference-evidence-list,
+  .edit-reference-findings > div:last-child {
+    grid-template-columns: 1fr;
   }
 
   .edit-reference-inspector {

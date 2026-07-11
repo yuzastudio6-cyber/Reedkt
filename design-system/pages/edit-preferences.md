@@ -1,6 +1,6 @@
 # Edit Preferences Override
 
-Status: `gate_1_visually_verified`
+Status: `gate_2_evidence_study_active`
 
 ## Job
 
@@ -12,6 +12,9 @@ Manage one Edit Preferences system across Edit References, workspace defaults, a
 - A compact tab row separates Edit References, Workspace Defaults, Applied Edits, and Safety & Privacy.
 - Edit References uses a focal introduction followed by Saved References, Study Chat, and DNA/QA Inspector regions.
 - The conversation is the primary study surface; saved references and inspector information remain quieter.
+- Evidence collection lives inside Study Chat as a compact task surface; it does not become a separate dashboard or media browser.
+- Evidence modes use plain user concepts: Creative note, Video details, and Approved edit.
+- Latest findings remain visually subordinate to the conversation and explicitly separate from Preference DNA.
 - At narrower widths, regions stack in that priority order and tabs may scroll horizontally without creating page overflow.
 - Existing defaults remain available under Workspace Defaults; they are not presented as a competing product.
 
@@ -22,9 +25,13 @@ Manage one Edit Preferences system across Edit References, workspace defaults, a
 - Evidence, DNA, quality review, approval, and application readiness remain truthful and visibly distinct.
 - Reference-specific marks, identity, exact layouts, and other copy-risk details never become transferable preference rules.
 - Creating a reference does not start analysis, production, or charging.
+- Saving video details never implies that a video was uploaded or studied.
+- Fallback/manual findings describe their source in plain language and never imitate live analysis.
+- Copy-risk and contradictory evidence use text, icon, and state—not color alone—and require user review.
+- Corrected evidence stays visible as quiet superseded history.
 - Explicit Chat instruction outranks current-edit preference, which outranks saved default.
 - Internal diagnostics remain test/documentation evidence and stay absent from the normal page.
-- Async create, load, message, and archive actions expose loading, success, and error feedback.
+- Async create, load, message, evidence, study, and archive actions expose loading, success, and error feedback.
 - Every tab and action is keyboard reachable, focus-visible, semantically named, and at least 44px high.
 
 ## Required Responsive Evidence
@@ -39,5 +46,6 @@ Manage one Edit Preferences system across Edit References, workspace defaults, a
 
 - `tests/e2e/edit-reference-study-session.spec.ts`
 - `server/smoke/edit-reference-ui-adapter-smoke.ts`
+- `server/smoke/edit-reference-evidence-study-smoke.ts`
 - `src/components/preferences/EditReferenceWorkspacePage.tsx`
 - `src/styles/preferences.css`

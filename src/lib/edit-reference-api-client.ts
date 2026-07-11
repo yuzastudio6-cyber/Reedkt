@@ -1,5 +1,6 @@
 import type {
   AppendPreferenceStudyMessageRequest,
+  CreatePreferenceEvidenceRequest,
   CreateEditReferenceRequest,
   CreatePreferenceStudyRequest,
   EditReferenceApiResult,
@@ -8,6 +9,7 @@ import type {
   EditReferenceMessageData,
   PreferenceStudyData,
   PreferenceStudyMessageListData,
+  RunPreferenceEvidenceStudyRequest,
   UpdateEditReferenceRequest,
   UpdatePreferenceStudyRequest,
 } from '../types/edit-reference'
@@ -38,6 +40,8 @@ export interface EditReferenceApiClient {
   createStudy(referenceId: string, input: CreatePreferenceStudyRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
   updateStudy(studyId: string, input: UpdatePreferenceStudyRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
   appendMessage(studyId: string, input: AppendPreferenceStudyMessageRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceMessageData>>
+  addEvidence(studyId: string, input: CreatePreferenceEvidenceRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
+  runEvidenceStudy(studyId: string, input: RunPreferenceEvidenceStudyRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
 }
 
 export function createEditReferenceApiClient(
@@ -63,6 +67,8 @@ export function createEditReferenceApiClient(
       createStudy: unavailable,
       updateStudy: unavailable,
       appendMessage: unavailable,
+      addEvidence: unavailable,
+      runEvidenceStudy: unavailable,
     }
   }
 
@@ -118,6 +124,8 @@ export function createEditReferenceApiClient(
     createStudy: (referenceId, input, key) => mutation(`/v1/edit-references/${encodeURIComponent(referenceId)}/studies`, 'POST', input, key),
     updateStudy: (studyId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}`, 'PATCH', input, key),
     appendMessage: (studyId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/messages`, 'POST', input, key),
+    addEvidence: (studyId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/evidence`, 'POST', input, key),
+    runEvidenceStudy: (studyId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/evidence-study`, 'POST', input, key),
   }
 }
 

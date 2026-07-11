@@ -76,6 +76,7 @@
     "smoke:edit-reference-api-routes": "tsx server/smoke/edit-reference-study-session-foundation-smoke.ts",
     "smoke:edit-reference-api-client": "tsx server/smoke/edit-reference-api-client-smoke.ts",
     "smoke:edit-reference-ui": "tsx server/smoke/edit-reference-ui-adapter-smoke.ts",
+    "smoke:edit-reference-evidence-study": "tsx server/smoke/edit-reference-evidence-study-smoke.ts",
     "prod:readiness:summary": "tsx server/cli/production-readiness-summary.ts",
     "prod:readiness:command-plan": "tsx server/cli/production-readiness-command-plan.ts",
     "prod:e2e:summary": "tsx server/cli/production-e2e-workflow-summary.ts",

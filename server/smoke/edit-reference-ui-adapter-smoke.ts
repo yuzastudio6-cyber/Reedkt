@@ -39,7 +39,10 @@ assert.deepEqual(toEditReferenceSavedCardView(item), {
 assert.deepEqual(toEditReferenceInspectorView(detail), {
   studyStatus: 'collecting evidence',
   evidenceStatus: 'Study evidence not complete',
-  skillStatus: 'No analysis run yet',
+  skillStatus: 'No evidence study yet',
+  sourceEvidenceCount: 0,
+  findingCount: 0,
+  copySafetyStatus: 'Not checked yet',
   dnaStatus: 'DNA not generated yet',
   qaStatus: 'QA not run',
   nextAction: 'Answer the setup questions',

@@ -21,6 +21,9 @@ const MAX_AGGREGATE_BYTES = 8 * 1024 * 1024
 const MAX_REFERENCES = 200
 const MAX_STUDIES = 1_000
 const MAX_MESSAGES = 10_000
+const MAX_EVIDENCE_RECORDS = 5_000
+const MAX_ASSET_RECORDS = 2_000
+const MAX_SKILL_RUNS = 5_000
 const MAX_AUDIT_EVENTS = 2_000
 const MAX_IDEMPOTENCY_RECORDS = 512
 
@@ -211,6 +214,9 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
   if (aggregate.references.length > MAX_REFERENCES) throw invalidAggregate('too_many_references')
   if (aggregate.studies.length > MAX_STUDIES) throw invalidAggregate('too_many_studies')
   if (aggregate.messages.length > MAX_MESSAGES) throw invalidAggregate('too_many_messages')
+  if (aggregate.evidence.length > MAX_EVIDENCE_RECORDS) throw invalidAggregate('too_many_evidence_records')
+  if (aggregate.assets.length > MAX_ASSET_RECORDS) throw invalidAggregate('too_many_asset_records')
+  if (aggregate.skillRuns.length > MAX_SKILL_RUNS) throw invalidAggregate('too_many_skill_runs')
   if (aggregate.auditEvents.length > MAX_AUDIT_EVENTS) throw invalidAggregate('too_many_audit_events')
   if (aggregate.idempotencyRecords.length > MAX_IDEMPOTENCY_RECORDS) throw invalidAggregate('too_many_idempotency_records')
 
@@ -258,7 +264,7 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
     assertWorkspace(message, scope.workspaceId)
     if (
       !['user', 'assistant', 'system'].includes(message.role)
-      || !['user_input', 'deterministic_setup'].includes(message.runtimeSource)
+      || !['user_input', 'deterministic_setup', 'deterministic_evidence'].includes(message.runtimeSource)
       || !message.content
       || message.content.length > 8_000
       || !Number.isSafeInteger(message.sequence)
@@ -279,6 +285,17 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
       }
     }
   }
+  const evidenceIds = new Set(aggregate.evidence.map((record) => record.id))
+  for (const record of aggregate.evidence) assertEvidenceRecord(record, evidenceIds)
+  for (const record of aggregate.evidence) {
+    if (!record.supersedesEvidenceId) continue
+    const superseded = aggregate.evidence.find((candidate) => candidate.id === record.supersedesEvidenceId)
+    if (!superseded || superseded.id === record.id || superseded.studySessionId !== record.studySessionId || superseded.sourceType !== 'manual_user_evidence') {
+      throw invalidAggregate('evidence_correction_link_invalid')
+    }
+  }
+  for (const record of aggregate.assets) assertAssetRecord(record)
+  for (const record of aggregate.skillRuns) assertSkillRunRecord(record, evidenceIds)
   for (const record of aggregate.dnaVersions) {
     assertWorkspace(record, scope.workspaceId)
     if (!referenceIds.has(record.editReferenceId) || !studyIds.has(record.studySessionId)) {
@@ -294,6 +311,92 @@ function assertAggregate(aggregate: EditReferenceAggregate, scope: EditReference
     if (!referenceIds.has(record.editReferenceId)) throw invalidAggregate('usage_reference_missing')
   }
   if (findForbiddenPersistenceKey(aggregate)) throw invalidAggregate('forbidden_private_payload_field')
+}
+
+function assertEvidenceRecord(record: EditReferenceAggregate['evidence'][number], evidenceIds: Set<string>): void {
+  if (
+    !['manual_user_evidence', 'reference_video_metadata', 'previous_approved_edit_snapshot', 'derived_skill_evidence'].includes(record.sourceType)
+    || !['all_goals', 'media_structure', 'visual_language', 'story_and_pacing', 'captions', 'color', 'b_roll', 'audio_and_sfx', 'graphics', 'copy_safety'].includes(record.category)
+    || !record.title
+    || record.title.length > 160
+    || !record.summary
+    || record.summary.length > 4_000
+    || !Number.isSafeInteger(record.revision)
+    || record.revision < 1
+    || !Number.isFinite(record.confidence)
+    || record.confidence < 0
+    || record.confidence > 1
+    || !['user_asserted', 'metadata_verified', 'deterministic_derived', 'blocked'].includes(record.confidenceBasis)
+    || !['transferable', 'non_transferable', 'do_not_copy', 'requires_user_review', 'unknown'].includes(record.transferability)
+    || !isRecord(record.provenance)
+    || !['user_input', 'verified_local', 'verified_mock', 'fallback', 'blocked'].includes(record.provenance.runtimeSource)
+    || !['not_applicable', 'media_not_studied', 'approved_edit_identity_not_verified'].includes(record.provenance.mediaStudyStatus)
+    || !Array.isArray(record.provenance.sourceEvidenceIds)
+    || !Array.isArray(record.provenance.toolIds)
+    || !Array.isArray(record.provenance.skillIds)
+    || !Array.isArray(record.provenance.notes)
+    || typeof record.provenance.fallbackUsed !== 'boolean'
+  ) throw invalidAggregate('evidence_contract_invalid')
+  if (record.provenance.sourceEvidenceIds.some((id) => typeof id !== 'string' || !evidenceIds.has(id))) {
+    throw invalidAggregate('evidence_provenance_link_invalid')
+  }
+  if (record.mediaMetadata) assertMediaMetadata(record.mediaMetadata)
+}
+
+function assertAssetRecord(record: EditReferenceAggregate['assets'][number]): void {
+  if (
+    !record.privateAssetId
+    || !['reference_video_metadata', 'previous_approved_edit_snapshot'].includes(record.assetKind)
+    || !record.label
+    || record.label.length > 240
+    || !['user_owned', 'licensed_or_authorized', 'reference_only', 'workspace_approved_edit'].includes(record.rightsBasis)
+    || !['media_not_studied', 'approved_edit_identity_not_verified'].includes(record.mediaStudyStatus)
+  ) throw invalidAggregate('asset_contract_invalid')
+  if (record.mediaMetadata) assertMediaMetadata(record.mediaMetadata)
+  if (record.assetKind === 'previous_approved_edit_snapshot' && (!record.projectId || !record.editSessionId || !record.approvedSnapshotId)) {
+    throw invalidAggregate('approved_edit_asset_identity_invalid')
+  }
+}
+
+function assertSkillRunRecord(record: EditReferenceAggregate['skillRuns'][number], evidenceIds: Set<string>): void {
+  if (
+    !record.orchestrationId
+    || !record.skillId
+    || !['queued', 'running', 'completed', 'failed', 'blocked'].includes(record.status)
+    || !['not_started', 'verified_mock', 'verified_local', 'verified_live', 'fallback'].includes(record.runtimeSource)
+    || !['verified_live', 'verified_local', 'verified_mock', 'degraded', 'blocked', 'not_implemented'].includes(record.readinessAtRun)
+    || !Array.isArray(record.inputEvidenceIds)
+    || !Array.isArray(record.outputEvidenceIds)
+    || !Array.isArray(record.toolIds)
+    || !Array.isArray(record.warnings)
+    || !Array.isArray(record.blockedReasons)
+    || typeof record.fallbackUsed !== 'boolean'
+    || !record.resultSummary
+    || record.resultSummary.length > 4_000
+  ) throw invalidAggregate('skill_run_contract_invalid')
+  const allLinks = [...record.inputEvidenceIds, ...record.outputEvidenceIds]
+  if (allLinks.some((id) => typeof id !== 'string' || !evidenceIds.has(id))) throw invalidAggregate('skill_run_evidence_link_invalid')
+  const sideEffects = [
+    record.providerCallMade,
+    record.modelCallMade,
+    record.fileBytesRead,
+    record.externalUrlFetched,
+    record.mediaProcessingStarted,
+    record.workerJobCreated,
+  ]
+  if (sideEffects.some((value) => value !== false)) throw invalidAggregate('skill_run_side_effect_flag_invalid')
+}
+
+function assertMediaMetadata(value: NonNullable<EditReferenceAggregate['evidence'][number]['mediaMetadata']>): void {
+  if (!['portrait', 'landscape', 'square', 'unknown'].includes(value.orientation)) throw invalidAggregate('media_metadata_orientation_invalid')
+  if (value.durationSeconds !== undefined && (!Number.isFinite(value.durationSeconds) || value.durationSeconds < 0 || value.durationSeconds > 86_400)) {
+    throw invalidAggregate('media_metadata_duration_invalid')
+  }
+  for (const dimension of [value.width, value.height]) {
+    if (dimension !== undefined && (!Number.isSafeInteger(dimension) || dimension < 1 || dimension > 16_384)) {
+      throw invalidAggregate('media_metadata_dimension_invalid')
+    }
+  }
 }
 
 function assertWorkspace(value: unknown, workspaceId: string): void {

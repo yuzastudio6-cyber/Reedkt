@@ -15,6 +15,9 @@ export interface EditReferenceInspectorView {
   studyStatus: string
   evidenceStatus: string
   skillStatus: string
+  sourceEvidenceCount: number
+  findingCount: number
+  copySafetyStatus: string
   dnaStatus: string
   qaStatus: string
   nextAction: string
@@ -34,16 +37,42 @@ export function toEditReferenceSavedCardView(item: EditReferenceListItem): EditR
 }
 
 export function toEditReferenceInspectorView(detail: EditReferenceDetail): EditReferenceInspectorView {
+  const sourceEvidence = detail.evidence.filter((record) => record.sourceType !== 'derived_skill_evidence')
+  const supersededEvidenceIds = new Set(sourceEvidence.map((record) => record.supersedesEvidenceId).filter(Boolean))
+  const activeSourceEvidence = sourceEvidence.filter((record) => !supersededEvidenceIds.has(record.id))
+  const findings = detail.evidence.filter((record) => record.sourceType === 'derived_skill_evidence')
+  const copySafety = findings.filter((record) => record.category === 'copy_safety').at(-1)
+  const latestOrchestrationId = detail.skillRuns.at(-1)?.orchestrationId
+  const latestRuns = latestOrchestrationId
+    ? detail.skillRuns.filter((record) => record.orchestrationId === latestOrchestrationId)
+    : []
   return {
     studyStatus: label(detail.study.status),
-    evidenceStatus: detail.evidence.length === 0 ? 'Study evidence not complete' : label(detail.study.evidenceStatus),
-    skillStatus: detail.skillRuns.length === 0 ? 'No analysis run yet' : `${detail.skillRuns.length} analysis runs recorded`,
+    evidenceStatus: activeSourceEvidence.length === 0
+      ? 'Study evidence not complete'
+      : detail.study.evidenceStatus === 'ready_to_study'
+        ? `${activeSourceEvidence.length} source${activeSourceEvidence.length === 1 ? '' : 's'} ready to study`
+        : label(detail.study.evidenceStatus),
+    skillStatus: latestRuns.length === 0 ? 'No evidence study yet' : `${latestRuns.filter((record) => record.status === 'completed').length} checks complete · ${latestRuns.filter((record) => record.status === 'blocked').length} blocked`,
+    sourceEvidenceCount: activeSourceEvidence.length,
+    findingCount: findings.length,
+    copySafetyStatus: copySafety?.transferability === 'do_not_copy'
+      ? 'Review required'
+      : copySafety
+        ? 'Transferability checked'
+        : 'Not checked yet',
     dnaStatus: detail.dnaVersions.length === 0 ? 'DNA not generated yet' : `${detail.dnaVersions.length} DNA versions`,
     qaStatus: detail.dnaQaResults.length === 0 ? 'QA not run' : `${detail.dnaQaResults.length} QA results`,
     nextAction: detail.nextAction === 'answer_setup_questions'
       ? 'Answer the setup questions'
       : detail.nextAction === 'add_reference_evidence'
         ? 'Add reference evidence'
+        : detail.nextAction === 'run_evidence_study'
+          ? 'Study the saved evidence'
+          : detail.nextAction === 'review_study_findings'
+            ? 'Review study findings'
+            : detail.nextAction === 'add_missing_evidence'
+              ? 'Add missing evidence'
         : 'Reference is archived',
   }
 }

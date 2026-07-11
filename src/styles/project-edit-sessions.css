@@ -1017,6 +1017,10 @@
   border-color: rgba(34, 197, 94, 0.28);
 }
 
+.project-edit-session-reference-connection.is-changing {
+  border-color: rgba(245, 158, 11, 0.34);
+}
+
 .project-edit-session-reference-connection__heading,
 .project-edit-session-reference-connection__metrics {
   align-items: center;
@@ -1067,7 +1071,7 @@
 .project-edit-session-reference-connection__options {
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .project-edit-session-reference-connection__options button {
@@ -1079,6 +1083,7 @@
   display: grid;
   gap: 5px;
   min-width: 0;
+  min-height: 52px;
   padding: 10px;
   text-align: left;
 }
@@ -1108,6 +1113,66 @@
   gap: 8px;
 }
 
+.project-edit-session-reference-connection__lifecycle-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-edit-session-reference-connection__lifecycle-actions .rp-button {
+  min-height: 44px;
+}
+
+.project-edit-session-reference-connection__lifecycle-heading .rp-button {
+  align-self: flex-start;
+  flex: 0 0 auto;
+  min-height: 44px;
+}
+
+.project-edit-session-reference-connection__lifecycle-panel,
+.project-edit-session-reference-connection__remove-confirmation {
+  background: rgba(5, 7, 13, 0.5);
+  border: 1px solid var(--rp-border-subtle);
+  border-radius: var(--rp-radius-sm);
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.project-edit-session-reference-connection__lifecycle-heading {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.project-edit-session-reference-connection__lifecycle-heading > div,
+.project-edit-session-reference-connection__remove-confirmation > div:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.project-edit-session-reference-connection__lifecycle-heading strong,
+.project-edit-session-reference-connection__remove-confirmation strong {
+  color: var(--rp-text-primary);
+  font-size: 0.86rem;
+}
+
+.project-edit-session-reference-connection__lifecycle-heading span,
+.project-edit-session-reference-connection__remove-confirmation span {
+  color: var(--rp-text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.project-edit-session-reference-connection__remove-confirmation {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.28);
+}
+
 .project-edit-session-reference-connection__review > label:first-child {
   color: var(--rp-text-primary);
   font-size: 0.8rem;
@@ -1135,11 +1200,15 @@
   font-size: 0.79rem;
   gap: 8px;
   line-height: 1.45;
+  min-height: 44px;
+  padding: 5px 0;
 }
 
 .project-edit-session-reference-connection__confirmation input {
   accent-color: var(--rp-accent-cyan);
   margin-top: 2px;
+  min-height: 18px;
+  min-width: 18px;
 }
 
 .project-edit-session-preference-panel {
@@ -1368,6 +1437,15 @@
   .project-edit-session-route-section-header,
   .project-edit-session-card--wide {
     grid-template-columns: 1fr;
+  }
+
+  .project-edit-session-reference-connection__lifecycle-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .project-edit-session-reference-connection__lifecycle-actions .rp-button {
+    justify-content: center;
   }
 
   .project-home-header__action,

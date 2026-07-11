@@ -1070,9 +1070,9 @@ function AppliedEditsTab() {
     <section className="edit-reference-applications-panel" data-testid="applied-edits-panel">
       <header>
         <div>
-          <span className="section-eyebrow">Target guidance</span>
-          <h2>Prepared for specific edits</h2>
-          <p>Each record uses one exact approved DNA version and the target edit’s own source, intent, format, and constraints.</p>
+          <span className="section-eyebrow">Application history</span>
+          <h2>Edit Reference guidance by version</h2>
+          <p>Connected, replaced, and removed versions remain visible without changing their approved Preference DNA or rewriting prior history.</p>
         </div>
         <div className="edit-reference-application-header-actions">
           <Badge accent="cyan">{applications.length} application{applications.length === 1 ? '' : 's'}</Badge>
@@ -1080,19 +1080,27 @@ function AppliedEditsTab() {
         </div>
       </header>
       <div className="edit-reference-application-list">
-        {applications.map((application) => {
+        {[...applications].sort((left, right) => (
+          left.projectId === right.projectId && left.editSessionId === right.editSessionId
+            ? right.version - left.version
+            : right.createdAt.localeCompare(left.createdAt)
+        )).map((application) => {
           const adaptedCount = application.decisions.filter((decision) => decision.decision === 'adapted').length
           const heldBackCount = application.decisions.length - adaptedCount
+          const lifecycle = preferenceApplicationLifecycleView(application)
+          const replacement = application.replacedByApplicationId
+            ? applications.find((candidate) => candidate.id === application.replacedByApplicationId)
+            : undefined
           return (
-            <article data-testid="preference-application-card" key={application.id}>
+            <article className={`is-${application.status}`} data-testid="preference-application-card" key={application.id}>
               <header>
                 <div>
-                  <span>{application.editReferenceName} · DNA version {application.dnaVersionNumber}</span>
+                  <span>{application.editReferenceName} · DNA version {application.dnaVersionNumber} · Application version {application.version}</span>
                   <h3>{application.targetContext.editName}</h3>
                   <p>{application.targetContext.projectName}</p>
                 </div>
-                <Badge accent={application.targetIntegrationStatus === 'connected' ? 'success' : 'muted'}>
-                  {application.targetIntegrationStatus === 'connected' ? 'Connected' : 'Prepared'}
+                <Badge accent={lifecycle.accent}>
+                  {lifecycle.label}
                 </Badge>
               </header>
               <div className="edit-reference-application-context" aria-label="Target context">
@@ -1103,6 +1111,13 @@ function AppliedEditsTab() {
                 <span>{application.targetContext.selectedEditLevel.replaceAll('_', ' ')}</span>
               </div>
               <p className="edit-reference-application-summary">{application.summary}</p>
+              {replacement ? (
+                <p className="edit-reference-application-history-note">
+                  Replaced by application version {replacement.version} using {replacement.editReferenceName}.
+                </p>
+              ) : application.replacesApplicationId ? (
+                <p className="edit-reference-application-history-note">This version replaced the prior connected guidance for the same edit.</p>
+              ) : null}
               <div className="edit-reference-application-metrics">
                 <span><strong>{adaptedCount}</strong> adapted</span>
                 <span><strong>{heldBackCount}</strong> held back</span>
@@ -1128,17 +1143,60 @@ function AppliedEditsTab() {
                   </section>
                 </div>
               </details>
-              <div className="edit-reference-form-boundary">
+              <div className={`edit-reference-form-boundary${application.status === 'prepared' ? '' : ' is-history'}`}>
                 <LockKeyhole aria-hidden="true" size={16} />
-                <span>This guidance is prepared for review. The target edit, its approved plan, and production state have not changed.</span>
+                <span>{lifecycle.boundary}</span>
               </div>
-              <time dateTime={application.createdAt}>Prepared {new Date(application.createdAt).toLocaleString()}</time>
+              <time dateTime={lifecycle.timestamp}>{lifecycle.timestampLabel} {new Date(lifecycle.timestamp).toLocaleString()}</time>
             </article>
           )
         })}
       </div>
     </section>
   )
+}
+
+function preferenceApplicationLifecycleView(application: PreferenceApplicationRecord): {
+  accent: 'success' | 'cyan' | 'muted'
+  boundary: string
+  label: string
+  timestamp: string
+  timestampLabel: string
+} {
+  if (application.status === 'replaced') {
+    return {
+      accent: 'muted',
+      boundary: 'This version is inactive and preserved as immutable history. Replacement did not change its approved Preference DNA or start production.',
+      label: 'Replaced',
+      timestamp: application.invalidatedAt ?? application.createdAt,
+      timestampLabel: 'Replaced',
+    }
+  }
+  if (application.status === 'cleared') {
+    return {
+      accent: 'muted',
+      boundary: 'This version was removed from the edit and remains available only as history. No approved Preference DNA was deleted.',
+      label: 'Removed',
+      timestamp: application.clearedAt ?? application.createdAt,
+      timestampLabel: 'Removed',
+    }
+  }
+  if (application.targetIntegrationStatus === 'connected') {
+    return {
+      accent: 'success',
+      boundary: 'This target-adapted guidance is active as lower-priority planning context. The approved plan and production state remain unchanged.',
+      label: 'Connected',
+      timestamp: application.connectedAt ?? application.createdAt,
+      timestampLabel: 'Connected',
+    }
+  }
+  return {
+    accent: 'cyan',
+    boundary: 'This guidance is prepared for review but is not active. The target edit, its approved plan, and production state have not changed.',
+    label: 'Prepared',
+    timestamp: application.createdAt,
+    timestampLabel: 'Prepared',
+  }
 }
 
 function SafetyPrivacyTab() {

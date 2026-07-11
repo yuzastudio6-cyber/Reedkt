@@ -4,6 +4,7 @@ import type { ServiceContext } from '../types'
 import type {
   ApproveEditReferenceDNAVersionRequest,
   AppendPreferenceStudyMessageRequest,
+  ClearPreferenceApplicationRequest,
   ConnectPreferenceApplicationRequest,
   CreatePreferenceApplicationRequest,
   CreatePreferenceEvidenceRequest,
@@ -46,6 +47,11 @@ import { synthesizeEditReferencePreferenceDNA } from '../edit-references/edit-re
 import { runEditReferenceDNAQA } from '../edit-references/edit-reference-dna-qa'
 import { createEditReferenceTargetApplication } from '../edit-references/edit-reference-target-adaptation'
 import { createPreferenceApplicationDownstreamContext } from '../../src/lib/edit-reference-downstream-context'
+import {
+  PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS,
+  type PreferenceApplicationDownstreamInvalidationReceipt,
+  type PreferenceApplicationInvalidationReason,
+} from '../../src/types/edit-reference-integration'
 
 const LOCAL_WARNING = 'Stored in the private backend-local Edit Reference repository. Production Supabase persistence remains blocked.'
 const FUTURE_RUNTIME_WARNING = 'No provider, model, file-byte, media, worker, generation, render, credit, or remote Supabase operation ran.'
@@ -74,6 +80,7 @@ export interface EditReferenceService {
   approvePreferenceDNA(studyId: string, dnaVersionId: string, input: ApproveEditReferenceDNAVersionRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   createPreferenceApplication(studyId: string, dnaVersionId: string, input: CreatePreferenceApplicationRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   connectPreferenceApplication(applicationId: string, input: ConnectPreferenceApplicationRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  clearPreferenceApplication(applicationId: string, input: ClearPreferenceApplicationRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
 }
 
 export function createEditReferenceService(
@@ -620,13 +627,33 @@ export function createEditReferenceService(
             && record.editSessionId === normalized.targetContext.editSessionId
             && record.status === 'prepared'
           ))
-          if (existingTargetApplication) {
+          if (existingTargetApplication && !normalized.replacesApplicationId) {
             throw new ApiError(
               'VERSION_CONFLICT',
               'This target edit already has prepared Preference DNA. Replace or clear it from the target edit before preparing another version.',
               409,
               { applicationId: existingTargetApplication.id },
             )
+          }
+          if (!existingTargetApplication && normalized.replacesApplicationId) {
+            throw new ApiError('VERSION_CONFLICT', 'The Preference Application selected for replacement is no longer active.', 409)
+          }
+          if (existingTargetApplication && normalized.replacesApplicationId !== existingTargetApplication.id) {
+            throw new ApiError('VERSION_CONFLICT', 'The active Preference Application changed before replacement. Reload this Edit Chat.', 409)
+          }
+          let replacedReference: EditReferenceRecord | undefined
+          let replacedStudy: PreferenceStudySessionRecord | undefined
+          if (existingTargetApplication) {
+            if (!normalized.invalidationReceipt || normalized.expectedReplacedReferenceRevision === undefined) {
+              throw new ApiError('VALIDATION_FAILED', 'Replacement requires the exact downstream invalidation receipt and prior reference revision.', 409)
+            }
+            if (existingTargetApplication.targetIntegrationStatus !== 'connected') {
+              throw new ApiError('VERSION_CONFLICT', 'Only connected target guidance can be replaced through the downstream invalidation flow.', 409)
+            }
+            replacedReference = requireReference(aggregate, existingTargetApplication.editReferenceId)
+            replacedStudy = requireStudy(aggregate, existingTargetApplication.studySessionId)
+            assertRevision(replacedReference.revision, normalized.expectedReplacedReferenceRevision, 'Replaced Edit Reference')
+            assertDownstreamInvalidationReceipt(existingTargetApplication, normalized.invalidationReceipt, 'replace')
           }
           const application = createEditReferenceTargetApplication({
             reference,
@@ -637,11 +664,45 @@ export function createEditReferenceService(
             existingApplications: aggregate.applications,
             now,
           })
+          if (existingTargetApplication) {
+            application.replacesApplicationId = existingTargetApplication.id
+            existingTargetApplication.status = 'replaced'
+            existingTargetApplication.targetIntegrationStatus = 'invalidated'
+            existingTargetApplication.downstreamInvalidationStatus = 'completed'
+            existingTargetApplication.replacedByApplicationId = application.id
+            existingTargetApplication.invalidatedAt = now
+            existingTargetApplication.invalidationReason = 'replace'
+            existingTargetApplication.downstreamInvalidationReceipt = normalized.invalidationReceipt
+            if (replacedReference && replacedStudy) {
+              if (replacedReference.id !== reference.id) {
+                replacedReference.revision += 1
+                replacedReference.updatedAt = now
+              }
+              aggregate.messages.push(preferenceApplicationLifecycleMessage(
+                replacedReference,
+                replacedStudy,
+                `Target guidance was replaced by “${reference.name}” for ${application.targetContext.editName}. Approved DNA and application history remain immutable.`,
+                now,
+                nextSequence(aggregate, replacedStudy.id),
+              ))
+              aggregate.usageLogs.push(usageLog(replacedReference, 'replaced', now))
+            }
+          }
           aggregate.applications.push(application)
           reference.revision += 1
           reference.updatedAt = now
           aggregate.messages.push(targetApplicationMessage(reference, study, application, now, nextSequence(aggregate, study.id)))
           aggregate.usageLogs.push(usageLog(reference, 'application_prepared', now))
+          if (existingTargetApplication && replacedReference && replacedStudy) {
+            addAuditEvent({
+              eventType: 'preference_application_replaced',
+              editReferenceId: replacedReference.id,
+              studySessionId: replacedStudy.id,
+              dnaVersionId: existingTargetApplication.dnaVersionId,
+              dnaQaResultId: existingTargetApplication.dnaQaResultId,
+              applicationId: existingTargetApplication.id,
+            })
+          }
           addAuditEvent({
             eventType: 'preference_application_prepared',
             editReferenceId: reference.id,
@@ -694,7 +755,7 @@ export function createEditReferenceService(
             editReferenceId: reference.id,
             studySessionId: study.id,
             role: 'assistant',
-            content: `Target-adapted Preference DNA was connected mock-locally to “${application.targetContext.editName}.” Current instructions and confirmed Edit Brief markers remain higher priority; no production work started.`,
+            content: `Target-adapted Preference DNA was connected to “${application.targetContext.editName}” as planning guidance. Current instructions and confirmed Edit Brief markers remain higher priority; no production work started.`,
             sequence: nextSequence(aggregate, study.id),
             runtimeSource: 'deterministic_dna_application',
             createdAt: now,
@@ -702,6 +763,59 @@ export function createEditReferenceService(
           aggregate.usageLogs.push(usageLog(reference, 'applied', now))
           addAuditEvent({
             eventType: 'preference_application_connected_mock',
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            dnaVersionId: application.dnaVersionId,
+            dnaQaResultId: application.dnaQaResultId,
+            applicationId: application.id,
+          })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async clearPreferenceApplication(applicationId, input, idempotencyKey) {
+      const normalized = normalizeClearPreferenceApplication(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_application.clear_connected_context',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ applicationId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const application = aggregate.applications.find((record) => record.id === applicationId)
+          if (!application) {
+            throw new ApiError('PREFERENCE_APPLICATION_NOT_FOUND', 'Preference Application was not found.', 404, { applicationId })
+          }
+          const reference = requireReference(aggregate, application.editReferenceId)
+          const study = requireStudy(aggregate, application.studySessionId)
+          assertRevision(reference.revision, normalized.expectedReferenceRevision, 'Edit Reference')
+          if (application.contentDigest !== normalized.expectedApplicationContentDigest) {
+            throw new ApiError('VERSION_CONFLICT', 'Preference Application changed before it could be removed. Reload this Edit Chat.', 409)
+          }
+          if (application.status !== 'prepared' || application.targetIntegrationStatus !== 'connected') {
+            throw new ApiError('VERSION_CONFLICT', 'Only the currently connected target guidance can be removed.', 409)
+          }
+          assertDownstreamInvalidationReceipt(application, normalized.invalidationReceipt, 'remove')
+          application.status = 'cleared'
+          application.targetIntegrationStatus = 'invalidated'
+          application.downstreamInvalidationStatus = 'completed'
+          application.clearedAt = now
+          application.invalidatedAt = now
+          application.invalidationReason = 'remove'
+          application.downstreamInvalidationReceipt = normalized.invalidationReceipt
+          reference.revision += 1
+          reference.updatedAt = now
+          aggregate.messages.push(preferenceApplicationLifecycleMessage(
+            reference,
+            study,
+            `Target-adapted guidance was removed from ${application.targetContext.editName}. Approved Preference DNA and application history remain unchanged.`,
+            now,
+            nextSequence(aggregate, study.id),
+          ))
+          aggregate.usageLogs.push(usageLog(reference, 'cleared', now))
+          addAuditEvent({
+            eventType: 'preference_application_cleared',
             editReferenceId: reference.id,
             studySessionId: study.id,
             dnaVersionId: application.dnaVersionId,
@@ -955,6 +1069,26 @@ function targetApplicationMessage(
   }
 }
 
+function preferenceApplicationLifecycleMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  content: string,
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content: `${content} No provider, production, rendering, or credit action started.`,
+    sequence,
+    runtimeSource: 'deterministic_dna_application',
+    createdAt: now,
+  }
+}
+
 function createEvidenceRecords(
   reference: EditReferenceRecord,
   study: PreferenceStudySessionRecord,
@@ -1118,7 +1252,7 @@ function nextSequence(aggregate: EditReferenceAggregate, studyId: string): numbe
 
 function usageLog(
   reference: EditReferenceRecord,
-  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'dna_qa_completed' | 'dna_version_approved' | 'application_prepared' | 'updated' | 'archived' | 'applied',
+  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'dna_qa_completed' | 'dna_version_approved' | 'application_prepared' | 'updated' | 'archived' | 'applied' | 'replaced' | 'cleared',
   now: string,
 ) {
   return {
@@ -1407,12 +1541,82 @@ function normalizeCreatePreferenceApplication(input: CreatePreferenceApplication
     },
     approvedConstraints,
   }
+  const replacementValues = [
+    input.replacesApplicationId,
+    input.expectedReplacedReferenceRevision,
+    input.invalidationReceipt,
+  ]
+  const replacementValueCount = replacementValues.filter((value) => value !== undefined).length
+  if (replacementValueCount !== 0 && replacementValueCount !== replacementValues.length) {
+    throw new ApiError('VALIDATION_FAILED', 'Replacement requires the exact prior application, reference revision, and downstream invalidation receipt.', 400)
+  }
+  const invalidationReceipt = input.invalidationReceipt
+    ? normalizeDownstreamInvalidationReceipt(input.invalidationReceipt, 'replace')
+    : undefined
   return {
     workspaceId: requireWorkspaceId(input.workspaceId),
     expectedReferenceRevision: requirePositiveInteger(input.expectedReferenceRevision, 'expectedReferenceRevision'),
     expectedDNAContentDigest: requireSha256(input.expectedDNAContentDigest, 'expectedDNAContentDigest'),
     acknowledgeAdaptNotCopy: true,
     targetContext: normalizedTarget,
+    ...(input.replacesApplicationId ? {
+      replacesApplicationId: requireText(input.replacesApplicationId, 'replacesApplicationId', 200),
+      expectedReplacedReferenceRevision: requirePositiveInteger(input.expectedReplacedReferenceRevision as number, 'expectedReplacedReferenceRevision'),
+      invalidationReceipt,
+    } : {}),
+  }
+}
+
+function normalizeClearPreferenceApplication(input: ClearPreferenceApplicationRequest): ClearPreferenceApplicationRequest {
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedReferenceRevision: requirePositiveInteger(input.expectedReferenceRevision, 'expectedReferenceRevision'),
+    expectedApplicationContentDigest: requireSha256(input.expectedApplicationContentDigest, 'expectedApplicationContentDigest'),
+    invalidationReceipt: normalizeDownstreamInvalidationReceipt(input.invalidationReceipt, 'remove'),
+  }
+}
+
+function normalizeDownstreamInvalidationReceipt(
+  receipt: PreferenceApplicationDownstreamInvalidationReceipt,
+  expectedReason: PreferenceApplicationInvalidationReason,
+): PreferenceApplicationDownstreamInvalidationReceipt {
+  if (!receipt || typeof receipt !== 'object' || receipt.receiptVersion !== 'edit-reference-downstream-invalidation-receipt-v1') {
+    throw new ApiError('VALIDATION_FAILED', 'A supported downstream invalidation receipt is required.', 400)
+  }
+  if (
+    receipt.reason !== expectedReason
+    || receipt.sessionContextInvalidated !== true
+    || receipt.approvedPlanMutationMade !== false
+    || receipt.mockOnly !== true
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'The downstream invalidation receipt does not match this lifecycle action.', 409)
+  }
+  if (!receipt.safety || Object.entries(PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS).some(
+    ([key, value]) => receipt.safety[key as keyof typeof PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS] !== value,
+  )) {
+    throw new ApiError('VALIDATION_FAILED', 'The downstream invalidation receipt contains an unsafe side effect.', 409)
+  }
+  const approvalStatuses = new Set(['not_requested', 'requested', 'approved', 'rejected', 'reset_after_revision'])
+  if (!approvalStatuses.has(receipt.approvalStatusBefore) || !approvalStatuses.has(receipt.approvalStatusAfter)) {
+    throw new ApiError('VALIDATION_FAILED', 'The invalidation approval state is not supported.', 400)
+  }
+  return {
+    receiptVersion: receipt.receiptVersion,
+    applicationId: requireText(receipt.applicationId, 'invalidationReceipt.applicationId', 200),
+    applicationContentDigest: requireSha256(receipt.applicationContentDigest, 'invalidationReceipt.applicationContentDigest'),
+    contextHash: requireText(receipt.contextHash, 'invalidationReceipt.contextHash', 80),
+    projectId: requireText(receipt.projectId, 'invalidationReceipt.projectId', 200),
+    editSessionId: requireText(receipt.editSessionId, 'invalidationReceipt.editSessionId', 200),
+    reason: expectedReason,
+    sessionUpdatedAt: requireISODate(receipt.sessionUpdatedAt, 'invalidationReceipt.sessionUpdatedAt'),
+    approvalStatusBefore: receipt.approvalStatusBefore,
+    approvalStatusAfter: receipt.approvalStatusAfter,
+    approvalResetRequired: receipt.approvalResetRequired === true,
+    sessionContextInvalidated: true,
+    approvedPlanMutationMade: false,
+    invalidatedAt: requireISODate(receipt.invalidatedAt, 'invalidationReceipt.invalidatedAt'),
+    mockOnly: true,
+    safety: PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS,
   }
 }
 
@@ -1472,6 +1676,35 @@ function assertTargetSessionReceipt(
     || !validApprovalReset
   ) {
     throw new ApiError('VALIDATION_FAILED', 'The staged Project Edit Session receipt does not match this exact Preference Application.', 409)
+  }
+}
+
+function assertDownstreamInvalidationReceipt(
+  application: EditReferenceDetail['applications'][number],
+  receipt: PreferenceApplicationDownstreamInvalidationReceipt,
+  reason: PreferenceApplicationInvalidationReason,
+): void {
+  const validApprovalReset = receipt.approvalResetRequired
+    ? receipt.approvalStatusAfter === 'reset_after_revision'
+    : receipt.approvalStatusAfter === receipt.approvalStatusBefore
+  if (
+    application.targetIntegrationStatus !== 'connected'
+    || !application.downstreamContext
+    || receipt.applicationId !== application.id
+    || receipt.applicationContentDigest !== application.contentDigest
+    || receipt.contextHash !== application.downstreamContext.packageHash
+    || receipt.projectId !== application.projectId
+    || receipt.editSessionId !== application.editSessionId
+    || receipt.reason !== reason
+    || receipt.sessionContextInvalidated !== true
+    || receipt.approvedPlanMutationMade !== false
+    || receipt.mockOnly !== true
+    || !validApprovalReset
+    || Object.entries(PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS).some(
+      ([key, value]) => receipt.safety[key as keyof typeof PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS] !== value,
+    )
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'The downstream invalidation receipt does not match this exact connected Preference Application.', 409)
   }
 }
 

@@ -43,9 +43,11 @@ import type {
 } from '../types/edit-reference-integration'
 import {
   createActivatePreferenceApplicationPlan,
+  createInvalidatePreferenceApplicationPlan,
   createStagePreferenceApplicationPlan,
 } from '../backend/project-edit-session-preference/project-edit-session-preference-application-integration-service'
 import {
+  createPreferenceApplicationDownstreamInvalidationReceipt,
   createPreferenceApplicationTargetSessionReceipt,
   readPreferenceApplicationIntegrationState,
 } from './edit-reference-downstream-context'
@@ -141,6 +143,7 @@ export interface ProjectEditSessionApiClient {
     applicationSummary<TData = unknown>(editSessionId: string): Promise<ReeditProApiResponseEnvelope<TData>>
     stageApplication<TData = unknown>(input: unknown): Promise<ReeditProApiResponseEnvelope<TData>>
     activateApplication<TData = unknown>(input: unknown): Promise<ReeditProApiResponseEnvelope<TData>>
+    invalidateApplication<TData = unknown>(input: unknown): Promise<ReeditProApiResponseEnvelope<TData>>
   }
 }
 
@@ -513,6 +516,9 @@ export function createProjectEditSessionApiClient(
 
   async function persistPreferenceIntegrationPlan(plan: ProjectEditSessionPreferenceIntegrationPlan) {
     const repo = repository()
+    const integrationMilestone = plan.action === 'invalidate_connected_application'
+      ? 'RP-GOAL-EDITREFERENCE-GATE7'
+      : 'RP-GOAL-EDITREFERENCE-GATE6'
     const updated = await repo.updateProjectEditSession({
       editSessionId: plan.editSessionId,
       patch: plan.sessionUpdates,
@@ -531,7 +537,7 @@ export function createProjectEditSessionApiClient(
         preferences: memory.preferences,
         warnings: memory.warnings,
         metadata: {
-          rpMilestone: 'RP-GOAL-EDITREFERENCE-GATE6',
+          rpMilestone: integrationMilestone,
           preferenceApplicationIntegrationPlanId: plan.id,
           exactPreferenceApplicationId: plan.applicationId,
           integrationAction: plan.action,
@@ -548,10 +554,12 @@ export function createProjectEditSessionApiClient(
         editSessionId: plan.editSessionId,
         eventType: plan.action === 'stage_exact_application'
           ? 'preference_application_staged'
-          : 'preference_application_connected_mock',
+          : plan.action === 'activate_connected_application'
+            ? 'preference_application_connected_mock'
+            : 'preference_application_invalidated_mock',
         summary: eventSummary,
         metadata: {
-          rpMilestone: 'RP-GOAL-EDITREFERENCE-GATE6',
+          rpMilestone: integrationMilestone,
           exactPreferenceApplicationId: plan.applicationId,
           integrationAction: plan.action,
         },
@@ -566,7 +574,7 @@ export function createProjectEditSessionApiClient(
       kind: 'manual_checkpoint',
       summary: plan.snapshotSummary,
       state: {
-        rpMilestone: 'RP-GOAL-EDITREFERENCE-GATE6',
+        rpMilestone: integrationMilestone,
         exactPreferenceApplicationId: plan.applicationId,
         preferenceApplicationContextHash: plan.context.packageHash,
         integrationAction: plan.action,
@@ -1058,6 +1066,74 @@ export function createProjectEditSessionApiClient(
           })) as ReeditProApiResponseEnvelope<TData>
         }
 
+        case 'project.editSessions.preference.application.invalidate': {
+          const editSessionId = await requireEditSessionId(envelope, body)
+          if (typeof editSessionId !== 'string') return editSessionId as ReeditProApiResponseEnvelope<TData>
+          const sessionResult = await repo.getProjectEditSession(editSessionId)
+          if (!sessionResult.ok || !sessionResult.data) return fromRepositoryResult(envelope, sessionResult, (session) => ({ session })) as ReeditProApiResponseEnvelope<TData>
+          const sessionBefore = structuredClone(sessionResult.data)
+          const application = body.application as PreferenceApplicationRecord | undefined
+          const reason = body.reason === 'replace' || body.reason === 'remove' ? body.reason : undefined
+          if (!application || !reason) {
+            return failure(envelope, 'PREFERENCE_APPLICATION_INVALIDATION_REQUIRED', 'A connected exact Preference Application and replace/remove reason are required.') as ReeditProApiResponseEnvelope<TData>
+          }
+          const currentState = readPreferenceApplicationIntegrationState(sessionResult.data)
+          if (
+            currentState?.status === 'invalidated'
+            && currentState.applicationId === application.id
+            && currentState.invalidationReason === reason
+            && currentState.invalidatedAt
+            && application.downstreamContext
+          ) {
+            return success(envelope, withSafety({
+              session: sessionResult.data,
+              invalidationReceipt: createPreferenceApplicationDownstreamInvalidationReceipt({
+                application,
+                context: application.downstreamContext,
+                reason,
+                sessionBefore: sessionResult.data,
+                sessionAfter: sessionResult.data,
+                invalidatedAt: currentState.invalidatedAt,
+                approvalStatusBefore: currentState.invalidationApprovalStatusBefore,
+                approvalStatusAfter: currentState.invalidationApprovalStatusAfter,
+                approvalResetRequired: currentState.invalidationApprovalResetRequired,
+              }),
+              replayedMockInvalidation: true,
+            })) as ReeditProApiResponseEnvelope<TData>
+          }
+          let plan: ProjectEditSessionPreferenceIntegrationPlan
+          try {
+            plan = createInvalidatePreferenceApplicationPlan({
+              application,
+              currentSession: sessionResult.data,
+              reason,
+            })
+          } catch (error) {
+            return failure(envelope, 'PREFERENCE_APPLICATION_INVALIDATION_INVALID', error instanceof Error ? error.message : 'Preference Application invalidation failed.') as ReeditProApiResponseEnvelope<TData>
+          }
+          const persisted = await persistPreferenceIntegrationPlan(plan)
+          if (!persisted.updated.ok || !persisted.updated.data) return fromRepositoryResult(envelope, persisted.updated, (session) => ({ session })) as ReeditProApiResponseEnvelope<TData>
+          const invalidationState = readPreferenceApplicationIntegrationState(persisted.updated.data)
+          if (!invalidationState?.invalidatedAt || !application.downstreamContext) {
+            return failure(envelope, 'PREFERENCE_APPLICATION_INVALIDATION_INVALID', 'The invalidated Project Edit Session state could not be verified.') as ReeditProApiResponseEnvelope<TData>
+          }
+          return success(envelope, withSafety({
+            session: persisted.updated.data,
+            integrationPlan: plan,
+            invalidationReceipt: createPreferenceApplicationDownstreamInvalidationReceipt({
+              application,
+              context: application.downstreamContext,
+              reason,
+              sessionBefore,
+              sessionAfter: persisted.updated.data,
+              invalidatedAt: invalidationState.invalidatedAt,
+            }),
+            memories: persisted.memories,
+            events: persisted.events,
+            snapshot: persisted.snapshot,
+          })) as ReeditProApiResponseEnvelope<TData>
+        }
+
         default:
           return failure(envelope, 'PROJECT_EDIT_SESSION_CLIENT_ROUTE_UNKNOWN', `${envelope.routeId} is not implemented by the mock Project Edit Session client.`) as ReeditProApiResponseEnvelope<TData>
       }
@@ -1148,6 +1224,7 @@ export function createProjectEditSessionApiClient(
     applicationSummary: (editSessionId) => client.request('project.editSessions.preference.applicationSummary', { editSessionId }),
     stageApplication: (input) => client.request('project.editSessions.preference.application.stage', input),
     activateApplication: (input) => client.request('project.editSessions.preference.application.activate', input),
+    invalidateApplication: (input) => client.request('project.editSessions.preference.application.invalidate', input),
   }
 
   return client

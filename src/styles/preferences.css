@@ -1190,6 +1190,12 @@
   padding: var(--rp-space-4);
 }
 
+.edit-reference-application-list > article.is-replaced,
+.edit-reference-application-list > article.is-cleared {
+  background: rgba(9, 15, 27, 0.62);
+  border-color: rgba(100, 116, 139, 0.24);
+}
+
 .edit-reference-application-list > article > header {
   align-items: flex-start;
   display: flex;
@@ -1243,6 +1249,22 @@
   font-size: 0.82rem;
   line-height: 1.55;
   margin: 0;
+}
+
+.edit-reference-application-history-note {
+  background: rgba(56, 189, 248, 0.06);
+  border-left: 2px solid rgba(56, 189, 248, 0.36);
+  color: var(--rp-text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  margin: 0;
+  padding: 8px 10px;
+}
+
+.edit-reference-application-list .edit-reference-form-boundary.is-history {
+  background: rgba(100, 116, 139, 0.08);
+  border-color: rgba(100, 116, 139, 0.24);
+  color: var(--rp-text-secondary);
 }
 
 .edit-reference-application-metrics {

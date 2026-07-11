@@ -522,6 +522,9 @@ export interface PreferenceApplicationRecord {
   downstreamContext?: import('./edit-reference-integration').PreferenceApplicationDownstreamContext
   targetSessionReceipt?: import('./edit-reference-integration').PreferenceApplicationTargetSessionReceipt
   connectedAt?: string
+  invalidatedAt?: string
+  invalidationReason?: import('./edit-reference-integration').PreferenceApplicationInvalidationReason
+  downstreamInvalidationReceipt?: import('./edit-reference-integration').PreferenceApplicationDownstreamInvalidationReceipt
   providerCallMade: false
   modelCallMade: false
   fileBytesRead: false
@@ -717,10 +720,16 @@ export interface CreatePreferenceApplicationRequest {
   expectedDNAContentDigest: string
   acknowledgeAdaptNotCopy: true
   targetContext: PreferenceApplicationTargetContextSnapshot
+  replacesApplicationId?: string
+  expectedReplacedReferenceRevision?: number
+  invalidationReceipt?: import('./edit-reference-integration').PreferenceApplicationDownstreamInvalidationReceipt
 }
 
 export type ConnectPreferenceApplicationRequest =
   import('./edit-reference-integration').ConnectPreferenceApplicationRequest
+
+export type ClearPreferenceApplicationRequest =
+  import('./edit-reference-integration').ClearPreferenceApplicationRequest
 
 export interface EditReferenceApiSuccess<T> {
   ok: true

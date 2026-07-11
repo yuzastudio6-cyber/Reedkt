@@ -16,6 +16,8 @@ import {
   connectPreferenceApplicationToProjectEditSession,
   loadProjectEditSessionEditReferenceIntegration,
   preparePreferenceApplicationForProjectEditSession,
+  removePreferenceApplicationFromProjectEditSession,
+  replacePreferenceApplicationForProjectEditSession,
   type ProjectEditSessionEditReferenceIntegrationModel,
 } from '../../lib/project-edit-session-edit-reference-integration'
 import { ProjectEditSessionDNAStatusCard } from './ProjectEditSessionDNAStatusCard'
@@ -47,6 +49,7 @@ export function ProjectEditSessionPreferencePanel({
   const [selectedReferenceId, setSelectedReferenceId] = useState<string | undefined>()
   const [currentUserInstruction, setCurrentUserInstruction] = useState('')
   const [frameConfirmed, setFrameConfirmed] = useState(false)
+  const [lifecycleMode, setLifecycleMode] = useState<'idle' | 'replace' | 'remove'>('idle')
 
   const loadPanel = useCallback(async () => {
     const [next, bundleResponse] = await Promise.all([
@@ -60,7 +63,11 @@ export function ProjectEditSessionPreferencePanel({
         editReferenceClient,
         session: nextBundle.session,
       })
-      if (nextIntegration.activeApplication && nextIntegration.sessionIntegrationStatus?.status !== 'connected_mock') {
+      if (
+        nextIntegration.activeApplication
+        && nextIntegration.sessionIntegrationStatus?.status !== 'connected_mock'
+        && nextIntegration.sessionIntegrationStatus?.status !== 'invalidated'
+      ) {
         const recovered = await client.preference.activateApplication({
           editSessionId,
           application: nextIntegration.activeApplication,
@@ -77,14 +84,35 @@ export function ProjectEditSessionPreferencePanel({
       const resolvedBundle = nextBundle
       setBundle(resolvedBundle)
       setIntegration(nextIntegration)
-      setSelectedReferenceId((current) => current ?? nextIntegration.approvedReferences[0]?.reference.id)
+      const firstReplacement = nextIntegration.approvedReferences.find((item) => (
+        item.reference.id !== nextIntegration.activeApplication?.editReferenceId
+      ))?.reference.id
+      setSelectedReferenceId((current) => (
+        nextIntegration.approvedReferences.some((item) => item.reference.id === current)
+          ? current
+          : firstReplacement ?? nextIntegration.approvedReferences[0]?.reference.id
+      ))
       setCurrentUserInstruction((current) => current
         || nextIntegration.stagedApplication?.targetContext.currentUserInstruction
         || [...resolvedBundle.messages].reverse().find((message) => message.role === 'user')?.text
         || resolvedBundle.session.description
         || '')
+      const pendingInvalidationReason = nextIntegration.activeApplication
+        && nextIntegration.sessionIntegrationStatus?.status === 'invalidated'
+        ? nextIntegration.sessionIntegrationStatus.invalidationReason
+        : undefined
+      const pendingInvalidation = Boolean(pendingInvalidationReason)
+      setLifecycleMode(nextIntegration.stagedApplication
+        ? 'idle'
+        : pendingInvalidation
+          ? pendingInvalidationReason === 'replace' ? 'replace' : 'remove'
+          : 'idle')
       setStatus(nextIntegration.sessionIntegrationStatus?.status === 'connected_mock'
-        ? 'Target-adapted Edit Reference guidance is connected mock-locally.'
+        ? 'Target-adapted Edit Reference guidance is connected.'
+        : pendingInvalidation
+          ? pendingInvalidationReason === 'replace'
+            ? 'Previous guidance is inactive while you finish its replacement.'
+            : 'Connected guidance is inactive and ready for removal confirmation.'
         : nextIntegration.stagedApplication
           ? 'A target adaptation is prepared and ready to connect.'
           : next.panelModel.selectedPreferenceHandle
@@ -152,6 +180,63 @@ export function ProjectEditSessionPreferencePanel({
     }
   }
 
+  function handleLifecycleModeChange(mode: 'idle' | 'replace' | 'remove') {
+    setLifecycleMode(mode)
+    setFrameConfirmed(false)
+    if (mode === 'replace') {
+      const replacement = integration?.approvedReferences.find((item) => (
+        item.reference.id !== integration.activeApplication?.editReferenceId
+      ))
+      setSelectedReferenceId(replacement?.reference.id)
+    }
+  }
+
+  async function handleReplaceEditReference() {
+    const currentApplication = integration?.activeApplication
+    if (!bundle || !currentApplication || !selectedReferenceId || !frameConfirmed || busy) return
+    setBusy(true)
+    setStatus('Replacing target-adapted guidance while preserving application history…')
+    try {
+      const replaced = await replacePreferenceApplicationForProjectEditSession({
+        bundle,
+        currentApplication,
+        currentUserInstruction,
+        editReferenceClient,
+        nextEditReferenceId: selectedReferenceId,
+        outputFrameConfirmed: true,
+        projectEditSessionClient: client,
+      })
+      setStatus(replaced.message)
+      await loadPanel()
+      await onPreferenceChanged(replaced.message)
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : 'Edit Reference replacement failed safely.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handleRemoveEditReference() {
+    const application = integration?.activeApplication
+    if (!application || busy) return
+    setBusy(true)
+    setStatus('Removing target-adapted guidance while preserving its history…')
+    try {
+      const removed = await removePreferenceApplicationFromProjectEditSession({
+        application,
+        editReferenceClient,
+        projectEditSessionClient: client,
+      })
+      setStatus(removed.message)
+      await loadPanel()
+      await onPreferenceChanged(removed.message)
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : 'Edit Reference removal failed safely.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function handleApply(option: ProjectEditSessionPreferenceOption) {
     setBusy(true)
     setStatus(`Applying ${option.handle ?? option.name} mock-locally...`)
@@ -190,9 +275,9 @@ export function ProjectEditSessionPreferencePanel({
           <span className="section-eyebrow">Reusable style intelligence</span>
           <h3>Edit Preference for this Edit Chat</h3>
         </div>
-        <Badge accent="cyan">Mock/local</Badge>
+        <Badge accent="cyan">Planning context</Badge>
       </div>
-      <p className="project-edit-session-preference-panel__status" data-testid="edit-session-preference-status">
+      <p aria-live="polite" className="project-edit-session-preference-panel__status" data-testid="edit-session-preference-status" role="status">
         {status}
       </p>
       {panel ? (
@@ -202,11 +287,19 @@ export function ProjectEditSessionPreferencePanel({
             approvedReferences={integration?.approvedReferences ?? []}
             backendAvailable={integration?.backendAvailable ?? editReferenceClient.available}
             busy={busy}
+            connectedApplication={integration?.activeApplication}
             currentUserInstruction={currentUserInstruction}
             frameConfirmed={frameConfirmed}
+            invalidationReason={integration?.sessionIntegrationStatus?.status === 'invalidated'
+              ? integration.sessionIntegrationStatus.invalidationReason
+              : undefined}
+            lifecycleMode={lifecycleMode}
             onConnect={handleConnectEditReference}
             onFrameConfirmedChange={setFrameConfirmed}
             onInstructionChange={setCurrentUserInstruction}
+            onLifecycleModeChange={handleLifecycleModeChange}
+            onRemove={handleRemoveEditReference}
+            onReplace={handleReplaceEditReference}
             onSelectReference={setSelectedReferenceId}
             selectedReferenceId={selectedReferenceId}
             stagedApplication={integration?.stagedApplication}

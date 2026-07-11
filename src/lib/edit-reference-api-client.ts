@@ -1,6 +1,7 @@
 import type {
   ApproveEditReferenceDNAVersionRequest,
   AppendPreferenceStudyMessageRequest,
+  ClearPreferenceApplicationRequest,
   ConnectPreferenceApplicationRequest,
   CreatePreferenceApplicationRequest,
   CreatePreferenceEvidenceRequest,
@@ -54,6 +55,7 @@ export interface EditReferenceApiClient {
   approvePreferenceDNA(studyId: string, dnaVersionId: string, input: ApproveEditReferenceDNAVersionRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
   createPreferenceApplication(studyId: string, dnaVersionId: string, input: CreatePreferenceApplicationRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
   connectPreferenceApplication(applicationId: string, input: ConnectPreferenceApplicationRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
+  clearPreferenceApplication(applicationId: string, input: ClearPreferenceApplicationRequest, idempotencyKey?: string): Promise<EditReferenceApiResult<EditReferenceDetailData>>
 }
 
 export function createEditReferenceApiClient(
@@ -87,6 +89,7 @@ export function createEditReferenceApiClient(
       approvePreferenceDNA: unavailable,
       createPreferenceApplication: unavailable,
       connectPreferenceApplication: unavailable,
+      clearPreferenceApplication: unavailable,
     }
   }
 
@@ -150,6 +153,7 @@ export function createEditReferenceApiClient(
     approvePreferenceDNA: (studyId, dnaVersionId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/preference-dna/${encodeURIComponent(dnaVersionId)}/approve`, 'POST', input, key),
     createPreferenceApplication: (studyId, dnaVersionId, input, key) => mutation(`/v1/edit-reference-studies/${encodeURIComponent(studyId)}/preference-dna/${encodeURIComponent(dnaVersionId)}/applications`, 'POST', input, key),
     connectPreferenceApplication: (applicationId, input, key) => mutation(`/v1/edit-reference-applications/${encodeURIComponent(applicationId)}/connect`, 'POST', input, key),
+    clearPreferenceApplication: (applicationId, input, key) => mutation(`/v1/edit-reference-applications/${encodeURIComponent(applicationId)}/clear`, 'POST', input, key),
   }
 }
 

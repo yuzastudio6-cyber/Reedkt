@@ -201,6 +201,7 @@ export const PROJECT_EDIT_SESSION_API_ROUTE_IDS = [
   'project.editSessions.preference.applicationSummary',
   'project.editSessions.preference.application.stage',
   'project.editSessions.preference.application.activate',
+  'project.editSessions.preference.application.invalidate',
 ] as const
 
 export type ProjectEditSessionApiRouteId = typeof PROJECT_EDIT_SESSION_API_ROUTE_IDS[number]

@@ -73,13 +73,19 @@ export async function loadProjectEditBriefPlanPanelForUI(input: {
   }
   const exportResult = await getProjectEditSessionExportSettingsViaApi(input.editSessionId, client)
   const logsResult = await listProjectEditBriefApplicationLogsViaApi(briefResult.brief.id, client)
+  const referenceReplanRequired = briefResult.brief.metadata?.preferenceApplicationReplanRequired === true
   const latestPlanLog = [...logsResult.applicationLogs]
     .reverse()
-    .find((log) => log.metadata?.preparedMockPlanHints === true)
+    .find((log) => (
+      log.metadata?.preparedMockPlanHints === true
+      && (!referenceReplanRequired || !log.metadata?.preferenceApplicationId)
+    ))
   const pkg = createProjectEditBriefPlannerInputPackage({
     bundle: bundleResult.bundle,
     exportSettings: exportResult.exportSettings ?? bundleResult.bundle.exportSettings,
-    applicationLogSummary: latestPlanLog?.summary,
+    applicationLogSummary: referenceReplanRequired && !input.preferenceApplicationContext
+      ? 'Previous Edit Reference plan hints are inactive. Prepare plan hints again before relying on this Brief.'
+      : latestPlanLog?.summary,
     preferenceApplicationContext: input.preferenceApplicationContext,
   })
   return {

@@ -4,6 +4,7 @@ import { chmod, lstat, mkdir, open, rename, rm } from 'node:fs/promises'
 import { dirname, relative, resolve, sep } from 'node:path'
 import { EDIT_REFERENCE_DNA_QA_CHECK_IDS } from '../../src/types/edit-reference'
 import { createPreferenceApplicationDownstreamContext } from '../../src/lib/edit-reference-downstream-context'
+import { PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS } from '../../src/types/edit-reference-integration'
 import { ApiError } from '../errors/api-error'
 import {
   EDIT_REFERENCE_APPLICATION_PRECEDENCE_POLICY,
@@ -404,8 +405,10 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
       || record.approvedPlanMutationMade !== false
       || (record.targetIntegrationStatus === 'not_connected' && (record.targetEditMutationMade !== false || record.downstreamContextWritten !== false))
       || (record.targetIntegrationStatus === 'connected' && (record.targetEditMutationMade !== true || record.downstreamContextWritten !== true))
+      || (record.targetIntegrationStatus === 'invalidated' && (record.targetEditMutationMade !== true || record.downstreamContextWritten !== true))
       || (record.targetIntegrationStatus === 'not_connected' && record.targetIdentityStatus !== 'caller_confirmed_unverified')
       || (record.targetIntegrationStatus === 'connected' && !['verified_mock_project_edit_session', 'verified_project_edit_session'].includes(record.targetIdentityStatus))
+      || (record.targetIntegrationStatus === 'invalidated' && !['verified_mock_project_edit_session', 'verified_project_edit_session'].includes(record.targetIdentityStatus))
       || record.providerCallMade !== false
       || record.modelCallMade !== false
       || record.fileBytesRead !== false
@@ -418,14 +421,47 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
       || !isISODate(record.createdAt)
       || (record.clearedAt !== undefined && !isISODate(record.clearedAt))
       || (record.connectedAt !== undefined && !isISODate(record.connectedAt))
+      || (record.invalidatedAt !== undefined && !isISODate(record.invalidatedAt))
     ) throw invalidAggregate('application_contract_invalid')
+
+    if (record.status === 'prepared') {
+      if (
+        record.targetIntegrationStatus === 'invalidated'
+        || record.downstreamInvalidationStatus !== 'not_required'
+        || record.replacedByApplicationId
+        || record.clearedAt
+        || record.invalidatedAt
+        || record.invalidationReason
+        || record.downstreamInvalidationReceipt
+      ) throw invalidAggregate('application_active_lifecycle_invalid')
+    } else if (
+      record.targetIntegrationStatus !== 'invalidated'
+      || record.downstreamInvalidationStatus !== 'completed'
+      || !record.invalidatedAt
+      || !record.invalidationReason
+      || !record.downstreamInvalidationReceipt
+      || !record.connectedAt
+      || !record.downstreamContext
+      || !record.targetSessionReceipt
+      || (record.status === 'replaced' && (
+        record.invalidationReason !== 'replace'
+        || !record.replacedByApplicationId
+        || record.clearedAt !== undefined
+      ))
+      || (record.status === 'cleared' && (
+        record.invalidationReason !== 'remove'
+        || !record.clearedAt
+        || record.clearedAt !== record.invalidatedAt
+        || record.replacedByApplicationId !== undefined
+      ))
+    ) throw invalidAggregate('application_inactive_lifecycle_invalid')
 
     if (record.targetIntegrationStatus === 'not_connected') {
       if (record.downstreamContext || record.targetSessionReceipt || record.connectedAt) {
         throw invalidAggregate('application_unconnected_context_invalid')
       }
     }
-    if (record.targetIntegrationStatus === 'connected') {
+    if (record.targetIntegrationStatus === 'connected' || record.targetIntegrationStatus === 'invalidated') {
       const expectedContext = createPreferenceApplicationDownstreamContext(record, 'connected_mock')
       const receipt = record.targetSessionReceipt
       if (
@@ -446,6 +482,28 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
         || !isISODate(receipt.stagedAt)
         || !record.connectedAt
       ) throw invalidAggregate('application_connected_context_invalid')
+    }
+    if (record.targetIntegrationStatus === 'invalidated') {
+      const receipt = record.downstreamInvalidationReceipt
+      if (
+        !receipt
+        || receipt.receiptVersion !== 'edit-reference-downstream-invalidation-receipt-v1'
+        || receipt.applicationId !== record.id
+        || receipt.applicationContentDigest !== record.contentDigest
+        || receipt.contextHash !== record.downstreamContext?.packageHash
+        || receipt.projectId !== record.projectId
+        || receipt.editSessionId !== record.editSessionId
+        || receipt.reason !== record.invalidationReason
+        || !isISODate(receipt.sessionUpdatedAt)
+        || !isISODate(receipt.invalidatedAt)
+        || receipt.sessionContextInvalidated !== true
+        || receipt.approvedPlanMutationMade !== false
+        || receipt.mockOnly !== true
+        || !isValidApprovalTransition(receipt)
+        || Object.entries(PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS).some(
+          ([key, value]) => receipt.safety?.[key as keyof typeof PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS] !== value,
+        )
+      ) throw invalidAggregate('application_invalidation_receipt_invalid')
     }
 
     const sourceRules = new Map(dnaVersion.rules.map((rule) => [rule.id, rule]))
@@ -527,6 +585,38 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
       throw invalidAggregate('application_content_digest_invalid')
     }
   }
+
+  const applicationsById = new Map(aggregate.applications.map((record) => [record.id, record]))
+  for (const record of aggregate.applications) {
+    if (record.replacesApplicationId) {
+      const replaced = applicationsById.get(record.replacesApplicationId)
+      if (
+        !replaced
+        || replaced.id === record.id
+        || replaced.status !== 'replaced'
+        || replaced.replacedByApplicationId !== record.id
+        || replaced.projectId !== record.projectId
+        || replaced.editSessionId !== record.editSessionId
+        || replaced.version + 1 !== record.version
+      ) throw invalidAggregate('application_replacement_forward_link_invalid')
+    }
+    if (record.replacedByApplicationId) {
+      const replacement = applicationsById.get(record.replacedByApplicationId)
+      if (!replacement || replacement.replacesApplicationId !== record.id) {
+        throw invalidAggregate('application_replacement_reverse_link_invalid')
+      }
+    }
+  }
+}
+
+function isValidApprovalTransition(
+  receipt: NonNullable<EditReferenceAggregate['applications'][number]['downstreamInvalidationReceipt']>,
+): boolean {
+  const statuses = ['not_requested', 'requested', 'approved', 'rejected', 'reset_after_revision']
+  if (!statuses.includes(receipt.approvalStatusBefore) || !statuses.includes(receipt.approvalStatusAfter)) return false
+  return receipt.approvalResetRequired
+    ? receipt.approvalStatusAfter === 'reset_after_revision'
+    : receipt.approvalStatusAfter === receipt.approvalStatusBefore
 }
 
 function isApplicationTargetContext(value: EditReferenceAggregate['applications'][number]['targetContext']): boolean {

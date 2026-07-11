@@ -3,6 +3,8 @@ import {
   PREFERENCE_APPLICATION_DOWNSTREAM_CONTEXT_VERSION,
   PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS,
   type PreferenceApplicationDownstreamContext,
+  type PreferenceApplicationDownstreamInvalidationReceipt,
+  type PreferenceApplicationInvalidationReason,
   type PreferenceApplicationIntegrationStatus,
   type PreferenceApplicationPlanGuidanceItem,
   type PreferenceApplicationQAContextSummary,
@@ -123,12 +125,53 @@ export function createPreferenceApplicationTargetSessionReceipt(input: {
   }
 }
 
+export function createPreferenceApplicationDownstreamInvalidationReceipt(input: {
+  application: PreferenceApplicationRecord
+  context: PreferenceApplicationDownstreamContext
+  reason: PreferenceApplicationInvalidationReason
+  sessionBefore: ProjectEditSessionRecord
+  sessionAfter: ProjectEditSessionRecord
+  invalidatedAt: string
+  approvalStatusBefore?: ProjectEditSessionRecord['approvalStatus']
+  approvalStatusAfter?: ProjectEditSessionRecord['approvalStatus']
+  approvalResetRequired?: boolean
+}): PreferenceApplicationDownstreamInvalidationReceipt {
+  const approvalStatusBefore = input.approvalStatusBefore ?? input.sessionBefore.approvalStatus
+  const approvalStatusAfter = input.approvalStatusAfter ?? input.sessionAfter.approvalStatus
+  const resetRequired = input.approvalResetRequired ?? (
+    approvalStatusBefore === 'approved' || approvalStatusBefore === 'requested'
+  )
+  return {
+    receiptVersion: 'edit-reference-downstream-invalidation-receipt-v1',
+    applicationId: input.application.id,
+    applicationContentDigest: input.application.contentDigest,
+    contextHash: input.context.packageHash,
+    projectId: input.sessionAfter.projectId,
+    editSessionId: input.sessionAfter.id,
+    reason: input.reason,
+    sessionUpdatedAt: input.sessionAfter.updatedAt,
+    approvalStatusBefore,
+    approvalStatusAfter,
+    approvalResetRequired: resetRequired,
+    sessionContextInvalidated: true,
+    approvedPlanMutationMade: false,
+    invalidatedAt: input.invalidatedAt,
+    mockOnly: true,
+    safety: PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS,
+  }
+}
+
 export function createProjectEditSessionPreferenceIntegrationState(input: {
   application: PreferenceApplicationRecord
   context: PreferenceApplicationDownstreamContext
   status: PreferenceApplicationIntegrationStatus
   stagedAt?: string
   connectedAt?: string
+  invalidatedAt?: string
+  invalidationReason?: PreferenceApplicationInvalidationReason
+  invalidationApprovalStatusBefore?: ProjectEditSessionRecord['approvalStatus']
+  invalidationApprovalStatusAfter?: ProjectEditSessionRecord['approvalStatus']
+  invalidationApprovalResetRequired?: boolean
 }): ProjectEditSessionPreferenceIntegrationState {
   return {
     status: input.status,
@@ -140,6 +183,11 @@ export function createProjectEditSessionPreferenceIntegrationState(input: {
     context: { ...input.context, integrationStatus: input.status },
     stagedAt: input.stagedAt ?? new Date().toISOString(),
     connectedAt: input.connectedAt,
+    invalidatedAt: input.invalidatedAt,
+    invalidationReason: input.invalidationReason,
+    invalidationApprovalStatusBefore: input.invalidationApprovalStatusBefore,
+    invalidationApprovalStatusAfter: input.invalidationApprovalStatusAfter,
+    invalidationApprovalResetRequired: input.invalidationApprovalResetRequired,
     mockOnly: true,
   }
 }
@@ -176,6 +224,21 @@ export function readPreferenceApplicationIntegrationState(
       editSessionId: session?.id,
     })
     || (candidate.status === 'connected_mock' && !candidate.connectedAt)
+    || (candidate.status === 'invalidated' && (
+      !candidate.connectedAt
+      || !candidate.invalidatedAt
+      || !candidate.invalidationReason
+      || !candidate.invalidationApprovalStatusBefore
+      || !candidate.invalidationApprovalStatusAfter
+      || candidate.invalidationApprovalResetRequired === undefined
+    ))
+    || (candidate.status !== 'invalidated' && (
+      candidate.invalidatedAt
+      || candidate.invalidationReason
+      || candidate.invalidationApprovalStatusBefore
+      || candidate.invalidationApprovalStatusAfter
+      || candidate.invalidationApprovalResetRequired !== undefined
+    ))
   ) return undefined
   return candidate as ProjectEditSessionPreferenceIntegrationState
 }

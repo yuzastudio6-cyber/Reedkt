@@ -118,12 +118,56 @@ const targetContextSchema = z.object({
   }).strict(),
   approvedConstraints: z.array(z.string().trim().min(1).max(500)).max(12),
 }).strict()
+const approvalStatusSchema = z.enum(['not_requested', 'requested', 'approved', 'rejected', 'reset_after_revision'])
+const integrationSafetySchema = z.object({
+  providerCallMade: z.literal(false),
+  modelCallMade: z.literal(false),
+  fileBytesRead: z.literal(false),
+  externalUrlFetched: z.literal(false),
+  mediaProcessingStarted: z.literal(false),
+  workerJobCreated: z.literal(false),
+  generationRequestCreated: z.literal(false),
+  renderJobCreated: z.literal(false),
+  creditReservedOrSpent: z.literal(false),
+  approvedPlanMutationMade: z.literal(false),
+  supabaseWriteMade: z.literal(false),
+}).strict()
+const downstreamInvalidationReceiptSchema = z.object({
+  receiptVersion: z.literal('edit-reference-downstream-invalidation-receipt-v1'),
+  applicationId: idSchema.max(200),
+  applicationContentDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  contextHash: z.string().trim().min(1).max(80),
+  projectId: idSchema.max(200),
+  editSessionId: idSchema.max(200),
+  reason: z.enum(['replace', 'remove']),
+  sessionUpdatedAt: z.string().datetime(),
+  approvalStatusBefore: approvalStatusSchema,
+  approvalStatusAfter: approvalStatusSchema,
+  approvalResetRequired: z.boolean(),
+  sessionContextInvalidated: z.literal(true),
+  approvedPlanMutationMade: z.literal(false),
+  invalidatedAt: z.string().datetime(),
+  mockOnly: z.literal(true),
+  safety: integrationSafetySchema,
+}).strict()
 const createPreferenceApplicationSchema = workspaceSchema.extend({
   expectedReferenceRevision: z.number().int().positive(),
   expectedDNAContentDigest: z.string().regex(/^[a-f0-9]{64}$/),
   acknowledgeAdaptNotCopy: z.literal(true),
   targetContext: targetContextSchema,
-}).strict()
+  replacesApplicationId: idSchema.max(200).optional(),
+  expectedReplacedReferenceRevision: z.number().int().positive().optional(),
+  invalidationReceipt: downstreamInvalidationReceiptSchema.optional(),
+}).strict().superRefine((body, context) => {
+  const replacementFields = [body.replacesApplicationId, body.expectedReplacedReferenceRevision, body.invalidationReceipt]
+  const providedCount = replacementFields.filter((value) => value !== undefined).length
+  if (providedCount !== 0 && providedCount !== replacementFields.length) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Replacement requires all exact lifecycle fields.' })
+  }
+  if (body.invalidationReceipt && body.invalidationReceipt.reason !== 'replace') {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Replacement requires a replace invalidation receipt.' })
+  }
+})
 const targetSessionReceiptSchema = z.object({
   receiptVersion: z.literal('edit-reference-project-session-receipt-v1'),
   projectId: idSchema.max(200),
@@ -134,8 +178,8 @@ const targetSessionReceiptSchema = z.object({
   platformTarget: z.enum(['tiktok_reel', 'instagram_reel', 'instagram_feed', 'youtube_shorts', 'youtube_standard', 'linkedin', 'website', 'podcast_clip', 'ad_creative', 'internal_review', 'custom']),
   selectedEditLevel: z.enum(['normal', 'premium', 'ultra_premium']),
   outputFrameConfirmed: z.literal(true),
-  approvalStatusBefore: z.enum(['not_requested', 'requested', 'approved', 'rejected', 'reset_after_revision']),
-  approvalStatusAfter: z.enum(['not_requested', 'requested', 'approved', 'rejected', 'reset_after_revision']),
+  approvalStatusBefore: approvalStatusSchema,
+  approvalStatusAfter: approvalStatusSchema,
   approvalResetRequired: z.boolean(),
   stagedContextHash: z.string().trim().min(1).max(80),
   stagedApplicationContentDigest: z.string().regex(/^[a-f0-9]{64}$/),
@@ -146,6 +190,13 @@ const connectPreferenceApplicationSchema = workspaceSchema.extend({
   expectedReferenceRevision: z.number().int().positive(),
   expectedApplicationContentDigest: z.string().regex(/^[a-f0-9]{64}$/),
   targetSessionReceipt: targetSessionReceiptSchema,
+}).strict()
+const clearPreferenceApplicationSchema = workspaceSchema.extend({
+  expectedReferenceRevision: z.number().int().positive(),
+  expectedApplicationContentDigest: z.string().regex(/^[a-f0-9]{64}$/),
+  invalidationReceipt: downstreamInvalidationReceiptSchema.refine((receipt) => receipt.reason === 'remove', {
+    message: 'Removal requires a remove invalidation receipt.',
+  }),
 }).strict()
 
 export function createEditReferenceRoutes(): Router {
@@ -298,6 +349,16 @@ export function createEditReferenceRoutes(): Router {
   router.post('/v1/edit-reference-applications/:applicationId/connect', requireAuth, asyncRoute(async (request, response) => {
     const body = validateBody(connectPreferenceApplicationSchema, request.body)
     const result = await createEditReferenceService(getServiceContext(request)).connectPreferenceApplication(
+      getRouteParam(request, 'applicationId'),
+      body,
+      getDurableIdempotencyKey(request),
+    )
+    sendMutation(response, result)
+  }))
+
+  router.post('/v1/edit-reference-applications/:applicationId/clear', requireAuth, asyncRoute(async (request, response) => {
+    const body = validateBody(clearPreferenceApplicationSchema, request.body)
+    const result = await createEditReferenceService(getServiceContext(request)).clearPreferenceApplication(
       getRouteParam(request, 'applicationId'),
       body,
       getDurableIdempotencyKey(request),

@@ -35,6 +35,8 @@ export type PreferenceApplicationIntegrationStatus =
   | 'connected_mock'
   | 'invalidated'
 
+export type PreferenceApplicationInvalidationReason = 'replace' | 'remove'
+
 export interface PreferenceApplicationDownstreamGuidanceItem {
   id: string
   layerId: PreferenceDNALayerId
@@ -96,11 +98,37 @@ export interface PreferenceApplicationTargetSessionReceipt {
   mockOnly: true
 }
 
+export interface PreferenceApplicationDownstreamInvalidationReceipt {
+  receiptVersion: 'edit-reference-downstream-invalidation-receipt-v1'
+  applicationId: string
+  applicationContentDigest: string
+  contextHash: string
+  projectId: string
+  editSessionId: string
+  reason: PreferenceApplicationInvalidationReason
+  sessionUpdatedAt: string
+  approvalStatusBefore: ProjectEditSessionApprovalStatus
+  approvalStatusAfter: ProjectEditSessionApprovalStatus
+  approvalResetRequired: boolean
+  sessionContextInvalidated: true
+  approvedPlanMutationMade: false
+  invalidatedAt: string
+  mockOnly: true
+  safety: typeof PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS
+}
+
 export interface ConnectPreferenceApplicationRequest {
   workspaceId: string
   expectedReferenceRevision: number
   expectedApplicationContentDigest: string
   targetSessionReceipt: PreferenceApplicationTargetSessionReceipt
+}
+
+export interface ClearPreferenceApplicationRequest {
+  workspaceId: string
+  expectedReferenceRevision: number
+  expectedApplicationContentDigest: string
+  invalidationReceipt: PreferenceApplicationDownstreamInvalidationReceipt
 }
 
 export interface ProjectEditSessionPreferenceIntegrationState {
@@ -113,6 +141,11 @@ export interface ProjectEditSessionPreferenceIntegrationState {
   context: PreferenceApplicationDownstreamContext
   stagedAt: string
   connectedAt?: string
+  invalidatedAt?: string
+  invalidationReason?: PreferenceApplicationInvalidationReason
+  invalidationApprovalStatusBefore?: ProjectEditSessionApprovalStatus
+  invalidationApprovalStatusAfter?: ProjectEditSessionApprovalStatus
+  invalidationApprovalResetRequired?: boolean
   mockOnly: true
 }
 
@@ -148,7 +181,7 @@ export interface ProjectEditSessionPreferenceIntegrationMemoryUpdate {
 
 export interface ProjectEditSessionPreferenceIntegrationPlan {
   id: string
-  action: 'stage_exact_application' | 'activate_connected_application'
+  action: 'stage_exact_application' | 'activate_connected_application' | 'invalidate_connected_application'
   projectId: string
   editSessionId: string
   applicationId: string
@@ -158,6 +191,7 @@ export interface ProjectEditSessionPreferenceIntegrationPlan {
   historyEvents: string[]
   snapshotSummary: string
   shouldResetApproval: boolean
+  invalidationReason?: PreferenceApplicationInvalidationReason
   mockOnly: true
   safety: typeof PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS
 }

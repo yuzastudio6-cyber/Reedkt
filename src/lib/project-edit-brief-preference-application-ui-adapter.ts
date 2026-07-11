@@ -48,6 +48,40 @@ export async function syncPreferenceApplicationContextToProjectEditBrief(input: 
         preferenceApplicationContextHash: input.context.packageHash,
         preferenceApplicationId: input.context.applicationId,
         preferenceApplicationMockOnly: true,
+        preferenceApplicationReplanRequired: false,
+        preferenceApplicationContextStatus: 'connected',
+        plannerExecuted: false,
+        approvedPlanMutationMade: false,
+      },
+    },
+  }, input.client)
+  return {
+    brief: response.brief,
+    changed: Boolean(response.brief),
+    mockOnly: true as const,
+  }
+}
+
+export async function clearPreferenceApplicationContextFromProjectEditBrief(input: {
+  brief: ProjectEditBriefRecord
+  client: ProjectEditBriefApiClient
+}) {
+  const current = readPreferenceApplicationContextFromEditBrief(input.brief)
+  if (!current) return { brief: input.brief, changed: false, mockOnly: true as const }
+  const metadata = { ...(input.brief.metadata ?? {}) }
+  delete metadata[BRIEF_METADATA_KEY]
+  delete metadata.preferenceApplicationContextHash
+  delete metadata.preferenceApplicationId
+  delete metadata.preferenceApplicationMockOnly
+  const response = await updateProjectEditBriefViaApi({
+    briefId: input.brief.id,
+    patch: {
+      metadata: {
+        ...metadata,
+        previousPreferenceApplicationId: current.applicationId,
+        previousPreferenceApplicationContextHash: current.packageHash,
+        preferenceApplicationContextStatus: 'inactive',
+        preferenceApplicationReplanRequired: true,
         plannerExecuted: false,
         approvedPlanMutationMade: false,
       },
@@ -65,7 +99,7 @@ export function createProjectEditBriefPreferenceApplicationSummary(
 ) {
   return {
     title: context.editReferenceName,
-    statusLabel: 'Connected mock-locally',
+    statusLabel: 'Connected',
     summary: context.summary,
     activeGuidanceCount: context.guidance.length,
     heldBackCount: context.heldBack.length,

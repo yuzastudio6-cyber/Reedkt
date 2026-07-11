@@ -100,10 +100,10 @@ test.describe('Edit Reference downstream integration', () => {
     )
     await connection.getByRole('checkbox').check()
     await connection.getByRole('button', { name: 'Finish connection' }).click()
-    await expect(connection).toContainText('Connected mock-locally')
+    await expect(connection).toContainText('Connected')
     await expect(connection).toContainText('adapted')
     await expect(connection).toContainText('held back')
-    await expect(page.getByTestId('edit-session-preference-status')).toContainText('connected mock-locally')
+    await expect(page.getByTestId('edit-session-preference-status')).toContainText('is connected')
     await expect(page.getByTestId('edit-session-chat-page')).not.toContainText(
       /content digest|target context digest|application id|provider call made/i,
     )

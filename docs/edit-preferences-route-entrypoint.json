@@ -1,6 +1,6 @@
 {
   "id": "edit-preferences-route-entrypoint",
-  "decision": "edit_preferences_route_entrypoint_passed_mock_local_ready_for_internal_testing",
+  "decision": "edit_preferences_workspace_feature_complete_except_external_blocker",
   "route": "/preferences",
   "legacyRedirect": "/edit-preferences",
   "source": {
@@ -9,17 +9,22 @@
     "defaultEditSessionId": null
   },
   "features": [
+    "edit_reference_workspace",
+    "study_chat",
+    "preference_dna_review",
+    "applied_edit_history",
+    "safety_privacy_guidance",
     "clean_preference_groups",
     "preference_note_field",
     "mock_local_boundary_summary",
     "sidebar_navigation",
-    "minimal_sidebar_home_project_preferences_only"
+    "minimal_sidebar_home_project_edit_preferences_only"
   ],
   "sidebarNavigation": {
     "allowed": [
       "Home",
       "Project",
-      "Preferences"
+      "Edit Preferences"
     ],
     "removedFromPrimarySidebar": [
       "AI Editor",
@@ -38,17 +43,23 @@
       "/brand-kit": "/preferences",
       "/exports": "/projects"
     },
-    "context": "Contextual project and edit actions can open scoped workflows, but the persistent app sidebar remains Home, Project, and Preferences only."
+    "context": "Contextual project and edit actions can open scoped workflows, but the persistent app sidebar remains Home, Project, and Edit Preferences only."
+  },
+  "backendLocalCapabilities": {
+    "privateReferenceUpload": true,
+    "ffprobeMediaStructure": true,
+    "ffmpegRepresentativeFramePlan": true,
+    "ephemeralArtifactCleanup": true,
+    "preferenceDnaLifecycle": true,
+    "targetApplicationLifecycle": true
   },
   "blockedScope": {
-    "upload": false,
-    "fileBytesRead": false,
+    "remoteUploadOrStorage": false,
     "referenceUrlFetch": false,
-    "qwenCall": false,
-    "deepseekCall": false,
-    "providerCall": false,
-    "workerDispatch": false,
-    "mediaProcessing": false,
+    "liveQwenCall": false,
+    "liveDeepseekCall": false,
+    "externalProviderCall": false,
+    "distributedWorkerDispatch": false,
     "renderOrExport": false,
     "creditReservationOrSpend": false,
     "supabaseReadWrite": false,

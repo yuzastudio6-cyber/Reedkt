@@ -2,6 +2,7 @@ import type {
   ProjectEditBriefMarkerConflictRecord,
   ProjectEditBriefQAStatus,
 } from './project-edit-brief'
+import type { PreferenceApplicationQAContextSummary } from './edit-reference-integration'
 
 export type ProjectEditBriefQAReadinessStatus =
   | 'not_checked'
@@ -120,6 +121,7 @@ export interface ProjectEditBriefQAPackage extends ProjectEditBriefQASafetyFlags
   conflictCount: number
   blockedCount: number
   readableSummary: string
+  preferenceApplicationQA?: PreferenceApplicationQAContextSummary
   mockOnly: true
   warnings: string[]
 }
@@ -144,6 +146,7 @@ export interface ProjectEditBriefQASummaryModel extends ProjectEditBriefQASafety
   conflictCount: number
   blockedCount: number
   readableSummary: string
+  preferenceApplicationQA?: PreferenceApplicationQAContextSummary
   canRunMockQA: boolean
   boundarySummary: string
   mockOnly: true
@@ -163,6 +166,7 @@ export interface ProjectEditBriefMarkerQAPanelModel extends ProjectEditBriefQASa
   canRunMockQA: boolean
   mockOnly: true
   warnings: string[]
+  preferenceApplicationQA?: PreferenceApplicationQAContextSummary
 }
 
 export interface ProjectEditBriefQAScenario extends ProjectEditBriefQASafetyFlags {

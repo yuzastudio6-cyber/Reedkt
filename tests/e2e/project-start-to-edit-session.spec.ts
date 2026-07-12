@@ -39,14 +39,24 @@ test.describe('Project start to edit workspace flow', () => {
     await expectNoHorizontalOverflow(page)
   })
 
-  test('routes edit aliases into the clean edit workspace', async ({ page }) => {
+  test('keeps setup clean while exposing dedicated Chat and Brief routes', async ({ page }) => {
     await setViewport(page, 1440)
-    await gotoRoute(page, '/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/chat')
+    const editPath = '/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide'
+    await gotoRoute(page, editPath)
 
     await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
     await expect(page.getByTestId('edit-session-route-tabs')).toHaveCount(0)
     await expect(page.getByTestId('edit-session-chat-input')).toHaveCount(0)
     await expect(page.getByText(/Upload the source video for this edit/i)).toBeVisible()
+
+    await page.getByRole('link', { name: 'Open Edit Chat' }).click()
+    await expect(page).toHaveURL(new RegExp(`${editPath}/chat$`))
+    await expect(page.getByTestId('edit-session-route-tabs')).toBeVisible()
+    await expect(page.getByTestId('edit-session-chat-input')).toBeVisible()
+
+    await page.getByTestId('edit-session-route-tab-brief').click()
+    await expect(page).toHaveURL(new RegExp(`${editPath}/brief$`))
+    await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
     await expectNoHorizontalOverflow(page)
   })
 

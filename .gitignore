@@ -12,6 +12,8 @@ dist
 dist-ssr
 dist-server
 dist-remotion-worker
+playwright-report
+test-results
 *.local
 
 # Editor directories and files

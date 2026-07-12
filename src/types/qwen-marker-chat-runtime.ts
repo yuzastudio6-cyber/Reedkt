@@ -14,6 +14,7 @@ import type {
   QwenRuntimeUsageRecord,
   QwenStructuredResponseValidationResult,
 } from './qwen-runtime-adapter'
+import type { PreferenceApplicationDownstreamContext } from './edit-reference-integration'
 
 export type QwenMarkerChatRuntimeSource =
   | 'backend_route'
@@ -37,6 +38,7 @@ export interface QwenMarkerChatRuntimeRequest {
   messageText: string
   runtimeMode: 'qwen_beta'
   createdAt: string
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }
 
 export interface QwenMarkerChatPromptPackage extends QwenRuntimeSafetyFlags {

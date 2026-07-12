@@ -69,6 +69,9 @@ export function AppShell({
       }}
     >
       <div className={`app-shell ${isChatMode ? 'app-shell-chat' : ''} ${isChatMode && !editorSidebarVisible ? 'sidebar-hidden' : ''}`.trim()}>
+        <a className="skip-link" data-testid="skip-to-main-content" href="#app-main-content">
+          Skip to main content
+        </a>
         {sidebarVisible && (
           <aside className="sidebar" data-testid="app-sidebar">
             <BrandLogo />
@@ -80,7 +83,12 @@ export function AppShell({
                   : (location.pathname === path || (path === '/projects' && location.pathname.startsWith('/projects/'))) && !location.hash
 
                 return (
-                  <Link className={`sidebar-link ${isActive ? 'active' : ''}`} key={item.to + item.label} to={item.to}>
+                  <Link
+                    className={`sidebar-link ${isActive ? 'active' : ''}`}
+                    data-testid={item.to === '/preferences' ? 'edit-preferences-sidebar-link' : undefined}
+                    key={item.to + item.label}
+                    to={item.to}
+                  >
                     <item.icon aria-hidden="true" size={18} />
                     <span>{item.label}</span>
                   </Link>
@@ -89,7 +97,7 @@ export function AppShell({
             </nav>
           </aside>
         )}
-        <main className={`app-main ${isChatMode ? 'app-main-chat' : ''}`.trim()}>
+        <main className={`app-main ${isChatMode ? 'app-main-chat' : ''}`.trim()} id="app-main-content" tabIndex={-1}>
           {!isChatMode && (
             <header className="topbar">
               <div className="topbar-copy">

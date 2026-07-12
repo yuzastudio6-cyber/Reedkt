@@ -90,6 +90,10 @@ export function createQwenMarkerChatPromptPackage(input: {
   const existingIntent = input.drawer.intent
     ? `${input.drawer.intent.action} ${input.drawer.intent.status} ${input.drawer.intent.instruction}`
     : 'none'
+  const preferenceApplicationContext = input.request.preferenceApplicationContext
+  const preferenceApplicationGuidance = preferenceApplicationContext?.guidance
+    .slice(0, 8)
+    .map((item) => `${item.title}: ${item.instruction}`) ?? []
   const systemPrompt = [
     `You are ${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} acting as ReEditPro backend-only Marker Chat reasoning.`,
     'Understand the marker-specific user message and return only valid JSON for QwenMarkerChatStructuredResponse.',
@@ -117,6 +121,15 @@ export function createQwenMarkerChatPromptPackage(input: {
     `Attachment labels only: ${safeList(attachmentLabels)}`,
     `Export settings summary: ${exportSummary(input.exportSettings)}`,
     `QA status: ${marker.qaStatus}`,
+    preferenceApplicationContext
+      ? `Target-adapted Edit Reference: ${preferenceApplicationContext.editReferenceName}. ${safeList(preferenceApplicationGuidance)}`
+      : 'Target-adapted Edit Reference: unavailable.',
+    preferenceApplicationContext
+      ? `Preference precedence: ${preferenceApplicationContext.precedencePolicy.join(' > ')}. Current edit instructions and confirmed marker direction remain authoritative.`
+      : 'Preference precedence: current edit instructions and marker direction remain authoritative.',
+    preferenceApplicationContext
+      ? `Do-not-copy boundaries: ${safeList(preferenceApplicationContext.doNotCopyRules)}`
+      : 'Do-not-copy boundaries: use the default adapt-not-copy policy.',
     'Required JSON fields: assistantMessage, action, status, visualBehavior, audioBehavior, captionBehavior, assetRequirement, confidence, blockingNeeds, plannerHints, doNotCopyNotes, clarificationQuestion, suggestions, safetyWarnings.',
     'Example shape: {"assistantMessage":"Understood. I will treat this as marker-scoped guidance only.","action":"add_broll","status":"confirmed","visualBehavior":"insert_broll","audioBehavior":"keep_original_audio","captionBehavior":"unspecified","assetRequirement":"","confidence":"high","blockingNeeds":[],"plannerHints":["Metadata-only B-roll hint for this marker."],"doNotCopyNotes":["Adapt the reference; do not copy exact footage."],"clarificationQuestion":"","suggestions":[],"safetyWarnings":[]}',
   ].join('\n')
@@ -137,6 +150,11 @@ export function createQwenMarkerChatPromptPackage(input: {
       'attachment labels only',
       'export settings summary',
       'QA status',
+      ...(preferenceApplicationContext ? [
+        'target-adapted Edit Reference guidance',
+        'Edit Reference precedence policy',
+        'Edit Reference do-not-copy boundaries',
+      ] : []),
       'do-not-copy policy',
       'required JSON schema',
     ],

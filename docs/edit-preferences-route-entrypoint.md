@@ -2,29 +2,31 @@
 
 ## Decision
 
-`edit_preferences_route_entrypoint_passed_mock_local_ready_for_internal_testing`
+`edit_preferences_workspace_feature_complete_except_external_blocker`
 
 ## Summary
 
-This milestone wires the primary `/preferences` route into the app as a clean mock/local Preferences page. The older `/edit-preferences` URL remains a compatibility redirect so existing internal-testing links still land on the same page.
+This milestone wires the primary `/preferences` route into the app as the Edit Preferences workspace. The older `/edit-preferences` URL remains a compatibility redirect so existing internal-testing links still land on the same page.
 
-The route is production-shaped for internal testing, not a shortcut. It keeps Edit Preference distinct from Project, Edit Chat, and Edit Brief, and it preserves the future path toward authenticated persistence and owner-approved runtime gates.
+The route is production-shaped for backend-local review, not a shortcut. It keeps Edit Preferences distinct from Project, Edit Chat, and Edit Brief, and preserves the future path toward authenticated remote persistence and owner-approved runtime gates.
 
 ## Connected Scope
 
 - Canonical route: `/preferences`
 - Legacy redirect: `/edit-preferences`
-- Navigation: sidebar Preferences item.
-- Sidebar rule: the primary sidebar navigation is intentionally limited to Home, Project, and Preferences. Editor, upload, export, brand, wallet, and other old shell surfaces must not appear as primary sidebar options; their old standalone routes redirect back into Home, Project, or Preferences.
-- Source options: broad editing-default preference groups only.
+- Navigation: sidebar Edit Preferences item.
+- Sidebar rule: the primary sidebar navigation is intentionally limited to Home, Project, and Edit Preferences. Editor, upload, export, brand, wallet, and other old shell surfaces must not appear as primary sidebar options; their old standalone routes redirect back into Home, Project, or Edit Preferences.
+- Source options: Edit References, Workspace Defaults, Applied Edits, and Safety & Privacy.
 - Default project/session context: none.
-- Draft storage: not connected in this clean shell.
+- Edit Reference authority: private backend-local repository and authenticated local API boundary.
+- Workspace Defaults authority: browser-local until a later persistence milestone.
 
 ## Boundaries
 
-- No upload or file-byte read.
+- Deliberate reference-video evidence may use the private backend-local upload flow.
+- FFprobe and FFmpeg may perform the bounded local structure/frame-plan work proven by Gate 8.1; raw frames, signed URLs, and filesystem paths are not persisted as study truth.
 - No reference URL fetch.
-- No Qwen, DeepSeek, provider, worker, render/export, media processing, credit reservation, or credit spend.
+- No live Qwen, DeepSeek, external provider, distributed worker, render/export, credit reservation, or credit spend.
 - No live Supabase read/write, Storage, signed URL, SQL, or migration.
 - No external beta, real-user-media beta, paid production, or product-ready claim.
 
@@ -42,6 +44,6 @@ The route is production-shaped for internal testing, not a shortcut. It keeps Ed
 
 ## Next
 
-Use `/preferences` during internal testing to inspect broad reusable style direction. Later milestones can connect authenticated preference persistence and owner-reviewed Preference DNA, but this route does not enable those release gates by itself.
+Use `/preferences` during internal testing to study Edit References and manage broad reusable defaults. The Edit Reference workflow is backend-local and keeps remote Supabase, external provider execution, production charging, and release gates disabled.
 
-Keep Preferences in the clean sidebar. Do not restore the older broad sidebar list or standalone old shell pages unless a later product decision explicitly expands primary navigation.
+Keep Edit Preferences in the clean sidebar. Do not restore the older broad sidebar list or standalone old shell pages unless a later product decision explicitly expands primary navigation.

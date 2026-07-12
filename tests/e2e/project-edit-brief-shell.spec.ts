@@ -3,8 +3,9 @@ import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import { gotoRoute } from './helpers/routes'
 
 const projectHomePath = '/projects/mock-project-edit-chat-foundation'
-const markerChatPath = `${projectHomePath}/edits/edit-session-youtube-wide`
-const briefPath = `${markerChatPath}/brief`
+const editPath = `${projectHomePath}/edits/edit-session-youtube-wide`
+const markerChatPath = `${editPath}/chat`
+const briefPath = `${editPath}/brief`
 
 test.describe('Project Edit Brief shell', () => {
   test('opens the mock/local Brief route with video, timeline, marker detail, and boundaries', async ({ page }) => {
@@ -45,7 +46,7 @@ test.describe('Project Edit Brief shell', () => {
     await expect(page.getByTestId('project-edit-brief-marker-chat-boundary')).toContainText('Marker Chat is mock/local')
 
     await page.getByTestId('edit-session-route-tab-chat').click()
-    await expect(page).toHaveURL(new RegExp(`${markerChatPath}/chat$`))
+    await expect(page).toHaveURL(new RegExp(`${markerChatPath}$`))
     await expect(page.getByTestId('edit-session-chat-input')).toBeVisible()
 
     await expect(page.getByTestId('generation-progress-card')).toHaveCount(0)

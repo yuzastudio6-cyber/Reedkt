@@ -40,7 +40,6 @@ export async function gotoEditor(page: Page, path = '/editor') {
 }
 
 export async function clickWhenReady(locator: Locator) {
-  await locator.scrollIntoViewIfNeeded()
   await expect(locator).toBeVisible()
   await expect(locator).toBeEnabled()
   await locator.click()

@@ -27,6 +27,7 @@ function createRequest(input: Omit<QwenMarkerChatRuntimeRequest, 'id' | 'created
     briefId: input.briefId,
     markerId: input.markerId,
     messageText: input.messageText,
+    preferenceApplicationContext: input.preferenceApplicationContext,
     runtimeMode: 'qwen_beta',
     createdAt: input.createdAt ?? new Date().toISOString(),
   }
@@ -167,6 +168,11 @@ export async function runQwenMarkerChatBridge(input: {
         source: 'rp_qwen_beta_01_marker_chat',
         runtimeMode: 'qwen_beta',
         scopedToMarkerOnly: true,
+        ...(request.preferenceApplicationContext ? {
+          preferenceApplicationContext: request.preferenceApplicationContext,
+          preferenceApplicationId: request.preferenceApplicationContext.applicationId,
+          preferenceApplicationContextHash: request.preferenceApplicationContext.packageHash,
+        } : {}),
       },
     },
   })).data

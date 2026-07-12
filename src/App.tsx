@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 const CreateProjectPage = lazy(() => import('./pages/CreateProjectPage').then((module) => ({ default: module.CreateProjectPage })))
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })))
 const EditorPage = lazy(() => import('./pages/EditorPage').then((module) => ({ default: module.EditorPage })))
+const ProjectEditSessionChatPage = lazy(() => import('./pages/ProjectEditSessionChatPage').then((module) => ({ default: module.ProjectEditSessionChatPage })))
 const ProjectHomePage = lazy(() => import('./pages/ProjectHomePage').then((module) => ({ default: module.ProjectHomePage })))
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage').then((module) => ({ default: module.ProjectsPage })))
 const PreferencesPage = lazy(() => import('./pages/PreferencesPage').then((module) => ({ default: module.PreferencesPage })))
@@ -35,8 +36,8 @@ export default function App() {
         <Route path="/projects/new" element={<CreateProjectPage />} />
         <Route path="/projects/:projectId" element={<ProjectHomePage />} />
         <Route path="/projects/:projectId/edits/:editSessionId" element={<EditorPage />} />
-        <Route path="/projects/:projectId/edits/:editSessionId/chat" element={<EditorPage />} />
-        <Route path="/projects/:projectId/edits/:editSessionId/brief" element={<EditorPage />} />
+        <Route path="/projects/:projectId/edits/:editSessionId/chat" element={<ProjectEditSessionChatPage />} />
+        <Route path="/projects/:projectId/edits/:editSessionId/brief" element={<ProjectEditSessionChatPage />} />
         <Route path="/projects/:projectId/edits/:editSessionId/history" element={<EditorPage />} />
         <Route path="/projects/:projectId/edits/:editSessionId/versions" element={<EditorPage />} />
         <Route path="/projects/:projectId/edits/:editSessionId/preview" element={<EditorPage />} />

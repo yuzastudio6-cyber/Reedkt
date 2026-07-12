@@ -2,7 +2,9 @@ import { expect, test, type Page } from '@playwright/test'
 import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import { gotoRoute } from './helpers/routes'
 
-const briefPath = '/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief'
+const backendUploadEnabled = process.env.PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD === 'true'
+const editPath = '/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide'
+const briefPath = backendUploadEnabled ? editPath : `${editPath}/brief`
 
 async function installBrowserVideoMetadataMock(page: Page) {
   await page.addInitScript(() => {
@@ -79,7 +81,9 @@ test.describe('Project source video Brief playback', () => {
 
     await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
     await expect(page.getByTestId('project-source-video-picker')).toContainText('Local preview and internal upload')
-    await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('unavailable')
+    await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText(
+      backendUploadEnabled ? /idle|uploaded/ : 'unavailable',
+    )
     await expect(page.locator('input[type="file"]:enabled')).toHaveCount(1)
 
     await page.getByTestId('project-source-video-file-input').setInputFiles({
@@ -88,9 +92,15 @@ test.describe('Project source video Brief playback', () => {
       buffer: Buffer.from('rp-media-01 mocked browser metadata only'),
     })
 
-    await expect(page.getByTestId('project-edit-brief-status')).toContainText('Local browser source video selected')
-    await expect(page.getByRole('button', { name: /Upload for testing/i })).toBeDisabled()
-    await expect(page.getByTestId('project-source-video-local-mode')).toContainText('Local browser preview only')
+    await expect(page.getByTestId('project-edit-brief-status')).toContainText(
+      backendUploadEnabled ? 'Source video selected for this edit' : 'Local browser source video selected',
+    )
+    if (backendUploadEnabled) {
+      await expect(page.getByRole('button', { name: /Upload for testing/i })).toBeEnabled()
+    } else {
+      await expect(page.getByRole('button', { name: /Upload for testing/i })).toBeDisabled()
+    }
+    await expect(page.getByTestId('project-source-video-local-mode')).toContainText('Local browser source')
     await expect(page.getByTestId('project-edit-brief-video-shell')).not.toContainText('Mock video shell only')
 
     const player = page.getByTestId('project-source-video-local-player')
@@ -103,6 +113,11 @@ test.describe('Project source video Brief playback', () => {
     await expect(page.getByTestId('project-source-video-summary')).toContainText('0:12')
     await expect(page.getByTestId('project-source-video-summary')).toContainText('1080x1920')
     await expect(page.getByTestId('project-source-video-summary')).toContainText('9:16')
+    if (backendUploadEnabled) {
+      await expect(page.getByTestId('project-edit-flow-summary')).toContainText('Continue with source')
+      await expectNoHorizontalOverflow(page)
+      return
+    }
     await expect(page.getByTestId('project-edit-brief-timecode')).toContainText('/ 0:12')
 
     const lane = page.getByTestId('project-edit-brief-marker-lane')

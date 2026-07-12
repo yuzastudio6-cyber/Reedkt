@@ -7,6 +7,7 @@ import type {
   ProjectEditBriefMarkerRecord,
 } from '../types/project-edit-brief'
 import type { QwenMarkerChatBridgeResult } from '../types/qwen-marker-chat-runtime'
+import type { PreferenceApplicationDownstreamContext } from '../types/edit-reference-integration'
 import { REEDITPRO_QWEN_MAIN_BRAIN_LABEL } from '../types/qwen-main-brain'
 import type {
   ProjectEditBriefMarkerChatApplyResult,
@@ -58,6 +59,7 @@ type MarkerChatBetaAppendData = {
 type MarkerChatRequestInput = {
   markerId: string
   messageText: string
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }
 
 function defaultClient(client?: ProjectEditBriefApiClient): ProjectEditBriefApiClient {
@@ -414,6 +416,11 @@ export async function sendProjectEditBriefMarkerChatMessageViaApi(
       source: 'rp_qwen_beta_01_marker_chat_request',
       scopedToMarkerOnly: true,
       backendQwenBetaRequested: true,
+      ...(input.preferenceApplicationContext ? {
+        preferenceApplicationContext: input.preferenceApplicationContext,
+        preferenceApplicationId: input.preferenceApplicationContext.applicationId,
+        preferenceApplicationContextHash: input.preferenceApplicationContext.packageHash,
+      } : {}),
     },
   }, client)
 

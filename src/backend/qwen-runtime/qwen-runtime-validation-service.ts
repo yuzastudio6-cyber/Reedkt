@@ -4,6 +4,7 @@ import type {
   QwenRuntimeConfig,
 } from '../../types'
 import { createQwenRuntimeSafetyFlags } from './qwen-runtime-config-service'
+import { isPreferenceApplicationDownstreamContextValid } from '../../lib/edit-reference-downstream-context'
 
 export function validateQwenMarkerChatRuntimeRequest(request: QwenMarkerChatRuntimeRequest): QwenMarkerChatRuntimeValidationResult {
   const errors: string[] = []
@@ -13,6 +14,10 @@ export function validateQwenMarkerChatRuntimeRequest(request: QwenMarkerChatRunt
   if (!request.markerId) errors.push('markerId is required.')
   if (!request.messageText.trim()) errors.push('messageText is required.')
   if (request.runtimeMode !== 'qwen_beta') errors.push('runtimeMode must be qwen_beta.')
+  if (request.preferenceApplicationContext && !isPreferenceApplicationDownstreamContextValid(
+    request.preferenceApplicationContext,
+    { projectId: request.projectId, editSessionId: request.editSessionId },
+  )) errors.push('preferenceApplicationContext is invalid or does not match this edit session.')
   return {
     ...createQwenRuntimeSafetyFlags(),
     ok: errors.length === 0,

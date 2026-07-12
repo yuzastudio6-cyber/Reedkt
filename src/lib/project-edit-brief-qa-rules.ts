@@ -17,6 +17,8 @@ import type {
   ProjectEditBriefQASafetyFlags,
   ProjectEditBriefMarkerQAPackage,
 } from '../types/project-edit-brief-qa'
+import type { PreferenceApplicationDownstreamContext } from '../types/edit-reference-integration'
+import { createPreferenceApplicationQAContextSummary } from './edit-reference-downstream-context'
 
 export const PROJECT_EDIT_BRIEF_QA_SAFETY_FLAGS: ProjectEditBriefQASafetyFlags = {
   providerCallMade: false,
@@ -59,6 +61,7 @@ export type ProjectEditBriefQAInput = {
   bundle: ProjectEditBriefBundleRecord
   exportSettings?: ProjectEditSessionExportSettingsRecord
   durationSeconds?: number
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }
 
 function textFor(marker: ProjectEditBriefMarkerRecord, intent?: ProjectEditBriefMarkerIntentRecord): string {
@@ -579,14 +582,29 @@ export function createProjectEditBriefQAPackage(input: ProjectEditBriefQAInput):
       durationSeconds: input.durationSeconds,
     }))
   const findings = markerPackages.flatMap((markerPackage) => markerPackage.findings)
-  const readinessStatus = classifyProjectEditBriefQAReadiness(findings)
+  const preferenceApplicationQA = input.preferenceApplicationContext
+    ? createPreferenceApplicationQAContextSummary({
+        context: input.preferenceApplicationContext,
+        projectId: bundle.brief.projectId,
+        editSessionId: bundle.brief.editSessionId,
+        markers: bundle.markers,
+      })
+    : undefined
+  const markerReadinessStatus = classifyProjectEditBriefQAReadiness(findings)
+  const readinessStatus = preferenceApplicationQA?.status === 'blocked'
+    ? 'failed_validation'
+    : preferenceApplicationQA?.status === 'warning' && markerReadinessStatus === 'ready_for_plan_mock'
+      ? 'ready_with_warnings_mock'
+      : markerReadinessStatus
   const passedCount = markerPackages.filter((markerPackage) => markerPackage.qaStatus === 'passed').length
   const warningCount = findings.filter((finding) => finding.severity === 'warning').length
+    + (preferenceApplicationQA?.status === 'warning' ? preferenceApplicationQA.findings.length : 0)
   const needsAssetCount = markerPackages.filter((markerPackage) => markerPackage.qaStatus === 'needs_asset').length
   const needsClarificationCount = markerPackages.filter((markerPackage) => markerPackage.qaStatus === 'needs_clarification').length
   const conflictCount = findings.filter((finding) => finding.qaStatus === 'conflict').length
   const blockedCount = findings.filter((finding) => finding.qaStatus === 'blocked' || finding.blocksPlan).length
-  const readableSummary = createProjectEditBriefQAReadableSummary({
+    + (preferenceApplicationQA?.status === 'blocked' ? preferenceApplicationQA.findings.length : 0)
+  const readableSummary = `${createProjectEditBriefQAReadableSummary({
     readinessStatus,
     markerCount: markerPackages.length,
     passedCount,
@@ -595,7 +613,7 @@ export function createProjectEditBriefQAPackage(input: ProjectEditBriefQAInput):
     needsClarificationCount,
     conflictCount,
     blockedCount,
-  })
+  })}${preferenceApplicationQA ? ` Preference Application QA: ${preferenceApplicationQA.status}; ${preferenceApplicationQA.activeGuidanceCount} active, ${preferenceApplicationQA.heldBackGuidanceCount} held back, ${preferenceApplicationQA.doNotCopyRuleCount} do-not-copy boundaries.` : ''}`
   return {
     briefId: bundle.brief.id,
     projectId: bundle.brief.projectId,
@@ -611,6 +629,7 @@ export function createProjectEditBriefQAPackage(input: ProjectEditBriefQAInput):
     conflictCount,
     blockedCount,
     readableSummary,
+    preferenceApplicationQA,
     mockOnly: true,
     warnings: [
       PROJECT_EDIT_BRIEF_QA_PRIORITY_SUMMARY,

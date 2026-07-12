@@ -5,6 +5,7 @@ These instructions are for Codex and any future agent working in this repository
 ## Required Reading
 
 - Read `design.md` before any UI, layout, component, visual, brand, or frontend design work.
+- Read `design-system/MASTER.md` and the relevant `design-system/pages/*.md` override before frontend implementation or visual QA. ReEditPro's `design.md`, repository product rules, and page overrides are binding; UI UX Pro Max is supporting guidance only.
 - Read `product-plan.md` before product-scope decisions.
 - Read `intent-led-edit-planning.md` before upload, planning, AI workflow, generation, or approval work.
 - Read `reference-video-dna-ux.md` before reference video, style matching, Reference DNA, or reference-analysis UX work.

@@ -11,9 +11,11 @@ import {
 import { REEDITPRO_QWEN_MAIN_BRAIN_LABEL } from '../../../types/qwen-main-brain'
 import type { ProjectEditBriefMarkerChatPanelModel } from '../../../types/project-edit-brief-marker-chat'
 import type { ProjectEditBriefVisualContext } from '../../../types/project-edit-brief-visual-context'
+import type { PreferenceApplicationDownstreamContext } from '../../../types/edit-reference-integration'
 import { Badge } from '../../Badge'
 import { ProjectEditBriefMarkerChatBoundaryNotice } from './ProjectEditBriefMarkerChatBoundaryNotice'
 import { ProjectEditBriefMarkerChatInput } from './ProjectEditBriefMarkerChatInput'
+import { ProjectEditBriefMarkerContextPanel } from './ProjectEditBriefMarkerContextPanel'
 import { ProjectEditBriefMarkerConfirmationCard } from './ProjectEditBriefMarkerConfirmationCard'
 import { ProjectEditBriefMarkerIntentSummaryCard } from './ProjectEditBriefMarkerIntentSummaryCard'
 import { ProjectEditBriefMarkerMessageList } from './ProjectEditBriefMarkerMessageList'
@@ -23,18 +25,21 @@ type ProjectEditBriefMarkerChatPanelProps = {
   markerId: string
   onApplied?: (message: string) => void
   visualContext?: ProjectEditBriefVisualContext
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }
 
 export function ProjectEditBriefMarkerChatPanel({
   client,
   markerId,
   onApplied,
+  preferenceApplicationContext,
   visualContext,
 }: ProjectEditBriefMarkerChatPanelProps) {
   const [model, setModel] = useState<ProjectEditBriefMarkerChatPanelModel | undefined>()
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState('Loading Marker Chat.')
+  const [contextUsedByLastResponse, setContextUsedByLastResponse] = useState(false)
   const [runtimeReadinessState, setRuntimeReadinessState] = useState<{
     client?: ProjectEditBriefApiClient
     readiness?: ProjectEditBriefQwenMarkerChatReadinessSummary
@@ -81,8 +86,10 @@ export function ProjectEditBriefMarkerChatPanel({
       const result = await sendProjectEditBriefMarkerChatMessageViaApi({
         markerId,
         messageText: message,
+        preferenceApplicationContext,
       }, client)
       setMessage('')
+      setContextUsedByLastResponse(Boolean(result?.ok && preferenceApplicationContext))
       let nextStatus = 'Marker Chat message was blocked safely.'
       if (result?.ok && result.runtimeSource === 'qwen_live') {
         nextStatus = `${REEDITPRO_QWEN_MAIN_BRAIN_LABEL} understood this marker.`
@@ -127,6 +134,11 @@ export function ProjectEditBriefMarkerChatPanel({
         runtimeLabel={client?.qwenMarkerChatRuntime.label}
         runtimeSummary={client?.qwenMarkerChatRuntime.summary}
         summary={model.boundarySummary}
+      />
+      <ProjectEditBriefMarkerContextPanel
+        contextUsedByLastResponse={contextUsedByLastResponse}
+        preferenceApplicationContext={preferenceApplicationContext}
+        visualContext={visualContext}
       />
       <div className="project-edit-brief-marker-chat__status" data-testid="project-edit-brief-marker-chat-status" role="status">
         {status}

@@ -8,6 +8,7 @@ import type {
   ProjectEditBriefQAPackage,
   ProjectEditBriefQASummaryModel,
 } from '../types/project-edit-brief-qa'
+import type { PreferenceApplicationDownstreamContext } from '../types/edit-reference-integration'
 import {
   createDefaultMockProjectEditBriefApiClient,
   type ProjectEditBriefApiClient,
@@ -28,6 +29,7 @@ import {
   createProjectEditBriefMarkerQAReadableSummary,
   runProjectEditBriefMarkerQA,
 } from './project-edit-brief-qa-rules'
+import { createPreferenceApplicationQAContextSummary } from './edit-reference-downstream-context'
 
 export const PROJECT_EDIT_BRIEF_QA_UI_SAFETY_FLAGS = PROJECT_EDIT_BRIEF_QA_SAFETY_FLAGS
 
@@ -70,6 +72,7 @@ export function createProjectEditBriefQASummaryModel(
     conflictCount: qaPackage.conflictCount,
     blockedCount: qaPackage.blockedCount,
     readableSummary: qaPackage.readableSummary,
+    preferenceApplicationQA: qaPackage.preferenceApplicationQA,
     canRunMockQA: true,
     boundarySummary: createProjectEditBriefQABoundarySummary(),
     mockOnly: true,
@@ -110,6 +113,7 @@ export async function loadProjectEditBriefQAPackageForUI(input: {
   projectId: string
   editSessionId: string
   client?: ProjectEditBriefApiClient
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }): Promise<ProjectEditBriefQAPackage | undefined> {
   const client = defaultClient(input.projectId, input.client)
   const briefResult = await getProjectEditBriefForSessionViaApi(input.editSessionId, client)
@@ -123,6 +127,7 @@ export async function loadProjectEditBriefQAPackageForUI(input: {
     durationSeconds: typeof exportResult.exportSettings?.metadata?.durationSeconds === 'number'
       ? exportResult.exportSettings.metadata.durationSeconds
       : undefined,
+    preferenceApplicationContext: input.preferenceApplicationContext,
   })
 }
 
@@ -175,6 +180,7 @@ export async function runProjectEditBriefQAViaApi(input: {
   projectId: string
   editSessionId: string
   client?: ProjectEditBriefApiClient
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }) {
   const client = defaultClient(input.projectId, input.client)
   const briefResult = await getProjectEditBriefForSessionViaApi(input.editSessionId, client)
@@ -203,6 +209,7 @@ export async function runProjectEditBriefQAViaApi(input: {
   const qaPackage = createProjectEditBriefQAPackage({
     bundle: bundleResult.bundle,
     exportSettings: exportResult.exportSettings ?? bundleResult.bundle.exportSettings,
+    preferenceApplicationContext: input.preferenceApplicationContext,
   })
   const saveResult = await saveProjectEditBriefQAConflictsViaApi(
     qaPackage.markerPackages.flatMap((markerPackage) => markerPackage.conflictRecords),
@@ -225,6 +232,7 @@ export async function runProjectEditBriefQAViaApi(input: {
 export async function runProjectEditBriefMarkerQAViaApi(input: {
   markerId: string
   client?: ProjectEditBriefApiClient
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }) {
   const drawerResult = await getProjectEditBriefMarkerDrawerViaApi(input.markerId, input.client)
   if (!drawerResult.drawer) return undefined
@@ -242,6 +250,14 @@ export async function runProjectEditBriefMarkerQAViaApi(input: {
     intent: drawerResult.drawer.intent,
     exportSettings: exportResult.exportSettings ?? bundleResult.bundle.exportSettings,
   })
+  const preferenceApplicationQA = input.preferenceApplicationContext
+    ? createPreferenceApplicationQAContextSummary({
+        context: input.preferenceApplicationContext,
+        projectId: drawerResult.drawer.marker.projectId,
+        editSessionId: drawerResult.drawer.marker.editSessionId,
+        markers: bundleResult.bundle.markers,
+      })
+    : undefined
   const saveResult = await saveProjectEditBriefQAConflictsViaApi(markerPackage.conflictRecords, client)
   await updateProjectEditBriefMarkerQAStatusForUI(drawerResult.drawer.marker, markerPackage.qaStatus, client)
   return {
@@ -259,10 +275,11 @@ export async function runProjectEditBriefMarkerQAViaApi(input: {
       canRunMockQA: true,
       mockOnly: true,
       warnings: markerPackage.warnings,
+      preferenceApplicationQA,
       ...PROJECT_EDIT_BRIEF_QA_UI_SAFETY_FLAGS,
     } satisfies ProjectEditBriefMarkerQAPanelModel,
     summary: createProjectEditBriefMarkerQAReadableSummary(markerPackage),
-    warnings: [...markerPackage.warnings, ...saveResult.warnings],
+    warnings: [...markerPackage.warnings, ...(preferenceApplicationQA?.findings ?? []), ...saveResult.warnings],
     mockOnly: true,
     ...PROJECT_EDIT_BRIEF_QA_UI_SAFETY_FLAGS,
   }

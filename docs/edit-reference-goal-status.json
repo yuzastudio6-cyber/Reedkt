@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 3,
+  "goal": "edit_reference_end_to_end",
+  "status": "feature_complete_except_external_blocker",
+  "currentGate": "gate_9_draft_pr_open",
+  "completedGates": [
+    "gate_0",
+    "gate_1",
+    "gate_2",
+    "gate_3",
+    "gate_4",
+    "gate_5",
+    "gate_6",
+    "gate_7",
+    "gate_8",
+    "gate_8_1",
+    "gate_9"
+  ],
+  "blockedGates": [],
+  "sourceVerified": {
+    "worktree": "/Volumes/backup/REeditpro-beta-integration-4",
+    "branch": "codex/beta-integration-reconcile",
+    "head": "dc2f3625ec6e7652e8ae9c064c1c96160b07a8a1",
+    "migrationCount": 21,
+    "browserQa": "passed_60_of_60_backend_local",
+    "preservedReadOnly": true
+  },
+  "startingCommit": "48540ee9b3d14c8345b0cedf11b6b449424324c3",
+  "gate7ImplementationCommit": "42d34cdc04179c6808a4c3f23286885daf116006",
+  "gate7VerificationCommit": "abb3b9548baa92c5bcdd4d5cee45a53e1ef6f66e",
+  "gate8Commit": "7ff15993c505af65abcbc61e0db259061f583e25",
+  "gate81StartingCommit": "08a0802d3d46ef630e3fb9bec3e3cbe0f1bdb1f4",
+  "gate81LiveStudyCommit": "0e12652af4f7258ebbaeceb5bb3819ad4bb91196",
+  "gate81ApplicationCommit": "64e61279dada0ef45eb16f61e7883ba6b530875e",
+  "latestCommit": "2950f0870f5c0ed923c2686849b3bf8c36aff024",
+  "canonicalWorktree": "/Users/macuser/Developer/REeditpro-edit-reference-pr",
+  "branch": "codex/edit-reference-end-to-end",
+  "migrationBaseline": 24,
+  "migrationCurrent": 24,
+  "sourceMigrationBaseline": 21,
+  "browserQa": "passed_43_discovered_42_passed_1_live_provider_gated",
+  "backendQa": "passed_backend_local",
+  "runtimeQa": "passed_local_media_partial_with_external_semantic_limits",
+  "persistenceQa": "passed_backend_local_remote_blocked",
+  "prPreparation": {
+    "strategy": "clean_replay",
+    "baseBranch": "codex/reeditpro-web-ui-shell",
+    "baseSha": "e405e69e1a43fd2609854d8acaa7a4ef959b7e94",
+    "sourceUniqueCommits": 49,
+    "remoteUniqueCommits": 324,
+    "mergeBase": "84a0eb46c93ca5a200b1e5c9bd7976d28210e0a0",
+    "replayedGoalCommits": 21,
+    "integrationCommits": [
+      "7cb122a34b0d3cf9d261aca3273d7574b82ab834",
+      "257a64922cbb4f778ebe7ea63dd03a560dcbd8dc",
+      "8b4921e128fecff14cb30e6e5657849f2bff471a"
+    ],
+    "readinessCommit": "2950f0870f5c0ed923c2686849b3bf8c36aff024",
+    "prStatus": "draft_pr_open",
+    "prNumber": 2493,
+    "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/2493",
+    "prHeadSha": "2950f0870f5c0ed923c2686849b3bf8c36aff024",
+    "changedFileCount": 162,
+    "packageLockChanged": false,
+    "fullPlaywright": {
+      "discovered": 43,
+      "passed": 42,
+      "skipped": 1,
+      "failed": 0,
+      "skippedReason": "Live Qwen provider test remains gated because Gate 9 forbids provider activation."
+    }
+  },
+  "runtimeToolReadiness": {
+    "verifiedLive": 2,
+    "verifiedLocal": 1,
+    "verifiedMock": 8,
+    "degraded": 0,
+    "blocked": 1,
+    "notImplemented": 0,
+    "gate8LiveProviderCalls": 0,
+    "gate81LocalMediaToolRuns": 2,
+    "gate81LiveProviderCalls": 0
+  },
+  "gate81": {
+    "applicationEntryPoints": "passed_backend_local",
+    "canonicalApplicationConsistency": "passed_backend_local",
+    "liveStudyClosure": "passed_local_partial_external_blockers",
+    "privateMediaStructure": "verified_local",
+    "representativeFramePlan": "verified_local_ephemeral",
+    "semanticSpecialists": "degraded_or_blocked_with_retry",
+    "sourceBrowserCoverage": "passed_60_of_60_backend_local",
+    "prBranchEditReferenceCoverage": "passed_12_of_12",
+    "productionReady": false
+  },
+  "dependencyAudit": {
+    "packageLockChanged": false,
+    "npmCiVulnerabilities": {
+      "low": 4,
+      "moderate": 5,
+      "high": 2,
+      "total": 11
+    },
+    "remediationApplied": false,
+    "releaseReviewRequired": true
+  },
+  "remainingBlockers": [
+    "production_supabase_rls_tenancy",
+    "remote_cross_device_persistence",
+    "live_semantic_reference_media_analysis",
+    "transcript_color_audio_and_motion_specialist_runtimes",
+    "distributed_workers_and_observability",
+    "provider_render_credit_billing_execution",
+    "production_retention_and_operations",
+    "dependency_vulnerability_review"
+  ],
+  "readinessDecision": "feature_complete_except_external_blocker",
+  "productionReady": false,
+  "remoteMutationAllowed": false,
+  "lastVerifiedDate": "2026-07-12"
+}

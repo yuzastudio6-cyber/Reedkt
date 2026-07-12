@@ -55,6 +55,18 @@ export async function createProjectEditBriefViaApi(
   }
 }
 
+export async function updateProjectEditBriefViaApi(
+  input: unknown,
+  client?: ProjectEditBriefApiClient,
+) {
+  const response = await defaultClient(client).brief.update<{ brief: ProjectEditBriefRecord }>(input)
+  return {
+    ...response,
+    brief: response.data?.brief,
+    summary: resultSummary(response),
+  }
+}
+
 export async function getProjectEditBriefBundleViaApi(
   briefId: string,
   client?: ProjectEditBriefApiClient,

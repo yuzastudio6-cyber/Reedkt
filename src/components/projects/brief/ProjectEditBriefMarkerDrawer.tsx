@@ -11,6 +11,7 @@ import {
   readProjectEditBriefVisualContextFromMarker,
 } from '../../../lib/project-edit-brief-visual-context-ui-adapter'
 import type { ProjectEditBriefMarkerRecord } from '../../../types/project-edit-brief'
+import type { PreferenceApplicationDownstreamContext } from '../../../types/edit-reference-integration'
 import { ProjectEditBriefAttachmentPanel } from './ProjectEditBriefAttachmentPanel'
 import { ProjectEditBriefMarkerAIModePicker } from './ProjectEditBriefMarkerAIModePicker'
 import { ProjectEditBriefMarkerActionBar } from './ProjectEditBriefMarkerActionBar'
@@ -40,6 +41,7 @@ type ProjectEditBriefMarkerDrawerProps = {
   sourceVideoDurationSeconds?: number
   sourceVideoElement?: HTMLVideoElement | null
   sourceVideoLabel?: string
+  preferenceApplicationContext?: PreferenceApplicationDownstreamContext
 }
 
 export function ProjectEditBriefMarkerDrawer({
@@ -57,6 +59,7 @@ export function ProjectEditBriefMarkerDrawer({
   onClose,
   onConfirm,
   onSave,
+  preferenceApplicationContext,
   sourceVideoDurationSeconds,
   sourceVideoElement,
   sourceVideoLabel,
@@ -137,6 +140,7 @@ export function ProjectEditBriefMarkerDrawer({
           key={`${draft.markerId}-${marker?.attachmentChips.length ?? 0}`}
           markerId={draft.markerId}
           onApplied={onMarkerChatApplied}
+          preferenceApplicationContext={preferenceApplicationContext}
           visualContext={visualContext}
         />
       ) : null}
@@ -158,6 +162,7 @@ export function ProjectEditBriefMarkerDrawer({
         client={client}
         marker={marker}
         onRan={onMarkerQARan}
+        preferenceApplicationContext={preferenceApplicationContext}
       />
 
       <div className="project-edit-brief-marker-drawer__readonly" data-testid="project-edit-brief-marker-future-systems">

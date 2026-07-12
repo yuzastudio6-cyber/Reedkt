@@ -1,0 +1,1963 @@
+import { randomUUID } from 'node:crypto'
+import { ApiError } from '../errors/api-error'
+import type { ServiceContext } from '../types'
+import type {
+  ApproveEditReferenceDNAVersionRequest,
+  AppendPreferenceStudyMessageRequest,
+  ClearPreferenceApplicationRequest,
+  ConnectPreferenceApplicationRequest,
+  CreatePreferenceApplicationRequest,
+  CreatePreferenceEvidenceRequest,
+  CreateEditReferenceRequest,
+  CreatePreferenceStudyRequest,
+  EditReferenceDetail,
+  EditReferenceDetailData,
+  EditReferenceListData,
+  EditReferenceListItem,
+  EditReferenceRecord,
+  EditReferenceStudyGoal,
+  PreferenceApplicationListData,
+  PreferenceApplicationTargetContextSnapshot,
+  PreferenceAssetRecord,
+  PreferenceEvidenceCategory,
+  PreferenceEvidenceMediaMetadata,
+  PreferenceEvidenceRecord,
+  PreferenceEvidenceTransferability,
+  PreferenceStudyMessageRecord,
+  PreferenceStudyData,
+  PreferenceStudyMessageListData,
+  PreferenceStudySessionRecord,
+  RunEditReferenceDNAQARequest,
+  RunPreferenceEvidenceStudyRequest,
+  SynthesizePreferenceDNARequest,
+  UpdateEditReferenceRequest,
+  UpdatePreferenceStudyRequest,
+} from '../../src/types/edit-reference'
+import { EDIT_REFERENCE_SAFETY_FLAGS } from '../../src/types/edit-reference'
+import type {
+  EditReferenceAggregate,
+  EditReferenceRepository,
+  EditReferenceRepositoryScope,
+} from '../edit-references/edit-reference-repository'
+import { DisabledSupabaseEditReferenceRepository } from '../edit-references/disabled-supabase-edit-reference-repository'
+import {
+  hashEditReferenceRequest,
+  PrivateEditReferenceRepository,
+} from '../edit-references/private-edit-reference-repository'
+import { orchestratePreferenceEvidenceStudy } from '../edit-references/edit-reference-evidence-orchestrator'
+import {
+  createBlockedEditReferenceMediaStudy,
+  runEditReferenceLocalMediaStudy,
+  type EditReferenceLocalMediaStudyResult,
+} from '../edit-references/edit-reference-media-study'
+import { synthesizeEditReferencePreferenceDNA } from '../edit-references/edit-reference-dna-synthesis'
+import { runEditReferenceDNAQA } from '../edit-references/edit-reference-dna-qa'
+import { createEditReferenceTargetApplication } from '../edit-references/edit-reference-target-adaptation'
+import { createPreferenceApplicationDownstreamContext } from '../../src/lib/edit-reference-downstream-context'
+import { createUploadService } from './upload-service'
+import {
+  PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS,
+  type PreferenceApplicationDownstreamInvalidationReceipt,
+  type PreferenceApplicationInvalidationReason,
+} from '../../src/types/edit-reference-integration'
+
+const LOCAL_WARNING = 'Stored in the private backend-local Edit Reference repository. Production Supabase persistence remains blocked.'
+const FUTURE_RUNTIME_WARNING = 'No provider, model, external URL, worker job, generation, render, credit, or remote Supabase operation ran. Any local media study is reported separately with exact provenance.'
+
+export interface EditReferenceServiceResult<T> {
+  data: T
+  warnings: string[]
+  replayed?: boolean
+}
+
+export interface EditReferenceService {
+  listReferences(workspaceId: string): Promise<EditReferenceServiceResult<EditReferenceListData>>
+  listApplications(workspaceId: string): Promise<EditReferenceServiceResult<PreferenceApplicationListData>>
+  getReference(workspaceId: string, referenceId: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  getStudy(workspaceId: string, studyId: string): Promise<EditReferenceServiceResult<PreferenceStudyData>>
+  listStudyMessages(workspaceId: string, studyId: string): Promise<EditReferenceServiceResult<PreferenceStudyMessageListData>>
+  createReference(input: CreateEditReferenceRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  updateReference(referenceId: string, input: UpdateEditReferenceRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  createStudy(referenceId: string, input: CreatePreferenceStudyRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  updateStudy(studyId: string, input: UpdatePreferenceStudyRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  appendMessage(studyId: string, input: AppendPreferenceStudyMessageRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData & { appendedMessageIds: string[] }>>
+  addEvidence(studyId: string, input: CreatePreferenceEvidenceRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  runEvidenceStudy(studyId: string, input: RunPreferenceEvidenceStudyRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  synthesizePreferenceDNA(studyId: string, input: SynthesizePreferenceDNARequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  runPreferenceDNAQA(studyId: string, dnaVersionId: string, input: RunEditReferenceDNAQARequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  approvePreferenceDNA(studyId: string, dnaVersionId: string, input: ApproveEditReferenceDNAVersionRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  createPreferenceApplication(studyId: string, dnaVersionId: string, input: CreatePreferenceApplicationRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  connectPreferenceApplication(applicationId: string, input: ConnectPreferenceApplicationRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+  clearPreferenceApplication(applicationId: string, input: ClearPreferenceApplicationRequest, idempotencyKey: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
+}
+
+export function createEditReferenceService(
+  context: ServiceContext,
+  repositoryOverride?: EditReferenceRepository,
+): EditReferenceService {
+  const ownerUserId = context.auth?.userId
+  if (!ownerUserId) throw new ApiError('AUTH_REQUIRED', 'Edit Reference requires an authenticated user.', 401)
+
+  const repository = repositoryOverride ?? selectRepository(context)
+  const scope = (workspaceId: string): EditReferenceRepositoryScope => ({
+    localStorageRoot: context.env.localStorageRoot,
+    ownerUserId,
+    workspaceId: requireWorkspaceId(workspaceId),
+  })
+
+  return {
+    async listReferences(workspaceId) {
+      const aggregate = await repository.read(scope(workspaceId))
+      const references: EditReferenceListItem[] = aggregate
+        ? aggregate.references
+          .slice()
+          .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+          .map((reference) => {
+            const currentStudy = requireStudy(aggregate, reference.currentStudyId)
+            return {
+              reference,
+              currentStudy,
+              messageCount: aggregate.messages.filter((message) => message.studySessionId === currentStudy.id).length,
+              applicationCount: aggregate.applications.filter((application) => application.editReferenceId === reference.id).length,
+            }
+          })
+        : []
+      return result({
+        references,
+        persistence: 'backend_local_private',
+        productionPersistence: 'blocked_by_migration_baseline',
+        safety: EDIT_REFERENCE_SAFETY_FLAGS,
+      })
+    },
+
+    async listApplications(workspaceId) {
+      const aggregate = await repository.read(scope(workspaceId))
+      return result({
+        applications: aggregate
+          ? aggregate.applications.slice().sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+          : [],
+        persistence: 'backend_local_private',
+        productionPersistence: 'blocked_by_migration_baseline',
+        safety: EDIT_REFERENCE_SAFETY_FLAGS,
+      })
+    },
+
+    async getReference(workspaceId, referenceId) {
+      const aggregate = await repository.read(scope(workspaceId))
+      if (!aggregate) throw referenceNotFound(referenceId)
+      return result(detailData(aggregate, requireReference(aggregate, referenceId)))
+    },
+
+    async getStudy(workspaceId, studyId) {
+      const aggregate = await repository.read(scope(workspaceId))
+      if (!aggregate) throw studyNotFound(studyId)
+      const study = requireStudy(aggregate, studyId)
+      return result({
+        reference: requireReference(aggregate, study.editReferenceId),
+        study,
+        messages: studyMessages(aggregate, study.id),
+        safety: EDIT_REFERENCE_SAFETY_FLAGS,
+      })
+    },
+
+    async listStudyMessages(workspaceId, studyId) {
+      const aggregate = await repository.read(scope(workspaceId))
+      if (!aggregate) throw studyNotFound(studyId)
+      requireStudy(aggregate, studyId)
+      return result({ studyId, messages: studyMessages(aggregate, studyId), safety: EDIT_REFERENCE_SAFETY_FLAGS })
+    },
+
+    async createReference(input, idempotencyKey) {
+      const normalized = normalizeCreateReference(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'edit_reference.create',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest(normalized),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const referenceId = `edit-reference-${randomUUID()}`
+          const studyId = `preference-study-${randomUUID()}`
+          const reference: EditReferenceRecord = {
+            id: referenceId,
+            workspaceId: normalized.workspaceId,
+            name: normalized.name,
+            ...(normalized.description ? { description: normalized.description } : {}),
+            status: 'active',
+            initialGoals: normalized.initialGoals,
+            currentStudyId: studyId,
+            revision: 1,
+            createdAt: now,
+            updatedAt: now,
+            runtimeSource: 'backend_local_private',
+            evidenceStatus: 'not_complete',
+            dnaStatus: 'not_generated',
+            qaStatus: 'not_run',
+          }
+          const study = createStudyRecord(reference, studyId, `${reference.name} study`, now)
+          aggregate.references.push(reference)
+          aggregate.studies.push(study)
+          aggregate.messages.push(...setupMessages(reference, study, now))
+          aggregate.usageLogs.push(
+            usageLog(reference, 'created', now),
+            usageLog(reference, 'study_created', now),
+          )
+          addAuditEvent({ eventType: 'edit_reference_created', editReferenceId: reference.id, studySessionId: study.id })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async updateReference(referenceId, input, idempotencyKey) {
+      const normalized = normalizeUpdateReference(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'edit_reference.update',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ referenceId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const reference = requireReference(aggregate, referenceId)
+          assertRevision(reference.revision, normalized.expectedReferenceRevision, 'Edit Reference')
+          if (normalized.name !== undefined) reference.name = normalized.name
+          if (normalized.description !== undefined) {
+            if (normalized.description) reference.description = normalized.description
+            else delete reference.description
+          }
+          if (normalized.status === 'archived') {
+            reference.status = 'archived'
+            const study = requireStudy(aggregate, reference.currentStudyId)
+            study.status = 'archived'
+            study.revision += 1
+            study.updatedAt = now
+          }
+          reference.revision += 1
+          reference.updatedAt = now
+          aggregate.usageLogs.push(usageLog(reference, normalized.status === 'archived' ? 'archived' : 'updated', now))
+          addAuditEvent({ eventType: normalized.status === 'archived' ? 'edit_reference_archived' : 'edit_reference_updated', editReferenceId: reference.id })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async createStudy(referenceId, input, idempotencyKey) {
+      const normalized = normalizeCreateStudy(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.create',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ referenceId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const reference = requireReference(aggregate, referenceId)
+          if (reference.status === 'archived') throw new ApiError('VALIDATION_FAILED', 'Archived Edit References cannot start a new study.', 409)
+          assertRevision(reference.revision, normalized.expectedReferenceRevision, 'Edit Reference')
+          const study = createStudyRecord(reference, `preference-study-${randomUUID()}`, normalized.title, now)
+          aggregate.studies.push(study)
+          aggregate.messages.push(...setupMessages(reference, study, now))
+          reference.currentStudyId = study.id
+          reference.evidenceStatus = 'not_complete'
+          reference.dnaStatus = 'not_generated'
+          reference.qaStatus = 'not_run'
+          reference.revision += 1
+          reference.updatedAt = now
+          aggregate.usageLogs.push(usageLog(reference, 'study_created', now))
+          addAuditEvent({ eventType: 'preference_study_created', editReferenceId: reference.id, studySessionId: study.id })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async updateStudy(studyId, input, idempotencyKey) {
+      const normalized = normalizeUpdateStudy(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.update',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+          if (normalized.title !== undefined) study.title = normalized.title
+          if (normalized.status !== undefined) {
+            assertStudyTransition(study.status, normalized.status)
+            study.status = normalized.status
+          }
+          study.revision += 1
+          study.updatedAt = now
+          const reference = requireReference(aggregate, study.editReferenceId)
+          reference.updatedAt = now
+          addAuditEvent({ eventType: 'preference_study_updated', editReferenceId: reference.id, studySessionId: study.id })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async appendMessage(studyId, input, idempotencyKey) {
+      const normalized = normalizeAppendMessage(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.message.append',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          if (reference.status === 'archived' || study.status === 'archived') {
+            throw new ApiError('VALIDATION_FAILED', 'Archived studies cannot accept messages.', 409)
+          }
+          assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+          const existingClientMessage = aggregate.messages.find((message) => message.clientMessageId === normalized.clientMessageId)
+          if (existingClientMessage) {
+            throw new ApiError('IDEMPOTENCY_CONFLICT', 'The client message ID was already used.', 409)
+          }
+          let correctionEvidence: PreferenceEvidenceRecord | undefined
+          if (normalized.findingCorrectionEvidenceId) {
+            assertActiveStudy(reference, study)
+            const superseded = aggregate.evidence.find((record) => record.id === normalized.findingCorrectionEvidenceId)
+            if (!superseded || superseded.studySessionId !== study.id || superseded.sourceType !== 'manual_user_evidence') {
+              throw new ApiError('VALIDATION_FAILED', 'A Study Chat correction must replace saved creative evidence in this study.', 409)
+            }
+            if (aggregate.evidence.some((record) => record.supersedesEvidenceId === superseded.id)) {
+              throw new ApiError('VERSION_CONFLICT', 'That evidence already has a newer correction. Reload before saving.', 409)
+            }
+            correctionEvidence = createEvidenceRecords(reference, study, {
+              workspaceId: normalized.workspaceId,
+              expectedStudyRevision: normalized.expectedStudyRevision,
+              sourceType: 'manual_user_evidence',
+              title: `${superseded.title} — Study Chat correction`.slice(0, 160),
+              category: requireManualEvidenceCategory(superseded.category),
+              summary: normalized.content,
+              intendedUse: requireCorrectionTransferability(superseded.transferability),
+              supersedesEvidenceId: superseded.id,
+            }, now).evidence
+          }
+          const sequence = nextSequence(aggregate, study.id)
+          const userMessage: PreferenceStudyMessageRecord = {
+            id: `preference-study-message-${randomUUID()}`,
+            workspaceId: reference.workspaceId,
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            role: 'user',
+            content: normalized.content,
+            sequence,
+            clientMessageId: normalized.clientMessageId,
+            runtimeSource: 'user_input',
+            createdAt: now,
+          }
+          const assistantMessage: PreferenceStudyMessageRecord = {
+            id: `preference-study-message-${randomUUID()}`,
+            workspaceId: reference.workspaceId,
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            role: 'assistant',
+            content: correctionEvidence
+              ? `Your Study Chat correction replaced “${aggregate.evidence.find((record) => record.id === correctionEvidence?.supersedesEvidenceId)?.title ?? 'the selected evidence'}” as a new evidence version. Run the evidence study again before generating or using Preference DNA.`
+              : deterministicAcknowledgement(reference),
+            sequence: sequence + 1,
+            runtimeSource: correctionEvidence ? 'deterministic_evidence' : 'deterministic_setup',
+            createdAt: now,
+          }
+          const appendedMessageIds = [userMessage.id, assistantMessage.id]
+          aggregate.messages.push(userMessage, assistantMessage)
+          if (correctionEvidence) {
+            aggregate.evidence.push(correctionEvidence)
+            let invalidatedDNACandidate = false
+            for (const dnaVersion of aggregate.dnaVersions.filter((record) => (
+              record.studySessionId === study.id
+              && record.status !== 'approved'
+              && record.status !== 'superseded'
+            ))) {
+              dnaVersion.status = 'superseded'
+              dnaVersion.supersededAt = now
+              invalidatedDNACandidate = true
+            }
+            study.status = 'ready_to_study'
+            study.evidenceStatus = 'ready_to_study'
+            study.dnaStatus = 'not_generated'
+            study.qaStatus = 'not_run'
+            reference.evidenceStatus = 'ready_to_study'
+            reference.dnaStatus = 'not_generated'
+            reference.qaStatus = 'not_run'
+            aggregate.usageLogs.push(usageLog(reference, 'evidence_added', now))
+            if (invalidatedDNACandidate) {
+              addAuditEvent({ eventType: 'preference_dna_candidate_invalidated', editReferenceId: reference.id, studySessionId: study.id })
+            }
+            addAuditEvent({ eventType: 'preference_evidence_added', editReferenceId: reference.id, studySessionId: study.id })
+          }
+          study.revision += 1
+          study.updatedAt = now
+          reference.updatedAt = now
+          aggregate.usageLogs.push(usageLog(reference, 'message_appended', now))
+          addAuditEvent({ eventType: 'preference_study_message_appended', editReferenceId: reference.id, studySessionId: study.id })
+          return { ...detailData(aggregate, reference), appendedMessageIds }
+        },
+      })
+      if (!mutation.data.appendedMessageIds) {
+        throw new ApiError('INTERNAL_ERROR', 'The stored message response is incomplete.', 500)
+      }
+      return result(mutation.data as EditReferenceDetailData & { appendedMessageIds: string[] }, mutation.replayed)
+    },
+
+    async addEvidence(studyId, input, idempotencyKey) {
+      const normalized = normalizeCreateEvidence(input)
+      const privateMediaInput = normalized.sourceType === 'reference_video_metadata' ? normalized : undefined
+      const privateStorageObject = privateMediaInput?.storageObjectRecordId
+        ? (await createUploadService(context).getStorageObjectRecord(
+          privateMediaInput.storageObjectRecordId,
+          privateMediaInput.workspaceId,
+        )).storageObjectRecord
+        : undefined
+      if (privateStorageObject && (
+        privateStorageObject.mediaAssetId !== privateMediaInput?.mediaAssetId
+        || !privateStorageObject.mimeType?.startsWith('video/')
+        || privateStorageObject.status !== 'ready'
+      )) {
+        throw new ApiError('VALIDATION_FAILED', 'The selected private asset is not a finalized reference video.', 409)
+      }
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.evidence.add',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          if (privateStorageObject && privateStorageObject.projectId !== reference.id) {
+            throw new ApiError('WORKSPACE_ACCESS_DENIED', 'The private reference video does not belong to this Edit Reference.', 403)
+          }
+          assertActiveStudy(reference, study)
+          assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+          if (normalized.sourceType === 'manual_user_evidence' && normalized.supersedesEvidenceId) {
+            const superseded = aggregate.evidence.find((record) => record.id === normalized.supersedesEvidenceId)
+            if (!superseded || superseded.studySessionId !== study.id || superseded.sourceType !== 'manual_user_evidence') {
+              throw new ApiError('VALIDATION_FAILED', 'A correction must point to a saved creative note in this study.', 409)
+            }
+            if (aggregate.evidence.some((record) => record.supersedesEvidenceId === superseded.id)) {
+              throw new ApiError('VERSION_CONFLICT', 'That evidence already has a newer correction. Reload before saving.', 409)
+            }
+          }
+          const { evidence, asset } = createEvidenceRecords(reference, study, normalized, now)
+          aggregate.evidence.push(evidence)
+          if (asset) aggregate.assets.push(asset)
+          let invalidatedDNACandidate = false
+          for (const dnaVersion of aggregate.dnaVersions.filter((record) => (
+            record.studySessionId === study.id
+            && record.status !== 'approved'
+            && record.status !== 'superseded'
+          ))) {
+            dnaVersion.status = 'superseded'
+            dnaVersion.supersededAt = now
+            invalidatedDNACandidate = true
+          }
+          study.status = 'ready_to_study'
+          study.evidenceStatus = 'ready_to_study'
+          study.dnaStatus = 'not_generated'
+          study.qaStatus = 'not_run'
+          study.revision += 1
+          study.updatedAt = now
+          reference.evidenceStatus = 'ready_to_study'
+          reference.dnaStatus = 'not_generated'
+          reference.qaStatus = 'not_run'
+          reference.updatedAt = now
+          aggregate.messages.push(evidenceSavedMessage(reference, study, evidence, now, nextSequence(aggregate, study.id)))
+          aggregate.usageLogs.push(usageLog(reference, 'evidence_added', now))
+          if (invalidatedDNACandidate) {
+            addAuditEvent({ eventType: 'preference_dna_candidate_invalidated', editReferenceId: reference.id, studySessionId: study.id })
+          }
+          addAuditEvent({ eventType: 'preference_evidence_added', editReferenceId: reference.id, studySessionId: study.id })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async runEvidenceStudy(studyId, input, idempotencyKey) {
+      const normalized = normalizeRunEvidenceStudy(input)
+      const operation = 'preference_study.evidence.run'
+      const key = requireIdempotencyKey(idempotencyKey)
+      const requestHash = hashEditReferenceRequest({ studyId, ...normalized })
+      const aggregateBeforeRun = await repository.read(scope(normalized.workspaceId))
+      const priorIdempotency = aggregateBeforeRun?.idempotencyRecords.find((record) => record.key === key)
+      if (priorIdempotency) {
+        if (priorIdempotency.operation !== operation || priorIdempotency.requestHash !== requestHash) {
+          throw new ApiError('IDEMPOTENCY_CONFLICT', 'The idempotency key was already committed for a different Edit Reference request.', 409)
+        }
+        return result(priorIdempotency.responseSnapshot, true)
+      }
+      const mediaStudies = aggregateBeforeRun
+        ? await prepareEditReferenceMediaStudies(context, aggregateBeforeRun, studyId)
+        : []
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation,
+        idempotencyKey: key,
+        requestHash,
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          assertActiveStudy(reference, study)
+          assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+          const retryingBlockedSkills = normalized.retryBlockedSkills === true
+            && ['evidence_ready', 'needs_clarification', 'needs_user_review'].includes(study.status)
+            && reference.dnaStatus === 'not_generated'
+          if (study.status !== 'ready_to_study' && !retryingBlockedSkills) {
+            throw new ApiError('VALIDATION_FAILED', 'The saved evidence has already been reviewed. Add or correct evidence before running the study again.', 409)
+          }
+          const studyEvidence = aggregate.evidence.filter((record) => record.studySessionId === study.id)
+          if (!studyEvidence.some((record) => record.sourceType !== 'derived_skill_evidence')) {
+            throw new ApiError('PREFERENCE_EVIDENCE_REQUIRED', 'Add evidence before asking ReEditPro to study it.', 409)
+          }
+          const orchestration = orchestratePreferenceEvidenceStudy({
+            workspaceId: reference.workspaceId,
+            editReferenceId: reference.id,
+            study,
+            evidence: studyEvidence,
+            mediaStudies,
+            now,
+          })
+          for (const mediaStudy of mediaStudies) {
+            const asset = aggregate.assets.find((record) => record.id === mediaStudy.referenceAssetId)
+            if (!asset) continue
+            asset.mediaStudyStatus = mediaStudy.status === 'verified_local'
+              ? 'media_studied_local_partial'
+              : 'media_study_blocked'
+            asset.representativeFrameCount = mediaStudy.representativeFrameCount
+            asset.lastStudyAt = now
+            if (mediaStudy.status === 'blocked') {
+              asset.lastStudyBlocker = mediaStudy.blockerMessage ?? 'Private media study blocked.'
+            } else {
+              delete asset.lastStudyBlocker
+            }
+          }
+          aggregate.evidence.push(...orchestration.derivedEvidence)
+          aggregate.skillRuns.push(...orchestration.skillRuns)
+          study.status = orchestration.studyStatus
+          study.evidenceStatus = orchestration.evidenceStatus
+          study.revision += 1
+          study.updatedAt = now
+          reference.evidenceStatus = orchestration.evidenceStatus
+          reference.updatedAt = now
+          aggregate.messages.push(studyResultMessage(reference, study, orchestration.assistantMessage, now, nextSequence(aggregate, study.id)))
+          aggregate.usageLogs.push(usageLog(reference, 'evidence_study_completed', now))
+          addAuditEvent({ eventType: 'preference_evidence_study_completed', editReferenceId: reference.id, studySessionId: study.id })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async synthesizePreferenceDNA(studyId, input, idempotencyKey) {
+      const normalized = normalizeSynthesizePreferenceDNA(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.dna.synthesize',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          assertActiveStudy(reference, study)
+          assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+          const dnaVersion = synthesizeEditReferencePreferenceDNA({
+            reference,
+            study,
+            evidence: aggregate.evidence.filter((record) => record.studySessionId === study.id),
+            skillRuns: aggregate.skillRuns.filter((record) => record.studySessionId === study.id),
+            existingVersions: aggregate.dnaVersions.filter((record) => record.studySessionId === study.id),
+            now,
+          })
+          for (const previousVersion of aggregate.dnaVersions.filter((record) => (
+            record.studySessionId === study.id
+            && record.status !== 'approved'
+            && record.status !== 'superseded'
+          ))) {
+            previousVersion.status = 'superseded'
+            previousVersion.supersededAt = now
+          }
+          aggregate.dnaVersions.push(dnaVersion)
+          study.status = 'dna_ready'
+          study.dnaStatus = 'review_required'
+          study.qaStatus = 'not_run'
+          study.revision += 1
+          study.updatedAt = now
+          reference.dnaStatus = 'review_required'
+          reference.qaStatus = 'not_run'
+          reference.updatedAt = now
+          aggregate.messages.push(dnaSynthesisMessage(reference, study, dnaVersion, now, nextSequence(aggregate, study.id)))
+          aggregate.usageLogs.push(usageLog(reference, 'dna_version_created', now))
+          addAuditEvent({ eventType: 'preference_dna_version_created', editReferenceId: reference.id, studySessionId: study.id })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async runPreferenceDNAQA(studyId, dnaVersionId, input, idempotencyKey) {
+      const normalized = normalizeRunPreferenceDNAQA(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.dna.qa.run',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, dnaVersionId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          assertActiveStudy(reference, study)
+          assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+          const dnaVersion = requireDNAVersion(aggregate, dnaVersionId, study)
+          assertDNAContentDigest(dnaVersion.contentDigest, normalized.expectedDNAContentDigest)
+          if (dnaVersion.status !== 'review_required' || dnaVersion.qaStatus !== 'not_run') {
+            throw new ApiError('VALIDATION_FAILED', 'Quality review already ran or this DNA version is no longer the active review candidate.', 409)
+          }
+          if (aggregate.dnaQaResults.some((record) => record.dnaVersionId === dnaVersion.id)) {
+            throw new ApiError('VERSION_CONFLICT', 'This exact DNA version already has a quality-review result.', 409)
+          }
+          const qaResult = runEditReferenceDNAQA({
+            reference,
+            study,
+            dnaVersion,
+            evidence: aggregate.evidence.filter((record) => record.studySessionId === study.id),
+            now,
+          })
+          aggregate.dnaQaResults.push(qaResult)
+          dnaVersion.qaStatus = qaResult.status
+          dnaVersion.qaResultId = qaResult.id
+          study.qaStatus = qaResult.status
+          study.status = qaResult.status === 'blocked' ? 'qa_blocked' : 'needs_user_review'
+          study.revision += 1
+          study.updatedAt = now
+          reference.qaStatus = qaResult.status
+          reference.updatedAt = now
+          aggregate.messages.push(dnaQAMessage(reference, study, qaResult, now, nextSequence(aggregate, study.id)))
+          aggregate.usageLogs.push(usageLog(reference, 'dna_qa_completed', now))
+          addAuditEvent({
+            eventType: 'preference_dna_qa_completed',
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            dnaVersionId: dnaVersion.id,
+            dnaQaResultId: qaResult.id,
+          })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async approvePreferenceDNA(studyId, dnaVersionId, input, idempotencyKey) {
+      const normalized = normalizeApprovePreferenceDNA(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.dna.approve',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, dnaVersionId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          assertActiveStudy(reference, study)
+          assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
+          const dnaVersion = requireDNAVersion(aggregate, dnaVersionId, study)
+          assertDNAContentDigest(dnaVersion.contentDigest, normalized.expectedDNAContentDigest)
+          const qaResult = requireDNAQAResult(aggregate, normalized.qaResultId, dnaVersion)
+          if (dnaVersion.status !== 'review_required' || dnaVersion.qaResultId !== qaResult.id) {
+            throw new ApiError('VALIDATION_FAILED', 'Only the active quality-reviewed DNA version can be approved.', 409)
+          }
+          if (qaResult.status === 'blocked' || qaResult.blockingCheckIds.length > 0) {
+            throw new ApiError('VALIDATION_FAILED', 'Blocking DNA quality findings must be corrected before approval.', 409)
+          }
+          if (qaResult.status === 'requires_user_review' && normalized.acknowledgeQAReview !== true) {
+            throw new ApiError('VALIDATION_FAILED', 'Review the quality warnings and acknowledge them before approval.', 409)
+          }
+          for (const previousApproved of aggregate.dnaVersions.filter((record) => (
+            record.studySessionId === study.id
+            && record.id !== dnaVersion.id
+            && record.status === 'approved'
+          ))) {
+            previousApproved.status = 'superseded'
+            previousApproved.supersededAt = now
+          }
+          dnaVersion.status = 'approved'
+          dnaVersion.approval = {
+            id: `preference-dna-approval-${randomUUID()}`,
+            qaResultId: qaResult.id,
+            acknowledgedAdaptNotCopy: true,
+            acknowledgedQAReview: normalized.acknowledgeQAReview,
+            approvedBy: 'authenticated_user',
+            approvedAt: now,
+          }
+          study.status = 'approved'
+          study.dnaStatus = 'approved'
+          study.qaStatus = qaResult.status
+          study.revision += 1
+          study.updatedAt = now
+          reference.dnaStatus = 'approved'
+          reference.qaStatus = qaResult.status
+          reference.updatedAt = now
+          aggregate.messages.push(dnaApprovalMessage(reference, study, dnaVersion, now, nextSequence(aggregate, study.id)))
+          aggregate.usageLogs.push(usageLog(reference, 'dna_version_approved', now))
+          addAuditEvent({
+            eventType: 'preference_dna_version_approved',
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            dnaVersionId: dnaVersion.id,
+            dnaQaResultId: qaResult.id,
+          })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async createPreferenceApplication(studyId, dnaVersionId, input, idempotencyKey) {
+      const normalized = normalizeCreatePreferenceApplication(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_study.dna.application.create',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ studyId, dnaVersionId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const study = requireStudy(aggregate, studyId)
+          const reference = requireReference(aggregate, study.editReferenceId)
+          assertActiveStudy(reference, study)
+          assertRevision(reference.revision, normalized.expectedReferenceRevision, 'Edit Reference')
+          const dnaVersion = requireDNAVersion(aggregate, dnaVersionId, study)
+          assertDNAContentDigest(dnaVersion.contentDigest, normalized.expectedDNAContentDigest)
+          if (!dnaVersion.approval || !dnaVersion.qaResultId) {
+            throw new ApiError('VALIDATION_FAILED', 'Approve this exact Preference DNA version before preparing it for a target edit.', 409)
+          }
+          const qaResult = requireDNAQAResult(aggregate, dnaVersion.qaResultId, dnaVersion)
+          const existingTargetApplication = aggregate.applications.find((record) => (
+            record.projectId === normalized.targetContext.projectId
+            && record.editSessionId === normalized.targetContext.editSessionId
+            && record.status === 'prepared'
+          ))
+          if (existingTargetApplication && !normalized.replacesApplicationId) {
+            throw new ApiError(
+              'VERSION_CONFLICT',
+              'This target edit already has prepared Preference DNA. Replace or clear it from the target edit before preparing another version.',
+              409,
+              { applicationId: existingTargetApplication.id },
+            )
+          }
+          if (!existingTargetApplication && normalized.replacesApplicationId) {
+            throw new ApiError('VERSION_CONFLICT', 'The Preference Application selected for replacement is no longer active.', 409)
+          }
+          if (existingTargetApplication && normalized.replacesApplicationId !== existingTargetApplication.id) {
+            throw new ApiError('VERSION_CONFLICT', 'The active Preference Application changed before replacement. Reload this Edit Chat.', 409)
+          }
+          let replacedReference: EditReferenceRecord | undefined
+          let replacedStudy: PreferenceStudySessionRecord | undefined
+          if (existingTargetApplication) {
+            if (!normalized.invalidationReceipt || normalized.expectedReplacedReferenceRevision === undefined) {
+              throw new ApiError('VALIDATION_FAILED', 'Replacement requires the exact downstream invalidation receipt and prior reference revision.', 409)
+            }
+            if (existingTargetApplication.targetIntegrationStatus !== 'connected') {
+              throw new ApiError('VERSION_CONFLICT', 'Only connected target guidance can be replaced through the downstream invalidation flow.', 409)
+            }
+            replacedReference = requireReference(aggregate, existingTargetApplication.editReferenceId)
+            replacedStudy = requireStudy(aggregate, existingTargetApplication.studySessionId)
+            assertRevision(replacedReference.revision, normalized.expectedReplacedReferenceRevision, 'Replaced Edit Reference')
+            assertDownstreamInvalidationReceipt(existingTargetApplication, normalized.invalidationReceipt, 'replace')
+          }
+          const application = createEditReferenceTargetApplication({
+            reference,
+            study,
+            dnaVersion,
+            qaResult,
+            targetContext: normalized.targetContext,
+            applicationSource: normalized.applicationSource ?? 'session_panel',
+            existingApplications: aggregate.applications,
+            now,
+          })
+          if (existingTargetApplication) {
+            application.replacesApplicationId = existingTargetApplication.id
+            existingTargetApplication.status = 'replaced'
+            existingTargetApplication.targetIntegrationStatus = 'invalidated'
+            existingTargetApplication.downstreamInvalidationStatus = 'completed'
+            existingTargetApplication.replacedByApplicationId = application.id
+            existingTargetApplication.invalidatedAt = now
+            existingTargetApplication.updatedAt = now
+            existingTargetApplication.invalidationReason = 'replace'
+            existingTargetApplication.downstreamInvalidationReceipt = normalized.invalidationReceipt
+            if (replacedReference && replacedStudy) {
+              if (replacedReference.id !== reference.id) {
+                replacedReference.revision += 1
+                replacedReference.updatedAt = now
+              }
+              aggregate.messages.push(preferenceApplicationLifecycleMessage(
+                replacedReference,
+                replacedStudy,
+                `Target guidance was replaced by “${reference.name}” for ${application.targetContext.editName}. Approved DNA and application history remain immutable.`,
+                now,
+                nextSequence(aggregate, replacedStudy.id),
+              ))
+              aggregate.usageLogs.push(usageLog(replacedReference, 'replaced', now))
+            }
+          }
+          aggregate.applications.push(application)
+          reference.revision += 1
+          reference.updatedAt = now
+          aggregate.messages.push(targetApplicationMessage(reference, study, application, now, nextSequence(aggregate, study.id)))
+          aggregate.usageLogs.push(usageLog(reference, 'application_prepared', now))
+          if (existingTargetApplication && replacedReference && replacedStudy) {
+            addAuditEvent({
+              eventType: 'preference_application_replaced',
+              editReferenceId: replacedReference.id,
+              studySessionId: replacedStudy.id,
+              dnaVersionId: existingTargetApplication.dnaVersionId,
+              dnaQaResultId: existingTargetApplication.dnaQaResultId,
+              applicationId: existingTargetApplication.id,
+            })
+          }
+          addAuditEvent({
+            eventType: 'preference_application_prepared',
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            dnaVersionId: dnaVersion.id,
+            dnaQaResultId: qaResult.id,
+            applicationId: application.id,
+          })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async connectPreferenceApplication(applicationId, input, idempotencyKey) {
+      const normalized = normalizeConnectPreferenceApplication(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_application.connect_mock_session',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ applicationId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const application = aggregate.applications.find((record) => record.id === applicationId)
+          if (!application) {
+            throw new ApiError('PREFERENCE_APPLICATION_NOT_FOUND', 'Preference Application was not found.', 404, { applicationId })
+          }
+          const reference = requireReference(aggregate, application.editReferenceId)
+          const study = requireStudy(aggregate, application.studySessionId)
+          assertRevision(reference.revision, normalized.expectedReferenceRevision, 'Edit Reference')
+          if (application.contentDigest !== normalized.expectedApplicationContentDigest) {
+            throw new ApiError('VERSION_CONFLICT', 'Preference Application changed since it was staged. Reload before connecting it.', 409)
+          }
+          if (application.status !== 'prepared' || application.targetIntegrationStatus !== 'not_connected') {
+            throw new ApiError('VERSION_CONFLICT', 'Only one unconnected prepared Preference Application can be connected.', 409)
+          }
+          const context = createPreferenceApplicationDownstreamContext(application, 'connected_mock')
+          assertTargetSessionReceipt(application, context.packageHash, normalized.targetSessionReceipt)
+          application.targetIdentityStatus = 'verified_mock_project_edit_session'
+          application.targetIntegrationStatus = 'connected'
+          application.targetEditMutationMade = true
+          application.downstreamContextWritten = true
+          application.downstreamContext = context
+          application.targetSessionReceipt = normalized.targetSessionReceipt
+          application.connectedAt = now
+          application.updatedAt = now
+          reference.revision += 1
+          reference.updatedAt = now
+          aggregate.messages.push({
+            id: `preference-study-message-${randomUUID()}`,
+            workspaceId: reference.workspaceId,
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            role: 'assistant',
+            content: `Target-adapted Preference DNA was connected to “${application.targetContext.editName}” as planning guidance. Current instructions and confirmed Edit Brief markers remain higher priority; no production work started.`,
+            sequence: nextSequence(aggregate, study.id),
+            runtimeSource: 'deterministic_dna_application',
+            createdAt: now,
+          })
+          aggregate.usageLogs.push(usageLog(reference, 'applied', now))
+          addAuditEvent({
+            eventType: 'preference_application_connected_mock',
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            dnaVersionId: application.dnaVersionId,
+            dnaQaResultId: application.dnaQaResultId,
+            applicationId: application.id,
+          })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+
+    async clearPreferenceApplication(applicationId, input, idempotencyKey) {
+      const normalized = normalizeClearPreferenceApplication(input)
+      const mutation = await repository.mutate({
+        scope: scope(normalized.workspaceId),
+        operation: 'preference_application.clear_connected_context',
+        idempotencyKey: requireIdempotencyKey(idempotencyKey),
+        requestHash: hashEditReferenceRequest({ applicationId, ...normalized }),
+        mutate: ({ aggregate, now, addAuditEvent }) => {
+          const application = aggregate.applications.find((record) => record.id === applicationId)
+          if (!application) {
+            throw new ApiError('PREFERENCE_APPLICATION_NOT_FOUND', 'Preference Application was not found.', 404, { applicationId })
+          }
+          const reference = requireReference(aggregate, application.editReferenceId)
+          const study = requireStudy(aggregate, application.studySessionId)
+          assertRevision(reference.revision, normalized.expectedReferenceRevision, 'Edit Reference')
+          if (application.contentDigest !== normalized.expectedApplicationContentDigest) {
+            throw new ApiError('VERSION_CONFLICT', 'Preference Application changed before it could be removed. Reload this Edit Chat.', 409)
+          }
+          if (application.status !== 'prepared' || application.targetIntegrationStatus !== 'connected') {
+            throw new ApiError('VERSION_CONFLICT', 'Only the currently connected target guidance can be removed.', 409)
+          }
+          assertDownstreamInvalidationReceipt(application, normalized.invalidationReceipt, 'remove')
+          application.status = 'cleared'
+          application.targetIntegrationStatus = 'invalidated'
+          application.downstreamInvalidationStatus = 'completed'
+          application.clearedAt = now
+          application.updatedAt = now
+          application.invalidatedAt = now
+          application.invalidationReason = 'remove'
+          application.downstreamInvalidationReceipt = normalized.invalidationReceipt
+          reference.revision += 1
+          reference.updatedAt = now
+          aggregate.messages.push(preferenceApplicationLifecycleMessage(
+            reference,
+            study,
+            `Target-adapted guidance was removed from ${application.targetContext.editName}. Approved Preference DNA and application history remain unchanged.`,
+            now,
+            nextSequence(aggregate, study.id),
+          ))
+          aggregate.usageLogs.push(usageLog(reference, 'cleared', now))
+          addAuditEvent({
+            eventType: 'preference_application_cleared',
+            editReferenceId: reference.id,
+            studySessionId: study.id,
+            dnaVersionId: application.dnaVersionId,
+            dnaQaResultId: application.dnaQaResultId,
+            applicationId: application.id,
+          })
+          return detailData(aggregate, reference)
+        },
+      })
+      return result(mutation.data, mutation.replayed)
+    },
+  }
+}
+
+function selectRepository(context: ServiceContext): EditReferenceRepository {
+  const localAuthorized = context.auth?.isMockUser === true
+    && context.env.allowMockWithoutSupabase
+    && (context.env.mode === 'local' || context.env.mode === 'mock')
+    && context.env.storageMode === 'local'
+  return localAuthorized ? new PrivateEditReferenceRepository() : new DisabledSupabaseEditReferenceRepository()
+}
+
+async function prepareEditReferenceMediaStudies(
+  context: ServiceContext,
+  aggregate: EditReferenceAggregate,
+  studyId: string,
+): Promise<EditReferenceLocalMediaStudyResult[]> {
+  const study = aggregate.studies.find((record) => record.id === studyId)
+  if (!study) return []
+  const reference = aggregate.references.find((record) => record.id === study.editReferenceId)
+  if (!reference) return []
+  const uploadService = createUploadService(context)
+  const studies: EditReferenceLocalMediaStudyResult[] = []
+  for (const asset of aggregate.assets.filter((record) => (
+    record.studySessionId === studyId
+    && record.assetKind === 'reference_video_metadata'
+    && Boolean(record.storageObjectRecordId)
+    && Boolean(record.mediaAssetId)
+  ))) {
+    const sourceEvidence = aggregate.evidence.find((record) => (
+      record.studySessionId === studyId
+      && record.sourceType === 'reference_video_metadata'
+      && record.provenance.privateAssetId === asset.privateAssetId
+    ))
+    if (!sourceEvidence || !asset.storageObjectRecordId) continue
+    try {
+      const storage = await uploadService.getStorageObjectRecord(asset.storageObjectRecordId, reference.workspaceId)
+      if (
+        storage.storageObjectRecord.projectId !== reference.id
+        || storage.storageObjectRecord.mediaAssetId !== asset.mediaAssetId
+      ) {
+        studies.push(createBlockedEditReferenceMediaStudy({
+          referenceAssetId: asset.id,
+          privateAssetId: asset.privateAssetId,
+          sourceEvidenceId: sourceEvidence.id,
+        }, 'reference_media_identity_mismatch', 'The private reference asset identity no longer matches this Edit Reference. Reconnect it before retrying.'))
+        continue
+      }
+      studies.push(await runEditReferenceLocalMediaStudy({
+        env: context.env,
+        referenceAssetId: asset.id,
+        privateAssetId: asset.privateAssetId,
+        sourceEvidenceId: sourceEvidence.id,
+        storageObject: storage.storageObjectRecord,
+      }))
+    } catch {
+      studies.push(createBlockedEditReferenceMediaStudy({
+        referenceAssetId: asset.id,
+        privateAssetId: asset.privateAssetId,
+        sourceEvidenceId: sourceEvidence.id,
+      }, 'reference_media_private_asset_unavailable', 'The private reference asset could not be opened by the approved local runtime. Reconnect it and retry.'))
+    }
+  }
+  return studies
+}
+
+function detailData(aggregate: EditReferenceAggregate, reference: EditReferenceRecord): EditReferenceDetailData {
+  const study = requireStudy(aggregate, reference.currentStudyId)
+  const skillRuns = aggregate.skillRuns.filter((record) => record.studySessionId === study.id)
+  const detail: EditReferenceDetail = {
+    reference,
+    study,
+    messages: studyMessages(aggregate, study.id),
+    evidence: aggregate.evidence.filter((record) => record.studySessionId === study.id),
+    assets: aggregate.assets.filter((record) => record.studySessionId === study.id),
+    skillRuns,
+    dnaVersions: aggregate.dnaVersions.filter((record) => record.studySessionId === study.id),
+    dnaQaResults: aggregate.dnaQaResults.filter((record) => aggregate.dnaVersions.some((dna) => dna.id === record.dnaVersionId && dna.studySessionId === study.id)),
+    applications: aggregate.applications.filter((record) => record.editReferenceId === reference.id),
+    usageLogs: aggregate.usageLogs.filter((record) => record.editReferenceId === reference.id),
+    nextAction: nextActionForDetail(aggregate, reference, study),
+    safety: {
+      ...EDIT_REFERENCE_SAFETY_FLAGS,
+      fileBytesRead: skillRuns.some((record) => record.fileBytesRead),
+      mediaProcessingStarted: skillRuns.some((record) => record.mediaProcessingStarted),
+    },
+  }
+  return { detail, replayed: false }
+}
+
+function nextActionForDetail(
+  aggregate: EditReferenceAggregate,
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+): EditReferenceDetail['nextAction'] {
+  if (reference.status === 'archived') return 'archived'
+  if (study.status === 'evidence_ready') return 'generate_preference_dna'
+  const activeDNAVersion = reference.dnaStatus === 'not_generated'
+    ? undefined
+    : aggregate.dnaVersions
+      .filter((record) => record.studySessionId === study.id && record.status !== 'superseded')
+      .sort((left, right) => right.version - left.version)[0]
+  if (activeDNAVersion) {
+    if (activeDNAVersion.status === 'approved') return 'prepare_target_application'
+    if (activeDNAVersion.qaStatus === 'not_run') return 'run_preference_dna_qa'
+    if (activeDNAVersion.qaStatus === 'blocked') return 'correct_preference_dna'
+    return 'approve_preference_dna'
+  }
+  if (study.status === 'qa_blocked') return 'correct_preference_dna'
+  if (study.status === 'needs_user_review') return 'review_study_findings'
+  if (study.status === 'needs_clarification') return 'add_missing_evidence'
+  const sourceEvidence = aggregate.evidence.filter((record) => record.studySessionId === study.id && record.sourceType !== 'derived_skill_evidence')
+  if (sourceEvidence.length > 0) return 'run_evidence_study'
+  return aggregate.messages.some((message) => message.studySessionId === study.id && message.role === 'user')
+    ? 'add_reference_evidence'
+    : 'answer_setup_questions'
+}
+
+function createStudyRecord(reference: EditReferenceRecord, id: string, title: string, now: string): PreferenceStudySessionRecord {
+  return {
+    id,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    title,
+    status: 'collecting_evidence',
+    initialGoals: reference.initialGoals,
+    revision: 1,
+    createdAt: now,
+    updatedAt: now,
+    runtimeSource: 'backend_local_private',
+    evidenceStatus: 'not_complete',
+    dnaStatus: 'not_generated',
+    qaStatus: 'not_run',
+  }
+}
+
+function setupMessages(reference: EditReferenceRecord, study: PreferenceStudySessionRecord, now: string): PreferenceStudyMessageRecord[] {
+  return [
+    {
+      id: `preference-study-message-${randomUUID()}`,
+      workspaceId: reference.workspaceId,
+      editReferenceId: reference.id,
+      studySessionId: study.id,
+      role: 'system',
+      content: 'This study uses only evidence you deliberately add. Saving video details does not mean the video itself has been studied.',
+      sequence: 1,
+      runtimeSource: 'deterministic_setup',
+      createdAt: now,
+    },
+    {
+      id: `preference-study-message-${randomUUID()}`,
+      workspaceId: reference.workspaceId,
+      editReferenceId: reference.id,
+      studySessionId: study.id,
+      role: 'assistant',
+      content: setupQuestion(reference),
+      sequence: 2,
+      runtimeSource: 'deterministic_setup',
+      createdAt: now,
+    },
+  ]
+}
+
+function setupQuestion(reference: EditReferenceRecord): string {
+  const goals = reference.initialGoals.map(goalLabel).join(', ')
+  return `What should ReEditPro learn from this reference for ${goals}? Describe the transferable choices, what must not be copied, and where those choices should or should not apply.`
+}
+
+function deterministicAcknowledgement(reference: EditReferenceRecord): string {
+  return `Your direction is saved for “${reference.name}.” Study evidence is not complete, so Preference DNA and quality review remain unavailable. Add reference evidence when you are ready to continue.`
+}
+
+function evidenceSavedMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  evidence: PreferenceEvidenceRecord,
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  const boundary = evidence.sourceType === 'reference_video_metadata'
+    ? ' Only the details you entered were saved; the video itself was not studied.'
+    : evidence.sourceType === 'previous_approved_edit_snapshot'
+      ? ' Its identity was recorded, but no project history, snapshot content, or media was opened.'
+      : ''
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content: `“${evidence.title}” was added to this study.${boundary} You can study the saved evidence now or add more context first.`,
+    sequence,
+    runtimeSource: 'deterministic_evidence',
+    createdAt: now,
+  }
+}
+
+function studyResultMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  content: string,
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content,
+    sequence,
+    runtimeSource: 'deterministic_evidence',
+    createdAt: now,
+  }
+}
+
+function dnaSynthesisMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  dnaVersion: EditReferenceDetail['dnaVersions'][number],
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content: `Preference DNA version ${dnaVersion.version} was prepared from ${dnaVersion.inputEvidenceRevisions.length} exact evidence records. It remains locked for quality review; nothing has been approved or applied.`,
+    sequence,
+    runtimeSource: 'deterministic_dna',
+    createdAt: now,
+  }
+}
+
+function dnaQAMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  qaResult: EditReferenceDetail['dnaQaResults'][number],
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  const next = qaResult.status === 'blocked'
+    ? 'Correct the evidence and create a new version before approval.'
+    : qaResult.status === 'requires_user_review'
+      ? 'Review and acknowledge the flagged limits before approving this exact version.'
+      : 'The exact version can now be reviewed for approval.'
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content: `${qaResult.summary} ${next} No edit was changed and no production work started.`,
+    sequence,
+    runtimeSource: 'deterministic_dna_qa',
+    createdAt: now,
+  }
+}
+
+function dnaApprovalMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  dnaVersion: EditReferenceDetail['dnaVersions'][number],
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content: `Preference DNA version ${dnaVersion.version} was approved with the quality review tied to this exact version. Approval saves reusable guidance only; it has not been applied to an edit and no production work started.`,
+    sequence,
+    runtimeSource: 'deterministic_dna_approval',
+    createdAt: now,
+  }
+}
+
+function targetApplicationMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  application: EditReferenceDetail['applications'][number],
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content: `${application.summary} The guidance is saved for review, but “${application.targetContext.editName}” has not changed and no production work started.`,
+    sequence,
+    runtimeSource: 'deterministic_dna_application',
+    createdAt: now,
+  }
+}
+
+function preferenceApplicationLifecycleMessage(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  content: string,
+  now: string,
+  sequence: number,
+): PreferenceStudyMessageRecord {
+  return {
+    id: `preference-study-message-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    role: 'assistant',
+    content: `${content} No provider, production, rendering, or credit action started.`,
+    sequence,
+    runtimeSource: 'deterministic_dna_application',
+    createdAt: now,
+  }
+}
+
+function createEvidenceRecords(
+  reference: EditReferenceRecord,
+  study: PreferenceStudySessionRecord,
+  input: CreatePreferenceEvidenceRequest,
+  now: string,
+): { evidence: PreferenceEvidenceRecord; asset?: PreferenceAssetRecord } {
+  const evidenceId = `preference-evidence-${randomUUID()}`
+  if (input.sourceType === 'manual_user_evidence') {
+    return {
+      evidence: {
+        id: evidenceId,
+        workspaceId: reference.workspaceId,
+        editReferenceId: reference.id,
+        studySessionId: study.id,
+        sourceType: input.sourceType,
+        ...(input.supersedesEvidenceId ? { supersedesEvidenceId: input.supersedesEvidenceId } : {}),
+        category: input.category,
+        title: input.title,
+        summary: input.summary,
+        revision: 1,
+        confidence: 0.65,
+        confidenceBasis: 'user_asserted',
+        transferability: input.intendedUse,
+        provenance: {
+          runtimeSource: 'user_input',
+          sourceEvidenceIds: input.supersedesEvidenceId ? [input.supersedesEvidenceId] : [],
+          mediaStudyStatus: 'not_applicable',
+          toolIds: [],
+          skillIds: [],
+          fallbackUsed: false,
+          notes: ['Saved as user-described evidence. No media or model analysis is implied.'],
+        },
+        createdAt: now,
+        updatedAt: now,
+      },
+    }
+  }
+
+  const privateAssetId = input.sourceType === 'reference_video_metadata' && input.mediaAssetId
+    ? input.mediaAssetId
+    : `preference-private-asset-${randomUUID()}`
+  if (input.sourceType === 'reference_video_metadata') {
+    const mediaMetadata = normalizeMediaMetadata(input)
+    const asset: PreferenceAssetRecord = {
+      id: `preference-asset-${randomUUID()}`,
+      workspaceId: reference.workspaceId,
+      editReferenceId: reference.id,
+      studySessionId: study.id,
+      privateAssetId,
+      ...(input.storageObjectRecordId ? { storageObjectRecordId: input.storageObjectRecordId } : {}),
+      ...(input.mediaAssetId ? { mediaAssetId: input.mediaAssetId } : {}),
+      assetKind: 'reference_video_metadata',
+      label: input.sourceLabel,
+      rightsBasis: input.rightsBasis,
+      mediaStudyStatus: 'media_not_studied',
+      mediaMetadata,
+      createdAt: now,
+    }
+    return {
+      asset,
+      evidence: {
+        id: evidenceId,
+        workspaceId: reference.workspaceId,
+        editReferenceId: reference.id,
+        studySessionId: study.id,
+        sourceType: input.sourceType,
+        category: 'media_structure',
+        title: input.title,
+        summary: input.storageObjectRecordId
+          ? `${input.sourceLabel} was stored as a private reference asset. Its media has not been studied yet.`
+          : `${input.sourceLabel} metadata was supplied for this study. The media itself has not been studied.`,
+        revision: 1,
+        confidence: 1,
+        confidenceBasis: 'metadata_verified',
+        transferability: 'requires_user_review',
+        mediaMetadata,
+        provenance: {
+          runtimeSource: 'user_input',
+          sourceEvidenceIds: [],
+          privateAssetId,
+          sourceLabel: input.sourceLabel,
+          rightsBasis: input.rightsBasis,
+          mediaStudyStatus: 'media_not_studied',
+          toolIds: [],
+          skillIds: [],
+          fallbackUsed: false,
+          notes: input.storageObjectRecordId
+            ? ['Only canonical private asset identities were persisted. No signed URL, filesystem path, raw frame, transcript, or provider payload was stored.']
+            : ['No URL, path, media bytes, frames, transcript, audio, or provider payload was accepted or persisted.'],
+        },
+        createdAt: now,
+        updatedAt: now,
+      },
+    }
+  }
+
+  const asset: PreferenceAssetRecord = {
+    id: `preference-asset-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    studySessionId: study.id,
+    privateAssetId,
+    assetKind: 'previous_approved_edit_snapshot',
+    label: input.title,
+    rightsBasis: input.rightsBasis,
+    mediaStudyStatus: 'approved_edit_identity_not_verified',
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+    approvedSnapshotId: input.approvedSnapshotId,
+    createdAt: now,
+  }
+  return {
+    asset,
+    evidence: {
+      id: evidenceId,
+      workspaceId: reference.workspaceId,
+      editReferenceId: reference.id,
+      studySessionId: study.id,
+      sourceType: input.sourceType,
+      category: 'media_structure',
+      title: input.title,
+      summary: input.summary ?? 'A previous approved edit identity was supplied for future private study.',
+      revision: 1,
+      confidence: 0.5,
+      confidenceBasis: 'user_asserted',
+      transferability: 'requires_user_review',
+      provenance: {
+        runtimeSource: 'user_input',
+        sourceEvidenceIds: [],
+        privateAssetId,
+        projectId: input.projectId,
+        editSessionId: input.editSessionId,
+        approvedSnapshotId: input.approvedSnapshotId,
+        rightsBasis: input.rightsBasis,
+        mediaStudyStatus: 'approved_edit_identity_not_verified',
+        toolIds: [],
+        skillIds: [],
+        fallbackUsed: false,
+        notes: ['Exact identity was saved. No project history, approved snapshot content, preview, or media bytes were opened.'],
+      },
+      createdAt: now,
+      updatedAt: now,
+    },
+  }
+}
+
+function normalizeMediaMetadata(input: Extract<CreatePreferenceEvidenceRequest, { sourceType: 'reference_video_metadata' }>): PreferenceEvidenceMediaMetadata {
+  const width = input.width
+  const height = input.height
+  const orientation = width && height
+    ? width === height ? 'square' : width > height ? 'landscape' : 'portrait'
+    : 'unknown'
+  return {
+    ...(input.durationSeconds === undefined ? {} : { durationSeconds: input.durationSeconds }),
+    ...(width === undefined ? {} : { width }),
+    ...(height === undefined ? {} : { height }),
+    ...(input.hasAudio === undefined ? {} : { hasAudio: input.hasAudio }),
+    orientation,
+  }
+}
+
+function goalLabel(goal: EditReferenceStudyGoal): string {
+  return goal.replaceAll('_', ' ')
+}
+
+function nextSequence(aggregate: EditReferenceAggregate, studyId: string): number {
+  return aggregate.messages.reduce((maximum, message) => message.studySessionId === studyId ? Math.max(maximum, message.sequence) : maximum, 0) + 1
+}
+
+function usageLog(
+  reference: EditReferenceRecord,
+  eventType: 'created' | 'study_created' | 'message_appended' | 'evidence_added' | 'evidence_study_completed' | 'dna_version_created' | 'dna_qa_completed' | 'dna_version_approved' | 'application_prepared' | 'updated' | 'archived' | 'applied' | 'replaced' | 'cleared',
+  now: string,
+) {
+  return {
+    id: `preference-usage-${randomUUID()}`,
+    workspaceId: reference.workspaceId,
+    editReferenceId: reference.id,
+    eventType,
+    createdAt: now,
+  } as const
+}
+
+function requireReference(aggregate: EditReferenceAggregate, referenceId: string): EditReferenceRecord {
+  const reference = aggregate.references.find((candidate) => candidate.id === referenceId)
+  if (!reference) throw referenceNotFound(referenceId)
+  return reference
+}
+
+function requireStudy(aggregate: EditReferenceAggregate, studyId: string): PreferenceStudySessionRecord {
+  const study = aggregate.studies.find((candidate) => candidate.id === studyId)
+  if (!study) throw studyNotFound(studyId)
+  return study
+}
+
+function requireDNAVersion(
+  aggregate: EditReferenceAggregate,
+  dnaVersionId: string,
+  study: PreferenceStudySessionRecord,
+): EditReferenceDetail['dnaVersions'][number] {
+  const version = aggregate.dnaVersions.find((candidate) => candidate.id === dnaVersionId)
+  if (!version || version.studySessionId !== study.id || version.editReferenceId !== study.editReferenceId) {
+    throw new ApiError('VALIDATION_FAILED', 'Preference DNA version was not found in this study.', 404, { dnaVersionId })
+  }
+  return version
+}
+
+function requireDNAQAResult(
+  aggregate: EditReferenceAggregate,
+  qaResultId: string,
+  dnaVersion: EditReferenceDetail['dnaVersions'][number],
+): EditReferenceDetail['dnaQaResults'][number] {
+  const result = aggregate.dnaQaResults.find((candidate) => candidate.id === qaResultId)
+  if (!result || result.dnaVersionId !== dnaVersion.id) {
+    throw new ApiError('VALIDATION_FAILED', 'Quality-review result does not belong to this DNA version.', 409, { qaResultId })
+  }
+  return result
+}
+
+function assertDNAContentDigest(actual: string, expected: string): void {
+  if (actual !== expected) {
+    throw new ApiError('VERSION_CONFLICT', 'Preference DNA changed since it was reviewed. Reload before continuing.', 409, { expected, actual })
+  }
+}
+
+function assertActiveStudy(reference: EditReferenceRecord, study: PreferenceStudySessionRecord): void {
+  if (reference.status === 'archived' || study.status === 'archived') {
+    throw new ApiError('VALIDATION_FAILED', 'Archived studies cannot accept or analyze evidence.', 409)
+  }
+}
+
+function studyMessages(aggregate: EditReferenceAggregate, studyId: string): PreferenceStudyMessageRecord[] {
+  return aggregate.messages.filter((message) => message.studySessionId === studyId).sort((left, right) => left.sequence - right.sequence)
+}
+
+function studyNotFound(studyId: string): ApiError {
+  return new ApiError('PREFERENCE_STUDY_NOT_FOUND', 'Preference Study was not found.', 404, { studyId })
+}
+
+function assertStudyTransition(
+  current: PreferenceStudySessionRecord['status'],
+  next: PreferenceStudySessionRecord['status'],
+): void {
+  if (current === next) return
+  const gateOneTransitions: Partial<Record<PreferenceStudySessionRecord['status'], PreferenceStudySessionRecord['status'][]>> = {
+    draft: ['collecting_evidence', 'archived'],
+    collecting_evidence: ['ready_to_study', 'needs_clarification', 'archived'],
+    ready_to_study: ['collecting_evidence', 'needs_clarification', 'archived'],
+    needs_clarification: ['collecting_evidence', 'ready_to_study', 'archived'],
+  }
+  if (!gateOneTransitions[current]?.includes(next)) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'That Preference Study lifecycle transition is not available in Gate 1.',
+      409,
+      { current, requested: next },
+    )
+  }
+}
+
+function referenceNotFound(referenceId: string): ApiError {
+  return new ApiError('EDIT_REFERENCE_NOT_FOUND', 'Edit Reference was not found.', 404, { referenceId })
+}
+
+function assertRevision(actual: number, expected: number, label: string): void {
+  if (actual !== expected) {
+    throw new ApiError('VERSION_CONFLICT', `${label} changed since it was loaded. Reload before saving.`, 409, { expected, actual })
+  }
+}
+
+function normalizeCreateReference(input: CreateEditReferenceRequest): CreateEditReferenceRequest {
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    name: requireText(input.name, 'name', 120),
+    ...(input.description?.trim() ? { description: requireText(input.description, 'description', 2_000) } : {}),
+    initialGoals: [...new Set(input.initialGoals)],
+  }
+}
+
+function normalizeUpdateReference(input: UpdateEditReferenceRequest): UpdateEditReferenceRequest {
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedReferenceRevision: input.expectedReferenceRevision,
+    ...(input.name === undefined ? {} : { name: requireText(input.name, 'name', 120) }),
+    ...(input.description === undefined ? {} : { description: input.description.trim().slice(0, 2_000) }),
+    ...(input.status ? { status: input.status } : {}),
+  }
+}
+
+function normalizeCreateStudy(input: CreatePreferenceStudyRequest): CreatePreferenceStudyRequest {
+  return { workspaceId: requireWorkspaceId(input.workspaceId), expectedReferenceRevision: input.expectedReferenceRevision, title: requireText(input.title, 'title', 160) }
+}
+
+function normalizeUpdateStudy(input: UpdatePreferenceStudyRequest): UpdatePreferenceStudyRequest {
+  const allowedStatuses = new Set(['draft', 'collecting_evidence', 'ready_to_study', 'needs_clarification', 'archived'])
+  if (input.status && !allowedStatuses.has(input.status)) {
+    throw new ApiError('VALIDATION_FAILED', 'That study status belongs to a later evidence, DNA, QA, or application gate.', 409)
+  }
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedStudyRevision: input.expectedStudyRevision,
+    ...(input.title === undefined ? {} : { title: requireText(input.title, 'title', 160) }),
+    ...(input.status ? { status: input.status } : {}),
+  }
+}
+
+function normalizeAppendMessage(input: AppendPreferenceStudyMessageRequest): AppendPreferenceStudyMessageRequest {
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedStudyRevision: input.expectedStudyRevision,
+    clientMessageId: requireText(input.clientMessageId, 'clientMessageId', 160),
+    content: requireText(input.content, 'content', 8_000),
+    ...(input.findingCorrectionEvidenceId
+      ? { findingCorrectionEvidenceId: requireText(input.findingCorrectionEvidenceId, 'findingCorrectionEvidenceId', 200) }
+      : {}),
+  }
+}
+
+function requireManualEvidenceCategory(
+  value: PreferenceEvidenceCategory,
+): Exclude<PreferenceEvidenceCategory, 'media_structure' | 'copy_safety'> {
+  if (value === 'media_structure' || value === 'copy_safety') {
+    throw new ApiError('VALIDATION_FAILED', 'Study Chat can correct saved creative evidence only.', 409)
+  }
+  return value
+}
+
+function requireCorrectionTransferability(
+  value: PreferenceEvidenceTransferability,
+): Exclude<PreferenceEvidenceTransferability, 'unknown'> {
+  return value === 'unknown' ? 'requires_user_review' : value
+}
+
+function normalizeCreateEvidence(input: CreatePreferenceEvidenceRequest): CreatePreferenceEvidenceRequest {
+  const workspaceId = requireWorkspaceId(input.workspaceId)
+  const expectedStudyRevision = requirePositiveInteger(input.expectedStudyRevision, 'expectedStudyRevision')
+  const title = requireText(input.title, 'title', 160)
+  if (input.sourceType === 'manual_user_evidence') {
+    return {
+      workspaceId,
+      expectedStudyRevision,
+      sourceType: input.sourceType,
+      title,
+      category: input.category,
+      summary: requireText(input.summary, 'summary', 4_000),
+      intendedUse: input.intendedUse,
+      ...(input.supersedesEvidenceId ? { supersedesEvidenceId: requireText(input.supersedesEvidenceId, 'supersedesEvidenceId', 200) } : {}),
+    }
+  }
+  if (input.sourceType === 'reference_video_metadata') {
+    if (Boolean(input.storageObjectRecordId) !== Boolean(input.mediaAssetId)) {
+      throw new ApiError('VALIDATION_FAILED', 'A private reference upload requires both storageObjectRecordId and mediaAssetId.', 400)
+    }
+    return {
+      workspaceId,
+      expectedStudyRevision,
+      sourceType: input.sourceType,
+      title,
+      sourceLabel: requireText(input.sourceLabel, 'sourceLabel', 240),
+      rightsBasis: input.rightsBasis,
+      ...(input.durationSeconds === undefined ? {} : { durationSeconds: requireNonNegativeNumber(input.durationSeconds, 'durationSeconds', 86_400) }),
+      ...(input.width === undefined ? {} : { width: requirePositiveIntegerBounded(input.width, 'width', 16_384) }),
+      ...(input.height === undefined ? {} : { height: requirePositiveIntegerBounded(input.height, 'height', 16_384) }),
+      ...(input.hasAudio === undefined ? {} : { hasAudio: input.hasAudio }),
+      ...(input.storageObjectRecordId ? { storageObjectRecordId: requireText(input.storageObjectRecordId, 'storageObjectRecordId', 200) } : {}),
+      ...(input.mediaAssetId ? { mediaAssetId: requireText(input.mediaAssetId, 'mediaAssetId', 200) } : {}),
+    }
+  }
+  return {
+    workspaceId,
+    expectedStudyRevision,
+    sourceType: input.sourceType,
+    title,
+    projectId: requireText(input.projectId, 'projectId', 200),
+    editSessionId: requireText(input.editSessionId, 'editSessionId', 200),
+    approvedSnapshotId: requireText(input.approvedSnapshotId, 'approvedSnapshotId', 200),
+    ...(input.summary?.trim() ? { summary: requireText(input.summary, 'summary', 2_000) } : {}),
+    rightsBasis: 'workspace_approved_edit',
+  }
+}
+
+function normalizeRunEvidenceStudy(input: RunPreferenceEvidenceStudyRequest): RunPreferenceEvidenceStudyRequest {
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedStudyRevision: requirePositiveInteger(input.expectedStudyRevision, 'expectedStudyRevision'),
+    ...(input.retryBlockedSkills ? { retryBlockedSkills: true } : {}),
+  }
+}
+
+function normalizeSynthesizePreferenceDNA(input: SynthesizePreferenceDNARequest): SynthesizePreferenceDNARequest {
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedStudyRevision: requirePositiveInteger(input.expectedStudyRevision, 'expectedStudyRevision'),
+  }
+}
+
+function normalizeRunPreferenceDNAQA(input: RunEditReferenceDNAQARequest): RunEditReferenceDNAQARequest {
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedStudyRevision: requirePositiveInteger(input.expectedStudyRevision, 'expectedStudyRevision'),
+    expectedDNAContentDigest: requireSha256(input.expectedDNAContentDigest, 'expectedDNAContentDigest'),
+  }
+}
+
+function normalizeApprovePreferenceDNA(input: ApproveEditReferenceDNAVersionRequest): ApproveEditReferenceDNAVersionRequest {
+  if (input.acknowledgeAdaptNotCopy !== true) {
+    throw new ApiError('VALIDATION_FAILED', 'Approval requires confirmation that the reference will be adapted, not copied.', 400)
+  }
+  if (typeof input.acknowledgeQAReview !== 'boolean') {
+    throw new ApiError('VALIDATION_FAILED', 'acknowledgeQAReview must be a boolean.', 400)
+  }
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedStudyRevision: requirePositiveInteger(input.expectedStudyRevision, 'expectedStudyRevision'),
+    expectedDNAContentDigest: requireSha256(input.expectedDNAContentDigest, 'expectedDNAContentDigest'),
+    qaResultId: requireText(input.qaResultId, 'qaResultId', 200),
+    acknowledgeAdaptNotCopy: true,
+    acknowledgeQAReview: input.acknowledgeQAReview,
+  }
+}
+
+function normalizeCreatePreferenceApplication(input: CreatePreferenceApplicationRequest): CreatePreferenceApplicationRequest {
+  if (input.acknowledgeAdaptNotCopy !== true) {
+    throw new ApiError('VALIDATION_FAILED', 'Target preparation requires confirmation that the reference will be adapted, not copied.', 400)
+  }
+  const target = input.targetContext
+  if (!target || typeof target !== 'object') {
+    throw new ApiError('VALIDATION_FAILED', 'A complete target-edit context is required.', 400)
+  }
+  if (target.outputFrameConfirmed !== true) {
+    throw new ApiError('VALIDATION_FAILED', 'Confirm the target output frame before preparing Preference DNA.', 409)
+  }
+  const sourceModes = new Set(['voice_first', 'mixed', 'silent_visual'])
+  const contentTypes = new Set(['tutorial', 'documentary', 'lifestyle_montage', 'talking_head', 'product_demo', 'custom'])
+  const editLevels = new Set(['normal', 'premium', 'ultra_premium'])
+  const aspectRatios = new Set(['9:16', '16:9', '1:1', '4:5'])
+  const platforms = new Set(['tiktok_reel', 'instagram_reel', 'instagram_feed', 'youtube_shorts', 'youtube_standard', 'linkedin', 'website', 'podcast_clip', 'ad_creative', 'internal_review', 'custom'])
+  const budgetPreferences = new Set(['efficient', 'balanced', 'cinematic'])
+  const directiveValues = new Set(['adapt', 'required', 'avoid'])
+  if (!sourceModes.has(target.sourceMode) || !contentTypes.has(target.contentType)) {
+    throw new ApiError('VALIDATION_FAILED', 'The target source mode or content type is not supported.', 400)
+  }
+  if (!editLevels.has(target.selectedEditLevel) || !aspectRatios.has(target.aspectRatio) || !platforms.has(target.platformTarget)) {
+    throw new ApiError('VALIDATION_FAILED', 'The target edit level, output frame, or platform is not supported.', 400)
+  }
+  if (!budgetPreferences.has(target.budgetPreference)) {
+    throw new ApiError('VALIDATION_FAILED', 'The target budget preference is not supported.', 400)
+  }
+  if (
+    !target.directives
+    || !directiveValues.has(target.directives.captions)
+    || !directiveValues.has(target.directives.music)
+    || !directiveValues.has(target.directives.sfx)
+    || !['adapt', 'preserve'].includes(target.directives.sourceOrder)
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'The target creative directives are incomplete.', 400)
+  }
+  if (!Array.isArray(target.approvedConstraints) || target.approvedConstraints.length > 12) {
+    throw new ApiError('VALIDATION_FAILED', 'Approved target constraints must be a bounded list.', 400)
+  }
+  const approvedConstraints = [...new Set(target.approvedConstraints.map((value) => requireText(value, 'approvedConstraint', 500)))]
+  const normalizedTarget: PreferenceApplicationTargetContextSnapshot = {
+    projectId: requireText(target.projectId, 'targetContext.projectId', 200),
+    editSessionId: requireText(target.editSessionId, 'targetContext.editSessionId', 200),
+    projectName: requireText(target.projectName, 'targetContext.projectName', 160),
+    editName: requireText(target.editName, 'targetContext.editName', 160),
+    sourceMode: target.sourceMode,
+    contentType: target.contentType,
+    sourceSummary: requireText(target.sourceSummary, 'targetContext.sourceSummary', 2_000),
+    currentUserInstruction: requireText(target.currentUserInstruction, 'targetContext.currentUserInstruction', 4_000),
+    selectedEditLevel: target.selectedEditLevel,
+    aspectRatio: target.aspectRatio,
+    outputFrameConfirmed: true,
+    platformTarget: target.platformTarget,
+    storyRole: requireText(target.storyRole, 'targetContext.storyRole', 500),
+    budgetPreference: target.budgetPreference,
+    directives: {
+      captions: target.directives.captions,
+      music: target.directives.music,
+      sfx: target.directives.sfx,
+      sourceOrder: target.directives.sourceOrder,
+    },
+    approvedConstraints,
+  }
+  const replacementValues = [
+    input.replacesApplicationId,
+    input.expectedReplacedReferenceRevision,
+    input.invalidationReceipt,
+  ]
+  const replacementValueCount = replacementValues.filter((value) => value !== undefined).length
+  if (replacementValueCount !== 0 && replacementValueCount !== replacementValues.length) {
+    throw new ApiError('VALIDATION_FAILED', 'Replacement requires the exact prior application, reference revision, and downstream invalidation receipt.', 400)
+  }
+  const invalidationReceipt = input.invalidationReceipt
+    ? normalizeDownstreamInvalidationReceipt(input.invalidationReceipt, 'replace')
+    : undefined
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedReferenceRevision: requirePositiveInteger(input.expectedReferenceRevision, 'expectedReferenceRevision'),
+    expectedDNAContentDigest: requireSha256(input.expectedDNAContentDigest, 'expectedDNAContentDigest'),
+    acknowledgeAdaptNotCopy: true,
+    applicationSource: input.applicationSource ?? 'session_panel',
+    targetContext: normalizedTarget,
+    ...(input.replacesApplicationId ? {
+      replacesApplicationId: requireText(input.replacesApplicationId, 'replacesApplicationId', 200),
+      expectedReplacedReferenceRevision: requirePositiveInteger(input.expectedReplacedReferenceRevision as number, 'expectedReplacedReferenceRevision'),
+      invalidationReceipt,
+    } : {}),
+  }
+}
+
+function normalizeClearPreferenceApplication(input: ClearPreferenceApplicationRequest): ClearPreferenceApplicationRequest {
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedReferenceRevision: requirePositiveInteger(input.expectedReferenceRevision, 'expectedReferenceRevision'),
+    expectedApplicationContentDigest: requireSha256(input.expectedApplicationContentDigest, 'expectedApplicationContentDigest'),
+    invalidationReceipt: normalizeDownstreamInvalidationReceipt(input.invalidationReceipt, 'remove'),
+  }
+}
+
+function normalizeDownstreamInvalidationReceipt(
+  receipt: PreferenceApplicationDownstreamInvalidationReceipt,
+  expectedReason: PreferenceApplicationInvalidationReason,
+): PreferenceApplicationDownstreamInvalidationReceipt {
+  if (!receipt || typeof receipt !== 'object' || receipt.receiptVersion !== 'edit-reference-downstream-invalidation-receipt-v1') {
+    throw new ApiError('VALIDATION_FAILED', 'A supported downstream invalidation receipt is required.', 400)
+  }
+  if (
+    receipt.reason !== expectedReason
+    || receipt.sessionContextInvalidated !== true
+    || receipt.approvedPlanMutationMade !== false
+    || receipt.mockOnly !== true
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'The downstream invalidation receipt does not match this lifecycle action.', 409)
+  }
+  if (!receipt.safety || Object.entries(PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS).some(
+    ([key, value]) => receipt.safety[key as keyof typeof PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS] !== value,
+  )) {
+    throw new ApiError('VALIDATION_FAILED', 'The downstream invalidation receipt contains an unsafe side effect.', 409)
+  }
+  const approvalStatuses = new Set(['not_requested', 'requested', 'approved', 'rejected', 'reset_after_revision'])
+  if (!approvalStatuses.has(receipt.approvalStatusBefore) || !approvalStatuses.has(receipt.approvalStatusAfter)) {
+    throw new ApiError('VALIDATION_FAILED', 'The invalidation approval state is not supported.', 400)
+  }
+  return {
+    receiptVersion: receipt.receiptVersion,
+    applicationId: requireText(receipt.applicationId, 'invalidationReceipt.applicationId', 200),
+    applicationContentDigest: requireSha256(receipt.applicationContentDigest, 'invalidationReceipt.applicationContentDigest'),
+    contextHash: requireText(receipt.contextHash, 'invalidationReceipt.contextHash', 80),
+    projectId: requireText(receipt.projectId, 'invalidationReceipt.projectId', 200),
+    editSessionId: requireText(receipt.editSessionId, 'invalidationReceipt.editSessionId', 200),
+    reason: expectedReason,
+    sessionUpdatedAt: requireISODate(receipt.sessionUpdatedAt, 'invalidationReceipt.sessionUpdatedAt'),
+    approvalStatusBefore: receipt.approvalStatusBefore,
+    approvalStatusAfter: receipt.approvalStatusAfter,
+    approvalResetRequired: receipt.approvalResetRequired === true,
+    sessionContextInvalidated: true,
+    approvedPlanMutationMade: false,
+    invalidatedAt: requireISODate(receipt.invalidatedAt, 'invalidationReceipt.invalidatedAt'),
+    mockOnly: true,
+    safety: PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS,
+  }
+}
+
+function normalizeConnectPreferenceApplication(input: ConnectPreferenceApplicationRequest): ConnectPreferenceApplicationRequest {
+  const receipt = input.targetSessionReceipt
+  if (!receipt || typeof receipt !== 'object' || receipt.mockOnly !== true) {
+    throw new ApiError('VALIDATION_FAILED', 'A staged mock Project Edit Session receipt is required.', 400)
+  }
+  if (receipt.outputFrameConfirmed !== true) {
+    throw new ApiError('VALIDATION_FAILED', 'The staged target receipt must confirm the output frame.', 400)
+  }
+  if (receipt.receiptVersion !== 'edit-reference-project-session-receipt-v1') {
+    throw new ApiError('VALIDATION_FAILED', 'The target session receipt version is not supported.', 400)
+  }
+  return {
+    workspaceId: requireWorkspaceId(input.workspaceId),
+    expectedReferenceRevision: requirePositiveInteger(input.expectedReferenceRevision, 'expectedReferenceRevision'),
+    expectedApplicationContentDigest: requireSha256(input.expectedApplicationContentDigest, 'expectedApplicationContentDigest'),
+    targetSessionReceipt: {
+      receiptVersion: receipt.receiptVersion,
+      projectId: requireText(receipt.projectId, 'targetSessionReceipt.projectId', 200),
+      editSessionId: requireText(receipt.editSessionId, 'targetSessionReceipt.editSessionId', 200),
+      sessionName: requireText(receipt.sessionName, 'targetSessionReceipt.sessionName', 160),
+      sessionUpdatedAt: requireISODate(receipt.sessionUpdatedAt, 'targetSessionReceipt.sessionUpdatedAt'),
+      aspectRatio: receipt.aspectRatio,
+      platformTarget: receipt.platformTarget,
+      selectedEditLevel: receipt.selectedEditLevel,
+      outputFrameConfirmed: true,
+      approvalStatusBefore: receipt.approvalStatusBefore,
+      approvalStatusAfter: receipt.approvalStatusAfter,
+      approvalResetRequired: receipt.approvalResetRequired === true,
+      stagedContextHash: requireText(receipt.stagedContextHash, 'targetSessionReceipt.stagedContextHash', 80),
+      stagedApplicationContentDigest: requireSha256(receipt.stagedApplicationContentDigest, 'targetSessionReceipt.stagedApplicationContentDigest'),
+      stagedAt: requireISODate(receipt.stagedAt, 'targetSessionReceipt.stagedAt'),
+      mockOnly: true,
+    },
+  }
+}
+
+function assertTargetSessionReceipt(
+  application: EditReferenceDetail['applications'][number],
+  expectedContextHash: string,
+  receipt: ConnectPreferenceApplicationRequest['targetSessionReceipt'],
+): void {
+  const validApprovalReset = receipt.approvalResetRequired
+    ? receipt.approvalStatusAfter === 'reset_after_revision'
+    : receipt.approvalStatusAfter === receipt.approvalStatusBefore
+  if (
+    receipt.projectId !== application.projectId
+    || receipt.editSessionId !== application.editSessionId
+    || receipt.aspectRatio !== application.targetContext.aspectRatio
+    || receipt.platformTarget !== application.targetContext.platformTarget
+    || receipt.selectedEditLevel !== application.targetContext.selectedEditLevel
+    || receipt.outputFrameConfirmed !== true
+    || receipt.stagedContextHash !== expectedContextHash
+    || receipt.stagedApplicationContentDigest !== application.contentDigest
+    || !validApprovalReset
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'The staged Project Edit Session receipt does not match this exact Preference Application.', 409)
+  }
+}
+
+function assertDownstreamInvalidationReceipt(
+  application: EditReferenceDetail['applications'][number],
+  receipt: PreferenceApplicationDownstreamInvalidationReceipt,
+  reason: PreferenceApplicationInvalidationReason,
+): void {
+  const validApprovalReset = receipt.approvalResetRequired
+    ? receipt.approvalStatusAfter === 'reset_after_revision'
+    : receipt.approvalStatusAfter === receipt.approvalStatusBefore
+  if (
+    application.targetIntegrationStatus !== 'connected'
+    || !application.downstreamContext
+    || receipt.applicationId !== application.id
+    || receipt.applicationContentDigest !== application.contentDigest
+    || receipt.contextHash !== application.downstreamContext.packageHash
+    || receipt.projectId !== application.projectId
+    || receipt.editSessionId !== application.editSessionId
+    || receipt.reason !== reason
+    || receipt.sessionContextInvalidated !== true
+    || receipt.approvedPlanMutationMade !== false
+    || receipt.mockOnly !== true
+    || !validApprovalReset
+    || Object.entries(PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS).some(
+      ([key, value]) => receipt.safety[key as keyof typeof PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS] !== value,
+    )
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'The downstream invalidation receipt does not match this exact connected Preference Application.', 409)
+  }
+}
+
+function requireISODate(value: string, field: string): string {
+  const normalized = requireText(value, field, 80)
+  if (Number.isNaN(Date.parse(normalized))) throw new ApiError('VALIDATION_FAILED', `${field} must be an ISO date.`, 400)
+  return normalized
+}
+
+function requireWorkspaceId(value: string): string {
+  return requireText(value, 'workspaceId', 160)
+}
+
+function requireIdempotencyKey(value: string): string {
+  return requireText(value, 'Idempotency-Key', 200)
+}
+
+function requireSha256(value: string, field: string): string {
+  const normalized = value?.trim().toLowerCase()
+  if (!/^[a-f0-9]{64}$/.test(normalized)) {
+    throw new ApiError('VALIDATION_FAILED', `${field} must be a SHA-256 digest.`, 400)
+  }
+  return normalized
+}
+
+function requirePositiveInteger(value: number, field: string): number {
+  if (!Number.isSafeInteger(value) || value < 1) throw new ApiError('VALIDATION_FAILED', `${field} must be a positive integer.`, 400)
+  return value
+}
+
+function requirePositiveIntegerBounded(value: number, field: string, maximum: number): number {
+  if (!Number.isSafeInteger(value) || value < 1 || value > maximum) {
+    throw new ApiError('VALIDATION_FAILED', `${field} must be an integer between 1 and ${maximum}.`, 400)
+  }
+  return value
+}
+
+function requireNonNegativeNumber(value: number, field: string, maximum: number): number {
+  if (!Number.isFinite(value) || value < 0 || value > maximum) {
+    throw new ApiError('VALIDATION_FAILED', `${field} must be between 0 and ${maximum}.`, 400)
+  }
+  return value
+}
+
+function requireText(value: string, field: string, maximum: number): string {
+  const normalized = value?.trim()
+  if (!normalized || normalized.length > maximum) {
+    throw new ApiError('VALIDATION_FAILED', `${field} must contain between 1 and ${maximum} characters.`, 400)
+  }
+  return normalized
+}
+
+function result<T>(data: T, replayed?: boolean): EditReferenceServiceResult<T> {
+  return { data, warnings: [LOCAL_WARNING, FUTURE_RUNTIME_WARNING], ...(replayed === undefined ? {} : { replayed }) }
+}

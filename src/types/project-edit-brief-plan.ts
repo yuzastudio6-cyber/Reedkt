@@ -6,6 +6,10 @@ import type {
   ProjectEditBriefMarkerType,
   ProjectEditSessionExportSettingsRecord,
 } from './project-edit-brief'
+import type {
+  PreferenceApplicationPlanGuidanceItem,
+  PreferenceApplicationQAContextSummary,
+} from './edit-reference-integration'
 
 export type ProjectEditBriefPlanReadinessStatus =
   | 'not_prepared'
@@ -134,6 +138,10 @@ export interface ProjectEditBriefPlannerInputPackage extends ProjectEditBriefPla
   warningCount: number
   blockedCount: number
   planInstructions: ProjectEditBriefMarkerPlanInstruction[]
+  preferenceGuidance: PreferenceApplicationPlanGuidanceItem[]
+  preferenceApplicationQA?: PreferenceApplicationQAContextSummary
+  preferenceApplicationId?: string
+  preferenceApplicationContextHash?: string
   skippedMarkers: ProjectEditBriefSkippedMarker[]
   priorityPolicy: string[]
   qaSummary: string
@@ -162,6 +170,10 @@ export interface ProjectEditBriefPlanPanelModel extends ProjectEditBriefPlanSafe
   warningCount: number
   blockedCount: number
   instructions: ProjectEditBriefMarkerPlanInstruction[]
+  preferenceGuidance: PreferenceApplicationPlanGuidanceItem[]
+  preferenceApplicationQA?: PreferenceApplicationQAContextSummary
+  preferenceApplicationId?: string
+  preferenceApplicationContextHash?: string
   skippedMarkers: ProjectEditBriefSkippedMarker[]
   exportSettingsSummary?: string
   priorityPolicySummary: string

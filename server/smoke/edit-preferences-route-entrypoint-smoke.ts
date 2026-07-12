@@ -49,14 +49,14 @@ const appNavSource = nav.match(/export const appNav: NavItem\[\] = \[[\s\S]*?\n\
   ?? nav.match(/export const appNav = \[[\s\S]*?\n\] satisfies readonly NavItem\[\]/)?.[0]
   ?? ''
 const allowedLabelSource = nav.match(/export const appSidebarNavLabels = \[[\s\S]*?\] as const/)?.[0] ?? ''
-assert.match(allowedLabelSource, /\['Home', 'Project', 'Preferences'\] as const/)
+assert.match(allowedLabelSource, /\['Home', 'Project', 'Edit Preferences'\] as const/)
 assert.match(appNavSource, /Home/)
 assert.match(appNavSource, /label: 'Project'/)
-assert.match(appNavSource, /Preferences/)
+assert.match(appNavSource, /Edit Preferences/)
 assert.match(appNavSource, /\/dashboard/)
 assert.match(appNavSource, /\/projects/)
 assert.match(appNavSource, /\/preferences/)
-assert.deepEqual([...appNavSource.matchAll(/label: '([^']+)'/g)].map((match) => match[1]), ['Home', 'Project', 'Preferences'])
+assert.deepEqual([...appNavSource.matchAll(/label: '([^']+)'/g)].map((match) => match[1]), ['Home', 'Project', 'Edit Preferences'])
 assert.doesNotMatch(nav, /disabled\?: boolean/)
 for (const staleSidebarItem of ['Projects', 'AI Editor', 'Media Library', 'Templates', 'Team', 'Analytics', 'Exports', 'Brand Kit', 'Settings', 'Wallet', 'Upload']) {
   assert.doesNotMatch(appNavSource, new RegExp(staleSidebarItem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${staleSidebarItem} should not be in the primary sidebar nav`)
@@ -70,6 +70,8 @@ assert.doesNotMatch(appShell, /<small>Later<\/small>/)
 assert.doesNotMatch(appShell, /sidebar-widget|sidebar-profile/)
 
 const design = read('design.md')
+const designMaster = read('design-system/MASTER.md')
+const editPreferencesDesign = read('design-system/pages/edit-preferences.md')
 assert.match(design, /Current internal-testing desktop sidebar/)
 assert.match(design, /1\. Home\s+2\. Project\s+3\. Preferences/)
 assert.match(design, /old broad sidebar list is retired/i)
@@ -80,15 +82,24 @@ assert.match(design, /PreferencesPage/)
 assert.match(design, /Do not show sample projects/)
 assert.match(design, /Navigation \| Home, Project, Preferences/)
 assert.doesNotMatch(design, /Primary desktop sidebar:\s+1\. Home\s+2\. Projects\s+3\. AI Editor/)
+assert.match(designMaster, /`design\.md` and ReEditPro product rules/i)
+assert.match(editPreferencesDesign, /One route H1: `Edit Preferences`/)
+assert.match(editPreferencesDesign, /Edit References, Workspace Defaults, Applied Edits, and Safety & Privacy/)
 
 const page = read('src/pages/PreferencesPage.tsx')
+const workspacePage = read('src/components/preferences/EditReferenceWorkspacePage.tsx')
+const workspaceDefaults = read('src/components/preferences/WorkspaceDefaultsPanel.tsx')
 assert.match(page, /PreferencesPage/)
-assert.match(page, /Edit defaults/)
-assert.match(page, /Privacy/)
-assert.match(page, /Save preference/)
-assert.match(page, /preferences-default-edit-direction/)
-assert.match(page, /preferences-default-choice-grid/)
-assert.match(page, /preferences-new-edit-default-preview/)
+assert.match(page, /EditReferenceWorkspacePage/)
+assert.match(workspacePage, /title="Edit Preferences"/)
+for (const label of ['Edit References', 'Workspace Defaults', 'Applied Edits', 'Safety & Privacy']) {
+  assert.match(workspacePage, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
+}
+assert.match(workspaceDefaults, /Edit defaults/)
+assert.match(workspaceDefaults, /Save preference/)
+assert.match(workspaceDefaults, /preferences-default-edit-direction/)
+assert.match(workspaceDefaults, /preferences-default-choice-grid/)
+assert.match(workspaceDefaults, /preferences-new-edit-default-preview/)
 assert.doesNotMatch(page, /src\/backend|\.\.\/backend|repositories\/|route-handlers|MockDatabase/)
 assert.doesNotMatch(page, /fetch\(|XMLHttpRequest|type="file"|createClient|service_role|signedUrl/i)
 
@@ -99,14 +110,14 @@ assert.match(dashboardPage, /Continue from the clean project workspace/)
 
 const docs = read('docs/edit-preferences-route-entrypoint.md')
 for (const phrase of [
-  'mock/local',
+  'backend-local',
   '/preferences',
   '/edit-preferences',
-  'clean mock/local Preferences page',
-  'Home, Project, and Preferences',
-  'No upload',
+  'Edit Preferences workspace',
+  'Home, Project, and Edit Preferences',
+  'private backend-local upload flow',
   'No reference URL fetch',
-  'No Qwen',
+  'No live Qwen',
   'No live Supabase',
   'product-ready claim',
 ]) {
@@ -116,6 +127,7 @@ for (const phrase of [
 const docJson = JSON.parse(read('docs/edit-preferences-route-entrypoint.json')) as {
   decision?: string
   route?: string
+  backendLocalCapabilities?: Record<string, boolean>
   sidebarNavigation?: {
     allowed?: string[]
     retiredStandaloneRoutes?: Record<string, string>
@@ -123,9 +135,9 @@ const docJson = JSON.parse(read('docs/edit-preferences-route-entrypoint.json')) 
   blockedScope?: Record<string, boolean>
   validation?: { required?: string[] }
 }
-assert.equal(docJson.decision, 'edit_preferences_route_entrypoint_passed_mock_local_ready_for_internal_testing')
+assert.equal(docJson.decision, 'edit_preferences_workspace_feature_complete_except_external_blocker')
 assert.equal(docJson.route, '/preferences')
-assert.deepEqual(docJson.sidebarNavigation?.allowed, ['Home', 'Project', 'Preferences'])
+assert.deepEqual(docJson.sidebarNavigation?.allowed, ['Home', 'Project', 'Edit Preferences'])
 assert.deepEqual(docJson.sidebarNavigation?.retiredStandaloneRoutes, {
   '/wallet': '/dashboard',
   '/brand-kit': '/preferences',
@@ -134,6 +146,9 @@ assert.deepEqual(docJson.sidebarNavigation?.retiredStandaloneRoutes, {
 assert.equal(docJson.blockedScope?.productReady, false)
 assert.equal(docJson.blockedScope?.supabaseReadWrite, false)
 assert.equal(docJson.blockedScope?.referenceUrlFetch, false)
+assert.equal(docJson.backendLocalCapabilities?.privateReferenceUpload, true)
+assert.equal(docJson.backendLocalCapabilities?.ffprobeMediaStructure, true)
+assert.equal(docJson.backendLocalCapabilities?.ffmpegRepresentativeFramePlan, true)
 assert.ok(docJson.validation?.required?.includes('smoke:edit-preferences-route-entrypoint'))
 
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }

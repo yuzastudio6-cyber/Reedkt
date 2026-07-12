@@ -1,7 +1,7 @@
 # Current End-to-End Capability Matrix
 
-Status date: 2026-07-10
-Authority: current checked-out branch and executable evidence in `/Volumes/backup/REeditpro`
+Status date: 2026-07-12
+Authority: reviewed APFS continuation checkout at `/Users/macuser/Developer/REeditpro-backend-pipeline`
 
 This document is the current capability truth for ReeditPro. It distinguishes UI policy and deterministic planning from code that actually executes against private test media. It does not turn internal test evidence into a public-beta or production-readiness claim.
 
@@ -30,8 +30,9 @@ No capability should be described at a higher level than its strongest verified 
 | Edit Preferences | authenticated private-internal persistence; planning provenance is `contract_ready` | The signed-in Preferences flow uses a bounded non-production backend route with live workspace membership/role checks, per-user/workspace storage, checksums, atomic writes, compare-and-swap, and authorization-before-idempotency. Saved defaults flow into named-edit setup and planning-input provenance. | This is single-host local/private persistence only. No Supabase preference table, reviewed RLS, controlled staging, production durability, or per-project override claim is made. |
 | Intent compilation and edit planning | `contract_ready`; deterministic mock output | Structured compiler, planning layers, approved snapshots, smoke and browser coverage | Real footage/transcript/model understanding is not executed. |
 | Aspect ratio, timing, cleanup, plan, and credit approval gates | `contract_ready`; approval is browser-testable | Frame/timing/cleanup policies, credit estimate, immutable snapshot contracts, approval E2E | Real transcript/timing workers and transactional wallet reservation are not proven. |
-| Private render and review | `private_executable` | Generated MP4 source upload through authenticated backend, approved snapshot and credit gate, FFmpeg render, manifest QA, private review | This is an internal/private test runtime, not public export delivery. |
-| Revision and recovery | `private_executable` for the private test path | Revision re-render, persisted internal state, recovery, and private download smoke | Generic browser revision/export remains mock outside the gated private path. |
+| Canonical private job execution | `private_executable` for one immutable job | Authenticated job-only route derives the approved work item, output, tool, operation, lease, dispatch, private artifact, QA, reconciliation, and replay from server authority | This is not yet a whole-work-graph scheduler or upload-to-review journey. Product, beta, and production flags remain false. |
+| Private render and review journey | blocked at the canonical multi-job boundary | Individual canonical runners, private artifacts, QA/reconciliation, private final composition, and private download have focused evidence | The legacy upload-to-render route is intentionally disabled. Canonical dependency scheduling, terminal private-review assembly, and journey-level recovery are not yet connected. |
+| Revision and recovery | `contract_ready`; legacy private evidence exists | Immutable plan-version and revision contracts plus historical private-path smokes | Canonical multi-job revision orchestration and review-state recovery are not yet proven end to end. |
 | Public export and sharing | blocked | Production readiness gates intentionally deny it | Required assets, real-user privacy, delivery, settlement, and operations are incomplete. |
 
 ## Authentication and Tenancy
@@ -70,7 +71,7 @@ Current gaps:
 - 72 of 72 production profiles have structural cost-metering coverage.
 - 0 of 72 production profiles are currently marked product-ready.
 
-### 2026-07-10 executable-evidence audit
+### 2026-07-12 executable-evidence audit
 
 | Evidence | Current count | What it proves |
 | --- | ---: | --- |
@@ -79,61 +80,23 @@ Current gaps:
 | Hidden adapter names | 55 | Skill/planner references. |
 | Bounded adapter contracts | 50 | Fixed backend contract exists. |
 | Registered runner definitions | 50 / 50 | A bounded runner definition exists. |
-| Static source-declared | 55 / 72 | Source declares a package, binary, API, or manifest lane. |
-| Current-host import/API/binary probe ready | 14 / 50 | Import/API shape or binary presence only. |
-| Production-container hydration proven | 0 / 50 | No production image has supplied execution evidence. |
-| Intended media operations proven | 3 | FFmpeg, ffprobe, and fixed-template zero-network Playwright capture. |
+| Callable candidates | 61 / 72 | Operation contract has no policy-blocking disposition. |
+| Intentionally non-executable | 11 / 72 | Planning, future, evaluation, or policy-only lane; no call is permitted. |
+| Confined runner verified | 53 | Exact bounded operation ran in its approved offline runtime profile. |
+| Canonical private E2E identities | 50 | Exact approved snapshot/work item, funded reservation, lease, one-use dispatch, private persistence, QA, reconciliation, replay, and downstream verification passed. |
+| Job-only canonical adapter | 15 runner classes implemented; 2 adapter paths executed | Internal authority validation and ECharts prove server-derived HTTP/service execution. The remaining 49 tool identities retain their independent canonical coordinator proof; adapter-wide per-tool route proof remains future coverage. |
 | Product-ready | 0 / 72 | No registry tool meets production evidence gates. |
 | Frontend-executable in practice | 0 | Tool execution stays off the browser. |
 
-The 72-tool partition is: 3 intended-operation proven, 13 package/API-probe
-only, 36 adapter-wired but blocked in the current runtime, 11 owner/readiness
-lanes without a proven intended operation, and 9 registry-only backlog tools.
-The nine backlog tools are `paddleocr`, `mediapipe`, `demucs`, `film`,
-`soundtouch`, `rubber_band`, `essentia`, `cesium_js`, and `revideo`.
-
-The current host is missing 29 Python imports, four registered binaries, and
-three Node package families (`maplibre`, `@turf/*`, and `@deck.gl/*`). Python
-worker requirements are not fully hash-pinned, production images are not built,
-and Playwright is currently a dev dependency omitted by production worker
-`npm ci --omit=dev`. Those are release blockers, not reasons to relax the
-readiness label.
-
-This is strong registry, policy, planning, snapshot, and readiness coverage. It is not proof that 50 tools perform their intended edit operation.
+The authoritative identity source is `server/tool-execution/proven-tool-identity-catalog.ts`, evidence revision `2026-07-11.20`. Every one of its 50 `canonical_e2e_verified` identities performs an exact confined operation and passes the complete private canonical lifecycle. This is private single-host evidence, not distributed-worker, external-beta, or production evidence.
 
 ### Actual execution coverage
 
-The private internal pipeline currently proves real media operations with:
+The 50 canonical identities span deterministic Node/Python operations, FFmpeg/ffprobe, Remotion, libass, fixed browser graphics, bounded AI-capability fixtures, native image/audio processing, container/package validation, VapourSynth, AudioFlux, rembg, and DeepFilterNet. Exact output content types include JSON, SVG, PNG, WAV, NUT, and private MP4 artifacts according to the approved operation contract.
 
-- FFmpeg: source preparation, preview creation, overlays, concatenation/final render, transition/color treatment, captions/graphics composition where exercised, and audio loudness treatment.
-- ffprobe: source and result metadata and stream validation.
-- Playwright, only for the explicitly authorized fixed-template browser-capture fixture: a fixed 640x360 deterministic PNG with JavaScript disabled, all network aborted, no cookies/auth/downloads, and no user-provided URL, HTML, JavaScript, or CSS.
+For every accepted private run, evidence is valid only when operation identity, snapshot, work item, reservation, lease attempt, expected output, private artifact identity, checksum, byte length, QA, reconciliation, replay, and downstream dependency readback agree. DeepFilterNet additionally has attempt-level internal production-cost evidence using integer micros and the versioned rate card. That evidence contains no customer price, customer credits, service fee, wallet, settlement, or charging authority.
 
-Other bounded adapters currently prove one or more of:
-
-- package/import resolution,
-- API-shape checks,
-- binary-presence checks,
-- readiness evidence,
-- private JSON evidence artifacts,
-- approved-snapshot lineage,
-- render-manifest attachment.
-
-Those adapter results explicitly do **not** prove media processing or product-runtime execution. A package probe must not be labeled as an edited output.
-
-In particular, the legacy `actualToolPackageExecuted` evidence name can be true
-for an import/API-shape or binary-presence probe. It must not be presented as an
-intended edit operation. Likewise, `ready_for_render_preview` is not sufficient
-when `mediaTransformOutputCount` is zero. Promotion must require operation-typed
-output evidence and QA, not only package hydration.
-
-Metadata currently needs reconciliation before release: architecture truth says
-zero frontend-executable tools while one runtime-policy path still permits
-Hyperframe; cost metadata marks 24 tools as externally beta-eligible while
-runtime policy permits a broader set, even though executable readiness remains
-0 / 72. The strictest evidence result wins until those surfaces are unified.
-
-For every approved private run, evidence is accepted only when the operation, manifest fingerprint, snapshot, reservation, artifact identity, checksum, byte size, and duration/probe facts match. Final-delivery and private-download records carry all four core operation kinds; future/degraded operations carry no actual-work evidence.
+Package/import probes remain distinct from canonical E2E proof. Only identities marked `canonical_e2e_verified` in the proven catalog may be described as having complete private lifecycle evidence.
 
 ### Approved tool-work manifest vertical slice
 
@@ -152,16 +115,7 @@ The private internal pipeline now reconciles these separate systems into one imm
 
 The manifest is fingerprinted and bound to the workspace, project, approved snapshot, estimate, and credit reservation. It fails closed for blank scope, duplicate identifiers, orphan links, invalid dependencies, and mismatched operation evidence.
 
-The normal approved manifest has exactly four executable operation kinds:
-
-1. FFmpeg private source processing.
-2. ffprobe processed-media QA.
-3. FFmpeg private final render.
-4. ffprobe final-delivery QA.
-
-An authorized fixed-template capture fixture may add exactly one conditional fifth operation: private Playwright capture. Promotion requires the approved `browser_capture_chain`, an exact source/template/settings allowlist, an unambiguous user-request authorization token, nonblocked linked work items, and server-owned approved-snapshot attestation. The backend reloads and rechecks that snapshot before capture; client-injected executable-looking snapshots fail closed. The PNG is signature, dimension, size, checksum, and deterministic-rerender verified, then re-read and re-hashed immediately before FFmpeg composition. Private local paths are stripped recursively from browser DTOs. The operation is nonbillable and creates no wallet, service-fee, or settlement event.
-
-All other approved tool and adapter entries remain `degraded_planning_only`. They cannot claim media processing, production execution, or product readiness. Additional tool families should only graduate after they produce and verify their intended output through the same manifest/evidence contract.
+The new job-only adapter accepts only workspace, project, edit-session, canonical job, purpose, and idempotency identity. It rejects caller-supplied snapshots, reservations, tools, operations, outputs, paths, URLs, commands, providers, prices, and credits. It supports one server-owned expected output and either one approved canonical tool or the tool-free snapshot-validation job. Multi-output, multi-tool, and whole-graph execution remain explicitly gated.
 
 ## Credits and Cost Truth
 
@@ -185,36 +139,25 @@ Not yet production-executable:
 
 ## Private Pipeline Evidence
 
-`npm run qa:internal-pipeline` is the first-class internal proof command. It runs:
+`npm run qa:internal-pipeline` is an aggregate audit command. A zero exit code means its assertions passed, including assertions that unavailable journey stages fail closed. It currently runs:
 
 1. the auth runtime boundary smoke,
 2. the approved tool-work manifest and real-media evidence smoke,
 3. the conditionally authorized private fixed-template Playwright capture smoke,
-4. the private internal edit upload-to-download E2E smoke,
-5. the browser-to-backend full-stack private review smoke.
+4. the private internal upload journey fail-closed smoke,
+5. the browser-to-backend approval journey fail-closed smoke.
 
-The proven path includes:
+The upload journey now reports `blocked_by_canonical_multi_job_work_graph_orchestration_and_private_review`; the browser journey reports `blocked_by_atomic_plan_approval_and_funded_credit_reservation` at its legacy standalone-credit seam. The canonical single-job route removes the earlier generic execution-stage-adapter blocker but does not yet make either whole journey pass. Canonical work-graph scheduling, terminal private-review assembly, revision/recovery, and browser handoff remain required.
 
-- generated MP4 test media,
-- authenticated backend intent,
-- private upload and source-order/checksum lineage,
-- approved snapshot and credit-gate metadata,
-- conditionally authorized, server-attested, zero-network/zero-JavaScript fixed-template PNG capture and FFmpeg composition evidence,
-- private FFmpeg render,
-- decision and artifact manifests,
-- QA and review acceptance,
-- revision re-render,
-- server persistence/recovery,
-- private download.
-
-The same command does not prove live provider execution, real-user storage, public export, or paid production.
+The aggregate command does not prove a complete upload-to-review journey, live provider execution, real-user storage, public export, or paid production.
 
 ## Release State
 
 | Release target | Current state | Reason |
 | --- | --- | --- |
 | Local browser/UI testing | available | Mock-safe browser flows and Playwright coverage exist. |
-| Authenticated private internal pipeline | available | Explicit internal command and generated private media evidence pass. |
+| Authenticated canonical single-job execution | available | Server-derived private route, exact runner execution, QA/reconciliation, durable service replay, and downstream verification pass. |
+| Authenticated private upload-to-review pipeline | blocked | Canonical multi-job orchestration and private-review handoff are not yet wired. |
 | Controlled staging with real users | blocked | Supabase/RLS, deployed workers/storage, identity/tenancy, privacy, and operational evidence remain. |
 | External beta | blocked | Production readiness scenarios intentionally fail closed. |
 | Paid production | blocked | Billing, settlement, real providers/tools, public delivery, security, and operations remain incomplete. |
@@ -223,7 +166,7 @@ The same command does not prove live provider execution, real-user storage, publ
 
 Safe current description:
 
-> ReeditPro has a complete deterministic planning surface and an authenticated private internal upload-to-review pipeline. Its tool architecture is registry-complete, planner-wired, snapshot-carried, backend-gated, and runner-probed; real private media execution is proven with FFmpeg and ffprobe, with one narrowly authorized fixed-template Playwright capture path under server-owned snapshot attestation. External beta, public delivery, live billing, Supabase/RLS tenancy, and the remaining tool operations are still gated.
+> ReeditPro has a deterministic planning and canonical approval authority plus 50 exact private tool lifecycles. An authenticated backend route can execute one immutable canonical job by deriving its tool, operation, output, lease, dispatch, artifact, QA, reconciliation, and replay server-side. Whole-work-graph upload-to-review orchestration, external beta, public delivery, live billing, Supabase/RLS tenancy, distributed workers, and production promotion remain gated.
 
 Do not claim:
 
@@ -239,14 +182,12 @@ Do not claim:
 1. **Completed for local/internal testing:** frontend sign-in/session/route guards and local-test failure boundaries.
 2. **Completed at contract/mock level:** cumulative planning-input resolution, preference provenance, and approval invalidation.
 3. **Completed for authenticated local/private identity/workspace scope:** single-host Edit Preferences persistence with live membership/role authorization, checksum/atomic storage, compare-and-swap, and idempotency. Supabase table/RLS, staging, production durability, and project-specific override UI remain future evidence gates.
-4. **Completed for the proven private tools:** canonical approved tool-work manifest, FFmpeg/ffprobe operation evidence, and the conditionally authorized fixed-template Playwright capture slice.
-5. **Completed for internal testing:** signed-in browser project journey through authenticated private upload, review, revision, download, and recovery.
+4. **Completed for 50 private tool identities:** exact confined operation plus canonical snapshot, funded reservation, lease, one-use dispatch, private artifact, QA, reconciliation, replay, and downstream verification.
+5. **Completed for one canonical job at a time:** authenticated server-derived execution adapter and durable credential-free service replay. Whole-work-graph scheduling and private-review assembly are next.
 6. **Completed for local/private scope:** project/edit browser and backend tenancy V2, including collision-safe scoped caches, live membership authorization, explicit invalidation, strict response ownership, authorization-before-idempotency, atomic/checksummed storage, and stale-write serialization/CAS. Real mounted Supabase revocation, reviewed RLS, and controlled staging remain blocked.
 7. Expand destructive/negative QA for deployed tenancy, storage, idempotency, credit settlement, privacy retention, and operational recovery.
-8. Graduate additional tool families only after each produces real output and QA evidence through the approved manifest contract.
-9. Replace caller-supplied source-truth/model evidence with authoritative
-   server lookup, and re-authorize package ownership/workspace lineage at every
-   runner, QA, and artifact-integration transition.
+8. Connect canonical dependency-ready jobs to bounded work-graph scheduling, terminal QA, private review, revision, and recovery without reviving legacy caller-authored authority.
+9. Keep all execution-stage inputs server-derived and re-authorize package ownership/workspace lineage at every runner, QA, artifact, and review transition.
 10. Keep tool-cost events backend-authored and tenant-scoped; browser-authored
     usage or billability must never become wallet or settlement authority.
 11. Build and attest the production worker images, pin Python dependencies and

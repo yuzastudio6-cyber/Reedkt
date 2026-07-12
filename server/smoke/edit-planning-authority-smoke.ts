@@ -64,6 +64,7 @@ const env = loadRuntimeEnv({
   SUPABASE_ANON_KEY: 'edit-planning-authority-smoke-anon',
   SUPABASE_SERVICE_ROLE_KEY: 'edit-planning-authority-smoke-service-role',
   API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE: 'true',
+  REEDITPRO_INTERNAL_SERVICE_TOKEN: 'rp-authority-smoke-secret-7Gk2Wm9Qx4Nb8Lv5',
   LOCAL_STORAGE_ROOT: localStorageRoot,
 })
 const context: ServiceContext = {
@@ -701,6 +702,86 @@ try {
   assert.equal(routeReadiness.claimAuthorized, false)
   assert.equal(JSON.stringify(routeReadiness).includes('objectPath'), false)
 
+  const callerSelectedJobExecution = await fetch(
+    `${routeBaseUrl}/v1/edit-executions/jobs/${String(routeRootJob.id)}/private-internal-execution`,
+    {
+      method: 'POST',
+      headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-caller-selected-job-tool' },
+      body: JSON.stringify({
+        workspaceId: routeWorkspaceId,
+        projectId: routeProjectId,
+        editSessionId: 'route-edit-session',
+        purpose: 'execute_canonical_private_job',
+        requestedToolName: 'ffmpeg',
+      }),
+    },
+  )
+  assert.equal(callerSelectedJobExecution.status, 400)
+
+  const canonicalJobExecutionRequest = {
+    workspaceId: routeWorkspaceId,
+    projectId: routeProjectId,
+    editSessionId: 'route-edit-session',
+    purpose: 'execute_canonical_private_job',
+  }
+  const canonicalJobExecutionUrl =
+    `${routeBaseUrl}/v1/edit-executions/jobs/${String(routeRootJob.id)}/private-internal-execution`
+  const canonicalJobExecution = await fetch(canonicalJobExecutionUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-canonical-job-execution' },
+    body: JSON.stringify(canonicalJobExecutionRequest),
+  })
+  assert.equal(canonicalJobExecution.status, 201)
+  const canonicalJobExecutionEnvelope = await canonicalJobExecution.json() as {
+    data?: { canonicalPrivateJobExecution?: Record<string, unknown> }
+  }
+  const routeCanonicalJobExecution = asRecord(canonicalJobExecutionEnvelope.data?.canonicalPrivateJobExecution)
+  const routeCanonicalJobIdentity = asRecord(routeCanonicalJobExecution.identity)
+  const routeCanonicalJobResult = asRecord(routeCanonicalJobExecution.result)
+  const routeCanonicalJobEvidence = asRecord(routeCanonicalJobExecution.evidence)
+  const routeCanonicalJobPermissions = asRecord(routeCanonicalJobExecution.permissions)
+  assert.equal(routeCanonicalJobIdentity.jobId, routeRootJob.id)
+  assert.equal(routeCanonicalJobIdentity.canonicalToolId, null)
+  assert.equal(routeCanonicalJobIdentity.runnerClass, 'canonical_authority_validation_runner_v1')
+  assert.equal(routeCanonicalJobResult.qaOutcome, 'passed')
+  assert.equal(routeCanonicalJobResult.privateTestDependencySatisfied, true)
+  assert.equal(routeCanonicalJobEvidence.serverDerivedCanonicalJob, true)
+  assert.equal(routeCanonicalJobEvidence.idempotentAdapterReplay, false)
+  assert.equal(routeCanonicalJobPermissions.providerCall, false)
+  assert.equal(routeCanonicalJobPermissions.walletMutation, false)
+  assert.equal(routeCanonicalJobPermissions.billing, false)
+
+  const canonicalJobExecutionReplay = await fetch(canonicalJobExecutionUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-canonical-job-execution' },
+    body: JSON.stringify(canonicalJobExecutionRequest),
+  })
+  assert.equal(canonicalJobExecutionReplay.status, 201)
+  assert.equal(canonicalJobExecutionReplay.headers.get('idempotency-replayed'), 'true')
+  const canonicalJobExecutionReplayEnvelope = await canonicalJobExecutionReplay.json() as {
+    data?: { canonicalPrivateJobExecution?: Record<string, unknown> }
+  }
+  const routeCanonicalJobExecutionReplay = asRecord(
+    canonicalJobExecutionReplayEnvelope.data?.canonicalPrivateJobExecution,
+  )
+  assert.equal(
+    asRecord(routeCanonicalJobExecutionReplay.result).artifactId,
+    routeCanonicalJobResult.artifactId,
+  )
+  assert.equal(asRecord(routeCanonicalJobExecutionReplay.evidence).idempotentAdapterReplay, false)
+
+  const differentRouteJob = routeJobs.find((job) => job.id !== routeRootJob.id)
+  assert.ok(differentRouteJob)
+  const canonicalJobExecutionConflict = await fetch(
+    `${routeBaseUrl}/v1/edit-executions/jobs/${String(differentRouteJob.id)}/private-internal-execution`,
+    {
+      method: 'POST',
+      headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-canonical-job-execution' },
+      body: JSON.stringify(canonicalJobExecutionRequest),
+    },
+  )
+  assert.equal(canonicalJobExecutionConflict.status, 409)
+
   const toolEvidenceResponse = await fetch(
     `${routeBaseUrl}/v1/edit-executions/tool-runtime-evidence/inspect`,
     {
@@ -832,6 +913,7 @@ console.log(JSON.stringify({
     'production_authority_fail_closed',
     'authenticated_canonical_authority_http_routes',
     'authenticated_canonical_execution_readiness_http_route',
+    'authenticated_canonical_single_job_execution_http_route_with_replay_and_conflict',
     'authenticated_fail_closed_tool_runtime_evidence_http_route',
     'legacy_caller_authority_routes_fail_closed',
     'no_provider_worker_render_or_paid_billing_side_effect',

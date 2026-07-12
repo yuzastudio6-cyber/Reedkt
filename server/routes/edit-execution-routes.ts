@@ -7,6 +7,7 @@ import { createApprovedEditExecutionPackageService } from '../services/approved-
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
 import { createCanonicalExecutionReadinessService } from '../services/canonical-execution-readiness-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
+import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import {
   listProvenToolIdentityCatalog,
@@ -46,6 +47,7 @@ import { authorityWorkspaceQuerySchema } from '../validation/edit-planning-autho
 import { canonicalExecutionReadinessRouteBodySchema } from '../validation/canonical-execution-readiness-schemas'
 import { inspectToolRuntimeEvidenceSchema } from '../validation/tool-runtime-evidence-schemas'
 import { canonicalPrivateFinalArtifactDownloadQuerySchema } from '../validation/canonical-private-final-artifact-download-schemas'
+import { executeCanonicalPrivateJobAdapterSchema } from '../validation/canonical-private-job-execution-adapter-schemas'
 import {
   claimCanonicalWorkerLeaseRouteBodySchema,
   heartbeatCanonicalWorkerLeaseRouteBodySchema,
@@ -278,12 +280,25 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
     sendOk(response, { workerLeaseRelease: result.workerLeaseRelease }, result.warnings)
   }))
 
+  router.post('/v1/edit-executions/jobs/:jobId/private-internal-execution', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(executeCanonicalPrivateJobAdapterSchema, request.body)
+    const result = await createCanonicalPrivateJobExecutionAdapterService(getServiceContext(request)).execute({
+      ...body,
+      jobId: getRouteParam(request, 'jobId'),
+      idempotencyKey: getIdempotencyKey(request),
+    })
+    sendOk(response, { canonicalPrivateJobExecution: result }, [
+      'This route executes one immutable canonical private/internal job; it is not a whole-work-graph scheduler or product execution surface.',
+      'No provider, public delivery, customer pricing, customer credit, wallet, billing, settlement, deployment, or production authority was granted.',
+    ], 201)
+  }))
+
   router.use('/v1/edit-executions', asyncRoute(async () => {
     throw new ApiError(
       'TOOL_NOT_READY',
-      'Legacy execution stages are disabled until they consume canonical jobs, source assets, tool evidence, QA results, and cost evidence server-side.',
+      'Legacy execution stages remain disabled. Canonical single-job execution is available, but whole-work-graph scheduling and private-review assembly are not yet connected.',
       503,
-      { requiredGate: 'canonical_execution_stage_adapters' },
+      { requiredGate: 'canonical_multi_job_work_graph_orchestration_and_private_review' },
     )
   }))
 

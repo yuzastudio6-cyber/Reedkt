@@ -34,6 +34,7 @@ import { createCanonicalPrivateVapourSynthFramePipelineExecutionService } from '
 import { createCanonicalPrivateAudioFluxAnalysisExecutionService } from '../services/canonical-private-audioflux-analysis-execution-service'
 import { createCanonicalPrivateRembgBackgroundRemovalExecutionService } from '../services/canonical-private-rembg-background-removal-execution-service'
 import { createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService } from '../services/canonical-private-deepfilternet-voice-cleanup-execution-service'
+import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
@@ -1718,7 +1719,91 @@ await prepareOfflineRembgBackgroundRemovalDockerRuntime()
 await activatePrivateOfflineRembgBackgroundRemovalRuntime()
 await prepareOfflineDeepFilterNetVoiceCleanupDockerRuntime()
 await activatePrivateOfflineDeepFilterNetVoiceCleanupRuntime()
-for (const matrixRun of matrixRuns) {
+
+const adapterMatrixRun = matrixRuns[0]
+assert.ok(adapterMatrixRun)
+const jobExecutionAdapter = createCanonicalPrivateJobExecutionAdapterService(context)
+await expectApiError(
+  () => jobExecutionAdapter.execute({
+    workspaceId,
+    projectId: snapshot.projectId,
+    editSessionId: snapshot.editSessionId,
+    jobId: adapterMatrixRun.job.id,
+    purpose: 'execute_canonical_private_job',
+    idempotencyKey: 'canonical-job-adapter-rejects-caller-tool',
+    requestedToolName: adapterMatrixRun.toolId,
+  } as never),
+  'VALIDATION_FAILED',
+)
+const adapterRequest = {
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: adapterMatrixRun.job.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-echarts-root',
+}
+const concurrentAdapterExecutions = await Promise.all([
+  jobExecutionAdapter.execute(adapterRequest),
+  jobExecutionAdapter.execute(adapterRequest),
+])
+const adapterExecution = concurrentAdapterExecutions.find((result) =>
+  result.evidence.idempotentAdapterReplay === false)
+const concurrentAdapterReplay = concurrentAdapterExecutions.find((result) =>
+  result.evidence.idempotentAdapterReplay === true)
+assert.ok(adapterExecution)
+assert.ok(concurrentAdapterReplay)
+assert.equal(concurrentAdapterReplay.result.artifactId, adapterExecution.result.artifactId)
+assert.equal(adapterExecution.identity.canonicalToolId, adapterMatrixRun.toolId)
+assert.equal(adapterExecution.identity.operationId, adapterMatrixRun.operationId)
+assert.equal(adapterExecution.identity.expectedAssetId, adapterMatrixRun.asset.id)
+assert.equal(adapterExecution.identity.runnerClass, 'offline_node_structured_execution_v1')
+assert.equal(adapterExecution.result.contentType, adapterMatrixRun.expectedContentType)
+assert.equal(adapterExecution.result.qaOutcome, 'passed')
+assert.equal(adapterExecution.result.privateTestDependencySatisfied, true)
+assert.equal(adapterExecution.evidence.serverDerivedCanonicalJob, true)
+assert.equal(adapterExecution.evidence.serverDerivedToolAndOperation, true)
+assert.equal(adapterExecution.evidence.singleUseDispatchConsumed, true)
+assert.equal(adapterExecution.evidence.idempotentAdapterReplay, false)
+assert.equal(adapterExecution.readiness.privateInternalJobExecutionReady, true)
+assert.equal(adapterExecution.readiness.productReady, false)
+const adapterReplay = await jobExecutionAdapter.execute(adapterRequest)
+assert.equal(adapterReplay.result.artifactId, adapterExecution.result.artifactId)
+assert.equal(adapterReplay.result.sha256, adapterExecution.result.sha256)
+assert.equal(adapterReplay.evidence.idempotentAdapterReplay, true)
+await expectApiError(
+  () => jobExecutionAdapter.execute({
+    workspaceId,
+    projectId: snapshot.projectId,
+    editSessionId: snapshot.editSessionId,
+    jobId: matrixRuns[1]!.job.id,
+    purpose: 'execute_canonical_private_job',
+    idempotencyKey: 'canonical-job-adapter-echarts-root',
+  }),
+  'IDEMPOTENCY_CONFLICT',
+)
+const adapterProofClaim = (await leaseService.claim({
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: adapterMatrixRun.proofJob.id,
+  purpose: 'private_internal_canonical_lease_claim',
+  idempotencyKey: 'claim-echarts-proof-after-job-adapter',
+})).workerLeaseClaim
+assert.equal(adapterProofClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
+assert.equal(adapterProofClaim.lease.dependencyAuthority.selectedArtifacts[0]?.artifactId, adapterExecution.result.artifactId)
+await leaseService.release({
+  workspaceId,
+  projectId: snapshot.projectId,
+  editSessionId: snapshot.editSessionId,
+  jobId: adapterMatrixRun.proofJob.id,
+  leaseId: adapterProofClaim.lease.leaseId,
+  leaseCredential: adapterProofClaim.leaseCredential,
+  purpose: 'private_internal_canonical_lease_release',
+  idempotencyKey: 'release-echarts-proof-after-job-adapter',
+})
+
+for (const matrixRun of matrixRuns.slice(1)) {
   const claim = (await leaseService.claim({
     workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
     jobId: matrixRun.job.id, purpose: 'private_internal_canonical_lease_claim',
@@ -2631,6 +2716,7 @@ console.log(JSON.stringify({
     'pedalboard_private_wav_qa_reconciliation_replay_and_downstream_verification',
     'mir_eval_timing_json_qa_reconciliation_replay_and_downstream_verification',
     'mido_timing_json_qa_reconciliation_replay_and_downstream_verification',
+    'canonical_job_only_adapter_derives_tool_operation_output_lease_dispatch_qa_and_replay_server_side',
     'echarts_exact_svg_canonical_lifecycle_verified',
     'vega_lite_exact_svg_canonical_lifecycle_verified',
     'vega_exact_svg_canonical_lifecycle_verified',

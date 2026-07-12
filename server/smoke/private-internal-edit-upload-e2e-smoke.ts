@@ -341,11 +341,11 @@ try {
     assert.ok(details && typeof details === 'object')
     assert.equal(
       (details as Record<string, unknown>).requiredGate,
-      'canonical_execution_stage_adapters',
+      'canonical_multi_job_work_graph_orchestration_and_private_review',
     )
     console.log(JSON.stringify({
       ok: true,
-      status: 'blocked_by_canonical_execution_stage_adapters',
+      status: 'blocked_by_canonical_multi_job_work_graph_orchestration_and_private_review',
       checks: [
         'upload_intent_requires_owned_backend_project_record',
         'source_video_uploaded_through_backend_local_upload_intent',
@@ -355,8 +355,8 @@ try {
         'no_provider_render_delivery_billing_or_wallet_side_effect',
       ],
       skippedLegacyAssertions: true,
-      skippedReason: 'The legacy private internal execution route is intentionally disabled until canonical execution-stage adapters replace caller-authored snapshots and reservations.',
-      nextRequiredGate: 'canonical_execution_stage_adapters',
+      skippedReason: 'The legacy private internal execution route is intentionally disabled. The canonical single-job adapter exists, but dependency scheduling and terminal private-review assembly are not connected.',
+      nextRequiredGate: 'canonical_multi_job_work_graph_orchestration_and_private_review',
     }))
   } else {
   assert.equal(privateInternalTestRunResponse.status, 201, `Private internal test run should succeed: ${JSON.stringify(privateInternalTestRunResponse.json)}`)

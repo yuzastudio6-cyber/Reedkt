@@ -2,6 +2,7 @@ import type {
   EditReferenceDetail,
   EditReferenceListItem,
   PreferenceApplicationRecord,
+  PreferenceApplicationSource,
   PreferenceApplicationTargetContextSnapshot,
 } from '../types/edit-reference'
 import type { PreferenceApplicationDownstreamContext } from '../types/edit-reference-integration'
@@ -17,6 +18,7 @@ import {
   readPreferenceApplicationIntegrationState,
 } from './edit-reference-downstream-context'
 import type { ProjectEditSessionApiClient } from './project-edit-session-api-client'
+import { createReeditproDeterministicHash } from './source-video-understanding-rules'
 
 export const EDIT_REFERENCE_WORKSPACE_ID =
   (import.meta.env?.VITE_REEDITPRO_EDIT_REFERENCE_WORKSPACE_ID as string | undefined)?.trim()
@@ -88,8 +90,10 @@ export async function recoverConnectedPreferenceApplicationForProjectEditSession
   })
   if (
     !model.activeApplication
-    || model.sessionIntegrationStatus?.status === 'connected_mock'
-    || model.sessionIntegrationStatus?.status === 'invalidated'
+    || (
+      model.sessionIntegrationStatus?.status === 'connected_mock'
+      && model.sessionIntegrationStatus.context?.applicationId === model.activeApplication.id
+    )
   ) {
     return { recovered: false }
   }
@@ -102,7 +106,63 @@ export async function recoverConnectedPreferenceApplicationForProjectEditSession
     : { recovered: false, message: 'The connected Edit Reference needs a safe activation retry.' }
 }
 
+/**
+ * Recreates only the browser-mock session shell when a reload loses its in-memory
+ * record. The connected backend-local PreferenceApplication remains the source of
+ * truth; no reference selection or downstream context is copied into another store.
+ */
+export async function recoverMissingProjectEditSessionFromPreferenceApplication(input: {
+  editReferenceClient?: EditReferenceApiClient
+  projectEditSessionClient: ProjectEditSessionApiClient
+  projectId: string
+  editSessionId: string
+  workspaceId?: string
+}): Promise<{ recovered: boolean; message?: string }> {
+  const api = input.editReferenceClient ?? createEditReferenceApiClient()
+  const workspaceId = input.workspaceId ?? EDIT_REFERENCE_WORKSPACE_ID
+  const applicationsResult = await api.listApplications(workspaceId)
+  if (!applicationsResult.ok) return { recovered: false, message: applicationsResult.message }
+  const targetApplications = applicationsResult.data.applications
+    .filter((candidate) => (
+      candidate.projectId === input.projectId
+      && candidate.editSessionId === input.editSessionId
+    ))
+    .sort((left, right) => right.version - left.version)[0]
+  const application = applicationsResult.data.applications
+    .filter((candidate) => (
+      candidate.projectId === input.projectId
+      && candidate.editSessionId === input.editSessionId
+      && candidate.status === 'prepared'
+      && candidate.targetIntegrationStatus === 'connected'
+    ))
+    .sort((left, right) => right.version - left.version)[0]
+    ?? targetApplications
+  if (!application) return { recovered: false }
+
+  const created = await input.projectEditSessionClient.sessions.create({
+    id: input.editSessionId,
+    projectId: input.projectId,
+    name: application.targetContext.editName,
+    description: 'Recovered mock Edit Chat shell for a connected backend-local Edit Reference application.',
+    status: 'draft',
+    aspectRatio: application.targetContext.aspectRatio,
+    platformTarget: application.targetContext.platformTarget,
+    selectedEditLevel: application.targetContext.selectedEditLevel,
+    metadata: {
+      recoveredFromCanonicalPreferenceApplication: true,
+      exactPreferenceApplicationId: application.id,
+      recoveredApplicationStatus: application.status,
+      noReferenceSelectionDuplicated: true,
+      mockOnly: true,
+    },
+  })
+  return created.ok
+    ? { recovered: true, message: `${application.targetContext.editName} session shell recovered from canonical application identity.` }
+    : { recovered: false, message: created.error?.message ?? 'The target session shell could not be recovered safely.' }
+}
+
 export async function preparePreferenceApplicationForProjectEditSession(input: {
+  applicationSource?: PreferenceApplicationSource
   bundle: ProjectEditSessionBundleRecord
   currentUserInstruction: string
   editReferenceId: string
@@ -138,8 +198,17 @@ export async function preparePreferenceApplicationForProjectEditSession(input: {
     expectedReferenceRevision: detail.reference.revision,
     expectedDNAContentDigest: approvedDNA.contentDigest,
     acknowledgeAdaptNotCopy: true,
+    applicationSource: input.applicationSource ?? 'session_panel',
     targetContext,
-  })
+  }, stableLifecycleKey(
+    'prepare',
+    `${input.bundle.session.id}-${detail.reference.id}`,
+    createReeditproDeterministicHash({
+      approvedDNAContentDigest: approvedDNA.contentDigest,
+      applicationSource: input.applicationSource ?? 'session_panel',
+      targetContext,
+    }),
+  ))
   if (!created.ok) return { ok: false, message: created.message }
   const application = created.data.detail.applications.find((candidate) => (
     candidate.projectId === input.bundle.session.projectId
@@ -295,6 +364,7 @@ export async function removePreferenceApplicationFromProjectEditSession(input: {
 }
 
 export async function replacePreferenceApplicationForProjectEditSession(input: {
+  applicationSource?: PreferenceApplicationSource
   bundle: ProjectEditSessionBundleRecord
   currentApplication: PreferenceApplicationRecord
   currentUserInstruction: string
@@ -336,11 +406,16 @@ export async function replacePreferenceApplicationForProjectEditSession(input: {
     expectedReferenceRevision: nextDetail.reference.revision,
     expectedDNAContentDigest: approvedDNA.contentDigest,
     acknowledgeAdaptNotCopy: true,
+    applicationSource: input.applicationSource ?? 'session_panel',
     targetContext,
     replacesApplicationId: currentApplication.id,
     expectedReplacedReferenceRevision: currentDetailResult.data.detail.reference.revision,
     invalidationReceipt: invalidated.invalidationReceipt,
-  }, stableLifecycleKey('replace', currentApplication.id, approvedDNA.contentDigest))
+  }, stableLifecycleKey('replace', currentApplication.id, createReeditproDeterministicHash({
+    approvedDNAContentDigest: approvedDNA.contentDigest,
+    applicationSource: input.applicationSource ?? 'session_panel',
+    targetContext,
+  })))
   if (!created.ok) {
     return { ok: false, message: `${created.message} The previous guidance remains inactive and replacement can be retried safely.` }
   }

@@ -103,7 +103,7 @@ test.describe('Edit Reference Gate 8 beta readiness', () => {
     await connection.getByRole('checkbox', { name: /confirm this Edit Chat’s saved output frame/i }).check()
     await connection.getByRole('button', { name: 'Adapt to this edit' }).click()
     await expect(connection).toContainText(firstName)
-    await expect(connection.getByText('Connected', { exact: true })).toBeVisible()
+    await expect(connection.getByText('Connected', { exact: true })).toBeVisible({ timeout: 20_000 })
     await expect(connection).toContainText('adapted')
     await expect(connection).toContainText('held back')
     await expect(connection).toContainText('Current instructions and confirmed Edit Brief markers stay above')

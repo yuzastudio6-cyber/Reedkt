@@ -75,6 +75,9 @@ export function ProjectEditSessionEditReferencePicker({
           </Badge>
         </div>
         <p>{connectedContext.summary}</p>
+        <p className="project-edit-session-reference-connection__origin" data-testid="edit-session-edit-reference-origin">
+          {applicationSourceLabel(connectedApplication.applicationSource)} · approved DNA v{connectedApplication.dnaVersionNumber} · application version {connectedApplication.version}
+        </p>
         <div className="project-edit-session-reference-connection__metrics">
           <span><CheckCircle2 aria-hidden="true" size={14} />{connectedContext.guidance.length} adapted</span>
           <span><ShieldCheck aria-hidden="true" size={14} />{connectedContext.heldBack.length} held back</span>
@@ -265,6 +268,12 @@ export function ProjectEditSessionEditReferencePicker({
       ) : null}
     </section>
   )
+}
+
+function applicationSourceLabel(source: PreferenceApplicationRecord['applicationSource']): string {
+  if (source === 'setup_selector') return 'Selected during New Edit setup'
+  if (source === 'chat_tag') return 'Applied from Edit Chat'
+  return 'Connected from edit preferences'
 }
 
 function moveRadioSelection(

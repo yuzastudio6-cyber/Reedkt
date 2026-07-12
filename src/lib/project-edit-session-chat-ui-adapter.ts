@@ -31,6 +31,10 @@ import {
   createProjectEditSessionHistoryPanelModel,
   type ProjectEditSessionHistoryPanelModel,
 } from './project-edit-session-history-ui-adapter'
+import {
+  executeEditReferenceChatCommand,
+  type EditReferenceChatCommandResult,
+} from '../backend/project-edit-session-preference/edit-reference-chat-command-service'
 
 export const PROJECT_EDIT_SESSION_CHAT_REVISION_KEYWORDS = [
   'revise',
@@ -133,6 +137,7 @@ export type ProjectEditSessionChatAppendResult = {
   responseSummaries: string[]
   warnings: string[]
   revisionDetected: boolean
+  referenceCommand?: EditReferenceChatCommandResult
   safety: typeof PROJECT_EDIT_SESSION_API_CLIENT_SAFETY
   mockOnly: true
 }
@@ -346,6 +351,7 @@ export async function appendProjectEditSessionUserMessageViaApi(input: {
   projectId: string
   editSessionId: string
   text: string
+  referenceCommand?: EditReferenceChatCommandResult
   client?: ProjectEditSessionApiClient
 }): Promise<{
   response: ReeditProApiResponseEnvelope<{ message: ProjectEditSessionMessageRecord }>
@@ -356,7 +362,7 @@ export async function appendProjectEditSessionUserMessageViaApi(input: {
   warnings: string[]
 }> {
   const api = clientFor(input.projectId, input.client)
-  const revisionDetected = isProjectEditSessionRevisionRequest(input.text)
+  const revisionDetected = input.referenceCommand?.handled ? false : isProjectEditSessionRevisionRequest(input.text)
   const responseSummaries: string[] = []
   const warnings: string[] = []
   const response = await api.messages.append<{ message: ProjectEditSessionMessageRecord }>({
@@ -368,6 +374,12 @@ export async function appendProjectEditSessionUserMessageViaApi(input: {
     metadata: {
       rpMilestone: 'RP-EDITSESSION-07',
       revisionDetected,
+      ...(input.referenceCommand?.handled ? {
+        editReferenceCommandIntent: input.referenceCommand.intent,
+        editReferenceCommandConfirmationRequired: input.referenceCommand.confirmationRequired,
+        editReferenceCommandMutated: input.referenceCommand.mutated,
+        editReferenceCommandApplicationId: input.referenceCommand.application?.id,
+      } : {}),
       safety: PROJECT_EDIT_SESSION_API_CLIENT_SAFETY,
     },
   })
@@ -408,6 +420,7 @@ export async function appendProjectEditSessionMockAssistantResponseViaApi(input:
   userText: string
   userMessageId?: string
   revisionDetected: boolean
+  referenceCommand?: EditReferenceChatCommandResult
   client?: ProjectEditSessionApiClient
 }): Promise<{
   response: ReeditProApiResponseEnvelope<{ message: ProjectEditSessionMessageRecord }>
@@ -417,7 +430,9 @@ export async function appendProjectEditSessionMockAssistantResponseViaApi(input:
   warnings: string[]
 }> {
   const api = clientFor(input.projectId, input.client)
-  const text = input.revisionDetected
+  const text = input.referenceCommand?.handled && input.referenceCommand.assistantText
+    ? input.referenceCommand.assistantText
+    : input.revisionDetected
     ? 'Mock revision captured. I saved this as session state only, reset approval for safety, and did not start planning, preview, render, workers, providers, or credits.'
     : 'Mock message received. I saved this to the Edit Chat history only; full edit planning opens in a later milestone.'
   const responseSummaries: string[] = []
@@ -426,11 +441,18 @@ export async function appendProjectEditSessionMockAssistantResponseViaApi(input:
     projectId: input.projectId,
     editSessionId: input.editSessionId,
     role: 'assistant',
-    kind: input.revisionDetected ? 'revision_learned' : 'system_note',
+    kind: input.referenceCommand?.mutated ? 'preference_dna_applied' : input.revisionDetected ? 'revision_learned' : 'system_note',
     text,
     metadata: {
       rpMilestone: 'RP-EDITSESSION-07',
       respondsToMessageId: input.userMessageId,
+      ...(input.referenceCommand?.handled ? {
+        editReferenceCommandIntent: input.referenceCommand.intent,
+        editReferenceCommandConfirmationRequired: input.referenceCommand.confirmationRequired,
+        editReferenceCommandMutated: input.referenceCommand.mutated,
+        editReferenceCommandIdempotentReplay: input.referenceCommand.idempotentReplay,
+        editReferenceCommandApplicationId: input.referenceCommand.application?.id,
+      } : {}),
       noProviderCallMade: true,
       safety: PROJECT_EDIT_SESSION_API_CLIENT_SAFETY,
     },
@@ -579,7 +601,16 @@ export async function appendProjectEditSessionChatTurnViaApi(input: {
   const responseSummaries: string[] = []
   const warnings: string[] = []
   const events: ProjectEditSessionEventRecord[] = []
-  const user = await appendProjectEditSessionUserMessageViaApi({ ...input, client: api })
+  const bundleResponse = await api.bundle.get<{ bundle: ProjectEditSessionBundleRecord }>(input.editSessionId)
+  const bundle = bundleResponse.data?.bundle
+  const referenceCommand = bundle
+    ? await executeEditReferenceChatCommand({
+        bundle,
+        projectEditSessionClient: api,
+        text: input.text,
+      })
+    : undefined
+  const user = await appendProjectEditSessionUserMessageViaApi({ ...input, client: api, referenceCommand })
   responseSummaries.push(...user.responseSummaries)
   warnings.push(...user.warnings)
   if (user.event) events.push(user.event)
@@ -590,6 +621,7 @@ export async function appendProjectEditSessionChatTurnViaApi(input: {
     userText: input.text,
     userMessageId: user.message?.id,
     revisionDetected: user.revisionDetected,
+    referenceCommand,
     client: api,
   })
   responseSummaries.push(...assistant.responseSummaries)
@@ -602,7 +634,30 @@ export async function appendProjectEditSessionChatTurnViaApi(input: {
   let memoryUpdates: ProjectEditSessionMemoryRecord[] = []
   let memoryUpdateNotice: ProjectEditSessionMemoryUpdateNoticeModel | undefined
 
-  if (user.revisionDetected) {
+  if (referenceCommand?.handled) {
+    if (user.message) {
+      const eventResponse = await api.events.append<{ event: ProjectEditSessionEventRecord }>({
+        projectId: input.projectId,
+        editSessionId: input.editSessionId,
+        eventType: `edit_reference_command_${referenceCommand.intent ?? 'clarification'}`,
+        summary: referenceCommand.mutated
+          ? `Edit Reference ${referenceCommand.intent ?? 'command'} committed through Edit Chat.`
+          : `Edit Reference ${referenceCommand.intent ?? 'command'} handled without changing canonical application state.`,
+        metadata: {
+          messageId: user.message.id,
+          applicationId: referenceCommand.application?.id,
+          confirmationRequired: referenceCommand.confirmationRequired,
+          idempotentReplay: referenceCommand.idempotentReplay,
+          mutated: referenceCommand.mutated,
+        },
+      })
+      responseSummaries.push(responseSummary(eventResponse, 'Append Edit Reference command event'))
+      const event = dataRecord<{ event?: ProjectEditSessionEventRecord }>(eventResponse)?.event
+      if (event) events.push(event)
+      if (!eventResponse.ok) warnings.push(eventResponse.error?.message ?? 'Edit Reference command event append failed safely.')
+    }
+    warnings.push(...referenceCommand.warnings)
+  } else if (user.revisionDetected) {
     const snapshotResult = await createProjectEditSessionSnapshotFromMessageViaApi({
       projectId: input.projectId,
       editSessionId: input.editSessionId,
@@ -695,6 +750,7 @@ export async function appendProjectEditSessionChatTurnViaApi(input: {
     responseSummaries,
     warnings,
     revisionDetected: user.revisionDetected,
+    referenceCommand,
     safety: PROJECT_EDIT_SESSION_API_CLIENT_SAFETY,
     mockOnly: true,
   }

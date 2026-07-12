@@ -12,9 +12,15 @@ import type {
 import type { ProjectEditSessionBundleRecord } from '../types/project-edit-session-repository'
 import type { UserFacingEditLevel } from '../types/reeditpro'
 import type { ReeditProApiResponseEnvelope } from '../types/api-routes'
+import type { PreferenceApplicationRecord } from '../types/edit-reference'
+import { createEditReferenceApiClient, type EditReferenceApiClient } from './edit-reference-api-client'
 import type { ProjectEditSessionApiClient } from './project-edit-session-api-client'
 import { createDefaultMockProjectEditSessionApiClient } from './project-edit-session-api-client'
 import { PROJECT_EDIT_SESSION_API_CLIENT_SAFETY } from './project-edit-session-api-client-summaries'
+import {
+  connectPreferenceApplicationToProjectEditSession,
+  preparePreferenceApplicationForProjectEditSession,
+} from './project-edit-session-edit-reference-integration'
 
 export type NewEditSessionPreferenceChoiceId =
   | 'none'
@@ -34,6 +40,7 @@ export type NewEditSessionFormState = {
   platformTarget?: ProjectEditSessionPlatformTarget
   selectedEditLevel: UserFacingEditLevel
   preferenceChoiceId: NewEditSessionPreferenceChoiceId
+  editReferenceId: string | undefined
   preferenceNote: string
   sourceNotes: NewEditSessionSourceNote[]
 }
@@ -47,6 +54,7 @@ export type NewEditSessionCreateResult = {
   ok: boolean
   session?: ProjectEditSessionRecord
   bundle?: ProjectEditSessionBundleRecord
+  preferenceApplication?: PreferenceApplicationRecord
   sourceRecords: ProjectEditSessionSourceRecord[]
   initialMessage?: ProjectEditSessionMessageRecord
   initialMemory?: ProjectEditSessionMemoryRecord
@@ -64,6 +72,7 @@ export const NEW_EDIT_SESSION_DEFAULT_FORM: NewEditSessionFormState = {
   name: 'Untitled edit',
   selectedEditLevel: 'premium',
   preferenceChoiceId: 'none',
+  editReferenceId: undefined,
   preferenceNote: '',
   sourceNotes: [
     {
@@ -140,6 +149,10 @@ function cloneDefaultSourceNote(): NewEditSessionSourceNote {
   }
 }
 
+function createNewEditSessionId(): string {
+  return `project-edit-session-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 export function createDefaultNewEditSessionFormState(): NewEditSessionFormState {
   return {
     ...NEW_EDIT_SESSION_DEFAULT_FORM,
@@ -213,6 +226,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
   projectId: string
   form: NewEditSessionFormState
   client?: ProjectEditSessionApiClient
+  editReferenceClient?: EditReferenceApiClient
 }): Promise<NewEditSessionCreateResult> {
   const validation = validateNewEditSessionForm(input.form)
   const warnings: string[] = []
@@ -250,6 +264,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
   const createResponse = await client.sessions.create<{
     session: ProjectEditSessionRecord
   }>({
+    id: createNewEditSessionId(),
     projectId: input.projectId,
     name: input.form.name.trim() || NEW_EDIT_SESSION_DEFAULT_FORM.name,
     status: 'draft',
@@ -261,8 +276,9 @@ export async function createProjectEditSessionFromNewEditForm(input: {
       createdFromProjectHome: true,
       rpMilestone: 'RP-EDITSESSION-06',
       preferenceChoiceId: input.form.preferenceChoiceId,
+      editReferenceId: input.form.editReferenceId,
       preferenceNote: input.form.preferenceNote.trim() || undefined,
-      preferenceApplicationDeferred: !preferenceHandle,
+      preferenceApplicationDeferred: !preferenceHandle && !input.form.editReferenceId,
       outputFrameConfirmed: true,
       outputFrameConfirmationSource: 'new_edit_create_form',
       confirmedAspectRatio: confirmedFrame.aspectRatio,
@@ -291,6 +307,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
       mockOnly: true,
     }
   }
+  const createdEditSessionId = session.id
 
   const sourceRecords: ProjectEditSessionSourceRecord[] = []
   let initialMessage: ProjectEditSessionMessageRecord | undefined
@@ -303,7 +320,7 @@ export async function createProjectEditSessionFromNewEditForm(input: {
       session?: ProjectEditSessionRecord
     }>({
       projectId: input.projectId,
-      editSessionId: session.id,
+      editSessionId: createdEditSessionId,
       preferenceHandle,
     })
     responseSummaries.push(responseSummary(preferenceResponse, 'Apply selected Edit Preference'))
@@ -319,11 +336,11 @@ export async function createProjectEditSessionFromNewEditForm(input: {
       sources: ProjectEditSessionSourceRecord[]
     }>({
       projectId: input.projectId,
-      editSessionId: session.id,
+      editSessionId: createdEditSessionId,
       sources: sourceNotes.map((sourceNote, index) => ({
         projectId: input.projectId,
-        editSessionId: session.id,
-        mediaAssetId: `${session.id}-metadata-source-${index + 1}`,
+        editSessionId: createdEditSessionId,
+        mediaAssetId: `${createdEditSessionId}-metadata-source-${index + 1}`,
         sourceOrderIndex: index + 1,
         label: sourceNote.label || `Mock source ${index + 1}`,
         notes: sourceNote.notes ? [sourceNote.notes] : [],
@@ -438,13 +455,50 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     bundle: ProjectEditSessionBundleRecord
   }>(session.id)
   responseSummaries.push(responseSummary(bundleResponse, 'Load created edit bundle'))
-  const bundle = dataRecord<{ bundle?: ProjectEditSessionBundleRecord }>(bundleResponse)?.bundle
+  let bundle = dataRecord<{ bundle?: ProjectEditSessionBundleRecord }>(bundleResponse)?.bundle
   if (!bundleResponse.ok) warnings.push(bundleResponse.error?.message ?? 'Created bundle could not be loaded.')
+
+  let preferenceApplication: PreferenceApplicationRecord | undefined
+  if (input.form.editReferenceId && bundle) {
+    const editReferenceClient = input.editReferenceClient ?? createEditReferenceApiClient()
+    const prepared = await preparePreferenceApplicationForProjectEditSession({
+      applicationSource: 'setup_selector',
+      bundle,
+      currentUserInstruction: input.form.preferenceNote.trim(),
+      editReferenceId: input.form.editReferenceId,
+      editReferenceClient,
+      outputFrameConfirmed: true,
+    })
+    if (!prepared.ok) {
+      warnings.push(prepared.message)
+      responseSummaries.push('Connect selected Edit Reference: preparation failed safely.')
+    } else {
+      const connected = await connectPreferenceApplicationToProjectEditSession({
+        application: prepared.application,
+        editReferenceClient,
+        outputFrameConfirmed: true,
+        projectEditSessionClient: client,
+        referenceRevision: prepared.detail.reference.revision,
+      })
+      responseSummaries.push(connected.ok
+        ? 'Connect selected Edit Reference: canonical target application connected.'
+        : 'Connect selected Edit Reference: connection deferred safely.')
+      if (connected.ok && connected.application) {
+        preferenceApplication = connected.application
+        const connectedBundleResponse = await client.bundle.get<{ bundle: ProjectEditSessionBundleRecord }>(createdEditSessionId)
+        bundle = dataRecord<{ bundle?: ProjectEditSessionBundleRecord }>(connectedBundleResponse)?.bundle ?? bundle
+        session = bundle.session
+      } else {
+        warnings.push(connected.message)
+      }
+    }
+  }
 
   return {
     ok: true,
     session,
     bundle,
+    preferenceApplication,
     sourceRecords,
     initialMessage,
     initialMemory,

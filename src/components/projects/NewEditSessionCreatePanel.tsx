@@ -22,6 +22,7 @@ import { Button } from '../Button'
 import { Card } from '../Card'
 import { NewEditSessionAspectRatioPicker } from './NewEditSessionAspectRatioPicker'
 import { NewEditSessionEditLevelPicker } from './NewEditSessionEditLevelPicker'
+import { NewEditSessionEditReferenceSelector } from './NewEditSessionEditReferenceSelector'
 import { NewEditSessionPlatformTargetPicker } from './NewEditSessionPlatformTargetPicker'
 import { NewEditSessionPreferencePicker } from './NewEditSessionPreferencePicker'
 import { NewEditSessionSourceNotes } from './NewEditSessionSourceNotes'
@@ -149,12 +150,24 @@ export function NewEditSessionCreatePanel({
             value={form.selectedEditLevel}
           />
 
-          <NewEditSessionPreferencePicker
-            note={form.preferenceNote}
-            onChange={(preferenceChoiceId) => updateForm({ preferenceChoiceId })}
-            onNoteChange={(preferenceNote) => updateForm({ preferenceNote })}
-            value={form.preferenceChoiceId}
+          <NewEditSessionEditReferenceSelector
+            disabled={submitting}
+            instruction={form.preferenceNote}
+            onChange={(editReferenceId) => updateForm({ editReferenceId })}
+            onInstructionChange={(preferenceNote) => updateForm({ preferenceNote })}
+            value={form.editReferenceId}
           />
+
+          <details className="new-edit-session-compatibility-preferences">
+            <summary data-testid="new-edit-compatibility-preferences-toggle">Compatibility preferences</summary>
+            <p>Use an older saved profile only when you need it for an existing edit workflow.</p>
+            <NewEditSessionPreferencePicker
+              note={form.preferenceNote}
+              onChange={(preferenceChoiceId) => updateForm({ preferenceChoiceId })}
+              onNoteChange={(preferenceNote) => updateForm({ preferenceNote })}
+              value={form.preferenceChoiceId}
+            />
+          </details>
 
           <NewEditSessionSourceNotes
             onChange={(sourceNotes) => updateForm({ sourceNotes })}
@@ -167,7 +180,12 @@ export function NewEditSessionCreatePanel({
         {lastResult?.ok && lastResult.session ? (
           <div className="new-edit-session-success" data-testid="new-edit-success-message">
             <CheckCircle2 aria-hidden="true" size={18} />
-            <span>{lastResult.session.name} was created. Open the edit workspace when ready.</span>
+            <span>
+              {lastResult.session.name} was created.
+              {lastResult.preferenceApplication
+                ? ` ${lastResult.preferenceApplication.editReferenceName} is connected as target-adapted guidance.`
+                : ' Open the edit workspace when ready.'}
+            </span>
             <Button to={lastResult.openRoute ?? `/projects/${projectId}/edits/${lastResult.session.id}`} variant="secondary">
               Open edit
             </Button>

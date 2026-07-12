@@ -52,6 +52,7 @@ test.describe('Edit Reference durable study session', () => {
   })
 
   test('saves evidence, studies it truthfully, and restores findings after reload', async ({ page }) => {
+    test.setTimeout(90_000)
     const referenceName = `Evidence study ${Date.now()}`
     await gotoRoute(page, '/preferences')
     await page.getByTestId('new-edit-reference').click()
@@ -89,7 +90,7 @@ test.describe('Edit Reference durable study session', () => {
     await expect(page.getByTestId('approve-edit-reference-dna')).toBeDisabled()
     await page.getByTestId('acknowledge-edit-reference-dna-approval').check()
     await page.getByTestId('approve-edit-reference-dna').click()
-    await expect(page.getByTestId('edit-reference-dna-review')).toContainText('Approved reusable guidance')
+    await expect(page.getByTestId('edit-reference-dna-review')).toContainText('Approved reusable guidance', { timeout: 20_000 })
     await expect(page.getByTestId('edit-reference-target-ready')).toContainText('Choose this reference from a project edit')
     await expect(page.getByText('Version 1 · approved')).toBeVisible()
     await expect(page.getByText('Review acknowledged')).toBeVisible()

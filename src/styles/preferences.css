@@ -475,7 +475,7 @@
 }
 
 .edit-reference-evidence-list,
-.edit-reference-findings > div:last-child {
+.edit-reference-findings-list {
   display: grid;
   gap: var(--rp-space-2);
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -593,6 +593,49 @@
 .edit-reference-study-limits p span {
   color: var(--rp-text-primary);
   font-weight: 800;
+}
+
+.edit-reference-evidence-form label > small {
+  color: var(--rp-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.edit-reference-skill-provenance {
+  border-top: 1px solid var(--rp-border-subtle);
+  display: grid;
+  gap: var(--rp-space-2);
+  padding-top: var(--rp-space-3);
+}
+
+.edit-reference-skill-provenance > strong {
+  color: var(--rp-text-primary);
+  font-size: 0.78rem;
+}
+
+.edit-reference-skill-provenance article {
+  background: rgba(5, 7, 13, 0.28);
+  grid-template-columns: minmax(150px, 0.42fr) minmax(0, 1fr);
+}
+
+.edit-reference-skill-provenance article > div {
+  display: grid;
+  gap: 3px;
+}
+
+.edit-reference-skill-provenance article > div span {
+  color: var(--rp-text-primary);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.edit-reference-skill-provenance article > p {
+  align-self: center;
+}
+
+.edit-reference-skill-provenance article > small {
+  grid-column: 1 / -1;
+  text-transform: none;
 }
 
 .edit-reference-dna-action {

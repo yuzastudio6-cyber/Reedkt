@@ -3,7 +3,8 @@ import { expectNoHorizontalOverflow, setViewport } from './helpers/layout'
 import { gotoRoute } from './helpers/routes'
 
 const projectHomePath = '/projects/mock-project-edit-chat-foundation'
-const youtubeChatPath = `${projectHomePath}/edits/edit-session-youtube-wide`
+const youtubeEditPath = `${projectHomePath}/edits/edit-session-youtube-wide`
+const youtubeChatPath = `${youtubeEditPath}/chat`
 const markerTitle = 'RP12 E2E marker'
 
 test.describe('Project Edit Brief E2E internal testing path', () => {
@@ -14,13 +15,15 @@ test.describe('Project Edit Brief E2E internal testing path', () => {
     await expect(page.getByTestId('project-edit-session-home')).toBeVisible()
     await page.getByRole('button', { name: /Founder Story YouTube Cut/i }).click()
     await expect(page.getByTestId('project-edit-session-detail-panel')).toContainText('Founder Story YouTube Cut')
-    await page.getByTestId('project-edit-session-detail-panel').getByRole('link', { name: 'Open Edit Chat' }).click()
+    await page.getByTestId('project-edit-session-detail-panel').getByRole('link', { name: 'Open edit' }).click()
 
+    await expect(page).toHaveURL(new RegExp(`${youtubeEditPath}$`))
+    await page.getByRole('link', { name: 'Open Edit Chat' }).click()
     await expect(page).toHaveURL(new RegExp(`${youtubeChatPath}$`))
     await expect(page.getByTestId('edit-session-chat-page')).toBeVisible()
     await expect(page.getByTestId('edit-session-route-tabs')).toContainText('Brief')
     await page.getByTestId('edit-session-route-tab-brief').click()
-    await expect(page).toHaveURL(new RegExp(`${youtubeChatPath}/brief$`))
+    await expect(page).toHaveURL(new RegExp(`${youtubeEditPath}/brief$`))
 
     await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
     await expect(page.getByTestId('project-edit-brief-boundary')).toContainText('Edit Brief is optional')
@@ -86,7 +89,7 @@ test.describe('Project Edit Brief E2E internal testing path', () => {
     await expect(planPanel.getByTestId('project-edit-brief-plan-boundary')).toContainText('mock/local structured instructions only')
 
     await page.getByTestId('edit-session-route-tab-chat').click()
-    await expect(page).toHaveURL(new RegExp(`${youtubeChatPath}/chat$`))
+    await expect(page).toHaveURL(new RegExp(`${youtubeChatPath}$`))
     await expect(page.getByTestId('edit-session-chat-input')).toBeVisible()
 
     await expect(page.getByText(/Run planner|Generate final edit|Render edit|Spend credits/i)).toHaveCount(0)

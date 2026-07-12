@@ -90,7 +90,7 @@ test.describe('Project source video Brief playback', () => {
 
     await expect(page.getByTestId('project-edit-brief-status')).toContainText('Local browser source video selected')
     await expect(page.getByRole('button', { name: /Upload for testing/i })).toBeDisabled()
-    await expect(page.getByTestId('project-source-video-local-mode')).toContainText('Local browser preview only')
+    await expect(page.getByTestId('project-source-video-local-mode')).toContainText('Local browser source')
     await expect(page.getByTestId('project-edit-brief-video-shell')).not.toContainText('Mock video shell only')
 
     const player = page.getByTestId('project-source-video-local-player')

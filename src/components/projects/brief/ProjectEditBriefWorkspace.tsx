@@ -842,9 +842,14 @@ export function ProjectEditBriefWorkspace({
             Upload the source video for this edit, add optional direction if useful, then approve a clean private test plan before preview work starts.
           </p>
         </div>
-        <Button to={`/projects/${projectId}`} variant="secondary">
-          Back to project
-        </Button>
+        <div className="clean-edit-brief__hero-actions">
+          <Button to={`/projects/${projectId}`} variant="secondary">
+            Back to project
+          </Button>
+          <Button to={`/projects/${projectId}/edits/${editSessionId}/chat`} variant="primary">
+            Open Edit Chat
+          </Button>
+        </div>
       </Card>
 
       <ProjectEditLifecycleStatusCard model={lifecycle} />

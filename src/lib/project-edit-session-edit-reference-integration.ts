@@ -18,7 +18,7 @@ import {
   readPreferenceApplicationIntegrationState,
 } from './edit-reference-downstream-context'
 import type { ProjectEditSessionApiClient } from './project-edit-session-api-client'
-import { createReeditproDeterministicHash } from './source-video-understanding-rules'
+import { createEditReferenceDeterministicHash } from './edit-reference-deterministic-hash'
 
 export const EDIT_REFERENCE_WORKSPACE_ID =
   (import.meta.env?.VITE_REEDITPRO_EDIT_REFERENCE_WORKSPACE_ID as string | undefined)?.trim()
@@ -203,7 +203,7 @@ export async function preparePreferenceApplicationForProjectEditSession(input: {
   }, stableLifecycleKey(
     'prepare',
     `${input.bundle.session.id}-${detail.reference.id}`,
-    createReeditproDeterministicHash({
+    createEditReferenceDeterministicHash({
       approvedDNAContentDigest: approvedDNA.contentDigest,
       applicationSource: input.applicationSource ?? 'session_panel',
       targetContext,
@@ -411,7 +411,7 @@ export async function replacePreferenceApplicationForProjectEditSession(input: {
     replacesApplicationId: currentApplication.id,
     expectedReplacedReferenceRevision: currentDetailResult.data.detail.reference.revision,
     invalidationReceipt: invalidated.invalidationReceipt,
-  }, stableLifecycleKey('replace', currentApplication.id, createReeditproDeterministicHash({
+  }, stableLifecycleKey('replace', currentApplication.id, createEditReferenceDeterministicHash({
     approvedDNAContentDigest: approvedDNA.contentDigest,
     applicationSource: input.applicationSource ?? 'session_panel',
     targetContext,

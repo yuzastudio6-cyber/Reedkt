@@ -507,6 +507,9 @@ export async function createProjectEditSessionFromNewEditForm(input: {
     responseSummaries,
     warnings,
     safety: PROJECT_EDIT_SESSION_API_CLIENT_SAFETY,
+    openRoute: preferenceApplication
+      ? `/projects/${input.projectId}/edits/${session.id}/chat`
+      : `/projects/${input.projectId}/edits/${session.id}`,
     mockOnly: true,
   }
 }

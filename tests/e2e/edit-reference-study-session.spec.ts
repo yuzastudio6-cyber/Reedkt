@@ -43,12 +43,13 @@ test.describe('Edit Reference durable study session', () => {
     await expect(page.getByTestId('safety-privacy-panel')).toContainText('never copied blindly')
   })
 
-  test('preserves legacy defaults under the secondary workspace tab', async ({ page }) => {
+  test('preserves current defaults under the secondary workspace tab', async ({ page }) => {
     await gotoRoute(page, '/edit-preferences')
     await page.getByTestId('edit-preference-tab-workspace-defaults').click()
     await expect(page.getByTestId('workspace-defaults-panel')).toBeVisible()
-    await expect(page.getByTestId('workspace-defaults-legacy-page')).toBeVisible()
-    await expect(page.getByTestId('new-edit-preference-button')).toBeVisible()
+    await expect(page.getByTestId('preferences-clean-shell')).toBeVisible()
+    await expect(page.getByTestId('preferences-default-choice-grid')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Save preference' })).toBeVisible()
   })
 
   test('saves evidence, studies it truthfully, and restores findings after reload', async ({ page }) => {

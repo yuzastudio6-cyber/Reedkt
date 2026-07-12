@@ -37,7 +37,7 @@ import { toEditReferenceInspectorView, toEditReferenceSavedCardView } from '../.
 import { AppShell } from '../AppShell'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
-import { EditPreferenceLibraryPage } from './EditPreferenceLibraryPage'
+import { WorkspaceDefaultsPanel } from './WorkspaceDefaultsPanel'
 
 const tabs = [
   { id: 'edit-references', label: 'Edit References' },
@@ -137,7 +137,7 @@ export function EditReferenceWorkspacePage() {
                   <p>Use these reusable settings when you want a consistent starting point across projects.</p>
                 </div>
               </div>
-              <EditPreferenceLibraryPage embedded />
+              <WorkspaceDefaultsPanel />
             </section>
           )}
           {activeTab === 'applied-edits' && <AppliedEditsTab />}

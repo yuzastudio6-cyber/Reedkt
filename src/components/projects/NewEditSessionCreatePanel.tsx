@@ -72,7 +72,7 @@ export function NewEditSessionCreatePanel({
 
     let result: NewEditSessionCreateResult
     try {
-      result = backendLocalConfig?.available && backendLocalConfig.apiBaseUrl
+      result = backendLocalConfig?.available && backendLocalConfig.apiBaseUrl && !form.editReferenceId
         ? await createProjectEditSessionBackendLocalFromNewEditForm({
           apiBaseUrl: backendLocalConfig.apiBaseUrl,
           form,
@@ -187,7 +187,7 @@ export function NewEditSessionCreatePanel({
                 : ' Open the edit workspace when ready.'}
             </span>
             <Button to={lastResult.openRoute ?? `/projects/${projectId}/edits/${lastResult.session.id}`} variant="secondary">
-              Open edit
+              {lastResult.preferenceApplication ? 'Open Edit Chat' : 'Open edit'}
             </Button>
           </div>
         ) : null}

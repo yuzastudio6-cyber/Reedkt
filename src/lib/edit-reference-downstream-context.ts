@@ -17,7 +17,7 @@ import type {
 } from '../types/project-edit-brief'
 import type { ProjectEditSessionRecord } from '../types/project-edit-session'
 import type { PreferenceDNALayerId } from '../types/preference-dna-builder'
-import { createReeditproDeterministicHash } from './source-video-understanding-rules'
+import { createEditReferenceDeterministicHash } from './edit-reference-deterministic-hash'
 
 const SESSION_METADATA_KEY = 'editReferencePreferenceIntegration'
 
@@ -70,7 +70,7 @@ export function createPreferenceApplicationDownstreamContext(
   }
   return {
     ...immutablePackage,
-    packageHash: createReeditproDeterministicHash(immutablePackage),
+    packageHash: createEditReferenceDeterministicHash(immutablePackage),
     integrationStatus,
     mockOnly: true,
     safety: PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS,
@@ -370,7 +370,7 @@ function createPreferenceApplicationDownstreamContextFromContext(
     precedencePolicy: context.precedencePolicy,
     summary: context.summary,
   }
-  return { packageHash: createReeditproDeterministicHash(immutablePackage) }
+  return { packageHash: createEditReferenceDeterministicHash(immutablePackage) }
 }
 
 function markerTypesForLayer(layerId: PreferenceDNALayerId): ProjectEditBriefMarkerType[] {

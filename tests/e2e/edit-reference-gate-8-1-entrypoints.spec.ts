@@ -116,7 +116,7 @@ test.describe('Edit Reference Gate 8.1 application entry points', () => {
     await page.getByTestId('new-edit-reference-instruction').fill('Keep the target product proof and target-authored labels exact; adapt only transferable story judgment.')
     await page.getByTestId('new-edit-source-label-0').fill('Target product walkthrough')
     await page.getByTestId('new-edit-source-notes-0').fill('Preserve the target demonstration order and original product evidence.')
-    await page.getByRole('button', { name: 'Create mock Edit Chat' }).click()
+    await page.getByRole('button', { name: 'Create edit' }).click()
     await expect(page.getByTestId('new-edit-success-message')).toContainText(firstName)
     await page.getByTestId('new-edit-success-message').getByRole('link', { name: 'Open Edit Chat' }).click()
 

@@ -32,6 +32,8 @@ import { createMockDatabase, type MockDatabase } from '../mock/mock-database'
 import { decorateProjectSessionRouteAccess } from './project-session-access-route-integration'
 import { createProjectEditBriefInternalPersistenceBackend } from '../project-edit-brief-production/internal-persistence-backend'
 import { runQwenMarkerChatBridge } from '../qwen-runtime/qwen-marker-chat-bridge-service'
+import type { PreferenceApplicationDownstreamContext } from '../../types/edit-reference-integration'
+import { isPreferenceApplicationDownstreamContextValid } from '../../lib/edit-reference-downstream-context'
 
 type RequestRecord = Record<string, unknown>
 type RouteData = Record<string, unknown>
@@ -612,6 +614,12 @@ async function handleMarkerMessagesAppend(request: ApiRequestEnvelope) {
   if (!marker) return failure('PROJECT_EDIT_BRIEF_MARKER_NOT_FOUND', 'Project Edit Brief marker was not found for Marker Chat.', 404, { markerId })
 
   if (body.runtimeMode === 'qwen_beta' && messageRole(body.role) === 'user') {
+    const messageMetadata = asRecord(body.metadata)
+    const preferenceApplicationCandidate = messageMetadata.preferenceApplicationContext as PreferenceApplicationDownstreamContext | undefined
+    const preferenceApplicationContext = isPreferenceApplicationDownstreamContextValid(preferenceApplicationCandidate, {
+      projectId: projectIdFor(request, body),
+      editSessionId: stringValue(body, 'editSessionId', marker.editSessionId),
+    }) ? preferenceApplicationCandidate : undefined
     const bridge = await runQwenMarkerChatBridge({
       repository,
       request: {
@@ -621,6 +629,7 @@ async function handleMarkerMessagesAppend(request: ApiRequestEnvelope) {
         briefId: stringValue(body, 'briefId', marker.briefId),
         markerId,
         messageText: stringValue(body, 'text', 'Mock Marker Chat note.'),
+        preferenceApplicationContext,
       },
     })
     return success({

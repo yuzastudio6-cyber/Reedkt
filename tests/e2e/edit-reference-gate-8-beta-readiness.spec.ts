@@ -7,7 +7,7 @@ const apiPort = Number(process.env.PLAYWRIGHT_API_PORT ?? 8877)
 const apiBaseUrl = `http://127.0.0.1:${apiPort}`
 const projectId = 'mock-project-edit-chat-foundation'
 const editSessionId = 'edit-session-revision-requested'
-const editPath = `/projects/${projectId}/edits/${editSessionId}`
+const editPath = `/projects/${projectId}/edits/${editSessionId}/chat`
 
 test.describe('Edit Reference Gate 8 beta readiness', () => {
   test('completes the full private study, target adaptation, downstream, replacement, removal, and audit journey', async ({ page }) => {

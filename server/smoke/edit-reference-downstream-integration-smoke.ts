@@ -23,7 +23,6 @@ import {
   getProjectEditBriefForSessionViaApi,
 } from '../../src/lib/project-edit-brief-api-client-adapter'
 import { syncPreferenceApplicationContextToProjectEditBrief } from '../../src/lib/project-edit-brief-preference-application-ui-adapter'
-import { createProjectEditBriefMarkerContextPackage } from '../../src/lib/project-edit-brief-marker-context-ui-adapter'
 import { createProjectEditBriefPlannerInputPackage } from '../../src/lib/project-edit-brief-plan-rules'
 import { createProjectEditBriefQAPackage } from '../../src/lib/project-edit-brief-qa-rules'
 import { sendProjectEditBriefMarkerChatMessageViaApi } from '../../src/lib/project-edit-brief-marker-chat-ui-adapter'
@@ -190,27 +189,15 @@ try {
     assert(briefBundle)
     const marker = briefBundle.markers.find((candidate) => candidate.status === 'confirmed') ?? briefBundle.markers[0]
     assert(marker)
-    const markerContext = createProjectEditBriefMarkerContextPackage({
-      projectId,
-      editSessionId,
-      briefId: briefResult.brief.id,
-      marker,
-      nearbyMarkers: briefBundle.markers,
-      preferenceApplicationContext: activeContext,
-    })
-    assert.equal(markerContext.preferenceApplicationId, application.id)
-    assert.equal(markerContext.preferenceApplicationContextHash, activeContext.packageHash)
-    assert(markerContext.promptContextLines.some((line) => line.includes('Target-adapted Edit Reference')))
-    assert(markerContext.preferenceApplicationGuidance.length > 0)
-
     const markerChat = await sendProjectEditBriefMarkerChatMessageViaApi({
       markerId: marker.id,
       messageText: 'Keep this marker’s confirmed direction and use the reusable style only where it supports that instruction.',
       preferenceApplicationContext: activeContext,
     }, briefClient)
     assert(markerChat?.ok)
-    const markerContextFromMessage = markerChat.userMessage?.metadata?.markerContextPackage as { preferenceApplicationId?: string } | undefined
-    assert.equal(markerContextFromMessage?.preferenceApplicationId, application.id)
+    const markerContextFromMessage = markerChat.userMessage?.metadata?.preferenceApplicationContext as { applicationId?: string; packageHash?: string } | undefined
+    assert.equal(markerContextFromMessage?.applicationId, application.id)
+    assert.equal(markerContextFromMessage?.packageHash, activeContext.packageHash)
 
     const planPackage = createProjectEditBriefPlannerInputPackage({
       bundle: briefBundle,

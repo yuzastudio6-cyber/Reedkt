@@ -7,7 +7,7 @@ const apiPort = Number(process.env.PLAYWRIGHT_API_PORT ?? 8877)
 const apiBaseUrl = `http://127.0.0.1:${apiPort}`
 const projectId = 'mock-project-edit-chat-foundation'
 const editSessionId = 'edit-session-square-ad'
-const editPath = `/projects/${projectId}/edits/${editSessionId}`
+const editPath = `/projects/${projectId}/edits/${editSessionId}/chat`
 
 test.describe('Edit Reference downstream integration', () => {
   test('connects exact target guidance through Edit Chat, Brief, Marker, Plan Hints, QA, and reload', async ({ page }) => {

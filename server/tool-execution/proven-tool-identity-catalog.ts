@@ -20,7 +20,7 @@ import { OFFLINE_REMBG_BACKGROUND_REMOVAL_PACKAGE_IDENTITIES } from './rembg-bac
 import { OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY } from './deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
 
 export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v1' as const
-export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-11.20' as const
+export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-12.21' as const
 
 export type ToolVerificationState =
   | 'canonical_e2e_verified'
@@ -86,11 +86,14 @@ export interface ProvenToolIdentityRecord {
     runnerSmokeCommand: string | null
     canonicalLifecycleSmokeCommand: string | null
     canonicalEvidenceKey: string | null
+    canonicalJobAdapterSmokeCommand: string | null
+    canonicalJobAdapterEvidenceKey: string | null
     gates: ProvenToolGateEvidence
   }
   readiness: {
     privateInternalRunnerReady: boolean
     privateInternalEndToEndReady: boolean
+    privateInternalJobAdapterReady: boolean
     productReady: false
     externalBetaReady: false
     productionReady: false
@@ -153,6 +156,19 @@ const CANONICAL_E2E_EVIDENCE_KEYS: Partial<Record<ProductionToolId, string>> = {
   deepfilternet: 'deepfilternet_exact_wav_canonical_lifecycle_verified',
 }
 
+const CANONICAL_JOB_ADAPTER_EVIDENCE_KEYS: Partial<Record<ProductionToolId, string>> = {
+  echarts: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
+  vega_lite: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
+  vega: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
+  satori: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
+  svg_js: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
+  viz_js: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
+  animejs: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
+  three_js: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
+  ffprobe: 'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
+  remotion: 'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
+}
+
 const OUTPUT_CONTENT_TYPES: Partial<Record<ProductionToolId, readonly string[]>> = {
   d3: ['image/svg+xml'], echarts: ['image/svg+xml'], vega_lite: ['image/svg+xml'],
   vega: ['image/svg+xml'], satori: ['image/svg+xml'], svg_js: ['image/svg+xml'],
@@ -180,6 +196,8 @@ const specs = listCompleteProfessionalToolOperationSpecs()
 const records = specs.map((spec): ProvenToolIdentityRecord => {
   const runtime = runtimeIdentity(spec.canonicalToolId)
   const canonicalEvidenceKey = CANONICAL_E2E_EVIDENCE_KEYS[spec.canonicalToolId] ?? null
+  const canonicalJobAdapterEvidenceKey =
+    CANONICAL_JOB_ADAPTER_EVIDENCE_KEYS[spec.canonicalToolId] ?? null
   const callable = spec.policyBlocks.length === 0
   const endToEnd = Boolean(canonicalEvidenceKey)
   const verificationState: ToolVerificationState = !callable
@@ -205,6 +223,7 @@ const records = specs.map((spec): ProvenToolIdentityRecord => {
     verificationState,
     runtime: runtime ?? null,
     canonicalEvidenceKey,
+    canonicalJobAdapterEvidenceKey,
     gates,
     verifiedOutputContentTypes,
   }
@@ -227,11 +246,16 @@ const records = specs.map((spec): ProvenToolIdentityRecord => {
       runnerSmokeCommand: runtime ? runnerSmokeCommand(runtime.runnerClass!) : null,
       canonicalLifecycleSmokeCommand: endToEnd ? 'npm run smoke:canonical-private-tool-dispatch' : null,
       canonicalEvidenceKey,
+      canonicalJobAdapterSmokeCommand: canonicalJobAdapterEvidenceKey
+        ? 'npm run smoke:canonical-private-tool-dispatch'
+        : null,
+      canonicalJobAdapterEvidenceKey,
       gates,
     },
     readiness: {
       privateInternalRunnerReady: Boolean(runtime),
       privateInternalEndToEndReady: endToEnd,
+      privateInternalJobAdapterReady: Boolean(canonicalJobAdapterEvidenceKey),
       productReady: false, externalBetaReady: false, productionReady: false,
     },
     blockers: blockers(spec.canonicalToolId, verificationState, spec.policyBlockReasons),
@@ -272,6 +296,11 @@ export function summarizeProvenToolIdentityCatalog() {
     canonicalEndToEndVerifiedCount: records.filter((record) => record.readiness.privateInternalEndToEndReady).length,
     canonicalEndToEndVerifiedToolIds: records
       .filter((record) => record.readiness.privateInternalEndToEndReady)
+      .map((record) => record.canonicalToolId),
+    canonicalJobAdapterVerifiedCount: records
+      .filter((record) => record.readiness.privateInternalJobAdapterReady).length,
+    canonicalJobAdapterVerifiedToolIds: records
+      .filter((record) => record.readiness.privateInternalJobAdapterReady)
       .map((record) => record.canonicalToolId),
   })
 }
@@ -546,6 +575,12 @@ function validateCatalog(catalog: readonly ProvenToolIdentityRecord[]): void {
     }
     if (record.readiness.privateInternalEndToEndReady && !record.readiness.privateInternalRunnerReady) {
       throw new Error(`Canonical E2E tool lacks runner proof: ${record.canonicalToolId}.`)
+    }
+    if (
+      record.readiness.privateInternalJobAdapterReady &&
+      (!record.readiness.privateInternalEndToEndReady || !record.evidence.canonicalJobAdapterEvidenceKey)
+    ) {
+      throw new Error(`Canonical job-adapter proof is inconsistent for ${record.canonicalToolId}.`)
     }
     if (record.callability === 'intentionally_non_executable' && record.readiness.privateInternalRunnerReady) {
       throw new Error(`Non-executable tool cannot have a proven runner: ${record.canonicalToolId}.`)

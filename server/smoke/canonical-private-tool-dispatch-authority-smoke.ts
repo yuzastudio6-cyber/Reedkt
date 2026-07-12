@@ -1887,6 +1887,60 @@ await leaseService.release({
 })
 
 for (const matrixRun of matrixRuns.slice(1)) {
+  if (matrixRun.runnerKind === 'node') {
+    const adapterInput = {
+      workspaceId,
+      projectId: snapshot.projectId,
+      editSessionId: snapshot.editSessionId,
+      jobId: matrixRun.job.id,
+      purpose: 'execute_canonical_private_job' as const,
+      idempotencyKey: `canonical-job-adapter-${matrixRun.toolId}-root`,
+    }
+    const coordinated = await jobExecutionAdapter.execute(adapterInput)
+    assert.equal(coordinated.identity.canonicalToolId, matrixRun.toolId)
+    assert.equal(coordinated.identity.operationId, matrixRun.operationId)
+    assert.equal(coordinated.identity.expectedAssetId, matrixRun.asset.id)
+    assert.equal(coordinated.identity.runnerClass, 'offline_node_structured_execution_v1')
+    assert.equal(coordinated.result.contentType, matrixRun.expectedContentType)
+    assert.equal(coordinated.result.qaOutcome, 'passed')
+    assert.equal(coordinated.result.privateTestDependencySatisfied, true)
+    assert.equal(coordinated.evidence.serverDerivedCanonicalJob, true)
+    assert.equal(coordinated.evidence.serverDerivedToolAndOperation, true)
+    assert.equal(coordinated.evidence.singleUseDispatchConsumed, true)
+    assert.equal(coordinated.evidence.idempotentAdapterReplay, false)
+    assert.equal(coordinated.readiness.privateInternalJobExecutionReady, true)
+    assert.equal(coordinated.readiness.productReady, false)
+    const replay = await jobExecutionAdapter.execute(adapterInput)
+    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
+    assert.equal(replay.result.sha256, coordinated.result.sha256)
+    assert.equal(replay.evidence.idempotentAdapterReplay, true)
+    const proofClaim: Awaited<ReturnType<typeof leaseService.claim>>['workerLeaseClaim'] =
+      (await leaseService.claim({
+      workspaceId,
+      projectId: snapshot.projectId,
+      editSessionId: snapshot.editSessionId,
+      jobId: matrixRun.proofJob.id,
+      purpose: 'private_internal_canonical_lease_claim',
+      idempotencyKey: `claim-${matrixRun.toolId}-matrix-proof-after-job-adapter`,
+      })).workerLeaseClaim
+    assert.equal(proofClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
+    assert.equal(proofClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
+    assert.equal(
+      proofClaim.lease.dependencyAuthority.selectedArtifacts[0]?.artifactId,
+      coordinated.result.artifactId,
+    )
+    await leaseService.release({
+      workspaceId,
+      projectId: snapshot.projectId,
+      editSessionId: snapshot.editSessionId,
+      jobId: matrixRun.proofJob.id,
+      leaseId: proofClaim.lease.leaseId,
+      leaseCredential: proofClaim.leaseCredential,
+      purpose: 'private_internal_canonical_lease_release',
+      idempotencyKey: `release-${matrixRun.toolId}-matrix-proof-after-job-adapter`,
+    })
+    continue
+  }
   const claim = (await leaseService.claim({
     workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
     jobId: matrixRun.job.id, purpose: 'private_internal_canonical_lease_claim',
@@ -1909,30 +1963,7 @@ for (const matrixRun of matrixRuns.slice(1)) {
   const executionAuthority = { ...leaseAuthority, dispatchCredential: grant.dispatchCredential }
   let coordinatedArtifactId: string
   let coordinatedSha256: string
-  if (matrixRun.runnerKind === 'node') {
-    const executionInput = {
-      workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-      jobId: matrixRun.job.id, grantId: grant.grant.grantId,
-      purpose: 'execute_canonical_private_structured_tool' as const,
-      idempotencyKey: `consume-${matrixRun.toolId}-matrix-root`,
-    }
-    const coordinated = await createCanonicalPrivateStructuredToolExecutionService(context).execute(
-      executionInput, executionAuthority,
-    )
-    assert.equal(coordinated.tool.canonicalToolId, matrixRun.toolId)
-    assert.equal(coordinated.tool.operationId, matrixRun.operationId)
-    assert.equal(coordinated.result.contentType, matrixRun.expectedContentType)
-    assert.equal(coordinated.result.qaOutcome, 'passed')
-    const replay = await createCanonicalPrivateStructuredToolExecutionService(context).execute(
-      executionInput, executionAuthority,
-    )
-    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
-    assert.equal(replay.replay.dispatchConsumptionReplayed, true)
-    assert.equal(replay.replay.executionFenceBeginReplayed, true)
-    assert.equal(replay.replay.executionFenceCompleteReplayed, true)
-    coordinatedArtifactId = coordinated.result.artifactId
-    coordinatedSha256 = coordinated.result.sha256
-  } else if (matrixRun.runnerKind === 'browser') {
+  if (matrixRun.runnerKind === 'browser') {
     const executionInput = {
       workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
       jobId: matrixRun.job.id, grantId: grant.grant.grantId,
@@ -3330,6 +3361,7 @@ console.log(JSON.stringify({
     'mir_eval_timing_json_qa_reconciliation_replay_and_downstream_verification',
     'mido_timing_json_qa_reconciliation_replay_and_downstream_verification',
     'canonical_job_only_adapter_derives_tool_operation_output_lease_dispatch_qa_and_replay_server_side',
+    'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
     'echarts_exact_svg_canonical_lifecycle_verified',
     'vega_lite_exact_svg_canonical_lifecycle_verified',
     'vega_exact_svg_canonical_lifecycle_verified',

@@ -39,12 +39,14 @@ Executable adapter evidence currently proves:
 
 - authenticated HTTP execution and HTTP idempotency replay for the tool-free canonical authority job;
 - work-graph execution of the dependency-bound source-trim authority job;
-- service execution of ECharts with server-derived tool/operation/output identity;
+- service execution of all eight structured Node identities (ECharts, Vega-Lite, Vega, Satori, SVG.js, Viz.js, Anime.js, and Three.js) with server-derived tool/operation/output identity, exact replay, and downstream dependency readback;
 - service execution of the exact private Remotion final-composition job with two lease-selected dependencies: source-trim authority JSON and libass caption PNG;
 - approved trim-frame application to the exact source MP4, source-audio preservation, independent FFprobe H.264/AAC/frame/duration QA, private final-artifact persistence/download, and durable adapter replay without a second render;
 - service execution of a separate canonical final-QA ffprobe job that consumes only the QA-passed/reconciled private final MP4 dependency, derives its expected media contract from the upstream approved Remotion work item, persists a private JSON report, and replays without a second probe;
 - single-use dispatch consumption, private SVG persistence, QA, reconciliation, durable adapter replay, idempotency conflict, and downstream dependency readback;
 - the independent canonical coordinator lifecycle for all 50 tool identities through `npm run smoke:canonical-private-tool-dispatch`.
+
+The machine-readable proven-tool catalog records job-adapter proof separately from coordinator-only canonical E2E proof. At evidence revision `2026-07-12.21`, 10 exact tool identities have job-adapter proof: the eight structured Node identities plus Remotion final composition and FFprobe final-artifact QA. The remaining canonical identities keep their complete coordinator lifecycle evidence but are not represented as job-adapter verified.
 
 ## Boundaries
 

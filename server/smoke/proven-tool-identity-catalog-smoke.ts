@@ -22,6 +22,7 @@ assert.equal(summary.callableCandidateCount, 61)
 assert.equal(summary.intentionallyNonExecutableCount, 11)
 assert.equal(summary.confinedRunnerVerifiedCount, 53)
 assert.equal(summary.canonicalEndToEndVerifiedCount, 50)
+assert.equal(summary.canonicalJobAdapterVerifiedCount, 10)
 assert.equal(new Set(catalog.map((record) => record.stableToolIdentity)).size, 72)
 assert.equal(new Set(catalog.map((record) => record.identityHash)).size, 72)
 assert.equal(new Set(catalog.map((record) => record.proofHash)).size, 72)
@@ -78,6 +79,16 @@ for (const record of catalog) {
     assert.ok(record.blockers.length >= 1)
   }
 
+  if (record.readiness.privateInternalJobAdapterReady) {
+    assert.equal(record.readiness.privateInternalEndToEndReady, true)
+    assert.equal(record.evidence.canonicalJobAdapterSmokeCommand, 'npm run smoke:canonical-private-tool-dispatch')
+    assert.ok(record.evidence.canonicalJobAdapterEvidenceKey)
+    assert.ok(canonicalSmokeSource.includes(`'${record.evidence.canonicalJobAdapterEvidenceKey}'`))
+  } else {
+    assert.equal(record.evidence.canonicalJobAdapterSmokeCommand, null)
+    assert.equal(record.evidence.canonicalJobAdapterEvidenceKey, null)
+  }
+
   const tamperedIdentity = {
     schemaVersion: record.schemaVersion,
     evidenceRevision: record.evidenceRevision,
@@ -99,6 +110,11 @@ assert.deepEqual(summary.canonicalEndToEndVerifiedToolIds, [
   'ffprobe', 'pyav', 'opentimelineio', 'remotion', 'libass', 'sharp', 'duckdb', 'polars', 'opencv',
   'signalsmith_stretch',
   'vapoursynth',
+])
+
+assert.deepEqual(summary.canonicalJobAdapterVerifiedToolIds, [
+  'echarts', 'vega_lite', 'vega', 'satori', 'svg_js', 'viz_js', 'animejs', 'three_js',
+  'ffprobe', 'remotion',
 ])
 
 assert.equal(getToolIdentityRecord('audioflux').verificationState, 'canonical_e2e_verified')
@@ -128,6 +144,7 @@ console.log(JSON.stringify({
     'runner_proof_and_canonical_e2e_proof_are_distinct_states',
     'exact_operation_spec_package_version_runner_and_artifact_contract_recorded',
     'canonical_evidence_keys_exist_in_executed_lifecycle_smoke',
+    'job_adapter_evidence_is_a_distinct_per_tool_proof_dimension',
     'all_end_to_end_records_require_every_proof_gate',
     'identity_and_proof_hashes_fail_on_tampering',
     'no_product_beta_or_production_promotion_inferred',

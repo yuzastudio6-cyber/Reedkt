@@ -11,7 +11,7 @@ Every one of the 72 registry profiles has exactly one stable identity in the for
 - `declared_not_runner_verified`: the tool has a bounded registry contract but lacks actual confined execution evidence.
 - `intentionally_non_executable`: the entry is policy-, future-, license-, evaluation-, or planning-only and must not be dispatched.
 
-Runner verification, canonical E2E verification, product readiness, external-beta readiness, and production readiness are separate claims. No lower state implies a higher one.
+Runner verification, canonical E2E verification, server-derived job-adapter verification, product readiness, external-beta readiness, and production readiness are separate claims. No lower state implies a higher one. `privateInternalJobAdapterReady` is true only when the exact tool also has a named canonical smoke key proving execution through the strict job-only adapter; a coordinator-only lifecycle does not imply that route-level proof.
 
 ## Commands
 
@@ -120,13 +120,14 @@ The runner class is `offline_deepfilternet_voice_cleanup_execution_v1`; its evid
 
 ## Current evidence snapshot
 
-Evidence revision `2026-07-11.20` records:
+Evidence revision `2026-07-12.21` records:
 
 - 72 total registry profiles with stable identities.
 - 61 callable candidates.
 - 11 intentionally non-executable profiles.
 - 53 confined-runner verified tools.
 - 50 exact canonical end-to-end verified tools.
+- 10 exact tool identities verified through the server-derived canonical job adapter.
 - 8 callable candidates that remain declared but do not yet have confined-runner proof.
 - 0 product-, external-beta-, or production-ready tools; those promotions require separate deployment evidence.
 
@@ -144,10 +145,16 @@ gpac_mp4box_packaging_validation, ffmpeg, ffprobe, pyav, opentimelineio, remotio
 sharp, duckdb, polars, opencv, signalsmith_stretch, vapoursynth
 ```
 
+The 10 server-derived job-adapter verified tool identities are:
+
+```text
+echarts, vega_lite, vega, satori, svg_js, viz_js, animejs, three_js, ffprobe, remotion
+```
+
 `confinedRunnerVerifiedCount` includes tools that have also reached canonical E2E; it is not a count of runner-only tools. At this revision the three runner-only identities are `torch_torchvision`, `transformers`, and `streamer_render_pipeline_support`; all three are readiness probes. DeepFilterNet, AudioFlux, rembg, OpenColorIO, OpenImageIO, RNNoise, Signalsmith Stretch, MKVToolNix, and GPAC/MP4Box now have canonical lifecycle proofs using approved server-owned deterministic fixtures. All tools still require arbitrary user-source, dependency/security/license review, distributed-worker, deployment, and product-promotion evidence. Public delivery, settlement, billing, external beta, and production rendering remain separate blocked gates.
 
 ## Promotion rule
 
-A tool may move to `canonical_e2e_verified` only when all twelve proof gates are true and its named canonical evidence key exists in `smoke:canonical-private-tool-dispatch`. Adding a package, declaring an operation, passing an import probe, or sharing a coordinator with another tool is not sufficient.
+A tool may move to `canonical_e2e_verified` only when all twelve proof gates are true and its named canonical evidence key exists in `smoke:canonical-private-tool-dispatch`. It may additionally set `privateInternalJobAdapterReady` only when that exact identity has a separate named adapter evidence key in the same executed smoke. Adding a package, declaring an operation, passing an import probe, sharing a coordinator, or merely appearing in the adapter dispatch table is not sufficient.
 
 The catalog remains private-internal evidence. Distributed workers, deployed service identities, production object storage, observability, incident response, external beta, public delivery, and production promotion remain separate gates.

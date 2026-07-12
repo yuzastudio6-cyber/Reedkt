@@ -20,7 +20,7 @@ import { OFFLINE_REMBG_BACKGROUND_REMOVAL_PACKAGE_IDENTITIES } from './rembg-bac
 import { OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY } from './deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
 
 export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v1' as const
-export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-12.27' as const
+export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-12.28' as const
 
 export type ToolVerificationState =
   | 'canonical_e2e_verified'
@@ -182,6 +182,7 @@ const CANONICAL_JOB_ADAPTER_EVIDENCE_KEYS: Partial<Record<ProductionToolId, stri
   vapoursynth: 'server_derived_job_adapter_executes_vapoursynth_frame_pipeline_identity',
   audioflux: 'server_derived_job_adapter_executes_audioflux_analysis_identity',
   rembg: 'server_derived_job_adapter_executes_rembg_background_removal_identity',
+  deepfilternet: 'server_derived_job_adapter_executes_deepfilternet_with_attempt_cost_evidence',
   pretty_midi: 'server_derived_job_adapter_executes_all_seven_matrix_python_tool_identities',
   noisereduce: 'server_derived_job_adapter_executes_all_seven_matrix_python_tool_identities',
   polars: 'server_derived_job_adapter_executes_all_seven_matrix_python_tool_identities',
@@ -199,9 +200,13 @@ const CANONICAL_JOB_ADAPTER_EVIDENCE_KEYS: Partial<Record<ProductionToolId, stri
   mir_eval: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
   pydub_effects: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
   ebu_r128_pyloudnorm: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
+  ffmpeg: 'server_derived_job_adapter_executes_libass_and_source_bound_ffmpeg_identities',
   ffprobe: 'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
+  pyav: 'server_derived_job_adapter_executes_duckdb_and_source_bound_pyav_identities',
   remotion: 'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
+  libass: 'server_derived_job_adapter_executes_libass_and_source_bound_ffmpeg_identities',
   sharp: 'server_derived_job_adapter_executes_d3_and_dependency_bound_sharp_identities',
+  duckdb: 'server_derived_job_adapter_executes_duckdb_and_source_bound_pyav_identities',
 }
 
 const OUTPUT_CONTENT_TYPES: Partial<Record<ProductionToolId, readonly string[]>> = {

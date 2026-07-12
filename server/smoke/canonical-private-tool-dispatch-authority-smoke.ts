@@ -16,13 +16,10 @@ import {
   CANONICAL_PRIVATE_TOOL_DISPATCH_TTL_SECONDS,
   createCanonicalPrivateToolDispatchAuthorityService,
 } from '../services/canonical-private-tool-dispatch-authority-service'
-import { createCanonicalPrivatePythonToolExecutionService } from '../services/canonical-private-python-tool-execution-service'
 import { createCanonicalPrivateMediaBinaryExecutionService } from '../services/canonical-private-media-binary-execution-service'
 import { createCanonicalPrivateDependencyArtifactReadService } from '../services/canonical-private-dependency-artifact-read-service'
 import { createCanonicalPrivateRemotionExecutionService } from '../services/canonical-private-remotion-execution-service'
-import { createCanonicalPrivateLibassExecutionService } from '../services/canonical-private-libass-execution-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
-import { createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService } from '../services/canonical-private-deepfilternet-voice-cleanup-execution-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
 import { createCanonicalPrivateReviewDecisionService } from '../services/canonical-private-review-decision-service'
@@ -36,6 +33,7 @@ import {
   clearPrivateCanonicalToolDispatchProcessStateForSmoke,
   readPrivateCanonicalToolDispatchAggregate,
 } from '../services/private-canonical-tool-dispatch-store'
+import { readPrivateCanonicalWorkerLeaseAggregate } from '../services/private-canonical-worker-lease-store'
 import {
   exactEditPreferenceFingerprint,
 } from '../services/private-exact-edit-preference-store'
@@ -75,6 +73,7 @@ import { activatePrivateOfflineVapourSynthFramePipelineRuntime, prepareOfflineVa
 import { activatePrivateOfflineAudioFluxAnalysisRuntime, prepareOfflineAudioFluxAnalysisDockerRuntime } from '../tool-execution/audioflux-analysis-execution'
 import { activatePrivateOfflineRembgBackgroundRemovalRuntime, prepareOfflineRembgBackgroundRemovalDockerRuntime } from '../tool-execution/rembg-background-removal-execution'
 import { activatePrivateOfflineDeepFilterNetVoiceCleanupRuntime, prepareOfflineDeepFilterNetVoiceCleanupDockerRuntime } from '../tool-execution/deepfilternet-voice-cleanup-execution'
+import { readPrivateInternalAttemptCostEvidence } from '../tool-cost-metering/private-internal-attempt-cost-evidence'
 import type { ServiceContext } from '../types'
 import {
   PRIVATE_EDIT_AUTHORITY_SCHEMA_VERSION,
@@ -1342,79 +1341,30 @@ await leaseService.release({
   purpose: 'private_internal_canonical_lease_release',
   idempotencyKey: 'release-chart-proof-verification-lease',
 })
-const privatePythonRuntime = await createPrivateOfflinePythonStructuredExecutionRuntime()
-const dataClaim = (await leaseService.claim({
+await createPrivateOfflinePythonStructuredExecutionRuntime()
+const dataAdapterInput = {
   workspaceId,
   projectId: snapshot.projectId,
   editSessionId: snapshot.editSessionId,
   jobId: dataJob.id,
-  purpose: 'private_internal_canonical_lease_claim',
-  idempotencyKey: 'claim-data-root-for-python-dispatch',
-})).workerLeaseClaim
-const dataLeaseAuthority = {
-  leaseId: dataClaim.lease.leaseId,
-  leaseCredential: dataClaim.leaseCredential,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-duckdb-root',
 }
-const dataGrant = (await dispatchService.authorize({
-  workspaceId,
-  projectId: snapshot.projectId,
-  editSessionId: snapshot.editSessionId,
-  jobId: dataJob.id,
-  approvedWorkItemId: dataWorkItem.id,
-  expectedAssetId: dataAsset.id,
-  requestedToolName: 'duckdb',
-  operationId: duckdbOperationId,
-  purpose: 'private_internal_canonical_tool_dispatch_authorization',
-  idempotencyKey: 'authorize-data-root-duckdb-attempt-one',
-}, dataLeaseAuthority)).toolDispatchGrant
-assert.equal(dataGrant.grant.status, 'authorized')
-assert.equal(dataGrant.evidence.specPrivateInternalReady, true)
-assert.equal(dataGrant.evidence.runtimePrivateInternalReady, true)
-assert.equal(dataGrant.evidence.specProductReady, false)
-assert.equal(dataGrant.evidence.runtimeProductReady, false)
-assert.equal(
-  dataGrant.evidence.privateRuntimeImageIdentityHash,
-  privatePythonRuntime.image.imageIdentityHash,
-)
-assert.ok(dataGrant.dispatchCredential)
-const dataExecutionInput = {
-  workspaceId,
-  projectId: snapshot.projectId,
-  editSessionId: snapshot.editSessionId,
-  jobId: dataJob.id,
-  grantId: dataGrant.grant.grantId,
-  purpose: 'execute_canonical_private_python_tool' as const,
-  idempotencyKey: 'consume-authorized-data-root-duckdb-attempt-one',
-}
-const dataExecutionAuthority = {
-  ...dataLeaseAuthority,
-  dispatchCredential: dataGrant.dispatchCredential!,
-}
-const coordinatedData = await createCanonicalPrivatePythonToolExecutionService(context).execute(
-  dataExecutionInput,
-  dataExecutionAuthority,
-)
-assert.equal(coordinatedData.tool.canonicalToolId, 'duckdb')
-assert.equal(coordinatedData.tool.operationId, duckdbOperationId)
-assert.equal(coordinatedData.tool.actualLibraryOperationCompleted, true)
-assert.equal(coordinatedData.runtime.imageIdentityHash, privatePythonRuntime.image.imageIdentityHash)
-assert.equal(coordinatedData.runtime.productReady, false)
+const coordinatedData = await jobExecutionAdapter.execute(dataAdapterInput)
+assert.equal(coordinatedData.identity.canonicalToolId, 'duckdb')
+assert.equal(coordinatedData.identity.operationId, duckdbOperationId)
+assert.equal(coordinatedData.identity.expectedAssetId, dataAsset.id)
+assert.equal(coordinatedData.identity.runnerClass, 'offline_python_structured_execution_v1')
 assert.equal(coordinatedData.result.contentType, 'application/json')
 assert.equal(coordinatedData.result.qaOutcome, 'passed')
-assert.equal(coordinatedData.persistence.actualRunEvidenceVerified, true)
-assert.equal(coordinatedData.persistence.actualQaEvidenceVerified, true)
-const coordinatedDataReplay = await createCanonicalPrivatePythonToolExecutionService(context).execute(
-  dataExecutionInput,
-  dataExecutionAuthority,
-)
+assert.equal(coordinatedData.evidence.serverDerivedCanonicalJob, true)
+assert.equal(coordinatedData.evidence.serverDerivedToolAndOperation, true)
+assert.equal(coordinatedData.evidence.singleUseDispatchConsumed, true)
+assert.equal(coordinatedData.readiness.productReady, false)
+const coordinatedDataReplay = await jobExecutionAdapter.execute(dataAdapterInput)
 assert.equal(coordinatedDataReplay.result.artifactId, coordinatedData.result.artifactId)
 assert.equal(coordinatedDataReplay.result.sha256, coordinatedData.result.sha256)
-assert.equal(coordinatedDataReplay.replay.dispatchConsumptionReplayed, true)
-assert.equal(coordinatedDataReplay.replay.executionFenceBeginReplayed, true)
-assert.equal(coordinatedDataReplay.replay.executionFenceCompleteReplayed, true)
-assert.equal(coordinatedDataReplay.replay.artifactRecordReplayed, true)
-assert.equal(coordinatedDataReplay.replay.qaRecordReplayed, true)
-assert.equal(coordinatedDataReplay.replay.reconciliationReplayed, true)
+assert.equal(coordinatedDataReplay.evidence.idempotentAdapterReplay, true)
 const dataProofClaim = (await leaseService.claim({
   workspaceId,
   projectId: snapshot.projectId,
@@ -1439,80 +1389,29 @@ await leaseService.release({
   purpose: 'private_internal_canonical_lease_release',
   idempotencyKey: 'release-data-proof-verification-lease',
 })
-await leaseService.release({
-  workspaceId,
-  projectId: snapshot.projectId,
-  editSessionId: snapshot.editSessionId,
-  jobId: dataJob.id,
-  leaseId: dataClaim.lease.leaseId,
-  leaseCredential: dataClaim.leaseCredential,
-  purpose: 'private_internal_canonical_lease_release',
-  idempotencyKey: 'release-completed-data-root-attempt-one',
-})
-
-const mediaClaim = (await leaseService.claim({
+const mediaAdapterInput = {
   workspaceId,
   projectId: snapshot.projectId,
   editSessionId: snapshot.editSessionId,
   jobId: mediaJob.id,
-  purpose: 'private_internal_canonical_lease_claim',
-  idempotencyKey: 'claim-media-root-for-python-dispatch',
-})).workerLeaseClaim
-const mediaLeaseAuthority = {
-  leaseId: mediaClaim.lease.leaseId,
-  leaseCredential: mediaClaim.leaseCredential,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-pyav-source-root',
 }
-const mediaGrant = (await dispatchService.authorize({
-  workspaceId,
-  projectId: snapshot.projectId,
-  editSessionId: snapshot.editSessionId,
-  jobId: mediaJob.id,
-  approvedWorkItemId: mediaWorkItem.id,
-  expectedAssetId: mediaAsset.id,
-  requestedToolName: 'pyav',
-  operationId: pyavOperationId,
-  purpose: 'private_internal_canonical_tool_dispatch_authorization',
-  idempotencyKey: 'authorize-media-root-pyav-attempt-one',
-}, mediaLeaseAuthority)).toolDispatchGrant
-assert.equal(mediaGrant.grant.status, 'authorized')
-assert.equal(mediaGrant.evidence.specPrivateInternalReady, true)
-assert.equal(mediaGrant.evidence.runtimePrivateInternalReady, true)
-assert.ok(mediaGrant.dispatchCredential)
-const mediaExecutionInput = {
-  workspaceId,
-  projectId: snapshot.projectId,
-  editSessionId: snapshot.editSessionId,
-  jobId: mediaJob.id,
-  grantId: mediaGrant.grant.grantId,
-  purpose: 'execute_canonical_private_python_tool' as const,
-  idempotencyKey: 'consume-authorized-media-root-pyav-attempt-one',
-}
-const mediaExecutionAuthority = {
-  ...mediaLeaseAuthority,
-  dispatchCredential: mediaGrant.dispatchCredential!,
-}
-const coordinatedMedia = await createCanonicalPrivatePythonToolExecutionService(context).execute(
-  mediaExecutionInput,
-  mediaExecutionAuthority,
-)
-assert.equal(coordinatedMedia.tool.canonicalToolId, 'pyav')
-assert.equal(coordinatedMedia.tool.operationId, pyavOperationId)
-assert.equal(coordinatedMedia.tool.sourceObjectRead, true)
-assert.match(coordinatedMedia.tool.sourceReadEvidenceHash ?? '', /^[a-f0-9]{64}$/)
-assert.equal(coordinatedMedia.tool.sourceSequenceItemId, mediaSourceItem.sourceSequenceItemId)
-assert.match(coordinatedMedia.tool.sourceBindingHash ?? '', /^[a-f0-9]{64}$/)
+const coordinatedMedia = await jobExecutionAdapter.execute(mediaAdapterInput)
+assert.equal(coordinatedMedia.identity.canonicalToolId, 'pyav')
+assert.equal(coordinatedMedia.identity.operationId, pyavOperationId)
+assert.equal(coordinatedMedia.identity.expectedAssetId, mediaAsset.id)
+assert.equal(coordinatedMedia.identity.runnerClass, 'offline_python_structured_execution_v1')
+assert.equal(coordinatedMedia.result.contentType, 'application/json')
 assert.equal(coordinatedMedia.result.qaOutcome, 'passed')
-assert.equal(coordinatedMedia.persistence.actualRunEvidenceVerified, true)
-assert.equal(coordinatedMedia.permissions.sourceObjectRead, false)
-const coordinatedMediaReplay = await createCanonicalPrivatePythonToolExecutionService(context).execute(
-  mediaExecutionInput,
-  mediaExecutionAuthority,
-)
+assert.equal(coordinatedMedia.evidence.serverDerivedCanonicalJob, true)
+assert.equal(coordinatedMedia.evidence.serverDerivedToolAndOperation, true)
+assert.equal(coordinatedMedia.evidence.singleUseDispatchConsumed, true)
+assert.equal(coordinatedMedia.permissions.providerCall, false)
+const coordinatedMediaReplay = await jobExecutionAdapter.execute(mediaAdapterInput)
 assert.equal(coordinatedMediaReplay.result.artifactId, coordinatedMedia.result.artifactId)
 assert.equal(coordinatedMediaReplay.result.sha256, coordinatedMedia.result.sha256)
-assert.equal(coordinatedMediaReplay.replay.dispatchConsumptionReplayed, true)
-assert.equal(coordinatedMediaReplay.replay.executionFenceBeginReplayed, true)
-assert.equal(coordinatedMediaReplay.replay.executionFenceCompleteReplayed, true)
+assert.equal(coordinatedMediaReplay.evidence.idempotentAdapterReplay, true)
 const mediaProofClaim = (await leaseService.claim({
   workspaceId,
   projectId: snapshot.projectId,
@@ -1537,17 +1436,6 @@ await leaseService.release({
   purpose: 'private_internal_canonical_lease_release',
   idempotencyKey: 'release-media-proof-verification-lease',
 })
-await leaseService.release({
-  workspaceId,
-  projectId: snapshot.projectId,
-  editSessionId: snapshot.editSessionId,
-  jobId: mediaJob.id,
-  leaseId: mediaClaim.lease.leaseId,
-  leaseCredential: mediaClaim.leaseCredential,
-  purpose: 'private_internal_canonical_lease_release',
-  idempotencyKey: 'release-completed-media-root-attempt-one',
-})
-
 const audioRuns = [
   {
     toolName: 'scipy', operationId: scipyOperationId,
@@ -1759,7 +1647,8 @@ for (const matrixRun of matrixRuns.slice(1)) {
     matrixRun.runnerKind === 'vapoursynth' ||
     matrixRun.runnerKind === 'audioflux' ||
     matrixRun.runnerKind === 'rembg' ||
-    matrixRun.runnerKind === 'python'
+    matrixRun.runnerKind === 'python' ||
+    matrixRun.runnerKind === 'deepfilternet'
   ) {
     const adapterInput = {
       workspaceId,
@@ -1791,8 +1680,10 @@ for (const matrixRun of matrixRuns.slice(1)) {
                     ? 'offline_vapoursynth_frame_pipeline_execution_v1'
                     : matrixRun.runnerKind === 'audioflux'
                       ? 'offline_audioflux_analysis_execution_v1'
-                      : matrixRun.runnerKind === 'rembg'
-                        ? 'offline_rembg_background_removal_execution_v1'
+                    : matrixRun.runnerKind === 'rembg'
+                      ? 'offline_rembg_background_removal_execution_v1'
+                      : matrixRun.runnerKind === 'deepfilternet'
+                        ? 'offline_deepfilternet_voice_cleanup_execution_v1'
                         : 'offline_python_structured_execution_v1',
     )
     assert.equal(coordinated.result.contentType, matrixRun.expectedContentType)
@@ -1808,6 +1699,53 @@ for (const matrixRun of matrixRuns.slice(1)) {
     assert.equal(replay.result.artifactId, coordinated.result.artifactId)
     assert.equal(replay.result.sha256, coordinated.result.sha256)
     assert.equal(replay.evidence.idempotentAdapterReplay, true)
+    if (matrixRun.runnerKind === 'deepfilternet') {
+      assert.equal(coordinated.result.sha256, 'a359cf256f9f05294ee7f9701ec189385aed277020b2be5dfa83d229409e27a7')
+      assert.equal(coordinated.result.byteLength, 384_214)
+      assert.equal(coordinated.evidence.attemptCostEvidenceRecorded, true)
+      const leaseAggregate = await readPrivateCanonicalWorkerLeaseAggregate({
+        localStorageRoot,
+        ownerUserId: userId,
+        workspaceId,
+      })
+      const deepFilterNetLeases = leaseAggregate?.leases.filter((lease) =>
+        lease.jobId === matrixRun.job.id)
+      assert.equal(deepFilterNetLeases?.length, 1)
+      const completedLease = deepFilterNetLeases?.[0]
+      assert.equal(completedLease?.executionFence.state, 'completed')
+      assert.equal(completedLease?.executionFence.runnerClass, 'offline_deepfilternet_voice_cleanup_execution_v1')
+      const executionAttemptId = completedLease?.executionFence.executionAttemptId
+      assert.ok(executionAttemptId)
+      const attemptCostEvidence = await readPrivateInternalAttemptCostEvidence({
+        localStorageRoot,
+        workspaceId,
+        projectId: snapshot.projectId,
+        executionAttemptId,
+      })
+      assert.ok(attemptCostEvidence)
+      assert.equal(attemptCostEvidence.boundary, 'internal_production_cost_only')
+      assert.equal(attemptCostEvidence.evidenceClassification, 'provisional_local_metered')
+      assert.equal(attemptCostEvidence.rateCardVersion, 'rp-ratecard-01-mock-safe')
+      assert.equal(attemptCostEvidence.sourceKind, 'infrastructure_runtime')
+      assert.equal(attemptCostEvidence.identity.approvedPlanSnapshotId, snapshot.snapshotId)
+      assert.equal(attemptCostEvidence.identity.approvedWorkItemId, matrixRun.workItem.id)
+      assert.equal(attemptCostEvidence.identity.jobId, matrixRun.job.id)
+      assert.equal(attemptCostEvidence.identity.executionAttemptId, executionAttemptId)
+      assert.equal(attemptCostEvidence.identity.retryAttempt, 0)
+      assert.equal(attemptCostEvidence.resourceUsage.vcpuCount, 4)
+      assert.equal(attemptCostEvidence.resourceUsage.memoryGib, 4)
+      assert.equal(attemptCostEvidence.resourceUsage.gpuCount, 0)
+      assert.equal(attemptCostEvidence.resourceUsage.outputByteLength, 384_214)
+      assert(Number.isSafeInteger(attemptCostEvidence.actualInternalCostMicros))
+      assert(attemptCostEvidence.actualInternalCostMicros > 0)
+      assert.equal(attemptCostEvidence.outcome.status, 'completed')
+      assert.equal(attemptCostEvidence.outcome.failureCategory, 'none')
+      assert.equal(attemptCostEvidence.persistence.privateLocalCreateOnly, true)
+      assert.equal(attemptCostEvidence.persistence.databaseBacked, false)
+      assert.equal(attemptCostEvidence.persistence.productionDurability, false)
+      assert.equal(attemptCostEvidence.persistence.invoiceReconciled, false)
+      assertNoCommercialCostKeys(attemptCostEvidence)
+    }
     const proofClaim: Awaited<ReturnType<typeof leaseService.claim>>['workerLeaseClaim'] =
       (await leaseService.claim({
         workspaceId,
@@ -1835,112 +1773,6 @@ for (const matrixRun of matrixRuns.slice(1)) {
     })
     continue
   }
-  const claim = (await leaseService.claim({
-    workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-    jobId: matrixRun.job.id, purpose: 'private_internal_canonical_lease_claim',
-    idempotencyKey: `claim-${matrixRun.toolId}-matrix-root`,
-  })).workerLeaseClaim
-  const leaseAuthority = { leaseId: claim.lease.leaseId, leaseCredential: claim.leaseCredential }
-  const grant: Awaited<ReturnType<typeof dispatchService.authorize>>['toolDispatchGrant'] =
-    (await dispatchService.authorize({
-    workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-    jobId: matrixRun.job.id, approvedWorkItemId: matrixRun.workItem.id,
-    expectedAssetId: matrixRun.asset.id, requestedToolName: matrixRun.toolId,
-    operationId: matrixRun.operationId,
-    purpose: 'private_internal_canonical_tool_dispatch_authorization',
-    idempotencyKey: `authorize-${matrixRun.toolId}-matrix-root`,
-    }, leaseAuthority)).toolDispatchGrant
-  assert.equal(grant.grant.status, 'authorized')
-  assert.equal(grant.evidence.specPrivateInternalReady, true)
-  assert.equal(grant.evidence.runtimePrivateInternalReady, true)
-  assert.ok(grant.dispatchCredential)
-  const executionAuthority = { ...leaseAuthority, dispatchCredential: grant.dispatchCredential }
-  let coordinatedArtifactId!: string
-  let coordinatedSha256!: string
-  if (matrixRun.runnerKind === 'deepfilternet') {
-    const executionInput = {
-      workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-      jobId: matrixRun.job.id, grantId: grant.grant.grantId,
-      purpose: 'execute_canonical_private_deepfilternet_voice_cleanup' as const,
-      idempotencyKey: `consume-${matrixRun.toolId}-matrix-root`,
-    }
-    const coordinated = await createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(coordinated.tool.canonicalToolId, 'deepfilternet')
-    assert.equal(coordinated.tool.operationId, matrixRun.operationId)
-    assert.equal(coordinated.result.contentType, 'audio/wav')
-    assert.equal(coordinated.result.sha256, 'a359cf256f9f05294ee7f9701ec189385aed277020b2be5dfa83d229409e27a7')
-    assert.equal(coordinated.result.byteLength, 384_214)
-    assert.equal(coordinated.result.sampleRate, 48_000)
-    assert.equal(coordinated.result.channelCount, 1)
-    assert.equal(coordinated.result.frameCount, 192_085)
-    assert.equal(coordinated.result.inputSnrDb, 3.217773)
-    assert.equal(coordinated.result.outputSnrDb, 8.214627)
-    assert(coordinated.result.outputSnrDb > coordinated.result.inputSnrDb)
-    assert.equal(coordinated.result.meanAbsoluteDelta, 0.032997789)
-    assert.equal(coordinated.attemptCost.idempotencyStatus, 'inserted')
-    assert.equal(coordinated.attemptCost.evidence.boundary, 'internal_production_cost_only')
-    assert.equal(coordinated.attemptCost.evidence.evidenceClassification, 'provisional_local_metered')
-    assert.equal(coordinated.attemptCost.evidence.rateCardVersion, 'rp-ratecard-01-mock-safe')
-    assert.equal(coordinated.attemptCost.evidence.sourceKind, 'infrastructure_runtime')
-    assert.equal(coordinated.attemptCost.evidence.identity.executionAttemptId, coordinated.lease.executionAttemptId)
-    assert.equal(coordinated.attemptCost.evidence.identity.retryAttempt, 0)
-    assert.equal(coordinated.attemptCost.evidence.resourceUsage.vcpuCount, 4)
-    assert.equal(coordinated.attemptCost.evidence.resourceUsage.memoryGib, 4)
-    assert.equal(coordinated.attemptCost.evidence.resourceUsage.gpuCount, 0)
-    assert.equal(coordinated.attemptCost.evidence.resourceUsage.outputByteLength, 384_214)
-    assert(Number.isSafeInteger(coordinated.attemptCost.evidence.actualInternalCostMicros))
-    assert(coordinated.attemptCost.evidence.actualInternalCostMicros > 0)
-    assert.equal(coordinated.attemptCost.evidence.outcome.status, 'completed')
-    assert.equal(coordinated.attemptCost.evidence.outcome.failureCategory, 'none')
-    assert.equal(coordinated.attemptCost.evidence.persistence.privateLocalCreateOnly, true)
-    assert.equal(coordinated.attemptCost.evidence.persistence.databaseBacked, false)
-    assert.equal(coordinated.attemptCost.evidence.persistence.productionDurability, false)
-    assert.equal(coordinated.attemptCost.evidence.persistence.invoiceReconciled, false)
-    assertNoCommercialCostKeys(coordinated.attemptCost)
-    assert.equal(coordinated.runtime.modelCheckpointSha256, '23b92884f63ccf54bb026014604625ab231657b6480df65db4095c4c171e6003')
-    assert.equal(coordinated.tool.callerMediaAllowed, false)
-    assert.equal(coordinated.tool.callerModelAllowed, false)
-    assert.equal(coordinated.result.qaOutcome, 'passed')
-    assert.equal(coordinated.permissions.creditSpend, false)
-    assert.equal(coordinated.permissions.walletMutation, false)
-    assert.equal(coordinated.permissions.settlement, false)
-    const replay = await createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
-    assert.equal(replay.result.sha256, coordinated.result.sha256)
-    assert.equal(replay.replay.dispatchConsumptionReplayed, true)
-    assert.equal(replay.replay.executionFenceBeginReplayed, true)
-    assert.equal(replay.replay.executionFenceCompleteReplayed, true)
-    assert.equal(replay.replay.artifactRecordReplayed, true)
-    assert.equal(replay.replay.qaRecordReplayed, true)
-    assert.equal(replay.replay.reconciliationReplayed, true)
-    assert.equal(replay.replay.attemptCostEvidenceReplayed, true)
-    assert.equal(replay.attemptCost.idempotencyStatus, 'duplicate_returned')
-    assert.deepEqual(replay.attemptCost.evidence, coordinated.attemptCost.evidence)
-    coordinatedArtifactId = coordinated.result.artifactId
-    coordinatedSha256 = coordinated.result.sha256
-  }
-  assert.match(coordinatedSha256, /^[a-f0-9]{64}$/)
-  const proofClaim: Awaited<ReturnType<typeof leaseService.claim>>['workerLeaseClaim'] =
-    (await leaseService.claim({
-    workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-    jobId: matrixRun.proofJob.id, purpose: 'private_internal_canonical_lease_claim',
-    idempotencyKey: `claim-${matrixRun.toolId}-matrix-proof`,
-    })).workerLeaseClaim
-  assert.equal(proofClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
-  assert.equal(proofClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
-  assert.equal(proofClaim.lease.dependencyAuthority.selectedArtifacts[0]?.artifactId, coordinatedArtifactId)
-  await leaseService.release({
-    workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-    jobId: matrixRun.proofJob.id, leaseId: proofClaim.lease.leaseId,
-    leaseCredential: proofClaim.leaseCredential, purpose: 'private_internal_canonical_lease_release',
-    idempotencyKey: `release-${matrixRun.toolId}-matrix-proof`,
-  })
-  await leaseService.release({
-    workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-    jobId: matrixRun.job.id, leaseId: claim.lease.leaseId,
-    leaseCredential: claim.leaseCredential, purpose: 'private_internal_canonical_lease_release',
-    idempotencyKey: `release-${matrixRun.toolId}-matrix-root`,
-  })
 }
 
 await activatePrivateOfflineMediaBinaryRuntime()
@@ -2028,72 +1860,29 @@ await leaseService.release({
   idempotencyKey: 'release-remotion-private-preview-root',
 })
 
-const libassRuntime = await activatePrivateOfflineLibassCaptionRuntime()
-const libassClaim = (await leaseService.claim({
+await activatePrivateOfflineLibassCaptionRuntime()
+const libassAdapterInput = {
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: libassJob.id, purpose: 'private_internal_canonical_lease_claim',
-  idempotencyKey: 'claim-libass-caption-overlay-root',
-})).workerLeaseClaim
-const libassLeaseAuthority = {
-  leaseId: libassClaim.lease.leaseId,
-  leaseCredential: libassClaim.leaseCredential,
+  jobId: libassJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-libass-caption-overlay-root',
 }
-const libassGrant = (await dispatchService.authorize({
-  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: libassJob.id, approvedWorkItemId: libassWorkItem.id,
-  expectedAssetId: libassAsset.id, requestedToolName: 'libass',
-  operationId: libassOperationId,
-  purpose: 'private_internal_canonical_tool_dispatch_authorization',
-  idempotencyKey: 'authorize-libass-caption-overlay-root',
-}, libassLeaseAuthority)).toolDispatchGrant
-assert.equal(libassGrant.grant.status, 'authorized')
-assert.equal(libassGrant.evidence.specPrivateInternalReady, true)
-assert.equal(libassGrant.evidence.runtimePrivateInternalReady, true)
-assert.equal(libassGrant.evidence.privateRuntimeImageIdentityHash, libassRuntime.image.imageIdentityHash)
-assert.equal(libassGrant.executionAuthority.privateCaptionRenderAuthorized, false)
-assert.equal(libassGrant.executionAuthority.renderAuthorized, false)
-assert.ok(libassGrant.dispatchCredential)
-const libassExecutionInput = {
-  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: libassJob.id, grantId: libassGrant.grant.grantId,
-  purpose: 'execute_canonical_private_libass_tool' as const,
-  idempotencyKey: 'consume-libass-caption-overlay-root',
-}
-const libassExecutionAuthority = {
-  ...libassLeaseAuthority,
-  dispatchCredential: libassGrant.dispatchCredential,
-}
-const coordinatedLibass = await createCanonicalPrivateLibassExecutionService(context).execute(
-  libassExecutionInput, libassExecutionAuthority,
-)
-assert.equal(coordinatedLibass.tool.canonicalToolId, 'libass')
-assert.equal(coordinatedLibass.tool.actualAssReadMemoryCompleted, true)
-assert.equal(coordinatedLibass.tool.actualAssRenderFrameCompleted, true)
-assert.equal(coordinatedLibass.tool.privateCaptionOverlayRendered, true)
-assert.equal(coordinatedLibass.tool.fullCaptionTrackRendered, false)
-assert.equal(coordinatedLibass.tool.videoBurnInExecuted, false)
-assert.equal(coordinatedLibass.tool.finalExportExecuted, false)
-assert.equal(coordinatedLibass.runtime.imageIdentityHash, libassRuntime.image.imageIdentityHash)
-assert.equal(coordinatedLibass.runtime.fullTrackOrVideoBurnInReady, false)
-assert.equal(coordinatedLibass.qa.transparentRgbaOverlay, true)
-assert.equal(coordinatedLibass.qa.approvedFontPackUsed, true)
-assert.equal(coordinatedLibass.qa.safeZonePlacementPassed, true)
-assert.ok(coordinatedLibass.qa.nonTransparentPixelCount > 100)
+const coordinatedLibass = await jobExecutionAdapter.execute(libassAdapterInput)
+assert.equal(coordinatedLibass.identity.canonicalToolId, 'libass')
+assert.equal(coordinatedLibass.identity.operationId, libassOperationId)
+assert.equal(coordinatedLibass.identity.expectedAssetId, libassAsset.id)
+assert.equal(coordinatedLibass.identity.runnerClass, 'offline_libass_caption_execution_v1')
 assert.equal(coordinatedLibass.result.contentType, 'image/png')
 assert.equal(coordinatedLibass.result.qaOutcome, 'passed')
 assert.equal(coordinatedLibass.result.finalRenderAuthorized, false)
-assert.equal(coordinatedLibass.result.finalExportAuthorized, false)
-const coordinatedLibassReplay = await createCanonicalPrivateLibassExecutionService(context).execute(
-  libassExecutionInput, libassExecutionAuthority,
-)
+assert.equal(coordinatedLibass.evidence.serverDerivedCanonicalJob, true)
+assert.equal(coordinatedLibass.evidence.serverDerivedToolAndOperation, true)
+assert.equal(coordinatedLibass.evidence.singleUseDispatchConsumed, true)
+assert.equal(coordinatedLibass.permissions.productionRender, false)
+const coordinatedLibassReplay = await jobExecutionAdapter.execute(libassAdapterInput)
 assert.equal(coordinatedLibassReplay.result.artifactId, coordinatedLibass.result.artifactId)
 assert.equal(coordinatedLibassReplay.result.sha256, coordinatedLibass.result.sha256)
-assert.equal(coordinatedLibassReplay.replay.dispatchConsumptionReplayed, true)
-assert.equal(coordinatedLibassReplay.replay.executionFenceBeginReplayed, true)
-assert.equal(coordinatedLibassReplay.replay.executionFenceCompleteReplayed, true)
-assert.equal(coordinatedLibassReplay.replay.artifactRecordReplayed, true)
-assert.equal(coordinatedLibassReplay.replay.qaRecordReplayed, true)
-assert.equal(coordinatedLibassReplay.replay.reconciliationReplayed, true)
+assert.equal(coordinatedLibassReplay.evidence.idempotentAdapterReplay, true)
 const libassProofClaim = (await leaseService.claim({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
   jobId: libassProofJob.id, purpose: 'private_internal_canonical_lease_claim',
@@ -2224,13 +2013,6 @@ await leaseService.release({
   purpose: 'private_internal_canonical_lease_release',
   idempotencyKey: 'release-source-trim-validation-for-final-composition',
 })
-await leaseService.release({
-  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: libassJob.id, leaseId: libassClaim.lease.leaseId,
-  leaseCredential: libassClaim.leaseCredential, purpose: 'private_internal_canonical_lease_release',
-  idempotencyKey: 'release-libass-caption-overlay-root',
-})
-
 const terminalReviewEditSessionId = `${editSessionId}-terminal-review`
 const terminalReviewPlanningInput = await prepareExactPlanningAuthority(
   seedSnapshot.projectId,
@@ -2828,57 +2610,28 @@ await leaseService.release({
   idempotencyKey: 'release-completed-probe-root-attempt-one',
 })
 
-const trimClaim = (await leaseService.claim({
+const trimAdapterInput = {
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: trimJob.id, purpose: 'private_internal_canonical_lease_claim',
-  idempotencyKey: 'claim-trim-root-for-ffmpeg-dispatch',
-})).workerLeaseClaim
-const trimLeaseAuthority = {
-  leaseId: trimClaim.lease.leaseId,
-  leaseCredential: trimClaim.leaseCredential,
+  jobId: trimJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-ffmpeg-trim-root',
 }
-const trimGrant = (await dispatchService.authorize({
-  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: trimJob.id, approvedWorkItemId: trimWorkItem.id,
-  expectedAssetId: trimAsset.id, requestedToolName: 'ffmpeg',
-  operationId: ffmpegOperationId,
-  purpose: 'private_internal_canonical_tool_dispatch_authorization',
-  idempotencyKey: 'authorize-trim-root-ffmpeg-attempt-one',
-}, trimLeaseAuthority)).toolDispatchGrant
-assert.equal(trimGrant.grant.status, 'authorized')
-assert.equal(trimGrant.evidence.specPrivateInternalReady, true)
-assert.equal(trimGrant.evidence.runtimePrivateInternalReady, true)
-assert.ok(trimGrant.dispatchCredential)
-const trimExecutionInput = {
-  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: trimJob.id, grantId: trimGrant.grant.grantId,
-  purpose: 'execute_canonical_private_media_binary_tool' as const,
-  idempotencyKey: 'consume-authorized-trim-root-ffmpeg-attempt-one',
-}
-const trimExecutionAuthority = {
-  ...trimLeaseAuthority,
-  dispatchCredential: trimGrant.dispatchCredential!,
-}
-const coordinatedTrim = await createCanonicalPrivateMediaBinaryExecutionService(context).execute(
-  trimExecutionInput,
-  trimExecutionAuthority,
-)
-assert.equal(coordinatedTrim.tool.canonicalToolId, 'ffmpeg')
-assert.equal(coordinatedTrim.tool.actualBinaryOperationCompleted, true)
-assert.equal(coordinatedTrim.tool.sourceObjectRead, true)
-assert.equal(coordinatedTrim.tool.finalExportExecuted, false)
+const coordinatedTrim = await jobExecutionAdapter.execute(trimAdapterInput)
+assert.equal(coordinatedTrim.identity.canonicalToolId, 'ffmpeg')
+assert.equal(coordinatedTrim.identity.operationId, ffmpegOperationId)
+assert.equal(coordinatedTrim.identity.expectedAssetId, trimAsset.id)
+assert.equal(coordinatedTrim.identity.runnerClass, 'offline_media_binary_execution_v1')
 assert.equal(coordinatedTrim.result.contentType, 'video/x-nut')
 assert.equal(coordinatedTrim.result.qaOutcome, 'passed')
 assert.equal(coordinatedTrim.result.finalRenderAuthorized, false)
-const coordinatedTrimReplay = await createCanonicalPrivateMediaBinaryExecutionService(context).execute(
-  trimExecutionInput,
-  trimExecutionAuthority,
-)
+assert.equal(coordinatedTrim.evidence.serverDerivedCanonicalJob, true)
+assert.equal(coordinatedTrim.evidence.serverDerivedToolAndOperation, true)
+assert.equal(coordinatedTrim.evidence.singleUseDispatchConsumed, true)
+assert.equal(coordinatedTrim.permissions.publicDelivery, false)
+const coordinatedTrimReplay = await jobExecutionAdapter.execute(trimAdapterInput)
 assert.equal(coordinatedTrimReplay.result.artifactId, coordinatedTrim.result.artifactId)
 assert.equal(coordinatedTrimReplay.result.sha256, coordinatedTrim.result.sha256)
-assert.equal(coordinatedTrimReplay.replay.dispatchConsumptionReplayed, true)
-assert.equal(coordinatedTrimReplay.replay.executionFenceBeginReplayed, true)
-assert.equal(coordinatedTrimReplay.replay.executionFenceCompleteReplayed, true)
+assert.equal(coordinatedTrimReplay.evidence.idempotentAdapterReplay, true)
 const trimProofClaim = (await leaseService.claim({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
   jobId: trimProofJob.id, purpose: 'private_internal_canonical_lease_claim',
@@ -2893,14 +2646,6 @@ await leaseService.release({
   purpose: 'private_internal_canonical_lease_release',
   idempotencyKey: 'release-trim-proof-verification-lease',
 })
-await leaseService.release({
-  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: trimJob.id, leaseId: trimClaim.lease.leaseId,
-  leaseCredential: trimClaim.leaseCredential,
-  purpose: 'private_internal_canonical_lease_release',
-  idempotencyKey: 'release-completed-trim-root-attempt-one',
-})
-
 const authorityAfterDispatch = await requireEditAuthority(workspaceId)
 assert.equal(
   sha256AuthorityValue(snapshotAuthoritySlice(authorityAfterDispatch, snapshot.snapshotId)),
@@ -3013,6 +2758,9 @@ console.log(JSON.stringify({
     'server_derived_job_adapter_executes_all_seven_matrix_python_tool_identities',
     'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
     'server_derived_job_adapter_executes_d3_and_dependency_bound_sharp_identities',
+    'server_derived_job_adapter_executes_duckdb_and_source_bound_pyav_identities',
+    'server_derived_job_adapter_executes_deepfilternet_with_attempt_cost_evidence',
+    'server_derived_job_adapter_executes_libass_and_source_bound_ffmpeg_identities',
     'echarts_exact_svg_canonical_lifecycle_verified',
     'vega_lite_exact_svg_canonical_lifecycle_verified',
     'vega_exact_svg_canonical_lifecycle_verified',

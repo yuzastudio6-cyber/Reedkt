@@ -22,7 +22,7 @@ assert.equal(summary.callableCandidateCount, 61)
 assert.equal(summary.intentionallyNonExecutableCount, 11)
 assert.equal(summary.confinedRunnerVerifiedCount, 53)
 assert.equal(summary.canonicalEndToEndVerifiedCount, 50)
-assert.equal(summary.canonicalJobAdapterVerifiedCount, 45)
+assert.equal(summary.canonicalJobAdapterVerifiedCount, 50)
 assert.equal(new Set(catalog.map((record) => record.stableToolIdentity)).size, 72)
 assert.equal(new Set(catalog.map((record) => record.identityHash)).size, 72)
 assert.equal(new Set(catalog.map((record) => record.proofHash)).size, 72)
@@ -113,13 +113,16 @@ assert.deepEqual(summary.canonicalEndToEndVerifiedToolIds, [
 ])
 
 assert.deepEqual(summary.canonicalJobAdapterVerifiedToolIds, [
-  'd3', 'echarts', 'vega_lite', 'vega', 'satori', 'svg_js', 'viz_js', 'lottie', 'animejs',
-  'three_js', 'pixijs', 'konva', 'babylon_js', 'rembg', 'kornia', 'librosa', 'audioread',
-  'pydub', 'scipy', 'resampy', 'pyloudnorm', 'audioflux', 'music21', 'pretty_midi',
-  'mido', 'noisereduce', 'pedalboard', 'mir_eval', 'pydub_effects', 'ebu_r128_pyloudnorm',
-  'rnnoise', 'playwright', 'pyscenedetect', 'opencolorio', 'openimageio',
-  'mkvtoolnix_container_validation', 'gpac_mp4box_packaging_validation', 'ffprobe',
-  'opentimelineio', 'remotion', 'sharp', 'polars', 'opencv', 'signalsmith_stretch', 'vapoursynth',
+  'd3', 'echarts', 'vega_lite', 'vega', 'satori', 'svg_js', 'viz_js', 'lottie',
+  'animejs', 'three_js', 'pixijs', 'konva', 'babylon_js', 'rembg', 'kornia', 'librosa',
+  'audioread', 'pydub', 'scipy', 'resampy', 'pyloudnorm', 'audioflux', 'music21', 'pretty_midi', 'mido',
+  'noisereduce', 'pedalboard',
+  'mir_eval', 'pydub_effects', 'ebu_r128_pyloudnorm', 'rnnoise', 'deepfilternet', 'playwright', 'pyscenedetect',
+  'opencolorio', 'openimageio', 'mkvtoolnix_container_validation',
+  'gpac_mp4box_packaging_validation', 'ffmpeg',
+  'ffprobe', 'pyav', 'opentimelineio', 'remotion', 'libass', 'sharp', 'duckdb', 'polars', 'opencv',
+  'signalsmith_stretch',
+  'vapoursynth',
 ])
 
 assert.equal(getToolIdentityRecord('audioflux').verificationState, 'canonical_e2e_verified')

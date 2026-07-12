@@ -42,7 +42,7 @@ The authenticated smoke publishes and approves a fresh four-job canonical plan, 
 
 ## Boundaries
 
-This is honest run-to-blocked orchestration, not a completed upload-to-review journey. The single-job adapter now proves an exact source-trim-authority + caption-overlay + Remotion final-composition lifecycle, but this orchestrator fixture does not yet build and schedule that complete caption/render graph. Dependency-aware independent final QA, terminal private-review assembly, revision/recovery, browser approval handoff, distributed worker transactions, providers, Supabase, billing, public delivery, and production promotion remain gated.
+This is honest run-to-blocked orchestration, not a completed upload-to-review journey. The single-job adapter now proves an exact source-trim-authority + caption-overlay + Remotion final-composition lifecycle and a downstream dependency-bound final-artifact ffprobe QA job. This orchestrator fixture does not yet build and schedule that complete caption/render/final-QA graph. Terminal private-review assembly, revision/recovery, browser approval handoff, distributed worker transactions, providers, Supabase, billing, public delivery, and production promotion remain gated.
 
 ## Verification
 

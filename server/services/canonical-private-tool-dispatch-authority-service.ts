@@ -857,9 +857,17 @@ function resolveAndVerifyToolContract(
           throw new Error('FFmpeg operations require one approved source binding.')
         }
       } else if (spec.canonicalToolId === 'ffprobe') {
-        validateOfflineFfprobePlanningPayload(workItem.executionInput.structuredPayload)
-        if (workItem.sourceSequenceItemIds.length !== 1) {
-          throw new Error('FFprobe operations require one approved source binding.')
+        const ffprobePayload = validateOfflineFfprobePlanningPayload(workItem.executionInput.structuredPayload)
+        const dependencyFinalQa =
+          workItem.workItemType === 'run_final_qa' && workItem.workerClass === 'qa_worker' &&
+          workItem.sourceSequenceItemIds.length === 0 && workItem.sourceCleanupDecisionIds.length === 0 &&
+          workItem.dependencyKeys.length === 1 && expectedAsset.assetRole === 'qa' &&
+          expectedAsset.contentType === 'application/json' &&
+          ffprobePayload.inspectionProfileId === 'final_export_v1' && ffprobePayload.countFrames === true
+        const approvedSourceInspection =
+          workItem.sourceSequenceItemIds.length === 1 && workItem.dependencyKeys.length === 0
+        if (!approvedSourceInspection && !dependencyFinalQa) {
+          throw new Error('FFprobe operations require one approved source or one final-artifact dependency.')
         }
       } else if (spec.canonicalToolId === 'remotion') {
         if (workItem.workItemType === 'render_final_export') {

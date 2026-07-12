@@ -730,10 +730,20 @@ const finalCompositionJob = aggregateBeforeDispatch.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === finalCompositionWorkItem.id)
 const finalCompositionAsset = authority.assetManifest.entries.find((candidate) =>
   candidate.approvedWorkItemId === finalCompositionWorkItem.id)
+const finalArtifactQaWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'final-qa')
+assert.ok(finalArtifactQaWorkItem)
+const finalArtifactQaJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === finalArtifactQaWorkItem.id)
+const finalArtifactQaAsset = authority.assetManifest.entries.find((candidate) =>
+  candidate.approvedWorkItemId === finalArtifactQaWorkItem.id)
 assert.ok(finalCompositionJob)
 assert.ok(finalCompositionAsset)
 assert.ok(sourceTrimValidationAsset)
+assert.ok(finalArtifactQaJob)
+assert.ok(finalArtifactQaAsset)
 assert.deepEqual(finalCompositionJob.dependencyJobIds, [sourceTrimValidationJob.id, libassJob.id])
+assert.deepEqual(finalArtifactQaJob.dependencyJobIds, [finalCompositionJob.id])
 
 const leaseService = createCanonicalWorkerLeaseAuthorityService(context)
 const chartClaim = (await leaseService.claim({
@@ -2428,6 +2438,26 @@ assert.equal(coordinatedFinalComposition.result.finalRenderAuthorized, false)
 assert.equal(coordinatedFinalComposition.evidence.serverDerivedToolAndOperation, true)
 assert.equal(coordinatedFinalComposition.evidence.singleUseDispatchConsumed, true)
 assert.equal(coordinatedFinalComposition.readiness.productReady, false)
+const finalArtifactQaAdapterInput = {
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: finalArtifactQaJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'adapter-ffprobe-private-final-artifact-qa',
+}
+const coordinatedFinalArtifactQa = await jobExecutionAdapter.execute(finalArtifactQaAdapterInput)
+assert.equal(coordinatedFinalArtifactQa.identity.canonicalToolId, 'ffprobe')
+assert.equal(coordinatedFinalArtifactQa.identity.runnerClass, 'offline_media_binary_execution_v1')
+assert.equal(coordinatedFinalArtifactQa.result.contentType, 'application/json')
+assert.equal(coordinatedFinalArtifactQa.result.qaOutcome, 'passed')
+assert.equal(coordinatedFinalArtifactQa.result.privateTestDependencySatisfied, true)
+assert.equal(coordinatedFinalArtifactQa.evidence.dependencyArtifactInput, true)
+assert.equal(coordinatedFinalArtifactQa.evidence.finalArtifactQaPassed, true)
+assert.equal(coordinatedFinalArtifactQa.permissions.publicDelivery, false)
+assert.equal(coordinatedFinalArtifactQa.readiness.productReady, false)
+const coordinatedFinalArtifactQaReplay = await jobExecutionAdapter.execute(finalArtifactQaAdapterInput)
+assert.equal(coordinatedFinalArtifactQaReplay.result.artifactId, coordinatedFinalArtifactQa.result.artifactId)
+assert.equal(coordinatedFinalArtifactQaReplay.result.sha256, coordinatedFinalArtifactQa.result.sha256)
+assert.equal(coordinatedFinalArtifactQaReplay.evidence.idempotentAdapterReplay, true)
 const privateFinalDownloadInput = {
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
   snapshotId: snapshot.snapshotId, jobId: finalCompositionJob.id,
@@ -2649,7 +2679,7 @@ clearPrivateCanonicalToolDispatchProcessStateForSmoke()
 await expectApiError(() => requireDispatchAggregate(), 'VALIDATION_FAILED')
 await writeFile(persistedPath, originalDispatchStoreText)
 clearPrivateCanonicalToolDispatchProcessStateForSmoke()
-assert.equal((await requireDispatchAggregate()).grants.length, 54)
+assert.equal((await requireDispatchAggregate()).grants.length, 55)
 
 await expectApiError(
   () => createCanonicalPrivateToolDispatchAuthorityService({
@@ -2767,6 +2797,8 @@ console.log(JSON.stringify({
     'private_preview_render_is_exact_remotion_only_while_final_render_provider_credit_wallet_settlement_remain_false',
     'caption_render_is_exact_libass_overlay_only_while_full_track_video_burnin_and_final_export_remain_false',
     'private_final_composition_consumes_exact_source_trim_authority_and_caption_with_h264_aac_final_qa_while_public_delivery_and_settlement_remain_false',
+    'dependency_bound_final_ffprobe_reads_the_private_final_mp4_and_passes_exact_h264_aac_frame_duration_qa',
+    'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
     'authenticated_private_final_mp4_download_reopens_exact_qa_passed_bytes_without_public_or_signed_url',
     'checksum_protected_restart_safe_private_store',
     'dependency_authority_binding_tamper_rejected_by_immutable_record_validation',
@@ -3910,7 +3942,17 @@ function createDispatchPlanBody(input: {
           workItemKey: 'final-qa',
           workItemType: 'run_final_qa',
           workerClass: 'qa_worker',
-          executionInput: { operation: 'final_qa' },
+          executionInput: {
+            operation: 'inspect_final_artifact',
+            approvedToolOperationIds: [input.ffprobeOperationId],
+            expectedOutputKeys: ['final-qa-report'],
+            structuredPayload: {
+              inspectionProfileId: 'final_export_v1',
+              countFrames: true,
+              verifyDurationAndSync: true,
+              emitMachineJsonOnly: true,
+            },
+          },
           sourceSequenceItemIds: [],
           sourceCleanupDecisionIds: [],
           expectedOutputs: [{
@@ -3920,12 +3962,12 @@ function createDispatchPlanBody(input: {
             required: true,
             previewPlaceholderAllowed: false,
             contentType: 'application/json',
-            segmentIds: [],
+            segmentIds: components.segments.map((segment) => segment.segmentId),
             timingIds: ['master-timing-plan'],
-            rendererLayerIds: [],
+            rendererLayerIds: ['source-video-layer', 'libass-caption-overlay-layer'],
           }],
-          dependencyKeys: ['snapshot-validation-root', 'chart-root', 'chart-dependent'],
-          approvedToolIds: [],
+          dependencyKeys: ['remotion-source-caption-final'],
+          approvedToolIds: ['ffprobe'],
           providerExecutionMode: 'none',
           fallbackPolicy: {},
           maxAttempts: 2,

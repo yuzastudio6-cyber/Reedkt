@@ -17,7 +17,7 @@ export const executeCanonicalPrivateJobAdapterSchema = z.object({
 }).strict()
 
 export const canonicalPrivateJobExecutionAdapterResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-private-job-execution-adapter-response-v1'),
+  schemaVersion: z.literal('canonical-private-job-execution-adapter-response-v2'),
   source: z.literal('canonical_private_job_execution_adapter'),
   purpose: z.literal('execute_canonical_private_job'),
   identity: z.object({
@@ -54,6 +54,8 @@ export const canonicalPrivateJobExecutionAdapterResponseSchema = z.object({
     reconciliationPassed: z.literal(true),
     idempotentAdapterReplay: z.boolean(),
     attemptCostEvidenceRecorded: z.boolean(),
+    dependencyArtifactInput: z.boolean(),
+    finalArtifactQaPassed: z.boolean(),
   }).strict(),
   permissions: z.object({
     providerCall: z.literal(false),

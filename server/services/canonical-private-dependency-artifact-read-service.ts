@@ -10,6 +10,8 @@ import { verifyCanonicalStructuredSvgArtifact } from './canonical-structured-svg
 import { readCanonicalStructuredSvgArtifact } from './canonical-structured-svg-artifact-storage'
 import { verifyCanonicalPrivateImageArtifact } from './canonical-private-image-artifact-verifier'
 import { readCanonicalPrivateImageArtifact } from './canonical-private-image-artifact-storage'
+import { verifyCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-verifier'
+import { readCanonicalPrivateRemotionArtifact } from './canonical-private-remotion-artifact-storage'
 import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
 import { createPrivateArtifactQaAuthorityService } from './private-artifact-qa-authority-service'
@@ -23,7 +25,7 @@ import {
 
 export interface CanonicalPrivateDependencyArtifactReadResult {
   bytes: Buffer
-  contentType: 'image/svg+xml' | 'application/json' | 'image/png' | 'image/jpeg' | 'image/webp'
+  contentType: 'image/svg+xml' | 'application/json' | 'image/png' | 'image/jpeg' | 'image/webp' | 'video/mp4'
   sha256: string
   byteLength: number
   dependencyJobId: string
@@ -53,7 +55,7 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
       executionAttemptId: string
       dispatchGrantId: string
       dependencyAuthority: CanonicalWorkerLeaseDependencyAuthority
-      allowedContentTypes: readonly ('image/svg+xml' | 'application/json' | 'image/png' | 'image/jpeg' | 'image/webp')[]
+      allowedContentTypes: readonly ('image/svg+xml' | 'application/json' | 'image/png' | 'image/jpeg' | 'image/webp' | 'video/mp4')[]
       maximumBytes: number
       selectedArtifactIndex?: number
     }): Promise<CanonicalPrivateDependencyArtifactReadResult> {
@@ -136,7 +138,12 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
             localStorageRoot: context.env.localStorageRoot,
             artifact: authority.artifact,
           })
-        : contentType === 'application/json' && internalAuthorityArtifact
+        : contentType === 'video/mp4'
+          ? await verifyCanonicalPrivateRemotionArtifact({
+              localStorageRoot: context.env.localStorageRoot,
+              artifact: authority.artifact,
+            })
+          : contentType === 'application/json' && internalAuthorityArtifact
           ? await verifyCanonicalInternalAuthorityArtifact({
               localStorageRoot: context.env.localStorageRoot,
               artifact: authority.artifact,
@@ -160,7 +167,12 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
             localStorageRoot: context.env.localStorageRoot,
             privateObjectIdentityHash: verified.privateObjectIdentityHash,
           })
-        : contentType === 'application/json' && internalAuthorityArtifact
+        : contentType === 'video/mp4'
+          ? await readCanonicalPrivateRemotionArtifact({
+              localStorageRoot: context.env.localStorageRoot,
+              privateObjectIdentityHash: verified.privateObjectIdentityHash,
+            })
+          : contentType === 'application/json' && internalAuthorityArtifact
           ? await readInternalAuthorityArtifact({
               localStorageRoot: context.env.localStorageRoot,
               privateObjectIdentityHash: verified.privateObjectIdentityHash,

@@ -13,6 +13,7 @@ import {
   type OfflineFfmpegExecutionResult,
   type OfflineFfprobeExecutionResult,
 } from '../tool-execution/media-binary-execution'
+import { validateOfflineRemotionFinalCompositionPlanningPayload } from '../tool-execution/remotion-render-execution'
 import type { ServiceContext } from '../types'
 import {
   canonicalPrivateMediaBinaryAuthoritySchema,
@@ -27,6 +28,15 @@ import type {
   PersistedArtifactResult,
 } from '../validation/private-artifact-qa-authority-schemas'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
+import {
+  normalizeCanonicalPrivateFinalMediaQa,
+  type CanonicalPrivateFinalMediaExpectation,
+  type CanonicalPrivateFinalMediaQa,
+} from './canonical-private-final-media-qa'
+import {
+  createCanonicalPrivateDependencyArtifactReadService,
+  type CanonicalPrivateDependencyArtifactReadResult,
+} from './canonical-private-dependency-artifact-read-service'
 import { createCanonicalPrivateSourceObjectReadService } from './canonical-private-source-object-read-service'
 import { createCanonicalPrivateToolDispatchAuthorityService } from './canonical-private-tool-dispatch-authority-service'
 import {
@@ -96,17 +106,34 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       const expectedAsset = authority.assetManifest.entries.find((candidate) =>
         candidate.id === binding.expectedAssetId && candidate.approvedWorkItemId === workItem?.id)
       const contentType = toolId === 'ffmpeg' ? 'video/x-nut' as const : 'application/json' as const
+      const dependencyFinalQa = toolId === 'ffprobe' && workItem?.workItemType === 'run_final_qa'
       if (
         !workItem || !expectedAsset || expectedAsset.contentType !== contentType ||
         expectedAsset.assetRole === 'final' || expectedAsset.previewPlaceholderAllowed ||
         binding.expectedOutput.contentType !== contentType ||
         binding.expectedOutput.outputKey !== expectedAsset.outputKey ||
         readiness.job.approvedWorkItemId !== workItem.id ||
-        binding.approvedPlanSnapshotId !== authority.snapshot.snapshotId
+        binding.approvedPlanSnapshotId !== authority.snapshot.snapshotId ||
+        (dependencyFinalQa && (
+          workItem.sourceSequenceItemIds.length !== 0 || workItem.sourceCleanupDecisionIds.length !== 0 ||
+          workItem.dependencyKeys.length !== 1
+        )) ||
+        (!dependencyFinalQa && (
+          workItem.sourceSequenceItemIds.length !== 1 || workItem.dependencyKeys.length !== 0
+        ))
       ) throw denied('Media binary work-item or exact non-final output lineage is invalid.')
+      const ffprobePlanningPayload = toolId === 'ffprobe'
+        ? validateOfflineFfprobePlanningPayload(workItem.executionInput.structuredPayload)
+        : undefined
       const planningPayload = toolId === 'ffmpeg'
         ? validateOfflineFfmpegPlanningPayload(workItem.executionInput.structuredPayload)
-        : validateOfflineFfprobePlanningPayload(workItem.executionInput.structuredPayload)
+        : ffprobePlanningPayload!
+      if (
+        dependencyFinalQa && (
+          ffprobePlanningPayload?.inspectionProfileId !== 'final_export_v1' ||
+          ffprobePlanningPayload.countFrames !== true
+        )
+      ) throw denied('Dependency-bound final QA requires the exact frame-counted final-export inspection profile.')
 
       const runtimeAuthority = await readPersistedOfflineMediaBinaryRuntimeAuthority()
       if (
@@ -128,17 +155,51 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         runnerClass: RUNNER_CLASS,
       })
       const executionAttemptId = begun.executionFence.executionAttemptId
-      const sourceRead = await createCanonicalPrivateSourceObjectReadService(context).readExactApprovedSource({
-        workspaceId: body.workspaceId, projectId: body.projectId,
-        snapshotId: authority.snapshot.snapshotId, jobId: body.jobId,
-        approvedWorkItem: workItem, approvedSourceManifest: authority.sourceAssetManifest,
-        leaseId: injected.leaseId, executionAttemptId, dispatchGrantId: body.grantId,
-      })
+      let dependencyRead: CanonicalPrivateDependencyArtifactReadResult | undefined
+      let sourceRead: Awaited<ReturnType<ReturnType<
+        typeof createCanonicalPrivateSourceObjectReadService
+      >['readExactApprovedSource']>> | undefined
+      let finalMediaExpectation: CanonicalPrivateFinalMediaExpectation | undefined
+      if (dependencyFinalQa) {
+        dependencyRead = await createCanonicalPrivateDependencyArtifactReadService(context)
+          .readSingleSelectedArtifact({
+            workspaceId: body.workspaceId, projectId: body.projectId,
+            editSessionId: body.editSessionId, snapshotId: authority.snapshot.snapshotId,
+            currentJobId: body.jobId, currentApprovedWorkItemId: workItem.id,
+            leaseId: injected.leaseId, leaseCredential: injected.leaseCredential,
+            executionAttemptId, dispatchGrantId: body.grantId,
+            dependencyAuthority: begun.lease.dependencyAuthority,
+            allowedContentTypes: ['video/mp4'], maximumBytes: 16 * 1024 * 1024,
+          })
+        const finalJobReadiness = (await createCanonicalExecutionReadinessService(context).inspectJob({
+          workspaceId: body.workspaceId, projectId: body.projectId,
+          editSessionId: body.editSessionId, jobId: dependencyRead.dependencyJobId,
+          purpose: 'private_internal_dry_run_readiness',
+        })).executionReadinessEnvelope
+        const finalWorkItem = authority.workItems.find((candidate) =>
+          candidate.id === finalJobReadiness.job.approvedWorkItemId)
+        if (!finalWorkItem || finalWorkItem.workItemType !== 'render_final_export') {
+          throw denied('Final QA dependency is not the exact approved final-composition work item.')
+        }
+        finalMediaExpectation = validateOfflineRemotionFinalCompositionPlanningPayload(
+          finalWorkItem.executionInput.structuredPayload,
+        )
+      } else {
+        sourceRead = await createCanonicalPrivateSourceObjectReadService(context).readExactApprovedSource({
+          workspaceId: body.workspaceId, projectId: body.projectId,
+          snapshotId: authority.snapshot.snapshotId, jobId: body.jobId,
+          approvedWorkItem: workItem, approvedSourceManifest: authority.sourceAssetManifest,
+          leaseId: injected.leaseId, executionAttemptId, dispatchGrantId: body.grantId,
+        })
+      }
+      const inputBytes = dependencyRead?.bytes ?? sourceRead!.bytes
+      const inputByteLength = dependencyRead?.byteLength ?? sourceRead!.byteLength
+      const inputSha256 = dependencyRead?.sha256 ?? sourceRead!.sha256
       const sourcePayload = {
-        mimeType: sourceRead.mimeType,
-        sourceByteLength: sourceRead.byteLength,
-        sourceSha256: sourceRead.sha256,
-        sourceBytesBase64: sourceRead.bytes.toString('base64'),
+        mimeType: 'video/mp4' as const,
+        sourceByteLength: inputByteLength,
+        sourceSha256: inputSha256,
+        sourceBytesBase64: inputBytes.toString('base64'),
       }
       const executionResult = toolId === 'ffmpeg'
         ? await runtime.execute(validateOfflineFfmpegExecutionRequest({
@@ -155,16 +216,22 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       if (
         executionResult.evidence.toolId !== toolId ||
         executionResult.evidence.operationId !== binding.operationId ||
-        executionResult.evidence.sourceSha256 !== sourceRead.sha256 ||
+        executionResult.evidence.sourceSha256 !== inputSha256 ||
         executionResult.evidence.containerExitCode !== 0 || executionResult.evidence.oomKilled ||
         executionResult.readiness.productReady || normalized.contentType !== contentType
       ) throw denied('Media binary result failed exact execution verification.')
+      const finalArtifactQa = dependencyFinalQa
+        ? normalizeCanonicalPrivateFinalMediaQa(normalized.document!, finalMediaExpectation!)
+        : null
+      const inputReadEvidenceHash = dependencyRead?.dependencyReadEvidenceHash ?? sourceRead!.sourceReadEvidenceHash
 
       const privateObjectIdentityHash = sha256ArtifactQaValue({
         domain: 'canonical_private_media_binary_artifact_v1',
         workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
         jobId: body.jobId, expectedAssetId: expectedAsset.id,
         dispatchGrantId: body.grantId, executionAttemptId,
+        inputKind: dependencyFinalQa ? 'qa_passed_dependency_artifact' : 'approved_source_object',
+        inputSha256,
         contentSha256: normalized.sha256,
       })
       if (contentType === 'application/json') {
@@ -199,7 +266,7 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
         privateObjectIdentityHash, executionAttemptId, dispatchGrantId: body.grantId,
         runtimeAuthorityHash: runtimeAuthority.authorityHash,
         executionStartedAt: begun.executionFence.startedAt,
-        executionResult, normalized, sourceReadEvidenceHash: sourceRead.sourceReadEvidenceHash,
+        executionResult, normalized, inputReadEvidenceHash, finalArtifactQa,
       }
       const artifactAuthority = createPrivateArtifactQaAuthorityService(context, createAdapters(adapterInput))
       const keyHash = sha256ArtifactQaValue({ domain: 'canonical_media_binary_idempotency_v1', body, executionAttemptId })
@@ -234,18 +301,32 @@ export function createCanonicalPrivateMediaBinaryExecutionService(context: Servi
       )) !== authorityHashBefore) throw denied('Canonical planning authority changed during media binary execution.')
 
       const responseWithoutHash = {
-        schemaVersion: 'canonical-private-media-binary-execution-response-v1' as const,
+        schemaVersion: 'canonical-private-media-binary-execution-response-v2' as const,
         source: 'canonical_private_media_binary_execution_coordinator' as const,
         purpose: body.purpose,
         identity: { ...identity, approvedWorkItemId: workItem.id, dispatchGrantId: body.grantId },
-        tool: {
+        tool: dependencyFinalQa ? {
           canonicalToolId: toolId, operationId: binding.operationId,
           actualBinaryOperationCompleted: true as const, providerCallMade: false as const,
-          sourceObjectRead: true as const, sourceReadEvidenceHash: sourceRead.sourceReadEvidenceHash,
-          sourceSequenceItemId: sourceRead.sourceSequenceItemId,
-          sourceBindingHash: sourceRead.bindingHash,
+          inputKind: 'qa_passed_dependency_artifact' as const,
+          sourceObjectRead: false as const, dependencyArtifactRead: true as const,
+          inputReadEvidenceHash,
+          inputArtifactId: dependencyRead!.artifactId,
+          inputDependencyJobId: dependencyRead!.dependencyJobId,
+          inputArtifactSha256: inputSha256, inputArtifactByteLength: inputByteLength,
+          renderExecuted: false as const, finalExportExecuted: false as const,
+        } : {
+          canonicalToolId: toolId, operationId: binding.operationId,
+          actualBinaryOperationCompleted: true as const, providerCallMade: false as const,
+          inputKind: 'approved_source_object' as const,
+          sourceObjectRead: true as const, dependencyArtifactRead: false as const,
+          inputReadEvidenceHash,
+          inputArtifactSha256: inputSha256, inputArtifactByteLength: inputByteLength,
+          sourceSequenceItemId: sourceRead!.sourceSequenceItemId,
+          sourceBindingHash: sourceRead!.bindingHash,
           renderExecuted: false as const, finalExportExecuted: false as const,
         },
+        finalArtifactQa,
         lease: {
           leaseId: injected.leaseId, executionAttemptId, runnerClass: RUNNER_CLASS,
           executionStartedAt: begun.executionFence.startedAt,
@@ -313,7 +394,8 @@ interface MediaAdapterInput {
   executionStartedAt: string
   executionResult: OfflineFfprobeExecutionResult | OfflineFfmpegExecutionResult
   normalized: NormalizedMediaBinaryResult
-  sourceReadEvidenceHash: string
+  inputReadEvidenceHash: string
+  finalArtifactQa: CanonicalPrivateFinalMediaQa | null
 }
 
 interface NormalizedMediaBinaryResult {
@@ -354,7 +436,8 @@ function createAdapters(input: MediaAdapterInput): {
             executionAttemptId: input.executionAttemptId, runnerClass: RUNNER_CLASS,
             runnerEvidenceHash: sha256ArtifactQaValue({
               execution: input.executionResult.evidence,
-              sourceReadEvidenceHash: input.sourceReadEvidenceHash,
+              inputReadEvidenceHash: input.inputReadEvidenceHash,
+              finalArtifactQa: input.finalArtifactQa,
             }),
             startedAt: input.executionStartedAt,
             finishedAt: input.executionResult.attestation.completedAt,
@@ -391,18 +474,23 @@ function createAdapters(input: MediaAdapterInput): {
             status: 'passed' as const, failureScope: 'none' as const,
             evidenceHash: sha256ArtifactQaValue({
               content: adapterInput.artifact.content,
-              sourceReadEvidenceHash: input.sourceReadEvidenceHash,
+              inputReadEvidenceHash: input.inputReadEvidenceHash,
             }),
             notesCode: input.executionResult.evidence.toolId === 'ffmpeg'
               ? 'ffmpeg_media_source_hash_size_storage_match'
-              : 'ffprobe_json_source_hash_size_storage_match',
+              : input.finalArtifactQa
+                ? 'ffprobe_json_final_dependency_hash_size_storage_match'
+                : 'ffprobe_json_source_hash_size_storage_match',
           }, {
             gateId: 'asset_quality_gate' as const, category: 'model_tier_policy' as const,
             status: 'passed' as const, failureScope: 'none' as const,
-            evidenceHash: sha256ArtifactQaValue(input.executionResult.evidence.semanticEvidence),
+            evidenceHash: input.finalArtifactQa?.reportSha256 ??
+              sha256ArtifactQaValue(input.executionResult.evidence.semanticEvidence),
             notesCode: input.executionResult.evidence.toolId === 'ffmpeg'
               ? 'actual_ffmpeg_semantic_qa_passed'
-              : 'actual_ffprobe_semantic_qa_passed',
+              : input.finalArtifactQa
+                ? 'actual_dependency_bound_final_ffprobe_qa_passed'
+                : 'actual_ffprobe_semantic_qa_passed',
           }],
           recovery: {
             state: 'none' as const, action: 'none' as const,

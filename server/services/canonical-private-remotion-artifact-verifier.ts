@@ -8,15 +8,21 @@ export async function verifyCanonicalPrivateRemotionArtifact(input: {
   artifact: PersistedArtifactResult
 }) {
   const run = input.artifact.actualRunEvidence
+  const exactPrivatePreview = input.artifact.lineage.assetRole !== 'final'
+  const exactPrivateFinalComposition =
+    input.artifact.lineage.assetRole === 'final' &&
+    input.artifact.lineage.artifactType === 'private_source_caption_final_video_export' &&
+    input.artifact.lineage.required === true &&
+    input.artifact.lineage.previewPlaceholderAllowed === false
   if (
     input.artifact.identity.expectedAssetId !== input.artifact.lineage.assetId ||
     input.artifact.lineage.contentType !== 'video/mp4' || input.artifact.content.contentType !== 'video/mp4' ||
-    input.artifact.lineage.assetRole === 'final' || input.artifact.placeholder.isPlaceholder ||
+    (!exactPrivatePreview && !exactPrivateFinalComposition) || input.artifact.placeholder.isPlaceholder ||
     input.artifact.storageIdentity.storageKind !== 'private_local_test' ||
     input.artifact.evidenceClass !== 'private_internal_test_attested' || input.artifact.liveRuntimeEligible !== false ||
     run.state !== 'actual_run_evidence_verified_v2' || run.runnerClass !== 'offline_remotion_render_execution_v1' ||
     !run.actualRunVerified || run.exitCode !== 0 || run.toolIds.length !== 1 || run.toolIds[0] !== 'remotion'
-  ) throw invalid('Private MP4 is not an exact verified non-final Remotion artifact.')
+  ) throw invalid('Private MP4 is not an exact verified preview or final-composition Remotion artifact.')
   const stored = await readCanonicalPrivateRemotionArtifact({
     localStorageRoot: input.localStorageRoot,
     privateObjectIdentityHash: input.artifact.storageIdentity.opaqueObjectIdentityHash,
@@ -29,7 +35,10 @@ export async function verifyCanonicalPrivateRemotionArtifact(input: {
     byteLength: stored.byteLength,
     privateObjectIdentityHash: input.artifact.storageIdentity.opaqueObjectIdentityHash,
     semanticReportHash: sha256AuthorityValue({
-      domain: 'canonical_private_remotion_lease_verification_v1',
+      domain: 'canonical_private_remotion_lease_verification_v2',
+      artifactProfile: exactPrivateFinalComposition ? 'private_final_composition' : 'private_preview',
+      assetRole: input.artifact.lineage.assetRole,
+      artifactType: input.artifact.lineage.artifactType,
       sha256: stored.sha256, byteLength: stored.byteLength,
       executionAttemptId: run.executionAttemptId, runnerEvidenceHash: run.runnerEvidenceHash,
       dispatchGrantId: run.dispatchGrantId, executionAttestationHash: run.executionAttestationHash,

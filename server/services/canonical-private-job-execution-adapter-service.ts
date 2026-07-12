@@ -429,8 +429,12 @@ function normalizeResponse(input: {
   idempotentAdapterReplay: boolean
 }): CanonicalPrivateJobExecutionAdapterResponse {
   const result = input.rawResponse.result
+  const coordinatorTool = optionalRecord(input.rawResponse.tool)
+  const finalArtifactQa = optionalRecord(input.rawResponse.finalArtifactQa)
   const dependencyGates = input.finalCompositionExecution
     ? normalizeFinalCompositionDependencyGates(input.rawResponse)
+    : result.liveRuntimeDependencySatisfied === undefined
+      ? normalizePrivateOnlyCoordinatorDependencyGates(input.rawResponse)
     : {
         privateTestDependencySatisfied: requireLiteral(
           result.privateTestDependencySatisfied,
@@ -445,7 +449,7 @@ function normalizeResponse(input: {
         finalRenderAuthorized: requireLiteral(result.finalRenderAuthorized, false, 'finalRenderAuthorized'),
       }
   const responseWithoutHash = {
-    schemaVersion: 'canonical-private-job-execution-adapter-response-v1' as const,
+    schemaVersion: 'canonical-private-job-execution-adapter-response-v2' as const,
     source: 'canonical_private_job_execution_adapter' as const,
     purpose: input.body.purpose,
     identity: {
@@ -484,6 +488,8 @@ function normalizeResponse(input: {
       reconciliationPassed: true as const,
       idempotentAdapterReplay: input.idempotentAdapterReplay,
       attemptCostEvidenceRecorded: Boolean(input.rawResponse.attemptCost),
+      dependencyArtifactInput: coordinatorTool?.inputKind === 'qa_passed_dependency_artifact',
+      finalArtifactQaPassed: finalArtifactQa?.finalQaGatesPassed === true,
     },
     permissions: {
       providerCall: false as const,
@@ -526,6 +532,28 @@ function markReplay(response: CanonicalPrivateJobExecutionAdapterResponse): Cano
       evidence: { ...withoutHash.evidence, idempotentAdapterReplay: true },
     }),
   })
+}
+
+function normalizePrivateOnlyCoordinatorDependencyGates(response: CoordinatorResponse): {
+  privateTestDependencySatisfied: true
+  liveRuntimeDependencySatisfied: false
+  finalRenderAuthorized: false
+} {
+  const result = response.result
+  const permissions = requireRecord(response.permissions, 'permissions')
+  const runtime = requireRecord(response.runtime, 'runtime')
+  requireLiteral(result.privateTestDependencySatisfied, true, 'privateTestDependencySatisfied')
+  requireLiteral(result.finalRenderAuthorized, false, 'finalRenderAuthorized')
+  requireLiteral(runtime.productReady, false, 'runtime.productReady')
+  requireLiteral(runtime.externalBetaReady, false, 'runtime.externalBetaReady')
+  requireLiteral(runtime.productionReady, false, 'runtime.productionReady')
+  const delivery = permissions.publicDelivery ?? permissions.delivery
+  requireLiteral(delivery, false, 'permissions.delivery')
+  return {
+    privateTestDependencySatisfied: true,
+    liveRuntimeDependencySatisfied: false,
+    finalRenderAuthorized: false,
+  }
 }
 
 function normalizeFinalCompositionDependencyGates(response: CoordinatorResponse): {
@@ -737,6 +765,12 @@ function requireRecord(value: unknown, field: string): Record<string, unknown> {
     throw new ApiError('VALIDATION_FAILED', `Canonical runner result has invalid ${field}.`, 409)
   }
   return value as Record<string, unknown>
+}
+
+function optionalRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined
 }
 
 function requireLiteral<T extends string | boolean>(value: unknown, expected: T, field: string): T {

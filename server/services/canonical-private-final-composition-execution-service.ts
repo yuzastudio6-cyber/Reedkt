@@ -34,6 +34,10 @@ import type {
 } from '../validation/private-artifact-qa-authority-schemas'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
 import {
+  normalizeCanonicalPrivateFinalMediaQa,
+  type CanonicalPrivateFinalMediaQa,
+} from './canonical-private-final-media-qa'
+import {
   createCanonicalPrivateDependencyArtifactReadService,
   type CanonicalPrivateDependencyArtifactReadResult,
 } from './canonical-private-dependency-artifact-read-service'
@@ -233,7 +237,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         },
       }))
       if (!('resultJson' in probe)) throw denied('Independent FFprobe returned the wrong final artifact class.')
-      const qa = normalizeFinalProbe(probe.resultJson.document, request.payload)
+      const qa = normalizeCanonicalPrivateFinalMediaQa(probe.resultJson.document, request.payload)
 
       const privateObjectIdentityHash = sha256ArtifactQaValue({
         domain: 'canonical_private_final_composition_mp4_v1',
@@ -405,27 +409,6 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
   }
 }
 
-interface FinalCompositionQa {
-  independentFfprobeExecuted: true
-  binaryVersion: '8.1.2'
-  videoCodecName: 'h264'
-  pixelFormat: 'yuv420p'
-  colorSpace: 'bt709'
-  width: number
-  height: number
-  fps: number
-  frameCount: number
-  audioCodecName: 'aac'
-  audioSampleRate: 48_000
-  audioChannels: number
-  approvedDurationSeconds: number
-  actualDurationSeconds: number
-  maximumDurationDriftFrames: 2
-  durationDriftFrames: number
-  finalQaGatesPassed: true
-  reportSha256: string
-}
-
 interface ApprovedSourceTrimEvidence {
   decisionId: string
   sourceSequenceItemId: string
@@ -529,7 +512,7 @@ interface FinalCompositionAdapterInput {
   runtimeAuthorityHash: string
   executionStartedAt: string
   result: OfflineRemotionRenderResult
-  qa: FinalCompositionQa
+  qa: CanonicalPrivateFinalMediaQa
   sourceReadEvidenceHash: string
   sourceTrimDependencyReadEvidenceHash: string
   captionDependencyReadEvidenceHash: string
@@ -643,67 +626,6 @@ function adapters(input: FinalCompositionAdapterInput): {
       },
     },
   }
-}
-
-function normalizeFinalProbe(
-  document: Readonly<Record<string, unknown>>,
-  payload: {
-    width: number
-    height: number
-    fps: number
-    durationFrames: number
-  },
-): FinalCompositionQa {
-  const streams = Array.isArray(document.streams)
-    ? document.streams as Array<Record<string, unknown>>
-    : []
-  const video = streams.find((stream) => stream.codecType === 'video')
-  const audio = streams.find((stream) => stream.codecType === 'audio')
-  const approvedDurationSeconds = Number((payload.durationFrames / payload.fps).toFixed(6))
-  const actualDurationSeconds = Number(document.durationSeconds)
-  const durationDriftFrames = Math.max(
-    0,
-    Math.ceil((actualDurationSeconds - approvedDurationSeconds) * payload.fps - 0.000_001),
-  )
-  const report = {
-    videoCodecName: video?.codecName,
-    pixelFormat: video?.pixelFormat,
-    colorSpace: video?.colorSpace,
-    width: video?.width,
-    height: video?.height,
-    fps: video?.fps,
-    frameCount: video?.readFrameCount,
-    audioCodecName: audio?.codecName,
-    audioSampleRate: audio?.sampleRate,
-    audioChannels: audio?.channels,
-    approvedDurationSeconds,
-    actualDurationSeconds,
-    maximumDurationDriftFrames: 2,
-    durationDriftFrames,
-  }
-  if (
-    report.videoCodecName !== 'h264' || report.pixelFormat !== 'yuv420p' ||
-    report.colorSpace !== 'bt709' || report.width !== payload.width || report.height !== payload.height ||
-    report.fps !== payload.fps || report.frameCount !== payload.durationFrames ||
-    report.audioCodecName !== 'aac' || report.audioSampleRate !== 48_000 ||
-    !Number.isSafeInteger(report.audioChannels) || Number(report.audioChannels) < 1 ||
-    Number(report.audioChannels) > 2 || !Number.isFinite(actualDurationSeconds) ||
-    actualDurationSeconds < approvedDurationSeconds || durationDriftFrames > 2
-  ) throw denied('Independent FFprobe final QA does not match approved video, audio, frame, and duration policy.')
-  const normalized = {
-    independentFfprobeExecuted: true as const,
-    binaryVersion: '8.1.2' as const,
-    videoCodecName: 'h264' as const,
-    pixelFormat: 'yuv420p' as const,
-    colorSpace: 'bt709' as const,
-    width: Number(report.width), height: Number(report.height), fps: Number(report.fps),
-    frameCount: Number(report.frameCount), audioCodecName: 'aac' as const,
-    audioSampleRate: 48_000 as const, audioChannels: Number(report.audioChannels),
-    approvedDurationSeconds, actualDurationSeconds,
-    maximumDurationDriftFrames: 2 as const, durationDriftFrames,
-    finalQaGatesPassed: true as const,
-  }
-  return { ...normalized, reportSha256: sha256AuthorityValue(normalized) }
 }
 
 function assertFinalResult(

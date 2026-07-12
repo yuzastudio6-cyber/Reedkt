@@ -8,6 +8,46 @@ const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$
 const sha = z.string().regex(/^[a-f0-9]{64}$/)
 const timestamp = z.string().datetime({ offset: true })
 
+const toolCommon = z.object({
+  canonicalToolId: z.enum(['ffmpeg', 'ffprobe']),
+  operationId: identity,
+  actualBinaryOperationCompleted: z.literal(true),
+  providerCallMade: z.literal(false),
+  inputReadEvidenceHash: sha,
+  inputArtifactSha256: sha,
+  inputArtifactByteLength: z.number().int().positive().max(32 * 1024 * 1024),
+  renderExecuted: z.literal(false),
+  finalExportExecuted: z.literal(false),
+})
+
+const mediaInputAuthoritySchema = z.discriminatedUnion('inputKind', [
+  toolCommon.extend({
+    inputKind: z.literal('approved_source_object'),
+    sourceObjectRead: z.literal(true),
+    dependencyArtifactRead: z.literal(false),
+    sourceSequenceItemId: identity,
+    sourceBindingHash: sha,
+  }).strict(),
+  toolCommon.extend({
+    inputKind: z.literal('qa_passed_dependency_artifact'),
+    sourceObjectRead: z.literal(false),
+    dependencyArtifactRead: z.literal(true),
+    inputArtifactId: identity,
+    inputDependencyJobId: identity,
+  }).strict(),
+])
+
+const finalArtifactQaSchema = z.object({
+  independentFfprobeExecuted: z.literal(true), binaryVersion: z.literal('8.1.2'),
+  videoCodecName: z.literal('h264'), pixelFormat: z.literal('yuv420p'), colorSpace: z.literal('bt709'),
+  width: z.number().int().positive(), height: z.number().int().positive(), fps: z.number().positive(),
+  frameCount: z.number().int().positive(), audioCodecName: z.literal('aac'),
+  audioSampleRate: z.literal(48_000), audioChannels: z.number().int().min(1).max(2),
+  approvedDurationSeconds: z.number().positive(), actualDurationSeconds: z.number().positive(),
+  maximumDurationDriftFrames: z.literal(2), durationDriftFrames: z.number().int().min(0).max(2),
+  finalQaGatesPassed: z.literal(true), reportSha256: sha,
+}).strict()
+
 export const runCanonicalPrivateMediaBinarySchema = z.object({
   workspaceId: identity,
   projectId: identity,
@@ -25,25 +65,15 @@ export const canonicalPrivateMediaBinaryAuthoritySchema = z.object({
 }).strict()
 
 export const canonicalPrivateMediaBinaryResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-private-media-binary-execution-response-v1'),
+  schemaVersion: z.literal('canonical-private-media-binary-execution-response-v2'),
   source: z.literal('canonical_private_media_binary_execution_coordinator'),
   purpose: z.literal('execute_canonical_private_media_binary_tool'),
   identity: z.object({
     workspaceId: identity, projectId: identity, editSessionId: identity, snapshotId: identity,
     jobId: identity, approvedWorkItemId: identity, expectedAssetId: identity, dispatchGrantId: identity,
   }).strict(),
-  tool: z.object({
-    canonicalToolId: z.enum(['ffmpeg', 'ffprobe']),
-    operationId: identity,
-    actualBinaryOperationCompleted: z.literal(true),
-    providerCallMade: z.literal(false),
-    sourceObjectRead: z.literal(true),
-    sourceReadEvidenceHash: sha,
-    sourceSequenceItemId: identity,
-    sourceBindingHash: sha,
-    renderExecuted: z.literal(false),
-    finalExportExecuted: z.literal(false),
-  }).strict(),
+  tool: mediaInputAuthoritySchema,
+  finalArtifactQa: finalArtifactQaSchema.nullable(),
   lease: z.object({
     leaseId: identity, executionAttemptId: identity,
     runnerClass: z.literal('offline_media_binary_execution_v1'),

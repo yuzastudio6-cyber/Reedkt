@@ -14,6 +14,7 @@ This slice connects approved source-cleanup authority to the exact private Remot
 6. The pinned Remotion image receives only server-injected committed source/caption bytes and exact trim frames. `OffthreadVideo` applies the start and end frames while preserving source audio.
 7. A separate pinned FFprobe runtime verifies H.264, yuv420p, BT.709, exact frame count, AAC at 48 kHz, channel bounds, and duration drift of at most two frames.
 8. The final MP4 is stored create-only, QA-passed, reconciled for private-test dependency use, available only through the authenticated private download service, and replayed by the job adapter without a second render.
+9. A separate canonical `run_final_qa` ffprobe job can start only after that final artifact is QA-passed and reconciled. It reopens the exact MP4 dependency, derives expectations from the upstream approved Remotion work item, persists its own QA-passed JSON report, and replays without a second probe.
 
 ## Fail-closed rules
 

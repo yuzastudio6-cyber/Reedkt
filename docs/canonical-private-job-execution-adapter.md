@@ -42,6 +42,7 @@ Executable adapter evidence currently proves:
 - service execution of ECharts with server-derived tool/operation/output identity;
 - service execution of the exact private Remotion final-composition job with two lease-selected dependencies: source-trim authority JSON and libass caption PNG;
 - approved trim-frame application to the exact source MP4, source-audio preservation, independent FFprobe H.264/AAC/frame/duration QA, private final-artifact persistence/download, and durable adapter replay without a second render;
+- service execution of a separate canonical final-QA ffprobe job that consumes only the QA-passed/reconciled private final MP4 dependency, derives its expected media contract from the upstream approved Remotion work item, persists a private JSON report, and replays without a second probe;
 - single-use dispatch consumption, private SVG persistence, QA, reconciliation, durable adapter replay, idempotency conflict, and downstream dependency readback;
 - the independent canonical coordinator lifecycle for all 50 tool identities through `npm run smoke:canonical-private-tool-dispatch`.
 

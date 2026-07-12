@@ -35,6 +35,7 @@ import { createCanonicalPrivateRembgBackgroundRemovalExecutionService } from '..
 import { createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService } from '../services/canonical-private-deepfilternet-voice-cleanup-execution-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
+import { createCanonicalPrivateReviewDecisionService } from '../services/canonical-private-review-decision-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
@@ -2615,6 +2616,111 @@ const terminalPrivateReviewReplay = await privateReviewService.assemble(terminal
 assert.equal(terminalPrivateReviewReplay.identity.reviewAssemblyId, terminalPrivateReview.identity.reviewAssemblyId)
 assert.equal(terminalPrivateReviewReplay.manifest.manifestSha256, terminalPrivateReview.manifest.manifestSha256)
 assert.equal(terminalPrivateReviewReplay.replay.idempotentReplay, true)
+const reviewDecisionAuthorityBefore = sha256AuthorityValue(
+  snapshotAuthoritySlice(
+    await requireEditAuthority(workspaceId),
+    terminalPrivateReview.identity.approvedPlanSnapshotId,
+  ),
+)
+const privateReviewDecisionService = createCanonicalPrivateReviewDecisionService(context)
+await expectApiError(
+  () => privateReviewDecisionService.record({
+    workspaceId,
+    packageRecordId: terminalReviewPackageRecordId,
+    reviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
+    purpose: 'record_canonical_private_review_decision',
+    expectedManifestSha256: terminalPrivateReview.manifest.manifestSha256,
+    expectedFinalArtifactSha256: terminalPrivateReview.finalArtifact.sha256,
+    decision: 'accept_private_internal_review',
+    idempotencyKey: 'terminal-private-review-decision-reject-artifact-injection',
+    artifactId: terminalPrivateReview.finalArtifact.artifactId,
+  } as never),
+  'VALIDATION_FAILED',
+)
+await expectApiError(
+  () => privateReviewDecisionService.record({
+    workspaceId,
+    packageRecordId: terminalReviewPackageRecordId,
+    reviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
+    purpose: 'record_canonical_private_review_decision',
+    expectedManifestSha256: '0'.repeat(64),
+    expectedFinalArtifactSha256: terminalPrivateReview.finalArtifact.sha256,
+    decision: 'accept_private_internal_review',
+    idempotencyKey: 'terminal-private-review-decision-reject-manifest-mismatch',
+  }),
+  'IDEMPOTENCY_CONFLICT',
+)
+const terminalPrivateRevisionDecisionInput: Parameters<
+  typeof privateReviewDecisionService.record
+>[0] = {
+  workspaceId,
+  packageRecordId: terminalReviewPackageRecordId,
+  reviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
+  purpose: 'record_canonical_private_review_decision' as const,
+  expectedManifestSha256: terminalPrivateReview.manifest.manifestSha256,
+  expectedFinalArtifactSha256: terminalPrivateReview.finalArtifact.sha256,
+  decision: 'request_revision' as const,
+  revisionIntent: {
+    summary: 'Tighten the opening pacing while preserving source meaning and the approved source order.',
+    changeCategories: ['pacing'],
+    mustPreserve: ['source_order', 'source_meaning', 'edit_preferences', 'edit_brief'],
+    requiresReplanning: true as const,
+    requiresFreshEstimateAndApproval: true as const,
+  },
+  idempotencyKey: 'record-terminal-private-review-revision-decision',
+}
+const terminalPrivateRevisionDecision = await privateReviewDecisionService.record(
+  terminalPrivateRevisionDecisionInput,
+)
+assert.equal(terminalPrivateRevisionDecision.status, 'canonical_revision_requested')
+assert.equal(terminalPrivateRevisionDecision.decision, 'request_revision')
+assert.equal(terminalPrivateRevisionDecision.authority.approvedPlanVersion, 1)
+assert.equal(terminalPrivateRevisionDecision.authority.immutableApprovedSnapshotPreserved, true)
+assert.equal(terminalPrivateRevisionDecision.authority.immutableReviewManifestPreserved, true)
+assert.equal(terminalPrivateRevisionDecision.revisionHandoff?.minimumNextPlanVersion, 2)
+assert.equal(terminalPrivateRevisionDecision.revisionHandoff?.requiresReplanning, true)
+assert.equal(terminalPrivateRevisionDecision.revisionHandoff?.requiresFreshEstimateAndApproval, true)
+assert.equal(terminalPrivateRevisionDecision.revisionHandoff?.replacementPlanPublished, false)
+assert.equal(terminalPrivateRevisionDecision.revisionHandoff?.revisionExecutionStarted, false)
+assert.equal(terminalPrivateRevisionDecision.permissions.revisionExecution, false)
+assert.equal(terminalPrivateRevisionDecision.permissions.replacementPlanPublication, false)
+assert.equal(terminalPrivateRevisionDecision.permissions.reservationMutation, false)
+assert.equal(
+  terminalPrivateRevisionDecision.readiness.nextRequiredGate,
+  'canonical_revision_plan_compilation_and_fresh_approval',
+)
+const terminalPrivateRevisionDecisionReplay = await privateReviewDecisionService.record(
+  terminalPrivateRevisionDecisionInput,
+)
+assert.equal(
+  terminalPrivateRevisionDecisionReplay.identity.reviewDecisionId,
+  terminalPrivateRevisionDecision.identity.reviewDecisionId,
+)
+assert.equal(
+  terminalPrivateRevisionDecisionReplay.manifest.manifestSha256,
+  terminalPrivateRevisionDecision.manifest.manifestSha256,
+)
+assert.equal(terminalPrivateRevisionDecisionReplay.replay.idempotentReplay, true)
+await expectApiError(
+  () => privateReviewDecisionService.record({
+    workspaceId,
+    packageRecordId: terminalReviewPackageRecordId,
+    reviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
+    purpose: 'record_canonical_private_review_decision',
+    expectedManifestSha256: terminalPrivateReview.manifest.manifestSha256,
+    expectedFinalArtifactSha256: terminalPrivateReview.finalArtifact.sha256,
+    decision: 'accept_private_internal_review',
+    idempotencyKey: 'reject-second-decision-for-terminal-private-review',
+  }),
+  'IDEMPOTENCY_CONFLICT',
+)
+assert.equal(
+  sha256AuthorityValue(snapshotAuthoritySlice(
+    await requireEditAuthority(workspaceId),
+    terminalPrivateReview.identity.approvedPlanSnapshotId,
+  )),
+  reviewDecisionAuthorityBefore,
+)
 const terminalPrivateReviewDownload = await createCanonicalPrivateFinalArtifactDownloadService(context).read({
   workspaceId,
   projectId: terminalPrivateReview.identity.projectId,
@@ -2931,6 +3037,9 @@ console.log(JSON.stringify({
     'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
     'terminal_private_review_assembly_requires_every_required_artifact_qa_reconciliation_and_exact_final_qa_lease_binding',
     'credential_free_private_review_manifest_is_create_only_replay_safe_and_privately_downloadable',
+    'private_review_decision_rejects_caller_artifact_and_stale_manifest_authority',
+    'revision_request_creates_one_credential_free_immutable_snapshot_bound_handoff',
+    'revision_decision_replays_without_authority_wallet_reservation_or_execution_mutation',
     'authenticated_private_final_mp4_download_reopens_exact_qa_passed_bytes_without_public_or_signed_url',
     'checksum_protected_restart_safe_private_store',
     'dependency_authority_binding_tamper_rejected_by_immutable_record_validation',

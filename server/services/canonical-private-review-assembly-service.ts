@@ -54,6 +54,35 @@ interface SelectedArtifactAuthority {
 
 export function createCanonicalPrivateReviewAssemblyService(context: ServiceContext) {
   return {
+    async getCompleted(input: {
+      packageRecordId: string
+      workspaceId: string
+    }): Promise<CanonicalPrivateReviewAssemblyResponse> {
+      if (!safeIdentity(input.packageRecordId) || !safeIdentity(input.workspaceId)) {
+        throw new ApiError('VALIDATION_FAILED', 'Canonical private-review identity validation failed.', 400)
+      }
+      const actorUserId = getRequiredAuthUserId(context)
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'read')
+      if (access.userId !== actorUserId) throw blocked('Private-review actor is outside this workspace.')
+      const requestHash = sha256AuthorityValue({
+        operation: 'assemble_canonical_private_review',
+        actorUserId,
+        workspaceId: access.workspaceId,
+        packageRecordId: input.packageRecordId,
+        purpose: 'assemble_canonical_private_review',
+      })
+      const scopeHash = sha256(`${actorUserId}\u0000${access.workspaceId}`).slice(0, 32)
+      const packageHash = sha256(`${scopeHash}\u0000${input.packageRecordId}`)
+      const completionPath = `${STORAGE_PREFIX}/${scopeHash}/packages/${packageHash}.json`
+      const manifestPath = `${STORAGE_PREFIX}/${scopeHash}/manifests/${packageHash}.json`
+      const completed = await readPersistedAssembly(context, completionPath, requestHash)
+      if (!completed) {
+        throw blocked('Canonical private-review assembly has not completed for this execution package.')
+      }
+      await verifyPersistedManifest(context, manifestPath, completed)
+      return completed
+    },
+
     async assemble(input: AssembleCanonicalPrivateReviewInput): Promise<CanonicalPrivateReviewAssemblyResponse> {
       const { packageRecordId, idempotencyKey: rawIdempotencyKey, ...requestBody } = input
       const parsed = assembleCanonicalPrivateReviewSchema.safeParse(requestBody)

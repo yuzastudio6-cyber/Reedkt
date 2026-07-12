@@ -9,6 +9,7 @@ import { createCanonicalExecutionReadinessService } from '../services/canonical-
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
+import { createCanonicalPrivateReviewDecisionService } from '../services/canonical-private-review-decision-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import {
@@ -52,6 +53,7 @@ import { canonicalPrivateFinalArtifactDownloadQuerySchema } from '../validation/
 import { executeCanonicalPrivateJobAdapterSchema } from '../validation/canonical-private-job-execution-adapter-schemas'
 import { runCanonicalPrivateWorkGraphSchema } from '../validation/canonical-private-work-graph-run-schemas'
 import { assembleCanonicalPrivateReviewSchema } from '../validation/canonical-private-review-assembly-schemas'
+import { recordCanonicalPrivateReviewDecisionSchema } from '../validation/canonical-private-review-decision-schemas'
 import {
   claimCanonicalWorkerLeaseRouteBodySchema,
   heartbeatCanonicalWorkerLeaseRouteBodySchema,
@@ -323,12 +325,25 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
     ], 201)
   }))
 
+  router.post('/v1/edit-executions/private-review-assemblies/:reviewAssemblyId/decisions', requireAuth, requireIdempotency, asyncRoute(async (request, response) => {
+    const body = validateBody(recordCanonicalPrivateReviewDecisionSchema, request.body)
+    const result = await createCanonicalPrivateReviewDecisionService(getServiceContext(request)).record({
+      ...body,
+      reviewAssemblyId: getRouteParam(request, 'reviewAssemblyId'),
+      idempotencyKey: getIdempotencyKey(request),
+    })
+    sendOk(response, { canonicalPrivateReviewDecision: result }, [
+      'This route records one exact private/internal review acceptance or revision request against an immutable canonical review manifest.',
+      'A revision request does not publish a replacement plan, reserve/release/spend credits, execute another render, or authorize public delivery.',
+    ], 201)
+  }))
+
   router.use('/v1/edit-executions', asyncRoute(async () => {
     throw new ApiError(
       'TOOL_NOT_READY',
-      'Legacy execution stages remain disabled. The bounded canonical fixture can reach private review; real-user upload binding, review decisions, and revision/recovery must use future canonical authority instead of this legacy route.',
+      'Legacy execution stages remain disabled. The bounded canonical fixture can reach and record private review; real-user upload binding, replacement-plan compilation/execution, and recovery must use future canonical authority instead of this legacy route.',
       503,
-      { requiredGate: 'canonical_real_user_upload_binding_review_decision_and_revision_recovery' },
+      { requiredGate: 'canonical_real_user_upload_binding_revision_planning_execution_and_recovery' },
     )
   }))
 

@@ -33,7 +33,7 @@ No capability should be described at a higher level than its strongest verified 
 | Canonical private job execution | `private_executable` for one immutable job | Authenticated job-only route derives the approved work item, output, tool, operation, lease, dispatch, private artifact, QA, reconciliation, and replay from server authority. Exact source-trim, Remotion final-composition, and dependency-bound final-QA jobs pass through this adapter. | Product, beta, and production flags remain false. |
 | Canonical private work graph | `private_executable` for run-to-blocked and one bounded complete graph | Authenticated package route derives topological order, executes only dependency-ready jobs, persists exact per-job outcomes, and reuses completed jobs. A five-job fixture completes snapshot validation, source-trim validation, caption generation, final composition, and independent final QA. | This is generated-fixture, single-host evidence, not general plan capability coverage or a deployed worker claim. |
 | Private render and review journey | `private_executable` for one bounded internal fixture | The canonical graph applies approved trims and captions, renders the exact private H.264/AAC MP4, independently probes that exact dependency, proves lease/artifact lineage, assembles a credential-free create-only review manifest, replays safely, and supports authenticated private download. | The legacy upload-to-render route remains disabled. Real-user/browser handoff, review decision/revision recovery, deployed storage/workers, public delivery, and production promotion are not connected. |
-| Revision and recovery | `contract_ready`; legacy private evidence exists | Immutable plan-version and revision contracts plus historical private-path smokes | Canonical multi-job revision orchestration and review-state recovery are not yet proven end to end. |
+| Revision and recovery | `private_executable` for one bounded revision request; broader recovery is `contract_ready` | An exact assembly/final-artifact-bound structured revision request persists one create-only handoff, replays safely, rejects a conflicting decision, and leaves the prior snapshot/plan/estimate/reservation/jobs hash-identical. | Replacement-plan compilation, fresh estimate/approval, revised execution, restart recovery, real-user/browser handoff, and cancellation remain gated. |
 | Public export and sharing | blocked | Production readiness gates intentionally deny it | Required assets, real-user privacy, delivery, settlement, and operations are incomplete. |
 
 ## Authentication and Tenancy
@@ -148,7 +148,7 @@ Not yet production-executable:
 4. the private internal upload journey fail-closed smoke,
 5. the browser-to-backend approval journey fail-closed smoke.
 
-The legacy upload journey now reports `blocked_by_canonical_real_user_upload_binding_review_decision_and_revision_recovery`; the browser journey reports `blocked_by_atomic_plan_approval_and_funded_credit_reservation` at its legacy standalone-credit seam. Separately, canonical single-job execution, run-to-blocked scheduling, one bounded five-job complete graph, and terminal private-review assembly now exist. General capability-plan compilation, revision/recovery, real-user upload binding, and browser handoff remain required.
+The legacy upload journey now reports `blocked_by_canonical_real_user_upload_binding_revision_planning_execution_and_recovery`; the browser journey reports `blocked_by_atomic_plan_approval_and_funded_credit_reservation` at its legacy standalone-credit seam. Separately, canonical single-job execution, run-to-blocked scheduling, one bounded five-job complete graph, terminal private-review assembly, and one immutable review-decision/revision handoff now exist. Replacement-plan compilation/execution, broader recovery, real-user upload binding, and browser handoff remain required.
 
 The aggregate command does not prove a complete upload-to-review journey, live provider execution, real-user storage, public export, or paid production.
 
@@ -158,7 +158,7 @@ The aggregate command does not prove a complete upload-to-review journey, live p
 | --- | --- | --- |
 | Local browser/UI testing | available | Mock-safe browser flows and Playwright coverage exist. |
 | Authenticated canonical single-job execution | available | Server-derived private route, exact runner execution, QA/reconciliation, durable service replay, and downstream verification pass. |
-| Authenticated private upload-to-review pipeline | bounded fixture only | A server-derived five-job generated-fixture package reaches credential-free private review and authenticated download. Real-user upload binding, browser handoff, revision/recovery, and deployed operations remain blocked. |
+| Authenticated private upload-to-review pipeline | bounded fixture only | A server-derived five-job generated-fixture package reaches credential-free private review, authenticated download, and one immutable decision/revision handoff. Real-user upload binding, browser handoff, replacement planning/execution, and deployed operations remain blocked. |
 | Controlled staging with real users | blocked | Supabase/RLS, deployed workers/storage, identity/tenancy, privacy, and operational evidence remain. |
 | External beta | blocked | Production readiness scenarios intentionally fail closed. |
 | Paid production | blocked | Billing, settlement, real providers/tools, public delivery, security, and operations remain incomplete. |
@@ -167,7 +167,7 @@ The aggregate command does not prove a complete upload-to-review journey, live p
 
 Safe current description:
 
-> ReeditPro has deterministic planning and canonical approval authority plus 50 exact private tool lifecycles. Its authenticated backend can execute immutable canonical jobs and one bounded five-job generated-fixture graph through approved trims, captions, final composition, independent final QA, credential-free private-review assembly, replay, and authenticated private download. General real-user upload-to-review, revision/recovery, external beta, public delivery, live billing, Supabase/RLS tenancy, distributed workers, and production promotion remain gated.
+> ReeditPro has deterministic planning and canonical approval authority plus 50 exact private tool lifecycles. Its authenticated backend can execute immutable canonical jobs and one bounded five-job generated-fixture graph through approved trims, captions, final composition, independent final QA, credential-free private-review assembly, replay, authenticated private download, and one immutable review decision/revision handoff. General real-user upload-to-review, replacement revision planning/execution, external beta, public delivery, live billing, Supabase/RLS tenancy, distributed workers, and production promotion remain gated.
 
 Do not claim:
 
@@ -185,13 +185,15 @@ Do not claim:
 3. **Completed for authenticated local/private identity/workspace scope:** single-host Edit Preferences persistence with live membership/role authorization, checksum/atomic storage, compare-and-swap, and idempotency. Supabase table/RLS, staging, production durability, and project-specific override UI remain future evidence gates.
 4. **Completed for 50 private tool identities:** exact confined operation plus canonical snapshot, funded reservation, lease, one-use dispatch, private artifact, QA, reconciliation, replay, and downstream verification.
 5. **Completed for canonical bounded private review:** authenticated package orchestration advances dependency-ready jobs, persists exact blockers, and reuses completed job evidence. A five-job generated-fixture graph now reaches approved trims, caption generation, final composition, downstream final-artifact QA, credential-free private-review assembly, and authenticated private download.
-6. **Completed for local/private scope:** project/edit browser and backend tenancy V2, including collision-safe scoped caches, live membership authorization, explicit invalidation, strict response ownership, authorization-before-idempotency, atomic/checksummed storage, and stale-write serialization/CAS. Real mounted Supabase revocation, reviewed RLS, and controlled staging remain blocked.
-7. Expand destructive/negative QA for deployed tenancy, storage, idempotency, credit settlement, privacy retention, and operational recovery.
-8. Add canonical private-review decision, revision, and recovery authority; then bind the server-derived journey to authenticated real-user upload and browser handoff without reviving legacy caller-authored authority.
-9. Keep all execution-stage inputs server-derived and re-authorize package ownership/workspace lineage at every runner, QA, artifact, and review transition.
-10. Keep tool-cost events backend-authored and tenant-scoped; browser-authored
+6. **Completed for bounded canonical review decisions:** one exact assembly/final-artifact-bound decision persists create-only and replay-safe. A structured revision request preserves the approved snapshot and creates no plan, estimate, reservation, render, or execution authority.
+7. **Completed for local/private scope:** project/edit browser and backend tenancy V2, including collision-safe scoped caches, live membership authorization, explicit invalidation, strict response ownership, authorization-before-idempotency, atomic/checksummed storage, and stale-write serialization/CAS. Real mounted Supabase revocation, reviewed RLS, and controlled staging remain blocked.
+8. Compile a replacement canonical plan only from the exact revision handoff, produce a fresh estimate, require new approval, and define safe synthetic reservation reconciliation without mutating the prior snapshot.
+9. Expand destructive/negative QA for deployed tenancy, storage, idempotency, credit settlement, privacy retention, and operational recovery.
+10. Bind the server-derived journey to authenticated real-user upload and browser handoff without reviving legacy caller-authored authority.
+11. Keep all execution-stage inputs server-derived and re-authorize package ownership/workspace lineage at every runner, QA, artifact, and review transition.
+12. Keep tool-cost events backend-authored and tenant-scoped; browser-authored
     usage or billability must never become wallet or settlement authority.
-11. Build and attest the production worker images, pin Python dependencies and
+13. Build and attest the production worker images, pin Python dependencies and
     model manifests, then rerun intended-operation tests inside those exact
     images before changing any tool to product-ready.
 

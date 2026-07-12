@@ -120,14 +120,14 @@ The runner class is `offline_deepfilternet_voice_cleanup_execution_v1`; its evid
 
 ## Current evidence snapshot
 
-Evidence revision `2026-07-12.24` records:
+Evidence revision `2026-07-12.25` records:
 
 - 72 total registry profiles with stable identities.
 - 61 callable candidates.
 - 11 intentionally non-executable profiles.
 - 53 confined-runner verified tools.
 - 50 exact canonical end-to-end verified tools.
-- 26 exact tool identities verified through the server-derived canonical job adapter.
+- 33 exact tool identities verified through the server-derived canonical job adapter.
 - 8 callable candidates that remain declared but do not yet have confined-runner proof.
 - 0 product-, external-beta-, or production-ready tools; those promotions require separate deployment evidence.
 
@@ -145,13 +145,14 @@ gpac_mp4box_packaging_validation, ffmpeg, ffprobe, pyav, opentimelineio, remotio
 sharp, duckdb, polars, opencv, signalsmith_stretch, vapoursynth
 ```
 
-The 26 server-derived job-adapter verified tool identities are:
+The 33 server-derived job-adapter verified tool identities are:
 
 ```text
 echarts, vega_lite, vega, satori, svg_js, viz_js, lottie, animejs, three_js, pixijs,
-konva, babylon_js, rembg, kornia, audioflux, music21, rnnoise, playwright, opencolorio,
-openimageio, mkvtoolnix_container_validation, gpac_mp4box_packaging_validation, ffprobe,
-remotion, signalsmith_stretch, vapoursynth
+konva, babylon_js, rembg, kornia, librosa, audioflux, music21, pretty_midi, noisereduce,
+rnnoise, playwright, pyscenedetect, opencolorio, openimageio,
+mkvtoolnix_container_validation, gpac_mp4box_packaging_validation, ffprobe,
+opentimelineio, remotion, polars, opencv, signalsmith_stretch, vapoursynth
 ```
 
 `confinedRunnerVerifiedCount` includes tools that have also reached canonical E2E; it is not a count of runner-only tools. At this revision the three runner-only identities are `torch_torchvision`, `transformers`, and `streamer_render_pipeline_support`; all three are readiness probes. DeepFilterNet, AudioFlux, rembg, OpenColorIO, OpenImageIO, RNNoise, Signalsmith Stretch, MKVToolNix, and GPAC/MP4Box now have canonical lifecycle proofs using approved server-owned deterministic fixtures. All tools still require arbitrary user-source, dependency/security/license review, distributed-worker, deployment, and product-promotion evidence. Public delivery, settlement, billing, external beta, and production rendering remain separate blocked gates.

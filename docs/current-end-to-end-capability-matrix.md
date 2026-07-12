@@ -86,11 +86,11 @@ Current gaps:
 | Intentionally non-executable | 11 / 72 | Planning, future, evaluation, or policy-only lane; no call is permitted. |
 | Confined runner verified | 53 | Exact bounded operation ran in its approved offline runtime profile. |
 | Canonical private E2E identities | 50 | Exact approved snapshot/work item, funded reservation, lease, one-use dispatch, private persistence, QA, reconciliation, replay, and downstream verification passed. |
-| Job-only canonical adapter | 15 runner classes implemented; 28 adapter paths executed; 26 exact tool identities recorded | Snapshot authority, dependency-bound source trim, structured Node, browser-graphics, bounded AI, native image/audio, package validation, VapourSynth, AudioFlux, rembg, exact Remotion final composition, and dependency-bound final ffprobe QA prove server-derived adapter execution. All 50 tool identities retain independent canonical coordinator proof; the remaining 24 tool identities still require exact adapter-route evidence. |
+| Job-only canonical adapter | 15 runner classes implemented; 35 adapter paths executed; 33 exact tool identities recorded | Snapshot authority, dependency-bound source trim, structured Node, browser graphics, bounded AI, native image/audio, package validation, specialized frame/audio/image tools, all seven ordinary Python matrix identities, exact Remotion final composition, and dependency-bound final ffprobe QA prove server-derived adapter execution. All 50 tool identities retain independent canonical coordinator proof; the remaining 17 tool identities still require exact adapter-route evidence. |
 | Product-ready | 0 / 72 | No registry tool meets production evidence gates. |
 | Frontend-executable in practice | 0 | Tool execution stays off the browser. |
 
-The authoritative identity source is `server/tool-execution/proven-tool-identity-catalog.ts`, evidence revision `2026-07-12.24`. Every one of its 50 `canonical_e2e_verified` identities performs an exact confined operation and passes the complete private canonical lifecycle. Twenty-six identities additionally have exact server-derived job-adapter proof. This is private single-host evidence, not distributed-worker, external-beta, or production evidence.
+The authoritative identity source is `server/tool-execution/proven-tool-identity-catalog.ts`, evidence revision `2026-07-12.25`. Every one of its 50 `canonical_e2e_verified` identities performs an exact confined operation and passes the complete private canonical lifecycle. Thirty-three identities additionally have exact server-derived job-adapter proof. This is private single-host evidence, not distributed-worker, external-beta, or production evidence.
 
 ### Actual execution coverage
 

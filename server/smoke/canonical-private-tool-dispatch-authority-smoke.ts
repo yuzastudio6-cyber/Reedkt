@@ -1888,7 +1888,8 @@ for (const matrixRun of matrixRuns.slice(1)) {
     matrixRun.runnerKind === 'packaging' ||
     matrixRun.runnerKind === 'vapoursynth' ||
     matrixRun.runnerKind === 'audioflux' ||
-    matrixRun.runnerKind === 'rembg'
+    matrixRun.runnerKind === 'rembg' ||
+    matrixRun.runnerKind === 'python'
   ) {
     const adapterInput = {
       workspaceId,
@@ -1920,7 +1921,9 @@ for (const matrixRun of matrixRuns.slice(1)) {
                     ? 'offline_vapoursynth_frame_pipeline_execution_v1'
                     : matrixRun.runnerKind === 'audioflux'
                       ? 'offline_audioflux_analysis_execution_v1'
-                      : 'offline_rembg_background_removal_execution_v1',
+                      : matrixRun.runnerKind === 'rembg'
+                        ? 'offline_rembg_background_removal_execution_v1'
+                        : 'offline_python_structured_execution_v1',
     )
     assert.equal(coordinated.result.contentType, matrixRun.expectedContentType)
     assert.equal(coordinated.result.qaOutcome, 'passed')
@@ -1982,8 +1985,8 @@ for (const matrixRun of matrixRuns.slice(1)) {
   assert.equal(grant.evidence.runtimePrivateInternalReady, true)
   assert.ok(grant.dispatchCredential)
   const executionAuthority = { ...leaseAuthority, dispatchCredential: grant.dispatchCredential }
-  let coordinatedArtifactId: string
-  let coordinatedSha256: string
+  let coordinatedArtifactId!: string
+  let coordinatedSha256!: string
   if (matrixRun.runnerKind === 'deepfilternet') {
     const executionInput = {
       workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -2043,29 +2046,6 @@ for (const matrixRun of matrixRuns.slice(1)) {
     assert.equal(replay.replay.attemptCostEvidenceReplayed, true)
     assert.equal(replay.attemptCost.idempotencyStatus, 'duplicate_returned')
     assert.deepEqual(replay.attemptCost.evidence, coordinated.attemptCost.evidence)
-    coordinatedArtifactId = coordinated.result.artifactId
-    coordinatedSha256 = coordinated.result.sha256
-  } else {
-    const executionInput = {
-      workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-      jobId: matrixRun.job.id, grantId: grant.grant.grantId,
-      purpose: 'execute_canonical_private_python_tool' as const,
-      idempotencyKey: `consume-${matrixRun.toolId}-matrix-root`,
-    }
-    const coordinated = await createCanonicalPrivatePythonToolExecutionService(context).execute(
-      executionInput, executionAuthority,
-    )
-    assert.equal(coordinated.tool.canonicalToolId, matrixRun.toolId)
-    assert.equal(coordinated.tool.operationId, matrixRun.operationId)
-    assert.equal(coordinated.result.contentType, matrixRun.expectedContentType)
-    assert.equal(coordinated.result.qaOutcome, 'passed')
-    const replay = await createCanonicalPrivatePythonToolExecutionService(context).execute(
-      executionInput, executionAuthority,
-    )
-    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
-    assert.equal(replay.replay.dispatchConsumptionReplayed, true)
-    assert.equal(replay.replay.executionFenceBeginReplayed, true)
-    assert.equal(replay.replay.executionFenceCompleteReplayed, true)
     coordinatedArtifactId = coordinated.result.artifactId
     coordinatedSha256 = coordinated.result.sha256
   }
@@ -3160,6 +3140,7 @@ console.log(JSON.stringify({
     'server_derived_job_adapter_executes_vapoursynth_frame_pipeline_identity',
     'server_derived_job_adapter_executes_audioflux_analysis_identity',
     'server_derived_job_adapter_executes_rembg_background_removal_identity',
+    'server_derived_job_adapter_executes_all_seven_matrix_python_tool_identities',
     'echarts_exact_svg_canonical_lifecycle_verified',
     'vega_lite_exact_svg_canonical_lifecycle_verified',
     'vega_exact_svg_canonical_lifecycle_verified',

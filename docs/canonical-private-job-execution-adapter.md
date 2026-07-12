@@ -29,7 +29,7 @@ The service reloads canonical readiness and immutable approved authority, requir
 6. requires a private create-only artifact, passed QA, reconciliation, and downstream dependency eligibility;
 7. stores a credential-free, checksum-protected idempotent adapter response.
 
-The tool-free `validate_approved_snapshot` job uses the canonical internal authority runner. Tool jobs must name exactly one approved identity that is `canonical_e2e_verified` in the proven tool catalog. Multi-tool and multi-output jobs fail closed.
+The tool-free `validate_approved_snapshot` job and dependency-bound `prepare_source_trim` plan-validation job use canonical internal runners. Source-trim validation requires exact approved source IDs, explicit cleanup decisions, meaning-preservation status, resolved user review, a passed upstream dependency, and a private JSON QA/reconciliation artifact. Tool jobs must name exactly one approved identity that is `canonical_e2e_verified` in the proven tool catalog. Multi-tool and multi-output jobs fail closed.
 
 ## Runner coverage
 

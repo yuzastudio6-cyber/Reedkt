@@ -39,7 +39,6 @@ import { canonicalInternalAuthorityArtifactRelativePath } from './canonical-inte
 import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 
-const RUNNER_CLASS = 'canonical_authority_validation_runner_v1' as const
 const ARTIFACT_SCHEMA_VERSION = 'canonical-authority-validation-artifact-v1' as const
 const MAXIMUM_ARTIFACT_BYTES = 1024 * 1024
 const authorityArtifactWriteLocks = new Map<string, Promise<void>>()
@@ -60,6 +59,7 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
       serverLease: CanonicalInternalAuthorityRunnerLease,
     ): Promise<CanonicalInternalAuthorityRunnerResponse> {
       const body = parseRunRequest(input)
+      const profile = internalValidationProfile(body.purpose)
       const leaseAuthority = parseLeaseAuthority(serverLease)
       const actorUserId = getRequiredAuthUserId(context)
       const leaseService = createCanonicalWorkerLeaseAuthorityService(context)
@@ -95,6 +95,7 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
         candidate.id === body.expectedAssetId &&
         candidate.approvedWorkItemId === workItem?.id)
       assertCanonicalAuthorityValidationJob({
+        profile,
         body,
         lease: verifiedLease,
         readiness,
@@ -111,12 +112,13 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
         jobId: body.jobId,
         leaseId: leaseAuthority.leaseId,
         leaseCredential: leaseAuthority.leaseCredential,
-        runnerClass: RUNNER_CLASS,
+        runnerClass: profile.runnerClass,
       })
       const lease = begunExecution.lease
       const executionAttemptId = begunExecution.executionFence.executionAttemptId
 
       const report = buildAuthorityValidationReport({
+        profile,
         body,
         leaseId: lease.id,
         immutableLeaseHash: lease.immutableLeaseHash,
@@ -133,7 +135,7 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
       }
       const contentSha256 = sha256Bytes(bytes)
       const privateObjectIdentityHash = sha256ArtifactQaValue({
-        domain: 'canonical_internal_authority_validation_artifact_v1',
+        domain: profile.artifactDomain,
         workspaceId: body.workspaceId,
         snapshotId: authority.snapshot.snapshotId,
         jobId: body.jobId,
@@ -166,6 +168,7 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
       const identityHash = sha256ArtifactQaValue({ identity, executionAttemptId })
       const completedAt = new Date().toISOString()
       const adapters = createAuthorityAdapters({
+        runnerClass: profile.runnerClass,
         localStorageRoot: context.env.localStorageRoot,
         relativePath,
         identity,
@@ -212,7 +215,7 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
         jobId: body.jobId,
         leaseId: leaseAuthority.leaseId,
         leaseCredential: leaseAuthority.leaseCredential,
-        runnerClass: RUNNER_CLASS,
+        runnerClass: profile.runnerClass,
         executionAttemptId,
       })
       const executionCommitAuthorizedAt = completedExecution.executionFence.commitAuthorizedAt
@@ -244,7 +247,7 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
 
       const responseWithoutHash = {
         schemaVersion: CANONICAL_INTERNAL_AUTHORITY_RUNNER_RESPONSE_VERSION,
-        source: 'canonical_internal_authority_validation_runner' as const,
+        source: profile.source,
         purpose: body.purpose,
         identity: {
           ...identity,
@@ -264,8 +267,8 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
         },
         execution: {
           executionAttemptId,
-          runnerClass: RUNNER_CLASS,
-          operation: 'validate_snapshot_manifest' as const,
+          runnerClass: profile.runnerClass,
+          operation: profile.operation,
           actualInternalOperationCompleted: true as const,
           externalToolExecuted: false as const,
           providerCallMade: false as const,
@@ -351,7 +354,10 @@ type Lease = Awaited<ReturnType<
   ReturnType<typeof createCanonicalWorkerLeaseAuthorityService>['verifyActive']
 >>['workerLeaseVerification']['lease']
 
+type InternalValidationProfile = ReturnType<typeof internalValidationProfile>
+
 function assertCanonicalAuthorityValidationJob(input: {
+  profile: InternalValidationProfile
   body: RunCanonicalInternalAuthorityJobInput
   lease: Lease
   readiness: Readiness
@@ -359,7 +365,7 @@ function assertCanonicalAuthorityValidationJob(input: {
   workItem: Authority['workItems'][number] | undefined
   expectedAsset: Authority['assetManifest']['entries'][number] | undefined
 }): void {
-  const { body, lease, readiness, authority, workItem, expectedAsset } = input
+  const { profile, body, lease, readiness, authority, workItem, expectedAsset } = input
   const remainingReservedCredits = authority.reservation.reservedCredits -
     authority.reservation.spentCredits -
     authority.reservation.releasedCredits -
@@ -385,26 +391,15 @@ function assertCanonicalAuthorityValidationJob(input: {
       jobAuthorityHash: readiness.authorityHashes.jobAuthorityHash,
     }) ||
     readiness.job.approvedPlanSnapshotId !== authority.snapshot.snapshotId ||
-    readiness.job.canonicalGraphState !== 'ready' ||
-    readiness.job.dependencyJobIds.length !== 0 ||
-    readiness.dependencyEvidenceState !== 'not_required_for_root_job' ||
     !workItem ||
     workItem.id !== readiness.job.approvedWorkItemId ||
-    workItem.workItemType !== 'validate_approved_snapshot' ||
-    workItem.workerClass !== 'authority_worker' ||
     workItem.approvedToolIds.length !== 0 ||
     workItem.approvedProviderRoute !== undefined ||
     workItem.providerExecutionMode !== 'none' ||
-    workItem.sourceSequenceItemIds.length !== 0 ||
-    workItem.sourceCleanupDecisionIds.length !== 0 ||
-    stableAuthorityStringify(workItem.executionInput) !== stableAuthorityStringify({
-      operation: 'validate_snapshot_manifest',
-    }) ||
     workItem.expectedOutputs.length !== 1 ||
     !expectedAsset ||
     expectedAsset.id !== body.expectedAssetId ||
     expectedAsset.assetRole !== 'qa' ||
-    expectedAsset.artifactType !== 'authority_validation_evidence' ||
     expectedAsset.contentType !== 'application/json' ||
     !expectedAsset.required ||
     expectedAsset.previewPlaceholderAllowed ||
@@ -417,9 +412,53 @@ function assertCanonicalAuthorityValidationJob(input: {
   ) {
     throw invalidAuthority('Canonical internal authority-validation job is not exactly executable.')
   }
+  if (!workItem || !expectedAsset) throw invalidAuthority('Canonical internal validation lineage is incomplete.')
+  if (profile.kind === 'snapshot') {
+    if (
+      readiness.job.canonicalGraphState !== 'ready' ||
+      readiness.job.dependencyJobIds.length !== 0 ||
+      readiness.dependencyEvidenceState !== 'not_required_for_root_job' ||
+      lease.dependencyAuthority.state !== 'not_required_for_root_job' ||
+      workItem.workItemType !== 'validate_approved_snapshot' ||
+      workItem.workerClass !== 'authority_worker' ||
+      workItem.sourceSequenceItemIds.length !== 0 ||
+      workItem.sourceCleanupDecisionIds.length !== 0 ||
+      stableAuthorityStringify(workItem.executionInput) !== stableAuthorityStringify({
+        operation: 'validate_snapshot_manifest',
+      }) ||
+      expectedAsset.artifactType !== 'authority_validation_evidence'
+    ) throw invalidAuthority('Canonical snapshot-validation job is not exactly executable.')
+    return
+  }
+  const selectedDependencyCount = lease.dependencyAuthority.selectedArtifacts.length
+  const cleanupDecisions = authority.components.sourceCleanupPlan.decisions.filter((decision) =>
+    workItem.sourceCleanupDecisionIds.includes(decision.decisionId))
+  if (
+    readiness.job.dependencyJobIds.length !== 1 ||
+    lease.dependencyAuthority.state !== 'private_test_dependencies_verified' ||
+    selectedDependencyCount !== 1 ||
+    workItem.workItemType !== 'prepare_source_trim' ||
+    workItem.workerClass !== 'authority_worker' ||
+    workItem.sourceSequenceItemIds.length === 0 ||
+    workItem.sourceCleanupDecisionIds.length === 0 ||
+    cleanupDecisions.length !== workItem.sourceCleanupDecisionIds.length ||
+    cleanupDecisions.some((decision) =>
+      !workItem.sourceSequenceItemIds.includes(decision.sourceSequenceItemId) ||
+      decision.endFrameExclusive <= decision.startFrame ||
+      !['passed', 'warning'].includes(decision.meaningPreservationStatus) ||
+      !['not_required', 'resolved'].includes(decision.userReviewStatus)) ||
+    authority.components.sourceCleanupPlan.status !== 'confirmed' ||
+    authority.components.sourceCleanupSummary.status !== 'confirmed' ||
+    authority.components.sourceCleanupSummary.userReviewRequired !== false ||
+    stableAuthorityStringify(workItem.executionInput) !== stableAuthorityStringify({
+      operation: 'validate_approved_source_trim_plan',
+    }) ||
+    expectedAsset.artifactType !== 'source_trim_validation_evidence'
+  ) throw invalidAuthority('Canonical source-trim validation job is not exactly executable.')
 }
 
 function buildAuthorityValidationReport(input: {
+  profile: InternalValidationProfile
   body: RunCanonicalInternalAuthorityJobInput
   leaseId: string
   immutableLeaseHash: string
@@ -448,7 +487,7 @@ function buildAuthorityValidationReport(input: {
       immutableLeaseHash: input.immutableLeaseHash,
       leaseAttemptNumber: input.leaseAttemptNumber,
       executionAttemptId: input.executionAttemptId,
-      runnerClass: RUNNER_CLASS,
+      runnerClass: input.profile.runnerClass,
     },
     authorityHashes: { ...input.readiness.authorityHashes },
     reservation: {
@@ -467,11 +506,23 @@ function buildAuthorityValidationReport(input: {
       'exact_root_work_item_and_expected_output',
       'opaque_worker_execution_fence_started',
     ].map((checkId) => ({ checkId, status: 'passed' as const })),
+    validationProfile: input.profile.kind,
+    sourceTrim: input.profile.kind === 'source_trim'
+      ? {
+          status: 'confirmed' as const,
+          sourceSequenceItemIds: [...input.authority.workItems.find((item) => item.id === input.workItemId)!.sourceSequenceItemIds],
+          sourceCleanupDecisionIds: [...input.authority.workItems.find((item) => item.id === input.workItemId)!.sourceCleanupDecisionIds],
+          decisionCount: input.authority.workItems.find((item) => item.id === input.workItemId)!.sourceCleanupDecisionIds.length,
+          meaningPreservationValidated: true as const,
+          unresolvedUserReview: false as const,
+        }
+      : null,
     valid: true as const,
   }
 }
 
 function createAuthorityAdapters(input: {
+  runnerClass: InternalValidationProfile['runnerClass']
   localStorageRoot: string
   relativePath: string
   identity: {
@@ -518,7 +569,7 @@ function createAuthorityAdapters(input: {
         actualRunEvidence: {
           state: 'actual_run_evidence_placeholder' as const,
           executionAttemptId: input.executionAttemptId,
-          runnerClass: RUNNER_CLASS,
+          runnerClass: input.runnerClass,
           runnerEvidenceHash: sha256ArtifactQaValue({
             executionAttemptId: input.executionAttemptId,
             contentSha256: input.contentSha256,
@@ -554,7 +605,7 @@ function createAuthorityAdapters(input: {
         typeof parsedExecutionFence !== 'object' ||
         Array.isArray(parsedExecutionFence) ||
         (parsedExecutionFence as Record<string, unknown>).executionAttemptId !== input.executionAttemptId ||
-        (parsedExecutionFence as Record<string, unknown>).runnerClass !== RUNNER_CLASS
+        (parsedExecutionFence as Record<string, unknown>).runnerClass !== input.runnerClass
       ) {
         throw new ApiError('VALIDATION_FAILED', 'Canonical authority artifact execution-fence QA failed.', 409)
       }
@@ -644,6 +695,8 @@ function parseAuthorityValidationArtifact(bytes: Buffer): Record<string, unknown
     throw new ApiError('VALIDATION_FAILED', 'Canonical authority validation artifact has an invalid shape.', 409)
   }
   const record = parsed as Record<string, unknown>
+  const validationProfile = record.validationProfile
+  const sourceTrim = record.sourceTrim
   if (
     record.schemaVersion !== ARTIFACT_SCHEMA_VERSION ||
     record.source !== 'immutable_canonical_edit_authority' ||
@@ -651,11 +704,25 @@ function parseAuthorityValidationArtifact(bytes: Buffer): Record<string, unknown
     !Array.isArray(record.checks) ||
     record.checks.length !== 9 ||
     record.checks.some((check) => !check || typeof check !== 'object' ||
-      (check as Record<string, unknown>).status !== 'passed')
+      (check as Record<string, unknown>).status !== 'passed') ||
+    !['snapshot', 'source_trim'].includes(String(validationProfile)) ||
+    (validationProfile === 'snapshot' && sourceTrim !== null) ||
+    (validationProfile === 'source_trim' && !validSourceTrimEvidence(sourceTrim))
   ) {
     throw new ApiError('VALIDATION_FAILED', 'Canonical authority validation artifact failed semantic QA.', 409)
   }
   return record
+}
+
+function validSourceTrimEvidence(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const record = value as Record<string, unknown>
+  return record.status === 'confirmed' &&
+    Array.isArray(record.sourceSequenceItemIds) && record.sourceSequenceItemIds.length > 0 &&
+    Array.isArray(record.sourceCleanupDecisionIds) && record.sourceCleanupDecisionIds.length > 0 &&
+    record.decisionCount === record.sourceCleanupDecisionIds.length &&
+    record.meaningPreservationValidated === true &&
+    record.unresolvedUserReview === false
 }
 
 async function verifyStoredArtifactBytes(input: {
@@ -680,6 +747,24 @@ async function verifyStoredArtifactBytes(input: {
 
 function boundedInternalKey(prefix: string, identityHash: string): string {
   return `${prefix}-${identityHash.slice(0, 48)}`
+}
+
+function internalValidationProfile(purpose: RunCanonicalInternalAuthorityJobInput['purpose']) {
+  return purpose === 'execute_canonical_internal_source_trim_validation'
+    ? {
+        kind: 'source_trim' as const,
+        source: 'canonical_internal_source_trim_validation_runner' as const,
+        runnerClass: 'canonical_source_trim_validation_runner_v1' as const,
+        operation: 'validate_approved_source_trim_plan' as const,
+        artifactDomain: 'canonical_internal_source_trim_validation_artifact_v1' as const,
+      }
+    : {
+        kind: 'snapshot' as const,
+        source: 'canonical_internal_authority_validation_runner' as const,
+        runnerClass: 'canonical_authority_validation_runner_v1' as const,
+        operation: 'validate_snapshot_manifest' as const,
+        artifactDomain: 'canonical_internal_authority_validation_artifact_v1' as const,
+      }
 }
 
 function parseRunRequest(input: RunCanonicalInternalAuthorityJobInput): RunCanonicalInternalAuthorityJobInput {

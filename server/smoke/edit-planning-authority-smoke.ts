@@ -800,6 +800,24 @@ try {
     workGraphPlanningAuthority,
     workGraphSourceFixture,
   )
+  const sourceTrimValidationItem = workGraphPlanBody.canonicalPlan.workItems.find((workItem) =>
+    workItem.workItemKey === 'source-trim')
+  assert.ok(sourceTrimValidationItem)
+  sourceTrimValidationItem.workerClass = 'authority_worker'
+  sourceTrimValidationItem.executionInput = { operation: 'validate_approved_source_trim_plan' }
+  sourceTrimValidationItem.expectedOutputs = [{
+    outputKey: 'source-trim-validation-evidence',
+    artifactType: 'source_trim_validation_evidence',
+    assetRole: 'qa',
+    required: true,
+    previewPlaceholderAllowed: false,
+    contentType: 'application/json',
+    segmentIds: ['segment-1', 'segment-2'],
+    timingIds: ['master-timing-plan'],
+    rendererLayerIds: [],
+  }]
+  sourceTrimValidationItem.approvedToolIds = []
+  sourceTrimValidationItem.maximumCreditBudget = 0
   workGraphPlanBody.workspaceId = routeWorkspaceId
   const workGraphPublishResponse = await fetch(
     `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/${workGraphEditSessionId}/canonical-plans`,
@@ -878,13 +896,21 @@ try {
   const workGraphRun = asRecord(workGraphRunEnvelope.data?.canonicalPrivateWorkGraphRun)
   const workGraphRunSummary = asRecord(workGraphRun.summary)
   const workGraphRunReadiness = asRecord(workGraphRun.readiness)
+  const workGraphJobOutcomes = workGraphRun.jobs as Record<string, unknown>[]
+  const sourceTrimValidationOutcome = workGraphJobOutcomes.find((job) =>
+    job.workItemKey === 'source-trim')
+  assert.ok(sourceTrimValidationOutcome)
+  assert.equal(sourceTrimValidationOutcome.status, 'completed_private_test')
+  assert.equal(sourceTrimValidationOutcome.contentType, 'application/json')
+  assert.equal(typeof sourceTrimValidationOutcome.artifactId, 'string')
+  assert.equal(typeof sourceTrimValidationOutcome.sha256, 'string')
   assert.equal(workGraphRun.status, 'blocked_required_jobs')
   assert.equal(workGraphRunSummary.totalJobCount, 4)
-  assert.equal(workGraphRunSummary.completedJobCount, 1)
+  assert.equal(workGraphRunSummary.completedJobCount, 2)
   assert.equal(workGraphRunSummary.replayedJobCount, 0)
   assert.equal(workGraphRunSummary.capabilityBlockedJobCount, 1)
-  assert.equal(workGraphRunSummary.dependencyBlockedJobCount, 2)
-  assert.equal(workGraphRunSummary.requiredBlockedJobCount, 3)
+  assert.equal(workGraphRunSummary.dependencyBlockedJobCount, 1)
+  assert.equal(workGraphRunSummary.requiredBlockedJobCount, 2)
   assert.equal(workGraphRunReadiness.privateInternalWorkGraphCompleted, false)
   assert.equal(workGraphRunReadiness.privateReviewReady, false)
   assert.equal(workGraphRunReadiness.nextRequiredGate, 'canonical_job_capability_blockers')
@@ -911,8 +937,8 @@ try {
   const workGraphContinuation = asRecord(workGraphContinuationEnvelope.data?.canonicalPrivateWorkGraphRun)
   const workGraphContinuationSummary = asRecord(workGraphContinuation.summary)
   assert.equal(workGraphContinuation.status, 'blocked_required_jobs')
-  assert.equal(workGraphContinuationSummary.completedJobCount, 1)
-  assert.equal(workGraphContinuationSummary.replayedJobCount, 1)
+  assert.equal(workGraphContinuationSummary.completedJobCount, 2)
+  assert.equal(workGraphContinuationSummary.replayedJobCount, 2)
   assert.equal(workGraphContinuationSummary.capabilityBlockedJobCount, 1)
 
   const toolEvidenceResponse = await fetch(
@@ -1048,6 +1074,7 @@ console.log(JSON.stringify({
     'authenticated_canonical_execution_readiness_http_route',
     'authenticated_canonical_single_job_execution_http_route_with_replay_and_conflict',
     'authenticated_canonical_work_graph_advances_ready_job_and_persists_exact_blockers',
+    'canonical_source_trim_plan_validation_executes_after_snapshot_dependency',
     'canonical_work_graph_continuation_reuses_completed_job_without_duplicate_execution',
     'authenticated_fail_closed_tool_runtime_evidence_http_route',
     'legacy_caller_authority_routes_fail_closed',

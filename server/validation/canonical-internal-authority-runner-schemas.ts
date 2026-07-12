@@ -21,7 +21,10 @@ export const runCanonicalInternalAuthorityJobSchema = z.object({
   editSessionId: safeIdentitySchema,
   jobId: safeIdentitySchema,
   expectedAssetId: safeIdentitySchema,
-  purpose: z.literal('execute_canonical_internal_authority_validation'),
+  purpose: z.enum([
+    'execute_canonical_internal_authority_validation',
+    'execute_canonical_internal_source_trim_validation',
+  ]),
 }).strict()
 
 export const canonicalInternalAuthorityRunnerLeaseSchema = z.object({
@@ -31,8 +34,14 @@ export const canonicalInternalAuthorityRunnerLeaseSchema = z.object({
 
 export const canonicalInternalAuthorityRunnerResponseSchema = z.object({
   schemaVersion: z.literal(CANONICAL_INTERNAL_AUTHORITY_RUNNER_RESPONSE_VERSION),
-  source: z.literal('canonical_internal_authority_validation_runner'),
-  purpose: z.literal('execute_canonical_internal_authority_validation'),
+  source: z.enum([
+    'canonical_internal_authority_validation_runner',
+    'canonical_internal_source_trim_validation_runner',
+  ]),
+  purpose: z.enum([
+    'execute_canonical_internal_authority_validation',
+    'execute_canonical_internal_source_trim_validation',
+  ]),
   identity: z.object({
     workspaceId: safeIdentitySchema,
     projectId: safeIdentitySchema,
@@ -56,8 +65,11 @@ export const canonicalInternalAuthorityRunnerResponseSchema = z.object({
   }).strict(),
   execution: z.object({
     executionAttemptId: safeIdentitySchema,
-    runnerClass: z.literal('canonical_authority_validation_runner_v1'),
-    operation: z.literal('validate_snapshot_manifest'),
+    runnerClass: z.enum([
+      'canonical_authority_validation_runner_v1',
+      'canonical_source_trim_validation_runner_v1',
+    ]),
+    operation: z.enum(['validate_snapshot_manifest', 'validate_approved_source_trim_plan']),
     actualInternalOperationCompleted: z.literal(true),
     externalToolExecuted: z.literal(false),
     providerCallMade: z.literal(false),

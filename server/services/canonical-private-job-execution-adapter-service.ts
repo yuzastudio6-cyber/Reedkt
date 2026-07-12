@@ -139,8 +139,11 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
       const expectedAsset = expectedAssets[0]!
       const internalAuthorityJob = workItem.approvedToolIds.length === 0 &&
         workItem.workItemType === 'validate_approved_snapshot'
+      const internalSourceTrimJob = workItem.approvedToolIds.length === 0 &&
+        workItem.workItemType === 'prepare_source_trim'
+      const internalServerJob = internalAuthorityJob || internalSourceTrimJob
       let resolvedProvenTool: ReturnType<typeof getProvenEndToEndToolIdentity>
-      if (!internalAuthorityJob) {
+      if (!internalServerJob) {
         if (workItem.approvedToolIds.length !== 1) {
           throw new ApiError(
             'TOOL_NOT_READY',
@@ -186,16 +189,22 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
       let runnerClass: string
       let singleUseDispatchConsumed = false
 
-      if (internalAuthorityJob) {
-        operationId = 'internal.validate_snapshot_manifest.v1'
-        runnerClass = 'canonical_authority_validation_runner_v1'
+      if (internalServerJob) {
+        operationId = internalSourceTrimJob
+          ? 'internal.validate_approved_source_trim_plan.v1'
+          : 'internal.validate_snapshot_manifest.v1'
+        runnerClass = internalSourceTrimJob
+          ? 'canonical_source_trim_validation_runner_v1'
+          : 'canonical_authority_validation_runner_v1'
         rawResponse = asCoordinatorResponse(await createCanonicalInternalAuthorityRunnerService(context).execute({
           workspaceId: body.workspaceId,
           projectId: body.projectId,
           editSessionId: body.editSessionId,
           jobId,
           expectedAssetId: expectedAsset.id,
-          purpose: 'execute_canonical_internal_authority_validation',
+          purpose: internalSourceTrimJob
+            ? 'execute_canonical_internal_source_trim_validation'
+            : 'execute_canonical_internal_authority_validation',
         }, leaseAuthority))
       } else {
         const provenTool = resolvedProvenTool!

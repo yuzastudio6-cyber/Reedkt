@@ -33,15 +33,16 @@ The authenticated smoke publishes and approves a fresh four-job canonical plan, 
 
 - caller-selected job lists are rejected;
 - the dependency-root snapshot validation job executes and passes private QA/reconciliation;
-- the next unavailable media job is recorded as an exact capability blocker;
-- its two descendants remain unattempted and are recorded as dependency-blocked;
+- a dependency-bound source-trim plan-validation job verifies explicit source/cleanup/meaning authority and persists private QA/reconciliation evidence;
+- the next unavailable final-QA tool job is recorded as an exact capability blocker;
+- its final-export descendant remains unattempted and is recorded as dependency-blocked;
 - HTTP idempotency replays the original run;
 - a continuation run reuses the completed root job without duplicate execution;
 - provider, public artifact, delivery, customer price/credit, wallet, billing, settlement, deployment, and production permissions remain false.
 
 ## Boundaries
 
-This is honest run-to-blocked orchestration, not a completed upload-to-review journey. Required media/render/QA job capabilities, terminal private-review assembly, revision/recovery, browser approval handoff, distributed worker transactions, providers, Supabase, billing, public delivery, and production promotion remain gated.
+This is honest run-to-blocked orchestration, not a completed upload-to-review journey. Applying approved trim frames during final composition, dependency-aware final QA, terminal private-review assembly, revision/recovery, browser approval handoff, distributed worker transactions, providers, Supabase, billing, public delivery, and production promotion remain gated.
 
 ## Verification
 
@@ -49,4 +50,3 @@ This is honest run-to-blocked orchestration, not a completed upload-to-review jo
 - `npm run smoke:edit-planning-authority`
 - `npm run smoke:private-internal-edit-upload-e2e`
 - `npm run qa:internal-pipeline`
-

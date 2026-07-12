@@ -1,4 +1,5 @@
 import { CheckCircle2, Link2, RefreshCw, ShieldCheck, Trash2, X } from 'lucide-react'
+import type { KeyboardEvent } from 'react'
 import type { EditReferenceListItem, PreferenceApplicationRecord } from '../../types/edit-reference'
 import type {
   PreferenceApplicationDownstreamContext,
@@ -119,17 +120,25 @@ export function ProjectEditSessionEditReferencePicker({
             </div>
             {replacementOptions.length ? (
               <div className="project-edit-session-reference-connection__options" role="radiogroup" aria-label="Replacement Edit References">
-                {replacementOptions.map((item) => {
+                {replacementOptions.map((item, index) => {
                   const selected = item.reference.id === selectedReferenceId
                   return (
                     <button
                       aria-checked={selected}
+                      autoFocus={selected}
                       className={selected ? 'is-selected' : ''}
                       data-testid={`edit-session-edit-reference-replacement-${item.reference.id}`}
                       disabled={busy}
                       key={item.reference.id}
                       onClick={() => onSelectReference(item.reference.id)}
+                      onKeyDown={(event) => moveRadioSelection(
+                        event,
+                        replacementOptions.map((option) => option.reference.id),
+                        index,
+                        onSelectReference,
+                      )}
                       role="radio"
+                      tabIndex={selected ? 0 : -1}
                       type="button"
                     >
                       <strong>{item.reference.name}</strong>
@@ -164,18 +173,18 @@ export function ProjectEditSessionEditReferencePicker({
         ) : null}
 
         {lifecycleMode === 'remove' ? (
-          <div className="project-edit-session-reference-connection__remove-confirmation" data-testid="edit-session-edit-reference-remove-confirmation" role="alert">
+          <div aria-describedby="edit-session-edit-reference-remove-description" aria-labelledby="edit-session-edit-reference-remove-title" className="project-edit-session-reference-connection__remove-confirmation" data-testid="edit-session-edit-reference-remove-confirmation" role="alertdialog">
             <div>
-              <strong>{invalidationReason ? 'Finish removing this guidance?' : 'Remove this guidance from the edit?'}</strong>
-              <span>The application becomes inactive, but its version, approved DNA, and audit history remain available.</span>
+              <strong id="edit-session-edit-reference-remove-title">{invalidationReason ? 'Finish removing this guidance?' : 'Remove this guidance from the edit?'}</strong>
+              <span id="edit-session-edit-reference-remove-description">The application becomes inactive, but its version, approved DNA, and audit history remain available.</span>
             </div>
             <div className="project-edit-session-reference-connection__lifecycle-actions">
-              <Button disabled={busy} icon={Trash2} onClick={onRemove} size="sm" variant="danger">
+              {!invalidationReason ? (
+                <Button autoFocus disabled={busy} onClick={() => onLifecycleModeChange('idle')} size="sm" variant="secondary">Keep guidance</Button>
+              ) : null}
+              <Button autoFocus={Boolean(invalidationReason)} disabled={busy} icon={Trash2} onClick={onRemove} size="sm" variant="danger">
                 {invalidationReason ? 'Finish removal' : 'Remove guidance'}
               </Button>
-              {!invalidationReason ? (
-                <Button disabled={busy} onClick={() => onLifecycleModeChange('idle')} size="sm" variant="secondary">Keep guidance</Button>
-              ) : null}
             </div>
           </div>
         ) : null}
@@ -204,7 +213,7 @@ export function ProjectEditSessionEditReferencePicker({
         </div>
       ) : approvedReferences.length ? (
         <div className="project-edit-session-reference-connection__options" role="radiogroup" aria-label="Approved Edit References">
-          {approvedReferences.map((item) => {
+          {approvedReferences.map((item, index) => {
             const selected = item.reference.id === selectedReferenceId
             return (
               <button
@@ -214,7 +223,14 @@ export function ProjectEditSessionEditReferencePicker({
                 disabled={busy}
                 key={item.reference.id}
                 onClick={() => onSelectReference(item.reference.id)}
+                onKeyDown={(event) => moveRadioSelection(
+                  event,
+                  approvedReferences.map((option) => option.reference.id),
+                  index,
+                  onSelectReference,
+                )}
                 role="radio"
+                tabIndex={selected || (!selectedReferenceId && index === 0) ? 0 : -1}
                 type="button"
               >
                 <strong>{item.reference.name}</strong>
@@ -249,6 +265,24 @@ export function ProjectEditSessionEditReferencePicker({
       ) : null}
     </section>
   )
+}
+
+function moveRadioSelection(
+  event: KeyboardEvent<HTMLButtonElement>,
+  optionIds: string[],
+  currentIndex: number,
+  onSelect: (referenceId: string) => void,
+) {
+  let nextIndex = -1
+  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % optionIds.length
+  if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (currentIndex - 1 + optionIds.length) % optionIds.length
+  if (event.key === 'Home') nextIndex = 0
+  if (event.key === 'End') nextIndex = optionIds.length - 1
+  if (nextIndex < 0) return
+  event.preventDefault()
+  const group = event.currentTarget.closest('[role="radiogroup"]')
+  onSelect(optionIds[nextIndex]!)
+  window.requestAnimationFrame(() => group?.querySelectorAll<HTMLElement>('[role="radio"]')[nextIndex]?.focus())
 }
 
 function LifecycleReview({

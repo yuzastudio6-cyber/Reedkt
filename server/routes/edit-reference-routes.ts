@@ -45,6 +45,7 @@ const appendMessageSchema = workspaceSchema.extend({
   expectedStudyRevision: z.number().int().positive(),
   clientMessageId: z.string().trim().min(1).max(160),
   content: z.string().trim().min(1).max(8_000),
+  findingCorrectionEvidenceId: idSchema.max(200).optional(),
 }).strict()
 const evidenceMutationFields = {
   workspaceId: idSchema.max(160),

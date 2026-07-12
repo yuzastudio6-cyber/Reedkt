@@ -80,6 +80,7 @@
     "smoke:edit-reference-dna-synthesis": "tsx server/smoke/edit-reference-dna-synthesis-smoke.ts",
     "smoke:edit-reference-dna-qa-approval": "tsx server/smoke/edit-reference-dna-qa-approval-smoke.ts",
     "smoke:edit-reference-target-application": "tsx server/smoke/edit-reference-target-application-smoke.ts",
+    "smoke:edit-reference-adaptation-proof": "tsx server/smoke/edit-reference-adaptation-proof-smoke.ts",
     "smoke:edit-reference-downstream-integration": "tsx server/smoke/edit-reference-downstream-integration-smoke.ts",
     "smoke:edit-reference-lifecycle-closure": "tsx server/smoke/edit-reference-lifecycle-closure-smoke.ts",
     "prod:readiness:summary": "tsx server/cli/production-readiness-summary.ts",

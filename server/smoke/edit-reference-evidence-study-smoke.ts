@@ -92,6 +92,57 @@ try {
     assert.equal(unchangedStudy.status, 409)
     assert.equal(unchangedStudy.code, 'VALIDATION_FAILED')
 
+    const chatCorrectionPayload = {
+      workspaceId: workspaceA,
+      expectedStudyRevision: studied.body.data.detail.study.revision,
+      clientMessageId: 'gate8-study-chat-correction-message',
+      content: 'Keep the evidence cards restrained, but slow the reveal pace and use target-authored labels with more reading time.',
+      findingCorrectionEvidenceId: manual.body.data.detail.evidence[0]!.id,
+    }
+    const chatCorrection = await request<EditReferenceDetailData>(runtime.baseUrl, `/v1/edit-reference-studies/${safe.detail.study.id}/messages`, {
+      method: 'POST', key: 'gate8-study-chat-correction', body: chatCorrectionPayload,
+    })
+    assert.equal(chatCorrection.body.data.detail.study.status, 'ready_to_study')
+    assert.equal(chatCorrection.body.data.detail.study.evidenceStatus, 'ready_to_study')
+    assert.equal(chatCorrection.body.data.detail.reference.dnaStatus, 'not_generated')
+    const correctedFromChat = chatCorrection.body.data.detail.evidence.find((record) => record.supersedesEvidenceId === manual.body.data.detail.evidence[0]!.id)
+    assert(correctedFromChat)
+    assert.equal(correctedFromChat.sourceType, 'manual_user_evidence')
+    assert.match(correctedFromChat.title, /Study Chat correction/)
+    assert.match(chatCorrection.body.data.detail.messages.at(-1)?.content ?? '', /new evidence version/i)
+    assert.equal(chatCorrection.body.data.detail.messages.at(-1)?.runtimeSource, 'deterministic_evidence')
+    assert(chatCorrection.body.data.detail.usageLogs.some((entry) => entry.eventType === 'evidence_added'))
+
+    const chatCorrectionReplay = await request<EditReferenceDetailData>(runtime.baseUrl, `/v1/edit-reference-studies/${safe.detail.study.id}/messages`, {
+      method: 'POST', key: 'gate8-study-chat-correction', body: chatCorrectionPayload,
+    })
+    assert.equal(chatCorrectionReplay.replayed, 'true')
+    assert.deepEqual(chatCorrectionReplay.body, chatCorrection.body)
+    const duplicateCorrection = await requestError(runtime.baseUrl, `/v1/edit-reference-studies/${safe.detail.study.id}/messages`, {
+      method: 'POST', key: 'gate8-study-chat-correction-new-key', body: {
+        ...chatCorrectionPayload,
+        expectedStudyRevision: chatCorrection.body.data.detail.study.revision,
+        clientMessageId: 'gate8-study-chat-correction-duplicate',
+      },
+    })
+    assert.equal(duplicateCorrection.status, 409)
+    assert.equal(duplicateCorrection.code, 'VERSION_CONFLICT')
+
+    const restudiedAfterChatCorrection = await request<EditReferenceDetailData>(runtime.baseUrl, `/v1/edit-reference-studies/${safe.detail.study.id}/evidence-study`, {
+      method: 'POST', key: 'gate8-run-study-chat-correction', body: {
+        workspaceId: workspaceA,
+        expectedStudyRevision: chatCorrection.body.data.detail.study.revision,
+      },
+    })
+    assert.equal(restudiedAfterChatCorrection.body.data.detail.study.status, 'evidence_ready')
+    const refreshedFinding = restudiedAfterChatCorrection.body.data.detail.evidence.find((record) => (
+      record.sourceType === 'derived_skill_evidence'
+      && record.orchestrationId === restudiedAfterChatCorrection.body.data.detail.skillRuns.at(-1)?.orchestrationId
+      && record.category === 'visual_language'
+    ))
+    assert.match(refreshedFinding?.summary ?? '', /slow the reveal pace/i)
+    assert.doesNotMatch(refreshedFinding?.summary ?? '', /measured pacing, quiet transitions/i)
+
     const metadataOnly = await createReference(runtime.baseUrl, workspaceA, 'Metadata-only reference', ['visual_language'], 'gate2-create-metadata')
     const metadataPayload = {
       workspaceId: workspaceA,

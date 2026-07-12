@@ -19,8 +19,10 @@ import type {
   PreferenceApplicationListData,
   PreferenceApplicationTargetContextSnapshot,
   PreferenceAssetRecord,
+  PreferenceEvidenceCategory,
   PreferenceEvidenceMediaMetadata,
   PreferenceEvidenceRecord,
+  PreferenceEvidenceTransferability,
   PreferenceStudyMessageRecord,
   PreferenceStudyData,
   PreferenceStudyMessageListData,
@@ -304,6 +306,27 @@ export function createEditReferenceService(
           if (existingClientMessage) {
             throw new ApiError('IDEMPOTENCY_CONFLICT', 'The client message ID was already used.', 409)
           }
+          let correctionEvidence: PreferenceEvidenceRecord | undefined
+          if (normalized.findingCorrectionEvidenceId) {
+            assertActiveStudy(reference, study)
+            const superseded = aggregate.evidence.find((record) => record.id === normalized.findingCorrectionEvidenceId)
+            if (!superseded || superseded.studySessionId !== study.id || superseded.sourceType !== 'manual_user_evidence') {
+              throw new ApiError('VALIDATION_FAILED', 'A Study Chat correction must replace saved creative evidence in this study.', 409)
+            }
+            if (aggregate.evidence.some((record) => record.supersedesEvidenceId === superseded.id)) {
+              throw new ApiError('VERSION_CONFLICT', 'That evidence already has a newer correction. Reload before saving.', 409)
+            }
+            correctionEvidence = createEvidenceRecords(reference, study, {
+              workspaceId: normalized.workspaceId,
+              expectedStudyRevision: normalized.expectedStudyRevision,
+              sourceType: 'manual_user_evidence',
+              title: `${superseded.title} — Study Chat correction`.slice(0, 160),
+              category: requireManualEvidenceCategory(superseded.category),
+              summary: normalized.content,
+              intendedUse: requireCorrectionTransferability(superseded.transferability),
+              supersedesEvidenceId: superseded.id,
+            }, now).evidence
+          }
           const sequence = nextSequence(aggregate, study.id)
           const userMessage: PreferenceStudyMessageRecord = {
             id: `preference-study-message-${randomUUID()}`,
@@ -323,13 +346,40 @@ export function createEditReferenceService(
             editReferenceId: reference.id,
             studySessionId: study.id,
             role: 'assistant',
-            content: deterministicAcknowledgement(reference),
+            content: correctionEvidence
+              ? `Your Study Chat correction replaced “${aggregate.evidence.find((record) => record.id === correctionEvidence?.supersedesEvidenceId)?.title ?? 'the selected evidence'}” as a new evidence version. Run the evidence study again before generating or using Preference DNA.`
+              : deterministicAcknowledgement(reference),
             sequence: sequence + 1,
-            runtimeSource: 'deterministic_setup',
+            runtimeSource: correctionEvidence ? 'deterministic_evidence' : 'deterministic_setup',
             createdAt: now,
           }
           const appendedMessageIds = [userMessage.id, assistantMessage.id]
           aggregate.messages.push(userMessage, assistantMessage)
+          if (correctionEvidence) {
+            aggregate.evidence.push(correctionEvidence)
+            let invalidatedDNACandidate = false
+            for (const dnaVersion of aggregate.dnaVersions.filter((record) => (
+              record.studySessionId === study.id
+              && record.status !== 'approved'
+              && record.status !== 'superseded'
+            ))) {
+              dnaVersion.status = 'superseded'
+              dnaVersion.supersededAt = now
+              invalidatedDNACandidate = true
+            }
+            study.status = 'ready_to_study'
+            study.evidenceStatus = 'ready_to_study'
+            study.dnaStatus = 'not_generated'
+            study.qaStatus = 'not_run'
+            reference.evidenceStatus = 'ready_to_study'
+            reference.dnaStatus = 'not_generated'
+            reference.qaStatus = 'not_run'
+            aggregate.usageLogs.push(usageLog(reference, 'evidence_added', now))
+            if (invalidatedDNACandidate) {
+              addAuditEvent({ eventType: 'preference_dna_candidate_invalidated', editReferenceId: reference.id, studySessionId: study.id })
+            }
+            addAuditEvent({ eventType: 'preference_evidence_added', editReferenceId: reference.id, studySessionId: study.id })
+          }
           study.revision += 1
           study.updatedAt = now
           reference.updatedAt = now
@@ -1393,7 +1443,25 @@ function normalizeAppendMessage(input: AppendPreferenceStudyMessageRequest): App
     expectedStudyRevision: input.expectedStudyRevision,
     clientMessageId: requireText(input.clientMessageId, 'clientMessageId', 160),
     content: requireText(input.content, 'content', 8_000),
+    ...(input.findingCorrectionEvidenceId
+      ? { findingCorrectionEvidenceId: requireText(input.findingCorrectionEvidenceId, 'findingCorrectionEvidenceId', 200) }
+      : {}),
   }
+}
+
+function requireManualEvidenceCategory(
+  value: PreferenceEvidenceCategory,
+): Exclude<PreferenceEvidenceCategory, 'media_structure' | 'copy_safety'> {
+  if (value === 'media_structure' || value === 'copy_safety') {
+    throw new ApiError('VALIDATION_FAILED', 'Study Chat can correct saved creative evidence only.', 409)
+  }
+  return value
+}
+
+function requireCorrectionTransferability(
+  value: PreferenceEvidenceTransferability,
+): Exclude<PreferenceEvidenceTransferability, 'unknown'> {
+  return value === 'unknown' ? 'requires_user_review' : value
 }
 
 function normalizeCreateEvidence(input: CreatePreferenceEvidenceRequest): CreatePreferenceEvidenceRequest {

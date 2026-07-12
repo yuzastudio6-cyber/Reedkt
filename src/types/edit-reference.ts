@@ -648,6 +648,7 @@ export interface AppendPreferenceStudyMessageRequest {
   expectedStudyRevision: number
   clientMessageId: string
   content: string
+  findingCorrectionEvidenceId?: string
 }
 
 interface CreatePreferenceEvidenceBaseRequest {

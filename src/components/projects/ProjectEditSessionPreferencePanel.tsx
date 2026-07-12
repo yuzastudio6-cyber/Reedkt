@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Badge } from '../Badge'
 import { Card } from '../Card'
 import type { ProjectEditSessionApiClient } from '../../lib/project-edit-session-api-client'
@@ -50,12 +50,15 @@ export function ProjectEditSessionPreferencePanel({
   const [currentUserInstruction, setCurrentUserInstruction] = useState('')
   const [frameConfirmed, setFrameConfirmed] = useState(false)
   const [lifecycleMode, setLifecycleMode] = useState<'idle' | 'replace' | 'remove'>('idle')
+  const loadEpoch = useRef(0)
 
   const loadPanel = useCallback(async () => {
+    const epoch = ++loadEpoch.current
     const [next, bundleResponse] = await Promise.all([
       loadProjectEditSessionPreferencePanelForUI({ client, editSessionId, projectId }),
       client.bundle.get<{ bundle: ProjectEditSessionBundleRecord }>(editSessionId),
     ])
+    if (epoch !== loadEpoch.current) return
     setModel(next)
     let nextBundle = bundleResponse.data?.bundle
     if (nextBundle) {
@@ -63,6 +66,7 @@ export function ProjectEditSessionPreferencePanel({
         editReferenceClient,
         session: nextBundle.session,
       })
+      if (epoch !== loadEpoch.current) return
       if (
         nextIntegration.activeApplication
         && nextIntegration.sessionIntegrationStatus?.status !== 'connected_mock'
@@ -74,11 +78,13 @@ export function ProjectEditSessionPreferencePanel({
         })
         if (recovered.ok) {
           const recoveredBundle = await client.bundle.get<{ bundle: ProjectEditSessionBundleRecord }>(editSessionId)
+          if (epoch !== loadEpoch.current) return
           nextBundle = recoveredBundle.data?.bundle ?? nextBundle
           nextIntegration = await loadProjectEditSessionEditReferenceIntegration({
             editReferenceClient,
             session: nextBundle.session,
           })
+          if (epoch !== loadEpoch.current) return
         }
       }
       const resolvedBundle = nextBundle
@@ -134,6 +140,7 @@ export function ProjectEditSessionPreferencePanel({
     }, 0)
     return () => {
       cancelled = true
+      loadEpoch.current += 1
       window.clearTimeout(timeoutId)
     }
   }, [loadPanel])

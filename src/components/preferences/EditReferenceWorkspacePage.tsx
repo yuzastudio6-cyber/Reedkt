@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import {
   Archive,
   BookOpen,
@@ -159,11 +159,14 @@ function EditReferencesTab({
   const [error, setError] = useState<string>()
   const [notice, setNotice] = useState<string>()
   const [showCreate, setShowCreate] = useState(false)
+  const requestEpoch = useRef(0)
 
   const loadList = useCallback(async (referenceIdOverride?: string) => {
+    const epoch = ++requestEpoch.current
     setLoading(true)
     setError(undefined)
     const response = await api.list(workspaceId)
+    if (epoch !== requestEpoch.current) return
     if (!response.ok) {
       setError(response.message)
       setLoading(false)
@@ -177,6 +180,7 @@ function EditReferencesTab({
       ?? response.data.references[0]?.reference.id
     if (selectedId) {
       const selected = await api.get(workspaceId, selectedId)
+      if (epoch !== requestEpoch.current) return
       if (selected.ok) setDetail(selected.data.detail)
       else setError(selected.message)
     } else {
@@ -187,15 +191,20 @@ function EditReferencesTab({
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => { void loadList() }, 0)
-    return () => window.clearTimeout(timeoutId)
+    return () => {
+      requestEpoch.current += 1
+      window.clearTimeout(timeoutId)
+    }
     // The first load deliberately does not refetch when selection changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const selectReference = async (referenceId: string) => {
+    const epoch = ++requestEpoch.current
     setBusy(true)
     setError(undefined)
     const response = await api.get(workspaceId, referenceId)
+    if (epoch !== requestEpoch.current) return
     if (response.ok) {
       setDetail(response.data.detail)
       onReferenceSelected(response.data.detail.reference.id)
@@ -264,9 +273,12 @@ function EditReferencesTab({
           </div>
           {loading ? <PanelPlaceholder label="Loading private references…" /> : references.length ? references.map((item) => {
             const view = toEditReferenceSavedCardView(item)
+            const selected = detail?.reference.id === item.reference.id
             return (
             <button
-              className={`edit-reference-saved-card ${detail?.reference.id === item.reference.id ? 'active' : ''}`}
+              aria-label={`${view.name}${selected ? ', selected' : ''}`}
+              aria-pressed={selected}
+              className={`edit-reference-saved-card ${selected ? 'active' : ''}`}
               data-testid={`edit-reference-card-${item.reference.id}`}
               key={item.reference.id}
               onClick={() => void selectReference(item.reference.id)}
@@ -418,11 +430,13 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
 }) {
   const [message, setMessage] = useState('')
   const [showEvidenceForm, setShowEvidenceForm] = useState(false)
+  const [findingCorrectionEvidenceId, setFindingCorrectionEvidenceId] = useState('')
   const [acknowledgedApprovalKey, setAcknowledgedApprovalKey] = useState('')
   const orderedMessages = useMemo(() => detail.messages.slice().sort((left, right) => left.sequence - right.sequence), [detail.messages])
   const sourceEvidence = useMemo(() => detail.evidence.filter((record) => record.sourceType !== 'derived_skill_evidence'), [detail.evidence])
   const supersededSourceIds = useMemo(() => new Set(sourceEvidence.map((record) => record.supersedesEvidenceId).filter(Boolean)), [sourceEvidence])
   const activeSourceEvidence = useMemo(() => sourceEvidence.filter((record) => !supersededSourceIds.has(record.id)), [sourceEvidence, supersededSourceIds])
+  const correctableChatEvidence = useMemo(() => activeSourceEvidence.filter((record) => record.sourceType === 'manual_user_evidence'), [activeSourceEvidence])
   const latestOrchestrationId = detail.skillRuns.at(-1)?.orchestrationId
   const latestSkillRuns = useMemo(() => detail.skillRuns.filter((record) => (
     latestOrchestrationId && record.orchestrationId === latestOrchestrationId
@@ -454,9 +468,11 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
       expectedStudyRevision: detail.study.revision,
       clientMessageId: `study-chat-${crypto.randomUUID()}`,
       content: message,
+      ...(findingCorrectionEvidenceId ? { findingCorrectionEvidenceId } : {}),
     })
     if (response.ok) {
       setMessage('')
+      setFindingCorrectionEvidenceId('')
       await onChanged(response.data.detail)
     } else setError(response.message)
     setBusy(false)
@@ -572,8 +588,10 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
           <div className="edit-reference-findings" data-testid="edit-reference-study-findings">
             <div>
               <SearchCheck aria-hidden="true" size={18} />
-              <strong>Latest study findings</strong>
-              <span>These findings are evidence summaries—not Preference DNA.</span>
+              <strong>{studyRunReady ? 'Previous findings need refresh' : 'Latest study findings'}</strong>
+              <span>{studyRunReady
+                ? 'A Study Chat correction changed the evidence. Run the study again before generating or using Preference DNA.'
+                : 'These findings are evidence summaries—not Preference DNA.'}</span>
             </div>
             <div>
               {findings.map((record) => (
@@ -619,7 +637,7 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
           />
         )}
       </section>
-      <div className="edit-reference-message-list" aria-live="polite">
+      <div className="edit-reference-message-list">
         {orderedMessages.map((item) => (
           <article className={`edit-reference-message ${item.role}`} data-testid={`study-message-${item.role}`} key={item.id}>
             <span>{item.role === 'assistant' ? 'Study Director' : item.role}</span>
@@ -639,6 +657,23 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
         ))}
       </div>
       <form className="edit-reference-chat-composer" onSubmit={send}>
+        {findings.length > 0 && correctableChatEvidence.length > 0 ? (
+          <label className="edit-reference-chat-correction">
+            <span>Refine current findings</span>
+            <select
+              data-testid="edit-reference-study-correction-source"
+              disabled={disabled}
+              onChange={(event) => setFindingCorrectionEvidenceId(event.target.value)}
+              value={findingCorrectionEvidenceId}
+            >
+              <option value="">Save as direction only</option>
+              {correctableChatEvidence.map((record) => (
+                <option key={record.id} value={record.id}>Replace “{record.title}” with this message</option>
+              ))}
+            </select>
+            <small>Select saved evidence only when this message corrects it. The prior version stays in history and the study must run again.</small>
+          </label>
+        ) : null}
         <label className="sr-only" htmlFor="edit-reference-study-message">Message Study Director</label>
         <textarea
           data-testid="edit-reference-study-message"
@@ -651,7 +686,7 @@ function StudyChat({ detail, disabled, onChanged, setBusy, setError }: {
           value={message}
         />
         <Button data-testid="send-edit-reference-study-message" disabled={disabled || !message.trim() || detail.reference.status === 'archived'} icon={Send} type="submit" variant="primary">
-          {disabled ? 'Saving…' : 'Save direction'}
+          {disabled ? 'Saving…' : findingCorrectionEvidenceId ? 'Save correction' : 'Save direction'}
         </Button>
       </form>
     </div>

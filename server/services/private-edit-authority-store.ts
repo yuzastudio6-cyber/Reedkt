@@ -294,7 +294,12 @@ export interface AuthorityPlannedAssetManifest {
 }
 
 export interface AuthorityIdempotencyRecord {
-  operation: 'publish_plan' | 'approve_plan' | 'create_execution_package' | 'cancel_approved_snapshot'
+  operation:
+    | 'publish_plan'
+    | 'approve_plan'
+    | 'create_execution_package'
+    | 'cancel_approved_snapshot'
+    | 'compensate_cancel_approved_snapshot'
   idempotencyKey: string
   requestHash: string
   responseId: string

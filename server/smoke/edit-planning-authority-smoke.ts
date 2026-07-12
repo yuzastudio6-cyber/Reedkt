@@ -26,8 +26,10 @@ import { createUploadService } from '../services/upload-service'
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
 import { withCanonicalExecutionDomainLock } from '../services/canonical-execution-domain-lock'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
+import { withCanonicalWorkGraphPackageLock } from '../services/canonical-work-graph-package-lock'
 import { readPrivateCanonicalWorkerLeaseAggregate } from '../services/private-canonical-worker-lease-store'
 import { createCanonicalPrivateToolDispatchAuthorityService } from '../services/canonical-private-tool-dispatch-authority-service'
+import { readPrivateArtifactQaAggregate } from '../services/private-artifact-qa-authority-store'
 import {
   canonicalPrivateToolDispatchImmutableHash,
   mutatePrivateCanonicalToolDispatchAggregate,
@@ -2861,6 +2863,77 @@ try {
     begunFence.executionFence.executionAttemptId,
   )
 
+  const authorityBeforeInFlightCompensation = await readPrivateEditAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  const leasesBeforeInFlightCompensation = await readPrivateCanonicalWorkerLeaseAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  const dispatchesBeforeInFlightCompensation = await readPrivateCanonicalToolDispatchAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  assert.ok(authorityBeforeInFlightCompensation)
+  assert.ok(leasesBeforeInFlightCompensation)
+  assert.ok(dispatchesBeforeInFlightCompensation)
+  const inFlightCompensation = await fetch(
+    `${routeBaseUrl}/v1/approved-snapshots/${String(leaseFixtureSnapshot.snapshotId)}/compensated-cancel`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-in-flight-compensation-denied',
+      },
+      body: JSON.stringify({
+        workspaceId: routeWorkspaceId,
+        expectedAuthorityRevision: authorityBeforeInFlightCompensation.revision,
+        expectedSnapshotHash: leaseFixtureSnapshot.snapshotHash,
+        expectedReservationId: leaseFixtureReservation.id,
+        reason: 'user_cancelled_after_dispatch',
+      }),
+    },
+  )
+  assert.equal(inFlightCompensation.status, 409)
+  const inFlightCompensationEnvelope = await inFlightCompensation.json() as {
+    error?: { code?: string; details?: { requiredGate?: string; inFlightStartedFenceCount?: number } }
+  }
+  assert.equal(inFlightCompensationEnvelope.error?.code, 'TOOL_NOT_READY')
+  assert.equal(
+    inFlightCompensationEnvelope.error?.details?.requiredGate,
+    'canonical_inflight_execution_quiescence_and_compensation',
+  )
+  assert.equal(inFlightCompensationEnvelope.error?.details?.inFlightStartedFenceCount, 1)
+  assert.equal(
+    stableAuthorityStringify(await readPrivateEditAuthorityAggregate({
+      localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: routeWorkspaceId,
+    })),
+    stableAuthorityStringify(authorityBeforeInFlightCompensation),
+  )
+  assert.equal(
+    stableAuthorityStringify(await readPrivateCanonicalWorkerLeaseAggregate({
+      localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: routeWorkspaceId,
+    })),
+    stableAuthorityStringify(leasesBeforeInFlightCompensation),
+  )
+  assert.equal(
+    stableAuthorityStringify(await readPrivateCanonicalToolDispatchAggregate({
+      localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: routeWorkspaceId,
+    })),
+    stableAuthorityStringify(dispatchesBeforeInFlightCompensation),
+  )
+
   let releaseCompleteFenceLock: () => void = () => undefined
   let markCompleteFenceLockEntered: () => void = () => undefined
   const completeFenceLockEntered = new Promise<void>((resolve) => {
@@ -2905,6 +2978,75 @@ try {
     executionAttemptId: begunFence.executionFence.executionAttemptId,
   })
   assert.equal(completedFenceReplay.replayed, true)
+  const incompleteCompletionAuthorityBefore = await readPrivateEditAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  const incompleteCompletionLeasesBefore = await readPrivateCanonicalWorkerLeaseAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  const incompleteCompletionDispatchesBefore = await readPrivateCanonicalToolDispatchAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  assert.ok(incompleteCompletionAuthorityBefore)
+  assert.ok(incompleteCompletionLeasesBefore)
+  assert.ok(incompleteCompletionDispatchesBefore)
+  const incompleteCompletionCompensation = await fetch(
+    `${routeBaseUrl}/v1/approved-snapshots/${String(leaseFixtureSnapshot.snapshotId)}/compensated-cancel`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-incomplete-adapter-completion-compensation-denied',
+      },
+      body: JSON.stringify({
+        workspaceId: routeWorkspaceId,
+        expectedAuthorityRevision: incompleteCompletionAuthorityBefore.revision,
+        expectedSnapshotHash: leaseFixtureSnapshot.snapshotHash,
+        expectedReservationId: leaseFixtureReservation.id,
+        reason: 'user_cancelled_after_dispatch',
+      }),
+    },
+  )
+  assert.equal(incompleteCompletionCompensation.status, 409)
+  const incompleteCompletionEnvelope = await incompleteCompletionCompensation.json() as {
+    error?: { code?: string; details?: { requiredGate?: string } }
+  }
+  assert.equal(incompleteCompletionEnvelope.error?.code, 'TOOL_NOT_READY')
+  assert.equal(
+    incompleteCompletionEnvelope.error?.details?.requiredGate,
+    'canonical_adapter_completion_quiescence_evidence',
+  )
+  assert.equal(
+    stableAuthorityStringify(await readPrivateEditAuthorityAggregate({
+      localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: routeWorkspaceId,
+    })),
+    stableAuthorityStringify(incompleteCompletionAuthorityBefore),
+  )
+  assert.equal(
+    stableAuthorityStringify(await readPrivateCanonicalWorkerLeaseAggregate({
+      localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: routeWorkspaceId,
+    })),
+    stableAuthorityStringify(incompleteCompletionLeasesBefore),
+  )
+  assert.equal(
+    stableAuthorityStringify(await readPrivateCanonicalToolDispatchAggregate({
+      localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: routeWorkspaceId,
+    })),
+    stableAuthorityStringify(incompleteCompletionDispatchesBefore),
+  )
   const routeDispatchAggregate = await readPrivateCanonicalToolDispatchAggregate({
     localStorageRoot,
     ownerUserId: userId,
@@ -2942,6 +3084,217 @@ try {
     leasedSnapshotCancellationEnvelope.error?.details?.requiredGate,
     'canonical_started_execution_cancellation_and_compensation',
   )
+
+  const completedExecutionAuthorityBefore = await readPrivateEditAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  const completedExecutionEvidenceBefore = await readPrivateArtifactQaAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  assert.ok(completedExecutionAuthorityBefore)
+  assert.ok(completedExecutionEvidenceBefore)
+  const routeSnapshotReservation = asRecord(routeApprovedAuthority.reservation)
+  const completedExecutionLeasesBefore = (await readPrivateCanonicalWorkerLeaseAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  }))?.leases.filter((lease) => lease.approvedPlanSnapshotId === routeSnapshot.snapshotId) ?? []
+  const completedExecutionDispatchesBefore = (await readPrivateCanonicalToolDispatchAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  }))?.grants.filter((grant) =>
+    grant.binding.approvedPlanSnapshotId === routeSnapshot.snapshotId) ?? []
+  const completedExecutionCompensationRequest = {
+    workspaceId: routeWorkspaceId,
+    expectedAuthorityRevision: completedExecutionAuthorityBefore.revision,
+    expectedSnapshotHash: routeSnapshot.snapshotHash,
+    expectedReservationId: routeSnapshotReservation.id,
+    reason: 'user_cancelled_after_dispatch',
+  } as const
+  let releasePackageCompensationLock: () => void = () => undefined
+  let markPackageCompensationLockEntered: () => void = () => undefined
+  const packageCompensationLockEntered = new Promise<void>((resolve) => {
+    markPackageCompensationLockEntered = resolve
+  })
+  const holdPackageCompensationLock = new Promise<void>((resolve) => {
+    releasePackageCompensationLock = resolve
+  })
+  const packageCompensationLock = withCanonicalWorkGraphPackageLock({
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+    packageRecordId: String(routeExecutionPackage.packageRecordId),
+  }, async () => {
+    markPackageCompensationLockEntered()
+    await holdPackageCompensationLock
+  })
+  await packageCompensationLockEntered
+  let completedExecutionCompensationSettled = false
+  const completedExecutionCompensationRequestPromise = fetch(
+    `${routeBaseUrl}/v1/approved-snapshots/${String(routeSnapshot.snapshotId)}/compensated-cancel`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-completed-execution-compensation',
+      },
+      body: JSON.stringify(completedExecutionCompensationRequest),
+    },
+  ).finally(() => {
+    completedExecutionCompensationSettled = true
+  })
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  assert.equal(completedExecutionCompensationSettled, false)
+  releasePackageCompensationLock()
+  await packageCompensationLock
+  const completedExecutionCompensationResponse =
+    await completedExecutionCompensationRequestPromise
+  assert.equal(completedExecutionCompensationResponse.status, 201)
+  const completedExecutionCompensationEnvelope = await completedExecutionCompensationResponse.json() as {
+    data?: { canonicalPostDispatchCompensation?: Record<string, unknown> }
+  }
+  const completedExecutionCompensation = asRecord(
+    completedExecutionCompensationEnvelope.data?.canonicalPostDispatchCompensation,
+  )
+  const completedExecutionLeaseEvidence = asRecord(completedExecutionCompensation.leases)
+  const completedExecutionArtifactEvidence = asRecord(completedExecutionCompensation.evidence)
+  assert.equal(completedExecutionCompensation.compensationMode, 'completed_execution')
+  assert.equal(completedExecutionCompensation.compensationFinalized, true)
+  assert.ok(Number(completedExecutionLeaseEvidence.completedFenceCount) > 0)
+  assert.equal(completedExecutionLeaseEvidence.inFlightStartedFenceCount, 0)
+  assert.equal(completedExecutionCompensation.toolExecutionPreviouslyCompleted, true)
+  assert.ok(Number(completedExecutionArtifactEvidence.artifactRecordCount) > 0)
+  assert.ok(Number(completedExecutionArtifactEvidence.qaEvaluationRecordCount) > 0)
+  assert.ok(Number(completedExecutionArtifactEvidence.reconciliationRecordCount) > 0)
+  assert.equal(
+    completedExecutionArtifactEvidence.adapterCompletionRecordCount,
+    completedExecutionLeaseEvidence.completedFenceCount,
+  )
+  assert.equal(completedExecutionArtifactEvidence.committedArtifactQaEvidencePreserved, true)
+  assert.equal(completedExecutionArtifactEvidence.adapterCompletionEvidencePreserved, true)
+  assert.equal(completedExecutionArtifactEvidence.internalAttemptCostEvidencePreserved, true)
+  assert.equal(completedExecutionCompensation.customerWalletMutation, false)
+  assert.equal(completedExecutionCompensation.customerCreditMutation, false)
+  assert.equal(completedExecutionCompensation.billingExecuted, false)
+  assert.equal(completedExecutionCompensation.providerCallStarted, false)
+  assert.equal(completedExecutionCompensation.renderStarted, false)
+  assert.equal(completedExecutionCompensation.publicDeliveryStarted, false)
+  assert.equal(
+    stableAuthorityStringify(await readPrivateArtifactQaAggregate({
+      localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: routeWorkspaceId,
+    })),
+    stableAuthorityStringify(completedExecutionEvidenceBefore),
+  )
+  const completedExecutionAuthorityAfter = await readPrivateEditAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  assert.ok(completedExecutionAuthorityAfter)
+  assert.equal(
+    completedExecutionAuthorityAfter.wallet.availableCredits,
+    completedExecutionAuthorityBefore.wallet.availableCredits +
+      Number(routeSnapshotReservation.reservedCredits),
+  )
+  assert.equal(
+    completedExecutionAuthorityAfter.wallet.reservedCredits,
+    completedExecutionAuthorityBefore.wallet.reservedCredits -
+      Number(routeSnapshotReservation.reservedCredits),
+  )
+  assert.equal(
+    completedExecutionAuthorityAfter.plans.find((plan) => plan.id === routeSnapshot.planId)?.status,
+    'cancelled',
+  )
+  assert.equal(
+    completedExecutionAuthorityAfter.reservations.find((reservation) =>
+      reservation.id === routeSnapshotReservation.id)?.status,
+    'cancelled',
+  )
+  const completedExecutionJourneyAfterCompensation = await readCanonicalJourney()
+  assert.equal(completedExecutionJourneyAfterCompensation.response.status, 200)
+  assert.equal(completedExecutionJourneyAfterCompensation.journey.stage, 'replanning_required')
+  assert.equal(
+    asRecord(completedExecutionJourneyAfterCompensation.journey.nextAction).code,
+    'prepare_replacement_plan',
+  )
+  const completedExecutionLeasesAfter = (await readPrivateCanonicalWorkerLeaseAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  }))?.leases.filter((lease) => lease.approvedPlanSnapshotId === routeSnapshot.snapshotId) ?? []
+  const completedExecutionDispatchesAfter = (await readPrivateCanonicalToolDispatchAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  }))?.grants.filter((grant) =>
+    grant.binding.approvedPlanSnapshotId === routeSnapshot.snapshotId) ?? []
+  for (const beforeLease of completedExecutionLeasesBefore) {
+    const afterLease = completedExecutionLeasesAfter.find((lease) => lease.id === beforeLease.id)
+    assert.ok(afterLease)
+    assert.ok(afterLease.status === 'released' || afterLease.status === 'expired')
+    assert.deepEqual(afterLease.executionFence, beforeLease.executionFence)
+    assert.equal(afterLease.immutableLeaseHash, beforeLease.immutableLeaseHash)
+  }
+  for (const beforeDispatch of completedExecutionDispatchesBefore) {
+    const afterDispatch = completedExecutionDispatchesAfter.find((grant) => grant.id === beforeDispatch.id)
+    assert.ok(afterDispatch)
+    if (beforeDispatch.status === 'consumed') assert.deepEqual(afterDispatch, beforeDispatch)
+    assert.notEqual(afterDispatch.status, 'authorized')
+  }
+  const completedExecutionCompensationReplay = await fetch(
+    `${routeBaseUrl}/v1/approved-snapshots/${String(routeSnapshot.snapshotId)}/compensated-cancel`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-completed-execution-compensation',
+      },
+      body: JSON.stringify(completedExecutionCompensationRequest),
+    },
+  )
+  assert.equal(completedExecutionCompensationReplay.status, 201)
+  const completedExecutionCompensationReplayEnvelope = await completedExecutionCompensationReplay.json() as {
+    data?: { canonicalPostDispatchCompensation?: Record<string, unknown> }
+  }
+  assert.deepEqual(
+    completedExecutionCompensationReplayEnvelope.data?.canonicalPostDispatchCompensation,
+    completedExecutionCompensation,
+  )
+  assert.equal(
+    (await readPrivateEditAuthorityAggregate({
+      localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: routeWorkspaceId,
+    }))?.revision,
+    completedExecutionAuthorityAfter.revision,
+  )
+  const completedExecutionCompensationConflict = await fetch(
+    `${routeBaseUrl}/v1/approved-snapshots/${String(routeSnapshot.snapshotId)}/compensated-cancel`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-completed-execution-compensation',
+      },
+      body: JSON.stringify({
+        ...completedExecutionCompensationRequest,
+        expectedSnapshotHash: '0'.repeat(64),
+      }),
+    },
+  )
+  assert.equal(completedExecutionCompensationConflict.status, 409)
+  const completedExecutionCompensationConflictEnvelope =
+    await completedExecutionCompensationConflict.json() as { error?: { code?: string } }
+  assert.equal(completedExecutionCompensationConflictEnvelope.error?.code, 'IDEMPOTENCY_CONFLICT')
 
   const downstreamLeaseFixtureEditSessionId = 'route-downstream-worker-lease-fixture-session'
   const downstreamLeasePlanningAuthority = await prepareExactPlanningAuthority(
@@ -2992,9 +3345,15 @@ try {
   const downstreamLeaseApproveEnvelope = await downstreamLeaseApproveResponse.json() as {
     data?: { authority?: Record<string, unknown> }
   }
-  const downstreamLeaseSnapshot = asRecord(
-    asRecord(downstreamLeaseApproveEnvelope.data?.authority).snapshot,
+  const downstreamLeaseApprovedAuthority = asRecord(
+    downstreamLeaseApproveEnvelope.data?.authority,
   )
+  const downstreamLeaseSnapshot = asRecord(downstreamLeaseApprovedAuthority.snapshot)
+  const downstreamLeaseReservation = asRecord(downstreamLeaseApprovedAuthority.reservation)
+  const downstreamLeaseJobs = downstreamLeaseApprovedAuthority.jobs as Record<string, unknown>[]
+  const downstreamLeaseRootJob = downstreamLeaseJobs.find((job) =>
+    Array.isArray(job.dependencyJobIds) && job.dependencyJobIds.length === 0)
+  assert.ok(downstreamLeaseRootJob)
   const downstreamLeasePackageResponse = await fetch(`${routeBaseUrl}/v1/edit-executions/packages`, {
     method: 'POST',
     headers: {
@@ -3010,6 +3369,156 @@ try {
     }),
   })
   assert.equal(downstreamLeasePackageResponse.status, 201)
+  const downstreamLeasePackageEnvelope = await downstreamLeasePackageResponse.json() as {
+    data?: { approvedEditExecutionPackage?: Record<string, unknown> }
+  }
+  const downstreamLeaseExecutionPackage = asRecord(
+    downstreamLeasePackageEnvelope.data?.approvedEditExecutionPackage,
+  )
+  const downstreamLeaseClaim = (await createCanonicalWorkerLeaseAuthorityService(context).claim({
+    workspaceId: routeWorkspaceId,
+    projectId: routeProjectId,
+    editSessionId: downstreamLeaseFixtureEditSessionId,
+    jobId: String(downstreamLeaseRootJob.id),
+    purpose: 'private_internal_canonical_lease_claim',
+    idempotencyKey: 'route-consumed-before-start-compensation-lease-claim',
+  })).workerLeaseClaim
+  assert.equal(downstreamLeaseClaim.lease.executionFence.state, 'not_started')
+  const downstreamAuthority = await readPrivateEditAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  assert.ok(downstreamAuthority)
+  const downstreamAuthorityJob = downstreamAuthority.jobs.find((job) =>
+    job.id === downstreamLeaseRootJob.id)
+  assert.ok(downstreamAuthorityJob)
+  const downstreamApprovedWorkItem = downstreamAuthority.approvedWorkItems.find((workItem) =>
+    workItem.id === downstreamAuthorityJob.approvedWorkItemId)
+  assert.ok(downstreamApprovedWorkItem)
+  const downstreamExpectedAssetId = downstreamAuthorityJob.expectedAssetIds[0]
+  assert.ok(downstreamExpectedAssetId)
+  const downstreamConsumedAt = new Date().toISOString()
+  const downstreamConsumedExpiresAt = new Date(
+    Date.parse(downstreamConsumedAt) + 30_000,
+  ).toISOString()
+  const downstreamDependencyAuthority = downstreamLeaseClaim.lease.dependencyAuthority
+  const downstreamConsumedDispatchWithoutHash: Omit<
+    CanonicalPrivateToolDispatchRecord,
+    'immutableGrantHash'
+  > = {
+    ...consumedDispatchWithoutHash,
+    id: 'tool_dispatch_consumed_before_start_compensation_fixture',
+    status: 'consumed',
+    binding: {
+      ...consumedDispatchWithoutHash.binding,
+      workspaceId: routeWorkspaceId,
+      projectId: routeProjectId,
+      editSessionId: downstreamLeaseFixtureEditSessionId,
+      jobId: downstreamAuthorityJob.id,
+      approvedPlanSnapshotId: String(downstreamLeaseSnapshot.snapshotId),
+      approvedWorkItemId: downstreamApprovedWorkItem.id,
+      expectedAssetId: downstreamExpectedAssetId,
+      leaseId: downstreamLeaseClaim.lease.leaseId,
+      leaseAttemptNumber: downstreamLeaseClaim.lease.attemptNumber,
+      leaseImmutableHash: downstreamLeaseClaim.lease.immutableLeaseHash,
+      leaseDependencyAuthority: {
+        state: downstreamDependencyAuthority.state,
+        readinessHash: downstreamDependencyAuthority.readinessHash,
+        authorityHash: downstreamDependencyAuthority.authorityHash,
+        selectedArtifactsHash: sha256AuthorityValue(downstreamDependencyAuthority.selectedArtifacts),
+        selectedArtifactCount: downstreamDependencyAuthority.selectedArtifacts.length,
+        liveRuntimeEligible: false,
+      },
+      reservationId: String(downstreamLeaseReservation.id),
+      maximumCreditBudget: downstreamApprovedWorkItem.maximumCreditBudget,
+      remainingReservedCreditsAtDecision: Number(downstreamLeaseReservation.reservedCredits),
+    },
+    authorityRevision: Number(downstreamLeaseExecutionPackage.authorityRevision),
+    canonicalHashes: { ...downstreamLeaseClaim.lease.canonicalHashes },
+    decisionRequestHash: sha256ForSmoke('consumed-before-start-compensation-decision-request'),
+    credentialHashSha256: sha256ForSmoke('consumed-before-start-compensation-credential'),
+    issuedAt: downstreamConsumedAt,
+    expiresAt: downstreamConsumedExpiresAt,
+    consumedAt: downstreamConsumedAt,
+  }
+  const downstreamConsumedDispatch: CanonicalPrivateToolDispatchRecord = {
+    ...downstreamConsumedDispatchWithoutHash,
+    immutableGrantHash: canonicalPrivateToolDispatchImmutableHash(
+      downstreamConsumedDispatchWithoutHash,
+    ),
+  }
+  await mutatePrivateCanonicalToolDispatchAggregate({
+    scope: { localStorageRoot, ownerUserId: userId, workspaceId: routeWorkspaceId },
+    now: downstreamConsumedAt,
+    mutation: (aggregate) => {
+      aggregate.grants.push(downstreamConsumedDispatch)
+      aggregate.auditEvents.push({
+        id: 'tool_dispatch_audit_consumed_before_start_compensation_fixture',
+        eventType: 'consumed',
+        grantId: downstreamConsumedDispatch.id,
+        jobId: downstreamConsumedDispatch.binding.jobId,
+        approvedWorkItemId: downstreamConsumedDispatch.binding.approvedWorkItemId,
+        expectedAssetId: downstreamConsumedDispatch.binding.expectedAssetId,
+        canonicalToolId: downstreamConsumedDispatch.binding.canonicalToolId,
+        operationId: downstreamConsumedDispatch.binding.operationId,
+        leaseId: downstreamConsumedDispatch.binding.leaseId,
+        leaseAttemptNumber: downstreamConsumedDispatch.binding.leaseAttemptNumber,
+        createdAt: downstreamConsumedAt,
+      })
+      return { result: undefined, changed: true }
+    },
+  })
+  const consumedBeforeStartAuthorityBefore = await readPrivateEditAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  assert.ok(consumedBeforeStartAuthorityBefore)
+  const consumedBeforeStartCompensationResponse = await fetch(
+    `${routeBaseUrl}/v1/approved-snapshots/${String(downstreamLeaseSnapshot.snapshotId)}/compensated-cancel`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-consumed-before-start-compensation',
+      },
+      body: JSON.stringify({
+        workspaceId: routeWorkspaceId,
+        expectedAuthorityRevision: consumedBeforeStartAuthorityBefore.revision,
+        expectedSnapshotHash: downstreamLeaseSnapshot.snapshotHash,
+        expectedReservationId: downstreamLeaseReservation.id,
+        reason: 'user_cancelled_after_dispatch',
+      }),
+    },
+  )
+  assert.equal(consumedBeforeStartCompensationResponse.status, 201)
+  const consumedBeforeStartCompensationEnvelope = await consumedBeforeStartCompensationResponse.json() as {
+    data?: { canonicalPostDispatchCompensation?: Record<string, unknown> }
+  }
+  const consumedBeforeStartCompensation = asRecord(
+    consumedBeforeStartCompensationEnvelope.data?.canonicalPostDispatchCompensation,
+  )
+  assert.equal(consumedBeforeStartCompensation.compensationMode, 'consumed_before_start')
+  assert.equal(asRecord(consumedBeforeStartCompensation.dispatches).consumedCount, 1)
+  assert.equal(asRecord(consumedBeforeStartCompensation.leases).notStartedFenceCount, 1)
+  assert.equal(asRecord(consumedBeforeStartCompensation.leases).completedFenceCount, 0)
+  assert.equal(consumedBeforeStartCompensation.toolExecutionPreviouslyStarted, false)
+  assert.equal(consumedBeforeStartCompensation.toolExecutionPreviouslyCompleted, false)
+  const downstreamConsumedDispatchAfter = (await readPrivateCanonicalToolDispatchAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  }))?.grants.find((grant) => grant.id === downstreamConsumedDispatch.id)
+  const downstreamLeaseAfter = (await readPrivateCanonicalWorkerLeaseAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  }))?.leases.find((lease) => lease.id === downstreamLeaseClaim.lease.leaseId)
+  assert.deepEqual(downstreamConsumedDispatchAfter, downstreamConsumedDispatch)
+  assert.ok(downstreamLeaseAfter?.status === 'released' || downstreamLeaseAfter?.status === 'expired')
+  assert.equal(downstreamLeaseAfter?.executionFence.state, 'not_started')
 
   for (const legacyRequest of [
     fetch(`${routeBaseUrl}/v1/edit-plans/${String(routePlan.id)}/approved-snapshots`, { method: 'POST', headers: routeAuthHeaders }),
@@ -3128,6 +3637,15 @@ console.log(JSON.stringify({
     'shared_execution_domain_fence_serializes_worker_execution_begin_and_complete',
     'cancellation_fails_closed_after_dispatch_consumption',
     'cancellation_fails_closed_after_execution_fence_start',
+    'post_dispatch_compensation_rejects_inflight_execution_without_mutation',
+    'post_dispatch_compensation_rejects_completed_fence_without_adapter_completion_without_mutation',
+    'post_dispatch_compensation_serializes_behind_active_work_graph_package_lock',
+    'post_dispatch_compensation_preserves_consumed_dispatch_and_completed_fence_evidence',
+    'post_dispatch_compensation_preserves_artifact_qa_and_reconciliation_evidence',
+    'post_dispatch_compensation_releases_unused_synthetic_reservation_with_wallet_conservation',
+    'post_dispatch_compensation_is_idempotent_and_changed_request_conflict_safe',
+    'post_dispatch_compensation_recovers_journey_to_replanning_required',
+    'consumed_before_start_compensation_preserves_dispatch_and_terminals_never_started_lease',
     'authenticated_fail_closed_tool_runtime_evidence_http_route',
     'legacy_caller_authority_routes_fail_closed',
     'no_provider_worker_render_or_paid_billing_side_effect',

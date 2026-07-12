@@ -19,6 +19,7 @@ import type {
 } from '../validation/canonical-private-work-graph-progress-schemas'
 import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from './canonical-private-job-execution-adapter-service'
+import { withCanonicalWorkGraphPackageLock } from './canonical-work-graph-package-lock'
 import { getRequiredAuthUserId } from './service-helpers'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
 import {
@@ -132,7 +133,11 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
         body.workspaceId,
         idempotencyKey,
       )
-      return withWorkGraphRunLock(responseRelativePath, async () => {
+      return withCanonicalWorkGraphPackageLock({
+        ownerUserId: actorUserId,
+        workspaceId: body.workspaceId,
+        packageRecordId,
+      }, () => withWorkGraphRunLock(responseRelativePath, async () => {
         const replay = await readPersistedRun(context, responseRelativePath, requestHash)
         if (replay) return markRunReplay(replay)
 
@@ -354,7 +359,7 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
           content: Buffer.from(`${stableAuthorityStringify(persisted)}\n`, 'utf8'),
         })
         return response
-      })
+      }))
     },
   }
 }

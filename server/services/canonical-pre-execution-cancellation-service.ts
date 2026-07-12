@@ -14,6 +14,7 @@ import {
   walletBalanceAfter,
 } from './private-edit-authority-store'
 import { withCanonicalExecutionDomainLock } from './canonical-execution-domain-lock'
+import { withCanonicalWorkGraphPackageLock } from './canonical-work-graph-package-lock'
 import {
   readPrivateCanonicalToolDispatchAggregate,
   revokeUnconsumedSnapshotDispatchesForCancellation,
@@ -75,7 +76,7 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
         actorUserId: access.userId,
       })
       const idempotencyKeyHash = sha256AuthorityValue(idempotencyKey)
-      const result = await withCanonicalExecutionDomainLock({
+      const executeCancellation = () => withCanonicalExecutionDomainLock({
         ...scope,
         projectId: beforeSnapshot.projectId,
         editSessionId: beforeSnapshot.editSessionId,
@@ -379,6 +380,15 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
         },
       })
       })
+      const executionPackage = before.executionPackages.find((record) =>
+        record.snapshotId === beforeSnapshot.snapshotId)
+      const result = executionPackage
+        ? await withCanonicalWorkGraphPackageLock({
+            ownerUserId: access.userId,
+            workspaceId: access.workspaceId,
+            packageRecordId: executionPackage.id,
+          }, executeCancellation)
+        : await executeCancellation()
       return {
         cancellation: result,
         warnings: [

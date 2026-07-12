@@ -61,6 +61,36 @@ interface PersistedAdapterCompletion {
   response: CanonicalPrivateJobExecutionAdapterResponse
 }
 
+export async function readCanonicalPrivateJobAdapterCompletion(input: {
+  localStorageRoot: string
+  ownerUserId: string
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  jobId: string
+}): Promise<CanonicalPrivateJobExecutionAdapterResponse | undefined> {
+  const body: ExecuteCanonicalPrivateJobAdapterBody = {
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+    purpose: 'execute_canonical_private_job',
+  }
+  const requestHash = sha256AuthorityValue({
+    operation: 'execute_canonical_private_job',
+    actorUserId: input.ownerUserId,
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+    jobId: input.jobId,
+    purpose: body.purpose,
+  })
+  return readPersistedCompletionFromRoot(
+    input.localStorageRoot,
+    adapterCompletionRelativePath(input.ownerUserId, body, input.jobId),
+    requestHash,
+  )
+}
+
 type CoordinatorResponse = Record<string, unknown> & {
   result: Record<string, unknown>
   completedAt: string
@@ -641,8 +671,16 @@ async function readPersistedCompletion(
   relativePath: string,
   requestHash: string,
 ): Promise<CanonicalPrivateJobExecutionAdapterResponse | undefined> {
+  return readPersistedCompletionFromRoot(context.env.localStorageRoot, relativePath, requestHash)
+}
+
+async function readPersistedCompletionFromRoot(
+  localStorageRoot: string,
+  relativePath: string,
+  requestHash: string,
+): Promise<CanonicalPrivateJobExecutionAdapterResponse | undefined> {
   const bytes = await readPrivateFileIfExistsWithinRoot({
-    rootPath: context.env.localStorageRoot,
+    rootPath: localStorageRoot,
     relativePath,
   })
   if (!bytes) return undefined

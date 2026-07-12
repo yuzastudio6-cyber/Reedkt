@@ -171,6 +171,82 @@ export async function revokeUnconsumedSnapshotDispatchesForCancellation(input: {
   })
 }
 
+export async function reconcileSnapshotDispatchesForCompensation(input: {
+  scope: CanonicalPrivateToolDispatchStoreScope
+  snapshotId: string
+  projectId: string
+  editSessionId: string
+  now: string
+}): Promise<{
+  dispatchRecordCount: number
+  revokedDispatchCount: number
+  expiredDispatchCount: number
+  deniedDispatchCount: number
+  consumedDispatchCount: number
+}> {
+  return mutatePrivateCanonicalToolDispatchAggregate({
+    scope: input.scope,
+    now: input.now,
+    mutation: (aggregate) => {
+      const grants = aggregate.grants.filter((grant) =>
+        grant.binding.approvedPlanSnapshotId === input.snapshotId)
+      if (grants.some((grant) =>
+        grant.binding.projectId !== input.projectId ||
+        grant.binding.editSessionId !== input.editSessionId)) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'Post-dispatch compensation cannot reconcile a dispatch grant whose scope changed.',
+          409,
+        )
+      }
+      const transitionCount = grants.filter((grant) => grant.status === 'authorized').length
+      if (aggregate.auditEvents.length + transitionCount > MAX_CANONICAL_PRIVATE_TOOL_DISPATCH_AUDIT_EVENTS) {
+        throw new ApiError(
+          'IDEMPOTENCY_CAPACITY_EXCEEDED',
+          'Private canonical tool-dispatch compensation audit capacity was reached.',
+          503,
+        )
+      }
+      let changed = false
+      for (const grant of grants) {
+        if (grant.status !== 'authorized') continue
+        const expired = Date.parse(grant.expiresAt) <= Date.parse(input.now)
+        if (expired) {
+          grant.status = 'expired'
+          grant.expiredAt = input.now
+        } else {
+          grant.status = 'revoked'
+          grant.revokedAt = input.now
+        }
+        aggregate.auditEvents.push({
+          id: `tool_dispatch_audit_${randomUUID()}`,
+          eventType: expired ? 'expired' : 'revoked',
+          grantId: grant.id,
+          jobId: grant.binding.jobId,
+          approvedWorkItemId: grant.binding.approvedWorkItemId,
+          expectedAssetId: grant.binding.expectedAssetId,
+          canonicalToolId: grant.binding.canonicalToolId,
+          operationId: grant.binding.operationId,
+          leaseId: grant.binding.leaseId,
+          leaseAttemptNumber: grant.binding.leaseAttemptNumber,
+          createdAt: input.now,
+        })
+        changed = true
+      }
+      return {
+        result: {
+          dispatchRecordCount: grants.length,
+          revokedDispatchCount: grants.filter((grant) => grant.status === 'revoked').length,
+          expiredDispatchCount: grants.filter((grant) => grant.status === 'expired').length,
+          deniedDispatchCount: grants.filter((grant) => grant.status === 'denied').length,
+          consumedDispatchCount: grants.filter((grant) => grant.status === 'consumed').length,
+        },
+        changed,
+      }
+    },
+  })
+}
+
 export function canonicalPrivateToolDispatchImmutableHash(
   record: Omit<CanonicalPrivateToolDispatchRecord, 'immutableGrantHash'>,
 ): string {

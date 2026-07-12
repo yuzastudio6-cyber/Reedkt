@@ -166,6 +166,97 @@ export async function releaseNeverStartedSnapshotLeasesForCancellation(input: {
   })
 }
 
+export async function reconcileSnapshotLeasesForCompensation(input: {
+  scope: CanonicalWorkerLeaseStoreScope
+  snapshotId: string
+  projectId: string
+  editSessionId: string
+  now: string
+}): Promise<{
+  leaseRecordCount: number
+  releasedLeaseCount: number
+  expiredLeaseCount: number
+  notStartedFenceCount: number
+  completedFenceCount: number
+  inFlightStartedFenceCount: 0
+}> {
+  return mutatePrivateCanonicalWorkerLeaseAggregate({
+    scope: input.scope,
+    now: input.now,
+    mutation: (aggregate) => {
+      const leases = aggregate.leases.filter((lease) =>
+        lease.approvedPlanSnapshotId === input.snapshotId)
+      if (leases.some((lease) =>
+        lease.projectId !== input.projectId ||
+        lease.editSessionId !== input.editSessionId)) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'Post-dispatch compensation cannot reconcile a worker lease whose scope changed.',
+          409,
+        )
+      }
+      const inFlightStartedFenceCount = leases.filter((lease) =>
+        lease.executionFence.state === 'started').length
+      if (inFlightStartedFenceCount > 0) {
+        throw new ApiError(
+          'TOOL_NOT_READY',
+          'Post-dispatch compensation requires every worker execution fence to be quiescent.',
+          409,
+          {
+            requiredGate: 'canonical_inflight_execution_quiescence_and_compensation',
+            inFlightStartedFenceCount,
+          },
+        )
+      }
+      const activeTransitionCount = leases.filter((lease) => lease.status === 'active').length
+      if (aggregate.auditEvents.length + activeTransitionCount > MAX_CANONICAL_WORKER_LEASE_AUDIT_EVENTS) {
+        throw new ApiError(
+          'IDEMPOTENCY_CAPACITY_EXCEEDED',
+          'Private canonical worker-lease compensation audit capacity was reached.',
+          503,
+        )
+      }
+      let changed = false
+      for (const lease of leases) {
+        if (lease.status !== 'active') continue
+        const expired = Date.parse(lease.expiresAt) <= Date.parse(input.now)
+        if (expired) {
+          lease.status = 'expired'
+          lease.expiredAt = input.now
+        } else {
+          lease.status = 'released'
+          lease.releasedAt = input.now
+        }
+        aggregate.auditEvents.push({
+          id: `canonical_worker_lease_audit_${randomUUID()}`,
+          eventType: expired ? 'expired' : 'released',
+          leaseId: lease.id,
+          workspaceId: lease.workspaceId,
+          projectId: lease.projectId,
+          editSessionId: lease.editSessionId,
+          jobId: lease.jobId,
+          attemptNumber: lease.attemptNumber,
+          createdAt: input.now,
+        })
+        changed = true
+      }
+      return {
+        result: {
+          leaseRecordCount: leases.length,
+          releasedLeaseCount: leases.filter((lease) => lease.status === 'released').length,
+          expiredLeaseCount: leases.filter((lease) => lease.status === 'expired').length,
+          notStartedFenceCount: leases.filter((lease) =>
+            lease.executionFence.state === 'not_started').length,
+          completedFenceCount: leases.filter((lease) =>
+            lease.executionFence.state === 'completed').length,
+          inFlightStartedFenceCount: 0 as const,
+        },
+        changed,
+      }
+    },
+  })
+}
+
 function assertAppendOnlyLeaseMutation(
   before: CanonicalWorkerLeaseAggregate | undefined,
   after: CanonicalWorkerLeaseAggregate,

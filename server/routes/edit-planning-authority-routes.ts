@@ -6,6 +6,7 @@ import { createCanonicalEditJourneyService } from '../services/canonical-edit-jo
 import { createCanonicalPlanPublicationRequestService } from '../services/canonical-plan-publication-request-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
+import { createCanonicalPostDispatchCompensationService } from '../services/canonical-post-dispatch-compensation-service'
 import { createCanonicalPreExecutionCancellationService } from '../services/canonical-pre-execution-cancellation-service'
 import {
   createCanonicalPlanningHandoffSchema,
@@ -14,6 +15,7 @@ import {
   publishCanonicalPlanPublicationRequestSchema,
 } from '../validation/canonical-planning-handoff-schemas'
 import { cancelCanonicalApprovedSnapshotSchema } from '../validation/canonical-pre-execution-cancellation-schemas'
+import { compensateCanonicalApprovedSnapshotSchema } from '../validation/canonical-post-dispatch-compensation-schemas'
 import { canonicalEditJourneyQuerySchema } from '../validation/canonical-edit-journey-schemas'
 import {
   approveCanonicalEditPlanSchema,
@@ -254,6 +256,23 @@ export function createEditPlanningAuthorityRoutes(): Router {
         requestPath: request.originalUrl,
       })
       sendOk(response, { canonicalPreExecutionCancellation: result.cancellation }, result.warnings, 201)
+    }),
+  )
+
+  router.post(
+    '/v1/approved-snapshots/:snapshotId/compensated-cancel',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(compensateCanonicalApprovedSnapshotSchema, request.body)
+      const result = await createCanonicalPostDispatchCompensationService(
+        getServiceContext(request),
+      ).compensate({
+        ...body,
+        snapshotId: getRouteParam(request, 'snapshotId'),
+        idempotencyKey: getIdempotencyKey(request),
+        requestPath: request.originalUrl,
+      })
+      sendOk(response, { canonicalPostDispatchCompensation: result.compensation }, result.warnings, 201)
     }),
   )
 

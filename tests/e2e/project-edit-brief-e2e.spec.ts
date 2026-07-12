@@ -17,9 +17,7 @@ test.describe('Project Edit Brief E2E internal testing path', () => {
     await expect(page.getByTestId('project-edit-session-detail-panel')).toContainText('Founder Story YouTube Cut')
     await page.getByTestId('project-edit-session-detail-panel').getByRole('link', { name: 'Open edit' }).click()
 
-    await expect(page).toHaveURL(new RegExp(`${youtubeEditPath}$`))
-    await page.getByRole('link', { name: 'Open Edit Chat' }).click()
-    await expect(page).toHaveURL(new RegExp(`${youtubeChatPath}$`))
+    await expect(page).toHaveURL(new RegExp(`${youtubeEditPath}/brief$`))
     await expect(page.getByTestId('edit-session-chat-page')).toBeVisible()
     await expect(page.getByTestId('edit-session-route-tabs')).toContainText('Brief')
     await page.getByTestId('edit-session-route-tab-brief').click()

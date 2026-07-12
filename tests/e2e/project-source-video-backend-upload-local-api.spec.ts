@@ -5,7 +5,7 @@ import { basename, extname, join, resolve } from 'node:path'
 import { setViewport } from './helpers/layout'
 import { gotoRoute } from './helpers/routes'
 
-const briefPath = '/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief'
+const briefPath = '/projects/mock-project-edit-chat-foundation/edits/edit-session-vertical-dna'
 const apiBaseUrl = process.env.PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_API_BASE_URL ?? 'http://127.0.0.1:9781'
 const localStorageRoot = process.env.PLAYWRIGHT_LOCAL_UPLOAD_STORAGE_ROOT ?? '.reeditpro-local-upload-storage-playwright'
 const fixtureRoot = join(process.cwd(), 'test-results/project-source-video-real-local-api')

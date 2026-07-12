@@ -261,7 +261,7 @@ export async function createProjectEditSessionBackendLocalFromNewEditForm(
       'Backend-local edit creation did not upload media, approve an edit plan, run tools, render, reserve credits, write Supabase/GCS, or unlock beta/production.',
     ],
     safety: PROJECT_EDIT_SESSION_API_CLIENT_SAFETY,
-    openRoute: `/projects/${input.projectId}/edits/${created.id}/brief`,
+    openRoute: `/projects/${input.projectId}/edits/${created.id}`,
     backendLocalSessionCreated: true,
     mockOnly: true,
   }

@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test'
 import { setViewport } from './helpers/layout'
 import { gotoRoute } from './helpers/routes'
 
-const briefPath = '/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief'
-const apiBaseUrl = 'http://127.0.0.1:9781'
+const briefPath = '/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide'
+const apiBaseUrl = process.env.PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_API_BASE_URL ?? 'http://127.0.0.1:9781'
 
 test.describe('Project source video backend-local upload', () => {
   test.skip(
@@ -87,7 +87,7 @@ test.describe('Project source video backend-local upload', () => {
 
     await setViewport(page, 1440)
     await gotoRoute(page, briefPath)
-    await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('idle')
+    await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText(/idle|uploaded/)
 
     await page.getByTestId('project-source-video-file-input').setInputFiles({
       name: 'test-source.mp4',

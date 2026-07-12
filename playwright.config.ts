@@ -7,6 +7,12 @@ const apiBaseURL = `http://127.0.0.1:${apiPort}`
 const reuseExistingServer = process.env.PLAYWRIGHT_REUSE_SERVER === 'true'
 const editReferenceRunScope = (process.env.PLAYWRIGHT_EDIT_REFERENCE_RUN_SCOPE ?? `${Date.now()}-${process.pid}`)
   .replace(/[^a-zA-Z0-9-]/g, '-')
+const localStorageRoot = process.env.PLAYWRIGHT_LOCAL_UPLOAD_STORAGE_ROOT
+  ?? `test-results/edit-reference-private-${editReferenceRunScope}`
+const internalTestAuthEnabled = process.env.PLAYWRIGHT_INTERNAL_TEST_AUTH === 'true'
+const backendUploadEnabled = process.env.PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD === 'true'
+const localEditPreviewEnabled = process.env.PLAYWRIGHT_LOCAL_EDIT_PREVIEW_SMOKE === 'true'
+const backendUploadApiBaseUrl = process.env.PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_API_BASE_URL ?? apiBaseURL
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -46,7 +52,7 @@ export default defineConfig({
         PROVIDER_EXECUTION_ENABLED: 'false',
         WORKER_RUNTIME_MODE: 'mock',
         STORAGE_MODE: 'local',
-        LOCAL_STORAGE_ROOT: `test-results/edit-reference-private-${editReferenceRunScope}`,
+        LOCAL_STORAGE_ROOT: localStorageRoot,
       },
       reuseExistingServer,
       timeout: 120_000,
@@ -64,6 +70,10 @@ export default defineConfig({
         VITE_API_BASE_URL: `http://127.0.0.1:${port}`,
         VITE_REEDITPRO_EDIT_REFERENCE_API_BASE_URL: apiBaseURL,
         VITE_REEDITPRO_EDIT_REFERENCE_WORKSPACE_ID: `workspace-edit-reference-${editReferenceRunScope}`,
+        VITE_REEDITPRO_API_BASE_URL: backendUploadApiBaseUrl,
+        VITE_REEDITPRO_INTERNAL_TEST_AUTH: internalTestAuthEnabled ? 'true' : 'false',
+        VITE_REEDITPRO_LOCAL_EDIT_PREVIEW_SMOKE: localEditPreviewEnabled ? 'true' : 'false',
+        VITE_REEDITPRO_SOURCE_VIDEO_BACKEND_UPLOAD: backendUploadEnabled ? 'true' : 'false',
         // Enables guarded E2E-only branches such as /editor?qaApprovalFailure=1 without exposing debug UI.
         VITE_REEDITPRO_E2E: 'true',
       },

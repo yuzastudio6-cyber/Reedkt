@@ -73,7 +73,7 @@ test.describe('Project creation to edit upload against real local API', () => {
     await expect(page.getByRole('button', { name: /^Create edit$/i })).toBeEnabled()
     await page.getByRole('button', { name: /^Create edit$/i }).click()
 
-    await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^/]+\/brief$/)
+    await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^/]+$/)
     await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
     await expect(page.getByText(editName)).toBeVisible()
     await expect(page.getByTestId('project-source-video-backend-upload-status')).toContainText('idle')
@@ -143,7 +143,7 @@ test.describe('Project creation to edit upload against real local API', () => {
     await page.getByTestId('new-edit-platform-youtube_standard').click()
     await page.getByRole('button', { name: /^Create edit$/i }).click()
 
-    await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^/]+\/brief$/)
+    await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^/]+$/)
     await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
     await expect(page.getByText(editName)).toBeVisible()
 
@@ -205,7 +205,7 @@ test.describe('Project creation to edit upload against real local API', () => {
     await page.getByTestId('new-edit-platform-youtube_standard').click()
     await page.getByRole('button', { name: /^Create edit$/i }).click()
 
-    await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^/]+\/brief$/)
+    await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^/]+$/)
     await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
     await expect(page.getByText(editName)).toBeVisible()
 
@@ -269,7 +269,7 @@ test.describe('Project creation to edit upload against real local API', () => {
     await page.getByTestId('new-edit-platform-youtube_standard').click()
     await page.getByRole('button', { name: /^Create edit$/i }).click()
 
-    await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^/]+\/brief$/)
+    await expect(page).toHaveURL(/\/projects\/[^/]+\/edits\/[^/]+$/)
     await expect(page.getByTestId('project-edit-brief-workspace')).toBeVisible()
     await expect(page.getByText(editName)).toBeVisible()
 

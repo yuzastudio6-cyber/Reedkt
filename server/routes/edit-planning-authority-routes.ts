@@ -4,7 +4,10 @@ import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
 import { createCanonicalPreExecutionCancellationService } from '../services/canonical-pre-execution-cancellation-service'
-import { createCanonicalPlanningHandoffSchema } from '../validation/canonical-planning-handoff-schemas'
+import {
+  createCanonicalPlanningHandoffSchema,
+  publishCanonicalEditPlanFromHandoffSchema,
+} from '../validation/canonical-planning-handoff-schemas'
 import { cancelCanonicalApprovedSnapshotSchema } from '../validation/canonical-pre-execution-cancellation-schemas'
 import {
   approveCanonicalEditPlanSchema,
@@ -54,6 +57,29 @@ export function createEditPlanningAuthorityRoutes(): Router {
         requestPath: request.originalUrl,
       })
       sendOk(response, { authority: result.authority }, result.warnings, 201)
+    }),
+  )
+
+  router.post(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publish',
+    requireAuth,
+    requireInternalServiceAuth,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(publishCanonicalEditPlanFromHandoffSchema, request.body)
+      const result = await createCanonicalPlanningHandoffService(
+        getServiceContext(request),
+      ).publishFromPersistedHandoff({
+        ...body,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+        handoffId: getRouteParam(request, 'handoffId'),
+        idempotencyKey: getIdempotencyKey(request),
+        requestPath: request.originalUrl,
+      })
+      sendOk(response, {
+        authority: result.authority,
+        canonicalPlanningHandoff: result.canonicalPlanningHandoff,
+      }, result.warnings, 201)
     }),
   )
 

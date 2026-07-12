@@ -1,6 +1,6 @@
 # Canonical Planning Handoff
 
-Status: authenticated local/private backend handoff evidence
+Status: authenticated local/private persisted handoff and publication-binding evidence
 
 The canonical planning handoff binds finalized source uploads and the current planning-input state to the exact authority objects required for server-owned canonical plan publication. It replaces caller reconstruction of source, Exact Edit Preference, Preference DNA selection, Edit Brief, output-frame, and source-cleanup authority.
 
@@ -16,6 +16,14 @@ The strict request contains:
 - the fixed `prepare_canonical_planning_handoff` purpose.
 
 The route is available only in the explicit local/private test runtime. It requires authenticated workspace access and verifies project ownership before reading upload or planning authority.
+
+An accepted handoff is persisted through the shared private-local boundary as a tenant-scoped, content-addressed, create-only, checksum-protected record. Exact replay returns the same `handoffId`, `handoffHash`, component hash, and authority payload. The response never exposes a filesystem path.
+
+The connected internal publication route is:
+
+`POST /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publish`
+
+Its body contains the planning request, estimate, work graph, exact canonical plan, and expected handoff hash. It deliberately omits caller-supplied `planningInputAuthority` and `sourceMediaAuthority`. The backend loads those authorities from the tenant-scoped persisted handoff, verifies the exact canonical component hash, revalidates current planning-input and source authority, and then freezes a compact handoff binding into the canonical plan component references. Approval copies that reference into the immutable snapshot lineage.
 
 ## Verified authority
 
@@ -41,14 +49,15 @@ The response contains:
 - the exact `sourceMediaAuthority` expectation;
 - the exact `planningInputAuthority` expectation;
 - the fully resolved planning-input binding;
-- a deterministic handoff hash;
+- a deterministic canonical-plan component hash, handoff hash, and content-addressed handoff ID;
+- non-production private persistence evidence;
 - explicit readiness and no-side-effect evidence.
 
-The HTTP smoke feeds the returned source and planning-input authority directly into canonical plan publication. The broader canonical lifecycle smoke proves the same handoff rejects source-order drift and leaves edit authority unchanged before publication.
+The HTTP smoke publishes through the persisted-handoff route rather than echoing authority fields back from the caller. It proves exact replay, rejects handoff-hash and canonical-component substitution, rejects preferences or same-project source authority changed after handoff, and verifies the accepted binding is present in canonical plan authority before approval. The broader canonical lifecycle smoke proves source-order drift is rejected and edit authority remains unchanged before publication.
 
 ## Side-effect boundary
 
-Preparing a handoff does not publish a plan, create a snapshot, reserve credits, execute tools, call providers, or render media. Plan publication and later approval remain separate server-owned gates.
+Preparing a handoff performs only the private create-only authority persistence described above. It does not publish a plan, create a snapshot, reserve credits, execute tools, call providers, or render media. Handoff-bound plan publication still does not approve the plan, create a snapshot, reserve credits, derive jobs, execute tools, call providers, or render media. Approval remains a separate server-owned gate.
 
 This slice does not add frontend consumption, Supabase, RLS, cloud storage, provider activation, customer pricing or credits, wallet mutation, billing, public delivery, deployment, or production readiness. The next integration gate is browser consumption of this authenticated handoff without reviving the disabled legacy caller-authored execution route.
 

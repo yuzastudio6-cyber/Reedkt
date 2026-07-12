@@ -11,6 +11,10 @@ import type {
   PublishCanonicalEditPlanBody,
 } from '../validation/edit-planning-authority-schemas'
 import {
+  canonicalPlanningHandoffPublicationBindingSchema,
+  type CanonicalPlanningHandoffPublicationBinding,
+} from '../validation/canonical-planning-handoff-schemas'
+import {
   resolvedPlanningInputAuthorityBindingSchema,
   type ResolvedPlanningInputAuthorityBinding,
 } from '../validation/planning-input-authority-binding-schemas'
@@ -72,6 +76,7 @@ export interface CanonicalApprovedExecutionAuthority {
   components: CanonicalPlanComponentsInput
   assetManifest: AuthorityPlannedAssetManifest
   planningInputAuthority: ResolvedPlanningInputAuthorityBinding
+  planningHandoffAuthority?: CanonicalPlanningHandoffPublicationBinding
   sourceAssetManifest: ApprovedSourceBindingManifest
   workItems: CanonicalApprovedExecutionWorkItem[]
   jobs: AuthorityDerivedJobRecord[]
@@ -107,6 +112,7 @@ export interface PublishCanonicalEditPlanInput extends PublishCanonicalEditPlanB
   editSessionId: string
   idempotencyKey: string
   requestPath?: string
+  planningHandoffBinding?: CanonicalPlanningHandoffPublicationBinding
 }
 
 export interface ApproveCanonicalEditPlanInput extends ApproveCanonicalEditPlanBody {
@@ -119,6 +125,18 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
   return {
     async publishCanonicalPlan(input: PublishCanonicalEditPlanInput) {
       requirePrivateAuthorityRuntime(context)
+      const handoffBindingResult = input.planningHandoffBinding
+        ? canonicalPlanningHandoffPublicationBindingSchema.safeParse(input.planningHandoffBinding)
+        : undefined
+      if (handoffBindingResult && !handoffBindingResult.success) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Canonical planning handoff publication binding is invalid.',
+          400,
+          handoffBindingResult.error.flatten(),
+        )
+      }
+      const planningHandoffBinding = handoffBindingResult?.data
       const validatedBody = publishCanonicalEditPlanSchema.safeParse({
         workspaceId: input.workspaceId,
         planningRequestId: input.planningRequestId,
@@ -165,6 +183,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         sourceSequence: body.canonicalPlan.components.sourceSequence,
         expectation: body.sourceMediaAuthority,
       })
+      if (planningHandoffBinding && (
+        planningHandoffBinding.canonicalPlanComponentsHash !== sha256AuthorityValue(body.canonicalPlan.components) ||
+        planningHandoffBinding.sourceCandidateHash !== sourceMediaAuthority.candidateHash ||
+        planningHandoffBinding.planningInputBindingHash !== planningInputAuthority.bindingHash
+      )) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'Canonical planning handoff binding does not match the revalidated publication authority.',
+          409,
+        )
+      }
       const baseComponentRefs = await persistPlanComponents(context, body.canonicalPlan.components)
       const componentRefs: Record<string, AuthorityJsonBlobRef> = {
         ...baseComponentRefs,
@@ -178,6 +207,13 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           value: sourceMediaAuthority as unknown as Record<string, unknown>,
           maxBytes: 2 * 1024 * 1024,
         }),
+      }
+      if (planningHandoffBinding) {
+        componentRefs.planningHandoffAuthority = await putPrivateAuthorityJsonBlob({
+          localStorageRoot: context.env.localStorageRoot,
+          value: planningHandoffBinding as unknown as Record<string, unknown>,
+          maxBytes: 32 * 1024,
+        })
       }
       if (body.revisionAuthority && revisionDecision) {
         componentRefs.revisionAuthority = await putPrivateAuthorityJsonBlob({
@@ -423,6 +459,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       return {
         authority: response,
         warnings: [
+          ...(planningHandoffBinding
+            ? ['Canonical plan authority includes the exact persisted and revalidated planning-handoff binding.']
+            : []),
           'Canonical plan authority is private single-host internal-test persistence.',
           ...(body.revisionAuthority
             ? ['Replacement plan publication consumed one exact private-review revision handoff; fresh approval remains blocked pending reservation reconciliation.']
@@ -464,6 +503,13 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       }
       const approvalPlanningInputAuthority = await loadPlanningInputAuthorityBinding(context, targetPlan.componentRefs)
       const approvalSourceMediaAuthority = await loadSourceMediaAuthorityCandidate(context, targetPlan.componentRefs)
+      await loadOptionalPlanningHandoffAuthority({
+        context,
+        componentRefs: targetPlan.componentRefs,
+        components: approvalComponents,
+        planningInputAuthority: approvalPlanningInputAuthority,
+        sourceMediaAuthority: approvalSourceMediaAuthority,
+      })
       await revalidatePlanningInputAuthorityBinding({
         context,
         scope: planningAuthorityScope(context, access.userId, access.workspaceId, targetPlan),
@@ -899,6 +945,13 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       }
       const planningInputAuthority = await loadPlanningInputAuthorityBinding(context, snapshot.componentRefs)
       const sourceMediaAuthority = await loadSourceMediaAuthorityCandidate(context, snapshot.componentRefs)
+      const planningHandoffAuthority = await loadOptionalPlanningHandoffAuthority({
+        context,
+        componentRefs: snapshot.componentRefs,
+        components: parsedComponents.data,
+        planningInputAuthority,
+        sourceMediaAuthority,
+      })
       await revalidatePlanningInputAuthorityBinding({
         context,
         scope: planningAuthorityScope(context, access.userId, access.workspaceId, lineage.plan),
@@ -1048,6 +1101,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         components: parsedComponents.data,
         assetManifest,
         planningInputAuthority,
+        planningHandoffAuthority,
         sourceAssetManifest,
         workItems,
         jobs,
@@ -1426,6 +1480,44 @@ async function loadPlanningInputAuthorityBinding(
     ref.sha256 !== sha256AuthorityValue(binding)
   ) {
     throw new ApiError('VALIDATION_FAILED', 'Canonical planning-input authority binding hash is invalid.', 409)
+  }
+  return binding
+}
+
+async function loadOptionalPlanningHandoffAuthority(input: {
+  context: ServiceContext
+  componentRefs: Record<string, AuthorityJsonBlobRef>
+  components: CanonicalPlanComponentsInput
+  planningInputAuthority: ResolvedPlanningInputAuthorityBinding
+  sourceMediaAuthority: SourceBindingManifestCandidate
+}): Promise<CanonicalPlanningHandoffPublicationBinding | undefined> {
+  const ref = input.componentRefs.planningHandoffAuthority
+  if (!ref) return undefined
+  const value = await readPrivateAuthorityJsonBlob({
+    localStorageRoot: input.context.env.localStorageRoot,
+    ref,
+  })
+  const parsed = canonicalPlanningHandoffPublicationBindingSchema.safeParse(value)
+  if (!parsed.success) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Canonical planning-handoff publication binding is invalid.',
+      409,
+      parsed.error.flatten(),
+    )
+  }
+  const binding = parsed.data
+  if (
+    binding.canonicalPlanComponentsHash !== sha256AuthorityValue(input.components) ||
+    binding.planningInputBindingHash !== input.planningInputAuthority.bindingHash ||
+    binding.sourceCandidateHash !== input.sourceMediaAuthority.candidateHash ||
+    ref.sha256 !== sha256AuthorityValue(binding)
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Canonical planning-handoff publication binding no longer matches immutable plan authority.',
+      409,
+    )
   }
   return binding
 }

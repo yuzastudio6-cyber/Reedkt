@@ -3,14 +3,23 @@ import type { ServiceContext } from '../types'
 import {
   canonicalPlanningHandoffResponseSchema,
   createCanonicalPlanningHandoffSchema,
+  publishCanonicalEditPlanFromHandoffSchema,
   type CreateCanonicalPlanningHandoffBody,
+  type PublishCanonicalEditPlanFromHandoffBody,
 } from '../validation/canonical-planning-handoff-schemas'
+import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
 import { createProjectService } from './project-service'
 import {
   buildCurrentPlanningInputAuthorityExpectation,
+  revalidatePlanningInputAuthorityBinding,
   resolvePlanningInputAuthorityBinding,
 } from './planning-input-authority-binding-service'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
+import {
+  canonicalPlanningHandoffId,
+  persistPrivateCanonicalPlanningHandoff,
+  readPrivateCanonicalPlanningHandoff,
+} from './private-canonical-planning-handoff-store'
 import { createSourceMediaAuthorityService } from './source-media-authority-service'
 import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
@@ -84,6 +93,7 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
         expectation: planningInputAuthority,
         components: body.canonicalPlanComponents,
       })
+      const canonicalPlanComponentsHash = sha256AuthorityValue(body.canonicalPlanComponents)
       const responseWithoutHash = {
         schemaVersion: 'canonical-planning-handoff-response-v1' as const,
         source: 'canonical_planning_handoff_service' as const,
@@ -92,6 +102,7 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
           projectId,
           editSessionId,
         },
+        canonicalPlanComponentsHash,
         sourceBindingManifestCandidate: sourceCandidate,
         sourceMediaAuthority,
         planningInputAuthority,
@@ -112,10 +123,131 @@ export function createCanonicalPlanningHandoffService(context: ServiceContext) {
         noRender: true as const,
         testOnly: true as const,
       }
-      return canonicalPlanningHandoffResponseSchema.parse({
+      const handoffHash = sha256AuthorityValue(responseWithoutHash)
+      const handoff = canonicalPlanningHandoffResponseSchema.parse({
         ...responseWithoutHash,
-        handoffHash: sha256AuthorityValue(responseWithoutHash),
+        handoffHash,
+        handoffId: canonicalPlanningHandoffId(handoffHash),
+        persistence: {
+          privateLocal: true,
+          tenantScoped: true,
+          createOnly: true,
+          checksumProtected: true,
+          contentAddressed: true,
+          distributed: false,
+          productionAuthority: false,
+        },
       })
+      return (await persistPrivateCanonicalPlanningHandoff({ scope, handoff })).handoff
+    },
+
+    async publishFromPersistedHandoff(input: PublishCanonicalEditPlanFromHandoffBody & {
+      projectId: string
+      editSessionId: string
+      handoffId: string
+      idempotencyKey: string
+      requestPath?: string
+    }) {
+      const {
+        projectId,
+        editSessionId,
+        handoffId,
+        idempotencyKey,
+        requestPath,
+        ...requestBody
+      } = input
+      const parsed = publishCanonicalEditPlanFromHandoffSchema.safeParse(requestBody)
+      if (
+        !parsed.success ||
+        !safeIdentity(projectId) ||
+        !safeIdentity(editSessionId) ||
+        !safeIdentity(handoffId)
+      ) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Canonical planning handoff publication request validation failed.',
+          400,
+          parsed.success
+            ? { routeIdentity: ['Invalid project, edit-session, or handoff identity.'] }
+            : parsed.error.flatten(),
+        )
+      }
+      assertPrivatePlanningHandoffRuntime(context)
+      const body = parsed.data
+      const actorUserId = getRequiredAuthUserId(context)
+      const access = await authorizeWorkspaceAccess(context, body.workspaceId, 'write')
+      if (access.userId !== actorUserId) {
+        throw new ApiError('AUTH_REQUIRED', 'Canonical planning handoff is outside this workspace.', 403)
+      }
+      await createProjectService(context).getProject(projectId, access.workspaceId)
+      const scope = {
+        localStorageRoot: context.env.localStorageRoot,
+        ownerUserId: actorUserId,
+        workspaceId: access.workspaceId,
+        projectId,
+        editSessionId,
+      }
+      const handoff = await readPrivateCanonicalPlanningHandoff({ scope, handoffId })
+      if (handoff.handoffHash !== body.expectedHandoffHash) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'Canonical planning handoff hash does not match the persisted authority.',
+          409,
+        )
+      }
+      const canonicalPlanComponentsHash = sha256AuthorityValue(body.canonicalPlan.components)
+      if (handoff.canonicalPlanComponentsHash !== canonicalPlanComponentsHash) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'Canonical plan components changed after the authenticated planning handoff.',
+          409,
+        )
+      }
+      await revalidatePlanningInputAuthorityBinding({
+        context,
+        scope,
+        persistedBinding: handoff.resolvedPlanningInputAuthority,
+        components: body.canonicalPlan.components,
+      })
+
+      const result = await createEditPlanningAuthorityService(context).publishCanonicalPlan({
+        workspaceId: access.workspaceId,
+        planningRequestId: body.planningRequestId,
+        planningInputAuthority: handoff.planningInputAuthority,
+        sourceMediaAuthority: handoff.sourceMediaAuthority,
+        revisionAuthority: body.revisionAuthority,
+        canonicalPlan: body.canonicalPlan,
+        projectId,
+        editSessionId,
+        idempotencyKey,
+        requestPath,
+        planningHandoffBinding: {
+          schemaVersion: 'canonical-planning-handoff-publication-binding-v1',
+          handoffId: handoff.handoffId,
+          handoffHash: handoff.handoffHash,
+          canonicalPlanComponentsHash: handoff.canonicalPlanComponentsHash,
+          sourceCandidateHash: handoff.sourceBindingManifestCandidate.candidateHash,
+          planningInputBindingHash: handoff.resolvedPlanningInputAuthority.bindingHash,
+          privateLocalCreateOnlyAuthority: true,
+          revalidatedBeforePublication: true,
+          distributedAuthority: false,
+          productionAuthority: false,
+        },
+      })
+      return {
+        ...result,
+        canonicalPlanningHandoff: {
+          handoffId: handoff.handoffId,
+          handoffHash: handoff.handoffHash,
+          canonicalPlanComponentsHash: handoff.canonicalPlanComponentsHash,
+          boundToPublishedPlan: true as const,
+          revalidatedBeforePublication: true as const,
+        },
+        warnings: [
+          ...result.warnings,
+          'Publication loaded the tenant-scoped persisted handoff server-side and revalidated its exact planning inputs before freezing the binding into canonical authority.',
+        ],
+      }
     },
   }
 }

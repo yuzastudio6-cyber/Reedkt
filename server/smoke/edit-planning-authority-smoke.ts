@@ -66,6 +66,7 @@ const memberships = [
   { workspaceId, userId, role: 'owner' },
   { workspaceId, userId: 'other-authority-user', role: 'editor' },
   { workspaceId: 'workspace-authority-route-smoke', userId, role: 'owner' },
+  { workspaceId: 'workspace-authority-route-smoke', userId: 'other-authority-user', role: 'editor' },
   { workspaceId: cancellationWorkspaceId, userId, role: 'owner' },
   { workspaceId: 'workspace-planning-binding-integration', userId, role: 'owner' },
 ]
@@ -599,10 +600,18 @@ const routeUser = {
   aud: 'authenticated',
   created_at: new Date(0).toISOString(),
 } as User
+const routeOtherUser = {
+  ...routeUser,
+  id: 'other-authority-user',
+  email: 'authority-other-user-smoke@reeditpro.local',
+} as User
 const routeServer = createServer(createReeditProApiApp(env, {
   clients: {
     admin,
-    public: createPublicAuthClient(new Map([['verified-authority-token', routeUser]])),
+    public: createPublicAuthClient(new Map([
+      ['verified-authority-token', routeUser],
+      ['verified-other-authority-token', routeOtherUser],
+    ])),
   },
 }))
 await new Promise<void>((resolve) => routeServer.listen(0, '127.0.0.1', resolve))
@@ -676,25 +685,112 @@ try {
   assert.equal(routePlanningHandoff.noToolExecution, true)
   assert.equal(routePlanningHandoff.noProviderCall, true)
   assert.equal(routePlanningHandoff.noRender, true)
-  routePlanBody.planningInputAuthority = routePlanningHandoff.planningInputAuthority as
-    PlanningInputAuthorityExpectation
-  routePlanBody.sourceMediaAuthority = routePlanningHandoff.sourceMediaAuthority as
-    SourceMediaAuthorityExpectation
+  assert.match(String(routePlanningHandoff.handoffId), /^planning_handoff_[a-f0-9]{64}$/)
+  assert.match(String(routePlanningHandoff.handoffHash), /^[a-f0-9]{64}$/)
+  assert.match(String(routePlanningHandoff.canonicalPlanComponentsHash), /^[a-f0-9]{64}$/)
+  assert.deepEqual(asRecord(routePlanningHandoff.persistence), {
+    privateLocal: true,
+    tenantScoped: true,
+    createOnly: true,
+    checksumProtected: true,
+    contentAddressed: true,
+    distributed: false,
+    productionAuthority: false,
+  })
+  const planningHandoffReplayResponse = await fetch(planningHandoffUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json' },
+    body: JSON.stringify(planningHandoffBody),
+  })
+  assert.equal(planningHandoffReplayResponse.status, 200)
+  const planningHandoffReplayEnvelope = await planningHandoffReplayResponse.json() as {
+    data?: { canonicalPlanningHandoff?: Record<string, unknown> }
+  }
+  assert.deepEqual(
+    planningHandoffReplayEnvelope.data?.canonicalPlanningHandoff,
+    routePlanningHandoff,
+    'Exact planning handoff replay must return the same content-addressed private authority.',
+  )
+
+  const {
+    planningInputAuthority: _callerPlanningInputAuthority,
+    sourceMediaAuthority: _callerSourceMediaAuthority,
+    ...routePlanWithoutCallerAuthorities
+  } = routePlanBody
+  void _callerPlanningInputAuthority
+  void _callerSourceMediaAuthority
+  const persistedHandoffPublishUrl =
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/` +
+    `canonical-planning-handoffs/${String(routePlanningHandoff.handoffId)}/publish`
+  const persistedHandoffPublishBody = {
+    ...routePlanWithoutCallerAuthorities,
+    expectedHandoffHash: String(routePlanningHandoff.handoffHash),
+  }
+  const crossUserHandoffResponse = await fetch(persistedHandoffPublishUrl, {
+    method: 'POST',
+    headers: {
+      authorization: 'Bearer verified-other-authority-token',
+      'content-type': 'application/json',
+      'idempotency-key': 'route-cross-user-handoff-publish',
+    },
+    body: JSON.stringify(persistedHandoffPublishBody),
+  })
+  assert.equal(crossUserHandoffResponse.status, 404)
+  const wrongHandoffHashResponse = await fetch(persistedHandoffPublishUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-wrong-handoff-hash' },
+    body: JSON.stringify({ ...persistedHandoffPublishBody, expectedHandoffHash: 'f'.repeat(64) }),
+  })
+  assert.equal(wrongHandoffHashResponse.status, 409)
+  const changedComponentsPublishBody = structuredClone(persistedHandoffPublishBody)
+  changedComponentsPublishBody.canonicalPlan.components.rendererPlan = {
+    ...changedComponentsPublishBody.canonicalPlan.components.rendererPlan,
+    callerSubstitution: true,
+  }
+  const changedComponentsResponse = await fetch(persistedHandoffPublishUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-changed-handoff-components' },
+    body: JSON.stringify(changedComponentsPublishBody),
+  })
+  assert.equal(changedComponentsResponse.status, 409)
   const publishResponse = await fetch(
-    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/canonical-plans`,
+    persistedHandoffPublishUrl,
     {
       method: 'POST',
       headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-publish-plan' },
-      body: JSON.stringify(routePlanBody),
+      body: JSON.stringify(persistedHandoffPublishBody),
     },
   )
   assert.equal(publishResponse.status, 201)
   const publishEnvelope = await publishResponse.json() as {
-    data?: { authority?: Record<string, unknown> }
+    data?: {
+      authority?: Record<string, unknown>
+      canonicalPlanningHandoff?: Record<string, unknown>
+    }
   }
   const routePublishedAuthority = asRecord(publishEnvelope.data?.authority)
+  const routePublishedHandoff = asRecord(publishEnvelope.data?.canonicalPlanningHandoff)
   const routePlan = asRecord(routePublishedAuthority.plan)
   const routeEstimate = asRecord(routePublishedAuthority.estimate)
+  assert.equal(routePlan.status, 'presented')
+  assert.equal('snapshot' in routePublishedAuthority, false)
+  assert.equal('jobs' in routePublishedAuthority, false)
+  assert.equal(routePublishedHandoff.handoffId, routePlanningHandoff.handoffId)
+  assert.equal(routePublishedHandoff.handoffHash, routePlanningHandoff.handoffHash)
+  assert.equal(routePublishedHandoff.boundToPublishedPlan, true)
+  assert.equal(routePublishedHandoff.revalidatedBeforePublication, true)
+  const routePlanComponentRefs = asRecord(routePlan.componentRefs)
+  assert.match(
+    String(asRecord(routePlanComponentRefs.planningHandoffAuthority).sha256),
+    /^[a-f0-9]{64}$/,
+  )
+
+  await provePersistedHandoffStaleAuthorityRejection({
+    serviceContext: context,
+    routeBaseUrl,
+    routeAuthHeaders,
+    routeWorkspaceId,
+  })
 
   const approveResponse = await fetch(`${routeBaseUrl}/v1/edit-plans/${String(routePlan.id)}/approve`, {
     method: 'POST',
@@ -712,6 +808,23 @@ try {
   }
   const routeApprovedAuthority = asRecord(approveEnvelope.data?.authority)
   const routeSnapshot = asRecord(routeApprovedAuthority.snapshot)
+  const routeSnapshotComponentRefs = asRecord(routeSnapshot.componentRefs)
+  assert.deepEqual(
+    routeSnapshotComponentRefs.planningHandoffAuthority,
+    routePlanComponentRefs.planningHandoffAuthority,
+    'Approval must preserve the exact planning-handoff reference in immutable snapshot lineage.',
+  )
+  const routeLoadedExecutionAuthority = await createEditPlanningAuthorityService(
+    context,
+  ).loadApprovedExecutionAuthority(String(routeSnapshot.snapshotId), routeWorkspaceId)
+  assert.equal(
+    routeLoadedExecutionAuthority.planningHandoffAuthority?.handoffId,
+    routePlanningHandoff.handoffId,
+  )
+  assert.equal(
+    routeLoadedExecutionAuthority.planningHandoffAuthority?.handoffHash,
+    routePlanningHandoff.handoffHash,
+  )
 
   const packageResponse = await fetch(`${routeBaseUrl}/v1/edit-executions/packages`, {
     method: 'POST',
@@ -1984,6 +2097,12 @@ console.log(JSON.stringify({
     'cross_user_snapshot_isolation',
     'production_authority_fail_closed',
     'authenticated_canonical_authority_http_routes',
+    'content_addressed_private_planning_handoff_replay',
+    'persisted_planning_handoff_cross_user_scope_hidden',
+    'persisted_planning_handoff_hash_and_component_substitution_rejected',
+    'persisted_planning_handoff_checksum_tamper_rejected',
+    'persisted_planning_handoff_stale_preference_and_source_authority_rejected',
+    'persisted_planning_handoff_binding_frozen_into_canonical_plan_authority',
     'authenticated_canonical_execution_readiness_http_route',
     'authenticated_canonical_single_job_execution_http_route_with_replay_and_conflict',
     'authenticated_canonical_work_graph_advances_ready_job_and_persists_exact_blockers',
@@ -2354,6 +2473,147 @@ async function prepareSourceMediaAuthority(
       candidateHash: candidate.candidateHash,
     },
     sourceSequence,
+  }
+}
+
+async function provePersistedHandoffStaleAuthorityRejection(input: {
+  serviceContext: ServiceContext
+  routeBaseUrl: string
+  routeAuthHeaders: Record<string, string>
+  routeWorkspaceId: string
+}): Promise<void> {
+  const prepareFixture = async (suffix: string) => {
+    const editSessionId = `handoff-stale-${suffix}`
+    const project = (await createProjectService(input.serviceContext).createProject({
+      workspaceId: input.routeWorkspaceId,
+      name: `Persisted handoff stale ${suffix}`,
+    })).project
+    const expectation = await prepareExactPlanningAuthority(
+      input.serviceContext,
+      project.id,
+      editSessionId,
+      input.routeWorkspaceId,
+    )
+    const sourceMediaFixture = await prepareSourceMediaAuthority(
+      input.serviceContext,
+      input.routeWorkspaceId,
+      project.id,
+      `handoff-stale-${suffix}`,
+    )
+    const planBody = createCanonicalPlanBody(
+      `planning-handoff-stale-${suffix}`,
+      expectation,
+      sourceMediaFixture,
+    )
+    planBody.workspaceId = input.routeWorkspaceId
+    const handoffUrl =
+      `${input.routeBaseUrl}/v1/projects/${project.id}/edit-sessions/${editSessionId}/canonical-planning-handoff`
+    const handoffResponse = await fetch(handoffUrl, {
+      method: 'POST',
+      headers: { ...input.routeAuthHeaders, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        workspaceId: input.routeWorkspaceId,
+        purpose: 'prepare_canonical_planning_handoff',
+        orderedSourceItems: sourceMediaFixture.sourceSequence,
+        canonicalPlanComponents: planBody.canonicalPlan.components,
+      }),
+    })
+    assert.equal(handoffResponse.status, 200)
+    const envelope = await handoffResponse.json() as {
+      data?: { canonicalPlanningHandoff?: Record<string, unknown> }
+    }
+    const handoff = asRecord(envelope.data?.canonicalPlanningHandoff)
+    const {
+      planningInputAuthority: _planningInputAuthority,
+      sourceMediaAuthority: _sourceMediaAuthority,
+      ...planWithoutCallerAuthorities
+    } = planBody
+    void _planningInputAuthority
+    void _sourceMediaAuthority
+    return {
+      project,
+      editSessionId,
+      expectation,
+      handoffId: String(handoff.handoffId),
+      publishUrl:
+        `${input.routeBaseUrl}/v1/projects/${project.id}/edit-sessions/${editSessionId}/` +
+        `canonical-planning-handoffs/${String(handoff.handoffId)}/publish`,
+      publishBody: {
+        ...planWithoutCallerAuthorities,
+        expectedHandoffHash: String(handoff.handoffHash),
+      },
+    }
+  }
+
+  const stalePreference = await prepareFixture('preference')
+  await createExactEditPreferenceService(input.serviceContext).updateCurrent({
+    workspaceId: input.routeWorkspaceId,
+    projectId: stalePreference.project.id,
+    editSessionId: stalePreference.editSessionId,
+    expectedRevision: stalePreference.expectation.exactEditPreference.recordRevision,
+    patch: { moodStyle: 'energetic' },
+    idempotencyKey: 'mutate-persisted-handoff-preference',
+  })
+  const stalePreferenceResponse = await fetch(stalePreference.publishUrl, {
+    method: 'POST',
+    headers: {
+      ...input.routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'publish-stale-persisted-handoff-preference',
+    },
+    body: JSON.stringify(stalePreference.publishBody),
+  })
+  assert.equal(stalePreferenceResponse.status, 409)
+
+  const staleSource = await prepareFixture('source')
+  await prepareSourceMediaAuthority(
+    input.serviceContext,
+    input.routeWorkspaceId,
+    staleSource.project.id,
+    'handoff-source-authority-advanced',
+  )
+  const staleSourceResponse = await fetch(staleSource.publishUrl, {
+    method: 'POST',
+    headers: {
+      ...input.routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'publish-stale-persisted-handoff-source',
+    },
+    body: JSON.stringify(staleSource.publishBody),
+  })
+  assert.equal(staleSourceResponse.status, 409)
+
+  const tamperedHandoff = await prepareFixture('checksum')
+  const scopeHash = sha256AuthorityValue({
+    ownerUserId: userId,
+    workspaceId: input.routeWorkspaceId,
+    projectId: tamperedHandoff.project.id,
+    editSessionId: tamperedHandoff.editSessionId,
+  })
+  const handoffRecordPath = join(
+    input.serviceContext.env.localStorageRoot,
+    'canonical-planning-handoffs',
+    'private-internal-v1',
+    `scope-${scopeHash}`,
+    `${tamperedHandoff.handoffId}.json`,
+  )
+  const originalHandoffRecord = await readFile(handoffRecordPath, 'utf8')
+  const tamperedRecord = JSON.parse(originalHandoffRecord) as { checksumSha256: string }
+  tamperedRecord.checksumSha256 = 'f'.repeat(64)
+  try {
+    await writeFile(handoffRecordPath, `${JSON.stringify(tamperedRecord)}\n`, 'utf8')
+    const tamperedHandoffResponse = await fetch(tamperedHandoff.publishUrl, {
+      method: 'POST',
+      headers: {
+        ...input.routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'publish-tampered-persisted-handoff',
+      },
+      body: JSON.stringify(tamperedHandoff.publishBody),
+    })
+    assert.equal(tamperedHandoffResponse.status, 409)
+  } finally {
+    await writeFile(handoffRecordPath, originalHandoffRecord, 'utf8')
   }
 }
 

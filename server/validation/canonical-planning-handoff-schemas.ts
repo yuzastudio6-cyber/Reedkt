@@ -1,5 +1,8 @@
 import { z } from 'zod'
-import { canonicalPlanComponentsSchema } from './edit-planning-authority-schemas'
+import {
+  canonicalPlanComponentsSchema,
+  publishCanonicalEditPlanSchema,
+} from './edit-planning-authority-schemas'
 import {
   planningInputAuthorityExpectationSchema,
   resolvedPlanningInputAuthorityBindingSchema,
@@ -50,6 +53,7 @@ export const canonicalPlanningHandoffResponseSchema = z.object({
     projectId: identity,
     editSessionId: identity,
   }).strict(),
+  canonicalPlanComponentsHash: sha,
   sourceBindingManifestCandidate: sourceBindingManifestCandidateSchema,
   sourceMediaAuthority: sourceMediaAuthorityExpectationSchema,
   planningInputAuthority: planningInputAuthorityExpectationSchema,
@@ -63,6 +67,16 @@ export const canonicalPlanningHandoffResponseSchema = z.object({
     readyForCanonicalPlanPublication: z.literal(true),
   }).strict(),
   handoffHash: sha,
+  handoffId: identity,
+  persistence: z.object({
+    privateLocal: z.literal(true),
+    tenantScoped: z.literal(true),
+    createOnly: z.literal(true),
+    checksumProtected: z.literal(true),
+    contentAddressed: z.literal(true),
+    distributed: z.literal(false),
+    productionAuthority: z.literal(false),
+  }).strict(),
   noPlanPublished: z.literal(true),
   noSnapshotCreated: z.literal(true),
   noCreditReservation: z.literal(true),
@@ -72,9 +86,33 @@ export const canonicalPlanningHandoffResponseSchema = z.object({
   testOnly: z.literal(true),
 }).strict()
 
+export const publishCanonicalEditPlanFromHandoffSchema = publishCanonicalEditPlanSchema
+  .omit({ planningInputAuthority: true, sourceMediaAuthority: true })
+  .extend({ expectedHandoffHash: sha })
+  .strict()
+
+export const canonicalPlanningHandoffPublicationBindingSchema = z.object({
+  schemaVersion: z.literal('canonical-planning-handoff-publication-binding-v1'),
+  handoffId: identity,
+  handoffHash: sha,
+  canonicalPlanComponentsHash: sha,
+  sourceCandidateHash: sha,
+  planningInputBindingHash: sha,
+  privateLocalCreateOnlyAuthority: z.literal(true),
+  revalidatedBeforePublication: z.literal(true),
+  distributedAuthority: z.literal(false),
+  productionAuthority: z.literal(false),
+}).strict()
+
 export type CreateCanonicalPlanningHandoffBody = z.infer<
   typeof createCanonicalPlanningHandoffSchema
 >
 export type CanonicalPlanningHandoffResponse = z.infer<
   typeof canonicalPlanningHandoffResponseSchema
+>
+export type PublishCanonicalEditPlanFromHandoffBody = z.infer<
+  typeof publishCanonicalEditPlanFromHandoffSchema
+>
+export type CanonicalPlanningHandoffPublicationBinding = z.infer<
+  typeof canonicalPlanningHandoffPublicationBindingSchema
 >

@@ -22,7 +22,7 @@ assert.equal(summary.callableCandidateCount, 61)
 assert.equal(summary.intentionallyNonExecutableCount, 11)
 assert.equal(summary.confinedRunnerVerifiedCount, 53)
 assert.equal(summary.canonicalEndToEndVerifiedCount, 50)
-assert.equal(summary.canonicalJobAdapterVerifiedCount, 15)
+assert.equal(summary.canonicalJobAdapterVerifiedCount, 21)
 assert.equal(new Set(catalog.map((record) => record.stableToolIdentity)).size, 72)
 assert.equal(new Set(catalog.map((record) => record.identityHash)).size, 72)
 assert.equal(new Set(catalog.map((record) => record.proofHash)).size, 72)
@@ -114,7 +114,8 @@ assert.deepEqual(summary.canonicalEndToEndVerifiedToolIds, [
 
 assert.deepEqual(summary.canonicalJobAdapterVerifiedToolIds, [
   'echarts', 'vega_lite', 'vega', 'satori', 'svg_js', 'viz_js', 'lottie', 'animejs',
-  'three_js', 'pixijs', 'konva', 'babylon_js', 'playwright', 'ffprobe', 'remotion',
+  'three_js', 'pixijs', 'konva', 'babylon_js', 'kornia', 'music21', 'rnnoise',
+  'playwright', 'opencolorio', 'openimageio', 'ffprobe', 'remotion', 'signalsmith_stretch',
 ])
 
 assert.equal(getToolIdentityRecord('audioflux').verificationState, 'canonical_e2e_verified')

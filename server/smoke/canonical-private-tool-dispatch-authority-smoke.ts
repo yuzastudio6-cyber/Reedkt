@@ -24,9 +24,6 @@ import { createCanonicalPrivateSharpExecutionService } from '../services/canonic
 import { createCanonicalPrivateRemotionExecutionService } from '../services/canonical-private-remotion-execution-service'
 import { createCanonicalPrivateLibassExecutionService } from '../services/canonical-private-libass-execution-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
-import { createCanonicalPrivateAiCapabilityExecutionService } from '../services/canonical-private-ai-capability-execution-service'
-import { createCanonicalPrivateNativeImagePipelineExecutionService } from '../services/canonical-private-native-image-pipeline-execution-service'
-import { createCanonicalPrivateNativeAudioProcessingExecutionService } from '../services/canonical-private-native-audio-processing-execution-service'
 import { createCanonicalPrivateContainerPackagingValidationExecutionService } from '../services/canonical-private-container-packaging-validation-execution-service'
 import { createCanonicalPrivateVapourSynthFramePipelineExecutionService } from '../services/canonical-private-vapoursynth-frame-pipeline-execution-service'
 import { createCanonicalPrivateAudioFluxAnalysisExecutionService } from '../services/canonical-private-audioflux-analysis-execution-service'
@@ -1886,7 +1883,13 @@ await leaseService.release({
 })
 
 for (const matrixRun of matrixRuns.slice(1)) {
-  if (matrixRun.runnerKind === 'node' || matrixRun.runnerKind === 'browser') {
+  if (
+    matrixRun.runnerKind === 'node' ||
+    matrixRun.runnerKind === 'browser' ||
+    matrixRun.runnerKind === 'ai' ||
+    matrixRun.runnerKind === 'native_image' ||
+    matrixRun.runnerKind === 'native_audio'
+  ) {
     const adapterInput = {
       workspaceId,
       projectId: snapshot.projectId,
@@ -1903,7 +1906,13 @@ for (const matrixRun of matrixRuns.slice(1)) {
       coordinated.identity.runnerClass,
       matrixRun.runnerKind === 'node'
         ? 'offline_node_structured_execution_v1'
-        : 'offline_browser_graphics_execution_v1',
+        : matrixRun.runnerKind === 'browser'
+          ? 'offline_browser_graphics_execution_v1'
+          : matrixRun.runnerKind === 'ai'
+            ? 'offline_ai_capability_execution_v1'
+            : matrixRun.runnerKind === 'native_image'
+              ? 'offline_native_image_pipeline_execution_v1'
+              : 'offline_native_audio_processing_execution_v1',
     )
     assert.equal(coordinated.result.contentType, matrixRun.expectedContentType)
     assert.equal(coordinated.result.qaOutcome, 'passed')
@@ -1967,85 +1976,7 @@ for (const matrixRun of matrixRuns.slice(1)) {
   const executionAuthority = { ...leaseAuthority, dispatchCredential: grant.dispatchCredential }
   let coordinatedArtifactId: string
   let coordinatedSha256: string
-  if (matrixRun.runnerKind === 'ai') {
-    const executionInput = {
-      workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-      jobId: matrixRun.job.id, grantId: grant.grant.grantId,
-      purpose: 'execute_canonical_private_ai_capability' as const,
-      idempotencyKey: `consume-${matrixRun.toolId}-matrix-root`,
-    }
-    const coordinated = await createCanonicalPrivateAiCapabilityExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(coordinated.tool.canonicalToolId, matrixRun.toolId)
-    assert.equal(coordinated.tool.operationId, matrixRun.operationId)
-    assert.equal(coordinated.result.contentType, matrixRun.expectedContentType)
-    assert.equal(coordinated.result.qaOutcome, 'passed')
-    assert.equal(coordinated.tool.approvedServerOwnedFixtureOnly, true)
-    assert.equal(coordinated.tool.modelWeightsLoaded, false)
-    const replay = await createCanonicalPrivateAiCapabilityExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
-    assert.equal(replay.result.sha256, coordinated.result.sha256)
-    assert.equal(replay.replay.dispatchConsumptionReplayed, true)
-    assert.equal(replay.replay.executionFenceBeginReplayed, true)
-    assert.equal(replay.replay.executionFenceCompleteReplayed, true)
-    assert.equal(replay.replay.artifactRecordReplayed, true)
-    assert.equal(replay.replay.qaRecordReplayed, true)
-    assert.equal(replay.replay.reconciliationReplayed, true)
-    coordinatedArtifactId = coordinated.result.artifactId
-    coordinatedSha256 = coordinated.result.sha256
-  } else if (matrixRun.runnerKind === 'native_image') {
-    const executionInput = {
-      workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-      jobId: matrixRun.job.id, grantId: grant.grant.grantId,
-      purpose: 'execute_canonical_private_native_image_pipeline' as const,
-      idempotencyKey: `consume-${matrixRun.toolId}-matrix-root`,
-    }
-    const coordinated = await createCanonicalPrivateNativeImagePipelineExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(coordinated.tool.canonicalToolId, matrixRun.toolId)
-    assert.equal(coordinated.tool.operationId, matrixRun.operationId)
-    assert.equal(coordinated.result.contentType, 'image/png')
-    assert.equal(coordinated.result.width, 64)
-    assert.equal(coordinated.result.height, 64)
-    assert.equal(coordinated.result.qaOutcome, 'passed')
-    assert.equal(coordinated.tool.licenseReviewStillRequiredForProduction, true)
-    const replay = await createCanonicalPrivateNativeImagePipelineExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
-    assert.equal(replay.result.sha256, coordinated.result.sha256)
-    assert.equal(replay.replay.dispatchConsumptionReplayed, true)
-    assert.equal(replay.replay.executionFenceBeginReplayed, true)
-    assert.equal(replay.replay.executionFenceCompleteReplayed, true)
-    assert.equal(replay.replay.artifactRecordReplayed, true)
-    assert.equal(replay.replay.qaRecordReplayed, true)
-    assert.equal(replay.replay.reconciliationReplayed, true)
-    coordinatedArtifactId = coordinated.result.artifactId
-    coordinatedSha256 = coordinated.result.sha256
-  } else if (matrixRun.runnerKind === 'native_audio') {
-    const executionInput = {
-      workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-      jobId: matrixRun.job.id, grantId: grant.grant.grantId,
-      purpose: 'execute_canonical_private_native_audio_processing' as const,
-      idempotencyKey: `consume-${matrixRun.toolId}-matrix-root`,
-    }
-    const coordinated = await createCanonicalPrivateNativeAudioProcessingExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(coordinated.tool.canonicalToolId, matrixRun.toolId)
-    assert.equal(coordinated.tool.operationId, matrixRun.operationId)
-    assert.equal(coordinated.result.contentType, 'audio/wav')
-    assert.equal(coordinated.result.sampleRate, 48000)
-    assert.equal(coordinated.result.channelCount, 1)
-    assert.equal(coordinated.result.frameCount, matrixRun.toolId === 'rnnoise' ? 47520 : 60000)
-    assert.equal(coordinated.result.qaOutcome, 'passed')
-    assert.equal(coordinated.tool.licenseReviewStillRequiredForProduction, true)
-    const replay = await createCanonicalPrivateNativeAudioProcessingExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
-    assert.equal(replay.result.sha256, coordinated.result.sha256)
-    assert.equal(replay.replay.dispatchConsumptionReplayed, true)
-    assert.equal(replay.replay.executionFenceBeginReplayed, true)
-    assert.equal(replay.replay.executionFenceCompleteReplayed, true)
-    assert.equal(replay.replay.artifactRecordReplayed, true)
-    assert.equal(replay.replay.qaRecordReplayed, true)
-    assert.equal(replay.replay.reconciliationReplayed, true)
-    coordinatedArtifactId = coordinated.result.artifactId
-    coordinatedSha256 = coordinated.result.sha256
-  } else if (matrixRun.runnerKind === 'packaging') {
+  if (matrixRun.runnerKind === 'packaging') {
     const executionInput = {
       workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
       jobId: matrixRun.job.id, grantId: grant.grant.grantId,
@@ -3336,6 +3267,9 @@ console.log(JSON.stringify({
     'canonical_job_only_adapter_derives_tool_operation_output_lease_dispatch_qa_and_replay_server_side',
     'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
     'server_derived_job_adapter_executes_all_five_browser_graphics_tool_identities',
+    'server_derived_job_adapter_executes_bounded_ai_capability_tool_identities',
+    'server_derived_job_adapter_executes_native_image_tool_identities',
+    'server_derived_job_adapter_executes_native_audio_tool_identities',
     'echarts_exact_svg_canonical_lifecycle_verified',
     'vega_lite_exact_svg_canonical_lifecycle_verified',
     'vega_exact_svg_canonical_lifecycle_verified',

@@ -44,7 +44,7 @@ A revision request records:
 - `replacementPlanPublished: false`;
 - `revisionExecutionStarted: false`.
 
-The prior approved snapshot, plan components, estimate, reservation, jobs, artifacts, QA, and review manifest remain unchanged. This handoff is evidence that a revision was requested; it is not authority to publish, approve, execute, or render the revision.
+The prior approved snapshot, plan components, estimate, reservation, jobs, artifacts, QA, and review manifest remain unchanged. This handoff is evidence that a revision was requested. The canonical planning authority can now consume it exactly once to publish plan v2 and a fresh estimate; the decision route itself still does not publish, approve, execute, or render the revision.
 
 ## Current executable evidence
 
@@ -61,7 +61,7 @@ The canonical dispatch smoke records a revision against the real bounded five-jo
 
 Both decision outcomes keep public export, product, external-beta, production, provider, public artifact, delivery, further render, revision execution, replacement-plan publication, customer price/credit mutation, wallet, reservation, settlement, billing, and deployment authority false.
 
-The next revision gate is canonical replacement-plan compilation with a fresh estimate and new approval. Private-internal acceptance still does not authorize public delivery.
+Replacement-plan compilation with a fresh estimate is now proven. The next revision gate is fresh approval with explicit synthetic reservation reconciliation. Private-internal acceptance still does not authorize public delivery.
 
 ## Verification
 

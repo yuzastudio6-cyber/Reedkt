@@ -29,6 +29,7 @@ import {
   publishCanonicalEditPlanSchema,
 } from '../validation/edit-planning-authority-schemas'
 import { getRequiredAuthUserId, nowIso } from './service-helpers'
+import { createCanonicalPrivateReviewDecisionService } from './canonical-private-review-decision-service'
 import { createProjectService } from './project-service'
 import {
   type AuthorityApprovedSnapshotManifest,
@@ -123,6 +124,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         planningRequestId: input.planningRequestId,
         planningInputAuthority: input.planningInputAuthority,
         sourceMediaAuthority: input.sourceMediaAuthority,
+        revisionAuthority: input.revisionAuthority,
         canonicalPlan: input.canonicalPlan,
       })
       if (!validatedBody.success) {
@@ -133,6 +135,16 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       await createProjectService(context).getProject(input.projectId, access.workspaceId)
       const idempotencyKey = requireIdempotencyKey(input.idempotencyKey)
       validateCanonicalPlanDraft(body.canonicalPlan.components, body.canonicalPlan.workItems, body.canonicalPlan.estimate)
+      const revisionDecision = body.revisionAuthority
+        ? await validateRevisionPublicationAuthority({
+            context,
+            workspaceId: access.workspaceId,
+            projectId: input.projectId,
+            editSessionId: input.editSessionId,
+            revisionAuthority: body.revisionAuthority,
+            compiledIntent: body.canonicalPlan.components.compiledIntent,
+          })
+        : undefined
 
       const planningInputAuthority = await resolvePlanningInputAuthorityBinding({
         context,
@@ -166,6 +178,22 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           value: sourceMediaAuthority as unknown as Record<string, unknown>,
           maxBytes: 2 * 1024 * 1024,
         }),
+      }
+      if (body.revisionAuthority && revisionDecision) {
+        componentRefs.revisionAuthority = await putPrivateAuthorityJsonBlob({
+          localStorageRoot: context.env.localStorageRoot,
+          value: {
+            schemaVersion: 'canonical-revision-publication-authority-v1',
+            ...body.revisionAuthority,
+            decisionStatus: revisionDecision.status,
+            decision: revisionDecision.decision,
+            immutableApprovedSnapshotPreserved:
+              revisionDecision.authority.immutableApprovedSnapshotPreserved,
+            immutableReviewManifestPreserved:
+              revisionDecision.authority.immutableReviewManifestPreserved,
+          },
+          maxBytes: 64 * 1024,
+        })
       }
       const preparedWorkItems = await persistWorkItemComponents(context, body.canonicalPlan.workItems)
       const preparedEstimateItems = await Promise.all(body.canonicalPlan.estimate.lineItems.map(async (item) => ({
@@ -204,6 +232,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         projectId: input.projectId,
         editSessionId: input.editSessionId,
         planningRequestId: body.planningRequestId,
+        revisionAuthority: body.revisionAuthority,
         planHash,
         estimateHash,
         actorUserId: access.userId,
@@ -246,8 +275,27 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           if (duplicatePlanningRequest) {
             throw new ApiError('IDEMPOTENCY_CONFLICT', 'Planning request ID already belongs to another canonical plan.', 409)
           }
-          if (aggregate.plans.some((plan) => plan.editSessionId === input.editSessionId && plan.status === 'approved')) {
+          const approvedPlan = aggregate.plans.find((plan) =>
+            plan.editSessionId === input.editSessionId && plan.status === 'approved')
+          if (approvedPlan && !body.revisionAuthority) {
             throw new ApiError('PLAN_NOT_APPROVED', 'An approved edit requires an explicit revision flow before a replacement plan can be published.', 409)
+          }
+          if (body.revisionAuthority) {
+            const priorSnapshot = aggregate.snapshots.find((snapshot) =>
+              snapshot.snapshotId === body.revisionAuthority!.priorApprovedSnapshotId)
+            if (
+              !approvedPlan || approvedPlan.id !== body.revisionAuthority.priorApprovedPlanId ||
+              approvedPlan.planVersion !== body.revisionAuthority.priorApprovedPlanVersion ||
+              !priorSnapshot || priorSnapshot.planId !== approvedPlan.id ||
+              aggregate.plans.some((plan) =>
+                plan.revisionAuthority?.reviewDecisionId === body.revisionAuthority!.reviewDecisionId)
+            ) {
+              throw new ApiError(
+                'IDEMPOTENCY_CONFLICT',
+                'Canonical revision authority is stale, already consumed, or not bound to the active approved plan.',
+                409,
+              )
+            }
           }
 
           const previousPresented = aggregate.plans.find((plan) => plan.editSessionId === input.editSessionId && plan.status === 'presented')
@@ -267,6 +315,16 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             0,
             ...aggregate.plans.filter((plan) => plan.editSessionId === input.editSessionId).map((plan) => plan.planVersion),
           ) + 1
+          if (
+            body.revisionAuthority &&
+            planVersion !== body.revisionAuthority.priorApprovedPlanVersion + 1
+          ) {
+            throw new ApiError(
+              'IDEMPOTENCY_CONFLICT',
+              'Canonical replacement plan version is not the next immutable revision version.',
+              409,
+            )
+          }
           const workItems: AuthorityPlanWorkItemRecord[] = preparedWorkItems.map(({ input: workItem, executionInputRef, fallbackPolicyRef }) => ({
             id: `authority_work_item_${randomUUID()}`,
             planId,
@@ -329,13 +387,16 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
               timingSummary: componentRefs.timingSummary,
             }),
             createdAt: timestamp,
+            revisionAuthority: body.revisionAuthority,
           }
           aggregate.plans.push(plan)
           aggregate.estimates.push(estimate)
           aggregate.planWorkItems.push(...workItems)
           aggregate.auditEvents.push({
             id: `authority_audit_${randomUUID()}`,
-            eventType: 'canonical_plan_published',
+            eventType: body.revisionAuthority
+              ? 'canonical_revision_plan_published'
+              : 'canonical_plan_published',
             actorUserId: access.userId,
             projectId: input.projectId,
             editSessionId: input.editSessionId,
@@ -363,6 +424,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         authority: response,
         warnings: [
           'Canonical plan authority is private single-host internal-test persistence.',
+          ...(body.revisionAuthority
+            ? ['Replacement plan publication consumed one exact private-review revision handoff; fresh approval remains blocked pending reservation reconciliation.']
+            : []),
           'No provider, worker, render, media, external billing, or production credit side effect was started.',
         ],
       }
@@ -387,6 +451,14 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       const targetPlan = aggregateBefore?.plans.find((plan) => plan.id === input.editPlanId)
       if (!targetPlan) throw new ApiError('PLAN_NOT_APPROVED', 'Canonical edit plan was not found.', 404)
       await createProjectService(context).getProject(targetPlan.projectId, access.workspaceId)
+      if (targetPlan.revisionAuthority) {
+        throw new ApiError(
+          'TOOL_NOT_READY',
+          'Replacement-plan approval remains blocked until synthetic reservation reconciliation is explicitly implemented and verified.',
+          503,
+          { requiredGate: 'canonical_revision_reservation_reconciliation_and_fresh_approval' },
+        )
+      }
       const approvalComponents = await loadCanonicalPlanComponents(context, targetPlan.componentRefs)
       const approvalPlanningInputAuthority = await loadPlanningInputAuthorityBinding(context, targetPlan.componentRefs)
       const approvalSourceMediaAuthority = await loadSourceMediaAuthorityCandidate(context, targetPlan.componentRefs)
@@ -1077,11 +1149,13 @@ function requireApprovedExecutionLineage(
     throw new ApiError('APPROVED_SNAPSHOT_REQUIRED', 'Canonical approved snapshot lineage is incomplete.', 409)
   }
   const { snapshotHash, ...manifestWithoutHash } = snapshot
-  const componentRefsMatch = SNAPSHOT_COMPONENT_NAMES.every((name) => {
+  const requiredComponentRefsMatch = SNAPSHOT_COMPONENT_NAMES.every((name) => {
     const planRef = plan.componentRefs[name]
     const snapshotRef = snapshot.componentRefs[name]
     return Boolean(planRef && snapshotRef && planRef.sha256 === snapshotRef.sha256 && planRef.byteLength === snapshotRef.byteLength)
   })
+  const componentRefsMatch = requiredComponentRefsMatch &&
+    stableAuthorityStringify(plan.componentRefs) === stableAuthorityStringify(snapshot.componentRefs)
   if (
     snapshot.schemaVersion !== 'private-edit-authority-approved-snapshot-v3' ||
     snapshot.workspaceId !== aggregate.workspaceId ||
@@ -1122,6 +1196,51 @@ function requireApprovedExecutionLineage(
     })
   }
   return { plan, estimate, reservation, approval }
+}
+
+async function validateRevisionPublicationAuthority(input: {
+  context: ServiceContext
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  revisionAuthority: NonNullable<PublishCanonicalEditPlanBody['revisionAuthority']>
+  compiledIntent: Record<string, unknown>
+}) {
+  const decision = await createCanonicalPrivateReviewDecisionService(input.context).getCompleted({
+    workspaceId: input.workspaceId,
+    reviewAssemblyId: input.revisionAuthority.reviewAssemblyId,
+  })
+  const handoff = decision.revisionHandoff
+  if (
+    decision.decision !== 'request_revision' ||
+    decision.status !== 'canonical_revision_requested' ||
+    !handoff ||
+    decision.identity.workspaceId !== input.workspaceId ||
+    decision.identity.projectId !== input.projectId ||
+    decision.identity.editSessionId !== input.editSessionId ||
+    decision.identity.reviewDecisionId !== input.revisionAuthority.reviewDecisionId ||
+    decision.identity.approvedPlanSnapshotId !== input.revisionAuthority.priorApprovedSnapshotId ||
+    decision.manifest.manifestSha256 !== input.revisionAuthority.decisionManifestSha256 ||
+    decision.authority.approvedPlanId !== input.revisionAuthority.priorApprovedPlanId ||
+    decision.authority.approvedPlanVersion !== input.revisionAuthority.priorApprovedPlanVersion ||
+    handoff.revisionRequestId !== input.revisionAuthority.revisionRequestId ||
+    handoff.revisionIntentHash !== input.revisionAuthority.revisionIntentHash ||
+    handoff.requiresReplanning !== true ||
+    handoff.requiresFreshEstimateAndApproval !== true ||
+    handoff.replacementPlanPublished !== false ||
+    handoff.revisionExecutionStarted !== false ||
+    input.compiledIntent.revisionIntentHash !== input.revisionAuthority.revisionIntentHash ||
+    input.compiledIntent.priorApprovedSnapshotId !== input.revisionAuthority.priorApprovedSnapshotId ||
+    input.compiledIntent.reviewDecisionId !== input.revisionAuthority.reviewDecisionId
+  ) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Replacement canonical plan is not bound to the exact completed revision handoff.',
+      409,
+      { requiredGate: 'exact_canonical_revision_handoff_compilation' },
+    )
+  }
+  return decision
 }
 
 function requirePrivateAuthorityRuntime(context: ServiceContext): void {
@@ -1679,6 +1798,7 @@ function createPublishedPlanResponse(
       sourceSequenceHash: plan.sourceSequenceHash,
       timingHash: plan.timingHash,
       componentRefs: plan.componentRefs,
+      revisionAuthority: plan.revisionAuthority,
       createdAt: plan.createdAt,
       approvedAt: plan.approvedAt,
     },

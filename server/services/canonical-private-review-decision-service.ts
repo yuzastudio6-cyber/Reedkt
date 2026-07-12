@@ -35,6 +35,28 @@ interface PersistedDecisionResponse {
 
 export function createCanonicalPrivateReviewDecisionService(context: ServiceContext) {
   return {
+    async getCompleted(input: {
+      reviewAssemblyId: string
+      workspaceId: string
+    }): Promise<CanonicalPrivateReviewDecisionResponse> {
+      if (!safeIdentity(input.reviewAssemblyId) || !safeIdentity(input.workspaceId)) {
+        throw new ApiError('VALIDATION_FAILED', 'Canonical private-review decision identity validation failed.', 400)
+      }
+      const actorUserId = getRequiredAuthUserId(context)
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'read')
+      if (access.userId !== actorUserId) throw blocked('Private-review decision actor is outside this workspace.')
+      const scopeHash = sha256(`${actorUserId}\u0000${access.workspaceId}`).slice(0, 32)
+      const assemblyHash = sha256(`${scopeHash}\u0000${input.reviewAssemblyId}`)
+      const completionPath = `${STORAGE_PREFIX}/${scopeHash}/assemblies/${assemblyHash}.json`
+      const manifestPath = `${STORAGE_PREFIX}/${scopeHash}/manifests/${assemblyHash}.json`
+      const completed = await readPersistedDecision(context, completionPath)
+      if (!completed || completed.identity.reviewAssemblyId !== input.reviewAssemblyId) {
+        throw blocked('Canonical private-review decision has not completed for this assembly.')
+      }
+      await verifyPersistedDecisionManifest(context, manifestPath, completed)
+      return completed
+    },
+
     async record(
       input: RecordCanonicalPrivateReviewDecisionInput,
     ): Promise<CanonicalPrivateReviewDecisionResponse> {
@@ -261,7 +283,7 @@ function deniedPermissions() {
 async function readPersistedDecision(
   context: ServiceContext,
   relativePath: string,
-  requestHash: string,
+  requestHash?: string,
 ): Promise<CanonicalPrivateReviewDecisionResponse | undefined> {
   const bytes = await readPrivateFileIfExistsWithinRoot({
     rootPath: context.env.localStorageRoot,
@@ -278,7 +300,8 @@ async function readPersistedDecision(
   const record = parsed as Partial<PersistedDecisionResponse>
   if (
     record.schemaVersion !== 'canonical-private-review-decision-idempotency-v1' ||
-    record.requestHash !== requestHash
+    typeof record.requestHash !== 'string' || !/^[a-f0-9]{64}$/.test(record.requestHash) ||
+    (requestHash !== undefined && record.requestHash !== requestHash)
   ) {
     throw new ApiError(
       'IDEMPOTENCY_CONFLICT',

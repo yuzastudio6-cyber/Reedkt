@@ -65,6 +65,16 @@ export interface AuthorityPlanRecord {
   createdAt: string
   approvedAt?: string
   supersededAt?: string
+  revisionAuthority?: {
+    reviewAssemblyId: string
+    reviewDecisionId: string
+    revisionRequestId: string
+    decisionManifestSha256: string
+    priorApprovedSnapshotId: string
+    priorApprovedPlanId: string
+    priorApprovedPlanVersion: number
+    revisionIntentHash: string
+  }
 }
 
 export interface AuthorityEstimateLineItem {
@@ -621,6 +631,27 @@ function assertAuthorityAggregateValid(aggregate: PrivateEditAuthorityAggregate,
       || snapshot.approvedSourceAssetManifestRef.byteLength <= 0
     ) {
       throw new ApiError('VALIDATION_FAILED', 'Private edit authority approved asset-manifest reference is invalid.', 409)
+    }
+  }
+  for (const plan of aggregate.plans) {
+    const revision = plan.revisionAuthority
+    if (!revision) continue
+    const priorSnapshot = aggregate.snapshots.find((record) =>
+      record.snapshotId === revision.priorApprovedSnapshotId)
+    if (
+      plan.planVersion <= revision.priorApprovedPlanVersion ||
+      !priorSnapshot || priorSnapshot.planId !== revision.priorApprovedPlanId ||
+      priorSnapshot.planVersion !== revision.priorApprovedPlanVersion ||
+      priorSnapshot.projectId !== plan.projectId ||
+      priorSnapshot.editSessionId !== plan.editSessionId ||
+      !/^[a-f0-9]{64}$/.test(revision.decisionManifestSha256) ||
+      !/^[a-f0-9]{64}$/.test(revision.revisionIntentHash) ||
+      !plan.componentRefs.revisionAuthority ||
+      !/^[a-f0-9]{64}$/.test(plan.componentRefs.revisionAuthority.sha256) ||
+      !Number.isInteger(plan.componentRefs.revisionAuthority.byteLength) ||
+      plan.componentRefs.revisionAuthority.byteLength <= 0
+    ) {
+      throw new ApiError('VALIDATION_FAILED', 'Canonical revision-plan authority lineage is invalid.', 409)
     }
   }
   for (const executionPackage of aggregate.executionPackages) {

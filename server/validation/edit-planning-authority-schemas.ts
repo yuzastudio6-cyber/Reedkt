@@ -231,11 +231,23 @@ const canonicalWorkItemSchema = z.object({
   required: z.boolean().default(true),
 }).strict()
 
+export const canonicalRevisionPublicationAuthoritySchema = z.object({
+  reviewAssemblyId: safeKeySchema,
+  reviewDecisionId: safeKeySchema,
+  revisionRequestId: safeKeySchema,
+  decisionManifestSha256: sha256Schema,
+  priorApprovedSnapshotId: safeKeySchema,
+  priorApprovedPlanId: safeKeySchema,
+  priorApprovedPlanVersion: z.number().int().positive(),
+  revisionIntentHash: sha256Schema,
+}).strict()
+
 export const publishCanonicalEditPlanSchema = z.object({
   workspaceId: idSchema,
   planningRequestId: safeKeySchema,
   planningInputAuthority: planningInputAuthorityExpectationSchema,
   sourceMediaAuthority: sourceMediaAuthorityExpectationSchema,
+  revisionAuthority: canonicalRevisionPublicationAuthoritySchema.optional(),
   canonicalPlan: z.object({
     schemaVersion: z.literal(PRIVATE_EDIT_AUTHORITY_SCHEMA_VERSION),
     components: canonicalPlanComponentsSchema,

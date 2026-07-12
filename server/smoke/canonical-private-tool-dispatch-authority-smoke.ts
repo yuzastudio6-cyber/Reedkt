@@ -2721,6 +2721,98 @@ assert.equal(
   )),
   reviewDecisionAuthorityBefore,
 )
+const revisionHandoff = terminalPrivateRevisionDecision.revisionHandoff
+assert.ok(revisionHandoff)
+const authorityBeforeReplacementPlan = await requireEditAuthority(workspaceId)
+const priorSnapshotSliceHash = sha256AuthorityValue(snapshotAuthoritySlice(
+  authorityBeforeReplacementPlan,
+  terminalPrivateReview.identity.approvedPlanSnapshotId,
+))
+const walletBeforeReplacementPlan = sha256AuthorityValue(authorityBeforeReplacementPlan.wallet)
+const reservationCountBeforeReplacementPlan = authorityBeforeReplacementPlan.reservations.length
+const jobsBeforeReplacementPlan = authorityBeforeReplacementPlan.jobs.length
+const packagesBeforeReplacementPlan = authorityBeforeReplacementPlan.executionPackages.length
+const replacementPlanBody = createDispatchPlanBody({
+  ...dispatchPlanInput,
+  planningInputAuthority: terminalReviewPlanningInput,
+})
+replacementPlanBody.planningRequestId = 'planning-terminal-private-review-revision-v2'
+replacementPlanBody.canonicalPlan.components.compiledIntent = {
+  ...replacementPlanBody.canonicalPlan.components.compiledIntent,
+  revisionIntentHash: revisionHandoff.revisionIntentHash,
+  priorApprovedSnapshotId: terminalPrivateReview.identity.approvedPlanSnapshotId,
+  reviewDecisionId: terminalPrivateRevisionDecision.identity.reviewDecisionId,
+}
+replacementPlanBody.revisionAuthority = {
+  reviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
+  reviewDecisionId: terminalPrivateRevisionDecision.identity.reviewDecisionId,
+  revisionRequestId: revisionHandoff.revisionRequestId,
+  decisionManifestSha256: terminalPrivateRevisionDecision.manifest.manifestSha256,
+  priorApprovedSnapshotId: terminalPrivateReview.identity.approvedPlanSnapshotId,
+  priorApprovedPlanId: terminalPrivateRevisionDecision.authority.approvedPlanId,
+  priorApprovedPlanVersion: terminalPrivateRevisionDecision.authority.approvedPlanVersion,
+  revisionIntentHash: revisionHandoff.revisionIntentHash,
+}
+await expectApiError(
+  () => planningService.publishCanonicalPlan({
+    ...replacementPlanBody,
+    revisionAuthority: {
+      ...replacementPlanBody.revisionAuthority!,
+      decisionManifestSha256: '0'.repeat(64),
+    },
+    projectId: seedSnapshot.projectId,
+    editSessionId: terminalReviewEditSessionId,
+    idempotencyKey: 'reject-stale-terminal-revision-plan-authority',
+  }),
+  'IDEMPOTENCY_CONFLICT',
+)
+const replacementPlanPublished = await planningService.publishCanonicalPlan({
+  ...replacementPlanBody,
+  projectId: seedSnapshot.projectId,
+  editSessionId: terminalReviewEditSessionId,
+  idempotencyKey: 'publish-terminal-private-review-revision-v2',
+})
+const replacementPlanAuthority = asRecord(replacementPlanPublished.authority)
+const replacementPlan = asRecord(replacementPlanAuthority.plan)
+const replacementEstimate = asRecord(replacementPlanAuthority.estimate)
+assert.equal(replacementPlan.planVersion, 2)
+assert.equal(replacementPlan.status, 'presented')
+assert.equal(asRecord(replacementPlan.revisionAuthority).reviewDecisionId,
+  terminalPrivateRevisionDecision.identity.reviewDecisionId)
+assert.equal(asRecord(replacementPlan.componentRefs).revisionAuthority !== undefined, true)
+assert.notEqual(replacementPlan.id, terminalPrivateRevisionDecision.authority.approvedPlanId)
+assert.equal(replacementEstimate.status, 'presented')
+assert.notEqual(replacementEstimate.id, terminalReviewPublishedEstimate.id)
+const replacementPlanReplay = await planningService.publishCanonicalPlan({
+  ...replacementPlanBody,
+  projectId: seedSnapshot.projectId,
+  editSessionId: terminalReviewEditSessionId,
+  idempotencyKey: 'publish-terminal-private-review-revision-v2',
+})
+assert.equal(asRecord(asRecord(replacementPlanReplay.authority).plan).id, replacementPlan.id)
+await expectApiError(
+  () => planningService.approveAndFundCanonicalPlan({
+    workspaceId,
+    editPlanId: String(replacementPlan.id),
+    expectedAuthorityRevision: Number(replacementPlanAuthority.authorityRevision),
+    expectedPlanHash: String(replacementPlan.planHash),
+    expectedEstimateHash: String(replacementEstimate.estimateHash),
+    idempotencyKey: 'block-terminal-revision-plan-approval-before-reconciliation',
+  }),
+  'TOOL_NOT_READY',
+)
+const authorityAfterReplacementPlan = await requireEditAuthority(workspaceId)
+assert.equal(
+  sha256AuthorityValue(snapshotAuthoritySlice(
+    authorityAfterReplacementPlan,
+    terminalPrivateReview.identity.approvedPlanSnapshotId,
+  )),
+  priorSnapshotSliceHash,
+)
+assert.equal(sha256AuthorityValue(authorityAfterReplacementPlan.wallet), walletBeforeReplacementPlan)
+assert.equal(authorityAfterReplacementPlan.reservations.length, reservationCountBeforeReplacementPlan)
+assert.equal(authorityAfterReplacementPlan.jobs.length, jobsBeforeReplacementPlan)
+assert.equal(authorityAfterReplacementPlan.executionPackages.length, packagesBeforeReplacementPlan)
 const terminalPrivateReviewDownload = await createCanonicalPrivateFinalArtifactDownloadService(context).read({
   workspaceId,
   projectId: terminalPrivateReview.identity.projectId,
@@ -3040,6 +3132,9 @@ console.log(JSON.stringify({
     'private_review_decision_rejects_caller_artifact_and_stale_manifest_authority',
     'revision_request_creates_one_credential_free_immutable_snapshot_bound_handoff',
     'revision_decision_replays_without_authority_wallet_reservation_or_execution_mutation',
+    'replacement_plan_publication_requires_exact_unconsumed_revision_handoff_and_compiled_intent_hash',
+    'replacement_plan_creates_version_two_and_fresh_estimate_without_mutating_prior_snapshot',
+    'replacement_plan_approval_reservation_jobs_and_execution_remain_blocked_pending_reconciliation',
     'authenticated_private_final_mp4_download_reopens_exact_qa_passed_bytes_without_public_or_signed_url',
     'checksum_protected_restart_safe_private_store',
     'dependency_authority_binding_tamper_rejected_by_immutable_record_validation',

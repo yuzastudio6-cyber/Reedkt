@@ -54,6 +54,12 @@ interface PersistedAdapterResponse {
   response: CanonicalPrivateJobExecutionAdapterResponse
 }
 
+interface PersistedAdapterCompletion {
+  schemaVersion: 'canonical-private-job-execution-adapter-completion-v1'
+  requestHash: string
+  response: CanonicalPrivateJobExecutionAdapterResponse
+}
+
 type CoordinatorResponse = Record<string, unknown> & {
   result: Record<string, unknown>
   completedAt: string
@@ -94,9 +100,16 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         purpose: body.purpose,
       })
       const responseRelativePath = adapterResponseRelativePath(actorUserId, body.workspaceId, idempotencyKey)
+      const completionRelativePath = adapterCompletionRelativePath(actorUserId, body, jobId)
       return withAdapterExecutionLock(responseRelativePath, async () => {
         const replay = await readPersistedResponse(context, responseRelativePath, requestHash)
         if (replay) return markReplay(replay)
+        return withAdapterExecutionLock(completionRelativePath, async () => {
+          const completion = await readPersistedCompletion(context, completionRelativePath, requestHash)
+          if (completion) {
+            await persistIdempotencyResponse(context, responseRelativePath, requestHash, completion)
+            return markReplay(completion)
+          }
 
         const readiness = (await createCanonicalExecutionReadinessService(context).inspectJob({
         workspaceId: body.workspaceId,
@@ -124,8 +137,37 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         )
       }
       const expectedAsset = expectedAssets[0]!
+      const internalAuthorityJob = workItem.approvedToolIds.length === 0 &&
+        workItem.workItemType === 'validate_approved_snapshot'
+      let resolvedProvenTool: ReturnType<typeof getProvenEndToEndToolIdentity>
+      if (!internalAuthorityJob) {
+        if (workItem.approvedToolIds.length !== 1) {
+          throw new ApiError(
+            'TOOL_NOT_READY',
+            'Canonical private job adapter requires exactly one approved tool identity.',
+            409,
+            { requiredGate: 'canonical_multi_tool_job_execution_adapter' },
+          )
+        }
+        const approvedToolId = workItem.approvedToolIds[0]!
+        const catalogRecord = listProvenToolIdentityCatalog().find((candidate) =>
+          candidate.canonicalToolId === approvedToolId)
+        if (!catalogRecord) {
+          throw new ApiError('TOOL_NOT_READY', 'Approved canonical tool identity is not in the proven catalog.', 409)
+        }
+        resolvedProvenTool = getProvenEndToEndToolIdentity(catalogRecord.canonicalToolId)
+        if (!resolvedProvenTool || !resolvedProvenTool.runtime.runnerClass) {
+          throw new ApiError(
+            'TOOL_NOT_READY',
+            'Approved canonical tool has not passed the exact private end-to-end lifecycle.',
+            409,
+            { requiredGate: 'canonical_tool_lifecycle_evidence' },
+          )
+        }
+      }
       const stageKey = (stage: string) => `job-adapter:${stage}:${sha256(`${idempotencyKey}\u0000${jobId}`).slice(0, 48)}`
-      const claim = (await createCanonicalWorkerLeaseAuthorityService(context).claim({
+      const leaseService = createCanonicalWorkerLeaseAuthorityService(context)
+      const claim = (await leaseService.claim({
         workspaceId: body.workspaceId,
         projectId: body.projectId,
         editSessionId: body.editSessionId,
@@ -144,7 +186,7 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
       let runnerClass: string
       let singleUseDispatchConsumed = false
 
-      if (workItem.approvedToolIds.length === 0 && workItem.workItemType === 'validate_approved_snapshot') {
+      if (internalAuthorityJob) {
         operationId = 'internal.validate_snapshot_manifest.v1'
         runnerClass = 'canonical_authority_validation_runner_v1'
         rawResponse = asCoordinatorResponse(await createCanonicalInternalAuthorityRunnerService(context).execute({
@@ -156,32 +198,14 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
           purpose: 'execute_canonical_internal_authority_validation',
         }, leaseAuthority))
       } else {
-        if (workItem.approvedToolIds.length !== 1) {
-          throw new ApiError(
-            'TOOL_NOT_READY',
-            'Canonical private job adapter requires exactly one approved tool identity.',
-            409,
-            { requiredGate: 'canonical_multi_tool_job_execution_adapter' },
-          )
-        }
-        const approvedToolId = workItem.approvedToolIds[0]!
-        const catalogRecord = listProvenToolIdentityCatalog().find((candidate) =>
-          candidate.canonicalToolId === approvedToolId)
-        if (!catalogRecord) {
-          throw new ApiError('TOOL_NOT_READY', 'Approved canonical tool identity is not in the proven catalog.', 409)
-        }
-        const provenTool = getProvenEndToEndToolIdentity(catalogRecord.canonicalToolId)
-        if (!provenTool || !provenTool.runtime.runnerClass) {
-          throw new ApiError(
-            'TOOL_NOT_READY',
-            'Approved canonical tool has not passed the exact private end-to-end lifecycle.',
-            409,
-            { requiredGate: 'canonical_tool_lifecycle_evidence' },
-          )
+        const provenTool = resolvedProvenTool!
+        const provenRunnerClass = provenTool.runtime.runnerClass
+        if (!provenRunnerClass) {
+          throw new ApiError('TOOL_NOT_READY', 'Approved canonical tool runner identity is unavailable.', 409)
         }
         canonicalToolId = provenTool.canonicalToolId
         operationId = provenTool.operationId
-        runnerClass = provenTool.runtime.runnerClass
+        runnerClass = provenRunnerClass
         const grant = (await createCanonicalPrivateToolDispatchAuthorityService(context).authorize({
           workspaceId: body.workspaceId,
           projectId: body.projectId,
@@ -195,6 +219,16 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
           idempotencyKey: stageKey('authorize'),
         }, leaseAuthority)).toolDispatchGrant
         if (grant.grant.status !== 'authorized' || !grant.dispatchCredential) {
+          await leaseService.release({
+            workspaceId: body.workspaceId,
+            projectId: body.projectId,
+            editSessionId: body.editSessionId,
+            jobId,
+            leaseId: claim.lease.leaseId,
+            leaseCredential: claim.leaseCredential,
+            purpose: 'private_internal_canonical_lease_release',
+            idempotencyKey: stageKey('release-denied-dispatch'),
+          })
           throw new ApiError(
             'TOOL_NOT_READY',
             'Canonical tool dispatch did not issue exact single-use private execution authority.',
@@ -213,7 +247,7 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
           jobId,
           grantId: grant.grant.grantId,
           idempotencyKey: stageKey('consume'),
-          runnerClass: provenTool.runtime.runnerClass,
+          runnerClass: provenRunnerClass,
           serverAuthority: { ...leaseAuthority, dispatchCredential: grant.dispatchCredential },
         })
         singleUseDispatchConsumed = true
@@ -237,12 +271,23 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         requestHash,
         response: normalized,
       }
+      const persistedCompletion: PersistedAdapterCompletion = {
+        schemaVersion: 'canonical-private-job-execution-adapter-completion-v1',
+        requestHash,
+        response: normalized,
+      }
+      await writePrivateFileCreateOnlyWithinRoot({
+        rootPath: context.env.localStorageRoot,
+        relativePath: completionRelativePath,
+        content: Buffer.from(`${stableAuthorityStringify(persistedCompletion)}\n`, 'utf8'),
+      })
       await writePrivateFileCreateOnlyWithinRoot({
         rootPath: context.env.localStorageRoot,
         relativePath: responseRelativePath,
         content: Buffer.from(`${stableAuthorityStringify(persisted)}\n`, 'utf8'),
       })
         return normalized
+        })
       })
     },
   }
@@ -429,7 +474,7 @@ function normalizeResponse(input: {
       productReady: false as const,
       externalBetaReady: false as const,
       productionReady: false as const,
-      nextRequiredGate: 'canonical_multi_job_work_graph_orchestration_and_private_review' as const,
+      nextRequiredGate: 'canonical_required_job_capabilities_and_terminal_private_review' as const,
     },
     completedAt: requireString(input.rawResponse.completedAt, 'completedAt'),
     testOnly: true as const,
@@ -492,10 +537,80 @@ async function readPersistedResponse(
   return response.data
 }
 
+async function readPersistedCompletion(
+  context: ServiceContext,
+  relativePath: string,
+  requestHash: string,
+): Promise<CanonicalPrivateJobExecutionAdapterResponse | undefined> {
+  const bytes = await readPrivateFileIfExistsWithinRoot({
+    rootPath: context.env.localStorageRoot,
+    relativePath,
+  })
+  if (!bytes) return undefined
+  let value: unknown
+  try {
+    value = JSON.parse(bytes.toString('utf8'))
+  } catch {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical job completion is invalid JSON.', 409)
+  }
+  if (!value || typeof value !== 'object') {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical job completion is invalid.', 409)
+  }
+  const record = value as Partial<PersistedAdapterCompletion>
+  if (record.schemaVersion !== 'canonical-private-job-execution-adapter-completion-v1') {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical job completion version is invalid.', 409)
+  }
+  if (record.requestHash !== requestHash) {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical job completion scope is invalid.', 409)
+  }
+  const response = canonicalPrivateJobExecutionAdapterResponseSchema.safeParse(record.response)
+  if (!response.success) {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical job completion failed validation.', 409)
+  }
+  const { responseHash, ...withoutHash } = response.data
+  if (responseHash !== sha256AuthorityValue(withoutHash)) {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical job completion hash is invalid.', 409)
+  }
+  return response.data
+}
+
+async function persistIdempotencyResponse(
+  context: ServiceContext,
+  relativePath: string,
+  requestHash: string,
+  response: CanonicalPrivateJobExecutionAdapterResponse,
+): Promise<void> {
+  const persisted: PersistedAdapterResponse = {
+    schemaVersion: 'canonical-private-job-execution-adapter-idempotency-v1',
+    requestHash,
+    response,
+  }
+  await writePrivateFileCreateOnlyWithinRoot({
+    rootPath: context.env.localStorageRoot,
+    relativePath,
+    content: Buffer.from(`${stableAuthorityStringify(persisted)}\n`, 'utf8'),
+  })
+}
+
 function adapterResponseRelativePath(ownerUserId: string, workspaceId: string, idempotencyKey: string): string {
   const scopeHash = sha256(`${ownerUserId}\u0000${workspaceId}`)
   const keyHash = sha256(`${scopeHash}\u0000${idempotencyKey}`)
   return `${RESPONSE_PATH_PREFIX}/${scopeHash.slice(0, 32)}/${keyHash}.json`
+}
+
+function adapterCompletionRelativePath(
+  ownerUserId: string,
+  body: ExecuteCanonicalPrivateJobAdapterBody,
+  jobId: string,
+): string {
+  const scopeHash = sha256(`${ownerUserId}\u0000${body.workspaceId}`)
+  const jobHash = sha256([
+    scopeHash,
+    body.projectId,
+    body.editSessionId,
+    jobId,
+  ].join('\u0000'))
+  return `${RESPONSE_PATH_PREFIX}/${scopeHash.slice(0, 32)}/completed-jobs/${jobHash}.json`
 }
 
 async function withAdapterExecutionLock<T>(key: string, operation: () => Promise<T>): Promise<T> {

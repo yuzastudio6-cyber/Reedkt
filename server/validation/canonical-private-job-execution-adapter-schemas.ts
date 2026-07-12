@@ -72,7 +72,7 @@ export const canonicalPrivateJobExecutionAdapterResponseSchema = z.object({
     productReady: z.literal(false),
     externalBetaReady: z.literal(false),
     productionReady: z.literal(false),
-    nextRequiredGate: z.literal('canonical_multi_job_work_graph_orchestration_and_private_review'),
+    nextRequiredGate: z.literal('canonical_required_job_capabilities_and_terminal_private_review'),
   }).strict(),
   completedAt: z.string().datetime({ offset: true }),
   responseHash: sha256Schema,

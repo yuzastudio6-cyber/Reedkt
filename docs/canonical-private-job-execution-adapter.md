@@ -46,7 +46,7 @@ Executable adapter evidence currently proves:
 
 This adapter is not a whole-work-graph scheduler. It does not select the next dependency-ready job, assemble terminal private review, recover a complete journey, execute providers, write Supabase, deploy workers, publish artifacts, settle customer credits, charge a wallet, bill a customer, or authorize production rendering.
 
-All responses keep product, external-beta, and production readiness false. The next required gate is canonical multi-job work-graph orchestration and private-review handoff.
+All responses keep product, external-beta, and production readiness false. A canonical work-graph orchestrator now consumes this adapter; the next gate is completing every required job capability and terminal private-review handoff.
 
 ## Verification
 
@@ -54,4 +54,3 @@ All responses keep product, external-beta, and production readiness false. The n
 - `npm run smoke:edit-planning-authority`
 - `npm run smoke:canonical-private-tool-dispatch`
 - `npm run smoke:proven-tool-identities`
-

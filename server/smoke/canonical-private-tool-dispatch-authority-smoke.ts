@@ -1771,6 +1771,13 @@ const adapterReplay = await jobExecutionAdapter.execute(adapterRequest)
 assert.equal(adapterReplay.result.artifactId, adapterExecution.result.artifactId)
 assert.equal(adapterReplay.result.sha256, adapterExecution.result.sha256)
 assert.equal(adapterReplay.evidence.idempotentAdapterReplay, true)
+const alternateKeyAdapterReplay = await jobExecutionAdapter.execute({
+  ...adapterRequest,
+  idempotencyKey: 'canonical-job-adapter-echarts-alternate-key',
+})
+assert.equal(alternateKeyAdapterReplay.result.artifactId, adapterExecution.result.artifactId)
+assert.equal(alternateKeyAdapterReplay.result.sha256, adapterExecution.result.sha256)
+assert.equal(alternateKeyAdapterReplay.evidence.idempotentAdapterReplay, true)
 await expectApiError(
   () => jobExecutionAdapter.execute({
     workspaceId,

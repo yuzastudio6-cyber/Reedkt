@@ -782,6 +782,139 @@ try {
   )
   assert.equal(canonicalJobExecutionConflict.status, 409)
 
+  const workGraphEditSessionId = 'route-work-graph-session'
+  const workGraphPlanningAuthority = await prepareExactPlanningAuthority(
+    context,
+    routeProjectId,
+    workGraphEditSessionId,
+    routeWorkspaceId,
+  )
+  const workGraphSourceFixture = await prepareSourceMediaAuthority(
+    context,
+    routeWorkspaceId,
+    routeProjectId,
+    'route-work-graph',
+  )
+  const workGraphPlanBody = createCanonicalPlanBody(
+    'route-work-graph-planning-request',
+    workGraphPlanningAuthority,
+    workGraphSourceFixture,
+  )
+  workGraphPlanBody.workspaceId = routeWorkspaceId
+  const workGraphPublishResponse = await fetch(
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/${workGraphEditSessionId}/canonical-plans`,
+    {
+      method: 'POST',
+      headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-work-graph-publish' },
+      body: JSON.stringify(workGraphPlanBody),
+    },
+  )
+  assert.equal(workGraphPublishResponse.status, 201)
+  const workGraphPublishEnvelope = await workGraphPublishResponse.json() as {
+    data?: { authority?: Record<string, unknown> }
+  }
+  const workGraphPublishedAuthority = asRecord(workGraphPublishEnvelope.data?.authority)
+  const workGraphPlan = asRecord(workGraphPublishedAuthority.plan)
+  const workGraphEstimate = asRecord(workGraphPublishedAuthority.estimate)
+  const workGraphApproveResponse = await fetch(
+    `${routeBaseUrl}/v1/edit-plans/${String(workGraphPlan.id)}/approve`,
+    {
+      method: 'POST',
+      headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-work-graph-approve' },
+      body: JSON.stringify({
+        workspaceId: routeWorkspaceId,
+        expectedAuthorityRevision: workGraphPublishedAuthority.authorityRevision,
+        expectedPlanHash: workGraphPlan.planHash,
+        expectedEstimateHash: workGraphEstimate.estimateHash,
+      }),
+    },
+  )
+  assert.equal(workGraphApproveResponse.status, 201)
+  const workGraphApproveEnvelope = await workGraphApproveResponse.json() as {
+    data?: { authority?: Record<string, unknown> }
+  }
+  const workGraphApprovedAuthority = asRecord(workGraphApproveEnvelope.data?.authority)
+  const workGraphSnapshot = asRecord(workGraphApprovedAuthority.snapshot)
+  const workGraphPackageResponse = await fetch(`${routeBaseUrl}/v1/edit-executions/packages`, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-work-graph-package' },
+    body: JSON.stringify({
+      workspaceId: routeWorkspaceId,
+      approvedPlanSnapshotId: workGraphSnapshot.snapshotId,
+      expectedSnapshotHash: workGraphSnapshot.snapshotHash,
+      purpose: 'private_internal_execution_handoff',
+    }),
+  })
+  assert.equal(workGraphPackageResponse.status, 201)
+  const workGraphPackageEnvelope = await workGraphPackageResponse.json() as {
+    data?: { approvedEditExecutionPackage?: Record<string, unknown> }
+  }
+  const workGraphPackage = asRecord(workGraphPackageEnvelope.data?.approvedEditExecutionPackage)
+  const workGraphRunUrl = `${routeBaseUrl}/v1/edit-executions/packages/${String(workGraphPackage.packageRecordId)}/private-internal-work-graph-runs`
+  const callerSelectedWorkGraph = await fetch(workGraphRunUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-work-graph-caller-job-list' },
+    body: JSON.stringify({
+      workspaceId: routeWorkspaceId,
+      purpose: 'run_canonical_private_work_graph',
+      jobIds: (workGraphApprovedAuthority.jobs as Record<string, unknown>[]).map((job) => job.id),
+    }),
+  })
+  assert.equal(callerSelectedWorkGraph.status, 400)
+
+  const workGraphRunBody = {
+    workspaceId: routeWorkspaceId,
+    purpose: 'run_canonical_private_work_graph',
+  }
+  const workGraphRunResponse = await fetch(workGraphRunUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-work-graph-run-1' },
+    body: JSON.stringify(workGraphRunBody),
+  })
+  assert.equal(workGraphRunResponse.status, 201)
+  const workGraphRunEnvelope = await workGraphRunResponse.json() as {
+    data?: { canonicalPrivateWorkGraphRun?: Record<string, unknown> }
+  }
+  const workGraphRun = asRecord(workGraphRunEnvelope.data?.canonicalPrivateWorkGraphRun)
+  const workGraphRunSummary = asRecord(workGraphRun.summary)
+  const workGraphRunReadiness = asRecord(workGraphRun.readiness)
+  assert.equal(workGraphRun.status, 'blocked_required_jobs')
+  assert.equal(workGraphRunSummary.totalJobCount, 4)
+  assert.equal(workGraphRunSummary.completedJobCount, 1)
+  assert.equal(workGraphRunSummary.replayedJobCount, 0)
+  assert.equal(workGraphRunSummary.capabilityBlockedJobCount, 1)
+  assert.equal(workGraphRunSummary.dependencyBlockedJobCount, 2)
+  assert.equal(workGraphRunSummary.requiredBlockedJobCount, 3)
+  assert.equal(workGraphRunReadiness.privateInternalWorkGraphCompleted, false)
+  assert.equal(workGraphRunReadiness.privateReviewReady, false)
+  assert.equal(workGraphRunReadiness.nextRequiredGate, 'canonical_job_capability_blockers')
+  assert.equal(asRecord(workGraphRun.permissions).providerCall, false)
+  assert.equal(asRecord(workGraphRun.permissions).billing, false)
+
+  const workGraphRunReplay = await fetch(workGraphRunUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-work-graph-run-1' },
+    body: JSON.stringify(workGraphRunBody),
+  })
+  assert.equal(workGraphRunReplay.status, 201)
+  assert.equal(workGraphRunReplay.headers.get('idempotency-replayed'), 'true')
+
+  const workGraphContinuationResponse = await fetch(workGraphRunUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-work-graph-run-2' },
+    body: JSON.stringify(workGraphRunBody),
+  })
+  assert.equal(workGraphContinuationResponse.status, 201)
+  const workGraphContinuationEnvelope = await workGraphContinuationResponse.json() as {
+    data?: { canonicalPrivateWorkGraphRun?: Record<string, unknown> }
+  }
+  const workGraphContinuation = asRecord(workGraphContinuationEnvelope.data?.canonicalPrivateWorkGraphRun)
+  const workGraphContinuationSummary = asRecord(workGraphContinuation.summary)
+  assert.equal(workGraphContinuation.status, 'blocked_required_jobs')
+  assert.equal(workGraphContinuationSummary.completedJobCount, 1)
+  assert.equal(workGraphContinuationSummary.replayedJobCount, 1)
+  assert.equal(workGraphContinuationSummary.capabilityBlockedJobCount, 1)
+
   const toolEvidenceResponse = await fetch(
     `${routeBaseUrl}/v1/edit-executions/tool-runtime-evidence/inspect`,
     {
@@ -914,6 +1047,8 @@ console.log(JSON.stringify({
     'authenticated_canonical_authority_http_routes',
     'authenticated_canonical_execution_readiness_http_route',
     'authenticated_canonical_single_job_execution_http_route_with_replay_and_conflict',
+    'authenticated_canonical_work_graph_advances_ready_job_and_persists_exact_blockers',
+    'canonical_work_graph_continuation_reuses_completed_job_without_duplicate_execution',
     'authenticated_fail_closed_tool_runtime_evidence_http_route',
     'legacy_caller_authority_routes_fail_closed',
     'no_provider_worker_render_or_paid_billing_side_effect',

@@ -53,7 +53,7 @@ The response contains:
 - non-production private persistence evidence;
 - explicit readiness and no-side-effect evidence.
 
-The HTTP smoke publishes through the persisted-handoff route rather than echoing authority fields back from the caller. It proves exact replay, rejects handoff-hash and canonical-component substitution, rejects preferences or same-project source authority changed after handoff, and verifies the accepted binding is present in canonical plan authority before approval. The broader canonical lifecycle smoke proves source-order drift is rejected and edit authority remains unchanged before publication.
+The HTTP smoke publishes through the persisted-handoff route rather than echoing authority fields back from the caller. It proves exact replay, rejects handoff-hash and canonical-component substitution, rejects preferences or same-project source authority changed after handoff, and verifies the accepted binding is present in canonical plan authority before approval. The broader 50-tool canonical lifecycle also publishes its initial plan, focused five-job review plan, and revision plan v2 through persisted handoffs. It proves source-order drift is rejected, each changed revision receives a fresh component-bound handoff, both snapshot generations preserve the exact binding, and approved execution reload validates that binding before work proceeds.
 
 ## Side-effect boundary
 

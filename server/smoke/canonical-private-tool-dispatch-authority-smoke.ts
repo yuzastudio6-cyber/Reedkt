@@ -331,18 +331,23 @@ assert.equal(
   sha256AuthorityValue(await requireEditAuthority(workspaceId)),
   planningHandoffAuthorityBefore,
 )
-planBody.planningInputAuthority = planningHandoff.planningInputAuthority
-planBody.sourceMediaAuthority = planningHandoff.sourceMediaAuthority
 const planningService = createEditPlanningAuthorityService(context)
-const published = await planningService.publishCanonicalPlan({
-  ...planBody,
+const published = await planningHandoffService.publishFromPersistedHandoff({
+  ...planningHandoffPublicationBody(planBody, planningHandoff.handoffHash),
   projectId: seedSnapshot.projectId,
   editSessionId,
+  handoffId: planningHandoff.handoffId,
   idempotencyKey: 'publish-canonical-tool-dispatch-plan',
 })
 const publishedAuthority = asRecord(published.authority)
 const publishedPlan = asRecord(publishedAuthority.plan)
 const publishedEstimate = asRecord(publishedAuthority.estimate)
+assert.equal(published.canonicalPlanningHandoff.handoffId, planningHandoff.handoffId)
+assert.equal(published.canonicalPlanningHandoff.boundToPublishedPlan, true)
+assert.equal(
+  asRecord(publishedPlan.componentRefs).planningHandoffAuthority !== undefined,
+  true,
+)
 const approved = await planningService.approveAndFundCanonicalPlan({
   workspaceId,
   editPlanId: String(publishedPlan.id),
@@ -352,6 +357,10 @@ const approved = await planningService.approveAndFundCanonicalPlan({
   idempotencyKey: 'approve-canonical-tool-dispatch-plan',
 })
 const approvedSnapshot = asRecord(asRecord(approved.authority).snapshot)
+assert.deepEqual(
+  asRecord(approvedSnapshot.componentRefs).planningHandoffAuthority,
+  asRecord(publishedPlan.componentRefs).planningHandoffAuthority,
+)
 await createCanonicalEditExecutionPackageService(context).createPackage({
   workspaceId,
   approvedPlanSnapshotId: String(approvedSnapshot.snapshotId),
@@ -2032,15 +2041,29 @@ const terminalReviewWorkItemKeys = new Set([
 ])
 terminalReviewPlanBody.canonicalPlan.workItems = terminalReviewPlanBody.canonicalPlan.workItems.filter((workItem) =>
   terminalReviewWorkItemKeys.has(workItem.workItemKey))
-const terminalReviewPublished = await planningService.publishCanonicalPlan({
-  ...terminalReviewPlanBody,
+const terminalReviewPlanningHandoff = await preparePersistedPlanningHandoff(
+  planningHandoffService,
+  terminalReviewPlanBody,
+  seedSnapshot.projectId,
+  terminalReviewEditSessionId,
+)
+const terminalReviewPublished = await planningHandoffService.publishFromPersistedHandoff({
+  ...planningHandoffPublicationBody(
+    terminalReviewPlanBody,
+    terminalReviewPlanningHandoff.handoffHash,
+  ),
   projectId: seedSnapshot.projectId,
   editSessionId: terminalReviewEditSessionId,
+  handoffId: terminalReviewPlanningHandoff.handoffId,
   idempotencyKey: 'publish-terminal-private-review-canonical-plan',
 })
 const terminalReviewPublishedAuthority = asRecord(terminalReviewPublished.authority)
 const terminalReviewPublishedPlan = asRecord(terminalReviewPublishedAuthority.plan)
 const terminalReviewPublishedEstimate = asRecord(terminalReviewPublishedAuthority.estimate)
+assert.equal(
+  asRecord(terminalReviewPublishedPlan.componentRefs).planningHandoffAuthority !== undefined,
+  true,
+)
 const terminalReviewApproved = await planningService.approveAndFundCanonicalPlan({
   workspaceId,
   editPlanId: String(terminalReviewPublishedPlan.id),
@@ -2050,6 +2073,10 @@ const terminalReviewApproved = await planningService.approveAndFundCanonicalPlan
   idempotencyKey: 'approve-terminal-private-review-canonical-plan',
 })
 const terminalReviewApprovedSnapshot = asRecord(asRecord(terminalReviewApproved.authority).snapshot)
+assert.deepEqual(
+  asRecord(terminalReviewApprovedSnapshot.componentRefs).planningHandoffAuthority,
+  asRecord(terminalReviewPublishedPlan.componentRefs).planningHandoffAuthority,
+)
 const terminalReviewPackage = await createCanonicalEditExecutionPackageService(context).createPackage({
   workspaceId,
   approvedPlanSnapshotId: String(terminalReviewApprovedSnapshot.snapshotId),
@@ -2265,23 +2292,38 @@ replacementPlanBody.revisionAuthority = {
   priorApprovedPlanVersion: terminalPrivateRevisionDecision.authority.approvedPlanVersion,
   revisionIntentHash: revisionHandoff.revisionIntentHash,
 }
+const replacementPlanningHandoff = await preparePersistedPlanningHandoff(
+  planningHandoffService,
+  replacementPlanBody,
+  seedSnapshot.projectId,
+  terminalReviewEditSessionId,
+)
+assert.notEqual(replacementPlanningHandoff.handoffId, terminalReviewPlanningHandoff.handoffId)
 await expectApiError(
-  () => planningService.publishCanonicalPlan({
-    ...replacementPlanBody,
+  () => planningHandoffService.publishFromPersistedHandoff({
+    ...planningHandoffPublicationBody(
+      replacementPlanBody,
+      replacementPlanningHandoff.handoffHash,
+    ),
     revisionAuthority: {
       ...replacementPlanBody.revisionAuthority!,
       decisionManifestSha256: '0'.repeat(64),
     },
     projectId: seedSnapshot.projectId,
     editSessionId: terminalReviewEditSessionId,
+    handoffId: replacementPlanningHandoff.handoffId,
     idempotencyKey: 'reject-stale-terminal-revision-plan-authority',
   }),
   'IDEMPOTENCY_CONFLICT',
 )
-const replacementPlanPublished = await planningService.publishCanonicalPlan({
-  ...replacementPlanBody,
+const replacementPlanPublished = await planningHandoffService.publishFromPersistedHandoff({
+  ...planningHandoffPublicationBody(
+    replacementPlanBody,
+    replacementPlanningHandoff.handoffHash,
+  ),
   projectId: seedSnapshot.projectId,
   editSessionId: terminalReviewEditSessionId,
+  handoffId: replacementPlanningHandoff.handoffId,
   idempotencyKey: 'publish-terminal-private-review-revision-v2',
 })
 const replacementPlanAuthority = asRecord(replacementPlanPublished.authority)
@@ -2292,13 +2334,18 @@ assert.equal(replacementPlan.status, 'presented')
 assert.equal(asRecord(replacementPlan.revisionAuthority).reviewDecisionId,
   terminalPrivateRevisionDecision.identity.reviewDecisionId)
 assert.equal(asRecord(replacementPlan.componentRefs).revisionAuthority !== undefined, true)
+assert.equal(asRecord(replacementPlan.componentRefs).planningHandoffAuthority !== undefined, true)
 assert.notEqual(replacementPlan.id, terminalPrivateRevisionDecision.authority.approvedPlanId)
 assert.equal(replacementEstimate.status, 'presented')
 assert.notEqual(replacementEstimate.id, terminalReviewPublishedEstimate.id)
-const replacementPlanReplay = await planningService.publishCanonicalPlan({
-  ...replacementPlanBody,
+const replacementPlanReplay = await planningHandoffService.publishFromPersistedHandoff({
+  ...planningHandoffPublicationBody(
+    replacementPlanBody,
+    replacementPlanningHandoff.handoffHash,
+  ),
   projectId: seedSnapshot.projectId,
   editSessionId: terminalReviewEditSessionId,
+  handoffId: replacementPlanningHandoff.handoffId,
   idempotencyKey: 'publish-terminal-private-review-revision-v2',
 })
 assert.equal(asRecord(asRecord(replacementPlanReplay.authority).plan).id, replacementPlan.id)
@@ -2342,6 +2389,22 @@ const replacementReservation = asRecord(replacementApprovalAuthority.reservation
 const replacementReconciliation = asRecord(replacementApprovalAuthority.revisionReconciliation)
 assert.equal(replacementSnapshot.planVersion, 2)
 assert.equal(replacementSnapshot.planId, replacementPlan.id)
+assert.deepEqual(
+  asRecord(replacementSnapshot.componentRefs).planningHandoffAuthority,
+  asRecord(replacementPlan.componentRefs).planningHandoffAuthority,
+)
+const replacementExecutionAuthority = await planningService.loadApprovedExecutionAuthority(
+  String(replacementSnapshot.snapshotId),
+  workspaceId,
+)
+assert.equal(
+  replacementExecutionAuthority.planningHandoffAuthority?.handoffId,
+  replacementPlanningHandoff.handoffId,
+)
+assert.equal(
+  replacementExecutionAuthority.planningHandoffAuthority?.handoffHash,
+  replacementPlanningHandoff.handoffHash,
+)
 assert.equal(replacementReservation.status, 'reserved')
 assert.equal(replacementReconciliation.priorSnapshotId,
   terminalPrivateReview.identity.approvedPlanSnapshotId)
@@ -2815,11 +2878,13 @@ console.log(JSON.stringify({
     'terminal_private_review_assembly_requires_every_required_artifact_qa_reconciliation_and_exact_final_qa_lease_binding',
     'credential_free_private_review_manifest_is_create_only_replay_safe_and_privately_downloadable',
     'private_review_decision_rejects_caller_artifact_and_stale_manifest_authority',
-    'authenticated_upload_preference_edit_brief_handoff_produces_exact_plan_publication_authority',
-    'canonical_planning_handoff_rejects_source_order_drift_and_has_no_plan_credit_tool_or_render_side_effect',
+    'persisted_authenticated_upload_preference_edit_brief_handoff_publishes_exact_initial_plan_authority',
+    'persisted_planning_handoff_rejects_source_order_drift_and_has_no_plan_credit_tool_or_render_side_effect',
+    'persisted_planning_handoff_binding_survives_initial_and_terminal_review_snapshot_execution',
     'revision_request_creates_one_credential_free_immutable_snapshot_bound_handoff',
     'revision_decision_replays_without_authority_wallet_reservation_or_execution_mutation',
     'replacement_plan_publication_requires_exact_unconsumed_revision_handoff_and_compiled_intent_hash',
+    'replacement_plan_uses_fresh_persisted_component_bound_handoff_authority',
     'replacement_plan_creates_version_two_and_fresh_estimate_without_mutating_prior_snapshot',
     'revision_approval_atomically_releases_unused_prior_synthetic_reservation_and_reserves_fresh_maximum',
     'revision_approval_preserves_old_snapshot_work_items_jobs_and_wallet_conservation',
@@ -2923,6 +2988,41 @@ async function prepareExactPlanningAuthority(projectId: string, targetEditSessio
     },
     preferenceApplication: { status: 'not_selected' as const, applicationVersion: 0 as const },
     editBrief: { status: 'not_used' as const },
+  }
+}
+
+async function preparePersistedPlanningHandoff(
+  service: ReturnType<typeof createCanonicalPlanningHandoffService>,
+  body: PublishCanonicalEditPlanBody,
+  projectId: string,
+  targetEditSessionId: string,
+) {
+  return service.prepare({
+    workspaceId: body.workspaceId,
+    projectId,
+    editSessionId: targetEditSessionId,
+    purpose: 'prepare_canonical_planning_handoff',
+    orderedSourceItems: body.canonicalPlan.components.sourceSequence.map((item) => ({
+      sourceSequenceItemId: item.sourceSequenceItemId,
+      mediaAssetId: item.mediaAssetId,
+      uploadedOrder: item.uploadedOrder,
+      checksumSha256: requireSha256(item.checksumSha256),
+      required: item.required,
+    })),
+    canonicalPlanComponents: body.canonicalPlan.components,
+  })
+}
+
+function planningHandoffPublicationBody(
+  body: PublishCanonicalEditPlanBody,
+  expectedHandoffHash: string,
+) {
+  return {
+    workspaceId: body.workspaceId,
+    planningRequestId: body.planningRequestId,
+    ...(body.revisionAuthority ? { revisionAuthority: body.revisionAuthority } : {}),
+    canonicalPlan: body.canonicalPlan,
+    expectedHandoffHash,
   }
 }
 

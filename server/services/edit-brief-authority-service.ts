@@ -777,15 +777,9 @@ async function authorizeScope(
       ownerUserId: access.userId,
       workspaceId: access.workspaceId,
     })
-    const canonicalLock = Boolean(
-      canonicalAuthority?.snapshots.some((snapshot) =>
-        snapshot.projectId === projectId && snapshot.editSessionId === editSessionId
-      ) || canonicalAuthority?.reservations.some((reservation) =>
-        reservation.projectId === projectId && reservation.editSessionId === editSessionId
-      ) || canonicalAuthority?.plans.some((plan) =>
-        plan.projectId === projectId && plan.editSessionId === editSessionId && plan.status === 'approved'
-      ),
-    )
+    const canonicalLock = Boolean(canonicalAuthority?.plans.some((plan) =>
+      plan.projectId === projectId && plan.editSessionId === editSessionId && plan.status === 'approved'
+    ))
     if (canonicalLock) {
       throw new ApiError(
         'PLAN_NOT_APPROVED',

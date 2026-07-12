@@ -34,7 +34,7 @@ No capability should be described at a higher level than its strongest verified 
 | Canonical private job execution | `private_executable` for one immutable job | Authenticated job-only route derives the approved work item, output, tool, operation, lease, dispatch, private artifact, QA, reconciliation, and replay from server authority. Exact source-trim, Remotion final-composition, and dependency-bound final-QA jobs pass through this adapter. | Product, beta, and production flags remain false. |
 | Canonical private work graph | `private_executable` for run-to-blocked and one bounded complete graph | Authenticated package route derives topological order, executes only dependency-ready jobs, persists exact per-job outcomes, and reuses completed jobs. A five-job fixture completes snapshot validation, source-trim validation, caption generation, final composition, and independent final QA. | This is generated-fixture, single-host evidence, not general plan capability coverage or a deployed worker claim. |
 | Private render and review journey | `private_executable` for one bounded internal fixture | The canonical graph applies approved trims and captions, renders the exact private H.264/AAC MP4, independently probes that exact dependency, proves lease/artifact lineage, assembles a credential-free create-only review manifest, replays safely, and supports authenticated private download. | The legacy upload-to-render route remains disabled. Browser handoff consumption, deployed real-user storage/workers, public delivery, and production promotion are not connected. |
-| Revision and recovery | `private_executable` through accepted second review and superseded-history recovery | An exact review-bound revision completes snapshot-v2 execution/acceptance. Fresh history-service instances then reopen both current and superseded QA-passed MP4 bytes while active execution remains closed for released plan v1. | Deployed disaster recovery/retention, real-user/browser handoff, and cancellation remain gated. |
+| Revision and recovery | `private_executable` through accepted second review, superseded-history recovery, and pre-execution cancellation | An exact review-bound revision completes snapshot-v2 execution/acceptance. Fresh history-service instances reopen current and superseded QA-passed MP4 bytes. A separate authenticated cancellation route atomically releases a fully unused synthetic reservation before execution-package creation while preserving snapshot/job evidence. | In-flight cancellation after package/lease/dispatch, deployed disaster recovery/retention, and real-user/browser handoff remain gated. |
 | Public export and sharing | blocked | Production readiness gates intentionally deny it | Required assets, real-user privacy, delivery, settlement, and operations are incomplete. |
 
 ## Authentication and Tenancy
@@ -194,11 +194,12 @@ Do not claim:
 11. **Completed for private history/recovery:** authenticated fresh-service reads reopen current and superseded review bytes without restoring released execution authority.
 12. Expand destructive/negative QA for deployed tenancy, storage, idempotency, credit settlement, privacy retention, and operational recovery.
 13. **Completed for authenticated local/private backend scope:** bind finalized upload order plus current Exact Edit Preference, Preference DNA application, Edit Brief, frame, and cleanup state into exact canonical plan-publication authority without plan, credit, tool, provider, or render side effects.
-14. Bind the browser journey to the authenticated canonical planning handoff without reviving legacy caller-authored authority.
-15. Keep all execution-stage inputs server-derived and re-authorize package ownership/workspace lineage at every runner, QA, artifact, and review transition.
-16. Keep tool-cost events backend-authored and tenant-scoped; browser-authored
+14. **Completed for authenticated local/private pre-execution scope:** atomically cancel a fully unused synthetic reservation before execution-package creation, preserve immutable snapshot/job evidence, and deny future package creation. In-flight worker-fenced cancellation remains gated.
+15. Bind the browser journey to the authenticated canonical planning handoff without reviving legacy caller-authored authority.
+16. Keep all execution-stage inputs server-derived and re-authorize package ownership/workspace lineage at every runner, QA, artifact, and review transition.
+17. Keep tool-cost events backend-authored and tenant-scoped; browser-authored
     usage or billability must never become wallet or settlement authority.
-17. Build and attest the production worker images, pin Python dependencies and
+18. Build and attest the production worker images, pin Python dependencies and
     model manifests, then rerun intended-operation tests inside those exact
     images before changing any tool to product-ready.
 

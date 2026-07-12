@@ -1059,6 +1059,226 @@ try {
   )
   assert.equal(snapshotRead.status, 200)
 
+  const cancellationEditSessionId = 'route-pre-execution-cancellation-session'
+  const cancellationPlanningAuthority = await prepareExactPlanningAuthority(
+    context,
+    routeProjectId,
+    cancellationEditSessionId,
+    routeWorkspaceId,
+  )
+  const cancellationSourceFixture = await prepareSourceMediaAuthority(
+    context,
+    routeWorkspaceId,
+    routeProjectId,
+    'route-pre-execution-cancellation',
+  )
+  const cancellationPlanBody = createCanonicalPlanBody(
+    'route-pre-execution-cancellation-planning-request',
+    cancellationPlanningAuthority,
+    cancellationSourceFixture,
+  )
+  cancellationPlanBody.workspaceId = routeWorkspaceId
+  const cancellationPublishResponse = await fetch(
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/${cancellationEditSessionId}/canonical-plans`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-pre-execution-cancellation-publish',
+      },
+      body: JSON.stringify(cancellationPlanBody),
+    },
+  )
+  const cancellationPublishEnvelope = await cancellationPublishResponse.json() as {
+    data?: { authority?: Record<string, unknown> }
+    error?: unknown
+  }
+  assert.equal(
+    cancellationPublishResponse.status,
+    201,
+    `Cancellation fixture plan publication failed: ${JSON.stringify(cancellationPublishEnvelope.error)}`,
+  )
+  const cancellationPublishedAuthority = asRecord(cancellationPublishEnvelope.data?.authority)
+  const cancellationPlan = asRecord(cancellationPublishedAuthority.plan)
+  const cancellationEstimate = asRecord(cancellationPublishedAuthority.estimate)
+  const cancellationApproveResponse = await fetch(
+    `${routeBaseUrl}/v1/edit-plans/${String(cancellationPlan.id)}/approve`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-pre-execution-cancellation-approve',
+      },
+      body: JSON.stringify({
+        workspaceId: routeWorkspaceId,
+        expectedAuthorityRevision: cancellationPublishedAuthority.authorityRevision,
+        expectedPlanHash: cancellationPlan.planHash,
+        expectedEstimateHash: cancellationEstimate.estimateHash,
+      }),
+    },
+  )
+  assert.equal(cancellationApproveResponse.status, 201)
+  const cancellationApproveEnvelope = await cancellationApproveResponse.json() as {
+    data?: { authority?: Record<string, unknown> }
+  }
+  const cancellationApprovedAuthority = asRecord(cancellationApproveEnvelope.data?.authority)
+  const cancellationSnapshot = asRecord(cancellationApprovedAuthority.snapshot)
+  const cancellationReservation = asRecord(cancellationApprovedAuthority.reservation)
+  const cancellationWalletBefore = asRecord(cancellationApprovedAuthority.wallet)
+  const cancellationJobsBefore = cancellationApprovedAuthority.jobs as Record<string, unknown>[]
+  const cancellationBody = {
+    workspaceId: routeWorkspaceId,
+    expectedAuthorityRevision: cancellationApprovedAuthority.authorityRevision,
+    expectedSnapshotHash: cancellationSnapshot.snapshotHash,
+    expectedReservationId: cancellationReservation.id,
+    reason: 'user_cancelled_before_execution',
+  }
+  const cancellationUrl =
+    `${routeBaseUrl}/v1/approved-snapshots/${String(cancellationSnapshot.snapshotId)}/cancel`
+  const unauthenticatedCancellation = await fetch(cancellationUrl, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'idempotency-key': 'route-cancel-unauthenticated' },
+    body: JSON.stringify(cancellationBody),
+  })
+  assert.equal(unauthenticatedCancellation.status, 401)
+  const cancellationResponse = await fetch(cancellationUrl, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-cancel-before-execution',
+    },
+    body: JSON.stringify(cancellationBody),
+  })
+  assert.equal(cancellationResponse.status, 201)
+  const cancellationEnvelope = await cancellationResponse.json() as {
+    data?: { canonicalPreExecutionCancellation?: Record<string, unknown> }
+  }
+  const cancellation = asRecord(cancellationEnvelope.data?.canonicalPreExecutionCancellation)
+  const cancelledReservation = asRecord(cancellation.reservation)
+  const cancellationWalletAfter = asRecord(cancellation.wallet)
+  assert.equal(cancelledReservation.status, 'cancelled')
+  assert.equal(cancellation.planStatus, 'cancelled')
+  assert.equal(cancellation.estimateStatus, 'cancelled')
+  assert.equal(cancelledReservation.spentCredits, 0)
+  assert.equal(cancelledReservation.refundedCredits, 0)
+  assert.equal(cancelledReservation.releasedCredits, cancellationReservation.reservedCredits)
+  assert.equal(
+    cancellationWalletAfter.availableCredits,
+    Number(cancellationWalletBefore.availableCredits) + Number(cancellationReservation.reservedCredits),
+  )
+  assert.equal(
+    cancellationWalletAfter.reservedCredits,
+    Number(cancellationWalletBefore.reservedCredits) - Number(cancellationReservation.reservedCredits),
+  )
+  assert.deepEqual(
+    cancellation.derivedJobIds,
+    cancellationJobsBefore.map((job) => job.id),
+  )
+  assert.equal(cancellation.snapshotRemainsImmutable, true)
+  assert.equal(cancellation.derivedJobsRemainUnmodified, true)
+  assert.equal(cancellation.internalTestWalletMutated, true)
+  assert.equal(cancellation.customerWalletMutation, false)
+  assert.equal(cancellation.customerCreditMutation, false)
+  assert.equal(cancellation.billingExecuted, false)
+  assert.equal(cancellation.toolExecutionStarted, false)
+  assert.equal(cancellation.providerCallStarted, false)
+  assert.equal(cancellation.renderStarted, false)
+  assert.equal(cancellation.publicDeliveryStarted, false)
+  const cancellationReplay = await fetch(cancellationUrl, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-cancel-before-execution',
+    },
+    body: JSON.stringify(cancellationBody),
+  })
+  assert.equal(cancellationReplay.status, 201)
+  const cancellationReplayEnvelope = await cancellationReplay.json() as {
+    data?: { canonicalPreExecutionCancellation?: Record<string, unknown> }
+  }
+  assert.deepEqual(cancellationReplayEnvelope.data?.canonicalPreExecutionCancellation, cancellation)
+  const cancellationConflict = await fetch(cancellationUrl, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-cancel-before-execution',
+    },
+    body: JSON.stringify({ ...cancellationBody, expectedSnapshotHash: '0'.repeat(64) }),
+  })
+  assert.equal(cancellationConflict.status, 409)
+  const cancelledPackageResponse = await fetch(`${routeBaseUrl}/v1/edit-executions/packages`, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-cancelled-snapshot-package',
+    },
+    body: JSON.stringify({
+      workspaceId: routeWorkspaceId,
+      approvedPlanSnapshotId: cancellationSnapshot.snapshotId,
+      expectedSnapshotHash: cancellationSnapshot.snapshotHash,
+      purpose: 'private_internal_execution_handoff',
+    }),
+  })
+  assert.equal(cancelledPackageResponse.status, 409)
+  const cancelledPackageEnvelope = await cancelledPackageResponse.json() as {
+    error?: { code?: string }
+  }
+  assert.equal(cancelledPackageEnvelope.error?.code, 'APPROVED_SNAPSHOT_REQUIRED')
+  const cancelledSnapshotRead = await fetch(
+    `${routeBaseUrl}/v1/approved-snapshots/${String(cancellationSnapshot.snapshotId)}/authority?workspaceId=${routeWorkspaceId}`,
+    { headers: routeAuthHeaders },
+  )
+  assert.equal(cancelledSnapshotRead.status, 200)
+  const cancelledSnapshotEnvelope = await cancelledSnapshotRead.json() as {
+    data?: { authority?: Record<string, unknown> }
+  }
+  const cancelledSnapshotAuthority = asRecord(cancelledSnapshotEnvelope.data?.authority)
+  assert.equal(asRecord(cancelledSnapshotAuthority.reservation).status, 'cancelled')
+  assert.deepEqual(
+    (cancelledSnapshotAuthority.jobs as Record<string, unknown>[]).map((job) => ({ id: job.id, status: job.status })),
+    cancellationJobsBefore.map((job) => ({ id: job.id, status: job.status })),
+  )
+  const cancelledPreferenceView = await createExactEditPreferenceService(context).getCurrent(
+    routeWorkspaceId,
+    routeProjectId,
+    cancellationEditSessionId,
+  )
+  assert.equal(cancelledPreferenceView.preferenceRecord?.lifecycle.locked, false)
+  assert.equal(cancelledPreferenceView.preferenceRecord?.lifecycle.phase, 'planning')
+  const packagedSnapshotCancellation = await fetch(
+    `${routeBaseUrl}/v1/approved-snapshots/${String(routeSnapshot.snapshotId)}/cancel`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-packaged-snapshot-cancellation-blocked',
+      },
+      body: JSON.stringify({
+        workspaceId: routeWorkspaceId,
+        expectedAuthorityRevision: cancellation.authorityRevision,
+        expectedSnapshotHash: routeSnapshot.snapshotHash,
+        expectedReservationId: asRecord(routeApprovedAuthority.reservation).id,
+        reason: 'user_cancelled_before_execution',
+      }),
+    },
+  )
+  assert.equal(packagedSnapshotCancellation.status, 409)
+  const packagedSnapshotCancellationEnvelope = await packagedSnapshotCancellation.json() as {
+    error?: { code?: string; details?: { requiredGate?: string } }
+  }
+  assert.equal(packagedSnapshotCancellationEnvelope.error?.code, 'TOOL_NOT_READY')
+  assert.equal(
+    packagedSnapshotCancellationEnvelope.error?.details?.requiredGate,
+    'canonical_in_flight_cancellation_and_worker_fencing',
+  )
+
   for (const legacyRequest of [
     fetch(`${routeBaseUrl}/v1/edit-plans/${String(routePlan.id)}/approved-snapshots`, { method: 'POST', headers: routeAuthHeaders }),
     fetch(`${routeBaseUrl}/v1/credit-estimates/${String(routeEstimate.id)}/approve`, { method: 'POST', headers: routeAuthHeaders }),
@@ -1121,6 +1341,11 @@ console.log(JSON.stringify({
     'authenticated_canonical_work_graph_advances_ready_job_and_persists_exact_blockers',
     'canonical_source_trim_plan_validation_executes_after_snapshot_dependency',
     'canonical_work_graph_continuation_reuses_completed_job_without_duplicate_execution',
+    'authenticated_pre_execution_cancellation_releases_only_unused_synthetic_reservation',
+    'cancellation_preserves_snapshot_jobs_and_blocks_execution_package_creation',
+    'cancellation_unlocks_planning_inputs_for_a_new_plan_version',
+    'cancellation_is_idempotent_conflict_safe_and_has_no_customer_tool_provider_render_or_delivery_side_effect',
+    'cancellation_fails_closed_after_execution_package_creation',
     'authenticated_fail_closed_tool_runtime_evidence_http_route',
     'legacy_caller_authority_routes_fail_closed',
     'no_provider_worker_render_or_paid_billing_side_effect',

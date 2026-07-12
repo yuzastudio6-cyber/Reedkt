@@ -744,16 +744,18 @@ async function resolveCanonicalLifecycleLock(
   })
   if (!aggregate) return { phase: 'planning', locked: false }
 
-  const matchingSnapshot = aggregate.snapshots.find((snapshot) =>
-    snapshot.projectId === scope.projectId && snapshot.editSessionId === scope.editSessionId
-  )
-  const matchingReservation = aggregate.reservations.find((reservation) =>
-    reservation.projectId === scope.projectId && reservation.editSessionId === scope.editSessionId
-  )
   const matchingApprovedPlan = aggregate.plans.find((plan) =>
     plan.projectId === scope.projectId
     && plan.editSessionId === scope.editSessionId
     && plan.status === 'approved'
+  )
+  if (!matchingApprovedPlan) return { phase: 'planning', locked: false }
+  const matchingSnapshot = aggregate.snapshots.find((snapshot) =>
+    snapshot.planId === matchingApprovedPlan.id
+  )
+  const matchingReservation = aggregate.reservations.find((reservation) =>
+    reservation.planId === matchingApprovedPlan.id
+    && ['reserved', 'partially_spent', 'spent'].includes(reservation.status)
   )
   if (matchingReservation) {
     return {
@@ -771,15 +773,12 @@ async function resolveCanonicalLifecycleLock(
       lockedAt: matchingSnapshot.approvedAt,
     }
   }
-  if (matchingApprovedPlan) {
-    return {
-      phase: 'approved_snapshot',
-      locked: true,
-      authorityReferenceId: matchingApprovedPlan.id,
-      lockedAt: matchingApprovedPlan.approvedAt ?? matchingApprovedPlan.createdAt,
-    }
+  return {
+    phase: 'approved_snapshot',
+    locked: true,
+    authorityReferenceId: matchingApprovedPlan.id,
+    lockedAt: matchingApprovedPlan.approvedAt ?? matchingApprovedPlan.createdAt,
   }
-  return { phase: 'planning', locked: false }
 }
 
 function applyPlanningInvalidation(

@@ -54,7 +54,7 @@ export interface AuthorityPlanRecord {
   editSessionId: string
   planningRequestId: string
   planVersion: number
-  status: 'presented' | 'approved' | 'superseded' | 'rejected'
+  status: 'presented' | 'approved' | 'superseded' | 'rejected' | 'cancelled'
   componentRefs: Record<string, AuthorityJsonBlobRef>
   estimateId: string
   workItemIds: string[]
@@ -65,6 +65,7 @@ export interface AuthorityPlanRecord {
   createdAt: string
   approvedAt?: string
   supersededAt?: string
+  cancelledAt?: string
   revisionAuthority?: {
     reviewAssemblyId: string
     reviewDecisionId: string
@@ -90,7 +91,7 @@ export interface AuthorityCreditEstimateRecord {
   id: string
   planId: string
   estimateVersion: number
-  status: 'presented' | 'approved' | 'superseded' | 'expired' | 'rejected'
+  status: 'presented' | 'approved' | 'superseded' | 'expired' | 'rejected' | 'cancelled'
   lineItems: AuthorityEstimateLineItem[]
   estimatedCredits: number
   fallbackAllowanceCredits: number
@@ -100,6 +101,7 @@ export interface AuthorityCreditEstimateRecord {
   createdAt: string
   approvedAt?: string
   supersededAt?: string
+  cancelledAt?: string
 }
 
 export interface AuthorityPlanWorkItemRecord {
@@ -289,7 +291,7 @@ export interface AuthorityPlannedAssetManifest {
 }
 
 export interface AuthorityIdempotencyRecord {
-  operation: 'publish_plan' | 'approve_plan' | 'create_execution_package'
+  operation: 'publish_plan' | 'approve_plan' | 'create_execution_package' | 'cancel_approved_snapshot'
   idempotencyKey: string
   requestHash: string
   responseId: string

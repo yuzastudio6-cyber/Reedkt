@@ -3,7 +3,9 @@ import { requireAuth } from '../middleware/auth'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
+import { createCanonicalPreExecutionCancellationService } from '../services/canonical-pre-execution-cancellation-service'
 import { createCanonicalPlanningHandoffSchema } from '../validation/canonical-planning-handoff-schemas'
+import { cancelCanonicalApprovedSnapshotSchema } from '../validation/canonical-pre-execution-cancellation-schemas'
 import {
   approveCanonicalEditPlanSchema,
   authorityWorkspaceQuerySchema,
@@ -67,6 +69,21 @@ export function createEditPlanningAuthorityRoutes(): Router {
         requestPath: request.originalUrl,
       })
       sendOk(response, { authority: result.authority }, result.warnings, 201)
+    }),
+  )
+
+  router.post(
+    '/v1/approved-snapshots/:snapshotId/cancel',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(cancelCanonicalApprovedSnapshotSchema, request.body)
+      const result = await createCanonicalPreExecutionCancellationService(getServiceContext(request)).cancel({
+        ...body,
+        snapshotId: getRouteParam(request, 'snapshotId'),
+        idempotencyKey: getIdempotencyKey(request),
+        requestPath: request.originalUrl,
+      })
+      sendOk(response, { canonicalPreExecutionCancellation: result.cancellation }, result.warnings, 201)
     }),
   )
 

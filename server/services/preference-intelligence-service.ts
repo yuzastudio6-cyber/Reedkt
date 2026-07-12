@@ -1189,13 +1189,12 @@ async function resolvePreferenceApplicationLifecycleLock(
   const approvedPlan = authority.plans.find((plan) =>
     plan.projectId === projectId && plan.editSessionId === editSessionId && plan.status === 'approved'
   )
-  const snapshot = authority.snapshots.find((candidate) =>
-    candidate.projectId === projectId && candidate.editSessionId === editSessionId
-  )
+  if (!approvedPlan) return undefined
+  const snapshot = authority.snapshots.find((candidate) => candidate.planId === approvedPlan.id)
   const reservation = authority.reservations.find((candidate) =>
-    candidate.projectId === projectId && candidate.editSessionId === editSessionId
+    candidate.planId === approvedPlan.id
+    && ['reserved', 'partially_spent', 'spent'].includes(candidate.status)
   )
-  if (!approvedPlan && !snapshot && !reservation) return undefined
   return reservation ? 'credit_reserved' : snapshot ? 'approved_snapshot' : 'approved_plan'
 }
 

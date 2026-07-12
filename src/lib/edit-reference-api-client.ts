@@ -59,7 +59,7 @@ export interface EditReferenceApiClient {
 }
 
 export function createEditReferenceApiClient(
-  configuredBaseUrl = import.meta.env.VITE_REEDITPRO_EDIT_REFERENCE_API_BASE_URL as string | undefined,
+  configuredBaseUrl = import.meta.env?.VITE_REEDITPRO_EDIT_REFERENCE_API_BASE_URL as string | undefined,
 ): EditReferenceApiClient {
   const baseUrl = configuredBaseUrl?.trim().replace(/\/$/, '')
   const unavailable = <T>(): Promise<EditReferenceApiResult<T>> => Promise.resolve({

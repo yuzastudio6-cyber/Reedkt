@@ -69,7 +69,11 @@ const referenceMetadataEvidenceSchema = z.object({
   width: z.number().int().positive().max(16_384).optional(),
   height: z.number().int().positive().max(16_384).optional(),
   hasAudio: z.boolean().optional(),
-}).strict()
+  storageObjectRecordId: idSchema.max(200).optional(),
+  mediaAssetId: idSchema.max(200).optional(),
+}).strict().refine((body) => Boolean(body.storageObjectRecordId) === Boolean(body.mediaAssetId), {
+  message: 'A private reference upload requires both its storage object and media asset identities.',
+})
 const previousApprovedEditEvidenceSchema = z.object({
   ...evidenceMutationFields,
   sourceType: z.literal('previous_approved_edit_snapshot'),
@@ -84,11 +88,14 @@ const createEvidenceSchema = z.discriminatedUnion('sourceType', [
   referenceMetadataEvidenceSchema,
   previousApprovedEditEvidenceSchema,
 ])
-const runEvidenceStudySchema = workspaceSchema.extend({
+const studyRevisionSchema = workspaceSchema.extend({
   expectedStudyRevision: z.number().int().positive(),
 }).strict()
-const synthesizePreferenceDNASchema = runEvidenceStudySchema
-const runPreferenceDNAQASchema = runEvidenceStudySchema.extend({
+const runEvidenceStudySchema = studyRevisionSchema.extend({
+  retryBlockedSkills: z.literal(true).optional(),
+}).strict()
+const synthesizePreferenceDNASchema = studyRevisionSchema
+const runPreferenceDNAQASchema = studyRevisionSchema.extend({
   expectedDNAContentDigest: z.string().regex(/^[a-f0-9]{64}$/),
 }).strict()
 const approvePreferenceDNASchema = runPreferenceDNAQASchema.extend({
@@ -155,6 +162,7 @@ const createPreferenceApplicationSchema = workspaceSchema.extend({
   expectedReferenceRevision: z.number().int().positive(),
   expectedDNAContentDigest: z.string().regex(/^[a-f0-9]{64}$/),
   acknowledgeAdaptNotCopy: z.literal(true),
+  applicationSource: z.enum(['setup_selector', 'chat_tag', 'session_panel']).optional(),
   targetContext: targetContextSchema,
   replacesApplicationId: idSchema.max(200).optional(),
   expectedReplacedReferenceRevision: z.number().int().positive().optional(),

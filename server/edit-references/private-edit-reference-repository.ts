@@ -382,6 +382,7 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
       || record.version < 1
       || !['prepared', 'replaced', 'cleared'].includes(record.status)
       || record.applicationVersion !== 'edit-reference-target-application-v1'
+      || (record.applicationSource !== undefined && !['setup_selector', 'chat_tag', 'session_panel'].includes(record.applicationSource))
       || record.runtimeSource !== 'verified_mock'
       || !isApplicationTargetContext(record.targetContext)
       || record.targetContextDigest !== calculatePreferenceApplicationTargetContextDigest(record.targetContext)
@@ -419,6 +420,7 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
       || record.renderJobCreated !== false
       || record.creditReservedOrSpent !== false
       || !isISODate(record.createdAt)
+      || (record.updatedAt !== undefined && !isISODate(record.updatedAt))
       || (record.clearedAt !== undefined && !isISODate(record.clearedAt))
       || (record.connectedAt !== undefined && !isISODate(record.connectedAt))
       || (record.invalidatedAt !== undefined && !isISODate(record.invalidatedAt))
@@ -567,6 +569,7 @@ function assertPreferenceApplications(aggregate: EditReferenceAggregate): void {
 
     const immutableContent = {
       applicationVersion: record.applicationVersion,
+      ...(record.applicationSource ? { applicationSource: record.applicationSource } : {}),
       editReferenceId: record.editReferenceId,
       dnaVersionId: record.dnaVersionId,
       dnaVersionNumber: record.dnaVersionNumber,
@@ -972,7 +975,7 @@ function assertEvidenceRecord(record: EditReferenceAggregate['evidence'][number]
     || !['transferable', 'non_transferable', 'do_not_copy', 'requires_user_review', 'unknown'].includes(record.transferability)
     || !isRecord(record.provenance)
     || !['user_input', 'verified_local', 'verified_mock', 'fallback', 'blocked'].includes(record.provenance.runtimeSource)
-    || !['not_applicable', 'media_not_studied', 'approved_edit_identity_not_verified'].includes(record.provenance.mediaStudyStatus)
+    || !['not_applicable', 'media_not_studied', 'media_studied_local_partial', 'media_study_blocked', 'approved_edit_identity_not_verified'].includes(record.provenance.mediaStudyStatus)
     || !Array.isArray(record.provenance.sourceEvidenceIds)
     || !Array.isArray(record.provenance.toolIds)
     || !Array.isArray(record.provenance.skillIds)
@@ -992,8 +995,16 @@ function assertAssetRecord(record: EditReferenceAggregate['assets'][number]): vo
     || !record.label
     || record.label.length > 240
     || !['user_owned', 'licensed_or_authorized', 'reference_only', 'workspace_approved_edit'].includes(record.rightsBasis)
-    || !['media_not_studied', 'approved_edit_identity_not_verified'].includes(record.mediaStudyStatus)
+    || !['media_not_studied', 'media_studied_local_partial', 'media_study_blocked', 'approved_edit_identity_not_verified'].includes(record.mediaStudyStatus)
+    || (Boolean(record.storageObjectRecordId) !== Boolean(record.mediaAssetId))
+    || (record.representativeFrameCount !== undefined && (!Number.isSafeInteger(record.representativeFrameCount) || record.representativeFrameCount < 0 || record.representativeFrameCount > 12))
+    || (record.lastStudyAt !== undefined && !isISODate(record.lastStudyAt))
+    || (record.lastStudyBlocker !== undefined && (!record.lastStudyBlocker || record.lastStudyBlocker.length > 500))
   ) throw invalidAggregate('asset_contract_invalid')
+  if (
+    ['media_studied_local_partial', 'media_study_blocked'].includes(record.mediaStudyStatus)
+    && (!record.storageObjectRecordId || !record.mediaAssetId)
+  ) throw invalidAggregate('studied_media_asset_identity_invalid')
   if (record.mediaMetadata) assertMediaMetadata(record.mediaMetadata)
   if (record.assetKind === 'previous_approved_edit_snapshot' && (!record.projectId || !record.editSessionId || !record.approvedSnapshotId)) {
     throw invalidAggregate('approved_edit_asset_identity_invalid')
@@ -1018,15 +1029,18 @@ function assertSkillRunRecord(record: EditReferenceAggregate['skillRuns'][number
   ) throw invalidAggregate('skill_run_contract_invalid')
   const allLinks = [...record.inputEvidenceIds, ...record.outputEvidenceIds]
   if (allLinks.some((id) => typeof id !== 'string' || !evidenceIds.has(id))) throw invalidAggregate('skill_run_evidence_link_invalid')
-  const sideEffects = [
-    record.providerCallMade,
-    record.modelCallMade,
-    record.fileBytesRead,
-    record.externalUrlFetched,
-    record.mediaProcessingStarted,
-    record.workerJobCreated,
-  ]
-  if (sideEffects.some((value) => value !== false)) throw invalidAggregate('skill_run_side_effect_flag_invalid')
+  if (
+    record.providerCallMade !== false
+    || record.modelCallMade !== false
+    || record.externalUrlFetched !== false
+    || record.workerJobCreated !== false
+    || typeof record.fileBytesRead !== 'boolean'
+    || typeof record.mediaProcessingStarted !== 'boolean'
+    || (record.fileBytesRead || record.mediaProcessingStarted) && (
+      record.runtimeSource !== 'verified_local'
+      || !record.toolIds.some((toolId) => toolId === 'ffprobe' || toolId === 'ffmpeg')
+    )
+  ) throw invalidAggregate('skill_run_side_effect_flag_invalid')
 }
 
 function assertMediaMetadata(value: NonNullable<EditReferenceAggregate['evidence'][number]['mediaMetadata']>): void {

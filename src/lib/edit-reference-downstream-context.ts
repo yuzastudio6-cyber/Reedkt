@@ -50,6 +50,9 @@ export function createPreferenceApplicationDownstreamContext(
     packageVersion: PREFERENCE_APPLICATION_DOWNSTREAM_CONTEXT_VERSION,
     applicationId: application.id,
     applicationContentDigest: application.contentDigest,
+    ...(application.applicationSource
+      ? { applicationSource: application.applicationSource }
+      : {}),
     editReferenceId: application.editReferenceId,
     editReferenceName: application.editReferenceName,
     dnaVersionId: application.dnaVersionId,
@@ -349,6 +352,9 @@ function createPreferenceApplicationDownstreamContextFromContext(
     packageVersion: context.packageVersion,
     applicationId: context.applicationId,
     applicationContentDigest: context.applicationContentDigest,
+    ...(context.applicationSource
+      ? { applicationSource: context.applicationSource }
+      : {}),
     editReferenceId: context.editReferenceId,
     editReferenceName: context.editReferenceName,
     dnaVersionId: context.dnaVersionId,

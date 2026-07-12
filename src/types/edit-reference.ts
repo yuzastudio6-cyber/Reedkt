@@ -55,7 +55,12 @@ export const EDIT_REFERENCE_MEDIA_RIGHTS_BASES = [
 ] as const
 export type PreferenceEvidenceTransferability = 'transferable' | 'non_transferable' | 'do_not_copy' | 'requires_user_review' | 'unknown'
 export type PreferenceEvidenceConfidenceBasis = 'user_asserted' | 'metadata_verified' | 'deterministic_derived' | 'blocked'
-export type PreferenceEvidenceMediaStudyStatus = 'not_applicable' | 'media_not_studied' | 'approved_edit_identity_not_verified'
+export type PreferenceEvidenceMediaStudyStatus =
+  | 'not_applicable'
+  | 'media_not_studied'
+  | 'media_studied_local_partial'
+  | 'media_study_blocked'
+  | 'approved_edit_identity_not_verified'
 export type PreferenceEvidenceStatus = 'not_complete' | 'ready_to_study' | 'evidence_ready' | 'needs_clarification'
 export type EditReferenceDNAStatus = 'not_generated' | 'review_required' | 'approved'
 export type EditReferenceDNAQAStatus = 'not_run' | 'passed' | 'blocked' | 'requires_user_review'
@@ -91,9 +96,9 @@ export type PreferenceStudyMessageRuntimeSource =
 export interface EditReferenceSafetyFlags {
   providerCallMade: false
   modelCallMade: false
-  fileBytesRead: false
+  fileBytesRead: boolean
   externalUrlFetched: false
-  mediaProcessingStarted: false
+  mediaProcessingStarted: boolean
   workerJobCreated: false
   generationRequestCreated: false
   renderJobCreated: false
@@ -220,6 +225,8 @@ export interface PreferenceAssetRecord {
   editReferenceId: string
   studySessionId: string
   privateAssetId: string
+  storageObjectRecordId?: string
+  mediaAssetId?: string
   assetKind: 'reference_video_metadata' | 'previous_approved_edit_snapshot'
   label: string
   rightsBasis: PreferenceEvidenceRightsBasis
@@ -228,6 +235,9 @@ export interface PreferenceAssetRecord {
   projectId?: string
   editSessionId?: string
   approvedSnapshotId?: string
+  representativeFrameCount?: number
+  lastStudyAt?: string
+  lastStudyBlocker?: string
   createdAt: string
 }
 
@@ -250,9 +260,9 @@ export interface PreferenceSkillRunRecord {
   blockedReasons: string[]
   providerCallMade: false
   modelCallMade: false
-  fileBytesRead: false
+  fileBytesRead: boolean
   externalUrlFetched: false
-  mediaProcessingStarted: false
+  mediaProcessingStarted: boolean
   workerJobCreated: false
   createdAt: string
   updatedAt: string
@@ -454,6 +464,7 @@ export interface PreferenceApplicationTargetContextSnapshot {
 }
 
 export type PreferenceApplicationAdaptationDecision = 'adapted' | 'context_only' | 'blocked_from_transfer'
+export type PreferenceApplicationSource = 'setup_selector' | 'chat_tag' | 'session_panel'
 export type PreferenceApplicationPrecedence =
   | 'safety_platform_tier_frame_credit_or_approved_constraint'
   | 'current_user_instruction'
@@ -495,6 +506,7 @@ export interface PreferenceApplicationRecord {
   editSessionId: string
   version: number
   status: 'prepared' | 'replaced' | 'cleared'
+  applicationSource: PreferenceApplicationSource
   applicationVersion: 'edit-reference-target-application-v1'
   runtimeSource: 'verified_mock'
   targetContext: PreferenceApplicationTargetContextSnapshot
@@ -535,6 +547,7 @@ export interface PreferenceApplicationRecord {
   renderJobCreated: false
   creditReservedOrSpent: false
   createdAt: string
+  updatedAt: string
 }
 
 export interface PreferenceUsageLogRecord {
@@ -674,6 +687,8 @@ export interface CreateReferenceVideoMetadataEvidenceRequest extends CreatePrefe
   width?: number
   height?: number
   hasAudio?: boolean
+  storageObjectRecordId?: string
+  mediaAssetId?: string
 }
 
 export interface CreatePreviousApprovedEditEvidenceRequest extends CreatePreferenceEvidenceBaseRequest {
@@ -693,6 +708,7 @@ export type CreatePreferenceEvidenceRequest =
 export interface RunPreferenceEvidenceStudyRequest {
   workspaceId: string
   expectedStudyRevision: number
+  retryBlockedSkills?: true
 }
 
 export interface SynthesizePreferenceDNARequest {
@@ -720,6 +736,7 @@ export interface CreatePreferenceApplicationRequest {
   expectedReferenceRevision: number
   expectedDNAContentDigest: string
   acknowledgeAdaptNotCopy: true
+  applicationSource?: PreferenceApplicationSource
   targetContext: PreferenceApplicationTargetContextSnapshot
   replacesApplicationId?: string
   expectedReplacedReferenceRevision?: number

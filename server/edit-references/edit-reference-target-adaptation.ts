@@ -5,6 +5,7 @@ import type {
   PreferenceApplicationAdaptedDecisionRecord,
   PreferenceApplicationHintGroupRecord,
   PreferenceApplicationRecord,
+  PreferenceApplicationSource,
   PreferenceApplicationTargetContextSnapshot,
   PreferenceDNAQAResultRecord,
   PreferenceDNARuleRecord,
@@ -30,6 +31,7 @@ interface TargetApplicationInput {
   dnaVersion: PreferenceDNAVersionRecord
   qaResult: PreferenceDNAQAResultRecord
   targetContext: PreferenceApplicationTargetContextSnapshot
+  applicationSource: PreferenceApplicationSource
   existingApplications: PreferenceApplicationRecord[]
   now: string
 }
@@ -60,6 +62,7 @@ export function createEditReferenceTargetApplication(input: TargetApplicationInp
   const summary = createApplicationSummary(input.targetContext, decisions)
   const immutableContent = {
     applicationVersion: EDIT_REFERENCE_TARGET_APPLICATION_VERSION,
+    applicationSource: input.applicationSource,
     editReferenceId: input.reference.id,
     dnaVersionId: input.dnaVersion.id,
     dnaVersionNumber: input.dnaVersion.version,
@@ -90,6 +93,7 @@ export function createEditReferenceTargetApplication(input: TargetApplicationInp
     editSessionId: input.targetContext.editSessionId,
     version,
     status: 'prepared',
+    applicationSource: input.applicationSource,
     applicationVersion: EDIT_REFERENCE_TARGET_APPLICATION_VERSION,
     runtimeSource: 'verified_mock',
     targetContext: input.targetContext,
@@ -116,6 +120,7 @@ export function createEditReferenceTargetApplication(input: TargetApplicationInp
     renderJobCreated: false,
     creditReservedOrSpent: false,
     createdAt: input.now,
+    updatedAt: input.now,
   }
 }
 
@@ -127,6 +132,7 @@ export function calculatePreferenceApplicationTargetContextDigest(
 
 export function calculatePreferenceApplicationContentDigest(value: {
   applicationVersion: PreferenceApplicationRecord['applicationVersion']
+  applicationSource?: PreferenceApplicationRecord['applicationSource']
   editReferenceId: string
   dnaVersionId: string
   dnaVersionNumber: number

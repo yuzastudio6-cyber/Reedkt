@@ -13,12 +13,14 @@ import {
   hasEditReferenceNegationNear,
   type EditReferenceCopyRiskKind,
 } from './edit-reference-copy-safety'
+import type { EditReferenceLocalMediaStudyResult } from './edit-reference-media-study'
 
 interface OrchestrationInput {
   workspaceId: string
   editReferenceId: string
   study: PreferenceStudySessionRecord
   evidence: PreferenceEvidenceRecord[]
+  mediaStudies?: EditReferenceLocalMediaStudyResult[]
   now: string
 }
 
@@ -50,14 +52,14 @@ interface SkillDefinition {
 const GOAL_SKILLS: Record<EditReferenceStudyGoal, SkillDefinition[]> = {
   visual_language: [fallbackSkill(
     'edit_reference.visual_language.qwen_visual_analysis',
-    'verified_live',
+    'degraded',
     'Saved the user-described visual language as evidence. No frames or video were analyzed.',
     ['Live visual analysis was not invoked; this result is based only on saved user direction.'],
   )],
   story_and_pacing: [
     fallbackSkill(
       'edit_reference.story_editorial.qwen_reasoning',
-      'verified_live',
+      'degraded',
       'Organized the user-described story and pacing choices without model reasoning or copied timing.',
       ['Live story reasoning was not invoked; this result is based only on saved user direction.'],
     ),
@@ -68,31 +70,31 @@ const GOAL_SKILLS: Record<EditReferenceStudyGoal, SkillDefinition[]> = {
   ],
   captions: [fallbackSkill(
     'edit_reference.caption_design.evidence',
-    'verified_mock',
+    'degraded',
     'Preserved the user-described caption choices as low-confidence manual evidence.',
     ['No caption frames, wording, OCR, or transcript timing were analyzed.'],
   )],
   color: [fallbackSkill(
     'edit_reference.color_treatment.evidence',
-    'verified_mock',
+    'degraded',
     'Preserved broad user-described color principles without inventing a LUT or exact grade.',
     ['No source frames or color-processing tool ran.'],
   )],
   b_roll: [fallbackSkill(
     'edit_reference.visual_language.qwen_visual_analysis',
-    'verified_live',
+    'degraded',
     'Preserved the user-described B-roll language without inferring real shots or scene boundaries.',
     ['No frames, video bytes, shot detector, or visual model ran.'],
   )],
   audio_and_sfx: [fallbackSkill(
     'edit_reference.audio_sound_design.evidence',
-    'verified_mock',
+    'degraded',
     'Preserved the user-described music and sound-design intent as manual evidence.',
     ['No audio analysis, generation, MMAudio, Lyria, or provider call ran.'],
   )],
   graphics: [fallbackSkill(
     'edit_reference.graphics_motion.evidence',
-    'verified_mock',
+    'degraded',
     'Preserved the user-described graphics and motion principles without recreating an exact layout.',
     ['No render, generated code, media worker, or provider call ran.'],
   )],
@@ -108,8 +110,23 @@ export function orchestratePreferenceEvidenceStudy(input: OrchestrationInput): P
   const previousEditEvidence = sourceEvidence.filter((record) => record.sourceType === 'previous_approved_edit_snapshot')
   const derivedEvidence: PreferenceEvidenceRecord[] = []
   const skillRuns: PreferenceSkillRunRecord[] = []
+  const mediaStudyByEvidenceId = new Map((input.mediaStudies ?? []).map((study) => [study.sourceEvidenceId, study]))
 
   if (metadataEvidence.length > 0) {
+    const metadataOnlyEvidence = metadataEvidence.filter((record) => !mediaStudyByEvidenceId.has(record.id))
+    for (const record of metadataEvidence.filter((candidate) => mediaStudyByEvidenceId.has(candidate.id))) {
+      appendLocalMediaStudy({
+        input,
+        orchestrationId,
+        sourceEvidence: record,
+        mediaStudy: mediaStudyByEvidenceId.get(record.id)!,
+        derivedEvidence,
+        skillRuns,
+      })
+    }
+    if (metadataOnlyEvidence.length === 0) {
+      // Every saved video record was routed through the private media study path.
+    } else {
     const runId = `preference-skill-run-${randomUUID()}`
     const output = createDerivedEvidence({
       input,
@@ -121,7 +138,7 @@ export function orchestratePreferenceEvidenceStudy(input: OrchestrationInput): P
       confidence: 1,
       confidenceBasis: 'metadata_verified',
       transferability: 'requires_user_review',
-      sourceEvidenceIds: metadataEvidence.map((record) => record.id),
+      sourceEvidenceIds: metadataOnlyEvidence.map((record) => record.id),
       runtimeSource: 'verified_local',
       mediaStudyStatus: 'media_not_studied',
       skillId: 'edit_reference.media_structure.metadata_map',
@@ -138,7 +155,7 @@ export function orchestratePreferenceEvidenceStudy(input: OrchestrationInput): P
       status: 'completed',
       runtimeSource: 'verified_local',
       readinessAtRun: 'degraded',
-      inputEvidenceIds: metadataEvidence.map((record) => record.id),
+      inputEvidenceIds: metadataOnlyEvidence.map((record) => record.id),
       outputEvidenceIds: [output.id],
       toolIds: ['metadata_normalizer'],
       fallbackUsed: true,
@@ -146,6 +163,7 @@ export function orchestratePreferenceEvidenceStudy(input: OrchestrationInput): P
       warnings: ['No scene, shot, visual, transcript, audio, or motion observation was inferred from metadata.'],
       blockedReasons: [],
     }))
+    }
   }
 
   if (previousEditEvidence.length > 0) {
@@ -301,6 +319,158 @@ export function orchestratePreferenceEvidenceStudy(input: OrchestrationInput): P
   }
 }
 
+function appendLocalMediaStudy(input: {
+  input: OrchestrationInput
+  orchestrationId: string
+  sourceEvidence: PreferenceEvidenceRecord
+  mediaStudy: EditReferenceLocalMediaStudyResult
+  derivedEvidence: PreferenceEvidenceRecord[]
+  skillRuns: PreferenceSkillRunRecord[]
+}): void {
+  const { mediaStudy, sourceEvidence } = input
+  const mediaRunId = `preference-skill-run-${randomUUID()}`
+  const mediaReady = mediaStudy.status === 'verified_local'
+  const mediaOutput = createDerivedEvidence({
+    input: input.input,
+    orchestrationId: input.orchestrationId,
+    runId: mediaRunId,
+    category: 'media_structure',
+    title: mediaReady ? 'Private reference media structure' : 'Private reference media study blocked',
+    summary: mediaReady
+      ? `${sourceEvidence.title}: ${formatDuration(mediaStudy.durationSeconds)}, ${formatDimensions(mediaStudy.width, mediaStudy.height)}, ${mediaStudy.hasAudio ? 'audio present' : 'no audio stream detected'}, and ${mediaStudy.representativeFrameCount} bounded representative frame${mediaStudy.representativeFrameCount === 1 ? '' : 's'} prepared ephemerally.`
+      : mediaStudy.blockerMessage ?? 'The private reference media could not be studied locally.',
+    confidence: mediaReady ? 0.9 : 0,
+    confidenceBasis: mediaReady ? 'metadata_verified' : 'blocked',
+    transferability: 'requires_user_review',
+    sourceEvidenceIds: [sourceEvidence.id],
+    runtimeSource: mediaReady ? 'verified_local' : 'blocked',
+    mediaStudyStatus: mediaReady ? 'media_studied_local_partial' : 'media_study_blocked',
+    skillId: 'edit_reference.media_structure.metadata_map',
+    toolIds: mediaStudy.toolIds,
+    fallbackUsed: !mediaReady,
+    privateAssetId: mediaStudy.privateAssetId,
+    notes: [
+      'The source remained a private artifact reference. No signed URL or filesystem path was persisted.',
+      'Representative frames were bounded and deleted after the local study; raw frames were not persisted.',
+      ...(mediaReady ? mediaStudy.warnings : [mediaStudy.blockerMessage ?? 'Local media study blocked.']),
+    ],
+  })
+  input.derivedEvidence.push(mediaOutput)
+  input.skillRuns.push(createSkillRun({
+    input: input.input,
+    orchestrationId: input.orchestrationId,
+    id: mediaRunId,
+    skillId: 'edit_reference.media_structure.metadata_map',
+    status: mediaReady ? 'completed' : mediaStudy.fileBytesRead ? 'failed' : 'blocked',
+    runtimeSource: mediaReady || mediaStudy.fileBytesRead ? 'verified_local' : 'not_started',
+    readinessAtRun: mediaReady ? 'verified_local' : mediaStudy.fileBytesRead ? 'degraded' : 'blocked',
+    inputEvidenceIds: [sourceEvidence.id],
+    outputEvidenceIds: [mediaOutput.id],
+    toolIds: mediaStudy.toolIds,
+    fallbackUsed: !mediaReady,
+    resultSummary: mediaReady
+      ? 'FFprobe verified private media structure and FFmpeg prepared bounded ephemeral frame/audio artifacts.'
+      : 'Private local media structure study did not complete.',
+    warnings: mediaStudy.warnings,
+    blockedReasons: mediaReady ? [] : [mediaStudy.blockerMessage ?? 'Private local media runtime unavailable.'],
+    fileBytesRead: mediaStudy.fileBytesRead,
+    mediaProcessingStarted: mediaStudy.mediaProcessingStarted,
+  }))
+
+  const frameRunId = `preference-skill-run-${randomUUID()}`
+  const framesReady = mediaReady && mediaStudy.representativeFrameCount > 0
+  const frameOutput = createDerivedEvidence({
+    input: input.input,
+    orchestrationId: input.orchestrationId,
+    runId: frameRunId,
+    category: 'visual_language',
+    title: 'Representative-frame study plan',
+    summary: framesReady
+      ? `${mediaStudy.representativeFrameCount} representative frame${mediaStudy.representativeFrameCount === 1 ? '' : 's'} sampled at ${mediaStudy.representativeFrameTimes.map((time) => `${time.toFixed(2)}s`).join(', ') || 'bounded points'}. The frames were deleted after planning and were not treated as semantic visual evidence.`
+      : 'Representative frames were unavailable, so semantic visual analysis remains blocked.',
+    confidence: framesReady ? 0.6 : 0,
+    confidenceBasis: framesReady ? 'metadata_verified' : 'blocked',
+    transferability: 'requires_user_review',
+    sourceEvidenceIds: [sourceEvidence.id],
+    runtimeSource: framesReady ? 'verified_local' : 'blocked',
+    mediaStudyStatus: framesReady ? 'media_studied_local_partial' : 'media_study_blocked',
+    skillId: 'edit_reference.media_structure.representative_frame_plan',
+    toolIds: framesReady ? ['ffmpeg'] : [],
+    fallbackUsed: !framesReady,
+    privateAssetId: mediaStudy.privateAssetId,
+    notes: ['Frame timing and count are evidence; raw frame pixels are not persisted by default.'],
+  })
+  input.derivedEvidence.push(frameOutput)
+  input.skillRuns.push(createSkillRun({
+    input: input.input,
+    orchestrationId: input.orchestrationId,
+    id: frameRunId,
+    skillId: 'edit_reference.media_structure.representative_frame_plan',
+    status: framesReady ? 'completed' : 'blocked',
+    runtimeSource: framesReady ? 'verified_local' : 'not_started',
+    readinessAtRun: framesReady ? 'verified_local' : 'blocked',
+    inputEvidenceIds: [sourceEvidence.id],
+    outputEvidenceIds: [frameOutput.id],
+    toolIds: framesReady ? ['ffmpeg'] : [],
+    fallbackUsed: !framesReady,
+    resultSummary: framesReady
+      ? 'Prepared and cleaned a bounded representative-frame plan.'
+      : 'Representative-frame planning was not available.',
+    warnings: [],
+    blockedReasons: framesReady ? [] : ['No representative frame artifact was available for this study.'],
+    fileBytesRead: framesReady,
+    mediaProcessingStarted: framesReady,
+  }))
+
+  appendUnavailableMediaSpecialists(input, mediaReady)
+}
+
+function appendUnavailableMediaSpecialists(input: {
+  input: OrchestrationInput
+  orchestrationId: string
+  sourceEvidence: PreferenceEvidenceRecord
+  mediaStudy: EditReferenceLocalMediaStudyResult
+  derivedEvidence: PreferenceEvidenceRecord[]
+  skillRuns: PreferenceSkillRunRecord[]
+}, mediaReady: boolean): void {
+  const definitions: Array<{ skillId: string; blocker: string }> = [
+    { skillId: 'edit_reference.visual_language.qwen_visual_analysis', blocker: 'Semantic frame understanding requires the separately gated Qwen visual runtime.' },
+    { skillId: 'edit_reference.story_editorial.qwen_reasoning', blocker: 'Story/editorial understanding requires transcript, scene, or live reasoning evidence that is not available in the local media foundation.' },
+    { skillId: 'edit_reference.caption_design.evidence', blocker: 'Caption analysis requires OCR or transcript timing; neither runtime ran.' },
+    { skillId: 'edit_reference.color_treatment.evidence', blocker: 'Color treatment analysis requires histogram/color tooling; representative frames alone are not a verified grade.' },
+    { skillId: 'edit_reference.speech_pacing.evidence', blocker: 'Speech and pause analysis requires an approved transcript or alignment runtime.' },
+    { skillId: 'edit_reference.audio_sound_design.evidence', blocker: 'An audio stream may be extracted locally, but music, SFX, loudness, and speech-safe analysis did not run.' },
+    { skillId: 'edit_reference.graphics_motion.evidence', blocker: 'Graphics and motion understanding requires semantic frame/scene analysis or an approved motion runtime.' },
+  ]
+  for (const definition of definitions) {
+    const runId = `preference-skill-run-${randomUUID()}`
+    input.skillRuns.push(createSkillRun({
+      input: input.input,
+      orchestrationId: input.orchestrationId,
+      id: runId,
+      skillId: definition.skillId,
+      status: 'blocked',
+      runtimeSource: 'not_started',
+      readinessAtRun: mediaReady ? 'degraded' : 'blocked',
+      inputEvidenceIds: [input.sourceEvidence.id],
+      outputEvidenceIds: [],
+      toolIds: [],
+      fallbackUsed: true,
+      resultSummary: 'This specialist did not run against the private media. Manual evidence may still provide a separately labelled fallback.',
+      warnings: mediaReady ? ['Local media structure is available, but it does not prove this specialist result.'] : [],
+      blockedReasons: [definition.blocker],
+    }))
+  }
+}
+
+function formatDuration(value: number | undefined): string {
+  return typeof value === 'number' ? `${value.toFixed(2)} seconds` : 'duration unavailable'
+}
+
+function formatDimensions(width: number | undefined, height: number | undefined): string {
+  return width && height ? `${width}×${height}` : 'dimensions unavailable'
+}
+
 function createManualDerivedEvidence(
   input: OrchestrationInput,
   orchestrationId: string,
@@ -383,6 +553,7 @@ function createDerivedEvidence(input: {
   skillId: string
   toolIds: string[]
   fallbackUsed: boolean
+  privateAssetId?: string
   notes: string[]
 }): PreferenceEvidenceRecord {
   return {
@@ -403,6 +574,7 @@ function createDerivedEvidence(input: {
       runtimeSource: input.runtimeSource,
       sourceEvidenceIds: input.sourceEvidenceIds,
       skillRunId: input.runId,
+      ...(input.privateAssetId ? { privateAssetId: input.privateAssetId } : {}),
       mediaStudyStatus: input.mediaStudyStatus,
       toolIds: input.toolIds,
       skillIds: [input.skillId],
@@ -429,6 +601,8 @@ function createSkillRun(input: {
   resultSummary: string
   warnings: string[]
   blockedReasons: string[]
+  fileBytesRead?: boolean
+  mediaProcessingStarted?: boolean
 }): PreferenceSkillRunRecord {
   return {
     id: input.id,
@@ -449,9 +623,9 @@ function createSkillRun(input: {
     blockedReasons: input.blockedReasons,
     providerCallMade: false,
     modelCallMade: false,
-    fileBytesRead: false,
+    fileBytesRead: input.fileBytesRead ?? false,
     externalUrlFetched: false,
-    mediaProcessingStarted: false,
+    mediaProcessingStarted: input.mediaProcessingStarted ?? false,
     workerJobCreated: false,
     createdAt: input.input.now,
     updatedAt: input.input.now,

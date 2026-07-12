@@ -45,10 +45,16 @@ import {
   PrivateEditReferenceRepository,
 } from '../edit-references/private-edit-reference-repository'
 import { orchestratePreferenceEvidenceStudy } from '../edit-references/edit-reference-evidence-orchestrator'
+import {
+  createBlockedEditReferenceMediaStudy,
+  runEditReferenceLocalMediaStudy,
+  type EditReferenceLocalMediaStudyResult,
+} from '../edit-references/edit-reference-media-study'
 import { synthesizeEditReferencePreferenceDNA } from '../edit-references/edit-reference-dna-synthesis'
 import { runEditReferenceDNAQA } from '../edit-references/edit-reference-dna-qa'
 import { createEditReferenceTargetApplication } from '../edit-references/edit-reference-target-adaptation'
 import { createPreferenceApplicationDownstreamContext } from '../../src/lib/edit-reference-downstream-context'
+import { createUploadService } from './upload-service'
 import {
   PREFERENCE_APPLICATION_INTEGRATION_SAFETY_FLAGS,
   type PreferenceApplicationDownstreamInvalidationReceipt,
@@ -56,7 +62,7 @@ import {
 } from '../../src/types/edit-reference-integration'
 
 const LOCAL_WARNING = 'Stored in the private backend-local Edit Reference repository. Production Supabase persistence remains blocked.'
-const FUTURE_RUNTIME_WARNING = 'No provider, model, file-byte, media, worker, generation, render, credit, or remote Supabase operation ran.'
+const FUTURE_RUNTIME_WARNING = 'No provider, model, external URL, worker job, generation, render, credit, or remote Supabase operation ran. Any local media study is reported separately with exact provenance.'
 
 export interface EditReferenceServiceResult<T> {
   data: T
@@ -396,6 +402,20 @@ export function createEditReferenceService(
 
     async addEvidence(studyId, input, idempotencyKey) {
       const normalized = normalizeCreateEvidence(input)
+      const privateMediaInput = normalized.sourceType === 'reference_video_metadata' ? normalized : undefined
+      const privateStorageObject = privateMediaInput?.storageObjectRecordId
+        ? (await createUploadService(context).getStorageObjectRecord(
+          privateMediaInput.storageObjectRecordId,
+          privateMediaInput.workspaceId,
+        )).storageObjectRecord
+        : undefined
+      if (privateStorageObject && (
+        privateStorageObject.mediaAssetId !== privateMediaInput?.mediaAssetId
+        || !privateStorageObject.mimeType?.startsWith('video/')
+        || privateStorageObject.status !== 'ready'
+      )) {
+        throw new ApiError('VALIDATION_FAILED', 'The selected private asset is not a finalized reference video.', 409)
+      }
       const mutation = await repository.mutate({
         scope: scope(normalized.workspaceId),
         operation: 'preference_study.evidence.add',
@@ -404,6 +424,9 @@ export function createEditReferenceService(
         mutate: ({ aggregate, now, addAuditEvent }) => {
           const study = requireStudy(aggregate, studyId)
           const reference = requireReference(aggregate, study.editReferenceId)
+          if (privateStorageObject && privateStorageObject.projectId !== reference.id) {
+            throw new ApiError('WORKSPACE_ACCESS_DENIED', 'The private reference video does not belong to this Edit Reference.', 403)
+          }
           assertActiveStudy(reference, study)
           assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
           if (normalized.sourceType === 'manual_user_evidence' && normalized.supersedesEvidenceId) {
@@ -452,17 +475,34 @@ export function createEditReferenceService(
 
     async runEvidenceStudy(studyId, input, idempotencyKey) {
       const normalized = normalizeRunEvidenceStudy(input)
+      const operation = 'preference_study.evidence.run'
+      const key = requireIdempotencyKey(idempotencyKey)
+      const requestHash = hashEditReferenceRequest({ studyId, ...normalized })
+      const aggregateBeforeRun = await repository.read(scope(normalized.workspaceId))
+      const priorIdempotency = aggregateBeforeRun?.idempotencyRecords.find((record) => record.key === key)
+      if (priorIdempotency) {
+        if (priorIdempotency.operation !== operation || priorIdempotency.requestHash !== requestHash) {
+          throw new ApiError('IDEMPOTENCY_CONFLICT', 'The idempotency key was already committed for a different Edit Reference request.', 409)
+        }
+        return result(priorIdempotency.responseSnapshot, true)
+      }
+      const mediaStudies = aggregateBeforeRun
+        ? await prepareEditReferenceMediaStudies(context, aggregateBeforeRun, studyId)
+        : []
       const mutation = await repository.mutate({
         scope: scope(normalized.workspaceId),
-        operation: 'preference_study.evidence.run',
-        idempotencyKey: requireIdempotencyKey(idempotencyKey),
-        requestHash: hashEditReferenceRequest({ studyId, ...normalized }),
+        operation,
+        idempotencyKey: key,
+        requestHash,
         mutate: ({ aggregate, now, addAuditEvent }) => {
           const study = requireStudy(aggregate, studyId)
           const reference = requireReference(aggregate, study.editReferenceId)
           assertActiveStudy(reference, study)
           assertRevision(study.revision, normalized.expectedStudyRevision, 'Preference Study')
-          if (study.status !== 'ready_to_study') {
+          const retryingBlockedSkills = normalized.retryBlockedSkills === true
+            && ['evidence_ready', 'needs_clarification', 'needs_user_review'].includes(study.status)
+            && reference.dnaStatus === 'not_generated'
+          if (study.status !== 'ready_to_study' && !retryingBlockedSkills) {
             throw new ApiError('VALIDATION_FAILED', 'The saved evidence has already been reviewed. Add or correct evidence before running the study again.', 409)
           }
           const studyEvidence = aggregate.evidence.filter((record) => record.studySessionId === study.id)
@@ -474,8 +514,23 @@ export function createEditReferenceService(
             editReferenceId: reference.id,
             study,
             evidence: studyEvidence,
+            mediaStudies,
             now,
           })
+          for (const mediaStudy of mediaStudies) {
+            const asset = aggregate.assets.find((record) => record.id === mediaStudy.referenceAssetId)
+            if (!asset) continue
+            asset.mediaStudyStatus = mediaStudy.status === 'verified_local'
+              ? 'media_studied_local_partial'
+              : 'media_study_blocked'
+            asset.representativeFrameCount = mediaStudy.representativeFrameCount
+            asset.lastStudyAt = now
+            if (mediaStudy.status === 'blocked') {
+              asset.lastStudyBlocker = mediaStudy.blockerMessage ?? 'Private media study blocked.'
+            } else {
+              delete asset.lastStudyBlocker
+            }
+          }
           aggregate.evidence.push(...orchestration.derivedEvidence)
           aggregate.skillRuns.push(...orchestration.skillRuns)
           study.status = orchestration.studyStatus
@@ -711,6 +766,7 @@ export function createEditReferenceService(
             dnaVersion,
             qaResult,
             targetContext: normalized.targetContext,
+            applicationSource: normalized.applicationSource ?? 'session_panel',
             existingApplications: aggregate.applications,
             now,
           })
@@ -721,6 +777,7 @@ export function createEditReferenceService(
             existingTargetApplication.downstreamInvalidationStatus = 'completed'
             existingTargetApplication.replacedByApplicationId = application.id
             existingTargetApplication.invalidatedAt = now
+            existingTargetApplication.updatedAt = now
             existingTargetApplication.invalidationReason = 'replace'
             existingTargetApplication.downstreamInvalidationReceipt = normalized.invalidationReceipt
             if (replacedReference && replacedStudy) {
@@ -797,6 +854,7 @@ export function createEditReferenceService(
           application.downstreamContext = context
           application.targetSessionReceipt = normalized.targetSessionReceipt
           application.connectedAt = now
+          application.updatedAt = now
           reference.revision += 1
           reference.updatedAt = now
           aggregate.messages.push({
@@ -851,6 +909,7 @@ export function createEditReferenceService(
           application.targetIntegrationStatus = 'invalidated'
           application.downstreamInvalidationStatus = 'completed'
           application.clearedAt = now
+          application.updatedAt = now
           application.invalidatedAt = now
           application.invalidationReason = 'remove'
           application.downstreamInvalidationReceipt = normalized.invalidationReceipt
@@ -888,21 +947,80 @@ function selectRepository(context: ServiceContext): EditReferenceRepository {
   return localAuthorized ? new PrivateEditReferenceRepository() : new DisabledSupabaseEditReferenceRepository()
 }
 
+async function prepareEditReferenceMediaStudies(
+  context: ServiceContext,
+  aggregate: EditReferenceAggregate,
+  studyId: string,
+): Promise<EditReferenceLocalMediaStudyResult[]> {
+  const study = aggregate.studies.find((record) => record.id === studyId)
+  if (!study) return []
+  const reference = aggregate.references.find((record) => record.id === study.editReferenceId)
+  if (!reference) return []
+  const uploadService = createUploadService(context)
+  const studies: EditReferenceLocalMediaStudyResult[] = []
+  for (const asset of aggregate.assets.filter((record) => (
+    record.studySessionId === studyId
+    && record.assetKind === 'reference_video_metadata'
+    && Boolean(record.storageObjectRecordId)
+    && Boolean(record.mediaAssetId)
+  ))) {
+    const sourceEvidence = aggregate.evidence.find((record) => (
+      record.studySessionId === studyId
+      && record.sourceType === 'reference_video_metadata'
+      && record.provenance.privateAssetId === asset.privateAssetId
+    ))
+    if (!sourceEvidence || !asset.storageObjectRecordId) continue
+    try {
+      const storage = await uploadService.getStorageObjectRecord(asset.storageObjectRecordId, reference.workspaceId)
+      if (
+        storage.storageObjectRecord.projectId !== reference.id
+        || storage.storageObjectRecord.mediaAssetId !== asset.mediaAssetId
+      ) {
+        studies.push(createBlockedEditReferenceMediaStudy({
+          referenceAssetId: asset.id,
+          privateAssetId: asset.privateAssetId,
+          sourceEvidenceId: sourceEvidence.id,
+        }, 'reference_media_identity_mismatch', 'The private reference asset identity no longer matches this Edit Reference. Reconnect it before retrying.'))
+        continue
+      }
+      studies.push(await runEditReferenceLocalMediaStudy({
+        env: context.env,
+        referenceAssetId: asset.id,
+        privateAssetId: asset.privateAssetId,
+        sourceEvidenceId: sourceEvidence.id,
+        storageObject: storage.storageObjectRecord,
+      }))
+    } catch {
+      studies.push(createBlockedEditReferenceMediaStudy({
+        referenceAssetId: asset.id,
+        privateAssetId: asset.privateAssetId,
+        sourceEvidenceId: sourceEvidence.id,
+      }, 'reference_media_private_asset_unavailable', 'The private reference asset could not be opened by the approved local runtime. Reconnect it and retry.'))
+    }
+  }
+  return studies
+}
+
 function detailData(aggregate: EditReferenceAggregate, reference: EditReferenceRecord): EditReferenceDetailData {
   const study = requireStudy(aggregate, reference.currentStudyId)
+  const skillRuns = aggregate.skillRuns.filter((record) => record.studySessionId === study.id)
   const detail: EditReferenceDetail = {
     reference,
     study,
     messages: studyMessages(aggregate, study.id),
     evidence: aggregate.evidence.filter((record) => record.studySessionId === study.id),
     assets: aggregate.assets.filter((record) => record.studySessionId === study.id),
-    skillRuns: aggregate.skillRuns.filter((record) => record.studySessionId === study.id),
+    skillRuns,
     dnaVersions: aggregate.dnaVersions.filter((record) => record.studySessionId === study.id),
     dnaQaResults: aggregate.dnaQaResults.filter((record) => aggregate.dnaVersions.some((dna) => dna.id === record.dnaVersionId && dna.studySessionId === study.id)),
     applications: aggregate.applications.filter((record) => record.editReferenceId === reference.id),
     usageLogs: aggregate.usageLogs.filter((record) => record.editReferenceId === reference.id),
     nextAction: nextActionForDetail(aggregate, reference, study),
-    safety: EDIT_REFERENCE_SAFETY_FLAGS,
+    safety: {
+      ...EDIT_REFERENCE_SAFETY_FLAGS,
+      fileBytesRead: skillRuns.some((record) => record.fileBytesRead),
+      mediaProcessingStarted: skillRuns.some((record) => record.mediaProcessingStarted),
+    },
   }
   return { detail, replayed: false }
 }
@@ -1177,7 +1295,9 @@ function createEvidenceRecords(
     }
   }
 
-  const privateAssetId = `preference-private-asset-${randomUUID()}`
+  const privateAssetId = input.sourceType === 'reference_video_metadata' && input.mediaAssetId
+    ? input.mediaAssetId
+    : `preference-private-asset-${randomUUID()}`
   if (input.sourceType === 'reference_video_metadata') {
     const mediaMetadata = normalizeMediaMetadata(input)
     const asset: PreferenceAssetRecord = {
@@ -1186,6 +1306,8 @@ function createEvidenceRecords(
       editReferenceId: reference.id,
       studySessionId: study.id,
       privateAssetId,
+      ...(input.storageObjectRecordId ? { storageObjectRecordId: input.storageObjectRecordId } : {}),
+      ...(input.mediaAssetId ? { mediaAssetId: input.mediaAssetId } : {}),
       assetKind: 'reference_video_metadata',
       label: input.sourceLabel,
       rightsBasis: input.rightsBasis,
@@ -1203,7 +1325,9 @@ function createEvidenceRecords(
         sourceType: input.sourceType,
         category: 'media_structure',
         title: input.title,
-        summary: `${input.sourceLabel} metadata was supplied for this study. The media itself has not been studied.`,
+        summary: input.storageObjectRecordId
+          ? `${input.sourceLabel} was stored as a private reference asset. Its media has not been studied yet.`
+          : `${input.sourceLabel} metadata was supplied for this study. The media itself has not been studied.`,
         revision: 1,
         confidence: 1,
         confidenceBasis: 'metadata_verified',
@@ -1219,7 +1343,9 @@ function createEvidenceRecords(
           toolIds: [],
           skillIds: [],
           fallbackUsed: false,
-          notes: ['No URL, path, media bytes, frames, transcript, audio, or provider payload was accepted or persisted.'],
+          notes: input.storageObjectRecordId
+            ? ['Only canonical private asset identities were persisted. No signed URL, filesystem path, raw frame, transcript, or provider payload was stored.']
+            : ['No URL, path, media bytes, frames, transcript, audio, or provider payload was accepted or persisted.'],
         },
         createdAt: now,
         updatedAt: now,
@@ -1481,6 +1607,9 @@ function normalizeCreateEvidence(input: CreatePreferenceEvidenceRequest): Create
     }
   }
   if (input.sourceType === 'reference_video_metadata') {
+    if (Boolean(input.storageObjectRecordId) !== Boolean(input.mediaAssetId)) {
+      throw new ApiError('VALIDATION_FAILED', 'A private reference upload requires both storageObjectRecordId and mediaAssetId.', 400)
+    }
     return {
       workspaceId,
       expectedStudyRevision,
@@ -1492,6 +1621,8 @@ function normalizeCreateEvidence(input: CreatePreferenceEvidenceRequest): Create
       ...(input.width === undefined ? {} : { width: requirePositiveIntegerBounded(input.width, 'width', 16_384) }),
       ...(input.height === undefined ? {} : { height: requirePositiveIntegerBounded(input.height, 'height', 16_384) }),
       ...(input.hasAudio === undefined ? {} : { hasAudio: input.hasAudio }),
+      ...(input.storageObjectRecordId ? { storageObjectRecordId: requireText(input.storageObjectRecordId, 'storageObjectRecordId', 200) } : {}),
+      ...(input.mediaAssetId ? { mediaAssetId: requireText(input.mediaAssetId, 'mediaAssetId', 200) } : {}),
     }
   }
   return {
@@ -1511,6 +1642,7 @@ function normalizeRunEvidenceStudy(input: RunPreferenceEvidenceStudyRequest): Ru
   return {
     workspaceId: requireWorkspaceId(input.workspaceId),
     expectedStudyRevision: requirePositiveInteger(input.expectedStudyRevision, 'expectedStudyRevision'),
+    ...(input.retryBlockedSkills ? { retryBlockedSkills: true } : {}),
   }
 }
 
@@ -1626,6 +1758,7 @@ function normalizeCreatePreferenceApplication(input: CreatePreferenceApplication
     expectedReferenceRevision: requirePositiveInteger(input.expectedReferenceRevision, 'expectedReferenceRevision'),
     expectedDNAContentDigest: requireSha256(input.expectedDNAContentDigest, 'expectedDNAContentDigest'),
     acknowledgeAdaptNotCopy: true,
+    applicationSource: input.applicationSource ?? 'session_panel',
     targetContext: normalizedTarget,
     ...(input.replacesApplicationId ? {
       replacesApplicationId: requireText(input.replacesApplicationId, 'replacesApplicationId', 200),

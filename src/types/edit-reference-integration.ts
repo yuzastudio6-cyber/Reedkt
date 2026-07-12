@@ -60,6 +60,8 @@ export interface PreferenceApplicationDownstreamContext {
   packageHash: string
   applicationId: string
   applicationContentDigest: string
+  /** Omitted only when hydrating a pre-Gate-8.1 legacy application package. */
+  applicationSource?: PreferenceApplicationRecord['applicationSource']
   editReferenceId: string
   editReferenceName: string
   dnaVersionId: string

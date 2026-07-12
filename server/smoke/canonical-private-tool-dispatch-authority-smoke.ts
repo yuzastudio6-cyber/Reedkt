@@ -24,7 +24,6 @@ import { createCanonicalPrivateSharpExecutionService } from '../services/canonic
 import { createCanonicalPrivateRemotionExecutionService } from '../services/canonical-private-remotion-execution-service'
 import { createCanonicalPrivateLibassExecutionService } from '../services/canonical-private-libass-execution-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
-import { createCanonicalPrivateBrowserGraphicsExecutionService } from '../services/canonical-private-browser-graphics-execution-service'
 import { createCanonicalPrivateAiCapabilityExecutionService } from '../services/canonical-private-ai-capability-execution-service'
 import { createCanonicalPrivateNativeImagePipelineExecutionService } from '../services/canonical-private-native-image-pipeline-execution-service'
 import { createCanonicalPrivateNativeAudioProcessingExecutionService } from '../services/canonical-private-native-audio-processing-execution-service'
@@ -1887,7 +1886,7 @@ await leaseService.release({
 })
 
 for (const matrixRun of matrixRuns.slice(1)) {
-  if (matrixRun.runnerKind === 'node') {
+  if (matrixRun.runnerKind === 'node' || matrixRun.runnerKind === 'browser') {
     const adapterInput = {
       workspaceId,
       projectId: snapshot.projectId,
@@ -1900,7 +1899,12 @@ for (const matrixRun of matrixRuns.slice(1)) {
     assert.equal(coordinated.identity.canonicalToolId, matrixRun.toolId)
     assert.equal(coordinated.identity.operationId, matrixRun.operationId)
     assert.equal(coordinated.identity.expectedAssetId, matrixRun.asset.id)
-    assert.equal(coordinated.identity.runnerClass, 'offline_node_structured_execution_v1')
+    assert.equal(
+      coordinated.identity.runnerClass,
+      matrixRun.runnerKind === 'node'
+        ? 'offline_node_structured_execution_v1'
+        : 'offline_browser_graphics_execution_v1',
+    )
     assert.equal(coordinated.result.contentType, matrixRun.expectedContentType)
     assert.equal(coordinated.result.qaOutcome, 'passed')
     assert.equal(coordinated.result.privateTestDependencySatisfied, true)
@@ -1916,12 +1920,12 @@ for (const matrixRun of matrixRuns.slice(1)) {
     assert.equal(replay.evidence.idempotentAdapterReplay, true)
     const proofClaim: Awaited<ReturnType<typeof leaseService.claim>>['workerLeaseClaim'] =
       (await leaseService.claim({
-      workspaceId,
-      projectId: snapshot.projectId,
-      editSessionId: snapshot.editSessionId,
-      jobId: matrixRun.proofJob.id,
-      purpose: 'private_internal_canonical_lease_claim',
-      idempotencyKey: `claim-${matrixRun.toolId}-matrix-proof-after-job-adapter`,
+        workspaceId,
+        projectId: snapshot.projectId,
+        editSessionId: snapshot.editSessionId,
+        jobId: matrixRun.proofJob.id,
+        purpose: 'private_internal_canonical_lease_claim',
+        idempotencyKey: `claim-${matrixRun.toolId}-matrix-proof-after-job-adapter`,
       })).workerLeaseClaim
     assert.equal(proofClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
     assert.equal(proofClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
@@ -1963,38 +1967,7 @@ for (const matrixRun of matrixRuns.slice(1)) {
   const executionAuthority = { ...leaseAuthority, dispatchCredential: grant.dispatchCredential }
   let coordinatedArtifactId: string
   let coordinatedSha256: string
-  if (matrixRun.runnerKind === 'browser') {
-    const executionInput = {
-      workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-      jobId: matrixRun.job.id, grantId: grant.grant.grantId,
-      purpose: 'execute_canonical_private_browser_graphic' as const,
-      idempotencyKey: `consume-${matrixRun.toolId}-matrix-root`,
-    }
-    const coordinated = await createCanonicalPrivateBrowserGraphicsExecutionService(context).execute(
-      executionInput, executionAuthority,
-    )
-    assert.equal(coordinated.tool.canonicalToolId, matrixRun.toolId)
-    assert.equal(coordinated.tool.operationId, matrixRun.operationId)
-    assert.equal(coordinated.result.contentType, 'image/png')
-    assert.equal(coordinated.result.width, 640)
-    assert.equal(coordinated.result.height, 360)
-    assert.equal(coordinated.result.qaOutcome, 'passed')
-    assert.equal(coordinated.runtime.zeroNetworkVerified, true)
-    assert.equal(coordinated.runtime.decodedNonFlatPngVerified, true)
-    const replay = await createCanonicalPrivateBrowserGraphicsExecutionService(context).execute(
-      executionInput, executionAuthority,
-    )
-    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
-    assert.equal(replay.result.sha256, coordinated.result.sha256)
-    assert.equal(replay.replay.dispatchConsumptionReplayed, true)
-    assert.equal(replay.replay.executionFenceBeginReplayed, true)
-    assert.equal(replay.replay.executionFenceCompleteReplayed, true)
-    assert.equal(replay.replay.artifactRecordReplayed, true)
-    assert.equal(replay.replay.qaRecordReplayed, true)
-    assert.equal(replay.replay.reconciliationReplayed, true)
-    coordinatedArtifactId = coordinated.result.artifactId
-    coordinatedSha256 = coordinated.result.sha256
-  } else if (matrixRun.runnerKind === 'ai') {
+  if (matrixRun.runnerKind === 'ai') {
     const executionInput = {
       workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
       jobId: matrixRun.job.id, grantId: grant.grant.grantId,
@@ -3362,6 +3335,7 @@ console.log(JSON.stringify({
     'mido_timing_json_qa_reconciliation_replay_and_downstream_verification',
     'canonical_job_only_adapter_derives_tool_operation_output_lease_dispatch_qa_and_replay_server_side',
     'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
+    'server_derived_job_adapter_executes_all_five_browser_graphics_tool_identities',
     'echarts_exact_svg_canonical_lifecycle_verified',
     'vega_lite_exact_svg_canonical_lifecycle_verified',
     'vega_exact_svg_canonical_lifecycle_verified',

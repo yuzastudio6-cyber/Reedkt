@@ -20,7 +20,7 @@ import { OFFLINE_REMBG_BACKGROUND_REMOVAL_PACKAGE_IDENTITIES } from './rembg-bac
 import { OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY } from './deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
 
 export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v1' as const
-export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-12.21' as const
+export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-12.22' as const
 
 export type ToolVerificationState =
   | 'canonical_e2e_verified'
@@ -165,6 +165,11 @@ const CANONICAL_JOB_ADAPTER_EVIDENCE_KEYS: Partial<Record<ProductionToolId, stri
   viz_js: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
   animejs: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
   three_js: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
+  lottie: 'server_derived_job_adapter_executes_all_five_browser_graphics_tool_identities',
+  pixijs: 'server_derived_job_adapter_executes_all_five_browser_graphics_tool_identities',
+  konva: 'server_derived_job_adapter_executes_all_five_browser_graphics_tool_identities',
+  babylon_js: 'server_derived_job_adapter_executes_all_five_browser_graphics_tool_identities',
+  playwright: 'server_derived_job_adapter_executes_all_five_browser_graphics_tool_identities',
   ffprobe: 'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
   remotion: 'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
 }

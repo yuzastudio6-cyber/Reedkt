@@ -223,9 +223,10 @@ assert.deepEqual(heartbeatLeft.workerLeaseHeartbeat, heartbeatRight.workerLeaseH
 assert.equal(heartbeatLeft.workerLeaseHeartbeat.executionAuthority.dispatchAuthorized, false)
 
 const routeEditAuthority = await requireEditAuthority(routeWorkspaceId)
+const newestRouteExecutionPackage = routeEditAuthority.executionPackages.at(-1)
+assert.ok(newestRouteExecutionPackage)
 const routeSnapshot = routeEditAuthority.snapshots.find((candidate) =>
-  routeEditAuthority.executionPackages.some((executionPackage) =>
-    executionPackage.snapshotId === candidate.snapshotId))
+  candidate.snapshotId === newestRouteExecutionPackage.snapshotId)
 assert.ok(routeSnapshot)
 const routeRootJob = routeEditAuthority.jobs.find((candidate) =>
   candidate.snapshotId === routeSnapshot.snapshotId && candidate.dependencyJobIds.length === 0)
@@ -276,7 +277,17 @@ const restartClaimReplay = await service.claim(claimInput)
 assert.deepEqual(restartClaimReplay.workerLeaseClaim, claim)
 assert.equal((await requireLeaseAggregate(workspaceId)).leases.length, 1)
 
-const controlledNow = Date.now()
+const routeLeaseAggregateBeforeConcurrency = await readPrivateCanonicalWorkerLeaseAggregate({
+  localStorageRoot,
+  ownerUserId: userId,
+  workspaceId: routeWorkspaceId,
+})
+const controlledNow = Math.max(
+  Date.now(),
+  ...(routeLeaseAggregateBeforeConcurrency?.leases
+    .filter((lease) => lease.jobId === routeRootJob.id && lease.status === 'active')
+    .map((lease) => Date.parse(lease.expiresAt) + 1) ?? []),
+)
 mock.timers.enable({ apis: ['Date'], now: controlledNow })
 try {
   const routeClaimInputA = {
@@ -297,7 +308,13 @@ try {
   ])
   const successfulClaim = competingClaims.find((result) => result.status === 'fulfilled')
   const rejectedClaim = competingClaims.find((result) => result.status === 'rejected')
-  assert.ok(successfulClaim?.status === 'fulfilled')
+  assert.ok(
+    successfulClaim?.status === 'fulfilled',
+    `Expected one serialized claim to succeed: ${competingClaims.map((result) =>
+      result.status === 'rejected' && result.reason instanceof ApiError
+        ? `${result.reason.code}:${result.reason.message}`
+        : result.status).join(' | ')}`,
+  )
   assert.ok(rejectedClaim?.status === 'rejected')
   assert.ok(rejectedClaim.reason instanceof ApiError)
   assert.equal(rejectedClaim.reason.code, 'WORKER_CLAIM_CONFLICT')
@@ -308,7 +325,11 @@ try {
     : routeClaimInputB
 
   clearPrivateCanonicalWorkerLeaseProcessStateForSmoke()
-  assert.equal((await requireLeaseAggregate(routeWorkspaceId)).leases.length, 1)
+  assert.equal(
+    (await requireLeaseAggregate(routeWorkspaceId)).leases.filter((lease) =>
+      lease.jobId === routeRootJob.id).length,
+    1,
+  )
 
   const routeHeartbeatInput = {
     workspaceId: routeWorkspaceId,
@@ -320,7 +341,7 @@ try {
     purpose: 'private_internal_canonical_lease_heartbeat' as const,
     idempotencyKey: 'route-live-revalidation-heartbeat',
   }
-  const routeSourceObjectPath = await firstSourceObjectPath(routeWorkspaceId, routeSnapshot.projectId)
+  const routeSourceObjectPath = await latestSourceObjectPath(routeWorkspaceId, routeSnapshot.projectId)
   const originalSourceBytes = await readFile(routeSourceObjectPath)
   try {
     await writeFile(routeSourceObjectPath, Buffer.concat([originalSourceBytes, Buffer.from('tampered')]))
@@ -341,12 +362,19 @@ try {
   )
   clearPrivateCanonicalWorkerLeaseProcessStateForSmoke()
   const expiredAggregate = await requireLeaseAggregate(routeWorkspaceId)
-  assert.equal(expiredAggregate.leases[0]!.status, 'expired')
+  assert.equal(
+    expiredAggregate.leases.find((lease) => lease.id === routeClaim.lease.leaseId)?.status,
+    'expired',
+  )
   assert.equal(expiredAggregate.auditEvents.some((event) => event.eventType === 'expired'), true)
 
   const expiredExactReplay = await service.claim(successfulRouteInput)
   assert.deepEqual(expiredExactReplay.workerLeaseClaim, routeClaim)
-  assert.equal((await requireLeaseAggregate(routeWorkspaceId)).leases[0]!.status, 'expired')
+  assert.equal(
+    (await requireLeaseAggregate(routeWorkspaceId)).leases.find((lease) =>
+      lease.id === routeClaim.lease.leaseId)?.status,
+    'expired',
+  )
   await expectApiError(
     () => service.claim({
       ...successfulRouteInput,
@@ -445,14 +473,14 @@ async function requireLeaseAggregate(targetWorkspaceId: string) {
   return aggregate
 }
 
-async function firstSourceObjectPath(targetWorkspaceId: string, projectId: string): Promise<string> {
+async function latestSourceObjectPath(targetWorkspaceId: string, projectId: string): Promise<string> {
   const { readPrivateUploadMediaAuthorityAggregate } = await import('../services/private-upload-media-authority-store')
   const aggregate = await readPrivateUploadMediaAuthorityAggregate({
     localStorageRoot,
     ownerUserId: userId,
     workspaceId: targetWorkspaceId,
   })
-  const storageObject = aggregate?.storageObjects.find((candidate) =>
+  const storageObject = aggregate?.storageObjects.findLast((candidate) =>
     candidate.projectId === projectId && candidate.status === 'ready')
   assert.ok(storageObject)
   return join(localStorageRoot, storageObject.bucketName, storageObject.objectPath)

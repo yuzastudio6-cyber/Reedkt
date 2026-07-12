@@ -13,6 +13,9 @@ import {
   sha256AuthorityValue,
   walletBalanceAfter,
 } from './private-edit-authority-store'
+import { withCanonicalExecutionDomainLock } from './canonical-execution-domain-lock'
+import { readPrivateCanonicalToolDispatchAggregate } from './private-canonical-tool-dispatch-store'
+import { readPrivateCanonicalWorkerLeaseAggregate } from './private-canonical-worker-lease-store'
 import { createProjectService } from './project-service'
 import { nowIso } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
@@ -66,7 +69,30 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
         actorUserId: access.userId,
       })
       const timestamp = nowIso()
-      const result = await mutatePrivateEditAuthorityAggregate({
+      const result = await withCanonicalExecutionDomainLock({
+        ...scope,
+        projectId: beforeSnapshot.projectId,
+        editSessionId: beforeSnapshot.editSessionId,
+      }, async () => {
+        const leaseAggregate = await readPrivateCanonicalWorkerLeaseAggregate(scope)
+        const snapshotLeases = leaseAggregate?.leases.filter((lease) =>
+          lease.approvedPlanSnapshotId === input.snapshotId) ?? []
+        const dispatchAggregate = await readPrivateCanonicalToolDispatchAggregate(scope)
+        const snapshotDispatches = dispatchAggregate?.grants.filter((grant) =>
+          grant.binding.approvedPlanSnapshotId === input.snapshotId) ?? []
+        if (snapshotLeases.length > 0 || snapshotDispatches.length > 0) {
+          throw new ApiError(
+            'TOOL_NOT_READY',
+            'Cancellation is blocked after canonical lease or dispatch authority has existed.',
+            409,
+            {
+              requiredGate: 'canonical_post_lease_cancellation_and_worker_fencing',
+              leaseRecordCount: snapshotLeases.length,
+              dispatchRecordCount: snapshotDispatches.length,
+            },
+          )
+        }
+        return mutatePrivateEditAuthorityAggregate({
         scope,
         planningDomainScope: {
           ...scope,
@@ -117,6 +143,9 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
           const jobs = snapshot
             ? aggregate.jobs.filter((record) => record.snapshotId === snapshot.snapshotId)
             : []
+          const executionPackage = snapshot
+            ? aggregate.executionPackages.find((record) => record.snapshotId === snapshot.snapshotId)
+            : undefined
           if (
             !snapshot || !plan || !estimate || !reservation || !approval || jobs.length === 0 ||
             snapshot.snapshotHash !== body.expectedSnapshotHash ||
@@ -130,14 +159,6 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
               'IDEMPOTENCY_CONFLICT',
               'Canonical snapshot, plan, estimate, approval, reservation, or job lineage changed.',
               409,
-            )
-          }
-          if (aggregate.executionPackages.some((record) => record.snapshotId === snapshot.snapshotId)) {
-            throw new ApiError(
-              'TOOL_NOT_READY',
-              'Cancellation is blocked after canonical execution authority has been packaged.',
-              409,
-              { requiredGate: 'canonical_in_flight_cancellation_and_worker_fencing' },
             )
           }
           if (
@@ -227,7 +248,11 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
             derivedJobIds: jobs.map((job) => job.id),
             snapshotRemainsImmutable: true,
             derivedJobsRemainUnmodified: true,
-            executionPackageCreated: false,
+            executionPackagePresent: Boolean(executionPackage),
+            ...(executionPackage ? { executionPackageRecordId: executionPackage.id } : {}),
+            executionPackageRecordPreserved: true,
+            workerLeaseCreated: false,
+            dispatchGrantCreated: false,
             internalTestWalletMutated: true,
             customerWalletMutation: false,
             customerCreditMutation: false,
@@ -249,6 +274,7 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
           })
           return { result: response, changed: true }
         },
+      })
       })
       return {
         cancellation: result,

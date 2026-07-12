@@ -18,6 +18,7 @@ import { createPreferenceIntelligenceService } from '../services/preference-inte
 import { createSourceMediaAuthorityService } from '../services/source-media-authority-service'
 import { createUploadService } from '../services/upload-service'
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
+import { withCanonicalExecutionDomainLock } from '../services/canonical-execution-domain-lock'
 import {
   clearPrivateEditAuthorityProcessStateForSmoke,
   readPrivateEditAuthorityAggregate,
@@ -41,6 +42,7 @@ import { canonicalAuthoritySmokeRoot } from './canonical-authority-smoke-root'
 
 const localStorageRoot = canonicalAuthoritySmokeRoot
 const workspaceId = 'workspace-authority-smoke'
+const cancellationWorkspaceId = 'workspace-authority-cancellation-smoke'
 const userId = 'user-authority-smoke'
 await rm(localStorageRoot, { force: true, recursive: true })
 clearLocalProjectMemoryForSmoke()
@@ -51,6 +53,7 @@ const memberships = [
   { workspaceId, userId, role: 'owner' },
   { workspaceId, userId: 'other-authority-user', role: 'editor' },
   { workspaceId: 'workspace-authority-route-smoke', userId, role: 'owner' },
+  { workspaceId: cancellationWorkspaceId, userId, role: 'owner' },
   { workspaceId: 'workspace-planning-binding-integration', userId, role: 'owner' },
 ]
 const admin = createMembershipAdminClient(memberships)
@@ -1059,17 +1062,106 @@ try {
   )
   assert.equal(snapshotRead.status, 200)
 
-  const cancellationEditSessionId = 'route-pre-execution-cancellation-session'
-  const cancellationPlanningAuthority = await prepareExactPlanningAuthority(
+  const leaseFixtureEditSessionId = 'route-current-source-lease-fixture-session'
+  const leaseFixturePlanningAuthority = await prepareExactPlanningAuthority(
     context,
     routeProjectId,
-    cancellationEditSessionId,
+    leaseFixtureEditSessionId,
     routeWorkspaceId,
+  )
+  const leaseFixturePlanBody = createCanonicalPlanBody(
+    'route-current-source-lease-fixture-planning-request',
+    leaseFixturePlanningAuthority,
+    workGraphSourceFixture,
+  )
+  leaseFixturePlanBody.workspaceId = routeWorkspaceId
+  const leaseFixturePublishResponse = await fetch(
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/${leaseFixtureEditSessionId}/canonical-plans`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-current-source-lease-fixture-publish',
+      },
+      body: JSON.stringify(leaseFixturePlanBody),
+    },
+  )
+  assert.equal(leaseFixturePublishResponse.status, 201)
+  const leaseFixturePublishEnvelope = await leaseFixturePublishResponse.json() as {
+    data?: { authority?: Record<string, unknown> }
+  }
+  const leaseFixturePublishedAuthority = asRecord(leaseFixturePublishEnvelope.data?.authority)
+  const leaseFixturePlan = asRecord(leaseFixturePublishedAuthority.plan)
+  const leaseFixtureEstimate = asRecord(leaseFixturePublishedAuthority.estimate)
+  const leaseFixtureApproveResponse = await fetch(
+    `${routeBaseUrl}/v1/edit-plans/${String(leaseFixturePlan.id)}/approve`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-current-source-lease-fixture-approve',
+      },
+      body: JSON.stringify({
+        workspaceId: routeWorkspaceId,
+        expectedAuthorityRevision: leaseFixturePublishedAuthority.authorityRevision,
+        expectedPlanHash: leaseFixturePlan.planHash,
+        expectedEstimateHash: leaseFixtureEstimate.estimateHash,
+      }),
+    },
+  )
+  assert.equal(leaseFixtureApproveResponse.status, 201)
+  const leaseFixtureApproveEnvelope = await leaseFixtureApproveResponse.json() as {
+    data?: { authority?: Record<string, unknown> }
+  }
+  const leaseFixtureApprovedAuthority = asRecord(leaseFixtureApproveEnvelope.data?.authority)
+  const leaseFixtureSnapshot = asRecord(leaseFixtureApprovedAuthority.snapshot)
+  const leaseFixturePackageResponse = await fetch(`${routeBaseUrl}/v1/edit-executions/packages`, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-current-source-lease-fixture-package',
+    },
+    body: JSON.stringify({
+      workspaceId: routeWorkspaceId,
+      approvedPlanSnapshotId: leaseFixtureSnapshot.snapshotId,
+      expectedSnapshotHash: leaseFixtureSnapshot.snapshotHash,
+      purpose: 'private_internal_execution_handoff',
+    }),
+  })
+  assert.equal(leaseFixturePackageResponse.status, 201)
+
+  const cancellationEditSessionId = 'route-pre-execution-cancellation-session'
+  const cancellationProjectResponse = await fetch(`${routeBaseUrl}/v1/projects`, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-pre-execution-cancellation-project',
+    },
+    body: JSON.stringify({
+      workspaceId: cancellationWorkspaceId,
+      name: 'Route pre-execution cancellation project',
+    }),
+  })
+  assert.equal(cancellationProjectResponse.status, 201)
+  const cancellationProjectEnvelope = await cancellationProjectResponse.json() as {
+    data?: { project?: { id?: string } }
+  }
+  const cancellationProjectId = cancellationProjectEnvelope.data?.project?.id
+  assert.ok(cancellationProjectId)
+  const cancellationPlanningAuthority = await prepareExactPlanningAuthority(
+    context,
+    cancellationProjectId,
+    cancellationEditSessionId,
+    cancellationWorkspaceId,
   )
   const cancellationSourceFixture = await prepareSourceMediaAuthority(
     context,
-    routeWorkspaceId,
-    routeProjectId,
+    cancellationWorkspaceId,
+    cancellationProjectId,
     'route-pre-execution-cancellation',
   )
   const cancellationPlanBody = createCanonicalPlanBody(
@@ -1077,9 +1169,9 @@ try {
     cancellationPlanningAuthority,
     cancellationSourceFixture,
   )
-  cancellationPlanBody.workspaceId = routeWorkspaceId
+  cancellationPlanBody.workspaceId = cancellationWorkspaceId
   const cancellationPublishResponse = await fetch(
-    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/${cancellationEditSessionId}/canonical-plans`,
+    `${routeBaseUrl}/v1/projects/${cancellationProjectId}/edit-sessions/${cancellationEditSessionId}/canonical-plans`,
     {
       method: 'POST',
       headers: {
@@ -1112,7 +1204,7 @@ try {
         'idempotency-key': 'route-pre-execution-cancellation-approve',
       },
       body: JSON.stringify({
-        workspaceId: routeWorkspaceId,
+        workspaceId: cancellationWorkspaceId,
         expectedAuthorityRevision: cancellationPublishedAuthority.authorityRevision,
         expectedPlanHash: cancellationPlan.planHash,
         expectedEstimateHash: cancellationEstimate.estimateHash,
@@ -1128,9 +1220,67 @@ try {
   const cancellationReservation = asRecord(cancellationApprovedAuthority.reservation)
   const cancellationWalletBefore = asRecord(cancellationApprovedAuthority.wallet)
   const cancellationJobsBefore = cancellationApprovedAuthority.jobs as Record<string, unknown>[]
+  const cancellationPackageResponse = await fetch(`${routeBaseUrl}/v1/edit-executions/packages`, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-pre-execution-cancellation-package',
+    },
+    body: JSON.stringify({
+      workspaceId: cancellationWorkspaceId,
+      approvedPlanSnapshotId: cancellationSnapshot.snapshotId,
+      expectedSnapshotHash: cancellationSnapshot.snapshotHash,
+      purpose: 'private_internal_execution_handoff',
+    }),
+  })
+  assert.equal(cancellationPackageResponse.status, 201)
+  const cancellationPackageEnvelope = await cancellationPackageResponse.json() as {
+    data?: { approvedEditExecutionPackage?: Record<string, unknown> }
+  }
+  const cancellationExecutionPackage = asRecord(
+    cancellationPackageEnvelope.data?.approvedEditExecutionPackage,
+  )
+  const executionDomainScope = {
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: cancellationWorkspaceId,
+    projectId: cancellationProjectId,
+    editSessionId: cancellationEditSessionId,
+  }
+  let releaseFirstExecutionDomainLock: () => void = () => undefined
+  let markFirstExecutionDomainLockEntered: () => void = () => undefined
+  const firstExecutionDomainLockEntered = new Promise<void>((resolve) => {
+    markFirstExecutionDomainLockEntered = resolve
+  })
+  const holdFirstExecutionDomainLock = new Promise<void>((resolve) => {
+    releaseFirstExecutionDomainLock = resolve
+  })
+  const executionDomainOrder: string[] = []
+  const firstExecutionDomainOperation = withCanonicalExecutionDomainLock(
+    executionDomainScope,
+    async () => {
+      executionDomainOrder.push('first_entered')
+      markFirstExecutionDomainLockEntered()
+      await holdFirstExecutionDomainLock
+      executionDomainOrder.push('first_released')
+    },
+  )
+  await firstExecutionDomainLockEntered
+  const secondExecutionDomainOperation = withCanonicalExecutionDomainLock(
+    executionDomainScope,
+    async () => {
+      executionDomainOrder.push('second_entered')
+    },
+  )
+  await Promise.resolve()
+  assert.deepEqual(executionDomainOrder, ['first_entered'])
+  releaseFirstExecutionDomainLock()
+  await Promise.all([firstExecutionDomainOperation, secondExecutionDomainOperation])
+  assert.deepEqual(executionDomainOrder, ['first_entered', 'first_released', 'second_entered'])
   const cancellationBody = {
-    workspaceId: routeWorkspaceId,
-    expectedAuthorityRevision: cancellationApprovedAuthority.authorityRevision,
+    workspaceId: cancellationWorkspaceId,
+    expectedAuthorityRevision: cancellationExecutionPackage.authorityRevision,
     expectedSnapshotHash: cancellationSnapshot.snapshotHash,
     expectedReservationId: cancellationReservation.id,
     reason: 'user_cancelled_before_execution',
@@ -1179,6 +1329,11 @@ try {
   )
   assert.equal(cancellation.snapshotRemainsImmutable, true)
   assert.equal(cancellation.derivedJobsRemainUnmodified, true)
+  assert.equal(cancellation.executionPackagePresent, true)
+  assert.equal(cancellation.executionPackageRecordId, cancellationExecutionPackage.packageRecordId)
+  assert.equal(cancellation.executionPackageRecordPreserved, true)
+  assert.equal(cancellation.workerLeaseCreated, false)
+  assert.equal(cancellation.dispatchGrantCreated, false)
   assert.equal(cancellation.internalTestWalletMutated, true)
   assert.equal(cancellation.customerWalletMutation, false)
   assert.equal(cancellation.customerCreditMutation, false)
@@ -1219,7 +1374,7 @@ try {
       'idempotency-key': 'route-cancelled-snapshot-package',
     },
     body: JSON.stringify({
-      workspaceId: routeWorkspaceId,
+      workspaceId: cancellationWorkspaceId,
       approvedPlanSnapshotId: cancellationSnapshot.snapshotId,
       expectedSnapshotHash: cancellationSnapshot.snapshotHash,
       purpose: 'private_internal_execution_handoff',
@@ -1231,7 +1386,7 @@ try {
   }
   assert.equal(cancelledPackageEnvelope.error?.code, 'APPROVED_SNAPSHOT_REQUIRED')
   const cancelledSnapshotRead = await fetch(
-    `${routeBaseUrl}/v1/approved-snapshots/${String(cancellationSnapshot.snapshotId)}/authority?workspaceId=${routeWorkspaceId}`,
+    `${routeBaseUrl}/v1/approved-snapshots/${String(cancellationSnapshot.snapshotId)}/authority?workspaceId=${cancellationWorkspaceId}`,
     { headers: routeAuthHeaders },
   )
   assert.equal(cancelledSnapshotRead.status, 200)
@@ -1245,20 +1400,20 @@ try {
     cancellationJobsBefore.map((job) => ({ id: job.id, status: job.status })),
   )
   const cancelledPreferenceView = await createExactEditPreferenceService(context).getCurrent(
-    routeWorkspaceId,
-    routeProjectId,
+    cancellationWorkspaceId,
+    cancellationProjectId,
     cancellationEditSessionId,
   )
   assert.equal(cancelledPreferenceView.preferenceRecord?.lifecycle.locked, false)
   assert.equal(cancelledPreferenceView.preferenceRecord?.lifecycle.phase, 'planning')
-  const packagedSnapshotCancellation = await fetch(
+  const leasedSnapshotCancellation = await fetch(
     `${routeBaseUrl}/v1/approved-snapshots/${String(routeSnapshot.snapshotId)}/cancel`,
     {
       method: 'POST',
       headers: {
         ...routeAuthHeaders,
         'content-type': 'application/json',
-        'idempotency-key': 'route-packaged-snapshot-cancellation-blocked',
+        'idempotency-key': 'route-leased-snapshot-cancellation-blocked',
       },
       body: JSON.stringify({
         workspaceId: routeWorkspaceId,
@@ -1269,14 +1424,14 @@ try {
       }),
     },
   )
-  assert.equal(packagedSnapshotCancellation.status, 409)
-  const packagedSnapshotCancellationEnvelope = await packagedSnapshotCancellation.json() as {
+  assert.equal(leasedSnapshotCancellation.status, 409)
+  const leasedSnapshotCancellationEnvelope = await leasedSnapshotCancellation.json() as {
     error?: { code?: string; details?: { requiredGate?: string } }
   }
-  assert.equal(packagedSnapshotCancellationEnvelope.error?.code, 'TOOL_NOT_READY')
+  assert.equal(leasedSnapshotCancellationEnvelope.error?.code, 'TOOL_NOT_READY')
   assert.equal(
-    packagedSnapshotCancellationEnvelope.error?.details?.requiredGate,
-    'canonical_in_flight_cancellation_and_worker_fencing',
+    leasedSnapshotCancellationEnvelope.error?.details?.requiredGate,
+    'canonical_post_lease_cancellation_and_worker_fencing',
   )
 
   for (const legacyRequest of [
@@ -1345,7 +1500,9 @@ console.log(JSON.stringify({
     'cancellation_preserves_snapshot_jobs_and_blocks_execution_package_creation',
     'cancellation_unlocks_planning_inputs_for_a_new_plan_version',
     'cancellation_is_idempotent_conflict_safe_and_has_no_customer_tool_provider_render_or_delivery_side_effect',
-    'cancellation_fails_closed_after_execution_package_creation',
+    'packaged_but_never_leased_snapshot_cancels_under_shared_execution_domain_fence',
+    'shared_execution_domain_fence_serializes_lease_creation_and_cancellation',
+    'cancellation_fails_closed_after_lease_creation',
     'authenticated_fail_closed_tool_runtime_evidence_http_route',
     'legacy_caller_authority_routes_fail_closed',
     'no_provider_worker_render_or_paid_billing_side_effect',

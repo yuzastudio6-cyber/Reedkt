@@ -34,6 +34,7 @@ import {
   type CanonicalExecutionReadinessEnvelope,
 } from '../validation/canonical-execution-readiness-schemas'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
+import { withCanonicalExecutionDomainLock } from './canonical-execution-domain-lock'
 import { verifyCanonicalInternalAuthorityArtifact } from './canonical-internal-authority-artifact-verifier'
 import { verifyCanonicalStructuredSvgArtifact } from './canonical-structured-svg-artifact-verifier'
 import { verifyCanonicalStructuredJsonArtifact } from './canonical-structured-json-artifact-verifier'
@@ -113,6 +114,13 @@ export function createCanonicalWorkerLeaseAuthorityService(context: ServiceConte
       const body = parseClaim(input)
       const secret = authorizeLeaseMutationRuntime(context)
       const access = await authorizeWorkspaceAccess(context, body.workspaceId, 'write')
+      return withCanonicalExecutionDomainLock({
+        localStorageRoot: context.env.localStorageRoot,
+        ownerUserId: access.userId,
+        workspaceId: access.workspaceId,
+        projectId: body.projectId,
+        editSessionId: body.editSessionId,
+      }, async () => {
       const eligibility = await loadLeaseEligibleJobReadiness(context, body)
       const { readiness, dependencyAuthority } = eligibility
       const canonicalHashes = hashesFromReadiness(readiness)
@@ -231,6 +239,7 @@ export function createCanonicalWorkerLeaseAuthorityService(context: ServiceConte
         workerLeaseClaim: buildClaimResponse(lease, idempotency, leaseCredential),
         warnings: leaseWarnings(),
       }
+      })
     },
 
     async heartbeat(input: HeartbeatCanonicalWorkerLeaseInput): Promise<CanonicalWorkerLeaseHeartbeatResult> {

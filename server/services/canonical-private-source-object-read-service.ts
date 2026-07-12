@@ -9,6 +9,7 @@ import type {
   CanonicalApprovedExecutionWorkItem,
 } from './edit-planning-authority-service'
 import {
+  privateProjectUploadMediaAuthority,
   privateUploadMediaAuthorityValueHash,
   readPrivateUploadMediaAuthorityAggregate,
 } from './private-upload-media-authority-store'
@@ -89,10 +90,11 @@ export function createCanonicalPrivateSourceObjectReadService(context: ServiceCo
         ownerUserId: actorUserId,
         workspaceId: access.workspaceId,
       })
+      if (!aggregate) throw invalidSource('Private upload authority changed after plan approval.')
+      const projectAuthority = privateProjectUploadMediaAuthority(aggregate, input.projectId)
       if (
-        !aggregate ||
-        aggregate.revision !== input.approvedSourceManifest.authorityRevision ||
-        privateUploadMediaAuthorityValueHash(aggregate) !== input.approvedSourceManifest.authorityChecksumSha256
+        projectAuthority.authorityRevision !== input.approvedSourceManifest.authorityRevision ||
+        projectAuthority.authorityChecksumSha256 !== input.approvedSourceManifest.authorityChecksumSha256
       ) throw invalidSource('Private upload authority changed after plan approval.')
 
       const mediaAsset = aggregate.mediaAssets.find((candidate) => candidate.id === binding.mediaAssetId)

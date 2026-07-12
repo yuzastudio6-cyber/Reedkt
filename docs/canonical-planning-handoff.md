@@ -29,6 +29,8 @@ The service fails closed unless all of the following agree:
 6. the current Edit Brief state is verified, including its deterministic publication binding when a brief exists;
 7. the canonical plan components satisfy the existing planning-input authority resolver.
 
+Source authority revision and checksum are project-scoped. An upload in another project cannot invalidate this edit's approved source authority, while any upload-authority change in the same project changes the candidate and requires an exact reload/replan. Live storage-object bytes and identity are still reverified at every authority boundary.
+
 `preferenceApplicationVerified` and `editBriefVerified` mean the current state was verified. The valid current state can truthfully be `not_selected`, `cleared`, or `applied` for Preference DNA and `not_used` or `bound` for Edit Brief.
 
 ## Returned publication inputs

@@ -392,17 +392,59 @@ export async function loadPrivateFinalizedMediaAuthority(
   if (!uploadIntent || !storageObject || uploadIntent.status !== 'finalized') {
     throw invalidStoredAuthority('Finalized media authority lineage is incomplete.')
   }
+  const projectAuthority = privateProjectUploadMediaAuthority(aggregate, mediaAsset.projectId)
   return {
     uploadIntent,
     mediaAsset,
     storageObject,
-    authorityRevision: aggregate.revision,
-    authorityChecksumSha256: privateUploadMediaAuthorityValueHash(aggregate),
+    authorityRevision: projectAuthority.authorityRevision,
+    authorityChecksumSha256: projectAuthority.authorityChecksumSha256,
   }
 }
 
 export function privateUploadMediaAuthorityValueHash(value: unknown): string {
   return createHash('sha256').update(stableStringify(value)).digest('hex')
+}
+
+export function privateProjectUploadMediaAuthority(
+  aggregate: PrivateUploadMediaAuthorityAggregate,
+  projectId: string,
+): { authorityRevision: number; authorityChecksumSha256: string } {
+  const uploadIntents = aggregate.uploadIntents.filter((record) => record.projectId === projectId)
+  const uploadIntentIds = new Set(uploadIntents.map((record) => record.id))
+  const mediaAssets = aggregate.mediaAssets.filter((record) => record.projectId === projectId)
+  const mediaAssetIds = new Set(mediaAssets.map((record) => record.id))
+  const storageObjects = aggregate.storageObjects.filter((record) => record.projectId === projectId)
+  const auditEvents = aggregate.auditEvents.filter((record) => record.projectId === projectId)
+  const authorityRevision = Math.max(0, ...auditEvents.map((record) => record.recordRevision))
+  if (authorityRevision <= 0 || uploadIntents.length === 0) {
+    throw new ApiError('UPLOAD_NOT_FINALIZED', 'Project source-media authority was not found.', 409)
+  }
+  const projectAuthority = {
+    schemaVersion: 'private-project-upload-media-authority-v1',
+    workspaceId: aggregate.workspaceId,
+    ownerUserId: aggregate.ownerUserId,
+    projectId,
+    authorityRevision,
+    uploadIntents,
+    mediaAssets,
+    storageObjects,
+    mediaAssetIdByUploadIntentId: Object.fromEntries(Object.entries(
+      aggregate.mediaAssetIdByUploadIntentId,
+    ).filter(([uploadIntentId, mediaAssetId]) =>
+      uploadIntentIds.has(uploadIntentId) && mediaAssetIds.has(mediaAssetId))),
+    storageObjectIdByUploadIntentId: Object.fromEntries(Object.entries(
+      aggregate.storageObjectIdByUploadIntentId,
+    ).filter(([uploadIntentId]) => uploadIntentIds.has(uploadIntentId))),
+    storageObjectIdByMediaAssetId: Object.fromEntries(Object.entries(
+      aggregate.storageObjectIdByMediaAssetId,
+    ).filter(([mediaAssetId]) => mediaAssetIds.has(mediaAssetId))),
+    auditEvents,
+  }
+  return {
+    authorityRevision,
+    authorityChecksumSha256: privateUploadMediaAuthorityValueHash(projectAuthority),
+  }
 }
 
 function createEmptyAggregate(

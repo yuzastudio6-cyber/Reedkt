@@ -40,13 +40,15 @@ The mutation performs one conservation-safe local/private transaction:
 - marks the synthetic reservation `cancelled` with its released amount;
 - stores an exact idempotency replay response.
 
-The approved snapshot is not deleted or rewritten. Plan and estimate content remain immutable while their lifecycle status becomes `cancelled`. Approved work items and derived jobs remain immutable evidence, planning-input locks reopen for a new plan version, and later execution-package creation fails because the snapshot is no longer active approved/funded authority.
+The approved snapshot is not deleted or rewritten. Plan and estimate content remain immutable while their lifecycle status becomes `cancelled`. Approved work items, derived jobs, and any already-created execution-package record remain immutable evidence. Planning-input locks reopen for a new plan version, while package reads or later package creation fail because the snapshot is no longer active approved/funded authority.
 
 ## Fail-closed boundary
 
-If an execution package already exists, this route returns the `canonical_in_flight_cancellation_and_worker_fencing` gate. It does not attempt to cancel leases, dispatches, attempts, workers, artifacts, QA, or reviews. Those stages require a later coordinated in-flight cancellation state machine and durable worker fencing.
+An execution package may already exist only when no lease or dispatch record has ever existed for its snapshot. Cancellation and lease claim use one shared single-host execution-domain fence, preventing a claim from racing between the absence check and the authority transaction. The package record is preserved as audit evidence.
 
-The focused smoke proves authentication, exact reservation conservation, snapshot/job preservation, replay safety, idempotency conflict, post-cancel package denial, and post-package cancellation denial.
+If any lease or dispatch authority exists, cancellation returns the `canonical_post_lease_cancellation_and_worker_fencing` gate. It does not cancel leases, dispatches, attempts, workers, artifacts, QA, or reviews. Those stages require a later coordinated in-flight cancellation state machine and durable worker fencing.
+
+The focused smoke proves authentication, exact reservation conservation, snapshot/job/package preservation, replay safety, idempotency conflict, post-cancel package denial, packaged-but-never-leased cancellation, execution-domain serialization, and post-lease cancellation denial.
 
 ## Non-authority
 

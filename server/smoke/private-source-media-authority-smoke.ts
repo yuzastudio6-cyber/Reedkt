@@ -178,6 +178,47 @@ try {
   assert(!JSON.stringify(candidateOne).includes('objectPath'))
   assert(!JSON.stringify(candidateOne).includes('bucketName'))
 
+  await uploadAndFinalize({
+    context,
+    workspaceId: 'workspace-source',
+    projectId: secondProject.id,
+    uploadPurpose: 'source_media',
+    fileName: 'unrelated-project-source.mp4',
+    mimeType: 'video/mp4',
+    bytes: Buffer.from('unrelated project source bytes'),
+  })
+  const candidateAfterOtherProjectUpload = (await sourceAuthority.buildManifestCandidate({
+    workspaceId: 'workspace-source',
+    projectId: project.id,
+    uploadPurpose: 'source_media',
+    orderedItems: sourceItems,
+  })).sourceBindingManifestCandidate
+  assert.deepEqual(
+    candidateAfterOtherProjectUpload,
+    candidateOne,
+    'Another project upload must not invalidate this project source authority.',
+  )
+  await uploadAndFinalize({
+    context,
+    workspaceId: 'workspace-source',
+    projectId: project.id,
+    uploadPurpose: 'source_media',
+    fileName: 'same-project-source-change.mp4',
+    mimeType: 'video/mp4',
+    bytes: Buffer.from('same project source authority change'),
+  })
+  const candidateAfterSameProjectUpload = (await sourceAuthority.buildManifestCandidate({
+    workspaceId: 'workspace-source',
+    projectId: project.id,
+    uploadPurpose: 'source_media',
+    orderedItems: sourceItems,
+  })).sourceBindingManifestCandidate
+  assert.notEqual(candidateAfterSameProjectUpload.candidateHash, candidateOne.candidateHash)
+  assert.notEqual(
+    candidateAfterSameProjectUpload.authorityChecksumSha256,
+    candidateOne.authorityChecksumSha256,
+  )
+
   const referenceCandidate = (await sourceAuthority.buildManifestCandidate({
     workspaceId: 'workspace-source',
     projectId: project.id,
@@ -321,7 +362,9 @@ try {
       'finalization_idempotency_and_immutability',
       'upload_intent_idempotency_survives_process_restart',
       'source_and_reference_authority_persisted',
-      'deterministic_unapproved_manifest_candidate',
+    'deterministic_unapproved_manifest_candidate',
+    'project_scoped_authority_ignores_other_project_uploads',
+    'same_project_upload_changes_source_authority',
       'candidate_exposes_no_bucket_or_object_path',
       'tenant_workspace_project_purpose_scope_enforced',
       'uploaded_order_and_checksum_enforced',

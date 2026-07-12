@@ -9,6 +9,7 @@ import {
   type SourceBindingManifestCandidate,
 } from '../validation/source-media-authority-schemas'
 import {
+  privateProjectUploadMediaAuthority,
   privateUploadMediaAuthorityValueHash,
   readPrivateUploadMediaAuthorityAggregate,
 } from './private-upload-media-authority-store'
@@ -141,6 +142,7 @@ export function createSourceMediaAuthorityService(context: ServiceContext) {
       }
 
       const sourceSequenceHash = privateUploadMediaAuthorityValueHash(body.orderedItems)
+      const projectAuthority = privateProjectUploadMediaAuthority(aggregate, body.projectId)
       const candidateWithoutHash = {
         schemaVersion: 'private-source-binding-manifest-candidate-v1' as const,
         authorityStatus: 'unapproved_manifest_candidate' as const,
@@ -150,8 +152,8 @@ export function createSourceMediaAuthorityService(context: ServiceContext) {
         workspaceId: access.workspaceId,
         projectId: body.projectId,
         uploadPurpose: body.uploadPurpose,
-        authorityRevision: aggregate.revision,
-        authorityChecksumSha256: privateUploadMediaAuthorityValueHash(aggregate),
+        authorityRevision: projectAuthority.authorityRevision,
+        authorityChecksumSha256: projectAuthority.authorityChecksumSha256,
         sourceSequenceHash,
         bindings,
         requiredBindingCount: bindings.filter((binding) => binding.required).length,

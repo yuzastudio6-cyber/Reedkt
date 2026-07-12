@@ -778,7 +778,8 @@ async function authorizeScope(
       workspaceId: access.workspaceId,
     })
     const canonicalLock = Boolean(canonicalAuthority?.plans.some((plan) =>
-      plan.projectId === projectId && plan.editSessionId === editSessionId && plan.status === 'approved'
+      plan.projectId === projectId && plan.editSessionId === editSessionId
+      && (plan.status === 'approved' || plan.status === 'cancellation_pending')
     ))
     if (canonicalLock) {
       throw new ApiError(

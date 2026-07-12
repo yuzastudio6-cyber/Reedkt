@@ -1187,7 +1187,8 @@ async function resolvePreferenceApplicationLifecycleLock(
   })
   if (!authority) return undefined
   const approvedPlan = authority.plans.find((plan) =>
-    plan.projectId === projectId && plan.editSessionId === editSessionId && plan.status === 'approved'
+    plan.projectId === projectId && plan.editSessionId === editSessionId
+    && (plan.status === 'approved' || plan.status === 'cancellation_pending')
   )
   if (!approvedPlan) return undefined
   const snapshot = authority.snapshots.find((candidate) => candidate.planId === approvedPlan.id)

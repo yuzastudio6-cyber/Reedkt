@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
 import {
   readPrivateTextFileIfExistsWithinRoot,
@@ -88,6 +89,80 @@ export async function mutatePrivateCanonicalWorkerLeaseAggregate<T>(input: {
       content,
     })
     return mutationResult.result
+  })
+}
+
+export async function releaseNeverStartedSnapshotLeasesForCancellation(input: {
+  scope: CanonicalWorkerLeaseStoreScope
+  snapshotId: string
+  projectId: string
+  editSessionId: string
+  now: string
+}): Promise<{
+  leaseRecordCount: number
+  releasedLeaseCount: number
+  expiredLeaseCount: number
+}> {
+  return mutatePrivateCanonicalWorkerLeaseAggregate({
+    scope: input.scope,
+    now: input.now,
+    mutation: (aggregate) => {
+      const leases = aggregate.leases.filter((lease) =>
+        lease.approvedPlanSnapshotId === input.snapshotId)
+      if (leases.some((lease) =>
+        lease.projectId !== input.projectId ||
+        lease.editSessionId !== input.editSessionId ||
+        lease.executionFence.state !== 'not_started')) {
+        throw new ApiError(
+          'TOOL_NOT_READY',
+          'Cancellation cannot release a lease whose execution fence started or whose scope changed.',
+          409,
+          { requiredGate: 'canonical_started_execution_cancellation_and_compensation' },
+        )
+      }
+      const activeTransitionCount = leases.filter((lease) => lease.status === 'active').length
+      if (aggregate.auditEvents.length + activeTransitionCount > MAX_CANONICAL_WORKER_LEASE_AUDIT_EVENTS) {
+        throw new ApiError(
+          'IDEMPOTENCY_CAPACITY_EXCEEDED',
+          'Private canonical worker-lease cancellation audit capacity was reached.',
+          503,
+        )
+      }
+      let releasedTransitionCount = 0
+      let expiredTransitionCount = 0
+      for (const lease of leases) {
+        if (lease.status !== 'active') continue
+        const expired = Date.parse(lease.expiresAt) <= Date.parse(input.now)
+        if (expired) {
+          lease.status = 'expired'
+          lease.expiredAt = input.now
+          expiredTransitionCount += 1
+        } else {
+          lease.status = 'released'
+          lease.releasedAt = input.now
+          releasedTransitionCount += 1
+        }
+        aggregate.auditEvents.push({
+          id: `canonical_worker_lease_audit_${randomUUID()}`,
+          eventType: expired ? 'expired' : 'released',
+          leaseId: lease.id,
+          workspaceId: lease.workspaceId,
+          projectId: lease.projectId,
+          editSessionId: lease.editSessionId,
+          jobId: lease.jobId,
+          attemptNumber: lease.attemptNumber,
+          createdAt: input.now,
+        })
+      }
+      return {
+        result: {
+          leaseRecordCount: leases.length,
+          releasedLeaseCount: leases.filter((lease) => lease.status === 'released').length,
+          expiredLeaseCount: leases.filter((lease) => lease.status === 'expired').length,
+        },
+        changed: releasedTransitionCount + expiredTransitionCount > 0,
+      }
+    },
   })
 }
 

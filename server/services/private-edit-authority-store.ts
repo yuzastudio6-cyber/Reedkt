@@ -54,7 +54,7 @@ export interface AuthorityPlanRecord {
   editSessionId: string
   planningRequestId: string
   planVersion: number
-  status: 'presented' | 'approved' | 'superseded' | 'rejected' | 'cancelled'
+  status: 'presented' | 'approved' | 'superseded' | 'rejected' | 'cancellation_pending' | 'cancelled'
   componentRefs: Record<string, AuthorityJsonBlobRef>
   estimateId: string
   workItemIds: string[]
@@ -66,6 +66,9 @@ export interface AuthorityPlanRecord {
   approvedAt?: string
   supersededAt?: string
   cancelledAt?: string
+  cancellationPendingAt?: string
+  cancellationRequestHash?: string
+  cancellationIdempotencyKeyHash?: string
   revisionAuthority?: {
     reviewAssemblyId: string
     reviewDecisionId: string

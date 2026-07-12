@@ -44,11 +44,11 @@ The approved snapshot is not deleted or rewritten. Plan and estimate content rem
 
 ## Fail-closed boundary
 
-An execution package may already exist only when no lease or dispatch record has ever existed for its snapshot. Cancellation and lease claim use one shared single-host execution-domain fence, preventing a claim from racing between the absence check and the authority transaction. The package record is preserved as audit evidence.
+An execution package may already exist. A lease may also exist only when every matching lease execution fence remains `not_started` and no dispatch grant exists. Cancellation and lease claim use one shared single-host execution-domain fence, preventing a claim from racing the cancellation transaction. The service first persists `cancellation_pending`, then terminally releases or expires active never-started leases, and only then releases the unused synthetic reservation and finalizes cancellation. The package and lease records remain immutable audit evidence.
 
-If any lease or dispatch authority exists, cancellation returns the `canonical_post_lease_cancellation_and_worker_fencing` gate. It does not cancel leases, dispatches, attempts, workers, artifacts, QA, or reviews. Those stages require a later coordinated in-flight cancellation state machine and durable worker fencing.
+If a dispatch grant exists, cancellation returns `canonical_post_dispatch_cancellation_and_compensation`. If any lease execution fence started, it returns `canonical_started_execution_cancellation_and_compensation`. It does not cancel consumed dispatches, started attempts, committed artifacts, QA, or reviews. Those stages require a later compensation state machine and durable distributed worker fencing.
 
-The focused smoke proves authentication, exact reservation conservation, snapshot/job/package preservation, replay safety, idempotency conflict, post-cancel package denial, packaged-but-never-leased cancellation, execution-domain serialization, and post-lease cancellation denial.
+The focused smoke proves authentication, exact reservation conservation, snapshot/job/package/lease preservation, replay safety, idempotency conflict, post-cancel package denial, never-started lease release, execution-domain serialization, and started-execution cancellation denial.
 
 ## Non-authority
 

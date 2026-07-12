@@ -747,7 +747,7 @@ async function resolveCanonicalLifecycleLock(
   const matchingApprovedPlan = aggregate.plans.find((plan) =>
     plan.projectId === scope.projectId
     && plan.editSessionId === scope.editSessionId
-    && plan.status === 'approved'
+    && (plan.status === 'approved' || plan.status === 'cancellation_pending')
   )
   if (!matchingApprovedPlan) return { phase: 'planning', locked: false }
   const matchingSnapshot = aggregate.snapshots.find((snapshot) =>

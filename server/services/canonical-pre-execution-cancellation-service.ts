@@ -15,7 +15,10 @@ import {
 } from './private-edit-authority-store'
 import { withCanonicalExecutionDomainLock } from './canonical-execution-domain-lock'
 import { readPrivateCanonicalToolDispatchAggregate } from './private-canonical-tool-dispatch-store'
-import { readPrivateCanonicalWorkerLeaseAggregate } from './private-canonical-worker-lease-store'
+import {
+  readPrivateCanonicalWorkerLeaseAggregate,
+  releaseNeverStartedSnapshotLeasesForCancellation,
+} from './private-canonical-worker-lease-store'
 import { createProjectService } from './project-service'
 import { nowIso } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
@@ -68,30 +71,110 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
         reason: body.reason,
         actorUserId: access.userId,
       })
-      const timestamp = nowIso()
+      const idempotencyKeyHash = sha256AuthorityValue(idempotencyKey)
       const result = await withCanonicalExecutionDomainLock({
         ...scope,
         projectId: beforeSnapshot.projectId,
         editSessionId: beforeSnapshot.editSessionId,
       }, async () => {
+        const timestamp = nowIso()
         const leaseAggregate = await readPrivateCanonicalWorkerLeaseAggregate(scope)
         const snapshotLeases = leaseAggregate?.leases.filter((lease) =>
           lease.approvedPlanSnapshotId === input.snapshotId) ?? []
         const dispatchAggregate = await readPrivateCanonicalToolDispatchAggregate(scope)
         const snapshotDispatches = dispatchAggregate?.grants.filter((grant) =>
           grant.binding.approvedPlanSnapshotId === input.snapshotId) ?? []
-        if (snapshotLeases.length > 0 || snapshotDispatches.length > 0) {
+        if (snapshotDispatches.length > 0) {
           throw new ApiError(
             'TOOL_NOT_READY',
-            'Cancellation is blocked after canonical lease or dispatch authority has existed.',
+            'Cancellation is blocked after canonical dispatch authority has existed.',
             409,
             {
-              requiredGate: 'canonical_post_lease_cancellation_and_worker_fencing',
-              leaseRecordCount: snapshotLeases.length,
+              requiredGate: 'canonical_post_dispatch_cancellation_and_compensation',
               dispatchRecordCount: snapshotDispatches.length,
             },
           )
         }
+        if (snapshotLeases.some((lease) => lease.executionFence.state !== 'not_started')) {
+          throw new ApiError(
+            'TOOL_NOT_READY',
+            'Cancellation is blocked after a canonical worker execution fence started.',
+            409,
+            { requiredGate: 'canonical_started_execution_cancellation_and_compensation' },
+          )
+        }
+        if (snapshotLeases.length > 0) {
+          await mutatePrivateEditAuthorityAggregate({
+            scope,
+            planningDomainScope: {
+              ...scope,
+              projectId: beforeSnapshot.projectId,
+              editSessionId: beforeSnapshot.editSessionId,
+            },
+            now: timestamp,
+            mutation: (aggregate) => {
+              const replayRecord = aggregate.idempotencyRecords.find((record) =>
+                record.operation === 'cancel_approved_snapshot' && record.idempotencyKey === idempotencyKey)
+              if (replayRecord) return { result: undefined, changed: false }
+              const snapshot = aggregate.snapshots.find((record) => record.snapshotId === input.snapshotId)
+              const plan = snapshot
+                ? aggregate.plans.find((record) => record.id === snapshot.planId)
+                : undefined
+              const reservation = snapshot
+                ? aggregate.reservations.find((record) => record.id === snapshot.reservationId)
+                : undefined
+              if (!snapshot || !plan || !reservation) {
+                throw new ApiError('IDEMPOTENCY_CONFLICT', 'Cancellation-pending lineage is incomplete.', 409)
+              }
+              if (plan.status === 'cancellation_pending') {
+                if (
+                  plan.cancellationRequestHash !== requestHash ||
+                  plan.cancellationIdempotencyKeyHash !== idempotencyKeyHash
+                ) {
+                  throw new ApiError('IDEMPOTENCY_CONFLICT', 'Another cancellation owns this plan.', 409)
+                }
+                return { result: undefined, changed: false }
+              }
+              if (
+                aggregate.revision !== body.expectedAuthorityRevision ||
+                plan.status !== 'approved' ||
+                snapshot.snapshotHash !== body.expectedSnapshotHash ||
+                reservation.id !== body.expectedReservationId ||
+                reservation.status !== 'reserved' ||
+                reservation.spentCredits !== 0 || reservation.releasedCredits !== 0 ||
+                reservation.refundedCredits !== 0
+              ) {
+                throw new ApiError(
+                  'IDEMPOTENCY_CONFLICT',
+                  'Canonical authority changed before the cancellation fence was persisted.',
+                  409,
+                )
+              }
+              plan.status = 'cancellation_pending'
+              plan.cancellationPendingAt = timestamp
+              plan.cancellationRequestHash = requestHash
+              plan.cancellationIdempotencyKeyHash = idempotencyKeyHash
+              aggregate.auditEvents.push({
+                id: `authority_audit_${randomUUID()}`,
+                eventType: 'canonical_approved_snapshot_cancellation_pending',
+                actorUserId: access.userId,
+                projectId: snapshot.projectId,
+                editSessionId: snapshot.editSessionId,
+                planId: plan.id,
+                snapshotId: snapshot.snapshotId,
+                createdAt: timestamp,
+              })
+              return { result: undefined, changed: true }
+            },
+          })
+        }
+        const leaseRelease = await releaseNeverStartedSnapshotLeasesForCancellation({
+          scope,
+          snapshotId: input.snapshotId,
+          projectId: beforeSnapshot.projectId,
+          editSessionId: beforeSnapshot.editSessionId,
+          now: timestamp,
+        })
         return mutatePrivateEditAuthorityAggregate({
         scope,
         planningDomainScope: {
@@ -116,17 +199,6 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
               changed: false,
             }
           }
-          if (aggregate.revision !== body.expectedAuthorityRevision) {
-            throw new ApiError(
-              'IDEMPOTENCY_CONFLICT',
-              'Canonical authority revision changed; reload before cancellation.',
-              409,
-              {
-                expectedAuthorityRevision: body.expectedAuthorityRevision,
-                currentAuthorityRevision: aggregate.revision,
-              },
-            )
-          }
           const snapshot = aggregate.snapshots.find((record) => record.snapshotId === input.snapshotId)
           const plan = snapshot
             ? aggregate.plans.find((record) => record.id === snapshot.planId)
@@ -146,6 +218,20 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
           const executionPackage = snapshot
             ? aggregate.executionPackages.find((record) => record.snapshotId === snapshot.snapshotId)
             : undefined
+          const resumingPendingCancellation = plan?.status === 'cancellation_pending' &&
+            plan.cancellationRequestHash === requestHash &&
+            plan.cancellationIdempotencyKeyHash === idempotencyKeyHash
+          if (!resumingPendingCancellation && aggregate.revision !== body.expectedAuthorityRevision) {
+            throw new ApiError(
+              'IDEMPOTENCY_CONFLICT',
+              'Canonical authority revision changed; reload before cancellation.',
+              409,
+              {
+                expectedAuthorityRevision: body.expectedAuthorityRevision,
+                currentAuthorityRevision: aggregate.revision,
+              },
+            )
+          }
           if (
             !snapshot || !plan || !estimate || !reservation || !approval || jobs.length === 0 ||
             snapshot.snapshotHash !== body.expectedSnapshotHash ||
@@ -153,7 +239,7 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
             reservation.id !== body.expectedReservationId ||
             reservation.planId !== plan.id || reservation.estimateId !== estimate.id ||
             approval.snapshotId !== snapshot.snapshotId || approval.reservationId !== reservation.id ||
-            plan.status !== 'approved' || estimate.status !== 'approved'
+            (plan.status !== 'approved' && !resumingPendingCancellation) || estimate.status !== 'approved'
           ) {
             throw new ApiError(
               'IDEMPOTENCY_CONFLICT',
@@ -251,7 +337,10 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
             executionPackagePresent: Boolean(executionPackage),
             ...(executionPackage ? { executionPackageRecordId: executionPackage.id } : {}),
             executionPackageRecordPreserved: true,
-            workerLeaseCreated: false,
+            leaseRecordCount: leaseRelease.leaseRecordCount,
+            releasedLeaseCount: leaseRelease.releasedLeaseCount,
+            expiredLeaseCount: leaseRelease.expiredLeaseCount,
+            allLeaseExecutionFencesNotStarted: true,
             dispatchGrantCreated: false,
             internalTestWalletMutated: true,
             customerWalletMutation: false,

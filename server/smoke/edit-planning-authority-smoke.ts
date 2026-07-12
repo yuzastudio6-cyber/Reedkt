@@ -19,6 +19,8 @@ import { createSourceMediaAuthorityService } from '../services/source-media-auth
 import { createUploadService } from '../services/upload-service'
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
 import { withCanonicalExecutionDomainLock } from '../services/canonical-execution-domain-lock'
+import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
+import { readPrivateCanonicalWorkerLeaseAggregate } from '../services/private-canonical-worker-lease-store'
 import {
   clearPrivateEditAuthorityProcessStateForSmoke,
   readPrivateEditAuthorityAggregate,
@@ -1241,6 +1243,19 @@ try {
   const cancellationExecutionPackage = asRecord(
     cancellationPackageEnvelope.data?.approvedEditExecutionPackage,
   )
+  const cancellationRootJob = cancellationJobsBefore.find((job) =>
+    Array.isArray(job.dependencyJobIds) && job.dependencyJobIds.length === 0)
+  assert.ok(cancellationRootJob)
+  const cancellationLeaseClaim = (await createCanonicalWorkerLeaseAuthorityService(context).claim({
+    workspaceId: cancellationWorkspaceId,
+    projectId: cancellationProjectId,
+    editSessionId: cancellationEditSessionId,
+    jobId: String(cancellationRootJob.id),
+    purpose: 'private_internal_canonical_lease_claim',
+    idempotencyKey: 'route-cancellation-never-started-lease-claim',
+  })).workerLeaseClaim
+  assert.equal(cancellationLeaseClaim.lease.status, 'active')
+  assert.equal(cancellationLeaseClaim.lease.executionFence.state, 'not_started')
   const executionDomainScope = {
     localStorageRoot,
     ownerUserId: userId,
@@ -1332,7 +1347,10 @@ try {
   assert.equal(cancellation.executionPackagePresent, true)
   assert.equal(cancellation.executionPackageRecordId, cancellationExecutionPackage.packageRecordId)
   assert.equal(cancellation.executionPackageRecordPreserved, true)
-  assert.equal(cancellation.workerLeaseCreated, false)
+  assert.equal(cancellation.leaseRecordCount, 1)
+  assert.equal(cancellation.releasedLeaseCount, 1)
+  assert.equal(cancellation.expiredLeaseCount, 0)
+  assert.equal(cancellation.allLeaseExecutionFencesNotStarted, true)
   assert.equal(cancellation.dispatchGrantCreated, false)
   assert.equal(cancellation.internalTestWalletMutated, true)
   assert.equal(cancellation.customerWalletMutation, false)
@@ -1406,6 +1424,16 @@ try {
   )
   assert.equal(cancelledPreferenceView.preferenceRecord?.lifecycle.locked, false)
   assert.equal(cancelledPreferenceView.preferenceRecord?.lifecycle.phase, 'planning')
+  const cancelledLeaseAggregate = await readPrivateCanonicalWorkerLeaseAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: cancellationWorkspaceId,
+  })
+  assert.equal(
+    cancelledLeaseAggregate?.leases.find((lease) =>
+      lease.id === cancellationLeaseClaim.lease.leaseId)?.status,
+    'released',
+  )
   const leasedSnapshotCancellation = await fetch(
     `${routeBaseUrl}/v1/approved-snapshots/${String(routeSnapshot.snapshotId)}/cancel`,
     {
@@ -1431,7 +1459,7 @@ try {
   assert.equal(leasedSnapshotCancellationEnvelope.error?.code, 'TOOL_NOT_READY')
   assert.equal(
     leasedSnapshotCancellationEnvelope.error?.details?.requiredGate,
-    'canonical_post_lease_cancellation_and_worker_fencing',
+    'canonical_started_execution_cancellation_and_compensation',
   )
 
   for (const legacyRequest of [
@@ -1500,9 +1528,9 @@ console.log(JSON.stringify({
     'cancellation_preserves_snapshot_jobs_and_blocks_execution_package_creation',
     'cancellation_unlocks_planning_inputs_for_a_new_plan_version',
     'cancellation_is_idempotent_conflict_safe_and_has_no_customer_tool_provider_render_or_delivery_side_effect',
-    'packaged_but_never_leased_snapshot_cancels_under_shared_execution_domain_fence',
+    'packaged_never_started_lease_is_released_before_cancellation_finalizes',
     'shared_execution_domain_fence_serializes_lease_creation_and_cancellation',
-    'cancellation_fails_closed_after_lease_creation',
+    'cancellation_fails_closed_after_execution_fence_start',
     'authenticated_fail_closed_tool_runtime_evidence_http_route',
     'legacy_caller_authority_routes_fail_closed',
     'no_provider_worker_render_or_paid_billing_side_effect',

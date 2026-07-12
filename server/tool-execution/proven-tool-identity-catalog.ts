@@ -20,7 +20,7 @@ import { OFFLINE_REMBG_BACKGROUND_REMOVAL_PACKAGE_IDENTITIES } from './rembg-bac
 import { OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY } from './deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
 
 export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v1' as const
-export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-12.23' as const
+export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-12.24' as const
 
 export type ToolVerificationState =
   | 'canonical_e2e_verified'
@@ -176,6 +176,11 @@ const CANONICAL_JOB_ADAPTER_EVIDENCE_KEYS: Partial<Record<ProductionToolId, stri
   openimageio: 'server_derived_job_adapter_executes_native_image_tool_identities',
   rnnoise: 'server_derived_job_adapter_executes_native_audio_tool_identities',
   signalsmith_stretch: 'server_derived_job_adapter_executes_native_audio_tool_identities',
+  mkvtoolnix_container_validation: 'server_derived_job_adapter_executes_container_packaging_tool_identities',
+  gpac_mp4box_packaging_validation: 'server_derived_job_adapter_executes_container_packaging_tool_identities',
+  vapoursynth: 'server_derived_job_adapter_executes_vapoursynth_frame_pipeline_identity',
+  audioflux: 'server_derived_job_adapter_executes_audioflux_analysis_identity',
+  rembg: 'server_derived_job_adapter_executes_rembg_background_removal_identity',
   ffprobe: 'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
   remotion: 'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
 }

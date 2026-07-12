@@ -24,10 +24,6 @@ import { createCanonicalPrivateSharpExecutionService } from '../services/canonic
 import { createCanonicalPrivateRemotionExecutionService } from '../services/canonical-private-remotion-execution-service'
 import { createCanonicalPrivateLibassExecutionService } from '../services/canonical-private-libass-execution-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
-import { createCanonicalPrivateContainerPackagingValidationExecutionService } from '../services/canonical-private-container-packaging-validation-execution-service'
-import { createCanonicalPrivateVapourSynthFramePipelineExecutionService } from '../services/canonical-private-vapoursynth-frame-pipeline-execution-service'
-import { createCanonicalPrivateAudioFluxAnalysisExecutionService } from '../services/canonical-private-audioflux-analysis-execution-service'
-import { createCanonicalPrivateRembgBackgroundRemovalExecutionService } from '../services/canonical-private-rembg-background-removal-execution-service'
 import { createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService } from '../services/canonical-private-deepfilternet-voice-cleanup-execution-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from '../services/canonical-private-job-execution-adapter-service'
 import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
@@ -1888,7 +1884,11 @@ for (const matrixRun of matrixRuns.slice(1)) {
     matrixRun.runnerKind === 'browser' ||
     matrixRun.runnerKind === 'ai' ||
     matrixRun.runnerKind === 'native_image' ||
-    matrixRun.runnerKind === 'native_audio'
+    matrixRun.runnerKind === 'native_audio' ||
+    matrixRun.runnerKind === 'packaging' ||
+    matrixRun.runnerKind === 'vapoursynth' ||
+    matrixRun.runnerKind === 'audioflux' ||
+    matrixRun.runnerKind === 'rembg'
   ) {
     const adapterInput = {
       workspaceId,
@@ -1912,7 +1912,15 @@ for (const matrixRun of matrixRuns.slice(1)) {
             ? 'offline_ai_capability_execution_v1'
             : matrixRun.runnerKind === 'native_image'
               ? 'offline_native_image_pipeline_execution_v1'
-              : 'offline_native_audio_processing_execution_v1',
+              : matrixRun.runnerKind === 'native_audio'
+                ? 'offline_native_audio_processing_execution_v1'
+                : matrixRun.runnerKind === 'packaging'
+                  ? 'offline_container_packaging_validation_execution_v1'
+                  : matrixRun.runnerKind === 'vapoursynth'
+                    ? 'offline_vapoursynth_frame_pipeline_execution_v1'
+                    : matrixRun.runnerKind === 'audioflux'
+                      ? 'offline_audioflux_analysis_execution_v1'
+                      : 'offline_rembg_background_removal_execution_v1',
     )
     assert.equal(coordinated.result.contentType, matrixRun.expectedContentType)
     assert.equal(coordinated.result.qaOutcome, 'passed')
@@ -1976,129 +1984,7 @@ for (const matrixRun of matrixRuns.slice(1)) {
   const executionAuthority = { ...leaseAuthority, dispatchCredential: grant.dispatchCredential }
   let coordinatedArtifactId: string
   let coordinatedSha256: string
-  if (matrixRun.runnerKind === 'packaging') {
-    const executionInput = {
-      workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-      jobId: matrixRun.job.id, grantId: grant.grant.grantId,
-      purpose: 'execute_canonical_private_container_packaging_validation' as const,
-      idempotencyKey: `consume-${matrixRun.toolId}-matrix-root`,
-    }
-    const coordinated = await createCanonicalPrivateContainerPackagingValidationExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(coordinated.tool.canonicalToolId, matrixRun.toolId)
-    assert.equal(coordinated.tool.operationId, matrixRun.operationId)
-    assert.equal(coordinated.result.contentType, 'application/json')
-    assert.equal(coordinated.result.container, matrixRun.toolId === 'mkvtoolnix_container_validation' ? 'mkv' : 'mp4')
-    assert.equal(coordinated.result.trackCount, 3)
-    assert.equal(coordinated.result.videoTrackVerified, true)
-    assert.equal(coordinated.result.audioTrackVerified, true)
-    assert.equal(coordinated.result.captionTrackVerified, true)
-    assert.equal(coordinated.result.qaOutcome, 'passed')
-    assert.equal(coordinated.tool.licenseReviewStillRequiredForProduction, true)
-    const replay = await createCanonicalPrivateContainerPackagingValidationExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
-    assert.equal(replay.result.sha256, coordinated.result.sha256)
-    assert.equal(replay.replay.dispatchConsumptionReplayed, true)
-    assert.equal(replay.replay.executionFenceBeginReplayed, true)
-    assert.equal(replay.replay.executionFenceCompleteReplayed, true)
-    assert.equal(replay.replay.artifactRecordReplayed, true)
-    assert.equal(replay.replay.qaRecordReplayed, true)
-    assert.equal(replay.replay.reconciliationReplayed, true)
-    coordinatedArtifactId = coordinated.result.artifactId
-    coordinatedSha256 = coordinated.result.sha256
-  } else if (matrixRun.runnerKind === 'vapoursynth') {
-    const executionInput = {
-      workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-      jobId: matrixRun.job.id, grantId: grant.grant.grantId,
-      purpose: 'execute_canonical_private_vapoursynth_frame_pipeline' as const,
-      idempotencyKey: `consume-${matrixRun.toolId}-matrix-root`,
-    }
-    const coordinated = await createCanonicalPrivateVapourSynthFramePipelineExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(coordinated.tool.canonicalToolId, 'vapoursynth')
-    assert.equal(coordinated.tool.operationId, matrixRun.operationId)
-    assert.equal(coordinated.result.contentType, 'application/json')
-    assert.equal(coordinated.result.frameCount, 24)
-    assert.equal(coordinated.result.frameRate, 24)
-    assert.equal(coordinated.result.width, 64)
-    assert.equal(coordinated.result.height, 64)
-    assert.equal(coordinated.result.firstAndLastFrameVerified, true)
-    assert.equal(coordinated.result.callerScriptAllowed, false)
-    assert.equal(coordinated.result.qaOutcome, 'passed')
-    const replay = await createCanonicalPrivateVapourSynthFramePipelineExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
-    assert.equal(replay.result.sha256, coordinated.result.sha256)
-    assert.equal(replay.replay.dispatchConsumptionReplayed, true)
-    assert.equal(replay.replay.executionFenceBeginReplayed, true)
-    assert.equal(replay.replay.executionFenceCompleteReplayed, true)
-    assert.equal(replay.replay.artifactRecordReplayed, true)
-    assert.equal(replay.replay.qaRecordReplayed, true)
-    assert.equal(replay.replay.reconciliationReplayed, true)
-    coordinatedArtifactId = coordinated.result.artifactId
-    coordinatedSha256 = coordinated.result.sha256
-  } else if (matrixRun.runnerKind === 'audioflux') {
-    const executionInput = {
-      workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-      jobId: matrixRun.job.id, grantId: grant.grant.grantId,
-      purpose: 'execute_canonical_private_audioflux_analysis' as const,
-      idempotencyKey: `consume-${matrixRun.toolId}-matrix-root`,
-    }
-    const coordinated = await createCanonicalPrivateAudioFluxAnalysisExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(coordinated.tool.canonicalToolId, 'audioflux')
-    assert.equal(coordinated.tool.operationId, matrixRun.operationId)
-    assert.equal(coordinated.result.contentType, 'application/json')
-    assert.equal(coordinated.result.sampleRate, 16_000)
-    assert.equal(coordinated.result.frameCount, 247)
-    assert.equal(coordinated.result.frequencyBins, 257)
-    assert.equal(coordinated.result.bftExecuted, true)
-    assert.equal(coordinated.result.spectralFluxExecuted, true)
-    assert.equal(coordinated.result.spectralEnergyExecuted, true)
-    assert.equal(coordinated.result.temporalEnergyExecuted, true)
-    assert.equal(coordinated.result.sourceBuiltNativeLibrary, true)
-    assert.equal(coordinated.result.callerMediaAllowed, false)
-    assert.equal(coordinated.result.qaOutcome, 'passed')
-    const replay = await createCanonicalPrivateAudioFluxAnalysisExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
-    assert.equal(replay.result.sha256, coordinated.result.sha256)
-    assert.equal(replay.replay.dispatchConsumptionReplayed, true)
-    assert.equal(replay.replay.executionFenceBeginReplayed, true)
-    assert.equal(replay.replay.executionFenceCompleteReplayed, true)
-    assert.equal(replay.replay.artifactRecordReplayed, true)
-    assert.equal(replay.replay.qaRecordReplayed, true)
-    assert.equal(replay.replay.reconciliationReplayed, true)
-    coordinatedArtifactId = coordinated.result.artifactId
-    coordinatedSha256 = coordinated.result.sha256
-  } else if (matrixRun.runnerKind === 'rembg') {
-    const executionInput = {
-      workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-      jobId: matrixRun.job.id, grantId: grant.grant.grantId,
-      purpose: 'execute_canonical_private_rembg_background_removal' as const,
-      idempotencyKey: `consume-${matrixRun.toolId}-matrix-root`,
-    }
-    const coordinated = await createCanonicalPrivateRembgBackgroundRemovalExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(coordinated.tool.canonicalToolId, 'rembg')
-    assert.equal(coordinated.tool.operationId, matrixRun.operationId)
-    assert.equal(coordinated.result.contentType, 'image/png')
-    assert.equal(coordinated.result.width, 128)
-    assert.equal(coordinated.result.height, 128)
-    assert.equal(coordinated.result.alphaMinimum, 0)
-    assert.equal(coordinated.result.alphaMaximum, 255)
-    assert.equal(coordinated.result.alphaUniqueValueCount, 160)
-    assert.equal(coordinated.result.foregroundAlphaMean, 226.802912)
-    assert.equal(coordinated.result.backgroundAlphaMean, 2.492606)
-    assert.equal(coordinated.result.foregroundSeparationVerified, true)
-    assert.equal(coordinated.runtime.modelSha256, '309c8469258dda742793dce0ebea8e6dd393174f89934733ecc8b14c76f4ddd8')
-    assert.equal(coordinated.result.qaOutcome, 'passed')
-    const replay = await createCanonicalPrivateRembgBackgroundRemovalExecutionService(context).execute(executionInput, executionAuthority)
-    assert.equal(replay.result.artifactId, coordinated.result.artifactId)
-    assert.equal(replay.result.sha256, coordinated.result.sha256)
-    assert.equal(replay.replay.dispatchConsumptionReplayed, true)
-    assert.equal(replay.replay.executionFenceBeginReplayed, true)
-    assert.equal(replay.replay.executionFenceCompleteReplayed, true)
-    assert.equal(replay.replay.artifactRecordReplayed, true)
-    assert.equal(replay.replay.qaRecordReplayed, true)
-    assert.equal(replay.replay.reconciliationReplayed, true)
-    coordinatedArtifactId = coordinated.result.artifactId
-    coordinatedSha256 = coordinated.result.sha256
-  } else if (matrixRun.runnerKind === 'deepfilternet') {
+  if (matrixRun.runnerKind === 'deepfilternet') {
     const executionInput = {
       workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
       jobId: matrixRun.job.id, grantId: grant.grant.grantId,
@@ -3270,6 +3156,10 @@ console.log(JSON.stringify({
     'server_derived_job_adapter_executes_bounded_ai_capability_tool_identities',
     'server_derived_job_adapter_executes_native_image_tool_identities',
     'server_derived_job_adapter_executes_native_audio_tool_identities',
+    'server_derived_job_adapter_executes_container_packaging_tool_identities',
+    'server_derived_job_adapter_executes_vapoursynth_frame_pipeline_identity',
+    'server_derived_job_adapter_executes_audioflux_analysis_identity',
+    'server_derived_job_adapter_executes_rembg_background_removal_identity',
     'echarts_exact_svg_canonical_lifecycle_verified',
     'vega_lite_exact_svg_canonical_lifecycle_verified',
     'vega_exact_svg_canonical_lifecycle_verified',

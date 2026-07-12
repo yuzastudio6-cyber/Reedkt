@@ -4,6 +4,8 @@ Status date: 2026-07-12
 
 Decision: `ready_for_draft_pr`
 
+Outcome: `draft_pr_open`
+
 Production ready: **No**
 
 ## Repository Identity
@@ -18,9 +20,9 @@ Production ready: **No**
 | PR base | `codex/reeditpro-web-ui-shell` |
 | PR base SHA | `e405e69e1a43fd2609854d8acaa7a4ef959b7e94` |
 | Strategy | Decision B — clean replay |
-| Current reviewed integration HEAD | `8b4921e128fecff14cb30e6e5657849f2bff471a` |
-| Draft PR | Pending creation |
-| Remote push | Pending |
+| Reviewed readiness HEAD | `2950f0870f5c0ed923c2686849b3bf8c36aff024` |
+| Draft PR | [#2493](https://github.com/yuzastudio6-cyber/Reedkt/pull/2493) |
+| Remote push | Completed without force |
 | Merge/deployment | Not authorized |
 
 The source branch remains preserved and unchanged as rollback evidence. Gate 9 does not push or rewrite it.

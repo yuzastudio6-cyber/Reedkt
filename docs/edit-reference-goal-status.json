@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "goal": "edit_reference_end_to_end",
   "status": "feature_complete_except_external_blocker",
-  "currentGate": "gate_9_pr_preparation",
+  "currentGate": "gate_9_draft_pr_open",
   "completedGates": [
     "gate_0",
     "gate_1",
@@ -13,7 +13,8 @@
     "gate_6",
     "gate_7",
     "gate_8",
-    "gate_8_1"
+    "gate_8_1",
+    "gate_9"
   ],
   "blockedGates": [],
   "sourceVerified": {
@@ -31,7 +32,7 @@
   "gate81StartingCommit": "08a0802d3d46ef630e3fb9bec3e3cbe0f1bdb1f4",
   "gate81LiveStudyCommit": "0e12652af4f7258ebbaeceb5bb3819ad4bb91196",
   "gate81ApplicationCommit": "64e61279dada0ef45eb16f61e7883ba6b530875e",
-  "latestCommit": "8b4921e128fecff14cb30e6e5657849f2bff471a",
+  "latestCommit": "2950f0870f5c0ed923c2686849b3bf8c36aff024",
   "canonicalWorktree": "/Users/macuser/Developer/REeditpro-edit-reference-pr",
   "branch": "codex/edit-reference-end-to-end",
   "migrationBaseline": 24,
@@ -54,10 +55,11 @@
       "257a64922cbb4f778ebe7ea63dd03a560dcbd8dc",
       "8b4921e128fecff14cb30e6e5657849f2bff471a"
     ],
-    "prStatus": "local_pr_preparation",
-    "prNumber": null,
-    "prUrl": null,
-    "prHeadSha": null,
+    "readinessCommit": "2950f0870f5c0ed923c2686849b3bf8c36aff024",
+    "prStatus": "draft_pr_open",
+    "prNumber": 2493,
+    "prUrl": "https://github.com/yuzastudio6-cyber/Reedkt/pull/2493",
+    "prHeadSha": "2950f0870f5c0ed923c2686849b3bf8c36aff024",
     "changedFileCount": 162,
     "packageLockChanged": false,
     "fullPlaywright": {

@@ -41,8 +41,9 @@ Decision B was selected. Only the 21 Edit Reference Gate 0–8.1 commits were re
 | `7cb122a34b0d3cf9d261aca3273d7574b82ab834` | Reconcile Edit References, Workspace Defaults, deterministic browser hashing, Preference DNA dependencies, and dedicated Chat/Brief routes with the selected remote base |
 | `257a64922cbb4f778ebe7ea63dd03a560dcbd8dc` | Align stale remote-base browser expectations with the active route and navigation architecture |
 | `8b4921e128fecff14cb30e6e5657849f2bff471a` | Strengthen safe local auth/upload/preview browser verification while preserving live-provider gates |
+| `2950f0870f5c0ed923c2686849b3bf8c36aff024` | Add draft-PR readiness evidence and reconcile current route regression checks |
 
-A final PR-readiness evidence commit and a post-PR status commit are added after verification and draft PR creation.
+A final post-PR status commit records the draft PR after creation.
 
 ## Excluded Source-Only Integration Commits
 

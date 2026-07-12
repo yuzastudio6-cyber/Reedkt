@@ -4,7 +4,7 @@ Status date: 2026-07-12
 
 Overall status: `feature_complete_except_external_blocker`
 
-Current gate: `gate_9_pr_preparation`
+Current gate: `gate_9_draft_pr_open`
 
 Production ready: **No**
 
@@ -23,7 +23,8 @@ Production ready: **No**
 - Source migration baseline: 21
 - Selected remote-base and PR-branch migration count: 24
 - Package lock: unchanged from the selected remote base
-- Push/PR/remote merge: draft push and draft PR are authorized by Gate 9; no merge or deployment is authorized
+- Push/PR: branch pushed normally and draft PR [#2493](https://github.com/yuzastudio6-cyber/Reedkt/pull/2493) opened against `codex/reeditpro-web-ui-shell`
+- Remote merge/deployment: not authorized or performed
 
 ## Gate Ledger
 
@@ -39,7 +40,7 @@ Production ready: **No**
 | Gate 7 — closure | Complete | `42d34cdc04179c6808a4c3f23286885daf116006` | Exact replace/remove lifecycle, immutable version links, approval reset, downstream invalidation and replan state, retry/recovery, responsive UI, privacy scans, full regression, and final readiness classification passed |
 | Gate 8 — final beta readiness | Complete | `7ff15993c505af65abcbc61e0db259061f583e25` | Gates 0–7 implementation audit, Study Chat correction, stale-read guards, accessibility repairs, 3-case adaptation proof, one complete browser journey, 58/58 browser tests, full backend/security regressions, evidence reports, and PR inventory passed |
 | Gate 8.1 — application entry points and live-study closure | Complete | `0e12652af4f7258ebbaeceb5bb3819ad4bb91196`, `64e61279dada0ef45eb16f61e7883ba6b530875e` | Initial New Edit selector, Edit Chat commands, one canonical application, private FFprobe/FFmpeg study, ephemeral frames, truthful semantic blockers, reload recovery, 60/60 browser tests, and closure smoke passed |
-| Gate 9 — branch reconciliation and draft PR | In progress | `7cb122a34b0d3cf9d261aca3273d7574b82ab834`, `257a64922cbb4f778ebe7ea63dd03a560dcbd8dc`, `8b4921e128fecff14cb30e6e5657849f2bff471a` | Clean-replay strategy selected; active routes, UI authority, local browser gates, and remote-base regressions reconciled. Draft PR evidence and final push remain pending. |
+| Gate 9 — branch reconciliation and draft PR | Complete | `7cb122a34b0d3cf9d261aca3273d7574b82ab834`, `257a64922cbb4f778ebe7ea63dd03a560dcbd8dc`, `8b4921e128fecff14cb30e6e5657849f2bff471a`, `2950f0870f5c0ed923c2686849b3bf8c36aff024` | Clean replay, active-route/UI reconciliation, strict branch checks, 43-test browser verification, non-force push, and draft PR #2493 completed. Merge and deployment remain unauthorized. |
 
 ## Current QA State
 

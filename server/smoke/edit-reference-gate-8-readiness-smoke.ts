@@ -104,7 +104,7 @@ const baseReconciliation = read('docs/edit-reference-draft-pr-base-reconciliatio
 assert.equal(status.goal, 'edit_reference_end_to_end')
 assert.equal(status.status, 'feature_complete_except_external_blocker')
 assert.match(status.currentGate, /^gate_9_/)
-assert.deepEqual(status.completedGates, [...Array.from({ length: 9 }, (_, index) => `gate_${index}`), 'gate_8_1'])
+assert.deepEqual(status.completedGates, [...Array.from({ length: 9 }, (_, index) => `gate_${index}`), 'gate_8_1', 'gate_9'])
 assert.deepEqual(status.blockedGates, [])
 assert.equal(status.gate7ImplementationCommit, '42d34cdc04179c6808a4c3f23286885daf116006')
 assert.equal(status.gate7VerificationCommit, 'abb3b9548baa92c5bcdd4d5cee45a53e1ef6f66e')

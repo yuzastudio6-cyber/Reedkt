@@ -585,3 +585,60 @@ connected application A
 - Supabase CLI/SQL/remote mutation: not performed.
 - Provider/media/worker/render/credit execution: not performed.
 - Production ready: false.
+
+## Gate 8 — Final Beta Readiness And PR Preparation — 2026-07-11
+
+### Commit
+
+- Implementation commit: `7ff15993c505af65abcbc61e0db259061f583e25`
+- Message: `Close Edit Reference beta readiness gaps`
+- Gate 7 implementation inspected: `42d34cdc04179c6808a4c3f23286885daf116006`
+- Gate 7 verification inspected: `abb3b9548baa92c5bcdd4d5cee45a53e1ef6f66e`
+- Migration count before/after: 21 / 21
+- Production ready: false
+
+### Audit Repairs
+
+- Study Chat can now explicitly correct one active saved creative-evidence record. The service atomically appends the chat pair and successor evidence, keeps the prior evidence as superseded history, invalidates an active unapproved DNA candidate, resets study/DNA/QA readiness, and requires restudy.
+- Request epochs prevent delayed older Edit Reference or Project Edit Session integration reads from overwriting newer state.
+- Saved-reference selection has semantic selected state; replacement radios support Arrow keys and Home/End; removal uses a labelled alert dialog with safe initial focus; the full Study Chat thread is no longer one live region.
+- Three controlled adaptation cases now prove target-specific applied/adapted/context-only/blocked decisions, exact copy boundaries, zero clarifications for complete inputs, and zero production effects.
+- One complete browser spec covers creation through evidence, correction, DNA, QA/approval, target connection, every downstream consumer, reload, replacement, removal, history, responsiveness, and a deliberately delayed stale response.
+- The stale beta core-user-flow smoke was reconciled with the later accepted `/internal-testing` browser-QA route instead of asserting obsolete pre-import behavior.
+
+### Verification Results
+
+| Command / check | Result | Evidence |
+| --- | --- | --- |
+| All registered Edit Reference smokes | Pass | repository, routes/client, UI, evidence, DNA, QA/approval, target, downstream, lifecycle, and 3-case adaptation |
+| `npm run smoke:edit-reference-adaptation-proof` | Pass | travel → educational product, travel → travel talking head, educational → product demo |
+| App/server TypeScript, ESLint, frontend boundary | Pass | no failures; 663 frontend files remain server-runtime free |
+| Client/server builds | Pass | existing client chunk-size warning disclosed; no failure |
+| Focused Gate 8 Playwright | Pass | 2/2 full journey and stale-response tests |
+| Full Chromium Playwright | Pass | 58/58 with five workers in 45.0 seconds |
+| Project/Edit Brief/Marker regression groups | Pass | repository, routes, clients, bridges, Plan Hints, QA, and browser flows |
+| Preference Video/DNA/Edit Preference/Edit Level groups | Pass | compatibility and policy surfaces remain truthful |
+| Qwen/visual boundaries and secret checks | Pass | no new live provider call and no secret leakage |
+| Media/security/tool/cost/audio boundaries | Pass | safe local/fail-closed behavior and no external effects |
+| Persistence/readback | Pass backend-local | every record family and lifecycle survives recreation/reload |
+| Migration count | Pass | 21; no SQL or remote Supabase action |
+
+No test was removed, weakened, or silently skipped. UI/UX authority remained `design.md` and `design-system/`, then current ReEditPro architecture, then UI UX Pro Max as supporting guidance only.
+
+### Final Readiness
+
+- Acceptance matrix failed rows: 0.
+- Supported selector-based backend-local workflow: complete.
+- Browser QA: 58/58.
+- Adaptation-vs-copying proof: 3/3.
+- Persistence/security/privacy reports: passed for backend-local scope with external gates disclosed.
+- Known limitations and rollback: documented.
+- Final decision: `ready_for_pr_review`.
+- Production ready: false.
+
+### Remote State
+
+- Push/PR/remote merge: not performed.
+- Supabase CLI/SQL/remote mutation: not performed.
+- Provider/media/worker/generation/render/export/credit execution: not performed.
+- Historical/reference repository mutation: not performed.

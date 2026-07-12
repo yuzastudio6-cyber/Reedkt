@@ -1,6 +1,6 @@
 # Edit Reference Definition Of Done
 
-Status: `fulfilled_backend_local`
+Status: `fulfilled_backend_local_gate_8_audited`
 
 Edit Reference is not complete when types, mock labels, a profile card, or a local provider proof exists. It is complete only when the same canonical system demonstrates the full user journey and all evidence gates below.
 
@@ -87,6 +87,6 @@ A tester must be able to:
 
 ## Completion Evidence
 
-Gates 1–7 satisfy the required journey in the canonical backend-local system, including exact-version DNA approval, target-aware adaptation, downstream Project Edit Session/Edit Brief/Marker Chat/Plan Hint/QA use, reload, replacement, removal, immutable history, downstream invalidation, privacy, responsive browser behavior, and regression coverage. The implementation authority is recorded in `docs/edit-reference-gate-7-lifecycle-closure.md` and the append-only verification log.
+Gates 1–8 satisfy and audit the supported selector-based journey in the canonical backend-local system, including Study Chat evidence correction, exact-version DNA approval, target-aware adaptation, downstream Project Edit Session/Edit Brief/Marker Chat/Plan Hint/QA use, reload, replacement, removal, immutable history, downstream invalidation, privacy, responsive browser behavior, stale-response protection, three-case adaptation proof, and 58-test browser regression coverage. The final implementation authority is recorded in `docs/edit-reference-gate-8-beta-readiness.md` and the append-only verification log.
 
-This does not satisfy the separate production-readiness conditions above. Production database/RLS/cross-device authority, live media/provider skills, distributed workers, observability, and release evidence remain blocked or unverified.
+The initial New Edit selector and chat `@reference` tag route are not implemented; the approved-reference selector inside the target Project Edit Session is the complete supported lane. This does not satisfy the separate production-readiness conditions above. Production database/RLS/cross-device authority, live media/provider skills, distributed workers, observability, and release evidence remain blocked or unverified.

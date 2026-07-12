@@ -1,6 +1,6 @@
 # Edit Reference UI Contract
 
-Status: `gate_7_lifecycle_closure_authority`
+Status: `gate_8_beta_readiness_authority`
 
 This contract governs the Edit Preferences route while preserving ReEditPro's chat-first, approval-first, desktop/web product laws. It does not authorize media analysis, providers, workers, rendering, credits, or production persistence.
 
@@ -54,6 +54,8 @@ The selected row exposes text and semantic selection state, not color alone.
 - Reload-safe conversation.
 
 The center remains conversational. It must not become a settings form or technical card wall. Study Chat is separate from the main Project Edit Chat and cannot start editing execution.
+
+When findings already exist, Study Chat may let the user explicitly select one active saved creative-evidence record and save the new message as its correction. The correction appends a successor evidence version, leaves the earlier record visible as superseded history, marks current findings stale, and requires restudy before DNA can be generated or used. An ordinary message remains direction only. The UI must never silently guess which evidence a message corrects.
 
 ### Right — Preference DNA And QA Inspector
 
@@ -190,6 +192,9 @@ Authority order is `design.md` and `design-system/`, then current ReEditPro UI/U
 - Selected reference and statuses include text.
 - Every input and composer has a label.
 - Icon-only actions have accessible names.
+- Saved-reference selection exposes a semantic selected state, not color alone.
+- Replacement radio groups support Arrow keys and Home/End with roving focus.
+- Destructive removal uses a labelled confirmation with the safe action focused first.
 - Focus remains visible and clear of sticky composer/chrome.
 - Per-message live regions only for new status/error events; the full thread is not a live region.
 - Reduced motion disables nonessential transitions.

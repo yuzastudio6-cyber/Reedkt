@@ -1,6 +1,6 @@
 # Edit Reference Persistence Contract
 
-Status: `gate_7_backend_local_contract_complete`
+Status: `gate_8_backend_local_contract_audited`
 
 This contract defines one canonical persistence architecture for Edit Reference. Gate 1 implements its backend-local durable lane. Production database persistence remains fail-closed until the canonical Supabase chain, RLS, tenancy, and transaction evidence pass.
 
@@ -17,7 +17,7 @@ This contract defines one canonical persistence architecture for Edit Reference.
 - `PreferenceApplication`
 - `PreferenceUsageLog`
 
-Gate 1 fully persists references, study sessions, and study messages. Gate 2 adds evidence, assets, and skill runs. Gate 3 adds immutable Preference DNA candidates. Gate 4 adds exact-version QA results and approval snapshots. Gate 5 adds immutable target-context adaptation records with an explicit not-connected boundary. Gate 6 adds the exact mock Project Edit Session receipt, deterministic downstream context, and connected lifecycle while reusing the existing mock Project Edit Session and Edit Brief repositories. Gate 7 closes replacement/removal, immutable lifecycle history, and downstream invalidation/replan behavior. Production-database authority remains fail-closed.
+Gate 1 fully persists references, study sessions, and study messages. Gate 2 adds evidence, assets, and skill runs. Gate 3 adds immutable Preference DNA candidates. Gate 4 adds exact-version QA results and approval snapshots. Gate 5 adds immutable target-context adaptation records with an explicit not-connected boundary. Gate 6 adds the exact mock Project Edit Session receipt, deterministic downstream context, and connected lifecycle while reusing the existing mock Project Edit Session and Edit Brief repositories. Gate 7 closes replacement/removal, immutable lifecycle history, and downstream invalidation/replan behavior. Gate 8 adds no new persistence family; it audits readback and lets an explicit Study Chat correction atomically append both messages and one successor evidence record before resetting study/DNA/QA readiness. Production-database authority remains fail-closed.
 
 ## Scope And Identity
 
@@ -263,7 +263,7 @@ The production seam reports `blocked_by_migration_baseline` and performs no read
 - route-specific atomic idempotency transactions are missing;
 - live catalog/storage/security evidence is missing.
 
-Gates 1–7 add no SQL migration. Migration baseline/current remain 21.
+Gates 1–8 add no SQL migration. Migration baseline/current remain 21.
 
 ## Persistence Acceptance
 

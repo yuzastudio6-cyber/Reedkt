@@ -1,6 +1,6 @@
 # Edit Reference Skill Registry
 
-Status: `gate_4_registry_with_dna_qa_approval`
+Status: `gate_8_registry_reconciled_with_provenance_report`
 
 This registry records capability truth, not product aspiration. A tool can back an Edit Reference skill only when an implemented adapter/service, typed input/output contract, proof, safe fallback, privacy boundary, and provenance policy exist.
 
@@ -184,7 +184,7 @@ Existing proof is reusable evidence; it does not mean an Edit Reference study ex
 - outputs: Target-specific application package, plan hints, QA conditions, downstream context summaries, and invalidation effects.
 - toolOrRuntime: Canonical mock Preference DNA application and Project Edit Session/Brief/Marker bridges.
 - readinessStatus: `verified_mock`
-- proofCommand: `npm run smoke:preference-dna-application && npm run smoke:project-edit-brief-marker-context`
+- proofCommand: `npm run smoke:edit-reference-target-application && npm run smoke:edit-reference-adaptation-proof && npm run smoke:edit-reference-downstream-integration && npm run smoke:edit-reference-lifecycle-closure`
 - fallback: Legacy preference or no-reference route, explicitly labelled; blocked DNA never silently applies.
 - sideEffects: Metadata/hints only in current proof; no plan approval, provider, worker, render, or credit activity.
 - privacyPolicy: Downstream contexts exclude full study chat, raw media/frames, provider payloads, secrets, and unrelated project history.
@@ -243,3 +243,54 @@ Gate 4 executes `edit_reference.preference_dna.qa` through the canonical Edit Re
 - `edit_reference.target_adaptation.application` does not run in Gate 4.
 
 Exact behavior proof: `npm run smoke:edit-reference-dna-qa-approval`.
+
+## Gate 5 Execution Evidence
+
+Gate 5 executes `edit_reference.target_adaptation.application` with deterministic `verified_mock` truth:
+
+- only an exact approved, QA-reviewed DNA version can prepare an application;
+- each target snapshot confirms source mode, content, instruction, story role, platform, frame, edit level, budget, and constraints;
+- every DNA rule becomes one adapted, context-only, or blocked decision with explicit precedence and explanation;
+- reference-specific footage, timing, captions, sequence, music/SFX, layouts, brands, people, and identity stay blocked;
+- immutable application/target digests and durable replay are validated on read;
+- no target edit, plan, provider, media, worker, render, or credit state changes.
+
+Exact behavior proof: `npm run smoke:edit-reference-target-application`.
+
+## Gate 6 Execution Evidence
+
+Gate 6 connects the exact prepared application to the existing backend-local Project Edit Session authority, then exposes only a bounded downstream context:
+
+- inactive staging and approval reset occur before server connection;
+- exact target/session/frame/platform/level/context receipts must match;
+- Project Edit Session, Edit Brief, Marker Context, Marker Chat, Plan Hints, and QA consume the same bounded context;
+- confirmed target markers and current instructions outrank reusable DNA;
+- provider/media/worker/render/credit flags remain false.
+
+Exact behavior proof: `npm run smoke:edit-reference-downstream-integration`.
+
+## Gate 7 Execution Evidence
+
+Gate 7 preserves immutable lifecycle history while replacing or removing guidance:
+
+- invalidation removes old active context before a replacement is prepared;
+- application versions are monotonic with immutable prior/next links;
+- removal preserves cleared application, usage, audit, and downstream history;
+- reload/recovery cannot reactivate replaced or removed context;
+- affected Brief/Marker/Plan/QA state requires replan;
+- no approved plan, provider, media, worker, render, or credit state is changed.
+
+Exact behavior proof: `npm run smoke:edit-reference-lifecycle-closure`.
+
+## Gate 8 Reconciliation Evidence
+
+Gate 8 separates registry capability readiness from per-study runtime truth and records the complete result in `docs/edit-reference-skill-provenance-report.md`:
+
+- 12 registry families retain typed input/output, proof, fallback/failure, privacy, and provenance fields;
+- current totals are 2 `verified_live`, 8 `verified_mock`, 1 `degraded`, and 1 `blocked`;
+- the two live-capable Qwen adapters were not called merely to refresh a label;
+- Gate 8 studies used labelled deterministic/manual fallbacks and an explicit blocked speech/pacing result;
+- three target adaptations proved context-only/blocked rules, target-specific guidance, and zero production side effects;
+- provider, media, worker, generation, render, credit, and remote-persistence calls remained false.
+
+Exact behavior proof: `npm run smoke:edit-reference-evidence-study && npm run smoke:edit-reference-adaptation-proof && npm run smoke:edit-reference-gate-8-readiness`.

@@ -2,9 +2,9 @@
 
 Status date: 2026-07-11
 
-Overall status: `complete_backend_local`
+Overall status: `ready_for_pr_review`
 
-Current gate: `complete`
+Current gate: `gate_8_complete`
 
 Production ready: **No**
 
@@ -13,6 +13,8 @@ Production ready: **No**
 - Worktree: `/Volumes/backup/REeditpro-beta-integration-4`
 - Branch: `codex/beta-integration-reconcile`
 - Starting commit: `48540ee9b3d14c8345b0cedf11b6b449424324c3`
+- Gate 7 implementation/verification: `42d34cdc04179c6808a4c3f23286885daf116006` / `abb3b9548baa92c5bcdd4d5cee45a53e1ef6f66e`
+- Gate 8 implementation: `7ff15993c505af65abcbc61e0db259061f583e25`
 - Starting tree: clean
 - Migration baseline: 21
 - Migration current: 21
@@ -30,14 +32,16 @@ Production ready: **No**
 | Gate 5 — target-video adaptation and Preference Application | Complete | `17b67a871b061df2c7a4327d00a5d37f22512e22` | Exact approved-version authority, caller-confirmed target snapshots, deterministic two-target adaptation, precedence/copy safety, immutable applications, authenticated API/client/UI, responsive review, replay, privacy, and reload proof passed |
 | Gate 6 — downstream edit integration | Complete | `a09bc3da30de20a5bd80db8e0f89c55f74d3e27d` | Exact mock target verification, recoverable stage/connect/activate flow, bounded context, Project Edit Session/Brief/Marker Chat/Plan Hint/QA handoffs, precedence, persistence, responsive browser proof, and regression coverage passed |
 | Gate 7 — closure | Complete | `42d34cdc04179c6808a4c3f23286885daf116006` | Exact replace/remove lifecycle, immutable version links, approval reset, downstream invalidation and replan state, retry/recovery, responsive UI, privacy scans, full regression, and final readiness classification passed |
+| Gate 8 — final beta readiness | Complete | `7ff15993c505af65abcbc61e0db259061f583e25` | Gates 0–7 implementation audit, Study Chat correction, stale-read guards, accessibility repairs, 3-case adaptation proof, one complete browser journey, 58/58 browser tests, full backend/security regressions, evidence reports, and PR inventory passed |
 
 ## Current QA State
 
-- Browser QA: `passed_backend_local`
-- Runtime QA: `passed_backend_local`
-- Persistence QA: `passed_backend_local`
+- Browser QA: `passed_58_of_58_backend_local`
+- Backend QA: `passed_backend_local`
+- Runtime QA: `passed_backend_local_with_external_limits`
+- Persistence QA: `passed_backend_local_remote_blocked`
 - Supabase production QA: blocked by the existing migration-baseline gate
-- Provider/media execution: not enabled; Gates 1–7 performed none
+- Provider/media execution: not enabled; Gates 1–8 performed none
 
 ## Current Truth
 
@@ -52,7 +56,8 @@ Production ready: **No**
 - Gate 5 implemented exact approved-version target applications, caller-confirmed target snapshots, target-aware rule decisions, explicit precedence, direct-copy rejection, voice-first versus silent-visual adaptation, real Applied Edits records, and backend-local reload without changing a target edit or starting production.
 - Gate 6 implemented exact mock Project Edit Session target verification, inactive staging, authenticated connection, safe activation/recovery, bounded Edit Brief and Marker Chat context, lower-priority Plan Hints, confirmed-marker holdback, QA, reload, and responsive UI without approved-plan or production execution.
 - Gate 7 implemented exact replacement/removal, monotonic application versions, bidirectional history links, approval reset, downstream invalidation receipts, Edit Brief/Marker/Plan/QA replan state, safe retries, reload/recovery, and responsive lifecycle review without mutating approved history.
-- The required backend-local Edit Reference journey is complete. Live providers/media and production persistence remain intentionally unimplemented behind their named gates.
+- Gate 8 independently audited the implementation, made Study Chat corrections versioned/actionable, guarded stale reads, completed keyboard/screen-reader behavior, added three controlled target adaptations and a single complete browser path, and reconciled skill/persistence/security truth.
+- The supported selector-based backend-local Edit Reference journey is complete and ready for PR review. Live providers/media and production persistence remain intentionally unimplemented behind their named gates.
 
 ## Blockers Carried Forward
 
@@ -61,9 +66,11 @@ Production ready: **No**
 - Live Edit Reference media-study skills still need capability-specific adapters, proof, and ephemeral-media privacy controls; Gate 2 uses truthful manual/metadata fallback only.
 - Connected target applications are verified only against the canonical mock Project Edit Session receipt; production database identity and cross-device authority remain unverified.
 - Local tests cannot establish production readiness.
+- Initial New Edit selection and chat `@reference` tagging remain absent; the approved-reference selector inside the target Project Edit Session is the supported complete lane.
+- Automated production retention/deletion, distributed observability, provider/render/credit/billing execution, and production operations remain unverified.
 
 ## Completion Classification
 
-`complete_backend_local` means the canonical backend-local workflow, browser journey, persistence/reload behavior, replacement/removal lifecycle, privacy boundaries, and adaptation regressions are verified. It does not mean production database, cross-device tenancy, live media/provider execution, distributed workers, customer charging, or release infrastructure is ready.
+`ready_for_pr_review` means the canonical backend-local workflow, full 58-test browser journey, three-case adaptation proof, persistence/reload behavior, replacement/removal lifecycle, privacy boundaries, limitations, and file inventory are ready for local code review. It does not mean production database, cross-device tenancy, live media/provider execution, distributed workers, customer charging, deployment, monitoring, or release infrastructure is ready.
 
 The machine-readable source is `docs/edit-reference-goal-status.json`.

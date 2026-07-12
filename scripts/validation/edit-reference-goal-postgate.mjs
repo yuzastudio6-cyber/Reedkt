@@ -24,9 +24,20 @@ const REQUIRED_FILES = [
   'docs/edit-reference-gate-5-target-application.md',
   'docs/edit-reference-gate-6-downstream-integration.md',
   'docs/edit-reference-gate-7-lifecycle-closure.md',
+  'docs/edit-reference-gate-8-beta-readiness.md',
+  'docs/edit-reference-final-acceptance-matrix.md',
+  'docs/edit-reference-adaptation-proof.md',
+  'docs/edit-reference-skill-provenance-report.md',
+  'docs/edit-reference-persistence-readback-report.md',
+  'docs/edit-reference-security-privacy-report.md',
+  'docs/edit-reference-browser-e2e-report.md',
+  'docs/edit-reference-known-limitations.md',
+  'docs/edit-reference-pr-file-inventory.md',
+  'docs/edit-reference-rollback-plan.md',
   'scripts/validation/edit-reference-goal-preflight.mjs',
   'scripts/validation/edit-reference-goal-postgate.mjs',
   'server/smoke/edit-reference-goal-control-plane-smoke.ts',
+  'server/smoke/edit-reference-gate-8-readiness-smoke.ts',
 ]
 
 function runGit(args, { allowFailure = false } = {}) {
@@ -133,6 +144,7 @@ for (const scriptName of [
   'check:edit-reference-goal-preflight',
   'check:edit-reference-goal-postgate',
   'smoke:edit-reference-goal-control-plane',
+  'smoke:edit-reference-gate-8-readiness',
 ]) {
   if (typeof packageJson.scripts?.[scriptName] !== 'string') failures.push(`package.json is missing ${scriptName}.`)
 }

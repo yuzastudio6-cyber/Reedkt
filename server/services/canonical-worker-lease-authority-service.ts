@@ -465,17 +465,22 @@ async function mutateInternalExecutionFence(
 
   const secret = authorizeLeaseMutationRuntime(context)
   const access = await authorizeWorkspaceAccess(context, body.workspaceId, 'write')
-  const eligibility = await loadLeaseEligibleJobReadiness(context, body)
-  const canonicalHashes = hashesFromReadiness(eligibility.readiness)
   const scope = leaseStoreScope(context, access.userId, access.workspaceId)
-  const timestamp = new Date().toISOString()
-  const outcome = await mutatePrivateCanonicalWorkerLeaseAggregate<LeaseMutationOutcome<{
-    lease: CanonicalWorkerLeaseRecord
-    replayed: boolean
-  }>>({
-    scope,
-    now: timestamp,
-    mutation: (aggregate) => {
+  return withCanonicalExecutionDomainLock({
+    ...scope,
+    projectId: body.projectId,
+    editSessionId: body.editSessionId,
+  }, async () => {
+    const eligibility = await loadLeaseEligibleJobReadiness(context, body)
+    const canonicalHashes = hashesFromReadiness(eligibility.readiness)
+    const timestamp = new Date().toISOString()
+    const outcome = await mutatePrivateCanonicalWorkerLeaseAggregate<LeaseMutationOutcome<{
+      lease: CanonicalWorkerLeaseRecord
+      replayed: boolean
+    }>>({
+      scope,
+      now: timestamp,
+      mutation: (aggregate) => {
       const expirationChanged = expireActiveLeases(aggregate, timestamp)
       const lease = findScopedLease(aggregate, body)
       if (!lease) return mutationError(workerLeaseUnavailable(), expirationChanged)
@@ -545,16 +550,17 @@ async function mutateInternalExecutionFence(
       }
       aggregate.auditEvents.push(auditEvent('execution_completed', lease, timestamp))
       return mutationSuccess({ lease: structuredClone(lease), replayed: false }, true)
-    },
+      },
+    })
+    const { lease, replayed } = unwrapMutation(outcome)
+    const executionFence = requireCommittedExecutionFence(lease.executionFence, operation)
+    return {
+      lease,
+      executionFence,
+      replayed,
+      testOnly: true,
+    }
   })
-  const { lease, replayed } = unwrapMutation(outcome)
-  const executionFence = requireCommittedExecutionFence(lease.executionFence, operation)
-  return {
-    lease,
-    executionFence,
-    replayed,
-    testOnly: true,
-  }
 }
 
 function assertExactInternalExecutionInput(

@@ -1719,6 +1719,104 @@ try {
     consumedDispatchCancellationEnvelope.error?.details?.requiredGate,
     'canonical_consumed_dispatch_cancellation_and_compensation',
   )
+  const leaseFixtureExecutionDomainScope = {
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+    projectId: routeProjectId,
+    editSessionId: leaseFixtureEditSessionId,
+  }
+  let releaseBeginFenceLock: () => void = () => undefined
+  let markBeginFenceLockEntered: () => void = () => undefined
+  const beginFenceLockEntered = new Promise<void>((resolve) => {
+    markBeginFenceLockEntered = resolve
+  })
+  const holdBeginFenceLock = new Promise<void>((resolve) => {
+    releaseBeginFenceLock = resolve
+  })
+  const beginFenceLock = withCanonicalExecutionDomainLock(leaseFixtureExecutionDomainScope, async () => {
+    markBeginFenceLockEntered()
+    await holdBeginFenceLock
+  })
+  await beginFenceLockEntered
+  let beginFenceSettled = false
+  const beginFence = createCanonicalWorkerLeaseAuthorityService(context).beginInternalExecution({
+    workspaceId: routeWorkspaceId,
+    projectId: routeProjectId,
+    editSessionId: leaseFixtureEditSessionId,
+    jobId: leaseFixtureAuthorityJob.id,
+    leaseId: leaseFixtureClaim.lease.leaseId,
+    leaseCredential: leaseFixtureClaim.leaseCredential,
+    runnerClass: 'canonical_execution_domain_lock_probe_v1',
+  }).finally(() => {
+    beginFenceSettled = true
+  })
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  assert.equal(beginFenceSettled, false)
+  releaseBeginFenceLock()
+  await beginFenceLock
+  const begunFence = await beginFence
+  assert.equal(begunFence.executionFence.state, 'started')
+  assert.equal(begunFence.replayed, false)
+  const begunFenceReplay = await createCanonicalWorkerLeaseAuthorityService(context).beginInternalExecution({
+    workspaceId: routeWorkspaceId,
+    projectId: routeProjectId,
+    editSessionId: leaseFixtureEditSessionId,
+    jobId: leaseFixtureAuthorityJob.id,
+    leaseId: leaseFixtureClaim.lease.leaseId,
+    leaseCredential: leaseFixtureClaim.leaseCredential,
+    runnerClass: 'canonical_execution_domain_lock_probe_v1',
+  })
+  assert.equal(begunFenceReplay.replayed, true)
+  assert.equal(
+    begunFenceReplay.executionFence.executionAttemptId,
+    begunFence.executionFence.executionAttemptId,
+  )
+
+  let releaseCompleteFenceLock: () => void = () => undefined
+  let markCompleteFenceLockEntered: () => void = () => undefined
+  const completeFenceLockEntered = new Promise<void>((resolve) => {
+    markCompleteFenceLockEntered = resolve
+  })
+  const holdCompleteFenceLock = new Promise<void>((resolve) => {
+    releaseCompleteFenceLock = resolve
+  })
+  const completeFenceLock = withCanonicalExecutionDomainLock(leaseFixtureExecutionDomainScope, async () => {
+    markCompleteFenceLockEntered()
+    await holdCompleteFenceLock
+  })
+  await completeFenceLockEntered
+  let completeFenceSettled = false
+  const completeFence = createCanonicalWorkerLeaseAuthorityService(context).completeInternalExecution({
+    workspaceId: routeWorkspaceId,
+    projectId: routeProjectId,
+    editSessionId: leaseFixtureEditSessionId,
+    jobId: leaseFixtureAuthorityJob.id,
+    leaseId: leaseFixtureClaim.lease.leaseId,
+    leaseCredential: leaseFixtureClaim.leaseCredential,
+    runnerClass: 'canonical_execution_domain_lock_probe_v1',
+    executionAttemptId: begunFence.executionFence.executionAttemptId,
+  }).finally(() => {
+    completeFenceSettled = true
+  })
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  assert.equal(completeFenceSettled, false)
+  releaseCompleteFenceLock()
+  await completeFenceLock
+  const completedFence = await completeFence
+  assert.equal(completedFence.executionFence.state, 'completed')
+  assert.equal(completedFence.replayed, false)
+  const completedFenceReplay = await createCanonicalWorkerLeaseAuthorityService(context).completeInternalExecution({
+    workspaceId: routeWorkspaceId,
+    projectId: routeProjectId,
+    editSessionId: leaseFixtureEditSessionId,
+    jobId: leaseFixtureAuthorityJob.id,
+    leaseId: leaseFixtureClaim.lease.leaseId,
+    leaseCredential: leaseFixtureClaim.leaseCredential,
+    runnerClass: 'canonical_execution_domain_lock_probe_v1',
+    executionAttemptId: begunFence.executionFence.executionAttemptId,
+  })
+  assert.equal(completedFenceReplay.replayed, true)
   const routeDispatchAggregate = await readPrivateCanonicalToolDispatchAggregate({
     localStorageRoot,
     ownerUserId: userId,
@@ -1897,6 +1995,7 @@ console.log(JSON.stringify({
     'cancellation_is_idempotent_conflict_safe_and_has_no_customer_tool_provider_render_or_delivery_side_effect',
     'packaged_unconsumed_dispatch_is_revoked_and_never_started_lease_is_released_before_cancellation_finalizes',
     'shared_execution_domain_fence_serializes_dispatch_authorization_lease_creation_and_cancellation',
+    'shared_execution_domain_fence_serializes_worker_execution_begin_and_complete',
     'cancellation_fails_closed_after_dispatch_consumption',
     'cancellation_fails_closed_after_execution_fence_start',
     'authenticated_fail_closed_tool_runtime_evidence_http_route',

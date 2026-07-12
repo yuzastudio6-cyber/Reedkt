@@ -11,9 +11,10 @@ export interface CanonicalExecutionDomainScope {
 const executionDomainLocks = new Map<string, Promise<void>>()
 
 /**
- * Serializes lease claim, dispatch authorization/consumption, and cancellation
- * for one private single-host edit. Production remains blocked until the same
- * fence is enforced by durable transactional authority.
+ * Serializes lease claim, dispatch authorization/consumption, worker execution
+ * fence transitions, and cancellation for one private single-host edit.
+ * Production remains blocked until the same fence is enforced by durable
+ * transactional authority.
  */
 export async function withCanonicalExecutionDomainLock<T>(
   scope: CanonicalExecutionDomainScope,

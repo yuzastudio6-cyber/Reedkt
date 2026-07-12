@@ -15,6 +15,7 @@ export const canonicalEditJourneyStageSchema = z.enum([
   'plan_approval_required',
   'approved_snapshot_available',
   'execution_in_progress',
+  'private_review_assembly_required',
   'private_review_ready',
   'private_review_accepted',
   'revision_requested',
@@ -30,6 +31,7 @@ type JourneyAuthorityField =
   | 'plan'
   | 'approval'
   | 'execution'
+  | 'workGraph'
   | 'review'
 
 const actionByStage = {
@@ -50,6 +52,9 @@ const actionByStage = {
   },
   execution_in_progress: {
     code: 'run_private_work_graph', actor: 'internal_service', method: 'POST',
+  },
+  private_review_assembly_required: {
+    code: 'assemble_private_review', actor: 'internal_service', method: 'POST',
   },
   private_review_ready: {
     code: 'record_private_review_decision', actor: 'authenticated_user', method: 'POST',
@@ -75,26 +80,30 @@ const actionByStage = {
 const authorityFieldsByStage = {
   planning_handoff_required: {
     required: [],
-    forbidden: ['planningHandoff', 'publicationRequest', 'plan', 'approval', 'execution', 'review'],
+    forbidden: ['planningHandoff', 'publicationRequest', 'plan', 'approval', 'execution', 'workGraph', 'review'],
   },
   publication_request_required: {
     required: ['planningHandoff'],
-    forbidden: ['publicationRequest', 'plan', 'approval', 'execution', 'review'],
+    forbidden: ['publicationRequest', 'plan', 'approval', 'execution', 'workGraph', 'review'],
   },
   internal_publication_pending: {
     required: ['planningHandoff', 'publicationRequest'],
-    forbidden: ['plan', 'approval', 'execution', 'review'],
+    forbidden: ['plan', 'approval', 'execution', 'workGraph', 'review'],
   },
   plan_approval_required: {
     required: ['planningHandoff', 'plan'],
-    forbidden: ['approval', 'execution', 'review'],
+    forbidden: ['approval', 'execution', 'workGraph', 'review'],
   },
   approved_snapshot_available: {
     required: ['planningHandoff', 'plan', 'approval'],
-    forbidden: ['execution', 'review'],
+    forbidden: ['execution', 'workGraph', 'review'],
   },
   execution_in_progress: {
     required: ['planningHandoff', 'plan', 'approval', 'execution'],
+    forbidden: ['workGraph', 'review'],
+  },
+  private_review_assembly_required: {
+    required: ['planningHandoff', 'plan', 'approval', 'execution', 'workGraph'],
     forbidden: ['review'],
   },
   private_review_ready: {
@@ -111,11 +120,11 @@ const authorityFieldsByStage = {
   },
   cancellation_pending: {
     required: ['planningHandoff', 'plan'],
-    forbidden: ['execution', 'review'],
+    forbidden: ['execution', 'workGraph', 'review'],
   },
   replanning_required: {
     required: ['planningHandoff', 'plan'],
-    forbidden: ['execution', 'review'],
+    forbidden: ['execution', 'workGraph', 'review'],
   },
 } as const satisfies Record<CanonicalEditJourneyStage, {
   required: readonly JourneyAuthorityField[]
@@ -139,6 +148,7 @@ const canonicalEditJourneyResponseBaseSchema = z.object({
       'approve_canonical_plan',
       'request_execution_package',
       'run_private_work_graph',
+      'assemble_private_review',
       'record_private_review_decision',
       'await_public_delivery_authorization',
       'await_cancellation_reconciliation',
@@ -191,6 +201,21 @@ const canonicalEditJourneyResponseBaseSchema = z.object({
     packageHash: sha,
     snapshotId: identity,
     purpose: z.literal('private_internal_execution_handoff'),
+  }).strict().optional(),
+  workGraph: z.object({
+    packageRecordId: identity,
+    approvedPlanSnapshotId: identity,
+    responseHash: sha,
+    status: z.enum([
+      'completed_private_test_work_graph',
+      'completed_required_jobs_with_optional_blocks',
+    ]),
+    completedAt: z.string().datetime({ offset: true }),
+    totalJobCount: z.number().int().positive().max(256),
+    completedJobCount: z.number().int().positive().max(256),
+    requiredBlockedJobCount: z.literal(0),
+    allRequiredJobsCompleted: z.literal(true),
+    nextRequiredGate: z.literal('canonical_terminal_private_review_assembly'),
   }).strict().optional(),
   review: z.object({
     reviewAssemblyId: identity,
@@ -247,6 +272,15 @@ export const canonicalEditJourneyResponseSchema = canonicalEditJourneyResponseBa
     if (value.execution && value.approval && value.execution.snapshotId !== value.approval.snapshotId) {
       invalid(context, ['execution', 'snapshotId'], 'Canonical journey execution package is not bound to the approved snapshot.')
     }
+    if (
+      value.workGraph &&
+      (
+        value.workGraph.packageRecordId !== value.execution?.packageRecordId ||
+        value.workGraph.approvedPlanSnapshotId !== value.approval?.snapshotId
+      )
+    ) {
+      invalid(context, ['workGraph'], 'Canonical journey work-graph completion is not bound to its package and snapshot.')
+    }
 
     const unpublishedStages: CanonicalEditJourneyStage[] = [
       'publication_request_required',
@@ -268,6 +302,7 @@ export const canonicalEditJourneyResponseSchema = canonicalEditJourneyResponseBa
     if ([
       'approved_snapshot_available',
       'execution_in_progress',
+      'private_review_assembly_required',
       'private_review_ready',
       'private_review_accepted',
       'revision_requested',
@@ -338,6 +373,10 @@ function expectedRouteFor(value: CanonicalEditJourneyResponseValue): string | un
     case 'execution_in_progress':
       return value.execution
         ? `/v1/edit-executions/packages/${value.execution.packageRecordId}/private-internal-work-graph-runs`
+        : undefined
+    case 'private_review_assembly_required':
+      return value.execution
+        ? `/v1/edit-executions/packages/${value.execution.packageRecordId}/private-review-assemblies`
         : undefined
     case 'private_review_ready':
       return value.review

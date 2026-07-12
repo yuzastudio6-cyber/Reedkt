@@ -32,6 +32,20 @@ interface PersistedWorkGraphRun {
   response: CanonicalPrivateWorkGraphRunResponse
 }
 
+interface PersistedWorkGraphPackageCompletion {
+  schemaVersion: 'canonical-private-work-graph-package-completion-v1'
+  packageRecordId: string
+  response: CanonicalPrivateWorkGraphRunResponse
+}
+
+interface WorkGraphPackageAuthority {
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  packageRecordId: string
+  approvedPlanSnapshotId: string
+}
+
 /**
  * Advances a canonical package in deterministic dependency order.
  *
@@ -42,6 +56,28 @@ interface PersistedWorkGraphRun {
  */
 export function createCanonicalPrivateWorkGraphOrchestratorService(context: ServiceContext) {
   return {
+    async findRequiredCompletion(input: {
+      packageRecordId: string
+      workspaceId: string
+    }) {
+      if (!safeIdentity(input.packageRecordId) || !safeIdentity(input.workspaceId)) {
+        throw new ApiError('VALIDATION_FAILED', 'Canonical private work-graph completion identity is invalid.', 400)
+      }
+      const actorUserId = getRequiredAuthUserId(context)
+      const packageResult = await createCanonicalEditExecutionPackageService(context).getPackage(
+        input.packageRecordId,
+        input.workspaceId,
+      )
+      const executionPackage = packageResult.approvedEditExecutionPackage
+      const response = await readPersistedPackageCompletion(
+        context,
+        packageCompletionRelativePath(actorUserId, input.workspaceId, input.packageRecordId),
+        executionPackage,
+      )
+      if (!response) return undefined
+      return packageCompletionSummary(response)
+    },
+
     async run(input: RunCanonicalPrivateWorkGraphInput): Promise<CanonicalPrivateWorkGraphRunResponse> {
       const { packageRecordId, idempotencyKey: rawIdempotencyKey, ...requestBody } = input
       const parsed = runCanonicalPrivateWorkGraphSchema.safeParse(requestBody)
@@ -233,6 +269,9 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
           ...responseWithoutHash,
           responseHash: sha256AuthorityValue(responseWithoutHash),
         })
+        if (response.summary.allRequiredJobsCompleted) {
+          await persistPackageCompletion(context, actorUserId, executionPackage, response)
+        }
         const persisted: PersistedWorkGraphRun = {
           schemaVersion: 'canonical-private-work-graph-run-idempotency-v1',
           requestHash,
@@ -330,7 +369,74 @@ async function readPersistedRun(
   if (record.requestHash !== requestHash) {
     throw new ApiError('IDEMPOTENCY_CONFLICT', 'Idempotency-Key was reused for another work-graph run.', 409)
   }
-  const response = canonicalPrivateWorkGraphRunResponseSchema.safeParse(record.response)
+  return validatePersistedWorkGraphResponse(record.response)
+}
+
+async function persistPackageCompletion(
+  context: ServiceContext,
+  actorUserId: string,
+  executionPackage: WorkGraphPackageAuthority,
+  response: CanonicalPrivateWorkGraphRunResponse,
+): Promise<void> {
+  assertRequiredCompletion(response, executionPackage)
+  const relativePath = packageCompletionRelativePath(
+    actorUserId,
+    executionPackage.workspaceId,
+    executionPackage.packageRecordId,
+  )
+  await withWorkGraphRunLock(relativePath, async () => {
+    const existing = await readPersistedPackageCompletion(
+      context,
+      relativePath,
+      executionPackage,
+    )
+    if (existing) return
+    const persisted: PersistedWorkGraphPackageCompletion = {
+      schemaVersion: 'canonical-private-work-graph-package-completion-v1',
+      packageRecordId: executionPackage.packageRecordId,
+      response,
+    }
+    await writePrivateFileCreateOnlyWithinRoot({
+      rootPath: context.env.localStorageRoot,
+      relativePath,
+      content: Buffer.from(`${stableAuthorityStringify(persisted)}\n`, 'utf8'),
+    })
+  })
+}
+
+async function readPersistedPackageCompletion(
+  context: ServiceContext,
+  relativePath: string,
+  executionPackage: WorkGraphPackageAuthority,
+): Promise<CanonicalPrivateWorkGraphRunResponse | undefined> {
+  const bytes = await readPrivateFileIfExistsWithinRoot({
+    rootPath: context.env.localStorageRoot,
+    relativePath,
+  })
+  if (!bytes) return undefined
+  let value: unknown
+  try {
+    value = JSON.parse(bytes.toString('utf8'))
+  } catch {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical work-graph completion is invalid JSON.', 409)
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical work-graph completion is invalid.', 409)
+  }
+  const record = value as Partial<PersistedWorkGraphPackageCompletion>
+  if (
+    record.schemaVersion !== 'canonical-private-work-graph-package-completion-v1' ||
+    record.packageRecordId !== executionPackage.packageRecordId
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'Persisted canonical work-graph completion lineage is invalid.', 409)
+  }
+  const response = validatePersistedWorkGraphResponse(record.response)
+  assertRequiredCompletion(response, executionPackage)
+  return response
+}
+
+function validatePersistedWorkGraphResponse(value: unknown): CanonicalPrivateWorkGraphRunResponse {
+  const response = canonicalPrivateWorkGraphRunResponseSchema.safeParse(value)
   if (!response.success) {
     throw new ApiError('VALIDATION_FAILED', 'Persisted canonical work-graph run failed validation.', 409)
   }
@@ -341,10 +447,69 @@ async function readPersistedRun(
   return response.data
 }
 
+function assertRequiredCompletion(
+  response: CanonicalPrivateWorkGraphRunResponse,
+  executionPackage: WorkGraphPackageAuthority,
+): void {
+  const completedJobCount = response.jobs.filter((job) =>
+    job.status === 'completed_private_test').length
+  const replayedJobCount = response.jobs.filter((job) => job.adapterReplayed).length
+  const capabilityBlockedJobCount = response.jobs.filter((job) =>
+    job.status === 'blocked_by_job_capability').length
+  const dependencyBlockedJobCount = response.jobs.filter((job) =>
+    job.status === 'blocked_by_dependency').length
+  const requiredBlockedJobCount = response.jobs.filter((job) =>
+    job.required && job.status !== 'completed_private_test').length
+  if (
+    response.identity.workspaceId !== executionPackage.workspaceId ||
+    response.identity.projectId !== executionPackage.projectId ||
+    response.identity.editSessionId !== executionPackage.editSessionId ||
+    response.identity.packageRecordId !== executionPackage.packageRecordId ||
+    response.identity.approvedPlanSnapshotId !== executionPackage.approvedPlanSnapshotId ||
+    response.status === 'blocked_required_jobs' ||
+    response.summary.totalJobCount !== response.jobs.length ||
+    response.summary.completedJobCount !== completedJobCount ||
+    response.summary.replayedJobCount !== replayedJobCount ||
+    response.summary.capabilityBlockedJobCount !== capabilityBlockedJobCount ||
+    response.summary.dependencyBlockedJobCount !== dependencyBlockedJobCount ||
+    response.summary.requiredBlockedJobCount !== requiredBlockedJobCount ||
+    requiredBlockedJobCount !== 0 ||
+    response.summary.allRequiredJobsCompleted !== true ||
+    response.readiness.nextRequiredGate !== 'canonical_terminal_private_review_assembly'
+  ) {
+    throw new ApiError('VALIDATION_FAILED', 'Canonical work-graph completion authority is inconsistent.', 409)
+  }
+}
+
+function packageCompletionSummary(response: CanonicalPrivateWorkGraphRunResponse) {
+  return {
+    packageRecordId: response.identity.packageRecordId,
+    approvedPlanSnapshotId: response.identity.approvedPlanSnapshotId,
+    responseHash: response.responseHash,
+    status: response.status,
+    completedAt: response.completedAt,
+    totalJobCount: response.summary.totalJobCount,
+    completedJobCount: response.summary.completedJobCount,
+    requiredBlockedJobCount: 0 as const,
+    allRequiredJobsCompleted: true as const,
+    nextRequiredGate: 'canonical_terminal_private_review_assembly' as const,
+  }
+}
+
 function runResponseRelativePath(ownerUserId: string, workspaceId: string, idempotencyKey: string): string {
   const scopeHash = sha256(`${ownerUserId}\u0000${workspaceId}`)
   const keyHash = sha256(`${scopeHash}\u0000${idempotencyKey}`)
   return `${RESPONSE_PATH_PREFIX}/${scopeHash.slice(0, 32)}/${keyHash}.json`
+}
+
+function packageCompletionRelativePath(
+  ownerUserId: string,
+  workspaceId: string,
+  packageRecordId: string,
+): string {
+  const scopeHash = sha256(`${ownerUserId}\u0000${workspaceId}`)
+  const packageHash = sha256(`${scopeHash}\u0000${packageRecordId}`)
+  return `${RESPONSE_PATH_PREFIX}/${scopeHash.slice(0, 32)}/packages/${packageHash}.json`
 }
 
 async function withWorkGraphRunLock<T>(key: string, operation: () => Promise<T>): Promise<T> {

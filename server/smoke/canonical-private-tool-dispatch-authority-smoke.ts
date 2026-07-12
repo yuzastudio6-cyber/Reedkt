@@ -2110,6 +2110,94 @@ const terminalWorkGraphReplay = await createCanonicalPrivateWorkGraphOrchestrato
 })
 assert.equal(terminalWorkGraphReplay.evidence.idempotentRunReplay, true)
 assert.equal(terminalWorkGraphReplay.summary.completedJobCount, 5)
+const terminalCompletionService = createCanonicalPrivateWorkGraphOrchestratorService({
+  ...context,
+  requestId: 'canonical-work-graph-completion-fresh-service',
+})
+const terminalWorkGraphCompletion = await terminalCompletionService.findRequiredCompletion({
+  workspaceId,
+  packageRecordId: terminalReviewPackageRecordId,
+})
+assert.ok(terminalWorkGraphCompletion)
+assert.equal(terminalWorkGraphCompletion.responseHash, terminalWorkGraph.responseHash)
+assert.equal(terminalWorkGraphCompletion.status, 'completed_private_test_work_graph')
+assert.equal(terminalWorkGraphCompletion.completedJobCount, 5)
+assert.equal(terminalWorkGraphCompletion.requiredBlockedJobCount, 0)
+assert.equal(terminalWorkGraphCompletion.allRequiredJobsCompleted, true)
+const terminalWorkGraphSecondKey = await createCanonicalPrivateWorkGraphOrchestratorService(context).run({
+  workspaceId,
+  packageRecordId: terminalReviewPackageRecordId,
+  purpose: 'run_canonical_private_work_graph',
+  idempotencyKey: 'run-terminal-private-review-canonical-graph-second-key',
+})
+assert.equal(terminalWorkGraphSecondKey.summary.allRequiredJobsCompleted, true)
+assert.equal(terminalWorkGraphSecondKey.summary.replayedJobCount, 5)
+assert.notEqual(terminalWorkGraphSecondKey.responseHash, terminalWorkGraph.responseHash)
+assert.equal(
+  (await terminalCompletionService.findRequiredCompletion({
+    workspaceId,
+    packageRecordId: terminalReviewPackageRecordId,
+  }))?.responseHash,
+  terminalWorkGraph.responseHash,
+)
+const terminalCompletionPath = workGraphPackageCompletionPath(
+  userId,
+  workspaceId,
+  terminalReviewPackageRecordId,
+)
+const originalTerminalCompletion = await readFile(terminalCompletionPath, 'utf8')
+const tamperedTerminalCompletion = JSON.parse(originalTerminalCompletion) as {
+  response: { responseHash: string }
+}
+tamperedTerminalCompletion.response.responseHash = '0'.repeat(64)
+try {
+  await writeFile(terminalCompletionPath, `${JSON.stringify(tamperedTerminalCompletion)}\n`)
+  await expectApiError(
+    () => terminalCompletionService.findRequiredCompletion({
+      workspaceId,
+      packageRecordId: terminalReviewPackageRecordId,
+    }),
+    'VALIDATION_FAILED',
+  )
+} finally {
+  await writeFile(terminalCompletionPath, originalTerminalCompletion)
+}
+assert.equal(
+  (await terminalCompletionService.findRequiredCompletion({
+    workspaceId,
+    packageRecordId: terminalReviewPackageRecordId,
+  }))?.responseHash,
+  terminalWorkGraph.responseHash,
+)
+const terminalAssemblyRequiredJourney = await createCanonicalEditJourneyService({
+  ...context,
+  requestId: 'canonical-journey-completion-fresh-service',
+}).recover({
+  workspaceId,
+  projectId: seedSnapshot.projectId,
+  editSessionId: terminalReviewEditSessionId,
+})
+assert.equal(terminalAssemblyRequiredJourney.stage, 'private_review_assembly_required')
+assert.equal(terminalAssemblyRequiredJourney.nextAction.code, 'assemble_private_review')
+assert.equal(
+  terminalAssemblyRequiredJourney.nextAction.routeTemplate,
+  `/v1/edit-executions/packages/${terminalReviewPackageRecordId}/private-review-assemblies`,
+)
+assert.equal(
+  terminalAssemblyRequiredJourney.workGraph?.responseHash,
+  terminalWorkGraph.responseHash,
+)
+assert.equal(terminalAssemblyRequiredJourney.workGraph?.totalJobCount, 5)
+assert.equal(terminalAssemblyRequiredJourney.workGraph?.allRequiredJobsCompleted, true)
+assert.equal(terminalAssemblyRequiredJourney.review, undefined)
+assert.equal('jobs' in (terminalAssemblyRequiredJourney.workGraph ?? {}), false)
+assert.equal(canonicalEditJourneyResponseSchema.safeParse({
+  ...terminalAssemblyRequiredJourney,
+  workGraph: {
+    ...terminalAssemblyRequiredJourney.workGraph!,
+    packageRecordId: 'foreign-package',
+  },
+}).success, false)
 
 const privateReviewService = createCanonicalPrivateReviewAssemblyService(context)
 await expectApiError(
@@ -2174,6 +2262,10 @@ assert.equal(
 assert.equal(
   terminalPrivateReviewJourney.review?.finalArtifactSha256,
   terminalPrivateReview.finalArtifact.sha256,
+)
+assert.equal(
+  terminalPrivateReviewJourney.workGraph?.responseHash,
+  terminalWorkGraph.responseHash,
 )
 assert.equal(terminalPrivateReviewJourney.review?.decision, undefined)
 assert.equal(terminalPrivateReviewJourney.permissions.inspectionOnly, true)
@@ -2554,6 +2646,10 @@ const secondPrivateReviewJourney = await canonicalJourneyService.recover({
 assert.equal(secondPrivateReviewJourney.stage, 'private_review_ready')
 assert.equal(secondPrivateReviewJourney.nextAction.code, 'record_private_review_decision')
 assert.equal(secondPrivateReviewJourney.execution?.packageRecordId, revisionExecutionPackageId)
+assert.equal(
+  secondPrivateReviewJourney.workGraph?.packageRecordId,
+  revisionExecutionPackageId,
+)
 assert.equal(
   secondPrivateReviewJourney.review?.reviewAssemblyId,
   secondPrivateReview.identity.reviewAssemblyId,
@@ -2965,6 +3061,11 @@ console.log(JSON.stringify({
     'dependency_bound_final_ffprobe_reads_the_private_final_mp4_and_passes_exact_h264_aac_frame_duration_qa',
     'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
     'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
+    'package_scoped_required_work_completion_is_create_only_restart_recoverable_and_authority_bound',
+    'different_work_graph_run_key_reuses_first_package_completion_certificate_without_replacement',
+    'work_graph_completion_checksum_tamper_fails_closed_and_restores_cleanly',
+    'canonical_journey_recovery_advances_from_work_graph_completion_to_exact_review_assembly_action',
+    'canonical_journey_work_graph_summary_exposes_no_jobs_artifacts_paths_or_execution_authority',
     'terminal_private_review_assembly_requires_every_required_artifact_qa_reconciliation_and_exact_final_qa_lease_binding',
     'credential_free_private_review_manifest_is_create_only_replay_safe_and_privately_downloadable',
     'canonical_journey_recovery_reports_exact_private_review_ready_authority_without_execution_grant',
@@ -2999,6 +3100,26 @@ console.log(JSON.stringify({
     'production_fail_closed',
   ],
 }))
+
+function workGraphPackageCompletionPath(
+  ownerUserId: string,
+  completionWorkspaceId: string,
+  packageRecordId: string,
+): string {
+  const scopeHash = createHash('sha256')
+    .update(`${ownerUserId}\u0000${completionWorkspaceId}`)
+    .digest('hex')
+  const packageHash = createHash('sha256')
+    .update(`${scopeHash}\u0000${packageRecordId}`)
+    .digest('hex')
+  return join(
+    localStorageRoot,
+    'private-internal/canonical-work-graph-runs/v1',
+    scopeHash.slice(0, 32),
+    'packages',
+    `${packageHash}.json`,
+  )
+}
 
 async function uploadCanonicalMediaFixture(projectId: string) {
   const fixturePath = join('/tmp', `reeditpro-canonical-media-${process.pid}.mp4`)

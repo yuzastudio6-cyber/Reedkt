@@ -7,6 +7,7 @@ import {
 import { createCanonicalPlanPublicationRequestService } from './canonical-plan-publication-request-service'
 import { createCanonicalPlanningHandoffService } from './canonical-planning-handoff-service'
 import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
+import { createCanonicalPrivateWorkGraphOrchestratorService } from './canonical-private-work-graph-orchestrator-service'
 import { createCanonicalPrivateReviewAssemblyService } from './canonical-private-review-assembly-service'
 import { createCanonicalPrivateReviewDecisionService } from './canonical-private-review-decision-service'
 import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
@@ -187,6 +188,12 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
             },
           })
         }
+        const workGraph = await createCanonicalPrivateWorkGraphOrchestratorService(
+          context,
+        ).findRequiredCompletion({
+          packageRecordId: execution.packageRecordId,
+          workspaceId: access.workspaceId,
+        })
         const assembly = await optionalIncomplete(
           () => createCanonicalPrivateReviewAssemblyService(context).getCompleted({
             packageRecordId: execution.packageRecordId,
@@ -195,6 +202,26 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
           'Canonical private-review assembly has not completed for this execution package.',
         )
         if (!assembly) {
+          if (workGraph) {
+            return canonicalEditJourneyResponseSchema.parse({
+              ...responseBase,
+              planningHandoff,
+              publicationRequest,
+              plan,
+              approval,
+              execution,
+              workGraph,
+              stage: 'private_review_assembly_required',
+              nextAction: {
+                code: 'assemble_private_review',
+                actor: 'internal_service',
+                method: 'POST',
+                routeTemplate:
+                  `/v1/edit-executions/packages/${execution.packageRecordId}/` +
+                  'private-review-assemblies',
+              },
+            })
+          }
           return canonicalEditJourneyResponseSchema.parse({
             ...responseBase,
             planningHandoff,
@@ -233,6 +260,7 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
             plan,
             approval,
             execution,
+            ...(workGraph ? { workGraph } : {}),
             review: reviewBase,
             stage: 'private_review_ready',
             nextAction: {
@@ -258,6 +286,7 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
             plan,
             approval,
             execution,
+            ...(workGraph ? { workGraph } : {}),
             review,
             stage: 'revision_requested',
             nextAction: {
@@ -275,6 +304,7 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
           plan,
           approval,
           execution,
+          ...(workGraph ? { workGraph } : {}),
           review,
           stage: 'private_review_accepted',
           nextAction: {

@@ -1449,6 +1449,17 @@ try {
         `/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/canonical-journey`,
     },
   }).success, false)
+  assert.equal(canonicalEditJourneyResponseSchema.safeParse({
+    ...parsedExecutionJourney,
+    stage: 'private_review_assembly_required',
+    nextAction: {
+      code: 'assemble_private_review',
+      actor: 'internal_service',
+      method: 'POST',
+      routeTemplate:
+        `/v1/edit-executions/packages/${String(routeExecutionPackage.packageRecordId)}/private-review-assemblies`,
+    },
+  }).success, false)
 
   await proveLatestHandoffDiscovery({
     serviceContext: context,
@@ -2719,6 +2730,7 @@ console.log(JSON.stringify({
     'canonical_journey_recovery_reports_handoff_candidate_plan_and_snapshot_stages',
     'canonical_journey_recovery_reports_execution_package_without_granting_runtime_authority',
     'canonical_journey_schema_rejects_cross_stage_action_route_snapshot_and_review_substitution',
+    'canonical_journey_schema_rejects_fabricated_review_assembly_readiness_without_completion_evidence',
     'canonical_journey_recovery_returns_one_exact_next_action_without_execution_authority',
     'canonical_journey_recovery_is_authenticated_and_cross_user_hidden',
     'internal_publication_loads_the_persisted_candidate_and_binds_the_exact_handoff_request',

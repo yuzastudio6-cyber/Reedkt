@@ -341,9 +341,9 @@ export function createEditExecutionRoutes(options: EditExecutionRouteOptions = {
   router.use('/v1/edit-executions', asyncRoute(async () => {
     throw new ApiError(
       'TOOL_NOT_READY',
-      'Legacy execution stages remain disabled. The bounded canonical fixture can reach private review and approve replacement plan v2 with synthetic reservation reconciliation; real-user upload binding, revised execution/second review, and recovery must use future canonical authority instead of this legacy route.',
+      'Legacy execution stages remain disabled. The bounded canonical fixture completes original and revised private reviews; real-user upload binding, superseded-review history/recovery, and browser handoff must use future canonical authority instead of this legacy route.',
       503,
-      { requiredGate: 'canonical_real_user_upload_binding_revision_execution_review_and_recovery' },
+      { requiredGate: 'canonical_real_user_upload_binding_review_history_and_recovery' },
     )
   }))
 

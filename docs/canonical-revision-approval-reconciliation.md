@@ -49,7 +49,7 @@ The canonical lifecycle smoke proves:
 
 This milestone uses only the repository's synthetic private-internal test wallet. It does not spend customer credits, charge a wallet, add ReeditPro fees, settle tool cost, call Stripe, write Supabase, execute plan-v2 jobs, render a revised review, restore superseded-review download history, publish an artifact, or authorize beta/production.
 
-The next canonical gate is plan-v2 execution through its derived work graph, followed by a second private review and revision-history/recovery evidence.
+Plan-v2 work-graph execution and an accepted second private review are now proven. The next canonical gate is authenticated superseded-review history/download recovery and restart evidence.
 
 ## Verification
 

@@ -2741,6 +2741,8 @@ const replacementPlanBody = createDispatchPlanBody({
   planningInputAuthority: terminalReviewPlanningInput,
 })
 replacementPlanBody.planningRequestId = 'planning-terminal-private-review-revision-v2'
+replacementPlanBody.canonicalPlan.workItems = replacementPlanBody.canonicalPlan.workItems.filter((workItem) =>
+  terminalReviewWorkItemKeys.has(workItem.workItemKey))
 replacementPlanBody.canonicalPlan.components.compiledIntent = {
   ...replacementPlanBody.canonicalPlan.components.compiledIntent,
   revisionIntentHash: revisionHandoff.revisionIntentHash,
@@ -2879,6 +2881,83 @@ assert.equal(
 assert.equal(
   (await requireEditAuthority(workspaceId)).ledgerEntries.length,
   ledgerCountAfterReplacementApproval,
+)
+const revisionExecutionPackage = await createCanonicalEditExecutionPackageService(context).createPackage({
+  workspaceId,
+  approvedPlanSnapshotId: String(replacementSnapshot.snapshotId),
+  expectedSnapshotHash: String(replacementSnapshot.snapshotHash),
+  purpose: 'private_internal_execution_handoff',
+  idempotencyKey: 'package-terminal-private-review-revision-v2',
+})
+const revisionExecutionPackageId = revisionExecutionPackage.approvedEditExecutionPackage.packageRecordId
+assert.notEqual(revisionExecutionPackageId, terminalReviewPackageRecordId)
+assert.equal(revisionExecutionPackage.approvedEditExecutionPackage.jobs.length, 5)
+const revisionWorkGraph = await createCanonicalPrivateWorkGraphOrchestratorService(context).run({
+  workspaceId,
+  packageRecordId: revisionExecutionPackageId,
+  purpose: 'run_canonical_private_work_graph',
+  idempotencyKey: 'run-terminal-private-review-revision-v2',
+})
+assert.equal(revisionWorkGraph.status, 'completed_private_test_work_graph')
+assert.equal(revisionWorkGraph.summary.totalJobCount, 5)
+assert.equal(revisionWorkGraph.summary.completedJobCount, 5)
+assert.equal(revisionWorkGraph.summary.requiredBlockedJobCount, 0)
+assert.equal(revisionWorkGraph.summary.allRequiredJobsCompleted, true)
+assert.equal(revisionWorkGraph.readiness.nextRequiredGate, 'canonical_terminal_private_review_assembly')
+const revisionWorkGraphReplay = await createCanonicalPrivateWorkGraphOrchestratorService(context).run({
+  workspaceId,
+  packageRecordId: revisionExecutionPackageId,
+  purpose: 'run_canonical_private_work_graph',
+  idempotencyKey: 'run-terminal-private-review-revision-v2',
+})
+assert.equal(revisionWorkGraphReplay.evidence.idempotentRunReplay, true)
+const secondPrivateReview = await privateReviewService.assemble({
+  workspaceId,
+  packageRecordId: revisionExecutionPackageId,
+  purpose: 'assemble_canonical_private_review',
+  idempotencyKey: 'assemble-terminal-private-review-revision-v2',
+})
+assert.equal(secondPrivateReview.status, 'ready_for_private_internal_review')
+assert.equal(secondPrivateReview.requiredExecution.requiredJobCount, 5)
+assert.equal(secondPrivateReview.requiredExecution.allRequiredJobsCompleted, true)
+assert.equal(secondPrivateReview.finalQaArtifact.finalQaGatesPassed, true)
+assert.equal(secondPrivateReview.chain.finalQaInputBoundToFinalArtifact, true)
+assert.notEqual(secondPrivateReview.identity.reviewAssemblyId,
+  terminalPrivateReview.identity.reviewAssemblyId)
+assert.notEqual(secondPrivateReview.finalArtifact.artifactId,
+  terminalPrivateReview.finalArtifact.artifactId)
+assert.notEqual(secondPrivateReview.finalQaArtifact.artifactId,
+  terminalPrivateReview.finalQaArtifact.artifactId)
+const secondPrivateReviewAcceptanceInput = {
+  workspaceId,
+  packageRecordId: revisionExecutionPackageId,
+  reviewAssemblyId: secondPrivateReview.identity.reviewAssemblyId,
+  purpose: 'record_canonical_private_review_decision' as const,
+  expectedManifestSha256: secondPrivateReview.manifest.manifestSha256,
+  expectedFinalArtifactSha256: secondPrivateReview.finalArtifact.sha256,
+  decision: 'accept_private_internal_review' as const,
+  idempotencyKey: 'accept-terminal-private-review-revision-v2',
+}
+const secondPrivateReviewAcceptance = await privateReviewDecisionService.record(
+  secondPrivateReviewAcceptanceInput,
+)
+assert.equal(secondPrivateReviewAcceptance.status, 'private_internal_review_accepted')
+assert.equal(secondPrivateReviewAcceptance.decision, 'accept_private_internal_review')
+assert.equal(secondPrivateReviewAcceptance.revisionHandoff, null)
+assert.equal(secondPrivateReviewAcceptance.readiness.revisionRequested, false)
+assert.equal(
+  secondPrivateReviewAcceptance.readiness.nextRequiredGate,
+  'private_internal_acceptance_recorded_public_delivery_blocked',
+)
+assert.equal(secondPrivateReviewAcceptance.permissions.publicDelivery, false)
+assert.equal(secondPrivateReviewAcceptance.permissions.billing, false)
+const secondPrivateReviewAcceptanceReplay = await privateReviewDecisionService.record(
+  secondPrivateReviewAcceptanceInput,
+)
+assert.equal(secondPrivateReviewAcceptanceReplay.replay.idempotentReplay, true)
+assert.equal(
+  secondPrivateReviewAcceptanceReplay.identity.reviewDecisionId,
+  secondPrivateReviewAcceptance.identity.reviewDecisionId,
 )
 
 const binaryRuntime = await activatePrivateOfflineMediaBinaryRuntime()
@@ -3060,7 +3139,7 @@ clearPrivateCanonicalToolDispatchProcessStateForSmoke()
 await expectApiError(() => requireDispatchAggregate(), 'VALIDATION_FAILED')
 await writeFile(persistedPath, originalDispatchStoreText)
 clearPrivateCanonicalToolDispatchProcessStateForSmoke()
-assert.equal((await requireDispatchAggregate()).grants.length, 58)
+assert.equal((await requireDispatchAggregate()).grants.length, 61)
 
 await expectApiError(
   () => createCanonicalPrivateToolDispatchAuthorityService({
@@ -3191,6 +3270,9 @@ console.log(JSON.stringify({
     'revision_approval_atomically_releases_unused_prior_synthetic_reservation_and_reserves_fresh_maximum',
     'revision_approval_preserves_old_snapshot_work_items_jobs_and_wallet_conservation',
     'revision_approval_replay_creates_no_second_release_reservation_snapshot_or_jobs',
+    'snapshot_v2_executes_the_bounded_five_job_revision_graph_through_independent_final_qa',
+    'revision_execution_assembles_new_private_artifacts_and_a_second_review_manifest',
+    'second_private_review_acceptance_is_create_only_replay_safe_and_public_delivery_blocked',
     'authenticated_private_final_mp4_download_reopens_exact_qa_passed_bytes_without_public_or_signed_url',
     'checksum_protected_restart_safe_private_store',
     'dependency_authority_binding_tamper_rejected_by_immutable_record_validation',

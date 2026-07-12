@@ -341,11 +341,11 @@ try {
     assert.ok(details && typeof details === 'object')
     assert.equal(
       (details as Record<string, unknown>).requiredGate,
-      'canonical_real_user_upload_binding_revision_execution_review_and_recovery',
+      'canonical_real_user_upload_binding_review_history_and_recovery',
     )
     console.log(JSON.stringify({
       ok: true,
-      status: 'blocked_by_canonical_real_user_upload_binding_revision_execution_review_and_recovery',
+      status: 'blocked_by_canonical_real_user_upload_binding_review_history_and_recovery',
       checks: [
         'upload_intent_requires_owned_backend_project_record',
         'source_video_uploaded_through_backend_local_upload_intent',
@@ -355,8 +355,8 @@ try {
         'no_provider_render_delivery_billing_or_wallet_side_effect',
       ],
       skippedLegacyAssertions: true,
-      skippedReason: 'The legacy private internal execution route is intentionally disabled. The bounded canonical fixture reaches private review and approves replacement plan v2 with synthetic reservation reconciliation; real-user upload binding, revised execution/second review, and recovery must use future canonical authority.',
-      nextRequiredGate: 'canonical_real_user_upload_binding_revision_execution_review_and_recovery',
+      skippedReason: 'The legacy private internal execution route is intentionally disabled. The bounded canonical fixture completes original and revised private reviews; real-user upload binding, superseded-review history/recovery, and browser handoff require future canonical authority.',
+      nextRequiredGate: 'canonical_real_user_upload_binding_review_history_and_recovery',
     }))
   } else {
   assert.equal(privateInternalTestRunResponse.status, 201, `Private internal test run should succeed: ${JSON.stringify(privateInternalTestRunResponse.json)}`)

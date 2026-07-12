@@ -57,6 +57,8 @@ The canonical dispatch smoke records a revision against the real bounded five-jo
 - a conflicting second decision is rejected;
 - the canonical snapshot/plan/estimate/reservation/work-item/job/package slice remains hash-identical.
 
+The snapshot-v2 lifecycle also records a successful private-internal acceptance against the second review, proves that it contains no revision handoff, and replays the same create-only decision while public delivery remains blocked.
+
 ## Boundaries
 
 Both decision outcomes keep public export, product, external-beta, production, provider, public artifact, delivery, further render, revision execution, replacement-plan publication, customer price/credit mutation, wallet, reservation, settlement, billing, and deployment authority false.

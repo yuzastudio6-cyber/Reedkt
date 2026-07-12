@@ -25,6 +25,12 @@ The connected internal publication route is:
 
 Its body contains the planning request, estimate, work graph, exact canonical plan, and expected handoff hash. It deliberately omits caller-supplied `planningInputAuthority` and `sourceMediaAuthority`. The backend loads those authorities from the tenant-scoped persisted handoff, verifies the exact canonical component hash, revalidates current planning-input and source authority, and then freezes a compact handoff binding into the canonical plan component references. Approval copies that reference into the immutable snapshot lineage.
 
+An authenticated planning client can now persist that handoff-bound publication payload without calling the internal route directly:
+
+`POST /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publication-requests`
+
+The content-addressed private candidate is inspectable without its raw body and can be published only through the internal candidate route documented in `docs/canonical-plan-publication-request-bridge.md`. Internal publication loads the candidate server-side and still performs the same full handoff revalidation.
+
 One persisted handoff can publish exactly one full canonical publication request. The frozen binding includes the complete publication-request hash and a hash of the accepted idempotency key. Exact replay with the same request and key returns the original canonical authority; a second key, changed estimate, changed work graph, changed revision authority, or any other publication substitution fails closed. Same-host concurrent exact requests serialize and converge on one plan; concurrent competing keys produce one winner and one conflict. The canonical plan binding is the durable single-host receipt, so restart recovery can distinguish an exact replay from a second publication without a separate mutable handoff-consumption record. A request that fails validation before plan persistence does not consume the handoff.
 
 The former direct HTTP route, `POST /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-plans`, now fails closed with `TOOL_NOT_READY` and identifies the persisted-handoff publication route as its replacement. Service-level construction remains available to bounded backend fixtures, but authenticated HTTP callers cannot bypass persisted server-loaded planning/source authority.
@@ -75,7 +81,7 @@ The HTTP smoke publishes through the persisted-handoff route rather than echoing
 
 Preparing a handoff performs only the private create-only authority persistence described above. It does not publish a plan, create a snapshot, reserve credits, execute tools, call providers, or render media. Handoff-bound plan publication still does not approve the plan, create a snapshot, reserve credits, derive jobs, execute tools, call providers, or render media. Approval remains a separate server-owned gate.
 
-This slice does not add frontend consumption, Supabase, RLS, cloud storage, provider activation, customer pricing or credits, wallet mutation, billing, public delivery, deployment, or production readiness. The next integration gate is browser consumption of this authenticated handoff without reviving the disabled legacy caller-authored execution route.
+This slice does not add frontend consumption, Supabase, RLS, cloud storage, provider activation, customer pricing or credits, wallet mutation, billing, public delivery, deployment, or production readiness. The backend now exposes the safe publication-request bridge; the next integration gate is frontend consumption of the authenticated handoff and candidate routes without reviving the disabled legacy caller-authored execution route.
 
 ## Verification
 

@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
+import { createCanonicalPlanPublicationRequestService } from '../services/canonical-plan-publication-request-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
 import { createCanonicalPreExecutionCancellationService } from '../services/canonical-pre-execution-cancellation-service'
@@ -9,6 +10,7 @@ import {
   createCanonicalPlanningHandoffSchema,
   canonicalPlanningHandoffInspectionQuerySchema,
   publishCanonicalEditPlanFromHandoffSchema,
+  publishCanonicalPlanPublicationRequestSchema,
 } from '../validation/canonical-planning-handoff-schemas'
 import { cancelCanonicalApprovedSnapshotSchema } from '../validation/canonical-pre-execution-cancellation-schemas'
 import {
@@ -59,6 +61,70 @@ export function createEditPlanningAuthorityRoutes(): Router {
       sendOk(response, { canonicalPlanningHandoffInspection: inspection }, [
         'Latest handoff discovery is tenant-scoped and inspection-only; publication still requires the exact handoff ID/hash and full current-state revalidation.',
       ])
+    }),
+  )
+
+  router.post(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publication-requests',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(publishCanonicalEditPlanFromHandoffSchema, request.body)
+      const publicationRequest = await createCanonicalPlanPublicationRequestService(
+        getServiceContext(request),
+      ).submit({
+        ...body,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+        handoffId: getRouteParam(request, 'handoffId'),
+      })
+      sendOk(response, { canonicalPlanPublicationRequest: publicationRequest }, [
+        'The authenticated request is persisted for internal canonical publication; it grants no plan, snapshot, credit, tool, provider, worker, or render authority.',
+      ], 201)
+    }),
+  )
+
+  router.get(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publication-requests/:candidateId',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(canonicalPlanningHandoffInspectionQuerySchema, request.query)
+      const publicationRequest = await createCanonicalPlanPublicationRequestService(
+        getServiceContext(request),
+      ).inspect({
+        ...query,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+        handoffId: getRouteParam(request, 'handoffId'),
+        candidateId: getRouteParam(request, 'candidateId'),
+      })
+      sendOk(response, { canonicalPlanPublicationRequest: publicationRequest }, [
+        'Publication-request inspection returns hashes and state only; raw request bodies and execution authority remain private.',
+      ])
+    }),
+  )
+
+  router.post(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publication-requests/:candidateId/publish',
+    requireAuth,
+    requireInternalServiceAuth,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(publishCanonicalPlanPublicationRequestSchema, request.body)
+      const result = await createCanonicalPlanPublicationRequestService(
+        getServiceContext(request),
+      ).publish({
+        ...body,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+        handoffId: getRouteParam(request, 'handoffId'),
+        candidateId: getRouteParam(request, 'candidateId'),
+        idempotencyKey: getIdempotencyKey(request),
+        requestPath: request.originalUrl,
+      })
+      sendOk(response, {
+        authority: result.authority,
+        canonicalPlanningHandoff: result.canonicalPlanningHandoff,
+        canonicalPlanPublicationRequest: result.publicationRequest,
+      }, result.warnings, 201)
     }),
   )
 

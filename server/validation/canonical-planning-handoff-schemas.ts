@@ -91,6 +91,85 @@ export const publishCanonicalEditPlanFromHandoffSchema = publishCanonicalEditPla
   .extend({ expectedHandoffHash: sha })
   .strict()
 
+export const publishCanonicalPlanPublicationRequestSchema = z.object({
+  workspaceId: identity,
+  expectedCandidateHash: sha,
+}).strict()
+
+const canonicalPlanPublicationRequestBaseSchema = z.object({
+  schemaVersion: z.literal('canonical-plan-publication-request-inspection-v1'),
+  source: z.literal('canonical_plan_publication_request_service'),
+  identity: z.object({
+    workspaceId: identity,
+    projectId: identity,
+    editSessionId: identity,
+    handoffId: identity,
+    candidateId: identity,
+  }).strict(),
+  candidateHash: sha,
+  handoffHash: sha,
+  canonicalPlanComponentsHash: sha,
+  publicationBodyHash: sha,
+  publicationRequestHash: sha,
+  persistence: z.object({
+    privateLocal: z.literal(true),
+    tenantScoped: z.literal(true),
+    createOnly: z.literal(true),
+    checksumProtected: z.literal(true),
+    contentAddressed: z.literal(true),
+    distributed: z.literal(false),
+    productionAuthority: z.literal(false),
+  }).strict(),
+  permissions: z.object({
+    inspectionOnly: z.literal(true),
+    internalPublicationRequired: z.literal(true),
+    planMutation: z.literal(false),
+    snapshotCreation: z.literal(false),
+    creditReservation: z.literal(false),
+    toolExecution: z.literal(false),
+    providerCall: z.literal(false),
+    render: z.literal(false),
+  }).strict(),
+  requestBodyReturned: z.literal(false),
+  pathOrCredentialReturned: z.literal(false),
+  testOnly: z.literal(true),
+}).strict()
+
+export const canonicalPlanPublicationRequestInspectionSchema = z.discriminatedUnion(
+  'publicationStatus',
+  [
+    canonicalPlanPublicationRequestBaseSchema.extend({
+      publicationStatus: z.literal('pending_internal_publication'),
+      publication: z.object({
+        internalPublicationMayBeAttempted: z.literal(true),
+        fullRevalidationRequired: z.literal(true),
+        exactReplayOnlyAfterPublication: z.literal(true),
+      }).strict(),
+    }).strict(),
+    canonicalPlanPublicationRequestBaseSchema.extend({
+      publicationStatus: z.literal('published'),
+      publication: z.object({
+        planId: identity,
+        planningRequestId: identity,
+        planVersion: z.number().int().positive(),
+        planStatus: z.enum(['presented', 'approved', 'superseded', 'rejected', 'cancellation_pending', 'cancelled']),
+        planHash: sha,
+        internalPublicationMayBeAttempted: z.literal(false),
+        fullRevalidationRequired: z.literal(true),
+        exactReplayOnlyAfterPublication: z.literal(true),
+      }).strict(),
+    }).strict(),
+    canonicalPlanPublicationRequestBaseSchema.extend({
+      publicationStatus: z.literal('superseded_by_competing_candidate'),
+      publication: z.object({
+        internalPublicationMayBeAttempted: z.literal(false),
+        fullRevalidationRequired: z.literal(true),
+        exactReplayOnlyAfterPublication: z.literal(false),
+      }).strict(),
+    }).strict(),
+  ],
+)
+
 export const canonicalPlanningHandoffPublicationBindingSchema = z.object({
   schemaVersion: z.literal('canonical-planning-handoff-publication-binding-v1'),
   handoffId: identity,
@@ -180,6 +259,12 @@ export type CanonicalPlanningHandoffResponse = z.infer<
 >
 export type PublishCanonicalEditPlanFromHandoffBody = z.infer<
   typeof publishCanonicalEditPlanFromHandoffSchema
+>
+export type PublishCanonicalPlanPublicationRequestBody = z.infer<
+  typeof publishCanonicalPlanPublicationRequestSchema
+>
+export type CanonicalPlanPublicationRequestInspection = z.infer<
+  typeof canonicalPlanPublicationRequestInspectionSchema
 >
 export type CanonicalPlanningHandoffPublicationBinding = z.infer<
   typeof canonicalPlanningHandoffPublicationBindingSchema

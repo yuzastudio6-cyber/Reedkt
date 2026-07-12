@@ -16,11 +16,9 @@ import {
   CANONICAL_PRIVATE_TOOL_DISPATCH_TTL_SECONDS,
   createCanonicalPrivateToolDispatchAuthorityService,
 } from '../services/canonical-private-tool-dispatch-authority-service'
-import { createCanonicalPrivateStructuredToolExecutionService } from '../services/canonical-private-structured-tool-execution-service'
 import { createCanonicalPrivatePythonToolExecutionService } from '../services/canonical-private-python-tool-execution-service'
 import { createCanonicalPrivateMediaBinaryExecutionService } from '../services/canonical-private-media-binary-execution-service'
 import { createCanonicalPrivateDependencyArtifactReadService } from '../services/canonical-private-dependency-artifact-read-service'
-import { createCanonicalPrivateSharpExecutionService } from '../services/canonical-private-sharp-execution-service'
 import { createCanonicalPrivateRemotionExecutionService } from '../services/canonical-private-remotion-execution-service'
 import { createCanonicalPrivateLibassExecutionService } from '../services/canonical-private-libass-execution-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
@@ -1211,137 +1209,57 @@ await leaseService.release({
   purpose: 'private_internal_canonical_lease_release',
   idempotencyKey: 'release-completed-chart-attempt-one',
 })
-const privateRuntime = await createPrivateOfflineNodeStructuredExecutionRuntime()
-const authorizedChartClaim = (await leaseService.claim({
+await createPrivateOfflineNodeStructuredExecutionRuntime()
+const chartAdapterInput = {
   workspaceId,
   projectId: snapshot.projectId,
   editSessionId: snapshot.editSessionId,
   jobId: chartJob.id,
-  purpose: 'private_internal_canonical_lease_claim',
-  idempotencyKey: 'claim-chart-root-for-authorized-dispatch-attempt-two',
-})).workerLeaseClaim
-assert.equal(authorizedChartClaim.lease.attemptNumber, 2)
-const authorizedChartLeaseAuthority = {
-  leaseId: authorizedChartClaim.lease.leaseId,
-  leaseCredential: authorizedChartClaim.leaseCredential,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-d3-root-attempt-two',
 }
-const authorizedGrant = (await dispatchService.authorize({
-  ...baseInput,
-  idempotencyKey: 'authorize-chart-primary-attempt-two',
-}, authorizedChartLeaseAuthority)).toolDispatchGrant
-assert.equal(authorizedGrant.grant.status, 'authorized')
-assert.equal(authorizedGrant.grant.credentialIssued, true)
-assert.equal(authorizedGrant.executionAuthority.dispatchAuthorized, true)
-assert.equal(authorizedGrant.executionAuthority.toolExecutionAuthorized, false)
-assert.equal(authorizedGrant.evidence.specPrivateInternalReady, true)
-assert.equal(authorizedGrant.evidence.runtimePrivateInternalReady, true)
-assert.equal(authorizedGrant.evidence.specProductReady, false)
-assert.equal(authorizedGrant.evidence.runtimeProductReady, false)
-assert.equal(
-  authorizedGrant.evidence.privateRuntimeImageIdentityHash,
-  privateRuntime.image.imageIdentityHash,
-)
-assert.match(authorizedGrant.dispatchCredential ?? '', /^rpdt_v1_[A-Za-z0-9_-]{43}$/)
-
-const coordinatedExecution = await createCanonicalPrivateStructuredToolExecutionService(context).execute({
-  workspaceId,
-  projectId: snapshot.projectId,
-  editSessionId: snapshot.editSessionId,
-  jobId: chartJob.id,
-  grantId: authorizedGrant.grant.grantId,
-  purpose: 'execute_canonical_private_structured_tool',
-  idempotencyKey: 'consume-authorized-chart-primary-attempt-two',
-}, {
-  ...authorizedChartLeaseAuthority,
-  dispatchCredential: authorizedGrant.dispatchCredential!,
-})
-assert.equal(coordinatedExecution.tool.canonicalToolId, 'd3')
-assert.equal(coordinatedExecution.tool.operationId, d3OperationId)
-assert.equal(coordinatedExecution.tool.actualLibraryOperationCompleted, true)
-assert.equal(coordinatedExecution.runtime.imageIdentityHash, privateRuntime.image.imageIdentityHash)
-assert.equal(coordinatedExecution.runtime.privateInternalOnly, true)
-assert.equal(coordinatedExecution.runtime.productReady, false)
-assert.equal(coordinatedExecution.runtime.externalBetaReady, false)
-assert.equal(coordinatedExecution.runtime.productionReady, false)
+const coordinatedExecution = await jobExecutionAdapter.execute(chartAdapterInput)
+assert.equal(coordinatedExecution.identity.canonicalToolId, 'd3')
+assert.equal(coordinatedExecution.identity.operationId, d3OperationId)
+assert.equal(coordinatedExecution.identity.expectedAssetId, primaryAsset.id)
+assert.equal(coordinatedExecution.identity.runnerClass, 'offline_node_structured_execution_v1')
 assert.equal(coordinatedExecution.result.contentType, 'image/svg+xml')
 assert.equal(coordinatedExecution.result.qaOutcome, 'passed')
 assert.equal(coordinatedExecution.result.privateTestDependencySatisfied, true)
 assert.equal(coordinatedExecution.result.finalRenderAuthorized, false)
-assert.equal(coordinatedExecution.persistence.actualRunEvidenceVerified, true)
-assert.equal(coordinatedExecution.persistence.actualQaEvidenceVerified, true)
-assert.equal(coordinatedExecution.lease.executionAttemptId.length > 0, true)
-const coordinatedReplay = await createCanonicalPrivateStructuredToolExecutionService(context).execute({
-  workspaceId,
-  projectId: snapshot.projectId,
-  editSessionId: snapshot.editSessionId,
-  jobId: chartJob.id,
-  grantId: authorizedGrant.grant.grantId,
-  purpose: 'execute_canonical_private_structured_tool',
-  idempotencyKey: 'consume-authorized-chart-primary-attempt-two',
-}, {
-  ...authorizedChartLeaseAuthority,
-  dispatchCredential: authorizedGrant.dispatchCredential!,
-})
+assert.equal(coordinatedExecution.evidence.serverDerivedCanonicalJob, true)
+assert.equal(coordinatedExecution.evidence.serverDerivedToolAndOperation, true)
+assert.equal(coordinatedExecution.evidence.singleUseDispatchConsumed, true)
+assert.equal(coordinatedExecution.evidence.idempotentAdapterReplay, false)
+assert.equal(coordinatedExecution.readiness.productReady, false)
+const coordinatedReplay = await jobExecutionAdapter.execute(chartAdapterInput)
 assert.equal(coordinatedReplay.result.artifactId, coordinatedExecution.result.artifactId)
 assert.equal(coordinatedReplay.result.sha256, coordinatedExecution.result.sha256)
-assert.equal(coordinatedReplay.lease.executionAttemptId, coordinatedExecution.lease.executionAttemptId)
-assert.equal(coordinatedReplay.replay.dispatchConsumptionReplayed, true)
-assert.equal(coordinatedReplay.replay.executionFenceBeginReplayed, true)
-assert.equal(coordinatedReplay.replay.executionFenceCompleteReplayed, true)
-assert.equal(coordinatedReplay.replay.artifactRecordReplayed, true)
-assert.equal(coordinatedReplay.replay.qaRecordReplayed, true)
-assert.equal(coordinatedReplay.replay.reconciliationReplayed, true)
-const sharpClaim = (await leaseService.claim({
+assert.equal(coordinatedReplay.evidence.idempotentAdapterReplay, true)
+const d3ConsumedGrant = (await requireDispatchAggregate()).grants.find((grant) =>
+  grant.binding.jobId === chartJob.id && grant.status === 'consumed')
+assert.ok(d3ConsumedGrant)
+
+const sharpAdapterInput = {
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: sharpJob.id, purpose: 'private_internal_canonical_lease_claim',
-  idempotencyKey: 'claim-sharp-root-after-chart-svg',
-})).workerLeaseClaim
-assert.equal(sharpClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
-const sharpLeaseAuthority = {
-  leaseId: sharpClaim.lease.leaseId,
-  leaseCredential: sharpClaim.leaseCredential,
+  jobId: sharpJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'canonical-job-adapter-sharp-root',
 }
-const sharpGrant = (await dispatchService.authorize({
-  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: sharpJob.id, approvedWorkItemId: sharpWorkItem.id,
-  expectedAssetId: sharpAsset.id, requestedToolName: 'sharp',
-  operationId: 'tool.sharp.prepare_approved_image_asset.v1',
-  purpose: 'private_internal_canonical_tool_dispatch_authorization',
-  idempotencyKey: 'authorize-sharp-root-attempt-one',
-}, sharpLeaseAuthority)).toolDispatchGrant
-assert.equal(sharpGrant.grant.status, 'authorized')
-assert.equal(sharpGrant.evidence.specPrivateInternalReady, true)
-assert.equal(sharpGrant.evidence.runtimePrivateInternalReady, true)
-assert.ok(sharpGrant.dispatchCredential)
-const sharpExecutionInput = {
-  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: sharpJob.id, grantId: sharpGrant.grant.grantId,
-  purpose: 'execute_canonical_private_sharp_tool' as const,
-  idempotencyKey: 'consume-authorized-sharp-root-attempt-one',
-}
-const sharpExecutionAuthority = {
-  ...sharpLeaseAuthority,
-  dispatchCredential: sharpGrant.dispatchCredential!,
-}
-const coordinatedSharp = await createCanonicalPrivateSharpExecutionService(context).execute(
-  sharpExecutionInput,
-  sharpExecutionAuthority,
-)
-assert.equal(coordinatedSharp.tool.canonicalToolId, 'sharp')
-assert.equal(coordinatedSharp.tool.dependencyArtifactRead, true)
-assert.equal(coordinatedSharp.tool.sourceArtifactId, coordinatedExecution.result.artifactId)
+const coordinatedSharp = await jobExecutionAdapter.execute(sharpAdapterInput)
+assert.equal(coordinatedSharp.identity.canonicalToolId, 'sharp')
+assert.equal(coordinatedSharp.identity.operationId, 'tool.sharp.prepare_approved_image_asset.v1')
+assert.equal(coordinatedSharp.identity.expectedAssetId, sharpAsset.id)
+assert.equal(coordinatedSharp.identity.runnerClass, 'offline_sharp_structured_execution_v1')
 assert.equal(coordinatedSharp.result.contentType, 'image/png')
 assert.equal(coordinatedSharp.result.qaOutcome, 'passed')
-assert.equal(coordinatedSharp.runtime.productReady, false)
-const coordinatedSharpReplay = await createCanonicalPrivateSharpExecutionService(context).execute(
-  sharpExecutionInput,
-  sharpExecutionAuthority,
-)
+assert.equal(coordinatedSharp.evidence.dependencyArtifactInput, true)
+assert.equal(coordinatedSharp.evidence.singleUseDispatchConsumed, true)
+assert.equal(coordinatedSharp.readiness.productReady, false)
+const coordinatedSharpReplay = await jobExecutionAdapter.execute(sharpAdapterInput)
 assert.equal(coordinatedSharpReplay.result.artifactId, coordinatedSharp.result.artifactId)
 assert.equal(coordinatedSharpReplay.result.sha256, coordinatedSharp.result.sha256)
-assert.equal(coordinatedSharpReplay.replay.dispatchConsumptionReplayed, true)
-assert.equal(coordinatedSharpReplay.replay.executionFenceBeginReplayed, true)
-assert.equal(coordinatedSharpReplay.replay.executionFenceCompleteReplayed, true)
+assert.equal(coordinatedSharpReplay.evidence.idempotentAdapterReplay, true)
 const sharpProofClaim = (await leaseService.claim({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
   jobId: sharpProofJob.id, purpose: 'private_internal_canonical_lease_claim',
@@ -1355,13 +1273,6 @@ await leaseService.release({
   leaseCredential: sharpProofClaim.leaseCredential,
   purpose: 'private_internal_canonical_lease_release',
   idempotencyKey: 'release-sharp-proof-verification-lease',
-})
-await leaseService.release({
-  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: sharpJob.id, leaseId: sharpClaim.lease.leaseId,
-  leaseCredential: sharpClaim.leaseCredential,
-  purpose: 'private_internal_canonical_lease_release',
-  idempotencyKey: 'release-completed-sharp-root-attempt-one',
 })
 const chartProofClaim = (await leaseService.claim({
   workspaceId,
@@ -1401,7 +1312,7 @@ const dependencyRead = await createCanonicalPrivateDependencyArtifactReadService
     leaseId: chartProofClaim.lease.leaseId,
     leaseCredential: chartProofClaim.leaseCredential,
     executionAttemptId: dependencyReadBegin.executionFence.executionAttemptId,
-    dispatchGrantId: authorizedGrant.grant.grantId,
+    dispatchGrantId: d3ConsumedGrant.id,
     dependencyAuthority: chartProofClaim.lease.dependencyAuthority,
     allowedContentTypes: ['image/svg+xml'],
     maximumBytes: 2 * 1024 * 1024,
@@ -1431,17 +1342,6 @@ await leaseService.release({
   purpose: 'private_internal_canonical_lease_release',
   idempotencyKey: 'release-chart-proof-verification-lease',
 })
-await leaseService.release({
-  workspaceId,
-  projectId: snapshot.projectId,
-  editSessionId: snapshot.editSessionId,
-  jobId: chartJob.id,
-  leaseId: authorizedChartClaim.lease.leaseId,
-  leaseCredential: authorizedChartClaim.leaseCredential,
-  purpose: 'private_internal_canonical_lease_release',
-  idempotencyKey: 'release-completed-chart-attempt-two',
-})
-
 const privatePythonRuntime = await createPrivateOfflinePythonStructuredExecutionRuntime()
 const dataClaim = (await leaseService.claim({
   workspaceId,
@@ -3112,6 +3012,7 @@ console.log(JSON.stringify({
     'server_derived_job_adapter_executes_rembg_background_removal_identity',
     'server_derived_job_adapter_executes_all_seven_matrix_python_tool_identities',
     'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
+    'server_derived_job_adapter_executes_d3_and_dependency_bound_sharp_identities',
     'echarts_exact_svg_canonical_lifecycle_verified',
     'vega_lite_exact_svg_canonical_lifecycle_verified',
     'vega_exact_svg_canonical_lifecycle_verified',

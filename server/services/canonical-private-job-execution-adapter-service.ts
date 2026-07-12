@@ -129,15 +129,10 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
       }
       const expectedAssets = authority.assetManifest.entries.filter((candidate) =>
         candidate.approvedWorkItemId === workItem.id && readiness.job.expectedAssetIds.includes(candidate.id))
-      if (expectedAssets.length !== 1 || readiness.job.expectedAssetIds.length !== 1) {
-        throw new ApiError(
-          'TOOL_NOT_READY',
-          'Canonical private job adapter currently requires exactly one server-owned expected output.',
-          409,
-          { requiredGate: 'canonical_multi_output_job_execution_adapter' },
-        )
-      }
-      const expectedAsset = expectedAssets[0]!
+      const expectedAsset = selectServerOwnedExpectedAsset(
+        expectedAssets,
+        readiness.job.expectedAssetIds.length,
+      )
       const internalAuthorityJob = workItem.approvedToolIds.length === 0 &&
         workItem.workItemType === 'validate_approved_snapshot'
       const internalSourceTrimJob = workItem.approvedToolIds.length === 0 &&
@@ -488,7 +483,9 @@ function normalizeResponse(input: {
       reconciliationPassed: true as const,
       idempotentAdapterReplay: input.idempotentAdapterReplay,
       attemptCostEvidenceRecorded: Boolean(input.rawResponse.attemptCost),
-      dependencyArtifactInput: coordinatorTool?.inputKind === 'qa_passed_dependency_artifact',
+      dependencyArtifactInput:
+        coordinatorTool?.inputKind === 'qa_passed_dependency_artifact' ||
+        coordinatorTool?.dependencyArtifactRead === true,
       finalArtifactQaPassed: finalArtifactQa?.finalQaGatesPassed === true,
     },
     permissions: {
@@ -517,6 +514,29 @@ function normalizeResponse(input: {
     ...responseWithoutHash,
     responseHash: sha256AuthorityValue(responseWithoutHash),
   })
+}
+
+function selectServerOwnedExpectedAsset<T extends { id: string; required: boolean }>(
+  expectedAssets: readonly T[],
+  expectedAssetIdCount: number,
+): T {
+  if (expectedAssets.length === 0 || expectedAssets.length !== expectedAssetIdCount) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'Canonical private job output authority is incomplete or inconsistent.',
+      409,
+      { requiredGate: 'canonical_expected_output_authority_reconciliation' },
+    )
+  }
+  if (expectedAssets.length === 1) return expectedAssets[0]!
+  const requiredAssets = expectedAssets.filter((candidate) => candidate.required)
+  if (requiredAssets.length === 1) return requiredAssets[0]!
+  throw new ApiError(
+    'TOOL_NOT_READY',
+    'Canonical private job adapter requires one unambiguous server-owned required output.',
+    409,
+    { requiredGate: 'canonical_multi_required_output_job_execution_adapter' },
+  )
 }
 
 function markReplay(response: CanonicalPrivateJobExecutionAdapterResponse): CanonicalPrivateJobExecutionAdapterResponse {

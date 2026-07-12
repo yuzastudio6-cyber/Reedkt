@@ -20,7 +20,7 @@ import { OFFLINE_REMBG_BACKGROUND_REMOVAL_PACKAGE_IDENTITIES } from './rembg-bac
 import { OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY } from './deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
 
 export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v1' as const
-export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-12.26' as const
+export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-12.27' as const
 
 export type ToolVerificationState =
   | 'canonical_e2e_verified'
@@ -157,6 +157,7 @@ const CANONICAL_E2E_EVIDENCE_KEYS: Partial<Record<ProductionToolId, string>> = {
 }
 
 const CANONICAL_JOB_ADAPTER_EVIDENCE_KEYS: Partial<Record<ProductionToolId, string>> = {
+  d3: 'server_derived_job_adapter_executes_d3_and_dependency_bound_sharp_identities',
   echarts: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
   vega_lite: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
   vega: 'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
@@ -200,6 +201,7 @@ const CANONICAL_JOB_ADAPTER_EVIDENCE_KEYS: Partial<Record<ProductionToolId, stri
   ebu_r128_pyloudnorm: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
   ffprobe: 'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
   remotion: 'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
+  sharp: 'server_derived_job_adapter_executes_d3_and_dependency_bound_sharp_identities',
 }
 
 const OUTPUT_CONTENT_TYPES: Partial<Record<ProductionToolId, readonly string[]>> = {

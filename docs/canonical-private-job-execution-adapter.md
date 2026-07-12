@@ -29,7 +29,7 @@ The service reloads canonical readiness and immutable approved authority, requir
 6. requires a private create-only artifact, passed QA, reconciliation, and downstream dependency eligibility;
 7. stores a credential-free, checksum-protected idempotent adapter response.
 
-The tool-free `validate_approved_snapshot` job and dependency-bound `prepare_source_trim` plan-validation job use canonical internal runners. Source-trim validation requires exact approved source IDs, explicit cleanup decisions, meaning-preservation status, resolved user review, a passed upstream dependency, and a private JSON QA/reconciliation artifact. Tool jobs must name exactly one approved identity that is `canonical_e2e_verified` in the proven tool catalog. Multi-tool and multi-output jobs fail closed.
+The tool-free `validate_approved_snapshot` job and dependency-bound `prepare_source_trim` plan-validation job use canonical internal runners. Source-trim validation requires exact approved source IDs, explicit cleanup decisions, meaning-preservation status, resolved user review, a passed upstream dependency, and a private JSON QA/reconciliation artifact. Tool jobs must name exactly one approved identity that is `canonical_e2e_verified` in the proven tool catalog. Multi-tool jobs fail closed. A job with one required output plus optional sibling outputs deterministically executes the sole required server-owned output; zero or multiple required outputs fail closed until a true multi-output adapter exists.
 
 ## Runner coverage
 
@@ -45,13 +45,14 @@ Executable adapter evidence currently proves:
 - service execution of MKVToolNix and GPAC/MP4Box package validation, VapourSynth frame processing, AudioFlux analysis, and rembg background removal with exact approved profiles, zero-network confined execution, private artifact QA, replay, and downstream dependency readback;
 - service execution of all seven ordinary Python matrix identities (PrettyMIDI, NoiseReduce, Polars, OpenTimelineIO, OpenCV, PySceneDetect, and librosa) with server-derived operation/output authority, exact private artifacts, QA, replay, and downstream dependency readback;
 - service execution of all ten source-backed Python audio identities (SciPy, PyLoudNorm, Pydub, Pydub Effects, EBU R128/PyLoudNorm, Audioread, Resampy, Pedalboard, mir_eval, and Mido) with server-derived source/tool/output authority, audio or JSON QA, replay, and downstream dependency readback;
+- service execution of D3 followed by dependency-bound Sharp through separate job-only calls, preserving the exact D3 SVG downstream byte read and Sharp consumption of only the QA-passed/reconciled selected dependency;
 - service execution of the exact private Remotion final-composition job with two lease-selected dependencies: source-trim authority JSON and libass caption PNG;
 - approved trim-frame application to the exact source MP4, source-audio preservation, independent FFprobe H.264/AAC/frame/duration QA, private final-artifact persistence/download, and durable adapter replay without a second render;
 - service execution of a separate canonical final-QA ffprobe job that consumes only the QA-passed/reconciled private final MP4 dependency, derives its expected media contract from the upstream approved Remotion work item, persists a private JSON report, and replays without a second probe;
 - single-use dispatch consumption, private SVG persistence, QA, reconciliation, durable adapter replay, idempotency conflict, and downstream dependency readback;
 - the independent canonical coordinator lifecycle for all 50 tool identities through `npm run smoke:canonical-private-tool-dispatch`.
 
-The machine-readable proven-tool catalog records job-adapter proof separately from coordinator-only canonical E2E proof. At evidence revision `2026-07-12.26`, 43 exact tool identities have job-adapter proof, including every ordinary matrix identity and all ten source-backed Python audio identities. The remaining seven canonical identities keep their complete coordinator lifecycle evidence but are not represented as job-adapter verified.
+The machine-readable proven-tool catalog records job-adapter proof separately from coordinator-only canonical E2E proof. At evidence revision `2026-07-12.27`, 45 exact tool identities have job-adapter proof, including every ordinary matrix identity, all ten source-backed Python audio identities, D3, and dependency-bound Sharp. Five canonical identities retain complete coordinator lifecycle evidence but are not yet represented as job-adapter verified.
 
 ## Boundaries
 

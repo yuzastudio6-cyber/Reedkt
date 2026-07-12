@@ -14,7 +14,10 @@ import {
   walletBalanceAfter,
 } from './private-edit-authority-store'
 import { withCanonicalExecutionDomainLock } from './canonical-execution-domain-lock'
-import { readPrivateCanonicalToolDispatchAggregate } from './private-canonical-tool-dispatch-store'
+import {
+  readPrivateCanonicalToolDispatchAggregate,
+  revokeUnconsumedSnapshotDispatchesForCancellation,
+} from './private-canonical-tool-dispatch-store'
 import {
   readPrivateCanonicalWorkerLeaseAggregate,
   releaseNeverStartedSnapshotLeasesForCancellation,
@@ -84,14 +87,14 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
         const dispatchAggregate = await readPrivateCanonicalToolDispatchAggregate(scope)
         const snapshotDispatches = dispatchAggregate?.grants.filter((grant) =>
           grant.binding.approvedPlanSnapshotId === input.snapshotId) ?? []
-        if (snapshotDispatches.length > 0) {
+        if (snapshotDispatches.some((grant) => grant.status === 'consumed')) {
           throw new ApiError(
             'TOOL_NOT_READY',
-            'Cancellation is blocked after canonical dispatch authority has existed.',
+            'Cancellation is blocked after canonical dispatch authority was consumed.',
             409,
             {
-              requiredGate: 'canonical_post_dispatch_cancellation_and_compensation',
-              dispatchRecordCount: snapshotDispatches.length,
+              requiredGate: 'canonical_consumed_dispatch_cancellation_and_compensation',
+              consumedDispatchCount: snapshotDispatches.filter((grant) => grant.status === 'consumed').length,
             },
           )
         }
@@ -103,7 +106,7 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
             { requiredGate: 'canonical_started_execution_cancellation_and_compensation' },
           )
         }
-        if (snapshotLeases.length > 0) {
+        if (snapshotLeases.length > 0 || snapshotDispatches.some((grant) => grant.status === 'authorized')) {
           await mutatePrivateEditAuthorityAggregate({
             scope,
             planningDomainScope: {
@@ -168,6 +171,13 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
             },
           })
         }
+        const dispatchRevocation = await revokeUnconsumedSnapshotDispatchesForCancellation({
+          scope,
+          snapshotId: input.snapshotId,
+          projectId: beforeSnapshot.projectId,
+          editSessionId: beforeSnapshot.editSessionId,
+          now: timestamp,
+        })
         const leaseRelease = await releaseNeverStartedSnapshotLeasesForCancellation({
           scope,
           snapshotId: input.snapshotId,
@@ -306,7 +316,7 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
             createdAt: timestamp,
           })
           const response = canonicalPreExecutionCancellationResponseSchema.parse({
-            schemaVersion: 'canonical-pre-execution-cancellation-v1',
+            schemaVersion: 'canonical-pre-execution-cancellation-v2',
             source: 'canonical_pre_execution_cancellation_service',
             authorityRevision: aggregate.revision + 1,
             identity: {
@@ -341,7 +351,11 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
             releasedLeaseCount: leaseRelease.releasedLeaseCount,
             expiredLeaseCount: leaseRelease.expiredLeaseCount,
             allLeaseExecutionFencesNotStarted: true,
-            dispatchGrantCreated: false,
+            dispatchRecordCount: dispatchRevocation.dispatchRecordCount,
+            revokedDispatchCount: dispatchRevocation.revokedDispatchCount,
+            expiredDispatchCount: dispatchRevocation.expiredDispatchCount,
+            deniedDispatchCount: dispatchRevocation.deniedDispatchCount,
+            allDispatchGrantsUnconsumed: true,
             internalTestWalletMutated: true,
             customerWalletMutation: false,
             customerCreditMutation: false,
@@ -368,7 +382,7 @@ export function createCanonicalPreExecutionCancellationService(context: ServiceC
       return {
         cancellation: result,
         warnings: [
-          'Only the unused synthetic private-internal reservation was released; the approved snapshot and derived jobs remain immutable audit evidence.',
+          'Only issued-but-unconsumed dispatch grants and never-started leases were terminally fenced before the unused synthetic private-internal reservation was released; the approved snapshot and derived jobs remain immutable audit evidence.',
           'No customer wallet, customer credits, billing, provider, tool, render, public delivery, Supabase, or production action occurred.',
         ],
       }

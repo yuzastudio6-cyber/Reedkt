@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { ApiError } from '../errors/api-error'
 import {
   readPrivateTextFileIfExistsWithinRoot,
@@ -91,6 +92,82 @@ export async function mutatePrivateCanonicalToolDispatchAggregate<T>(input: {
       content,
     })
     return mutationResult.result
+  })
+}
+
+export async function revokeUnconsumedSnapshotDispatchesForCancellation(input: {
+  scope: CanonicalPrivateToolDispatchStoreScope
+  snapshotId: string
+  projectId: string
+  editSessionId: string
+  now: string
+}): Promise<{
+  dispatchRecordCount: number
+  revokedDispatchCount: number
+  expiredDispatchCount: number
+  deniedDispatchCount: number
+}> {
+  return mutatePrivateCanonicalToolDispatchAggregate({
+    scope: input.scope,
+    now: input.now,
+    mutation: (aggregate) => {
+      const grants = aggregate.grants.filter((grant) =>
+        grant.binding.approvedPlanSnapshotId === input.snapshotId)
+      if (grants.some((grant) =>
+        grant.binding.projectId !== input.projectId ||
+        grant.binding.editSessionId !== input.editSessionId ||
+        grant.status === 'consumed')) {
+        throw new ApiError(
+          'TOOL_NOT_READY',
+          'Cancellation cannot revoke a consumed dispatch grant or a grant whose scope changed.',
+          409,
+          { requiredGate: 'canonical_consumed_dispatch_cancellation_and_compensation' },
+        )
+      }
+      const transitionCount = grants.filter((grant) => grant.status === 'authorized').length
+      if (aggregate.auditEvents.length + transitionCount > MAX_CANONICAL_PRIVATE_TOOL_DISPATCH_AUDIT_EVENTS) {
+        throw new ApiError(
+          'IDEMPOTENCY_CAPACITY_EXCEEDED',
+          'Private canonical tool-dispatch cancellation audit capacity was reached.',
+          503,
+        )
+      }
+      let changed = false
+      for (const grant of grants) {
+        if (grant.status !== 'authorized') continue
+        const expired = Date.parse(grant.expiresAt) <= Date.parse(input.now)
+        if (expired) {
+          grant.status = 'expired'
+          grant.expiredAt = input.now
+        } else {
+          grant.status = 'revoked'
+          grant.revokedAt = input.now
+        }
+        aggregate.auditEvents.push({
+          id: `tool_dispatch_audit_${randomUUID()}`,
+          eventType: expired ? 'expired' : 'revoked',
+          grantId: grant.id,
+          jobId: grant.binding.jobId,
+          approvedWorkItemId: grant.binding.approvedWorkItemId,
+          expectedAssetId: grant.binding.expectedAssetId,
+          canonicalToolId: grant.binding.canonicalToolId,
+          operationId: grant.binding.operationId,
+          leaseId: grant.binding.leaseId,
+          leaseAttemptNumber: grant.binding.leaseAttemptNumber,
+          createdAt: input.now,
+        })
+        changed = true
+      }
+      return {
+        result: {
+          dispatchRecordCount: grants.length,
+          revokedDispatchCount: grants.filter((grant) => grant.status === 'revoked').length,
+          expiredDispatchCount: grants.filter((grant) => grant.status === 'expired').length,
+          deniedDispatchCount: grants.filter((grant) => grant.status === 'denied').length,
+        },
+        changed,
+      }
+    },
   })
 }
 
@@ -219,6 +296,7 @@ function assertGrantTransition(
     if (
       current.consumedAt === undefined ||
       current.expiredAt !== undefined ||
+      current.revokedAt !== undefined ||
       Date.parse(current.consumedAt) < Date.parse(current.issuedAt) ||
       Date.parse(current.consumedAt) > Date.parse(current.expiresAt)
     ) {
@@ -226,10 +304,23 @@ function assertGrantTransition(
     }
     return
   }
+  if (current.status === 'revoked') {
+    if (
+      current.revokedAt === undefined ||
+      current.consumedAt !== undefined ||
+      current.expiredAt !== undefined ||
+      Date.parse(current.revokedAt) < Date.parse(current.issuedAt) ||
+      Date.parse(current.revokedAt) > Date.parse(current.expiresAt)
+    ) {
+      throw invalidDispatchStore('Canonical tool-dispatch revocation transition is invalid.')
+    }
+    return
+  }
   if (
     current.status !== 'expired' ||
     current.expiredAt === undefined ||
     current.consumedAt !== undefined ||
+    current.revokedAt !== undefined ||
     Date.parse(current.expiredAt) < Date.parse(current.expiresAt)
   ) {
     throw invalidDispatchStore('Canonical tool-dispatch expiry transition is invalid.')

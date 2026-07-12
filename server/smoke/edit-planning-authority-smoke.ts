@@ -21,9 +21,16 @@ import { createCanonicalEditExecutionPackageService } from '../services/canonica
 import { withCanonicalExecutionDomainLock } from '../services/canonical-execution-domain-lock'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import { readPrivateCanonicalWorkerLeaseAggregate } from '../services/private-canonical-worker-lease-store'
+import { createCanonicalPrivateToolDispatchAuthorityService } from '../services/canonical-private-tool-dispatch-authority-service'
+import {
+  canonicalPrivateToolDispatchImmutableHash,
+  mutatePrivateCanonicalToolDispatchAggregate,
+  readPrivateCanonicalToolDispatchAggregate,
+} from '../services/private-canonical-tool-dispatch-store'
 import {
   clearPrivateEditAuthorityProcessStateForSmoke,
   readPrivateEditAuthorityAggregate,
+  sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
 import {
@@ -40,6 +47,10 @@ import {
 } from '../validation/edit-planning-authority-schemas'
 import type { PlanningInputAuthorityExpectation } from '../validation/planning-input-authority-binding-schemas'
 import type { SourceMediaAuthorityExpectation } from '../validation/source-media-authority-schemas'
+import {
+  CANONICAL_PRIVATE_TOOL_DISPATCH_RECORD_VERSION,
+  type CanonicalPrivateToolDispatchRecord,
+} from '../validation/canonical-private-tool-dispatch-schemas'
 import { canonicalAuthoritySmokeRoot } from './canonical-authority-smoke-root'
 
 const localStorageRoot = canonicalAuthoritySmokeRoot
@@ -1134,6 +1145,25 @@ try {
     }),
   })
   assert.equal(leaseFixturePackageResponse.status, 201)
+  const leaseFixturePackageEnvelope = await leaseFixturePackageResponse.json() as {
+    data?: { approvedEditExecutionPackage?: Record<string, unknown> }
+  }
+  const leaseFixtureExecutionPackage = asRecord(
+    leaseFixturePackageEnvelope.data?.approvedEditExecutionPackage,
+  )
+  const leaseFixtureReservation = asRecord(leaseFixtureApprovedAuthority.reservation)
+  const leaseFixtureJobs = leaseFixtureApprovedAuthority.jobs as Record<string, unknown>[]
+  const leaseFixtureRootJob = leaseFixtureJobs.find((job) =>
+    Array.isArray(job.dependencyJobIds) && job.dependencyJobIds.length === 0)
+  assert.ok(leaseFixtureRootJob)
+  const leaseFixtureClaim = (await createCanonicalWorkerLeaseAuthorityService(context).claim({
+    workspaceId: routeWorkspaceId,
+    projectId: routeProjectId,
+    editSessionId: leaseFixtureEditSessionId,
+    jobId: String(leaseFixtureRootJob.id),
+    purpose: 'private_internal_canonical_lease_claim',
+    idempotencyKey: 'route-consumed-dispatch-cancellation-lease-claim',
+  })).workerLeaseClaim
 
   const cancellationEditSessionId = 'route-pre-execution-cancellation-session'
   const cancellationProjectResponse = await fetch(`${routeBaseUrl}/v1/projects`, {
@@ -1263,6 +1293,22 @@ try {
     projectId: cancellationProjectId,
     editSessionId: cancellationEditSessionId,
   }
+  const cancellationAuthorityBeforeDispatch = await readPrivateEditAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: cancellationWorkspaceId,
+  })
+  assert.ok(cancellationAuthorityBeforeDispatch)
+  const cancellationAuthorityJob = cancellationAuthorityBeforeDispatch.jobs.find((job) =>
+    job.id === cancellationRootJob.id)
+  assert.ok(cancellationAuthorityJob)
+  const cancellationApprovedWorkItem = cancellationAuthorityBeforeDispatch.approvedWorkItems.find((workItem) =>
+    workItem.id === cancellationAuthorityJob.approvedWorkItemId)
+  assert.ok(cancellationApprovedWorkItem)
+  const cancellationExpectedOutput = cancellationApprovedWorkItem.expectedOutputs[0]
+  const cancellationExpectedAssetId = cancellationAuthorityJob.expectedAssetIds[0]
+  assert.ok(cancellationExpectedOutput)
+  assert.ok(cancellationExpectedAssetId)
   let releaseFirstExecutionDomainLock: () => void = () => undefined
   let markFirstExecutionDomainLockEntered: () => void = () => undefined
   const firstExecutionDomainLockEntered = new Promise<void>((resolve) => {
@@ -1282,17 +1328,137 @@ try {
     },
   )
   await firstExecutionDomainLockEntered
-  const secondExecutionDomainOperation = withCanonicalExecutionDomainLock(
-    executionDomainScope,
-    async () => {
-      executionDomainOrder.push('second_entered')
+  let dispatchLockProbeError: unknown
+  const dispatchLockProbe = createCanonicalPrivateToolDispatchAuthorityService(context).authorize({
+    workspaceId: cancellationWorkspaceId,
+    projectId: cancellationProjectId,
+    editSessionId: cancellationEditSessionId,
+    jobId: cancellationAuthorityJob.id,
+    approvedWorkItemId: cancellationApprovedWorkItem.id,
+    expectedAssetId: cancellationExpectedAssetId,
+    requestedToolName: 'ffmpeg',
+    operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
+    purpose: 'private_internal_canonical_tool_dispatch_authorization',
+    idempotencyKey: 'route-cancellation-dispatch-lock-probe',
+  }, {
+    leaseId: cancellationLeaseClaim.lease.leaseId,
+    leaseCredential: cancellationLeaseClaim.leaseCredential,
+  }).then(
+    () => executionDomainOrder.push('dispatch_settled'),
+    (error: unknown) => {
+      dispatchLockProbeError = error
+      executionDomainOrder.push('dispatch_settled')
     },
   )
-  await Promise.resolve()
+  await new Promise((resolve) => setTimeout(resolve, 50))
   assert.deepEqual(executionDomainOrder, ['first_entered'])
   releaseFirstExecutionDomainLock()
-  await Promise.all([firstExecutionDomainOperation, secondExecutionDomainOperation])
-  assert.deepEqual(executionDomainOrder, ['first_entered', 'first_released', 'second_entered'])
+  await Promise.all([firstExecutionDomainOperation, dispatchLockProbe])
+  assert.deepEqual(executionDomainOrder, ['first_entered', 'first_released', 'dispatch_settled'])
+  assert.ok(dispatchLockProbeError instanceof ApiError)
+
+  const dispatchIssuedAt = new Date().toISOString()
+  const dispatchExpiresAt = new Date(Date.parse(dispatchIssuedAt) + 30_000).toISOString()
+  const dependencyAuthority = cancellationLeaseClaim.lease.dependencyAuthority
+  const cancellationDispatchWithoutHash: Omit<CanonicalPrivateToolDispatchRecord, 'immutableGrantHash'> = {
+    schemaVersion: CANONICAL_PRIVATE_TOOL_DISPATCH_RECORD_VERSION,
+    id: 'tool_dispatch_cancellation_unconsumed_fixture',
+    status: 'authorized',
+    binding: {
+      workspaceId: cancellationWorkspaceId,
+      projectId: cancellationProjectId,
+      editSessionId: cancellationEditSessionId,
+      jobId: cancellationAuthorityJob.id,
+      approvedPlanSnapshotId: String(cancellationSnapshot.snapshotId),
+      approvedWorkItemId: cancellationApprovedWorkItem.id,
+      expectedAssetId: cancellationExpectedAssetId,
+      requestedToolName: 'ffmpeg',
+      canonicalToolId: 'ffmpeg',
+      operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
+      leaseId: cancellationLeaseClaim.lease.leaseId,
+      leaseAttemptNumber: cancellationLeaseClaim.lease.attemptNumber,
+      leaseImmutableHash: cancellationLeaseClaim.lease.immutableLeaseHash,
+      leaseDependencyAuthority: {
+        state: dependencyAuthority.state,
+        readinessHash: dependencyAuthority.readinessHash,
+        authorityHash: dependencyAuthority.authorityHash,
+        selectedArtifactsHash: sha256AuthorityValue(dependencyAuthority.selectedArtifacts),
+        selectedArtifactCount: dependencyAuthority.selectedArtifacts.length,
+        liveRuntimeEligible: false,
+      },
+      leaseExecutionFenceState: 'not_started',
+      reservationId: String(cancellationReservation.id),
+      maximumCreditBudget: cancellationApprovedWorkItem.maximumCreditBudget,
+      remainingReservedCreditsAtDecision: Number(cancellationReservation.reservedCredits),
+      expectedOutput: {
+        outputKey: cancellationExpectedOutput.outputKey,
+        artifactType: cancellationExpectedOutput.artifactType,
+        assetRole: cancellationExpectedOutput.assetRole,
+        required: cancellationExpectedOutput.required,
+        previewPlaceholderAllowed: cancellationExpectedOutput.previewPlaceholderAllowed,
+        ...(cancellationExpectedOutput.contentType
+          ? { contentType: cancellationExpectedOutput.contentType }
+          : {}),
+        segmentIds: [...cancellationExpectedOutput.segmentIds],
+        timingIds: [...cancellationExpectedOutput.timingIds],
+        rendererLayerIds: [...cancellationExpectedOutput.rendererLayerIds],
+      },
+    },
+    authorityRevision: Number(cancellationExecutionPackage.authorityRevision),
+    canonicalHashes: { ...cancellationLeaseClaim.lease.canonicalHashes },
+    toolOperationSpecHash: sha256ForSmoke('cancellation-dispatch-tool-operation-spec'),
+    runtimeEvidenceAuthorityHash: sha256ForSmoke('cancellation-dispatch-runtime-authority'),
+    runtimeEvidenceRecordHash: sha256ForSmoke('cancellation-dispatch-runtime-record'),
+    privateRuntimeAuthorityHash: sha256ForSmoke('cancellation-dispatch-private-runtime-authority'),
+    privateRuntimeImageIdentityHash: sha256ForSmoke('cancellation-dispatch-private-image-identity'),
+    specPrivateInternalReady: true,
+    runtimePrivateInternalReady: true,
+    specProductReady: false,
+    runtimeProductReady: false,
+    exactOperationApproved: true,
+    offlineExecutionOnly: true,
+    decisionRequestHash: sha256ForSmoke('cancellation-dispatch-decision-request'),
+    credentialHashSha256: sha256ForSmoke('cancellation-dispatch-credential'),
+    blockers: [],
+    issuedAt: dispatchIssuedAt,
+    expiresAt: dispatchExpiresAt,
+  }
+  const cancellationDispatchRecord: CanonicalPrivateToolDispatchRecord = {
+    ...cancellationDispatchWithoutHash,
+    immutableGrantHash: canonicalPrivateToolDispatchImmutableHash(cancellationDispatchWithoutHash),
+  }
+  await mutatePrivateCanonicalToolDispatchAggregate({
+    scope: {
+      localStorageRoot,
+      ownerUserId: userId,
+      workspaceId: cancellationWorkspaceId,
+    },
+    now: dispatchIssuedAt,
+    mutation: (aggregate) => {
+      aggregate.grants.push(cancellationDispatchRecord)
+      aggregate.idempotencyRecords.push({
+        operation: 'authorize',
+        keyHash: sha256ForSmoke('cancellation-dispatch-idempotency-key'),
+        requestHash: cancellationDispatchRecord.decisionRequestHash,
+        grantId: cancellationDispatchRecord.id,
+        createdAt: dispatchIssuedAt,
+      })
+      aggregate.auditEvents.push({
+        id: 'tool_dispatch_audit_cancellation_unconsumed_fixture',
+        eventType: 'authorized',
+        grantId: cancellationDispatchRecord.id,
+        jobId: cancellationDispatchRecord.binding.jobId,
+        approvedWorkItemId: cancellationDispatchRecord.binding.approvedWorkItemId,
+        expectedAssetId: cancellationDispatchRecord.binding.expectedAssetId,
+        canonicalToolId: cancellationDispatchRecord.binding.canonicalToolId,
+        operationId: cancellationDispatchRecord.binding.operationId,
+        leaseId: cancellationDispatchRecord.binding.leaseId,
+        leaseAttemptNumber: cancellationDispatchRecord.binding.leaseAttemptNumber,
+        createdAt: dispatchIssuedAt,
+      })
+      return { result: undefined, changed: true }
+    },
+  })
   const cancellationBody = {
     workspaceId: cancellationWorkspaceId,
     expectedAuthorityRevision: cancellationExecutionPackage.authorityRevision,
@@ -1351,7 +1517,11 @@ try {
   assert.equal(cancellation.releasedLeaseCount, 1)
   assert.equal(cancellation.expiredLeaseCount, 0)
   assert.equal(cancellation.allLeaseExecutionFencesNotStarted, true)
-  assert.equal(cancellation.dispatchGrantCreated, false)
+  assert.equal(cancellation.dispatchRecordCount, 1)
+  assert.equal(cancellation.revokedDispatchCount, 1)
+  assert.equal(cancellation.expiredDispatchCount, 0)
+  assert.equal(cancellation.deniedDispatchCount, 0)
+  assert.equal(cancellation.allDispatchGrantsUnconsumed, true)
   assert.equal(cancellation.internalTestWalletMutated, true)
   assert.equal(cancellation.customerWalletMutation, false)
   assert.equal(cancellation.customerCreditMutation, false)
@@ -1434,6 +1604,131 @@ try {
       lease.id === cancellationLeaseClaim.lease.leaseId)?.status,
     'released',
   )
+  const cancelledDispatchAggregate = await readPrivateCanonicalToolDispatchAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: cancellationWorkspaceId,
+  })
+  const revokedCancellationDispatch = cancelledDispatchAggregate?.grants.find((grant) =>
+    grant.id === cancellationDispatchRecord.id)
+  assert.equal(revokedCancellationDispatch?.status, 'revoked')
+  assert.ok(revokedCancellationDispatch?.revokedAt)
+
+  const routeAuthorityBeforeConsumedDispatch = await readPrivateEditAuthorityAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  assert.ok(routeAuthorityBeforeConsumedDispatch)
+  const leaseFixtureAuthorityJob = routeAuthorityBeforeConsumedDispatch.jobs.find((job) =>
+    job.id === leaseFixtureRootJob.id)
+  assert.ok(leaseFixtureAuthorityJob)
+  const leaseFixtureApprovedWorkItem = routeAuthorityBeforeConsumedDispatch.approvedWorkItems.find((workItem) =>
+    workItem.id === leaseFixtureAuthorityJob.approvedWorkItemId)
+  assert.ok(leaseFixtureApprovedWorkItem)
+  const leaseFixtureExpectedAssetId = leaseFixtureAuthorityJob.expectedAssetIds[0]
+  assert.ok(leaseFixtureExpectedAssetId)
+  const consumedDispatchAt = new Date().toISOString()
+  const consumedDispatchExpiresAt = new Date(Date.parse(consumedDispatchAt) + 30_000).toISOString()
+  const consumedDependencyAuthority = leaseFixtureClaim.lease.dependencyAuthority
+  const consumedDispatchWithoutHash: Omit<CanonicalPrivateToolDispatchRecord, 'immutableGrantHash'> = {
+    ...cancellationDispatchWithoutHash,
+    id: 'tool_dispatch_cancellation_consumed_fixture',
+    status: 'consumed',
+    binding: {
+      ...cancellationDispatchWithoutHash.binding,
+      workspaceId: routeWorkspaceId,
+      projectId: routeProjectId,
+      editSessionId: leaseFixtureEditSessionId,
+      jobId: leaseFixtureAuthorityJob.id,
+      approvedPlanSnapshotId: String(leaseFixtureSnapshot.snapshotId),
+      approvedWorkItemId: leaseFixtureApprovedWorkItem.id,
+      expectedAssetId: leaseFixtureExpectedAssetId,
+      leaseId: leaseFixtureClaim.lease.leaseId,
+      leaseAttemptNumber: leaseFixtureClaim.lease.attemptNumber,
+      leaseImmutableHash: leaseFixtureClaim.lease.immutableLeaseHash,
+      leaseDependencyAuthority: {
+        state: consumedDependencyAuthority.state,
+        readinessHash: consumedDependencyAuthority.readinessHash,
+        authorityHash: consumedDependencyAuthority.authorityHash,
+        selectedArtifactsHash: sha256AuthorityValue(consumedDependencyAuthority.selectedArtifacts),
+        selectedArtifactCount: consumedDependencyAuthority.selectedArtifacts.length,
+        liveRuntimeEligible: false,
+      },
+      reservationId: String(leaseFixtureReservation.id),
+      maximumCreditBudget: leaseFixtureApprovedWorkItem.maximumCreditBudget,
+      remainingReservedCreditsAtDecision: Number(leaseFixtureReservation.reservedCredits),
+    },
+    authorityRevision: Number(leaseFixtureExecutionPackage.authorityRevision),
+    canonicalHashes: { ...leaseFixtureClaim.lease.canonicalHashes },
+    decisionRequestHash: sha256ForSmoke('consumed-dispatch-cancellation-decision-request'),
+    credentialHashSha256: sha256ForSmoke('consumed-dispatch-cancellation-credential'),
+    issuedAt: consumedDispatchAt,
+    expiresAt: consumedDispatchExpiresAt,
+    consumedAt: consumedDispatchAt,
+  }
+  const consumedDispatchRecord: CanonicalPrivateToolDispatchRecord = {
+    ...consumedDispatchWithoutHash,
+    immutableGrantHash: canonicalPrivateToolDispatchImmutableHash(consumedDispatchWithoutHash),
+  }
+  await mutatePrivateCanonicalToolDispatchAggregate({
+    scope: { localStorageRoot, ownerUserId: userId, workspaceId: routeWorkspaceId },
+    now: consumedDispatchAt,
+    mutation: (aggregate) => {
+      aggregate.grants.push(consumedDispatchRecord)
+      aggregate.auditEvents.push({
+        id: 'tool_dispatch_audit_cancellation_consumed_fixture',
+        eventType: 'consumed',
+        grantId: consumedDispatchRecord.id,
+        jobId: consumedDispatchRecord.binding.jobId,
+        approvedWorkItemId: consumedDispatchRecord.binding.approvedWorkItemId,
+        expectedAssetId: consumedDispatchRecord.binding.expectedAssetId,
+        canonicalToolId: consumedDispatchRecord.binding.canonicalToolId,
+        operationId: consumedDispatchRecord.binding.operationId,
+        leaseId: consumedDispatchRecord.binding.leaseId,
+        leaseAttemptNumber: consumedDispatchRecord.binding.leaseAttemptNumber,
+        createdAt: consumedDispatchAt,
+      })
+      return { result: undefined, changed: true }
+    },
+  })
+  const consumedDispatchCancellation = await fetch(
+    `${routeBaseUrl}/v1/approved-snapshots/${String(leaseFixtureSnapshot.snapshotId)}/cancel`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-consumed-dispatch-cancellation-denied',
+      },
+      body: JSON.stringify({
+        workspaceId: routeWorkspaceId,
+        expectedAuthorityRevision: leaseFixtureExecutionPackage.authorityRevision,
+        expectedSnapshotHash: leaseFixtureSnapshot.snapshotHash,
+        expectedReservationId: leaseFixtureReservation.id,
+        reason: 'user_cancelled_before_execution',
+      }),
+    },
+  )
+  assert.equal(consumedDispatchCancellation.status, 409)
+  const consumedDispatchCancellationEnvelope = await consumedDispatchCancellation.json() as {
+    error?: { code?: string; details?: { requiredGate?: string } }
+  }
+  assert.equal(consumedDispatchCancellationEnvelope.error?.code, 'TOOL_NOT_READY')
+  assert.equal(
+    consumedDispatchCancellationEnvelope.error?.details?.requiredGate,
+    'canonical_consumed_dispatch_cancellation_and_compensation',
+  )
+  const routeDispatchAggregate = await readPrivateCanonicalToolDispatchAggregate({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+  })
+  assert.equal(
+    routeDispatchAggregate?.grants.filter((grant) =>
+      grant.binding.approvedPlanSnapshotId === routeSnapshot.snapshotId).length ?? 0,
+    0,
+  )
   const leasedSnapshotCancellation = await fetch(
     `${routeBaseUrl}/v1/approved-snapshots/${String(routeSnapshot.snapshotId)}/cancel`,
     {
@@ -1461,6 +1756,78 @@ try {
     leasedSnapshotCancellationEnvelope.error?.details?.requiredGate,
     'canonical_started_execution_cancellation_and_compensation',
   )
+
+  const downstreamLeaseFixtureEditSessionId = 'route-downstream-worker-lease-fixture-session'
+  const downstreamLeasePlanningAuthority = await prepareExactPlanningAuthority(
+    context,
+    routeProjectId,
+    downstreamLeaseFixtureEditSessionId,
+    routeWorkspaceId,
+  )
+  const downstreamLeasePlanBody = createCanonicalPlanBody(
+    'route-downstream-worker-lease-fixture-planning-request',
+    downstreamLeasePlanningAuthority,
+    workGraphSourceFixture,
+  )
+  downstreamLeasePlanBody.workspaceId = routeWorkspaceId
+  const downstreamLeasePublishResponse = await fetch(
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/${downstreamLeaseFixtureEditSessionId}/canonical-plans`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-downstream-worker-lease-fixture-publish',
+      },
+      body: JSON.stringify(downstreamLeasePlanBody),
+    },
+  )
+  assert.equal(downstreamLeasePublishResponse.status, 201)
+  const downstreamLeasePublishEnvelope = await downstreamLeasePublishResponse.json() as {
+    data?: { authority?: Record<string, unknown> }
+  }
+  const downstreamLeasePublishedAuthority = asRecord(downstreamLeasePublishEnvelope.data?.authority)
+  const downstreamLeasePlan = asRecord(downstreamLeasePublishedAuthority.plan)
+  const downstreamLeaseEstimate = asRecord(downstreamLeasePublishedAuthority.estimate)
+  const downstreamLeaseApproveResponse = await fetch(
+    `${routeBaseUrl}/v1/edit-plans/${String(downstreamLeasePlan.id)}/approve`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-downstream-worker-lease-fixture-approve',
+      },
+      body: JSON.stringify({
+        workspaceId: routeWorkspaceId,
+        expectedAuthorityRevision: downstreamLeasePublishedAuthority.authorityRevision,
+        expectedPlanHash: downstreamLeasePlan.planHash,
+        expectedEstimateHash: downstreamLeaseEstimate.estimateHash,
+      }),
+    },
+  )
+  assert.equal(downstreamLeaseApproveResponse.status, 201)
+  const downstreamLeaseApproveEnvelope = await downstreamLeaseApproveResponse.json() as {
+    data?: { authority?: Record<string, unknown> }
+  }
+  const downstreamLeaseSnapshot = asRecord(
+    asRecord(downstreamLeaseApproveEnvelope.data?.authority).snapshot,
+  )
+  const downstreamLeasePackageResponse = await fetch(`${routeBaseUrl}/v1/edit-executions/packages`, {
+    method: 'POST',
+    headers: {
+      ...routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': 'route-downstream-worker-lease-fixture-package',
+    },
+    body: JSON.stringify({
+      workspaceId: routeWorkspaceId,
+      approvedPlanSnapshotId: downstreamLeaseSnapshot.snapshotId,
+      expectedSnapshotHash: downstreamLeaseSnapshot.snapshotHash,
+      purpose: 'private_internal_execution_handoff',
+    }),
+  })
+  assert.equal(downstreamLeasePackageResponse.status, 201)
 
   for (const legacyRequest of [
     fetch(`${routeBaseUrl}/v1/edit-plans/${String(routePlan.id)}/approved-snapshots`, { method: 'POST', headers: routeAuthHeaders }),
@@ -1528,8 +1895,9 @@ console.log(JSON.stringify({
     'cancellation_preserves_snapshot_jobs_and_blocks_execution_package_creation',
     'cancellation_unlocks_planning_inputs_for_a_new_plan_version',
     'cancellation_is_idempotent_conflict_safe_and_has_no_customer_tool_provider_render_or_delivery_side_effect',
-    'packaged_never_started_lease_is_released_before_cancellation_finalizes',
-    'shared_execution_domain_fence_serializes_lease_creation_and_cancellation',
+    'packaged_unconsumed_dispatch_is_revoked_and_never_started_lease_is_released_before_cancellation_finalizes',
+    'shared_execution_domain_fence_serializes_dispatch_authorization_lease_creation_and_cancellation',
+    'cancellation_fails_closed_after_dispatch_consumption',
     'cancellation_fails_closed_after_execution_fence_start',
     'authenticated_fail_closed_tool_runtime_evidence_http_route',
     'legacy_caller_authority_routes_fail_closed',

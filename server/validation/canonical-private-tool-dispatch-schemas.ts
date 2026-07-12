@@ -151,7 +151,7 @@ const immutableDispatchBindingSchema = z.object({
 export const canonicalPrivateToolDispatchRecordSchema = z.object({
   schemaVersion: z.literal(CANONICAL_PRIVATE_TOOL_DISPATCH_RECORD_VERSION),
   id: safeIdentitySchema,
-  status: z.enum(['authorized', 'denied', 'consumed', 'expired']),
+  status: z.enum(['authorized', 'denied', 'consumed', 'expired', 'revoked']),
   binding: immutableDispatchBindingSchema,
   authorityRevision: z.number().int().positive(),
   canonicalHashes: canonicalWorkerLeaseHashesSchema,
@@ -174,6 +174,7 @@ export const canonicalPrivateToolDispatchRecordSchema = z.object({
   expiresAt: timestampSchema,
   consumedAt: timestampSchema.optional(),
   expiredAt: timestampSchema.optional(),
+  revokedAt: timestampSchema.optional(),
 }).strict().superRefine((record, context) => {
   const issuedAt = Date.parse(record.issuedAt)
   const expiresAt = Date.parse(record.expiresAt)
@@ -188,24 +189,40 @@ export const canonicalPrivateToolDispatchRecordSchema = z.object({
     record.exactOperationApproved &&
     record.offlineExecutionOnly &&
     record.consumedAt === undefined &&
-    record.expiredAt === undefined
+    record.expiredAt === undefined &&
+    record.revokedAt === undefined
   const deniedShape = record.status === 'denied' &&
     record.credentialHashSha256 === undefined &&
     record.blockers.length > 0 &&
     record.consumedAt === undefined &&
-    record.expiredAt === undefined
+    record.expiredAt === undefined &&
+    record.revokedAt === undefined
   const consumedShape = record.status === 'consumed' &&
     record.credentialHashSha256 !== undefined &&
     record.consumedAt !== undefined &&
     record.expiredAt === undefined &&
+    record.revokedAt === undefined &&
     Date.parse(record.consumedAt) >= issuedAt &&
     Date.parse(record.consumedAt) <= expiresAt
   const expiredShape = record.status === 'expired' &&
     record.credentialHashSha256 !== undefined &&
     record.consumedAt === undefined &&
     record.expiredAt !== undefined &&
+    record.revokedAt === undefined &&
     Date.parse(record.expiredAt) >= expiresAt
-  if (!authorizedShape && !deniedShape && !consumedShape && !expiredShape) {
+  const revokedShape = record.status === 'revoked' &&
+    record.credentialHashSha256 !== undefined &&
+    record.blockers.length === 0 &&
+    record.specPrivateInternalReady &&
+    record.runtimePrivateInternalReady &&
+    record.exactOperationApproved &&
+    record.offlineExecutionOnly &&
+    record.consumedAt === undefined &&
+    record.expiredAt === undefined &&
+    record.revokedAt !== undefined &&
+    Date.parse(record.revokedAt) >= issuedAt &&
+    Date.parse(record.revokedAt) <= expiresAt
+  if (!authorizedShape && !deniedShape && !consumedShape && !expiredShape && !revokedShape) {
     context.addIssue({ code: 'custom', message: 'Dispatch grant state is inconsistent.' })
   }
 })
@@ -220,7 +237,7 @@ export const canonicalPrivateToolDispatchIdempotencyRecordSchema = z.object({
 
 export const canonicalPrivateToolDispatchAuditEventSchema = z.object({
   id: safeIdentitySchema,
-  eventType: z.enum(['authorized', 'denied', 'consumed', 'expired']),
+  eventType: z.enum(['authorized', 'denied', 'consumed', 'expired', 'revoked']),
   grantId: safeIdentitySchema,
   jobId: safeIdentitySchema,
   approvedWorkItemId: safeIdentitySchema,
@@ -275,7 +292,7 @@ export const canonicalPrivateToolDispatchResponseSchema = z.object({
   purpose: z.literal('private_internal_canonical_tool_dispatch_authorization'),
   grant: z.object({
     grantId: safeIdentitySchema,
-    status: z.enum(['authorized', 'denied', 'consumed', 'expired']),
+    status: z.enum(['authorized', 'denied', 'consumed', 'expired', 'revoked']),
     binding: immutableDispatchBindingSchema,
     blockers: z.array(safeIdentitySchema).max(32),
     issuedAt: timestampSchema,

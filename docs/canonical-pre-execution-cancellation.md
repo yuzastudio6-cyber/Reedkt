@@ -2,7 +2,7 @@
 
 Status: authenticated local/private pre-execution cancellation evidence
 
-The canonical cancellation service closes one narrow recovery gap: an authenticated editor can cancel an approved snapshot before any execution package exists. The operation atomically releases the entire unused synthetic reservation while preserving the approved snapshot, approved work items, derived jobs, and audit history.
+The canonical cancellation service closes one narrow recovery gap: an authenticated editor can cancel an approved snapshot before dispatch consumption or worker execution begins. The restart-safe saga terminally fences issued-but-unconsumed dispatch and never-started lease authority before atomically releasing the entire unused synthetic reservation, while preserving the approved snapshot, approved work items, derived jobs, execution package, and audit history.
 
 ## Authenticated route
 
@@ -24,13 +24,13 @@ The route is available only in the explicit local/private internal-test runtime 
 Cancellation succeeds only when:
 
 1. snapshot, plan, estimate, approval, reservation, and derived-job lineage are complete and exact;
-2. the plan and estimate remain approved;
+2. the plan and estimate remain approved, or the same exact cancellation owns the persisted `cancellation_pending` state;
 3. the reservation is still `reserved` and has zero spend, release, and refund activity;
 4. the entire reservation is therefore unused and releasable;
-5. no execution package exists for the snapshot;
-6. the caller's expected authority revision, snapshot hash, reservation identity, and idempotency identity match.
+5. every dispatch grant is unconsumed and every lease execution fence is `not_started`;
+6. the caller's expected authority revision, snapshot hash, reservation identity, and idempotency identity match, or the same exact request is resuming its persisted cancellation saga.
 
-The mutation performs one conservation-safe local/private transaction:
+After terminal dispatch/lease fencing, finalization performs one conservation-safe local/private authority transaction:
 
 - returns the unused synthetic credits from reserved to available balance;
 - records a `cancel` ledger entry;
@@ -44,11 +44,11 @@ The approved snapshot is not deleted or rewritten. Plan and estimate content rem
 
 ## Fail-closed boundary
 
-An execution package may already exist. A lease may also exist only when every matching lease execution fence remains `not_started` and no dispatch grant exists. Cancellation and lease claim use one shared single-host execution-domain fence, preventing a claim from racing the cancellation transaction. The service first persists `cancellation_pending`, then terminally releases or expires active never-started leases, and only then releases the unused synthetic reservation and finalizes cancellation. The package and lease records remain immutable audit evidence.
+An execution package may already exist. Leases may exist only while every matching execution fence remains `not_started`. Dispatch records may exist only while none has been consumed. Cancellation, lease claim, and dispatch authorization/consumption use one shared single-host execution-domain fence. The service first persists `cancellation_pending`, then terminally revokes or expires issued-but-unconsumed dispatch grants, releases or expires active never-started leases, and only then releases the unused synthetic reservation and finalizes cancellation. Package, dispatch, and lease records remain immutable audit evidence.
 
-If a dispatch grant exists, cancellation returns `canonical_post_dispatch_cancellation_and_compensation`. If any lease execution fence started, it returns `canonical_started_execution_cancellation_and_compensation`. It does not cancel consumed dispatches, started attempts, committed artifacts, QA, or reviews. Those stages require a later compensation state machine and durable distributed worker fencing.
+If a dispatch grant was consumed, cancellation returns `canonical_consumed_dispatch_cancellation_and_compensation`. If any lease execution fence started, it returns `canonical_started_execution_cancellation_and_compensation`. It does not cancel consumed dispatches, started attempts, committed artifacts, QA, or reviews. Those stages require a later compensation state machine and durable distributed worker fencing.
 
-The focused smoke proves authentication, exact reservation conservation, snapshot/job/package/lease preservation, replay safety, idempotency conflict, post-cancel package denial, never-started lease release, execution-domain serialization, and started-execution cancellation denial.
+The focused smoke proves authentication, exact reservation conservation, snapshot/job/package/dispatch/lease preservation, replay safety, idempotency conflict, post-cancel package denial, unconsumed dispatch revocation, never-started lease release, execution-domain serialization, consumed-dispatch denial, and independent started-execution denial.
 
 ## Non-authority
 

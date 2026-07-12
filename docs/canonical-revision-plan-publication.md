@@ -48,7 +48,7 @@ The canonical lifecycle smoke proves:
 
 ## Boundaries
 
-Replacement planning, synthetic fresh approval, revised work-graph execution, a second private review, superseded-review history access, and fully unused pre-dispatch cancellation with never-started lease release are now proven for local/private scope. Post-dispatch/started-execution compensation, broader recovery, real-user browser handoff, providers, Supabase, billing, public delivery, and production remain gated.
+Replacement planning, synthetic fresh approval, revised work-graph execution, a second private review, superseded-review history access, and fully unused pre-consumption cancellation with issued dispatch revocation plus never-started lease release are now proven for local/private scope. Consumed-dispatch/started-execution compensation, broader recovery, real-user browser handoff, providers, Supabase, billing, public delivery, and production remain gated.
 
 ## Verification
 

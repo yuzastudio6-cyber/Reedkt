@@ -107,6 +107,7 @@ import type {
   CanonicalWorkerLeaseHashes,
 } from '../validation/canonical-worker-lease-authority-schemas'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
+import { withCanonicalExecutionDomainLock } from './canonical-execution-domain-lock'
 import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
 import {
   createEditPlanningAuthorityService,
@@ -168,13 +169,15 @@ export function createCanonicalPrivateToolDispatchAuthorityService(context: Serv
         throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Tool dispatch actor does not own this authenticated workspace scope.', 403)
       }
 
-      return withPlanningDomainMutationLock({
+      const domainScope = {
         localStorageRoot: context.env.localStorageRoot,
         ownerUserId: access.userId,
         workspaceId: access.workspaceId,
         projectId: body.projectId,
         editSessionId: body.editSessionId,
-      }, async () => {
+      }
+      return withCanonicalExecutionDomainLock(domainScope, () =>
+        withPlanningDomainMutationLock(domainScope, async () => {
         const leaseVerification = await createCanonicalWorkerLeaseAuthorityService(context).verifyActive({
           workspaceId: body.workspaceId,
           projectId: body.projectId,
@@ -365,7 +368,8 @@ export function createCanonicalPrivateToolDispatchAuthorityService(context: Serv
             'No source bytes, provider, tool, artifact, render, wallet, credit-spend, settlement, cloud, or database operation occurred.',
           ],
         }
-      })
+        }),
+      )
     },
 
     async consume(
@@ -386,13 +390,15 @@ export function createCanonicalPrivateToolDispatchAuthorityService(context: Serv
         workspaceId: access.workspaceId,
       }
 
-      return withPlanningDomainMutationLock({
+      const domainScope = {
         localStorageRoot: context.env.localStorageRoot,
         ownerUserId: access.userId,
         workspaceId: access.workspaceId,
         projectId: body.projectId,
         editSessionId: body.editSessionId,
-      }, async () => {
+      }
+      return withCanonicalExecutionDomainLock(domainScope, () =>
+        withPlanningDomainMutationLock(domainScope, async () => {
         const initialAggregate = await readPrivateCanonicalToolDispatchAggregate(scope)
         const initialRecord = initialAggregate?.grants.find((candidate) => candidate.id === body.grantId)
         assertConsumableGrantIdentity(initialRecord, body, privateAuthority.leaseId)
@@ -578,7 +584,8 @@ export function createCanonicalPrivateToolDispatchAuthorityService(context: Serv
             'This private single-host transition is not distributed or production dispatch authority.',
           ],
         }
-      })
+        }),
+      )
     },
   }
 }

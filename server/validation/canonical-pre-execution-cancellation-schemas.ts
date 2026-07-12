@@ -12,7 +12,7 @@ export const cancelCanonicalApprovedSnapshotSchema = z.object({
 }).strict()
 
 export const canonicalPreExecutionCancellationResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-pre-execution-cancellation-v1'),
+  schemaVersion: z.literal('canonical-pre-execution-cancellation-v2'),
   source: z.literal('canonical_pre_execution_cancellation_service'),
   authorityRevision: z.number().int().positive(),
   identity: z.object({
@@ -52,7 +52,11 @@ export const canonicalPreExecutionCancellationResponseSchema = z.object({
   releasedLeaseCount: z.number().int().nonnegative().max(2_000),
   expiredLeaseCount: z.number().int().nonnegative().max(2_000),
   allLeaseExecutionFencesNotStarted: z.literal(true),
-  dispatchGrantCreated: z.literal(false),
+  dispatchRecordCount: z.number().int().nonnegative().max(4_096),
+  revokedDispatchCount: z.number().int().nonnegative().max(4_096),
+  expiredDispatchCount: z.number().int().nonnegative().max(4_096),
+  deniedDispatchCount: z.number().int().nonnegative().max(4_096),
+  allDispatchGrantsUnconsumed: z.literal(true),
   internalTestWalletMutated: z.literal(true),
   customerWalletMutation: z.literal(false),
   customerCreditMutation: z.literal(false),
@@ -62,7 +66,17 @@ export const canonicalPreExecutionCancellationResponseSchema = z.object({
   renderStarted: z.literal(false),
   publicDeliveryStarted: z.literal(false),
   testOnly: z.literal(true),
-}).strict()
+}).strict().superRefine((response, context) => {
+  if (response.releasedLeaseCount + response.expiredLeaseCount !== response.leaseRecordCount) {
+    context.addIssue({ code: 'custom', message: 'Cancellation lease terminal-state counts are inconsistent.' })
+  }
+  if (
+    response.revokedDispatchCount + response.expiredDispatchCount + response.deniedDispatchCount !==
+    response.dispatchRecordCount
+  ) {
+    context.addIssue({ code: 'custom', message: 'Cancellation dispatch terminal-state counts are inconsistent.' })
+  }
+})
 
 export type CancelCanonicalApprovedSnapshotBody = z.infer<
   typeof cancelCanonicalApprovedSnapshotSchema

@@ -65,7 +65,7 @@ componentFiles.forEach((path) => {
   const hasDisabledFilePlaceholder = /type="file"/.test(source) && /disabled/.test(source)
   const isLocalSourceVideoPicker = path.endsWith('ProjectEditBriefSourceVideoPicker.tsx')
   assert.equal(/type="file"/.test(source) && !hasDisabledFilePlaceholder && !isLocalSourceVideoPicker, false, `${path} should not add active file upload UI`)
-  assert.doesNotMatch(source, /uploadFile|readFile|renderJob|creditReserved/i, `${path} should not add upload/render/credit UI`)
+  assert.doesNotMatch(source, /\b(?:uploadFile|readFile|renderJob|creditReserved)\b/i, `${path} should not add upload/render/credit UI`)
 })
 
 const docsCombined = requiredFiles

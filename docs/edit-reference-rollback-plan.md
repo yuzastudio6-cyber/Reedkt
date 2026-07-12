@@ -23,7 +23,7 @@ If Gate 8.1 must be withdrawn after review:
 4. use `git revert` for the exact Gate 8.1 commit(s), newest first;
 5. resolve conflicts manually without rewriting unrelated owner work;
 6. run typechecks, builds, lint, frontend boundary, Edit Reference smokes, and full Playwright;
-7. verify migration count remains 21 and no external action occurred;
+7. verify the preserved source remains at 21 migrations, the selected PR branch remains at its 24-migration remote-base count, and no Edit Reference migration or external action occurred;
 8. commit the explicit revert and obtain review before any push.
 
 Do not rewrite shared history or force-push.

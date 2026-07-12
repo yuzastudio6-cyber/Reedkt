@@ -51,8 +51,10 @@ The private backend-local repository uses a user/workspace-scoped aggregate, roo
 
 ## Migration Audit
 
-- migration baseline: 21
-- migration current: 21
+- verified source-branch migration baseline: 21
+- selected PR-base and PR-branch migration count: 24
+- Edit Reference migration paths changed by the clean replay: 0
+- selected PR-branch migration current: 24
 - Motion/Edit Reference SQL added in Gates 1–8.1: none
 - Supabase CLI or remote SQL run: none
 - production database/RLS/tenancy evidence: not verified

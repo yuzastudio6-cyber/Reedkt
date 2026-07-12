@@ -35,6 +35,10 @@ const requiredFiles = [
   'docs/edit-reference-known-limitations.md',
   'docs/edit-reference-pr-file-inventory.md',
   'docs/edit-reference-rollback-plan.md',
+  'docs/edit-reference-draft-pr-readiness.md',
+  'docs/edit-reference-draft-pr-commit-map.md',
+  'docs/edit-reference-draft-pr-file-inventory.md',
+  'docs/edit-reference-draft-pr-base-reconciliation.md',
   'design-system/MASTER.md',
   'design-system/pages/edit-preferences.md',
   'scripts/validation/edit-reference-goal-preflight.mjs',
@@ -65,13 +69,14 @@ const gate8 = read('docs/edit-reference-gate-8-beta-readiness.md')
 
 assert.equal(status.goal, 'edit_reference_end_to_end')
 assert.equal(status.status, 'feature_complete_except_external_blocker')
-assert.equal(status.currentGate, 'gate_8_1_complete')
+assert.match(String(status.currentGate), /^gate_9_/)
 assert.deepEqual(status.completedGates, ['gate_0', 'gate_1', 'gate_2', 'gate_3', 'gate_4', 'gate_5', 'gate_6', 'gate_7', 'gate_8', 'gate_8_1'])
 assert.deepEqual(status.blockedGates, [])
 assert.match(String(status.latestCommit), /^[a-f0-9]{40}$/)
-assert.equal(status.migrationBaseline, 21)
-assert.equal(status.migrationCurrent, 21)
-assert.equal(status.browserQa, 'passed_60_of_60_backend_local')
+assert.equal(status.migrationBaseline, 24)
+assert.equal(status.migrationCurrent, 24)
+assert.equal(status.sourceMigrationBaseline, 21)
+assert.equal(status.browserQa, 'passed_43_discovered_42_passed_1_live_provider_gated')
 assert.equal(status.backendQa, 'passed_backend_local')
 assert.equal(status.runtimeQa, 'passed_local_media_partial_with_external_semantic_limits')
 assert.equal(status.persistenceQa, 'passed_backend_local_remote_blocked')
@@ -80,8 +85,16 @@ assert.equal(status.productionReady, false)
 
 assert.equal(
   readdirSync(join(root, 'supabase/migrations')).filter((entry) => entry.endsWith('.sql') && !entry.startsWith('._')).length,
-  21,
+  24,
 )
+
+const prPreparation = status.prPreparation as Record<string, unknown>
+assert.equal(prPreparation.strategy, 'clean_replay')
+assert.equal(prPreparation.baseBranch, 'codex/reeditpro-web-ui-shell')
+assert.equal(prPreparation.baseSha, 'e405e69e1a43fd2609854d8acaa7a4ef959b7e94')
+assert.equal(prPreparation.replayedGoalCommits, 21)
+assert.equal(prPreparation.packageLockChanged, false)
+assert.equal(prPreparation.changedFileCount === null || prPreparation.changedFileCount === 162, true)
 
 assert.match(goal, /Reference style must be adapted to the target video, never copied blindly/i)
 for (const decision of ['reuse', 'extend', 'replace', 'retire', 'blocked', 'historical-only']) {

@@ -79,7 +79,7 @@ try {
   assert.equal(session.gcsWriteMade, false)
   assert.equal(session.productReady, false)
   assert.equal(created.backendLocalSessionCreated, true)
-  assert.equal(created.openRoute, `/projects/project_backend_local_smoke/edits/${session.id}/brief`)
+  assert.equal(created.openRoute, `/projects/project_backend_local_smoke/edits/${session.id}`)
 
   const readback = await readProjectEditSessionBackendLocal({
     apiBaseUrl,

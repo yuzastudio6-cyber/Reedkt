@@ -4,23 +4,26 @@ Status date: 2026-07-12
 
 Overall status: `feature_complete_except_external_blocker`
 
-Current gate: `gate_8_1_complete`
+Current gate: `gate_9_pr_preparation`
 
 Production ready: **No**
 
 ## Repository Identity
 
-- Worktree: `/Volumes/backup/REeditpro-beta-integration-4`
-- Branch: `codex/beta-integration-reconcile`
+- Selected PR worktree: `/Users/macuser/Developer/REeditpro-edit-reference-pr`
+- Selected PR branch: `codex/edit-reference-end-to-end`
+- Selected PR base: `codex/reeditpro-web-ui-shell` at `e405e69e1a43fd2609854d8acaa7a4ef959b7e94`
+- Verified source worktree: `/Volumes/backup/REeditpro-beta-integration-4`
+- Verified source branch/head: `codex/beta-integration-reconcile` at `dc2f3625ec6e7652e8ae9c064c1c96160b07a8a1`
 - Starting commit: `48540ee9b3d14c8345b0cedf11b6b449424324c3`
 - Gate 7 implementation/verification: `42d34cdc04179c6808a4c3f23286885daf116006` / `abb3b9548baa92c5bcdd4d5cee45a53e1ef6f66e`
 - Gate 8 implementation: `7ff15993c505af65abcbc61e0db259061f583e25`
 - Gate 8.1 live-study implementation: `0e12652af4f7258ebbaeceb5bb3819ad4bb91196`
 - Gate 8.1 application entry points: `64e61279dada0ef45eb16f61e7883ba6b530875e`
-- Starting tree: clean
-- Migration baseline: 21
-- Migration current: 21
-- Push/PR/remote merge: none authorized or performed
+- Source migration baseline: 21
+- Selected remote-base and PR-branch migration count: 24
+- Package lock: unchanged from the selected remote base
+- Push/PR/remote merge: draft push and draft PR are authorized by Gate 9; no merge or deployment is authorized
 
 ## Gate Ledger
 
@@ -36,16 +39,20 @@ Production ready: **No**
 | Gate 7 — closure | Complete | `42d34cdc04179c6808a4c3f23286885daf116006` | Exact replace/remove lifecycle, immutable version links, approval reset, downstream invalidation and replan state, retry/recovery, responsive UI, privacy scans, full regression, and final readiness classification passed |
 | Gate 8 — final beta readiness | Complete | `7ff15993c505af65abcbc61e0db259061f583e25` | Gates 0–7 implementation audit, Study Chat correction, stale-read guards, accessibility repairs, 3-case adaptation proof, one complete browser journey, 58/58 browser tests, full backend/security regressions, evidence reports, and PR inventory passed |
 | Gate 8.1 — application entry points and live-study closure | Complete | `0e12652af4f7258ebbaeceb5bb3819ad4bb91196`, `64e61279dada0ef45eb16f61e7883ba6b530875e` | Initial New Edit selector, Edit Chat commands, one canonical application, private FFprobe/FFmpeg study, ephemeral frames, truthful semantic blockers, reload recovery, 60/60 browser tests, and closure smoke passed |
+| Gate 9 — branch reconciliation and draft PR | In progress | `7cb122a34b0d3cf9d261aca3273d7574b82ab834`, `257a64922cbb4f778ebe7ea63dd03a560dcbd8dc`, `8b4921e128fecff14cb30e6e5657849f2bff471a` | Clean-replay strategy selected; active routes, UI authority, local browser gates, and remote-base regressions reconciled. Draft PR evidence and final push remain pending. |
 
 ## Current QA State
 
-- Browser QA: `passed_60_of_60_backend_local`
+- Source browser QA: `passed_60_of_60_backend_local`
+- Selected PR branch Edit Reference QA: `passed_12_of_12`
+- Selected PR branch full browser QA: 43 discovered, 42 passed, one live-provider test intentionally gated, zero failed
 - Backend QA: `passed_backend_local`
 - Runtime QA: `passed_local_media_partial_with_external_semantic_limits`
 - Persistence QA: `passed_backend_local_remote_blocked`
 - Supabase production QA: blocked by the existing migration-baseline gate
 - Provider execution: not enabled; Gate 8.1 performed no provider/model call
 - Private local media execution: FFprobe/FFmpeg structure and ephemeral representative-frame planning verified
+- Dependency audit: `npm ci` reported 4 low, 5 moderate, and 2 high findings; `package-lock.json` was not changed and release review remains required
 
 ## Current Truth
 

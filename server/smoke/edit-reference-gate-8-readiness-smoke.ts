@@ -4,8 +4,9 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
 const root = process.cwd()
-const startingCommit = '48540ee9b3d14c8345b0cedf11b6b449424324c3'
+const startingCommit = 'e405e69e1a43fd2609854d8acaa7a4ef959b7e94'
 const gate8Commit = '7ff15993c505af65abcbc61e0db259061f583e25'
+const replayedGate8Commit = 'c648f73f855bcc2ee578e1b6823e3e0e0417cdab'
 const allowDirtyAudit = process.env.EDIT_REFERENCE_ALLOW_DIRTY_AUDIT === '1'
 
 const requiredFiles = [
@@ -30,6 +31,10 @@ const requiredFiles = [
   'docs/edit-reference-skill-registry.md',
   'docs/edit-reference-persistence-contract.md',
   'docs/edit-reference-gate-verification-log.md',
+  'docs/edit-reference-draft-pr-readiness.md',
+  'docs/edit-reference-draft-pr-commit-map.md',
+  'docs/edit-reference-draft-pr-file-inventory.md',
+  'docs/edit-reference-draft-pr-base-reconciliation.md',
 ]
 
 for (const relativePath of requiredFiles) {
@@ -49,6 +54,7 @@ const status = JSON.parse(read('docs/edit-reference-goal-status.json')) as {
   latestCommit: string
   migrationBaseline: number
   migrationCurrent: number
+  sourceMigrationBaseline: number
   browserQa: string
   backendQa: string
   runtimeQa: string
@@ -58,6 +64,21 @@ const status = JSON.parse(read('docs/edit-reference-goal-status.json')) as {
   readinessDecision: string
   productionReady: boolean
   remoteMutationAllowed: boolean
+  prPreparation: {
+    strategy: string
+    baseBranch: string
+    baseSha: string
+    replayedGoalCommits: number
+    packageLockChanged: boolean
+    changedFileCount: number | null
+    fullPlaywright: {
+      discovered: number
+      passed: number
+      skipped: number
+      failed: number
+      skippedReason?: string
+    }
+  }
 }
 const packageJson = JSON.parse(read('package.json')) as { scripts?: Record<string, string> }
 const gate8 = read('docs/edit-reference-gate-8-beta-readiness.md')
@@ -75,19 +96,24 @@ const rollback = read('docs/edit-reference-rollback-plan.md')
 const definition = read('docs/edit-reference-definition-of-done.md')
 const statusMarkdown = read('docs/edit-reference-goal-status.md')
 const verificationLog = read('docs/edit-reference-gate-verification-log.md')
+const draftReadiness = read('docs/edit-reference-draft-pr-readiness.md')
+const draftCommitMap = read('docs/edit-reference-draft-pr-commit-map.md')
+const draftInventory = read('docs/edit-reference-draft-pr-file-inventory.md')
+const baseReconciliation = read('docs/edit-reference-draft-pr-base-reconciliation.md')
 
 assert.equal(status.goal, 'edit_reference_end_to_end')
 assert.equal(status.status, 'feature_complete_except_external_blocker')
-assert.equal(status.currentGate, 'gate_8_1_complete')
+assert.match(status.currentGate, /^gate_9_/)
 assert.deepEqual(status.completedGates, [...Array.from({ length: 9 }, (_, index) => `gate_${index}`), 'gate_8_1'])
 assert.deepEqual(status.blockedGates, [])
 assert.equal(status.gate7ImplementationCommit, '42d34cdc04179c6808a4c3f23286885daf116006')
 assert.equal(status.gate7VerificationCommit, 'abb3b9548baa92c5bcdd4d5cee45a53e1ef6f66e')
 assert.equal(status.gate8Commit, gate8Commit)
 assert.match(status.latestCommit, /^[a-f0-9]{40}$/)
-assert.equal(status.migrationBaseline, 21)
-assert.equal(status.migrationCurrent, 21)
-assert.equal(status.browserQa, 'passed_60_of_60_backend_local')
+assert.equal(status.migrationBaseline, 24)
+assert.equal(status.migrationCurrent, 24)
+assert.equal(status.sourceMigrationBaseline, 21)
+assert.equal(status.browserQa, 'passed_43_discovered_42_passed_1_live_provider_gated')
 assert.equal(status.backendQa, 'passed_backend_local')
 assert.equal(status.runtimeQa, 'passed_local_media_partial_with_external_semantic_limits')
 assert.equal(status.persistenceQa, 'passed_backend_local_remote_blocked')
@@ -103,10 +129,21 @@ assert(status.remainingBlockers.length >= 6)
 assert.equal(status.readinessDecision, 'feature_complete_except_external_blocker')
 assert.equal(status.productionReady, false)
 assert.equal(status.remoteMutationAllowed, false)
+assert.equal(status.prPreparation.strategy, 'clean_replay')
+assert.equal(status.prPreparation.baseBranch, 'codex/reeditpro-web-ui-shell')
+assert.equal(status.prPreparation.baseSha, startingCommit)
+assert.equal(status.prPreparation.replayedGoalCommits, 21)
+assert.equal(status.prPreparation.packageLockChanged, false)
+assert.equal(status.prPreparation.changedFileCount === null || status.prPreparation.changedFileCount === 162, true)
+assert.equal(status.prPreparation.fullPlaywright.discovered, 43)
+assert.equal(status.prPreparation.fullPlaywright.passed, 42)
+assert.equal(status.prPreparation.fullPlaywright.skipped, 1)
+assert.equal(status.prPreparation.fullPlaywright.failed, 0)
+assert.match(status.prPreparation.fullPlaywright.skippedReason ?? '', /live qwen provider/i)
 
 const migrationCount = readdirSync(join(root, 'supabase/migrations'))
   .filter((entry) => entry.endsWith('.sql') && !entry.startsWith('._')).length
-assert.equal(migrationCount, 21)
+assert.equal(migrationCount, 24)
 
 const allowedMatrixStatuses = new Set(['passed', 'passed_with_limitation', 'blocked_external', 'failed', 'not_implemented'])
 const matrixRows = [...matrix.matchAll(/^\| (ER-[A-Z]+-\d+) \|[^\n]*?\| (passed|passed_with_limitation|blocked_external|failed|not_implemented) \|/gm)]
@@ -148,7 +185,8 @@ for (const field of ['skillId', 'displayName', 'purpose', 'inputs', 'outputs', '
 assert.match(persistenceReport, /passed_backend_local_remote_blocked/)
 assert.match(persistenceReport, /Browser `localStorage` \| not authority/)
 assert.match(persistenceReport, /replacement\/removal history.*Passed/is)
-assert.match(persistenceReport, /migration baseline: 21/)
+assert.match(persistenceReport, /source-branch migration baseline: 21/i)
+assert.match(persistenceReport, /PR-base and PR-branch migration count: 24/i)
 assert.match(persistenceContract, /Gates 1[–-]8\.1 add no SQL migration/)
 assert.match(security, /No raw provider response persistence \| Passed/)
 assert.match(security, /No raw frame persistence by default \| Passed/)
@@ -179,6 +217,13 @@ assert.match(statusMarkdown, /Gate 8 — final beta readiness \| Complete/)
 assert.match(verificationLog, /## Gate 8 — Final Beta Readiness And PR Preparation/)
 assert.match(verificationLog, /Full Chromium Playwright \| Pass \| 58\/58/)
 assert.match(verificationLog, /## Gate 8\.1 — User Application Entry Points And Live Study Closure/)
+assert.match(draftReadiness, /Decision: `ready_for_draft_pr`/)
+assert.match(draftReadiness, /43 discovered; 42 passed; 1 live-provider test gated; 0 failed/i)
+assert.match(draftCommitMap, /21 Edit Reference Gate 0–8\.1 commits/i)
+assert.match(draftInventory, /Total changed paths \| 162/)
+assert.match(draftInventory, /Supabase migration paths changed \| 0/)
+assert.match(baseReconciliation, /Decision B — create a clean PR branch/i)
+assert.match(baseReconciliation, /package-lock\.json.*byte-identical/is)
 
 assert.equal(
   packageJson.scripts?.['smoke:edit-reference-gate-8-readiness'],
@@ -190,9 +235,9 @@ assert.equal(
 )
 
 const changedPaths = git(['diff', '--name-only', allowDirtyAudit ? startingCommit : `${startingCommit}..HEAD`]).split('\n').filter(Boolean)
-assert(changedPaths.length >= 171, `Expected Gate 8.1 to retain at least 171 committed paths, found ${changedPaths.length}.`)
+assert(changedPaths.length >= 145, `Expected the clean PR replay to retain at least 145 scoped paths, found ${changedPaths.length}.`)
 assert.equal(changedPaths.some((filePath) => filePath.startsWith('supabase/migrations/')), false)
-assert.equal(git(['merge-base', '--is-ancestor', gate8Commit, 'HEAD'], true), 'ancestor')
+assert.equal(git(['merge-base', '--is-ancestor', replayedGate8Commit, 'HEAD'], true), 'ancestor')
 if (!allowDirtyAudit) assert.equal(git(['status', '--porcelain']), '', 'Gate 8 readiness requires a clean worktree.')
 
 console.log(JSON.stringify({
@@ -202,7 +247,8 @@ console.log(JSON.stringify({
   matrixRows: matrixRows.length,
   adaptationCases: 3,
   skillFamilies: skillRows.length,
-  browserTests: 60,
+  sourceBrowserTests: 60,
+  prBrowserTests: status.prPreparation.fullPlaywright,
   migrationCount,
   changedPaths: changedPaths.length,
   productionReady: status.productionReady,

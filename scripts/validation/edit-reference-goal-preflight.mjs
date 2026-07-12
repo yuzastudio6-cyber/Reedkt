@@ -4,10 +4,11 @@ import { readdir } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
 
-const EXPECTED_ROOT = '/Volumes/backup/REeditpro-beta-integration-4'
-const EXPECTED_BRANCH = 'codex/beta-integration-reconcile'
-const STARTING_COMMIT = '48540ee9b3d14c8345b0cedf11b6b449424324c3'
+const EXPECTED_ROOT = '/Users/macuser/Developer/REeditpro-edit-reference-pr'
+const EXPECTED_BRANCH = 'codex/edit-reference-end-to-end'
+const STARTING_COMMIT = 'e405e69e1a43fd2609854d8acaa7a4ef959b7e94'
 const REFERENCE_ROOTS = [
+  '/Volumes/backup/REeditpro-beta-integration-4',
   '/Volumes/backup/REeditpro',
   '/Users/macuser/Developer/REeditpro',
 ]
@@ -50,11 +51,11 @@ const unmerged = runGit(['ls-files', '--unmerged']).stdout
 const ancestor = runGit(['merge-base', '--is-ancestor', STARTING_COMMIT, head], { allowFailure: true }).status === 0
 const migrationCount = await countMigrations(root)
 
-failIf(root !== EXPECTED_ROOT, `Canonical worktree must be ${EXPECTED_ROOT}; received ${root}.`, failures)
-failIf(branch !== EXPECTED_BRANCH, `Branch must be ${EXPECTED_BRANCH}; received ${branch || '<detached>'}.`, failures)
+failIf(root !== EXPECTED_ROOT, `Selected PR worktree must be ${EXPECTED_ROOT}; received ${root}.`, failures)
+failIf(branch !== EXPECTED_BRANCH, `PR branch must be ${EXPECTED_BRANCH}; received ${branch || '<detached>'}.`, failures)
 failIf(!ancestor, `HEAD ${head} must be a clean descendant of ${STARTING_COMMIT}.`, failures)
 failIf(Boolean(unmerged), 'Unmerged Git entries are present.', failures)
-failIf(migrationCount !== 21, `Migration count changed from the accepted baseline: ${migrationCount}.`, failures)
+failIf(migrationCount !== 24, `Migration count changed from the selected remote-base baseline: ${migrationCount}.`, failures)
 failIf(!existsSync(path.join(root, 'package.json')), 'package.json is missing.', failures)
 failIf(!existsSync(path.join(root, 'package-lock.json')), 'package-lock.json is missing.', failures)
 

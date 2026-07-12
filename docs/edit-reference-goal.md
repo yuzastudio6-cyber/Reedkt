@@ -1,12 +1,16 @@
 # Edit Reference End-to-End Goal
 
-Status: `complete_backend_local`
+Status: `feature_complete_except_external_blocker`
 
 Authority date: 2026-07-11
 
-Canonical worktree: `/Volumes/backup/REeditpro-beta-integration-4`
+Verified source worktree: `/Volumes/backup/REeditpro-beta-integration-4`
 
-Canonical branch: `codex/beta-integration-reconcile`
+Verified source branch/head: `codex/beta-integration-reconcile` at `dc2f3625ec6e7652e8ae9c064c1c96160b07a8a1`
+
+Selected PR worktree: `/Users/macuser/Developer/REeditpro-edit-reference-pr`
+
+Selected PR branch/base: `codex/edit-reference-end-to-end` from `codex/reeditpro-web-ui-shell` at `e405e69e1a43fd2609854d8acaa7a4ef959b7e94`
 
 Starting commit: `48540ee9b3d14c8345b0cedf11b6b449424324c3`
 
@@ -40,8 +44,9 @@ Completion requires a tester to move from a new study through evidence, DNA, QA,
 4. Read-only reference implementations, used only as adaptation sources after explicit reconciliation.
 5. Historical documentation and compatibility data.
 
-The read-only repositories are:
+The read-only source/reference repositories are:
 
+- `/Volumes/backup/REeditpro-beta-integration-4`
 - `/Volumes/backup/REeditpro`
 - `/Users/macuser/Developer/REeditpro`
 

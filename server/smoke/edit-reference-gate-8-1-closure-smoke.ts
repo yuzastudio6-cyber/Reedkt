@@ -244,7 +244,7 @@ try {
       readinessDecision?: string
       gate81?: { applicationEntryPoints?: string; liveStudyClosure?: string }
     }
-    assert.equal(status.currentGate, 'gate_8_1_complete')
+    assert.match(status.currentGate ?? '', /^(?:gate_8_1_complete|gate_9_)/)
     assert.equal(status.productionReady, false)
     assert.equal(status.remoteMutationAllowed, false)
     assert.equal(status.readinessDecision, 'feature_complete_except_external_blocker')

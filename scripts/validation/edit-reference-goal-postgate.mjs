@@ -4,9 +4,9 @@ import { readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
 
-const EXPECTED_ROOT = '/Volumes/backup/REeditpro-beta-integration-4'
-const EXPECTED_BRANCH = 'codex/beta-integration-reconcile'
-const STARTING_COMMIT = '48540ee9b3d14c8345b0cedf11b6b449424324c3'
+const EXPECTED_ROOT = '/Users/macuser/Developer/REeditpro-edit-reference-pr'
+const EXPECTED_BRANCH = 'codex/edit-reference-end-to-end'
+const STARTING_COMMIT = 'e405e69e1a43fd2609854d8acaa7a4ef959b7e94'
 const REQUIRED_FILES = [
   'docs/edit-reference-goal.md',
   'docs/edit-reference-goal-status.md',
@@ -39,6 +39,10 @@ const REQUIRED_FILES = [
   'docs/edit-reference-known-limitations.md',
   'docs/edit-reference-pr-file-inventory.md',
   'docs/edit-reference-rollback-plan.md',
+  'docs/edit-reference-draft-pr-readiness.md',
+  'docs/edit-reference-draft-pr-commit-map.md',
+  'docs/edit-reference-draft-pr-file-inventory.md',
+  'docs/edit-reference-draft-pr-base-reconciliation.md',
   'scripts/validation/edit-reference-goal-preflight.mjs',
   'scripts/validation/edit-reference-goal-postgate.mjs',
   'server/smoke/edit-reference-goal-control-plane-smoke.ts',
@@ -130,7 +134,7 @@ if (status) {
   }
   if (status.goal !== 'edit_reference_end_to_end') failures.push('Goal status has the wrong goal ID.')
   if (!Array.isArray(status.completedGates) || !Array.isArray(status.blockedGates)) failures.push('Gate status arrays are invalid.')
-  if (status.migrationBaseline !== 21 || status.migrationCurrent !== migrationCount) {
+  if (status.migrationBaseline !== 24 || status.migrationCurrent !== migrationCount) {
     failures.push(`Goal status migration counts do not match baseline/current ${migrationCount}.`)
   }
   if (status.productionReady !== false && status.remoteMutationAllowed !== true) {

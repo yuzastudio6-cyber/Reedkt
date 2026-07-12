@@ -1,6 +1,6 @@
 # Edit Reference Skill And Provenance Report
 
-Status: `verified_with_external_runtime_limits`
+Status: `verified_local_media_with_external_semantic_limits`
 
 Registry authority: `docs/edit-reference-skill-registry.md`
 
@@ -10,7 +10,7 @@ Capability readiness and per-study execution are separate. `verified_live` means
 
 | ID | Skill family | Registry readiness | Gate 8 study execution | Typed contract | Behavioral proof | Safe fallback/failure | Privacy/provenance |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| SK-01 | Media Structure | degraded | verified local metadata normalization; deeper study blocked | Yes | source-understanding and media-foundation smokes | `media_not_studied` | private ID/metadata only |
+| SK-01 | Media Structure | verified_local | FFprobe media structure plus FFmpeg ephemeral representative-frame plan | Yes | media-foundation and Gate 8.1 closure smokes | metadata-only or retryable blocked state | private IDs; no persisted raw frames/paths |
 | SK-02 | Visual Language | verified_live | deterministic visual fallback; live adapter not called | Yes | Qwen visual adapter historical proof, runtime/leakage checks, evidence smoke | labelled deterministic fallback | ephemeral bounded samples required for live use |
 | SK-03 | Story And Editorial Structure | verified_live | deterministic structured fallback; live adapter not called | Yes | Qwen reasoning bridge historical proof, runtime/leakage checks, evidence smoke | labelled fallback/questions | bounded evidence summaries only |
 | SK-04 | Caption Design | verified_mock | manual evidence fallback | Yes | Preference Video Study, DNA, QA, browser findings | manual/low-confidence evidence | no copied caption wording/screenshots |
@@ -26,9 +26,9 @@ Capability readiness and per-study execution are separate. `verified_live` means
 Readiness totals:
 
 - `verified_live`: 2
-- `verified_local`: 0 registry entries (local execution is captured per run)
+- `verified_local`: 1
 - `verified_mock`: 8
-- `degraded`: 1
+- `degraded`: 0 registry entries (degraded per-run semantic specialists remain explicit)
 - `blocked`: 1
 - `not_implemented`: 0 registry entries
 
@@ -49,7 +49,7 @@ Every study execution records:
 
 Browser DTOs omit secrets, provider headers, raw prompts/payloads, raw frames, filesystem paths, signed URLs, and unrelated project history.
 
-## Gate 8 Proof Commands
+## Gate 8 And 8.1 Proof Commands
 
 Commands run without live provider activation:
 
@@ -67,10 +67,11 @@ npm run check:qwen-runtime-boundary
 npm run check:qwen-secret-leakage
 npm run check:qwen25vl-secret-leakage
 npm run smoke:prod-security-privacy
+npm run smoke:edit-reference-gate-8-1-closure
 ```
 
-The two `verified_live` provider proof commands were not rerun because Gate 8 explicitly prohibited new paid calls merely to improve a label. Their adapters, typed contracts, historical proof commands, safe fallback behavior, secret checks, and provenance policies remain registered. Edit Reference per-study execution remained fallback/blocked and never presented itself as live.
+The two `verified_live` provider proof commands were not rerun because Gate 8.1 prohibited new paid calls merely to improve a label. Their adapters remain registered but did not execute. The controlled Gate 8.1 study records two verified-local runs, separately degraded/blocked semantic specialists, deterministic/manual fallbacks, and a deterministic copy-safety result.
 
 ## Final Skill Decision
 
-The skill system is sufficient for honest backend-local beta testing and PR review because every selected goal returns typed evidence or a named blocked/fallback state and independent work continues after partial failure. It is not production-ready media study. Live/production status remains external until capability-specific adapters are connected to approved private media, credentials, rate/cost controls, privacy limits, operational tracing, and production persistence.
+The skill system is complete for honest backend-local feature testing because every selected goal returns typed evidence or a named blocked/fallback state and independent work continues after partial failure. It is not production-ready semantic media study. Live/production status remains external until capability-specific adapters are authorized against private media with credentials, rate/cost controls, privacy limits, tracing, and production persistence.

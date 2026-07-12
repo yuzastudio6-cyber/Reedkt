@@ -642,3 +642,65 @@ No test was removed, weakened, or silently skipped. UI/UX authority remained `de
 - Supabase CLI/SQL/remote mutation: not performed.
 - Provider/media/worker/generation/render/export/credit execution: not performed.
 - Historical/reference repository mutation: not performed.
+
+## Gate 8.1 — User Application Entry Points And Live Study Closure — 2026-07-12
+
+### Commits
+
+- Live-study implementation: `0e12652af4f7258ebbaeceb5bb3819ad4bb91196` (`Close live Edit Reference study wiring`)
+- Application/UI implementation: `64e61279dada0ef45eb16f61e7883ba6b530875e` (`Add Edit Reference application entry points`)
+- Starting commit inspected: `08a0802d3d46ef630e3fb9bec3e3cbe0f1bdb1f4`
+- Migration count before/after: 21 / 21
+- Production ready: false
+
+### Implemented And Reinspected
+
+```text
+private approved reference media
+→ canonical private storage/media identities
+→ FFprobe media structure
+→ FFmpeg bounded representative-frame/audio preparation
+→ verified ephemeral cleanup and bounded provenance
+→ separately degraded/blocked semantic specialists with retry reasons
+→ versioned evidence → Preference DNA → exact QA → explicit approval
+
+approved Preference DNA
+→ New Edit selector or Edit Chat @reference command
+→ one canonical target PreferenceApplication with source/version/history
+→ target adaptation and do-not-copy decisions
+→ Project Edit Session, Brief, Marker, Plan Hint, and QA context
+→ compare / confirmed replacement / confirmed removal
+→ reload/readback without stale context
+```
+
+- New Edit lists and inspects only exact approved DNA/QA records, supports no reference, shows the selected summary, and creates a `setup_selector` application after the unique target session exists.
+- Edit Chat parses exact/normalized handles for apply, compare, replace, remove, and bounded overrides. Missing/ambiguous handles clarify safely, compare does not mutate, same-reference apply is idempotent, and destructive lifecycle changes require confirmation.
+- Setup, chat, and the existing session panel reuse the same application service, downstream context, invalidation receipts, immutable replacement/removal links, and backend-local history. Parallel browser QA exposed deterministic mock session-ID collisions; New Edit now supplies a collision-resistant target ID.
+- Local media proof persists duration, dimensions, stream/audio presence, frame count/times, runtime/tool identity, and blocker provenance—not frames, extracted audio, process output, filesystem paths, signed URLs, or provider payloads.
+- Semantic visual/story/caption/color/speech/audio/graphics capabilities remain separately degraded or blocked with exact reasons and manual fallback labels. No unavailable capability is reported as live.
+- UI authority remained `design.md` and `design-system/`, then current ReEditPro architecture. UI UX Pro Max remained supporting accessibility/craft guidance only. Selector behavior passed keyboard, reduced-motion, 44px target, and 1440/1024/768/375 overflow checks.
+
+### Verification Results
+
+| Command / check | Result | Evidence |
+| --- | --- | --- |
+| `npm run smoke:edit-reference-gate-8-1-closure` | Pass | Private controlled MP4, storage/media identity, FFprobe/FFmpeg, ephemeral cleanup, semantic blockers/fallbacks, DNA/QA/approval, setup/chat sources, compare, idempotency, ambiguity, replacement/removal, history/readback, privacy, and status cross-check |
+| All Edit Reference repository/API/client/study/evidence/DNA/QA/application/adaptation/downstream/lifecycle smokes | Pass | Gates 1–8 behavior and three target-adaptation cases preserved |
+| Project Edit Session and Edit Brief regression groups | Pass | Session repository/routes/client/E2E/UI and Brief shell/marker/context/chat/attachments/export/Plan Hint/QA behavior preserved |
+| Preference Video, Preference DNA, Edit Preference, and Edit Level regressions | Pass | Compatibility and policy behavior remained truthful |
+| Media foundation, production privacy, Qwen boundaries, and secret checks | Pass | No external provider/credential call; context-aware Qwen smoke used injected fake provider/secret clients only |
+| App/server TypeScript, ESLint, frontend boundary | Pass | No failures; 674 frontend files remained server-runtime free |
+| Client/server builds | Pass | 2,566 client modules and 589 server modules transformed; existing client chunk warning disclosed |
+| Focused Gate 8.1 + Project regressions | Pass | 5/5 in 29.0 seconds after final staged implementation |
+| Full Chromium Playwright | Pass | 60/60 with five workers in 1.6 minutes; Gate 8 baseline was 58 and no test was removed |
+| Diff/conflict/secret/restricted-path scans | Pass | No conflict markers, credential patterns, SQL, lockfile, environment file, build output, test result, or AppleDouble path staged |
+| Migration count | Pass | 21; no SQL, Supabase CLI, or remote database action |
+
+### Readiness
+
+- Local application entry points, canonical lifecycle, private media structure, fallback provenance, DNA/QA, target adaptation, downstream consistency, reload, privacy, accessibility, and responsive behavior: complete.
+- Production Supabase/RLS/tenancy/cross-device authority, semantic media runtimes, distributed workers/observability, retention automation, provider cost reconciliation, billing, deployment, and release operations: externally blocked or unverified.
+- Final decision: `feature_complete_except_external_blocker`.
+- Push/PR/remote merge: not performed.
+- Remote provider/Supabase/billing/deployment mutation: not performed.
+- Production ready: false.

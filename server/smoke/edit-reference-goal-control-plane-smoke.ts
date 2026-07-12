@@ -21,6 +21,11 @@ const requiredFiles = [
   'docs/edit-reference-gate-6-downstream-integration.md',
   'docs/edit-reference-gate-7-lifecycle-closure.md',
   'docs/edit-reference-gate-8-beta-readiness.md',
+  'docs/edit-reference-gate-8-1-application-entrypoints.md',
+  'docs/edit-reference-live-study-closure.md',
+  'docs/edit-reference-selector-chat-state-consistency.md',
+  'docs/edit-reference-gate-8-1-browser-report.md',
+  'docs/edit-reference-gate-8-1-known-limitations.md',
   'docs/edit-reference-final-acceptance-matrix.md',
   'docs/edit-reference-adaptation-proof.md',
   'docs/edit-reference-skill-provenance-report.md',
@@ -35,6 +40,7 @@ const requiredFiles = [
   'scripts/validation/edit-reference-goal-preflight.mjs',
   'scripts/validation/edit-reference-goal-postgate.mjs',
   'server/smoke/edit-reference-gate-8-readiness-smoke.ts',
+  'server/smoke/edit-reference-gate-8-1-closure-smoke.ts',
 ]
 
 for (const relativePath of requiredFiles) {
@@ -58,18 +64,18 @@ const gate7 = read('docs/edit-reference-gate-7-lifecycle-closure.md')
 const gate8 = read('docs/edit-reference-gate-8-beta-readiness.md')
 
 assert.equal(status.goal, 'edit_reference_end_to_end')
-assert.equal(status.status, 'ready_for_pr_review')
-assert.equal(status.currentGate, 'gate_8_complete')
-assert.deepEqual(status.completedGates, ['gate_0', 'gate_1', 'gate_2', 'gate_3', 'gate_4', 'gate_5', 'gate_6', 'gate_7', 'gate_8'])
+assert.equal(status.status, 'feature_complete_except_external_blocker')
+assert.equal(status.currentGate, 'gate_8_1_complete')
+assert.deepEqual(status.completedGates, ['gate_0', 'gate_1', 'gate_2', 'gate_3', 'gate_4', 'gate_5', 'gate_6', 'gate_7', 'gate_8', 'gate_8_1'])
 assert.deepEqual(status.blockedGates, [])
 assert.match(String(status.latestCommit), /^[a-f0-9]{40}$/)
 assert.equal(status.migrationBaseline, 21)
 assert.equal(status.migrationCurrent, 21)
-assert.equal(status.browserQa, 'passed_58_of_58_backend_local')
+assert.equal(status.browserQa, 'passed_60_of_60_backend_local')
 assert.equal(status.backendQa, 'passed_backend_local')
-assert.equal(status.runtimeQa, 'passed_backend_local_with_external_limits')
+assert.equal(status.runtimeQa, 'passed_local_media_partial_with_external_semantic_limits')
 assert.equal(status.persistenceQa, 'passed_backend_local_remote_blocked')
-assert.equal(status.readinessDecision, 'ready_for_pr_review')
+assert.equal(status.readinessDecision, 'feature_complete_except_external_blocker')
 assert.equal(status.productionReady, false)
 
 assert.equal(
@@ -135,7 +141,7 @@ for (const readiness of ['verified_live', 'verified_local', 'verified_mock', 'de
 assert.match(persistence, /Browser localStorage is not authority|Browser localStorage may hold transient/i)
 assert.match(persistence, /exact response snapshot/i)
 assert.match(persistence, /production repository seam/i)
-assert.match(persistence, /Gates 1[–-]8 add no SQL migration/i)
+assert.match(persistence, /Gates 1[–-]8\.1 add no SQL migration/i)
 assert.match(designSystem, /UI UX Pro Max as a supporting accessibility and craft checklist/i)
 assert.match(designSystem, /Skip to main content/i)
 assert.match(designSystem, /at least 44px/i)
@@ -158,6 +164,18 @@ assert.match(gate8, /Study Chat correction/i)
 assert.match(gate8, /58\/58 Chromium tests/i)
 assert.match(gate8, /ready_for_pr_review/i)
 assert.match(gate8, /productionReady` remains `false/i)
+const gate81EntryPoints = read('docs/edit-reference-gate-8-1-application-entrypoints.md')
+const gate81LiveStudy = read('docs/edit-reference-live-study-closure.md')
+const gate81Consistency = read('docs/edit-reference-selector-chat-state-consistency.md')
+const gate81Browser = read('docs/edit-reference-gate-8-1-browser-report.md')
+const gate81Limits = read('docs/edit-reference-gate-8-1-known-limitations.md')
+assert.match(gate81EntryPoints, /setup_selector.*chat_tag/is)
+assert.match(gate81EntryPoints, /one canonical PreferenceApplication/i)
+assert.match(gate81LiveStudy, /verified_local/i)
+assert.match(gate81LiveStudy, /ephemeral/i)
+assert.match(gate81Consistency, /replacement.*removal.*immutable history/is)
+assert.match(gate81Browser, /60\/60 Chromium tests/i)
+assert.match(gate81Limits, /productionReady.*false/is)
 
 assert.equal(packageJson.scripts?.['check:edit-reference-goal-preflight'], 'node scripts/validation/edit-reference-goal-preflight.mjs')
 assert.equal(packageJson.scripts?.['check:edit-reference-goal-postgate'], 'node scripts/validation/edit-reference-goal-postgate.mjs')
@@ -175,5 +193,6 @@ assert.equal(packageJson.scripts?.['smoke:edit-reference-downstream-integration'
 assert.equal(packageJson.scripts?.['smoke:edit-reference-lifecycle-closure'], 'tsx server/smoke/edit-reference-lifecycle-closure-smoke.ts')
 assert.equal(packageJson.scripts?.['smoke:edit-reference-adaptation-proof'], 'tsx server/smoke/edit-reference-adaptation-proof-smoke.ts')
 assert.equal(packageJson.scripts?.['smoke:edit-reference-gate-8-readiness'], 'tsx server/smoke/edit-reference-gate-8-readiness-smoke.ts')
+assert.equal(packageJson.scripts?.['smoke:edit-reference-gate-8-1-closure'], 'tsx server/smoke/edit-reference-gate-8-1-closure-smoke.ts')
 
 console.log('edit_reference_goal_control_plane_passed')

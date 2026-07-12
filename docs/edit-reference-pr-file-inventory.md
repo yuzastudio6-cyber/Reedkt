@@ -10,9 +10,15 @@ Gate 7 verification commit: `abb3b9548baa92c5bcdd4d5cee45a53e1ef6f66e`
 
 Gate 8 implementation commit: `7ff15993c505af65abcbc61e0db259061f583e25`
 
+Gate 8 verification commit: `08a0802d3d46ef630e3fb9bec3e3cbe0f1bdb1f4`
+
+Gate 8.1 live-study commit: `0e12652af4f7258ebbaeceb5bb3819ad4bb91196`
+
+Gate 8.1 application entry-points commit: `64e61279dada0ef45eb16f61e7883ba6b530875e`
+
 Target branch: `codex/beta-integration-reconcile`
 
-Total changed paths: 171
+Total changed paths: 191
 
 Supabase migration paths changed: 0
 
@@ -22,23 +28,23 @@ Package-lock paths changed: 0
 
 | Area | Paths | Review focus |
 | --- | ---: | --- |
-| Documentation and governance | 28 | goal contracts, Gates 1–8 evidence, status, limitations, rollback |
+| Documentation and governance | 33 | goal contracts, Gates 1–8.1 evidence, status, limitations, rollback |
 | Design-system authority | 2 | Edit Preferences master/page rules |
-| Server domain/API/security/smokes | 56 | repository, service, routes, study/DNA/adaptation/lifecycle proofs |
-| Frontend/domain/UI/types | 69 | Edit References workspace and downstream Project/Edit Brief integration |
-| Browser tests | 10 | focused study/downstream/lifecycle/Gate 8 flows and regressions |
+| Server domain/API/security/smokes | 58 | repository, service, routes, local media study, DNA/adaptation/lifecycle proofs |
+| Frontend/domain/UI/types | 78 | Edit References workspace, New Edit/Edit Chat entry points, and downstream integration |
+| Browser tests | 14 | focused study/downstream/lifecycle/Gates 8–8.1 flows and regressions |
 | Validation scripts | 2 | canonical preflight/postgate checks |
 | Root/configuration | 4 | scripts, app wiring, Playwright scope, repository instructions |
 
 ## Scope Review
 
-- The inventory is the union of the goal diff from the starting commit and final Gate 8 paths.
+- The inventory is the union of the goal diff from the starting commit and final Gate 8.1 paths.
 - No file under `supabase/migrations/` changed; migration baseline/current remain 21.
 - No `package-lock.json`, dependency version, provider credential, environment file, private media, generated test result, build output, or AppleDouble file is included.
 - Historical/reference repositories are outside this branch and were read-only.
 - No push or pull request was created.
 
-## Exact Name-Status Inventory
+## Gate 8 Baseline Name-Status Inventory
 
 ```text
 M	.gitignore
@@ -212,6 +218,31 @@ M	tests/e2e/helpers/routes.ts
 M	tests/e2e/lovable-dashboard-ui-alignment.spec.ts
 M	tests/e2e/preference-video-dna.spec.ts
 M	tests/e2e/project-edit-session-navigation.spec.ts
+```
+
+## Gate 8.1 Name-Status Addendum
+
+```text
+A	docs/edit-reference-gate-8-1-application-entrypoints.md
+A	docs/edit-reference-gate-8-1-browser-report.md
+A	docs/edit-reference-gate-8-1-known-limitations.md
+A	docs/edit-reference-live-study-closure.md
+A	docs/edit-reference-selector-chat-state-consistency.md
+A	server/edit-references/edit-reference-media-study.ts
+A	server/smoke/edit-reference-gate-8-1-closure-smoke.ts
+A	src/backend/project-edit-session-preference/edit-reference-chat-command-service.ts
+M	src/components/projects/NewEditSessionCreatePanel.tsx
+A	src/components/projects/NewEditSessionEditReferenceSelector.tsx
+M	src/components/projects/ProjectEditSessionChatInput.tsx
+M	src/components/projects/brief/ProjectEditBriefEmptyState.tsx
+A	src/lib/edit-reference-approved-options.ts
+A	src/lib/edit-reference-media-upload-client.ts
+M	src/lib/project-edit-session-chat-ui-adapter.ts
+M	src/lib/project-edit-session-create-flow-ui-adapter.ts
+A	tests/e2e/edit-reference-gate-8-1-entrypoints.spec.ts
+M	tests/e2e/project-edit-session-e2e.spec.ts
+M	tests/e2e/project-edit-session-new-edit.spec.ts
+M	tests/e2e/project-edit-session-preference-dna.spec.ts
 ```
 
 ## Review Order

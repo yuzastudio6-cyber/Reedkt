@@ -1,6 +1,6 @@
 # Edit Reference Final Acceptance Matrix
 
-Status date: 2026-07-11
+Status date: 2026-07-12
 
 Allowed result values are `passed`, `passed_with_limitation`, `blocked_external`, `failed`, and `not_implemented`.
 
@@ -11,7 +11,7 @@ Allowed result values are `passed`, `passed_with_limitation`, `blocked_external`
 | ER-STUDY-01 | Reference creation | passed | service/routes/client/UI/repository smoke and browser E2E | None for backend-local beta |
 | ER-STUDY-02 | Study creation | passed | atomic reference + first study and deterministic setup message | None for backend-local beta |
 | ER-STUDY-03 | Study messaging | passed | durable message append, client message identity, Study Chat correction path | No live Director model call |
-| ER-STUDY-04 | Evidence attachment | passed_with_limitation | creative note, video metadata, and approved-edit identity records | Raw reference-video upload/fetch/analysis is not implemented |
+| ER-STUDY-04 | Evidence attachment | passed | creative note, private video upload/metadata, and approved-edit identity records | Semantic media analysis remains separately limited |
 | ER-STUDY-05 | Reload/readback | passed | repository recreation and browser reload | Single-host backend-local authority only |
 | ER-STUDY-06 | Idempotency | passed | exact response replay and hash conflict smokes | Distributed transaction proof is external |
 | ER-STUDY-07 | Versioning | passed | evidence successor links, DNA versions, exact QA/approval/application versions | None for backend-local beta |
@@ -21,7 +21,7 @@ Allowed result values are `passed`, `passed_with_limitation`, `blocked_external`
 
 | ID | Requirement | Result | Repository evidence | Limitation or next gate |
 | --- | --- | --- | --- | --- |
-| ER-SKILL-01 | Media structure | passed_with_limitation | metadata normalization and truthful `media_not_studied` provenance | Scene/shot media analysis is externally blocked |
+| ER-SKILL-01 | Media structure | passed | private FFprobe structure and FFmpeg ephemeral representative-frame plan with `verified_local` provenance | Semantic frame/scene interpretation remains external |
 | ER-SKILL-02 | Visual language | passed_with_limitation | deterministic evidence fallback plus separately implemented live Qwen visual adapter proof | Gate 8 did not invoke the paid/live adapter |
 | ER-SKILL-03 | Story/editorial structure | passed_with_limitation | deterministic structured evidence plus separately implemented Qwen reasoning bridge | Gate 8 did not invoke the paid/live adapter |
 | ER-SKILL-04 | Caption design | passed_with_limitation | typed manual/fallback evidence and DNA/QA coverage | OCR/transcript-backed reference analysis is absent |
@@ -63,8 +63,8 @@ Allowed result values are `passed`, `passed_with_limitation`, `blocked_external`
 
 | ID | Requirement | Result | Repository evidence | Limitation or next gate |
 | --- | --- | --- | --- | --- |
-| ER-INT-01 | New-edit selector | passed_with_limitation | approved-reference selector exists in the Project Edit Session setup region | It is not yet on the initial New Edit form |
-| ER-INT-02 | Chat `@reference` tagging | not_implemented | selector path is the supported complete lane | Structured tag parser/UI remains future work |
+| ER-INT-01 | New-edit selector | passed | initial New Edit lists/inspects approved exact DNA/QA and connects `setup_selector` application | Production target-session persistence remains external |
+| ER-INT-02 | Chat `@reference` tagging | passed | normalized exact-first parser and canonical apply/compare/replace/remove service | Backend-local application authority only |
 | ER-INT-03 | Project Edit Session | passed | stage/connect/activate/recover/lifecycle receipts | Mock target authority only |
 | ER-INT-04 | Edit Brief | passed | bounded connected context and invalidation history | Backend-local only |
 | ER-INT-05 | Marker Context | passed | target-adapted hints and confirmed-marker holdback | Backend-local only |
@@ -83,13 +83,13 @@ Allowed result values are `passed`, `passed_with_limitation`, `blocked_external`
 | ER-UX-01 | Edit References primary workspace | passed | `/preferences` default tab | None |
 | ER-UX-02 | Workspace Defaults secondary surface | passed | compatibility library retained in secondary tab | None |
 | ER-UX-03 | Study Chat | passed | durable direction, evidence, correction, DNA/QA actions | No live Director reasoning |
-| ER-UX-04 | Evidence | passed | versioned cards, provenance labels, video-not-studied copy | Raw media not accepted |
+| ER-UX-04 | Evidence | passed | private media upload, versioned cards, local/degraded/mock provenance, retry copy | Semantic specialists remain partial |
 | ER-UX-05 | Skill progress | passed | backend-derived inspector and blocked/not-analyzed findings | No invented percentages |
 | ER-UX-06 | DNA panel | passed | exact version, layers/rules/confidence/copy boundaries | None |
 | ER-UX-07 | QA panel | passed | check results, review/block states, acknowledgement | None |
 | ER-UX-08 | Versions | passed | current and historical versions survive reload | None |
 | ER-UX-09 | Applied Edits | passed | prepared/connected/replaced/removed histories | Backend-local only |
-| ER-UX-10 | Responsive behavior | passed | 375, 780, 1440 browser checks and no horizontal overflow | Responsive web, not native mobile |
+| ER-UX-10 | Responsive behavior | passed | 375, 768, 1024, 1440 selector checks and no horizontal overflow | Responsive web, not native mobile |
 | ER-UX-11 | Keyboard accessibility | passed | tabs, skip link, radio arrows/Home/End, safe dialog focus | Automated/browser-local proof |
 | ER-UX-12 | 44px controls | passed | focused viewport assertions and design tokens | None |
 | ER-UX-13 | Approved ReEditPro visual system | passed | `design.md`/`design-system/` authority and visual inspection | UI UX Pro Max remained supplemental |
@@ -101,7 +101,7 @@ Allowed result values are `passed`, `passed_with_limitation`, `blocked_external`
 | ER-SAFE-01 | Reload-safe state | passed | recreated repository/service and browser reload | Single-host local authority |
 | ER-SAFE-02 | Private artifact references | passed | server-owned private IDs/relative keys and path validation | Production storage IAM unverified |
 | ER-SAFE-03 | No raw provider payload persistence | passed | aggregate validator and browser response scans | No live provider call in Gate 8 |
-| ER-SAFE-04 | No raw frame persistence by default | passed | metadata-only evidence and explicit ephemeral policy | Live sampling adapter not connected |
+| ER-SAFE-04 | No raw frame persistence by default | passed | bounded FFmpeg samples are deleted before commit; only count/times persist | Production worker cleanup proof remains external |
 | ER-SAFE-05 | No frontend secrets | passed | boundary/leakage scans and browser DTO review | Remote secret-manager policy remains external |
 | ER-SAFE-06 | Bounded context | passed | downstream context excludes study thread/raw/private payloads | None |
 | ER-SAFE-07 | Idempotency | passed | exact replay across messages, evidence, DNA, applications, lifecycle | Distributed DB transaction pending |
@@ -112,7 +112,8 @@ Allowed result values are `passed`, `passed_with_limitation`, `blocked_external`
 ## Matrix Decision
 
 - `failed`: 0
-- complete selector-based backend-local workflow: passed
+- initial selector and chat-command backend-local workflow: passed
+- local private-media structure/ephemeral-frame study: passed
 - external/live-runtime limitations: disclosed
 - production readiness: false
-- readiness decision: `ready_for_pr_review`
+- readiness decision: `feature_complete_except_external_blocker`

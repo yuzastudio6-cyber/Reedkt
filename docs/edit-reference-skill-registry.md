@@ -1,6 +1,6 @@
 # Edit Reference Skill Registry
 
-Status: `gate_8_registry_reconciled_with_provenance_report`
+Status: `gate_8_1_local_media_execution_reconciled`
 
 This registry records capability truth, not product aspiration. A tool can back an Edit Reference skill only when an implemented adapter/service, typed input/output contract, proof, safe fallback, privacy boundary, and provenance policy exist.
 
@@ -18,10 +18,10 @@ Existing proof is reusable evidence; it does not mean an Edit Reference study ex
 - inputs: Private asset identity or previous approved edit identity; safe media metadata; selected study goals.
 - outputs: Typed media-structure evidence and missing-analysis requirements.
 - toolOrRuntime: Canonical Source Video Understanding package plus registered FFmpeg/FFprobe/PySceneDetect candidates.
-- readinessStatus: `degraded`
-- proofCommand: `npm run smoke:source-video-understanding-package && npm run smoke:prod-media-foundation`
-- fallback: Return metadata-only evidence with `media_not_studied`; never infer real scene boundaries.
-- sideEffects: Metadata package is side-effect-free; deeper workers are blocked until a future approved skill run.
+- readinessStatus: `verified_local`
+- proofCommand: `npm run smoke:source-video-understanding-package && npm run smoke:prod-media-foundation && npm run smoke:edit-reference-gate-8-1-closure`
+- fallback: Return metadata-only evidence with `media_not_studied` or a retryable blocked record; never infer semantic scene/story findings.
+- sideEffects: Approved local runs read private bytes with FFprobe/FFmpeg and delete bounded temporary frame/audio outputs; provider/worker/render/credit effects remain false.
 - privacyPolicy: No raw video, frame payload, filesystem path, signed URL, provider header, or full project history in browser context.
 - provenancePolicy: Record private asset ID, metadata source, runtime source, tool versions, fallback flag, and evidence timestamps.
 
@@ -203,9 +203,9 @@ Before any entry changes status, update its proof command, privacy/provenance po
 
 ## Gate 2 Execution Evidence
 
-Gate 2 does not change the capability readiness values above. It records per-study execution truth separately:
+Gate 2 originally recorded per-study execution truth separately. Gate 8.1 later upgraded the Media Structure registry entry after real private-video FFprobe/FFmpeg proof:
 
-- Media Structure runs `verified_local` only for normalization of user-supplied metadata and remains `degraded`; `media_not_studied` is mandatory.
+- In Gate 2, Media Structure normalized user-supplied metadata only, remained `degraded` per run, and required `media_not_studied`.
 - Visual Language and Story/Editorial use explicit deterministic fallback over user descriptions; their live provider adapters are not called.
 - Caption, Color, Audio/SFX, and Graphics/Motion use manual-evidence fallback with the registry's conservative constraints.
 - Speech/Pacing stays blocked without transcript/audio evidence.
@@ -287,10 +287,21 @@ Exact behavior proof: `npm run smoke:edit-reference-lifecycle-closure`.
 Gate 8 separates registry capability readiness from per-study runtime truth and records the complete result in `docs/edit-reference-skill-provenance-report.md`:
 
 - 12 registry families retain typed input/output, proof, fallback/failure, privacy, and provenance fields;
-- current totals are 2 `verified_live`, 8 `verified_mock`, 1 `degraded`, and 1 `blocked`;
+- after Gate 8.1, current totals are 2 `verified_live`, 1 `verified_local`, 8 `verified_mock`, 0 `degraded`, and 1 `blocked`;
 - the two live-capable Qwen adapters were not called merely to refresh a label;
 - Gate 8 studies used labelled deterministic/manual fallbacks and an explicit blocked speech/pacing result;
 - three target adaptations proved context-only/blocked rules, target-specific guidance, and zero production side effects;
 - provider, media, worker, generation, render, credit, and remote-persistence calls remained false.
 
 Exact behavior proof: `npm run smoke:edit-reference-evidence-study && npm run smoke:edit-reference-adaptation-proof && npm run smoke:edit-reference-gate-8-readiness`.
+
+## Gate 8.1 Execution Evidence
+
+- Media Structure executes `verified_local` against a finalized private video through FFprobe.
+- Representative-frame planning executes `verified_local` through FFmpeg with at most four frames and verified temporary-directory cleanup.
+- Frame timing/count is persisted; raw frame pixels, extracted audio, local paths, signed URLs, and process output are not.
+- Visual, story, caption, color, speech, audio, and graphics semantic specialists each emit `degraded` or `blocked` runs with exact blockers. Manual fallback stays separately labelled.
+- Copy safety, DNA synthesis, QA, target adaptation, setup/chat application, replacement, and removal retain deterministic `verified_mock` truth.
+- No provider/model/worker/render/credit/remote Supabase call occurs.
+
+Exact proof: `npm run smoke:edit-reference-gate-8-1-closure`.

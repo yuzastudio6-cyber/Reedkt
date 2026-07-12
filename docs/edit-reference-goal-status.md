@@ -1,10 +1,10 @@
 # Edit Reference Goal Status
 
-Status date: 2026-07-11
+Status date: 2026-07-12
 
-Overall status: `ready_for_pr_review`
+Overall status: `feature_complete_except_external_blocker`
 
-Current gate: `gate_8_complete`
+Current gate: `gate_8_1_complete`
 
 Production ready: **No**
 
@@ -15,6 +15,8 @@ Production ready: **No**
 - Starting commit: `48540ee9b3d14c8345b0cedf11b6b449424324c3`
 - Gate 7 implementation/verification: `42d34cdc04179c6808a4c3f23286885daf116006` / `abb3b9548baa92c5bcdd4d5cee45a53e1ef6f66e`
 - Gate 8 implementation: `7ff15993c505af65abcbc61e0db259061f583e25`
+- Gate 8.1 live-study implementation: `0e12652af4f7258ebbaeceb5bb3819ad4bb91196`
+- Gate 8.1 application entry points: `64e61279dada0ef45eb16f61e7883ba6b530875e`
 - Starting tree: clean
 - Migration baseline: 21
 - Migration current: 21
@@ -33,15 +35,17 @@ Production ready: **No**
 | Gate 6 — downstream edit integration | Complete | `a09bc3da30de20a5bd80db8e0f89c55f74d3e27d` | Exact mock target verification, recoverable stage/connect/activate flow, bounded context, Project Edit Session/Brief/Marker Chat/Plan Hint/QA handoffs, precedence, persistence, responsive browser proof, and regression coverage passed |
 | Gate 7 — closure | Complete | `42d34cdc04179c6808a4c3f23286885daf116006` | Exact replace/remove lifecycle, immutable version links, approval reset, downstream invalidation and replan state, retry/recovery, responsive UI, privacy scans, full regression, and final readiness classification passed |
 | Gate 8 — final beta readiness | Complete | `7ff15993c505af65abcbc61e0db259061f583e25` | Gates 0–7 implementation audit, Study Chat correction, stale-read guards, accessibility repairs, 3-case adaptation proof, one complete browser journey, 58/58 browser tests, full backend/security regressions, evidence reports, and PR inventory passed |
+| Gate 8.1 — application entry points and live-study closure | Complete | `0e12652af4f7258ebbaeceb5bb3819ad4bb91196`, `64e61279dada0ef45eb16f61e7883ba6b530875e` | Initial New Edit selector, Edit Chat commands, one canonical application, private FFprobe/FFmpeg study, ephemeral frames, truthful semantic blockers, reload recovery, 60/60 browser tests, and closure smoke passed |
 
 ## Current QA State
 
-- Browser QA: `passed_58_of_58_backend_local`
+- Browser QA: `passed_60_of_60_backend_local`
 - Backend QA: `passed_backend_local`
-- Runtime QA: `passed_backend_local_with_external_limits`
+- Runtime QA: `passed_local_media_partial_with_external_semantic_limits`
 - Persistence QA: `passed_backend_local_remote_blocked`
 - Supabase production QA: blocked by the existing migration-baseline gate
-- Provider/media execution: not enabled; Gates 1–8 performed none
+- Provider execution: not enabled; Gate 8.1 performed no provider/model call
+- Private local media execution: FFprobe/FFmpeg structure and ephemeral representative-frame planning verified
 
 ## Current Truth
 
@@ -57,20 +61,22 @@ Production ready: **No**
 - Gate 6 implemented exact mock Project Edit Session target verification, inactive staging, authenticated connection, safe activation/recovery, bounded Edit Brief and Marker Chat context, lower-priority Plan Hints, confirmed-marker holdback, QA, reload, and responsive UI without approved-plan or production execution.
 - Gate 7 implemented exact replacement/removal, monotonic application versions, bidirectional history links, approval reset, downstream invalidation receipts, Edit Brief/Marker/Plan/QA replan state, safe retries, reload/recovery, and responsive lifecycle review without mutating approved history.
 - Gate 8 independently audited the implementation, made Study Chat corrections versioned/actionable, guarded stale reads, completed keyboard/screen-reader behavior, added three controlled target adaptations and a single complete browser path, and reconciled skill/persistence/security truth.
-- The supported selector-based backend-local Edit Reference journey is complete and ready for PR review. Live providers/media and production persistence remain intentionally unimplemented behind their named gates.
+- Gate 8.1 adds the approved-reference selector to initial New Edit, structured `@reference` commands to Edit Chat, and one canonical application origin/history model shared by both.
+- Private uploaded video now reaches the local media foundation. FFprobe/FFmpeg results persist as bounded provenance while raw frames/audio artifacts are removed; unavailable semantic specialists stay degraded/blocked and retryable.
+- Reload recovery reconstructs only a missing mock target shell from canonical application/history identity, then activates the exact current application or keeps cleared guidance absent.
+- The backend-local feature is complete except for named external semantic runtimes and production authority.
 
 ## Blockers Carried Forward
 
 - Raw Supabase migration history is not approved as an executable canonical chain.
 - Production database/RLS/cross-device persistence is unverified.
-- Live Edit Reference media-study skills still need capability-specific adapters, proof, and ephemeral-media privacy controls; Gate 2 uses truthful manual/metadata fallback only.
+- Semantic Edit Reference frame/story/caption/color/speech/audio/motion skills still need their separately approved runtimes; local media structure and ephemeral-frame planning are now proven.
 - Connected target applications are verified only against the canonical mock Project Edit Session receipt; production database identity and cross-device authority remain unverified.
 - Local tests cannot establish production readiness.
-- Initial New Edit selection and chat `@reference` tagging remain absent; the approved-reference selector inside the target Project Edit Session is the supported complete lane.
 - Automated production retention/deletion, distributed observability, provider/render/credit/billing execution, and production operations remain unverified.
 
 ## Completion Classification
 
-`ready_for_pr_review` means the canonical backend-local workflow, full 58-test browser journey, three-case adaptation proof, persistence/reload behavior, replacement/removal lifecycle, privacy boundaries, limitations, and file inventory are ready for local code review. It does not mean production database, cross-device tenancy, live media/provider execution, distributed workers, customer charging, deployment, monitoring, or release infrastructure is ready.
+`feature_complete_except_external_blocker` means every local Gate 8.1 entry point, lifecycle, readback, private-media structure, fallback, DNA, QA, adaptation, and UI requirement is implemented and verified. Remaining work requires external semantic runtimes or production database/worker/provider authority. It does not mean production database, cross-device tenancy, distributed workers, customer charging, deployment, monitoring, or release infrastructure is ready.
 
 The machine-readable source is `docs/edit-reference-goal-status.json`.

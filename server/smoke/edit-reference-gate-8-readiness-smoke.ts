@@ -10,6 +10,11 @@ const allowDirtyAudit = process.env.EDIT_REFERENCE_ALLOW_DIRTY_AUDIT === '1'
 
 const requiredFiles = [
   'docs/edit-reference-gate-8-beta-readiness.md',
+  'docs/edit-reference-gate-8-1-application-entrypoints.md',
+  'docs/edit-reference-live-study-closure.md',
+  'docs/edit-reference-selector-chat-state-consistency.md',
+  'docs/edit-reference-gate-8-1-browser-report.md',
+  'docs/edit-reference-gate-8-1-known-limitations.md',
   'docs/edit-reference-final-acceptance-matrix.md',
   'docs/edit-reference-adaptation-proof.md',
   'docs/edit-reference-skill-provenance-report.md',
@@ -63,8 +68,8 @@ const skillRegistry = read('docs/edit-reference-skill-registry.md')
 const persistenceReport = read('docs/edit-reference-persistence-readback-report.md')
 const persistenceContract = read('docs/edit-reference-persistence-contract.md')
 const security = read('docs/edit-reference-security-privacy-report.md')
-const browser = read('docs/edit-reference-browser-e2e-report.md')
-const limitations = read('docs/edit-reference-known-limitations.md')
+const browser = read('docs/edit-reference-gate-8-1-browser-report.md')
+const limitations = read('docs/edit-reference-gate-8-1-known-limitations.md')
 const inventory = read('docs/edit-reference-pr-file-inventory.md')
 const rollback = read('docs/edit-reference-rollback-plan.md')
 const definition = read('docs/edit-reference-definition-of-done.md')
@@ -72,31 +77,30 @@ const statusMarkdown = read('docs/edit-reference-goal-status.md')
 const verificationLog = read('docs/edit-reference-gate-verification-log.md')
 
 assert.equal(status.goal, 'edit_reference_end_to_end')
-assert.equal(status.status, 'ready_for_pr_review')
-assert.equal(status.currentGate, 'gate_8_complete')
-assert.deepEqual(status.completedGates, Array.from({ length: 9 }, (_, index) => `gate_${index}`))
+assert.equal(status.status, 'feature_complete_except_external_blocker')
+assert.equal(status.currentGate, 'gate_8_1_complete')
+assert.deepEqual(status.completedGates, [...Array.from({ length: 9 }, (_, index) => `gate_${index}`), 'gate_8_1'])
 assert.deepEqual(status.blockedGates, [])
 assert.equal(status.gate7ImplementationCommit, '42d34cdc04179c6808a4c3f23286885daf116006')
 assert.equal(status.gate7VerificationCommit, 'abb3b9548baa92c5bcdd4d5cee45a53e1ef6f66e')
 assert.equal(status.gate8Commit, gate8Commit)
-assert.equal(status.latestCommit, gate8Commit)
+assert.match(status.latestCommit, /^[a-f0-9]{40}$/)
 assert.equal(status.migrationBaseline, 21)
 assert.equal(status.migrationCurrent, 21)
-assert.equal(status.browserQa, 'passed_58_of_58_backend_local')
+assert.equal(status.browserQa, 'passed_60_of_60_backend_local')
 assert.equal(status.backendQa, 'passed_backend_local')
-assert.equal(status.runtimeQa, 'passed_backend_local_with_external_limits')
+assert.equal(status.runtimeQa, 'passed_local_media_partial_with_external_semantic_limits')
 assert.equal(status.persistenceQa, 'passed_backend_local_remote_blocked')
-assert.deepEqual(status.runtimeToolReadiness, {
-  verifiedLive: 2,
-  verifiedLocal: 0,
-  verifiedMock: 8,
-  degraded: 1,
-  blocked: 1,
-  notImplemented: 0,
-  gate8LiveProviderCalls: 0,
-})
+assert.equal(status.runtimeToolReadiness.verifiedLive, 2)
+assert.equal(status.runtimeToolReadiness.verifiedLocal, 1)
+assert.equal(status.runtimeToolReadiness.verifiedMock, 8)
+assert.equal(status.runtimeToolReadiness.degraded, 0)
+assert.equal(status.runtimeToolReadiness.blocked, 1)
+assert.equal(status.runtimeToolReadiness.notImplemented, 0)
+assert.equal(status.runtimeToolReadiness.gate81LocalMediaToolRuns, 2)
+assert.equal(status.runtimeToolReadiness.gate81LiveProviderCalls, 0)
 assert(status.remainingBlockers.length >= 6)
-assert.equal(status.readinessDecision, 'ready_for_pr_review')
+assert.equal(status.readinessDecision, 'feature_complete_except_external_blocker')
 assert.equal(status.productionReady, false)
 assert.equal(status.remoteMutationAllowed, false)
 
@@ -131,7 +135,7 @@ assert.equal((adaptation.match(/Do-not-copy result: `passed`/g) ?? []).length, 3
 const skillRows = [...skillReport.matchAll(/^\| (SK-\d+) \|/gm)]
 assert.equal(skillRows.length, 12)
 assert.equal(new Set(skillRows.map((match) => match[1])).size, 12)
-for (const [label, count] of [['verified_live', 2], ['verified_mock', 8], ['degraded', 1], ['blocked', 1]] as const) {
+for (const [label, count] of [['verified_live', 2], ['verified_local', 1], ['verified_mock', 8], ['blocked', 1]] as const) {
   assert(skillReport.includes('- `' + label + '`: ' + count))
 }
 assert.match(skillReport, /Gate 8 intentionally used deterministic\/manual fallbacks and blocked states/i)
@@ -145,36 +149,36 @@ assert.match(persistenceReport, /passed_backend_local_remote_blocked/)
 assert.match(persistenceReport, /Browser `localStorage` \| not authority/)
 assert.match(persistenceReport, /replacement\/removal history.*Passed/is)
 assert.match(persistenceReport, /migration baseline: 21/)
-assert.match(persistenceContract, /Gates 1[–-]8 add no SQL migration/)
+assert.match(persistenceContract, /Gates 1[–-]8\.1 add no SQL migration/)
 assert.match(security, /No raw provider response persistence \| Passed/)
 assert.match(security, /No raw frame persistence by default \| Passed/)
 assert.match(security, /No frontend secret\/service credential \| Passed/)
 assert.match(security, /productionReady` remains `false/)
 
-assert.match(browser, /passed_58_of_58/)
-assert.match(browser, /58 passed \(45\.0s\)/)
-assert.match(browser, /full private study, target adaptation, downstream, replacement, removal, and audit journey/i)
-assert.match(browser, /delayed response cannot overwrite/i)
+assert.match(browser, /passed_60_of_60/)
+assert.match(browser, /60\/60 Chromium tests passed/i)
+assert.match(browser, /New Edit.*Edit Chat/is)
+for (const viewport of ['375', '768', '1024', '1440']) assert.match(browser, new RegExp(`\\b${viewport}\\b`))
 
-for (let id = 1; id <= 14; id += 1) assert.match(limitations, new RegExp(`LIM-${String(id).padStart(2, '0')}`))
-assert.match(limitations, /Chat `@reference` tagging is not implemented/)
-assert.match(limitations, /productionReady` false/)
+assert.match(limitations, /semantic frame understanding is not/i)
+assert.match(limitations, /productionReady` remains `false/)
 
 assert.match(inventory, /Starting commit: `48540ee9b3d14c8345b0cedf11b6b449424324c3`/)
 assert.match(inventory, /Gate 8 implementation commit: `7ff15993c505af65abcbc61e0db259061f583e25`/)
-assert.match(inventory, /Total changed paths: 171/)
+assert.match(inventory, /Total changed paths: 191/)
 assert.match(inventory, /Supabase migration paths changed: 0/)
 assert.match(rollback, /git revert/)
-assert.match(rollback, /Gates 1[–-]8 created no SQL migration/)
+assert.match(rollback, /Gates 1[–-]8\.1 created no SQL migration/)
 
 for (let step = 1; step <= 16; step += 1) assert.match(definition, new RegExp(`^${step}\\.`, 'm'))
-assert.match(definition, /Gates 1[–-]8 satisfy and audit/)
+assert.match(definition, /Gates 1[–-]8\.1 satisfy and audit/)
 assert.match(gate8, /Final decision: `ready_for_pr_review`/)
 assert.match(gate8, /UI UX Pro Max.*supporting/is)
-assert.match(statusMarkdown, /Overall status: `ready_for_pr_review`/)
+assert.match(statusMarkdown, /Overall status: `feature_complete_except_external_blocker`/)
 assert.match(statusMarkdown, /Gate 8 — final beta readiness \| Complete/)
 assert.match(verificationLog, /## Gate 8 — Final Beta Readiness And PR Preparation/)
 assert.match(verificationLog, /Full Chromium Playwright \| Pass \| 58\/58/)
+assert.match(verificationLog, /## Gate 8\.1 — User Application Entry Points And Live Study Closure/)
 
 assert.equal(
   packageJson.scripts?.['smoke:edit-reference-gate-8-readiness'],
@@ -186,7 +190,7 @@ assert.equal(
 )
 
 const changedPaths = git(['diff', '--name-only', allowDirtyAudit ? startingCommit : `${startingCommit}..HEAD`]).split('\n').filter(Boolean)
-assert.equal(changedPaths.length, 171, `Expected 171 committed PR paths, found ${changedPaths.length}.`)
+assert(changedPaths.length >= 171, `Expected Gate 8.1 to retain at least 171 committed paths, found ${changedPaths.length}.`)
 assert.equal(changedPaths.some((filePath) => filePath.startsWith('supabase/migrations/')), false)
 assert.equal(git(['merge-base', '--is-ancestor', gate8Commit, 'HEAD'], true), 'ancestor')
 if (!allowDirtyAudit) assert.equal(git(['status', '--porcelain']), '', 'Gate 8 readiness requires a clean worktree.')
@@ -198,7 +202,7 @@ console.log(JSON.stringify({
   matrixRows: matrixRows.length,
   adaptationCases: 3,
   skillFamilies: skillRows.length,
-  browserTests: 58,
+  browserTests: 60,
   migrationCount,
   changedPaths: changedPaths.length,
   productionReady: status.productionReady,

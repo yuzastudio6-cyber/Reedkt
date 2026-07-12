@@ -916,13 +916,6 @@ try {
     '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publish',
   )
 
-  await provePersistedHandoffStaleAuthorityRejection({
-    serviceContext: context,
-    routeBaseUrl,
-    routeAuthHeaders,
-    routeWorkspaceId,
-  })
-
   const approveResponse = await fetch(`${routeBaseUrl}/v1/edit-plans/${String(routePlan.id)}/approve`, {
     method: 'POST',
     headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-approve-plan' },
@@ -980,6 +973,13 @@ try {
     { headers: routeAuthHeaders },
   )
   assert.equal(packageRead.status, 200)
+
+  await provePersistedHandoffStaleAuthorityRejection({
+    serviceContext: context,
+    routeBaseUrl,
+    routeAuthHeaders,
+    routeWorkspaceId,
+  })
 
   const routeJobs = routeApprovedAuthority.jobs as Record<string, unknown>[]
   const routeRootJob = routeJobs.find((job) => Array.isArray(job.dependencyJobIds) && job.dependencyJobIds.length === 0)
@@ -2226,6 +2226,8 @@ console.log(JSON.stringify({
     'persisted_planning_handoff_second_key_and_work_graph_substitution_rejected',
     'authenticated_handoff_inspection_reports_unpublished_and_published_state_without_authority',
     'handoff_inspection_is_cross_user_hidden_checksum_fail_closed_and_fresh_service_recoverable',
+    'concurrent_same_key_handoff_publications_converge_on_one_plan',
+    'concurrent_competing_key_handoff_publications_have_one_winner',
     'legacy_direct_canonical_publication_http_route_fails_closed',
     'all_authenticated_canonical_route_fixtures_publish_through_persisted_handoffs',
     'authenticated_canonical_execution_readiness_http_route',
@@ -2747,6 +2749,63 @@ async function provePersistedHandoffStaleAuthorityRejection(input: {
   } finally {
     await writeFile(handoffRecordPath, originalHandoffRecord, 'utf8')
   }
+
+  const publishFixture = (fixture: Awaited<ReturnType<typeof prepareFixture>>, key: string) =>
+    fetch(fixture.publishUrl, {
+      method: 'POST',
+      headers: {
+        ...input.routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': key,
+      },
+      body: JSON.stringify(fixture.publishBody),
+    })
+
+  const concurrentExact = await prepareFixture('concurrent-exact')
+  const [concurrentExactLeft, concurrentExactRight] = await Promise.all([
+    publishFixture(concurrentExact, 'publish-concurrent-exact-handoff'),
+    publishFixture(concurrentExact, 'publish-concurrent-exact-handoff'),
+  ])
+  assert.deepEqual(
+    [concurrentExactLeft.status, concurrentExactRight.status].sort(),
+    [201, 201],
+  )
+  const concurrentExactEnvelopes = await Promise.all([
+    concurrentExactLeft.json(),
+    concurrentExactRight.json(),
+  ]) as Array<{
+    data?: {
+      authority?: Record<string, unknown>
+      canonicalPlanningHandoff?: Record<string, unknown>
+    }
+  }>
+  const concurrentExactPlanIds = concurrentExactEnvelopes.map((envelope) =>
+    asRecord(asRecord(envelope.data?.authority).plan).id)
+  assert.equal(new Set(concurrentExactPlanIds).size, 1)
+  assert.deepEqual(
+    concurrentExactEnvelopes.map((envelope) =>
+      asRecord(envelope.data?.canonicalPlanningHandoff).publicationReplayed).sort(),
+    [false, true],
+  )
+
+  const concurrentCompeting = await prepareFixture('concurrent-competing')
+  const concurrentCompetingResponses = await Promise.all([
+    publishFixture(concurrentCompeting, 'publish-concurrent-competing-left'),
+    publishFixture(concurrentCompeting, 'publish-concurrent-competing-right'),
+  ])
+  assert.deepEqual(
+    concurrentCompetingResponses.map((response) => response.status).sort(),
+    [201, 409],
+  )
+  const competingConflict = concurrentCompetingResponses.find((response) => response.status === 409)
+  assert.ok(competingConflict)
+  const competingConflictEnvelope = await competingConflict.json() as {
+    error?: { details?: { requiredGate?: string } }
+  }
+  assert.equal(
+    competingConflictEnvelope.error?.details?.requiredGate,
+    'one_handoff_one_canonical_plan_publication',
+  )
 }
 
 async function publishCanonicalPlanThroughPersistedHandoffRoute(input: {

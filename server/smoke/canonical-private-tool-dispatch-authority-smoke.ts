@@ -37,6 +37,7 @@ import { createCanonicalPrivateJobExecutionAdapterService } from '../services/ca
 import { createCanonicalPrivateReviewAssemblyService } from '../services/canonical-private-review-assembly-service'
 import { createCanonicalPrivateReviewDecisionService } from '../services/canonical-private-review-decision-service'
 import { createCanonicalPrivateReviewHistoryService } from '../services/canonical-private-review-history-service'
+import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from '../services/canonical-private-work-graph-orchestrator-service'
 import { createCanonicalWorkerLeaseAuthorityService } from '../services/canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
@@ -292,6 +293,57 @@ const dispatchPlanInput = {
   matrixOperationIds,
 }
 const planBody = createDispatchPlanBody(dispatchPlanInput)
+const planningHandoffAuthorityBefore = sha256AuthorityValue(await requireEditAuthority(workspaceId))
+const orderedPlanningHandoffSources = [...seedAuthority.components.sourceSequence.map((item) => ({
+  sourceSequenceItemId: item.sourceSequenceItemId,
+  mediaAssetId: item.mediaAssetId,
+  uploadedOrder: item.uploadedOrder,
+  checksumSha256: requireSha256(item.checksumSha256),
+  required: item.required,
+})), mediaSourceItem]
+const planningHandoffService = createCanonicalPlanningHandoffService(context)
+await expectApiError(
+  () => planningHandoffService.prepare({
+    workspaceId,
+    projectId: seedSnapshot.projectId,
+    editSessionId,
+    purpose: 'prepare_canonical_planning_handoff',
+    orderedSourceItems: orderedPlanningHandoffSources,
+    canonicalPlanComponents: {
+      ...planBody.canonicalPlan.components,
+      sourceSequence: [...planBody.canonicalPlan.components.sourceSequence].reverse(),
+    },
+  }),
+  'IDEMPOTENCY_CONFLICT',
+)
+const planningHandoff = await planningHandoffService.prepare({
+  workspaceId,
+  projectId: seedSnapshot.projectId,
+  editSessionId,
+  purpose: 'prepare_canonical_planning_handoff',
+  orderedSourceItems: orderedPlanningHandoffSources,
+  canonicalPlanComponents: planBody.canonicalPlan.components,
+})
+assert.equal(planningHandoff.readiness.finalizedSourceMediaVerified, true)
+assert.equal(planningHandoff.readiness.exactEditPreferencesVerified, true)
+assert.equal(planningHandoff.readiness.preferenceApplicationVerified, true)
+assert.equal(planningHandoff.readiness.editBriefVerified, true)
+assert.equal(planningHandoff.readiness.outputFrameAndCleanupVerified, true)
+assert.equal(planningHandoff.readiness.readyForCanonicalPlanPublication, true)
+assert.equal(planningHandoff.noPlanPublished, true)
+assert.equal(planningHandoff.noSnapshotCreated, true)
+assert.equal(planningHandoff.noCreditReservation, true)
+assert.equal(planningHandoff.noToolExecution, true)
+assert.equal(planningHandoff.noProviderCall, true)
+assert.equal(planningHandoff.noRender, true)
+assert.deepEqual(planningHandoff.planningInputAuthority, planningInputAuthority)
+assert.deepEqual(planningHandoff.sourceMediaAuthority, sourceMediaAuthority)
+assert.equal(
+  sha256AuthorityValue(await requireEditAuthority(workspaceId)),
+  planningHandoffAuthorityBefore,
+)
+planBody.planningInputAuthority = planningHandoff.planningInputAuthority
+planBody.sourceMediaAuthority = planningHandoff.sourceMediaAuthority
 const planningService = createEditPlanningAuthorityService(context)
 const published = await planningService.publishCanonicalPlan({
   ...planBody,
@@ -3332,6 +3384,8 @@ console.log(JSON.stringify({
     'terminal_private_review_assembly_requires_every_required_artifact_qa_reconciliation_and_exact_final_qa_lease_binding',
     'credential_free_private_review_manifest_is_create_only_replay_safe_and_privately_downloadable',
     'private_review_decision_rejects_caller_artifact_and_stale_manifest_authority',
+    'authenticated_upload_preference_edit_brief_handoff_produces_exact_plan_publication_authority',
+    'canonical_planning_handoff_rejects_source_order_drift_and_has_no_plan_credit_tool_or_render_side_effect',
     'revision_request_creates_one_credential_free_immutable_snapshot_bound_handoff',
     'revision_decision_replays_without_authority_wallet_reservation_or_execution_mutation',
     'replacement_plan_publication_requires_exact_unconsumed_revision_handoff_and_compiled_intent_hash',

@@ -43,7 +43,7 @@ The canonical lifecycle smoke proves:
 
 This is private single-host recovery evidence, not deployed disaster recovery or production retention. It does not add Supabase, RLS, cloud storage, public sharing, provider calls, billing, settlement, customer charging, deployment, or production readiness.
 
-The next product integration gate is binding this canonical backend journey to authenticated real-user upload and the separately designed browser/UI handoff.
+The authenticated local/private backend now binds finalized uploads and current planning inputs into exact canonical plan-publication authority. The next product integration gate is browser consumption of that handoff; real-user Supabase/storage and deployed operations remain separate gates.
 
 ## Verification
 

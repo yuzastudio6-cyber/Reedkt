@@ -341,11 +341,11 @@ try {
     assert.ok(details && typeof details === 'object')
     assert.equal(
       (details as Record<string, unknown>).requiredGate,
-      'canonical_real_user_upload_and_browser_handoff',
+      'canonical_browser_consumption_of_planning_handoff',
     )
     console.log(JSON.stringify({
       ok: true,
-      status: 'blocked_by_canonical_real_user_upload_and_browser_handoff',
+      status: 'blocked_by_canonical_browser_consumption_of_planning_handoff',
       checks: [
         'upload_intent_requires_owned_backend_project_record',
         'source_video_uploaded_through_backend_local_upload_intent',
@@ -355,8 +355,8 @@ try {
         'no_provider_render_delivery_billing_or_wallet_side_effect',
       ],
       skippedLegacyAssertions: true,
-      skippedReason: 'The legacy private internal execution route is intentionally disabled. The bounded canonical fixture completes both private reviews and history recovery; real-user upload and browser handoff must bind to canonical authority.',
-      nextRequiredGate: 'canonical_real_user_upload_and_browser_handoff',
+      skippedReason: 'The legacy private internal execution route is intentionally disabled. The authenticated backend canonical planning handoff now verifies finalized uploads and current planning inputs; the browser must consume that handoff without reviving caller-authored execution authority.',
+      nextRequiredGate: 'canonical_browser_consumption_of_planning_handoff',
     }))
   } else {
   assert.equal(privateInternalTestRunResponse.status, 201, `Private internal test run should succeed: ${JSON.stringify(privateInternalTestRunResponse.json)}`)

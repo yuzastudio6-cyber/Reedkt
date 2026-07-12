@@ -2,6 +2,8 @@ import { Router } from 'express'
 import { requireAuth } from '../middleware/auth'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
+import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
+import { createCanonicalPlanningHandoffSchema } from '../validation/canonical-planning-handoff-schemas'
 import {
   approveCanonicalEditPlanSchema,
   authorityWorkspaceQuerySchema,
@@ -18,6 +20,23 @@ import {
 
 export function createEditPlanningAuthorityRoutes(): Router {
   const router = Router()
+
+  router.post(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoff',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const body = validateBody(createCanonicalPlanningHandoffSchema, request.body)
+      const handoff = await createCanonicalPlanningHandoffService(getServiceContext(request)).prepare({
+        ...body,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+      })
+      sendOk(response, { canonicalPlanningHandoff: handoff }, [
+        'This authenticated handoff verified finalized source media plus the current Exact Edit Preferences, Preference DNA application, Edit Brief, frame, and cleanup state without publishing a plan.',
+        'Plan publication, approval, credit reservation, tools, providers, rendering, and production remain separate gates.',
+      ])
+    }),
+  )
 
   router.post(
     '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-plans',

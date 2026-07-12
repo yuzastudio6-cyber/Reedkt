@@ -3,7 +3,7 @@ import { privateUploadMediaSafeIdSchema } from './private-upload-media-authority
 
 const sha256Schema = z.string().regex(/^[a-f0-9]{64}$/)
 
-const sourceSequenceAuthorityItemSchema = z.object({
+export const sourceSequenceAuthorityItemSchema = z.object({
   sourceSequenceItemId: privateUploadMediaSafeIdSchema,
   mediaAssetId: privateUploadMediaSafeIdSchema,
   uploadedOrder: z.number().int().positive().max(10_000),

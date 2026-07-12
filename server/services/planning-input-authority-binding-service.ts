@@ -96,6 +96,59 @@ export async function revalidatePlanningInputAuthorityBinding(input: {
   return current
 }
 
+export async function buildCurrentPlanningInputAuthorityExpectation(
+  scope: PlanningInputAuthorityScope,
+): Promise<PlanningInputAuthorityExpectation> {
+  const exactRecord = await requireExactEditPreference(scope)
+  const preferenceAggregate = await readPrivatePreferenceIntelligenceAggregate(preferenceScope(scope))
+  const application = preferenceAggregate?.applications.find((candidate) =>
+    candidate.projectId === scope.projectId && candidate.editSessionId === scope.editSessionId)
+  let preferenceApplication: PlanningInputAuthorityExpectation['preferenceApplication']
+  if (!application) {
+    preferenceApplication = { status: 'not_selected', applicationVersion: 0 }
+  } else if (application.status === 'cleared') {
+    preferenceApplication = {
+      status: 'cleared',
+      applicationId: application.id,
+      applicationVersion: application.applicationVersion,
+      applicationHash: preferenceIntelligenceHash(application),
+    }
+  } else {
+    assertApprovedApplicationLineage(preferenceAggregate!, application)
+    const dna = preferenceAggregate!.dnaVersions.find((candidate) =>
+      candidate.id === application.selectedPreferenceDNAId)!
+    preferenceApplication = {
+      status: 'applied',
+      applicationId: application.id,
+      applicationVersion: application.applicationVersion,
+      preferenceId: application.selectedEditPreferenceId!,
+      dnaVersionId: dna.id,
+      dnaVersion: dna.version,
+      applicationHash: preferenceIntelligenceHash(application),
+    }
+  }
+  const editBriefAggregate = await readPrivateEditBriefAuthorityAggregate(editBriefScope(scope))
+  const editBrief: PlanningInputAuthorityExpectation['editBrief'] = editBriefAggregate
+    ? (() => {
+        const publicationBinding = buildEditBriefAuthorityPublicationBinding(editBriefAggregate)
+        return {
+          status: 'bound' as const,
+          aggregateRevision: publicationBinding.aggregateRevision,
+          deterministicHash: publicationBinding.deterministicHash,
+        }
+      })()
+    : { status: 'not_used' }
+  return planningInputAuthorityExpectationSchema.parse({
+    exactEditPreference: {
+      recordRevision: exactRecord.recordRevision,
+      preferenceRevision: exactRecord.preferenceRevision,
+      preferenceFingerprintSha256: exactEditPreferenceFingerprint(exactRecord.values),
+    },
+    preferenceApplication,
+    editBrief,
+  })
+}
+
 function resolveExactEditPreferenceBinding(
   record: PrivateExactEditPreferenceRecord,
   expectation: PlanningInputAuthorityExpectation,

@@ -609,16 +609,61 @@ try {
     'route-edit-session',
     await prepareExactPlanningAuthority(context, routeProjectId, 'route-edit-session', routeWorkspaceId),
   )
-  sourceMediaFixtures.set(
+  const routeSourceFixture = await prepareSourceMediaAuthority(
+    context,
+    routeWorkspaceId,
     routeProjectId,
-    await prepareSourceMediaAuthority(context, routeWorkspaceId, routeProjectId, 'route'),
+    'route',
   )
+  sourceMediaFixtures.set(routeProjectId, routeSourceFixture)
   const routePlanBody = createCanonicalPlanBody(
     'route-planning-request',
     requirePlanningInputExpectation('route-edit-session'),
     requireSourceMediaFixture(routeProjectId),
   )
   routePlanBody.workspaceId = routeWorkspaceId
+  const planningHandoffUrl =
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/canonical-planning-handoff`
+  const planningHandoffBody = {
+    workspaceId: routeWorkspaceId,
+    purpose: 'prepare_canonical_planning_handoff',
+    orderedSourceItems: routeSourceFixture.sourceSequence,
+    canonicalPlanComponents: routePlanBody.canonicalPlan.components,
+  }
+  const unauthenticatedPlanningHandoff = await fetch(planningHandoffUrl, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(planningHandoffBody),
+  })
+  assert.equal(unauthenticatedPlanningHandoff.status, 401)
+  const planningHandoffResponse = await fetch(planningHandoffUrl, {
+    method: 'POST',
+    headers: { ...routeAuthHeaders, 'content-type': 'application/json' },
+    body: JSON.stringify(planningHandoffBody),
+  })
+  assert.equal(planningHandoffResponse.status, 200)
+  const planningHandoffEnvelope = await planningHandoffResponse.json() as {
+    data?: { canonicalPlanningHandoff?: Record<string, unknown> }
+  }
+  const routePlanningHandoff = asRecord(
+    planningHandoffEnvelope.data?.canonicalPlanningHandoff,
+  )
+  assert.deepEqual(routePlanningHandoff.sourceMediaAuthority, routeSourceFixture.expectation)
+  assert.deepEqual(
+    routePlanningHandoff.planningInputAuthority,
+    requirePlanningInputExpectation('route-edit-session'),
+  )
+  assert.equal(asRecord(routePlanningHandoff.readiness).readyForCanonicalPlanPublication, true)
+  assert.equal(routePlanningHandoff.noPlanPublished, true)
+  assert.equal(routePlanningHandoff.noSnapshotCreated, true)
+  assert.equal(routePlanningHandoff.noCreditReservation, true)
+  assert.equal(routePlanningHandoff.noToolExecution, true)
+  assert.equal(routePlanningHandoff.noProviderCall, true)
+  assert.equal(routePlanningHandoff.noRender, true)
+  routePlanBody.planningInputAuthority = routePlanningHandoff.planningInputAuthority as
+    PlanningInputAuthorityExpectation
+  routePlanBody.sourceMediaAuthority = routePlanningHandoff.sourceMediaAuthority as
+    SourceMediaAuthorityExpectation
   const publishResponse = await fetch(
     `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/canonical-plans`,
     {

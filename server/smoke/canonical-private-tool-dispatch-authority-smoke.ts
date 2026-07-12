@@ -80,6 +80,7 @@ import {
   PRIVATE_EDIT_AUTHORITY_SCHEMA_VERSION,
   type PublishCanonicalEditPlanBody,
 } from '../validation/edit-planning-authority-schemas'
+import { canonicalEditJourneyResponseSchema } from '../validation/canonical-edit-journey-schemas'
 import { canonicalPrivateToolDispatchConsumptionResponseSchema } from '../validation/canonical-private-tool-dispatch-schemas'
 import { canonicalAuthoritySmokeRoot } from './canonical-authority-smoke-root'
 
@@ -2178,6 +2179,14 @@ assert.equal(terminalPrivateReviewJourney.review?.decision, undefined)
 assert.equal(terminalPrivateReviewJourney.permissions.inspectionOnly, true)
 assert.equal(terminalPrivateReviewJourney.permissions.toolExecution, false)
 assert.equal(terminalPrivateReviewJourney.permissions.render, false)
+assert.equal(canonicalEditJourneyResponseSchema.safeParse({
+  ...terminalPrivateReviewJourney,
+  review: {
+    ...terminalPrivateReviewJourney.review!,
+    decision: 'accept_private_internal_review',
+    decisionStatus: 'private_internal_review_accepted',
+  },
+}).success, false)
 const reviewDecisionAuthorityBefore = sha256AuthorityValue(
   snapshotAuthoritySlice(
     await requireEditAuthority(workspaceId),
@@ -2594,6 +2603,13 @@ assert.equal(
 assert.equal(acceptedPrivateReviewJourney.permissions.providerCall, false)
 assert.equal(acceptedPrivateReviewJourney.permissions.render, false)
 assert.equal(acceptedPrivateReviewJourney.testOnly, true)
+assert.equal(canonicalEditJourneyResponseSchema.safeParse({
+  ...acceptedPrivateReviewJourney,
+  review: {
+    ...acceptedPrivateReviewJourney.review!,
+    decision: 'request_revision',
+  },
+}).success, false)
 const secondPrivateReviewAcceptanceReplay = await privateReviewDecisionService.record(
   secondPrivateReviewAcceptanceInput,
 )
@@ -2952,6 +2968,7 @@ console.log(JSON.stringify({
     'terminal_private_review_assembly_requires_every_required_artifact_qa_reconciliation_and_exact_final_qa_lease_binding',
     'credential_free_private_review_manifest_is_create_only_replay_safe_and_privately_downloadable',
     'canonical_journey_recovery_reports_exact_private_review_ready_authority_without_execution_grant',
+    'canonical_journey_schema_rejects_a_decision_inside_review_ready_state',
     'private_review_decision_rejects_caller_artifact_and_stale_manifest_authority',
     'persisted_authenticated_upload_preference_edit_brief_handoff_publishes_exact_initial_plan_authority',
     'persisted_planning_handoff_rejects_source_order_drift_and_has_no_plan_credit_tool_or_render_side_effect',
@@ -2970,6 +2987,7 @@ console.log(JSON.stringify({
     'canonical_journey_recovery_tracks_the_latest_replacement_review_assembly',
     'second_private_review_acceptance_is_create_only_replay_safe_and_public_delivery_blocked',
     'canonical_journey_recovery_reports_private_acceptance_while_public_delivery_remains_blocked',
+    'canonical_journey_schema_rejects_mismatched_acceptance_decision_lineage',
     'active_execution_download_fails_closed_after_snapshot_is_superseded_and_reservation_released',
     'authenticated_history_reopens_superseded_review_without_restoring_execution_or_credit_authority',
     'fresh_service_instances_reopen_current_and_superseded_review_bytes_with_stable_evidence',

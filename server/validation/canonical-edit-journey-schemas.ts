@@ -22,7 +22,107 @@ export const canonicalEditJourneyStageSchema = z.enum([
   'replanning_required',
 ])
 
-export const canonicalEditJourneyResponseSchema = z.object({
+export type CanonicalEditJourneyStage = z.infer<typeof canonicalEditJourneyStageSchema>
+
+type JourneyAuthorityField =
+  | 'planningHandoff'
+  | 'publicationRequest'
+  | 'plan'
+  | 'approval'
+  | 'execution'
+  | 'review'
+
+const actionByStage = {
+  planning_handoff_required: {
+    code: 'prepare_planning_handoff', actor: 'planning_client', method: 'POST',
+  },
+  publication_request_required: {
+    code: 'submit_publication_request', actor: 'planning_client', method: 'POST',
+  },
+  internal_publication_pending: {
+    code: 'await_internal_publication', actor: 'internal_service', method: 'POST',
+  },
+  plan_approval_required: {
+    code: 'approve_canonical_plan', actor: 'authenticated_user', method: 'POST',
+  },
+  approved_snapshot_available: {
+    code: 'request_execution_package', actor: 'authenticated_user', method: 'POST',
+  },
+  execution_in_progress: {
+    code: 'run_private_work_graph', actor: 'internal_service', method: 'POST',
+  },
+  private_review_ready: {
+    code: 'record_private_review_decision', actor: 'authenticated_user', method: 'POST',
+  },
+  private_review_accepted: {
+    code: 'await_public_delivery_authorization', actor: 'internal_service', method: 'GET',
+  },
+  revision_requested: {
+    code: 'prepare_replacement_plan', actor: 'planning_client', method: 'POST',
+  },
+  cancellation_pending: {
+    code: 'await_cancellation_reconciliation', actor: 'internal_service', method: 'GET',
+  },
+  replanning_required: {
+    code: 'prepare_replacement_plan', actor: 'planning_client', method: 'POST',
+  },
+} as const satisfies Record<CanonicalEditJourneyStage, {
+  code: string
+  actor: string
+  method: string
+}>
+
+const authorityFieldsByStage = {
+  planning_handoff_required: {
+    required: [],
+    forbidden: ['planningHandoff', 'publicationRequest', 'plan', 'approval', 'execution', 'review'],
+  },
+  publication_request_required: {
+    required: ['planningHandoff'],
+    forbidden: ['publicationRequest', 'plan', 'approval', 'execution', 'review'],
+  },
+  internal_publication_pending: {
+    required: ['planningHandoff', 'publicationRequest'],
+    forbidden: ['plan', 'approval', 'execution', 'review'],
+  },
+  plan_approval_required: {
+    required: ['planningHandoff', 'plan'],
+    forbidden: ['approval', 'execution', 'review'],
+  },
+  approved_snapshot_available: {
+    required: ['planningHandoff', 'plan', 'approval'],
+    forbidden: ['execution', 'review'],
+  },
+  execution_in_progress: {
+    required: ['planningHandoff', 'plan', 'approval', 'execution'],
+    forbidden: ['review'],
+  },
+  private_review_ready: {
+    required: ['planningHandoff', 'plan', 'approval', 'execution', 'review'],
+    forbidden: [],
+  },
+  private_review_accepted: {
+    required: ['planningHandoff', 'plan', 'approval', 'execution', 'review'],
+    forbidden: [],
+  },
+  revision_requested: {
+    required: ['planningHandoff', 'plan', 'approval', 'execution', 'review'],
+    forbidden: [],
+  },
+  cancellation_pending: {
+    required: ['planningHandoff', 'plan'],
+    forbidden: ['execution', 'review'],
+  },
+  replanning_required: {
+    required: ['planningHandoff', 'plan'],
+    forbidden: ['execution', 'review'],
+  },
+} as const satisfies Record<CanonicalEditJourneyStage, {
+  required: readonly JourneyAuthorityField[]
+  forbidden: readonly JourneyAuthorityField[]
+}>
+
+const canonicalEditJourneyResponseBaseSchema = z.object({
   schemaVersion: z.literal('canonical-edit-journey-recovery-v1'),
   source: z.literal('canonical_edit_journey_service'),
   identity: z.object({
@@ -116,4 +216,141 @@ export const canonicalEditJourneyResponseSchema = z.object({
   testOnly: z.literal(true),
 }).strict()
 
+type CanonicalEditJourneyResponseValue = z.infer<typeof canonicalEditJourneyResponseBaseSchema>
+
+export const canonicalEditJourneyResponseSchema = canonicalEditJourneyResponseBaseSchema
+  .superRefine((value, context) => {
+    const expectedAction = actionByStage[value.stage]
+    for (const field of ['code', 'actor', 'method'] as const) {
+      if (value.nextAction[field] !== expectedAction[field]) {
+        invalid(context, ['nextAction', field], `Canonical journey ${field} does not match stage ${value.stage}.`)
+      }
+    }
+
+    const fieldRules = authorityFieldsByStage[value.stage]
+    for (const field of fieldRules.required) {
+      if (value[field] === undefined) {
+        invalid(context, [field], `Canonical journey ${field} is required for stage ${value.stage}.`)
+      }
+    }
+    for (const field of fieldRules.forbidden) {
+      if (value[field] !== undefined) {
+        invalid(context, [field], `Canonical journey ${field} is forbidden for stage ${value.stage}.`)
+      }
+    }
+
+    const expectedRoute = expectedRouteFor(value)
+    if (expectedRoute !== undefined && value.nextAction.routeTemplate !== expectedRoute) {
+      invalid(context, ['nextAction', 'routeTemplate'], 'Canonical journey next-action route does not match current authority.')
+    }
+
+    if (value.execution && value.approval && value.execution.snapshotId !== value.approval.snapshotId) {
+      invalid(context, ['execution', 'snapshotId'], 'Canonical journey execution package is not bound to the approved snapshot.')
+    }
+
+    const unpublishedStages: CanonicalEditJourneyStage[] = [
+      'publication_request_required',
+      'internal_publication_pending',
+    ]
+    if (
+      value.planningHandoff &&
+      value.planningHandoff.publicationStatus !==
+        (unpublishedStages.includes(value.stage) ? 'unpublished' : 'published')
+    ) {
+      invalid(context, ['planningHandoff', 'publicationStatus'], 'Canonical journey handoff publication status conflicts with its stage.')
+    }
+
+    if (value.stage === 'plan_approval_required') {
+      if (value.plan?.status !== 'presented' || value.plan.estimateStatus !== 'presented') {
+        invalid(context, ['plan'], 'Canonical journey plan approval requires a presented plan and estimate.')
+      }
+    }
+    if ([
+      'approved_snapshot_available',
+      'execution_in_progress',
+      'private_review_ready',
+      'private_review_accepted',
+      'revision_requested',
+    ].includes(value.stage)) {
+      if (value.plan?.status !== 'approved' || value.plan.estimateStatus !== 'approved') {
+        invalid(context, ['plan'], 'Canonical journey post-approval stage requires an approved plan and estimate.')
+      }
+    }
+    if (value.stage === 'cancellation_pending' && value.plan?.status !== 'cancellation_pending') {
+      invalid(context, ['plan', 'status'], 'Canonical journey cancellation stage requires cancellation-pending plan authority.')
+    }
+    if (
+      value.stage === 'replanning_required' &&
+      value.plan &&
+      !['superseded', 'rejected', 'cancelled'].includes(value.plan.status)
+    ) {
+      invalid(context, ['plan', 'status'], 'Canonical journey replanning stage requires terminal prior-plan authority.')
+    }
+
+    if (value.stage === 'private_review_ready' && value.review) {
+      if (value.review.decision !== undefined || value.review.decisionStatus !== undefined) {
+        invalid(context, ['review'], 'Review-ready journey state must not contain a completed decision.')
+      }
+    }
+    if (value.stage === 'revision_requested' && value.review) {
+      if (
+        value.review.decision !== 'request_revision' ||
+        value.review.decisionStatus !== 'canonical_revision_requested'
+      ) {
+        invalid(context, ['review'], 'Revision journey state requires the exact persisted revision decision.')
+      }
+    }
+    if (value.stage === 'private_review_accepted' && value.review) {
+      if (
+        value.review.decision !== 'accept_private_internal_review' ||
+        value.review.decisionStatus !== 'private_internal_review_accepted'
+      ) {
+        invalid(context, ['review'], 'Accepted journey state requires the exact persisted acceptance decision.')
+      }
+    }
+  })
+
 export type CanonicalEditJourneyResponse = z.infer<typeof canonicalEditJourneyResponseSchema>
+
+function expectedRouteFor(value: CanonicalEditJourneyResponseValue): string | undefined {
+  const projectRoute = (suffix: string) =>
+    `/v1/projects/${value.identity.projectId}/edit-sessions/${value.identity.editSessionId}/${suffix}`
+  switch (value.stage) {
+    case 'planning_handoff_required':
+    case 'revision_requested':
+    case 'replanning_required':
+      return projectRoute('canonical-planning-handoff')
+    case 'publication_request_required':
+      return value.planningHandoff
+        ? projectRoute(`canonical-planning-handoffs/${value.planningHandoff.handoffId}/publication-requests`)
+        : undefined
+    case 'internal_publication_pending':
+      return value.planningHandoff && value.publicationRequest
+        ? projectRoute(
+            `canonical-planning-handoffs/${value.planningHandoff.handoffId}/` +
+            `publication-requests/${value.publicationRequest.candidateId}/publish`,
+          )
+        : undefined
+    case 'plan_approval_required':
+      return value.plan ? `/v1/edit-plans/${value.plan.planId}/approve` : undefined
+    case 'approved_snapshot_available':
+      return '/v1/edit-executions/packages'
+    case 'execution_in_progress':
+      return value.execution
+        ? `/v1/edit-executions/packages/${value.execution.packageRecordId}/private-internal-work-graph-runs`
+        : undefined
+    case 'private_review_ready':
+      return value.review
+        ? `/v1/edit-executions/private-review-assemblies/${value.review.reviewAssemblyId}/decisions`
+        : undefined
+    case 'private_review_accepted':
+      return projectRoute('canonical-journey')
+    case 'cancellation_pending':
+      if (value.approval) return `/v1/approved-snapshots/${value.approval.snapshotId}/authority`
+      return value.plan ? `/v1/edit-plans/${value.plan.planId}/authority` : undefined
+  }
+}
+
+function invalid(context: z.RefinementCtx, path: (string | number)[], message: string): void {
+  context.addIssue({ code: z.ZodIssueCode.custom, path, message })
+}

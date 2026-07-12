@@ -28,6 +28,8 @@ Every response includes one `nextAction` with a code, actor, method, and route t
 
 `execution_in_progress` remains the recovery state until a completed private-review assembly exists. The private work-graph route is replay-safe and returns its own exact terminal assembly gate after required jobs complete; journey recovery never invents completed work from package creation alone.
 
+The response schema binds every stage to its exact action code, actor, HTTP method, and authority-derived route. It also enforces required and forbidden summaries, published-handoff state, plan/estimate status, package-to-snapshot identity, and exact review decision/status pairs. Cross-stage field injection, action or route substitution, foreign snapshot identity, a decision inside `private_review_ready`, and mismatched revision/acceptance lineage fail validation instead of becoming recoverable client state.
+
 ## Safety boundary
 
 Journey recovery is inspection-only. It returns no raw planning inputs, raw publication request body, filesystem path, credential, snapshot mutation permission, credit mutation permission, tool execution authority, provider authority, or render authority.

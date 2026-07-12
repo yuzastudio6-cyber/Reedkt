@@ -53,6 +53,7 @@ import {
   CANONICAL_PRIVATE_TOOL_DISPATCH_RECORD_VERSION,
   type CanonicalPrivateToolDispatchRecord,
 } from '../validation/canonical-private-tool-dispatch-schemas'
+import { canonicalEditJourneyResponseSchema } from '../validation/canonical-edit-journey-schemas'
 import { canonicalAuthoritySmokeRoot } from './canonical-authority-smoke-root'
 
 const localStorageRoot = canonicalAuthoritySmokeRoot
@@ -1413,6 +1414,41 @@ try {
   assert.equal(asRecord(executionJourney.journey.permissions).inspectionOnly, true)
   assert.equal(asRecord(executionJourney.journey.permissions).toolExecution, false)
   assert.equal(asRecord(executionJourney.journey.permissions).render, false)
+  const parsedExecutionJourney = canonicalEditJourneyResponseSchema.parse(
+    executionJourney.journey,
+  )
+  assert.equal(canonicalEditJourneyResponseSchema.safeParse({
+    ...parsedExecutionJourney,
+    nextAction: {
+      ...parsedExecutionJourney.nextAction,
+      code: 'await_public_delivery_authorization',
+    },
+  }).success, false)
+  assert.equal(canonicalEditJourneyResponseSchema.safeParse({
+    ...parsedExecutionJourney,
+    nextAction: {
+      ...parsedExecutionJourney.nextAction,
+      routeTemplate: '/v1/edit-executions/packages/foreign-package/private-internal-work-graph-runs',
+    },
+  }).success, false)
+  assert.equal(canonicalEditJourneyResponseSchema.safeParse({
+    ...parsedExecutionJourney,
+    execution: {
+      ...parsedExecutionJourney.execution!,
+      snapshotId: 'foreign-snapshot',
+    },
+  }).success, false)
+  assert.equal(canonicalEditJourneyResponseSchema.safeParse({
+    ...parsedExecutionJourney,
+    stage: 'private_review_accepted',
+    nextAction: {
+      code: 'await_public_delivery_authorization',
+      actor: 'internal_service',
+      method: 'GET',
+      routeTemplate:
+        `/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/canonical-journey`,
+    },
+  }).success, false)
 
   await proveLatestHandoffDiscovery({
     serviceContext: context,
@@ -2682,6 +2718,7 @@ console.log(JSON.stringify({
     'latest_publication_request_pointer_is_cross_user_hidden_checksum_fail_closed_and_restart_safe',
     'canonical_journey_recovery_reports_handoff_candidate_plan_and_snapshot_stages',
     'canonical_journey_recovery_reports_execution_package_without_granting_runtime_authority',
+    'canonical_journey_schema_rejects_cross_stage_action_route_snapshot_and_review_substitution',
     'canonical_journey_recovery_returns_one_exact_next_action_without_execution_authority',
     'canonical_journey_recovery_is_authenticated_and_cross_user_hidden',
     'internal_publication_loads_the_persisted_candidate_and_binds_the_exact_handoff_request',

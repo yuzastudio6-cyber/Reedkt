@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { compileCanonicalWorkItems } from '../edit-architecture/canonical-work-item-compiler'
 import { ApiError } from '../errors/api-error'
 import { isExplicitLocalInternalTestRuntime } from '../middleware/canonical-worker-runtime'
 import { isProductionToolId } from '../tool-registry'
@@ -176,8 +177,13 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       const body = validatedBody.data
       const access = await authorizeWorkspaceAccess(context, body.workspaceId, 'write')
       await createProjectService(context).getProject(input.projectId, access.workspaceId)
+      const workItemCompilation = compileCanonicalWorkItems(body.canonicalPlan.workItems)
+      const canonicalPlan = {
+        ...body.canonicalPlan,
+        workItems: workItemCompilation.workItems,
+      }
       const idempotencyKey = requireIdempotencyKey(input.idempotencyKey)
-      validateCanonicalPlanDraft(body.canonicalPlan.components, body.canonicalPlan.workItems, body.canonicalPlan.estimate)
+      validateCanonicalPlanDraft(canonicalPlan.components, canonicalPlan.workItems, canonicalPlan.estimate)
       const revisionDecision = body.revisionAuthority
         ? await validateRevisionPublicationAuthority({
             context,
@@ -185,7 +191,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             projectId: input.projectId,
             editSessionId: input.editSessionId,
             revisionAuthority: body.revisionAuthority,
-            compiledIntent: body.canonicalPlan.components.compiledIntent,
+            compiledIntent: canonicalPlan.components.compiledIntent,
           })
         : undefined
 
@@ -199,17 +205,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           editSessionId: input.editSessionId,
         },
         expectation: body.planningInputAuthority,
-        components: body.canonicalPlan.components,
+        components: canonicalPlan.components,
       })
       const sourceMediaAuthority = await buildAndVerifySourceMediaAuthority({
         context,
         workspaceId: access.workspaceId,
         projectId: input.projectId,
-        sourceSequence: body.canonicalPlan.components.sourceSequence,
+        sourceSequence: canonicalPlan.components.sourceSequence,
         expectation: body.sourceMediaAuthority,
       })
       if (planningHandoffBinding && (
-        planningHandoffBinding.canonicalPlanComponentsHash !== sha256AuthorityValue(body.canonicalPlan.components) ||
+        planningHandoffBinding.canonicalPlanComponentsHash !== sha256AuthorityValue(canonicalPlan.components) ||
         planningHandoffBinding.sourceCandidateHash !== sourceMediaAuthority.candidateHash ||
         planningHandoffBinding.planningInputBindingHash !== planningInputAuthority.bindingHash ||
         planningHandoffBinding.publicationRequestHash !== canonicalPlanningHandoffPublicationRequestHash({
@@ -229,7 +235,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           409,
         )
       }
-      const baseComponentRefs = await persistPlanComponents(context, body.canonicalPlan.components)
+      const baseComponentRefs = await persistPlanComponents(context, canonicalPlan.components)
       const componentRefs: Record<string, AuthorityJsonBlobRef> = {
         ...baseComponentRefs,
         planningInputAuthority: await putPrivateAuthorityJsonBlob({
@@ -250,6 +256,13 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           maxBytes: 32 * 1024,
         })
       }
+      if (workItemCompilation.evidence.decomposedSourceWorkItemCount > 0) {
+        componentRefs.canonicalWorkItemCompilation = await putPrivateAuthorityJsonBlob({
+          localStorageRoot: context.env.localStorageRoot,
+          value: workItemCompilation.evidence as unknown as Record<string, unknown>,
+          maxBytes: 256 * 1024,
+        })
+      }
       if (body.revisionAuthority && revisionDecision) {
         componentRefs.revisionAuthority = await putPrivateAuthorityJsonBlob({
           localStorageRoot: context.env.localStorageRoot,
@@ -266,8 +279,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           maxBytes: 64 * 1024,
         })
       }
-      const preparedWorkItems = await persistWorkItemComponents(context, body.canonicalPlan.workItems)
-      const preparedEstimateItems = await Promise.all(body.canonicalPlan.estimate.lineItems.map(async (item) => ({
+      const preparedWorkItems = await persistWorkItemComponents(context, canonicalPlan.workItems)
+      const preparedEstimateItems = await Promise.all(canonicalPlan.estimate.lineItems.map(async (item) => ({
         ...item,
         metadataRef: await putPrivateAuthorityJsonBlob({
           localStorageRoot: context.env.localStorageRoot,
@@ -285,14 +298,14 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       })))
       const estimateCore = {
         lineItems: preparedEstimateItems.map(toAuthorityEstimateLineItem),
-        fallbackAllowanceCredits: body.canonicalPlan.estimate.fallbackAllowanceCredits,
-        validForSeconds: body.canonicalPlan.estimate.validForSeconds,
+        fallbackAllowanceCredits: canonicalPlan.estimate.fallbackAllowanceCredits,
+        validForSeconds: canonicalPlan.estimate.validForSeconds,
       }
       const estimatedCredits = preparedEstimateItems.reduce((total, item) => total + item.estimatedCredits, 0)
-      const approvedMaximumCredits = estimatedCredits + body.canonicalPlan.estimate.fallbackAllowanceCredits
+      const approvedMaximumCredits = estimatedCredits + canonicalPlan.estimate.fallbackAllowanceCredits
       const estimateHash = sha256AuthorityValue({ ...estimateCore, estimatedCredits, approvedMaximumCredits })
       const planHash = sha256AuthorityValue({
-        schemaVersion: body.canonicalPlan.schemaVersion,
+        schemaVersion: canonicalPlan.schemaVersion,
         componentRefs,
         workGraphHash,
       })
@@ -332,13 +345,13 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
               { projectId: input.projectId, editSessionId: input.editSessionId },
             ),
             persistedBinding: planningInputAuthority,
-            components: body.canonicalPlan.components,
+            components: canonicalPlan.components,
           })
           await buildAndVerifySourceMediaAuthority({
             context,
             workspaceId: access.workspaceId,
             projectId: input.projectId,
-            sourceSequence: body.canonicalPlan.components.sourceSequence,
+            sourceSequence: canonicalPlan.components.sourceSequence,
             expectation: sourceExpectationFromCandidate(sourceMediaAuthority),
           })
 
@@ -431,10 +444,10 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             status: 'presented',
             lineItems: preparedEstimateItems.map(toAuthorityEstimateLineItem),
             estimatedCredits,
-            fallbackAllowanceCredits: body.canonicalPlan.estimate.fallbackAllowanceCredits,
+            fallbackAllowanceCredits: canonicalPlan.estimate.fallbackAllowanceCredits,
             approvedMaximumCredits,
             estimateHash,
-            validUntil: new Date(Date.parse(timestamp) + body.canonicalPlan.estimate.validForSeconds * 1_000).toISOString(),
+            validUntil: new Date(Date.parse(timestamp) + canonicalPlan.estimate.validForSeconds * 1_000).toISOString(),
             createdAt: timestamp,
           }
           const plan: AuthorityPlanRecord = {
@@ -500,6 +513,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           'Canonical plan authority is private single-host internal-test persistence.',
           ...(body.revisionAuthority
             ? ['Replacement plan publication consumed one exact private-review revision handoff; fresh approval remains blocked pending reservation reconciliation.']
+            : []),
+          ...(workItemCompilation.evidence.decomposedSourceWorkItemCount > 0
+            ? [
+                `Canonical work graph compiled ${workItemCompilation.evidence.decomposedSourceWorkItemCount} grouped planner work item(s) into ${workItemCompilation.evidence.compiledWorkItemCount} atomic approved work items.`,
+              ]
             : []),
           'No provider, worker, render, media, external billing, or production credit side effect was started.',
         ],

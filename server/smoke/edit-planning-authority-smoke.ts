@@ -6,6 +6,10 @@ import type { AddressInfo } from 'node:net'
 import { join } from 'node:path'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import { createReeditProApiApp } from '../app'
+import {
+  CANONICAL_ATOMIC_EXECUTION_DESCRIPTOR_VERSION,
+  compileCanonicalWorkItems,
+} from '../edit-architecture/canonical-work-item-compiler'
 import { ApiError } from '../errors/api-error'
 import { loadRuntimeEnv } from '../config/env'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
@@ -31,6 +35,7 @@ import {
 } from '../services/private-canonical-tool-dispatch-store'
 import {
   clearPrivateEditAuthorityProcessStateForSmoke,
+  readPrivateAuthorityJsonBlob,
   readPrivateEditAuthorityAggregate,
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -560,6 +565,7 @@ try {
 }
 
 await provePreferenceAndBriefCanonicalBinding(context)
+await proveAtomicWorkItemCompilation(context)
 
 const otherUserService = createEditPlanningAuthorityService({
   ...context,
@@ -2803,6 +2809,11 @@ console.log(JSON.stringify({
     'planned_asset_manifest_tamper_rejected',
     'job_expected_asset_lineage',
     'approved_work_item_derived_job_graph',
+    'grouped_planner_tool_work_compiles_into_atomic_one_tool_one_required_output_jobs',
+    'atomic_compilation_preserves_internal_and_external_dependency_lineage',
+    'atomic_compilation_conserves_exact_work_item_budget_and_rejects_missing_mapping',
+    'atomic_compilation_rejects_output_substitution_provider_groups_and_ambiguous_terminal_authority',
+    'atomic_compilation_evidence_is_content_addressed_and_frozen_into_plan_authority',
     'canonical_native_execution_package',
     'strict_identity_only_package_contract',
     'server_derived_tool_capability_manifest',
@@ -3686,6 +3697,302 @@ function canonicalWorkGraphProgressRoot(input: {
     'package-progress',
     packageHash,
   )
+}
+
+async function proveAtomicWorkItemCompilation(serviceContext: ServiceContext): Promise<void> {
+  const targetWorkspaceId = 'workspace-planning-binding-integration'
+  const editSessionId = 'edit-session-atomic-work-item-compilation'
+  const project = (await createProjectService(serviceContext).createProject({
+    workspaceId: targetWorkspaceId,
+    name: 'Atomic work-item compilation integration',
+  })).project
+  const planningInputAuthority = await prepareExactPlanningAuthority(
+    serviceContext,
+    project.id,
+    editSessionId,
+    targetWorkspaceId,
+  )
+  const sourceFixture = await prepareSourceMediaAuthority(
+    serviceContext,
+    targetWorkspaceId,
+    project.id,
+    'atomic-work-item-compilation',
+  )
+  const body = createCanonicalPlanBody(
+    'planning-atomic-work-item-compilation',
+    planningInputAuthority,
+    sourceFixture,
+  )
+  body.workspaceId = targetWorkspaceId
+  const sourceTrim = body.canonicalPlan.workItems.find((workItem) =>
+    workItem.workItemKey === 'source-trim')
+  assert.ok(sourceTrim)
+  sourceTrim.workerClass = 'authority_worker'
+  sourceTrim.executionInput = { operation: 'validate_approved_source_trim_plan' }
+  sourceTrim.expectedOutputs = [{
+    outputKey: 'source-trim-validation-evidence',
+    artifactType: 'source_trim_validation_evidence',
+    assetRole: 'qa',
+    required: true,
+    previewPlaceholderAllowed: false,
+    contentType: 'application/json',
+    segmentIds: ['segment-1', 'segment-2'],
+    timingIds: ['master-timing-plan'],
+    rendererLayerIds: [],
+  }]
+  sourceTrim.approvedToolIds = []
+  sourceTrim.maximumCreditBudget = 0
+  const d3OperationId = 'tool.d3.render_chart_or_diagram.v1'
+  const echartsOperationId = 'tool.echarts.render_standard_chart.v1'
+  const chartPayload = {
+    width: 720,
+    height: 405,
+    title: 'Atomic chart compilation',
+    xAxisLabel: 'Stage',
+    yAxisLabel: 'Score',
+    theme: 'light',
+    data: [
+      { label: 'Plan', value: 18 },
+      { label: 'Execute', value: 27 },
+      { label: 'Review', value: 33 },
+    ],
+  }
+  body.canonicalPlan.workItems.splice(2, 0, {
+    workItemKey: 'grouped-chart-tools',
+    workItemType: 'render_chart_asset',
+    workerClass: 'planning_group_only',
+    executionInput: {
+      approvedToolOperationIds: [d3OperationId, echartsOperationId],
+      canonicalAtomicExecution: {
+        schemaVersion: CANONICAL_ATOMIC_EXECUTION_DESCRIPTOR_VERSION,
+        steps: [
+          {
+            stepKey: 'd3-chart',
+            toolId: 'd3',
+            operationId: d3OperationId,
+            workerClass: 'controlled_graphics_worker',
+            expectedOutputKey: 'd3-chart-svg',
+            executionInput: {
+              operation: 'render_approved_chart',
+              approvedToolOperationIds: [d3OperationId],
+              structuredPayload: chartPayload,
+            },
+            dependencyStepKeys: [],
+            maximumCreditBudget: 1,
+          },
+          {
+            stepKey: 'echarts-chart',
+            toolId: 'echarts',
+            operationId: echartsOperationId,
+            workerClass: 'controlled_graphics_worker',
+            expectedOutputKey: 'echarts-chart-svg',
+            executionInput: {
+              operation: 'render_approved_chart',
+              approvedToolOperationIds: [echartsOperationId],
+              structuredPayload: chartPayload,
+            },
+            dependencyStepKeys: ['d3-chart'],
+            maximumCreditBudget: 1,
+          },
+        ],
+      },
+    },
+    sourceSequenceItemIds: [],
+    sourceCleanupDecisionIds: [],
+    expectedOutputs: [
+      {
+        outputKey: 'd3-chart-svg',
+        artifactType: 'controlled_chart_svg',
+        assetRole: 'generated',
+        required: true,
+        previewPlaceholderAllowed: false,
+        contentType: 'image/svg+xml',
+        segmentIds: ['segment-1'],
+        timingIds: ['master-timing-plan'],
+        rendererLayerIds: ['d3-chart-layer'],
+      },
+      {
+        outputKey: 'echarts-chart-svg',
+        artifactType: 'controlled_chart_svg',
+        assetRole: 'generated',
+        required: true,
+        previewPlaceholderAllowed: false,
+        contentType: 'image/svg+xml',
+        segmentIds: ['segment-1'],
+        timingIds: ['master-timing-plan'],
+        rendererLayerIds: ['echarts-chart-layer'],
+      },
+    ],
+    dependencyKeys: ['snapshot-validation'],
+    approvedToolIds: ['d3', 'echarts'],
+    providerExecutionMode: 'none',
+    fallbackPolicy: { groupedPlannerNode: true },
+    maxAttempts: 2,
+    attemptTimeoutSeconds: 300,
+    scheduledDelaySeconds: 0,
+    maximumCreditBudget: 2,
+    required: true,
+  })
+  const finalQa = body.canonicalPlan.workItems.find((workItem) =>
+    workItem.workItemKey === 'final-qa')
+  assert.ok(finalQa)
+  finalQa.executionInput = { operation: 'future_final_qa_capability' }
+  finalQa.approvedToolIds = []
+  finalQa.maximumCreditBudget = 0
+  finalQa.dependencyKeys.push('grouped-chart-tools')
+  body.canonicalPlan.components.toolStrategyPlan = {
+    toolIds: ['ffmpeg', 'ffprobe', 'd3', 'echarts'],
+  }
+
+  const preview = compileCanonicalWorkItems(body.canonicalPlan.workItems)
+  assert.equal(preview.evidence.sourceWorkItemCount, 5)
+  assert.equal(preview.evidence.compiledWorkItemCount, 6)
+  assert.equal(preview.evidence.decomposedSourceWorkItemCount, 1)
+  assert.equal(preview.evidence.mappings[0]?.steps.length, 2)
+  const previewD3 = preview.workItems.find((workItem) =>
+    workItem.approvedToolIds[0] === 'd3')
+  const previewEcharts = preview.workItems.find((workItem) =>
+    workItem.approvedToolIds[0] === 'echarts')
+  assert.ok(previewD3)
+  assert.ok(previewEcharts)
+  assert.deepEqual(previewD3.expectedOutputs.map((output) => output.outputKey), ['d3-chart-svg'])
+  assert.deepEqual(previewEcharts.expectedOutputs.map((output) => output.outputKey), ['echarts-chart-svg'])
+  assert.deepEqual(previewEcharts.dependencyKeys.sort(), [
+    'snapshot-validation',
+    previewD3.workItemKey,
+  ].sort())
+  const previewFinalQa = preview.workItems.find((workItem) => workItem.workItemKey === 'final-qa')
+  assert.ok(previewFinalQa)
+  assert.deepEqual(previewFinalQa.dependencyKeys.sort(), [
+    'source-trim',
+    previewEcharts.workItemKey,
+  ].sort())
+
+  const missingDescriptor = structuredClone(body.canonicalPlan.workItems)
+  const missingDescriptorGroup = missingDescriptor.find((workItem) =>
+    workItem.workItemKey === 'grouped-chart-tools')!
+  delete missingDescriptorGroup.executionInput.canonicalAtomicExecution
+  await expectApiError(
+    async () => compileCanonicalWorkItems(missingDescriptor),
+    'TOOL_NOT_READY',
+    'Grouped planner work must fail before publication without an explicit atomic mapping.',
+  )
+  const changedBudget = structuredClone(body.canonicalPlan.workItems)
+  const changedBudgetGroup = changedBudget.find((workItem) =>
+    workItem.workItemKey === 'grouped-chart-tools')!
+  const changedBudgetDescriptor = asRecord(
+    changedBudgetGroup.executionInput.canonicalAtomicExecution,
+  )
+  const changedBudgetSteps = changedBudgetDescriptor.steps as Record<string, unknown>[]
+  changedBudgetSteps[0]!.maximumCreditBudget = 0
+  await expectApiError(
+    async () => compileCanonicalWorkItems(changedBudget),
+    'VALIDATION_FAILED',
+    'Atomic compilation must conserve the exact approved work-item budget.',
+  )
+  const changedOutputMapping = structuredClone(body.canonicalPlan.workItems)
+  const changedOutputGroup = changedOutputMapping.find((workItem) =>
+    workItem.workItemKey === 'grouped-chart-tools')!
+  const changedOutputDescriptor = asRecord(
+    changedOutputGroup.executionInput.canonicalAtomicExecution,
+  )
+  const changedOutputSteps = changedOutputDescriptor.steps as Record<string, unknown>[]
+  changedOutputSteps[1]!.expectedOutputKey = 'd3-chart-svg'
+  await expectApiError(
+    async () => compileCanonicalWorkItems(changedOutputMapping),
+    'VALIDATION_FAILED',
+    'Atomic compilation must map every approved output exactly once.',
+  )
+  const providerBackedGroup = structuredClone(body.canonicalPlan.workItems)
+  const providerBackedWorkItem = providerBackedGroup.find((workItem) =>
+    workItem.workItemKey === 'grouped-chart-tools')!
+  providerBackedWorkItem.approvedProviderRoute = 'wan'
+  providerBackedWorkItem.providerExecutionMode = 'primary'
+  await expectApiError(
+    async () => compileCanonicalWorkItems(providerBackedGroup),
+    'TOOL_NOT_READY',
+    'Atomic private tool compilation must not authorize provider-backed grouped work.',
+  )
+  const terminalGroupedWork = structuredClone(body.canonicalPlan.workItems)
+  const terminalGroupedWorkItem = terminalGroupedWork.find((workItem) =>
+    workItem.workItemKey === 'grouped-chart-tools')!
+  terminalGroupedWorkItem.workItemType = 'render_final_export'
+  await expectApiError(
+    async () => compileCanonicalWorkItems(terminalGroupedWork),
+    'TOOL_NOT_READY',
+    'Terminal render authority must remain one unambiguous canonical job.',
+  )
+
+  const service = createEditPlanningAuthorityService(serviceContext)
+  const published = await service.publishCanonicalPlan({
+    ...body,
+    projectId: project.id,
+    editSessionId,
+    idempotencyKey: 'publish-atomic-work-item-compilation',
+  })
+  const authority = asRecord(published.authority)
+  const plan = asRecord(authority.plan)
+  const estimate = asRecord(authority.estimate)
+  const publishedWorkItems = authority.workItems as Record<string, unknown>[]
+  assert.equal(publishedWorkItems.length, 6)
+  assert.equal(publishedWorkItems.some((workItem) =>
+    workItem.workItemKey === 'grouped-chart-tools'), false)
+  const publishedD3 = publishedWorkItems.find((workItem) =>
+    (workItem.approvedToolIds as string[])[0] === 'd3')
+  const publishedEcharts = publishedWorkItems.find((workItem) =>
+    (workItem.approvedToolIds as string[])[0] === 'echarts')
+  assert.ok(publishedD3)
+  assert.ok(publishedEcharts)
+  assert.equal((publishedD3.approvedToolIds as string[]).length, 1)
+  assert.equal((publishedEcharts.approvedToolIds as string[]).length, 1)
+
+  const compilationRef = asRecord(asRecord(plan.componentRefs).canonicalWorkItemCompilation)
+  const persistedCompilation = asRecord(await readPrivateAuthorityJsonBlob({
+    localStorageRoot: serviceContext.env.localStorageRoot,
+    ref: {
+      sha256: String(compilationRef.sha256),
+      byteLength: Number(compilationRef.byteLength),
+    },
+  }))
+  assert.equal(persistedCompilation.decomposedSourceWorkItemCount, 1)
+  assert.equal(persistedCompilation.compiledWorkItemCount, 6)
+  assert.equal(typeof persistedCompilation.compilationHash, 'string')
+
+  const approved = await service.approveAndFundCanonicalPlan({
+    workspaceId: targetWorkspaceId,
+    editPlanId: String(plan.id),
+    expectedAuthorityRevision: Number(authority.authorityRevision),
+    expectedPlanHash: String(plan.planHash),
+    expectedEstimateHash: String(estimate.estimateHash),
+    idempotencyKey: 'approve-atomic-work-item-compilation',
+  })
+  const approvedAuthority = asRecord(approved.authority)
+  const snapshot = asRecord(approvedAuthority.snapshot)
+  const approvedJobs = approvedAuthority.jobs as Record<string, unknown>[]
+  assert.equal(approvedJobs.length, 6)
+  const d3Job = approvedJobs.find((job) => job.workItemKey === publishedD3.workItemKey)
+  const echartsJob = approvedJobs.find((job) => job.workItemKey === publishedEcharts.workItemKey)
+  assert.ok(d3Job)
+  assert.ok(echartsJob)
+  assert.equal((echartsJob.dependencyJobIds as string[]).includes(String(d3Job.id)), true)
+  const finalQaWorkItem = publishedWorkItems.find((workItem) => workItem.workItemKey === 'final-qa')!
+  const finalQaJob = approvedJobs.find((job) => job.workItemKey === finalQaWorkItem.workItemKey)!
+  assert.equal((finalQaJob.dependencyJobIds as string[]).includes(String(echartsJob.id)), true)
+
+  const executionPackage = (await createCanonicalEditExecutionPackageService(
+    serviceContext,
+  ).createPackage({
+    workspaceId: targetWorkspaceId,
+    approvedPlanSnapshotId: String(snapshot.snapshotId),
+    expectedSnapshotHash: String(snapshot.snapshotHash),
+    purpose: 'private_internal_execution_handoff',
+    idempotencyKey: 'package-atomic-work-item-compilation',
+  })).approvedEditExecutionPackage
+  assert.equal(executionPackage.jobs.length, 6)
+  assert.equal(executionPackage.approvedToolIds.includes('d3'), true)
+  assert.equal(executionPackage.approvedToolIds.includes('echarts'), true)
+  assert.equal(executionPackage.jobs.every((job) =>
+    job.approvedToolOperationIds.length <= 1), true)
 }
 
 async function provePreferenceAndBriefCanonicalBinding(serviceContext: ServiceContext): Promise<void> {

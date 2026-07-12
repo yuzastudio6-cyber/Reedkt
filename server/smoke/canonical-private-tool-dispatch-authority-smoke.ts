@@ -93,6 +93,7 @@ await import('./canonical-execution-readiness-smoke')
 const localStorageRoot = canonicalAuthoritySmokeRoot
 const workspaceId = 'workspace-authority-smoke'
 const routeWorkspaceId = 'workspace-authority-route-smoke'
+const atomicCompilationWorkspaceId = 'workspace-planning-binding-integration'
 const userId = 'user-authority-smoke'
 const editSessionId = 'edit-session-canonical-tool-dispatch'
 const strongInternalSecret = 'rp-dispatch-local-secret-9Yh4Wm7Qk2Xs8Nv5Bc3Lp6Td1Rf0Za'
@@ -114,6 +115,7 @@ const context: ServiceContext = {
     admin: createMembershipAdminClient([
       { workspaceId, userId, role: 'owner' },
       { workspaceId: routeWorkspaceId, userId, role: 'owner' },
+      { workspaceId: atomicCompilationWorkspaceId, userId, role: 'owner' },
     ]),
     public: null,
   },
@@ -1221,6 +1223,73 @@ await leaseService.release({
   idempotencyKey: 'release-completed-chart-attempt-one',
 })
 await createPrivateOfflineNodeStructuredExecutionRuntime()
+const atomicCompilationAggregate = await requireEditAuthority(atomicCompilationWorkspaceId)
+const atomicCompilationPlan = atomicCompilationAggregate.plans.find((candidate) =>
+  candidate.editSessionId === 'edit-session-atomic-work-item-compilation' &&
+  candidate.status === 'approved')
+assert.ok(atomicCompilationPlan)
+const atomicCompilationSnapshot = atomicCompilationAggregate.snapshots.find((candidate) =>
+  candidate.planId === atomicCompilationPlan.id)
+assert.ok(atomicCompilationSnapshot)
+assert.ok(atomicCompilationSnapshot.componentRefs.canonicalWorkItemCompilation)
+const atomicCompilationPackage = atomicCompilationAggregate.executionPackages.find((candidate) =>
+  candidate.snapshotId === atomicCompilationSnapshot.snapshotId)
+assert.ok(atomicCompilationPackage)
+const atomicCompilationAuthority = await createEditPlanningAuthorityService(
+  context,
+).loadApprovedExecutionAuthority(
+  atomicCompilationSnapshot.snapshotId,
+  atomicCompilationWorkspaceId,
+)
+const atomicD3WorkItem = atomicCompilationAuthority.workItems.find((workItem) =>
+  workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'd3')
+const atomicEchartsWorkItem = atomicCompilationAuthority.workItems.find((workItem) =>
+  workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'echarts')
+assert.ok(atomicD3WorkItem)
+assert.ok(atomicEchartsWorkItem)
+const atomicD3Job = atomicCompilationAuthority.jobs.find((job) =>
+  job.approvedWorkItemId === atomicD3WorkItem.id)
+const atomicEchartsJob = atomicCompilationAuthority.jobs.find((job) =>
+  job.approvedWorkItemId === atomicEchartsWorkItem.id)
+assert.ok(atomicD3Job)
+assert.ok(atomicEchartsJob)
+assert.equal(atomicEchartsJob.dependencyJobIds.includes(atomicD3Job.id), true)
+const atomicCompilationRun = await createCanonicalPrivateWorkGraphOrchestratorService(
+  context,
+).run({
+  workspaceId: atomicCompilationWorkspaceId,
+  packageRecordId: atomicCompilationPackage.id,
+  purpose: 'run_canonical_private_work_graph',
+  idempotencyKey: 'run-atomic-work-item-compilation-graph',
+})
+assert.equal(atomicCompilationRun.status, 'blocked_required_jobs')
+assert.equal(atomicCompilationRun.summary.totalJobCount, 6)
+assert.equal(atomicCompilationRun.summary.completedJobCount, 4)
+assert.equal(atomicCompilationRun.summary.capabilityBlockedJobCount, 1)
+assert.equal(atomicCompilationRun.summary.dependencyBlockedJobCount, 1)
+assert.equal(atomicCompilationRun.summary.requiredBlockedJobCount, 2)
+const atomicD3Outcome = atomicCompilationRun.jobs.find((job) => job.jobId === atomicD3Job.id)
+const atomicEchartsOutcome = atomicCompilationRun.jobs.find((job) =>
+  job.jobId === atomicEchartsJob.id)
+assert.equal(atomicD3Outcome?.status, 'completed_private_test')
+assert.equal(atomicD3Outcome?.contentType, 'image/svg+xml')
+assert.equal(atomicEchartsOutcome?.status, 'completed_private_test')
+assert.equal(atomicEchartsOutcome?.contentType, 'image/svg+xml')
+assert.equal(
+  atomicCompilationRun.jobs.some((job) =>
+    [atomicD3Job.id, atomicEchartsJob.id].includes(job.jobId) &&
+    job.requiredGate === 'canonical_multi_tool_job_execution_adapter'),
+  false,
+)
+const atomicCompilationProgress = await createCanonicalPrivateWorkGraphOrchestratorService(
+  context,
+).findLatestProgress({
+  workspaceId: atomicCompilationWorkspaceId,
+  packageRecordId: atomicCompilationPackage.id,
+})
+assert.ok(atomicCompilationProgress)
+assert.equal(atomicCompilationProgress.completedJobCount, 4)
+assert.equal(atomicCompilationProgress.requiredIncompleteJobCount, 2)
 const chartAdapterInput = {
   workspaceId,
   projectId: snapshot.projectId,
@@ -3065,6 +3134,9 @@ console.log(JSON.stringify({
     'mir_eval_timing_json_qa_reconciliation_replay_and_downstream_verification',
     'mido_timing_json_qa_reconciliation_replay_and_downstream_verification',
     'canonical_job_only_adapter_derives_tool_operation_output_lease_dispatch_qa_and_replay_server_side',
+    'grouped_planner_tool_node_compiles_and_executes_as_two_atomic_canonical_jobs',
+    'atomic_compiled_jobs_preserve_dependency_progress_artifact_qa_and_reconciliation_lifecycle',
+    'atomic_compiled_jobs_never_reach_the_legacy_multi_tool_runtime_blocker',
     'server_derived_job_adapter_executes_all_eight_structured_node_tool_identities',
     'server_derived_job_adapter_executes_all_five_browser_graphics_tool_identities',
     'server_derived_job_adapter_executes_bounded_ai_capability_tool_identities',

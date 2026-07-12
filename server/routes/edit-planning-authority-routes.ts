@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
+import { createCanonicalEditJourneyService } from '../services/canonical-edit-journey-service'
 import { createCanonicalPlanPublicationRequestService } from '../services/canonical-plan-publication-request-service'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
@@ -13,6 +14,7 @@ import {
   publishCanonicalPlanPublicationRequestSchema,
 } from '../validation/canonical-planning-handoff-schemas'
 import { cancelCanonicalApprovedSnapshotSchema } from '../validation/canonical-pre-execution-cancellation-schemas'
+import { canonicalEditJourneyQuerySchema } from '../validation/canonical-edit-journey-schemas'
 import {
   approveCanonicalEditPlanSchema,
   authorityWorkspaceQuerySchema,
@@ -28,6 +30,24 @@ import {
 
 export function createEditPlanningAuthorityRoutes(): Router {
   const router = Router()
+
+  router.get(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-journey',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(canonicalEditJourneyQuerySchema, request.query)
+      const journey = await createCanonicalEditJourneyService(
+        getServiceContext(request),
+      ).recover({
+        ...query,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+      })
+      sendOk(response, { canonicalEditJourney: journey }, [
+        'Canonical journey recovery is inspection-only and returns the exact next safe action without private execution inputs.',
+      ])
+    }),
+  )
 
   router.post(
     '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoff',

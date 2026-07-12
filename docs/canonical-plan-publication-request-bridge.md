@@ -32,6 +32,8 @@ It returns no raw publication body, filesystem path, credential, plan mutation p
 
 Latest discovery is owner/workspace scoped. Cross-user reads are hidden, checksum tampering fails closed, and a fresh service instance recovers the same candidate from private persistence.
 
+The higher-level `canonical-journey` recovery endpoint combines this safe candidate state with the latest handoff, plan, estimate, and approval snapshot so a future frontend can recover one exact next action without reconstructing authority client-side. See `docs/canonical-edit-journey-recovery.md`.
+
 ## Internal publication
 
 The internal route is:

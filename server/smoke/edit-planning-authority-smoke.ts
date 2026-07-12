@@ -631,6 +631,39 @@ try {
   const projectEnvelope = await projectResponse.json() as { data?: { project?: { id?: string } } }
   const routeProjectId = projectEnvelope.data?.project?.id
   assert.ok(routeProjectId)
+  const canonicalJourneyUrl =
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/` +
+    `canonical-journey?workspaceId=${routeWorkspaceId}`
+  const readCanonicalJourney = async (
+    headers: Record<string, string> = routeAuthHeaders,
+  ): Promise<{ response: Response; journey: Record<string, unknown> }> => {
+    const response = await fetch(canonicalJourneyUrl, { headers })
+    const envelope = await response.clone().json().catch(() => ({})) as {
+      data?: { canonicalEditJourney?: Record<string, unknown> }
+    }
+    return {
+      response,
+      journey: envelope.data?.canonicalEditJourney
+        ? asRecord(envelope.data.canonicalEditJourney)
+        : {},
+    }
+  }
+  const initialJourney = await readCanonicalJourney()
+  assert.equal(initialJourney.response.status, 200)
+  assert.equal(initialJourney.journey.stage, 'planning_handoff_required')
+  assert.equal(
+    asRecord(initialJourney.journey.nextAction).code,
+    'prepare_planning_handoff',
+  )
+  assert.equal(asRecord(initialJourney.journey.permissions).inspectionOnly, true)
+  assert.equal(asRecord(initialJourney.journey.permissions).rawPlanInputsReturned, false)
+  assert.equal(asRecord(initialJourney.journey.permissions).toolExecution, false)
+  assert.equal(asRecord(initialJourney.journey.permissions).providerCall, false)
+  assert.equal(asRecord(initialJourney.journey.permissions).render, false)
+  const crossUserJourney = await readCanonicalJourney({
+    authorization: 'Bearer verified-other-authority-token',
+  })
+  assert.equal(crossUserJourney.response.status, 404)
 
   planningInputExpectations.set(
     'route-edit-session',
@@ -756,6 +789,17 @@ try {
   assert.deepEqual(
     latestUnpublishedHandoffInspectionEnvelope.data?.canonicalPlanningHandoffInspection,
     unpublishedHandoffInspection,
+  )
+  const handoffReadyJourney = await readCanonicalJourney()
+  assert.equal(handoffReadyJourney.response.status, 200)
+  assert.equal(handoffReadyJourney.journey.stage, 'publication_request_required')
+  assert.equal(
+    asRecord(handoffReadyJourney.journey.nextAction).code,
+    'submit_publication_request',
+  )
+  assert.equal(
+    asRecord(handoffReadyJourney.journey.planningHandoff).handoffId,
+    routePlanningHandoff.handoffId,
   )
 
   const {
@@ -933,6 +977,17 @@ try {
     { headers: { authorization: 'Bearer verified-other-authority-token' } },
   )
   assert.equal(crossUserLatestPublicationRequest.status, 404)
+  const publicationPendingJourney = await readCanonicalJourney()
+  assert.equal(publicationPendingJourney.response.status, 200)
+  assert.equal(publicationPendingJourney.journey.stage, 'internal_publication_pending')
+  assert.equal(
+    asRecord(publicationPendingJourney.journey.nextAction).code,
+    'await_internal_publication',
+  )
+  assert.equal(
+    asRecord(publicationPendingJourney.journey.publicationRequest).candidateId,
+    routePublicationRequestIdentity.candidateId,
+  )
   const publicationRequestScopeHash = sha256AuthorityValue({
     ownerUserId: userId,
     workspaceId: routeWorkspaceId,
@@ -1045,6 +1100,19 @@ try {
     String(asRecord(routePlanComponentRefs.planningHandoffAuthority).sha256),
     /^[a-f0-9]{64}$/,
   )
+  const planApprovalJourney = await readCanonicalJourney()
+  assert.equal(planApprovalJourney.response.status, 200)
+  assert.equal(planApprovalJourney.journey.stage, 'plan_approval_required')
+  assert.equal(
+    asRecord(planApprovalJourney.journey.nextAction).code,
+    'approve_canonical_plan',
+  )
+  assert.equal(asRecord(planApprovalJourney.journey.plan).planId, routePlan.id)
+  assert.equal(
+    asRecord(planApprovalJourney.journey.plan).estimateId,
+    routeEstimate.id,
+  )
+  assert.equal('approval' in planApprovalJourney.journey, false)
   const publishedHandoffInspectionResponse = await fetch(planningHandoffInspectionUrl, {
     headers: routeAuthHeaders,
   })
@@ -1283,6 +1351,25 @@ try {
   assert.equal(
     routeLoadedExecutionAuthority.planningHandoffAuthority?.handoffHash,
     routePlanningHandoff.handoffHash,
+  )
+  const approvedSnapshotJourney = await readCanonicalJourney()
+  assert.equal(approvedSnapshotJourney.response.status, 200)
+  assert.equal(approvedSnapshotJourney.journey.stage, 'approved_snapshot_available')
+  assert.equal(
+    asRecord(approvedSnapshotJourney.journey.nextAction).code,
+    'request_execution_package',
+  )
+  assert.equal(
+    asRecord(approvedSnapshotJourney.journey.approval).snapshotId,
+    routeSnapshot.snapshotId,
+  )
+  assert.equal(
+    asRecord(approvedSnapshotJourney.journey.approval).reservationId,
+    asRecord(routeApprovedAuthority.reservation).id,
+  )
+  assert.equal(
+    asRecord(approvedSnapshotJourney.journey.approval).jobCount,
+    (routeApprovedAuthority.jobs as unknown[]).length,
   )
 
   const packageResponse = await fetch(`${routeBaseUrl}/v1/edit-executions/packages`, {
@@ -2575,6 +2662,9 @@ console.log(JSON.stringify({
     'publication_request_inspection_returns_no_request_body_path_credential_or_execution_authority',
     'latest_publication_request_discovery_recovers_the_newest_candidate_after_refresh',
     'latest_publication_request_pointer_is_cross_user_hidden_checksum_fail_closed_and_restart_safe',
+    'canonical_journey_recovery_reports_handoff_candidate_plan_and_snapshot_stages',
+    'canonical_journey_recovery_returns_one_exact_next_action_without_execution_authority',
+    'canonical_journey_recovery_is_authenticated_and_cross_user_hidden',
     'internal_publication_loads_the_persisted_candidate_and_binds_the_exact_handoff_request',
     'competing_publication_request_candidate_cannot_replace_the_published_handoff',
     'concurrent_same_key_handoff_publications_converge_on_one_plan',

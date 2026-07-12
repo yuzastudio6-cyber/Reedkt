@@ -995,6 +995,69 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       }
     },
 
+    async getCanonicalPlanApproval(editPlanId: string, workspaceId: string) {
+      requirePrivateAuthorityRuntime(context)
+      const access = await authorizeWorkspaceAccess(context, workspaceId, 'read')
+      const aggregate = await readPrivateEditAuthorityAggregate(
+        authorityScope(context, access.userId, access.workspaceId),
+      )
+      if (!aggregate) {
+        throw new ApiError('PLAN_NOT_APPROVED', 'Canonical edit authority was not found.', 404)
+      }
+      const plan = requirePlan(aggregate, editPlanId)
+      await createProjectService(context).getProject(plan.projectId, access.workspaceId)
+      const snapshots = aggregate.snapshots.filter((record) => record.planId === plan.id)
+      if (snapshots.length > 1) {
+        throw new ApiError(
+          'IDEMPOTENCY_CONFLICT',
+          'Canonical plan is bound to more than one approved snapshot.',
+          409,
+        )
+      }
+      const snapshot = snapshots[0]
+      if (!snapshot) {
+        if (plan.status === 'approved') {
+          throw new ApiError(
+            'APPROVED_SNAPSHOT_REQUIRED',
+            'Approved canonical plan is missing its immutable snapshot.',
+            409,
+          )
+        }
+        return {
+          approval: undefined,
+          warnings: ['Canonical plan has no approved snapshot authority.'],
+        }
+      }
+      const approval = aggregate.approvals.find((record) =>
+        record.id === snapshot.approvalId && record.planId === plan.id)
+      const reservation = aggregate.reservations.find((record) =>
+        record.id === snapshot.reservationId && record.planId === plan.id)
+      if (!approval || !reservation) {
+        throw new ApiError(
+          'APPROVED_SNAPSHOT_REQUIRED',
+          'Canonical plan approval lineage is incomplete.',
+          409,
+        )
+      }
+      const jobs = aggregate.jobs.filter((job) => job.snapshotId === snapshot.snapshotId)
+      return {
+        approval: {
+          approvalId: approval.id,
+          snapshotId: snapshot.snapshotId,
+          snapshotHash: snapshot.snapshotHash,
+          reservationId: reservation.id,
+          reservationStatus: reservation.status,
+          reservedCredits: reservation.reservedCredits,
+          jobCount: jobs.length,
+          readyJobCount: jobs.filter((job) => job.status === 'ready').length,
+          blockedJobCount: jobs.filter((job) => job.status === 'blocked').length,
+        },
+        warnings: [
+          'Canonical approval recovery returns identifiers, hashes, reservation state, and job counts only.',
+        ],
+      }
+    },
+
     async getApprovedSnapshot(snapshotId: string, workspaceId: string) {
       requirePrivateAuthorityRuntime(context)
       const access = await authorizeWorkspaceAccess(context, workspaceId, 'read')

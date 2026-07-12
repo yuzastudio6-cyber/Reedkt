@@ -12,6 +12,7 @@ import {
 } from '../services/canonical-internal-authority-artifact-verifier'
 import { createCanonicalInternalAuthorityRunnerService } from '../services/canonical-internal-authority-runner-service'
 import { createCanonicalEditExecutionPackageService } from '../services/canonical-edit-execution-package-service'
+import { createCanonicalEditJourneyService } from '../services/canonical-edit-journey-service'
 import {
   CANONICAL_PRIVATE_TOOL_DISPATCH_TTL_SECONDS,
   createCanonicalPrivateToolDispatchAuthorityService,
@@ -118,6 +119,7 @@ const context: ServiceContext = {
   requestId: 'canonical-private-tool-dispatch-authority-smoke',
   auth: { userId, accessToken: 'verified-dispatch-smoke-token', isMockUser: false },
 }
+const canonicalJourneyService = createCanonicalEditJourneyService(context)
 await rm(join(
   OFFLINE_NODE_STRUCTURED_EXECUTION_STORAGE_ROOT,
   OFFLINE_NODE_STRUCTURED_RUNTIME_AUTHORITY_RELATIVE_PATH,
@@ -2149,6 +2151,33 @@ const terminalPrivateReviewReplay = await privateReviewService.assemble(terminal
 assert.equal(terminalPrivateReviewReplay.identity.reviewAssemblyId, terminalPrivateReview.identity.reviewAssemblyId)
 assert.equal(terminalPrivateReviewReplay.manifest.manifestSha256, terminalPrivateReview.manifest.manifestSha256)
 assert.equal(terminalPrivateReviewReplay.replay.idempotentReplay, true)
+const terminalPrivateReviewJourney = await canonicalJourneyService.recover({
+  workspaceId,
+  projectId: seedSnapshot.projectId,
+  editSessionId: terminalReviewEditSessionId,
+})
+assert.equal(terminalPrivateReviewJourney.stage, 'private_review_ready')
+assert.equal(terminalPrivateReviewJourney.nextAction.code, 'record_private_review_decision')
+assert.equal(
+  terminalPrivateReviewJourney.execution?.packageRecordId,
+  terminalReviewPackageRecordId,
+)
+assert.equal(
+  terminalPrivateReviewJourney.review?.reviewAssemblyId,
+  terminalPrivateReview.identity.reviewAssemblyId,
+)
+assert.equal(
+  terminalPrivateReviewJourney.review?.manifestSha256,
+  terminalPrivateReview.manifest.manifestSha256,
+)
+assert.equal(
+  terminalPrivateReviewJourney.review?.finalArtifactSha256,
+  terminalPrivateReview.finalArtifact.sha256,
+)
+assert.equal(terminalPrivateReviewJourney.review?.decision, undefined)
+assert.equal(terminalPrivateReviewJourney.permissions.inspectionOnly, true)
+assert.equal(terminalPrivateReviewJourney.permissions.toolExecution, false)
+assert.equal(terminalPrivateReviewJourney.permissions.render, false)
 const reviewDecisionAuthorityBefore = sha256AuthorityValue(
   snapshotAuthoritySlice(
     await requireEditAuthority(workspaceId),
@@ -2222,6 +2251,17 @@ assert.equal(
   terminalPrivateRevisionDecision.readiness.nextRequiredGate,
   'canonical_revision_plan_compilation_and_fresh_approval',
 )
+const terminalRevisionJourney = await canonicalJourneyService.recover({
+  workspaceId,
+  projectId: seedSnapshot.projectId,
+  editSessionId: terminalReviewEditSessionId,
+})
+assert.equal(terminalRevisionJourney.stage, 'revision_requested')
+assert.equal(terminalRevisionJourney.nextAction.code, 'prepare_replacement_plan')
+assert.equal(terminalRevisionJourney.review?.decision, 'request_revision')
+assert.equal(terminalRevisionJourney.review?.decisionStatus, 'canonical_revision_requested')
+assert.equal(terminalRevisionJourney.permissions.snapshotMutation, false)
+assert.equal(terminalRevisionJourney.permissions.creditMutation, false)
 const terminalPrivateRevisionDecisionReplay = await privateReviewDecisionService.record(
   terminalPrivateRevisionDecisionInput,
 )
@@ -2497,6 +2537,19 @@ assert.notEqual(secondPrivateReview.finalArtifact.artifactId,
   terminalPrivateReview.finalArtifact.artifactId)
 assert.notEqual(secondPrivateReview.finalQaArtifact.artifactId,
   terminalPrivateReview.finalQaArtifact.artifactId)
+const secondPrivateReviewJourney = await canonicalJourneyService.recover({
+  workspaceId,
+  projectId: seedSnapshot.projectId,
+  editSessionId: terminalReviewEditSessionId,
+})
+assert.equal(secondPrivateReviewJourney.stage, 'private_review_ready')
+assert.equal(secondPrivateReviewJourney.nextAction.code, 'record_private_review_decision')
+assert.equal(secondPrivateReviewJourney.execution?.packageRecordId, revisionExecutionPackageId)
+assert.equal(
+  secondPrivateReviewJourney.review?.reviewAssemblyId,
+  secondPrivateReview.identity.reviewAssemblyId,
+)
+assert.equal(secondPrivateReviewJourney.review?.decision, undefined)
 const secondPrivateReviewAcceptanceInput = {
   workspaceId,
   packageRecordId: revisionExecutionPackageId,
@@ -2520,6 +2573,27 @@ assert.equal(
 )
 assert.equal(secondPrivateReviewAcceptance.permissions.publicDelivery, false)
 assert.equal(secondPrivateReviewAcceptance.permissions.billing, false)
+const acceptedPrivateReviewJourney = await canonicalJourneyService.recover({
+  workspaceId,
+  projectId: seedSnapshot.projectId,
+  editSessionId: terminalReviewEditSessionId,
+})
+assert.equal(acceptedPrivateReviewJourney.stage, 'private_review_accepted')
+assert.equal(
+  acceptedPrivateReviewJourney.nextAction.code,
+  'await_public_delivery_authorization',
+)
+assert.equal(
+  acceptedPrivateReviewJourney.review?.decision,
+  'accept_private_internal_review',
+)
+assert.equal(
+  acceptedPrivateReviewJourney.review?.decisionStatus,
+  'private_internal_review_accepted',
+)
+assert.equal(acceptedPrivateReviewJourney.permissions.providerCall, false)
+assert.equal(acceptedPrivateReviewJourney.permissions.render, false)
+assert.equal(acceptedPrivateReviewJourney.testOnly, true)
 const secondPrivateReviewAcceptanceReplay = await privateReviewDecisionService.record(
   secondPrivateReviewAcceptanceInput,
 )
@@ -2877,11 +2951,13 @@ console.log(JSON.stringify({
     'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
     'terminal_private_review_assembly_requires_every_required_artifact_qa_reconciliation_and_exact_final_qa_lease_binding',
     'credential_free_private_review_manifest_is_create_only_replay_safe_and_privately_downloadable',
+    'canonical_journey_recovery_reports_exact_private_review_ready_authority_without_execution_grant',
     'private_review_decision_rejects_caller_artifact_and_stale_manifest_authority',
     'persisted_authenticated_upload_preference_edit_brief_handoff_publishes_exact_initial_plan_authority',
     'persisted_planning_handoff_rejects_source_order_drift_and_has_no_plan_credit_tool_or_render_side_effect',
     'persisted_planning_handoff_binding_survives_initial_and_terminal_review_snapshot_execution',
     'revision_request_creates_one_credential_free_immutable_snapshot_bound_handoff',
+    'canonical_journey_recovery_reports_revision_request_without_mutating_snapshot_or_credit_authority',
     'revision_decision_replays_without_authority_wallet_reservation_or_execution_mutation',
     'replacement_plan_publication_requires_exact_unconsumed_revision_handoff_and_compiled_intent_hash',
     'replacement_plan_uses_fresh_persisted_component_bound_handoff_authority',
@@ -2891,7 +2967,9 @@ console.log(JSON.stringify({
     'revision_approval_replay_creates_no_second_release_reservation_snapshot_or_jobs',
     'snapshot_v2_executes_the_bounded_five_job_revision_graph_through_independent_final_qa',
     'revision_execution_assembles_new_private_artifacts_and_a_second_review_manifest',
+    'canonical_journey_recovery_tracks_the_latest_replacement_review_assembly',
     'second_private_review_acceptance_is_create_only_replay_safe_and_public_delivery_blocked',
+    'canonical_journey_recovery_reports_private_acceptance_while_public_delivery_remains_blocked',
     'active_execution_download_fails_closed_after_snapshot_is_superseded_and_reservation_released',
     'authenticated_history_reopens_superseded_review_without_restoring_execution_or_credit_authority',
     'fresh_service_instances_reopen_current_and_superseded_review_bytes_with_stable_evidence',

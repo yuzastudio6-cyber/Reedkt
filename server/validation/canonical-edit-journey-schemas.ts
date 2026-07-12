@@ -14,6 +14,10 @@ export const canonicalEditJourneyStageSchema = z.enum([
   'internal_publication_pending',
   'plan_approval_required',
   'approved_snapshot_available',
+  'execution_in_progress',
+  'private_review_ready',
+  'private_review_accepted',
+  'revision_requested',
   'cancellation_pending',
   'replanning_required',
 ])
@@ -34,6 +38,9 @@ export const canonicalEditJourneyResponseSchema = z.object({
       'await_internal_publication',
       'approve_canonical_plan',
       'request_execution_package',
+      'run_private_work_graph',
+      'record_private_review_decision',
+      'await_public_delivery_authorization',
       'await_cancellation_reconciliation',
       'prepare_replacement_plan',
     ]),
@@ -78,6 +85,22 @@ export const canonicalEditJourneyResponseSchema = z.object({
     jobCount: z.number().int().nonnegative(),
     readyJobCount: z.number().int().nonnegative(),
     blockedJobCount: z.number().int().nonnegative(),
+  }).strict().optional(),
+  execution: z.object({
+    packageRecordId: identity,
+    packageHash: sha,
+    snapshotId: identity,
+    purpose: z.literal('private_internal_execution_handoff'),
+  }).strict().optional(),
+  review: z.object({
+    reviewAssemblyId: identity,
+    manifestSha256: sha,
+    finalArtifactSha256: sha,
+    decision: z.enum(['accept_private_internal_review', 'request_revision']).optional(),
+    decisionStatus: z.enum([
+      'private_internal_review_accepted',
+      'canonical_revision_requested',
+    ]).optional(),
   }).strict().optional(),
   permissions: z.object({
     inspectionOnly: z.literal(true),

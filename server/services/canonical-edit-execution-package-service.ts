@@ -234,6 +234,31 @@ export function createCanonicalEditExecutionPackageService(context: ServiceConte
         warnings: ['Canonical execution package read revalidated current tenant, snapshot, reservation, and content-addressed manifest authority.'],
       }
     },
+
+    async findPackageBySnapshot(snapshotId: string, workspaceId: string) {
+      const access = await authorizeWorkspaceAccess(context, workspaceId, 'read')
+      const aggregate = await readPrivateEditAuthorityAggregate(
+        authorityScope(context, access.userId, access.workspaceId),
+      )
+      const executionPackageRecord = aggregate?.executionPackages.find((record) =>
+        record.snapshotId === snapshotId)
+      if (!aggregate || !executionPackageRecord) return undefined
+      const authority = await createEditPlanningAuthorityService(context).loadApprovedExecutionAuthority(
+        executionPackageRecord.snapshotId,
+        access.workspaceId,
+      )
+      assertCurrentPackageAuthority({
+        aggregate,
+        authority,
+        expectedSnapshotHash: executionPackageRecord.snapshotHash,
+      })
+      return {
+        packageRecordId: executionPackageRecord.id,
+        packageHash: executionPackageRecord.packageHash,
+        snapshotId: executionPackageRecord.snapshotId,
+        purpose: executionPackageRecord.purpose,
+      }
+    },
   }
 }
 

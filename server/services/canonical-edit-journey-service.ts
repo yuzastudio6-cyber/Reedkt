@@ -6,6 +6,9 @@ import {
 } from '../validation/canonical-edit-journey-schemas'
 import { createCanonicalPlanPublicationRequestService } from './canonical-plan-publication-request-service'
 import { createCanonicalPlanningHandoffService } from './canonical-planning-handoff-service'
+import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
+import { createCanonicalPrivateReviewAssemblyService } from './canonical-private-review-assembly-service'
+import { createCanonicalPrivateReviewDecisionService } from './canonical-private-review-decision-service'
 import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
 import { createProjectService } from './project-service'
 import { getRequiredAuthUserId } from './service-helpers'
@@ -165,18 +168,120 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
         })
       }
       if (plan.status === 'approved' && approval) {
+        const execution = await createCanonicalEditExecutionPackageService(
+          context,
+        ).findPackageBySnapshot(approval.snapshotId, access.workspaceId)
+        if (!execution) {
+          return canonicalEditJourneyResponseSchema.parse({
+            ...responseBase,
+            planningHandoff,
+            publicationRequest,
+            plan,
+            approval,
+            stage: 'approved_snapshot_available',
+            nextAction: {
+              code: 'request_execution_package',
+              actor: 'authenticated_user',
+              method: 'POST',
+              routeTemplate: '/v1/edit-executions/packages',
+            },
+          })
+        }
+        const assembly = await optionalIncomplete(
+          () => createCanonicalPrivateReviewAssemblyService(context).getCompleted({
+            packageRecordId: execution.packageRecordId,
+            workspaceId: access.workspaceId,
+          }),
+          'Canonical private-review assembly has not completed for this execution package.',
+        )
+        if (!assembly) {
+          return canonicalEditJourneyResponseSchema.parse({
+            ...responseBase,
+            planningHandoff,
+            publicationRequest,
+            plan,
+            approval,
+            execution,
+            stage: 'execution_in_progress',
+            nextAction: {
+              code: 'run_private_work_graph',
+              actor: 'internal_service',
+              method: 'POST',
+              routeTemplate:
+                `/v1/edit-executions/packages/${execution.packageRecordId}/` +
+                'private-internal-work-graph-runs',
+            },
+          })
+        }
+        const reviewBase = {
+          reviewAssemblyId: assembly.identity.reviewAssemblyId,
+          manifestSha256: assembly.manifest.manifestSha256,
+          finalArtifactSha256: assembly.finalArtifact.sha256,
+        }
+        const decision = await optionalIncomplete(
+          () => createCanonicalPrivateReviewDecisionService(context).getCompleted({
+            reviewAssemblyId: assembly.identity.reviewAssemblyId,
+            workspaceId: access.workspaceId,
+          }),
+          'Canonical private-review decision has not completed for this assembly.',
+        )
+        if (!decision) {
+          return canonicalEditJourneyResponseSchema.parse({
+            ...responseBase,
+            planningHandoff,
+            publicationRequest,
+            plan,
+            approval,
+            execution,
+            review: reviewBase,
+            stage: 'private_review_ready',
+            nextAction: {
+              code: 'record_private_review_decision',
+              actor: 'authenticated_user',
+              method: 'POST',
+              routeTemplate:
+                `/v1/edit-executions/private-review-assemblies/` +
+                `${assembly.identity.reviewAssemblyId}/decisions`,
+            },
+          })
+        }
+        const review = {
+          ...reviewBase,
+          decision: decision.decision,
+          decisionStatus: decision.status,
+        }
+        if (decision.decision === 'request_revision') {
+          return canonicalEditJourneyResponseSchema.parse({
+            ...responseBase,
+            planningHandoff,
+            publicationRequest,
+            plan,
+            approval,
+            execution,
+            review,
+            stage: 'revision_requested',
+            nextAction: {
+              code: 'prepare_replacement_plan',
+              actor: 'planning_client',
+              method: 'POST',
+              routeTemplate: projectEditRoute(input, 'canonical-planning-handoff'),
+            },
+          })
+        }
         return canonicalEditJourneyResponseSchema.parse({
           ...responseBase,
           planningHandoff,
           publicationRequest,
           plan,
           approval,
-          stage: 'approved_snapshot_available',
+          execution,
+          review,
+          stage: 'private_review_accepted',
           nextAction: {
-            code: 'request_execution_package',
-            actor: 'authenticated_user',
-            method: 'POST',
-            routeTemplate: '/v1/edit-executions/packages',
+            code: 'await_public_delivery_authorization',
+            actor: 'internal_service',
+            method: 'GET',
+            routeTemplate: projectEditRoute(input, 'canonical-journey'),
           },
         })
       }
@@ -224,6 +329,23 @@ async function optionalNotFound<T>(operation: () => Promise<T>): Promise<T | und
       error instanceof ApiError &&
       error.status === 404 &&
       ['PLAN_NOT_APPROVED', 'APPROVED_SNAPSHOT_REQUIRED'].includes(error.code)
+    ) return undefined
+    throw error
+  }
+}
+
+async function optionalIncomplete<T>(
+  operation: () => Promise<T>,
+  expectedMessage: string,
+): Promise<T | undefined> {
+  try {
+    return await operation()
+  } catch (error) {
+    if (
+      error instanceof ApiError &&
+      error.code === 'JOB_DEPENDENCY_NOT_READY' &&
+      error.status === 409 &&
+      error.message === expectedMessage
     ) return undefined
     throw error
   }

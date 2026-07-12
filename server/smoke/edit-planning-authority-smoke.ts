@@ -1395,6 +1395,24 @@ try {
     { headers: routeAuthHeaders },
   )
   assert.equal(packageRead.status, 200)
+  const executionJourney = await readCanonicalJourney()
+  assert.equal(executionJourney.response.status, 200)
+  assert.equal(executionJourney.journey.stage, 'execution_in_progress')
+  assert.equal(
+    asRecord(executionJourney.journey.nextAction).code,
+    'run_private_work_graph',
+  )
+  assert.equal(
+    asRecord(executionJourney.journey.execution).packageRecordId,
+    routeExecutionPackage.packageRecordId,
+  )
+  assert.equal(
+    asRecord(executionJourney.journey.execution).snapshotId,
+    routeSnapshot.snapshotId,
+  )
+  assert.equal(asRecord(executionJourney.journey.permissions).inspectionOnly, true)
+  assert.equal(asRecord(executionJourney.journey.permissions).toolExecution, false)
+  assert.equal(asRecord(executionJourney.journey.permissions).render, false)
 
   await proveLatestHandoffDiscovery({
     serviceContext: context,
@@ -2663,6 +2681,7 @@ console.log(JSON.stringify({
     'latest_publication_request_discovery_recovers_the_newest_candidate_after_refresh',
     'latest_publication_request_pointer_is_cross_user_hidden_checksum_fail_closed_and_restart_safe',
     'canonical_journey_recovery_reports_handoff_candidate_plan_and_snapshot_stages',
+    'canonical_journey_recovery_reports_execution_package_without_granting_runtime_authority',
     'canonical_journey_recovery_returns_one_exact_next_action_without_execution_authority',
     'canonical_journey_recovery_is_authenticated_and_cross_user_hidden',
     'internal_publication_loads_the_persisted_candidate_and_binds_the_exact_handoff_request',

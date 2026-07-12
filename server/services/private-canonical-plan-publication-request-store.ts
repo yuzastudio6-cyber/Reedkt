@@ -2,6 +2,7 @@ import { ApiError } from '../errors/api-error'
 import {
   readPrivateTextFileIfExistsWithinRoot,
   writePrivateFileCreateOnlyWithinRoot,
+  writePrivateTextFileAtomicWithinRoot,
 } from '../security/private-local-persistence'
 import {
   publishCanonicalEditPlanFromHandoffSchema,
@@ -13,6 +14,9 @@ import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-a
 const RECORD_VERSION = 'private-canonical-plan-publication-request-v1' as const
 const RECORD_SOURCE = 'private_canonical_plan_publication_request_store' as const
 const MAX_RECORD_BYTES = 8 * 1024 * 1024
+const LATEST_RECORD_VERSION = 'private-canonical-plan-publication-request-latest-v1' as const
+const LATEST_RECORD_SOURCE = 'private_canonical_plan_publication_request_latest_pointer' as const
+const MAX_LATEST_RECORD_BYTES = 16 * 1024
 
 export interface CanonicalPlanPublicationRequestCandidateRecord {
   schemaVersion: 'canonical-plan-publication-request-candidate-v1'
@@ -37,6 +41,22 @@ interface PersistedCanonicalPlanPublicationRequestRecord {
   source: typeof RECORD_SOURCE
   ownerUserId: string
   candidate: CanonicalPlanPublicationRequestCandidateRecord
+  checksumSha256: string
+}
+
+interface PersistedLatestCanonicalPlanPublicationRequestRecord {
+  recordVersion: typeof LATEST_RECORD_VERSION
+  source: typeof LATEST_RECORD_SOURCE
+  identity: {
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+    editSessionId: string
+    handoffId: string
+  }
+  candidateId: string
+  candidateHash: string
+  publicationRequestHash: string
   checksumSha256: string
 }
 
@@ -128,6 +148,111 @@ export async function readPrivateCanonicalPlanPublicationRequest(input: {
   return record.candidate
 }
 
+export async function persistLatestPrivateCanonicalPlanPublicationRequest(input: {
+  scope: CanonicalPlanningHandoffStoreScope
+  candidate: CanonicalPlanPublicationRequestCandidateRecord
+}): Promise<void> {
+  assertCandidate(input.scope, input.candidate)
+  const withoutChecksum = {
+    recordVersion: LATEST_RECORD_VERSION,
+    source: LATEST_RECORD_SOURCE,
+    identity: {
+      ownerUserId: input.scope.ownerUserId,
+      workspaceId: input.scope.workspaceId,
+      projectId: input.scope.projectId,
+      editSessionId: input.scope.editSessionId,
+      handoffId: input.candidate.identity.handoffId,
+    },
+    candidateId: input.candidate.candidateId,
+    candidateHash: input.candidate.candidateHash,
+    publicationRequestHash: input.candidate.publicationRequestHash,
+  }
+  const record: PersistedLatestCanonicalPlanPublicationRequestRecord = {
+    ...withoutChecksum,
+    checksumSha256: sha256AuthorityValue(withoutChecksum),
+  }
+  const content = `${stableAuthorityStringify(record)}\n`
+  if (Buffer.byteLength(content, 'utf8') > MAX_LATEST_RECORD_BYTES) {
+    throw new ApiError(
+      'IDEMPOTENCY_CAPACITY_EXCEEDED',
+      'Latest canonical publication request pointer exceeded its private persistence ceiling.',
+      503,
+    )
+  }
+  await writePrivateTextFileAtomicWithinRoot({
+    rootPath: input.scope.localStorageRoot,
+    relativePath: latestCandidateRecordPath(
+      input.scope,
+      input.candidate.identity.handoffId,
+    ),
+    content,
+  })
+}
+
+export async function readLatestPrivateCanonicalPlanPublicationRequest(input: {
+  scope: CanonicalPlanningHandoffStoreScope
+  handoffId: string
+}): Promise<CanonicalPlanPublicationRequestCandidateRecord | undefined> {
+  if (!safeIdentity(input.handoffId)) {
+    throw new ApiError('VALIDATION_FAILED', 'Canonical planning handoff identity is invalid.', 400)
+  }
+  const content = await readPrivateTextFileIfExistsWithinRoot({
+    rootPath: input.scope.localStorageRoot,
+    relativePath: latestCandidateRecordPath(input.scope, input.handoffId),
+  })
+  if (!content) return undefined
+  if (Buffer.byteLength(content, 'utf8') > MAX_LATEST_RECORD_BYTES) {
+    throw invalidCandidate('Latest canonical publication request pointer exceeded its private persistence ceiling.')
+  }
+  let value: unknown
+  try {
+    value = JSON.parse(content)
+  } catch {
+    throw invalidCandidate('Latest canonical publication request pointer is not valid JSON.')
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw invalidCandidate('Latest canonical publication request pointer envelope is invalid.')
+  }
+  const record = value as Partial<PersistedLatestCanonicalPlanPublicationRequestRecord>
+  const withoutChecksum = {
+    recordVersion: record.recordVersion,
+    source: record.source,
+    identity: record.identity,
+    candidateId: record.candidateId,
+    candidateHash: record.candidateHash,
+    publicationRequestHash: record.publicationRequestHash,
+  }
+  if (
+    record.recordVersion !== LATEST_RECORD_VERSION ||
+    record.source !== LATEST_RECORD_SOURCE ||
+    !record.identity ||
+    record.identity.ownerUserId !== input.scope.ownerUserId ||
+    record.identity.workspaceId !== input.scope.workspaceId ||
+    record.identity.projectId !== input.scope.projectId ||
+    record.identity.editSessionId !== input.scope.editSessionId ||
+    record.identity.handoffId !== input.handoffId ||
+    typeof record.candidateId !== 'string' ||
+    typeof record.candidateHash !== 'string' ||
+    typeof record.publicationRequestHash !== 'string' ||
+    typeof record.checksumSha256 !== 'string' ||
+    record.checksumSha256 !== sha256AuthorityValue(withoutChecksum)
+  ) {
+    throw invalidCandidate('Latest canonical publication request pointer integrity is invalid.')
+  }
+  const candidate = await readPrivateCanonicalPlanPublicationRequest({
+    scope: input.scope,
+    candidateId: record.candidateId,
+  })
+  if (
+    candidate.identity.handoffId !== input.handoffId ||
+    candidate.candidateHash !== record.candidateHash ||
+    candidate.publicationRequestHash !== record.publicationRequestHash
+  ) {
+    throw invalidCandidate('Latest canonical publication request pointer target is inconsistent.')
+  }
+  return candidate
+}
+
 function assertCandidate(
   scope: CanonicalPlanningHandoffStoreScope,
   candidate: CanonicalPlanPublicationRequestCandidateRecord,
@@ -170,6 +295,25 @@ function candidateRecordPath(
     'private-internal-v1',
     `scope-${scopeHash}`,
     `${candidateId}.json`,
+  ].join('/')
+}
+
+function latestCandidateRecordPath(
+  scope: CanonicalPlanningHandoffStoreScope,
+  handoffId: string,
+): string {
+  const scopeHash = sha256AuthorityValue({
+    ownerUserId: scope.ownerUserId,
+    workspaceId: scope.workspaceId,
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+  })
+  const handoffHash = sha256AuthorityValue({ handoffId })
+  return [
+    'canonical-plan-publication-requests',
+    'private-internal-v1',
+    `scope-${scopeHash}`,
+    `latest-${handoffHash}.json`,
   ].join('/')
 }
 

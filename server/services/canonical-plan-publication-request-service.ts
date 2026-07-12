@@ -13,7 +13,9 @@ import { createCanonicalPlanningHandoffService } from './canonical-planning-hand
 import { canonicalPlanningHandoffPublicationRequestHash } from './edit-planning-authority-service'
 import {
   canonicalPlanPublicationRequestCandidateId,
+  persistLatestPrivateCanonicalPlanPublicationRequest,
   persistPrivateCanonicalPlanPublicationRequest,
+  readLatestPrivateCanonicalPlanPublicationRequest,
   readPrivateCanonicalPlanPublicationRequest,
   type CanonicalPlanPublicationRequestCandidateRecord,
 } from './private-canonical-plan-publication-request-store'
@@ -22,6 +24,8 @@ import { sha256AuthorityValue } from './private-edit-authority-store'
 import { createProjectService } from './project-service'
 import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
+
+const candidateSubmissionLocks = new Map<string, Promise<void>>()
 
 export function createCanonicalPlanPublicationRequestService(context: ServiceContext) {
   return {
@@ -61,57 +65,63 @@ export function createCanonicalPlanPublicationRequestService(context: ServiceCon
         projectId,
         editSessionId,
       }
-      const handoff = await readPrivateCanonicalPlanningHandoff({ scope, handoffId })
-      const canonicalPlanComponentsHash = sha256AuthorityValue(body.canonicalPlan.components)
-      if (
-        handoff.handoffHash !== body.expectedHandoffHash ||
-        handoff.canonicalPlanComponentsHash !== canonicalPlanComponentsHash
-      ) {
-        throw new ApiError(
-          'IDEMPOTENCY_CONFLICT',
-          'Canonical publication request candidate does not match the persisted planning handoff.',
-          409,
-        )
-      }
-      const canonicalPublishBody = {
-        workspaceId: access.workspaceId,
-        planningRequestId: body.planningRequestId,
-        planningInputAuthority: handoff.planningInputAuthority,
-        sourceMediaAuthority: handoff.sourceMediaAuthority,
-        revisionAuthority: body.revisionAuthority,
-        canonicalPlan: body.canonicalPlan,
-      }
-      const publicationRequestHash = canonicalPlanningHandoffPublicationRequestHash({
-        workspaceId: access.workspaceId,
-        projectId,
-        editSessionId,
-        handoffId,
-        handoffHash: handoff.handoffHash,
-        body: canonicalPublishBody,
-      })
-      const candidateWithoutIdentity = {
-        schemaVersion: 'canonical-plan-publication-request-candidate-v1' as const,
-        source: 'canonical_plan_publication_request_service' as const,
-        identity: {
+      return withCandidateSubmissionLock(scope, handoffId, async () => {
+        const handoff = await readPrivateCanonicalPlanningHandoff({ scope, handoffId })
+        const canonicalPlanComponentsHash = sha256AuthorityValue(body.canonicalPlan.components)
+        if (
+          handoff.handoffHash !== body.expectedHandoffHash ||
+          handoff.canonicalPlanComponentsHash !== canonicalPlanComponentsHash
+        ) {
+          throw new ApiError(
+            'IDEMPOTENCY_CONFLICT',
+            'Canonical publication request candidate does not match the persisted planning handoff.',
+            409,
+          )
+        }
+        const canonicalPublishBody = {
+          workspaceId: access.workspaceId,
+          planningRequestId: body.planningRequestId,
+          planningInputAuthority: handoff.planningInputAuthority,
+          sourceMediaAuthority: handoff.sourceMediaAuthority,
+          revisionAuthority: body.revisionAuthority,
+          canonicalPlan: body.canonicalPlan,
+        }
+        const publicationRequestHash = canonicalPlanningHandoffPublicationRequestHash({
           workspaceId: access.workspaceId,
           projectId,
           editSessionId,
           handoffId,
-        },
-        handoffHash: handoff.handoffHash,
-        canonicalPlanComponentsHash,
-        publicationBodyHash: sha256AuthorityValue(body),
-        publicationRequestHash,
-        requestBody: body,
-      }
-      const candidateHash = sha256AuthorityValue(candidateWithoutIdentity)
-      const candidate: CanonicalPlanPublicationRequestCandidateRecord = {
-        ...candidateWithoutIdentity,
-        candidateHash,
-        candidateId: canonicalPlanPublicationRequestCandidateId(candidateHash),
-      }
-      const persisted = await persistPrivateCanonicalPlanPublicationRequest({ scope, candidate })
-      return inspectCandidate(context, scope, persisted.candidate)
+          handoffHash: handoff.handoffHash,
+          body: canonicalPublishBody,
+        })
+        const candidateWithoutIdentity = {
+          schemaVersion: 'canonical-plan-publication-request-candidate-v1' as const,
+          source: 'canonical_plan_publication_request_service' as const,
+          identity: {
+            workspaceId: access.workspaceId,
+            projectId,
+            editSessionId,
+            handoffId,
+          },
+          handoffHash: handoff.handoffHash,
+          canonicalPlanComponentsHash,
+          publicationBodyHash: sha256AuthorityValue(body),
+          publicationRequestHash,
+          requestBody: body,
+        }
+        const candidateHash = sha256AuthorityValue(candidateWithoutIdentity)
+        const candidate: CanonicalPlanPublicationRequestCandidateRecord = {
+          ...candidateWithoutIdentity,
+          candidateHash,
+          candidateId: canonicalPlanPublicationRequestCandidateId(candidateHash),
+        }
+        const persisted = await persistPrivateCanonicalPlanPublicationRequest({ scope, candidate })
+        await persistLatestPrivateCanonicalPlanPublicationRequest({
+          scope,
+          candidate: persisted.candidate,
+        })
+        return inspectCandidate(context, scope, persisted.candidate)
+      })
     },
 
     async inspect(input: {
@@ -144,6 +154,43 @@ export function createCanonicalPlanPublicationRequestService(context: ServiceCon
       })
       if (candidate.identity.handoffId !== input.handoffId) {
         throw new ApiError('PLAN_NOT_APPROVED', 'Canonical publication request candidate was not found.', 404)
+      }
+      return inspectCandidate(context, scope, candidate)
+    },
+
+    async inspectLatest(input: {
+      workspaceId: string
+      projectId: string
+      editSessionId: string
+      handoffId: string
+    }): Promise<CanonicalPlanPublicationRequestInspection> {
+      if (Object.values(input).some((value) => !safeIdentity(value))) {
+        throw new ApiError('VALIDATION_FAILED', 'Latest canonical publication request identity is invalid.', 400)
+      }
+      assertPrivateRuntime(context)
+      const actorUserId = getRequiredAuthUserId(context)
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'read')
+      if (access.userId !== actorUserId) {
+        throw new ApiError('AUTH_REQUIRED', 'Canonical publication request is outside this workspace.', 403)
+      }
+      await createProjectService(context).getProject(input.projectId, access.workspaceId)
+      const scope = {
+        localStorageRoot: context.env.localStorageRoot,
+        ownerUserId: actorUserId,
+        workspaceId: access.workspaceId,
+        projectId: input.projectId,
+        editSessionId: input.editSessionId,
+      }
+      const candidate = await readLatestPrivateCanonicalPlanPublicationRequest({
+        scope,
+        handoffId: input.handoffId,
+      })
+      if (!candidate) {
+        throw new ApiError(
+          'PLAN_NOT_APPROVED',
+          'No canonical publication request candidate was found for this planning handoff.',
+          404,
+        )
       }
       return inspectCandidate(context, scope, candidate)
     },
@@ -337,6 +384,38 @@ function assertPrivateRuntime(context: ServiceContext): void {
     (!context.env.mockOnly && !context.env.allowInternalTestExecutionWithSupabase)
   ) {
     throw new ApiError('TOOL_NOT_READY', 'Canonical publication requests are private-internal testing only.', 503)
+  }
+}
+
+async function withCandidateSubmissionLock<T>(
+  scope: {
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+    editSessionId: string
+  },
+  handoffId: string,
+  action: () => Promise<T>,
+): Promise<T> {
+  const key = sha256AuthorityValue({
+    ownerUserId: scope.ownerUserId,
+    workspaceId: scope.workspaceId,
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+    handoffId,
+  })
+  const previous = candidateSubmissionLocks.get(key) ?? Promise.resolve()
+  let release!: () => void
+  const current = new Promise<void>((resolve) => { release = resolve })
+  candidateSubmissionLocks.set(key, current)
+  await previous
+  try {
+    return await action()
+  } finally {
+    release()
+    if (candidateSubmissionLocks.get(key) === current) {
+      candidateSubmissionLocks.delete(key)
+    }
   }
 }
 

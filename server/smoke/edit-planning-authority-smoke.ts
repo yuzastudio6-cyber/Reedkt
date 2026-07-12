@@ -9,6 +9,7 @@ import { createReeditProApiApp } from '../app'
 import { ApiError } from '../errors/api-error'
 import { loadRuntimeEnv } from '../config/env'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
+import { createCanonicalPlanPublicationRequestService } from '../services/canonical-plan-publication-request-service'
 import { createCanonicalPlanningHandoffService } from '../services/canonical-planning-handoff-service'
 import { createExactEditPreferenceService } from '../services/exact-edit-preference-service'
 import {
@@ -774,6 +775,13 @@ try {
   const publicationRequestSubmitUrl =
     `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/` +
     `canonical-planning-handoffs/${String(routePlanningHandoff.handoffId)}/publication-requests`
+  const latestPublicationRequestInspectionUrl =
+    `${publicationRequestSubmitUrl}/latest?workspaceId=${routeWorkspaceId}`
+  const missingLatestPublicationRequest = await fetch(
+    latestPublicationRequestInspectionUrl,
+    { headers: routeAuthHeaders },
+  )
+  assert.equal(missingLatestPublicationRequest.status, 404)
   const crossUserHandoffResponse = await fetch(persistedHandoffPublishUrl, {
     method: 'POST',
     headers: {
@@ -907,6 +915,24 @@ try {
     pendingPublicationRequestInspectionEnvelope.data?.canonicalPlanPublicationRequest,
     routePublicationRequest,
   )
+  const latestPendingPublicationRequestResponse = await fetch(
+    latestPublicationRequestInspectionUrl,
+    { headers: routeAuthHeaders },
+  )
+  assert.equal(latestPendingPublicationRequestResponse.status, 200)
+  const latestPendingPublicationRequestEnvelope =
+    await latestPendingPublicationRequestResponse.json() as {
+      data?: { canonicalPlanPublicationRequest?: Record<string, unknown> }
+    }
+  assert.deepEqual(
+    latestPendingPublicationRequestEnvelope.data?.canonicalPlanPublicationRequest,
+    routePublicationRequest,
+  )
+  const crossUserLatestPublicationRequest = await fetch(
+    latestPublicationRequestInspectionUrl,
+    { headers: { authorization: 'Bearer verified-other-authority-token' } },
+  )
+  assert.equal(crossUserLatestPublicationRequest.status, 404)
   const publicationRequestScopeHash = sha256AuthorityValue({
     ownerUserId: userId,
     workspaceId: routeWorkspaceId,
@@ -1119,6 +1145,63 @@ try {
     changedWorkGraphCandidate.publicationStatus,
     'superseded_by_competing_candidate',
   )
+  const latestChangedCandidateResponse = await fetch(
+    latestPublicationRequestInspectionUrl,
+    { headers: routeAuthHeaders },
+  )
+  assert.equal(latestChangedCandidateResponse.status, 200)
+  const latestChangedCandidateEnvelope = await latestChangedCandidateResponse.json() as {
+    data?: { canonicalPlanPublicationRequest?: Record<string, unknown> }
+  }
+  assert.deepEqual(
+    latestChangedCandidateEnvelope.data?.canonicalPlanPublicationRequest,
+    changedWorkGraphCandidate,
+  )
+  const freshLatestPublicationRequest = await createCanonicalPlanPublicationRequestService({
+    ...context,
+    requestId: 'latest-publication-request-fresh-service-recovery',
+  }).inspectLatest({
+    workspaceId: routeWorkspaceId,
+    projectId: routeProjectId,
+    editSessionId: 'route-edit-session',
+    handoffId: String(routePlanningHandoff.handoffId),
+  })
+  assert.deepEqual(freshLatestPublicationRequest, changedWorkGraphCandidate)
+  const latestPublicationRequestPointerPath = join(
+    context.env.localStorageRoot,
+    'canonical-plan-publication-requests',
+    'private-internal-v1',
+    `scope-${publicationRequestScopeHash}`,
+    `latest-${sha256AuthorityValue({
+      handoffId: String(routePlanningHandoff.handoffId),
+    })}.json`,
+  )
+  const originalLatestPublicationRequestPointer = await readFile(
+    latestPublicationRequestPointerPath,
+    'utf8',
+  )
+  const tamperedLatestPublicationRequestPointer = JSON.parse(
+    originalLatestPublicationRequestPointer,
+  ) as { checksumSha256: string }
+  tamperedLatestPublicationRequestPointer.checksumSha256 = 'f'.repeat(64)
+  try {
+    await writeFile(
+      latestPublicationRequestPointerPath,
+      `${JSON.stringify(tamperedLatestPublicationRequestPointer)}\n`,
+      'utf8',
+    )
+    const tamperedLatestPublicationRequestResponse = await fetch(
+      latestPublicationRequestInspectionUrl,
+      { headers: routeAuthHeaders },
+    )
+    assert.equal(tamperedLatestPublicationRequestResponse.status, 409)
+  } finally {
+    await writeFile(
+      latestPublicationRequestPointerPath,
+      originalLatestPublicationRequestPointer,
+      'utf8',
+    )
+  }
   const changedWorkGraphCandidateIdentity = asRecord(changedWorkGraphCandidate.identity)
   const changedWorkGraphSameHandoffPublication = await fetch(
     `${publicationRequestSubmitUrl}/${String(changedWorkGraphCandidateIdentity.candidateId)}/publish`,
@@ -2490,6 +2573,8 @@ console.log(JSON.stringify({
     'browser_safe_publication_request_candidate_is_content_addressed_and_exact_replay_safe',
     'publication_request_candidate_is_cross_user_hidden_and_checksum_fail_closed',
     'publication_request_inspection_returns_no_request_body_path_credential_or_execution_authority',
+    'latest_publication_request_discovery_recovers_the_newest_candidate_after_refresh',
+    'latest_publication_request_pointer_is_cross_user_hidden_checksum_fail_closed_and_restart_safe',
     'internal_publication_loads_the_persisted_candidate_and_binds_the_exact_handoff_request',
     'competing_publication_request_candidate_cannot_replace_the_published_handoff',
     'concurrent_same_key_handoff_publications_converge_on_one_plan',

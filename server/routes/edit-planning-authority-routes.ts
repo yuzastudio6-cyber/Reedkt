@@ -84,6 +84,25 @@ export function createEditPlanningAuthorityRoutes(): Router {
   )
 
   router.get(
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publication-requests/latest',
+    requireAuth,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(canonicalPlanningHandoffInspectionQuerySchema, request.query)
+      const publicationRequest = await createCanonicalPlanPublicationRequestService(
+        getServiceContext(request),
+      ).inspectLatest({
+        ...query,
+        projectId: getRouteParam(request, 'projectId'),
+        editSessionId: getRouteParam(request, 'editSessionId'),
+        handoffId: getRouteParam(request, 'handoffId'),
+      })
+      sendOk(response, { canonicalPlanPublicationRequest: publicationRequest }, [
+        'Latest publication-request discovery is tenant-scoped and returns no raw request body or mutation authority.',
+      ])
+    }),
+  )
+
+  router.get(
     '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publication-requests/:candidateId',
     requireAuth,
     asyncRoute(async (request, response) => {

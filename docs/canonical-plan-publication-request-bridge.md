@@ -16,6 +16,12 @@ Safe current state is inspected at:
 
 `GET /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publication-requests/:candidateId?workspaceId=:workspaceId`
 
+When the client no longer has the candidate ID, the latest serialized candidate for that exact handoff is recovered at:
+
+`GET /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publication-requests/latest?workspaceId=:workspaceId`
+
+Candidate submission is serialized per owner/workspace/project/edit session/handoff. The immutable candidate is written before a checksum-protected latest pointer is replaced, so exact replay is stable and a later accepted candidate becomes recoverable without hiding earlier content-addressed candidates.
+
 Inspection returns hashes and one of:
 
 - `pending_internal_publication`;
@@ -23,6 +29,8 @@ Inspection returns hashes and one of:
 - `superseded_by_competing_candidate`.
 
 It returns no raw publication body, filesystem path, credential, plan mutation permission, snapshot permission, credit authority, tool authority, provider authority, or render authority.
+
+Latest discovery is owner/workspace scoped. Cross-user reads are hidden, checksum tampering fails closed, and a fresh service instance recovers the same candidate from private persistence.
 
 ## Internal publication
 

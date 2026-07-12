@@ -795,6 +795,7 @@ assert.deepEqual(finalCompositionJob.dependencyJobIds, [sourceTrimValidationJob.
 assert.deepEqual(finalArtifactQaJob.dependencyJobIds, [finalCompositionJob.id])
 
 const leaseService = createCanonicalWorkerLeaseAuthorityService(context)
+const jobExecutionAdapter = createCanonicalPrivateJobExecutionAdapterService(context)
 const chartClaim = (await leaseService.claim({
   workspaceId,
   projectId: snapshot.projectId,
@@ -1649,103 +1650,79 @@ await leaseService.release({
 
 const audioRuns = [
   {
-    toolName: 'scipy', operationId: scipyOperationId, workItem: scipyWorkItem,
+    toolName: 'scipy', operationId: scipyOperationId,
     job: scipyJob, asset: scipyAsset, proofJob: scipyProofJob, expectedContentType: 'application/json',
   },
   {
-    toolName: 'pyloudnorm', operationId: pyloudnormOperationId, workItem: loudnessWorkItem,
+    toolName: 'pyloudnorm', operationId: pyloudnormOperationId,
     job: loudnessJob, asset: loudnessAsset, proofJob: loudnessProofJob, expectedContentType: 'application/json',
   },
   {
-    toolName: 'pydub', operationId: pydubOperationId, workItem: pydubWorkItem,
+    toolName: 'pydub', operationId: pydubOperationId,
     job: pydubJob, asset: pydubAsset, proofJob: pydubProofJob, expectedContentType: 'audio/wav',
   },
   {
-    toolName: 'pydub_effects', operationId: pydubEffectsOperationId, workItem: pydubEffectsWorkItem,
+    toolName: 'pydub_effects', operationId: pydubEffectsOperationId,
     job: pydubEffectsJob, asset: pydubEffectsAsset,
     proofJob: pydubEffectsProofJob, expectedContentType: 'audio/wav',
   },
   {
-    toolName: 'ebu_r128_pyloudnorm', operationId: ebuR128OperationId, workItem: ebuR128WorkItem,
+    toolName: 'ebu_r128_pyloudnorm', operationId: ebuR128OperationId,
     job: ebuR128Job, asset: ebuR128Asset, proofJob: ebuR128ProofJob,
     expectedContentType: 'application/json',
   },
   {
-    toolName: 'audioread', operationId: audioreadOperationId, workItem: audioreadWorkItem,
+    toolName: 'audioread', operationId: audioreadOperationId,
     job: audioreadJob, asset: audioreadAsset, proofJob: audioreadProofJob,
     expectedContentType: 'application/json',
   },
   {
-    toolName: 'resampy', operationId: resampyOperationId, workItem: resampyWorkItem,
+    toolName: 'resampy', operationId: resampyOperationId,
     job: resampyJob, asset: resampyAsset, proofJob: resampyProofJob,
     expectedContentType: 'audio/wav',
   },
   {
-    toolName: 'pedalboard', operationId: pedalboardOperationId, workItem: pedalboardWorkItem,
+    toolName: 'pedalboard', operationId: pedalboardOperationId,
     job: pedalboardJob, asset: pedalboardAsset, proofJob: pedalboardProofJob,
     expectedContentType: 'audio/wav',
   },
   {
-    toolName: 'mir_eval', operationId: mirEvalOperationId, workItem: mirEvalWorkItem,
+    toolName: 'mir_eval', operationId: mirEvalOperationId,
     job: mirEvalJob, asset: mirEvalAsset, proofJob: mirEvalProofJob,
     expectedContentType: 'application/json',
   },
   {
-    toolName: 'mido', operationId: midoOperationId, workItem: midoWorkItem,
+    toolName: 'mido', operationId: midoOperationId,
     job: midoJob, asset: midoAsset, proofJob: midoProofJob,
     expectedContentType: 'application/json',
   },
 ] as const
 for (const audioRun of audioRuns) {
-  const claim = (await leaseService.claim({
-    workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-    jobId: audioRun.job.id, purpose: 'private_internal_canonical_lease_claim',
-    idempotencyKey: `claim-${audioRun.toolName}-audio-root`,
-  })).workerLeaseClaim
-  const leaseAuthority = { leaseId: claim.lease.leaseId, leaseCredential: claim.leaseCredential }
-  const grant: Awaited<ReturnType<typeof dispatchService.authorize>>['toolDispatchGrant'] =
-    (await dispatchService.authorize({
-    workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-    jobId: audioRun.job.id, approvedWorkItemId: audioRun.workItem.id,
-    expectedAssetId: audioRun.asset.id, requestedToolName: audioRun.toolName,
-    operationId: audioRun.operationId,
-    purpose: 'private_internal_canonical_tool_dispatch_authorization',
-    idempotencyKey: `authorize-${audioRun.toolName}-audio-root`,
-    }, leaseAuthority)).toolDispatchGrant
-  assert.equal(grant.grant.status, 'authorized')
-  assert.equal(grant.evidence.specPrivateInternalReady, true)
-  assert.equal(grant.evidence.runtimePrivateInternalReady, true)
-  assert.ok(grant.dispatchCredential)
-  const executionInput = {
-    workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-    jobId: audioRun.job.id, grantId: grant.grant.grantId,
-    purpose: 'execute_canonical_private_python_tool' as const,
-    idempotencyKey: `consume-${audioRun.toolName}-audio-root`,
+  const adapterInput = {
+    workspaceId,
+    projectId: snapshot.projectId,
+    editSessionId: snapshot.editSessionId,
+    jobId: audioRun.job.id,
+    purpose: 'execute_canonical_private_job' as const,
+    idempotencyKey: `canonical-job-adapter-${audioRun.toolName}-audio-root`,
   }
-  const executionAuthority = { ...leaseAuthority, dispatchCredential: grant.dispatchCredential }
-  const coordinated = await createCanonicalPrivatePythonToolExecutionService(context).execute(
-    executionInput, executionAuthority,
-  )
-  assert.equal(coordinated.tool.canonicalToolId, audioRun.toolName)
-  assert.equal(coordinated.tool.operationId, audioRun.operationId)
-  assert.equal(coordinated.tool.sourceObjectRead, true)
-  assert.equal(coordinated.tool.sourceSequenceItemId, mediaSourceItem.sourceSequenceItemId)
+  const coordinated = await jobExecutionAdapter.execute(adapterInput)
+  assert.equal(coordinated.identity.canonicalToolId, audioRun.toolName)
+  assert.equal(coordinated.identity.operationId, audioRun.operationId)
+  assert.equal(coordinated.identity.expectedAssetId, audioRun.asset.id)
+  assert.equal(coordinated.identity.runnerClass, 'offline_python_structured_execution_v1')
   assert.equal(coordinated.result.contentType, audioRun.expectedContentType)
   assert.equal(coordinated.result.qaOutcome, 'passed')
   assert.equal(coordinated.result.privateTestDependencySatisfied, true)
-  assert.equal(coordinated.persistence.actualRunEvidenceVerified, true)
-  assert.equal(coordinated.persistence.actualQaEvidenceVerified, true)
-  const replay = await createCanonicalPrivatePythonToolExecutionService(context).execute(
-    executionInput, executionAuthority,
-  )
+  assert.equal(coordinated.evidence.serverDerivedCanonicalJob, true)
+  assert.equal(coordinated.evidence.serverDerivedToolAndOperation, true)
+  assert.equal(coordinated.evidence.singleUseDispatchConsumed, true)
+  assert.equal(coordinated.evidence.idempotentAdapterReplay, false)
+  assert.equal(coordinated.readiness.productReady, false)
+  const replay = await jobExecutionAdapter.execute(adapterInput)
   assert.equal(replay.result.artifactId, coordinated.result.artifactId)
   assert.equal(replay.result.sha256, coordinated.result.sha256)
-  assert.equal(replay.replay.dispatchConsumptionReplayed, true)
-  assert.equal(replay.replay.executionFenceBeginReplayed, true)
-  assert.equal(replay.replay.executionFenceCompleteReplayed, true)
-  assert.equal(replay.replay.artifactRecordReplayed, true)
-  assert.equal(replay.replay.qaRecordReplayed, true)
-  assert.equal(replay.replay.reconciliationReplayed, true)
+  assert.equal(replay.evidence.idempotentAdapterReplay, true)
   const proofClaim: Awaited<ReturnType<typeof leaseService.claim>>['workerLeaseClaim'] =
     (await leaseService.claim({
     workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -1760,12 +1737,6 @@ for (const audioRun of audioRuns) {
     jobId: audioRun.proofJob.id, leaseId: proofClaim.lease.leaseId,
     leaseCredential: proofClaim.leaseCredential, purpose: 'private_internal_canonical_lease_release',
     idempotencyKey: `release-${audioRun.toolName}-proof-verification-lease`,
-  })
-  await leaseService.release({
-    workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-    jobId: audioRun.job.id, leaseId: claim.lease.leaseId,
-    leaseCredential: claim.leaseCredential, purpose: 'private_internal_canonical_lease_release',
-    idempotencyKey: `release-${audioRun.toolName}-completed-audio-root`,
   })
 }
 
@@ -1790,7 +1761,6 @@ await activatePrivateOfflineDeepFilterNetVoiceCleanupRuntime()
 
 const adapterMatrixRun = matrixRuns[0]
 assert.ok(adapterMatrixRun)
-const jobExecutionAdapter = createCanonicalPrivateJobExecutionAdapterService(context)
 await expectApiError(
   () => jobExecutionAdapter.execute({
     workspaceId,
@@ -3141,6 +3111,7 @@ console.log(JSON.stringify({
     'server_derived_job_adapter_executes_audioflux_analysis_identity',
     'server_derived_job_adapter_executes_rembg_background_removal_identity',
     'server_derived_job_adapter_executes_all_seven_matrix_python_tool_identities',
+    'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
     'echarts_exact_svg_canonical_lifecycle_verified',
     'vega_lite_exact_svg_canonical_lifecycle_verified',
     'vega_exact_svg_canonical_lifecycle_verified',

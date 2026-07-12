@@ -20,7 +20,7 @@ import { OFFLINE_REMBG_BACKGROUND_REMOVAL_PACKAGE_IDENTITIES } from './rembg-bac
 import { OFFLINE_DEEPFILTERNET_VOICE_CLEANUP_PACKAGE_IDENTITY } from './deepfilternet-voice-cleanup-execution/offline-deepfilternet-voice-cleanup-protocol'
 
 export const PROVEN_TOOL_IDENTITY_CATALOG_VERSION = 'proven-tool-identity-catalog-v1' as const
-export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-12.25' as const
+export const PROVEN_TOOL_EVIDENCE_REVISION = '2026-07-12.26' as const
 
 export type ToolVerificationState =
   | 'canonical_e2e_verified'
@@ -188,6 +188,16 @@ const CANONICAL_JOB_ADAPTER_EVIDENCE_KEYS: Partial<Record<ProductionToolId, stri
   opencv: 'server_derived_job_adapter_executes_all_seven_matrix_python_tool_identities',
   pyscenedetect: 'server_derived_job_adapter_executes_all_seven_matrix_python_tool_identities',
   librosa: 'server_derived_job_adapter_executes_all_seven_matrix_python_tool_identities',
+  audioread: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
+  pydub: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
+  scipy: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
+  resampy: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
+  pyloudnorm: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
+  mido: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
+  pedalboard: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
+  mir_eval: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
+  pydub_effects: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
+  ebu_r128_pyloudnorm: 'server_derived_job_adapter_executes_all_ten_source_backed_audio_python_tool_identities',
   ffprobe: 'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
   remotion: 'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
 }

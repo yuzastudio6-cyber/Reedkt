@@ -32,6 +32,8 @@ export interface OfflineRemotionPreviewPlanningPayload extends CommonComposition
 
 export interface OfflineRemotionFinalCompositionPlanningPayload extends CommonCompositionPayload {
   compositionProfileId: 'approved_source_caption_final_v1'
+  sourceStartFrame: number
+  sourceEndFrameExclusive: number
   sourceFit: 'contain'
   panelBackground: string
   audioPolicy: 'preserve_source'
@@ -74,18 +76,29 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
   value: unknown,
 ): OfflineRemotionFinalCompositionPlanningPayload {
   const payload = exactRecord(value, [
-    'compositionProfileId', 'width', 'height', 'fps', 'durationFrames', 'sourceFit',
+    'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+    'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
     'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
   ], 'final composition planning payload')
   const common = commonPayload(payload, 24, 240)
+  const sourceStartFrame = integer(payload.sourceStartFrame, 0, 100_000_000, 'sourceStartFrame')
+  const sourceEndFrameExclusive = integer(
+    payload.sourceEndFrameExclusive,
+    1,
+    100_000_000,
+    'sourceEndFrameExclusive',
+  )
   if (
     payload.compositionProfileId !== 'approved_source_caption_final_v1' ||
     payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source' ||
-    payload.captionOverlayPolicy !== 'approved_full_frame_rgba'
+    payload.captionOverlayPolicy !== 'approved_full_frame_rgba' ||
+    sourceEndFrameExclusive - sourceStartFrame !== common.durationFrames
   ) throw validationFailure('Final composition policy is unsupported.')
   return {
     ...common,
     compositionProfileId: 'approved_source_caption_final_v1',
+    sourceStartFrame,
+    sourceEndFrameExclusive,
     sourceFit: 'contain',
     panelBackground: color(payload.panelBackground, 'panelBackground'),
     audioPolicy: 'preserve_source',
@@ -129,7 +142,8 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
   const payloadRecord = record(request.payload, 'payload')
   if (Object.hasOwn(payloadRecord, 'compositionProfileId')) {
     const payload = exactRecord(payloadRecord, [
-      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames', 'sourceFit',
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
       'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
       'sourceMimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
       'captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256',
@@ -138,6 +152,8 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     const planning = validateOfflineRemotionFinalCompositionPlanningPayload({
       compositionProfileId: payload.compositionProfileId, width: payload.width, height: payload.height,
       fps: payload.fps, durationFrames: payload.durationFrames, sourceFit: payload.sourceFit,
+      sourceStartFrame: payload.sourceStartFrame,
+      sourceEndFrameExclusive: payload.sourceEndFrameExclusive,
       panelBackground: payload.panelBackground, audioPolicy: payload.audioPolicy,
       captionOverlayPolicy: payload.captionOverlayPolicy,
     })

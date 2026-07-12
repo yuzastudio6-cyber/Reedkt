@@ -94,7 +94,8 @@ try {
   const finalRequest = buildOfflineRemotionFinalCompositionRequest({
     planningPayload: {
       compositionProfileId: 'approved_source_caption_final_v1', width: 640, height: 360,
-      fps: 24, durationFrames: 24, sourceFit: 'contain', panelBackground: '#000000',
+      fps: 24, durationFrames: 24, sourceStartFrame: 12, sourceEndFrameExclusive: 36,
+      sourceFit: 'contain', panelBackground: '#000000',
       audioPolicy: 'preserve_source', captionOverlayPolicy: 'approved_full_frame_rgba',
     },
     source: {
@@ -112,6 +113,7 @@ try {
     { ...finalRequest, payload: { ...finalRequest.payload, sourceBytesBase64: `${finalRequest.payload.sourceBytesBase64}A` } },
     { ...finalRequest, payload: { ...finalRequest.payload, captionOverlaySha256: 'f'.repeat(64) } },
     { ...finalRequest, payload: { ...finalRequest.payload, sourceFit: 'cover' } },
+    { ...finalRequest, payload: { ...finalRequest.payload, sourceStartFrame: 11 } },
   ]) assert.throws(() => validateOfflineRemotionRenderRequest(invalidFinal), /unsupported|commitment|policy|bytes/)
   const finalResult = await reopened.execute(finalRequest)
   assert.equal(finalResult.artifact.bytes.subarray(4, 8).toString('ascii'), 'ftyp')
@@ -119,6 +121,7 @@ try {
   assert.equal(finalResult.artifact.fps, 24); assert.equal(finalResult.artifact.durationFrames, 24)
   assert.equal(finalResult.evidence.semanticEvidence.approvedSourceBytesVerified, true)
   assert.equal(finalResult.evidence.semanticEvidence.approvedCaptionOverlayBytesVerified, true)
+  assert.equal(finalResult.evidence.semanticEvidence.approvedSourceTrimFramesApplied, true)
   assert.equal(finalResult.evidence.semanticEvidence.sourceAudioPreservationRequested, true)
   assert.equal(finalResult.evidence.semanticEvidence.finalCompositionProfileExecuted, true)
   const finalProbe = await mediaRuntime.execute({
@@ -149,6 +152,6 @@ try {
 
 console.log(JSON.stringify({
   smoke: 'offline_remotion_render_execution', status: 'passed',
-  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_color_space_and_duration_qa_passed', 'server_injected_source_mp4_and_libass_png_hash_commitments_verified', 'actual_source_plus_caption_final_composition_rendered', 'source_audio_preserved_as_aac', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
+  proofs: ['exact_operation_payload_validated', 'caller_paths_urls_commands_and_extra_fields_rejected', 'checksum_protected_runtime_authority_persisted_and_reopened', 'pinned_image_identity_verified', 'network_none_read_only_non_root_cap_drop_confinement_verified', 'actual_remotion_select_and_render_media_executed', 'mp4_hash_frame_timing_and_header_verified', 'independent_pinned_ffprobe_h264_frame_count_pixel_format_color_space_and_duration_qa_passed', 'server_injected_source_mp4_and_libass_png_hash_commitments_verified', 'approved_nonzero_source_trim_frames_applied', 'actual_source_plus_caption_final_composition_rendered', 'source_audio_preserved_as_aac', 'final_composition_paths_urls_commands_and_tampered_bytes_rejected', 'product_beta_production_readiness_remains_false'],
   artifact: { sha256: result.artifact.sha256, byteLength: result.artifact.byteLength, width: result.artifact.width, height: result.artifact.height, fps: result.artifact.fps, durationFrames: result.artifact.durationFrames },
 }, null, 2))

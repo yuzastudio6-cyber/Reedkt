@@ -38,13 +38,16 @@ The adapter dispatch table covers all 15 proven runner classes used by the 50 ca
 Executable adapter evidence currently proves:
 
 - authenticated HTTP execution and HTTP idempotency replay for the tool-free canonical authority job;
+- work-graph execution of the dependency-bound source-trim authority job;
 - service execution of ECharts with server-derived tool/operation/output identity;
+- service execution of the exact private Remotion final-composition job with two lease-selected dependencies: source-trim authority JSON and libass caption PNG;
+- approved trim-frame application to the exact source MP4, source-audio preservation, independent FFprobe H.264/AAC/frame/duration QA, private final-artifact persistence/download, and durable adapter replay without a second render;
 - single-use dispatch consumption, private SVG persistence, QA, reconciliation, durable adapter replay, idempotency conflict, and downstream dependency readback;
 - the independent canonical coordinator lifecycle for all 50 tool identities through `npm run smoke:canonical-private-tool-dispatch`.
 
 ## Boundaries
 
-This adapter is not a whole-work-graph scheduler. It does not select the next dependency-ready job, assemble terminal private review, recover a complete journey, execute providers, write Supabase, deploy workers, publish artifacts, settle customer credits, charge a wallet, bill a customer, or authorize production rendering.
+This adapter is not a whole-work-graph scheduler. It does not select the next dependency-ready job, assemble terminal private review, recover a complete journey, execute providers, write Supabase, deploy workers, publish artifacts, settle customer credits, charge a wallet, bill a customer, or authorize production rendering. The private final MP4 is a QA-passed single-host test artifact, not a public export.
 
 All responses keep product, external-beta, and production readiness false. A canonical work-graph orchestrator now consumes this adapter; the next gate is completing every required job capability and terminal private-review handoff.
 

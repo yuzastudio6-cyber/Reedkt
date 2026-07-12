@@ -755,7 +755,10 @@ async function verifySelectedDependencyArtifacts(input: {
           { requiredGate: 'selected_private_dependency_artifact_qa' },
         )
       }
-      const verifiedArtifact = authority.artifact.lineage.artifactType === 'authority_validation_evidence'
+      const verifiedArtifact = [
+        'authority_validation_evidence',
+        'source_trim_validation_evidence',
+      ].includes(authority.artifact.lineage.artifactType)
         ? await verifyCanonicalInternalAuthorityArtifact({
             localStorageRoot: input.context.env.localStorageRoot,
             artifact: authority.artifact,

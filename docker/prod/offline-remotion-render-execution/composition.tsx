@@ -21,6 +21,8 @@ export interface ApprovedCompositionProps {
   subtitle: string
   caption: string
   compositionProfileId?: 'approved_source_caption_final_v1'
+  sourceStartFrame?: number
+  sourceEndFrameExclusive?: number
   sourceFit?: 'contain'
   audioPolicy?: 'preserve_source'
   captionOverlayPolicy?: 'approved_full_frame_rgba'
@@ -133,6 +135,8 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
   <AbsoluteFill style={{ backgroundColor: props.panelBackground, overflow: 'hidden' }}>
     <OffthreadVideo
       src={props.sourceInternalUrl!}
+      startFrom={props.sourceStartFrame!}
+      endAt={props.sourceEndFrameExclusive!}
       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
       volume={1}
     />

@@ -25,7 +25,7 @@ export const canonicalPrivateFinalCompositionAuthoritySchema = z.object({
 }).strict()
 
 export const canonicalPrivateFinalCompositionResponseSchema = z.object({
-  schemaVersion: z.literal('canonical-private-final-composition-execution-response-v1'),
+  schemaVersion: z.literal('canonical-private-final-composition-execution-response-v2'),
   source: z.literal('canonical_private_final_composition_execution_coordinator'),
   purpose: z.literal('execute_canonical_private_final_composition'),
   identity: z.object({
@@ -38,6 +38,8 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     compositionProfileId: z.literal('approved_source_caption_final_v1'),
     actualRemotionOperationCompleted: z.literal(true),
     approvedSourceObjectRead: z.literal(true),
+    approvedSourceTrimDependencyRead: z.literal(true),
+    approvedSourceTrimFramesApplied: z.literal(true),
     approvedCaptionDependencyRead: z.literal(true),
     sourceAudioPreserved: z.literal(true),
     privateFinalCompositionExecuted: z.literal(true),
@@ -48,6 +50,12 @@ export const canonicalPrivateFinalCompositionResponseSchema = z.object({
     sourceSequenceItemId: identity, sourceMediaAssetId: identity,
     sourceSha256: sha, sourceByteLength: z.number().int().positive().max(16 * 1024 * 1024),
     sourceReadEvidenceHash: sha,
+    sourceTrimArtifactId: identity, sourceTrimSha256: sha,
+    sourceTrimByteLength: z.number().int().positive().max(1024 * 1024),
+    sourceTrimDependencyReadEvidenceHash: sha,
+    sourceCleanupDecisionId: identity,
+    sourceStartFrame: z.number().int().nonnegative(),
+    sourceEndFrameExclusive: z.number().int().positive(),
     captionArtifactId: identity, captionSha256: sha,
     captionByteLength: z.number().int().positive().max(8 * 1024 * 1024),
     captionDependencyReadEvidenceHash: sha,

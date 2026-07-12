@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import type { ZodType } from 'zod'
 
 import { ApiError } from '../errors/api-error'
@@ -14,6 +16,7 @@ import {
   isFinalCompositionPayload,
   openPrivateOfflineRemotionRenderRuntime,
   readPersistedOfflineRemotionRenderRuntimeAuthority,
+  validateOfflineRemotionFinalCompositionPlanningPayload,
   type OfflineRemotionRenderResult,
 } from '../tool-execution/remotion-render-execution'
 import type { ServiceContext } from '../types'
@@ -30,7 +33,10 @@ import type {
   PersistedArtifactResult,
 } from '../validation/private-artifact-qa-authority-schemas'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
-import { createCanonicalPrivateDependencyArtifactReadService } from './canonical-private-dependency-artifact-read-service'
+import {
+  createCanonicalPrivateDependencyArtifactReadService,
+  type CanonicalPrivateDependencyArtifactReadResult,
+} from './canonical-private-dependency-artifact-read-service'
 import {
   persistCanonicalPrivateRemotionArtifact,
   readCanonicalPrivateRemotionArtifact,
@@ -112,13 +118,27 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       if (
         workItem.workItemType !== 'render_final_export' || workItem.workerClass !== 'render_worker' ||
         workItem.approvedToolIds.length !== 1 || workItem.approvedToolIds[0] !== 'remotion' ||
-        workItem.sourceSequenceItemIds.length !== 1 || workItem.dependencyKeys.length !== 1 ||
+        workItem.sourceSequenceItemIds.length !== 1 || workItem.sourceCleanupDecisionIds.length !== 1 ||
+        workItem.dependencyKeys.length !== 2 ||
         expectedAsset.contentType !== CONTENT_TYPE || binding.expectedOutput.contentType !== CONTENT_TYPE ||
         expectedAsset.assetRole !== 'final' || !expectedAsset.required || expectedAsset.previewPlaceholderAllowed ||
         binding.expectedOutput.outputKey !== expectedAsset.outputKey ||
         readiness.job.approvedWorkItemId !== workItem.id ||
         binding.approvedPlanSnapshotId !== authority.snapshot.snapshotId
-      ) throw denied('Final composition is limited to one source and one approved caption dependency.')
+      ) throw denied('Final composition requires one source, one approved trim decision, and two exact dependencies.')
+      const approvedCleanupDecision = authority.components.sourceCleanupPlan.decisions.find((decision) =>
+        decision.decisionId === workItem.sourceCleanupDecisionIds[0] &&
+        decision.sourceSequenceItemId === workItem.sourceSequenceItemIds[0])
+      if (!approvedCleanupDecision || approvedCleanupDecision.action === 'cut') {
+        throw denied('Final composition source trim decision is missing or excludes the approved source range.')
+      }
+      const planningPayload = validateOfflineRemotionFinalCompositionPlanningPayload(
+        workItem.executionInput.structuredPayload,
+      )
+      if (
+        planningPayload.sourceStartFrame !== approvedCleanupDecision.startFrame ||
+        planningPayload.sourceEndFrameExclusive !== approvedCleanupDecision.endFrameExclusive
+      ) throw denied('Final composition timing does not match the approved source cleanup decision.')
 
       const runtimeAuthority = await readPersistedOfflineRemotionRenderRuntimeAuthority()
       if (
@@ -153,18 +173,46 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         approvedWorkItem: workItem, approvedSourceManifest: authority.sourceAssetManifest,
         leaseId: injected.leaseId, executionAttemptId, dispatchGrantId: body.grantId,
       })
-      const caption = await createCanonicalPrivateDependencyArtifactReadService(context)
-        .readSingleSelectedArtifact({
+      const dependencyReader = createCanonicalPrivateDependencyArtifactReadService(context)
+      const dependencies: CanonicalPrivateDependencyArtifactReadResult[] = []
+      for (let selectedArtifactIndex = 0; selectedArtifactIndex < 2; selectedArtifactIndex += 1) {
+        dependencies.push(await dependencyReader.readSingleSelectedArtifact({
           workspaceId: body.workspaceId, projectId: body.projectId,
           editSessionId: body.editSessionId, snapshotId: authority.snapshot.snapshotId,
           currentJobId: body.jobId, currentApprovedWorkItemId: workItem.id,
           leaseId: injected.leaseId, leaseCredential: injected.leaseCredential,
           executionAttemptId, dispatchGrantId: body.grantId,
           dependencyAuthority: begun.lease.dependencyAuthority,
-          allowedContentTypes: ['image/png'], maximumBytes: 8 * 1024 * 1024,
-        })
+          allowedContentTypes: ['application/json', 'image/png'], maximumBytes: 8 * 1024 * 1024,
+          selectedArtifactIndex,
+        }))
+      }
+      const trimArtifact = dependencies.find((dependency) => dependency.contentType === 'application/json')
+      const caption = dependencies.find((dependency) => dependency.contentType === 'image/png')
+      if (!trimArtifact || !caption || trimArtifact.byteLength > 1024 * 1024) {
+        throw denied('Final composition dependencies must be one approved trim JSON and one caption PNG.')
+      }
+      const trimReadiness = (await createCanonicalExecutionReadinessService(context).inspectJob({
+        workspaceId: body.workspaceId,
+        projectId: body.projectId,
+        editSessionId: body.editSessionId,
+        jobId: trimArtifact.dependencyJobId,
+        purpose: 'private_internal_dry_run_readiness',
+      })).executionReadinessEnvelope
+      const sourceTrim = parseApprovedSourceTrimEvidence({
+        bytes: trimArtifact.bytes,
+        body,
+        snapshotId: authority.snapshot.snapshotId,
+        workItemId: trimReadiness.job.approvedWorkItemId,
+        sourceSequenceItemIds: workItem.sourceSequenceItemIds,
+        sourceCleanupDecisionIds: workItem.sourceCleanupDecisionIds,
+        approvedCleanupDecision,
+        authorityHashes: readiness.authorityHashes,
+        dependencyJobId: trimArtifact.dependencyJobId,
+        expectedAssetId: trimArtifact.expectedAssetId,
+      })
       const request = buildOfflineRemotionFinalCompositionRequest({
-        planningPayload: workItem.executionInput.structuredPayload,
+        planningPayload,
         source: { mimeType: CONTENT_TYPE, bytes: source.bytes, sha256: source.sha256 },
         captionOverlay: { mimeType: 'image/png', bytes: caption.bytes, sha256: caption.sha256 },
       })
@@ -192,7 +240,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         workspaceId: body.workspaceId, snapshotId: authority.snapshot.snapshotId,
         jobId: body.jobId, expectedAssetId: expectedAsset.id,
         dispatchGrantId: body.grantId, executionAttemptId,
-        sourceSha256: source.sha256, captionSha256: caption.sha256,
+        sourceSha256: source.sha256, sourceTrimSha256: trimArtifact.sha256,
+        captionSha256: caption.sha256,
         contentSha256: result.artifact.sha256,
       })
       await persistCanonicalPrivateRemotionArtifact({
@@ -222,6 +271,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         runtimeAuthorityHash: runtimeAuthority.authorityHash,
         executionStartedAt: begun.executionFence.startedAt,
         result, qa, sourceReadEvidenceHash: source.sourceReadEvidenceHash,
+        sourceTrimDependencyReadEvidenceHash: trimArtifact.dependencyReadEvidenceHash,
         captionDependencyReadEvidenceHash: caption.dependencyReadEvidenceHash,
       }
       const artifactAuthority = createPrivateArtifactQaAuthorityService(context, adapters(adapterInput))
@@ -260,7 +310,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
       )) !== beforeHash) throw denied('Canonical authority changed during final composition execution.')
 
       const responseWithoutHash = {
-        schemaVersion: 'canonical-private-final-composition-execution-response-v1' as const,
+        schemaVersion: 'canonical-private-final-composition-execution-response-v2' as const,
         source: 'canonical_private_final_composition_execution_coordinator' as const,
         purpose: body.purpose,
         identity: { ...identity, approvedWorkItemId: workItem.id, dispatchGrantId: body.grantId },
@@ -268,6 +318,8 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           canonicalToolId: 'remotion' as const, operationId: OFFLINE_REMOTION_RENDER_OPERATION,
           compositionProfileId: 'approved_source_caption_final_v1' as const,
           actualRemotionOperationCompleted: true as const, approvedSourceObjectRead: true as const,
+          approvedSourceTrimDependencyRead: true as const,
+          approvedSourceTrimFramesApplied: true as const,
           approvedCaptionDependencyRead: true as const, sourceAudioPreserved: true as const,
           privateFinalCompositionExecuted: true as const, providerCallMade: false as const,
           publicDeliveryExecuted: false as const,
@@ -276,6 +328,13 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           sourceSequenceItemId: source.sourceSequenceItemId, sourceMediaAssetId: source.mediaAssetId,
           sourceSha256: source.sha256, sourceByteLength: source.byteLength,
           sourceReadEvidenceHash: source.sourceReadEvidenceHash,
+          sourceTrimArtifactId: trimArtifact.artifactId,
+          sourceTrimSha256: trimArtifact.sha256,
+          sourceTrimByteLength: trimArtifact.byteLength,
+          sourceTrimDependencyReadEvidenceHash: trimArtifact.dependencyReadEvidenceHash,
+          sourceCleanupDecisionId: sourceTrim.decisionId,
+          sourceStartFrame: sourceTrim.startFrame,
+          sourceEndFrameExclusive: sourceTrim.endFrameExclusive,
           captionArtifactId: caption.artifactId, captionSha256: caption.sha256,
           captionByteLength: caption.byteLength,
           captionDependencyReadEvidenceHash: caption.dependencyReadEvidenceHash,
@@ -367,6 +426,92 @@ interface FinalCompositionQa {
   reportSha256: string
 }
 
+interface ApprovedSourceTrimEvidence {
+  decisionId: string
+  sourceSequenceItemId: string
+  action: string
+  startFrame: number
+  endFrameExclusive: number
+}
+
+function parseApprovedSourceTrimEvidence(input: {
+  bytes: Buffer
+  body: RunCanonicalPrivateFinalCompositionInput
+  snapshotId: string
+  workItemId: string
+  sourceSequenceItemIds: string[]
+  sourceCleanupDecisionIds: string[]
+  approvedCleanupDecision: {
+    decisionId: string
+    sourceSequenceItemId: string
+    action: string
+    startFrame: number
+    endFrameExclusive: number
+    reason: string
+    confidence: number
+    meaningPreservationStatus: 'passed' | 'warning'
+    userReviewStatus: 'not_required' | 'resolved'
+  }
+  authorityHashes: {
+    snapshotHash: string
+    sourceSequenceHash: string
+    approvedAssetManifestHash: string
+  }
+  dependencyJobId: string
+  expectedAssetId: string
+}): ApprovedSourceTrimEvidence {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(input.bytes.toString('utf8'))
+  } catch {
+    throw denied('Approved source trim dependency is not valid JSON.')
+  }
+  const report = objectRecord(parsed, 'source trim report')
+  const identity = objectRecord(report.identity, 'source trim identity')
+  const authorityHashes = objectRecord(report.authorityHashes, 'source trim authority hashes')
+  const expectedDecision = {
+    decisionId: input.approvedCleanupDecision.decisionId,
+    sourceSequenceItemId: input.approvedCleanupDecision.sourceSequenceItemId,
+    action: input.approvedCleanupDecision.action,
+    startFrame: input.approvedCleanupDecision.startFrame,
+    endFrameExclusive: input.approvedCleanupDecision.endFrameExclusive,
+    reasonHash: createHash('sha256').update(input.approvedCleanupDecision.reason).digest('hex'),
+    confidence: input.approvedCleanupDecision.confidence,
+    meaningPreservationStatus: input.approvedCleanupDecision.meaningPreservationStatus,
+    userReviewStatus: input.approvedCleanupDecision.userReviewStatus,
+  }
+  const expectedSourceTrim = {
+    status: 'confirmed',
+    sourceSequenceItemIds: input.sourceSequenceItemIds,
+    sourceCleanupDecisionIds: input.sourceCleanupDecisionIds,
+    decisionCount: 1,
+    decisions: [expectedDecision],
+    meaningPreservationValidated: true,
+    unresolvedUserReview: false,
+  }
+  if (
+    report.schemaVersion !== 'canonical-authority-validation-artifact-v1' ||
+    report.source !== 'immutable_canonical_edit_authority' ||
+    report.validationProfile !== 'source_trim' || report.valid !== true ||
+    identity.workspaceId !== input.body.workspaceId || identity.projectId !== input.body.projectId ||
+    identity.editSessionId !== input.body.editSessionId || identity.snapshotId !== input.snapshotId ||
+    identity.jobId !== input.dependencyJobId || identity.approvedWorkItemId !== input.workItemId ||
+    identity.expectedAssetId !== input.expectedAssetId ||
+    authorityHashes.snapshotHash !== input.authorityHashes.snapshotHash ||
+    authorityHashes.sourceSequenceHash !== input.authorityHashes.sourceSequenceHash ||
+    authorityHashes.approvedAssetManifestHash !== input.authorityHashes.approvedAssetManifestHash ||
+    stableArtifactQaStringify(report.sourceTrim) !== stableArtifactQaStringify(expectedSourceTrim)
+  ) throw denied('Approved source trim dependency diverged from current immutable plan authority.')
+  return expectedDecision
+}
+
+function objectRecord(value: unknown, label: string): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw denied(`Approved ${label} has an invalid object shape.`)
+  }
+  return value as Record<string, unknown>
+}
+
 interface FinalCompositionAdapterInput {
   localStorageRoot: string
   identity: {
@@ -386,6 +531,7 @@ interface FinalCompositionAdapterInput {
   result: OfflineRemotionRenderResult
   qa: FinalCompositionQa
   sourceReadEvidenceHash: string
+  sourceTrimDependencyReadEvidenceHash: string
   captionDependencyReadEvidenceHash: string
 }
 
@@ -422,6 +568,7 @@ function adapters(input: FinalCompositionAdapterInput): {
             runnerEvidenceHash: sha256ArtifactQaValue({
               runtime: input.result.evidence,
               sourceReadEvidenceHash: input.sourceReadEvidenceHash,
+              sourceTrimDependencyReadEvidenceHash: input.sourceTrimDependencyReadEvidenceHash,
               captionDependencyReadEvidenceHash: input.captionDependencyReadEvidenceHash,
             }),
             startedAt: input.executionStartedAt,
@@ -469,9 +616,10 @@ function adapters(input: FinalCompositionAdapterInput): {
             failureScope: 'none' as const,
             evidenceHash: sha256ArtifactQaValue({
               sourceReadEvidenceHash: input.sourceReadEvidenceHash,
+              sourceTrimDependencyReadEvidenceHash: input.sourceTrimDependencyReadEvidenceHash,
               captionDependencyReadEvidenceHash: input.captionDependencyReadEvidenceHash,
             }),
-            notesCode: 'approved_source_caption_dependency_and_frame_preflight_passed',
+            notesCode: 'approved_source_trim_caption_dependency_and_frame_preflight_passed',
           }, {
             gateId: 'final_qa_gate' as const,
             category: 'asset_integrity' as const,
@@ -570,6 +718,7 @@ function assertFinalResult(
     result.artifact.durationFrames !== request.payload.durationFrames ||
     result.evidence.containerExitCode !== 0 || result.evidence.oomKilled ||
     result.evidence.semanticEvidence.approvedSourceBytesVerified !== true ||
+    result.evidence.semanticEvidence.approvedSourceTrimFramesApplied !== true ||
     result.evidence.semanticEvidence.approvedCaptionOverlayBytesVerified !== true ||
     result.evidence.semanticEvidence.sourceAudioPreservationRequested !== true ||
     result.evidence.semanticEvidence.finalCompositionProfileExecuted !== true ||

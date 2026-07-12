@@ -23,6 +23,7 @@ import { createCanonicalPrivateAudioFluxAnalysisExecutionService } from './canon
 import { createCanonicalPrivateBrowserGraphicsExecutionService } from './canonical-private-browser-graphics-execution-service'
 import { createCanonicalPrivateContainerPackagingValidationExecutionService } from './canonical-private-container-packaging-validation-execution-service'
 import { createCanonicalPrivateDeepFilterNetVoiceCleanupExecutionService } from './canonical-private-deepfilternet-voice-cleanup-execution-service'
+import { createCanonicalPrivateFinalCompositionExecutionService } from './canonical-private-final-composition-execution-service'
 import { createCanonicalPrivateLibassExecutionService } from './canonical-private-libass-execution-service'
 import { createCanonicalPrivateMediaBinaryExecutionService } from './canonical-private-media-binary-execution-service'
 import { createCanonicalPrivateNativeAudioProcessingExecutionService } from './canonical-private-native-audio-processing-execution-service'
@@ -188,6 +189,7 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
       let operationId: string
       let runnerClass: string
       let singleUseDispatchConsumed = false
+      let finalCompositionExecution = false
 
       if (internalServerJob) {
         operationId = internalSourceTrimJob
@@ -215,6 +217,10 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         canonicalToolId = provenTool.canonicalToolId
         operationId = provenTool.operationId
         runnerClass = provenRunnerClass
+        finalCompositionExecution =
+          provenTool.canonicalToolId === 'remotion' &&
+          workItem.workItemType === 'render_final_export' &&
+          expectedAsset.assetRole === 'final'
         const grant = (await createCanonicalPrivateToolDispatchAuthorityService(context).authorize({
           workspaceId: body.workspaceId,
           projectId: body.projectId,
@@ -257,6 +263,7 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
           grantId: grant.grant.grantId,
           idempotencyKey: stageKey('consume'),
           runnerClass: provenRunnerClass,
+          finalCompositionExecution,
           serverAuthority: { ...leaseAuthority, dispatchCredential: grant.dispatchCredential },
         })
         singleUseDispatchConsumed = true
@@ -272,6 +279,7 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         operationId,
         runnerClass,
         singleUseDispatchConsumed,
+        finalCompositionExecution,
         rawResponse,
         idempotentAdapterReplay: false,
       })
@@ -309,6 +317,7 @@ async function executeToolCoordinator(input: {
   grantId: string
   idempotencyKey: string
   runnerClass: ProvenToolRunnerClass
+  finalCompositionExecution: boolean
   serverAuthority: { leaseId: string; leaseCredential: string; dispatchCredential: string }
 }): Promise<CoordinatorResponse> {
   const base = {
@@ -343,9 +352,13 @@ async function executeToolCoordinator(input: {
       }, authority)
       break
     case 'offline_remotion_render_execution_v1':
-      response = await createCanonicalPrivateRemotionExecutionService(input.context).execute({
-        ...base, purpose: 'execute_canonical_private_remotion_tool',
-      }, authority)
+      response = input.finalCompositionExecution
+        ? await createCanonicalPrivateFinalCompositionExecutionService(input.context).execute({
+            ...base, purpose: 'execute_canonical_private_final_composition',
+          }, authority)
+        : await createCanonicalPrivateRemotionExecutionService(input.context).execute({
+            ...base, purpose: 'execute_canonical_private_remotion_tool',
+          }, authority)
       break
     case 'offline_libass_caption_execution_v1':
       response = await createCanonicalPrivateLibassExecutionService(input.context).execute({
@@ -411,10 +424,26 @@ function normalizeResponse(input: {
   operationId: string
   runnerClass: string
   singleUseDispatchConsumed: boolean
+  finalCompositionExecution: boolean
   rawResponse: CoordinatorResponse
   idempotentAdapterReplay: boolean
 }): CanonicalPrivateJobExecutionAdapterResponse {
   const result = input.rawResponse.result
+  const dependencyGates = input.finalCompositionExecution
+    ? normalizeFinalCompositionDependencyGates(input.rawResponse)
+    : {
+        privateTestDependencySatisfied: requireLiteral(
+          result.privateTestDependencySatisfied,
+          true,
+          'privateTestDependencySatisfied',
+        ),
+        liveRuntimeDependencySatisfied: requireLiteral(
+          result.liveRuntimeDependencySatisfied,
+          false,
+          'liveRuntimeDependencySatisfied',
+        ),
+        finalRenderAuthorized: requireLiteral(result.finalRenderAuthorized, false, 'finalRenderAuthorized'),
+      }
   const responseWithoutHash = {
     schemaVersion: 'canonical-private-job-execution-adapter-response-v1' as const,
     source: 'canonical_private_job_execution_adapter' as const,
@@ -442,17 +471,7 @@ function normalizeResponse(input: {
         'test_merged_not_live_authorized',
         'reconciliationDecision',
       ),
-      privateTestDependencySatisfied: requireLiteral(
-        result.privateTestDependencySatisfied,
-        true,
-        'privateTestDependencySatisfied',
-      ),
-      liveRuntimeDependencySatisfied: requireLiteral(
-        result.liveRuntimeDependencySatisfied,
-        false,
-        'liveRuntimeDependencySatisfied',
-      ),
-      finalRenderAuthorized: requireLiteral(result.finalRenderAuthorized, false, 'finalRenderAuthorized'),
+      ...dependencyGates,
     },
     evidence: {
       serverDerivedCanonicalJob: true as const,
@@ -507,6 +526,29 @@ function markReplay(response: CanonicalPrivateJobExecutionAdapterResponse): Cano
       evidence: { ...withoutHash.evidence, idempotentAdapterReplay: true },
     }),
   })
+}
+
+function normalizeFinalCompositionDependencyGates(response: CoordinatorResponse): {
+  privateTestDependencySatisfied: true
+  liveRuntimeDependencySatisfied: false
+  finalRenderAuthorized: false
+} {
+  const result = response.result
+  const permissions = requireRecord(response.permissions, 'permissions')
+  const runtime = requireRecord(response.runtime, 'runtime')
+  requireLiteral(result.privateFinalArtifactRecorded, true, 'privateFinalArtifactRecorded')
+  requireLiteral(result.publicDeliveryAuthorized, false, 'publicDeliveryAuthorized')
+  requireLiteral(result.settlementAuthorized, false, 'settlementAuthorized')
+  requireLiteral(permissions.furtherRender, false, 'permissions.furtherRender')
+  requireLiteral(permissions.publicDelivery, false, 'permissions.publicDelivery')
+  requireLiteral(runtime.productReady, false, 'runtime.productReady')
+  requireLiteral(runtime.externalBetaReady, false, 'runtime.externalBetaReady')
+  requireLiteral(runtime.productionReady, false, 'runtime.productionReady')
+  return {
+    privateTestDependencySatisfied: true,
+    liveRuntimeDependencySatisfied: false,
+    finalRenderAuthorized: false,
+  }
 }
 
 async function readPersistedResponse(
@@ -688,6 +730,13 @@ function requirePositiveInteger(value: unknown, field: string): number {
     throw new ApiError('VALIDATION_FAILED', `Canonical runner result has invalid ${field}.`, 409)
   }
   return value
+}
+
+function requireRecord(value: unknown, field: string): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new ApiError('VALIDATION_FAILED', `Canonical runner result has invalid ${field}.`, 409)
+  }
+  return value as Record<string, unknown>
 }
 
 function requireLiteral<T extends string | boolean>(value: unknown, expected: T, field: string): T {

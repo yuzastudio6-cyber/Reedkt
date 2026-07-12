@@ -761,7 +761,8 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     expectedAsset.assetRole === 'final' && expectedAsset.contentType === 'video/mp4' &&
     workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'remotion' &&
     body.operationId === 'tool.remotion.render_approved_composition.v1' &&
-    workItem.dependencyKeys.length === 1 && workItem.sourceSequenceItemIds.length === 1
+    workItem.dependencyKeys.length === 2 && workItem.sourceSequenceItemIds.length === 1 &&
+    workItem.sourceCleanupDecisionIds.length === 1
   if (
     !exactPrivateRemotionPreview && !exactPrivateLibassCaptionOverlay &&
     !exactPrivateRemotionFinalComposition && (
@@ -863,8 +864,12 @@ function resolveAndVerifyToolContract(
       } else if (spec.canonicalToolId === 'remotion') {
         if (workItem.workItemType === 'render_final_export') {
           validateOfflineRemotionFinalCompositionPlanningPayload(workItem.executionInput.structuredPayload)
-          if (workItem.sourceSequenceItemIds.length !== 1 || workItem.dependencyKeys.length !== 1) {
-            throw new Error('Bounded final Remotion composition requires one source and one approved caption dependency.')
+          if (
+            workItem.sourceSequenceItemIds.length !== 1 ||
+            workItem.sourceCleanupDecisionIds.length !== 1 ||
+            workItem.dependencyKeys.length !== 2
+          ) {
+            throw new Error('Bounded final Remotion composition requires one source, one trim decision, and two approved dependencies.')
           }
         } else {
           validateOfflineRemotionRenderPlanningPayload(workItem.executionInput.structuredPayload)
@@ -1002,7 +1007,8 @@ function resolveAndVerifyToolContract(
     spec.canonicalToolId === 'remotion' &&
     body.operationId === 'tool.remotion.render_approved_composition.v1' &&
     workItem.workItemType === 'render_final_export' && workItem.workerClass === 'render_worker' &&
-    workItem.sourceSequenceItemIds.length === 1 && workItem.dependencyKeys.length === 1 &&
+    workItem.sourceSequenceItemIds.length === 1 && workItem.sourceCleanupDecisionIds.length === 1 &&
+    workItem.dependencyKeys.length === 2 &&
     expectedAsset.assetRole === 'final' && expectedAsset.contentType === 'video/mp4'
   const exactPrivatePlaywrightCapture =
     spec.canonicalToolId === 'playwright' &&

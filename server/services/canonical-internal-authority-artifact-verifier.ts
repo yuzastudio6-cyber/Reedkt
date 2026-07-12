@@ -6,7 +6,16 @@ import type { PersistedArtifactResult } from '../validation/private-artifact-qa-
 import { stableAuthorityStringify } from './private-edit-authority-store'
 
 const AUTHORITY_ARTIFACT_SCHEMA_VERSION = 'canonical-authority-validation-artifact-v1'
-const AUTHORITY_RUNNER_CLASS = 'canonical_authority_validation_runner_v1'
+const AUTHORITY_PROFILES = {
+  authority_validation_evidence: {
+    validationProfile: 'snapshot',
+    runnerClass: 'canonical_authority_validation_runner_v1',
+  },
+  source_trim_validation_evidence: {
+    validationProfile: 'source_trim',
+    runnerClass: 'canonical_source_trim_validation_runner_v1',
+  },
+} as const
 const MAXIMUM_AUTHORITY_ARTIFACT_BYTES = 1024 * 1024
 const REQUIRED_CHECK_IDS = [
   'approved_snapshot_manifest_integrity',
@@ -29,7 +38,7 @@ export interface VerifiedCanonicalInternalAuthorityArtifact {
   immutableLeaseHash: string
   leaseAttemptNumber: number
   executionAttemptId: string
-  runnerClass: 'canonical_authority_validation_runner_v1'
+  runnerClass: 'canonical_authority_validation_runner_v1' | 'canonical_source_trim_validation_runner_v1'
 }
 
 /**
@@ -43,10 +52,13 @@ export async function verifyCanonicalInternalAuthorityArtifact(input: {
   artifact: PersistedArtifactResult
 }): Promise<VerifiedCanonicalInternalAuthorityArtifact> {
   const { artifact } = input
+  const profile = AUTHORITY_PROFILES[
+    artifact.lineage.artifactType as keyof typeof AUTHORITY_PROFILES
+  ]
   if (
+    !profile ||
     artifact.identity.expectedAssetId !== artifact.lineage.assetId ||
     artifact.identity.jobId === '' ||
-    artifact.lineage.artifactType !== 'authority_validation_evidence' ||
     artifact.lineage.assetRole !== 'qa' ||
     artifact.lineage.contentType !== 'application/json' ||
     artifact.content.contentType !== 'application/json' ||
@@ -57,7 +69,7 @@ export async function verifyCanonicalInternalAuthorityArtifact(input: {
     artifact.evidenceClass !== 'private_internal_test_attested' ||
     artifact.liveRuntimeEligible !== false ||
     artifact.actualRunEvidence.state !== 'actual_run_evidence_placeholder' ||
-    artifact.actualRunEvidence.runnerClass !== AUTHORITY_RUNNER_CLASS ||
+    artifact.actualRunEvidence.runnerClass !== profile.runnerClass ||
     artifact.actualRunEvidence.actualRunVerified !== false ||
     artifact.actualRunEvidence.toolIds.length !== 0 ||
     artifact.actualRunEvidence.providerRoute !== undefined
@@ -78,7 +90,7 @@ export async function verifyCanonicalInternalAuthorityArtifact(input: {
     throw invalidArtifact('Private canonical authority artifact bytes are missing or no longer match authority.')
   }
 
-  const report = parseSemanticReport(bytes)
+  const report = parseSemanticReport(bytes, profile.validationProfile)
   const identity = asRecord(report.identity)
   const authorityHashes = asRecord(report.authorityHashes)
   const executionFence = asRecord(report.executionFence)
@@ -99,7 +111,7 @@ export async function verifyCanonicalInternalAuthorityArtifact(input: {
     !Number.isInteger(executionFence.leaseAttemptNumber) ||
     Number(executionFence.leaseAttemptNumber) <= 0 ||
     executionFence.executionAttemptId !== artifact.actualRunEvidence.executionAttemptId ||
-    executionFence.runnerClass !== AUTHORITY_RUNNER_CLASS
+    executionFence.runnerClass !== profile.runnerClass
   ) {
     throw invalidArtifact('Private canonical authority artifact semantic lineage is inconsistent.')
   }
@@ -113,7 +125,7 @@ export async function verifyCanonicalInternalAuthorityArtifact(input: {
     immutableLeaseHash: executionFence.immutableLeaseHash,
     leaseAttemptNumber: Number(executionFence.leaseAttemptNumber),
     executionAttemptId: artifact.actualRunEvidence.executionAttemptId,
-    runnerClass: AUTHORITY_RUNNER_CLASS,
+    runnerClass: profile.runnerClass,
   }
 }
 
@@ -129,7 +141,10 @@ export function canonicalInternalAuthorityArtifactRelativePath(identityHash: str
   ].join('/')
 }
 
-function parseSemanticReport(bytes: Buffer): Record<string, unknown> {
+function parseSemanticReport(
+  bytes: Buffer,
+  expectedProfile: 'snapshot' | 'source_trim',
+): Record<string, unknown> {
   let parsed: unknown
   try {
     parsed = JSON.parse(bytes.toString('utf8'))
@@ -149,11 +164,40 @@ function parseSemanticReport(bytes: Buffer): Record<string, unknown> {
     report.schemaVersion !== AUTHORITY_ARTIFACT_SCHEMA_VERSION ||
     report.source !== 'immutable_canonical_edit_authority' ||
     report.valid !== true ||
+    report.validationProfile !== expectedProfile ||
+    (expectedProfile === 'snapshot' && report.sourceTrim !== null) ||
+    (expectedProfile === 'source_trim' && !validSourceTrimReport(report.sourceTrim)) ||
     stableAuthorityStringify(receivedCheckIds) !== stableAuthorityStringify(REQUIRED_CHECK_IDS)
   ) {
     throw invalidArtifact('Private canonical authority artifact failed semantic verification.')
   }
   return report
+}
+
+function validSourceTrimReport(value: unknown): boolean {
+  const report = asRecord(value)
+  const sourceIds = Array.isArray(report.sourceSequenceItemIds) ? report.sourceSequenceItemIds : []
+  const decisionIds = Array.isArray(report.sourceCleanupDecisionIds) ? report.sourceCleanupDecisionIds : []
+  const decisions = Array.isArray(report.decisions) ? report.decisions : []
+  if (
+    report.status !== 'confirmed' || sourceIds.length < 1 ||
+    !sourceIds.every((id) => typeof id === 'string') ||
+    decisionIds.length < 1 || !decisionIds.every((id) => typeof id === 'string') ||
+    new Set(decisionIds).size !== decisionIds.length || report.decisionCount !== decisionIds.length ||
+    decisions.length !== decisionIds.length || report.meaningPreservationValidated !== true ||
+    report.unresolvedUserReview !== false
+  ) return false
+  return decisions.every((value, index) => {
+    const decision = asRecord(value)
+    return decision.decisionId === decisionIds[index] &&
+      typeof decision.sourceSequenceItemId === 'string' && sourceIds.includes(decision.sourceSequenceItemId) &&
+      Number.isSafeInteger(decision.startFrame) && Number(decision.startFrame) >= 0 &&
+      Number.isSafeInteger(decision.endFrameExclusive) &&
+      Number(decision.endFrameExclusive) > Number(decision.startFrame) &&
+      typeof decision.reasonHash === 'string' && /^[a-f0-9]{64}$/.test(decision.reasonHash) &&
+      ['passed', 'warning'].includes(String(decision.meaningPreservationStatus)) &&
+      ['not_required', 'resolved'].includes(String(decision.userReviewStatus))
+  })
 }
 
 function asRecord(value: unknown): Record<string, unknown> {

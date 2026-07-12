@@ -23,7 +23,6 @@ import { createCanonicalPrivateDependencyArtifactReadService } from '../services
 import { createCanonicalPrivateSharpExecutionService } from '../services/canonical-private-sharp-execution-service'
 import { createCanonicalPrivateRemotionExecutionService } from '../services/canonical-private-remotion-execution-service'
 import { createCanonicalPrivateLibassExecutionService } from '../services/canonical-private-libass-execution-service'
-import { createCanonicalPrivateFinalCompositionExecutionService } from '../services/canonical-private-final-composition-execution-service'
 import { createCanonicalPrivateFinalArtifactDownloadService } from '../services/canonical-private-final-artifact-download-service'
 import { createCanonicalPrivateBrowserGraphicsExecutionService } from '../services/canonical-private-browser-graphics-execution-service'
 import { createCanonicalPrivateAiCapabilityExecutionService } from '../services/canonical-private-ai-capability-execution-service'
@@ -387,6 +386,8 @@ const trimProofWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candid
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'trim-proof-consumer')
 const validationWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'snapshot-validation-root')
+const sourceTrimValidationWorkItem = aggregateBeforeDispatch.approvedWorkItems.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.workItemKey === 'source-trim-validation')
 assert.ok(chartWorkItem)
 assert.ok(dependentChartWorkItem)
 assert.ok(sharpWorkItem)
@@ -421,10 +422,13 @@ assert.ok(probeProofWorkItem)
 assert.ok(trimWorkItem)
 assert.ok(trimProofWorkItem)
 assert.ok(validationWorkItem)
+assert.ok(sourceTrimValidationWorkItem)
 const chartJob = aggregateBeforeDispatch.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === chartWorkItem.id)
 const validationJob = aggregateBeforeDispatch.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === validationWorkItem.id)
+const sourceTrimValidationJob = aggregateBeforeDispatch.jobs.find((candidate) =>
+  candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === sourceTrimValidationWorkItem.id)
 const dependentChartJob = aggregateBeforeDispatch.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === dependentChartWorkItem.id)
 const sharpJob = aggregateBeforeDispatch.jobs.find((candidate) =>
@@ -491,6 +495,7 @@ const trimProofJob = aggregateBeforeDispatch.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId && candidate.approvedWorkItemId === trimProofWorkItem.id)
 assert.ok(chartJob)
 assert.ok(validationJob)
+assert.ok(sourceTrimValidationJob)
 assert.ok(dependentChartJob)
 assert.ok(sharpJob)
 assert.ok(sharpProofJob)
@@ -525,6 +530,7 @@ assert.ok(trimJob)
 assert.ok(trimProofJob)
 assert.deepEqual(chartJob.dependencyJobIds, [])
 assert.deepEqual(validationJob.dependencyJobIds, [])
+assert.deepEqual(sourceTrimValidationJob.dependencyJobIds, [validationJob.id])
 assert.deepEqual(dependentChartJob.dependencyJobIds, [validationJob.id])
 assert.deepEqual(sharpJob.dependencyJobIds, [chartJob.id])
 assert.deepEqual(sharpProofJob.dependencyJobIds, [sharpJob.id])
@@ -564,6 +570,8 @@ const aliasAsset = authority.assetManifest.entries.find((candidate) =>
   candidate.approvedWorkItemId === chartWorkItem.id && candidate.outputKey === 'chart-alias')
 const validationAsset = authority.assetManifest.entries.find((candidate) =>
   candidate.approvedWorkItemId === validationWorkItem.id)
+const sourceTrimValidationAsset = authority.assetManifest.entries.find((candidate) =>
+  candidate.approvedWorkItemId === sourceTrimValidationWorkItem.id)
 const dependentChartAsset = authority.assetManifest.entries.find((candidate) =>
   candidate.approvedWorkItemId === dependentChartWorkItem.id)
 const sharpAsset = authority.assetManifest.entries.find((candidate) =>
@@ -724,7 +732,8 @@ const finalCompositionAsset = authority.assetManifest.entries.find((candidate) =
   candidate.approvedWorkItemId === finalCompositionWorkItem.id)
 assert.ok(finalCompositionJob)
 assert.ok(finalCompositionAsset)
-assert.deepEqual(finalCompositionJob.dependencyJobIds, [libassJob.id])
+assert.ok(sourceTrimValidationAsset)
+assert.deepEqual(finalCompositionJob.dependencyJobIds, [sourceTrimValidationJob.id, libassJob.id])
 
 const leaseService = createCanonicalWorkerLeaseAuthorityService(context)
 const chartClaim = (await leaseService.claim({
@@ -2362,69 +2371,63 @@ await leaseService.release({
   idempotencyKey: 'release-libass-caption-overlay-proof',
 })
 
+const sourceTrimValidationClaim = (await leaseService.claim({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: sourceTrimValidationJob.id, purpose: 'private_internal_canonical_lease_claim',
+  idempotencyKey: 'claim-source-trim-validation-for-final-composition',
+})).workerLeaseClaim
+assert.equal(sourceTrimValidationClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
+assert.equal(sourceTrimValidationClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
+assert.equal(
+  sourceTrimValidationClaim.lease.dependencyAuthority.selectedArtifacts[0]?.artifactId,
+  validationRun.result.artifactId,
+)
+const sourceTrimValidationRun = await createCanonicalInternalAuthorityRunnerService(context).execute({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: sourceTrimValidationJob.id, expectedAssetId: sourceTrimValidationAsset.id,
+  purpose: 'execute_canonical_internal_source_trim_validation',
+}, {
+  leaseId: sourceTrimValidationClaim.lease.leaseId,
+  leaseCredential: sourceTrimValidationClaim.leaseCredential,
+})
+assert.equal(sourceTrimValidationRun.result.contentType, 'application/json')
+assert.equal(sourceTrimValidationRun.result.qaOutcome, 'passed')
+
 const finalCompositionClaim = (await leaseService.claim({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
   jobId: finalCompositionJob.id, purpose: 'private_internal_canonical_lease_claim',
   idempotencyKey: 'claim-remotion-source-caption-final',
 })).workerLeaseClaim
 assert.equal(finalCompositionClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
-assert.equal(finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
-assert.equal(
-  finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts[0]?.artifactId,
-  coordinatedLibass.result.artifactId,
+assert.equal(finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.length, 2)
+assert.deepEqual(
+  finalCompositionClaim.lease.dependencyAuthority.selectedArtifacts.map((artifact) => artifact.artifactId),
+  [sourceTrimValidationRun.result.artifactId, coordinatedLibass.result.artifactId],
 )
-const finalCompositionLeaseAuthority = {
-  leaseId: finalCompositionClaim.lease.leaseId,
+await leaseService.release({
+  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
+  jobId: finalCompositionJob.id, leaseId: finalCompositionClaim.lease.leaseId,
   leaseCredential: finalCompositionClaim.leaseCredential,
-}
-const finalCompositionGrant = (await dispatchService.authorize({
+  purpose: 'private_internal_canonical_lease_release',
+  idempotencyKey: 'release-final-composition-dependency-inspection-lease',
+})
+const finalCompositionAdapterInput = {
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: finalCompositionJob.id, approvedWorkItemId: finalCompositionWorkItem.id,
-  expectedAssetId: finalCompositionAsset.id, requestedToolName: 'remotion',
-  operationId: remotionOperationId,
-  purpose: 'private_internal_canonical_tool_dispatch_authorization',
-  idempotencyKey: 'authorize-remotion-source-caption-final',
-}, finalCompositionLeaseAuthority)).toolDispatchGrant
-assert.equal(finalCompositionGrant.grant.status, 'authorized')
-assert.equal(finalCompositionGrant.evidence.specPrivateInternalReady, true)
-assert.equal(finalCompositionGrant.evidence.runtimePrivateInternalReady, true)
-assert.equal(finalCompositionGrant.executionAuthority.privatePreviewRenderAuthorized, false)
-assert.equal(finalCompositionGrant.executionAuthority.privateFinalCompositionAuthorized, false)
-assert.equal(finalCompositionGrant.executionAuthority.renderAuthorized, false)
-assert.ok(finalCompositionGrant.dispatchCredential)
-const finalCompositionExecutionInput = {
-  workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: finalCompositionJob.id, grantId: finalCompositionGrant.grant.grantId,
-  purpose: 'execute_canonical_private_final_composition' as const,
-  idempotencyKey: 'consume-remotion-source-caption-final',
+  jobId: finalCompositionJob.id,
+  purpose: 'execute_canonical_private_job' as const,
+  idempotencyKey: 'adapter-remotion-source-trim-caption-final',
 }
-const finalCompositionExecutionAuthority = {
-  ...finalCompositionLeaseAuthority,
-  dispatchCredential: finalCompositionGrant.dispatchCredential,
-}
-const coordinatedFinalComposition = await createCanonicalPrivateFinalCompositionExecutionService(context).execute(
-  finalCompositionExecutionInput,
-  finalCompositionExecutionAuthority,
-)
-assert.equal(coordinatedFinalComposition.tool.canonicalToolId, 'remotion')
-assert.equal(coordinatedFinalComposition.tool.privateFinalCompositionExecuted, true)
-assert.equal(coordinatedFinalComposition.tool.approvedSourceObjectRead, true)
-assert.equal(coordinatedFinalComposition.tool.approvedCaptionDependencyRead, true)
-assert.equal(coordinatedFinalComposition.tool.sourceAudioPreserved, true)
-assert.equal(coordinatedFinalComposition.tool.providerCallMade, false)
-assert.equal(coordinatedFinalComposition.tool.publicDeliveryExecuted, false)
-assert.equal(coordinatedFinalComposition.inputs.sourceSequenceItemId, mediaSourceItem.sourceSequenceItemId)
-assert.equal(coordinatedFinalComposition.inputs.captionArtifactId, coordinatedLibass.result.artifactId)
-assert.equal(coordinatedFinalComposition.qa.videoCodecName, 'h264')
-assert.equal(coordinatedFinalComposition.qa.audioCodecName, 'aac')
-assert.equal(coordinatedFinalComposition.qa.audioSampleRate, 48_000)
-assert.equal(coordinatedFinalComposition.qa.frameCount, 48)
-assert.equal(coordinatedFinalComposition.qa.finalQaGatesPassed, true)
-assert.equal(coordinatedFinalComposition.result.assetRole, 'final')
+const coordinatedFinalComposition = await jobExecutionAdapter.execute(finalCompositionAdapterInput)
+assert.equal(coordinatedFinalComposition.identity.canonicalToolId, 'remotion')
+assert.equal(coordinatedFinalComposition.identity.runnerClass, 'offline_remotion_render_execution_v1')
 assert.equal(coordinatedFinalComposition.result.contentType, 'video/mp4')
-assert.equal(coordinatedFinalComposition.result.privateFinalArtifactRecorded, true)
-assert.equal(coordinatedFinalComposition.result.publicDeliveryAuthorized, false)
-assert.equal(coordinatedFinalComposition.result.settlementAuthorized, false)
+assert.equal(coordinatedFinalComposition.result.qaOutcome, 'passed')
+assert.equal(coordinatedFinalComposition.result.privateTestDependencySatisfied, true)
+assert.equal(coordinatedFinalComposition.result.liveRuntimeDependencySatisfied, false)
+assert.equal(coordinatedFinalComposition.result.finalRenderAuthorized, false)
+assert.equal(coordinatedFinalComposition.evidence.serverDerivedToolAndOperation, true)
+assert.equal(coordinatedFinalComposition.evidence.singleUseDispatchConsumed, true)
+assert.equal(coordinatedFinalComposition.readiness.productReady, false)
 const privateFinalDownloadInput = {
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
   snapshotId: snapshot.snapshotId, jobId: finalCompositionJob.id,
@@ -2452,24 +2455,16 @@ await expectApiError(
   }).read(privateFinalDownloadInput),
   'WORKSPACE_ACCESS_DENIED',
 )
-const coordinatedFinalCompositionReplay = await createCanonicalPrivateFinalCompositionExecutionService(context).execute(
-  finalCompositionExecutionInput,
-  finalCompositionExecutionAuthority,
-)
+const coordinatedFinalCompositionReplay = await jobExecutionAdapter.execute(finalCompositionAdapterInput)
 assert.equal(coordinatedFinalCompositionReplay.result.artifactId, coordinatedFinalComposition.result.artifactId)
 assert.equal(coordinatedFinalCompositionReplay.result.sha256, coordinatedFinalComposition.result.sha256)
-assert.equal(coordinatedFinalCompositionReplay.replay.dispatchConsumptionReplayed, true)
-assert.equal(coordinatedFinalCompositionReplay.replay.executionFenceBeginReplayed, true)
-assert.equal(coordinatedFinalCompositionReplay.replay.executionFenceCompleteReplayed, true)
-assert.equal(coordinatedFinalCompositionReplay.replay.artifactRecordReplayed, true)
-assert.equal(coordinatedFinalCompositionReplay.replay.qaRecordReplayed, true)
-assert.equal(coordinatedFinalCompositionReplay.replay.reconciliationReplayed, true)
+assert.equal(coordinatedFinalCompositionReplay.evidence.idempotentAdapterReplay, true)
 await leaseService.release({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
-  jobId: finalCompositionJob.id, leaseId: finalCompositionClaim.lease.leaseId,
-  leaseCredential: finalCompositionClaim.leaseCredential,
+  jobId: sourceTrimValidationJob.id, leaseId: sourceTrimValidationClaim.lease.leaseId,
+  leaseCredential: sourceTrimValidationClaim.leaseCredential,
   purpose: 'private_internal_canonical_lease_release',
-  idempotencyKey: 'release-remotion-source-caption-final',
+  idempotencyKey: 'release-source-trim-validation-for-final-composition',
 })
 await leaseService.release({
   workspaceId, projectId: snapshot.projectId, editSessionId: snapshot.editSessionId,
@@ -2759,6 +2754,7 @@ console.log(JSON.stringify({
     'remotion_private_preview_mp4_canonical_lifecycle_verified',
     'libass_caption_overlay_png_canonical_lifecycle_verified',
     'remotion_source_caption_private_final_mp4_canonical_lifecycle_verified',
+    'remotion_approved_source_trim_caption_private_final_mp4_adapter_lifecycle_verified',
     'ffprobe_binary_runtime_authorized_without_product_or_export_promotion',
     'ffprobe_reads_only_exact_approved_private_source_object_bytes',
     'ffprobe_json_artifact_actual_qa_reconciliation_and_idempotent_replay',
@@ -2770,7 +2766,7 @@ console.log(JSON.stringify({
     'consume_replay_can_resume_same_attempt_but_cannot_authorize_second_start',
     'private_preview_render_is_exact_remotion_only_while_final_render_provider_credit_wallet_settlement_remain_false',
     'caption_render_is_exact_libass_overlay_only_while_full_track_video_burnin_and_final_export_remain_false',
-    'private_final_composition_consumes_exact_source_and_caption_with_h264_aac_final_qa_while_public_delivery_and_settlement_remain_false',
+    'private_final_composition_consumes_exact_source_trim_authority_and_caption_with_h264_aac_final_qa_while_public_delivery_and_settlement_remain_false',
     'authenticated_private_final_mp4_download_reopens_exact_qa_passed_bytes_without_public_or_signed_url',
     'checksum_protected_restart_safe_private_store',
     'dependency_authority_binding_tamper_rejected_by_immutable_record_validation',
@@ -2966,6 +2962,14 @@ function createDispatchPlanBody(input: {
             metadata: { canonicalToolId: 'd3', operationId: input.d3OperationId },
           },
           {
+            lineKey: 'source-trim-validation-authority',
+            label: 'Canonical source trim validation authority',
+            category: 'internal_validation',
+            estimatedCredits: 1,
+            removable: false,
+            metadata: { operationId: 'internal.validate_approved_source_trim_plan.v1' },
+          },
+          {
             lineKey: 'structured-data-authority',
             label: 'Controlled data query authorization',
             category: 'controlled_tool',
@@ -3083,6 +3087,34 @@ function createDispatchPlanBody(input: {
             rendererLayerIds: [],
           }],
           dependencyKeys: [],
+          approvedToolIds: [],
+          providerExecutionMode: 'none',
+          fallbackPolicy: {},
+          maxAttempts: 1,
+          attemptTimeoutSeconds: 120,
+          scheduledDelaySeconds: 0,
+          maximumCreditBudget: 1,
+          required: true,
+        },
+        {
+          workItemKey: 'source-trim-validation',
+          workItemType: 'prepare_source_trim',
+          workerClass: 'authority_worker',
+          executionInput: { operation: 'validate_approved_source_trim_plan' },
+          sourceSequenceItemIds: [input.mediaSourceItem.sourceSequenceItemId],
+          sourceCleanupDecisionIds: ['cleanup-python-media-source'],
+          expectedOutputs: [{
+            outputKey: 'source-trim-validation-evidence',
+            artifactType: 'source_trim_validation_evidence',
+            assetRole: 'qa',
+            required: true,
+            previewPlaceholderAllowed: false,
+            contentType: 'application/json',
+            segmentIds: ['segment-1'],
+            timingIds: ['master-timing-plan'],
+            rendererLayerIds: ['source-video-layer'],
+          }],
+          dependencyKeys: ['snapshot-validation-root'],
           approvedToolIds: [],
           providerExecutionMode: 'none',
           fallbackPolicy: {},
@@ -3913,6 +3945,7 @@ function createDispatchPlanBody(input: {
             structuredPayload: {
               compositionProfileId: 'approved_source_caption_final_v1',
               width: 640, height: 360, fps: 24, durationFrames: 48,
+              sourceStartFrame: 0, sourceEndFrameExclusive: 48,
               sourceFit: 'contain', panelBackground: '#000000',
               audioPolicy: 'preserve_source',
               captionOverlayPolicy: 'approved_full_frame_rgba',
@@ -3931,7 +3964,7 @@ function createDispatchPlanBody(input: {
             timingIds: ['master-timing-plan'],
             rendererLayerIds: ['source-video-layer', 'libass-caption-overlay-layer'],
           }],
-          dependencyKeys: ['libass-caption-overlay-root'],
+          dependencyKeys: ['source-trim-validation', 'libass-caption-overlay-root'],
           approvedToolIds: ['remotion'],
           providerExecutionMode: 'none',
           fallbackPolicy: {},

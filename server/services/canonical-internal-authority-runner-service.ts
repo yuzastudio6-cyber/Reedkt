@@ -469,6 +469,9 @@ function buildAuthorityValidationReport(input: {
   workItemId: string
   expectedAssetId: string
 }) {
+  const workItem = input.authority.workItems.find((item) => item.id === input.workItemId)!
+  const cleanupDecisions = workItem.sourceCleanupDecisionIds.map((decisionId) =>
+    input.authority.components.sourceCleanupPlan.decisions.find((decision) => decision.decisionId === decisionId)!)
   return {
     schemaVersion: ARTIFACT_SCHEMA_VERSION,
     source: 'immutable_canonical_edit_authority',
@@ -510,9 +513,20 @@ function buildAuthorityValidationReport(input: {
     sourceTrim: input.profile.kind === 'source_trim'
       ? {
           status: 'confirmed' as const,
-          sourceSequenceItemIds: [...input.authority.workItems.find((item) => item.id === input.workItemId)!.sourceSequenceItemIds],
-          sourceCleanupDecisionIds: [...input.authority.workItems.find((item) => item.id === input.workItemId)!.sourceCleanupDecisionIds],
-          decisionCount: input.authority.workItems.find((item) => item.id === input.workItemId)!.sourceCleanupDecisionIds.length,
+          sourceSequenceItemIds: [...workItem.sourceSequenceItemIds],
+          sourceCleanupDecisionIds: [...workItem.sourceCleanupDecisionIds],
+          decisionCount: cleanupDecisions.length,
+          decisions: cleanupDecisions.map((decision) => ({
+            decisionId: decision.decisionId,
+            sourceSequenceItemId: decision.sourceSequenceItemId,
+            action: decision.action,
+            startFrame: decision.startFrame,
+            endFrameExclusive: decision.endFrameExclusive,
+            reasonHash: createHash('sha256').update(decision.reason).digest('hex'),
+            confidence: decision.confidence,
+            meaningPreservationStatus: decision.meaningPreservationStatus,
+            userReviewStatus: decision.userReviewStatus,
+          })),
           meaningPreservationValidated: true as const,
           unresolvedUserReview: false as const,
         }
@@ -717,12 +731,37 @@ function parseAuthorityValidationArtifact(bytes: Buffer): Record<string, unknown
 function validSourceTrimEvidence(value: unknown): boolean {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   const record = value as Record<string, unknown>
+  const sourceIds = Array.isArray(record.sourceSequenceItemIds) ? record.sourceSequenceItemIds : []
+  const decisionIds = Array.isArray(record.sourceCleanupDecisionIds) ? record.sourceCleanupDecisionIds : []
+  const decisions = Array.isArray(record.decisions) ? record.decisions : []
   return record.status === 'confirmed' &&
-    Array.isArray(record.sourceSequenceItemIds) && record.sourceSequenceItemIds.length > 0 &&
-    Array.isArray(record.sourceCleanupDecisionIds) && record.sourceCleanupDecisionIds.length > 0 &&
-    record.decisionCount === record.sourceCleanupDecisionIds.length &&
+    sourceIds.length > 0 && sourceIds.every((id) => typeof id === 'string') &&
+    decisionIds.length > 0 && decisionIds.every((id) => typeof id === 'string') &&
+    new Set(decisionIds).size === decisionIds.length &&
+    record.decisionCount === decisionIds.length && decisions.length === decisionIds.length &&
+    decisions.every((decision, index) => validSourceTrimDecision(
+      decision,
+      String(decisionIds[index]),
+      sourceIds as string[],
+    )) &&
     record.meaningPreservationValidated === true &&
     record.unresolvedUserReview === false
+}
+
+function validSourceTrimDecision(value: unknown, expectedDecisionId: string, sourceIds: string[]): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const decision = value as Record<string, unknown>
+  return decision.decisionId === expectedDecisionId &&
+    typeof decision.sourceSequenceItemId === 'string' && sourceIds.includes(decision.sourceSequenceItemId) &&
+    ['keep', 'cut', 'tighten', 'preserve', 'move_to_broll', 'use_as_voiceover', 'use_as_proof', 'use_as_alt_take']
+      .includes(String(decision.action)) &&
+    Number.isSafeInteger(decision.startFrame) && Number(decision.startFrame) >= 0 &&
+    Number.isSafeInteger(decision.endFrameExclusive) &&
+    Number(decision.endFrameExclusive) > Number(decision.startFrame) &&
+    typeof decision.reasonHash === 'string' && /^[a-f0-9]{64}$/.test(decision.reasonHash) &&
+    typeof decision.confidence === 'number' && decision.confidence >= 0 && decision.confidence <= 1 &&
+    ['passed', 'warning'].includes(String(decision.meaningPreservationStatus)) &&
+    ['not_required', 'resolved'].includes(String(decision.userReviewStatus))
 }
 
 async function verifyStoredArtifactBytes(input: {

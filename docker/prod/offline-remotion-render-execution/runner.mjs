@@ -71,7 +71,8 @@ function validateRequest(value) {
   const rawPayload = request.payload
   if (rawPayload && typeof rawPayload === 'object' && rawPayload.compositionProfileId === 'approved_source_caption_final_v1') {
     const payload = exactObject(rawPayload, [
-      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames', 'sourceFit',
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
       'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
       'sourceMimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
       'captionOverlayMimeType', 'captionOverlayByteLength', 'captionOverlaySha256',
@@ -88,6 +89,17 @@ function validateRequest(value) {
       payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source' ||
       payload.captionOverlayPolicy !== 'approved_full_frame_rgba'
     ) throw new Error('final composition policy is unsupported')
+    const durationFrames = integer(payload.durationFrames, 24, 240, 'durationFrames')
+    const sourceStartFrame = integer(payload.sourceStartFrame, 0, 100_000_000, 'sourceStartFrame')
+    const sourceEndFrameExclusive = integer(
+      payload.sourceEndFrameExclusive,
+      1,
+      100_000_000,
+      'sourceEndFrameExclusive',
+    )
+    if (sourceEndFrameExclusive - sourceStartFrame !== durationFrames) {
+      throw new Error('final composition source trim does not match approved duration')
+    }
     const color = (value, label) => {
       if (typeof value !== 'string' || !/^#[A-Fa-f0-9]{6}$/.test(value)) throw new Error(`${label} is invalid`)
       return value.toUpperCase()
@@ -97,7 +109,8 @@ function validateRequest(value) {
       payload: {
         ...payload,
         width: integer(payload.width, 360, 720, 'width'), height: integer(payload.height, 360, 720, 'height'),
-        fps: oneOf(payload.fps, [24, 30], 'fps'), durationFrames: integer(payload.durationFrames, 24, 240, 'durationFrames'),
+        fps: oneOf(payload.fps, [24, 30], 'fps'), durationFrames,
+        sourceStartFrame, sourceEndFrameExclusive,
         panelBackground: color(payload.panelBackground, 'panelBackground'),
         sourceBytesBase64: source.toString('base64'), captionOverlayBytesBase64: overlay.toString('base64'),
       },
@@ -152,6 +165,8 @@ async function execute(request) {
         compositionProfileId: request.payload.compositionProfileId,
         width: request.payload.width, height: request.payload.height,
         fps: request.payload.fps, durationFrames: request.payload.durationFrames,
+        sourceStartFrame: request.payload.sourceStartFrame,
+        sourceEndFrameExclusive: request.payload.sourceEndFrameExclusive,
         sourceFit: request.payload.sourceFit, panelBackground: request.payload.panelBackground,
         audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
         sourceInternalUrl: `${mediaServer.origin}/source.mp4`,
@@ -312,6 +327,7 @@ try {
         ? {
             approvedSourceBytesVerified: true,
             approvedCaptionOverlayBytesVerified: true,
+            approvedSourceTrimFramesApplied: true,
             sourceAudioPreservationRequested: true,
             finalCompositionProfileExecuted: true,
           }

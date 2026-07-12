@@ -1,4 +1,7 @@
+import { createHash } from 'node:crypto'
+
 import { ApiError } from '../errors/api-error'
+import { readPrivateFileIfExistsWithinRoot } from '../security/private-local-persistence'
 import type { ServiceContext } from '../types'
 import type { CanonicalWorkerLeaseDependencyAuthority } from '../validation/canonical-worker-lease-authority-schemas'
 import { verifyCanonicalStructuredJsonArtifact } from './canonical-structured-json-artifact-verifier'
@@ -13,6 +16,10 @@ import { createPrivateArtifactQaAuthorityService } from './private-artifact-qa-a
 import { sha256AuthorityValue } from './private-edit-authority-store'
 import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
+import {
+  canonicalInternalAuthorityArtifactRelativePath,
+  verifyCanonicalInternalAuthorityArtifact,
+} from './canonical-internal-authority-artifact-verifier'
 
 export interface CanonicalPrivateDependencyArtifactReadResult {
   bytes: Buffer
@@ -48,17 +55,23 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
       dependencyAuthority: CanonicalWorkerLeaseDependencyAuthority
       allowedContentTypes: readonly ('image/svg+xml' | 'application/json' | 'image/png' | 'image/jpeg' | 'image/webp')[]
       maximumBytes: number
+      selectedArtifactIndex?: number
     }): Promise<CanonicalPrivateDependencyArtifactReadResult> {
       assertPrivateRuntime(context)
       const actorUserId = getRequiredAuthUserId(context)
       const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
       if (access.userId !== actorUserId) throw invalid('Dependency reader is outside this workspace.')
+      const selectedArtifactIndex = input.selectedArtifactIndex ?? 0
       if (
         input.dependencyAuthority.state !== 'private_test_dependencies_verified' ||
         input.dependencyAuthority.liveRuntimeEligible !== false ||
-        input.dependencyAuthority.selectedArtifacts.length !== 1 ||
+        input.dependencyAuthority.selectedArtifacts.length < 1 ||
+        input.dependencyAuthority.selectedArtifacts.length > 8 ||
+        (input.selectedArtifactIndex === undefined && input.dependencyAuthority.selectedArtifacts.length !== 1) ||
+        !Number.isSafeInteger(selectedArtifactIndex) || selectedArtifactIndex < 0 ||
+        selectedArtifactIndex >= input.dependencyAuthority.selectedArtifacts.length ||
         input.maximumBytes < 1 || input.maximumBytes > 16 * 1024 * 1024
-      ) throw invalid('Bounded dependency execution requires exactly one selected private artifact.')
+      ) throw invalid('Bounded dependency execution requires an exact server-selected private artifact.')
       const verifiedLease = (await createCanonicalWorkerLeaseAuthorityService(context).verifyActive({
         workspaceId: access.workspaceId,
         projectId: input.projectId,
@@ -84,7 +97,7 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
         sha256AuthorityValue(verifiedLease.dependencyAuthority) !==
           sha256AuthorityValue(input.dependencyAuthority)
       ) throw invalid('Dependency read is not bound to the active started lease execution attempt.')
-      const selected = input.dependencyAuthority.selectedArtifacts[0]!
+      const selected = input.dependencyAuthority.selectedArtifacts[selectedArtifactIndex]!
       const authority = await createPrivateArtifactQaAuthorityService(context).readArtifactAuthority({
         workspaceId: access.workspaceId,
         projectId: input.projectId,
@@ -95,6 +108,10 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
         artifactId: selected.artifactId,
         purpose: 'read_private_artifact_qa_authority',
       })
+      const internalAuthorityArtifact = [
+        'authority_validation_evidence',
+        'source_trim_validation_evidence',
+      ].includes(authority.artifact.lineage.artifactType)
       if (
         authority.artifact.artifactId !== selected.artifactId ||
         authority.artifact.artifactVersion !== selected.artifactVersion ||
@@ -104,7 +121,10 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
         authority.reconciliation?.reconciliationId !== selected.reconciliationId ||
         authority.reconciliation.decision !== 'test_merged_not_live_authorized' ||
         !authority.reconciliation.privateTestDependencySatisfied ||
-        authority.artifact.actualRunEvidence.state !== 'actual_run_evidence_verified_v2' ||
+        (!internalAuthorityArtifact &&
+          authority.artifact.actualRunEvidence.state !== 'actual_run_evidence_verified_v2') ||
+        (internalAuthorityArtifact &&
+          authority.artifact.actualRunEvidence.state !== 'actual_run_evidence_placeholder') ||
         authority.artifact.actualRunEvidence.executionAttemptId !== selected.executionAttemptId ||
         authority.liveRuntimeEligible !== false ||
         !input.allowedContentTypes.includes(authority.artifact.content.contentType as CanonicalPrivateDependencyArtifactReadResult['contentType'])
@@ -116,7 +136,12 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
             localStorageRoot: context.env.localStorageRoot,
             artifact: authority.artifact,
           })
-        : contentType === 'application/json'
+        : contentType === 'application/json' && internalAuthorityArtifact
+          ? await verifyCanonicalInternalAuthorityArtifact({
+              localStorageRoot: context.env.localStorageRoot,
+              artifact: authority.artifact,
+            })
+          : contentType === 'application/json'
           ? await verifyCanonicalStructuredJsonArtifact({
               localStorageRoot: context.env.localStorageRoot,
               artifact: authority.artifact,
@@ -135,7 +160,12 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
             localStorageRoot: context.env.localStorageRoot,
             privateObjectIdentityHash: verified.privateObjectIdentityHash,
           })
-        : contentType === 'application/json'
+        : contentType === 'application/json' && internalAuthorityArtifact
+          ? await readInternalAuthorityArtifact({
+              localStorageRoot: context.env.localStorageRoot,
+              privateObjectIdentityHash: verified.privateObjectIdentityHash,
+            })
+          : contentType === 'application/json'
           ? await readCanonicalStructuredJsonArtifact({
               localStorageRoot: context.env.localStorageRoot,
               privateObjectIdentityHash: verified.privateObjectIdentityHash,
@@ -159,6 +189,8 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
         leaseId: input.leaseId, executionAttemptId: input.executionAttemptId,
         dispatchGrantId: input.dispatchGrantId,
         dependencyAuthorityHash: input.dependencyAuthority.authorityHash,
+        selectedArtifactIndex,
+        selectedArtifactCount: input.dependencyAuthority.selectedArtifacts.length,
         selection: selected,
         contentType, sha256: stored.sha256, byteLength: stored.byteLength,
         sourceLeaseImmutableHash: selected.sourceLeaseImmutableHash,
@@ -174,6 +206,22 @@ export function createCanonicalPrivateDependencyArtifactReadService(context: Ser
         dependencyReadEvidenceHash: sha256AuthorityValue(evidence),
       }
     },
+  }
+}
+
+async function readInternalAuthorityArtifact(input: {
+  localStorageRoot: string
+  privateObjectIdentityHash: string
+}): Promise<{ bytes: Buffer; sha256: string; byteLength: number } | undefined> {
+  const bytes = await readPrivateFileIfExistsWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath: canonicalInternalAuthorityArtifactRelativePath(input.privateObjectIdentityHash),
+  })
+  if (!bytes) return undefined
+  return {
+    bytes,
+    sha256: createHash('sha256').update(bytes).digest('hex'),
+    byteLength: bytes.byteLength,
   }
 }
 

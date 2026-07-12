@@ -1,7 +1,8 @@
 import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import type { SaveProjectEditBriefLocalRequest } from '../validation/project-edit-brief-local-schemas'
-import { createMockId, getRequiredAuthUserId, mockWarning, nowIso, sanitizeJson } from './service-helpers'
+import { createMockId, mockWarning, nowIso, sanitizeJson } from './service-helpers'
+import { authorizeWorkspaceAccess } from './workspace-access-service'
 
 type SaveProjectEditBriefLocalInput = SaveProjectEditBriefLocalRequest & {
   editSessionId: string
@@ -40,7 +41,8 @@ const mockBriefIdempotency = new Map<string, string>()
 export function createProjectEditBriefLocalService(context: ServiceContext) {
   return {
     async saveProjectEditBrief(input: SaveProjectEditBriefLocalInput) {
-      const userId = getRequiredAuthUserId(context)
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
+      const userId = access.userId
       assertSafeBriefInput(input)
 
       if (context.clients.admin && !context.env.mockOnly) {
@@ -51,10 +53,10 @@ export function createProjectEditBriefLocalService(context: ServiceContext) {
         )
       }
 
-      const replayKey = `${input.workspaceId}:${userId}:${input.idempotencyKey}`
-      const replayId = mockBriefIdempotency.get(replayKey)
-      if (replayId) {
-        const replayed = mockBriefsById.get(replayId)
+      const replayKey = `${access.workspaceId}:${userId}:${input.idempotencyKey}`
+      const replayRecordKey = mockBriefIdempotency.get(replayKey)
+      if (replayRecordKey) {
+        const replayed = mockBriefsById.get(replayRecordKey)
         if (replayed) {
           return {
             editBrief: { ...replayed, readbackVerified: true },
@@ -66,9 +68,9 @@ export function createProjectEditBriefLocalService(context: ServiceContext) {
         }
       }
 
-      const sessionKey = sessionBriefKey(input.workspaceId, input.projectId, input.editSessionId)
-      const existingId = mockBriefIdBySession.get(sessionKey)
-      const existing = existingId ? mockBriefsById.get(existingId) : undefined
+      const sessionKey = sessionBriefKey(userId, access.workspaceId, input.projectId, input.editSessionId)
+      const existingRecordKey = mockBriefIdBySession.get(sessionKey)
+      const existing = existingRecordKey ? mockBriefsById.get(existingRecordKey) : undefined
       const now = nowIso()
       const briefText = sanitizeBriefText(input.briefText)
       const record: BackendLocalProjectEditBriefRecord = existing
@@ -84,7 +86,7 @@ export function createProjectEditBriefLocalService(context: ServiceContext) {
           }
         : {
             id: createMockId('edit_brief'),
-            workspaceId: input.workspaceId,
+            workspaceId: access.workspaceId,
             projectId: input.projectId,
             editSessionId: input.editSessionId,
             briefText,
@@ -106,9 +108,10 @@ export function createProjectEditBriefLocalService(context: ServiceContext) {
             mockOnly: true,
           }
 
-      mockBriefsById.set(record.id, record)
-      mockBriefIdBySession.set(sessionKey, record.id)
-      mockBriefIdempotency.set(replayKey, record.id)
+      const recordKey = briefRecordKey(userId, access.workspaceId, record.id)
+      mockBriefsById.set(recordKey, record)
+      mockBriefIdBySession.set(sessionKey, recordKey)
+      mockBriefIdempotency.set(replayKey, recordKey)
 
       return {
         editBrief: record,
@@ -124,6 +127,7 @@ export function createProjectEditBriefLocalService(context: ServiceContext) {
       projectId: string
       editSessionId: string
     }) {
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'read')
       if (context.clients.admin && !context.env.mockOnly) {
         throw new ApiError(
           'MOCK_ONLY',
@@ -132,8 +136,13 @@ export function createProjectEditBriefLocalService(context: ServiceContext) {
         )
       }
 
-      const briefId = mockBriefIdBySession.get(sessionBriefKey(input.workspaceId, input.projectId, input.editSessionId))
-      const record = briefId ? mockBriefsById.get(briefId) : undefined
+      const recordKey = mockBriefIdBySession.get(sessionBriefKey(
+        access.userId,
+        access.workspaceId,
+        input.projectId,
+        input.editSessionId,
+      ))
+      const record = recordKey ? mockBriefsById.get(recordKey) : undefined
       if (!record) {
         throw new ApiError('PROJECT_NOT_FOUND', 'Backend-local edit brief was not found for this edit session.', 404)
       }
@@ -146,8 +155,21 @@ export function createProjectEditBriefLocalService(context: ServiceContext) {
   }
 }
 
-function sessionBriefKey(workspaceId: string, projectId: string, editSessionId: string): string {
-  return `${workspaceId}:${projectId}:${editSessionId}`
+function sessionBriefKey(
+  ownerUserId: string,
+  workspaceId: string,
+  projectId: string,
+  editSessionId: string,
+): string {
+  return scopedKey(ownerUserId, workspaceId, projectId, editSessionId)
+}
+
+function briefRecordKey(ownerUserId: string, workspaceId: string, briefId: string): string {
+  return scopedKey(ownerUserId, workspaceId, briefId)
+}
+
+function scopedKey(...values: string[]): string {
+  return values.map((value) => `${value.length}:${value}`).join('|')
 }
 
 function assertSafeBriefInput(input: SaveProjectEditBriefLocalInput): void {

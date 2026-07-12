@@ -19,6 +19,9 @@ import { createExactEditPreferenceRoutes } from './routes/exact-edit-preference-
 import { createHealthRoutes } from './routes/health-routes'
 import { createInternalEditStateRoutes } from './routes/internal-edit-state-routes'
 import { createJobRoutes } from './routes/job-routes'
+import { createProjectEditBriefLocalRoutes } from './routes/project-edit-brief-local-routes'
+import { createProjectEditPlanRoutes } from './routes/project-edit-plan-routes'
+import { createProjectEditSessionRoutes } from './routes/project-edit-session-routes'
 import { createProjectRoutes } from './routes/project-routes'
 import { createPreferenceIntelligenceRoutes } from './routes/preference-intelligence-routes'
 import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
@@ -72,6 +75,11 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
 
   app.use(createHealthRoutes())
   app.use(createProjectRoutes())
+  if (isExplicitLocalInternalTestRuntime(env)) {
+    app.use(createProjectEditSessionRoutes())
+    app.use(createProjectEditBriefLocalRoutes())
+    app.use(createProjectEditPlanRoutes())
+  }
   app.use(createEditPreferenceRoutes())
   app.use(createExactEditPreferenceRoutes())
   app.use(createPreferenceIntelligenceRoutes())

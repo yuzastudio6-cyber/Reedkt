@@ -29,6 +29,8 @@ One persisted handoff can publish exactly one full canonical publication request
 
 The former direct HTTP route, `POST /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-plans`, now fails closed with `TOOL_NOT_READY` and identifies the persisted-handoff publication route as its replacement. Service-level construction remains available to bounded backend fixtures, but authenticated HTTP callers cannot bypass persisted server-loaded planning/source authority.
 
+The older `local-edit-plans` route is available only in the explicit local/internal testing runtime. Its response is classified `legacy_local_preview_only`, is owner/workspace scoped, and grants no canonical-plan, snapshot, credit, tool, provider, worker, or render authority. It cannot substitute for this persisted handoff or the internal handoff-bound publication route.
+
 Authenticated restart/recovery inspection is available at:
 
 `GET /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId?workspaceId=:workspaceId`
@@ -80,6 +82,7 @@ This slice does not add frontend consumption, Supabase, RLS, cloud storage, prov
 - `npm run typecheck:server`
 - `npm run lint`
 - `npm run smoke:edit-planning-authority`
+- `npm run smoke:backend-local-journey-authority`
 - `npm run smoke:canonical-private-tool-dispatch`
 - `npm run smoke:proven-tool-identities`
 - `npm run qa:internal-pipeline`

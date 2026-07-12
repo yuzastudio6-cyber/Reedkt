@@ -113,6 +113,9 @@ for (const editSession of [
   'edit-session-missing-tool-operation',
   'edit-session-spoofed-tool-operation',
   'edit-session-policy-blocked-tool',
+  'edit-session-undeclared-tool-authority',
+  'edit-session-missing-exact-operation-authority',
+  'edit-session-unproven-required-tool',
   'edit-session-tool-free-final-export',
   'edit-session-veo-basic',
   'edit-session-default-trim-blocked',
@@ -127,7 +130,14 @@ for (const editSession of [
 }
 sourceMediaFixtures.set(project.id, await prepareSourceMediaAuthority(context, workspaceId, project.id, 'main'))
 
-const published = await service.publishCanonicalPlan(createPublishInput(project.id, 'edit-session-authority-1'))
+const primaryPublishInput = createPublishInput(project.id, 'edit-session-authority-1')
+const primaryPublishInputHash = sha256AuthorityValue(primaryPublishInput)
+const published = await service.publishCanonicalPlan(primaryPublishInput)
+assert.equal(
+  sha256AuthorityValue(primaryPublishInput),
+  primaryPublishInputHash,
+  'Server reconciliation must never mutate the hash-bound publication request.',
+)
 const publishedAuthority = asRecord(published.authority)
 const publishedPlan = asRecord(publishedAuthority.plan)
 const publishedEstimate = asRecord(publishedAuthority.estimate)
@@ -136,6 +146,42 @@ assert.equal(publishedPlan.status, 'presented')
 assert.match(String(publishedPlan.planHash), /^[a-f0-9]{64}$/)
 assert.match(String(publishedEstimate.estimateHash), /^[a-f0-9]{64}$/)
 assert.equal('compiledIntent' in publishedPlan, false, 'Plan response should expose content references, not duplicate raw plan payloads.')
+const publishedComponentRefs = asRecord(publishedPlan.componentRefs)
+const toolExecutionAuthorityRef = asRecord(
+  publishedComponentRefs.canonicalToolExecutionAuthority,
+)
+const persistedToolExecutionAuthority = asRecord(await readPrivateAuthorityJsonBlob({
+  localStorageRoot,
+  ref: {
+    sha256: String(toolExecutionAuthorityRef.sha256),
+    byteLength: Number(toolExecutionAuthorityRef.byteLength),
+  },
+}))
+assert.equal(
+  persistedToolExecutionAuthority.source,
+  'server_proven_tool_identity_catalog_reconciliation',
+)
+assert.match(String(persistedToolExecutionAuthority.authorityHash), /^[a-f0-9]{64}$/)
+assert.equal(asRecord(persistedToolExecutionAuthority.summary).workGraphToolCount, 2)
+assert.equal(
+  asRecord(persistedToolExecutionAuthority.summary).allRequiredToolsPrivateEndToEndReady,
+  true,
+)
+assert.equal(
+  asRecord(persistedToolExecutionAuthority.summary).allRequiredToolsPrivateJobAdapterReady,
+  true,
+)
+const persistedToolEntries = persistedToolExecutionAuthority.tools as Record<string, unknown>[]
+assert.deepEqual(
+  persistedToolEntries.map((entry) => entry.canonicalToolId),
+  ['ffmpeg', 'ffprobe'],
+)
+assert.ok(persistedToolEntries.every((entry) =>
+  String(entry.stableToolIdentity).startsWith('reeditpro.tool.') &&
+  /^[a-f0-9]{64}$/.test(String(entry.identityHash)) &&
+  /^[a-f0-9]{64}$/.test(String(entry.proofHash)) &&
+  asRecord(entry.readiness).privateInternalEndToEndReady === true &&
+  asRecord(entry.readiness).privateInternalJobAdapterReady === true))
 
 const replayedPublish = await service.publishCanonicalPlan(createPublishInput(project.id, 'edit-session-authority-1'))
 assert.deepEqual(replayedPublish.authority, published.authority, 'Exact plan publish replay must return the exact persisted response.')
@@ -291,6 +337,62 @@ await expectApiError(
 )
 
 await expectApiError(
+  () => service.publishCanonicalPlan(createPublishInput(project.id, 'edit-session-undeclared-tool-authority', {
+    planningRequestId: 'planning-undeclared-tool-authority',
+    idempotencyKey: 'publish-undeclared-tool-authority',
+    mutateBody(body) {
+      body.canonicalPlan.components.toolStrategyPlan = {
+        toolIds: ['ffprobe'],
+        exactOperationIds: ['tool.ffprobe.inspect_approved_media.v1'],
+      }
+    },
+  })),
+  'VALIDATION_FAILED',
+  'A work-item tool absent from the approved tool strategy must fail before plan persistence.',
+)
+
+await expectApiError(
+  () => service.publishCanonicalPlan(createPublishInput(project.id, 'edit-session-missing-exact-operation-authority', {
+    planningRequestId: 'planning-missing-exact-operation-authority',
+    idempotencyKey: 'publish-missing-exact-operation-authority',
+    mutateBody(body) {
+      body.canonicalPlan.components.toolStrategyPlan = {
+        toolIds: ['ffmpeg', 'ffprobe'],
+        exactOperationIds: ['tool.ffprobe.inspect_approved_media.v1'],
+      }
+    },
+  })),
+  'VALIDATION_FAILED',
+  'Exact tool strategy authority must include every work-graph operation identity.',
+)
+
+await expectApiError(
+  () => service.publishCanonicalPlan(createPublishInput(project.id, 'edit-session-unproven-required-tool', {
+    planningRequestId: 'planning-unproven-required-tool',
+    idempotencyKey: 'publish-unproven-required-tool',
+    mutateBody(body) {
+      const sourceTrim = body.canonicalPlan.workItems.find((workItem) =>
+        workItem.workItemKey === 'source-trim')
+      assert.ok(sourceTrim)
+      sourceTrim.approvedToolIds = ['sam2']
+      sourceTrim.executionInput.approvedToolOperationIds = [
+        'tool.sam2.segment_and_track_subject.v1',
+      ]
+      body.canonicalPlan.components.toolStrategyPlan = {
+        toolIds: ['sam2', 'ffmpeg', 'ffprobe'],
+        exactOperationIds: [
+          'tool.sam2.segment_and_track_subject.v1',
+          'tool.ffmpeg.execute_approved_media_recipe.v1',
+          'tool.ffprobe.inspect_approved_media.v1',
+        ],
+      }
+    },
+  })),
+  'TOOL_NOT_READY',
+  'A required tool without canonical lifecycle and job-adapter evidence must not enter an approvable plan.',
+)
+
+await expectApiError(
   () => service.publishCanonicalPlan(createPublishInput(project.id, 'edit-session-tool-free-final-export', {
     planningRequestId: 'planning-tool-free-final-export',
     idempotencyKey: 'publish-tool-free-final-export',
@@ -382,6 +484,11 @@ assert.equal(loadedExecutionAuthority.assetManifest.manifestHash, snapshot.appro
 assert.equal(loadedExecutionAuthority.sourceAssetManifest.bindings.length, 2)
 assert.equal(loadedExecutionAuthority.sourceAssetManifest.requiredBindingCount, 2)
 assert.equal(loadedExecutionAuthority.sourceAssetManifest.manifestHash, snapshot.approvedSourceAssetManifestHash)
+assert.equal(loadedExecutionAuthority.toolExecutionAuthority.authorityHash, persistedToolExecutionAuthority.authorityHash)
+assert.deepEqual(
+  loadedExecutionAuthority.toolExecutionAuthority.tools.map((tool) => tool.canonicalToolId),
+  ['ffmpeg', 'ffprobe'],
+)
 
 const executionPackageInput = {
   workspaceId,
@@ -562,6 +669,31 @@ try {
   )
 } finally {
   await writeFile(sourceManifestPath, originalSourceManifestEnvelope, 'utf8')
+}
+
+const toolAuthoritySha = String(toolExecutionAuthorityRef.sha256)
+const toolAuthorityPath = join(
+  localStorageRoot,
+  'edit-authority',
+  'blobs',
+  'sha256',
+  toolAuthoritySha.slice(0, 2),
+  `${toolAuthoritySha}.json`,
+)
+const originalToolAuthorityEnvelope = await readFile(toolAuthorityPath, 'utf8')
+try {
+  const tamperedEnvelope = JSON.parse(originalToolAuthorityEnvelope) as {
+    value: { tools: Array<{ identityHash: string }> }
+  }
+  tamperedEnvelope.value.tools[0]!.identityHash = '0'.repeat(64)
+  await writeFile(toolAuthorityPath, `${JSON.stringify(tamperedEnvelope)}\n`, 'utf8')
+  await expectApiError(
+    () => service.loadApprovedExecutionAuthority(String(snapshot.snapshotId), workspaceId),
+    'VALIDATION_FAILED',
+    'Tampered frozen tool identity authority must fail before execution packaging.',
+  )
+} finally {
+  await writeFile(toolAuthorityPath, originalToolAuthorityEnvelope, 'utf8')
 }
 
 await provePreferenceAndBriefCanonicalBinding(context)
@@ -2796,6 +2928,11 @@ console.log(JSON.stringify({
     'frame_confirmation_gate',
     'work_graph_cycle_gate',
     'production_tool_registry_gate',
+    'server_proven_tool_identity_authority_frozen_into_plan_and_snapshot',
+    'tool_authority_reconciliation_does_not_mutate_hash_bound_publication_input',
+    'tool_strategy_work_graph_and_exact_operation_reconciliation_gate',
+    'required_tool_canonical_lifecycle_and_job_adapter_readiness_gate',
+    'tool_identity_authority_tamper_rejected_before_execution_packaging',
     'basic_pro_normal_no_veo_gate',
     'no_default_or_full_file_trim_without_approved_decisions',
     'expected_output_uniqueness_gate',
@@ -2973,7 +3110,13 @@ function createCanonicalPlanBody(
         ],
         visualAssetPlan: { assets: [], randomBrollAllowed: false },
         rendererPlan: { renderer: 'remotion', frameOwnedByRenderer: true },
-        toolStrategyPlan: { toolIds: ['ffmpeg', 'ffprobe'] },
+        toolStrategyPlan: {
+          toolIds: ['ffmpeg', 'ffprobe'],
+          exactOperationIds: [
+            'tool.ffmpeg.execute_approved_media_recipe.v1',
+            'tool.ffprobe.inspect_approved_media.v1',
+          ],
+        },
         qaPlan: { status: 'passed', checks: ['intent', 'timing', 'source_order', 'frame'] },
         qaSummary: { status: 'passed', approvalBlocked: false },
         providerPolicy: { veoPolicy: 'forbidden', approvedRoutes: ['wan'] },

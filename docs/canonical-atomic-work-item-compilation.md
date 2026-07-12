@@ -73,6 +73,12 @@ the plan hash and approved snapshot lineage. When publication comes through the
 persisted planning-handoff route, the original grouped publication candidate
 also remains privately persisted and content-addressed.
 
+After compilation, the server derives the canonical tool execution authority
+from the resulting atomic graph. That second authority freezes the proven
+stable tool identity, exact operation, proof hashes, runtime class, linked work
+items, and required private-readiness gates before plan hashing and approval.
+See `docs/canonical-tool-execution-authority.md`.
+
 ## Execution evidence
 
 The bounded private lifecycle proves a grouped D3-to-ECharts planner node is

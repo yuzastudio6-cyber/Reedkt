@@ -1,4 +1,10 @@
 import { randomUUID } from 'node:crypto'
+import {
+  assertCanonicalToolExecutionAuthority,
+  createCanonicalToolExecutionAuthority,
+  type CanonicalToolAuthorityWorkItem,
+  type CanonicalToolExecutionAuthority,
+} from '../edit-architecture/canonical-tool-execution-authority'
 import { compileCanonicalWorkItems } from '../edit-architecture/canonical-work-item-compiler'
 import { ApiError } from '../errors/api-error'
 import { isExplicitLocalInternalTestRuntime } from '../middleware/canonical-worker-runtime'
@@ -78,6 +84,7 @@ export interface CanonicalApprovedExecutionAuthority {
   assetManifest: AuthorityPlannedAssetManifest
   planningInputAuthority: ResolvedPlanningInputAuthorityBinding
   planningHandoffAuthority?: CanonicalPlanningHandoffPublicationBinding
+  toolExecutionAuthority: CanonicalToolExecutionAuthority
   sourceAssetManifest: ApprovedSourceBindingManifest
   workItems: CanonicalApprovedExecutionWorkItem[]
   jobs: AuthorityDerivedJobRecord[]
@@ -184,6 +191,10 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       }
       const idempotencyKey = requireIdempotencyKey(input.idempotencyKey)
       validateCanonicalPlanDraft(canonicalPlan.components, canonicalPlan.workItems, canonicalPlan.estimate)
+      const toolExecutionAuthority = createCanonicalToolExecutionAuthority({
+        toolStrategyPlan: canonicalPlan.components.toolStrategyPlan,
+        workItems: canonicalPlan.workItems,
+      })
       const revisionDecision = body.revisionAuthority
         ? await validateRevisionPublicationAuthority({
             context,
@@ -246,6 +257,11 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         sourceMediaAuthority: await putPrivateAuthorityJsonBlob({
           localStorageRoot: context.env.localStorageRoot,
           value: sourceMediaAuthority as unknown as Record<string, unknown>,
+          maxBytes: 2 * 1024 * 1024,
+        }),
+        canonicalToolExecutionAuthority: await putPrivateAuthorityJsonBlob({
+          localStorageRoot: context.env.localStorageRoot,
+          value: toolExecutionAuthority as unknown as Record<string, unknown>,
           maxBytes: 2 * 1024 * 1024,
         }),
       }
@@ -519,6 +535,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
                 `Canonical work graph compiled ${workItemCompilation.evidence.decomposedSourceWorkItemCount} grouped planner work item(s) into ${workItemCompilation.evidence.compiledWorkItemCount} atomic approved work items.`,
               ]
             : []),
+          `Canonical tool authority froze ${toolExecutionAuthority.summary.workGraphToolCount} work-graph tool identity record(s) from evidence revision ${toolExecutionAuthority.evidenceRevision}.`,
           'No provider, worker, render, media, external billing, or production credit side effect was started.',
         ],
       }
@@ -544,6 +561,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       if (!targetPlan) throw new ApiError('PLAN_NOT_APPROVED', 'Canonical edit plan was not found.', 404)
       await createProjectService(context).getProject(targetPlan.projectId, access.workspaceId)
       const approvalComponents = await loadCanonicalPlanComponents(context, targetPlan.componentRefs)
+      const approvalToolWorkItems = await loadPlanToolAuthorityWorkItems(
+        context,
+        aggregateBefore!,
+        targetPlan,
+      )
+      await loadCanonicalToolExecutionAuthority({
+        context,
+        componentRefs: targetPlan.componentRefs,
+        toolStrategyPlan: approvalComponents.toolStrategyPlan,
+        workItems: approvalToolWorkItems,
+      })
       if (targetPlan.revisionAuthority) {
         await validateRevisionPublicationAuthority({
           context,
@@ -1201,6 +1229,12 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         }
         return { ...workItem, executionInput, fallbackPolicy }
       }))
+      const toolExecutionAuthority = await loadCanonicalToolExecutionAuthority({
+        context,
+        componentRefs: snapshot.componentRefs,
+        toolStrategyPlan: parsedComponents.data.toolStrategyPlan,
+        workItems,
+      })
       const validForSeconds = Math.round(
         (Date.parse(lineage.estimate.validUntil) - Date.parse(lineage.estimate.createdAt)) / 1_000,
       )
@@ -1286,6 +1320,7 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
         assetManifest,
         planningInputAuthority,
         planningHandoffAuthority,
+        toolExecutionAuthority,
         sourceAssetManifest,
         workItems,
         jobs,
@@ -1644,6 +1679,74 @@ async function loadCanonicalPlanComponents(
     throw new ApiError('VALIDATION_FAILED', 'Canonical plan components no longer satisfy their authority contract.', 409, parsed.error.flatten())
   }
   return parsed.data
+}
+
+async function loadPlanToolAuthorityWorkItems(
+  context: ServiceContext,
+  aggregate: PrivateEditAuthorityAggregate,
+  plan: AuthorityPlanRecord,
+): Promise<CanonicalToolAuthorityWorkItem[]> {
+  return Promise.all(plan.workItemIds.map(async (workItemId) => {
+    const workItem = aggregate.planWorkItems.find((candidate) =>
+      candidate.id === workItemId && candidate.planId === plan.id)
+    if (!workItem) {
+      throw new ApiError(
+        'JOB_DEPENDENCY_NOT_READY',
+        'Canonical plan work item is missing while revalidating tool execution authority.',
+        409,
+        { workItemId },
+      )
+    }
+    const executionInput = await readPrivateAuthorityJsonBlob({
+      localStorageRoot: context.env.localStorageRoot,
+      ref: workItem.executionInputRef,
+    })
+    if (Array.isArray(executionInput)) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Canonical plan work-item execution input must remain a JSON object.',
+        409,
+        { workItemId },
+      )
+    }
+    return {
+      workItemKey: workItem.workItemKey,
+      approvedToolIds: [...workItem.approvedToolIds],
+      required: workItem.required,
+      expectedOutputs: workItem.expectedOutputs.map((output) => ({
+        outputKey: output.outputKey,
+        ...(output.contentType ? { contentType: output.contentType } : {}),
+        required: output.required,
+      })),
+      executionInput,
+    }
+  }))
+}
+
+async function loadCanonicalToolExecutionAuthority(input: {
+  context: ServiceContext
+  componentRefs: Record<string, AuthorityJsonBlobRef>
+  toolStrategyPlan: Record<string, unknown>
+  workItems: CanonicalToolAuthorityWorkItem[]
+}): Promise<CanonicalToolExecutionAuthority> {
+  const ref = input.componentRefs.canonicalToolExecutionAuthority
+  if (!ref) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'Canonical tool execution authority is missing from immutable plan lineage.',
+      409,
+      { requiredGate: 'canonical_tool_execution_authority_manifest' },
+    )
+  }
+  const value = await readPrivateAuthorityJsonBlob({
+    localStorageRoot: input.context.env.localStorageRoot,
+    ref,
+  })
+  return assertCanonicalToolExecutionAuthority({
+    value,
+    toolStrategyPlan: input.toolStrategyPlan,
+    workItems: input.workItems,
+  })
 }
 
 async function loadPlanningInputAuthorityBinding(

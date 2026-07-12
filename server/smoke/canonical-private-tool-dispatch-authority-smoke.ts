@@ -353,6 +353,10 @@ assert.equal(
   asRecord(publishedPlan.componentRefs).planningHandoffAuthority !== undefined,
   true,
 )
+assert.equal(
+  asRecord(publishedPlan.componentRefs).canonicalToolExecutionAuthority !== undefined,
+  true,
+)
 const approved = await planningService.approveAndFundCanonicalPlan({
   workspaceId,
   editPlanId: String(publishedPlan.id),
@@ -365,6 +369,10 @@ const approvedSnapshot = asRecord(asRecord(approved.authority).snapshot)
 assert.deepEqual(
   asRecord(approvedSnapshot.componentRefs).planningHandoffAuthority,
   asRecord(publishedPlan.componentRefs).planningHandoffAuthority,
+)
+assert.deepEqual(
+  asRecord(approvedSnapshot.componentRefs).canonicalToolExecutionAuthority,
+  asRecord(publishedPlan.componentRefs).canonicalToolExecutionAuthority,
 )
 await createCanonicalEditExecutionPackageService(context).createPackage({
   workspaceId,
@@ -624,6 +632,20 @@ assert.deepEqual(probeProofJob.dependencyJobIds, [probeJob.id])
 assert.deepEqual(trimJob.dependencyJobIds, [])
 assert.deepEqual(trimProofJob.dependencyJobIds, [trimJob.id])
 const authority = await planningService.loadApprovedExecutionAuthority(snapshot.snapshotId, workspaceId)
+assert.equal(authority.toolExecutionAuthority.tools.length, 50)
+assert.equal(authority.toolExecutionAuthority.summary.workGraphToolCount, 50)
+assert.equal(authority.toolExecutionAuthority.summary.requiredWorkGraphToolCount, 50)
+assert.equal(authority.toolExecutionAuthority.summary.privateEndToEndReadyToolCount, 50)
+assert.equal(authority.toolExecutionAuthority.summary.privateJobAdapterReadyToolCount, 50)
+assert.equal(authority.toolExecutionAuthority.summary.allRequiredToolsPrivateEndToEndReady, true)
+assert.equal(authority.toolExecutionAuthority.summary.allRequiredToolsPrivateJobAdapterReady, true)
+assert.ok(authority.toolExecutionAuthority.tools.every((tool) =>
+  tool.verificationState === 'canonical_e2e_verified' &&
+  tool.readiness.privateInternalEndToEndReady &&
+  tool.readiness.privateInternalJobAdapterReady &&
+  tool.stableToolIdentity === `reeditpro.tool.${tool.canonicalToolId}.v1` &&
+  /^[a-f0-9]{64}$/.test(tool.identityHash) &&
+  /^[a-f0-9]{64}$/.test(tool.proofHash)))
 const primaryAsset = authority.assetManifest.entries.find((candidate) =>
   candidate.approvedWorkItemId === chartWorkItem.id && candidate.outputKey === 'chart-primary')
 const aliasAsset = authority.assetManifest.entries.find((candidate) =>
@@ -3134,6 +3156,8 @@ console.log(JSON.stringify({
     'mir_eval_timing_json_qa_reconciliation_replay_and_downstream_verification',
     'mido_timing_json_qa_reconciliation_replay_and_downstream_verification',
     'canonical_job_only_adapter_derives_tool_operation_output_lease_dispatch_qa_and_replay_server_side',
+    'all_50_required_tool_identities_frozen_from_server_proof_catalog_before_approval',
+    'all_50_tool_identity_operation_and_proof_hashes_revalidated_before_execution_packaging',
     'grouped_planner_tool_node_compiles_and_executes_as_two_atomic_canonical_jobs',
     'atomic_compiled_jobs_preserve_dependency_progress_artifact_qa_and_reconciliation_lifecycle',
     'atomic_compiled_jobs_never_reach_the_legacy_multi_tool_runtime_blocker',

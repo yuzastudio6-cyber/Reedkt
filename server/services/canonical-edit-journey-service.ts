@@ -277,6 +277,20 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
           ...reviewBase,
           decision: decision.decision,
           decisionStatus: decision.status,
+          decisionManifestSha256: decision.manifest.manifestSha256,
+          privateHistoryDownload: {
+            method: 'GET' as const,
+            routeTemplate:
+              `/v1/edit-executions/private-review-history/` +
+              `${assembly.identity.reviewAssemblyId}/file`,
+            query: {
+              workspaceId: access.workspaceId,
+              packageRecordId: execution.packageRecordId,
+              expectedDecisionManifestSha256: decision.manifest.manifestSha256,
+              expectedFinalArtifactSha256: assembly.finalArtifact.sha256,
+              purpose: 'download_canonical_private_review_history_artifact' as const,
+            },
+          },
         }
         if (decision.decision === 'request_revision') {
           return canonicalEditJourneyResponseSchema.parse({

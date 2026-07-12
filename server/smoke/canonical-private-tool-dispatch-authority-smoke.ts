@@ -2361,6 +2361,26 @@ assert.equal(terminalRevisionJourney.stage, 'revision_requested')
 assert.equal(terminalRevisionJourney.nextAction.code, 'prepare_replacement_plan')
 assert.equal(terminalRevisionJourney.review?.decision, 'request_revision')
 assert.equal(terminalRevisionJourney.review?.decisionStatus, 'canonical_revision_requested')
+assert.equal(
+  terminalRevisionJourney.review?.decisionManifestSha256,
+  terminalPrivateRevisionDecision.manifest.manifestSha256,
+)
+const terminalRevisionHistoryDescriptor =
+  terminalRevisionJourney.review?.privateHistoryDownload
+assert.ok(terminalRevisionHistoryDescriptor)
+assert.equal(terminalRevisionHistoryDescriptor.method, 'GET')
+assert.equal(
+  terminalRevisionHistoryDescriptor.routeTemplate,
+  `/v1/edit-executions/private-review-history/${terminalPrivateReview.identity.reviewAssemblyId}/file`,
+)
+assert.equal(
+  terminalRevisionHistoryDescriptor.query.expectedDecisionManifestSha256,
+  terminalPrivateRevisionDecision.manifest.manifestSha256,
+)
+assert.equal(
+  terminalRevisionHistoryDescriptor.query.expectedFinalArtifactSha256,
+  terminalPrivateReview.finalArtifact.sha256,
+)
 assert.equal(terminalRevisionJourney.permissions.snapshotMutation, false)
 assert.equal(terminalRevisionJourney.permissions.creditMutation, false)
 const terminalPrivateRevisionDecisionReplay = await privateReviewDecisionService.record(
@@ -2696,6 +2716,22 @@ assert.equal(
   acceptedPrivateReviewJourney.review?.decisionStatus,
   'private_internal_review_accepted',
 )
+assert.equal(
+  acceptedPrivateReviewJourney.review?.decisionManifestSha256,
+  secondPrivateReviewAcceptance.manifest.manifestSha256,
+)
+const acceptedReviewHistoryDescriptor =
+  acceptedPrivateReviewJourney.review?.privateHistoryDownload
+assert.ok(acceptedReviewHistoryDescriptor)
+assert.equal(acceptedReviewHistoryDescriptor.method, 'GET')
+assert.equal(
+  acceptedReviewHistoryDescriptor.routeTemplate,
+  `/v1/edit-executions/private-review-history/${secondPrivateReview.identity.reviewAssemblyId}/file`,
+)
+const serializedAcceptedHistoryDescriptor = JSON.stringify(acceptedReviewHistoryDescriptor)
+for (const forbidden of [
+  'authorization', 'credential', 'token', 'signedUrl', 'publicUrl', 'localFilePath', '/private/',
+]) assert.equal(serializedAcceptedHistoryDescriptor.includes(forbidden), false)
 assert.equal(acceptedPrivateReviewJourney.permissions.providerCall, false)
 assert.equal(acceptedPrivateReviewJourney.permissions.render, false)
 assert.equal(acceptedPrivateReviewJourney.testOnly, true)
@@ -2704,6 +2740,19 @@ assert.equal(canonicalEditJourneyResponseSchema.safeParse({
   review: {
     ...acceptedPrivateReviewJourney.review!,
     decision: 'request_revision',
+  },
+}).success, false)
+assert.equal(canonicalEditJourneyResponseSchema.safeParse({
+  ...acceptedPrivateReviewJourney,
+  review: {
+    ...acceptedPrivateReviewJourney.review!,
+    privateHistoryDownload: {
+      ...acceptedReviewHistoryDescriptor,
+      query: {
+        ...acceptedReviewHistoryDescriptor.query,
+        packageRecordId: 'foreign-package',
+      },
+    },
   },
 }).success, false)
 const secondPrivateReviewAcceptanceReplay = await privateReviewDecisionService.record(
@@ -2734,12 +2783,8 @@ const freshHistoryContext: ServiceContext = {
 }
 const historyService = createCanonicalPrivateReviewHistoryService(freshHistoryContext)
 const supersededReviewHistoryInput = {
-  workspaceId,
-  packageRecordId: terminalReviewPackageRecordId,
+  ...terminalRevisionHistoryDescriptor.query,
   reviewAssemblyId: terminalPrivateReview.identity.reviewAssemblyId,
-  expectedDecisionManifestSha256: terminalPrivateRevisionDecision.manifest.manifestSha256,
-  expectedFinalArtifactSha256: terminalPrivateReview.finalArtifact.sha256,
-  purpose: 'download_canonical_private_review_history_artifact' as const,
 }
 await expectApiError(
   () => historyService.read({
@@ -2762,12 +2807,8 @@ assert.equal(
   terminalPrivateReview.finalArtifact.sha256,
 )
 const currentReviewHistory = await historyService.read({
-  workspaceId,
-  packageRecordId: revisionExecutionPackageId,
+  ...acceptedReviewHistoryDescriptor.query,
   reviewAssemblyId: secondPrivateReview.identity.reviewAssemblyId,
-  expectedDecisionManifestSha256: secondPrivateReviewAcceptance.manifest.manifestSha256,
-  expectedFinalArtifactSha256: secondPrivateReview.finalArtifact.sha256,
-  purpose: 'download_canonical_private_review_history_artifact',
 })
 assert.equal(currentReviewHistory.reviewState, 'current')
 assert.equal(currentReviewHistory.planStatus, 'approved')
@@ -3076,6 +3117,7 @@ console.log(JSON.stringify({
     'persisted_planning_handoff_binding_survives_initial_and_terminal_review_snapshot_execution',
     'revision_request_creates_one_credential_free_immutable_snapshot_bound_handoff',
     'canonical_journey_recovery_reports_revision_request_without_mutating_snapshot_or_credit_authority',
+    'revision_journey_exposes_hash_bound_credential_free_private_history_descriptor',
     'revision_decision_replays_without_authority_wallet_reservation_or_execution_mutation',
     'replacement_plan_publication_requires_exact_unconsumed_revision_handoff_and_compiled_intent_hash',
     'replacement_plan_uses_fresh_persisted_component_bound_handoff_authority',
@@ -3088,9 +3130,12 @@ console.log(JSON.stringify({
     'canonical_journey_recovery_tracks_the_latest_replacement_review_assembly',
     'second_private_review_acceptance_is_create_only_replay_safe_and_public_delivery_blocked',
     'canonical_journey_recovery_reports_private_acceptance_while_public_delivery_remains_blocked',
+    'accepted_journey_exposes_no_store_authenticated_private_history_descriptor_without_credentials_or_paths',
     'canonical_journey_schema_rejects_mismatched_acceptance_decision_lineage',
+    'canonical_journey_schema_rejects_private_history_package_substitution',
     'active_execution_download_fails_closed_after_snapshot_is_superseded_and_reservation_released',
     'authenticated_history_reopens_superseded_review_without_restoring_execution_or_credit_authority',
+    'journey_recovered_descriptors_reopen_current_and_superseded_private_review_bytes',
     'fresh_service_instances_reopen_current_and_superseded_review_bytes_with_stable_evidence',
     'authenticated_private_final_mp4_download_reopens_exact_qa_passed_bytes_without_public_or_signed_url',
     'checksum_protected_restart_safe_private_store',

@@ -33,11 +33,7 @@ The prior approved plan remains approved while plan v2 is presented. It is not s
 
 ## Approval boundary
 
-Approval of a revision-authored plan currently fails closed with:
-
-`canonical_revision_reservation_reconciliation_and_fresh_approval`
-
-That prevents double reservation, silent credit reuse, second job derivation, or revision execution before a dedicated synthetic reservation-reconciliation policy is implemented and verified. No customer wallet or billing action is authorized.
+Approval of a revision-authored plan now atomically releases only the unused prior synthetic reservation and reserves plan v2's newly approved maximum. It freezes snapshot v2 and derives its jobs while keeping customer wallet and billing authority false. Revised job execution remains a later gate.
 
 ## Current executable evidence
 
@@ -46,13 +42,13 @@ The canonical lifecycle smoke proves:
 - a mismatched decision manifest cannot publish plan v2;
 - the exact revision handoff publishes plan version 2 with a fresh presented estimate;
 - identical publication replays without consuming the handoff twice;
-- approval fails closed before reservation reconciliation;
+- approval atomically reconciles the prior/new synthetic reservations and derives snapshot-v2 jobs;
 - the prior snapshot/plan/estimate/reservation/work-item/job/package slice stays hash-identical;
 - wallet hash, reservation count, job count, and execution-package count remain unchanged.
 
 ## Boundaries
 
-This is replacement planning only. Fresh revision approval, reservation release/reuse/replacement policy, revised job derivation, revised work-graph execution, a second private review, cancellation, broader recovery, real-user browser handoff, providers, Supabase, billing, public delivery, and production remain gated.
+Replacement planning and synthetic fresh approval are now proven. Revised work-graph execution, a second private review, superseded-review history access, cancellation, broader recovery, real-user browser handoff, providers, Supabase, billing, public delivery, and production remain gated.
 
 ## Verification
 

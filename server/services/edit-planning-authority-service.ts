@@ -451,15 +451,17 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       const targetPlan = aggregateBefore?.plans.find((plan) => plan.id === input.editPlanId)
       if (!targetPlan) throw new ApiError('PLAN_NOT_APPROVED', 'Canonical edit plan was not found.', 404)
       await createProjectService(context).getProject(targetPlan.projectId, access.workspaceId)
-      if (targetPlan.revisionAuthority) {
-        throw new ApiError(
-          'TOOL_NOT_READY',
-          'Replacement-plan approval remains blocked until synthetic reservation reconciliation is explicitly implemented and verified.',
-          503,
-          { requiredGate: 'canonical_revision_reservation_reconciliation_and_fresh_approval' },
-        )
-      }
       const approvalComponents = await loadCanonicalPlanComponents(context, targetPlan.componentRefs)
+      if (targetPlan.revisionAuthority) {
+        await validateRevisionPublicationAuthority({
+          context,
+          workspaceId: access.workspaceId,
+          projectId: targetPlan.projectId,
+          editSessionId: targetPlan.editSessionId,
+          revisionAuthority: targetPlan.revisionAuthority,
+          compiledIntent: approvalComponents.compiledIntent,
+        })
+      }
       const approvalPlanningInputAuthority = await loadPlanningInputAuthorityBinding(context, targetPlan.componentRefs)
       const approvalSourceMediaAuthority = await loadSourceMediaAuthorityCandidate(context, targetPlan.componentRefs)
       await revalidatePlanningInputAuthorityBinding({
@@ -524,9 +526,41 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             estimate.status = 'expired'
             throw new ApiError('CREDIT_ESTIMATE_NOT_APPROVED', 'Credit estimate expired and must be recalculated before approval.', 409)
           }
-          if (aggregate.wallet.availableCredits < estimate.approvedMaximumCredits) {
+          const priorSnapshot = plan.revisionAuthority
+            ? aggregate.snapshots.find((snapshot) =>
+                snapshot.snapshotId === plan.revisionAuthority!.priorApprovedSnapshotId)
+            : undefined
+          const priorReservation = priorSnapshot
+            ? aggregate.reservations.find((reservation) => reservation.id === priorSnapshot.reservationId)
+            : undefined
+          const priorPlan = priorSnapshot
+            ? aggregate.plans.find((candidate) => candidate.id === priorSnapshot.planId)
+            : undefined
+          const priorEstimate = priorSnapshot
+            ? aggregate.estimates.find((candidate) => candidate.id === priorSnapshot.estimateId)
+            : undefined
+          const releasablePriorCredits = priorReservation
+            ? priorReservation.reservedCredits - priorReservation.spentCredits -
+              priorReservation.releasedCredits - priorReservation.refundedCredits
+            : 0
+          if (plan.revisionAuthority && (
+            !priorSnapshot || !priorReservation || !priorPlan || !priorEstimate ||
+            priorPlan.id !== plan.revisionAuthority.priorApprovedPlanId ||
+            priorPlan.status !== 'approved' || priorEstimate.status !== 'approved' ||
+            !['reserved', 'partially_spent'].includes(priorReservation.status) ||
+            releasablePriorCredits < 0
+          )) {
+            throw new ApiError(
+              'CREDITS_NOT_RESERVED',
+              'Prior synthetic reservation is not eligible for atomic revision reconciliation.',
+              409,
+              { requiredGate: 'canonical_revision_reservation_reconciliation' },
+            )
+          }
+          const availableAfterRevisionRelease = aggregate.wallet.availableCredits + releasablePriorCredits
+          if (availableAfterRevisionRelease < estimate.approvedMaximumCredits) {
             throw new ApiError('INSUFFICIENT_CREDITS', 'Internal-test wallet does not have enough credits for the approved maximum.', 409, {
-              availableCredits: aggregate.wallet.availableCredits,
+              availableCredits: availableAfterRevisionRelease,
               requiredCredits: estimate.approvedMaximumCredits,
             })
           }
@@ -643,6 +677,44 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             createdAt: timestamp,
           }))
 
+          if (plan.revisionAuthority && priorReservation && priorPlan && priorEstimate) {
+            if (releasablePriorCredits > 0) {
+              aggregate.wallet.availableCredits += releasablePriorCredits
+              aggregate.wallet.reservedCredits -= releasablePriorCredits
+              aggregate.wallet.ledgerSequence += 1
+              priorReservation.releasedCredits += releasablePriorCredits
+              priorReservation.status = 'released'
+              priorReservation.updatedAt = timestamp
+              aggregate.ledgerEntries.push({
+                id: `authority_ledger_${randomUUID()}`,
+                sequence: aggregate.wallet.ledgerSequence,
+                entryType: 'release',
+                sourceType: 'canonical_revision_reservation_reconciliation',
+                sourceId: priorReservation.id,
+                availableDelta: releasablePriorCredits,
+                reservedDelta: -releasablePriorCredits,
+                spentDelta: 0,
+                balanceAfter: walletBalanceAfter(aggregate.wallet),
+                idempotencyKey,
+                createdAt: timestamp,
+              })
+              aggregate.reservationEvents.push({
+                id: `authority_reservation_event_${randomUUID()}`,
+                reservationId: priorReservation.id,
+                snapshotId: priorSnapshot!.snapshotId,
+                approvalId: priorSnapshot!.approvalId,
+                eventType: 'released',
+                credits: releasablePriorCredits,
+                idempotencyKey,
+                createdAt: timestamp,
+              })
+            }
+            priorPlan.status = 'superseded'
+            priorPlan.supersededAt = timestamp
+            priorEstimate.status = 'superseded'
+            priorEstimate.supersededAt = timestamp
+          }
+
           aggregate.wallet.availableCredits -= estimate.approvedMaximumCredits
           aggregate.wallet.reservedCredits += estimate.approvedMaximumCredits
           aggregate.wallet.ledgerSequence += 1
@@ -706,7 +778,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           aggregate.jobs.push(...jobs)
           aggregate.auditEvents.push({
             id: `authority_audit_${randomUUID()}`,
-            eventType: 'canonical_plan_approved_and_funded',
+            eventType: plan.revisionAuthority
+              ? 'canonical_revision_plan_approved_and_reconciled'
+              : 'canonical_plan_approved_and_funded',
             actorUserId: access.userId,
             projectId: plan.projectId,
             editSessionId: plan.editSessionId,
@@ -716,7 +790,21 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           })
 
           const result = canonicalAuthorityResponse(
-            createApprovalResponse(aggregate, plan, estimate, snapshot, jobs, aggregate.revision + 1),
+            createApprovalResponse(
+              aggregate,
+              plan,
+              estimate,
+              snapshot,
+              jobs,
+              aggregate.revision + 1,
+              plan.revisionAuthority && priorReservation
+                ? {
+                    priorSnapshotId: priorSnapshot!.snapshotId,
+                    priorReservationId: priorReservation.id,
+                    releasedCredits: releasablePriorCredits,
+                  }
+                : undefined,
+            ),
           )
           aggregate.idempotencyRecords.push({
             operation: 'approve_plan',
@@ -734,7 +822,10 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       return {
         authority: response,
         warnings: [
-          'Approval reserved synthetic private-internal test credits only; no paid billing or external wallet mutation occurred.',
+          ...(targetPlan.revisionAuthority
+            ? ['Revision approval atomically released the unused prior synthetic reservation and reserved the newly approved maximum.']
+            : []),
+          'Approval reserved synthetic private-internal test credits only; no paid billing, customer wallet, or external credit mutation occurred.',
           'Jobs were derived from immutable approved work items but were not claimed or executed.',
         ],
       }
@@ -1841,6 +1932,11 @@ function createApprovalResponse(
   snapshot: AuthorityApprovedSnapshotManifest,
   jobs: AuthorityDerivedJobRecord[],
   authorityRevision: number,
+  revisionReconciliation?: {
+    priorSnapshotId: string
+    priorReservationId: string
+    releasedCredits: number
+  },
 ): Record<string, unknown> {
   const approval = aggregate.approvals.find((record) => record.snapshotId === snapshot.snapshotId)!
   const reservation = aggregate.reservations.find((record) => record.id === snapshot.reservationId)!
@@ -1858,6 +1954,17 @@ function createApprovalResponse(
     },
     jobs: jobs.map(safeJobSummary),
     wallet: walletBalanceAfter(aggregate.wallet),
+    revisionReconciliation: revisionReconciliation
+      ? {
+          ...revisionReconciliation,
+          newSnapshotId: snapshot.snapshotId,
+          newReservationId: reservation.id,
+          newlyReservedCredits: reservation.reservedCredits,
+          atomicSyntheticReconciliation: true,
+          customerWalletMutation: false,
+          billingExecuted: false,
+        }
+      : undefined,
     testOnly: true,
   }
 }

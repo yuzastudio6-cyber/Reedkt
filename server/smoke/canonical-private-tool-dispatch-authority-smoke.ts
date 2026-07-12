@@ -2724,10 +2724,14 @@ assert.equal(
 const revisionHandoff = terminalPrivateRevisionDecision.revisionHandoff
 assert.ok(revisionHandoff)
 const authorityBeforeReplacementPlan = await requireEditAuthority(workspaceId)
-const priorSnapshotSliceHash = sha256AuthorityValue(snapshotAuthoritySlice(
+const priorSnapshotSlice = snapshotAuthoritySlice(
   authorityBeforeReplacementPlan,
   terminalPrivateReview.identity.approvedPlanSnapshotId,
-))
+)
+const priorSnapshotSliceHash = sha256AuthorityValue(priorSnapshotSlice)
+const priorSnapshotManifestHash = sha256AuthorityValue(priorSnapshotSlice.snapshot)
+const priorApprovedWorkItemsHash = sha256AuthorityValue(priorSnapshotSlice.approvedWorkItems)
+const priorJobsHash = sha256AuthorityValue(priorSnapshotSlice.jobs)
 const walletBeforeReplacementPlan = sha256AuthorityValue(authorityBeforeReplacementPlan.wallet)
 const reservationCountBeforeReplacementPlan = authorityBeforeReplacementPlan.reservations.length
 const jobsBeforeReplacementPlan = authorityBeforeReplacementPlan.jobs.length
@@ -2790,17 +2794,6 @@ const replacementPlanReplay = await planningService.publishCanonicalPlan({
   idempotencyKey: 'publish-terminal-private-review-revision-v2',
 })
 assert.equal(asRecord(asRecord(replacementPlanReplay.authority).plan).id, replacementPlan.id)
-await expectApiError(
-  () => planningService.approveAndFundCanonicalPlan({
-    workspaceId,
-    editPlanId: String(replacementPlan.id),
-    expectedAuthorityRevision: Number(replacementPlanAuthority.authorityRevision),
-    expectedPlanHash: String(replacementPlan.planHash),
-    expectedEstimateHash: String(replacementEstimate.estimateHash),
-    idempotencyKey: 'block-terminal-revision-plan-approval-before-reconciliation',
-  }),
-  'TOOL_NOT_READY',
-)
 const authorityAfterReplacementPlan = await requireEditAuthority(workspaceId)
 assert.equal(
   sha256AuthorityValue(snapshotAuthoritySlice(
@@ -2826,6 +2819,67 @@ const terminalPrivateReviewDownload = await createCanonicalPrivateFinalArtifactD
 assert.equal(terminalPrivateReviewDownload.sha256, terminalPrivateReview.finalArtifact.sha256)
 assert.equal(terminalPrivateReviewDownload.publicUrlCreated, false)
 assert.equal(terminalPrivateReviewDownload.signedUrlCreated, false)
+const replacementApprovalInput = {
+  workspaceId,
+  editPlanId: String(replacementPlan.id),
+  expectedAuthorityRevision: Number(replacementPlanAuthority.authorityRevision),
+  expectedPlanHash: String(replacementPlan.planHash),
+  expectedEstimateHash: String(replacementEstimate.estimateHash),
+  idempotencyKey: 'approve-terminal-revision-plan-with-atomic-reconciliation',
+}
+const replacementApproved = await planningService.approveAndFundCanonicalPlan(replacementApprovalInput)
+const replacementApprovalAuthority = asRecord(replacementApproved.authority)
+const replacementSnapshot = asRecord(replacementApprovalAuthority.snapshot)
+const replacementReservation = asRecord(replacementApprovalAuthority.reservation)
+const replacementReconciliation = asRecord(replacementApprovalAuthority.revisionReconciliation)
+assert.equal(replacementSnapshot.planVersion, 2)
+assert.equal(replacementSnapshot.planId, replacementPlan.id)
+assert.equal(replacementReservation.status, 'reserved')
+assert.equal(replacementReconciliation.priorSnapshotId,
+  terminalPrivateReview.identity.approvedPlanSnapshotId)
+assert.equal(replacementReconciliation.atomicSyntheticReconciliation, true)
+assert.equal(replacementReconciliation.customerWalletMutation, false)
+assert.equal(replacementReconciliation.billingExecuted, false)
+assert.equal(replacementReconciliation.newSnapshotId, replacementSnapshot.snapshotId)
+assert.equal(replacementReconciliation.newReservationId, replacementReservation.id)
+assert.ok(Number(replacementReconciliation.releasedCredits) > 0)
+assert.equal(
+  replacementReconciliation.newlyReservedCredits,
+  replacementEstimate.approvedMaximumCredits,
+)
+const authorityAfterReplacementApproval = await requireEditAuthority(workspaceId)
+const priorSliceAfterApproval = snapshotAuthoritySlice(
+  authorityAfterReplacementApproval,
+  terminalPrivateReview.identity.approvedPlanSnapshotId,
+)
+assert.equal(sha256AuthorityValue(priorSliceAfterApproval.snapshot), priorSnapshotManifestHash)
+assert.equal(sha256AuthorityValue(priorSliceAfterApproval.approvedWorkItems), priorApprovedWorkItemsHash)
+assert.equal(sha256AuthorityValue(priorSliceAfterApproval.jobs), priorJobsHash)
+assert.equal(priorSliceAfterApproval.plan?.status, 'superseded')
+assert.equal(priorSliceAfterApproval.estimate?.status, 'superseded')
+assert.equal(priorSliceAfterApproval.reservation?.status, 'released')
+assert.equal(
+  authorityAfterReplacementApproval.wallet.fundedCredits,
+  authorityAfterReplacementApproval.wallet.availableCredits +
+    authorityAfterReplacementApproval.wallet.reservedCredits +
+    authorityAfterReplacementApproval.wallet.spentCredits,
+)
+assert.equal(authorityAfterReplacementApproval.reservations.length, reservationCountBeforeReplacementPlan + 1)
+assert.equal(
+  authorityAfterReplacementApproval.jobs.length,
+  jobsBeforeReplacementPlan + replacementPlanBody.canonicalPlan.workItems.length,
+)
+assert.equal(authorityAfterReplacementApproval.executionPackages.length, packagesBeforeReplacementPlan)
+const ledgerCountAfterReplacementApproval = authorityAfterReplacementApproval.ledgerEntries.length
+const replacementApprovalReplay = await planningService.approveAndFundCanonicalPlan(replacementApprovalInput)
+assert.equal(
+  asRecord(asRecord(replacementApprovalReplay.authority).snapshot).snapshotId,
+  replacementSnapshot.snapshotId,
+)
+assert.equal(
+  (await requireEditAuthority(workspaceId)).ledgerEntries.length,
+  ledgerCountAfterReplacementApproval,
+)
 
 const binaryRuntime = await activatePrivateOfflineMediaBinaryRuntime()
 const probeClaim = (await leaseService.claim({
@@ -3134,7 +3188,9 @@ console.log(JSON.stringify({
     'revision_decision_replays_without_authority_wallet_reservation_or_execution_mutation',
     'replacement_plan_publication_requires_exact_unconsumed_revision_handoff_and_compiled_intent_hash',
     'replacement_plan_creates_version_two_and_fresh_estimate_without_mutating_prior_snapshot',
-    'replacement_plan_approval_reservation_jobs_and_execution_remain_blocked_pending_reconciliation',
+    'revision_approval_atomically_releases_unused_prior_synthetic_reservation_and_reserves_fresh_maximum',
+    'revision_approval_preserves_old_snapshot_work_items_jobs_and_wallet_conservation',
+    'revision_approval_replay_creates_no_second_release_reservation_snapshot_or_jobs',
     'authenticated_private_final_mp4_download_reopens_exact_qa_passed_bytes_without_public_or_signed_url',
     'checksum_protected_restart_safe_private_store',
     'dependency_authority_binding_tamper_rejected_by_immutable_record_validation',

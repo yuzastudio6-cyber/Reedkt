@@ -784,6 +784,31 @@ try {
     String(asRecord(routePlanComponentRefs.planningHandoffAuthority).sha256),
     /^[a-f0-9]{64}$/,
   )
+  const legacyDirectCanonicalPublish = await fetch(
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/route-edit-session/canonical-plans`,
+    {
+      method: 'POST',
+      headers: {
+        ...routeAuthHeaders,
+        'content-type': 'application/json',
+        'idempotency-key': 'route-legacy-direct-canonical-publish',
+      },
+      body: JSON.stringify(routePlanBody),
+    },
+  )
+  assert.equal(legacyDirectCanonicalPublish.status, 503)
+  const legacyDirectCanonicalPublishEnvelope = await legacyDirectCanonicalPublish.json() as {
+    error?: { code?: string; details?: { replacementRoute?: string; requiredGate?: string } }
+  }
+  assert.equal(legacyDirectCanonicalPublishEnvelope.error?.code, 'TOOL_NOT_READY')
+  assert.equal(
+    legacyDirectCanonicalPublishEnvelope.error?.details?.requiredGate,
+    'persisted_server_loaded_planning_handoff_authority',
+  )
+  assert.equal(
+    legacyDirectCanonicalPublishEnvelope.error?.details?.replacementRoute,
+    '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publish',
+  )
 
   await provePersistedHandoffStaleAuthorityRejection({
     serviceContext: context,
@@ -993,14 +1018,14 @@ try {
   sourceTrimValidationItem.approvedToolIds = []
   sourceTrimValidationItem.maximumCreditBudget = 0
   workGraphPlanBody.workspaceId = routeWorkspaceId
-  const workGraphPublishResponse = await fetch(
-    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/${workGraphEditSessionId}/canonical-plans`,
-    {
-      method: 'POST',
-      headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-work-graph-publish' },
-      body: JSON.stringify(workGraphPlanBody),
-    },
-  )
+  const workGraphPublishResponse = await publishCanonicalPlanThroughPersistedHandoffRoute({
+    routeBaseUrl,
+    routeAuthHeaders,
+    projectId: routeProjectId,
+    editSessionId: workGraphEditSessionId,
+    planBody: workGraphPlanBody,
+    idempotencyKey: 'route-work-graph-publish',
+  })
   assert.equal(workGraphPublishResponse.status, 201)
   const workGraphPublishEnvelope = await workGraphPublishResponse.json() as {
     data?: { authority?: Record<string, unknown> }
@@ -1201,18 +1226,14 @@ try {
     workGraphSourceFixture,
   )
   leaseFixturePlanBody.workspaceId = routeWorkspaceId
-  const leaseFixturePublishResponse = await fetch(
-    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/${leaseFixtureEditSessionId}/canonical-plans`,
-    {
-      method: 'POST',
-      headers: {
-        ...routeAuthHeaders,
-        'content-type': 'application/json',
-        'idempotency-key': 'route-current-source-lease-fixture-publish',
-      },
-      body: JSON.stringify(leaseFixturePlanBody),
-    },
-  )
+  const leaseFixturePublishResponse = await publishCanonicalPlanThroughPersistedHandoffRoute({
+    routeBaseUrl,
+    routeAuthHeaders,
+    projectId: routeProjectId,
+    editSessionId: leaseFixtureEditSessionId,
+    planBody: leaseFixturePlanBody,
+    idempotencyKey: 'route-current-source-lease-fixture-publish',
+  })
   assert.equal(leaseFixturePublishResponse.status, 201)
   const leaseFixturePublishEnvelope = await leaseFixturePublishResponse.json() as {
     data?: { authority?: Record<string, unknown> }
@@ -1315,18 +1336,14 @@ try {
     cancellationSourceFixture,
   )
   cancellationPlanBody.workspaceId = cancellationWorkspaceId
-  const cancellationPublishResponse = await fetch(
-    `${routeBaseUrl}/v1/projects/${cancellationProjectId}/edit-sessions/${cancellationEditSessionId}/canonical-plans`,
-    {
-      method: 'POST',
-      headers: {
-        ...routeAuthHeaders,
-        'content-type': 'application/json',
-        'idempotency-key': 'route-pre-execution-cancellation-publish',
-      },
-      body: JSON.stringify(cancellationPlanBody),
-    },
-  )
+  const cancellationPublishResponse = await publishCanonicalPlanThroughPersistedHandoffRoute({
+    routeBaseUrl,
+    routeAuthHeaders,
+    projectId: cancellationProjectId,
+    editSessionId: cancellationEditSessionId,
+    planBody: cancellationPlanBody,
+    idempotencyKey: 'route-pre-execution-cancellation-publish',
+  })
   const cancellationPublishEnvelope = await cancellationPublishResponse.json() as {
     data?: { authority?: Record<string, unknown> }
     error?: unknown
@@ -1981,18 +1998,14 @@ try {
     workGraphSourceFixture,
   )
   downstreamLeasePlanBody.workspaceId = routeWorkspaceId
-  const downstreamLeasePublishResponse = await fetch(
-    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/${downstreamLeaseFixtureEditSessionId}/canonical-plans`,
-    {
-      method: 'POST',
-      headers: {
-        ...routeAuthHeaders,
-        'content-type': 'application/json',
-        'idempotency-key': 'route-downstream-worker-lease-fixture-publish',
-      },
-      body: JSON.stringify(downstreamLeasePlanBody),
-    },
-  )
+  const downstreamLeasePublishResponse = await publishCanonicalPlanThroughPersistedHandoffRoute({
+    routeBaseUrl,
+    routeAuthHeaders,
+    projectId: routeProjectId,
+    editSessionId: downstreamLeaseFixtureEditSessionId,
+    planBody: downstreamLeasePlanBody,
+    idempotencyKey: 'route-downstream-worker-lease-fixture-publish',
+  })
   assert.equal(downstreamLeasePublishResponse.status, 201)
   const downstreamLeasePublishEnvelope = await downstreamLeasePublishResponse.json() as {
     data?: { authority?: Record<string, unknown> }
@@ -2103,6 +2116,8 @@ console.log(JSON.stringify({
     'persisted_planning_handoff_checksum_tamper_rejected',
     'persisted_planning_handoff_stale_preference_and_source_authority_rejected',
     'persisted_planning_handoff_binding_frozen_into_canonical_plan_authority',
+    'legacy_direct_canonical_publication_http_route_fails_closed',
+    'all_authenticated_canonical_route_fixtures_publish_through_persisted_handoffs',
     'authenticated_canonical_execution_readiness_http_route',
     'authenticated_canonical_single_job_execution_http_route_with_replay_and_conflict',
     'authenticated_canonical_work_graph_advances_ready_job_and_persists_exact_blockers',
@@ -2615,6 +2630,66 @@ async function provePersistedHandoffStaleAuthorityRejection(input: {
   } finally {
     await writeFile(handoffRecordPath, originalHandoffRecord, 'utf8')
   }
+}
+
+async function publishCanonicalPlanThroughPersistedHandoffRoute(input: {
+  routeBaseUrl: string
+  routeAuthHeaders: Record<string, string>
+  projectId: string
+  editSessionId: string
+  planBody: PublishCanonicalEditPlanBody
+  idempotencyKey: string
+}): Promise<Response> {
+  const handoffUrl =
+    `${input.routeBaseUrl}/v1/projects/${input.projectId}/edit-sessions/${input.editSessionId}/canonical-planning-handoff`
+  const handoffResponse = await fetch(handoffUrl, {
+    method: 'POST',
+    headers: { ...input.routeAuthHeaders, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      workspaceId: input.planBody.workspaceId,
+      purpose: 'prepare_canonical_planning_handoff',
+      orderedSourceItems: input.planBody.canonicalPlan.components.sourceSequence.map((item) => {
+        assert.match(String(item.checksumSha256), /^[a-f0-9]{64}$/)
+        return {
+          sourceSequenceItemId: item.sourceSequenceItemId,
+          mediaAssetId: item.mediaAssetId,
+          uploadedOrder: item.uploadedOrder,
+          checksumSha256: item.checksumSha256,
+          required: item.required,
+        }
+      }),
+      canonicalPlanComponents: input.planBody.canonicalPlan.components,
+    }),
+  })
+  assert.equal(
+    handoffResponse.status,
+    200,
+    `Persisted planning handoff preparation failed: ${await handoffResponse.clone().text()}`,
+  )
+  const handoffEnvelope = await handoffResponse.json() as {
+    data?: { canonicalPlanningHandoff?: Record<string, unknown> }
+  }
+  const handoff = asRecord(handoffEnvelope.data?.canonicalPlanningHandoff)
+  const publishUrl =
+    `${input.routeBaseUrl}/v1/projects/${input.projectId}/edit-sessions/${input.editSessionId}/` +
+    `canonical-planning-handoffs/${String(handoff.handoffId)}/publish`
+  return fetch(publishUrl, {
+    method: 'POST',
+    headers: {
+      ...input.routeAuthHeaders,
+      'content-type': 'application/json',
+      'idempotency-key': input.idempotencyKey,
+    },
+    body: JSON.stringify({
+      workspaceId: input.planBody.workspaceId,
+      planningRequestId: input.planBody.planningRequestId,
+      ...(input.planBody.revisionAuthority
+        ? { revisionAuthority: input.planBody.revisionAuthority }
+        : {}),
+      canonicalPlan: input.planBody.canonicalPlan,
+      expectedHandoffHash: handoff.handoffHash,
+    }),
+  })
 }
 
 async function prepareExactPlanningAuthority(

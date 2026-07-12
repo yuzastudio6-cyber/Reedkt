@@ -25,6 +25,8 @@ The connected internal publication route is:
 
 Its body contains the planning request, estimate, work graph, exact canonical plan, and expected handoff hash. It deliberately omits caller-supplied `planningInputAuthority` and `sourceMediaAuthority`. The backend loads those authorities from the tenant-scoped persisted handoff, verifies the exact canonical component hash, revalidates current planning-input and source authority, and then freezes a compact handoff binding into the canonical plan component references. Approval copies that reference into the immutable snapshot lineage.
 
+The former direct HTTP route, `POST /v1/projects/:projectId/edit-sessions/:editSessionId/canonical-plans`, now fails closed with `TOOL_NOT_READY` and identifies the persisted-handoff publication route as its replacement. Service-level construction remains available to bounded backend fixtures, but authenticated HTTP callers cannot bypass persisted server-loaded planning/source authority.
+
 ## Verified authority
 
 The service fails closed unless all of the following agree:

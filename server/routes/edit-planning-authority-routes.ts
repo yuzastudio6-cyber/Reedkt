@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
 import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { createEditPlanningAuthorityService } from '../services/edit-planning-authority-service'
@@ -12,7 +13,6 @@ import { cancelCanonicalApprovedSnapshotSchema } from '../validation/canonical-p
 import {
   approveCanonicalEditPlanSchema,
   authorityWorkspaceQuerySchema,
-  publishCanonicalEditPlanSchema,
 } from '../validation/edit-planning-authority-schemas'
 import { validateBody } from '../validation/common-schemas'
 import {
@@ -47,16 +47,17 @@ export function createEditPlanningAuthorityRoutes(): Router {
     '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-plans',
     requireAuth,
     requireInternalServiceAuth,
-    asyncRoute(async (request, response) => {
-      const body = validateBody(publishCanonicalEditPlanSchema, request.body)
-      const result = await createEditPlanningAuthorityService(getServiceContext(request)).publishCanonicalPlan({
-        ...body,
-        projectId: getRouteParam(request, 'projectId'),
-        editSessionId: getRouteParam(request, 'editSessionId'),
-        idempotencyKey: getIdempotencyKey(request),
-        requestPath: request.originalUrl,
-      })
-      sendOk(response, { authority: result.authority }, result.warnings, 201)
+    asyncRoute(async () => {
+      throw new ApiError(
+        'TOOL_NOT_READY',
+        'Direct canonical plan publication with caller-supplied planning or source authority is disabled.',
+        503,
+        {
+          replacementRoute:
+            '/v1/projects/:projectId/edit-sessions/:editSessionId/canonical-planning-handoffs/:handoffId/publish',
+          requiredGate: 'persisted_server_loaded_planning_handoff_authority',
+        },
+      )
     }),
   )
 

@@ -18,6 +18,12 @@ The shared boundary provides:
 - stream and text/buffer writers; and
 - durability sync before replacement.
 
+Canonical private work-graph progress now uses this boundary for immutable,
+content-addressed checkpoint records and its checksum-protected atomic latest
+pointer. The progress store remains tenant/package/snapshot scoped and exposes
+only bounded summaries through journey recovery; it is not a distributed event
+store or production queue.
+
 Focused evidence:
 
 ```bash

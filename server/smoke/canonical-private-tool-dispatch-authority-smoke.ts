@@ -2124,6 +2124,21 @@ assert.equal(terminalWorkGraphCompletion.status, 'completed_private_test_work_gr
 assert.equal(terminalWorkGraphCompletion.completedJobCount, 5)
 assert.equal(terminalWorkGraphCompletion.requiredBlockedJobCount, 0)
 assert.equal(terminalWorkGraphCompletion.allRequiredJobsCompleted, true)
+const terminalWorkGraphProgress = await terminalCompletionService.findLatestProgress({
+  workspaceId,
+  packageRecordId: terminalReviewPackageRecordId,
+})
+assert.ok(terminalWorkGraphProgress)
+assert.equal(terminalWorkGraphProgress.status, 'completed_private_test_work_graph')
+assert.equal(terminalWorkGraphProgress.runFinished, true)
+assert.equal(terminalWorkGraphProgress.totalJobCount, 5)
+assert.equal(terminalWorkGraphProgress.completedJobCount, 5)
+assert.equal(terminalWorkGraphProgress.pendingJobCount, 0)
+assert.equal(terminalWorkGraphProgress.requiredIncompleteJobCount, 0)
+assert.equal(
+  terminalWorkGraphProgress.nextRequiredGate,
+  'canonical_terminal_private_review_assembly',
+)
 const terminalWorkGraphSecondKey = await createCanonicalPrivateWorkGraphOrchestratorService(context).run({
   workspaceId,
   packageRecordId: terminalReviewPackageRecordId,
@@ -2133,6 +2148,19 @@ const terminalWorkGraphSecondKey = await createCanonicalPrivateWorkGraphOrchestr
 assert.equal(terminalWorkGraphSecondKey.summary.allRequiredJobsCompleted, true)
 assert.equal(terminalWorkGraphSecondKey.summary.replayedJobCount, 5)
 assert.notEqual(terminalWorkGraphSecondKey.responseHash, terminalWorkGraph.responseHash)
+const terminalWorkGraphProgressAfterSecondKey = await terminalCompletionService.findLatestProgress({
+  workspaceId,
+  packageRecordId: terminalReviewPackageRecordId,
+})
+assert.ok(terminalWorkGraphProgressAfterSecondKey)
+assert.equal(
+  terminalWorkGraphProgressAfterSecondKey.checkpointHash,
+  terminalWorkGraphProgress.checkpointHash,
+)
+assert.equal(
+  terminalWorkGraphProgressAfterSecondKey.checkpointSequence,
+  terminalWorkGraphProgress.checkpointSequence,
+)
 assert.equal(
   (await terminalCompletionService.findRequiredCompletion({
     workspaceId,
@@ -2189,6 +2217,7 @@ assert.equal(
 )
 assert.equal(terminalAssemblyRequiredJourney.workGraph?.totalJobCount, 5)
 assert.equal(terminalAssemblyRequiredJourney.workGraph?.allRequiredJobsCompleted, true)
+assert.equal(terminalAssemblyRequiredJourney.workGraphProgress, undefined)
 assert.equal(terminalAssemblyRequiredJourney.review, undefined)
 assert.equal('jobs' in (terminalAssemblyRequiredJourney.workGraph ?? {}), false)
 assert.equal(canonicalEditJourneyResponseSchema.safeParse({
@@ -3103,7 +3132,9 @@ console.log(JSON.stringify({
     'canonical_job_adapter_replays_final_artifact_qa_without_a_second_ffprobe_execution',
     'five_job_canonical_work_graph_completes_snapshot_trim_caption_final_composition_and_final_qa',
     'package_scoped_required_work_completion_is_create_only_restart_recoverable_and_authority_bound',
+    'package_scoped_progress_checkpoint_is_restart_recoverable_and_terminally_complete',
     'different_work_graph_run_key_reuses_first_package_completion_certificate_without_replacement',
+    'different_work_graph_run_key_cannot_regress_or_replace_terminal_progress',
     'work_graph_completion_checksum_tamper_fails_closed_and_restores_cleanly',
     'canonical_journey_recovery_advances_from_work_graph_completion_to_exact_review_assembly_action',
     'canonical_journey_work_graph_summary_exposes_no_jobs_artifacts_paths_or_execution_authority',

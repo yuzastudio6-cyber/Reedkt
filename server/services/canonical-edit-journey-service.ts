@@ -188,12 +188,17 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
             },
           })
         }
-        const workGraph = await createCanonicalPrivateWorkGraphOrchestratorService(
-          context,
-        ).findRequiredCompletion({
+        const workGraphService = createCanonicalPrivateWorkGraphOrchestratorService(context)
+        const workGraph = await workGraphService.findRequiredCompletion({
           packageRecordId: execution.packageRecordId,
           workspaceId: access.workspaceId,
         })
+        const workGraphProgress = workGraph
+          ? undefined
+          : await workGraphService.findLatestProgress({
+              packageRecordId: execution.packageRecordId,
+              workspaceId: access.workspaceId,
+            })
         const assembly = await optionalIncomplete(
           () => createCanonicalPrivateReviewAssemblyService(context).getCompleted({
             packageRecordId: execution.packageRecordId,
@@ -229,6 +234,7 @@ export function createCanonicalEditJourneyService(context: ServiceContext) {
             plan,
             approval,
             execution,
+            ...(workGraphProgress ? { workGraphProgress } : {}),
             stage: 'execution_in_progress',
             nextAction: {
               code: 'run_private_work_graph',

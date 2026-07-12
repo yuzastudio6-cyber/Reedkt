@@ -1716,6 +1716,66 @@ try {
   assert.equal(asRecord(workGraphRun.permissions).providerCall, false)
   assert.equal(asRecord(workGraphRun.permissions).billing, false)
 
+  const workGraphJourneyUrl =
+    `${routeBaseUrl}/v1/projects/${routeProjectId}/edit-sessions/${workGraphEditSessionId}/` +
+    `canonical-journey?workspaceId=${routeWorkspaceId}`
+  const workGraphJourneyResponse = await fetch(workGraphJourneyUrl, { headers: routeAuthHeaders })
+  assert.equal(workGraphJourneyResponse.status, 200)
+  const workGraphJourneyEnvelope = await workGraphJourneyResponse.json() as {
+    data?: { canonicalEditJourney?: Record<string, unknown> }
+  }
+  const workGraphJourney = asRecord(workGraphJourneyEnvelope.data?.canonicalEditJourney)
+  assert.equal(workGraphJourney.stage, 'execution_in_progress')
+  assert.equal(asRecord(workGraphJourney.nextAction).code, 'run_private_work_graph')
+  const workGraphProgress = asRecord(workGraphJourney.workGraphProgress)
+  assert.equal(workGraphProgress.packageRecordId, workGraphPackage.packageRecordId)
+  assert.equal(workGraphProgress.approvedPlanSnapshotId, workGraphSnapshot.snapshotId)
+  assert.equal(workGraphProgress.status, 'blocked_required_jobs')
+  assert.equal(workGraphProgress.runFinished, true)
+  assert.equal(workGraphProgress.totalJobCount, 4)
+  assert.equal(workGraphProgress.completedJobCount, 2)
+  assert.equal(workGraphProgress.capabilityBlockedJobCount, 1)
+  assert.equal(workGraphProgress.dependencyBlockedJobCount, 1)
+  assert.equal(workGraphProgress.pendingJobCount, 0)
+  assert.equal(workGraphProgress.requiredIncompleteJobCount, 2)
+  assert.equal(workGraphProgress.allRequiredJobsCompleted, false)
+  assert.equal(workGraphProgress.nextRequiredGate, 'canonical_job_capability_blockers')
+  assert.equal(typeof workGraphProgress.checkpointHash, 'string')
+  assert.equal(Number(workGraphProgress.checkpointSequence) > 0, true)
+  for (const forbiddenKey of [
+    'jobs', 'artifacts', 'filesystemPath', 'localFilePath', 'credential', 'lease', 'dispatch', 'signedUrl',
+  ]) assert.equal(forbiddenKey in workGraphProgress, false)
+  const parsedWorkGraphJourney = canonicalEditJourneyResponseSchema.parse(workGraphJourney)
+  assert.equal(canonicalEditJourneyResponseSchema.safeParse({
+    ...parsedWorkGraphJourney,
+    workGraphProgress: {
+      ...parsedWorkGraphJourney.workGraphProgress!,
+      packageRecordId: 'foreign-package',
+    },
+  }).success, false)
+  assert.equal(canonicalEditJourneyResponseSchema.safeParse({
+    ...parsedWorkGraphJourney,
+    workGraphProgress: {
+      ...parsedWorkGraphJourney.workGraphProgress!,
+      completedJobCount: 4,
+    },
+  }).success, false)
+
+  const workGraphProgressRoot = canonicalWorkGraphProgressRoot({
+    localStorageRoot,
+    ownerUserId: userId,
+    workspaceId: routeWorkspaceId,
+    projectId: routeProjectId,
+    editSessionId: workGraphEditSessionId,
+    packageRecordId: String(workGraphPackage.packageRecordId),
+    approvedPlanSnapshotId: String(workGraphSnapshot.snapshotId),
+  })
+  const workGraphProgressPointerPath = join(workGraphProgressRoot, 'latest.json')
+  const workGraphProgressPointerBeforeContinuation = await readFile(
+    workGraphProgressPointerPath,
+    'utf8',
+  )
+
   const workGraphRunReplay = await fetch(workGraphRunUrl, {
     method: 'POST',
     headers: { ...routeAuthHeaders, 'content-type': 'application/json', 'idempotency-key': 'route-work-graph-run-1' },
@@ -1739,6 +1799,51 @@ try {
   assert.equal(workGraphContinuationSummary.completedJobCount, 2)
   assert.equal(workGraphContinuationSummary.replayedJobCount, 2)
   assert.equal(workGraphContinuationSummary.capabilityBlockedJobCount, 1)
+  assert.equal(
+    await readFile(workGraphProgressPointerPath, 'utf8'),
+    workGraphProgressPointerBeforeContinuation,
+  )
+
+  const progressPointer = JSON.parse(workGraphProgressPointerBeforeContinuation) as {
+    checkpointHash: string
+    checksumSha256: string
+  }
+  const workGraphProgressCheckpointPath = join(
+    workGraphProgressRoot,
+    'checkpoints',
+    `${progressPointer.checkpointHash}.json`,
+  )
+  const originalWorkGraphProgressCheckpoint = await readFile(
+    workGraphProgressCheckpointPath,
+    'utf8',
+  )
+  const tamperedProgressPointer = JSON.parse(workGraphProgressPointerBeforeContinuation) as {
+    checksumSha256: string
+  }
+  tamperedProgressPointer.checksumSha256 = '0'.repeat(64)
+  try {
+    await writeFile(workGraphProgressPointerPath, `${JSON.stringify(tamperedProgressPointer)}\n`)
+    const response = await fetch(workGraphJourneyUrl, { headers: routeAuthHeaders })
+    assert.equal(response.status, 409)
+  } finally {
+    await writeFile(workGraphProgressPointerPath, workGraphProgressPointerBeforeContinuation)
+  }
+  const tamperedProgressCheckpoint = JSON.parse(originalWorkGraphProgressCheckpoint) as {
+    checkpoint: { checkpointHash: string }
+  }
+  tamperedProgressCheckpoint.checkpoint.checkpointHash = '0'.repeat(64)
+  try {
+    await writeFile(
+      workGraphProgressCheckpointPath,
+      `${JSON.stringify(tamperedProgressCheckpoint)}\n`,
+    )
+    const response = await fetch(workGraphJourneyUrl, { headers: routeAuthHeaders })
+    assert.equal(response.status, 409)
+  } finally {
+    await writeFile(workGraphProgressCheckpointPath, originalWorkGraphProgressCheckpoint)
+  }
+  const restoredWorkGraphJourney = await fetch(workGraphJourneyUrl, { headers: routeAuthHeaders })
+  assert.equal(restoredWorkGraphJourney.status, 200)
 
   const toolEvidenceResponse = await fetch(
     `${routeBaseUrl}/v1/edit-executions/tool-runtime-evidence/inspect`,
@@ -2742,6 +2847,10 @@ console.log(JSON.stringify({
     'authenticated_canonical_execution_readiness_http_route',
     'authenticated_canonical_single_job_execution_http_route_with_replay_and_conflict',
     'authenticated_canonical_work_graph_advances_ready_job_and_persists_exact_blockers',
+    'canonical_work_graph_persists_content_addressed_monotonic_package_progress',
+    'canonical_journey_recovers_bounded_blocked_work_graph_progress_without_job_or_artifact_details',
+    'work_graph_progress_schema_rejects_package_and_count_substitution',
+    'work_graph_progress_pointer_and_checkpoint_tamper_fail_closed',
     'canonical_source_trim_plan_validation_executes_after_snapshot_dependency',
     'canonical_work_graph_continuation_reuses_completed_job_without_duplicate_execution',
     'authenticated_pre_execution_cancellation_releases_only_unused_synthetic_reservation',
@@ -3549,6 +3658,34 @@ async function prepareExactPlanningAuthority(
 
 function sha256ForSmoke(value: string): string {
   return createHash('sha256').update(value).digest('hex')
+}
+
+function canonicalWorkGraphProgressRoot(input: {
+  localStorageRoot: string
+  ownerUserId: string
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  packageRecordId: string
+  approvedPlanSnapshotId: string
+}): string {
+  const tenantHash = sha256ForSmoke(`${input.ownerUserId}\u0000${input.workspaceId}`).slice(0, 32)
+  const packageHash = sha256ForSmoke([
+    tenantHash,
+    input.projectId,
+    input.editSessionId,
+    input.packageRecordId,
+    input.approvedPlanSnapshotId,
+  ].join('\u0000'))
+  return join(
+    input.localStorageRoot,
+    'private-internal',
+    'canonical-work-graph-runs',
+    'v1',
+    tenantHash,
+    'package-progress',
+    packageHash,
+  )
 }
 
 async function provePreferenceAndBriefCanonicalBinding(serviceContext: ServiceContext): Promise<void> {

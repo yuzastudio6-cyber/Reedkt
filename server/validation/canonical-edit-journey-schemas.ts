@@ -32,6 +32,7 @@ type JourneyAuthorityField =
   | 'plan'
   | 'approval'
   | 'execution'
+  | 'workGraphProgress'
   | 'workGraph'
   | 'review'
 
@@ -81,23 +82,23 @@ const actionByStage = {
 const authorityFieldsByStage = {
   planning_handoff_required: {
     required: [],
-    forbidden: ['planningHandoff', 'publicationRequest', 'plan', 'approval', 'execution', 'workGraph', 'review'],
+    forbidden: ['planningHandoff', 'publicationRequest', 'plan', 'approval', 'execution', 'workGraphProgress', 'workGraph', 'review'],
   },
   publication_request_required: {
     required: ['planningHandoff'],
-    forbidden: ['publicationRequest', 'plan', 'approval', 'execution', 'workGraph', 'review'],
+    forbidden: ['publicationRequest', 'plan', 'approval', 'execution', 'workGraphProgress', 'workGraph', 'review'],
   },
   internal_publication_pending: {
     required: ['planningHandoff', 'publicationRequest'],
-    forbidden: ['plan', 'approval', 'execution', 'workGraph', 'review'],
+    forbidden: ['plan', 'approval', 'execution', 'workGraphProgress', 'workGraph', 'review'],
   },
   plan_approval_required: {
     required: ['planningHandoff', 'plan'],
-    forbidden: ['approval', 'execution', 'workGraph', 'review'],
+    forbidden: ['approval', 'execution', 'workGraphProgress', 'workGraph', 'review'],
   },
   approved_snapshot_available: {
     required: ['planningHandoff', 'plan', 'approval'],
-    forbidden: ['execution', 'workGraph', 'review'],
+    forbidden: ['execution', 'workGraphProgress', 'workGraph', 'review'],
   },
   execution_in_progress: {
     required: ['planningHandoff', 'plan', 'approval', 'execution'],
@@ -105,27 +106,27 @@ const authorityFieldsByStage = {
   },
   private_review_assembly_required: {
     required: ['planningHandoff', 'plan', 'approval', 'execution', 'workGraph'],
-    forbidden: ['review'],
+    forbidden: ['workGraphProgress', 'review'],
   },
   private_review_ready: {
     required: ['planningHandoff', 'plan', 'approval', 'execution', 'review'],
-    forbidden: [],
+    forbidden: ['workGraphProgress'],
   },
   private_review_accepted: {
     required: ['planningHandoff', 'plan', 'approval', 'execution', 'review'],
-    forbidden: [],
+    forbidden: ['workGraphProgress'],
   },
   revision_requested: {
     required: ['planningHandoff', 'plan', 'approval', 'execution', 'review'],
-    forbidden: [],
+    forbidden: ['workGraphProgress'],
   },
   cancellation_pending: {
     required: ['planningHandoff', 'plan'],
-    forbidden: ['execution', 'workGraph', 'review'],
+    forbidden: ['execution', 'workGraphProgress', 'workGraph', 'review'],
   },
   replanning_required: {
     required: ['planningHandoff', 'plan'],
-    forbidden: ['execution', 'workGraph', 'review'],
+    forbidden: ['execution', 'workGraphProgress', 'workGraph', 'review'],
   },
 } as const satisfies Record<CanonicalEditJourneyStage, {
   required: readonly JourneyAuthorityField[]
@@ -203,6 +204,29 @@ const canonicalEditJourneyResponseBaseSchema = z.object({
     snapshotId: identity,
     purpose: z.literal('private_internal_execution_handoff'),
   }).strict().optional(),
+  workGraphProgress: z.object({
+    packageRecordId: identity,
+    approvedPlanSnapshotId: identity,
+    checkpointHash: sha,
+    checkpointSequence: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+    status: z.enum([
+      'advancing_private_test_work_graph',
+      'blocked_required_jobs',
+    ]),
+    runFinished: z.boolean(),
+    updatedAt: z.string().datetime({ offset: true }),
+    totalJobCount: z.number().int().positive().max(256),
+    completedJobCount: z.number().int().nonnegative().max(256),
+    capabilityBlockedJobCount: z.number().int().nonnegative().max(256),
+    dependencyBlockedJobCount: z.number().int().nonnegative().max(256),
+    pendingJobCount: z.number().int().nonnegative().max(256),
+    requiredIncompleteJobCount: z.number().int().nonnegative().max(256),
+    allRequiredJobsCompleted: z.boolean(),
+    nextRequiredGate: z.enum([
+      'canonical_private_work_graph_advancement',
+      'canonical_job_capability_blockers',
+    ]),
+  }).strict().optional(),
   workGraph: z.object({
     packageRecordId: identity,
     approvedPlanSnapshotId: identity,
@@ -278,6 +302,43 @@ export const canonicalEditJourneyResponseSchema = canonicalEditJourneyResponseBa
 
     if (value.execution && value.approval && value.execution.snapshotId !== value.approval.snapshotId) {
       invalid(context, ['execution', 'snapshotId'], 'Canonical journey execution package is not bound to the approved snapshot.')
+    }
+    if (value.workGraphProgress) {
+      const progress = value.workGraphProgress
+      const resolvedJobCount = progress.completedJobCount +
+        progress.capabilityBlockedJobCount +
+        progress.dependencyBlockedJobCount
+      if (
+        progress.packageRecordId !== value.execution?.packageRecordId ||
+        progress.approvedPlanSnapshotId !== value.approval?.snapshotId ||
+        resolvedJobCount + progress.pendingJobCount !== progress.totalJobCount ||
+        progress.requiredIncompleteJobCount > progress.totalJobCount - progress.completedJobCount ||
+        progress.allRequiredJobsCompleted !== (progress.requiredIncompleteJobCount === 0)
+      ) {
+        invalid(context, ['workGraphProgress'], 'Canonical journey work-graph progress is inconsistent or has invalid lineage.')
+      }
+      if (
+        progress.status === 'advancing_private_test_work_graph' &&
+        (
+          progress.runFinished ||
+          progress.pendingJobCount === 0 ||
+          progress.nextRequiredGate !== 'canonical_private_work_graph_advancement'
+        )
+      ) {
+        invalid(context, ['workGraphProgress'], 'Advancing canonical journey progress is invalid.')
+      }
+      if (
+        progress.status === 'blocked_required_jobs' &&
+        (
+          !progress.runFinished ||
+          progress.pendingJobCount !== 0 ||
+          progress.requiredIncompleteJobCount === 0 ||
+          progress.allRequiredJobsCompleted ||
+          progress.nextRequiredGate !== 'canonical_job_capability_blockers'
+        )
+      ) {
+        invalid(context, ['workGraphProgress'], 'Blocked canonical journey progress is invalid.')
+      }
     }
     if (
       value.workGraph &&

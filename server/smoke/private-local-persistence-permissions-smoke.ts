@@ -206,6 +206,7 @@ try {
     'server/services/credit-gate-service.ts',
     'server/services/approved-snapshot-service.ts',
     'server/services/approved-edit-execution-package-service.ts',
+    'server/services/private-canonical-work-graph-progress-store.ts',
     'server/workers/audio/audio-execution-artifact-writer.ts',
     'server/workers/captions/caption-file-builder.ts',
     'server/workers/color/color-artifact-writer.ts',

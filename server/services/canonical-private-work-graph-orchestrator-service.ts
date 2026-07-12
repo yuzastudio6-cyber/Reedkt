@@ -13,10 +13,19 @@ import {
   type CanonicalPrivateWorkGraphRunResponse,
   type RunCanonicalPrivateWorkGraphBody,
 } from '../validation/canonical-private-work-graph-run-schemas'
+import type {
+  CanonicalPrivateWorkGraphProgressCheckpoint,
+  CanonicalPrivateWorkGraphProgressCheckpointDraft,
+} from '../validation/canonical-private-work-graph-progress-schemas'
 import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
 import { createCanonicalPrivateJobExecutionAdapterService } from './canonical-private-job-execution-adapter-service'
 import { getRequiredAuthUserId } from './service-helpers'
 import { sha256AuthorityValue, stableAuthorityStringify } from './private-edit-authority-store'
+import {
+  persistPrivateCanonicalWorkGraphProgress,
+  readLatestPrivateCanonicalWorkGraphProgress,
+  type CanonicalWorkGraphProgressStoreScope,
+} from './private-canonical-work-graph-progress-store'
 
 const RESPONSE_PATH_PREFIX = 'private-internal/canonical-work-graph-runs/v1'
 const workGraphRunLocks = new Map<string, Promise<void>>()
@@ -78,6 +87,25 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
       return packageCompletionSummary(response)
     },
 
+    async findLatestProgress(input: {
+      packageRecordId: string
+      workspaceId: string
+    }) {
+      if (!safeIdentity(input.packageRecordId) || !safeIdentity(input.workspaceId)) {
+        throw new ApiError('VALIDATION_FAILED', 'Canonical private work-graph progress identity is invalid.', 400)
+      }
+      const actorUserId = getRequiredAuthUserId(context)
+      const packageResult = await createCanonicalEditExecutionPackageService(context).getPackage(
+        input.packageRecordId,
+        input.workspaceId,
+      )
+      const executionPackage = packageResult.approvedEditExecutionPackage
+      const checkpoint = await readLatestPrivateCanonicalWorkGraphProgress(
+        progressStoreScope(context, actorUserId, executionPackage),
+      )
+      return checkpoint ? progressCheckpointSummary(checkpoint) : undefined
+    },
+
     async run(input: RunCanonicalPrivateWorkGraphInput): Promise<CanonicalPrivateWorkGraphRunResponse> {
       const { packageRecordId, idempotencyKey: rawIdempotencyKey, ...requestBody } = input
       const parsed = runCanonicalPrivateWorkGraphSchema.safeParse(requestBody)
@@ -134,6 +162,20 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
         const completedJobIds = new Set<string>()
         const outcomes = new Map<string, CanonicalPrivateWorkGraphJobOutcome>()
         const remaining = new Set(jobs.map((job) => job.id))
+        const progressScope = progressStoreScope(context, actorUserId, executionPackage)
+        await persistPrivateCanonicalWorkGraphProgress({
+          scope: progressScope,
+          draft: progressCheckpointDraft({
+            executionPackage,
+            jobs,
+            workItems,
+            outcomes,
+            remaining,
+            status: 'advancing_private_test_work_graph',
+            runFinished: false,
+            nextRequiredGate: 'canonical_private_work_graph_advancement',
+          }),
+        })
         const adapter = createCanonicalPrivateJobExecutionAdapterService(context)
         let progress = true
         while (progress) {
@@ -183,6 +225,21 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
               })
             }
             remaining.delete(job.id)
+            if (remaining.size > 0) {
+              await persistPrivateCanonicalWorkGraphProgress({
+                scope: progressScope,
+                draft: progressCheckpointDraft({
+                  executionPackage,
+                  jobs,
+                  workItems,
+                  outcomes,
+                  remaining,
+                  status: 'advancing_private_test_work_graph',
+                  runFinished: false,
+                  nextRequiredGate: 'canonical_private_work_graph_advancement',
+                }),
+              })
+            }
             progress = true
           }
         }
@@ -204,6 +261,7 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
               !completedJobIds.has(dependencyJobId)),
           })
         }
+        remaining.clear()
 
         const orderedOutcomes = jobs.map((job) => outcomes.get(job.id)!)
         const completedJobCount = orderedOutcomes.filter((job) => job.status === 'completed_private_test').length
@@ -272,6 +330,19 @@ export function createCanonicalPrivateWorkGraphOrchestratorService(context: Serv
         if (response.summary.allRequiredJobsCompleted) {
           await persistPackageCompletion(context, actorUserId, executionPackage, response)
         }
+        await persistPrivateCanonicalWorkGraphProgress({
+          scope: progressScope,
+          draft: progressCheckpointDraft({
+            executionPackage,
+            jobs,
+            workItems,
+            outcomes,
+            remaining,
+            status,
+            runFinished: true,
+            nextRequiredGate: response.readiness.nextRequiredGate,
+          }),
+        })
         const persisted: PersistedWorkGraphRun = {
           schemaVersion: 'canonical-private-work-graph-run-idempotency-v1',
           requestHash,
@@ -493,6 +564,98 @@ function packageCompletionSummary(response: CanonicalPrivateWorkGraphRunResponse
     requiredBlockedJobCount: 0 as const,
     allRequiredJobsCompleted: true as const,
     nextRequiredGate: 'canonical_terminal_private_review_assembly' as const,
+  }
+}
+
+function progressCheckpointDraft(input: {
+  executionPackage: WorkGraphPackageAuthority
+  jobs: Array<{ id: string; approvedWorkItemId: string }>
+  workItems: ReadonlyMap<string, { required: boolean }>
+  outcomes: ReadonlyMap<string, CanonicalPrivateWorkGraphJobOutcome>
+  remaining: ReadonlySet<string>
+  status: CanonicalPrivateWorkGraphProgressCheckpointDraft['status']
+  runFinished: boolean
+  nextRequiredGate: CanonicalPrivateWorkGraphProgressCheckpointDraft['readiness']['nextRequiredGate']
+}): CanonicalPrivateWorkGraphProgressCheckpointDraft {
+  const completedJobCount = [...input.outcomes.values()].filter((outcome) =>
+    outcome.status === 'completed_private_test').length
+  const capabilityBlockedJobCount = [...input.outcomes.values()].filter((outcome) =>
+    outcome.status === 'blocked_by_job_capability').length
+  const dependencyBlockedJobCount = [...input.outcomes.values()].filter((outcome) =>
+    outcome.status === 'blocked_by_dependency').length
+  const requiredIncompleteJobCount = input.jobs.filter((job) =>
+    input.workItems.get(job.approvedWorkItemId)?.required === true &&
+    input.outcomes.get(job.id)?.status !== 'completed_private_test').length
+  return {
+    schemaVersion: 'canonical-private-work-graph-progress-checkpoint-v1',
+    source: 'canonical_private_work_graph_orchestrator',
+    identity: {
+      workspaceId: input.executionPackage.workspaceId,
+      projectId: input.executionPackage.projectId,
+      editSessionId: input.executionPackage.editSessionId,
+      packageRecordId: input.executionPackage.packageRecordId,
+      approvedPlanSnapshotId: input.executionPackage.approvedPlanSnapshotId,
+    },
+    status: input.status,
+    runFinished: input.runFinished,
+    summary: {
+      totalJobCount: input.jobs.length,
+      completedJobCount,
+      capabilityBlockedJobCount,
+      dependencyBlockedJobCount,
+      pendingJobCount: input.remaining.size,
+      requiredIncompleteJobCount,
+      allRequiredJobsCompleted: requiredIncompleteJobCount === 0,
+    },
+    readiness: {
+      privateInternalWorkGraphCompleted: input.status === 'completed_private_test_work_graph',
+      privateReviewReady: false,
+      productReady: false,
+      externalBetaReady: false,
+      productionReady: false,
+      nextRequiredGate: input.nextRequiredGate,
+    },
+    persistence: {
+      privateLocal: true,
+      tenantScoped: true,
+      contentAddressedCheckpoint: true,
+      immutableCheckpoint: true,
+      atomicLatestPointer: true,
+      checksumProtected: true,
+      distributed: false,
+      productionAuthority: false,
+    },
+    testOnly: true,
+  }
+}
+
+function progressCheckpointSummary(checkpoint: CanonicalPrivateWorkGraphProgressCheckpoint) {
+  return {
+    packageRecordId: checkpoint.identity.packageRecordId,
+    approvedPlanSnapshotId: checkpoint.identity.approvedPlanSnapshotId,
+    checkpointHash: checkpoint.checkpointHash,
+    checkpointSequence: checkpoint.checkpointSequence,
+    status: checkpoint.status,
+    runFinished: checkpoint.runFinished,
+    updatedAt: checkpoint.updatedAt,
+    ...checkpoint.summary,
+    nextRequiredGate: checkpoint.readiness.nextRequiredGate,
+  }
+}
+
+function progressStoreScope(
+  context: ServiceContext,
+  actorUserId: string,
+  executionPackage: WorkGraphPackageAuthority,
+): CanonicalWorkGraphProgressStoreScope {
+  return {
+    localStorageRoot: context.env.localStorageRoot,
+    ownerUserId: actorUserId,
+    workspaceId: executionPackage.workspaceId,
+    projectId: executionPackage.projectId,
+    editSessionId: executionPackage.editSessionId,
+    packageRecordId: executionPackage.packageRecordId,
+    approvedPlanSnapshotId: executionPackage.approvedPlanSnapshotId,
   }
 }
 
